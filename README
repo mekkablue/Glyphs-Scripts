@@ -1,23 +1,7 @@
-ABOUT
+About
 
 These are Python scripts for the Glyphs font editor <http.//glyphsapp.com/>.
 
-
-INSTALLATION
+Installation
 
 Put them into your ~/Library/Application Support/Glyphs/Scripts/ folder.
-
-
-ABOUT THE SCRIPTS
-
-Effects Scripts:
-Wackelpudding and Beowulferize: Select some or all glyphs in the Font tab, then run the script. It will create alternates of the selected glyphs and create a pseudorandom calt feature. Activate it by selecting Contextual Alternates in e.g. InDesign.
-Baseline Wiggle: Creates a pos feature that randomly displaces the glyphs while you type.
-Retract offcurve nodes: Deletes all offcurve points (BCPs). Handy for making sure, your font only consists of straight lines. Turn offcurve into oncurve: Does exactly what the name suggests. Makes fonts look really weird.
-
-Pixelfonts:
-Flashify Pixels: Creates small bridges in order to prevent selfintersection of paths so counters stay white. This is especially a problem for the Flash font renderer, hence the name of the script.
-
-Stylistic Sets: 
-Synchronize ssXX glyphs: Creates missing ssXX glyphs so that you have synchronous groups of ssXX glyphs. E.g. you have a.ss01 b.ss01 c.ss01 a.ss02 c.ss02 --> the script creates b.ss02
-Create pseudorandom calt feature: Creates pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font.
