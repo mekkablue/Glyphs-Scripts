@@ -22,3 +22,6 @@ Flashify Pixels: Creates small bridges in order to prevent selfintersection of p
 Stylistic Sets: 
 Synchronize ssXX glyphs: Creates missing ssXX glyphs so that you have synchronous groups of ssXX glyphs. E.g. you have a.ss01 b.ss01 c.ss01 a.ss02 c.ss02 --> the script creates b.ss02
 Create pseudorandom calt feature: Creates pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font.
+
+Small Caps:
+The 'Make smcp from c2sc' script creates .smcp copies of your .c2sc glyphs, with the .c2sc glyphs inserted as components in the .smcp copies. For example, if you have A.c2sc, the script will create a.smcp and insert A.c2sc as component. It will not do anything in case a.smcp already exists.
