@@ -4,9 +4,11 @@
 import random
 random.seed()
 
-wiggleMax  =  50
-wiggleMin  = -50
-linelength =  70
+wiggleMax  =  20
+wiggleMin  = -20
+linelength =  150
+featurename = "titl"
+classname = "wiggle"
 
 Font = Glyphs.orderedDocuments()[0].font
 Doc  = Glyphs.currentDocument
@@ -51,5 +53,5 @@ for j in range( linelength, 0, -1 ):
 	newline = "pos @wiggle' " + "@wiggle "*j + "<0 " + str( random.randint( wiggleMin, wiggleMax ) ) + " 0 0>;\n"
 	featuretext = featuretext + newline
 
-print create_otclass( classname="@wiggle" )
-print create_otfeature( featurename="calt", featurecode=featuretext )
+print create_otclass( classname=classname )
+print create_otfeature( featurename=featurename, featurecode=featuretext )

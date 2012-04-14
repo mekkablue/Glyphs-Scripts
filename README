@@ -10,18 +10,34 @@ Put them into your ~/Library/Application Support/Glyphs/Scripts/ folder.
 
 ABOUT THE SCRIPTS
 
+Anchors
+Anchor Mover: GUI for moving anchors vertically in multiple glyphs. Handy for getting all top anchors right after changing your cap height. Needs Tal Leming's Vanilla.
+
 Effects Scripts:
 Wackelpudding and Beowulferize: Select some or all glyphs in the Font tab, then run the script. It will create alternates of the selected glyphs and create a pseudorandom calt feature. Activate it by selecting Contextual Alternates in e.g. InDesign.
 Baseline Wiggle: Creates a pos feature that randomly displaces the glyphs while you type.
 Retract offcurve nodes: Deletes all offcurve points (BCPs). Handy for making sure, your font only consists of straight lines. 
 Turn offcurve into oncurve: Does exactly what the name suggests. Makes fonts look really weird.
 
+Hinting
+Delete Hints: Deletes hints in selected glyphs.
+
+Masters:
+Fill up empty layers: copies paths from one Master to another. But only if target master is empty. Needs Vanilla.
+
+Metrics
+Copy sidebearings: steals the sidebearing values from a 2nd font. Needs Vanilla.
+
+OpenType
+Make OT Class from selected glyphs: GUI for creating a new OT class with the selected glyphs. Needs Vanilla.
+
 Pixelfonts:
+Delete duplicate components: Looks for duplicate components (same name and position) and keeps only one.
 Flashify Pixels: Creates small bridges in order to prevent selfintersection of paths so counters stay white. This is especially a problem for the Flash font renderer, hence the name of the script.
 
 Stylistic Sets: 
 Synchronize ssXX glyphs: Creates missing ssXX glyphs so that you have synchronous groups of ssXX glyphs. E.g. you have a.ss01 b.ss01 c.ss01 a.ss02 c.ss02 --> the script creates b.ss02
-Create pseudorandom calt feature: Creates pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font.
+Create pseudorandom calt feature: Creates pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font. Update: now includes the default class in the rotation algorithm.
 
 Small Caps:
 The 'Make smcp from c2sc' script creates .smcp copies of your .c2sc glyphs, with the .c2sc glyphs inserted as components in the .smcp copies. For example, if you have A.c2sc, the script will create a.smcp and insert A.c2sc as component. It will not do anything in case a.smcp already exists.
