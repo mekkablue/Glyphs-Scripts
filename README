@@ -32,6 +32,8 @@ OpenType
 Make OT Class from selected glyphs: GUI for creating a new OT class with the selected glyphs. Needs Vanilla.
 
 Pixelfonts:
+Align anchors to pixelgrid: Moves diacritic anchors onto the grid. Assumes a grid step of 50.
+Delete components out of bounds: If a component is placed far outside the usual coordinates (happens when you cmd-arrow components with a high grid step), this script will delete them.
 Delete duplicate components: Looks for duplicate components (same name and position) and keeps only one.
 Flashify Pixels: Creates small bridges in order to prevent selfintersection of paths so counters stay white. This is especially a problem for the Flash font renderer, hence the name of the script.
 
