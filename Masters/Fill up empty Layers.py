@@ -26,7 +26,7 @@ class MasterFiller(object):
 		myMasterList = []
 
 		for i in range(len(Glyphs.currentDocument.font.masters)):
-			x = Font.masters[i]
+			x = Glyphs.currentDocument.font.masters[i]
 			myMasterList.append( '%i: %s' % (i, x.name) )
 		
 		return myMasterList
