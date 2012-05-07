@@ -1,15 +1,14 @@
 #MenuTitle: Make smcp from c2sc
 """
-Makes component based smcp glyphs,
-using the c2sc glyphs as components
+Makes component based smcp glyphs, using the c2sc glyphs as components.
+Ignores selected glyphs without a .c2sc ending.
 """
 
 import GlyphsApp
 
 Font = Glyphs.orderedDocuments()[0].font
 Doc  = Glyphs.currentDocument
-FontMaster = Doc.selectedFontMaster()
-selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
+selectedGlyphs = [ x.parent for x in Doc.selectedLayers() if x.parent.name[-5:] == ".smcp" ]
 
 def c2scToSmcpName( c2scname ):
 	"""Turns 'Aacute.c2sc' into 'aacute.smcp'."""
@@ -18,24 +17,35 @@ def c2scToSmcpName( c2scname ):
 	return glyphname + suffix
 
 def process( c2scGlyph ):
+	
 	# Check if the smcpGlyph already exists
+	c2scName = c2scGlyph.name
 	smcpName = c2scToSmcpName( c2scGlyph.name )
+	
 	if Font.glyphs[ smcpName ] == None:
 
 		# Create the smcpGlyph:
 		smcpGlyph = GSGlyph()
 		smcpGlyph.name = smcpName
-		Font.glyphs.append( smcpGlyph )
+		Font.glyphs.append( smcpGlyph ) # now there must be a Font.glyphs[ smcpName ]
 	
 		# Fill up smcpGlyph's layers with corresponding c2scGlyphs as components:
-		c2scComponent = GSComponent( c2scGlyph.name )
-		for thisLayer in smcpGlyph.layers:
-			thisLayer.components.append( c2scComponent )
+		smcpGlyph = Font.glyphs[ c2scName ]
+		print "Processing %s >>> %s (%i layers):" % (c2scGlyph.name, smcpGlyph.name, len([l for l in smcpGlyph.layers]))
+
+		for m in range(len( Font.masters )):
+			currentMaster = Font.masters[ m ]
+			currentLayer = smcpGlyph.layers[ currentMaster.id ]
+			print "   Master: %s" % currentMaster.name
+			c2scComponent = GSComponent( c2scName )
+			currentLayer.components.append( c2scComponent )
+
+	else:
+		print "%s already exists." % c2scName
 
 Font.willChangeValueForKey_("glyphs")
 
 for thisGlyph in selectedGlyphs:
-	print "Processing", thisGlyph.name
 	process( thisGlyph )
 
 Font.didChangeValueForKey_("glyphs")
