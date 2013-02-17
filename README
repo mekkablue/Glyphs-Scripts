@@ -6,18 +6,25 @@ These are Python scripts for use with the Glyphs font editor <http://glyphsapp.c
 INSTALLATION
 
 Put the scripts into your ~/Library/Application Support/Glyphs/Scripts/ folder.
-You will also need to install Tal Leming's Vanilla. Here's how. Open Terminal and copy and paste each of the following four lines and hit return. Notes: the second line (svn...) may take a while, the fourth line (sudo...) will prompt you for your password.
+For some scripts, you will also need to install Tal Leming's Vanilla. Here's how. Open Terminal and copy and paste each of the following four lines and hit return. Notes: the second line (svn...) may take a while, the fourth line (sudo...) will prompt you for your password.
 
 cd ~/Library/
 svn co http://svn.typesupply.com/packages/vanilla
 cd vanilla/trunk/
 sudo python setup.py install
 
+And if you are running Glyphs on Lion (10.7) or later, you may want to add:
+
+sudo cp /Library/Python/2.6/site-packages/vanilla* /Library/Python/2.7/site-packages/
+
 
 ABOUT THE SCRIPTS
 
 Anchors
 Anchor Mover: GUI for moving anchors vertically in multiple glyphs. Handy for getting all top anchors right after changing your cap height. Needs Vanilla.
+Move top anchors: Moves top anchors in all selected glyphs to the new_y value specified in the .py file.
+Put accents on new anchors in all layers: Repositions accents, by default the 'acute' accent from 'top' to 'top_viet'. 
+Report top anchors: Reporty the y positions of all top anchors into the Macro Panel.
 
 Components
 Replace components: relinks components in selected glyphs to a new source glyph. Needs Vanilla.
