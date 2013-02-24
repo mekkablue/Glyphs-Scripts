@@ -3,50 +3,48 @@
 
 import GlyphsApp
 
-Font = Glyphs.orderedDocuments()[0].font
 Doc  = Glyphs.currentDocument
-FontMaster = Doc.selectedFontMaster()
-selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
+Font = Glyphs.font
+selectedLayers = Doc.selectedLayers()
 
-def getAttr( thisGlyph, compNumber ):
-	return [thisGlyph.components[compNumber].componentName, thisGlyph.components[compNumber].x, thisGlyph.components[compNumber].y]
 
-def scanForDuplicates( thisGlyph, compNumber ):
-	# hint: 'thisGlyph' is just the *layer* of the glyph that was passed to the function
-	
-	if compNumber == len( thisGlyph.components ) - 1:
+def getAttr( thisLayer, compNumber ):
+	return [thisLayer.components[compNumber].componentName, thisLayer.components[compNumber].x, thisLayer.components[compNumber].y]
+
+
+def scanForDuplicates( thisLayer, compNumber ):
+	if compNumber == len( thisLayer.components ) - 1:
 		return []
 	else:
-		indexList = scanForDuplicates( thisGlyph, compNumber + 1 )
-		currAttr = getAttr( thisGlyph, compNumber )
+		indexList = scanForDuplicates( thisLayer, compNumber + 1 )
+		currAttr = getAttr( thisLayer, compNumber )
 		
-		for i in range( compNumber + 1, len( thisGlyph.components ) ):
-			if currAttr == getAttr( thisGlyph, i ):
+		for i in range( compNumber + 1, len( thisLayer.components ) ):
+			if currAttr == getAttr( thisLayer, i ):
 				indexList.append(i)
 		
 		return sorted( set( indexList ) )
 
-def process( thisGlyph ):
-	thisLayer = thisGlyph.layers[FontMaster.id]
-	
+
+def process( thisLayer ):
 	if len( thisLayer.components ) != 0:
-		thisGlyph.undoManager().disableUndoRegistration()
+		thisLayer.parent.undoManager().beginUndoGrouping()
 	
 		indexesToBeDeleted = scanForDuplicates( thisLayer, 0 )
 		for indexToBeDeleted in indexesToBeDeleted[::-1]:
 			del thisLayer.components[indexToBeDeleted]
 		print len( indexesToBeDeleted )
 	
-		thisGlyph.undoManager().enableUndoRegistration()
+		thisLayer.parent.undoManager().endUndoGrouping()
 	else:
-		print "n/a"
-	
+		# no components in this layer
+		print "n/a" 
 
-Font.willChangeValueForKey_("glyphs")
 
-for thisGlyph in selectedGlyphs:
-	print "Components deleted in %s:" % thisGlyph.name,
-	process( thisGlyph )
+Font.disableUpdateInterface()
 
-Font.didChangeValueForKey_("glyphs")
+for thisLayer in selectedLayers:
+	print "Components deleted in %s:" % thisLayer.parent.name,
+	process( thisLayer )
 
+Font.enableUpdateInterface()

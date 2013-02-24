@@ -1,53 +1,51 @@
 #MenuTitle: Delete components out of bounds
 """Looks for components out of bounds."""
 
-import GlyphsApp
-
-Font = Glyphs.orderedDocuments()[0].font
-Doc  = Glyphs.currentDocument
-FontMaster = Doc.selectedFontMaster()
-selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
-
 outOfBounds = 3000.0
 
-def getAttr( thisGlyph, compNumber ):
-	return [thisGlyph.components[compNumber].componentName, thisGlyph.components[compNumber].x, thisGlyph.components[compNumber].y]
+import GlyphsApp
+import math 
 
-def scanForDuplicates( thisGlyph ):
-	# hint: 'thisGlyph' is just the *layer* of the glyph that was passed to the function
+Doc  = Glyphs.currentDocument
+Font = Glyphs.font
+selectedLayers = Doc.selectedLayers()
+
+def scanOutOfBounds( thisLayer ):
 	
-	complist = [c for c in thisGlyph.components]
-	indexesToBeDeleted = []
+	listOfComponents = [c for c in thisLayer.components]
+	indexesOutOfBounds = []
 
-	for i in range( len( complist )):
-		c = complist[i]
-		#print i, c.componentName, int(c.x), int(c.y)
-		if c.y > outOfBounds or c.y < -outOfBounds or c.x < -outOfBounds or c.x > outOfBounds:
-			indexesToBeDeleted.append(i)
+	for i in range( len( listOfComponents )):
+		c = thisLayer.components[i]
+		if math.fabs(c.y) > outOfBounds or math.fabs(c.x) > outOfBounds:
+			indexesOutOfBounds.append(i)
 	
-	return sorted( set( indexesToBeDeleted ) )
+	return sorted( set( indexesOutOfBounds ) )
 
-def process( thisGlyph ):
-	thisLayer = thisGlyph.layers[FontMaster.id]
+def process( thisLayer ):
+	glyphName = thisLayer.parent.name
 	
 	if len( thisLayer.components ) != 0:
-		thisGlyph.undoManager().disableUndoRegistration()
+		thisLayer.parent.undoManager().beginUndoGrouping()
 	
-		indexesToBeDeleted = scanForDuplicates( thisLayer )
-		for indexToBeDeleted in indexesToBeDeleted[::-1]:
-			del thisLayer.components[indexToBeDeleted]
-		print len( indexesToBeDeleted )
-	
-		thisGlyph.undoManager().enableUndoRegistration()
+		indexesOutOfBounds = scanOutOfBounds( thisLayer )
+		numberOfOffComponents = len(indexesOutOfBounds)
+
+		if numberOfOffComponents > 0:
+			print "Deleting %i components in %s." % (numberOfOffComponents, glyphName)
+		
+			for indexOutOfBounds in indexesOutOfBounds[::-1]:
+				del thisLayer.components[indexOutOfBounds]
+		else:
+			print "No components out of bounds in %s." % glyphName
+		
+		thisLayer.parent.undoManager().endUndoGrouping()
 	else:
-		print "n/a"
-	
+		print "No components in %s." % glyphName
 
-Font.willChangeValueForKey_("glyphs")
+Font.disableUpdateInterface()
 
-for thisGlyph in selectedGlyphs:
-	print "Components deleted in %s:" % thisGlyph.name,
-	process( thisGlyph )
+for thisLayer in selectedLayers:
+	process( thisLayer )
 
-Font.didChangeValueForKey_("glyphs")
-
+Font.enableUpdateInterface()

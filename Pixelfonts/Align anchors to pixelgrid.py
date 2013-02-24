@@ -1,38 +1,33 @@
-#MenuTitle: Align anchors to pixelgrid
-"""Looks for anchors not on the grid and rounds their coordinate to the closest grid node."""
+#MenuTitle: Align anchors to grid
+"""Looks for anchors not on the grid and rounds their coordinate to the closest grid."""
 
 import GlyphsApp
 
-Font = Glyphs.orderedDocuments()[0].font
 Doc  = Glyphs.currentDocument
-FontMaster = Doc.selectedFontMaster()
-selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
+Font = Glyphs.font
+selectedLayers = Doc.selectedLayers()
 
-pixelwidth = 50.0
+pixelwidth = Font.gridLength # 50.0
 
-def process( thisGlyph ):
-	thisLayer = thisGlyph.layers[FontMaster.id]
-	
-	if len( thisLayer.components ) != 0:
-		thisGlyph.undoManager().disableUndoRegistration()
-		
-		l = thisLayer.anchors
-		anchorList = [ {"name": l[x].name, "x": l[x].x, "y": l[x].y, "index": x} for x in range( len(l) ) ]
+def process( thisLayer ):
+	if len( thisLayer.anchors ) != 0:
+		thisLayer.parent.undoManager().beginUndoGrouping()
+		anchorList = thisLayer.anchors
 		for a in anchorList:
-			xrest, yrest = ( a["x"] % pixelwidth ), ( a["y"] % pixelwidth )
+			xrest = a.x % pixelwidth
+			yrest = a.y % pixelwidth
 			
 			if xrest or yrest:
-				thisLayer.anchors[a["index"]].x = ( round( a["x"]/pixelwidth ) * pixelwidth )
-				thisLayer.anchors[a["index"]].y = ( round( a["y"]/pixelwidth ) * pixelwidth )
-				print "%s: %s %i|%i --> %i|%i" % ( thisGlyph.name, a["name"], int(a["x"]), int(a["y"]), int(thisLayer.anchors[a["index"]].x), int(thisLayer.anchors[a["index"]].y) )
-		
-		thisGlyph.undoManager().enableUndoRegistration()
+				oldX = a.x
+				oldY = a.y
+				a.position = ( round( a.x/pixelwidth ) * pixelwidth, round( a.y/pixelwidth ) * pixelwidth )
+				print "%s: %s %i|%i --> %i|%i" % ( thisLayer.parent.name, a.name, int(oldX), int(oldY), int(a.x), int(a.y) )
+		thisLayer.parent.undoManager().endUndoGrouping()
 
+Font.disableUpdateInterface()
 
-Font.willChangeValueForKey_("glyphs")
+for thisLayer in selectedLayers:
+	process( thisLayer )
 
-for thisGlyph in selectedGlyphs:
-	process( thisGlyph )
-
-Font.didChangeValueForKey_("glyphs")
+Font.enableUpdateInterface()
 
