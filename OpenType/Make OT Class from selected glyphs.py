@@ -5,11 +5,12 @@ import vanilla
 
 class OTClassCreator( object ):
 	def __init__( self ):
-		self.w = vanilla.FloatingWindow( (300, 60), "Make OT class" )
+		self.w = vanilla.FloatingWindow( (300, 80), "Make OT class" )
 		
 		self.w.text_otclass = vanilla.TextBox((15, 12+2, 130, 14), "OT class name:", sizeStyle='small')
 		self.w.class_name = vanilla.EditText((105, 12, -90, 17), "xxxx", sizeStyle='small', callback=self.buttonCheck)
-		self.w.class_name_check = vanilla.TextBox((15, 32+2, -15, 14), "Class name appears to be ok.", sizeStyle='small')
+		self.w.overwrite_check = vanilla.CheckBox((105, 32+2, -15, 20), "Overwrite existing class", sizeStyle='small', callback=self.buttonCheck, value=True)
+		self.w.class_name_check = vanilla.TextBox((105-2, 32+5+20, -15, 14), "Class name appears to be ok.", sizeStyle='small')
 		self.w.make_button = vanilla.Button((-80, 12, -15, 17), "Create", sizeStyle='small', callback=self.createClass)
 		#self.w.setDefaultButton( self.w.make_button )
 
@@ -18,13 +19,17 @@ class OTClassCreator( object ):
 		
 	def buttonCheck( self, sender ):
 		myClassName = sender.get()
-		existingClasses = [ x.name for x in Glyphs.orderedDocuments()[0].font.classes ]
+		existingClasses = [ c.name for c in Glyphs.font.classes ]
 		
-		print existingClasses
+		#print existingClasses
 		
 		if myClassName in existingClasses:
-			self.w.make_button.enable( False )
-			self.w.class_name_check.set( "Class name alrady exists." )
+			if self.w.overwrite_check.get() == False:
+				self.w.make_button.enable( False )
+				self.w.class_name_check.set( "Class name already exists." )
+			else:
+				self.w.make_button.enable( True )
+				self.w.class_name_check.set( "Will overwrite existing class." )
 		elif len( myClassName ) == 0 :
 			self.w.make_button.enable( False )
 			self.w.class_name_check.set( "Class name too short." )
@@ -46,18 +51,25 @@ class OTClassCreator( object ):
 	
 	def createClass(self, sender):
 		Doc = Glyphs.currentDocument
-		selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
-		listOfNames = [ x.name for x in selectedGlyphs ]
+		Font = Glyphs.font
 		
-		myClassName = self.w.class_name.get()
-		#print "create class:", myClassName
+		listOfGlyphNames = [ x.parent.name for x in Doc.selectedLayers() ]
+		listOfClasses = Font.classes
+		listOfClassNames = [ c.name for c in listOfClasses ]
 		
-		myNewClass = GSClass()
-		myNewClass.name = myClassName
-		myNewClass.code = " ".join( listOfNames )
+		myClassName = str( self.w.class_name.get() )
+		myClassCode = " ".join( listOfGlyphNames )
 		
-		Font = Glyphs.orderedDocuments()[0].font
-		Font.classes.append( myNewClass )
+		if myClassName in listOfClassNames:
+			print "Changing class", myClassName, "to these glyphs:", myClassCode
+			Font.classes[ myClassName ].code = myClassCode
+			
+		else:
+			print "Creating class", myClassName, "with these glyphs:", myClassCode
+			myNewClass = GSClass()
+			myNewClass.name = myClassName
+			myNewClass.code = myClassCode
+			Font.classes.append( myNewClass )
 		
 		self.w.close()
 		
