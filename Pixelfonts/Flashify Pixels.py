@@ -3,7 +3,7 @@
 
 import GlyphsApp
 
-Font    = Glyphs.orderedDocuments()[0].font
+Font    = Glyphs.font
 Doc     = Glyphs.currentDocument
 layers  = Doc.selectedLayers()
 removeOverlapFilter = NSClassFromString("GlyphsFilterRemoveOverlap").alloc().init()
@@ -15,21 +15,19 @@ def karo( x, y ):
 	for xy in koordinaten:
 		newnode = GSNode()
 		newnode.type = GSLINE
-		newnode.setPosition_((xy[0], xy[1]))
-		karo.addNode_( newnode )
-	karo.setClosePath_( True )
+		newnode.position = (xy[0], xy[1])
+		karo.nodes.append( newnode )
+	karo.closed = True
 
 	return karo
 
-def process( thisglyph ):
-	thisglyph.undoManager().disableUndoRegistration()
+def process( thisLayer ):
+	thisLayer.parent.undoManager().beginUndoGrouping()
 
-	FontMaster = Doc.selectedFontMaster()
-	thislayer = thisglyph.layers[FontMaster.id]
 	coordinatelist  = []
-	for thispath in thislayer.paths:
-		for thisnode in thispath.nodes:
-			coordinatelist.append([ thisnode.x, thisnode.y ])
+	for thisPath in thisLayer.paths:
+		for thisNode in thisPath.nodes:
+			coordinatelist.append([ thisNode.x, thisNode.y ])
 
 	mylength = len( coordinatelist )
 	
@@ -37,24 +35,25 @@ def process( thisglyph ):
 		for cur2 in range( cur1+1, mylength, 1 ):
 			if coordinatelist[cur1] == coordinatelist[cur2]:
 				[ my_x, my_y ] = coordinatelist[ cur1 ]
-				mypath = karo( my_x, my_y )
-				thislayer.addPath_( mypath )
-				print thisglyph.name, ":", my_x, my_y
+				myPath = karo( my_x, my_y )
+				thisLayer.paths.append( myPath )
+				print thisLayer.parent.name, ":", my_x, my_y
 
-	thisglyph.undoManager().enableUndoRegistration()
+	thisLayer.parent.undoManager().endUndoGrouping()
 
 print "Flashifying " + str( Font.familyName )
 
-if Font.gridLength > 1:
-	print "Set gridstep to 1."
+oldGridstep = Font.gridLength
+if oldGridstep > 1:
 	Font.gridLength = 1
 
-Font.willChangeValueForKey_("glyphs")
+Font.disableUpdateInterface()
 
 for thisLayer in layers:
 	removeOverlapFilter.runFilterWithLayer_error_( thisLayer, None )
-	thisGlyph = thisLayer.parent
-	process( thisGlyph )
-	#removeOverlapFilter.runFilterWithLayer_error_(thisLayer, None)
+	process( thisLayer )
+	removeOverlapFilter.runFilterWithLayer_error_( thisLayer, None )
 
-Font.didChangeValueForKey_("glyphs")
+Font.enableUpdateInterface()
+
+Font.gridLength = oldGridstep
