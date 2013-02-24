@@ -1,101 +1,101 @@
 #MenuTitle: Beowulferize
 """Turns selected glyphs into a pseudorandom Beowulf-lookalike."""
 
-#Bitte den eigenen Beduerfnissen anpassen:
-alphabets = 5    # wie viele Varianten angelegt werden sollen
-shatter = 12     # wie weit sich jeder einzelne Punkt verschieben darf
-reiterations = 2 # wie oft verschoben werden darf
-linelength = 70  # Laenge der Zeile, in der das Feature wirkt
+# Please adjust to your own needs:
 
-import random
+alphabets = 5    # how many variants of each glyph will be created
+shatter = 12     # how far each single node may be moved each time
+reiterations = 2 # how often a node may be moved
+linelength = 70  # maximum number of letters in a line for which the feature works
+
 import GlyphsApp
-#import EasyDialogs
-
-Font        = Glyphs.orderedDocuments()[0].font
-Doc         = Glyphs.currentDocument
-glyphen     = [ x.parent for x in Doc.selectedLayers() ]
-listofnames = [ dieseglyphe.name for dieseglyphe in glyphen ]
+import random
 random.seed()
 
-def zufall( min, max ):
+Doc         = Glyphs.currentDocument
+Font        = Glyphs.font
+glyphen     = [ x.parent for x in Doc.selectedLayers() ]
+listOfNames = [ thisGlyph.name for thisGlyph in glyphen ]
+
+def randomize( min, max ):
 	return random.randint( min, max )
 
 def glyphcopy( source, target ):
-	sourceglyph = glyphen[ source ]
-	targetglyph = sourceglyph.copy()
-	glyphen.append( targetglyph )
-	Font.glyphs.append(targetglyph)
+	sourceGlyph = glyphen[ source ]
+	targetGlyph = sourceGlyph.copy()
+	glyphen.append( targetGlyph )
+	Font.glyphs.append(targetGlyph)
 
-def process( thisglyph ):
+def process( thisGlyph ):
 	FontMaster = Doc.selectedFontMaster()
-	thisglyph.undoManager().disableUndoRegistration()
-	thislayer = thisglyph.layers[FontMaster.id]
-	for thisPath in thislayer.paths:
+	thisLayer = thisGlyph.layers[FontMaster.id]
+	
+	thisGlyph.undoManager().beginUndoGrouping()
+
+	for thisPath in thisLayer.paths:
 		for thisNode in thisPath.nodes:
-			zufall_x = zufall( -shatter, shatter )
-			zufall_y = zufall( -shatter, shatter )
-			thisNode.x = thisNode.x + zufall_x
-			thisNode.y = thisNode.y + zufall_y
+			randomize_x = randomize( -shatter, shatter )
+			randomize_y = randomize( -shatter, shatter )
+			thisNode.x = thisNode.x + randomize_x
+			thisNode.y = thisNode.y + randomize_y
 
-	thisglyph.undoManager().enableUndoRegistration()
+	thisGlyph.undoManager().endUndoGrouping()
 
-#beometer    = EasyDialogs.ProgressBar("Beowulferizing " + str(Font.familyName), maxval = len( glyphen ) * alphabets * 2 + alphabets + 1, label='Erstelle Variationen')
+
+
 print "Beowulferizing " + str(Font.familyName)
-
 glyphsToProcess = glyphen[:]
-Font.willChangeValueForKey_("glyphs")
-#beometer.label( 'Erstelle Glyphen' )
+Font.disableUpdateInterface()
+
+
+
+# Create Glyph Variants:
+
 print 'Creating alternative glyphs for:',
 for thisGlyph in glyphen:
 	print thisGlyph.name,
 	for runde in range( alphabets ):
-		newname = thisGlyph.name+".calt"+str(runde)
-		targetglyph = thisGlyph.copy()
-		targetglyph.name = newname
-		glyphsToProcess.append( targetglyph )
-		Font.glyphs.append(targetglyph)
-		#beometer.inc()
+		newName = thisGlyph.name+".calt"+str(runde)
+		targetGlyph = thisGlyph.copy()
+		targetGlyph.name = newName
+		glyphsToProcess.append( targetGlyph )
+		Font.glyphs.append( targetGlyph )
 
-Font.didChangeValueForKey_("glyphs")
-
-#beometer.label("Verforme Glyphen")
 print "\nDeforming glyphs",
 for thisGlyph in glyphsToProcess:
-	#for runde in range( alphabets ):
-		print ".",
-		for iteration in range( reiterations ):
-			process( thisGlyph )
-			#beometer.inc()
+	print ".",
+	for iteration in range( reiterations ):
+		process( thisGlyph )
 
-# Klassen
-#beometer.label("Erstelle OT-Klasse: @default")
+
+
+# Create Classes:
+
 print "\nCreating OT class: @default"
 defaultclass = GSClass()
 defaultclass.name = "@default"
-defaultclass.code = " ".join(listofnames)
-Font.classes.append(defaultclass)
+defaultclass.code = " ".join( listOfNames )
+Font.classes.append( defaultclass )
 
 for i in range(alphabets):
 	mynewclass = GSClass()
 	mynewclass.name = "@calt"+str(i)
-	mynewclass.code = " ".join([glyphname+".calt"+str(i) for glyphname in listofnames])
-	Font.classes.append(mynewclass)
-	#beometer.label("Erstelle OT-Klasse: " + mynewclass.name)
-	#beometer.inc()
+	mynewclass.code = " ".join( [glyphName+".calt"+str(i) for glyphName in listOfNames] )
+	Font.classes.append( mynewclass )
 	print "Creating OT class: " + mynewclass.name
 
 
-# Feature
-#beometer.label( "Erstelle OT-Feature: calt" )
-#beometer.inc()
+
+# Create OT Feature:
+
 print "Creating OT feature: calt"
 myNewFeature = GSFeature()
 myNewFeature.name = "calt"
 featuretext = ""
 for i in range( (alphabets * ( linelength//alphabets ) + 1), 0, -1 ):
-	newline = "  sub @default' " + "@default "*i + "by @calt"+str((range(alphabets)*((linelength//alphabets)+2))[i])+";\n"
+	newline = "  sub @default' " + "@default "*i + "by @calt"+str( (range(alphabets)*((linelength//alphabets)+2))[i] )+";\n"
 	featuretext = featuretext + newline
 myNewFeature.code = featuretext
 Font.features.append(myNewFeature)
 
-#del beometer
+Font.enableUpdateInterface()

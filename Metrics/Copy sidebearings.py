@@ -3,11 +3,6 @@
 
 import vanilla
 
-Font = Glyphs.orderedDocuments()[0].font
-Doc  = Glyphs.currentDocument
-FontMaster = Doc.selectedFontMaster()
-selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
-
 class MetricsCopy(object):
 	"""GUI for copying glyph metrics from one font to another"""
 	def __init__(self):
@@ -54,8 +49,6 @@ class MetricsCopy(object):
 		
 		print "Copying", len(Glyphs_selected), "glyph metrics from", Font_source.familyName, "to", Font_target.familyName, ":"
 		
-		#progress = self.startProgress( "Copying metrics for selected glyphs...", len(Glyphs_selected) )
-
 		try:
 			for thisLayer in Glyphs_selected:
 					glyphName = thisLayer.parent.name
@@ -64,39 +57,14 @@ class MetricsCopy(object):
 					thisLayer.setLSB_( sourceLayer.LSB )
 					thisLayer.setRSB_( sourceLayer.RSB )
 				
-					#progress.update()
 					print "   ", thisLayer.LSB, "<-", glyphName, "->", thisLayer.RSB
 					
 		except Exception, e:
 			self.showMessage( "Error", e )
 			
 		finally:
-			#progress.close()
 			pass
 
 		self.w.close()
 		
 MetricsCopy()
-
-
-
-#def process( thisGlyph ):
-#	thisLayer = thisGlyph.layers[FontMaster.id]
-#
-#	thisGlyph.undoManager().disableUndoRegistration()
-#
-#	for thisPath in thisLayer.paths:
-#		for thisNode in thisPath.nodes:
-#			print thisNode.x, thisNode.y, thisNode.type
-#
-#	thisGlyph.undoManager().enableUndoRegistration()
-#
-#Font.willChangeValueForKey_("glyphs")
-#
-#for thisGlyph in selectedGlyphs:
-#	print "Processing", thisGlyph.name
-#	process( thisGlyph )
-#
-#Font.didChangeValueForKey_("glyphs")
-#
-#

@@ -10,21 +10,18 @@ linelength =  150
 featurename = "titl"
 classname = "wiggle"
 
-Font = Glyphs.orderedDocuments()[0].font
 Doc  = Glyphs.currentDocument
+Font = Glyphs.font
 
 def create_otclass( classname   = "@default", 
                     classglyphs = [ x.parent.name for x in Doc.selectedLayers() ], 
-                    targetfont  = Glyphs.orderedDocuments()[0].font ):
+                    targetfont  = Glyphs.font ):
 	"""
 	Creates an OpenType class in the font.
 	Default: class @default with currently selected glyphs in the current font.
 	Returns a status message in form of a string.
 	"""
 	
-	if not classname[0] == "@":
-		classname = "@"+classname
-		
 	newClass = GSClass()
 	newClass.name = classname
 	newClass.code = " ".join( classglyphs )
@@ -34,7 +31,7 @@ def create_otclass( classname   = "@default",
 
 def create_otfeature( featurename = "calt", 
                       featurecode = "sub a' a by a.alt;", 
-                      targetfont  = Glyphs.orderedDocuments()[0].font ):
+                      targetfont  = Glyphs.currentDocument.font ):
 	"""
 	Creates an OpenType feature in the font.
 	Default: calt with "sub a' a by a.alt;" in the current font.

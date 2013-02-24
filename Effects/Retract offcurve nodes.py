@@ -7,23 +7,23 @@ selectedLayers = Doc.selectedLayers()
 GSOFFCURVE = 65
 
 def process( thisLayer ):
-	#thisLayer.undoManager().disableUndoRegistration()
+	thisLayer.undoManager().beginUndoGrouping()
 
 	for thisPath in thisLayer.paths:
 		for x in reversed( range( len( thisPath.nodes ))):
 			thisNode = thisPath.nodes[x]
-			if thisNode.type == 65:
+			if thisNode.type == GSOFFCURVE:
 				del thisPath.nodes[x]
 			else:
 				thisNode.type = 1
 
-	#thisLayer.undoManager().enableUndoRegistration()
+	thisLayer.undoManager().endUndoGrouping()
 
-Font.willChangeValueForKey_("glyphs")
+Font.disableUpdateInterface()
 
 for thisLayer in selectedLayers:
 	print "Processing", thisLayer.parent.name
 	process( thisLayer )
 
-Font.didChangeValueForKey_("glyphs")
+Font.enableUpdateInterface()
 

@@ -4,28 +4,15 @@
 import GlyphsApp
 myAnchor = "top"
 
-Font = Glyphs.orderedDocuments()[0].font
 Doc  = Glyphs.currentDocument
-FontMaster = Doc.selectedFontMaster()
-selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
+selectedLayers = Doc.selectedLayers()
 
-def process( thisGlyph ):
-	thisLayer = thisGlyph.layers[FontMaster.id]
-
-	thisGlyph.undoManager().disableUndoRegistration()
-
+def process( thisLayer ):
 	try:
-		myY = thisLayer.anchors[myAnchor].y
-		print thisGlyph.name, "--->", myY
+		myY = thisLayer.anchors[ myAnchor ].y
+		print thisLayer.parent.name, "--->", myY
 	except Exception, e:
-		print thisGlyph.name, "has no %s anchor." % myAnchor
+		print thisLayer.parent.name, "has no %s anchor." % myAnchor
 
-	thisGlyph.undoManager().enableUndoRegistration()
-
-Font.willChangeValueForKey_("glyphs")
-
-for thisGlyph in selectedGlyphs:
-	process( thisGlyph )
-
-Font.didChangeValueForKey_("glyphs")
-
+for thisLayer in selectedLayers:
+	process( thisLayer )

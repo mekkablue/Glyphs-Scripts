@@ -3,9 +3,8 @@
 
 import GlyphsApp
 
-Font = Glyphs.orderedDocuments()[0].font
 Doc  = Glyphs.currentDocument
-FontMaster = Doc.selectedFontMaster()
+Font = Glyphs.font
 selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
 
 def process( thisGlyph ):
@@ -14,10 +13,10 @@ def process( thisGlyph ):
 	thisGlyph.name = newName
 	print oldName, "-->", thisGlyph.name
 
-Font.willChangeValueForKey_("glyphs")
+Font.disableUpdateInterface()
 
 for thisGlyph in selectedGlyphs:
 	process( thisGlyph )
 
-Font.didChangeValueForKey_("glyphs")
+Font.enableUpdateInterface()
 

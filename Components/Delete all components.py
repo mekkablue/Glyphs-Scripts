@@ -3,17 +3,14 @@
 
 import GlyphsApp
 
-Font = Glyphs.orderedDocuments()[0].font
 Doc  = Glyphs.currentDocument
-FontMaster = Doc.selectedFontMaster()
-selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
+selectedLayers = Doc.selectedLayers()
 
-def process( thisGlyph ):
-	thisLayer = thisGlyph.layers[FontMaster.id]
-
+def process( thisLayer ):
 	while len(thisLayer.components) > 0:
+		print "  Deleting component", thisLayer.components[0].componentName
 		del thisLayer.components[0]
 
-for thisGlyph in selectedGlyphs:
-	print "Processing", thisGlyph.name
-	process( thisGlyph )
+for thisLayer in selectedLayers:
+	print "Processing", thisLayer.parent.name
+	process( thisLayer )

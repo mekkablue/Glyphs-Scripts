@@ -3,9 +3,8 @@
 
 import GlyphsApp
 
-Font = Glyphs.orderedDocuments()[0].font
 Doc  = Glyphs.currentDocument
-FontMaster = Doc.selectedFontMaster()
+Font = Glyphs.font
 selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
 
 def process( thisGlyph ):
@@ -13,11 +12,10 @@ def process( thisGlyph ):
 		for x in reversed(range(len(thisLayer.hints))):
 			del thisLayer.hints[x]
 		
-Font.willChangeValueForKey_("glyphs")
+Font.disableUpdateInterface()
 
 for thisGlyph in selectedGlyphs:
 	print "Processing", thisGlyph.name
 	process( thisGlyph )
 
-Font.didChangeValueForKey_("glyphs")
-
+Font.enableUpdateInterface()

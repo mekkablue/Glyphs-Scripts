@@ -55,8 +55,7 @@ class AnchorMover(object):
 		selectedLayers = Glyphs.currentDocument.selectedLayers()
 		
 		for thisLayer in selectedLayers:
-			l = thisLayer.anchors
-			AnchorNames = [l[x].name for x in range(len(l))]
+			AnchorNames = list( thisLayer.anchors.keys() ) # hack to avoid traceback
 
 			for thisAnchorName in AnchorNames:
 				if thisAnchorName not in myAnchorList:

@@ -10,12 +10,12 @@ import math
 import random
 random.seed()
 
-Font = Glyphs.orderedDocuments()[0].font
 Doc  = Glyphs.currentDocument
+Font = Glyphs.font
 FontMaster = Doc.selectedFontMaster()
 selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
 
-def zufall( min, max ):
+def randomize( min, max ):
 	return random.randint( min, max )
 
 def rotate( x, y, angle=180.0, x_orig=0.0, y_orig=0.0):
@@ -53,7 +53,7 @@ def make_ssXX( thisGlyph, number ):
 def wiggle( thisGlyph, maxangle ):
 	rotateby = 0
 	while rotateby == 0:
-		rotateby = zufall( -maxangle, maxangle )
+		rotateby = randomize( -maxangle, maxangle )
 		
 	for thisLayer in thisGlyph.layers:
 		thisLayer.decomposeComponents() # Sorry about this.
@@ -71,7 +71,7 @@ def makeClass( listOfGlyphNames, className="@default" ):
 	myNewClass.code = " ".join( listOfGlyphNames )
 	Font.classes.append( myNewClass )
 
-def pseudorandomize( myFeature="calt", defaultClassName="@default", pseudoClassName="@calt", alphabets=5, linelength=70):
+def pseudoRandomize( myFeature="calt", defaultClassName="@default", pseudoClassName="@calt", alphabets=5, linelength=70):
 	print "Creating OT feature:", myFeature
 	myNewFeature = GSFeature()
 	myNewFeature.name = myFeature
@@ -86,7 +86,7 @@ def pseudorandomize( myFeature="calt", defaultClassName="@default", pseudoClassN
 	Font.features.append(myNewFeature)
 
 # Make ssXX copies of selected glyphs and rotate them randomly:
-#Font.willChangeValueForKey_("glyphs")
+Font.disableUpdateInterface()
 classlist = []
 
 for thisGlyph in selectedGlyphs:
@@ -97,7 +97,7 @@ for thisGlyph in selectedGlyphs:
 	for thisVeryGlyph in glyphList:
 		wiggle( thisVeryGlyph, winkel )
 		
-#Font.didChangeValueForKey_("glyphs")
+Font.enableUpdateInterface()
 
 # Create OT classes:
 makeClass( classlist )
@@ -105,4 +105,4 @@ for x in range( alphabets ):
 	makeClass( [s + ssXXsuffix( x+1 ) for s in classlist], className = "@calt"+str( x ) )
 
 # Create OT feature:
-pseudorandomize( alphabets=alphabets, linelength=linelength )
+pseudoRandomize( alphabets=alphabets, linelength=linelength )
