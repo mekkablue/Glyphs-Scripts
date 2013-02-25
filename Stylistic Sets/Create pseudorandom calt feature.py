@@ -1,7 +1,7 @@
 #MenuTitle: Create pseudorandom calt feature from ssXX glyphs
 """Create pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font."""
 
-Font        = Glyphs.orderedDocuments()[0].font
+Font        = Glyphs.font
 Doc         = Glyphs.currentDocument
 allGlyphs   = [ x.name for x in list( Font.glyphs ) ]
 linelength  = 70
@@ -13,7 +13,7 @@ def ssXXsuffix(i):
 		i = 1
 	elif i > 20:
 		i = 20
-	return ".ss"+("00"+str(i))[-2:]
+	return ".ss%0.2d" % i
 
 i = 1
 ssXX_exists = True

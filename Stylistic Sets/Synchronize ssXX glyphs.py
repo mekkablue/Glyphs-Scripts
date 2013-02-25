@@ -2,7 +2,7 @@
 """Creates missing ssXX glyphs so that you have synchronous groups of ssXX glyphs.
 E.g. you have a.ss01 b.ss01 c.ss01 a.ss02 c.ss02 --> the script creates b.ss02"""
 
-Font       = Glyphs.orderedDocuments()[0].font
+Font       = Glyphs.font
 allGlyphs  = [ x.name for x in list( Font.glyphs ) ]
 linelength = 70
 
@@ -12,7 +12,7 @@ def ssXXsuffix( i ):
 		i = 1
 	elif i > 20:
 		i = 20
-	return ".ss" + ( "00"+str(i) )[-2:]
+	return ".ss%0.2d" % i
 	
 def stripsuffix( glyphname ):
 	"""Returns the glyphname without the dot suffix."""

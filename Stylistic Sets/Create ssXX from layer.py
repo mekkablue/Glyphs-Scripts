@@ -6,10 +6,10 @@ Checks if the name is free.
 
 import GlyphsApp
 
-Font = Glyphs.orderedDocuments()[0].font
-FirstMasterID = Font.masters[0].id
-allGlyphNames = [x.name for x in Font.glyphs]
 Doc = Glyphs.currentDocument
+Font = Glyphs.font
+FirstMasterID = Font.masters[0].id
+allGlyphNames = [ x.name for x in Font.glyphs ]
 selectedLayers = Doc.selectedLayers()
 
 def findSuffix( glyphName ):
@@ -18,8 +18,7 @@ def findSuffix( glyphName ):
 	
 	while nameIsFree is False:
 		ssNumber += 1
-		numberString = "0"+str(ssNumber)
-		targetSuffix = ".ss" + numberString[-3:]
+		targetSuffix = ".ss%i.2d" % ssNumber
 		targetGlyphName = glyphName + targetSuffix
 		if allGlyphNames.count( targetGlyphName ) == 0:
 			nameIsFree = True
