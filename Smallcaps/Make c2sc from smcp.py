@@ -6,8 +6,8 @@ Ignores selected glyphs without an .smcp ending.
 
 import GlyphsApp
 
-Font = Glyphs.orderedDocuments()[0].font
 Doc  = Glyphs.currentDocument
+Font = Glyphs.font
 selectedGlyphs = [ x.parent for x in Doc.selectedLayers() if x.parent.name[-5:] == ".smcp" ]
 
 def smcpToC2scName( smcpname ):
@@ -47,10 +47,9 @@ def process( smcpGlyph ):
 	else:
 		print "%s already exists." % c2scName
 
-Font.willChangeValueForKey_("glyphs")
+Font.disableUpdateInterface()
 
 for thisGlyph in selectedGlyphs:
 	process( thisGlyph )
 
-Font.didChangeValueForKey_("glyphs")
-
+Font.enableUpdateInterface()

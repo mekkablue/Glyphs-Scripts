@@ -7,9 +7,9 @@ and if so, copies the .smcp kerning classes to the .c2sc glyph.
 
 import GlyphsApp
 
-Font = Glyphs.orderedDocuments()[0].font
 Doc  = Glyphs.currentDocument
-exceptionlist = ["Germandbls.c2sc"]
+Font = Glyphs.font
+exceptionlist = [ "Germandbls.c2sc" ]
 selectedC2SCs = [ x.parent for x in Doc.selectedLayers() if x.parent.name[-5:] == ".c2sc" ]
 
 def c2scToSmcpName( c2scname ):
@@ -31,11 +31,11 @@ def process( c2scGlyph ):
 	else:
 		print "%s: no %s in font." % (c2scGlyph.name, smcpGlyph.name)
 
-Font.willChangeValueForKey_("glyphs")
+Font.disableUpdateInterface()
 
 for thisGlyph in selectedC2SCs:
 	if thisGlyph.name not in exceptionlist and thisGlyph.leftKerningGroup == None and thisGlyph.rightKerningGroup == None:
 		process( thisGlyph )
 
-Font.didChangeValueForKey_("glyphs")
+Font.enableUpdateInterface()
 

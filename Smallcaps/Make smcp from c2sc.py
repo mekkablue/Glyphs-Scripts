@@ -6,8 +6,8 @@ Ignores selected glyphs without a .c2sc ending.
 
 import GlyphsApp
 
-Font = Glyphs.orderedDocuments()[0].font
 Doc  = Glyphs.currentDocument
+Font = Glyphs.font
 selectedGlyphs = [ x.parent for x in Doc.selectedLayers() if x.parent.name[-5:] == ".smcp" ]
 
 def c2scToSmcpName( c2scname ):
@@ -43,10 +43,9 @@ def process( c2scGlyph ):
 	else:
 		print "%s already exists." % c2scName
 
-Font.willChangeValueForKey_("glyphs")
+Font.disableUpdateInterface()
 
 for thisGlyph in selectedGlyphs:
 	process( thisGlyph )
 
-Font.didChangeValueForKey_("glyphs")
-
+Font.enableUpdateInterface()
