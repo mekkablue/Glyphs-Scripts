@@ -49,6 +49,8 @@ Fill up empty layers: Copies paths from one Master to another. But only if targe
 
 Metrics
 Copy sidebearings: steals the sidebearing values from a 2nd font. Needs Vanilla.
+Export Kerning CSV to Desktop: exports a CSV to the Desktop containing all kerning pairs ("mastername;left;right;kerningvalue").
+Export Metrics CSV to Desktop: exports a CSV to the Desktop containing all LSB, RSB and width values ("glyphname;mastername;LSB;RSB;width").
 
 OpenType
 Make OT Class from selected glyphs: GUI for creating a new OT class with the selected glyphs. Needs Vanilla.
