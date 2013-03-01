@@ -1,5 +1,5 @@
 #MenuTitle: Export Kerning Info CSV
-"""Export a CSV to the Desktop containing kerning info."""
+"""Export a CSV containing kerning info."""
 
 import GlyphsApp
 import commands
@@ -13,6 +13,22 @@ filename  = Font.familyName + ' kerning'  # filename without ending
 ending    = 'csv'       # txt|csv
 myDelim   = ";"         # use "\t" for tab
 myExportString = ""
+
+def saveFileDialog(message=None, ProposedFileName=None, filetypes=None):
+	if filetypes is None:
+		filetypes = []
+	Panel = NSSavePanel.savePanel().retain()
+	if message is not None:
+		Panel.setTitle_(message)
+	Panel.setCanChooseFiles_(True)
+	Panel.setCanChooseDirectories_(False)
+	Panel.setAllowedFileTypes_(filetypes)
+	if ProposedFileName is not None:
+		Panel.setNameFieldStringValue_(ProposedFileName)
+	pressedButton = Panel.runModalForTypes_(filetypes)
+	if pressedButton == 1: # 1=OK, 0=Cancel
+		return Panel.filename()
+	return None
 
 for m in Font.masters:
 	masterID = m.id
@@ -34,9 +50,9 @@ for m in Font.masters:
 			myKerningPair = [ masterName, nameL, nameR, str(Font.kerning[masterID][L][R]) ]
 			myExportString = myExportString + ( myDelim.join( myKerningPair ) + '\n' )
 
-directory = commands.getoutput('echo ~') + '/Desktop/'
-filepath  = directory + filename + '.' + ending
+filepath = saveFileDialog( message="Export Kerning CSV", ProposedFileName=filename, filetypes=["csv","txt"] )
+
 f = open( filepath, 'w' )
-print "Exporting values to:", f.name
+print "Exporting to:", f.name
 f.write( myExportString )
 f.close()
