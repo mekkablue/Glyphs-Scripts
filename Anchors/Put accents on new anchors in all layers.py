@@ -1,46 +1,47 @@
-#MenuTitle: Put accent on new anchor in all layers
-"""Puts e.g. the 'acute' on 'top_viet' in all layers."""
+#MenuTitle: Move acute, grave and hook to top_viet position in all layers
+"""Puts acute, grave, hookabove on top_viet in all layers.
+Assumes that you have a top_viet anchor in circumflex."""
 
-accent_name = "acute"
+accents_to_be_moved = [ "acute", "grave", "hookabovecomb" ]
 new_anchor = "top_viet"
 
 import GlyphsApp
 
-#Font = Glyphs.orderedDocuments()[0].font
 Doc  = Glyphs.currentDocument
+Font = Glyphs.font
 selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
 
-def Fontmasters( font=Glyphs.orderedDocuments()[0].font ):
-	"""Return a list of fontmasters"""
-	returnList = []
-	masterIndex = 0
-	controlValue = True
-	
-	while controlValue == True:
-		fontmaster = font.masters[ masterIndex ]
-		if fontmaster == None:
-			returnList.append( fontmaster )
-		else:
-			controlValue = False
-			
-	return returnList
-
 def process( thisGlyph ):
-	for thisMaster in Fontmasters(): # error: cannot call Font.masters[:] :-(
-		thisLayerIndex = thisMaster.id
-		thisLayer = thisGlyph.layers[ thisLayerIndex ]
+	for thisMaster in Font.masters:
+		
+		print "__Master", thisMaster
+		
+		thisLayerID = thisMaster.id
+		thisLayer = thisGlyph.layers[ thisLayerID ]
+		
 		for thisComponentIndex in range( len( thisLayer.components )):
-			if thisLayer.components[ thisComponentIndex ].componentName == accent_name:
-				# something along the line of:
-				# E.g. if it's the acute, then hang it on the top_viet anchor of the previous component.
-				thisLayer.components[ thisComponentIndex ].setAnchor_( thisLayer.components[ thisComponentIndex-1 ].component.layers[ thisLayerIndex ].anchors[ new_anchor ] )
-				# but this doesn't work yet :-(
+			for accent_name in accents_to_be_moved:
+				if thisLayer.components[ thisComponentIndex ].componentName == accent_name:
+					# UNCOMMENT FOR DEBUGGING:
+					# print "position:", thisLayer.components[ thisComponentIndex ].position
+					# print "componentName:", thisLayer.components[ thisComponentIndex ].componentName
+					# print "component:", thisLayer.components[ thisComponentIndex ].component
+					# print "transform:", thisLayer.components[ thisComponentIndex ].transform
+					# print "bounds:", thisLayer.components[ thisComponentIndex ].bounds
+					# print "targetAnchor:", targetAnchor
+					
+					# CHECKING FOR AVAILABILITY OF TOP_VIET:
+					# targetAnchor = thisLayer.components[ thisComponentIndex-1 ].component.layers[ thisLayerID ].anchors[ new_anchor ]
 
-Font.willChangeValueForKey_("glyphs")
+					try:
+						thisLayer.components[ thisComponentIndex ].setAnchor_( new_anchor )
+					except Exception, e:
+						print e
+
+Font.disableUpdateInterface()
 
 for thisGlyph in selectedGlyphs:
 	print "Processing", thisGlyph.name
 	process( thisGlyph )
 
-Font.didChangeValueForKey_("glyphs")
-
+Font.enableUpdateInterface()

@@ -23,8 +23,8 @@ ABOUT THE SCRIPTS
 Anchors
 Anchor Mover: GUI for moving anchors vertically in multiple glyphs. Handy for getting all top anchors right after changing your cap height. Needs Vanilla.
 Move top anchors: Moves top anchors in all selected glyphs to the new_y value specified in the .py file.
-Put accents on new anchors in all layers: Repositions accents, by default the 'acute' accent from 'top' to 'top_viet'. 
-Report top anchors: Reporty the y positions of all top anchors into the Macro Panel.
+Put accents on new anchors in all layers: Moves 'acute', 'grave' and 'hookabovecomb' to the 'top_viet' anchor. Useful for Vietnamese double accents. Assumes that you have top_viet anchors in all layers of circumflex.
+Report top anchors: Report the y positions of all top anchors into the Macro Panel.
 
 Components
 Replace components: relinks components in selected glyphs to a new source glyph. Needs Vanilla.
