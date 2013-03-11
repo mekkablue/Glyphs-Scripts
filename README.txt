@@ -20,6 +20,9 @@ sudo cp /Library/Python/2.6/site-packages/vanilla* /Library/Python/2.7/site-pack
 
 ABOUT THE SCRIPTS
 
+Align
+All Align scripts look for a path in the currently active layer and align it to whatever the script title says. Useful if you need to do one of these alignment operations very often. Hint: you can set a keyboard shortcut in System Preferences.
+
 Anchors
 Anchor Mover: GUI for moving anchors vertically in multiple glyphs. Handy for getting all top anchors right after changing your cap height. Needs Vanilla.
 Move top anchors: Moves top anchors in all selected glyphs to the new_y value specified in the .py file.
