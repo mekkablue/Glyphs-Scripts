@@ -51,6 +51,7 @@ Copy layer to layer: Copies paths from one Master to another. Needs Vanilla.
 Fill up empty layers: Copies paths from one Master to another. But only if target master is empty. Needs Vanilla.
 
 Metrics
+Center glyphs: centers all selected glyphs inside their width, so that LSB=RSB.
 Copy sidebearings: steals the sidebearing values from a 2nd font. Needs Vanilla.
 Export Kerning CSV: exports a CSV containing all kerning pairs ("mastername;left;right;kerningvalue").
 Export Metrics CSV: exports a CSV containing all LSB, RSB and width values ("glyphname;mastername;LSB;RSB;width").
