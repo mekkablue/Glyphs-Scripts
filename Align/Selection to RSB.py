@@ -3,6 +3,7 @@
 
 import GlyphsApp
 
+Font = Glyphs.font
 Doc = Glyphs.currentDocument
 selectedLayer = Doc.selectedLayers()[0]
 layerWidth = selectedLayer.width

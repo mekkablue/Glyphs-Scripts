@@ -3,6 +3,7 @@
 
 import GlyphsApp
 
+Font = Glyphs.font
 Doc = Glyphs.currentDocument
 myDescender = Doc.selectedFontMaster().descender
 selectedLayer = Doc.selectedLayers()[0]

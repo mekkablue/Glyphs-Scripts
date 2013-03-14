@@ -3,6 +3,7 @@
 
 import GlyphsApp
 
+Font = Glyphs.font
 Doc = Glyphs.currentDocument
 myCapHeight = Doc.selectedFontMaster().capHeight
 selectedLayer = Doc.selectedLayers()[0]

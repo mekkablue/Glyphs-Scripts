@@ -3,6 +3,7 @@
 
 import GlyphsApp
 
+Font = Glyphs.font
 Doc = Glyphs.currentDocument
 myXHeight = Doc.selectedFontMaster().xHeight
 selectedLayer = Doc.selectedLayers()[0]
