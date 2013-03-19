@@ -18,7 +18,7 @@ def findSuffix( glyphName ):
 	
 	while nameIsFree is False:
 		ssNumber += 1
-		targetSuffix = ".ss%i.2d" % ssNumber
+		targetSuffix = ".ss%.2d" % ssNumber
 		targetGlyphName = glyphName + targetSuffix
 		if allGlyphNames.count( targetGlyphName ) == 0:
 			nameIsFree = True
