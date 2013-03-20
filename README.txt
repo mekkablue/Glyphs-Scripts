@@ -29,6 +29,9 @@ Move top anchors: Moves top anchors in all selected glyphs to the new_y value sp
 Put accents on new anchors in all layers: Moves 'acute', 'grave' and 'hookabovecomb' to the 'top_viet' anchor. Useful for Vietnamese double accents. Assumes that you have top_viet anchors in all layers of circumflex.
 Report top anchors: Report the y positions of all top anchors into the Macro Panel.
 
+Arabic
+AXt Converter: converts the MacRoman glyph names (used in legacy AXt fonts) into nice names as employed by Glyphs. Attention: the script is still a work in progress. Suggestions are very welcome in the Wiki: https://github.com/mekkablue/Glyphs-Scripts/wiki/AXt-Converter
+
 Components
 Replace components: relinks components in selected glyphs to a new source glyph. Needs Vanilla.
 Delete all components: Deletes ALL components in selected glyphs. Be careful.
