@@ -2,7 +2,7 @@
 """Puts acute, grave, hookabove on top_viet in all layers.
 Assumes that you have a top_viet anchor in circumflex."""
 
-accents_to_be_moved = [ "acute", "grave", "hookabovecomb" ]
+accents_to_be_moved = [ "acute", "grave", "hookabovecomb", "acute.case", "grave.case", "hookabovecomb.case", "acute.sc", "grave.sc", "hookabovecomb.sc" ]
 new_anchor = "top_viet"
 
 import GlyphsApp
