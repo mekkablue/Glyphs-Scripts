@@ -52,6 +52,7 @@ Delete Hints: Deletes hints in selected glyphs.
 Masters
 Copy layer to layer: Copies paths from one Master to another. Needs Vanilla.
 Fill up empty layers: Copies paths from one Master to another. But only if target master is empty. Needs Vanilla.
+Find and Replace in Layer Names: Replaces text in all layer names (except Master layers) of selected glyphs. Useful if you use the bracket trick in many glyphs. Needs Vanilla.
 
 Metrics
 Center glyphs: centers all selected glyphs inside their width, so that LSB=RSB.
