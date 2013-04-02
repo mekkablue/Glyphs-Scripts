@@ -2,6 +2,7 @@
 """Center all selected glyphs inside their respective widths."""
 
 import GlyphsApp
+Font = Glyphs.font
 selectedLayers = Glyphs.currentDocument.selectedLayers()
 
 for thisLayer in selectedLayers:
