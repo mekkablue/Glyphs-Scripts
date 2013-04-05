@@ -20,9 +20,6 @@ sudo cp /Library/Python/2.6/site-packages/vanilla* /Library/Python/2.7/site-pack
 
 ABOUT THE SCRIPTS
 
-Align
-All Align scripts look for a path in the currently active layer and align it to whatever the script title says. Useful if you need to do one of these alignment operations very often. Hint: you can set a keyboard shortcut in System Preferences.
-
 Anchors
 Anchor Mover: GUI for moving anchors vertically in multiple glyphs. Handy for getting all top anchors right after changing your cap height. Needs Vanilla.
 Move top anchors: Moves top anchors in all selected glyphs to the new_y value specified in the .py file.
@@ -64,6 +61,11 @@ Extract kern strings 2nd char: asks you for a group of characters, then for one 
 
 OpenType
 Make OT Class from selected glyphs: GUI for creating a new OT class with the selected glyphs. Needs Vanilla.
+
+Paths
+All "Align" scripts look for a path in the currently active layer and align it to whatever the script title says. Useful if you need to do one of these alignment operations very often. Hint: you can set a keyboard shortcut in System Preferences.
+All "Bump" scripts move the selection towards the next available metric to the left, right, top or bottom. The Bump Left/Right scripts also include the halfwidth of the glyph. These are intended for setting a shortcut in System Preferences > Keyboard > Keyboard Shortcuts > Application Shortcuts (I recommend ctrl-cmd-arrows).
+Close all paths: Closes all open paths in the visible layers of all selected glyphs.
 
 Pixelfonts
 Align anchors to pixelgrid: Moves diacritic anchors onto the grid. Assumes a grid step of 50.
