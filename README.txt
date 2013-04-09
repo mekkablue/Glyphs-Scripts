@@ -71,7 +71,8 @@ Pixelfonts
 Align anchors to pixelgrid: Moves diacritic anchors onto the grid. Assumes a grid step of 50.
 Delete components out of bounds: If a component is placed far outside the usual coordinates (happens when you cmd-arrow components with a high grid step), this script will delete them.
 Delete duplicate components: Looks for duplicate components (same name and position) and keeps only one.
-Flashify Pixels: Creates small bridges in order to prevent selfintersection of paths so counters stay white. This is especially a problem for the Flash font renderer, hence the name of the script.
+Flashify Pixels: Creates small bridges in order to prevent self-intersection of paths so counters stay white. This is especially a problem for the Flash font renderer, hence the name of the script.
+Reset rotated and mirrored components: Looks for scaled, mirrored and rotated components and turns them back into their default scale and orientation, but keeps their position. Useful for fixing mirrored pixels.
 
 Smallcaps
 Copy kerning classes from smcp to c2sc: If you already have c2sc and smcp glyphs, it will copy kerning group attributes from smcp to c2sc glyphs, e.g. d.smcp has leftgroup=h.smcp and rightgroup=o.smcp, then leftgroup=h.smcp and rightgroup=o.smcp will be copied to D.c2sc. 
