@@ -66,6 +66,7 @@ Paths
 All "Align" scripts look for a path in the currently active layer and align it to whatever the script title says. Useful if you need to do one of these alignment operations very often. Hint: you can set a keyboard shortcut in System Preferences.
 All "Bump" scripts move the selection towards the next available metric to the left, right, top or bottom. The Bump Left/Right scripts also include the halfwidth of the glyph. These are intended for setting a shortcut in System Preferences > Keyboard > Keyboard Shortcuts > Application Shortcuts (I recommend ctrl-cmd-arrows).
 Close all paths: Closes all open paths in the visible layers of all selected glyphs.
+Distribute nodes: Distributes all selected nodes horizontally or vertically, whatever is closer.
 
 Pixelfonts
 Align anchors to pixelgrid: Moves diacritic anchors onto the grid. Assumes a grid step of 50.
