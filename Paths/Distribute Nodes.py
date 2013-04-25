@@ -1,12 +1,11 @@
 #MenuTitle: Distribute Nodes
-"""Distributes the selected node horizontally or vertically, depending on the bounding box."""
+"""Distributes the selected nodes horizontally or vertically, depending on the bounding box."""
 
 import GlyphsApp
 
 Font = Glyphs.font
 Doc = Glyphs.currentDocument
 selectedLayer = Doc.selectedLayers()[0]
-layerCenter = selectedLayer.width // 2
 
 try:
 	selection = selectedLayer.selection()
