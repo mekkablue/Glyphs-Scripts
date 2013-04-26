@@ -36,6 +36,7 @@ class AnchorMover(object):
 
 	def buttonCallback(self, sender):
 		selectedLayers = Glyphs.currentDocument.selectedLayers()
+		print "Processing", len( selectedLayers ), "glyphs..."
 		
 		anchor_index = self.w.anchor_name.get()
 		anchor_name  = str( self.w.anchor_name.getItems()[anchor_index] )
@@ -43,12 +44,24 @@ class AnchorMover(object):
 			anchor_y = float( self.w.anchor_value.get() )
 		except:
 			anchor_y = 0.0
-
+		
+		Font.disableUpdateInterface()
+		
 		for thisLayer in selectedLayers:
 			try:
-				thisLayer.anchors[anchor_name].y = anchor_y
+				if len( thisLayer.anchors ) > 0:
+					for thisAnchor in thisLayer.anchors:
+						if thisAnchor.name == anchor_name:
+							old_anchor_y = thisAnchor.y
+							if old_anchor_y != anchor_y:
+								thisAnchor.y = anchor_y
+								print "Moved", anchor_name, "anchor in", thisLayer.parent.name, "from", old_anchor_y, "to", thisAnchor.y
 			except:
 				print "Failed to move anchor in " + thisLayer.parent.name + " to " + anchor_y
+		
+		Font.enableUpdateInterface()
+		
+		print "Done."
 	
 	def GetAnchorNames(self):
 		myAnchorList = []
