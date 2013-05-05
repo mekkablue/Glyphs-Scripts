@@ -9,6 +9,7 @@ yDiff = 1
 
 import GlyphsApp
 Doc  = Glyphs.currentDocument
+Font = Glyphs.font
 selectedLayers = Doc.selectedLayers()
 
 def process( thisLayer ):
