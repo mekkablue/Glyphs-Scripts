@@ -47,6 +47,7 @@ class kernPairSearcher(object):
 	def buttonCallback(self, sender):
 		"""Runs when the Search button is pressed."""
 		kernChars = self.w.kernChars.get() #.decode("utf-8")
+		self.w.close()
 		myFiles = openFileDialog()
 		literature = u""
 
@@ -57,11 +58,18 @@ class kernPairSearcher(object):
 				literature += f.read().decode('utf-8')
 				f.close()
 
-			print "Copy this line and paste it into an Edit tab in text mode:"
 			myPairList = searchForKernPairs( kernChars=kernChars, text=literature, excludeString=myExcludeString )
-			for pair in myPairList:
-				print pair,
-		
-		self.w.close()
+			editTabString = " ".join( myPairList )
+			
+			try:
+				# try to guess the frontmost window:
+				Doc = Glyphs.font.parent # document for current font
+				Doc.windowController().addTabWithString_( editTabString )
+			except:
+				# if that fails, take the Macro Window:
+				Glyphs.clearLog()
+				Glyphs.showMacroWindow()
+				print "Copy this paragraph and paste it into an Edit tab in text mode:"
+				print editTabString
 		
 kernPairSearcher()
