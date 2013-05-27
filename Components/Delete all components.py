@@ -1,5 +1,5 @@
-#MenuTitle: Delete components
-"""Delete Components for selected glyphs."""
+#MenuTitle: Delete all components
+"""Deletes all components in selected glyphs."""
 
 import GlyphsApp
 
@@ -11,6 +11,13 @@ def process( thisLayer ):
 		print "  Deleting component", thisLayer.components[0].componentName
 		del thisLayer.components[0]
 
+Font.disableUpdateInterface()
+
 for thisLayer in selectedLayers:
-	print "Processing", thisLayer.parent.name
+	thisGlyph = thisLayer.parent
+	print "Processing", thisGlyph.name
+	thisGlyph.undoManager().beginUndoGrouping()
 	process( thisLayer )
+	thisGlyph.undoManager().endUndoGrouping()
+
+Font.enableUpdateInterface()

@@ -1,5 +1,5 @@
 #MenuTitle: Replace components
-"""replace Components for selected glyphs."""
+"""Replaces components in selected glyphs (GUI)."""
 
 #import GlyphsApp
 import vanilla
@@ -14,7 +14,6 @@ class Componentreplacer(object):
 		
 		self.w.text_value = vanilla.TextBox((150, 12+2, 55, 14), "by", sizeStyle='small')
 		self.w.Component_newname = vanilla.EditText((175, 12, 65, 19), "glyph.alt", sizeStyle='small')
-		#self.w.Component_value.bind( "+", self.ValuePlus1 )
 
 		self.w.replacebutton = vanilla.Button((-80, 12+1, -15, 17), "Replace", sizeStyle='small', callback=self.buttonCallback)
 		self.w.setDefaultButton( self.w.replacebutton )
