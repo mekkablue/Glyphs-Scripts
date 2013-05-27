@@ -41,6 +41,7 @@ Retract offcurve nodes: Deletes all offcurve points (BCPs). Handy for making sur
 Turn offcurve into oncurve: Does exactly what the name suggests. Makes fonts look really weird.
 
 Glyph Names:
+Check glyph names: Checks all available glyph names for illegal characters.
 Lowercase: Turns the names of selected glyphs lowercase.
 
 Hinting
@@ -68,6 +69,7 @@ All "Bump" scripts move the selection towards the next available metric to the l
 All "Distribute" scripts distribute all selected nodes horizontally or vertically, whatever is closer or what the script title says.
 All "Move" scripts move the selected glyph(s) up/down by the specified distance, similar to what (shift-)ctrl-cmd-left/rightarrow does. As shortcut, I recommend (shift-)ctrl-cmd-up/downarrow.
 Close all paths: Closes all open paths in the visible layers of all selected glyphs.
+Rotate around anchor: GUI for rotating glyphs or selections of nodes and components around a 'rotate' anchor. Allows to step and repeat. Requires Vanilla.
 
 Pixelfonts
 Align anchors to pixelgrid: Moves diacritic anchors onto the grid. Assumes a grid step of 50.
