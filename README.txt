@@ -76,6 +76,7 @@ Align anchors to pixelgrid: Moves diacritic anchors onto the grid. Assumes a gri
 Delete components out of bounds: If a component is placed far outside the usual coordinates (happens when you cmd-arrow components with a high grid step), this script will delete them.
 Delete duplicate components: Looks for duplicate components (same name and position) and keeps only one.
 Flashify Pixels: Creates small bridges in order to prevent self-intersection of paths so counters stay white. This is especially a problem for the Flash font renderer, hence the name of the script.
+Re-Compose Pixels: Tries to rebuild accidentally decomposed pixelglyphs with 'pixel' components.
 Reset rotated and mirrored components: Looks for scaled, mirrored and rotated components and turns them back into their default scale and orientation, but keeps their position. Useful for fixing mirrored pixels.
 
 Smallcaps

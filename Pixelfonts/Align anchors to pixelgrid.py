@@ -7,12 +7,14 @@ Doc  = Glyphs.currentDocument
 Font = Glyphs.font
 selectedLayers = Doc.selectedLayers()
 
-pixelwidth = Font.gridLength # 50.0
+pixelwidth = Font.gridLength
 
 def process( thisLayer ):
 	if len( thisLayer.anchors ) != 0:
 		thisLayer.parent.undoManager().beginUndoGrouping()
+		
 		anchorList = thisLayer.anchors
+		
 		for a in anchorList:
 			xrest = a.x % pixelwidth
 			yrest = a.y % pixelwidth
@@ -22,6 +24,7 @@ def process( thisLayer ):
 				oldY = a.y
 				a.position = ( round( a.x/pixelwidth ) * pixelwidth, round( a.y/pixelwidth ) * pixelwidth )
 				print "%s: %s %i|%i --> %i|%i" % ( thisLayer.parent.name, a.name, int(oldX), int(oldY), int(a.x), int(a.y) )
+				
 		thisLayer.parent.undoManager().endUndoGrouping()
 
 Font.disableUpdateInterface()
