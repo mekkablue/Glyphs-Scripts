@@ -1,7 +1,7 @@
 #MenuTitle: Move top anchors (no GUI)
-"""Moves top anchors in selected glyphs to a specified new y value"""
+"""Moves top anchors in selected glyphs to a y value specified in the script file."""
 
-new_y = 687.0
+new_y = 610.0
 myAnchor = "top"
 
 import GlyphsApp

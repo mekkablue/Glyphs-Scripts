@@ -1,5 +1,5 @@
 #MenuTitle: Move anchors
-"""Move anchors for selected glyphs."""
+"""Vertically move anchors in selected glyphs (GUI)."""
 
 #import GlyphsApp
 import vanilla
@@ -45,9 +45,11 @@ class AnchorMover(object):
 		except:
 			anchor_y = 0.0
 		
-		Font.disableUpdateInterface()
+		# Font.disableUpdateInterface()
+		# print anchor_index, anchor_name, anchor_y #DEBUG
 		
 		for thisLayer in selectedLayers:
+			# print "Changing %s in %s..." % (anchor_name, thisLayer.parent.name) #DEBUG
 			try:
 				if len( thisLayer.anchors ) > 0:
 					for thisAnchor in thisLayer.anchors:
@@ -59,7 +61,7 @@ class AnchorMover(object):
 			except:
 				print "Failed to move anchor in " + thisLayer.parent.name + " to " + anchor_y
 		
-		Font.enableUpdateInterface()
+		# Font.enableUpdateInterface()
 		
 		print "Done."
 	

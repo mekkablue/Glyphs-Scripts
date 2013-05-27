@@ -1,6 +1,5 @@
 #MenuTitle: Move acute, grave and hook to top_viet position in all layers
-"""Puts acute, grave, hookabove on top_viet in all layers.
-Assumes that you have a top_viet anchor in circumflex."""
+"""Where applicable, puts acute, grave, hookabove on 'top_viet' in all selected glyphs. Assumes that you have a 'top_viet' anchor in circumflex. Useful for Vietnamese glyphs."""
 
 accents_to_be_moved = [ "acute", "grave", "hookabovecomb", "acute.case", "grave.case", "hookabovecomb.case", "acute.sc", "grave.sc", "hookabovecomb.sc" ]
 new_anchor = "top_viet"
@@ -22,17 +21,6 @@ def process( thisGlyph ):
 		for thisComponentIndex in range( len( thisLayer.components )):
 			for accent_name in accents_to_be_moved:
 				if thisLayer.components[ thisComponentIndex ].componentName == accent_name:
-					# UNCOMMENT FOR DEBUGGING:
-					# print "position:", thisLayer.components[ thisComponentIndex ].position
-					# print "componentName:", thisLayer.components[ thisComponentIndex ].componentName
-					# print "component:", thisLayer.components[ thisComponentIndex ].component
-					# print "transform:", thisLayer.components[ thisComponentIndex ].transform
-					# print "bounds:", thisLayer.components[ thisComponentIndex ].bounds
-					# print "targetAnchor:", targetAnchor
-					
-					# CHECKING FOR AVAILABILITY OF TOP_VIET:
-					# targetAnchor = thisLayer.components[ thisComponentIndex-1 ].component.layers[ thisLayerID ].anchors[ new_anchor ]
-
 					try:
 						thisLayer.components[ thisComponentIndex ].setAnchor_( new_anchor )
 					except Exception, e:
@@ -42,6 +30,8 @@ Font.disableUpdateInterface()
 
 for thisGlyph in selectedGlyphs:
 	print "Processing", thisGlyph.name
+	thisGlyph.undoManager().beginUndoGrouping()
 	process( thisGlyph )
+	thisGlyph.undoManager().endUndoGrouping()
 
 Font.enableUpdateInterface()
