@@ -1,5 +1,5 @@
 #MenuTitle: Baseline Wiggle
-"""Create pseudorandom baseline shift for all selected glyphs."""
+"""Create pseudorandom GPOS baseline shift for all glyphs."""
 
 import random
 random.seed()
@@ -19,7 +19,7 @@ def create_otclass( classname   = "@default",
 	"""
 	Creates an OpenType class in the font.
 	Default: class @default with currently selected glyphs in the current font.
-	Returns a status message in form of a string.
+	Returns a status message in the form of a string.
 	"""
 	
 	newClass = GSClass()
@@ -35,7 +35,7 @@ def create_otfeature( featurename = "calt",
 	"""
 	Creates an OpenType feature in the font.
 	Default: calt with "sub a' a by a.alt;" in the current font.
-	Returns a status message in form of a string.
+	Returns a status message in the form of a string.
 	"""
 	
 	newFeature = GSFeature()

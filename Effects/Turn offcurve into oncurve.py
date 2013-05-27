@@ -1,26 +1,29 @@
-#MenuTitle: Turn offcurve points oncurve
-"""Turns BCPs into regular line points."""
+#MenuTitle: Turn offcurve into oncurve points
+"""Turns BCPs into regular nodes. Turns all curves into straight lines."""
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
+Doc  = Glyphs.currentDocument
 selectedLayers = Doc.selectedLayers()
 
-def process( thisLayer ):
-	thisLayer.undoManager().beginUndoGrouping()
+GSLINE = 1
 
+def process( thisLayer ):
 	for thisPath in thisLayer.paths:
 		for x in reversed( range( len( thisPath.nodes ))):
 			thisNode = thisPath.nodes[x]
-			if thisNode.type != 1:
-				thisNode.type = 1
-
-	thisLayer.undoManager().endUndoGrouping()
+			if thisNode.type != GSLINE:
+				thisNode.type = GSLINE
+		
+		thisPath.checkConnections()
 
 Font.disableUpdateInterface()
 
 for thisLayer in selectedLayers:
-	print "Processing", thisLayer.parent.name
+	thisGlyph = thisLayer.parent
+	print "Processing", thisGlyph.name
+	thisGlyph.undoManager().beginUndoGrouping()
 	process( thisLayer )
+	thisGlyph.undoManager().endUndoGrouping()
 
 Font.enableUpdateInterface()
 

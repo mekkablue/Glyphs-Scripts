@@ -1,29 +1,32 @@
 #MenuTitle: Retract offcurve points
-"""Retracts BCPs of selected glyphs."""
+"""Retracts all BCPs in selected glyphs, so all curves will be turned into straight lines."""
 
-Font = Glyphs.orderedDocuments()[0].font
+Font = Glyphs.font
 Doc  = Glyphs.currentDocument
 selectedLayers = Doc.selectedLayers()
+
 GSOFFCURVE = 65
+GSLINE = 1
 
 def process( thisLayer ):
-	thisLayer.undoManager().beginUndoGrouping()
-
 	for thisPath in thisLayer.paths:
 		for x in reversed( range( len( thisPath.nodes ))):
 			thisNode = thisPath.nodes[x]
 			if thisNode.type == GSOFFCURVE:
 				del thisPath.nodes[x]
 			else:
-				thisNode.type = 1
-
-	thisLayer.undoManager().endUndoGrouping()
+				thisNode.type = GSLINE
+		
+		thisPath.checkConnections()
 
 Font.disableUpdateInterface()
 
 for thisLayer in selectedLayers:
-	print "Processing", thisLayer.parent.name
+	thisGlyph = thisLayer.parent
+	print "Processing", thisGlyph.name
+	thisGlyph.undoManager().beginUndoGrouping()
 	process( thisLayer )
+	thisGlyph.undoManager().endUndoGrouping()
 
 Font.enableUpdateInterface()
 

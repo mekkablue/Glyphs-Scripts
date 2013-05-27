@@ -20,12 +20,6 @@ listOfNames = [ thisGlyph.name for thisGlyph in glyphen ]
 def randomize( min, max ):
 	return random.randint( min, max )
 
-def glyphcopy( source, target ):
-	sourceGlyph = glyphen[ source ]
-	targetGlyph = sourceGlyph.copy()
-	glyphen.append( targetGlyph )
-	Font.glyphs.append(targetGlyph)
-
 def process( thisGlyph ):
 	FontMaster = Doc.selectedFontMaster()
 	thisLayer = thisGlyph.layers[FontMaster.id]
@@ -38,16 +32,14 @@ def process( thisGlyph ):
 			randomize_y = randomize( -shatter, shatter )
 			thisNode.x = thisNode.x + randomize_x
 			thisNode.y = thisNode.y + randomize_y
+		
+		thisPath.checkConnections()
 
 	thisGlyph.undoManager().endUndoGrouping()
 
-
-
-print "Beowulferizing " + str(Font.familyName)
+print "Beowulferizing " + str( Font.familyName )
 glyphsToProcess = glyphen[:]
 Font.disableUpdateInterface()
-
-
 
 # Create Glyph Variants:
 
@@ -67,8 +59,6 @@ for thisGlyph in glyphsToProcess:
 	for iteration in range( reiterations ):
 		process( thisGlyph )
 
-
-
 # Create Classes:
 
 print "\nCreating OT class: @default"
@@ -77,14 +67,12 @@ defaultclass.name = "@default"
 defaultclass.code = " ".join( listOfNames )
 Font.classes.append( defaultclass )
 
-for i in range(alphabets):
+for i in range( alphabets ):
 	mynewclass = GSClass()
 	mynewclass.name = "@calt"+str(i)
 	mynewclass.code = " ".join( [glyphName+".calt"+str(i) for glyphName in listOfNames] )
 	Font.classes.append( mynewclass )
 	print "Creating OT class: " + mynewclass.name
-
-
 
 # Create OT Feature:
 
@@ -92,10 +80,10 @@ print "Creating OT feature: calt"
 myNewFeature = GSFeature()
 myNewFeature.name = "calt"
 featuretext = ""
-for i in range( (alphabets * ( linelength//alphabets ) + 1), 0, -1 ):
-	newline = "  sub @default' " + "@default "*i + "by @calt"+str( (range(alphabets)*((linelength//alphabets)+2))[i] )+";\n"
+for i in range( ( alphabets * ( linelength//alphabets ) + 1 ), 0, -1 ):
+	newline = "  sub @default' " + "@default " * i + "by @calt" + str( ( range(alphabets) * ((linelength//alphabets)+2))[i] ) + ";\n"
 	featuretext = featuretext + newline
 myNewFeature.code = featuretext
-Font.features.append(myNewFeature)
+Font.features.append( myNewFeature )
 
 Font.enableUpdateInterface()

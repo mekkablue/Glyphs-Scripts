@@ -20,12 +20,32 @@ def randomize( min, max ):
 
 def rotate( x, y, angle=180.0, x_orig=0.0, y_orig=0.0):
 	"""Rotates x/y around x_orig/y_orig by angle and returns result as [x,y]."""
+	# TO DO: update this to use rotationTransform()
 	
 	new_angle = ( angle / 180.0 ) * math.pi
 	new_x = ( x - x_orig ) * math.cos( new_angle ) - ( y - y_orig ) * math.sin( new_angle ) + x_orig
 	new_y = ( x - x_orig ) * math.sin( new_angle ) + ( y - y_orig ) * math.cos( new_angle ) + y_orig
 	
 	return [ new_x, new_y ]
+
+def rotationTransform( angle=180.0, x_orig=0.0, y_orig=0.0 ):
+	"""Returns a TransformStruct for rotating."""
+	RotationTransform = NSAffineTransform.transform()
+	RotationTransform.translateXBy_yBy_( x_orig, y_orig )
+	RotationTransform.rotateByDegrees_( angle )
+	RotationTransform.translateXBy_yBy_( -x_orig, -y_orig )
+	
+	return RotationTransform
+
+def transformComponent( myComponent, myTransform ):
+	compTransform = NSAffineTransform.transform()
+	compTransform.setTransformStruct_( myComponent.transform )
+	compTransform.appendTransform_( myTransform )
+	t = compTransform.transformStruct()
+	tNew = ( t.m11, t.m12, t.m21, t.m22, t.tX, t.tY )
+	myComponent.transform = tNew
+
+	return myComponent
 
 def glyphcopy( sourceGlyph, targetGlyphName ):
 	targetGlyph = sourceGlyph.copy()
@@ -56,13 +76,15 @@ def wiggle( thisGlyph, maxangle ):
 		rotateby = randomize( -maxangle, maxangle )
 		
 	for thisLayer in thisGlyph.layers:
-		thisLayer.decomposeComponents() # Sorry about this.
 		x_orig = thisLayer.width / 2.0
-		y_orig = thisLayer.bounds().size.height / 2.0
+		y_orig = thisLayer.bounds.size.height / 2.0
 
 		for thisPath in thisLayer.paths:
 			for thisNode in thisPath.nodes:
 				[ thisNode.x, thisNode.y ] = rotate( thisNode.x, thisNode.y, angle=(rotateby/1.0), x_orig=x_orig, y_orig=y_orig )
+		
+		for thisComponent in thisLayer.components:
+			thisComponent = transformComponent( thisComponent, rotationTransform( angle=(rotateby/1.0), x_orig=x_orig, y_orig=y_orig ) )
 
 def makeClass( listOfGlyphNames, className="@default" ):
 	print "Creating OT class:", className
