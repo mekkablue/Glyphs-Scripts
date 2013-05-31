@@ -51,6 +51,8 @@ Masters
 Copy layer to layer: Copies paths from one Master to another. Needs Vanilla.
 Fill up empty layers: Copies paths from one Master to another. But only if target master is empty. Needs Vanilla.
 Find and Replace in Layer Names: Replaces text in all layer names (except Master layers) of selected glyphs. Useful if you use the bracket trick in many glyphs. Needs Vanilla.
+Show next/previous instance: Jumps to next/previous instance in the preview section of the current Edit tab. Handy for attaching a keyboard shortcut to.
+Suggest instances: Calculates an ideal distribution of weight values between your masters. Outputs into the macro window.
 
 Metrics
 Center glyphs: centers all selected glyphs inside their width, so that LSB=RSB.
