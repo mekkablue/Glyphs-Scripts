@@ -21,7 +21,8 @@ sudo cp /Library/Python/2.6/site-packages/vanilla* /Library/Python/2.7/site-pack
 ABOUT THE SCRIPTS
 
 Anchors
-Anchor Mover: GUI for moving anchors vertically in multiple glyphs. Handy for getting all top anchors right after changing your cap height. Needs Vanilla.
+Anchor Mover 1: GUI for moving anchors vertically in multiple glyphs. Handy for getting all top anchors right after changing your cap height. Needs Vanilla.
+Anchor Mover 2: GUI for batch-processing anchors in multiple glyphs. Needs Vanilla.
 Move top anchors: Moves top anchors in all selected glyphs to the new_y value specified in the .py file.
 Put accents on new anchors in all layers: Moves 'acute', 'grave' and 'hookabovecomb' to the 'top_viet' anchor. Useful for Vietnamese double accents. Assumes that you have top_viet anchors in all layers of circumflex.
 Report top anchors: Report the y positions of all top anchors into the Macro Panel.
@@ -51,6 +52,7 @@ Masters
 Copy layer to layer: Copies paths from one Master to another. Needs Vanilla.
 Fill up empty layers: Copies paths from one Master to another. But only if target master is empty. Needs Vanilla.
 Find and Replace in Layer Names: Replaces text in all layer names (except Master layers) of selected glyphs. Useful if you use the bracket trick in many glyphs. Needs Vanilla.
+Insert instances: GUI for calculating and inserting weight instances. Needs Vanilla.
 Show next/previous instance: Jumps to next/previous instance in the preview section of the current Edit tab. Handy for attaching a keyboard shortcut to.
 Suggest instances: Calculates an ideal distribution of weight values between your masters. Outputs into the macro window.
 

@@ -1,4 +1,4 @@
-#MenuTitle: Move anchors
+#MenuTitle: Anchor Mover 1.1
 """Vertically move anchors in selected glyphs (GUI)."""
 
 #import GlyphsApp
