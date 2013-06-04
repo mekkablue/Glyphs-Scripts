@@ -11,11 +11,11 @@ FontMaster = Doc.selectedFontMaster()
 selectedLayers = Doc.selectedLayers()
 
 def process( thisLayer ):
-	for thisPath in thisLayer.paths:
-		originPoint = thisPath.bounds[0]
-		newComponent = GSComponent( pixelGlyphName, originPoint )
+	for originPoint in set( [ (p.bounds.origin.x, p.bounds.origin.y) for p in thisLayer.paths ] ):
+		x, y = originPoint[0], originPoint[1]
+		newComponent = GSComponent( pixelGlyphName, NSPoint( x, y ) )
 		thisLayer.components.append( newComponent )
-	
+		
 	countOfPaths = len( thisLayer.paths )
 	for x in range( countOfPaths )[::-1]:
 		del thisLayer.paths[x]
