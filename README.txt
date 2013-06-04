@@ -50,6 +50,7 @@ Delete Hints: Deletes hints in selected glyphs.
 
 Masters
 Copy layer to layer: Copies paths from one Master to another. Needs Vanilla.
+Dekink masters: Dekinks your smooth transitions which are not horizontal or vertical. Select one or more angled smooth connections and run this script to move the corresponding nodes in all other masters to the same relative position.
 Fill up empty layers: Copies paths from one Master to another. But only if target master is empty. Needs Vanilla.
 Find and Replace in Layer Names: Replaces text in all layer names (except Master layers) of selected glyphs. Useful if you use the bracket trick in many glyphs. Needs Vanilla.
 Insert instances: GUI for calculating and inserting weight instances. Needs Vanilla.
