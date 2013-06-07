@@ -1,5 +1,5 @@
 #MenuTitle: Flashify Pixels
-"""Adds bridges to diagonal pixel connections."""
+"""Adds small bridges to diagonal pixel connections (where two pixel corners touch). Otherwise your counters may be lost in the Flash text engine."""
 
 import GlyphsApp
 
@@ -24,8 +24,10 @@ def karo( x, y ):
 def process( thisLayer ):
 	thisLayer.parent.undoManager().beginUndoGrouping()
 
+	purePathsLayer = thisLayer.copyDecomposedLayer()
+	removeOverlapFilter.runFilterWithLayer_error_( purePathsLayer, None )
 	coordinatelist  = []
-	for thisPath in thisLayer.paths:
+	for thisPath in purePathsLayer.paths:
 		for thisNode in thisPath.nodes:
 			coordinatelist.append([ thisNode.x, thisNode.y ])
 
@@ -35,8 +37,7 @@ def process( thisLayer ):
 		for cur2 in range( cur1+1, mylength, 1 ):
 			if coordinatelist[cur1] == coordinatelist[cur2]:
 				[ my_x, my_y ] = coordinatelist[ cur1 ]
-				myPath = karo( my_x, my_y )
-				thisLayer.paths.append( myPath )
+				thisLayer.paths.append( karo( my_x, my_y ) )
 				print thisLayer.parent.name, ":", my_x, my_y
 
 	thisLayer.parent.undoManager().endUndoGrouping()
@@ -50,9 +51,7 @@ if oldGridstep > 1:
 Font.disableUpdateInterface()
 
 for thisLayer in layers:
-	removeOverlapFilter.runFilterWithLayer_error_( thisLayer, None )
 	process( thisLayer )
-	removeOverlapFilter.runFilterWithLayer_error_( thisLayer, None )
 
 Font.enableUpdateInterface()
 
