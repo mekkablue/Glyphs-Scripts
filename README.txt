@@ -66,6 +66,7 @@ Extract kern strings 1st char: asks you for a group of characters, then prompts 
 Extract kern strings 2nd char: asks you for a group of characters, then prompts you for one or more text files; it will then output all kerning pairs (containing these chars, found in the text files) to a new Edit tab, alphabetically sorted. Finds all pairs where the entered chars are the 2nd letter. Needs Vanilla.
 
 OpenType
+Floating Features: Floating palettes for activating and deactivating OT features. Same functionality as the pop-up menu. Needs Vanilla.
 Make OT Class from selected glyphs: GUI for creating a new OT class with the selected glyphs. Needs Vanilla.
 
 Paths
