@@ -28,28 +28,24 @@ Glyphs.clearLog()
 Glyphs.showMacroWindow()
 
 if minimumWeight != maximumWeight:
-	print "Luc(as) de Groot distributions between %i and %i:" % ( minimumWeight, maximumWeight )
-	print
+	print "Luc(as) de Groot distribution between %i and %i:" % ( minimumWeight, maximumWeight )
 	
 	for i in range( rangemin, rangemax ):
 		distributedValues = distribute_lucas( minimumWeight, maximumWeight, i )
 		distributedGain   = distributedValues[1] / distributedValues[0]
-		print "%i instances: %s --> growth: %.1f%%" % ( i, "-".join("{0:.0f}".format(weight) for weight in distributedValues ), distributedGain*100-100 )
+		print "- %i instances: %s --> growth: %.1f%%" % ( i, "-".join("{0:.0f}".format(weight) for weight in distributedValues ), distributedGain*100-100 )
 	
-	print
 	print "This is a steady percentage gain across weights, a:b = b:c = c:d, etc."
 	print "Hint 1: growth of 41.4% = squareroot of 2."
 	print "Hint 2: growth of 61.8% = Golden Mean."
 	print "Hint 3: steady growth curves may not work well for light weights."
 	print
 	print "Pablo Impallari distribution between %i and %i:" % ( minimumWeight, maximumWeight )
-	print
 	
 	for i in range( rangemin, rangemax ):
 		distributedValues = distribute_pablo( minimumWeight, maximumWeight, i )
-		print "%i instances: %s" % ( i, "-".join("{0:.0f}".format(weight) for weight in distributedValues ))
+		print "- %i instances: %s" % ( i, "-".join("{0:.0f}".format(weight) for weight in distributedValues ))
 	
-	print
 	print "This is the Luc(as) algorithm steadily converging towards a linear growth."
 	
 	

@@ -2,7 +2,9 @@
 """
 Converts glyphs from AXt Encoding to modern Unicode.
 Attention: this script is not yet finished.
-Please add suggestions in the Github Wiki. Thx!
+Please add suggestions in the Github Wiki:
+https://github.com/mekkablue/Glyphs-Scripts/wiki/AXt-Converter
+Thx!
 """
 
 nameChangeString = """
