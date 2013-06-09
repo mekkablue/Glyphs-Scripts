@@ -5,7 +5,7 @@ These are Python scripts for use with the Glyphs font editor <http://glyphsapp.c
 
 INSTALLATION
 
-Put the scripts into your ~/Library/Application Support/Glyphs/Scripts/ folder.
+Put the scripts into the Scripts folder which appears when you choose Open Scripts Folder from the Scripts menu.
 For some scripts, you will also need to install Tal Leming's Vanilla. Here's how. Open Terminal and copy and paste each of the following four lines and hit return. Notes: the second line (svn...) may take a while, the fourth line (sudo...) will prompt you for your password.
 
 cd ~/Library/
