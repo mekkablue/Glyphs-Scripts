@@ -31,8 +31,9 @@ Arabic
 AXt Converter: converts the MacRoman glyph names (used in legacy AXt fonts) into nice names as employed by Glyphs. Attention: the script is still a work in progress. Suggestions are very welcome in the Wiki: https://github.com/mekkablue/Glyphs-Scripts/wiki/AXt-Converter
 
 Components
-Replace components: relinks components in selected glyphs to a new source glyph. Needs Vanilla.
 Delete all components: Deletes ALL components in selected glyphs. Be careful.
+Disable alignment: Disables automatic alignment for all components in selected glyphs.
+Replace components: Relinks components in selected glyphs to a new source glyph. Needs Vanilla.
 
 Effects Scripts
 Wackelpudding and Beowulferize: Select some or all glyphs in the Font tab, then run the script. It will create alternates of the selected glyphs and create a pseudorandom calt feature. Activate it by selecting Contextual Alternates in e.g. InDesign.
