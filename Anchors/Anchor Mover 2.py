@@ -31,8 +31,8 @@ listVertical = [
 	["top edge of glyph bbox", "thisLayer.bounds.origin.y + thisLayer.bounds.size.height"],
 	["vertical center of glyph bbox", "thisLayer.bounds.origin.y + ( thisLayer.bounds.size.height // 2.0 )"],
 	["bottom edge of glyph bbox", "thisLayer.bounds.origin.y"],
-	["leftmost node of glyph", "min( [ (min( p.nodes, key=lambda n: n.x )) for p in thisLayer.paths ], key=lambda n: n.x ).y"],
-	["rightmost node of glyph", "max( [ (max( p.nodes, key=lambda n: n.x )) for p in thisLayer.paths ], key=lambda n: n.x ).y"]
+	["leftmost node of glyph", "min( [ (min( [x for x in p.nodes if x.type != 65], key=lambda n: n.x )) for p in thisLayer.paths ], key=lambda n: n.x ).y"],
+	["rightmost node of glyph", "max( [ (max( [x for x in p.nodes if x.type != 65], key=lambda n: n.x )) for p in thisLayer.paths ], key=lambda n: n.x ).y"]
 ]
 
 def italicSkew( x, y, angle=10.0 ):
