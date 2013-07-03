@@ -14,8 +14,8 @@ listHorizontal = [
 	["left edge of glyph bbox", "thisLayer.LSB"],
 	["horizontal center of glyph bbox", "(thisLayer.LSB + (thisLayer.width - thisLayer.RSB)) // 2.0"],
 	["right edge of glyph bbox", "thisLayer.width - thisLayer.RSB"],
-	["highest node of glyph", "max( [ (max( p.nodes, key=lambda n: n.y )) for p in thisLayer.paths ], key=lambda n: n.y ).x + italicCorrection"],
-	["lowest node of glyph", "min( [ (min( p.nodes, key=lambda n: n.y )) for p in thisLayer.paths ], key=lambda n: n.y ).x + italicCorrection"]	
+	["highest node of glyph", "max( [ (max( [x for x in p.nodes if x.type != 65], key=lambda n: n.y )) for p in thisLayer.paths ], key=lambda n: n.y ).x + italicCorrection"],
+	["lowest node of glyph", "min( [ (min( [x for x in p.nodes if x.type != 65], key=lambda n: n.y )) for p in thisLayer.paths ], key=lambda n: n.y ).x + italicCorrection"]	
 ]
 
 listVertical = [
