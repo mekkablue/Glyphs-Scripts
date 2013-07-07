@@ -6,24 +6,34 @@ These are Python scripts for use with the Glyphs font editor <http://glyphsapp.c
 INSTALLATION
 
 Put the scripts into the Scripts folder which appears when you choose Open Scripts Folder from the Scripts menu.
-For some scripts, you will also need to install Tal Leming's Vanilla. Here's how. Open Terminal and copy and paste each of the following four lines and hit return. Notes: the second line (svn...) may take a while, the fourth line (sudo...) will prompt you for your password.
+For some scripts, you will also need to install Tal Leming's Vanilla. Here's how. Open Terminal and copy and paste each of the following four lines and hit return. Notes: the second line (svn...) may take a while, the sudo lines will prompt you for your password.
 
 cd ~/Library/
-svn co http://svn.typesupply.com/packages/vanilla
-cd vanilla/trunk/
+curl http://download.robofab.com/RoboFab_599_plusAllDependencies.zip > robofab.zip
+unzip robofab.zip -d Python_Installs
+rm robofab.zip
+cd Python_Installs/Vanilla/
+sudo python setup.py install
+cd ../Robofab/
+sudo python setup.py install
+cd ../DialogKit/
+sudo python install.py
+cd ../FontTools/
 sudo python setup.py install
 
 And if you are running Glyphs on Lion (10.7) or later, you may want to add:
 
-sudo cp /Library/Python/2.6/site-packages/vanilla* /Library/Python/2.7/site-packages/
+cd /Library/Python/
+sudo rsync -aE 2.7/site-packages/* 2.6/site-packages/
 
 
 ABOUT THE SCRIPTS
 
 Anchors
 Anchor Mover 1: GUI for moving anchors vertically in multiple glyphs. Handy for getting all top anchors right after changing your cap height. Needs Vanilla.
-Anchor Mover 2: GUI for batch-processing anchors in multiple glyphs. Needs Vanilla.
-Move top anchors: Moves top anchors in all selected glyphs to the new_y value specified in the .py file.
+Anchor Mover 2: GUI for batch-processing anchor positions in multiple glyphs. Needs Vanilla.
+Combining Accent Maker: Goes through your selected (spacing) marks and adds a combining (non-spacing) copy of it to your font, e.g., for acute and dieresis.case, it will add acutecomb and dieresiscomb.case.
+Move top anchors: Moves top anchors in all selected glyphs to the new_y value hardcoded in the .py file.
 Put accents on new anchors in all layers: Moves 'acute', 'grave' and 'hookabovecomb' to the 'top_viet' anchor. Useful for Vietnamese double accents. Assumes that you have top_viet anchors in all layers of circumflex.
 Report top anchors: Report the y positions of all top anchors into the Macro Panel.
 
@@ -33,13 +43,15 @@ AXt Converter: converts the MacRoman glyph names (used in legacy AXt fonts) into
 Components
 Delete all components: Deletes ALL components in selected glyphs. Be careful.
 Disable alignment: Disables automatic alignment for all components in selected glyphs.
+New Edit tab with compound glyphs: Opens a new edit tab with the currently selected glyphs plus all compound glyphs containing them as components.
 Replace components: Relinks components in selected glyphs to a new source glyph. Needs Vanilla.
 
 Effects Scripts
 Wackelpudding and Beowulferize: Select some or all glyphs in the Font tab, then run the script. It will create alternates of the selected glyphs and create a pseudorandom calt feature. Activate it by selecting Contextual Alternates in e.g. InDesign.
 Baseline Wiggle: Creates a pos feature that randomly displaces the glyphs while you type.
 Glyph Shaker: Randomly moves each node in selected layers of selected glyphs.
-Retract offcurve nodes: Deletes all offcurve points (BCPs). Handy for making sure, your font only consists of straight lines. 
+Insert BCPs into straight segments: Inserts offcurve points (BCPs) into straight line segments of all selected glyphs. Like option-clicking on all straight lines.
+Retract BCPs: Deletes all offcurve points (BCPs). Handy for making sure, your font only consists of straight lines. 
 Turn offcurve into oncurve: Does exactly what the name suggests. Makes fonts look really weird.
 
 Glyph Names:
