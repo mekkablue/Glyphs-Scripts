@@ -6,7 +6,7 @@ These are Python scripts for use with the Glyphs font editor <http://glyphsapp.c
 INSTALLATION
 
 Put the scripts into the Scripts folder which appears when you choose Open Scripts Folder from the Scripts menu.
-For some scripts, you will also need to install Tal Leming's Vanilla. Here's how. Open Terminal and copy and paste each of the following four lines and hit return. Notes: the second line (svn...) may take a while, the sudo lines will prompt you for your password.
+For some scripts, you will also need to install Tal Leming's Vanilla. Here's how. Open Terminal and copy and paste each of the following four lines and hit return. Notes: the second line (curl...) may take a while, the sudo lines will prompt you for your password. While we're at it, we'll also install Robofab, DialogKit, and FontTools:
 
 cd ~/Library/
 curl http://download.robofab.com/RoboFab_599_plusAllDependencies.zip > robofab.zip
