@@ -30,5 +30,5 @@ for l in selectedLayers:
 		newC.y = addMe[2]
 		l.components.append( newC )
 	
-	thisGlyph.undoManager().beginUndoGrouping()
+	thisGlyph.undoManager().endUndoGrouping()
 	
