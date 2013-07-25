@@ -49,21 +49,18 @@ class MetricsCopy(object):
 		
 		print "Copying", len(Glyphs_selected), "glyph metrics from", Font_source.familyName, "to", Font_target.familyName, ":"
 		
-		try:
-			for thisLayer in Glyphs_selected:
-					glyphName = thisLayer.parent.name
-					sourceLayer = Font_source.glyphs[ glyphName ].layers[ Master_source ]
-				
-					thisLayer.setLSB_( sourceLayer.LSB )
-					thisLayer.setRSB_( sourceLayer.RSB )
-				
-					print "   ", thisLayer.LSB, "<-", glyphName, "->", thisLayer.RSB
-					
-		except Exception, e:
-			self.showMessage( "Error", e )
+		for thisLayer in Glyphs_selected:
+			try:
+				glyphName = thisLayer.parent.name
+				sourceLayer = Font_source.glyphs[ glyphName ].layers[ Master_source ]
 			
-		finally:
-			pass
+				thisLayer.setLSB_( sourceLayer.LSB )
+				thisLayer.setRSB_( sourceLayer.RSB )
+			
+				print "   ", thisLayer.LSB, "<-", glyphName, "->", thisLayer.RSB
+			except Exception, e:
+				if "'objc.native_selector' object has no attribute 'name'" not in e: # CR in the selection string
+					print "Error:", e
 
 		self.w.close()
 		
