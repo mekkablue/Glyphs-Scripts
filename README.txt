@@ -67,13 +67,16 @@ Dekink masters: Dekinks your smooth transitions which are not horizontal or vert
 Fill up empty layers: Copies paths from one Master to another. But only if target master is empty. Needs Vanilla.
 Find and Replace in Layer Names: Replaces text in all layer names (except Master layers) of selected glyphs. Useful if you use the bracket trick in many glyphs. Needs Vanilla.
 Insert instances: GUI for calculating and inserting weight instances. Needs Vanilla.
+New Edit tab with Bracket Layer glyphs: Looks for all glyphs in the font that contain Bracket Trick Layers, and opens them in a new Edit tab.
 Show next/previous instance: Jumps to next/previous instance in the preview section of the current Edit tab. Handy for attaching a keyboard shortcut to.
-Suggest instances: Calculates an ideal distribution of weight values between your masters. Outputs into the macro window.
+Suggest instances: Calculates distributions of weight values between your masters. Outputs into the macro window.
 
 Metrics
 Center glyphs: centers all selected glyphs inside their width, so that LSB=RSB.
-Copy sidebearings: steals the sidebearing values from a 2nd font. Needs Vanilla.
+Copy kerning groups: steals left/right kerning groups for all selected glyphs from a 2nd font. Needs Vanilla.
+Copy sidebearings: steals the sidebearing values for all selected glyphs from a 2nd font. Needs Vanilla.
 Delete guidelines: deletes all local guidelines in selected glyphs.
+Delete kerning pairs for selected glyphs: deletes all kerning pairs with the selected glyphs, for the current master only.
 Export Kerning CSV: exports a CSV containing all kerning pairs ("mastername;left;right;kerningvalue").
 Export Metrics CSV: exports a CSV containing all LSB, RSB and width values ("glyphname;mastername;LSB;RSB;width").
 Extract kern strings 1st char: asks you for a group of characters, then prompts you for one or more text files; it will then output all kerning pairs (containing these chars, found in the text files) to a new Edit tab, alphabetically sorted. Finds all pairs where the entered chars are the 1st letter. Needs Vanilla.
@@ -91,6 +94,7 @@ All "Distribute" scripts distribute all selected nodes horizontally or verticall
 All "Move" scripts move the selected glyph(s) up/down by the specified distance, similar to what (shift-)ctrl-cmd-left/rightarrow does. As shortcut, I recommend (shift-)ctrl-cmd-up/downarrow.
 Close all paths: Closes all open paths in the visible layers of all selected glyphs.
 Rotate around anchor: GUI for rotating glyphs or selections of nodes and components around a 'rotate' anchor. Allows to step and repeat. Requires Vanilla.
+Tunnify: Looks for all path segments where at least one handle is selected. Then, evens out the handles of the segments, i.e., they will both have the same Fit Curve percentage. Can fix Adobe Illustrator's zero-handles (segments with one handle retracted into the nearest node).
 
 Pixelfonts
 Align anchors to pixelgrid: Moves diacritic anchors onto the grid. Assumes a grid step of 50.
