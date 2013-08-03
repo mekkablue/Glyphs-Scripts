@@ -8,17 +8,21 @@ Doc  = Glyphs.currentDocument
 Font = Glyphs.font
 FontMaster = Doc.selectedFontMaster()
 selectedLayers = Doc.selectedLayers()
-
-Font.disableUpdateInterface()
+Glyphs.clearLog()
 
 editString = ""
 
 for thisLayer in selectedLayers:
 	thisGlyphName = thisLayer.parent.name
-	print "Looking for compounds with", thisGlyphName, "..."
+	print "Compounds with %s:" % thisGlyphName
 	compoundList = [ g.name for g in Font.glyphs if thisGlyphName in [ c.componentName for c in g.layers[ FontMaster.id ].components ]]
 	editString += "\n/" + thisGlyphName + "/space/" + "/".join( compoundList )
 
-Doc.windowController().addTabWithString_( editString[1:] )
+editString = editString.lstrip()
 
-Font.enableUpdateInterface()
+# danger, can hang Glyphs.app:
+# Doc.windowController().addTabWithString_( editString )
+# so instead, script reports to the Macro window:
+
+Glyphs.showMacroWindow()
+print editString
