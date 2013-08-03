@@ -114,3 +114,6 @@ Stylistic Sets
 Synchronize ssXX glyphs: Creates missing ssXX glyphs so that you have synchronous groups of ssXX glyphs. E.g. you have a.ss01 b.ss01 c.ss01 a.ss02 c.ss02 --> the script creates b.ss02
 Create ssXX from layer: Takes the current layer and copies it to the primary layer of a new .ssXX glyph.
 Create pseudorandom calt feature: Creates pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font. Update: now includes the default class in the rotation algorithm.
+
+Test
+Preflight Font: Checks for a few common mistakes, like bad glyph names, and reports them to the Macro Window.
