@@ -1,21 +1,21 @@
 #MenuTitle: Delete Hints
-"""Delete all hints in selected glyphs."""
+"""Delete all hints in active layer of selected glyphs."""
 
 import GlyphsApp
 
 Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
+selectedLayers = Doc.selectedLayers()
+print "Deleting hints in active layer:"
 
-def process( thisGlyph ):
-	for thisLayer in thisGlyph.layers:
-		for x in reversed(range(len(thisLayer.hints))):
-			del thisLayer.hints[x]
+def process( thisLayer ):
+	for x in reversed( range( len( thisLayer.hints ))):
+		del thisLayer.hints[x]
 		
 Font.disableUpdateInterface()
 
-for thisGlyph in selectedGlyphs:
-	print "Processing", thisGlyph.name
-	process( thisGlyph )
+for thisLayer in selectedLayers:
+	print "Processing", thisLayer.parent.name
+	process( thisLayer )
 
 Font.enableUpdateInterface()
