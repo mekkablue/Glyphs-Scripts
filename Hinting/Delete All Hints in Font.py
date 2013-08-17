@@ -26,8 +26,8 @@ def process( thisGlyph ):
 
 Font.disableUpdateInterface()
 
-for thisGlyph in Font.glyphs
-	totalDeletedHints += process( thisLayer )
+for thisGlyph in Font.glyphs:
+	totalDeletedHints += process( thisGlyph )
 
 Font.enableUpdateInterface()
 
