@@ -1,5 +1,5 @@
-#MenuTitle: Delete Hints
-"""Delete all hints in active layer of selected glyphs."""
+#MenuTitle: Delete Hints in Visible Layers
+"""Delete all hints in active layers of selected glyphs."""
 
 import GlyphsApp
 

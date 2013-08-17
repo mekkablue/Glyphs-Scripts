@@ -59,7 +59,8 @@ And if you are running Glyphs on Lion (10.7) or later, you may want to add:
 * Lowercase: Turns the names of selected glyphs lowercase.
 
 ## Hinting
-* Delete Hints: Deletes hints in active layer of selected glyphs.
+* Delete Hints in Visible Layers: Deletes hints in active layers of selected glyphs.
+* Delete All Hints in Font: Deletes all hints throughout the active font. Be careful.
 
 ## Masters
 * Copy layer to layer: Copies paths from one Master to another. *Needs Vanilla.*
