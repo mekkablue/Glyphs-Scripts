@@ -61,6 +61,7 @@ And if you are running Glyphs on Lion (10.7) or later, you may want to add:
 ## Hinting
 * Delete Hints in Visible Layers: Deletes hints in active layers of selected glyphs.
 * Delete All Hints in Font: Deletes all hints throughout the active font. Be careful.
+* Keep First Master Hints Only: In selected glyphs, deletes all hints in all layers except for whatever is ordered as first master. Respects Bracket Layers. E.g., if your first master is ‘Regular’, then the script will delete hints in ‘Bold’, ‘Bold [120]’, but keep them in ‘Regular’ and ‘Regular [100]’.
 
 ## Masters
 * Copy layer to layer: Copies paths from one Master to another. *Needs Vanilla.*
