@@ -36,10 +36,10 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 ## Anchors
 * **Anchor Mover 1:** GUI for moving anchors vertically in multiple glyphs. Handy for getting all top anchors right after changing your cap height. *Needs Vanilla.*
 * **Anchor Mover 2:** GUI for batch-processing anchor positions in multiple glyphs. *Needs Vanilla.*
-* **Combining Accent Maker:** Goes through your selected (spacing) marks and adds a combining (non-spacing) copy of it to your font, e.g., for acute and dieresis.case, it will add acutecomb and dieresiscomb.case.
+* **Combining Accent Maker:** Goes through your selected (spacing) marks and adds a combining (non-spacing) copy of it to your font, e.g., for *acute* and *dieresis.case*, it will add *acutecomb* and *dieresiscomb.case*.
 * **Move top anchors:** Moves top anchors in all selected glyphs to the new_y value hardcoded in the .py file.
-* **Put accents on new anchors in all layers:** Moves 'acute', 'grave' and 'hookabovecomb' to the 'top_viet' anchor. Useful for Vietnamese double accents. Assumes that you have top_viet anchors in all layers of circumflex.
-* **Report top anchors:** Report the y positions of all top anchors into the Macro Panel.
+* **Put accents on new anchors in all layers:** Moves *acute*, *grave* and *hookabovecomb* to the *top_viet* anchor. Useful for Vietnamese double accents. Assumes that you have top_viet anchors in all layers of *circumflex*.
+* **Report top anchors:** Report the y positions of all *top* anchors into the Macro Panel.
 
 ## Arabic
 * **AXt Converter:** converts the MacRoman glyph names (used in legacy AXt fonts) into nice names as employed by Glyphs. Attention: the script is still a work in progress. Suggestions are very welcome in the Wiki: https://github.com/mekkablue/Glyphs-Scripts/wiki/AXt-Converter
@@ -80,26 +80,26 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 ## Metrics
 * **Center glyphs:** centers all selected glyphs inside their width, so that LSB=RSB.
 * **Copy kerning groups:** steals left/right kerning groups for all selected glyphs from a 2nd font. *Needs Vanilla.*
-* **Copy sidebearings:** steals the sidebearing values for all selected glyphs from a 2nd font. *Needs Vanilla.*
+* **Copy sidebearings:** steals the sidebearing values for all selected glyphs from a 2nd font. Ignores metrics keys like ‘=x+20’. *Needs Vanilla.*
 * **Delete guidelines:** deletes all local guidelines in selected glyphs.
 * **Delete kerning pairs for selected glyphs:** deletes all kerning pairs with the selected glyphs, for the current master only.
-* **Export Kerning CSV:** exports a CSV containing all kerning pairs ("mastername;left;right;kerningvalue").
-* **Export Metrics CSV:** exports a CSV containing all LSB, RSB and width values ("glyphname;mastername;LSB;RSB;width").
+* **Export Kerning CSV:** exports a CSV containing all kerning pairs (‘mastername;left;right;kerningvalue’).
+* **Export Metrics CSV:** exports a CSV containing all LSB, RSB and width values (‘glyphname;mastername;LSB;RSB;width’).
 * **Extract kern strings 1st char:** asks you for a group of characters, then prompts you for one or more text files; it will then output all kerning pairs (containing these chars, found in the text files) to a new Edit tab, alphabetically sorted. Finds all pairs where the entered chars are the 1st letter. *Needs Vanilla.*
 * **Extract kern strings 2nd char:** asks you for a group of characters, then prompts you for one or more text files; it will then output all kerning pairs (containing these chars, found in the text files) to a new Edit tab, alphabetically sorted. Finds all pairs where the entered chars are the 2nd letter. *Needs Vanilla.*
-* **Find and Replace Metrics Keys:** GUI for searching and replacing text in the L and R metrics keys, e.g. replace "=X+15" by "=X", etc.
+* **Find and Replace Metrics Keys:** GUI for searching and replacing text in the L and R metrics keys, e.g. replace ‘=X+15’ by ‘=X’, etc.
 * **Make tab with letter combos:** takes your selected glyphs and opens a new tab with all possible combinations of the letters.
-* **Reset alternate glyph width:** resets the width of suffixed glyphs to the width of their unsuffixed counterparts. E.g., Adieresis.ss01 will be reset to the width of Adieresis.
+* **Reset alternate glyph width:** resets the width of suffixed glyphs to the width of their unsuffixed counterparts. E.g., *Adieresis.ss01* will be reset to the width of *Adieresis*.
 
 ## OpenType
 * **Floating Features:** Floating palettes for activating and deactivating OT features. Same functionality as the pop-up menu. *Needs Vanilla.*
 * **Make OT Class from selected glyphs:** GUI for creating a new OT class with the selected glyphs. *Needs Vanilla.*
 
 ## Paths
-* All **"Align"** scripts look for a path in the currently active layer and align it to whatever the script title says. Useful if you need to do one of these alignment operations very often. Hint: you can set a keyboard shortcut in System Preferences.
-* All **"Bump"** scripts move the selection towards the next available metric to the left, right, top or bottom. The Bump Left/Right scripts also include the halfwidth of the glyph. These are intended for setting a shortcut in System Preferences > Keyboard > Keyboard Shortcuts > Application Shortcuts (I recommend ctrl-opt-cmd-arrows).
-* All **"Distribute" scripts** distribute all selected nodes horizontally or vertically, whatever is closer or what the script title says.
-* All **"Move" scripts** move the selected glyph(s) up/down by the specified distance, similar to what (shift-)ctrl-cmd-left/rightarrow does. As shortcut, I recommend (shift-)ctrl-cmd-up/downarrow.
+* All **Align"** scripts look for a path in the currently active layer and align it to whatever the script title says. Useful if you need to do one of these alignment operations very often. Hint: you can set a keyboard shortcut in System Preferences.
+* All **Bump"** scripts move the selection towards the next available metric to the left, right, top or bottom. The Bump Left/Right scripts also include the halfwidth of the glyph. These are intended for setting a shortcut in System Preferences > Keyboard > Keyboard Shortcuts > Application Shortcuts (I recommend ctrl-opt-cmd-arrows).
+* All **Distribute** scripts distribute all selected nodes horizontally or vertically, whatever is closer or what the script title says.
+* All **Move** scripts move the selected glyph(s) up/down by the specified distance, similar to what (shift-)ctrl-cmd-left/rightarrow does. As shortcut, I recommend (shift-)ctrl-cmd-up/downarrow.
 * **Close all paths:** Closes all open paths in the visible layers of all selected glyphs.
 * **Rotate around anchor:** GUI for rotating glyphs or selections of nodes and components around a 'rotate' anchor. Allows to step and repeat. Requires Vanilla.
 * **Tunnify:** Looks for all path segments where at least one handle is selected. Then, evens out the handles of the segments, i.e., they will both have the same Fit Curve percentage. Can fix Adobe Illustrator's zero-handles (segments with one handle retracted into the nearest node).
@@ -109,7 +109,7 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 * **Delete components out of bounds:** If a component is placed far outside the usual coordinates (happens when you cmd-arrow components with a high grid step), this script will delete them.
 * **Delete duplicate components:** Looks for duplicate components (same name and position) and keeps only one.
 * **Flashify Pixels:** Creates small bridges in order to prevent self-intersection of paths so counters stay white. This is especially a problem for the Flash font renderer, hence the name of the script.
-* **Re-Compose Pixels:** Tries to rebuild accidentally decomposed pixelglyphs with 'pixel' components.
+* **Re-Compose Pixels:** Tries to rebuild accidentally decomposed pixelglyphs with *pixel* components.
 * **Reset rotated and mirrored components:** Looks for scaled, mirrored and rotated components and turns them back into their default scale and orientation, but keeps their position. Useful for fixing mirrored pixels.
 
 ## Smallcaps
@@ -118,7 +118,7 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 * **Make smcp from c2sc:** Creates .smcp copies of your .c2sc glyphs, with the .c2sc glyphs inserted as components in the .smcp copies. For example, if you have A.c2sc, the script will create a.smcp and insert A.c2sc as component. It will not do anything in case a.smcp already exists.
 
 ## Stylistic Sets 
-* **Synchronize ssXX glyphs:** Creates missing ssXX glyphs so that you have synchronous groups of ssXX glyphs. E.g. you have a.ss01 b.ss01 c.ss01 a.ss02 c.ss02 --> the script creates b.ss02
+* **Synchronize ssXX glyphs:** Creates missing ssXX glyphs so that you have synchronous groups of ssXX glyphs. E.g. you have *a.ss01 b.ss01 c.ss01 a.ss02 c.ss02* --> the script creates *b.ss02*
 * **Create ssXX from layer:** Takes the current layer and copies it to the primary layer of a new .ssXX glyph.
 * **Create pseudorandom calt feature:** Creates pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font. Update: now includes the default class in the rotation algorithm.
 
