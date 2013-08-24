@@ -14,10 +14,10 @@ For some scripts, you will also need to install Tal Leming's *Vanilla*. Here's h
     unzip robofab.zip -d Python_Installs
     rm robofab.zip
     cd Python_Installs/Vanilla/
+    sudo python setup.py install
 
 While we're at it, we can also install Robofab, DialogKit, and FontTools. You don’t need those for my scripts though:
 
-    sudo python setup.py install
     cd ../Robofab/
     sudo python setup.py install
     cd ../DialogKit/
