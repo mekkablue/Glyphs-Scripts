@@ -85,7 +85,7 @@ def tunnify( segment ):
 	
 	return x_handle1, y_handle1, x_handle2, y_handle2
 	
-#selectedGlyph.undoManager().beginUndoGrouping()
+#selectedGlyph.beginUndo()
 selectedGlyph.beginUndo()
 
 try:
@@ -116,5 +116,5 @@ except Exception, e:
 	print "Error:", e
 	pass
 
-#selectedGlyph.undoManager().beginUndoGrouping()
+#selectedGlyph.beginUndo()
 selectedGlyph.endUndo()

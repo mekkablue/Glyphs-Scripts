@@ -26,7 +26,7 @@ def process( thisLayer ):
 	glyphName = thisLayer.parent.name
 	
 	if len( thisLayer.components ) != 0:
-		thisLayer.parent.undoManager().beginUndoGrouping()
+		thisLayer.parent.beginUndo()
 	
 		indexesOutOfBounds = scanOutOfBounds( thisLayer )
 		numberOfOffComponents = len(indexesOutOfBounds)
@@ -39,7 +39,7 @@ def process( thisLayer ):
 		else:
 			print "No components out of bounds in %s." % glyphName
 		
-		thisLayer.parent.undoManager().endUndoGrouping()
+		thisLayer.parent.endUndo()
 	else:
 		print "No components in %s." % glyphName
 

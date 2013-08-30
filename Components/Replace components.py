@@ -1,7 +1,6 @@
 #MenuTitle: Replace components
 """Replaces components in selected glyphs (GUI)."""
 
-#import GlyphsApp
 import vanilla
 
 class Componentreplacer(object):
@@ -29,24 +28,20 @@ class Componentreplacer(object):
 		
 		for thisLayer in selectedLayers:
 			try:
-				for thisComponent in thisLayer.components:
-					if thisComponent.componentName == old_Component_name:
-						thisComponent.componentName = new_Component_name
+				thisComponent = thisLayer.components[old_Component_name]
+				thisComponent.componentName = new_Component_name
 			except:
 				print "Failed to replace Component in %s." % thisLayer.parent.name
 	
 	def GetComponentNames(self):
-		myComponentList = []
 		selectedLayers = Glyphs.currentDocument.selectedLayers()
+		myComponentList = set()
 		
 		for thisLayer in selectedLayers:
 			l = thisLayer.components
-			ComponentNames = [l[x].componentName for x in range(len(l))]
-
-			for thisComponentName in ComponentNames:
-				if thisComponentName not in myComponentList:
-					myComponentList.append( str(thisComponentName) )
+			for thisComponent in thisLayer.components:
+				myComponentList.add(thisComponent.componentName)
 		
-		return sorted(myComponentList)
+		return sorted(list(myComponentList))
 
 Componentreplacer()

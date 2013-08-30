@@ -11,7 +11,7 @@ pixelwidth = Font.gridLength
 
 def process( thisLayer ):
 	if len( thisLayer.anchors ) != 0:
-		thisLayer.parent.undoManager().beginUndoGrouping()
+		thisLayer.parent.beginUndo()
 		
 		anchorList = thisLayer.anchors
 		
@@ -25,7 +25,7 @@ def process( thisLayer ):
 				a.position = ( round( a.x/pixelwidth ) * pixelwidth, round( a.y/pixelwidth ) * pixelwidth )
 				print "%s: %s %i|%i --> %i|%i" % ( thisLayer.parent.name, a.name, int(oldX), int(oldY), int(a.x), int(a.y) )
 				
-		thisLayer.parent.undoManager().endUndoGrouping()
+		thisLayer.parent.endUndo()
 
 Font.disableUpdateInterface()
 

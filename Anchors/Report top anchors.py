@@ -1,5 +1,5 @@
 #MenuTitle: Report top positions
-"""Reports the y positions of the top anchors of selected glyphs in the Macro Window."""
+"""Reports the y positions of the top anchors of selected glyphs to the Macro Window."""
 
 import GlyphsApp
 

@@ -1,12 +1,11 @@
 #MenuTitle: Retract BCPs
 """Retracts all BCPs (off-curve points) in selected glyphs, so all curves will be turned into straight lines."""
 
+import GlyphsApp
+
 Font = Glyphs.font
 Doc  = Glyphs.currentDocument
 selectedLayers = Doc.selectedLayers()
-
-GSOFFCURVE = 65
-GSLINE = 1
 
 def process( thisLayer ):
 	for thisPath in thisLayer.paths:
@@ -19,14 +18,11 @@ def process( thisLayer ):
 		
 		thisPath.checkConnections()
 
-Font.disableUpdateInterface()
-
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
 	print "Processing", thisGlyph.name
-	thisGlyph.undoManager().beginUndoGrouping()
+	thisLayer.setDisableUpdates()
+	thisLayer.parent.beginUndo()
 	process( thisLayer )
-	thisGlyph.undoManager().endUndoGrouping()
-
-Font.enableUpdateInterface()
-
+	thisLayer.parent.endUndo()
+	thisLayer.setEnableUpdates()

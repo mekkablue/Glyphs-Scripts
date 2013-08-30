@@ -3,27 +3,18 @@
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-selectedLayers = Doc.selectedLayers()
+selectedLayers = Font.selectedLayers
 selectedGlyphs = [ l.parent for l in selectedLayers ]
-firstMasterName = Font.masters[0].name
+firstMasterId = Font.masters[0].id
 
 print "Only keeping first master hints:"
 
-def removeHints( thisLayer ):
-	for x in reversed( range( len( thisLayer.hints ))):
-		del thisLayer.hints[x]
-		
-Font.disableUpdateInterface()
-
 for thisGlyph in selectedGlyphs:
 	print "Processing", thisGlyph.name
-	layersToBeProcessed = [ l for l in thisGlyph.layers if not l.name.startswith( firstMasterName ) ]
-
+	layersToBeProcessed = [ l for l in thisGlyph.layers if l.associatedMasterId != firstMasterId ]
+	thisGlyph.beginUndo()
 	for thisLayer in layersToBeProcessed:
-		removeHints( thisLayer )
-
-Font.enableUpdateInterface()
-
+		thisLayer.hints = None
+	thisGlyph.endUndo()
 print "Done."

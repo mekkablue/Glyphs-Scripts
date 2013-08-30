@@ -26,12 +26,9 @@ def process( thisGlyph ):
 					except Exception, e:
 						print e
 
-Font.disableUpdateInterface()
-
 for thisGlyph in selectedGlyphs:
 	print "Processing", thisGlyph.name
-	thisGlyph.undoManager().beginUndoGrouping()
+	thisGlyph.beginUndo()
 	process( thisGlyph )
-	thisGlyph.undoManager().endUndoGrouping()
+	thisGlyph.endUndo()
 
-Font.enableUpdateInterface()

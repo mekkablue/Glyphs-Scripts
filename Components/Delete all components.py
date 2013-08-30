@@ -11,13 +11,9 @@ def process( thisLayer ):
 		print "  Deleting component", thisLayer.components[0].componentName
 		del thisLayer.components[0]
 
-Font.disableUpdateInterface()
-
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
 	print "Processing", thisGlyph.name
-	thisGlyph.undoManager().beginUndoGrouping()
+	thisGlyph.beginUndo()
 	process( thisLayer )
-	thisGlyph.undoManager().endUndoGrouping()
-
-Font.enableUpdateInterface()
+	thisGlyph.endUndo()

@@ -24,7 +24,7 @@ def process( thisGlyph ):
 	FontMaster = Doc.selectedFontMaster()
 	thisLayer = thisGlyph.layers[FontMaster.id]
 	
-	thisGlyph.undoManager().beginUndoGrouping()
+	thisGlyph.beginUndo()
 
 	for thisPath in thisLayer.paths:
 		for thisNode in thisPath.nodes:
@@ -35,7 +35,7 @@ def process( thisGlyph ):
 		
 		thisPath.checkConnections()
 
-	thisGlyph.undoManager().endUndoGrouping()
+	thisGlyph.endUndo()
 
 print "Beowulferizing " + str( Font.familyName )
 glyphsToProcess = glyphen[:]

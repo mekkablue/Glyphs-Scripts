@@ -28,14 +28,14 @@ def scanForDuplicates( thisLayer, compNumber ):
 
 def process( thisLayer ):
 	if len( thisLayer.components ) != 0:
-		thisLayer.parent.undoManager().beginUndoGrouping()
+		thisLayer.parent.beginUndo()
 	
 		indexesToBeDeleted = scanForDuplicates( thisLayer, 0 )
 		for indexToBeDeleted in indexesToBeDeleted[::-1]:
 			del thisLayer.components[indexToBeDeleted]
 		print len( indexesToBeDeleted )
 	
-		thisLayer.parent.undoManager().endUndoGrouping()
+		thisLayer.parent.endUndo()
 	else:
 		# no components in this layer
 		print "n/a" 

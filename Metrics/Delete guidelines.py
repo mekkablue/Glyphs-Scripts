@@ -13,8 +13,8 @@ Font.disableUpdateInterface()
 
 for thisLayer in selectedLayers:
 	print "Processing", thisLayer.parent.name
-	thisLayer.undoManager().beginUndoGrouping()
+	thisLayer.beginUndo()
 	process( thisLayer )
-	thisLayer.undoManager().endUndoGrouping()
+	thisLayer.endUndo()
 
 Font.enableUpdateInterface()

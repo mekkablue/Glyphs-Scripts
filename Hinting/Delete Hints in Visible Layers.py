@@ -3,19 +3,9 @@
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
-Font = Glyphs.font
-selectedLayers = Doc.selectedLayers()
 print "Deleting hints in active layer:"
-
-def process( thisLayer ):
-	for x in reversed( range( len( thisLayer.hints ))):
-		del thisLayer.hints[x]
-		
-Font.disableUpdateInterface()
-
-for thisLayer in selectedLayers:
-	print "Processing", thisLayer.parent.name
-	process( thisLayer )
-
-Font.enableUpdateInterface()
+Layers = Glyphs.font.selectedLayers
+for Layer in Layers:
+	print "Processing:", thisLayer.parent.name
+	if len(Layer.hints) > 0:
+		Layer.hints = None

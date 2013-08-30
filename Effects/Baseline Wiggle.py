@@ -14,7 +14,7 @@ Doc  = Glyphs.currentDocument
 Font = Glyphs.font
 
 def create_otclass( classname   = "@default", 
-                    classglyphs = [ x.parent.name for x in Doc.selectedLayers() ], 
+                    classglyphs = [ x.parent.name for x in Doc.selectedLayers() ],
                     targetfont  = Glyphs.font ):
 	"""
 	Creates an OpenType class in the font.
@@ -38,9 +38,7 @@ def create_otfeature( featurename = "calt",
 	Returns a status message in the form of a string.
 	"""
 	
-	newFeature = GSFeature()
-	newFeature.name = featurename
-	newFeature.code = featurecode
+	newFeature = GSFeature( featurename, featurecode )
 	targetfont.features.append( newFeature )
 	
 	return "Created OT feature: %s" % featurename

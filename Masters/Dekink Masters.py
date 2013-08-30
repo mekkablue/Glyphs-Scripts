@@ -28,37 +28,38 @@ def dekink( myMaster, myGlyph, pathindex, nodeindex, proportion ):
 		
 	except Exception, e:
 		print e
-		return False 
+		return False
 
-try:
-	if currentGlyph.mastersCompatible():
-		s = list( currentLayer.selection() )
+#try:
+if currentGlyph.mastersCompatible():
+	s = list( currentLayer.selection() )
+	print "__s", s
+	# find the indices for selected nodes:
+	for n1 in [n for n in s if n.connection == GSSMOOTH]:
 		
-		# find the indices for selected nodes:
-		for n in [n for n in s if n.connection == GSSMOOTH]:
-			for pi in range( len( currentLayer.paths )):
-				pathlength = len( currentLayer.paths[pi].nodes )
-				currentNodes = currentLayer.paths[pi].nodes
-				for ni in range( pathlength ):
-					if currentNodes[ni] == n:
-						n0 = currentNodes[(ni-1) % pathlength]
-						n1 = currentNodes[ ni ]
-						n2 = currentNodes[(ni+1) % pathlength]
-					
-						longX  = n2.x - n0.x
-						longY  = n2.y - n0.y
-						shortX = n1.x - n0.x
-						shortY = n1.y - n0.y
+		pi = list(n1.parent.parent.paths).index(n1.parent)
+		
+		currentNodes = list(n.parent.nodes)
+		pathlength = len(currentNodes)
+		ni = currentNodes.index(n1)
+		
+		n0 = currentNodes[(ni-1) % pathlength]
+		n2 = currentNodes[(ni+1) % pathlength]
+		
+		longX  = n2.x - n0.x
+		longY  = n2.y - n0.y
+		shortX = n1.x - n0.x
+		shortY = n1.y - n0.y
 
-						if longY == 0.0 or longX == 0.0:
-							print "Ignoring node at %i, %i because the segment is straight." % ( n1.x, n1.y )
-						else:
-							proportion = ( shortX / longX + shortY / longY ) / 2.0
-						
-							if not dekink( currentMaster, currentGlyph, pi, ni, proportion ):
-								print "Error: dekinking failed."
-	else:
-		print "Error: masters not compatible."
+		if longY == 0.0 or longX == 0.0:
+			print "Ignoring node at %i, %i because the segment is straight." % ( n1.x, n1.y )
+		else:
+			proportion = ( shortX / longX + shortY / longY ) / 2.0
+			
+			if not dekink( currentMaster, currentGlyph, pi, ni, proportion ):
+				print "Error: dekinking failed."
+else:
+	print "Error: masters not compatible."
 	
-except Exception, e:
-	raise e
+#except Exception, e:
+#	raise e

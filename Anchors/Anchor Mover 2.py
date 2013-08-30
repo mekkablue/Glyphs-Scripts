@@ -126,79 +126,55 @@ class AnchorMover2( object ):
 		evalCodeV = listVertical[ vertical_index ][1]
 		
 		print "Processing %i glyphs..." % ( len( selectedLayers ) )
-		#Font.disableUpdateInterface()
 		
 		for originalLayer in selectedLayers:
-			if originalLayer.name != None:
-				thisGlyph = originalLayer.parent		
-				copyLayer = originalLayer.copy().copyDecomposedLayer()
-				#originalLayer.setDisableUpdates() # not necessary?
-				thisGlyph.undoManager().beginUndoGrouping() # not working?
+			thisGlyph = originalLayer.parent
+			copyLayer = originalLayer.copyDecomposedLayer()
+			try:
+				thisAnchor = Layer.anchors[anchor_name]
+				old_anchor_x = thisAnchor.x
+				old_anchor_y = thisAnchor.y
+				xMove = eval( evalCodeH ) + horizontal_change
+				yMove = eval( evalCodeV ) + vertical_change
 				
-				try:
+				# Ignore moves relative to bbox if there are no paths:
+				if not copyLayer.paths:
+					if "bounds" in evalCodeH:
+						xMove = old_anchor_x
+					
+					if "bounds" in evalCodeV:
+						yMove = old_anchor_y
+				
+				# Only move if the calculated position differs from the original one:
+				if [ int(old_anchor_x + italicCorrection), int(old_anchor_y) ] != [ int(xMove), int(yMove) ]:
+					
 					if respectItalic:
-						for mPath in copyLayer.paths:
-							for mNode in mPath.nodes:
-								mNode.x = italicSkew( mNode.x, mNode.y, -italicAngle )
-							
-						for mAnchor in copyLayer.anchors:
-							mAnchor.x = italicSkew( mAnchor.x, mAnchor.y, -italicAngle )
-							
-					for thisAnchor in copyLayer.anchors:
-						if thisAnchor.name == anchor_name:
-							old_anchor_x = thisAnchor.x
-							old_anchor_y = thisAnchor.y
-							xMove = eval( evalCodeH ) + horizontal_change
-							yMove = eval( evalCodeV ) + vertical_change
-						
-							# Ignore moves relative to bbox if there are no paths:
-							if not copyLayer.paths:
-								if "bounds" in evalCodeH:
-									xMove = old_anchor_x
-							
-								if "bounds" in evalCodeV:
-									yMove = old_anchor_y
-						
-							# Only move if the calculated position differs from the original one:
-							if [ int(old_anchor_x + italicCorrection), int(old_anchor_y) ] != [ int(xMove), int(yMove) ]:
-								
-								if respectItalic:
-									# skew back
-									xMove = italicSkew( xMove, yMove, italicAngle ) - italicCorrection
-									old_anchor_x = italicSkew( old_anchor_x, old_anchor_y, italicAngle ) - italicCorrection
-							
-								originalAnchorPosition = NSPoint()
-								originalAnchorPosition.x = xMove
-								originalAnchorPosition.y = yMove
-								originalAnchor = GSAnchor( anchor_name, originalAnchorPosition )
-								originalLayer.addAnchor_( originalAnchor )
-							
-								print "Moved %s anchor from %i, %i to %i, %i in %s." % ( anchor_name, old_anchor_x, old_anchor_y, xMove, yMove, thisGlyph.name )
-				except Exception, e:
-					print "ERROR: Failed to move anchor in %s." % thisGlyph.name
-					raise e
-			
-				thisGlyph.undoManager().endUndoGrouping() # not working
-				#originalLayer.setEnableUpdates()
-		
-		#Font.enableUpdateInterface()
-		Font.updateInterface()
+						# skew back
+						xMove = italicSkew( xMove, yMove, italicAngle ) - italicCorrection
+						old_anchor_x = italicSkew( old_anchor_x, old_anchor_y, italicAngle ) - italicCorrection
+					
+					thisAnchor.position = NSMakePoint(xMove, yMove)
+					
+					print "Moved %s anchor from %i, %i to %i, %i in %s." % ( anchor_name, old_anchor_x, old_anchor_y, xMove, yMove, Layer.parent.name )
+				
+			except Exception, e:
+				print "ERROR: Failed to move anchor in %s." % thisGlyph.name
+				raise e
 		print "Done."
 	
 	def GetAnchorNames( self ):
-		myAnchorList = []
+		myAnchorList = set()
 		selectedLayers = Glyphs.currentDocument.selectedLayers()
 		
 		try:
 			for thisLayer in selectedLayers:
-				AnchorNames = list( thisLayer.anchors.keys() ) # hack to avoid traceback
+				AnchorNames = thisLayer.anchors.keys()
 				for thisAnchorName in AnchorNames:
-					if thisAnchorName not in myAnchorList:
-						myAnchorList.append( str(thisAnchorName) )
+					myAnchorList.add(thisAnchorName)
 		except:
 			print "Error: Cannot collect anchor names from the current selection."
 		
-		return sorted( myAnchorList )
+		return sorted(list(myAnchorList))
 	
 	def SetAnchorNames( self, sender ):
 		try:

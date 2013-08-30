@@ -22,8 +22,8 @@ for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
 	thisGlyphName = thisGlyph.name
 	if "." in thisGlyphName:
-		thisLayer.undoManager().beginUndoGrouping()
+		thisLayer.beginUndo()
 		print "Resetting width of %s to %.0f." % ( thisGlyphName, resetWidth( thisLayer, thisGlyphName ) )
-		thisLayer.undoManager().endUndoGrouping()
+		thisLayer.endUndo()
 
 Font.enableUpdateInterface()

@@ -6,14 +6,12 @@ alphabets = 5 # Instances of rotated glyphs
 linelength = 80 # length of the line the feature should be working on
 
 import GlyphsApp
-import math
-import random
+import math, random
+
 random.seed()
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-FontMaster = Doc.selectedFontMaster()
-selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
+selectedGlyphs = [ x.parent for x in Font.selectedLayers ]
 
 def randomize( min, max ):
 	return random.randint( min, max )
@@ -59,7 +57,7 @@ def ssXXsuffix( i ):
 		i = 1
 	elif i > 20:
 		i = 20
-	return ".calt.ss" + ( "00"+str(i) )[-2:]
+	return ".calt.ss%.2d" % i
 
 def make_ssXX( thisGlyph, number ):
 	myListOfGlyphs = []
@@ -78,7 +76,7 @@ def wiggle( thisGlyph, maxangle ):
 	for thisLayer in thisGlyph.layers:
 		x_orig = thisLayer.width / 2.0
 		y_orig = thisLayer.bounds.size.height / 2.0
-
+		
 		for thisPath in thisLayer.paths:
 			for thisNode in thisPath.nodes:
 				[ thisNode.x, thisNode.y ] = rotate( thisNode.x, thisNode.y, angle=(rotateby/1.0), x_orig=x_orig, y_orig=y_orig )
@@ -88,16 +86,13 @@ def wiggle( thisGlyph, maxangle ):
 
 def makeClass( listOfGlyphNames, className="@default" ):
 	print "Creating OT class:", className
-	myNewClass = GSClass()
-	myNewClass.name = className
-	myNewClass.code = " ".join( listOfGlyphNames )
+	myNewClass = GSClass(className, " ".join( listOfGlyphNames ))
 	Font.classes.append( myNewClass )
 
 def pseudoRandomize( myFeature="calt", defaultClassName="@default", pseudoClassName="@calt", alphabets=5, linelength=70):
 	print "Creating OT feature:", myFeature
-	myNewFeature = GSFeature()
-	myNewFeature.name = myFeature
-
+	myNewFeature = GSFeature(myFeature)
+	
 	featuretext = ""
 	listOfClasses = (range(alphabets)*((linelength//alphabets)+2))
 	for i in range( (alphabets * ( linelength//alphabets ) + 1), 0, -1 ):
@@ -108,7 +103,9 @@ def pseudoRandomize( myFeature="calt", defaultClassName="@default", pseudoClassN
 	Font.features.append(myNewFeature)
 
 # Make ssXX copies of selected glyphs and rotate them randomly:
+
 Font.disableUpdateInterface()
+
 classlist = []
 
 for thisGlyph in selectedGlyphs:
@@ -119,12 +116,13 @@ for thisGlyph in selectedGlyphs:
 	for thisVeryGlyph in glyphList:
 		wiggle( thisVeryGlyph, winkel )
 		
-Font.enableUpdateInterface()
 
 # Create OT classes:
 makeClass( classlist )
 for x in range( alphabets ):
-	makeClass( [s + ssXXsuffix( x+1 ) for s in classlist], className = "@calt"+str( x ) )
+	makeClass( [s + ssXXsuffix( x+1 ) for s in classlist], className = "@calt%d" % x )
 
 # Create OT feature:
 pseudoRandomize( alphabets=alphabets, linelength=linelength )
+
+Font.enableUpdateInterface()

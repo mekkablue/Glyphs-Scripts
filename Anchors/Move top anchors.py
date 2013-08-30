@@ -8,7 +8,6 @@ import GlyphsApp
 
 Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
 selectedLayers = Doc.selectedLayers()
 
 def process( thisLayer ):
@@ -18,11 +17,7 @@ def process( thisLayer ):
 	except Exception, e:
 		pass
 
-Font.disableUpdateInterface()
-
 for thisLayer in selectedLayers:
 	#print "Processing", thisLayer.parent.name
 	process( thisLayer )
-
-Font.enableUpdateInterface()
 
