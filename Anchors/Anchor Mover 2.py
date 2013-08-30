@@ -7,19 +7,19 @@ import vanilla
 import math
 
 listHorizontal = [
-	["current position", "thisAnchor.x + italicCorrection"],
+	["current position", "originalAnchor.x + italicCorrection"],
 	["LSB", "0.0"],
 	["RSB", "copyLayer.width"],
-	["center of width", "copyLayer.width // 2.0"],
-	["left edge of glyph bbox", "copyLayer.LSB"],
-	["horizontal center of glyph bbox", "(copyLayer.LSB + (copyLayer.width - copyLayer.RSB)) // 2.0"],
-	["right edge of glyph bbox", "copyLayer.width - copyLayer.RSB"],
-	["highest node of glyph", "max( [ (max( [x for x in p.nodes if x.type != 65], key=lambda n: n.y )) for p in copyLayer.paths ], key=lambda n: n.y ).x + italicCorrection"],
-	["lowest node of glyph", "min( [ (min( [x for x in p.nodes if x.type != 65], key=lambda n: n.y )) for p in copyLayer.paths ], key=lambda n: n.y ).x + italicCorrection"]	
+	["center", "copyLayer.width // 2.0"],
+	["bbox left edge", "copyLayer.LSB"],
+	["bbox center", "(copyLayer.LSB + (copyLayer.width - copyLayer.RSB)) // 2.0"],
+	["bbox right edge", "copyLayer.width - copyLayer.RSB"],
+	["highest node", "max( [ (max( [x for x in p.nodes if x.type != 65], key=lambda n: n.y )) for p in copyLayer.paths ], key=lambda n: n.y ).x + italicCorrection"],
+	["lowest node", "min( [ (min( [x for x in p.nodes if x.type != 65], key=lambda n: n.y )) for p in copyLayer.paths ], key=lambda n: n.y ).x + italicCorrection"]	
 ]
 
 listVertical = [
-	["current position", "thisAnchor.y"],
+	["current position", "originalAnchor.y"],
 	["ascender", "selectedAscender"],
 	["cap height", "selectedCapheight"],
 	["x-height", "selectedXheight"],
@@ -28,11 +28,11 @@ listVertical = [
 	["half x-height", "selectedXheight // 2.0" ],
 	["baseline", "0.0"],
 	["descender", "selectedDescender"],
-	["top edge of glyph bbox", "copyLayer.bounds.origin.y + copyLayer.bounds.size.height"],
-	["vertical center of glyph bbox", "copyLayer.bounds.origin.y + ( copyLayer.bounds.size.height // 2.0 )"],
-	["bottom edge of glyph bbox", "copyLayer.bounds.origin.y"],
-	["leftmost node of glyph", "min( [ (min( [x for x in p.nodes if x.type != 65], key=lambda n: n.x )) for p in copyLayer.paths ], key=lambda n: n.x ).y"],
-	["rightmost node of glyph", "max( [ (max( [x for x in p.nodes if x.type != 65], key=lambda n: n.x )) for p in copyLayer.paths ], key=lambda n: n.x ).y"]
+	["bbox top", "copyLayer.bounds.origin.y + copyLayer.bounds.size.height"],
+	["bbox center", "copyLayer.bounds.origin.y + ( copyLayer.bounds.size.height // 2.0 )"],
+	["bbox bottom", "copyLayer.bounds.origin.y"],
+	["leftmost node", "min( [ (min( [x for x in p.nodes if x.type != 65], key=lambda n: n.x )) for p in copyLayer.paths ], key=lambda n: n.x ).y"],
+	["rightmost node", "max( [ (max( [x for x in p.nodes if x.type != 65], key=lambda n: n.x )) for p in copyLayer.paths ], key=lambda n: n.x ).y"]
 ]
 
 def italicSkew( x, y, angle=10.0 ):
@@ -126,14 +126,13 @@ class AnchorMover2( object ):
 		evalCodeV = listVertical[ vertical_index ][1]
 		
 		print "Processing %i glyphs..." % ( len( selectedLayers ) )
-		#Font.disableUpdateInterface()
+		Font.disableUpdateInterface()
 		
 		for originalLayer in selectedLayers:
 			if originalLayer.name != None:
 				thisGlyph = originalLayer.parent		
-				copyLayer = originalLayer.copy().copyDecomposedLayer()
-				#originalLayer.setDisableUpdates() # not necessary?
-				thisGlyph.undoManager().beginUndoGrouping() # not working?
+				copyLayer = originalLayer.copyDecomposedLayer()
+				thisGlyph.beginUndo() # not working?
 				
 				try:
 					if respectItalic:
@@ -144,45 +143,41 @@ class AnchorMover2( object ):
 						for mAnchor in copyLayer.anchors:
 							mAnchor.x = italicSkew( mAnchor.x, mAnchor.y, -italicAngle )
 							
-					for thisAnchor in copyLayer.anchors:
-						if thisAnchor.name == anchor_name:
-							old_anchor_x = thisAnchor.x
-							old_anchor_y = thisAnchor.y
-							xMove = eval( evalCodeH ) + horizontal_change
-							yMove = eval( evalCodeV ) + vertical_change
+					for originalAnchor in originalLayer.anchors:
+						old_anchor_x = originalAnchor.x
+						old_anchor_y = originalAnchor.y
+						xMove = eval( evalCodeH ) + horizontal_change
+						yMove = eval( evalCodeV ) + vertical_change
 						
-							# Ignore moves relative to bbox if there are no paths:
-							if not copyLayer.paths:
-								if "bounds" in evalCodeH:
-									xMove = old_anchor_x
-							
-								if "bounds" in evalCodeV:
-									yMove = old_anchor_y
+						# Ignore moves relative to bbox if there are no paths:
+						if not copyLayer.paths:
+							if "bounds" in evalCodeH:
+								xMove = old_anchor_x
 						
-							# Only move if the calculated position differs from the original one:
-							if [ int(old_anchor_x + italicCorrection), int(old_anchor_y) ] != [ int(xMove), int(yMove) ]:
-								
-								if respectItalic:
-									# skew back
-									xMove = italicSkew( xMove, yMove, italicAngle ) - italicCorrection
-									old_anchor_x = italicSkew( old_anchor_x, old_anchor_y, italicAngle ) - italicCorrection
+							if "bounds" in evalCodeV:
+								yMove = old_anchor_y
+						
+						# Only move if the calculated position differs from the original one:
+						if [ int(old_anchor_x + italicCorrection), int(old_anchor_y) ] != [ int(xMove), int(yMove) ]:
 							
-								originalAnchorPosition = NSPoint()
-								originalAnchorPosition.x = xMove
-								originalAnchorPosition.y = yMove
-								originalAnchor = GSAnchor( anchor_name, originalAnchorPosition )
-								originalLayer.addAnchor_( originalAnchor )
+							if respectItalic:
+								# skew back
+								xMove = italicSkew( xMove, yMove, italicAngle ) - italicCorrection
+								old_anchor_x = italicSkew( old_anchor_x, old_anchor_y, italicAngle ) - italicCorrection
+						
+							originalAnchor.position = NSMakePoint( xMove, yMove )
+						
+							print "Moved %s anchor from %i, %i to %i, %i in %s." % ( anchor_name, old_anchor_x, old_anchor_y, xMove, yMove, thisGlyph.name )
 							
-								print "Moved %s anchor from %i, %i to %i, %i in %s." % ( anchor_name, old_anchor_x, old_anchor_y, xMove, yMove, thisGlyph.name )
 				except Exception, e:
 					print "ERROR: Failed to move anchor in %s." % thisGlyph.name
-					raise e
+					print e
+				finally:
+					thisGlyph.endUndo()
 			
-				thisGlyph.undoManager().endUndoGrouping() # not working
-				#originalLayer.setEnableUpdates()
-		
-		#Font.enableUpdateInterface()
-		Font.updateInterface()
+				thisGlyph.endUndo()
+
+		Font.enableUpdateInterface() 
 		print "Done."
 	
 	def GetAnchorNames( self ):
