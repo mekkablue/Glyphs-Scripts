@@ -39,6 +39,7 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 * **Combining Accent Maker:** Goes through your selected (spacing) marks and adds a combining (non-spacing) copy of it to your font, e.g., for *acute* and *dieresis.case*, it will add *acutecomb* and *dieresiscomb.case*.
 * **Move top anchors:** Moves top anchors in all selected glyphs to the new_y value hardcoded in the .py file.
 * **Put accents on new anchors in all layers:** Moves *acute*, *grave* and *hookabovecomb* to the *top_viet* anchor. Useful for Vietnamese double accents. Assumes that you have top_viet anchors in all layers of *circumflex*.
+* **Replicate Anchors:** Goes through selected dot-suffixed glyphs and duplicates anchors from their respective base glyphs. E.g. will recreate anchors of X in X.ss01, X.swsh and X.alt.
 * **Report top anchors:** Report the y positions of all *top* anchors into the Macro Panel.
 
 ## Arabic
