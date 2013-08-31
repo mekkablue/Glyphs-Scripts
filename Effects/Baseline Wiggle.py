@@ -10,11 +10,10 @@ linelength =  150
 featurename = "titl"
 classname = "wiggle"
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
 
 def create_otclass( classname   = "@default", 
-                    classglyphs = [ x.parent.name for x in Doc.selectedLayers() ],
+                    classglyphs = [ x.parent.name for x in Font.selectedLayers ],
                     targetfont  = Glyphs.font ):
 	"""
 	Creates an OpenType class in the font.
@@ -31,7 +30,7 @@ def create_otclass( classname   = "@default",
 
 def create_otfeature( featurename = "calt", 
                       featurecode = "sub a' a by a.alt;", 
-                      targetfont  = Glyphs.currentDocument.font ):
+                      targetfont  = Font ):
 	"""
 	Creates an OpenType feature in the font.
 	Default: calt with "sub a' a by a.alt;" in the current font.

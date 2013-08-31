@@ -4,21 +4,20 @@
 import GlyphsApp
 
 Font = Glyphs.font
-Doc = Glyphs.currentDocument
-myAscender = Doc.selectedFontMaster().ascender
-selectedLayer = Doc.selectedLayers()[0]
+
+myAscender = Font.selectedFontMaster.ascender
+selectedLayer = Font.selectedLayers[0]
 
 try:
 	selection = selectedLayer.selection()
 	highestY = max( ( n.y for n in selection ) )
-
-	Font.disableUpdateInterface()
-
+	
+	selectedLayer.setDisableUpdates()
+	
 	for thisNode in selection:
 		thisNode.y += ( myAscender - highestY )
+	selectedLayer.setEnableUpdates()
 
-	Font.enableUpdateInterface()
-	
 except Exception, e:
 	print "Error: Nothing selected in frontmost layer?"
 	print e

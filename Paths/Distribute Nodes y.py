@@ -4,23 +4,21 @@
 import GlyphsApp
 
 Font = Glyphs.font
-Doc = Glyphs.currentDocument
-selectedLayer = Doc.selectedLayers()[0]
+selectedLayer = Font.selectedLayers[0]
 
 try:
 	selection = selectedLayer.selection()
 	selectionYList = [ n.y for n in selection ]
 	lowestY, highestY = min( selectionYList ), max( selectionYList )
 	diffY = abs(lowestY-highestY)
-	
-	Font.disableUpdateInterface()
+	selectedLayer.setDisableUpdates()
 
 	increment = diffY // ( len( selection ) - 1 )
 	sortedSelection = sorted( selection, key=lambda n: n.y)
 	for thisNodeIndex in range( len( selection ) ):
 		sortedSelection[thisNodeIndex].y = lowestY + ( thisNodeIndex * increment )
-			
-	Font.enableUpdateInterface()
+	
+	selectedLayer.setEnableUpdates()
 	
 except Exception, e:
 	if selection == ():

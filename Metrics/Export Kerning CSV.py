@@ -6,8 +6,7 @@ import commands
 from types import *
 
 Font = Glyphs.font
-Doc  = Glyphs.currentDocument
-selectedLayers = Doc.selectedLayers()
+selectedLayers = Font.selectedLayers
 
 filename  = Font.familyName + ' kerning'  # filename without ending
 ending    = 'csv'       # txt|csv

@@ -4,8 +4,7 @@
 import GlyphsApp
 
 Font = Glyphs.font
-Doc = Glyphs.currentDocument
-selectedLayer = Doc.selectedLayers()[0]
+selectedLayer = Font.selectedLayers[0]
 
 try:
 	selection = selectedLayer.selection()
@@ -16,8 +15,8 @@ try:
 	diffX = abs(leftMostX-rightMostX)
 	diffY = abs(lowestY-highestY)
 	
-	Font.disableUpdateInterface()
-
+	selectedLayer.setDisableUpdates()
+	
 	if diffX > diffY:
 		increment = diffX // ( len( selection ) - 1 )
 		sortedSelection = sorted( selection, key=lambda n: n.x)
@@ -28,9 +27,9 @@ try:
 		sortedSelection = sorted( selection, key=lambda n: n.y)
 		for thisNodeIndex in range( len( selection ) ):
 			sortedSelection[thisNodeIndex].y = lowestY + ( thisNodeIndex * increment )
-			
-	Font.enableUpdateInterface()
 	
+	selectedLayer.setEnableUpdates()
+
 except Exception, e:
 	if selection == ():
 		print "Cannot distribute nodes: nothing selected in frontmost layer."

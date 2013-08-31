@@ -10,7 +10,7 @@ yDiff = -1
 import GlyphsApp
 Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-selectedLayers = Doc.selectedLayers()
+selectedLayers = Font.selectedLayers
 
 def process( thisLayer ):
 	for thisPath in thisLayer.paths:
@@ -21,11 +21,9 @@ def process( thisLayer ):
 		newPosition = NSPoint( thisComp.position.x, thisComp.position.y + yDiff  )
 		thisComp.position = newPosition
 
-Font.disableUpdateInterface()
-
 for thisLayer in selectedLayers:
 	print "Moving down", thisLayer.parent.name
+	thisLayer.setDisableUpdates()
 	process( thisLayer )
-
-Font.enableUpdateInterface()
+	thisLayer.setEnableUpdates()
 

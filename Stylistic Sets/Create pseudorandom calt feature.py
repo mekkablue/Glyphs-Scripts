@@ -44,16 +44,14 @@ Font.classes.append( defaultclass )
 
 # ssXXclass: a.ssXX b.ssXX c.ssXX ...
 for XX in range(i):
-	ssXXClass = GSClass()
-	ssXXClass.name = "@calt"+str(XX+1)
+	ssXXClass = GSClass("@calt"+str(XX+1))
 	ssXXClass.code = " ".join( [ x + ssXXsuffix(XX+1) for x in defaultglyphs ] ) + " space"
 	print XX, ssXXClass.name
 	Font.classes.append( ssXXClass )
 	
 # OT feature
 print "Creating OT feature: calt"
-caltFeature = GSFeature()
-caltFeature.name = "calt"
+caltFeature = GSFeature("calt")
 featuretext = ""
 
 if addDefault:

@@ -4,21 +4,22 @@
 import GlyphsApp
 
 Font = Glyphs.font
-Doc = Glyphs.currentDocument
-myCapHeight = Doc.selectedFontMaster().capHeight
-selectedLayer = Doc.selectedLayers()[0]
+myCapHeight = Font.selectedFontMaster.capHeight
+selectedLayer = Font.selectedLayers[0]
 
 try:
 	selection = selectedLayer.selection()
 	highestY = max( ( n.y for n in selection ) )
-
-	Font.disableUpdateInterface()
-
+	
+	selectedLayer.setDisableUpdates()
+	
+	# you could use GSLayer.transform_checkForSelection_(transform, checkForSelection=YES)
 	for thisNode in selection:
 		thisNode.y += ( myCapHeight - highestY )
-
-	Font.enableUpdateInterface()
 	
+	selectedLayer.setEnableUpdates()
+	
+
 except Exception, e:
 	print "Error: Nothing selected in frontmost layer?"
 	print e

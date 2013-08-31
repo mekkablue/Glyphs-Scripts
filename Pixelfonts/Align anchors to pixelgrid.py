@@ -3,9 +3,8 @@
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-selectedLayers = Doc.selectedLayers()
+selectedLayers = Font.selectedLayers
 
 pixelwidth = Font.gridLength
 
@@ -27,10 +26,7 @@ def process( thisLayer ):
 				
 		thisLayer.parent.endUndo()
 
-Font.disableUpdateInterface()
-
 for thisLayer in selectedLayers:
+	thisLayer.setDisableUpdates()
 	process( thisLayer )
-
-Font.enableUpdateInterface()
-
+	thisLayer.setEnableUpdates()

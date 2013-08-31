@@ -45,11 +45,11 @@ class AnchorMover(object):
 		except:
 			anchor_y = 0.0
 		
-		# Font.disableUpdateInterface()
 		# print anchor_index, anchor_name, anchor_y #DEBUG
 		
 		for thisLayer in selectedLayers:
 			# print "Changing %s in %s..." % (anchor_name, thisLayer.parent.name) #DEBUG
+			thisLayer.setDisableUpdates()
 			try:
 				if len( thisLayer.anchors ) > 0:
 					for thisAnchor in thisLayer.anchors:
@@ -60,8 +60,7 @@ class AnchorMover(object):
 								print "Moved", anchor_name, "anchor in", thisLayer.parent.name, "from", old_anchor_y, "to", thisAnchor.y
 			except:
 				print "Failed to move anchor in " + thisLayer.parent.name + " to " + anchor_y
-		
-		# Font.enableUpdateInterface()
+			thisLayer.setEnableUpdates()
 		
 		print "Done."
 	

@@ -3,9 +3,8 @@
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
+selectedGlyphs = [ x.parent for x in Font.selectedLayers ]
 
 def process( thisGlyph ):
 	oldName = thisGlyph.name
@@ -13,7 +12,7 @@ def process( thisGlyph ):
 	thisGlyph.name = newName
 	print oldName, "-->", thisGlyph.name
 
-Font.disableUpdateInterface()
+Font.disableUpdateInterface() # this is a cse where the font.disableUpdateInterface makes sense
 
 for thisGlyph in selectedGlyphs:
 	process( thisGlyph )

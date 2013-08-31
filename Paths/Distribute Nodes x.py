@@ -4,8 +4,7 @@
 import GlyphsApp
 
 Font = Glyphs.font
-Doc = Glyphs.currentDocument
-selectedLayer = Doc.selectedLayers()[0]
+selectedLayer = Font.selectedLayers[0]
 
 try:
 	selection = selectedLayer.selection()
@@ -13,14 +12,14 @@ try:
 	leftMostX, rightMostX = min( selectionXList ), max( selectionXList )
 	diffX = abs(leftMostX-rightMostX)
 	
-	Font.disableUpdateInterface()
-
+	selectedLayer.setDisableUpdates()
+	
 	increment = diffX // ( len( selection ) - 1 )
 	sortedSelection = sorted( selection, key=lambda n: n.x)
 	for thisNodeIndex in range( len( selection ) ):
 		sortedSelection[thisNodeIndex].x = leftMostX + ( thisNodeIndex * increment )
-			
-	Font.enableUpdateInterface()
+	
+	selectedLayer.setEnableUpdates()
 	
 except Exception, e:
 	if selection == ():

@@ -6,14 +6,11 @@ new_anchor = "top_viet"
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
+selectedGlyphs = [ x.parent for x in Font.selectedLayers ]
 
 def process( thisGlyph ):
 	for thisMaster in Font.masters:
-		
-		print "__Master", thisMaster
 		
 		thisLayerID = thisMaster.id
 		thisLayer = thisGlyph.layers[ thisLayerID ]

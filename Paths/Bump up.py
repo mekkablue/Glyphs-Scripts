@@ -4,26 +4,25 @@
 import GlyphsApp
 
 Font = Glyphs.font
-Doc = Glyphs.currentDocument
-Master = Doc.selectedFontMaster()
+Master = Font.selectedFontMaster
 allMetrics = [ Master.ascender, Master.capHeight, Master.xHeight, 0.0, Master.descender ]
 
-selectedLayer = Doc.selectedLayers()[0]
+selectedLayer = Font.selectedLayers[0]
 
 try:
+	selectedLayer.setDisableUpdates()
+	
 	selection = selectedLayer.selection()
 	highestY = max( ( n.y for n in selection ) )
 	try:
 		nextMetricLineAbove = min( ( m for m in allMetrics if m > highestY ) )
 	except:
 		nextMetricLineAbove = max( allMetrics )
-
-	Font.disableUpdateInterface()
-
+	
 	for thisNode in selection:
 		thisNode.y += ( nextMetricLineAbove - highestY )
-
-	Font.enableUpdateInterface()
+	
+	selectedLayer.setEnableUpdates()
 	
 except Exception, e:
 	if selection == ():

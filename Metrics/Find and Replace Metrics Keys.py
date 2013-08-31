@@ -8,14 +8,14 @@ import GlyphsApp
 class MetricKeyReplacer( object ):
 	def __init__( self ):
 		self.w = vanilla.FloatingWindow( (335, 125), "Find and Replace in Metrics Keys", autosaveName="com.mekkablue.MetricKeyReplacer.mainwindow" )
-
+		
 		self.w.text_Find     = vanilla.TextBox( (10, 30+3, 55, 20), "Find", sizeStyle='small' )
 		self.w.text_Replace  = vanilla.TextBox( (10, 55+3, 55, 20), "Replace", sizeStyle='small' )
-
+		
 		self.w.text_left     = vanilla.TextBox(  (70, 12, 120, 14), "Left Key", sizeStyle='small' )
 		self.w.leftSearchFor = vanilla.EditText( (70, 30, 120, 20), "=a", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)' )
 		self.w.leftReplaceBy = vanilla.EditText( (70, 55, 120, 20), "=a.ss01", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)' )
-
+		
 		self.w.text_right     = vanilla.TextBox(  (200, 12, 120, 14), "Right Key", sizeStyle='small' )
 		self.w.rightSearchFor = vanilla.EditText( (200, 30, 120, 20), "=|a", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)' )
 		self.w.rightReplaceBy = vanilla.EditText( (200, 55, 120, 20), "=|a.ss01", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)' )
@@ -27,9 +27,9 @@ class MetricKeyReplacer( object ):
 			self.LoadPreferences( )
 		except:
 			pass
-
-		self.w.open()
 		
+		self.w.open()
+	
 	def SavePreferences( self, sender ):
 		try:
 			Glyphs.defaults[ "com.mekkablue.MetricKeyReplacer.leftSearchFor"  ] = self.w.leftSearchFor.get()
@@ -38,7 +38,7 @@ class MetricKeyReplacer( object ):
 			Glyphs.defaults[ "com.mekkablue.MetricKeyReplacer.rightReplaceBy" ] = self.w.rightReplaceBy.get()
 		except:
 			return False
-			
+		
 		return True
 
 	def LoadPreferences( self ):
@@ -51,17 +51,18 @@ class MetricKeyReplacer( object ):
 			return False
 			
 		return True
-
+	
 	def MetricKeyReplaceMain( self, sender ):
 		Glyphs.clearLog()
-		Glyphs.font.disableUpdateInterface()
+		Font = Glyphs.font
+		Font.disableUpdateInterface()
 		
 		try:
 			if not self.SavePreferences( self ):
 				print "Note: Could not write preferences."
 			
-			Doc  = Glyphs.currentDocument
-			selectedLayers = Doc.selectedLayers()
+			Font  = Glyphs.font
+			selectedLayers = Font.selectedLayers
 			currentLayers = [ l for l in selectedLayers if l.parent.name is not None ]
 			
 			LsearchFor = self.w.leftSearchFor.get()
@@ -70,9 +71,9 @@ class MetricKeyReplacer( object ):
 			RreplaceBy = self.w.rightReplaceBy.get()
 			
 			for l in currentLayers:
+				g = l.parent
+				g.beginUndo()
 				try:
-					g = l.parent
-					g.beginUndo()
 					
 					# Left Metrics Key:
 					try:
@@ -97,7 +98,7 @@ class MetricKeyReplacer( object ):
 					except Exception, e:
 						print "Error while trying to set left key for", g.name
 						print e
-
+					
 					# Right Metrics Key:
 					try:
 						# rightKey = g.rightMetricsKey
@@ -121,19 +122,17 @@ class MetricKeyReplacer( object ):
 					except Exception, e:
 						print "Error while trying to set right key for", g.name
 						print e
-					
-					g.endUndo()
-						
+				
 				except Exception, e:
 					print "Error while processing glyph", g.name
 					print e
 					
-					g.endUndo()
+				g.endUndo()
 			
 			self.w.close()
 		except Exception, e:
 			raise e
 		
-		Glyphs.font.enableUpdateInterface()
+		Font.enableUpdateInterface()
 
 MetricKeyReplacer()

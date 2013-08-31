@@ -4,20 +4,19 @@
 import GlyphsApp
 
 Font = Glyphs.font
-Doc = Glyphs.currentDocument
-selectedLayer = Doc.selectedLayers()[0]
+selectedLayer = Font.selectedLayers[0]
 
 try:
 	selection = selectedLayer.selection()
 	leftMostX = min( ( n.x for n in selection ) )
-
-	Font.disableUpdateInterface()
-
+	
+	selectedLayer.setDisableUpdates()
+	
 	for thisNode in selection:
 		thisNode.x -= leftMostX
-
-	Font.enableUpdateInterface()
 	
+	selectedLayer.setEnableUpdates()
+
 except Exception, e:
 	print "Error: Nothing selected in frontmost layer?"
 	print e

@@ -1,15 +1,14 @@
 #MenuTitle: Reset rotated and mirrored components
 """Looks for mirrored and rotated components and resets them to their original orientation."""
 
-Doc = Glyphs.currentDocument
-selectedLayers = Doc.selectedLayers()
+selectedLayers = Glyphs.font.selectedLayers
 
 for l in selectedLayers:
 	thisGlyph = l.parent
 	glyphName = thisGlyph.name
 	toBeDeleted = []
 	toBeAdded = []
-	
+	thisLayer.setDisableUpdates()
 	thisGlyph.beginUndo()
 	
 	for compIndex in range( len( l.components ) ):
@@ -17,7 +16,7 @@ for l in selectedLayers:
 		if comp.transform[0] != 1.0 or comp.transform[3] != 1.0:
 			toBeDeleted.append( compIndex )
 			toBeAdded.append( [ comp.componentName, comp.bounds.origin.x, comp.bounds.origin.y ] )
-				
+	
 	numOfComponents = len( toBeAdded )
 	print "Fixing %i components in %s ..." % ( numOfComponents, glyphName )
 
@@ -31,4 +30,4 @@ for l in selectedLayers:
 		l.components.append( newC )
 	
 	thisGlyph.endUndo()
-	
+	thisLayer.setEnableUpdates()

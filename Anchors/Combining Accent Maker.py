@@ -5,10 +5,9 @@
 import GlyphsApp
 from math import tan, pi
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-FontMaster = Doc.selectedFontMaster()
-selectedLayers = Doc.selectedLayers()
+FontMaster = Font.selectedFontMaster
+selectedLayers = Font.selectedLayers
 selection = selectedLayers[0].selection()
 
 italicAngle   = FontMaster.italicAngle

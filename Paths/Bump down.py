@@ -3,27 +3,22 @@
 
 import GlyphsApp
 
-Font = Glyphs.font
-Doc = Glyphs.currentDocument
-Master = Doc.selectedFontMaster()
-allMetrics = [ Master.ascender, Master.capHeight, Master.xHeight, 0.0, Master.descender ]
-
-selectedLayer = Doc.selectedLayers()[0]
+selectedLayer = Glyphs.font.selectedLayers[0]
 
 try:
+	selectedLayer.setDisableUpdates()
+	allMetrics = sorted(selectedLayer.glyphMetrics()[1:-2]) # glyphMetrics returnes a tupel (width, ascender, capHeight, descender, xHeight, italicAngle, vertWidth)
 	selection = selectedLayer.selection()
 	lowestY = min( ( n.y for n in selection ) )
 	try:
 		nextMetricLineBelow = max( ( m for m in allMetrics if m < lowestY ) )
 	except:
 		nextMetricLineBelow = min( allMetrics )
-
-	Font.disableUpdateInterface()
-
+	
 	for thisNode in selection:
 		thisNode.y -= ( lowestY - nextMetricLineBelow )
-
-	Font.enableUpdateInterface()
+	
+	selectedLayer.setEnableUpdates()
 	
 except Exception, e:
 	if selection == ():

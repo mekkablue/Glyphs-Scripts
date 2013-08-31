@@ -4,8 +4,8 @@
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
-selectedLayers = Doc.selectedLayers()
+Font  = Glyphs.font
+selectedLayers = Font.selectedLayers
 
 namesOfSelectedGlyphs = ["/" + l.parent.name for l in selectedLayers]
 editString = ""
@@ -14,4 +14,4 @@ for leftGlyphName in namesOfSelectedGlyphs:
 	for rightGlyphName in namesOfSelectedGlyphs:
 		editString += ( leftGlyphName + rightGlyphName + "/space" )
 
-Doc.windowController().addTabWithString_( editString[:-1] )
+Doc.windowController().performSelectorOnMainThread_withObject_waitUntilDone_("addTabWithString:", editString[:-1], True)

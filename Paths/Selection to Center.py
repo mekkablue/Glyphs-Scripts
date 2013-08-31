@@ -4,8 +4,7 @@
 import GlyphsApp
 
 Font = Glyphs.font
-Doc = Glyphs.currentDocument
-selectedLayer = Doc.selectedLayers()[0]
+selectedLayer = Font.selectedLayers[0]
 layerCenter = selectedLayer.width // 2
 
 try:
@@ -15,13 +14,13 @@ try:
 	rightMostX = max( selectionXList )
 	selectionCenter = ( leftMostX + rightMostX ) // 2
 	centerOffset = float( layerCenter - selectionCenter )
-
-	Font.disableUpdateInterface()
-
+	
+	selectedLayer.setDisableUpdates()
+	
 	for thisNode in selection:
 		thisNode.x += centerOffset
-
-	Font.enableUpdateInterface()
+	
+	selectedLayer.setEnableUpdates()
 	
 except Exception, e:
 	print "Error: Nothing selected in frontmost layer?"

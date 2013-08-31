@@ -11,10 +11,12 @@ class FeatureActivator( object ):
 		numOfFeatures = len( featurelist )
 		
 		self.w = vanilla.FloatingWindow( (80, 30+numOfFeatures*20 ), "", autosaveName="com.mekkablue.FeatureActivator.mainwindow" )
-		
+		SelectedFeatures = Glyphs.currentDocument.windowController().activeEditViewController().selectedFeatures()
+		if SelectedFeatures is None:
+			SelectedFeatures = []
 		for i in range( numOfFeatures ):
-			exec("self.w.featureCheckBox_"+str(i+1)+" = vanilla.CheckBox( (15, "+str(12+20*i)+", -15, 18), '"+featurelist[i]+"', sizeStyle='small', callback=self.toggleFeature, value="+str(featurelist[i] in Glyphs.currentDocument.windowController().activeEditViewController().selectedFeatures())+" )")
-				
+			exec("self.w.featureCheckBox_"+str(i+1)+" = vanilla.CheckBox( (15, "+str(12+20*i)+", -15, 18), '"+featurelist[i]+"', sizeStyle='small', callback=self.toggleFeature, value="+str(featurelist[i] in SelectedFeatures)+" )")
+			
 		self.w.open()
 		
 	def toggleFeature( self, sender ):

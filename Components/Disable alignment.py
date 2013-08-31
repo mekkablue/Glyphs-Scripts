@@ -4,8 +4,8 @@
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
-selectedLayers = Doc.selectedLayers()
+Font = Glyphs.font
+selectedLayers = Font.selectedLayers
 
 def process( thisLayer ):
 	for thisComp in thisLayer.components:

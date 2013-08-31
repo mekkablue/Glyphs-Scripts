@@ -13,16 +13,16 @@ class GroupsCopy(object):
 		
 		self.w.text_value = vanilla.TextBox((15, 12+2+25, 130, 14), "To selected glyphs in:", sizeStyle='small')
 		self.w.to_font = vanilla.PopUpButton((150, 12+25, 150, 17), self.GetFonts(isSourceFont=False), sizeStyle='small', callback=self.buttonCheck)
-
+		
 		self.w.copybutton = vanilla.Button((-80, 12+25, -15, 17), "Copy", sizeStyle='small', callback=self.copyGroups)
 		self.w.setDefaultButton( self.w.copybutton )
-
+		
 		self.w.open()
 		self.buttonCheck(None)
-		
+	
 	def GetFonts(self, isSourceFont):
 		myFontList = [ "%s - %s" % ( x.font.familyName, x.selectedFontMaster().name ) for x in Glyphs.orderedDocuments() ]
-
+		
 		if isSourceFont:
 			myFontList.reverse()
 		
@@ -31,7 +31,7 @@ class GroupsCopy(object):
 	def buttonCheck(self, sender):
 		fromFont = self.w.from_font.getItems()[ self.w.from_font.get() ]
 		toFont   = self.w.to_font.getItems()[ self.w.to_font.get() ]
-
+		
 		if fromFont == toFont:
 			self.w.copybutton.enable( onOff=False )
 		else:
@@ -68,13 +68,13 @@ class GroupsCopy(object):
 					except Exception, e:
 						print "   ", glyphName,": Error"
 						# print e
-					
+		
 		except Exception, e:
 			self.showMessage( "Error", e )
-			
+		
 		finally:
 			print "Done."
-
-		self.w.close()
 		
+		self.w.close()
+
 GroupsCopy()

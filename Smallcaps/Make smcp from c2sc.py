@@ -6,9 +6,8 @@ Ignores selected glyphs without a .c2sc ending.
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-selectedGlyphs = [ x.parent for x in Doc.selectedLayers() if x.parent.name[-5:] == ".smcp" ]
+selectedGlyphs = [ x.parent for x in Font.selectedLayers if x.parent.name[-5:] == ".smcp" ]
 
 def c2scToSmcpName( c2scname ):
 	"""Turns 'Aacute.c2sc' into 'aacute.smcp'."""
@@ -23,23 +22,23 @@ def process( c2scGlyph ):
 	smcpName = c2scToSmcpName( c2scGlyph.name )
 	
 	if Font.glyphs[ smcpName ] == None:
-
+		
 		# Create the smcpGlyph:
 		smcpGlyph = GSGlyph()
 		smcpGlyph.name = smcpName
 		Font.glyphs.append( smcpGlyph ) # now there must be a Font.glyphs[ smcpName ]
-	
+		
 		# Fill up smcpGlyph's layers with corresponding c2scGlyphs as components:
 		smcpGlyph = Font.glyphs[ c2scName ]
 		print "Processing %s >>> %s (%i layers):" % (c2scGlyph.name, smcpGlyph.name, len([l for l in smcpGlyph.layers]))
-
+		
 		for m in range(len( Font.masters )):
 			currentMaster = Font.masters[ m ]
 			currentLayer = smcpGlyph.layers[ currentMaster.id ]
 			print "   Master: %s" % currentMaster.name
 			c2scComponent = GSComponent( c2scName )
 			currentLayer.components.append( c2scComponent )
-
+	
 	else:
 		print "%s already exists." % c2scName
 

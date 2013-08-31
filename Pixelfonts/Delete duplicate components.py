@@ -3,9 +3,8 @@
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-selectedLayers = Doc.selectedLayers()
+selectedLayers = Font.selectedLayers
 
 
 def getAttr( thisLayer, compNumber ):
@@ -28,23 +27,21 @@ def scanForDuplicates( thisLayer, compNumber ):
 
 def process( thisLayer ):
 	if len( thisLayer.components ) != 0:
+		thisLayer.setDisableUpdates()
 		thisLayer.parent.beginUndo()
-	
+		
 		indexesToBeDeleted = scanForDuplicates( thisLayer, 0 )
 		for indexToBeDeleted in indexesToBeDeleted[::-1]:
 			del thisLayer.components[indexToBeDeleted]
 		print len( indexesToBeDeleted )
 	
 		thisLayer.parent.endUndo()
+		thisLayer.setEnableUpdates()
 	else:
 		# no components in this layer
 		print "n/a" 
-
-
-Font.disableUpdateInterface()
 
 for thisLayer in selectedLayers:
 	print "Components deleted in %s:" % thisLayer.parent.name,
 	process( thisLayer )
 
-Font.enableUpdateInterface()

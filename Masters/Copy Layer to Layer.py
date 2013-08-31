@@ -26,10 +26,11 @@ class MasterFiller(object):
 	
 	def GetMasterNames(self):
 		myMasterList = []
-		
-		for i in range( len( Glyphs.currentDocument.font.masters ) ):
-			x = Glyphs.currentDocument.font.masters[i]
+		Font = Glyphs.font
+		i = 0
+		for x in Font.masters:
 			myMasterList.append( '%i: %s' % (i, x.name) )
+			i+=1
 		
 		return myMasterList
 	
@@ -41,8 +42,7 @@ class MasterFiller(object):
 	
 	def buttonCallback(self, sender):
 		Font = Glyphs.font
-		Doc = Glyphs.currentDocument
-		selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
+		selectedGlyphs = [ x.parent for x in Font.selectedLayers ]
 		
 		index_from = self.w.master_from.get()
 		index_into = self.w.master_into.get()
@@ -58,11 +58,10 @@ class MasterFiller(object):
 				print "- Copying content from source layer"
 				
 				Copy = From_Layer.copy()
-				print "__Copy.paths", Copy.paths.__class__.__name__
 				Into_Layer.paths = Copy.paths
 				if compYesNo:
 					Into_Layer.components = Copy.components
-				# Into_Layer.width = Copy.width
+				Into_Layer.width = Copy.width
 				# Into_Layer.anchors = Copy.anchors
 				
 			except Exception, e:

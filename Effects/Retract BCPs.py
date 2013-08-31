@@ -4,8 +4,7 @@
 import GlyphsApp
 
 Font = Glyphs.font
-Doc  = Glyphs.currentDocument
-selectedLayers = Doc.selectedLayers()
+selectedLayers = Font.selectedLayers
 
 def process( thisLayer ):
 	for thisPath in thisLayer.paths:

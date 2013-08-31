@@ -4,21 +4,20 @@
 import GlyphsApp
 
 Font = Glyphs.font
-Doc = Glyphs.currentDocument
-selectedLayer = Doc.selectedLayers()[0]
+selectedLayer = Doc.selectedLayers[0]
 layerWidth = selectedLayer.width
 
 try:
 	selection = selectedLayer.selection()
 	rightMostX = max( ( n.x for n in selection ) )
-
-	Font.disableUpdateInterface()
-
+	
+	selectedLayer.setDisableUpdates()
+	
 	for thisNode in selection:
 		thisNode.x += ( layerWidth - rightMostX )
-
-	Font.enableUpdateInterface()
 	
+	selectedLayer.setEnableUpdates()
+
 except Exception, e:
 	print "Error: Nothing selected in frontmost layer?"
 	print e

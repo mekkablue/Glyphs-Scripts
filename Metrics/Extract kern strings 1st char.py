@@ -63,8 +63,9 @@ class kernPairSearcher(object):
 			
 			try:
 				# try to guess the frontmost window:
-				Doc = Glyphs.font.parent # document for current font
-				Doc.windowController().addTabWithString_( editTabString )
+				Doc = Glyphs.currentDocument
+				Doc.windowController().performSelectorOnMainThread_withObject_waitUntilDone_("addTabWithString:", editString, True)
+				
 			except:
 				# if that fails, take the Macro Window:
 				Glyphs.clearLog()

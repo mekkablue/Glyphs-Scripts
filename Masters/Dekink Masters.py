@@ -4,10 +4,9 @@
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-currentMaster = Doc.selectedFontMaster()
-currentLayer = Doc.selectedLayers()[0]
+currentMaster = Font.selectedFontMaster
+currentLayer = Font.selectedLayers[0]
 currentGlyph = currentLayer.parent
 
 def dekink( myMaster, myGlyph, pathindex, nodeindex, proportion ):
@@ -33,7 +32,6 @@ def dekink( myMaster, myGlyph, pathindex, nodeindex, proportion ):
 #try:
 if currentGlyph.mastersCompatible():
 	s = list( currentLayer.selection() )
-	print "__s", s
 	# find the indices for selected nodes:
 	for n1 in [n for n in s if n.connection == GSSMOOTH]:
 		

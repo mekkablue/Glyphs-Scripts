@@ -5,25 +5,23 @@
 import GlyphsApp
 Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-FontMaster = Doc.selectedFontMaster()
-selectedLayers = Doc.selectedLayers()
+selectedLayers = Font.selectedLayers
 
 def resetWidth( thisLayer, thisName ):
 	baseGlyphName = thisName[:thisName.find(".")]
 	baseGlyph = Font.glyphs[ baseGlyphName ]
-	baseLayer = baseGlyph.layers[ FontMaster.id ]
+	baseLayer = baseGlyph.layers[ thisLayer.associatedMasterId ]
 	baseWidth = baseLayer.width
 	thisLayer.width = baseWidth
 	return baseWidth
-
-Font.disableUpdateInterface()
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
 	thisGlyphName = thisGlyph.name
 	if "." in thisGlyphName:
-		thisLayer.beginUndo()
+		thisGlyph.beginUndo()
+		thisLayer.setDisableUpdates()
 		print "Resetting width of %s to %.0f." % ( thisGlyphName, resetWidth( thisLayer, thisGlyphName ) )
-		thisLayer.endUndo()
+		thisLayer.setEnableUpdates()
+		thisGlyph.endUndo()
 
-Font.enableUpdateInterface()

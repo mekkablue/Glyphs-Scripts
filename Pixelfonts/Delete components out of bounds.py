@@ -4,11 +4,10 @@
 outOfBounds = 3000.0
 
 import GlyphsApp
-import math 
+import math
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-selectedLayers = Doc.selectedLayers()
+selectedLayers = Font.selectedLayers
 
 def scanOutOfBounds( thisLayer ):
 	
@@ -26,6 +25,7 @@ def process( thisLayer ):
 	glyphName = thisLayer.parent.name
 	
 	if len( thisLayer.components ) != 0:
+		thisLayer.setDisableUpdates()
 		thisLayer.parent.beginUndo()
 	
 		indexesOutOfBounds = scanOutOfBounds( thisLayer )
@@ -40,12 +40,9 @@ def process( thisLayer ):
 			print "No components out of bounds in %s." % glyphName
 		
 		thisLayer.parent.endUndo()
+		thisLayer.setEnableUpdates()
 	else:
 		print "No components in %s." % glyphName
 
-Font.disableUpdateInterface()
-
 for thisLayer in selectedLayers:
 	process( thisLayer )
-
-Font.enableUpdateInterface()

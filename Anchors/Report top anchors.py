@@ -4,8 +4,8 @@
 import GlyphsApp
 
 myAnchor = "top"
-Doc  = Glyphs.currentDocument
-selectedLayers = Doc.selectedLayers()
+Font  = Glyphs.font
+selectedLayers = Font.selectedLayers
 
 try:
 	Glyphs.clearLog()

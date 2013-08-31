@@ -9,28 +9,15 @@ myExcludeString = """
 """ # default = space and return
  # default empty
 
-def openFileDialog(message="Open plaintext file", filetypes=["txt"]):
-	Panel = NSOpenPanel.openPanel().retain()
-	Panel.setTitle_(message)
-	Panel.setAllowsMultipleSelection_(True)
-	Panel.setCanChooseFiles_(True)
-	Panel.setCanChooseDirectories_(False)
-	Panel.setResolvesAliases_(True)
-	Panel.setAllowedFileTypes_(filetypes)
-	pressedButton = Panel.runModalForTypes_(filetypes)
-	if pressedButton == 1: # 1=OK, 0=Cancel
-		return Panel.filenames()
-	return None
-
 def searchForKernPairs( kernChars=u"þð", text=u"""blabla""", excludeString="" ):
 	myPairList = []
-
+	
 	for x in range(len(text)):
 		if text[x] in kernChars and text[x+1] not in excludeString:
 			mypair = text[x:x+2]
 			if mypair not in myPairList:
 				myPairList += [mypair]
-
+	
 	return sorted(myPairList, key=lambda pair: pair[::-1])
 
 class kernPairSearcher(object):
@@ -48,23 +35,23 @@ class kernPairSearcher(object):
 		"""Runs when the Search button is pressed."""
 		kernChars = self.w.kernChars.get() #.decode("utf-8")
 		self.w.close()
-		myFiles = openFileDialog()
+		myFiles = GetOpenFile(message="Open plaintext file", filetypes=["txt"])
 		literature = u""
-
+		
 		if myFiles != None:
 			for filepath in myFiles:
 				f = open( filepath, mode='r' )
 				print ">>> Reading:", f.name
 				literature += f.read().decode('utf-8')
 				f.close()
-
+			
 			myPairList = searchForKernPairs( kernChars=kernChars, text=literature, excludeString=myExcludeString )
 			editTabString = " ".join( myPairList )
-
+			
 			try:
 				# try to guess the frontmost window:
 				Doc = Glyphs.font.parent # document for current font
-				Doc.windowController().addTabWithString_( editTabString )
+				Doc.windowController().performSelectorOnMainThread_withObject_waitUntilDone_("addTabWithString:", editTabString, True)
 			except:
 				# if that fails, take the Macro Window:
 				Glyphs.clearLog()

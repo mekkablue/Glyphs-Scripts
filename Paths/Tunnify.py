@@ -3,8 +3,8 @@
 """Averages out the handles of selected path segments."""
 
 import GlyphsApp
-Doc  = Glyphs.currentDocument
-selectedLayer = Doc.selectedLayers()[0]
+
+selectedLayer = Font.selectedLayers[0]
 selectedGlyph = selectedLayer.parent
 selection = selectedLayer.selection()
 
@@ -36,7 +36,7 @@ def intersect( x1, y1,  x2, y2,  x3, y3,  x4, y4 ):
 		y = slope12 * ( x - x1 ) + y1
 	
 	return x, y
-	
+
 def pointdistance( x1, y1, x2, y2 ):
 	"""Calculates the distance between P1 and P2."""
 	dist = ( ( float(x2) - float(x1) ) ** 2 + ( float(y2) - float(y1) ) **2 ) ** 0.5
@@ -46,7 +46,7 @@ def pointdistance( x1, y1, x2, y2 ):
 def bezier( x1, y1,  x2,y2,  x3,y3,  x4,y4,  t ):
 	x = x1*(1-t)**3 + x2*3*t*(1-t)**2 + x3*3*t**2*(1-t) + x4*t**3
 	y = y1*(1-t)**3 + y2*3*t*(1-t)**2 + y3*3*t**2*(1-t) + y4*t**3
-
+	
 	return x, y
 
 def tunnify( segment ):
@@ -57,9 +57,7 @@ def tunnify( segment ):
 	[x3, y3] = P3
 	[x4, y4] = P4
 	
-	
-	
-	# Fix Illustrator's zero-handles: 
+	# Fix Illustrator's zero-handles:
 	if [x1, y1] == [x2, y2]:
 		x2, y2 = bezier( x1, y1,  x2, y2,  x3, y3,  x4, y4,  0.15)
 		tunnifiedPercentage = 0.627
@@ -84,10 +82,9 @@ def tunnify( segment ):
 	y_handle2 = y4 + tunnifiedPercentage * ( yInt - y4 )
 	
 	return x_handle1, y_handle1, x_handle2, y_handle2
-	
-#selectedGlyph.beginUndo()
-selectedGlyph.beginUndo()
 
+selectedGlyph.beginUndo()
+selectedLayer.setDisableUpdates()
 try:
 	for thisPath in selectedLayer.paths:
 		numOfNodes = len( thisPath.nodes )
@@ -116,5 +113,5 @@ except Exception, e:
 	print "Error:", e
 	pass
 
-#selectedGlyph.beginUndo()
+selectedLayer.setEnableUpdates()
 selectedGlyph.endUndo()

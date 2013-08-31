@@ -3,20 +3,17 @@
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
-Font = Glyphs.font
-selectedLayers = Doc.selectedLayers()
+selectedLayers = Glyphs.font.selectedLayers
 
 def process( thisLayer ):
 	for thisPath in thisLayer.paths:
 		if not thisPath.closed:
 			thisPath.closed = True
 
-Font.disableUpdateInterface()
-
 for thisLayer in selectedLayers:
+	thisLayer.setDisableUpdates()
 	print "Closing paths in", thisLayer.parent.name
 	process( thisLayer )
+	thisLayer.setEnableUpdates()
 
-Font.enableUpdateInterface()
 

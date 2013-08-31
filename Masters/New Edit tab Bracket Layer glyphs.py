@@ -7,8 +7,6 @@ import GlyphsApp
 Doc  = Glyphs.currentDocument
 Font = Glyphs.font
 
-Font.disableUpdateInterface()
-
 editString = ""
 print "Looking for bracket layers ..."
 
@@ -16,6 +14,6 @@ for thisGlyph in Font.glyphs:
 	if "[" in "".join([ l.name for l in thisGlyph.layers ]):
 		editString += ( "/" + thisGlyph.name )
 
-Doc.windowController().addTabWithString_( editString )
+Doc.windowController().performSelectorOnMainThread_withObject_waitUntilDone_("addTabWithString:", editString, True)
 
-Font.enableUpdateInterface()
+

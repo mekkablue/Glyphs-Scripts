@@ -4,27 +4,26 @@
 import GlyphsApp
 
 Font = Glyphs.font
-Doc = Glyphs.currentDocument
-Master = Doc.selectedFontMaster()
-selectedLayer = Doc.selectedLayers()[0]
+Master = Font.selectedFontMaster
+selectedLayer = Font.selectedLayers[0]
 
 allMetrics = [ 0.0, selectedLayer.width, selectedLayer.width//2 ]
 
 try:
+	selectedLayer.setDisableUpdates()
+	
 	selection = selectedLayer.selection()
 	leftMostX = min( ( n.x for n in selection ) )
 	try:
 		nextMetricLineToTheLeft = max( ( m for m in allMetrics if m < leftMostX ) )
 	except:
 		nextMetricLineToTheLeft = min( allMetrics )
-
-	Font.disableUpdateInterface()
-
+	
 	for thisNode in selection:
 		thisNode.x -= ( leftMostX - nextMetricLineToTheLeft )
-
-	Font.enableUpdateInterface()
 	
+	selectedLayer.setEnableUpdates()
+
 except Exception, e:
 	if selection == ():
 		print "Cannot bump left: nothing selected in frontmost layer."

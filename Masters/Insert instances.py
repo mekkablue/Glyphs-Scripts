@@ -135,11 +135,11 @@ class InstanceMaker( object ):
 				distributedValues = self.Distribution( )
 				widthValue = float( self.w.width.get() )
 				prefix = self.w.prefix.get()
-		
+				
 				for thisWeight in distributedValues:
 					newInstance = GSInstance()
 					newInstance.active = True
-					newInstance.name = prefix + "{0:.0f}".format( thisWeight )
+					newInstance.name = prefix + "%.0f" % thisWeight
 					newInstance.weightValue = thisWeight
 					newInstance.widthValue = widthValue
 					newInstance.isItalic = False

@@ -12,16 +12,15 @@ import GlyphsApp
 import random
 random.seed()
 
-Doc         = Glyphs.currentDocument
 Font        = Glyphs.font
-glyphen     = [ x.parent for x in Doc.selectedLayers() ]
+glyphen     = [ x.parent for x in Font.selectedLayers ]
 listOfNames = [ thisGlyph.name for thisGlyph in glyphen ]
 
 def randomize( min, max ):
 	return random.randint( min, max )
 
 def process( thisGlyph ):
-	FontMaster = Doc.selectedFontMaster()
+	FontMaster = Font.selectedFontMaster
 	thisLayer = thisGlyph.layers[FontMaster.id]
 	
 	thisGlyph.beginUndo()

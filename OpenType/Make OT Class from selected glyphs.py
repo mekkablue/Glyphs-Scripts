@@ -47,13 +47,12 @@ class OTClassCreator( object ):
 			return self.checkstring( teststring[:-1], ok ) and ( teststring[-1] in allowedchars )
 		else:
 			# first char must not be a figure
-			return ( teststring[-1] in allowedchars and teststring[-1] not in "1234567890" )
+			return ( teststring[-1] in allowedchars and teststring[-1] not in "1234567890-." )
 	
 	def createClass(self, sender):
-		Doc = Glyphs.currentDocument
 		Font = Glyphs.font
 		
-		listOfGlyphNames = [ x.parent.name for x in Doc.selectedLayers() ]
+		listOfGlyphNames = [ x.parent.name for x in Font.selectedLayers ]
 		listOfClasses = Font.classes
 		listOfClassNames = [ c.name for c in listOfClasses ]
 		
@@ -66,9 +65,7 @@ class OTClassCreator( object ):
 			
 		else:
 			print "Creating class", myClassName, "with these glyphs:", myClassCode
-			myNewClass = GSClass()
-			myNewClass.name = myClassName
-			myNewClass.code = myClassCode
+			myNewClass = GSClass(myClassName, myClassCode)
 			Font.classes.append( myNewClass )
 		
 		self.w.close()

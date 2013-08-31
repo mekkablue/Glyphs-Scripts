@@ -4,13 +4,11 @@
 import GlyphsApp
 
 Font    = Glyphs.font
-Doc     = Glyphs.currentDocument
-layers  = Doc.selectedLayers()
-removeOverlapFilter = NSClassFromString("GlyphsFilterRemoveOverlap").alloc().init()
+layers  = Font.selectedLayers
 
 def karo( x, y ):
 	koordinaten = [ [x-1,y], [x,y-1], [x+1,y], [x,y+1] ]
-
+	
 	karo = GSPath()
 	for xy in koordinaten:
 		newnode = GSNode()
@@ -22,15 +20,17 @@ def karo( x, y ):
 	return karo
 
 def process( thisLayer ):
+	thisLayer.setDisableUpdates()
 	thisLayer.parent.beginUndo()
-
+	
 	purePathsLayer = thisLayer.copyDecomposedLayer()
-	removeOverlapFilter.runFilterWithLayer_error_( purePathsLayer, None )
+	purePathsLayer.removeOverlap()
+	
 	coordinatelist  = []
 	for thisPath in purePathsLayer.paths:
 		for thisNode in thisPath.nodes:
 			coordinatelist.append([ thisNode.x, thisNode.y ])
-
+	
 	mylength = len( coordinatelist )
 	
 	for cur1 in range( mylength ):
@@ -39,8 +39,9 @@ def process( thisLayer ):
 				[ my_x, my_y ] = coordinatelist[ cur1 ]
 				thisLayer.paths.append( karo( my_x, my_y ) )
 				print thisLayer.parent.name, ":", my_x, my_y
-
+	
 	thisLayer.parent.endUndo()
+	thisLayer.setEnableUpdates()
 
 print "Flashifying " + str( Font.familyName )
 
@@ -48,11 +49,7 @@ oldGridstep = Font.gridLength
 if oldGridstep > 1:
 	Font.gridLength = 1
 
-Font.disableUpdateInterface()
-
 for thisLayer in layers:
 	process( thisLayer )
-
-Font.enableUpdateInterface()
 
 Font.gridLength = oldGridstep

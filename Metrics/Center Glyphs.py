@@ -3,17 +3,17 @@
 
 import GlyphsApp
 Font = Glyphs.font
-selectedLayers = Glyphs.currentDocument.selectedLayers()
+selectedLayers = Font.selectedLayers
 
 for thisLayer in selectedLayers:
-
-	Font.disableUpdateInterface()
+	
+	thisLayer.setDisableUpdates()
 	
 	oldWidth = thisLayer.width
 	thisLayer.LSB = ( thisLayer.LSB + thisLayer.RSB ) // 2
 	thisLayer.width = oldWidth
 	
-	Font.enableUpdateInterface()
+	thisLayer.setEnableUpdates()
 
 print "Centered:", ", ".join( [ thisLayer.parent.name for thisLayer in selectedLayers ] )
 

@@ -13,16 +13,16 @@ class MetricsCopy(object):
 		
 		self.w.text_value = vanilla.TextBox((15, 12+2+25, 130, 14), "To selected glyphs in:", sizeStyle='small')
 		self.w.to_font = vanilla.PopUpButton((150, 12+25, 150, 17), self.GetFonts(isSourceFont=False), sizeStyle='small', callback=self.buttonCheck)
-
+		
 		self.w.copybutton = vanilla.Button((-80, 12+25, -15, 17), "Copy", sizeStyle='small', callback=self.copyMetrics)
 		self.w.setDefaultButton( self.w.copybutton )
-
+		
 		self.w.open()
 		self.buttonCheck(None)
-		
+	
 	def GetFonts(self, isSourceFont):
 		myFontList = [ "%s - %s" % ( x.font.familyName, x.selectedFontMaster().name ) for x in Glyphs.orderedDocuments() ]
-
+		
 		if isSourceFont:
 			myFontList.reverse()
 		
@@ -31,7 +31,7 @@ class MetricsCopy(object):
 	def buttonCheck(self, sender):
 		fromFont = self.w.from_font.getItems()[ self.w.from_font.get() ]
 		toFont   = self.w.to_font.getItems()[ self.w.to_font.get() ]
-
+		
 		if fromFont == toFont:
 			self.w.copybutton.enable( onOff=False )
 		else:
@@ -53,15 +53,15 @@ class MetricsCopy(object):
 			try:
 				glyphName = thisLayer.parent.name
 				sourceLayer = Font_source.glyphs[ glyphName ].layers[ Master_source ]
-			
+				
 				thisLayer.setLSB_( sourceLayer.LSB )
 				thisLayer.setRSB_( sourceLayer.RSB )
-			
+				
 				print "   ", thisLayer.LSB, "<-", glyphName, "->", thisLayer.RSB
 			except Exception, e:
 				if "'objc.native_selector' object has no attribute 'name'" not in e: # CR in the selection string
 					print "Error:", e
-
-		self.w.close()
 		
+		self.w.close()
+
 MetricsCopy()
