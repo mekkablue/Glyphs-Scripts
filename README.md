@@ -79,6 +79,7 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 * **Suggest instances:** Calculates distributions of weight values between your masters. Outputs into the macro window.
 
 ## Metrics
+* **Adjust Kerning:** GUI to add a value to all kerning pairs, multiply all pairs by a value or round them by a value. *Needs Vanilla.*
 * **Center glyphs:** centers all selected glyphs inside their width, so that LSB=RSB.
 * **Copy kerning groups:** steals left/right kerning groups for all selected glyphs from a 2nd font. *Needs Vanilla.*
 * **Copy sidebearings:** steals the sidebearing values for all selected glyphs from a 2nd font. Ignores metrics keys like ‘=x+20’. *Needs Vanilla.*
