@@ -50,5 +50,5 @@ for j in range( linelength, 0, -1 ):
 	newline = "pos @wiggle' " + "@wiggle "*j + "<0 " + str( random.randint( wiggleMin, wiggleMax ) ) + " 0 0>;\n"
 	featuretext = featuretext + newline
 
-print create_otclass( classname=classname )
+print create_otclass( classname=classname, classglyphs=sorted([ g.name for g in Font.glyphs if g.export == True ]) )
 print create_otfeature( featurename=featurename, featurecode=featuretext )

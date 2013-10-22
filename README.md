@@ -46,6 +46,7 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 * **AXt Converter:** converts the MacRoman glyph names (used in legacy AXt fonts) into nice names as employed by Glyphs. Attention: the script is still a work in progress. Suggestions are very welcome in the Wiki: https://github.com/mekkablue/Glyphs-Scripts/wiki/AXt-Converter
 
 ## Components
+* **Components on Nodes:** GUI for placing components of a specified glyph on all nodes present in the selected glyphs. *Needs Vanilla.*
 * **Delete all components:** Deletes ALL components in selected glyphs. Be careful.
 * **Disable alignment:** Disables automatic alignment for all components in selected glyphs.
 * **New Edit tab with compound glyphs:** Opens a new edit tab with the currently selected glyphs plus all compound glyphs containing them as components.
@@ -67,6 +68,11 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 * **Delete Hints in Visible Layers:** Deletes hints in active layers of selected glyphs.
 * **Delete All Hints in Font:** Deletes all hints throughout the active font. Be careful.
 * **Keep First Master Hints Only:** In selected glyphs, deletes all hints in all layers except for whatever is ordered as first master. Respects Bracket Layers. E.g., if your first master is ‘Regular’, then the script will delete hints in ‘Bold’, ‘Bold [120]’, but keep them in ‘Regular’ and ‘Regular [100]’.
+
+## Images
+* **Delete Images:** Deletes all placed images in the visible layers of selected glyphs.
+* **Reset Image Transformations:** Resets all image transformations (x/y offset, scale, and distortion) back to default in the visible layers of selected glyphs.
+* **Transform Images:** GUI for batch-transforming images (x/y offset and x/y scale) in the visible layers of selected glyphs. *Needs Vanilla.*
 
 ## Masters
 * **Copy layer to layer:** Copies paths from one Master to another. *Needs Vanilla.*
