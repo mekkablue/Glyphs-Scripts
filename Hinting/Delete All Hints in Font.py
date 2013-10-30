@@ -3,7 +3,6 @@
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
 totalDeletedHints = 0
 

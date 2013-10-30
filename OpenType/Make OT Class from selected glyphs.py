@@ -53,7 +53,7 @@ class OTClassCreator( object ):
 		Doc = Glyphs.currentDocument
 		Font = Glyphs.font
 		
-		listOfGlyphNames = [ x.parent.name for x in Doc.selectedLayers() ]
+		listOfGlyphNames = [ x.parent.name for x in Font.selectedLayers ]
 		listOfClasses = Font.classes
 		listOfClassNames = [ c.name for c in listOfClasses ]
 		

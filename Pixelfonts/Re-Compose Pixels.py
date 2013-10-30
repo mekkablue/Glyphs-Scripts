@@ -5,10 +5,9 @@ pixelGlyphName = "pixel"
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-FontMaster = Doc.selectedFontMaster()
-selectedLayers = Doc.selectedLayers()
+FontMaster = Font.selectedFontMaster
+selectedLayers = Font.selectedLayers
 
 def process( thisLayer ):
 	for originPoint in set( [ (p.bounds.origin.x, p.bounds.origin.y) for p in thisLayer.paths ] ):
@@ -25,8 +24,8 @@ Font.disableUpdateInterface()
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
 	print "Processing", thisGlyph.name
-	thisGlyph.undoManager().beginUndoGrouping()
+	thisGlyph.beginUndo()
 	process( thisLayer )
-	thisGlyph.undoManager().endUndoGrouping()
+	thisGlyph.endUndo()
 
 Font.enableUpdateInterface()

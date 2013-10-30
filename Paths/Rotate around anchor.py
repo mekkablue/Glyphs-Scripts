@@ -118,7 +118,7 @@ class Rotator(object):
 			RotationTransform.translateXBy_yBy_( -rotationX, -rotationY )
 			
 			try:
-				thisGlyph.undoManager().beginUndoGrouping()
+				thisGlyph.beginUndo()
 			
 				if rotationCount == 0: # simple rotation
 					for thisThing in selection:
@@ -127,7 +127,7 @@ class Rotator(object):
 						elif thisThing.__class__ == GSComponent:
 							thisThing = transformComponent( thisThing, RotationTransform )
 			
-				thisGlyph.undoManager().endUndoGrouping()
+				thisGlyph.endUndo()
 			except Exception, e:
 				raise e
 			
@@ -137,7 +137,7 @@ class Rotator(object):
 			for thisLayer in selectedLayers:
 				
 				thisGlyph = thisLayer.parent
-				thisGlyph.undoManager().beginUndoGrouping()
+				thisGlyph.beginUndo()
 				
 				try:
 					thisLayer.setDisableUpdates()
@@ -183,6 +183,6 @@ class Rotator(object):
 				except Exception, e:
 					raise e
 				
-				thisGlyph.undoManager().endUndoGrouping()
+				thisGlyph.endUndo()
 
 Rotator()

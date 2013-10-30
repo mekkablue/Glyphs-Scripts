@@ -8,9 +8,8 @@ Suggested shortcut: ctrl-cmd-uparrow.
 yDiff = 1
 
 import GlyphsApp
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-selectedLayers = Doc.selectedLayers()
+selectedLayers = Font.selectedLayers
 
 def process( thisLayer ):
 	for thisPath in thisLayer.paths:

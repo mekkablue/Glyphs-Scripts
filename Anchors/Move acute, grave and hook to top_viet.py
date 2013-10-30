@@ -8,7 +8,7 @@ import GlyphsApp
 
 Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
+selectedGlyphs = [ x.parent for x in Font.selectedLayers ]
 
 def process( thisGlyph ):
 	for thisMaster in Font.masters:
@@ -30,8 +30,8 @@ Font.disableUpdateInterface()
 
 for thisGlyph in selectedGlyphs:
 	print "Processing", thisGlyph.name
-	thisGlyph.undoManager().beginUndoGrouping()
+	thisGlyph.beginUndo()
 	process( thisGlyph )
-	thisGlyph.undoManager().endUndoGrouping()
+	thisGlyph.endUndo()
 
 Font.enableUpdateInterface()

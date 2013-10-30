@@ -3,9 +3,8 @@
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-selectedLayers = Doc.selectedLayers()
+selectedLayers = Font.selectedLayers
 selectedGlyphs = [ l.parent for l in selectedLayers ]
 firstMasterName = Font.masters[0].name
 

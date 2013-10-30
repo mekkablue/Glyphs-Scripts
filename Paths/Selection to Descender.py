@@ -5,8 +5,8 @@ import GlyphsApp
 
 Font = Glyphs.font
 Doc = Glyphs.currentDocument
-myDescender = Doc.selectedFontMaster().descender
-selectedLayer = Doc.selectedLayers()[0]
+myDescender = Font.selectedFontMaster.descender
+selectedLayer = Font.selectedLayers[0]
 
 try:
 	selection = selectedLayer.selection()

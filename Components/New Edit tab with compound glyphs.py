@@ -4,10 +4,10 @@
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
+Doc = Glyphs.currentDocument
 Font = Glyphs.font
-FontMaster = Doc.selectedFontMaster()
-selectedLayers = Doc.selectedLayers()
+FontMaster = Font.selectedFontMaster
+selectedLayers = Font.selectedLayers
 Glyphs.clearLog()
 
 editString = ""
@@ -21,7 +21,7 @@ for thisLayer in selectedLayers:
 editString = editString.lstrip()
 
 # danger, can hang Glyphs.app:
-# Doc.windowController().addTabWithString_( editString )
+Doc.windowController().addTabWithString_( editString )
 # so instead, script reports to the Macro window:
 
 Glyphs.showMacroWindow()

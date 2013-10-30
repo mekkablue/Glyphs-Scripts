@@ -4,10 +4,9 @@
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-currentMaster = Doc.selectedFontMaster()
-currentLayer = Doc.selectedLayers()[0]
+currentMaster = Font.selectedFontMaster
+currentLayer = Font.selectedLayers[0]
 currentGlyph = currentLayer.parent
 
 def dekink( myMaster, myGlyph, pathindex, nodeindex, proportion ):

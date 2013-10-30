@@ -1,8 +1,8 @@
 #MenuTitle: Reset rotated and mirrored components
 """Looks for mirrored and rotated components and resets them to their original orientation."""
 
-Doc = Glyphs.currentDocument
-selectedLayers = Doc.selectedLayers()
+Font = Glyphs.font
+selectedLayers = Font.selectedLayers
 
 for l in selectedLayers:
 	thisGlyph = l.parent
@@ -10,7 +10,7 @@ for l in selectedLayers:
 	toBeDeleted = []
 	toBeAdded = []
 	
-	thisGlyph.undoManager().beginUndoGrouping()
+	thisGlyph.beginUndo()
 	
 	for compIndex in range( len( l.components ) ):
 		comp = l.components[ compIndex ]
@@ -30,5 +30,5 @@ for l in selectedLayers:
 		newC.y = addMe[2]
 		l.components.append( newC )
 	
-	thisGlyph.undoManager().endUndoGrouping()
+	thisGlyph.endUndo()
 	

@@ -1,22 +1,24 @@
 #MenuTitle: Wackelpudding
 """Create pseudorandom rotation feature for selected glyphs."""
 
-winkel = 20 # Maximum angle by which a glyph may rotate
+maxangle = 20.0 # Maximum angle by which a glyph may rotate
+minangle = 4.0
 alphabets = 5 # Instances of rotated glyphs
 linelength = 80 # length of the line the feature should be working on
+featurename = "calt"
 
 import GlyphsApp
 import math
 import random
 random.seed()
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-FontMaster = Doc.selectedFontMaster()
-selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
+FontMaster = Font.selectedFontMaster
+selectedGlyphs = [ x.parent for x in Font.selectedLayers ]
 
 def randomize( min, max ):
-	return random.randint( min, max )
+	range = max-min
+	return random.random() * range + min
 
 def rotate( x, y, angle=180.0, x_orig=0.0, y_orig=0.0):
 	"""Rotates x/y around x_orig/y_orig by angle and returns result as [x,y]."""
@@ -47,10 +49,31 @@ def transformComponent( myComponent, myTransform ):
 
 	return myComponent
 
+def clearLayer( thisLayer ):
+	thisLayer.parent.beginUndo()
+	for i in range( len( thisLayer.paths ))[::-1]:
+		del thisLayer.paths[i]
+	for i in range( len( thisLayer.components ))[::-1]:
+		del thisLayer.components[i]		
+	thisLayer.parent.endUndo()	
+
 def glyphcopy( sourceGlyph, targetGlyphName ):
 	targetGlyph = sourceGlyph.copy()
 	targetGlyph.name = targetGlyphName
 	Font.glyphs.append( targetGlyph )
+	targetGlyph = Font.glyphs[ targetGlyphName ]
+
+	# Place Components:
+	MasterIDs = [m.id for m in Font.masters]
+	for thisMaster in MasterIDs:
+		sourceLayer = sourceGlyph.layers[ thisMaster ]
+		targetLayer = targetGlyph.layers[ thisMaster ]
+		clearLayer( targetLayer )
+		targetLayer.width = sourceLayer.width
+		myComponent = GSComponent( sourceGlyph.name )
+		myComponent.componentName = sourceGlyph.name
+		targetLayer.components.append( myComponent )
+		
 	return targetGlyph
 
 def ssXXsuffix( i ):
@@ -59,7 +82,7 @@ def ssXXsuffix( i ):
 		i = 1
 	elif i > 20:
 		i = 20
-	return ".calt.ss" + ( "00"+str(i) )[-2:]
+	return ".calt.ss%.2d" % ( i )
 
 def make_ssXX( thisGlyph, number ):
 	myListOfGlyphs = []
@@ -70,9 +93,11 @@ def make_ssXX( thisGlyph, number ):
 
 	return myListOfGlyphs
 
-def wiggle( thisGlyph, maxangle ):
-	rotateby = 0
-	while rotateby == 0:
+def wiggle( thisGlyph, maxangle, minangle ):
+	rotateby = 0.0
+	minangle = float( minangle )
+	
+	while abs(rotateby) < minangle:
 		rotateby = randomize( -maxangle, maxangle )
 		
 	for thisLayer in thisGlyph.layers:
@@ -86,45 +111,91 @@ def wiggle( thisGlyph, maxangle ):
 		for thisComponent in thisLayer.components:
 			thisComponent = transformComponent( thisComponent, rotationTransform( angle=(rotateby/1.0), x_orig=x_orig, y_orig=y_orig ) )
 
-def makeClass( listOfGlyphNames, className="@default" ):
-	print "Creating OT class:", className
-	myNewClass = GSClass()
-	myNewClass.name = className
-	myNewClass.code = " ".join( listOfGlyphNames )
-	Font.classes.append( myNewClass )
+def create_otclass( classname   = "@default", 
+                    classglyphs = [ x.parent.name for x in Font.selectedLayers ], 
+                    targetfont  = Font ):
+	
+	# strip '@' from beginning:
+	if classname[0] == "@":
+		classname = classname[1:]
+	
+	classCode = " ".join( classglyphs )
+	
+	if classname in [ c.name for c in targetfont.classes ]:
+		targetfont.classes[classname].code = classCode
+		return "Updated existing OT class '%s'." % classname
+	else:
+		newClass = GSClass()
+		newClass.name = classname
+		newClass.code = classCode
+		targetfont.classes.append( newClass )
+		return "Created new OT class: '%s'" % classname
 
-def pseudoRandomize( myFeature="calt", defaultClassName="@default", pseudoClassName="@calt", alphabets=5, linelength=70):
-	print "Creating OT feature:", myFeature
-	myNewFeature = GSFeature()
-	myNewFeature.name = myFeature
+def updated_code( oldcode, beginsig, endsig, newcode ):
+	"""Replaces text in oldcode with newcode, but only between beginsig and endsig."""
+	begin_offset = oldcode.find( beginsig )
+	end_offset   = oldcode.find( endsig ) + len( endsig )
+	newcode = oldcode[:begin_offset] + beginsig + newcode + "\n" + endsig + oldcode[end_offset:]
+	return newcode
 
+def create_otfeature( featurename = "calt", 
+                      featurecode = "# empty feature code", 
+                      targetfont  = Font,
+                      codesig     = "DEFAULT-CODE-SIGNATURE" ):
+	"""
+	Creates or updates an OpenType feature in the font.
+	Returns a status message in form of a string.
+	"""
+	
+	beginSig = "# BEGIN " + codesig + "\n"
+	endSig   = "# END "   + codesig + "\n"
+	
+	if featurename in [ f.name for f in targetfont.features ]:
+		# feature already exists:
+		targetfeature = targetfont.features[ featurename ]
+		
+		if beginSig in targetfeature.code:
+			# replace old code with new code:
+			targetfeature.code = updated_code( targetfeature.code, beginSig, endSig, featurecode )
+		else:
+			# append new code:
+			targetfeature.code += "\n" + beginSig + featurecode + "\n" + endSig
+			
+		return "Updated existing OT feature '%s'." % featurename
+	else:
+		# create feature with new code:
+		newFeature = GSFeature()
+		newFeature.name = featurename
+		newFeature.code = beginSig + featurecode + "\n" + endSig
+		targetfont.features.append( newFeature )
+		return "Created new OT feature '%s'" % featurename
+
+def pseudoRandomize( featurename="calt", defaultClassName="@default", pseudoClassName="@calt", alphabets=5, linelength=70 ):
 	featuretext = ""
 	listOfClasses = (range(alphabets)*((linelength//alphabets)+2))
 	for i in range( (alphabets * ( linelength//alphabets ) + 1), 0, -1 ):
-		newline = "  sub @default' " + "@default "*i + "by @calt" + str( listOfClasses[i] ) + ";\n"
+		newline = "sub @default' " + "@default "*i + "by @calt" + str( listOfClasses[i] ) + ";\n"
 		featuretext = featuretext + newline
 
-	myNewFeature.code = featuretext
-	Font.features.append(myNewFeature)
+	return create_otfeature( featurename=featurename, featurecode=featuretext, codesig="WACKELPUDDING")
 
 # Make ssXX copies of selected glyphs and rotate them randomly:
 Font.disableUpdateInterface()
 classlist = []
-
 for thisGlyph in selectedGlyphs:
-	glyphName = thisGlyph.name
-	print "Processing", glyphName
-	classlist.append( glyphName )
-	glyphList = make_ssXX( thisGlyph, alphabets )
-	for thisVeryGlyph in glyphList:
-		wiggle( thisVeryGlyph, winkel )
-		
+	if thisGlyph.export == True:
+		glyphName = thisGlyph.name
+		print "Processing %s" % ( glyphName )
+		classlist.append( glyphName )
+		glyphList = make_ssXX( thisGlyph, alphabets )
+		for thisVeryGlyph in glyphList:
+			wiggle( thisVeryGlyph, maxangle, minangle )
 Font.enableUpdateInterface()
 
 # Create OT classes:
-makeClass( classlist )
+print create_otclass( classname="default", classglyphs=classlist )
 for x in range( alphabets ):
-	makeClass( [s + ssXXsuffix( x+1 ) for s in classlist], className = "@calt"+str( x ) )
+	print create_otclass( classname="@calt%i" % x, classglyphs=[s + ssXXsuffix( x+1 ) for s in classlist]  )
 
 # Create OT feature:
-pseudoRandomize( alphabets=alphabets, linelength=linelength )
+print pseudoRandomize( alphabets=alphabets, linelength=linelength, featurename=featurename )

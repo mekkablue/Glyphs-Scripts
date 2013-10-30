@@ -1,11 +1,10 @@
 #MenuTitle: Anchor Mover 1.1
 """Vertically move anchors in selected glyphs (GUI)."""
 
-#import GlyphsApp
+import GlyphsApp
 import vanilla
 
 class AnchorMover(object):
-
 	def __init__(self):
 		self.w = vanilla.FloatingWindow((340, 40), "Move anchors")
 
@@ -14,7 +13,6 @@ class AnchorMover(object):
 		
 		self.w.text_value = vanilla.TextBox((135, 12+2, 55, 14), "to height", sizeStyle='small')
 		self.w.anchor_value = vanilla.EditText((190, 12, 50, 19), "0.0", sizeStyle='small')
-		#self.w.anchor_value.bind( "+", self.ValuePlus1 )
 
 		self.w.movebutton = vanilla.Button((-80, 12+1, -15, 17), "Move", sizeStyle='small', callback=self.buttonCallback)
 		self.w.setDefaultButton( self.w.movebutton )
@@ -29,14 +27,14 @@ class AnchorMover(object):
 	def AnchorChangeCallback(self, sender):
 		anchor_index = self.w.anchor_name.get()
 		anchor_name  = str( self.w.anchor_name.getItems()[anchor_index] )
-		selectedLayers = Glyphs.currentDocument.selectedLayers()
+		selectedLayers = Glyphs.font.selectedLayers
 		thisLayer = [ x for x in selectedLayers if x.anchors[anchor_name] ][0] # first available glyph that has this anchor
 		x = str( thisLayer.anchors[anchor_name].y ) # get its anchor value
 		self.w.anchor_value.set( x )
 
 	def buttonCallback(self, sender):
-		selectedLayers = Glyphs.currentDocument.selectedLayers()
-		print "Processing", len( selectedLayers ), "glyphs..."
+		selectedLayers = Glyphs.font.selectedLayers
+		print "Processing %i glyphs..." % len( selectedLayers )
 		
 		anchor_index = self.w.anchor_name.get()
 		anchor_name  = str( self.w.anchor_name.getItems()[anchor_index] )
@@ -57,9 +55,9 @@ class AnchorMover(object):
 							old_anchor_y = thisAnchor.y
 							if old_anchor_y != anchor_y:
 								thisAnchor.y = anchor_y
-								print "Moved", anchor_name, "anchor in", thisLayer.parent.name, "from", old_anchor_y, "to", thisAnchor.y
+								print "Moved %s anchor in %s from %s to %s." % ( anchor_name, thisLayer.parent.name, old_anchor_y, thisAnchor.y )
 			except:
-				print "Failed to move anchor in " + thisLayer.parent.name + " to " + anchor_y
+				print "Error: Failed to move anchor in %s to %s." % ( thisLayer.parent.name, anchor_y )
 		
 		# Font.enableUpdateInterface()
 		
@@ -67,7 +65,7 @@ class AnchorMover(object):
 	
 	def GetAnchorNames(self):
 		myAnchorList = []
-		selectedLayers = Glyphs.currentDocument.selectedLayers()
+		selectedLayers = Glyphs.font.selectedLayers
 		
 		for thisLayer in selectedLayers:
 			AnchorNames = list( thisLayer.anchors.keys() ) # hack to avoid traceback
@@ -76,6 +74,6 @@ class AnchorMover(object):
 				if thisAnchorName not in myAnchorList:
 					myAnchorList.append( str(thisAnchorName) )
 		
-		return sorted(myAnchorList)
+		return sorted( myAnchorList )
 
 AnchorMover()

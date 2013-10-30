@@ -12,42 +12,106 @@ import GlyphsApp
 import random
 random.seed()
 
-Doc         = Glyphs.currentDocument
-Font        = Glyphs.font
-glyphen     = [ x.parent for x in Doc.selectedLayers() ]
-listOfNames = [ thisGlyph.name for thisGlyph in glyphen ]
+Font = Glyphs.font
+selectedGlyphs = [ l.parent for l in Font.selectedLayers ]
+listOfNames = [ thisGlyph.name for thisGlyph in selectedGlyphs ]
+glyphsToProcess = []
+
+def updated_code( oldcode, beginsig, endsig, newcode ):
+	"""Replaces text in oldcode with newcode, but only between beginsig and endsig."""
+	begin_offset = oldcode.find( beginsig )
+	end_offset   = oldcode.find( endsig ) + len( endsig )
+	newcode = oldcode[:begin_offset] + beginsig + newcode + "\n" + endsig + oldcode[end_offset:]
+	return newcode
+
+def create_otfeature( featurename = "calt", 
+                      featurecode = "# empty feature code", 
+                      targetfont  = Font,
+                      codesig     = "DEFAULT-CODE-SIGNATURE" ):
+	"""
+	Creates or updates an OpenType feature in the font.
+	Returns a status message in form of a string.
+	"""
+	
+	beginSig = "# BEGIN " + codesig + "\n"
+	endSig   = "# END "   + codesig + "\n"
+	
+	if featurename in [ f.name for f in targetfont.features ]:
+		# feature already exists:
+		targetfeature = targetfont.features[ featurename ]
+		
+		if beginSig in targetfeature.code:
+			# replace old code with new code:
+			targetfeature.code = updated_code( targetfeature.code, beginSig, endSig, featurecode )
+		else:
+			# append new code:
+			targetfeature.code += "\n" + beginSig + featurecode + "\n" + endSig
+			
+		return "Updated existing OT feature '%s'." % featurename
+	else:
+		# create feature with new code:
+		newFeature = GSFeature()
+		newFeature.name = featurename
+		newFeature.code = beginSig + featurecode + "\n" + endSig
+		targetfont.features.append( newFeature )
+		return "Created new OT feature '%s'." % featurename
+
+def create_otclass( classname   = "@default", 
+                    classglyphs = [ x.parent.name for x in Font.selectedLayers ], 
+                    targetfont  = Font ):
+	"""
+	Creates an OpenType class in the font.
+	Default: class @default with currently selected glyphs in the current font.
+	Returns a status message in form of a string.
+	"""
+	
+	# strip '@' from beginning:
+	if classname[0] == "@":
+		classname = classname[1:]
+	
+	classCode = " ".join( classglyphs )
+	
+	if classname in [ c.name for c in targetfont.classes ]:
+		targetfont.classes[classname].code = classCode
+		return "Updated existing OT class '%s'." % classname
+	else:
+		newClass = GSClass()
+		newClass.name = classname
+		newClass.code = classCode
+		targetfont.classes.append( newClass )
+		return "Created new OT class: '%s'." % classname
 
 def randomize( min, max ):
 	return random.randint( min, max )
 
-def process( thisGlyph ):
-	FontMaster = Doc.selectedFontMaster()
-	thisLayer = thisGlyph.layers[FontMaster.id]
-	
-	thisGlyph.undoManager().beginUndoGrouping()
+def beowulferize( thisGlyph ):
+	thisGlyph.beginUndo()
+	for thisLayer in thisGlyph.layers:
+		for thisPath in thisLayer.paths:
+			for thisNode in thisPath.nodes:
+				thisNode.x +=  randomize( -shatter, shatter )
+				thisNode.y +=  randomize( -shatter, shatter )
+				
+			thisPath.checkConnections()
 
-	for thisPath in thisLayer.paths:
-		for thisNode in thisPath.nodes:
-			randomize_x = randomize( -shatter, shatter )
-			randomize_y = randomize( -shatter, shatter )
-			thisNode.x = thisNode.x + randomize_x
-			thisNode.y = thisNode.y + randomize_y
-		
-		thisPath.checkConnections()
+	thisGlyph.endUndo()
 
-	thisGlyph.undoManager().endUndoGrouping()
 
-print "Beowulferizing " + str( Font.familyName )
-glyphsToProcess = glyphen[:]
+
+Glyphs.clearLog()
+Glyphs.showMacroWindow()
+print "Beowulferizing %s:" % str( Font.familyName )
+
 Font.disableUpdateInterface()
 
 # Create Glyph Variants:
-
-print 'Creating alternative glyphs for:',
-for thisGlyph in glyphen:
+print "Creating alternative glyphs for:",
+for thisGlyph in selectedGlyphs:
+	glyphsToProcess.append( thisGlyph )
 	print thisGlyph.name,
-	for runde in range( alphabets ):
-		newName = thisGlyph.name+".calt"+str(runde)
+	
+	for round in range( alphabets ):
+		newName = thisGlyph.name+".calt"+str(round)
 		targetGlyph = thisGlyph.copy()
 		targetGlyph.name = newName
 		glyphsToProcess.append( targetGlyph )
@@ -57,33 +121,20 @@ print "\nDeforming glyphs",
 for thisGlyph in glyphsToProcess:
 	print ".",
 	for iteration in range( reiterations ):
-		process( thisGlyph )
+		beowulferize( thisGlyph )
+
+print
 
 # Create Classes:
-
-print "\nCreating OT class: @default"
-defaultclass = GSClass()
-defaultclass.name = "@default"
-defaultclass.code = " ".join( listOfNames )
-Font.classes.append( defaultclass )
-
+print create_otclass( classname="default", classglyphs=listOfNames, targetfont=Font )
 for i in range( alphabets ):
-	mynewclass = GSClass()
-	mynewclass.name = "@calt"+str(i)
-	mynewclass.code = " ".join( [glyphName+".calt"+str(i) for glyphName in listOfNames] )
-	Font.classes.append( mynewclass )
-	print "Creating OT class: " + mynewclass.name
+	print create_otclass( classname="calt"+str(i), classglyphs=[ n+".calt"+str(i) for n in listOfNames ], targetfont=Font )
 
 # Create OT Feature:
-
-print "Creating OT feature: calt"
-myNewFeature = GSFeature()
-myNewFeature.name = "calt"
-featuretext = ""
+beowulfCode = ""
 for i in range( ( alphabets * ( linelength//alphabets ) + 1 ), 0, -1 ):
-	newline = "  sub @default' " + "@default " * i + "by @calt" + str( ( range(alphabets) * ((linelength//alphabets)+2))[i] ) + ";\n"
-	featuretext = featuretext + newline
-myNewFeature.code = featuretext
-Font.features.append( myNewFeature )
+	beowulfCode += "sub @default' " + "@default " * i + "by @calt" + str( ( range(alphabets) * ((linelength//alphabets)+2))[i] ) + ";\n"
+
+print create_otfeature( featurename="calt", featurecode=beowulfCode, targetfont=Font, codesig="BEOWULFERIZER")
 
 Font.enableUpdateInterface()

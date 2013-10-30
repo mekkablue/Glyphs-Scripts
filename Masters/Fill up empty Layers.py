@@ -1,7 +1,7 @@
 #MenuTitle: Fill up empty Masters
 """Looks for empty layers and copies contents of another layer into it."""
 
-#import GlyphsApp
+import GlyphsApp
 import vanilla
 
 class MasterFiller(object):
@@ -25,8 +25,8 @@ class MasterFiller(object):
 	def GetMasterNames(self):
 		myMasterList = []
 
-		for i in range(len(Glyphs.currentDocument.font.masters)):
-			x = Glyphs.currentDocument.font.masters[i]
+		for i in range(len(Glyphs.font.masters)):
+			x = Glyphs.font.masters[i]
 			myMasterList.append( '%i: %s' % (i, x.name) )
 		
 		return myMasterList
@@ -38,8 +38,7 @@ class MasterFiller(object):
 			self.w.copybutton.enable(True)
 
 	def buttonCallback(self, sender):
-		Doc = Glyphs.currentDocument
-		selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
+		selectedGlyphs = [ x.parent for x in Glyphs.font.selectedLayers ]
 
 		index_from = self.w.master_from.get()
 		index_into = self.w.master_into.get()

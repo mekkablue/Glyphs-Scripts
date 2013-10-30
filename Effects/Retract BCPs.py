@@ -2,8 +2,7 @@
 """Retracts all BCPs (off-curve points) in selected glyphs, so all curves will be turned into straight lines."""
 
 Font = Glyphs.font
-Doc  = Glyphs.currentDocument
-selectedLayers = Doc.selectedLayers()
+selectedLayers = Font.selectedLayers
 
 GSOFFCURVE = 65
 GSLINE = 1
@@ -24,9 +23,9 @@ Font.disableUpdateInterface()
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
 	print "Processing", thisGlyph.name
-	thisGlyph.undoManager().beginUndoGrouping()
+	thisGlyph.beginUndo()
 	process( thisLayer )
-	thisGlyph.undoManager().endUndoGrouping()
+	thisGlyph.endUndo()
 
 Font.enableUpdateInterface()
 

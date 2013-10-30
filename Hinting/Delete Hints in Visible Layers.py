@@ -3,9 +3,8 @@
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-selectedLayers = Doc.selectedLayers()
+selectedLayers = Font.selectedLayers
 print "Deleting hints in active layer:"
 
 def process( thisLayer ):

@@ -5,8 +5,8 @@ import GlyphsApp
 
 Font = Glyphs.font
 Doc = Glyphs.currentDocument
-Master = Doc.selectedFontMaster()
-selectedLayer = Doc.selectedLayers()[0]
+Master = Font.selectedFontMaster
+selectedLayer = Font.selectedLayers[0]
 
 allMetrics = [ 0.0, selectedLayer.width, selectedLayer.width//2 ]
 

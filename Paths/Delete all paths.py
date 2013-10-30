@@ -3,9 +3,8 @@
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-selectedLayers = Doc.selectedLayers()
+selectedLayers = Font.selectedLayers
 
 def process( thisLayer ):
 	thisLayer.parent.beginUndo()
@@ -18,7 +17,7 @@ def process( thisLayer ):
 Font.disableUpdateInterface()
 
 for thisLayer in selectedLayers:
-	print "Clearing", thisLayer.parent.name
+	print "Clearing %s." % thisLayer.parent.name
 	process( thisLayer )
 
 Font.enableUpdateInterface()

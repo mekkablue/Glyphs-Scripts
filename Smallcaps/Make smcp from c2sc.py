@@ -6,9 +6,8 @@ Ignores selected glyphs without a .c2sc ending.
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-selectedGlyphs = [ x.parent for x in Doc.selectedLayers() if x.parent.name[-5:] == ".smcp" ]
+selectedGlyphs = [ x.parent for x in Font.selectedLayers if x.parent.name[-5:] == ".smcp" ]
 
 def c2scToSmcpName( c2scname ):
 	"""Turns 'Aacute.c2sc' into 'aacute.smcp'."""

@@ -4,8 +4,8 @@
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
-selectedLayers = Doc.selectedLayers()
+Font = Glyphs.font
+selectedLayers = Font.selectedLayers
 
 namesOfSelectedGlyphs = ["/" + l.parent.name for l in selectedLayers]
 editString = ""

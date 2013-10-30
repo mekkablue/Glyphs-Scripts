@@ -7,9 +7,8 @@ from math import tan, pi
 
 Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-FontMaster = Doc.selectedFontMaster()
-selectedLayers = Doc.selectedLayers()
-selection = selectedLayers[0].selection()
+FontMaster = Font.selectedFontMaster
+selectedLayers = Font.selectedLayers
 
 italicAngle   = FontMaster.italicAngle
 allGlyphNames = [ g.name for g in Font.glyphs ]

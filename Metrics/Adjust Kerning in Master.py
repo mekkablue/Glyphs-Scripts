@@ -66,10 +66,7 @@ class AdjustKerning( object ):
 					for rightGlyphID in Font.kerning[ Master.id ][ leftGlyphID ]:
 						Font.kerning[ Master.id ][ leftGlyphID ][ rightGlyphID ] = round( Font.kerning[ Master.id ][ leftGlyphID ][ rightGlyphID ] / value, 0 ) * value
 				
-				
-
 			Font.enableUpdateInterface()
-			
 			
 			if not self.SavePreferences( self ):
 				print "Note: could not write preferences."

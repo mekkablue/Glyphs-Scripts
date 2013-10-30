@@ -4,10 +4,9 @@
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-FontMaster = Doc.selectedFontMaster()
-selectedLayers = Doc.selectedLayers()
+FontMaster = Font.selectedFontMaster
+selectedLayers = Font.selectedLayers
 selection = selectedLayers[0].selection()
 minimumLength = 20.0
 
@@ -91,15 +90,15 @@ def addBCPs( thisLayer ):
 	for thisVirtualPath in virtualPaths:
 		thisLayer.paths.append( thisVirtualPath )
 		
-	#Doc.windowController().activeEditViewController().forceRedraw()
+	#Glyphs.currentDocument.windowController().activeEditViewController().forceRedraw()
 	
 Font.disableUpdateInterface()
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
 	print "Processing", thisGlyph.name
-	thisGlyph.undoManager().beginUndoGrouping()
+	thisGlyph.beginUndo()
 	addBCPs( thisLayer )
-	thisGlyph.undoManager().endUndoGrouping()
+	thisGlyph.endUndo()
 
 Font.enableUpdateInterface()

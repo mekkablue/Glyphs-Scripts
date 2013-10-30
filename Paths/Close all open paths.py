@@ -3,9 +3,8 @@
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-selectedLayers = Doc.selectedLayers()
+selectedLayers = Font.selectedLayers
 
 def process( thisLayer ):
 	for thisPath in thisLayer.paths:
@@ -15,7 +14,7 @@ def process( thisLayer ):
 Font.disableUpdateInterface()
 
 for thisLayer in selectedLayers:
-	print "Closing paths in", thisLayer.parent.name
+	print "Closing paths in %s." % thisLayer.parent.name
 	process( thisLayer )
 
 Font.enableUpdateInterface()

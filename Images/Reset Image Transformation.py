@@ -15,8 +15,8 @@ Font.disableUpdateInterface()
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
 	print "Resetting image in", thisGlyph.name
-	thisGlyph.undoManager().beginUndoGrouping()
+	thisGlyph.beginUndo()
 	process( thisLayer )
-	thisGlyph.undoManager().endUndoGrouping()
+	thisGlyph.endUndo()
 
 Font.enableUpdateInterface()

@@ -1,52 +1,102 @@
 #MenuTitle: Replace components
+# -*- coding: utf-8 -*-
 """Replaces components in selected glyphs (GUI)."""
 
 #import GlyphsApp
 import vanilla
 
+def replaceComponent( thisLayer, oldCompName, newCompName ):
+	try:
+		for thisComponent in thisLayer.components:
+			if thisComponent.componentName == oldCompName:
+				thisComponent.componentName = newCompName
+	except:
+		print "Failed to replace %s for %s in %s." % ( oldCompName, newCompName, thisLayer.parent.name )
+
 class Componentreplacer(object):
 
-	def __init__(self):
-		self.w = vanilla.FloatingWindow((340, 40), "Replace Components in Selection")
+	def __init__( self):
+		self.w = vanilla.FloatingWindow((400, 80), "Replace Components in Selection", minSize=(400, 80), maxSize=(500, 80), autosaveName="com.mekkablue.ReplaceComponents.mainwindow" )
 
-		self.w.text_Component = vanilla.TextBox((15, 12+2, 65, 14), "Replace", sizeStyle='small')
-		self.w.Component_name = vanilla.PopUpButton((65, 12, 80, 17), self.GetComponentNames(), sizeStyle='small')
-		
-		self.w.text_value = vanilla.TextBox((150, 12+2, 55, 14), "by", sizeStyle='small')
-		self.w.Component_newname = vanilla.EditText((175, 12, 65, 19), "glyph.alt", sizeStyle='small')
+		self.w.textReplace = vanilla.TextBox((15, 12+2, 65, 14), "Replace", sizeStyle='small')
+		self.w.componentName = vanilla.PopUpButton((65, 12, 80, 17), self.GetComponentNames(), sizeStyle='small')
+		self.w.resetComponentName = vanilla.SquareButton((65+80+10, 12, 20, 18), u"↺", sizeStyle='small', callback=self.SetComponentNames )
 
-		self.w.replacebutton = vanilla.Button((-80, 12+1, -15, 17), "Replace", sizeStyle='small', callback=self.buttonCallback)
-		self.w.setDefaultButton( self.w.replacebutton )
+		self.w.textBy = vanilla.TextBox((65+80+40, 12+2, 25, 14), "by", sizeStyle='small')
+		self.w.componentNewName = vanilla.EditText((65+80+40+30, 12, -120, 19), "glyph.alt", sizeStyle='small', callback=self.SavePrefs)
+		self.w.resetComponentNewName = vanilla.SquareButton((-110, 12, -90, 18), u"↺", sizeStyle='small', callback=self.ResetComponentNewName )
+
+		self.w.includeAllLayers = vanilla.CheckBox((15+3, 35, -15, 18), "Include all layers", value=True, sizeStyle='small', callback=self.SavePrefs )
+
+		self.w.replaceButton = vanilla.Button((-80, 12+1, -15, 17), "Replace", sizeStyle='small', callback=self.ButtonCallback )
+		self.w.setDefaultButton( self.w.replaceButton )
+
+		if not self.LoadPrefs( ):
+			print "Note: Could not load preferences. Will resort to defaults."
 
 		self.w.open()
-			
 
-	def buttonCallback(self, sender):
-		selectedLayers = Glyphs.currentDocument.selectedLayers()
+	def ButtonCallback( self, sender ):
+		Font = Glyphs.font
+		selectedLayers = Font.selectedLayers
 		
-		old_Component_name  = str( self.w.Component_name.getItems()[self.w.Component_name.get()] )
-		new_Component_name  = self.w.Component_newname.get()
+		oldComponentName  = str( self.w.componentName.getItems()[self.w.componentName.get()] )
+		newComponentName  = self.w.componentNewName.get()
+		includeAllLayers = self.w.includeAllLayers.get()
 		
-		for thisLayer in selectedLayers:
-			try:
-				for thisComponent in thisLayer.components:
-					if thisComponent.componentName == old_Component_name:
-						thisComponent.componentName = new_Component_name
-			except:
-				print "Failed to replace Component in %s." % thisLayer.parent.name
+		Font.disableUpdateInterface()
+		
+		if includeAllLayers:
+			selectedGlyphs = [ l.parent for l in selectedLayers ]
+			for thisGlyph in selectedGlyphs:
+				for thisLayer in thisGlyph.layers:
+					replaceComponent( thisLayer, oldComponentName, newComponentName )
+		else:
+			for thisLayer in selectedLayers:
+				replaceComponent( thisLayer, oldComponentName, newComponentName )
+		
+		Font.enableUpdateInterface()
+		
+		return True
 	
-	def GetComponentNames(self):
+	def GetComponentNames( self):
 		myComponentList = []
-		selectedLayers = Glyphs.currentDocument.selectedLayers()
+		selectedGlyphs = [ l.parent for l in Glyphs.font.selectedLayers ]
 		
-		for thisLayer in selectedLayers:
-			l = thisLayer.components
-			ComponentNames = [l[x].componentName for x in range(len(l))]
+		for thisGlyph in selectedGlyphs:
+			for thisLayer in thisGlyph.layers:
+				l = thisLayer.components
+				ComponentNames = [l[x].componentName for x in range(len(l))]
 
-			for thisComponentName in ComponentNames:
-				if thisComponentName not in myComponentList:
+				for thisComponentName in ComponentNames:
 					myComponentList.append( str(thisComponentName) )
 		
-		return sorted(myComponentList)
+		myComponentList.sort( key=len, reverse=False )
+		return list( set( myComponentList ))
+	
+	def SetComponentNames( self, sender ):
+		myComponentList = self.GetComponentNames()
+		self.w.componentName.setItems( myComponentList )
+		return True
+	
+	def ResetComponentNewName( self, sender ):
+		glyphName = Glyphs.font.selectedLayers[0].parent.name
+		ending = glyphName[ glyphName.find("."): ]
+		oldComponentName  = str( self.w.componentName.getItems()[self.w.componentName.get()] )
+		self.w.componentNewName.set( oldComponentName + ending )
+		return True
+	
+	def SavePrefs( self, sender ):
+		Glyphs.defaults["com.mekkablue.ReplaceComponents.newCompName"] = self.w.componentNewName.get()
+		Glyphs.defaults["com.mekkablue.ReplaceComponents.includeAllLayers"] = self.w.includeAllLayers.get()
+		return True
+	
+	def LoadPrefs( self ):
+		try:
+			self.w.componentNewName.set( Glyphs.defaults["com.mekkablue.ReplaceComponents.newCompName"] )
+			self.w.includeAllLayers.set( Glyphs.defaults["com.mekkablue.ReplaceComponents.includeAllLayers"] )
+			return True
+		except:
+			return False
 
 Componentreplacer()

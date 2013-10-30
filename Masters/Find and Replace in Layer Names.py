@@ -9,7 +9,6 @@ import GlyphsApp
 import vanilla
 
 class replaceInLayerNames(object):
-
 	def __init__(self):
 		self.w = vanilla.FloatingWindow((380, 40), "Replace text in layer names (ignores Masters)")
 
@@ -26,9 +25,8 @@ class replaceInLayerNames(object):
 		self.w.open()
 	
 	def buttonCallback(self, sender):
-		Doc  = Glyphs.currentDocument
 		Font = Glyphs.font
-		selectedLayers = Doc.selectedLayers()
+		selectedLayers = Font.selectedLayers
 		numberOfMasters = len( Font.masters )
 		
 		searchFor = self.w.searchFor.get()
@@ -36,12 +34,12 @@ class replaceInLayerNames(object):
 		
 		Font.disableUpdateInterface()
 		
-		for g in Glyphs.font.glyphs:
+		for g in Font.glyphs:
 			if len( g.layers ) > numberOfMasters:
 				for l in [ x for x in g.layers ][numberOfMasters:]:
 					if searchFor in l.name:
 						l.name = l.name.replace( searchFor, replaceBy )
-						print g.name, ":", l.name
+						print "%s: %s" % ( g.name, l.name )
 		
 		Font.enableUpdateInterface()
 

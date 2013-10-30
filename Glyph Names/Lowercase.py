@@ -1,11 +1,11 @@
 #MenuTitle: Make glyph names lowercase
+# -*- coding: utf-8 -*-
 """Makes the names of selected glyphs lowercase, useful for smallcap glyphs."""
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
+selectedGlyphs = [ x.parent for x in Font.selectedLayers ]
 
 def process( thisGlyph ):
 	oldName = thisGlyph.name
@@ -19,4 +19,3 @@ for thisGlyph in selectedGlyphs:
 	process( thisGlyph )
 
 Font.enableUpdateInterface()
-

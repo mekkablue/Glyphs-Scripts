@@ -5,10 +5,10 @@ import GlyphsApp
 
 Font = Glyphs.font
 Doc = Glyphs.currentDocument
-Master = Doc.selectedFontMaster()
+Master = Font.selectedFontMaster
 allMetrics = [ Master.ascender, Master.capHeight, Master.xHeight, 0.0, Master.descender ]
 
-selectedLayer = Doc.selectedLayers()[0]
+selectedLayer = Font.selectedLayers[0]
 
 try:
 	selection = selectedLayer.selection()

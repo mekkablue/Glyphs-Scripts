@@ -5,8 +5,8 @@ import GlyphsApp
 
 Font = Glyphs.font
 Doc = Glyphs.currentDocument
-myCapHeight = Doc.selectedFontMaster().capHeight
-selectedLayer = Doc.selectedLayers()[0]
+myCapHeight = Font.selectedFontMaster.capHeight
+selectedLayer = Font.selectedLayers[0]
 
 try:
 	selection = selectedLayer.selection()

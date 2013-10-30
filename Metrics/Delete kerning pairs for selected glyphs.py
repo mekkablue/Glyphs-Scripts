@@ -3,11 +3,10 @@
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-Master = Doc.selectedFontMaster()
+Master = Font.selectedFontMaster
 
-selectedLayers = Doc.selectedLayers()
+selectedLayers = Font.selectedLayers
 listOfIDs = [ x.parent.id for x in selectedLayers ]
 masterID = Master.id
 totalNumberOfDeletions = 0

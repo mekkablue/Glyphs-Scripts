@@ -60,8 +60,8 @@ class MetricKeyReplacer( object ):
 			if not self.SavePreferences( self ):
 				print "Note: Could not write preferences."
 			
-			Doc  = Glyphs.currentDocument
-			selectedLayers = Doc.selectedLayers()
+			Font  = Glyphs.font
+			selectedLayers = Font.selectedLayers
 			currentLayers = [ l for l in selectedLayers if l.parent.name is not None ]
 			
 			LsearchFor = self.w.leftSearchFor.get()
@@ -72,7 +72,7 @@ class MetricKeyReplacer( object ):
 			for l in currentLayers:
 				try:
 					g = l.parent
-					g.undoManager().beginUndoGrouping()
+					g.beginUndo()
 					
 					# Left Metrics Key:
 					try:
@@ -122,13 +122,13 @@ class MetricKeyReplacer( object ):
 						print "Error while trying to set right key for", g.name
 						print e
 					
-					g.undoManager().endUndoGrouping()
+					g.endUndo()
 						
 				except Exception, e:
 					print "Error while processing glyph", g.name
 					print e
 					
-					g.undoManager().endUndoGrouping()
+					g.endUndo()
 			
 			self.w.close()
 		except Exception, e:

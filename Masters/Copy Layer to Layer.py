@@ -41,7 +41,7 @@ class MasterFiller(object):
 	def buttonCallback(self, sender):
 		Font = Glyphs.font
 		Doc = Glyphs.currentDocument
-		selectedGlyphs = [ x.parent for x in Doc.selectedLayers() ]
+		selectedGlyphs = [ x.parent for x in Font.selectedLayers ]
 
 		index_from = self.w.master_from.get()
 		index_into = self.w.master_into.get()

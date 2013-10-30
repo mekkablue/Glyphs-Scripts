@@ -5,7 +5,7 @@ import GlyphsApp
 
 Font = Glyphs.font
 Doc = Glyphs.currentDocument
-selectedLayer = Doc.selectedLayers()[0]
+selectedLayer = Font.selectedLayers[0]
 layerCenter = selectedLayer.width // 2
 
 try:

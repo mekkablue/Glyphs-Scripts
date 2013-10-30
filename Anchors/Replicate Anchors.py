@@ -6,8 +6,8 @@ import GlyphsApp
 
 Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-FontMaster = Doc.selectedFontMaster()
-selectedLayers = [ l for l in Doc.selectedLayers() if "." in l.parent.name ]
+FontMaster = Font.selectedFontMaster
+selectedLayers = [ l for l in Font.selectedLayers if "." in l.parent.name ]
 
 def process( thisLayer ):
 	thisGlyphName = thisLayer.parent.name
@@ -32,7 +32,7 @@ def process( thisLayer ):
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
-	thisGlyph.undoManager().beginUndoGrouping()
+	thisGlyph.beginUndo()
 	process( thisLayer )
-	thisGlyph.undoManager().endUndoGrouping()
+	thisGlyph.endUndo()
 

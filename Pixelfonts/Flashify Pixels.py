@@ -4,8 +4,7 @@
 import GlyphsApp
 
 Font    = Glyphs.font
-Doc     = Glyphs.currentDocument
-layers  = Doc.selectedLayers()
+layers  = Font.selectedLayers
 removeOverlapFilter = NSClassFromString("GlyphsFilterRemoveOverlap").alloc().init()
 
 def karo( x, y ):
@@ -22,7 +21,7 @@ def karo( x, y ):
 	return karo
 
 def process( thisLayer ):
-	thisLayer.parent.undoManager().beginUndoGrouping()
+	thisLayer.parent.beginUndo()
 
 	purePathsLayer = thisLayer.copyDecomposedLayer()
 	removeOverlapFilter.runFilterWithLayer_error_( purePathsLayer, None )
@@ -40,7 +39,7 @@ def process( thisLayer ):
 				thisLayer.paths.append( karo( my_x, my_y ) )
 				print thisLayer.parent.name, ":", my_x, my_y
 
-	thisLayer.parent.undoManager().endUndoGrouping()
+	thisLayer.parent.endUndo()
 
 print "Flashifying " + str( Font.familyName )
 

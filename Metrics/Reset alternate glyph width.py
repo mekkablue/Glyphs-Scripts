@@ -3,10 +3,9 @@
 """Sets the width of selected .ss01 (or any other extension) widths in the font to the width of their base glyphs. E.g. A.ss01 will have the same width as A."""
 
 import GlyphsApp
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
-FontMaster = Doc.selectedFontMaster()
-selectedLayers = Doc.selectedLayers()
+FontMaster = Font.selectedFontMaster
+selectedLayers = Font.selectedLayers
 
 def resetWidth( thisLayer, thisName ):
 	baseGlyphName = thisName[:thisName.find(".")]
@@ -22,8 +21,8 @@ for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
 	thisGlyphName = thisGlyph.name
 	if "." in thisGlyphName:
-		thisLayer.undoManager().beginUndoGrouping()
+		thisLayer.beginUndo()
 		print "Resetting width of %s to %.0f." % ( thisGlyphName, resetWidth( thisLayer, thisGlyphName ) )
-		thisLayer.undoManager().endUndoGrouping()
+		thisLayer.endUndo()
 
 Font.enableUpdateInterface()
