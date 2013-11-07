@@ -5,9 +5,7 @@
 import GlyphsApp
 
 Font = Glyphs.font
-FontMaster = Font.selectedFontMaster
 selectedLayers = Font.selectedLayers
-selection = selectedLayers[0].selection()
 
 def process( thisGlyph ):
 	count = 0
