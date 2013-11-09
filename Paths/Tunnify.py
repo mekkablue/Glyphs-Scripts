@@ -3,6 +3,7 @@
 """Averages out the handles of selected path segments."""
 
 import GlyphsApp
+Font = Glyphs.font
 Doc  = Glyphs.currentDocument
 selectedLayer = Font.selectedLayers[0]
 selectedGlyph = selectedLayer.parent
