@@ -84,7 +84,6 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 * **New Edit tab with Bracket Layer glyphs:** Looks for all glyphs in the font that contain Bracket Trick Layers, and opens them in a new Edit tab.
 * **Show next/previous instance:** Jumps to next/previous instance in the preview section of the current Edit tab. Handy for attaching a keyboard shortcut to.
 * **Suggest instances:** Calculates distributions of weight values between your masters. Outputs into the macro window.
-* **Swap with Background Layer:** Swaps the foreground with the background. Attention: does not work properly yet when background is active. Sorry for any inconvenience.
 
 ## Metrics
 * **Adjust Kerning:** GUI to add a value to all kerning pairs, multiply all pairs by a value or round them by a value. *Needs Vanilla.*
