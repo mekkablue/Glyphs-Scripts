@@ -55,10 +55,7 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 * **Wackelpudding** and **Beowulferize:** Select some or all glyphs in the Font tab, then run the script. It will create alternates of the selected glyphs and create a pseudorandom calt feature. Activate it by selecting Contextual Alternates in e.g. InDesign.
 * **Baseline Wiggle:** Creates a pos feature that randomly displaces the glyphs while you type.
 * **Glyph Shaker:** Randomly moves each node in selected layers of selected glyphs.
-* **Insert BCPs into straight segments:** Inserts offcurve points (BCPs) into straight line segments of all selected glyphs. Like option-clicking on all straight lines.
-* **Retract BCPs:** Deletes all offcurve points (BCPs). Handy for making sure, your font only consists of straight lines. 
 * **Stitcher:** In selected glyphs, the Stitcher inserts components on your paths at fixed intervals. Useful for turning open paths (monolines) into dotted lines. *Needs Vanilla.*
-* **Turn offcurve into oncurve:** Does exactly what the name suggests. Makes fonts look really weird.
 
 ## Glyph Names:
 * **Check glyph names:** Checks all available glyph names for illegal characters.
@@ -101,18 +98,22 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 * **Reset alternate glyph width:** resets the width of suffixed glyphs to the width of their unsuffixed counterparts. E.g., *Adieresis.ss01* will be reset to the width of *Adieresis*.
 
 ## OpenType
-* **Build ccmp:** Builds a Latin ccmp feature, based on the presence of i and j, and also creates dotlessi and dotlessj, if they are not present in the font.
+* **Build ccmp:** Builds a Latin ccmp feature, based on the presence of i and j, and also tries to create dotlessi and dotlessj, if they are not present in the font.
 * **Floating Features:** Floating palettes for activating and deactivating OT features. Same functionality as the pop-up menu. *Needs Vanilla.*
 * **Make OT Class from selected glyphs:** GUI for creating a new OT class with the selected glyphs. *Needs Vanilla.*
 
 ## Paths
-* All **Align** scripts look for a path in the currently active layer and align it to whatever the script title says. Useful if you need to do one of these alignment operations very often. Hint: you can set a keyboard shortcut in System Preferences.
-* All **Bump** scripts move the selection towards the next available metric to the left, right, top or bottom. The Bump Left/Right scripts also include the halfwidth of the glyph. These are intended for setting a shortcut in System Preferences > Keyboard > Keyboard Shortcuts > Application Shortcuts (I recommend ctrl-opt-cmd-arrows).
+* All **Move > Align** scripts look for a path in the currently active layer and align it to whatever the script title says. Useful if you need to do one of these alignment operations very often. Hint: you can set a keyboard shortcut in System Preferences.
+* All **Move > Bump** scripts move the selection towards the next available metric to the left, right, top or bottom. The Bump Left/Right scripts also include the halfwidth of the glyph. These are intended for setting a shortcut in System Preferences > Keyboard > Keyboard Shortcuts > Application Shortcuts (I recommend ctrl-opt-cmd-arrows).
 * All **Distribute** scripts distribute all selected nodes horizontally or vertically, whatever is closer or what the script title says.
-* All **Move** scripts move the selected glyph(s) up/down by the specified distance, similar to what (shift-)ctrl-cmd-left/rightarrow does. As shortcut, I therefore recommend (shift-)ctrl-cmd-up/downarrow.
-* **Close all paths:** Closes all open paths in the visible layers of all selected glyphs.
+* All **Move > Move** scripts move the selected glyph(s) up/down by the specified distance, similar to what (shift-)ctrl-cmd-left/rightarrow does. As shortcut, I therefore recommend (shift-)ctrl-cmd-up/downarrow.
+* **Close all open paths:** Closes all open paths in the visible layers of all selected glyphs.
+* **Delete all open paths:** Deletes all *open* paths in the visible layers of all selected glyphs.
+* **Delete all paths:** Deletes *all paths* in the visible layers of all selected glyphs. Be careful.
 * **Rotate around anchor:** GUI for rotating glyphs or selections of nodes and components around a 'rotate' anchor. Allows to step and repeat. Requires Vanilla.
 * **Tunnify:** Looks for all path segments where at least one handle is selected. Then, evens out the handles of the segments, i.e., they will both have the same Fit Curve percentage. Can fix Adobe Illustrator's zero-handles (segments with one handle retracted into the nearest node). The idea for this script came from Eduardo Tunni (as colported by Pablo Impallari), hence the title of the script. I have never seen Eduardo's algorithm though, so my implementation might be a little different to his, especially the treatment of zero-handles.
+* **Insert BCPs into straight segments:** Inserts off-curve points (BCPs) into straight line segments of all selected glyphs. Like option-clicking on all straight lines.
+* **Retract BCPs:** Deletes all off-curve points (BCPs). Handy for making sure, your font only consists of straight lines. 
 
 ## Pixelfonts
 * **Align anchors to pixelgrid:** Moves diacritic anchors onto the grid. Assumes a grid step of 50.
