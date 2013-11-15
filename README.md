@@ -57,7 +57,7 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 * **Glyph Shaker:** Randomly moves each node in selected layers of selected glyphs.
 * **Insert BCPs into straight segments:** Inserts offcurve points (BCPs) into straight line segments of all selected glyphs. Like option-clicking on all straight lines.
 * **Retract BCPs:** Deletes all offcurve points (BCPs). Handy for making sure, your font only consists of straight lines. 
-* **Stitcher:** In selected glyphs, the Stitcher inserts components on your paths at fixed intervals. Useful for open paths (monolines). *Needs Vanilla.*
+* **Stitcher:** In selected glyphs, the Stitcher inserts components on your paths at fixed intervals. Useful for turning open paths (monolines) into dotted lines. *Needs Vanilla.*
 * **Turn offcurve into oncurve:** Does exactly what the name suggests. Makes fonts look really weird.
 
 ## Glyph Names:

@@ -147,22 +147,26 @@ def process( thisLayer, deleteComponents, componentName, distanceBetweenDots, us
 
 class ComponentOnLines( object ):
 	def __init__( self ):
-		windowHeight = 155
+		windowHeight = 150
 
 		self.w = vanilla.FloatingWindow( (350, windowHeight), "Stitcher", minSize=(300, windowHeight), maxSize=(500, windowHeight), autosaveName="com.mekkablue.ComponentsOnNodes.mainwindow" )
 
 		self.w.text_1   = vanilla.TextBox( (15-1, 12+2,    15+95, 14), "Place component:", sizeStyle='small' )
 		self.w.text_2   = vanilla.TextBox( (15-1, 12+25+2, 15+95, 14), "At intervals of:", sizeStyle='small' )
-		self.w.componentName = vanilla.EditText( (15+100, 12-1,    -15, 19), "circle", callback=self.SavePreferences, sizeStyle='small' )
-		self.w.interval      = vanilla.EditText( (15+100, 12+25-1, -15, 19), "40.0", callback=self.SavePreferences, sizeStyle='small' )
-		self.w.replaceComponents = vanilla.CheckBox((15+3, 12+25+25,    -15, 18), "Replace existing components", value=True, sizeStyle='small', callback=self.SavePreferences )
-		self.w.useBackground     = vanilla.CheckBox((15+3, 12+25+25+25, -15, 18), "Keep paths in background", value=True, sizeStyle='small', callback=self.SavePreferences )
+		self.w.componentName = vanilla.EditText( (15+100, 12-1, -15, 19), "circle", sizeStyle='small', callback=self.SavePreferences )
+		self.w.sliderMin = vanilla.EditText( ( 15+100, 12+25-1, 50, 19), str( 30.0 ), sizeStyle='small', callback=self.SavePreferences )
+		self.w.sliderMax = vanilla.EditText( (-15-50, 12+25-1, -15, 19), str( 60.0 ), sizeStyle='small', callback=self.SavePreferences )
+		self.w.intervalSlider= vanilla.Slider((15+100+50+10, 12+25, -15-50-10, 19), value=0, minValue=0.0, maxValue=1.0, sizeStyle='small', callback=self.ComponentOnLinesMain )
+
+		#self.w.replaceComponents = vanilla.CheckBox((15+3, 12+25+25,    -15, 19), "Replace existing components", value=True, sizeStyle='small', callback=self.SavePreferences )
+		self.w.liveSlider    = vanilla.CheckBox((15+3, 12+25+25, -15, 19), "Live slider", value=False, sizeStyle='small' )
+		self.w.useBackground = vanilla.CheckBox((15+3, 12+25+25+20, -15, 19), "Keep paths in background", value=True, sizeStyle='small', callback=self.SavePreferences )
 		
 		self.w.runButton = vanilla.Button((-80-15, -20-15, -15, -15), "Stitch", sizeStyle='regular', callback=self.ComponentOnLinesMain )
 		self.w.setDefaultButton( self.w.runButton )
 		
 		try:
-			self.LoadPreferences( )
+			self.LoadPreferences()
 		except:
 			pass
 
@@ -171,8 +175,11 @@ class ComponentOnLines( object ):
 	def SavePreferences( self, sender ):
 		try:
 			Glyphs.defaults["com.mekkablue.ComponentOnLines.componentName"] = self.w.componentName.get()
-			Glyphs.defaults["com.mekkablue.ComponentOnLines.interval"] = self.w.interval.get()
-			Glyphs.defaults["com.mekkablue.ComponentOnLines.replaceComponents"] = self.w.replaceComponents.get()
+			Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMin"] = self.w.sliderMin.get()
+			Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMax"] = self.w.sliderMax.get()
+			Glyphs.defaults["com.mekkablue.ComponentOnLines.intervalSlider"] = self.w.intervalSlider.get()
+			Glyphs.defaults["com.mekkablue.ComponentOnLines.liveSlider"] = self.w.liveSlider.get()
+			#Glyphs.defaults["com.mekkablue.ComponentOnLines.replaceComponents"] = self.w.replaceComponents.get()
 			Glyphs.defaults["com.mekkablue.ComponentOnLines.useBackground"] = self.w.useBackground.get()
 		except:
 			return False
@@ -182,8 +189,11 @@ class ComponentOnLines( object ):
 	def LoadPreferences( self ):
 		try:
 			self.w.componentName.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.componentName"] )
-			self.w.interval.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.interval"] )
-			self.w.replaceComponents.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.replaceComponents"] )
+			self.w.sliderMin.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMin"] )
+			self.w.sliderMax.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMax"] )
+			self.w.intervalSlider.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.intervalSlider"] )
+			self.w.liveSlider.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.liveSlider"] )
+			#self.w.replaceComponents.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.replaceComponents"] )
 			self.w.useBackground.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.useBackground"] )
 		except:
 			return False
@@ -192,28 +202,33 @@ class ComponentOnLines( object ):
 
 	def ComponentOnLinesMain( self, sender ):
 		try:
-			Font = Glyphs.font
-			FontMaster = Font.selectedFontMaster
-			selectedLayers = Font.selectedLayers
-			deleteComponents = bool( self.w.replaceComponents.get() )
-			componentName = self.w.componentName.get()
-			distanceBetweenDots = float( self.w.interval.get() )
-			useBackground = bool( self.w.useBackground.get() )
+			if ( bool(self.w.liveSlider.get()) and sender == self.w.intervalSlider ) or sender != self.w.intervalSlider:
+				Font = Glyphs.font
+				FontMaster = Font.selectedFontMaster
+				selectedLayers = Font.selectedLayers
+				# deleteComponents = bool( self.w.replaceComponents.get() )
+				deleteComponents = True
+				componentName = self.w.componentName.get()
+				sliderMin = float( self.w.sliderMin.get() )
+				sliderMax = float( self.w.sliderMax.get() )
+				sliderPos = float( self.w.intervalSlider.get() )
+				distanceBetweenDots = sliderMin * ( 1.0 - sliderPos ) + sliderMax * sliderPos
+				useBackground = bool( self.w.useBackground.get() )
 			
-			Font.disableUpdateInterface()
+				Font.disableUpdateInterface()
 
-			for thisLayer in selectedLayers:
-				thisGlyph = thisLayer.parent
-				print "Processing", thisGlyph.name
+				for thisLayer in selectedLayers:
+					thisGlyph = thisLayer.parent
+					# print "Processing", thisGlyph.name
 				
-				thisGlyph.beginUndo()	
-				process( thisLayer, deleteComponents, componentName, distanceBetweenDots, useBackground )
-				thisGlyph.endUndo()
+					thisGlyph.beginUndo()	
+					process( thisLayer, deleteComponents, componentName, distanceBetweenDots, useBackground )
+					thisGlyph.endUndo()
 
-			Font.enableUpdateInterface()
+				Font.enableUpdateInterface()
 			
-			if not self.SavePreferences( self ):
-				print "Note: could not write preferences."
+				if not self.SavePreferences( self ):
+					print "Note: could not write preferences."
 			
 			# self.w.close()
 		except Exception, e:
