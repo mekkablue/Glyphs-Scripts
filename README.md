@@ -69,6 +69,7 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 ## Images
 * **Delete Images:** Deletes all placed images in the visible layers of selected glyphs.
 * **Reset Image Transformations:** Resets all image transformations (x/y offset, scale, and distortion) back to default in the visible layers of selected glyphs.
+* **Set New Path for Images:** Resets the path for placed images in selected glyphs. Useful if you have moved your images.
 * **Transform Images:** GUI for batch-transforming images (x/y offset and x/y scale) in the visible layers of selected glyphs. *Needs Vanilla.*
 
 ## Masters
@@ -110,10 +111,10 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 * **Close all open paths:** Closes all open paths in the visible layers of all selected glyphs.
 * **Delete all open paths:** Deletes all *open* paths in the visible layers of all selected glyphs.
 * **Delete all paths:** Deletes *all paths* in the visible layers of all selected glyphs. Be careful.
-* **Rotate around anchor:** GUI for rotating glyphs or selections of nodes and components around a 'rotate' anchor. Allows to step and repeat. Requires Vanilla.
-* **Tunnify:** Looks for all path segments where at least one handle is selected. Then, evens out the handles of the segments, i.e., they will both have the same Fit Curve percentage. Can fix Adobe Illustrator's zero-handles (segments with one handle retracted into the nearest node). The idea for this script came from Eduardo Tunni (as colported by Pablo Impallari), hence the title of the script. I have never seen Eduardo's algorithm though, so my implementation might be a little different to his, especially the treatment of zero-handles.
 * **Insert BCPs into straight segments:** Inserts off-curve points (BCPs) into straight line segments of all selected glyphs. Like option-clicking on all straight lines.
 * **Retract BCPs:** Deletes all off-curve points (BCPs). Handy for making sure, your font only consists of straight lines. 
+* **Rotate around anchor:** GUI for rotating glyphs or selections of nodes and components around a 'rotate' anchor. Allows to step and repeat. Requires Vanilla.
+* **Tunnify:** Looks for all path segments where at least one handle is selected. Then, evens out the handles of the segments, i.e., they will both have the same Fit Curve percentage. Can fix Adobe Illustrator's zero-handles (segments with one handle retracted into the nearest node). The idea for this script came from Eduardo Tunni (as colported by Pablo Impallari), hence the title of the script. I have never seen Eduardo's algorithm though, so my implementation might be a little different to his, especially the treatment of zero-handles.
 
 ## Pixelfonts
 * **Align anchors to pixelgrid:** Moves diacritic anchors onto the grid. Assumes a grid step of 50.
