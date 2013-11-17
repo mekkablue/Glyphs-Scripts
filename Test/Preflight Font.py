@@ -99,7 +99,7 @@ def checkForFontNames( thisFont ):
 	
 	checkURLs = [[thisFont.manufacturerURL, "Manufacturer"], [thisFont.designerURL, "Designer"]]
 	for checkURL in checkURLs:
-		if checkURL[0] != "" and checkURL[0][:7] != "http://":
+		if checkURL[0] != None and checkURL[0][:7] != "http://":
 			errMsg( "", "", checkURL[1] + " URL does not start with 'http://': '" + checkURL[0] + "'" )
 			
 	# instances
