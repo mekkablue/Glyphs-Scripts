@@ -112,6 +112,7 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 * **Delete all open paths:** Deletes all *open* paths in the visible layers of all selected glyphs.
 * **Delete all paths:** Deletes *all paths* in the visible layers of all selected glyphs. Be careful.
 * **Insert BCPs into straight segments:** Inserts off-curve points (BCPs) into straight line segments of all selected glyphs. Like option-clicking on all straight lines.
+* **Open all closed paths:** Opens all closed paths in the visible layers of all selected glyphs. Useful after importing open paths from FontLab Studio.
 * **Retract BCPs:** Deletes all off-curve points (BCPs). Handy for making sure, your font only consists of straight lines. 
 * **Rotate around anchor:** GUI for rotating glyphs or selections of nodes and components around a 'rotate' anchor. Allows to step and repeat. Requires Vanilla.
 * **Tunnify:** Looks for all path segments where at least one handle is selected. Then, evens out the handles of the segments, i.e., they will both have the same Fit Curve percentage. Can fix Adobe Illustrator's zero-handles (segments with one handle retracted into the nearest node). The idea for this script came from Eduardo Tunni (as colported by Pablo Impallari), hence the title of the script. I have never seen Eduardo's algorithm though, so my implementation might be a little different to his, especially the treatment of zero-handles.

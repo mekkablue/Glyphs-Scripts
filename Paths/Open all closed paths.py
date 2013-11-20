@@ -1,5 +1,5 @@
-#MenuTitle: Close open paths
-"""Close all paths in visible layers of selected glyphs."""
+#MenuTitle: Open closed paths
+"""Opens all paths in the visible layers of selected glyphs."""
 
 import GlyphsApp
 
@@ -10,18 +10,18 @@ def process( thisLayer ):
 	pathCount = 0
 	
 	for thisPath in thisLayer.paths:
-		if not thisPath.closed:
-			thisPath.closed = True
+		if thisPath.closed:
+			thisPath.closed = False
 			pathCount += 1
 	
 	return pathCount
 
 Font.disableUpdateInterface()
 
-print "Closing paths in %i glyphs:" % len( selectedLayers )
+print "Opening paths in %i glyphs:" % len( selectedLayers )
 
 for thisLayer in selectedLayers:
-	print "-- %s: closed %i path(s)." % ( thisLayer.parent.name, process( thisLayer ) )
+	print "-- %s: opened %i path(s)." % ( thisLayer.parent.name, process( thisLayer ) )
 
 Font.enableUpdateInterface()
 
