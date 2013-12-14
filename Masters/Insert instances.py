@@ -196,6 +196,7 @@ class InstanceMaker( object ):
 						newInstance.setCustomParameter_forKey_( int( round( interpolationY )), "InterpolationWeightY")
 					
 					Glyphs.font.addInstance_( newInstance )
+					newInstance.updateInterpolationValues()
 			
 			if not self.SavePreferences( self ):
 				print "Error writing preferences."
