@@ -99,8 +99,8 @@ class AnchorMover2( object ):
 
 	def MoveCallback( self, sender ):
 		Font = Glyphs.font
-		selectedLayers = Glyphs.currentDocument.selectedLayers()
-		selectedMaster = Glyphs.currentDocument.selectedFontMaster()
+		selectedLayers = Font.selectedLayers
+		selectedMaster = Font.selectedFontMaster
 		italicAngle = selectedMaster.italicAngle
 		anchor_index = self.w.anchor_name.get()
 		anchor_name  = str( self.w.anchor_name.getItems()[anchor_index] )
@@ -114,8 +114,6 @@ class AnchorMover2( object ):
 		selectedCapheight = selectedMaster.capHeight
 		selectedXheight   = selectedMaster.xHeight
 		selectedDescender = selectedMaster.descender
-		
-		print "selectedCapheight:", selectedCapheight
 		
 		# respecting italic angle
 		respectItalic = self.w.italic.get()
@@ -171,15 +169,15 @@ class AnchorMover2( object ):
 								originalAnchor.position = NSMakePoint( xMove, yMove )
 						
 								print "Moved %s anchor from %i, %i to %i, %i in %s." % ( anchor_name, old_anchor_x, old_anchor_y, xMove, yMove, thisGlyph.name )
+							else:
+								print "Keeping %s anchor at %i, %i in %s." % ( anchor_name, old_anchor_x, old_anchor_y, thisGlyph.name )
 							
 				except Exception, e:
 					print "ERROR: Failed to move anchor in %s." % thisGlyph.name
 					print e
 				finally:
 					thisGlyph.endUndo()
-			
-				thisGlyph.endUndo()
-
+					
 		Font.enableUpdateInterface() 
 		print "Done."
 	
