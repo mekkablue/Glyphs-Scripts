@@ -7,11 +7,16 @@ import vanilla
 
 def replaceComponent( thisLayer, oldCompName, newCompName ):
 	try:
-		for thisComponent in thisLayer.components:
-			if thisComponent.componentName == oldCompName:
+		# Doesn't work yet: thisComponent = thisLayer.components[ oldCompName ]
+		# So I have to iterate through the components:
+		
+		for i in range( len( thisLayer.components )):
+			if thisLayer.components[i].componentName == oldCompName:
 				thisComponent.componentName = newCompName
-	except:
+				
+	except Exception as e:
 		print "Failed to replace %s for %s in %s." % ( oldCompName, newCompName, thisLayer.parent.name )
+		print e
 
 class Componentreplacer(object):
 
@@ -60,19 +65,16 @@ class Componentreplacer(object):
 		return True
 	
 	def GetComponentNames( self):
-		myComponentList = []
+		myComponentList = set()
 		selectedGlyphs = [ l.parent for l in Glyphs.font.selectedLayers ]
 		
 		for thisGlyph in selectedGlyphs:
 			for thisLayer in thisGlyph.layers:
-				l = thisLayer.components
-				ComponentNames = [l[x].componentName for x in range(len(l))]
-
-				for thisComponentName in ComponentNames:
-					myComponentList.append( str(thisComponentName) )
+				for thisComponent in thisLayer.components:
+					myComponentList.add( thisComponent.componentName )
 		
-		myComponentList.sort( key=len, reverse=False )
-		return list( set( myComponentList ))
+		# myComponentList.sort( key=len, reverse=False )
+		return sorted( list( myComponentList ))
 	
 	def SetComponentNames( self, sender ):
 		myComponentList = self.GetComponentNames()

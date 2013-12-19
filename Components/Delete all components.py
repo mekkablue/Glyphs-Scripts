@@ -7,11 +7,9 @@ Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 
 def process( thisLayer ):
-	while len(thisLayer.components) > 0:
-		print "-- Deleting component %s" % thisLayer.components[0].componentName
-		del thisLayer.components[0]
-
-Font.disableUpdateInterface()
+	if len( thisLayer.components ) > 0:
+		print "-- Deleted components: %s" % ", ".join( [c.componentName for c in thisLayer.components] )
+		thisLayer.components = []
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
@@ -19,5 +17,3 @@ for thisLayer in selectedLayers:
 	thisGlyph.beginUndo()
 	process( thisLayer )
 	thisGlyph.endUndo()
-
-Font.enableUpdateInterface()

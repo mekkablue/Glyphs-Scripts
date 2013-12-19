@@ -4,7 +4,6 @@
 
 import GlyphsApp
 Font = Glyphs.font
-Doc  = Glyphs.currentDocument
 selectedLayer = Font.selectedLayers[0]
 selectedGlyph = selectedLayer.parent
 selection = selectedLayer.selection()

@@ -71,9 +71,7 @@ def create_otfeature( featurename = "calt",
 		return "Updated existing OT feature '%s'." % featurename
 	else:
 		# create feature with new code:
-		newFeature = GSFeature()
-		newFeature.name = featurename
-		newFeature.code = beginSig + featurecode + "\n" + endSig
+		newFeature = GSFeature( featurename, beginSig + featurecode + "\n" + endSig )
 		targetfont.features.append( newFeature )
 		return "Created new OT feature '%s'" % featurename
 

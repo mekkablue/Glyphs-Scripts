@@ -8,8 +8,7 @@ linelength = 80 # length of the line the feature should be working on
 featurename = "calt"
 
 import GlyphsApp
-import math
-import random
+import math, random
 random.seed()
 
 Font = Glyphs.font
@@ -116,18 +115,14 @@ def create_otclass( classname   = "@default",
                     targetfont  = Font ):
 	
 	# strip '@' from beginning:
-	if classname[0] == "@":
-		classname = classname[1:]
-	
-	classCode = " ".join( classglyphs )
+	classname = classname.lstrip("@")
+	classcode = " ".join( classglyphs )
 	
 	if classname in [ c.name for c in targetfont.classes ]:
-		targetfont.classes[classname].code = classCode
+		targetfont.classes[classname].code = classcode
 		return "Updated existing OT class '%s'." % classname
 	else:
-		newClass = GSClass()
-		newClass.name = classname
-		newClass.code = classCode
+		newClass = GSClass( classname, classcode )
 		targetfont.classes.append( newClass )
 		return "Created new OT class: '%s'" % classname
 
@@ -164,9 +159,7 @@ def create_otfeature( featurename = "calt",
 		return "Updated existing OT feature '%s'." % featurename
 	else:
 		# create feature with new code:
-		newFeature = GSFeature()
-		newFeature.name = featurename
-		newFeature.code = beginSig + featurecode + "\n" + endSig
+		newFeature = GSFeature( featurename, beginSig + featurecode + "\n" + endSig )
 		targetfont.features.append( newFeature )
 		return "Created new OT feature '%s'" % featurename
 
@@ -180,7 +173,6 @@ def pseudoRandomize( featurename="calt", defaultClassName="@default", pseudoClas
 	return create_otfeature( featurename=featurename, featurecode=featuretext, codesig="WACKELPUDDING")
 
 # Make ssXX copies of selected glyphs and rotate them randomly:
-Font.disableUpdateInterface()
 classlist = []
 for thisGlyph in selectedGlyphs:
 	if thisGlyph.export == True:
@@ -190,7 +182,6 @@ for thisGlyph in selectedGlyphs:
 		glyphList = make_ssXX( thisGlyph, alphabets )
 		for thisVeryGlyph in glyphList:
 			wiggle( thisVeryGlyph, maxangle, minangle )
-Font.enableUpdateInterface()
 
 # Create OT classes:
 print create_otclass( classname="default", classglyphs=classlist )

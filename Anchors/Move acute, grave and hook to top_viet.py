@@ -6,15 +6,11 @@ new_anchor = "top_viet"
 
 import GlyphsApp
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
 selectedGlyphs = [ x.parent for x in Font.selectedLayers ]
 
 def process( thisGlyph ):
 	for thisMaster in Font.masters:
-		
-		print "__Master", thisMaster
-		
 		thisLayerID = thisMaster.id
 		thisLayer = thisGlyph.layers[ thisLayerID ]
 		
@@ -26,12 +22,9 @@ def process( thisGlyph ):
 					except Exception, e:
 						print e
 
-Font.disableUpdateInterface()
-
 for thisGlyph in selectedGlyphs:
 	print "Processing", thisGlyph.name
 	thisGlyph.beginUndo()
 	process( thisGlyph )
 	thisGlyph.endUndo()
 
-Font.enableUpdateInterface()

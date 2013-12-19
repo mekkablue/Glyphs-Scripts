@@ -5,7 +5,6 @@
 import GlyphsApp
 from math import tan, pi
 
-Doc  = Glyphs.currentDocument
 Font = Glyphs.font
 FontMaster = Font.selectedFontMaster
 selectedLayers = Font.selectedLayers
@@ -28,10 +27,9 @@ def addCombiningAnchors( thisLayer ):
 	theseBounds = thisLayer.bounds
 	for thisAnchor in thisLayer.anchors:
 		if thisAnchor.name == "_top":
-			oldX = thisAnchor.position.x
-			oldY = thisAnchor.position.y
-			
-			newY = theseBounds.origin.y + theseBounds.size.height
+			oldX, oldY = thisAnchor.position
+			newY = theseBounds.origin.y + theseBounds.size.height # or: NSMaxY(theseBounds)
+
 			if newY == 0.0:
 				newY = defaultTop
 			newX = oldX + ( newY - oldY ) * tan( italicAngle / 180.0 * pi )
@@ -39,15 +37,14 @@ def addCombiningAnchors( thisLayer ):
 			addAnchor( thisLayer, "top", newX, newY )
 			
 		if thisAnchor.name == "_bottom":
-			oldX = thisAnchor.position.x
-			oldY = thisAnchor.position.y
-			
-			newY = theseBounds.origin.y
+			oldX, oldY = thisAnchor.position
+			newY = theseBounds.origin.y # or: NSMinY(theseBounds)
+
 			if newY == 0.0:
 				newY = defaultBottom
 			newX = oldX + ( newY - oldY ) * tan( italicAngle / 180.0 * pi )
 				
-			addAnchor( thisLayer, "bottom", newX, newY)
+			addAnchor( thisLayer, "bottom", newX, newY )
 
 def process( spacingAccent ):
 	thisGlyphName = spacingAccent.name

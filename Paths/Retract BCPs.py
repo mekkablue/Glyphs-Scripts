@@ -4,9 +4,6 @@
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 
-GSOFFCURVE = 65
-GSLINE = 1
-
 def process( thisLayer ):
 	for thisPath in thisLayer.paths:
 		for x in reversed( range( len( thisPath.nodes ))):
@@ -18,14 +15,14 @@ def process( thisLayer ):
 		
 		thisPath.checkConnections()
 
-Font.disableUpdateInterface()
-
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
 	print "Processing", thisGlyph.name
+
+	thisLayer.setDisableUpdates()
 	thisGlyph.beginUndo()
+
 	process( thisLayer )
+
 	thisGlyph.endUndo()
-
-Font.enableUpdateInterface()
-
+	thisLayer.setEnableUpdates()
