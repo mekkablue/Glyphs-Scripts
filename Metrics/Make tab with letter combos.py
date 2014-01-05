@@ -4,6 +4,7 @@
 
 import GlyphsApp
 
+Doc = Glyphs.currentDocument
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 
