@@ -99,7 +99,7 @@ def checkForFontNames( thisFont ):
 	
 	checkURLs = [[thisFont.manufacturerURL, "Manufacturer"], [thisFont.designerURL, "Designer"]]
 	for checkURL in checkURLs:
-		if checkURL[0] != None and checkURL[0][:7] != "http://":
+		if checkURL[0] != None and checkURL[0] != "" and checkURL[0][:7] != "http://":
 			errMsg( "", "", checkURL[1] + " URL does not start with 'http://': '" + checkURL[0] + "'" )
 			
 	# instances
@@ -142,9 +142,51 @@ def checkForFontNames( thisFont ):
 	for thisCase in linkedStyles:
 		errMsg( "", "", "Warning: '" + thisCase[0] + "' is referenced as linked style in '" + thisCase[1] + "' but there is no Bold or Italic bit set")
 
+def checkStandardNames( thisFont ):
+	headline( "Checking for naming convention" )
 	
+	allGlyphs = thisFont.glyphs
+	listOfUnicodes = [ (g.name, g.unicode) for g in allGlyphs if g.unicode != None ]
+
+	for thisTuple in listOfUnicodes:
+		glyphName = thisTuple[0]
+		unicodeValue = thisTuple[1]
+		if len( unicodeValue ) == 4:
+			legacyName = "uni%s" % unicodeValue
+		elif len( unicodeValue ) == 5:
+			legacyName = "u%s" % unicodeValue
+	
+		try:
+			calculatedNiceName = GSGlyphsInfo.niceGlpyhNameForName_( legacyName ) # typo in older API versions
+		except:
+			calculatedNiceName = GSGlyphsInfo.niceGlyphNameForName_( legacyName )
+			
+		if glyphName != calculatedNiceName:
+			errMsg( glyphName, "", "Should be called %s (Unicode: %s)." % ( calculatedNiceName, unicodeValue ) ) 
+	
+def checkUnicode( thisFont ):
+	headline( "Checking Unicodes" )
+	
+	allGlyphs = thisFont.glyphs
+	glyphsWithoutUnicodes = [ g.name for g in allGlyphs if g.unicode == None ]
+	listOfUnicodes = [ (g.name, g.unicode) for g in allGlyphs if g.unicode != None ]
+	numberOfGlyphs = len( listOfUnicodes )
+
+	for thisGlyphName in glyphsWithoutUnicodes:
+		errMsg( thisGlyphName, "", "Warning: No Unicode value set" )
+	
+	for i in range( numberOfGlyphs - 1 ):
+		firstGlyph = listOfUnicodes[i]
+		
+		for j in range( i+1, numberOfGlyphs ):
+			secondGlyph = listOfUnicodes[j]
+			
+			if firstGlyph[1] == secondGlyph[1]:
+				errMsg( "%s & %s" % ( firstGlyph[0], secondGlyph[0] ), "", "Both glyphs carry same Unicode value %s" % ( firstGlyph[1] ) )
 
 checkForFontNames( Font )
-checkForIllegalGlyphNames( Font )
 checkForOpenPaths( Font )
 checkForPointsOutOfBounds( Font )
+checkForIllegalGlyphNames( Font )
+checkStandardNames( Font )
+checkUnicode( Font )
