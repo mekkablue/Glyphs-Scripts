@@ -55,6 +55,7 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 ## Effects Scripts
 * **Wackelpudding** and **Beowulferize:** Select some or all glyphs in the Font tab, then run the script. It will create alternates of the selected glyphs and create a pseudorandom calt feature. Activate it by selecting Contextual Alternates in e.g. InDesign.
 * **Baseline Wiggle:** Creates a pos feature that randomly displaces the glyphs while you type.
+* **Cut and Shake:** Cuts your glyphs into pieces and shakes them around a bit.
 * **Glyph Shaker:** Randomly moves each node in selected layers of selected glyphs.
 * **Stitcher:** In selected glyphs, the Stitcher inserts components on your paths at fixed intervals. Useful for turning open paths (monolines) into dotted lines. *Needs Vanilla.*
 
