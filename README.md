@@ -42,6 +42,7 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 * **Report top anchors:** Report the y positions of all *top* anchors into the Macro Panel. Useful to see if a top anchor is not exactly where it should be.
 
 ## Arabic
+* **Add entry and exit:** Adds entry and exit anchors for cursive attachment in selected glyphs. By default, it places the exit at (0, 0) and the entry at a node at RSB if such a node exists. Please adjust for your own needs.
 * **AXt Converter:** Converts the MacRoman glyph names (used in legacy AXt fonts) into nice names as employed by Glyphs. Attention: the script is still a work in progress. Suggestions are very welcome in the Wiki: https://github.com/mekkablue/Glyphs-Scripts/wiki/AXt-Converter
 * **Fix Arabic anchor order in ligatures:** Fixes the order of *top_X* and *bottom_X* anchors to RTL. In files converted from a different format, it sometimes happens that *top_1* is left of *top_2*, but it should be the other way around, otherwise your mark2liga will mess up. This script goes through your selected glyphs, and if they are Arabic ligatures, reorders all anchors to RTL order, at the same time not touching their coordinates.
 
@@ -137,6 +138,7 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 * **Create pseudorandom calt feature:** Creates pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font. Update: now includes the default class in the rotation algorithm.
 
 ## Test
+* **Compare Font Family:** Compares a few Font Info entries between all currently opened fonts, and displays them in the Macro window if there are any differences.
 * **Preflight Font:** Checks for a few common mistakes, like bad glyph names, and reports them to the Macro Window.
 * **Report highest glyphs:** Outputs list of selected glyphs, ordered by the highest point of the glyph bounding boxes.
 * **Report lowest glyphs:** Outputs list of selected glyphs, ordered by the lowest point of the glyph bounding boxes.
