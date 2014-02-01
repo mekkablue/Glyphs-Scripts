@@ -58,11 +58,17 @@ def process( spacingAccent ):
 				combiningAccent = spacingAccent.copy()
 				combiningAccent.name = myCombName
 				
-				# Add glyph to font
+				# Add glyph to font:
 				Font.glyphs.append( combiningAccent )
 				
-				# Add _top and _bottom anchors
 				for thisLayer in Font.glyphs[ myCombName ].layers:
+					# Clear out the layer:
+					thisLayer.components = ()
+					thisLayer.paths = ()
+					# Add spacing anchor as component:
+					spacingAccentComp = GSComponent( spacingAccent, NSPoint( 0.0, 0.0 ) )
+					thisLayer.addComponent_( spacingAccentComp )
+					# Add _top and _bottom anchors:
 					addCombiningAnchors( thisLayer )
 
 Font.disableUpdateInterface()
