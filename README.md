@@ -115,6 +115,7 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 * **Delete all open paths:** Deletes all *open* paths in the visible layers of all selected glyphs.
 * **Delete all paths:** Deletes *all paths* in the visible layers of all selected glyphs. Be careful.
 * **Insert BCPs into straight segments:** Inserts off-curve points (BCPs) into straight line segments of all selected glyphs. Like option-clicking on all straight lines.
+* **Insert Inflections:** Inserts nodes at path inflections in the visible layers of all selected glyphs.
 * **Open all closed paths:** Opens all closed paths in the visible layers of all selected glyphs. Useful after importing open paths from FontLab Studio.
 * **Retract BCPs:** Deletes all off-curve points (BCPs). Handy for making sure, your font only consists of straight lines. 
 * **Rotate around anchor:** GUI for rotating glyphs or selections of nodes and components around a 'rotate' anchor. Allows to step and repeat. Requires Vanilla.
