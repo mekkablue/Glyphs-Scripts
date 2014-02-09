@@ -6,21 +6,6 @@ import GlyphsApp
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 
-def divideCurve(P0, P1, P2, P3, t):
-	Q0x = P0.x + ( ( P1.x - P0.x) * t )
-	Q0y = P0.y + ( ( P1.y - P0.y) * t )
-	Q1x = P1.x + ( ( P2.x - P1.x) * t )
-	Q1y = P1.y + ( ( P2.y - P1.y) * t )
-	Q2x = P2.x + ( ( P3.x - P2.x) * t )
-	Q2y = P2.y + ( ( P3.y - P2.y) * t )
-	R0x = Q0x + ((Q1x-Q0x)*t)
-	R0y = Q0y + ((Q1y-Q0y)*t)
-	R1x = Q1x + ((Q2x-Q1x)*t)
-	R1y = Q1y + ((Q2y-Q1y)*t)
-	Sx = R0x + ((R1x-R0x)*t)
-	Sy = R0y + ((R1y-R0y)*t)
-	return (P0, NSMakePoint(Q0x, Q0y), NSMakePoint(R0x, R0y), NSMakePoint(Sx, Sy), NSMakePoint(R1x, R1y), NSMakePoint(Q2x, Q2y), P3)
-
 def computeInflection( p1, p2, p3, p4 ):
 	Result = []
 	
@@ -67,25 +52,18 @@ def computeInflection( p1, p2, p3, p4 ):
 
 
 def process( thisLayer ):
-	for ip in range(len(thisLayer.paths)):
+	for ip in range( len( thisLayer.paths )):
 		thisPath = thisLayer.paths[ip]
-		newPathNodes = [ n for n in thisPath.nodes ]
-		
-		for i in range( len( thisPath.nodes ) - 3 )[::-1]:
-			if thisPath.nodes[i].type != 65:
-				nextTypes = [ thisPath.nodes[i+x].type for x in range(1,4) ]
-				
-				if nextTypes == [65, 65, 35]:# and thisPath.nodes[i].type != 65:
-					nl = [ thisPath.nodes[x] for x in range(i,i+4) ]
-					inflections = computeInflection( nl[0], nl[1], nl[2], nl[3] )
-					
-					if len(inflections) == 1:
-						inflectionTime = inflections[0]
-						listOfNewNodes = divideCurve( nl[0], nl[1], nl[2], nl[3], inflectionTime )[1:-1]
-						listOfNewGSNodes = [ GSNode(n[0],n[1]) for n in zip( listOfNewNodes, [65,65,35,65,65] ) ]
-						newPathNodes[i+1:i+3] = listOfNewGSNodes
-						
-		thisPath.setNodes_( newPathNodes )
+		numberOfNodes = len( thisPath.nodes )
+
+		for i in range(numberOfNodes-1, -1, -1):
+			node = thisPath.nodes[i]
+			if node.type == 35: #CURVE
+				nl = [ thisPath.nodes[ (x+numberOfNodes)%numberOfNodes ] for x in range( i-3, i+1 ) ]
+				inflections = computeInflection( nl[0], nl[1], nl[2], nl[3] )
+				if len(inflections) == 1:
+					inflectionTime = inflections[0]
+					thisPath.insertNodeWithPathTime_( i + inflectionTime )
 
 Font.disableUpdateInterface()
 
