@@ -4,26 +4,27 @@
 #import GlyphsApp
 import vanilla
 
-class MasterFiller(object):
+class MasterFiller( object ):
 
-	def __init__(self):
-		self.w = vanilla.FloatingWindow((300, 84), "Copy layer to layer")
+	def __init__( self ):
+		self.w = vanilla.FloatingWindow((300, 100), "Copy layer to layer")
 
 		self.w.text_1 = vanilla.TextBox((15, 12+2, 120, 14), "Copy paths from", sizeStyle='small')
-		self.w.master_from = vanilla.PopUpButton((120, 12, 80, 17), self.GetMasterNames(), sizeStyle='small', callback=self.MasterChangeCallback)
+		self.w.master_from = vanilla.PopUpButton((120, 12, -15, 17), self.GetMasterNames(), sizeStyle='small', callback=self.MasterChangeCallback)
 		
 		self.w.text_2 = vanilla.TextBox((15, 32+2, 120, 14), "into selection of", sizeStyle='small')
-		self.w.master_into = vanilla.PopUpButton((120, 32, 80, 17), self.GetMasterNames(), sizeStyle='small', callback=self.MasterChangeCallback)
+		self.w.master_into = vanilla.PopUpButton((120, 32, -15, 17), self.GetMasterNames(), sizeStyle='small', callback=self.MasterChangeCallback)
 
 		self.w.include_components = vanilla.CheckBox((15, 52+2, -100, 20), "Include components", sizeStyle='small', value=True)
+		self.w.include_anchors = vanilla.CheckBox((15, 52+20, -100, 20), "Include anchors", sizeStyle='small', value=True)
 
-		self.w.copybutton = vanilla.Button((-80, 52+2, -15, 17), "Copy", sizeStyle='small', callback=self.buttonCallback)
+		self.w.copybutton = vanilla.Button((-80, -30, -15, -10), "Copy", sizeStyle='small', callback=self.buttonCallback)
 		self.w.setDefaultButton( self.w.copybutton )
 
 		self.w.open()
 		self.w.master_into.set(1)
 	
-	def GetMasterNames(self):
+	def GetMasterNames( self ):
 		myMasterList = []
 
 		for i in range( len( Glyphs.currentDocument.font.masters ) ):
@@ -32,13 +33,78 @@ class MasterFiller(object):
 		
 		return myMasterList
 	
-	def MasterChangeCallback(self, sender):
+	def MasterChangeCallback( self, sender ):
 		if self.w.master_from.get() == self.w.master_into.get():
 			self.w.copybutton.enable( False )
 		else:
 			self.w.copybutton.enable( True )
+			
+	def copyPathsFromLayerToLayer( self, sourceLayer, targetLayer ):
+		"""Copies all paths from sourceLayer to targetLayer"""
+		num_from  = len( sourceLayer.paths )
+		num_into  = len( targetLayer.paths )
+		
+		if num_into != 0:
+			print "- Cleaning out paths in target layer"
+			for i in range( num_into )[::-1]:
+				del targetLayer.paths[i]
 
-	def buttonCallback(self, sender):
+		if num_from > 0:
+			print "- Copying paths"
+			for thisPath in sourceLayer.paths:
+				newPath = GSPath()
+
+				for n in thisPath.nodes:
+					newNode = GSNode()
+					newNode.type = n.type
+					newNode.setPosition_( (n.x, n.y) )
+					newPath.addNode_( newNode )
+
+				newPath.closed = thisPath.closed
+				targetLayer.paths.append( newPath )
+	
+	def copyComponentsFromLayerToLayer( self, sourceLayer, targetLayer ):
+		"""Copies all components from sourceLayer to targetLayer."""
+		comp_from = len( sourceLayer.components )
+		comp_into = len( targetLayer.components )
+		
+		if comp_into != 0:
+			print "- Cleaning out components in target layer"
+			for i in range( comp_into )[::-1]:
+				del targetLayer.components[i]
+	
+		if comp_from > 0:
+			print "- Copying components:"
+			for thisComp in sourceLayer.components:
+				compName = str( thisComp.componentName ) # str() probably not necessary anymore, but once fixed a problem
+				newComp = GSComponent( compName )
+				print "-- Component: %s" % ( compName )
+				targetLayer.components.append( newComp )
+
+	def copyAnchorsFromLayerToLayer( self, sourceLayer, targetLayer ):
+		"""Copies all anchors from sourceLayer to targetLayer."""
+		anch_from = len( sourceLayer.anchors )
+		anch_into = len( targetLayer.anchors )
+		
+		if anch_into != 0:
+			print "- Cleaning out anchors in target layer"
+			sourceLayer.setAnchors_( None )
+		
+		if anch_from > 0:
+			print "- Copying anchors from source layer:"
+			for thisAnchor in sourceLayer.anchors:
+				anchorName = thisAnchor.name
+				anchorPosition = NSPoint( thisAnchor.x, thisAnchor.y )
+				newAnchor = GSAnchor( anchorName, anchorPosition )
+				print "-- %s (%i, %i)" % ( anchorName, anchorPosition.x, anchorPosition.y )
+				targetLayer.addAnchor_( newAnchor )
+			
+
+	def buttonCallback( self, sender ):
+		Glyphs.clearLog()
+		Glyphs.showMacroWindow()
+		print "Copy Layer to Layer Protocol:"
+
 		Font = Glyphs.font
 		Doc = Glyphs.currentDocument
 		selectedGlyphs = [ x.parent for x in Font.selectedLayers ]
@@ -46,50 +112,28 @@ class MasterFiller(object):
 		index_from = self.w.master_from.get()
 		index_into = self.w.master_into.get()
 		compYesNo  = self.w.include_components.get()
+		anchYesNo  = self.w.include_anchors.get()
 				
 		for thisGlyph in selectedGlyphs:
 			try:
+				
+				print "\nProcessing", thisGlyph.name
+				sourcelayer = thisGlyph.layers[ index_from ]
+				targetlayer = thisGlyph.layers[ index_into ]
+				
 				Font.disableUpdateInterface()
-			
-				print "Processing", thisGlyph.name
-			
-				num_from  = len( thisGlyph.layers[ index_from ].paths )
-				num_into  = len( thisGlyph.layers[ index_into ].paths )
-				comp_from = len( thisGlyph.layers[ index_from ].components )
-				comp_into = len( thisGlyph.layers[ index_into ].components )
-			
-				if num_into != 0:
-					print "- Cleaning out paths in target layer"
-					for i in range( num_into )[::-1]:
-						del thisGlyph.layers[index_into].paths[i]
-
-				if num_from > 0:
-					print "- Copying paths from source layer"
-					for thisPath in thisGlyph.layers[index_from].paths:
-						newPath = GSPath()
-
-						for n in thisPath.nodes:
-							newNode = GSNode()
-							newNode.type = n.type
-							newNode.setPosition_( (n.x, n.y) )
-							newPath.addNode_( newNode )
-
-						newPath.closed = thisPath.closed
-						thisGlyph.layers[index_into].paths.append( newPath )
-
-				if comp_into != 0 and compYesNo == True:
-					print "- Cleaning out components in target layer"
-					for i in range( comp_into )[::-1]:
-						del thisGlyph.layers[index_into].components[i]
-			
-				if comp_from > 0 and compYesNo == True:
-					print "- Copying components from source layer:"
-					for thisComp in thisGlyph.layers[index_from].components:
-						compName = str( thisComp.componentName ) # str() probably not necessary anymore, but once fixed a problem
-						newComp = GSComponent( compName )
-						print "--", compName
-						thisGlyph.layers[index_into].components.append( newComp )
-			
+				
+				# copy paths:
+				self.copyPathsFromLayerToLayer( sourcelayer, targetlayer )
+				
+				# copy components:
+				if compYesNo:
+					self.copyComponentsFromLayerToLayer( sourcelayer, targetlayer )
+					
+				# copy anchors:
+				if anchYesNo:
+					self.copyAnchorsFromLayerToLayer( sourcelayer, targetlayer )
+					
 				Font.enableUpdateInterface()
 			except Exception, e:
 				print e
