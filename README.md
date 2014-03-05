@@ -97,7 +97,8 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 * **Export Metrics CSV:** exports a CSV containing all LSB, RSB and width values ('glyphname;mastername;LSB;RSB;width').
 * **Extract kern strings 1st char:** asks you for a group of characters, then prompts you for one or more text files; it will then output all kerning pairs (containing these chars, found in the text files) to a new Edit tab, alphabetically sorted. Finds all pairs where the entered chars are the 1st letter. *Needs Vanilla.*
 * **Extract kern strings 2nd char:** asks you for a group of characters, then prompts you for one or more text files; it will then output all kerning pairs (containing these chars, found in the text files) to a new Edit tab, alphabetically sorted. Finds all pairs where the entered chars are the 2nd letter. *Needs Vanilla.*
-* **Find and Replace Metrics Keys:** GUI for searching and replacing text in the L and R metrics keys, e.g. replace '=X+15' by '=X', etc.
+* **Find and Replace Kerning Groups:** GUI for searching and replacing text in the L and R Kerning Groups, e.g. replace 'O' by 'O.alt'. Leave the search field blank for appending.
+* **Find and Replace Metrics Keys:** GUI for searching and replacing text in the L and R metrics keys, e.g. replace '=X+15' by '=X'. Leave the search field blank for appending.
 * **Make tab with letter combos:** takes your selected glyphs and opens a new tab with all possible combinations of the letters.
 * **Reset alternate glyph width:** resets the width of suffixed glyphs to the width of their unsuffixed counterparts. E.g., *Adieresis.ss01* will be reset to the width of *Adieresis*.
 
