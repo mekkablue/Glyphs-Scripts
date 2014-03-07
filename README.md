@@ -81,7 +81,8 @@ And if you are running Glyphs on Lion (10.7) or later, you should add:
 * **Fill up empty layers:** Copies paths from one Master to another. But only if target master is empty. *Needs Vanilla.*
 * **Find and Replace in Layer Names:** Replaces text in all layer names (except Master layers) of selected glyphs. Useful if you use the bracket trick in many glyphs. *Needs Vanilla.*
 * **Insert instances:** GUI for calculating and inserting weight instances. *Needs Vanilla.*
-* **New Edit tab with Bracket Layer glyphs:** Looks for all glyphs in the font that contain Bracket Trick Layers, and opens them in a new Edit tab.
+* **New Tab with Bracket Layer Glyphs:** Looks for all glyphs in the font that contain Bracket Trick Layers, and opens them in a new Edit tab.
+* **New Tab with Dangerous Glyphs for Interpolation:** Opens a tab with all glyphs in the font that contain at least two compatible elements. I.e., glyphs where an element (a path or a component) could interpolate with the wrong element, like the equals sign. For a detailed description, see section ‘Be suspicious’ in this tutorial: <http://www.glyphsapp.com/tutorials/multiple-masters-part-2-keeping-your-outlines-compatible>.
 * **Show next/previous instance:** Jumps to next/previous instance in the preview section of the current Edit tab. Handy for attaching a keyboard shortcut to.
 * **Suggest instances:** Calculates distributions of weight values between your masters. Outputs into the macro window.
 
