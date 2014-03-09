@@ -1,33 +1,47 @@
 #MenuTitle: Bump up
-"""Align selected paths (and parts of paths) to the next metric line above."""
+"""Align selected components, paths (and parts of paths) to the next metric line or guideline above."""
 
 import GlyphsApp
 
 Font = Glyphs.font
 Doc = Glyphs.currentDocument
 Master = Font.selectedFontMaster
-allMetrics = [ Master.ascender, Master.capHeight, Master.xHeight, 0.0, Master.descender ]
+allMetrics = [ Master.ascender, Master.capHeight, Master.xHeight, 0.0, Master.descender ] + [ g.y for g in Master.guideLines if g.angle == 0.0 ]
 
 selectedLayer = Font.selectedLayers[0]
 
 try:
 	selection = selectedLayer.selection()
-	highestY = max( ( n.y for n in selection ) )
-	try:
-		nextMetricLineAbove = min( ( m for m in allMetrics if m > highestY ) )
-	except:
-		nextMetricLineAbove = max( allMetrics )
+	if selection:
+		try:
+			highestPathY = max( n.y for n in selection if type(n) == GSNode )
+		except:
+			# No path selected
+			highestPathY = None
+		
+		try:
+			highestCompY = max( (c.bounds.origin.y + c.bounds.size.height) for c in selection if type(c) == GSComponent )
+		except:
+			# No component selected
+			highestCompY = None
+			
+		highestY = max( y for y in [highestCompY, highestPathY] if y != None )
+	
+		try:
+			nextMetricLineAbove = min( ( m for m in allMetrics if m > highestY ) )
+		except:
+			nextMetricLineAbove = max( allMetrics )
 
-	Font.disableUpdateInterface()
+		Font.disableUpdateInterface()
 
-	for thisNode in selection:
-		thisNode.y += ( nextMetricLineAbove - highestY )
+		for thisThing in selection:
+			thisType = type(thisThing)
+			if thisType == GSNode or thisType == GSComponent:
+				thisThing.y += ( nextMetricLineAbove - highestY )
 
-	Font.enableUpdateInterface()
+		Font.enableUpdateInterface()
 	
 except Exception, e:
-	if selection == ():
-		print "Cannot bump up: nothing selected in frontmost layer."
-	else:
-		print "Error. Cannot bump selection:", selection
-		print e
+	print "Error. Cannot bump selection:"
+	print selection
+	print e
