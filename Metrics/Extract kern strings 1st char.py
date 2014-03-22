@@ -4,6 +4,7 @@
 
 import GlyphsApp
 import vanilla
+from PyObjCTools.AppHelper import callAfter
 
 myExcludeString = """ 
 """ # default = space and return
@@ -64,7 +65,7 @@ class kernPairSearcher(object):
 			try:
 				# try to guess the frontmost window:
 				Doc = Glyphs.font.parent # document for current font
-				Doc.windowController().addTabWithString_( editTabString )
+				callAfter( Doc.windowController().addTabWithString_, editTabString )
 			except:
 				# if that fails, take the Macro Window:
 				Glyphs.clearLog()

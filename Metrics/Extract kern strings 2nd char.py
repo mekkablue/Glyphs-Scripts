@@ -4,6 +4,7 @@
 
 import GlyphsApp
 import vanilla
+from PyObjCTools.AppHelper import callAfter
 
 myExcludeString = """ 
 """ # default = space and return
@@ -25,9 +26,9 @@ def openFileDialog(message="Open plaintext file", filetypes=["txt"]):
 def searchForKernPairs( kernChars=u"þð", text=u"""blabla""", excludeString="" ):
 	myPairList = []
 
-	for x in range(len(text)):
-		if text[x] in kernChars and text[x+1] not in excludeString:
-			mypair = text[x:x+2]
+	for x in range(len(text))[1:]:
+		if text[x] in kernChars and text[x-1] not in excludeString:
+			mypair = text[x-1:x+1]
 			if mypair not in myPairList:
 				myPairList += [mypair]
 
@@ -64,7 +65,7 @@ class kernPairSearcher(object):
 			try:
 				# try to guess the frontmost window:
 				Doc = Glyphs.font.parent # document for current font
-				Doc.windowController().addTabWithString_( editTabString )
+				callAfter( Doc.windowController().addTabWithString_, editTabString )
 			except:
 				# if that fails, take the Macro Window:
 				Glyphs.clearLog()
