@@ -5,14 +5,15 @@ import vanilla
 
 class OTClassCreator( object ):
 	def __init__( self ):
-		self.w = vanilla.FloatingWindow( (300, 80), "Make OT class" )
+		self.w = vanilla.FloatingWindow( (400, 104), "Make OT Class from Selected Glyphs", minSize=(400, 120), maxSize=(500, 120) )
 		
 		self.w.text_otclass = vanilla.TextBox((15, 12+2, 130, 14), "OT class name:", sizeStyle='small')
-		self.w.class_name = vanilla.EditText((105, 12, -90, 17), "xxxx", sizeStyle='small', callback=self.buttonCheck)
-		self.w.overwrite_check = vanilla.CheckBox((105, 32+2, -15, 20), "Overwrite existing class", sizeStyle='small', callback=self.buttonCheck, value=True)
-		self.w.class_name_check = vanilla.TextBox((105-2, 32+5+20, -15, 14), "Class name appears to be ok.", sizeStyle='small')
+		self.w.class_name = vanilla.EditText((105, 12-1, -90, 20), "xxxx", sizeStyle='small', callback=self.buttonCheck)
+		self.w.overwrite_check = vanilla.CheckBox((105, 34, -15, 20), "Overwrite existing class", sizeStyle='small', callback=self.buttonCheck, value=True)
+		self.w.keep_window = vanilla.CheckBox((105, 54, -15, 20), "Keep this window open", sizeStyle='small', callback=None, value=True)
+		self.w.class_name_check = vanilla.TextBox((15, 80, -15, 14), "Class name appears to be ok.", sizeStyle='small')
 		self.w.make_button = vanilla.Button((-80, 12, -15, 17), "Create", sizeStyle='small', callback=self.createClass)
-		#self.w.setDefaultButton( self.w.make_button )
+		self.w.setDefaultButton( self.w.make_button )
 
 		self.w.open()
 		self.buttonCheck( self.w.class_name )
@@ -36,9 +37,12 @@ class OTClassCreator( object ):
 		elif self.checkstring( myClassName ):
 			self.w.make_button.enable( True )
 			self.w.class_name_check.set( "Class name appears to be ok." )
+		elif myClassName[0] in "0123456789":
+			self.w.make_button.enable( False )
+			self.w.class_name_check.set( "Class name must not start with a figure." )
 		else:
 			self.w.make_button.enable( False )
-			self.w.class_name_check.set( "Illegal characters." )
+			self.w.class_name_check.set( "Illegal characters. Only use A-Z, a-z, figures, period, underscore." )
 	
 	def checkstring(self, teststring, ok=True):
 		allowedchars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890._"
@@ -71,7 +75,8 @@ class OTClassCreator( object ):
 			myNewClass.code = myClassCode
 			Font.classes.append( myNewClass )
 		
-		self.w.close()
+		if not self.w.keep_window.get():
+			self.w.close()
 		
 OTClassCreator()
 
