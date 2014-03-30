@@ -7,7 +7,7 @@ These are Python scripts for use with the [Glyphs font editor](http://glyphsapp.
 
 Put the scripts into the *Scripts* folder which appears when you choose *Open Scripts Folder* from the *Scripts* menu.
 
-For some scripts, you will also need to install Tal Leming's *Vanilla*. Here's how. Open Terminal and copy and paste each of the following lines and hit return. Notes: the second line (*curl*...) may take a while, the sudo lines will prompt you for your password:
+For some scripts, you will also need to install Tal Leming's *Vanilla*. Here's how. Open Terminal and copy and paste each of the following lines and hit return. Notes: the second line (*curl*...) may take a while, the sudo line will prompt you for your password (type it and press Return, you will *not* see bullets):
 
     cd ~/Library/
     curl http://download.robofab.com/RoboFab_599_plusAllDependencies.zip > robofab.zip
