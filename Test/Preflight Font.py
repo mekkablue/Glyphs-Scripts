@@ -65,7 +65,8 @@ def checkForIllegalGlyphNames( thisFont ):
 	
 	for thisName in glyphNames:
 		if thisName[0] not in legalFirstChar:
-			errMsg( thisName, "", "first character in glyph name ('" + thisName[0] + "') must be a letter (A-Z or a-z)" )
+			if thisName != ".notdef":
+				errMsg( thisName, "", "first character in glyph name ('" + thisName[0] + "') must be a letter (A-Z or a-z)" )
 		
 		illegalChars = 0
 		for thisChar in thisName:
@@ -173,7 +174,8 @@ def checkUnicode( thisFont ):
 	numberOfGlyphs = len( listOfUnicodes )
 
 	for thisGlyphName in glyphsWithoutUnicodes:
-		errMsg( thisGlyphName, "", "Warning: No Unicode value set" )
+		pass
+		#errMsg( thisGlyphName, "", "Warning: No Unicode value set" )
 	
 	for i in range( numberOfGlyphs - 1 ):
 		firstGlyph = listOfUnicodes[i]
