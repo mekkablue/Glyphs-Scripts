@@ -12,7 +12,7 @@ def replaceComponent( thisLayer, oldCompName, newCompName ):
 		
 		for i in range( len( thisLayer.components )):
 			if thisLayer.components[i].componentName == oldCompName:
-				thisComponent.componentName = newCompName
+				thisLayer.components[i].componentName = newCompName
 				
 	except Exception as e:
 		print "Failed to replace %s for %s in %s." % ( oldCompName, newCompName, thisLayer.parent.name )
