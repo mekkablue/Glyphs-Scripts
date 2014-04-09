@@ -5,7 +5,7 @@
 import vanilla
 import GlyphsApp
 
-optionList = [ "Multiply by", "Add", "Round by" ]
+optionList = [ "Multiply by", "Add", "Add Absolute", "Round by" ]
 
 class AdjustKerning( object ):
 	def __init__( self ):
@@ -45,10 +45,9 @@ class AdjustKerning( object ):
 	
 	def nameForID(self, Font, ID ):
 		try:
-			if ID[0] == "@":
-				# Group
+			if ID[0] == "@": # is a group
 				return ID
-			else:
+			else: # is a glyph
 				return Font.glyphForId_( leftGlyphID ).name
 		except Exception as e:
 			raise e
@@ -71,8 +70,10 @@ class AdjustKerning( object ):
 					leftName = self.nameForID( Font, leftGlyphID )
 					
 					for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
+						originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
 						rightName = self.nameForID( Font, rightGlyphID )
-						Font.setKerningForPair( MasterID, leftName, rightName, MasterKernDict[ leftGlyphID ][ rightGlyphID ] * value )
+
+						Font.setKerningForPair( MasterID, leftName, rightName, originalKerning * value )
 
 			elif calculation == optionList[1]:
 				
@@ -80,17 +81,36 @@ class AdjustKerning( object ):
 					leftName = self.nameForID( Font, leftGlyphID )
 
 					for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
+						originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
 						rightName = self.nameForID( Font, rightGlyphID )
-						Font.setKerningForPair( MasterID, leftName, rightName, MasterKernDict[ leftGlyphID ][ rightGlyphID ] + value )
+
+						Font.setKerningForPair( MasterID, leftName, rightName, originalKerning + value )
 						
 			elif calculation == optionList[2]:
 				
 				for leftGlyphID in MasterKernDict.keys():
 					leftName = self.nameForID( Font, leftGlyphID )
+
+					for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
+						originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
+						rightName = self.nameForID( Font, rightGlyphID )
+
+						if originalKerning < 0:
+							factor = -1
+						else:
+							factor = 1
+						Font.setKerningForPair( MasterID, leftName, rightName, originalKerning + factor * value )
+						
+			elif calculation == optionList[3]:
+				
+				for leftGlyphID in MasterKernDict.keys():
+					leftName = self.nameForID( Font, leftGlyphID )
 					
 					for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
+						originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
 						rightName = self.nameForID( Font, rightGlyphID )
-						Font.setKerningForPair( MasterID, leftName, rightName, round( MasterKernDict[ leftGlyphID ][ rightGlyphID ] / value, 0 ) * value )
+
+						Font.setKerningForPair( MasterID, leftName, rightName, round( originalKerning / value, 0 ) * value )
 				
 			Font.enableUpdateInterface()
 			
