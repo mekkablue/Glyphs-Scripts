@@ -7,7 +7,7 @@ import GlyphsApp
 
 class ChangeMetricsbyPercentage( object ):
 	def __init__( self ):
-		self.w = vanilla.FloatingWindow( (350, 60), "Change Metrics by Percentage", minSize=(350, 60), maxSize=(500, 60), autosaveName="com.mekkablue.ChangeMetricsbyPercentage.mainwindow" )
+		self.w = vanilla.FloatingWindow( (430, 60), "Change Metrics of Selected Glyphs by Percentage", minSize=(430, 60), maxSize=(600, 60), autosaveName="com.mekkablue.ChangeMetricsbyPercentage.mainwindow" )
 
 		self.w.text_1 = vanilla.TextBox( (15, 12+2, 50, 14), "Increase", sizeStyle='small' )
 		self.w.text_2 = vanilla.TextBox( (155, 12+2, 20, 14), "by", sizeStyle='small' )
