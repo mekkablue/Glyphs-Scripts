@@ -12,12 +12,9 @@ class ChangeMetricsbyPercentage( object ):
 		self.w.text_1 = vanilla.TextBox( (15, 12+2, 50, 14), "Increase", sizeStyle='small' )
 		self.w.text_2 = vanilla.TextBox( (155, 12+2, 20, 14), "by", sizeStyle='small' )
 		self.w.text_3 = vanilla.TextBox( (-190, 12+2, -170, 14), "%", sizeStyle='small' )
-		
 		self.w.LSB = vanilla.CheckBox( (15+55,    12, 40, 18), "LSB", value=True, sizeStyle='small', callback=self.SavePreferences )
 		self.w.RSB = vanilla.CheckBox( (15+55+45, 12, 40, 18), "RSB", value=True, sizeStyle='small', callback=self.SavePreferences )
-
 		self.w.changeValue = vanilla.EditText( (180, 12, -196, 15+3), "+10.0", sizeStyle = 'small')
-		
 		
 		self.w.runButton    = vanilla.Button((-90,    12-1, -15, 19), "Change", sizeStyle='small', callback=self.ChangeMetricsbyPercentageMain )
 		self.w.revertButton = vanilla.Button((-90-80, 12-1, -95, 19), "Revert", sizeStyle='small', callback=self.ChangeMetricsbyPercentageMain )
