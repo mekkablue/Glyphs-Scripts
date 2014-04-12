@@ -8,11 +8,12 @@ selectedLayers = Font.selectedLayers
 Font.disableUpdateInterface()
 
 for thisLayer in selectedLayers:
-	thisLayer.beginUndo()
+	thisGlyph = thisLayer.parent
+	thisGlyph.beginUndo()
 	oldWidth = thisLayer.width
 	thisLayer.LSB = ( thisLayer.LSB + thisLayer.RSB ) // 2
 	thisLayer.width = oldWidth
-	thisLayer.endUndo()
+	thisGlyph.endUndo()
 
 Font.enableUpdateInterface()
 print "Centered: %s" % (", ".join( [ l.parent.name for l in selectedLayers ] ))
