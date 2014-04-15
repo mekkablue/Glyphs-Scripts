@@ -64,6 +64,7 @@ And you are done. The installation should be effective immediately, but to be on
 * **Keep First Master Hints Only:** In selected glyphs, deletes all hints in all layers except for whatever is ordered as first master. Respects Bracket Layers. E.g., if your first master is 'Regular', then the script will delete hints in 'Bold', 'Bold [120]', but keep them in 'Regular' and 'Regular [100]'.
 
 ## Images
+* **Add Same Image to Selected Glyphs:** Asks you for an image, and then inserts it into all currently selected glyphs as background image.
 * **Delete Images:** Deletes all placed images in the visible layers of selected glyphs.
 * **Reset Image Transformations:** Resets all image transformations (x/y offset, scale, and distortion) back to default in the visible layers of selected glyphs.
 * **Set New Path for Images:** Resets the path for placed images in selected glyphs. Useful if you have moved your images.
