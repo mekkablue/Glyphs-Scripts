@@ -9,14 +9,17 @@ optionList = [ "Multiply by", "Add", "Add Absolute", "Round by" ]
 
 class AdjustKerning( object ):
 	def __init__( self ):
-		self.w = vanilla.FloatingWindow( (350, 90), "Adjust Kerning", minSize=(280, 90), maxSize=(600, 90), autosaveName="com.mekkablue.AdjustKerning.mainwindow" )
+		self.w = vanilla.FloatingWindow( (350, 110), "Adjust Kerning", minSize=(280, 110), maxSize=(600, 110), autosaveName="com.mekkablue.AdjustKerning.mainwindow" )
 
 		self.w.text_1 = vanilla.TextBox( (15-1, 12+2, -15, 14), "All kerning pairs in the current Master:", sizeStyle='small' )
-		self.w.popup_1 = vanilla.PopUpButton( (15, 40, 100, 17), optionList, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.value_1 = vanilla.EditText((15+100+10, 40, -80-15-10, 19), "10", sizeStyle='small', callback=self.SavePreferences)
+		self.w.popup_1 = vanilla.PopUpButton( (15, 36, 100, 17), optionList, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.value_1 = vanilla.EditText((15+100+10, 36, -80-15-10, 19), "10", sizeStyle='small', callback=self.SavePreferences)
 		
-		self.w.runButton = vanilla.Button((-80-15, 40, -15, 17), "Adjust", sizeStyle='small', callback=self.AdjustKerningMain )
+		self.w.runButton = vanilla.Button((-80-15, 36, -15, 17), "Adjust", sizeStyle='small', callback=self.AdjustKerningMain )
 		self.w.setDefaultButton( self.w.runButton )
+		
+		self.w.keepWindow = vanilla.CheckBox( (15, 60, -15, 20), "Keep window open", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		
 		
 		try:
 			self.LoadPreferences( )
@@ -29,6 +32,7 @@ class AdjustKerning( object ):
 		try:
 			Glyphs.defaults["com.mekkablue.AdjustKerning.popup_1"] = self.w.popup_1.get()
 			Glyphs.defaults["com.mekkablue.AdjustKerning.value_1"] = self.w.value_1.get()
+			Glyphs.defaults["com.mekkablue.AdjustKerning.keepWindow"] = self.w.keepWindow.get()
 		except:
 			return False
 			
@@ -38,17 +42,18 @@ class AdjustKerning( object ):
 		try:
 			self.w.popup_1.set( Glyphs.defaults["com.mekkablue.AdjustKerning.popup_1"] )
 			self.w.value_1.set( Glyphs.defaults["com.mekkablue.AdjustKerning.value_1"] )
+			self.w.keepWindow.set( Glyphs.defaults["com.mekkablue.AdjustKerning.keepWindow"] )
 		except:
 			return False
 			
 		return True
 	
-	def nameForID(self, Font, ID ):
+	def nameForID( self, Font, ID ):
 		try:
 			if ID[0] == "@": # is a group
 				return ID
 			else: # is a glyph
-				return Font.glyphForId_( leftGlyphID ).name
+				return Font.glyphForId_( ID ).name
 		except Exception as e:
 			raise e
 
@@ -117,7 +122,8 @@ class AdjustKerning( object ):
 			if not self.SavePreferences( self ):
 				print "Note: could not write preferences."
 			
-			self.w.close()
+			if not self.w.keepWindow.get():
+				self.w.close()
 		except Exception, e:
 			raise e
 

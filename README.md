@@ -103,6 +103,7 @@ And you are done. The installation should be effective immediately, but to be on
 
 ## OpenType
 * **Build ccmp:** Builds a Latin ccmp feature, based on the presence of i and j, and also tries to create dotlessi and dotlessj, if they are not present in the font.
+* **Build positional calt feature:** Looks for .init, .medi, .fina, and .isol glyphs, and injects positional substitution code into your calt feature. If run again, will update its class and feature code. 
 * **Floating Features:** Floating palettes for activating and deactivating OT features. Same functionality as the pop-up menu. *Needs Vanilla.*
 * **Make OT Class from selected glyphs:** GUI for creating a new OT class with the selected glyphs. *Needs Vanilla.*
 
