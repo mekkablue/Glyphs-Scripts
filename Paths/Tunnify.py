@@ -85,7 +85,6 @@ def tunnify( segment ):
 	
 	return x_handle1, y_handle1, x_handle2, y_handle2
 	
-#selectedGlyph.beginUndo()
 selectedGlyph.beginUndo()
 
 try:
