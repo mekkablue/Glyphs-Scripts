@@ -55,9 +55,14 @@ And you are done. The installation should be effective immediately, but to be on
 * **Baseline Wiggle:** Creates a pos feature that randomly displaces the glyphs while you type.
 * **Stitcher:** In selected glyphs, the Stitcher inserts components on your paths at fixed intervals. Useful for turning open paths (monolines) into dotted lines. *Needs Vanilla.*
 
-## Glyph Names:
+## Glyph Names
 * **Check glyph names:** Checks all available glyph names for illegal characters.
 * **Lowercase:** Turns the names of selected glyphs lowercase.
+
+## Guidelines
+* **Add Center Guideline:** Adds vertical or horizontal guideline in the middle between two selected nodes.
+* **Delete guidelines:** Deletes all local guidelines in selected glyphs.
+* **Guideline through Selected Nodes:** Adds guideline through two selected nodes.
 
 ## Hinting
 * **BlueFuzzer:** Extends all alignment zones by the specified value. Similar to what the blueFuzz value used to do, hence the name. *Needs Vanilla.*
@@ -90,7 +95,6 @@ And you are done. The installation should be effective immediately, but to be on
 * **Change Metrics by Percentage:** Change LSB/RSB of selected glyphs by a percentage value. Undo with the Revert button. *Needs Vanilla.*
 * **Copy kerning groups:** steals left/right kerning groups for all selected glyphs from a 2nd font. *Needs Vanilla.*
 * **Copy sidebearings:** steals the sidebearing values for all selected glyphs from a 2nd font. Ignores metrics keys like '=x+20'. *Needs Vanilla.*
-* **Delete guidelines:** deletes all local guidelines in selected glyphs.
 * **Delete kerning pairs for selected glyphs:** deletes all kerning pairs with the selected glyphs, for the current master only.
 * **Export Kerning CSV:** exports a CSV containing all kerning pairs ('mastername;left;right;kerningvalue').
 * **Export Metrics CSV:** exports a CSV containing all LSB, RSB and width values ('glyphname;mastername;LSB;RSB;width').
