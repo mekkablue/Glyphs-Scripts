@@ -9,12 +9,9 @@ selectedLayers = Glyphs.currentDocument.selectedLayers()
 def process( thisLayer ):
 	thisLayer.setGuideLines_([])
 
-Font.disableUpdateInterface()
-
 for thisLayer in selectedLayers:
-	print "Processing", thisLayer.parent.name
-	thisLayer.beginUndo()
+	thisGlyph = thisLayer.parent
+	print "Deleting guidelines in:", thisGlyph.name
+	thisGlyph.beginUndo()
 	process( thisLayer )
-	thisLayer.endUndo()
-
-Font.enableUpdateInterface()
+	thisGlyph.endUndo()
