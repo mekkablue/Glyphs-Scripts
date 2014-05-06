@@ -64,7 +64,7 @@ class BlueFuzzer( object ):
 					if thisZone.size < 0: # negative zone
 						factor = -1
 					thisZone.setPosition_( thisZone.position - fuzzValue * factor )
-					thisZone.setSize_( thisZone.size + fuzzValue * factor )
+					thisZone.setSize_( thisZone.size + (fuzzValue * 2) * factor )
 					
 			if not self.SavePreferences( self ):
 				print "Note: could not write preferences."
