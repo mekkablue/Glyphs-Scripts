@@ -65,6 +65,7 @@ And you are done. The installation should be effective immediately, but to be on
 * **Guideline through Selected Nodes:** Adds guideline through two selected nodes.
 
 ## Hinting
+* **Add Hints for Selected Nodes:** Adds hints for the selected nodes. Tries to guess whether it should be H or V. If exactly one node inside a zone is selected, it will add a Ghost Hint. Useful for setting a shortcut in System Prefs.
 * **BlueFuzzer:** Extends all alignment zones by the specified value. Similar to what the blueFuzz value used to do, hence the name. *Needs Vanilla.*
 * **Delete Hints in Visible Layers:** Deletes hints in active layers of selected glyphs.
 * **Delete All Hints in Font:** Deletes all hints throughout the active font. Be careful.
