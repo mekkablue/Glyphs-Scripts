@@ -50,19 +50,39 @@ class Rotator(object):
 		self.w.anchor_button = vanilla.Button((-80, 15, -15, 15-3), "Set", sizeStyle = 'small', callback = self.setRotateAnchor)
 		
 		self.w.rotate_text1 = vanilla.TextBox((15, 40, 55, 15), "Rotate by", sizeStyle = 'small')
-		self.w.rotate_degrees = vanilla.EditText((15+60, 40-3, 35, 15+3), "10", sizeStyle = 'small')
+		self.w.rotate_degrees = vanilla.EditText((15+60, 40-3, 35, 15+3), "10", sizeStyle = 'small', callback = self.SavePreferences)
 		self.w.rotate_text2 = vanilla.TextBox((15+60+40, 40, 50, 15), "degrees:", sizeStyle = 'small')
 		self.w.rotate_ccw = vanilla.Button((-150, 40, -85, 15-3), u"↺ ccw", sizeStyle = 'small', callback = self.rotate )
 		self.w.rotate_cw  = vanilla.Button((-80, 40, -15, 15-3), u"↻ cw", sizeStyle = 'small', callback = self.rotate )
 		
 		self.w.stepAndRepeat_text1 = vanilla.TextBox((15, 65, 55, 15), "Repeat", sizeStyle = 'small')
-		self.w.stepAndRepeat_times = vanilla.EditText((15+60, 65-3, 35, 15+3), "5", sizeStyle = 'small')
+		self.w.stepAndRepeat_times = vanilla.EditText((15+60, 65-3, 35, 15+3), "5", sizeStyle = 'small', callback = self.SavePreferences)
 		self.w.stepAndRepeat_text2 = vanilla.TextBox((15+60+40, 65, 50, 15), "times:", sizeStyle = 'small')
 		self.w.stepAndRepeat_ccw = vanilla.Button((-150, 65, -85, 15-3), u"↺+ ccw", sizeStyle = 'small', callback = self.rotate )
 		self.w.stepAndRepeat_cw  = vanilla.Button((-80, 65, -15, 15-3), u"↻+ cw", sizeStyle = 'small', callback = self.rotate )
 		
-		self.w.open()
+		if not self.LoadPreferences():
+			print "Rotate: Could not load prefs, will resort to defaults."
 		self.setDefaultRotateAnchor()
+		self.w.open()
+		
+	def SavePreferences( self, sender ):
+		try:
+			Glyphs.defaults["com.mekkablue.rotateAroundAnchor.rotate_degrees"] = self.w.rotate_degrees.get()
+			Glyphs.defaults["com.mekkablue.rotateAroundAnchor.stepAndRepeat_times"] = self.w.stepAndRepeat_times.get()
+		except:
+			return False
+			
+		return True
+
+	def LoadPreferences( self ):
+		try:
+			self.w.rotate_degrees.set( Glyphs.defaults["com.mekkablue.rotateAroundAnchor.rotate_degrees"] )
+			self.w.stepAndRepeat_times.set( Glyphs.defaults["com.mekkablue.rotateAroundAnchor.stepAndRepeat_times"] )
+		except:
+			return False
+			
+		return True
 
 	def setRotateAnchor(self, sender):
 		selectedLayers = Glyphs.currentDocument.selectedLayers()
