@@ -1,6 +1,8 @@
 #MenuTitle: Adjust Kerning in Master
 # -*- coding: utf-8 -*-
-"""Adjusts all kerning values by a specified amount."""
+__doc__="""
+Adjusts all kerning values by a specified amount.
+"""
 
 import vanilla
 import GlyphsApp

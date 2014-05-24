@@ -1,6 +1,8 @@
 #MenuTitle: Rotate around anchor
 # -*- coding: utf-8 -*-
-"""Rotate selected glyphs (or selected paths and components) around a 'rotate' anchor."""
+__doc__="""
+Rotate selected glyphs (or selected paths and components) around a 'rotate' anchor.
+"""
 
 import GlyphsApp
 import vanilla

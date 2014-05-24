@@ -1,6 +1,8 @@
 #MenuTitle: Find and Replace in Kerning Groups
 # -*- coding: utf-8 -*-
-"""Finds and replaces text in the metrics keys of selected glyphs. Leave the Find string blank to hang the replace string at the end of the metrics keys."""
+__doc__="""
+Finds and replaces text in the metrics keys of selected glyphs. Leave the Find string blank to hang the replace string at the end of the metrics keys.
+"""
 
 import vanilla
 import GlyphsApp

@@ -1,6 +1,9 @@
 #MenuTitle: Synchronize ssXX glyphs
-"""Creates missing ssXX glyphs so that you have synchronous groups of ssXX glyphs.
-E.g. you have a.ss01 b.ss01 c.ss01 a.ss02 c.ss02 --> the script creates b.ss02"""
+# -*- coding: utf-8 -*-
+__doc__="""
+Creates missing ssXX glyphs so that you have synchronous groups of ssXX glyphs.
+E.g. you have a.ss01 b.ss01 c.ss01 a.ss02 c.ss02 --> the script creates b.ss02
+"""
 
 Font       = Glyphs.font
 allGlyphs  = [ x.name for x in list( Font.glyphs ) ]

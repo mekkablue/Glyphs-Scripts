@@ -1,6 +1,8 @@
 #MenuTitle: Show next instance
 # -*- coding: utf-8 -*-
-"""Jumps to next instance shown in the preview field of the current Edit tab."""
+__doc__="""
+Jumps to next instance shown in the preview field of the current Edit tab.
+"""
 
 import GlyphsApp
 

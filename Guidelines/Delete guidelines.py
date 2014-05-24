@@ -1,6 +1,8 @@
 #MenuTitle: Delete guidelines
 # -*- coding: utf-8 -*-
-"""Delete all local guidelines in selected glyphs."""
+__doc__="""
+Delete all local guidelines in selected glyphs.
+"""
 
 import GlyphsApp
 

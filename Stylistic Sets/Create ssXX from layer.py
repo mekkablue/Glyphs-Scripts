@@ -1,5 +1,6 @@
 #MenuTitle: Create .ssXX glyph from current layer
-"""
+# -*- coding: utf-8 -*-
+__doc__="""
 Takes the currently opened layers and creates new glyphs with a .ssXX ending.
 Checks if the name is free.
 """

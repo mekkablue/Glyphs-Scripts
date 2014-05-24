@@ -1,5 +1,6 @@
 #MenuTitle: Move glyph down 10 units
-"""
+# -*- coding: utf-8 -*-
+__doc__="""
 Moves the current glyph(s) down by 10 units.
 Similar to shift-ctrl-cmd-left/right.
 Suggested shortcut: shift-ctrl-cmd-downarrow.

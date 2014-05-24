@@ -1,6 +1,8 @@
 #MenuTitle: Suggest instances
 # -*- coding: utf-8 -*-
-"""Outputs suggestions for instance weight values, based on the weight values of the masters in the current font."""
+__doc__="""
+Outputs suggestions for instance weight values, based on the weight values of the masters in the current font.
+"""
 from __future__ import division
 import GlyphsApp
 

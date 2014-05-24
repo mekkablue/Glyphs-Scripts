@@ -1,5 +1,8 @@
 #MenuTitle: Fill up empty Masters
-"""Looks for empty layers and copies contents of another layer into it."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Looks for empty layers and copies contents of another layer into it.
+"""
 
 import GlyphsApp
 import vanilla

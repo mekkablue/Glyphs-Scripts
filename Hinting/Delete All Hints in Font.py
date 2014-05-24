@@ -1,5 +1,8 @@
 #MenuTitle: Delete All Hints in Font
-"""Delete all hints throughout the whole font."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Deletes all hints throughout the whole font.
+"""
 
 import GlyphsApp
 

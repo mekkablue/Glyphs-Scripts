@@ -1,6 +1,8 @@
 #MenuTitle: Make Tab with letter combos
 # -*- coding: utf-8 -*-
-"""Opens a new tab with all possible combinations of the selected glyphs."""
+__doc__="""
+Opens a new tab with all possible combinations of the selected glyphs.
+"""
 
 import GlyphsApp
 

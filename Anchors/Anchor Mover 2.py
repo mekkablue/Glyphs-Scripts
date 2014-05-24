@@ -1,6 +1,8 @@
 #MenuTitle: Anchor Mover 2.0
 # -*- coding: utf-8 -*-
-"""Batch-process anchor positions in selected glyphs (GUI)."""
+__doc__="""
+Batch-process anchor positions in selected glyphs (GUI).
+"""
 
 import GlyphsApp
 import vanilla

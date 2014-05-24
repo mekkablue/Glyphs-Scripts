@@ -1,6 +1,8 @@
 #MenuTitle: Disable alignment for selected glyphs
 # -*- coding: utf-8 -*-
-"""Disables automatic alignment for all components in all selected glyphs."""
+__doc__="""
+Disables automatic alignment for all components in all selected glyphs.
+"""
 
 import GlyphsApp
 

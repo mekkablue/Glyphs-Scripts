@@ -1,5 +1,8 @@
 #MenuTitle: Anchor Mover 1.1
-"""Vertically move anchors in selected glyphs (GUI)."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Vertically move anchors in selected glyphs (GUI).
+"""
 
 import GlyphsApp
 import vanilla

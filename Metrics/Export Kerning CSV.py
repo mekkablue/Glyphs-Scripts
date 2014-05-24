@@ -1,5 +1,8 @@
 #MenuTitle: Export Kerning Info CSV
-"""Export a CSV containing kerning info."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Export a CSV containing kerning info.
+"""
 
 import GlyphsApp
 import commands

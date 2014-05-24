@@ -1,6 +1,8 @@
 #MenuTitle: Add Same Image to Selected Glyphs
 # -*- coding: utf-8 -*-
-"""Asks you for an image file and inserts it as background image into all selected layers."""
+__doc__="""
+Asks you for an image file and inserts it as background image into all selected layers.
+"""
 
 import GlyphsApp
 

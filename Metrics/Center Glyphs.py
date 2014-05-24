@@ -1,5 +1,8 @@
 #MenuTitle: Center Glyphs
-"""Center all selected glyphs inside their respective widths."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Center all selected glyphs inside their respective widths.
+"""
 
 import GlyphsApp
 Font = Glyphs.font

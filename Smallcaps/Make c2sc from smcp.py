@@ -1,5 +1,6 @@
 #MenuTitle: Make c2sc from smcp
-"""
+# -*- coding: utf-8 -*-
+__doc__="""
 Makes component based c2sc glyphs, using the smcp glyphs as components.
 Ignores selected glyphs without an .smcp ending.
 """

@@ -1,5 +1,8 @@
 #MenuTitle: Align Selection to Baseline
-"""Align selected paths (and parts of paths) in the frontmost layer to the Baseline."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Align selected paths (and parts of paths) in the frontmost layer to the Baseline.
+"""
 
 import GlyphsApp
 

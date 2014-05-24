@@ -1,5 +1,8 @@
 #MenuTitle: Distribute Nodes vertically
-"""Distributes the selected nodes vertically."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Distributes the selected nodes vertically.
+"""
 
 import GlyphsApp
 

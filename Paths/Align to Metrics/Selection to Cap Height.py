@@ -1,5 +1,8 @@
 #MenuTitle: Align Selection to Cap Height
-"""Align selected paths (and parts of paths) in the frontmost layer to the Cap Height."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Align selected paths (and parts of paths) in the frontmost layer to the Cap Height.
+"""
 
 import GlyphsApp
 

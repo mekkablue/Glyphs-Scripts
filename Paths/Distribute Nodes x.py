@@ -1,5 +1,8 @@
 #MenuTitle: Distribute Nodes horizontally
-"""Distributes the selected nodes horizontally."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Distributes the selected nodes horizontally.
+"""
 
 import GlyphsApp
 

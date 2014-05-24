@@ -1,6 +1,8 @@
 #MenuTitle: New Tab with Dangerous Glyphs for Interpolation
 # -*- coding: utf-8 -*-
-"""Finds and outputs glyphs like the equals sign, with paths that could interpolate within themselves."""
+__doc__="""
+Finds and outputs glyphs like the equals sign, with paths that could interpolate within themselves.
+"""
 
 import GlyphsApp
 from PyObjCTools.AppHelper import callAfter

@@ -1,6 +1,8 @@
 #MenuTitle: Insert Inflections
 # -*- coding: utf-8 -*-
-"""Inserts Nodes on inflections on all paths in the selected glyphs."""
+__doc__="""
+Inserts Nodes on inflections on all paths in the selected glyphs.
+"""
 
 import GlyphsApp
 Font = Glyphs.font

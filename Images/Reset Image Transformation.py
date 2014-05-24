@@ -1,6 +1,8 @@
 #MenuTitle: Reset Image Transformations
 # -*- coding: utf-8 -*-
-"""Resets all placed images to 100% scale and 0/0 position."""
+__doc__="""
+Resets all placed images to 100% scale and 0/0 position.
+"""
 
 import GlyphsApp
 Font = Glyphs.font

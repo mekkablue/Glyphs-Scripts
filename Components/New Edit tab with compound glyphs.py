@@ -1,6 +1,8 @@
 #MenuTitle: New Edit tab with compound glyphs
 # -*- coding: utf-8 -*-
-"""Opens a new Edit tab with all glyphs which contain the currently selected glyphs as a component. E.g., you have A selected, and it will give you an Edit tab with A, Adieresis, Aacute, etc. Useful for editing anchor positions."""
+__doc__="""
+Opens a new Edit tab with all glyphs which contain the currently selected glyphs as a component. E.g., you have A selected, and it will give you an Edit tab with A, Adieresis, Aacute, etc. Useful for editing anchor positions.
+"""
 
 import GlyphsApp
 

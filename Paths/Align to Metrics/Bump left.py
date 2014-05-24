@@ -1,5 +1,8 @@
 #MenuTitle: Bump left
-"""Align selected paths (and parts of paths) to the next sidebearing or glyph center to the left."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Align selected paths (and parts of paths) to the next sidebearing or glyph center to the left.
+"""
 
 import GlyphsApp
 

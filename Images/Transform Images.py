@@ -1,6 +1,8 @@
 #MenuTitle: Transform Images
 # -*- coding: utf-8 -*-
-"""Batch scale and move images in selected layers."""
+__doc__="""
+Batch scale and move images in selected layers.
+"""
 
 import vanilla
 import GlyphsApp

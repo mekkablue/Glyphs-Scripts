@@ -1,6 +1,8 @@
 #MenuTitle: Dekink
 # -*- coding: utf-8 -*-
-"""Synchronize node distance proportions for angled smooth connections through all masters, thus avoiding interpolation kinks. Select one or more smoothly connected nodes and run the script."""
+__doc__="""
+Synchronize node distance proportions for angled smooth connections through all masters, thus avoiding interpolation kinks. Select one or more smoothly connected nodes and run the script.
+"""
 
 import GlyphsApp
 

@@ -1,6 +1,8 @@
 #MenuTitle: Report lowest glyphs
 # -*- coding: utf-8 -*-
-"""Reports a list of glyph names to the Macro Window in the order of the lowest bounding boxes. Restricts itself to the selected glyphs."""
+__doc__="""
+Reports a list of glyph names to the Macro Window in the order of the lowest bounding boxes. Restricts itself to the selected glyphs.
+"""
 
 import GlyphsApp
 

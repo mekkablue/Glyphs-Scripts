@@ -1,5 +1,6 @@
 #MenuTitle: Copy kerning classes from smcp to c2sc
-"""
+# -*- coding: utf-8 -*-
+__doc__="""
 Goes through all selected .c2sc glyphs that have no kerning classes,
 checks if there is a corresponding .smcp glyph,
 and if so, copies the .smcp kerning classes to the .c2sc glyph.

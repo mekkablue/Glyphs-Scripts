@@ -1,5 +1,8 @@
 #MenuTitle: Bump down
-"""Align selected components, paths (and parts of paths) to the next metric line or guideline below."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Align selected components, paths (and parts of paths) to the next metric line or guideline below.
+"""
 
 import GlyphsApp
 

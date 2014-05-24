@@ -1,5 +1,8 @@
 #MenuTitle: Beowulferize
-"""Turns selected glyphs into a pseudorandom Beowulf-lookalike."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Turns selected glyphs into a pseudorandom Beowulf-lookalike.
+"""
 
 # Please adjust to your own needs:
 

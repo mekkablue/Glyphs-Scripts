@@ -1,5 +1,8 @@
 #MenuTitle: Flashify Pixels
-"""Adds small bridges to diagonal pixel connections (where two pixel corners touch). Otherwise your counters may be lost in the Flash text engine."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Adds small bridges to diagonal pixel connections (where two pixel corners touch). Otherwise your counters may be lost in the Flash text engine.
+"""
 
 import GlyphsApp
 

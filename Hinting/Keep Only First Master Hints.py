@@ -1,5 +1,8 @@
 #MenuTitle: Keep First Master Hints Only
-"""In selected glyphs, delete all hints in all layers except for the first master. Respects Bracket Layers."""
+# -*- coding: utf-8 -*-
+__doc__="""
+In selected glyphs, delete all hints in all layers except for the first master. Respects Bracket Layers.
+"""
 
 import GlyphsApp
 

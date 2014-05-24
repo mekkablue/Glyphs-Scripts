@@ -1,6 +1,8 @@
 #MenuTitle: Build positional calt feature
 # -*- coding: utf-8 -*-
-"""Create calt for positional forms with .isol, .init, .medi, .fina suffixes."""
+__doc__="""
+Create calt for positional forms with .isol, .init, .medi, .fina suffixes.
+"""
 
 import GlyphsApp
 Font = Glyphs.font

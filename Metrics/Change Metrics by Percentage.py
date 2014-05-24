@@ -1,6 +1,8 @@
 #MenuTitle: Change Metrics by Percentage
 # -*- coding: utf-8 -*-
-"""Increase sidebearings of selected glyphs by a percentage value."""
+__doc__="""
+Increase sidebearings of selected glyphs by a percentage value.
+"""
 
 import vanilla
 import GlyphsApp

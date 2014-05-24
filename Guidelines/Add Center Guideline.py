@@ -1,6 +1,8 @@
 #MenuTitle: Create Center Guideline
 # -*- coding: utf-8 -*-
-"""Creates a guideline, horizontally or vertically centered between two selected nodes."""
+__doc__="""
+Creates a guideline, horizontally or vertically centered between two selected nodes.
+"""
 
 import GlyphsApp
 

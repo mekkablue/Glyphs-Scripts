@@ -1,6 +1,8 @@
 #MenuTitle: Replace components
 # -*- coding: utf-8 -*-
-"""Replaces components in selected glyphs (GUI)."""
+__doc__="""
+Replaces components in selected glyphs (GUI).
+"""
 
 #import GlyphsApp
 import vanilla

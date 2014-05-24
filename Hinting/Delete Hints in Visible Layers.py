@@ -1,5 +1,8 @@
 #MenuTitle: Delete Hints in Visible Layers
-"""Delete all hints in active layers of selected glyphs."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Deletes all hints in active layers of selected glyphs.
+"""
 
 import GlyphsApp
 

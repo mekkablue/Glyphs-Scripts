@@ -1,5 +1,8 @@
 #MenuTitle: Steal sidebearings from font
-"""Copy sidebearings from one font to another."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Copy sidebearings from one font to another.
+"""
 
 import vanilla
 windowHeight = 160

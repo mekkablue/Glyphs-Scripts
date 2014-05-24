@@ -1,6 +1,8 @@
 #MenuTitle: Guideline through Selected Nodes
 # -*- coding: utf-8 -*-
-"""Creates a guideline through the currently selected two nodes."""
+__doc__="""
+Creates a guideline through the currently selected two nodes.
+"""
 
 import GlyphsApp
 import math

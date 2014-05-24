@@ -1,5 +1,8 @@
 #MenuTitle: Preflight Font
-"""Checks if everything is alright in the font."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Checks if everything is alright in the font.
+"""
 
 import GlyphsApp
 

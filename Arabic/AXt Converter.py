@@ -1,5 +1,6 @@
 #MenuTitle: AXt Converter
-"""
+# -*- coding: utf-8 -*-
+__doc__="""
 Converts glyphs from AXt Encoding to modern Unicode.
 Attention: this script is not yet finished.
 Please add suggestions in the Github Wiki:

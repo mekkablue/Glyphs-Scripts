@@ -1,5 +1,8 @@
 #MenuTitle: Baseline Wiggle
-"""Create pseudorandom GPOS baseline shift for all glyphs."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Create pseudorandom GPOS baseline shift for all glyphs.
+"""
 
 import GlyphsApp
 import random

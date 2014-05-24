@@ -1,5 +1,8 @@
 #MenuTitle: Align Selection to LSB
-"""Align selected paths (and parts of paths) in the frontmost layer to the LSB."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Align selected paths (and parts of paths) in the frontmost layer to the LSB.
+"""
 
 import GlyphsApp
 

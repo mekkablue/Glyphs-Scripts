@@ -1,6 +1,8 @@
 #MenuTitle: Compare Font Info for Open Fonts
 # -*- coding: utf-8 -*-
-"""Analyzes font info entries in all open fonts and outputs differences."""
+__doc__="""
+Analyzes font info entries in all open fonts and outputs differences.
+"""
 
 import GlyphsApp
 Glyphs.clearLog()

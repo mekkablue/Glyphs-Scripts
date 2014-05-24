@@ -1,6 +1,8 @@
 #MenuTitle: Insert instances
 # -*- coding: utf-8 -*-
-"""Inserts instances, based on the Luc(as), Pablo, and Maciej algorithms."""
+__doc__="""
+Inserts instances, based on the Luc(as), Pablo, and Maciej algorithms.
+"""
 from __future__ import division
 import vanilla
 import GlyphsApp

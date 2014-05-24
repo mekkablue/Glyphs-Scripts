@@ -1,5 +1,8 @@
 #MenuTitle: Delete all paths
-"""Deletes all paths in visible layers of selected glyphs."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Deletes all paths in visible layers of selected glyphs.
+"""
 
 import GlyphsApp
 

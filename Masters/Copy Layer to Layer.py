@@ -1,7 +1,10 @@
 #MenuTitle: Copy Layer to Layer
-"""Copies one master to another master in selected glyphs."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Copies one master to another master in selected glyphs.
+"""
 
-#import GlyphsApp
+import GlyphsApp
 import vanilla
 
 class MasterFiller( object ):

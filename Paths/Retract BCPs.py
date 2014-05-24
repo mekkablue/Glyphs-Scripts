@@ -1,5 +1,8 @@
 #MenuTitle: Retract BCPs
-"""Retracts all BCPs (off-curve points) in selected glyphs, so all curves will be turned into straight lines."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Retracts all BCPs (off-curve points) in selected glyphs, so all curves will be turned into straight lines.
+"""
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers

@@ -1,5 +1,8 @@
 #MenuTitle: Align Selection to x-Height
-"""Align selected paths (and parts of paths) in the frontmost layer to the x-Height."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Align selected paths (and parts of paths) in the frontmost layer to the x-Height.
+"""
 
 import GlyphsApp
 

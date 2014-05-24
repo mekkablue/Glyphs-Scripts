@@ -1,5 +1,8 @@
 #MenuTitle: Align anchors to grid
-"""Looks for anchors not on the grid and rounds their coordinate to the closest grid."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Looks for anchors not on the grid and rounds their coordinate to the closest grid.
+"""
 
 import GlyphsApp
 

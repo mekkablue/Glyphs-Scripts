@@ -1,5 +1,8 @@
 #MenuTitle: Align Selection to Descender
-"""Align selected paths (and parts of paths) in the frontmost layer to the Descender."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Align selected paths (and parts of paths) in the frontmost layer to the Descender.
+"""
 
 import GlyphsApp
 

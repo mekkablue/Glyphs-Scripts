@@ -1,5 +1,8 @@
 #MenuTitle: Distribute Nodes
-"""Distributes the selected nodes horizontally or vertically, depending on the bounding box."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Distributes the selected nodes horizontally or vertically, depending on the bounding box.
+"""
 
 import GlyphsApp
 

@@ -1,5 +1,6 @@
 #MenuTitle: Move glyph up 1 unit
-"""
+# -*- coding: utf-8 -*-
+__doc__="""
 Moves the current glyph(s) up by 1 unit.
 Similar to ctrl-cmd-left/right.
 Suggested shortcut: ctrl-cmd-uparrow.

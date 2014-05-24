@@ -1,6 +1,8 @@
 #MenuTitle: Build ccmp feature and dotless letters
 # -*- coding: utf-8 -*-
-"""Builds dotlessi, dotlessj and the corresponding ccmp feature."""
+__doc__="""
+Builds dotlessi, dotlessj and the corresponding ccmp feature.
+"""
 
 import GlyphsApp
 Font = Glyphs.font

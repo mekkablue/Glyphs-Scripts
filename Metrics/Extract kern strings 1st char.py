@@ -1,6 +1,8 @@
 #MenuTitle: Extract kern strings (1st character)
 # -*- coding: utf-8 -*-
-"""Analyze a textfile: look for certain characters and output all letter combinations occurring in the text file to the Macro Window."""
+__doc__="""
+Analyze a textfile: look for certain characters and output all letter combinations occurring in the text file to the Macro Window.
+"""
 
 import GlyphsApp
 import vanilla

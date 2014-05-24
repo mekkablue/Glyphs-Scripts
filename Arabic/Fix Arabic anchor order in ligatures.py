@@ -1,6 +1,8 @@
 #MenuTitle: Fix Arabic anchor ordering in ligatures
 # -*- coding: utf-8 -*-
-"""Fix the order of top_X and bottom_X anchors to RTL."""
+__doc__="""
+Fix the order of top_X and bottom_X anchors to RTL.
+"""
 
 import GlyphsApp
 

@@ -1,5 +1,8 @@
 #MenuTitle: Open closed paths
-"""Opens all paths in the visible layers of selected glyphs."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Opens all paths in the visible layers of selected glyphs.
+"""
 
 import GlyphsApp
 

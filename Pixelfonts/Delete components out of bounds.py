@@ -1,5 +1,8 @@
 #MenuTitle: Delete components out of bounds
-"""Looks for components out of bounds."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Looks for components out of bounds.
+"""
 
 outOfBounds = 3000.0
 

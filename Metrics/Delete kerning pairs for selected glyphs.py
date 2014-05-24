@@ -1,5 +1,8 @@
 #MenuTitle: Delete kerning pairs for selected glyphs
-"""Deletes all kerning pairs with the selected glyphs, for the current master only."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Deletes all kerning pairs with the selected glyphs, for the current master only.
+"""
 
 import GlyphsApp
 

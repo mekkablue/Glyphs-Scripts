@@ -1,5 +1,8 @@
 #MenuTitle: Wackelpudding
-"""Create pseudorandom rotation feature for selected glyphs."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Create pseudorandom rotation feature for selected glyphs.
+"""
 
 maxangle = 20.0 # Maximum angle by which a glyph may rotate
 minangle = 4.0

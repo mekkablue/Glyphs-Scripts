@@ -1,6 +1,8 @@
 #MenuTitle: Stitcher
 # -*- coding: utf-8 -*-
-"""Turn your paths into dotted lines, and specify a component as dot, i.e. stitch components onto paths in selected glyphs. Respects origin anchor in your source component."""
+__doc__="""
+Turn your paths into dotted lines, and specify a component as dot, i.e. stitch components onto paths in selected glyphs. Respects origin anchor in your source component.
+"""
 
 import GlyphsApp
 import math

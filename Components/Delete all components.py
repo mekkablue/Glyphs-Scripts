@@ -1,5 +1,8 @@
 #MenuTitle: Delete all components
-"""Deletes all components in selected glyphs."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Deletes all components in selected glyphs.
+"""
 
 import GlyphsApp
 

@@ -1,6 +1,8 @@
 #MenuTitle: Set New Path for Images
 # -*- coding: utf-8 -*-
-"""Resets the path for placed images in selected glyphs. Useful if you have moved your images."""
+__doc__="""
+Resets the path for placed images in selected glyphs. Useful if you have moved your images.
+"""
 
 import GlyphsApp
 

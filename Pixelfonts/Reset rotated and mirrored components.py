@@ -1,5 +1,8 @@
 #MenuTitle: Reset rotated and mirrored components
-"""Looks for mirrored and rotated components and resets them to their original orientation."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Looks for mirrored and rotated components and resets them to their original orientation.
+"""
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers

@@ -1,6 +1,8 @@
 #MenuTitle: Floating Features
 # -*- coding: utf-8 -*-
-"""Floating window for activating features in the frontmost Edit tab."""
+__doc__="""
+Floating window for activating features in the frontmost Edit tab.
+"""
 
 import vanilla
 import GlyphsApp

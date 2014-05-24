@@ -1,6 +1,8 @@
 #MenuTitle: Check glyph names
 # encoding: utf-8
-"""Goes through all glyph names and looks for illegal characters."""
+__doc__="""
+Goes through all glyph names and looks for illegal characters.
+"""
 
 firstChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 otherChars = "0123456789._-"

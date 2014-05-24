@@ -1,5 +1,8 @@
 #MenuTitle: Export Glyph Info CSV
-"""Export a CSV containing info about the glyphs."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Export a CSV containing info about the glyphs.
+"""
 
 import GlyphsApp
 import commands

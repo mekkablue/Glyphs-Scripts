@@ -1,5 +1,8 @@
 #MenuTitle: Make OT class from selected glyphs
-"""Creates a new OT class based on the selected glyphs."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Creates a new OT class based on the selected glyphs.
+"""
 
 import vanilla
 

@@ -1,5 +1,8 @@
-#MenuTitle: Move marks to custom anchors in all masters
-"""Moves acute(.case) from 'top' to 'top_acute' anchors where available. And other accents likewise."""
+#MenuTitle: Move accents to custom anchors
+# -*- coding: utf-8 -*-
+__doc__="""
+Moves acute(.case) from 'top' to 'top_acute' anchors where available. And other accents likewise.
+"""
 
 import GlyphsApp
 

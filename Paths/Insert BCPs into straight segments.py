@@ -1,6 +1,8 @@
 #MenuTitle: Insert BCPs into straight segments
 # -*- coding: utf-8 -*-
-"""Inserts BCPs into straight segments of selected glyphs. The opposite of what the Tidy Up Paths command does. Useful if you want to bend the shape later."""
+__doc__="""
+Inserts BCPs into straight segments of selected glyphs. The opposite of what the Tidy Up Paths command does. Useful if you want to bend the shape later.
+"""
 
 import GlyphsApp
 

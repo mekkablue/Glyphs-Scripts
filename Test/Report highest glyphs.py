@@ -1,6 +1,8 @@
 #MenuTitle: Report highest glyphs
 # -*- coding: utf-8 -*-
-"""Reports a list of glyph names to the Macro Window in the order of the highest bounding boxes. Restricts itself to the selected glyphs."""
+__doc__="""
+Reports a list of glyph names to the Macro Window in the order of the highest bounding boxes. Restricts itself to the selected glyphs.
+"""
 
 import GlyphsApp
 

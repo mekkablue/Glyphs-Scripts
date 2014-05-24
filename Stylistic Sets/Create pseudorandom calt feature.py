@@ -1,5 +1,8 @@
 #MenuTitle: Create pseudorandom calt feature from ssXX glyphs
-"""Create pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Create pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font.
+"""
 
 Font        = Glyphs.font
 Doc         = Glyphs.currentDocument

@@ -1,6 +1,8 @@
 #MenuTitle: Tunnify
 # -*- coding: utf-8 -*-
-"""Averages out the handles of selected path segments."""
+__doc__="""
+Averages out the handles of selected path segments.
+"""
 
 import GlyphsApp
 Font = Glyphs.font

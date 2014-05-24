@@ -1,5 +1,8 @@
 #MenuTitle: Re-compose pixels
-"""Looks for decomposed pixels and puts 'pixel' components back in their place."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Looks for decomposed pixels and puts 'pixel' components back in their place.
+"""
 
 pixelGlyphName = "pixel"
 

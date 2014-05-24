@@ -1,6 +1,8 @@
 #MenuTitle: BlueFuzzer
 # -*- coding: utf-8 -*-
-"""Extends all alignment zones."""
+__doc__="""
+Extends all alignment zones.
+"""
 
 import vanilla
 import GlyphsApp

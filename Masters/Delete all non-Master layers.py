@@ -1,6 +1,8 @@
 #MenuTitle: Delete all non-Master layers
 # -*- coding: utf-8 -*-
-"""Goes through selected glyphs and deletes all glyph layers which are not a Master."""
+__doc__="""
+Goes through selected glyphs and deletes all glyph layers which are not a Master.
+"""
 
 import GlyphsApp
 

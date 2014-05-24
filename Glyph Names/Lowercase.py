@@ -1,6 +1,8 @@
 #MenuTitle: Make glyph names lowercase
 # -*- coding: utf-8 -*-
-"""Makes the names of selected glyphs lowercase, useful for smallcap glyphs."""
+__doc__="""
+Makes the names of selected glyphs lowercase, useful for smallcap glyphs.
+"""
 
 import GlyphsApp
 

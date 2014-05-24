@@ -1,5 +1,8 @@
 #MenuTitle: Align Selection to RSB
-"""Align selected paths (and parts of paths) in the frontmost layer to the RSB."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Align selected paths (and parts of paths) in the frontmost layer to the RSB.
+"""
 
 import GlyphsApp
 

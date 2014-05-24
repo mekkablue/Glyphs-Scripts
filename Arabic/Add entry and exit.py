@@ -1,6 +1,8 @@
 #MenuTitle: Add entry and exit anchors
 # -*- coding: utf-8 -*-
-"""Adds exit and entry anchors to Arabic init, medi and fina glyphs."""
+__doc__="""
+Adds exit and entry anchors to Arabic init, medi and fina glyphs.
+"""
 
 import GlyphsApp
 

@@ -1,6 +1,8 @@
 #MenuTitle: New Tab with Bracket Layer Glyphs
 # -*- coding: utf-8 -*-
-"""Opens a new Edit tab with all glyphs which contain the Bracket Layer trick."""
+__doc__="""
+Opens a new Edit tab with all glyphs which contain the Bracket Layer trick.
+"""
 
 import GlyphsApp
 from PyObjCTools.AppHelper import callAfter

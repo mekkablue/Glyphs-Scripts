@@ -1,6 +1,8 @@
 #MenuTitle: Remove Images
 # -*- coding: utf-8 -*-
-"""Deletes placed images from selected glyphs."""
+__doc__="""
+Deletes placed images from selected glyphs.
+"""
 
 import GlyphsApp
 Font = Glyphs.font

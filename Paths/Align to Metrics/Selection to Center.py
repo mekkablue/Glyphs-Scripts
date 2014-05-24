@@ -1,5 +1,8 @@
 #MenuTitle: Align Selection to Horizontal Center
-"""Align selected paths (and parts of paths) in the frontmost layer to the Horizontal Center."""
+# -*- coding: utf-8 -*-
+__doc__="""
+Align selected paths (and parts of paths) in the frontmost layer to the Horizontal Center.
+"""
 
 import GlyphsApp
 
