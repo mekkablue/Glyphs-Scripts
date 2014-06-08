@@ -82,7 +82,7 @@ def handlePercentages( segment ):
 		xInt, yInt = intersect( x1, y1,  x2, y2,  x3, y3,  x4, y4 )
 		percentageP1P2 = pointdistance( x1, y1, x2, y2 ) / pointdistance( x1, y1, xInt, yInt )
 		percentageP3P4 = pointdistance( x4, y4, x3, y3 ) / pointdistance( x4, y4, xInt, yInt )
-		tunnifiedPercentage = ( percentageP1P2 + percentageP3P4 ) / 1.95
+		tunnifiedPercentage = ( percentageP1P2 + percentageP3P4 ) / 2
 		return tunnifiedPercentage, tunnifiedPercentage, xInt, yInt
 
 def tunnify( segment ):
