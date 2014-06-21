@@ -6,7 +6,24 @@ Copies one master to another master in selected glyphs.
 
 import GlyphsApp
 import vanilla
+import math
 
+def getComponentScaleX_scaleY_rotation( self ):
+		a = self.transform[0]
+		b = self.transform[1]
+		c = self.transform[2]
+		d = self.transform[3]
+
+		scale_x = math.sqrt(math.pow(a,2)+math.pow(b,2))
+		scale_y = math.sqrt(math.pow(c,2)+math.pow(d,2))
+		if (b<0 and c<0):
+			scale_y = scale_y * -1
+
+		rotation = math.atan2(b, a) * (180/math.pi)
+		
+		return [scale_x, scale_y, rotation]	
+		
+		
 class MasterFiller( object ):
 
 	def __init__( self ):
@@ -81,6 +98,9 @@ class MasterFiller( object ):
 			for thisComp in sourceLayer.components:
 				compName = str( thisComp.componentName ) # str() probably not necessary anymore, but once fixed a problem
 				newComp = GSComponent( compName )
+				newComp.setPosition_( (thisComp.x, thisComp.y) )
+				ScaleX_scaleY_rotation = getComponentScaleX_scaleY_rotation(thisComp)
+				newComp.setScaleX_scaleY_rotation_(ScaleX_scaleY_rotation[0],ScaleX_scaleY_rotation[1],ScaleX_scaleY_rotation[2])
 				print "-- Component: %s" % ( compName )
 				targetLayer.components.append( newComp )
 
