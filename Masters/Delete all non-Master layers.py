@@ -1,7 +1,7 @@
 #MenuTitle: Delete all non-Master layers
 # -*- coding: utf-8 -*-
 __doc__="""
-Goes through selected glyphs and deletes all glyph layers which are not a Master.
+Goes through selected glyphs and deletes all glyph layers which are not a Master or a Bracket layer.
 """
 
 import GlyphsApp
@@ -16,8 +16,9 @@ def process( thisGlyph ):
 	for i in range( numberOfLayers )[::-1]:
 		thisLayer = thisGlyph.layers[i]
 		if thisLayer.layerId != thisLayer.associatedMasterId:
-			count += 1
-			del thisGlyph.layers[i]
+			if not (thisLayer.name.find("[") and thisLayer.name.endswith("]")):
+				count += 1
+				del thisGlyph.layers[i]
 			
 	return count
 
