@@ -7,7 +7,7 @@ These are Python scripts for use with the [Glyphs font editor](http://glyphsapp.
 
 Put the scripts into the *Scripts* folder which appears when you choose *Open Scripts Folder* from the *Scripts* menu.
 
-For some scripts, you will also need to install Tal Leming's *Vanilla*. Here's how. Open Terminal and copy and paste each of the following lines and hit return. Notes: the second line (*curl*...) may take a while, the sudo line will prompt you for your password (type it and press Return, you will *not* see bullets):
+For some scripts, you will also need to install Tal Leming's *Vanilla*. Here's how. Open Terminal and copy and paste the following lines and hit return. You can copy all of them at once. Notes: the second line (@curl@) may take a while, the @sudo@ line will prompt you for your password (type it and press Return, you will *not* see bullets):
 
     cd ~/Library/
     curl http://download.robofab.com/RoboFab_599_plusAllDependencies.zip > robofab.zip
@@ -16,7 +16,9 @@ For some scripts, you will also need to install Tal Leming's *Vanilla*. Here's h
     cd Python_Installs/Vanilla/
     sudo python2.6 setup.py install
 
-While we're at it, we can also install Robofab, DialogKit, and FontTools. You don't need those for my scripts though:
+And you are done. The installation should be effective immediately, but in case it does not work right away, you may want to restart your Mac or log out and back in again.
+
+While we're at it, we can also install Robofab, DialogKit, and FontTools. You do not need those for my scripts though:
 
     cd ../Robofab/
     sudo python2.6 setup.py install
@@ -24,8 +26,6 @@ While we're at it, we can also install Robofab, DialogKit, and FontTools. You do
     sudo python2.6 install.py
     cd ../FontTools/
     sudo python2.6 setup.py install
-
-And you are done. The installation should be effective immediately, but to be on the safe side, you may want to restart or log out and back in again.
 
 # ABOUT THE SCRIPTS
 
