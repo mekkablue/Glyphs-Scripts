@@ -1,7 +1,7 @@
 #MenuTitle: BlueFuzzer
 # -*- coding: utf-8 -*-
 __doc__="""
-Extends all alignment zones.
+Extends all alignment zones (except for the baseline zone that should stay at 0).
 """
 
 import vanilla
@@ -65,8 +65,11 @@ class BlueFuzzer( object ):
 					factor = 1
 					if thisZone.size < 0: # negative zone
 						factor = -1
-					thisZone.setPosition_( thisZone.position - fuzzValue * factor )
-					thisZone.setSize_( thisZone.size + (fuzzValue * 2) * factor )
+					if thisZone.position == 0 and factor == -1: # baseline zone must stay where it is
+						thisZone.setSize_( thisZone.size + fuzzValue * factor )
+					else:
+						thisZone.setPosition_( thisZone.position - fuzzValue * factor )
+						thisZone.setSize_( thisZone.size + (fuzzValue * 2) * factor )
 					
 			if not self.SavePreferences( self ):
 				print "Note: could not write preferences."
