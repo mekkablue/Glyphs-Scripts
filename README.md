@@ -53,7 +53,7 @@ While we're at it, we can also install Robofab, DialogKit, and FontTools. You do
 ## Effects Scripts
 * **Wackelpudding** and **Beowulferize:** Select some or all glyphs in the Font tab, then run the script. It will create alternates of the selected glyphs and create a pseudorandom calt feature. Activate it by selecting Contextual Alternates in e.g. InDesign.
 * **Baseline Wiggle:** Creates a pos feature that randomly displaces the glyphs while you type.
-* **Stitcher:** In selected glyphs, the Stitcher inserts components on your paths at fixed intervals. Useful for turning open paths (monolines) into dotted lines. *Needs Vanilla.*
+* **Stitcher:** In selected glyphs, the Stitcher inserts components on your paths at fixed intervals. Useful for turning open paths (monolines) into dotted lines. Use an anchor called 'origin' for determining the component position in stitched letters. *Needs Vanilla.*
 
 ## Glyph Names
 * **Check glyph names:** Checks all available glyph names for illegal characters.
