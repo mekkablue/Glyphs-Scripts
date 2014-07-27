@@ -1,7 +1,7 @@
 #MenuTitle: Tunnify
 # -*- coding: utf-8 -*-
 __doc__="""
-Averages out the handles of selected path segments.
+Averages out the handles of selected path segments. Doing this is a good idea for zero handles, and as preparation for interpolation. If you just want to fix zero handles, then check out the FixZeroHandles plugin from my GitHub.
 """
 
 import GlyphsApp
@@ -13,36 +13,52 @@ selection = selectedLayer.selection()
 tunnifiedZeroLo = 0.43
 tunnifiedZeroHi = 0.73
 
-def intersect( x1, y1,  x2, y2,  x3, y3,  x4, y4 ):
-	"""Calculates the intersection of line P1-P2 with P3-P4."""
-
-	# Please help me: Can I do this simpler? It's been a while...
-	slope12vertical = False
-	slope34vertical = False
-	
+def intersectionWithNSPoints( pointA, pointB, pointC, pointD ):
+	"""
+	Returns an NSPoint of the intersection AB with CD.
+	Or False if there is no intersection
+	"""
 	try:
-		slope12 = ( float(y2) - float(y1) ) / ( float(x2) - float(x1) )
-	except: # division by zero
-		slope12vertical = True
+		x1, y1 = pointA.x, pointA.y
+		x2, y2 = pointB.x, pointB.y
+		x3, y3 = pointC.x, pointC.y
+		x4, y4 = pointD.x, pointD.y
+		
+		try:
+			slope12 = ( float(y2) - float(y1) ) / ( float(x2) - float(x1) )
+		except:
+			# division by zero if vertical
+			slope12 = None
+			
+		try:
+			slope34 = ( float(y4) - float(y3) ) / ( float(x4) - float(x3) )
+		except:
+			# division by zero if vertical
+			slope34 = None
+		
+		if slope12 == slope34:
+			# parallel, no intersection
+			return None
+		elif slope12 is None:
+			# first line is vertical
+			x = x1
+			y = slope34 * ( x - x3 ) + y3
+		elif slope34 is None:
+			# second line is vertical
+			x = x3
+			y = slope12 * ( x - x1 ) + y1
+		else:
+			# both lines have an angle
+			x = ( slope12 * x1 - y1 - slope34 * x3 + y3 ) / ( slope12 - slope34 )
+			y = slope12 * ( x - x1 ) + y1
+			
+		return NSPoint( x, y )
+		
+	except Exception as e:
+		print str(e)
+		return None
 
-	try:
-		slope34 = ( float(y4) - float(y3) ) / ( float(x4) - float(x3) )
-	except: # division by zero
-		slope34vertical = True
-	
-	if not slope12vertical and not slope34vertical:
-		x = ( slope12 * x1 - y1 - slope34 * x3 + y3 ) / ( slope12 - slope34 )
-		y = slope12 * ( x - x1 ) + y1
-	elif slope12vertical:
-		x = x1
-		y = slope34 * ( x - x3 ) + y3
-	elif slope34vertical:
-		x = x3
-		y = slope12 * ( x - x1 ) + y1
-	
-	return x, y
-	
-def pointdistance( x1, y1, x2, y2 ):
+def pointDistance( x1, y1, x2, y2 ):
 	"""Calculates the distance between P1 and P2."""
 	dist = ( ( float(x2) - float(x1) ) ** 2 + ( float(y2) - float(y1) ) **2 ) ** 0.5
 	return dist
@@ -79,11 +95,15 @@ def handlePercentages( segment ):
 		return tunnifiedZeroHi, tunnifiedZeroLo, xInt, yInt
 	else:
 		# no zero handle, just bad distribution
-		xInt, yInt = intersect( x1, y1,  x2, y2,  x3, y3,  x4, y4 )
-		percentageP1P2 = pointdistance( x1, y1, x2, y2 ) / pointdistance( x1, y1, xInt, yInt )
-		percentageP3P4 = pointdistance( x4, y4, x3, y3 ) / pointdistance( x4, y4, xInt, yInt )
-		tunnifiedPercentage = ( percentageP1P2 + percentageP3P4 ) / 2
-		return tunnifiedPercentage, tunnifiedPercentage, xInt, yInt
+		intersectionPoint = intersectionWithNSPoints( NSPoint(x1, y1),  NSPoint(x2, y2),  NSPoint(x3, y3),  NSPoint(x4, y4) )
+		if intersectionPoint:
+			xInt, yInt = intersectionPoint.x, intersectionPoint.y
+			percentageP1P2 = pointDistance( x1, y1, x2, y2 ) / pointDistance( x1, y1, xInt, yInt )
+			percentageP3P4 = pointDistance( x4, y4, x3, y3 ) / pointDistance( x4, y4, xInt, yInt )
+			tunnifiedPercentage = ( percentageP1P2 + percentageP3P4 ) / 2
+			return tunnifiedPercentage, tunnifiedPercentage, xInt, yInt
+		else:
+			return None
 
 def tunnify( segment ):
 	"""
@@ -92,15 +112,18 @@ def tunnify( segment ):
 	"""
 	x1, y1 = segment[0]
 	x4, y4 = segment[3]
-	firstHandlePercentage, secondHandlePercentage, xInt, yInt = handlePercentages( segment )
+	newHandlePercentages = handlePercentages( segment )
+	if newHandlePercentages:
+		firstHandlePercentage, secondHandlePercentage, xInt, yInt = newHandlePercentages
+		intersectionPoint = NSPoint( xInt, yInt )
+		segmentStartPoint = NSPoint( x1, y1 )
+		segmentFinalPoint = NSPoint( x4, y4 )
 	
-	intersectionPoint = NSPoint( xInt, yInt )
-	segmentStartPoint = NSPoint( x1, y1 )
-	segmentFinalPoint = NSPoint( x4, y4 )
-	
-	firstHandleX,  firstHandleY  = xyAtPercentageBetweenTwoPoints( segmentStartPoint, intersectionPoint, firstHandlePercentage )
-	secondHandleX, secondHandleY = xyAtPercentageBetweenTwoPoints( segmentFinalPoint, intersectionPoint, secondHandlePercentage )
-	return firstHandleX, firstHandleY, secondHandleX, secondHandleY
+		firstHandleX,  firstHandleY  = xyAtPercentageBetweenTwoPoints( segmentStartPoint, intersectionPoint, firstHandlePercentage )
+		secondHandleX, secondHandleY = xyAtPercentageBetweenTwoPoints( segmentFinalPoint, intersectionPoint, secondHandlePercentage )
+		return firstHandleX, firstHandleY, secondHandleX, secondHandleY
+	else:
+		return None
 
 selectedGlyph.beginUndo()
 
@@ -122,11 +145,13 @@ try:
 					segmentNodeIndexes[x] = segmentNodeIndexes[x] % numOfNodes
 				
 				thisSegment = [ [n.x, n.y] for n in [ thisPath.nodes[i] for i in segmentNodeIndexes ] ]
-				x_handle1, y_handle1, x_handle2, y_handle2 = tunnify( thisSegment )
-				thisPath.nodes[ segmentNodeIndexes[1] ].x = x_handle1
-				thisPath.nodes[ segmentNodeIndexes[1] ].y = y_handle1
-				thisPath.nodes[ segmentNodeIndexes[2] ].x = x_handle2
-				thisPath.nodes[ segmentNodeIndexes[2] ].y = y_handle2
+				newSegmentHandles = tunnify( thisSegment )
+				if newSegmentHandles:
+					x_handle1, y_handle1, x_handle2, y_handle2 = newSegmentHandles
+					thisPath.nodes[ segmentNodeIndexes[1] ].x = x_handle1
+					thisPath.nodes[ segmentNodeIndexes[1] ].y = y_handle1
+					thisPath.nodes[ segmentNodeIndexes[2] ].x = x_handle2
+					thisPath.nodes[ segmentNodeIndexes[2] ].y = y_handle2
 				
 except Exception, e:
 	print "Error:", e
