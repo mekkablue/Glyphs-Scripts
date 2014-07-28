@@ -123,6 +123,7 @@ While we're at it, we can also install Robofab, DialogKit, and FontTools. You do
 * **Close all open paths:** Closes all open paths in the visible layers of all selected glyphs.
 * **Delete all open paths:** Deletes all *open* paths in the visible layers of all selected glyphs.
 * **Delete all paths:** Deletes *all paths* in the visible layers of all selected glyphs. Be careful.
+* **Delete duplicate paths:** Deletes exact path duplicates (same paths on top of each other) in the visible layers of all selected glyphs.
 * **Fill up with rectangles:** Goes through your selected glyphs, and if it finds an empty one, inserts a placeholder rectangle. Useful for quickly building a dummy font for testing.
 * **Insert BCPs into straight segments:** Inserts off-curve points (BCPs) into straight line segments of all selected glyphs. Like option-clicking on all straight lines.
 * **Insert Inflections:** Inserts nodes at path inflections in the visible layers of all selected glyphs.
