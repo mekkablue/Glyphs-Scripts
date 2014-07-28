@@ -1,7 +1,7 @@
 #MenuTitle: Dekink
 # -*- coding: utf-8 -*-
 __doc__="""
-Synchronize node distance proportions for angled smooth connections through all masters, thus avoiding interpolation kinks. Select one or more smoothly connected nodes and run the script.
+Synchronize node distance proportions for angled smooth connections through all masters (and other compatible layers), thus avoiding interpolation kinks. Select one or more smoothly connected nodes and run the script.
 """
 
 import GlyphsApp
@@ -11,20 +11,17 @@ currentMaster = Font.selectedFontMaster
 currentLayer = Font.selectedLayers[0]
 currentGlyph = currentLayer.parent
 
-def dekink( myMaster, myGlyph, pathindex, nodeindex, proportion ):
+def dekink( myMaster, compareString, myGlyph, pathIndex, nodeIndex, proportion ):
 	try:
-		myFont = myGlyph.parent
-		for m in myFont.masters:
-			if m != myMaster:
-				p = myGlyph.layers[m.id].paths[pi]
-				pathlength = len(p)
-				n0 = p.nodes[(nodeindex-1) % pathlength]
-				n1 = p.nodes[ nodeindex ]
-				n2 = p.nodes[(nodeindex+1) % pathlength]
-			
+		for thisLayer in myGlyph.layers:
+			if compareString == thisLayer.compareString() and thisLayer != myGlyph.layers[myMaster.id]:
+				thisPath = thisLayer.paths[pathIndex]
+				pathLength = len(thisPath)
+				n0 = thisPath.nodes[ (nodeIndex-1) % pathLength ]
+				n1 = thisPath.nodes[  nodeIndex ]
+				n2 = thisPath.nodes[ (nodeIndex+1) % pathLength ]
 				n1.x = n0.x + proportion * (n2.x - n0.x)
 				n1.y = n0.y + proportion * (n2.y - n0.y)
-	
 		return True
 		
 	except Exception, e:
@@ -34,17 +31,18 @@ def dekink( myMaster, myGlyph, pathindex, nodeindex, proportion ):
 try:
 	if currentGlyph.mastersCompatible():
 		s = list( currentLayer.selection() )
+		currentCompareString = currentLayer.compareString()
 		
 		# find the indices for selected nodes:
 		for n in [n for n in s if n.connection == GSSMOOTH]:
 			for pi in range( len( currentLayer.paths )):
-				pathlength = len( currentLayer.paths[pi].nodes )
+				pathLength = len( currentLayer.paths[pi].nodes )
 				currentNodes = currentLayer.paths[pi].nodes
-				for ni in range( pathlength ):
+				for ni in range( pathLength ):
 					if currentNodes[ni] == n:
-						n0 = currentNodes[(ni-1) % pathlength]
+						n0 = currentNodes[(ni-1) % pathLength]
 						n1 = currentNodes[ ni ]
-						n2 = currentNodes[(ni+1) % pathlength]
+						n2 = currentNodes[(ni+1) % pathLength]
 					
 						longX  = n2.x - n0.x
 						longY  = n2.y - n0.y
@@ -56,7 +54,7 @@ try:
 						else:
 							proportion = ( shortX / longX + shortY / longY ) / 2.0
 						
-							if not dekink( currentMaster, currentGlyph, pi, ni, proportion ):
+							if not dekink( currentMaster, currentCompareString, currentGlyph, pi, ni, proportion ):
 								print "Error: dekinking failed."
 	else:
 		print "Error: masters not compatible."
