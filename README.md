@@ -7,7 +7,7 @@ These are Python scripts for use with the [Glyphs font editor](http://glyphsapp.
 
 Put the scripts into the *Scripts* folder which appears when you choose *Open Scripts Folder* from the *Scripts* menu.
 
-For some scripts, you will also need to install Tal Leming's *Vanilla*. Here's how. Open Terminal and copy and paste the following lines and hit return. You can copy all of them at once. Notes: the second line (@curl@) may take a while, the @sudo@ line will prompt you for your password (type it and press Return, you will *not* see bullets):
+For some scripts, you will also need to install Tal Leming's *Vanilla*. Here's how. Open Terminal and copy and paste the following lines and hit return. You can copy all of them at once. Notes: the second line (`curl`) may take a while, the `sudo` line will prompt you for your password (type it and press Return, you will *not* see bullets):
 
     cd ~/Library/
     curl http://download.robofab.com/RoboFab_599_plusAllDependencies.zip > robofab.zip
@@ -15,6 +15,7 @@ For some scripts, you will also need to install Tal Leming's *Vanilla*. Here's h
     rm robofab.zip
     cd Python_Installs/Vanilla/
     sudo python2.6 setup.py install
+	
 
 And you are done. The installation should be effective immediately, but in case it does not work right away, you may want to restart your Mac or log out and back in again.
 
@@ -61,7 +62,8 @@ While we're at it, we can also install Robofab, DialogKit, and FontTools. You do
 
 ## Guidelines
 * **Add Center Guideline:** Adds vertical or horizontal guideline in the middle between two selected nodes.
-* **Delete guidelines:** Deletes all local guidelines in selected glyphs.
+* **Delete guidelines:** Deletes all local (blue) guidelines in selected glyphs.
+* **Delete global guidelines:** Deletes all global (red) guidelines in the current master.
 * **Guideline through Selected Nodes:** Adds guideline through two selected nodes.
 
 ## Hinting
