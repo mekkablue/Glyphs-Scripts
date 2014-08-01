@@ -5,11 +5,13 @@ Resets the path for placed images in selected glyphs. Useful if you have moved y
 """
 
 import GlyphsApp
+from PyObjCTools.AppHelper import callAfter
 
 Font = Glyphs.font
 FontMaster = Font.selectedFontMaster
 selectedLayers = Font.selectedLayers
-newFolder = GetFolder( message="Choose location of placed images:", allowsMultipleSelection = False )
+#newFolder = GetFolder( message="Choose location of placed images:", allowsMultipleSelection = False )
+newFolder = callAfter( GetFolder, message="Choose location of placed images:" )
 
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
