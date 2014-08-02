@@ -9,7 +9,10 @@ import GlyphsApp
 windowHeight = 120
 
 def getScale( scaleString, factor ):
-	return ( 100.0 + float( scaleString ) * factor ) / 100.0
+	if factor == 1:
+		return ( 100.0 + float( scaleString ) ) / 100.0
+	else:
+		return 100.0 / ( 100.0 + float( scaleString ) )
 	
 class TransformImages( object ):
 	def __init__( self ):
@@ -70,17 +73,16 @@ class TransformImages( object ):
 			
 			for thisLayer in selectedLayers:
 				thisImage = thisLayer.backgroundImage()
-				moveX, moveY   = float( self.w.move_X.get() ) * factor, float( self.w.move_Y.get() ) * factor
-				scaleX, scaleY = getScale( self.w.scale_X.get(), factor ), getScale( self.w.scale_Y.get(), factor )
+				if thisImage:
+					moveX, moveY   = float( self.w.move_X.get() ) * factor, float( self.w.move_Y.get() ) * factor
+					scaleX, scaleY = getScale( self.w.scale_X.get(), factor ), getScale( self.w.scale_Y.get(), factor )
 			
-				ImageTransform = NSAffineTransform.transform()
-				ImageTransform.setTransformStruct_( thisImage.transformStruct() )
-				ImageTransform.translateXBy_yBy_( moveX, moveY )
-				ImageTransform.scaleXBy_yBy_( scaleX, scaleY )
+					ScaleAndMoveTransform = NSAffineTransform.transform()
+					ScaleAndMoveTransform.setTransformStruct_( thisImage.transformStruct() )
+					ScaleAndMoveTransform.scaleXBy_yBy_( scaleX, scaleY )
+					ScaleAndMoveTransform.translateXBy_yBy_( moveX, moveY )
+					thisImage.setTransformStruct_( ScaleAndMoveTransform.transformStruct() )
 
-				t = ImageTransform.transformStruct()
-				thisImage.setTransformStruct_( (t.m11, t.m12, t.m21, t.m22, t.tX, t.tY) )
-				
 			if not self.SavePreferences( self ):
 				print "Note: could not write preferences."
 			
