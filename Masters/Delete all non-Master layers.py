@@ -16,6 +16,15 @@ def process( thisGlyph ):
 	for i in range( numberOfLayers )[::-1]:
 		thisLayer = thisGlyph.layers[i]
 		if thisLayer.layerId != thisLayer.associatedMasterId:
+			
+			"""Add-start"""
+
+			if len(thisLayer.paths) == 0:
+				del thisGlyph.layers[i]
+				print 'in Glyph: ' + thisGlyph.name + ' , deleting empty layer: ', thisGlyph.layers[i].name
+			
+			"""Add-end"""
+			
 			if not (thisLayer.name.find("[") and thisLayer.name.endswith("]")):
 				count += 1
 				del thisGlyph.layers[i]
