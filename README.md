@@ -159,3 +159,17 @@ While we're at it, we can also install Robofab, DialogKit, and FontTools. You do
 * **Preflight Font:** Checks for a few common mistakes, like bad glyph names, and reports them to the Macro Window.
 * **Report highest glyphs:** Outputs list of selected glyphs, ordered by the highest point of the glyph bounding boxes.
 * **Report lowest glyphs:** Outputs list of selected glyphs, ordered by the lowest point of the glyph bounding boxes.
+
+# License
+
+Copyright 2011-2014 Rainer Erich Scheichelbauer (@mekkablue).
+Some code samples by Georg Seifert (@schriftgestalt) and Tal Leming (@typesupply).
+Some algorithm input by Christoph Schindler (@hop) and Maciej Ratajski.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+See the License file included in this repository for further details.
