@@ -46,7 +46,8 @@ def process( thisLayer ):
 Font.disableUpdateInterface()
 
 for thisLayer in selectedLayers:
-	thisGlyphName = thisLayer.parent.name
+	thisGlyph = thisLayer.parent
+	thisGlyphName = thisGlyph.name
 	if "-ar" in thisGlyphName and "_" in thisGlyphName:
 		print "Processing", thisGlyphName
 		thisGlyph.beginUndo()
