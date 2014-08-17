@@ -42,6 +42,7 @@ While we're at it, we can also install Robofab, DialogKit, and FontTools. You do
 
 ## Arabic
 * **Add entry and exit:** Adds entry and exit anchors for cursive attachment in selected glyphs. By default, it places the exit at (0, 0) and the entry at a node at RSB if such a node exists. Please adjust for your own needs.
+* **Align all Arabic double marks in current master:** Substitute for automatic alignment in Arabic double marks. Goes through all Arabic compound mark ligatures in the current master, and aligns all the mark components according to their anchor positions (top, _top, and bottom, _bottom).
 * **AXt Converter:** Converts the MacRoman glyph names (used in legacy AXt fonts) into nice names as employed by Glyphs. Attention: the script is still a work in progress. Suggestions are very welcome in the Wiki: https://github.com/mekkablue/Glyphs-Scripts/wiki/AXt-Converter
 * **Fix Arabic anchor order in ligatures:** Fixes the order of *top_X* and *bottom_X* anchors to RTL. In files converted from a different format, it sometimes happens that *top_1* is left of *top_2*, but it should be the other way around, otherwise your mark2liga will mess up. This script goes through your selected glyphs, and if they are Arabic ligatures, reorders all anchors to RTL order, at the same time not touching their coordinates.
 
