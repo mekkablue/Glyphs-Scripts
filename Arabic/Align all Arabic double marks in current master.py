@@ -16,7 +16,9 @@ thisFontMasterName = thisFontMaster.name # active master name
 thisFontMasterID = thisFontMaster.id # active master ID
 listOfDoubleMarkGlyphs = [ g for g in Font.glyphs if "_" in g.name and g.name.endswith("-ar") and g.category == "Mark" ]
 
-# sorry for the mess, this code is pretty inefficient and needs some cleanup:
+topBottomMarkLigatureNames = [ "shadda_kasra-ar", "shadda_kasratan-ar" ]
+
+# sorry for the mess, this code needs some cleanup:
 
 def errMsg( msg ):
 	print "   Error: %s" % msg
@@ -68,22 +70,27 @@ def markPosition( thisMarkLayer ):
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
 for thisGlyph in listOfDoubleMarkGlyphs:
-	print "Aligning components in %s (Master %s)." % ( thisGlyph.name, thisFontMasterName )
+	thisGlyphName = thisGlyph.name
 	currentLayer = thisGlyph.layers[thisFontMasterID]
+	specialCase = thisGlyphName in topBottomMarkLigatureNames
+	print "Aligning components in %s (Master %s)." % ( thisGlyphName, thisFontMasterName )
 	if len(currentLayer.paths) == 0:
 		markdiffs = []
-		lastBaseAnchorPosition = NSPoint(0.0,0.0)
+		lastBaseAnchorPosition = NSPoint( 0.0, 0.0 )
 		for i in range(len(currentLayer.components)):
 			thisComponent = currentLayer.components[i]
-			if i == 0:
-				thisComponent.setPosition_( NSPoint(0.0,0.0) )
-				lastBaseAnchorPosition = basePosition( thisComponent.component.layers[thisFontMasterID] )
-			else:
+			if i == 0: # first component
+				thisComponent.setPosition_( lastBaseAnchorPosition )
+				if specialCase:
+					# kasra and kasratan need to connect to shadda's _top (not top)
+					lastBaseAnchorPosition = markPosition( thisComponent.component.layers[thisFontMasterID] )
+				else:
+					lastBaseAnchorPosition = basePosition( thisComponent.component.layers[thisFontMasterID] )
+			else: # following components
 				# move thisComponent:
 				currentMarkAnchorPosition = markPosition( thisComponent.component.layers[thisFontMasterID] )
 				componentPosition = substractPoints( lastBaseAnchorPosition, currentMarkAnchorPosition )
 				thisComponent.setPosition_( componentPosition )
-				
 				# update lastBasePosition:
 				thisAnchorDiff = anchorDiff( thisComponent.component.layers[thisFontMasterID] )
 				lastBaseAnchorPosition = addPoints( lastBaseAnchorPosition, thisAnchorDiff )
