@@ -38,29 +38,27 @@ while ssXX_exists:
 
 if i == 0:
 	print "No ssXX glyphs in the font. Aborting."
-	exit()
 else:
 	print "Highest ssXX:", ssXX
-
-print "Creating",
-for XX in range( i ):
+	print "Creating",
+	for XX in range( i ):
 	
-	ssXXglyphs = [ x for x in allGlyphs if x.find( ssXXsuffix( XX+1 ) ) is not -1 ]
-	baseglyphs = [ stripsuffix( x ) for x in ssXXglyphs ]
+		ssXXglyphs = [ x for x in allGlyphs if x.find( ssXXsuffix( XX+1 ) ) is not -1 ]
+		baseglyphs = [ stripsuffix( x ) for x in ssXXglyphs ]
 	
-	for YY in range( i ):
-		if XX != YY:
-			allGlyphs = [ x.name for x in list( Font.glyphs ) ] # neu holen, Glyphen haben sich u.U. schon geaendert
+		for YY in range( i ):
+			if XX != YY:
+				allGlyphs = [ x.name for x in list( Font.glyphs ) ] # neu holen, Glyphen haben sich u.U. schon geaendert
 		
-			for thisglyphname in baseglyphs:
-				targetglyphname = thisglyphname + ssXXsuffix( YY+1 )
+				for thisglyphname in baseglyphs:
+					targetglyphname = thisglyphname + ssXXsuffix( YY+1 )
 			
-				if not targetglyphname in allGlyphs:
-					sourceglyphname = thisglyphname + ssXXsuffix( XX+1 )
-					sourceglyph = Font.glyphs[ sourceglyphname ]
-					targetglyph = sourceglyph.copy()
-					targetglyph.name = targetglyphname
-					Font.glyphs.append( targetglyph )
-					print targetglyphname,
+					if not targetglyphname in allGlyphs:
+						sourceglyphname = thisglyphname + ssXXsuffix( XX+1 )
+						sourceglyph = Font.glyphs[ sourceglyphname ]
+						targetglyph = sourceglyph.copy()
+						targetglyph.name = targetglyphname
+						Font.glyphs.append( targetglyph )
+						print targetglyphname,
 
-print
+	print
