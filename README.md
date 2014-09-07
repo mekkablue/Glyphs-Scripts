@@ -99,8 +99,6 @@ While we're at it, we can also install Robofab, DialogKit, and FontTools. You do
 * **Adjust Kerning:** GUI to add a value to all kerning pairs, multiply all pairs by a value or round them by a value. *Needs Vanilla.*
 * **Center glyphs:** centers all selected glyphs inside their width, so that LSB=RSB.
 * **Change Metrics by Percentage:** Change LSB/RSB of selected glyphs by a percentage value. Undo with the Revert button. *Needs Vanilla.*
-* **Copy kerning groups:** steals left/right kerning groups for all selected glyphs from a 2nd font. *Needs Vanilla.*
-* **Copy sidebearings:** steals the sidebearing values for all selected glyphs from a 2nd font. Ignores metrics keys like '=x+20'. *Needs Vanilla.*
 * **Delete kerning pairs for selected glyphs:** deletes all kerning pairs with the selected glyphs, for the current master only.
 * **Delete metrics keys:** deletes both left and right metrics keys in all selected glyphs. Affects all masters and all layers.
 * **Export Kerning CSV:** exports a CSV containing all kerning pairs ('mastername;left;right;kerningvalue').
@@ -111,6 +109,9 @@ While we're at it, we can also install Robofab, DialogKit, and FontTools. You do
 * **Find and Replace Metrics Keys:** GUI for searching and replacing text in the L and R metrics keys, e.g. replace '=X+15' by '=X'. Leave the search field blank for appending.
 * **Make tab with letter combos:** takes your selected glyphs and opens a new tab with all possible combinations of the letters.
 * **Reset alternate glyph width:** resets the width of suffixed glyphs to the width of their unsuffixed counterparts. E.g., *Adieresis.ss01* will be reset to the width of *Adieresis*.
+* **Steal kerning from InDesign:** steals the kerning from text set in InDesign. Useful for extracting InDesign’s Optical Kerning values.
+* **Steal kerning groups:** steals left/right kerning groups for all selected glyphs from a 2nd font. *Needs Vanilla.*
+* **Steal sidebearings:** steals the sidebearing values for all selected glyphs from a 2nd font. Ignores metrics keys like '=x+20'. *Needs Vanilla.*
 
 ## OpenType
 * **Build ccmp:** Builds a Latin ccmp feature, based on the presence of i and j, and also tries to create dotlessi and dotlessj, if they are not present in the font.
