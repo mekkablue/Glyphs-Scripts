@@ -27,7 +27,7 @@ def runAppleScript(scpt, args=[]):
 
 getKernValuesFromInDesign = """
 set kernvalues to ""
-tell application "Adobe InDesign CS6"
+tell application "InDesign"
 	tell front document
 		tell parent story of first text frame
 			repeat with i from 1 to (count characters) - 1
@@ -45,7 +45,7 @@ kernvalues
 """
 
 getNameOfFont = """
-tell application "Adobe InDesign CS6"
+tell application "InDesign"
 	tell front document
 		tell character 1 of parent story of first text frame
 			applied font
