@@ -23,6 +23,9 @@ def glyphNameForLetter( letter ):
 def runAppleScript(scpt, args=[]):
 	p = Popen(['osascript', '-'] + args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
 	stdout, stderr = p.communicate(scpt)
+	if stderr:
+		print "AppleScript Error:"
+		print stderr.decode('utf-8')
 	return stdout
 
 getKernValuesFromInDesign = """
@@ -69,17 +72,21 @@ tell application "InDesign"
 end tell
 """
 
-kernInfo  = runAppleScript( getKernValuesFromInDesign )
-fontName  = runAppleScript( getNameOfFont ).replace("\t", " ").replace("font ","").strip()
-docName   = runAppleScript( getNameOfDocument ).strip()
-frameText = runAppleScript( getTextOfFrame ).strip()
-
-if len(frameText) > 60:
-	frameText = frameText[:60] + "..."
-
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
+
+kernInfo  = runAppleScript( getKernValuesFromInDesign )
+fontName  = runAppleScript( getNameOfFont )
+docName   = runAppleScript( getNameOfDocument )
+frameText = runAppleScript( getTextOfFrame )
+
+fontName = fontName.replace("\t", " ").replace("font ","").strip()
+docName = docName.strip()
+frameText = frameText.strip()
+
+if len(frameText) > 60:
+	frameText = frameText[:60] + "..."
 
 print "Extracting kerning from InD doc: %s" % docName
 print "Found text: %s" % frameText
