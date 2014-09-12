@@ -43,6 +43,22 @@ end tell
 kernvalues
 """
 
+getNameOfDocument = """
+tell application "InDesign"
+	tell front document
+		name
+	end tell
+end tell
+"""
+
+getTextOfFrame = """
+tell application "InDesign"
+	tell front document
+		contents of first text frame
+	end tell
+end tell
+"""
+
 getNameOfFont = """
 tell application "InDesign"
 	tell front document
@@ -53,15 +69,22 @@ tell application "InDesign"
 end tell
 """
 
-kernInfo = runAppleScript( getKernValuesFromInDesign )
-fontNames = runAppleScript( getNameOfFont ).replace("\t", " ").replace("font ","")
+kernInfo  = runAppleScript( getKernValuesFromInDesign )
+fontName  = runAppleScript( getNameOfFont ).replace("\t", " ").replace("font ","").strip()
+docName   = runAppleScript( getNameOfDocument ).strip()
+frameText = runAppleScript( getTextOfFrame ).strip()
+
+if len(frameText) > 60:
+	frameText = frameText[:60] + "..."
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
 
-print "Font found in InDesign: %s" % fontNames
-print "Applying kerning to: %s, Master: %s" % (thisFont.familyName, thisFontMaster.name)
+print "Extracting kerning from InD doc: %s" % docName
+print "Found text: %s" % frameText
+print "Found font: %s" % fontName
+print "Applying kerning to: %s, Master: %s\n" % (thisFont.familyName, thisFontMaster.name)
 
 for thisline in kernInfo.splitlines():
 	if len(thisline) > 5:
@@ -73,6 +96,3 @@ for thisline in kernInfo.splitlines():
 			print "  Kerning for %s-%s set to %i." % (leftSide, rightSide, kernValue)
 		except Exception as e:
 			print "  ERROR: Could not set kerning for %s-%s (%i)." % (leftSide, rightSide, kernValue)
-			
-
-
