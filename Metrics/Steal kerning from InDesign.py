@@ -34,7 +34,6 @@ tell application "InDesign"
 				try
 					set kernvalue to (kerning value of insertion point 2 of character i) as integer
 					set kernvalueline to character i & character (i + 1) & " " & kernvalue
-					log last word of kernvalueline
 					set kernvalues to kernvalues & kernvalueline & "\n"
 				end try
 			end repeat
@@ -55,13 +54,13 @@ end tell
 """
 
 kernInfo = runAppleScript( getKernValuesFromInDesign )
-fontNames = runAppleScript( getNameOfFont )[5:-1].split("\t")
+fontNames = runAppleScript( getNameOfFont ).replace("\t", " ").replace("font ","")
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
 
-print "Font found in InDesign: %s (%s)" % (fontNames[0], fontNames[1])
+print "Font found in InDesign: %s" % fontNames
 print "Applying kerning to: %s, Master: %s" % (thisFont.familyName, thisFontMaster.name)
 
 for thisline in kernInfo.splitlines():
