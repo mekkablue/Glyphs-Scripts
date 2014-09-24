@@ -5,7 +5,7 @@ Copy sidebearings from one font to another.
 """
 
 import vanilla
-windowHeight = 160
+windowHeight = 185
 
 class MetricsCopy( object ):
 	"""GUI for copying glyph metrics from one font to another"""
@@ -18,11 +18,15 @@ class MetricsCopy( object ):
 		
 		self.w.text_value = vanilla.TextBox( (15, 12+2+25, 130, 17), "To selected glyphs in:", sizeStyle='small')
 		self.w.to_font = vanilla.PopUpButton( (150, 12+25, -15, 17), self.listOfFonts(isSourceFont=False), sizeStyle='small', callback=self.buttonCheck)
+		
+		self.w.lsb   = vanilla.CheckBox( ( 17, 12+50, 80, 20), "LSB", value=True, callback=self.buttonCheck, sizeStyle='small' )
+		self.w.rsb   = vanilla.CheckBox( (97, 12+50, 80, 20), "RSB", value=True, callback=self.buttonCheck, sizeStyle='small' )
+		self.w.width = vanilla.CheckBox( (177, 12+50, 80, 20), "Width", value=False, callback=self.buttonCheck, sizeStyle='small' )		
+		
+		self.w.ignoreSuffixes  = vanilla.CheckBox( (15+2, 12+75, -15, 20), "Ignore dotsuffix:", value=False, sizeStyle='small', callback=self.buttonCheck )
+		self.w.suffixToBeIgnored = vanilla.EditText( (150, 12+75, -15, 20), ".alt", sizeStyle = 'small')
 
-		self.w.ignoreSuffixes  = vanilla.CheckBox( (15+2, 12+50, -15, 20), "Ignore dotsuffix:", value=False, sizeStyle='small', callback=self.buttonCheck )
-		self.w.suffixToBeIgnored = vanilla.EditText( (150, 12+50, -15, 20), ".alt", sizeStyle = 'small')
-
-		self.w.keepWindowOpen  = vanilla.CheckBox( (15+2, 12+75, -15, 20), "Keep this window open", value=False, sizeStyle='small', callback=self.buttonCheck )
+		self.w.keepWindowOpen  = vanilla.CheckBox( (15+2, 12+100, -15, 20), "Keep this window open", value=False, sizeStyle='small', callback=self.buttonCheck )
 		
 		self.w.copybutton = vanilla.Button((-80, -32, -15, 17), "Copy", sizeStyle='small', callback=self.copyMetrics)
 		self.w.setDefaultButton( self.w.copybutton )
@@ -59,6 +63,16 @@ class MetricsCopy( object ):
 			self.w.suffixToBeIgnored.enable( onOff=True )
 		else:
 			self.w.suffixToBeIgnored.enable( onOff=False )
+			
+		# Both RSB and Width must not be on:
+		if sender:
+			if sender == self.w.rsb:
+				target = self.w.width
+			elif sender == self.w.width:
+				target = self.w.rsb
+			
+			if sender.get() and target.get():
+				target.set( not sender.get() )
 		
 		if not self.SavePreferences( self ):
 			self.outputError( "Could not save preferences." )
@@ -67,6 +81,9 @@ class MetricsCopy( object ):
 		try:
 			Glyphs.defaults["com.mekkablue.MetricsCopy.ignoreSuffixes"] = self.w.ignoreSuffixes.get()
 			Glyphs.defaults["com.mekkablue.MetricsCopy.suffixToBeIgnored"] = self.w.suffixToBeIgnored.get()
+			Glyphs.defaults["com.mekkablue.MetricsCopy.rsb"] = self.w.rsb.get()
+			Glyphs.defaults["com.mekkablue.MetricsCopy.lsb"] = self.w.lsb.get()
+			Glyphs.defaults["com.mekkablue.MetricsCopy.width"] = self.w.width.get()
 			return True
 		except:
 			return False
@@ -75,6 +92,9 @@ class MetricsCopy( object ):
 		try:
 			self.w.ignoreSuffixes.set( Glyphs.defaults["com.mekkablue.MetricsCopy.ignoreSuffixes"] )
 			self.w.suffixToBeIgnored.set( Glyphs.defaults["com.mekkablue.MetricsCopy.suffixToBeIgnored"] )
+			self.w.lsb.set( Glyphs.defaults["com.mekkablue.MetricsCopy.lsb"] )
+			self.w.rsb.set( Glyphs.defaults["com.mekkablue.MetricsCopy.rsb"] )
+			self.w.width.set( Glyphs.defaults["com.mekkablue.MetricsCopy.width"] )
 			return True
 		except:
 			return False
@@ -83,6 +103,9 @@ class MetricsCopy( object ):
 		fromFont = self.w.from_font.getItems()[ self.w.from_font.get() ]
 		toFont   = self.w.to_font.getItems()[ self.w.to_font.get() ]
 		ignoreSuffixes = self.w.ignoreSuffixes.get()
+		lsbIsSet = self.w.lsb.get()
+		rsbIsSet = self.w.rsb.get()
+		widthIsSet = self.w.width.get()
 		suffixToBeIgnored = self.w.suffixToBeIgnored.get().strip(".")
 		
 		sourceDoc      = [ d for d in Glyphs.orderedDocuments() if ("%s - %s" % ( d.font.familyName, d.selectedFontMaster().name )) == fromFont ][0]
@@ -106,9 +129,15 @@ class MetricsCopy( object ):
 						glyphName = glyphName[:-len(suffixToBeIgnored)-1]
 						
 				sourceLayer = sourceFont.glyphs[ glyphName ].layers[ sourceMaster ]
-				thisLayer.setLSB_( sourceLayer.LSB )
-				thisLayer.setRSB_( sourceLayer.RSB )
-				print "   ", thisLayer.LSB, "<-", glyphName, "->", thisLayer.RSB
+				
+				if lsbIsSet:
+					thisLayer.setLSB_( sourceLayer.LSB )
+				if rsbIsSet:
+					thisLayer.setRSB_( sourceLayer.RSB )
+				if widthIsSet:
+					thisLayer.setWidth_( sourceLayer.width )
+
+				print "     %i <- %s -> %i (w: %i)" % ( thisLayer.LSB, glyphName, thisLayer.RSB, thisLayer.width )
 			except Exception, e:
 				if "'objc.native_selector' object has no attribute 'name'" not in e: # CR in the selection string
 					print "Error:", e
