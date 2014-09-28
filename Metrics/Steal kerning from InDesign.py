@@ -76,14 +76,14 @@ end tell
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
 
-kernInfo  = runAppleScript( getKernValuesFromInDesign )
+kernInfo  = unicode(runAppleScript( getKernValuesFromInDesign ), "utf-8")
 fontName  = runAppleScript( getNameOfFont )
 docName   = runAppleScript( getNameOfDocument )
 frameText = runAppleScript( getTextOfFrame )
 
 fontName = fontName.replace("\t", " ").replace("font ","").strip()
 docName = docName.strip()
-frameText = frameText.strip()
+frameText = unicode(frameText.strip(), "utf-8")
 
 if len(frameText) > 60:
 	frameText = frameText[:60] + "..."
@@ -97,7 +97,10 @@ for thisline in kernInfo.splitlines():
 	if len(thisline) > 5:
 		leftSide = glyphNameForLetter(thisline[0])
 		rightSide = glyphNameForLetter(thisline[1])
-		kernValue = float(thisline[3:])
+		try:
+			kernValue = float(thisline[3:])
+		except:
+			kernValue = 0.0
 		try:
 			thisFont.setKerningForPair(thisFontMasterID, leftSide, rightSide, kernValue)
 			print "  Kerning for %s-%s set to %i." % (leftSide, rightSide, kernValue)
