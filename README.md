@@ -48,7 +48,7 @@ While we're at it, we can also install Robofab, DialogKit, and FontTools. You do
 
 ## Components
 * **Delete all components:** Deletes ALL components in selected glyphs. Be careful or use TimeMachine. You have been warned.
-* **Disable alignment:** Disables automatic alignment for all components in selected glyphs. Does the same as the command in the context menu, but you can do it in one step for many glyphs.
+* **Enable** and **Disable alignment:** Enables or disables automatic alignment for all components on visible layers in selected glyphs. Does the same as the command in the context menu, but you can do it in one step for many glyphs.
 * **New Edit tab with compound glyphs:** Opens a new edit tab with the currently selected glyphs plus all compound glyphs containing them as components. Similar to the command in the context menu, but also accepts multiple glyphs as selection.
 * **Replace components:** Relinks components in selected glyphs to a new source glyph. *Needs Vanilla.*
 

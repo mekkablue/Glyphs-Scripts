@@ -13,9 +13,13 @@ def process( thisLayer ):
 	for thisComp in thisLayer.components:
 		thisComp.setDisableAlignment_( True )
 
+thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
-	print "Disabling automatic alignment in", thisGlyph.name
+	print "Disabling auto-alignment in", thisGlyph.name
 	thisGlyph.beginUndo()
 	process( thisLayer )
 	thisGlyph.endUndo()
+
+thisFont.enableUpdateInterface() # re-enables UI updates in Font View
