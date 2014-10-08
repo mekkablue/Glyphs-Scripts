@@ -47,6 +47,7 @@ While we're at it, we can also install Robofab, DialogKit, and FontTools. You do
 * **Fix Arabic anchor order in ligatures:** Fixes the order of *top_X* and *bottom_X* anchors to RTL. In files converted from a different format, it sometimes happens that *top_1* is left of *top_2*, but it should be the other way around, otherwise your mark2liga will mess up. This script goes through your selected glyphs, and if they are Arabic ligatures, reorders all anchors to RTL order, at the same time not touching their coordinates.
 
 ## Components
+* **Align Components:** Fakes auto-alignment in glyphs that cannot be auto-aligned.
 * **Delete all components:** Deletes ALL components in selected glyphs. Be careful or use TimeMachine. You have been warned.
 * **Enable** and **Disable alignment:** Enables or disables automatic alignment for all components on visible layers in selected glyphs. Does the same as the command in the context menu, but you can do it in one step for many glyphs.
 * **New Edit tab with compound glyphs:** Opens a new edit tab with the currently selected glyphs plus all compound glyphs containing them as components. Similar to the command in the context menu, but also accepts multiple glyphs as selection.
