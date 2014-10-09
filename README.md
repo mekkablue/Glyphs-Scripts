@@ -128,6 +128,7 @@ While we're at it, we can also install Robofab, DialogKit, and FontTools. You do
 * All **Distribute** scripts distribute all selected nodes horizontally or vertically, whatever is closer or what the script title says.
 * All **Move > Move** scripts move the selected glyph(s) up/down by the specified distance, similar to what (shift-)ctrl-cmd-left/rightarrow does. As shortcut, I therefore recommend (shift-)ctrl-cmd-up/downarrow.
 * **Close all open paths:** Closes all open paths in the visible layers of all selected glyphs.
+* **Copy Glyphs from Other Font into Backup Layers:** Creates backup layers for selected glyphs in target font, and fills them with the respective glyphs from source font. Useful if you want to add glyphs from one font as bracket layers in another.
 * **Delete all open paths:** Deletes all *open* paths in the visible layers of all selected glyphs.
 * **Delete all paths:** Deletes *all paths* in the visible layers of all selected glyphs. Be careful.
 * **Delete duplicate paths:** Deletes exact path duplicates (same paths on top of each other) in the visible layers of all selected glyphs.
