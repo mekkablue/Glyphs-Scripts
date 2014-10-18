@@ -26,7 +26,7 @@ class MetricsCopy( object ):
 		self.w.ignoreSuffixes  = vanilla.CheckBox( (15+2, 12+75, -15, 20), "Ignore dotsuffix:", value=False, sizeStyle='small', callback=self.buttonCheck )
 		self.w.suffixToBeIgnored = vanilla.EditText( (150, 12+75, -15, 20), ".alt", sizeStyle = 'small')
 
-		self.w.keepWindowOpen  = vanilla.CheckBox( (15+2, 12+100, -15, 20), "Keep this window open", value=False, sizeStyle='small', callback=self.buttonCheck )
+		self.w.keepWindowOpen  = vanilla.CheckBox( (15+2, 12+100, -15, 20), "Keep this window open", value=False, sizeStyle='small' )
 		
 		self.w.copybutton = vanilla.Button((-80, -32, -15, 17), "Copy", sizeStyle='small', callback=self.copyMetrics)
 		self.w.setDefaultButton( self.w.copybutton )
@@ -51,6 +51,7 @@ class MetricsCopy( object ):
 		# and disable action button if they do:
 		fromFont = self.w.from_font.getItems()[ self.w.from_font.get() ]
 		toFont   = self.w.to_font.getItems()[ self.w.to_font.get() ]
+		
 		if fromFont == toFont:
 			self.w.copybutton.enable( onOff=False )
 		else:
