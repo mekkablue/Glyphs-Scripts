@@ -163,6 +163,7 @@ While we're at it, we can also install Robofab, DialogKit, and FontTools. You do
 ## Test
 * **Compare Font Family:** Compares a few Font Info entries between all currently opened fonts, and displays them in the Macro window if there are any differences.
 * **Preflight Font:** Checks for a few common mistakes, like bad glyph names, and reports them to the Macro Window.
+* **Report Area in Square Units:** Calculates the area of each selected glyph, and outputs the result to the Macro Window in square units. Increase precision by changing the value for the PRECISION variable in line 9 (script will slow down).
 * **Report highest glyphs:** Outputs list of selected glyphs, ordered by the highest point of the glyph bounding boxes.
 * **Report lowest glyphs:** Outputs list of selected glyphs, ordered by the lowest point of the glyph bounding boxes.
 
