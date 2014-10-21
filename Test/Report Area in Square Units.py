@@ -21,12 +21,13 @@ def sizeOfSlice( thisLayer, y ):
 	endPoint   = NSPoint( endPointX, y )
 	listOfIntersections = measurementTool.calculateIntersectionsForLayer_startPoint_endPoint_( thisLayer, startPoint, endPoint )
 	totalLength = 0.0
-	listOfIntersections.pop(0)
-	listOfIntersections.pop(-1)
-	for thisPairIndex in range(len(listOfIntersections)/2):
-		firstNode = listOfIntersections[ thisPairIndex*2 ].pointValue()
-		secondNode = listOfIntersections[ thisPairIndex*2+1 ].pointValue()
-		totalLength += abs( secondNode.x - firstNode.x )
+	if len(listOfIntersections) >= 4:
+		listOfIntersections.pop(0)
+		listOfIntersections.pop(-1)
+		for thisPairIndex in range(len(listOfIntersections)/2):
+			firstNode = listOfIntersections[ thisPairIndex*2 ].pointValue()
+			secondNode = listOfIntersections[ thisPairIndex*2+1 ].pointValue()
+			totalLength += abs( secondNode.x - firstNode.x )
 	return totalLength
 
 def areaForLayer( thisLayer, precision = 2 ):
