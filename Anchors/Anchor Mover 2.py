@@ -132,53 +132,54 @@ class AnchorMover2( object ):
 		
 		for originalLayer in selectedLayers:
 			if originalLayer.name != None:
-				thisGlyph = originalLayer.parent
-				copyLayer = originalLayer.copyDecomposedLayer()
-				thisGlyph.beginUndo() # not working?
+				if len(originalLayer.anchors) > 0:
+					thisGlyph = originalLayer.parent
+					copyLayer = originalLayer.copyDecomposedLayer()
+					thisGlyph.beginUndo() # not working?
 				
-				try:
-					if respectItalic:
-						for mPath in copyLayer.paths:
-							for mNode in mPath.nodes:
-								mNode.x = italicSkew( mNode.x, mNode.y, -italicAngle )
+					try:
+						if respectItalic:
+							for mPath in copyLayer.paths:
+								for mNode in mPath.nodes:
+									mNode.x = italicSkew( mNode.x, mNode.y, -italicAngle )
 							
-						for mAnchor in copyLayer.anchors:
-							mAnchor.x = italicSkew( mAnchor.x, mAnchor.y, -italicAngle )
+							for mAnchor in copyLayer.anchors:
+								mAnchor.x = italicSkew( mAnchor.x, mAnchor.y, -italicAngle )
 							
-					for originalAnchor in originalLayer.anchors:
-						if originalAnchor.name == anchor_name:
-							old_anchor_x = originalAnchor.x
-							old_anchor_y = originalAnchor.y
-							xMove = eval( evalCodeH ) + horizontal_change
-							yMove = eval( evalCodeV ) + vertical_change
+						for originalAnchor in originalLayer.anchors:
+							if originalAnchor.name == anchor_name:
+								old_anchor_x = originalAnchor.x
+								old_anchor_y = originalAnchor.y
+								xMove = eval( evalCodeH ) + horizontal_change
+								yMove = eval( evalCodeV ) + vertical_change
 						
-							# Ignore moves relative to bbox if there are no paths:
-							if not copyLayer.paths:
-								if "bounds" in evalCodeH:
-									xMove = old_anchor_x
+								# Ignore moves relative to bbox if there are no paths:
+								if not copyLayer.paths:
+									if "bounds" in evalCodeH:
+										xMove = old_anchor_x
 						
-								if "bounds" in evalCodeV:
-									yMove = old_anchor_y
+									if "bounds" in evalCodeV:
+										yMove = old_anchor_y
 						
-							# Only move if the calculated position differs from the original one:
-							if [ int(old_anchor_x + italicCorrection), int(old_anchor_y) ] != [ int(xMove), int(yMove) ]:
+								# Only move if the calculated position differs from the original one:
+								if [ int(old_anchor_x + italicCorrection), int(old_anchor_y) ] != [ int(xMove), int(yMove) ]:
 							
-								if respectItalic:
-									# skew back
-									xMove = italicSkew( xMove, yMove, italicAngle ) - italicCorrection
-									old_anchor_x = italicSkew( old_anchor_x, old_anchor_y, italicAngle ) - italicCorrection
+									if respectItalic:
+										# skew back
+										xMove = italicSkew( xMove, yMove, italicAngle ) - italicCorrection
+										old_anchor_x = italicSkew( old_anchor_x, old_anchor_y, italicAngle ) - italicCorrection
 						
-								originalAnchor.position = NSMakePoint( xMove, yMove )
+									originalAnchor.position = NSMakePoint( xMove, yMove )
 						
-								print "Moved %s anchor from %i, %i to %i, %i in %s." % ( anchor_name, old_anchor_x, old_anchor_y, xMove, yMove, thisGlyph.name )
-							else:
-								print "Keeping %s anchor at %i, %i in %s." % ( anchor_name, old_anchor_x, old_anchor_y, thisGlyph.name )
+									print "Moved %s anchor from %i, %i to %i, %i in %s." % ( anchor_name, old_anchor_x, old_anchor_y, xMove, yMove, thisGlyph.name )
+								else:
+									print "Keeping %s anchor at %i, %i in %s." % ( anchor_name, old_anchor_x, old_anchor_y, thisGlyph.name )
 							
-				except Exception, e:
-					print "ERROR: Failed to move anchor in %s." % thisGlyph.name
-					print e
-				finally:
-					thisGlyph.endUndo()
+					except Exception, e:
+						print "ERROR: Failed to move anchor in %s." % thisGlyph.name
+						print e
+					finally:
+						thisGlyph.endUndo()
 					
 		Font.enableUpdateInterface() 
 		print "Done."

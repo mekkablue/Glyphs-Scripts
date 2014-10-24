@@ -6,7 +6,6 @@ Inserts Rectangles in all empty, selected glyphs.
 
 import GlyphsApp
 
-
 Font = Glyphs.font
 FontMaster = Font.selectedFontMaster
 selectedLayers = Font.selectedLayers
