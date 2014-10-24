@@ -12,6 +12,7 @@ listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyph
 def process( thisLayer ):
 	indexesOfPathsToBeRemoved = []
 	numberOfPaths = len(thisLayer.paths)
+	numberOfDeletedPaths = 0
 	
 	for thisPathNumber in range( numberOfPaths ):
 		if thisPathNumber < (numberOfPaths - 1):
@@ -24,14 +25,21 @@ def process( thisLayer ):
 	if indexesOfPathsToBeRemoved:
 		for thatIndex in reversed( sorted( indexesOfPathsToBeRemoved )):
 			thisLayer.removePathAtIndex_( thatIndex )
+			numberOfDeletedPaths += 1
+	
+	return numberOfDeletedPaths
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
 for thisLayer in listOfSelectedLayers:
 	thisGlyph = thisLayer.parent
-	print "Processing", thisGlyph.name
 	thisGlyph.beginUndo() # begin undo grouping
-	process( thisLayer )
+	numberOfDeletions = process( thisLayer )
+	if numberOfDeletions > 0:
+		pathOrPaths = "path"
+		if numberOfDeletions > 1:
+			pathOrPaths += "s"
+		print "Deleted %i duplicate %s in %s." % ( numberOfDeletions, pathOrPaths, thisGlyph.name)
 	thisGlyph.endUndo()   # end undo grouping
 
 thisFont.enableUpdateInterface() # re-enables UI updates in Font View
