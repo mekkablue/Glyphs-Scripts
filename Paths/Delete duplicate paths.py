@@ -24,12 +24,12 @@ def process( thisLayer ):
 	if indexesOfPathsToBeRemoved:
 		for thatIndex in reversed( sorted( indexesOfPathsToBeRemoved )):
 			thisLayer.removePathAtIndex_( thatIndex )
+			print "Paths in %s deleted" % thisGlyph.name
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
 for thisLayer in listOfSelectedLayers:
 	thisGlyph = thisLayer.parent
-	print "Processing", thisGlyph.name
 	thisGlyph.beginUndo() # begin undo grouping
 	process( thisLayer )
 	thisGlyph.endUndo()   # end undo grouping
