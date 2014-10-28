@@ -83,7 +83,7 @@ While we're at it, we can also install Robofab, DialogKit, and FontTools. You do
 * **Transform Images:** GUI for batch-transforming images (x/y offset and x/y scale) in the visible layers of selected glyphs. *Needs Vanilla.*
 
 ## Masters
-* **Copy layer to layer:** Copies paths from one Master to another. *Needs Vanilla.*
+* **Copy layer to layer:** Copies paths (and optionally, also components, anchors and metrics) from one Master to another. *Needs Vanilla.*
 * **Dekink:** Dekinks your smooth transitions which are not horizontal or vertical. Select one or more angled smooth connections and run this script to move the corresponding nodes in all other masters to the same relative position. There is a video describing it: http://tinyurl.com/dekink-py
 * **Delete all non-Master layers:** Deletes all layers which are not master layers. Useful for getting rid of backup layers.
 * **Fill up empty layers:** Copies paths from one Master to another. But only if target master is empty. *Needs Vanilla.*

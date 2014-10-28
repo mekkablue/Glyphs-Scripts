@@ -27,7 +27,7 @@ def getComponentScaleX_scaleY_rotation( self ):
 class MasterFiller( object ):
 
 	def __init__( self ):
-		self.w = vanilla.FloatingWindow((300, 100), "Copy layer to layer")
+		self.w = vanilla.FloatingWindow((300, 120), "Copy layer to layer")
 
 		self.w.text_1 = vanilla.TextBox((15, 12+2, 120, 14), "Copy paths from", sizeStyle='small')
 		self.w.master_from = vanilla.PopUpButton((120, 12, -15, 17), self.GetMasterNames(), sizeStyle='small', callback=self.MasterChangeCallback)
@@ -35,14 +35,39 @@ class MasterFiller( object ):
 		self.w.text_2 = vanilla.TextBox((15, 32+2, 120, 14), "into selection of", sizeStyle='small')
 		self.w.master_into = vanilla.PopUpButton((120, 32, -15, 17), self.GetMasterNames(), sizeStyle='small', callback=self.MasterChangeCallback)
 
-		self.w.include_components = vanilla.CheckBox((15, 52+2, -100, 20), "Include components", sizeStyle='small', value=True)
-		self.w.include_anchors = vanilla.CheckBox((15, 52+20, -100, 20), "Include anchors", sizeStyle='small', value=True)
+		self.w.include_components = vanilla.CheckBox((15, 52+2, -100, 20), "Include components", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.include_anchors = vanilla.CheckBox((15, 52+20, -100, 20), "Include anchors", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.include_metrics = vanilla.CheckBox((15, 52+38, -100, 20), "Include metrics", sizeStyle='small', callback=self.SavePreferences, value=True)
 
 		self.w.copybutton = vanilla.Button((-80, -30, -15, -10), "Copy", sizeStyle='small', callback=self.buttonCallback)
 		self.w.setDefaultButton( self.w.copybutton )
-
+		
+		# Load Settings:
+		if not self.LoadPreferences():
+			print "Note: 'Copy Layer to Layer' could not load preferences. Will resort to defaults."
+		
 		self.w.open()
 		self.w.master_into.set(1)
+	
+	def SavePreferences( self, sender ):
+		try:
+			Glyphs.defaults["com.mekkablue.MasterFiller.include_components"] = self.w.include_components.get()
+			Glyphs.defaults["com.mekkablue.MasterFiller.include_anchors"] = self.w.include_anchors.get()
+			Glyphs.defaults["com.mekkablue.MasterFiller.include_metrics"] = self.w.include_metrics.get()
+		except:
+			return False
+			
+		return True
+
+	def LoadPreferences( self ):
+		try:
+			self.w.include_components.set( Glyphs.defaults["com.mekkablue.MasterFiller.include_components"] )
+			self.w.include_anchors.set( Glyphs.defaults["com.mekkablue.MasterFiller.include_anchors"] )
+			self.w.include_metrics.set( Glyphs.defaults["com.mekkablue.MasterFiller.include_metrics"] )
+		except:
+			return False
+			
+		return True
 	
 	def GetMasterNames( self ):
 		myMasterList = []
@@ -77,6 +102,7 @@ class MasterFiller( object ):
 				for n in thisPath.nodes:
 					newNode = GSNode()
 					newNode.type = n.type
+					newNode.connection = n.connection
 					newNode.setPosition_( (n.x, n.y) )
 					newPath.addNode_( newNode )
 
@@ -121,7 +147,15 @@ class MasterFiller( object ):
 				newAnchor = GSAnchor( anchorName, anchorPosition )
 				print "-- %s (%i, %i)" % ( anchorName, anchorPosition.x, anchorPosition.y )
 				targetLayer.addAnchor_( newAnchor )
-			
+	
+	def copyMetricsFromLayerToLayer( self, sourceLayer, targetLayer ):
+		"""Copies width of sourceLayer to targetLayer."""
+		sourceWidth = sourceLayer.width
+		if targetLayer.width != sourceWidth:
+			targetLayer.width = sourceWidth
+			print "- Copying width (%.1f)" % sourceWidth
+		else:
+			print "- Width not changed (already was %.1f)" % sourceWidth
 
 	def buttonCallback( self, sender ):
 		Glyphs.clearLog()
@@ -136,6 +170,7 @@ class MasterFiller( object ):
 		index_into = self.w.master_into.get()
 		compYesNo  = self.w.include_components.get()
 		anchYesNo  = self.w.include_anchors.get()
+		metrYesNo  = self.w.include_metrics.get()
 				
 		for thisGlyph in selectedGlyphs:
 			try:
@@ -156,6 +191,10 @@ class MasterFiller( object ):
 				# copy anchors:
 				if anchYesNo:
 					self.copyAnchorsFromLayerToLayer( sourcelayer, targetlayer )
+				
+				# copy metrics:
+				if metrYesNo:
+					self.copyMetricsFromLayerToLayer( sourcelayer, targetlayer )
 					
 				Font.enableUpdateInterface()
 			except Exception, e:
