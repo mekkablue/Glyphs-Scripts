@@ -1,7 +1,7 @@
-#MenuTitle: Adjust Kerning in Master
+#MenuTitle: Adjust Kerning For Glyph
 # -*- coding: utf-8 -*-
 __doc__="""
-Adjusts all kerning values by a specified amount.
+Adjusts all kerning values by a specified amount all pairs containing a specific glyph.
 """
 
 import vanilla
@@ -11,7 +11,7 @@ optionList = [ "Multiply by", "Add", "Add Absolute", "Round by" ]
 
 class AdjustKerning( object ):
 	def __init__( self ):
-		self.w = vanilla.FloatingWindow( (350, 110), "Adjust Kerning", minSize=(280, 110), maxSize=(600, 110), autosaveName="com.mekkablue.AdjustKerning.mainwindow" )
+		self.w = vanilla.FloatingWindow( (350, 140), "Adjust Kerning", minSize=(280, 140), maxSize=(600, 140), autosaveName="com.mekkablue.AdjustKerning.mainwindow" )
 
 		self.w.text_1 = vanilla.TextBox( (15-1, 12+2, -15, 14), "All kerning pairs in the current Master:", sizeStyle='small' )
 		self.w.popup_1 = vanilla.PopUpButton( (15, 36, 100, 17), optionList, callback=self.SavePreferences, sizeStyle='small' )
@@ -19,10 +19,13 @@ class AdjustKerning( object ):
 		
 		self.w.runButton = vanilla.Button((-80-15, 36, -15, 17), "Adjust", sizeStyle='small', callback=self.AdjustKerningMain )
 		self.w.setDefaultButton( self.w.runButton )
-		
-		self.w.keepWindow = vanilla.CheckBox( (15, 60, -15, 20), "Keep window open", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		
-		
+				
+		self.w.text_2 = vanilla.TextBox( (15-1, 64, -15, 14), "For glyph name:", sizeStyle='small' )
+
+		self.w.value_2 = vanilla.EditText((15+100+10, 62, -80-15-10, 19), "A", sizeStyle='small', callback=self.SavePreferences)
+
+		self.w.keepWindow = vanilla.CheckBox( (15, 84, -15, 20), "Keep window open", value=False, callback=self.SavePreferences, sizeStyle='small' )
+
 		try:
 			self.LoadPreferences( )
 		except:
@@ -70,54 +73,79 @@ class AdjustKerning( object ):
 			
 			calculation = str( self.w.popup_1.getItems()[ self.w.popup_1.get() ] )
 			value = float( self.w.value_1.get() )
+			kernGlyph = self.w.value_2.get()
 			
 			if calculation == optionList[0]:
 
 				for leftGlyphID in MasterKernDict.keys():
 					leftName = self.nameForID( Font, leftGlyphID )
-					
+					if leftName[0] =="@" and leftName[7:] == kernGlyph or leftName == kernGlyph:
+						for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
+							originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
+							rightName = nameForID( Font, rightGlyphID )
+
+							Font.setKerningForPair( MasterID, leftName, rightName, originalKerning * value )
+							
 					for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
 						originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
 						rightName = self.nameForID( Font, rightGlyphID )
 
-						Font.setKerningForPair( MasterID, leftName, rightName, originalKerning * value )
+						if rightName[0] =="@" and rightName[7:] == kernGlyph or rightName == kernGlyph:
+							Font.setKerningForPair( MasterID, leftName, rightName, originalKerning * value )
 
 			elif calculation == optionList[1]:
 				
 				for leftGlyphID in MasterKernDict.keys():
 					leftName = self.nameForID( Font, leftGlyphID )
+					if leftName[0] =="@" and leftName[7:] == kernGlyph or leftName == kernGlyph:
+						for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
+							originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
+							rightName = nameForID( Font, rightGlyphID )
 
+							Font.setKerningForPair( MasterID, leftName, rightName, originalKerning + value )
+							
 					for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
 						originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
 						rightName = self.nameForID( Font, rightGlyphID )
 
-						Font.setKerningForPair( MasterID, leftName, rightName, originalKerning + value )
+						if rightName[0] =="@" and rightName[7:] == kernGlyph or rightName == kernGlyph:
+							Font.setKerningForPair( MasterID, leftName, rightName, originalKerning + value )
 						
 			elif calculation == optionList[2]:
 				
 				for leftGlyphID in MasterKernDict.keys():
 					leftName = self.nameForID( Font, leftGlyphID )
+					if leftName[0] =="@" and leftName[7:] == kernGlyph or leftName == kernGlyph:
+						for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
+							originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
+							rightName = nameForID( Font, rightGlyphID )
 
+							Font.setKerningForPair( MasterID, leftName, rightName, originalKerning + vactor * value )
+							
 					for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
 						originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
 						rightName = self.nameForID( Font, rightGlyphID )
 
-						if originalKerning < 0:
-							factor = -1
-						else:
-							factor = 1
-						Font.setKerningForPair( MasterID, leftName, rightName, originalKerning + factor * value )
+						if rightName[0] =="@" and rightName[7:] == kernGlyph or rightName == kernGlyph:
+							Font.setKerningForPair( MasterID, leftName, rightName, originalKerning + factor * value )
 						
 			elif calculation == optionList[3]:
 				
 				for leftGlyphID in MasterKernDict.keys():
 					leftName = self.nameForID( Font, leftGlyphID )
-					
+					if leftName[0] =="@" and leftName[7:] == kernGlyph or leftName == kernGlyph:
+						for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
+							originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
+							rightName = nameForID( Font, rightGlyphID )
+
+							Font.setKerningForPair( MasterID, leftName, rightName, round( originalKerning / value, 0 ) * value )
+							
 					for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
 						originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
 						rightName = self.nameForID( Font, rightGlyphID )
 
-						Font.setKerningForPair( MasterID, leftName, rightName, round( originalKerning / value, 0 ) * value )
+						if rightName[0] =="@" and rightName[7:] == kernGlyph or rightName == kernGlyph:
+							Font.setKerningForPair( MasterID, leftName, rightName, round( originalKerning / value, 0 ) * value )
 				
 			Font.enableUpdateInterface()
 			
