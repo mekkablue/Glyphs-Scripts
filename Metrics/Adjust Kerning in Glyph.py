@@ -120,7 +120,7 @@ class AdjustKerning( object ):
 							originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
 							rightName = nameForID( Font, rightGlyphID )
 
-							Font.setKerningForPair( MasterID, leftName, rightName, originalKerning + vactor * value )
+							Font.setKerningForPair( MasterID, leftName, rightName, originalKerning + factor * value )
 							
 					for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
 						originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
