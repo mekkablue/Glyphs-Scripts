@@ -64,39 +64,39 @@ class Rotator(object):
 		self.w.stepAndRepeat_cw  = vanilla.Button((-80, 65, -15, 15-3), u"↻+ cw", sizeStyle = 'small', callback = self.rotate )
 		
 		if not self.LoadPreferences():
-			print "Rotate: Could not load prefs, will resort to defaults."
+			self.logToConsole( "Rotate: Could not load prefs, will resort to defaults." )
 		self.setDefaultRotateAnchor()
 		self.w.open()
+		self.w.makeKey()
 		
 	def SavePreferences( self, sender ):
 		try:
 			Glyphs.defaults["com.mekkablue.rotateAroundAnchor.rotate_degrees"] = self.w.rotate_degrees.get()
 			Glyphs.defaults["com.mekkablue.rotateAroundAnchor.stepAndRepeat_times"] = self.w.stepAndRepeat_times.get()
+			return True
 		except:
 			return False
 			
-		return True
-
 	def LoadPreferences( self ):
 		try:
 			self.w.rotate_degrees.set( Glyphs.defaults["com.mekkablue.rotateAroundAnchor.rotate_degrees"] )
 			self.w.stepAndRepeat_times.set( Glyphs.defaults["com.mekkablue.rotateAroundAnchor.stepAndRepeat_times"] )
+			return True
 		except:
 			return False
-			
-		return True
 
 	def setRotateAnchor(self, sender):
-		selectedLayers = Glyphs.currentDocument.selectedLayers()
-		
-		myRotationCenter = NSPoint()
-		myRotationCenter.x = int( self.w.anchor_x.get() )
-		myRotationCenter.y = int( self.w.anchor_y.get() )
-		myRotationAnchor = GSAnchor( "rotate", myRotationCenter )
-				
-		for thisLayer in selectedLayers:
-			# adds 'rotate' if it doesn't exist, resets it if it exists:
-			thisLayer.addAnchor_( myRotationAnchor )
+		try:
+			selectedLayers = Glyphs.currentDocument.selectedLayers()
+			myRotationCenter = NSPoint()
+			myRotationCenter.x = int( self.w.anchor_x.get() )
+			myRotationCenter.y = int( self.w.anchor_y.get() )
+			myRotationAnchor = GSAnchor( "rotate", myRotationCenter )
+			for thisLayer in selectedLayers:
+				# adds 'rotate' if it doesn't exist, resets it if it exists:
+				thisLayer.addAnchor_( myRotationAnchor )
+		except Exception as e:
+			self.logToConsole( "setRotateAnchor: %s" % str(e) )
 	
 	def setDefaultRotateAnchor(self):
 		try:
@@ -105,8 +105,69 @@ class Rotator(object):
 			self.w.anchor_x.set( str( int(rotationAnchor.x) ) )
 			self.w.anchor_y.set( str( int(rotationAnchor.y) ) )
 		except Exception, e:
-			pass
-		
+			self.logToConsole( "setDefaultRotateAnchor: %s" % str(e) )
+			
+	def stepAndRepeatListOfPaths( self, thisLayer, listOfPaths, RotationTransform, rotationCount ):
+		try:
+			for thisPath in listOfPaths:
+				newPaths = stepAndRepeatPaths( thisPath.copy(), RotationTransform, rotationCount )[1:]
+				for newPath in newPaths:
+					thisLayer.paths.append( newPath.copy() )
+		except Exception as e:
+			self.logToConsole( "stepAndRepeatPaths: %s" % str(e) )
+			
+	def stepAndRepeatListOfComponents( self, thisLayer, listOfComponents, RotationTransform, rotationCount ):
+		try:
+			for thisComponent in listOfComponents:
+				newComponents = stepAndRepeatComponents( thisComponent.copy(), RotationTransform, rotationCount )[1:]
+				for newComponent in newComponents:
+					thisLayer.components.append( newComponent.copy() )
+		except Exception as e:
+			self.logToConsole( "stepAndRepeatComponents: %s" % str(e) )
+	
+	def rotateListOfPaths( self, thisLayer, listOfPaths, RotationTransform, rotationCount ):
+		try:
+			for thisPath in listOfPaths:
+				thisPath = transformPath( thisPath, RotationTransform )
+		except Exception as e:
+			self.logToConsole( "rotateListOfPaths: %s" % str(e) )
+	
+	def rotateListOfComponents( self, thisLayer, listOfComponents, RotationTransform, rotationCount ):
+		try:
+			for thisComponent in listOfComponents:
+				thisComponent = transformComponent( thisComponent, RotationTransform )
+		except Exception as e:
+			self.logToConsole( "rotateListOfComponents: %s" % str(e) )
+			
+	def rotationCenterOfLayer( self, thisLayer ):
+		try:
+			rotationCenter = thisLayer.anchors["rotate"]
+			if rotationCenter:
+				rotationX = rotationCenter.x
+				rotationY = rotationCenter.y
+			else:
+				rotationX = thisLayer.width * 0.5
+				rotationY = 0.0
+			return NSPoint( rotationX, rotationY )
+		except Exception as e:
+			self.logToConsole( "rotationCenter: %s" % str(e) )
+	
+	def rotationTransform( self, rotationCenter, rotationDegrees, rotationDirection ):
+		try:
+			rotationX = rotationCenter.x
+			rotationY = rotationCenter.y#
+			rotation  = rotationDegrees * rotationDirection
+			RotationTransform = NSAffineTransform.transform()
+			RotationTransform.translateXBy_yBy_( rotationX, rotationY )
+			RotationTransform.rotateByDegrees_( rotation )
+			RotationTransform.translateXBy_yBy_( -rotationX, -rotationY )
+			return RotationTransform
+		except Exception as e:
+			self.logToConsole( "rotationTransform: %s" % str(e) )
+
+	def logToConsole( self, thisString ):
+		print thisString
+			
 	def rotate(self, sender):
 		selectedLayers = Glyphs.currentDocument.selectedLayers()
 		originatingButton = sender.getTitle()
@@ -121,90 +182,66 @@ class Rotator(object):
 			rotationCount = int( self.w.stepAndRepeat_times.get() )
 		else:
 			rotationCount = 0
-			
-		if len(selectedLayers) == 1 and selectedLayers[0].selection() != ():
+		
+		rotationDegrees = float( self.w.rotate_degrees.get() )
+		
+		if len(selectedLayers) == 1 and selectedLayers[0].selection():
 			# rotate individually selected nodes and components
-			
-			thisLayer = selectedLayers[0]
-			thisGlyph = thisLayer.parent
-			selection = thisLayer.selection()
-			
-			rotationCenter = thisLayer.anchors["rotate"]
-			rotationX = rotationCenter.x
-			rotationY = rotationCenter.y
-			rotation  = float( self.w.rotate_degrees.get() ) * rotationDirection
-			
-			RotationTransform = NSAffineTransform.transform()
-			RotationTransform.translateXBy_yBy_( rotationX, rotationY )
-			RotationTransform.rotateByDegrees_( rotation )
-			RotationTransform.translateXBy_yBy_( -rotationX, -rotationY )
-			
 			try:
+				thisLayer = selectedLayers[0]
+				thisGlyph = thisLayer.parent
+				selection = thisLayer.selection()
 				thisGlyph.beginUndo()
-			
+				
+				centerOfThisLayer = self.rotationCenterOfLayer(thisLayer)
+				RotationTransform = self.rotationTransform( centerOfThisLayer, rotationDegrees, rotationDirection )
+				
 				if rotationCount == 0: # simple rotation
 					for thisThing in selection:
 						if thisThing.__class__ == GSNode:
 							thisThing = transformNode( thisThing, RotationTransform )
 						elif thisThing.__class__ == GSComponent:
 							thisThing = transformComponent( thisThing, RotationTransform )
-			
+				else: # step and repeat
+					listOfPaths = []
+					listOfComponents = []
+					
+					for thisThing in selection:
+						if thisThing.__class__ == GSNode:
+							# thisPath = thisThing.parent # DOES NOT WORK
+							thisPath = [p for p in thisLayer.paths if thisThing in p.nodes][0]
+							listOfPaths.append( thisPath )
+						elif thisThing.__class__ == GSComponent:
+							listOfComponents.append( thisThing )
+					
+					listOfPaths = list(set(listOfPaths)) # count every path only once
+					self.stepAndRepeatListOfPaths( thisLayer, listOfPaths, RotationTransform, rotationCount )
+					self.stepAndRepeatListOfComponents( thisLayer, listOfComponents, RotationTransform, rotationCount )
+				
 				thisGlyph.endUndo()
 			except Exception, e:
-				raise e
+				self.logToConsole( "rotate: %s\ntrying to rotate individually selected nodes and components" % str(e) )
 			
 		else:
 			# rotate whole layers
-			
 			for thisLayer in selectedLayers:
-				
-				thisGlyph = thisLayer.parent
-				thisGlyph.beginUndo()
-				
 				try:
+					thisGlyph = thisLayer.parent
+					thisGlyph.beginUndo()
+					centerOfThisLayer = self.rotationCenterOfLayer(thisLayer)
+					RotationTransform = self.rotationTransform( centerOfThisLayer, rotationDegrees, rotationDirection )
 					thisLayer.setDisableUpdates()
-				
-					rotationCenter = thisLayer.anchors["rotate"]
-					rotationX = rotationCenter.x
-					rotationY = rotationCenter.y
-					rotation  = float( self.w.rotate_degrees.get() ) * rotationDirection
-				
-					RotationTransform = NSAffineTransform.transform()
-					RotationTransform.translateXBy_yBy_( rotationX, rotationY )
-					RotationTransform.rotateByDegrees_( rotation )
-					RotationTransform.translateXBy_yBy_( -rotationX, -rotationY )
-				
 					if rotationCount == 0: # simple rotation
-						for thisPath in thisLayer.paths:
-							thisPath = transformPath( thisPath, RotationTransform )
-					
-						for thisComponent in thisLayer.components:
-							thisComponent = transformComponent( thisComponent, RotationTransform )
-					
+						self.rotateListOfPaths( thisLayer, thisLayer.paths, RotationTransform, rotationCount )
+						self.rotateListOfComponents( thisLayer, thisLayer.components, RotationTransform, rotationCount )
 					else: # step and repeat
-						newLayer = GSLayer()
-					
-						for thisPath in thisLayer.paths:
-							newPaths = stepAndRepeatPaths( thisPath.copy(), RotationTransform, rotationCount )[1:]
-							for newPath in newPaths:
-								newLayer.paths.append( newPath )
-
-						for injectPath in newLayer.paths:
-							thisLayer.paths.append( injectPath.copy() )
-					
-						for thisComponent in thisLayer.components:
-							newComponents = stepAndRepeatComponents( thisComponent.copy(), RotationTransform, rotationCount )[1:]
-							for newComponent in newComponents:
-								newLayer.components.append( newComponent )
-							
-						for injectComponent in newLayer.components:
-							thisLayer.components.append( injectComponent.copy() )
-				
+						self.stepAndRepeatListOfPaths( thisLayer, thisLayer.paths, RotationTransform, rotationCount )
+						self.stepAndRepeatListOfComponents( thisLayer, thisLayer.components, RotationTransform, rotationCount )
 					thisLayer.setEnableUpdates()
 					thisLayer.updatePath()
 				except Exception, e:
-					raise e
-				
-				thisGlyph.endUndo()
+					self.logToConsole( "rotate: %s\ntrying to rotate whole layers" % str(e) )
+				finally:
+					thisGlyph.endUndo()
 
 Rotator()
