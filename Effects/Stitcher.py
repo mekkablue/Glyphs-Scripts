@@ -192,6 +192,7 @@ class ComponentOnLines( object ):
 
 	def LoadPreferences( self ):
 		try:
+			NSUserDefaults.standardUserDefaults().registerDefaults_({"com.mekkablue.ComponentOnLines.sliderMin": 100, "com.mekkablue.ComponentOnLines.sliderMin": 200})
 			self.w.componentName.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.componentName"] )
 			self.w.sliderMin.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMin"] )
 			self.w.sliderMax.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMax"] )
