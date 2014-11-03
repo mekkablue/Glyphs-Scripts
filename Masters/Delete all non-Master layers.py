@@ -1,13 +1,14 @@
 #MenuTitle: Delete all non-Master layers
 # -*- coding: utf-8 -*-
 __doc__="""
-Goes through selected glyphs and deletes all glyph layers which are not a Master or a Bracket layer.
+Goes through selected glyphs and deletes all glyph layers which are not a Master, Bracket or Brace layer.
 """
 
 import GlyphsApp
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
+searchTerms = [ "[]", "{}" ]
 
 def process( thisGlyph ):
 	count = 0
@@ -17,8 +18,12 @@ def process( thisGlyph ):
 		thisLayer = thisGlyph.layers[i]
 		if thisLayer.layerId != thisLayer.associatedMasterId:
 			thisLayerName = thisLayer.name
-			# delete layer if it has no name or is a bracket layer ("Name [xxx]")
-			if not thisLayerName or thisLayerName.find("[") == -1 or not thisLayerName.endswith("]"):
+			thisLayerShouldBeRemoved = True
+			if thisLayerName:
+				for parentheses in searchTerms:
+					if thisLayerName.find( parentheses[0] ) and thisLayerName.endswith( parentheses[1] ):
+						thisLayerShouldBeRemoved = False
+			if thisLayerShouldBeRemoved:
 				count += 1
 				del thisGlyph.layers[i]
 			
