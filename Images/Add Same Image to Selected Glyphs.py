@@ -32,7 +32,7 @@ print "Putting %s into:" % imageFilePath
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
-	thisGlyph.beginUndo()	
+	thisGlyph.beginUndo()
 	print "-- %s: %s" % ( thisGlyph.name, process( thisLayer ) )
 	thisGlyph.endUndo()
 
