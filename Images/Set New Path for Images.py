@@ -6,6 +6,7 @@ Resets the path for placed images in selected glyphs. Useful if you have moved y
 
 import GlyphsApp
 from PyObjCTools.AppHelper import callAfter
+import os
 
 Font = Glyphs.font
 FontMaster = Font.selectedFontMaster
@@ -15,14 +16,14 @@ newFolder = GetFolder( message="Choose location of placed images:", allowsMultip
 
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
-print "New image paths for selected glyphs:"
-print newFolder
+print "New image paths for selected glyphs:", newFolder
 
 def process( thisLayer ):
 	try:
 		thisImage = thisLayer.backgroundImage()
-		thisImageFileName = thisImage.imagePath().split("/")[-1]
+		thisImageFileName = os.path.basename( thisImage.imagePath() )
 		thisImageNewFullPath = "%s/%s" % ( newFolder, thisImageFileName )
+		print "__path:", thisImageNewFullPath, os.path.join(newFolder, thisImageFileName)
 		thisImage.setImagePath_( thisImageNewFullPath )
 	except Exception as e:
 		if "NoneType" in str(e):
