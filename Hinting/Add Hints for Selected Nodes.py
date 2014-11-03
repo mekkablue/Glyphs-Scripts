@@ -39,8 +39,8 @@ if numberOfSelectedNodes == 1:
 		newHint.originNode = thisNode
 		newHint.type = hintType
 		newHint.horizontal = True
-		thisLayer.addHint_( newHint )
-			
+		thisLayer.hints.append( newHint )
+	
 elif numberOfSelectedNodes % 2 == 0:
 	# Determine horizontal/vertical hints:
 	xCoordinates = sorted( [n.x for n in thisSelection] )

@@ -8,7 +8,7 @@ import GlyphsApp
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
-thisFontMasterID = thisFont.selectedFontMaster.id # active master
+thisFontMasterID = thisFont.selectedFontMaster.id # active master ID
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 
 def process( thisLayer ):

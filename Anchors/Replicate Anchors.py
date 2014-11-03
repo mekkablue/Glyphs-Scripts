@@ -20,17 +20,11 @@ def process( thisLayer ):
 	print "%s <-- %s" % ( thisGlyphName, baseGlyphName )
 	
 	for baseAnchor in baseLayer.anchors:
-		thisAnchorPosition = NSPoint()
-		thisAnchorPosition.x = baseAnchor.x
-		thisAnchorPosition.y = baseAnchor.y
 		
-		thisAnchorName = baseAnchor.name
+		thisAnchor = baseAnchor.copy()
+		thisLayer.anchors[str(thisAnchor.name)] = thisAnchor
 		
-		thisAnchor = GSAnchor( thisAnchorName, thisAnchorPosition )
-		thisLayer.addAnchor_( thisAnchor )
-		
-		print "-- Added %s (%i, %i)" % ( thisAnchorName, thisAnchorPosition.x, thisAnchorPosition.y )
-		
+		print "-- Added %s (%i, %i)" % ( thisAnchor.name, thisAnchor.x, thisAnchor.y )
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
