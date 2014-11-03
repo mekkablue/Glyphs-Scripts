@@ -21,7 +21,7 @@ class MetricsCopy( object ):
 		
 		self.w.lsb   = vanilla.CheckBox( ( 17, 12+50, 80, 20), "LSB", value=True, callback=self.buttonCheck, sizeStyle='small' )
 		self.w.rsb   = vanilla.CheckBox( (97, 12+50, 80, 20), "RSB", value=True, callback=self.buttonCheck, sizeStyle='small' )
-		self.w.width = vanilla.CheckBox( (177, 12+50, 80, 20), "Width", value=False, callback=self.buttonCheck, sizeStyle='small' )		
+		self.w.width = vanilla.CheckBox( (177, 12+50, 80, 20), "Width", value=False, callback=self.buttonCheck, sizeStyle='small' )
 		
 		self.w.ignoreSuffixes  = vanilla.CheckBox( (15+2, 12+75, -15, 20), "Ignore dotsuffix:", value=False, sizeStyle='small', callback=self.buttonCheck )
 		self.w.suffixToBeIgnored = vanilla.EditText( (150, 12+75, -15, 20), ".alt", sizeStyle = 'small')

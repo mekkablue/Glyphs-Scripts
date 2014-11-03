@@ -17,7 +17,7 @@ def process( thisLayer ):
 		if thisLayer.paths[i].closed == False:
 			del thisLayer.paths[i]
 			count += 1
-	thisLayer.parent.endUndo()	
+	thisLayer.parent.endUndo()
 	
 	return count
 

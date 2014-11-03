@@ -8,7 +8,7 @@ import GlyphsApp
 import vanilla
 from PyObjCTools.AppHelper import callAfter
 
-myExcludeString = """ 
+myExcludeString = """
 """ # default = space and return
  # default empty
 

@@ -39,7 +39,7 @@ def process( sourceLayer ):
 	# copy original layer into first master of new glyph:
 	layerCopy = sourceLayer.copy()
 	targetGlyph.layers[ FirstMasterID ] = layerCopy
-	print "Created", targetGlyphName 
+	print "Created", targetGlyphName
 	
 
 for thisLayer in selectedLayers:

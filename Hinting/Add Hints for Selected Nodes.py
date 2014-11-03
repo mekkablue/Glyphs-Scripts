@@ -21,7 +21,7 @@ def hintTypeForY( yValue ):
 		except:
 			# app versions before 1.4.4
 			zonePosition = thisZone.position()
-			zoneSize = thisZone.size() 
+			zoneSize = thisZone.size()
 		if yValue == sorted([zonePosition, zonePosition + zoneSize, yValue])[1]:
 			if zoneSize > 0:
 				return -1
@@ -39,7 +39,7 @@ if numberOfSelectedNodes == 1:
 		newHint.originNode = thisNode
 		newHint.type = hintType
 		newHint.horizontal = True
-		thisLayer.addHint_( newHint )
+		thisLayer.hints.append( newHint )
 			
 elif numberOfSelectedNodes % 2 == 0:
 	# Determine horizontal/vertical hints:

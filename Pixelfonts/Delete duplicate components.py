@@ -39,7 +39,7 @@ def process( thisLayer ):
 		thisLayer.parent.endUndo()
 	else:
 		# no components in this layer
-		print "n/a" 
+		print "n/a"
 
 
 Font.disableUpdateInterface()

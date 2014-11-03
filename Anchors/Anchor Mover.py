@@ -62,7 +62,7 @@ class AnchorMover(object):
 			except:
 				print "Error: Failed to move anchor in %s to %s." % ( thisLayer.parent.name, anchor_y )
 			finally:
-				thisLayer.setEnableUpdates()	
+				thisLayer.setEnableUpdates()
 		
 		print "Done."
 	

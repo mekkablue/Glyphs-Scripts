@@ -107,10 +107,11 @@ def placeDots( thisLayer, useBackground, componentName, distanceBetweenDots ):
 		yOffset = 0.0
 		try:
 			Font = thisLayer.parent.parent
-			FontMasterID = Font.selectedFontMaster.id
+			FontMasterID = thisLayer.associatedMasterId
 			sourceComponent = Font.glyphs[ componentName ]
-			xOffset = -sourceComponent.layers[FontMasterID].anchors["origin"].x
-			yOffset = -sourceComponent.layers[FontMasterID].anchors["origin"].y
+			(xOffset, yOffset) = sourceComponent.layers[FontMasterID].anchors["origin"].position
+			xOffset = -xOffset
+			yOffset = -yOffset
 		except Exception as e:
 			print "-- Note: no origin anchor in '%s', or no glyph with that name." % ( componentName )
 		
@@ -138,7 +139,9 @@ def process( thisLayer, deleteComponents, componentName, distanceBetweenDots, us
 			print "-- Error deleting previously placed components."
 	
 	if useBackground and len( thisLayer.paths ) > 0:
-		thisLayer.clearBackground() # this is a little dangerous if background is active (then front layer is considered the background)
+		if thisLayer.className() == "GSBackgroundLayer":
+			thisLayer = thisLayer.foreground()
+		thisLayer.clearBackground()
 		for thisPath in thisLayer.paths:
 			thisLayer.background.paths.append( thisPath.copy() )
 		
@@ -156,8 +159,8 @@ class ComponentOnLines( object ):
 		self.w.text_1   = vanilla.TextBox( (15-1, 12+2,    15+95, 14), "Place component:", sizeStyle='small' )
 		self.w.text_2   = vanilla.TextBox( (15-1, 12+25+2, 15+95, 14), "At intervals of:", sizeStyle='small' )
 		self.w.componentName = vanilla.EditText( (15+100, 12-1, -15, 19), "circle", sizeStyle='small', callback=self.SavePreferences )
-		self.w.sliderMin = vanilla.EditText( ( 15+100, 12+25-1, 50, 19), str( 30.0 ), sizeStyle='small', callback=self.SavePreferences )
-		self.w.sliderMax = vanilla.EditText( (-15-50, 12+25-1, -15, 19), str( 60.0 ), sizeStyle='small', callback=self.SavePreferences )
+		self.w.sliderMin = vanilla.EditText( ( 15+100, 12+25-1, 50, 19), "30", sizeStyle='small', callback=self.SavePreferences )
+		self.w.sliderMax = vanilla.EditText( (-15-50, 12+25-1, -15, 19), "60", sizeStyle='small', callback=self.SavePreferences )
 		self.w.intervalSlider= vanilla.Slider((15+100+50+10, 12+25, -15-50-10, 19), value=0, minValue=0.0, maxValue=1.0, sizeStyle='small', callback=self.ComponentOnLinesMain )
 
 		#self.w.replaceComponents = vanilla.CheckBox((15+3, 12+25+25,    -15, 19), "Replace existing components", value=True, sizeStyle='small', callback=self.SavePreferences )
@@ -190,6 +193,12 @@ class ComponentOnLines( object ):
 
 	def LoadPreferences( self ):
 		try:
+			NSUserDefaults.standardUserDefaults().registerDefaults_(
+				{
+					"com.mekkablue.ComponentOnLines.sliderMin": "30", 
+					"com.mekkablue.ComponentOnLines.sliderMin": "60"
+				}
+			)
 			self.w.componentName.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.componentName"] )
 			self.w.sliderMin.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMin"] )
 			self.w.sliderMax.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMax"] )
@@ -223,7 +232,7 @@ class ComponentOnLines( object ):
 					thisGlyph = thisLayer.parent
 					# print "Processing", thisGlyph.name
 				
-					thisGlyph.beginUndo()	
+					thisGlyph.beginUndo()
 					process( thisLayer, deleteComponents, componentName, distanceBetweenDots, useBackground )
 					thisGlyph.endUndo()
 

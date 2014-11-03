@@ -11,11 +11,11 @@ positionalFeature = "calt"
 anyLetterClassName = "AnyLetter"
 extensionDef = "Def"
 extensionSub = "Sub"
-ignoreStatements = { 
-	"isol": "ignore sub @isol%s' @%s, @%s @isol%s';" % ( extensionDef, anyLetterClassName, anyLetterClassName, extensionDef ), 
-	"init": "ignore sub @%s @init%s';" % ( anyLetterClassName, extensionDef ), 
+ignoreStatements = {
+	"isol": "ignore sub @isol%s' @%s, @%s @isol%s';" % ( extensionDef, anyLetterClassName, anyLetterClassName, extensionDef ),
+	"init": "ignore sub @%s @init%s';" % ( anyLetterClassName, extensionDef ),
 	"fina": "ignore sub @fina%s' @%s;" % ( extensionDef, anyLetterClassName ),
-	"medi": "sub @%s @medi%s' @%s by @medi%s;" % ( anyLetterClassName, extensionDef, anyLetterClassName, extensionSub ) 
+	"medi": "sub @%s @medi%s' @%s by @medi%s;" % ( anyLetterClassName, extensionDef, anyLetterClassName, extensionSub )
 }
 suffixes = [
 	"isol",
@@ -31,8 +31,8 @@ def updated_code( oldcode, beginsig, endsig, newcode ):
 	newcode = oldcode[:begin_offset] + beginsig + newcode + "\n" + endsig + oldcode[end_offset:]
 	return newcode
 
-def create_otfeature( featurename = "calt", 
-                      featurecode = "# empty feature code", 
+def create_otfeature( featurename = "calt",
+                      featurecode = "# empty feature code",
                       targetfont  = Font,
                       codesig     = "DEFAULT-CODE-SIGNATURE" ):
 	"""
@@ -63,8 +63,8 @@ def create_otfeature( featurename = "calt",
 		targetfont.features.append( newFeature )
 		return "Created new OT feature '%s'" % featurename
 
-def create_otclass( classname   = "@default", 
-                    classglyphs = [ x.parent.name for x in Font.selectedLayers ], 
+def create_otclass( classname   = "@default",
+                    classglyphs = [ x.parent.name for x in Font.selectedLayers ],
                     targetfont  = Font ):
 	"""
 	Creates an OpenType class in the font.

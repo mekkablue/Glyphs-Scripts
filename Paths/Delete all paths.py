@@ -15,7 +15,7 @@ def process( thisLayer ):
 	for i in range( len( thisLayer.paths ))[::-1]:
 		del thisLayer.paths[i]
 		
-	thisLayer.parent.endUndo()	
+	thisLayer.parent.endUndo()
 
 Font.disableUpdateInterface()
 

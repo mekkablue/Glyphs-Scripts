@@ -50,7 +50,7 @@ Font.disableUpdateInterface()
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
-	thisGlyph.beginUndo()	
+	thisGlyph.beginUndo()
 	print "Filling %s: %s." % ( thisGlyph.name, process( thisLayer ) )
 	thisGlyph.endUndo()
 

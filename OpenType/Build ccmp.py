@@ -14,8 +14,8 @@ def updated_code( oldcode, beginsig, endsig, newcode ):
 	newcode = oldcode[:begin_offset] + beginsig + newcode + "\n" + endsig + oldcode[end_offset:]
 	return newcode
 
-def create_otfeature( featurename = "calt", 
-                      featurecode = "# empty feature code", 
+def create_otfeature( featurename = "calt",
+                      featurecode = "# empty feature code",
                       targetfont  = Font,
                       codesig     = "DEFAULT-CODE-SIGNATURE" ):
 	"""
@@ -46,8 +46,8 @@ def create_otfeature( featurename = "calt",
 		targetfont.features.append( newFeature )
 		return "Created new OT feature '%s'" % featurename
 
-def create_otclass( classname   = "@default", 
-                    classglyphs = [ x.parent.name for x in Font.selectedLayers ], 
+def create_otclass( classname   = "@default",
+                    classglyphs = [ x.parent.name for x in Font.selectedLayers ],
                     targetfont  = Font ):
 	"""
 	Creates an OpenType class in the font.

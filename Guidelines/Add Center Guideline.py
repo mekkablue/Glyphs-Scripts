@@ -18,7 +18,8 @@ def addAndSelectGuideline( thisLayer, originPoint, angle ):
 		myGuideline.position = originPoint
 		myGuideline.angle = angle
 		thisLayer.addGuideLine_( myGuideline )
-		thisLayer.setSelection_( NSMutableArray.arrayWithObject_(myGuideline) )
+		thisLayer.clearSelection()
+		thisLayer.addSelection_( myGuideline )
 		return True
 	except Exception as e:
 		print e
@@ -40,7 +41,7 @@ if len(selectedLayers) == 1 and len(selection) == 2:
 	if xDiff < yDiff:
 		guidelineAngle = 0.0
 	
-	thisGlyph.beginUndo()	
+	thisGlyph.beginUndo()
 	if not addAndSelectGuideline( thisLayer, guidelineOrigin, guidelineAngle ):
 		print "Error: Could not add guideline."
 	thisGlyph.endUndo()

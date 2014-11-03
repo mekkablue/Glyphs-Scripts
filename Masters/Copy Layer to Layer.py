@@ -21,7 +21,7 @@ def getComponentScaleX_scaleY_rotation( self ):
 
 		rotation = math.atan2(b, a) * (180/math.pi)
 		
-		return [scale_x, scale_y, rotation]	
+		return [scale_x, scale_y, rotation]
 		
 		
 class MasterFiller( object ):

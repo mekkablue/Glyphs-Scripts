@@ -26,7 +26,7 @@ def dekink( myMaster, compareString, myGlyph, pathIndex, nodeIndex, proportion )
 		
 	except Exception, e:
 		print e
-		return False 
+		return False
 
 try:
 	if currentGlyph.mastersCompatible():

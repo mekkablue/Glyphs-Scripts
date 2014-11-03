@@ -17,7 +17,7 @@ listHorizontal = [
 	["bbox center", "(copyLayer.LSB + (copyLayer.width - copyLayer.RSB)) // 2.0"],
 	["bbox right edge", "copyLayer.width - copyLayer.RSB"],
 	["highest node", "max( [ (max( [x for x in p.nodes if x.type != 65], key=lambda n: n.y )) for p in copyLayer.paths ], key=lambda n: n.y ).x + italicCorrection"],
-	["lowest node", "min( [ (min( [x for x in p.nodes if x.type != 65], key=lambda n: n.y )) for p in copyLayer.paths ], key=lambda n: n.y ).x + italicCorrection"]	
+	["lowest node", "min( [ (min( [x for x in p.nodes if x.type != 65], key=lambda n: n.y )) for p in copyLayer.paths ], key=lambda n: n.y ).x + italicCorrection"]
 ]
 
 listVertical = [
@@ -181,7 +181,7 @@ class AnchorMover2( object ):
 					finally:
 						thisGlyph.endUndo()
 					
-		Font.enableUpdateInterface() 
+		Font.enableUpdateInterface()
 		print "Done."
 	
 	def GetAnchorNames( self ):

@@ -7,7 +7,7 @@ Looks for components out of bounds.
 outOfBounds = 3000.0
 
 import GlyphsApp
-import math 
+import math
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers

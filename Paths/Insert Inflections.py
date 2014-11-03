@@ -72,7 +72,7 @@ Font.disableUpdateInterface()
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
 	print "Processing", thisGlyph.name
-	thisGlyph.beginUndo()	
+	thisGlyph.beginUndo()
 	process( thisLayer )
 	thisGlyph.endUndo()
 

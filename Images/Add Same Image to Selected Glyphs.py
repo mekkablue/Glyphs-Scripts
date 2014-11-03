@@ -22,17 +22,17 @@ def process( thisLayer ):
 
 Font.disableUpdateInterface()
 
-imageFilePath = GetOpenFile( 
+imageFilePath = GetOpenFile(
 	message = "Select an image:",
 	allowsMultipleSelection = False,
-	filetypes = ["jpeg", "png", "tif", "gif", "pdf"] 
+	filetypes = ["jpeg", "png", "tif", "gif", "pdf"]
 )
 
 print "Putting %s into:" % imageFilePath
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
-	thisGlyph.beginUndo()	
+	thisGlyph.beginUndo()
 	print "-- %s: %s" % ( thisGlyph.name, process( thisLayer ) )
 	thisGlyph.endUndo()
 

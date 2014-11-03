@@ -6,10 +6,10 @@ Delete all local guidelines in selected glyphs.
 
 import GlyphsApp
 
-selectedLayers = Glyphs.currentDocument.selectedLayers()
+selectedLayers = Glyphs.font.selectedLayers
 
 def process( thisLayer ):
-	thisLayer.setGuideLines_([])
+	thisLayer.guideLines = []
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent

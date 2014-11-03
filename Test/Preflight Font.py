@@ -166,7 +166,7 @@ def checkStandardNames( thisFont ):
 			calculatedNiceName = GSGlyphsInfo.niceGlyphNameForName_( legacyName )
 			
 		if glyphName != calculatedNiceName:
-			errMsg( glyphName, "", "Should be called %s (Unicode: %s)." % ( calculatedNiceName, unicodeValue ) ) 
+			errMsg( glyphName, "", "Should be called %s (Unicode: %s)." % ( calculatedNiceName, unicodeValue ) )
 	
 def checkUnicode( thisFont ):
 	headline( "Checking Unicodes" )

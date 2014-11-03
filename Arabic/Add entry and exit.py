@@ -32,15 +32,15 @@ def process( thisLayer ):
 	glyphName = thisLayer.parent.name
 	
 	# add exit at 0,0:
-	if "init" in glyphName or "medi" in glyphName:
+	if ".init" in glyphName or ".medi" in glyphName:
 		if len( thisLayer.paths ) > 0:
 			if "exit" not in listOfAnchorNames:
 				myExit = GSAnchor( "exit", NSPoint( 0.0, 0.0 ) )
 				thisLayer.addAnchor_( myExit )
-				print "%s: exit" % glyphName 
+				print "%s: exit" % glyphName
 	
 	# add entry at RSB:
-	if "medi" in glyphName or "fina" in glyphName:
+	if ".medi" in glyphName or ".fina" in glyphName:
 		if "entry" not in listOfAnchorNames:
 			myEntryPoint = findOncurveAtRSB( thisLayer )
 			if myEntryPoint != None:
@@ -53,7 +53,7 @@ Font.disableUpdateInterface()
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
-	thisGlyph.beginUndo()	
+	thisGlyph.beginUndo()
 	process( thisLayer )
 	thisGlyph.endUndo()
 
