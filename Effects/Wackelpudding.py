@@ -22,16 +22,6 @@ def randomize( min, max ):
 	range = max-min
 	return random.random() * range + min
 
-def rotate( x, y, angle=180.0, x_orig=0.0, y_orig=0.0):
-	"""Rotates x/y around x_orig/y_orig by angle and returns result as [x,y]."""
-	# TO DO: update this to use rotationTransform()
-	
-	new_angle = ( angle / 180.0 ) * math.pi
-	new_x = ( x - x_orig ) * math.cos( new_angle ) - ( y - y_orig ) * math.sin( new_angle ) + x_orig
-	new_y = ( x - x_orig ) * math.sin( new_angle ) + ( y - y_orig ) * math.cos( new_angle ) + y_orig
-	
-	return [ new_x, new_y ]
-
 def rotationTransform( angle=180.0, x_orig=0.0, y_orig=0.0 ):
 	"""Returns a TransformStruct for rotating."""
 	RotationTransform = NSAffineTransform.transform()
@@ -45,11 +35,7 @@ def transformComponent( myComponent, myTransform ):
 	compTransform = NSAffineTransform.transform()
 	compTransform.setTransformStruct_( myComponent.transform )
 	compTransform.appendTransform_( myTransform )
-	t = compTransform.transformStruct()
-	tNew = ( t.m11, t.m12, t.m21, t.m22, t.tX, t.tY )
-	myComponent.transform = tNew
-
-	return myComponent
+	myComponent.transform = compTransform.transformStruct()
 
 def clearLayer( thisLayer ):
 	thisLayer.parent.beginUndo()
@@ -63,8 +49,7 @@ def glyphcopy( sourceGlyph, targetGlyphName ):
 	targetGlyph = sourceGlyph.copy()
 	targetGlyph.name = targetGlyphName
 	Font.glyphs.append( targetGlyph )
-	targetGlyph = Font.glyphs[ targetGlyphName ]
-
+	
 	# Place Components:
 	MasterIDs = [m.id for m in Font.masters]
 	for thisMaster in MasterIDs:
@@ -96,6 +81,7 @@ def make_ssXX( thisGlyph, number ):
 	return myListOfGlyphs
 
 def wiggle( thisGlyph, maxangle, minangle ):
+	print "__wiggle", thisGlyph
 	rotateby = 0.0
 	minangle = float( minangle )
 	
@@ -105,13 +91,13 @@ def wiggle( thisGlyph, maxangle, minangle ):
 	for thisLayer in thisGlyph.layers:
 		x_orig = thisLayer.width / 2.0
 		y_orig = thisLayer.bounds.size.height / 2.0
-
+		Transform = rotationTransform( angle=(rotateby/1.0), x_orig=x_orig, y_orig=y_orig )
 		for thisPath in thisLayer.paths:
 			for thisNode in thisPath.nodes:
-				[ thisNode.x, thisNode.y ] = rotate( thisNode.x, thisNode.y, angle=(rotateby/1.0), x_orig=x_orig, y_orig=y_orig )
+				thisNode.position = Transform.transformPoint_(thisNode.position)
 		
 		for thisComponent in thisLayer.components:
-			thisComponent = transformComponent( thisComponent, rotationTransform( angle=(rotateby/1.0), x_orig=x_orig, y_orig=y_orig ) )
+			transformComponent( thisComponent, Transform )
 
 def create_otclass( classname   = "@default", 
                     classglyphs = [ x.parent.name for x in Font.selectedLayers ], 
@@ -120,9 +106,9 @@ def create_otclass( classname   = "@default",
 	# strip '@' from beginning:
 	classname = classname.lstrip("@")
 	classcode = " ".join( classglyphs )
-	
-	if classname in [ c.name for c in targetfont.classes ]:
-		targetfont.classes[classname].code = classcode
+	otClass = targetfont.classes[classname]
+	if otClass:
+		otClass.code = classcode
 		return "Updated existing OT class '%s'." % classname
 	else:
 		newClass = GSClass( classname, classcode )
