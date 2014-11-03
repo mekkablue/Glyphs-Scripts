@@ -138,7 +138,9 @@ def process( thisLayer, deleteComponents, componentName, distanceBetweenDots, us
 			print "-- Error deleting previously placed components."
 	
 	if useBackground and len( thisLayer.paths ) > 0:
-		thisLayer.clearBackground() # this is a little dangerous if background is active (then front layer is considered the background)
+		if thisLayer.className() == "GSBackgroundLayer":
+		 	thisLayer = thisLayer.foreground()
+		thisLayer.clearBackground()
 		for thisPath in thisLayer.paths:
 			thisLayer.background.paths.append( thisPath.copy() )
 		
