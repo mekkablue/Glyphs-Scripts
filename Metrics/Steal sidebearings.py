@@ -11,13 +11,16 @@ class MetricsCopy( object ):
 	"""GUI for copying glyph metrics from one font to another"""
 	
 	def __init__( self ):
+		self.listOfMasters = []
+		self.updateListOfMasters() 
+		
 		self.w = vanilla.FloatingWindow( (400, windowHeight), "Steal sidebearings", minSize=(350, windowHeight), maxSize=(650, windowHeight), autosaveName="com.mekkablue.MetricsCopy.mainwindow" )
 		
 		self.w.text_anchor = vanilla.TextBox( (15, 12+2, 130, 17), "Copy metrics from:", sizeStyle='small')
-		self.w.from_font = vanilla.PopUpButton( (150, 12, -15, 17), self.listOfFonts(isSourceFont=True), sizeStyle='small', callback=self.buttonCheck)
+		self.w.from_font = vanilla.PopUpButton( (150, 12, -15, 17), self.listOfMasterNames(), sizeStyle='small', callback=self.buttonCheck)
 		
 		self.w.text_value = vanilla.TextBox( (15, 12+2+25, 130, 17), "To selected glyphs in:", sizeStyle='small')
-		self.w.to_font = vanilla.PopUpButton( (150, 12+25, -15, 17), self.listOfFonts(isSourceFont=False), sizeStyle='small', callback=self.buttonCheck)
+		self.w.to_font = vanilla.PopUpButton( (150, 12+25, -15, 17), self.listOfMasterNames()[::-1], sizeStyle='small', callback=self.buttonCheck)
 		
 		self.w.lsb   = vanilla.CheckBox( ( 17, 12+50, 80, 20), "LSB", value=True, callback=self.buttonCheck, sizeStyle='small' )
 		self.w.rsb   = vanilla.CheckBox( (97, 12+50, 80, 20), "RSB", value=True, callback=self.buttonCheck, sizeStyle='small' )
@@ -36,12 +39,19 @@ class MetricsCopy( object ):
 		
 		self.w.open()
 		self.buttonCheck( None )
+	
+	def updateListOfMasters( self ):
+		masterList = []
 		
-	def listOfFonts( self, isSourceFont ):
-		myFontList = [ "%s - %s" % ( d.font.familyName, d.selectedFontMaster().name ) for d in Glyphs.orderedDocuments() ]
-		if isSourceFont:
-			myFontList.reverse()
-		return myFontList
+		for thisFont in Glyphs.fonts:
+			for thisMaster in thisFont.masters:
+				masterList.append( thisMaster )
+		
+		self.listOfMasters = masterList
+	
+	def listOfMasterNames( self ):
+		myMasterNameList = [ "%s - %s" % ( m.font().familyName, m.name ) for m in self.listOfMasters ]
+		return myMasterNameList
 	
 	def outputError( self, errMsg ):
 		print "Steal Sidebearings Warning:", errMsg
@@ -101,36 +111,41 @@ class MetricsCopy( object ):
 			return False
 	
 	def copyMetrics(self, sender):
-		fromFont = self.w.from_font.getItems()[ self.w.from_font.get() ]
-		toFont   = self.w.to_font.getItems()[ self.w.to_font.get() ]
+		fromFontIndex  = self.w.from_font.get()
+		toFontIndex    = self.w.to_font.get() * -1 - 1
+		sourceMaster   = self.listOfMasters[ fromFontIndex ]
+		targetMaster   = self.listOfMasters[ toFontIndex ]
+		sourceMasterID = sourceMaster.id
+		targetMasterID = targetMaster.id
+		sourceFont     = sourceMaster.font()
+		targetFont     = targetMaster.font()
 		ignoreSuffixes = self.w.ignoreSuffixes.get()
 		lsbIsSet = self.w.lsb.get()
 		rsbIsSet = self.w.rsb.get()
 		widthIsSet = self.w.width.get()
 		suffixToBeIgnored = self.w.suffixToBeIgnored.get().strip(".")
+		selectedLayers = targetFont.selectedLayers
 		
-		sourceDoc      = [ d for d in Glyphs.orderedDocuments() if ("%s - %s" % ( d.font.familyName, d.selectedFontMaster().name )) == fromFont ][0]
-		sourceMaster   = sourceDoc.selectedFontMaster().id
-		sourceFont     = sourceDoc.font
-		targetFont     = [ d.font for d in Glyphs.orderedDocuments() if ("%s - %s" % ( d.font.familyName, d.selectedFontMaster().name )) == toFont ][0]
-		selectedLayers = [ l for l in targetFont.parent.selectedLayers() ]
+		print "Copying %i glyph metrics from %s %s to %s %s:" % ( 
+				len(selectedLayers),
+				sourceFont.familyName, sourceMaster.name,
+				targetFont.familyName, targetMaster.name
+			)
 		
-		print "Copying", len(selectedLayers), "glyph metrics from", sourceFont.familyName, "to", targetFont.familyName, ":"
-		
-		for thisLayer in selectedLayers:
+		for thisLayer in [ targetFont.glyphs[l.parent.name].layers[targetMasterID] for l in selectedLayers ]:
 			try:
 				glyphName = thisLayer.parent.name
-				
+			
 				if ignoreSuffixes:
 					# replace suffix in the middle of the name:
 					glyphName = glyphName.replace( ".%s." % suffixToBeIgnored, "." )
-					
+				
 					# replace suffix at the end of the name:
 					if glyphName.endswith( ".%s" % suffixToBeIgnored ):
 						glyphName = glyphName[:-len(suffixToBeIgnored)-1]
-						
-				sourceLayer = sourceFont.glyphs[ glyphName ].layers[ sourceMaster ]
-				
+					
+				sourceLayer = sourceFont.glyphs[ glyphName ].layers[ sourceMasterID ]
+			
 				if lsbIsSet:
 					thisLayer.setLSB_( sourceLayer.LSB )
 				if rsbIsSet:
