@@ -107,7 +107,7 @@ def placeDots( thisLayer, useBackground, componentName, distanceBetweenDots ):
 		yOffset = 0.0
 		try:
 			Font = thisLayer.parent.parent
-			FontMasterID = Font.selectedFontMaster.id
+			FontMasterID = thisLayer.associatedMasterId
 			sourceComponent = Font.glyphs[ componentName ]
 			xOffset = -sourceComponent.layers[FontMasterID].anchors["origin"].x
 			yOffset = -sourceComponent.layers[FontMasterID].anchors["origin"].y
