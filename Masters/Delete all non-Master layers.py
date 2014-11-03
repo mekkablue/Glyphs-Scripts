@@ -18,7 +18,7 @@ def process( thisGlyph ):
 		if thisLayer.layerId != thisLayer.associatedMasterId:
 			thisLayerName = thisLayer.name
 			# delete layer if it has no name or is a bracket layer ("Name [xxx]")
-			if not thisLayerName or (not (thisLayer.name.find("[") and thisLayer.name.endswith("]"))):
+			if not thisLayerName or thisLayerName.find("[") == -1 or not thisLayerName.endswith("]"):
 				count += 1
 				del thisGlyph.layers[i]
 			
