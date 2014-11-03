@@ -155,18 +155,18 @@ class ComponentOnLines( object ):
 
 		self.w = vanilla.FloatingWindow( (350, windowHeight), "Stitcher", minSize=(300, windowHeight), maxSize=(500, windowHeight), autosaveName="com.mekkablue.ComponentsOnNodes.mainwindow" )
 
-		self.w.text_1   = vanilla.TextBox( (15-1, 12+2,    15+95, 14), "Place component:", sizeStyle='small' )
-		self.w.text_2   = vanilla.TextBox( (15-1, 12+25+2, 15+95, 14), "At intervals of:", sizeStyle='small' )
-		self.w.componentName = vanilla.EditText( (15+100, 12-1, -15, 19), "circle", sizeStyle='small', callback=self.SavePreferences )
-		self.w.sliderMin = vanilla.EditText( ( 15+100, 12+25-1, 50, 19), str( 30.0 ), sizeStyle='small', callback=self.SavePreferences )
-		self.w.sliderMax = vanilla.EditText( (-15-50, 12+25-1, -15, 19), str( 60.0 ), sizeStyle='small', callback=self.SavePreferences )
-		self.w.intervalSlider= vanilla.Slider((15+100+50+10, 12+25, -15-50-10, 19), value=0, minValue=0.0, maxValue=1.0, sizeStyle='small', callback=self.ComponentOnLinesMain )
+		self.w.text_1         = vanilla.TextBox( (15-1, 12+2,    15+95, 14), "Place component:", sizeStyle='small' )
+		self.w.text_2         = vanilla.TextBox( (15-1, 12+25+2, 15+95, 14), "At intervals of:", sizeStyle='small' )
+		self.w.componentName  = vanilla.EditText( (15+100, 12-1, -15, 19), "circle", sizeStyle='small', callback=self.SavePreferences )
+		self.w.sliderMin      = vanilla.EditText( ( 15+100, 12+25-1, 50, 19), str( 30.0 ), sizeStyle='small', callback=self.SavePreferences )
+		self.w.sliderMax      = vanilla.EditText( (-15-50, 12+25-1, -15, 19), str( 60.0 ), sizeStyle='small', callback=self.SavePreferences )
+		self.w.intervalSlider = vanilla.Slider((15+100+50+10, 12+25, -15-50-10, 19), value=0, minValue=0.0, maxValue=1.0, sizeStyle='small', callback=self.ComponentOnLinesMain )
 
 		#self.w.replaceComponents = vanilla.CheckBox((15+3, 12+25+25,    -15, 19), "Replace existing components", value=True, sizeStyle='small', callback=self.SavePreferences )
-		self.w.liveSlider    = vanilla.CheckBox((15+3, 12+25+25, -15, 19), "Live slider", value=False, sizeStyle='small' )
-		self.w.useBackground = vanilla.CheckBox((15+3, 12+25+25+20, -15, 19), "Keep paths in background", value=True, sizeStyle='small', callback=self.SavePreferences )
+		self.w.liveSlider     = vanilla.CheckBox((15+3, 12+25+25, -15, 19), "Live slider", value=False, sizeStyle='small' )
+		self.w.useBackground  = vanilla.CheckBox((15+3, 12+25+25+20, -15, 19), "Keep paths in background", value=True, sizeStyle='small', callback=self.SavePreferences )
 		
-		self.w.runButton = vanilla.Button((-80-15, -20-15, -15, -15), "Stitch", sizeStyle='regular', callback=self.ComponentOnLinesMain )
+		self.w.runButton      = vanilla.Button((-80-15, -20-15, -15, -15), "Stitch", sizeStyle='regular', callback=self.ComponentOnLinesMain )
 		self.w.setDefaultButton( self.w.runButton )
 		
 		try:
