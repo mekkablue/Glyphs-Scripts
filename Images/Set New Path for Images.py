@@ -10,8 +10,8 @@ from PyObjCTools.AppHelper import callAfter
 Font = Glyphs.font
 FontMaster = Font.selectedFontMaster
 selectedLayers = Font.selectedLayers
-#newFolder = GetFolder( message="Choose location of placed images:", allowsMultipleSelection = False )
-newFolder = callAfter( GetFolder, message="Choose location of placed images:" )
+newFolder = GetFolder( message="Choose location of placed images:", allowsMultipleSelection = False )
+#newFolder = callAfter( GetFolder, message="Choose location of placed images:" ) # callAfter returns immediately with None. Glyphs 2 will run this script in the main thread so this is not needed.
 
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
