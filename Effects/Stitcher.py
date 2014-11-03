@@ -109,8 +109,9 @@ def placeDots( thisLayer, useBackground, componentName, distanceBetweenDots ):
 			Font = thisLayer.parent.parent
 			FontMasterID = thisLayer.associatedMasterId
 			sourceComponent = Font.glyphs[ componentName ]
-			xOffset = -sourceComponent.layers[FontMasterID].anchors["origin"].x
-			yOffset = -sourceComponent.layers[FontMasterID].anchors["origin"].y
+			(xOffset, yOffset) = sourceComponent.layers[FontMasterID].anchors["origin"].position
+			xOffset = -xOffset
+			yOffset = -yOffset
 		except Exception as e:
 			print "-- Note: no origin anchor in '%s', or no glyph with that name." % ( componentName )
 		
