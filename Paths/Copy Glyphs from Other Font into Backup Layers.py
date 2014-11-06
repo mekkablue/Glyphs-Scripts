@@ -100,7 +100,7 @@ class CopyGlyphsIntoBackupLayers( object ):
 			print "Backing up", len(Glyphs_selected), "glyphs from", Font_source.familyName, "into", Font_target.familyName, ":"
 			
 			for targetGlyph in Glyphs_selected:
-					glyphName = thisGlyph.name
+					glyphName = targetGlyph.name
 					try:
 						sourceGlyph = Font_source.glyphs[ glyphName ]
 					except:
