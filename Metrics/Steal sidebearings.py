@@ -77,13 +77,15 @@ class MetricsCopy( object ):
 			
 		# Both RSB and Width must not be on:
 		if sender:
+			target = None
 			if sender == self.w.rsb:
 				target = self.w.width
 			elif sender == self.w.width:
 				target = self.w.rsb
 			
-			if sender.get() and target.get():
-				target.set( not sender.get() )
+			if target:
+				if sender.get() and target.get():
+					target.set( not sender.get() )
 		
 		if not self.SavePreferences( self ):
 			self.outputError( "Could not save preferences." )
