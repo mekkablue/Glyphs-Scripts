@@ -28,6 +28,10 @@ While we're at it, we can also install Robofab, DialogKit, and FontTools. You do
     cd ../FontTools/
     sudo python2.6 setup.py install
 
+# TROUBLESHOOTING
+
+Please report problems and request features as a GitHub issue. Make sure you have the latest version of the scripts and your app is up to date. And always, I mean *always*, indicate both your Glyphs.app and your OS X version. Thank you.
+
 # ABOUT THE SCRIPTS
 
 ## Anchors
