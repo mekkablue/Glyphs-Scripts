@@ -6,12 +6,20 @@ Calculates the area of each selected glyph, and outputs it in square units. Incr
 
 import GlyphsApp
 
-PRECISION = 2
+PRECISION = 2 # higher numbers = more precision, but slower
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
-measurementTool = NSClassFromString("GlyphsToolMeasurement").alloc().init()
+
+GLYPHSAPPVERSION = NSBundle.bundleForClass_(GSMenu).infoDictionary().objectForKey_("CFBundleShortVersionString")
+if GLYPHSAPPVERSION.startswith("1."):
+	measurementTool = NSClassFromString("GlyphsToolMeasurement").alloc().init()
+else:
+	measurementTool = NSClassFromString("GSGuideLine")
+	
+def sliceIntersections( thisLayer, startPoint, endPoint ):
+	return measurementTool.calculateIntersectionsForLayer_startPoint_endPoint_( thisLayer, startPoint, endPoint )
 
 def sizeOfSlice( thisLayer, y ):
 	theseBounds = thisLayer.bounds
@@ -19,7 +27,7 @@ def sizeOfSlice( thisLayer, y ):
 	endPointX = startPointX + theseBounds.size.width + 20
 	startPoint = NSPoint( startPointX, y )
 	endPoint   = NSPoint( endPointX, y )
-	listOfIntersections = measurementTool.calculateIntersectionsForLayer_startPoint_endPoint_( thisLayer, startPoint, endPoint )
+	listOfIntersections = sliceIntersections( thisLayer, startPoint, endPoint )
 	totalLength = 0.0
 	if len(listOfIntersections) >= 4:
 		listOfIntersections.pop(0)
@@ -48,13 +56,12 @@ def process( thisLayer ):
 	area = areaForLayer( thisLayer, PRECISION )
 	print "%.1f square units" % ( area )
 
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+# brings macro window to front and clears its log:
+Glyphs.clearLog()
+Glyphs.showMacroWindow()
 
+# calculates areas for selected glyphs:
 for thisLayer in listOfSelectedLayers:
 	thisGlyph = thisLayer.parent
 	print "Area of %s:" % (thisGlyph.name),
-	thisGlyph.beginUndo() # begin undo grouping
 	process( thisLayer )
-	thisGlyph.endUndo()   # end undo grouping
-
-thisFont.enableUpdateInterface() # re-enables UI updates in Font View
