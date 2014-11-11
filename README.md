@@ -39,6 +39,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Anchor Mover 2:** GUI for batch-processing anchor positions in multiple glyphs. *Needs Vanilla.*
 * **Combining Accent Maker:** Goes through your selected (spacing) marks and adds a combining (non-spacing), component-based copy of it to your font, e.g., for *acute* and *dieresis.case*, it will add *acutecomb* and *dieresiscomb.case*.
 * **Delete All Anchors:** Deletes all anchors in visible layers of selected glyphs.
+* **Find and Replace in Anchor Names:** GUI for replacing text in the names of anchors in selected glyphs. Processes all layers. *Needs Vanilla.*
 * **Move accents to custom anchors:** Moves accents to a custom anchor in the base glyph if available. E.g.: assuming glyph "A" has both "top" and "top_acute" anchors, if you run the script on "Aacute" and "Adieresis", it will move the acute on "top_acute", but leave the dieresis where it is.
 * **Move acute, grave and hook to *top_viet*:** Moves *acute*, *grave* and *hookabovecomb* to the *top_viet* anchor in every layer of selected glyphs. Useful for Vietnamese double accents. Assumes that you have *top_viet* anchors in all layers of *circumflex*.
 * **Replicate Anchors:** Goes through selected dot-suffixed glyphs and duplicates anchors from their respective base glyphs. E.g. will recreate anchors of *X* in *X.ss01*, *X.swsh* and *X.alt*.
