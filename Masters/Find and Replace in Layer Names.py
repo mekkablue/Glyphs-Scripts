@@ -22,8 +22,8 @@ class replaceInLayerNames(object):
 		self.w.replaceButton = vanilla.Button((-80, 12+1, -15, 17), "Replace", sizeStyle='small', callback=self.buttonCallback)
 		self.w.setDefaultButton( self.w.replaceButton )
 		
-		self.w.center()
 		self.w.open()
+		self.w.makeKey()
 	
 	def buttonCallback(self, sender):
 		Font = Glyphs.font
