@@ -6,7 +6,7 @@ Disables automatic alignment for all components in all selected glyphs.
 
 import GlyphsApp
 
-Font = Glyphs.font
+thisFont = Glyphs.font
 selectedLayers = Font.selectedLayers
 
 def process( thisLayer ):
