@@ -62,7 +62,7 @@ def process( thisLayer ):
 	# the base:
 	baseComponent = thisLayer.components[0]
 	baseComponentPosition = baseComponent.position
-	baseComponentAnchors = [a.copy() for a in baseComponent.component.layers[thisMaster.id].anchors]
+	baseComponentAnchors = [a.copy() for a in baseComponent.component.layers[thisMasterID].anchors]
 	for thisBaseAnchor in baseComponentAnchors:
 		thisBaseAnchor.position = add( thisBaseAnchor.position, baseComponentPosition )
 	
