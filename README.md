@@ -52,7 +52,8 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Fix Arabic anchor order in ligatures:** Fixes the order of *top_X* and *bottom_X* anchors to RTL. In files converted from a different format, it sometimes happens that *top_1* is left of *top_2*, but it should be the other way around, otherwise your mark2liga will mess up. This script goes through your selected glyphs, and if they are Arabic ligatures, reorders all anchors to RTL order, at the same time not touching their coordinates.
 
 ## Components
-* **Align Components:** Fakes auto-alignment in glyphs that cannot be auto-aligned.
+* **Align All Components:** Fakes auto-alignment in glyphs that cannot be auto-aligned.
+* **Align Accents Only:** Aligns accents without the need to use Automatic Alignment. Useful if you have an individually placed base glyph and want to update the accent positions.
 * **Delete all components:** Deletes ALL components in selected glyphs. Be careful or use TimeMachine. You have been warned.
 * **Enable** and **Disable alignment:** Enables or disables automatic alignment for all components on visible layers in selected glyphs. Does the same as the command in the context menu, but you can do it in one step for many glyphs.
 * **Rebuild Components:** Moves outlines to background, then tries to rebuild the glyph with components in the foreground. Tries to position the accents as precisely as possible. Useful for rebuilding a decomposed font.

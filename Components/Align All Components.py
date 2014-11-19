@@ -1,4 +1,4 @@
-#MenuTitle: Align Components
+#MenuTitle: Align All Components
 # -*- coding: utf-8 -*-
 __doc__="""
 Fakes auto-alignment in glyphs that cannot be auto-aligned.
