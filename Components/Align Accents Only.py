@@ -30,14 +30,14 @@ def updateLastPositions( positionDict, anchors ):
 		anchorName = thisAnchor.name
 		anchorPosition = thisAnchor.position
 		if anchorsWithUnderscore:
-			correspondingAnchorsWithUnderscore = [ a for a in anchorsWithUnderscore if a.name.split("_")[0] == anchorName ]
+			correspondingAnchorsWithUnderscore = [ a for a in anchorsWithUnderscore if a.name.split("_")[1] == anchorName ]
 			if correspondingAnchorsWithUnderscore:
 				anchorShift = correspondingAnchorsWithUnderscore[0].position
 		
 		anchorOffset = subtract( anchorPosition, anchorShift )
 		if anchorName in positionDict.keys():
 			# anchor of an accent
-			positionDict[anchorName] += anchorOffset
+			positionDict[anchorName] = add( positionDict[anchorName], anchorOffset )
 		else:
 			# base anchor:
 			positionDict[anchorName] = anchorOffset
@@ -79,7 +79,6 @@ def process( thisLayer ):
 			newComponentPosition = componentPosition( thisAccentAnchors, lastPositions )
 			
 			if newComponentPosition:
-				print lastPositions, thisAccentAnchors, newComponentPosition
 				thisComponent.position = newComponentPosition
 				updateLastPositions( lastPositions, thisAccentAnchors )
 	
