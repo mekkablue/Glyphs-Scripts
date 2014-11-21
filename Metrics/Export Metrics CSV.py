@@ -36,6 +36,8 @@ def process( thisLayer ):
 	myExportList = [
 		str( thisLayer.parent.name ),
 		str( thisLayer.name ),
+		str( "@" + thisLayer.parent.leftKerningGroup ),
+		str( "@" + thisLayer.parent.rightKerningGroup ),
 		str( thisLayer.LSB ),
 		str( thisLayer.RSB ),
 		str( thisLayer.width )
@@ -50,5 +52,5 @@ filepath = saveFileDialog( message="Export Metrics CSV", ProposedFileName=filena
 
 f = open( filepath, 'w' )
 print "Exporting to:", f.name
-f.write( myExportString )
+f.write( "Glyph;Weight;LKG;RKG;LSB;RSB;Width\n" + myExportString )
 f.close()
