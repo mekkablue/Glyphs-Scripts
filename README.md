@@ -108,6 +108,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Adjust Kerning:** GUI to add a value to all kerning pairs, multiply all pairs by a value or round them by a value. *Needs Vanilla.*
 * **Center glyphs:** centers all selected glyphs inside their width, so that LSB=RSB.
 * **Change Metrics by Percentage:** Change LSB/RSB of selected glyphs by a percentage value. Undo with the Revert button. *Needs Vanilla.*
+* **Copy Kerning from Caps to Small Caps:** Looks for cap kerning pairs and reduplicates their kerning for corresponding .sc glyphs, if they are available in the font. Please be careful: Will overwrite existing SC kerning pairs.
 * **Delete kerning pairs for selected glyphs:** deletes all kerning pairs with the selected glyphs, for the current master only.
 * **Delete metrics keys:** deletes both left and right metrics keys in all selected glyphs. Affects all masters and all layers.
 * **Export Kerning CSV:** exports a CSV containing all kerning pairs ('mastername;left;right;kerningvalue').
