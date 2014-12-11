@@ -21,7 +21,7 @@ def process( thisGlyph ):
 			thisLayerShouldBeRemoved = True
 			if thisLayerName:
 				for parentheses in searchTerms:
-					if thisLayerName.find( parentheses[0] ) and thisLayerName.endswith( parentheses[1] ):
+					if (thisLayerName.find( parentheses[0] or thisLayerName.find( parentheses[1]) and (thisLayerName.endswith( parentheses[0] or thisLayerName.endswith( parentheses[1]) ):
 						thisLayerShouldBeRemoved = False
 			if thisLayerShouldBeRemoved:
 				count += 1
