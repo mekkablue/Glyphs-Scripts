@@ -16,13 +16,19 @@ def process( thisGlyph ):
 	numberOfLayers = len( thisGlyph.layers )
 	for i in range( numberOfLayers )[::-1]:
 		thisLayer = thisGlyph.layers[i]
-		if thisLayer.layerId != thisLayer.associatedMasterId:
+		if thisLayer.layerId != thisLayer.associatedMasterId: # not the master layer
 			thisLayerName = thisLayer.name
 			thisLayerShouldBeRemoved = True
-			if thisLayerName:
+			if thisLayerName: # always delete unnamed layers
 				for parentheses in searchTerms:
-					if ( thisLayerName.find(parentheses[0]) or thisLayerName.find(parentheses[1]) ) and ( thisLayerName.endswith(parentheses[0]) or thisLayerName.endswith(parentheses[1]) ):
+					opening = parentheses[0]
+					closing = parentheses[1]
+					
+					# check if ONE of them is at the END of the layer name, like:
+					# Bold [160], Bold [160[, Bold ]160], Regular {120}
+					if thisLayerName.endswith(opening) or thisLayerName.endswith(closing):
 						thisLayerShouldBeRemoved = False
+						
 			if thisLayerShouldBeRemoved:
 				count += 1
 				del thisGlyph.layers[i]
