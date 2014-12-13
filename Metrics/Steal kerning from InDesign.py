@@ -94,7 +94,7 @@ print "Found font: %s" % fontName
 print "Applying kerning to: %s, Master: %s\n" % (thisFont.familyName, thisFontMaster.name)
 
 for thisline in kernInfo.splitlines():
-	if len(thisline) > 5:
+	if len(thisline) > 3:
 		leftSide = glyphNameForLetter(thisline[0])
 		rightSide = glyphNameForLetter(thisline[1])
 		try:

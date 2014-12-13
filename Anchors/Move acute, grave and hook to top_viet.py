@@ -30,6 +30,7 @@ def nameUntilFirstDot( thisName ):
 		return thisName
 
 def process( thisGlyph ):
+	statusString = "Processing %s" % thisGlyph.name
 	for thisMaster in Font.masters:
 		thisLayerID = thisMaster.id
 		thisLayer = thisGlyph.layers[ thisLayerID ]
@@ -43,9 +44,10 @@ def process( thisGlyph ):
 					if baseHasAnchor( baseComponent, thisLayerID, anchorToLookFor=newAnchor ):
 						try:
 							thisLayer.components[ thisComponentIndex ].setAnchor_( newAnchor )
-							return "%s %s:\n   Moved %s on %s." % ( thisGlyph.name, thisLayer.name, accentName, newAnchor )
+							statusString += "\n   %s: Moved %s on %s." % ( thisLayer.name, accentName, newAnchor )
 						except Exception, e:
 							return "\nERROR in %s %s:\nCould not move %s onto %s.\n%s" % ( thisGlyph.name, thisLayer.name, accentName, newAnchor, e )
+	return statusString
 
 for thisGlyph in selectedGlyphs:
 	thisGlyph.beginUndo()
