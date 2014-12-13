@@ -23,7 +23,11 @@ def baseHasAnchor( thisComponent, masterID, anchorToLookFor = "top_viet" ):
 	return anchorIsInLayer
 
 def nameUntilFirstDot( thisName ):
-	return thisName[:thisName.find(".")]
+	dotIndex = thisName.find(".")
+	if dotIndex > 0:
+		return thisName[:dotIndex]
+	else:
+		return thisName
 
 def process( thisGlyph ):
 	for thisMaster in Font.masters:
@@ -39,12 +43,12 @@ def process( thisGlyph ):
 					if baseHasAnchor( baseComponent, thisLayerID, anchorToLookFor=newAnchor ):
 						try:
 							thisLayer.components[ thisComponentIndex ].setAnchor_( newAnchor )
+							return "%s %s:\n   Moved %s on %s." % ( thisGlyph.name, thisLayer.name, accentName, newAnchor )
 						except Exception, e:
-							print e
+							return "\nERROR in %s %s:\nCould not move %s onto %s.\n%s" % ( thisGlyph.name, thisLayer.name, accentName, newAnchor, e )
 
 for thisGlyph in selectedGlyphs:
-	print "Processing", thisGlyph.name
 	thisGlyph.beginUndo()
-	process( thisGlyph )
+	print process( thisGlyph )
 	thisGlyph.endUndo()
 
