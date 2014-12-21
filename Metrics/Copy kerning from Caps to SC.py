@@ -24,13 +24,9 @@ scKerningList = []
 def thisGlyphIsUppercase( glyphName, thisFont=Glyphs.font ):
 	"""Tests if the glyph referenced by the supplied glyphname is an uppercase glyph."""
 	try:
-		if glyphName:
-			if thisFont.glyphs[glyphName].subCategory == "Uppercase":
-				return True
-			else:
-				return False
-		else:
-			return False
+		if glyphName and thisFont.glyphs[glyphName].subCategory == "Uppercase":
+			return True
+		return False
 	except Exception, e:
 		print "Cannot determine case for: %s" % glyphName
 		print "Error: %s" % e
@@ -55,64 +51,75 @@ Glyphs.clearLog()
 Glyphs.showMacroWindow()
 print "Copying Kerning from UC to SC...\nFont: %s\nMaster: %s\n" % ( thisFont.familyName, fontMasterName )
 
+UppercaseClasses = set()
+for g in thisFont.glyphs:
+	if g.subCategory == "Uppercase":
+		
+		scGlyph = thisFont.glyphs[smallcapName( g.name )]
+		if scGlyph == None:
+			print "!!missing small cap glyph for: %s" % g.name
+			continue
+		LeftKey = g.leftKerningGroupId()
+		if LeftKey:
+			UppercaseClasses.add( LeftKey )
+			scLeftKey = LeftKey[:7] + smallcapName( LeftKey[7:] )
+			if scGlyph.leftKerningGroupId() != scLeftKey:
+				print "Small cap glyph (%s) has wrong kerning class: %s != %s" % (scGlyph.name, scGlyph.leftKerningGroupId(), scLeftKey)
+		
+		RightKey = g.rightKerningGroupId()
+		if RightKey:
+			UppercaseClasses.add( RightKey )
+			scRightKey = RightKey[:7] + smallcapName( RightKey[7:] )
+			if scGlyph.rightKerningGroupId() != scRightKey:
+				print "Small cap glyph (%s) has wrong kerning class: %s != %s" % (scGlyph.name, scGlyph.rightKerningGroupId(), scRightKey)
+
+thisFont.disableUpdateInterface()
+
 for LeftKey in masterKernDict.keys():
 	# is left key a class?
 	leftKeyIsGroup = ( LeftKey[0] == "@" )
 	isANewKerningPair = False
 	
-	if leftKeyIsGroup:
-		leftGlyphName = None
-	else:
-		leftGlyphName = thisFont.glyphForId_( LeftKey ).name
+	scLeftKey = None
+	scRightKey = None
 	
 	# determine the SC leftKey:
-	if ( leftKeyIsGroup and thisGlyphIsUppercase( LeftKey[7:] ) ):
-		scLeftKey = LeftKey[:7] + smallcapName( LeftKey[7:] )
-		isANewKerningPair = True
-	elif ( thisGlyphIsUppercase( leftGlyphName ) and not leftKeyIsGroup ):
-		scLeftGlyph = thisFont.glyphs[ smallcapName( leftGlyphName ) ]
-		if scLeftGlyph == None:
-			scLeftKey = LeftKey
-		else:
-			scLeftKey = scLeftGlyph.name
-			isANewKerningPair = True
+	if leftKeyIsGroup:
+		if LeftKey in UppercaseClasses:
+			scLeftKey = LeftKey[:7] + smallcapName( LeftKey[7:] )
 	else:
-		scLeftKey = LeftKey
+		leftGlyphName = thisFont.glyphForId_( LeftKey ).name
+		if thisGlyphIsUppercase( leftGlyphName ):
+			scLeftGlyph = thisFont.glyphs[ smallcapName( leftGlyphName ) ]
+			if scLeftGlyph:
+				scLeftKey = scLeftGlyph.name
+	
+	if scLeftKey == None:
+		continue
 	
 	for RightKey in masterKernDict[LeftKey].keys():
 		# is right key a class?
 		rightKeyIsGroup = ( RightKey[0] == "@" )
 		
+		# determine the SC leftKey:
 		if rightKeyIsGroup:
-			rightGlyphName = None
+			if RightKey in UppercaseClasses:
+				scRightKey = RightKey[:7] + smallcapName( RightKey[7:] )
 		else:
 			rightGlyphName = thisFont.glyphForId_( RightKey ).name
+			if thisGlyphIsUppercase( rightGlyphName ):
+				scRightGlyph = thisFont.glyphs[ smallcapName( rightGlyphName ) ]
+				if scRightGlyph:
+					scRightKey = scRightGlyph.name
+		if scRightKey == None:
+			continue
 		
-		# determine the SC leftKey:
-		if ( rightKeyIsGroup and thisGlyphIsUppercase( RightKey[7:] ) ):
-			scRightKey = RightKey[:7] + smallcapName( RightKey[7:] )
-			isANewKerningPair = True
-		elif ( thisGlyphIsUppercase( rightGlyphName ) and not rightKeyIsGroup ):
-			scRightGlyph = thisFont.glyphs[ smallcapName( rightGlyphName ) ]
-			if scRightGlyph == None:
-				scRightKey = RightKey
-			else:
-				scRightKey = scRightGlyph.name
-				isANewKerningPair = True
-		else:
-			scRightKey = RightKey
-		
-		if isANewKerningPair:
-			kernValue = masterKernDict[LeftKey][RightKey]
-			print "  Added %s %s %.1f" % ( 
-				scLeftKey.replace("MMK_L_",""),
-				scRightKey.replace("MMK_R_",""),
-				kernValue
-			)
-			scKerningList.append( ( scLeftKey, scRightKey, kernValue ) )
+		kernValue = masterKernDict[LeftKey][RightKey]
+		print "  Added %s %s %.1f" % ( 
+			scLeftKey.replace("MMK_L_",""),
+			scRightKey.replace("MMK_R_",""),
+			kernValue
+		)
+		thisFont.setKerningForPair( fontMasterID, scLeftKey, scRightKey, scKernValue )
 
-for thisKernPair in scKerningList:
-	scLeftKey = thisKernPair[0]
-	scRightKey = thisKernPair[1]
-	scKernValue = thisKernPair[2]
-	thisFont.setKerningForPair( fontMasterID, scLeftKey, scRightKey, scKernValue )
+thisFont.enableUpdateInterface()
