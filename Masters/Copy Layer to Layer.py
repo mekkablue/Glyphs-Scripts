@@ -27,8 +27,19 @@ def getComponentScaleX_scaleY_rotation( self ):
 class MasterFiller( object ):
 
 	def __init__( self ):
-		self.w = vanilla.FloatingWindow((300, 120), "Copy layer to layer")
-
+		# Window 'self.w':
+		windowWidth  = 280
+		windowHeight = 155
+		windowWidthResize  = 120 # user can resize width by this value
+		windowHeightResize = 0   # user can resize height by this value
+		self.w = vanilla.FloatingWindow(
+			( windowWidth, windowHeight ), # default window size
+			"Copy layer to layer", # window title
+			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
+			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
+			autosaveName = "com.mekkablue.MasterFiller.mainwindow" # stores last window position and size
+		)
+		
 		self.w.text_1 = vanilla.TextBox((15, 12+2, 120, 14), "Copy paths from", sizeStyle='small')
 		self.w.master_from = vanilla.PopUpButton((120, 12, -15, 17), self.GetMasterNames(), sizeStyle='small', callback=self.MasterChangeCallback)
 		
@@ -38,6 +49,7 @@ class MasterFiller( object ):
 		self.w.include_components = vanilla.CheckBox((15, 52+2, -100, 20), "Include components", sizeStyle='small', callback=self.SavePreferences, value=True)
 		self.w.include_anchors = vanilla.CheckBox((15, 52+20, -100, 20), "Include anchors", sizeStyle='small', callback=self.SavePreferences, value=True)
 		self.w.include_metrics = vanilla.CheckBox((15, 52+38, -100, 20), "Include metrics", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.keep_window_open = vanilla.CheckBox((15, 52+56, -100, 20), "Keep window open", sizeStyle='small', callback=self.SavePreferences, value=True)
 
 		self.w.copybutton = vanilla.Button((-80, -30, -15, -10), "Copy", sizeStyle='small', callback=self.buttonCallback)
 		self.w.setDefaultButton( self.w.copybutton )
@@ -47,6 +59,7 @@ class MasterFiller( object ):
 			print "Note: 'Copy Layer to Layer' could not load preferences. Will resort to defaults."
 		
 		self.w.open()
+		self.w.makeKey()
 		self.w.master_into.set(1)
 	
 	def SavePreferences( self, sender ):
@@ -54,6 +67,7 @@ class MasterFiller( object ):
 			Glyphs.defaults["com.mekkablue.MasterFiller.include_components"] = self.w.include_components.get()
 			Glyphs.defaults["com.mekkablue.MasterFiller.include_anchors"] = self.w.include_anchors.get()
 			Glyphs.defaults["com.mekkablue.MasterFiller.include_metrics"] = self.w.include_metrics.get()
+			Glyphs.defaults["com.mekkablue.MasterFiller.keep_window_open"] = self.w.keep_window_open.get()
 		except:
 			return False
 			
@@ -61,9 +75,18 @@ class MasterFiller( object ):
 
 	def LoadPreferences( self ):
 		try:
+			NSUserDefaults.standardUserDefaults().registerDefaults_(
+				{
+					"com.mekkablue.MasterFiller.include_components" : "1",
+					"com.mekkablue.MasterFiller.include_anchors" : "1",
+					"com.mekkablue.MasterFiller.include_metrics" : "1",
+					"com.mekkablue.MasterFiller.keep_window_open" : "1"
+				}
+			)
 			self.w.include_components.set( Glyphs.defaults["com.mekkablue.MasterFiller.include_components"] )
 			self.w.include_anchors.set( Glyphs.defaults["com.mekkablue.MasterFiller.include_anchors"] )
 			self.w.include_metrics.set( Glyphs.defaults["com.mekkablue.MasterFiller.include_metrics"] )
+			self.w.keep_window_open.set( Glyphs.defaults["com.mekkablue.MasterFiller.keep_window_open"] )
 		except:
 			return False
 			
@@ -199,7 +222,8 @@ class MasterFiller( object ):
 				Font.enableUpdateInterface()
 			except Exception, e:
 				print e
-			
-		self.w.close()
+		
+		if not self.w.keep_window_open.get():
+			self.w.close()
 
 MasterFiller()
