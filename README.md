@@ -179,10 +179,11 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Report Black to White Ratios:** Calculates the black area of all selected glyphs, and the black/white area ratio in relation to bounding box and several vertical metrics. Outputs a CSV spreadsheet.
 * **Report highest glyphs:** Outputs list of selected glyphs, ordered by the highest point of the glyph bounding boxes.
 * **Report lowest glyphs:** Outputs list of selected glyphs, ordered by the lowest point of the glyph bounding boxes.
+* **Webfont Test HTML:** Creates a test HTML file in the folder where you last exported webfonts. *Requires Glyphs 2.*
 
 # License
 
-Copyright 2011-2014 Rainer Erich Scheichelbauer (@mekkablue).
+Copyright 2011-2015 Rainer Erich Scheichelbauer (@mekkablue).
 Some code samples by Georg Seifert (@schriftgestalt) and Tal Leming (@typesupply).
 Some algorithm input by Christoph Schindler (@hop) and Maciej Ratajski.
 
