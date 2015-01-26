@@ -54,13 +54,79 @@ class VariationInterpolator( object ):
 
 	def LoadPreferences( self ):
 		try:
+			NSUserDefaults.standardUserDefaults().registerDefaults_(
+				{
+					"com.mekkablue.VariationInterpolator.numberOfInterpolations": "10",
+					"com.mekkablue.VariationInterpolator.suffix": "var"
+				}
+			)
 			self.w.numberOfInterpolations.set( Glyphs.defaults[ "com.mekkablue.VariationInterpolator.numberOfInterpolations" ] )
 			self.w.suffix.set( Glyphs.defaults[ "com.mekkablue.VariationInterpolator.suffix" ] )
 		except:
 			return False
 			
 		return True
-
+	
+	def createGlyphCopy( self, thisGlyph, newSuffix ):
+		thisFont = thisGlyph.parent
+		
+		# prepare glyph:
+		newGlyph = thisGlyph.copy()
+		newGlyphName = newGlyph.name + ".%s" % newSuffix
+		newGlyph.name = newGlyphName
+		
+		# remove previously generated glyph with the same name:
+		oldGlyph = thisFont.glyphs[newGlyphName]
+		if oldGlyph:
+			thisFont.removeGlyph_( oldGlyph )
+		
+		return newGlyph
+	
+	def interpolatedPosition( self, foregroundPosition, foregroundFactor, backgroundPosition, backgroundFactor  ):
+		interpolatedX = foregroundPosition.x * foregroundFactor + backgroundPosition.x * backgroundFactor
+		interpolatedY = foregroundPosition.y * foregroundFactor + backgroundPosition.y * backgroundFactor
+		interpolatedPosition = NSPoint( interpolatedX, interpolatedY )
+		return interpolatedPosition
+	
+	def interpolatePaths( self, thisLayer, backgroundFactor, foregroundFactor ):
+		# interpolate paths only if there is a compatible background:
+		if thisLayer.background and (thisLayer.compareString() == thisLayer.background.compareString()):
+			for thisPathIndex in range(len(thisLayer.paths)):
+				thisPath = thisLayer.paths[thisPathIndex]
+				for thisNodeIndex in range(len(thisPath.nodes)):
+					thisNode = thisPath.nodes[thisNodeIndex]
+					foregroundPosition = thisNode.position
+					backgroundPosition = thisLayer.background.paths[thisPathIndex].nodes[thisNodeIndex].position
+					thisNode.setPosition_( self.interpolatedPosition( foregroundPosition, foregroundFactor, backgroundPosition, backgroundFactor ) )
+		else:
+			thisGlyph = thisLayer.parent
+			print "%s: incompatible paths in background layer ('%s')." % ( thisGlyph.name, thisLayer.name )
+		
+	def interpolateAnchors( self, thisLayer, backgroundFactor, foregroundFactor ):
+		# interpolate anchor only if there is an anchor of the same name:
+		if len(thisLayer.anchors) > 0 and len(thisLayer.background.anchors) > 0:
+			for foregroundAnchor in thisLayer.anchors:
+				backgroundAnchor = thisLayer.background.anchors[ foregroundAnchor.name ]
+				if backgroundAnchor:
+					foregroundPosition = foregroundAnchor.position
+					backgroundPosition = backgroundAnchor.position
+					foregroundAnchor.setPosition_( self.interpolatedPosition( foregroundPosition, foregroundFactor, backgroundPosition, backgroundFactor ) )
+		else:
+			thisGlyph = thisLayer.parent
+			print "%s: incompatible anchors in background layer ('%s')." % ( thisGlyph.name, thisLayer.name )
+	
+	def interpolateLayerWithBackground( self, thisLayer, backgroundFactor ):
+		foregroundFactor = 1.0 - backgroundFactor
+		self.interpolatePaths( thisLayer, backgroundFactor, foregroundFactor )
+		self.interpolateAnchors( thisLayer, backgroundFactor, foregroundFactor )
+		thisLayer.clearBackground()
+		
+	def interpolateGlyphWithBackgrounds( self, newGlyph, backgroundFactor ):
+		# go through every layer of newGlyph:
+		for thisLayerIndex in range(len(newGlyph.layers)):
+			thisLayer = newGlyph.layers[thisLayerIndex]
+			self.interpolateLayerWithBackground( thisLayer, backgroundFactor )
+		
 	def VariationInterpolatorMain( self, sender ):
 		try:
 			# get values from the UI:
@@ -73,39 +139,13 @@ class VariationInterpolator( object ):
 			
 			for thisGlyph in listOfSelectedGlyphs: # loop through glyphs
 				for numberOfThisVariation in range(numberOfVariations):
-					# prepare glyph:
-					newGlyph = thisGlyph.copy()
-					newGlyphName = newGlyph.name + ".%s%02i" % ( glyphSuffix, numberOfThisVariation+1 )
-					newGlyph.name = newGlyphName
-					
-					# remove previously generated glyph with the same name:
-					oldGlyph = thisFont.glyphs[newGlyphName]
-					if oldGlyph:
-						thisFont.removeGlyph_( oldGlyph )
+					newSuffix = "%s%02i" % ( glyphSuffix, numberOfThisVariation+1 )
+					newGlyph = self.createGlyphCopy( thisGlyph, newSuffix )
 					
 					# prepare interpolation:
 					backgroundFactor = float( numberOfThisVariation+1 ) / float( numberOfVariations )
-					foregroundFactor = 1.0 - backgroundFactor
 					
-					# go through every layer of newGlyph:
-					for thisLayerIndex in range(len(newGlyph.layers)):
-						thisLayer = newGlyph.layers[thisLayerIndex]
-						
-						# interpolate only if there is a compatible background:
-						if thisLayer.background and (thisLayer.compareString() == thisLayer.background.compareString()):
-							for thisPathIndex in range(len(thisLayer.paths)):
-								thisPath = thisLayer.paths[thisPathIndex]
-								for thisNodeIndex in range(len(thisPath.nodes)):
-									thisNode = thisPath.nodes[thisNodeIndex]
-									foregroundPosition = thisNode.position
-									backgroundPosition = thisLayer.background.paths[thisPathIndex].nodes[thisNodeIndex].position
-									interpolatedX = foregroundPosition.x * foregroundFactor + backgroundPosition.x * backgroundFactor
-									interpolatedY = foregroundPosition.y * foregroundFactor + backgroundPosition.y * backgroundFactor
-									interpolatedPosition = NSPoint( interpolatedX, interpolatedY )
-									thisNode.setPosition_( interpolatedPosition )
-							thisLayer.clearBackground()
-						else:
-							print "%s: incompatible background layer ('%s')." % ( thisGlyph.name, thisLayer.name )
+					self.interpolateGlyphWithBackgrounds( newGlyph, backgroundFactor )
 					
 					# add the glyph variation to the font:
 					thisFont.glyphs.append( newGlyph )
