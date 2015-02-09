@@ -11,17 +11,17 @@ rangemin = 3
 rangemax = 11
 
 def distribute_lucas( min, max, n ):
-    q = max / min
-    return [ min * q**(i/(n-1)) for i in range(n) ]
+	q = max / min
+	return [ min * q**(i/(n-1)) for i in range(n) ]
  
 def distribute_equal( min, max, n ):
-    d = (max - min) / (n-1)
-    return [ min + i*d for i in range(n) ]
+	d = (max - min) / (n-1)
+	return [ min + i*d for i in range(n) ]
  
 def distribute_pablo( min, max, n ):
-    es = distribute_equal(min, max, n)
-    ls = distribute_lucas(min, max, n)
-    return [ l*(1-i/(n-1)) + e*(i/(n-1)) for (i, e, l) in zip(range(n), es, ls) ]
+	es = distribute_equal(min, max, n)
+	ls = distribute_lucas(min, max, n)
+	return [ l*(1-i/(n-1)) + e*(i/(n-1)) for (i, e, l) in zip(range(n), es, ls) ]
 
 def distribute_maciej( lightMasterWeightX, lightMasterWeightY, boldMasterWeightX, boldMasterWeightY, interpolationWeightX ):
 	"""
@@ -37,7 +37,7 @@ def distribute_maciej( lightMasterWeightX, lightMasterWeightY, boldMasterWeightX
 class InstanceMaker( object ):
 	"""GUI for injecting instances."""
 	def __init__( self ):
-		self.w = vanilla.FloatingWindow( (360, 320), "Insert weight instances", minSize=(360, 320), maxSize=(360, 500), autosaveName="com.mekkablue.InstanceMaker.mainwindow" )
+		self.w = vanilla.FloatingWindow( (360, 350), "Insert weight instances", minSize=(360, 350), maxSize=(360, 500), autosaveName="com.mekkablue.InstanceMaker.mainwindow" )
 
 		self.w.text_1 = vanilla.TextBox( (15-1, 12+2, 75, 14), "Insert", sizeStyle='small' )
 		self.w.numberOfInstances = vanilla.PopUpButton( (15+40, 12, 50, 17), [str(x) for x in range( 3, 12 )], callback=self.UpdateSample, sizeStyle='small' )
@@ -54,8 +54,9 @@ class InstanceMaker( object ):
 		self.w.text_6 = vanilla.TextBox( (15-1, 68+2, 60, 14), "using", sizeStyle='small')
 		self.w.algorithm = vanilla.PopUpButton((15+40, 68, 80, 17), [ "Pablo", "Luc(as)", "linear" ], callback=self.UpdateSample, sizeStyle='small' )
 		self.w.text_7 = vanilla.TextBox( (15+40+85, 68+2, 110, 14), "distribution:", sizeStyle='small')
+		self.w.help_instances = vanilla.HelpButton((-15-21, 68+2, -15, 20), callback=self.openURL )
 		
-		self.w.existingInstances = vanilla.RadioGroup((15, 100, -10, 60), [ "Leave existing instances as they are", "Deactivate existing instances", "Delete existing instances" ], callback=self.SavePreferences, sizeStyle = 'small' )
+		self.w.existingInstances = vanilla.RadioGroup((15+30, 100, -10, 60), [ "Leave existing instances as they are", "Deactivate existing instances", "Delete existing instances" ], callback=self.SavePreferences, sizeStyle = 'small' )
 		self.w.existingInstances.set( 0 )
 		
 		self.w.maciej        = vanilla.CheckBox((15, 170, 160, 19), "Maciej y distribution from:", value=False, callback=self.UpdateSample, sizeStyle='small' )
@@ -71,11 +72,12 @@ class InstanceMaker( object ):
 		self.w.createButton = vanilla.Button((-80-15, -20-15, -15, -15), "Create", sizeStyle='regular', callback=self.CreateInstances )
 		self.w.setDefaultButton( self.w.createButton )
 		
-		if not self.LoadPreferences( ):
+		if not self.LoadPreferences():
 			print "Error: Could not load preferences. Will resort to defaults."
 
 		self.w.open()
 		self.UpdateSample( self )
+		self.w.makeKey()
 	
 	def MasterList( self, factor ):
 		Font = Glyphs.font
@@ -83,8 +85,8 @@ class InstanceMaker( object ):
 		return MasterValues
 	
 	def Distribution( self ):
-		a = float( self.w.master1.get() )
-		b = float( self.w.master2.get() )
+		a = self.w.master1.get().floatValue()
+		b = self.w.master2.get().floatValue()
 		n = int( self.w.numberOfInstances.getItems()[self.w.numberOfInstances.get()] )
 		
 		algorithm = self.w.algorithm.getItems()[self.w.algorithm.get()]
@@ -99,7 +101,7 @@ class InstanceMaker( object ):
 	
 	def UpdateSample( self, sender ):
 		try:
-			distributedValues = self.Distribution( )
+			distributedValues = self.Distribution()
 			n = len( distributedValues )
 			prefix = self.w.prefix.get()
 			sampleText = "Will create %i instances: %s" % ( n, ", ".join( prefix+"{0:.0f}".format(weight) for weight in distributedValues ))
@@ -145,6 +147,20 @@ class InstanceMaker( object ):
 
 	def LoadPreferences( self ):
 		try:
+			NSUserDefaults.standardUserDefaults().registerDefaults_(
+				{
+					"com.mekkablue.InstanceMaker.numberOfInstances": "6",
+					"com.mekkablue.InstanceMaker.prefix": "A-",
+					"com.mekkablue.InstanceMaker.master1": self.MasterList(1),
+					"com.mekkablue.InstanceMaker.master2": self.MasterList(-1),
+					"com.mekkablue.InstanceMaker.width": "100",
+					"com.mekkablue.InstanceMaker.algorithm": "0",
+					"com.mekkablue.InstanceMaker.existingInstances": "0",
+					"com.mekkablue.InstanceMaker.maciej": "0",
+					"com.mekkablue.InstanceMaker.maciej1": self.MasterList(1),
+					"com.mekkablue.InstanceMaker.maciej2": self.MasterList(-1)
+				}
+			)
 			self.w.numberOfInstances.set( Glyphs.defaults["com.mekkablue.InstanceMaker.numberOfInstances"] )
 			self.w.prefix.set( Glyphs.defaults["com.mekkablue.InstanceMaker.prefix"] )
 			self.w.master1.set( Glyphs.defaults["com.mekkablue.InstanceMaker.master1"] )
@@ -161,23 +177,27 @@ class InstanceMaker( object ):
 		return True
 	
 	def openURL( self, sender ):
+		URL = None
+		if sender == self.w.help_instances:
+			URL = "http://www.glyphsapp.com/tutorials/multiple-masters-part-3-setting-up-instances"
 		if sender == self.w.help_maciej:
 			URL = "http://www.maciejratajski.com/theory/interpolation-of-contrast/"
+		if URL:
 			import webbrowser
 			webbrowser.open( URL )
 	
 	def MaciejValues( self, distributedValues ):
-		lightX = float( self.w.master1.get() )
-		boldX  = float( self.w.master2.get() )
-		lightY = float( self.w.maciej_light.get() )
-		boldY  = float( self.w.maciej_bold.get() )
+		lightX = self.w.master1.get().floatValue()
+		boldX  = self.w.master2.get().floatValue()
+		lightY = self.w.maciej_light.get().floatValue()
+		boldY  = self.w.maciej_bold.get().floatValue()
 		return [ lightX, lightY, boldX, boldY ]
 		
 	def CreateInstances( self, sender ):
 		try:
-			if self.DealWithExistingInstances( ):
-				distributedValues = self.Distribution( )
-				widthValue = float( self.w.width.get() )
+			if self.DealWithExistingInstances():
+				distributedValues = self.Distribution()
+				widthValue = self.w.width.get().floatValue()
 				prefix = self.w.prefix.get()
 				maciejYesOrNo = self.w.maciej.get()
 				
