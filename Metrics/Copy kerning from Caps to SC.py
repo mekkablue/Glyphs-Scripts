@@ -75,7 +75,10 @@ for g in thisFont.glyphs:
 
 thisFont.disableUpdateInterface()
 
-for LeftKey in masterKernDict.keys():
+kerningToBeAdded = []
+
+LeftKeys = masterKernDict.keys()
+for LeftKey in LeftKeys:
 	# is left key a class?
 	leftKeyIsGroup = ( LeftKey[0] == "@" )
 	isANewKerningPair = False
@@ -94,32 +97,37 @@ for LeftKey in masterKernDict.keys():
 			if scLeftGlyph:
 				scLeftKey = scLeftGlyph.name
 	
-	if scLeftKey == None:
-		continue
-	
-	for RightKey in masterKernDict[LeftKey].keys():
-		# is right key a class?
-		rightKeyIsGroup = ( RightKey[0] == "@" )
+	if scLeftKey != None:
+		RightKeys = masterKernDict[LeftKey].keys()
+		for RightKey in RightKeys:
+			# is right key a class?
+			rightKeyIsGroup = ( RightKey[0] == "@" )
 		
-		# determine the SC leftKey:
-		if rightKeyIsGroup:
-			if RightKey in UppercaseClasses:
-				scRightKey = RightKey[:7] + smallcapName( RightKey[7:] )
-		else:
-			rightGlyphName = thisFont.glyphForId_( RightKey ).name
-			if thisGlyphIsUppercase( rightGlyphName ):
-				scRightGlyph = thisFont.glyphs[ smallcapName( rightGlyphName ) ]
-				if scRightGlyph:
-					scRightKey = scRightGlyph.name
-		if scRightKey == None:
-			continue
-		
-		kernValue = masterKernDict[LeftKey][RightKey]
-		print "  Added %s %s %.1f" % ( 
-			scLeftKey.replace("MMK_L_",""),
-			scRightKey.replace("MMK_R_",""),
-			kernValue
-		)
-		thisFont.setKerningForPair( fontMasterID, scLeftKey, scRightKey, scKernValue )
+			# determine the SC leftKey:
+			if rightKeyIsGroup:
+				if RightKey in UppercaseClasses:
+					scRightKey = RightKey[:7] + smallcapName( RightKey[7:] )
+			else:
+				rightGlyphName = thisFont.glyphForId_( RightKey ).name
+				if thisGlyphIsUppercase( rightGlyphName ):
+					scRightGlyph = thisFont.glyphs[ smallcapName( rightGlyphName ) ]
+					if scRightGlyph:
+						scRightKey = scRightGlyph.name
+
+			if scRightKey != None:
+				scKernValue = masterKernDict[LeftKey][RightKey]
+				print "  Added %s %s %.1f" % ( 
+					scLeftKey.replace("MMK_L_",""),
+					scRightKey.replace("MMK_R_",""),
+					scKernValue
+				)
+				kerningToBeAdded.append( (fontMasterID, scLeftKey, scRightKey, scKernValue) )
+
+for thisKernInfo in kerningToBeAdded:
+	fontMasterID = thisKernInfo[0]
+	scLeftKey = thisKernInfo[1]
+	scRightKey = thisKernInfo[2]
+	scKernValue = thisKernInfo[3]
+	thisFont.setKerningForPair( fontMasterID, scLeftKey, scRightKey, scKernValue )
 
 thisFont.enableUpdateInterface()
