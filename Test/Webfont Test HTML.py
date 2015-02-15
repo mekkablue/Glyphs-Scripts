@@ -30,7 +30,7 @@ def replaceSet( text, setOfReplacements ):
 	return text
 
 def allUnicodeEscapesOfFont( thisFont ):
-	allUnicodes = ["&#x%s;" % g.unicode for g in thisFont.glyphs if g.unicode ]
+	allUnicodes = ["&#x%s;" % g.unicode for g in thisFont.glyphs if g.unicode and g.export ]
 	return " ".join( allUnicodes )
 
 def activeInstances( thisFont, fileFormats=fileFormats ):
@@ -41,8 +41,8 @@ def activeInstances( thisFont, fileFormats=fileFormats ):
 		for activeInstance in activeInstances:
 			activeInstanceName = activeInstance.name
 			baseName = "%s %s-%s" % ( fileFormat.upper(), familyName, activeInstanceName )
-			woffName = "%s-%s.%s" % ( familyName, activeInstanceName, fileFormat )
-			listOfInstanceInfo.append( (woffName, baseName, activeInstanceName) )
+			fileName = "%s-%s.%s" % ( familyName.replace(" ",""), activeInstanceName.replace(" ",""), fileFormat )
+			listOfInstanceInfo.append( (fileName, baseName, activeInstanceName) )
 	return listOfInstanceInfo
 
 def optionListForActiveInstances( instanceList ):
