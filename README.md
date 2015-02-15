@@ -7,7 +7,11 @@ These are Python scripts for use with the [Glyphs font editor](http://glyphsapp.
 
 Put the scripts into the *Scripts* folder which appears when you choose *Open Scripts Folder* from the *Scripts* menu.
 
-For some scripts, you will also need to install Tal Leming's *Vanilla*. Here's how. Open Terminal and copy and paste the following lines and hit return. You can copy all of them at once. Notes: the second line (`curl`) may take a while, the `sudo` line will prompt you for your password (type it and press Return, you will *not* see bullets):
+For some scripts, you will also need to install Tal Leming's *Vanilla*. Here's how. 
+
+In **Glyphs 2.0 or later**, go to *Glyphs > Preferences > Addons > Scripts* and click the *Install Modules* button. You are done and can skip the rest of these installation instructions.
+
+For **Glyphs 1.x**, open Terminal and copy and paste the following lines and hit return. You can copy all of them at once. Notes: the second line (`curl`) may take a while, the `sudo` line will prompt you for your password (type it and press Return, you will *not* see bullets):
 
     cd ~/Library/
     curl http://download.robofab.com/RoboFab_599_plusAllDependencies.zip > robofab.zip
@@ -161,6 +165,9 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Flashify Pixels:** Creates small bridges in order to prevent self-intersection of paths so counters stay white. This is especially a problem for the Flash font renderer, hence the name of the script.
 * **Pixelate:** Replaces outlines with pixel components and optionally resets width to to pixel grid. *Needs Vanilla.*
 * **Reset rotated and mirrored components:** Looks for scaled, mirrored and rotated components and turns them back into their default scale and orientation, but keeps their position. Useful for fixing mirrored pixels.
+
+## Select
+* **Select Same Color:** Select a glyph with a color, and the script will add all other glyphs with the same color to the selection, as long as they are currently displayed in the Font Tab. Does nothing if no glyph is selected.
 
 ## Smallcaps
 * **Copy kerning classes from smcp to c2sc:** If you already have c2sc and smcp glyphs, it will copy kerning group attributes from smcp to c2sc glyphs, e.g. *d.smcp* has *leftgroup=h.smcp* and *rightgroup=o.smcp*, then *leftgroup=h.smcp* and *rightgroup=o.smcp* will be copied to *D.c2sc*. 
