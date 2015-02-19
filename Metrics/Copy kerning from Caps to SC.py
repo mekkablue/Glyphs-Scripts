@@ -14,13 +14,6 @@ areSmallcapsNamedLowercase = True
 
 import GlyphsApp
 
-thisFont = Glyphs.font
-selectedFontMaster = thisFont.selectedFontMaster
-fontMasterID = selectedFontMaster.id
-fontMasterName = selectedFontMaster.name
-masterKernDict = thisFont.kerning[ fontMasterID ]
-scKerningList = []
-
 def thisGlyphIsUppercase( glyphName, thisFont=Glyphs.font ):
 	"""Tests if the glyph referenced by the supplied glyphname is an uppercase glyph."""
 	try:
@@ -46,37 +39,54 @@ def smallcapName( glyphName="scGlyph", suffix=".sc", lowercase=True ):
 		print "Cannot compute smallcap name for: %s" % glyphName
 		print "Error: %s" % e
 		return None
-		
+
+thisFont = Glyphs.font
+selectedFontMaster = thisFont.selectedFontMaster
+fontMasterID = selectedFontMaster.id
+fontMasterName = selectedFontMaster.name
+masterKernDict = thisFont.kerning[ fontMasterID ]
+scKerningList = []
+
+# Report in the Macro Window:
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
 print "Copying Kerning from UC to SC...\nFont: %s\nMaster: %s\n" % ( thisFont.familyName, fontMasterName )
-
+print "Kerning Groups:"
 UppercaseClasses = set()
 for g in thisFont.glyphs:
 	if g.subCategory == "Uppercase":
-		
-		scGlyph = thisFont.glyphs[smallcapName( g.name )]
+		ucGlyphName = g.name
+		scGlyphName = smallcapName( ucGlyphName )
+		scGlyph = thisFont.glyphs[scGlyphName]
 		if scGlyph == None:
-			print "!!missing small cap glyph for: %s" % g.name
+			print "  SC %s not found in font (Uc %s exists)" % ( scGlyphName, ucGlyphName )
 			continue
+			
 		LeftKey = g.leftKerningGroupId()
 		if LeftKey:
 			UppercaseClasses.add( LeftKey )
 			scLeftKey = LeftKey[:7] + smallcapName( LeftKey[7:] )
-			if scGlyph.leftKerningGroupId() != scLeftKey:
-				print "Small cap glyph (%s) has wrong kerning class: %s != %s" % (scGlyph.name, scGlyph.leftKerningGroupId(), scLeftKey)
+			if scGlyph.leftKerningGroupId() == None:
+				scGlyph.setLeftKerningGroupId_(scLeftKey)
+				print "  %s: set LEFT group to @%s (was empty)." % ( scGlyphName, scLeftKey[7:] )
+			elif scGlyph.leftKerningGroupId() != scLeftKey:
+				print "  %s: unexpected LEFT group: @%s (should be @%s), not changed." % ( scGlyphName, scGlyph.leftKerningGroupId()[7:], scLeftKey[7:] )
 		
 		RightKey = g.rightKerningGroupId()
 		if RightKey:
 			UppercaseClasses.add( RightKey )
 			scRightKey = RightKey[:7] + smallcapName( RightKey[7:] )
-			if scGlyph.rightKerningGroupId() != scRightKey:
-				print "Small cap glyph (%s) has wrong kerning class: %s != %s" % (scGlyph.name, scGlyph.rightKerningGroupId(), scRightKey)
+			if scGlyph.rightKerningGroupId() == None:
+				scGlyph.setRightKerningGroupId_(scRightKey)
+				print "  %s: set RIGHT group to @%s (was empty)." % ( scGlyphName, scRightKey[7:] )
+			elif scGlyph.rightKerningGroupId() != scRightKey:
+				print "  %s: unexpected RIGHT group: @%s (should be @%s), not changed." % ( scGlyphName, scGlyph.rightKerningGroupId()[7:], scRightKey[7:] )
 
+print "  Done.\n"
+
+print "Kerning Values:"
 thisFont.disableUpdateInterface()
-
 kerningToBeAdded = []
-
 LeftKeys = masterKernDict.keys()
 for LeftKey in LeftKeys:
 	# is left key a class?
@@ -103,7 +113,7 @@ for LeftKey in LeftKeys:
 			# is right key a class?
 			rightKeyIsGroup = ( RightKey[0] == "@" )
 		
-			# determine the SC leftKey:
+			# determine what the SC leftKey should look like:
 			if rightKeyIsGroup:
 				if RightKey in UppercaseClasses:
 					scRightKey = RightKey[:7] + smallcapName( RightKey[7:] )
@@ -116,7 +126,7 @@ for LeftKey in LeftKeys:
 
 			if scRightKey != None:
 				scKernValue = masterKernDict[LeftKey][RightKey]
-				print "  Added %s %s %.1f" % ( 
+				print "  Set kerning: %s %s %.1f" % ( 
 					scLeftKey.replace("MMK_L_",""),
 					scRightKey.replace("MMK_R_",""),
 					scKernValue
@@ -131,3 +141,5 @@ for thisKernInfo in kerningToBeAdded:
 	thisFont.setKerningForPair( fontMasterID, scLeftKey, scRightKey, scKernValue )
 
 thisFont.enableUpdateInterface()
+
+print "  Done."
