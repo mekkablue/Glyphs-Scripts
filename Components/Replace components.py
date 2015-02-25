@@ -11,6 +11,8 @@ def replaceComponent( thisLayer, oldCompName, newCompName ):
 	try:
 		# Doesn't work yet: thisComponent = thisLayer.components[ oldCompName ]
 		# So I have to iterate through the components:
+
+		# GS: thisLayer.components[ oldCompName ] doesn't make much sense as there could be more than one component with that name 
 		
 		for i in range( len( thisLayer.components )):
 			if thisLayer.components[i].componentName == oldCompName:
