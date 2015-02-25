@@ -7,12 +7,11 @@ Fakes auto-alignment in glyphs that cannot be auto-aligned.
 import GlyphsApp
 
 thisFont = Glyphs.font # frontmost font
-thisFontMaster = thisFont.selectedFontMaster # active master
-thisFontMasterID = thisFont.selectedFontMaster.id # active master
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 
 def process( thisLayer ):
 	advance = 0.0
+	thisFontMasterID = thisLayer.associatedFontMaster().id
 	for thisComponent in thisLayer.components:
 		thisComponent.position = NSPoint( advance, 0.0 )
 		advance += thisComponent.component.layers[thisFontMasterID].width
