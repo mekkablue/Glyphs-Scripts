@@ -20,17 +20,15 @@ def hasColor( thisGlyph, colorIndex ):
 	return returnValue
 
 if selectedLayers:
+	thisDoc = Glyphs.currentDocument
+	thisController = thisDoc.windowController().tabBarControl().viewControllers()[0].glyphsArrayController()
+	displayedGlyphs = thisController.arrangedObjects()
+	thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 	for layer in selectedLayers:
 		selectedColor = layer.parent.color
-		thisDoc = Glyphs.currentDocument
-		thisController = thisDoc.windowController().tabBarControl().viewControllers()[0].glyphsArrayController()
-		displayedGlyphs = thisController.arrangedObjects()
-	
-		thisFont.disableUpdateInterface() # suppresses UI updates in Font View
-
 		for i in range(len( displayedGlyphs )):
 			thisGlyph = displayedGlyphs[i]
 			if hasColor( thisGlyph, selectedColor ):
 				thisController.addSelectionIndexes_( indexSetWithIndex(i) )
 
-		thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
