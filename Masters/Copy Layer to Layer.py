@@ -8,11 +8,11 @@ import GlyphsApp
 import vanilla
 import math
 
-def getComponentScaleX_scaleY_rotation( self ):
-		a = self.transform[0]
-		b = self.transform[1]
-		c = self.transform[2]
-		d = self.transform[3]
+def getComponentScaleX_scaleY_rotation( thisComponent ):
+		a = thisComponent.transform[0]
+		b = thisComponent.transform[1]
+		c = thisComponent.transform[2]
+		d = thisComponent.transform[3]
 
 		scale_x = math.sqrt(math.pow(a,2)+math.pow(b,2))
 		scale_y = math.sqrt(math.pow(c,2)+math.pow(d,2))
@@ -94,10 +94,11 @@ class MasterFiller( object ):
 	
 	def GetMasterNames( self ):
 		myMasterList = []
-
-		for i in range( len( Glyphs.currentDocument.font.masters ) ):
-			x = Glyphs.currentDocument.font.masters[i]
-			myMasterList.append( '%i: %s' % (i, x.name) )
+		
+		thisFont = Glyphs.font
+		for masterIndex in range( len( thisFont.masters ) ):
+			thisMaster = thisFont.masters[masterIndex]
+			myMasterList.append( '%i: %s' % (masterIndex, thisMaster.name) )
 		
 		return myMasterList
 	
@@ -186,7 +187,6 @@ class MasterFiller( object ):
 		print "Copy Layer to Layer Protocol:"
 
 		Font = Glyphs.font
-		Doc = Glyphs.currentDocument
 		selectedGlyphs = [ x.parent for x in Font.selectedLayers ]
 
 		index_from = self.w.master_from.get()
