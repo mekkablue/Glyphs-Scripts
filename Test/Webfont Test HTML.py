@@ -34,15 +34,23 @@ def allUnicodeEscapesOfFont( thisFont ):
 	return " ".join( allUnicodes )
 
 def activeInstances( thisFont, fileFormats=fileFormats ):
-	familyName = thisFont.familyName
 	activeInstances = [i for i in thisFont.instances if i.active == True]
 	listOfInstanceInfo = []
 	for fileFormat in fileFormats:
 		for activeInstance in activeInstances:
+			# Determine Family Name
+			familyName = thisFont.familyName
+			individualFamilyName = activeInstance.customParameters["familyName"]
+			if individualFamilyName != None:
+				familyName = individualFamilyName
+			
+			# Determine Style Name
 			activeInstanceName = activeInstance.name
-			baseName = "%s %s-%s" % ( fileFormat.upper(), familyName, activeInstanceName )
+			
+			# Determine font and file names for CSS
+			menuName = "%s %s-%s" % ( fileFormat.upper(), familyName, activeInstanceName )
 			fileName = "%s-%s.%s" % ( familyName.replace(" ",""), activeInstanceName.replace(" ",""), fileFormat )
-			listOfInstanceInfo.append( (fileName, baseName, activeInstanceName) )
+			listOfInstanceInfo.append( (fileName, menuName, activeInstanceName) )
 	return listOfInstanceInfo
 
 def optionListForActiveInstances( instanceList ):
@@ -142,7 +150,7 @@ if GLYPHSAPPVERSION.startswith("2."):
 	if exportPath:
 		if saveFileInLocation( content=htmlContent, fileName="fonttest.html", filePath=exportPath ):
 			print "Successfully wrote file to disk."
-			terminalCommand = 'cd %s; open .' % exportPath
+			terminalCommand = 'cd "%s"; open .' % exportPath
 			os.system( terminalCommand )
 		else:
 			print "Error writing file to disk."
