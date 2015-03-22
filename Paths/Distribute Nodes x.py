@@ -7,7 +7,6 @@ Distributes the selected nodes horizontally.
 import GlyphsApp
 
 Font = Glyphs.font
-Doc = Glyphs.currentDocument
 selectedLayer = Font.selectedLayers[0]
 
 try:
@@ -18,9 +17,9 @@ try:
 	
 	Font.disableUpdateInterface()
 
-	increment = diffX // ( len( selection ) - 1 )
+	increment = diffX / float( len(selection) - 1 )
 	sortedSelection = sorted( selection, key=lambda n: n.x)
-	for thisNodeIndex in range( len( selection ) ):
+	for thisNodeIndex in range( len(selection) - 1 ):
 		sortedSelection[thisNodeIndex].x = leftMostX + ( thisNodeIndex * increment )
 			
 	Font.enableUpdateInterface()

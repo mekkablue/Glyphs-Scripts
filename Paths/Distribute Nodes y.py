@@ -17,9 +17,9 @@ try:
 	
 	Font.disableUpdateInterface()
 
-	increment = diffY // ( len( selection ) - 1 )
+	increment = diffY / float( len(selection) - 1 )
 	sortedSelection = sorted( selection, key=lambda n: n.y)
-	for thisNodeIndex in range( len( selection ) ):
+	for thisNodeIndex in range( len(selection) - 1 ):
 		sortedSelection[thisNodeIndex].y = lowestY + ( thisNodeIndex * increment )
 			
 	Font.enableUpdateInterface()
