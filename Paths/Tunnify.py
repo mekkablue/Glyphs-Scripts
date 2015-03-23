@@ -52,11 +52,51 @@ def intersectionWithNSPoints( pointA, pointB, pointC, pointD ):
 			x = ( slope12 * x1 - y1 - slope34 * x3 + y3 ) / ( slope12 - slope34 )
 			y = slope12 * ( x - x1 ) + y1
 			
-		return NSPoint( x, y )
+		intersectionPoint = NSPoint( x, y )
+		if bothPointsAreOnSameSideOfOrigin( intersectionPoint, pointB, pointA ) and bothPointsAreOnSameSideOfOrigin( intersectionPoint, pointC, pointD ):
+			if pointIsBetweenOtherPoints( intersectionPoint, pointB, pointA ) or pointIsBetweenOtherPoints( intersectionPoint, pointC, pointD ):
+				return None
+			return intersectionPoint
+		else:
+			return None
 		
 	except Exception as e:
 		print str(e)
 		return None
+
+def bothPointsAreOnSameSideOfOrigin( pointA, pointB, pointOrigin ):
+	returnValue = True
+	xDiff = (pointA.x-pointOrigin.x) * (pointB.x-pointOrigin.x)
+	yDiff = (pointA.y-pointOrigin.y) * (pointB.y-pointOrigin.y)
+	if xDiff <= 0.0 and yDiff <= 0.0:
+		returnValue = False
+	return returnValue
+
+def pointIsBetweenOtherPoints( thisPoint, otherPointA, otherPointB) :
+	returnValue = False
+	
+	xDiffAB = otherPointB.x - otherPointA.x
+	yDiffAB = otherPointB.y - otherPointA.y
+	xDiffAP = thisPoint.x - otherPointA.x
+	yDiffAP = thisPoint.y - otherPointA.y
+	xDiffFactor = divideAndTolerateZero( xDiffAP, xDiffAB )
+	yDiffFactor = divideAndTolerateZero( yDiffAP, yDiffAB )
+	
+	if xDiffFactor:
+		if 0.0<=xDiffFactor<=1.0:
+			returnValue = True
+	
+	if yDiffFactor:
+		if 0.0<=xDiffFactor<=1.0:
+			returnValue = True
+		
+	return returnValue
+
+def divideAndTolerateZero( dividend, divisor ):
+	if float(divisor) == 0.0:
+		return None
+	else:
+		return dividend/divisor
 
 def pointDistance( x1, y1, x2, y2 ):
 	"""Calculates the distance between P1 and P2."""
