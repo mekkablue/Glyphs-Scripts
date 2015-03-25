@@ -17,7 +17,7 @@ editString = ""
 for leftGlyphName in namesOfSelectedGlyphs:
 	for rightGlyphName in namesOfSelectedGlyphs:
 		editString += ( leftGlyphName + rightGlyphName )
-	editString += "\n"
+	editString += ( leftGlyphName + "\n" )
 
 # in case last line fails, the text is in the macro window:
 Glyphs.clearLog() # clears macro window log
