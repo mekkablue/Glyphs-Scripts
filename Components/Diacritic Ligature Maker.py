@@ -30,7 +30,7 @@ def allLigaturesFromNameLists( l ):
 		return l[0]
 
 def namesOfGlyphsContainingThisComponent( componentName ):
-	listOfGlyphs = selectTool._glyphsContainingComponentWithName_font_masterID_( componentName, thisFont, thisMaster.id )
+	listOfGlyphs = selectTool._glyphsContainingComponentWithName_font_masterID_( componentName, thisFont, thisFontMasterID )
 	nameList = [ g.name for g in listOfGlyphs ]
 	return nameList
 
@@ -60,7 +60,7 @@ def createLigatureWithBaseLigature( newLigatureName, baseGlyphName ):
 				if oldAnchor:
 					newAnchor = "%s_%i" % ( oldAnchor, i+1 )
 				else:
-					anchorBaseName = [ a.name[1:] for a in thisComponent.component.layers[thisMaster.id].anchors if a.name in baseGlyphAnchorNameLists[i] ][0]
+					anchorBaseName = [ a.name[1:] for a in thisComponent.component.layers[thisFontMasterID].anchors if a.name in baseGlyphAnchorNameLists[i] ][0]
 					newAnchor = "%s_%i" % ( anchorBaseName, i+1 )
 				
 				print "       %s -> %s" % ( thisComponent.componentName, newAnchor )
