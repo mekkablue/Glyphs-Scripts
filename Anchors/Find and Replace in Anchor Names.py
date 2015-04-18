@@ -10,8 +10,8 @@ import GlyphsApp
 class SearchAndReplaceInAnchorNames( object ):
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 380
-		windowHeight = 40
+		windowWidth  = 520
+		windowHeight = 58
 		windowWidthResize  = 0 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -24,10 +24,10 @@ class SearchAndReplaceInAnchorNames( object ):
 		
 		# UI elements:
 		self.w.textSearch = vanilla.TextBox((15, 12+2, 67, 14), "Search for:", sizeStyle='small')
-		self.w.searchFor = vanilla.EditText((15+67, 12, 60, 19), "tip", sizeStyle='small')
+		self.w.searchFor = vanilla.EditText((15+67, 12, 135, 19), "tip", sizeStyle='small')
 		
-		self.w.textReplace = vanilla.TextBox((150, 12+2, 67, 14), "Replace by:", sizeStyle='small')
-		self.w.replaceBy = vanilla.EditText((150+67, 12, 60, 19), "top", sizeStyle='small')
+		self.w.textReplace = vanilla.TextBox((225, 12+2, 67, 14), "Replace by:", sizeStyle='small')
+		self.w.replaceBy = vanilla.EditText((225+67, 12, 135, 19), "top", sizeStyle='small')
 
 		self.w.replaceButton = vanilla.Button((-80, 12+1, -15, 17), "Replace", sizeStyle='small', callback=self.SearchAndReplaceInAnchorNamesMain)
 		self.w.setDefaultButton( self.w.replaceButton )
