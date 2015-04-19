@@ -31,7 +31,7 @@ def allLigaturesFromNameLists( l ):
 
 def namesOfGlyphsContainingThisComponent( componentName ):
 	listOfGlyphs = selectTool._glyphsContainingComponentWithName_font_masterID_( componentName, thisFont, thisFontMasterID )
-	nameList = [ g.name for g in listOfGlyphs ]
+	nameList = [ g.name for g in listOfGlyphs if "_" not in g.name ]
 	return nameList
 
 def createLigatureWithBaseLigature( newLigatureName, baseGlyphName ):
@@ -67,6 +67,10 @@ def createLigatureWithBaseLigature( newLigatureName, baseGlyphName ):
 				newComponent.setAnchor_( newAnchor )
 	
 def process( thisLigatureName ):
+	if not "_" in thisLigatureName:
+		print "    %s is not a ligature." % thisLigatureName
+		return None
+		
 	thisLigatureNameWithoutExtension = thisLigatureName.split(".")[0]
 	namesOfLigatureLetters = thisLigatureNameWithoutExtension.split("_")
 	diacriticLetterLists = [ [n]+namesOfGlyphsContainingThisComponent(n) for n in namesOfLigatureLetters ]
@@ -74,7 +78,11 @@ def process( thisLigatureName ):
 	for diacriticLigatureName in listOfLigatures:
 		if not thisFont.glyphs[diacriticLigatureName]:
 			print "    Creating %s" % diacriticLigatureName
-			createLigatureWithBaseLigature( diacriticLigatureName, thisLigatureName )
+			try:
+				createLigatureWithBaseLigature( diacriticLigatureName, thisLigatureName )
+			except Exception as e:
+				print "    Error: Could not create '%s' in all masters. Does '%s' have all necessary anchors?" % ( diacriticLigatureName, thisLigatureName )
+				# raise e
 		else:
 			print "    Skipping %s: already exists in font" % diacriticLigatureName
 	return listOfLigatures
@@ -89,7 +97,9 @@ for thisLayer in listOfSelectedLayers:
 
 	print "Creating variations for %s:" % thisGlyphName
 	thisGlyph.beginUndo() # begin undo grouping
-	allNewLigatures += process( thisGlyphName )
+	listOfLigatures = process( thisGlyphName )
+	if listOfLigatures:
+		allNewLigatures += listOfLigatures
 	thisGlyph.endUndo()   # end undo grouping
 
 thisFont.enableUpdateInterface() # re-enables UI updates in Font View
