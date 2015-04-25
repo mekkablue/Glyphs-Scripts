@@ -63,6 +63,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Delete all components:** Deletes ALL components in selected glyphs. Be careful or use TimeMachine. You have been warned.
 * **Diacritic Ligature Maker:** For selected ligatures with appropriate anchors (top_1, top_2, etc.), all possible diacritic variations are created. E.g., from A_h, the script can produce Adieresis_h, Aacute_h, A_hcircumflex, Adieresis_hcircumflex, etc. For preparing the anchors, try the *Anchors > Insert Anchors into Ligatures* script.
 * **Enable** and **Disable alignment:** Enables or disables automatic alignment for all components on visible layers in selected glyphs. Does the same as the command in the context menu, but you can do it in one step for many glyphs.
+* **Modify Components:** In selected glyphs, replaces accents with their dot suffix variant where possible. *Needs Vanilla*
 * **Rebuild Components:** Moves outlines to background, then tries to rebuild the glyph with components in the foreground. Tries to position the accents as precisely as possible. Useful for rebuilding a decomposed font.
 * **Replace components:** Relinks components in selected glyphs to a new source glyph. *Needs Vanilla.*
 
