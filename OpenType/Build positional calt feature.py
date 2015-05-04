@@ -5,8 +5,7 @@ Create calt for positional forms with .isol, .init, .medi, .fina suffixes.
 """
 
 import GlyphsApp
-Font = Glyphs.font
-
+thisFont = Glyphs.font
 positionalFeature = "calt"
 anyLetterClassName = "AnyLetter"
 extensionDef = "Def"
@@ -31,88 +30,128 @@ def updated_code( oldcode, beginsig, endsig, newcode ):
 	newcode = oldcode[:begin_offset] + beginsig + newcode + "\n" + endsig + oldcode[end_offset:]
 	return newcode
 
-def create_otfeature( featurename = "calt",
-                      featurecode = "# empty feature code",
-                      targetfont  = Font,
-                      codesig     = "DEFAULT-CODE-SIGNATURE" ):
+def create_otfeature( featureName = "calt",
+                      featureCode = "# empty feature code",
+                      targetFont  = None,
+                      codeSig     = "DEFAULT-CODE-SIGNATURE" ):
 	"""
 	Creates or updates an OpenType feature in the font.
 	Returns a status message in form of a string.
 	"""
 	
-	beginSig = "# BEGIN " + codesig + "\n"
-	endSig   = "# END "   + codesig + "\n"
+	if targetFont:
+		beginSig = "# BEGIN " + codeSig + "\n"
+		endSig   = "# END "   + codeSig + "\n"
 	
-	if featurename in [ f.name for f in targetfont.features ]:
-		# feature already exists:
-		targetfeature = targetfont.features[ featurename ]
+		if featureName in [ f.name for f in targetFont.features ]:
+			# feature already exists:
+			targetFeature = targetFont.features[ featureName ]
 		
-		if beginSig in targetfeature.code:
-			# replace old code with new code:
-			targetfeature.code = updated_code( targetfeature.code, beginSig, endSig, featurecode )
-		else:
-			# append new code:
-			targetfeature.code += "\n" + beginSig + featurecode + "\n" + endSig
+			if beginSig in targetFeature.code:
+				# replace old code with new code:
+				targetFeature.code = updated_code( targetFeature.code, beginSig, endSig, featureCode )
+			else:
+				# append new code:
+				targetFeature.code += "\n" + beginSig + featureCode + "\n" + endSig
 			
-		return "Updated existing OT feature '%s'." % featurename
+			return "Updated existing OT feature '%s'." % featureName
+		else:
+			# create feature with new code:
+			newFeature = GSFeature()
+			newFeature.name = featureName
+			newFeature.code = beginSig + featureCode + "\n" + endSig
+			targetFont.features.append( newFeature )
+			return "Created new OT feature '%s'" % featureName
 	else:
-		# create feature with new code:
-		newFeature = GSFeature()
-		newFeature.name = featurename
-		newFeature.code = beginSig + featurecode + "\n" + endSig
-		targetfont.features.append( newFeature )
-		return "Created new OT feature '%s'" % featurename
+		return "ERROR: Could not create OT feature %s. No font detected." % ( featureName )
 
-def create_otclass( classname   = "@default",
-                    classglyphs = [ x.parent.name for x in Font.selectedLayers ],
-                    targetfont  = Font ):
+def create_otclass( className       = "@default",
+                    classGlyphNames = [],
+                    targetFont      = None ):
 	"""
 	Creates an OpenType class in the font.
 	Default: class @default with currently selected glyphs in the current font.
 	Returns a status message in form of a string.
 	"""
 	
-	# strip '@' from beginning:
-	if classname[0] == "@":
-		classname = classname[1:]
+	if targetFont and classGlyphNames:
+		# strip '@' from beginning:
+		if className[0] == "@":
+			className = className[1:]
 	
-	classCode = " ".join( classglyphs )
+		classCode = " ".join( classGlyphNames )
 	
-	if classname in [ c.name for c in targetfont.classes ]:
-		targetfont.classes[classname].code = classCode
-		return "Updated existing OT class '%s'." % classname
+		if className in [ c.name for c in targetFont.classes ]:
+			targetFont.classes[className].code = classCode
+			return "Updated existing OT class '%s'." % ( className )
+		else:
+			newClass = GSClass()
+			newClass.name = className
+			newClass.code = classCode
+			targetFont.classes.append( newClass )
+			return "Created new OT class: '%s'" % ( className )
 	else:
-		newClass = GSClass()
-		newClass.name = classname
-		newClass.code = classCode
-		targetfont.classes.append( newClass )
-		return "Created new OT class: '%s'" % classname
+		return "ERROR: Could not create OT class %s. Missing either font or glyph names, or both." % ( className )
 
-allLetters = [ g.name for g in Font.glyphs if g.category == "Letter" ]
-create_otclass( classname=anyLetterClassName, classglyphs=allLetters, targetfont=Font )
+# brings macro window to front and clears its log:
+Glyphs.clearLog()
+Glyphs.showMacroWindow()
+print "Building positional calt feature:"
+
+allLetterNames = [ g.name for g in thisFont.glyphs if g.category == "Letter" ]
+
+print "\t%s" % create_otclass(
+	className       = anyLetterClassName,
+	classGlyphNames = allLetterNames,
+	targetFont      = thisFont
+)
 
 positionalFeatureCode = "\n"
 
 for thisSuffix in suffixes:
 	dotSuffix = "." + thisSuffix
 	dotSuffixLength = len( dotSuffix )
-	theseSuffixedGlyphNames = [ g.name for g in Font.glyphs if g.name.endswith( dotSuffix ) and ( Font.glyphs[g.name[:-dotSuffixLength]] is not None ) ]
+	theseSuffixedGlyphNames = [ g.name for g in thisFont.glyphs if g.name.endswith( dotSuffix ) and ( thisFont.glyphs[g.name[:-dotSuffixLength]] is not None ) ]
 	theseUnsuffixedGlyphNames = [ n[:-dotSuffixLength] for n in theseSuffixedGlyphNames ]
 	
-	if len(theseSuffixedGlyphNames) > 0:
-		create_otclass( classname=thisSuffix+extensionDef, classglyphs=theseUnsuffixedGlyphNames, targetfont=Font )
-		create_otclass( classname=thisSuffix+extensionSub, classglyphs=theseSuffixedGlyphNames, targetfont=Font )
+	print "\tFound %i glyphs with a %s suffix, and %i unsuffixed counterparts." % (
+		len( theseSuffixedGlyphNames ),
+		dotSuffix,
+		len( theseUnsuffixedGlyphNames )
+	)
+	
+	if len( theseSuffixedGlyphNames ) > 0:
+		print "\t%s" % create_otclass(
+			className       = thisSuffix + extensionDef,
+			classGlyphNames = theseUnsuffixedGlyphNames,
+			targetFont      = thisFont
+		)
+		print "\t%s" % create_otclass(
+			className       = thisSuffix + extensionSub,
+			classGlyphNames = theseSuffixedGlyphNames,
+			targetFont      = thisFont
+		)
 
 		thisIgnoreCode = ignoreStatements[ thisSuffix ]
+		
 		if thisIgnoreCode.startswith( "ignore" ):
-			ignoreSubstitution = "sub @%s%s' by @%s%s;" % ( thisSuffix, extensionDef, thisSuffix, extensionSub )
+			ignoreSubstitution = "\tsub @%s%s' by @%s%s;\n" % (
+				thisSuffix,
+				extensionDef,
+				thisSuffix,
+				extensionSub
+			)
 		else:
 			ignoreSubstitution = ""
 	
-		positionalFeatureCode += "lookup %sForms {\n" % thisSuffix.title()
-		positionalFeatureCode += "\t" + thisIgnoreCode + "\n"
-		positionalFeatureCode += "\t" + ignoreSubstitution + "\n"
-		positionalFeatureCode += "} %sForms;\n\n" % thisSuffix.title()
+		positionalFeatureCode += "lookup %sForms {\n" % ( thisSuffix.title() )
+		positionalFeatureCode += "\t%s\n" % ( thisIgnoreCode )
+		positionalFeatureCode += ignoreSubstitution
+		positionalFeatureCode += "} %sForms;\n\n" % ( thisSuffix.title() )
 
-create_otfeature( featurename=positionalFeature, featurecode=positionalFeatureCode, targetfont=Font, codesig="POSITIONAL ALTERNATES")
-
+print "\t%s" % create_otfeature(
+	featureName = positionalFeature,
+	featureCode = positionalFeatureCode,
+	targetFont  = thisFont,
+	codeSig     = "POSITIONAL ALTERNATES"
+)
