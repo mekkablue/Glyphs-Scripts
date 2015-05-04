@@ -4,7 +4,7 @@ __doc__="""
 Create pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font.
 """
 
-linelength = 70
+lineLength = 70
 addDefault = True
 featureName = "calt"
 classNamePrefix = featureName
@@ -117,9 +117,9 @@ else:
 	else:
 		zeroOrOne = 1
 	
-	suffixNumberRange = range( zeroOrOne, highestSetNumber+1 ) * ( linelength // highestSetNumber+2 )
+	suffixNumberRange = range( zeroOrOne, highestSetNumber+1 ) * ( lineLength // highestSetNumber+2 )
 	
-	for j in range( highestSetNumber * ( linelength // highestSetNumber+1 ), 0, -1 ):
+	for j in range( highestSetNumber * ( lineLength // highestSetNumber+1 ), 0, -1 ):
 		newLine = "sub @%s00' %s by @%s%02i;\n" % (
 			classNamePrefix, "@%s00 "%classNamePrefix * j, 
 			classNamePrefix, 
