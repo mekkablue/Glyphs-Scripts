@@ -19,7 +19,8 @@ for thisLayer in listOfSelectedLayers:
 	thisGlyph = thisLayer.parent
 	print "Enabling auto-alignment in", thisGlyph.name
 	thisGlyph.beginUndo() # begin undo grouping
-	process( thisLayer )
+	for thisVeryLayer in thisGlyph.layers:
+		process( thisVeryLayer )
 	thisGlyph.endUndo()   # end undo grouping
 
 thisFont.enableUpdateInterface() # re-enables UI updates in Font View
