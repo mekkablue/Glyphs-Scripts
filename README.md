@@ -65,6 +65,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Enable** and **Disable alignment:** Enables or disables automatic alignment for all components on visible layers in selected glyphs. Does the same as the command in the context menu, but you can do it in one step for many glyphs.
 * **Modify Components:** In selected glyphs, replaces accents with their dot suffix variant where possible. *Needs Vanilla*
 * **Rebuild Components:** Moves outlines to background, then tries to rebuild the glyph with components in the foreground. Tries to position the accents as precisely as possible. Useful for rebuilding a decomposed font.
+* **Remove Components:** Removes the specified component from all glyphs or all selected glyphs. *Needs Vanilla.*
 * **Replace components:** Relinks components in selected glyphs to a new source glyph. *Needs Vanilla.*
 
 ## Effects Scripts
@@ -87,6 +88,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **BlueFuzzer:** Extends all alignment zones by the specified value. Similar to what the blueFuzz value used to do, hence the name. *Needs Vanilla.*
 * **Delete Hints in Visible Layers:** Deletes hints in active layers of selected glyphs.
 * **Delete All Hints in Font:** Deletes all hints throughout the active font. Be careful.
+* **Delete All Vertical Hints in Font:** Deletes all vertical hints throughout the active font. Be careful.
 * **Keep First Master Hints Only:** In selected glyphs, deletes all hints in all layers except for whatever is ordered as first master. Respects Bracket Layers. E.g., if your first master is 'Regular', then the script will delete hints in 'Bold', 'Bold [120]', but keep them in 'Regular' and 'Regular [100]'.
 * **New Tab with Glyphs Exceeding Zones:** Opens a new tab with all glyphs where the extremums do not lie within zones.
 
