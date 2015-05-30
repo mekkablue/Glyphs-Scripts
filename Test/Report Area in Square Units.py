@@ -19,7 +19,10 @@ else:
 	measurementTool = NSClassFromString("GSGuideLine")
 	
 def sliceIntersections( thisLayer, startPoint, endPoint ):
-	return measurementTool.calculateIntersectionsForLayer_startPoint_endPoint_( thisLayer, startPoint, endPoint )
+	if GLYPHSAPPVERSION.startswith("2.0."):
+		return thisLayer.calculateIntersectionsStartPoint_endPoint_( startPoint, endPoint )	
+	else:
+		return measurementTool.calculateIntersectionsForLayer_startPoint_endPoint_( thisLayer, startPoint, endPoint )	
 
 def sizeOfSlice( thisLayer, y ):
 	theseBounds = thisLayer.bounds
@@ -29,7 +32,7 @@ def sizeOfSlice( thisLayer, y ):
 	endPoint   = NSPoint( endPointX, y )
 	listOfIntersections = sliceIntersections( thisLayer, startPoint, endPoint )
 	totalLength = 0.0
-	if len(listOfIntersections) >= 4:
+	if listOfIntersections and len(listOfIntersections) >= 4:
 		listOfIntersections.pop(0)
 		listOfIntersections.pop(-1)
 		for thisPairIndex in range(len(listOfIntersections)/2):

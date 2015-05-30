@@ -42,7 +42,10 @@ def saveFileDialog( message=None, ProposedFileName=None, filetypes=None ):
 	return None
 	
 def sliceIntersections( thisLayer, startPoint, endPoint ):
-	return measurementTool.calculateIntersectionsForLayer_startPoint_endPoint_( thisLayer, startPoint, endPoint )
+	if GLYPHSAPPVERSION.startswith("2.0."):
+		return thisLayer.calculateIntersectionsStartPoint_endPoint_( startPoint, endPoint )	
+	else:
+		return measurementTool.calculateIntersectionsForLayer_startPoint_endPoint_( thisLayer, startPoint, endPoint )	
 
 def sizeOfSlice( thisLayer, y ):
 	theseBounds = thisLayer.bounds
