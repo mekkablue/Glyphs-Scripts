@@ -23,17 +23,16 @@ class ChangeMetricsbyPercentage( object ):
 
 		self.w.setDefaultButton( self.w.runButton )
 		
-		try:
-			self.LoadPreferences( )
-		except:
-			pass
+		if not self.LoadPreferences():
+			print "Could not load preferences. Will resort to defaults."
 
 		self.w.open()
+		self.w.makeKey()
 		
 	def SavePreferences( self, sender ):
 		try:
 			Glyphs.defaults["com.mekkablue.ChangeMetricsbyPercentage.LSB"] = self.w.LSB.get()
-			Glyphs.defaults["com.mekkablue.ChangeMetricsbyPercentage.LSB"] = self.w.RSB.get()
+			Glyphs.defaults["com.mekkablue.ChangeMetricsbyPercentage.RSB"] = self.w.RSB.get()
 			Glyphs.defaults["com.mekkablue.ChangeMetricsbyPercentage.changeValue"] = self.w.changeValue.get()
 		except:
 			return False
@@ -42,6 +41,13 @@ class ChangeMetricsbyPercentage( object ):
 
 	def LoadPreferences( self ):
 		try:
+			NSUserDefaults.standardUserDefaults().registerDefaults_(
+				{
+					"com.mekkablue.ChangeMetricsbyPercentage.LSB": "True",
+					"com.mekkablue.ChangeMetricsbyPercentage.RSB": "True",
+					"com.mekkablue.ChangeMetricsbyPercentage.changeValue": "+10.0"
+				}
+			)
 			self.w.LSB.set( Glyphs.defaults["com.mekkablue.ChangeMetricsbyPercentage.LSB"] )
 			self.w.RSB.set( Glyphs.defaults["com.mekkablue.ChangeMetricsbyPercentage.RSB"] )
 			self.w.changeValue.set( Glyphs.defaults["com.mekkablue.ChangeMetricsbyPercentage.changeValue"] )
@@ -62,19 +68,20 @@ class ChangeMetricsbyPercentage( object ):
 			if sender == self.w.revertButton:
 				change = 1.0 / change
 			
-			if changeLSB:
-				for thisLayer in selectedLayers:
-					thisLayer.LSB *= change
-			
-			if changeRSB:
-				for thisLayer in selectedLayers:
-					thisLayer.RSB *= change
+			for thisLayer in selectedLayers:
+				if len(thisLayer.paths)>0 or len(thisLayer.components)>0:
+					if changeLSB:
+						thisLayer.LSB *= change
+					if changeRSB:
+						thisLayer.RSB *= change
 			
 			if not self.SavePreferences( self ):
 				print "Note: could not write preferences."
 			
 			# self.w.close()
 		except Exception, e:
-			raise e
+			# brings macro window to front and reports error:
+			Glyphs.showMacroWindow()
+			print " Error: %s" % e
 
 ChangeMetricsbyPercentage()
