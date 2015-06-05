@@ -120,12 +120,14 @@ else:
 	suffixNumberRange = range( zeroOrOne, highestSetNumber+1 ) * ( lineLength // highestSetNumber+2 )
 	
 	for j in range( highestSetNumber * ( lineLength // highestSetNumber+1 ), 0, -1 ):
-		newLine = "sub @%s00' %s by @%s%02i;\n" % (
-			classNamePrefix, "@%s00 "%classNamePrefix * j, 
-			classNamePrefix, 
-			suffixNumberRange[j] 
-		) 
-		featureText += newLine
+		suffixNumber = suffixNumberRange[j]
+		if suffixNumber != 0:
+			newLine = "sub @%s00' %s by @%s%02i;\n" % (
+				classNamePrefix, "@%s00 "%classNamePrefix * j, 
+				classNamePrefix, 
+				suffixNumber
+			) 
+			featureText += newLine
 	
 	# Add OT feature:
 	print create_otfeature( featurename = featureName, featurecode = featureText, targetFont = thisFont )
