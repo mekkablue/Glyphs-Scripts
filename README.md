@@ -156,6 +156,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Fill up with rectangles:** Goes through your selected glyphs, and if it finds an empty one, inserts a placeholder rectangle. Useful for quickly building a dummy font for testing.
 * **Insert BCPs into straight segments:** Inserts off-curve points (BCPs) into straight line segments of all selected glyphs. Like option-clicking on all straight lines.
 * **Insert Inflections:** Inserts nodes at path inflections in the visible layers of all selected glyphs.
+* **New Tab with Zero Handles:** Opens a new tab with glyphs containing zero handles in the current font master.
 * **Open all closed paths:** Opens all closed paths in the visible layers of all selected glyphs. Useful after importing open paths from FontLab Studio.
 * **Realign Handles:** Realigns all BCPs on smooth connections. Only works in edit mode with the currently active layer. Useful if handles got out of sync, e.g. after nudging or some other transformation, or after interpolation.
 * **Retract BCPs:** Deletes all off-curve points (BCPs). Handy if you want to make sure that your font only has straight lines. 
