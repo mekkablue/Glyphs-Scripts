@@ -9,19 +9,19 @@ import vanilla
 import math
 
 listHorizontal = [
-	["current position", "originalAnchor.x + italicCorrection"],
+	["current position", "copyAnchor.x"],
 	["LSB", "0.0"],
 	["RSB", "copyLayer.width"],
 	["center", "copyLayer.width // 2.0"],
-	["bbox left edge", "copyLayer.LSB"],
-	["bbox center", "(copyLayer.LSB + (copyLayer.width - copyLayer.RSB)) // 2.0"],
-	["bbox right edge", "copyLayer.width - copyLayer.RSB"],
-	["highest node", "max( [ (max( [x for x in p.nodes if x.type != 65], key=lambda n: n.y )) for p in copyLayer.paths ], key=lambda n: n.y ).x + italicCorrection"],
-	["lowest node", "min( [ (min( [x for x in p.nodes if x.type != 65], key=lambda n: n.y )) for p in copyLayer.paths ], key=lambda n: n.y ).x + italicCorrection"]
+	["bbox left edge", "copyLayer.bounds.origin.x"],
+	["bbox center", "copyLayer.bounds.origin.x + copyLayer.bounds.size.width // 2.0"],
+	["bbox right edge", "copyLayer.bounds.origin.x + copyLayer.bounds.size.width"],
+	["highest node", "max( [ (max( [x for x in p.nodes if x.type != 65], key=lambda n: n.y )) for p in copyLayer.paths ], key=lambda n: n.y ).x"],
+	["lowest node", "min( [ (min( [x for x in p.nodes if x.type != 65], key=lambda n: n.y )) for p in copyLayer.paths ], key=lambda n: n.y ).x"]
 ]
 
 listVertical = [
-	["current position", "originalAnchor.y"],
+	["current position", "copyAnchor.y"],
 	["ascender", "selectedAscender"],
 	["cap height", "selectedCapheight"],
 	["x-height", "selectedXheight"],
@@ -39,11 +39,8 @@ listVertical = [
 
 def italicSkew( x, y, angle=10.0 ):
 	"""Skews x/y along the x axis and returns skewed x value."""
-	
 	new_angle = ( angle / 180.0 ) * math.pi
-	new_x = (x) + ( y * math.tan( new_angle ) )
-	
-	return new_x
+	return x + y * math.tan( new_angle )
 
 class AnchorMover2( object ):
 
@@ -77,6 +74,7 @@ class AnchorMover2( object ):
 			print "Error: Could not load preferences. Will resort to defaults."
 
 		self.w.open()
+		self.w.makeKey()
 	
 	def SavePreferences( self, sender ):
 		Glyphs.defaults["com.mekkablue.AnchorMover2.hTarget"] = self.w.hTarget.get()
@@ -119,8 +117,9 @@ class AnchorMover2( object ):
 		
 		# respecting italic angle
 		respectItalic = self.w.italic.get()
-		if respectItalic:
+		if italicAngle:
 			italicCorrection = italicSkew( 0.0, selectedXheight/2.0, italicAngle )
+			print "italicCorrection", italicCorrection
 		else:
 			italicCorrection = 0.0
 
@@ -134,22 +133,24 @@ class AnchorMover2( object ):
 			if originalLayer.name != None:
 				if len(originalLayer.anchors) > 0:
 					thisGlyph = originalLayer.parent
+					
+					# create a layer copy that can be slanted backwards if necessary
 					copyLayer = originalLayer.copyDecomposedLayer()
 					thisGlyph.beginUndo() # not working?
 				
 					try:
-						if respectItalic:
+						if italicAngle and respectItalic:
+							# slant the layer copy backwards
 							for mPath in copyLayer.paths:
 								for mNode in mPath.nodes:
-									mNode.x = italicSkew( mNode.x, mNode.y, -italicAngle )
-							
+									mNode.x = italicSkew( mNode.x, mNode.y, -italicAngle ) + italicCorrection
 							for mAnchor in copyLayer.anchors:
-								mAnchor.x = italicSkew( mAnchor.x, mAnchor.y, -italicAngle )
-							
-						for originalAnchor in originalLayer.anchors:
-							if originalAnchor.name == anchor_name:
-								old_anchor_x = originalAnchor.x
-								old_anchor_y = originalAnchor.y
+								mAnchor.x = italicSkew( mAnchor.x, mAnchor.y, -italicAngle ) + italicCorrection
+
+						for copyAnchor in copyLayer.anchors:
+							if copyAnchor.name == anchor_name:
+								old_anchor_x = copyAnchor.x
+								old_anchor_y = copyAnchor.y
 								xMove = eval( evalCodeH ) + horizontal_change
 								yMove = eval( evalCodeV ) + vertical_change
 						
@@ -162,13 +163,14 @@ class AnchorMover2( object ):
 										yMove = old_anchor_y
 						
 								# Only move if the calculated position differs from the original one:
-								if [ int(old_anchor_x + italicCorrection), int(old_anchor_y) ] != [ int(xMove), int(yMove) ]:
+								if [ int(old_anchor_x), int(old_anchor_y) ] != [ int(xMove), int(yMove) ]:
 							
-									if respectItalic:
+									if italicAngle and respectItalic:
 										# skew back
 										xMove = italicSkew( xMove, yMove, italicAngle ) - italicCorrection
 										old_anchor_x = italicSkew( old_anchor_x, old_anchor_y, italicAngle ) - italicCorrection
 						
+									originalAnchor = [a for a in originalLayer.anchors if a.name == anchor_name][0]
 									originalAnchor.position = NSMakePoint( xMove, yMove )
 						
 									print "Moved %s anchor from %i, %i to %i, %i in %s." % ( anchor_name, old_anchor_x, old_anchor_y, xMove, yMove, thisGlyph.name )
