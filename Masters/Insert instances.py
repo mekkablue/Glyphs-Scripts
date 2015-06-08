@@ -49,7 +49,7 @@ class InstanceMaker( object ):
 		self.w.text_4 =  vanilla.TextBox( (15+40+55, 40+2, 55, 14), "through:", sizeStyle='small')
 		self.w.master2 = vanilla.ComboBox((15+40+55+55, 40-1, 50, 19), self.MasterList(-1), callback=self.UpdateSample, sizeStyle='small' )
 		self.w.text_5 =  vanilla.TextBox( (15+40+55+55+55, 40+2, 55, 14), "at width:", sizeStyle='small')
-		self.w.width =   vanilla.EditText((15+40+45+55+55+65, 40-1, -15, 19), "100", callback=self.SavePreferences, sizeStyle='small')
+		self.w.width =   vanilla.EditText((15+40+45+55+55+65, 40-1, -15, 19), "100", callback=self.UpdateSample, sizeStyle='small')
 		
 		self.w.text_6 = vanilla.TextBox( (15-1, 68+2, 60, 14), "using", sizeStyle='small')
 		self.w.algorithm = vanilla.PopUpButton((15+40, 68, 80, 17), [ "Pablo", "Luc(as)", "linear" ], callback=self.UpdateSample, sizeStyle='small' )
@@ -60,10 +60,10 @@ class InstanceMaker( object ):
 		self.w.existingInstances.set( 0 )
 		
 		self.w.maciej        = vanilla.CheckBox((15, 170, 160, 19), "Maciej y distribution from:", value=False, callback=self.UpdateSample, sizeStyle='small' )
-		self.w.maciej_light  = vanilla.ComboBox((15+165, 170-2, 50, 19), self.MasterList(1), callback=self.UpdateSample, sizeStyle='small' )
 		self.w.text_maciej_1 = vanilla.TextBox( (15+165+55, 170+2, 55, 19), "through:", sizeStyle='small')
-		self.w.maciej_bold   = vanilla.ComboBox((15+165+55+55, 170-2, -15, 19), self.MasterList(-1), callback=self.UpdateSample, sizeStyle='small' )
 		self.w.text_maciej_2 = vanilla.TextBox( (15+15, 170+2+20, -40, 40), "Provide horizontal stem widths in extreme masters to interpolate contrast rather than stems.", sizeStyle='small', selectable=True )
+		self.w.maciej_light  = vanilla.ComboBox((15+165, 170-2, 50, 19), self.MasterList(1), callback=self.UpdateSample, sizeStyle='small' )
+		self.w.maciej_bold   = vanilla.ComboBox((15+165+55+55, 170-2, -15, 19), self.MasterList(-1), callback=self.UpdateSample, sizeStyle='small' )
 		self.w.help_maciej   = vanilla.HelpButton((-15-21, 170+6+20, -15, 20), callback=self.openURL )
 		
 		self.w.sample = vanilla.Box( (15, 170+30+40, -15, -30-15) )
@@ -110,9 +110,10 @@ class InstanceMaker( object ):
 				sampleText += ", growth: %.1f%%" % ( (distributedValues[1] / distributedValues[0]) *100-100 )
 			
 			if self.w.maciej.get():
-				maciejValues = self.MaciejValues( distributedValues )
-				maciejList = [ str( int( round( distribute_maciej( maciejValues[0], maciejValues[1], maciejValues[2], maciejValues[3], w)))) for w in distributedValues ]
-				sampleText += "\n\nWill add interpolationWeightY parameters to the respective instances: %s" % ( ", ".join( maciejList ) + "." )
+				maciejValues = self.MaciejValues()
+				if maciejValues:
+					maciejList = [ str( int( round( distribute_maciej( maciejValues[0], maciejValues[1], maciejValues[2], maciejValues[3], w)))) for w in distributedValues ]
+					sampleText += "\n\nWill add interpolationWeightY parameters to the respective instances: %s" % ( ", ".join( maciejList ) + "." )
 			
 			self.w.sample.text.set( sampleText )
 			self.SavePreferences( self )
@@ -186,12 +187,15 @@ class InstanceMaker( object ):
 			import webbrowser
 			webbrowser.open( URL )
 	
-	def MaciejValues( self, distributedValues ):
+	def MaciejValues( self ):
 		lightX = self.w.master1.get().floatValue()
 		boldX  = self.w.master2.get().floatValue()
 		lightY = self.w.maciej_light.get().floatValue()
 		boldY  = self.w.maciej_bold.get().floatValue()
-		return [ lightX, lightY, boldX, boldY ]
+		if lightX and boldX and lightY and boldY:
+			return [ lightX, lightY, boldX, boldY ]
+		else:
+			return False
 		
 	def CreateInstances( self, sender ):
 		try:
@@ -202,7 +206,10 @@ class InstanceMaker( object ):
 				maciejYesOrNo = self.w.maciej.get()
 				
 				if maciejYesOrNo:
-					maciejValues = self.MaciejValues( distributedValues )
+					maciejValues = self.MaciejValues()
+					# invalid if entered values are empty or invalid:
+					if not maciejValues:
+						maciejYesOrNo = False
 		
 				for thisWeight in distributedValues:
 					newInstance = GSInstance()
