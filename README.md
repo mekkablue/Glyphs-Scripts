@@ -73,6 +73,16 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Baseline Wiggle:** Creates a pos feature that randomly displaces the glyphs while you type.
 * **Stitcher:** In selected glyphs, the Stitcher inserts components on your paths at fixed intervals. Useful for turning open paths (monolines) into dotted lines. Use an anchor called 'origin' for determining the component position in stitched letters. *Needs Vanilla.*
 
+## Features
+* **Build ccmp:** Builds a Latin ccmp feature, based on the presence of i and j, and also tries to create dotlessi and dotlessj, if they are not present in the font.
+* **Build positional calt feature:** Looks for .init, .medi, .fina, and .isol glyphs, and injects positional substitution code into your calt feature. If run again, will update its class and feature code. 
+* **Floating Features:** Floating palettes for activating and deactivating OT features. Same functionality as the pop-up menu. *Needs Vanilla.*
+* **Make OT Class from selected glyphs:** GUI for creating a new OT class with the selected glyphs. *Needs Vanilla.*
+* **Refresh Features without Reordering:** Goes through the existing features in the font and refreshes each one of them. Does neither add nor reorder features.
+* * **Stylistic Sets > Synchronize ssXX glyphs:** Creates missing ssXX glyphs so that you have synchronous groups of ssXX glyphs. E.g. you have *a.ss01 b.ss01 c.ss01 a.ss02 c.ss02* --> the script creates *b.ss02*
+* * **Stylistic Sets > Create ssXX from layer:** Takes the current layer and copies it to the primary layer of a new .ssXX glyph.
+* * **Stylistic Sets > Create pseudorandom calt feature:** Creates pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font. Update: now includes the default class in the rotation algorithm.
+
 ## Glyph Names
 * **Check glyph names:** Checks all available glyph names for illegal characters.
 * **Lowercase:** Turns the names of selected glyphs lowercase.
@@ -137,13 +147,6 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Steal kerning groups:** steals left/right kerning groups for all selected glyphs from a 2nd font. *Needs Vanilla.*
 * **Steal sidebearings:** steals the sidebearing values for all selected glyphs from a 2nd font. Ignores metrics keys like '=x+20'. *Needs Vanilla.*
 
-## OpenType
-* **Build ccmp:** Builds a Latin ccmp feature, based on the presence of i and j, and also tries to create dotlessi and dotlessj, if they are not present in the font.
-* **Build positional calt feature:** Looks for .init, .medi, .fina, and .isol glyphs, and injects positional substitution code into your calt feature. If run again, will update its class and feature code. 
-* **Floating Features:** Floating palettes for activating and deactivating OT features. Same functionality as the pop-up menu. *Needs Vanilla.*
-* **Make OT Class from selected glyphs:** GUI for creating a new OT class with the selected glyphs. *Needs Vanilla.*
-* **Refresh Features without Reordering:** Goes through the existing features in the font and refreshes each one of them. Does neither add nor reorder features.
-
 ## Paths
 * All **Move > Align** scripts look for a path in the currently active layer and align it to whatever the script title says. Useful if you need to do one of these alignment operations very often. Hint: you can set a keyboard shortcut in System Preferences.
 * All **Move > Bump** scripts move the selection towards the next available metric to the left, right, top or bottom. The Bump Left/Right scripts also include the halfwidth of the glyph, the Bump Up/Down scripts include global guidelines as well. These are intended for setting a shortcut in System Preferences > Keyboard > Keyboard Shortcuts > Application Shortcuts (I recommend ctrl-opt-cmd-arrows).
@@ -182,11 +185,6 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Make c2sc from smcp:** Creates .c2sc copies of your .smcp glyphs, with the .smcp glyphs inserted as components in the .c2sc copies. For example, if you have *a.smcp*, the script will create *A.c2sc* and insert *a.smcp* as component. It will not do anything in case *A.c2sc* already exists.
 * **Make smcp from c2sc:** Creates .smcp copies of your .c2sc glyphs, with the .c2sc glyphs inserted as components in the .smcp copies. For example, if you have *A.c2sc*, the script will create *a.smcp* and insert *A.c2sc* as component. It will not do anything in case *a.smcp* already exists.
 
-## Stylistic Sets 
-* **Synchronize ssXX glyphs:** Creates missing ssXX glyphs so that you have synchronous groups of ssXX glyphs. E.g. you have *a.ss01 b.ss01 c.ss01 a.ss02 c.ss02* --> the script creates *b.ss02*
-* **Create ssXX from layer:** Takes the current layer and copies it to the primary layer of a new .ssXX glyph.
-* **Create pseudorandom calt feature:** Creates pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font. Update: now includes the default class in the rotation algorithm.
-
 ## Test
 * **Compare Font Family:** Compares a few Font Info entries between all currently opened fonts, and displays them in the Macro window if there are any differences.
 * **Preflight Font:** Checks for a few common mistakes, like bad glyph names, and reports them to the Macro Window.
@@ -200,7 +198,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 
 Copyright 2011-2015 Rainer Erich Scheichelbauer (@mekkablue).
 Some code samples by Georg Seifert (@schriftgestalt) and Tal Leming (@typesupply).
-Some algorithm input by Christoph Schindler (@hop) and Maciej Ratajski.
+Some algorithm input by Christoph Schindler (@hop) and Maciej Ratajski (@maciejratajski).
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use the software provided here except in compliance with the License.
