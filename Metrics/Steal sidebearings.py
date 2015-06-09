@@ -1,4 +1,4 @@
-#MenuTitle: Steal sidebearings from font
+#MenuTitle: Steal Sidebearings
 # -*- coding: utf-8 -*-
 __doc__="""
 Copy sidebearings from one font to another.
@@ -38,6 +38,8 @@ class MetricsCopy( object ):
 			self.outputError( "Could not load preferences at startup. Will resort to defaults." )
 		
 		self.w.open()
+		self.w.makeKey()
+		
 		self.buttonCheck( None )
 	
 	def updateListOfMasters( self ):
