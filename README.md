@@ -64,6 +64,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Diacritic Ligature Maker:** For selected ligatures with appropriate anchors (top_1, top_2, etc.), all possible diacritic variations are created. E.g., from A_h, the script can produce Adieresis_h, Aacute_h, A_hcircumflex, Adieresis_hcircumflex, etc. For preparing the anchors, try the *Anchors > Insert Anchors into Ligatures* script.
 * **Enable** and **Disable alignment:** Enables or disables automatic alignment for all components on visible layers in selected glyphs. Does the same as the command in the context menu, but you can do it in one step for many glyphs.
 * **Modify Components:** In selected glyphs, replaces accents with their dot suffix variant where possible. *Needs Vanilla*
+* **New Tab with Unaligned Compounds:** Opens a new tab containing all glyphs that have components that are not autmatically aligned. Lists them for every master, so your font should contain all glyphs necessary for writing your font master names.
 * **Rebuild Components:** Moves outlines to background, then tries to rebuild the glyph with components in the foreground. Tries to position the accents as precisely as possible. Useful for rebuilding a decomposed font.
 * **Remove Components:** Removes the specified component from all glyphs or all selected glyphs. *Needs Vanilla.*
 * **Replace components:** Relinks components in selected glyphs to a new source glyph. *Needs Vanilla.*
