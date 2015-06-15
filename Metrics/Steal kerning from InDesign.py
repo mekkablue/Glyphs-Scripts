@@ -17,7 +17,12 @@ def glyphNameForLetter( letter ):
 	if len(letter) > 0:
 		letter = letter[0]
 		utf16value = "%.4X" % ord(letter)
-		glyphName = GSGlyphsInfo.alloc().init().nameForUnicode( utf16value )
+		try:
+			# prior to app version 758:
+			glyphName = GSGlyphsInfo.glyphInfoForUnicode_( utf16value ).name()
+		except:
+			# starting in app version 758:
+			glyphName = Glyphs.glyphInfoForUnicode( utf16value ).name
 	return glyphName
 
 def runAppleScript(scpt, args=[]):
