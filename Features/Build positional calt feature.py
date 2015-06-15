@@ -98,7 +98,7 @@ Glyphs.clearLog()
 Glyphs.showMacroWindow()
 print "Building positional calt feature:"
 
-allLetterNames = [ g.name for g in thisFont.glyphs if g.category == "Letter" ]
+allLetterNames = [ g.name for g in thisFont.glyphs if g.category == "Letter" and g.export ]
 
 print "\t%s" % create_otclass(
 	className       = anyLetterClassName,
