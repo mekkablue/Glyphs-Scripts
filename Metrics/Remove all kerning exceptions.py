@@ -7,7 +7,7 @@ Removes all kernings glyph-glyph, group-glyph, and glyph-group; only keeps group
 import GlyphsApp
 
 Kerning = Glyphs.font.kerning
-ClassExtension = ".rot"
+ClassExtension = "" # e.g. set to ".rot" for testing purposes
 
 def addToKeysOnAllLevels( d, ext ):
 	nd = d.copy()
@@ -19,17 +19,17 @@ def addToKeysOnAllLevels( d, ext ):
 			if isinstance( d[k], type(d) ):
 				d[k] = addToKeysOnAllLevels( d[k], ext )
 			
-			if ext in k:
-				newKeyName = k
-			else:
+			if ext and not ext in k:
 				newKeyName = k+ext
+			else:
+				newKeyName = k
 
 			nd[ newKeyName ] = d[k]
 			print "--->", k, d[k]
 	
 	return nd
 
-def fixGlyphGroups( g ):
+def fixGlyphGroups( g, ext ):
 	if g.leftKerningGroup	:
 		LKG = g.leftKerningGroup
 	else:
@@ -40,21 +40,22 @@ def fixGlyphGroups( g ):
 	else:
 		RKG = ""
 	
-	if not "rot" in LKG and len(LKG) > 0:
-		g.leftKerningGroup = LKG + ".rot"
+	if ext:
+		if not ext in LKG and len(LKG) > 0:
+			g.leftKerningGroup = LKG + ext
 	
-	if not "rot" in RKG and len(RKG) > 0:
-		g.rightKerningGroup = RKG + ".rot"
+		if not ext in RKG and len(RKG) > 0:
+			g.rightKerningGroup = RKG + ext
 	
 	print g.name
 
 
 for MasterKerningDict in Kerning:
 	print "Cleaning up kerning in Master ID", MasterKerningDict, "..."
-	Kerning[MasterKerningDict] = addToKeysOnAllLevels( Kerning[MasterKerningDict], ".rot" )
+	Kerning[MasterKerningDict] = addToKeysOnAllLevels( Kerning[MasterKerningDict], ClassExtension )
 	
 for g in Glyphs.font.glyphs:
-	fixGlyphGroups( g )
+	fixGlyphGroups( g, ClassExtension )
 		
 print "Done."
 
