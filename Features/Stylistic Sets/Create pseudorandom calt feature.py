@@ -118,9 +118,7 @@ else:
 		zeroOrOne = 1
 	
 	suffixNumberRange = range( zeroOrOne, highestSetNumber+1 ) * ( lineLength // highestSetNumber+2 )
-	
-	print zeroOrOne, highestSetNumber, range( zeroOrOne, highestSetNumber+1 )
-	
+		
 	for j in range( highestSetNumber * ( lineLength // highestSetNumber+1 ), 0, -1 ):
 		suffixNumber = suffixNumberRange[j]
 		newLine = "sub @%s00' %s by @%s%02i;\n" % (
