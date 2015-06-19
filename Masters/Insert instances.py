@@ -224,8 +224,12 @@ class InstanceMaker( object ):
 						interpolationY = distribute_maciej( maciejValues[0], maciejValues[1], maciejValues[2], maciejValues[3], float( thisWeight ) )
 						newInstance.setCustomParameter_forKey_( int( round( interpolationY )), "InterpolationWeightY")
 					
-					Glyphs.font.addInstance_( newInstance )
-					newInstance.updateInterpolationValues()
+					theFont = Glyphs.font
+					if theFont:
+						theFont.addInstance_( newInstance )
+						newInstance.updateInterpolationValues()
+					else:
+						print "Error: No current font."
 			
 			if not self.SavePreferences( self ):
 				print "Error writing preferences."
