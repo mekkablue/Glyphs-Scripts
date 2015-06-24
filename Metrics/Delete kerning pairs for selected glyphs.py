@@ -1,82 +1,76 @@
-#MenuTitle: Delete kerning pairs for selected glyphs
+#MenuTitle: Delete Kerning Pairs for Selected Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
-Deletes all kerning pairs with the selected glyphs, for the current master only.
+Deletes all kerning pairs with the selected glyphs, for the current master only. Includes group kerning and exceptions, ie. when selecting /m which has left group: n, right group: n, the @MM_K_L_n, @MM_K_R_n kerning pairs will be deleted along with kerning pair execptions containing /m.
 """
-
 import GlyphsApp
 
+Glyphs.clearLog()
 Font = Glyphs.font
-Master = Font.selectedFontMaster
-
+Doc = Glyphs.currentDocument
 selectedLayers = Font.selectedLayers
-listOfIDs = [ x.parent.id for x in selectedLayers ]
-masterID = Master.id
+selectedMaster = Font.selectedFontMaster
+masterID = selectedMaster.id
+
+namesOfSelectedGlyphs = [ l.parent.name for l in selectedLayers if hasattr(l.parent, 'name')]
+pairsToBeDeleted = []
+
+# function to return @MMK_ name or glyph name
+def nameMaker(kernGlyph):
+	if kernGlyph[0] == "@":
+	# 	if option == 1:
+	# 		return kernGlyph[7:]
+	# 	else:
+		return kernGlyph
+	else:
+		return Font.glyphForId_(kernGlyph).name	
+
+def uniquify(seq):
+    seen = set()
+    return [x for x in seq if x not in seen and not seen.add(x)]
+
 totalNumberOfDeletions = 0
 
-print "Analyzing kerning pairs in %s ..." % Master.name
-print "1. Pairs where selected glyphs are on the left side:"
+for selectedGlyph in namesOfSelectedGlyphs:
 
-pairsToBeDeleted = []
+	leftGlyphNames = []
+	rightKerningGroup = Font.glyphs[ selectedGlyph ].rightKerningGroup
+	if rightKerningGroup is not None:
+		leftGlyphNames += ["@MMK_L_{0}".format(rightKerningGroup)]
+	leftGlyphNames += [selectedGlyph]
 
-for leftGlyphID in listOfIDs:
-	leftGlyphName = Font.glyphForId_( leftGlyphID ).name
-	try:
-		# print leftGlyphID, leftGlyphName, len( Font.kerning[ masterID ][ leftGlyphID ] ) #DEBUG
-		if Font.kerning[ masterID ].has_key( leftGlyphID ):
-			rightGlyphIDs = Font.kerning[ masterID ][ leftGlyphID ].keys()
-			numberOfPairs = len( rightGlyphIDs )
-			rightGlyphNames = [ Font.glyphForId_(x).name for x in rightGlyphIDs ]
-			totalNumberOfDeletions += numberOfPairs
-
-			print "   %s on the left: Found %i pairs ..." % ( leftGlyphName, numberOfPairs )
-			#print " ".join( rightGlyphNames ) #DEBUG
-			
-			pairsToBeDeleted.append( [leftGlyphName, rightGlyphNames] )
-
-	except Exception, e:
-		print "-- Error while processing %s (%s)" % ( leftGlyphName, e )
-
-print "2. Deleting these %i pairs ..." % ( totalNumberOfDeletions )
-
-for thisDeletionGroup in pairsToBeDeleted:
-	leftGlyphName = thisDeletionGroup[0]
-	rightGlyphNames = thisDeletionGroup[1]
-	
-	for thisRightGlyphName in rightGlyphNames:
-		try:
-			Font.removeKerningForPair( masterID, leftGlyphName, thisRightGlyphName )
-		except Exception, e:
-			print "-- Error: could not delete pair %s %s (%s)" % ( leftGlyphName, thisRightGlyphName, e )
-
-
-print "3. Pairs where selected glyphs are on the right side (may take a while):"
-
-pairsToBeDeleted = []
-
-for leftGlyphID in Font.kerning[ masterID ]:
-	for rightGlyphID in Font.kerning[ masterID ][ leftGlyphID ]:
-		if rightGlyphID in listOfIDs:
-			pairsToBeDeleted.append( [ leftGlyphID, rightGlyphID ] )
-
-print "4. Deleting these pairs ..."
-
-for kernPair in pairsToBeDeleted:
-	rightGlyphName = Font.glyphForId_( kernPair[1] ).name
-	if kernPair[0][0] == "@":
-		# left glyph is a class
-		leftGlyphName = kernPair[0]
+	rightGlyphNames = []
+	leftKerningGroup = Font.glyphs[ selectedGlyph ].leftKerningGroup
+	if leftKerningGroup is not None:
+		rightGlyphNames += ["@MMK_R_{0}".format(leftKerningGroup)]
 	else:
-		# left glyph is a glyph
-		leftGlyphName = Font.glyphForId_( kernPair[0] ).name
-	
-	# print "   Deleting pair: %s %s ..." % ( leftGlyphName, rightGlyphName )
+		rightGlyphNames += [selectedGlyph]
+
+	for L in Font.kerning[ masterID ]:
+		# if there exist kerning pairs "L, *" where L is either class kerning, an exception or normal kerning
+		if str(nameMaker(L)) in leftGlyphNames:
+			for R in Font.kerning[masterID][L]:
+				pairsToBeDeleted += [ (nameMaker(L), nameMaker(R)) ]
+
+		# if there exist kerning pairs "*, R" where R is either class kerning, an exception or normal kerning
+		for R in Font.kerning[masterID][L]:
+			if str(nameMaker(R)) in rightGlyphNames:
+				pairsToBeDeleted += [ (nameMaker(L), nameMaker(R)) ]
+
+Font.disableUpdateInterface()
+
+# uniquify so that it doesn't try to delete the same kerning pair again
+for thisDeletionGroup in uniquify(pairsToBeDeleted):
+	leftGlyphName = thisDeletionGroup[0]
+	rightGlyphName = thisDeletionGroup[1]
+
 	try:
 		Font.removeKerningForPair( masterID, leftGlyphName, rightGlyphName )
+		totalNumberOfDeletions += 1
+		print "Deleting pair: %s %s ..." % ( leftGlyphName, rightGlyphName )
 	except Exception, e:
 		print "-- Error: could not delete pair %s %s (%s)" % ( leftGlyphName, rightGlyphName, e )
 
-totalNumberOfDeletions += ( len( pairsToBeDeleted ) )
+print "Done: %i pairs deleted in %s." % ( totalNumberOfDeletions, selectedMaster.name )
 
-print "Done: %i pairs deleted in %s." % ( totalNumberOfDeletions, Master.name )
-
+Font.enableUpdateInterface()
