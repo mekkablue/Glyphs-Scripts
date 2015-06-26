@@ -15,9 +15,10 @@ def allAnchorsOfThisGlyph( thisGlyph ):
 	anchorDict = {}
 	for thisLayer in thisGlyph.layers:
 		thisWidth = thisLayer.width
+		allAnchors = [a for a in thisLayer.anchors]
 		if thisWidth == 0:
 			thisWidth = 1
-		for thisAnchor in [a for a in thisLayer.anchors]:
+		for thisAnchor in allAnchors:
 			thisAnchorInfo = ( thisAnchor.x / thisWidth, thisAnchor.y )
 			if not thisAnchor.name in anchorDict.keys():
 				anchorDict[thisAnchor.name] = [ thisAnchorInfo ]
@@ -26,6 +27,8 @@ def allAnchorsOfThisGlyph( thisGlyph ):
 	return anchorDict
 
 def averagePosition( listOfPositions, thisWidth ):
+	if thisWidth == 0:
+		thisWidth = 1
 	numOfValues = len( listOfPositions )
 	averageX = sum( p[0] for p in listOfPositions ) / numOfValues
 	averageY = sum( p[1] for p in listOfPositions ) / numOfValues
