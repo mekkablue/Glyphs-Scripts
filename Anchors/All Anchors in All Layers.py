@@ -15,6 +15,8 @@ def allAnchorsOfThisGlyph( thisGlyph ):
 	anchorDict = {}
 	for thisLayer in thisGlyph.layers:
 		thisWidth = thisLayer.width
+		if thisWidth == 0:
+			thisWidth = 1
 		for thisAnchor in [a for a in thisLayer.anchors]:
 			thisAnchorInfo = ( thisAnchor.x / thisWidth, thisAnchor.y )
 			if not thisAnchor.name in anchorDict.keys():
