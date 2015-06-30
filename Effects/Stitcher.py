@@ -105,33 +105,46 @@ def placeDots( thisLayer, useBackground, componentName, distanceBetweenDots ):
 		# find out component offset:
 		xOffset = 0.0
 		yOffset = 0.0
-		try:
-			Font = thisLayer.parent.parent
-			FontMasterID = thisLayer.associatedMasterId
-			sourceComponent = Font.glyphs[ componentName ]
-			(xOffset, yOffset) = sourceComponent.layers[FontMasterID].anchors["origin"].position
-			xOffset = -xOffset
-			yOffset = -yOffset
-		except Exception as e:
-			print "-- Note: no origin anchor in '%s', or no glyph with that name." % ( componentName )
+		Font = thisLayer.parent.parent
+		FontMasterID = thisLayer.associatedMasterId
+		sourceComponent = Font.glyphs[ componentName ]
 		
-		# use background if specified:
-		if useBackground:
-			sourceLayer = thisLayer.background
-		else:
-			sourceLayer = thisLayer
+		if sourceComponent:
+			try:
+				(xOffset, yOffset) = sourceComponent.layers[FontMasterID].anchors["origin"].position
+				xOffset = -xOffset
+				yOffset = -yOffset
+			except Exception as e:
+				print "-- Note: no origin anchor in '%s'." % ( componentName )
 		
-		for thisPath in sourceLayer.paths:
-			for thisPoint in dotCoordsOnPath( thisPath, distanceBetweenDots ):
-				newComp = GSComponent( componentName, NSPoint( thisPoint.x + xOffset, thisPoint.y + yOffset ) )
-				thisLayer.addComponent_( newComp )
+			# use background if specified:
+			if useBackground:
+				sourceLayer = thisLayer.background
+			else:
+				sourceLayer = thisLayer
+		
+			for thisPath in sourceLayer.paths:
+				for thisPoint in dotCoordsOnPath( thisPath, distanceBetweenDots ):
+					newComp = GSComponent( componentName, NSPoint( thisPoint.x + xOffset, thisPoint.y + yOffset ) )
+					thisLayer.addComponent_( newComp )
 				
-		return True
+			return True
+		else:
+			return False
 		
 	except Exception as e:
 		# raise e
 		return False
 
+def minimumOfOne( value ):
+	try:
+		returnValue = float( value )
+		if returnValue < 1.0:
+			returnValue = 1.0
+	except:
+		returnValue = 1.0
+		
+	return returnValue
 
 def process( thisLayer, deleteComponents, componentName, distanceBetweenDots, useBackground ):
 	if deleteComponents:
@@ -148,7 +161,7 @@ def process( thisLayer, deleteComponents, componentName, distanceBetweenDots, us
 		thisLayer.paths = []
 	
 	if not placeDots( thisLayer, useBackground, componentName, distanceBetweenDots ):
-		print "-- Error placing components."
+		print "-- Could not place components at intervals of %.1f units." % distanceBetweenDots
 
 class ComponentOnLines( object ):
 	def __init__( self ):
@@ -176,6 +189,7 @@ class ComponentOnLines( object ):
 			pass
 
 		self.w.open()
+		self.w.makeKey()
 		
 	def SavePreferences( self, sender ):
 		try:
@@ -220,18 +234,20 @@ class ComponentOnLines( object ):
 				# deleteComponents = bool( self.w.replaceComponents.get() )
 				deleteComponents = True
 				componentName = self.w.componentName.get()
-				sliderMin = float( self.w.sliderMin.get() )
-				sliderMax = float( self.w.sliderMax.get() )
+				
+				sliderMin = minimumOfOne( self.w.sliderMin.get() )
+				sliderMax = minimumOfOne( self.w.sliderMax.get() )
+					
 				sliderPos = float( self.w.intervalSlider.get() )
 				distanceBetweenDots = sliderMin * ( 1.0 - sliderPos ) + sliderMax * sliderPos
 				useBackground = bool( self.w.useBackground.get() )
-			
+		
 				Font.disableUpdateInterface()
 
 				for thisLayer in selectedLayers:
 					thisGlyph = thisLayer.parent
 					# print "Processing", thisGlyph.name
-				
+			
 					thisGlyph.beginUndo()
 					process( thisLayer, deleteComponents, componentName, distanceBetweenDots, useBackground )
 					thisGlyph.endUndo()
