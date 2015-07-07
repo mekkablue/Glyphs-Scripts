@@ -1,4 +1,4 @@
-#MenuTitle: Delete guidelines
+#MenuTitle: Delete Local Guidelines
 # -*- coding: utf-8 -*-
 __doc__="""
 Delete all local guidelines in selected glyphs.
@@ -6,14 +6,14 @@ Delete all local guidelines in selected glyphs.
 
 import GlyphsApp
 
-selectedLayers = Glyphs.font.selectedLayers
+print "Deleting guidelines in:"
 
-def process( thisLayer ):
-	thisLayer.guideLines = []
-
-for thisLayer in selectedLayers:
-	thisGlyph = thisLayer.parent
-	print "Deleting guidelines in:", thisGlyph.name
+for thisLayer in Glyphs.font.selectedLayers:
+	# delete guidelines:
 	thisGlyph.beginUndo()
-	process( thisLayer )
+	thisLayer.guideLines = []
 	thisGlyph.endUndo()
+	
+	# report glyph name:
+	thisGlyph = thisLayer.parent
+	print "  %s" % thisGlyph.name

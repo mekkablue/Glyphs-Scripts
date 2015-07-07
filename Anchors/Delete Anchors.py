@@ -6,8 +6,8 @@ Deletes all anchors in active layers of selected glyphs.
 
 import GlyphsApp
 
-Font = Glyphs.font
-selectedLayers = Font.selectedLayers
+thisFont = Glyphs.font
+selectedLayers = thisFont.selectedLayers
 
 print "Deleting anchors in:"
 

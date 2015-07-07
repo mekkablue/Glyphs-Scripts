@@ -1,4 +1,4 @@
-#MenuTitle: Delete all components
+#MenuTitle: Delete All Components
 # -*- coding: utf-8 -*-
 __doc__="""
 Deletes all components in selected glyphs.
@@ -6,12 +6,13 @@ Deletes all components in selected glyphs.
 
 import GlyphsApp
 
-Font = Glyphs.font
-selectedLayers = Font.selectedLayers
+thisFont = Glyphs.thisFont
+selectedLayers = thisFont.selectedLayers
 
 def process( thisLayer ):
 	if len( thisLayer.components ) > 0:
-		print "-- Deleted components: %s" % ", ".join( [c.componentName for c in thisLayer.components] )
+		listOfComponentNames = ", ".join( [c.componentName for c in thisLayer.components] )
+		print "-- Deleted components: %s" % listOfComponentNames
 		thisLayer.components = []
 
 for thisLayer in selectedLayers:

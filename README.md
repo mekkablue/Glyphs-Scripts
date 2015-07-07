@@ -92,7 +92,6 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Add Center Guideline:** Adds vertical or horizontal guideline in the middle between two selected nodes.
 * **Delete guidelines:** Deletes all local (blue) guidelines in selected glyphs.
 * **Delete global guidelines:** Deletes all global (red) guidelines in the current master.
-* **Guideline through Selected Nodes:** Adds guideline through two selected nodes.
 
 ## Hinting
 * **Add Hints for Selected Nodes:** Adds hints for the selected nodes. Tries to guess whether it should be H or V. If exactly one node inside a zone is selected, it will add a Ghost Hint. Useful for setting a shortcut in System Prefs.
