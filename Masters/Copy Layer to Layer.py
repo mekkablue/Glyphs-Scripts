@@ -24,7 +24,7 @@ def getComponentScaleX_scaleY_rotation( thisComponent ):
 		return [scale_x, scale_y, rotation]
 		
 		
-class MasterFiller( object ):
+class CopyLayerToLayer( object ):
 
 	def __init__( self ):
 		# Window 'self.w':
@@ -37,19 +37,19 @@ class MasterFiller( object ):
 			"Copy layer to layer", # window title
 			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
 			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
-			autosaveName = "com.mekkablue.MasterFiller.mainwindow" # stores last window position and size
+			autosaveName = "com.mekkablue.CopyLayerToLayer.mainwindow" # stores last window position and size
 		)
 		
 		self.w.text_1 = vanilla.TextBox((15, 12+2, 120, 14), "Copy paths from", sizeStyle='small')
-		self.w.master_from = vanilla.PopUpButton((120, 12, -15, 17), self.GetMasterNames(), sizeStyle='small', callback=self.MasterChangeCallback)
+		self.w.masterSource = vanilla.PopUpButton((120, 12, -15, 17), self.GetMasterNames(), sizeStyle='small', callback=self.MasterChangeCallback)
 		
 		self.w.text_2 = vanilla.TextBox((15, 32+2, 120, 14), "into selection of", sizeStyle='small')
-		self.w.master_into = vanilla.PopUpButton((120, 32, -15, 17), self.GetMasterNames(), sizeStyle='small', callback=self.MasterChangeCallback)
+		self.w.masterTarget = vanilla.PopUpButton((120, 32, -15, 17), self.GetMasterNames(), sizeStyle='small', callback=self.MasterChangeCallback)
 
-		self.w.include_components = vanilla.CheckBox((15, 52+2, -100, 20), "Include components", sizeStyle='small', callback=self.SavePreferences, value=True)
-		self.w.include_anchors = vanilla.CheckBox((15, 52+20, -100, 20), "Include anchors", sizeStyle='small', callback=self.SavePreferences, value=True)
-		self.w.include_metrics = vanilla.CheckBox((15, 52+38, -100, 20), "Include metrics", sizeStyle='small', callback=self.SavePreferences, value=True)
-		self.w.keep_window_open = vanilla.CheckBox((15, 52+56, -100, 20), "Keep window open", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.includeComponents = vanilla.CheckBox((15, 52+2, -100, 20), "Include components", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.includeAnchors = vanilla.CheckBox((15, 52+20, -100, 20), "Include anchors", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.includeMetrics = vanilla.CheckBox((15, 52+38, -100, 20), "Include metrics", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.keepWindowOpen = vanilla.CheckBox((15, 52+56, -100, 20), "Keep window open", sizeStyle='small', callback=self.SavePreferences, value=True)
 
 		self.w.copybutton = vanilla.Button((-80, -30, -15, -10), "Copy", sizeStyle='small', callback=self.buttonCallback)
 		self.w.setDefaultButton( self.w.copybutton )
@@ -60,14 +60,14 @@ class MasterFiller( object ):
 		
 		self.w.open()
 		self.w.makeKey()
-		self.w.master_into.set(1)
+		self.w.masterTarget.set(1)
 	
 	def SavePreferences( self, sender ):
 		try:
-			Glyphs.defaults["com.mekkablue.MasterFiller.include_components"] = self.w.include_components.get()
-			Glyphs.defaults["com.mekkablue.MasterFiller.include_anchors"] = self.w.include_anchors.get()
-			Glyphs.defaults["com.mekkablue.MasterFiller.include_metrics"] = self.w.include_metrics.get()
-			Glyphs.defaults["com.mekkablue.MasterFiller.keep_window_open"] = self.w.keep_window_open.get()
+			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeComponents"] = self.w.includeComponents.get()
+			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeAnchors"] = self.w.includeAnchors.get()
+			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeMetrics"] = self.w.includeMetrics.get()
+			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.keepWindowOpen"] = self.w.keepWindowOpen.get()
 		except:
 			return False
 			
@@ -77,100 +77,83 @@ class MasterFiller( object ):
 		try:
 			NSUserDefaults.standardUserDefaults().registerDefaults_(
 				{
-					"com.mekkablue.MasterFiller.include_components" : "1",
-					"com.mekkablue.MasterFiller.include_anchors" : "1",
-					"com.mekkablue.MasterFiller.include_metrics" : "1",
-					"com.mekkablue.MasterFiller.keep_window_open" : "1"
+					"com.mekkablue.CopyLayerToLayer.includeComponents" : "1",
+					"com.mekkablue.CopyLayerToLayer.includeAnchors" : "1",
+					"com.mekkablue.CopyLayerToLayer.includeMetrics" : "1",
+					"com.mekkablue.CopyLayerToLayer.keepWindowOpen" : "1"
 				}
 			)
-			self.w.include_components.set( Glyphs.defaults["com.mekkablue.MasterFiller.include_components"] )
-			self.w.include_anchors.set( Glyphs.defaults["com.mekkablue.MasterFiller.include_anchors"] )
-			self.w.include_metrics.set( Glyphs.defaults["com.mekkablue.MasterFiller.include_metrics"] )
-			self.w.keep_window_open.set( Glyphs.defaults["com.mekkablue.MasterFiller.keep_window_open"] )
+			self.w.includeComponents.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeComponents"] )
+			self.w.includeAnchors.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeAnchors"] )
+			self.w.includeMetrics.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeMetrics"] )
+			self.w.keepWindowOpen.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.keepWindowOpen"] )
 		except:
 			return False
 			
 		return True
 	
 	def GetMasterNames( self ):
-		myMasterList = []
-		
+		"""Collects names of masters to populate the menus in the GUI."""
 		thisFont = Glyphs.font
+		myMasterList = []
 		for masterIndex in range( len( thisFont.masters ) ):
 			thisMaster = thisFont.masters[masterIndex]
 			myMasterList.append( '%i: %s' % (masterIndex, thisMaster.name) )
-		
 		return myMasterList
 	
 	def MasterChangeCallback( self, sender ):
-		if self.w.master_from.get() == self.w.master_into.get():
+		"""Disables the button if source and target are the same."""
+		if self.w.masterSource.get() == self.w.masterTarget.get():
 			self.w.copybutton.enable( False )
 		else:
 			self.w.copybutton.enable( True )
 			
 	def copyPathsFromLayerToLayer( self, sourceLayer, targetLayer ):
 		"""Copies all paths from sourceLayer to targetLayer"""
-		num_from  = len( sourceLayer.paths )
-		num_into  = len( targetLayer.paths )
+		numberOfPathsInSource  = len( sourceLayer.paths )
+		numberOfPathsInTarget  = len( targetLayer.paths )
 		
-		if num_into != 0:
-			print "- Cleaning out paths in target layer"
-			for i in range( num_into )[::-1]:
-				del targetLayer.paths[i]
+		if numberOfPathsInTarget != 0:
+			print "- Deleting %i paths in target layer" % numberOfPathsInTarget
+			targetLayer.paths = []
 
-		if num_from > 0:
+		if numberOfPathsInSource > 0:
 			print "- Copying paths"
 			for thisPath in sourceLayer.paths:
-				newPath = GSPath()
-
-				for n in thisPath.nodes:
-					newNode = GSNode()
-					newNode.type = n.type
-					newNode.connection = n.connection
-					newNode.setPosition_( (n.x, n.y) )
-					newPath.addNode_( newNode )
-
-				newPath.closed = thisPath.closed
+				newPath = thisPath.copy()
 				targetLayer.paths.append( newPath )
 	
 	def copyComponentsFromLayerToLayer( self, sourceLayer, targetLayer ):
 		"""Copies all components from sourceLayer to targetLayer."""
-		comp_from = len( sourceLayer.components )
-		comp_into = len( targetLayer.components )
+		numberOfComponentsInSource = len( sourceLayer.components )
+		numberOfComponentsInTarget = len( targetLayer.components )
 		
-		if comp_into != 0:
-			print "- Cleaning out components in target layer"
-			for i in range( comp_into )[::-1]:
-				del targetLayer.components[i]
-	
-		if comp_from > 0:
+		if numberOfComponentsInTarget != 0:
+			print "- Deleting %i components in target layer" % numberOfComponentsInTarget
+			targetLayer.components = []
+
+		if numberOfComponentsInSource > 0:
 			print "- Copying components:"
 			for thisComp in sourceLayer.components:
-				compName = str( thisComp.componentName ) # str() probably not necessary anymore, but once fixed a problem
-				newComp = GSComponent( compName )
-				newComp.setPosition_( (thisComp.x, thisComp.y) )
-				ScaleX_scaleY_rotation = getComponentScaleX_scaleY_rotation(thisComp)
-				newComp.setScaleX_scaleY_rotation_(ScaleX_scaleY_rotation[0],ScaleX_scaleY_rotation[1],ScaleX_scaleY_rotation[2])
-				print "-- Component: %s" % ( compName )
+				newComp = thisComp.copy()
+				print "   Component: %s" % ( thisComp.componentName )
 				targetLayer.components.append( newComp )
 
 	def copyAnchorsFromLayerToLayer( self, sourceLayer, targetLayer ):
 		"""Copies all anchors from sourceLayer to targetLayer."""
-		anch_from = len( sourceLayer.anchors )
-		anch_into = len( targetLayer.anchors )
+		numberOfAnchorsInSource = len( sourceLayer.anchors )
+		numberOfAnchorsInTarget = len( targetLayer.anchors )
 		
-		if anch_into != 0:
-			print "- Cleaning out anchors in target layer"
-			sourceLayer.setAnchors_( None )
+		if numberOfAnchorsInTarget != 0:
+			print "- Deleting %i anchors in target layer" % numberOfAnchorsInTarget
+			targetLayer.anchors = []
 		
-		if anch_from > 0:
+		if numberOfAnchorsInSource > 0:
 			print "- Copying anchors from source layer:"
 			for thisAnchor in sourceLayer.anchors:
-				anchorName = thisAnchor.name
-				anchorPosition = NSPoint( thisAnchor.x, thisAnchor.y )
-				newAnchor = GSAnchor( anchorName, anchorPosition )
-				print "-- %s (%i, %i)" % ( anchorName, anchorPosition.x, anchorPosition.y )
-				targetLayer.addAnchor_( newAnchor )
+				newAnchor = thisAnchor.copy()
+				targetLayer.anchors.append( newAnchor )
+				print "   %s (%i, %i)" % ( thisAnchor.name, thisAnchor.position.x, thisAnchor.position.y )
 	
 	def copyMetricsFromLayerToLayer( self, sourceLayer, targetLayer ):
 		"""Copies width of sourceLayer to targetLayer."""
@@ -188,42 +171,35 @@ class MasterFiller( object ):
 
 		Font = Glyphs.font
 		selectedGlyphs = [ x.parent for x in Font.selectedLayers ]
-
-		index_from = self.w.master_from.get()
-		index_into = self.w.master_into.get()
-		compYesNo  = self.w.include_components.get()
-		anchYesNo  = self.w.include_anchors.get()
-		metrYesNo  = self.w.include_metrics.get()
+		indexOfSourceMaster = self.w.masterSource.get()
+		indexOfTargetMaster = self.w.masterTarget.get()
+		componentsYesOrNo  = self.w.includeComponents.get()
+		anchorsYesOrNo  = self.w.includeAnchors.get()
+		metricsYesOrNo  = self.w.includeMetrics.get()
 				
 		for thisGlyph in selectedGlyphs:
 			try:
 				
-				print "\nProcessing", thisGlyph.name
-				sourcelayer = thisGlyph.layers[ index_from ]
-				targetlayer = thisGlyph.layers[ index_into ]
+				print "\nProcessing %s..." % thisGlyph.name
+				sourcelayer = thisGlyph.layers[ indexOfSourceMaster ]
+				targetlayer = thisGlyph.layers[ indexOfTargetMaster ]
 				
 				Font.disableUpdateInterface()
 				
-				# copy paths:
+				# Copy paths, components, anchors, and metrics:
 				self.copyPathsFromLayerToLayer( sourcelayer, targetlayer )
-				
-				# copy components:
-				if compYesNo:
+				if componentsYesOrNo:
 					self.copyComponentsFromLayerToLayer( sourcelayer, targetlayer )
-					
-				# copy anchors:
-				if anchYesNo:
+				if anchorsYesOrNo:
 					self.copyAnchorsFromLayerToLayer( sourcelayer, targetlayer )
-				
-				# copy metrics:
-				if metrYesNo:
+				if metricsYesOrNo:
 					self.copyMetricsFromLayerToLayer( sourcelayer, targetlayer )
 					
 				Font.enableUpdateInterface()
 			except Exception, e:
 				print e
 		
-		if not self.w.keep_window_open.get():
+		if not self.w.keepWindowOpen.get():
 			self.w.close()
 
-MasterFiller()
+CopyLayerToLayer()
