@@ -146,7 +146,7 @@ class CopyLayerToLayer( object ):
 		
 		if numberOfAnchorsInTarget != 0:
 			print "- Deleting %i anchors in target layer" % numberOfAnchorsInTarget
-			targetLayer.anchors = []
+			targetLayer.setAnchors_(None)
 		
 		if numberOfAnchorsInSource > 0:
 			print "- Copying anchors from source layer:"
