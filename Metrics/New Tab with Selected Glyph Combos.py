@@ -11,7 +11,7 @@ Doc = Glyphs.currentDocument
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 
-namesOfSelectedGlyphs = [ "/%s" % l.parent.name for l in selectedLayers ]
+namesOfSelectedGlyphs = [ "/%s" % l.parent.name for l in selectedLayers if hasattr(l.parent, 'name')]
 editString = ""
 
 for leftGlyphName in namesOfSelectedGlyphs:
