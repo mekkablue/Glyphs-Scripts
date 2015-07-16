@@ -25,12 +25,11 @@ class KerningGroupReplacer( object ):
 		self.w.runButton = vanilla.Button((-110, -20-15, -15, -15), "Replace", sizeStyle='regular', callback=self.KerningGroupReplaceMain )
 		self.w.setDefaultButton( self.w.runButton )
 		
-		try:
-			self.LoadPreferences( )
-		except:
-			pass
+		if not self.LoadPreferences():
+			print "Note: Could not load preferences. Will resort to defaults"
 
 		self.w.open()
+		self.w.makeKey()
 		
 	def SavePreferences( self, sender ):
 		try:
@@ -45,6 +44,14 @@ class KerningGroupReplacer( object ):
 
 	def LoadPreferences( self ):
 		try:
+			NSUserDefaults.standardUserDefaults().registerDefaults_(
+				{
+					"com.mekkablue.KerningGroupReplacer.leftSearchFor":"",
+					"com.mekkablue.KerningGroupReplacer.leftReplaceBy":"",
+					"com.mekkablue.KerningGroupReplacer.rightSearchFor":"",
+					"com.mekkablue.KerningGroupReplacer.rightReplaceBy":""
+				}
+			)
 			self.w.leftSearchFor.set(  Glyphs.defaults[ "com.mekkablue.KerningGroupReplacer.leftSearchFor"  ] )
 			self.w.leftReplaceBy.set(  Glyphs.defaults[ "com.mekkablue.KerningGroupReplacer.leftReplaceBy"  ] )
 			self.w.rightSearchFor.set( Glyphs.defaults[ "com.mekkablue.KerningGroupReplacer.rightSearchFor" ] )
@@ -56,7 +63,7 @@ class KerningGroupReplacer( object ):
 	
 	def replaceGroupName( self, groupName, searchString, replaceString ):
 		try:
-			if groupName != None and groupName != "":
+			if groupName:
 				if searchString == "":
 					# simply append replaceString if no search string is supplied:
 					return groupName + replaceString
@@ -66,6 +73,37 @@ class KerningGroupReplacer( object ):
 				return None
 		except Exception, e:
 			print e
+	
+	def replaceInGroups( self, thisGlyph, LsearchFor, LreplaceBy, RsearchFor, RreplaceBy ):
+		thisGlyph.beginUndo()
+		thisGlyphName = thisGlyph.name
+		
+		# Left Group:
+		oldLeftGroup = thisGlyph.leftKerningGroup
+		if not oldLeftGroup:
+			print "%s: no left group set. Left unchanged." % thisGlyphName
+		else:
+			newLeftGroup = self.replaceGroupName( oldLeftGroup, LsearchFor, LreplaceBy )
+			if oldLeftGroup == newLeftGroup:
+				print "%s: left group unchanged (%s)." % (thisGlyphName, newLeftGroup)
+			else:
+				thisGlyph.leftKerningGroup = newLeftGroup
+				print "%s: new left group: '%s'." % ( thisGlyphName, newLeftGroup )
+
+		# Right Group:
+		oldRightGroup = thisGlyph.rightKerningGroup
+		if not oldRightGroup:
+			print "%s: no right group set. Left unchanged." % thisGlyphName
+		else:
+			newRightGroup = self.replaceGroupName( oldRightGroup, RsearchFor, RreplaceBy )
+			if oldRightGroup == newRightGroup:
+				print "%s: right group unchanged (%s)." % ( thisGlyph.name, newRightGroup )
+			else:
+				thisGlyph.rightKerningGroup = newRightGroup
+				print "%s: new right group: '%s'." % ( thisGlyph.name, newRightGroup )
+		
+		thisGlyph.endUndo()
+		
 
 	def KerningGroupReplaceMain( self, sender ):
 		Glyphs.clearLog()
@@ -84,35 +122,14 @@ class KerningGroupReplacer( object ):
 			RsearchFor = self.w.rightSearchFor.get()
 			RreplaceBy = self.w.rightReplaceBy.get()
 			
-			for l in currentLayers:
+			for thisLayer in currentLayers:
 				try:
-					g = l.parent
-					g.beginUndo()
-					
-					# Left Group:
-					newLeftGroup = self.replaceGroupName( g.leftKerningGroup, LsearchFor, LreplaceBy )
-					if newLeftGroup != None:
-						g.leftKerningGroup = newLeftGroup
-						print "%s: new left group: '%s'" % ( g.name, newLeftGroup )
-					else:
-						print "Note: No left group set for %s. Left unchanged." % g.name
-
-					# Right Group:
-					newRightGroup = self.replaceGroupName( g.rightKerningGroup, RsearchFor, RreplaceBy )
-					if newRightGroup != None:
-						g.rightKerningGroup = newRightGroup
-						print "%s: new right group: '%s'" % ( g.name, newRightGroup )
-					else:
-						print "Note: No right group set for %s. Left unchanged." % g.name
-					
-					g.endUndo()
-						
+					thisGlyph = thisLayer.parent
+					self.replaceInGroups( thisGlyph, LsearchFor, LreplaceBy, RsearchFor, RreplaceBy )
 				except Exception, e:
-					print "Error while processing glyph %s:" % g.name
+					print "Error while processing glyph %s:" % thisGlyph.name
 					print e
 					
-					g.endUndo()
-			
 			self.w.close()
 		except Exception, e:
 			raise e
