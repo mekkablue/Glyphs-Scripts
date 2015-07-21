@@ -14,12 +14,10 @@ selection = thisLayer.selection() # node selection in edit mode
 
 if selection:
 	selectedNodes = [obj for obj in selection if type(obj)==GSNode and obj.type==35]
-	
-	thisGlyph.beginUndo() # begin undo grouping
-	
-	thisLayer.setSelection_( None )
-	for thisNode in selectedNodes:
-		thisPath = thisNode.parent
-		thisPath.removeNodeCheckKeepShape_( thisNode )
-		
-	thisGlyph.endUndo()   # end undo grouping
+	if selectedNodes:
+		thisGlyph.beginUndo() # begin undo grouping
+		thisLayer.setSelection_( None )
+		for thisNode in selectedNodes:
+			thisPath = thisNode.parent
+			thisPath.removeNodeCheckKeepShape_( thisNode )
+		thisGlyph.endUndo()   # end undo grouping

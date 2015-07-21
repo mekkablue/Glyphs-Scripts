@@ -1,11 +1,10 @@
 #MenuTitle: All Anchors in All Layers
 # -*- coding: utf-8 -*-
 __doc__="""
-Makes sure all nodes are replicated in all layers in the same relative positions.
+Makes sure all anchors are replicated in all layers in the same relative positions.
 """
 
 import GlyphsApp
-
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master

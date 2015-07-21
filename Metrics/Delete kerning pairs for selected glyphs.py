@@ -54,8 +54,8 @@ print "3. Pairs where selected glyphs are on the right side (may take a while):"
 
 pairsToBeDeleted = []
 
-for leftGlyphID in Font.kerning[ masterID ]:
-	for rightGlyphID in Font.kerning[ masterID ][ leftGlyphID ]:
+for leftGlyphID in Font.kerning[ masterID ].keys():
+	for rightGlyphID in Font.kerning[ masterID ][ leftGlyphID ].keys():
 		if rightGlyphID in listOfIDs:
 			pairsToBeDeleted.append( [ leftGlyphID, rightGlyphID ] )
 
@@ -79,4 +79,3 @@ for kernPair in pairsToBeDeleted:
 totalNumberOfDeletions += ( len( pairsToBeDeleted ) )
 
 print "Done: %i pairs deleted in %s." % ( totalNumberOfDeletions, Master.name )
-
