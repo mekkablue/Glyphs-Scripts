@@ -29,9 +29,12 @@ def smallcapName( glyphName="scGlyph", suffix=".sc", lowercase=True ):
 	"""Returns the appropriate smallcap name, e.g. A-->a.sc or a-->a.sc"""
 	try:
 		returnName = glyphName
+		
 		# make lowercase if requested:
 		if lowercase:
-			returnName = returnName.lower()
+			suffixOffset = returnName.find(".")
+			returnName = returnName[:suffixOffset].lower() + returnName[suffixOffset:]
+			
 		# add suffix:
 		returnName = returnName + suffix
 		return returnName
