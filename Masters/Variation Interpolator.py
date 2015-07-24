@@ -138,12 +138,12 @@ class VariationInterpolator( object ):
 			listOfSelectedGlyphs = [ l.parent for l in thisFont.selectedLayers ] # currently selected glyphs
 			
 			for thisGlyph in listOfSelectedGlyphs: # loop through glyphs
-				for numberOfThisVariation in range(numberOfVariations):
-					newSuffix = "%s%02i" % ( glyphSuffix, numberOfThisVariation+1 )
+				for numberOfThisVariation in range(numberOfVariations+1):
+					newSuffix = "%s%02i" % ( glyphSuffix, numberOfThisVariation )
 					newGlyph = self.createGlyphCopy( thisGlyph, newSuffix )
 					
 					# prepare interpolation:
-					backgroundFactor = float( numberOfThisVariation+1 ) / float( numberOfVariations )
+					backgroundFactor = float( numberOfThisVariation ) / float( numberOfVariations )
 					
 					self.interpolateGlyphWithBackgrounds( newGlyph, backgroundFactor )
 					
