@@ -34,26 +34,26 @@ def process( thisLayer ):
 		try:
 			thisGlyph = thisLayer.parent
 			thisGlyphInfo = GSGlyphsInfo.glyphInfoForGlyph_( thisGlyph )
-			print thisGlyphInfo
-			baseglyphInfo = thisGlyphInfo.components()[0]
-			nameOfBaseglyph = baseglyphInfo.name()
+			baseglyphInfo = thisGlyphInfo.components[0]
+			nameOfBaseglyph = baseglyphInfo.name
 			baseglyph = Font.glyphs[ nameOfBaseglyph ]
 			baseglyphLayer = baseglyph.layers[ FontMaster.id ]
 
-			accentInfo = thisGlyphInfo.components()[1]
-			nameOfAccent = accentInfo.name()
-			isTopAccent = "_top" in "".join( accentInfo.anchors() ) # finds both _top and _topright
+			accentInfo = thisGlyphInfo.components[1]
+			nameOfAccent = accentInfo.name
+			isTopAccent = "_top" in "".join( accentInfo.anchors ) # finds both _top and _topright
 			accent = Font.glyphs[ nameOfAccent ]
 			accentLayer = accent.layers[ FontMaster.id ]
 
+			# move contents of layer to its background:
 			thisLayer.setBackground_( thisLayer )
 			thisLayer.setPaths_( None )
-
 			thisLayer.setComponents_( None )
 			thisLayer.setAnchors_( None )
 
 			print "Rebuilding", thisGlyph.name
 
+			# find the offset of the accent component:
 			centerOfAccent = centerOfRect( accentLayer.bounds )
 			pathcountOfAccent = len( accentLayer.paths )
 			if isTopAccent:
@@ -62,18 +62,22 @@ def process( thisLayer ):
 				originalAccentPaths = sorted( thisLayer.background.paths, key=lambda p: p.bounds.origin.y )[:pathcountOfAccent]
 			boundsOfOriginalAccent = boundsForPaths( originalAccentPaths )
 			centerOfOriginalAccent = centerOfRect( boundsOfOriginalAccent )
-
 			offsetX = centerOfOriginalAccent.x - centerOfAccent.x
 			offsetY = centerOfOriginalAccent.y - centerOfAccent.y
 			offset = NSPoint( offsetX, offsetY )
+			
+			# disable alignment for layer:
+			thisLayer.setHasAlignedWidth_(False)
 
 			baseglyphComponent = GSComponent( nameOfBaseglyph )
+			baseglyphComponent.disableAlignment = True # comment to ensable alignment of base glyph
 			accentComponent = GSComponent( nameOfAccent, offset )
 
 			thisLayer.addComponent_( baseglyphComponent )
 			thisLayer.addComponent_( accentComponent )
 		except Exception, e:
 			print "Failed to rebuild %s" % thisGlyph.name
+			print e
 
 Font.disableUpdateInterface()
 
