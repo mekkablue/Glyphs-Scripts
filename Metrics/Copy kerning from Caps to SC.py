@@ -33,7 +33,10 @@ def smallcapName( glyphName="scGlyph", suffix=".sc", lowercase=True ):
 		# make lowercase if requested:
 		if lowercase:
 			suffixOffset = returnName.find(".")
-			returnName = returnName[:suffixOffset].lower() + returnName[suffixOffset:]
+			if suffixOffset > 0:
+				returnName = returnName[:suffixOffset].lower() + returnName[suffixOffset:]
+			else:
+				returnName = returnName.lower()
 			
 		# add suffix:
 		returnName = returnName + suffix
