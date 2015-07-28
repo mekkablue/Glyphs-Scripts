@@ -18,6 +18,9 @@ if selection:
 		thisGlyph.beginUndo() # begin undo grouping
 		thisLayer.setSelection_( None )
 		for thisNode in selectedNodes:
-			thisPath = thisNode.parent
+			try:
+				thisPath = thisNode.parent()
+			except Exception as e:
+				thisPath = thisNode.parent
 			thisPath.removeNodeCheckKeepShape_( thisNode )
 		thisGlyph.endUndo()   # end undo grouping
