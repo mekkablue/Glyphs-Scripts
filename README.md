@@ -100,6 +100,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Delete Hints in Visible Layers:** Deletes hints in active layers of selected glyphs.
 * **Delete All Hints in Font:** Deletes all hints throughout the active font. Be careful.
 * **Delete All Vertical Hints in Font:** Deletes all vertical hints throughout the active font. Be careful.
+* **Delete All Horizontal Hints in Font:** Deletes all horizontal hints throughout the active font. Be careful.
 * **Keep First Master Hints Only:** In selected glyphs, deletes all hints in all layers except for whatever is ordered as first master. Respects Bracket Layers. E.g., if your first master is 'Regular', then the script will delete hints in 'Bold', 'Bold [120]', but keep them in 'Regular' and 'Regular [100]'.
 * **New Tab with Glyphs Exceeding Zones:** Opens a new tab with all glyphs where the extremums do not lie within zones.
 
