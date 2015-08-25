@@ -60,11 +60,11 @@ class DeleteSmallKerningPairs( object ):
 		
 	def SavePreferences( self, sender ):
 		try:
-			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.howMuch"] = self.w.howMuch.get()
-			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.positive"] = self.w.positive.get()
-			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.zero"] = self.w.zero.get()
-			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.negative"] = self.w.negative.get()
-			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.keepWindow"] = self.w.keepWindow.get()
+			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.howMuch"] = str(float(self.w.howMuch.get()))
+			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.positive"] = str(int(self.w.positive.get()))
+			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.zero"] = str(int(self.w.zero.get()))
+			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.negative"] = str(int(self.w.negative.get()))
+			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.keepWindow"] = str(int(self.w.keepWindow.get()))
 		except:
 			return False
 			
@@ -82,10 +82,10 @@ class DeleteSmallKerningPairs( object ):
 				}
 			)
 			self.w.howMuch.set( Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.howMuch"] )
-			self.w.positive.set( Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.positive"] )
-			self.w.zero.set( Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.zero"] )
-			self.w.negative.set( Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.negative"] )
-			self.w.keepWindow.set( Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.keepWindow"] )
+			self.w.positive.set( bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.positive"]) )
+			self.w.zero.set( bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.zero"]) )
+			self.w.negative.set( bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.negative"]) )
+			self.w.keepWindow.set( bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.keepWindow"]) )
 		except:
 			return False
 			
