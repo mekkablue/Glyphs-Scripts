@@ -4,6 +4,8 @@ __doc__="""
 Create a Test HTML for the current font in the current Webfont Export folder.
 """
 
+from Foundation import *
+from AppKit import *
 import GlyphsApp, os
 fileFormats = ( "woff", "woff2", "eot" )
 
@@ -49,7 +51,13 @@ def activeInstances( thisFont, fileFormats=fileFormats ):
 			
 			# Determine font and file names for CSS
 			menuName = "%s %s-%s" % ( fileFormat.upper(), familyName, activeInstanceName )
-			fileName = "%s-%s.%s" % ( familyName.replace(" ",""), activeInstanceName.replace(" ",""), fileFormat )
+			
+			firstPartOfFileName = activeInstance.customParameters["fileName"]
+			if not firstPartOfFileName:
+				firstPartOfFileName = "%s-%s" % ( familyName.replace(" ",""), activeInstanceName.replace(" ","") )
+				
+			fileName = "%s.%s" % ( firstPartOfFileName, fileFormat )
+			
 			listOfInstanceInfo.append( (fileName, menuName, activeInstanceName) )
 	return listOfInstanceInfo
 
@@ -158,4 +166,3 @@ if GLYPHSAPPVERSION.startswith("2."):
 		print "Could not determine export path. Have you exported any webfonts yet?"
 else:
 	print "This script requires Glyphs 2. Sorry."
-	
