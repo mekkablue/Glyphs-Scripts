@@ -12,8 +12,11 @@ selectedGlyphs = [ x.parent for x in Font.selectedLayers ]
 def process( thisGlyph ):
 	oldName = thisGlyph.name
 	newName = thisGlyph.name.lower()
-	thisGlyph.name = newName
-	print oldName, "-->", thisGlyph.name
+	if oldName != newName:
+		thisGlyph.name = newName
+		print "%s --> %s" % (oldName, newName)
+	else:
+		print "%s: unchanged"
 
 Font.disableUpdateInterface()
 
