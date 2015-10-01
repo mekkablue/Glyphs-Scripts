@@ -190,7 +190,12 @@ class Rotator(object):
 			try:
 				thisLayer = selectedLayers[0]
 				thisGlyph = thisLayer.parent
-				selection = thisLayer.selection()
+				try:
+					# until v2.1:
+					selection = thisLayer.selection()
+				except:
+					# since v2.2:
+					selection = thisLayer.selection
 				thisGlyph.beginUndo()
 				
 				centerOfThisLayer = self.rotationCenterOfLayer(thisLayer)

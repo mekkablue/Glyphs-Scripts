@@ -14,7 +14,13 @@ allMetrics = [ Master.ascender, Master.capHeight, Master.xHeight, 0.0, Master.de
 selectedLayer = Font.selectedLayers[0]
 
 try:
-	selection = selectedLayer.selection()
+	try:
+		# until v2.1:
+		selection = selectedLayer.selection()
+	except:
+		# since v2.2:
+		selection = selectedLayer.selection
+	
 	if selection:
 		try:
 			lowestPathY = min( n.y for n in selection if type(n) == GSNode )

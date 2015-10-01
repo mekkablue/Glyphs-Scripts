@@ -9,7 +9,14 @@ import GlyphsApp
 Font = Glyphs.font
 FontMaster = Font.selectedFontMaster
 selectedLayers = Font.selectedLayers
-selection = selectedLayers[0].selection()
+selectedLayer = selectedLayers[0]
+try:
+	# until v2.1:
+	selection = selectedLayer.selection()
+except:
+	# since v2.2:
+	selection = selectedLayer.selection
+
 minimumLength = 20.0
 
 def triplets( x1, y1, x2, y2 ):

@@ -14,7 +14,13 @@ selectedLayer = Font.selectedLayers[0]
 allMetrics = [ 0.0, selectedLayer.width, selectedLayer.width//2 ]
 
 try:
-	selection = selectedLayer.selection()
+	try:
+		# until v2.1:
+		selection = selectedLayer.selection()
+	except:
+		# since v2.2:
+		selection = selectedLayer.selection
+	
 	leftMostX = min( ( n.x for n in selection ) )
 	try:
 		nextMetricLineToTheLeft = max( ( m for m in allMetrics if m < leftMostX ) )

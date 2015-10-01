@@ -11,7 +11,13 @@ Doc = Glyphs.currentDocument
 selectedLayer = Font.selectedLayers[0]
 
 try:
-	selection = selectedLayer.selection()
+	try:
+		# until v2.1:
+		selection = selectedLayer.selection()
+	except:
+		# since v2.2:
+		selection = selectedLayer.selection
+	
 	selectionXList = [ n.x for n in selection ]
 	selectionYList = [ n.y for n in selection ]
 	leftMostX, rightMostX = min( selectionXList ), max( selectionXList )

@@ -10,11 +10,16 @@ Font = Glyphs.font
 Doc = Glyphs.currentDocument
 Master = Font.selectedFontMaster
 allMetrics = [ Master.ascender, Master.capHeight, Master.xHeight, 0.0, Master.descender ] + [ g.y for g in Master.guideLines if g.angle == 0.0 ]
-
 selectedLayer = Font.selectedLayers[0]
 
 try:
-	selection = selectedLayer.selection()
+	try:
+		# until v2.1:
+		selection = selectedLayer.selection()
+	except:
+		# since v2.2:
+		selection = selectedLayer.selection
+	
 	if selection:
 		try:
 			highestPathY = max( n.y for n in selection if type(n) == GSNode )

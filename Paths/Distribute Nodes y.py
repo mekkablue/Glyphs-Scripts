@@ -10,7 +10,13 @@ Font = Glyphs.font
 selectedLayer = Font.selectedLayers[0]
 
 try:
-	selection = selectedLayer.selection()
+	try:
+		# until v2.1:
+		selection = selectedLayer.selection()
+	except:
+		# since v2.2:
+		selection = selectedLayer.selection
+	
 	selectionYList = [ n.y for n in selection ]
 	lowestY, highestY = min( selectionYList ), max( selectionYList )
 	diffY = abs(lowestY-highestY)

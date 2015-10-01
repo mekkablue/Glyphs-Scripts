@@ -12,7 +12,13 @@ selectedLayer = Font.selectedLayers[0]
 layerWidth = selectedLayer.width
 
 try:
-	selection = selectedLayer.selection()
+	try:
+		# until v2.1:
+		selection = selectedLayer.selection()
+	except:
+		# since v2.2:
+		selection = selectedLayer.selection
+	
 	rightMostX = max( ( n.x for n in selection ) )
 
 	Font.disableUpdateInterface()

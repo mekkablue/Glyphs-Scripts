@@ -30,7 +30,14 @@ def dekink( myMaster, compareString, myGlyph, pathIndex, nodeIndex, proportion )
 
 try:
 	if currentGlyph.mastersCompatible():
-		s = list( currentLayer.selection() )
+		try:
+			# until v2.1:
+			selection = currentLayer.selection()
+		except:
+			# since v2.2:
+			selection = currentLayer.selection
+		
+		s = list( selection )
 		currentCompareString = currentLayer.compareString()
 		
 		# find the indices for selected nodes:

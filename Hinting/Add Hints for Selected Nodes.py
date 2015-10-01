@@ -9,7 +9,14 @@ import GlyphsApp
 Font = Glyphs.font
 FontMaster = Font.selectedFontMaster
 thisLayer = Font.selectedLayers[0]
-thisSelection = [ n for n in thisLayer.selection() if n.className() == "GSNode" ]
+try:
+	# until v2.1:
+	selection = thisLayer.selection()
+except:
+	# since v2.2:
+	selection = thisLayer.selection
+
+thisSelection = [ n for n in selection if n.className() == "GSNode" ]
 numberOfSelectedNodes = len( thisSelection )
 
 def hintTypeForY( yValue ):

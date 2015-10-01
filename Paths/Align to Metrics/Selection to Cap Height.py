@@ -12,7 +12,13 @@ myCapHeight = Font.selectedFontMaster.capHeight
 selectedLayer = Font.selectedLayers[0]
 
 try:
-	selection = selectedLayer.selection()
+	try:
+		# until v2.1:
+		selection = selectedLayer.selection()
+	except:
+		# since v2.2:
+		selection = selectedLayer.selection
+	
 	highestY = max( ( n.y for n in selection ) )
 
 	Font.disableUpdateInterface()
