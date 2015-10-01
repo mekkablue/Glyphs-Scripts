@@ -6,29 +6,27 @@ Jumps to previous instance shown in the preview field or window.
 
 import GlyphsApp
 from Foundation import NSApplication
-PreviewPanel = None
-Doc = Glyphs.currentDocument
+
 numberOfInstances = len( Glyphs.font.instances )
+Doc = Glyphs.currentDocument
+PreviewField = Doc.windowController().activeEditViewController()
+PreviewPanel = None
 
 for p in NSApplication.sharedApplication().delegate().valueForKey_("pluginInstances"):
 	if p.__class__.__name__ == "NSKVONotifying_GlyphsPreviewPanel":
 		PreviewPanel = p
 
 try:
-	if PreviewPanel:
-		currentInstanceNumber = PreviewPanel.selectedInstance()
+	currentInstanceNumber = PreviewField.selectedInstance()
 
-		if currentInstanceNumber > 1:
+	if currentInstanceNumber > 1:
+		PreviewField.setSelectedInstance_( currentInstanceNumber - 1 )
+		if PreviewPanel:
 			PreviewPanel.setSelectedInstance_( currentInstanceNumber - 1 )
-		else:
-			PreviewPanel.setSelectedInstance_( numberOfInstances )
 	else:
-		currentInstanceNumber = Doc.windowController().activeEditViewController().selectedInstance()
-
-		if currentInstanceNumber > 1:
-			Doc.windowController().activeEditViewController().setSelectedInstance_( currentInstanceNumber - 1 )
-		else:
-			Doc.windowController().activeEditViewController().setSelectedInstance_( numberOfInstances )
+		PreviewField.setSelectedInstance_( numberOfInstances )
+		if PreviewPanel:
+			PreviewPanel.setSelectedInstance_( numberOfInstances )
 
 except Exception, e:
 	print "Error:", e
