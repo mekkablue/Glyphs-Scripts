@@ -1,24 +1,25 @@
 #MenuTitle: Realign Handles in Current Glyph
 # -*- coding: utf-8 -*-
 __doc__="""
-Realigns Handles in Current Glyph. Glyph must be opened in Edit View.
+Realigns handles in current glyph. Glyph must be opened in Edit view.
 """
 
-def realignHandles():
-	moveForward = NSPoint( 1, 1 )
-	moveBackward = NSPoint( -1, -1 )
-	currentController = Glyphs.currentDocument.windowController().activeEditViewController()
-
-	Tool = GSToolSelect.alloc().init()
-	Tool.setEditViewController_(currentController)
-	Tool.moveSelectionWithPoint_withModifier_( moveForward, 0 )
-	Tool.moveSelectionWithPoint_withModifier_( moveBackward, 0 )
-	Tool.dealloc()
+currentController = Glyphs.currentDocument.windowController().activeEditViewController()
+zero = NSNumber.numberWithUnsignedInteger_(0)
+Tool = GSToolSelect.alloc().init()
+Tool.setEditViewController_(currentController)
+moveForward = NSPoint( 1, 1 )
+moveBackward = NSPoint( -1, -1 )
 
 thisLayer = Glyphs.font.selectedLayers[0]
+if thisLayer:
+	for thisPath in thisLayer.paths:
+		for thisNode in thisPath.nodes:
+			if thisNode.type == 65:
+				thisLayer.setSelection_( NSMutableArray.arrayWithObject_(thisNode ) )
+				Tool.moveSelectionWithPoint_withModifier_( moveForward, zero )
+				Tool.moveSelectionWithPoint_withModifier_( moveBackward, zero )
+else:
+	print "Open a glyph in Edit view and run the script again."
 
-for thisPath in thisLayer.paths:
-	for thisNode in thisPath.nodes:
-		if thisNode.type != 65:
-			thisLayer.setSelection_( NSMutableArray.arrayWithObject_(thisNode ) )
-			realignHandles()
+# Tool.dealloc()

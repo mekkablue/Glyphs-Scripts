@@ -1,7 +1,7 @@
 #MenuTitle: Steal kerning from InDesign
 # -*- coding: utf-8 -*-
 __doc__="""
-Use the font in InD, set the kerning method to Optical, run this script.
+Use the font in InD (set up a document with one text box on the first page, set the kerning method to Optical), then run this script.
 """
 
 import GlyphsApp
