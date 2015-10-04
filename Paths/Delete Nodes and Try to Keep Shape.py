@@ -10,7 +10,13 @@ import GlyphsApp
 thisFont = Glyphs.font # frontmost font
 thisLayer = thisFont.selectedLayers[0] # first of active layers of selected glyphs
 thisGlyph = thisLayer.parent # current glyph
-selection = thisLayer.selection() # node selection in edit mode
+
+# node selection in edit mode
+try:
+	selection = thisLayer.selection() # Glyphs 2.1 and earlier
+except:
+	selection = thisLayer.selection # Glyphs 2.2 and later
+
 
 if selection:
 	selectedNodes = [obj for obj in selection if type(obj)==GSNode and obj.type==35]

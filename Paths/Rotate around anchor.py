@@ -167,6 +167,14 @@ class Rotator(object):
 
 	def logToConsole( self, thisString ):
 		print thisString
+	
+	def selectionForLayer(thisLayer):
+		selection = ()
+		try:
+			selection = thisLayer.selection() # Glyphs until v2.1
+		except:
+			selection = thisLayer.selection # Glyphs v2.2+
+		return selection
 			
 	def rotate(self, sender):
 		selectedLayers = Glyphs.currentDocument.selectedLayers()
@@ -185,17 +193,12 @@ class Rotator(object):
 		
 		rotationDegrees = float( self.w.rotate_degrees.get() )
 		
-		if len(selectedLayers) == 1 and selectedLayers[0].selection():
+		if len(selectedLayers) == 1 and selectionForLayer(selectedLayers[0]):
 			# rotate individually selected nodes and components
 			try:
 				thisLayer = selectedLayers[0]
 				thisGlyph = thisLayer.parent
-				try:
-					# until v2.1:
-					selection = thisLayer.selection()
-				except:
-					# since v2.2:
-					selection = thisLayer.selection
+				selection = selectionForLayer(thisLayer)
 				thisGlyph.beginUndo()
 				
 				centerOfThisLayer = self.rotationCenterOfLayer(thisLayer)
