@@ -9,7 +9,8 @@ import GlyphsApp
 Glyphs.clearLog() # clears macro window log
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
-listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+listOfSelectedLayers = [ l for l in thisFont.selectedLayers if hasattr(l.parent, 'name')]
+ # active layers of selected glyphs
 
 def process( thisGlyph ):
 	thisGlyph.setLeftMetricsKey_(None)
