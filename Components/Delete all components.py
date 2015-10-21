@@ -6,7 +6,7 @@ Deletes all components in selected glyphs.
 
 import GlyphsApp
 
-thisFont = Glyphs.thisFont
+thisFont = Glyphs.font
 selectedLayers = thisFont.selectedLayers
 
 def process( thisLayer ):
