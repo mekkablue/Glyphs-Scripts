@@ -52,6 +52,11 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Replicate Anchors:** Goes through selected dot-suffixed glyphs and duplicates anchors from their respective base glyphs. E.g. will recreate anchors of *X* in *X.ss01*, *X.swsh* and *X.alt*.
 * **Report top anchors:** Report the y positions of all *top* anchors into the Macro Panel. Useful to see if a top anchor is not exactly where it should be.
 
+## App
+
+* **Kill background processes:** Terminates all makeotfGlyphs processes. If your fan keeps screaming after exporting a font, or after cancelling a font export, then run this script and see if it helps.
+* **Print Window:** Print the frontmost window. Useful for saving a vector PDF of your window content.
+
 ## Arabic
 * **Add Entry and Exit:** Adds entry and exit anchors for cursive attachment in selected glyphs. By default, it places the exit at (0, 0) and the entry at a node at RSB if such a node exists. Please adjust for your own needs.
 * **Align All Arabic Double Marks in Current Master:** Substitute for automatic alignment in Arabic double marks. Goes through all Arabic compound mark ligatures in the current master, and aligns all the mark components according to their anchor positions (top, _top, and bottom, _bottom).
