@@ -37,6 +37,20 @@ def checkForOpenPaths( thisFont ):
 			if openPathsFound > 0:
 				errMsg( thisGlyph.name, thisLayer.name, str( openPathsFound ) + " open path(s) found" )
 
+def checkForPathDirections( thisFont ):
+	headline( "Checking for path directions" )
+	
+	for thisGlyph in thisFont.glyphs:
+		for thisLayer in thisGlyph.layers:
+			firstPath = thisLayer.paths[0]
+			
+			if firstPath and firstPath.direction != -1:
+				if len(thisLayer.paths) > 1:
+					msg = "Bad path order or direction."
+				else:
+					msg = "Bad path direction."
+				errMsg( thisGlyph.name, thisLayer.name, msg )
+
 def checkForPointsOutOfBounds( thisFont ):
 	headline( "Checking for nodes out of bounds" )
 	
@@ -67,9 +81,13 @@ def checkForIllegalGlyphNames( thisFont ):
 	legalRestChars = "1234567890-_."
 	
 	for thisName in glyphNames:
-		if thisName[0] not in legalFirstChar:
-			if thisName != ".notdef":
-				errMsg( thisName, "", "first character in glyph name ('" + thisName[0] + "') must be a letter (A-Z or a-z)" )
+		firstChar = thisName[0]
+		if firstChar not in legalFirstChar:
+			if firstChar == "_":
+				if thisFont.glyphs[thisName].export:
+					errMsg( thisName, "", "glyphs starting with underscore must be invisible: %s " % thisName )
+			elif thisName != ".notdef":
+				errMsg( thisName, "", "first character in glyph name ('" + firstChar + "') must be a letter (A-Z or a-z)" )
 		
 		illegalChars = 0
 		for thisChar in thisName:
@@ -191,6 +209,7 @@ def checkUnicode( thisFont ):
 
 checkForFontNames( Font )
 checkForOpenPaths( Font )
+checkForPathDirections( Font )
 checkForPointsOutOfBounds( Font )
 checkForIllegalGlyphNames( Font )
 checkStandardNames( Font )

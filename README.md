@@ -48,7 +48,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Find and Replace in Anchor Names:** GUI for replacing text in the names of anchors in selected glyphs. Processes all layers. *Needs Vanilla.*
 * **Insert Anchors into Ligatures:** Copies base glyph anchors with number extensions into selected ligatures. E.g., if c has top and bottom, and e has top, bottom, and ogonek, the c_e ligature will get top_1, bottom_1, top_2, bottom_2, and ogonek_2. Horizontally adapts the anchor positioning to the width of the ligature. Ignores non-ligatures and glyph name extensions.
 * **Move accents to custom anchors:** Moves accents to a custom anchor in the base glyph if available. E.g.: assuming glyph "A" has both "top" and "top_acute" anchors, if you run the script on "Aacute" and "Adieresis", it will move the acute on "top_acute", but leave the dieresis where it is.
-* **Move acute, grave and hook to *top_viet*:** Moves *acute*, *grave* and *hookabovecomb* to the *top_viet* anchor in every layer of selected glyphs. Useful for Vietnamese double accents. Assumes that you have *top_viet* anchors in all layers of *circumflex*.
+* **Move acute, grave and hook to *top_viet*:** Moves *acute*, *grave* and *hookabovecomb* to the *top_viet* anchor in every layer of selected glyphs. Useful for Vietnamese double accents. Assumes that you have *top_viet* anchors in all layers of *circumflexcomb*.
 * **Replicate Anchors:** Goes through selected dot-suffixed glyphs and duplicates anchors from their respective base glyphs. E.g. will recreate anchors of *X* in *X.ss01*, *X.swsh* and *X.alt*.
 * **Report top anchors:** Report the y positions of all *top* anchors into the Macro Panel. Useful to see if a top anchor is not exactly where it should be.
 
