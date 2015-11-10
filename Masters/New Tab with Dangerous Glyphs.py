@@ -25,6 +25,13 @@ def nodeString( path ):
 			nodestring += "n"
 	return nodestring
 
+def compatibleWhenReversed( path1, path2 ):
+	pathstring1 = nodeString(path1)
+	pathstring2 = "".join(reversed(nodeString(path2)))
+	if pathstring1 == pathstring2:
+		return True
+	return False
+
 def compatibleWithDifferentStartPoints( path1, path2 ):
 	pathstring1 = nodeString(path1)
 	pathstring2 = nodeString(path2)
@@ -62,12 +69,16 @@ def check( thisLayer ):
 					secondPath = thesePaths[j]
 					secondPathCount = len(secondPath.nodes)
 					if firstPathCount == secondPathCount:
-						if compatibleWithDifferentStartPoints( firstPath, secondPath ):
+						if firstPath.closed and secondPath.closed and compatibleWithDifferentStartPoints( firstPath, secondPath ):
+							return True
+						elif compatibleWhenReversed( firstPath, secondPath ):
 							return True
 							
 	if len(thisLayer.paths) == 1:
 		thisPath = thisLayer.paths[0]
-		if compatibleWithDifferentStartPoints( thisPath, thisPath ):
+		if thisPath.closed and compatibleWithDifferentStartPoints( thisPath, thisPath ):
+			return True
+		elif compatibleWhenReversed( thisPath, thisPath ):
 			return True
 
 	return False
@@ -79,5 +90,8 @@ for thisGlyph in Font.glyphs:
 if outputString:
 	Font.newTab( outputString )
 else:
-	# brings macro window to front and clears its log:
-	Message("No interpolation problems", "Cannot find any dangerous glyphs in this font.", OKButton="OK")
+	Message(
+		"No interpolation problems",
+		"Cannot find any dangerous glyphs in this font.",
+		OKButton="Hurrah!"
+	)
