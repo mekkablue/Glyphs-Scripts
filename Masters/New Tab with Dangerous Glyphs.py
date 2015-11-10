@@ -1,19 +1,13 @@
 #MenuTitle: New Tab with Dangerous Glyphs for Interpolation
 # -*- coding: utf-8 -*-
 __doc__="""
-Finds and outputs glyphs like the equals sign, with paths that could interpolate within themselves.
+Finds and outputs glyphs like the equals sign, or a symmetrical period, with paths that could interpolate wrongly within themselves.
 """
 
 import GlyphsApp
-from PyObjCTools.AppHelper import callAfter
 
 Font = Glyphs.font
 outputString = ""
-
-def pathStructure( thisPath ):
-	typeList = [ str(n.type) for n in thisPath.nodes ]
-	thisPathStructureString = "-".join( typeList )
-	return thisPathStructureString
 
 def nodeCounts( thisLayer ):
 	countList = [ len(p.nodes) for p in thisLayer.paths ]
@@ -34,7 +28,6 @@ def nodeString( path ):
 def compatibleWithDifferentStartPoints( path1, path2 ):
 	pathstring1 = nodeString(path1)
 	pathstring2 = nodeString(path2)
-	print pathstring1, pathstring2
 	for x in pathstring1:
 		pathstring2 = shiftString(pathstring2)
 		if pathstring1 == pathstring2:
@@ -53,7 +46,7 @@ def check( thisLayer ):
 			return True
 	
 	if len( thisLayer.paths ) > 1:
-		pathStructureList = [ pathStructure(p) for p in thesePaths ]
+		pathStructureList = [ nodeString(p) for p in thesePaths ]
 		compareValue_1 = len( pathStructureList )
 		compareValue_2 = len( set( pathStructureList ) )
 		if compareValue_1 != compareValue_2:
@@ -83,13 +76,8 @@ for thisGlyph in Font.glyphs:
 	if check( thisGlyph.layers[0] ):
 		outputString += "/%s" % thisGlyph.name
 
-callAfter( Glyphs.currentDocument.windowController().addTabWithString_, outputString )
-
-# Comment out or delete the previous line
-# and uncomment the following three lines
-# if the tab opening does not work for you:
-
-# Glyphs.clearLog()
-# Glyphs.showMacroWindow()
-# print "Please check these glyphs again:\n%s" % outputString
-
+if outputString:
+	Font.newTab( outputString )
+else:
+	# brings macro window to front and clears its log:
+	Message("No interpolation problems", "Cannot find any dangerous glyphs in this font.", OKButton="OK")
