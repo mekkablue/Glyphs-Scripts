@@ -93,7 +93,9 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * * **Stylistic Sets > Create pseudorandom calt feature:** Creates pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font. Update: now includes the default class in the rotation algorithm.
 
 ## Glyph Names
+* **Add PUA Unicode Values to Selected Glyphs:** Iterates through selected glyphs and incrementally applies custom Unicode values, starting at a user-specified value. *Needs Vanilla.*
 * **Check Glyph Names:** Checks all available glyph names for illegal characters.
+* **Copy Unicode-Sorted Glyph Name List:** Copies a newline-separated list of glyph names, in the order of their respective Unicode values. Useful for pasting into a *glyphOrder* custom parameter or a List filter.
 * **Lowercase:** Turns the names of selected glyphs lowercase.
 
 ## Guidelines
