@@ -72,7 +72,7 @@ class TransformImages( object ):
 				factor = 1.0
 			
 			for thisLayer in selectedLayers:
-				thisImage = thisLayer.backgroundImage()
+				thisImage = thisLayer.backgroundImage
 				if thisImage:
 					moveX, moveY   = float( self.w.move_X.get() ) * factor, float( self.w.move_Y.get() ) * factor
 					scaleX, scaleY = getScale( self.w.scale_X.get(), factor ), getScale( self.w.scale_Y.get(), factor )
