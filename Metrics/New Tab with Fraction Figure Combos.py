@@ -20,7 +20,7 @@ for numr in figs:
 
 # in case last line fails, the text is in the macro window:
 Glyphs.clearLog() # clears macro window log
-print text
+print paragraph
 
 # opens new Edit tab:
 thisFont.newTab( paragraph )
