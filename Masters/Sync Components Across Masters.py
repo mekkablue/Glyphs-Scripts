@@ -31,7 +31,7 @@ def process( thisLayer ):
 		componentAnchors = [ None ]
 		numberOfComponents = len(compSet)
 		for i in range( 1, numberOfComponents ):
-			thisAnchor =  thisLayer.components[i].anchor()
+			thisAnchor =  thisLayer.components[i].anchor
 			componentAnchors.append( thisAnchor )
 	
 		# go through all other layers:

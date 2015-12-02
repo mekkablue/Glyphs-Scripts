@@ -155,6 +155,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **New Tab with all Figure Combinations:** opens a new tab with all possible figure combos. Also outputs a string for copying into the macro window, in case the opening of the tab fails.
 * **New Tab with all Selected Glyph Combinations:** takes your selected glyphs and opens a new tab with all possible combinations of the letters. Also outputs a string for copying into the macro window, in case the opening of the tab fails.
 * **New Tab with All Group Members:** Select two glyphs, e.g. ‘Ta’, run the script, and it will open a new tab with all combinations of the right kerning group of T with the left kerning group of a.
+* **New Tab with Fraction Figure Combinations:** Opens an Edit tab with fraction figure combos for spacing and kerning.
 * **Remove All Kerning Exceptions:** Removes all kerning for the current master, except for group-to-group kerning. Be careful.
 * **Reset alternate glyph width:** resets the width of suffixed glyphs to the width of their unsuffixed counterparts. E.g., *Adieresis.ss01* will be reset to the width of *Adieresis*.
 * **Reset Compound Metrics to First Component:** Looks for the first component in a compound glyph, sets it back to x=0 and inherits its width. Useful for syncing numerators and denominators.
@@ -175,6 +176,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Delete Nodes and Try to Keep Shape:** Deletes selected on-curve nodes and tries to keep the shape as much as possible. Similar to what happens when you delete a single node, but for a selection of multiple nodes.
 * **Delete Stray Points:** Deletes stray points (single node paths) in selected glyphs. Careful: a stray point can be used as a quick hack to disable automatic alignment. Reports in detail to the macro window.
 * **Fill up with rectangles:** Goes through your selected glyphs, and if it finds an empty one, inserts a placeholder rectangle. Useful for quickly building a dummy font for testing.
+* **Grid Switcher:** Toggles grid between two user-definable gridstep values with the click of a floating button. *Needs Vanilla.*
 * **Insert BCPs into straight segments:** Inserts off-curve points (BCPs) into straight line segments of all selected glyphs. Like option-clicking on all straight lines.
 * **Insert Inflections:** Inserts nodes at path inflections in the visible layers of all selected glyphs.
 * **New Tab with Zero Handles:** Opens a new tab with glyphs containing zero handles in the current font master.
