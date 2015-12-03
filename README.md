@@ -199,6 +199,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Select Same Color:** Select a glyph with a color, and the script will add all other glyphs with the same color to the selection, as long as they are currently displayed in the Font Tab. Does nothing if no glyph is selected.
 
 ## Smallcaps
+* **Check Small Cap Consistency:** Performs a few tests on your SC set and reports into the Macro Window.
 * **Copy kerning classes from smcp to c2sc:** If you already have c2sc and smcp glyphs, it will copy kerning group attributes from smcp to c2sc glyphs, e.g. *d.smcp* has *leftgroup=h.smcp* and *rightgroup=o.smcp*, then *leftgroup=h.smcp* and *rightgroup=o.smcp* will be copied to *D.c2sc*. 
 * **Make c2sc from smcp:** Creates .c2sc copies of your .smcp glyphs, with the .smcp glyphs inserted as components in the .c2sc copies. For example, if you have *a.smcp*, the script will create *A.c2sc* and insert *a.smcp* as component. It will not do anything in case *A.c2sc* already exists.
 * **Make smcp from c2sc:** Creates .smcp copies of your .c2sc glyphs, with the .c2sc glyphs inserted as components in the .smcp copies. For example, if you have *A.c2sc*, the script will create *a.smcp* and insert *A.c2sc* as component. It will not do anything in case *a.smcp* already exists.
