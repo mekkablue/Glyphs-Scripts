@@ -34,17 +34,6 @@ def bezier( A, B, C, D, t ):
 
 def distance( node1, node2 ):
 	return math.hypot( node1.x - node2.x, node1.y - node2.y )
-	
-def derivedNSPoint( segmentObject ):
-	"""Hack for deriving an NSPoint from a segment point description."""
-
-	segmentPointString = segmentObject.description()
-	xyString = segmentPointString[ segmentPointString.find("{")+1 : segmentPointString.find("}") ]
-	
-	x = float( xyString[ : xyString.find(",") ] )
-	y = float( xyString[ xyString.find(" ") +1 : ] )
-	
-	return NSPoint( x, y )
 
 def getFineGrainPointsForPath( thisPath, distanceBetweenDots ):
 	layerCoords = [ ]
@@ -54,8 +43,8 @@ def getFineGrainPointsForPath( thisPath, distanceBetweenDots ):
 		if len( thisSegment ) == 2:
 			# straight line:
 			
-			beginPoint = derivedNSPoint( thisSegment[0] )
-			endPoint   = derivedNSPoint( thisSegment[1] )
+			beginPoint = thisSegment[0].pointValue()
+			endPoint   = thisSegment[1].pointValue()
 			
 			dotsPerSegment = int( ( distance( beginPoint, endPoint ) / distanceBetweenDots ) * 11 )
 			
@@ -67,10 +56,10 @@ def getFineGrainPointsForPath( thisPath, distanceBetweenDots ):
 		elif len( thisSegment ) == 4:
 			# curved segment:
 			
-			bezierPointA = derivedNSPoint( thisSegment[0] )
-			bezierPointB = derivedNSPoint( thisSegment[1] )
-			bezierPointC = derivedNSPoint( thisSegment[2] )
-			bezierPointD = derivedNSPoint( thisSegment[3] )
+			bezierPointA = thisSegment[0].pointValue()
+			bezierPointB = thisSegment[1].pointValue()
+			bezierPointC = thisSegment[2].pointValue()
+			bezierPointD = thisSegment[3].pointValue()
 			
 			bezierLength = distance( bezierPointA, bezierPointB ) + distance( bezierPointB, bezierPointC ) + distance( bezierPointC, bezierPointD ) # very rough approximation, up to 11% too long
 			dotsPerSegment = int( ( bezierLength / distanceBetweenDots ) * 10 )
