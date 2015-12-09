@@ -83,9 +83,10 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Stitcher:** In selected glyphs, the Stitcher inserts components on your paths at fixed intervals. Useful for turning open paths (monolines) into dotted lines. Use an anchor called 'origin' for determining the component position in stitched letters. *Needs Vanilla.*
 
 ## Features
-* **Build ccmp:** Builds a Latin ccmp feature, based on the presence of i and j, and also tries to create dotlessi and dotlessj, if they are not present in the font.
+* **Build ccmp for Hebrew Presentation Forms:** Builds or updates a Hebrew ccmp feature, where presentation forms (Unicode FBxx) are prebuilt like ligatures if present in the font.
 * **Build positional calt feature:** Looks for .init, .medi, .fina, and .isol glyphs, and injects positional substitution code into your calt feature. If run again, will update its class and feature code. 
 * **Floating Features:** Floating palettes for activating and deactivating OT features. Same functionality as the pop-up menu. *Needs Vanilla.*
+* **Glyph Names as Discretionary Ligatures:** Adds names of exporting glyphs without a Unicode value as ligatures into the dlig feature. Useful for proofing otherwise inaccessible glyphs.
 * **Make OT Class from selected glyphs:** GUI for creating a new OT class with the selected glyphs. *Needs Vanilla.*
 * **Refresh Features without Reordering:** Goes through the existing features in the font and refreshes each one of them. Does neither add nor reorder features.
 * * **Stylistic Sets > Synchronize ssXX glyphs:** Creates missing ssXX glyphs so that you have synchronous groups of ssXX glyphs. E.g. you have *a.ss01 b.ss01 c.ss01 a.ss02 c.ss02* --> the script creates *b.ss02*
