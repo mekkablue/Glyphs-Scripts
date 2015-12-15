@@ -72,7 +72,8 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Enable** and **Disable Alignment:** Enables or disables automatic alignment for all components on visible layers in selected glyphs. Does the same as the command in the context menu, but you can do it in one step for many glyphs.
 * **Modify Components:** In selected glyphs, replaces accents with their dot suffix variant where possible. *Needs Vanilla*
 * **New Tab with Orphaned Components:** Opens a new tab in the current font window containing all glyphs (of the current master) that have components that point to non-existent glyphs, i.e., no base glyphs.
-* **New Tab with Unaligned Compounds:** Opens a new tab containing all glyphs that have components that are not autmatically aligned. Lists them for every master, so your font should contain all glyphs necessary for writing your font master names.
+* **New Tab with Unaligned Compounds:** Opens a new tab containing all glyphs that have components that are not automatically aligned. Lists them for every master, so your font should contain all glyphs necessary for writing your font master names.
+* **New Tab with Unusual Compounds:** Open a new tab containing all compound glyphs that have an unusual component order or an unorthodox component structure. Useful for finding wrong component orders.
 * **Rebuild Components:** Moves outlines to background, then tries to rebuild the glyph with components in the foreground. Tries to position the accents as precisely as possible. Useful for rebuilding a decomposed font.
 * **Remove Components:** Removes the specified component from all glyphs or all selected glyphs. *Needs Vanilla.*
 * **Replace components:** Relinks components in selected glyphs to a new source glyph. *Needs Vanilla.*
