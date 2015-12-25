@@ -97,6 +97,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 ## Glyph Names
 * **Add PUA Unicode Values to Selected Glyphs:** Iterates through selected glyphs and incrementally applies custom Unicode values, starting at a user-specified value. *Needs Vanilla.*
 * **Check Glyph Names:** Checks all available glyph names for illegal characters.
+* **Copy Glyph Name List:** Copies a newline-separated list of glyph names. Useful for pasting into a *glyphOrder* custom parameter or a List filter.
 * **Copy Unicode-Sorted Glyph Name List:** Copies a newline-separated list of glyph names, in the order of their respective Unicode values. Useful for pasting into a *glyphOrder* custom parameter or a List filter.
 * **Lowercase:** Turns the names of selected glyphs lowercase.
 
@@ -111,9 +112,11 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Delete Hints in Visible Layers:** Deletes hints in active layers of selected glyphs.
 * **Delete All Hints in Font:** Deletes all hints throughout the active font. Be careful.
 * **Delete All Vertical Hints in Font:** Deletes all vertical hints throughout the active font. Be careful.
+* **Delete All Vertical Hints in Selected Glyphs:** Deletes all vertical hints in selected glyphs only.
 * **Delete All Horizontal Hints in Font:** Deletes all horizontal hints throughout the active font. Be careful.
 * **Keep First Master Hints Only:** In selected glyphs, deletes all hints in all layers except for whatever is ordered as first master. Respects Bracket Layers. E.g., if your first master is 'Regular', then the script will delete hints in 'Bold', 'Bold [120]', but keep them in 'Regular' and 'Regular [100]'.
 * **New Tab with Glyphs Exceeding Zones:** Opens a new tab with all glyphs where the extremums do not lie within zones.
+* **Set TT Stem Hints to Auto:** Sets all TT stem hints to ‘auto’ in selected glyphs.
 * **Set TT Stem Hints to No Stem:** Sets all TT stem hints to ‘no stem’ in selected glyphs. In complex paths, it can improve rendering on Windows.
 
 ## Images

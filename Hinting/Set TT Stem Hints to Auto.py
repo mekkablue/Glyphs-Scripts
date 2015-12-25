@@ -1,7 +1,7 @@
-#MenuTitle: Set TT Stem Hints to No Stem
+#MenuTitle: Set TT Stem Hints to Auto
 # -*- coding: utf-8 -*-
 __doc__="""
-Sets all TT stem hints to ‘no stem’ in selected glyphs. In complex paths, it can improve rendering on Windows.
+Sets all TT stem hints to ‘Auto’ in selected glyphs.
 """
 
 import GlyphsApp
@@ -13,7 +13,7 @@ def process( thisLayer ):
 	returnValue = False
 	for thisHint in thisLayer.hints:
 		if thisHint.type == 3: # TT stem
-			thisHint.setStem_(-1)
+			thisHint.setStem_(NSNotFound)
 			returnValue = True
 	return returnValue
 
