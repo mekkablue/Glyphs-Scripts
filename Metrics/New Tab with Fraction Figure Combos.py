@@ -6,7 +6,8 @@ Open Tab with fraction figure combos for spacing and kerning.
 
 thisFont = Glyphs.font
 
-paragraph = ""
+paragraph = "/%s\n" % "/".join( [g.name for g in thisFont.glyphs if g.export and (g.name.startswith("percent") or g.name.startswith("perthousand"))] )
+
 z = "/zero.numr"
 figs = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
 

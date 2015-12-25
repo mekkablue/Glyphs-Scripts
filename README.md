@@ -144,6 +144,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Adjust Kerning:** GUI to add a value to all kerning pairs, multiply all pairs by a value or round them by a value. *Needs Vanilla.*
 * **Center glyphs:** centers all selected glyphs inside their width, so that LSB=RSB.
 * **Change Metrics by Percentage:** Change LSB/RSB of selected glyphs by a percentage value. Undo with the Revert button. *Needs Vanilla.*
+* **Compare Font Spacings:** Compares the overall widths, and widths weighted for English, of lowercase and uppercase A-Z for all currently opened fonts. Reports to the Macro window.
 * **Copy Kerning from Caps to Small Caps:** Looks for cap kerning pairs and reduplicates their kerning for corresponding .sc glyphs, if they are available in the font. Please be careful: Will overwrite existing SC kerning pairs.
 * **Delete kerning pairs for selected glyphs:** deletes all kerning pairs with the selected glyphs, for the current master only.
 * **Delete metrics keys:** deletes both left and right metrics keys in all selected glyphs. Affects all masters and all layers.
@@ -158,6 +159,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **New Tab with all Selected Glyph Combinations:** takes your selected glyphs and opens a new tab with all possible combinations of the letters. Also outputs a string for copying into the macro window, in case the opening of the tab fails.
 * **New Tab with All Group Members:** Select two glyphs, e.g. ‘Ta’, run the script, and it will open a new tab with all combinations of the right kerning group of T with the left kerning group of a.
 * **New Tab with Fraction Figure Combinations:** Opens an Edit tab with fraction figure combos for spacing and kerning.
+* **New Tab with Glyphs of Same Kerning Groups:** Opens an Edit tab containing all glyphs that share the same left or right kerning groups.
 * **Remove All Kerning Exceptions:** Removes all kerning for the current master, except for group-to-group kerning. Be careful.
 * **Reset alternate glyph width:** resets the width of suffixed glyphs to the width of their unsuffixed counterparts. E.g., *Adieresis.ss01* will be reset to the width of *Adieresis*.
 * **Reset Compound Metrics to First Component:** Looks for the first component in a compound glyph, sets it back to x=0 and inherits its width. Useful for syncing numerators and denominators.
