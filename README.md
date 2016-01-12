@@ -122,6 +122,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 ## Images
 * **Add Same Image to Selected Glyphs:** Asks you for an image, and then inserts it into all currently selected glyphs as background image.
 * **Delete Images:** Deletes all placed images in the visible layers of selected glyphs.
+* **Delete All Images in Font:** Deletes all placed images throughout the entire font.
 * **Reset Image Transformations:** Resets all image transformations (x/y offset, scale, and distortion) back to default in the visible layers of selected glyphs.
 * **Set New Path for Images:** Resets the path for placed images in selected glyphs. Useful if you have moved your images.
 * **Transform Images:** GUI for batch-transforming images (x/y offset and x/y scale) in the visible layers of selected glyphs. *Needs Vanilla.*
