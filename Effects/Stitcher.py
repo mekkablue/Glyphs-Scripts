@@ -100,7 +100,7 @@ def placeDots( thisLayer, useBackground, componentName, distanceBetweenDots ):
 		
 		if sourceComponent:
 			try:
-				(xOffset, yOffset) = sourceComponent.layers[FontMasterID].anchors["origin"].position
+				(xOffset, yOffset) = sourceAnchor.position
 				xOffset = -xOffset
 				yOffset = -yOffset
 			except Exception as e:
