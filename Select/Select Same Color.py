@@ -1,34 +1,29 @@
 #MenuTitle: Select Same Color
 # -*- coding: utf-8 -*-
 __doc__="""
-Select glyphs with the same color as the currently selected one.
+In Font view, select glyphs with the same color(s) as the currently selected one(s).
 """
 
 import GlyphsApp
-
-thisFont = Glyphs.font # frontmost font
-selectedLayers = thisFont.selectedLayers
 
 def indexSetWithIndex( index ):
 	indexSet = NSIndexSet.alloc().initWithIndex_( index )
 	return indexSet
 
-def hasColor( thisGlyph, colorIndex ):
-	returnValue = False
-	if thisGlyph.color == colorIndex:
-		returnValue = True
-	return returnValue
+thisFont = Glyphs.font # frontmost font
+fontView = thisDoc.windowController().tabBarControl().viewControllers()[0].glyphsArrayController()
+displayedGlyphsInFontView = fontView.arrangedObjects() # all glyphs currently displayed
+colorIndexes = []
 
-if selectedLayers:
-	thisDoc = Glyphs.currentDocument
-	thisController = thisDoc.windowController().tabBarControl().viewControllers()[0].glyphsArrayController()
-	displayedGlyphs = thisController.arrangedObjects()
-	thisFont.disableUpdateInterface() # suppresses UI updates in Font View
-	for layer in selectedLayers:
-		selectedColor = layer.parent.color
-		for i in range(len( displayedGlyphs )):
-			thisGlyph = displayedGlyphs[i]
-			if hasColor( thisGlyph, selectedColor ):
-				thisController.addSelectionIndexes_( indexSetWithIndex(i) )
+if displayedGlyphsInFontView:
+	displayedIndexRange = range(len(displayedGlyphsInFontView)) # indexes of glyphs in Font view
+	for i in displayedIndexRange:
+		if fontView.selectionIndexes().containsIndex_(i):
+			thisGlyphColorIndex = displayedGlyphsInFontView[i].colorIndex()
+			if not thisGlyphColorIndex in colorIndexes:
+				colorIndexes.append( thisGlyphColorIndex )
+	if colorIndexes:
+		for i in displayedIndexRange:
+			if displayedGlyphsInFontView[i].colorIndex() in colorIndexes:
+				fontView.addSelectionIndexes_( indexSetWithIndex(i) )
 
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
