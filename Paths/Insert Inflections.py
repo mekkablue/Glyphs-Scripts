@@ -60,7 +60,7 @@ def process( thisLayer ):
 
 		for i in range(numberOfNodes-1, -1, -1):
 			node = thisPath.nodes[i]
-			if node.type == 35: #CURVE
+			if node.type == GSCURVE:
 				nl = [ thisPath.nodes[ (x+numberOfNodes)%numberOfNodes ] for x in range( i-3, i+1 ) ]
 				inflections = computeInflection( nl[0], nl[1], nl[2], nl[3] )
 				if len(inflections) == 1:

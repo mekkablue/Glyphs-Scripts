@@ -18,7 +18,7 @@ thisLayer = Glyphs.font.selectedLayers[0]
 if thisLayer:
 	for thisPath in thisLayer.paths:
 		for thisNode in thisPath.nodes:
-			if thisNode.type == 65:
+			if thisNode.type == GSOFFCURVE:
 				selectedNode = NSMutableArray.arrayWithObject_(thisNode)
 				thisLayer.setSelection_( selectedNode )
 				Tool.moveSelectionWithPoint_withModifier_( moveForward,  noModifier )

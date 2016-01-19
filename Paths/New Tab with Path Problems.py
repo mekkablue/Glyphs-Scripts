@@ -13,7 +13,7 @@ def hasZeroHandles( thisLayer ):
 		numberOfNodes = len(thisPath.nodes)
 		for i in range(numberOfNodes-1):
 			thisNode = thisPath.nodes[i]
-			if thisNode.type == 65:
+			if thisNode.type == GSOFFCURVE:
 				prevNodeIndex = (i-1) % numberOfNodes
 				nextNodeIndex = (i+1) % numberOfNodes
 				prevNode = thisPath.nodes[prevNodeIndex]

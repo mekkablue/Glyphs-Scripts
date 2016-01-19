@@ -12,7 +12,7 @@ listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyph
 def process( thisLayer ):
 	returnValue = False
 	for thisHint in thisLayer.hints:
-		if thisHint.type == 3: # TT stem
+		if thisHint.type == TTSTEM:
 			thisHint.setStem_(-1)
 			returnValue = True
 	return returnValue

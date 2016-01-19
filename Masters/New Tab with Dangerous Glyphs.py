@@ -19,7 +19,7 @@ def shiftString( myString ):
 def nodeString( path ):
 	nodestring = ""
 	for thisNode in path.nodes:
-		if thisNode.type == 65:
+		if thisNode.type == GSOFFCURVE:
 			nodestring += "h"
 		else:
 			nodestring += "n"

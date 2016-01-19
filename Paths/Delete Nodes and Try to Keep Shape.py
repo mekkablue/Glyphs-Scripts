@@ -19,7 +19,7 @@ except:
 
 
 if selection:
-	selectedNodes = [obj for obj in selection if type(obj)==GSNode and obj.type==35]
+	selectedNodes = [obj for obj in selection if type(obj)==GSNode and obj.type==GSCURVE]
 	if selectedNodes:
 		thisGlyph.beginUndo() # begin undo grouping
 		thisLayer.setSelection_( None )
