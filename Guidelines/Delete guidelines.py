@@ -9,11 +9,11 @@ import GlyphsApp
 print "Deleting guidelines in:"
 
 for thisLayer in Glyphs.font.selectedLayers:
+	thisGlyph = thisLayer.parent
 	# delete guidelines:
 	thisGlyph.beginUndo()
 	thisLayer.guideLines = []
 	thisGlyph.endUndo()
 	
 	# report glyph name:
-	thisGlyph = thisLayer.parent
 	print "  %s" % thisGlyph.name
