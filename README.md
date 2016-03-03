@@ -207,6 +207,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 ## Select
 * **Select Same Color:** Select a glyph with a color, and the script will add all other glyphs with the same color to the selection, as long as they are currently displayed in the Font Tab. Does nothing if no glyph is selected.
 * **Select All Paths and Components:** In selected glyphs, selects components and paths, but no anchors.
+* **Steal Colors:** Copies glyph colors from one font to another. *Needs Vanilla.*
 
 ## Smallcaps
 * **Check Small Cap Consistency:** Performs a few tests on your SC set and reports into the Macro Window.
