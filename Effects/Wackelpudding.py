@@ -18,24 +18,13 @@ Font = Glyphs.font
 FontMaster = Font.selectedFontMaster
 selectedGlyphs = [ x.parent for x in Font.selectedLayers ]
 
-def randomize( min, max ):
-	range = max-min
-	return random.random() * range + min
-
 def rotationTransform( angle=180.0, xOrigin=0.0, yOrigin=0.0 ):
 	"""Returns a TransformStruct for rotating."""
 	RotationTransform = NSAffineTransform.transform()
 	RotationTransform.translateXBy_yBy_( xOrigin, yOrigin )
 	RotationTransform.rotateByDegrees_( angle )
 	RotationTransform.translateXBy_yBy_( -xOrigin, -yOrigin )
-	
 	return RotationTransform
-
-def transformComponent( myComponent, myTransform ):
-	compTransform = NSAffineTransform.transform()
-	compTransform.setTransformStruct_( myComponent.transform )
-	compTransform.appendTransform_( myTransform )
-	myComponent.transform = compTransform.transformStruct()
 
 def clearLayer( thisLayer ):
 	thisLayer.parent.beginUndo()
@@ -66,39 +55,38 @@ def glyphcopy( sourceGlyph, targetGlyphName ):
 
 def ssXXsuffix( i ):
 	"""Turns an integer into an ssXX ending between .ss01 and .ss20, e.g. 5 -> '.ss05'."""
-	if i < 1:
+	i = i%21  # max 20
+	if not i: # if 0
 		i = 1
-	elif i > 20:
-		i = 20
 	return ".calt.ss%.2d" % ( i )
 
 def make_ssXX( thisGlyph, number ):
 	myListOfGlyphs = []
-
 	for x in range(number):
 		newName = thisGlyph.name + ssXXsuffix( x + 1 )
-		myListOfGlyphs.append( glyphcopy( thisGlyph, newName ))
-
+		print "glyphcopy( thisGlyph, newName ): ", thisGlyph, newName
+		copiedGlyph = glyphcopy( thisGlyph, newName )
+		myListOfGlyphs.append( copiedGlyph )
 	return myListOfGlyphs
 
 def wiggle( thisGlyph, maxangle, minangle ):
-	rotateBy = 0.0
-	minangle = float( minangle )
-	
-	while abs(rotateBy) < minangle:
-		rotateBy = randomize( -maxangle, maxangle )
-		
+	rotateBy = random.random() * (maxangle-minangle) + minangle
+	positiveOrNegative = -1 + 2 * round(random.random()) # should be either -1 or 1
+	rotateBy *= positiveOrNegative
+
 	for thisLayer in thisGlyph.layers:
-		xOrigin = thisLayer.width / 2.0
-		yOrigin = thisLayer.bounds.size.height / 2.0
-		thisTransform = rotationTransform( angle=(rotateBy/1.0), xOrigin=xOrigin, yOrigin=yOrigin )
-		
-		for thisPath in thisLayer.paths:
-			for thisNode in thisPath.nodes:
-				thisNode.position = thisTransform.transformPoint_( thisNode.position )
-		
+		# Disable aligment for components, so we can transform freely:
 		for thisComponent in thisLayer.components:
-			transformComponent( thisComponent, thisTransform )
+			thisComponent.setDisableAlignment_( True )
+		
+		# Transform the whole layer:
+		xOrigin = thisLayer.width * 0.5
+		yOrigin = thisLayer.bounds.size.height * 0.5
+		thisLayer.transform_checkForSelection_doComponents_( 
+			rotationTransform( angle=rotateBy, xOrigin=xOrigin, yOrigin=yOrigin ), # rotate around origin
+			False, # checkForSelection
+			True   # doComponents
+		)
 
 def create_otclass( classname   = "@default",
                     classglyphs = [ x.parent.name for x in Font.selectedLayers ],
@@ -117,14 +105,14 @@ def create_otclass( classname   = "@default",
 		targetfont.classes.append( newClass )
 		return "Created new OT class: '%s'" % classname
 
-def updated_code( oldcode, beginsig, endsig, newcode ):
+def updateCode( oldcode, beginsig, endsig, newcode ):
 	"""Replaces text in oldcode with newcode, but only between beginsig and endsig."""
 	begin_offset = oldcode.find( beginsig )
 	end_offset   = oldcode.find( endsig ) + len( endsig )
 	newcode = oldcode[:begin_offset] + beginsig + newcode + "\n" + endsig + oldcode[end_offset:]
 	return newcode
 
-def create_otfeature( featurename = "calt",
+def otFeatureCode( featurename = "calt",
                       featurecode = "# empty feature code",
                       targetfont  = Font,
                       codesig     = "DEFAULT-CODE-SIGNATURE" ):
@@ -142,7 +130,7 @@ def create_otfeature( featurename = "calt",
 		
 		if beginSig in targetfeature.code:
 			# replace old code with new code:
-			targetfeature.code = updated_code( targetfeature.code, beginSig, endSig, featurecode )
+			targetfeature.code = updateCode( targetfeature.code, beginSig, endSig, featurecode )
 		else:
 			# append new code:
 			targetfeature.code += "\n" + beginSig + featurecode + "\n" + endSig
@@ -161,7 +149,7 @@ def pseudoRandomize( featurename="calt", defaultClassName="@default", pseudoClas
 		newline = "sub @default' " + "@default "*i + "by @calt" + str( listOfClasses[i] ) + ";\n"
 		featuretext = featuretext + newline
 
-	return create_otfeature( featurename=featurename, featurecode=featuretext, codesig="WACKELPUDDING")
+	return otFeatureCode( featurename=featurename, featurecode=featuretext, codesig="WACKELPUDDING")
 
 # Make ssXX copies of selected glyphs and rotate them randomly:
 classlist = []
@@ -172,6 +160,7 @@ for thisGlyph in selectedGlyphs:
 		classlist.append( glyphName )
 		glyphList = make_ssXX( thisGlyph, alphabets )
 		for thisVeryGlyph in glyphList:
+			print "Wiggling", thisVeryGlyph.name
 			wiggle( thisVeryGlyph, maxangle, minangle )
 
 # Create OT classes:
