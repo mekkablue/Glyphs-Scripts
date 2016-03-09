@@ -4,8 +4,7 @@ __doc__="""
 Turns outline glyphs into pixel glyphs by inserting pixel components, resetting widths and moving outlines to the background.
 """
 
-import vanilla
-import GlyphsApp
+import vanilla, traceback
 
 class Pixelate( object ):
 	def __init__( self ):
@@ -107,7 +106,7 @@ class Pixelate( object ):
 				if len(thisLayer.paths) > 0 or (componentsMustBeDecomposed and len(thisLayer.components) > 0):
 					
 					# get all possible pixel positions within layer bounds:
-					thisLayerBezierPath = thisLayer.copyDecomposedLayer().bezierPath() # necessary for containsPoint_() function
+					thisLayerBezierPath = thisLayer.copyDecomposedLayer().bezierPath # necessary for containsPoint_() function
 					layerBounds = thisLayer.bounds
 					xStart = int(round( layerBounds.origin.x / pixelRasterWidth ))
 					yStart = int(round( layerBounds.origin.y / pixelRasterWidth ))
@@ -116,11 +115,11 @@ class Pixelate( object ):
 					pixelCount = 0
 
 					# move current layer to background and clean foreground:
-					thisLayer.clearBackground()
-					try: # circumvent typo in API:
-						thisLayer.swapForgroundWithBackground()
-					except:
-						thisLayer.swapForegroundWithBackground()
+					thisLayer.background = thisLayer.copy()
+					thisLayer.clear()
+					# workaround for a bug in the current API, until this works again:
+					# thisLayer.background.clear()
+					# thisLayer.swapForegroundWithBackground()
 					
 					# snap width to pixel grid:
 					widthReport = ""
@@ -156,5 +155,6 @@ class Pixelate( object ):
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print "Pixelate Error: %s" % e
+			print traceback.format_exc()
 
 Pixelate()
