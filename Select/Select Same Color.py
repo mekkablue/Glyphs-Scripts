@@ -10,7 +10,7 @@ def indexSetWithIndex( index ):
 	indexSet = NSIndexSet.alloc().initWithIndex_( index )
 	return indexSet
 
-thisFont = Glyphs.font # frontmost font
+thisDoc = Glyphs.currentDocument # frontmost document
 fontView = thisDoc.windowController().tabBarControl().viewControllers()[0].glyphsArrayController()
 displayedGlyphsInFontView = fontView.arrangedObjects() # all glyphs currently displayed
 colorIndexes = []
