@@ -111,7 +111,13 @@ positionalFeatureCode = "\n"
 for thisSuffix in suffixes:
 	dotSuffix = "." + thisSuffix
 	dotSuffixLength = len( dotSuffix )
-	theseSuffixedGlyphNames = [ g.name for g in thisFont.glyphs if g.name.endswith( dotSuffix ) and ( thisFont.glyphs[g.name[:-dotSuffixLength]] is not None ) ]
+	theseSuffixedGlyphNames = [ 
+		g.name for g in thisFont.glyphs 
+		if g.name.endswith( dotSuffix ) # glyph has suffix
+		and thisFont.glyphs[g.name[:-dotSuffixLength]] is not None # unsuffixed counterpart exists
+		and g.export # suffixed glyph exports
+		and thisFont.glyphs[g.name[:-dotSuffixLength]].export # unsuffixed glyph exports
+	]
 	theseUnsuffixedGlyphNames = [ n[:-dotSuffixLength] for n in theseSuffixedGlyphNames ]
 	
 	print "\tFound %i glyphs with a %s suffix, and %i unsuffixed counterparts." % (
