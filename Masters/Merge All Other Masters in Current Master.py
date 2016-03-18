@@ -19,7 +19,7 @@ def process( thisGlyph ):
 		sourcePaths = sourceLayer.paths
 		if sourcePaths:
 			for sourcePath in sourcePaths:
-				currentLayer.paths.append( sourcePath )
+				currentLayer.paths.append( sourcePath.copy() )
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 

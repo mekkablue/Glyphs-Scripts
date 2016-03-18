@@ -179,9 +179,9 @@ def checkStandardNames( thisFont ):
 			legacyName = "u%s" % unicodeValue
 	
 		try:
-			calculatedNiceName = GSGlyphsInfo.niceGlpyhNameForName_( legacyName ) # typo in older API versions
+			calculatedNiceName = GSGlyphsInfo.niceGlyphNameForName_( legacyName ) # older API
 		except:
-			calculatedNiceName = GSGlyphsInfo.niceGlyphNameForName_( legacyName )
+			calculatedNiceName = Glyphs.glyphInfoForName( legacyName )
 			
 		if glyphName != calculatedNiceName:
 			errMsg( glyphName, "", "Should be called %s (Unicode: %s)." % ( calculatedNiceName, unicodeValue ) )
