@@ -44,7 +44,13 @@ class MethodReporter( object ):
 			"GSHint",
 			"GSInstance",
 			"GSNode",
-			"GSPath"
+			"GSPath",
+			"NSBezierPath",
+			"NSColor",
+			"NSAffineTransform",
+			"NSAffineTransformStruct",
+			"NSDate",
+			"NSImage"
 		]
 		
 		# Window 'self.w':
