@@ -55,6 +55,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 
 ## App
 * **Kill background processes:** Terminates all makeotfGlyphs processes. If your fan keeps screaming after exporting a font, or after cancelling a font export, then run this script and see if it helps.
+* **Method Report:** GUI for filtering through the method names of Python and PyObjC Classes available from within Glyphs. Double click to put the method name in your clipboard and open help in the Macro Window. Useful for coders. *Needs Vanilla.*
 * **Print Window:** Print the frontmost window. Useful for saving a vector PDF of your window content.
 
 ## Arabic
@@ -206,6 +207,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 
 ## Select
 * **Select Same Color:** Select a glyph with a color, and the script will add all other glyphs with the same color to the selection, as long as they are currently displayed in the Font Tab. Does nothing if no glyph is selected.
+* **Select Same Layer Color:** Same as above, except with the *layer* color rather than the glyph color.
 * **Select All Paths and Components:** In selected glyphs, selects components and paths, but no anchors.
 * **Steal Colors:** Copies glyph colors from one font to another. *Needs Vanilla.*
 

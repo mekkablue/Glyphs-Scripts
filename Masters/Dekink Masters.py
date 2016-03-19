@@ -28,43 +28,39 @@ def dekink( myMaster, compareString, myGlyph, pathIndex, nodeIndex, proportion )
 		print e
 		return False
 
-try:
-	if currentGlyph.mastersCompatible():
-		try:
-			# until v2.1:
-			selection = currentLayer.selection()
-		except:
-			# since v2.2:
-			selection = currentLayer.selection
-		
-		s = list( selection )
-		currentCompareString = currentLayer.compareString()
-		
-		# find the indices for selected nodes:
-		for n in [n for n in s if n.connection == GSSMOOTH]:
-			for pi in range( len( currentLayer.paths )):
-				pathLength = len( currentLayer.paths[pi].nodes )
-				currentNodes = currentLayer.paths[pi].nodes
-				for ni in range( pathLength ):
-					if currentNodes[ni] == n:
-						n0 = currentNodes[(ni-1) % pathLength]
-						n1 = currentNodes[ ni ]
-						n2 = currentNodes[(ni+1) % pathLength]
-					
-						longX  = n2.x - n0.x
-						longY  = n2.y - n0.y
-						shortX = n1.x - n0.x
-						shortY = n1.y - n0.y
-
-						if longY == 0.0 or longX == 0.0:
-							print "Ignoring node at %i, %i because the segment is straight." % ( n1.x, n1.y )
-						else:
-							proportion = ( shortX / longX + shortY / longY ) / 2.0
-						
-							if not dekink( currentMaster, currentCompareString, currentGlyph, pi, ni, proportion ):
-								print "Error: dekinking failed."
-	else:
-		print "Error: masters not compatible."
+if currentGlyph.mastersCompatible:
+	try:
+		# until v2.1:
+		selection = currentLayer.selection()
+	except:
+		# since v2.2:
+		selection = currentLayer.selection
 	
-except Exception, e:
-	raise e
+	s = list( selection )
+	currentCompareString = currentLayer.compareString()
+	
+	# find the indices for selected nodes:
+	for n in [n for n in s if n.connection == GSSMOOTH]:
+		for pi in range( len( currentLayer.paths )):
+			pathLength = len( currentLayer.paths[pi].nodes )
+			currentNodes = currentLayer.paths[pi].nodes
+			for ni in range( pathLength ):
+				if currentNodes[ni] == n:
+					n0 = currentNodes[(ni-1) % pathLength]
+					n1 = currentNodes[ ni ]
+					n2 = currentNodes[(ni+1) % pathLength]
+				
+					longX  = n2.x - n0.x
+					longY  = n2.y - n0.y
+					shortX = n1.x - n0.x
+					shortY = n1.y - n0.y
+
+					if longY == 0.0 or longX == 0.0:
+						print "Ignoring node at %i, %i because the segment is straight." % ( n1.x, n1.y )
+					else:
+						proportion = ( shortX / longX + shortY / longY ) / 2.0
+					
+						if not dekink( currentMaster, currentCompareString, currentGlyph, pi, ni, proportion ):
+							print "Error: dekinking failed."
+else:
+	print "Error: masters not compatible."
