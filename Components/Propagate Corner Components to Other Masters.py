@@ -22,6 +22,12 @@ def indexOfNode(l,pi,n):
 			return i
 	return None
 	
+def deleteCornerComponentsOnLayer(l):
+	cornerComponents = [h for h in l.hints if h.type == CORNER]
+	if cornerComponents:
+		for i in range(len(cornerComponents))[::-1]:
+			h = cornerComponents[i]
+			l.removeHint_(h)
 
 def process( thisLayer ):
 	thisGlyph = thisLayer.parent
@@ -32,6 +38,7 @@ def process( thisLayer ):
 		pathIndex = indexOfPath(thisLayer,h.originNode.parent())
 		nodeIndex = indexOfNode(thisLayer,pathIndex,h.originNode)
 		for targetLayer in targetLayers:
+			deleteCornerComponentsOnLayer(targetLayer)
 			newCorner = GSHint()
 			newCorner.type = CORNER
 			newCorner.setScale_(scale)
