@@ -6,7 +6,6 @@ Puts Corner Components from the current layer into other master layers, at the s
 
 from GlyphsApp import CORNER
 
-
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
@@ -17,17 +16,21 @@ def indexOfPath(l,p):
 			return i
 	return None
 
+def indexOfNode(l,pi,n):
+	for i in range(len(l.paths[pi].nodes)):
+		if n == l.paths[pi].nodes[i]:
+			return i
+	return None
+	
+
 def process( thisLayer ):
 	thisGlyph = thisLayer.parent
 	targetLayers = [l for l in thisGlyph.layers if l != thisLayer and l.associatedMasterId == l.layerId]
-	print thisLayer
-	print targetLayers
 	for h in [h for h in thisLayer.hints if h.type == CORNER]:
 		scale = h.scale()
 		name = h.name()
-		pathIndex = indexOfPath(l,h.originNode.parent)
-		nodeIndex = h.originNode.index
-		print "pathIndex, nodeIndex:", pathIndex, nodeIndex
+		pathIndex = indexOfPath(thisLayer,h.originNode.parent())
+		nodeIndex = indexOfNode(thisLayer,pathIndex,h.originNode)
 		for targetLayer in targetLayers:
 			newCorner = GSHint()
 			newCorner.type = CORNER
