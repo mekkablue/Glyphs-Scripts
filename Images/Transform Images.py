@@ -6,6 +6,7 @@ Batch scale and move images in selected layers.
 
 import vanilla
 import GlyphsApp
+import traceback
 windowHeight = 120
 
 def getScale( scaleString, factor ):
@@ -74,7 +75,10 @@ class TransformImages( object ):
 			for thisLayer in selectedLayers:
 				thisImage = thisLayer.backgroundImage
 				if thisImage:
-					moveX, moveY   = float( self.w.move_X.get() ) * factor, float( self.w.move_Y.get() ) * factor
+					moveXpreScaled, moveYpreScaled = self.w.move_X.get(), self.w.move_Y.get()
+					if moveXpreScaled == "": moveXpreScaled = 0
+					if moveYpreScaled == "": moveYpreScaled = 0
+					moveX, moveY   = float( moveXpreScaled ) * factor, float( moveYpreScaled ) * factor
 					scaleX, scaleY = getScale( self.w.scale_X.get(), factor ), getScale( self.w.scale_Y.get(), factor )
 			
 					ScaleAndMoveTransform = NSAffineTransform.transform()
