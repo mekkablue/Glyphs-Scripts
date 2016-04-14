@@ -75,11 +75,13 @@ class TransformImages( object ):
 			for thisLayer in selectedLayers:
 				thisImage = thisLayer.backgroundImage
 				if thisImage:
-					moveXpreScaled, moveYpreScaled = self.w.move_X.get(), self.w.move_Y.get()
+					moveXpreScaled, moveYpreScaled, scaleXfix, scaleYfix  = self.w.move_X.get(), self.w.move_Y.get(), self.w.scale_X.get(), self.w.scale_Y.get()
 					if moveXpreScaled == "": moveXpreScaled = 0
 					if moveYpreScaled == "": moveYpreScaled = 0
+					if scaleXfix == "": scaleXfix = 0
+					if scaleYfix == "": scaleYfix = 0
 					moveX, moveY   = float( moveXpreScaled ) * factor, float( moveYpreScaled ) * factor
-					scaleX, scaleY = getScale( self.w.scale_X.get(), factor ), getScale( self.w.scale_Y.get(), factor )
+					scaleX, scaleY = getScale( scaleXfix, factor ), getScale( scaleYfix, factor )
 			
 					ScaleAndMoveTransform = NSAffineTransform.transform()
 					ScaleAndMoveTransform.setTransformStruct_( thisImage.transformStruct() )
