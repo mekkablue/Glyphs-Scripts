@@ -4,8 +4,7 @@ __doc__="""
 For selected ligatures with appropriate anchors (top_1, top_2, etc.), all possible diacritic variations are created. E.g., A_h -> Adieresis_h, Aacute_h, A_hcircumflex, Adieresis_hcircumflex, etc.
 """
 
-import GlyphsApp
-import itertools
+import itertools, traceback
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
@@ -56,7 +55,7 @@ def createLigatureWithBaseLigature( newLigatureName, baseGlyphName ):
 			if thisComponent:
 				newComponent = GSComponent( thisComponent.componentName )
 				thisLayer.addComponent_( newComponent )
-				oldAnchor = thisComponent.anchor()
+				oldAnchor = thisComponent.anchor
 				if oldAnchor:
 					newAnchor = "%s_%i" % ( oldAnchor, i+1 )
 				else:
@@ -81,6 +80,7 @@ def process( thisLigatureName ):
 			try:
 				createLigatureWithBaseLigature( diacriticLigatureName, thisLigatureName )
 			except Exception as e:
+				print traceback.format_exc()
 				print "    Error: Could not create '%s' in all masters. Does '%s' have all necessary anchors?" % ( diacriticLigatureName, thisLigatureName )
 				# raise e
 		else:
