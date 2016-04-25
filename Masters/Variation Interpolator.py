@@ -104,22 +104,23 @@ class VariationInterpolator( object ):
 		
 	def interpolateAnchors( self, thisLayer, backgroundFactor, foregroundFactor ):
 		# interpolate anchor only if there is an anchor of the same name:
-		if len(thisLayer.anchors) > 0 and len(thisLayer.background.anchors) > 0:
-			for foregroundAnchor in thisLayer.anchors:
-				backgroundAnchor = thisLayer.background.anchors[ foregroundAnchor.name ]
-				if backgroundAnchor:
-					foregroundPosition = foregroundAnchor.position
-					backgroundPosition = backgroundAnchor.position
-					foregroundAnchor.setPosition_( self.interpolatedPosition( foregroundPosition, foregroundFactor, backgroundPosition, backgroundFactor ) )
-		else:
-			thisGlyph = thisLayer.parent
-			print "%s: incompatible anchors in background layer ('%s')." % ( thisGlyph.name, thisLayer.name )
+		if thisLayer.anchors:
+			if len(thisLayer.anchors) == len(thisLayer.background.anchors):
+				for foregroundAnchor in thisLayer.anchors:
+					backgroundAnchor = thisLayer.background.anchors[ foregroundAnchor.name ]
+					if backgroundAnchor:
+						foregroundPosition = foregroundAnchor.position
+						backgroundPosition = backgroundAnchor.position
+						foregroundAnchor.setPosition_( self.interpolatedPosition( foregroundPosition, foregroundFactor, backgroundPosition, backgroundFactor ) )
+			else:
+				thisGlyph = thisLayer.parent
+				print "%s: incompatible number of anchors." % thisGlyph.name
 	
 	def interpolateLayerWithBackground( self, thisLayer, backgroundFactor ):
 		foregroundFactor = 1.0 - backgroundFactor
 		self.interpolatePaths( thisLayer, backgroundFactor, foregroundFactor )
 		self.interpolateAnchors( thisLayer, backgroundFactor, foregroundFactor )
-		thisLayer.clearBackground()
+		thisLayer.background = None
 		
 	def interpolateGlyphWithBackgrounds( self, newGlyph, backgroundFactor ):
 		# go through every layer of newGlyph:
