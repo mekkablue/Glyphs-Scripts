@@ -37,6 +37,7 @@ class FeatureActivator( object ):
 					pass
 			
 			editTab.graphicView().reflow()
+			editTab._updateFeaturePopup()
 		except Exception, e:
 			print e
 			return False
