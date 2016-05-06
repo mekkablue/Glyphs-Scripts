@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# A quick and rough script to divide features into sub groups of 3000 lines
+# a quick script to divide features into sub groups of 3000 lines
 # It would be good to implement this into Glyphs so we can set feature name automatically if not present
 import re
 
@@ -25,7 +25,7 @@ def process(line):
         currFeature = cleanFeatureName(line)
         lookUpCount = 0
         featureCount += 1
-        fo.write("lookup " + currFeature + str(featureCount) + " {\n")
+        fo.write("lookup " + currFeature + str(featureCount) + "  [useExtension] {\n")
         featureOpen = True
     elif currFeature in line:
         # Close the curent feature
@@ -35,7 +35,7 @@ def process(line):
         if not featureOpen:
             lookUpCount = 0
             featureCount += 1
-            fo.write("lookup " + currFeature + str(featureCount) + " {\n")
+            fo.write("lookup " + currFeature + str(featureCount) + " [useExtension] {\n")
             featureOpen = True
         lookUpCount += 1
         if lookUpCount < maxSub:
@@ -46,7 +46,7 @@ def process(line):
             # And create a new one
             lookUpCount = 0
             featureCount += 1
-            fo.write("lookup " + currFeature + str(featureCount) + " {\n")
+            fo.write("lookup " + currFeature + str(featureCount) + " [useExtension] {\n")
             fo.write(line)
     else:
         if featureOpen:
