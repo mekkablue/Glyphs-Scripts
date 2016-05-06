@@ -46,8 +46,8 @@ class CopyLayerToLayer( object ):
 		self.w.text_2 = vanilla.TextBox((15, 32+2, 120, 14), "into selection of", sizeStyle='small')
 		self.w.masterTarget = vanilla.PopUpButton((120, 32, -15, 17), self.GetMasterNames(), sizeStyle='small', callback=self.MasterChangeCallback)
 
-		self.w.includePaths = vanilla.CheckBox((15+150+15, 52+2, -100, 20), "Include paths", sizeStyle='small', callback=self.SavePreferences, value=True)
-		self.w.includeComponents = vanilla.CheckBox((15, 52+2, -100, 20), "Include components", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.includePaths = vanilla.CheckBox((15+150+15, 52+2, 160, 20), "Include paths", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.includeComponents = vanilla.CheckBox((15, 52+2, 160, 20), "Include components", sizeStyle='small', callback=self.SavePreferences, value=True)
 		self.w.includeAnchors = vanilla.CheckBox((15, 52+20, -100, 20), "Include anchors", sizeStyle='small', callback=self.SavePreferences, value=True)
 		self.w.includeMetrics = vanilla.CheckBox((15, 52+38, -100, 20), "Include metrics", sizeStyle='small', callback=self.SavePreferences, value=True)
 		self.w.keepWindowOpen = vanilla.CheckBox((15, 52+56, -100, 20), "Keep window open", sizeStyle='small', callback=self.SavePreferences, value=True)
