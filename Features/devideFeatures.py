@@ -11,7 +11,7 @@ maxSub = 3000; # 3000 for Glyphs
 lookUpCount  = 0
 featureCount = 0
 featureOpen  = False
-currFeature  = "NameOfFeature"
+currFeature  = "Name_Of_Feature"
 
 def cleanFeatureName(line):
 	return ''.join([i for i in line if not i.isdigit()]).replace("lookup ","",1).replace(" {","",1).strip('\n')
@@ -32,7 +32,7 @@ def process(line):
         fo.write("} " + currFeature + str(featureCount) + ";\n")
         featureOpen = False
     elif 'sub ' in line:
-        if not featureOpen:
+        if featureOpen == False:
             lookUpCount = 0
             featureCount += 1
             fo.write("lookup " + currFeature + str(featureCount) + " useExtension {\n")
@@ -49,7 +49,7 @@ def process(line):
             fo.write("lookup " + currFeature + str(featureCount) + " useExtension {\n")
             fo.write(line)
     else:
-        if featureOpen:
+        if featureOpen == True:
             fo.write("} " + currFeature + str(featureCount) + ";\n")
             featureOpen = False
         fo.write(line)
@@ -60,3 +60,6 @@ fo = open('./featuresOutput.txt', 'w');
 with open("./pastedFeatures.txt", "r") as fi:
     for line in fi:
         process(line)
+
+if featureOpen == True:
+    fo.write("} " + currFeature + str(featureCount) + ";\n")
