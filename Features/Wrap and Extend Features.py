@@ -9,12 +9,13 @@ import string
 import re
 
 # Global variables
-lookUpCount  = 0
-featureCount = 0
-featureOpen  = False
-currFeature  = ""
-originalCode = ""
-newCode      = ""
+lookUpCount   = 0
+featureCount  = 0
+featureOpen   = False
+ignoreSubOpen = False
+currFeature   = ""
+originalCode  = ""
+newCode       = ""
 # Maximum number of lines in feature
 maxSub = 3000; # 3000 for Glyphs
 
@@ -24,6 +25,7 @@ def resetGlobals():
     global lookUpCount
     global featureCount
     global featureOpen
+    global ignoreSubOpen
     global currFeature
     global originalCode
     global newCode
@@ -31,6 +33,7 @@ def resetGlobals():
     lookUpCount = 0;
     featureCount = 0;
     featureOpen = False;
+    ignoreSubOpen = False;
     currFeature = "";
     originalCode = "";
     newCode = "";
@@ -52,9 +55,19 @@ def openLookup():
     addCode("lookup " + currFeature + str(featureCount) + " useExtension {\n")
     featureOpen = True
 
+def closeLookup():
+    global featureCount
+    global featureOpen
+    global ignoreSubOpen
+    global currFeature
+    addCode("} " + currFeature + str(featureCount) + ";\n")
+    featureOpen = False
+    ignoreSubOpen = False
+
 def process(line):
     global lookUpCount
     global featureCount
+    global ignoreSubOpen
     global featureOpen
     global currFeature
     global maxSub
@@ -62,28 +75,28 @@ def process(line):
         currFeature = cleanFeatureName(line)
         openLookup()
     elif currFeature in line:
-        # Close the curent feature
-        addCode("} " + currFeature + str(featureCount) + ";\n")
-        featureOpen = False
+        closeLookup()
     elif 'sub ' in line:
         if 'ignore ' in line:
-            if featureOpen == True:
-                # Close the curent feature
-                addCode("} " + currFeature + str(featureCount) + ";\n")
+            if ignoreSubOpen == False:
+                closeLookup()
                 openLookup()
+                ignoreSubOpen = True;
+        else:
+            if ignoreSubOpen == True:
+                closeLookup()
+                openLookup()
+                ignoreSubOpen = False;
         if featureOpen == False:
             openLookup()
         lookUpCount += 1
         if lookUpCount > maxSub:
-            # Close the curent feature
-            addCode("} " + currFeature + str(featureCount) + ";\n")
-            # And create a new one
+            closeLookup()
             openLookup()
         addCode(line)
     else:
         if featureOpen == True:
-            addCode("} " + currFeature + str(featureCount) + ";\n")
-            featureOpen = False
+            closeLookup()
         addCode(line)
 
 for thisFeature in Font.features:
@@ -95,6 +108,9 @@ for thisFeature in Font.features:
     
     for line in originalCode:
         process(line)
+
+    if featureOpen == True:
+        closeLookup()
 
     thisFeature.code = newCode
     
