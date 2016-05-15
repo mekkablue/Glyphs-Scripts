@@ -54,6 +54,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Report top anchors:** Report the y positions of all *top* anchors into the Macro Panel. Useful to see if a top anchor is not exactly where it should be.
 
 ## App
+* **Fix Stuck Macro Window:** If you cannot resize your Macro window anymore, run this script.
 * **Kill background processes:** Terminates all makeotfGlyphs processes. If your fan keeps screaming after exporting a font, or after cancelling a font export, then run this script and see if it helps.
 * **Method Report:** GUI for filtering through the method names of Python and PyObjC Classes available from within Glyphs. Double click to put the method name in your clipboard and open help in the Macro Window. Useful for coders. *Needs Vanilla.*
 * **Print Window:** Print the frontmost window. Useful for saving a vector PDF of your window content.
