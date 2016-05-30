@@ -5,6 +5,7 @@ Moves outlines to background, then tries to rebuild the glyph with components in
 """
 
 import GlyphsApp
+import traceback
 
 Font = Glyphs.font
 FontMaster = Font.selectedFontMaster
@@ -33,7 +34,7 @@ def process( thisLayer ):
 	if pathCount > 0 and componentCount == 0:
 		try:
 			thisGlyph = thisLayer.parent
-			thisGlyphInfo = GSGlyphsInfo.glyphInfoForGlyph_( thisGlyph )
+			thisGlyphInfo = Glyphs.glyphInfoForName( thisGlyph.name )
 			baseglyphInfo = thisGlyphInfo.components[0]
 			nameOfBaseglyph = baseglyphInfo.name
 			baseglyph = Font.glyphs[ nameOfBaseglyph ]
@@ -43,6 +44,9 @@ def process( thisLayer ):
 			nameOfAccent = accentInfo.name
 			isTopAccent = "_top" in "".join( accentInfo.anchors ) # finds both _top and _topright
 			accent = Font.glyphs[ nameOfAccent ]
+			if not accent:
+				nameOfAccent = nameOfAccent.replace("comb","")
+				accent = Font.glyphs[ nameOfAccent ]
 			accentLayer = accent.layers[ FontMaster.id ]
 
 			# move contents of layer to its background:
@@ -75,9 +79,10 @@ def process( thisLayer ):
 
 			thisLayer.addComponent_( baseglyphComponent )
 			thisLayer.addComponent_( accentComponent )
-		except Exception, e:
+		except:
 			print "Failed to rebuild %s" % thisGlyph.name
-			print e
+			print traceback.format_exc()
+			
 
 Font.disableUpdateInterface()
 
