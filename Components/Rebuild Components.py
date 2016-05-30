@@ -74,8 +74,9 @@ def process( thisLayer ):
 			thisLayer.setHasAlignedWidth_(False)
 
 			baseglyphComponent = GSComponent( nameOfBaseglyph )
-			baseglyphComponent.disableAlignment = True # comment to ensable alignment of base glyph
+			baseglyphComponent.automaticAlignment = False # comment to enable alignment of base glyph
 			accentComponent = GSComponent( nameOfAccent, offset )
+			accentComponent.automaticAlignment = False
 
 			thisLayer.addComponent_( baseglyphComponent )
 			thisLayer.addComponent_( accentComponent )
