@@ -118,7 +118,8 @@ for thisSuffix in suffixes:
 		and thisFont.glyphs[g.name.replace(dotSuffix,"")] is not None # unsuffixed counterpart exists
 		and thisFont.glyphs[g.name.replace(dotSuffix,"")].export # unsuffixed glyph exports
 	]
-	theseUnsuffixedGlyphNames = [ n[:-dotSuffixLength] for n in theseSuffixedGlyphNames ]
+	theseSuffixedGlyphNames = list(set(theseSuffixedGlyphNames)) # make sure every glyph is unique
+	theseUnsuffixedGlyphNames = [ n.replace(dotSuffix,"") for n in theseSuffixedGlyphNames ]
 	
 	print "\tFound %i glyphs with a %s suffix, and %i unsuffixed counterparts." % (
 		len( theseSuffixedGlyphNames ),
