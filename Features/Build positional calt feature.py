@@ -113,10 +113,10 @@ for thisSuffix in suffixes:
 	dotSuffixLength = len( dotSuffix )
 	theseSuffixedGlyphNames = [ 
 		g.name for g in thisFont.glyphs 
-		if g.name.endswith( dotSuffix ) # glyph has suffix
-		and thisFont.glyphs[g.name[:-dotSuffixLength]] is not None # unsuffixed counterpart exists
+		if dotSuffix in g.name # glyph has suffix
 		and g.export # suffixed glyph exports
-		and thisFont.glyphs[g.name[:-dotSuffixLength]].export # unsuffixed glyph exports
+		and thisFont.glyphs[g.name.replace(dotSuffix,"")] is not None # unsuffixed counterpart exists
+		and thisFont.glyphs[g.name.replace(dotSuffix,"")].export # unsuffixed glyph exports
 	]
 	theseUnsuffixedGlyphNames = [ n[:-dotSuffixLength] for n in theseSuffixedGlyphNames ]
 	
