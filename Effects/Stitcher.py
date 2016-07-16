@@ -4,7 +4,7 @@ __doc__="""
 Turn your paths into dotted lines, and specify a component as dot, i.e. stitch components onto paths in selected glyphs. Respects origin anchor in your source component.
 """
 
-import GlyphsApp
+from GlyphsApp import MOVE
 import math
 import vanilla
 
@@ -37,8 +37,13 @@ def distance( node1, node2 ):
 
 def getFineGrainPointsForPath( thisPath, distanceBetweenDots ):
 	layerCoords = [ ]
+	pathSegments = thisPath.segments
 	
-	for thisSegment in thisPath.segments:
+	# fix for new way open paths are stored (including MOVE and LINE segments)
+	if thisPath.closed == False and thisPath.segments[0].type == MOVE:
+		pathSegments = thisPath.segments[2:]
+	
+	for thisSegment in pathSegments:
 		
 		if len( thisSegment ) == 2:
 			# straight line:
@@ -103,8 +108,9 @@ def placeDots( thisLayer, useBackground, componentName, distanceBetweenDots ):
 				(xOffset, yOffset) = sourceAnchor.position
 				xOffset = -xOffset
 				yOffset = -yOffset
-			except Exception as e:
-				print "-- Note: no origin anchor in '%s'." % ( componentName )
+			except:
+				pass
+				# print "-- Note: no origin anchor in '%s'." % ( componentName )
 		
 			# use background if specified:
 			if useBackground:
@@ -143,7 +149,7 @@ def process( thisLayer, deleteComponents, componentName, distanceBetweenDots, us
 	if useBackground and len( thisLayer.paths ) > 0:
 		if thisLayer.className() == "GSBackgroundLayer":
 			thisLayer = thisLayer.foreground()
-		thisLayer.clearBackground()
+		thisLayer.background.clear()
 		for thisPath in thisLayer.paths:
 			thisLayer.background.paths.append( thisPath.copy() )
 		
