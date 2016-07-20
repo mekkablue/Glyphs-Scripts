@@ -4,8 +4,7 @@ __doc__="""
 Floating window for activating features in the frontmost Edit tab.
 """
 
-import vanilla
-import GlyphsApp
+import vanilla, traceback
 
 class FeatureActivator( object ):
 	def __init__( self ):
@@ -37,9 +36,11 @@ class FeatureActivator( object ):
 					pass
 			
 			editTab.graphicView().reflow()
+			editTab.graphicView().layoutManager().updateActiveLayer()
 			editTab._updateFeaturePopup()
 		except Exception, e:
 			print e
+			print traceback.format_exc()
 			return False
 			
 		return True
