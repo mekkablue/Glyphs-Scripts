@@ -13,7 +13,7 @@ selectedLayers = Font.selectedLayers
 
 italicAngle   = FontMaster.italicAngle
 allGlyphNames = [ g.name for g in Font.glyphs ]
-marksSpacing  = [ "acute", "breve", "caron", "cedilla", "circumflex", "dieresis", "dotaccent", "grave", "hungarumlaut", "macron", "ring", "tilde" ]
+marksSpacing  = [ "acute", "breve", "caron", "cedilla", "circumflex", "dieresis", "dotaccent", "grave", "hungarumlaut", "macron", "ring", "tilde", "ogonek"]
 defaultTop    = FontMaster.capHeight + 10.0
 defaultBottom = FontMaster.descender
 suffix = "comb"
