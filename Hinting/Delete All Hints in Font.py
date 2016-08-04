@@ -12,17 +12,14 @@ print "Deleting all hints in %s ..." % Font.familyName
 def deleteHintsInLayer( thisLayer ):
 	numOfHints = len( thisLayer.hints )
 	for x in reversed( range( numOfHints )):
-		if thisLayer.hints[x].type in [TOPGHOST, STEM, BOTTOMGHOST, TTANCHOR, TTSTEM, TTALIGN, TTINTERPOLATE, TTDIAGONAL]:
+		if thisLayer.hints[x].type in (TOPGHOST, STEM, BOTTOMGHOST, TTANCHOR, TTSTEM, TTALIGN, TTINTERPOLATE, TTDIAGONAL):
 			del thisLayer.hints[x]
-	
 	return numOfHints
 
 def process( thisGlyph ):
 	deletedHintsCount = 0
-	
 	for l in thisGlyph.layers:
 		deletedHintsCount += deleteHintsInLayer( l )
-	
 	return deletedHintsCount
 
 Font.disableUpdateInterface()
