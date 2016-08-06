@@ -4,8 +4,7 @@ __doc__="""
 Finds and replaces text in the metrics keys of selected glyphs. Leave the Find string blank to hang the replace string at the end of the metrics keys.
 """
 
-import vanilla
-import GlyphsApp
+import vanilla, traceback
 
 class MetricKeyReplacer( object ):
 	def __init__( self ):
@@ -28,9 +27,10 @@ class MetricKeyReplacer( object ):
 		try:
 			self.LoadPreferences( )
 		except:
-			pass
+			print "Warning: Could not load preferences.\n%s" % traceback.format_exc()
 
 		self.w.open()
+		self.w.makeKey()
 		
 	def SavePreferences( self, sender ):
 		try:
@@ -55,7 +55,6 @@ class MetricKeyReplacer( object ):
 		return True
 
 	def MetricKeyReplaceMain( self, sender ):
-		Glyphs.clearLog()
 		Glyphs.font.disableUpdateInterface()
 		
 		try:
@@ -78,64 +77,54 @@ class MetricKeyReplacer( object ):
 					
 					# Left Metrics Key:
 					try:
-						# leftKey = g.leftMetricsKey
-						leftKey = l.leftMetricsKey()
-						leftKey = leftKey[:leftKey.find(" (")]
+						for glyphOrLayer in (g,l):
+							leftKey = glyphOrLayer.leftMetricsKey
+							if leftKey:
+								if LsearchFor == "":
+									glyphOrLayer.leftMetricsKey = leftKey + LreplaceBy
+								else:
+									glyphOrLayer.leftMetricsKey = leftKey.replace( LsearchFor, LreplaceBy )
 						
-						if leftKey != None and leftKey != "":
-							if LsearchFor == "":
-								# g.setLeftMetricsKey_( leftKey + LreplaceBy )
-								l.setLeftMetricsKey_( leftKey + LreplaceBy )
-							else:
-								# g.setLeftMetricsKey_( leftKey.replace( LsearchFor, LreplaceBy ) )
-								l.setLeftMetricsKey_( leftKey.replace( LsearchFor, LreplaceBy ) )
-							
-							print "%s: new left metrics key: '%s'" % ( g.name, l.leftMetricsKey() )
-							
-						else:
-							print "Note: No left key set for %s. Left unchanged." % g.name
-							pass
+								print "%s: new left metrics key: '%s'" % ( g.name, glyphOrLayer.leftMetricsKey )
 							
 					except Exception, e:
-						print "Error while trying to set left key for", g.name
+						print "\nError while trying to set left key for: %s" % g.name
 						print e
+						print traceback.format_exc()
 
 					# Right Metrics Key:
 					try:
-						# rightKey = g.rightMetricsKey
-						rightKey = l.rightMetricsKey()
-						rightKey = rightKey[:rightKey.find(" (")]
+						for glyphOrLayer in (g,l):
+							rightKey = glyphOrLayer.rightMetricsKey
+							if rightKey:
+								if LsearchFor == "":
+									glyphOrLayer.rightMetricsKey = rightKey + RreplaceBy
+								else:
+									glyphOrLayer.rightMetricsKey = rightKey.replace( RsearchFor, RreplaceBy )
 						
-						if rightKey != None and rightKey != "":
-							if RsearchFor == "":
-								#g.setRightMetricsKey_( rightKey + RreplaceBy )
-								l.setRightMetricsKey_( rightKey + RreplaceBy )
-							else:
-								#g.setRightMetricsKey_( rightKey.replace( RsearchFor, RreplaceBy ) )
-								l.setRightMetricsKey_( rightKey.replace( RsearchFor, RreplaceBy ) )
-							
-							print "%s: new right metrics key: '%s'" % ( g.name, l.rightMetricsKey() )
-							
-						else:
-							print "Note: No right key set for %s. Left unchanged." % g.name
-							pass
+								print "%s: new right metrics key: '%s'" % ( g.name, glyphOrLayer.rightMetricsKey )
 							
 					except Exception, e:
-						print "Error while trying to set right key for", g.name
+						print "\nError while trying to set right key for: %s" % g.name
 						print e
+						print traceback.format_exc()
 					
 					g.endUndo()
 						
 				except Exception, e:
-					print "Error while processing glyph", g.name
+					print "\nError while processing glyph %s" % g.name
 					print e
+					print traceback.format_exc()
 					
 					g.endUndo()
 			
 			self.w.close()
 		except Exception, e:
-			raise e
+			print "\nError:"
+			print e
+			print traceback.format_exc()
 		
 		Glyphs.font.enableUpdateInterface()
 
+Glyphs.clearLog()
 MetricKeyReplacer()
