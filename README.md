@@ -9,7 +9,7 @@ Put the scripts into the *Scripts* folder which appears when you choose *Open Sc
 
 For some scripts, you will also need to install Tal Leming's *Vanilla*. Here's how. 
 
-In **Glyphs 2.0 or later**, go to *Glyphs > Preferences > Addons > Scripts* and click the *Install Modules* button. You are done and can skip the rest of these installation instructions.
+In **Glyphs 2.0 or later**, go to *Glyphs > Preferences > Addons > Modules* and click the *Install Modules* button. You are done and can skip the rest of these installation instructions.
 
 For **Glyphs 1.x**, open Terminal and copy and paste the following lines and hit return. You can copy all of them at once. Notes: the second line (`curl`) may take a while, the `sudo` line will prompt you for your password (type it and press Return, you will *not* see bullets):
 
