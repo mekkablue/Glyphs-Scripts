@@ -139,7 +139,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Delete all non-Master layers:** Deletes all layers which are neither master layers, nor brace layers, nor bracket layers. Useful for getting rid of backup layers.
 * **Fill up empty layers:** Copies paths from one Master to another. But only if target master is empty. *Needs Vanilla.*
 * **Find and Replace in Layer Names:** Replaces text in all layer names (except Master layers) of selected glyphs. Useful if you use the bracket trick in many glyphs. *Needs Vanilla.*
-* **Insert instances:** GUI for calculating and inserting weight instances. *Needs Vanilla.*
+* **Insert instances:** GUI for calculating and inserting weight instances. It is described in this tutorial: https://www.glyphsapp.com/tutorials/multiple-masters-part-3-setting-up-instances *Needs Vanilla.*
 * **Merge All Other Masters in Current Master:** In selected glyphs, copies all paths from other masters onto the current master layer.
 * **New Tab with Brace Layer Glyphs**: Opens a new Edit tab with all glyphs which contain the Brace Layer trick.
 * **New Tab with Bracket Layer Glyphs:** Looks for all glyphs in the font that contain Bracket Trick Layers, and opens them in a new Edit tab.
