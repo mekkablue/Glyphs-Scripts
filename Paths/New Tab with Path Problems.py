@@ -56,7 +56,7 @@ for thisGlyph in thisFont.glyphs:
 				zeroHandles.append( glyphName )
 		if hasBadOutlineOrder( thisLayer ):
 			print "%s: bad path direction on Layer '%s'." % ( glyphName, thisLayer.name )
-			if layerIsMasterLayer( thisLayer)
+			if layerIsMasterLayer( thisLayer):
 				outlineOrder.append( glyphName )
 
 tabString = reportString(zeroHandles, "Zero Handles") + reportString(outlineOrder, "Outline Order and Orientation")
