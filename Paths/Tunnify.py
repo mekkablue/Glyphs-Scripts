@@ -5,7 +5,7 @@ Averages out the handles of selected path segments. Doing this is a good idea fo
 """
 
 from Foundation import *
-import GlyphsApp
+
 Font = Glyphs.font
 selectedLayer = Font.selectedLayers[0]
 selectedGlyph = selectedLayer.parent
