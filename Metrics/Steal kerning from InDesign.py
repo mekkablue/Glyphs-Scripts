@@ -4,13 +4,16 @@ __doc__="""
 Use the font in InD (set up a document with one text box on the first page, set the kerning method to Optical), then run this script.
 """
 
-import GlyphsApp
-from subprocess import Popen, PIPE
+from Foundation import NSAppleScript, NSAppleEventDescriptor
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
 thisFontMasterID = thisFontMaster.id # active master id
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+
+# brings macro window to front and clears its log:
+Glyphs.clearLog()
+Glyphs.showMacroWindow()
 
 def glyphNameForLetter( letter ):
 	glyphName = False
@@ -25,17 +28,47 @@ def glyphNameForLetter( letter ):
 			glyphName = Glyphs.glyphInfoForUnicode( utf16value ).name
 	return glyphName
 
-def runAppleScript(scpt, args=[]):
-	p = Popen(['osascript', '-'] + args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-	stdout, stderr = p.communicate(scpt)
-	if stderr:
-		print "AppleScript Error:"
-		print stderr.decode('utf-8')
-	return stdout
+def runAppleScript(scriptSource, args=[]):
+	s = NSAppleScript.alloc().initWithSource_(scriptSource)
+	result, error = s.executeAndReturnError_(None)
+	if error:
+		print "AppleScript Errorrrr:"
+		print error
+		print "Tried to run:"
+		for i, line in enumerate(scriptSource.splitlines()):
+			print "%03i"%(i+1), line
+		return False
+	if result:
+		return result.stringValue()
+	else:
+		return True
+
+# Determine InDesign application name (for use in the AppleScripts):
+
+indesignPrefID = "com.mekkablue.stealKerningFromInDesign.indesignAppName"
+indesignDefault = Glyphs.defaults[indesignPrefID]
+if not indesignDefault:
+	indesignDefault = "Adobe InDesign"
+
+getInDesign = """
+try
+	set InDesign to application "%s"
+on error
+	set InDesign to choose application with title "Please choose Adobe InDesign"
+end try
+InDesign as string
+""" % indesignDefault
+
+indesign = runAppleScript(getInDesign)
+if indesign != indesignDefault:
+	Glyphs.defaults[indesignPrefID] = indesign
+print "Accessing: %s" % indesign
+
+# Define AppleScripts to be run later:
 
 getKernValuesFromInDesign = """
 set kernvalues to ""
-tell application "InDesign"
+tell application "%s"
 	tell front document
 		tell parent story of first text frame
 			repeat with i from 1 to (count characters) - 1
@@ -49,65 +82,69 @@ tell application "InDesign"
 	end tell
 end tell
 kernvalues
-"""
+""" % indesign
 
 getNameOfDocument = """
-tell application "InDesign"
+tell application "%s"
 	tell front document
 		name
 	end tell
 end tell
-"""
+""" % indesign
 
 getTextOfFrame = """
-tell application "InDesign"
+tell application "%s"
 	tell front document
 		contents of first text frame
 	end tell
 end tell
-"""
+""" % indesign
 
 getNameOfFont = """
-tell application "InDesign"
+tell application "%s"
 	tell front document
-		tell character 1 of parent story of first text frame
-			applied font
+		tell first text frame
+			tell character 1 of parent story
+				name of applied font
+			end tell
 		end tell
 	end tell
 end tell
-"""
+""" % indesign
 
-# brings macro window to front and clears its log:
-Glyphs.clearLog()
-Glyphs.showMacroWindow()
 
-kernInfo  = unicode(runAppleScript( getKernValuesFromInDesign ), "utf-8")
-fontName  = runAppleScript( getNameOfFont )
-docName   = runAppleScript( getNameOfDocument )
-frameText = runAppleScript( getTextOfFrame )
+# Execute AppleScripts and store results in variables:
 
-fontName = fontName.replace("\t", " ").replace("font ","").strip()
+# Extract document name and report:
+docName = runAppleScript( getNameOfDocument )
 docName = docName.strip()
-frameText = unicode(frameText.strip(), "utf-8")
+print "Extracting kerning from doc: %s" % docName
 
-if len(frameText) > 60:
-	frameText = frameText[:60] + "..."
-
-print "Extracting kerning from InD doc: %s" % docName
+# Extraxt text and report:
+frameText = runAppleScript( getTextOfFrame )
+frameText = "%.60s..." % frameText.strip()
 print "Found text: %s" % frameText
+
+# Extract font name and report:
+fontName = runAppleScript( getNameOfFont )
+fontName = fontName.replace("\t", " ").replace("font ","").strip()
 print "Found font: %s" % fontName
+
+# Extract kern strings and report:
+kernInfo = runAppleScript( getKernValuesFromInDesign )
 print "Applying kerning to: %s, Master: %s\n" % (thisFont.familyName, thisFontMaster.name)
 
+# Parse kern strings and set kerning in the font:
 for thisline in kernInfo.splitlines():
 	if len(thisline) > 3:
 		leftSide = glyphNameForLetter(thisline[0])
 		rightSide = glyphNameForLetter(thisline[1])
 		try:
 			kernValue = float(thisline[3:])
-		except:
-			kernValue = 0.0
-		try:
-			thisFont.setKerningForPair(thisFontMasterID, leftSide, rightSide, kernValue)
-			print "  Kerning for %s-%s set to %i." % (leftSide, rightSide, kernValue)
+			if kernValue:
+				thisFont.setKerningForPair(thisFontMasterID, leftSide, rightSide, kernValue)
+				print "  Kerning for %s-%s set to %i." % (leftSide, rightSide, kernValue)
+			else:
+				print "  No kerning between %s-%s. Ignored." % (leftSide, rightSide)
 		except Exception as e:
 			print "  ERROR: Could not set kerning for %s-%s (%i)." % (leftSide, rightSide, kernValue)
