@@ -35,18 +35,36 @@ def process( thisLayer ):
 		try:
 			thisGlyph = thisLayer.parent
 			thisGlyphInfo = Glyphs.glyphInfoForName( thisGlyph.name )
+			thisGlyphSubCategory = thisGlyphInfo.subCategory
 			baseglyphInfo = thisGlyphInfo.components[0]
 			nameOfBaseglyph = baseglyphInfo.name
 			baseglyph = Font.glyphs[ nameOfBaseglyph ]
 			baseglyphLayer = baseglyph.layers[ FontMaster.id ]
+			suffix = None
+
+			if thisGlyphSubCategory == "Uppercase":
+				suffix = ".cap"
+			elif thisGlyphSubCategory == "Lowercase":
+				baseglyphMaxY = baseglyphLayer.bounds.origin.y + baseglyphLayer.bounds.size.height
+				if baseglyphMaxY > FontMaster.xHeight + 50: # arbitrary 50 units...
+					suffix = ".asc"
+				else:
+					suffix = None
 
 			accentInfo = thisGlyphInfo.components[1]
-			nameOfAccent = accentInfo.name
+			nameOfAccent = "%s%s" % (accentInfo.name, suffix)
+
+			print "Trying %s" % thisLayer.parent.name
+			print "Getting %s with %s" % (accentInfo , suffix)
+
 			isTopAccent = "_top" in "".join( accentInfo.anchors ) # finds both _top and _topright
 			accent = Font.glyphs[ nameOfAccent ]
 			if not accent:
 				nameOfAccent = nameOfAccent.replace("comb","")
 				accent = Font.glyphs[ nameOfAccent ]
+				if not accent:
+					nameOfAccent = nameOfAccent.replace(suffix,"")
+					accent = Font.glyphs[ nameOfAccent ]
 			accentLayer = accent.layers[ FontMaster.id ]
 
 			# move contents of layer to its background:
