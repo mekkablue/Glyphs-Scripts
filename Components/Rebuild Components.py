@@ -40,7 +40,7 @@ def process( thisLayer ):
 			nameOfBaseglyph = baseglyphInfo.name
 			baseglyph = Font.glyphs[ nameOfBaseglyph ]
 			baseglyphLayer = baseglyph.layers[ FontMaster.id ]
-			suffix = None
+			suffix = ""
 
 			if thisGlyphSubCategory == "Uppercase":
 				suffix = ".cap"
@@ -49,7 +49,7 @@ def process( thisLayer ):
 				if baseglyphMaxY > FontMaster.xHeight + 50: # arbitrary 50 units...
 					suffix = ".asc"
 				else:
-					suffix = None
+					suffix = ""
 
 			accentInfo = thisGlyphInfo.components[1]
 			nameOfAccent = "%s%s" % (accentInfo.name, suffix)
