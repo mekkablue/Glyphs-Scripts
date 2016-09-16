@@ -168,6 +168,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Extract kern strings 2nd char:** asks you for a group of characters, then prompts you for one or more text files; it will then output all kerning pairs (containing these chars, found in the text files) to a new Edit tab, alphabetically sorted. Finds all pairs where the entered chars are the 2nd letter. *Needs Vanilla.*
 * **Find and Replace Kerning Groups:** GUI for searching and replacing text in the L and R Kerning Groups, e.g. replace 'O' by 'O.alt'. Leave the search field blank for appending.
 * **Find and Replace Metrics Keys:** GUI for searching and replacing text in the L and R metrics keys, e.g. replace '=X+15' by '=X'. Leave the search field blank for appending.
+* **Freeze Placeholders:** In the current Edit tab, will change all inserted placeholders for the current glyph, thus 'freeze' the placeholders.
 * **New Tab with all Figure Combinations:** opens a new tab with all possible figure combos. Also outputs a string for copying into the macro window, in case the opening of the tab fails.
 * **New Tab with all Selected Glyph Combinations:** takes your selected glyphs and opens a new tab with all possible combinations of the letters. Also outputs a string for copying into the macro window, in case the opening of the tab fails.
 * **New Tab with All Group Members:** Select two glyphs, e.g. ‘Ta’, run the script, and it will open a new tab with all combinations of the right kerning group of T with the left kerning group of a.
