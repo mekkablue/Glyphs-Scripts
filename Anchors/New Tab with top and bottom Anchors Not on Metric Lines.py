@@ -15,7 +15,11 @@ def isAnchorOnMetricLine( thisLayer, thisAnchorName ):
 	try:
 		myMaster = thisLayer.associatedFontMaster()
 		myY = thisLayer.anchors[ thisAnchorName ].y
-		if myY in [0.0, myMaster.xHeight, myMaster.descender, myMaster.ascender, myMaster.capHeight]:
+		masterMetrics = [0.0, myMaster.xHeight, myMaster.descender, myMaster.ascender, myMaster.capHeight]
+		scHeight = myMaster.customParameters["smallCapHeight"]
+		if scHeight:
+			masterMetrics.append(float(scHeight))
+		if myY in masterMetrics:
 			return False
 		else:
 			print "%s ---> %s @ %s" % (thisLayer.parent.name, thisAnchorName, myY)
