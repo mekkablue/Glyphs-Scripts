@@ -4,14 +4,16 @@ __doc__="""
 Makes the names of selected glyphs lowercase, useful for smallcap glyphs.
 """
 
-import GlyphsApp
-
 Font = Glyphs.font
 selectedGlyphs = [ x.parent for x in Font.selectedLayers ]
 
-def process( thisGlyph ):
+def lowercaseGlyphName( thisGlyph ):
 	oldName = thisGlyph.name
-	newName = thisGlyph.name.lower()
+	if "." in oldName:
+		dotPosition = oldName.find(".")
+		newName = oldName[:dotPosition].lower() + oldName[dotPosition:]
+	else:
+		newName = oldName.lower()
 	if oldName != newName:
 		thisGlyph.name = newName
 		print "%s --> %s" % (oldName, newName)
@@ -21,6 +23,6 @@ def process( thisGlyph ):
 Font.disableUpdateInterface()
 
 for thisGlyph in selectedGlyphs:
-	process( thisGlyph )
+	lowercaseGlyphName( thisGlyph )
 
 Font.enableUpdateInterface()
