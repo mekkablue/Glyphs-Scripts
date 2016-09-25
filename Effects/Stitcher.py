@@ -5,8 +5,7 @@ Turn your paths into dotted lines, and specify a component as dot, i.e. stitch c
 """
 
 from GlyphsApp import MOVE
-import math
-import vanilla
+import math, vanilla
 
 def deleteAllComponents( thisLayer ):
 	try:
@@ -105,12 +104,11 @@ def placeDots( thisLayer, useBackground, componentName, distanceBetweenDots ):
 		
 		if sourceComponent:
 			try:
-				(xOffset, yOffset) = sourceAnchor.position
-				xOffset = -xOffset
-				yOffset = -yOffset
+				sourceAnchor = sourceComponent.layers[thisLayer.associatedMasterId].anchors["origin"]
+				xOffset, yOffset = -sourceAnchor.position.x, -sourceAnchor.position.y
 			except:
 				pass
-				# print "-- Note: no origin anchor in '%s'." % ( componentName )
+				#print "-- Note: no origin anchor in '%s'." % ( componentName )
 		
 			# use background if specified:
 			if useBackground:
@@ -166,7 +164,7 @@ class ComponentOnLines( object ):
 
 		self.w.text_1   = vanilla.TextBox( (15-1, 12+2,    15+95, 14), "Place component:", sizeStyle='small' )
 		self.w.text_2   = vanilla.TextBox( (15-1, 12+25+2, 15+95, 14), "At intervals of:", sizeStyle='small' )
-		self.w.componentName = vanilla.EditText( (15+100, 12-1, -15, 19), "circle", sizeStyle='small', callback=self.SavePreferences )
+		self.w.componentName = vanilla.EditText( (15+100, 12-1, -15, 19), "_circle", sizeStyle='small', callback=self.SavePreferences )
 		self.w.sliderMin = vanilla.EditText( ( 15+100, 12+25-1, 50, 19), "30", sizeStyle='small', callback=self.SavePreferences )
 		self.w.sliderMax = vanilla.EditText( (-15-50, 12+25-1, -15, 19), "60", sizeStyle='small', callback=self.SavePreferences )
 		self.w.intervalSlider= vanilla.Slider((15+100+50+10, 12+25, -15-50-10, 19), value=0, minValue=0.0, maxValue=1.0, sizeStyle='small', callback=self.ComponentOnLinesMain )
@@ -204,6 +202,7 @@ class ComponentOnLines( object ):
 		try:
 			NSUserDefaults.standardUserDefaults().registerDefaults_(
 				{
+					"com.mekkablue.ComponentOnLines.componentName": "_circle",
 					"com.mekkablue.ComponentOnLines.sliderMin": "30", 
 					"com.mekkablue.ComponentOnLines.sliderMin": "60"
 				}
