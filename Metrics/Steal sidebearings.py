@@ -43,60 +43,69 @@ class MetricsCopy( object ):
 		self.buttonCheck( None )
 	
 	def updateListOfMasters( self ):
-		masterList = []
+		try:
+			masterList = []
 		
-		for thisFont in Glyphs.fonts:
-			for thisMaster in thisFont.masters:
-				masterList.append( thisMaster )
+			for thisFont in Glyphs.fonts:
+				for thisMaster in thisFont.masters:
+					masterList.append( thisMaster )
 		
-		self.listOfMasters = masterList
+			self.listOfMasters = masterList
+		except:
+			print traceback.format_exc()
 	
 	def listOfMasterNames( self ):
-		myMasterNameList = [ 
-			"%i: %s - %s" % ( 
-				i+1,
-				self.listOfMasters[i].font().familyName,
-				self.listOfMasters[i].name 
-			) for i in range(len( self.listOfMasters ))
-		]
-		return myMasterNameList
+		try:
+			myMasterNameList = [ 
+				"%i: %s - %s" % ( 
+					i+1,
+					self.listOfMasters[i].font().familyName,
+					self.listOfMasters[i].name 
+				) for i in range(len( self.listOfMasters ))
+			]
+			return myMasterNameList
+		except:
+			print traceback.format_exc()
 	
 	def outputError( self, errMsg ):
 		print "Steal Sidebearings Warning:", errMsg
 	
 	def buttonCheck( self, sender ):
-		# check if both font selection point to the same font
-		# and disable action button if they do:
-		fromFont = self.w.from_font.getItems()[ self.w.from_font.get() ]
-		toFont   = self.w.to_font.getItems()[ self.w.to_font.get() ]
+		try:
+			# check if both font selection point to the same font
+			# and disable action button if they do:
+			fromFont = self.w.from_font.getItems()[ self.w.from_font.get() ]
+			toFont   = self.w.to_font.getItems()[ self.w.to_font.get() ]
 		
-		if fromFont == toFont:
-			self.w.copybutton.enable( onOff=False )
-		else:
-			self.w.copybutton.enable( onOff=True )
+			if fromFont == toFont:
+				self.w.copybutton.enable( onOff=False )
+			else:
+				self.w.copybutton.enable( onOff=True )
 		
-		# check if checkbox is enabled
-		# and sync availability of text box
-		suffixCheckBoxChecked = self.w.ignoreSuffixes.get()
-		if suffixCheckBoxChecked:
-			self.w.suffixToBeIgnored.enable( onOff=True )
-		else:
-			self.w.suffixToBeIgnored.enable( onOff=False )
+			# check if checkbox is enabled
+			# and sync availability of text box
+			suffixCheckBoxChecked = self.w.ignoreSuffixes.get()
+			if suffixCheckBoxChecked:
+				self.w.suffixToBeIgnored.enable( onOff=True )
+			else:
+				self.w.suffixToBeIgnored.enable( onOff=False )
 			
-		# Both RSB and Width must not be on:
-		if sender:
-			target = None
-			if sender == self.w.rsb:
-				target = self.w.width
-			elif sender == self.w.width:
-				target = self.w.rsb
+			# Both RSB and Width must not be on:
+			if sender:
+				target = None
+				if sender == self.w.rsb:
+					target = self.w.width
+				elif sender == self.w.width:
+					target = self.w.rsb
 			
-			if target:
-				if sender.get() and target.get():
-					target.set( not sender.get() )
+				if target:
+					if sender.get() and target.get():
+						target.set( not sender.get() )
 		
-		if not self.SavePreferences( self ):
-			self.outputError( "Could not save preferences." )
+			if not self.SavePreferences( self ):
+				self.outputError( "Could not save preferences." )
+		except:
+			print traceback.format_exc()
 	
 	def SavePreferences( self, sender ):
 		try:

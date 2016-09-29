@@ -5,7 +5,7 @@ Turn your paths into dotted lines, and specify a component as dot, i.e. stitch c
 """
 
 from GlyphsApp import MOVE
-import math, vanilla
+import math, vanilla, traceback
 
 def deleteAllComponents( thisLayer ):
 	try:
@@ -17,7 +17,7 @@ def deleteAllComponents( thisLayer ):
 		return True
 		
 	except Exception as e:
-		# raise e
+		print traceback.format_exc()
 		return False
 
 def bezier( A, B, C, D, t ):
@@ -35,63 +35,69 @@ def distance( node1, node2 ):
 	return math.hypot( node1.x - node2.x, node1.y - node2.y )
 
 def getFineGrainPointsForPath( thisPath, distanceBetweenDots ):
-	layerCoords = [ ]
-	pathSegments = thisPath.segments
+	try:
+		layerCoords = [ ]
+		pathSegments = thisPath.segments
 	
-	# fix for new way open paths are stored (including MOVE and LINE segments)
-	if thisPath.closed == False and thisPath.segments[0].type == MOVE:
-		pathSegments = thisPath.segments[2:]
+		# fix for new way open paths are stored (including MOVE and LINE segments)
+		if thisPath.closed == False and thisPath.segments[0].type == MOVE:
+			pathSegments = thisPath.segments[2:]
 	
-	for thisSegment in pathSegments:
+		for thisSegment in pathSegments:
 		
-		if len( thisSegment ) == 2:
-			# straight line:
+			if len( thisSegment ) == 2:
+				# straight line:
 			
-			beginPoint = thisSegment[0].pointValue()
-			endPoint   = thisSegment[1].pointValue()
+				beginPoint = thisSegment[0].pointValue()
+				endPoint   = thisSegment[1].pointValue()
 			
-			dotsPerSegment = int( ( distance( beginPoint, endPoint ) / distanceBetweenDots ) * 11 )
+				dotsPerSegment = int( ( distance( beginPoint, endPoint ) / distanceBetweenDots ) * 11 )
 			
-			for i in range( dotsPerSegment ):
-				x = float( endPoint.x * i ) / dotsPerSegment + float( beginPoint.x * ( dotsPerSegment-i ) ) / dotsPerSegment
-				y = float( endPoint.y * i ) / dotsPerSegment + float( beginPoint.y * ( dotsPerSegment-i ) ) / dotsPerSegment
-				layerCoords += [ NSPoint( x, y ) ]
+				for i in range( dotsPerSegment ):
+					x = float( endPoint.x * i ) / dotsPerSegment + float( beginPoint.x * ( dotsPerSegment-i ) ) / dotsPerSegment
+					y = float( endPoint.y * i ) / dotsPerSegment + float( beginPoint.y * ( dotsPerSegment-i ) ) / dotsPerSegment
+					layerCoords += [ NSPoint( x, y ) ]
 				
-		elif len( thisSegment ) == 4:
-			# curved segment:
+			elif len( thisSegment ) == 4:
+				# curved segment:
 			
-			bezierPointA = thisSegment[0].pointValue()
-			bezierPointB = thisSegment[1].pointValue()
-			bezierPointC = thisSegment[2].pointValue()
-			bezierPointD = thisSegment[3].pointValue()
+				bezierPointA = thisSegment[0].pointValue()
+				bezierPointB = thisSegment[1].pointValue()
+				bezierPointC = thisSegment[2].pointValue()
+				bezierPointD = thisSegment[3].pointValue()
 			
-			bezierLength = distance( bezierPointA, bezierPointB ) + distance( bezierPointB, bezierPointC ) + distance( bezierPointC, bezierPointD ) # very rough approximation, up to 11% too long
-			dotsPerSegment = int( ( bezierLength / distanceBetweenDots ) * 10 )
+				bezierLength = distance( bezierPointA, bezierPointB ) + distance( bezierPointB, bezierPointC ) + distance( bezierPointC, bezierPointD ) # very rough approximation, up to 11% too long
+				dotsPerSegment = int( ( bezierLength / distanceBetweenDots ) * 10 )
 			
-			for i in range( 1, dotsPerSegment ):
-				t = float( i ) / float( dotsPerSegment )
-				x, y = bezier( bezierPointA, bezierPointB, bezierPointC, bezierPointD, t )
-				layerCoords += [ NSPoint( x, y ) ]
+				for i in range( 1, dotsPerSegment ):
+					t = float( i ) / float( dotsPerSegment )
+					x, y = bezier( bezierPointA, bezierPointB, bezierPointC, bezierPointD, t )
+					layerCoords += [ NSPoint( x, y ) ]
 			
-			layerCoords += [ NSPoint( bezierPointD.x, bezierPointD.y ) ]
+				layerCoords += [ NSPoint( bezierPointD.x, bezierPointD.y ) ]
 	
-	return layerCoords
+		return layerCoords
+	except Exception as e:
+		print traceback.format_exc()
 
 def dotCoordsOnPath( thisPath, distanceBetweenDots ):
-	dotPoints = [ thisPath.nodes[0] ]
-	fineGrainPoints = getFineGrainPointsForPath( thisPath, distanceBetweenDots )
+	try:
+		dotPoints = [ thisPath.nodes[0] ]
+		fineGrainPoints = getFineGrainPointsForPath( thisPath, distanceBetweenDots )
 	
-	myLastPoint = dotPoints[-1]
+		myLastPoint = dotPoints[-1]
 	
-	for thisPoint in fineGrainPoints:
-		if distance( myLastPoint, thisPoint ) >= distanceBetweenDots:
-			dotPoints += [thisPoint]
-			myLastPoint = thisPoint
-			# print "-- Placed %s at %s." % ( componentName, str(thisPoint) ) # DEBUG
-		else:
-			pass
+		for thisPoint in fineGrainPoints:
+			if distance( myLastPoint, thisPoint ) >= distanceBetweenDots:
+				dotPoints += [thisPoint]
+				myLastPoint = thisPoint
+				# print "-- Placed %s at %s." % ( componentName, str(thisPoint) ) # DEBUG
+			else:
+				pass
 	
-	return dotPoints
+		return dotPoints
+	except Exception as e:
+		print traceback.format_exc()
 
 def placeDots( thisLayer, useBackground, componentName, distanceBetweenDots ):
 	try:
@@ -126,7 +132,7 @@ def placeDots( thisLayer, useBackground, componentName, distanceBetweenDots ):
 			return False
 		
 	except Exception as e:
-		# raise e
+		print traceback.format_exc()
 		return False
 
 def minimumOfOne( value ):
@@ -140,21 +146,24 @@ def minimumOfOne( value ):
 	return returnValue
 
 def process( thisLayer, deleteComponents, componentName, distanceBetweenDots, useBackground ):
-	if deleteComponents:
-		if not deleteAllComponents( thisLayer ):
-			print "-- Error deleting previously placed components."
+	try:
+		if deleteComponents:
+			if not deleteAllComponents( thisLayer ):
+				print "-- Error deleting previously placed components."
 	
-	if useBackground and len( thisLayer.paths ) > 0:
-		if thisLayer.className() == "GSBackgroundLayer":
-			thisLayer = thisLayer.foreground()
-		thisLayer.background.clear()
-		for thisPath in thisLayer.paths:
-			thisLayer.background.paths.append( thisPath.copy() )
+		if useBackground and len( thisLayer.paths ) > 0:
+			if thisLayer.className() == "GSBackgroundLayer":
+				thisLayer = thisLayer.foreground()
+			thisLayer.background.clear()
+			for thisPath in thisLayer.paths:
+				thisLayer.background.paths.append( thisPath.copy() )
 		
-		thisLayer.paths = []
+			thisLayer.paths = []
 	
-	if not placeDots( thisLayer, useBackground, componentName, distanceBetweenDots ):
-		print "-- Could not place components at intervals of %.1f units." % distanceBetweenDots
+		if not placeDots( thisLayer, useBackground, componentName, distanceBetweenDots ):
+			print "-- Could not place components at intervals of %.1f units." % distanceBetweenDots
+	except Exception as e:
+		print traceback.format_exc()
 
 class ComponentOnLines( object ):
 	def __init__( self ):
@@ -194,6 +203,7 @@ class ComponentOnLines( object ):
 			#Glyphs.defaults["com.mekkablue.ComponentOnLines.replaceComponents"] = self.w.replaceComponents.get()
 			Glyphs.defaults["com.mekkablue.ComponentOnLines.useBackground"] = self.w.useBackground.get()
 		except:
+			print traceback.format_exc()
 			return False
 			
 		return True
@@ -215,6 +225,7 @@ class ComponentOnLines( object ):
 			#self.w.replaceComponents.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.replaceComponents"] )
 			self.w.useBackground.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.useBackground"] )
 		except:
+			print traceback.format_exc()
 			return False
 			
 		return True
@@ -252,7 +263,7 @@ class ComponentOnLines( object ):
 					print "Note: could not write preferences."
 			
 			# self.w.close()
-		except Exception, e:
-			raise e
+		except:
+			print traceback.format_exc()
 
 ComponentOnLines()
