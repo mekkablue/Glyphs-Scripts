@@ -29,7 +29,7 @@ class CopyLayerToLayer( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 280
-		windowHeight = 173
+		windowHeight = 220
 		windowWidthResize  = 120 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -41,17 +41,19 @@ class CopyLayerToLayer( object ):
 		)
 
 		self.w.text_1 = vanilla.TextBox((15, 12+2, 120, 14), "Copy paths from", sizeStyle='small')
-		self.w.masterSource = vanilla.PopUpButton((120, 12, -15, 17), self.GetMasterNames(), sizeStyle='small', callback=self.MasterChangeCallback)
+		self.w.fontSource = vanilla.PopUpButton((120, 12, -15, 17), self.GetFontNames(), sizeStyle='small', callback=self.FontChangeCallback)
+		self.w.masterSource = vanilla.PopUpButton((120, 12+20, -15, 17), self.GetMasterNames("source"), sizeStyle='small', callback=self.MasterChangeCallback)
 
-		self.w.text_2 = vanilla.TextBox((15, 32+2, 120, 14), "into selection of", sizeStyle='small')
-		self.w.masterTarget = vanilla.PopUpButton((120, 32, -15, 17), self.GetMasterNames(), sizeStyle='small', callback=self.MasterChangeCallback)
+		self.w.text_2 = vanilla.TextBox((15, 56+2, 120, 14), "into selection of", sizeStyle='small')
+		self.w.fontTarget = vanilla.PopUpButton((120, 56, -15, 17), self.GetFontNames(), sizeStyle='small', callback=self.FontChangeCallback)
+		self.w.masterTarget = vanilla.PopUpButton((120, 56+20, -15, 17), self.GetMasterNames("target"), sizeStyle='small', callback=self.MasterChangeCallback)
 
-		self.w.includePaths = vanilla.CheckBox((15+150+15, 52+2, 160, 20), "Include paths", sizeStyle='small', callback=self.SavePreferences, value=True)
-		self.w.includeComponents = vanilla.CheckBox((15, 52+2, 160, 20), "Include components", sizeStyle='small', callback=self.SavePreferences, value=True)
-		self.w.includeAnchors = vanilla.CheckBox((15, 52+20, -100, 20), "Include anchors", sizeStyle='small', callback=self.SavePreferences, value=True)
-		self.w.includeMetrics = vanilla.CheckBox((15, 52+38, -100, 20), "Include metrics", sizeStyle='small', callback=self.SavePreferences, value=True)
-		self.w.keepWindowOpen = vanilla.CheckBox((15, 52+56, -100, 20), "Keep window open", sizeStyle='small', callback=self.SavePreferences, value=True)
-		self.w.copyBackground = vanilla.CheckBox((15, 52+74, -100, 20), "Background instead", sizeStyle='small', callback=self.SavePreferences, value=False)
+		self.w.includePaths = vanilla.CheckBox((15+150+15, 100+2, 160, 20), "Include paths", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.includeComponents = vanilla.CheckBox((15, 100+2, 160, 20), "Include components", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.includeAnchors = vanilla.CheckBox((15, 100+20, -100, 20), "Include anchors", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.includeMetrics = vanilla.CheckBox((15, 100+38, -100, 20), "Include metrics", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.keepWindowOpen = vanilla.CheckBox((15, 100+56, -100, 20), "Keep window open", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.copyBackground = vanilla.CheckBox((15, 100+74, -100, 20), "Background instead", sizeStyle='small', callback=self.SavePreferences, value=False)
 
 		self.w.copybutton = vanilla.Button((-80, -30, -15, -10), "Copy", sizeStyle='small', callback=self.buttonCallback)
 		self.w.setDefaultButton( self.w.copybutton )
@@ -100,21 +102,49 @@ class CopyLayerToLayer( object ):
 
 		return True
 
-	def GetMasterNames( self ):
-		"""Collects names of masters to populate the menus in the GUI."""
-		thisFont = Glyphs.font
+	def GetFontNames( self ):
+		"""Collects names of Open Fonts to populate the menus in the GUI."""
+		myFontList = []
+		# The active font is at index=0, so the default selection should be the active font.
+		for fontIndex in range( len( Glyphs.fonts ) ):
+			thisFont = Glyphs.fonts[fontIndex]
+			myFontList.append( '%i: %s' % (fontIndex, thisFont.familyName) )
+		return myFontList
+
+	def GetMasterNames( self, font ):
+		"""Collects names of masters to populate the submenus in the GUI."""
+		if font == "target":
+			fontIndex = self.w.fontTarget.get()
+		else:
+			fontIndex = self.w.fontSource.get()
+
+		thisFont = Glyphs.fonts[fontIndex]
 		myMasterList = []
 		for masterIndex in range( len( thisFont.masters ) ):
 			thisMaster = thisFont.masters[masterIndex]
 			myMasterList.append( '%i: %s' % (masterIndex, thisMaster.name) )
 		return myMasterList
 
-	def MasterChangeCallback( self, sender ):
+	def ValidateInput( self, sender ):
 		"""Disables the button if source and target are the same."""
-		if self.w.masterSource.get() == self.w.masterTarget.get():
+		if self.w.fontSource.get() == self.w.fontTarget.get() and self.w.masterSource.get() == self.w.masterTarget.get():
 			self.w.copybutton.enable( False )
 		else:
 			self.w.copybutton.enable( True )
+
+	def MasterChangeCallback( self, sender ):
+		"""Just call ValidateInput."""
+		self.ValidateInput(None)
+
+	def FontChangeCallback( self, sender ):
+		"""Update masters menus when font input changes."""
+		if sender == self.w.fontSource:
+			# Refresh source
+			self.w.masterSource.setItems(self.GetMasterNames("source"))
+		else:
+			# Refresh target
+			self.w.masterTarget.setItems(self.GetMasterNames("target"))
+		self.ValidateInput(None)
 
 	def copyPathsFromLayerToLayer( self, sourceLayer, targetLayer ):
 		"""Copies all paths from sourceLayer to targetLayer"""
@@ -177,8 +207,11 @@ class CopyLayerToLayer( object ):
 		Glyphs.showMacroWindow()
 		print "Copy Layer to Layer Protocol:"
 
-		Font = Glyphs.font
+		# This should be the active selection, not necessarily the selection on the inputted fonts
+		Font = Layer.parent.parent
 		selectedGlyphs = [ x.parent for x in Font.selectedLayers ]
+		indexOfSourceFont = self.w.fontSource.get()
+		indexOfTargetFont = self.w.fontTarget.get()
 		indexOfSourceMaster = self.w.masterSource.get()
 		indexOfTargetMaster = self.w.masterTarget.get()
 		pathsYesOrNo  = self.w.includePaths.get()
@@ -189,15 +222,20 @@ class CopyLayerToLayer( object ):
 
 		for thisGlyph in selectedGlyphs:
 			try:
-
 				print "\nProcessing %s..." % thisGlyph.name
-				sourcelayer = thisGlyph.layers[ indexOfSourceMaster ]
-				if copyBackground == 1:
-					targetlayer = thisGlyph.layers[ indexOfTargetMaster ].background
-				else:
-					targetlayer = thisGlyph.layers[ indexOfTargetMaster ]
+				sourceFont = Glyphs.fonts[ indexOfSourceFont ]
+				sourceGlyph = sourceFont.glyphs[ thisGlyph.name ]
+				sourcelayer = sourceGlyph.layers[ indexOfSourceMaster ]
 
-				Font.disableUpdateInterface()
+				targetFont = Glyphs.fonts[ indexOfTargetFont ]
+				targetGlyph = targetFont.glyphs[ thisGlyph.name ]
+				if copyBackground == 1:
+					targetlayer = targetGlyph.layers[ indexOfTargetMaster ].background
+				else:
+					targetlayer = targetGlyph.layers[ indexOfTargetMaster ]
+
+				sourceFont.disableUpdateInterface()
+				targetFont.disableUpdateInterface()
 
 				# Copy paths, components, anchors, and metrics:
 				if pathsYesOrNo:
@@ -209,7 +247,9 @@ class CopyLayerToLayer( object ):
 				if metricsYesOrNo and not copyBackground:
 					self.copyMetricsFromLayerToLayer( sourcelayer, targetlayer )
 
-				Font.enableUpdateInterface()
+				sourceFont.enableUpdateInterface()
+				targetFont.enableUpdateInterface()
+
 			except Exception, e:
 				print e
 
