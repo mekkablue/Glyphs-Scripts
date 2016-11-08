@@ -37,7 +37,7 @@ def reportString( myList, myMsg ):
 def layerIsMasterLayer(thisLayer):
 	isMaster = thisLayer.associatedMasterId == thisLayer.layerId
 	isSpecial = "[" in thisLayer.name or "{" in thisLayer.name
-	return isMaster and isSpecial
+	return isMaster or isSpecial
 	
 zeroHandles = []
 outlineOrder = []
