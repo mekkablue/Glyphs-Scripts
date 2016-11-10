@@ -39,7 +39,6 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 		myTransform.appendTransform_(skewTransform)
 	return myTransform
 
-
 Font.disableUpdateInterface()
 
 for thisLayer in selectedLayers:
