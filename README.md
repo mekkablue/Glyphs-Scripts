@@ -79,7 +79,6 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **New Tab with Flipped Components:** Opens a new tab containing all compound glyphs that have mirrored components.
 * **New Tab with Orphaned Components:** Opens a new tab in the current font window containing all glyphs (of the current master) that have components that point to non-existent glyphs, i.e., no base glyphs.
 * **New Tab with Rotated, Scaled or Flipped Components:** Opens a new tab containing all compound glyphs that have mirrored, or rotated, or scaled components.
-* **New Tab with Unaligned Compounds:** Opens a new tab containing all glyphs that have components that are not automatically aligned. Lists them for every master, so your font should contain all glyphs necessary for writing your font master names.
 * **New Tab with Unusual Compounds:** Open a new tab containing all compound glyphs that have an unusual component order or an unorthodox component structure. Useful for finding wrong component orders.
 * **Propagate Corner Components to Other Masters:** Tries to recreate the corner components of the current master layer in all other masters of the same glyph. Make sure your outlines are compatible.
 * **Rebuild Components:** Moves outlines to background, then tries to rebuild the glyph with components in the foreground. Tries to position the accents as precisely as possible. Useful for rebuilding a decomposed font.
@@ -232,8 +231,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Preflight Font:** Checks for a few common mistakes, like bad glyph names, and reports them to the Macro Window.
 * **Report Area in Square Units:** Calculates the area of each selected glyph, and outputs the result to the Macro Window in square units. Increase precision by changing the value for the PRECISION variable in line 9 (script will slow down).
 * **Report Black to White Ratios:** Calculates the black area of all selected glyphs, and the black/white area ratio in relation to bounding box and several vertical metrics. Outputs a CSV spreadsheet.
-* **Report highest glyphs:** Outputs list of selected glyphs, ordered by the highest point of the glyph bounding boxes.
-* **Report lowest glyphs:** Outputs list of selected glyphs, ordered by the lowest point of the glyph bounding boxes.
+* **Report Highest and Lowest Glyphs:** Reports glyphs with highest and lowest bounding boxes for all masters.
 * **Webfont Test HTML:** Creates a test HTML file in the folder where you last exported webfonts. *Requires Glyphs 2.*
 
 # License
