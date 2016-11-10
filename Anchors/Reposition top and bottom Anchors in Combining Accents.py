@@ -61,9 +61,7 @@ thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 selectedCombiningMarks = [ g for g in [l.parent for l in thisFont.selectedLayers] if g.category=="Mark" and g.subCategory=="Nonspacing" ]
 
 if selectedCombiningMarks:
-	# brings macro window to front and clears its log:
 	Glyphs.clearLog()
-	Glyphs.showMacroWindow()
 
 	for thisMark in selectedCombiningMarks:
 		thisMark.beginUndo() # begin undo grouping
