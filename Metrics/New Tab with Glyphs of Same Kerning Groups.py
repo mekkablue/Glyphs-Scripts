@@ -7,7 +7,7 @@ Opens a new tab containing all members of the left and right kerning groups of t
 import GlyphsApp
 
 thisFont = Glyphs.font # frontmost font
-thisGlyph = Font.selectedLayers.theseLayers[0].parent
+thisGlyph = Font.selectedLayers[0].parent
 
 if thisGlyph:
 	leftGroup = thisGlyph.leftKerningGroup
