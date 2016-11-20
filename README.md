@@ -173,6 +173,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **New Tab with All Group Members:** Select two glyphs, e.g. ‘Ta’, run the script, and it will open a new tab with all combinations of the right kerning group of T with the left kerning group of a.
 * **New Tab with Fraction Figure Combinations:** Opens an Edit tab with fraction figure combos for spacing and kerning.
 * **New Tab with Glyphs of Same Kerning Groups:** Opens an Edit tab containing all glyphs that share the same left or right kerning groups.
+* **New Tab with Overkerned Pairs:** Asks a threshold percentage, and opens a new tab with all kern pairs going beyond the width threshold. *Needs Vanilla.*
 * **Remove All Kerning Exceptions:** Removes all kerning for the current master, except for group-to-group kerning. Be careful.
 * **Reset alternate glyph width:** resets the width of suffixed glyphs to the width of their unsuffixed counterparts. E.g., *Adieresis.ss01* will be reset to the width of *Adieresis*.
 * **Reset Compound Metrics to First Component:** Looks for the first component in a compound glyph, sets it back to x=0 and inherits its width. Useful for syncing numerators and denominators.
