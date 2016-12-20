@@ -89,7 +89,7 @@ def process( thisLayer ):
 			offset = NSPoint( offsetX, offsetY )
 			
 			# disable alignment for layer:
-			thisLayer.setHasAlignedWidth_(False)
+			# thisLayer.setHasAlignedWidth_(False) # DEPRECATED in 2.4.x
 
 			baseglyphComponent = GSComponent( nameOfBaseglyph )
 			baseglyphComponent.automaticAlignment = False # comment to enable alignment of base glyph
