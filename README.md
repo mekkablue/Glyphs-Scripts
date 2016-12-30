@@ -110,9 +110,12 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Lowercase:** Turns the names of selected glyphs lowercase.
 
 ## Guidelines
-* **Add Center Guideline:** Adds vertical or horizontal guideline in the middle between two selected nodes.
-* **Delete guidelines:** Deletes all local (blue) guidelines in selected glyphs.
-* **Delete global guidelines:** Deletes all global (red) guidelines in the current master.
+* **Add Center Guideline:** Adds vertical or horizontal guide in the middle between two selected nodes.
+* **Delete guidelines:** Deletes all local (blue) guides in selected glyphs.
+* **Delete global guidelines:** Deletes all global (red) guides in the current master.
+* **Guides through All Selected Nodes:** Lays guides through all selected nodes in current glyph. Tries to avoid duplicate guides.
+* **Mirror Selected Guides:** Mirrors all selected guides (in all selected glyphs).
+* **Select All Local Guides:** Selects all local (blue) guides (in all selected glyphs).
 
 ## Hinting
 * **Add Hints for Selected Nodes:** Adds hints for the selected nodes. Tries to guess whether it should be H or V. If exactly one node inside a zone is selected, it will add a Ghost Hint. Useful for setting a shortcut in System Prefs.
