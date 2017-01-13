@@ -76,6 +76,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Diacritic Ligature Maker:** For selected ligatures with appropriate anchors (top_1, top_2, etc.), all possible diacritic variations are created. E.g., from A_h, the script can produce Adieresis_h, Aacute_h, A_hcircumflex, Adieresis_hcircumflex, etc. For preparing the anchors, try the *Anchors > Insert Anchors into Ligatures* script.
 * **Enable** and **Disable Alignment:** Enables or disables automatic alignment for all components on visible layers in selected glyphs. Does the same as the command in the context menu, but you can do it in one step for many glyphs.
 * **Modify Components:** In selected glyphs, replaces accents with their dot suffix variant where possible. *Needs Vanilla*
+* **New Tab with Correlated Diacritics:** Goes through your uppercase letters and lists all related glyphs in a new tab. E.g., Eacute, eacute.sc, eacute, eacute.ss01. Useful for seeing if the marks are in sync.
 * **New Tab with Flipped Components:** Opens a new tab containing all compound glyphs that have mirrored components.
 * **New Tab with Orphaned Components:** Opens a new tab in the current font window containing all glyphs (of the current master) that have components that point to non-existent glyphs, i.e., no base glyphs.
 * **New Tab with Rotated, Scaled or Flipped Components:** Opens a new tab containing all compound glyphs that have mirrored, or rotated, or scaled components.
