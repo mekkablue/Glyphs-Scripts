@@ -42,8 +42,6 @@ class ShowLargeKerningPairs( object ):
 		
 	def SavePreferences( self, sender ):
 		try:
-			print self.w.positive.get(), self.w.negative.get()
-			
 			if sender == self.w.positive and self.w.positive.get() == 0:
 				self.w.negative.set( 1 )
 			elif sender == self.w.negative and self.w.negative.get() == 0:
