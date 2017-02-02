@@ -114,12 +114,16 @@ class FindShortSegmentsInFont( object ):
 							print "  Total: %i short segments on %s (layer %s)" % ( layerCount, thisGlyph.name, thisLayer.name )
 							print
 				
-				tabText = "/" + "/".join(set(glyphNamesWithShortSegments))
-				thisFont.newTab(tabText)
-				print "Affected glyphs in this font:"
-				print tabText
-				print
-			
+				if glyphNamesWithShortSegments:
+					tabText = "/" + "/".join(set(glyphNamesWithShortSegments))
+					thisFont.newTab(tabText)
+					print "Affected glyphs in this font:"
+					print tabText
+					print
+				else:
+					print "No glyphs affected in this font. Congrats!"
+					print
+					
 			if not self.SavePreferences( self ):
 				print "Note: 'New Tab with Short Segments' could not write preferences."
 			
