@@ -22,8 +22,8 @@ class FindShortSegmentsInFont( object ):
 		)
 		
 		# UI elements:
-		self.w.text_1 = vanilla.TextBox( (15-1, 12+2, 150, 14), "Minimum segment length:", sizeStyle='small' )
-		self.w.minDistance = vanilla.EditText( (160, 12, -15, 15+3), "5", sizeStyle = 'small')
+		self.w.text_1 = vanilla.TextBox( (15-1, 12+2, 160, 14), "Find segments up to length:", sizeStyle='small' )
+		self.w.maxDistance = vanilla.EditText( (175, 12, -15, 15+3), "5", sizeStyle = 'small')
 		self.w.allFonts = vanilla.CheckBox( (15, 34, -15, 20), "Include all open fonts", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.selectSegments = vanilla.CheckBox( (15, 54, -15, 20), "Select segments", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		
@@ -41,7 +41,7 @@ class FindShortSegmentsInFont( object ):
 		
 	def SavePreferences( self, sender ):
 		try:
-			Glyphs.defaults["com.mekkablue.FindShortSegmentsInFont.minDistance"] = self.w.minDistance.get()
+			Glyphs.defaults["com.mekkablue.FindShortSegmentsInFont.maxDistance"] = self.w.maxDistance.get()
 			Glyphs.defaults["com.mekkablue.FindShortSegmentsInFont.allFonts"] = self.w.allFonts.get()
 			Glyphs.defaults["com.mekkablue.FindShortSegmentsInFont.selectSegments"] = self.w.selectSegments.get()
 		except:
@@ -53,12 +53,12 @@ class FindShortSegmentsInFont( object ):
 		try:
 			NSUserDefaults.standardUserDefaults().registerDefaults_(
 				{
-					"com.mekkablue.FindShortSegmentsInFont.minDistance": "5",
+					"com.mekkablue.FindShortSegmentsInFont.maxDistance": "5",
 					"com.mekkablue.FindShortSegmentsInFont.allFonts": 0,
 					"com.mekkablue.FindShortSegmentsInFont.selectSegments": 0
 				}
 			)
-			self.w.minDistance.set( Glyphs.defaults["com.mekkablue.FindShortSegmentsInFont.minDistance"] )
+			self.w.maxDistance.set( Glyphs.defaults["com.mekkablue.FindShortSegmentsInFont.maxDistance"] )
 			self.w.allFonts.set( Glyphs.defaults["com.mekkablue.FindShortSegmentsInFont.allFonts"] )
 			self.w.selectSegments.set( Glyphs.defaults["com.mekkablue.FindShortSegmentsInFont.selectSegments"] )
 		except:
@@ -74,12 +74,12 @@ class FindShortSegmentsInFont( object ):
 				fontList = (Glyphs.font) # only frontmost font
 			
 			selectSegments = Glyphs.defaults["com.mekkablue.FindShortSegmentsInFont.selectSegments"]
-			minDistance = float( Glyphs.defaults["com.mekkablue.FindShortSegmentsInFont.minDistance"] )
+			maxDistance = float( Glyphs.defaults["com.mekkablue.FindShortSegmentsInFont.maxDistance"] )
 			
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()
 			Glyphs.showMacroWindow()
-			print "Segments shorter than %i units:" % minDistance
+			print "Segments shorter than %i units:" % maxDistance
 			
 			self.w.close()
 			
@@ -95,7 +95,7 @@ class FindShortSegmentsInFont( object ):
 							for thisSegment in thisPath.segments:
 								firstPoint = thisSegment[0].pointValue()
 								segmentLength = distance( firstPoint, thisSegment[len(thisSegment)-1].pointValue() )
-								if segmentLength < minDistance:
+								if segmentLength < maxDistance:
 									if layerCount == 0:
 										print "%s (layer: %s)" % ( thisGlyph.name, thisLayer.name )
 										if selectSegments:
