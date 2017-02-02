@@ -203,6 +203,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 * **Insert BCPs into straight segments:** Inserts off-curve points (BCPs) into straight line segments of all selected glyphs. Like option-clicking on all straight lines.
 * **Insert Inflections:** Inserts nodes at path inflections in the visible layers of all selected glyphs.
 * **New Tab with Small Paths:** Opens a new tab containing paths that are smaller than a user-definable threshold size in square units.
+* **New Tab with Short Segments:** Goes through all glyphs in the present font(s), and reports segments shorter than a user-specified distance to the Macro Window, and opens a new tab with affected glyphs. *Needs Vanilla.*
 * **New Tab with Zero Handles:** Opens a new tab with glyphs containing zero handles in the current font master.
 * **Open all closed paths:** Opens all closed paths in the visible layers of all selected glyphs. Useful after importing open paths from FontLab Studio.
 * **Realign Handles:** Realigns all BCPs on smooth connections. Only works in edit mode with the currently active layer. Useful if handles got out of sync, e.g. after nudging or some other transformation, or after interpolation.
