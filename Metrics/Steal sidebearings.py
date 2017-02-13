@@ -4,7 +4,7 @@ __doc__="""
 Copy sidebearings from one font to another.
 """
 
-import vanilla
+import vanilla, math
 windowHeight = 185
 
 class MetricsCopy( object ):
@@ -90,17 +90,12 @@ class MetricsCopy( object ):
 			else:
 				self.w.suffixToBeIgnored.enable( onOff=False )
 			
-			# Both RSB and Width must not be on:
-			if sender:
-				target = None
+			# All of LSB, RSB and Width must not be on at the same time:
+			if self.w.rsb.get() and self.w.lsb.get() and self.w.width.get():
 				if sender == self.w.rsb:
-					target = self.w.width
-				elif sender == self.w.width:
-					target = self.w.rsb
-			
-				if target:
-					if sender.get() and target.get():
-						target.set( not sender.get() )
+					self.w.width.set(False)
+				else:
+					self.w.rsb.set(False)
 		
 			if not self.SavePreferences( self ):
 				self.outputError( "Could not save preferences." )
@@ -128,6 +123,38 @@ class MetricsCopy( object ):
 			return True
 		except:
 			return False
+	
+	def transform(self, shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
+		"""
+		Returns an NSAffineTransform object for transforming layers.
+		Apply an NSAffineTransform t object like this:
+			Layer.transform_checkForSelection_doComponents_(t,False,True)
+		Access its transformation matrix like this:
+			tMatrix = t.transformStruct() # returns the 6-float tuple
+		Apply the matrix tuple like this:
+			Layer.applyTransform(tMatrix)
+			Component.applyTransform(tMatrix)
+			Path.applyTransform(tMatrix)
+		Chain multiple NSAffineTransform objects t1, t2 like this:
+			t1.appendTransform_(t2)
+		"""
+		myTransform = NSAffineTransform.transform()
+		if rotate:
+			myTransform.rotateByDegrees_(rotate)
+		if scale != 1.0:
+			myTransform.scaleBy_(scale)
+		if not (shiftX == 0.0 and shiftY == 0.0):
+			myTransform.translateXBy_yBy_(shiftX,shiftY)
+		if skew:
+			skewStruct = NSAffineTransformStruct()
+			skewStruct.m11 = 1.0
+			skewStruct.m22 = 1.0
+			skewStruct.m21 = math.tan(math.radians(skew))
+			skewTransform = NSAffineTransform.transform()
+			skewTransform.setTransformStruct_(skewStruct)
+			myTransform.appendTransform_(skewTransform)
+		return myTransform
+	
 	
 	def copyMetrics(self, sender):
 		fromFontIndex  = self.w.from_font.get()
@@ -167,10 +194,15 @@ class MetricsCopy( object ):
 			
 				if lsbIsSet:
 					thisLayer.setLSB_( sourceLayer.LSB )
-				if rsbIsSet:
-					thisLayer.setRSB_( sourceLayer.RSB )
 				if widthIsSet:
 					thisLayer.setWidth_( sourceLayer.width )
+					if rsbIsSet:
+						shift = thisLayer.RSB - sourceLayer.RSB
+						shiftTransform = self.transform(shiftX=shift)
+						thisLayer.transform_checkForSelection_doComponents_(shiftTransform,False,True)
+				elif rsbIsSet:
+					thisLayer.setRSB_( sourceLayer.RSB )
+						
 
 				print "     %i <- %s -> %i (w: %i)" % ( thisLayer.LSB, glyphName, thisLayer.RSB, thisLayer.width )
 			except Exception, e:
