@@ -39,9 +39,13 @@ Font.disableUpdateInterface()
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
+	thisGlyphName = thisGlyph.name
 
-	thisGlyph.beginUndo()
-	print "%s layers deleted in %s." % ( process( thisGlyph ), thisGlyph.name )
-	thisGlyph.endUndo()
+	if str(thisGlyphName)[:7] != "_smart.":
+		thisGlyph.beginUndo()
+		print "%s layers deleted in %s." % ( process( thisGlyph ), thisGlyphName )
+		thisGlyph.endUndo()
+	else:
+		print "Smart layers kept in %s." % ( thisGlyphName )
 
 Font.enableUpdateInterface()
