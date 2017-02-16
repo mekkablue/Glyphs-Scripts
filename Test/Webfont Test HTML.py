@@ -78,6 +78,14 @@ def fontFaces( instanceList ):
 	
 	return returnString
 
+def featureListForFont( thisFont ):
+	returnString = ""
+	featureList = [f.name for f in thisFont.features if not f.name in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig") and not f.disabled()]
+	for f in featureList:
+		returnString += """		<label><input type="checkbox" name="%s" value="%s" class="otFeature" onchange="updateFeatures()"><a href="http://stateofwebtype.com/#%s">%s</a></label>
+""" % (f,f,f,f)
+	return returnString
+
 htmlContent = """<head>
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=9">
@@ -108,31 +116,57 @@ htmlContent = """<head>
 	</style>
 	<script type="text/javascript">
 		function updateParagraph() {
+			// update paragraph text based on user input:
 			var txt = document.getElementById('textInput');
+			var paragraphs = ['p08','p09','p10','p11','p12','p13','p14','p15','p16','largeParagraph','veryLargeParagraph'];
+			for (i = 0; i < paragraphs.length; i++) {
+				paragraphID = paragraphs[i];
+				var paragraph = document.getElementById(paragraphID);
+				paragraph.textContent = txt.value;
+			}
+		}
+		function updateFeatures() {
+			// update features based on user input:
+			// first, get feature on/off line:
+			var cssCode = "";
+			var codeLine = "";
+			var checkboxes = document.getElementsByClassName("otFeature")
+			for (i = 0; i < checkboxes.length; i++) {
+				var checkbox = checkboxes[i];
+				codeLine += '"'+checkbox.name+'" ';
+				codeLine += checkbox.checked ? 'on, ' : 'off, ';
+				if (checkbox.name=="kern") {
+					cssCode += "font-kerning: "
+					cssCode += checkbox.checked ? 'normal; ' : 'none; ';
+				} else if (checkbox.name=="liga") {
+					codeLine += '"clig" '
+					codeLine += checkbox.checked ? 'on, ' : 'off, ';
+					cssCode += "font-variant-ligatures: "
+					cssCode += checkbox.checked ? 'common-ligatures contextual; ' : 'no-common-ligatures no-contextual; ';
+				} else if (checkbox.name=="dlig") {
+					cssCode += "font-variant-ligatures: "
+					cssCode += checkbox.checked ? 'discretionary-ligatures; ' : 'no-discretionary-ligatures; ';
+				} else if (checkbox.name=="hlig") {
+					cssCode += "font-variant-ligatures: "
+					cssCode += checkbox.checked ? 'historical-ligatures; ' : 'no-historical-ligatures; ';
+				}
+			}
+			codeLine = codeLine.slice(0, -2)
 			
-			var p08 = document.getElementById('p08');
-			var p09 = document.getElementById('p09');
-			var p10 = document.getElementById('p10');
-			var p11 = document.getElementById('p11');
-			var p12 = document.getElementById('p12');
-			var p13 = document.getElementById('p13');
-			var p14 = document.getElementById('p14');
-			var p15 = document.getElementById('p15');
-			var p16 = document.getElementById('p16');
-			var pLarge = document.getElementById('largeParagraph');
-			var pVeryLarge = document.getElementById('veryLargeParagraph');
+			// then, apply line for every browser:
+			var prefixes = ["","-moz-","-webkit-","-ms-","-o-",];
+			var suffix = "font-feature-settings: "
+			for (i = 0; i < prefixes.length; i++) {
+				var prefix = prefixes[i];
+				cssCode += prefix
+				cssCode += suffix
+				cssCode += codeLine
+				cssCode += "; "
+			}
 			
-			p08.textContent = txt.value;
-			p09.textContent = txt.value;
-			p10.textContent = txt.value;
-			p11.textContent = txt.value;
-			p12.textContent = txt.value;
-			p13.textContent = txt.value;
-			p14.textContent = txt.value;
-			p15.textContent = txt.value;
-			p16.textContent = txt.value;
-			pLarge.textContent = txt.value;
-			pVeryLarge.textContent = txt.value;
+			document.getElementById('fontTestBody').style.cssText = cssCode;
+			document.getElementById('featureLine').innerHTML = cssCode.replace(/;/g,";<br/>");
+			changeFont();
 		}
 		function changeFont() {
 			var selector = document.getElementById('fontFamilySelector');
@@ -164,13 +198,22 @@ htmlContent = """<head>
 		<!-- moreOptions -->
 	</select>
 	<input type="text" value="Type Text Here." id="textInput" onkeyup="updateParagraph()" size="80" />
-	<p>
+	<p style="font-size:small">
 		<a href="javascript:setCharset();">Charset</a>
 		<a href="javascript:setLat1();">Lat1</a>
+		&emsp;
 		<a href="http://stateofwebtype.com/#eot">eot?</a>
 		<a href="http://stateofwebtype.com/#woff">woff?</a>
 		<a href="http://stateofwebtype.com/#woff2">woff2?</a>
+		&emsp;
+		<a href="http://stateofwebtype.com/#font-feature-settings">Features</a>:
+		<label><input type="checkbox" name="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><a href="http://stateofwebtype.com/#kern">kern</a></label>
+		<label><input type="checkbox" name="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><a href="http://stateofwebtype.com/#liga">liga/clig</a></label>
+		<label><input type="checkbox" name="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><a href="http://stateofwebtype.com/#calt">calt</a></label>
+		<!-- moreFeatures -->
+		<label><input type="checkbox" name="show" value="show" onchange="updateFeatures();document.getElementById('featureLine').style.display=this.checked?'':'none'">Show CSS</label>
 	</p>
+	<p id="featureLine" style="font-size:x-small;display:none;">font-feature-settings: "kern" on, "liga" on, "calt" on;</p>
 	<p id="p08">08pt ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
 	<p id="p09">09pt ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
 	<p id="p10">10pt ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
@@ -191,7 +234,7 @@ Glyphs.showMacroWindow()
 
 # Query app version:
 GLYPHSAPPVERSION = NSBundle.bundleForClass_(GSMenu).infoDictionary().objectForKey_("CFBundleShortVersionString")
-if GLYPHSAPPVERSION.startswith("2."):
+if not GLYPHSAPPVERSION.startswith("1."):
 	thisFont = Glyphs.font # frontmost font
 	familyName = thisFont.familyName
 	firstActiveInstance = [i for i in thisFont.instances if i.active == True][0]
@@ -213,6 +256,7 @@ if GLYPHSAPPVERSION.startswith("2."):
 		( "ABCDEFGHIJKLMNOPQRSTUVWXYZ", allUnicodeEscapesOfFont(thisFont) ),
 		( "fileName", firstFileName ),
 		( "		<!-- moreOptions -->\n", optionList ),
+		( "		<!-- moreFeatures -->\n", featureListForFont(thisFont) ),
 		( "		<!-- fontFaces -->\n", fontFacesCSS  )
 	)
 
