@@ -1,7 +1,7 @@
 #MenuTitle: Webfont Test HTML
 # -*- coding: utf-8 -*-
 __doc__="""
-Create a Test HTML for the current font in the current Webfont Export folder.
+Create a Test HTML for the current font inside the current Webfont Export folder, or for the current Glyphs Project in the project’s export path.
 """
 
 from Foundation import *
@@ -35,33 +35,46 @@ def allUnicodeEscapesOfFont( thisFont ):
 	allUnicodes = ["&#x%s;" % g.unicode for g in thisFont.glyphs if g.unicode and g.export ]
 	return " ".join( allUnicodes )
 
-def activeInstances( thisFont, fileFormats=fileFormats ):
-	activeInstances = [i for i in thisFont.instances if i.active == True]
+def getInstanceInfo( thisFont, activeInstance, fileFormat ):
+	# Determine Family Name
+	familyName = thisFont.familyName
+	individualFamilyName = activeInstance.customParameters["familyName"]
+	if individualFamilyName != None:
+		familyName = individualFamilyName
+	
+	# Determine Style Name
+	activeInstanceName = activeInstance.name
+	
+	# Determine font and file names for CSS
+	menuName = "%s %s-%s" % ( fileFormat.upper(), familyName, activeInstanceName )
+	
+	firstPartOfFileName = activeInstance.customParameters["fileName"]
+	if not firstPartOfFileName:
+		firstPartOfFileName = "%s-%s" % ( familyName.replace(" ",""), activeInstanceName.replace(" ","") )
+		
+	fileName = "%s.%s" % ( firstPartOfFileName, fileFormat )
+	return fileName, menuName, activeInstanceName
+
+def activeInstancesOfFont( thisFont, fileFormats=fileFormats ):
+	activeInstances = [i for i in thisFont.instances if i.active]
 	listOfInstanceInfo = []
 	for fileFormat in fileFormats:
 		for activeInstance in activeInstances:
-			# Determine Family Name
-			familyName = thisFont.familyName
-			individualFamilyName = activeInstance.customParameters["familyName"]
-			if individualFamilyName != None:
-				familyName = individualFamilyName
-			
-			# Determine Style Name
-			activeInstanceName = activeInstance.name
-			
-			# Determine font and file names for CSS
-			menuName = "%s %s-%s" % ( fileFormat.upper(), familyName, activeInstanceName )
-			
-			firstPartOfFileName = activeInstance.customParameters["fileName"]
-			if not firstPartOfFileName:
-				firstPartOfFileName = "%s-%s" % ( familyName.replace(" ",""), activeInstanceName.replace(" ","") )
-				
-			fileName = "%s.%s" % ( firstPartOfFileName, fileFormat )
-			
+			fileName, menuName, activeInstanceName = getInstanceInfo(thisFont, activeInstance, fileFormat)
 			listOfInstanceInfo.append( (fileName, menuName, activeInstanceName) )
 	return listOfInstanceInfo
 
-def optionListForActiveInstances( instanceList ):
+def activeInstancesOfProject( thisProject, fileFormats=fileFormats ):
+	thisFont = thisProject.font()
+	activeInstances = [i for i in thisProject.instances() if i.active]
+	listOfInstanceInfo = []
+	for fileFormat in fileFormats:
+		for activeInstance in activeInstances:
+			fileName, menuName, activeInstanceName = getInstanceInfo(thisFont, activeInstance, fileFormat)
+			listOfInstanceInfo.append( (fileName, menuName, activeInstanceName) )
+	return listOfInstanceInfo
+
+def optionListForInstances( instanceList ):
 	returnString = ""
 	for thisInstanceInfo in instanceList:
 		returnString += '		<option value="%s">%s</option>\n' % ( thisInstanceInfo[0], thisInstanceInfo[1] )
@@ -234,18 +247,29 @@ Glyphs.showMacroWindow()
 
 # Query app version:
 GLYPHSAPPVERSION = NSBundle.bundleForClass_(GSMenu).infoDictionary().objectForKey_("CFBundleShortVersionString")
-if not GLYPHSAPPVERSION.startswith("1."):
-	thisFont = Glyphs.font # frontmost font
+appVersionHighEnough = not GLYPHSAPPVERSION.startswith("1.")
+
+if appVersionHighEnough:
+	firstDoc = Glyphs.orderedDocuments()[0]
+	if firstDoc.isKindOfClass_(GSProjectDocument):
+		thisFont = firstDoc.font() # frontmost project file
+		firstActiveInstance = [i for i in firstDoc.instances() if i.active][0]
+		activeFontInstances = activeInstancesOfProject( firstDoc )
+		exportPath = firstDoc.exportPath()
+	else:
+		thisFont = Glyphs.font # frontmost font
+		firstActiveInstance = [i for i in thisFont.instances if i.active][0]
+		activeFontInstances = activeInstancesOfFont( thisFont )
+		exportPath = currentWebExportPath()
+		
+		
 	familyName = thisFont.familyName
-	firstActiveInstance = [i for i in thisFont.instances if i.active == True][0]
-	firstActiveInstanceName = firstActiveInstance.name
-	activeFontInstances = activeInstances( thisFont )
 	
 	print "Preparing Test HTML for:"
 	for thisFontInstanceInfo in activeFontInstances:
 		print "  %s" % thisFontInstanceInfo[1]
 	
-	optionList = optionListForActiveInstances( activeFontInstances )
+	optionList = optionListForInstances( activeFontInstances )
 	fontFacesCSS = fontFaces( activeFontInstances )
 	firstFileName =  activeFontInstances[0][0]
 	firstFontName =  activeFontInstances[0][1]
@@ -263,7 +287,6 @@ if not GLYPHSAPPVERSION.startswith("1."):
 	htmlContent = replaceSet( htmlContent, replacements )
 	
 	# Write file to disk:
-	exportPath = currentWebExportPath()
 	if exportPath:
 		if saveFileInLocation( content=htmlContent, fileName="fonttest.html", filePath=exportPath ):
 			print "Successfully wrote file to disk."
