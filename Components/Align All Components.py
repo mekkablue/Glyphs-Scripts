@@ -13,6 +13,7 @@ def process( thisLayer ):
 	advance = 0.0
 	thisFontMasterID = thisLayer.associatedFontMaster().id
 	for thisComponent in thisLayer.components:
+		thisFontMasterID = thisLayer.layerId
 		thisComponent.position = NSPoint( advance, 0.0 )
 		advance += thisComponent.component.layers[thisFontMasterID].width
 	thisLayer.width = advance
