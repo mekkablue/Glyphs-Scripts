@@ -41,7 +41,7 @@ for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
 	thisGlyphName = thisGlyph.name
 
-	if str(thisGlyphName)[:7] != "_part.":
+	if str(thisGlyphName)[:6] != "_part.":
 		thisGlyph.beginUndo()
 		print "%s layers deleted in %s." % ( process( thisGlyph ), thisGlyphName )
 		thisGlyph.endUndo()
