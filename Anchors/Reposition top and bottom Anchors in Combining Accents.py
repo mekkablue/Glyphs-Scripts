@@ -58,7 +58,7 @@ def process( thisLayer ):
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
-selectedCombiningMarks = [ g for g in [l.parent for l in thisFont.selectedLayers] if g.category=="Mark" and g.subCategory=="Nonspacing" ]
+selectedCombiningMarks = [ g for g in [l.parent for l in thisFont.selectedLayers] if g.category=="Mark" and (g.subCategory=="Nonspacing" or "comb.sc" in g.name) ]
 
 if selectedCombiningMarks:
 	Glyphs.clearLog()
