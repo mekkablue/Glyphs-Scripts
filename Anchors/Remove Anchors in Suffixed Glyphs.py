@@ -1,7 +1,7 @@
 #MenuTitle: Remove Anchors in Suffixed Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
-Removes all anchors from glyphs with a specified suffix.
+Removes all anchors from glyphs with one of the user-specified suffix.
 """
 
 import vanilla
