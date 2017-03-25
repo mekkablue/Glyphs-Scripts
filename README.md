@@ -58,6 +58,7 @@ Please report problems and request features as a GitHub issue. Make sure you hav
 
 ## App
 * **Fix Stuck Macro Window:** If you cannot resize your Macro window anymore, run this script.
+* **Increase** and **Decrease Line Height:** Increases the Edit View line height by a quarter, or decreases it by a fifth. Useful for setting shortcuts if you need to switch between line heights a lot.
 * **Kill background processes:** Terminates all makeotfGlyphs processes. If your fan keeps screaming after exporting a font, or after cancelling a font export, then run this script and see if it helps.
 * **Method Report:** GUI for filtering through the method names of Python and PyObjC Classes available from within Glyphs. Double click to put the method name in your clipboard and open help in the Macro Window. Useful for coders. *Needs Vanilla.*
 * **Paste in View Center:** Pastes paths and components in the clipboard into the current view center of the Edit view. Useful for setting a shortcut.
