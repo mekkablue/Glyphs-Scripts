@@ -208,7 +208,7 @@ Please report problems and request features [as a GitHub issue](/issues). Make s
 * **New Tab with Short Segments:** Goes through all glyphs in the present font(s), and reports segments shorter than a user-specified distance to the Macro Window, and opens a new tab with affected glyphs. Useful for finding alignment errors in exported OTFs. *Needs Vanilla.*
 * **New Tab with Zero Handles:** Opens a new tab with glyphs containing zero handles in the current font master.
 * **Open all closed paths:** Opens all closed paths in the visible layers of all selected glyphs. Useful after importing open paths from FontLab Studio.
-* **Realign Handles:** Realigns all BCPs on smooth connections. Only works in edit mode with the currently active layer. Useful if handles got out of sync, e.g. after nudging or some other transformation, or after interpolation.
+* **Realign BCPs:** Realigns all BCPs in all selected glyphs. Useful if handles got out of sync, e.g. after nudging or some other transformation, or after interpolation. Hold down Option to apply to all layers of the selected glyph(s).
 * **Retract BCPs:** Deletes all off-curve points (BCPs). Handy if you want to make sure that your font only has straight lines. 
 * **Rotate around anchor:** GUI for rotating glyphs or selections of nodes and components around a 'rotate' anchor. Allows to step and repeat. Requires Vanilla.
 * **Set Transform Origin:** Simple GUI for setting the Transform Origin of the Rotate tool numerically. Should also have an effect on the Scale tool. Requires Vanilla.
