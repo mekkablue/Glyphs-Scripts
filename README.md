@@ -21,9 +21,7 @@ For **Glyphs 1.x**, open Terminal and copy and paste the following lines and hit
     sudo python2.6 setup.py install
 	
 
-And you are done. The installation should be effective immediately, but in case it does not work right away, you may want to restart your Mac or log out and back in again.
-
-While we're at it, we can also install Robofab, DialogKit, and FontTools. You do not need those for my scripts though:
+And you are done. The installation should be effective immediately, but in case it does not work right away, you may want to restart your Mac or log out and back in again. While we're at it, we can also install Robofab, DialogKit, and FontTools. You do not need those for my scripts though:
 
     cd ../Robofab/
     sudo python2.6 setup.py install
@@ -34,7 +32,7 @@ While we're at it, we can also install Robofab, DialogKit, and FontTools. You do
 
 # TROUBLESHOOTING
 
-Please report problems and request features as a GitHub issue. Make sure you have the latest version of the scripts and your app is up to date. And always, I mean *always*, indicate both your Glyphs.app and your OS X version. Thank you.
+Please report problems and request features [as a GitHub issue](/issues). Make sure you have the latest version of the scripts and your app is up to date. And always, I mean *always*, indicate both your Glyphs.app and your OS X version. Thank you.
 
 # ABOUT THE SCRIPTS
 
