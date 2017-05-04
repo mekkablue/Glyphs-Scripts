@@ -34,8 +34,8 @@ def process( thisLayer ):
 	targetLayers = [l for l in thisGlyph.layers if l != thisLayer and l.associatedMasterId == l.layerId]
 	for h in [h for h in thisLayer.hints if h.type == CORNER]:
 		scale = h.scale()
-		name = h.name()
-		pathIndex = indexOfPath(thisLayer,h.originNode.parent())
+		name = h.name
+		pathIndex = indexOfPath(thisLayer,h.originNode.parent)
 		nodeIndex = indexOfNode(thisLayer,pathIndex,h.originNode)
 		for targetLayer in targetLayers:
 			deleteCornerComponentsOnLayer(targetLayer)
@@ -45,7 +45,6 @@ def process( thisLayer ):
 			newCorner.setName_(name)
 			newCorner.originNode = targetLayer.paths[pathIndex].nodes[nodeIndex]
 			targetLayer.addHint_(newCorner)
-			
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
