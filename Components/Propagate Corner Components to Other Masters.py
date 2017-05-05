@@ -31,14 +31,17 @@ def deleteCornerComponentsOnLayer(l):
 
 def process( thisLayer ):
 	thisGlyph = thisLayer.parent
-	targetLayers = [l for l in thisGlyph.layers if l != thisLayer and l.associatedMasterId == l.layerId]
-	for h in [h for h in thisLayer.hints if h.type == CORNER]:
-		scale = h.scale()
-		name = h.name
-		pathIndex = indexOfPath(thisLayer,h.originNode.parent)
-		nodeIndex = indexOfNode(thisLayer,pathIndex,h.originNode)
-		for targetLayer in targetLayers:
-			deleteCornerComponentsOnLayer(targetLayer)
+	targetLayers = [l for l in thisGlyph.layers if l != thisLayer and l.compareString() == thisLayer.compareString()]
+	for targetLayer in targetLayers:
+		deleteCornerComponentsOnLayer(targetLayer)
+		for h in [h for h in thisLayer.hints if h.type == CORNER]:
+			# query corner component attributes:
+			scale = h.scale()
+			name = h.name
+			pathIndex = indexOfPath(thisLayer,h.originNode.parent)
+			nodeIndex = indexOfNode(thisLayer,pathIndex,h.originNode)
+			
+			# create eqivalent corner component in target layer:
 			newCorner = GSHint()
 			newCorner.type = CORNER
 			newCorner.setScale_(scale)
