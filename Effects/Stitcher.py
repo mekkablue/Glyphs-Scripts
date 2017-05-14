@@ -40,8 +40,12 @@ def getFineGrainPointsForPath( thisPath, distanceBetweenDots ):
 		pathSegments = thisPath.segments
 	
 		# fix for new way open paths are stored (including MOVE and LINE segments)
-		if thisPath.closed == False and thisPath.segments[0].type == MOVE:
-			pathSegments = thisPath.segments[2:]
+		try:
+			if thisPath.closed == False and thisPath.segments[0][0].type == MOVE:
+				pathSegments = thisPath.segments[2:]
+		except:
+			# seems not to work/be necessary anymore...?
+			pass
 	
 		for thisSegment in pathSegments:
 		
@@ -171,7 +175,7 @@ class ComponentOnLines( object ):
 
 		self.w = vanilla.FloatingWindow( (350, windowHeight), "Stitcher", minSize=(300, windowHeight), maxSize=(500, windowHeight), autosaveName="com.mekkablue.ComponentsOnNodes.mainwindow" )
 
-		self.w.text_1   = vanilla.TextBox( (15-1, 12+2,    15+95, 14), "Place component:", sizeStyle='small' )
+		self.w.text_1   = vanilla.TextBox( (15-1, 12+2, 15+95, 14), "Place component:", sizeStyle='small' )
 		self.w.text_2   = vanilla.TextBox( (15-1, 12+25+2, 15+95, 14), "At intervals of:", sizeStyle='small' )
 		self.w.componentName = vanilla.EditText( (15+100, 12-1, -15, 19), "_circle", sizeStyle='small', callback=self.SavePreferences )
 		self.w.sliderMin = vanilla.EditText( ( 15+100, 12+25-1, 50, 19), "30", sizeStyle='small', callback=self.SavePreferences )
