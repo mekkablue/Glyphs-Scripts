@@ -19,6 +19,19 @@ def hasZeroHandles( thisLayer ):
 				if thisNode.position == prevNode.position or thisNode.position == nextNode.position:
 					return True
 	return False
+	
+def hasTwoPointPaths( thisLayer ):
+	for thisPath in thisLayer.paths:
+		onCurveNodes = [n for n in thisPath.nodes if n.type != OFFCURVE]
+		if len(onCurveNodes) < 3:
+			return True
+	return False
+
+def hasOpenPaths( thisLayer ):
+	for thisPath in thisLayer.paths:
+		if not thisPath.closed:
+			return True
+	return False
 
 def hasBadOutlineOrder( thisLayer ):
 	firstPath = thisLayer.paths[0]
@@ -38,9 +51,20 @@ def layerIsMasterLayer(thisLayer):
 	isMaster = thisLayer.associatedMasterId == thisLayer.layerId
 	isSpecial = "[" in thisLayer.name or "{" in thisLayer.name
 	return isMaster or isSpecial
+
+def recordLayerInList( thisLayer, thisList, message ):
+	# append to list:
+	thisGlyph = thisLayer.parent
+	glyphName = thisGlyph.name
+	thisList.append( glyphName )
+	
+	# report in macro window:
+	print "%s: %s on layer '%s'." % ( glyphName, message, thisLayer.name )
 	
 zeroHandles = []
 outlineOrder = []
+openPaths = []
+twoPointPaths = []
 
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
@@ -51,15 +75,18 @@ for thisGlyph in thisFont.glyphs:
 	glyphName = thisGlyph.name
 	for thisLayer in thisGlyph.layers:
 		if hasZeroHandles( thisLayer ):
-			print "%s: zero handle on Layer '%s'." % ( glyphName, thisLayer.name )
-			if layerIsMasterLayer( thisLayer ):
-				zeroHandles.append( glyphName )
+			recordLayerInList( thisLayer, zeroHandles, "zero handles" )
 		if hasBadOutlineOrder( thisLayer ):
-			print "%s: bad path direction on Layer '%s'." % ( glyphName, thisLayer.name )
-			if layerIsMasterLayer( thisLayer):
-				outlineOrder.append( glyphName )
+			recordLayerInList( thisLayer, outlineOrder, "bad outline order" )
+		if hasOpenPaths( thisLayer ):
+			recordLayerInList( thisLayer, openPaths, "open paths" )
+		if hasTwoPointPaths( thisLayer ):
+			recordLayerInList( thisLayer, twoPointPaths, "two-node paths" )
 
-tabString = reportString(zeroHandles, "Zero Handles") + reportString(outlineOrder, "Outline Order and Orientation")
+tabString = reportString(zeroHandles, "Zero Handles")
+tabString += reportString(outlineOrder, "Outline Order and Orientation")
+tabString += reportString(openPaths, "Open Paths")
+tabString += reportString(twoPointPaths, "Two-Node Paths")
 
 if tabString:
 	# opens new Edit tab:
@@ -68,6 +95,6 @@ else:
 	# brings macro window to front and clears its log:
 	Message( 
 		"No problems found",
-		"Could not find any zero handles, bad path order or directions in this font.",
+		"Could not find any zero handles, bad path order or directions, open or two-point paths in this font.",
 		OKButton="Hurrah!"
 	)
