@@ -118,38 +118,43 @@ for LeftKey in LeftKeys:
 			if scLeftGlyph:
 				scLeftKey = scLeftGlyph.name
 	
-	# Could we derive a SC left key?
-	# If so, look for right keys:
-	if scLeftKey != None:
-		RightKeys = masterKernDict[LeftKey].keys()
-		for RightKey in RightKeys:
-			# is right key a class?
-			rightKeyIsGroup = ( RightKey[0] == "@" )
-			# prepare SC right key:
-			scRightKey = None
-			# determine the SC rightKey:
-			if rightKeyIsGroup: # a kerning group
-				rightKeyName = "@%s" % RightKey[7:]
-				if RightKey in UppercaseGroups:
-					scRightKey = RightKey[:7] + smallcapName( RightKey[7:] )
-			else: # a single glyph (exception)
-				rightGlyphName = thisFont.glyphForId_( RightKey ).name
-				rightKeyName = rightGlyphName
-				if thisGlyphIsUppercase( rightGlyphName ):
-					scRightGlyphName = smallcapName( rightGlyphName )
-					scRightGlyph = thisFont.glyphs[ scRightGlyphName ]
-					if scRightGlyph:
-						scRightKey = scRightGlyph.name
+	RightKeys = masterKernDict[LeftKey].keys()
+	for RightKey in RightKeys:
+		# is right key a class?
+		rightKeyIsGroup = ( RightKey[0] == "@" )
+		# prepare SC right key:
+		scRightKey = None
+		# determine the SC rightKey:
+		if rightKeyIsGroup: # a kerning group
+			rightKeyName = "@%s" % RightKey[7:]
+			if RightKey in UppercaseGroups:
+				scRightKey = RightKey[:7] + smallcapName( RightKey[7:] )
+		else: # a single glyph (exception)
+			rightGlyphName = thisFont.glyphForId_( RightKey ).name
+			rightKeyName = rightGlyphName
+			if thisGlyphIsUppercase( rightGlyphName ):
+				scRightGlyphName = smallcapName( rightGlyphName )
+				scRightGlyph = thisFont.glyphs[ scRightGlyphName ]
+				if scRightGlyph:
+					scRightKey = scRightGlyph.name
+		
+		# If we have one of the left+right keys, create a pair:
+		if scRightKey != None or scLeftKey != None:
 			
-			# If we have left+right keys, report and put them into the list:
-			if scRightKey != None:
-				scKernValue = masterKernDict[LeftKey][RightKey]
-				print "  Set kerning: %s %s %.1f (derived from %s %s)" % ( 
-					scLeftKey.replace("MMK_L_",""),	scRightKey.replace("MMK_R_",""),
-					scKernValue,
-					leftKeyName, rightKeyName
-				)
-				kerningToBeAdded.append( (fontMasterID, scLeftKey, scRightKey, scKernValue) )
+			# fallback:
+			if scLeftKey == None:
+				scLeftKey = leftKeyName
+			if scRightKey == None:
+				scRightKey = rightKeyName
+				
+			scKernValue = masterKernDict[LeftKey][RightKey]
+			print "  Set kerning: %s %s %.1f (derived from %s %s)" % ( 
+				scLeftKey.replace("MMK_L_",""),	scRightKey.replace("MMK_R_",""),
+				scKernValue,
+				leftKeyName, rightKeyName
+			)
+			kerningToBeAdded.append( (fontMasterID, scLeftKey, scRightKey, scKernValue) )
+				
 
 # go through the list of SC kern pairs, and add them to the font:
 thisFont.disableUpdateInterface()
