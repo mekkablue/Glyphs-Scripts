@@ -143,9 +143,9 @@ for LeftKey in LeftKeys:
 			
 			# fallback:
 			if scLeftKey == None:
-				scLeftKey = leftKeyName
+				scLeftKey = leftKeyName.replace("@","@MMK_L_")
 			if scRightKey == None:
-				scRightKey = rightKeyName
+				scRightKey = rightKeyName.replace("@","@MMK_R_")
 				
 			scKernValue = masterKernDict[LeftKey][RightKey]
 			print "  Set kerning: %s %s %.1f (derived from %s %s)" % ( 
