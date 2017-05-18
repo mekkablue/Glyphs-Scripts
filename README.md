@@ -228,6 +228,7 @@ Please report problems and request features [as a GitHub issue](/issues). Make s
 * **Select Same Layer Color:** Same as above, except with the *layer* color rather than the glyph color.
 * **Select All Paths and Components:** In selected glyphs, selects components and paths, but no anchors.
 * **Steal Colors:** Copies glyph colors from one font to another. *Needs Vanilla.*
+* **Sync Selection between Masters:** Tries to recreate, as much as possible, the current node/anchor/component selection in all other layers. The script assumes compatibility and tries to get as far as possible.
 
 ## Smallcaps
 * **Check Small Cap Consistency:** Performs a few tests on your SC set and reports into the Macro Window.
