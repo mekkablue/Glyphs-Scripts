@@ -132,6 +132,7 @@ Please report problems and request features [as a GitHub issue](/issues). Make s
 * **New Tab with Glyphs Exceeding Zones:** Opens a new tab with all glyphs where the extremums do not lie within zones.
 * **Set TT Stem Hints to Auto:** Sets all TT stem hints to ‘auto’ in selected glyphs.
 * **Set TT Stem Hints to No Stem:** Sets all TT stem hints to ‘no stem’ in selected glyphs. In complex paths, it can improve rendering on Windows.
+* **Transfer Hints to First Master:** Copies PS hints from the current layer to the first master layer, provided the paths are compatible. Reports errors to the Macro window.
 
 ## Images
 * **Add Same Image to Selected Glyphs:** Asks you for an image, and then inserts it into all currently selected glyphs as background image.
