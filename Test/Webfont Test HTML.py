@@ -10,7 +10,7 @@ import GlyphsApp, os
 fileFormats = ( "woff", "woff2", "eot" )
 
 def saveFileInLocation( content="blabla", fileName="test.txt", filePath="~/Desktop" ):
-	saveFileLocation = "%s/fonttest.html" % (filePath)
+	saveFileLocation = "%s/%s" % (filePath,fileName)
 	saveFileLocation = saveFileLocation.replace( "//", "/" )
 	f = open( saveFileLocation, 'w' )
 	print "Exporting to:", f.name
@@ -295,6 +295,10 @@ if appVersionHighEnough:
 		else:
 			print "Error writing file to disk."
 	else:
-		print "Could not determine export path. Have you exported any webfonts yet?"
+		Message( 
+			"Webfont Test HTML Error",
+			"Could not determine export path. Have you exported any webfonts yet?",
+			OKButton=None
+		)
 else:
 	print "This script requires Glyphs 2. Sorry."
