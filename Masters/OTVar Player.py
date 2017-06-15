@@ -4,8 +4,16 @@ __doc__="""
 Plays a glyph in Preview.
 """
 
-import vanilla, threading, time
-#from time import sleep, time
+import vanilla, threading, time, os
+
+def saveFileInLocation( content="blabla", fileName="test.txt", filePath="~/Desktop" ):
+	saveFileLocation = "%s/%s" % (filePath,fileName)
+	saveFileLocation = saveFileLocation.replace( "//", "/" )
+	f = open( saveFileLocation, 'w' )
+	print "Exporting to:", f.name
+	f.write( content )
+	f.close()
+	return True
 
 class OTVarGlyphAnimator( object ):
 	def __init__( self ):
@@ -29,8 +37,12 @@ class OTVarGlyphAnimator( object ):
 		self.w.faster = vanilla.Button((65, -20-15, 47, -15), u"🏃", sizeStyle='regular', callback=self.faster )
 		self.w.faster.getNSButton().setToolTip_("Faster")
 		
+		
+		# web button:
+		self.w.buildWeb = vanilla.Button((-140,-35, -100,-15), u"🌍", sizeStyle='regular', callback=self.buildWeb )
+		
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80-15, -20-15, -15, -15), "Play", sizeStyle='regular', callback=self.togglePlay )
+		self.w.runButton = vanilla.Button((-95, -35, -15, -15), "Play", sizeStyle='regular', callback=self.togglePlay )
 		self.w.runButton.getNSButton().setToolTip_("Toggle Play/Pause")
 		self.w.setDefaultButton( self.w.runButton )
 		
@@ -202,5 +214,71 @@ class OTVarGlyphAnimator( object ):
 		else:
 			# disable faster button at fastest setting:
 			self.w.faster.enable(onOff=False)
-
+	
+	def buildWeb(self, sender):
+		weightAxisPositions = []
+		for m in self.font.masters:
+			axisPos = m.customParameters["Axis Location"][0]["Location"]
+			weightAxisPositions.append( int(axisPos) )
+		
+		htmlCode = """
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+@font-face {
+	font-family: %s;
+	src: url(%sGX.ttf);
+}
+@keyframes Looper {
+	from {
+		font-variation-settings: "wght" %i;
+	}
+	to {
+		font-variation-settings: "wght" %i;
+	}
+}
+body {
+	font: 360px %s;
+	animation: Looper %.1fs linear 0s infinite;
+}
+</style>
+</head>
+<body>%s</body>
+</html>""" % (
+		self.font.familyName,
+		self.font.familyName,
+		min(weightAxisPositions),
+		max(weightAxisPositions),
+		self.font.familyName,
+		float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]) * 50,
+		" ".join( ["&#x%s;" % g.unicode for g in self.font.glyphs if g.unicode and g.export ] )
+		)
+		# GXExportPath = "/Users/mekka/Desktop";
+		# GXExportPathManual = "/Users/mekka/Desktop";
+		# GXPluginUseExportPath = 1;
+		
+		exportPath = None
+		if bool(Glyphs.defaults["GXPluginUseExportPath"]):
+			exportPath = Glyphs.defaults["GXExportPath"]
+		else:
+			exportPath = Glyphs.defaults["GXExportPathManual"]
+			
+		if exportPath:
+			if saveFileInLocation( content=htmlCode, fileName="font_animation.html", filePath=exportPath ):
+				print "Successfully wrote file to disk."
+				terminalCommand = 'cd "%s"; open .' % exportPath
+				os.system( terminalCommand )
+			else:
+				print "Error writing file to disk."
+		else:
+			Message( 
+				"Cannot Create HTML for OTVar",
+				"Could not determine export path of your OTVar font. Have you exported any OTVar font yet?",
+				OKButton=None
+			)
+		
+		
+		
 OTVarGlyphAnimator()
