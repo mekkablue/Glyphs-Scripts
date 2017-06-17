@@ -204,6 +204,7 @@ Please report problems and request features [as a GitHub issue](/issues). Make s
 * **Delete Nodes and Try to Keep Shape:** Deletes selected on-curve nodes and tries to keep the shape as much as possible. Similar to what happens when you delete a single node, but for a selection of multiple nodes.
 * **Delete Stray Points:** Deletes stray points (single node paths) in selected glyphs. Careful: a stray point can be used as a quick hack to disable automatic alignment. Reports in detail to the macro window.
 * **Fill up with rectangles:** Goes through your selected glyphs, and if it finds an empty one, inserts a placeholder rectangle. Useful for quickly building a dummy font for testing.
+* **Enlarge Short Segments:** Doubles the length of line segments shorter than one unit.
 * **Grid Switcher:** Toggles grid between two user-definable gridstep values with the click of a floating button. *Needs Vanilla.*
 * **Insert BCPs into straight segments:** Inserts off-curve points (BCPs) into straight line segments of all selected glyphs. Like option-clicking on all straight lines.
 * **Insert Inflections:** Inserts nodes at path inflections in the visible layers of all selected glyphs.
