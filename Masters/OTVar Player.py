@@ -18,7 +18,7 @@ def saveFileInLocation( content="blabla", fileName="test.txt", filePath="~/Deskt
 class OTVarGlyphAnimator( object ):
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 250
+		windowWidth  = 350
 		windowHeight = 90
 		windowWidthResize  = 700 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
@@ -36,6 +36,7 @@ class OTVarGlyphAnimator( object ):
 		self.w.slower.getNSButton().setToolTip_("Slower")
 		self.w.faster = vanilla.Button((65, -20-15, 47, -15), u"🏃", sizeStyle='regular', callback=self.faster )
 		self.w.faster.getNSButton().setToolTip_("Faster")
+		self.w.backAndForth = vanilla.CheckBox( (125, -20-15, 50, -15), u"⇋", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		
 		
 		# web button:
@@ -49,7 +50,8 @@ class OTVarGlyphAnimator( object ):
 		# Load Settings:
 		if not self.LoadPreferences():
 			print "Note: 'OTVar Glyph Animator' could not load preferences. Will resort to defaults"
-
+		
+		self.direction = 1
 		self.font = Glyphs.font
 		self.originalWeightValue = None
 		self.isPlaying = False
@@ -81,6 +83,7 @@ class OTVarGlyphAnimator( object ):
 	def SavePreferences( self, sender ):
 		try:
 			Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.slider"] = self.w.slider.get()
+			Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.backAndForth"] = self.w.backAndForth.get()
 		except:
 			return False
 			
@@ -91,10 +94,12 @@ class OTVarGlyphAnimator( object ):
 			NSUserDefaults.standardUserDefaults().registerDefaults_(
 				{
 					"com.mekkablue.OTVarGlyphAnimator.slider": 0,
-					"com.mekkablue.OTVarGlyphAnimator.delay": 0.05
+					"com.mekkablue.OTVarGlyphAnimator.delay": 0.05,
+					"com.mekkablue.OTVarGlyphAnimator.backAndForth": 0
 				}
 			)
 			self.w.slider.set( Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.slider"] )
+			self.w.backAndForth.set( Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.backAndForth"] )
 		except:
 			return False
 			
@@ -162,6 +167,9 @@ class OTVarGlyphAnimator( object ):
 
 	def play_( self, sender ):
 		try:
+			if not bool(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.backAndForth"]):
+				self.direction = 1
+			
 			# finer steps when played slowly:
 			smoothnessFactor = 1
 			if Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"] > 0.07:
@@ -174,9 +182,18 @@ class OTVarGlyphAnimator( object ):
 				# Move Slider:
 				sliderPos = self.w.slider.get()
 				if sliderPos >= 100:
-					sliderPos = 0
+					if not bool(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.backAndForth"]):
+						sliderPos = 0
+					else:
+						sliderPos = 99.9999
+						self.direction = -1
+				elif sliderPos <= 0:
+					sliderPos = 0.0001
+					if self.direction == -1:
+						self.direction = 1
+					
 				else:
-					sliderPos += 2.0/smoothnessFactor
+					sliderPos += self.direction * 2.0/smoothnessFactor
 				self.w.slider.set( sliderPos )
 				
 				# Trigger Redraw:
