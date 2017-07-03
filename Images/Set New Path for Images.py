@@ -18,8 +18,8 @@ print "New image path for selected glyphs:\n%s" % newFolder
 
 def process( thisLayer ):
 	try:
-		thisImage = thisLayer.backgroundImage()
-		thisImageFileName = os.path.basename( thisImage.imagePath() )
+		thisImage = thisLayer.backgroundImage
+		thisImageFileName = os.path.basename( thisImage.path )
 		thisImageNewFullPath = "%s/%s" % ( newFolder, thisImageFileName )
 		thisImage.setImagePath_( thisImageNewFullPath )
 	except Exception as e:
