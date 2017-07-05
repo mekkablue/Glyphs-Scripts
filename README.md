@@ -141,6 +141,7 @@ Please report problems and request features [as a GitHub issue](/issues). Make s
 * **Delete All Images in Font:** Deletes all placed images throughout the entire font.
 * **Reset Image Transformations:** Resets all image transformations (x/y offset, scale, and distortion) back to default in the visible layers of selected glyphs.
 * **Set New Path for Images:** Resets the path for placed images in selected glyphs. Useful if you have moved your images.
+* **Toggle Image Lock:** Lock or unlock all images in all selected glyphs. *Needs Vanilla.*
 * **Transform Images:** GUI for batch-transforming images (x/y offset and x/y scale) in the visible layers of selected glyphs. *Needs Vanilla.*
 
 ## Masters
