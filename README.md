@@ -137,6 +137,7 @@ Please report problems and request features [as a GitHub issue](/issues). Make s
 
 ## Images
 * **Add Same Image to Selected Glyphs:** Asks you for an image, and then inserts it into all currently selected glyphs as background image.
+* **Adjust Image Alpha:** Slider for setting the alpha of all images in selected glyphs. *Needs Vanilla.*
 * **Delete Images:** Deletes all placed images in the visible layers of selected glyphs.
 * **Delete All Images in Font:** Deletes all placed images throughout the entire font.
 * **Reset Image Transformations:** Resets all image transformations (x/y offset, scale, and distortion) back to default in the visible layers of selected glyphs.
