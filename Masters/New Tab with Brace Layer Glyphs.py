@@ -5,12 +5,18 @@ Opens a new Edit tab with all glyphs which contain the Brace Layer trick.
 """
 
 import GlyphsApp
-from PyObjCTools.AppHelper import callAfter
 
 Font = Glyphs.font
 editString = ""
 for thisGlyph in Font.glyphs:
-	if "{" in "".join([ l.name for l in thisGlyph.layers ]):
+	allLayerNames = " ".join([ l.name for l in thisGlyph.layers if l.name ])
+	if "{" in allLayerNames and "}" in allLayerNames:
 		editString += ( "/" + thisGlyph.name )
 
-callAfter( Glyphs.currentDocument.windowController().addTabWithString_, editString )
+# opens new Edit tab:
+try:
+	Font.newTab( editString )
+except:
+	# backwards compatibility
+	from PyObjCTools.AppHelper import callAfter
+	callAfter( Glyphs.currentDocument.windowController().addTabWithString_, editString )
