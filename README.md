@@ -152,6 +152,7 @@ Please report problems and request features [as a GitHub issue](/issues). Make s
 * **Fill up empty layers:** Copies paths from one Master to another. But only if target master is empty. *Needs Vanilla.*
 * **Find and Replace in Layer Names:** Replaces text in all layer names (except Master layers) of selected glyphs. Useful if you use the bracket trick in many glyphs. *Needs Vanilla.*
 * **Insert instances:** GUI for calculating and inserting weight instances. It is described in this tutorial: https://www.glyphsapp.com/tutorials/multiple-masters-part-3-setting-up-instances *Needs Vanilla.*
+* **Insert Brace Layers for Movement along Background Path:** Inserts a number of Brace Layers with copies of the first layer, shifted according to the first path in the background. Useful for OTVar interpolations with moving elements.
 * **Insert Brace Layers for Rotating Components:** Inserts a number of Brace Layers with continuously scaled and rotated components. Useful for OTVar interpolations with rotating elements. *Needs Vanilla.*
 * **Merge All Other Masters in Current Master:** In selected glyphs, copies all paths from other masters onto the current master layer.
 * **New Tab with Brace Layer Glyphs**: Opens a new Edit tab with all glyphs which contain the Brace Layer trick.
