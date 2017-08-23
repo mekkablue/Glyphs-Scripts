@@ -7,28 +7,9 @@ These are Python scripts for use with the [Glyphs font editor](http://glyphsapp.
 
 Put the scripts into the *Scripts* folder which appears when you choose *Open Scripts Folder* from the *Scripts* menu.
 
-For some scripts, you will also need to install Tal Leming's *Vanilla*. Here's how. 
+For some scripts, you will also need to install Tal Leming's *Vanilla*: In **Glyphs 2.0 or later**, go to *Glyphs > Preferences > Addons > Modules* and click the *Install Modules* button. You are done and can skip the rest of these installation instructions.
 
-In **Glyphs 2.0 or later**, go to *Glyphs > Preferences > Addons > Modules* and click the *Install Modules* button. You are done and can skip the rest of these installation instructions.
-
-For **Glyphs 1.x**, open Terminal and copy and paste the following lines and hit return. You can copy all of them at once. Notes: the second line (`curl`) may take a while, the `sudo` line will prompt you for your password (type it and press Return, you will *not* see bullets):
-
-    cd ~/Library/
-    curl http://download.robofab.com/RoboFab_599_plusAllDependencies.zip > robofab.zip
-    unzip -o robofab.zip -d Python_Installs
-    rm robofab.zip
-    cd Python_Installs/Vanilla/
-    sudo python2.6 setup.py install
-	
-
-And you are done. The installation should be effective immediately, but in case it does not work right away, you may want to restart your Mac or log out and back in again. While we're at it, we can also install Robofab, DialogKit, and FontTools. You do not need those for my scripts though:
-
-    cd ../Robofab/
-    sudo python2.6 setup.py install
-    cd ../DialogKit/
-    sudo python2.6 install.py
-    cd ../FontTools/
-    sudo python2.6 setup.py install
+For **Glyphs 1.x,** see installation instructions all the way at the bottom (scroll down).
 
 # TROUBLESHOOTING
 
@@ -253,6 +234,29 @@ Please report problems and request features [as a GitHub issue](/issues). Make s
 * **Report Black to White Ratios:** Calculates the black area of all selected glyphs, and the black/white area ratio in relation to bounding box and several vertical metrics. Outputs a CSV spreadsheet.
 * **Report Highest and Lowest Glyphs:** Reports glyphs with highest and lowest bounding boxes for all masters.
 * **Webfont Test HTML:** Creates a Test HTML for the current font inside the current Webfont Export folder, or for the current Glyphs Project in the project’s export path. *Requires Glyphs 2 or later.*
+
+# Install the Scripts for Glyphs 1.x
+
+Don’t. Upgrade to Glyphs 2. For **Glyphs 1.x**, I cannot guarantee scripts will work. But for the record, open Terminal and copy and paste the following lines and hit return. You can copy all of them at once. Notes: the second line (`curl`) may take a while, the `sudo` line will prompt you for your password (type it and press Return, you will *not* see bullets):
+
+    cd ~/Library/
+    curl http://download.robofab.com/RoboFab_599_plusAllDependencies.zip > robofab.zip
+    unzip -o robofab.zip -d Python_Installs
+    rm robofab.zip
+    cd Python_Installs/Vanilla/
+    sudo python2.6 setup.py install
+
+And you are done. The installation should be effective immediately, but in case it does not work right away, you may want to restart your Mac or log out and back in again. While we're at it, we can also install Robofab, DialogKit, and FontTools. You do not need those for my scripts though:
+
+    cd ../Robofab/
+    sudo python2.6 setup.py install
+    cd ../DialogKit/
+    sudo python2.6 install.py
+    cd ../FontTools/
+    sudo python2.6 setup.py install
+
+Now, put the scripts into the *Scripts* folder which appears when you choose *Open Scripts Folder* from the *Scripts* menu. Then, restart the app.
+
 
 # License
 
