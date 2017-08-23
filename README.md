@@ -97,6 +97,7 @@ Please report problems and request features [as a GitHub issue](/issues). Make s
 ## Features
 * **Build ccmp for Hebrew Presentation Forms:** Builds or updates a Hebrew ccmp feature, where presentation forms (Unicode FBxx) are prebuilt like ligatures if present in the font.
 * **Build positional calt feature:** Looks for .init, .medi, .fina, and .isol glyphs, and injects positional substitution code into your calt feature. If run again, will update its class and feature code. 
+* **Build Kana Features:** Creates hkna, vkna and pkna OpenType features for Kana.
 * **Floating Features:** Floating palettes for activating and deactivating OT features. Same functionality as the pop-up menu. *Needs Vanilla.*
 * **Glyph Names as Discretionary Ligatures:** Adds names of exporting glyphs without a Unicode value as ligatures into the dlig feature. Useful for proofing otherwise inaccessible glyphs.
 * **Make OT Class from selected glyphs:** GUI for creating a new OT class with the selected glyphs. *Needs Vanilla.*
