@@ -9,7 +9,8 @@ Put the scripts into the *Scripts* folder which appears when you choose *Open Sc
 
 For some scripts, you will also need to install Tal Leming's *Vanilla*: In **Glyphs 2.0 or later**, go to *Glyphs > Preferences > Addons > Modules* and click the *Install Modules* button. You are done and can skip the rest of these installation instructions.
 
-For **Glyphs 1.x,** see installation instructions all the way at the bottom (scroll down).
+> If you are running **Glyphs 1.x,** please upgrade to Glyphs 2.0. I assume that many scripts will simply not work in Glyphs 1.x. For the record, for Glyphs 1.x, you would need to install [Vanilla](https://github.com/typesupply/vanilla) yourself to make the scripts work that depend on it. After that, put the scripts into the *Scripts* folder which appears when you choose *Open Scripts Folder* from the *Scripts* menu. Then, restart the app.
+
 
 # TROUBLESHOOTING
 
@@ -240,11 +241,6 @@ Please report problems and request features [as a GitHub issue](/issues). Make s
 * **Report Highest and Lowest Glyphs:** Reports glyphs with highest and lowest bounding boxes for all masters.
 * **Webfont Test HTML:** Creates a Test HTML for the current font inside the current Webfont Export folder, or for the current Glyphs Project in the project’s export path. *Requires Glyphs 2 or later.*
 
-# Installing the Scripts for Glyphs 1.x
-
-Don’t. Upgrade to Glyphs 2.
-
-For the record, for Glyphs 1.x, you will need to install [Vanilla](https://github.com/typesupply/vanilla) yourself to make the scripts work that depend on it. After that, put the scripts into the *Scripts* folder which appears when you choose *Open Scripts Folder* from the *Scripts* menu. Then, restart the app.
 
 
 # License
