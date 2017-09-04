@@ -88,6 +88,11 @@ Please report problems and request features [as a GitHub issue](/issues). Make s
 * * **Stylistic Sets > Create pseudorandom calt feature:** Creates pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font. Update: now includes the default class in the rotation algorithm.
 * **Wrap and Extend Features:** Encloses all features with lookups with the _useExtension_ parameter, allowing you to have a 32 bits limit insead of the standard 16 bits. It also divides the lookups into sub groups of 3000 lines.
 
+## Font Info
+
+* **Set Preferred Names (Name IDs 16 and 17) for Width Variants:** Sets Preferred Names custom parameters (Name IDs 16 and 17) for all instances, so that width variants will appear in separate menus in Adobe apps.
+* **Set WWS Names (Name IDs 21 and 22):** Sets WWS custom parameters (Name IDs 21 and 22) for all instances where necessary: Puts all info except RIBBI into the WWSFamilyName, and only keeps RIBBI for the WWSSubfamilyName.
+
 ## Glyph Names
 * **Add PUA Unicode Values to Selected Glyphs:** Iterates through selected glyphs and incrementally applies custom Unicode values, starting at a user-specified value. *Needs Vanilla.*
 * **Check Glyph Names:** Checks all available glyph names for illegal characters.
@@ -235,27 +240,11 @@ Please report problems and request features [as a GitHub issue](/issues). Make s
 * **Report Highest and Lowest Glyphs:** Reports glyphs with highest and lowest bounding boxes for all masters.
 * **Webfont Test HTML:** Creates a Test HTML for the current font inside the current Webfont Export folder, or for the current Glyphs Project in the project’s export path. *Requires Glyphs 2 or later.*
 
-# Install the Scripts for Glyphs 1.x
+# Installing the Scripts for Glyphs 1.x
 
-Don’t. Upgrade to Glyphs 2. For **Glyphs 1.x**, I cannot guarantee scripts will work. But for the record, open Terminal and copy and paste the following lines and hit return. You can copy all of them at once. Notes: the second line (`curl`) may take a while, the `sudo` line will prompt you for your password (type it and press Return, you will *not* see bullets):
+Don’t. Upgrade to Glyphs 2.
 
-    cd ~/Library/
-    curl http://download.robofab.com/RoboFab_599_plusAllDependencies.zip > robofab.zip
-    unzip -o robofab.zip -d Python_Installs
-    rm robofab.zip
-    cd Python_Installs/Vanilla/
-    sudo python2.6 setup.py install
-
-And you are done. The installation should be effective immediately, but in case it does not work right away, you may want to restart your Mac or log out and back in again. While we're at it, we can also install Robofab, DialogKit, and FontTools. You do not need those for my scripts though:
-
-    cd ../Robofab/
-    sudo python2.6 setup.py install
-    cd ../DialogKit/
-    sudo python2.6 install.py
-    cd ../FontTools/
-    sudo python2.6 setup.py install
-
-Now, put the scripts into the *Scripts* folder which appears when you choose *Open Scripts Folder* from the *Scripts* menu. Then, restart the app.
+For the record, for Glyphs 1.x, you will need to install [Vanilla](https://github.com/typesupply/vanilla) yourself to make the scripts work that depend on it. After that, put the scripts into the *Scripts* folder which appears when you choose *Open Scripts Folder* from the *Scripts* menu. Then, restart the app.
 
 
 # License
