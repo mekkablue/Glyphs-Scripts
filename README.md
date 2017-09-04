@@ -5,16 +5,20 @@ These are Python scripts for use with the [Glyphs font editor](http://glyphsapp.
 
 # INSTALLATION
 
-Put the scripts into the *Scripts* folder which appears when you choose *Open Scripts Folder* from the *Scripts* menu.
+Put the scripts into the *Scripts* folder which appears when you choose *Script > Open Scripts Folder* (Cmd-Shift-Y). Then, hold down the Option (Alt) key, and choose *Script > Reload Scripts* (Cmd-Opt-Shift-Y). Now the scripts are visible in the *Script* menu
 
-For some scripts, you will also need to install Tal Leming's *Vanilla*: In **Glyphs 2.0 or later**, go to *Glyphs > Preferences > Addons > Modules* and click the *Install Modules* button. You are done and can skip the rest of these installation instructions.
-
-> If you are running **Glyphs 1.x,** please upgrade to Glyphs 2.0. I assume that many scripts will simply not work in Glyphs 1.x. For the record, for Glyphs 1.x, you would need to install [Vanilla](https://github.com/typesupply/vanilla) yourself to make the scripts work that depend on it. After that, put the scripts into the *Scripts* folder which appears when you choose *Open Scripts Folder* from the *Scripts* menu. Then, restart the app.
+For some of the scripts, you will also need to install Tal Leming's *Vanilla*: Go to *Glyphs > Preferences > Addons > Modules* and click the *Install Modules* button. That’s it.
 
 
 # TROUBLESHOOTING
 
-Please report problems and request features [as a GitHub issue](/issues). Make sure you have the latest version of the scripts and your app is up to date. And always, I mean *always*, indicate both your Glyphs.app and your OS X version. Thank you.
+Please report problems and request features [as a GitHub issue](/issues). Make sure you have the latest version of the scripts and your app is up to date. And please, always **indicate both your Glyphs and macOS version.** Thank you.
+
+
+# REQUIREMENTS
+
+The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test them and make them work in the latest version of the software.
+
 
 # ABOUT THE SCRIPTS
 
