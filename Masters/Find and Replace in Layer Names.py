@@ -74,10 +74,6 @@ class replaceInLayerNames(object):
 		searchFor = Glyphs.defaults["com.mekkablue.FindAndReplaceInLayerNames.searchFor"]
 		replaceBy = Glyphs.defaults["com.mekkablue.FindAndReplaceInLayerNames.replaceBy"]
 		
-		# brings macro window to front and clears its log:
-		Glyphs.clearLog()
-		Glyphs.showMacroWindow()
-		
 		replaceCount = 0
 
 		thisFont.disableUpdateInterface()
@@ -94,7 +90,7 @@ class replaceInLayerNames(object):
 		thisFont.enableUpdateInterface()
 		
 		if replaceCount > 0:
-			
+			Message("Replaced successfully", "Replaced %i occurrences."%replaceCount, OKButton=None)
 		else:
 			Message("Nothing replaced", "Could not find any occurrences of search string in the processed layers.", OKButton=None)
 			
