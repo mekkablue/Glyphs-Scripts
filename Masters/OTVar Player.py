@@ -139,6 +139,8 @@ class OTVarGlyphAnimator( object ):
 			# get Slider position
 			sliderPos = self.w.slider.get() / 100.0
 			weights = [m.weightValue for m in self.font.masters]
+			if self.font.customParameters["Virtual Master"]:
+				weights.append(self.font.customParameters["Virtual Master"][0]["Location"])
 			minWt = min(weights)
 			maxWt = max(weights)
 			sliderWt = minWt + sliderPos * (maxWt-minWt)
@@ -237,6 +239,12 @@ class OTVarGlyphAnimator( object ):
 		for m in self.font.masters:
 			axisPos = m.customParameters["Axis Location"][0]["Location"]
 			weightAxisPositions.append( int(axisPos) )
+		if self.font.customParameters["Virtual Master"]:
+			weightAxisPositions.append(self.font.customParameters["Virtual Master"][0]["Location"])
+		
+		firstAxisTag = "wght"
+		if self.font.customParameters["Axes"]:
+			firstAxisTag = self.font.customParameters["Axes"][0]["Tag"]
 		
 		htmlCode = """
 <!DOCTYPE html>
@@ -245,36 +253,35 @@ class OTVarGlyphAnimator( object ):
 <meta charset="UTF-8">
 <style>
 @font-face {
-	font-family: %s;
-	src: url(%sGX.ttf);
+	font-family: "%s";
+	src: url("%sGX.ttf");
 }
 @keyframes Looper {
 	from {
-		font-variation-settings: "wght" %i;
+		font-variation-settings: "%s" %i;
 	}
 	to {
-		font-variation-settings: "wght" %i;
+		font-variation-settings: "%s" %i;
 	}
 }
 body {
-	font: 360px %s;
+	font: 360px "%s";
 	animation: Looper %.1fs linear 0s infinite;
 }
 </style>
 </head>
 <body>%s</body>
 </html>""" % (
-		self.font.familyName,
-		self.font.familyName,
-		min(weightAxisPositions),
-		max(weightAxisPositions),
-		self.font.familyName,
-		float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]) * 50,
-		" ".join( ["&#x%s;" % g.unicode for g in self.font.glyphs if g.unicode and g.export ] )
+			self.font.familyName,
+			self.font.familyName,
+			firstAxisTag,
+			min(weightAxisPositions),
+			firstAxisTag,
+			max(weightAxisPositions),
+			self.font.familyName,
+			float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]) * 50,
+			" ".join( ["&#x%s;" % g.unicode for g in self.font.glyphs if g.unicode and g.export ] )
 		)
-		# GXExportPath = "/Users/mekka/Desktop";
-		# GXExportPathManual = "/Users/mekka/Desktop";
-		# GXPluginUseExportPath = 1;
 		
 		exportPath = None
 		if bool(Glyphs.defaults["GXPluginUseExportPath"]):
@@ -282,6 +289,7 @@ body {
 		else:
 			exportPath = Glyphs.defaults["GXExportPathManual"]
 			
+		print "exportPath:", exportPath
 		if exportPath:
 			if saveFileInLocation( content=htmlCode, fileName="font_animation.html", filePath=exportPath ):
 				print "Successfully wrote file to disk."
@@ -292,10 +300,8 @@ body {
 		else:
 			Message( 
 				"Cannot Create HTML for OTVar",
-				"Could not determine export path of your OTVar font. Have you exported any OTVar font yet?",
+				"Could not determine export path of your OTVar font. Export an OTVar font first, the HTML will be saved next to it.",
 				OKButton=None
 			)
-		
-		
 		
 OTVarGlyphAnimator()
