@@ -1,4 +1,4 @@
-#MenuTitle: Dekink
+#MenuTitle: Dekink Master Layers
 # -*- coding: utf-8 -*-
 __doc__="""
 Synchronize node distance proportions for angled smooth connections through all masters (and other compatible layers), thus avoiding interpolation kinks. Select one or more smoothly connected nodes and run the script.
