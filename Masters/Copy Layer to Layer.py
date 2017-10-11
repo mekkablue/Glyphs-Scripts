@@ -160,6 +160,21 @@ class CopyLayerToLayer( object ):
 			for thisPath in sourceLayer.paths:
 				newPath = thisPath.copy()
 				targetLayer.paths.append( newPath )
+				
+	def copyHintsFromLayerToLayer( self, sourceLayer, targetLayer ):
+		"""Copies all hints, corner and cap components from one layer to the next."""
+		numberOfHintsInSource = len( sourceLayer.hints )
+		numberOfHintsInTarget  = len( targetLayer.hints )
+
+		if numberOfHintsInTarget != 0:
+			print "- Deleting %i hints, caps and corners in target layer" % numberOfHintsInTarget
+			targetLayer.hints = []
+
+		if numberOfHintsInSource > 0:
+			print "- Copying hints, caps and corners"
+			for thisHint in sourceLayer.hints:
+				newHint = thisHint.copy()
+				targetLayer.hints.append( newHint )
 
 	def copyComponentsFromLayerToLayer( self, sourceLayer, targetLayer ):
 		"""Copies all components from sourceLayer to targetLayer."""
@@ -246,6 +261,10 @@ class CopyLayerToLayer( object ):
 					self.copyAnchorsFromLayerToLayer( sourcelayer, targetlayer )
 				if metricsYesOrNo and not copyBackground:
 					self.copyMetricsFromLayerToLayer( sourcelayer, targetlayer )
+				
+				# copy hints, caps and corners if either paths or components are copied:
+				if componentsYesOrNo or pathsYesOrNo:
+					self.copyHintsFromLayerToLayer( sourcelayer, targetlayer )
 
 				sourceFont.enableUpdateInterface()
 				targetFont.enableUpdateInterface()
