@@ -39,7 +39,6 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 * **Replicate Anchors:** Goes through selected dot-suffixed glyphs and duplicates anchors from their respective base glyphs. E.g. will recreate anchors of *X* in *X.ss01*, *X.swsh* and *X.alt*.
 * **Reposition top & bottom Anchors in Combining Accents:** In stacking combining accents, moves top and bottom anchors exactly above or below the respective _top and _bottom anchors, respecting the italic angle. This way, stacking multiple nonspacing accents will always stay in line.
 
-
 ## App
 * **Fix Stuck Macro Window:** If you cannot resize your Macro window anymore, run this script.
 * **Increase** and **Decrease Line Height:** Increases the Edit View line height by a quarter, or decreases it by a fifth. Useful for setting shortcuts if you need to switch between line heights a lot.
