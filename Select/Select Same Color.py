@@ -11,7 +11,10 @@ def indexSetWithIndex( index ):
 	return indexSet
 
 thisDoc = Glyphs.currentDocument # frontmost document
-fontView = thisDoc.windowController().tabBarControl().viewControllers()[0].glyphsArrayController()
+try:
+    fontView = thisDoc.windowController().tabBarControl().tabItemAtIndex_(0).glyphsArrayController()
+except:
+    fontView = thisDoc.windowController().tabBarControl().viewControllers()[0].glyphsArrayController()
 displayedGlyphsInFontView = fontView.arrangedObjects() # all glyphs currently displayed
 colorIndexes = []
 

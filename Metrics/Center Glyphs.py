@@ -42,9 +42,8 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 Font.disableUpdateInterface()
 
 for thisLayer in selectedLayers:
-	center = thisLayer.width/2.0
-	centerOfObjects = thisLayer.bounds.origin.x + 0.5 * thisLayer.bounds.size.width
-	shift = center - centerOfObjects
+	thisMaster = thisLayer.master
+	shift = ( thisLayer.LSB - thisLayer.RSB ) * -0.5
 	shiftMatrix = transform(shiftX=shift).transformStruct()
 	thisLayer.applyTransform( shiftMatrix )
 
