@@ -48,6 +48,8 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 * **Paste in View Center:** Pastes paths and components in the clipboard into the current view center of the Edit view. Useful for setting a shortcut.
 * **Print Window:** Print the frontmost window. Useful for saving a vector PDF of your window content.
 * **Save Selected Glyphs as PNG:** Saves selected glyphs as PNGs in a user-specified folder.
+* **Set Export Paths to Adobe Fonts Folder:** Sets the OpenType font and Variable Font export paths to the Adobe Fonts Folder.
+* **Set Tool Shortcuts:** Set Shortcuts for tools in toolbar.
 * **SVN Update:** Issue an `svn update` with the supplied paths. Reports results and errors to the Macro Window. *Needs Vanilla.*
 
 ## Arabic
