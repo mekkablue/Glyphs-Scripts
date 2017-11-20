@@ -106,6 +106,7 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 * **Copy Glyph Name List:** Copies a newline-separated list of glyph names. Useful for pasting into a *glyphOrder* custom parameter or a List filter.
 * **Copy Unicode-Sorted Glyph Name List:** Copies a newline-separated list of glyph names, in the order of their respective Unicode values. Useful for pasting into a *glyphOrder* custom parameter or a List filter.
 * **Lowercase:** Turns the names of selected glyphs lowercase.
+* **Reorder Unicodes of Selected Glyphs:** Reorders Unicodes so that default Unicode comes first. Glyphs 2.5+ only.
 
 ## Guidelines
 * **Add Center Guideline:** Adds vertical or horizontal guide in the middle between two selected nodes.
