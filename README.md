@@ -142,7 +142,7 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 
 ## Masters
 * **Copy layer to layer:** Copies paths (and optionally, also components, anchors and metrics) from one Master to another. *Needs Vanilla.*
-* **Dekink:** Dekinks your smooth transitions which are not horizontal or vertical. Select one or more angled smooth connections and run this script to move the corresponding nodes in all other masters to the same relative position. There is a video describing it: http://tinyurl.com/dekink-py
+* **Dekink:** Dekinks your smooth point triplets in all compatible layers (useful if they are not horizontal or vertical). Select a point in one or more smooth point triplets, and run this script to move the corresponding nodes in all other masters to the same relative position. Thus you achieve the same point ratio in all masters and avoid interpolation kinks, when the angle of the triplet changes. There is a [video describing it.](http://tinyurl.com/dekink-py) The triplet problem is [described in this tutorial](http://www.glyphsapp.com/tutorials/multiple-masters-part-2-keeping-your-outlines-compatible).
 * **Delete all non-Master layers:** Deletes all layers which are neither master layers, nor brace layers, nor bracket layers. Useful for getting rid of backup layers.
 * **Fill up empty layers:** Copies paths from one Master to another. But only if target master is empty. *Needs Vanilla.*
 * **Find and Replace in Layer Names:** Replaces text in all layer names (except Master layers) of selected glyphs. Useful if you use the bracket trick in many glyphs. *Needs Vanilla.*
