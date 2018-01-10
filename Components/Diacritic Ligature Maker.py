@@ -10,7 +10,6 @@ thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
 thisFontMasterID = thisFontMaster.id
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
-selectTool = NSClassFromString("GSToolSelect").alloc().init()
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
