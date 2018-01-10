@@ -29,12 +29,7 @@ def allLigaturesFromNameLists( l ):
 		return l[0]
 
 def namesOfGlyphsContainingThisComponent( componentName ):
-	try:
-		listOfGlyphs = thisFont.glyphsContainingComponentWithName_masterID_( componentName, thisFontMasterID )
-	except:
-		# backwards compatibility
-		listOfGlyphs = selectTool._glyphsContainingComponentWithName_font_masterID_( componentName, thisFont, thisFontMasterID )
-	
+	listOfGlyphs = thisFont.glyphsContainingComponentWithName_masterID_( componentName, thisFontMasterID )
 	nameList = [ g.name for g in listOfGlyphs if "_" not in g.name ]
 	return nameList
 
