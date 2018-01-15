@@ -4,7 +4,7 @@ __doc__="""
 Align selected components, paths (and parts of paths) to the next metric line or guideline below.
 """
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 Doc = Glyphs.currentDocument

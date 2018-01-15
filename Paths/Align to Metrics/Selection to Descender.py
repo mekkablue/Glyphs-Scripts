@@ -4,7 +4,7 @@ __doc__="""
 Align selected paths (and parts of paths) in the frontmost layer to the Descender.
 """
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 Doc = Glyphs.currentDocument

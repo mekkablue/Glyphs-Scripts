@@ -4,7 +4,7 @@ __doc__="""
 Deletes stray points (single node paths) in selected glyphs. Careful: a stray point can be used as a quick hack to disable automatic alignment.
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font # frontmost font
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs

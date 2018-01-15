@@ -5,7 +5,7 @@ Interpolates each layer x times with its background and creates glyph variations
 """
 
 import vanilla
-import GlyphsApp
+
 
 class VariationInterpolator( object ):
 	def __init__( self ):

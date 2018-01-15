@@ -4,7 +4,7 @@ __doc__="""
 Opens a new edit tab and outputs all possible figure combos: 00010203..., 10111213... etc.
 """
 
-import GlyphsApp
+
 from PyObjCTools.AppHelper import callAfter
 
 figures = "0123456789"

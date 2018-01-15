@@ -5,7 +5,7 @@ Adjusts all kerning values by a specified amount.
 """
 
 import vanilla
-import GlyphsApp
+
 
 optionList = [ "Multiply by", "Add", "Add Absolute", "Round by" ]
 

@@ -4,7 +4,7 @@ __doc__="""
 Deletes all paths in visible layers of selected glyphs.
 """
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers

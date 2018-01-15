@@ -4,7 +4,7 @@ __doc__="""
 Distributes the selected nodes horizontally or vertically, depending on the bounding box.
 """
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 Doc = Glyphs.currentDocument

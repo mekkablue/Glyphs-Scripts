@@ -4,7 +4,7 @@ __doc__="""
 Goes through selected glyphs and deletes all glyph layers which are not a Master, Bracket or Brace layer.
 """
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers

@@ -4,7 +4,7 @@ __doc__="""
 Inserts Nodes on inflections on all paths in the selected glyphs.
 """
 
-import GlyphsApp
+
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 

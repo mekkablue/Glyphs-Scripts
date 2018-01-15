@@ -4,7 +4,7 @@ __doc__="""
 Looks for the first component in a compound glyph and sets it back to x=0 and inherits its width. Useful for syncing numerators and denominators.
 """
 
-import GlyphsApp
+
 
 
 Font = Glyphs.font

@@ -4,7 +4,7 @@ __doc__="""
 Copies a newline-separated list of glyph names to the clipboard.
 """
 
-import GlyphsApp
+
 from AppKit import NSPasteboard
 
 separator = "\n"

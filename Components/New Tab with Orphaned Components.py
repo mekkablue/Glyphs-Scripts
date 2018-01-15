@@ -4,7 +4,7 @@ __doc__="""
 Opens a new tab in the current font window containing all glyphs (of the current master) that have components that point to non-existent glyphs, i.e., no base glyphs.
 """
 
-import GlyphsApp
+
 
 
 thisFont = Glyphs.font # frontmost font

@@ -4,7 +4,7 @@ __doc__="""
 Moves acute(.case) from 'top' to 'top_acute' anchors where available. And other accents likewise.
 """
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 selectedGlyphs = [ x.parent for x in Font.selectedLayers ]

@@ -4,7 +4,7 @@ __doc__="""
 In selected glyphs, delete all hints in all layers except for the first master. Respects Bracket Layers.
 """
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers

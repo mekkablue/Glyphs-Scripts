@@ -4,7 +4,7 @@ __doc__="""
 Creates a CSV file containing name of the glyph, the x and y distances, and the rectangle area between entry and exit anchors. Works for selected glyphs only.
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master

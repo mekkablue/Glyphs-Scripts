@@ -4,13 +4,11 @@ __doc__="""
 Looks for components out of bounds.
 """
 
-outOfBounds = 3000.0
-
-import GlyphsApp
-import math
+from math import fabs
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
+outOfBounds = 3000.0
 
 def scanOutOfBounds( thisLayer ):
 	
@@ -19,7 +17,7 @@ def scanOutOfBounds( thisLayer ):
 
 	for i in range( len( listOfComponents )):
 		c = thisLayer.components[i]
-		if math.fabs(c.y) > outOfBounds or math.fabs(c.x) > outOfBounds:
+		if fabs(c.y) > outOfBounds or fabs(c.x) > outOfBounds:
 			indexesOutOfBounds.append(i)
 	
 	return sorted( set( indexesOutOfBounds ) )

@@ -4,7 +4,7 @@ __doc__="""
 Checks if everything is alright in the font.
 """
 
-import GlyphsApp
+
 
 Doc  = Glyphs.currentDocument
 Font = Glyphs.font

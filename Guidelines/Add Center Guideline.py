@@ -4,7 +4,7 @@ __doc__="""
 Creates a guideline, horizontally or vertically centered between two selected nodes.
 """
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 FontMaster = Font.selectedFontMaster

@@ -1,7 +1,7 @@
 #MenuTitle: Print Window
 """Print the frontmost window."""
 
-import GlyphsApp
+
 
 doc = Glyphs.currentDocument
 

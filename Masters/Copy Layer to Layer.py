@@ -4,7 +4,7 @@ __doc__="""
 Copies one master to another master's or background in selected glyphs.
 """
 
-import GlyphsApp
+
 import vanilla
 import math
 

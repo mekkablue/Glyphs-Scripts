@@ -5,7 +5,7 @@ Removes the specified component from all (selected) glyphs.
 """
 
 import vanilla
-import GlyphsApp
+
 
 class RemoveComponentfromSelectedGlyphs( object ):
 	def __init__( self ):

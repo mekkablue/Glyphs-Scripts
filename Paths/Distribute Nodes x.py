@@ -4,7 +4,7 @@ __doc__="""
 Distributes the selected nodes horizontally.
 """
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 selectedLayer = Font.selectedLayers[0]

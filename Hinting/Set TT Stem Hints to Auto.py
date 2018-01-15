@@ -4,7 +4,7 @@ __doc__="""
 Sets all TT stem hints to ‘Auto’ in selected glyphs.
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font # frontmost font
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs

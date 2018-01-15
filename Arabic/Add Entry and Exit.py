@@ -4,7 +4,7 @@ __doc__="""
 Adds exit and entry anchors to Arabic init, medi and fina glyphs.
 """
 
-import GlyphsApp
+
 
 Glyphs.clearLog()
 Glyphs.showMacroWindow()

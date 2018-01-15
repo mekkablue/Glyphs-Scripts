@@ -8,7 +8,7 @@ Suggested shortcut: shift-ctrl-cmd-downarrow.
 
 yDiff = -10
 
-import GlyphsApp
+
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 

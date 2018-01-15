@@ -4,7 +4,7 @@ __doc__="""
 Deletes all components in selected glyphs.
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font
 selectedLayers = thisFont.selectedLayers

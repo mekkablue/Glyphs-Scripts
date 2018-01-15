@@ -4,7 +4,7 @@ __doc__="""
 Batch-process anchor positions in selected glyphs (GUI).
 """
 
-import GlyphsApp
+
 import vanilla
 import math
 

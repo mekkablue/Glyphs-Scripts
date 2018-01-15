@@ -7,7 +7,7 @@ Where possible, puts acute, grave, hookabove on 'top_viet' in all selected glyph
 accentsToBeMoved = [ "acute", "grave", "hookabovecomb", "acutecomb", "gravecomb" ]
 newAnchor = "top_viet"
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 selectedGlyphs = [ x.parent for x in Font.selectedLayers ]

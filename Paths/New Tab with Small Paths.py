@@ -5,7 +5,7 @@ Finds small paths (smaller tahn a user-definable threshold) in glyphs and open a
 """
 
 import vanilla
-import GlyphsApp
+
 
 class FindSmallPaths( object ):
 	def __init__( self ):

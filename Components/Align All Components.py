@@ -4,7 +4,7 @@ __doc__="""
 Fakes auto-alignment in glyphs that cannot be auto-aligned.
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font # frontmost font
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs

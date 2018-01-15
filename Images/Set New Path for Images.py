@@ -4,7 +4,7 @@ __doc__="""
 Resets the path for placed images in selected glyphs. Useful if you have moved your images.
 """
 
-import GlyphsApp
+
 import os
 
 def process( thisLayer ):

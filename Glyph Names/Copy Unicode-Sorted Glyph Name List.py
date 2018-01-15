@@ -4,7 +4,7 @@ __doc__="""
 Creates a glyph list of all encoded glyphs, in Unicode order, and puts in your clipboard for pasting.
 """
 
-import GlyphsApp
+
 from AppKit import NSPasteboard
 
 thisFont = Glyphs.font # frontmost font

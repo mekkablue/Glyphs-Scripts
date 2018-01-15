@@ -4,7 +4,7 @@ __doc__="""
 Open a new tab containing all compound glyphs that have an unusual component order or an unorthodox component structure. Useful for finding wrong component orders.
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font # frontmost font
 fontMasterIDs = [m.id for m in thisFont.masters]

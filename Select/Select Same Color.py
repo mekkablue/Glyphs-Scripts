@@ -4,7 +4,7 @@ __doc__="""
 In Font view, select glyphs with the same color(s) as the currently selected one(s).
 """
 
-import GlyphsApp
+
 
 def indexSetWithIndex( index ):
 	indexSet = NSIndexSet.alloc().initWithIndex_( index )

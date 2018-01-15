@@ -5,7 +5,7 @@ Makes component based smcp glyphs, using the c2sc glyphs as components.
 Ignores selected glyphs without a .c2sc ending.
 """
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 selectedGlyphs = [ x.parent for x in Font.selectedLayers if x.parent.name[-5:] == ".smcp" ]

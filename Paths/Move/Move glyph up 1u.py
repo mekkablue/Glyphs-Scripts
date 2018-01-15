@@ -8,7 +8,7 @@ Suggested shortcut: ctrl-cmd-uparrow.
 
 yDiff = 1
 
-import GlyphsApp
+
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 

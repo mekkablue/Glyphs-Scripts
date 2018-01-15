@@ -4,7 +4,7 @@ __doc__="""
 Refreshes all existing OT features without changing their order or adding new features.
 """
 
-import GlyphsApp
+
 Font = Glyphs.font
 
 for thisFeature in Font.features:

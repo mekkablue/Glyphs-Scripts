@@ -4,7 +4,7 @@ __doc__="""
 Re-aligns components in double marks (like shadda_damma-ar) to each other according to their anchors. Only for the current master.
 """
 
-import GlyphsApp
+
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()

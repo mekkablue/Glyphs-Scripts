@@ -4,7 +4,7 @@ __doc__="""
 Opens a new Edit tab with all glyphs which contain the Bracket Layer trick.
 """
 
-import GlyphsApp
+
 from PyObjCTools.AppHelper import callAfter
 
 Font = Glyphs.font

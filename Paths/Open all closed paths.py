@@ -4,7 +4,7 @@ __doc__="""
 Opens all paths in the visible layers of selected glyphs.
 """
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers

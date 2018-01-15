@@ -4,7 +4,7 @@ __doc__="""
 Deletes all kerning pairs with the selected glyphs, for the current master only.
 """
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 Master = Font.selectedFontMaster

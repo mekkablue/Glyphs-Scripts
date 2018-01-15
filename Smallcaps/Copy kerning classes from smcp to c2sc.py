@@ -6,7 +6,7 @@ checks if there is a corresponding .smcp glyph,
 and if so, copies the .smcp kerning classes to the .c2sc glyph.
 """
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 exceptionlist = [ "Germandbls.c2sc" ]

@@ -11,7 +11,7 @@ shatter = 12     # how far each single node may be moved each time
 reiterations = 2 # how often a node may be moved
 linelength = 70  # maximum number of letters in a line for which the feature works
 
-import GlyphsApp
+
 import random
 random.seed()
 

@@ -4,7 +4,7 @@ __doc__="""
 Compare spacing of open fonts, output in the Macro Window.
 """
 
-import GlyphsApp
+
 
 abc = "abcdefghijklmnopqrstuvwxyz"
 frequencies = { # Source: Wikipedia

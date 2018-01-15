@@ -10,7 +10,7 @@ alphabets = 5 # Instances of rotated glyphs
 linelength = 80 # length of the line the feature should be working on
 featurename = "calt"
 
-import GlyphsApp
+
 import math, random
 random.seed()
 

@@ -5,7 +5,7 @@ Extends all alignment zones (except for the baseline zone that should stay at 0)
 """
 
 import vanilla
-import GlyphsApp
+
 
 windowHeight = 110
 

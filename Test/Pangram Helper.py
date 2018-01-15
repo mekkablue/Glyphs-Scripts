@@ -5,7 +5,7 @@ Helps you write pangrams by displaying which letters are still missing.
 """
 
 import vanilla
-import GlyphsApp
+
 from AppKit import *
 
 fullAlphabet = "abcdefghijklmnopqrstuvwxyz"

@@ -4,7 +4,7 @@ __doc__="""
 Calculates the area of each selected glyph, and outputs it in square units. Increase precision by changing the value for PRECISION in line 9 (script will slow down).
 """
 
-import GlyphsApp
+
 
 PRECISION = 2 # higher numbers = more precision, but slower
 

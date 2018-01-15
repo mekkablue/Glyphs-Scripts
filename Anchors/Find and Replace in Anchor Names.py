@@ -5,7 +5,7 @@ Replaces strings in anchor names of all selected glyphs.
 """
 
 import vanilla
-import GlyphsApp
+
 
 class SearchAndReplaceInAnchorNames( object ):
 	def __init__( self ):

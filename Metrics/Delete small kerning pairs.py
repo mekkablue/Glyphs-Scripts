@@ -5,7 +5,7 @@ Specify a kerning value, and every kerning in the current master smaller than th
 """
 
 import vanilla
-import GlyphsApp
+
 
 def nameForID( Font, ID ):
 	"""Return the name of a group or glyph for a given kerning ID."""

@@ -4,7 +4,7 @@ __doc__="""
 Create pseudorandom GPOS baseline shift for all glyphs.
 """
 
-import GlyphsApp
+
 import random
 random.seed()
 

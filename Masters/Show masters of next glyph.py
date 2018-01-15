@@ -4,7 +4,7 @@ __doc__="""
 Shows all masters for the next glyph.
 """
 
-import GlyphsApp
+
 from PyObjCTools.AppHelper import callAfter
 
 zeroPosition = NSRange()

@@ -4,7 +4,7 @@ __doc__="""
 Adds names of exporting glyphs without a Unicode value as ligatures into the dlig feature.
 """
 
-import GlyphsApp
+
 thisFont = Glyphs.font # frontmost font
 
 def updated_code( oldcode, beginsig, endsig, newcode ):

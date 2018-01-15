@@ -4,7 +4,7 @@ __doc__="""
 Deletes left and right metrics keys in all layers of all selected glyphs.
 """
 
-import GlyphsApp
+
 
 Glyphs.clearLog() # clears macro window log
 thisFont = Glyphs.font # frontmost font

@@ -4,7 +4,7 @@ __doc__="""
 Select two glyphs, e.g. ‘Ta’, run the script, it will give you a new tab with all combinations of the ‘T’ kerning group with the ‘a’ kerning group.
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master

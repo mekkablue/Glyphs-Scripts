@@ -4,7 +4,7 @@ __doc__="""
 Finds and deletes duplicate paths in active layers of selected glyphs.
 """
 
-import GlyphsApp
+
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs

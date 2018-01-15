@@ -4,7 +4,7 @@ __doc__="""
 Opens a new tab with all possible combinations of currently selected glyphs.
 """
 
-import GlyphsApp
+
 from PyObjCTools.AppHelper import callAfter
 
 Doc = Glyphs.currentDocument

@@ -4,7 +4,7 @@ __doc__="""
 Delete all local guidelines in selected glyphs.
 """
 
-import GlyphsApp
+
 
 print "Deleting guidelines in:"
 

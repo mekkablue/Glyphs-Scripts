@@ -4,7 +4,7 @@ __doc__="""
 Turns a layered color font into a single-master font with a CPAL and COLR layers in each glyph. It will take the first master as default.
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font # frontmost font
 fallbackMaster = thisFont.masters[0] # first master

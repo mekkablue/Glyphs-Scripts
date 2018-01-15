@@ -4,7 +4,7 @@ __doc__="""
 Jumps to previous instance shown in the preview field or window.
 """
 
-import GlyphsApp
+
 from Foundation import NSApplication
 
 numberOfInstances = len( Glyphs.font.instances )

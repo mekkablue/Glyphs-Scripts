@@ -4,7 +4,7 @@ __doc__="""
 Create calt for positional forms with .isol, .init, .medi, .fina suffixes.
 """
 
-import GlyphsApp
+
 thisFont = Glyphs.font
 positionalFeature = "calt"
 anyLetterClassName = "AnyLetter"

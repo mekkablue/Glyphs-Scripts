@@ -5,7 +5,7 @@ Batch scale and move images in selected layers.
 """
 
 import vanilla
-import GlyphsApp
+
 import traceback
 windowHeight = 120
 

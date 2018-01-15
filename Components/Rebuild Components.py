@@ -4,7 +4,7 @@ __doc__="""
 Moves outlines to background, then tries to rebuild the glyph with components in the foreground. Tries to position the accents as precisely as possible.
 """
 
-import GlyphsApp
+
 import traceback
 
 Font = Glyphs.font

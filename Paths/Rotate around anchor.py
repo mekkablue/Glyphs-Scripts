@@ -4,7 +4,7 @@ __doc__="""
 Rotate selected glyphs (or selected paths and components) around a 'rotate' anchor.
 """
 
-import GlyphsApp
+
 import vanilla
 
 def transformNode( myNode, myTransform ):

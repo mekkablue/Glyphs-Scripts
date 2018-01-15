@@ -9,7 +9,7 @@ otherChars = "0123456789._-"
 legalChars = firstChars + otherChars
 exceptionList = [".notdef", ".null"]
 
-import GlyphsApp
+
 allGlyphs = Glyphs.font.glyphs
 
 def process( thisName ):

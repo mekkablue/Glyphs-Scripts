@@ -4,7 +4,7 @@ __doc__="""
 Sets the width of selected .ss01 (or any other extension) widths in the font to the width of their base glyphs. E.g. A.ss01 will have the same width as A.
 """
 
-import GlyphsApp
+
 Font = Glyphs.font
 FontMaster = Font.selectedFontMaster
 selectedLayers = Font.selectedLayers

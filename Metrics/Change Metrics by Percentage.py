@@ -5,7 +5,7 @@ Increase sidebearings of selected glyphs by a percentage value.
 """
 
 import vanilla
-import GlyphsApp
+
 
 class ChangeMetricsbyPercentage( object ):
 	def __init__( self ):

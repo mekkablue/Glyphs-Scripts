@@ -5,7 +5,7 @@ Opens a new tab with all glyphs containing a specific anchor.
 """
 
 import vanilla
-import GlyphsApp
+
 
 class NewTabWithAnchor( object ):
 	def __init__( self ):

@@ -303,7 +303,7 @@ plus -> plus
 """
 
 
-import GlyphsApp
+
 Font = Glyphs.font
 
 def freeGlyphName( glyphName, glyphNameList ):

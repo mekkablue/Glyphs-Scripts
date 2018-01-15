@@ -4,7 +4,7 @@ __doc__="""
 Takes the current layer’s components, and resets all other masters to the same component structure. Ignores paths and anchors.
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master

@@ -4,7 +4,7 @@ __doc__="""
 Select all paths and components in the current glyph, and deselect all anchors.
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master

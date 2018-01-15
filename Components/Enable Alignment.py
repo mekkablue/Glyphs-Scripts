@@ -4,7 +4,7 @@ __doc__="""
 Enables automatic alignment for all components in all selected glyphs.
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font # frontmost font
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs

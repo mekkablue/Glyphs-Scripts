@@ -4,7 +4,7 @@ __doc__="""
 Analyze a textfile: look for certain characters and output all letter combinations occurring in the text file to the Macro Window.
 """
 
-import GlyphsApp
+
 import vanilla
 from PyObjCTools.AppHelper import callAfter
 

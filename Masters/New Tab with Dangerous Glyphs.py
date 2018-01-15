@@ -4,7 +4,7 @@ __doc__="""
 Finds and outputs glyphs like the equals sign, or a symmetrical period, with paths that could interpolate wrongly within themselves.
 """
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 outputString = ""

@@ -4,7 +4,7 @@ __doc__="""
 Goes through your selected marks and adds a combining, non-spacing copy of it to your font, e.g., for acute and dieresis.case, it will add acutecomb and dieresiscomb.case.
 """
 
-import GlyphsApp
+
 from math import tan, pi
 
 Font = Glyphs.font

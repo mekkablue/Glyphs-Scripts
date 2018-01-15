@@ -4,7 +4,7 @@ __doc__="""
 Aligns accents without the need to use Automatic Alignment. Useful if you have an individually placed base glyph and want to update the accent positions.
 """
 
-import GlyphsApp
+
 
 
 thisFont = Glyphs.font # frontmost font

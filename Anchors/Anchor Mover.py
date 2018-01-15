@@ -4,7 +4,6 @@ __doc__="""
 Vertically move anchors in selected glyphs (GUI).
 """
 
-import GlyphsApp
 import vanilla
 
 class AnchorMover(object):

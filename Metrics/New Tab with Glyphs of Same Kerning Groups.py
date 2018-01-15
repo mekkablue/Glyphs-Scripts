@@ -4,7 +4,7 @@ __doc__="""
 Opens a new tab containing all members of the left and right kerning groups of the current glyph.
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font # frontmost font
 thisGlyph = Font.selectedLayers[0].parent

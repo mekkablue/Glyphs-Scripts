@@ -4,7 +4,7 @@ __doc__="""
 Inserts BCPs into straight segments of selected glyphs. The opposite of what the Tidy Up Paths command does. Useful if you want to bend the shape later.
 """
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 FontMaster = Font.selectedFontMaster

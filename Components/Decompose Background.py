@@ -4,7 +4,7 @@ __doc__="""
 Decomposes components in the Background.
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master

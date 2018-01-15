@@ -4,7 +4,7 @@ __doc__="""
 Deletes all sublayers in all glyphs that are not of type "Color X" (CPAL/COLR layers).
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master

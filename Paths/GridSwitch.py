@@ -5,7 +5,7 @@ Toggles grid between two gridstep values.
 """
 
 import vanilla
-import GlyphsApp
+
 
 class GridOnOff( object ):
 	def __init__( self ):

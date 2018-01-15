@@ -4,7 +4,7 @@ __doc__="""
 Removes all vertical hints in the font.
 """
 
-import GlyphsApp
+
 
 
 thisFont = Glyphs.font # frontmost font

@@ -4,7 +4,7 @@ __doc__="""
 Reports the y positions of top and bottom anchors to the Macro Window if the anchors are not on a metric line (baseline, x-height, etc.).
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font
 

@@ -4,7 +4,7 @@ __doc__="""
 Removes all kernings glyph-glyph, group-glyph, and glyph-group; only keeps group-group kerning.
 """
 
-import GlyphsApp
+
 
 Kerning = Glyphs.font.kerning
 ClassExtension = "" # e.g. set to ".rot" for testing purposes

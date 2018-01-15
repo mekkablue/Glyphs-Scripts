@@ -4,7 +4,7 @@ __doc__="""
 Checks some parameters (kerning groups, availability)
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master

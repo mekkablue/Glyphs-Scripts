@@ -4,7 +4,7 @@ __doc__="""
 Looks for duplicate components (same component, same x/y values) and keeps only one of them.
 """
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers

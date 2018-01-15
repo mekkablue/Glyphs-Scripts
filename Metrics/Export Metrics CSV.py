@@ -4,7 +4,7 @@ __doc__="""
 Export a CSV containing info about the glyphs.
 """
 
-import GlyphsApp
+
 import commands
 from types import *
 

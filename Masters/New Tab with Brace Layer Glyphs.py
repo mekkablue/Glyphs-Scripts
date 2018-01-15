@@ -4,7 +4,7 @@ __doc__="""
 Opens a new Edit tab with all glyphs which contain the Brace Layer trick.
 """
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 editString = ""

@@ -4,9 +4,7 @@ __doc__="""
 Create a Test HTML for the current font inside the current Webfont Export folder, or for the current Glyphs Project in the project’s export path.
 """
 
-from Foundation import *
-from AppKit import *
-import GlyphsApp, os
+from os import system
 fileFormats = ( "woff", "woff2", "eot" )
 
 def saveFileInLocation( content="blabla", fileName="test.txt", filePath="~/Desktop" ):
@@ -291,7 +289,7 @@ if appVersionHighEnough:
 		if saveFileInLocation( content=htmlContent, fileName="fonttest.html", filePath=exportPath ):
 			print "Successfully wrote file to disk."
 			terminalCommand = 'cd "%s"; open .' % exportPath
-			os.system( terminalCommand )
+			system( terminalCommand )
 		else:
 			print "Error writing file to disk."
 	else:

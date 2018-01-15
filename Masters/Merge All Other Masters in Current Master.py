@@ -4,7 +4,7 @@ __doc__="""
 For selected glyphs, merges all paths from other masters onto the current master layer.
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master

@@ -4,7 +4,7 @@ __doc__="""
 Deletes all global guidelines in the current master.
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master

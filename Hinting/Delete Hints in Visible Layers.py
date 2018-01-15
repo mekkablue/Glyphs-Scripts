@@ -4,7 +4,7 @@ __doc__="""
 Deletes all hints in active layers of selected glyphs.
 """
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers

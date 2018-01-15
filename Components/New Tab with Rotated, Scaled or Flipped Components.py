@@ -4,7 +4,7 @@ __doc__="""
 Opens a new edit tab with components that are transformed beyond mere shifts.
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master

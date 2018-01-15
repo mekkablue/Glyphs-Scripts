@@ -4,7 +4,7 @@ __doc__="""
 Builds the ccmp for precomposed uniFBxx glyphs, e.g. if you padagesh, you get 'sub pa dagesh by padagesh' in your ccmp.
 """
 
-import GlyphsApp
+
 
 lookupTitle = "hebrewPresentationForms"
 thisFont = Glyphs.font

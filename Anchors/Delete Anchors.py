@@ -4,7 +4,7 @@ __doc__="""
 Deletes all anchors in active layers of selected glyphs.
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font
 selectedLayers = thisFont.selectedLayers

@@ -4,7 +4,7 @@ __doc__="""
 Inserts base glyph anchors into ligatures with appropriate extensions. E.g. c_e will have top_1, bottom_1, top_2, bottom_2, and ogonek_2.
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master

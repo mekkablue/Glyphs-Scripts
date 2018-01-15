@@ -4,7 +4,7 @@ __doc__="""
 Align selected paths (and parts of paths) to the next sidebearing or glyph center to the left.
 """
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 Doc = Glyphs.currentDocument

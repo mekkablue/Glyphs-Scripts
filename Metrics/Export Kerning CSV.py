@@ -4,7 +4,7 @@ __doc__="""
 Export a CSV containing kerning info.
 """
 
-import GlyphsApp
+
 import commands
 from types import *
 

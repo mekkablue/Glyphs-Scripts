@@ -4,7 +4,7 @@ __doc__="""
 Deletes all entry and exit anchors (for the curs feature) in the selected glyphs.
 """
 
-import GlyphsApp
+
 
 thisFont = Glyphs.font # frontmost font
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs

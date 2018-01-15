@@ -4,7 +4,7 @@ __doc__="""
 Looks for anchors not on the grid and rounds their coordinate to the closest grid.
 """
 
-import GlyphsApp
+
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers

@@ -4,7 +4,7 @@ __doc__="""
 Delete the selected on-curve nodes, but try to keep the shape of the path.
 """
 
-import GlyphsApp
+
 
 
 thisFont = Glyphs.font # frontmost font

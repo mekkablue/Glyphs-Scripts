@@ -5,7 +5,7 @@ In selected glyphs, replaces accents with their dot suffix variant where possibl
 """
 
 import vanilla
-import GlyphsApp
+
 
 class ModifyComponents( object ):
 	def __init__( self ):

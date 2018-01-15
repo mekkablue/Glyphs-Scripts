@@ -5,7 +5,7 @@ Sets origin point for Rotate tool.
 """
 
 import vanilla
-import GlyphsApp
+
 
 class SetTransformOriginWindow( object ):
 	def __init__( self ):

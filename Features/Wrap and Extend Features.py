@@ -4,7 +4,7 @@ __doc__="""
 Enclose all features with lookups and divide them into sub groups of 3000 lines max. It will also add the useExtension parameter allowing you to have a 32 bits limit insead of the 16 bits.
 """
 
-import GlyphsApp
+
 import string
 import re
 

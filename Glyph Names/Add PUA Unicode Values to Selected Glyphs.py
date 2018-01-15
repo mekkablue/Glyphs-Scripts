@@ -5,7 +5,7 @@ Adds custom Unicode values to selected glyphs.
 """
 
 import vanilla
-import GlyphsApp
+
 
 class CustomUnicode( object ):
 	def __init__( self ):

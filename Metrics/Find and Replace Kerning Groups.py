@@ -5,7 +5,7 @@ Finds and replaces text in the metrics keys of selected glyphs. Leave the Find s
 """
 
 import vanilla
-import GlyphsApp
+
 
 class KerningGroupReplacer( object ):
 	def __init__( self ):
