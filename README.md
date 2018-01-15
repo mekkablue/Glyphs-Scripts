@@ -27,6 +27,7 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 * **Anchor Mover 1:** GUI for moving anchors vertically in multiple glyphs. Handy for getting all top anchors right after changing your cap height. *Needs Vanilla.*
 * **Anchor Mover 2:** GUI for batch-processing anchor positions in multiple glyphs. *Needs Vanilla.*
 * **Combining Accent Maker:** Goes through your selected (spacing) marks and adds a combining (non-spacing), component-based copy of it to your font, e.g., for *acute* and *dieresis.case*, it will add *acutecomb* and *dieresiscomb.case*.
+* **Create .case Variants of Combining Marks:** Creates missing .case duplicates of combining marks and shifts them above the cap height. Respects italic angle.
 * **Delete All Anchors:** Deletes all anchors in visible layers of selected glyphs.
 * **Delete Entry and Exit Anchors:** Deletes all cursive attachment anchors (exit, entry and its variants) in visible layers of selected glyphs.
 * **Find and Replace in Anchor Names:** GUI for replacing text in the names of anchors in selected glyphs. Processes all layers. *Needs Vanilla.*
@@ -98,10 +99,12 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 ## Font Info
 
 * **Set Preferred Names (Name IDs 16 and 17) for Width Variants:** Sets Preferred Names custom parameters (Name IDs 16 and 17) for all instances, so that width variants will appear in separate menus in Adobe apps.
+* **Set Style Linking:** Attempts to set the Bold/Italic bits.
 * **Set WWS Names (Name IDs 21 and 22):** Sets WWS custom parameters (Name IDs 21 and 22) for all instances where necessary: Puts all info except RIBBI into the WWSFamilyName, and only keeps RIBBI for the WWSSubfamilyName.
 
 ## Glyph Names
 * **Add PUA Unicode Values to Selected Glyphs:** Iterates through selected glyphs and incrementally applies custom Unicode values, starting at a user-specified value. *Needs Vanilla.*
+* **Capitalize Glyph Names:** Turns lowercase names into uppercase names, e.g., `a` → `A`, `ccaron` → `Ccaron`, `aeacute` → `AEacute`, etc.
 * **Check Glyph Names:** Checks all available glyph names for illegal characters.
 * **Copy Glyph Name List:** Copies a newline-separated list of glyph names. Useful for pasting into a *glyphOrder* custom parameter or a List filter.
 * **Copy Unicode-Sorted Glyph Name List:** Copies a newline-separated list of glyph names, in the order of their respective Unicode values. Useful for pasting into a *glyphOrder* custom parameter or a List filter.
