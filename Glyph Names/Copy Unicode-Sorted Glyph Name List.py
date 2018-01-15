@@ -5,7 +5,7 @@ Creates a glyph list of all encoded glyphs, in Unicode order, and puts in your c
 """
 
 import GlyphsApp
-from AppKit import *
+from AppKit import NSPasteboard
 
 thisFont = Glyphs.font # frontmost font
 listOfEncodedGlyphs = [ g for g in thisFont.glyphs if g.unicode ]

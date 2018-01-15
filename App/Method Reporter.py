@@ -5,7 +5,6 @@ Searches in PyObjC method names of a chosen object.
 """
 
 import vanilla
-from AppKit import *
 
 def setClipboard( myText ):
 	"""

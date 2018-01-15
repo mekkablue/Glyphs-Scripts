@@ -5,7 +5,7 @@ Copies a newline-separated list of glyph names to the clipboard.
 """
 
 import GlyphsApp
-from AppKit import *
+from AppKit import NSPasteboard
 
 separator = "\n"
 thisFont = Glyphs.font # frontmost font
