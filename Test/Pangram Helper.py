@@ -6,8 +6,6 @@ Helps you write pangrams by displaying which letters are still missing.
 
 import vanilla
 
-from AppKit import *
-
 fullAlphabet = "abcdefghijklmnopqrstuvwxyz"
 
 class PangramHelper( object ):

@@ -4,8 +4,6 @@ __doc__="""
 Averages out the handles of selected path segments. Doing this is a good idea for zero handles, and as preparation for interpolation. If you just want to fix zero handles, then check out the FixZeroHandles plugin from my GitHub.
 """
 
-from Foundation import *
-
 Font = Glyphs.font
 selectedLayer = Font.selectedLayers[0]
 selectedGlyph = selectedLayer.parent
@@ -68,6 +66,8 @@ def intersectionWithNSPoints( pointA, pointB, pointC, pointD ):
 		
 	except Exception as e:
 		print str(e)
+		import traceback
+		print traceback.format_exc()
 		return None
 
 def bothPointsAreOnSameSideOfOrigin( pointA, pointB, pointOrigin ):
@@ -198,9 +198,5 @@ for thisPath in selectedLayer.paths:
 				thisPath.nodes[ segmentNodeIndexes[1] ].y = y_handle1
 				thisPath.nodes[ segmentNodeIndexes[2] ].x = x_handle2
 				thisPath.nodes[ segmentNodeIndexes[2] ].y = y_handle2
-			
-#except Exception, e:
-#	print "Error:", e
-#	pass
 
 selectedGlyph.endUndo()
