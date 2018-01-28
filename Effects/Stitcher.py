@@ -204,7 +204,6 @@ class ComponentOnLines( object ):
 			Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMax"] = self.w.sliderMax.get()
 			Glyphs.defaults["com.mekkablue.ComponentOnLines.intervalSlider"] = self.w.intervalSlider.get()
 			Glyphs.defaults["com.mekkablue.ComponentOnLines.liveSlider"] = self.w.liveSlider.get()
-			#Glyphs.defaults["com.mekkablue.ComponentOnLines.replaceComponents"] = self.w.replaceComponents.get()
 			Glyphs.defaults["com.mekkablue.ComponentOnLines.useBackground"] = self.w.useBackground.get()
 		except:
 			print traceback.format_exc()
@@ -214,19 +213,14 @@ class ComponentOnLines( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.ComponentOnLines.componentName": "_circle",
-					"com.mekkablue.ComponentOnLines.sliderMin": "30", 
-					"com.mekkablue.ComponentOnLines.sliderMin": "60"
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.ComponentOnLines.componentName", "_circle")
+			Glyphs.registerDefault("com.mekkablue.ComponentOnLines.sliderMin", "30")
+			Glyphs.registerDefault("com.mekkablue.ComponentOnLines.sliderMin", "60")
 			self.w.componentName.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.componentName"] )
 			self.w.sliderMin.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMin"] )
 			self.w.sliderMax.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMax"] )
 			self.w.intervalSlider.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.intervalSlider"] )
 			self.w.liveSlider.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.liveSlider"] )
-			#self.w.replaceComponents.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.replaceComponents"] )
 			self.w.useBackground.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.useBackground"] )
 		except:
 			print traceback.format_exc()
@@ -236,27 +230,24 @@ class ComponentOnLines( object ):
 
 	def ComponentOnLinesMain( self, sender ):
 		try:
-			if ( bool(self.w.liveSlider.get()) and sender == self.w.intervalSlider ) or sender != self.w.intervalSlider:
+			if ( bool(Glyphs.defaults["com.mekkablue.ComponentOnLines.liveSlider"]) and sender == self.w.intervalSlider ) or sender != self.w.intervalSlider:
 				Font = Glyphs.font
 				FontMaster = Font.selectedFontMaster
 				selectedLayers = Font.selectedLayers
-				# deleteComponents = bool( self.w.replaceComponents.get() )
 				deleteComponents = True
-				componentName = self.w.componentName.get()
+				componentName = Glyphs.defaults["com.mekkablue.ComponentOnLines.componentName"]
 				
-				sliderMin = minimumOfOne( self.w.sliderMin.get() )
-				sliderMax = minimumOfOne( self.w.sliderMax.get() )
+				sliderMin = minimumOfOne( Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMin"] )
+				sliderMax = minimumOfOne( Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMax"] )
 					
-				sliderPos = float( self.w.intervalSlider.get() )
+				sliderPos = float( Glyphs.defaults["com.mekkablue.ComponentOnLines.intervalSlider"] )
 				distanceBetweenDots = sliderMin * ( 1.0 - sliderPos ) + sliderMax * sliderPos
-				useBackground = bool( self.w.useBackground.get() )
+				useBackground = bool( Glyphs.defaults["com.mekkablue.ComponentOnLines.useBackground"] )
 		
 				Font.disableUpdateInterface()
 
 				for thisLayer in selectedLayers:
 					thisGlyph = thisLayer.parent
-					# print "Processing", thisGlyph.name
-			
 					thisGlyph.beginUndo()
 					process( thisLayer, deleteComponents, componentName, distanceBetweenDots, useBackground )
 					thisGlyph.endUndo()
@@ -265,8 +256,6 @@ class ComponentOnLines( object ):
 			
 				if not self.SavePreferences( self ):
 					print "Note: could not write preferences."
-			
-			# self.w.close()
 		except:
 			print traceback.format_exc()
 
