@@ -5,6 +5,7 @@ Searches in PyObjC method names of a chosen object.
 """
 
 import vanilla
+from AppKit import NSPasteboard, NSStringPboardType, NSUserDefaults
 
 def setClipboard( myText ):
 	"""
@@ -121,10 +122,8 @@ class MethodReporter( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_({
-				"com.mekkablue.MethodReporter.objectPicker": "GSLayer",
-				"com.mekkablue.MethodReporter.filter": ""
-			})
+			Glyphs.registerDefault("com.mekkablue.MethodReporter.objectPicker", "GSLayer",)
+			Glyphs.registerDefault("com.mekkablue.MethodReporter.filter", "")
 			self.w.objectPicker.set( Glyphs.defaults["com.mekkablue.MethodReporter.objectPicker"] )
 			self.w.filter.set( Glyphs.defaults["com.mekkablue.MethodReporter.filter"] )
 		except:
