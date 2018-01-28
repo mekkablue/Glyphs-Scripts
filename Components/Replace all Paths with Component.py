@@ -77,10 +77,10 @@ class ReplaceAllPathsWithComponent( object ):
 		try:
 			Glyphs.registerDefault("com.mekkablue.ReplaceAllPathsWithComponent.align", 0)
 			Glyphs.registerDefault("com.mekkablue.ReplaceAllPathsWithComponentMain.onlySelectedGlyphs", False)
-			Glyphs.registerDefault("com.mekkablue.ReplaceAllPathsWithComponentMain.componentPicker", "")
+			Glyphs.registerDefault("com.mekkablue.ReplaceAllPathsWithComponent.componentPicker", "")
 			self.w.align.set( Glyphs.defaults["com.mekkablue.ReplaceAllPathsWithComponent.align"] )
 			self.w.onlySelectedGlyphs.set( bool(Glyphs.defaults["com.mekkablue.ReplaceAllPathsWithComponentMain.onlySelectedGlyphs"]) )
-			self.w.componentPicker.set( Glyphs.defaults["com.mekkablue.ReplaceAllPathsWithComponentMain.componentPicker"] )
+			self.w.componentPicker.set( Glyphs.defaults["com.mekkablue.ReplaceAllPathsWithComponent.componentPicker"] )
 		except:
 			import traceback
 			print traceback.format_exc()
