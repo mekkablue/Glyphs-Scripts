@@ -72,15 +72,11 @@ class DeleteSmallKerningPairs( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.DeleteSmallKerningPairs.howMuch": "10",	
-					"com.mekkablue.DeleteSmallKerningPairs.positive": "1",	
-					"com.mekkablue.DeleteSmallKerningPairs.zero": "0",	
-					"com.mekkablue.DeleteSmallKerningPairs.negative": "1",	
-					"com.mekkablue.DeleteSmallKerningPairs.keepWindow": "1"
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.howMuch", "10")
+			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.positive", True)
+			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.zero", False)
+			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.negative", True)
+			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.keepWindow", True)
 			self.w.howMuch.set( Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.howMuch"] )
 			self.w.positive.set( bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.positive"]) )
 			self.w.zero.set( bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.zero"]) )
@@ -97,10 +93,10 @@ class DeleteSmallKerningPairs( object ):
 			Glyphs.showMacroWindow()
 			
 			# read the user entry:
-			shouldRemovePositive = self.w.positive.get()
-			shouldRemoveZero = self.w.zero.get()
-			shouldRemoveNegative = self.w.negative.get()
-			keepWindowOpen = self.w.keepWindow.get()
+			shouldRemovePositive = bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.positive"])
+			shouldRemoveZero = bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.zero"])
+			shouldRemoveNegative = bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.negative"])
+			keepWindowOpen = bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.keepWindow"])
 			try:
 				# convert to positive decimal number:
 				maxKernValue = abs(float( self.w.howMuch.get() ))

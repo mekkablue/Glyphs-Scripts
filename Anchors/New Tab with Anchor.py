@@ -54,13 +54,9 @@ class NewTabWithAnchor( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.NewTabWithAnchor.anchorName": "ogonek",
-					"com.mekkablue.NewTabWithAnchor.allLayers": "0",
-					"com.mekkablue.NewTabWithAnchor.keepWindowOpen": "0"
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.NewTabWithAnchor.anchorName", "ogonek")
+			Glyphs.registerDefault("com.mekkablue.NewTabWithAnchor.allLayers", "0")
+			Glyphs.registerDefault("com.mekkablue.NewTabWithAnchor.keepWindowOpen", "0")
 			self.w.anchorName.set( Glyphs.defaults["com.mekkablue.NewTabWithAnchor.anchorName"] )
 			self.w.allLayers.set( Glyphs.defaults["com.mekkablue.NewTabWithAnchor.allLayers"] )
 			self.w.keepWindowOpen.set( Glyphs.defaults["com.mekkablue.NewTabWithAnchor.keepWindowOpen"] )

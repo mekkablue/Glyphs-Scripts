@@ -81,16 +81,12 @@ class CopyLayerToLayer( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.CopyLayerToLayer.includePaths" : "1",
-					"com.mekkablue.CopyLayerToLayer.includeComponents" : "1",
-					"com.mekkablue.CopyLayerToLayer.includeAnchors" : "1",
-					"com.mekkablue.CopyLayerToLayer.includeMetrics" : "1",
-					"com.mekkablue.CopyLayerToLayer.keepWindowOpen" : "1",
-					"com.mekkablue.CopyLayerToLayer.copyBackground" : "0"
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.includePaths", True)
+			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.includeComponents", True)
+			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.includeAnchors", True)
+			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.includeMetrics", True)
+			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.keepWindowOpen", True)
+			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.copyBackground", False)
 			self.w.includePaths.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includePaths"] )
 			self.w.includeComponents.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeComponents"] )
 			self.w.includeAnchors.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeAnchors"] )
@@ -114,9 +110,9 @@ class CopyLayerToLayer( object ):
 	def GetMasterNames( self, font ):
 		"""Collects names of masters to populate the submenus in the GUI."""
 		if font == "target":
-			fontIndex = self.w.fontTarget.get()
+			fontIndex = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontTarget"]
 		else:
-			fontIndex = self.w.fontSource.get()
+			fontIndex = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontSource"]
 
 		thisFont = Glyphs.fonts[fontIndex]
 		myMasterList = []
@@ -127,7 +123,9 @@ class CopyLayerToLayer( object ):
 
 	def ValidateInput( self, sender ):
 		"""Disables the button if source and target are the same."""
-		if self.w.fontSource.get() == self.w.fontTarget.get() and self.w.masterSource.get() == self.w.masterTarget.get():
+		sourceAndTargetFontAreTheSame = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontSource"] == Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontTarget"]
+		sourceAndTargetMasterAreTheSame = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterSource"] == Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterTarget"]
+		if sourceAndTargetFontAreTheSame and sourceAndTargetMasterAreTheSame:
 			self.w.copybutton.enable( False )
 		else:
 			self.w.copybutton.enable( True )
@@ -225,15 +223,15 @@ class CopyLayerToLayer( object ):
 		# This should be the active selection, not necessarily the selection on the inputted fonts
 		Font = Layer.parent.parent
 		selectedGlyphs = [ x.parent for x in Font.selectedLayers ]
-		indexOfSourceFont = self.w.fontSource.get()
-		indexOfTargetFont = self.w.fontTarget.get()
-		indexOfSourceMaster = self.w.masterSource.get()
-		indexOfTargetMaster = self.w.masterTarget.get()
-		pathsYesOrNo  = self.w.includePaths.get()
-		componentsYesOrNo  = self.w.includeComponents.get()
-		anchorsYesOrNo  = self.w.includeAnchors.get()
-		metricsYesOrNo  = self.w.includeMetrics.get()
-		copyBackground = self.w.copyBackground.get()
+		indexOfSourceFont = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontSource"]
+		indexOfTargetFont = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontTarget"]
+		indexOfSourceMaster = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterSource"]
+		indexOfTargetMaster = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterTarget"]
+		pathsYesOrNo  = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includePaths"]
+		componentsYesOrNo  = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeComponents"]
+		anchorsYesOrNo  = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeAnchors"]
+		metricsYesOrNo  = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeMetrics"]
+		copyBackground = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.copyBackground"]
 
 		for thisGlyph in selectedGlyphs:
 			try:
@@ -272,7 +270,7 @@ class CopyLayerToLayer( object ):
 			except Exception, e:
 				print e
 
-		if not self.w.keepWindowOpen.get():
+		if not Glyphs.defaults["com.mekkablue.CopyLayerToLayer.keepWindowOpen"]:
 			self.w.close()
 
 CopyLayerToLayer()

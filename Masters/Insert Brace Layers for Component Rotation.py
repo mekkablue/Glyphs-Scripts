@@ -49,12 +49,8 @@ class InsertBraceLayersForComponentRotation( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.InsertBraceLayersForComponentRotation.steps": "5",
-					"com.mekkablue.InsertBraceLayersForComponentRotation.replace": "1"
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.InsertBraceLayersForComponentRotation.steps", "5")
+			Glyphs.registerDefault("com.mekkablue.InsertBraceLayersForComponentRotation.replace": True)
 			self.w.steps.set( Glyphs.defaults["com.mekkablue.InsertBraceLayersForComponentRotation.steps"] )
 			self.w.replace.set( Glyphs.defaults["com.mekkablue.InsertBraceLayersForComponentRotation.replace"] )
 		except:

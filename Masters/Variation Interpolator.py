@@ -54,12 +54,8 @@ class VariationInterpolator( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.VariationInterpolator.numberOfInterpolations": "10",
-					"com.mekkablue.VariationInterpolator.suffix": "var"
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.VariationInterpolator.numberOfInterpolations", "10")
+			Glyphs.registerDefault("com.mekkablue.VariationInterpolator.suffix", "var")
 			self.w.numberOfInterpolations.set( Glyphs.defaults[ "com.mekkablue.VariationInterpolator.numberOfInterpolations" ] )
 			self.w.suffix.set( Glyphs.defaults[ "com.mekkablue.VariationInterpolator.suffix" ] )
 		except:

@@ -32,13 +32,13 @@ class GridOnOff( object ):
 	def GridOnOffMain( self, sender ):
 		try:
 			try:
-				gridStep1 = int(self.w.grid1.get())
+				gridStep1 = int( Glyphs.defaults["com.mekkablue.gridswitch.grid1"] )
 			except:
 				gridStep1 = self.gridStep1default
 				self.w.grid1.set( str(gridStep1) )
 			
 			try:
-				gridStep2 = int(self.w.grid2.get())
+				gridStep2 = int( Glyphs.defaults["com.mekkablue.gridswitch.grid2"] )
 			except:
 				gridStep2 = self.gridStep2default
 				self.w.grid2.set( str(gridStep2) )
@@ -69,12 +69,8 @@ class GridOnOff( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.gridswitch.grid1": "1",
-					"com.mekkablue.gridswitch.grid2": "0"
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.gridswitch.grid1", 1)
+			Glyphs.registerDefault("com.mekkablue.gridswitch.grid2": 0)
 			self.w.grid1.set( Glyphs.defaults["com.mekkablue.gridswitch.grid1"] )
 			self.w.grid2.set( Glyphs.defaults["com.mekkablue.gridswitch.grid2"] )
 			try:

@@ -44,11 +44,7 @@ class AdjustImageAlpha( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.AdjustImageAlpha.alphaSlider": 100.0
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.AdjustImageAlpha.alphaSlider", 100.0)
 			self.w.alphaSlider.set( Glyphs.defaults["com.mekkablue.AdjustImageAlpha.alphaSlider"] )
 		except:
 			return False

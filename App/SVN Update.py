@@ -50,11 +50,7 @@ class SVNUpdate( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.SVNUpdate.svnPaths": "~/Library/Application Support/Glyphs/Scripts/"
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.SVNUpdate.svnPaths", "~/Library/Application Support/Glyphs/Scripts/")
 			self.w.svnPaths.set( Glyphs.defaults["com.mekkablue.SVNUpdate.svnPaths"] )
 		except:
 			return False
@@ -67,7 +63,7 @@ class SVNUpdate( object ):
 			Glyphs.clearLog()
 			Glyphs.showMacroWindow()
 			
-			paths = self.w.svnPaths.get().splitlines()
+			paths = Glyphs.defaults["com.mekkablue.SVNUpdate.svnPaths"].splitlines()
 			for thisPath in paths:
 				thisPath = thisPath.strip()
 				if thisPath:

@@ -51,12 +51,8 @@ class RemoveComponentfromSelectedGlyphs( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.RemoveComponentfromSelectedGlyphs.componentName": "a",
-					"com.mekkablue.RemoveComponentfromSelectedGlyphs.fromWhere": "0"
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.RemoveComponentfromSelectedGlyphs.componentName", "a")
+			Glyphs.registerDefault("com.mekkablue.RemoveComponentfromSelectedGlyphs.fromWhere", "0")
 			self.w.componentName.set( Glyphs.defaults["com.mekkablue.RemoveComponentfromSelectedGlyphs.componentName"] )
 			self.w.fromWhere.set( Glyphs.defaults["com.mekkablue.RemoveComponentfromSelectedGlyphs.fromWhere"] )
 		except:
@@ -89,10 +85,10 @@ class RemoveComponentfromSelectedGlyphs( object ):
 			thisFont = Glyphs.font # frontmost font
 			listOfGlyphs = thisFont.glyphs 
 			
-			if self.w.fromWhere.get() == 0:
+			if Glyphs.defaults["com.mekkablue.RemoveComponentfromSelectedGlyphs.fromWhere"] == 0:
 				listOfGlyphs = [l.parent for l in thisFont.selectedLayers] # active layers of currently selected glyphs
 				
-			componentName = self.w.componentName.get()
+			componentName = Glyphs.defaults["com.mekkablue.RemoveComponentfromSelectedGlyphs.componentName"]
 			for thisGlyph in listOfGlyphs:
 				self.removeComponentFromGlyph( componentName, thisGlyph )
 			

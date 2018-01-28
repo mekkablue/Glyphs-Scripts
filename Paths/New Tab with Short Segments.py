@@ -51,13 +51,9 @@ class FindShortSegmentsInFont( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.FindShortSegmentsInFont.maxDistance": "5",
-					"com.mekkablue.FindShortSegmentsInFont.allFonts": 0,
-					"com.mekkablue.FindShortSegmentsInFont.selectSegments": 0
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.FindShortSegmentsInFont.maxDistance", "5")
+			Glyphs.registerDefault("com.mekkablue.FindShortSegmentsInFont.allFonts", False)
+			Glyphs.registerDefault("com.mekkablue.FindShortSegmentsInFont.selectSegments", False)
 			self.w.maxDistance.set( Glyphs.defaults["com.mekkablue.FindShortSegmentsInFont.maxDistance"] )
 			self.w.allFonts.set( Glyphs.defaults["com.mekkablue.FindShortSegmentsInFont.allFonts"] )
 			self.w.selectSegments.set( Glyphs.defaults["com.mekkablue.FindShortSegmentsInFont.selectSegments"] )

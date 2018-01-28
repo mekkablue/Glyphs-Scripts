@@ -48,13 +48,9 @@ class replaceInLayerNames(object):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.FindAndReplaceInLayerNames.searchFor": "[10]",
-					"com.mekkablue.FindAndReplaceInLayerNames.replaceBy": "[20]",
-					"com.mekkablue.FindAndReplaceInLayerNames.allGlyphs": True
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.FindAndReplaceInLayerNames.searchFor", "[10]")
+			Glyphs.registerDefault("com.mekkablue.FindAndReplaceInLayerNames.replaceBy", "[20]")
+			Glyphs.registerDefault("com.mekkablue.FindAndReplaceInLayerNames.allGlyphs", True)
 			self.w.searchFor.set( Glyphs.defaults["com.mekkablue.FindAndReplaceInLayerNames.searchFor"] )
 			self.w.replaceBy.set( Glyphs.defaults["com.mekkablue.FindAndReplaceInLayerNames.replaceBy"] )
 			self.w.allGlyphs.set( Glyphs.defaults["com.mekkablue.FindAndReplaceInLayerNames.allGlyphs"] )

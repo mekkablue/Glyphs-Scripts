@@ -41,13 +41,9 @@ class ChangeMetricsbyPercentage( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.ChangeMetricsbyPercentage.LSB": "True",
-					"com.mekkablue.ChangeMetricsbyPercentage.RSB": "True",
-					"com.mekkablue.ChangeMetricsbyPercentage.changeValue": "+10.0"
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.ChangeMetricsbyPercentage.LSB", True)
+			Glyphs.registerDefault("com.mekkablue.ChangeMetricsbyPercentage.RSB", True)
+			Glyphs.registerDefault("com.mekkablue.ChangeMetricsbyPercentage.changeValue", "+10.0")
 			self.w.LSB.set( Glyphs.defaults["com.mekkablue.ChangeMetricsbyPercentage.LSB"] )
 			self.w.RSB.set( Glyphs.defaults["com.mekkablue.ChangeMetricsbyPercentage.RSB"] )
 			self.w.changeValue.set( Glyphs.defaults["com.mekkablue.ChangeMetricsbyPercentage.changeValue"] )

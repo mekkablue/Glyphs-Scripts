@@ -50,12 +50,8 @@ class FindOverkerns( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.FindOverkerns.threshold": "40",
-					"com.mekkablue.FindOverkerns.limitToExportingGlyphs": "1"
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.FindOverkerns.threshold", "40")
+			Glyphs.registerDefault("com.mekkablue.FindOverkerns.limitToExportingGlyphs", True)
 			self.w.threshold.set( Glyphs.defaults["com.mekkablue.FindOverkerns.threshold"] )
 			self.w.limitToExportingGlyphs.set( Glyphs.defaults["com.mekkablue.FindOverkerns.limitToExportingGlyphs"] )
 		except:
@@ -68,11 +64,11 @@ class FindOverkerns( object ):
 			# retrieve user entry:
 			thresholdFactor = None
 			try:
-				thresholdFactor = float(self.w.threshold.get())/100.0
+				thresholdFactor = float( Glyphs.defaults["com.mekkablue.FindOverkerns.threshold"] )/100.0
 			except:
-				Message("Value Error", "The threshod value you entered is invalid", OKButton="Oops")
+				Message("Value Error", "The threshold value you entered is invalid", OKButton="Oops")
 			
-			limitToExportingGlyphs = bool(self.w.limitToExportingGlyphs.get())
+			limitToExportingGlyphs = bool( Glyphs.defaults["com.mekkablue.FindOverkerns.limitToExportingGlyphs"] )
 			
 			# continuer if user entry is valid: 
 			if not thresholdFactor is None:

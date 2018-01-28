@@ -44,14 +44,10 @@ class KerningGroupReplacer( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.KerningGroupReplacer.leftSearchFor":"",
-					"com.mekkablue.KerningGroupReplacer.leftReplaceBy":"",
-					"com.mekkablue.KerningGroupReplacer.rightSearchFor":"",
-					"com.mekkablue.KerningGroupReplacer.rightReplaceBy":""
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.KerningGroupReplacer.leftSearchFor","")
+			Glyphs.registerDefault("com.mekkablue.KerningGroupReplacer.leftReplaceBy","")
+			Glyphs.registerDefault("com.mekkablue.KerningGroupReplacer.rightSearchFor","")
+			Glyphs.registerDefault("com.mekkablue.KerningGroupReplacer.rightReplaceBy","")
 			self.w.leftSearchFor.set(  Glyphs.defaults[ "com.mekkablue.KerningGroupReplacer.leftSearchFor"  ] )
 			self.w.leftReplaceBy.set(  Glyphs.defaults[ "com.mekkablue.KerningGroupReplacer.leftReplaceBy"  ] )
 			self.w.rightSearchFor.set( Glyphs.defaults[ "com.mekkablue.KerningGroupReplacer.rightSearchFor" ] )
@@ -117,10 +113,10 @@ class KerningGroupReplacer( object ):
 			selectedLayers = Font.selectedLayers
 			currentLayers = [ l for l in selectedLayers if l.parent.name is not None ]
 			
-			LsearchFor = self.w.leftSearchFor.get()
-			LreplaceBy = self.w.leftReplaceBy.get()
-			RsearchFor = self.w.rightSearchFor.get()
-			RreplaceBy = self.w.rightReplaceBy.get()
+			LsearchFor = Glyphs.defaults[ "com.mekkablue.KerningGroupReplacer.leftSearchFor" ]
+			LreplaceBy = Glyphs.defaults[ "com.mekkablue.KerningGroupReplacer.leftReplaceBy" ]
+			RsearchFor = Glyphs.defaults[ "com.mekkablue.KerningGroupReplacer.rightSearchFor" ]
+			RreplaceBy = Glyphs.defaults[ "com.mekkablue.KerningGroupReplacer.rightReplaceBy" ]
 			
 			for thisLayer in currentLayers:
 				try:

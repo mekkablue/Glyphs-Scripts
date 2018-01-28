@@ -48,11 +48,7 @@ class ModifyComponents( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.ModifyComponents.dotSuffix": ".case"
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.ModifyComponents.dotSuffix", ".case")
 			self.w.dotSuffix.set( Glyphs.defaults["com.mekkablue.ModifyComponents.dotSuffix"] )
 		except:
 			return False
@@ -61,7 +57,7 @@ class ModifyComponents( object ):
 	
 	def ModifyComponentsMain( self, sender ):
 		try:
-			dotSuffix = self.w.dotSuffix.get()
+			dotSuffix = Glyphs.defaults["com.mekkablue.ModifyComponents.dotSuffix"]
 			if not dotSuffix[0] == ".":
 				dotSuffix = ".%s" % dotSuffix
 			

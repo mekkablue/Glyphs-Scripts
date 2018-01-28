@@ -58,13 +58,9 @@ class ShowLargeKerningPairs( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.ShowLargeKerningPairs.negative": "1",
-					"com.mekkablue.ShowLargeKerningPairs.positive": "1",
-					"com.mekkablue.ShowLargeKerningPairs.threshold": "100"
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.ShowLargeKerningPairs.negative", True)
+			Glyphs.registerDefault("com.mekkablue.ShowLargeKerningPairs.positive", True)
+			Glyphs.registerDefault("com.mekkablue.ShowLargeKerningPairs.threshold", "100")
 			self.w.negative.set( Glyphs.defaults["com.mekkablue.ShowLargeKerningPairs.negative"] )
 			self.w.positive.set( Glyphs.defaults["com.mekkablue.ShowLargeKerningPairs.positive"] )
 			self.w.threshold.set( Glyphs.defaults["com.mekkablue.ShowLargeKerningPairs.threshold"] )

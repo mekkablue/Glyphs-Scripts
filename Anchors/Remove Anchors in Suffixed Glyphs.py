@@ -47,11 +47,7 @@ class RemoveAnchorsinSuffixedGlyphs( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.RemoveAnchorsinSuffixedGlyphs.suffixlist": ".sups, .sinf, superior, inferior"
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.RemoveAnchorsinSuffixedGlyphs.suffixlist", ".sups, .sinf, superior, inferior")
 			self.w.suffixlist.set( Glyphs.defaults["com.mekkablue.RemoveAnchorsinSuffixedGlyphs.suffixlist"] )
 		except:
 			return False

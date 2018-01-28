@@ -64,15 +64,11 @@ class FindSmallPaths( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.FindSmallPaths.sliderMin": "10",
-					"com.mekkablue.FindSmallPaths.sliderMax": "100000",
-					"com.mekkablue.FindSmallPaths.areaSlider": 0.1,
-					"com.mekkablue.FindSmallPaths.deleteThemRightAway": 0,
-					"com.mekkablue.FindSmallPaths.afterOverlapRemoval": 0
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.FindSmallPaths.sliderMin", "10",)
+			Glyphs.registerDefault("com.mekkablue.FindSmallPaths.sliderMax", "100000")
+			Glyphs.registerDefault("com.mekkablue.FindSmallPaths.areaSlider", 0.1)
+			Glyphs.registerDefault("com.mekkablue.FindSmallPaths.deleteThemRightAway", 0)
+			Glyphs.registerDefault("com.mekkablue.FindSmallPaths.afterOverlapRemoval", 0)
 			self.w.sliderMin.set( Glyphs.defaults["com.mekkablue.FindSmallPaths.sliderMin"] )
 			self.w.sliderMax.set( Glyphs.defaults["com.mekkablue.FindSmallPaths.sliderMax"] )
 			self.w.areaSlider.set( float(Glyphs.defaults["com.mekkablue.FindSmallPaths.areaSlider"]) )
@@ -118,8 +114,8 @@ class FindSmallPaths( object ):
 			return False
 	
 	def CurrentMinArea(self):
-		minimum = float(self.w.sliderMin.get())
-		maximum = float(self.w.sliderMax.get())
+		minimum = float( Glyphs.defaults["com.mekkablue.FindSmallPaths.sliderMin"] )
+		maximum = float( Glyphs.defaults["com.mekkablue.FindSmallPaths.sliderMax"] )
 		
 		# check for integrity of min and max values:
 		if minimum < 1.0:
@@ -130,7 +126,7 @@ class FindSmallPaths( object ):
 			maximum = minimum+10.0
 			self.w.sliderMax.set( "%i"%maximum )
 
-		sliderPos = float( self.w.areaSlider.get() )
+		sliderPos = float( Glyphs.defaults["com.mekkablue.FindSmallPaths.areaSlider"] )
 		minArea = minimum + sliderPos * (maximum-minimum)
 		self.w.minArea.set( "%i square units" % minArea )
 		return minArea
@@ -138,8 +134,8 @@ class FindSmallPaths( object ):
 	def FindSmallPathsMain( self, sender ):
 		try:
 			minArea = self.CurrentMinArea()
-			smallPathsShouldBeDeleted = self.w.deleteThemRightAway.get()
-			overlapsShouldBeRemovedFirst = self.w.afterOverlapRemoval.get()
+			smallPathsShouldBeDeleted = Glyphs.defaults["com.mekkablue.FindSmallPaths.deleteThemRightAway" ]
+			overlapsShouldBeRemovedFirst = Glyphs.defaults["com.mekkablue.FindSmallPaths.afterOverlapRemoval" ]
 			
 			glyphsWithSmallPaths = []
 			

@@ -48,11 +48,7 @@ class CustomUnicode( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.CustomUnicode.unicode": "E700"
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.CustomUnicode.unicode", "E700")
 			self.w.unicode.set( Glyphs.defaults["com.mekkablue.CustomUnicode.unicode"] )
 		except:
 			return False
@@ -72,7 +68,7 @@ class CustomUnicode( object ):
 		
 	def CustomUnicodeMain( self, sender ):
 		try:
-			enteredUnicode = self.w.unicode.get().upper()
+			enteredUnicode = Glyphs.defaults["com.mekkablue.CustomUnicode.unicode"].upper()
 			
 			if self.checkUnicodeEntry(enteredUnicode):
 				thisFont = Glyphs.font # frontmost font

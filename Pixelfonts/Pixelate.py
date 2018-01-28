@@ -59,15 +59,11 @@ class Pixelate( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.Pixelate.pixelComponentName": "pixel",
-					"com.mekkablue.Pixelate.pixelRasterWidth": "50",
-					"com.mekkablue.Pixelate.resetWidths": True,
-					"com.mekkablue.Pixelate.decomposeComponents": True,
-					"com.mekkablue.Pixelate.keepWindowOpen": True
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.Pixelate.pixelComponentName", "pixel")
+			Glyphs.registerDefault("com.mekkablue.Pixelate.pixelRasterWidth", "50")
+			Glyphs.registerDefault("com.mekkablue.Pixelate.resetWidths", True)
+			Glyphs.registerDefault("com.mekkablue.Pixelate.decomposeComponents", True)
+			Glyphs.registerDefault("com.mekkablue.Pixelate.keepWindowOpen", True)
 			self.w.pixelComponentName.set( Glyphs.defaults["com.mekkablue.Pixelate.pixelComponentName"] )
 			self.w.pixelRasterWidth.set( Glyphs.defaults["com.mekkablue.Pixelate.pixelRasterWidth"] )
 			self.w.resetWidths.set( Glyphs.defaults["com.mekkablue.Pixelate.resetWidths"] )
@@ -84,7 +80,7 @@ class Pixelate( object ):
 		and enables/disables the Run button accordingly.
 		"""
 		onOff = False
-		pixelNameEntered = str(self.w.pixelComponentName.get())
+		pixelNameEntered = Glyphs.defaults["com.mekkablue.Pixelate.pixelComponentName"]
 		currentGlyphNames = [g.name for g in Glyphs.font.glyphs] # glyph names of frontmost font
 		if pixelNameEntered in currentGlyphNames:
 			onOff = True
@@ -94,11 +90,11 @@ class Pixelate( object ):
 		try:
 			thisFont = Glyphs.font # frontmost font
 			listOfSelectedLayers = thisFont.selectedLayers # active layers of currently selected glyphs
-			pixelRasterWidth = float( self.w.pixelRasterWidth.get() )
-			pixelNameEntered = str( self.w.pixelComponentName.get() )
+			pixelRasterWidth = float( Glyphs.defaults["com.mekkablue.Pixelate.pixelRasterWidth"] )
+			pixelNameEntered = str( Glyphs.defaults["com.mekkablue.Pixelate.pixelComponentName"] )
 			pixel = thisFont.glyphs[ pixelNameEntered ]
-			widthsShouldBeReset = self.w.resetWidths.get()
-			componentsMustBeDecomposed = self.w.decomposeComponents.get()
+			widthsShouldBeReset = Glyphs.defaults["com.mekkablue.Pixelate.resetWidths"]
+			componentsMustBeDecomposed = Glyphs.defaults["com.mekkablue.Pixelate.decomposeComponents"]
 			
 			for thisLayer in listOfSelectedLayers: # loop through layers
 				thisGlyph = thisLayer.parent
@@ -149,7 +145,7 @@ class Pixelate( object ):
 				print "Note: 'Pixelate' could not write preferences."
 			
 			# keep window open if requested:
-			if not self.w.keepWindowOpen.get():
+			if not Glyphs.defaults["com.mekkablue.Pixelate.keepWindowOpen"]:
 				self.w.close()
 		except Exception, e:
 			# brings macro window to front and reports error:

@@ -150,21 +150,17 @@ class InstanceMaker( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.InstanceMaker.numberOfInstances": "6",
-					"com.mekkablue.InstanceMaker.prefix": "A-",
-					"com.mekkablue.InstanceMaker.master1": self.MasterList(1),
-					"com.mekkablue.InstanceMaker.master2": self.MasterList(-1),
-					"com.mekkablue.InstanceMaker.width": "100",
-					"com.mekkablue.InstanceMaker.algorithm": "0",
-					"com.mekkablue.InstanceMaker.existingInstances": "0",
-					"com.mekkablue.InstanceMaker.maciej": "0",
-					"com.mekkablue.InstanceMaker.maciej1": self.MasterList(1),
-					"com.mekkablue.InstanceMaker.maciej2": self.MasterList(-1),
-					"com.mekkablue.InstanceMaker.shouldRound": "1",
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.InstanceMaker.numberOfInstances", "6")
+			Glyphs.registerDefault("com.mekkablue.InstanceMaker.prefix", "A-")
+			Glyphs.registerDefault("com.mekkablue.InstanceMaker.master1", self.MasterList(1))
+			Glyphs.registerDefault("com.mekkablue.InstanceMaker.master2", self.MasterList(-1))
+			Glyphs.registerDefault("com.mekkablue.InstanceMaker.width", "100")
+			Glyphs.registerDefault("com.mekkablue.InstanceMaker.algorithm", 0)
+			Glyphs.registerDefault("com.mekkablue.InstanceMaker.existingInstances", False)
+			Glyphs.registerDefault("com.mekkablue.InstanceMaker.maciej", False)
+			Glyphs.registerDefault("com.mekkablue.InstanceMaker.maciej1", self.MasterList(1))
+			Glyphs.registerDefault("com.mekkablue.InstanceMaker.maciej2", self.MasterList(-1))
+			Glyphs.registerDefault("com.mekkablue.InstanceMaker.shouldRound", True)
 			self.w.numberOfInstances.set( Glyphs.defaults["com.mekkablue.InstanceMaker.numberOfInstances"] )
 			self.w.prefix.set( Glyphs.defaults["com.mekkablue.InstanceMaker.prefix"] )
 			self.w.master1.set( Glyphs.defaults["com.mekkablue.InstanceMaker.master1"] )

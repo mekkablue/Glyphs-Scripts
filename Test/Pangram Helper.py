@@ -52,11 +52,7 @@ class PangramHelper( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.PangramHelper.pangram": "The quick brown fox jumps over the lazy dog."
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.PangramHelper.pangram", "The quick brown fox jumps over the lazy dog.")
 			self.w.pangram.set( Glyphs.defaults["com.mekkablue.PangramHelper.pangram"] )
 		except:
 			return False
@@ -72,7 +68,7 @@ class PangramHelper( object ):
 		return []
 	
 	def updateMissingLetters( self, sender ):
-		currentTextEntry = unicode( self.w.pangram.get().lower() )
+		currentTextEntry = unicode( Glyphs.defaults["com.mekkablue.PangramHelper.pangram"].lower() )
 		containedBaseLetters = ""
 		for thisLetter in currentTextEntry:
 			if ord(thisLetter) > 191:
@@ -89,7 +85,7 @@ class PangramHelper( object ):
 		
 	def PangramHelperMain( self, sender ):
 		try:
-			myText = self.w.pangram.get()
+			myText = Glyphs.defaults["com.mekkablue.PangramHelper.pangram"]
 			
 			if myText:
 				if sender == self.w.copyButton:

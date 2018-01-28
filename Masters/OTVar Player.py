@@ -91,13 +91,9 @@ class OTVarGlyphAnimator( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.OTVarGlyphAnimator.slider": 0,
-					"com.mekkablue.OTVarGlyphAnimator.delay": 0.05,
-					"com.mekkablue.OTVarGlyphAnimator.backAndForth": 0
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.OTVarGlyphAnimator.slider", 0)
+			Glyphs.registerDefault("com.mekkablue.OTVarGlyphAnimator.delay", 0.05)
+			Glyphs.registerDefault("com.mekkablue.OTVarGlyphAnimator.backAndForth", False)
 			self.w.slider.set( Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.slider"] )
 			self.w.backAndForth.set( Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.backAndForth"] )
 		except:

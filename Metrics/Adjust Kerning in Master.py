@@ -49,10 +49,6 @@ class AdjustKerning( object ):
 		self.w.open()
 		self.w.makeKey()
 		
-		# Set defaults for class variables
-		self.positive = self.w.positive.get()
-		self.zero = self.w.zero.get()
-		self.negative = self.w.negative.get()
 		
 	def SavePreferences( self, sender ):
 		try:
@@ -69,19 +65,13 @@ class AdjustKerning( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.AdjustKerning.doWhat": 0,
-					"com.mekkablue.AdjustKerning.howMuch": "20",
-					# "com.mekkablue.AdjustKerning.keepWindow": True,
-					"com.mekkablue.AdjustKerning.positive": True,
-					"com.mekkablue.AdjustKerning.zero": True,
-					"com.mekkablue.AdjustKerning.negative": True
-				}
-			)
+			Glyphs.registerDefault("com.mekkablue.AdjustKerning.doWhat", 0)
+			Glyphs.registerDefault("com.mekkablue.AdjustKerning.howMuch", "20")
+			Glyphs.registerDefault("com.mekkablue.AdjustKerning.positive", True)
+			Glyphs.registerDefault("com.mekkablue.AdjustKerning.zero", True)
+			Glyphs.registerDefault("com.mekkablue.AdjustKerning.negative", True)
 			self.w.doWhat.set( Glyphs.defaults["com.mekkablue.AdjustKerning.doWhat"] )
 			self.w.howMuch.set( Glyphs.defaults["com.mekkablue.AdjustKerning.howMuch"] )
-			# self.w.keepWindow.set( Glyphs.defaults["com.mekkablue.AdjustKerning.keepWindow"] )
 			self.w.positive.set( Glyphs.defaults["com.mekkablue.AdjustKerning.positive"] )
 			self.w.zero.set( Glyphs.defaults["com.mekkablue.AdjustKerning.zero"] )
 			self.w.negative.set( Glyphs.defaults["com.mekkablue.AdjustKerning.negative"] )
@@ -101,11 +91,11 @@ class AdjustKerning( object ):
 	
 	def userChoosesToProcessKerning( self, kernValue ):
 		try:
-			if self.positive and kernValue > 0:
+			if Glyphs.defaults["com.mekkablue.AdjustKerning.positive"] and kernValue > 0:
 				return True
-			elif self.zero and kernValue == 0:
+			elif Glyphs.defaults["com.mekkablue.AdjustKerning.zero"] and kernValue == 0:
 				return True
-			elif self.negative and kernValue < 0:
+			elif Glyphs.defaults["com.mekkablue.AdjustKerning.negative"] and kernValue < 0:
 				return True
 			else:
 				return False
@@ -118,15 +108,10 @@ class AdjustKerning( object ):
 			Master = Font.selectedFontMaster
 			MasterID = Master.id
 			MasterKernDict = Font.kerning[ MasterID ]
+			calculation = str( self.w.doWhat.getItems()[ Glyphs.defaults["com.mekkablue.AdjustKerning.doWhat"] ] )
+			value = float( Glyphs.defaults["com.mekkablue.AdjustKerning.howMuch"] )
 			
-			self.positive = self.w.positive.get()
-			self.zero = self.w.zero.get()
-			self.negative = self.w.negative.get()
-
 			Font.disableUpdateInterface()
-			
-			calculation = str( self.w.doWhat.getItems()[ self.w.doWhat.get() ] )
-			value = float( self.w.howMuch.get() )
 			
 			if calculation == optionList[0]:
 
@@ -180,9 +165,6 @@ class AdjustKerning( object ):
 			
 			if not self.SavePreferences( self ):
 				print "Note: could not write preferences."
-			
-			# if not self.w.keepWindow.get():
-			# 	self.w.close()
 		except Exception, e:
 			raise e
 
