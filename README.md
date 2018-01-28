@@ -249,6 +249,7 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 * **Report Area in Square Units:** Calculates the area of each selected glyph, and outputs the result to the Macro Window in square units. Increase precision by changing the value for the PRECISION variable in line 9 (script will slow down).
 * **Report Black to White Ratios:** Calculates the black area of all selected glyphs, and the black/white area ratio in relation to bounding box and several vertical metrics. Outputs a CSV spreadsheet.
 * **Report Highest and Lowest Glyphs:** Reports glyphs with highest and lowest bounding boxes for all masters.
+* **Variable Font Test HTML:** Create a Test HTML for the current font inside the current Variation Font Export folder. *Requires Glyphs 2.5 or later.*
 * **Webfont Test HTML:** Creates a Test HTML for the current font inside the current Webfont Export folder, or for the current Glyphs Project in the project’s export path. *Requires Glyphs 2 or later.*
 
 
