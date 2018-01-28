@@ -76,6 +76,7 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 * **Propagate Corner Components to Other Masters:** Tries to recreate the corner components of the current master layer in all other masters of the same glyph. Make sure your outlines are compatible.
 * **Rebuild Components:** Moves outlines to background, then tries to rebuild the glyph with components in the foreground. Tries to position the accents as precisely as possible. Useful for rebuilding a decomposed font.
 * **Remove Components:** Removes the specified component from all glyphs or all selected glyphs. *Needs Vanilla.*
+* **Replace all Paths with Component:** Replaces all paths with a component. *Needs Vanilla.*
 * **Replace components:** Relinks components in selected glyphs to a new source glyph. *Needs Vanilla.*
 
 ## Effects Scripts
