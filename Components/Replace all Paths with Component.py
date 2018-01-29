@@ -20,7 +20,7 @@ class ReplaceAllPathsWithComponent( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 350
-		windowHeight = 160
+		windowHeight = 180
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -41,9 +41,10 @@ class ReplaceAllPathsWithComponent( object ):
 		self.w.align = vanilla.PopUpButton( (140, 12+45, -15, 17), self.alignments, callback=self.SavePreferences, sizeStyle='small' )
 		
 		self.w.onlySelectedGlyphs = vanilla.CheckBox( (15, 12+70, -15, 30), "Replace in selected glyphs only", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.onlyExportingGlyphs = vanilla.CheckBox( (15, 12+90, -15, 30), "Replace in exporting glyphs only", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80-15, -20-15, -15, -15), "Replace", sizeStyle='regular', callback=self.ReplaceAllPathsWithComponentMain )
+		self.w.runButton = vanilla.Button((-80-15, -20-15, -15, -15), "Replace", sizeStyle='regular', callback=self.ReplaceAllPathsWithComponent )
 		self.w.setDefaultButton( self.w.runButton )
 		
 		# Load Settings:
@@ -66,6 +67,7 @@ class ReplaceAllPathsWithComponent( object ):
 		try:
 			Glyphs.defaults["com.mekkablue.ReplaceAllPathsWithComponent.align"] = self.w.align.get()
 			Glyphs.defaults["com.mekkablue.ReplaceAllPathsWithComponent.onlySelectedGlyphs"] = self.w.onlySelectedGlyphs.get()
+			Glyphs.defaults["com.mekkablue.ReplaceAllPathsWithComponent.onlyExportingGlyphs"] = self.w.onlyExportingGlyphs.get()
 			Glyphs.defaults["com.mekkablue.ReplaceAllPathsWithComponent.componentPicker"] = self.w.componentPicker.get()
 		except:
 			import traceback
@@ -76,10 +78,12 @@ class ReplaceAllPathsWithComponent( object ):
 	def LoadPreferences( self ):
 		try:
 			Glyphs.registerDefault("com.mekkablue.ReplaceAllPathsWithComponent.align", 0)
-			Glyphs.registerDefault("com.mekkablue.ReplaceAllPathsWithComponentMain.onlySelectedGlyphs", False)
+			Glyphs.registerDefault("com.mekkablue.ReplaceAllPathsWithComponent.onlySelectedGlyphs", False)
+			Glyphs.registerDefault("com.mekkablue.ReplaceAllPathsWithComponent.onlyExportingGlyphs", False)
 			Glyphs.registerDefault("com.mekkablue.ReplaceAllPathsWithComponent.componentPicker", "")
 			self.w.align.set( Glyphs.defaults["com.mekkablue.ReplaceAllPathsWithComponent.align"] )
-			self.w.onlySelectedGlyphs.set( bool(Glyphs.defaults["com.mekkablue.ReplaceAllPathsWithComponentMain.onlySelectedGlyphs"]) )
+			self.w.onlySelectedGlyphs.set( bool(Glyphs.defaults["com.mekkablue.ReplaceAllPathsWithComponent.onlySelectedGlyphs"]) )
+			self.w.onlyExportingGlyphs.set( bool(Glyphs.defaults["com.mekkablue.ReplaceAllPathsWithComponent.onlyExportingGlyphs"]) )
 			self.w.componentPicker.set( Glyphs.defaults["com.mekkablue.ReplaceAllPathsWithComponent.componentPicker"] )
 		except:
 			import traceback
@@ -87,17 +91,20 @@ class ReplaceAllPathsWithComponent( object ):
 			return False
 		return True
 	
-	def ReplaceAllPathsWithComponentMain( self, sender ):
+	def ReplaceAllPathsWithComponent( self, sender ):
 		try:
 			thisFont = Glyphs.font # frontmost font
 			masterID = thisFont.selectedFontMaster.id
 
-			if Glyphs.defaults["com.mekkablue.ReplaceAllPathsWithComponentMain.onlySelectedGlyphs"]:
+			if Glyphs.defaults["com.mekkablue.ReplaceAllPathsWithComponent.onlySelectedGlyphs"]:
 				# active layers of currently selected glyphs
 				layers = thisFont.selectedLayers 
 			else:
 				# all layers of the current font master
 				layers = [g.layers[masterID] for g in thisFont.glyphs]
+			
+			if Glyphs.defaults["com.mekkablue.ReplaceAllPathsWithComponent.onlyExportingGlyphs"]:
+				layers = [l for l in layers if l.parent.export]
 			
 			componentName = Glyphs.defaults["com.mekkablue.ReplaceAllPathsWithComponent.componentPicker"]
 			alignment = Glyphs.defaults["com.mekkablue.ReplaceAllPathsWithComponent.align"]
@@ -107,28 +114,34 @@ class ReplaceAllPathsWithComponent( object ):
 			componentBounds = componentLayer.bounds
 			componentCenter = centerOfRect( componentBounds )
 			
+			if len(componentLayer.paths) == 0:
+				Message("Script Error", u"The referenced glyph (‘%s’) has no outlines in this master. Please choose a glyph with a path in it."%componentName, OKButton=None)
+				return
+			
 			for thisLayer in layers:
-				thisLayer.contentToBackgroundCheckSelection_keepOldBackground_(False,False)
-				for thisPath in thisLayer.paths:
-					pathBounds = thisPath.bounds
-					component = GSComponent(componentName)
-					thisLayer.components.append(component)
+				print thisLayer.parent.name
+				if thisLayer.parent.name != componentName: # don't overwrite the component itself
+					thisLayer.contentToBackgroundCheckSelection_keepOldBackground_(False,False)
+					for thisPath in thisLayer.paths:
+						pathBounds = thisPath.bounds
+						component = GSComponent(componentName)
+						thisLayer.components.append(component)
 					
-					if alignment == 0:
-						# Align over BBox Center
-						pathCenter = centerOfRect(pathBounds)
-						xMove = pathCenter.x - componentCenter.x
-						yMove = pathCenter.y - componentCenter.y
-						component.position = NSPoint( xMove, yMove )
-					elif alignment == 1:
-						# Align with BBox Origin (Bottom Left)
-						xMove = pathBounds.origin.x - componentBounds.origin.x
-						yMove = pathBounds.origin.y - componentBounds.origin.y
-						component.position = NSPoint( xMove, yMove )
+						if alignment == 0:
+							# Align over BBox Center
+							pathCenter = centerOfRect(pathBounds)
+							xMove = pathCenter.x - componentCenter.x
+							yMove = pathCenter.y - componentCenter.y
+							component.position = NSPoint( xMove, yMove )
+						elif alignment == 1:
+							# Align with BBox Origin (Bottom Left)
+							xMove = pathBounds.origin.x - componentBounds.origin.x
+							yMove = pathBounds.origin.y - componentBounds.origin.y
+							component.position = NSPoint( xMove, yMove )
 						
-					else:
-						# Scale into BBox
-						pass
+						else:
+							# Scale into BBox
+							pass
 					
 				thisLayer.paths = None
 			
