@@ -26,12 +26,18 @@ def newGuide( position, angle ):
 	return newGuide
 
 def isThereAlreadyAGuideWithTheseProperties(thisLayer,guideposition,guideangle):
+	if guideangle < 0:
+		guideangle += 180
+	if guideangle > 180:
+		guideangle -= 180
 	for thisGuide in thisLayer.guides:
-		if thisGuide.angle == guideangle:
-			if thisGuide.position == guideposition:
-				return True
-			elif angle(guideposition,thisGuide.position) % 180 == guideangle % 180:
-				return True
+		thisAngle = thisGuide.angle
+		if thisAngle < 0:
+			thisAngle += 180
+		if thisAngle > 180:
+			thisAngle -= 180
+		if abs(thisAngle - guideangle) < 0.01 and abs(thisGuide.position.x - guideposition.x) < 0.01 and abs(thisGuide.position.y - guideposition.y) < 0.01:
+			return True
 	return False
 
 if len(selectedLayers) == 1:
