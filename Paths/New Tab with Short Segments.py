@@ -23,7 +23,7 @@ class FindShortSegmentsInFont( object ):
 		
 		# UI elements:
 		self.w.text_1 = vanilla.TextBox( (15-1, 12+2, 160, 14), "Find segments up to length:", sizeStyle='small' )
-		self.w.maxDistance = vanilla.EditText( (175, 12, -15, 15+3), "5", sizeStyle = 'small')
+		self.w.maxDistance = vanilla.EditText( (175, 12, -15, 15+3), "5", callback=self.SavePreferences, sizeStyle='small')
 		self.w.allFonts = vanilla.CheckBox( (15, 34, -15, 20), "Include all open fonts", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.selectSegments = vanilla.CheckBox( (15, 54, -15, 20), "Select segments", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		
@@ -51,7 +51,7 @@ class FindShortSegmentsInFont( object ):
 
 	def LoadPreferences( self ):
 		try:
-			Glyphs.registerDefault("com.mekkablue.FindShortSegmentsInFont.maxDistance", "5")
+			Glyphs.registerDefault("com.mekkablue.FindShortSegmentsInFont.maxDistance", 5)
 			Glyphs.registerDefault("com.mekkablue.FindShortSegmentsInFont.allFonts", False)
 			Glyphs.registerDefault("com.mekkablue.FindShortSegmentsInFont.selectSegments", False)
 			self.w.maxDistance.set( Glyphs.defaults["com.mekkablue.FindShortSegmentsInFont.maxDistance"] )
