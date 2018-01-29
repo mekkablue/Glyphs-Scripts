@@ -208,7 +208,7 @@ htmlContent = """<head>
 	<select size="1" id="fontFamilySelector" name="fontFamilySelector" onchange="changeFont()">
 		<!-- moreOptions -->
 	</select>
-	<input type="text" value="Type Text Here." id="textInput" onkeyup="updateParagraph()" size="80" />
+	<input type="text" value="Type Text Here." id="textInput" onclick="this.select();" onkeyup="updateParagraph()" size="80" />
 	<p style="font-size:small">
 		<a href="javascript:setCharset();">Charset</a>
 		<a href="javascript:setLat1();">Lat1</a>
