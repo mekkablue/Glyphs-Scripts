@@ -125,6 +125,8 @@ htmlContent = """
 				src: url(###fontFamilyName###GX.ttf);
 			}
 			p {
+				z-index: 0;
+				position: relative;
 				margin: 0px;
 				padding: 5px;
 				padding-top: 0.2em;
@@ -153,7 +155,7 @@ htmlContent = """
 				display: inline-block;
 			}
  			label {
-				z-index: 1;
+				z-index: 2;
 				position: absolute;
 				pointer-events: none;
 				width: 100%;
@@ -166,6 +168,8 @@ htmlContent = """
 				opacity: 0.5;
 			}
 			.slider {
+				z-index: 1;
+				position: relative;
 				-webkit-appearance: none;
 				-moz-appearance: none;
 				appearance: none;
@@ -177,6 +181,8 @@ htmlContent = """
 				margin: 5px;
 			}
 			.slider::-webkit-slider-thumb {
+				z-index: 3;
+				position: relative;
 				-webkit-appearance: none;
 				-moz-appearance: none;
 				appearance: none;
