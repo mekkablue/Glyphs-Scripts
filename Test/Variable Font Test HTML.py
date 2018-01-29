@@ -66,12 +66,13 @@ def allOTVarSliders(thisFont):
 			elif masterValue > axisDict[axisName]["max"]:
 				axisDict[axisName]["max"] = masterValue
 		
-	for axis in Font.customParameters["Virtual Master"]:
-		name = axis["Axis"]
-		if axis["Location"] < axisDict[name]["min"]:
-			axisDict[name]["min"] = axis["Location"]
-		if axis["Location"] > axisDict[name]["max"]:
-			axisDict[name]["max"] = axis["Location"]
+	if Font.customParameters["Virtual Master"]:
+		for axis in Font.customParameters["Virtual Master"]:
+			name = axis["Axis"]
+			if axis["Location"] < axisDict[name]["min"]:
+				axisDict[name]["min"] = axis["Location"]
+			if axis["Location"] > axisDict[name]["max"]:
+				axisDict[name]["max"] = axis["Location"]
 	
 	minValues, maxValues = {}, {}
 	for axis in axisDict:
