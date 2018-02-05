@@ -38,6 +38,7 @@ class FeatureActivator( object ):
 			editTab.graphicView().reflow()
 			editTab.graphicView().layoutManager().updateActiveLayer()
 			editTab._updateFeaturePopup()
+			editTab.updatePreview()
 		except Exception, e:
 			print e
 			print traceback.format_exc()
