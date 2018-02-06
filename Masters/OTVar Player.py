@@ -215,20 +215,24 @@ class OTVarGlyphAnimator( object ):
 			print traceback.format_exc()
 			
 	def slower(self, sender):
-		if float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]) <= 0.1:
-			float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]) += 0.01
+		delay = float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"])
+		if delay <= 0.1:
+			delay += 0.01
 			self.w.faster.enable(onOff=True)
 		else:
 			# disable slower button at slowest setting:
 			self.w.slower.enable(onOff=False)
+		Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"] = delay
 	
 	def faster(self, sender):
-		if float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]) > 0.02:
-			float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]) -= 0.01
+		delay = float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"])
+		if delay > 0.02:
+			delay -= 0.01
 			self.w.slower.enable(onOff=True)
 		else:
 			# disable faster button at fastest setting:
 			self.w.faster.enable(onOff=False)
+		Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"] = delay
 	
 	def buildWeb(self, sender):
 		weightAxisPositions = []
