@@ -4,22 +4,26 @@ __doc__="""
 Deletes all hints throughout the whole font.
 """
 
+from GlyphsApp import TOPGHOST, STEM, BOTTOMGHOST, TTANCHOR, TTSTEM, TTALIGN, TTINTERPOLATE, TTDIAGONAL
+
 Font = Glyphs.font
 totalDeletedHints = 0
 
 print "Deleting all hints in %s ..." % Font.familyName
 
 def deleteHintsInLayer( thisLayer ):
-	numOfHints = len( thisLayer.hints )
-	for x in reversed( range( numOfHints )):
-		if thisLayer.hints[x].type in (TOPGHOST, STEM, BOTTOMGHOST, TTANCHOR, TTSTEM, TTALIGN, TTINTERPOLATE, TTDIAGONAL):
-			del thisLayer.hints[x]
+	print thisLayer
+	numOfHints = 0
+	for hintIndex in range(len(thisLayer.hints))[::-1]:
+		if thisLayer.hints[hintIndex].type in (TOPGHOST, STEM, BOTTOMGHOST, TTANCHOR, TTSTEM, TTALIGN, TTINTERPOLATE, TTDIAGONAL):
+			del thisLayer.hints[hintIndex]
+			numOfHints += 1
 	return numOfHints
 
 def process( thisGlyph ):
 	deletedHintsCount = 0
-	for l in thisGlyph.layers:
-		deletedHintsCount += deleteHintsInLayer( l )
+	for thisLayer in thisGlyph.layers:
+		deletedHintsCount += deleteHintsInLayer( thisLayer )
 	return deletedHintsCount
 
 Font.disableUpdateInterface()

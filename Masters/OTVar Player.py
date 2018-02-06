@@ -170,9 +170,9 @@ class OTVarGlyphAnimator( object ):
 			
 			# finer steps when played slowly:
 			smoothnessFactor = 1
-			if Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"] > 0.07:
+			if float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]) > 0.07:
 				smoothnessFactor = 3
-			elif Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"] > 0.05:
+			elif float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]) > 0.05:
 				smoothnessFactor = 2
 			
 			# execute an animation step:
@@ -201,7 +201,7 @@ class OTVarGlyphAnimator( object ):
 				# Call this method again after a delay:
 				playSignature = objc.selector(self.play_,signature='v@:')
 				self.timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
-					Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]/smoothnessFactor, # interval
+					float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"])/smoothnessFactor, # interval
 					self, # target
 					playSignature, # selector
 					None, # userInfo
@@ -215,16 +215,16 @@ class OTVarGlyphAnimator( object ):
 			print traceback.format_exc()
 			
 	def slower(self, sender):
-		if Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"] <= 0.1:
-			Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"] += 0.01
+		if float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]) <= 0.1:
+			float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]) += 0.01
 			self.w.faster.enable(onOff=True)
 		else:
 			# disable slower button at slowest setting:
 			self.w.slower.enable(onOff=False)
 	
 	def faster(self, sender):
-		if Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"] > 0.02:
-			Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"] -= 0.01
+		if float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]) > 0.02:
+			float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]) -= 0.01
 			self.w.slower.enable(onOff=True)
 		else:
 			# disable faster button at fastest setting:
