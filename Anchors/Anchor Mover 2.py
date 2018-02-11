@@ -88,12 +88,12 @@ class AnchorMover2( object ):
 		return True
 
 	def LoadPreferences( self ):
+		Glyphs.registerDefault( "com.mekkablue.AnchorMover2.hTarget", 0.0 )
+		Glyphs.registerDefault( "com.mekkablue.AnchorMover2.hChange", 0.0 )
+		Glyphs.registerDefault( "com.mekkablue.AnchorMover2.vTarget", 0.0 )
+		Glyphs.registerDefault( "com.mekkablue.AnchorMover2.vChange", 0.0 )
+		Glyphs.registerDefault( "com.mekkablue.AnchorMover2.italic", True )
 		try:
-			Glyphs.registerDefault( "com.mekkablue.AnchorMover2.hTarget", 0 )
-			Glyphs.registerDefault( "com.mekkablue.AnchorMover2.hChange", 0 )
-			Glyphs.registerDefault( "com.mekkablue.AnchorMover2.vTarget", 0 )
-			Glyphs.registerDefault( "com.mekkablue.AnchorMover2.vChange", 0 )
-			Glyphs.registerDefault( "com.mekkablue.AnchorMover2.italic", True )
 			self.w.hTarget.set( Glyphs.defaults["com.mekkablue.AnchorMover2.hTarget"] )
 			self.w.hChange.set( Glyphs.defaults["com.mekkablue.AnchorMover2.hChange"] )
 			self.w.vTarget.set( Glyphs.defaults["com.mekkablue.AnchorMover2.vTarget"] )
@@ -103,6 +103,16 @@ class AnchorMover2( object ):
 			return False
 		
 		return True
+	
+	def prefAsFloat(self, pref):
+		try:
+			return float( Glyphs.defaults[pref] )
+		except:
+			Glyphs.defaults[pref] = 0.0
+			self.LoadPreferences()
+			return 0.0
+			
+			
 
 	def MoveCallback( self, sender ):
 		Font = Glyphs.font
@@ -112,9 +122,9 @@ class AnchorMover2( object ):
 		anchor_index = self.w.anchor_name.get()
 		anchor_name  = str( self.w.anchor_name.getItems()[anchor_index] )
 		horizontal_index  = Glyphs.defaults["com.mekkablue.AnchorMover2.hTarget"]
-		horizontal_change = float( Glyphs.defaults["com.mekkablue.AnchorMover2.hChange"] )
+		horizontal_change = self.prefAsFloat("com.mekkablue.AnchorMover2.hChange")
 		vertical_index  = Glyphs.defaults["com.mekkablue.AnchorMover2.vTarget"]
-		vertical_change = float( Glyphs.defaults["com.mekkablue.AnchorMover2.vChange"] )
+		vertical_change = self.prefAsFloat("com.mekkablue.AnchorMover2.vChange")
 		
 		# Keep inquiries to the objects to a minimum:
 		selectedAscender  = selectedMaster.ascender
