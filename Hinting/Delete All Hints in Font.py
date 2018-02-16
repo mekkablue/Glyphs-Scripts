@@ -12,7 +12,10 @@ totalDeletedHints = 0
 print "Deleting all hints in %s ..." % Font.familyName
 
 def deleteHintsInLayer( thisLayer ):
-	print thisLayer
+	try:
+		print u"Processing %s, layer: %s" % (thisLayer.parent.name, thisLayer.name)
+	except Exception as e:
+		print e
 	numOfHints = 0
 	for hintIndex in range(len(thisLayer.hints))[::-1]:
 		if thisLayer.hints[hintIndex].type in (TOPGHOST, STEM, BOTTOMGHOST, TTANCHOR, TTSTEM, TTALIGN, TTINTERPOLATE, TTDIAGONAL):
