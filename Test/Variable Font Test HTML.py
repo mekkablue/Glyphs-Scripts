@@ -193,6 +193,9 @@ htmlContent = """
 				background: #777;
 				cursor: auto;
 			}
+			a {
+				color: #333;
+			}
 		</style>
 		<script>
 			function updateParagraph() {
@@ -238,6 +241,7 @@ htmlContent = """
 			<div class="labeldiv"><label class="sliderlabel" id="label_lineheight">lineheight</label><input type="range" min="30" max="300" value="100" class="slider" id="lineheight" oninput="updateSlider();"></div>
 ###sliders###		</div>
 		<p id="text">The Quick Brown Fox Jumps Over the Lazy Dog.</p>
+		<p style="color: #ccc; font: x-small sans-serif;">Not working? Please use the <a href="https://www.google.com/chrome/">latest version of Chrome</a>.<br/>Note: script is currently incompatible with <em>Axis Location</em> parameters in <em>File > Font Info > Masters.</em></p>
 	</body>
 </html>
 """
