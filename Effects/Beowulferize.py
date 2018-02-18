@@ -117,6 +117,7 @@ for thisGlyph in selectedGlyphs:
 		newName = thisGlyph.name+".calt"+str(round)
 		targetGlyph = thisGlyph.copy()
 		targetGlyph.name = newName
+		targetGlyph.unicode = None
 		glyphsToProcess.append( targetGlyph )
 		Font.glyphs.append( targetGlyph )
 
