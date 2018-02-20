@@ -129,9 +129,7 @@ class InstanceMaker( object ):
 			for thisInstance in Glyphs.font.instances:
 				thisInstance.active = False
 		elif instancesChoice == 2: # delete
-			while len( Glyphs.font.instances ) != 0:
-				Glyphs.font.removeInstanceAtIndex_(0)
-				
+			Glyphs.font.instances = None
 		return True
 		
 	def SavePreferences( self, sender ):
