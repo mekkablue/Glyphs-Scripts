@@ -113,8 +113,8 @@ for thisGlyph in selectedGlyphs:
 	glyphsToProcess.append( thisGlyph )
 	print thisGlyph.name,
 	
-	for round in range( alphabets ):
-		newName = thisGlyph.name+".calt"+str(round)
+	for thisRound in range( alphabets ):
+		newName = thisGlyph.name+".calt"+str(thisRound)
 		targetGlyph = thisGlyph.copy()
 		targetGlyph.name = newName
 		targetGlyph.unicode = None
