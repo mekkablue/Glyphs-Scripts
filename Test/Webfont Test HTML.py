@@ -209,7 +209,7 @@ htmlContent = """<head>
 		<!-- moreOptions -->
 	</select>
 	<input type="text" value="Type Text Here." id="textInput" onclick="this.select();" onkeyup="updateParagraph()" size="80" />
-	<p style="font-size:small">
+	<p style="font-size:x-small; font-family: sans-serif;">
 		<a href="javascript:setCharset();">Charset</a>
 		<a href="javascript:setLat1();">Lat1</a>
 		&emsp;
@@ -224,7 +224,7 @@ htmlContent = """<head>
 		<!-- moreFeatures -->
 		<label><input type="checkbox" name="show" value="show" onchange="updateFeatures();document.getElementById('featureLine').style.display=this.checked?'':'none'">Show CSS</label>
 	</p>
-	<p id="featureLine" style="font-size:x-small;display:none;">font-feature-settings: "kern" on, "liga" on, "calt" on;</p>
+	<p id="featureLine" style="font-size:x-small;font:sans-serif;display:none;">font-feature-settings: "kern" on, "liga" on, "calt" on;</p>
 	<p id="p08">08pt ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
 	<p id="p09">09pt ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
 	<p id="p10">10pt ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
