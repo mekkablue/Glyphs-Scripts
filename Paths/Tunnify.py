@@ -1,18 +1,8 @@
 #MenuTitle: Tunnify
 # -*- coding: utf-8 -*-
 __doc__="""
-Averages out the handles of selected path segments. Doing this is a good idea for zero handles, and as preparation for interpolation. If you just want to fix zero handles, then check out the FixZeroHandles plugin from my GitHub.
+Averages out the handles of selected path segments (or all paths if nothing is selected or multiple glyphs are selected). Doing this is a good idea for zero handles, and as preparation for interpolation. If you just want to fix zero handles, then check out the FixZeroHandles plugin in Window > Plugin Manager.
 """
-
-Font = Glyphs.font
-selectedLayer = Font.selectedLayers[0]
-selectedGlyph = selectedLayer.parent
-try:
-	# until v2.1:
-	selection = selectedLayer.selection()
-except:
-	# since v2.2:
-	selection = selectedLayer.selection
 
 tunnifiedZeroLo = 0.43
 tunnifiedZeroHi = 0.73
@@ -171,32 +161,40 @@ def tunnify( segment ):
 	else:
 		return None
 
-selectedGlyph.beginUndo()
 
-#try:
-for thisPath in selectedLayer.paths:
-	numOfNodes = len( thisPath.nodes )
-	nodeIndexes = range( numOfNodes )
+Font = Glyphs.font
+
+if len(Font.selectedLayers) > 1:
+	selectionCounts = False
+elif not Font.selectedLayers[0].selection:
+	selectionCounts = False
+else:
+	selectionCounts = True
 	
-	for i in nodeIndexes:
-		thisNode = thisPath.nodes[i]
-		
-		if thisNode in selection and thisNode.type == GSOFFCURVE:
-			if thisPath.nodes[i-1].type == GSOFFCURVE:
-				segmentNodeIndexes = [ i-2, i-1, i, i+1 ]
-			else:
-				segmentNodeIndexes = [ i-1, i, i+1, i+2 ]
-			
-			for x in range(len(segmentNodeIndexes)):
-				segmentNodeIndexes[x] = segmentNodeIndexes[x] % numOfNodes
-			
-			thisSegment = [ [n.x, n.y] for n in [ thisPath.nodes[i] for i in segmentNodeIndexes ] ]
-			newSegmentHandles = tunnify( thisSegment )
-			if newSegmentHandles:
-				x_handle1, y_handle1, x_handle2, y_handle2 = newSegmentHandles
-				thisPath.nodes[ segmentNodeIndexes[1] ].x = x_handle1
-				thisPath.nodes[ segmentNodeIndexes[1] ].y = y_handle1
-				thisPath.nodes[ segmentNodeIndexes[2] ].x = x_handle2
-				thisPath.nodes[ segmentNodeIndexes[2] ].y = y_handle2
+for selectedLayer in Font.selectedLayers:
+	selectedGlyph = selectedLayer.parent
+	selectedGlyph.beginUndo()
 
-selectedGlyph.endUndo()
+	for thisPath in selectedLayer.paths:
+		numOfNodes = len( thisPath.nodes )
+		
+		for i,thisNode in enumerate(thisPath.nodes):
+			if thisNode.type == GSOFFCURVE and (thisNode.selected or not selectionCounts):
+				if thisPath.nodes[i-1].type == GSOFFCURVE:
+					segmentNodeIndexes = [ i-2, i-1, i, i+1 ]
+				else:
+					segmentNodeIndexes = [ i-1, i, i+1, i+2 ]
+			
+				for x in range(len(segmentNodeIndexes)):
+					segmentNodeIndexes[x] = segmentNodeIndexes[x] % numOfNodes
+			
+				thisSegment = [ (n.x, n.y) for n in [ thisPath.nodes[i] for i in segmentNodeIndexes ] ]
+				newSegmentHandles = tunnify( thisSegment )
+				if newSegmentHandles:
+					x_handle1, y_handle1, x_handle2, y_handle2 = newSegmentHandles
+					thisPath.nodes[ segmentNodeIndexes[1] ].x = x_handle1
+					thisPath.nodes[ segmentNodeIndexes[1] ].y = y_handle1
+					thisPath.nodes[ segmentNodeIndexes[2] ].x = x_handle2
+					thisPath.nodes[ segmentNodeIndexes[2] ].y = y_handle2
+
+	selectedGlyph.endUndo()
