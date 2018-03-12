@@ -20,19 +20,14 @@ def glyphNameForLetter( letter ):
 	if len(letter) > 0:
 		letter = letter[0]
 		utf16value = "%.4X" % ord(letter)
-		try:
-			# prior to app version 758:
-			glyphName = GSGlyphsInfo.glyphInfoForUnicode_( utf16value ).name()
-		except:
-			# starting in app version 758:
-			glyphName = Glyphs.glyphInfoForUnicode( utf16value ).name
+		glyphName = Glyphs.glyphInfoForUnicode( utf16value ).name
 	return glyphName
 
 def runAppleScript(scriptSource, args=[]):
 	s = NSAppleScript.alloc().initWithSource_(scriptSource)
 	result, error = s.executeAndReturnError_(None)
 	if error:
-		print "AppleScript Errorrrr:"
+		print "AppleScript Error:"
 		print error
 		print "Tried to run:"
 		for i, line in enumerate(scriptSource.splitlines()):
@@ -45,10 +40,7 @@ def runAppleScript(scriptSource, args=[]):
 
 # Determine InDesign application name (for use in the AppleScripts):
 
-indesignPrefID = "com.mekkablue.stealKerningFromInDesign.indesignAppName"
-indesignDefault = Glyphs.defaults[indesignPrefID]
-if not indesignDefault:
-	indesignDefault = "Adobe InDesign"
+Glyphs.registerDefault("com.mekkablue.stealKerningFromInDesign.indesignAppName","Adobe InDesign")
 
 getInDesign = """
 try
@@ -57,11 +49,11 @@ on error
 	set InDesign to choose application with title "Please choose Adobe InDesign"
 end try
 InDesign as string
-""" % indesignDefault
+""" % Glyphs.defaults["com.mekkablue.stealKerningFromInDesign.indesignAppName"]
 
 indesign = runAppleScript(getInDesign)
-if indesign != indesignDefault:
-	Glyphs.defaults[indesignPrefID] = indesign
+if indesign != Glyphs.defaults["com.mekkablue.stealKerningFromInDesign.indesignAppName"]:
+	Glyphs.defaults["com.mekkablue.stealKerningFromInDesign.indesignAppName"] = indesign
 print "Accessing: %s" % indesign
 
 # Define AppleScripts to be run later:
