@@ -44,14 +44,26 @@ def featureListForFont( thisFont ):
 def allOTVarSliders(thisFont):
 	sliderValues = {}
 	for i, thisMaster in enumerate(thisFont.masters):
-		sliderValues[i] = (
-			thisMaster.weightValue,
-			thisMaster.widthValue,
-			thisMaster.customValue,
-			thisMaster.customValue1(),
-			thisMaster.customValue2(),
-			thisMaster.customValue3(),
-		)
+		try:
+			sliderValues[i] = (
+				thisMaster.weightValue,
+				thisMaster.widthValue,
+				thisMaster.customValue,
+				thisMaster.customValue1(),
+				thisMaster.customValue2(),
+				thisMaster.customValue3(),
+			)
+			warningMessage()
+		except:
+			sliderValues[i] = (
+				thisMaster.weightValue,
+				thisMaster.widthValue,
+				thisMaster.customValue,
+				thisMaster.customValue1,
+				thisMaster.customValue2,
+				thisMaster.customValue3,
+			)
+			
 	
 	axisDict = {}
 	for i, axis in enumerate(thisFont.axes):
@@ -92,17 +104,36 @@ def allOTVarSliders(thisFont):
 		)
 		
 	return html
+
+def warningMessage():
+	Message(
+		"Out of Date Warning", 
+		"It appears that you are not running the latest version of Glyphs. Please enable Cutting Edge Versions and Automatic Version Checks in Preferences > Updates, and update to the latest beta.",
+		OKButton=None
+		)
 	
 def defaultVariationCSS(thisFont):
 	firstMaster = thisFont.masters[0]
-	axisValues = (
-		firstMaster.weightValue,
-		firstMaster.widthValue,
-		firstMaster.customValue,
-		firstMaster.customValue1(),
-		firstMaster.customValue2(),
-		firstMaster.customValue3(),
-	)
+	try:
+		axisValues = (
+			firstMaster.weightValue,
+			firstMaster.widthValue,
+			firstMaster.customValue,
+			firstMaster.customValue1(),
+			firstMaster.customValue2(),
+			firstMaster.customValue3(),
+		)
+		warningMessage()
+	except:
+		axisValues = (
+			firstMaster.weightValue,
+			firstMaster.widthValue,
+			firstMaster.customValue,
+			firstMaster.customValue1,
+			firstMaster.customValue2,
+			firstMaster.customValue3,
+		)
+		
 	defaultValues = []
 	for i, axis in enumerate(thisFont.axes):
 		tag = axis["Tag"]
