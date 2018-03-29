@@ -70,6 +70,7 @@ class VariationInterpolator( object ):
 		newGlyph = thisGlyph.copy()
 		newGlyphName = newGlyph.name + ".%s" % newSuffix
 		newGlyph.name = newGlyphName
+		newGlyph.unicode = None
 		
 		# remove previously generated glyph with the same name:
 		oldGlyph = thisFont.glyphs[newGlyphName]
