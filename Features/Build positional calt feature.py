@@ -1,13 +1,13 @@
 #MenuTitle: Build positional calt feature
 # -*- coding: utf-8 -*-
 __doc__="""
-Create calt for positional forms with .isol, .init, .medi, .fina suffixes.
+Create calt for positional forms with .isol, .init, .medi, .fina suffixes. You can automate the newly created AllLetters class.
 """
 
 
 thisFont = Glyphs.font
 positionalFeature = "calt"
-anyLetterClassName = "AnyLetter"
+anyLetterClassName = "AllLetters"
 extensionDef = "Def"
 extensionSub = "Sub"
 ignoreStatements = {
