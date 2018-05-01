@@ -66,9 +66,10 @@ class CustomUnicode( object ):
 	def checkUnicodeEntry( self, unicodeValue ):
 		length = len(unicodeValue)
 		if length < 4 or length > 5:
-			print "ERROR: Entry has %i digits and therefore an invalid length. UTF-16 values must contain 4 or 5 hexadecimal digits." % digit
+			print "ERROR: Entry has %i digits and therefore an invalid length. UTF-16 values must contain 4 or 5 hexadecimal digits." % length
 			return False
 		
+		# after sanitization, this will probably never be accessed anymore:
 		for digit in unicodeValue:
 			allDigitsValid = True
 			if not digit in "0123456789ABCDEF":
@@ -79,6 +80,8 @@ class CustomUnicode( object ):
 		
 	def CustomUnicodeMain( self, sender ):
 		try:
+			# just to be safe:
+			self.sanitizeEntry(self.w.unicode)
 			enteredUnicode = Glyphs.defaults["com.mekkablue.CustomUnicode.unicode"]
 			
 			if self.checkUnicodeEntry(enteredUnicode):
@@ -103,12 +106,12 @@ class CustomUnicode( object ):
 			
 				self.w.close() # closes window
 			else:
-				Message("The Unicode value entered does not seem to be a valid UTF16 codepoint. It must be a four- or five-digit hexadecimal number, i,e, contain only 0123456789ABCDEF. Find more details in the Macro Window.", "Unicode Error", OKButton=None)
+				Message("The entered code is not a valid Unicode value. It must be either a four- or five-digit hexadecimal number. Find more details in the Macro Window.", "Unicode Error", OKButton=None)
 				Glyphs.showMacroWindow()
 				
 		except Exception, e:
 			# brings macro window to front and reports error:
-			Message("Script Error", "The following error occurred (more details in the Macro Window): %s"%e, OKButton=None)
+			Message("The following error occurred (more details in the Macro Window): %s"%e, "Script Error", OKButton=None)
 			import traceback
 			print traceback.format_exc()
 			Glyphs.showMacroWindow()
