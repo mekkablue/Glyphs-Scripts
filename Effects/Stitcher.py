@@ -129,6 +129,7 @@ def placeDots( thisLayer, useBackground, componentName, distanceBetweenDots ):
 			for thisPath in sourceLayer.paths:
 				for thisPoint in dotCoordsOnPath( thisPath, distanceBetweenDots ):
 					newComp = GSComponent( componentName, NSPoint( thisPoint.x + xOffset, thisPoint.y + yOffset ) )
+					newComp.alignment = -1
 					thisLayer.addComponent_( newComp )
 				
 			return True
