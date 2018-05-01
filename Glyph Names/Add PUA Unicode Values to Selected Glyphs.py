@@ -62,13 +62,16 @@ class CustomUnicode( object ):
 		
 		for digit in unicodeValue:
 			if not digit in "0123456789ABCDEF":
+				print "ERROR: Found '%s' in entry. Not a valid hex digit." % digit
 				return False
 		
 		return True
 		
 	def CustomUnicodeMain( self, sender ):
 		try:
-			enteredUnicode = Glyphs.defaults["com.mekkablue.CustomUnicode.unicode"].upper()
+			enteredUnicode = Glyphs.defaults["com.mekkablue.CustomUnicode.unicode"].upper().strip()
+			# put the uppercased and stripped value back into the default:
+			Glyphs.defaults["com.mekkablue.CustomUnicode.unicode"] = enteredUnicode
 			
 			if self.checkUnicodeEntry(enteredUnicode):
 				thisFont = Glyphs.font # frontmost font
@@ -93,6 +96,7 @@ class CustomUnicode( object ):
 				self.w.close() # closes window
 			else:
 				Message("Unicode Error", "The Unicode value entered does not seem to be a valid UTF16 codepoint. It must be a four- or five-digit hexadecimal number, i,e, contain only 0123456789ABCDEF.", OKButton=None)
+				
 		except Exception, e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
