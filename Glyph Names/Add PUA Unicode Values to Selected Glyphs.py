@@ -24,7 +24,7 @@ class CustomUnicode( object ):
 		
 		# UI elements:
 		self.w.text_1 = vanilla.TextBox( (15, 12+2, 155, 14), "Unicode values starting at:", sizeStyle='small' )
-		self.w.unicode = vanilla.EditText( (170, 12, -15, 15+3), "E700", sizeStyle = 'small')
+		self.w.unicode = vanilla.EditText( (170, 12, -15, 15+3), "E700", sizeStyle = 'small', callback=self.sanitizeEntry)
 		
 		# Run Button:
 		self.w.runButton = vanilla.Button((-80-15, -20-15, -15, -15), "Apply", sizeStyle='regular', callback=self.CustomUnicodeMain )
@@ -37,6 +37,14 @@ class CustomUnicode( object ):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+		
+	def sanitizeEntry(self, sender):
+		enteredUnicode = sender.get().upper().strip()
+		for digit in enteredUnicode:
+			if not digit in "0123456789ABCDEF":
+				enteredUnicode = enteredUnicode.replace(digit,"")
+		sender.set(enteredUnicode)
+		self.SavePreferences(sender)
 		
 	def SavePreferences( self, sender ):
 		try:
@@ -58,20 +66,20 @@ class CustomUnicode( object ):
 	def checkUnicodeEntry( self, unicodeValue ):
 		length = len(unicodeValue)
 		if length < 4 or length > 5:
+			print "ERROR: Entry has %i digits and therefore an invalid length. UTF-16 values must contain 4 or 5 hexadecimal digits." % digit
 			return False
 		
 		for digit in unicodeValue:
+			allDigitsValid = True
 			if not digit in "0123456789ABCDEF":
 				print "ERROR: Found '%s' in entry. Not a valid hex digit." % digit
-				return False
+				allDigitsValid = False
 		
-		return True
+		return allDigitsValid
 		
 	def CustomUnicodeMain( self, sender ):
 		try:
-			enteredUnicode = Glyphs.defaults["com.mekkablue.CustomUnicode.unicode"].upper().strip()
-			# put the uppercased and stripped value back into the default:
-			Glyphs.defaults["com.mekkablue.CustomUnicode.unicode"] = enteredUnicode
+			enteredUnicode = Glyphs.defaults["com.mekkablue.CustomUnicode.unicode"]
 			
 			if self.checkUnicodeEntry(enteredUnicode):
 				thisFont = Glyphs.font # frontmost font
@@ -95,11 +103,14 @@ class CustomUnicode( object ):
 			
 				self.w.close() # closes window
 			else:
-				Message("Unicode Error", "The Unicode value entered does not seem to be a valid UTF16 codepoint. It must be a four- or five-digit hexadecimal number, i,e, contain only 0123456789ABCDEF.", OKButton=None)
+				Message("The Unicode value entered does not seem to be a valid UTF16 codepoint. It must be a four- or five-digit hexadecimal number, i,e, contain only 0123456789ABCDEF. Find more details in the Macro Window.", "Unicode Error", OKButton=None)
+				Glyphs.showMacroWindow()
 				
 		except Exception, e:
 			# brings macro window to front and reports error:
+			Message("Script Error", "The following error occurred (more details in the Macro Window): %s"%e, OKButton=None)
+			import traceback
+			print traceback.format_exc()
 			Glyphs.showMacroWindow()
-			print "Add PUA Unicode Values to Selected Glyphs Error:\n%s" % e
 
 CustomUnicode()
