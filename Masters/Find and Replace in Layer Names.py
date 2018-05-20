@@ -82,7 +82,7 @@ class replaceInLayerNames(object):
 					elif searchFor in thisLayer.name:
 						thisLayer.name = thisLayer.name.replace( searchFor, replaceBy )
 						print "%s: %s" % ( thisGlyph.name, thisLayer.name )
-						replaceInLayerNames += 1
+						# replaceInLayerNames += 1
 		thisFont.enableUpdateInterface()
 		
 		if replaceCount > 0:
