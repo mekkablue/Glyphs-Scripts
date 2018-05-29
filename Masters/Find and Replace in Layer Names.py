@@ -82,13 +82,13 @@ class replaceInLayerNames(object):
 					elif searchFor in thisLayer.name:
 						thisLayer.name = thisLayer.name.replace( searchFor, replaceBy )
 						print "%s: %s" % ( thisGlyph.name, thisLayer.name )
-						# replaceInLayerNames += 1
+						replaceCount += 1
 		thisFont.enableUpdateInterface()
 		
 		if replaceCount > 0:
-			Message("Replaced successfully", "Replaced %i occurrences."%replaceCount, OKButton=None)
+			Message(title="Replaced successfully", message="Replaced %i occurrences."%replaceCount, OKButton=None)
 		else:
-			Message("Nothing replaced", "Could not find any occurrences of search string in the processed layers.", OKButton=None)
+			Message(title="Nothing replaced", message="Could not find any occurrences of search string in the processed layers.", OKButton=None)
 			
 
 replaceInLayerNames()
