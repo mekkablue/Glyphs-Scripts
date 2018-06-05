@@ -74,6 +74,11 @@ class CopyLayerToLayer( object ):
 			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeMetrics"] = self.w.includeMetrics.get()
 			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.keepWindowOpen"] = self.w.keepWindowOpen.get()
 			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.copyBackground"] = self.w.copyBackground.get()
+			
+			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontSource"] = self.w.fontSource.get()
+			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterSource"] = self.w.masterSource.get()
+			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontTarget"] = self.w.fontTarget.get()
+			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterTarget"] = self.w.masterTarget.get()
 		except:
 			return False
 
@@ -87,12 +92,28 @@ class CopyLayerToLayer( object ):
 			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.includeMetrics", True)
 			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.keepWindowOpen", True)
 			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.copyBackground", False)
+			
+			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.fontSource", 0)
+			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.masterSource", 0)
+			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.fontTarget", 0)
+			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.masterTarget", 0)
+
 			self.w.includePaths.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includePaths"] )
 			self.w.includeComponents.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeComponents"] )
 			self.w.includeAnchors.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeAnchors"] )
 			self.w.includeMetrics.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeMetrics"] )
 			self.w.keepWindowOpen.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.keepWindowOpen"] )
 			self.w.copyBackground.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.copyBackground"] )
+			
+			try:
+				# careful, there may be different (number of) fonts open now:
+				self.w.fontSource.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontSource"] )
+				self.w.masterSource.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterSource"] )
+				self.w.fontTarget.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontTarget"] )
+				self.w.masterTarget.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterTarget"] )
+			except:
+				# exit gracefully
+				pass
 		except:
 			return False
 
@@ -109,11 +130,15 @@ class CopyLayerToLayer( object ):
 
 	def GetMasterNames( self, font ):
 		"""Collects names of masters to populate the submenus in the GUI."""
-		if font == "target":
-			fontIndex = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontTarget"]
-		else:
-			fontIndex = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontSource"]
-
+		try:
+			if font == "target":
+				fontIndex = int(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontTarget"])
+			else:
+				fontIndex = int(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontSource"])
+		except:
+			fontIndex = 0
+		
+		print "getting font %i" % fontIndex
 		thisFont = Glyphs.fonts[fontIndex]
 		myMasterList = []
 		for masterIndex in range( len( thisFont.masters ) ):
@@ -132,10 +157,12 @@ class CopyLayerToLayer( object ):
 
 	def MasterChangeCallback( self, sender ):
 		"""Just call ValidateInput."""
+		self.SavePreferences(sender)
 		self.ValidateInput(None)
 
 	def FontChangeCallback( self, sender ):
 		"""Update masters menus when font input changes."""
+		self.SavePreferences(sender)
 		if sender == self.w.fontSource:
 			# Refresh source
 			self.w.masterSource.setItems(self.GetMasterNames("source"))
@@ -216,6 +243,10 @@ class CopyLayerToLayer( object ):
 			print "- Width not changed (already was %.1f)" % sourceWidth
 
 	def buttonCallback( self, sender ):
+		# save prefs, just to be on the safe side:
+		self.SavePreferences(sender)
+		
+		# prepare macro output:
 		Glyphs.clearLog()
 		Glyphs.showMacroWindow()
 		print "Copy Layer to Layer Protocol:"
