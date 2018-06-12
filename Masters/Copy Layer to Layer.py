@@ -8,22 +8,6 @@ Copies one master to another master's or background in selected glyphs.
 import vanilla
 import math
 
-def getComponentScaleX_scaleY_rotation( thisComponent ):
-		a = thisComponent.transform[0]
-		b = thisComponent.transform[1]
-		c = thisComponent.transform[2]
-		d = thisComponent.transform[3]
-
-		scale_x = math.sqrt(math.pow(a,2)+math.pow(b,2))
-		scale_y = math.sqrt(math.pow(c,2)+math.pow(d,2))
-		if (b<0 and c<0):
-			scale_y = scale_y * -1
-
-		rotation = math.atan2(b, a) * (180/math.pi)
-
-		return [scale_x, scale_y, rotation]
-
-
 class CopyLayerToLayer( object ):
 
 	def __init__( self ):
@@ -138,7 +122,17 @@ class CopyLayerToLayer( object ):
 		except:
 			fontIndex = 0
 		
-		print "getting font %i" % fontIndex
+		# reset fontIndex if necessary (outdated prefs):
+		if fontIndex > len(Glyphs.fonts)-1:
+			fontIndex = 0
+		
+		# reset the prefs if necessary:
+		if fontIndex == 0:
+			if font == "target":
+				Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontTarget"] = fontIndex
+			else:
+				Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontSource"] = fontIndex
+			
 		thisFont = Glyphs.fonts[fontIndex]
 		myMasterList = []
 		for masterIndex in range( len( thisFont.masters ) ):
@@ -254,19 +248,18 @@ class CopyLayerToLayer( object ):
 		# This should be the active selection, not necessarily the selection on the inputted fonts
 		Font = Layer.parent.parent
 		selectedGlyphs = [ x.parent for x in Font.selectedLayers ]
-		indexOfSourceFont = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontSource"]
-		indexOfTargetFont = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontTarget"]
-		indexOfSourceMaster = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterSource"]
-		indexOfTargetMaster = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterTarget"]
-		pathsYesOrNo  = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includePaths"]
-		componentsYesOrNo  = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeComponents"]
-		anchorsYesOrNo  = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeAnchors"]
-		metricsYesOrNo  = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeMetrics"]
-		copyBackground = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.copyBackground"]
+		indexOfSourceFont = int(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontSource"])
+		indexOfTargetFont = int(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontTarget"])
+		indexOfSourceMaster = int(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterSource"])
+		indexOfTargetMaster = int(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterTarget"])
+		pathsYesOrNo  = bool(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includePaths"])
+		componentsYesOrNo  = bool(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeComponents"])
+		anchorsYesOrNo  = bool(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeAnchors"])
+		metricsYesOrNo  = bool(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeMetrics"])
+		copyBackground = bool(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.copyBackground"])
 
 		for thisGlyph in selectedGlyphs:
 			try:
-				print "\nProcessing %s..." % thisGlyph.name
 				sourceFont = Glyphs.fonts[ indexOfSourceFont ]
 				sourceGlyph = sourceFont.glyphs[ thisGlyph.name ]
 				sourcelayer = sourceGlyph.layers[ indexOfSourceMaster ]
@@ -280,7 +273,7 @@ class CopyLayerToLayer( object ):
 
 				sourceFont.disableUpdateInterface()
 				targetFont.disableUpdateInterface()
-
+				
 				# Copy paths, components, anchors, and metrics:
 				if pathsYesOrNo:
 					self.copyPathsFromLayerToLayer( sourcelayer, targetlayer )
@@ -300,6 +293,8 @@ class CopyLayerToLayer( object ):
 
 			except Exception, e:
 				print e
+				import traceback
+				print traceback.format_exc()
 
 		if not Glyphs.defaults["com.mekkablue.CopyLayerToLayer.keepWindowOpen"]:
 			self.w.close()
