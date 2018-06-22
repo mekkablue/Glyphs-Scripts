@@ -9,8 +9,9 @@ Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 
 def process( thisLayer ):
-	thisImage = thisLayer.backgroundImage()
-	thisImage.setTransformStruct_( (1.0, 0.0, 0.0, 1.0, 0.0, 0.0) )
+	thisImage = thisLayer.backgroundImage
+	if thisImage:
+		thisImage.transform = ((1.0, 0.0, 0.0, 1.0, 0.0, 0.0))
 
 Font.disableUpdateInterface()
 
