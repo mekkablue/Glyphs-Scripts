@@ -234,6 +234,8 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 * **Select Same Color:** Select a glyph with a color, and the script will add all other glyphs with the same color to the selection, as long as they are currently displayed in the Font Tab. Does nothing if no glyph is selected.
 * **Select Same Layer Color:** Same as above, except with the *layer* color rather than the glyph color.
 * **Select All Paths and Components:** In selected glyphs, selects components and paths, but no anchors.
+* **Select previous on-curve point:** From the currently selected point, go to the *previous* on-curve, skipping BCPs. Useful for setting a keyboard shortcut in System Preferences.
+* **Select next on-curve point:** From the currently selected point, go to the *next* on-curve, skipping BCPs. Useful for setting a keyboard shortcut in System Preferences.
 * **Steal Colors:** Copies glyph colors from one font to another. *Needs Vanilla.*
 * **Sync Selection between Masters:** Tries to recreate, as much as possible, the current node/anchor/component selection in all other layers. The script assumes compatibility and tries to get as far as possible.
 
