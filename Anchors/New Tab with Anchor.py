@@ -84,7 +84,7 @@ class NewTabWithAnchor( object ):
 	
 	def errMsg(self, errorMessage):
 		message = "The script 'New Tab with Anchor' encountered the following error: %s" % errorMessage
-		Message("New Tab with Anchor Error", message, OKButton=None)
+		Message(title="New Tab with Anchor Error", message=message, OKButton=None)
 
 	def NewTabWithAnchorMain( self, sender ):
 		try:

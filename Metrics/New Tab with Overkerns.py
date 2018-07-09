@@ -66,7 +66,7 @@ class FindOverkerns( object ):
 			try:
 				thresholdFactor = float( Glyphs.defaults["com.mekkablue.FindOverkerns.threshold"] )/100.0
 			except:
-				Message("Value Error", "The threshold value you entered is invalid", OKButton="Oops")
+				Message(title="Value Error", message="The threshold value you entered is invalid", OKButton="Oops")
 			
 			limitToExportingGlyphs = bool( Glyphs.defaults["com.mekkablue.FindOverkerns.limitToExportingGlyphs"] )
 			
@@ -167,7 +167,7 @@ class FindOverkerns( object ):
 					# opens new Edit tab:
 					thisFont.newTab( tabText[:-1] )
 				else:
-					Message("No Overkerns Found", "Could not find any kern pairs beyond the threshold in this master.", OKButton="Phew!")
+					Message(title="No Overkerns Found", message="Could not find any kern pairs beyond the threshold in this master.", OKButton="Phew!")
 					
 			if not self.SavePreferences( self ):
 				print "Note: 'Find Overkerns' could not write preferences."

@@ -145,7 +145,7 @@ class AnchorMover2( object ):
 		
 		if not selectedLayers:
 			print "No glyphs selected."
-			Message("No Glyphs Selected", "Could not move anchors. No glyphs were selected.", OKButton=None)
+			Message(title="No Glyphs Selected", message="Could not move anchors. No glyphs were selected.", OKButton=None)
 		else:
 			print "Processing %i glyphs..." % ( len( selectedLayers ) )
 			Font.disableUpdateInterface()

@@ -115,7 +115,11 @@ class ReplaceAllPathsWithComponent( object ):
 			componentCenter = centerOfRect( componentBounds )
 			
 			if len(componentLayer.paths) == 0:
-				Message("Script Error", u"The referenced glyph (‘%s’) has no outlines in this master. Please choose a glyph with a path in it."%componentName, OKButton=None)
+				Message(
+					title="Script Error",
+					message=u"The referenced glyph (‘%s’) has no outlines in this master. Please choose a glyph with a path in it."%componentName,
+					OKButton=None
+					)
 				return
 			
 			for thisLayer in layers:

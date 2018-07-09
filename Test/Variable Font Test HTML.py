@@ -107,8 +107,8 @@ def allOTVarSliders(thisFont):
 
 def warningMessage():
 	Message(
-		"Out of Date Warning", 
-		"It appears that you are not running the latest version of Glyphs. Please enable Cutting Edge Versions and Automatic Version Checks in Preferences > Updates, and update to the latest beta.",
+		title="Out of Date Warning", 
+		message="It appears that you are not running the latest version of Glyphs. Please enable Cutting Edge Versions and Automatic Version Checks in Preferences > Updates, and update to the latest beta.",
 		OKButton=None
 		)
 	
@@ -316,8 +316,8 @@ if appVersionHighEnough:
 			print "Error writing file to disk."
 	else:
 		Message( 
-			"OTVar Test HTML Error",
-			"Could not determine export path. Have you exported any webfonts yet?",
+			title="OTVar Test HTML Error",
+			message="Could not determine export path. Have you exported any webfonts yet?",
 			OKButton=None
 		)
 else:

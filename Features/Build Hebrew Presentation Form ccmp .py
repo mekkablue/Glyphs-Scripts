@@ -64,6 +64,14 @@ if lookup:
 	lineCount = lookup.splitlines().__len__()
 	lookup = "\nlookup %s {\n%s\n} %s;\n" % ( lookupTitle, lookup[:-1], lookupTitle )
 	create_otfeature( featurename="ccmp", featurecode=lookup, targetfont=thisFont, codesig=lookupTitle.upper() )
-	Message("Created Hebrew ccmp Lookup", "Created ccmp OpenType feature with %i Hebrew presentation form substitutions." % lineCount, OKButton="Cool")
+	Message(
+		title="Created Hebrew ccmp Lookup",
+		message="Created ccmp OpenType feature with %i Hebrew presentation form substitutions." % lineCount, 
+		OKButton="Cool"
+		)
 else:
-	Message("Nothing added to ccmp", "No Hebrew presentation forms found in font.", OKButton="Too bad")
+	Message(
+		title="Nothing added to ccmp",
+		message="No Hebrew presentation forms found in font.", 
+		OKButton="Too bad"
+		)

@@ -24,4 +24,4 @@ if thisGlyph:
 
 	Font.newTab( "%s %s\n\n%s %s" % ( thisGlyph.name, leftGroupText, thisGlyph.name, rightGroupText ) )
 else:
-	Message("Script Error", "No glyph currently selected.", OKButton=None)
+	Message(title="Script Error", message="No glyph currently selected.", OKButton=None)

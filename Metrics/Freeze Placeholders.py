@@ -16,8 +16,8 @@ try:
 		)
 	else:
 		Message(
-			"Cannot Freeze Placeholders",
-			"You must have an edit tab open, and a glyph selected. Otherwise, the script cannot work.",
+			title="Cannot Freeze Placeholders",
+			message="You must have an edit tab open, and a glyph selected. Otherwise, the script cannot work.",
 			OKButton="Got it"
 		)
 except Exception as e:
@@ -26,8 +26,8 @@ except Exception as e:
 	import traceback
 	print traceback.format_exc()
 	Message(
-		"Freezing Placeholders Failed",
-		"An error occurred during the execution of the script. Is a font open, a glyph selected? Check the Macro Window for a detailed error message.", 
+		title="Freezing Placeholders Failed",
+		message="An error occurred during the execution of the script. Is a font open, a glyph selected? Check the Macro Window for a detailed error message.", 
 		OKButton=None
 	)
 

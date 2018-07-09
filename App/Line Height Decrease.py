@@ -20,4 +20,8 @@ if not lineheight < 100.0:
 	if Font.currentTab:
 		Font.currentTab.forceRedraw()
 else:
-	Message("Line Height Error", "The line height is already below 100 units. Cannot decrease any further.", OKButton=None)
+	Message(
+		title="Line Height Error",
+		message="The line height is already below 100 units. Cannot decrease any further.", 
+		OKButton=None
+		)

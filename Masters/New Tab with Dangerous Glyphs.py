@@ -91,7 +91,7 @@ if outputString:
 	Font.newTab( outputString )
 else:
 	Message(
-		"No interpolation problems",
-		"Cannot find any dangerous glyphs in this font.",
+		title="No interpolation problems",
+		message="Cannot find any dangerous glyphs in this font.",
 		OKButton="Hurrah!"
 	)

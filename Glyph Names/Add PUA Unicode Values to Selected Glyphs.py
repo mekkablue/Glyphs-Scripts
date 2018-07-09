@@ -106,12 +106,20 @@ class CustomUnicode( object ):
 			
 				self.w.close() # closes window
 			else:
-				Message("The entered code is not a valid Unicode value. It must be either a four- or five-digit hexadecimal number. Find more details in the Macro Window.", "Unicode Error", OKButton=None)
+				Message(
+					message="The entered code is not a valid Unicode value. It must be either a four- or five-digit hexadecimal number. Find more details in the Macro Window.",
+					title="Unicode Error", 
+					OKButton=None
+					)
 				Glyphs.showMacroWindow()
 				
 		except Exception, e:
 			# brings macro window to front and reports error:
-			Message("The following error occurred (more details in the Macro Window): %s"%e, "Script Error", OKButton=None)
+			Message(
+				message="The following error occurred (more details in the Macro Window): %s"%e, 
+				title="Script Error", 
+				OKButton=None
+				)
 			import traceback
 			print traceback.format_exc()
 			Glyphs.showMacroWindow()

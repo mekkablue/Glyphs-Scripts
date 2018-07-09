@@ -53,5 +53,5 @@ for thisAnchor in anchorsToLookFor:
 if not offAnchorsFound:
 	reporttext = "Could not find %s anchors off metric lines on master layers." % " or ".join(anchorsToLookFor)
 	print reporttext # just in case opening a tab fails
-	Message("All is good", reporttext, OKButton="Cool")
+	Message(title="All is good", message=reporttext, OKButton="Cool")
 	

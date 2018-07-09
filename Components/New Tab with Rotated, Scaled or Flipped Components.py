@@ -27,4 +27,8 @@ if glyphList:
 	tabString = "/"+"/".join(glyphList)
 	thisFont.newTab(tabString)
 else:
-	Message("No Transformed Components", "No rotated, mirrored, or flipped components found in this font.", OKButton="Yeah")
+	Message(
+		title="No Transformed Components",
+		message="No rotated, mirrored, or flipped components found in this font.",
+		OKButton="Yeah"
+		)

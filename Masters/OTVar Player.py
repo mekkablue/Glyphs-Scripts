@@ -299,8 +299,8 @@ body {
 				print "Error writing file to disk."
 		else:
 			Message( 
-				"Cannot Create HTML for OTVar",
-				"Could not determine export path of your OTVar font. Export an OTVar font first, the HTML will be saved next to it.",
+				title="Cannot Create HTML for OTVar",
+				message="Could not determine export path of your OTVar font. Export an OTVar font first, the HTML will be saved next to it.",
 				OKButton=None
 			)
 		

@@ -164,7 +164,7 @@ class FindSmallPaths( object ):
 				tabString = "/"+"/".join( set(glyphsWithSmallPaths) )
 				thisFont.newTab( tabString )
 			else:
-				Message("No Small Paths Found", "No glyphs with paths smaller than %i square units found in the frontmost font." % minArea, OKButton="Cool")
+				Message(title="No Small Paths Found", message="No glyphs with paths smaller than %i square units found in the frontmost font." % minArea, OKButton="Cool")
 			
 			# listOfSelectedLayers = thisFont.selectedLayers # active layers of currently selected glyphs
 			# for thisLayer in listOfSelectedLayers: # loop through layers

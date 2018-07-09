@@ -70,6 +70,10 @@ if selectedCombiningMarks:
 			process( thisLayer )
 		thisMark.endUndo()   # end undo grouping
 else:
-	Message("No Comb Marks in Selection", "No combining marks selected. Select the combining marks you want to process and try again.", OKButton="OK, got it!")
+	Message(
+		title="No Comb Marks in Selection", 
+		message="No combining marks selected. Select the combining marks you want to process and try again.", 
+		OKButton="OK, got it!"
+		)
 
 thisFont.enableUpdateInterface() # re-enables UI updates in Font View

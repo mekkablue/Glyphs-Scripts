@@ -49,10 +49,18 @@ for subrunArray in currentGlyph.layerGroups_masters_error_( NSArray(Font.instanc
 
 # if there are any compatible layers...
 if not layerIDs:
-	Message("Dekink Error", "Could not find any other layers in this glyph for this interpolation.", OKButton=None)
+	Message(
+		title="Dekink Error", 
+		message="Could not find any other layers in this glyph for this interpolation.", 
+		OKButton=None
+		)
 else:
 	if not currentGlyph.mastersCompatible:
-		Message("Dekink Error", "Could not find compatible masters.", OKButton=None)
+		Message(
+			title="Dekink Error", 
+			message="Could not find compatible masters.", 
+			OKButton=None
+			)
 	else:
 		errorCount = 0
 		
@@ -98,4 +106,8 @@ else:
 					errorCount += 1
 		
 		if errorCount:
-			Message("Could Not Dekink All", "Could not dekink %i selected points. See the Macro Window for details."%errorCount, OKButton=None)
+			Message(
+				title="Could Not Dekink All", 
+				message="Could not dekink %i selected points. See the Macro Window for details."%errorCount, 
+				OKButton=None
+				)

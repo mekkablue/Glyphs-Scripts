@@ -294,8 +294,8 @@ if appVersionHighEnough:
 			print "Error writing file to disk."
 	else:
 		Message( 
-			"Webfont Test HTML Error",
-			"Could not determine export path. Have you exported any webfonts yet?",
+			title="Webfont Test HTML Error",
+			message="Could not determine export path. Have you exported any webfonts yet?",
 			OKButton=None
 		)
 else:

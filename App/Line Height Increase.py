@@ -20,4 +20,8 @@ if not lineheight > Font.upm*10:
 	if Font.currentTab:
 		Font.currentTab.forceRedraw()
 else:
-	Message("Line Height Error", "The line height exceeds the UPM more than tenfold already. Stop it now.", OKButton=None)
+	Message(
+		title="Line Height Error",
+		message="The line height exceeds the UPM more than tenfold already. Stop it now.",
+		OKButton=None
+		)

@@ -84,7 +84,7 @@ class ShowLargeKerningPairs( object ):
 			except Exception as e:
 				import traceback
 				print traceback.format_exc()
-				Message("Threshold Error", "The threshold value you supplied could not be read as an integer value.", OKButton=None)
+				Message(title="Threshold Error", message="The threshold value you supplied could not be read as an integer value.", OKButton=None)
 				threshold = 0
 			
 			if threshold:
@@ -132,7 +132,7 @@ class ShowLargeKerningPairs( object ):
 					# opens new Edit tab:
 					thisFont.newTab( tabText[:-2] )
 				else:
-					Message("No Excess Kerning Found", "No kerning found that exceeds the threshold in this master. Or perhaps you have empty groups.", OKButton=None)
+					Message(title="No Excess Kerning Found", message="No kerning found that exceeds the threshold in this master. Or perhaps you have empty groups.", OKButton=None)
 					
 			
 			if not self.SavePreferences( self ):
