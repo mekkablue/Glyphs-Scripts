@@ -94,7 +94,7 @@ if tabString:
 else:
 	# brings macro window to front and clears its log:
 	Message( 
-		"No problems found",
-		"Could not find any zero handles, bad path order or directions, open or two-point paths in this font.",
+		title="No problems found",
+		message="Could not find any zero handles, bad path order or directions, open or two-point paths in this font.",
 		OKButton="Hurrah!"
 	)
