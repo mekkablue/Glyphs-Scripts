@@ -29,14 +29,26 @@ def deleteCornerComponentsOnLayer(l):
 			h = cornerComponents[i]
 			l.removeHint_(h)
 
+def pathStructure(thisLayer):
+	layerString = ""
+	for thisPath in thisLayer.paths:
+		layerString += "_"
+		for thisNode in thisPath.nodes:
+			layerString += thisNode.type[0]
+	return layerString
+
 def process( thisLayer ):
 	thisGlyph = thisLayer.parent
-	targetLayers = [l for l in thisGlyph.layers if l != thisLayer and l.compareString() == thisLayer.compareString()]
+	targetLayers = [
+		l for l in thisGlyph.layers 
+			if l != thisLayer 
+			and pathStructure(l) == pathStructure(thisLayer)
+		]
 	for targetLayer in targetLayers:
 		deleteCornerComponentsOnLayer(targetLayer)
 		for h in [h for h in thisLayer.hints if h.type == CORNER]:
 			# query corner component attributes:
-			scale = h.scale()
+			scale = h.scale
 			name = h.name
 			pathIndex = indexOfPath(thisLayer,h.originNode.parent)
 			nodeIndex = indexOfNode(thisLayer,pathIndex,h.originNode)
