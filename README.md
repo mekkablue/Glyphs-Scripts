@@ -91,6 +91,7 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 * **Floating Features:** Floating palettes for activating and deactivating OT features. Same functionality as the pop-up menu. *Needs Vanilla.*
 * **Glyph Names as Discretionary Ligatures:** Adds names of exporting glyphs without a Unicode value as ligatures into the dlig feature. Useful for proofing otherwise inaccessible glyphs.
 * **Make OT Class from selected glyphs:** GUI for creating a new OT class with the selected glyphs. *Needs Vanilla.*
+* **New Tab with OT Class:** GUI for opening all glyphs in an OT class (listed in *File > Font Info > Features > Classes*) in a new tab. *Needs Vanilla.*
 * **Refresh Features without Reordering:** Goes through the existing features in the font and refreshes each one of them. Does neither add nor reorder features.
 * * **Stylistic Sets > Synchronize ssXX glyphs:** Creates missing ssXX glyphs so that you have synchronous groups of ssXX glyphs. E.g. you have *a.ss01 b.ss01 c.ss01 a.ss02 c.ss02* --> the script creates *b.ss02*
 * * **Stylistic Sets > Create ssXX from layer:** Takes the current layer and copies it to the primary layer of a new .ssXX glyph.
