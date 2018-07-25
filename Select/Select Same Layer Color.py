@@ -4,18 +4,21 @@ __doc__="""
 In Font view, select glyphs with the same color(s) as the currently selected one(s).
 """
 
-
+from AppKit import NSIndexSet
 
 def indexSetWithIndex( index ):
 	indexSet = NSIndexSet.alloc().initWithIndex_( index )
 	return indexSet
 
-thisFont = Glyphs.font
 thisDoc = Glyphs.currentDocument # frontmost document
-fontView = thisDoc.windowController().tabBarControl().viewControllers()[0].glyphsArrayController()
+try:
+	fontView = thisDoc.windowController().tabBarControl().tabItemAtIndex_(0).glyphsArrayController()
+except:
+	fontView = thisDoc.windowController().tabBarControl().viewControllers()[0].glyphsArrayController()
 displayedGlyphsInFontView = fontView.arrangedObjects() # all glyphs currently displayed
 colorIndexes = []
 
+thisFont = Glyphs.font
 if displayedGlyphsInFontView:
 	displayedIndexRange = range(len(displayedGlyphsInFontView)) # indexes of glyphs in Font view
 	for i in displayedIndexRange:
