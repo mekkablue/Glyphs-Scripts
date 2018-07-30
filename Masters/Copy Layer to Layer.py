@@ -12,9 +12,9 @@ class CopyLayerToLayer( object ):
 
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 280
-		windowHeight = 220
-		windowWidthResize  = 120 # user can resize width by this value
+		windowWidth  = 340
+		windowHeight = 240
+		windowWidthResize  = 200 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			( windowWidth, windowHeight ), # default window size
@@ -34,10 +34,13 @@ class CopyLayerToLayer( object ):
 
 		self.w.includePaths = vanilla.CheckBox((15+150+15, 100+2, 160, 20), "Include paths", sizeStyle='small', callback=self.SavePreferences, value=True)
 		self.w.includeComponents = vanilla.CheckBox((15, 100+2, 160, 20), "Include components", sizeStyle='small', callback=self.SavePreferences, value=True)
-		self.w.includeAnchors = vanilla.CheckBox((15, 100+20, -100, 20), "Include anchors", sizeStyle='small', callback=self.SavePreferences, value=True)
-		self.w.includeMetrics = vanilla.CheckBox((15, 100+38, -100, 20), "Include metrics", sizeStyle='small', callback=self.SavePreferences, value=True)
-		self.w.keepWindowOpen = vanilla.CheckBox((15, 100+56, -100, 20), "Keep window open", sizeStyle='small', callback=self.SavePreferences, value=True)
-		self.w.copyBackground = vanilla.CheckBox((15, 100+74, -100, 20), "Background instead", sizeStyle='small', callback=self.SavePreferences, value=False)
+		self.w.includeAnchors = vanilla.CheckBox((15, 100+20, 160, 20), "Include anchors", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.includeMetrics = vanilla.CheckBox((15+150+15, 100+20, 160, 20), "Include metrics", sizeStyle='small', callback=self.SavePreferences, value=True)
+
+		self.w.copyBackground = vanilla.CheckBox((15, 100+45, 160, 20), "Into background instead", sizeStyle='small', callback=self.SavePreferences, value=False)
+		self.w.keepOriginal = vanilla.CheckBox((15+150+15, 100+45, 160, 20), "Keep target layer content", sizeStyle='small', callback=self.SavePreferences, value=False)
+
+		self.w.keepWindowOpen = vanilla.CheckBox((15, 100+70, 160, 20), "Keep window open", sizeStyle='small', callback=self.SavePreferences, value=True)
 
 		self.w.copybutton = vanilla.Button((-80, -30, -15, -10), "Copy", sizeStyle='small', callback=self.buttonCallback)
 		self.w.setDefaultButton( self.w.copybutton )
@@ -58,6 +61,7 @@ class CopyLayerToLayer( object ):
 			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeMetrics"] = self.w.includeMetrics.get()
 			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.keepWindowOpen"] = self.w.keepWindowOpen.get()
 			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.copyBackground"] = self.w.copyBackground.get()
+			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.keepOriginal"] = self.w.keepOriginal.get()
 			
 			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontSource"] = self.w.fontSource.get()
 			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterSource"] = self.w.masterSource.get()
@@ -76,6 +80,7 @@ class CopyLayerToLayer( object ):
 			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.includeMetrics", True)
 			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.keepWindowOpen", True)
 			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.copyBackground", False)
+			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.keepOriginal", False)
 			
 			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.fontSource", 0)
 			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.masterSource", 0)
@@ -88,6 +93,7 @@ class CopyLayerToLayer( object ):
 			self.w.includeMetrics.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeMetrics"] )
 			self.w.keepWindowOpen.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.keepWindowOpen"] )
 			self.w.copyBackground.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.copyBackground"] )
+			self.w.keepOriginal.set( Glyphs.defaults["com.mekkablue.CopyLayerToLayer.keepOriginal"] )
 			
 			try:
 				# careful, there may be different (number of) fonts open now:
@@ -165,12 +171,12 @@ class CopyLayerToLayer( object ):
 			self.w.masterTarget.setItems(self.GetMasterNames("target"))
 		self.ValidateInput(None)
 
-	def copyPathsFromLayerToLayer( self, sourceLayer, targetLayer ):
+	def copyPathsFromLayerToLayer( self, sourceLayer, targetLayer, keepOriginal=False ):
 		"""Copies all paths from sourceLayer to targetLayer"""
 		numberOfPathsInSource  = len( sourceLayer.paths )
 		numberOfPathsInTarget  = len( targetLayer.paths )
-
-		if numberOfPathsInTarget != 0:
+		
+		if numberOfPathsInTarget != 0 and not keepOriginal:
 			print "- Deleting %i paths in target layer" % numberOfPathsInTarget
 			targetLayer.paths = []
 
@@ -180,12 +186,12 @@ class CopyLayerToLayer( object ):
 				newPath = thisPath.copy()
 				targetLayer.paths.append( newPath )
 				
-	def copyHintsFromLayerToLayer( self, sourceLayer, targetLayer ):
+	def copyHintsFromLayerToLayer( self, sourceLayer, targetLayer, keepOriginal=False ):
 		"""Copies all hints, corner and cap components from one layer to the next."""
 		numberOfHintsInSource = len( sourceLayer.hints )
 		numberOfHintsInTarget  = len( targetLayer.hints )
 
-		if numberOfHintsInTarget != 0:
+		if numberOfHintsInTarget != 0 and not keepOriginal:
 			print "- Deleting %i hints, caps and corners in target layer" % numberOfHintsInTarget
 			targetLayer.hints = []
 
@@ -195,12 +201,12 @@ class CopyLayerToLayer( object ):
 				newHint = thisHint.copy()
 				targetLayer.hints.append( newHint )
 
-	def copyComponentsFromLayerToLayer( self, sourceLayer, targetLayer ):
+	def copyComponentsFromLayerToLayer( self, sourceLayer, targetLayer, keepOriginal=False ):
 		"""Copies all components from sourceLayer to targetLayer."""
 		numberOfComponentsInSource = len( sourceLayer.components )
 		numberOfComponentsInTarget = len( targetLayer.components )
 
-		if numberOfComponentsInTarget != 0:
+		if numberOfComponentsInTarget != 0 and not keepOriginal:
 			print "- Deleting %i components in target layer" % numberOfComponentsInTarget
 			targetLayer.components = []
 
@@ -211,12 +217,12 @@ class CopyLayerToLayer( object ):
 				print "   Component: %s" % ( thisComp.componentName )
 				targetLayer.components.append( newComp )
 
-	def copyAnchorsFromLayerToLayer( self, sourceLayer, targetLayer ):
+	def copyAnchorsFromLayerToLayer( self, sourceLayer, targetLayer, keepOriginal=False ):
 		"""Copies all anchors from sourceLayer to targetLayer."""
 		numberOfAnchorsInSource = len( sourceLayer.anchors )
 		numberOfAnchorsInTarget = len( targetLayer.anchors )
 
-		if numberOfAnchorsInTarget != 0:
+		if numberOfAnchorsInTarget != 0 and not keepOriginal:
 			print "- Deleting %i anchors in target layer" % numberOfAnchorsInTarget
 			targetLayer.setAnchors_(None)
 
@@ -257,6 +263,7 @@ class CopyLayerToLayer( object ):
 		anchorsYesOrNo  = bool(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeAnchors"])
 		metricsYesOrNo  = bool(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeMetrics"])
 		copyBackground = bool(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.copyBackground"])
+		keepOriginal = bool(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.keepOriginal"])
 
 		for thisGlyph in selectedGlyphs:
 			try:
@@ -266,7 +273,7 @@ class CopyLayerToLayer( object ):
 
 				targetFont = Glyphs.fonts[ indexOfTargetFont ]
 				targetGlyph = targetFont.glyphs[ thisGlyph.name ]
-				if copyBackground == 1:
+				if copyBackground:
 					targetlayer = targetGlyph.layers[ indexOfTargetMaster ].background
 				else:
 					targetlayer = targetGlyph.layers[ indexOfTargetMaster ]
@@ -276,17 +283,17 @@ class CopyLayerToLayer( object ):
 				
 				# Copy paths, components, anchors, and metrics:
 				if pathsYesOrNo:
-					self.copyPathsFromLayerToLayer( sourcelayer, targetlayer )
+					self.copyPathsFromLayerToLayer( sourcelayer, targetlayer, keepOriginal=keepOriginal )
 				if componentsYesOrNo:
-					self.copyComponentsFromLayerToLayer( sourcelayer, targetlayer )
+					self.copyComponentsFromLayerToLayer( sourcelayer, targetlayer, keepOriginal=keepOriginal )
 				if anchorsYesOrNo:
-					self.copyAnchorsFromLayerToLayer( sourcelayer, targetlayer )
+					self.copyAnchorsFromLayerToLayer( sourcelayer, targetlayer, keepOriginal=keepOriginal )
 				if metricsYesOrNo and not copyBackground:
 					self.copyMetricsFromLayerToLayer( sourcelayer, targetlayer )
 				
 				# copy hints, caps and corners if either paths or components are copied:
 				if componentsYesOrNo or pathsYesOrNo:
-					self.copyHintsFromLayerToLayer( sourcelayer, targetlayer )
+					self.copyHintsFromLayerToLayer( sourcelayer, targetlayer, keepOriginal=keepOriginal )
 
 				sourceFont.enableUpdateInterface()
 				targetFont.enableUpdateInterface()
