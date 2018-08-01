@@ -237,8 +237,12 @@ class OTVarGlyphAnimator( object ):
 	def buildWeb(self, sender):
 		weightAxisPositions = []
 		for m in self.font.masters:
-			axisPos = m.customParameters["Axis Location"][0]["Location"]
+			if m.customParameters["Axis Location"]:
+				axisPos = m.customParameters["Axis Location"][0]["Location"]
+			else:
+				axisPos = m.weightValue
 			weightAxisPositions.append( int(axisPos) )
+				
 		if self.font.customParameters["Virtual Master"]:
 			weightAxisPositions.append(self.font.customParameters["Virtual Master"][0]["Location"])
 		
@@ -273,7 +277,7 @@ body {
 <body>%s</body>
 </html>""" % (
 			self.font.familyName,
-			self.font.familyName,
+			self.font.familyName.replace(" ",""),
 			firstAxisTag,
 			min(weightAxisPositions),
 			firstAxisTag,
