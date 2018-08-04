@@ -58,6 +58,8 @@ class FindSmallPaths( object ):
 			Glyphs.defaults["com.mekkablue.FindSmallPaths.afterOverlapRemoval"] = int(self.w.afterOverlapRemoval.get())
 		except Exception as e:
 			print e
+			import traceback
+			print traceback.format_exc()
 			return False
 			
 		return True
@@ -76,6 +78,8 @@ class FindSmallPaths( object ):
 			self.w.afterOverlapRemoval.set( bool(Glyphs.defaults["com.mekkablue.FindSmallPaths.afterOverlapRemoval"]) )
 		except Exception as e:
 			print e
+			import traceback
+			print traceback.format_exc()
 			return False
 			
 		return True
@@ -101,13 +105,14 @@ class FindSmallPaths( object ):
 			return True
 		except Exception as e:
 			print e
+			import traceback
+			print traceback.format_exc()
 			return False
 		
 	def SliderUpdate( self, sender ):
 		try:
 			Glyphs.defaults["com.mekkablue.FindSmallPaths.areaSlider"] = self.w.areaSlider.get()
 			minArea = self.CurrentMinArea()
-			print ">>>> %i" % minArea
 			self.w.minArea.set( "%i"%minArea )
 			if sender != self.w.areaSlider:
 				if not self.SavePreferences( self ):
@@ -159,7 +164,6 @@ class FindSmallPaths( object ):
 								if thisPath.area() < minArea:
 									glyphsWithSmallPaths.append(thisGlyph.name)
 									if smallPathsShouldBeDeleted:
-										print "deleting", thisPath
 										del thisLayer.paths[i]
 				thisGlyph.endUndo()   # end undo grouping
 			
