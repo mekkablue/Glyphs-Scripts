@@ -105,8 +105,11 @@ class FindSmallPaths( object ):
 		
 	def SliderUpdate( self, sender ):
 		try:
+			Glyphs.defaults["com.mekkablue.FindSmallPaths.areaSlider"] = self.w.areaSlider.get()
 			minArea = self.CurrentMinArea()
-			if not sender == self.w.areaSlider:
+			print ">>>> %i" % minArea
+			self.w.minArea.set( "%i"%minArea )
+			if sender != self.w.areaSlider:
 				if not self.SavePreferences( self ):
 					print "Note: 'Find Small Paths' could not write preferences."
 			return True
