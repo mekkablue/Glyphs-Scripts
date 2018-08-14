@@ -24,8 +24,8 @@ class Pixelate( object ):
 		# UI elements:
 		self.w.text_1 = vanilla.TextBox( (15-1, 12+2, 140, 14), "Pixel grid step", sizeStyle='small' )
 		self.w.text_2 = vanilla.TextBox( (15-1, 12+26, 140, 14), "Pixel component name", sizeStyle='small' )
-		self.w.pixelRasterWidth = vanilla.EditText( (140+10, 12, -15, 15+4), "50", sizeStyle = 'small')
-		self.w.pixelComponentName = vanilla.EditText( (140+10, 12+24, -15, 15+4), "pixel", sizeStyle = 'small', callback=self.EnableButton )
+		self.w.pixelRasterWidth = vanilla.EditText( (140+10, 12, -15, 15+4), "50", callback=self.SavePreferences, sizeStyle = 'small')
+		self.w.pixelComponentName = vanilla.EditText( (140+10, 12+24, -15, 15+4), "pixel", callback=self.EnableButton, sizeStyle = 'small' )
 		self.w.resetWidths = vanilla.CheckBox( (15, 63, -15, 20), "Snap widths to pixel grid", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.decomposeComponents = vanilla.CheckBox( (15, 63+20, -15, 20), "Decompose compounds", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.keepWindowOpen = vanilla.CheckBox( (15, 63+40, -15, 20), "Keep window open", value=True, callback=self.SavePreferences, sizeStyle='small' )
@@ -79,6 +79,7 @@ class Pixelate( object ):
 		Checks if the pixel component entered by the user actually exists,
 		and enables/disables the Run button accordingly.
 		"""
+		self.SavePreferences(None)
 		onOff = False
 		pixelNameEntered = Glyphs.defaults["com.mekkablue.Pixelate.pixelComponentName"]
 		currentGlyphNames = [g.name for g in Glyphs.font.glyphs] # glyph names of frontmost font
