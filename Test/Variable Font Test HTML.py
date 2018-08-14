@@ -163,6 +163,8 @@ htmlContent = """
 				padding: 5px;
 				padding-top: 0.2em;
 				line-height: 1em;
+				color: #000;
+				text-shadow: 0 0 0 #000;
 				font: 100px "###fontFamilyName###";
 				font-feature-settings: "kern" on, "liga" on, "calt" on;
 				-moz-font-feature-settings: "kern" on, "liga" on, "calt" on;
@@ -268,7 +270,7 @@ htmlContent = """
 	<body onload="updateSlider();">
 		<input type="text" value="Type Text Here." id="textInput" onkeyup="updateParagraph();" onclick="this.select();" />
 		<div>
-			<div class="labeldiv"><label class="sliderlabel" id="label_fontsize">fontsize</label><input type="range" min="10" max="200" value="50" class="slider" id="fontsize" oninput="updateSlider();"></div>
+			<div class="labeldiv"><label class="sliderlabel" id="label_fontsize">fontsize</label><input type="range" min="10" max="300" value="100" class="slider" id="fontsize" oninput="updateSlider();"></div>
 			<div class="labeldiv"><label class="sliderlabel" id="label_lineheight">lineheight</label><input type="range" min="30" max="300" value="100" class="slider" id="lineheight" oninput="updateSlider();"></div>
 ###sliders###		</div>
 		<p id="text">The Quick Brown Fox Jumps Over the Lazy Dog.</p>
