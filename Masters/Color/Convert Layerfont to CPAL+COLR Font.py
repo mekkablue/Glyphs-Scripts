@@ -37,13 +37,13 @@ def keepOnlyFirstMaster( thisFont ):
 		thisFont.removeFontMasterAtIndex_(i)
 
 def process( thisGlyph ):
-	for i in range(len(namesOfMasters)):
+	for i in range(len(namesOfMasters))[::-1]:
 		colorLayerName = "Color %i" % i
 		originalLayerName = namesOfMasters[i]
 		originalLayer = thisGlyph.layerForName_(originalLayerName)
 		thisGlyph.layers[colorLayerName] = originalLayer.copy()
-		thisGlyph.layers[colorLayerName].setName_(colorLayerName)
 		thisGlyph.layers[colorLayerName].setAssociatedMasterId_(fallbackMasterID)
+		thisGlyph.layers[colorLayerName].setName_(colorLayerName)
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
