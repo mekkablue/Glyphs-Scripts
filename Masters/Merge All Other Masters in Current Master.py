@@ -14,12 +14,24 @@ listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyph
 def process( thisGlyph ):
 	currentLayer = thisGlyph.layers[thisFontMaster.id]
 	print currentLayer
+	currentLayer.paths = None
+	currentLayer.hints = None
+	currentLayer.components = None
 	for thisID in otherMasterIDs:
 		sourceLayer = thisGlyph.layers[thisID]
 		sourcePaths = sourceLayer.paths
 		if sourcePaths:
 			for sourcePath in sourcePaths:
-				currentLayer.paths.append( sourcePath.copy() )
+				currentLayer.paths.append(sourcePath.copy())
+		sourceHints = sourceLayer.hints
+		if sourceHints:
+			for sourceHint in sourceLayer.hints:
+				if sourceHint.isCorner():
+					currentLayer.hints.append(sourceHint.copy())
+		sourceComponents = sourceLayer.components
+		if sourceComponents:
+			for sourceComponent in sourceLayer.components:
+				currentLayer.components.append(sourceComponent.copy())
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
