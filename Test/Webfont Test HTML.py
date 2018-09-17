@@ -93,8 +93,8 @@ def featureListForFont( thisFont ):
 	returnString = ""
 	featureList = [f.name for f in thisFont.features if not f.name in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig") and not f.disabled()]
 	for f in featureList:
-		returnString += """		<label><input type="checkbox" name="%s" value="%s" class="otFeature" onchange="updateFeatures()"><a href="http://stateofwebtype.com/#%s">%s</a></label>
-""" % (f,f,f,f)
+		returnString += """		<label><input type="checkbox" name="%s" value="%s" class="otFeature" onchange="updateFeatures()">%s</label>
+""" % (f,f,f)
 	return returnString
 
 htmlContent = """<head>
@@ -213,14 +213,14 @@ htmlContent = """<head>
 		<a href="javascript:setCharset();">Charset</a>
 		<a href="javascript:setLat1();">Lat1</a>
 		&emsp;
-		<a href="http://stateofwebtype.com/#eot">eot?</a>
-		<a href="http://stateofwebtype.com/#woff">woff?</a>
-		<a href="http://stateofwebtype.com/#woff2">woff2?</a>
+		<a href="https://caniuse.com/#feat=eot">eot</a>
+		<a href="https://caniuse.com/#feat=woff">woff</a>
+		<a href="https://caniuse.com/#feat=woff2">woff2</a>
 		&emsp;
-		<a href="http://stateofwebtype.com/#font-feature-settings">Features</a>:
-		<label><input type="checkbox" name="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><a href="http://stateofwebtype.com/#kern">kern</a></label>
-		<label><input type="checkbox" name="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><a href="http://stateofwebtype.com/#liga">liga/clig</a></label>
-		<label><input type="checkbox" name="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><a href="http://stateofwebtype.com/#calt">calt</a></label>
+		OT Features:
+		<label><input type="checkbox" name="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked>kern</label>
+		<label><input type="checkbox" name="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked>liga/clig</label>
+		<label><input type="checkbox" name="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked>calt</label>
 		<!-- moreFeatures -->
 		<label><input type="checkbox" name="show" value="show" onchange="updateFeatures();document.getElementById('featureLine').style.display=this.checked?'':'none'">Show CSS</label>
 	</p>
