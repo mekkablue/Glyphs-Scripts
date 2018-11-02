@@ -7,16 +7,15 @@ Decomposes components in the Background.
 
 
 thisFont = Glyphs.font # frontmost font
-thisFontMaster = thisFont.selectedFontMaster # active master
-listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 
 def process( thisLayer ):
 	background = thisLayer.background
-	background.decomposeComponents()
+	if background.components:
+		background.decomposeComponents()
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
-for thisLayer in listOfSelectedLayers:
+for thisLayer in thisFont.selectedLayers:
 	thisGlyph = thisLayer.parent
 	print "Processing", thisGlyph.name
 	thisGlyph.beginUndo() # begin undo grouping
