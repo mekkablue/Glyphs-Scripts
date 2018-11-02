@@ -7,7 +7,6 @@ E.g. you have a.ss01 b.ss01 c.ss01 a.ss02 c.ss02 --> the script creates b.ss02
 
 Font       = Glyphs.font
 allGlyphs  = [ x.name for x in list( Font.glyphs ) ]
-linelength = 70
 
 def ssXXsuffix( i ):
 	"""Turns an integer into an ssXX ending between .ss01 and .ss20, e.g. 5 -> '.ss05'."""
@@ -59,6 +58,7 @@ else:
 						targetglyph = sourceglyph.copy()
 						targetglyph.name = targetglyphname
 						targetglyph.unicode = None
+						targetglyph.productionName = Glyphs.productionGlyphName(targetglyphname)
 						Font.glyphs.append( targetglyph )
 						print targetglyphname,
 
