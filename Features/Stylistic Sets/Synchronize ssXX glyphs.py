@@ -58,6 +58,7 @@ else:
 						sourceglyph = Font.glyphs[ sourceglyphname ]
 						targetglyph = sourceglyph.copy()
 						targetglyph.name = targetglyphname
+						targetglyph.unicode = None
 						Font.glyphs.append( targetglyph )
 						print targetglyphname,
 
