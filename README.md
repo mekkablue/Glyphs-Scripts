@@ -156,6 +156,7 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 * **Insert instances:** GUI for calculating and inserting weight instances. It is described in this tutorial: https://www.glyphsapp.com/tutorials/multiple-masters-part-3-setting-up-instances *Needs Vanilla.*
 * **Insert Brace Layers for Movement along Background Path:** Inserts a number of Brace Layers with copies of the first layer, shifted according to the first path in the background. Useful for OTVar interpolations with moving elements.
 * **Insert Brace Layers for Rotating Components:** Inserts a number of Brace Layers with continuously scaled and rotated components. Useful for OTVar interpolations with rotating elements. *Needs Vanilla.*
+* **Lines by Master:** Reduplicates your edit text across masters, will add one line per master in Edit view. Careful, ignores everything after the first newline.
 * **Merge All Other Masters in Current Master:** In selected glyphs, copies all paths from other masters onto the current master layer.
 * **New Tab with Brace Layer Glyphs**: Opens a new Edit tab with all glyphs which contain the Brace Layer trick.
 * **New Tab with Bracket Layer Glyphs:** Looks for all glyphs in the font that contain Bracket Trick Layers, and opens them in a new Edit tab.
