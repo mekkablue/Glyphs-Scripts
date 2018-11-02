@@ -34,6 +34,7 @@ class MethodReporter( object ):
 			"GSComponent",
 			"GSCustomParameter",
 			"GSEditViewController",
+			"GSGlyphEditView",
 			"GSFeature",
 			"GSFeaturePrefix",
 			"GSFont",
@@ -50,7 +51,7 @@ class MethodReporter( object ):
 			"NSAffineTransform",
 			"NSAffineTransformStruct",
 			"NSDate",
-			"NSImage"
+			"NSImage",
 		]
 		
 		# Window 'self.w':
