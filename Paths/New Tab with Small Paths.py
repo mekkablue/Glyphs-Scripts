@@ -57,9 +57,7 @@ class FindSmallPaths( object ):
 			Glyphs.defaults["com.mekkablue.FindSmallPaths.deleteThemRightAway"] = int(self.w.deleteThemRightAway.get())
 			Glyphs.defaults["com.mekkablue.FindSmallPaths.afterOverlapRemoval"] = int(self.w.afterOverlapRemoval.get())
 		except Exception as e:
-			print e
-			import traceback
-			print traceback.format_exc()
+			self.errorReport(e)
 			return False
 			
 		return True
@@ -77,9 +75,7 @@ class FindSmallPaths( object ):
 			self.w.deleteThemRightAway.set( bool(Glyphs.defaults["com.mekkablue.FindSmallPaths.deleteThemRightAway"]) )
 			self.w.afterOverlapRemoval.set( bool(Glyphs.defaults["com.mekkablue.FindSmallPaths.afterOverlapRemoval"]) )
 		except Exception as e:
-			print e
-			import traceback
-			print traceback.format_exc()
+			self.errorReport(e)
 			return False
 			
 		return True
@@ -104,36 +100,47 @@ class FindSmallPaths( object ):
 
 			return True
 		except Exception as e:
-			print e
-			import traceback
-			print traceback.format_exc()
+			self.errorReport(e)
 			return False
 		
 	def SliderUpdate( self, sender ):
 		try:
-			Glyphs.defaults["com.mekkablue.FindSmallPaths.areaSlider"] = self.w.areaSlider.get()
-			minArea = self.CurrentMinArea()
-			self.w.minArea.set( "%i"%minArea )
+			# update the defaults:
 			if sender != self.w.areaSlider:
 				if not self.SavePreferences( self ):
 					print "Note: 'Find Small Paths' could not write preferences."
+
+			# validate the min and max entries:
+			minimum = float( Glyphs.defaults["com.mekkablue.FindSmallPaths.sliderMin"] )
+			maximum = float( Glyphs.defaults["com.mekkablue.FindSmallPaths.sliderMax"] )
+			
+			# minimum value = 1
+			if minimum < 1.0:
+				minimum = 1
+				self.w.sliderMin.set( minimum )
+			
+			# maximum must be larger than minimum:
+			if maximum < minimum:
+				# disable slider and button
+				self.w.areaSlider.enable(onOff=False)
+				self.w.runButton.enable(onOff=False)
+				# put warning message into area text:
+				self.w.minArea.set( "Maximum must be larger than minimum." )
+			else:
+				# enable slider and button
+				self.w.areaSlider.enable(onOff=True)
+				self.w.runButton.enable(onOff=True)
+				# update the current area:
+				Glyphs.defaults["com.mekkablue.FindSmallPaths.areaSlider"] = self.w.areaSlider.get()
+				minArea = self.CurrentMinArea()
+				
 			return True
 		except:
 			return False
 	
-	def CurrentMinArea(self):
+	def CurrentMinArea(self,):
 		minimum = float( Glyphs.defaults["com.mekkablue.FindSmallPaths.sliderMin"] )
 		maximum = float( Glyphs.defaults["com.mekkablue.FindSmallPaths.sliderMax"] )
-		
-		# check for integrity of min and max values:
-		if minimum < 1.0:
-			minimum = 1.0
-			self.w.sliderMin.set( "%i"%minimum )
-
-		if maximum < minimum:
-			maximum = minimum+10.0
-			self.w.sliderMax.set( "%i"%maximum )
-
 		sliderPos = float( Glyphs.defaults["com.mekkablue.FindSmallPaths.areaSlider"] )
 		minArea = minimum + sliderPos * (maximum-minimum)
 		self.w.minArea.set( "%i square units" % minArea )
@@ -149,7 +156,6 @@ class FindSmallPaths( object ):
 			
 			thisFont = Glyphs.font # frontmost font
 			for thisGlyph in thisFont.glyphs:
-				thisGlyph.beginUndo() # begin undo grouping
 				for thisLayer in thisGlyph.layers:
 					if thisLayer.paths:
 						if overlapsShouldBeRemovedFirst:
@@ -159,13 +165,14 @@ class FindSmallPaths( object ):
 								if thisPath.area() < minArea:
 									glyphsWithSmallPaths.append(thisGlyph.name)
 						else:
+							thisGlyph.beginUndo() # begin undo grouping
 							for i in range(len(thisLayer.paths))[::-1]:
 								thisPath = thisLayer.paths[i]
 								if thisPath.area() < minArea:
 									glyphsWithSmallPaths.append(thisGlyph.name)
 									if smallPathsShouldBeDeleted:
 										del thisLayer.paths[i]
-				thisGlyph.endUndo()   # end undo grouping
+							thisGlyph.endUndo()   # end undo grouping
 			
 			if glyphsWithSmallPaths:
 				tabString = "/"+"/".join( set(glyphsWithSmallPaths) )
@@ -173,24 +180,18 @@ class FindSmallPaths( object ):
 			else:
 				Message(title="No Small Paths Found", message="No glyphs with paths smaller than %i square units found in the frontmost font." % minArea, OKButton="Cool")
 			
-			# listOfSelectedLayers = thisFont.selectedLayers # active layers of currently selected glyphs
-			# for thisLayer in listOfSelectedLayers: # loop through layers
-			# 	thisGlyph = thisLayer.parent
-			# 	print thisGlyph.name, thisLayer.name
-			# 	# output all node coordinates:
-			# 	for thisPath in thisLayer.paths:
-			# 		for thisNode in thisLayer.nodes:
-			# 			print "-- %.1f %.1f" % ( thisNode.x, thisNode.y )
-			
-			
-			
 			if not self.SavePreferences( self ):
 				print "Note: 'Find Small Paths' could not write preferences."
 			
 			self.w.close() # delete if you want window to stay open
 		except Exception, e:
-			# brings macro window to front and reports error:
-			Glyphs.showMacroWindow()
-			print "Find Small Paths Error: %s" % e
-
+			self.errorReport(e)
+	
+	def errorReport(self, e):
+		# brings macro window to front and reports error:
+		Glyphs.showMacroWindow()
+		print "Find Small Paths Error:\n%s\n" % e
+		import traceback
+		print traceback.format_exc()
+		
 FindSmallPaths()
