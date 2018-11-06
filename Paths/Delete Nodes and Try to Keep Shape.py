@@ -1,32 +1,27 @@
 #MenuTitle: Delete Nodes and Try to Keep Shape
 # -*- coding: utf-8 -*-
 __doc__="""
-Delete the selected on-curve nodes, but try to keep the shape of the path.
+Delete the selected on-curve nodes, but try to keep the shape of the path. Hold down Shift for balanced handles.
 """
-
-
-
 
 thisFont = Glyphs.font # frontmost font
 thisLayer = thisFont.selectedLayers[0] # first of active layers of selected glyphs
 thisGlyph = thisLayer.parent # current glyph
+selection = thisLayer.selection # node selection in edit mode
 
-# node selection in edit mode
-try:
-	selection = thisLayer.selection() # Glyphs 2.1 and earlier
-except:
-	selection = thisLayer.selection # Glyphs 2.2 and later
-
+# check if Shift is held down:
+shiftKeyFlag = 131072
+shiftKeyPressed = NSEvent.modifierFlags() & shiftKeyFlag == shiftKeyFlag
 
 if selection:
 	selectedNodes = [obj for obj in selection if type(obj)==GSNode and obj.type==GSCURVE]
 	if selectedNodes:
 		thisGlyph.beginUndo() # begin undo grouping
-		thisLayer.setSelection_( None )
+		thisLayer.selection = None
 		for thisNode in selectedNodes:
-			try:
-				thisPath = thisNode.parent()
-			except Exception as e:
-				thisPath = thisNode.parent
-			thisPath.removeNodeCheckKeepShape_( thisNode )
+			thisPath = thisNode.parent
+			if not shiftKeyPressed:
+				thisPath.removeNodeCheckKeepShape_( thisNode )
+			else:
+				thisPath.removeNodeCheckKeepShape_normalizeHandles_( thisNode, True )
 		thisGlyph.endUndo()   # end undo grouping

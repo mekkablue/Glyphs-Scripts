@@ -208,7 +208,7 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 * **Delete all open paths:** Deletes all *open* paths in the visible layers of all selected glyphs.
 * **Delete all paths:** Deletes *all paths* in the visible layers of all selected glyphs. Be careful.
 * **Delete duplicate paths:** Deletes exact path duplicates (same paths on top of each other) in the visible layers of all selected glyphs.
-* **Delete Nodes and Try to Keep Shape:** Deletes selected on-curve nodes and tries to keep the shape as much as possible. Similar to what happens when you delete a single node, but for a selection of multiple nodes.
+* **Delete Nodes and Try to Keep Shape:** Deletes selected on-curve nodes and tries to keep the shape as much as possible. Similar to what happens when you delete a single node, but for a selection of multiple nodes. Pro tip: Hold down the Shift key while running the script, and it will also balance the remaining handles as much as possible, which is exactly what happens when you delete a single node.
 * **Delete Short Segments:** Deletes segments shorter than one unit.
 * **Delete Stray Points:** Deletes stray points (single node paths) in selected glyphs. Careful: a stray point can be used as a quick hack to disable automatic alignment. Reports in detail to the macro window.
 * **Fill up with rectangles:** Goes through your selected glyphs, and if it finds an empty one, inserts a placeholder rectangle. Useful for quickly building a dummy font for testing.
