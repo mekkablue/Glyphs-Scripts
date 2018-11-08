@@ -4,8 +4,6 @@ __doc__="""
 Turns a layered color font into a single-master font with a CPAL and COLR layers in each glyph. It will take the first master as default.
 """
 
-
-
 thisFont = Glyphs.font # frontmost font
 fallbackMaster = thisFont.masters[0] # first master
 fallbackMasterID = fallbackMaster.id
@@ -44,9 +42,13 @@ def process( thisGlyph ):
 		thisGlyph.layers[colorLayerName] = originalLayer.copy()
 		thisGlyph.layers[colorLayerName].setAssociatedMasterId_(fallbackMasterID)
 		thisGlyph.layers[colorLayerName].setName_(colorLayerName)
-
+		
+	for i in range(len(thisGlyph.layers))[::-1]:
+		thisLayer = thisGlyph.layers[i]
+		if thisLayer.name == "orphan":
+			del thisLayer
+	
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
-
 createCPALfromMasterColors( thisFont.masters, 0 )
 
 for thisGlyph in thisFont.glyphs:
@@ -54,9 +56,8 @@ for thisGlyph in thisFont.glyphs:
 	thisGlyph.beginUndo() # begin undo grouping
 	process( thisGlyph )
 	thisGlyph.endUndo()   # end undo grouping
-	
-keepOnlyFirstMaster( thisFont )
 
+keepOnlyFirstMaster( thisFont )
 thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 
 print "Done."
