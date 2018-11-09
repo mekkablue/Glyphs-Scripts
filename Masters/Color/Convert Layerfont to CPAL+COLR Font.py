@@ -45,7 +45,7 @@ def process( thisGlyph ):
 		
 	for i in range(len(thisGlyph.layers))[::-1]:
 		thisLayer = thisGlyph.layers[i]
-		if thisLayer.name == "orphan":
+		if thisLayer.name is None:
 			del thisLayer
 	
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
