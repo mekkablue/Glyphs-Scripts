@@ -4,8 +4,6 @@ __doc__="""
 Inserts Rectangles in all empty, selected glyphs.
 """
 
-
-
 Font = Glyphs.font
 FontMaster = Font.selectedFontMaster
 selectedLayers = Font.selectedLayers
