@@ -250,11 +250,13 @@ appVersionHighEnough = not GLYPHSAPPVERSION.startswith("1.")
 if appVersionHighEnough:
 	firstDoc = Glyphs.orderedDocuments()[0]
 	if firstDoc.isKindOfClass_(GSProjectDocument):
+		# Frontmost doc is a .glyphsproject file:
 		thisFont = firstDoc.font() # frontmost project file
 		firstActiveInstance = [i for i in firstDoc.instances() if i.active][0]
 		activeFontInstances = activeInstancesOfProject( firstDoc )
 		exportPath = firstDoc.exportPath()
 	else:
+		# Frontmost doc is a .glyphs file:
 		thisFont = Glyphs.font # frontmost font
 		firstActiveInstance = [i for i in thisFont.instances if i.active][0]
 		activeFontInstances = activeInstancesOfFont( thisFont )
