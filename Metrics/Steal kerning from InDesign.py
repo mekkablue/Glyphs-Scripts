@@ -139,4 +139,7 @@ for thisline in kernInfo.splitlines():
 			else:
 				print "  No kerning between %s-%s. Ignored." % (leftSide, rightSide)
 		except Exception as e:
-			print "  ERROR: Could not set kerning for %s-%s (%i)." % (leftSide, rightSide, kernValue)
+			print "  ERROR: Could not set kerning for %s-%s (%i).\n" % (leftSide, rightSide)
+			print e
+			import traceback
+			print traceback.format_exc()
