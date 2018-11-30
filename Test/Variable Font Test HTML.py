@@ -154,7 +154,7 @@ htmlContent = """
 		<style>
 			@font-face { 
 				font-family: "###fontFamilyName###";
-				src: url(###fontFamilyName###GX.ttf);
+				src: url("###fontFamilyName###GX.ttf");
 			}
 			p {
 				z-index: 0;
