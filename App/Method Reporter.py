@@ -52,6 +52,10 @@ class MethodReporter( object ):
 			"NSAffineTransformStruct",
 			"NSDate",
 			"NSImage",
+			"NSTextField",
+			"NSComboBox",
+			"NSPopUpButton",
+			"NSButton",
 		]
 		
 		# Window 'self.w':
