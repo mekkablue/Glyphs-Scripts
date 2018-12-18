@@ -49,6 +49,7 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 * **Print Window:** Print the frontmost window. Useful for saving a vector PDF of your window content.
 * **Save Selected Glyphs as PNG:** Saves selected glyphs as PNGs in a user-specified folder.
 * **Set Export Paths to Adobe Fonts Folder:** Sets the OpenType font and Variable Font export paths to the Adobe Fonts Folder.
+* **Set Hidden App Preferences:** GUI for reading and setting ‘hidden’ app preferences, which are not listed in the GUI. *Needs Vanilla.*
 * **Set Tool Shortcuts:** Set Shortcuts for tools in toolbar.
 * **SVN Update:** Issue an `svn update` with the supplied paths. Reports results and errors to the Macro Window. *Needs Vanilla.*
 
