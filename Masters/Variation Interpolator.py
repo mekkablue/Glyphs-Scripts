@@ -87,7 +87,7 @@ class VariationInterpolator( object ):
 	
 	def interpolatePaths( self, thisLayer, backgroundFactor, foregroundFactor ):
 		# interpolate paths only if there is a compatible background:
-		if thisLayer.background and (thisLayer.compareString() == thisLayer.background.compareString()):
+		if thisLayer.background: # and (thisLayer.compareString() == thisLayer.background.compareString()):
 			for thisPathIndex in range(len(thisLayer.paths)):
 				thisPath = thisLayer.paths[thisPathIndex]
 				for thisNodeIndex in range(len(thisPath.nodes)):
@@ -97,7 +97,8 @@ class VariationInterpolator( object ):
 					thisNode.setPosition_( self.interpolatedPosition( foregroundPosition, foregroundFactor, backgroundPosition, backgroundFactor ) )
 		else:
 			thisGlyph = thisLayer.parent
-			print "%s: incompatible paths in background layer ('%s')." % ( thisGlyph.name, thisLayer.name )
+			print "%s: incompatible background layer ('%s')." % ( thisGlyph.name, thisLayer.name )
+			print thisLayer.compareString(), thisLayer.background.compareString()
 		
 	def interpolateAnchors( self, thisLayer, backgroundFactor, foregroundFactor ):
 		# interpolate anchor only if there is an anchor of the same name:
@@ -113,16 +114,43 @@ class VariationInterpolator( object ):
 				thisGlyph = thisLayer.parent
 				print "%s: incompatible number of anchors." % thisGlyph.name
 	
+	def interpolateComponents( self, thisLayer, backgroundFactor, foregroundFactor ):
+		for i,thisComponent in enumerate(thisLayer.components):
+			backgroundComponent = thisLayer.background.components[i]
+			if backgroundComponent:
+				
+				# general component settings:
+				thisComponent.position = self.interpolatedPosition(
+					thisComponent.position, foregroundFactor,
+					backgroundComponent.position, backgroundFactor,
+				)
+				thisComponent.scale = ( 
+					thisComponent.scale[0] * foregroundFactor + backgroundComponent.scale[0] * backgroundFactor,
+					thisComponent.scale[1] * foregroundFactor + backgroundComponent.scale[1] * backgroundFactor,
+				)
+				thisComponent.rotation = (
+					thisComponent.rotation * foregroundFactor + backgroundComponent.rotation * backgroundFactor
+				)
+				
+				# smart components:
+				thisFont = thisLayer.parent.parent
+				if thisFont:
+					for axis in thisFont.glyphs[thisComponent.componentName].smartComponentAxes:
+						newValue = float(thisComponent.smartComponentValues[axis.name]) * foregroundFactor + float(backgroundComponent.smartComponentValues[axis.name]) * backgroundFactor
+						thisComponent.smartComponentValues[axis.name] = ( newValue )
+					
+		
+	
 	def interpolateLayerWithBackground( self, thisLayer, backgroundFactor ):
 		foregroundFactor = 1.0 - backgroundFactor
 		self.interpolatePaths( thisLayer, backgroundFactor, foregroundFactor )
 		self.interpolateAnchors( thisLayer, backgroundFactor, foregroundFactor )
+		self.interpolateComponents( thisLayer, backgroundFactor, foregroundFactor )
 		thisLayer.background = None
 		
 	def interpolateGlyphWithBackgrounds( self, newGlyph, backgroundFactor ):
 		# go through every layer of newGlyph:
-		for thisLayerIndex in range(len(newGlyph.layers)):
-			thisLayer = newGlyph.layers[thisLayerIndex]
+		for thisLayer in newGlyph.layers:
 			self.interpolateLayerWithBackground( thisLayer, backgroundFactor )
 		
 	def VariationInterpolatorMain( self, sender ):
@@ -143,10 +171,10 @@ class VariationInterpolator( object ):
 					# prepare interpolation:
 					backgroundFactor = float( numberOfThisVariation ) / float( numberOfVariations )
 					
-					self.interpolateGlyphWithBackgrounds( newGlyph, backgroundFactor )
-					
 					# add the glyph variation to the font:
 					thisFont.glyphs.append( newGlyph )
+					self.interpolateGlyphWithBackgrounds( newGlyph, backgroundFactor )
+					
 					
 				thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 			if not self.SavePreferences( self ):
@@ -157,5 +185,7 @@ class VariationInterpolator( object ):
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print "Variation Interpolator Error: %s" % e
+			import traceback
+			print traceback.format_exc()
 
 VariationInterpolator()
