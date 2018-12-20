@@ -37,6 +37,21 @@ weightClasses = {
 	"Extrablack":950,
 }
 
+weightClassesOldNames = {
+	"Hairline":"Thin:50",
+	"Thin":"Thin",
+	"Extralight":"ExtraLight",
+	"Light":"Light",
+	"Regular":"Regular",
+	"Medium":"Medium",
+	"Semibold":"SemiBold",
+	"Bold":"Bold",
+	"Extrabold":"ExtraBold",
+	"Black":"Black",
+	"Extrablack":"Black:950",
+}
+
+
 def distribute_lucas( min, max, n ):
 	q = max / min
 	return [ min * q**(i/(n-1)) for i in range(n) ]
@@ -331,7 +346,15 @@ class InstanceMaker( object ):
 						styleName = instanceNames[i]
 						newInstance.name = "%s%s" % (prefix, styleName)
 						newInstance.isBold = styleName=="Bold"
-						newInstance.weightClass = weightClasses[styleName]
+						weightClassOldName = weightClassesOldNames[styleName]
+						weightClassValue = weightClasses[styleName]
+						if ":" in weightClassOldName:
+							weightClassValue = int(weightClassOldName.split(":")[1].strip())
+							weightClassOldName = weightClassOldName.split(":")[0].strip()
+						
+						newInstance.weightClass = weightClassOldName
+						if weightClassValue % 100:
+							newInstance.customParameters["weightClass"] = weightClassValue
 					else:
 						newInstance.name = "%s%i" % (prefix, thisWeight)
 						newInstance.isBold = False
@@ -357,6 +380,8 @@ class InstanceMaker( object ):
 			
 			self.w.close()
 		except Exception, e:
-			raise e
+			print e
+			import traceback
+			print traceback.format_exc()
 
 InstanceMaker()
