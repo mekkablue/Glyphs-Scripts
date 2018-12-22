@@ -19,6 +19,7 @@ class SetHiddenAppPreferences( object ):
 		"MacroCodeFontSize",
 		"TextModeNumbersThreshold",
 		"TTPreviewAlsoShowOffCurveIndexes",
+		"GSFontViewDisableDarkMode",
 	)
 	
 	def __init__( self ):
