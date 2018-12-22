@@ -97,22 +97,21 @@ class VariationInterpolator( object ):
 					thisNode.setPosition_( self.interpolatedPosition( foregroundPosition, foregroundFactor, backgroundPosition, backgroundFactor ) )
 		else:
 			thisGlyph = thisLayer.parent
-			print "%s: incompatible background layer ('%s')." % ( thisGlyph.name, thisLayer.name )
-			print thisLayer.compareString(), thisLayer.background.compareString()
+			print "%s: incompatible background layer ('%s'):" % ( thisGlyph.name, thisLayer.name )
+			print "Foreground: %s\nBackground:%s" % (thisLayer.compareString(), thisLayer.background.compareString())
 		
 	def interpolateAnchors( self, thisLayer, backgroundFactor, foregroundFactor ):
 		# interpolate anchor only if there is an anchor of the same name:
 		if thisLayer.anchors:
-			if len(thisLayer.anchors) == len(thisLayer.background.anchors):
-				for foregroundAnchor in thisLayer.anchors:
-					backgroundAnchor = thisLayer.background.anchors[ foregroundAnchor.name ]
-					if backgroundAnchor:
-						foregroundPosition = foregroundAnchor.position
-						backgroundPosition = backgroundAnchor.position
-						foregroundAnchor.setPosition_( self.interpolatedPosition( foregroundPosition, foregroundFactor, backgroundPosition, backgroundFactor ) )
-			else:
-				thisGlyph = thisLayer.parent
-				print "%s: incompatible number of anchors." % thisGlyph.name
+			for foregroundAnchor in thisLayer.anchors:
+				backgroundAnchor = thisLayer.background.anchors[ foregroundAnchor.name ]
+				if backgroundAnchor:
+					foregroundPosition = foregroundAnchor.position
+					backgroundPosition = backgroundAnchor.position
+					foregroundAnchor.setPosition_( self.interpolatedPosition( foregroundPosition, foregroundFactor, backgroundPosition, backgroundFactor ) )
+				else:
+					thisGlyph = thisLayer.parent
+					print "%s: Anchor '%s' not in background." % (thisGlyph.name, foregroundAnchor.name)
 	
 	def interpolateComponents( self, thisLayer, backgroundFactor, foregroundFactor ):
 		for i,thisComponent in enumerate(thisLayer.components):
