@@ -35,12 +35,13 @@ def dekink( originLayer, compatibleLayerIDs, pathIndex, nodeIndex, ratio, refi1=
 		return False
 
 # determine current layer:
-currentLayer = Glyphs.font.selectedLayers[0]
+currentFont = Glyphs.font
+currentLayer = currentFont.selectedLayers[0]
 currentGlyph = currentLayer.parent
 
 # find compatible layers in the same glyph:
 layerIDs = []
-for subrunArray in currentGlyph.layerGroups_masters_error_( NSArray(Font.instances), Font.masters, None ):
+for subrunArray in currentGlyph.layerGroups_masters_error_( NSArray(currentFont.instances), Font.masters, None ):
 	subrun = tuple(subrunArray)
 	if currentLayer.layerId in subrun:
 		for ID in subrun:
