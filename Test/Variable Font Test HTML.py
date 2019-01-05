@@ -5,9 +5,8 @@ Create a Test HTML for the current font inside the current Variation Font Export
 """
 
 from os import system
-fileFormats = ( "woff", "woff2", "eot" )
 
-def saveFileInLocation( content="blabla", fileName="test.txt", filePath="~/Desktop" ):
+def saveFileInLocation( content="Sorry, no content generated.", fileName="test.html", filePath="~/Desktop" ):
 	saveFileLocation = "%s/%s" % (filePath,fileName)
 	saveFileLocation = saveFileLocation.replace( "//", "/" )
 	f = open( saveFileLocation, 'w' )
@@ -22,6 +21,20 @@ def currentOTVarExportPath():
 		exportPath = Glyphs.defaults["GXExportPath"]
 	return exportPath
 
+def otVarFamilyName(thisFont):
+	if thisFont.customParameters["Variable Font Family Name"]:
+		return thisFont.customParameters["Variable Font Family Name"]
+	else:
+		return thisFont.familyName
+
+def otVarFileName(thisFont):
+	if thisFont.customParameters["Variable Font File Name"]:
+		return "%s.ttf" % thisFont.customParameters["Variable Font File Name"]
+	else:
+		familyName = otVarFamilyName(thisFont)
+		fileName = "%sGX.ttf" % familyName
+		return fileName.replace(" ","")
+
 def replaceSet( text, setOfReplacements ):
 	for thisReplacement in setOfReplacements:
 		searchFor = thisReplacement[0]
@@ -29,19 +42,20 @@ def replaceSet( text, setOfReplacements ):
 		text = text.replace( searchFor, replaceWith )
 	return text
 
-def allUnicodeEscapesOfFont( thisFont ):
-	allUnicodes = ["&#x%s;" % g.unicode for g in thisFont.glyphs if g.unicode and g.export ]
-	return " ".join( allUnicodes )
+def generateAxisDict(thisFont):
+	# see if there are Axis Location parameters in use:
+	fontHasAxisLocationParameters = True
+	for thisMaster in thisFont.masters:
+		if not thisMaster.customParameters["Axis Location"]:
+			fontHasAxisLocationParameters = False
+	
+	# create and return the axisDict:
+	if fontHasAxisLocationParameters:
+		return axisDictForFontWithAxisLocationParameters(thisFont)
+	else:
+		return axisDictForFontWithoutAxisLocationParameters(thisFont)
 
-def featureListForFont( thisFont ):
-	returnString = ""
-	featureList = [f.name for f in thisFont.features if not f.name in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig") and not f.disabled()]
-	for f in featureList:
-		returnString += """		<label><input type="checkbox" name="%s" value="%s" class="otFeature" onchange="updateFeatures()"><a href="http://stateofwebtype.com/#%s">%s</a></label>
-""" % (f,f,f,f)
-	return returnString
-
-def allOTVarSliders(thisFont):
+def axisDictForFontWithoutAxisLocationParameters(thisFont):
 	sliderValues = {}
 	for i, thisMaster in enumerate(thisFont.masters):
 		try:
@@ -63,20 +77,56 @@ def allOTVarSliders(thisFont):
 				thisMaster.customValue2,
 				thisMaster.customValue3,
 			)
-			
 	
 	axisDict = {}
 	for i, axis in enumerate(thisFont.axes):
 		axisName = axis["Name"]
 		axisTag = axis["Tag"]
 		axisDict[axisName] = { "tag": axisTag, "min": sliderValues[0][i], "max": sliderValues[0][i] }
-		print axisDict
+		
 		for j, thisMaster in enumerate(thisFont.masters):
 			masterValue = sliderValues[j][i]
 			if masterValue < axisDict[axisName]["min"]:
 				axisDict[axisName]["min"] = masterValue
 			elif masterValue > axisDict[axisName]["max"]:
 				axisDict[axisName]["max"] = masterValue
+
+def axisDictForFontWithAxisLocationParameters(thisFont):
+	axisDict = {}
+	for m in thisFont.masters:
+		for axisLocation in m.customParameters["Axis Location"]:
+			axisName = axisLocation["Axis"]
+			axisPos = float(axisLocation["Location"])
+			if not axisName in axisDict:
+				axisDict[axisName] = {"min":axisPos,"max":axisPos}
+			else:
+				if axisPos < axisDict[axisName]["min"]:
+					axisDict[axisName]["min"] = axisPos
+				if axisPos > axisDict[axisName]["max"]:
+					axisDict[axisName]["max"] = axisPos
+	
+	# add tags:
+	for axis in thisFont.axes:
+		axisName = axis["Name"]
+		axisTag = axis["Tag"]
+		axisDict[axisName]["tag"] = axisTag
+	
+	return axisDict
+
+def allUnicodeEscapesOfFont( thisFont ):
+	allUnicodes = ["&#x%s;" % g.unicode for g in thisFont.glyphs if g.unicode and g.export ]
+	return " ".join( allUnicodes )
+
+def featureListForFont( thisFont ):
+	returnString = ""
+	featureList = [f.name for f in thisFont.features if not f.name in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig") and not f.disabled()]
+	for f in featureList:
+		returnString += """		<label><input type="checkbox" name="%s" value="%s" class="otFeature" onchange="updateFeatures()"><a href="http://stateofwebtype.com/#%s">%s</a></label>
+""" % (f,f,f,f)
+	return returnString
+
+def allOTVarSliders(thisFont):
+	axisDict = generateAxisDict(thisFont)
 		
 	if Font.customParameters["Virtual Master"]:
 		for axis in Font.customParameters["Virtual Master"]:
@@ -93,13 +143,15 @@ def allOTVarSliders(thisFont):
 		maxValues[tag] = axisDict[axis]["max"]
 	
 	html = ""
-	for i in range( len( thisFont.axes )):
-		defaultValue = sliderValues[0][i]
-		axisTag = str(thisFont.axes[i]["Tag"])
-		print axisDict
-		html += "\t\t\t<div class='labeldiv'><label class='sliderlabel' id='label_%s'>%s</label><input type='range' min='%i' max='%i' value='%i' class='slider' id='%s' oninput='updateSlider();'></div>\n" % (
-			axisTag, axisTag, 
-			minValues[axisTag], maxValues[axisTag], defaultValue,
+	for axis in thisFont.axes:
+		axisName = unicode(axis["Name"])
+		minValue = axisDict[axisName]["min"]
+		maxValue = axisDict[axisName]["max"]
+		axisTag = axisDict[axisName]["tag"]
+		# print axisDict #DEBUG
+		html += "\t\t\t<div class='labeldiv'><label class='sliderlabel' id='label_%s' name='%s'>%s</label><input type='range' min='%i' max='%i' value='%i' class='slider' id='%s' oninput='updateSlider();'></div>\n" % (
+			axisTag, axisName, axisName, 
+			minValue, maxValue, minValue,
 			axisTag
 		)
 		
@@ -142,8 +194,6 @@ def defaultVariationCSS(thisFont):
 		defaultValues.append(cssValue)
 		
 	return ", ".join(defaultValues)
-	
-
 
 htmlContent = """
 <html>
@@ -154,7 +204,7 @@ htmlContent = """
 		<style>
 			@font-face { 
 				font-family: "###fontFamilyName###";
-				src: url("###fontFamilyName###GX.ttf");
+				src: url("###fontFileName###");
 			}
 			p {
 				z-index: 0;
@@ -247,7 +297,9 @@ htmlContent = """
 					var sliderID = sliders[i].id;
 					var sliderValue = sliders[i].value;
 					var label = document.getElementById("label_"+sliderID);
-					label.textContent = ""+sliderID+": "+sliderValue
+					var labelName = label.getAttribute("name");
+					
+					label.textContent = ""+labelName+": "+sliderValue
 					if (sliderID == "fontsize") {
 						// Text Size Slider
 						bodystyle += "font-size: "+sliderValue+"px;"
@@ -270,8 +322,8 @@ htmlContent = """
 	<body onload="updateSlider();">
 		<input type="text" value="Type Text Here." id="textInput" onkeyup="updateParagraph();" onclick="this.select();" />
 		<div>
-			<div class="labeldiv"><label class="sliderlabel" id="label_fontsize">fontsize</label><input type="range" min="10" max="300" value="100" class="slider" id="fontsize" oninput="updateSlider();"></div>
-			<div class="labeldiv"><label class="sliderlabel" id="label_lineheight">lineheight</label><input type="range" min="30" max="300" value="100" class="slider" id="lineheight" oninput="updateSlider();"></div>
+			<div class="labeldiv"><label class="sliderlabel" id="label_fontsize" name="Font Size">Font Size</label><input type="range" min="10" max="300" value="100" class="slider" id="fontsize" oninput="updateSlider();"></div>
+			<div class="labeldiv"><label class="sliderlabel" id="label_lineheight" name="Line Height">Line Height</label><input type="range" min="30" max="300" value="100" class="slider" id="lineheight" oninput="updateSlider();"></div>
 ###sliders###		</div>
 		<p id="text">The Quick Brown Fox Jumps Over the Lazy Dog.</p>
 		<p style="color: #ccc; font: x-small sans-serif;">Not working? Please use the <a href="https://www.google.com/chrome/">latest version of Chrome</a>.<br/>Note: script is currently incompatible with <em>Axis Location</em> parameters in <em>File > Font Info > Masters.</em></p>
@@ -291,19 +343,17 @@ if appVersionHighEnough:
 	firstDoc = Glyphs.orderedDocuments()[0]
 	thisFont = Glyphs.font # frontmost font
 	exportPath = currentOTVarExportPath()
-	familyName = thisFont.familyName
+	familyName = otVarFamilyName(thisFont)
 
 	print "Preparing Test HTML for: %s" % familyName
 	
 	replacements = (
 		( "###fontFamilyNameWithSpaces###", familyName ),
-		( "###fontFamilyName###", familyName.replace(" ","") ),
+		( "###fontFamilyName###", otVarFamilyName(thisFont) ),
 		( "The Quick Brown Fox Jumps Over the Lazy Dog.", allUnicodeEscapesOfFont(thisFont) ),
 		( "###sliders###", allOTVarSliders(thisFont) ),
 		( "###variationSettings###", defaultVariationCSS(thisFont) ), 
-		# ( "		<!-- moreOptions -->\n", optionList ),
-		# ( "		<!-- moreFeatures -->\n", featureListForFont(thisFont) ),
-		# ( "		<!-- fontFaces -->\n", fontFacesCSS  )
+		( "###fontFileName###", otVarFileName(thisFont) ),
 	)
 
 	htmlContent = replaceSet( htmlContent, replacements )
@@ -323,4 +373,9 @@ if appVersionHighEnough:
 			OKButton=None
 		)
 else:
-	print "This script requires Glyphs 2.5. Sorry."
+	Message(
+		title="App Version Error",
+		message="This script requires Glyphs 2.5 or later. Sorry.",
+		OKButton=None
+	)
+
