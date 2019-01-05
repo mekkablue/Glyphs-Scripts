@@ -56,6 +56,8 @@ class MethodReporter( object ):
 			"NSComboBox",
 			"NSPopUpButton",
 			"NSButton",
+			"FTPointArray",
+			"Glyph_g_l_y_f",
 		]
 		
 		# Window 'self.w':
