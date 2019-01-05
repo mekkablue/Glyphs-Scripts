@@ -326,7 +326,7 @@ htmlContent = """
 			<div class="labeldiv"><label class="sliderlabel" id="label_lineheight" name="Line Height">Line Height</label><input type="range" min="30" max="300" value="100" class="slider" id="lineheight" oninput="updateSlider();"></div>
 ###sliders###		</div>
 		<p id="text">The Quick Brown Fox Jumps Over the Lazy Dog.</p>
-		<p style="color: #ccc; font: x-small sans-serif;">Not working? Please use the <a href="https://www.google.com/chrome/">latest version of Chrome</a>.<br/>Note: script is currently incompatible with <em>Axis Location</em> parameters in <em>File > Font Info > Masters.</em></p>
+		<p style="color: #ccc; font: x-small sans-serif;">Not working? Please try the <a href="https://www.google.com/chrome/">latest version of Chrome</a>.</p>
 	</body>
 </html>
 """
@@ -369,7 +369,7 @@ if appVersionHighEnough:
 	else:
 		Message( 
 			title="OTVar Test HTML Error",
-			message="Could not determine export path. Have you exported any webfonts yet?",
+			message="Could not determine export path. Have you exported any variable fonts yet?",
 			OKButton=None
 		)
 else:
