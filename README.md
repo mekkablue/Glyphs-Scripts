@@ -28,7 +28,7 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 * **Anchor Mover 2:** GUI for batch-processing anchor positions in multiple glyphs. *Needs Vanilla.*
 * **Combining Accent Maker:** Goes through your selected (spacing) marks and adds a combining (non-spacing), component-based copy of it to your font, e.g., for *acute* and *dieresis.case*, it will add *acutecomb* and *dieresiscomb.case*.
 * **Create .case Variants of Combining Marks:** Creates missing .case duplicates of combining marks and shifts them above the cap height. Respects italic angle.
-* **Delete All Anchors:** Deletes all anchors in visible layers of selected glyphs.
+* **Delete Anchors:** Deletes anchors with a specified name in selected glyphs (or the whole font). *Needs Vanilla.*
 * **Delete Entry and Exit Anchors:** Deletes all cursive attachment anchors (exit, entry and its variants) in visible layers of selected glyphs.
 * **Find and Replace in Anchor Names:** GUI for replacing text in the names of anchors in selected glyphs. Processes all layers. *Needs Vanilla.*
 * **Insert Anchors into Ligatures:** Copies base glyph anchors with number extensions into selected ligatures. E.g., if c has top and bottom, and e has top, bottom, and ogonek, the c_e ligature will get top_1, bottom_1, top_2, bottom_2, and ogonek_2. Horizontally adapts the anchor positioning to the width of the ligature. Ignores non-ligatures and glyph name extensions.
