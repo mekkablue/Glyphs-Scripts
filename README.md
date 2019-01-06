@@ -198,7 +198,7 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 * **Reset Compound Metrics to First Component:** Looks for the first component in a compound glyph, sets it back to x=0 and inherits its width. Useful for syncing numerators and denominators.
 * **Steal kerning from InDesign:** steals the kerning from text set in InDesign. Useful for extracting InDesign’s Optical Kerning values.
 * **Steal kerning groups:** steals left/right kerning groups for all selected glyphs from a 2nd font. *Needs Vanilla.*
-* **Steal Sidebearings:** steals the sidebearing values for all selected glyphs from a 2nd font. Ignores metrics keys like '=x+20'. *Needs Vanilla.*
+* **Steal Metrics:** steals the sidebearing or width values for all selected glyphs from a 2nd font. Optionally also transfers metrics keys like '=x+20'. *Needs Vanilla.*
 
 ## Paths
 * All **Move > Align** scripts look for a path in the currently active layer and align it to whatever the script title says. Useful if you need to do one of these alignment operations very often. Hint: you can set a keyboard shortcut in System Preferences.
