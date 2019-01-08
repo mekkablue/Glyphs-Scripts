@@ -31,9 +31,35 @@ def createCPALfromMasterColors( theseMasters, indexOfTargetMaster ):
 	targetMaster.removeObjectFromCustomParametersForKey_( "Master Color" )
 
 def keepOnlyFirstMaster( thisFont ):
+	# delete all masters except first one:
 	for i in range(len(thisFont.masters))[:0:-1]:
 		thisFont.removeFontMasterAtIndex_(i)
+	# rename remaining first master:
+	thisFont.masters[0].name = "Black & White"
+		
+def cleanUpNamelessLayers(thisGlyph):
+	for i in range(len(thisGlyph.layers))[:0:-1]:
+		thisLayer = thisGlyph.layers[i]
+		if not thisLayer.name:
+			del thisGlyph.layers[i]
+		elif not thisLayer.name.startswith("Color"):
+			del thisGlyph.layers[i]
 
+def duplicatePathsIntoFallbackMaster(thisGlyph):
+	fallbackLayer = thisGlyph.layers[0]
+	fallbackLayer.paths = None
+	for thatLayer in thisGlyph.layers[1:]:
+		if thatLayer.name and thatLayer.name.startswith("Color"):
+			for thatPath in thatLayer.paths:
+				fallbackLayer.paths.append( thatPath.copy() )
+
+def enableOnlyColorLayers(thisGlyph):
+	for thisLayer in thisGlyph.layers:
+		if thisLayer.name and thisLayer.name.startswith("Color"):
+			thisLayer.setVisible_(1)
+		else:
+			thisLayer.setVisible_(0)
+	
 def process( thisGlyph ):
 	for i in range(len(namesOfMasters))[::-1]:
 		colorLayerName = "Color %i" % i
@@ -42,11 +68,7 @@ def process( thisGlyph ):
 		thisGlyph.layers[colorLayerName] = originalLayer.copy()
 		thisGlyph.layers[colorLayerName].setAssociatedMasterId_(fallbackMasterID)
 		thisGlyph.layers[colorLayerName].setName_(colorLayerName)
-		
-	for i in range(len(thisGlyph.layers))[::-1]:
-		thisLayer = thisGlyph.layers[i]
-		if thisLayer.name is None:
-			del thisLayer
+	
 	
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 createCPALfromMasterColors( thisFont.masters, 0 )
@@ -55,9 +77,17 @@ for thisGlyph in thisFont.glyphs:
 	print "Processing", thisGlyph.name
 	thisGlyph.beginUndo() # begin undo grouping
 	process( thisGlyph )
+	duplicatePathsIntoFallbackMaster( thisGlyph )
 	thisGlyph.endUndo()   # end undo grouping
 
 keepOnlyFirstMaster( thisFont )
+
+for thisGlyph in thisFont.glyphs:
+	thisGlyph.beginUndo() # begin undo grouping
+	cleanUpNamelessLayers(thisGlyph)
+	enableOnlyColorLayers(thisGlyph)
+	thisGlyph.endUndo()   # end undo grouping
+
 thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 
 print "Done."
