@@ -25,10 +25,22 @@ def createCPALfromMasterColors( theseMasters, indexOfTargetMaster ):
 		thisMasterColor = thisMaster.customParameters["Master Color"]
 		colorList.append( thisMasterColor )
 	
-	colorTuple = tuple([tuple(colorList)])
+	palette = NSMutableArray.alloc().init()
+	for m in Font.masters:
+		# query master color:
+		colorString = m.customParameters["Master Color"]
+		# derive RGBA values:
+		r,g,b,a = [float(value)/255 for value in colorString.split(",") ]
+		# create SRGB color and add it to the palette:
+		color = NSColorSpaceColor.colorWithRed_green_blue_alpha_(r,g,b,a)
+		color = color.colorUsingColorSpace_(NSColorSpace.sRGBColorSpace())
+		palette.addObject_( color )
+	paletteArray = NSMutableArray.alloc().initWithObject_(palette)
+	
+	# add as Color Palettes parameter to target (=first) master
 	targetMaster = theseMasters[indexOfTargetMaster]
-	targetMaster.setCustomParameter_forKey_( colorTuple, "Color Palettes" )
-	targetMaster.removeObjectFromCustomParametersForKey_( "Master Color" )
+	targetMaster.customParameters["Color Palettes"]
+	del targetMaster.customParameters["Master Color"]
 
 def keepOnlyFirstMaster( thisFont ):
 	# delete all masters except first one:
