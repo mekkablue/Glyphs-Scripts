@@ -90,6 +90,8 @@ def axisDictForFontWithoutAxisLocationParameters(thisFont):
 				axisDict[axisName]["min"] = masterValue
 			elif masterValue > axisDict[axisName]["max"]:
 				axisDict[axisName]["max"] = masterValue
+				
+	return axisDict
 
 def axisDictForFontWithAxisLocationParameters(thisFont):
 	axisDict = {}
@@ -131,10 +133,11 @@ def allOTVarSliders(thisFont):
 	if Font.customParameters["Virtual Master"]:
 		for axis in Font.customParameters["Virtual Master"]:
 			name = axis["Axis"]
-			if axis["Location"] < axisDict[name]["min"]:
-				axisDict[name]["min"] = axis["Location"]
-			if axis["Location"] > axisDict[name]["max"]:
-				axisDict[name]["max"] = axis["Location"]
+			location = axis["Location"]
+			if location < axisDict[name]["min"]:
+				axisDict[name]["min"] = location
+			if location > axisDict[name]["max"]:
+				axisDict[name]["max"] = location
 	
 	minValues, maxValues = {}, {}
 	for axis in axisDict:
