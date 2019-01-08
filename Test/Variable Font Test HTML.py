@@ -28,8 +28,11 @@ def otVarFamilyName(thisFont):
 		return thisFont.familyName
 
 def otVarFileName(thisFont):
-	if thisFont.customParameters["Variable Font File Name"]:
-		return "%s.ttf" % thisFont.customParameters["Variable Font File Name"]
+	if thisFont.customParameters["Variable Font File Name"] or thisFont.customParameters["variableFileName"]:
+		fileName = thisFont.customParameters["Variable Font File Name"]
+		if not fileName:
+			fileName = thisFont.customParameters["variableFileName"]
+		return "%s.ttf" % fileName
 	else:
 		familyName = otVarFamilyName(thisFont)
 		fileName = "%sGX.ttf" % familyName
@@ -90,6 +93,8 @@ def axisDictForFontWithoutAxisLocationParameters(thisFont):
 				axisDict[axisName]["min"] = masterValue
 			elif masterValue > axisDict[axisName]["max"]:
 				axisDict[axisName]["max"] = masterValue
+				
+	return axisDict
 
 def axisDictForFontWithAxisLocationParameters(thisFont):
 	axisDict = {}
@@ -131,10 +136,11 @@ def allOTVarSliders(thisFont):
 	if Font.customParameters["Virtual Master"]:
 		for axis in Font.customParameters["Virtual Master"]:
 			name = axis["Axis"]
-			if axis["Location"] < axisDict[name]["min"]:
-				axisDict[name]["min"] = axis["Location"]
-			if axis["Location"] > axisDict[name]["max"]:
-				axisDict[name]["max"] = axis["Location"]
+			location = axis["Location"]
+			if location < axisDict[name]["min"]:
+				axisDict[name]["min"] = location
+			if location > axisDict[name]["max"]:
+				axisDict[name]["max"] = location
 	
 	minValues, maxValues = {}, {}
 	for axis in axisDict:
