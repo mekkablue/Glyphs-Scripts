@@ -28,8 +28,11 @@ def otVarFamilyName(thisFont):
 		return thisFont.familyName
 
 def otVarFileName(thisFont):
-	if thisFont.customParameters["Variable Font File Name"]:
-		return "%s.ttf" % thisFont.customParameters["Variable Font File Name"]
+	if thisFont.customParameters["Variable Font File Name"] or thisFont.customParameters["variableFileName"]:
+		fileName = thisFont.customParameters["Variable Font File Name"]
+		if not fileName:
+			fileName = thisFont.customParameters["variableFileName"]
+		return "%s.ttf" % fileName
 	else:
 		familyName = otVarFamilyName(thisFont)
 		fileName = "%sGX.ttf" % familyName
