@@ -23,9 +23,9 @@ def createCPALfromMasterColors( theseMasters, indexOfTargetMaster ):
 	palette = NSMutableArray.alloc().init()
 	
 	# go through all masters and collect their color info:
-	for m in Font.masters:
+	for thisMaster in theseMasters:
 		# query master color:
-		colorString = m.customParameters["Master Color"]
+		colorString = thisMaster.customParameters["Master Color"]
 		# black as fallback:
 		if not colorString:
 			colorString = "0,0,0,255"
@@ -40,7 +40,7 @@ def createCPALfromMasterColors( theseMasters, indexOfTargetMaster ):
 	# create array of palettes, containing the one palette we just created:
 	paletteArray = NSMutableArray.alloc().initWithObject_(palette)
 	
-	# add that array as "Color Palettes" parameter to target (=first) master
+	# add that array as "Color Palettes" parameter to target (=usually first) master
 	targetMaster = theseMasters[indexOfTargetMaster]
 	targetMaster.customParameters["Color Palettes"]
 	del targetMaster.customParameters["Master Color"]
