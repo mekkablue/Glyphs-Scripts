@@ -40,9 +40,11 @@ def createCPALfromMasterColors( theseMasters, indexOfTargetMaster ):
 	# create array of palettes, containing the one palette we just created:
 	paletteArray = NSMutableArray.alloc().initWithObject_(palette)
 	
+	print paletteArray
+	
 	# add that array as "Color Palettes" parameter to target (=usually first) master
 	targetMaster = theseMasters[indexOfTargetMaster]
-	targetMaster.customParameters["Color Palettes"]
+	targetMaster.customParameters["Color Palettes"] = paletteArray
 	del targetMaster.customParameters["Master Color"]
 
 def keepOnlyFirstMaster( thisFont ):
