@@ -19,25 +19,28 @@ def masterColorFromColor( thisMaster, thisColor ):
 	thisMaster.setCustomParameter_forKey_( colorText, "Master Color" )
 	
 def createCPALfromMasterColors( theseMasters, indexOfTargetMaster ):
-	colorList = []
-	for i in range(len(theseMasters)):
-		thisMaster = theseMasters[i]
-		thisMasterColor = thisMaster.customParameters["Master Color"]
-		colorList.append( thisMasterColor )
-	
+	# create color palette:
 	palette = NSMutableArray.alloc().init()
+	
+	# go through all masters and collect their color info:
 	for m in Font.masters:
 		# query master color:
 		colorString = m.customParameters["Master Color"]
+		# black as fallback:
+		if not colorString:
+			colorString = "0,0,0,255"
 		# derive RGBA values:
 		r,g,b,a = [float(value)/255 for value in colorString.split(",") ]
-		# create SRGB color and add it to the palette:
+		# create SRGB color:
 		color = NSColorSpaceColor.colorWithRed_green_blue_alpha_(r,g,b,a)
 		color = color.colorUsingColorSpace_(NSColorSpace.sRGBColorSpace())
+		# and add it to the palette:
 		palette.addObject_( color )
+	
+	# create array of palettes, containing the one palette we just created:
 	paletteArray = NSMutableArray.alloc().initWithObject_(palette)
 	
-	# add as Color Palettes parameter to target (=first) master
+	# add that array as "Color Palettes" parameter to target (=first) master
 	targetMaster = theseMasters[indexOfTargetMaster]
 	targetMaster.customParameters["Color Palettes"]
 	del targetMaster.customParameters["Master Color"]
