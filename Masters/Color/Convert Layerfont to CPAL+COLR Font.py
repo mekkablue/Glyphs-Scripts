@@ -4,6 +4,11 @@ __doc__="""
 Turns a layered color font into a single-master font with a CPAL and COLR layers in each glyph. It will take the first master as default.
 """
 
+from timeit import default_timer as timer
+
+# start taking time:
+start = timer()
+
 thisFont = Glyphs.font # frontmost font
 fallbackMaster = thisFont.masters[0] # first master
 fallbackMasterID = fallbackMaster.id
@@ -40,7 +45,7 @@ def createCPALfromMasterColors( theseMasters, indexOfTargetMaster ):
 	# create array of palettes, containing the one palette we just created:
 	paletteArray = NSMutableArray.alloc().initWithObject_(palette)
 	
-	print paletteArray
+	print "Created CPAL palette with %i colors." % len(theseMasters)
 	
 	# add that array as "Color Palettes" parameter to target (=usually first) master
 	targetMaster = theseMasters[indexOfTargetMaster]
@@ -51,8 +56,10 @@ def keepOnlyFirstMaster( thisFont ):
 	# delete all masters except first one:
 	for i in range(len(thisFont.masters))[:0:-1]:
 		thisFont.removeFontMasterAtIndex_(i)
+		
 	# rename remaining first master:
-	thisFont.masters[0].name = "Black & White"
+	thisFont.masters[0].name = "Fallback"
+	print "Deleted all masters except first, and renamed it to: %s" % thisFont.masters[0].name
 		
 def cleanUpNamelessLayers(thisGlyph):
 	for i in range(len(thisGlyph.layers))[:0:-1]:
@@ -86,20 +93,28 @@ def process( thisGlyph ):
 		thisGlyph.layers[colorLayerName].setAssociatedMasterId_(fallbackMasterID)
 		thisGlyph.layers[colorLayerName].setName_(colorLayerName)
 	
-	
+# brings macro window to front and clears its log:
+Glyphs.clearLog()
+Glyphs.showMacroWindow()
+print "Converting %s to CPAL/COLR:" % thisFont.familyName
+
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 createCPALfromMasterColors( thisFont.masters, 0 )
+print
 
 for thisGlyph in thisFont.glyphs:
-	print "Processing", thisGlyph.name
+	print "Creating 'Color' layers for: %s" % thisGlyph.name
 	thisGlyph.beginUndo() # begin undo grouping
 	process( thisGlyph )
 	duplicatePathsIntoFallbackMaster( thisGlyph )
 	thisGlyph.endUndo()   # end undo grouping
 
+print
 keepOnlyFirstMaster( thisFont )
+print
 
 for thisGlyph in thisFont.glyphs:
+	print "Cleaning up layer debris in: %s" % thisGlyph.name
 	thisGlyph.beginUndo() # begin undo grouping
 	cleanUpNamelessLayers(thisGlyph)
 	enableOnlyColorLayers(thisGlyph)
@@ -107,4 +122,18 @@ for thisGlyph in thisFont.glyphs:
 
 thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 
-print "Done."
+# take time:
+end = timer()
+seconds = end - start
+if seconds > 60.0:
+	timereport = "%i:%02i minutes" % ( seconds//60, seconds%60 )
+elif seconds < 1.0:
+	timereport = "%.2f seconds" % seconds
+elif seconds < 20.0:
+	timereport = "%.1f seconds" % seconds
+else:
+	timereport = "%i seconds" % seconds
+
+
+print
+print "Done. Time elapsed: %s." % timereport
