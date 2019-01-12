@@ -20,6 +20,7 @@ class SetHiddenAppPreferences( object ):
 		"TextModeNumbersThreshold",
 		"TTPreviewAlsoShowOffCurveIndexes",
 		"GSFontViewDarkMode",
+		"GSEditViewDarkMode",
 	)
 	
 	def __init__( self ):
