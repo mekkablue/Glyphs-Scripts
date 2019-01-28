@@ -33,9 +33,10 @@ for thisAnchor in anchorsToLookFor:
 for thisGlyph in thisFont.glyphs:
 	for thisAnchor in anchorsToLookFor:
 		for thisVeryLayer in [l for l in thisGlyph.layers 
-			if "{" in l.name # brace layer
-			or "[" in l.name # bracket layer
+			if l and (
+			l.isSpecialLayer # brace or bracket layer
 			or l.layerId == l.associatedFontMaster().id # master layer
+			)
 		]:
 			if isAnchorOnMetricLine( thisVeryLayer, thisAnchor ):
 				collectedGlyphNames[thisAnchor].append(thisGlyph.name)
