@@ -8,30 +8,32 @@ import vanilla, traceback
 
 class FeatureActivator( object ):
 	def __init__( self ):
-		featurelist = [ f.name for f in Glyphs.font.features ]
-		numOfFeatures = len( featurelist )
+		numOfFeatures = len(Glyphs.font.features)
 		
-		self.w = vanilla.FloatingWindow( (80, 30+numOfFeatures*20 ), "", autosaveName="com.mekkablue.FeatureActivator.mainwindow" )
-		
-		for i in range( numOfFeatures ):
-			exec("self.w.featureCheckBox_"+str(i+1)+" = vanilla.CheckBox( (15, "+str(12+20*i)+", -15, 18), '"+featurelist[i]+"', sizeStyle='small', callback=self.toggleFeature, value="+str(featurelist[i] in Glyphs.currentDocument.windowController().activeEditViewController().selectedFeatures())+" )")
-				
+		self.w = vanilla.FloatingWindow( (150, 10+numOfFeatures*18 ), "", autosaveName="com.mekkablue.FeatureActivator.mainwindow" )
+		i = 0
+		selectedFeatures = Glyphs.currentDocument.windowController().activeEditViewController().selectedFeatures()
+		for feature in Glyphs.font.features:
+			featureTag = feature.name
+			featureName = feature.fullName()
+			exec("self.w.featureCheckBox_"+str(i)+" = vanilla.CheckBox( (8, 4 + 18 * i, -8, 18), featureName, sizeStyle='small', callback=self.toggleFeature, value=(featureTag in selectedFeatures) )")
+			exec("self.w.featureCheckBox_"+str(i)+".getNSButton().setIdentifier_(featureTag)");
+			i += 1
 		self.w.open()
 		
 	def toggleFeature( self, sender ):
 		try:
 			editTab = Glyphs.currentDocument.windowController().activeEditViewController()
-			featureName = sender.getTitle()
+			featureTag = sender.getNSButton().identifier()
 			featureActive = bool(sender.get())
-			
 			if featureActive:
 				# add the feature:
-				editTab.selectedFeatures().append(featureName)
+				editTab.selectedFeatures().append(featureTag)
 			else:
 				# remove the feature:
 				try:
 					while True:
-						editTab.selectedFeatures().remove(featureName)
+						editTab.selectedFeatures().remove(featureTag)
 				except:
 					pass
 			

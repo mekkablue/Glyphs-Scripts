@@ -220,7 +220,6 @@ htmlContent = """
 				padding-top: 0.2em;
 				line-height: 1em;
 				color: #000;
-				text-shadow: 0 0;
 				font: 100px "###fontFamilyName###";
 				font-feature-settings: "kern" on, "liga" on, "calt" on;
 				-moz-font-feature-settings: "kern" on, "liga" on, "calt" on;
