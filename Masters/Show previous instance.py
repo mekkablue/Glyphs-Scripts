@@ -31,6 +31,9 @@ try:
 		PreviewField.setSelectedInstance_( numberOfInstances - 1 )
 		if PreviewPanel:
 			PreviewPanel.setSelectedInstance_( numberOfInstances - 1 )
+			
+	# trigger update interface notification (so palettes and views can redraw):
+	NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", Doc)
 
 except Exception, e:
 	print "Error:", e
