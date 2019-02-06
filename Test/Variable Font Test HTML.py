@@ -126,9 +126,8 @@ def featureListForFont( thisFont ):
 	returnString = ""
 	featureList = [f.name for f in thisFont.features if not f.name in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig") and not f.disabled()]
 	for f in featureList:
-		returnString += """		<label><input type="checkbox" name="%s" value="%s" class="otFeature" onchange="updateFeatures()"><a href="http://stateofwebtype.com/#%s">%s</a></label>
-""" % (f,f,f,f)
-	return returnString
+		returnString += '\t\t\t<label class="otFeatureLabel"><input type="checkbox" name="%s" value="%s" class="otFeature" onchange="updateFeatures()">%s</label>\n' % (f,f,f)
+	return returnString.rstrip()
 
 def allOTVarSliders(thisFont):
 	axisDict = generateAxisDict(thisFont)
@@ -256,6 +255,14 @@ htmlContent = """
 				color: 000;
 				opacity: 0.5;
 			}
+			.otFeatureLabel, .otFeature {
+				position: relative;
+				padding: 0.2em;
+				color: #333;
+				opacity: 1;
+				pointer-events: auto;
+				white-space: nowrap;
+			}
 			.slider {
 				z-index: 1;
 				position: relative;
@@ -286,6 +293,29 @@ htmlContent = """
 			}
 		</style>
 		<script>
+			function updateFeatures() {
+				// update features based on user input:
+				var body = document.getElementById("text");
+				var codeLine = "";
+				var checkboxes = document.getElementsByClassName("otFeature")
+				for (i = 0; i < checkboxes.length; i++) {
+					var checkbox = checkboxes[i];
+					if (i!=0) { codeLine += ", " };
+					codeLine += '"'+checkbox.name+'" ';
+					codeLine += checkbox.checked ? '1' : '0';
+					if (checkbox.name=="kern") {
+						body.style.setProperty("font-kerning", checkbox.checked ? 'normal' : 'none');
+					} else if (checkbox.name=="liga") {
+						body.style.setProperty("font-variant-ligatures", checkbox.checked ? 'common-ligatures contextual' : 'no-common-ligatures no-contextual');
+					} else if (checkbox.name=="dlig") {
+						body.style.setProperty("font-variant-ligatures", checkbox.checked ? 'discretionary-ligatures' : 'no-discretionary-ligatures');
+					} else if (checkbox.name=="hlig") {
+						body.style.setProperty("font-variant-ligatures", checkbox.checked ? 'historical-ligatures' : 'no-historical-ligatures');
+					}
+				}
+				body.style.setProperty("font-feature-settings", codeLine);
+			}
+			
 			function updateParagraph() {
 				// update paragraph text based on user input:
 				var userinput = document.getElementById("textInput");
@@ -295,8 +325,7 @@ htmlContent = """
 		
 			function updateSlider() {
 				var body = document.getElementById("text");
-				var sliders = document.getElementsByClassName("slider")
-				var bodystyle = "";
+				var sliders = document.getElementsByClassName("slider");
 				var settingtext = "";
 				for (var i = 0; i < sliders.length; i++) {
 					var sliderID = sliders[i].id;
@@ -304,23 +333,24 @@ htmlContent = """
 					var label = document.getElementById("label_"+sliderID);
 					var labelName = label.getAttribute("name");
 					
-					label.textContent = ""+labelName+": "+sliderValue
+					label.textContent = ""+labelName+": "+sliderValue;
+					
 					if (sliderID == "fontsize") {
 						// Text Size Slider
-						bodystyle += "font-size: "+sliderValue+"px;"
-						label.textContent += "px"
+						body.style.setProperty("font-size", ""+sliderValue+"px");
+						label.textContent += "px";
 					} else if (sliderID == "lineheight") {
 						// Line Height Slider
-						bodystyle += "line-height: "+sliderValue/100.0+"em;"
-						label.textContent += "%"
+						body.style.setProperty("line-height", ""+sliderValue/100.0+"em");
+						label.textContent += "%";
 					} else {
-						// OTVar Slider
-						if (settingtext != "") { settingtext += ", " }
-						settingtext += '"' + sliderID + '" ' + sliderValue
+						// OTVar Slider: collect settings
+						if (settingtext != "") { settingtext += ", " };
+						settingtext += '"' + sliderID + '" ' + sliderValue;
 					}
 				}
-				bodystyle += "font-variation-settings: "+settingtext+";"
-				body.setAttribute("style", bodystyle);
+				// apply OTVar slider settings:
+				body.style.setProperty("font-variation-settings", settingtext);
 			}
 		</script>
 	</head>
@@ -331,6 +361,14 @@ htmlContent = """
 			<div class="labeldiv"><label class="sliderlabel" id="label_lineheight" name="Line Height">Line Height</label><input type="range" min="30" max="300" value="100" class="slider" id="lineheight" oninput="updateSlider();"></div>
 ###sliders###		</div>
 		<p id="text">The Quick Brown Fox Jumps Over the Lazy Dog.</p>
+		
+		<p style="font-size:x-small; font-family: sans-serif;">
+			<label class="otFeatureLabel"><input type="checkbox" name="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked>kern</label>
+			<label class="otFeatureLabel"><input type="checkbox" name="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked>liga/clig</label>
+			<label class="otFeatureLabel"><input type="checkbox" name="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked>calt</label>
+###featureList###
+		</p>
+		
 		<p style="color: #ccc; font: x-small sans-serif;">Not working? Please try the <a href="https://www.google.com/chrome/">latest version of Chrome</a>.</p>
 	</body>
 </html>
@@ -359,6 +397,8 @@ if appVersionHighEnough:
 		( "###sliders###", allOTVarSliders(thisFont) ),
 		( "###variationSettings###", defaultVariationCSS(thisFont) ), 
 		( "###fontFileName###", otVarFileName(thisFont) ),
+		( "###featureList###", featureListForFont(thisFont) ),
+		
 	)
 
 	htmlContent = replaceSet( htmlContent, replacements )
