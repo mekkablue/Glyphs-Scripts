@@ -169,11 +169,14 @@ class InstanceMaker( object ):
 	
 	def UpdateSample( self, sender ):
 		# Query UI entries and write preview text
+		self.SavePreferences( None )
 		
 		try:
-			usesNaturalNames = self.w.naturalNames.get()
+			usesNaturalNames = Glyphs.defaults["com.mekkablue.InstanceMaker.naturalNames"]
+			
+			# update UI elements:
 			if usesNaturalNames:
-				currentSelectionIndex = self.w.firstName.get()
+				currentSelectionIndex = Glyphs.defaults["com.mekkablue.InstanceMaker.firstName"]
 				numOfInstances = int( self.w.numberOfInstances.getItem() )
 				availableInstanceNames = naturalNames[:-numOfInstances+1]
 				numOfAvailableInstanceNames = len(availableInstanceNames)
@@ -185,43 +188,41 @@ class InstanceMaker( object ):
 				self.w.firstName.enable(True)
 			else:
 				self.w.firstName.enable(False)
+				
+			# store UI changes in defaults:
+			self.SavePreferences( None )
 			
-			if self.w.shouldRound.get():
+			if Glyphs.defaults["com.mekkablue.InstanceMaker.shouldRound"]:
 				rounding = 0
 			else:
 				rounding = 1
-				
+			
 			distributedValues = [ round(value,rounding) for value in self.Distribution() ]
 			n = len( distributedValues )
-			prefix = self.w.prefix.get()
+			prefix = Glyphs.defaults["com.mekkablue.InstanceMaker.prefix"]
 			sampleText = "Will create %i instances: " % n
 			
-			print availableInstanceNames[currentSelectionIndex:]
-			print distributedValues
 			if usesNaturalNames:
 				sampleText += ", ".join( "%s%s (%.01f)" % (prefix,name,weight) for name,weight in zip(naturalNames[currentSelectionIndex:], distributedValues) )
 			else:
 				sampleText += ", ".join( "%s%.0f (%.01f)" % (prefix,weight,weight) for weight in distributedValues )
 			
-			
 			max = float(distributedValues[-1])
 			min = float(distributedValues[0])
 			growth = (max/min)**(1.0/(n-1))
-			if self.w.algorithm.getItems()[self.w.algorithm.get()] == "Luc(as)":
+			if self.w.algorithm.getItem() == "Luc(as)":
 				sampleText += ",%s growth: %.1f%%" % ( 
-					" average" if rounding==0 else "",
+					" average" if Glyphs.defaults["com.mekkablue.InstanceMaker.shouldRound"] else "",
 					(growth-1)*100,
 				)
 			
-			if self.w.maciej.get():
+			if Glyphs.defaults["com.mekkablue.InstanceMaker.maciej"]:
 				maciejValues = self.MaciejValues()
 				if maciejValues:
 					maciejList = [ str( round( distribute_maciej( maciejValues[0], maciejValues[1], maciejValues[2], maciejValues[3], w), rounding) ) for w in distributedValues ]
 					sampleText += "\n\nWill add interpolationWeightY parameters to the respective instances: %s" % ( ", ".join( maciejList ) + "." )
 			
-			
 			self.w.sample.text.set( sampleText )
-			self.SavePreferences( self )
 		except Exception, e:
 			print e
 	
@@ -236,20 +237,23 @@ class InstanceMaker( object ):
 		return True
 		
 	def SavePreferences( self, sender ):
-		Glyphs.defaults["com.mekkablue.InstanceMaker.numberOfInstances"] = self.w.numberOfInstances.get()
-		Glyphs.defaults["com.mekkablue.InstanceMaker.prefix"] = self.w.prefix.get()
-		Glyphs.defaults["com.mekkablue.InstanceMaker.master1"] = self.w.master1.get()
-		Glyphs.defaults["com.mekkablue.InstanceMaker.master2"] = self.w.master2.get()
-		Glyphs.defaults["com.mekkablue.InstanceMaker.width"] = self.w.width.get()
-		Glyphs.defaults["com.mekkablue.InstanceMaker.algorithm"] = self.w.algorithm.get()
-		Glyphs.defaults["com.mekkablue.InstanceMaker.existingInstances"] = self.w.existingInstances.get()
-		Glyphs.defaults["com.mekkablue.InstanceMaker.maciej"] = self.w.maciej.get()
-		Glyphs.defaults["com.mekkablue.InstanceMaker.maciej1"] = self.w.maciej_light.get()
-		Glyphs.defaults["com.mekkablue.InstanceMaker.maciej2"] = self.w.maciej_bold.get()
-		Glyphs.defaults["com.mekkablue.InstanceMaker.shouldRound"] = self.w.shouldRound.get()
-		Glyphs.defaults["com.mekkablue.InstanceMaker.naturalNames"] = self.w.naturalNames.get()
-		Glyphs.defaults["com.mekkablue.InstanceMaker.firstName"] = self.w.firstName.get()
-		return True
+		try:
+			Glyphs.defaults["com.mekkablue.InstanceMaker.numberOfInstances"] = self.w.numberOfInstances.get()
+			Glyphs.defaults["com.mekkablue.InstanceMaker.prefix"] = self.w.prefix.get()
+			Glyphs.defaults["com.mekkablue.InstanceMaker.master1"] = self.w.master1.get()
+			Glyphs.defaults["com.mekkablue.InstanceMaker.master2"] = self.w.master2.get()
+			Glyphs.defaults["com.mekkablue.InstanceMaker.width"] = self.w.width.get()
+			Glyphs.defaults["com.mekkablue.InstanceMaker.algorithm"] = self.w.algorithm.get()
+			Glyphs.defaults["com.mekkablue.InstanceMaker.existingInstances"] = self.w.existingInstances.get()
+			Glyphs.defaults["com.mekkablue.InstanceMaker.maciej"] = self.w.maciej.get()
+			Glyphs.defaults["com.mekkablue.InstanceMaker.maciej1"] = self.w.maciej_light.get()
+			Glyphs.defaults["com.mekkablue.InstanceMaker.maciej2"] = self.w.maciej_bold.get()
+			Glyphs.defaults["com.mekkablue.InstanceMaker.shouldRound"] = self.w.shouldRound.get()
+			Glyphs.defaults["com.mekkablue.InstanceMaker.naturalNames"] = self.w.naturalNames.get()
+			Glyphs.defaults["com.mekkablue.InstanceMaker.firstName"] = self.w.firstName.get()
+			return True
+		except:
+			return False
 
 	def LoadPreferences( self ):
 		try:
@@ -309,16 +313,14 @@ class InstanceMaker( object ):
 		try:
 			if self.DealWithExistingInstances():
 				
-				
-				Glyphs.defaults["com.mekkablue.InstanceMaker.master1"]
-				Glyphs.defaults["com.mekkablue.InstanceMaker.master2"]
-				
-				Glyphs.defaults["com.mekkablue.InstanceMaker.algorithm"]
-				Glyphs.defaults["com.mekkablue.InstanceMaker.existingInstances"]
-				
-				Glyphs.defaults["com.mekkablue.InstanceMaker.maciej1"]
-				Glyphs.defaults["com.mekkablue.InstanceMaker.maciej2"]
-				
+				# Glyphs.defaults["com.mekkablue.InstanceMaker.master1"]
+				# Glyphs.defaults["com.mekkablue.InstanceMaker.master2"]
+				#
+				# Glyphs.defaults["com.mekkablue.InstanceMaker.algorithm"]
+				# Glyphs.defaults["com.mekkablue.InstanceMaker.existingInstances"]
+				#
+				# Glyphs.defaults["com.mekkablue.InstanceMaker.maciej1"]
+				# Glyphs.defaults["com.mekkablue.InstanceMaker.maciej2"]
 				
 				distributedValues = self.Distribution()
 				widthValue = float(Glyphs.defaults["com.mekkablue.InstanceMaker.width"]) #self.w.width.get().floatValue()
