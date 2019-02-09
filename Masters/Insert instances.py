@@ -148,9 +148,12 @@ class InstanceMaker( object ):
 		self.w.makeKey()
 	
 	def MasterList( self, factor ):
-		Font = Glyphs.font
-		MasterValues = sorted( [m.weightValue for m in Font.masters], key=lambda m: m * factor )
-		return MasterValues
+		thisFont = Glyphs.font
+		if thisFont:
+			MasterValues = sorted( [m.weightValue for m in thisFont.masters], key=lambda m: m * factor )
+			return MasterValues
+		else:
+			return ()
 	
 	def Distribution( self ):
 		a = self.w.master1.get().floatValue()
