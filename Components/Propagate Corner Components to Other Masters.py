@@ -6,10 +6,6 @@ Puts Corner Components from the current layer into other master layers, at the s
 
 from GlyphsApp import CORNER
 
-thisFont = Glyphs.font # frontmost font
-thisFontMaster = thisFont.selectedFontMaster # active master
-listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
-
 def indexOfPath(l,p):
 	for i in range(len(l.paths)):
 		if p == l.paths[i]:
@@ -61,14 +57,19 @@ def process( thisLayer ):
 			newCorner.originNode = targetLayer.paths[pathIndex].nodes[nodeIndex]
 			targetLayer.addHint_(newCorner)
 
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+thisFont = Glyphs.font # frontmost font
+thisFontMaster = thisFont.selectedFontMaster # active master
+listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 
-for thisLayer in listOfSelectedLayers:
-	thisGlyph = thisLayer.parent
-	print "Processing", thisGlyph.name
-	thisGlyph.beginUndo() # begin undo grouping
-	process( thisLayer )
-	thisGlyph.endUndo()   # end undo grouping
+if thisFont and listOfSelectedLayers:
+	thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
-thisFont.enableUpdateInterface() # re-enables UI updates in Font View
-NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont)
+	for thisLayer in listOfSelectedLayers:
+		thisGlyph = thisLayer.parent
+		print "Processing", thisGlyph.name
+		thisGlyph.beginUndo() # begin undo grouping
+		process( thisLayer )
+		thisGlyph.endUndo()   # end undo grouping
+
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont)
