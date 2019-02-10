@@ -71,3 +71,4 @@ for thisLayer in listOfSelectedLayers:
 	thisGlyph.endUndo()   # end undo grouping
 
 thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont)
