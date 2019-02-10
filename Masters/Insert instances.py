@@ -120,7 +120,10 @@ class InstanceMaker( object ):
 		
 		self.w.naturalNames = vanilla.CheckBox((inset, lineheight-1, inset+230, 19), u"Use ‘natural’ weight names, starting at:", value=False, callback=self.UpdateSample, sizeStyle='small' )
 		self.w.firstName = vanilla.PopUpButton((inset+230, lineheight, -inset, 17), naturalNames, callback=self.UpdateSample, sizeStyle='small' )
-		self.w.firstName.enable( self.w.naturalNames.getNSButton().isEnabled() )
+		try: # workaround for macOS 10.9
+			self.w.firstName.enable( self.w.naturalNames.getNSButton().isEnabled() )
+		except:
+			pass
 		lineheight += 28
 		
 		self.w.maciej        = vanilla.CheckBox((inset, lineheight-1, 160, 19), "Maciej y distribution from:", value=False, callback=self.UpdateSample, sizeStyle='small' )
