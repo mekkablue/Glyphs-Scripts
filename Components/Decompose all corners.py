@@ -4,17 +4,19 @@ __doc__="""
 Decomposes all corner and cap components in selected glyphs. Reports to Macro Window.
 """
 
-thisFont = Glyphs.font
-selectedLayers = thisFont.selectedLayers
-
-def process( thisLayer ):
-	count = len([h for h in Layer.hints if h.type in (CORNER,CAP) ])
+def process( layer ):
+	count = 0
+	for thisHint in layer.hints:
+		if thisHint.type == CORNER or thisHint.type == CAP:
+			count += 1
 	if count:
-		thisLayer.decomposeCorners()
-		print "-- Decomposed %i caps and/or corners" % count
+		layer.decomposeCorners()
+		print u"   👊 Decomposed %i caps and/or corners" % count
 
-Glyphs.clearLog()
-for thisLayer in selectedLayers:
+Glyphs.clearLog() # clear macro window log
+
+thisFont = Glyphs.font
+for thisLayer in thisFont.selectedLayers:
 	thisGlyph = thisLayer.parent
 	print "Processing", thisGlyph.name
 	thisGlyph.beginUndo()
