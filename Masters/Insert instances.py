@@ -65,6 +65,11 @@ def distribute_pablo( min, max, n ):
 	ls = distribute_lucas(min, max, n)
 	return [ l*(1-i/(n-1)) + e*(i/(n-1)) for (i, e, l) in zip(range(n), es, ls) ]
 
+def distribute_schneider( min, max, n ):
+	ps = distribute_pablo(min, max, n)
+	ls = distribute_lucas(min, max, n)
+	return [ l*(1-i/(n-1)) + p*(i/(n-1)) for (i, p, l) in zip(range(n), ps, ls) ]
+
 def distribute_maciej( lightMasterWeightX, lightMasterWeightY, boldMasterWeightX, boldMasterWeightY, interpolationWeightX ):
 	"""
 	Algorithm by Maciej Ratajski
@@ -109,12 +114,12 @@ class InstanceMaker( object ):
 		lineheight += 28
 		
 		self.w.text_6 = vanilla.TextBox( (inset-1, lineheight+2, 60, 14), "using", sizeStyle='small')
-		self.w.algorithm = vanilla.PopUpButton((inset+40, lineheight, 80, 17), [ "Pablo", "Luc(as)", "linear" ], callback=self.UpdateSample, sizeStyle='small' )
-		self.w.text_7 = vanilla.TextBox( (inset+40+85, lineheight+2, 110, 14), "distribution:", sizeStyle='small')
+		self.w.algorithm = vanilla.PopUpButton((inset+40, lineheight, 85, 17), ("linear", "Pablo", "Schneider", "Luc(as)",), callback=self.UpdateSample, sizeStyle='small' )
+		self.w.text_7 = vanilla.TextBox( (inset+40+85+5, lineheight+2, 110, 14), "distribution:", sizeStyle='small')
 		self.w.help_instances = vanilla.HelpButton((-15-21, lineheight+2, -inset, 20), callback=self.openURL )
 		lineheight += 32
 		
-		self.w.existingInstances = vanilla.RadioGroup((inset+30, lineheight, -10, 60), [ "Leave existing instances as they are", "Deactivate existing instances", "Delete existing instances" ], callback=self.SavePreferences, sizeStyle = 'small' )
+		self.w.existingInstances = vanilla.RadioGroup((inset+30, lineheight, -10, 60), ("Leave existing instances as they are", "Deactivate existing instances", "Delete existing instances"), callback=self.SavePreferences, sizeStyle = 'small' )
 		self.w.existingInstances.set( 0 )
 		lineheight += 70
 		
@@ -168,6 +173,8 @@ class InstanceMaker( object ):
 			distributedValues = distribute_pablo( a, b, n )
 		elif algorithm == "Luc(as)":
 			distributedValues = distribute_lucas( a, b, n )
+		elif algorithm == "Schneider":
+			distributedValues = distribute_schneider( a, b, n )
 		else:
 			distributedValues = distribute_equal( a, b, n )
 		
