@@ -68,7 +68,7 @@ def distribute_pablo( min, max, n ):
 def distribute_schneider( min, max, n ):
 	ps = distribute_pablo(min, max, n)
 	ls = distribute_lucas(min, max, n)
-	return [ l*(1-i/(n-1)) + p*(i/(n-1)) for (i, p, l) in zip(range(n), ps, ls) ]
+	return [ (p+l)*0.5 for (p, l) in zip(ps, ls) ]
 
 def distribute_maciej( lightMasterWeightX, lightMasterWeightY, boldMasterWeightX, boldMasterWeightY, interpolationWeightX ):
 	"""
