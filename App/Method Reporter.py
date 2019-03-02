@@ -46,6 +46,7 @@ class MethodReporter( object ):
 			"GSInstance",
 			"GSNode",
 			"GSPath",
+			"GSPathSegment",
 			"NSBezierPath",
 			"NSColor",
 			"NSAffineTransform",
