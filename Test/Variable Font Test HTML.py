@@ -126,7 +126,9 @@ def featureListForFont( thisFont ):
 	returnString = ""
 	featureList = [f.name for f in thisFont.features if not f.name in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig") and not f.disabled()]
 	for f in featureList:
-		returnString += '\t\t\t<label class="otFeatureLabel"><input type="checkbox" name="%s" value="%s" class="otFeature" onchange="updateFeatures()">%s</label>\n' % (f,f,f)
+		# <input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
+
+		returnString += '\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s</label>\n' % (f,f,f,f,f)
 	return returnString.rstrip()
 
 def allOTVarSliders(thisFont):
@@ -256,12 +258,31 @@ htmlContent = """
 				opacity: 0.5;
 			}
 			.otFeatureLabel, .otFeature {
+				font-size: small;
 				position: relative;
-				padding: 0.2em;
-				color: #333;
 				opacity: 1;
 				pointer-events: auto;
 				white-space: nowrap;
+			}
+			.otFeatureLabel {
+				padding: 0.2em 0.5em 0.3em 0.5em;
+				margin: 0 .04em;
+				line-height: 2em;
+				color: #666;
+				background-color: #ddd;
+				border-radius:0.3em;
+				border: 0;
+				text-align:center;
+			}
+			.otFeature {
+				visibility: collapse;
+				margin: 0 -1em 0 0;
+			}
+			input[type=checkbox]:checked + label { 
+				visibility: visible;
+				font-weight: bold;
+				color: #eee;
+				background-color: #555; 
 			}
 			.slider {
 				z-index: 1;
@@ -271,7 +292,7 @@ htmlContent = """
 				appearance: none;
 				width: 100%;
 				height: 2em;
-				border-radius: 5px;   
+				border-radius: 5px;
 				background: #eee;
 				padding: 0px;
 				margin: 5px;
@@ -363,9 +384,9 @@ htmlContent = """
 		<p id="text">The Quick Brown Fox Jumps Over the Lazy Dog.</p>
 		
 		<p style="font-size:x-small; font-family: sans-serif;">
-			<label class="otFeatureLabel"><input type="checkbox" name="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked>kern</label>
-			<label class="otFeatureLabel"><input type="checkbox" name="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked>liga/clig</label>
-			<label class="otFeatureLabel"><input type="checkbox" name="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked>calt</label>
+			<input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
+			<input type="checkbox" name="liga" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga/clig</label>
+			<input type="checkbox" name="calt" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel">calt</label>
 ###featureList###
 		</p>
 		
