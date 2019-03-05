@@ -131,6 +131,7 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 * **Delete All Vertical Hints in Font:** Deletes all vertical hints throughout the active font. Be careful.
 * **Delete All Vertical Hints in Selected Glyphs:** Deletes all vertical hints in selected glyphs only.
 * **Delete All Horizontal Hints in Font:** Deletes all horizontal hints throughout the active font. Be careful.
+* **Delete Zero Deltas in Selected Glyphs:** Goes through all layers of each selected glyph, and deletes all TT Delta Hints with an offset of zero. Detailed Report in Macro Window.
 * **Keep First Master Hints Only:** In selected glyphs, deletes all hints in all layers except for whatever is ordered as first master. Respects Bracket Layers. E.g., if your first master is 'Regular', then the script will delete hints in 'Bold', 'Bold [120]', but keep them in 'Regular' and 'Regular [100]'.
 * **New Tab with Glyphs Exceeding Zones:** Opens a new tab with all glyphs where the extremums do not lie within zones.
 * **Set TT Stem Hints to Auto:** Sets all TT stem hints to ‘auto’ in selected glyphs.
