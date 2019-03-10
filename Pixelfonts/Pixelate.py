@@ -187,7 +187,7 @@ class Pixelate( object ):
 		except Exception, e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Pixelate Error: %s" % e
+			print u"❌ Pixelate Error: %s" % e
 			print traceback.format_exc()
 
 Pixelate()
