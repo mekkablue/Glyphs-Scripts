@@ -21,6 +21,7 @@ class SetHiddenAppPreferences( object ):
 		"TTPreviewAlsoShowOffCurveIndexes",
 		"GSFontViewDarkMode",
 		"GSEditViewDarkMode",
+		"com.mekkablue.ShowItalic.drawItalicsForInactiveGlyphs",
 	)
 	
 	def __init__( self ):
