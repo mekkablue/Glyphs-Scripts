@@ -128,10 +128,31 @@ class FindSmallPaths( object ):
 			if sender != self.w.areaSlider:
 				if not self.SavePreferences( self ):
 					print "Note: 'Find Small Paths' could not write preferences."
-
+			
+			# fallback values
+			minimum, maximum = 1.0, 1.0
+			
 			# validate the min and max entries:
-			minimum = float( Glyphs.defaults["com.mekkablue.FindSmallPaths.sliderMin"] )
-			maximum = float( Glyphs.defaults["com.mekkablue.FindSmallPaths.sliderMax"] )
+			try:
+				minimum = float( Glyphs.defaults["com.mekkablue.FindSmallPaths.sliderMin"] )
+			except Exception as e:
+				# disable slider and button
+				self.w.areaSlider.enable(onOff=False)
+				self.w.runButton.enable(onOff=False)
+				# put warning message into area text:
+				self.w.minArea.set( "Please enter a valid min value." )
+				return True
+				
+			
+			try:
+				maximum = float( Glyphs.defaults["com.mekkablue.FindSmallPaths.sliderMax"] )
+			except Exception as e:
+				# disable slider and button
+				self.w.areaSlider.enable(onOff=False)
+				self.w.runButton.enable(onOff=False)
+				# put warning message into area text:
+				self.w.minArea.set( "Please enter a valid max value." )
+				return True
 			
 			# minimum value = 1
 			if minimum < 1.0:
