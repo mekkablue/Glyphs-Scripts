@@ -230,7 +230,7 @@ class FindSmallPaths( object ):
 						self.w.progress.set(ii*quarter + jj*quarter/numOfGlyphs)
 					
 						for thisLayer in thisGlyph.layers:
-							if thisLayer.paths and (thisLayer.isMasterLayer() or thisLayer.isSpecialLayer):
+							if thisLayer.paths and (thisLayer.isMasterLayer or thisLayer.isSpecialLayer):
 								if overlapsShouldBeRemovedFirst:
 									checkLayer = thisLayer.copyDecomposedLayer()
 									checkLayer.removeOverlap()
