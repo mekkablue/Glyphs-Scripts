@@ -45,6 +45,7 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 * **Increase** and **Decrease Line Height:** Increases the Edit View line height by a quarter, or decreases it by a fifth. Useful for setting shortcuts if you need to switch between line heights a lot.
 * **Kill background processes:** Terminates all makeotfGlyphs processes. If your fan keeps screaming after exporting a font, or after cancelling a font export, then run this script and see if it helps.
 * **Method Reporter:** GUI for filtering through the method names of Python and PyObjC Classes available from within Glyphs. You can use multiple space-separated search terms (for an AND concatenation) and asterisk as jokers (at the beginning, in the middle and at the end). Double click to put the method name in your clipboard and open help in the Macro Window. Useful for coders. *Needs Vanilla.*
+* **Parameter Reporter:** Like Method Reporter, but for custom parameters. *Needs Vanilla.*
 * **Paste in View Center:** Pastes paths and components in the clipboard into the current view center of the Edit view. Useful for setting a shortcut.
 * **Print Window:** Print the frontmost window. Useful for saving a vector PDF of your window content.
 * **Save Selected Glyphs as PNG:** Saves selected glyphs as PNGs in a user-specified folder.
