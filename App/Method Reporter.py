@@ -160,16 +160,24 @@ class MethodReporter( object ):
 	def MethodReporterMain( self, sender ):
 		try:
 			className = self.w.objectPicker.get()
-			filterString = self.w.filter.get()
-				
+			filterStringEntry = self.w.filter.get().strip()
+			filterStrings = filterStringEntry.split(" ")
+			
 			try:
-				if not "*" in filterString:
-					methodList = [ f for f in dir(eval(className)) if filterString.lower() in f.lower() ]
-				elif filterString[0] == "*":
-					methodList = [ f for f in dir(eval(className)) if f.lower().endswith(filterString.lower().replace("*","")) ]
-				elif filterString.endswith("*"):
-					methodList = [ f for f in dir(eval(className)) if f.lower().startswith(filterString.lower().replace("*","")) ]
-			except Exception as e:
+				methodList = dir(eval(className))
+				for filterString in filterStrings:
+					if not "*" in filterString:
+						methodList = [ f for f in methodList if filterString.lower() in f.lower() ]
+					elif filterString.startswith("*"):
+						methodList = [ f for f in methodList if f.lower().endswith(filterString.lower()[1:]) ]
+					elif filterString.endswith("*"):
+						methodList = [ f for f in methodList if f.lower().startswith(filterString.lower()[:-1]) ]
+					else:
+						asteriskPos = filterString.find("*")
+						beginning = filterString[:asteriskPos].lower()
+						ending = filterString[asteriskPos+1:].lower()
+						methodList = [ f for f in methodList if f.lower().startswith(beginning) and f.lower().endswith(ending) ]
+			except:
 				methodList = []
 			
 			self.w.methodList.set(methodList)
