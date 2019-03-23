@@ -23,7 +23,7 @@ def setClipboard( myText ):
 
 class MethodReporter( object ):
 	def __init__( self ):
-		self.mostImportantObjects = [
+		self.mostImportantObjects = (
 			"GSLayer",
 			"GSAlignmentZone",
 			"GSAnchor",
@@ -41,6 +41,7 @@ class MethodReporter( object ):
 			"GSFontMaster",
 			"GSGlyph",
 			"GSGlyphInfo",
+			"GSGlyphsInfo",
 			"GSGuideLine",
 			"GSHint",
 			"GSInstance",
@@ -59,7 +60,7 @@ class MethodReporter( object ):
 			"NSButton",
 			"FTPointArray",
 			"Glyph_g_l_y_f",
-		]
+		)
 		
 		# Window 'self.w':
 		windowWidth  = 250
@@ -86,6 +87,7 @@ class MethodReporter( object ):
 			callback=self.MethodReporterMain
 		)
 		self.w.objectPicker.set("GSLayer")
+		self.w.objectPicker.getNSComboBox().setToolTip_("Type a class name here. Names will autocomplete.")
 		
 		# Filter:
 		self.w.text2 = vanilla.TextBox(
@@ -99,6 +101,7 @@ class MethodReporter( object ):
 			sizeStyle='small',
 			callback=self.MethodReporterMain
 		)
+		self.w.filter.getNSTextField().setToolTip_("Type one or more search terms here. Case is ignored. Use * as wildcard at beginning, middle or end of term. Multiple search terms are AND concatendated.")
 		
 		# Listing of methods:
 		self.w.methodList = vanilla.List(
@@ -110,6 +113,7 @@ class MethodReporter( object ):
 			rowHeight=19,
 		)
 		self.w.methodList.getNSTableView().tableColumns()[0].setWidth_(501)
+		self.w.methodList.getNSTableView().setToolTip_("Double click an entry to copy it to the clipboard and display its help() in Macro Window.")
 		
 		# Load Settings:
 		if not self.LoadPreferences():
