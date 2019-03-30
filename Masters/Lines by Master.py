@@ -4,7 +4,6 @@ __doc__="""
 Reduplicates your edit text across masters, will add one line per master. Careful, ignores everything after the first newline.
 """
 
-
 cutoff = []
 names = []
 for i,l in enumerate(Font.currentTab.layers):
@@ -14,10 +13,31 @@ for i,l in enumerate(Font.currentTab.layers):
 		if not cutoff:
 			names.append( l.parent.name )
 
-Font.currentTab.layers = []
+theseLayers = []
 for m in Font.masters:
 	for gname in names:
 		layer = Font.glyphs[gname].layers[m.id]
 		print layer
-		Font.currentTab.layers.append( layer )
-	Font.currentTab.layers.append( GSControlLayer.newline() )
+		theseLayers.append( layer )
+	
+	theseLayers.append( GSControlLayer.newline() )
+
+if theseLayers:
+	# Font.currentTab.layers.append( theseLayers ) # BROKEN IN 1224
+	# WORKAROUND:
+	string = NSMutableAttributedString.alloc().init()
+	for l in theseLayers:
+		if l.className() == "GSLayer":
+			char = Font.characterForGlyph_(l.parent)
+			A = NSAttributedString.alloc().initWithString_attributes_(unichr(char), {"GSLayerIdAttrib": l.layerId})
+		elif l.className() == "GSBackgroundLayer":
+			char = Font.characterForGlyph_(l.parent)
+			A = NSAttributedString.alloc().initWithString_attributes_(unichr(char), {"GSLayerIdAttrib": l.layerId, "GSShowBackgroundAttrib": True})
+		elif l.className() == "GSControlLayer":
+			char = l.parent.unicodeChar()
+			A = NSAttributedString.alloc().initWithString_(unichr(char))
+		else:
+			raise ValueError
+		string.appendAttributedString_(A)
+	Font.currentTab.graphicView().textStorage().setText_(string)
+	
