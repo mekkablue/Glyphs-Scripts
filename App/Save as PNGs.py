@@ -4,6 +4,8 @@ __doc__="""
 Saves selected glyphs as PNGs. Uses ascender and descender for top and bottom edges of the images.
 """
 
+from AppKit import NSCalibratedRGBColorSpace, NSPNGFileType
+
 def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, scale=1.0):
 	"""
 	Returns an NSAffineTransform object for transforming layers.
@@ -48,7 +50,7 @@ def saveLayerAsPNG( thisLayer, baseurl ):
 	NSBezierPath.bezierPathWithRect_(offscreenRect).addClip() # set the rectangle as a clipping path
 	baselineShift = -thisMaster.descender
 	shiftTransform = transform(shiftY=baselineShift) # shift from bottom edge (y=0 in PNG) to baseline (y=0 in glyph)
-	image = thisLayer.bezierPath.copy() # otherwise your glyphs start floating in mid air :)
+	image = thisLayer.completeBezierPath.copy() # otherwise your glyphs start floating in mid air :)
 	image.transformUsingAffineTransform_(shiftTransform)
 	image.fill()
 
@@ -61,13 +63,13 @@ def saveLayerAsPNG( thisLayer, baseurl ):
 	pngName = thisGlyph.name
 	if thisGlyph.subCategory == "Uppercase":
 		pngName = "_%s" % pngName
-		
+
 	# construct filepath URL and write the file
 	fullURL = "%s/%s.png" % (baseurl, pngName)
 	url = NSURL.fileURLWithPath_( fullURL )
 	pngData = bitmap.representationUsingType_properties_( NSPNGFileType, None ) # get PNG data from image rep
 	pngData.writeToURL_options_error_( url, NSDataWritingAtomic, None ) # write
-	
+
 	return fullURL # for status message in Macro Window
 
 thisFont = Glyphs.font # frontmost font
