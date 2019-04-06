@@ -113,17 +113,26 @@ htmlContent = """<head>
 			-o-font-feature-settings: "kern" on, "liga" on, "calt" on;
 		}
 		p { padding: 5px; margin: 10px; }
-		p#p08 { font-size: 08pt; }
-		p#p09 { font-size: 09pt; }
-		p#p10 { font-size: 10pt; }
-		p#p11 { font-size: 11pt; }
-		p#p12 { font-size: 12pt; }
-		p#p13 { font-size: 13pt; }
-		p#p14 { font-size: 14pt; }
-		p#p15 { font-size: 15pt; }
-		p#p16 { font-size: 16pt; }
-		p#largeParagraph { font-size: 32pt; }
-		p#veryLargeParagraph { font-size: 100pt; }		
+		.features {
+			font-size:x-small;
+			font:sans-serif;
+		}
+		.label{
+			font-family: sans-serif;
+			font-size: x-small;
+			color: grey;
+		}
+		span#p08 { font-size: 08pt; }
+		span#p09 { font-size: 09pt; }
+		span#p10 { font-size: 10pt; }
+		span#p11 { font-size: 11pt; }
+		span#p12 { font-size: 12pt; }
+		span#p13 { font-size: 13pt; }
+		span#p14 { font-size: 14pt; }
+		span#p15 { font-size: 15pt; }
+		span#p16 { font-size: 16pt; }
+		span#largeParagraph { font-size: 32pt; }
+		span#veryLargeParagraph { font-size: 100pt; }		
 	</style>
 	<script type="text/javascript">
 		function updateParagraph() {
@@ -209,7 +218,7 @@ htmlContent = """<head>
 		<!-- moreOptions -->
 	</select>
 	<input type="text" value="Type Text Here." id="textInput" onclick="this.select();" onkeyup="updateParagraph()" size="80" />
-	<p style="font-size:x-small; font-family: sans-serif;">
+	<p class="features">
 		<a href="javascript:setCharset();">Charset</a>
 		<a href="javascript:setLat1();">Lat1</a>
 		&emsp;
@@ -224,18 +233,18 @@ htmlContent = """<head>
 		<!-- moreFeatures -->
 		<label><input type="checkbox" name="show" value="show" onchange="updateFeatures();document.getElementById('featureLine').style.display=this.checked?'':'none'">Show CSS</label>
 	</p>
-	<p id="featureLine" style="font-size:x-small;font:sans-serif;display:none;">font-feature-settings: "kern" on, "liga" on, "calt" on;</p>
-	<p id="p08">08pt ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
-	<p id="p09">09pt ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
-	<p id="p10">10pt ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
-	<p id="p11">11pt ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
-	<p id="p12">12pt ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
-	<p id="p13">13pt ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
-	<p id="p14">14pt ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
-	<p id="p15">15pt ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
-	<p id="p16">16pt ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
-	<p id="largeParagraph">ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
-	<p id="veryLargeParagraph">ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
+	<p class="features" id="featureLine" style="display:none;">font-feature-settings: "kern" on, "liga" on, "calt" on;</p>
+	<p><span class="label">08</span> <span id="p08">ABCDEFGHIJKLMNOPQRSTUVWXYZ</span></p>
+	<p><span class="label">09</span> <span id="p09">ABCDEFGHIJKLMNOPQRSTUVWXYZ</span></p>
+	<p><span class="label">10</span> <span id="p10">ABCDEFGHIJKLMNOPQRSTUVWXYZ</span></p>
+	<p><span class="label">11</span> <span id="p11">ABCDEFGHIJKLMNOPQRSTUVWXYZ</span></p>
+	<p><span class="label">12</span> <span id="p12">ABCDEFGHIJKLMNOPQRSTUVWXYZ</span></p>
+	<p><span class="label">13</span> <span id="p13">ABCDEFGHIJKLMNOPQRSTUVWXYZ</span></p>
+	<p><span class="label">14</span> <span id="p14">ABCDEFGHIJKLMNOPQRSTUVWXYZ</span></p>
+	<p><span class="label">15</span> <span id="p15">ABCDEFGHIJKLMNOPQRSTUVWXYZ</span></p>
+	<p><span class="label">16</span> <span id="p16">ABCDEFGHIJKLMNOPQRSTUVWXYZ</span></p>
+	<p><span id="largeParagraph">ABCDEFGHIJKLMNOPQRSTUVWXYZ</span></p>
+	<p><span id="veryLargeParagraph">ABCDEFGHIJKLMNOPQRSTUVWXYZ</span></p>
 </body>
 """
 
