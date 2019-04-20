@@ -60,6 +60,7 @@ class MethodReporter( object ):
 			"NSButton",
 			"FTPointArray",
 			"Glyph_g_l_y_f",
+			"GSProjectDocument",
 		)
 		
 		# Window 'self.w':
