@@ -108,19 +108,39 @@ end tell
 # Execute AppleScripts and store results in variables:
 
 # Extract document name and report:
-docName = runAppleScript( getNameOfDocument )
-docName = docName.strip()
-print "Extracting kerning from doc: %s" % docName
+try:
+	docName = runAppleScript( getNameOfDocument )
+	docName = unicode(docName).strip()
+	print "Extracting kerning from doc: %s" % docName
+except Exception as e:
+	print "\nERROR while trying to extract the name of the first InDesign document."
+	print "Possible causes:\n  1. No permissions in System Preferences > Security & Privacy > Privacy > Automation > Glyphs. Please review.\n  2. No document open in InDesign; will try to continue."
+	print e
+	print
 
-# Extraxt text and report:
-frameText = runAppleScript( getTextOfFrame )
-frameText = "%.60s..." % frameText.strip()
-print "Found text: %s" % frameText
+# Extract text and report:
+try:
+	frameText = runAppleScript( getTextOfFrame )
+	frameText = "%.60s..." % frameText.strip()
+	print "Found text: %s" % frameText
+except Exception as e:
+	print "\nERROR while trying to extract the text of the first text frame."
+	print "Possible causes:\n  1. No permissions in System Preferences > Security & Privacy > Privacy > Automation > Glyphs. Please review.\n  2. No text frame in the frontmost document in InDesign; will try to continue."
+	print e
+	print
 
 # Extract font name and report:
-fontName = runAppleScript( getNameOfFont )
-fontName = fontName.replace("\t", " ").replace("font ","").strip()
-print "Found font: %s" % fontName
+try:
+	fontName = runAppleScript( getNameOfFont )
+	fontName = fontName.replace("\t", " ").replace("font ","").strip()
+	print "Found font: %s" % fontName
+	print "Processing, please wait. Can take a minute...\n"
+except Exception as e:
+	print "\nERROR while trying to extract the font in the first text frame."
+	print "Possible causes:\n  1. No permissions in System Preferences > Security & Privacy > Privacy > Automation > Glyphs. Please review.\n  2. No text in the first text frame of the frontmost document in InDesign; will try to continue."
+	print e
+	print
+	
 
 # Extract kern strings and report:
 kernInfo = runAppleScript( getKernValuesFromInDesign )
