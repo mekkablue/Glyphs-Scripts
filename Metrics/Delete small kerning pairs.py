@@ -60,11 +60,11 @@ class DeleteSmallKerningPairs( object ):
 		
 	def SavePreferences( self, sender ):
 		try:
-			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.howMuch"] = str(float(self.w.howMuch.get()))
-			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.positive"] = str(int(self.w.positive.get()))
-			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.zero"] = str(int(self.w.zero.get()))
-			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.negative"] = str(int(self.w.negative.get()))
-			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.keepWindow"] = str(int(self.w.keepWindow.get()))
+			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.howMuch"] = self.w.howMuch.get()
+			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.positive"] = self.w.positive.get()
+			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.zero"] = self.w.zero.get()
+			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.negative"] = self.w.negative.get()
+			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.keepWindow"] = self.w.keepWindow.get()
 		except:
 			return False
 			
@@ -77,6 +77,7 @@ class DeleteSmallKerningPairs( object ):
 			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.zero", False)
 			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.negative", True)
 			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.keepWindow", True)
+			
 			self.w.howMuch.set( Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.howMuch"] )
 			self.w.positive.set( bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.positive"]) )
 			self.w.zero.set( bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.zero"]) )
@@ -89,6 +90,9 @@ class DeleteSmallKerningPairs( object ):
 
 	def DeleteSmallKerningPairsMain( self, sender ):
 		try:
+			if not self.SavePreferences( self ):
+				print "Note: 'Delete Small Kerning Pairs' could not write preferences."
+			
 			# brings macro window:
 			Glyphs.showMacroWindow()
 			
@@ -149,9 +153,6 @@ class DeleteSmallKerningPairs( object ):
 				print "Done."
 			else:
 				print "Note: No kerning removed, because no options were picked."
-			
-			if not self.SavePreferences( self ):
-				print "Note: 'Delete Small Kerning Pairs' could not write preferences."
 			
 			if not keepWindowOpen:
 				self.w.close()
