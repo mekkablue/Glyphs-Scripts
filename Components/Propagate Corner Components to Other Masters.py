@@ -44,18 +44,12 @@ def process( thisLayer ):
 		deleteCornerComponentsOnLayer(targetLayer)
 		for h in [h for h in thisLayer.hints if h.type == CORNER]:
 			# query corner component attributes:
-			scale = h.scale
-			name = h.name
-			pathIndex = indexOfPath(thisLayer,h.originNode.parent)
-			nodeIndex = indexOfNode(thisLayer,pathIndex,h.originNode)
+			pathIndex = indexOfPath(thisLayer, h.originNode.parent)
+			nodeIndex = indexOfNode(thisLayer, pathIndex,h.originNode)
 			
 			# create eqivalent corner component in target layer:
-			newCorner = GSHint()
-			newCorner.type = CORNER
-			newCorner.setScale_(scale)
-			newCorner.setName_(name)
-			newCorner.originNode = targetLayer.paths[pathIndex].nodes[nodeIndex]
-			targetLayer.addHint_(newCorner)
+			newCorner = h.copy()
+			targetLayer.hints.append(newCorner)
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
