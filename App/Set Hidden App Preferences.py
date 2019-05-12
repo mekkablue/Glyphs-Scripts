@@ -45,12 +45,18 @@ class SetHiddenAppPreferences( object ):
 		
 		self.w.pref = vanilla.ComboBox( (inset, linePos-1, -inset-100, 23), self.prefs, callback=self.SavePreferences, sizeStyle='regular' )
 		self.w.pref.getNSComboBox().setFont_(NSFont.userFixedPitchFontOfSize_(11))
+		self.w.pref.getNSComboBox().setToolTip_("Pick an app default from the list, or type in an identifier.")
+		
 		self.w.prefValue = vanilla.EditText( (-inset-90, linePos, -inset, 21), "", sizeStyle='regular' )
+		self.w.prefValue.getNSTextField().setToolTip_("Enter a value for the chosen app default.")
 		linePos += lineHeight
 		
 		# Run Button:
-		self.w.delButton = vanilla.Button( (-170-inset, -20-inset, -90-inset, -inset), "Delete", sizeStyle='regular', callback=self.SetHiddenAppPreferencesMain )
+		self.w.delButton = vanilla.Button( (-170-inset, -20-inset, -90-inset, -inset), "Reset", sizeStyle='regular', callback=self.SetHiddenAppPreferencesMain )
+		self.w.delButton.getNSButton().setToolTip_("Will delete the setting, effectively resetting it to its default.")
+		
 		self.w.runButton = vanilla.Button( (-80-inset, -20-inset, -inset, -inset), "Apply", sizeStyle='regular', callback=self.SetHiddenAppPreferencesMain )
+		self.w.runButton.getNSButton().setToolTip_("Sets the entered value for the chosen app default.")
 		self.w.setDefaultButton( self.w.runButton )
 		
 		# Load Settings:
@@ -87,6 +93,9 @@ class SetHiddenAppPreferences( object ):
 
 	def SetHiddenAppPreferencesMain( self, sender ):
 		try:
+			if not self.SavePreferences( self ):
+				print "Note: 'Set Hidden App Preferences' could not write preferences."
+			
 			if sender == self.w.delButton:
 				del Glyphs.defaults[ self.w.pref.get() ]
 				self.w.prefValue.set( None )
@@ -96,9 +105,6 @@ class SetHiddenAppPreferences( object ):
 				Glyphs.defaults[ self.w.pref.get() ] = self.w.prefValue.get()
 				print "Set pref: %s --> %s" % (self.w.pref.get(), self.w.prefValue.get())
 				
-			if not self.SavePreferences( self ):
-				print "Note: 'Set Hidden App Preferences' could not write preferences."
-			
 		except Exception, e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
