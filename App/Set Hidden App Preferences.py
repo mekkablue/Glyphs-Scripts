@@ -27,7 +27,7 @@ class SetHiddenAppPreferences( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 350
-		windowHeight = 120
+		windowHeight = 110
 		windowWidthResize  = 500 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -39,11 +39,11 @@ class SetHiddenAppPreferences( object ):
 		)
 		
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		linePos, inset, lineHeight = 8, 12, 22
 		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 14), "Choose and apply the app defaults:", sizeStyle='small', selectable=True )
 		linePos += lineHeight
 		
-		self.w.pref = vanilla.ComboBox( (inset, linePos-1, -inset-100, 23), self.prefs, callback=self.SavePreferences, sizeStyle='regular' )
+		self.w.pref = vanilla.ComboBox( (inset, linePos-2, -inset-100, 25), self.prefs, callback=self.SavePreferences, sizeStyle='regular' )
 		self.w.pref.getNSComboBox().setFont_(NSFont.userFixedPitchFontOfSize_(11))
 		self.w.pref.getNSComboBox().setToolTip_("Pick an app default from the list, or type in an identifier.")
 		
