@@ -226,8 +226,8 @@ class OTVarGlyphAnimator( object ):
 	
 	def faster(self, sender):
 		delay = float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"])
-		if delay > 0.02:
-			delay -= 0.01
+		if delay > 0.01:
+			delay -= 0.005
 			self.w.slower.enable(onOff=True)
 		else:
 			# disable faster button at fastest setting:
