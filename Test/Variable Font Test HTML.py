@@ -63,22 +63,22 @@ def axisDictForFontWithoutAxisLocationParameters(thisFont):
 	for i, thisMaster in enumerate(thisFont.masters):
 		try:
 			sliderValues[i] = (
-				thisMaster.weightValue,
-				thisMaster.widthValue,
-				thisMaster.customValue,
-				thisMaster.customValue1(),
-				thisMaster.customValue2(),
-				thisMaster.customValue3(),
+				int(thisMaster.weightValue),
+				int(thisMaster.widthValue),
+				int(thisMaster.customValue),
+				int(thisMaster.customValue1()),
+				int(thisMaster.customValue2()),
+				int(thisMaster.customValue3()),
 			)
 			warningMessage()
 		except:
 			sliderValues[i] = (
-				thisMaster.weightValue,
-				thisMaster.widthValue,
-				thisMaster.customValue,
-				thisMaster.customValue1,
-				thisMaster.customValue2,
-				thisMaster.customValue3,
+				int(thisMaster.weightValue),
+				int(thisMaster.widthValue),
+				int(thisMaster.customValue),
+				int(thisMaster.customValue1),
+				int(thisMaster.customValue2),
+				int(thisMaster.customValue3),
 			)
 	
 	axisDict = {}
@@ -133,11 +133,13 @@ def featureListForFont( thisFont ):
 
 def allOTVarSliders(thisFont):
 	axisDict = generateAxisDict(thisFont)
-		
-	if Font.customParameters["Virtual Master"]:
-		for axis in Font.customParameters["Virtual Master"]:
+
+	# go through *all* virtual masters:
+	virtualMasters = [cp for cp in Font.customParameters if cp.name=="Virtual Master"]
+	for virtualMaster in virtualMasters:
+		for axis in virtualMaster.value:
 			name = axis["Axis"]
-			location = axis["Location"]
+			location = int(axis["Location"])
 			if location < axisDict[name]["min"]:
 				axisDict[name]["min"] = location
 			if location > axisDict[name]["max"]:
@@ -155,8 +157,8 @@ def allOTVarSliders(thisFont):
 		minValue = axisDict[axisName]["min"]
 		maxValue = axisDict[axisName]["max"]
 		axisTag = axisDict[axisName]["tag"]
-		# print axisDict #DEBUG
-		html += "\t\t\t<div class='labeldiv'><label class='sliderlabel' id='label_%s' name='%s'>%s</label><input type='range' min='%i' max='%i' value='%i' class='slider' id='%s' oninput='updateSlider();'></div>\n" % (
+		
+		html += u"\t\t\t<div class='labeldiv'><label class='sliderlabel' id='label_%s' name='%s'>%s</label><input type='range' min='%i' max='%i' value='%i' class='slider' id='%s' oninput='updateSlider();'></div>\n" % (
 			axisTag, axisName, axisName, 
 			minValue, maxValue, minValue,
 			axisTag
