@@ -87,7 +87,7 @@ class InstanceMaker( object ):
 		
 		# Window 'self.w':
 		windowWidth  = 360
-		windowHeight = 380
+		windowHeight = 390
 		windowWidthResize  = 0 # user can resize width by this value
 		windowHeightResize = 300   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -114,7 +114,7 @@ class InstanceMaker( object ):
 		lineheight += 28
 		
 		self.w.text_6 = vanilla.TextBox( (inset-1, lineheight+2, 60, 14), "using", sizeStyle='small')
-		self.w.algorithm = vanilla.PopUpButton((inset+40, lineheight, 85, 17), ("linear", "Pablo", "Schneider", "Luc(as)",), callback=self.UpdateSample, sizeStyle='small' )
+		self.w.algorithm = vanilla.PopUpButton((inset+35, lineheight, 90, 17), ("linear", "Pablo", "Schneider", "Luc(as)",), callback=self.UpdateSample, sizeStyle='small' )
 		self.w.text_7 = vanilla.TextBox( (inset+40+85+5, lineheight+2, 110, 14), "distribution:", sizeStyle='small')
 		self.w.help_instances = vanilla.HelpButton((-15-21, lineheight+2, -inset, 20), callback=self.openURL )
 		lineheight += 32
@@ -123,13 +123,16 @@ class InstanceMaker( object ):
 		self.w.existingInstances.set( 0 )
 		lineheight += 70
 		
-		self.w.naturalNames = vanilla.CheckBox((inset, lineheight-1, inset+230, 19), u"Use ‘natural’ weight names, starting at:", value=False, callback=self.UpdateSample, sizeStyle='small' )
+		self.w.naturalNames = vanilla.CheckBox((inset, lineheight, inset+230, 19), u"Use ‘natural’ weight names, starting at:", value=False, callback=self.UpdateSample, sizeStyle='small' )
 		self.w.firstName = vanilla.PopUpButton((inset+230, lineheight, -inset, 17), naturalNames, callback=self.UpdateSample, sizeStyle='small' )
 		try: # workaround for macOS 10.9
 			self.w.firstName.enable( self.w.naturalNames.getNSButton().isEnabled() )
 		except:
 			pass
-		lineheight += 28
+		lineheight += 24
+		
+		self.w.italicStyle = vanilla.CheckBox( (inset, lineheight, -inset, 20), u"Italic suffixes and style linking", value=False, callback=self.UpdateSample, sizeStyle='small' )
+		lineheight += 24
 		
 		self.w.maciej        = vanilla.CheckBox((inset, lineheight-1, 160, 19), "Maciej y distribution from:", value=False, callback=self.UpdateSample, sizeStyle='small' )
 		self.w.text_maciej_1 = vanilla.TextBox( (inset+165+55, lineheight+2, 55, 19), "through:", sizeStyle='small')
@@ -216,7 +219,7 @@ class InstanceMaker( object ):
 			sampleText = "Will create %i instances: " % n
 			
 			if usesNaturalNames:
-				sampleText += ", ".join( "%s%s (%.01f)" % (prefix,name,weight) for name,weight in zip(naturalNames[currentSelectionIndex:], distributedValues) )
+				sampleText += ", ".join( "%s%s (%.01f)" % (prefix,self.italicStyleName(name),weight) for name,weight in zip(naturalNames[currentSelectionIndex:], distributedValues) )
 			else:
 				sampleText += ", ".join( "%s%.0f (%.01f)" % (prefix,weight,weight) for weight in distributedValues )
 			
@@ -264,6 +267,7 @@ class InstanceMaker( object ):
 			Glyphs.defaults["com.mekkablue.InstanceMaker.shouldRound"] = self.w.shouldRound.get()
 			Glyphs.defaults["com.mekkablue.InstanceMaker.naturalNames"] = self.w.naturalNames.get()
 			Glyphs.defaults["com.mekkablue.InstanceMaker.firstName"] = self.w.firstName.get()
+			Glyphs.defaults["com.mekkablue.InstanceMaker.italicStyle"] = self.w.italicStyle.get()
 			return True
 		except:
 			return False
@@ -283,6 +287,7 @@ class InstanceMaker( object ):
 			Glyphs.registerDefault("com.mekkablue.InstanceMaker.shouldRound", True)
 			Glyphs.registerDefault("com.mekkablue.InstanceMaker.naturalNames", True)
 			Glyphs.registerDefault("com.mekkablue.InstanceMaker.firstName", 1)
+			Glyphs.registerDefault("com.mekkablue.InstanceMaker.italicStyle", 0)
 
 			self.w.numberOfInstances.set( Glyphs.defaults["com.mekkablue.InstanceMaker.numberOfInstances"] )
 			self.w.prefix.set( Glyphs.defaults["com.mekkablue.InstanceMaker.prefix"] )
@@ -297,6 +302,7 @@ class InstanceMaker( object ):
 			self.w.shouldRound.set( Glyphs.defaults["com.mekkablue.InstanceMaker.shouldRound"] )
 			self.w.naturalNames.set( Glyphs.defaults["com.mekkablue.InstanceMaker.naturalNames"] )
 			self.w.firstName.set( Glyphs.defaults["com.mekkablue.InstanceMaker.firstName"] )
+			self.w.italicStyle.set( Glyphs.defaults["com.mekkablue.InstanceMaker.italicStyle"] )
 		except:
 			return False
 		
@@ -322,7 +328,13 @@ class InstanceMaker( object ):
 			return [ lightX, lightY, boldX, boldY ]
 		else:
 			return False
-		
+	
+	def italicStyleName(self, styleName):
+		if Glyphs.defaults["com.mekkablue.InstanceMaker.italicStyle"]:
+			styleName = "%s Italic" % styleName
+			styleName = styleName.replace("Regular Italic", "Italic")
+		return styleName
+	
 	def CreateInstances( self, sender ):
 		try:
 			if self.DealWithExistingInstances():
@@ -358,25 +370,38 @@ class InstanceMaker( object ):
 						
 					newInstance = GSInstance()
 					newInstance.active = True
+					
 					if Glyphs.defaults["com.mekkablue.InstanceMaker.naturalNames"]:
+						# weight style name (no italic)
 						styleName = instanceNames[i]
-						newInstance.name = "%s%s" % (prefix, styleName)
-						newInstance.isBold = styleName=="Bold"
+						
+						# weightclass
 						weightClassOldName = weightClassesOldNames[styleName]
 						weightClassValue = weightClasses[styleName]
 						if ":" in weightClassOldName:
 							weightClassValue = int(weightClassOldName.split(":")[1].strip())
 							weightClassOldName = weightClassOldName.split(":")[0].strip()
-						
 						newInstance.weightClass = weightClassOldName
 						if weightClassValue % 100:
 							newInstance.customParameters["weightClass"] = weightClassValue
+						
+						# style name (with italic) and style linking
+						newInstance.name = "%s%s" % (prefix, self.italicStyleName(styleName))
+						newInstance.isBold = styleName == "Bold"
 					else:
 						newInstance.name = "%s%i" % (prefix, thisWeight)
 						newInstance.isBold = False
+						
 					newInstance.weightValue = thisWeight
 					newInstance.widthValue = widthValue
-					newInstance.isItalic = False
+					
+					if Glyphs.defaults["com.mekkablue.InstanceMaker.italicStyle"]:
+						newInstance.isItalic = True
+						newInstance.linkStyle = styleName.replace("Italic","").strip()
+						if newInstance.linkStyle in ("Bold",""):
+							newInstance.linkStyle = "Regular"
+					else:
+						newInstance.isItalic = False
 					
 					if maciejYesOrNo:
 						interpolationY = distribute_maciej( maciejValues[0], maciejValues[1], maciejValues[2], maciejValues[3], float( thisWeight ) )
