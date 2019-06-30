@@ -275,6 +275,8 @@ class InstanceMaker( object ):
 			
 			self.updateUI(sender)
 		except:
+			import traceback
+			print traceback.format_exc()
 			return False
 
 		return True
@@ -311,8 +313,10 @@ class InstanceMaker( object ):
 			self.w.firstName.set( Glyphs.defaults["com.mekkablue.InstanceMaker.firstName"] )
 			self.w.italicStyle.set( Glyphs.defaults["com.mekkablue.InstanceMaker.italicStyle"] )
 			
-			self.updateUI(sender)
+			self.updateUI()
 		except:
+			import traceback
+			print traceback.format_exc()
 			return False
 		
 		return True
