@@ -115,23 +115,23 @@ class InstanceMaker( object ):
 		
 		self.w.text_6 = vanilla.TextBox( (inset-1, lineheight+2, 60, 14), "using", sizeStyle='small')
 		self.w.algorithm = vanilla.PopUpButton((inset+35, lineheight, 90, 17), ("linear", "Pablo", "Schneider", "Luc(as)",), callback=self.UpdateSample, sizeStyle='small' )
-		self.w.text_7 = vanilla.TextBox( (inset+40+85+5, lineheight+2, 110, 14), "distribution:", sizeStyle='small')
+		self.w.text_7 = vanilla.TextBox( (inset+40+85+5, lineheight+2, 110, 14), "distribution.", sizeStyle='small')
 		self.w.help_instances = vanilla.HelpButton((-15-21, lineheight+2, -inset, 20), callback=self.openURL )
 		lineheight += 32
 		
-		self.w.existingInstances = vanilla.RadioGroup((inset+30, lineheight, -10, 60), ("Leave existing instances as they are", "Deactivate existing instances", "Delete existing instances"), callback=self.SavePreferences, sizeStyle = 'small' )
+		self.w.existingInstances = vanilla.RadioGroup((inset+20, lineheight, -10, 60), ("Leave existing instances as they are", "Deactivate existing instances", "Delete existing instances"), callback=self.SavePreferences, sizeStyle = 'small' )
 		self.w.existingInstances.set( 0 )
 		lineheight += 70
 		
-		self.w.naturalNames = vanilla.CheckBox((inset, lineheight, inset+230, 19), u"Use ‘natural’ weight names, starting at:", value=False, callback=self.UpdateSample, sizeStyle='small' )
-		self.w.firstName = vanilla.PopUpButton((inset+230, lineheight, -inset, 17), naturalNames, callback=self.UpdateSample, sizeStyle='small' )
+		self.w.naturalNames = vanilla.CheckBox((inset, lineheight, inset+225, 19), u"Use ‘natural’ weight names, starting at:", value=False, callback=self.UpdateSample, sizeStyle='small' )
+		self.w.firstName = vanilla.PopUpButton((inset+225, lineheight, -inset, 17), naturalNames, callback=self.UpdateSample, sizeStyle='small' )
 		try: # workaround for macOS 10.9
 			self.w.firstName.enable( self.w.naturalNames.getNSButton().isEnabled() )
 		except:
 			pass
-		lineheight += 24
+		lineheight += 20
 		
-		self.w.italicStyle = vanilla.CheckBox( (inset, lineheight, -inset, 20), u"Italic suffixes and style linking", value=False, callback=self.UpdateSample, sizeStyle='small' )
+		self.w.italicStyle = vanilla.CheckBox( (inset+20, lineheight, -inset, 20), u"Italic suffixes and style linking", value=False, callback=self.UpdateSample, sizeStyle='small' )
 		lineheight += 24
 		
 		self.w.maciej        = vanilla.CheckBox((inset, lineheight-1, 160, 19), "Maciej y distribution from:", value=False, callback=self.UpdateSample, sizeStyle='small' )
@@ -251,6 +251,10 @@ class InstanceMaker( object ):
 		elif instancesChoice == 2: # delete
 			Glyphs.font.instances = None
 		return True
+	
+	def updateUI(self, sender=None):
+		onOff = Glyphs.defaults["com.mekkablue.InstanceMaker.naturalNames"]
+		self.w.italicStyle.enable(onOff)
 		
 	def SavePreferences( self, sender ):
 		try:
@@ -268,9 +272,12 @@ class InstanceMaker( object ):
 			Glyphs.defaults["com.mekkablue.InstanceMaker.naturalNames"] = self.w.naturalNames.get()
 			Glyphs.defaults["com.mekkablue.InstanceMaker.firstName"] = self.w.firstName.get()
 			Glyphs.defaults["com.mekkablue.InstanceMaker.italicStyle"] = self.w.italicStyle.get()
-			return True
+			
+			self.updateUI(sender)
 		except:
 			return False
+
+		return True
 
 	def LoadPreferences( self ):
 		try:
@@ -303,6 +310,8 @@ class InstanceMaker( object ):
 			self.w.naturalNames.set( Glyphs.defaults["com.mekkablue.InstanceMaker.naturalNames"] )
 			self.w.firstName.set( Glyphs.defaults["com.mekkablue.InstanceMaker.firstName"] )
 			self.w.italicStyle.set( Glyphs.defaults["com.mekkablue.InstanceMaker.italicStyle"] )
+			
+			self.updateUI(sender)
 		except:
 			return False
 		
@@ -385,9 +394,30 @@ class InstanceMaker( object ):
 						if weightClassValue % 100:
 							newInstance.customParameters["weightClass"] = weightClassValue
 						
+						
+						print "styleName:",styleName
+						
 						# style name (with italic) and style linking
 						newInstance.name = "%s%s" % (prefix, self.italicStyleName(styleName))
-						newInstance.isBold = styleName == "Bold"
+						if styleName == "Bold":
+							newInstance.isBold = True
+							newInstance.linkStyle = "%sRegular" % prefix
+						
+						# italic style linking:
+						if Glyphs.defaults["com.mekkablue.InstanceMaker.italicStyle"]:
+							newInstance.isItalic = True
+							newInstance.linkStyle = newInstance.name.replace("Italic","").strip()
+
+							# link bold italic to regular:
+							if styleName in ("Regular", "Bold"):
+								newInstance.linkStyle = "%sRegular"%prefix
+						else:
+							newInstance.isItalic = False
+						
+						# fix style linking to mere "Regular" (should be empty):
+						if newInstance.linkStyle == "Regular":
+							newInstance.linkStyle = None
+						
 					else:
 						newInstance.name = "%s%i" % (prefix, thisWeight)
 						newInstance.isBold = False
@@ -395,14 +425,7 @@ class InstanceMaker( object ):
 					newInstance.weightValue = thisWeight
 					newInstance.widthValue = widthValue
 					
-					if Glyphs.defaults["com.mekkablue.InstanceMaker.italicStyle"]:
-						newInstance.isItalic = True
-						newInstance.linkStyle = styleName.replace("Italic","").strip()
-						if newInstance.linkStyle in ("Bold",""):
-							newInstance.linkStyle = "Regular"
-					else:
-						newInstance.isItalic = False
-					
+
 					if maciejYesOrNo:
 						interpolationY = distribute_maciej( maciejValues[0], maciejValues[1], maciejValues[2], maciejValues[3], float( thisWeight ) )
 						if roundingYesOrNo:
