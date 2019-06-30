@@ -218,6 +218,7 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 * **Fill up with rectangles:** Goes through your selected glyphs, and if it finds an empty one, inserts a placeholder rectangle. Useful for quickly building a dummy font for testing.
 * **Enlarge Short Segments:** Doubles the length of line segments shorter than one unit.
 * **Grid Switcher:** Toggles grid between two user-definable gridstep values with the click of a floating button. *Needs Vanilla.*
+* **Harmonize Curve to Line:** Will rearrange handles on (selected) curve segments with a following line segment, in such a way that the transition between the two segments is smooth (harmonized).
 * **Insert BCPs into straight segments:** Inserts off-curve points (BCPs) into straight line segments of all selected glyphs. Like option-clicking on all straight lines.
 * **Insert Inflections:** Inserts nodes at path inflections in the visible layers of all selected glyphs.
 * **New Tab with Small Paths:** Opens a new tab containing paths that are smaller than a user-definable threshold size in square units.
