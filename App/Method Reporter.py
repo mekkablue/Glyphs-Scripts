@@ -146,33 +146,56 @@ class MethodReporter( object ):
 	def copySelection( self, sender ):
 		try:
 			index = self.w.methodList.getSelection()[0]
-			methodname = self.w.methodList[index]
-			classname = self.w.objectPicker.get()
-			method = "%s.%s"%(classname,methodname)
+			methodName = self.w.methodList[index]
+			className = self.w.objectPicker.get()
+			method = "%s.%s" % ( className, methodName )
 			
-			# brings macro window to front, clears its log, outputs help for method:
-			Glyphs.clearLog()
-			Glyphs.showMacroWindow()
-			eval("help(%s)"%method)
+			# help in macro window:
+			self.outputHelpForMethod(method)
 			
-			# add () at end of functions
-			typeString = type(eval(method)).__name__
-			if typeString != "property":
-				method+="()"
-				
 			# puts method in clipboard:
 			if not setClipboard(method):
 				print "Warning: could not set clipboard."
 		except Exception as e:
 			Glyphs.showMacroWindow()
-			print "Method Reporter Error:\nCould not copy to clipboard.\n%s" % e
+			import traceback
+			print traceback.format_exc()
+	
+	def outputHelpForMethod(self, method):
+		# strip parentheses if necessary:
+		if method.endswith("()"):
+			method = method[:-2]
+		
+		# brings macro window to front, clears its log, outputs help for method:
+		Glyphs.clearLog()
+		helpStatement = "help(%s)" % method
+		eval(helpStatement)
+		Glyphs.showMacroWindow()
+		
+	def fullMethodName(self, className, methodName):
+		"""
+		Adds () if necessary.
+		"""
+		method = "%s.%s" % (className,methodName)
+		methodType = type(eval(method))
+		typeString = methodType.__name__
+		if typeString != "property":
+			methodName += "()"
+		return methodName
 	
 	def methodList(self, className):
-		elidableMethods = dir(NSObject)
+		elidableMethods = [method for method in dir(NSObject) if not method.startswith("__")]
 		if className == "NSObject":
-			return elidableMethods
+			return [
+				self.fullMethodName(className,method) for method in elidableMethods 
+				if not method.startswith(".")
+			]
 		else:
-			shortenedMethods = [method for method in dir(eval(className)) if not method in elidableMethods and not method.startswith(".")]
+			shortenedMethods = [
+				self.fullMethodName(className,method) for method in dir(eval(className)) 
+				if not method in elidableMethods 
+				and not method.startswith(".")
+			]
 			return shortenedMethods
 			
 	def MethodReporterMain( self, sender ):
