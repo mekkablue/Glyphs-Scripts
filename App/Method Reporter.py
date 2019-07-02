@@ -107,7 +107,7 @@ class MethodReporter( object ):
 		# Listing of methods:
 		self.w.methodList = vanilla.List(
 			(0, 40, -0, -0),
-			dir(GSLayer),
+			self.methodList("GSLayer"),
 			autohidesScrollers=False,
 			drawVerticalLines=True,
 			doubleClickCallback=self.copySelection,
@@ -161,6 +161,14 @@ class MethodReporter( object ):
 		except Exception as e:
 			Glyphs.showMacroWindow()
 			print "Method Reporter Error:\nCould not copy to clipboard.\n%s" % e
+	
+	def methodList(self, className):
+		elidableMethods = dir(NSObject)
+		if className == "NSObject":
+			return elidableMethods
+		else:
+			shortenedMethods = [method for method in dir(eval(className)) if not method in elidableMethods and not method.startswith(".")]
+			return shortenedMethods
 			
 	def MethodReporterMain( self, sender ):
 		try:
@@ -169,7 +177,7 @@ class MethodReporter( object ):
 			filterStrings = filterStringEntry.split(" ")
 			
 			try:
-				methodList = dir(eval(className))
+				methodList = self.methodList(className)
 				for filterString in filterStrings:
 					if not "*" in filterString:
 						methodList = [ f for f in methodList if filterString.lower() in f.lower() ]
