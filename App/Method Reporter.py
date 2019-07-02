@@ -155,6 +155,11 @@ class MethodReporter( object ):
 			Glyphs.showMacroWindow()
 			eval("help(%s)"%method)
 			
+			# add () at end of functions
+			typeString = type(eval(method)).__name__
+			if typeString != "property":
+				method+="()"
+				
 			# puts method in clipboard:
 			if not setClipboard(method):
 				print "Warning: could not set clipboard."
