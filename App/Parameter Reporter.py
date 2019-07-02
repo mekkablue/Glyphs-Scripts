@@ -137,7 +137,7 @@ class ParameterReporter( object ):
 			filterStrings = filterStringEntry.split(" ")
 			
 			try:
-				ParameterList = sorted(set(self.fontParameters + self.instanceParameters + self.masterParameters))
+				ParameterList = sorted( set(self.fontParameters + self.instanceParameters + self.masterParameters), key=lambda thisName: thisName.lower() )
 				for filterString in filterStrings:
 					if not "*" in filterString:
 						ParameterList = [ f for f in ParameterList if filterString.lower() in f.lower() ]
