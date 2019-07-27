@@ -4,11 +4,8 @@ __doc__="""
 Makes sure all anchors are replicated in all layers in the same relative positions.
 """
 
-
-
 thisFont = Glyphs.font # frontmost font
-thisFontMaster = thisFont.selectedFontMaster # active master
-listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 
 def allAnchorsOfThisGlyph( thisGlyph ):
 	anchorDict = {}
@@ -59,11 +56,10 @@ def process( thisGlyph ):
 				reportString += "  %s: %s\n" % ( thisLayer.name, ", ".join(anchorsAdded) )
 		
 	return reportString
-			
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
-for thisLayer in listOfSelectedLayers:
+for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
 	print thisGlyph.name
 	thisGlyph.beginUndo() # begin undo grouping
