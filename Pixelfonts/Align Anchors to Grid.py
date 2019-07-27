@@ -1,10 +1,8 @@
-#MenuTitle: Align anchors to grid
+#MenuTitle: Align Anchors to Grid
 # -*- coding: utf-8 -*-
 __doc__="""
 Looks for anchors not on the grid and rounds their coordinate to the closest grid.
 """
-
-
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
