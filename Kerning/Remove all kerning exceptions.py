@@ -1,4 +1,4 @@
-#MenuTitle: Remove all kerning exceptions
+#MenuTitle: Remove all Kerning Exceptions
 # -*- coding: utf-8 -*-
 __doc__="""
 Removes all kernings glyph-glyph, group-glyph, and glyph-group; only keeps group-group kerning.

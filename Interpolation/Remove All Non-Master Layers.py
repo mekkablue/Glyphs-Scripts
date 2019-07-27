@@ -6,11 +6,9 @@ Goes through selected glyphs and deletes all glyph layers which are not a Master
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
-searchTerms = [ "[]", "{}" ]
 
 def process( thisGlyph ):
 	count = 0
-	
 	numberOfLayers = len( thisGlyph.layers )
 	for i in range( numberOfLayers )[::-1]:
 		thisLayer = thisGlyph.layers[i]

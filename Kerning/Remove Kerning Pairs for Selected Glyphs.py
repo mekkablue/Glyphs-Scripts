@@ -1,4 +1,4 @@
-#MenuTitle: Delete kerning pairs for selected glyphs
+#MenuTitle: Remove Kerning Pairs for Selected Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
 Deletes all kerning pairs with the selected glyphs, for the current master only.

@@ -1,11 +1,10 @@
-#MenuTitle: Delete Small Kerning Pairs
+#MenuTitle: Remove Small Kerning Pairs
 # -*- coding: utf-8 -*-
 __doc__="""
 Specify a kerning value, and every kerning in the current master smaller than that will be removed.
 """
 
 import vanilla
-
 
 def nameForID( Font, ID ):
 	"""Return the name of a group or glyph for a given kerning ID."""

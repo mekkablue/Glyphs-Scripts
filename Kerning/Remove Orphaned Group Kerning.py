@@ -1,4 +1,4 @@
-#MenuTitle: Delete Orphaned Group Kernings
+#MenuTitle: Remove Orphaned Group Kerning
 # -*- coding: utf-8 -*-
 __doc__="""
 Deletes all group kernings refering to groups that are not in the font.
