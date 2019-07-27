@@ -1,13 +1,13 @@
-#MenuTitle: Refresh features without reordering
+#MenuTitle: Update Features without Reordering
 # -*- coding: utf-8 -*-
 __doc__="""
 Refreshes all existing OT features without changing their order or adding new features.
 """
 
+Glyphs.clearLog()
+thisFont = Glyphs.font
 
-Font = Glyphs.font
-
-for thisFeature in Font.features:
+for thisFeature in thisFont.features:
 	thisFeature.update()
 	print "Feature %s updated." % thisFeature.name
 
