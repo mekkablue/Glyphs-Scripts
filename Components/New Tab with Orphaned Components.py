@@ -4,13 +4,10 @@ __doc__="""
 Opens a new tab in the current font window containing all glyphs (of the current master) that have components that point to non-existent glyphs, i.e., no base glyphs.
 """
 
-
-
-
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
 thisFontMasterID = thisFontMaster.id
-listOfOrphanedGlyphNames = []
+orphanedGlyphNames = []
 
 def thisGlyphHasOrphanedComponents( thisGlyph ):
 	returnValue = False
@@ -25,12 +22,12 @@ def thisGlyphHasOrphanedComponents( thisGlyph ):
 
 for thisGlyph in thisFont.glyphs:
 	if thisGlyphHasOrphanedComponents( thisGlyph ):
-		listOfOrphanedGlyphNames.append( thisGlyph.name )
+		orphanedGlyphNames.append( thisGlyph.name )
 
-if listOfOrphanedGlyphNames:
+if orphanedGlyphNames:
 	Glyphs.clearLog()
-	print "Found these glyphs with orphaned components:\n%s" % ", ".join(listOfOrphanedGlyphNames)
-	tabString = "/%s" % "/".join(listOfOrphanedGlyphNames)
+	print "Found these glyphs with orphaned components:\n%s" % ", ".join(orphanedGlyphNames)
+	tabString = "/%s" % "/".join(orphanedGlyphNames)
 	thisFont.newTab( tabString )
 else:
 	# brings macro window to front and clears its log:

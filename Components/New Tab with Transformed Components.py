@@ -1,7 +1,7 @@
-#MenuTitle: New Tab with Flipped Components
+#MenuTitle: New Tab with Transformed Components
 # -*- coding: utf-8 -*-
 __doc__="""
-Opens a new edit tab with components that are mirrored horizontally, vertically, or both.
+Opens a new edit tab with components that are rotated, scaled or flipped, i.e., any transformation beyond mere shifts.
 """
 
 
@@ -13,8 +13,7 @@ listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyph
 def containsTransformedComponents( thisGlyph ):
 	for thisLayer in thisGlyph.layers:
 		for thisComponent in thisLayer.components:
-			firstFourMatrixValues = thisComponent.transform[:4]
-			if firstFourMatrixValues[0] < 0.0 or firstFourMatrixValues[3] < 0.0:
+			if thisComponent.transform[:4] != (1.0,0.0,0.0,1.0):
 				return True
 	return False
 
@@ -29,7 +28,7 @@ if glyphList:
 	thisFont.newTab(tabString)
 else:
 	Message(
-		title="No Mirrored Components",
-		message="No flipped components found in this font.",
+		title="No Transformed Components",
+		message="No rotated, mirrored, or flipped components found in this font.",
 		OKButton="Yeah"
 		)

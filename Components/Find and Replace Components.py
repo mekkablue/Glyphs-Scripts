@@ -1,4 +1,4 @@
-#MenuTitle: Replace Components
+#MenuTitle: Find and Replace Components
 # -*- coding: utf-8 -*-
 __doc__="""
 Replaces components in selected glyphs (GUI).
@@ -9,20 +9,14 @@ import vanilla
 
 def replaceComponent( thisLayer, oldCompName, newCompName ):
 	try:
-		# Doesn't work yet: thisComponent = thisLayer.components[ oldCompName ]
-		# So I have to iterate through the components:
-
-		# GS: thisLayer.components[ oldCompName ] doesn't make much sense as there could be more than one component with that name 
-		
 		for i in range( len( thisLayer.components )):
 			if thisLayer.components[i].componentName == oldCompName:
 				thisLayer.components[i].componentName = newCompName
-				
 	except Exception as e:
 		print "Failed to replace %s for %s in %s." % ( oldCompName, newCompName, thisLayer.parent.name )
 		print e
 
-class Componentreplacer(object):
+class ComponentReplacer(object):
 
 	def __init__( self):
 		self.w = vanilla.FloatingWindow((400, 80), "Replace Components in Selection", minSize=(400, 80), maxSize=(500, 80), autosaveName="com.mekkablue.ReplaceComponents.mainwindow" )
@@ -105,4 +99,4 @@ class Componentreplacer(object):
 		except:
 			return False
 
-Componentreplacer()
+ComponentReplacer()

@@ -1,10 +1,8 @@
-#MenuTitle: Decompose Background
+#MenuTitle: Decompose Components in Background
 # -*- coding: utf-8 -*-
 __doc__="""
 Decomposes components in the Background.
 """
-
-
 
 thisFont = Glyphs.font # frontmost font
 
