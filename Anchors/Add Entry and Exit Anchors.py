@@ -1,10 +1,8 @@
-#MenuTitle: Add Entry and Exit Anchors
+#MenuTitle: Add exit and entry Anchors to Selected Positional Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
-Adds exit and entry anchors to Arabic init, medi and fina glyphs.
+Adds exit and entry anchors to (Arabic) init, medi and fina glyphs, for cursive attachment.
 """
-
-
 
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
