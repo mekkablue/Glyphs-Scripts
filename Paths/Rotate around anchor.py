@@ -1,4 +1,4 @@
-#MenuTitle: Rotate around anchor
+#MenuTitle: Rotate Around Anchor
 # -*- coding: utf-8 -*-
 __doc__="""
 Rotate selected glyphs (or selected paths and components) around a 'rotate' anchor.
