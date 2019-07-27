@@ -44,13 +44,13 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 
 ## App
 
-* **Line Height Decrease:* and **Line Height Increase:** Increases the Edit View line height by a quarter, or decreases it by a fifth. Useful for setting shortcuts if you need to switch between line heights a lot.
+* **Line Height Decrease** and **Line Height Increase:** Increases the Edit View line height by a quarter, or decreases it by a fifth. Useful for setting shortcuts if you need to switch between line heights a lot.
 * **Method Reporter:** GUI for filtering through the method names of Python and PyObjC Classes available from within Glyphs. You can use multiple space-separated search terms (for an AND concatenation) and asterisk as jokers (at the beginning, in the middle and at the end). Double click to put the method name in your clipboard and open help in the Macro Window. Useful for coders. *Needs Vanilla.*
 * **Parameter Reporter:** Like Method Reporter, but for custom parameters. *Needs Vanilla.*
 * **Print Window:** Print the frontmost window. Useful for saving a vector PDF of your window content.
 * **Set Export Paths to Adobe Fonts Folder:** Sets the OpenType font and Variable Font export paths to the Adobe Fonts Folder.
 * **Set Hidden App Preferences:** GUI for reading and setting ‘hidden’ app preferences, which are not listed in the GUI. *Needs Vanilla.*
-* **Set Tool Shortcuts:** Set Shortcuts for tools in toolbar.
+* **Set Tool Shortcuts:** Set keyboard shortcuts for the tools in the toolbar.
 * **Toggle RTL-LTR:** Toggle frontmost tab between LTR and RTL writing direction. Useful for setting a keyboard shortcut in System Preferences.
 
 ## Build Glyphs
