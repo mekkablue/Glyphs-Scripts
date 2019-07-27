@@ -1,4 +1,4 @@
-#MenuTitle: Delete Zero Deltas in Selected Glyphs
+#MenuTitle: Remove Zero Deltas in Selected Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
 Goes through all layers of each selected glyph, and deletes all TT Delta Hints with an offset of zero. Detailed Report in Macro Window.

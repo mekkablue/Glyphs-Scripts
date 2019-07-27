@@ -1,4 +1,4 @@
-#MenuTitle: Delete All Hints in Font
+#MenuTitle: Remove All Hints in Font
 # -*- coding: utf-8 -*-
 __doc__="""
 Deletes all hints throughout the whole font.

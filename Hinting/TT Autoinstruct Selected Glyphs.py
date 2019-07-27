@@ -1,15 +1,11 @@
-#MenuTitle: TT Autoinstruct
+#MenuTitle: TT Autoinstruct Selected Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
 Automatically add Glyphs TT instructions to the selected glyphs in the selected master. (Should be the first master.) Attention: this is NOT Werner Lemberg's ttfAutohint, but the horizontal ClearType hints that the TT Instruction tool would add.
 """
 
-import GlyphsApp
-
-
 thisFont = Glyphs.font # frontmost font
-thisFontMaster = thisFont.selectedFontMaster # active master
-listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 
 def setHintsToNoStem( thisLayer ):
 	returnValue = False
@@ -23,8 +19,8 @@ thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
 Tool = NSClassFromString("GlyphsToolTrueTypeInstructor").alloc().init()
 if Tool:
-	Tool.autohintLayers_(listOfSelectedLayers)
-	for thisLayer in listOfSelectedLayers:
+	Tool.autohintLayers_(selectedLayers)
+	for thisLayer in selectedLayers:
 		setHintsToNoStem( thisLayer )
 else:
 	Message("TT Autoinstruct Error", "The TT Instructor Tool could not be accessed.", OKButton=None)

@@ -1,10 +1,8 @@
-#MenuTitle: Delete Hints in Visible Layers
+#MenuTitle: Remove Hints in Selected Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
-Deletes all hints in active layers of selected glyphs.
+Deletes all hints in active (visible) layers of selected glyphs.
 """
-
-
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
