@@ -1,4 +1,4 @@
-#MenuTitle: All Anchors in All Layers
+#MenuTitle: Put All Anchors in All Layers
 # -*- coding: utf-8 -*-
 __doc__="""
 Makes sure all anchors are replicated in all layers in the same relative positions.

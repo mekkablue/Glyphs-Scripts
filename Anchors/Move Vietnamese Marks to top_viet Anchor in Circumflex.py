@@ -1,7 +1,7 @@
-#MenuTitle: Move acute, grave and hook to top_viet position in all layers
+#MenuTitle: Move Vietnamese Marks to top_viet Anchor in Circumflex
 # -*- coding: utf-8 -*-
 __doc__="""
-Where possible, puts acute, grave, hookabove on 'top_viet' in all selected glyphs. Assumes that you have a 'top_viet' anchor in circumflex. Useful for Vietnamese glyphs.
+Where possible, puts acute(comb), grave(comb), hookabovecomb on 'top_viet' position in all layers in all selected glyphs. Assumes that you have a 'top_viet' anchor in circumflex. Useful for Vietnamese glyphs.
 """
 
 accentsToBeMoved = [ "acute", "grave", "hookabovecomb", "acutecomb", "gravecomb" ]
