@@ -1,4 +1,4 @@
-#MenuTitle: Fill up empty Masters
+#MenuTitle: Fill up Empty Masters
 # -*- coding: utf-8 -*-
 __doc__="""
 Looks for empty layers and copies contents of another layer into it.

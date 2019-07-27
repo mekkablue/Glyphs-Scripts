@@ -1,4 +1,4 @@
-#MenuTitle: Insert instances
+#MenuTitle: Insert Instances
 # -*- coding: utf-8 -*-
 from __future__ import division
 __doc__="""

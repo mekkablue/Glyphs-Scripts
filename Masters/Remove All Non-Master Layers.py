@@ -1,10 +1,8 @@
-#MenuTitle: Delete all non-Master layers
+#MenuTitle: Remove All Non-Master Layers
 # -*- coding: utf-8 -*-
 __doc__="""
 Goes through selected glyphs and deletes all glyph layers which are not a Master, Bracket or Brace layer.
 """
-
-
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
