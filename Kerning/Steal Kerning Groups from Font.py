@@ -1,4 +1,4 @@
-#MenuTitle: Steal kerning groups from font
+#MenuTitle: Steal Kerning Groups from Font
 """Copy kerning groups from one font to another."""
 
 import vanilla
