@@ -1,4 +1,4 @@
-#MenuTitle: Italic Shift Feature
+#MenuTitle: Build Italic Shift Feature
 # -*- coding: utf-8 -*-
 __doc__="""
 Creates and inserts GPOS feature code for shifting glyphs, e.g., parentheses and punctuation for the case feature.
