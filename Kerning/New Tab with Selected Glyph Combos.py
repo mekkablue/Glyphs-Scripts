@@ -5,9 +5,6 @@ Opens a new tab with all possible combinations of currently selected glyphs.
 """
 
 
-from PyObjCTools.AppHelper import callAfter
-
-Doc = Glyphs.currentDocument
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 
@@ -24,4 +21,4 @@ Glyphs.clearLog() # clears macro window log
 print editString
 
 # opens new Edit tab:
-callAfter( Doc.windowController().addTabWithString_, editString )
+Font.newTab( editString )
