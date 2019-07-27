@@ -1,10 +1,8 @@
-#MenuTitle: Delete all open paths
+#MenuTitle: Remove all Open Paths
 # -*- coding: utf-8 -*-
 __doc__="""
 Deletes all paths in visible layers of selected glyphs.
 """
-
-
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers

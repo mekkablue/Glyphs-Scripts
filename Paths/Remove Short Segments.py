@@ -1,4 +1,4 @@
-#MenuTitle: Delete Short Segments
+#MenuTitle: Remove Short Segments
 # -*- coding: utf-8 -*-
 __doc__="""
 Deletes single-unit segments.

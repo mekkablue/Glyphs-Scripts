@@ -1,4 +1,4 @@
-#MenuTitle: Delete Nodes and Try to Keep Shape
+#MenuTitle: Remove Nodes and Try to Keep Shape
 # -*- coding: utf-8 -*-
 __doc__="""
 Delete the selected on-curve nodes, but try to keep the shape of the path. Hold down Shift for balanced handles.
