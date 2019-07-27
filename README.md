@@ -23,43 +23,50 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 # ABOUT THE SCRIPTS
 
 ## Anchors
-* **All Anchors in All Layers:** On each layer of a selected glyph, adds all missing anchors (but present in other layers of that glyph). Puts anchors at an averaged position.
-* **Anchor Mover 1:** GUI for moving anchors vertically in multiple glyphs. Handy for getting all top anchors right after changing your cap height. *Needs Vanilla.*
-* **Anchor Mover 2:** GUI for batch-processing anchor positions in multiple glyphs. *Needs Vanilla.*
-* **Combining Accent Maker:** Goes through your selected (spacing) marks and adds a combining (non-spacing), component-based copy of it to your font, e.g., for *acute* and *dieresis.case*, it will add *acutecomb* and *dieresiscomb.case*.
-* **Create .case Variants of Combining Marks:** Creates missing .case duplicates of combining marks and shifts them above the cap height. Respects italic angle.
-* **Delete Anchors:** Deletes anchors with a specified name in selected glyphs (or the whole font). *Needs Vanilla.*
-* **Delete Entry and Exit Anchors:** Deletes all cursive attachment anchors (exit, entry and its variants) in visible layers of selected glyphs.
+* **Anchor Mover:** GUI for batch-processing anchor positions in multiple glyphs. *Needs Vanilla.*
 * **Find and Replace in Anchor Names:** GUI for replacing text in the names of anchors in selected glyphs. Processes all layers. *Needs Vanilla.*
-* **Insert Anchors into Ligatures:** Copies base glyph anchors with number extensions into selected ligatures. E.g., if c has top and bottom, and e has top, bottom, and ogonek, the c_e ligature will get top_1, bottom_1, top_2, bottom_2, and ogonek_2. Horizontally adapts the anchor positioning to the width of the ligature. Ignores non-ligatures and glyph name extensions.
-* **Move accents to custom anchors:** Moves accents to a custom anchor in the base glyph if available. E.g.: assuming glyph "A" has both "top" and "top_acute" anchors, if you run the script on "Aacute" and "Adieresis", it will move the acute on "top_acute", but leave the dieresis where it is.
-* **Move acute, grave and hook to *top_viet*:** Moves *acute*, *grave* and *hookabovecomb* to the *top_viet* anchor in every layer of selected glyphs. Useful for Vietnamese double accents. Assumes that you have *top_viet* anchors in all layers of *circumflexcomb*.
-* **New Tab with Anchor:** Opens a new tab with all glyphs containing a specific anchor.
+* **Fix Arabic Anchor Order in Ligatures:** Fixes the order of *top_X* and *bottom_X* anchors to RTL. In files converted from a different format, it sometimes happens that *top_1* is left of *top_2*, but it should be the other way around, otherwise your mark2liga will mess up. This script goes through your selected glyphs, and if they are Arabic ligatures, reorders all anchors to RTL order, at the same time not touching their coordinates.
+* **Insert All Anchors in All Layers:** On each layer of a selected glyph, adds all missing anchors (but present in other layers of that glyph). Puts anchors at an averaged position.
+* **Insert exit and entry Anchors to Selected Positional Glyphs:** Adds entry and exit anchors for cursive attachment in selected glyphs. By default, it places the exit at (0, 0) and the entry at a node at RSB if such a node exists. Please adjust for your own needs.
+* **Move ogonek Anchors to Baseline Intersection:**
+* **Move topright Anchors for Vertical Carons:**
+* **Move Vietnamese Marks to top_viet Anchor in Circumflex:** Moves *acute*, *grave* and *hookabovecomb* to the *top_viet* anchor in every layer of selected glyphs. Useful for Vietnamese double accents. Assumes that you have *top_viet* anchors in all layers of *circumflexcomb*.
+* **New Tab with Glyphs Containing Anchor:** Opens a new tab with all glyphs containing a specific anchor.
 * **New Tab with top and bottom Anchors Not on Metric Lines:** Report the y positions of all *top* and *bottom* anchors into the Macro Panel, and opens new tabs with all glyphs that have a stray anchor on any of the master, bracket or brace layers of any glyph in the font. Ignores the user selection, and analyses all glyphs, exporting and non-exporting. Useful to see if a top anchor is not exactly where it should be.
-* **Remove Anchors in Suffixed Glyphs:** Removes all anchors from glyphs with one of the user-specified suffix.
-* **Replicate Anchors:** Goes through selected dot-suffixed glyphs and duplicates anchors from their respective base glyphs. E.g. will recreate anchors of *X* in *X.ss01*, *X.swsh* and *X.alt*.
-* **Reposition top & bottom Anchors in Combining Accents:** In stacking combining accents, moves top and bottom anchors exactly above or below the respective _top and _bottom anchors, respecting the italic angle. This way, stacking multiple nonspacing accents will always stay in line.
+* **Prefix all exit/entry anchors with a hashtag:**
+* **Remove Anchors in Suffixed Glyphs:** Removes all anchors from glyphs with one of the user-specified suffix. *Needs Vanilla.*
+* **Remove Anchors:** Deletes anchors with a specified name in selected glyphs (or the whole font). *Needs Vanilla.*
+* **Remove Non-Standard Anchors from Selected Glyphs:**
+* **Replicate Anchors in Suffixed Glyphs:** Goes through selected dot-suffixed glyphs and duplicates anchors from their respective base glyphs. E.g. will recreate anchors of *X* in *X.ss01*, *X.swsh* and *X.alt*.
+* **Report Non-Standard Anchors to Macro Window:**
+* **Reposition top and bottom Anchors in Combining Accents:** In stacking combining accents, moves top and bottom anchors exactly above or below the respective _top and _bottom anchors, respecting the italic angle. This way, stacking multiple nonspacing accents will always stay in line.
 
 ## App
-* **Fix Stuck Macro Window:** If you cannot resize your Macro window anymore, run this script.
-* **Increase** and **Decrease Line Height:** Increases the Edit View line height by a quarter, or decreases it by a fifth. Useful for setting shortcuts if you need to switch between line heights a lot.
-* **Kill background processes:** Terminates all makeotfGlyphs processes. If your fan keeps screaming after exporting a font, or after cancelling a font export, then run this script and see if it helps.
+* **Line Height Decrease:* and **Line Height Increase:** Increases the Edit View line height by a quarter, or decreases it by a fifth. Useful for setting shortcuts if you need to switch between line heights a lot.
 * **Method Reporter:** GUI for filtering through the method names of Python and PyObjC Classes available from within Glyphs. You can use multiple space-separated search terms (for an AND concatenation) and asterisk as jokers (at the beginning, in the middle and at the end). Double click to put the method name in your clipboard and open help in the Macro Window. Useful for coders. *Needs Vanilla.*
 * **Parameter Reporter:** Like Method Reporter, but for custom parameters. *Needs Vanilla.*
-* **Paste in View Center:** Pastes paths and components in the clipboard into the current view center of the Edit view. Useful for setting a shortcut.
 * **Print Window:** Print the frontmost window. Useful for saving a vector PDF of your window content.
-* **Save Selected Glyphs as PNG:** Saves selected glyphs as PNGs in a user-specified folder.
 * **Set Export Paths to Adobe Fonts Folder:** Sets the OpenType font and Variable Font export paths to the Adobe Fonts Folder.
 * **Set Hidden App Preferences:** GUI for reading and setting ‘hidden’ app preferences, which are not listed in the GUI. *Needs Vanilla.*
 * **Set Tool Shortcuts:** Set Shortcuts for tools in toolbar.
-* **SVN Update:** Issue an `svn update` with the supplied paths. Reports results and errors to the Macro Window. *Needs Vanilla.*
+* **Toggle RTL-LTR:** Toggle frontmost tab between LTR and RTL writing direction. Useful for setting a keyboard shortcut in System Preferences.
 
-## Arabic
-* **Add Entry and Exit:** Adds entry and exit anchors for cursive attachment in selected glyphs. By default, it places the exit at (0, 0) and the entry at a node at RSB if such a node exists. Please adjust for your own needs.
-* **Align All Arabic Double Marks in Current Master:** Substitute for automatic alignment in Arabic double marks. Goes through all Arabic compound mark ligatures in the current master, and aligns all the mark components according to their anchor positions (top, _top, and bottom, _bottom).
-* **AXt Converter:** Converts the MacRoman glyph names (used in legacy AXt fonts) into nice names as employed by Glyphs. Attention: the script is still a work in progress. Suggestions are very welcome in the Wiki: https://github.com/mekkablue/Glyphs-Scripts/wiki/AXt-Converter
-* **Fix Arabic Anchor Order in Ligatures:** Fixes the order of *top_X* and *bottom_X* anchors to RTL. In files converted from a different format, it sometimes happens that *top_1* is left of *top_2*, but it should be the other way around, otherwise your mark2liga will mess up. This script goes through your selected glyphs, and if they are Arabic ligatures, reorders all anchors to RTL order, at the same time not touching their coordinates.
-* **Toggle RTL/LTR:** Toggle frontmost tab between LTR and RTL writing direction. Useful for setting a keyboard shortcut in System Preferences.
+## Build Glyphs
+
+* **Build APL Greek:** Create APL Greek glyphs.
+* **Build careof and cadauna:** Builds cadauna and careof from your c, u and fraction glyphs.
+* **Build Circled Glyphs:** Builds circled numbers and letters (U+24B6...24EA and U+2460...2473) from _part.circle and your letters and figures.
+* **Build Dotted Numbers:** Build dotted numbers from your default figures and the period.
+* **Build estimated, bar, brokenbar:** Creates an estimated glyph and draws an estimated sign in it. Does the same for bar and brokenbar, for which it respects standard stems and italic angle. Does not overwrite existing glyphs.
+* **Build Extra Math Symbols:** Builds lessoverequal, greateroverequal, bulletoperator, rightanglearc, righttriangle, sphericalangle, measuredangle, sunWithRays, positionIndicator, diameterSign, viewdataSquare, control.
+* **Build Ldot and ldot:** Builds Ldot, ldot and ldot.sc from existing L and periodcentered.loclCAT(.case/.sc).
+* **Build notdef:** Creates a .notdef from your boldest available question mark.
+* **Build Parenthesized Glyphs:** Creates parenthesized letters and numbers: one.paren, two.paren, three.paren, four.paren, five.paren, six.paren, seven.paren, eight.paren, nine.paren, one_zero.paren, one_one.paren, one_two.paren, one_three.paren, one_four.paren, one_five.paren, one_six.paren, one_seven.paren, one_eight.paren, one_nine.paren, two_zero.paren, a.paren, b.paren, c.paren, d.paren, e.paren, f.paren, g.paren, h.paren, i.paren, j.paren, k.paren, l.paren, m.paren, n.paren, o.paren, p.paren, q.paren, r.paren, s.paren, t.paren, u.paren, v.paren, w.paren, x.paren, y.paren, z.paren.
+* **Build Q from O and _tail.Q:** Run this script *after* doing *Component from Selection* on the Q tail and naming it `_tail.Q`.
+* **Build Small Figures:** Takes a default set of figures (e.g., dnom), and derives the others (.numr, superior/.sups, inferiour/.sinf, .subs) as component copies. Respects the italic angle.
+* **Build small letter SM, TEL:** Creates the glyphs: `servicemark`, `telephone`.
+* **Build space glyphs:** Creates mediumspace-math, emquad, emspace, enquad, enspace, figurespace, fourperemspace, hairspace, narrownbspace, punctuationspace, sixperemspace, nbspace, thinspace, threeperemspace, zerowidthspace.
+* **Quote Manager:** Build double quotes from single quotes, and insert #exit and #entry anchors in the single quotes for auto-alignment. You need to have the single quotes already.
 
 ## Components
 * **Align All Components:** Fakes auto-alignment in glyphs that cannot be auto-aligned.
@@ -80,11 +87,8 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 * **Remove Components:** Removes the specified component from all glyphs or all selected glyphs. *Needs Vanilla.*
 * **Replace all Paths with Component:** Replaces all paths with a component. *Needs Vanilla.*
 * **Replace components:** Relinks components in selected glyphs to a new source glyph. *Needs Vanilla.*
-
-## Effects Scripts
-* **Wackelpudding** and **Beowulferize:** Select some or all glyphs in the Font tab, then run the script. It will create alternates of the selected glyphs and create a pseudorandom calt feature. Activate it by selecting Contextual Alternates in e.g. InDesign.
-* **Baseline Wiggle:** Creates a pos feature that randomly displaces the glyphs while you type.
 * **Stitcher:** In selected glyphs, the Stitcher inserts components on your paths at fixed intervals. Useful for turning open paths (monolines) into dotted lines. Use an anchor called 'origin' for determining the component position in stitched letters. *Needs Vanilla.*
+
 
 ## Features
 * **Build ccmp for Hebrew Presentation Forms:** Builds or updates a Hebrew ccmp feature, where presentation forms (Unicode FBxx) are prebuilt like ligatures if present in the font.
