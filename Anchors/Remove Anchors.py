@@ -1,4 +1,4 @@
-#MenuTitle: Delete Anchors
+#MenuTitle: Remove Anchors
 # -*- coding: utf-8 -*-
 __doc__="""
 Delete anchors from selected glyphs, or whole font.
@@ -15,7 +15,7 @@ class AnchorDeleter( object ):
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			( windowWidth, windowHeight ), # default window size
-			"Delete Anchors", # window title
+			"Remove Anchors", # window title
 			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
 			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
 			autosaveName = "com.mekkablue.AnchorDeleter.mainwindow" # stores last window position and size

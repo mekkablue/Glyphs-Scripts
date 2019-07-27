@@ -1,4 +1,4 @@
-#MenuTitle: New Tab with Anchor
+#MenuTitle: New Tab with Glyphs Containing Anchor
 # -*- coding: utf-8 -*-
 __doc__="""
 Opens a new tab with all glyphs containing a specific anchor.

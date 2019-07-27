@@ -1,7 +1,7 @@
-#MenuTitle: Put All Anchors in All Layers
+#MenuTitle: Put All Anchors into All Layers
 # -*- coding: utf-8 -*-
 __doc__="""
-Makes sure all anchors are replicated in all layers in the same relative positions.
+Makes sure all anchors are replicated in all layers in the same relative positions. Good for fixing anchor compatibility.
 """
 
 thisFont = Glyphs.font # frontmost font
