@@ -1,19 +1,14 @@
-#MenuTitle: Delete Local Guidelines
+#MenuTitle: Remove Local Guides in Selected Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
-Delete all local guidelines in selected glyphs.
+Delete all local (blue) guides in selected glyphs.
 """
 
-
-
-print "Deleting guidelines in:"
+print "Deleting guides in:"
 
 for thisLayer in Glyphs.font.selectedLayers:
 	thisGlyph = thisLayer.parent
-	# delete guidelines:
 	thisGlyph.beginUndo()
-	thisLayer.guideLines = []
+	thisLayer.guideLines = None
 	thisGlyph.endUndo()
-	
-	# report glyph name:
 	print "  %s" % thisGlyph.name

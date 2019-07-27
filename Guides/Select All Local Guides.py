@@ -1,4 +1,4 @@
-#MenuTitle: Select All Local Guides
+#MenuTitle: Select All Local Guides in Selected Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
 Selects all guides in the selected glyph(s).
