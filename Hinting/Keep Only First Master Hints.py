@@ -4,28 +4,18 @@ __doc__="""
 In selected glyphs, delete all hints in all layers except for the first master. Respects Bracket Layers.
 """
 
-
-
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 selectedGlyphs = [ l.parent for l in selectedLayers ]
 firstMasterName = Font.masters[0].name
 
-print "Only keeping first master hints:"
-
-def removeHints( thisLayer ):
-	for x in reversed( range( len( thisLayer.hints ))):
-		del thisLayer.hints[x]
-		
-Font.disableUpdateInterface()
+Glyphs.clearLog()
+print "Only keeping first-master hints in:"
 
 for thisGlyph in selectedGlyphs:
-	print "Processing", thisGlyph.name
+	print "- %s" % thisGlyph.name
 	layersToBeProcessed = [ l for l in thisGlyph.layers if not l.name.startswith( firstMasterName ) ]
-
 	for thisLayer in layersToBeProcessed:
-		removeHints( thisLayer )
-
-Font.enableUpdateInterface()
+		thisLayer.hints = None
 
 print "Done."
