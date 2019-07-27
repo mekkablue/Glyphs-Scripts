@@ -1,10 +1,8 @@
-#MenuTitle: Delete metrics keys
+#MenuTitle: Remove Metrics Keys
 # -*- coding: utf-8 -*-
 __doc__="""
-Deletes left and right metrics keys in all layers of all selected glyphs.
+Deletes left and right metrics keys, in all layers of all selected glyphs.
 """
-
-
 
 Glyphs.clearLog() # clears macro window log
 thisFont = Glyphs.font # frontmost font

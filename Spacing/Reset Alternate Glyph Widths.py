@@ -1,9 +1,8 @@
-#MenuTitle: Reset alternate glyph widths
+#MenuTitle: Reset Alternate Glyph Widths
 # -*- coding: utf-8 -*-
 __doc__="""
 Sets the width of selected .ss01 (or any other extension) widths in the font to the width of their base glyphs. E.g. A.ss01 will have the same width as A.
 """
-
 
 Font = Glyphs.font
 FontMaster = Font.selectedFontMaster
