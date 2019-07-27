@@ -1,4 +1,4 @@
-#MenuTitle: Delete components out of bounds
+#MenuTitle: Delete Components out of Bounds
 # -*- coding: utf-8 -*-
 __doc__="""
 Looks for components out of bounds.

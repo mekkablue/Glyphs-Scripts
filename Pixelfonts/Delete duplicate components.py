@@ -1,4 +1,4 @@
-#MenuTitle: Delete duplicate components
+#MenuTitle: Delete Duplicate Components
 # -*- coding: utf-8 -*-
 __doc__="""
 Looks for duplicate components (same component, same x/y values) and keeps only one of them.
