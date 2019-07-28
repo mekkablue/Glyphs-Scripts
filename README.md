@@ -126,29 +126,31 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 
 ## Features
 
-* **Activate Default Features:** In the current Edit tab, activates all OT features that should be on by default.
+* **Activate Default Features:** In the current Edit tab, activates all OT features that are recommended to be on by default (according to the spec).
 * **Build Italic Shift Feature:** Creates and inserts GPOS feature code for shifting glyphs, e.g., parentheses and punctuation for the case feature. *Needs Vanilla.*
-* **Build Positional calt Feature:** Looks for .init, .medi, .fina, and .isol glyphs, and injects positional substitution code into your calt feature. If run again, will update its class and feature code.
-* **Feature Code Tweaks:** Adds tweaks to OT feature code. Reports in Macro window. *Needs Vanilla.*
+* **Build Positional calt Feature:** Looks for .init, .medi, .fina, and .isol glyphs, and injects positional substitution code into your calt feature. If run again, will update its class and feature code. See this tutorial for more info: https://glyphsapp.com/tutorials/features-part-4-positional-alternates
+* **Feature Code Tweaks:** Adds tweaks to OT feature code. Reports in Macro window. Careful: if you do not understand an option, do not use it. *Needs Vanilla.*
 * **Floating Features:** Floating palettes for activating and deactivating OT features. Same functionality as the pop-up menu. *Needs Vanilla.*
-* **Fraction Fever 2:** Insert Tal Leming’s Fraction Fever 2 code into the font.
+* **Fraction Fever 2:** Insert Tal Leming’s Fraction Fever 2 code into the font. Read more in this tutorial: https://glyphsapp.com/tutorials/fractions
 * **New OT Class with Selected Glyphs:** GUI for creating a new OT class with the selected glyphs. *Needs Vanilla.*
 * **New Tab with OT Class:** GUI for opening all glyphs in an OT class (listed in *File > Font Info > Features > Classes*) in a new tab. *Needs Vanilla.*
 * **Update Features without Reordering:** Goes through the existing features in the font and refreshes each one of them. Does neither add nor reorder features.
 * * **Stylistic Sets > Synchronize ssXX glyphs:** Creates missing ssXX glyphs so that you have synchronous groups of ssXX glyphs. E.g. you have *a.ss01 b.ss01 c.ss01 a.ss02 c.ss02* --> the script creates *b.ss02*
 * * **Stylistic Sets > Create ssXX from layer:** Takes the current layer and copies it to the primary layer of a new .ssXX glyph.
-* * **Stylistic Sets > Create pseudorandom calt feature:** Creates pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font. Update: now includes the default class in the rotation algorithm.
+* * **Stylistic Sets > Create pseudorandom calt feature:** Creates pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font. Also includes the default class in the rotation algorithm.
 
 ## Font Info
+
+*Set Vertical Metrics is useful for syncing the OS/2 and hhea parameters in Font Info > Masters across all masters. Clean Version String is probably the most important one in this category. Careful about Set WWS/Preferred Names scripts: The app usually takes care of naming automtaically, so their use cases are very rare.*
 
 * **Clean Version String:** Adds a clean versionString parameter, and disables ttfAutohint info in the version string. The exported font will have a version string consisting only of ‘Version X.XXX’.
 * **Find and Replace In Instance Parameters:** Finds and Replace in Custom Parameters of selected instances of the current font or project file.
 * **Font Info Overview:** Lists some Font Info values for all opened fonts.
-* **Set Preferred Names (Name IDs 16 and 17)  for Width Variants:** Sets Preferred Names custom parameters (Name IDs 16 and 17) for all instances, so that width variants will appear in separate menus in Adobe apps.
+* **Set Preferred Names (Name IDs 16 and 17)  for Width Variants:** Sets Preferred Names custom parameters (Name IDs 16 and 17) for all instances, so that width variants will appear in separate menus in Adobe apps. 
 * **Set Style Linking:** Attempts to set the Bold/Italic bits.
 * **Set Time of Font Date to High Noon:** In the *Creation Date* in *Font Info > Font,* sets the time (invisible in the UI) to 12:00:00 o’clock.
 * **Set Vertical Metrics for All Masters:** Adds vertical metrics for all masters, or propagates all current master metrics to all other masters. The latter is useful if you have set vertical metrics for one master already. In that case, select the master (Cmd-1,2,3…) and run the script.
-* **Set WWS Names (Name IDs 21 and 22):** Sets WWS custom parameters (Name IDs 21 and 22) for all instances where necessary: Puts all info except RIBBI into the WWSFamilyName, and only keeps RIBBI for the WWSSubfamilyName.
+* **Set WWS Names (Name IDs 21 and 22):** Sets WWS custom parameters (Name IDs 21 and 22) for all instances where necessary: Puts all info except RIBBI into the WWSFamilyName, and only keeps RIBBI for the WWSSubfamilyName. 
 
 ## Glyph Names, Notes and Unicode
 
@@ -163,12 +165,16 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 
 ## Guides
 
+*These scripts are mostly intended for cleaning up the plethora of guides I see when working on third-party fonts.*
+
 * **Guides through All Selected Nodes:** Lays guides through all selected nodes in current glyph. Tries to avoid duplicate guides.
 * **Remove Global Guides in Current Master:** Deletes all global (red) guides in the current master.
 * **Remove Local Guides in Selected Glyphs:** Deletes all local (blue) guides in selected glyphs.
 * **Select All Local Guides:** Selects all local (blue) guides (in all selected glyphs).
 
 ## Hinting
+
+*Most important: Set blueScale, Set Family Alignment Zones for PostScript hinting. If you are making big changes, The Transfer and Keep Only scripts can save you a lot of work. The New Tab scripts help find glyphs missing zones. Also consider Paths > Find Near Vertical Misses for that purpose.*
 
 * **Add Hints for Selected Nodes:** Adds hints for the selected nodes. Tries to guess whether it should be H or V. If exactly one node inside a zone is selected, it will add a Ghost Hint. Useful for setting a shortcut in System Prefs.
 * **Add TTF Autohint Control Instructions for Current Glyph:** Adds a touch line for a given up/down amount to the Control Instructions of the current instance. *Needs Vanilla.*
