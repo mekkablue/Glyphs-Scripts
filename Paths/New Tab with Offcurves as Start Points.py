@@ -33,7 +33,7 @@ else:
 	Message(
 		title="No Starting Offcurves Found", 
 		message="There are no layers that have an offcurve as start point. Congratulations!", 
-		OKButton=None
+		OKButton="Good"
 	)
 
 
