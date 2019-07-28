@@ -35,7 +35,11 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 
 # ABOUT THE SCRIPTS
 
+> All the scripts show a tooltip when you hover the mouse pointer over their menu entry. In scripts with a GUI, most UI elements (checkboxes, text entry fields, etc.) have tooltips as well. This way you get the explanation you need right where it counts.
+
 ## Anchors
+
+*Anchor Mover is for batch-processing anchor positions. Can be useful after adjusting the x-height. No-brainer: I always use the Repostion script on my combining marks, so stacking combining marks stays in the italic angle.*
 
 * **Anchor Mover:** GUI for batch-processing anchor positions in multiple glyphs. *Needs Vanilla.*
 * **Find and Replace in Anchor Names:** GUI for replacing text in the names of anchors in selected glyphs. Processes all layers. *Needs Vanilla.*
@@ -56,6 +60,8 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **Reposition top and bottom Anchors in Combining Accents:** In stacking combining accents, moves top and bottom anchors exactly above or below the respective _top and _bottom anchors, respecting the italic angle. This way, stacking multiple nonspacing accents will always stay in line.
 
 ## App
+
+*If you are coding, add a keyboard shortcut for Method Reporter, you will need this a lot. Print Window can come in handy if you want a resolution-independent PDF screenshot of your window content. Best for post-processing in a vector illustration app.*
 
 * **Line Height Decrease** and **Line Height Increase:** Increases the Edit View line height by a quarter, or decreases it by a fifth. Useful for setting shortcuts if you need to switch between line heights a lot.
 * **Method Reporter:** GUI for filtering through the method names of Python and PyObjC Classes available from within Glyphs. You can use multiple space-separated search terms (for an AND concatenation) and asterisk as jokers (at the beginning, in the middle and at the end). Double click to put the method name in your clipboard and open help in the Macro window. Useful for coders. *Needs Vanilla.*
@@ -87,6 +93,8 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 
 ## Color Fonts
 
+*These scripts are for situations you will encounter in a Color Font workflow. The Merge script is mainly for creating a fallback glyph for CPAL/COLR fonts. This way the fallback has the full bbox, and no clipping will occur in Chrome.*
+
 * **Convert Layerfont to CPAL+COLR Font:** Turns a layered color font into a single-master font with a CPAL and COLR layers in each glyph. It will take the first master as default.
 * **Delete Non-Color Layers in Selected Glyphs:** Deletes all sublayers in all glyphs that are not of type "Color X" (CPAL/COLR layers).
 * **Merge All Other Masters in Current Master:** In selected glyphs, copies all paths from other masters onto the current master layer.
@@ -108,6 +116,8 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 
 ## Components
 
+*Populate Backgrounds with Components is very useful when you build letters based on other, e.g., ae or oe can take an e in the background. The script puts the e in the background of each master, and the UI has an option to align selected points with the e in the background. If you use corner components for serifs in a multiple-master font, the Propagate script will save you a lot of time.*
+
 * **Alignment Manager:** Enables or disables automatic alignment for all components on visible layers in selected glyphs. Does the same as the command in the context menu, but you can do it in one step for many glyphs. *Needs Vanilla.*
 * **Decompose Components in Background:** Decomposes background layers of selected glyphs. Only works on the current master.
 * **Decompose Corner and Cap Components:** Decomposes all corner and cap components in selected glyphs. Reports to Macro window.
@@ -125,6 +135,8 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **Sync Components Across Masters:** Takes the current layer’s components, and resets all other masters to the same component structure. Ignores paths and anchors.
 
 ## Features
+
+*In script typefaces, you may often need the Build Positional calt script. If you find yourself turning OT features on and off a lot, take a look at the Activate Default Features and Floating Features scripts. And check out the Set Palette from Window > Plugin Manager.*
 
 * **Activate Default Features:** In the current Edit tab, activates all OT features that are recommended to be on by default (according to the spec).
 * **Build Italic Shift Feature:** Creates and inserts GPOS feature code for shifting glyphs, e.g., parentheses and punctuation for the case feature. *Needs Vanilla.*
@@ -304,8 +316,10 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 
 ## Smallcaps
 
-* **Check Small Cap Consistency:** Performs a few tests on your SC set and reports into the Macro window.
-* **Copy Kerning from Caps to Small Caps:** Looks for cap kerning pairs and reduplicates their kerning for corresponding .sc glyphs, if they are available in the font. Please be careful: Will overwrite existing SC kerning pairs.
+*When I have Smallcaps in my font, I always run Check Smallcap Consistency. Take its report with a grain of salt though: it lists a lot of false positives, and not every warning is equally important.*
+
+* **Check Smallcap Consistency:** Performs a few tests on your SC set and reports into the Macro window, especially kerning groups and glyph set.
+* **Copy Kerning from Caps to Smallcaps:** Looks for cap kerning pairs and reduplicates their kerning for corresponding .sc glyphs, if they are available in the font. Please be careful: Will overwrite existing SC kerning pairs.
 
 ## Spacing
 

@@ -1,4 +1,4 @@
-#MenuTitle: Copy Kerning from Caps to Small Caps
+#MenuTitle: Copy Kerning from Caps to Smallcaps
 # -*- coding: utf-8 -*-
 __doc__="""
 Looks for cap kerning pairs and reduplicates their kerning for corresponding .sc glyphs, if they are available in the font. Please be careful: Will overwrite existing SC kerning pairs.

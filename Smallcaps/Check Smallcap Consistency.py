@@ -1,7 +1,7 @@
-#MenuTitle: Check Small Cap Consistency
+#MenuTitle: Check Smallcap Consistency
 # -*- coding: utf-8 -*-
 __doc__="""
-Checks some parameters (kerning groups, availability)
+Performs a few tests on your SC set and reports into the Macro window, especially kerning groups and glyph set.
 """
 
 
