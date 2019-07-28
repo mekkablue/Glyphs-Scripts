@@ -305,8 +305,10 @@ The scripts require Glyphs 2.x running on macOS 10.9 or later. I can only test t
 
 # License
 
-Copyright 2011-2015, 2019 Rainer Erich Scheichelbauer (@mekkablue).
+Copyright 2011 The mekkablue Glyphs-Scripts Project Authors.
+
 Some code samples by Georg Seifert (@schriftgestalt) and Tal Leming (@typesupply).
+
 Some algorithm input by Christoph Schindler (@hop) and Maciej Ratajski (@maciejratajski).
 
 Licensed under the Apache License, Version 2.0 (the "License");
