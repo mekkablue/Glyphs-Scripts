@@ -165,35 +165,42 @@ class QuoteManager( object ):
 		return defaultSingle, defaultDouble
 	
 	def kernGroupMain( self, sender ):
-		# update settings to the latest user input:
-		if not self.SavePreferences( self ):
-			print "Note: 'Quote Manager' could not write preferences."
+		try:
+			# update settings to the latest user input:
+			if not self.SavePreferences( self ):
+				print "Note: 'Quote Manager' could not write preferences."
 		
-		Glyphs.clearLog()
-		Font = Glyphs.font # frontmost font
-		dotSuffix = self.getDotSuffix()
+			Glyphs.clearLog()
+			Font = Glyphs.font # frontmost font
+			dotSuffix = self.getDotSuffix()
 
-		# report:
-		self.reportFont()
+			# report:
+			self.reportFont()
 		
-		for keyGlyphName in names:
-			singleQuoteName = "%s%s" % (keyGlyphName, dotSuffix)
-			singleQuote = Font.glyphs[singleQuoteName]
-			doubleQuoteName = "%s%s" % (names[keyGlyphName], dotSuffix)
-			doubleQuote = Font.glyphs[doubleQuoteName]
+			for keyGlyphName in names:
+				singleQuoteName = "%s%s" % (keyGlyphName, dotSuffix)
+				singleQuote = Font.glyphs[singleQuoteName]
+				doubleQuoteName = "%s%s" % (names[keyGlyphName], dotSuffix)
+				doubleQuote = Font.glyphs[doubleQuoteName]
 			
-			print "\nSetting kern groups for: %s, %s" % (singleQuoteName, doubleQuoteName)
+				print "\nSetting kern groups for: %s, %s" % (singleQuoteName, doubleQuoteName)
 			
-			if not singleQuote:
-				self.reportMissingGlyph(singleQuoteName)
-			else:
-				if not doubleQuote:
-					self.reportMissingGlyph(doubleQuoteName)
+				if not singleQuote:
+					self.reportMissingGlyph(singleQuoteName)
+				elif not doubleQuote:
+						self.reportMissingGlyph(doubleQuoteName)
 				else:
 					for glyph in (singleQuote, doubleQuote):
 						glyph.leftKerningGroup = singleQuoteName
 						glyph.rightKerningGroup = singleQuoteName
 					print u"✅ Succesfully set kerning groups to: '%s'" % singleQuoteName
+					
+		except Exception as e:
+			# brings macro window to front and reports error:
+			Glyphs.showMacroWindow()
+			print "Quote Manager Error: %s" % e
+			import traceback
+			print traceback.format_exc()
 	
 	def insertAnchorsMain( self, sender ):
 		try:
@@ -231,57 +238,54 @@ class QuoteManager( object ):
 					else:
 						print "\n%s/%s:" % (singleName, doubleName)
 
-						if not Font.glyphs[singleName]:
+						g = Font.glyphs[singleName] # single quote glyph
+						gg = Font.glyphs[doubleName] # double quote glyph
+
+						if not g:
 							self.reportMissingGlyph(singleName)
-						elif not Font.glyphs[doubleName]:
+						elif not gg:
 							self.reportMissingGlyph(doubleName)
 						else:
-							g = Font.glyphs[singleName] # single quote glyph
-							gg = Font.glyphs[doubleName] # double quote glyph
-						
-							if not g:
-								self.reportMissingGlyph(singleName)
-							elif not gg:
-								self.reportMissingGlyph(doubleName)
-							else:
-								for master in Font.masters:
-									mID = master.id
-									gl = g.layers[mID] # single quote layer
-									ggl = gg.layers[mID] # double quote layer
+							for master in Font.masters:
+								mID = master.id
+								gl = g.layers[mID] # single quote layer
+								ggl = gg.layers[mID] # double quote layer
+								
+								# check if a default quote has been determined by the user:
+								if defaultSingle:
+									referenceGlyph = Font.glyphs[defaultDouble]
+									referenceLayer = referenceGlyph.layers[mID]
+								else:
+									referenceGlyph = gg
 									referenceLayer = ggl # layer for measuring, depends on user input
-									
-									# check if a default quote has been determined by the user:
-									if defaultSingle:
-										referenceGlyph = Font.glyphs[defaultDouble]
-										referenceLayer = referenceGlyph.layers[mID]
 
-									# measure referenceLayer:
-									xPos = [c.position.x for c in referenceLayer.components]
-									if xPos and len(xPos)==2:
-							
-										# add anchors in single quote:
-										print xPos[1]-xPos[0], master.name
-										dist = abs(xPos[1]-xPos[0])
-										for aName in ("entry","exit"):
-											if aName == "exit":
-												x = dist
-											else:
-												x = 0
-											newAnchor = GSAnchor( "#%s"%aName, NSPoint(x,0) )
-											gl.anchors.append(newAnchor)
-										print u"    ✅ %s: Added #exit and #entry anchors." % g.name
+								# measure referenceLayer:
+								xPos = [c.position.x for c in referenceLayer.components]
+								if xPos and len(xPos)==2:
+						
+									# add anchors in single quote:
+									print xPos[1]-xPos[0], master.name
+									dist = abs(xPos[1]-xPos[0])
+									for aName in ("entry","exit"):
+										if aName == "exit":
+											x = dist
+										else:
+											x = 0
+										newAnchor = GSAnchor( "#%s"%aName, NSPoint(x,0) )
+										gl.anchors.append(newAnchor)
+									print u"    ✅ %s: Added #exit and #entry anchors." % g.name
 
-										# auto align components
-										for comp in ggl.components:
-											comp.automaticAlignment = True
-							
-										# update metrics:
-										ggl.updateMetrics()
-										ggl.syncMetrics()
-							
-										print u"    ✅ %s: Auto-aligned components." % gg.name
-									else:
-										print u"    ⚠️ WARNING: No components in %s, layer '%s'. Cannot add anchors." % ( referenceLayer.parent.name, referenceLayer.name )
+									# auto align components
+									for comp in ggl.components:
+										comp.automaticAlignment = True
+						
+									# update metrics:
+									ggl.updateMetrics()
+									ggl.syncMetrics()
+						
+									print u"    ✅ %s: Auto-aligned components." % gg.name
+								else:
+									print u"    ⚠️ WARNING: No components in %s, layer '%s'. Cannot add anchors." % ( referenceLayer.parent.name, referenceLayer.name )
 								
 			self.openTabIfRequested()
 			Font.updateInterface()
