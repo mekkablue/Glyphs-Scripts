@@ -17,7 +17,7 @@ class QuoteManager( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 480
-		windowHeight = 255
+		windowHeight = 270
 		windowWidthResize  = 400 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -53,18 +53,22 @@ class QuoteManager( object ):
 
 		self.w.buildDoublesButton = vanilla.Button( (inset, linePos, 130, 18), "Add Components", sizeStyle='small', callback=self.buildDoublesMain )
 		self.w.buildDoublesText = vanilla.TextBox( (inset+135, linePos+2, -inset, 14), "Insert single quotes as components in double quotes", sizeStyle='small', selectable=True )
+		self.w.buildDoublesButton.getNSButton().setToolTip_("Do this first. Then adjust the position of the second component in the default double quote. Then press the Insert Anchors button.")
 		linePos += lineHeight
 				
 		self.w.insertAnchorsButton = vanilla.Button( (inset, linePos, 130, 18), "Insert Anchors", sizeStyle='small', callback=self.insertAnchorsMain )
 		self.w.insertAnchorsText = vanilla.TextBox( (inset+135, linePos+2, -inset, 14), "Insert #exit and #entry anchors in single quotes", sizeStyle='small', selectable=True )
+		self.w.insertAnchorsButton.getNSButton().setToolTip_("Assumes that you have built your double quotes from components already.")
 		linePos += lineHeight
 
 		self.w.metricKeyButton = vanilla.Button( (inset, linePos, 130, 18), "Add Keys", sizeStyle='small', callback=self.metricKeyMain )
-		self.w.metricKeyText = vanilla.TextBox( (inset+135, linePos+2, -inset, 14), "Apply metric keys to single quotes", sizeStyle='small', selectable=True )
+		self.w.metricKeyText = vanilla.TextBox( (inset+135, linePos+2, -inset, 14), "Apply metrics keys to single quotes", sizeStyle='small', selectable=True )
+		self.w.metricKeyButton.getNSButton().setToolTip_("Adds Metrics Keys to single quotes, so your quotes are all in sync and have the same width. Double quotes should use automatic alignment by now.")
 		linePos += lineHeight
 
-		self.w.kernGroupButton = vanilla.Button( (inset, linePos, 130, 18), "Set Groups", sizeStyle='small', callback=self.metricKeyMain )
+		self.w.kernGroupButton = vanilla.Button( (inset, linePos, 130, 18), "Set Groups", sizeStyle='small', callback=self.kernGroupMain )
 		self.w.kernGroupText = vanilla.TextBox( (inset+135, linePos+2, -inset, 14), "Set kern groups (based on singles)", sizeStyle='small', selectable=True )
+		self.w.kernGroupButton.getNSButton().setToolTip_("Sync kern groups between double and single quotes.")
 		linePos += lineHeight
 
 		# Load Settings:
@@ -156,15 +160,44 @@ class QuoteManager( object ):
 
 		return defaultSingle, defaultDouble
 	
+	def kernGroupMain( self, sender ):
+		# update settings to the latest user input:
+		if not self.SavePreferences( self ):
+			print "Note: 'Quote Manager' could not write preferences."
+		
+		Glyphs.clearLog()
+		Font = Glyphs.font # frontmost font
+		dotSuffix = self.getDotSuffix()
+
+		# report:
+		self.reportFont()
+		
+		for keyGlyphName in names:
+			singleQuoteName = "%s%s" % (keyGlyphName, dotSuffix)
+			singleQuote = Font.glyphs[singleQuoteName]
+			doubleQuoteName = "%s%s" % (names[keyGlyphName], dotSuffix)
+			doubleQuote = Font.glyphs[doubleQuoteName]
+			
+			print "\nSetting kern groups for: %s, %s" % (singleQuoteName, doubleQuoteName)
+			
+			if not singleQuote:
+				self.reportMissingGlyph(singleQuoteName)
+			else:
+				if not doubleQuote:
+					self.reportMissingGlyph(doubleQuoteName)
+				else:
+					for glyph in (singleQuote, doubleQuote):
+						glyph.leftKerningGroup = singleQuoteName
+						glyph.rightKerningGroup = singleQuoteName
+					print u"✅ Synced kerning groups for: %s, %s" % (singleQuoteName, doubleQuoteName)
+	
 	def insertAnchorsMain( self, sender ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
 				print "Note: 'Quote Manager' could not write preferences."
 			
-			# brings macro window to front and clears its log:
 			Glyphs.clearLog()
-
 			Font = Glyphs.font # frontmost font
 		
 			# query suffix
