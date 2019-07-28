@@ -266,7 +266,7 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **Find Near Vertical Misses:** Finds nodes that are close but not exactly on vertical metrics. *Needs Vanilla.*
 * **Green Blue Manager:** Define an angle above which a node will be set to blue, below which it will be set to green. *Needs Vanilla.*
 * **Grid Switcher:** Toggles grid between two user-definable gridstep values with the click of a floating button. *Needs Vanilla.*
-* **Harmonize Curve to Line:** Will rearrange handles on (selected) curve segments with a following line segment, in such a way that the transition between the two segments is smooth (harmonized).
+* **Harmonise Curve to Line:** Will rearrange handles on (selected) curve segments with a following line segment, in such a way that the transition between the two segments is smooth (harmonized).
 * **New Tab with Offcurves as Start Points:** Opens a new tab with all glyphs that contain paths where the first point is an offcurve.
 * **New Tab with Path Problems:** Opens a new tab with glyphs containing zero handles, bad outline orders or path directions. Only opens master layers in tabs. Full layer report (including non-master layers) in the Macro window log.
 * **New Tab with Shallow Segments:** Opens a new tab with all layers that have small outline segments, i.e., not extending far enough horizontally or vertically.

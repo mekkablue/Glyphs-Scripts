@@ -1,7 +1,7 @@
-#MenuTitle: Harmonize Curve to Line
+#MenuTitle: Harmonise Curve to Line
 # -*- coding: utf-8 -*-
 __doc__="""
-Maximizes opposing handles and reduces adjacent handles of line segments.
+Maximises opposing handles and reduces adjacent handles of line segments.
 """
 
 def intersectionWithNSPoints( pointA, pointB, pointC, pointD ):
