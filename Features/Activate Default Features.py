@@ -1,7 +1,7 @@
 #MenuTitle: Activate Default Features
 # -*- coding: utf-8 -*-
 __doc__="""
-Activates all features that should be on by default.
+In the current Edit tab, activates all OT features that should be on by default.
 """
 
 defaultFeatures = """
