@@ -15,16 +15,20 @@ def isLayerAffected( Layer ):
 	return isAffected
 
 thisFont = Glyphs.font # frontmost font
-affectedLayers = []
+affectedGlyphNames = []
 for thisGlyph in thisFont.glyphs:
 	print "Processing %s" % thisGlyph.name
+	isAffected = False
 	for thisLayer in thisGlyph.layers:
 		if isLayerAffected( thisLayer ):
-			affectedLayers.append(thisLayer)
+			isAffected = True
+			print u"  ⚠️ Found offcurve on layer '%s'." % thisLayer.name
+	if isAffected:
+		affectedGlyphNames.append(thisGlyph.name)
 
-if affectedLayers:
-	thisTab = thisFont.newTab()
-	thisTab.layers = affectedLayers
+if affectedGlyphNames:
+	tabString = "/" + "/".join(affectedGlyphNames)
+	thisFont.newTab( tabString )
 else:
 	Message(
 		title="No Starting Offcurves Found", 
