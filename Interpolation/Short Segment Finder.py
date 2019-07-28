@@ -80,9 +80,9 @@ class ShortSegmentFinder( object ):
 	
 	def adaptUItext( self, sender ):
 		if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.findShortSegmentsInMasters"]:
-			self.w.markSegments.setTitle("Mark short segments")
+			self.w.markSegments.setTitle(u"Mark short segments 👌🏻")
 		else:
-			self.w.markSegments.setTitle("Mark short segments in first layer")
+			self.w.markSegments.setTitle(u"Mark short segments 👌🏻 in first layer")
 		
 		if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.allGlyphs"]:
 			self.w.runButton.setTitle("Open Tab")
@@ -141,6 +141,10 @@ class ShortSegmentFinder( object ):
 				return u"Segment has unexpected point constellation (note: TT is not supported):\n    %s" % repr(segment)
 		except Exception as e:
 			print "SEGMENT:", segment
+			try:
+				print "SEGMENT LENGTH:", len(segment)
+			except:
+				pass
 			import traceback
 			print traceback.format_exc()
 			return u"Possible single-node path."
@@ -168,12 +172,21 @@ class ShortSegmentFinder( object ):
 	def segmentsInLayerShorterThan( self, thisLayer, minLength=10.0 ):
 		shortSegments = []
 		for thisPath in thisLayer.paths:
-			for thisSegment in thisPath.segments:
-				segmentLength = self.approxLengthOfSegment(thisSegment)
-				if type(segmentLength) is unicode:
-					print u"  😬 ERROR in %s (layer: %s): %s" % (thisLayer.parent.name, thisLayer.name, segmentLength)
-				elif segmentLength < minLength:
-					shortSegments.append(thisSegment)
+			nodeCount = len(thisPath.nodes)
+			if not nodeCount>2:
+				print u"⚠️ WARNING: path with only %i point%s in %s (layer: %s). Skipping." % (
+					nodeCount,
+					"" if nodeCount==1 else "s",
+					thisLayer.parent.name, 
+					thisLayer.name,
+					)
+			else:
+				for thisSegment in thisPath.segments:
+					segmentLength = self.approxLengthOfSegment(thisSegment)
+					if type(segmentLength) is unicode:
+						print u"😬 ERROR in %s (layer: %s): %s" % (thisLayer.parent.name, thisLayer.name, segmentLength)
+					elif segmentLength < minLength:
+						shortSegments.append(thisSegment)
 		return shortSegments
 	
 	def glyphInterpolation( self, thisGlyphName, thisInstance ):
@@ -251,7 +264,7 @@ class ShortSegmentFinder( object ):
 			skippedGlyphNames = []
 			numOfGlyphs = len(glyphsToProbe)
 			for index,thisGlyph in enumerate(glyphsToProbe):
-				
+
 				# update progress bar:
 				self.w.progress.set( int(100*(float(index)/numOfGlyphs)) )
 				if thisGlyph.export or not Glyphs.defaults["com.mekkablue.ShortSegmentFinder.exportingOnly"]:
