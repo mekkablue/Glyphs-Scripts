@@ -8,6 +8,45 @@ import vanilla
 from timeit import default_timer as timer
 from kernanalysis import *
 
+defaultStrings = u"""
+iíĭǐîïịìỉīįĩjĵ
+ÍǏÎÏİÌỈĪĨ # UPPERCASE
+/iacute.sc/icaron.sc/icircumflex.sc/idieresis.sc/idotaccent.sc/igrave.sc/ihookabove.sc/imacron.sc/itilde.sc
+FTKVWY # TOP RIGHT
+f
+/lslash
+bhlkþ
+rtkvwxyz
+
+abcdefghijklmnopqrstuvwxyzßð
+ABCDEFGHIJKLMNOPQRSTUVWXYZẞÞ
+/a.sc/b.sc/c.sc/d.sc/e.sc/f.sc/g.sc/h.sc/i.sc/j.sc/k.sc/l.sc/m.sc/n.sc/o.sc/p.sc/q.sc/r.sc/s.sc/t.sc/u.sc/v.sc/w.sc/x.sc/y.sc/z.sc/germandbls.sc/thorn.sc
+
+/Ohorn/Uhorn #VIETNAMESE
+/ohorn/uhorn #VIETNAMESE
+/ohorn.sc/uhorn.sc #VIETNAMESE
+/i/iacute/idotbelow/igrave/ihookabove/itilde #VIETNAMESE
+/i.sc/iacute.sc/idotbelow.sc/igrave.sc/ihookabove.sc/itilde.sc #VIETNAMESE
+
+({[„“”
+„“”]})
+/parenleft.sc/braceleft.sc/bracketleft.sc
+/parenright.sc/braceright.sc/bracketright.sc
+
+/quotesinglbase/quotedblbase/quotedblleft/quotedblright/quoteleft/quoteright/quotedbl/quotesingle
+
+
+/a.sc/aogonek.sc/ae.sc/b.sc/c.sc/d.sc/e.sc/f.sc/g.sc/h.sc/i.sc/j.sc/k.sc/l.sc/m.sc/n.sc/eng.sc/o.sc/oe.sc/p.sc/thorn.sc/q.sc/r.sc/s.sc/germandbls.sc/t.sc/u.sc/v.sc/w.sc/x.sc/y.sc/z.sc
+/slash
+/iacute.sc/icaron.sc/icircumflex.sc/idieresis.sc/idotaccent.sc/igrave.sc/imacron.sc/iogonek.sc/itilde.sc/icaron.sc
+
+ĄĘĮ # OGONEK
+gjpy # DESCENDER
+
+AKLRXZ # BOTTOM RIGHT
+sxz # BOTTOM LEFT
+"""
+
 def reportTimeInNaturalLanguage( seconds ):
 	if seconds > 60.0:
 		timereport = "%i:%02i minutes" % ( seconds//60, seconds%60 )
@@ -27,7 +66,7 @@ class Bumper( object ):
 		
 		# Window 'self.w':
 		windowWidth  = 500
-		windowHeight = 345
+		windowHeight = 365
 		windowWidthResize  = 500 # user can resize width by this value
 		windowHeightResize = 500 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -59,6 +98,11 @@ class Bumper( object ):
 		self.w.rightGlyphs.getNSComboBox().setToolTip_(u"Measures from the previous glyphs to the specified glyphs to their left side. You can type the character ‘é’ or the slash-escaped glyph name ‘/eacute’. Or specify a category after an at sign ‘@Letter’, add a subcategory after a colon ‘@Letter:Lowercase’.\nAdd default strings in the text box at the bottom of the window. Expand the window at the bottom to access it.")
 		self.w.rightIsGroups = vanilla.CheckBox((-inset-94, currentHeight+1, -inset-22, 17), u"As groups", value=True, sizeStyle='small', callback=self.SavePreferences )
 		self.w.rightIsGroups.getNSButton().setToolTip_(u"If on, will measure only the specified glyph, but set the calculated kerning for the whole left group of the glyph (i.e., add group kerning). If off, will set the kerning for the glyph only (i.e., add an exception).")
+		currentHeight+=lineHeight
+		
+		self.w.suffixText = vanilla.TextBox( (inset, currentHeight+3, 80, 14), u"Add suffix:", sizeStyle='small', selectable=True )
+		self.w.suffix = vanilla.EditText( (inset+80, currentHeight, 150, 19), "", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.suffix.getNSTextField().setToolTip_("Looks for the suffixed version of the listed glyphs, with this suffix added to the name. Useful with .sc for smallcaps. Enter WITH the leading dot for dot suffixes. Can also be used with 'superior' for figures.")
 		currentHeight+=lineHeight
 		
 		self.w.text_21 = vanilla.TextBox( (inset, currentHeight+3, 80, 14), "Min distance:", sizeStyle='small' )
@@ -113,8 +157,8 @@ class Bumper( object ):
 		currentHeight+=lineHeight
 		
 		# (Hidden) Preferences Kern Strings:
-		self.w.kernStrings = vanilla.TextEditor((1, currentHeight, -1, -50), callback=self.SavePreferences)
-		self.w.kernStrings.getNSTextView().setToolTip_("Add your default kern strings here. They will show up in the left/right dropdowns at the top.")
+		self.w.kernStrings = vanilla.TextEditor((1, currentHeight, -1, -45), callback=self.SavePreferences)
+		self.w.kernStrings.getNSTextView().setToolTip_("Add your default kern strings here. They will show up in the left/right dropdowns at the top. Everything after a hashtag (#) is ignored. Use blank lines for structuring.")
 		
 		self.w.text_kernStrings = vanilla.TextBox( (inset, -14-inset, -100-inset, -inset), "Expand window below to access default strings.", sizeStyle='small' )
 		self.w.text_kernStrings.getNSTextField().setTextColor_( NSColor.colorWithRed_green_blue_alpha_(0,0,0, 0.2) )
@@ -136,7 +180,7 @@ class Bumper( object ):
 		if kernStrings:
 			return kernStrings
 		else:
-			return [""]
+			return defaultStrings
 			
 	def swap(self, sender=None):
 		rightEntry = self.w.rightGlyphs.get()
@@ -168,6 +212,7 @@ class Bumper( object ):
 			Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"] = self.w.reportInMacroWindow.get()
 			Glyphs.defaults["com.mekkablue.Bumper.openNewTabWithKernPairs"] = self.w.openNewTabWithKernPairs.get()
 			Glyphs.defaults["com.mekkablue.Bumper.avoidZeroKerning"] = self.w.avoidZeroKerning.get()
+			Glyphs.defaults["com.mekkablue.Bumper.suffix"] = self.w.suffix.get()
 
 			Glyphs.defaults["com.mekkablue.Bumper.kernStrings"] = self.w.kernStrings.get()
 			
@@ -196,7 +241,7 @@ class Bumper( object ):
 	def RegisterPreferences( self ):
 		Glyphs.registerDefault("com.mekkablue.Bumper.leftGlyphs", u"TVWY")
 		Glyphs.registerDefault("com.mekkablue.Bumper.leftIsGroups", 1)
-		Glyphs.registerDefault("com.mekkablue.Bumper.rightGlyphs", u"iıíĭǐîïịìỉīįĩjȷ/jacute ĵ")
+		Glyphs.registerDefault("com.mekkablue.Bumper.rightGlyphs", u"iíĭǐîïịìỉīįĩjĵ")
 		Glyphs.registerDefault("com.mekkablue.Bumper.rightIsGroups", 0)
 		
 		Glyphs.registerDefault("com.mekkablue.Bumper.minDistance", 50)
@@ -209,8 +254,9 @@ class Bumper( object ):
 		Glyphs.registerDefault("com.mekkablue.Bumper.reportInMacroWindow", 1)
 		Glyphs.registerDefault("com.mekkablue.Bumper.openNewTabWithKernPairs", 1)
 		Glyphs.registerDefault("com.mekkablue.Bumper.avoidZeroKerning", 1)
+		Glyphs.registerDefault("com.mekkablue.Bumper.suffix", "")
 		
-		Glyphs.registerDefault("com.mekkablue.Bumper.kernStrings", u"iıíĭǐîïịìỉīįĩjȷ/jacute ĵ\nTVWY\n")
+		Glyphs.registerDefault("com.mekkablue.Bumper.kernStrings", defaultStrings)
 		
 		
 	def LoadPreferences( self ):
@@ -229,6 +275,7 @@ class Bumper( object ):
 			self.w.excludeNonExporting.set( Glyphs.defaults["com.mekkablue.Bumper.excludeNonExporting"] )
 			self.w.reportInMacroWindow.set( Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"] )
 			self.w.openNewTabWithKernPairs.set( Glyphs.defaults["com.mekkablue.Bumper.openNewTabWithKernPairs"] )
+			self.w.suffix.set( Glyphs.defaults["com.mekkablue.Bumper.suffix"] )
 			
 			self.w.kernStrings.set( Glyphs.defaults["com.mekkablue.Bumper.kernStrings"] )
 		except Exception as e:
@@ -325,128 +372,143 @@ class Bumper( object ):
 				roundFactor = None
 				self.w.roundFactor.set("")
 				self.SavePreferences(None)
-
-			# find list of glyph names:
-			firstGlyphList = stringToListOfGlyphsForFont(
-				Glyphs.defaults["com.mekkablue.Bumper.leftGlyphs"],
-				thisFont,
-				report=Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"],
-				excludeNonExporting=shouldExcludeNonExporting,
-			)
-			secondGlyphList = stringToListOfGlyphsForFont(
-				Glyphs.defaults["com.mekkablue.Bumper.rightGlyphs"],
-				thisFont,
-				report=Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"],
-				excludeNonExporting=shouldExcludeNonExporting,
-			)
 			
-			# report key values for kerning:
-			if Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"]:
-				print
-				if not minDistance is None:
-					print "Minimum Distance: %i" % minDistance
-				if not maxDistance is None:
-					print "Maximum Distance: %i" % maxDistance
-				if not roundFactor is None:
-					print "Rounding: %i" % roundFactor
-				
-				print
-				print "Left glyphs:\n%s\n" % ", ".join([g.name for g in firstGlyphList])
-				print "Right glyphs:\n%s\n" % ", ".join([g.name for g in secondGlyphList])
-			
-			
-			
-			# CREATE KERNING DATA:
-			
-			tabString = ""
-			kernCount = 0
-			numOfGlyphs = len(firstGlyphList)
-			for index in range(numOfGlyphs):
-				# update progress bar:
-				self.w.bar.set( int(100*(float(index)/numOfGlyphs)) )
-				# determine left glyph:
-				leftGlyph = firstGlyphList[index]
-				leftLayer = leftGlyph.layers[thisMasterID]
-				leftGroup = leftGlyph.rightKerningGroup
-				if Glyphs.defaults["com.mekkablue.Bumper.leftIsGroups"]:
-					if leftGroup:
-						leftSide = "@MMK_L_%s" % leftGroup
-					else:
-						Glyphs.showMacroWindow()
-						print "Error: Left glyph %s has no kerning group. Cannot apply group kerning." % leftGlyph.name
-						leftSide = None
-				else:
-					leftSide = leftGlyph.name
-				
-				# only continue if we could establish a left side:
-				if leftSide:
-					# cycle through right glyphs:
-					for rightGlyph in secondGlyphList:
-						rightLayer = rightGlyph.layers[thisMasterID]
-						rightGroup = rightGlyph.leftKerningGroup
-						if Glyphs.defaults["com.mekkablue.Bumper.rightIsGroups"]:
-							if rightGroup:
-								rightSide = "@MMK_R_%s" % rightGroup
-							else:
-								Glyphs.showMacroWindow()
-								print "Error: Right glyph %s has no kerning group. Cannot apply group kerning." % rightGlyph.name
-								rightSide = None
-						else:
-							rightSide = rightGlyph.name
-						
-						# only continue if we could establish a right side:
-						if rightSide:
-							kerning = effectiveKerning( leftGlyph.name, rightGlyph.name, thisFont, thisMasterID )
-							distanceBetweenShapes = minDistanceBetweenTwoLayers( leftLayer, rightLayer, interval=step, kerning=kerning, report=False, ignoreIntervals=ignoreIntervals )
-					
-							# positive kerning (if desired):
-							if minDistance and (not distanceBetweenShapes is None) and (distanceBetweenShapes < minDistance):
-								if self.addMissingKerning( thisFont, thisMasterID, leftSide, rightSide, minDistance, distanceBetweenShapes ):
-									kernCount += 1
-									tabString += "/%s/%s " % (leftGlyph.name, rightGlyph.name)
-								
-							# negative kerning (if desired):
-							if maxDistance and (not distanceBetweenShapes is None) and (distanceBetweenShapes > maxDistance):
-								if self.addMissingKerning( thisFont, thisMasterID, leftSide, rightSide, maxDistance, distanceBetweenShapes ):
-									kernCount += 1
-									tabString += "/%s/%s " % (leftGlyph.name, rightGlyph.name)
-					
-				tabString += "\n"
-			
-			
-			
-			# FINISH UP AND REPORT: 
-			
-			# update progress bar:
-			self.w.bar.set( 100 )
-			# take time:
-			timereport = reportTimeInNaturalLanguage( timer() - start )
-
-			# clean up the tab string:
-			tabString = tabString.strip()
-			while "\n\n" in tabString:
-				tabString = tabString.replace("\n\n", "\n")
-			
-			# Report number of new kern pairs:
-			if kernCount:
-				report = 'Added %i kern pairs. Time elapsed: %s.' % (kernCount, timereport)
-			# or report that nothing was found:
+			suffix = Glyphs.defaults["com.mekkablue.Bumper.suffix"].strip()
+			cleanedSuffix=""
+			for letter in suffix:
+				if letter in u"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-":
+					cleanedSuffix += letter
+			if cleanedSuffix != suffix:
+				Message(
+					title="Invalid Suffix Error", 
+					message="The suffix you entered ('%s') is invalid. The script suggests '%s' instead. Please verify and try again." % (suffix, cleanedSuffix), 
+					OKButton=None)
+				self.w.suffix.set(cleanedSuffix)
+				self.SavePreferences(None)
 			else:
-				report = 'No kerning added. Time elapsed: %s. Congrats!' % timereport
+				# find list of glyph names:
+				firstGlyphList = stringToListOfGlyphsForFont(
+					Glyphs.defaults["com.mekkablue.Bumper.leftGlyphs"],
+					thisFont,
+					report=Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"],
+					excludeNonExporting=shouldExcludeNonExporting,
+					suffix=suffix,
+				)
+				secondGlyphList = stringToListOfGlyphsForFont(
+					Glyphs.defaults["com.mekkablue.Bumper.rightGlyphs"],
+					thisFont,
+					report=Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"],
+					excludeNonExporting=shouldExcludeNonExporting,
+					suffix=suffix,
+				)
 			
-			# Floating notification:
-			notificationTitle = "Bumper: %s (%s)" % (thisFont.familyName, thisMaster.name)
-			Glyphs.showNotification( notificationTitle, report )
+				# report key values for kerning:
+				if Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"]:
+					print
+					if not minDistance is None:
+						print "Minimum Distance: %i" % minDistance
+					if not maxDistance is None:
+						print "Maximum Distance: %i" % maxDistance
+					if not roundFactor is None:
+						print "Rounding: %i" % roundFactor
+				
+					print
+					print "Left glyphs:\n%s\n" % ", ".join([g.name for g in firstGlyphList])
+					print "Right glyphs:\n%s\n" % ", ".join([g.name for g in secondGlyphList])
 			
-			# Open new tab:
-			if Glyphs.defaults["com.mekkablue.Bumper.openNewTabWithKernPairs"]:
-				thisFont.newTab( tabString )
+			
+			
+				# CREATE KERNING DATA:
+			
+				tabString = ""
+				kernCount = 0
+				numOfGlyphs = len(firstGlyphList)
+				for index in range(numOfGlyphs):
+					# update progress bar:
+					self.w.bar.set( int(100*(float(index)/numOfGlyphs)) )
+					# determine left glyph:
+					leftGlyph = firstGlyphList[index]
+					leftLayer = leftGlyph.layers[thisMasterID]
+					leftGroup = leftGlyph.rightKerningGroup
+					if Glyphs.defaults["com.mekkablue.Bumper.leftIsGroups"]:
+						if leftGroup:
+							leftSide = "@MMK_L_%s" % leftGroup
+						else:
+							Glyphs.showMacroWindow()
+							print "Error: Left glyph %s has no kerning group. Cannot apply group kerning." % leftGlyph.name
+							leftSide = None
+					else:
+						leftSide = leftGlyph.name
+				
+					# only continue if we could establish a left side:
+					if leftSide:
+						# cycle through right glyphs:
+						for rightGlyph in secondGlyphList:
+							rightLayer = rightGlyph.layers[thisMasterID]
+							rightGroup = rightGlyph.leftKerningGroup
+							if Glyphs.defaults["com.mekkablue.Bumper.rightIsGroups"]:
+								if rightGroup:
+									rightSide = "@MMK_R_%s" % rightGroup
+								else:
+									Glyphs.showMacroWindow()
+									print "Error: Right glyph %s has no kerning group. Cannot apply group kerning." % rightGlyph.name
+									rightSide = None
+							else:
+								rightSide = rightGlyph.name
+						
+							# only continue if we could establish a right side:
+							if rightSide:
+								kerning = effectiveKerning( leftGlyph.name, rightGlyph.name, thisFont, thisMasterID )
+								distanceBetweenShapes = minDistanceBetweenTwoLayers( leftLayer, rightLayer, interval=step, kerning=kerning, report=False, ignoreIntervals=ignoreIntervals )
+					
+								# positive kerning (if desired):
+								if minDistance and (not distanceBetweenShapes is None) and (distanceBetweenShapes < minDistance):
+									if self.addMissingKerning( thisFont, thisMasterID, leftSide, rightSide, minDistance, distanceBetweenShapes ):
+										kernCount += 1
+										tabString += "/%s/%s " % (leftGlyph.name, rightGlyph.name)
+								
+								# negative kerning (if desired):
+								if maxDistance and (not distanceBetweenShapes is None) and (distanceBetweenShapes > maxDistance):
+									if self.addMissingKerning( thisFont, thisMasterID, leftSide, rightSide, maxDistance, distanceBetweenShapes ):
+										kernCount += 1
+										tabString += "/%s/%s " % (leftGlyph.name, rightGlyph.name)
+					
+					tabString += "\n"
+			
+			
+			
+				# FINISH UP AND REPORT: 
+			
+				# update progress bar:
+				self.w.bar.set( 100 )
+				# take time:
+				timereport = reportTimeInNaturalLanguage( timer() - start )
 
-			# Report in Macro Window:
-			if Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"]:
-				print
-				print report
-				Glyphs.showMacroWindow()
+				# clean up the tab string:
+				tabString = tabString.strip()
+				while "\n\n" in tabString:
+					tabString = tabString.replace("\n\n", "\n")
+			
+				# Report number of new kern pairs:
+				if kernCount:
+					report = 'Added %i kern pairs. Time elapsed: %s.' % (kernCount, timereport)
+				# or report that nothing was found:
+				else:
+					report = 'No kerning added. Time elapsed: %s. Congrats!' % timereport
+			
+				# Floating notification:
+				notificationTitle = "Bumper: %s (%s)" % (thisFont.familyName, thisMaster.name)
+				Glyphs.showNotification( notificationTitle, report )
+			
+				# Open new tab:
+				if Glyphs.defaults["com.mekkablue.Bumper.openNewTabWithKernPairs"]:
+					thisFont.newTab( tabString )
+
+				# Report in Macro Window:
+				if Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"]:
+					print
+					print report
+					Glyphs.showMacroWindow()
 		except Exception, e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()

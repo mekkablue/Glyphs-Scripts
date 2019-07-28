@@ -17,7 +17,7 @@ categoryList = (
 	"Number:Fraction",
 )
 
-def stringToListOfGlyphsForFont( string, Font, report=True, excludeNonExporting=True ):
+def stringToListOfGlyphsForFont( string, Font, report=True, excludeNonExporting=True, suffix="" ):
 	# parse string into parseList:
 	parseList = []
 	waitForSeparator = False
@@ -48,6 +48,7 @@ def stringToListOfGlyphsForFont( string, Font, report=True, excludeNonExporting=
 	# go through parseList and find corresponding glyph in Font:
 	glyphList = []
 	for parsedName in parseList:
+		
 		if parsedName.startswith("@"):
 			# category and subcategory:
 			if ":" in parsedName:
@@ -60,6 +61,7 @@ def stringToListOfGlyphsForFont( string, Font, report=True, excludeNonExporting=
 				"latin", # requiredScript,  # need to implement still
 				None, # excludedGlyphNameParts, # need to implement still
 				excludeNonExporting, #OK
+				suffix=suffix,
 			)
 			if categoryGlyphs:
 				glyphList += categoryGlyphs
@@ -67,21 +69,27 @@ def stringToListOfGlyphsForFont( string, Font, report=True, excludeNonExporting=
 					print u"Added glyphs for category %s, subcategory %s: %s" % (category, subcategory, ", ".join(categoryGlyphs))
 			elif report:
 				print u"Warning: no glyphs found for category %s, subcategory %s." % (category, subcategory)
-			
-		# actual single glyph names:
-		glyph = Font.glyphForName_(parsedName)
-		if not glyph and len(parsedName) == 1:
-			unicodeForName = "%04X" % ord(parsedName)
-			glyph = Font.glyphForUnicode_(unicodeForName)
 		
-		# check if glyph exists, exports, and collect in glyphList:
-		if glyph:
-			if (glyph.export or not excludeNonExporting):
-				glyphList.append(glyph)
+		else:
+			# actual single glyph names:
+			glyph = Font.glyphForName_(parsedName+suffix)
+			
+			# actual single character:
+			if not glyph and len(parsedName) == 1:
+				unicodeForName = "%04X" % ord(parsedName)
+				glyphInfo = Glyphs.glyphInfoForUnicode(unicodeForName)
+				if glyphInfo:
+					glyphName = "%s%s" % (glyphInfo.name, suffix)
+					glyph = Font.glyphs[glyphName]
+		
+			# check if glyph exists, exports, and collect in glyphList:
+			if glyph:
+				if (glyph.export or not excludeNonExporting):
+					glyphList.append(glyph)
+				elif report:
+					print u"Ignoring non-exporting glyph '%s'." % (parsedName+suffix)
 			elif report:
-				print u"Ignoring non-exporting glyph '%s'." % parsedName
-		elif report:
-			print u"Warning: Could not find glyph for '%s'." % parsedName
+				print u"Warning: Could not find glyph for '%s'." % (parsedName+suffix)
 	
 	return glyphList
 
@@ -101,14 +109,17 @@ def effectiveKerning( leftGlyphName, rightGlyphName, thisFont, thisFontMasterID 
 	else:
 		return 0.0
 
-def listOfNamesForCategories( thisFont, requiredCategory, requiredSubCategory, requiredScript, excludedGlyphNameParts, excludeNonExporting ):
+def listOfNamesForCategories( thisFont, requiredCategory, requiredSubCategory, requiredScript, excludedGlyphNameParts, excludeNonExporting, suffix="" ):
 	nameList = []
 	for thisGlyph in thisFont.glyphs:
 		thisScript = thisGlyph.script
 		glyphName = thisGlyph.name
 		nameIsOK = True
 		
-		if excludedGlyphNameParts:
+		if suffix:
+			nameIsOK = glyphName.endswith(suffix)
+		
+		if nameIsOK and excludedGlyphNameParts:
 			for thisNamePart in excludedGlyphNameParts:
 				nameIsOK = nameIsOK and not thisNamePart in glyphName
 		
