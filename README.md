@@ -59,11 +59,11 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 
 * **Line Height Decrease** and **Line Height Increase:** Increases the Edit View line height by a quarter, or decreases it by a fifth. Useful for setting shortcuts if you need to switch between line heights a lot.
 * **Method Reporter:** GUI for filtering through the method names of Python and PyObjC Classes available from within Glyphs. You can use multiple space-separated search terms (for an AND concatenation) and asterisk as jokers (at the beginning, in the middle and at the end). Double click to put the method name in your clipboard and open help in the Macro window. Useful for coders. *Needs Vanilla.*
-* **Parameter Reporter:** Like Method Reporter, but for custom parameters. *Needs Vanilla.*
+* **Parameter Reporter:** Like Method Reporter, but for custom parameters. Double click to copy a prameter in the clipboard, ready for pasting in Font Info. *Needs Vanilla.*
 * **Print Window:** Print the frontmost window. Useful for saving a vector PDF of your window content.
 * **Set Export Paths to Adobe Fonts Folder:** Sets the OpenType font and Variable Font export paths to the Adobe Fonts Folder.
 * **Set Hidden App Preferences:** GUI for reading and setting ‘hidden’ app preferences, which are not listed in the GUI. *Needs Vanilla.*
-* **Set Tool Shortcuts:** Set keyboard shortcuts for the tools in the toolbar.
+* **Set Tool Shortcuts:** Set keyboard shortcuts for the tools in the toolbar. *Needs Vanilla.*
 * **Toggle RTL-LTR:** Toggle frontmost tab between LTR and RTL writing direction. Useful for setting a keyboard shortcut in System Preferences.
 
 ## Build Glyphs
@@ -258,6 +258,8 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 
 ## Paths
 
+*I use Rotate Around Anchor for my asterisks. Important for outline checking: Find Near Vertical Misses and the Green Blue Manager (in combination with Realign BCPs). Rewire Fire has become important in OTVar production, because it helps reduce duplicate outline segments at shape edges, which may yield darker anti-aliasing.*
+
 * **Align Selected Nodes with Background:** Align selected nodes with the nearest background node unless it is already taken by a previously moved node. Like Cmd-Shift-A for aligning a single node with the background, but for multiple nodes.
 * **Copy Glyphs from Other Font into Backup Layers:** Creates backup layers for selected glyphs in target font, and fills them with the respective glyphs from source font. Useful if you want to add glyphs from one font as bracket layers in another. *Needs Vanilla.*
 * **Distribute Nodes:** Horizontally or vertically distributes nodes (depends on the width/height ratoi of the selection bounding box).
@@ -285,6 +287,8 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 
 ## Pixelfonts
 
+*These scripts are useful for a pixelfont workflow, where you place a pixel component in a coarser grid.*
+
 * **Align Anchors to Grid:** Snaps diacritic anchors onto the font grid.
 * **Delete Components out of Bounds:** If a component is placed far outside the usual coordinates (happens when you cmd-arrow components with a high grid step), this script will delete them.
 * **Delete Duplicate Components:** Looks for duplicate components (same name and position) and keeps only one. Happens frequently when buliding pixel fonts.
@@ -298,6 +302,8 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **Copy Kerning from Caps to Small Caps:** Looks for cap kerning pairs and reduplicates their kerning for corresponding .sc glyphs, if they are available in the font. Please be careful: Will overwrite existing SC kerning pairs.
 
 ## Spacing
+
+*Most important: Fix Math Operator Spacing, Bracket Metrics Manager and, if you have arrows, Fix Arrow Positioning. The New Tab scripts are useful when creating figures.*
 
 * **Bracket Metrics Manager:** Manage the sidebearings and widths of bracket layers, e.g., dollar and cent. *Needs Vanilla.*
 * **Center Glyphs:** centers all selected glyphs inside their width, so that LSB=RSB.
@@ -315,6 +321,8 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **Tabular Checker:** Goes through tabular glyphs and checks if they are monospaced. Reports exceptions. *Needs Vanilla.*
 
 ## Test
+
+*Most important: the Test HTML scripts. If you have unusually high or low text selection highlights in Adobe or Apple apps, run Report Highest and Lowest Glyphs to find the glyph causing it. Language Report is just for beefing up your specimen, and will not give you authoritative information.*
 
 * **Copy InDesign Test Text:** Copies a test text for InDesign into the clipboard.
 * **Copy Word Test Text:** Copies a test text for MS Word into the clipboard.
