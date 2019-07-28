@@ -1,0 +1,21 @@
+# This is the list of mekkablue Glyphs-Scripts authors for copyright purposes.
+#
+# This does not necessarily list everyone who has contributed code, since in
+# some cases, their employer may be the copyright holder.  To see the full list
+# of contributors, see the revision history in source control.
+
+Rainer Erich Scheichelbauer (mekkablue)
+Wei Huang (weiweihuanghuang)
+Georg Seifert (schriftgestalt)
+Tal Leming (typesupply)
+Christoph Schindler (hop)
+Maciej Ratajski (maciejratajski)
+Bruno Herfst (GitBruno)
+Mark Frömberg (Mark2Mark)
+Johannes Neumeier (kontur)
+Marcin Dybaś (dyyybek)
+Daniel Gamage (danielgamage)
+Alexei Vanyashin (alexeiva)
+Mathieu Triay (MathieuLoutre)
+Manuel von Gebhardi (Manuel87)
+Google LLC
