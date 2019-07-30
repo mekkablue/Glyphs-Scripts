@@ -137,6 +137,12 @@ class CompareAnchorsOfFrontmostFonts( object ):
 			if not self.SavePreferences( self ):
 				print "Note: 'Compare Anchors of Frontmost Fonts' could not write preferences."
 			
+			# query prefs:
+			reportOnlyTopBottomCenter = Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.reportOnlyTopBottomCenter"]
+			ignoreExitEntry = Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.ignoreExitEntry"]
+			ignoreHashtaggedAnchors = Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.ignoreHashtaggedAnchors"]
+			reportAnchorHeights = Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.reportAnchorHeights"]
+			
 			if len(Glyphs.fonts) < 2:
 				Message(title="Compare Error", message="You need to have at least two fonts open for comparing.", OKButton="Ooops")	
 			else:
@@ -158,7 +164,7 @@ class CompareAnchorsOfFrontmostFonts( object ):
 					tolerance = abs(float(Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.anchorHeightTolerance"]))
 				except:
 					tolerance = 0.0
-				if Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.reportAnchorHeights"]:
+				if reportAnchorHeights:
 					print "Anchor height tolerance: %.1f units" % tolerance
 					print
 				
@@ -202,20 +208,23 @@ class CompareAnchorsOfFrontmostFonts( object ):
 									for anchorList in (theseAnchors, otherAnchors):
 										for i in range(len(anchorList))[::-1]:
 											currentAnchor = anchorList[i]
-											if Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.reportOnlyTopBottomCenter"]:
+											if reportOnlyTopBottomCenter:
 												# keep only top/bottom/center:
 												if not currentAnchor in ("top","bottom","center","_top","_bottom","_center"):
 													del anchorList[i]
 											else:
-												# remove exit and entry anchors:
-												if Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.ignoreExitEntry"]:
-													for anchorname in ("exit","entry"):
-														if currentAnchor.endswith(anchorname) and len(currentAnchor) in (len(anchorname), len(anchorname)+1):
-															del anchorList[i]
-												# remove hashtagged anchors:
-												if Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.ignoreHashtaggedAnchors"]:
-													if currentAnchor.startswith("#") or currentAnchor.startswith("_#"):
-														del anchorList[i]
+												# determine exit and entry anchors:
+												anchorIsExitOrEntry = False
+												for anchorname in ("exit","entry"):
+													if currentAnchor.endswith(anchorname) and len(currentAnchor) in (len(anchorname), len(anchorname)+1):
+														anchorIsExitOrEntry = True
+														
+												# determine hashtagged anchors:
+												anchorIsHashtagged = currentAnchor.startswith("#") or currentAnchor.startswith("_#")
+												
+												# remove if affected:
+												if (ignoreExitEntry and anchorIsExitOrEntry) or (ignoreHashtaggedAnchors and anchorIsHashtagged):
+													del anchorList[i]
 
 									if theseAnchors != otherAnchors:
 										missingInOtherAnchors = [a for a in theseAnchors if not a in otherAnchors]
@@ -243,7 +252,7 @@ class CompareAnchorsOfFrontmostFonts( object ):
 												self.selectAnchorsInLayer(missingInOtherAnchors, thisLayer, resetSelection=False)
 											affectedGlyphNames.append(thisGlyph.name)
 											
-									if Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.reportAnchorHeights"]:
+									if reportAnchorHeights:
 										differingAnchors = []
 										for thisAnchorName in theseAnchors:
 											if thisAnchorName in otherAnchors:
