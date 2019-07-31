@@ -1,4 +1,4 @@
-#MenuTitle: Blue Green Manager
+#MenuTitle: Green Blue Manager
 # -*- coding: utf-8 -*-
 __doc__="""
 Define an angle above which a node will be set to blue, below which it will be set to green.
@@ -55,13 +55,18 @@ class GreenBlueManager( object ):
 		self.w.realignHandles.getNSButton().setToolTip_("If a BCP (grey handle) follows a green node, it will be aligned to the previous two points. Deselect both Fix and Realign options for a new tab with all glyphs that have nodes with wrong connections according to the threshold angle.")
 		linePos += lineHeight
 		
-		self.w.reportInMacroWindow = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Detailed report in Macro window", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.reportInMacroWindow.getNSButton().setToolTip_("If enabled, will output a detailed report in Window > Macro Panel.")
+		self.w.reportInMacroWindow = vanilla.CheckBox( (inset, linePos-1, 160, 20), u"Report in Macro window", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reportInMacroWindowVerbose = vanilla.CheckBox( (inset+160, linePos-1, -inset, 20), u"Verbose", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reportInMacroWindow.getNSButton().setToolTip_("If enabled, will output a report in Window > Macro Panel.")
+		self.w.reportInMacroWindowVerbose.getNSButton().setToolTip_("If enabled, will output a verbose (detailed) report in Window > Macro Panel.")
 		linePos += lineHeight
 		
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0) # set progress indicator to zero
-		# linePos+=lineHeight
+		linePos+=lineHeight
+		
+		self.w.processingText = vanilla.TextBox( (inset, linePos+2, -120-inset, 14), u"", sizeStyle='small', selectable=True )
+		linePos += lineHeight
 		
 		
 		# Run Button:
@@ -83,6 +88,9 @@ class GreenBlueManager( object ):
 			self.w.runButton.setTitle("New Tab")
 		else:
 			self.w.runButton.setTitle("Treat Points")
+			
+		self.w.reportInMacroWindowVerbose.enable( self.w.reportInMacroWindow.get() )
+			
 		
 	def SavePreferences( self, sender=None ):
 		self.checkGUI(sender=sender)
@@ -92,6 +100,7 @@ class GreenBlueManager( object ):
 			Glyphs.defaults["com.mekkablue.GreenBlueManager.fixGreenBlue"] = self.w.fixGreenBlue.get()
 			Glyphs.defaults["com.mekkablue.GreenBlueManager.realignHandles"] = self.w.realignHandles.get()
 			Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindow"] = self.w.reportInMacroWindow.get()
+			Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindowVerbose"] = self.w.reportInMacroWindowVerbose.get()
 		except:
 			return False
 			
@@ -105,17 +114,19 @@ class GreenBlueManager( object ):
 			Glyphs.registerDefault( "com.mekkablue.GreenBlueManager.fixGreenBlue", 1 )
 			Glyphs.registerDefault( "com.mekkablue.GreenBlueManager.realignHandles", 1 )
 			Glyphs.registerDefault( "com.mekkablue.GreenBlueManager.reportInMacroWindow", 1 )
+			Glyphs.registerDefault( "com.mekkablue.GreenBlueManager.reportInMacroWindowVerbose", 0 )
 			self.w.thresholdAngle.set( Glyphs.defaults["com.mekkablue.GreenBlueManager.thresholdAngle"] )
 			self.w.completeFont.set( Glyphs.defaults["com.mekkablue.GreenBlueManager.completeFont"] )
 			self.w.fixGreenBlue.set( Glyphs.defaults["com.mekkablue.GreenBlueManager.fixGreenBlue"] )
 			self.w.realignHandles.set( Glyphs.defaults["com.mekkablue.GreenBlueManager.realignHandles"] )
 			self.w.reportInMacroWindow.set( Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindow"] )
+			self.w.reportInMacroWindowVerbose.set( Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindowVerbose"] )
 		except:
 			return False
 			
 		return True
 	
-	def realignLayer(self, thisLayer):
+	def realignLayer(self, thisLayer, shouldRealign=False, shouldReport=False, shouldVerbose=False):
 		moveForward = NSPoint( 1, 0 )
 		moveBackward = NSPoint( -1, 0 )
 		noModifier = NSNumber.numberWithUnsignedInteger_(0)
@@ -137,13 +148,13 @@ class GreenBlueManager( object ):
 						layerCount += 1
 				
 						# put handle back if not desired by user:
-						if not Glyphs.defaults["com.mekkablue.GreenBlueManager.realignHandles"]:
+						if not shouldRealign:
 							thisPath.nodes[i].position = coordinate
 		thisLayer.setSelection_( () )
 		
-		if Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindow"]:
+		if shouldVerbose:
 			if layerCount:
-				if Glyphs.defaults["com.mekkablue.GreenBlueManager.realignHandles"]:
+				if shouldRealign:
 					print u"   ⚠️ Realigned %i handle%s." % ( layerCount, "" if layerCount==1 else "s" )
 				else:
 					print u"   ❌ %i handle%s are unaligned." % ( layerCount, "" if layerCount==1 else "s" )
@@ -152,7 +163,7 @@ class GreenBlueManager( object ):
 
 		return layerCount
 	
-	def fixConnectionsOnLayer(self, thisLayer):
+	def fixConnectionsOnLayer(self, thisLayer, shouldFix=False, shouldReport=False, shouldVerbose=False):
 		thresholdAngle = float(Glyphs.defaults["com.mekkablue.GreenBlueManager.thresholdAngle"])
 		layerCount = 0
 		for thisPath in thisLayer.paths:
@@ -174,10 +185,10 @@ class GreenBlueManager( object ):
 							if Glyphs.defaults["com.mekkablue.GreenBlueManager.fixGreenBlue"]:
 								hotNode.connection = GSSHARP
 		
-		if Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindow"]:
+		if shouldVerbose:
 			print "%s, layer '%s'" % (thisLayer.parent.name, thisLayer.name)
 			if layerCount:
-				if Glyphs.defaults["com.mekkablue.GreenBlueManager.fixGreenBlue"]:
+				if shouldFix:
 					print "   ⚠️ Fixed %s connection%s" % ( layerCount, "" if layerCount==1 else "s" )
 				else:
 					print "   ❌ %s wrong connection%s" % ( layerCount, "" if layerCount==1 else "s" )
@@ -193,7 +204,12 @@ class GreenBlueManager( object ):
 			if not thisFont:
 				Message(title="Green Blue Manager Error", message="Could not determine a frontmost font. The script requires at least one open font.", OKButton=None)
 			else:
-				if Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindow"]:
+				shouldRealign = Glyphs.defaults["com.mekkablue.GreenBlueManager.realignHandles"]
+				shouldReport = Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindow"]
+				shouldVerbose = Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindowVerbose"]
+				shouldFix = Glyphs.defaults["com.mekkablue.GreenBlueManager.fixGreenBlue"]
+				
+				if shouldReport:
 					Glyphs.clearLog()
 			
 				# determine which layers to process:
@@ -212,8 +228,11 @@ class GreenBlueManager( object ):
 			
 				# process layers:
 				for i, thisLayer in enumerate(layersToBeProcessed):
-					self.w.progress.set(100.0/numberOfLayers*i)
 					thisGlyph = thisLayer.parent
+					
+					statusMessage = "Processing: %s" % thisGlyph.name
+					self.w.processingText.set( statusMessage )
+					self.w.progress.set(100.0/numberOfLayers*i)
 				
 					thisGlyph.beginUndo() # begin undo grouping
 				
@@ -221,37 +240,53 @@ class GreenBlueManager( object ):
 					if numberOfFixes and numberOfLayers:
 						affectedLayersFixedConnections.append( thisLayer )
 				
-					numberOfAligns = self.realignLayer( thisLayer )
+					numberOfAligns = self.realignLayer( thisLayer, shouldRealign, shouldReport, shouldVerbose )
 					if numberOfAligns and numberOfLayers:
 						affectedLayersRealignedHandles.append( thisLayer )
 				
 					thisGlyph.endUndo()   # end undo grouping
-			
-				print "\nDone. Processed %i layers." % numberOfLayers
-				self.w.progress.set(100)
 				
-				if Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindow"]:
+				self.w.progress.set(100)
+				statusMessage = "Processed %i layers." % numberOfLayers
+				self.w.processingText.set( statusMessage )
+				
+				onlyReport = not shouldFix and not shouldRealign
+				if onlyReport:
+					titles = ("Wrong green or blue","Unaligned BCPs")
+				else:
+					titles = ("Fixed green or blue","Aligned BCPs")
+
+				if shouldReport:
+					if affectedLayersFixedConnections:
+						print "\n%s in following layers:" % (titles[0])
+						for fixedLayer in affectedLayersFixedConnections:
+							print "   %s, layer '%s'" % (fixedLayer.parent.name, fixedLayer.name)
+					if affectedLayersRealignedHandles:
+						print "\n%s in following layers:" % (titles[1])
+						for fixedLayer in affectedLayersRealignedHandles:
+							print "   %s, layer '%s'" % (fixedLayer.parent.name, fixedLayer.name)
+					
+					print "\nDone. %s" % statusMessage
 					Glyphs.showMacroWindow()
 			
 				if numberOfLayers == 1:
+					# if only one layer was processed, do not open new tab:
 					if Glyphs.font.currentTab:
 						Glyphs.font.currentTab.forceRedraw()
 				else:
-					onlyReport = not Glyphs.defaults["com.mekkablue.GreenBlueManager.fixGreenBlue"] and not Glyphs.defaults["com.mekkablue.GreenBlueManager.realignHandles"]
-					if onlyReport:
-						titles = ("Wrong green/blue","Unaligned BCPs")
-					else:
-						titles = ("Fixed green/blue","Aligned BCPs")
-
 					# opens new Edit tab:
-					newTab = thisFont.newTab()
-					if numberOfFixes:
-						newTab.text += "%s:\n" % titles[0]
-						newTab.layers += affectedLayersFixedConnections
-						newTab.text += "\n\n"
-					if numberOfAligns:
-						newTab.text += "%s:\n" % titles[1]
-						newTab.layers += affectedLayersRealignedHandles
+					if affectedLayersFixedConnections or affectedLayersRealignedHandles:
+						newTab = thisFont.newTab()
+						if affectedLayersFixedConnections:
+							newTab.text += "%s:\n" % titles[0]
+							for affectedLayer in affectedLayersFixedConnections:
+								newTab.layers.append(affectedLayer)
+						if affectedLayersFixedConnections and affectedLayersRealignedHandles:
+							newTab.text += "\n\n"
+						if affectedLayersRealignedHandles:
+							newTab.text += "%s:\n" % titles[1]
+							for affectedLayer in affectedLayersRealignedHandles:
+								newTab.layers.append(affectedLayer)
 				
 		except Exception, e:
 			# brings macro window to front and reports error:
