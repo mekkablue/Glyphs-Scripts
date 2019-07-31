@@ -1,4 +1,6 @@
 
 *.vdiff
 
+*.pyc
+
 .DS_Store
