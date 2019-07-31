@@ -269,10 +269,30 @@ class GreenBlueManager( object ):
 					print "\nDone. %s" % statusMessage
 					Glyphs.showMacroWindow()
 			
-				if numberOfLayers == 1:
+				if numberOfLayers == 1 and Glyphs.font.currentTab:
 					# if only one layer was processed, do not open new tab:
-					if Glyphs.font.currentTab:
-						Glyphs.font.currentTab.forceRedraw()
+					Glyphs.font.currentTab.forceRedraw()
+					if affectedLayersFixedConnections or affectedLayersRealignedHandles:
+						message = u""
+						if affectedLayersFixedConnections:
+							message += u"• %s\n" % titles[0]
+						if affectedLayersRealignedHandles:
+							message += u"• %s\n" % titles[1]
+						Message(
+							title="%s in %s:" % (
+								"Found Problems" if onlyReport else "Fixed Problems",
+								thisGlyph.name,
+								), 
+							message=message,
+							OKButton=None,
+							)
+					else:
+						Message(
+							title="All OK in %s!" % thisGlyph.name,
+							message="No unaligned handles or wrong connection types found in %s." % thisGlyph.name,
+							OKButton="Great!",
+							)
+						
 				else:
 					# opens new Edit tab:
 					if affectedLayersFixedConnections or affectedLayersRealignedHandles:
