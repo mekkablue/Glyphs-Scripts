@@ -1,4 +1,4 @@
-#MenuTitle: Show next instance
+#MenuTitle: Show Next Instance
 # -*- coding: utf-8 -*-
 __doc__="""
 Jumps to next instance shown in the preview field or window.
