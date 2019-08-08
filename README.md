@@ -311,7 +311,6 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **Delete Components out of Bounds:** If a component is placed far outside the usual coordinates (happens when you cmd-arrow components with a high grid step), this script will delete them.
 * **Delete Duplicate Components:** Looks for duplicate components (same name and position) and keeps only one. Happens frequently when buliding pixel fonts.
 * **Flashify Pixels:** Creates small bridges in order to prevent self-intersection of paths so counters stay white. This is especially a problem for the Flash font renderer, hence the name of the script.
-* **Pixelate:** Replaces outlines with pixel components and optionally resets width to to pixel grid. *Needs Vanilla.*
 * **Reset Rotated and Mirrored Components:** Looks for scaled, mirrored and rotated components and turns them back into their default scale and orientation, but keeps their position. Useful for fixing mirrored pixels.
 
 ## Smallcaps
