@@ -111,6 +111,7 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **Compare Compounds:** Reports diverging component structures of compound glyphs, e.g., iacute built with acutecomb in one font, and acutecomb.narrow in the other.
 * **Compare Glyph Heights:** Lists all glyphs that differ from the second font in height beyond a given threshold.
 * **Compare Glyphsets:** Compares the glyph set of the two frontmost fonts and outputs a report in the Macro window.
+* **Compare Kerning Groups:** Compares kerning groups between frontmost fonts, outputs a table of glyph names with unmatching groups.
 * **Compare Metrics:** Compare widths of two frontmost fonts.
 * **Compare Sidebearings:** Compare sidebearings of two frontmost fonts.
 
