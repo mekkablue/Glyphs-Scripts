@@ -156,16 +156,21 @@ class SampleStringMaker( object ):
 				leftSubCategory = leftChoice.split(":")[1]
 			if ":" in rightChoice:
 				rightSubCategory = rightChoice.split(":")[1]
+				
+			includeNonExporting = Glyphs.defaults["com.mekkablue.SampleStringMaker.includeNonExporting"]
 			
 			glyphNamesLeft = [ 
 				g.name for g in thisFont.glyphs 
 				if g.category == leftCategory
-				and g.subCategory == leftSubCategory
+				and (
+					leftSubCategory is None 
+					or g.subCategory == leftSubCategory
+					)
 				and (
 					g.script == chosenScript
 					or (leftCategory != "Letter" and g.script is None)
 					)
-				and (g.export or Glyphs.defaults["com.mekkablue.SampleStringMaker.includeNonExporting"])
+				and (g.export or includeNonExporting)
 				and not g.name in self.exclusion
 				and not self.glyphNameIsExcluded(g.name)
 			]
@@ -174,12 +179,15 @@ class SampleStringMaker( object ):
 			glyphNamesRight = [ 
 				g.name for g in thisFont.glyphs 
 				if g.category == rightCategory
-				and g.subCategory == rightSubCategory
+				and (
+					rightSubCategory is None 
+					or g.subCategory == rightSubCategory
+					)
 				and (
 					g.script == chosenScript
 					or (rightCategory != "Letter" and g.script is None)
 					)
-				and (g.export or Glyphs.defaults["com.mekkablue.SampleStringMaker.includeNonExporting"])
+				and (g.export or includeNonExporting)
 				and not g.name in self.exclusion
 				and not self.glyphNameIsExcluded(g.name)
 			]
