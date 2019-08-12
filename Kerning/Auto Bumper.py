@@ -373,7 +373,7 @@ class Bumper( object ):
 				self.w.roundFactor.set("")
 				self.SavePreferences(None)
 			
-			suffix = Glyphs.defaults["com.mekkablue.Bumper.suffix"].strip()
+			suffix = Glyphs.defaults["com.mekkablue.Bumper.suffix"]
 			cleanedSuffix=""
 			for letter in suffix:
 				if letter in u"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-":
