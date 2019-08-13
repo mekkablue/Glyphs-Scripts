@@ -5,7 +5,6 @@ Copy sidebearings, widths and/or metric keys (both on layer and glyph) from one 
 """
 
 import vanilla, math
-windowHeight = 210
 
 class MetricsCopy( object ):
 	"""GUI for copying glyph metrics from one font to another"""
@@ -16,12 +15,12 @@ class MetricsCopy( object ):
 		
 		# Window 'self.w':
 		windowWidth  = 400
-		windowHeight = 200
+		windowHeight = 220
 		windowWidthResize  = 500 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			( windowWidth, windowHeight ), # default window size
-			"Steal Sidebearings", # window title
+			"Steal Metrics", # window title
 			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
 			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
 			autosaveName = "com.mekkablue.MetricsCopy.mainwindow" # stores last window position and size
@@ -29,6 +28,11 @@ class MetricsCopy( object ):
 		
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
+		
+		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 14), u"Open two fonts and select glyphs in the target font.", sizeStyle='small', selectable=True )
+		linePos += lineHeight
+		
+		
 		self.w.text_anchor = vanilla.TextBox( (inset, linePos+2, 130, 17), "Transfer metrics from:", sizeStyle='small')
 		self.w.from_font = vanilla.PopUpButton( (inset+130, linePos, -inset, 17), self.listOfMasterNames(), sizeStyle='small', callback=self.buttonCheck)
 		
@@ -40,18 +44,25 @@ class MetricsCopy( object ):
 		self.w.lsb   = vanilla.CheckBox( ( inset, linePos-1, 80, 20), "LSB", value=True, callback=self.buttonCheck, sizeStyle='small' )
 		self.w.rsb   = vanilla.CheckBox( ( inset+80, linePos-1, 80, 20), "RSB", value=True, callback=self.buttonCheck, sizeStyle='small' )
 		self.w.width = vanilla.CheckBox( ( inset+80*2, linePos-1, 80, 20), "Width", value=False, callback=self.buttonCheck, sizeStyle='small' )
-
+		self.w.lsb.getNSButton().setToolTip_("If enabled, will transfer values for left sidebearings.")
+		self.w.rsb.getNSButton().setToolTip_("If enabled, will transfer values for right sidebearings.")
+		self.w.width.getNSButton().setToolTip_("If enabled, will transfer values for advance widths.")
+		
+		
 		linePos += lineHeight
-		self.w.preferMetricKeys  = vanilla.CheckBox( (inset, linePos, -inset, 20), "Prefer (glyph and layer) metrics keys whenever available", value=False, sizeStyle='small', callback=self.SavePreferences )
+		self.w.preferMetricKeys  = vanilla.CheckBox( (inset, linePos, -inset, 20), "Prefer (glyph and layer) metrics keys whenever available", value=False, sizeStyle='small', callback=self.buttonCheck )
+		self.w.preferMetricKeys.getNSButton().setToolTip_("If enabled, will transfer the metrics key rather than the metric value, if a metrics key is persent in the source font.")
+		
+		linePos += lineHeight
+		self.w.onlyMetricsKeys = vanilla.CheckBox( (inset*2, linePos-1, -inset, 20), u"Only transfer metrics keys (ignore LSB, RSB, Width)", value=False, callback=self.buttonCheck, sizeStyle='small' )
+		self.w.onlyMetricsKeys.enable(False)
+		self.w.onlyMetricsKeys.getNSButton().setToolTip_("If enabled, will only transfer metrics keys and not change any metric values. The checkboxes for LSB, RSB and Width will be disabled.")
 		
 		linePos += lineHeight
 		self.w.ignoreSuffixes    = vanilla.CheckBox( (inset, linePos, 190, 20), "Ignore dotsuffix in source glyph:", value=False, sizeStyle='small', callback=self.buttonCheck )
 		self.w.suffixToBeIgnored = vanilla.EditText( (inset+190, linePos, -inset, 20), ".alt", sizeStyle = 'small')
 		self.w.suffixToBeIgnored.getNSTextField().setToolTip_(u"Will copy metrics from source glyph ‘eacute’ to target glyph ‘eacute.xxx’. Useful for transfering metrics to dotsuffixed glyph variants.")
-
-		linePos += lineHeight
-		self.w.keepWindowOpen  = vanilla.CheckBox( (inset, linePos, -inset, 20), "Keep this window open", value=False, sizeStyle='small', callback=self.SavePreferences )
-				
+		
 		self.w.copybutton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Transfer", sizeStyle='small', callback=self.copyMetrics)
 		self.w.setDefaultButton( self.w.copybutton )
 		
@@ -118,6 +129,16 @@ class MetricsCopy( object ):
 					self.w.width.set(False)
 				else:
 					self.w.rsb.set(False)
+			
+			# enable Only Keys option only if 
+			if not self.w.preferMetricKeys.get():
+				self.w.onlyMetricsKeys.set(False)
+				
+			self.w.onlyMetricsKeys.enable( bool(self.w.preferMetricKeys.get()) )
+			metricValuesOnOff = not self.w.onlyMetricsKeys.get()
+			self.w.lsb.enable(metricValuesOnOff)
+			self.w.rsb.enable(metricValuesOnOff)
+			self.w.width.enable(metricValuesOnOff)
 		
 			if not self.SavePreferences( self ):
 				self.outputError( "Could not save preferences." )
@@ -132,7 +153,7 @@ class MetricsCopy( object ):
 			Glyphs.defaults["com.mekkablue.MetricsCopy.lsb"] = self.w.lsb.get()
 			Glyphs.defaults["com.mekkablue.MetricsCopy.width"] = self.w.width.get()
 			Glyphs.defaults["com.mekkablue.MetricsCopy.preferMetricKeys"] = self.w.preferMetricKeys.get()
-			Glyphs.defaults["com.mekkablue.MetricsCopy.keepWindowOpen"] = self.w.keepWindowOpen.get()
+			Glyphs.defaults["com.mekkablue.MetricsCopy.onlyMetricsKeys"] = self.w.onlyMetricsKeys.get()
 			return True
 		except:
 			return False
@@ -145,14 +166,14 @@ class MetricsCopy( object ):
 			Glyphs.registerDefault("com.mekkablue.MetricsCopy.rsb", 0)
 			Glyphs.registerDefault("com.mekkablue.MetricsCopy.width", 0)
 			Glyphs.registerDefault("com.mekkablue.MetricsCopy.preferMetricKeys", 0)
-			Glyphs.registerDefault("com.mekkablue.MetricsCopy.keepWindowOpen", 0)
+			Glyphs.registerDefault("com.mekkablue.MetricsCopy.onlyMetricsKeys", 0)
 			self.w.ignoreSuffixes.set( Glyphs.defaults["com.mekkablue.MetricsCopy.ignoreSuffixes"] )
 			self.w.suffixToBeIgnored.set( Glyphs.defaults["com.mekkablue.MetricsCopy.suffixToBeIgnored"] )
 			self.w.lsb.set( Glyphs.defaults["com.mekkablue.MetricsCopy.lsb"] )
 			self.w.rsb.set( Glyphs.defaults["com.mekkablue.MetricsCopy.rsb"] )
 			self.w.width.set( Glyphs.defaults["com.mekkablue.MetricsCopy.width"] )
 			self.w.preferMetricKeys.set( Glyphs.defaults["com.mekkablue.MetricsCopy.preferMetricKeys"] )
-			self.w.keepWindowOpen.set( Glyphs.defaults["com.mekkablue.MetricsCopy.keepWindowOpen"] )
+			self.w.onlyMetricsKeys.set( Glyphs.defaults["com.mekkablue.MetricsCopy.onlyMetricsKeys"] )
 			return True
 		except:
 			return False
@@ -190,6 +211,11 @@ class MetricsCopy( object ):
 	
 	
 	def copyMetrics(self, sender):
+		if not self.SavePreferences( self ):
+			self.outputError( "Could not save preferences." )
+		
+		preferMetricKeys = Glyphs.defaults["com.mekkablue.MetricsCopy.preferMetricKeys"]
+		onlyMetricsKeys = Glyphs.defaults["com.mekkablue.MetricsCopy.onlyMetricsKeys"]
 		fromFontIndex  = self.w.from_font.get()
 		toFontIndex    = self.w.to_font.get() * -1 - 1
 		sourceMaster   = self.listOfMasters[ fromFontIndex ]
@@ -198,10 +224,10 @@ class MetricsCopy( object ):
 		targetMasterID = targetMaster.id
 		sourceFont     = sourceMaster.font
 		targetFont     = targetMaster.font
-		ignoreSuffixes = self.w.ignoreSuffixes.get()
-		lsbIsSet = self.w.lsb.get()
-		rsbIsSet = self.w.rsb.get()
-		widthIsSet = self.w.width.get()
+		ignoreSuffixes = Glyphs.defaults["com.mekkablue.MetricsCopy.ignoreSuffixes"]
+		lsbIsSet = Glyphs.defaults["com.mekkablue.MetricsCopy.lsb"]
+		rsbIsSet = Glyphs.defaults["com.mekkablue.MetricsCopy.rsb"]
+		widthIsSet = Glyphs.defaults["com.mekkablue.MetricsCopy.width"]
 		suffixToBeIgnored = self.w.suffixToBeIgnored.get().strip(".")
 		selectedTargetLayers = targetFont.selectedLayers
 		
@@ -233,7 +259,7 @@ class MetricsCopy( object ):
 					
 					# go through metrics keys:
 					metricsL, metricsR, metricsW = False, False, False
-					if self.w.preferMetricKeys.get():
+					if preferMetricKeys:
 						if sourceGlyph.leftMetricsKey:
 							targetGlyph.leftMetricsKey = sourceGlyph.leftMetricsKey
 							metricsL = True
@@ -259,40 +285,36 @@ class MetricsCopy( object ):
 							metricsW = True
 							print "     %s, width layer key: '%s'" % ( targetGlyphName, targetLayer.widthMetricsKey )
 					
-					# transfer numeric metrics:
-					if lsbIsSet and not metricsL:
-						targetLayer.LSB = sourceLayer.LSB
-					if widthIsSet and not metricsW:
-						targetLayer.width = sourceLayer.width
-						if rsbIsSet and not metricsR: # set width AND rsb, i.e. adjust lsb:
-							shift = targetLayer.RSB - sourceLayer.RSB
-							shiftTransform = self.transform(shiftX=shift)
-							targetLayer.transform_checkForSelection_doComponents_(shiftTransform,False,True)
-					elif rsbIsSet and not metricsR:
-						targetLayer.RSB = sourceLayer.RSB
+					if not onlyMetricsKeys:
+						# transfer numeric metrics:
+						if lsbIsSet and not metricsL:
+							targetLayer.LSB = sourceLayer.LSB
+						if widthIsSet and not metricsW:
+							targetLayer.width = sourceLayer.width
+							if rsbIsSet and not metricsR: # set width AND rsb, i.e. adjust lsb:
+								shift = targetLayer.RSB - sourceLayer.RSB
+								shiftTransform = self.transform(shiftX=shift)
+								targetLayer.transform_checkForSelection_doComponents_(shiftTransform,False,True)
+						elif rsbIsSet and not metricsR:
+							targetLayer.RSB = sourceLayer.RSB
 					
-					# update metrics:
-					syncMessage = ""
-					if metricsL or metricsR or metricsW:
-						targetLayer.updateMetrics()
-						targetLayer.syncMetrics()
-						syncMessage =  ", synced metric keys"
+						# update metrics:
+						syncMessage = ""
+						if metricsL or metricsR or metricsW:
+							targetLayer.updateMetrics()
+							targetLayer.syncMetrics()
+							syncMessage =  ", synced metric keys"
 					
-					# report in macro window
-					print "     %s: L %i, R %i, W %i%s" % ( 
-						targetGlyphName, 
-						targetLayer.LSB, targetLayer.RSB, targetLayer.width,
-						syncMessage,
-						)
+						# report in macro window
+						print "     %s: L %i, R %i, W %i%s" % ( 
+							targetGlyphName, 
+							targetLayer.LSB, targetLayer.RSB, targetLayer.width,
+							syncMessage,
+							)
 				
-				if not self.SavePreferences( self ):
-					self.outputError( "Could not save preferences." )
 			except Exception, e:
 				self.outputError(e)
 				import traceback
 				print traceback.format_exc()
-		
-		if not self.w.keepWindowOpen.get():
-			self.w.close()
 		
 MetricsCopy()
