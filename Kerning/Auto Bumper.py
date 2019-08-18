@@ -375,9 +375,13 @@ class Bumper( object ):
 			
 			suffix = Glyphs.defaults["com.mekkablue.Bumper.suffix"]
 			cleanedSuffix=""
-			for letter in suffix:
-				if letter in u"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-":
-					cleanedSuffix += letter
+			if suffix is None:
+				suffix = ""
+			else:
+				suffix = suffix.strip()
+				for letter in suffix:
+					if letter in u"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-":
+						cleanedSuffix += letter
 			if cleanedSuffix != suffix:
 				Message(
 					title="Invalid Suffix Error", 
