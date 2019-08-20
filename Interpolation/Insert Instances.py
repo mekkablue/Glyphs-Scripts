@@ -70,6 +70,12 @@ def distribute_schneider( min, max, n ):
 	ls = distribute_lucas(min, max, n)
 	return [ (p+l)*0.5 for (p, l) in zip(ps, ls) ]
 
+def distribute_abraham( min, max, n ):
+	es = distribute_equal(min, max, n)
+	ls = distribute_lucas(min, max, n)
+	return [ l*(i/(n-1))**1.25 + e*(1-i/(n-1))**1.25 for (i, e, l) in zip(range(n), es, ls) ]
+	
+
 def distribute_maciej( lightMasterWeightX, lightMasterWeightY, boldMasterWeightX, boldMasterWeightY, interpolationWeightX ):
 	"""
 	Algorithm by Maciej Ratajski
@@ -101,20 +107,26 @@ class InstanceMaker( object ):
 		
 		self.w.text_1 = vanilla.TextBox( (inset-1, lineheight+2, 75, 14), "Insert", sizeStyle='small' )
 		self.w.numberOfInstances = vanilla.PopUpButton( (inset+40, lineheight, 50, 17), [str(x) for x in range( 3, 12 )], callback=self.UpdateSample, sizeStyle='small' )
+		self.w.numberOfInstances.getNSPopUpButton().setToolTip_("Choose how many instances you want to add. A full weight spectrum has 9 weights.")
 		self.w.text_2 = vanilla.TextBox( (inset+40+55, lineheight+2, 120, 14), "instances with prefix", sizeStyle='small' )
 		self.w.prefix = vanilla.EditText( (inset+40+55+120, lineheight-1, -inset, 19), "A-", callback=self.UpdateSample, sizeStyle='small')
+		self.w.prefix.getNSTextField().setToolTip_(u"Choose text that is added at the beginning of each instance, e.g., ‘Condensed’.")
 		lineheight += 28
 		
 		self.w.text_3  = vanilla.TextBox( (inset-1, lineheight+2, 60, 14), "from:", sizeStyle='small')
 		self.w.master1 = vanilla.ComboBox((inset+35, lineheight-1, 62, 19), self.MasterList(1), callback=self.UpdateSample, sizeStyle='small' )
+		self.w.master1.getNSComboBox().setToolTip_("Weight value for the first instance being added, typically the stem width of your lightest weight.")
 		self.w.text_4  = vanilla.TextBox( (inset+50+55*1, lineheight+2, 55, 14), "through:", sizeStyle='small')
 		self.w.master2 = vanilla.ComboBox((inset+50+55*2, lineheight-1, 62, 19), self.MasterList(-1), callback=self.UpdateSample, sizeStyle='small' )
+		self.w.master2.getNSComboBox().setToolTip_("Weight value for the last instance being added, typically the stem width of your boldest weight.")
 		self.w.text_5  = vanilla.TextBox( (inset+65+55*3, lineheight+2, 55, 14), "at width:", sizeStyle='small')
 		self.w.width   = vanilla.EditText((inset+65+55*4, lineheight-1, -inset, 19), "100", callback=self.UpdateSample, sizeStyle='small')
+		self.w.width.getNSTextField().setToolTip_("The Width value for the instances being added. Default is 100. Adapt accordingly if you are adding condensed or extended instances.")
 		lineheight += 28
 		
 		self.w.text_6 = vanilla.TextBox( (inset-1, lineheight+2, 60, 14), "using", sizeStyle='small')
-		self.w.algorithm = vanilla.PopUpButton((inset+35, lineheight, 90, 17), ("linear", "Pablo", "Schneider", "Luc(as)",), callback=self.UpdateSample, sizeStyle='small' )
+		self.w.algorithm = vanilla.PopUpButton((inset+35, lineheight, 90, 17), ("linear", "Pablo", "Schneider", "Luc(as)", "Abraham"), callback=self.UpdateSample, sizeStyle='small' )
+		self.w.algorithm.getNSPopUpButton().setToolTip_("The way the Weight values are distributed between the first and last master values you entered above. Linear means equal steps between instances. Luc(as) means the same growth percentage between instances. Pablo is Luc(as) first, then becomes linear. Schneider is half way between Pablo and Luc(as). Abraham is linear at first, and becomes Luc(as) at the end.\nFor a wide spectrum, pick Pablo or Schneider. Luc(as) and Abraham distributions tend to have large jumps at the end. Large jumps are usually found in the center of a distribution (between Regular and Semibold). Small jumps are preferable in the periphery, i.e., for very light and very dark weights.")
 		self.w.text_7 = vanilla.TextBox( (inset+40+85+5, lineheight+2, 110, 14), "distribution.", sizeStyle='small')
 		self.w.help_instances = vanilla.HelpButton((-15-21, lineheight+2, -inset, 20), callback=self.openURL )
 		lineheight += 32
@@ -124,7 +136,9 @@ class InstanceMaker( object ):
 		lineheight += 70
 		
 		self.w.naturalNames = vanilla.CheckBox((inset, lineheight, inset+225, 19), u"Use ‘natural’ weight names, starting at:", value=False, callback=self.UpdateSample, sizeStyle='small' )
+		self.w.naturalNames.getNSButton().setToolTip_("Prefill with standard names and style linking. If turned off, will use the Weight number as instance name.")
 		self.w.firstName = vanilla.PopUpButton((inset+225, lineheight, -inset, 17), naturalNames, callback=self.UpdateSample, sizeStyle='small' )
+		self.w.firstName.getNSPopUpButton().setToolTip_("If you use natural weight names, choose here the name of your lightest weight.")
 		try: # workaround for macOS 10.9
 			self.w.firstName.enable( self.w.naturalNames.getNSButton().isEnabled() )
 		except:
@@ -132,23 +146,27 @@ class InstanceMaker( object ):
 		lineheight += 20
 		
 		self.w.italicStyle = vanilla.CheckBox( (inset+20, lineheight, -inset, 20), u"Italic suffixes and style linking", value=False, callback=self.UpdateSample, sizeStyle='small' )
+		self.w.italicStyle.getNSButton().setToolTip_(u"If enabled, will add the word ‘Italic’ to all instances, and also add italic style linking.")
 		lineheight += 24
 		
 		self.w.maciej        = vanilla.CheckBox((inset, lineheight-1, 160, 19), "Maciej y distribution from:", value=False, callback=self.UpdateSample, sizeStyle='small' )
+		self.w.maciej.getNSButton().setToolTip_("An algorithm proposed by Maciej Ratajski, which introduces slightly different interpolation for y coordinates. Will add interpolationWeightY parameters to the instances. If these value differ greatly from the weight interpolation values, interpolation of your diagonals may suffer.")
 		self.w.text_maciej_1 = vanilla.TextBox( (inset+165+55, lineheight+2, 55, 19), "through:", sizeStyle='small')
 		self.w.text_maciej_2 = vanilla.TextBox( (inset+15, lineheight+2+20, -40, 40), "Provide horizontal stem widths in extreme masters to interpolate contrast rather than stems.", sizeStyle='small', selectable=True )
 		self.w.maciej_light  = vanilla.ComboBox((inset+160, lineheight-1, 55, 19), self.MasterList(1), callback=self.UpdateSample, sizeStyle='small' )
 		self.w.maciej_bold   = vanilla.ComboBox((inset+160+55+55, lineheight-1, -inset, 19), self.MasterList(-1), callback=self.UpdateSample, sizeStyle='small' )
 		self.w.help_maciej   = vanilla.HelpButton((-inset-21, lineheight+6+20, -inset, 20), callback=self.openURL )
+		self.w.help_maciej.getNSButton().setToolTip_("Will open a website with a detailed description of the Maciej algorithm. Requires an internet connection.")
 		lineheight += 60
 		
 		self.w.shouldRound   = vanilla.CheckBox((inset, lineheight, -inset, 19), "Round all interpolation values", value=True, callback=self.UpdateSample, sizeStyle='small' )
+		self.w.shouldRound.getNSButton().setToolTip_("If enabled, will round all calculated weight values to integers. Usually a good idea.")
 		lineheight += 30
 		
 		self.w.sample = vanilla.Box( (inset, lineheight, -inset, -30-inset) )
 		self.w.sample.text = vanilla.TextBox( (5, 5, -5, -5), "", sizeStyle='small')
 		
-		self.w.createButton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Create", sizeStyle='regular', callback=self.CreateInstances )
+		self.w.createButton = vanilla.Button((-90-inset, -20-inset, -inset, -inset), "Insert", sizeStyle='regular', callback=self.CreateInstances )
 		self.w.setDefaultButton( self.w.createButton )
 		
 		if not self.LoadPreferences():
@@ -178,6 +196,8 @@ class InstanceMaker( object ):
 			distributedValues = distribute_lucas( a, b, n )
 		elif algorithm == "Schneider":
 			distributedValues = distribute_schneider( a, b, n )
+		elif algorithm == "Abraham":
+			distributedValues = distribute_abraham( a, b, n )
 		else:
 			distributedValues = distribute_equal( a, b, n )
 		
