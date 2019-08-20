@@ -73,7 +73,7 @@ def distribute_schneider( min, max, n ):
 def distribute_abraham( min, max, n ):
 	es = distribute_equal(min, max, n)
 	ls = distribute_lucas(min, max, n)
-	return [ l*(i/(n-1))**1.25 + e*(1-i/(n-1))**1.25 for (i, e, l) in zip(range(n), es, ls) ]
+	return [ e*(1-(i/(n-1))**1.25) + l*(i/(n-1))**1.25 for (i, e, l) in zip(range(n), es, ls) ]
 	
 
 def distribute_maciej( lightMasterWeightX, lightMasterWeightY, boldMasterWeightX, boldMasterWeightY, interpolationWeightX ):
@@ -125,8 +125,8 @@ class InstanceMaker( object ):
 		lineheight += 28
 		
 		self.w.text_6 = vanilla.TextBox( (inset-1, lineheight+2, 60, 14), "using", sizeStyle='small')
-		self.w.algorithm = vanilla.PopUpButton((inset+35, lineheight, 90, 17), ("linear", "Pablo", "Schneider", "Luc(as)", "Abraham"), callback=self.UpdateSample, sizeStyle='small' )
-		self.w.algorithm.getNSPopUpButton().setToolTip_("The way the Weight values are distributed between the first and last master values you entered above. Linear means equal steps between instances. Luc(as) means the same growth percentage between instances. Pablo is Luc(as) first, then becomes linear. Schneider is half way between Pablo and Luc(as). Abraham is linear at first, and becomes Luc(as) at the end.\nFor a wide spectrum, pick Pablo or Schneider. Luc(as) and Abraham distributions tend to have large jumps at the end. Large jumps are usually found in the center of a distribution (between Regular and Semibold). Small jumps are preferable in the periphery, i.e., for very light and very dark weights.")
+		self.w.algorithm = vanilla.PopUpButton((inset+35, lineheight, 90, 17), ("linear", "Pablo", "Schneider", "Abraham", "Luc(as)"), callback=self.UpdateSample, sizeStyle='small' )
+		self.w.algorithm.getNSPopUpButton().setToolTip_("The way the Weight values are distributed between the first and last master values you entered above. Linear means equal steps between instances. Luc(as) means the same growth percentage between instances. Pablo and Abraham are like Luc(as) at first, then become increasingly linear. Schneider is half way between Pablo and Luc(as).\nFor a wide spectrum, pick Pablo, Abraham or Schneider. Luc(as) distribution tends to have large jumps at the end. Large jumps are usually found in the center of the weight spectrum (between Regular and Semibold). Small jumps are preferable in the periphery, i.e., for very light and very dark weights.")
 		self.w.text_7 = vanilla.TextBox( (inset+40+85+5, lineheight+2, 110, 14), "distribution.", sizeStyle='small')
 		self.w.help_instances = vanilla.HelpButton((-15-21, lineheight+2, -inset, 20), callback=self.openURL )
 		lineheight += 32
