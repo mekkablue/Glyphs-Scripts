@@ -37,26 +37,24 @@ class PangramHelper( object ):
 			print "Note: 'Pangram Helper' could not load preferences. Will resort to defaults"
 		
 		# Open window and focus on it:
-		self.updateMissingLetters( None )
+		self.updateMissingLetters()
 		self.w.open()
 		self.w.pangram.selectAll()
 		self.w.makeKey()
 		
-	def SavePreferences( self, sender ):
+	def SavePreferences( self, sender=None ):
 		try:
 			Glyphs.defaults["com.mekkablue.PangramHelper.pangram"] = self.w.pangram.get()
 		except:
 			return False
-			
 		return True
 
-	def LoadPreferences( self ):
+	def LoadPreferences( self, sender=None ):
 		try:
 			Glyphs.registerDefault("com.mekkablue.PangramHelper.pangram", "The quick brown fox jumps over the lazy dog.")
 			self.w.pangram.set( Glyphs.defaults["com.mekkablue.PangramHelper.pangram"] )
 		except:
 			return False
-			
 		return True
 	
 	def decompose(self, glyph):
@@ -67,7 +65,10 @@ class PangramHelper( object ):
 			return listOfCharacters
 		return []
 	
-	def updateMissingLetters( self, sender ):
+	def updateMissingLetters( self, sender=None ):
+		if not self.SavePreferences():
+			print "Note: 'Pangram Helper' could not save its preferences."
+			
 		currentTextEntry = unicode( Glyphs.defaults["com.mekkablue.PangramHelper.pangram"].lower() )
 		containedBaseLetters = ""
 		for thisLetter in currentTextEntry:
@@ -81,7 +82,6 @@ class PangramHelper( object ):
 			if not thisLetter in currentTextEntry:
 				missingLetters += thisLetter.upper()
 		self.w.missingLetters.set( "Missing: %s" % missingLetters )
-		
 		
 	def PangramHelperMain( self, sender ):
 		try:
