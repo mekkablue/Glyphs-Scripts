@@ -223,7 +223,7 @@ htmlContent = """
 				padding-top: 0.2em;
 				line-height: 1em;
 				color: #000;
-				font: 100px "###fontFamilyName###";
+				font: 150px "###fontFamilyName###";
 				font-feature-settings: "kern" on, "liga" on, "calt" on;
 				-moz-font-feature-settings: "kern" on, "liga" on, "calt" on;
 				-webkit-font-feature-settings: "kern" on, "liga" on, "calt" on;
@@ -282,7 +282,6 @@ htmlContent = """
 			}
 			input[type=checkbox]:checked + label { 
 				visibility: visible;
-				font-weight: bold;
 				color: #eee;
 				background-color: #555; 
 			}
@@ -380,11 +379,11 @@ htmlContent = """
 	<body onload="updateSlider();">
 		<input type="text" value="Type Text Here." id="textInput" onkeyup="updateParagraph();" onclick="this.select();" />
 		<div>
-			<div class="labeldiv"><label class="sliderlabel" id="label_fontsize" name="Font Size">Font Size</label><input type="range" min="10" max="300" value="100" class="slider" id="fontsize" oninput="updateSlider();"></div>
+			<div class="labeldiv"><label class="sliderlabel" id="label_fontsize" name="Font Size">Font Size</label><input type="range" min="10" max="300" value="150" class="slider" id="fontsize" oninput="updateSlider();"></div>
 			<div class="labeldiv"><label class="sliderlabel" id="label_lineheight" name="Line Height">Line Height</label><input type="range" min="30" max="300" value="100" class="slider" id="lineheight" oninput="updateSlider();"></div>
 ###sliders###		</div>
-		<p id="text">The Quick Brown Fox Jumps Over the Lazy Dog.</p>
-		
+
+		<!-- OT features -->
 		<p style="font-size:x-small; font-family: sans-serif;">
 			<input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
 			<input type="checkbox" name="liga" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga/clig</label>
@@ -392,7 +391,11 @@ htmlContent = """
 ###featureList###
 		</p>
 		
-		<p style="color: #ccc; font: x-small sans-serif;">Not working? Please try the <a href="https://www.google.com/chrome/">latest version of Chrome</a>.</p>
+		<!-- Text -->
+		<p id="text">The Quick Brown Fox Jumps Over the Lazy Dog.</p>
+		
+		<!-- Disclaimer -->
+		<p style="color: #888; font: x-small sans-serif;">Not working? Please try the <a href="https://www.google.com/chrome/">latest version of Chrome</a>, in a recent version of macOS.</p>
 	</body>
 </html>
 """
