@@ -256,7 +256,7 @@ htmlContent = """
 				padding: 1em;
 				vertical-align: text-top;
 				font: x-small sans-serif;
-				color: 000;
+				color: #000;
 				opacity: 0.5;
 			}
 			.otFeatureLabel, .otFeature {
@@ -313,6 +313,31 @@ htmlContent = """
 			a {
 				color: #333;
 			}
+			
+			@media (prefers-color-scheme: dark) {
+				body { background: #000; }
+				p { color: #eee; }
+				#textInput{
+					color: #eee;
+					background-color: #222;
+					background: #222;
+				}
+	 			label { color: #fff; }
+				.otFeatureLabel {
+					color: #999;
+					background-color: #333;
+				}
+				input[type=checkbox]:checked + label { 
+					color: #111;
+					background-color: #888; 
+				}
+				.slider { background: #333; }
+				.slider::-webkit-slider-thumb { background: #888; }
+				
+				a { color: #ccc; }
+				
+			}
+			
 		</style>
 		<script>
 			function updateFeatures() {

@@ -93,8 +93,8 @@ def featureListForFont( thisFont ):
 	returnString = ""
 	featureList = [f.name for f in thisFont.features if not f.name in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig") and not f.disabled()]
 	for f in featureList:
-		returnString += """		<label><input type="checkbox" name="%s" value="%s" class="otFeature" onchange="updateFeatures()">%s</label>
-""" % (f,f,f)
+		returnString += """		<label><input type="checkbox" name="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s</label>
+""" % (f,f,f,f)
 	return returnString
 
 htmlContent = """<head>
@@ -112,16 +112,21 @@ htmlContent = """<head>
 			-ms-font-feature-settings: "kern" on, "liga" on, "calt" on;
 			-o-font-feature-settings: "kern" on, "liga" on, "calt" on;
 		}
-		p { padding: 5px; margin: 10px; }
-		.features {
-			font-size:x-small;
-			font:sans-serif;
+		p {
+			padding: 5px;
+			margin: 10px; 
 		}
-		.label{
+		.features, .label, a {
+			font-size: small;
 			font-family: sans-serif;
-			font-size: x-small;
-			color: grey;
+			color: #888;
 		}
+		.label {
+			background: #ddd;
+			padding: 2px 3px;
+		}
+		
+		
 		span#p08 { font-size: 08pt; }
 		span#p09 { font-size: 09pt; }
 		span#p10 { font-size: 10pt; }
@@ -132,7 +137,50 @@ htmlContent = """<head>
 		span#p15 { font-size: 15pt; }
 		span#p16 { font-size: 16pt; }
 		span#largeParagraph { font-size: 32pt; }
-		span#veryLargeParagraph { font-size: 100pt; }		
+		span#veryLargeParagraph { font-size: 100pt; }
+		
+		.otFeatureLabel {
+			color: #666;
+			background-color: #ddd;
+			padding: 0.2em 0.5em 0.3em 0.5em;
+			margin: 0 .04em;
+			line-height: 2em;
+			border-radius:0.3em;
+			border: 0;
+			text-align:center;
+		}
+		input[type=checkbox]:checked + label { 
+			visibility: visible;
+			color: #fff;
+			background-color: #888; 
+		}
+		.otFeature {
+			visibility: collapse;
+			margin: 0 -1em 0 0;
+		}
+		
+		@media (prefers-color-scheme: dark) {
+			body { 
+				background: #333;
+				color: #fff;
+			}
+			.features, .label, a  {
+				color: #fff;
+			}
+			.label {
+				background: #000;
+				padding: 2px 3px;
+			}
+			.otFeatureLabel {
+				color: #999;
+				background-color: #000;
+			}
+			input[type=checkbox]:checked + label { 
+				color: #000;
+				background-color: #aaa; 
+			}
+		}
+			
 	</style>
 	<script type="text/javascript">
 		function updateParagraph() {
@@ -217,7 +265,7 @@ htmlContent = """<head>
 	<select size="1" id="fontFamilySelector" name="fontFamilySelector" onchange="changeFont()">
 		<!-- moreOptions -->
 	</select>
-	<input type="text" value="Type Text Here." id="textInput" onclick="this.select();" onkeyup="updateParagraph()" size="80" />
+	<input type="text" value="Type Text Here." id="textInput" onclick="this.select();" onkeyup="updateParagraph()" size="100%" />
 	<p class="features">
 		<a href="javascript:setCharset();">Charset</a>
 		<a href="javascript:setLat1();">Lat1</a>
@@ -227,9 +275,9 @@ htmlContent = """<head>
 		<a href="https://caniuse.com/#feat=woff2">woff2</a>
 		&emsp;
 		OT Features:
-		<label><input type="checkbox" name="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked>kern</label>
-		<label><input type="checkbox" name="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked>liga/clig</label>
-		<label><input type="checkbox" name="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked>calt</label>
+		<label><input type="checkbox" name="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
+		<label><input type="checkbox" name="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga/clig</label>
+		<label><input type="checkbox" name="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel">calt</label>
 		<!-- moreFeatures -->
 		<label><input type="checkbox" name="show" value="show" onchange="updateFeatures();document.getElementById('featureLine').style.display=this.checked?'':'none'">Show CSS</label>
 	</p>
