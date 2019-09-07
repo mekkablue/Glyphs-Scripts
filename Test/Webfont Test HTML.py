@@ -126,7 +126,6 @@ htmlContent = """<head>
 			padding: 2px 3px;
 		}
 		
-		
 		span#p08 { font-size: 08pt; }
 		span#p09 { font-size: 09pt; }
 		span#p10 { font-size: 10pt; }
@@ -145,7 +144,7 @@ htmlContent = """<head>
 			padding: 0.2em 0.5em 0.3em 0.5em;
 			margin: 0 .04em;
 			line-height: 2em;
-			border-radius:0.3em;
+			border-radius: 0.3em;
 			border: 0;
 			text-align:center;
 		}
