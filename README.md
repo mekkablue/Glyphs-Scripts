@@ -154,7 +154,7 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 
 ## Font Info
 
-*Set Vertical Metrics is useful for syncing the OS/2 and hhea parameters in Font Info > Masters across all masters. Clean Version String is probably the most important one in this category. Careful about Set WWS/Preferred Names scripts: The app usually takes care of naming automtaically, so their use cases are very rare.*
+*Vertical Metrics is useful for finding and syncing the vertical metric parameters in Font Info > Font and Font Info > Masters. Clean Version String is probably the most important one in this category. Careful about Set WWS/Preferred Names scripts: The app usually takes care of naming automtaically, so their use cases are very rare.*
 
 * **Clean Version String:** Adds a clean versionString parameter, and disables ttfAutohint info in the version string. The exported font will have a version string consisting only of ‘Version X.XXX’.
 * **Find and Replace In Instance Parameters:** Finds and Replace in Custom Parameters of selected instances of the current font or project file.
@@ -162,8 +162,8 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **Set Preferred Names (Name IDs 16 and 17)  for Width Variants:** Sets Preferred Names custom parameters (Name IDs 16 and 17) for all instances, so that width variants will appear in separate menus in Adobe apps. 
 * **Set Style Linking:** Attempts to set the Bold/Italic bits.
 * **Set Time of Font Date to High Noon:** In the *Creation Date* in *Font Info > Font,* sets the time (invisible in the UI) to 12:00:00 o’clock.
-* **Set Vertical Metrics for All Masters:** Adds vertical metrics for all masters, or propagates all current master metrics to all other masters. The latter is useful if you have set vertical metrics for one master already. In that case, select the master (Cmd-1,2,3…) and run the script.
 * **Set WWS Names (Name IDs 21 and 22):** Sets WWS custom parameters (Name IDs 21 and 22) for all instances where necessary: Puts all info except RIBBI into the WWSFamilyName, and only keeps RIBBI for the WWSSubfamilyName. 
+* **Vertical Metrics Manager:** Calculate and insert values for OS/2 usWin and sTypo, hhea and fsSelection bit 7 (for preferring sTypo Metrics over usWin metrics). *Needs Vanilla.*
 
 ## Glyph Names, Notes and Unicode
 
