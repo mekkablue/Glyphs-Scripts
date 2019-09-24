@@ -163,3 +163,9 @@ for thisline in kernInfo.splitlines():
 			print e
 			import traceback
 			print traceback.format_exc()
+
+# Floating notification:
+Glyphs.showNotification( 
+	u"%s" % (thisFont.familyName),
+	u"Kerning stolen from InDesign.",
+	)
