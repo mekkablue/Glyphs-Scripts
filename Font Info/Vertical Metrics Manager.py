@@ -121,7 +121,7 @@ class VerticalMetricsManager( object ):
 				
 		
 		# Run Button:
-		self.w.helpButton = vanilla.HelpButton((inset, linePos+2, 21, lineHeight), callback=self.openURL )
+		self.w.helpButton = vanilla.HelpButton((inset-2, -20-inset, 21, -inset+2), callback=self.openURL )
 		self.w.helpButton.getNSButton().setToolTip_("Opens the Vertical Metrics tutorial (highly recommended) in your web browser.")
 		
 		self.w.runButton = vanilla.Button( (-120-inset, -20-inset, -inset, -inset), "Apply to Font", sizeStyle='regular', callback=self.VerticalMetricsManagerMain )
