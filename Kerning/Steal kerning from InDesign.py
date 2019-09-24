@@ -5,6 +5,10 @@ Use the font in InD (set up a document with one text box on the first page, set 
 """
 
 from Foundation import NSAppleScript, NSAppleEventDescriptor
+from timeit import default_timer as timer
+
+# start taking time:
+start = timer()
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
@@ -14,6 +18,17 @@ listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyph
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
+
+def reportTimeInNaturalLanguage( seconds ):
+	if seconds > 60.0:
+		timereport = "%i:%02i minutes" % ( seconds//60, seconds%60 )
+	elif seconds < 1.0:
+		timereport = "%.2f seconds" % seconds
+	elif seconds < 20.0:
+		timereport = "%.1f seconds" % seconds
+	else:
+		timereport = "%i seconds" % seconds
+	return timereport
 
 def glyphNameForLetter( letter ):
 	glyphName = False
@@ -111,7 +126,7 @@ end tell
 try:
 	docName = runAppleScript( getNameOfDocument )
 	docName = unicode(docName).strip()
-	print "Extracting kerning from doc: %s" % docName
+	print "\nExtracting kerning from document: %s" % docName
 except Exception as e:
 	print "\nERROR while trying to extract the name of the first InDesign document."
 	print "Possible causes:\n  1. No permissions in System Preferences > Security & Privacy > Privacy > Automation > Glyphs. Please review.\n  2. No document open in InDesign; will try to continue."
@@ -122,7 +137,7 @@ except Exception as e:
 try:
 	frameText = runAppleScript( getTextOfFrame )
 	frameText = "%.60s..." % frameText.strip()
-	print "Found text: %s" % frameText
+	print "\nFound text: %s" % frameText
 except Exception as e:
 	print "\nERROR while trying to extract the text of the first text frame."
 	print "Possible causes:\n  1. No permissions in System Preferences > Security & Privacy > Privacy > Automation > Glyphs. Please review.\n  2. No text frame in the frontmost document in InDesign; will try to continue."
@@ -133,8 +148,8 @@ except Exception as e:
 try:
 	fontName = runAppleScript( getNameOfFont )
 	fontName = fontName.replace("\t", " ").replace("font ","").strip()
-	print "Found font: %s" % fontName
-	print "Processing, please wait. Can take a minute...\n"
+	print "\nFound font: %s" % fontName
+	print "\nProcessing, please wait. Can take a minute...\n"
 except Exception as e:
 	print "\nERROR while trying to extract the font in the first text frame."
 	print "Possible causes:\n  1. No permissions in System Preferences > Security & Privacy > Privacy > Automation > Glyphs. Please review.\n  2. No text in the first text frame of the frontmost document in InDesign; will try to continue."
@@ -146,6 +161,8 @@ except Exception as e:
 kernInfo = runAppleScript( getKernValuesFromInDesign )
 print "Applying kerning to: %s, Master: %s\n" % (thisFont.familyName, thisFontMaster.name)
 
+kernPairCount = 0
+
 # Parse kern strings and set kerning in the font:
 for thisline in kernInfo.splitlines():
 	if len(thisline) > 3:
@@ -155,6 +172,7 @@ for thisline in kernInfo.splitlines():
 			kernValue = float(thisline[3:])
 			if kernValue:
 				thisFont.setKerningForPair(thisFontMasterID, leftSide, rightSide, kernValue)
+				kernPairCount += 1
 				print "  Kerning for %s-%s set to %i." % (leftSide, rightSide, kernValue)
 			else:
 				print "  No kerning between %s-%s. Ignored." % (leftSide, rightSide)
@@ -164,8 +182,14 @@ for thisline in kernInfo.splitlines():
 			import traceback
 			print traceback.format_exc()
 
+# take time and report:
+end = timer()
+timereport = reportTimeInNaturalLanguage( end - start )
+print "\nImported %i kern pairs.\nTime elapsed: %s." % (kernPairCount, timereport)
+
 # Floating notification:
 Glyphs.showNotification( 
-	u"%s" % (thisFont.familyName),
-	u"Kerning stolen from InDesign.",
+	u"%i pairs for %s" % (kernPairCount, thisFont.familyName),
+	u"Stolen from InDesign in %s." % timereport,
 	)
+
