@@ -21,12 +21,14 @@ for i in range(len(glyphs)):
 	if (j%linelength==0 or (lastCategory and lastCategory != currCategory) or currGlyph.name == "a") and not currCategory in ("Separator","Mark"):
 		copyString += "\n"
 		j=0
-	copyString += currGlyph.glyphInfo.unicharString().replace(u"⁄",u" ⁄ ")
-	if currGlyph.name == "ldot":
-		copyString += "l"
-	if currGlyph.name == "Ldot":
-		copyString += "L"
-	lastCategory = currCategory
+	unicharString = currGlyph.glyphInfo.unicharString()
+	if unicharString:
+		copyString += unicharString.replace(u"⁄",u" ⁄ ")
+		if currGlyph.name == "ldot":
+			copyString += "l"
+		if currGlyph.name == "Ldot":
+			copyString += "L"
+		lastCategory = currCategory
 
 languages = {
 	"NLD": u"ÍJ́íj́=ÍJíj",
