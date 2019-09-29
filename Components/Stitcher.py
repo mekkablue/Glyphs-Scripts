@@ -34,26 +34,33 @@ def bezier( A, B, C, D, t ):
 def distance( node1, node2 ):
 	return math.hypot( node1.x - node2.x, node1.y - node2.y )
 
+def segmentsForPath( p ):
+	segments=[]
+	currentSegment=[]
+	pathlength = len(p.nodes)
+	for i,n in enumerate(p.nodes):
+		currentSegment.append(n.position)
+		if i>0 and n.type != GSOFFCURVE:
+			offset = len(currentSegment)
+			if not offset in (2,4):
+				firstPoint = p.nodes[(i-offset)%pathlength].position
+				currentSegment.insert(0, firstPoint)
+			segments.append( tuple(currentSegment) )
+			currentSegment=[]
+	return segments
+	
+
 def getFineGrainPointsForPath( thisPath, distanceBetweenDots ):
 	try:
 		layerCoords = [ ]
-		pathSegments = thisPath.segments
-	
-		# fix for new way open paths are stored (including MOVE and LINE segments)
-		try:
-			if thisPath.closed == False and thisPath.segments[0][0].type == MOVE:
-				pathSegments = thisPath.segments[2:]
-		except:
-			# seems not to work/be necessary anymore...?
-			pass
+		pathSegments = segmentsForPath( thisPath )
 	
 		for thisSegment in pathSegments:
 		
 			if len( thisSegment ) == 2:
 				# straight line:
-			
-				beginPoint = thisSegment[0].pointValue()
-				endPoint   = thisSegment[1].pointValue()
+				beginPoint = thisSegment[0]
+				endPoint   = thisSegment[1]
 			
 				dotsPerSegment = int( ( distance( beginPoint, endPoint ) / distanceBetweenDots ) * 11 )
 			
@@ -64,11 +71,10 @@ def getFineGrainPointsForPath( thisPath, distanceBetweenDots ):
 				
 			elif len( thisSegment ) == 4:
 				# curved segment:
-			
-				bezierPointA = thisSegment[0].pointValue()
-				bezierPointB = thisSegment[1].pointValue()
-				bezierPointC = thisSegment[2].pointValue()
-				bezierPointD = thisSegment[3].pointValue()
+				bezierPointA = thisSegment[0]
+				bezierPointB = thisSegment[1]
+				bezierPointC = thisSegment[2]
+				bezierPointD = thisSegment[3]
 			
 				bezierLength = distance( bezierPointA, bezierPointB ) + distance( bezierPointB, bezierPointC ) + distance( bezierPointC, bezierPointD ) # very rough approximation, up to 11% too long
 				dotsPerSegment = int( ( bezierLength / distanceBetweenDots ) * 10 )
@@ -84,7 +90,13 @@ def getFineGrainPointsForPath( thisPath, distanceBetweenDots ):
 	except Exception as e:
 		print traceback.format_exc()
 
-def dotCoordsOnPath( thisPath, distanceBetweenDots ):
+def interpolatePointPos( p1, p2, factor ):
+	factor = factor % 1.0
+	x = p1.x * factor + p2.x * (1.0-factor)
+	y = p1.y * factor + p2.y * (1.0-factor)
+	return NSPoint(x,y)
+
+def dotCoordsOnPath( thisPath, distanceBetweenDots, balanceOverCompletePath=False ):
 	try:
 		dotPoints = [ thisPath.nodes[0] ]
 		fineGrainPoints = getFineGrainPointsForPath( thisPath, distanceBetweenDots )
@@ -95,15 +107,25 @@ def dotCoordsOnPath( thisPath, distanceBetweenDots ):
 			if distance( myLastPoint, thisPoint ) >= distanceBetweenDots:
 				dotPoints += [thisPoint]
 				myLastPoint = thisPoint
-				# print "-- Placed %s at %s." % ( componentName, str(thisPoint) ) # DEBUG
 			else:
 				pass
+		
+		if balanceOverCompletePath:
+			reversePath = thisPath.copy()
+			reversePath.reverse()
+			reverseDotPoints = dotCoordsOnPath( reversePath, distanceBetweenDots )
+			numberOfPoints = min( len(reverseDotPoints), len(dotPoints)-1 )
+			for i in range(numberOfPoints):
+				factor = 1.0/numberOfPoints*i
+				j = -1-i
+				newPos = interpolatePointPos( dotPoints[j], reverseDotPoints[i], factor )
+				dotPoints[j] = newPos
 	
 		return dotPoints
 	except Exception as e:
 		print traceback.format_exc()
 
-def placeDots( thisLayer, useBackground, componentName, distanceBetweenDots ):
+def placeDots( thisLayer, useBackground, componentName, distanceBetweenDots, balanceOverCompletePath=False ):
 	try:
 		# find out component offset:
 		xOffset = 0.0
@@ -127,7 +149,7 @@ def placeDots( thisLayer, useBackground, componentName, distanceBetweenDots ):
 				sourceLayer = thisLayer
 		
 			for thisPath in sourceLayer.paths:
-				for thisPoint in dotCoordsOnPath( thisPath, distanceBetweenDots ):
+				for thisPoint in dotCoordsOnPath( thisPath, distanceBetweenDots, balanceOverCompletePath ):
 					newComp = GSComponent( componentName, NSPoint( thisPoint.x + xOffset, thisPoint.y + yOffset ) )
 					newComp.alignment = -1
 					thisLayer.addComponent_( newComp )
@@ -150,7 +172,7 @@ def minimumOfOne( value ):
 		
 	return returnValue
 
-def process( thisLayer, deleteComponents, componentName, distanceBetweenDots, useBackground ):
+def process( thisLayer, deleteComponents, componentName, distanceBetweenDots, useBackground=True, balanceOverCompletePath=False ):
 	try:
 		if deleteComponents:
 			if not deleteAllComponents( thisLayer ):
@@ -165,29 +187,39 @@ def process( thisLayer, deleteComponents, componentName, distanceBetweenDots, us
 		
 			thisLayer.paths = []
 	
-		if not placeDots( thisLayer, useBackground, componentName, distanceBetweenDots ):
+		if not placeDots( thisLayer, useBackground, componentName, distanceBetweenDots, balanceOverCompletePath ):
 			print "-- Could not place components at intervals of %.1f units." % distanceBetweenDots
 	except Exception as e:
 		print traceback.format_exc()
 
 class ComponentOnLines( object ):
 	def __init__( self ):
-		windowHeight = 150
-
+		windowHeight = 180
 		self.w = vanilla.FloatingWindow( (350, windowHeight), "Stitcher", minSize=(300, windowHeight), maxSize=(500, windowHeight), autosaveName="com.mekkablue.ComponentsOnNodes.mainwindow" )
 
-		self.w.text_1   = vanilla.TextBox( (15-1, 12+2, 15+95, 14), "Place component:", sizeStyle='small' )
-		self.w.text_2   = vanilla.TextBox( (15-1, 12+25+2, 15+95, 14), "At intervals of:", sizeStyle='small' )
-		self.w.componentName = vanilla.EditText( (15+100, 12-1, -15, 19), "_circle", sizeStyle='small', callback=self.SavePreferences )
-		self.w.sliderMin = vanilla.EditText( ( 15+100, 12+25-1, 50, 19), "30", sizeStyle='small', callback=self.SavePreferences )
-		self.w.sliderMax = vanilla.EditText( (-15-50, 12+25-1, -15, 19), "60", sizeStyle='small', callback=self.SavePreferences )
-		self.w.intervalSlider= vanilla.Slider((15+100+50+10, 12+25, -15-50-10, 19), value=0, minValue=0.0, maxValue=1.0, sizeStyle='small', callback=self.ComponentOnLinesMain )
+		inset = 15
+		linePos = 14
+		lineGap = 22
+		self.w.text_1   = vanilla.TextBox( (inset, linePos, 100, 14), "Place component:", sizeStyle='small' )
+		self.w.componentName = vanilla.EditText( (inset+100, linePos, -15, 20), "_circle", sizeStyle='small', callback=self.SavePreferences )
+		
+		linePos += lineGap
+		self.w.text_2   = vanilla.TextBox( (inset, linePos, 15+95, 14), "At intervals of:", sizeStyle='small' )
+		self.w.sliderMin = vanilla.EditText( ( inset+100, linePos, 50, 20), "30", sizeStyle='small', callback=self.SavePreferences )
+		self.w.sliderMax = vanilla.EditText( (-inset-50, linePos, -15, 20), "60", sizeStyle='small', callback=self.SavePreferences )
+		self.w.intervalSlider= vanilla.Slider((inset+100+50+10, linePos, -inset-50-10, 20), value=0, minValue=0.0, maxValue=1.0, sizeStyle='small', callback=self.ComponentOnLinesMain )
 
 		#self.w.replaceComponents = vanilla.CheckBox((15+3, 12+25+25,    -15, 19), "Replace existing components", value=True, sizeStyle='small', callback=self.SavePreferences )
-		self.w.liveSlider    = vanilla.CheckBox((15+3, 12+25+25, -15, 19), "Live slider", value=False, sizeStyle='small' )
-		self.w.useBackground = vanilla.CheckBox((15+3, 12+25+25+20, -15, 19), "Keep paths in background", value=True, sizeStyle='small', callback=self.SavePreferences )
+		linePos += lineGap
+		self.w.liveSlider    = vanilla.CheckBox((inset, linePos, -inset, 20), "Live slider", value=False, sizeStyle='small' )
+
+		linePos += lineGap
+		self.w.useBackground = vanilla.CheckBox((inset, linePos, -inset, 20), "Keep paths in background", value=True, sizeStyle='small', callback=self.SavePreferences )
+
+		linePos += lineGap
+		self.w.balanceOverCompletePath = vanilla.CheckBox( (inset, linePos, -inset, 20), u"Balance components over complete path", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		
-		self.w.runButton = vanilla.Button((-80-15, -20-15, -15, -15), "Stitch", sizeStyle='regular', callback=self.ComponentOnLinesMain )
+		self.w.runButton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Stitch", sizeStyle='regular', callback=self.ComponentOnLinesMain )
 		self.w.setDefaultButton( self.w.runButton )
 		
 		try:
@@ -206,6 +238,7 @@ class ComponentOnLines( object ):
 			Glyphs.defaults["com.mekkablue.ComponentOnLines.intervalSlider"] = self.w.intervalSlider.get()
 			Glyphs.defaults["com.mekkablue.ComponentOnLines.liveSlider"] = self.w.liveSlider.get()
 			Glyphs.defaults["com.mekkablue.ComponentOnLines.useBackground"] = self.w.useBackground.get()
+			Glyphs.defaults["com.mekkablue.ComponentOnLines.balanceOverCompletePath"] = self.w.balanceOverCompletePath.get()
 		except:
 			print traceback.format_exc()
 			return False
@@ -217,12 +250,16 @@ class ComponentOnLines( object ):
 			Glyphs.registerDefault("com.mekkablue.ComponentOnLines.componentName", "_circle")
 			Glyphs.registerDefault("com.mekkablue.ComponentOnLines.sliderMin", "30")
 			Glyphs.registerDefault("com.mekkablue.ComponentOnLines.sliderMin", "60")
+			Glyphs.registerDefault("com.mekkablue.ComponentOnLines.liveSlider", False)
+			Glyphs.registerDefault("com.mekkablue.ComponentOnLines.useBackground", True)
+			Glyphs.registerDefault("com.mekkablue.ComponentOnLines.balanceOverCompletePath", False)
 			self.w.componentName.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.componentName"] )
 			self.w.sliderMin.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMin"] )
 			self.w.sliderMax.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMax"] )
 			self.w.intervalSlider.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.intervalSlider"] )
 			self.w.liveSlider.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.liveSlider"] )
 			self.w.useBackground.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.useBackground"] )
+			self.w.balanceOverCompletePath.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.balanceOverCompletePath"] )
 		except:
 			print traceback.format_exc()
 			return False
@@ -244,13 +281,14 @@ class ComponentOnLines( object ):
 				sliderPos = float( Glyphs.defaults["com.mekkablue.ComponentOnLines.intervalSlider"] )
 				distanceBetweenDots = sliderMin * ( 1.0 - sliderPos ) + sliderMax * sliderPos
 				useBackground = bool( Glyphs.defaults["com.mekkablue.ComponentOnLines.useBackground"] )
+				balanceOverCompletePath = bool( Glyphs.defaults["com.mekkablue.ComponentOnLines.balanceOverCompletePath"] )
 		
 				Font.disableUpdateInterface()
 
 				for thisLayer in selectedLayers:
 					thisGlyph = thisLayer.parent
 					thisGlyph.beginUndo()
-					process( thisLayer, deleteComponents, componentName, distanceBetweenDots, useBackground )
+					process( thisLayer, deleteComponents, componentName, distanceBetweenDots, useBackground, balanceOverCompletePath )
 					thisGlyph.endUndo()
 
 				Font.enableUpdateInterface()
