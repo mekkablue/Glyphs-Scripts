@@ -209,7 +209,6 @@ class ComponentOnLines( object ):
 		self.w.sliderMax = vanilla.EditText( (-inset-50, linePos, -15, 20), "60", sizeStyle='small', callback=self.SavePreferences )
 		self.w.intervalSlider= vanilla.Slider((inset+100+50+10, linePos, -inset-50-10, 20), value=0, minValue=0.0, maxValue=1.0, sizeStyle='small', callback=self.ComponentOnLinesMain )
 
-		#self.w.replaceComponents = vanilla.CheckBox((15+3, 12+25+25,    -15, 19), "Replace existing components", value=True, sizeStyle='small', callback=self.SavePreferences )
 		linePos += lineGap
 		self.w.liveSlider    = vanilla.CheckBox((inset, linePos, -inset, 20), "Live slider", value=False, sizeStyle='small' )
 
