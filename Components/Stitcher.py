@@ -4,7 +4,6 @@ __doc__="""
 Turn your paths into dotted lines, and specify a component as dot, i.e. stitch components onto paths in selected glyphs. Respects origin anchor in your source component.
 """
 
-from GlyphsApp import MOVE
 import math, vanilla, traceback
 
 def deleteAllComponents( thisLayer ):
