@@ -93,7 +93,7 @@ def featureListForFont( thisFont ):
 	returnString = ""
 	featureList = [f.name for f in thisFont.features if not f.name in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig") and not f.disabled()]
 	for f in featureList:
-		returnString += """		<label><input type="checkbox" name="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s</label>
+		returnString += """		<label><input type="checkbox" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s</label>
 """ % (f,f,f,f)
 	return returnString
 
@@ -200,7 +200,7 @@ htmlContent = """<head>
 			var checkboxes = document.getElementsByClassName("otFeature")
 			for (i = 0; i < checkboxes.length; i++) {
 				var checkbox = checkboxes[i];
-				codeLine += '"'+checkbox.name+'" ';
+				codeLine += '"'+checkbox.id+'" ';
 				codeLine += checkbox.checked ? 'on, ' : 'off, ';
 				if (checkbox.name=="kern") {
 					cssCode += "font-kerning: "
@@ -274,11 +274,11 @@ htmlContent = """<head>
 		<a href="https://caniuse.com/#feat=woff2">woff2</a>
 		&emsp;
 		OT Features:
-		<label><input type="checkbox" name="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
-		<label><input type="checkbox" name="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga/clig</label>
-		<label><input type="checkbox" name="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel">calt</label>
+		<label><input type="checkbox" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
+		<label><input type="checkbox" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga/clig</label>
+		<label><input type="checkbox" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel">calt</label>
 		<!-- moreFeatures -->
-		<label><input type="checkbox" name="show" value="show" onchange="updateFeatures();document.getElementById('featureLine').style.display=this.checked?'':'none'">Show CSS</label>
+		<label><input type="checkbox" id="show" value="show" onchange="updateFeatures();document.getElementById('featureLine').style.display=this.checked?'':'none'">Show CSS</label>
 	</p>
 	<p class="features" id="featureLine" style="display:none;">font-feature-settings: "kern" on, "liga" on, "calt" on;</p>
 	<p><span class="label">08</span> <span id="p08">ABCDEFGHIJKLMNOPQRSTUVWXYZ</span></p>
