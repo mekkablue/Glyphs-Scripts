@@ -297,7 +297,7 @@ body {
 		if exportPath:
 			if saveFileInLocation( content=htmlCode, fileName="font_animation.html", filePath=exportPath ):
 				print "Successfully wrote file to disk."
-				terminalCommand = 'cd "%s"; open .' % exportPath
+				terminalCommand = u'cd "%s"; open .' % exportPath
 				os.system( terminalCommand )
 			else:
 				print "Error writing file to disk."
