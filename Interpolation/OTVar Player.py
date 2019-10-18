@@ -270,7 +270,7 @@ class OTVarGlyphAnimator( object ):
 }
 body {
 	font: 360px "%s";
-	animation: Looper %.1fs linear 0s infinite;
+	animation: Looper %.1fs alternate ease-in-out 0s infinite;
 }
 </style>
 </head>
