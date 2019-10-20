@@ -159,28 +159,43 @@ except Exception as e:
 
 # Extract kern strings and report:
 kernInfo = runAppleScript( getKernValuesFromInDesign )
-print "Applying kerning to: %s, Master: %s\n" % (thisFont.familyName, thisFontMaster.name)
+print u"Applying kerning to: %s, Master: %s\n" % (thisFont.familyName, thisFontMaster.name)
 
 kernPairCount = 0
 
 # Parse kern strings and set kerning in the font:
 for thisline in kernInfo.splitlines():
 	if len(thisline) > 3:
+		
+		# check for left side:
 		leftSide = glyphNameForLetter(thisline[0])
-		rightSide = glyphNameForLetter(thisline[1])
-		try:
-			kernValue = float(thisline[3:])
-			if kernValue:
-				thisFont.setKerningForPair(thisFontMasterID, leftSide, rightSide, kernValue)
-				kernPairCount += 1
-				print "  Kerning for %s-%s set to %i." % (leftSide, rightSide, kernValue)
+		if not leftSide:
+			print u"WARNING:\n  Could not determine (left) glyph name: %s.\n  Skipping pair ‘%s%s’.\n" % ( thisline[0], thisline[0], thisline[1])
+		else:
+			if not thisFont.glyphs[leftSide]:
+				print u"WARNING:\n  Expected (left) glyph /%s not found in %s.\n  Skipping pair ‘%s%s’.\n" % ( leftSide, thisFont.familyName, thisline[0], thisline[1] )
 			else:
-				print "  No kerning between %s-%s. Ignored." % (leftSide, rightSide)
-		except Exception as e:
-			print "  ERROR: Could not set kerning for %s-%s.\n" % (leftSide, rightSide)
-			print e
-			import traceback
-			print traceback.format_exc()
+				#check for right side:
+				rightSide = glyphNameForLetter(thisline[1])
+				if not rightSide:
+					print u"WARNING:\n  Could not determine (right) glyph name: %s.\nS  kipping pair ‘%s%s’.\n" % ( thisline[1], thisline[0], thisline[1])
+				else:
+					if not thisFont.glyphs[rightSide]:
+						print u"WARNING:\n  Expected (right) glyph /%s not found in %s.\n  Skipping pair ‘%s%s’.\n" % ( rightSide, thisFont.familyName, thisline[0], thisline[1] )
+					else:
+						try:
+							kernValue = float(thisline[3:])
+							if kernValue:
+								thisFont.setKerningForPair(thisFontMasterID, leftSide, rightSide, kernValue)
+								kernPairCount += 1
+								print "  Kerning for %s:%s set to %i." % (leftSide, rightSide, kernValue)
+							else:
+								print "  No kerning %s:%s. Ignored." % (leftSide, rightSide)
+						except Exception as e:
+							print "  ERROR: Could not set kerning for %s:%s.\n" % (leftSide, rightSide)
+							print e
+							import traceback
+							print traceback.format_exc()
 
 # take time and report:
 end = timer()
