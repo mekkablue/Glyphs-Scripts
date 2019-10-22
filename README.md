@@ -276,7 +276,7 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **Set Kerning Groups:** Sets left and right kerning groups for all selected glyphs. In the case of compounds, will use the groups of the base components, otherwise makes an informed guess based on a built-in dictionary.
 * **Steal Kerning from InDesign:** Steals the kerning from text set in InDesign. Useful for extracting InDesign’s Optical Kerning values.
 * **Steal Kerning Groups from Font:** Steals left/right kerning groups for all selected glyphs from a 2nd font. *Needs Vanilla.*
-
+* **Zero Kerner:** Add group kernings with value zero for pairs that are missing in one master but present in others. Helps preserve interpolatable kerning in OTVar exports. *Needs Vanilla.*
 
 ## Paths
 
