@@ -16,7 +16,7 @@ class FindSmallPaths( object ):
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			( windowWidth, windowHeight ), # default window size
-			"Find Small Paths", # window title
+			"New Tab with Small Paths", # window title
 			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
 			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
 			autosaveName = "com.mekkablue.FindSmallPaths.mainwindow" # stores last window position and size
