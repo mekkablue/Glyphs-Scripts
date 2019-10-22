@@ -240,7 +240,7 @@ class FindSmallPaths( object ):
 								countOfAffectedPaths = 0
 								thisGlyph.beginUndo() # begin undo grouping
 								for i in range(len(checkLayer.paths))[::-1]:
-									thisPath = thisLayer.paths[i]
+									thisPath = checkLayer.paths[i]
 									if thisPath.area() < minArea:
 										countOfAffectedPaths += 1
 										glyphsWithSmallPaths.append(thisGlyph.name)
