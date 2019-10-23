@@ -137,6 +137,7 @@ class CompoundVariabler( object ):
 									else:
 										newLayer = GSLayer()
 										newLayer.name = originalLayer.name
+										newLayer.setAssociatedMasterId_(originalLayer.associatedMasterId)
 										currentGlyph.layers.append(newLayer)
 										newLayer.reinterpolate()
 										affectedGlyphs.append(currentGlyph.name)
