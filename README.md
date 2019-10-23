@@ -225,6 +225,7 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 
 *Most important: Insert Instances (for determining your instances and their style linking), Kink Finder and Find Shapeshifting Glyphs. I use Show Next/Previous Instance with the keyboard shortcut ctrl-up/down a lot.*
 
+* **Compund Variabler:** Reduplicates Brace and Bracket layers of components in the compounds in which they are used. Makes brace and bracket layers work in the compounds. *Needs Vanilla.*
 * **Copy Layer to Layer:** Copies paths (and optionally, also components, anchors and metrics) from one Master to another. *Needs Vanilla.*
 * **Dekink Masters:** Dekinks your smooth point triplets in all compatible layers (useful if they are not horizontal or vertical). Select a point in one or more smooth point triplets, and run this script to move the corresponding nodes in all other masters to the same relative position. Thus you achieve the same point ratio in all masters and avoid interpolation kinks, when the angle of the triplet changes. There is a [video describing it.](http://tinyurl.com/dekink-py) The triplet problem is [described in this tutorial](http://www.glyphsapp.com/tutorials/multiple-masters-part-2-keeping-your-outlines-compatible).
 * **Fill up Empty Masters:** Copies paths from one Master to another. But only if target master is empty. *Needs Vanilla.*
