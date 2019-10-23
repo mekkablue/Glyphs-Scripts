@@ -249,13 +249,14 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 
 ## Kerning
 
-*Most important: Auto Bumper, KernCrasher, Sample String Maker. If you have too much kerning, consider Exception Cleaner.*
+*Most important: Auto Bumper, KernCrasher, GapFinder, Sample String Maker. If you have too much kerning, consider Exception Cleaner.*
 
 * **Adjust Kerning in Master:** GUI to add a value to all kerning pairs, multiply all pairs by a value or round them by a value. *Needs Vanilla.*
 * **Auto Bumper:** Specify a minimum distance, left and right glyphs, and Autokern will add the minimum necessary kerning for the current master. *Needs Vanilla.*
 * **Copy Kerning Exceptions to Double Accents:** Copies Kerning exceptions with abreve, `acircumflex`, `ecircumflex`, `ocircumflex`, `udieresis` into Vietnamese and Pinyin double accents.
 * **Exception Cleaner:** Compares every exception to the group kerning available for the same pair. If the difference is below a threshold, remove the kerning exception. *Needs Vanilla.*
 * **Find and Replace in Kerning Groups:** GUI for searching and replacing text in the L and R Kerning Groups, e.g. replace 'O' by 'O.alt'. Leave the search field blank for appending. *Needs Vanilla.*
+* **GapFinder:** Opens a new tab with kerning combos that have large gaps in the current fontmaster. *Needs Vanilla.*
 * **Import Kerning from .fea File:** Choose an .fea file containing a kern feature in AFDKO code, and this script will attempt to import the kerning values into the frontmost font master (see *Window > Kerning*).
 * **KernCrash Current Glyph:** Opens a new tab containing kerning combos with the current glyph that collide in the current fontmaster.
 * **KernCrasher:** Opens a new tab with Kerning Combos that crash in the current fontmaster. *Needs Vanilla.*
