@@ -130,7 +130,7 @@ class CompoundVariabler( object ):
 						originalGlyph = thisFont.glyphs[component.componentName]
 						if originalGlyph:
 							for originalLayer in originalGlyph.layers:
-								layerAlreadyExists = originalLayer.name in namesOfSpecialLayers
+								layerAlreadyExists = originalLayer.name in namesOfSpecialLayers and thisLayer.associatedMasterId == originalLayer.associatedMasterId
 								if originalLayer.isSpecialLayer:
 									if layerAlreadyExists:
 										print "%s, layer '%s' already exists. Skipping." % (currentGlyph.name, originalLayer.name)
