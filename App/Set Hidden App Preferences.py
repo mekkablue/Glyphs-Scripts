@@ -8,6 +8,7 @@ import vanilla
 
 class SetHiddenAppPreferences( object ):
 	prefs = (
+		"AppleLanguages",
 		"drawShadowAccents",
 		"GSftxenhancerPath",
 		"GSKerningIncrementHigh",
