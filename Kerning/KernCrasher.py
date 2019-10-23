@@ -25,9 +25,9 @@ categoryList = (
 class KernCrasher( object ):
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 290
-		windowHeight = 270
-		windowWidthResize  = 500 # user can resize width by this value
+		windowWidth  = 390
+		windowHeight = 290
+		windowWidthResize  = 800 # user can resize width by this value
 		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			( windowWidth, windowHeight ), # default window size
@@ -38,39 +38,50 @@ class KernCrasher( object ):
 		)
 		
 		# UI elements:
-		self.w.text_1 = vanilla.TextBox( (15-1, 12+2, -15, 14), "Open tab with kern collisions in current master:", sizeStyle='small' )
+		linePos, inset, lineHeight = 12, 15, 22
+		
+		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 14), u"Open tab with kern collisions in current master:", sizeStyle='small', selectable=True )
+		linePos += lineHeight
+		
+		self.w.textScript = vanilla.TextBox( (inset, linePos+2, 42, 14), u"Script:", sizeStyle='small', selectable=True )
+		self.w.popupScript = vanilla.ComboBox( (inset+42, linePos-1, 110, 18), ("latin","cyrillic","greek"), callback=self.SavePreferences, sizeStyle='small' )
+		self.w.textDistance = vanilla.TextBox( (inset+160, linePos+2, 100, 14), "Max distance:", sizeStyle='small' )
+		self.w.minDistance = vanilla.EditText( (inset+240, linePos-1, -15, 19), "10", sizeStyle='small')
+		linePos += lineHeight
 
-		self.w.text_21 = vanilla.TextBox( (15-1, 32+2, 42, 14), "Script:", sizeStyle='small' )
-		self.w.popupScript = vanilla.PopUpButton( (15+42, 32, 80, 17), ["latin","cyrillic","greek"], callback=self.SavePreferences, sizeStyle='small' )
-		
-		self.w.text_22 = vanilla.TextBox( (140, 32+2, 150, 14), "Min distance:", sizeStyle='small' )
-		self.w.minDistance = vanilla.EditText( (220, 32-1, -15, 19), "10", sizeStyle='small')
-		
-		self.w.text_speed = vanilla.TextBox( (15-1, 52+2, 42, 14), "Speed:", sizeStyle='small' )
-		self.w.popupSpeed = vanilla.PopUpButton( (15+42, 52, 80, 17), ["very slow","slow","medium","fast","very fast"], callback=self.SavePreferences, sizeStyle='small' )
+		self.w.textSpeed = vanilla.TextBox( (inset, linePos+2, 42, 14), u"Speed:", sizeStyle='small', selectable=True )
+		self.w.popupSpeed = vanilla.PopUpButton( (inset+42, linePos, 110, 17), ("very slow","slow","medium","fast","very fast"), callback=self.SavePreferences, sizeStyle='small' )
 		intervalIndex = Glyphs.defaults["com.mekkablue.KernCrasher.popupSpeed"]
 		if intervalIndex is None:
 			intervalIndex = 0
-		self.w.text_speedExplanation = vanilla.TextBox( (140, 52+2, -15, 14), "Measuring every %i units."%intervalList[intervalIndex], sizeStyle='small' )
+		self.w.text_speedExplanation = vanilla.TextBox( (inset+160, linePos+2, -inset, 14), "Measuring every %i units."%intervalList[intervalIndex], sizeStyle='small' )
+		linePos += lineHeight
 		
-		self.w.text_3 = vanilla.TextBox( (15-1, 20+52+2, 90, 14), "Left Category:", sizeStyle='small' )
-		self.w.popupLeftCat = vanilla.PopUpButton( (15+90, 20+52, -15, 17), categoryList, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.text_3 = vanilla.TextBox( (inset, linePos+2, 90, 14), "Left Category:", sizeStyle='small' )
+		self.w.popupLeftCat = vanilla.PopUpButton( (inset+90, linePos, -inset, 17), categoryList, callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
 
-		self.w.text_4 = vanilla.TextBox( (15-1, 20+72+2, 90, 14), "Right Category:", sizeStyle='small' )
-		self.w.popupRightCat = vanilla.PopUpButton( (15+90, 20+72, -15, 17), categoryList, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.text_4 = vanilla.TextBox( (inset, linePos+2, 90, 14), "Right Category:", sizeStyle='small' )
+		self.w.popupRightCat = vanilla.PopUpButton( (inset+90, linePos, -inset, 17), categoryList, callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
 		
-		self.w.text_5 = vanilla.TextBox( (15-1, 20+92+2, 160, 14), "Exclude glyphs containing:", sizeStyle='small' )
-		self.w.excludeSuffixes = vanilla.EditText( (170, 20+92, -15, 19), ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute", callback=self.SavePreferences, sizeStyle='small')
+		self.w.text_5 = vanilla.TextBox( (inset, linePos+2, 160, 14), "Exclude glyphs containing:", sizeStyle='small' )
+		self.w.excludeSuffixes = vanilla.EditText( (inset+150, linePos, -inset, 19), ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute", callback=self.SavePreferences, sizeStyle='small')
+		linePos += lineHeight
 
-		self.w.text_6 = vanilla.TextBox( (15-1, 20+112+2, 160, 14), "Ignore height intervals:", sizeStyle='small' )
-		self.w.ignoreIntervals = vanilla.EditText( (170, 20+112, -15, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.text_6 = vanilla.TextBox( (inset, linePos+2, 160, 14), "Ignore height intervals:", sizeStyle='small' )
+		self.w.ignoreIntervals = vanilla.EditText( (inset+150, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.ignoreIntervals.getNSTextField().setPlaceholderString_("200:300, 400:370, -200:-150")
+		linePos += lineHeight
 
-		self.w.excludeNonExporting = vanilla.CheckBox((15-1, 20+132+2, -15, 17), "Exclude non-exporting glyphs", value=True, sizeStyle='small', callback=self.SavePreferences )
-		self.w.reportCrashesInMacroWindow = vanilla.CheckBox((15-1, 20+152+2, -15, 17), "Also report in Macro Window (a few seconds slower)", value=False, sizeStyle='small', callback=self.SavePreferences )
+		self.w.excludeNonExporting = vanilla.CheckBox( (inset, linePos, -inset, 20), "Exclude non-exporting glyphs", value=True, sizeStyle='small', callback=self.SavePreferences )
+		linePos += lineHeight
+
+		self.w.reportCrashesInMacroWindow = vanilla.CheckBox( (inset, linePos, -inset, 20), "Also report in Macro Window (a few seconds slower)", value=False, sizeStyle='small', callback=self.SavePreferences )
+		linePos += lineHeight
 		
 		# Percentage:
-		self.w.bar = vanilla.ProgressBar((15-1, 20+172+2, -15, 16))
+		self.w.bar = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		
 		#self.w.percentage = vanilla.TextBox( (15-1, -30, -100-15, -15), "", sizeStyle='small' )
 		
@@ -111,19 +122,16 @@ class KernCrasher( object ):
 
 	def LoadPreferences( self ):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.KernCrasher.minDistance": "0",
-					"com.mekkablue.KernCrasher.popupScript": "0",
-					"com.mekkablue.KernCrasher.popupSpeed": "0",
-					"com.mekkablue.KernCrasher.popupLeftCat": "0",
-					"com.mekkablue.KernCrasher.popupRightCat": "0",
-					"com.mekkablue.KernCrasher.excludeSuffixes": ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute",
-					"com.mekkablue.KernCrasher.excludeNonExporting": "1",
-					"com.mekkablue.KernCrasher.reportCrashesInMacroWindow": "0",
-					"com.mekkablue.KernCrasher.ignoreIntervals": "",
-				}
-			)
+			Glyphs.registerDefault( "com.mekkablue.KernCrasher.minDistance", 0 )
+			Glyphs.registerDefault( "com.mekkablue.KernCrasher.popupScript", "latin" )
+			Glyphs.registerDefault( "com.mekkablue.KernCrasher.popupSpeed", 0 )
+			Glyphs.registerDefault( "com.mekkablue.KernCrasher.popupLeftCat", 0 )
+			Glyphs.registerDefault( "com.mekkablue.KernCrasher.popupRightCat", 0 )
+			Glyphs.registerDefault( "com.mekkablue.KernCrasher.excludeSuffixes", ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute" )
+			Glyphs.registerDefault( "com.mekkablue.KernCrasher.excludeNonExporting", 1 )
+			Glyphs.registerDefault( "com.mekkablue.KernCrasher.reportCrashesInMacroWindow", 0 )
+			Glyphs.registerDefault( "com.mekkablue.KernCrasher.ignoreIntervals", "" )
+
 			self.w.minDistance.set( Glyphs.defaults["com.mekkablue.KernCrasher.minDistance"] )
 			self.w.popupScript.set( Glyphs.defaults["com.mekkablue.KernCrasher.popupScript"] )
 			self.w.popupSpeed.set( Glyphs.defaults["com.mekkablue.KernCrasher.popupSpeed"] )
@@ -134,6 +142,8 @@ class KernCrasher( object ):
 			self.w.reportCrashesInMacroWindow.set( Glyphs.defaults["com.mekkablue.KernCrasher.reportCrashesInMacroWindow"] )
 			self.w.ignoreIntervals.set( Glyphs.defaults["com.mekkablue.KernCrasher.ignoreIntervals"] )
 		except:
+			import traceback
+			print traceback.format_exc()
 			return False
 			
 		return True
@@ -232,7 +242,7 @@ class KernCrasher( object ):
 		return minDist
 		
 	def queryPrefs( self ):
-		script = self.w.popupScript.getItems()[ Glyphs.defaults["com.mekkablue.KernCrasher.popupScript"] ]
+		script = Glyphs.defaults["com.mekkablue.KernCrasher.popupScript"]
 		firstCategory, firstSubCategory   = self.splitString( self.w.popupLeftCat.getItems()[ Glyphs.defaults["com.mekkablue.KernCrasher.popupLeftCat"] ] )
 		secondCategory, secondSubCategory = self.splitString( self.w.popupRightCat.getItems()[ Glyphs.defaults["com.mekkablue.KernCrasher.popupRightCat"] ] )
 		return script, firstCategory, firstSubCategory, secondCategory, secondSubCategory
@@ -260,6 +270,10 @@ class KernCrasher( object ):
 	
 	def KernCrasherMain( self, sender ):
 		try:
+			# update settings to the latest user input:
+			if not self.SavePreferences( self ):
+				print "Note: 'KernCrasher' could not write preferences."
+			
 			# query frontmost fontmaster:
 			thisFont = Glyphs.font
 			thisFontMaster = thisFont.selectedFontMaster
