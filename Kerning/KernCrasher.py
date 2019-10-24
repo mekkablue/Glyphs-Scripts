@@ -45,7 +45,7 @@ class KernCrasher( object ):
 		
 		self.w.textScript = vanilla.TextBox( (inset, linePos+2, 42, 14), u"Script:", sizeStyle='small', selectable=True )
 		self.w.popupScript = vanilla.ComboBox( (inset+42, linePos-1, 110, 18), ("latin","cyrillic","greek"), callback=self.SavePreferences, sizeStyle='small' )
-		self.w.textDistance = vanilla.TextBox( (inset+160, linePos+2, 100, 14), "Max distance:", sizeStyle='small' )
+		self.w.textDistance = vanilla.TextBox( (inset+160, linePos+2, 100, 14), "Min distance:", sizeStyle='small' )
 		self.w.minDistance = vanilla.EditText( (inset+240, linePos-1, -15, 19), "10", sizeStyle='small')
 		linePos += lineHeight
 
