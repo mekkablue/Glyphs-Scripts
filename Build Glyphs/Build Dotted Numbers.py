@@ -4,6 +4,7 @@ __doc__="""
 Build dotted numbers from your default figures and the period.
 """
 
+from Foundation import NSPoint
 distanceBetweenComponents = 100.0
 
 numberGlyphs = [

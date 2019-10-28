@@ -4,6 +4,7 @@ __doc__="""
 Builds cadauna and careof from your c, u and fraction glyphs.
 """
 
+from Foundation import NSPoint
 import math
 
 distanceBetweenComponents = 80

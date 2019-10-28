@@ -5,6 +5,7 @@ Finds kinks in interpolation space, reports them in the Macro window and opens a
 """
 
 import vanilla
+from Foundation import NSPoint
 from math import hypot
 
 tempMarker = "###DELETEME###"

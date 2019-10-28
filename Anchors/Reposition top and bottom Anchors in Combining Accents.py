@@ -4,6 +4,7 @@ __doc__="""
 On all layers in selected glyphs, repositions top/bottom anchors for stacking in all top/bottom combining marks in line with the italic angle of the respective master. Keeps the anchor's y height, only moves horizontally.
 """
 
+from Foundation import NSPoint
 import math
 
 thisFont = Glyphs.font # frontmost font

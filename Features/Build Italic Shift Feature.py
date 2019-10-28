@@ -5,6 +5,7 @@ Creates and inserts GPOS feature code for shifting glyphs, e.g., parentheses and
 """
 
 import vanilla, math
+from Foundation import NSPoint
 
 def updatedCode( oldCode, beginSig, endSig, newCode ):
 	"""Replaces text in oldCode with newCode, but only between beginSig and endSig."""

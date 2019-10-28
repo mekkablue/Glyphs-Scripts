@@ -6,6 +6,7 @@ Define an angle above which a node will be set to blue, below which it will be s
 
 import vanilla
 from math import degrees, atan2
+from Foundation import NSPoint
 
 def angle( firstPoint, secondPoint ):
 	"""

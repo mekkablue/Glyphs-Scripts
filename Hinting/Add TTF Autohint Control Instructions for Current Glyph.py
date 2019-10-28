@@ -5,6 +5,7 @@ Adds a touch line for a given up/down amount to the Control Instructions of the 
 """
 
 from AppKit import NSPasteboard, NSStringPboardType
+from Foundation import NSPoint
 import math, vanilla
 
 def sizeStringIsOK(sizeString):

@@ -5,6 +5,7 @@ Fixes the placement and metrics keys of arrows, dependent on a specified default
 """
 
 import vanilla, math
+from Foundation import NSPoint, NSAffineTransform, NSAffineTransformStruct
 
 def intersectionsBetweenPoints( thisLayer, startPoint, endPoint ):
 	"""

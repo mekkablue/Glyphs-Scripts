@@ -5,6 +5,8 @@ Syncs punctuation dots between ¡!¿? (and their SC+CASE variants). Will use dot
 """
 
 import math
+from Foundation import NSPoint, NSAffineTransform, NSAffineTransformStruct
+
 Glyphs.clearLog() # clears log in Macro window
 
 def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):

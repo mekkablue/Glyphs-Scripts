@@ -5,6 +5,7 @@ Tries to sync the shape of the period (and comma) in colon, semicolon, periodcen
 """
 
 import vanilla
+from Foundation import NSPoint
 
 class PunctuationUnifier( object ):
 	periodBase = ("comma", "semicolon")

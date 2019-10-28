@@ -4,8 +4,8 @@ __doc__="""
 Rotate selected glyphs (or selected paths and components) around a 'rotate' anchor.
 """
 
-
 import vanilla
+from Foundation import NSPoint, NSAffineTransform, NSAffineTransformStruct
 
 def transformNode( myNode, myTransform ):
 	myNode.position = myTransform.transformPoint_( NSMakePoint( myNode.x, myNode.y ) )

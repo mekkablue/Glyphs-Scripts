@@ -4,7 +4,7 @@ __doc__="""
 Builds Ldot, ldot and ldot.sc from existing L and periodcentered.loclCAT(.case/.sc).
 """
 
-import GlyphsApp
+from Foundation import NSPoint
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master

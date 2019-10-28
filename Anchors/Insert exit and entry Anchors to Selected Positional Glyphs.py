@@ -4,6 +4,8 @@ __doc__="""
 Adds exit and entry anchors to (Arabic) init, medi and fina glyphs, for cursive attachment.
 """
 
+from Foundation import NSPoint
+
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
 

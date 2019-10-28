@@ -5,6 +5,7 @@ Finds, selects and marks duplicate coordinates. Two nodes on the same position t
 """
 
 import vanilla
+from Foundation import NSPoint
 
 class RewireFire( object ):
 	nodeMarker = u"🔥"

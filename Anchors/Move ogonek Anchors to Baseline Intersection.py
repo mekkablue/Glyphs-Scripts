@@ -4,7 +4,8 @@ __doc__="""
 Moves all ogonek and _ogonek anchors to the rightmost intersection of the outline with the baseline.
 """
 
-import GlyphsApp, math
+from Foundation import NSPoint
+import math
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master

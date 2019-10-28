@@ -4,8 +4,8 @@ __doc__="""
 Creates a .notdef from your boldest available question mark.
 """
 
-import GlyphsApp
 from GlyphsApp import GSOFFCURVE, GSCURVE, GSSMOOTH
+from Foundation import NSPoint, NSAffineTransform, NSAffineTransformStruct
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master

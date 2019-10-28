@@ -5,6 +5,7 @@ Set options for existing 'TTF Autohint Options' Custom Parameters.
 """
 
 import vanilla
+from Foundation import NSPoint
 
 parameterName = "TTFAutohint options"
 availableOptions = ("adjust-subglyphs", "composites", "default-script", "dehint", "detailed-info", "fallback-script", "fallback-stem-width", "hinting-limit", "hinting-range-max", "hinting-range-min", "ignore-restrictions", "increase-x-height", "no-info", "stem-width-mode", "strong-stem-width", "symbol", "ttfa-table", "windows-compatibility", "x-height-snapping-exceptions")

@@ -4,6 +4,7 @@ __doc__="""
 Creates guides through all selected nodes.
 """
 
+from Foundation import NSPoint
 import math
 
 thisFont = Glyphs.font # frontmost font

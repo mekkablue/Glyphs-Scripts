@@ -5,6 +5,7 @@ Goes through all interpolations and finds segments shorter than a user-specified
 """
 
 import vanilla
+from Foundation import NSPoint
 
 tempMarker = "###DELETEME###"
 nodeMarker = u"👌🏻"

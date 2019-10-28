@@ -4,6 +4,8 @@ __doc__="""
 Synchronize node distance proportions for angled smooth connections through all masters (and other compatible layers), thus avoiding interpolation kinks. Select one or more nodes in triplets and run the script. The selected nodes will be moved in all other masters.
 """
 
+from Foundation import NSPoint
+
 def vectorFromNodes( n1, n2 ):
 	return NSSize(n2.x-n1.x, n2.y-n1.y)
 

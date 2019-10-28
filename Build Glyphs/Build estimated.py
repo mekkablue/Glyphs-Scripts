@@ -6,6 +6,7 @@ Creates an estimated glyph and draws an estimated sign in it. Does the same for 
 
 # TODO: emptyset, currency, lozenge, product, summation, radical
 
+from Foundation import NSPoint
 import math
 
 thisFont = Glyphs.font # frontmost font

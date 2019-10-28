@@ -5,6 +5,7 @@ Replace Corner Components at blunt or acute angles.
 """
 
 import vanilla, math
+from Foundation import NSPoint
 
 class ReplaceCornersAtCertainAngles( object ):
 	def __init__( self ):

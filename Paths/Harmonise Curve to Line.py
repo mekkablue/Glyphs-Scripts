@@ -4,6 +4,8 @@ __doc__="""
 Maximises opposing handles and reduces adjacent handles of line segments.
 """
 
+from Foundation import NSPoint
+
 def intersectionWithNSPoints( pointA, pointB, pointC, pointD ):
 	"""
 	Returns an NSPoint of the intersection AB with CD.

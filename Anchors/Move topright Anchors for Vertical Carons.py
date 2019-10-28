@@ -4,7 +4,8 @@ __doc__="""
 Moves all topright and _topright anchors to the rightmost intersection of the outline with the x-height.
 """
 
-import GlyphsApp, math
+from Foundation import NSPoint
+import math
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master

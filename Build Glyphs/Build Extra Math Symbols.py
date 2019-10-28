@@ -4,6 +4,7 @@ __doc__="""
 Creates lessoverequal, greateroverequal, bulletoperator, rightanglearc, righttriangle, sphericalangle, measuredangle, sunWithRays, positionIndicator, diameterSign, viewdataSquare, control.
 """
 
+from Foundation import NSPoint, NSAffineTransform, NSAffineTransformStruct
 import math
 
 thisFont = Glyphs.font # frontmost font

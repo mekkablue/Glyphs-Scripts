@@ -5,6 +5,7 @@ Build double quotes from single quotes, and insert #exit and #entry anchors in t
 """
 
 import vanilla
+from Foundation import NSPoint
 
 names = {
 	"quotesinglbase": "quotedblbase",

@@ -5,7 +5,7 @@ Sets origin point for Rotate tool.
 """
 
 import vanilla
-
+from Foundation import NSPoint
 
 class SetTransformOriginWindow( object ):
 	def __init__( self ):

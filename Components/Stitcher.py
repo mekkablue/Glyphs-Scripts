@@ -5,6 +5,7 @@ Turn your paths into dotted lines, and specify a component as dot, i.e. stitch c
 """
 
 import math, vanilla, traceback
+from Foundation import NSPoint
 
 def deleteAllComponents( thisLayer ):
 	try:

@@ -5,6 +5,7 @@ Creates parenthesized letters and numbers: one.paren, two.paren, three.paren, fo
 """
 
 import math
+from Foundation import NSPoint
 
 distanceBetweenComponents = 95.0
 parenShiftForLetters = 40.0

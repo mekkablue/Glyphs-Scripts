@@ -4,7 +4,7 @@ __doc__="""
 Fix the order of top_X and bottom_X anchors to RTL.
 """
 
-
+from Foundation import NSPoint
 
 Font = Glyphs.font
 FontMaster = Font.selectedFontMaster

@@ -5,6 +5,7 @@ Takes a default set of figures (e.g., dnom), and derives the others (.numr, supe
 """
 
 import vanilla, math
+from Foundation import NSPoint
 
 def italicize( thisPoint, italicAngle=0.0, pivotalY=0.0 ):
 	"""

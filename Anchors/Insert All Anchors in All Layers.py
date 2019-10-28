@@ -4,6 +4,7 @@ __doc__="""
 Makes sure all anchors are replicated in all layers in the same relative positions. Good for fixing anchor compatibility.
 """
 
+from Foundation import NSPoint
 thisFont = Glyphs.font # frontmost font
 selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 

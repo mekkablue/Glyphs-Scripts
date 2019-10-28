@@ -3,6 +3,8 @@
 __doc__="""
 Add a single path in the background and it will be used to create intermediate brace layers for OTVar animation.
 """
+
+from Foundation import NSPoint, NSAffineTransform, NSAffineTransformStruct
 import math
 
 thisFont = Glyphs.font # frontmost font
