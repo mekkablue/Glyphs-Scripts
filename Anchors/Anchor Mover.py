@@ -4,9 +4,8 @@ __doc__="""
 Batch-process anchor positions in selected glyphs (GUI).
 """
 
-
-import vanilla
-import math
+import vanilla, math
+from Foundation import NSPoint
 
 listHorizontal = [
 	["current position", "copyAnchor.x"],
@@ -191,7 +190,7 @@ class AnchorMover2( object ):
 											old_anchor_x = italicSkew( old_anchor_x, old_anchor_y, italicAngle ) - italicCorrection
 						
 										originalAnchor = [a for a in originalLayer.anchors if a.name == anchor_name][0]
-										originalAnchor.position = NSMakePoint( xMove, yMove )
+										originalAnchor.position = NSPoint( xMove, yMove )
 						
 										print "Moved %s anchor from %i, %i to %i, %i in %s." % ( anchor_name, old_anchor_x, old_anchor_y, xMove, yMove, thisGlyph.name )
 									else:

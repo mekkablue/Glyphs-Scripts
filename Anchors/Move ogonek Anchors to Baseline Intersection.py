@@ -4,14 +4,14 @@ __doc__="""
 Moves all ogonek and _ogonek anchors to the rightmost intersection of the outline with the baseline.
 """
 
-from Foundation import NSPoint
 import math
+from Foundation import NSPoint, NSBundle
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 
-GLYPHSAPPVERSION = NSBundle.bundleForClass_(GSMenu).infoDictionary().objectForKey_("CFBundleShortVersionString")
+GLYPHSAPPVERSION = NSBundle.bundleForClass_(NSClassFromString("GSMenu")).infoDictionary().objectForKey_("CFBundleShortVersionString")
 GLYPHS_IS_OLD = GLYPHSAPPVERSION.startswith("1.")
 measurementTool = None
 if GLYPHS_IS_OLD:
