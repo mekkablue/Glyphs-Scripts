@@ -5,7 +5,7 @@ Creates a .notdef from your boldest available question mark.
 """
 
 from GlyphsApp import GSOFFCURVE, GSCURVE, GSSMOOTH
-from Foundation import NSPoint, NSAffineTransform, NSAffineTransformStruct
+from Foundation import NSPoint, NSRect, NSSize, NSAffineTransform, NSAffineTransformStruct
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
