@@ -3,7 +3,8 @@
 __doc__="""
 Copies a test text for Microsoft Word into the clipboard.
 """
-from AppKit import *
+
+from AppKit import NSStringPboardType, NSPasteboard
 
 thisFont = Glyphs.font # frontmost font
 glyphs = [g for g in thisFont.glyphs if g.unicode and g.export and g.subCategory != "Nonspacing"]

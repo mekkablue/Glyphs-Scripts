@@ -3,7 +3,8 @@
 __doc__="""
 Copies a test text for InDesign into the clipboard.
 """
-from AppKit import *
+
+from AppKit import NSStringPboardType, NSPasteboard
 
 hangingindent = chr(7)
 linelength = 45
