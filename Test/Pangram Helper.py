@@ -5,6 +5,7 @@ Helps you write pangrams by displaying which letters are still missing.
 """
 
 import vanilla
+from AppKit import NSStringPboardType, NSPasteboard
 
 fullAlphabet = "abcdefghijklmnopqrstuvwxyz"
 
