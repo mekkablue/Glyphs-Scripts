@@ -5,6 +5,7 @@ GUI for a number of hidden prefs, hard to memorize otherwise.
 """
 
 import vanilla
+from AppKit import NSFont
 
 class SetHiddenAppPreferences( object ):
 	prefs = (

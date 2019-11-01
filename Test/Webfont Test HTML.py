@@ -4,6 +4,7 @@ __doc__="""
 Create a Test HTML for the current font inside the current Webfont Export folder, or for the current Glyphs Project in the project’s export path.
 """
 
+from AppKit import NSBundle, NSClassFromString
 from os import system
 fileFormats = ( "woff", "woff2", "eot" )
 
@@ -300,7 +301,7 @@ Glyphs.clearLog()
 Glyphs.showMacroWindow()
 
 # Query app version:
-GLYPHSAPPVERSION = NSBundle.bundleForClass_(GSMenu).infoDictionary().objectForKey_("CFBundleShortVersionString")
+GLYPHSAPPVERSION = NSBundle.bundleForClass_(NSClassFromString("GSMenu")).infoDictionary().objectForKey_("CFBundleShortVersionString")
 appVersionHighEnough = not GLYPHSAPPVERSION.startswith("1.")
 
 if appVersionHighEnough:

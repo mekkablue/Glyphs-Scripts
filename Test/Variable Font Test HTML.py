@@ -5,6 +5,7 @@ Create a Test HTML for the current font inside the current Variation Font Export
 """
 
 from os import system
+from AppKit import NSClassFromString, NSBundle
 
 def saveFileInLocation( content="Sorry, no content generated.", fileName="test.html", filePath="~/Desktop" ):
 	saveFileLocation = "%s/%s" % (filePath,fileName)
@@ -61,30 +62,17 @@ def generateAxisDict(thisFont):
 def axisDictForFontWithoutAxisLocationParameters(thisFont):
 	sliderValues = {}
 	for i, thisMaster in enumerate(thisFont.masters):
-		try:
-			sliderValues[i] = (
-				int(thisMaster.weightValue),
-				int(thisMaster.widthValue),
-				int(thisMaster.customValue),
-				int(thisMaster.customValue1()),
-				int(thisMaster.customValue2()),
-				int(thisMaster.customValue3()),
-			)
-			warningMessage()
-		except:
-			sliderValues[i] = (
-				int(thisMaster.weightValue),
-				int(thisMaster.widthValue),
-				int(thisMaster.customValue),
-				int(thisMaster.customValue1),
-				int(thisMaster.customValue2),
-				int(thisMaster.customValue3),
-			)
+		sliderValues[i] = axisValuesForMaster(thisMaster)
 	
 	axisDict = {}
 	for i, axis in enumerate(thisFont.axes):
-		axisName = axis["Name"]
-		axisTag = axis["Tag"]
+		try:
+			# Glyphs 2:
+			axisName, axisTag = axis["Name"], axis["Tag"]
+		except:
+			# Glyphs 3:
+			axisName, axisTag = x.name(), x.axisTag()
+
 		axisDict[axisName] = { "tag": axisTag, "min": sliderValues[0][i], "max": sliderValues[0][i] }
 		
 		for j, thisMaster in enumerate(thisFont.masters):
@@ -153,7 +141,12 @@ def allOTVarSliders(thisFont):
 	
 	html = ""
 	for axis in thisFont.axes:
-		axisName = unicode(axis["Name"])
+		try:
+			# Glyphs 2:
+			axisName = unicode(axis["Name"])			
+		except:
+			# Glyphs 3:
+			axisName = axis.name()
 		minValue = axisDict[axisName]["min"]
 		maxValue = axisDict[axisName]["max"]
 		axisTag = axisDict[axisName]["tag"]
@@ -172,32 +165,48 @@ def warningMessage():
 		message="It appears that you are not running the latest version of Glyphs. Please enable Cutting Edge Versions and Automatic Version Checks in Preferences > Updates, and update to the latest beta.",
 		OKButton=None
 		)
+
+def axisValuesForMaster(thisMaster):
+	try:
+		axisValueList = [0.0,0.0,0.0,0.0,0.0,0.0]
+		for i,value in enumerate(thisMaster.axes):
+			axisValueList[i] = value
+		axisValues = tuple(axisValueList)
+	except:
+		try:
+			axisValues = (
+				thisMaster.weightValue,
+				thisMaster.widthValue,
+				thisMaster.customValue,
+				thisMaster.customValue1(),
+				thisMaster.customValue2(),
+				thisMaster.customValue3(),
+			)
+			warningMessage()
+		except:
+			axisValues = (
+				thisMaster.weightValue,
+				thisMaster.widthValue,
+				thisMaster.customValue,
+				thisMaster.customValue1,
+				thisMaster.customValue2,
+				thisMaster.customValue3,
+			)
+	return axisValues
 	
+
 def defaultVariationCSS(thisFont):
 	firstMaster = thisFont.masters[0]
-	try:
-		axisValues = (
-			firstMaster.weightValue,
-			firstMaster.widthValue,
-			firstMaster.customValue,
-			firstMaster.customValue1(),
-			firstMaster.customValue2(),
-			firstMaster.customValue3(),
-		)
-		warningMessage()
-	except:
-		axisValues = (
-			firstMaster.weightValue,
-			firstMaster.widthValue,
-			firstMaster.customValue,
-			firstMaster.customValue1,
-			firstMaster.customValue2,
-			firstMaster.customValue3,
-		)
+	axisValues = axisValuesForMaster(firstMaster)
 		
 	defaultValues = []
 	for i, axis in enumerate(thisFont.axes):
-		tag = axis["Tag"]
+		try:
+			# Glyphs 2:
+			tag = axis["Tag"]
+		except:
+			# Glyphs 3:
+			tag = axis.axisTag()
 		value = axisValues[i]
 		cssValue = '"%s" %i' % (tag, value)
 		defaultValues.append(cssValue)
@@ -430,7 +439,7 @@ Glyphs.clearLog()
 Glyphs.showMacroWindow()
 
 # Query app version:
-GLYPHSAPPVERSION = NSBundle.bundleForClass_(GSMenu).infoDictionary().objectForKey_("CFBundleShortVersionString")
+GLYPHSAPPVERSION = NSBundle.bundleForClass_(NSClassFromString("GSMenu")).infoDictionary().objectForKey_("CFBundleShortVersionString")
 appVersionHighEnough = not GLYPHSAPPVERSION.startswith("1.")
 
 if appVersionHighEnough:
