@@ -13,8 +13,13 @@ def process( thisLayer ):
 		background = thisLayer.background
 	
 	if not background:
-		print "  Could not access background layer '%s'" % thisLayer.name
+		print "  Could not access background layer '%s'." % thisLayer.name
 	elif background.components:
+		compCount = len(background.components)
+		print "  Decomposed %i component%s in background." % (
+			compCount,
+			"" if compCount==1 else "s",
+			)
 		background.decomposeComponents()
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
