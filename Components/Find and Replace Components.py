@@ -4,7 +4,6 @@ __doc__="""
 Replaces components in selected glyphs (GUI).
 """
 
-#import GlyphsApp
 import vanilla
 
 def replaceComponent( thisLayer, oldCompName, newCompName ):

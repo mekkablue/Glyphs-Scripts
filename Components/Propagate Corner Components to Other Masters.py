@@ -5,6 +5,7 @@ Puts Corner Components from the current layer into other master layers, at the s
 """
 
 from GlyphsApp import CORNER
+from AppKit import NSNotificationCenter
 
 def indexOfPath(l,p):
 	for i in range(len(l.paths)):

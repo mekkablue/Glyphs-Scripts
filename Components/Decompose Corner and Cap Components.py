@@ -4,6 +4,8 @@ __doc__="""
 Recreates the current paths without caps or components.
 """
 
+from Foundation import NSClassFromString
+
 thisFont = Glyphs.font # frontmost font
 selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 removeOverlapFilter = NSClassFromString("GlyphsFilterRemoveOverlap").alloc().init()

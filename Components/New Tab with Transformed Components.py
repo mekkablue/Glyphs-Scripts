@@ -4,8 +4,6 @@ __doc__="""
 Opens a new edit tab with components that are rotated, scaled or flipped, i.e., any transformation beyond mere shifts.
 """
 
-
-
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs

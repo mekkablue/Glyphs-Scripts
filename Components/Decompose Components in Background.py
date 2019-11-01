@@ -7,8 +7,14 @@ Decomposes components in the Background.
 thisFont = Glyphs.font # frontmost font
 
 def process( thisLayer ):
-	background = thisLayer.background
-	if background.components:
+	if thisLayer.isKindOfClass_(GSBackgroundLayer):
+		background = thisLayer
+	else:
+		background = thisLayer.background
+	
+	if not background:
+		print "  Could not access background layer '%s'" % thisLayer.name
+	elif background.components:
 		background.decomposeComponents()
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
