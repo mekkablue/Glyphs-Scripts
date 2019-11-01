@@ -5,6 +5,7 @@ Adds a component to all backgrounds of all layers of all selected glyphs. Useful
 """
 
 import vanilla, math
+from Foundation import NSAffineTransform, NSAffineTransformStruct, NSEvent
 
 def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	"""
@@ -226,14 +227,17 @@ class PopulateAllBackgroundswithComponent( object ):
 										if Glyphs.defaults["com.mekkablue.PopulateAllBackgroundswithComponent.alignRight"]:
 											
 											# determine right edges:
-											layerBounds = glyphLayer.bounds
-											rightLayerEdge = layerBounds.origin.x + layerBounds.size.width
-											backgroundBounds = glyphLayer.background.bounds
-											rightBackgroundEdge = backgroundBounds.origin.x + backgroundBounds.size.width
+											componentLayer = newComponent.componentLayer
+											hShiftAmount = glyphLayer.width - componentLayer.width
+											
+											# layerBounds = glyphLayer.bounds
+											# rightLayerEdge = layerBounds.origin.x + layerBounds.size.width
+											# backgroundBounds = glyphLayer.background.bounds
+											# rightBackgroundEdge = backgroundBounds.origin.x + backgroundBounds.size.width
+											# hShiftAmount = rightLayerEdge - rightBackgroundEdge
 											
 											# move background component:
 											newComponent.automaticAlignment = False
-											hShiftAmount = rightLayerEdge - rightBackgroundEdge
 											hShift = transform( shiftX=hShiftAmount )
 											hShiftMatrix = hShift.transformStruct()
 											newComponent.applyTransform( hShiftMatrix )
@@ -333,9 +337,5 @@ class PopulateAllBackgroundswithComponent( object ):
 			print "%s: aligned %i of %i selected nodes" % (thisGlyph.name, aligned, selected)
 			print "%s: aligned %i of %i anchors." % (thisGlyph.name, numberOfAnchorsMoved, len(thisLayer.anchors))
 			thisGlyph.endUndo() # end undo grouping
-
- 
-
-	
 
 PopulateAllBackgroundswithComponent()
