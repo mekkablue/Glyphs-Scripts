@@ -6,6 +6,13 @@ Manage and sync ascender, descender and linegap values for hhea, OS/2 sTypo and 
 
 import vanilla
 
+def cleanInt(numberString):
+	exportString = ""
+	for char in str(numberString):
+		if char in "1234567890":
+			exportString += char
+	return int(exportString)
+
 def roundUpByValue(x, roundBy):
 	if x == 0: 
 		# avoid division by zero
@@ -412,14 +419,14 @@ class VerticalMetricsManager( object ):
 			print thisFont.filepath
 			print
 			
-			typoAsc = Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoAsc"]
-			typoDesc = Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoDesc"]
-			typoGap = Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoGap"]
-			hheaAsc = Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaAsc"]
-			hheaDesc = Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaDesc"]
-			hheaGap = Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaGap"]
-			winDesc = Glyphs.defaults["com.mekkablue.VerticalMetricsManager.winDesc"]
-			winAsc = Glyphs.defaults["com.mekkablue.VerticalMetricsManager.winAsc"]
+			typoAsc = cleanInt(Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoAsc"])
+			typoDesc = cleanInt(Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoDesc"])
+			typoGap = cleanInt(Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoGap"])
+			hheaAsc = cleanInt(Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaAsc"])
+			hheaDesc = cleanInt(Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaDesc"])
+			hheaGap = cleanInt(Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaGap"])
+			winDesc = cleanInt(Glyphs.defaults["com.mekkablue.VerticalMetricsManager.winDesc"])
+			winAsc = cleanInt(Glyphs.defaults["com.mekkablue.VerticalMetricsManager.winAsc"])
 			
 			verticalMetricDict = {
 				"typoAscender": typoAsc,
