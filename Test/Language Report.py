@@ -4,8 +4,6 @@ __doc__="""
 Tries to give you a preliminary idea about how many and which languages are supported with your Latin characters.
 """
 
-import GlyphsApp
-
 langdict = {
 	"abenaki":{"language":u"Abenaki", "code":"abe", "letters":u"Ôô", "speakers":0},
 	"afaan_oromo":{"language":u"Afaan Oromo", "code":"gaz", "letters":u"", "speakers":32000000},

@@ -12,7 +12,6 @@ glyphnames = [g.name for g in glyphs]
 
 copyString = u""
 
-
 # CHARSET:
 lastCategory = None
 for i, currGlyph in enumerate(glyphs):
