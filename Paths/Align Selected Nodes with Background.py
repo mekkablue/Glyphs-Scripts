@@ -4,7 +4,6 @@ __doc__="""
 Align selected nodes with the nearest background node unless it is already taken by a previously moved node.
 """
 
-
 def alignNodeWithNodeInOtherLayer(thisNode, otherLayer, tolerance=5, maxTolerance=80, alreadyTaken=[]):
 	while tolerance < maxTolerance:
 		nearestNode = otherLayer.nodeAtPoint_excludeNodes_traversComponents_tollerance_( thisNode.position, None, False, tolerance )

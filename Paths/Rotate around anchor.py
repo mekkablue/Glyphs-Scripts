@@ -5,7 +5,7 @@ Rotate selected glyphs (or selected paths and components) around a 'rotate' anch
 """
 
 import vanilla
-from Foundation import NSPoint, NSAffineTransform, NSAffineTransformStruct
+from Foundation import NSPoint, NSAffineTransform, NSAffineTransformStruct, NSMakePoint
 
 def transformNode( myNode, myTransform ):
 	myNode.position = myTransform.transformPoint_( NSMakePoint( myNode.x, myNode.y ) )

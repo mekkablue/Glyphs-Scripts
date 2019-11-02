@@ -4,6 +4,8 @@ __doc__="""
 Delete the selected on-curve nodes, but try to keep the shape of the path. Hold down Shift for balanced handles.
 """
 
+from Foundation import NSEvent
+
 thisFont = Glyphs.font # frontmost font
 thisLayer = thisFont.selectedLayers[0] # first of active layers of selected glyphs
 thisGlyph = thisLayer.parent # current glyph

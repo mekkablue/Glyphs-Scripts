@@ -4,7 +4,8 @@ __doc__="""
 Realigns handles (BCPs) in current layers of selected glyphs. Useful for resetting out-of-sync handles, e.g., after a transform operation, after interpolation or after switching to a different grid. Hold down Option to process ALL layers of the glyph.
 """
 
-from Foundation import NSPoint
+from Foundation import NSPoint, NSEvent, NSNumber, NSMutableArray
+
 optionKeyFlag = 524288
 optionKeyPressed = NSEvent.modifierFlags() & optionKeyFlag == optionKeyFlag
 

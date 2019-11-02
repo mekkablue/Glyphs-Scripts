@@ -6,7 +6,6 @@ Creates backup layers for selected glyphs in target font, and fills them with th
 
 import vanilla
 
-
 class CopyGlyphsIntoBackupLayers( object ):
 	def __init__( self ):
 		# Window 'self.w':

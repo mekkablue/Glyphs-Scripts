@@ -6,7 +6,6 @@ Toggles grid between two gridstep values.
 
 import vanilla
 
-
 class GridOnOff( object ):
 	def __init__( self ):
 		self.gridStep1default = 1

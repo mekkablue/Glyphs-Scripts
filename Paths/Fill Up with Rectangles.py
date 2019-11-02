@@ -5,7 +5,6 @@ Inserts Rectangles in all empty, selected glyphs.
 """
 
 Font = Glyphs.font
-FontMaster = Font.selectedFontMaster
 selectedLayers = Font.selectedLayers
 
 def drawRect( myBottomLeft, myTopRight ):

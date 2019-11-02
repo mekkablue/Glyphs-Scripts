@@ -4,10 +4,7 @@ __doc__="""
 Distributes the selected nodes horizontally or vertically, depending on the bounding box.
 """
 
-
-
 Font = Glyphs.font
-Doc = Glyphs.currentDocument
 selectedLayer = Font.selectedLayers[0]
 
 try:
