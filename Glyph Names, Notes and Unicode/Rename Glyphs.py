@@ -5,6 +5,7 @@ Takes a list of oldglyphname=newglyphname pairs and renames glyphs in the font a
 """
 
 import vanilla, uuid
+from AppKit import NSFont
 
 class RenameGlyphs( object ):
 	def __init__( self ):

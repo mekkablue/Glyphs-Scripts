@@ -4,6 +4,8 @@ __doc__="""
 Reorders Unicodes so that default Unicode comes first.
 """
 
+from Foundation import NSArray
+
 thisFont = Glyphs.font # frontmost font
 selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 

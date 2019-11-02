@@ -6,7 +6,6 @@ Adds custom Unicode values to selected glyphs.
 
 import vanilla
 
-
 class CustomUnicode( object ):
 	def __init__( self ):
 		# Window 'self.w':
