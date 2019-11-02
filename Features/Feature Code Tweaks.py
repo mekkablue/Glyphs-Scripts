@@ -706,7 +706,7 @@ class FeatureCodeTweaks( object ):
 			
 			# Feature code:
 			lookupName = "uppercaseSharpS"
-			featureLines = "\tsub @%s @%s %s' by %s;\n\tsub @%s %s' @%s by %s;" % (
+			featureLines = "\tsub @%s @%s %s' by %s;\n\tsub %s' @%s by %s;" % (
 				ucClassName, ucClassName, lcSharpS.name, ucSharpS.name,
 				ucClassName, lcSharpS.name, ucClassName, ucSharpS.name,
 			)
