@@ -4,7 +4,6 @@ __doc__="""
 Compares the OT features set of the two frontmost fonts and outputs a report in the Macro Window.
 """
 
-import GlyphsApp
 from compare import *
 
 thisFont = Glyphs.fonts[0] # frontmost font

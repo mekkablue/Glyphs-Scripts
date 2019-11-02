@@ -4,8 +4,6 @@ __doc__="""
 Compares the kerning groups of exporting glyphs in the two frontmost fonts and outputs a report in the Macro Window.
 """
 
-import GlyphsApp
-
 thisFont = Glyphs.fonts[0] # frontmost font
 otherFont = Glyphs.fonts[1] # second font
 

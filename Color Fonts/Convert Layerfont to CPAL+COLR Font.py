@@ -5,6 +5,7 @@ Turns a layered color font into a single-master font with a CPAL and COLR layers
 """
 
 from timeit import default_timer as timer
+from AppKit import NSMutableArray, NSColorSpace, NSColorSpaceColor
 
 # start taking time:
 start = timer()

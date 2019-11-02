@@ -4,7 +4,6 @@ __doc__="""
 Detailed report of Font Info > Instances for the two frontmost fontsand outputs a report in the Macro Window.
 """
 
-import GlyphsApp
 from compare import *
 
 thisFont = Glyphs.fonts[0] # frontmost font
