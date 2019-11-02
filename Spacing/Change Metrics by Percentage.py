@@ -6,7 +6,6 @@ Increase sidebearings of selected glyphs by a percentage value.
 
 import vanilla
 
-
 class ChangeMetricsbyPercentage( object ):
 	def __init__( self ):
 		self.w = vanilla.FloatingWindow( (430, 60), "Change Metrics of Selected Glyphs by Percentage", minSize=(430, 60), maxSize=(600, 60), autosaveName="com.mekkablue.ChangeMetricsbyPercentage.mainwindow" )

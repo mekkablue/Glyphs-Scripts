@@ -12,8 +12,6 @@ areSmallcapsNamedLowercase = True
 # True if you use "a.sc"
 # False if you use "A.sc"
 
-
-
 def thisGlyphIsUppercase( glyphName, thisFont=Glyphs.font ):
 	"""Tests if the glyph referenced by the supplied glyphname is an uppercase glyph."""
 	try:

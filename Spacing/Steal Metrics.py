@@ -5,6 +5,7 @@ Copy sidebearings, widths and/or metric keys (both on layer and glyph) from one 
 """
 
 import vanilla, math
+from AppKit import NSAffineTransform, NSAffineTransformStruct
 
 class MetricsCopy( object ):
 	"""GUI for copying glyph metrics from one font to another"""

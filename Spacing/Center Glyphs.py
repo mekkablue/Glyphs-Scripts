@@ -5,6 +5,8 @@ Center all selected glyphs inside their respective widths.
 """
 
 import math
+from AppKit import NSAffineTransform, NSAffineTransformStruct
+
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 

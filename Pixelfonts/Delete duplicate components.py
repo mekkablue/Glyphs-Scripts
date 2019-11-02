@@ -4,8 +4,6 @@ __doc__="""
 Looks for duplicate components (same component, same x/y values) and keeps only one of them.
 """
 
-
-
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 

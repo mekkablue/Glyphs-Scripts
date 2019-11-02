@@ -4,7 +4,6 @@ __doc__="""
 Deletes left and right metrics keys specific to layers (==), in all layers of all selected glyphs. Also simplifies glyph metrics keys (i.e., turns "=H" into "H").
 """
 
-
 def FilterLayerKey(Key):
 	if Key and Key.startswith("==") and Key.find("+") == -1 and Key.find("-") == -1 and Key.find("*") == -1 and Key.find("/") == -1:
 		Key = Key[2:]

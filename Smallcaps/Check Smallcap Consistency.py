@@ -4,8 +4,6 @@ __doc__="""
 Performs a few tests on your SC set and reports into the Macro window, especially kerning groups and glyph set.
 """
 
-
-
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
 
