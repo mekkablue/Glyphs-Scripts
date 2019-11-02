@@ -5,6 +5,7 @@ Finds and Replace in Custom Parameters of selected instances of the current font
 """
 
 import vanilla
+from Foundation import NSUserDefaults, NSString
 
 class FindAndReplaceInInstanceParameters( object ):
 	def __init__( self ):

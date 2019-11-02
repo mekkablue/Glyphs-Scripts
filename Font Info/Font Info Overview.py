@@ -5,7 +5,6 @@ Lists some Font Info values for all opened fonts.
 """
 
 import vanilla
-import GlyphsApp
 
 keyList = [
 	["Family Name", "familyName", 160],

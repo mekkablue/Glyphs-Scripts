@@ -4,8 +4,6 @@ __doc__="""
 Takes the currently opened layers and creates new glyphs with the first available .ssXX ending. It marks the new glyph blue, and (in a multiple-master file) all other, unprocessed master layers orange.
 """
 
-
-
 thisFont = Glyphs.font
 allGlyphNames = [ x.name for x in thisFont.glyphs ]
 selectedLayers = thisFont.selectedLayers
