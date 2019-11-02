@@ -6,7 +6,6 @@ Removes the specified component from all (selected) glyphs.
 
 import vanilla
 
-
 class RemoveComponentfromSelectedGlyphs( object ):
 	def __init__( self ):
 		# Window 'self.w':
