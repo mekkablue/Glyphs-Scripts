@@ -5,6 +5,7 @@ Inserts Family Alignment Zones parameter with values based on an instance. Needs
 """
 
 import vanilla
+from AppKit import NSFont
 
 class SetFamilyAlignmentZones( object ):
 	def __init__( self ):

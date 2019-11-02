@@ -6,7 +6,6 @@ Extends all alignment zones (except for the baseline zone that should stay at 0)
 
 import vanilla
 
-
 windowHeight = 110
 
 class BlueFuzzer( object ):

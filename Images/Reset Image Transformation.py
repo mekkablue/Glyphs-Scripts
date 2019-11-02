@@ -4,7 +4,6 @@ __doc__="""
 Resets all placed images to 100% scale and 0/0 position.
 """
 
-
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 

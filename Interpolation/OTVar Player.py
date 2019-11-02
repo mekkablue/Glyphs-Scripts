@@ -5,6 +5,7 @@ Plays a glyph in Preview.
 """
 
 import vanilla, threading, time, os
+from AppKit import NSTimer
 
 def saveFileInLocation( content="blabla", fileName="test.txt", filePath="~/Desktop" ):
 	saveFileLocation = "%s/%s" % (filePath,fileName)

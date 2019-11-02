@@ -4,9 +4,9 @@ __doc__="""
 Batch scale and move images in selected layers.
 """
 
-import vanilla
+import vanilla, traceback
+from AppKit import NSAffineTransform
 
-import traceback
 windowHeight = 120
 
 def getScale( scaleString, factor ):

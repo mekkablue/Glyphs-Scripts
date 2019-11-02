@@ -4,8 +4,6 @@ __doc__="""
 Adds hints for the selected nodes. Tries to guess whether it should be H or V. If exactly one node inside a zone is selected, it will add a Ghost Hint.
 """
 
-
-
 Font = Glyphs.font
 FontMaster = Font.selectedFontMaster
 thisLayer = Font.selectedLayers[0]

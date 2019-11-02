@@ -4,7 +4,6 @@ __doc__="""
 Looks for empty layers and copies contents of another layer into it.
 """
 
-
 import vanilla
 
 class MasterFiller(object):

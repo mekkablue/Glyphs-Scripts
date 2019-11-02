@@ -4,7 +4,6 @@ __doc__="""
 Deletes all placed images from the frontmost font.
 """
 
-
 thisFont = Glyphs.font
 
 def process( thisGlyph ):

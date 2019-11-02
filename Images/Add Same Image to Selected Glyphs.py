@@ -4,8 +4,6 @@ __doc__="""
 Asks you for an image file and inserts it as background image into all selected layers.
 """
 
-
-
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 

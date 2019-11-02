@@ -4,7 +4,6 @@ __doc__="""
 Opens a new Edit tab containing all special (bracket & brace) layers.
 """
 
-
 Glyphs.clearLog() # clears log of Macro window
 thisFont = Glyphs.font # frontmost font
 affectedLayers = []

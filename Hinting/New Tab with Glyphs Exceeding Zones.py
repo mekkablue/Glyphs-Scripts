@@ -4,8 +4,6 @@ __doc__="""
 Opens a new tab with all glyphs where the extremums do not lie within zones.
 """
 
-
-
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
 thisFontMasterID = thisFontMaster.id

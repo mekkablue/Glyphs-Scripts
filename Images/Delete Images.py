@@ -4,7 +4,6 @@ __doc__="""
 Deletes placed images from selected glyphs on all layers.
 """
 
-
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 

@@ -4,9 +4,7 @@ __doc__="""
 Copies one master to another master's or background in selected glyphs.
 """
 
-
-import vanilla
-import math
+import vanilla, math
 
 class CopyLayerToLayer( object ):
 
