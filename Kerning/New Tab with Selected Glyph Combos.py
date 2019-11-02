@@ -4,7 +4,6 @@ __doc__="""
 Opens a new tab with all possible combinations of currently selected glyphs.
 """
 
-
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 

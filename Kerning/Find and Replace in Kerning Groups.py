@@ -6,7 +6,6 @@ Finds and replaces text in the metrics keys of selected glyphs. Leave the Find s
 
 import vanilla
 
-
 class KerningGroupReplacer( object ):
 	def __init__( self ):
 		self.w = vanilla.FloatingWindow( (335, 125), "Find and Replace in Kerning Groups", autosaveName="com.mekkablue.KerningGroupReplacer.mainwindow" )

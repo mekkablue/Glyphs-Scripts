@@ -5,6 +5,7 @@ Add group kernings with value zero for pairs that are missing in one master but 
 """
 
 import vanilla
+from Foundation import NSNotFound
 
 class ZeroKerner( object ):
 	def __init__( self ):

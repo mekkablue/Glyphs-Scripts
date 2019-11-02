@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*--- --
 from GlyphsApp import Glyphs
-from AppKit import NSNotFound
+from Foundation import NSNotFound
 
 intervalList = (1,3,5,10,20)
 categoryList = (

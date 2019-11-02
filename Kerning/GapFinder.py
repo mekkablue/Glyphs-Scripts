@@ -6,6 +6,7 @@ Opens a new tab with kerning combos that have large gaps in the current fontmast
 
 import vanilla
 from timeit import default_timer as timer
+from Foundation import NSNotFound
 
 intervalList = (1,3,5,10,20)
 categoryList = (

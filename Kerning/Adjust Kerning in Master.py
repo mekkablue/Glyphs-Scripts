@@ -6,7 +6,6 @@ Adjusts all kerning values by a specified amount.
 
 import vanilla
 
-
 optionList = [ "Multiply by", "Add", "Add Absolute", "Round by" ]
 
 class AdjustKerning( object ):

@@ -4,6 +4,8 @@ __doc__="""
 Outputs a kerning string with UC/LC/SC letters, figures, and punctuation.
 """
 
+from AppKit import NSPasteboard, NSStringPboardType
+
 # ingredients:
 thisFont = Glyphs.font
 mID = thisFont.selectedFontMaster.id

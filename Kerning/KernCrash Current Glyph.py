@@ -4,6 +4,8 @@ __doc__="""
 Opens a new tab containing kerning combos with the current glyph that collide in the current fontmaster.
 """
 
+from AppKit import NSNotFound, NSAffineTransform
+
 exceptions="""
 .notdef
 Ldot ldot ldot.sc

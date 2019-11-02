@@ -7,6 +7,7 @@ Specify a minimum distance, left and right glyphs, and Auto Bumper will add the 
 import vanilla
 from timeit import default_timer as timer
 from kernanalysis import *
+from AppKit import NSColor
 
 defaultStrings = u"""
 iíĭǐîïịìỉīįĩjĵ
