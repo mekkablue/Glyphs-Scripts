@@ -251,7 +251,7 @@ class CopyLayerToLayer( object ):
 
 		# This should be the active selection, not necessarily the selection on the inputted fonts
 		Font = Layer.parent.parent
-		selectedGlyphs = [ x.parent for x in Font.selectedLayers ]
+		selectedGlyphs = [ x.parent for x in Font.selectedLayers if x.parent.name is not None ]
 		indexOfSourceFont = int(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontSource"])
 		indexOfTargetFont = int(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontTarget"])
 		indexOfSourceMaster = int(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterSource"])
