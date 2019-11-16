@@ -9,7 +9,7 @@ import vanilla
 def cleanInt(numberString):
 	exportString = ""
 	for char in str(numberString):
-		if char in "1234567890":
+		if char in "1234567890+-":
 			exportString += char
 	return int(exportString)
 
