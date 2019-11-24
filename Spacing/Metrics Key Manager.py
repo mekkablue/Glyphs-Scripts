@@ -50,7 +50,7 @@ class MetricsKeyManager( object ):
 		self.w.RightMetricsKeys = vanilla.EditText( (inset+70, linePos, -inset, boxHeight), "", callback=self.SavePreferences, sizeStyle='small' )
 		
 		for editField in (self.w.LeftMetricsKeys, self.w.RightMetricsKeys):
-			editField.getNSTextField().setToolTip_(u"Enter a metrics key like '=H', followed by a colon (:), followed by glyph names, spearated by space, comma, or any other separator that cannot be part of a glyph name. (Glyph names can contain A-Z, a-z, 0-9, period, underscore and hyphen.)")
+			editField.getNSTextField().setToolTip_(u"Enter a metrics key like '=H', followed by a colon (:), followed by glyph names, spearated by space, comma, or any other separator that cannot be part of a glyph name. (Glyph names can contain A-Z, a-z, 0-9, period, underscore and hyphen.)\nExample: ‘=H: B D E F’.")
 		
 		# Run Button:
 		self.w.resetButton = vanilla.Button( (-180-inset, -20-inset, -inset-90, -inset), u"⟲ Reset", sizeStyle='regular', callback=self.SetDefaults )
