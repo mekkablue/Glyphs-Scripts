@@ -52,9 +52,15 @@ class MetricsKeyManager( object ):
 		for editField in (self.w.LeftMetricsKeys, self.w.RightMetricsKeys):
 			editField.getNSTextField().setToolTip_(u"Enter a metrics key like '=H', followed by a colon (:), followed by glyph names, spearated by space, comma, or any other separator that cannot be part of a glyph name. (Glyph names can contain A-Z, a-z, 0-9, period, underscore and hyphen.)\nExample: ‘=H: B D E F’.")
 		
-		# Run Button:
-		self.w.resetButton = vanilla.Button( (-180-inset, -20-inset, -inset-90, -inset), u"⟲ Reset", sizeStyle='regular', callback=self.SetDefaults )
-		self.w.runButton = vanilla.Button( (-80-inset, -20-inset, -inset, -inset), "Apply", sizeStyle='regular', callback=self.MetricsKeyManagerMain )
+		# Buttons:
+		self.w.resetButton = vanilla.Button( (-280-inset, -20-inset, -inset-190, -inset), u"⟲ Reset", sizeStyle='regular', callback=self.SetDefaults )
+		self.w.resetButton.getNSButton().setToolTip_(u"Resets the contents of the L+R Keys to their (currently only Latin) defaults.")
+		
+		self.w.scanButton = vanilla.Button( (-180-inset, -20-inset, -inset-90, -inset), u"↑ Extract", sizeStyle='regular', callback=self.ScanFontForKeys )
+		self.w.scanButton.getNSButton().setToolTip_(u"Scans the current font for all metrics keys and lists them here. Normalizes the preceding equals sign (=). No matter whether you typed them with or without an equals sign, they will show up here with one.")
+
+		self.w.runButton = vanilla.Button( (-80-inset, -20-inset, -inset, -inset), u"↓ Apply", sizeStyle='regular', callback=self.MetricsKeyManagerMain )
+		self.w.runButton.getNSButton().setToolTip_(u"Parses the current content of the window and will attempt to set the metrics keys of the respective glyphs in the frontmost font.")
 		self.w.setDefaultButton( self.w.runButton )
 		
 		# Load Settings:
@@ -71,7 +77,7 @@ class MetricsKeyManager( object ):
 	def getMeasurements(self, sender=None):
 		lineHeight = 22
 		currentWindowHeight = self.w.getPosSize()[3]
-		boxHeight = currentWindowHeight/2 - lineHeight*1.5
+		boxHeight = currentWindowHeight//2 - lineHeight*1.5
 		return 12, 15, lineHeight, boxHeight
 	
 	def windowResize(self, sender=None):
@@ -84,7 +90,7 @@ class MetricsKeyManager( object ):
 		self.w.RightMetricsKeysText.setPosSize( (inset, linePos+2, 70, 14) )
 		self.w.RightMetricsKeys.setPosSize( (inset+70, linePos, -inset, boxHeight) )
 	
-	def SavePreferences( self, sender ):
+	def SavePreferences( self, sender=None ):
 		try:
 			Glyphs.defaults["com.mekkablue.MetricsKeyManager.LeftMetricsKeys"] = self.w.LeftMetricsKeys.get()
 			Glyphs.defaults["com.mekkablue.MetricsKeyManager.RightMetricsKeys"] = self.w.RightMetricsKeys.get()
@@ -126,7 +132,56 @@ class MetricsKeyManager( object ):
 					currName = ""
 		return tuple(glyphNames)
 	
-	def parseKeyText(self, keyText):
+	def font2dicts(self, font):
+		leftDict, rightDict = {}, {}
+		for glyph in font.glyphs:
+			leftKey = glyph.leftMetricsKey
+			if leftKey:
+				# normalize equals sign:
+				if not leftKey[0] == "=":
+					leftKey = "=%s" % leftKey
+				
+				# create list or append to list:
+				if not leftDict.has_key(leftKey):
+					leftDict[leftKey] = [glyph.name,]
+				else:
+					leftDict[leftKey].append(glyph.name)
+					
+			rightKey = glyph.rightMetricsKey
+			if rightKey:
+				# normalize equals sign:
+				if not rightKey[0] == "=":
+					rightKey = "=%s" % rightKey
+				
+				# create list or append to list:
+				if not rightDict.has_key(rightKey):
+					rightDict[rightKey] = [glyph.name,]
+				else:
+					rightDict[rightKey].append(glyph.name)
+
+		return leftDict, rightDict
+	
+	def ScanFontForKeys(self, sender=None, font=None):
+		if not font:
+			font = Glyphs.font
+		
+		if font:
+			leftDict, rightDict = self.font2dicts(font)
+			leftText = self.dict2text(leftDict)
+			rightText = self.dict2text(rightDict)
+			self.w.LeftMetricsKeys.set(leftText)
+			self.w.RightMetricsKeys.set(rightText)
+			self.SavePreferences()
+	
+	def dict2text(self, keyDict):
+		keyText=""
+		for key in sorted(keyDict.keys()):
+			if key:
+				glyphNames = " ".join(keyDict[key])
+				keyText += "%s: %s\n" % (key, glyphNames)
+		return keyText.strip()
+	
+	def text2dict(self, keyText):
 		parseDict = {}
 		keyText = keyText.strip()
 		for line in keyText.splitlines():
@@ -158,10 +213,10 @@ class MetricsKeyManager( object ):
 				shouldOpenTabWithAffectedGlyphs = False
 			
 				LeftKeysText = Glyphs.defaults["com.mekkablue.MetricsKeyManager.LeftMetricsKeys"]
-				leftDict = self.parseKeyText(LeftKeysText)
+				leftDict = self.text2dict(LeftKeysText)
 			
 				RightKeysText = Glyphs.defaults["com.mekkablue.MetricsKeyManager.RightMetricsKeys"]
-				rightDict = self.parseKeyText(RightKeysText)
+				rightDict = self.text2dict(RightKeysText)
 				
 				affectedGlyphs = []
 				
