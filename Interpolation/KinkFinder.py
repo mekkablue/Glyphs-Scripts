@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Kink Finder
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -44,7 +45,7 @@ def orthogonalDistance(pivot, A, B):
 		return distanceBetweenPoints( intersection, pivot )
 	except:
 		import traceback
-		print traceback.format_exc()
+		print(traceback.format_exc())
 		return 0
 		
 
@@ -125,7 +126,7 @@ class KinkFinder( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print u"⚠️ Warning: 'Kink Finder' could not load preferences. Will resort to defaults"
+			print(u"⚠️ Warning: 'Kink Finder' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -210,7 +211,7 @@ class KinkFinder( object ):
 				return None
 		except:
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 			return None
 	
 	def buildInstance(self, name, interpolationDict, font):
@@ -249,12 +250,12 @@ class KinkFinder( object ):
 					self.instances.append(testInstance)
 		
 		# report:
-		print "Testing in %i mid-way instances:" % len(self.instances)
+		print("Testing in %i mid-way instances:" % len(self.instances))
 		for i in self.instances:
-			print "- %s:" % i.name
+			print("- %s:" % i.name)
 			for key in i.instanceInterpolations:
-				print "  %s: %.3f" % (thisFont.masters[key].name, i.instanceInterpolations[key])
-		print
+				print("  %s: %.3f" % (thisFont.masters[key].name, i.instanceInterpolations[key]))
+		print()
 	
 	def cleanNodeNamesInGlyph(self, glyph, nodeMarker):
 		for thisLayer in glyph.layers:
@@ -297,7 +298,7 @@ class KinkFinder( object ):
 	def KinkFinderMain( self, sender ):
 		try:
 			if not self.SavePreferences( self ):
-				print "Note: 'Kink Finder' could not write preferences."
+				print("Note: 'Kink Finder' could not write preferences.")
 			
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()
@@ -350,7 +351,7 @@ class KinkFinder( object ):
 							if kinkLayer.associatedMasterId == kinkLayer.layerId or kinkLayer.isSpecialLayer:
 								for pathIndex, kinkPath in enumerate(kinkLayer.paths):
 									if not kinkPath:
-										print u"❌ Could not determine same path in glyph %s, master %s." % (thisGlyph.name, thisMaster.name)
+										print(u"❌ Could not determine same path in glyph %s, master %s." % (thisGlyph.name, thisMaster.name))
 									else:
 										for nodeIndex, kinkNode in enumerate(kinkPath.nodes):
 											if kinkNode.connection == GSSMOOTH:
@@ -359,13 +360,13 @@ class KinkFinder( object ):
 													if not kinkLayer in kinkyLayers:
 														kinkyLayers.append(kinkLayer)
 													# kinkyGlyphNames.append(thisGlyph.name)
-													print u"%s Kink in %s on layer '%s', path %i, node %i: %.1f units" % (
+													print(u"%s Kink in %s on layer '%s', path %i, node %i: %.1f units" % (
 														nodeMarker, thisGlyph.name,
 														kinkLayer.name,
 														pathIndex,
 														nodeIndex,
 														thisKink
-													)
+													))
 													if Glyphs.defaults["com.mekkablue.KinkFinder.markKinks"]:
 														kinkNode.name = u"%.1f %s" % ( thisKink, nodeMarker )
 					
@@ -376,7 +377,7 @@ class KinkFinder( object ):
 						else:
 							firstLayer = self.glyphInterpolation( thisGlyph.name, firstInstance )
 							if not firstLayer:
-								print u"⚠️ Could not determine primary layer of %s, most likely cause: no paths." % thisGlyph.name
+								print(u"⚠️ Could not determine primary layer of %s, most likely cause: no paths." % thisGlyph.name)
 							else:
 								for pathIndex in range(len(firstLayer.paths)):
 									thisPath = firstLayer.paths[pathIndex]
@@ -388,10 +389,10 @@ class KinkFinder( object ):
 												kinkLayer = self.glyphInterpolation( thisGlyph.name, thisInstance )
 												if not kinkLayer:
 													if Glyphs.defaults["com.mekkablue.KinkFinder.reportIncompatibilities"]:
-														print u"⚠️ ERROR: Could not calculate interpolation for: %s (%s)" % (thisGlyph.name, thisInstance.name.replace(tempMarker,""))
+														print(u"⚠️ ERROR: Could not calculate interpolation for: %s (%s)" % (thisGlyph.name, thisInstance.name.replace(tempMarker,"")))
 												elif not thisGlyph.mastersCompatibleForLayers_((firstLayer,kinkLayer)):
 													if Glyphs.defaults["com.mekkablue.KinkFinder.reportIncompatibilities"]:
-														print u"⚠️ interpolation incompatible for glyph %s: %s (most likely cause: cap or corner components, bracket layers)" % (thisGlyph.name, thisInstance.name.replace(tempMarker,""))
+														print(u"⚠️ interpolation incompatible for glyph %s: %s (most likely cause: cap or corner components, bracket layers)" % (thisGlyph.name, thisInstance.name.replace(tempMarker,"")))
 												else:
 													kinkNode = kinkLayer.paths[pathIndex].nodes[nodeIndex]
 													thisKink = self.kinkSizeForNode(kinkNode)
@@ -399,13 +400,13 @@ class KinkFinder( object ):
 													# kink is found:
 													if thisKink > maxKink:
 														kinkyGlyphNames.append(thisGlyph.name)
-														print u"%s Kink in %s between masters %s, path %i, node %i: %.1f units (%.1f, %.1f)" % (
+														print(u"%s Kink in %s between masters %s, path %i, node %i: %.1f units (%.1f, %.1f)" % (
 															nodeMarker, thisGlyph.name,
 															" and ".join(thisInstance.name.split("-")[:2]),
 															pathIndex, nodeIndex,
 															thisKink,
 															thisNode.x, thisNode.y
-														)
+														))
 												
 														if Glyphs.defaults["com.mekkablue.KinkFinder.markKinks"]:
 															if thisKink > thisNodeMaxKink:
@@ -419,7 +420,7 @@ class KinkFinder( object ):
 					skippedGlyphNames.append(thisGlyph.name)
 			
 			if skippedGlyphNames:
-				print "\nSkipped %i glyphs:\n%s" % ( len(skippedGlyphNames), ", ".join(skippedGlyphNames) )
+				print("\nSkipped %i glyphs:\n%s" % ( len(skippedGlyphNames), ", ".join(skippedGlyphNames) ))
 			uniqueKinkyGlyphNames = set(kinkyGlyphNames)
 			
 			if kinkyLayers:
@@ -439,11 +440,11 @@ class KinkFinder( object ):
 					OKButton=None,
 				)
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Kink Finder Error: %s" % e
+			print("Kink Finder Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 KinkFinder()

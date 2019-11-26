@@ -1,6 +1,7 @@
 #MenuTitle: Insert Instances
 # -*- coding: utf-8 -*-
 from __future__ import division
+from __future__ import print_function
 
 __doc__="""
 Inserts instances, based on the Luc(as), Pablo, and Maciej algorithms.
@@ -172,7 +173,7 @@ class InstanceMaker( object ):
 		self.w.setDefaultButton( self.w.createButton )
 		
 		if not self.LoadPreferences():
-			print "Error: Could not load preferences. Will resort to defaults."
+			print("Error: Could not load preferences. Will resort to defaults.")
 
 		self.w.open()
 		self.UpdateSample( self )
@@ -261,8 +262,8 @@ class InstanceMaker( object ):
 					sampleText += "\n\nWill add interpolationWeightY parameters to the respective instances: %s" % ( ", ".join( maciejList ) + "." )
 			
 			self.w.sample.text.set( sampleText )
-		except Exception, e:
-			print e
+		except Exception as e:
+			print(e)
 	
 	def DealWithExistingInstances( self ):
 		instancesChoice = self.w.existingInstances.get()
@@ -298,7 +299,7 @@ class InstanceMaker( object ):
 			self.updateUI(sender)
 		except:
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 			return False
 
 		return True
@@ -338,7 +339,7 @@ class InstanceMaker( object ):
 			self.updateUI()
 		except:
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 			return False
 		
 		return True
@@ -421,7 +422,7 @@ class InstanceMaker( object ):
 							newInstance.customParameters["weightClass"] = weightClassValue
 						
 						
-						print "styleName:",styleName
+						print("styleName:",styleName)
 						
 						# style name (with italic) and style linking
 						newInstance.name = "%s%s" % (prefix, self.italicStyleName(styleName))
@@ -463,15 +464,15 @@ class InstanceMaker( object ):
 						theFont.instances.append( newInstance )
 						newInstance.updateInterpolationValues()
 					else:
-						print "Error: No current font."
+						print("Error: No current font.")
 			
 			if not self.SavePreferences( self ):
-				print "Error writing preferences."
+				print("Error writing preferences.")
 			
 			self.w.close()
-		except Exception, e:
-			print e
+		except Exception as e:
+			print(e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 InstanceMaker()

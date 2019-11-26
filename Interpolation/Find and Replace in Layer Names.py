@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Find and Replace in Layer Names
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -78,10 +79,10 @@ class replaceInLayerNames(object):
 				# do not change names of master layers:
 				if thisLayer.layerId != thisLayer.associatedFontMaster().id:
 					if thisLayer.name is None:
-						print "Warning! Empty layer name in: %s" % thisGlyph.name
+						print("Warning! Empty layer name in: %s" % thisGlyph.name)
 					elif searchFor in thisLayer.name:
 						thisLayer.name = thisLayer.name.replace( searchFor, replaceBy )
-						print "%s: %s" % ( thisGlyph.name, thisLayer.name )
+						print("%s: %s" % ( thisGlyph.name, thisLayer.name ))
 						replaceCount += 1
 		thisFont.enableUpdateInterface()
 		

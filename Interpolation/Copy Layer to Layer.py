@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Copy Layer to Layer
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -45,7 +46,7 @@ class CopyLayerToLayer( object ):
 
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Copy Layer to Layer' could not load preferences. Will resort to defaults."
+			print("Note: 'Copy Layer to Layer' could not load preferences. Will resort to defaults.")
 
 		self.w.open()
 		self.w.makeKey()
@@ -175,11 +176,11 @@ class CopyLayerToLayer( object ):
 		numberOfPathsInTarget  = len( targetLayer.paths )
 		
 		if numberOfPathsInTarget != 0 and not keepOriginal:
-			print "- Deleting %i paths in target layer" % numberOfPathsInTarget
+			print("- Deleting %i paths in target layer" % numberOfPathsInTarget)
 			targetLayer.paths = []
 
 		if numberOfPathsInSource > 0:
-			print "- Copying paths"
+			print("- Copying paths")
 			for thisPath in sourceLayer.paths:
 				newPath = thisPath.copy()
 				targetLayer.paths.append( newPath )
@@ -190,11 +191,11 @@ class CopyLayerToLayer( object ):
 		numberOfHintsInTarget  = len( targetLayer.hints )
 
 		if numberOfHintsInTarget != 0 and not keepOriginal:
-			print "- Deleting %i hints, caps and corners in target layer" % numberOfHintsInTarget
+			print("- Deleting %i hints, caps and corners in target layer" % numberOfHintsInTarget)
 			targetLayer.hints = []
 
 		if numberOfHintsInSource > 0:
-			print "- Copying hints, caps and corners"
+			print("- Copying hints, caps and corners")
 			for thisHint in sourceLayer.hints:
 				newHint = thisHint.copy()
 				targetLayer.hints.append( newHint )
@@ -205,14 +206,14 @@ class CopyLayerToLayer( object ):
 		numberOfComponentsInTarget = len( targetLayer.components )
 
 		if numberOfComponentsInTarget != 0 and not keepOriginal:
-			print "- Deleting %i components in target layer" % numberOfComponentsInTarget
+			print("- Deleting %i components in target layer" % numberOfComponentsInTarget)
 			targetLayer.components = []
 
 		if numberOfComponentsInSource > 0:
-			print "- Copying components:"
+			print("- Copying components:")
 			for thisComp in sourceLayer.components:
 				newComp = thisComp.copy()
-				print "   Component: %s" % ( thisComp.componentName )
+				print("   Component: %s" % ( thisComp.componentName ))
 				targetLayer.components.append( newComp )
 
 	def copyAnchorsFromLayerToLayer( self, sourceLayer, targetLayer, keepOriginal=False ):
@@ -221,24 +222,24 @@ class CopyLayerToLayer( object ):
 		numberOfAnchorsInTarget = len( targetLayer.anchors )
 
 		if numberOfAnchorsInTarget != 0 and not keepOriginal:
-			print "- Deleting %i anchors in target layer" % numberOfAnchorsInTarget
+			print("- Deleting %i anchors in target layer" % numberOfAnchorsInTarget)
 			targetLayer.setAnchors_(None)
 
 		if numberOfAnchorsInSource > 0:
-			print "- Copying anchors from source layer:"
+			print("- Copying anchors from source layer:")
 			for thisAnchor in sourceLayer.anchors:
 				newAnchor = thisAnchor.copy()
 				targetLayer.anchors.append( newAnchor )
-				print "   %s (%i, %i)" % ( thisAnchor.name, thisAnchor.position.x, thisAnchor.position.y )
+				print("   %s (%i, %i)" % ( thisAnchor.name, thisAnchor.position.x, thisAnchor.position.y ))
 
 	def copyMetricsFromLayerToLayer( self, sourceLayer, targetLayer ):
 		"""Copies width of sourceLayer to targetLayer."""
 		sourceWidth = sourceLayer.width
 		if targetLayer.width != sourceWidth:
 			targetLayer.width = sourceWidth
-			print "- Copying width (%.1f)" % sourceWidth
+			print("- Copying width (%.1f)" % sourceWidth)
 		else:
-			print "- Width not changed (already was %.1f)" % sourceWidth
+			print("- Width not changed (already was %.1f)" % sourceWidth)
 
 	def buttonCallback( self, sender ):
 		# save prefs, just to be on the safe side:
@@ -247,7 +248,7 @@ class CopyLayerToLayer( object ):
 		# prepare macro output:
 		Glyphs.clearLog()
 		Glyphs.showMacroWindow()
-		print "Copy Layer to Layer Protocol:"
+		print("Copy Layer to Layer Protocol:")
 
 		# This should be the active selection, not necessarily the selection on the inputted fonts
 		Font = Layer.parent.parent
@@ -296,10 +297,10 @@ class CopyLayerToLayer( object ):
 				sourceFont.enableUpdateInterface()
 				targetFont.enableUpdateInterface()
 
-			except Exception, e:
-				print e
+			except Exception as e:
+				print(e)
 				import traceback
-				print traceback.format_exc()
+				print(traceback.format_exc())
 
 		if not Glyphs.defaults["com.mekkablue.CopyLayerToLayer.keepWindowOpen"]:
 			self.w.close()

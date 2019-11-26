@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Variation Interpolator
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -37,7 +38,7 @@ class VariationInterpolator( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Variation Interpolator' could not load preferences. Will resort to defaults"
+			print("Note: 'Variation Interpolator' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -97,8 +98,8 @@ class VariationInterpolator( object ):
 					thisNode.setPosition_( self.interpolatedPosition( foregroundPosition, foregroundFactor, backgroundPosition, backgroundFactor ) )
 		else:
 			thisGlyph = thisLayer.parent
-			print "%s: incompatible background layer ('%s'):" % ( thisGlyph.name, thisLayer.name )
-			print "Foreground: %s\nBackground:%s" % (thisLayer.compareString(), thisLayer.background.compareString())
+			print("%s: incompatible background layer ('%s'):" % ( thisGlyph.name, thisLayer.name ))
+			print("Foreground: %s\nBackground:%s" % (thisLayer.compareString(), thisLayer.background.compareString()))
 		
 	def interpolateAnchors( self, thisLayer, backgroundFactor, foregroundFactor ):
 		# interpolate anchor only if there is an anchor of the same name:
@@ -111,7 +112,7 @@ class VariationInterpolator( object ):
 					foregroundAnchor.setPosition_( self.interpolatedPosition( foregroundPosition, foregroundFactor, backgroundPosition, backgroundFactor ) )
 				else:
 					thisGlyph = thisLayer.parent
-					print "%s: Anchor '%s' not in background." % (thisGlyph.name, foregroundAnchor.name)
+					print("%s: Anchor '%s' not in background." % (thisGlyph.name, foregroundAnchor.name))
 	
 	def interpolateComponents( self, thisLayer, backgroundFactor, foregroundFactor ):
 		for i,thisComponent in enumerate(thisLayer.components):
@@ -177,14 +178,14 @@ class VariationInterpolator( object ):
 					
 				thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 			if not self.SavePreferences( self ):
-				print "Note: 'Variation Interpolator' could not write preferences."
+				print("Note: 'Variation Interpolator' could not write preferences.")
 			
 			self.w.close() # delete if you want window to stay open
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Variation Interpolator Error: %s" % e
+			print("Variation Interpolator Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 VariationInterpolator()

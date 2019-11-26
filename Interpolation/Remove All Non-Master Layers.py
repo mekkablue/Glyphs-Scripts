@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Remove All Non-Master Layers
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -31,7 +32,7 @@ for thisLayer in selectedLayers:
 	
 	if not nameIsAnException:
 		thisGlyph.beginUndo()
-		print "%s layers deleted in %s." % ( process( thisGlyph ), thisGlyphName )
+		print("%s layers deleted in %s." % ( process( thisGlyph ), thisGlyphName ))
 		thisGlyph.endUndo()
 	else:
-		print "Smart layers kept in %s." % ( thisGlyphName )
+		print("Smart layers kept in %s." % ( thisGlyphName ))

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Insert Brace Layers for Movement along Background Path
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -77,7 +78,7 @@ def process( thisLayer, steps=5 ):
 	originPoint = movePath.nodes[0]
 	if movePath:
 		for thisSegment in movePath.segments:
-			print thisSegment
+			print(thisSegment)
 			# curve segments:
 			if len(thisSegment) == 4:
 				for i in range(steps):
@@ -105,7 +106,7 @@ def process( thisLayer, steps=5 ):
 					shifts.append( shiftTransform )
 		
 		# all segments are collected in 'shifts':
-		print shifts
+		print(shifts)
 		firstMaster = thisLayer.parent.parent.masters[0]
 		secondMaster = thisLayer.parent.parent.masters[1]
 		firstMasterValue = firstMaster.weightValue
@@ -125,7 +126,7 @@ thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
-	print "Processing %s" % thisGlyph.name
+	print("Processing %s" % thisGlyph.name)
 	thisGlyph.beginUndo() # begin undo grouping
 	process( thisLayer )
 	thisGlyph.endUndo()   # end undo grouping

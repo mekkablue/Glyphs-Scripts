@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: OTVar Player
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -11,7 +12,7 @@ def saveFileInLocation( content="blabla", fileName="test.txt", filePath="~/Deskt
 	saveFileLocation = "%s/%s" % (filePath,fileName)
 	saveFileLocation = saveFileLocation.replace( "//", "/" )
 	f = open( saveFileLocation, 'w' )
-	print "Exporting to:", f.name
+	print("Exporting to:", f.name)
 	f.write( content )
 	f.close()
 	return True
@@ -50,7 +51,7 @@ class OTVarGlyphAnimator( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'OTVar Glyph Animator' could not load preferences. Will resort to defaults"
+			print("Note: 'OTVar Glyph Animator' could not load preferences. Will resort to defaults")
 		
 		self.direction = 1
 		self.font = Glyphs.font
@@ -75,10 +76,10 @@ class OTVarGlyphAnimator( object ):
 		except Exception as e:
 			Glyphs.clearLog()
 			Glyphs.showMacroWindow()
-			print e
-			print
+			print(e)
+			print()
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 			return False
 		
 	def SavePreferences( self, sender ):
@@ -147,13 +148,13 @@ class OTVarGlyphAnimator( object ):
 			self.font.currentTab.updatePreview()
 			
 			if not self.SavePreferences( self ):
-				print "Note: 'OTVar Glyph Animator' could not write preferences."
-		except Exception, e:
+				print("Note: 'OTVar Glyph Animator' could not write preferences.")
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "OTVar Glyph Animator Error: %s" % e
+			print("OTVar Glyph Animator Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 	def togglePlay(self, sender):
 		self.w.makeKey()
@@ -208,12 +209,12 @@ class OTVarGlyphAnimator( object ):
 					None, # userInfo
 					False # repeat
 				)
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "OTVar Glyph Animator Error: %s" % e
+			print("OTVar Glyph Animator Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 			
 	def slower(self, sender):
 		delay = float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"])
@@ -294,14 +295,14 @@ body {
 		else:
 			exportPath = Glyphs.defaults["GXExportPathManual"]
 			
-		print "exportPath:", exportPath
+		print("exportPath:", exportPath)
 		if exportPath:
 			if saveFileInLocation( content=htmlCode, fileName="font_animation.html", filePath=exportPath ):
-				print "Successfully wrote file to disk."
+				print("Successfully wrote file to disk.")
 				terminalCommand = u'cd "%s"; open .' % exportPath
 				os.system( terminalCommand )
 			else:
-				print "Error writing file to disk."
+				print("Error writing file to disk.")
 		else:
 			Message( 
 				title="Cannot Create HTML for OTVar",

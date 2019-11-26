@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Compound Variabler
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -52,7 +53,7 @@ class CompoundVariabler( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Compound Variabler' could not load preferences. Will resort to defaults"
+			print("Note: 'Compound Variabler' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -85,23 +86,23 @@ class CompoundVariabler( object ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print "Note: 'Compound Variabler' could not write preferences."
+				print("Note: 'Compound Variabler' could not write preferences.")
 			
 			allGlyphs = Glyphs.defaults["com.mekkablue.CompoundVariabler.allGlyphs"]
 			openTab = Glyphs.defaults["com.mekkablue.CompoundVariabler.openTab"]
 			deleteExistingSpecialLayers = Glyphs.defaults["com.mekkablue.CompoundVariabler.deleteExistingSpecialLayers"]
 			
 			thisFont = Glyphs.font # frontmost font
-			print "Compound Variabler Report for %s" % thisFont.familyName
-			print thisFont.filepath
-			print
+			print("Compound Variabler Report for %s" % thisFont.familyName)
+			print(thisFont.filepath)
+			print()
 			
 			if allGlyphs:
 				glyphs = [g for g in thisFont.glyphs if g.export]
-				print "Processing all glyphs (%i in total)..." % len(glyphs)
+				print("Processing all glyphs (%i in total)..." % len(glyphs))
 			else:
 				glyphs = [l.parent for l in thisFont.selectedLayers if l.parent.export]
-				print "Processing selected glyphs (%i in total)..." % len(glyphs)
+				print("Processing selected glyphs (%i in total)..." % len(glyphs))
 				
 			glyphCount = len(glyphs)
 			affectedGlyphs = []
@@ -121,7 +122,7 @@ class CompoundVariabler( object ):
 						layerCount = len(currentGlyph.layers)
 						for i in reversed(range(layerCount)):
 							if currentGlyph.layers[i].isSpecialLayer:
-								print "%s: deleted layer '%s'" % (currentGlyph.name, currentGlyph.layers[i].name)
+								print("%s: deleted layer '%s'" % (currentGlyph.name, currentGlyph.layers[i].name))
 								del currentGlyph.layers[i]
 					
 					namesOfSpecialLayers = [l.name for l in currentGlyph.layers if l.isSpecialLayer]
@@ -133,7 +134,7 @@ class CompoundVariabler( object ):
 								layerAlreadyExists = originalLayer.name in namesOfSpecialLayers and thisLayer.associatedMasterId == originalLayer.associatedMasterId
 								if originalLayer.isSpecialLayer:
 									if layerAlreadyExists:
-										print "%s, layer '%s' already exists. Skipping." % (currentGlyph.name, originalLayer.name)
+										print("%s, layer '%s' already exists. Skipping." % (currentGlyph.name, originalLayer.name))
 									else:
 										newLayer = GSLayer()
 										newLayer.name = originalLayer.name
@@ -141,12 +142,12 @@ class CompoundVariabler( object ):
 										currentGlyph.layers.append(newLayer)
 										newLayer.reinterpolate()
 										affectedGlyphs.append(currentGlyph.name)
-										print "%s, new layer: '%s'" % (currentGlyph.name, newLayer.name)
+										print("%s, new layer: '%s'" % (currentGlyph.name, newLayer.name))
 
 			# status update
 			self.w.progress.set(100)
 			self.w.processedGlyph.set( "Done." )
-			print "Done."
+			print("Done.")
 			
 			if affectedGlyphs:
 				if openTab:
@@ -171,11 +172,11 @@ class CompoundVariabler( object ):
 					)
 					
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Compound Variabler Error: %s" % e
+			print("Compound Variabler Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 CompoundVariabler()

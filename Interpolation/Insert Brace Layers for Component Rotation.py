@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Insert Brace Layers for Rotating Components
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -32,7 +33,7 @@ class InsertBraceLayersForComponentRotation( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Insert Brace Layers for Component Rotation' could not load preferences. Will resort to defaults"
+			print("Note: 'Insert Brace Layers for Component Rotation' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -66,7 +67,7 @@ class InsertBraceLayersForComponentRotation( object ):
 				steps = int(Glyphs.defaults["com.mekkablue.InsertBraceLayersForComponentRotation.steps"])
 			except Exception as e:
 				steps = 0
-				print "Cannot find valid number of steps."
+				print("Cannot find valid number of steps.")
 				
 			replace = True
 			
@@ -115,19 +116,19 @@ class InsertBraceLayersForComponentRotation( object ):
 										#-1 if thisComponent.scale[1] < 0 else 1,
 									)
 						else:
-							print "%s: not compatible. Left unchanged." % thisGlyph.name
+							print("%s: not compatible. Left unchanged." % thisGlyph.name)
 			
 			
 			
 			if not self.SavePreferences( self ):
-				print "Note: 'Insert Brace Layers for Component Rotation' could not write preferences."
+				print("Note: 'Insert Brace Layers for Component Rotation' could not write preferences.")
 			
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Insert Brace Layers for Component Rotation Error: %s" % e
+			print("Insert Brace Layers for Component Rotation Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 InsertBraceLayersForComponentRotation()

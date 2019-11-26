@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Dekink Master Layers
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -30,10 +31,10 @@ def dekink( originLayer, compatibleLayerIDs, pathIndex, nodeIndex, ratio, refi1=
 			return True
 		else:
 			return False
-	except Exception, e:
-		print "Error for path index %s, node index %i:\n%s" % ( pi, ni, e)
+	except Exception as e:
+		print("Error for path index %s, node index %i:\n%s" % ( pi, ni, e))
 		import traceback
-		print traceback.format_exc()
+		print(traceback.format_exc())
 		return False
 
 # determine current layer:

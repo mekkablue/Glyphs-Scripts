@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Find Shapeshifting Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -31,7 +32,7 @@ def glyphInterpolation( thisGlyphName, thisInstance ):
 		
 	except:
 		import traceback
-		print traceback.format_exc()
+		print(traceback.format_exc())
 		return None
 
 class FindShapeshiftingGlyphs( object ):
@@ -84,7 +85,7 @@ class FindShapeshiftingGlyphs( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Find Shapeshifting Glyphs' could not load preferences. Will resort to defaults"
+			print("Note: 'Find Shapeshifting Glyphs' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -178,9 +179,9 @@ class FindShapeshiftingGlyphs( object ):
 
 			# Clear macro window log:
 			Glyphs.clearLog()
-			print "Find Shapeshifters in %s" % thisFont.familyName
-			print "Path: %s" % thisFont.filepath
-			print
+			print("Find Shapeshifters in %s" % thisFont.familyName)
+			print("Path: %s" % thisFont.filepath)
+			print()
 			
 			# determine glyphs to be checked:
 			if onlyCheckSelection:
@@ -192,11 +193,11 @@ class FindShapeshiftingGlyphs( object ):
 				if (g.export or not ignoreNonexportingGlyphs)
 				and (len(g.layers[0].paths)>0 or not ignoreGlyphsWithoutPaths)
 				]
-			print "Checking %i glyph%s:\n%s\n" % ( 
+			print("Checking %i glyph%s:\n%s\n" % ( 
 				len(glyphNamesToBeChecked), 
 				"" if len(glyphNamesToBeChecked)==1 else "s",
 				", ".join(glyphNamesToBeChecked),
-				)
+				))
 			
 			# determine the instances to calculate:
 			self.instances = []
@@ -213,16 +214,16 @@ class FindShapeshiftingGlyphs( object ):
 			if alsoCheckMasters:
 				self.addMasterInstances( thisFont )
 			# report:
-			print "Calculating %i instance interpolations.\n" % len(self.instances)
+			print("Calculating %i instance interpolations.\n" % len(self.instances))
 			for i in self.instances:
-				print "- %s:" % i.name
+				print("- %s:" % i.name)
 				for key in i.instanceInterpolations:
-					print i.instanceInterpolations[key]
+					print(i.instanceInterpolations[key])
 					try:
-						print "  %s: %.3f" % (thisFont.masters[key].name, float(i.instanceInterpolations[key]))
+						print("  %s: %.3f" % (thisFont.masters[key].name, float(i.instanceInterpolations[key])))
 					except:
 						pass
-			print
+			print()
 			
 			# iterate through glyphs:
 			affectedGlyphNames = []
@@ -245,13 +246,13 @@ class FindShapeshiftingGlyphs( object ):
 						countOfCCWPaths = len(interpolation.paths) - countOfCWPaths
 						pathCounts.append( (countOfCWPaths,countOfCCWPaths), )
 					else:
-						print "ERROR: %s has no interpolation for '%s'." % (thisGlyphName, thisInstance.name)
+						print("ERROR: %s has no interpolation for '%s'." % (thisGlyphName, thisInstance.name))
 				
 				# see if path counts changed:
 				pathCounts = set(pathCounts)
 				if len(pathCounts) > 1:
 					sortedPathCounts = [u"%i⟳+%i⟲"%(pair[0],pair[1]) for pair in sorted(pathCounts, key=lambda count: count[0])]
-					print u"%s: changing between %s paths." % ( thisGlyphName, u", ".join(sortedPathCounts) )
+					print(u"%s: changing between %s paths." % ( thisGlyphName, u", ".join(sortedPathCounts) ))
 					affectedGlyphNames.append(thisGlyphName)
 			
 			# report:
@@ -270,13 +271,13 @@ class FindShapeshiftingGlyphs( object ):
 				)
 			
 			if not self.SavePreferences( self ):
-				print "Note: 'Find Shapeshifting Glyphs' could not write preferences."
+				print("Note: 'Find Shapeshifting Glyphs' could not write preferences.")
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Find Shapeshifting Glyphs Error: %s" % e
+			print("Find Shapeshifting Glyphs Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 FindShapeshiftingGlyphs()

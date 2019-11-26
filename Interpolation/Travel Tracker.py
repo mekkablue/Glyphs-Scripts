@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Travel Tracker
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -50,7 +51,7 @@ class TravelTracker( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Travel Tracker' could not load preferences. Will resort to defaults"
+			print("Note: 'Travel Tracker' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -147,7 +148,7 @@ class TravelTracker( object ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print "Note: 'Travel Tracker' could not write preferences."
+				print("Note: 'Travel Tracker' could not write preferences.")
 			
 			travelPercentage = float(Glyphs.defaults["com.mekkablue.TravelTracker.travelPercentage"])
 			acceptableTravelRatio = travelPercentage/100.0
@@ -157,9 +158,9 @@ class TravelTracker( object ):
 			
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()
-			print "Travel Tracker Report for %s" % thisFont.familyName
-			print thisFont.filepath
-			print
+			print("Travel Tracker Report for %s" % thisFont.familyName)
+			print(thisFont.filepath)
+			print()
 			
 			relevantGlyphs = [
 				g for g in thisFont.glyphs 
@@ -168,8 +169,8 @@ class TravelTracker( object ):
 			]
 			
 			numOfGlyphs = float(len(relevantGlyphs)) # float for calculating the progress indicator below
-			print "Examining %i interpolating glyphs..." % numOfGlyphs
-			print
+			print("Examining %i interpolating glyphs..." % numOfGlyphs)
+			print()
 			
 			affectedGlyphInfos = []
 			for i,relevantGlyph in enumerate(relevantGlyphs):
@@ -178,9 +179,9 @@ class TravelTracker( object ):
 				
 				travelRatioInThisGlyph = self.maxNodeTravelRatioForGlyph(relevantGlyph)
 				if not travelRatioInThisGlyph > acceptableTravelRatio:
-					print u"✅ Max node travel % 3i%% in: %s" % ( int(travelRatioInThisGlyph*100), relevantGlyph.name )
+					print(u"✅ Max node travel % 3i%% in: %s" % ( int(travelRatioInThisGlyph*100), relevantGlyph.name ))
 				else:
-					print u"❌ Node traveling % 3i%% in: %s" % ( int(travelRatioInThisGlyph*100), relevantGlyph.name )
+					print(u"❌ Node traveling % 3i%% in: %s" % ( int(travelRatioInThisGlyph*100), relevantGlyph.name ))
 					affectedGlyphInfos.append( (relevantGlyph.name,travelRatioInThisGlyph), )
 			
 			# last one finished, progress bar = 100:
@@ -195,23 +196,23 @@ class TravelTracker( object ):
 				# report in macro window
 				Glyphs.showMacroWindow()
 				sortedGlyphInfos = sorted( affectedGlyphInfos, key = lambda thisListItem: -thisListItem[1] )
-				print
-				print "Affected glyphs:"
+				print()
+				print("Affected glyphs:")
 				for glyphInfo in sortedGlyphInfos:
 					percentage = glyphInfo[1]*100
 					glyphName = glyphInfo[0]
-					print u"   % 3i%% %s" % (percentage, glyphName)
+					print(u"   % 3i%% %s" % (percentage, glyphName))
 				
 				# open tab:
 				affectedGlyphNames = [gi[0] for gi in sortedGlyphInfos]
 				tabText = "/"+"/".join(affectedGlyphNames)
 				thisFont.newTab(tabText)
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print u"Travel Tracker Error: %s" % e
+			print(u"Travel Tracker Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 TravelTracker()

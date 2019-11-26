@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Short Segment Finder
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -70,7 +71,7 @@ class ShortSegmentFinder( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Short Segment Finder' could not load preferences. Will resort to defaults"
+			print("Note: 'Short Segment Finder' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -141,13 +142,13 @@ class ShortSegmentFinder( object ):
 			else:
 				return u"Segment has unexpected point constellation (note: TT is not supported):\n    %s" % repr(segment)
 		except Exception as e:
-			print "SEGMENT:", segment
+			print("SEGMENT:", segment)
 			try:
-				print "SEGMENT LENGTH:", len(segment)
+				print("SEGMENT LENGTH:", len(segment))
 			except:
 				pass
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 			return u"Possible single-node path."
 	
 	def bezier( self, p1, p2, p3, p4, t ):
@@ -167,7 +168,7 @@ class ShortSegmentFinder( object ):
 			p0,p1,p2,p3 = segment
 			return self.bezier(p0,p1,p2,p3,0.5)
 		else:
-			print "Segment has unexpected length:\n" + segment
+			print("Segment has unexpected length:\n" + segment)
 			return None
 	
 	def segmentsInLayerShorterThan( self, thisLayer, minLength=10.0 ):
@@ -175,17 +176,17 @@ class ShortSegmentFinder( object ):
 		for thisPath in thisLayer.paths:
 			nodeCount = len(thisPath.nodes)
 			if not nodeCount>2:
-				print u"⚠️ WARNING: path with only %i point%s in %s (layer: %s). Skipping." % (
+				print(u"⚠️ WARNING: path with only %i point%s in %s (layer: %s). Skipping." % (
 					nodeCount,
 					"" if nodeCount==1 else "s",
 					thisLayer.parent.name, 
 					thisLayer.name,
-					)
+					))
 			else:
 				for thisSegment in thisPath.segments:
 					segmentLength = self.approxLengthOfSegment(thisSegment)
 					if type(segmentLength) is unicode:
-						print u"😬 ERROR in %s (layer: %s): %s" % (thisLayer.parent.name, thisLayer.name, segmentLength)
+						print(u"😬 ERROR in %s (layer: %s): %s" % (thisLayer.parent.name, thisLayer.name, segmentLength))
 					elif segmentLength < minLength:
 						shortSegments.append(thisSegment)
 		return shortSegments
@@ -208,7 +209,7 @@ class ShortSegmentFinder( object ):
 				return None
 		except:
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 			return None
 	
 	def addAnnotationTextAtPosition( self, layer, position, text ):
@@ -239,7 +240,7 @@ class ShortSegmentFinder( object ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print "Note: 'Short Segment Finder' could not write preferences."
+				print("Note: 'Short Segment Finder' could not write preferences.")
 			
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()
@@ -247,9 +248,9 @@ class ShortSegmentFinder( object ):
 				Glyphs.showMacroWindow()
 				
 			thisFont = Glyphs.font # frontmost font
-			print "Short Segments Report for %s" % thisFont.familyName
-			print thisFont.filepath
-			print
+			print("Short Segments Report for %s" % thisFont.familyName)
+			print(thisFont.filepath)
+			print()
 			
 			# query user settings:
 			thisFont = Glyphs.font
@@ -286,12 +287,12 @@ class ShortSegmentFinder( object ):
 							if currentLayer.associatedMasterId == currentLayer.layerId or currentLayer.isSpecialLayer:
 								shortSegments = self.segmentsInLayerShorterThan( currentLayer, minLength )
 								if shortSegments:
-									print u"❌ %i short segment%s in %s, layer '%s'" % (
+									print(u"❌ %i short segment%s in %s, layer '%s'" % (
 										len(shortSegments),
 										"" if len(shortSegments) == 1 else "s",
 										thisGlyph.name,
 										currentLayer.name,
-									)
+									))
 									# collect name:
 									shortSegmentGlyphNames.append(thisGlyph.name)
 									# mark in canvas if required:
@@ -299,7 +300,7 @@ class ShortSegmentFinder( object ):
 										for shortSegment in shortSegments:
 											middleOfSegment = self.segmentMiddle(shortSegment)
 											if not middleOfSegment:
-												print u"⛔️ ERROR in %s, layer '%s'. Could not calculate center of segment:\n  %s" % (thisGlyph.name, currentLayer.name, repr(shortSegment))
+												print(u"⛔️ ERROR in %s, layer '%s'. Could not calculate center of segment:\n  %s" % (thisGlyph.name, currentLayer.name, repr(shortSegment)))
 											else:
 												annotationText = u"↙︎%s %.1fu" % ( nodeMarker, self.approxLengthOfSegment(shortSegment) )
 												self.addAnnotationTextAtPosition( currentLayer, middleOfSegment, annotationText )
@@ -317,18 +318,18 @@ class ShortSegmentFinder( object ):
 							interpolatedLayer = self.glyphInterpolation( thisGlyph.name, thisInstance )
 							if not interpolatedLayer:
 								if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.reportIncompatibilities"]:
-									print u"⚠️ %s: No paths in '%s'." % (thisGlyph.name, instanceName)
+									print(u"⚠️ %s: No paths in '%s'." % (thisGlyph.name, instanceName))
 							else:
 								interpolatedLayer.removeOverlap()
 								shortSegments = self.segmentsInLayerShorterThan( interpolatedLayer, minLength )
 							
 								if shortSegments:
-									print u"❌ %i short segment%s in %s, instance '%s'" % (
+									print(u"❌ %i short segment%s in %s, instance '%s'" % (
 										len(shortSegments),
 										"" if len(shortSegments) == 1 else "s",
 										thisGlyph.name,
 										instanceName,
-									)
+									))
 								
 									# collect name:
 									shortSegmentGlyphNames.append(thisGlyph.name)
@@ -337,7 +338,7 @@ class ShortSegmentFinder( object ):
 										for shortSegment in shortSegments:
 											middleOfSegment = self.segmentMiddle(shortSegment)
 											if not middleOfSegment:
-												print u"⛔️ ERROR in %s, layer '%s'. Could not calculate center of segment:\n  %s" % (thisGlyph.name, currentLayer.name, repr(shortSegment))
+												print(u"⛔️ ERROR in %s, layer '%s'. Could not calculate center of segment:\n  %s" % (thisGlyph.name, currentLayer.name, repr(shortSegment)))
 											else:
 												annotationText = "%s %.0f (%s)" % ( nodeMarker, self.approxLengthOfSegment(shortSegment), instanceName )
 												self.addAnnotationTextAtPosition( thisGlyph.layers[0], middleOfSegment, annotationText )
@@ -347,7 +348,7 @@ class ShortSegmentFinder( object ):
 			
 			# report skipped glyphs:
 			if skippedGlyphNames:
-				print "\nSkipped %i glyphs:\n%s" % ( len(skippedGlyphNames), ", ".join(skippedGlyphNames) )
+				print("\nSkipped %i glyphs:\n%s" % ( len(skippedGlyphNames), ", ".join(skippedGlyphNames) ))
 			
 			# turn on View > Show Annotations:
 			if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.markSegments"]:
@@ -398,11 +399,11 @@ class ShortSegmentFinder( object ):
 					OKButton=None,
 				)
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Short Segments Finder Error: %s" % e
+			print("Short Segments Finder Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 ShortSegmentFinder()
