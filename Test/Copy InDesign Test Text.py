@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Copy InDesign Test Text
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -146,4 +147,4 @@ def setClipboard( myText ):
 		return False
 
 if not setClipboard(copyString):
-	print "Warning: could not set clipboard to %s..." % ( copyString[:12] )
+	print("Warning: could not set clipboard to %s..." % ( copyString[:12] ))

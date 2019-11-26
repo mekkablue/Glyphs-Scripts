@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Language Report
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -272,7 +273,7 @@ for thisLanguage in langdict.keys():
 					if not glyphName in missingGlyphs:
 						missingGlyphs.append(glyphName)
 			else:
-				print u"Warning: no hex code found for %s." % thisChar
+				print(u"Warning: no hex code found for %s." % thisChar)
 				languageSupported = False
 		if languageSupported:
 			supportedLanguages.append(thisLanguage)
@@ -282,20 +283,20 @@ for thisLanguage in langdict.keys():
 		supportedLanguages.append(thisLanguage)
 
 
-print "Language Report for %s:\n" % thisFont.familyName
-print "%i languages supported:\n%s\n" % (
+print("Language Report for %s:\n" % thisFont.familyName)
+print("%i languages supported:\n%s\n" % (
 		len(supportedLanguages),
 		", ".join(sorted(supportedLanguages)).replace("_", " ").title()
-	)
-print "%i languages unsupported:\n%s\n" % (
+	))
+print("%i languages unsupported:\n%s\n" % (
 		len(unsupportedLanguages),
 		", ".join(sorted(unsupportedLanguages)).replace("_", " ").title()
-	)
+	))
 
 if missingGlyphs:
-	print "Missing glyphs for complete support:\n/%s\n" % "/".join(missingGlyphs)
+	print("Missing glyphs for complete support:\n/%s\n" % "/".join(missingGlyphs))
 	
-	print "Missing glyphs by languages:\n"
+	print("Missing glyphs by languages:\n")
 	for thisLanguage in unsupportedLanguages:
 		langinfo = langdict[thisLanguage]
 		missingString = ""
@@ -304,8 +305,8 @@ if missingGlyphs:
 			if glyphName and not (glyphName in listOfCharacters):
 				missingString += "/%s" % glyphName
 		if missingString:
-			print u"%s (%i speakers): %s" % (
+			print(u"%s (%i speakers): %s" % (
 				langinfo["language"],
 				langinfo["speakers"],
 				missingString
-			)
+			))

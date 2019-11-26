@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Webfont Test HTML
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -12,7 +13,7 @@ def saveFileInLocation( content="blabla", fileName="test.txt", filePath="~/Deskt
 	saveFileLocation = "%s/%s" % (filePath,fileName)
 	saveFileLocation = saveFileLocation.replace( "//", "/" )
 	f = open( saveFileLocation, 'w' )
-	print "Exporting to:", f.name
+	print("Exporting to:", f.name)
 	f.write( content )
 	f.close()
 	return True
@@ -322,9 +323,9 @@ if appVersionHighEnough:
 		
 	familyName = thisFont.familyName
 	
-	print "Preparing Test HTML for:"
+	print("Preparing Test HTML for:")
 	for thisFontInstanceInfo in activeFontInstances:
-		print "  %s" % thisFontInstanceInfo[1]
+		print("  %s" % thisFontInstanceInfo[1])
 	
 	optionList = optionListForInstances( activeFontInstances )
 	fontFacesCSS = fontFaces( activeFontInstances )
@@ -346,11 +347,11 @@ if appVersionHighEnough:
 	# Write file to disk:
 	if exportPath:
 		if saveFileInLocation( content=htmlContent, fileName="fonttest.html", filePath=exportPath ):
-			print "Successfully wrote file to disk."
+			print("Successfully wrote file to disk.")
 			terminalCommand = 'cd "%s"; open .' % exportPath
 			system( terminalCommand )
 		else:
-			print "Error writing file to disk."
+			print("Error writing file to disk.")
 	else:
 		Message( 
 			title="Webfont Test HTML Error",
@@ -358,4 +359,4 @@ if appVersionHighEnough:
 			OKButton=None
 		)
 else:
-	print "This script requires Glyphs 2. Sorry."
+	print("This script requires Glyphs 2. Sorry.")

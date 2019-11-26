@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Variable Font Test HTML
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -11,7 +12,7 @@ def saveFileInLocation( content="Sorry, no content generated.", fileName="test.h
 	saveFileLocation = "%s/%s" % (filePath,fileName)
 	saveFileLocation = saveFileLocation.replace( "//", "/" )
 	f = open( saveFileLocation, 'w' )
-	print "Exporting to:", f.name
+	print("Exporting to:", f.name)
 	f.write( content )
 	f.close()
 	return True
@@ -448,7 +449,7 @@ if appVersionHighEnough:
 	exportPath = currentOTVarExportPath()
 	familyName = otVarFamilyName(thisFont)
 
-	print "Preparing Test HTML for: %s" % familyName
+	print("Preparing Test HTML for: %s" % familyName)
 	
 	replacements = (
 		( "###fontFamilyNameWithSpaces###", familyName ),
@@ -466,11 +467,11 @@ if appVersionHighEnough:
 	# Write file to disk:
 	if exportPath:
 		if saveFileInLocation( content=htmlContent, fileName="%s fonttest.html" % familyName, filePath=exportPath ):
-			print "Successfully wrote file to disk."
+			print("Successfully wrote file to disk.")
 			terminalCommand = 'cd "%s"; open .' % exportPath
 			system( terminalCommand )
 		else:
-			print "Error writing file to disk."
+			print("Error writing file to disk.")
 	else:
 		Message( 
 			title="OTVar Test HTML Error",

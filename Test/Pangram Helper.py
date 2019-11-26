@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Pangram Helper
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -35,7 +36,7 @@ class PangramHelper( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Pangram Helper' could not load preferences. Will resort to defaults"
+			print("Note: 'Pangram Helper' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.updateMissingLetters()
@@ -68,7 +69,7 @@ class PangramHelper( object ):
 	
 	def updateMissingLetters( self, sender=None ):
 		if not self.SavePreferences():
-			print "Note: 'Pangram Helper' could not save its preferences."
+			print("Note: 'Pangram Helper' could not save its preferences.")
 			
 		currentTextEntry = unicode( Glyphs.defaults["com.mekkablue.PangramHelper.pangram"].lower() )
 		containedBaseLetters = ""
@@ -100,11 +101,11 @@ class PangramHelper( object ):
 				Message("Pangram Helper Error", "The entered text is empty.", OKButton=None)
 			
 			if not self.SavePreferences( self ):
-				print "Note: 'Pangram Helper' could not write preferences."
+				print("Note: 'Pangram Helper' could not write preferences.")
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Pangram Helper Error: %s" % e
+			print("Pangram Helper Error: %s" % e)
 
 PangramHelper()

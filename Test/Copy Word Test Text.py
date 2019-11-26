@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Copy Word Test Text
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -19,7 +20,7 @@ for i, currGlyph in enumerate(glyphs):
 		currCategory = currGlyph.subCategory
 		if currCategory != lastCategory:
 			if (lastCategory == "Uppercase" or lastCategory == "Lowercase") and currGlyph.script=="latin":
-				print currGlyph, currGlyph.script
+				print(currGlyph, currGlyph.script)
 				copyString += "\n"
 
 		copyString += currGlyph.glyphInfo.unicharString().replace(u"⁄",u" ⁄ ")
@@ -90,4 +91,4 @@ def setClipboard( myText ):
 		return False
 
 if not setClipboard(copyString):
-	print "Warning: could not set clipboard to %s..." % ( copyString[:12] )
+	print("Warning: could not set clipboard to %s..." % ( copyString[:12] ))
