@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Clean Version String
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Adds a clean versionString parameter, and disables ttfAutohint info in the version string.
 """

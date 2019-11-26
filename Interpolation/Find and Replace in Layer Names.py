@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Find and Replace in Layer Names
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Replaces strings in layer names of all selected glyphs. Useful for adjusting layers for the bracket trick: http://glyphsapp.com/blog/alternating-glyph-shapes/
 """

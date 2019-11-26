@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Punctuation Unifier
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Tries to sync the shape of the period (and comma) in colon, semicolon, periodcentered, exclam, question, exclamdown, questiondown.
 """

@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Remove Stray Points
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Deletes stray points (single node paths) in selected glyphs. Careful: a stray point can be used as a quick hack to disable automatic alignment.
 """

@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Floating Features
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Floating window for activating features in the frontmost Edit tab.
 """

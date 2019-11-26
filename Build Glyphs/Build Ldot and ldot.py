@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Build Ldot and ldot
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Builds Ldot, ldot and ldot.sc from existing L and periodcentered.loclCAT(.case/.sc).
 """

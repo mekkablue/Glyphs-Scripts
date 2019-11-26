@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Reset Alternate Glyph Widths
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Sets the width of selected .ss01 (or any other extension) widths in the font to the width of their base glyphs. E.g. A.ss01 will have the same width as A.
 """

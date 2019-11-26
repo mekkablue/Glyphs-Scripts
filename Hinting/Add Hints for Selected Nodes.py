@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Add Hints to Selected Nodes
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Adds hints for the selected nodes. Tries to guess whether it should be H or V. If exactly one node inside a zone is selected, it will add a Ghost Hint.
 """

@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Find and Replace in Metrics Keys
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Finds and replaces text in the metrics keys of selected glyphs. Leave the Find string blank to hang the replace string at the end of the metrics keys.
 """

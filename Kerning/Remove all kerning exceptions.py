@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Remove all Kerning Exceptions
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Removes all kernings glyph-glyph, group-glyph, and glyph-group; only keeps group-group kerning.
 """

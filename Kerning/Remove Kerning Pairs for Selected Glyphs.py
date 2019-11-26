@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Remove Kerning Pairs for Selected Glyphs
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Deletes all kerning pairs with the selected glyphs, for the current master only.
 """

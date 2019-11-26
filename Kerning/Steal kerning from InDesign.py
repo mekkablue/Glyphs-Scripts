@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Steal Kerning from InDesign
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Use the font in InD (set up a document with one text box on the first page, set the kerning method to Optical), then run this script.
 """

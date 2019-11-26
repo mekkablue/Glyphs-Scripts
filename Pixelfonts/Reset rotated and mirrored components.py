@@ -1,5 +1,7 @@
 #MenuTitle: Reset Rotated and Mirrored Components
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Looks for mirrored and rotated components and resets them to their original orientation.
 """

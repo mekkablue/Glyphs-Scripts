@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Feature Code Tweaks
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Adds tweaks to OT feature code. Reports in Macro window.
 """

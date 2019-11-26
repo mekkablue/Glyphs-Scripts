@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Set WWS Names (Name IDs 21 and 22)
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Sets WWS custom parameters (Name IDs 21 and 22) for all instances where necessary: Puts all info except RIBBI into the WWSFamilyName, and only keeps RIBBI for the WWSSubfamilyName.
 """

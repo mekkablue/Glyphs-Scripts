@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Add TTF Autohint Control Instructions for Current Glyph
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Adds a touch line for a given up/down amount to the Control Instructions of the current instance.
 """

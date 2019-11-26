@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Prefix all exit & entry anchors with a hashtag
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Looks for all exit and entry anchors anywhere in the font, and disables curs feature generation.
 """

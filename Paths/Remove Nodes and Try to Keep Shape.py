@@ -1,5 +1,7 @@
 #MenuTitle: Remove Nodes and Try to Keep Shape
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Delete the selected on-curve nodes, but try to keep the shape of the path. Hold down Shift for balanced handles.
 """

@@ -1,5 +1,7 @@
 #MenuTitle: Lines by Master
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Reduplicates your edit text across masters, will add one line per master. Careful, ignores everything after the first newline.
 """

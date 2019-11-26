@@ -1,5 +1,7 @@
 #MenuTitle: Delete Duplicate Components
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Looks for duplicate components (same component, same x/y values) and keeps only one of them.
 """

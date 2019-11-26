@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Keep First Master Hints Only
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 In selected glyphs, delete all hints in all layers except for the first master. Respects Bracket Layers.
 """

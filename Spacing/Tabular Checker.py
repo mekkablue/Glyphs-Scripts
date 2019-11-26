@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Tabular Checker
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Goes through tabular glyphs and checks if they are monospaced. Reports exceptions.
 """

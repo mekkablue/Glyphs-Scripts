@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: New Tab with top and bottom Anchors Not on Metric Lines
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Reports the y positions of top and bottom anchors to the Macro Window if the anchors are not on a metric line (baseline, x-height, etc.).
 """

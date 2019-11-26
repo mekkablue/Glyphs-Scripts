@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Insert Brace Layers for Rotating Components
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Inserts a number of Brace Layers with continuously scaled and rotated components. Useful for OTVar interpolations with rotating elements.
 """

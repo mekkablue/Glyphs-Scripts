@@ -1,5 +1,7 @@
 #MenuTitle: New Tab with Glyphs Exceeding Zones
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Opens a new tab with all glyphs where the extremums do not lie within zones.
 """

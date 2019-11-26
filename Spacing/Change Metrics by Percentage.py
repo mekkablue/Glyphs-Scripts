@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Change Metrics by Percentage
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Increase sidebearings of selected glyphs by a percentage value.
 """

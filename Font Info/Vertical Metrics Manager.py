@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Vertical Metrics Manager
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Manage and sync ascender, descender and linegap values for hhea, OS/2 sTypo and OS/2 usWin.
 """

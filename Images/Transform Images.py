@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Transform Images
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Batch scale and move images in selected layers.
 """

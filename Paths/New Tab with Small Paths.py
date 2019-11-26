@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: New Tab with Small Paths
 # -*- coding: utf-8 -*-
+from __future__ import print_function, unicode_literals
+from builtins import str
 __doc__="""
 Finds small paths (smaller tahn a user-definable threshold) in glyphs and open a new tab with affected glyphs.
 """
@@ -219,9 +220,9 @@ class FindSmallPaths( object ):
 				totalCountOfAffectedGlyphs = 0
 			
 				for ii, thisFont in enumerate(fontsToLookAt):
-					print(u"\n🔤")
-					print(u"Font: %s" % thisFont.familyName)
-					print(u"Path: %s" % thisFont.filepath)
+					print("\n🔤")
+					print("Font: %s" % thisFont.familyName)
+					print("Path: %s" % thisFont.filepath)
 					
 					numOfGlyphs = len(thisFont.glyphs)
 					layersWithSmallPaths = []

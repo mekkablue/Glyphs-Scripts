@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Remove Zero Deltas in Selected Glyphs
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Goes through all layers of each selected glyph, and deletes all TT Delta Hints with an offset of zero. Detailed Report in Macro Window.
 """

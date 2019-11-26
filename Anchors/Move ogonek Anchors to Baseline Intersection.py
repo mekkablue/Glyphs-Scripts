@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Move ogonek anchors to baseline intersection
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Moves all ogonek and _ogonek anchors to the rightmost intersection of the outline with the baseline.
 """

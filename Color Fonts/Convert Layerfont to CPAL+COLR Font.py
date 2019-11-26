@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Convert Layerfont to CPAL+COLR Font
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Turns a layered color font into a single-master font with a CPAL and COLR layers in each glyph. It will take the first master as default.
 """

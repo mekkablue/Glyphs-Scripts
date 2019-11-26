@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Travel Tracker
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Finds interpolations in which points travel more than they should, i.e., can find wrongly hooked-up asterisks and slashes.
 """

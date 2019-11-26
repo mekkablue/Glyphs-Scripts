@@ -1,5 +1,7 @@
 #MenuTitle: Build small letter SM, TEL
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Creates the glyphs: servicemark, telephone.
 """

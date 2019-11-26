@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Green Blue Manager
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Define an angle above which a node will be set to blue, below which it will be set to green.
 """

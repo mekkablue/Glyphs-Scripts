@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Fix Punctuation Dots and Heights
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Syncs punctuation dots between ¡!¿? (and their SC+CASE variants). Will use dot from exclam in all other glyphs, and shift ¡¿ in SC and CASE variants. Detailed report in Macro Window.
 """

@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Remove Small Kerning Pairs
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Specify a kerning value, and every kerning in the current master smaller than that will be removed.
 """

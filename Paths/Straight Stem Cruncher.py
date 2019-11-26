@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Straight Stem Cruncher
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Measures in centers of straight segments, and reports deviations in stem thicknesses.
 """

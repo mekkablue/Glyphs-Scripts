@@ -1,5 +1,7 @@
 #MenuTitle: New Tab with Transformed Corner Components
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Opens a new Edit tab containing all glyphs with scaled corner components.
 """

@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Distribute Nodes
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Distributes the selected nodes horizontally or vertically, depending on the bounding box.
 """

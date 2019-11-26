@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Build Italic Shift Feature
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Creates and inserts GPOS feature code for shifting glyphs, e.g., parentheses and punctuation for the case feature.
 """

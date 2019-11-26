@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Build estimated, bar, brokenbar
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Creates an estimated glyph and draws an estimated sign in it. Does the same for bar and brokenbar, for which it respects standard stems and italic angle. Does not overwrite existing glyphs.
 """

@@ -1,5 +1,7 @@
 #MenuTitle: New Tab with all Group Members
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Select two glyphs, e.g. ‘Ta’, run the script, it will give you a new tab with all combinations of the ‘T’ kerning group with the ‘a’ kerning group.
 """

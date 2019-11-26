@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Pangram Helper
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Helps you write pangrams by displaying which letters are still missing.
 """

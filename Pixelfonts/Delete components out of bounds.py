@@ -1,5 +1,7 @@
 #MenuTitle: Delete Components out of Bounds
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Looks for components out of bounds.
 """

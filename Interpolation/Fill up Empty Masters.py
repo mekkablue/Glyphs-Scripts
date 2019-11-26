@@ -1,5 +1,7 @@
 #MenuTitle: Fill up Empty Masters
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Looks for empty layers and copies contents of another layer into it.
 """

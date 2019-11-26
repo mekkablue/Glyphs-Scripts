@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Compound Variabler
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Reduplicates Brace and Bracket layers of components in the compounds in which they are used. Makes brace and bracket layers work in the compounds.
 """

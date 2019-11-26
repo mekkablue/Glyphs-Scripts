@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Steal Metrics
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Copy sidebearings, widths and/or metric keys (both on layer and glyph) from one font master to another.
 """

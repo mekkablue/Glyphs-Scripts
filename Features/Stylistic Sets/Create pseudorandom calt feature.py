@@ -1,5 +1,7 @@
 #MenuTitle: Create pseudorandom calt feature from ssXX glyphs
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Create pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font.
 """

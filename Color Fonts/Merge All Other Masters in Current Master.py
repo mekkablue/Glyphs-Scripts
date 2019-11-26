@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Merge All Other Masters in Current Master
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 For selected glyphs, merges all paths from other masters onto the current master layer.
 """

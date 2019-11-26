@@ -1,5 +1,7 @@
 #MenuTitle: Garbage Collection
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Removes annotations, glyph notes, guides, and node names.
 """

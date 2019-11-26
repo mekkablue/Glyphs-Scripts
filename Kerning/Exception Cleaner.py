@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Exception Cleaner
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Compares every exception to the group kerning available for the same pair. If the difference is below a threshold, remove the kerning exception.
 """

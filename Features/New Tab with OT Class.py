@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: New Tab with OT Class
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Open a new tab with all glyphs contained in a specific OpenType class.
 """

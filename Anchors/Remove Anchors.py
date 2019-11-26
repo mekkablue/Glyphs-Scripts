@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Remove Anchors
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Delete anchors from selected glyphs, or whole font.
 """

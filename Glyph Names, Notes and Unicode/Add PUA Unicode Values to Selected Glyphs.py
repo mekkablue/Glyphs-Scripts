@@ -1,5 +1,7 @@
 #MenuTitle: Add PUA Unicode Values to Selected Glyphs
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Adds custom Unicode values to selected glyphs.
 """

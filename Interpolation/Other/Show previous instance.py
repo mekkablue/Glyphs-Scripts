@@ -1,5 +1,7 @@
 #MenuTitle: Show Previous Instance
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Jumps to previous instance shown in the preview field or window.
 """

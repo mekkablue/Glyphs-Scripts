@@ -1,6 +1,7 @@
-from __future__ import print_function
 #MenuTitle: Remove Global Guides in Current Master
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Deletes all global guidelines in the current master.
 """
