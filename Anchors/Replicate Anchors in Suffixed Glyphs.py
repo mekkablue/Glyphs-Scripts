@@ -20,7 +20,7 @@ def process( thisLayer ):
 	
 	for baseAnchor in baseLayer.anchors:
 		thisAnchor = baseAnchor.copy()
-		thisLayer.anchors[ str(thisAnchor.name) ] = thisAnchor
+		thisLayer.anchors[ thisAnchor.name ] = thisAnchor
 		print("   Added %s (%i, %i)" % ( thisAnchor.name, thisAnchor.x, thisAnchor.y ))
 
 for thisLayer in selectedLayers:
