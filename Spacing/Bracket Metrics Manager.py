@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Bracket Metrics Manager
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -47,7 +48,7 @@ class BracketMetricsManager( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Bracket Metrics Manager' could not load preferences. Will resort to defaults"
+			print("Note: 'Bracket Metrics Manager' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -111,14 +112,14 @@ class BracketMetricsManager( object ):
 		syncLSB = Glyphs.defaults["com.mekkablue.BracketMetricsManager.syncLSB"]
 		syncRSB = Glyphs.defaults["com.mekkablue.BracketMetricsManager.syncRSB"]
 		syncWidth = Glyphs.defaults["com.mekkablue.BracketMetricsManager.syncWidth"]
-		print "%s:" % glyph.name
+		print("%s:" % glyph.name)
 		for bracketLayer in glyph.layers:
 			associatedMaster = bracketLayer.associatedFontMaster()
 			masterID = associatedMaster.id
 			if bracketLayer.layerId != masterID and "[" in bracketLayer.name and "]" in bracketLayer.name:
 				bracketLayerCount += 1
 				mainLayer = glyph.layers[masterID]
-				print u" ✅ Syncing layer ‘%s’ with ‘%s’" % (bracketLayer.name, mainLayer.name)
+				print(u" ✅ Syncing layer ‘%s’ with ‘%s’" % (bracketLayer.name, mainLayer.name))
 				if syncRSB and syncWidth:
 					bracketLayer.RSB = mainLayer.RSB
 					lsbShift = mainLayer.width - bracketLayer.width
@@ -131,11 +132,11 @@ class BracketMetricsManager( object ):
 					if syncWidth:
 						bracketLayer.width = mainLayer.width
 		if not bracketLayerCount:
-			print u" ⚠️ Warning: no bracket layers found."
+			print(u" ⚠️ Warning: no bracket layers found.")
 	
 	def reportBrackets(self, glyph):
 		bracketLayerCount = 0
-		print "%s:" % glyph.name
+		print("%s:" % glyph.name)
 		for bracketLayer in glyph.layers:
 			associatedMaster = bracketLayer.associatedFontMaster()
 			masterID = associatedMaster.id
@@ -156,12 +157,12 @@ class BracketMetricsManager( object ):
 				else:
 					reports.append(u"⛔️ width diverging")
 				
-				print u" - %s: %s" % (bracketLayer.name, "  ".join(reports))
+				print(u" - %s: %s" % (bracketLayer.name, "  ".join(reports)))
 		
 		if not bracketLayerCount:
-			print u" ⚠️ Warning: no bracket layers found."
+			print(u" ⚠️ Warning: no bracket layers found.")
 		
-		print
+		print()
 		
 	def glyphHasBrackets(self, glyph):
 		for layer in glyph.layers:
@@ -177,9 +178,9 @@ class BracketMetricsManager( object ):
 			else:
 				# Clear macro window log:
 				Glyphs.clearLog()
-				print "Bracket Metrics for: %s" % thisFont.familyName
-				print "Path: %s" % thisFont.filepath
-				print
+				print("Bracket Metrics for: %s" % thisFont.familyName)
+				print("Path: %s" % thisFont.filepath)
+				print()
 			
 				if Glyphs.defaults["com.mekkablue.BracketMetricsManager.applyToAllGlyphsWithBrackets"]:
 					glyphsToCheck = [g for g in thisFont.glyphs if self.glyphHasBrackets(g)]
@@ -189,7 +190,7 @@ class BracketMetricsManager( object ):
 				if not glyphsToCheck:
 					msg = "Could not find any bracket glyphs to examine."
 					Message(title="No Bracket Glyphs", message=msg, OKButton=None)
-					print msg
+					print(msg)
 				else:
 					if Glyphs.defaults["com.mekkablue.BracketMetricsManager.openTab"]:
 						glyphNames = [g.name for g in glyphsToCheck]
@@ -206,13 +207,13 @@ class BracketMetricsManager( object ):
 							self.syncBrackets(glyph)
 			
 				if not self.SavePreferences( self ):
-					print "Note: 'Bracket Metrics Manager' could not write preferences."
+					print("Note: 'Bracket Metrics Manager' could not write preferences.")
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Bracket Metrics Manager Error: %s" % e
+			print("Bracket Metrics Manager Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 BracketMetricsManager()

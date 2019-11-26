@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: New Tab with Small Paths
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -55,7 +56,7 @@ class FindSmallPaths( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Find Small Paths' could not load preferences. Will resort to defaults"
+			print("Note: 'Find Small Paths' could not load preferences. Will resort to defaults")
 		
 		self.CheckBoxUpdate(None)
 		self.SliderUpdate(None)
@@ -114,7 +115,7 @@ class FindSmallPaths( object ):
 							
 			# save prefs:
 			if not self.SavePreferences( self ):
-				print "Note: 'Find Small Paths' could not write preferences."
+				print("Note: 'Find Small Paths' could not write preferences.")
 
 			return True
 		except Exception as e:
@@ -126,7 +127,7 @@ class FindSmallPaths( object ):
 			# update the defaults:
 			if sender != self.w.areaSlider:
 				if not self.SavePreferences( self ):
-					print "Note: 'Find Small Paths' could not write preferences."
+					print("Note: 'Find Small Paths' could not write preferences.")
 			
 			# fallback values
 			minimum, maximum = 1.0, 1.0
@@ -188,7 +189,7 @@ class FindSmallPaths( object ):
 	def FindSmallPathsMain( self, sender ):
 		try:
 			if not self.SavePreferences( self ):
-				print "Note: 'Find Small Paths' could not write preferences."
+				print("Note: 'Find Small Paths' could not write preferences.")
 			
 			
 			minArea = self.CurrentMinArea()
@@ -210,7 +211,7 @@ class FindSmallPaths( object ):
 			
 				Glyphs.clearLog()
 				
-				print u"Looking for paths smaller than %0.1f square units..." % minArea
+				print(u"Looking for paths smaller than %0.1f square units..." % minArea)
 				
 				self.w.progress.set(0)
 				quarter = 100.0/len(fontsToLookAt)
@@ -218,9 +219,9 @@ class FindSmallPaths( object ):
 				totalCountOfAffectedGlyphs = 0
 			
 				for ii, thisFont in enumerate(fontsToLookAt):
-					print u"\n🔤"
-					print u"Font: %s" % thisFont.familyName
-					print u"Path: %s" % thisFont.filepath
+					print(u"\n🔤")
+					print(u"Font: %s" % thisFont.familyName)
+					print(u"Path: %s" % thisFont.filepath)
 					
 					numOfGlyphs = len(thisFont.glyphs)
 					layersWithSmallPaths = []
@@ -248,12 +249,12 @@ class FindSmallPaths( object ):
 									layersWithSmallPaths.append(thisLayer)
 								thisGlyph.endUndo()   # end undo grouping
 								if countOfAffectedPaths > 0:
-									print u"  ⚠️ %s, layer '%s': %i path%s found." % (
+									print(u"  ⚠️ %s, layer '%s': %i path%s found." % (
 										thisGlyph.name,
 										thisLayer.name,
 										countOfAffectedPaths,
 										"" if countOfAffectedPaths == 1 else "s",
-									)
+									))
 			
 					if layersWithSmallPaths:
 						newTab = thisFont.newTab()
@@ -281,14 +282,14 @@ class FindSmallPaths( object ):
 					)
 			
 			self.w.close() # delete if you want window to stay open
-		except Exception, e:
+		except Exception as e:
 			self.errorReport(e)
 	
 	def errorReport(self, e):
 		# brings macro window to front and reports error:
 		Glyphs.showMacroWindow()
-		print "Find Small Paths Error:\n%s\n" % e
+		print("Find Small Paths Error:\n%s\n" % e)
 		import traceback
-		print traceback.format_exc()
+		print(traceback.format_exc())
 		
 FindSmallPaths()

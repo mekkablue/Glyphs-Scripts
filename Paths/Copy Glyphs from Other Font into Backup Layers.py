@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Copy Glyphs from Other Font into Backup Layers
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -37,7 +38,7 @@ class CopyGlyphsIntoBackupLayers( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Copy glyphs into backup layers' could not load preferences. Will resort to defaults"
+			print("Note: 'Copy glyphs into backup layers' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -96,7 +97,7 @@ class CopyGlyphsIntoBackupLayers( object ):
 
 			Glyphs_selected = [l.parent for l in Font_target.selectedLayers]
 		
-			print "Backing up", len(Glyphs_selected), "glyphs from", Font_source.familyName, "into", Font_target.familyName, ":"
+			print("Backing up", len(Glyphs_selected), "glyphs from", Font_source.familyName, "into", Font_target.familyName, ":")
 			
 			for targetGlyph in Glyphs_selected:
 					glyphName = targetGlyph.name
@@ -104,7 +105,7 @@ class CopyGlyphsIntoBackupLayers( object ):
 						sourceGlyph = Font_source.glyphs[ glyphName ]
 					except:
 						sourceGlyph = None
-						print "  Error: glyph %s not found in source font %s." % (glyphName, Font_source.familyName)
+						print("  Error: glyph %s not found in source font %s." % (glyphName, Font_source.familyName))
 					
 					if sourceGlyph:
 						sourceLayer = sourceGlyph.layers[MasterID_source].copy()
@@ -115,12 +116,12 @@ class CopyGlyphsIntoBackupLayers( object ):
 						targetGlyph.layers[MasterID_source].setName_( "%s %s" % (targetMasterName, layerSuffix) )
 			
 			if not self.SavePreferences( self ):
-				print "Note: 'Copy glyphs into backup layers' could not write preferences."
+				print("Note: 'Copy glyphs into backup layers' could not write preferences.")
 			
 			self.w.close() # delete if you want window to stay open
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Script Error: %s" % e
+			print("Script Error: %s" % e)
 
 CopyGlyphsIntoBackupLayers()

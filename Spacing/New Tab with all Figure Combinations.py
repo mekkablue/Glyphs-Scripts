@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: New Tab with all Figure Combinations
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -16,7 +17,7 @@ for z1 in figures:
 
 # in case last line fails, the text is in the macro window:
 Glyphs.clearLog() # clears macro window log
-print text
+print(text)
 
 # opens new Edit tab with figure combos:
 callAfter( Glyphs.currentDocument.windowController().addTabWithString_, text )

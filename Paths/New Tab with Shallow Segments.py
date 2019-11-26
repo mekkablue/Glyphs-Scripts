@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: New Tab with Shallow Curve Segments
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -36,7 +37,7 @@ class NewTabwithShallowCurveSegments( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'New Tab with Shallow Curve Segments' could not load preferences. Will resort to defaults"
+			print("Note: 'New Tab with Shallow Curve Segments' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -102,12 +103,12 @@ class NewTabwithShallowCurveSegments( object ):
 					OKButton=None)
 			
 			if not self.SavePreferences( self ):
-				print "Note: 'New Tab with Shallow Curve Segments' could not write preferences."
-		except Exception, e:
+				print("Note: 'New Tab with Shallow Curve Segments' could not write preferences.")
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "New Tab with Shallow Curve Segments Error: %s" % e
+			print("New Tab with Shallow Curve Segments Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 NewTabwithShallowCurveSegments()

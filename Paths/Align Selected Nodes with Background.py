@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Align Selected Nodes with Background
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -34,7 +35,7 @@ def syncAnchorPositionWithBackground( theseAnchorNames, thisLayer ):
 	
 	# move anchors in foreground
 	if not otherAnchorDict:
-		print "Anchors: could not find any anchors in components."
+		print("Anchors: could not find any anchors in components.")
 		return 0
 	else:
 		count = 0
@@ -86,8 +87,8 @@ for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
 	thisGlyph.beginUndo() # begin undo grouping
 	selected, aligned, numberOfAnchorsMoved = process( thisLayer )
-	print "%s: aligned %i of %i selected nodes" % (thisGlyph.name, aligned, selected)
-	print "%s: aligned %i of %i anchors." % (thisGlyph.name, numberOfAnchorsMoved, len(thisLayer.anchors))
+	print("%s: aligned %i of %i selected nodes" % (thisGlyph.name, aligned, selected))
+	print("%s: aligned %i of %i anchors." % (thisGlyph.name, numberOfAnchorsMoved, len(thisLayer.anchors)))
 	thisGlyph.endUndo() # end undo grouping
 
 thisFont.enableUpdateInterface() # suppresses UI updates in Font View

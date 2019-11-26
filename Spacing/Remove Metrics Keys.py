@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Remove Metrics Keys
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -23,7 +24,7 @@ thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
 for thisLayer in listOfSelectedLayers:
 	thisGlyph = thisLayer.parent
-	print "Deleted metrics keys: %s" % thisGlyph.name
+	print("Deleted metrics keys: %s" % thisGlyph.name)
 	thisGlyph.beginUndo() # begin undo grouping
 	process( thisGlyph )
 	thisGlyph.endUndo()   # end undo grouping

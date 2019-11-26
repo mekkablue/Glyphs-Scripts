@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Freeze Placeholders
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -24,7 +25,7 @@ except Exception as e:
 	# brings macro window to front and clears its log:
 	Glyphs.clearLog()
 	import traceback
-	print traceback.format_exc()
+	print(traceback.format_exc())
 	Message(
 		title="Freezing Placeholders Failed",
 		message="An error occurred during the execution of the script. Is a font open, a glyph selected? Check the Macro Window for a detailed error message.", 

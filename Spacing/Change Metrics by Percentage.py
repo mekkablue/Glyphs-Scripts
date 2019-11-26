@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Change Metrics by Percentage
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -23,7 +24,7 @@ class ChangeMetricsbyPercentage( object ):
 		self.w.setDefaultButton( self.w.runButton )
 		
 		if not self.LoadPreferences():
-			print "Could not load preferences. Will resort to defaults."
+			print("Could not load preferences. Will resort to defaults.")
 
 		self.w.open()
 		self.w.makeKey()
@@ -71,12 +72,12 @@ class ChangeMetricsbyPercentage( object ):
 						thisLayer.RSB *= change
 			
 			if not self.SavePreferences( self ):
-				print "Note: could not write preferences."
+				print("Note: could not write preferences.")
 			
 			# self.w.close()
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print " Error: %s" % e
+			print(" Error: %s" % e)
 
 ChangeMetricsbyPercentage()

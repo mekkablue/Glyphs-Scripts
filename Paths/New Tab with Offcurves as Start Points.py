@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: New Tab with Offcurves as Start Points
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -16,20 +17,20 @@ def isLayerAffected( Layer ):
 
 thisFont = Glyphs.font # frontmost font
 Glyphs.clearLog()
-print "Looking for Offcurve Start Points in: %s" % thisFont.familyName
+print("Looking for Offcurve Start Points in: %s" % thisFont.familyName)
 
 affectedGlyphNames = []
 for thisGlyph in thisFont.glyphs:
-	print "Analysing %s:" % thisGlyph.name,
+	print("Analysing %s:" % thisGlyph.name, end=' ')
 	isAffected = False
 	for thisLayer in thisGlyph.layers:
 		if isLayerAffected( thisLayer ):
 			isAffected = True
-			print u"\n  ⚠️ Offcurve start point on layer '%s'." % thisLayer.name
+			print(u"\n  ⚠️ Offcurve start point on layer '%s'." % thisLayer.name)
 	if isAffected:
 		affectedGlyphNames.append(thisGlyph.name)
 	else:
-		print "OK."
+		print("OK.")
 
 if affectedGlyphNames:
 	tabString = "/" + "/".join(affectedGlyphNames)

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Green Blue Manager
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -76,7 +77,7 @@ class GreenBlueManager( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Set Green Or Blue According To Angle' could not load preferences. Will resort to defaults"
+			print("Note: 'Set Green Or Blue According To Angle' could not load preferences. Will resort to defaults")
 		
 		self.checkGUI()
 		
@@ -156,11 +157,11 @@ class GreenBlueManager( object ):
 		if shouldVerbose:
 			if layerCount:
 				if shouldRealign:
-					print u"   ⚠️ Realigned %i handle%s." % ( layerCount, "" if layerCount==1 else "s" )
+					print(u"   ⚠️ Realigned %i handle%s." % ( layerCount, "" if layerCount==1 else "s" ))
 				else:
-					print u"   ❌ %i handle%s are unaligned." % ( layerCount, "" if layerCount==1 else "s" )
+					print(u"   ❌ %i handle%s are unaligned." % ( layerCount, "" if layerCount==1 else "s" ))
 			else:
-				print u"   ✅ All BCPs OK."
+				print(u"   ✅ All BCPs OK.")
 
 		return layerCount
 	
@@ -187,14 +188,14 @@ class GreenBlueManager( object ):
 								hotNode.connection = GSSHARP
 		
 		if shouldVerbose:
-			print "%s, layer '%s'" % (thisLayer.parent.name, thisLayer.name)
+			print("%s, layer '%s'" % (thisLayer.parent.name, thisLayer.name))
 			if layerCount:
 				if shouldFix:
-					print "   ⚠️ Fixed %s connection%s" % ( layerCount, "" if layerCount==1 else "s" )
+					print("   ⚠️ Fixed %s connection%s" % ( layerCount, "" if layerCount==1 else "s" ))
 				else:
-					print "   ❌ %s wrong connection%s" % ( layerCount, "" if layerCount==1 else "s" )
+					print("   ❌ %s wrong connection%s" % ( layerCount, "" if layerCount==1 else "s" ))
 			else:
-				print "   ✅ All connections OK."
+				print("   ✅ All connections OK.")
 		
 		return layerCount
 	
@@ -259,15 +260,15 @@ class GreenBlueManager( object ):
 
 				if shouldReport:
 					if affectedLayersFixedConnections:
-						print "\n%s in following layers:" % (titles[0])
+						print("\n%s in following layers:" % (titles[0]))
 						for fixedLayer in affectedLayersFixedConnections:
-							print "   %s, layer '%s'" % (fixedLayer.parent.name, fixedLayer.name)
+							print("   %s, layer '%s'" % (fixedLayer.parent.name, fixedLayer.name))
 					if affectedLayersRealignedHandles:
-						print "\n%s in following layers:" % (titles[1])
+						print("\n%s in following layers:" % (titles[1]))
 						for fixedLayer in affectedLayersRealignedHandles:
-							print "   %s, layer '%s'" % (fixedLayer.parent.name, fixedLayer.name)
+							print("   %s, layer '%s'" % (fixedLayer.parent.name, fixedLayer.name))
 					
-					print "\nDone. %s" % statusMessage
+					print("\nDone. %s" % statusMessage)
 					Glyphs.showMacroWindow()
 			
 				if numberOfLayers == 1 and Glyphs.font.currentTab:
@@ -309,12 +310,12 @@ class GreenBlueManager( object ):
 							for affectedLayer in affectedLayersRealignedHandles:
 								newTab.layers.append(affectedLayer)
 				
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "\nGreen Blue Manager Error: %s" % e
+			print("\nGreen Blue Manager Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
-			print
+			print(traceback.format_exc())
+			print()
 
 GreenBlueManager()

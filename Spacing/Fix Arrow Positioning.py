@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Fix Arrow Positioning
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -111,7 +112,7 @@ class FixArrowPositioning( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Fix Arrow Positioning' could not load preferences. Will resort to defaults"
+			print("Note: 'Fix Arrow Positioning' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -221,16 +222,16 @@ class FixArrowPositioning( object ):
 					if not hReferenceGlyph:
 						Message(title="Fix Arrow Positioning Error", message=u"No glyph found with name: ‘%s’. Cannot fix horizontal arrows."%hArrowName, OKButton=None)
 					else:
-						print "\nFIXING VERTICAL POSITIONS OF HORIZONTAL ARROWS:"
+						print("\nFIXING VERTICAL POSITIONS OF HORIZONTAL ARROWS:")
 						
 						# step through arrow glyphs
 						for thisMaster in thisFont.masters:
 							referenceHeight = self.measureBottomOfCenterStroke(hReferenceGlyph.layers[thisMaster.id])
-							print "\nChecking for master %s..." % thisMaster.name
+							print("\nChecking for master %s..." % thisMaster.name)
 							for horizontalArrowName in allHorizontalArrowGlyphNames:
 								horizontalArrow = thisFont.glyphs[horizontalArrowName]
 								if not horizontalArrow:
-									print u"⚠️ WARNING: no glyph found for '%s'." % horizontalArrowName
+									print(u"⚠️ WARNING: no glyph found for '%s'." % horizontalArrowName)
 								else:
 									# do we need to warn?
 									if len(horizontalArrow.layers) > len(thisFont.masters):
@@ -245,16 +246,16 @@ class FixArrowPositioning( object ):
 									if abs(shift) > 0.6:
 										shiftTransformMatrix = transform(shiftY=shift).transformStruct()
 										horizontalArrowLayer.applyTransform(shiftTransformMatrix)
-										print u"⚠️ %s: layer '%s' shifted %i units." % (
+										print(u"⚠️ %s: layer '%s' shifted %i units." % (
 											horizontalArrow.name,
 											horizontalArrowLayer.name,
 											shift,
-										)
+										))
 									else:
-										print u"💚 %s: layer '%s' is already OK." % (
+										print(u"💚 %s: layer '%s' is already OK." % (
 											horizontalArrow.name,
 											horizontalArrowLayer.name,
-										)
+										))
 				
 				# DIAGONAL METRICS:
 				if shouldFixDiagonalArrows:
@@ -262,18 +263,18 @@ class FixArrowPositioning( object ):
 					if not dReferenceGlyph:
 						Message(title="Fix Arrow Positioning Error", message=u"No glyph found with name: ‘%s’. Cannot fix diagonal arrows."%dArrowName, OKButton=None)
 					else:
-						print "\nFIXING VERTICAL POSITIONS OF DIAGONAL ARROWS:"
+						print("\nFIXING VERTICAL POSITIONS OF DIAGONAL ARROWS:")
 						
 						# step through arrow glyphs
 						warnAboutLayers=[]
 						for thisMaster in thisFont.masters:
 							referenceLayer = dReferenceGlyph.layers[thisMaster.id]
 							referenceHeight = referenceLayer.bounds.origin.y + referenceLayer.bounds.size.height * 0.5
-							print "\nChecking for master %s..." % thisMaster.name
+							print("\nChecking for master %s..." % thisMaster.name)
 							for diagonalArrowName in allDiagonalArrowGlyphNames:
 								diagonalArrow = thisFont.glyphs[diagonalArrowName]
 								if not diagonalArrow:
-									print u"⚠️ WARNING: no glyph found for '%s'." % diagonalArrowName
+									print(u"⚠️ WARNING: no glyph found for '%s'." % diagonalArrowName)
 								else:
 									# do we need to warn?
 									if len(diagonalArrow.layers) > len(thisFont.masters):
@@ -288,30 +289,30 @@ class FixArrowPositioning( object ):
 									if abs(shift) > 0.6:
 										shiftTransformMatrix = transform(shiftY=shift).transformStruct()
 										diagonalArrowLayer.applyTransform(shiftTransformMatrix)
-										print u"⚠️ %s: layer '%s' shifted %i units." % (
+										print(u"⚠️ %s: layer '%s' shifted %i units." % (
 											diagonalArrow.name,
 											diagonalArrowLayer.name,
 											shift,
-										)
+										))
 									else:
-										print u"💚 %s: layer '%s' is already OK." % (
+										print(u"💚 %s: layer '%s' is already OK." % (
 											diagonalArrow.name,
 											diagonalArrowLayer.name,
-										)
+										))
 				
 				# SET METRICS KEYS ...
 				if shouldTakeCareOfMetricsKeys:
-					print "\nSETTING METRICS:"
+					print("\nSETTING METRICS:")
 					
 					# ... FOR HORIZONTAL ARROWS:
 					if not thisFont.glyphs[hArrowName]:
-						print u"❌ Reference glyph not found: %s. Cannot update metrics for horizontal arrows." % hArrowName
+						print(u"❌ Reference glyph not found: %s. Cannot update metrics for horizontal arrows." % hArrowName)
 					else:
 						for thisName in allHArrowNames:
 							if thisName != hArrowName:
 								thisGlyph = thisFont.glyphs[thisName]
 								if not thisGlyph:
-									print u"⚠️ Warning: '%s' not found in font." % thisName
+									print(u"⚠️ Warning: '%s' not found in font." % thisName)
 								else:
 									if "left" in hArrowName and "left" in thisName.lower():
 										thisGlyph.leftMetricsKey = "=%s"%hArrowName
@@ -323,17 +324,17 @@ class FixArrowPositioning( object ):
 										thisGlyph.leftMetricsKey = "=|%s"%hArrowName
 										thisGlyph.rightMetricsKey = "=|%s"%hArrowName
 									self.updateMetricsKeys(thisGlyph)
-									print u"✅ Metrics updated: %s" % thisName
+									print(u"✅ Metrics updated: %s" % thisName)
 
 					# ... FOR DIAGONAL ARROWS:
 					if not thisFont.glyphs[dArrowName]:
-						print u"❌ Reference glyph not found: %s. Cannot update metrics for diagonal arrows." % dArrowName
+						print(u"❌ Reference glyph not found: %s. Cannot update metrics for diagonal arrows." % dArrowName)
 					else:
 						for thisName in self.dArrows:
 							if thisName != dArrowName:
 								thisGlyph = thisFont.glyphs[thisName]
 								if not thisGlyph:
-									print u"⚠️ Warning: '%s' not found in font." % thisName
+									print(u"⚠️ Warning: '%s' not found in font." % thisName)
 								else:
 									# northEastArrow, southEastArrow, southWestArrow, northWestArrow:
 									if ("East" in dArrowName and "West" in thisName) or ("West" in dArrowName and "East" in thisName):
@@ -343,35 +344,35 @@ class FixArrowPositioning( object ):
 										thisGlyph.leftMetricsKey = "=%s" % dArrowName
 										thisGlyph.rightMetricsKey = "=%s" % dArrowName
 									self.updateMetricsKeys(thisGlyph)
-									print u"✅ Metrics updated: %s" % thisName
+									print(u"✅ Metrics updated: %s" % thisName)
 					
 					# ... FOR VERTICAL ARROWS:
 					if not thisFont.glyphs[vArrowName]:
-						print u"❌ Reference glyph not found: %s. Cannot update metrics for vertical arrows." % vArrowName
+						print(u"❌ Reference glyph not found: %s. Cannot update metrics for vertical arrows." % vArrowName)
 					else:
 						for thisName in self.vArrows:
 							if thisName != vArrowName:
 								thisGlyph = thisFont.glyphs[thisName]
 								if not thisGlyph:
-									print u"⚠️ Warning: '%s' not found in font." % thisName
+									print(u"⚠️ Warning: '%s' not found in font." % thisName)
 								else:
 									thisGlyph.leftMetricsKey = "=%s"%vArrowName
 									thisGlyph.rightMetricsKey = "=%s"%vArrowName
 									self.updateMetricsKeys(thisGlyph)
-									print u"✅ Metrics updated: %s" % thisName
+									print(u"✅ Metrics updated: %s" % thisName)
 								
 				if warnAboutLayers:
 					Message(title="Warning", message="The script only corrected the master layers. Double check for brace or bracket layers. These glyphs have non-master layers: %s"%", ".join(warnAboutLayers), OKButton=None)
 				
 			if not self.SavePreferences( self ):
-				print u"⚠️ 'Fix Arrow Positioning' could not write preferences."
+				print(u"⚠️ 'Fix Arrow Positioning' could not write preferences.")
 			
 			Glyphs.showMacroWindow()
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Fix Arrow Positioning Error: %s" % e
+			print("Fix Arrow Positioning Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 FixArrowPositioning()

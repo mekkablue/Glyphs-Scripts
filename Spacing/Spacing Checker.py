@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Spacing Checker
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -69,7 +70,7 @@ class SpacingChecker( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Spacing Checker' could not load preferences. Will resort to defaults"
+			print("Note: 'Spacing Checker' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -205,9 +206,9 @@ class SpacingChecker( object ):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Spacing Checker Error while checking glyph '%s', layer '%s':\n%s" % (thisLayer.parent,thisLayer.name,e)
+			print("Spacing Checker Error while checking glyph '%s', layer '%s':\n%s" % (thisLayer.parent,thisLayer.name,e))
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 	def SpacingCheckerMain( self, sender ):
 		try:
@@ -215,21 +216,21 @@ class SpacingChecker( object ):
 			
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()
-			print "Space Checker Report for %s" % thisFont.familyName
-			print thisFont.filepath
-			print
+			print("Space Checker Report for %s" % thisFont.familyName)
+			print(thisFont.filepath)
+			print()
 			
 			collectedLayers = []
 			braceAndBracketIncluded = Glyphs.defaults["com.mekkablue.SpacingChecker.includeBraceAndBracketLayers"]
 			if Glyphs.defaults["com.mekkablue.SpacingChecker.allMasters"]:
 				mastersToCheck = thisFont.masters
-				print "Searching %i masters..." % len(mastersToCheck)
+				print("Searching %i masters..." % len(mastersToCheck))
 			else:
 				currentMaster = thisFont.selectedFontMaster
 				mastersToCheck = (currentMaster,)
-				print "Searching master: %s" % currentMaster.name
+				print("Searching master: %s" % currentMaster.name)
 				
-			print
+			print()
 			
 			ignoreNonexportingGlyphs = Glyphs.defaults["com.mekkablue.SpacingChecker.ignoreNonexportingGlyphs"]
 			
@@ -257,13 +258,13 @@ class SpacingChecker( object ):
 					tabText = "/" + "/".join(glyphNames)
 					thisFont.newTab(tabText)
 			if not self.SavePreferences( self ):
-				print "Note: 'Spacing Checker' could not write preferences."
+				print("Note: 'Spacing Checker' could not write preferences.")
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Spacing Checker Error: %s" % e
+			print("Spacing Checker Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 SpacingChecker()

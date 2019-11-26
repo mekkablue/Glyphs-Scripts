@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Set Transform Origin
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -34,7 +35,7 @@ class SetTransformOriginWindow( object ):
 		
 		# Load Settings:
 		if not self.GetTransformOrigin(None):
-			print "Note: 'Set Transform Origin' could not load preferences. Will resort to defaults"
+			print("Note: 'Set Transform Origin' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -70,9 +71,9 @@ class SetTransformOriginWindow( object ):
 			
 			myController.graphicView().setNeedsDisplay_(True)
 
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Set Transform Origin Error: %s" % e
+			print("Set Transform Origin Error: %s" % e)
 
 SetTransformOriginWindow()

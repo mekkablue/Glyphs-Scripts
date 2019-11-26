@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Remove Stray Points
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -29,13 +30,13 @@ for thisLayer in listOfSelectedLayers:
 	# Report deleted nodes:
 	if numberOfDeletedStrayPoints > 0:
 		glyphName = thisGlyph.name
-		print "Deleted %i stray nodes in %s." % ( numberOfDeletedStrayPoints, glyphName )
+		print("Deleted %i stray nodes in %s." % ( numberOfDeletedStrayPoints, glyphName ))
 		namesOfAffectedGlyphs.append( glyphName )
 
 thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 
 # Report affected glyphs:
 if namesOfAffectedGlyphs:
-	print "\nWARNING:\nStray nodes can be used as a hack to disable automatic alignment. It may be a good idea to check these glyphs for unwanted shifts, and undo if necessary:\n\n/%s\n" % "/".join(namesOfAffectedGlyphs)
+	print("\nWARNING:\nStray nodes can be used as a hack to disable automatic alignment. It may be a good idea to check these glyphs for unwanted shifts, and undo if necessary:\n\n/%s\n" % "/".join(namesOfAffectedGlyphs))
 	Glyphs.showMacroWindow()
 	

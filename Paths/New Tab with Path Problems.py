@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: New Tab with Path Problems
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -59,7 +60,7 @@ def recordLayerInList( thisLayer, thisList, message ):
 	thisList.append( glyphName )
 	
 	# report in macro window:
-	print "%s: %s on layer '%s'." % ( glyphName, message, thisLayer.name )
+	print("%s: %s on layer '%s'." % ( glyphName, message, thisLayer.name ))
 	
 zeroHandles = []
 outlineOrder = []
@@ -68,8 +69,8 @@ twoPointPaths = []
 
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
-print "Checking for bad paths"
-print "Font: %s\n" % thisFont.familyName
+print("Checking for bad paths")
+print("Font: %s\n" % thisFont.familyName)
 
 for thisGlyph in thisFont.glyphs:
 	glyphName = thisGlyph.name

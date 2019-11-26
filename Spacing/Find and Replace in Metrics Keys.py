@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Find and Replace in Metrics Keys
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -27,7 +28,7 @@ class MetricKeyReplacer( object ):
 		try:
 			self.LoadPreferences( )
 		except:
-			print "Warning: Could not load preferences.\n%s" % traceback.format_exc()
+			print("Warning: Could not load preferences.\n%s" % traceback.format_exc())
 
 		self.w.open()
 		self.w.makeKey()
@@ -59,7 +60,7 @@ class MetricKeyReplacer( object ):
 		
 		try:
 			if not self.SavePreferences( self ):
-				print "Note: Could not write preferences."
+				print("Note: Could not write preferences.")
 			
 			Font  = Glyphs.font
 			selectedLayers = Font.selectedLayers
@@ -85,12 +86,12 @@ class MetricKeyReplacer( object ):
 								else:
 									glyphOrLayer.leftMetricsKey = leftKey.replace( LsearchFor, LreplaceBy )
 						
-								print "%s: new left metrics key: '%s'" % ( g.name, glyphOrLayer.leftMetricsKey )
+								print("%s: new left metrics key: '%s'" % ( g.name, glyphOrLayer.leftMetricsKey ))
 							
-					except Exception, e:
-						print "\nError while trying to set left key for: %s" % g.name
-						print e
-						print traceback.format_exc()
+					except Exception as e:
+						print("\nError while trying to set left key for: %s" % g.name)
+						print(e)
+						print(traceback.format_exc())
 
 					# Right Metrics Key:
 					try:
@@ -102,27 +103,27 @@ class MetricKeyReplacer( object ):
 								else:
 									glyphOrLayer.rightMetricsKey = rightKey.replace( RsearchFor, RreplaceBy )
 						
-								print "%s: new right metrics key: '%s'" % ( g.name, glyphOrLayer.rightMetricsKey )
+								print("%s: new right metrics key: '%s'" % ( g.name, glyphOrLayer.rightMetricsKey ))
 							
-					except Exception, e:
-						print "\nError while trying to set right key for: %s" % g.name
-						print e
-						print traceback.format_exc()
+					except Exception as e:
+						print("\nError while trying to set right key for: %s" % g.name)
+						print(e)
+						print(traceback.format_exc())
 					
 					g.endUndo()
 						
-				except Exception, e:
-					print "\nError while processing glyph %s" % g.name
-					print e
-					print traceback.format_exc()
+				except Exception as e:
+					print("\nError while processing glyph %s" % g.name)
+					print(e)
+					print(traceback.format_exc())
 					
 					g.endUndo()
 			
 			self.w.close()
-		except Exception, e:
-			print "\nError:"
-			print e
-			print traceback.format_exc()
+		except Exception as e:
+			print("\nError:")
+			print(e)
+			print(traceback.format_exc())
 		
 		Glyphs.font.enableUpdateInterface()
 

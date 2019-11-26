@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: New Tab with Fraction Figure Combinations
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -21,7 +22,7 @@ for numr in figs:
 
 # in case last line fails, the text is in the macro window:
 Glyphs.clearLog() # clears macro window log
-print paragraph
+print(paragraph)
 
 # opens new Edit tab:
 thisFont.newTab( paragraph )

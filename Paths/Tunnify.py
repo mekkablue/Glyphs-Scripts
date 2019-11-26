@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Tunnify
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -57,9 +58,9 @@ def intersectionWithNSPoints( pointA, pointB, pointC, pointD ):
 			return None
 		
 	except Exception as e:
-		print str(e)
+		print(str(e))
 		import traceback
-		print traceback.format_exc()
+		print(traceback.format_exc())
 		return None
 
 def bothPointsAreOnSameSideOfOrigin( pointA, pointB, pointOrigin ):

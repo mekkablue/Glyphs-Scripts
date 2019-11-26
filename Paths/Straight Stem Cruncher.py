@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Straight Stem Cruncher
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -104,7 +105,7 @@ class StraightStemCruncher( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Straight Stem Cruncher' could not load preferences. Will resort to defaults"
+			print("Note: 'Straight Stem Cruncher' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -236,11 +237,11 @@ class StraightStemCruncher( object ):
 								measurement = self.stemThicknessAtLine( measureLayer, p1, p2, measureLength=max(100.0,measureLayer.bounds.size.width+measureLayer.bounds.size.height) )
 								measurements.append(measurement)
 			else:
-				print u"⚠️ Found path with only %i point%s%s." % ( 
+				print(u"⚠️ Found path with only %i point%s%s." % ( 
 					nodeCount,
 					"" if nodeCount==1 else "s",
 					" in %s" % glyphName if glyphName else "",
-					)
+					))
 		return measurements
 
 	def StraightStemCruncherMain( self, sender ):
@@ -249,12 +250,12 @@ class StraightStemCruncher( object ):
 			
 			# update settings to the latest user input:
 			if not self.SavePreferences():
-				print "Note: 'Straight Stem Cruncher' could not write preferences."
+				print("Note: 'Straight Stem Cruncher' could not write preferences.")
 			
 			thisFont = Glyphs.font # frontmost font
-			print "Straight Stem Cruncher Report for %s" % thisFont.familyName
-			print thisFont.filepath
-			print
+			print("Straight Stem Cruncher Report for %s" % thisFont.familyName)
+			print(thisFont.filepath)
+			print()
 			
 			self.w.progress.set(0)
 			if Glyphs.defaults["com.mekkablue.StraightStemCruncher.selectedGlyphsOnly"]:
@@ -303,10 +304,10 @@ class StraightStemCruncher( object ):
 									measurements = self.measureStraighStemsInLayer(checkLayer, glyphName=thisGlyph.name)
 									if not measurements:
 										if Glyphs.defaults["com.mekkablue.StraightStemCruncher.reportNonMeasurements"]:
-											print u"⚠️ %s, layer '%s': no stem measurements. Wrong path direction or no line segments?" % (
+											print(u"⚠️ %s, layer '%s': no stem measurements. Wrong path direction or no line segments?" % (
 												thisGlyph.name,
 												thisLayer.name,
-											)
+											))
 									else:
 										deviatingStems = []
 										for measurement in measurements:
@@ -315,12 +316,12 @@ class StraightStemCruncher( object ):
 													if stem-deviationMax < measurement < stem-deviationMin or stem+deviationMin < measurement < stem+deviationMax:
 														deviatingStems.append(measurement)
 										if deviatingStems:
-											print u"❌ %s, layer '%s': found %i stem%s off: %s." % ( 
+											print(u"❌ %s, layer '%s': found %i stem%s off: %s." % ( 
 												thisGlyph.name, thisLayer.name, 
 												len( deviatingStems ),
 												"" if len(deviatingStems) == 1 else "s",
 												", ".join( ["%.1f"%s for s in deviatingStems] ),
-											)
+											))
 											if not thisLayer in affectedLayers:
 												affectedLayers.append(thisLayer)
 									
@@ -336,11 +337,11 @@ class StraightStemCruncher( object ):
 				Glyphs.showMacroWindow()
 			
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Straight Stem Cruncher Error: %s" % e
+			print("Straight Stem Cruncher Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 StraightStemCruncher()

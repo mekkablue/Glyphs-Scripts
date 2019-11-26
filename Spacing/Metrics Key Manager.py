@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Metrics Key Manager
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -65,7 +66,7 @@ class MetricsKeyManager( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Metrics Key Manager' could not load preferences. Will resort to defaults"
+			print("Note: 'Metrics Key Manager' could not load preferences. Will resort to defaults")
 
 		# Bind resizing method:
 		self.w.bind("resize", self.windowResize)
@@ -116,7 +117,7 @@ class MetricsKeyManager( object ):
 		
 		# update settings to the latest user input:
 		if not self.SavePreferences( self ):
-			print "Note: 'Metrics Key Manager' could not write preferences."
+			print("Note: 'Metrics Key Manager' could not write preferences.")
 		
 	
 	def parseGlyphNames(self, glyphNameText):
@@ -142,7 +143,7 @@ class MetricsKeyManager( object ):
 					leftKey = "=%s" % leftKey
 				
 				# create list or append to list:
-				if not leftDict.has_key(leftKey):
+				if leftKey not in leftDict:
 					leftDict[leftKey] = [glyph.name,]
 				else:
 					leftDict[leftKey].append(glyph.name)
@@ -154,7 +155,7 @@ class MetricsKeyManager( object ):
 					rightKey = "=%s" % rightKey
 				
 				# create list or append to list:
-				if not rightDict.has_key(rightKey):
+				if rightKey not in rightDict:
 					rightDict[rightKey] = [glyph.name,]
 				else:
 					rightDict[rightKey].append(glyph.name)
@@ -195,15 +196,15 @@ class MetricsKeyManager( object ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print "Note: 'Metrics Key Manager' could not write preferences."
+				print("Note: 'Metrics Key Manager' could not write preferences.")
 			
 			thisFont = Glyphs.font # frontmost font
 			if not thisFont:
 				Message(title="Metrics Key Manager Error", message="No font open. Metrics keys can only be applied to the frontmost font.", OKButton=None)
 			else:
-				print "Metrics Key Manager Report for %s" % thisFont.familyName
-				print thisFont.filepath
-				print
+				print("Metrics Key Manager Report for %s" % thisFont.familyName)
+				print(thisFont.filepath)
+				print()
 			
 				# to be turned into selectable options:
 				# delete all existing keys, respect existing keys, overwrite existing keys
@@ -221,7 +222,7 @@ class MetricsKeyManager( object ):
 				affectedGlyphs = []
 				
 				for key in leftDict.keys():
-					print u"⬅️ Setting Left Key: '%s'" % key
+					print(u"⬅️ Setting Left Key: '%s'" % key)
 					glyphNames = leftDict[key]
 					for glyphName in glyphNames:
 						glyph = thisFont.glyphs[glyphName]
@@ -229,10 +230,10 @@ class MetricsKeyManager( object ):
 							glyph.leftMetricsKey = key
 							affectedGlyphs.append(glyphName)
 						else:
-							print u"  ❌ Glyph '%s' not in font. Skipped." % glyphName
+							print(u"  ❌ Glyph '%s' not in font. Skipped." % glyphName)
 
 				for key in rightDict.keys():
-					print u"➡️ Right Key: '%s'" % key
+					print(u"➡️ Right Key: '%s'" % key)
 					glyphNames = rightDict[key]
 					for glyphName in glyphNames:
 						glyph = thisFont.glyphs[glyphName]
@@ -240,18 +241,18 @@ class MetricsKeyManager( object ):
 							glyph.rightMetricsKey = key
 							affectedGlyphs.append(glyphName)
 						else:
-							print u"  ❌ Glyph '%s' not in font. Skipped." % glyphName
+							print(u"  ❌ Glyph '%s' not in font. Skipped." % glyphName)
 				
 				if affectedGlyphs and shouldOpenTabWithAffectedGlyphs:
 					affectedGlyphs = set(affectedGlyphs)
 					thisFont.newTab( "/"+"/".join(affectedGlyphs) )
 					
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Metrics Key Manager Error: %s" % e
+			print("Metrics Key Manager Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 MetricsKeyManager()

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Distribute Nodes
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -37,9 +38,9 @@ try:
 			
 	Font.enableUpdateInterface()
 	
-except Exception, e:
+except Exception as e:
 	if selection == ():
-		print "Cannot distribute nodes: nothing selected in frontmost layer."
+		print("Cannot distribute nodes: nothing selected in frontmost layer.")
 	else:
-		print "Error. Cannot distribute nodes:", selection
-		print e
+		print("Error. Cannot distribute nodes:", selection)
+		print(e)

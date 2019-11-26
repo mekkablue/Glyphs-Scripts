@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Remove all Open Paths
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -22,7 +23,7 @@ def process( thisLayer ):
 Font.disableUpdateInterface()
 
 for thisLayer in selectedLayers:
-	print "Removing %i open paths in %s." % ( process( thisLayer ), thisLayer.parent.name )
+	print("Removing %i open paths in %s." % ( process( thisLayer ), thisLayer.parent.name ))
 
 Font.enableUpdateInterface()
 

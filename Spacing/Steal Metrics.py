@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Steal Metrics
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -86,7 +87,7 @@ class MetricsCopy( object ):
 			masterList.reverse() # so index accessing works as expected, and the default is: current font = target
 			self.listOfMasters = masterList
 		except:
-			print traceback.format_exc()
+			print(traceback.format_exc())
 	
 	def listOfMasterNames( self ):
 		try:
@@ -99,10 +100,10 @@ class MetricsCopy( object ):
 			]
 			return myMasterNameList
 		except:
-			print traceback.format_exc()
+			print(traceback.format_exc())
 	
 	def outputError( self, errMsg ):
-		print "Steal Sidebearings Warning:", errMsg
+		print("Steal Sidebearings Warning:", errMsg)
 	
 	def buttonCheck( self, sender ):
 		try:
@@ -144,7 +145,7 @@ class MetricsCopy( object ):
 			if not self.SavePreferences( self ):
 				self.outputError( "Could not save preferences." )
 		except:
-			print traceback.format_exc()
+			print(traceback.format_exc())
 	
 	def SavePreferences( self, sender ):
 		try:
@@ -232,12 +233,12 @@ class MetricsCopy( object ):
 		suffixToBeIgnored = self.w.suffixToBeIgnored.get().strip(".")
 		selectedTargetLayers = targetFont.selectedLayers
 		
-		print "Transfering %i glyph metric%s from %s %s to %s %s:" % ( 
+		print("Transfering %i glyph metric%s from %s %s to %s %s:" % ( 
 				len(selectedTargetLayers),
 				"s" if abs(len(selectedTargetLayers))!=1 else "",
 				sourceFont.familyName, sourceMaster.name,
 				targetFont.familyName, targetMaster.name,
-			)
+			))
 		
 		for targetLayer in [ targetFont.glyphs[l.parent.name].layers[targetMasterID] for l in selectedTargetLayers ]:
 			try:
@@ -254,7 +255,7 @@ class MetricsCopy( object ):
 					
 				sourceGlyph = sourceFont.glyphs[ sourceGlyphName ]
 				if not sourceGlyph:
-					print "     %s: not found in source font" % sourceGlyphName
+					print("     %s: not found in source font" % sourceGlyphName)
 				else:
 					sourceLayer = sourceGlyph.layers[ sourceMasterID ]
 					
@@ -264,27 +265,27 @@ class MetricsCopy( object ):
 						if sourceGlyph.leftMetricsKey:
 							targetGlyph.leftMetricsKey = sourceGlyph.leftMetricsKey
 							metricsL = True
-							print "     %s, left glyph key: '%s'" % ( targetGlyphName, targetGlyph.leftMetricsKey )
+							print("     %s, left glyph key: '%s'" % ( targetGlyphName, targetGlyph.leftMetricsKey ))
 						if sourceGlyph.rightMetricsKey:
 							targetGlyph.rightMetricsKey = sourceGlyph.rightMetricsKey
 							metricsR = True
-							print "     %s, right glyph key: '%s'" % ( targetGlyphName, targetGlyph.rightMetricsKey )
+							print("     %s, right glyph key: '%s'" % ( targetGlyphName, targetGlyph.rightMetricsKey ))
 						if sourceGlyph.widthMetricsKey:
 							targetGlyph.widthMetricsKey = sourceGlyph.widthMetricsKey
 							metricsW = True
-							print "     %s, width glyph key: '%s'" % ( targetGlyphName, targetGlyph.widthMetricsKey )
+							print("     %s, width glyph key: '%s'" % ( targetGlyphName, targetGlyph.widthMetricsKey ))
 						if sourceLayer.leftMetricsKey:
 							targetLayer.leftMetricsKey = sourceLayer.leftMetricsKey
 							metricsL = True
-							print "     %s, left layer key: '%s'" % ( targetGlyphName, targetLayer.leftMetricsKey )
+							print("     %s, left layer key: '%s'" % ( targetGlyphName, targetLayer.leftMetricsKey ))
 						if sourceLayer.rightMetricsKey:
 							targetLayer.rightMetricsKey = sourceLayer.rightMetricsKey
 							metricsR = True
-							print "     %s, right layer key: '%s'" % ( targetGlyphName, targetLayer.rightMetricsKey )
+							print("     %s, right layer key: '%s'" % ( targetGlyphName, targetLayer.rightMetricsKey ))
 						if sourceLayer.widthMetricsKey:
 							targetLayer.widthMetricsKey = sourceLayer.widthMetricsKey
 							metricsW = True
-							print "     %s, width layer key: '%s'" % ( targetGlyphName, targetLayer.widthMetricsKey )
+							print("     %s, width layer key: '%s'" % ( targetGlyphName, targetLayer.widthMetricsKey ))
 					
 					if not onlyMetricsKeys:
 						# transfer numeric metrics:
@@ -307,15 +308,15 @@ class MetricsCopy( object ):
 							syncMessage =  ", synced metric keys"
 					
 						# report in macro window
-						print "     %s: L %i, R %i, W %i%s" % ( 
+						print("     %s: L %i, R %i, W %i%s" % ( 
 							targetGlyphName, 
 							targetLayer.LSB, targetLayer.RSB, targetLayer.width,
 							syncMessage,
-							)
+							))
 				
-			except Exception, e:
+			except Exception as e:
 				self.outputError(e)
 				import traceback
-				print traceback.format_exc()
+				print(traceback.format_exc())
 		
 MetricsCopy()

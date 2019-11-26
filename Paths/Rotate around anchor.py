@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Rotate Around Anchor
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -104,7 +105,7 @@ class Rotator(object):
 			rotationAnchor = selectedLayer.anchors["rotate"]
 			self.w.anchor_x.set( str( int(rotationAnchor.x) ) )
 			self.w.anchor_y.set( str( int(rotationAnchor.y) ) )
-		except Exception, e:
+		except Exception as e:
 			self.logToConsole( "setDefaultRotateAnchor: %s" % str(e) )
 			
 	def stepAndRepeatListOfPaths( self, thisLayer, listOfPaths, RotationTransform, rotationCount ):
@@ -166,7 +167,7 @@ class Rotator(object):
 			self.logToConsole( "rotationTransform: %s" % str(e) )
 
 	def logToConsole( self, thisString ):
-		print thisString
+		print(thisString)
 	
 	def selectionForLayer(self, thisLayer):
 		selection = ()
@@ -227,7 +228,7 @@ class Rotator(object):
 					self.stepAndRepeatListOfComponents( thisLayer, listOfComponents, RotationTransform, rotationCount )
 				
 				thisGlyph.endUndo()
-			except Exception, e:
+			except Exception as e:
 				self.logToConsole( "rotate: %s\ntrying to rotate individually selected nodes and components" % str(e) )
 			
 		else:
@@ -247,7 +248,7 @@ class Rotator(object):
 						self.stepAndRepeatListOfComponents( thisLayer, thisLayer.components, RotationTransform, rotationCount )
 					thisLayer.setEnableUpdates()
 					thisLayer.updatePath()
-				except Exception, e:
+				except Exception as e:
 					self.logToConsole( "rotate: %s\ntrying to rotate whole layers" % str(e) )
 				finally:
 					thisGlyph.endUndo()

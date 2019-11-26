@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Check Smallcap Consistency
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -29,9 +30,9 @@ listOfLowercase = [ g for g in thisFont.glyphs
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
 
-print "SMALLCAP REPORT"
-print "Font: %s" % thisFont.familyName
-print "Found %i small caps and %i caps." % ( len(listOfSmallCaps), len(listOfCaps) )
+print("SMALLCAP REPORT")
+print("Font: %s" % thisFont.familyName)
+print("Found %i small caps and %i caps." % ( len(listOfSmallCaps), len(listOfCaps) ))
 
 def makeCapName( smallCapName ):
 	if smallCapName:
@@ -80,11 +81,11 @@ def smallcapVsCap( smallCap ):
 			CAPright = turnNoGroupIntoDash(cap.rightKerningGroup)
 
 			if CAPleft != makeCapName(SCleft):
-				print "--- %s: left group inconsistent (SC: %s, Cap: %s)" % ( smallCapName, SCleft, CAPleft )
+				print("--- %s: left group inconsistent (SC: %s, Cap: %s)" % ( smallCapName, SCleft, CAPleft ))
 			if CAPright != makeCapName(SCright):
-				print "--- %s: right group inconsistent (SC: %s, Cap: %s)" % ( smallCapName, SCright, CAPright )
+				print("--- %s: right group inconsistent (SC: %s, Cap: %s)" % ( smallCapName, SCright, CAPright ))
 		else:
-			print "-- WARNING: no corresponding cap found for: %s" % smallCapName
+			print("-- WARNING: no corresponding cap found for: %s" % smallCapName)
 
 def smallcapVsLowercase( smallCap ):
 	smallCapName = smallCap.name
@@ -95,9 +96,9 @@ def smallcapVsLowercase( smallCap ):
 			lcName = smallCapName[:posOfFirstDot].lower()
 			lc = thisFont.glyphs[ lcName ]
 			if not lc or not lc in listOfLowercase:
-				print "-- WARNING: no corresponding lowercase found for: %s" % smallCapName
+				print("-- WARNING: no corresponding lowercase found for: %s" % smallCapName)
 		else:
-			print "--- could not process SC name: %s" % smallCapName
+			print("--- could not process SC name: %s" % smallCapName)
 
 def capVsSmallcap( cap ):
 	capNameParts = cap.name.split(".")
@@ -106,25 +107,25 @@ def capVsSmallcap( cap ):
 	smallCapName = "%s%s" % ( capName, smallCapSuffix )
 	smallCap = thisFont.glyphs[ smallCapName ]
 	if not smallCap or not smallCap in listOfSmallCaps:
-		print "-- WARNING: no corresponding small cap found for: %s" % capName
+		print("-- WARNING: no corresponding small cap found for: %s" % capName)
 
 def lowercaseVsSmallcap( lc ):
 	lcName = lc.name
 	smallCapName = "%s%s" % ( lcName, smallCapSuffix )
 	smallCap = thisFont.glyphs[ smallCapName ]
 	if not smallCap or not smallCap in listOfSmallCaps:
-		print "-- WARNING: no corresponding small cap found for: %s" % lcName
+		print("-- WARNING: no corresponding small cap found for: %s" % lcName)
 
-print "\nChecking small caps..."
+print("\nChecking small caps...")
 for smallcap in listOfSmallCaps:
 	smallcapVsCap( smallcap )
 	smallcapVsLowercase( smallcap )
 
-print "\nChecking caps..."
+print("\nChecking caps...")
 for cap in listOfCaps:
 	capVsSmallcap( cap )
 	
-print "\nChecking lowercase..."
+print("\nChecking lowercase...")
 for lc in listOfLowercase:
 	lowercaseVsSmallcap( lc )
 

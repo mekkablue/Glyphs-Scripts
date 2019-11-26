@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Center Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -50,5 +51,5 @@ for thisLayer in selectedLayers:
 	thisLayer.applyTransform( shiftMatrix )
 
 Font.enableUpdateInterface()
-print "Centered: %s" % (", ".join( [ l.parent.name for l in selectedLayers ] ))
+print("Centered: %s" % (", ".join( [ l.parent.name for l in selectedLayers ] )))
 

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Realign BCPs
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -39,6 +40,6 @@ for thisLayer in thisFont.selectedLayers:
 	else:
 		handleCount = realignLayer( thisLayer )
 	thisGlyph.endUndo()   # end undo grouping
-	print "Processed %i BCPs in %s%s" % ( handleCount, "all layers of " if optionKeyPressed else "", thisGlyph.name )
+	print("Processed %i BCPs in %s%s" % ( handleCount, "all layers of " if optionKeyPressed else "", thisGlyph.name ))
 
 thisFont.enableUpdateInterface() # re-enables UI updates in Font View

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: New Tab with Short Segments
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -33,7 +34,7 @@ class FindShortSegmentsInFont( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'New Tab with Short Segments' could not load preferences. Will resort to defaults"
+			print("Note: 'New Tab with Short Segments' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -75,15 +76,15 @@ class FindShortSegmentsInFont( object ):
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()
 			Glyphs.showMacroWindow()
-			print "Segments shorter than %i units:" % maxDistance
+			print("Segments shorter than %i units:" % maxDistance)
 			
 			self.w.close()
 			
 			for thisFont in fontList:
 				glyphNamesWithShortSegments = []
-				print "\nFONT: %s" % thisFont.familyName
-				print "FILE: %s" % thisFont.filepath
-				print
+				print("\nFONT: %s" % thisFont.familyName)
+				print("FILE: %s" % thisFont.filepath)
+				print()
 				for thisGlyph in thisFont.glyphs:
 					for thisLayer in thisGlyph.layers:
 						layerCount = 0
@@ -93,13 +94,13 @@ class FindShortSegmentsInFont( object ):
 								segmentLength = distance( firstPoint, thisSegment[len(thisSegment)-1].pointValue() )
 								if segmentLength < maxDistance:
 									if layerCount == 0:
-										print "%s (layer: %s)" % ( thisGlyph.name, thisLayer.name )
+										print("%s (layer: %s)" % ( thisGlyph.name, thisLayer.name ))
 										if selectSegments:
 											thisLayer.clearSelection()
 									
 									layerCount += 1
 									glyphNamesWithShortSegments.append(thisGlyph.name)
-									print "- Segment length %.1f in path %i, at %i %i" % ( segmentLength, i, firstPoint.x, firstPoint.y )
+									print("- Segment length %.1f in path %i, at %i %i" % ( segmentLength, i, firstPoint.x, firstPoint.y ))
 									
 									if selectSegments:
 										for pointInfo in thisSegment:
@@ -107,25 +108,25 @@ class FindShortSegmentsInFont( object ):
 											thisNode = thisLayer.nodeAtPoint_excludeNode_tollerance_(thisPoint,None,0.01)
 											thisLayer.selection.append(thisNode)
 						if layerCount:
-							print "  Total: %i short segments on %s (layer %s)" % ( layerCount, thisGlyph.name, thisLayer.name )
-							print
+							print("  Total: %i short segments on %s (layer %s)" % ( layerCount, thisGlyph.name, thisLayer.name ))
+							print()
 				
 				if glyphNamesWithShortSegments:
 					tabText = "/" + "/".join(set(glyphNamesWithShortSegments))
 					thisFont.newTab(tabText)
-					print "Affected glyphs in this font:"
-					print tabText
-					print
+					print("Affected glyphs in this font:")
+					print(tabText)
+					print()
 				else:
-					print "No glyphs affected in this font. Congrats!"
-					print
+					print("No glyphs affected in this font. Congrats!")
+					print()
 					
 			if not self.SavePreferences( self ):
-				print "Note: 'New Tab with Short Segments' could not write preferences."
+				print("Note: 'New Tab with Short Segments' could not write preferences.")
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "New Tab with Short Segments Error: %s" % e
+			print("New Tab with Short Segments Error: %s" % e)
 
 FindShortSegmentsInFont()

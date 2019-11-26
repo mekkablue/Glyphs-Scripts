@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Remove Layer-Specific Metrics Keys
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -17,7 +18,7 @@ def FilterGlyphKey(Key):
 	return None
 
 def ReportGlyph(glyphName):
-	print "Deleted metrics keys: %s" % thisGlyph.name
+	print("Deleted metrics keys: %s" % thisGlyph.name)
 
 def remove():
 	for layer in Glyphs.font.selectedLayers:
@@ -43,6 +44,6 @@ def remove():
 				deletedKeys += 1
 			
 			if deletedKeys:
-				print "Deleted %i metrics keys: %s" % (deletedKeys, glyph.name)
+				print("Deleted %i metrics keys: %s" % (deletedKeys, glyph.name))
 			
 remove()

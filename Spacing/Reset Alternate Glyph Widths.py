@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Reset Alternate Glyph Widths
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -23,7 +24,7 @@ for thisLayer in selectedLayers:
 	thisGlyphName = thisGlyph.name
 	if "." in thisGlyphName:
 		thisLayer.beginUndo()
-		print "Resetting width of %s to %.0f." % ( thisGlyphName, resetWidth( thisLayer, thisGlyphName ) )
+		print("Resetting width of %s to %.0f." % ( thisGlyphName, resetWidth( thisLayer, thisGlyphName ) ))
 		thisLayer.endUndo()
 
 Font.enableUpdateInterface()

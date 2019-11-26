@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Find Near Vertical Misses
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -124,7 +125,7 @@ class FindNearVerticalMisses( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Find Near Vertical Misses' could not load preferences. Will resort to defaults"
+			print("Note: 'Find Near Vertical Misses' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -323,14 +324,14 @@ class FindNearVerticalMisses( object ):
 			
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print "Note: 'Find Near Vertical Misses' could not write preferences."
+				print("Note: 'Find Near Vertical Misses' could not write preferences.")
 			
 			self.checkGUI()
 			
 			thisFont = Glyphs.font # frontmost font
-			print "Find Near Vertical Misses Report for %s" % thisFont.familyName
-			print thisFont.filepath
-			print
+			print("Find Near Vertical Misses Report for %s" % thisFont.familyName)
+			print(thisFont.filepath)
+			print()
 			
 			deviance = float( Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.deviance"] )
 			excludes = [ x.strip() for x in Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.exclude"].split(",") ]
@@ -403,7 +404,7 @@ class FindNearVerticalMisses( object ):
 												thisNode.selected = True
 
 												# report:
-												print u"%s /%s '%s': %.1f %.1f" % (self.marker, thisGlyph.name, thisLayer.name, thisNode.x, thisNode.y)
+												print(u"%s /%s '%s': %.1f %.1f" % (self.marker, thisGlyph.name, thisLayer.name, thisNode.x, thisNode.y))
 
 												# node name:
 												if Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.markNodes"]:
@@ -424,11 +425,11 @@ class FindNearVerticalMisses( object ):
 			self.w.progress.set(100)
 			
 			if skippedGlyphs:
-				print
-				print u"Skipped glyphs:\n%s" % ", ".join(skippedGlyphs)
+				print()
+				print(u"Skipped glyphs:\n%s" % ", ".join(skippedGlyphs))
 			
-			print 
-			print "Done."
+			print() 
+			print("Done.")
 			
 			if affectedLayers:
 				if Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.openTab"]:
@@ -445,11 +446,11 @@ class FindNearVerticalMisses( object ):
 					OKButton=u"🥂Cheers!")
 					
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Find Near Vertical Misses Error: %s" % e
+			print("Find Near Vertical Misses Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 FindNearVerticalMisses()

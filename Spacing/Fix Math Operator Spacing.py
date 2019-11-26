@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Fix Math Operator Spacing
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -105,7 +106,7 @@ class FixMathOperatorSpacing( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print u"⚠️ Note: 'Fix Math Operator Spacing' could not load preferences. Will resort to defaults"
+			print(u"⚠️ Note: 'Fix Math Operator Spacing' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -223,7 +224,7 @@ class FixMathOperatorSpacing( object ):
 		newSB = (layer.LSB+layer.RSB)/2
 		layer.LSB = round(newSB)
 		layer.width = oldWidth
-		print u"   ✅ Centered shape on layer: %s" % layer.name
+		print(u"   ✅ Centered shape on layer: %s" % layer.name)
 	
 	def updateMetricKeys(self, layer):
 		if Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.deleteLayerMetricsKeys"]:
@@ -234,15 +235,15 @@ class FixMathOperatorSpacing( object ):
 		layer.syncMetrics()
 	
 	def warnAboutMissingGlyph(self, glyphName):
-		print u"❌ Warning: glyph %s is missing." % glyphName
+		print(u"❌ Warning: glyph %s is missing." % glyphName)
 		# brings macro window to front:
 		Glyphs.showMacroWindow()
 	
 	def warnAboutAutoAlignedLayer(self, layer):
-		print u"   ℹ️ Layer ‘%s’ is auto-aligned compound: skipping" % layer.name
+		print(u"   ℹ️ Layer ‘%s’ is auto-aligned compound: skipping" % layer.name)
 	
 	def reportProcessing(self, glyphName):
-		print u"🔣 %s" % glyphName
+		print(u"🔣 %s" % glyphName)
 
 	def FixMathOperatorSpacingMain( self, sender ):
 		try:
@@ -262,9 +263,9 @@ class FixMathOperatorSpacing( object ):
 			
 			Glyphs.clearLog()
 			thisFont = Glyphs.font # frontmost font
-			print "Fixing Math Operator Spacing for %s" % thisFont.familyName
-			print thisFont.filepath
-			print
+			print("Fixing Math Operator Spacing for %s" % thisFont.familyName)
+			print(thisFont.filepath)
+			print()
 			
 			referenceOperatorName = "%s%s" % ( self.w.referenceOperator.getTitle().split()[-1], suffix )
 			referenceOperatorGlyph = thisFont.glyphs[referenceOperatorName]
@@ -292,7 +293,7 @@ class FixMathOperatorSpacing( object ):
 							mathOperatorGlyph.widthMetricsKey = widthKey
 							mathOperatorGlyph.leftMetricsKey = None
 							mathOperatorGlyph.rightMetricsKey = None
-							print u"   ✅ Set width metrics key: %s" % widthKey
+							print(u"   ✅ Set width metrics key: %s" % widthKey)
 						
 						for layer in mathOperatorGlyph.layers:
 							if layer.isAligned:
@@ -363,7 +364,7 @@ class FixMathOperatorSpacing( object ):
 									lessGreaterGlyph.widthMetricsKey = widthKey
 									lessGreaterGlyph.leftMetricsKey = sbKey
 									lessGreaterGlyph.rightMetricsKey = None
-									print u"   ✅ Set keys for width: %s, LSB: %s" % (widthKey, sbKey)
+									print(u"   ✅ Set keys for width: %s, LSB: %s" % (widthKey, sbKey))
 								
 								for layer in lessGreaterGlyph.layers:
 									if layer.isAligned:
@@ -399,13 +400,13 @@ class FixMathOperatorSpacing( object ):
 													# layer.syncMetrics()
 			
 			if not self.SavePreferences( self ):
-				print u"⚠️ Note: 'Fix Math Operator Spacing' could not write preferences."
+				print(u"⚠️ Note: 'Fix Math Operator Spacing' could not write preferences.")
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Fix Math Operator Spacing Error: %s" % e
+			print("Fix Math Operator Spacing Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 FixMathOperatorSpacing()

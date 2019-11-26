@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Tabular Checker
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -49,7 +50,7 @@ class TabularChecker( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Tabular Checker' could not load preferences. Will resort to defaults"
+			print("Note: 'Tabular Checker' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -89,23 +90,23 @@ class TabularChecker( object ):
 			Glyphs.showMacroWindow()
 			
 			# report
-			print
-			print u"❌ Found %i differing widths for '%s' in master %s:" % (numOfDifferentWidths, suffix, m.name)
+			print()
+			print(u"❌ Found %i differing widths for '%s' in master %s:" % (numOfDifferentWidths, suffix, m.name))
 			for length, gname in zip(lengths,glyphnames):
-				print "   %.1f: %s" % (length,gname)
-			print
+				print("   %.1f: %s" % (length,gname))
+			print()
 		
 		elif numOfDifferentWidths == 1:
-			print u"✅ OK: %.1f in all %s of %s" % (
+			print(u"✅ OK: %.1f in all %s of %s" % (
 				lengths[0], 
 				suffix if allowDifferingWidthsPerSuffix else " & ".join(suffixes), 
 				m.name,
-			)
+			))
 			
 		else:
-			print u"⚠️ Not found in font: %s" % (
+			print(u"⚠️ Not found in font: %s" % (
 				suffix if allowDifferingWidthsPerSuffix else " & ".join(suffixes), 
-			)
+			))
 		
 	def TabularCheckerMain( self, sender ):
 		try:
@@ -115,7 +116,7 @@ class TabularChecker( object ):
 			
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print u"Note: 'Tabular Checker' could not write preferences."
+				print(u"Note: 'Tabular Checker' could not write preferences.")
 			
 			# query user input:
 			suffixString = Glyphs.defaults["com.mekkablue.TabularChecker.suffixesEntry"]
@@ -124,9 +125,9 @@ class TabularChecker( object ):
 			allowDifferingWidthsPerSuffix = Glyphs.defaults["com.mekkablue.TabularChecker.allowDifferingWidthsPerSuffix"]
 			
 			Font = Glyphs.font # frontmost font
-			print u"Tabular Checker Report for %s" % Font.familyName
-			print Font.filepath
-			print
+			print(u"Tabular Checker Report for %s" % Font.familyName)
+			print(Font.filepath)
+			print()
 			for m in Font.masters:
 				lengths = []
 				glyphnames = []
@@ -156,13 +157,13 @@ class TabularChecker( object ):
 					
 			reportString = "Done."
 			self.reportStatus(reportString)
-			print reportString
+			print(reportString)
 
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Tabular Checker Error: %s" % e
+			print("Tabular Checker Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 TabularChecker()

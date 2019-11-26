@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Rewire Fire
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -51,7 +52,7 @@ class RewireFire( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Rewire Fire' could not load preferences. Will resort to defaults"
+			print("Note: 'Rewire Fire' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -96,11 +97,11 @@ class RewireFire( object ):
 				
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print "Note: 'Rewire Fire' could not write preferences."
+				print("Note: 'Rewire Fire' could not write preferences.")
 			
 			thisFont = Glyphs.font # frontmost font
-			print "Rewire Fire Report for %s" % thisFont.familyName
-			print thisFont.filepath
+			print("Rewire Fire Report for %s" % thisFont.familyName)
+			print(thisFont.filepath)
 			
 			duplicateCount = 0
 			affectedLayers = []
@@ -127,10 +128,10 @@ class RewireFire( object ):
 												thisNode.name = None
 											
 							if duplicateCoordinates:
-								print
-								print u"%s, layer: '%s'" % (thisGlyph.name, thisLayer.name)
+								print()
+								print(u"%s, layer: '%s'" % (thisGlyph.name, thisLayer.name))
 								for dupe in duplicateCoordinates:
-									print u"   %s x %.1f, y %.1f" % (self.nodeMarker, dupe.x, dupe.y)
+									print(u"   %s x %.1f, y %.1f" % (self.nodeMarker, dupe.x, dupe.y))
 							
 								if Glyphs.defaults["com.mekkablue.RewireFire.markWithCircle"]:
 									coords = set([(p.x,p.y) for p in duplicateCoordinates])
@@ -141,7 +142,7 @@ class RewireFire( object ):
 								affectedLayers.append(thisLayer)
 			
 			
-			print "\nFound a total of %i duplicate coordinates. (Triplets count as two.)" % duplicateCount
+			print("\nFound a total of %i duplicate coordinates. (Triplets count as two.)" % duplicateCount)
 			
 			if not affectedLayers:
 				Message(title="No Duplicates Found", message=u"Could not find any duplicate coordinates in %s."%thisFont.familyName, OKButton=u"😇 Cool")
@@ -153,11 +154,11 @@ class RewireFire( object ):
 				Glyphs.showMacroWindow()
 				
 			self.w.close() # delete if you want window to stay open
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Rewire Fire Error: %s" % e
+			print("Rewire Fire Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 RewireFire()

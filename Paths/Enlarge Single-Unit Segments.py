@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Enlarge Short Segments
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -22,7 +23,7 @@ thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
-	print "Processing %s" % thisGlyph.name
+	print("Processing %s" % thisGlyph.name)
 	thisGlyph.beginUndo() # begin undo grouping
 	process( thisLayer )
 	thisGlyph.endUndo()   # end undo grouping
