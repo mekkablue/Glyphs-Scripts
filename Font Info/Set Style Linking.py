@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Set Style Linking
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -29,16 +30,16 @@ def guessStyleLinking( thisInstance ):
 	
 
 for thisInstance in thisFont.instances:
-	print "BEFORE: %s is %s %s of '%s'" % (
+	print("BEFORE: %s is %s %s of '%s'" % (
 		thisInstance.name,
 		"Bold" if thisInstance.isBold else "-",
 		"Italic" if thisInstance.isItalic else "-",
 		thisInstance.linkStyle if thisInstance.linkStyle else "-"
-	)
+	))
 	guessStyleLinking( thisInstance )
-	print "AFTER: %s is %s %s of '%s'\n" % (
+	print("AFTER: %s is %s %s of '%s'\n" % (
 		thisInstance.name,
 		"Bold" if thisInstance.isBold else "-",
 		"Italic" if thisInstance.isItalic else "-",
 		thisInstance.linkStyle if thisInstance.linkStyle else "-"
-	)
+	))

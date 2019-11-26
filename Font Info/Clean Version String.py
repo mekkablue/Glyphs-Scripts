@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Clean Version String
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -6,7 +7,7 @@ Adds a clean versionString parameter, and disables ttfAutohint info in the versi
 
 thisFont = Glyphs.font # frontmost font
 thisFont.customParameters["versionString"] = "Version %d.%03d"
-print "Set: versionString='Version %d.%03d' in Font Info > Font"
+print("Set: versionString='Version %d.%03d' in Font Info > Font")
 
 def removeFromAutohintOptions( thisInstance, removeOption ):
 	parameter = thisInstance.customParameters[parameterName]
@@ -22,7 +23,7 @@ def removeFromAutohintOptions( thisInstance, removeOption ):
 				ttfAutohintOptions.pop(j)
 			thisInstance.customParameters[parameterName] = " ".join(ttfAutohintOptions)
 		else:
-			print "-- Warning: '%s' not found." % removeOption
+			print("-- Warning: '%s' not found." % removeOption)
 
 def dictToParameterValue( ttfAutohintDict ):
 	parameterValue = ""
@@ -61,12 +62,12 @@ for thisInstance in thisFont.instances:
 		optionDict = ttfAutohintDict( thisInstance.customParameters[parameterName] )
 		optionDict[ optionName ] = enteredValue
 		writeOptionsToInstance( optionDict, thisInstance )
-		print "Set: ttfAutohint %s in instance '%s'." % (
+		print("Set: ttfAutohint %s in instance '%s'." % (
 			optionName,
 			thisInstance.name,
-		)
+		))
 	else:
-		print "No TTF Autohint parameter in instance '%s'. %s not set." % (
+		print("No TTF Autohint parameter in instance '%s'. %s not set." % (
 			thisInstance.name,
 			optionName,
-		)
+		))

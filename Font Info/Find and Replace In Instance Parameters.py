@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Find and Replace in Instance Parameters
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -39,7 +40,7 @@ class FindAndReplaceInInstanceParameters( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Find and Replace In Instance Parameters' could not load preferences. Will resort to defaults"
+			print("Note: 'Find and Replace In Instance Parameters' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -120,14 +121,14 @@ class FindAndReplaceInInstanceParameters( object ):
 				for thisInstance in instances: # loop through instances
 					parameter = thisInstance.customParameters[parameterName]
 					if not parameter is None:
-						print type(parameter)
+						print(type(parameter))
 						if type(parameter) in (bool,objc._pythonify.OC_PythonInt):
 							onOff = False
 							if replaceText.lower() in ("1", "yes", "on", "an", "ein", "ja", "true", "wahr"):
 								onOff = True
 							thisInstance.customParameters[parameterName] = onOff
 							onOrOff = "on" if onOff else "off"
-							print "%s: switched %s %s" % ( thisInstance.name, onOrOff, parameterName )
+							print("%s: switched %s %s" % ( thisInstance.name, onOrOff, parameterName ))
 							
 						elif findText:
 							if type(parameter) in (objc.pyobjc_unicode, NSString, str, unicode):
@@ -141,7 +142,7 @@ class FindAndReplaceInInstanceParameters( object ):
 								for replaceItem in replaceList:
 									parameter.append(replaceItem)
 								thisInstance.customParameters[parameterName] = parameter
-							print "%s: replaced in %s" % ( thisInstance.name, parameterName )
+							print("%s: replaced in %s" % ( thisInstance.name, parameterName ))
 							
 						elif replaceText:
 							if type(parameter) in (objc.pyobjc_unicode, NSString, str, unicode):
@@ -151,18 +152,18 @@ class FindAndReplaceInInstanceParameters( object ):
 								for replaceItem in replaceList:
 									parameter.append(replaceItem)
 								thisInstance.customParameters[parameterName] = parameter
-							print "%s: appended to %s" % ( thisInstance.name, parameterName )
+							print("%s: appended to %s" % ( thisInstance.name, parameterName ))
 								
 							
 			
 			if not self.SavePreferences( self ):
-				print "Note: 'Find and Replace In Instance Parameters' could not write preferences."
+				print("Note: 'Find and Replace In Instance Parameters' could not write preferences.")
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Find and Replace In Instance Parameters Error: %s" % e
+			print("Find and Replace In Instance Parameters Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 FindAndReplaceInInstanceParameters()

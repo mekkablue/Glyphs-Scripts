@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Set WWS Names (Name IDs 21 and 22)
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -8,7 +9,7 @@ thisFont = Glyphs.font # frontmost font
 wwsStyles = ("Regular", "Bold", "Italic", "Bold Italic")
 
 for thisInstance in thisFont.instances:
-	print "Processing Instance:", thisInstance.name
+	print("Processing Instance:", thisInstance.name)
 	familyName = thisFont.familyName
 	if thisInstance.customParameters["familyName"]:
 		familyName = thisInstance.customParameters["familyName"]
@@ -22,5 +23,5 @@ for thisInstance in thisFont.instances:
 		wwsFamilyName = familyName.strip() + " " + familyNameAddition.strip()
 		thisInstance.customParameters["WWSFamilyName"] = wwsFamilyName
 		thisInstance.customParameters["WWSSubfamilyName"] = wwsSubFamily
-		print "   WWSFamilyName:", wwsFamilyName
-		print "   WWSSubfamilyName:", wwsSubFamily
+		print("   WWSFamilyName:", wwsFamilyName)
+		print("   WWSSubfamilyName:", wwsSubFamily)

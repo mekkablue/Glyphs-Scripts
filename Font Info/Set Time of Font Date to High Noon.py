@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Set Time of Font Date to High Noon
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -12,8 +13,8 @@ Glyphs.showMacroWindow()
 
 # Report in macro window:
 thisFont = Glyphs.font # frontmost font
-print "Resetting font creation time for %s" % thisFont.familyName
-print thisFont.filepath
+print("Resetting font creation time for %s" % thisFont.familyName)
+print(thisFont.filepath)
 
 # Get current date:
 currentDate = thisFont.date
@@ -29,4 +30,4 @@ newDate = datetime.datetime(
 	)
 
 thisFont.date = newDate
-print u"✅ New Date:", newDate
+print(u"✅ New Date:", newDate)

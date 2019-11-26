@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Vertical Metrics Manager
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -137,7 +138,7 @@ class VerticalMetricsManager( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Vertical Metrics Manager' could not load preferences. Will resort to defaults"
+			print("Note: 'Vertical Metrics Manager' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -216,9 +217,9 @@ class VerticalMetricsManager( object ):
 	
 	def update(self, sender=None):
 		thisFont = Glyphs.font # frontmost font
-		print "\nVertical Metrics Manager:\nUpdating values for: %s" % thisFont.familyName
-		print thisFont.filepath
-		print
+		print("\nVertical Metrics Manager:\nUpdating values for: %s" % thisFont.familyName)
+		print(thisFont.filepath)
+		print()
 		
 		ignoreNonExporting = Glyphs.defaults["com.mekkablue.VerticalMetricsManager.ignoreNonExporting"]
 		includeAllMasters = Glyphs.defaults["com.mekkablue.VerticalMetricsManager.includeAllMasters"]
@@ -230,7 +231,7 @@ class VerticalMetricsManager( object ):
 
 		# win measurements:
 		if sender == self.w.winUpdate:
-			print "Determining OS/2 usWin values:\n"
+			print("Determining OS/2 usWin values:\n")
 			
 			lowest, highest = 0.0, 0.0
 			lowestGlyph, highestGlyph = None, None
@@ -250,12 +251,12 @@ class VerticalMetricsManager( object ):
 									highest = highestPointInLayer
 									highestGlyph = "%s, layer: %s" % (thisGlyph.name, thisLayer.name)
 			
-			print "Highest relevant glyph:"
-			print "- %s (%i)" % (highestGlyph, highest)
-			print
-			print "Lowest relevant glyph:"
-			print "- %s (%i)" % (lowestGlyph, lowest)
-			print
+			print("Highest relevant glyph:")
+			print("- %s (%i)" % (highestGlyph, highest))
+			print()
+			print("Lowest relevant glyph:")
+			print("- %s (%i)" % (lowestGlyph, lowest))
+			print()
 			
 			if shouldRound:
 				highest = roundUpByValue(highest,roundValue)
@@ -264,10 +265,10 @@ class VerticalMetricsManager( object ):
 			winAsc = int(highest)
 			winDesc = abs(int(lowest))
 			
-			print "Calculated values:"
-			print "- usWinAscent: %s" % winAsc
-			print "- usWinDescent: %s" % winDesc
-			print
+			print("Calculated values:")
+			print("- usWinAscent: %s" % winAsc)
+			print("- usWinDescent: %s" % winDesc)
+			print()
 			
 			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.winAsc"] = winAsc
 			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.winDesc"] = winDesc
@@ -275,7 +276,7 @@ class VerticalMetricsManager( object ):
 
 		# Use Typo Metrics checkbox
 		elif sender == self.w.useTypoMetricsUpdate:
-			print "Use Typo Metrics (fsSelection bit 7) should always be YES."
+			print("Use Typo Metrics (fsSelection bit 7) should always be YES.")
 			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.useTypoMetrics"] = 1
 
 
@@ -286,7 +287,7 @@ class VerticalMetricsManager( object ):
 			else:
 				name = "OS/2 sTypo"
 				
-			print "Determining %s values:\n" % name
+			print("Determining %s values:\n" % name)
 			
 			shouldLimitToCategory = Glyphs.defaults["com.mekkablue.VerticalMetricsManager.preferCategory"]
 			shouldLimitToScript = Glyphs.defaults["com.mekkablue.VerticalMetricsManager.preferScript"]
@@ -294,7 +295,7 @@ class VerticalMetricsManager( object ):
 			if shouldLimitToSelectedGlyphs:
 				selectedGlyphNames = [l.parent.name for l in thisFont.selectedLayers]
 				if not selectedGlyphNames:
-					print u"⚠️ Ignoring limitation to selected glyphs because no glyphs are selected."
+					print(u"⚠️ Ignoring limitation to selected glyphs because no glyphs are selected.")
 					shouldLimitToSelectedGlyphs = False
 					Glyphs.defaults["com.mekkablue.VerticalMetricsManager.preferSelectedGlyphs"] = shouldLimitToSelectedGlyphs
 					self.LoadPreferences()
@@ -324,12 +325,12 @@ class VerticalMetricsManager( object ):
 									highest = highestPointInLayer
 									highestGlyph = "%s, layer: %s" % (thisGlyph.name, thisLayer.name)
 			
-			print "Highest relevant glyph:"
-			print "- %s (%i)" % (highestGlyph, highest)
-			print
-			print "Lowest relevant glyph:"
-			print "- %s (%i)" % (lowestGlyph, lowest)
-			print
+			print("Highest relevant glyph:")
+			print("- %s (%i)" % (highestGlyph, highest))
+			print()
+			print("Lowest relevant glyph:")
+			print("- %s (%i)" % (lowestGlyph, lowest))
+			print()
 			
 			if shouldRound:
 				highest = roundUpByValue(highest,roundValue)
@@ -360,11 +361,11 @@ class VerticalMetricsManager( object ):
 				gap = 0
 				
 			
-			print "Calculated values:"
-			print "- %s Ascender: %i" % (name, asc)
-			print "- %s Descender: %i" % (name, desc)
-			print "- %s LineGap: %i" % (name, gap)
-			print
+			print("Calculated values:")
+			print("- %s Ascender: %i" % (name, asc))
+			print("- %s Descender: %i" % (name, desc))
+			print("- %s LineGap: %i" % (name, gap))
+			print()
 			
 			if sender == self.w.hheaUpdate:
 				Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaAsc"] = asc
@@ -385,9 +386,9 @@ class VerticalMetricsManager( object ):
 					scripts.append(thisGlyph.script)
 			if scripts:
 				self.w.preferScriptPopup.setItems(scripts)
-				print u"✅ Found scripts:\n%s" % ", ".join(scripts)
+				print(u"✅ Found scripts:\n%s" % ", ".join(scripts))
 			else:
-				print u"⚠️ Found no glyphs belonging to a script in the current font. Please double check."
+				print(u"⚠️ Found no glyphs belonging to a script in the current font. Please double check.")
 			
 			
 		# Updating "Limit to Category" popup:
@@ -400,9 +401,9 @@ class VerticalMetricsManager( object ):
 					categories.append(thisGlyph.category)
 			if categories:
 				self.w.preferCategoryPopup.setItems(categories)
-				print u"✅ Found categories:\n%s" % ", ".join(categories)
+				print(u"✅ Found categories:\n%s" % ", ".join(categories))
 			else:
-				print u"⚠️ Found no glyphs belonging to a category in the current font. Please double check."
+				print(u"⚠️ Found no glyphs belonging to a category in the current font. Please double check.")
 					
 		self.LoadPreferences()
 			
@@ -411,13 +412,13 @@ class VerticalMetricsManager( object ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print "Note: 'Vertical Metrics Manager' could not write preferences."
+				print("Note: 'Vertical Metrics Manager' could not write preferences.")
 			
 			
 			thisFont = Glyphs.font # frontmost font
-			print "Vertical Metrics Manager Report for %s" % thisFont.familyName
-			print thisFont.filepath
-			print
+			print("Vertical Metrics Manager Report for %s" % thisFont.familyName)
+			print(thisFont.filepath)
+			print()
 			
 			typoAsc = cleanInt(Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoAsc"])
 			typoDesc = cleanInt(Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoDesc"])
@@ -442,34 +443,34 @@ class VerticalMetricsManager( object ):
 			for verticalMetricName in verticalMetricDict:
 				try:
 					metricValue = int( verticalMetricDict[verticalMetricName] )
-					print u"\n%s=%i in all masters:" % (verticalMetricName, metricValue)
+					print(u"\n%s=%i in all masters:" % (verticalMetricName, metricValue))
 					for thisMaster in thisFont.masters:
 						thisMaster.customParameters[verticalMetricName] = metricValue
-						print u"  ✅ Master %s: custom parameter set." % thisMaster.name
+						print(u"  ✅ Master %s: custom parameter set." % thisMaster.name)
 				except:
-					print u"\n%s: No valid value found. Deleting parameters:" % verticalMetricName
+					print(u"\n%s: No valid value found. Deleting parameters:" % verticalMetricName)
 					for thisMaster in thisFont.masters:
 						if thisMaster.customParameters[verticalMetricName]:
 							del thisMaster.customParameters[verticalMetricName]
-							print u"  ⚠️ Master %s: custom parameter removed." % thisMaster.name
+							print(u"  ⚠️ Master %s: custom parameter removed." % thisMaster.name)
 						else:
-							print u"  ❎ Master %s: no custom parameter found." % thisMaster.name
+							print(u"  ❎ Master %s: no custom parameter found." % thisMaster.name)
 			
 			useTypoMetrics = Glyphs.defaults["com.mekkablue.VerticalMetricsManager.useTypoMetrics"]
-			print u"\nUse Typo Metrics (fsSelection bit 7)"
+			print(u"\nUse Typo Metrics (fsSelection bit 7)")
 			if useTypoMetrics:
 				thisFont.customParameters["Use Typo Metrics"] = True
-				print u"  ✅ Set Use Typo Metrics parameter to YES."
+				print(u"  ✅ Set Use Typo Metrics parameter to YES.")
 			else:
 				thisFont.customParameters["Use Typo Metrics"] = False
-				print u"  ⁉️ Set Use Typo Metrics parameter to NO. This is not recommended. Are you sure?"
+				print(u"  ⁉️ Set Use Typo Metrics parameter to NO. This is not recommended. Are you sure?")
 				
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Vertical Metrics Manager Error: %s" % e
+			print("Vertical Metrics Manager Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 VerticalMetricsManager()

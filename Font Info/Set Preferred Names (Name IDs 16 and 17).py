@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Set Preferred Names (Name IDs 16 and 17) for Width Variants
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -15,7 +16,7 @@ widths = (
 )
 
 for thisInstance in thisFont.instances:
-	print "Processing Instance:", thisInstance.name
+	print("Processing Instance:", thisInstance.name)
 	familyName = thisFont.familyName
 	if thisInstance.customParameters["familyName"]:
 		familyName = thisInstance.customParameters["familyName"]
@@ -37,5 +38,5 @@ for thisInstance in thisFont.instances:
 	
 		thisInstance.customParameters["preferredFamilyName"] = preferredFamilyName
 		thisInstance.customParameters["preferredSubfamilyName"] = preferredStyleName
-		print "   preferredFamilyName:", preferredFamilyName
-		print "   preferredSubfamilyName:", preferredStyleName
+		print("   preferredFamilyName:", preferredFamilyName)
+		print("   preferredSubfamilyName:", preferredStyleName)

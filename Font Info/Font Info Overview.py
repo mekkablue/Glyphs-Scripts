@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Font Info Overview
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -68,30 +69,30 @@ class FontInfoOverview( object ):
 		self.w.makeKey()
 		
 	def selectedAction( self, sender ):
-		print "\nSELECTION:"
+		print("\nSELECTION:")
 		selectedIndexes = sender.getSelection()
-		print selectedIndexes
+		print(selectedIndexes)
 		for i in selectedIndexes:
-			print sender[i]["fontObj"]
+			print(sender[i]["fontObj"])
 	
 	def doubleclickedAction(self, sender):
-		print "\nDOUBLE CLICK:"
+		print("\nDOUBLE CLICK:")
 		selectedIndexes = sender.getSelection()
 		for i in selectedIndexes:
-			print sender[i]["fontObj"].familyName
+			print(sender[i]["fontObj"].familyName)
 
 	def editAction(self, sender):
 		try:
 			self.updateCounter()
 		except Exception as e:
-			print "editAction Error: %s" % e
+			print("editAction Error: %s" % e)
 	
 	def listContent( self ):
 		try:
 			listDictOfOpenFonts = [ dict([[ kl[1], eval("f." + kl[1]) ] for kl in keyList ] + [["fontObj",f]] ) for f in Glyphs.fonts ]
 			return listDictOfOpenFonts
 		except Exception as e:
-			print "listContent Error: %s" % e
+			print("listContent Error: %s" % e)
 
 	def updateCounter( self ):
 		try:
@@ -107,15 +108,15 @@ class FontInfoOverview( object ):
 							changeCounter += 1
 			self.w.changeCounter.set( "Unsaved changes: %i" % changeCounter )
 		except Exception as e:
-			print "updateCounter Error: %s" % e
+			print("updateCounter Error: %s" % e)
 
 	def Reload( self, sender ):
 		try:
 			self.w.List.set( self.listContent() )
 			self.updateCounter()
-		except Exception, e:
+		except Exception as e:
 			Glyphs.showMacroWindow()
-			print "Reload Error: %s" % e
+			print("Reload Error: %s" % e)
 	
 	def Apply(self,sender):
 		try:
@@ -136,11 +137,11 @@ class FontInfoOverview( object ):
 							currentFontValue = eval( fontPropertyString )
 							listValue = thisFontInfo[ thisKey ]
 							if currentFontValue != listValue:
-								print "Setting %s to '%s' in %s." % ( thisKey, listValue, thisFont )
+								print("Setting %s to '%s' in %s." % ( thisKey, listValue, thisFont ))
 								exec( "%s = listValue" % fontPropertyString )
 			self.updateCounter()
 		except Exception as e:
-			print "Apply Error: %s" % e
+			print("Apply Error: %s" % e)
 		
 
 FontInfoOverview()
