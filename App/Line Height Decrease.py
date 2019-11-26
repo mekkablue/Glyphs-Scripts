@@ -1,5 +1,7 @@
 #MenuTitle: Decrease Line Height
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+from builtins import str
 __doc__="""
 Decrease the Edit View line height.
 """
