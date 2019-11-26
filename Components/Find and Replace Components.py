@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Find and Replace Components
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -12,8 +13,8 @@ def replaceComponent( thisLayer, oldCompName, newCompName ):
 			if thisLayer.components[i].componentName == oldCompName:
 				thisLayer.components[i].componentName = newCompName
 	except Exception as e:
-		print "Failed to replace %s for %s in %s." % ( oldCompName, newCompName, thisLayer.parent.name )
-		print e
+		print("Failed to replace %s for %s in %s." % ( oldCompName, newCompName, thisLayer.parent.name ))
+		print(e)
 
 class ComponentReplacer(object):
 
@@ -34,7 +35,7 @@ class ComponentReplacer(object):
 		self.w.setDefaultButton( self.w.replaceButton )
 
 		if not self.LoadPrefs( ):
-			print "Note: Could not load preferences. Will resort to defaults."
+			print("Note: Could not load preferences. Will resort to defaults.")
 
 		self.w.open()
 

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Sync Components Across Masters
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -53,7 +54,7 @@ thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
 for thisLayer in listOfSelectedLayers:
 	thisGlyph = thisLayer.parent
-	print "Processing", thisGlyph.name
+	print("Processing", thisGlyph.name)
 	thisGlyph.beginUndo() # begin undo grouping
 	process( thisLayer )
 	thisGlyph.endUndo()   # end undo grouping

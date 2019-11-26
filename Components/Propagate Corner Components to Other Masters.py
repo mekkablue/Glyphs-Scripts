@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Propagate Corner Components to Other Masters
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -61,7 +62,7 @@ if thisFont and listOfSelectedLayers:
 
 	for thisLayer in listOfSelectedLayers:
 		thisGlyph = thisLayer.parent
-		print "Processing", thisGlyph.name
+		print("Processing", thisGlyph.name)
 		thisGlyph.beginUndo() # begin undo grouping
 		process( thisLayer )
 		thisGlyph.endUndo()   # end undo grouping

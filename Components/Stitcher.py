@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Stitcher
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -17,7 +18,7 @@ def deleteAllComponents( thisLayer ):
 		return True
 		
 	except Exception as e:
-		print traceback.format_exc()
+		print(traceback.format_exc())
 		return False
 
 def bezier( A, B, C, D, t ):
@@ -88,7 +89,7 @@ def getFineGrainPointsForPath( thisPath, distanceBetweenDots ):
 	
 		return layerCoords
 	except Exception as e:
-		print traceback.format_exc()
+		print(traceback.format_exc())
 
 def interpolatePointPos( p1, p2, factor ):
 	factor = factor % 1.0
@@ -123,7 +124,7 @@ def dotCoordsOnPath( thisPath, distanceBetweenDots, balanceOverCompletePath=Fals
 	
 		return dotPoints
 	except Exception as e:
-		print traceback.format_exc()
+		print(traceback.format_exc())
 
 def placeDots( thisLayer, useBackground, componentName, distanceBetweenDots, balanceOverCompletePath=False ):
 	try:
@@ -159,7 +160,7 @@ def placeDots( thisLayer, useBackground, componentName, distanceBetweenDots, bal
 			return False
 		
 	except Exception as e:
-		print traceback.format_exc()
+		print(traceback.format_exc())
 		return False
 
 def minimumOfOne( value ):
@@ -176,7 +177,7 @@ def process( thisLayer, deleteComponents, componentName, distanceBetweenDots, us
 	try:
 		if deleteComponents:
 			if not deleteAllComponents( thisLayer ):
-				print "-- Error deleting previously placed components."
+				print("-- Error deleting previously placed components.")
 	
 		if useBackground and len( thisLayer.paths ) > 0:
 			if thisLayer.className() == "GSBackgroundLayer":
@@ -188,9 +189,9 @@ def process( thisLayer, deleteComponents, componentName, distanceBetweenDots, us
 			thisLayer.paths = []
 	
 		if not placeDots( thisLayer, useBackground, componentName, distanceBetweenDots, balanceOverCompletePath ):
-			print "-- Could not place components at intervals of %.1f units." % distanceBetweenDots
+			print("-- Could not place components at intervals of %.1f units." % distanceBetweenDots)
 	except Exception as e:
-		print traceback.format_exc()
+		print(traceback.format_exc())
 
 class ComponentOnLines( object ):
 	def __init__( self ):
@@ -239,7 +240,7 @@ class ComponentOnLines( object ):
 			Glyphs.defaults["com.mekkablue.ComponentOnLines.useBackground"] = self.w.useBackground.get()
 			Glyphs.defaults["com.mekkablue.ComponentOnLines.balanceOverCompletePath"] = self.w.balanceOverCompletePath.get()
 		except:
-			print traceback.format_exc()
+			print(traceback.format_exc())
 			return False
 			
 		return True
@@ -260,7 +261,7 @@ class ComponentOnLines( object ):
 			self.w.useBackground.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.useBackground"] )
 			self.w.balanceOverCompletePath.set( Glyphs.defaults["com.mekkablue.ComponentOnLines.balanceOverCompletePath"] )
 		except:
-			print traceback.format_exc()
+			print(traceback.format_exc())
 			return False
 			
 		return True
@@ -293,8 +294,8 @@ class ComponentOnLines( object ):
 				Font.enableUpdateInterface()
 			
 				if not self.SavePreferences( self ):
-					print "Note: could not write preferences."
+					print("Note: could not write preferences.")
 		except:
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 ComponentOnLines()

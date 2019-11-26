@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Find and Replace Corner Components at Certain Angles
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -41,7 +42,7 @@ class ReplaceCornersAtCertainAngles( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Replace Corners At Certain Angles' could not load preferences. Will resort to defaults"
+			print("Note: 'Replace Corners At Certain Angles' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.CheckButton(None)
@@ -108,7 +109,7 @@ class ReplaceCornersAtCertainAngles( object ):
 			for thisGlyph in selectedGlyphs:
 				for masterID in masterIDs:
 					masterLayer = thisGlyph.layers[masterID]
-					print "Processing %s, layer '%s'" % ( thisGlyph.name, masterLayer.name )
+					print("Processing %s, layer '%s'" % ( thisGlyph.name, masterLayer.name ))
 					if masterLayer.hints:
 						for thisHint in masterLayer.hints:
 							if thisHint.type == CORNER and thisHint.name == fromCornerName:
@@ -117,18 +118,18 @@ class ReplaceCornersAtCertainAngles( object ):
 								if (smallerThan and angle < thresholdAngle) or (not smallerThan and angle > thresholdAngle):
 									thisHint.name = toCornerName
 									
-									print "- replaced hint at %i, %i (angle: %.1f)" % (node.x, node.y, angle)
+									print("- replaced hint at %i, %i (angle: %.1f)" % (node.x, node.y, angle))
 								else:
-									print angle
+									print(angle)
 			
 			
 			if not self.SavePreferences( self ):
-				print "Note: 'Replace Corners At Certain Angles' could not write preferences."
+				print("Note: 'Replace Corners At Certain Angles' could not write preferences.")
 			
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Replace Corners At Certain Angles Error: %s" % e
+			print("Replace Corners At Certain Angles Error: %s" % e)
 
 ReplaceCornersAtCertainAngles()

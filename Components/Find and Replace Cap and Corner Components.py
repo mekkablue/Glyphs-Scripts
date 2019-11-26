@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Find and Replace Cap and Corner Components
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -35,7 +36,7 @@ class FindAndReplaceCorners( object ):
 				
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Replace Corners' could not load preferences. Will resort to defaults"
+			print("Note: 'Replace Corners' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -69,7 +70,7 @@ class FindAndReplaceCorners( object ):
 	def FindAndReplaceCornersMain( self, sender ):
 		try:
 			if not self.SavePreferences( self ):
-				print "Note: 'Replace Corners' could not write preferences."
+				print("Note: 'Replace Corners' could not write preferences.")
 			
 			searchString = self.corners[self.w.searchFor.get()]
 			replaceString = self.corners[self.w.replaceBy.get()]
@@ -91,7 +92,7 @@ class FindAndReplaceCorners( object ):
 					if thisHint.type == CORNER or thisHint.type == CAP:
 						if thisHint.name == searchString:
 							thisHint.setName_(replaceString)
-							print " %s" % ( thisLayer.parent.name )
+							print(" %s" % ( thisLayer.parent.name ))
 							displayReportString = True
 				
 				if displayReportString:
@@ -99,10 +100,10 @@ class FindAndReplaceCorners( object ):
 			
 			self.w.close() # delete if you want window to stay open
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 			Glyphs.showMacroWindow()
 
 # brings macro window to front and clears its log:

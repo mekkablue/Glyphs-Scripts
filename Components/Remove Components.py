@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Remove Components
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -33,7 +34,7 @@ class RemoveComponentfromSelectedGlyphs( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Remove Component from Selected Glyphs' could not load preferences. Will resort to defaults"
+			print("Note: 'Remove Component from Selected Glyphs' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -92,12 +93,12 @@ class RemoveComponentfromSelectedGlyphs( object ):
 				self.removeComponentFromGlyph( componentName, thisGlyph )
 			
 			if not self.SavePreferences( self ):
-				print "Note: 'Remove Component from Selected Glyphs' could not write preferences."
+				print("Note: 'Remove Component from Selected Glyphs' could not write preferences.")
 			
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Remove Component from Selected Glyphs Error: %s" % e
+			print("Remove Component from Selected Glyphs Error: %s" % e)
 
 RemoveComponentfromSelectedGlyphs()

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Populate Layer Backgrounds with Component
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -87,7 +88,7 @@ class PopulateAllBackgroundswithComponent( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Populate All Backgrounds with Component' could not load preferences. Will resort to defaults"
+			print("Note: 'Populate All Backgrounds with Component' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -207,10 +208,10 @@ class PopulateAllBackgroundswithComponent( object ):
 							thisGlyph = thisLayer.parent
 							if thisGlyph:
 								if thisGlyph.name == componentName:
-									print "Skipping %s: cannot insert component of itself." % thisGlyph.name
+									print("Skipping %s: cannot insert component of itself." % thisGlyph.name)
 								else:
 									numOfLayers = len(thisGlyph.layers)
-									print "%s: adding %s as component in %i layer background%s." % (thisGlyph.name, componentName, numOfLayers, "s" if numOfLayers!=1 else "")
+									print("%s: adding %s as component in %i layer background%s." % (thisGlyph.name, componentName, numOfLayers, "s" if numOfLayers!=1 else ""))
 									
 									# go through all layers of each glyph:
 									for glyphLayer in thisGlyph.layers:
@@ -243,14 +244,14 @@ class PopulateAllBackgroundswithComponent( object ):
 											newComponent.applyTransform( hShiftMatrix )
 			
 			if not self.SavePreferences( self ):
-				print "Note: 'Populate All Backgrounds with Component' could not write preferences."
+				print("Note: 'Populate All Backgrounds with Component' could not write preferences.")
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Populate All Backgrounds with Component Error: %s" % e
+			print("Populate All Backgrounds with Component Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 	
 
 	def alignNodeWithNodeInOtherLayer(self, thisNode, otherLayer, tolerance=5, maxTolerance=80, alreadyTaken=[]):
@@ -283,7 +284,7 @@ class PopulateAllBackgroundswithComponent( object ):
 	
 		# move anchors in foreground
 		if not otherAnchorDict:
-			print "Anchors: could not find any anchors in components."
+			print("Anchors: could not find any anchors in components.")
 			return 0
 		else:
 			count = 0
@@ -334,8 +335,8 @@ class PopulateAllBackgroundswithComponent( object ):
 			thisGlyph = thisLayer.parent
 			thisGlyph.beginUndo() # begin undo grouping
 			selected, aligned, numberOfAnchorsMoved = self.alignNodesOnLayer( thisLayer )
-			print "%s: aligned %i of %i selected nodes" % (thisGlyph.name, aligned, selected)
-			print "%s: aligned %i of %i anchors." % (thisGlyph.name, numberOfAnchorsMoved, len(thisLayer.anchors))
+			print("%s: aligned %i of %i selected nodes" % (thisGlyph.name, aligned, selected))
+			print("%s: aligned %i of %i anchors." % (thisGlyph.name, numberOfAnchorsMoved, len(thisLayer.anchors)))
 			thisGlyph.endUndo() # end undo grouping
 
 PopulateAllBackgroundswithComponent()

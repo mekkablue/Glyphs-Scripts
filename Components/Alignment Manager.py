@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Alignment Manager
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -46,7 +47,7 @@ class AutoAlignmentManager( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Auto Alignment Manager' could not load preferences. Will resort to defaults"
+			print("Note: 'Auto Alignment Manager' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -79,13 +80,13 @@ class AutoAlignmentManager( object ):
 		if thisLayer.components:
 			for i,thisComponent in enumerate(thisLayer.components):
 				if (i>0) or (not excludeFirstComponent):
-					print i
+					print(i)
 					if sender is self.w.enableButton:
 						thisComponent.setDisableAlignment_(False)
-						print "\tEnabling alignment on: %s" % thisLayer.name
+						print("\tEnabling alignment on: %s" % thisLayer.name)
 					elif sender is self.w.disableButton:
 						thisComponent.setDisableAlignment_(True)
-						print "\tDisabling alignment on: %s" % thisLayer.name
+						print("\tDisabling alignment on: %s" % thisLayer.name)
 					else:
 						return False
 		return True
@@ -94,13 +95,13 @@ class AutoAlignmentManager( object ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print "Note: 'Auto Alignment Manager' could not write preferences."
+				print("Note: 'Auto Alignment Manager' could not write preferences.")
 			
 			thisFont = Glyphs.font # frontmost font
 			Glyphs.clearLog()
-			print "Auto Alignment Manager Report for %s" % thisFont.familyName
-			print thisFont.filepath
-			print
+			print("Auto Alignment Manager Report for %s" % thisFont.familyName)
+			print(thisFont.filepath)
+			print()
 			
 			
 
@@ -115,11 +116,11 @@ class AutoAlignmentManager( object ):
 					selectedGlyphs = [l.parent for l in thisFont.selectedLayers]
 					
 				for thisGlyph in selectedGlyphs:
-					print "Processing: %s" % thisGlyph.name
+					print("Processing: %s" % thisGlyph.name)
 					for thisLayer in thisGlyph.layers:
 						if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 							if not self.enableOrDisableLayer( thisLayer, excludeFirstComponent=excludeFirstComponent, sender=sender ):
-								print u"⚠️ Error setting alignment."
+								print(u"⚠️ Error setting alignment.")
 			else:
 				if Glyphs.defaults["com.mekkablue.AutoAlignmentManager.includeAllGlyphs"]:
 					layersToBeProcessed = [g.layers[currentMasterID] for g in thisFont.glyphs]
@@ -128,15 +129,15 @@ class AutoAlignmentManager( object ):
 					layersToBeProcessed = thisFont.selectedLayers
 				
 				for thisLayer in layersToBeProcessed:
-					print "Processing: %s" % thisLayer.parent.name
+					print("Processing: %s" % thisLayer.parent.name)
 					if not self.enableOrDisableLayer( thisLayer, excludeFirstComponent=excludeFirstComponent, sender=sender ):
-						print u"⚠️ Error setting alignment."
+						print(u"⚠️ Error setting alignment.")
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Auto Alignment Manager Error: %s" % e
+			print("Auto Alignment Manager Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 AutoAlignmentManager()

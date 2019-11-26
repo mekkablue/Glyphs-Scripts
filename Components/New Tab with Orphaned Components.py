@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: New Tab with Orphaned Components
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -26,11 +27,11 @@ for thisGlyph in thisFont.glyphs:
 
 if orphanedGlyphNames:
 	Glyphs.clearLog()
-	print "Found these glyphs with orphaned components:\n%s" % ", ".join(orphanedGlyphNames)
+	print("Found these glyphs with orphaned components:\n%s" % ", ".join(orphanedGlyphNames))
 	tabString = "/%s" % "/".join(orphanedGlyphNames)
 	thisFont.newTab( tabString )
 else:
 	# brings macro window to front and clears its log:
 	Glyphs.clearLog()
 	Glyphs.showMacroWindow()
-	print "No orphaned components found in this font master."
+	print("No orphaned components found in this font master.")

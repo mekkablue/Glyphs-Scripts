@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: New Tab with Composable Glyphs that have no Components
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -11,7 +12,7 @@ for thisGlyph in thisFont.glyphs: # loop through all glyphs
 	if not thisGlyph.layers[0].components:
 		info = thisGlyph.glyphInfo
 		if info and info.components:
-			print "%s: %s" % (thisGlyph.name, ", ".join([c.name for c in info.components]))
+			print("%s: %s" % (thisGlyph.name, ", ".join([c.name for c in info.components])))
 			affectedGlyphNames.append(thisGlyph.name)
 			
 
