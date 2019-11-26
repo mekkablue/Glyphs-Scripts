@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Select All Local Guides in Selected Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -16,5 +17,5 @@ def selectGuidesOnLayer( thisLayer ):
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
 	numberOfGuides = selectGuidesOnLayer( thisLayer )
-	print "Selected %i guides in %s" % ( numberOfGuides, thisGlyph.name )
+	print("Selected %i guides in %s" % ( numberOfGuides, thisGlyph.name ))
 	
