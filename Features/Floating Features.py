@@ -18,8 +18,8 @@ class FeatureActivator( object ):
 		for feature in Glyphs.font.features:
 			featureTag = feature.name
 			featureName = feature.fullName()
-			exec("self.w.featureCheckBox_"+str(i)+" = vanilla.CheckBox( (8, 4 + 18 * i, -8, 18), featureName, sizeStyle='small', callback=self.toggleFeature, value=(featureTag in selectedFeatures) )")
-			exec("self.w.featureCheckBox_"+str(i)+".getNSButton().setIdentifier_(featureTag)");
+			exec("self.w.featureCheckBox_%i = vanilla.CheckBox( (8, 4 + 18 * i, -8, 18), featureName, sizeStyle='small', callback=self.toggleFeature, value=(featureTag in selectedFeatures) )"%i)
+			exec("self.w.featureCheckBox_%i.getNSButton().setIdentifier_(featureTag)"%i);
 			i += 1
 		self.w.open()
 		

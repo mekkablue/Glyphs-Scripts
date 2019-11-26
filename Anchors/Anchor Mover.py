@@ -121,7 +121,7 @@ class AnchorMover2( object ):
 		selectedMaster = Font.selectedFontMaster
 		italicAngle = selectedMaster.italicAngle
 		anchor_index = self.w.anchor_name.get()
-		anchor_name  = str( self.w.anchor_name.getItems()[anchor_index] )
+		anchor_name  = self.w.anchor_name.getItems()[anchor_index]
 		horizontal_index  = Glyphs.defaults["com.mekkablue.AnchorMover2.hTarget"]
 		horizontal_change = self.prefAsFloat("com.mekkablue.AnchorMover2.hChange")
 		vertical_index  = Glyphs.defaults["com.mekkablue.AnchorMover2.vTarget"]
@@ -216,7 +216,7 @@ class AnchorMover2( object ):
 				AnchorNames = list( thisLayer.anchors.keys() ) # hack to avoid traceback
 				for thisAnchorName in AnchorNames:
 					if thisAnchorName not in myAnchorList:
-						myAnchorList.append( str(thisAnchorName) )
+						myAnchorList.append( thisAnchorName )
 		except:
 			print("Error: Cannot collect anchor names from the current selection.")
 		
