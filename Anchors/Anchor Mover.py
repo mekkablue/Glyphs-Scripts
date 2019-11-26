@@ -17,8 +17,8 @@ listHorizontal = [
 	["bbox left edge", "copyLayer.bounds.origin.x"],
 	["bbox center", "copyLayer.bounds.origin.x + copyLayer.bounds.size.width // 2.0"],
 	["bbox right edge", "copyLayer.bounds.origin.x + copyLayer.bounds.size.width"],
-	["highest node", "max( [ (max( [x for x in p.nodes if str(x.type) != \""+str(GSOFFCURVE)+"\"], key=lambda n: n.y )) for p in copyLayer.paths ], key=lambda n: n.y ).x"],
-	["lowest node", "min( [ (min( [x for x in p.nodes if str(x.type) != \""+str(GSOFFCURVE)+"\"], key=lambda n: n.y )) for p in copyLayer.paths ], key=lambda n: n.y ).x"]
+	["highest node", "max( [ (max( [x for x in p.nodes if str(x.type) != \""+GSOFFCURVE+"\"], key=lambda n: n.y )) for p in copyLayer.paths ], key=lambda n: n.y ).x"],
+	["lowest node", "min( [ (min( [x for x in p.nodes if str(x.type) != \""+GSOFFCURVE+"\"], key=lambda n: n.y )) for p in copyLayer.paths ], key=lambda n: n.y ).x"]
 ]
 
 listVertical = [
@@ -36,8 +36,8 @@ listVertical = [
 	["bbox top", "copyLayer.bounds.origin.y + copyLayer.bounds.size.height"],
 	["bbox center", "copyLayer.bounds.origin.y + ( copyLayer.bounds.size.height // 2.0 )"],
 	["bbox bottom", "copyLayer.bounds.origin.y"],
-	["leftmost node", "min( [ (min( [x for x in p.nodes if str(x.type) != \""+str(GSOFFCURVE)+"\"], key=lambda n: n.x )) for p in copyLayer.paths ], key=lambda n: n.x ).y"],
-	["rightmost node", "max( [ (max( [x for x in p.nodes if str(x.type) != \""+str(GSOFFCURVE)+"\"], key=lambda n: n.x )) for p in copyLayer.paths ], key=lambda n: n.x ).y"]
+	["leftmost node", "min( [ (min( [x for x in p.nodes if str(x.type) != \""+GSOFFCURVE+"\"], key=lambda n: n.x )) for p in copyLayer.paths ], key=lambda n: n.x ).y"],
+	["rightmost node", "max( [ (max( [x for x in p.nodes if str(x.type) != \""+GSOFFCURVE+"\"], key=lambda n: n.x )) for p in copyLayer.paths ], key=lambda n: n.x ).y"]
 ]
 
 def italicSkew( x, y, angle=10.0 ):
