@@ -35,7 +35,7 @@ keyValueDict= {
 	"Version Major": (thisFont.versionMajor, otherFont.versionMajor),
 	"Version Minor": (thisFont.versionMinor, otherFont.versionMinor),
 	"Units per Em": (thisFont.upm, otherFont.upm),
-	"Date": (str(thisFont.date), str(otherFont.date)),
+	"Date": (thisFont.date, otherFont.date),
 }
 for key in keyValueDict:
 	thisValue, otherValue = keyValueDict[key]
