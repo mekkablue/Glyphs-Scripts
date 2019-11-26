@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Compare Sidebearings
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -12,7 +13,7 @@ tolerance = 2.0
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
 
-print "Comparing:\nFont 1: %s\nFont 2: %s\n" % (Font1.filepath, Font2.filepath)
+print("Comparing:\nFont 1: %s\nFont 2: %s\n" % (Font1.filepath, Font2.filepath))
 
 count = 0
 for g1 in [g for g in Font1.glyphs if g.export]:
@@ -34,8 +35,8 @@ for g1 in [g for g in Font1.glyphs if g.export]:
 					reportString += "RSB %i <> %i  " % (l1.RSB, l2.RSB)
 				if reportGlyph:
 					count += 1
-					print "%s  (%s)" % (reportString, m1.name)
+					print("%s  (%s)" % (reportString, m1.name))
 	else:
-		print "  %s not in Font 2" % (glyphname)
+		print("  %s not in Font 2" % (glyphname))
 
-print "Found %i discrepancies beyond %i units in all masters." % (count, tolerance)
+print("Found %i discrepancies beyond %i units in all masters." % (count, tolerance))

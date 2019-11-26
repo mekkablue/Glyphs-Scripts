@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Compare Metrics
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -11,7 +12,7 @@ Font2 = Glyphs.fonts[1] # other font
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
 
-print "Comparing:\nFont 1: %s\nFont 2: %s\n" % (Font1.filepath, Font2.filepath)
+print("Comparing:\nFont 1: %s\nFont 2: %s\n" % (Font1.filepath, Font2.filepath))
 
 for g1 in [g for g in Font1.glyphs if g.export]:
 	glyphname = g1.name
@@ -22,6 +23,6 @@ for g1 in [g for g in Font1.glyphs if g.export]:
 			l1 = g1.layers[m1.id]
 			l2 = g2.layers[m2.id]
 			if abs(l1.width-l2.width) > 2.0:
-				print "/%s : widths: %.1f <> %.1f (%s)" % (glyphname, l1.width, l2.width, m1.name)
+				print("/%s : widths: %.1f <> %.1f (%s)" % (glyphname, l1.width, l2.width, m1.name))
 	else:
-		print "  %s not in Font 2" % (glyphname)
+		print("  %s not in Font 2" % (glyphname))

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Compare Glyphsets
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -23,11 +24,11 @@ for i in range(len(otherGlyphSet))[::-1]:
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
-print "Glyphs not in %s\n%s\n" % (thisFont.familyName, thisFont.filepath)
-print ", ".join(otherGlyphSet)
-print
-print "Glyphs not in %s\n%s\n" % (otherFont.familyName, otherFont.filepath)
-print ", ".join(thisGlyphSet)
-print
+print("Glyphs not in %s\n%s\n" % (thisFont.familyName, thisFont.filepath))
+print(", ".join(otherGlyphSet))
+print()
+print("Glyphs not in %s\n%s\n" % (otherFont.familyName, otherFont.filepath))
+print(", ".join(thisGlyphSet))
+print()
 
 	

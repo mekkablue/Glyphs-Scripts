@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Compare Kerning Groups
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -15,13 +16,13 @@ commonGlyphSet = [g.name for g in otherFont.glyphs if g.export and g.name in thi
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
 
-print "Differing kerning groups between:"
-print u"1. %s\n   %s\n" % (thisFont.familyName, thisFont.filepath)
-print u"2. %s\n   %s\n" % (otherFont.familyName, otherFont.filepath)
+print("Differing kerning groups between:")
+print(u"1. %s\n   %s\n" % (thisFont.familyName, thisFont.filepath))
+print(u"2. %s\n   %s\n" % (otherFont.familyName, otherFont.filepath))
 
 columnHead = u"◀️ ▶️ GLYPHNAME"
-print columnHead
-print "-" * len(columnHead)
+print(columnHead)
+print("-" * len(columnHead))
 
 sameInBothFonts = []
 differencesBetweenFonts = []
@@ -36,19 +37,19 @@ for glyphName in commonGlyphSet:
 		sameInBothFonts.append(glyphName)
 	else:
 		differencesBetweenFonts.append(glyphName)
-		print u"%s %s %s" % (
+		print(u"%s %s %s" % (
 			u"✅" if leftGroupSame else u"❌",
 			u"✅" if rightGroupSame else u"❌",
 			glyphName
-		)
+		))
 	
 
-print 
-print u"✅ Glyphs with same goups:"
-print "/" + "/".join(sameInBothFonts)
-print
-print u"❌ Glyphs with different groups:"
-print "/" + "/".join(differencesBetweenFonts)
-print
+print() 
+print(u"✅ Glyphs with same goups:")
+print("/" + "/".join(sameInBothFonts))
+print()
+print(u"❌ Glyphs with different groups:")
+print("/" + "/".join(differencesBetweenFonts))
+print()
 
 	

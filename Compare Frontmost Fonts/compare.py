@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 def compareLists(thisSet, otherSet, ignoreEmpty=False):
 	for i in range(len(thisSet))[::-1]:
 		if thisSet[i] in otherSet:
@@ -27,25 +28,25 @@ def cleanUpAndShortenParameterContent( thisParameter, maxLength=20 ):
 
 def compareCount( things, thisCount, otherCount, thisName, otherName ):
 	if thisCount != otherCount:
-		print u"❌ Different number of %s:" % things.upper()
-		print u"   A. %i %s in %s" % (thisCount, things.lower(), thisName)
-		print u"   B. %i %s in %s" % (otherCount, things.lower(), otherName)
+		print(u"❌ Different number of %s:" % things.upper())
+		print(u"   A. %i %s in %s" % (thisCount, things.lower(), thisName))
+		print(u"   B. %i %s in %s" % (otherCount, things.lower(), otherName))
 	else:
-		print u"✅ Compatible number of %s: %i." % (things.lower(), thisCount)
+		print(u"✅ Compatible number of %s: %i." % (things.lower(), thisCount))
 
 def lineReport(thisSet, otherSet, thisFileName, otherFileName, name):
 	if thisSet or otherSet:
 		if otherSet:
-			print
-			print u"⚠️ Code lines not in %s of %s:" % (name, thisFileName)
+			print()
+			print(u"⚠️ Code lines not in %s of %s:" % (name, thisFileName))
 			for line in otherSet:
-				print "  %s" % line
-			print
+				print("  %s" % line)
+			print()
 		if thisSet:
-			print
-			print u"⚠️ Code lines not in %s of %s:" % (name, otherFileName)
+			print()
+			print(u"⚠️ Code lines not in %s of %s:" % (name, otherFileName))
 			for line in thisSet:
-				print "  %s" % line
-			print
+				print("  %s" % line)
+			print()
 	else:
-		print u"💚 %s: same code in both fonts." % name
+		print(u"💚 %s: same code in both fonts." % name)

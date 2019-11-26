@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Compare Anchors
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -67,7 +68,7 @@ class CompareAnchorsOfFrontmostFonts( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Compare Anchors of Frontmost Fonts' could not load preferences. Will resort to defaults"
+			print("Note: 'Compare Anchors of Frontmost Fonts' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -80,10 +81,10 @@ class CompareAnchorsOfFrontmostFonts( object ):
 			self.w.ignoreExitEntry.enable( ignoreSetting )
 			self.w.ignoreHashtaggedAnchors.enable( ignoreSetting )
 		except Exception as e:
-			print u"Error: Could not update UI. You can ignore this warning, but let Rainer know."
-			print e
+			print(u"Error: Could not update UI. You can ignore this warning, but let Rainer know.")
+			print(e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 	
 	def SavePreferences( self, sender ):
 		try:
@@ -135,7 +136,7 @@ class CompareAnchorsOfFrontmostFonts( object ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print "Note: 'Compare Anchors of Frontmost Fonts' could not write preferences."
+				print("Note: 'Compare Anchors of Frontmost Fonts' could not write preferences.")
 			
 			# query prefs:
 			reportOnlyTopBottomCenter = Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.reportOnlyTopBottomCenter"]
@@ -154,27 +155,27 @@ class CompareAnchorsOfFrontmostFonts( object ):
 				otherFont = Glyphs.fonts[1] # second font
 				thisFilePath, otherFilePath = thisFont.filepath, otherFont.filepath
 				thisFileName, otherFileName = thisFont.filepath.lastPathComponent(), otherFont.filepath.lastPathComponent(), 
-				print "Compare Anchors of Frontmost Fonts Report for:\n  (1) %s: %s\n      %s\n  (2) %s: %s\n      %s" % (
+				print("Compare Anchors of Frontmost Fonts Report for:\n  (1) %s: %s\n      %s\n  (2) %s: %s\n      %s" % (
 					thisFont.familyName, thisFilePath, thisFileName, 
 					otherFont.familyName, otherFilePath, otherFileName, 
-					)
-				print
+					))
+				print()
 				
 				try:
 					tolerance = abs(float(Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.anchorHeightTolerance"]))
 				except:
 					tolerance = 0.0
 				if reportAnchorHeights:
-					print "Anchor height tolerance: %.1f units" % tolerance
-					print
+					print("Anchor height tolerance: %.1f units" % tolerance)
+					print()
 				
 				theseIDs = [m.id for m in thisFont.masters]
 				otherIDs = [m.id for m in otherFont.masters]
 				masters = zip(theseIDs, otherIDs)
 				
 				if len(theseIDs) != len(otherIDs):
-					print u"⚠️ Different number of masters in (1) %s and (2) %s" % (thisFileName, otherFileName)
-					print
+					print(u"⚠️ Different number of masters in (1) %s and (2) %s" % (thisFileName, otherFileName))
+					print()
 				
 				skippedGlyphNames = []
 				affectedGlyphNames = []
@@ -182,15 +183,15 @@ class CompareAnchorsOfFrontmostFonts( object ):
 					self.w.progress.set( i/len(thisFont.glyphs) )
 					otherGlyph = otherFont.glyphs[thisGlyph.name]
 					if not otherGlyph:
-						print u"⚠️ Glyph %s missing in (2) %s" % (thisGlyph.name, otherFileName)
+						print(u"⚠️ Glyph %s missing in (2) %s" % (thisGlyph.name, otherFileName))
 					else:
 						if not (thisGlyph.export or Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.includeNonExporting"]):
 							skippedGlyphNames.append(thisGlyph.name) 
 							if otherGlyph.export:
-								print u"😬 Glyph %s exports in (2) %s, but not in (1) %s. Skipping." % (otherFileName, thisFileName)
+								print(u"😬 Glyph %s exports in (2) %s, but not in (1) %s. Skipping." % (otherFileName, thisFileName))
 						else:
 							if not (otherGlyph.export or Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.includeNonExporting"]):
-								print u"😬 Glyph %s exports in (1) %s, but not in (2) %s. Skipping." % (thisFileName, otherFileName)
+								print(u"😬 Glyph %s exports in (1) %s, but not in (2) %s. Skipping." % (thisFileName, otherFileName))
 								skippedGlyphNames.append(thisGlyph.name) 
 							else:
 								
@@ -231,23 +232,23 @@ class CompareAnchorsOfFrontmostFonts( object ):
 										missingInTheseAnchors = [a for a in otherAnchors if not a in theseAnchors]
 										
 										if missingInTheseAnchors:
-											print u"🚫 %s (%s): missing anchor%s %s in (1) %s" % (
+											print(u"🚫 %s (%s): missing anchor%s %s in (1) %s" % (
 												thisGlyph.name, thisLayer.name,
 												"" if len(missingInTheseAnchors)==1 else "s",
 												", ".join(["'%s'"%a for a in missingInTheseAnchors]),
 												thisFileName,
-											)
+											))
 											if Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.openTabAndSelectAnchors"]:
 												self.selectAnchorsInLayer(missingInTheseAnchors, otherLayer, resetSelection=False)
 											affectedGlyphNames.append(otherGlyph.name)
 												
 										if missingInOtherAnchors:
-											print u"🚫 %s (%s): missing anchor%s %s in (2) %s" % (
+											print(u"🚫 %s (%s): missing anchor%s %s in (2) %s" % (
 												otherGlyph.name, otherLayer.name,
 												"" if len(missingInOtherAnchors)==1 else "s",
 												", ".join(["'%s'"%a for a in missingInOtherAnchors]),
 												otherFileName,
-											)
+											))
 											if Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.openTabAndSelectAnchors"]:
 												self.selectAnchorsInLayer(missingInOtherAnchors, thisLayer, resetSelection=False)
 											affectedGlyphNames.append(thisGlyph.name)
@@ -264,12 +265,12 @@ class CompareAnchorsOfFrontmostFonts( object ):
 														differingAnchors.append(thisAnchor.name)
 										
 										if differingAnchors:
-											print u"↕️ %s: %s deviate%s in: (1) %s, (2) %s" % (
+											print(u"↕️ %s: %s deviate%s in: (1) %s, (2) %s" % (
 												thisGlyph.name,
 												", ".join(["'%s'" % a for a in differingAnchors]),
 												"s" if len(differingAnchors)==1 else "", 
 												thisLayer.name, otherLayer.name,
-											)
+											))
 											if Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.openTabAndSelectAnchors"]:
 												self.selectAnchorsInLayer( differingAnchors, thisLayer, resetSelection=False )
 												self.selectAnchorsInLayer( differingAnchors, otherLayer, resetSelection=False )
@@ -279,7 +280,7 @@ class CompareAnchorsOfFrontmostFonts( object ):
 				affectedGlyphNames = set(affectedGlyphNames)
 				if affectedGlyphNames:
 					tabString = "/"+"/".join(affectedGlyphNames)
-					print "\nFound %i affected glyphs:\n%s" % ( len(affectedGlyphNames), tabString)
+					print("\nFound %i affected glyphs:\n%s" % ( len(affectedGlyphNames), tabString))
 
 					if Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.openTabAndSelectAnchors"]:
 						# opens new Edit tab:
@@ -290,15 +291,15 @@ class CompareAnchorsOfFrontmostFonts( object ):
 						Glyphs.showMacroWindow()
 						
 				if skippedGlyphNames:
-					print "\nSkipped %i glyphs:\n%s" % ( len(skippedGlyphNames), ", ".join(skippedGlyphNames) )
+					print("\nSkipped %i glyphs:\n%s" % ( len(skippedGlyphNames), ", ".join(skippedGlyphNames) ))
 				
 				self.w.progress.set(100)
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Compare Anchors of Frontmost Fonts Error: %s" % e
+			print("Compare Anchors of Frontmost Fonts Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 CompareAnchorsOfFrontmostFonts()

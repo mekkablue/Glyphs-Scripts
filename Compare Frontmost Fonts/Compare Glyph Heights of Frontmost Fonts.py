@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Compare Glyph Heights
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -50,7 +51,7 @@ class CompareGlyphHeightsOfFrontmostFonts( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Compare Glyph Heights of Frontmost Fonts' could not load preferences. Will resort to defaults"
+			print("Note: 'Compare Glyph Heights of Frontmost Fonts' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -94,7 +95,7 @@ class CompareGlyphHeightsOfFrontmostFonts( object ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print "Note: 'Compare Glyph Heights of Frontmost Fonts' could not write preferences."
+				print("Note: 'Compare Glyph Heights of Frontmost Fonts' could not write preferences.")
 			
 			if len(Glyphs.fonts) < 2:
 				Message(title="Compare Error", message="You need to have at least two fonts open for comparing.", OKButton="Ooops")	
@@ -105,11 +106,11 @@ class CompareGlyphHeightsOfFrontmostFonts( object ):
 				
 				thisFont = Glyphs.font # frontmost font
 				otherFont = Glyphs.fonts[1] # second font
-				print "Compare Glyph Heights of Frontmost Fonts Report for:\n  (1) %s: %s\n      %s\n  (2) %s: %s\n      %s" % (
+				print("Compare Glyph Heights of Frontmost Fonts Report for:\n  (1) %s: %s\n      %s\n  (2) %s: %s\n      %s" % (
 					thisFont.familyName, thisFont.filepath.lastPathComponent(), thisFont.filepath,
 					otherFont.familyName, otherFont.filepath.lastPathComponent(), otherFont.filepath,
-					)
-				print
+					))
+				print()
 			
 				heights = Glyphs.defaults["com.mekkablue.CompareGlyphHeightsOfFrontmostFonts.heights"]
 				depths = Glyphs.defaults["com.mekkablue.CompareGlyphHeightsOfFrontmostFonts.depths"]
@@ -122,33 +123,33 @@ class CompareGlyphHeightsOfFrontmostFonts( object ):
 				collectedGlyphNames = []
 				
 				if len(theseIDs) != len(otherIDs):
-					print u"⚠️ Different number of masters in %s and %s" % (thisFont.filepath.lastPathComponent(), otherFont.filepath.lastPathComponent())
+					print(u"⚠️ Different number of masters in %s and %s" % (thisFont.filepath.lastPathComponent(), otherFont.filepath.lastPathComponent()))
 			
 				for thisGlyph in thisFont.glyphs:
 					if thisGlyph.export or includeNonExporting:
 						glyphName = thisGlyph.name
 						otherGlyph = otherFont.glyphs[glyphName]
 						if not otherGlyph:
-							print u"⚠️ %s: not in other font (%s)" % (glyphName, otherFont.familyName)
+							print(u"⚠️ %s: not in other font (%s)" % (glyphName, otherFont.familyName))
 						else:
 							for idPair in masters:
 								thisID, otherID = idPair[0], idPair[1]
 								thisLayer = thisGlyph.layers[thisID]
 								otherLayer = otherGlyph.layers[otherID]
 								if not (thisLayer and otherLayer):
-									print u"⚠️ Cannot compare layers in %s" % glyphName
+									print(u"⚠️ Cannot compare layers in %s" % glyphName)
 								else:
 									if heights:
 										thisHeight = thisLayer.bounds.origin.y + thisLayer.bounds.size.height
 										otherHeight = otherLayer.bounds.origin.y + otherLayer.bounds.size.height
 										if abs(thisHeight-otherHeight) > tolerate:
-											print u"❌ %s heights: 1st %.1f, 2nd %.1f" % (glyphName, thisHeight, otherHeight)
+											print(u"❌ %s heights: 1st %.1f, 2nd %.1f" % (glyphName, thisHeight, otherHeight))
 											collectedGlyphNames.append(glyphName)
 									if depths:
 										thisDepth = thisLayer.bounds.origin.y
 										otherDepth = otherLayer.bounds.origin.y
 										if abs(thisDepth-otherDepth) > tolerate:
-											print u"❌ %s depths: 1st %.1f, 2nd %.1f" % (glyphName, thisDepth, otherDepth)
+											print(u"❌ %s depths: 1st %.1f, 2nd %.1f" % (glyphName, thisDepth, otherDepth))
 											collectedGlyphNames.append(glyphName)
 											
 				if not collectedGlyphNames:
@@ -158,11 +159,11 @@ class CompareGlyphHeightsOfFrontmostFonts( object ):
 					tabText = "/"+"/".join(collectedGlyphNames)
 					thisFont.newTab(tabText)
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Compare Glyph Heights of Frontmost Fonts Error: %s" % e
+			print("Compare Glyph Heights of Frontmost Fonts Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 CompareGlyphHeightsOfFrontmostFonts()

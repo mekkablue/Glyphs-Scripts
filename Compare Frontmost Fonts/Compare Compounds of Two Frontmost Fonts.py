@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Compare Compounds
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -11,7 +12,7 @@ Font2 = Glyphs.fonts[1]
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
 
-print "Comparing:\nFont 1: %s\nFont 2: %s\n" % (Font1.filepath, Font2.filepath)
+print("Comparing:\nFont 1: %s\nFont 2: %s\n" % (Font1.filepath, Font2.filepath))
 
 for g1 in [g for g in Font1.glyphs if g.export]:
 	glyphname = g1.name
@@ -26,6 +27,6 @@ for g1 in [g for g in Font1.glyphs if g.export]:
 			compound2 = "+".join([c.componentName for c in l2.components])
 			
 			if compound1 != compound2:
-				print "/%s : %s <> %s" % (glyphname, compound1, compound2)
+				print("/%s : %s <> %s" % (glyphname, compound1, compound2))
 	else:
-		print "  %s not in Font 2" % (glyphname)
+		print("  %s not in Font 2" % (glyphname))

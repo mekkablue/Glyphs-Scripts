@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Compare Font Info > Font
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -15,13 +16,13 @@ otherFileName = otherFont.filepath.pathComponents()[-1]
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
 
-print "Comparing Font Info > Font for:".upper()
-print
-print "1. %s (family: %s)" % (thisFileName, thisFont.familyName)
-print "   %s" % thisFont.filepath
-print "2. %s (family: %s)" % (otherFileName, otherFont.familyName)
-print "   %s" % otherFont.filepath
-print 
+print("Comparing Font Info > Font for:".upper())
+print()
+print("1. %s (family: %s)" % (thisFileName, thisFont.familyName))
+print("   %s" % thisFont.filepath)
+print("2. %s (family: %s)" % (otherFileName, otherFont.familyName))
+print("   %s" % otherFont.filepath)
+print() 
 
 keyValueDict= {
 	"Family Name": (thisFont.familyName, otherFont.familyName),
@@ -38,11 +39,11 @@ keyValueDict= {
 for key in keyValueDict:
 	thisValue, otherValue = keyValueDict[key]
 	if thisValue == otherValue:
-		print u"✅ %s value is the same: %s" % (key, thisValue)
+		print(u"✅ %s value is the same: %s" % (key, thisValue))
 	else:
-		print u"⚠️ Different %s values:" % key
-		print u"   A. '%s' in %s" % (thisValue, thisFileName)
-		print u"   B. '%s' in %s" % (otherValue, otherFileName)
+		print(u"⚠️ Different %s values:" % key)
+		print(u"   A. '%s' in %s" % (thisValue, thisFileName))
+		print(u"   B. '%s' in %s" % (otherValue, otherFileName))
 
 # count parameters:
 compareCount(
@@ -57,13 +58,13 @@ otherParameters = [p.name for p in otherFont.customParameters]
 thisSet, otherSet = compareLists(theseParameters, otherParameters)
 if thisSet or otherSet:
 	if otherSet:
-		print u"❌ Parameters not in (A) %s:" % thisFileName
-		print "   %s" % ("\n   ".join(otherSet))
+		print(u"❌ Parameters not in (A) %s:" % thisFileName)
+		print("   %s" % ("\n   ".join(otherSet)))
 	if thisSet:
-		print u"❌ Parameters not in (B) %s:" % otherFileName
-		print "   %s" % ("\n   ".join(thisSet))
+		print(u"❌ Parameters not in (B) %s:" % otherFileName)
+		print("   %s" % ("\n   ".join(thisSet)))
 else:
-	print u"✅ Same structure of parameters in both masters."
+	print(u"✅ Same structure of parameters in both masters.")
 
 # detailed comparison:
 for thisParameterName in [p.name for p in thisFont.customParameters]:
@@ -72,12 +73,12 @@ for thisParameterName in [p.name for p in thisFont.customParameters]:
 	if otherParameter:
 		if thisParameter == otherParameter:
 			parameterContent = cleanUpAndShortenParameterContent(thisParameter)
-			print u"💚 Parameter %s: same value (%s). OK." % (thisParameterName, parameterContent)
+			print(u"💚 Parameter %s: same value (%s). OK." % (thisParameterName, parameterContent))
 		else:
 			thisContent = cleanUpAndShortenParameterContent(thisParameter)
 			otherContent = cleanUpAndShortenParameterContent(otherParameter)
-			print u"⚠️ Parameter %s: different values." % thisParameterName
-			print u"    A. %s in %s" % (thisContent, thisFileName)
-			print u"    B. %s in %s" % (otherContent, otherFileName)
+			print(u"⚠️ Parameter %s: different values." % thisParameterName)
+			print(u"    A. %s in %s" % (thisContent, thisFileName))
+			print(u"    B. %s in %s" % (otherContent, otherFileName))
 			
 			

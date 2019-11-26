@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Compare Font Info > Features
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -31,13 +32,13 @@ compareSet = {
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
 
-print "Comparing Feature Sets for:".upper()
-print
-print "1. %s (family: %s)" % (thisFileName, thisFont.familyName)
-print "   %s" % thisFont.filepath
-print "2. %s (family: %s)" % (otherFileName, otherFont.familyName)
-print "   %s" % otherFont.filepath
-print 
+print("Comparing Feature Sets for:".upper())
+print()
+print("1. %s (family: %s)" % (thisFileName, thisFont.familyName))
+print("   %s" % thisFont.filepath)
+print("2. %s (family: %s)" % (otherFileName, otherFont.familyName))
+print("   %s" % otherFont.filepath)
+print() 
 
 for compareGroup in ("Prefixes","Classes","Features"):
 	thisSet, otherSet = compareSet[compareGroup]
@@ -48,17 +49,17 @@ for compareGroup in ("Prefixes","Classes","Features"):
 	# report in Macro Window
 	if thisSet or otherSet:
 		if otherSet:
-			print u"❌ %s not in (1) %s\n" % (compareGroup, thisFileName)
-			print "  %s" % (", ".join(otherSet))
+			print(u"❌ %s not in (1) %s\n" % (compareGroup, thisFileName))
+			print("  %s" % (", ".join(otherSet)))
 		if thisSet:
-			print u"❌ %s not in (2) %s\n" % (compareGroup, otherFileName)
-			print "  %s" % (", ".join(thisSet))
+			print(u"❌ %s not in (2) %s\n" % (compareGroup, otherFileName))
+			print("  %s" % (", ".join(thisSet)))
 	else:
-		print u"✅ %s: same structure in both fonts." % compareGroup
+		print(u"✅ %s: same structure in both fonts." % compareGroup)
 
-print
-print "Detailed Code Comparison:".upper()
-print
+print()
+print("Detailed Code Comparison:".upper())
+print()
 for prefix in [p.name for p in thisFont.featurePrefixes if p.active]:
 	# prefixes:
 	thisPrefix = thisFont.featurePrefixes[prefix]
