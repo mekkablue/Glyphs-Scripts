@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Set TT Stem Hints to Auto
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -19,7 +20,7 @@ for thisLayer in listOfSelectedLayers:
 	thisGlyph = thisLayer.parent
 	thisGlyph.beginUndo() # begin undo grouping
 	if process( thisLayer ):
-		print "%s: OK." % thisGlyph.name
+		print("%s: OK." % thisGlyph.name)
 	else:
-		print "%s: no TT stems found." % thisGlyph.name
+		print("%s: no TT stems found." % thisGlyph.name)
 	thisGlyph.endUndo() # end undo grouping

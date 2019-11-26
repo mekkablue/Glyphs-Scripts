@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Set blueScale
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -51,9 +52,9 @@ Glyphs.showMacroWindow()
 
 thisFont = Glyphs.font # frontmost font
 if thisFont.customParameters["blueScale"]:
-	print "Old blueScale value: %f" % float(thisFont.customParameters["blueScale"])
-	print "(Stored in font parameter 'OLD blueScale'.)"
-	print
+	print("Old blueScale value: %f" % float(thisFont.customParameters["blueScale"]))
+	print("(Stored in font parameter 'OLD blueScale'.)")
+	print()
 	thisFont.customParameters["OLD blueScale"] = thisFont.customParameters["blueScale"]
 
 minSize = 16
@@ -61,23 +62,23 @@ maxSize = maxPPMforOvershootSuppressionInFont( thisFont )
 maxBlueScale = maxBlueScaleForFont( thisFont )
 thisFont.customParameters["blueScale"] = maxBlueScale
 
-print "blueScale set to maximum: OK"
-print
-print "Maximum blueScale for %s:\n%f (PPM: %i px)" % (
+print("blueScale set to maximum: OK")
+print()
+print("Maximum blueScale for %s:\n%f (PPM: %i px)" % (
 	thisFont.familyName,
 	maxBlueScale,
 	maxSize,
-)
-print 
+))
+print() 
 
 if maxSize > minSize:
-	print "Possible font size limits of overshoot suppression:"
-	print 
-	print "    PPM    96dpi  144dpi  300dpi  600dpi  blueScale  max zone"
-	print "------- -------- ------- ------- ------- ---------- ---------"
+	print("Possible font size limits of overshoot suppression:")
+	print() 
+	print("    PPM    96dpi  144dpi  300dpi  600dpi  blueScale  max zone")
+	print("------- -------- ------- ------- ------- ---------- ---------")
 	for size in range(minSize,maxSize+1):
 	#for size in range(30,71,2):
-		print "%4i px  % 4.0f pt % 4.0f pt % 4.0f pt % 4.0f pt    %.5f     %3i u" % (
+		print("%4i px  % 4.0f pt % 4.0f pt % 4.0f pt % 4.0f pt    %.5f     %3i u" % (
 			size,
 			(size/96.0)*72.0,
 			(size/144.0)*72.0,
@@ -85,4 +86,4 @@ if maxSize > minSize:
 			(size/600.0)*72.0,
 			blueScaleForPPMsize(size),
 			maxZoneForBlueScale(blueScaleForPPMsize(size)),
-		)
+		))

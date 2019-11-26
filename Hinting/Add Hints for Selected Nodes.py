@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Add Hints to Selected Nodes
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -74,5 +75,5 @@ elif numberOfSelectedNodes % 2 == 0:
 else:
 	Glyphs.clearLog()
 	Glyphs.showMacroWindow()
-	print "Error: Either 1 node, or an even number of nodes must be selected."
+	print("Error: Either 1 node, or an even number of nodes must be selected.")
 

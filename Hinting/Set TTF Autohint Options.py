@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Set TTF Autohint Options
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -25,7 +26,7 @@ def removeFromAutohintOptions( thisInstance, removeOption ):
 				ttfAutohintOptions.pop(j)
 			thisInstance.customParameters[parameterName] = " ".join(ttfAutohintOptions)
 		else:
-			print "-- Warning: '%s' not found." % removeOption
+			print("-- Warning: '%s' not found." % removeOption)
 
 def dictToParameterValue( ttfAutohintDict ):
 	parameterValue = ""
@@ -66,7 +67,7 @@ def glyphInterpolation( thisGlyph, thisInstance ):
 			return None
 	except Exception as e:
 		import traceback
-		print traceback.format_exc()
+		print(traceback.format_exc())
 		return None
 
 def idotlessMeasure(instance):
@@ -98,7 +99,7 @@ def writeOptionsToInstance( optionDict, instance ):
 		if actualStemWidth:
 			value = value.replace( "--fallback-stem-width=idotless", "--fallback-stem-width=%i"%actualStemWidth )
 		else:
-			print "Warning: Could not measure stem width of idotless in instance '%s'." % instance.name
+			print("Warning: Could not measure stem width of idotless in instance '%s'." % instance.name)
 			return # do nothing
 	instance.customParameters[parameterName] = value
 
@@ -129,7 +130,7 @@ class SetTTFAutohintOptions( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Set TTF Autohint Options' could not load preferences. Will resort to defaults"
+			print("Note: 'Set TTF Autohint Options' could not load preferences. Will resort to defaults")
 		
 		# enable or disable the edit box
 		self.editValueField()
@@ -213,22 +214,22 @@ class SetTTFAutohintOptions( object ):
 			for thisInstance in Glyphs.font.instances:
 				if thisInstance.customParameters[parameterName]:
 					removeFromAutohintOptions( thisInstance, optionName )
-					print "Removing %s from instance '%s'." % (
+					print("Removing %s from instance '%s'." % (
 						optionName,
 						thisInstance.name,
-					)
-		except Exception, e:
+					))
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Set TTF Autohint Options Error: %s" % e
+			print("Set TTF Autohint Options Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 		
 	
 	def SetTTFAutohintOptionsMain( self, sender ):
 		try:
 			if not self.SavePreferences( self ):
-				print "Note: 'Set TTF Autohint Options' could not write preferences."
+				print("Note: 'Set TTF Autohint Options' could not write preferences.")
 			
 			optionIndex = int(Glyphs.defaults["com.mekkablue.SetTTFAutohintOptions.ttfAutohintOption"])
 			optionName = availableOptions[optionIndex]
@@ -240,24 +241,24 @@ class SetTTFAutohintOptions( object ):
 						optionDict = ttfAutohintDict( thisInstance.customParameters[parameterName] )
 						optionDict[ optionName ] = enteredValue
 						writeOptionsToInstance( optionDict, thisInstance )
-						print "Set %s in instance '%s'." % (
+						print("Set %s in instance '%s'." % (
 							optionName,
 							thisInstance.name,
-						)
+						))
 					else:
-						print "No TTF Autohint parameter in instance '%s'. %s not set." % (
+						print("No TTF Autohint parameter in instance '%s'. %s not set." % (
 							thisInstance.name,
 							optionName,
-						)
+						))
 			else:
 				Message("Script Error", "Illegal value entered.", OKButton=None)
 			
 			# self.w.close() # delete if you want window to stay open
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Set TTF Autohint Options Error: %s" % e
+			print("Set TTF Autohint Options Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 SetTTFAutohintOptions()

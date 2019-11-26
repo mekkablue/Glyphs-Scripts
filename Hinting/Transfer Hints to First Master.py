@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Transfer Hints to First Master
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -67,15 +68,15 @@ for thisLayer in selectedLayers:
 	if thisLayer.layerId != firstMasterId:
 		firstLayer = thisGlyph.layers[firstMasterId]
 		if thisGlyph.mastersCompatibleForLayers_([thisLayer,firstLayer]):
-			print "Transfering hints in: %s" % thisGlyph.name
+			print("Transfering hints in: %s" % thisGlyph.name)
 			thisGlyph.beginUndo() # begin undo grouping
 			transferHintsFromTo( thisLayer, firstLayer )
 			thisGlyph.endUndo()   # end undo grouping
 		else:
 			Glyphs.showMacroWindow()
-			print "%s: layers incompatible." % thisGlyph.name
+			print("%s: layers incompatible." % thisGlyph.name)
 	else:
 		Glyphs.showMacroWindow()
-		print "%s: layer '%s' is already the first master layer." % (thisGlyph.name,thisLayer.name)
+		print("%s: layer '%s' is already the first master layer." % (thisGlyph.name,thisLayer.name))
 
 thisFont.enableUpdateInterface() # re-enables UI updates in Font View

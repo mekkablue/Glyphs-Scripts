@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Remove Zero Deltas in Selected Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -11,11 +12,11 @@ def process( Layer ):
 			hint = Layer.hints[i]
 			if hint.type == TTDELTA:
 				elementDict = hint.elementDict()
-				if elementDict.has_key("settings"):
+				if "settings" in elementDict:
 					settings = elementDict["settings"]
 					if settings:
 						for deltaType in ("deltaH","deltaV"):
-							if settings.has_key(deltaType):
+							if deltaType in settings:
 								for transformType in settings[deltaType]:
 									deltas = settings[deltaType][transformType]
 									for ppmSize in deltas:
@@ -35,19 +36,19 @@ def process( Layer ):
 					if not elementDict["settings"]:
 						del Layer.hints[i]
 
-		print "  Deleted %i zero delta%s on layer '%s'." % (
+		print("  Deleted %i zero delta%s on layer '%s'." % (
 			count,
 			"" if count == 1 else "s",
 			Layer.name,
-		)
+		))
 	
 		return count
 	except Exception as e:
 		Glyphs.showMacroWindow()
 		import traceback
-		print traceback.format_exc()
-		print
-		print e
+		print(traceback.format_exc())
+		print()
+		print(e)
 
 thisFont = Glyphs.font # frontmost font
 selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
@@ -56,7 +57,7 @@ Glyphs.clearLog() # clears log in Macro window
 totalCount = 0
 for selectedLayer in selectedLayers:
 	thisGlyph = selectedLayer.parent
-	print "%s:" % thisGlyph.name
+	print("%s:" % thisGlyph.name)
 	thisGlyph.beginUndo() # begin undo grouping
 	for thisLayer in thisGlyph.layers:
 		totalCount += process( thisLayer )

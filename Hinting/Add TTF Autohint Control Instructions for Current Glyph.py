@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Add TTF Autohint Control Instructions for Current Glyph
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -166,7 +167,7 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Add ttfAutohint Control Instructions for Current Glyph' could not load preferences. Will resort to defaults"
+			print("Note: 'Add ttfAutohint Control Instructions for Current Glyph' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -241,7 +242,7 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph( object ):
 	def InsertRightAtTop( self, sender ):
 		Font, currentInstance, tool, glyphName, layer, glyf, glyfBounds, coords, pointCount = self.fontInstanceToolGlyphLayer()
 		if not Font:
-			print "ERROR: Could not determine font."
+			print("ERROR: Could not determine font.")
 		else:
 			# add right instruction for topmost point if desired:
 			highestPointIndex = -1
@@ -255,12 +256,12 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph( object ):
 				instructionLine = "%s right %i" % (glyphName,highestPointIndex)
 				addToInstructions(instructionLine, currentInstance)
 			else:
-				print "ERROR: Could not determine highest point in %s." % glyphName
+				print("ERROR: Could not determine highest point in %s." % glyphName)
 				
 	def InsertLeftAtTop( self, sender ):
 		Font, currentInstance, tool, glyphName, layer, glyf, glyfBounds, coords, pointCount = self.fontInstanceToolGlyphLayer()
 		if not Font:
-			print "ERROR: Could not determine font."
+			print("ERROR: Could not determine font.")
 		else:
 			# add left instruction for topmost point if desired:
 			highestPointIndex = -1
@@ -277,15 +278,15 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph( object ):
 				instructionLine = "%s left %i" % (glyphName,highestPointIndex)
 				addToInstructions(instructionLine, currentInstance)
 			else:
-				print "ERROR: Could not determine highest point in %s." % glyphName
+				print("ERROR: Could not determine highest point in %s." % glyphName)
 		
 	def AddTTFAutohintControlInstructionsForCurrentGlyphMain( self, sender ):
 		try:
 			if not self.SavePreferences( self ):
-				print "Note: 'Add ttfAutohint Control Instructions for Current Glyph' could not write preferences."
+				print("Note: 'Add ttfAutohint Control Instructions for Current Glyph' could not write preferences.")
 			
 			shift = float(sender.getTitle())
-			print shift
+			print(shift)
 			if shift:
 				Font, currentInstance, tool, glyphName, layer, glyf, glyfBounds, coords, pointCount = self.fontInstanceToolGlyphLayer()
 				if Font:
@@ -300,10 +301,10 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph( object ):
 					# determine PPMs
 					sizeString = Glyphs.defaults["com.mekkablue.AddTTFAutohintControlInstructionsForCurrentGlyph.ppm"]
 					if not sizeString:
-						print "ERROR: Could not determine PPMs, will use a default. Did you enter any?"
+						print("ERROR: Could not determine PPMs, will use a default. Did you enter any?")
 						sizeString = "17"
 					elif not sizeStringIsOK(sizeString):
-						print "ERROR: Illegal character found in PPM specification (%s), will use default instead." % sizeString
+						print("ERROR: Illegal character found in PPM specification (%s), will use default instead." % sizeString)
 						sizeString = "17"
 				
 					# build point indexes to be moved:
@@ -358,7 +359,7 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph( object ):
 						pointIndexString = ", ".join(pointIndexStrings)
 				
 					if not pointIndexString:
-						print "ERROR: no point indexes matching your criteria could be found."
+						print("ERROR: no point indexes matching your criteria could be found.")
 					else:
 						# build the instruction line:
 						instructionLine = "%s touch %s %s @ %s" % ( 
@@ -373,12 +374,12 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph( object ):
 							addToInstructions(instructionLine,currentInstance)
 
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Add ttfAutohint Control Instructions for Current Glyph Error: %s" % e
+			print("Add ttfAutohint Control Instructions for Current Glyph Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 Glyphs.defaults["TTPreviewAlsoShowOffCurveIndexes"] = True
 AddTTFAutohintControlInstructionsForCurrentGlyph()

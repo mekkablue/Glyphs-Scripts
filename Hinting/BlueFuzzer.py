@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: BlueFuzzer
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -71,10 +72,10 @@ class BlueFuzzer( object ):
 						thisZone.setSize_( thisZone.size + (fuzzValue * 2) * factor )
 					
 			if not self.SavePreferences( self ):
-				print "Note: could not write preferences."
+				print("Note: could not write preferences.")
 			
 			self.w.close()
-		except Exception, e:
+		except Exception as e:
 			raise e
 
 BlueFuzzer()

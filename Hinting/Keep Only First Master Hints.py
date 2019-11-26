@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Keep First Master Hints Only
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -10,12 +11,12 @@ selectedGlyphs = [ l.parent for l in selectedLayers ]
 firstMasterName = Font.masters[0].name
 
 Glyphs.clearLog()
-print "Only keeping first-master hints in:"
+print("Only keeping first-master hints in:")
 
 for thisGlyph in selectedGlyphs:
-	print "- %s" % thisGlyph.name
+	print("- %s" % thisGlyph.name)
 	layersToBeProcessed = [ l for l in thisGlyph.layers if not l.name.startswith( firstMasterName ) ]
 	for thisLayer in layersToBeProcessed:
 		thisLayer.hints = None
 
-print "Done."
+print("Done.")

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Set Family Alignment Zones
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -79,9 +80,9 @@ class SetFamilyAlignmentZones( object ):
 			Glyphs.clearLog() # clears macro window log
 			
 			thisFont = Glyphs.font # frontmost font
-			print "Set Family Alignment Zones Report for %s" % thisFont.familyName
-			print thisFont.filepath
-			print
+			print("Set Family Alignment Zones Report for %s" % thisFont.familyName)
+			print(thisFont.filepath)
+			print()
 			
 			instanceName = self.w.instancePicker.getItem()
 			instanceIndex = int(instanceName[:instanceName.find(":")])
@@ -89,18 +90,18 @@ class SetFamilyAlignmentZones( object ):
 			if thisInstance.name in instanceName:
 				instanceZones = thisInstance.font.masters[0].alignmentZones
 				thisFont.customParameters["Family Alignment Zones"] = instanceZones
-				print u"✅ Set family alignment zones to instance %s" % instanceName
+				print(u"✅ Set family alignment zones to instance %s" % instanceName)
 			else:
 				Message(
 					title="Family Zones Error", 
 					message="Seems like the instance you picked (%s) is not in the frontmost font. Please click the update button and choose again." % instanceName, 
 					OKButton=None,
 				)
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Set Family Alignment Zones Error: %s" % e
+			print("Set Family Alignment Zones Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 SetFamilyAlignmentZones()
