@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: New Tab with Glyphs Containing Anchor
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -36,7 +37,7 @@ class NewTabWithAnchor( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'New Tab with Anchor' could not load preferences. Will resort to defaults"
+			print("Note: 'New Tab with Anchor' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -66,7 +67,7 @@ class NewTabWithAnchor( object ):
 		return True
 
 	def layerContainsAnchor( self, thisLayer, anchorName ):
-		print "%s on %s" % (anchorName, thisLayer.name)
+		print("%s on %s" % (anchorName, thisLayer.name))
 		anchorNames = [a.name for a in thisLayer.anchors]
 		if anchorName in anchorNames:
 			return True
@@ -107,7 +108,7 @@ class NewTabWithAnchor( object ):
 			
 			
 				if not self.SavePreferences( self ):
-					print "Note: 'New Tab with Anchor' could not write preferences."
+					print("Note: 'New Tab with Anchor' could not write preferences.")
 			
 				if not self.w.keepWindowOpen.get():
 					self.w.close() # closes window
@@ -115,9 +116,9 @@ class NewTabWithAnchor( object ):
 				self.errMsg(
 					"No anchor name specified. Please enter an anchor name before pressing the button."
 				)
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "New Tab with Anchor Error: %s" % e
+			print("New Tab with Anchor Error: %s" % e)
 
 NewTabWithAnchor()

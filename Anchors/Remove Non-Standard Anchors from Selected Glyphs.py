@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Remove Non-Standard Anchors from Selected Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -35,7 +36,7 @@ class RemoveNonStandardAnchors( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Remove Non-Standard Anchors' could not load preferences. Will resort to defaults"
+			print("Note: 'Remove Non-Standard Anchors' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -107,18 +108,18 @@ class RemoveNonStandardAnchors( object ):
 								
 								# Delete if need be:
 								if not keepThisAnchor:
-									print "Glyph %s, layer '%s': deleting anchor %s" % ( thisGlyph.name, currentLayer.name, currentAnchorName )
+									print("Glyph %s, layer '%s': deleting anchor %s" % ( thisGlyph.name, currentLayer.name, currentAnchorName ))
 									del currentLayer.anchors[currentAnchorName]
 			
 			if not self.SavePreferences( self ):
-				print "Note: 'Remove Non-Standard Anchors' could not write preferences."
+				print("Note: 'Remove Non-Standard Anchors' could not write preferences.")
 			
 			self.w.close() # delete if you want window to stay open
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Remove Non-Standard Anchors Error: %s" % e
+			print("Remove Non-Standard Anchors Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 RemoveNonStandardAnchors()

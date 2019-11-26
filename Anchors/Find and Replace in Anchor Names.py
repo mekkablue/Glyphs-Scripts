@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Find And Replace In Anchor Names
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -34,7 +35,7 @@ class SearchAndReplaceInAnchorNames( object ):
 				
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Search And Replace In Anchor Names' could not load preferences. Will resort to defaults"
+			print("Note: 'Search And Replace In Anchor Names' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -81,16 +82,16 @@ class SearchAndReplaceInAnchorNames( object ):
 							displayReportString = True
 				
 				if displayReportString:
-					print reportString
+					print(reportString)
 
 			if not self.SavePreferences( self ):
-				print "Note: 'Search And Replace In Anchor Names' could not write preferences."
+				print("Note: 'Search And Replace In Anchor Names' could not write preferences.")
 			
 			self.w.close() # delete if you want window to stay open
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Search And Replace In Anchor Names Error: %s" % e
+			print("Search And Replace In Anchor Names Error: %s" % e)
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()

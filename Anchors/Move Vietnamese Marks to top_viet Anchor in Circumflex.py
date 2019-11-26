@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Move Vietnamese Marks to top_viet Anchor in Circumflex
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -45,12 +46,12 @@ def process( thisGlyph ):
 						try:
 							thisLayer.components[ thisComponentIndex ].setAnchor_( newAnchor )
 							statusString += "\n   %s: Moved %s on %s." % ( thisLayer.name, accentName, newAnchor )
-						except Exception, e:
+						except Exception as e:
 							return "\nERROR in %s %s:\nCould not move %s onto %s.\n%s" % ( thisGlyph.name, thisLayer.name, accentName, newAnchor, e )
 	return statusString
 
 for thisGlyph in selectedGlyphs:
 	thisGlyph.beginUndo()
-	print process( thisGlyph )
+	print(process( thisGlyph ))
 	thisGlyph.endUndo()
 

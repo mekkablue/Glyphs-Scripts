@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Prefix all exit & entry anchors with a hashtag
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -18,11 +19,11 @@ def processGlyph( thisGlyph ):
 		if processLayer(thisLayer):
 			layerCount += 1
 	if layerCount:
-		print "%s: changed anchor names on %i layer%s" % (
+		print("%s: changed anchor names on %i layer%s" % (
 			thisGlyph.name,
 			layerCount,
 			"" if layerCount==1 else "s",
-		)
+		))
 		return 1
 		
 	return 0
@@ -32,17 +33,17 @@ Glyphs.clearLog()
 Glyphs.showMacroWindow()
 thisFont = Glyphs.font # frontmost font
 
-print "Looking for exit/entry in %s:" % thisFont.familyName
-print thisFont.filepath
-print "Scanning %i glyphs..." % len(thisFont.glyphs)
-print
+print("Looking for exit/entry in %s:" % thisFont.familyName)
+print(thisFont.filepath)
+print("Scanning %i glyphs..." % len(thisFont.glyphs))
+print()
 glyphCount = 0
 for thisGlyph in thisFont.glyphs:
 	thisGlyph.beginUndo() # begin undo grouping
 	glyphCount += processGlyph( thisGlyph )
 	thisGlyph.beginUndo() # begin undo grouping
 
-print "\nHashtagged exit/entry anchors in %i glyph%s.\nDone." % (
+print("\nHashtagged exit/entry anchors in %i glyph%s.\nDone." % (
 	glyphCount,
 	"" if glyphCount==1 else "s",
-)
+))

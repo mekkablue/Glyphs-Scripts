@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Remove Anchors in Suffixed Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -31,7 +32,7 @@ class RemoveAnchorsinSuffixedGlyphs( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Remove Anchors in Suffixed Glyphs' could not load preferences. Will resort to defaults"
+			print("Note: 'Remove Anchors in Suffixed Glyphs' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -57,7 +58,7 @@ class RemoveAnchorsinSuffixedGlyphs( object ):
 	def RemoveAnchorsinSuffixedGlyphsMain( self, sender ):
 		try:
 			if not self.SavePreferences( self ):
-				print "Note: 'Remove Anchors in Suffixed Glyphs' could not write preferences."
+				print("Note: 'Remove Anchors in Suffixed Glyphs' could not write preferences.")
 			
 			suffixlist = Glyphs.defaults["com.mekkablue.RemoveAnchorsinSuffixedGlyphs.suffixlist"]
 			suffixes = [s.strip() for s in suffixlist.split(",")]
@@ -72,11 +73,11 @@ class RemoveAnchorsinSuffixedGlyphs( object ):
 					for thisLayer in thisGlyph.layers:
 						thisLayer.anchors=[]
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Remove Anchors in Suffixed Glyphs Error: %s" % e
+			print("Remove Anchors in Suffixed Glyphs Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 RemoveAnchorsinSuffixedGlyphs()

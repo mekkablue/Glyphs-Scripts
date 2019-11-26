@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: New Tab with top and bottom Anchors Not on Metric Lines
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -20,9 +21,9 @@ def isAnchorOnMetricLine( thisLayer, thisAnchorName ):
 		if myY in masterMetrics:
 			return False
 		else:
-			print "%s ---> %s @ %s" % (thisLayer.parent.name, thisAnchorName, myY)
+			print("%s ---> %s @ %s" % (thisLayer.parent.name, thisAnchorName, myY))
 			return True
-	except Exception, e:
+	except Exception as e:
 		return False
 
 anchorsToLookFor = ("top","bottom")
@@ -48,11 +49,11 @@ for thisAnchor in anchorsToLookFor:
 	if glyphNames:
 		offAnchorsFound = True
 		reporttext = "Anchor '%s' off metrics:\n/%s\n" % (thisAnchor, "/".join(glyphNames))
-		print "\n", reporttext # just in case opening a tab fails
+		print("\n", reporttext) # just in case opening a tab fails
 		thisFont.newTab( reporttext )
 
 if not offAnchorsFound:
 	reporttext = "Could not find %s anchors off metric lines on master layers." % " or ".join(anchorsToLookFor)
-	print reporttext # just in case opening a tab fails
+	print(reporttext) # just in case opening a tab fails
 	Message(title="All is good", message=reporttext, OKButton="Cool")
 	

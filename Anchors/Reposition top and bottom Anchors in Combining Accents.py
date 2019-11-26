@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Reposition top & bottom Anchors in Combining Accents
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -51,7 +52,7 @@ def process( thisLayer ):
 				
 				# compare new position to original position, and report if moved:
 				if defaultAnchor.position != oldPosition:
-					print "   Moved %s on layer '%s'" % ( anchorName[1:], thisLayer.name )
+					print("   Moved %s on layer '%s'" % ( anchorName[1:], thisLayer.name ))
 		else:
 			# create defaultAnchor and append it
 			# perhaps a bad idea
@@ -66,7 +67,7 @@ if selectedCombiningMarks:
 
 	for thisMark in selectedCombiningMarks:
 		thisMark.beginUndo() # begin undo grouping
-		print "Processing %s" % thisMark.name
+		print("Processing %s" % thisMark.name)
 		for thisLayer in thisMark.layers:
 			process( thisLayer )
 		thisMark.endUndo()   # end undo grouping

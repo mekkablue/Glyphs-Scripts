@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Move ogonek anchors to baseline intersection
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -41,7 +42,7 @@ def intersectionOnBaseline( thisLayer ):
 	
 	listOfIntersections = sliceIntersections( thisLayer, originPoint, targetPoint )
 	
-	print "intersectionOnBaseline:", listOfIntersections, originPoint, targetPoint
+	print("intersectionOnBaseline:", listOfIntersections, originPoint, targetPoint)
 	if listOfIntersections:
 		rightmostIntersection = listOfIntersections[-2].pointValue()
 		return rightmostIntersection
@@ -58,7 +59,7 @@ def process( thisLayer ):
 		baselineOutlineIntersection = intersectionOnBaseline( thisLayer )
 		if baselineOutlineIntersection:
 			ogonekAnchor.position = baselineOutlineIntersection
-			print "  Moved to %.1f, %.1f." % (ogonekAnchor.x, ogonekAnchor.y)
+			print("  Moved to %.1f, %.1f." % (ogonekAnchor.x, ogonekAnchor.y))
 			
 			# selects anchor on thisLayer:
 			itemsToBeSelected = NSMutableArray.arrayWithObject_( ogonekAnchor )
@@ -66,15 +67,15 @@ def process( thisLayer ):
 		else:
 			# put it on the baseline, at least:
 			ogonekAnchor.y = 0
-			print "  No outline intersection on baseline."
+			print("  No outline intersection on baseline.")
 	else:
-		print "  No anchor ogonek or _ogonek found."
+		print("  No anchor ogonek or _ogonek found.")
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
 for thisLayer in listOfSelectedLayers:
 	thisGlyph = thisLayer.parent
-	print "Processing", thisGlyph.name
+	print("Processing", thisGlyph.name)
 	thisGlyph.beginUndo() # begin undo grouping
 	process( thisLayer )
 	thisGlyph.endUndo()   # end undo grouping

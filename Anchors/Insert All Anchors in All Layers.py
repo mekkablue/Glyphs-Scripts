@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Insert All Anchors in All Layers
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -62,9 +63,9 @@ thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
-	print thisGlyph.name
+	print(thisGlyph.name)
 	thisGlyph.beginUndo() # begin undo grouping
-	print process( thisGlyph )
+	print(process( thisGlyph ))
 	thisGlyph.endUndo()   # end undo grouping
 
 thisFont.enableUpdateInterface() # re-enables UI updates in Font View

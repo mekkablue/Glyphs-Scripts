@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Move vertical caron anchors to x-height intersection
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -43,7 +44,7 @@ def intersectionOnXHeight( thisLayer ):
 	
 	listOfIntersections = sliceIntersections( thisLayer, originPoint, targetPoint )
 	
-	print "intersectionOnXHeight:", listOfIntersections, originPoint, targetPoint
+	print("intersectionOnXHeight:", listOfIntersections, originPoint, targetPoint)
 	if listOfIntersections:
 		rightmostIntersection = listOfIntersections[-2].pointValue()
 		return rightmostIntersection
@@ -64,7 +65,7 @@ def process( thisLayer ):
 			if isAccent:
 				xHeightOutlineIntersection.x = 0.0
 			toprightAnchor.position = xHeightOutlineIntersection
-			print "  Moved to %.1f, %.1f." % (toprightAnchor.x, toprightAnchor.y)
+			print("  Moved to %.1f, %.1f." % (toprightAnchor.x, toprightAnchor.y))
 			
 			# selects anchor on thisLayer:
 			itemsToBeSelected = NSMutableArray.arrayWithObject_( toprightAnchor )
@@ -72,15 +73,15 @@ def process( thisLayer ):
 		else:
 			# put it on the x-height, at least:
 			toprightAnchor.y = 0
-			print "  No outline intersection on x-height."
+			print("  No outline intersection on x-height.")
 	else:
-		print "  No anchor topright or _topright found."
+		print("  No anchor topright or _topright found.")
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
 for thisLayer in listOfSelectedLayers:
 	thisGlyph = thisLayer.parent
-	print "Processing", thisGlyph.name
+	print("Processing", thisGlyph.name)
 	thisGlyph.beginUndo() # begin undo grouping
 	process( thisLayer )
 	thisGlyph.endUndo()   # end undo grouping

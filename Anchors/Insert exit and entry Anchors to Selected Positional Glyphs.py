@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Insert exit and entry Anchors to Selected Positional Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -24,7 +25,7 @@ def findOncurveAtRSB( thisLayer ):
 	if len( myRSBnodes ) == 1:
 		return myRSBnodes[0]
 	else:
-		print "%s: %s potential entry points" % ( thisLayer.parent.name, len( myRSBnodes ) )
+		print("%s: %s potential entry points" % ( thisLayer.parent.name, len( myRSBnodes ) ))
 		return None
 
 def process( thisLayer ):
@@ -37,7 +38,7 @@ def process( thisLayer ):
 			if "exit" not in listOfAnchorNames:
 				myExit = GSAnchor( "exit", NSPoint( 0.0, 0.0 ) )
 				thisLayer.addAnchor_( myExit )
-				print "%s: exit" % glyphName
+				print("%s: exit" % glyphName)
 	
 	# add entry at RSB:
 	if ".medi" in glyphName or ".fina" in glyphName:
@@ -46,7 +47,7 @@ def process( thisLayer ):
 			if myEntryPoint != None:
 				myEntry = GSAnchor( "entry", NSPoint( myEntryPoint.x, myEntryPoint.y ) )
 				thisLayer.addAnchor_( myEntry )
-				print "%s: entry" % glyphName
+				print("%s: entry" % glyphName)
 	
 
 Font.disableUpdateInterface()

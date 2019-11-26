@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Report Non-Standard Anchors to Macro Window
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -34,7 +35,7 @@ class ReportNonStandardAnchorsInMacroWindow( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Report Non-Standard Anchors to Macro Window' could not load preferences. Will resort to defaults"
+			print("Note: 'Report Non-Standard Anchors to Macro Window' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -69,8 +70,8 @@ class ReportNonStandardAnchorsInMacroWindow( object ):
 			Glyphs.clearLog()
 			thisFont = Glyphs.font
 			
-			print "Unusual anchors in %s" % thisFont.familyName
-			print "File: %s\n" % thisFont.filepath
+			print("Unusual anchors in %s" % thisFont.familyName)
+			print("File: %s\n" % thisFont.filepath)
 						
 			if thisFont:
 				for thisGlyph in Font.glyphs:
@@ -103,21 +104,21 @@ class ReportNonStandardAnchorsInMacroWindow( object ):
 										unusualAnchors.append(thisAnchor.name)
 			
 							if unusualAnchors:
-								print "/%s : %s" % ( thisGlyph.name, ", ".join(unusualAnchors) )
+								print("/%s : %s" % ( thisGlyph.name, ", ".join(unusualAnchors) ))
 
 			
-			print "\n(Hint: Lines can be copied and pasted in Edit view.)"
+			print("\n(Hint: Lines can be copied and pasted in Edit view.)")
 			Glyphs.showMacroWindow()
 			
 			if not self.SavePreferences( self ):
-				print "Note: 'Report Non-Standard Anchors to Macro Window' could not write preferences."
+				print("Note: 'Report Non-Standard Anchors to Macro Window' could not write preferences.")
 			
 			self.w.close() # delete if you want window to stay open
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Report Non-Standard Anchors to Macro Window Error: %s" % e
+			print("Report Non-Standard Anchors to Macro Window Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 ReportNonStandardAnchorsInMacroWindow()

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Anchor Mover 2.0
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -72,7 +73,7 @@ class AnchorMover2( object ):
 		self.w.setDefaultButton( self.w.moveButton )
 
 		if not self.LoadPreferences( ):
-			print "Error: Could not load preferences. Will resort to defaults."
+			print("Error: Could not load preferences. Will resort to defaults.")
 
 		self.w.open()
 		self.w.makeKey()
@@ -135,7 +136,7 @@ class AnchorMover2( object ):
 		respectItalic = Glyphs.defaults["com.mekkablue.AnchorMover2.italic"]
 		if italicAngle:
 			italicCorrection = italicSkew( 0.0, selectedXheight/2.0, italicAngle )
-			print "italicCorrection", italicCorrection
+			print("italicCorrection", italicCorrection)
 		else:
 			italicCorrection = 0.0
 
@@ -143,10 +144,10 @@ class AnchorMover2( object ):
 		evalCodeV = listVertical[ vertical_index ][1]
 		
 		if not selectedLayers:
-			print "No glyphs selected."
+			print("No glyphs selected.")
 			Message(title="No Glyphs Selected", message="Could not move anchors. No glyphs were selected.", OKButton=None)
 		else:
-			print "Processing %i glyphs..." % ( len( selectedLayers ) )
+			print("Processing %i glyphs..." % ( len( selectedLayers ) ))
 			Font.disableUpdateInterface()
 			for originalLayer in selectedLayers:
 				if originalLayer.name != None:
@@ -192,18 +193,18 @@ class AnchorMover2( object ):
 										originalAnchor = [a for a in originalLayer.anchors if a.name == anchor_name][0]
 										originalAnchor.position = NSPoint( xMove, yMove )
 						
-										print "Moved %s anchor from %i, %i to %i, %i in %s." % ( anchor_name, old_anchor_x, old_anchor_y, xMove, yMove, thisGlyph.name )
+										print("Moved %s anchor from %i, %i to %i, %i in %s." % ( anchor_name, old_anchor_x, old_anchor_y, xMove, yMove, thisGlyph.name ))
 									else:
-										print "Keeping %s anchor at %i, %i in %s." % ( anchor_name, old_anchor_x, old_anchor_y, thisGlyph.name )
+										print("Keeping %s anchor at %i, %i in %s." % ( anchor_name, old_anchor_x, old_anchor_y, thisGlyph.name ))
 							
-						except Exception, e:
-							print "ERROR: Failed to move anchor in %s." % thisGlyph.name
-							print e
+						except Exception as e:
+							print("ERROR: Failed to move anchor in %s." % thisGlyph.name)
+							print(e)
 						finally:
 							thisGlyph.endUndo()
 					
 			Font.enableUpdateInterface()
-		print "Done."
+		print("Done.")
 	
 	def GetAnchorNames( self ):
 		myAnchorList = []
@@ -216,7 +217,7 @@ class AnchorMover2( object ):
 					if thisAnchorName not in myAnchorList:
 						myAnchorList.append( str(thisAnchorName) )
 		except:
-			print "Error: Cannot collect anchor names from the current selection."
+			print("Error: Cannot collect anchor names from the current selection.")
 		
 		return sorted( myAnchorList )
 	

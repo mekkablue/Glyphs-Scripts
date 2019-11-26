@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Replicate Anchors in Suffixed Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -14,12 +15,12 @@ def process( thisLayer ):
 	baseGlyph = Font.glyphs[ baseGlyphName ]
 	baseLayer = baseGlyph.layers[ FontMaster.id ]
 	
-	print "%s <-- %s" % ( thisGlyphName, baseGlyphName )
+	print("%s <-- %s" % ( thisGlyphName, baseGlyphName ))
 	
 	for baseAnchor in baseLayer.anchors:
 		thisAnchor = baseAnchor.copy()
 		thisLayer.anchors[ str(thisAnchor.name) ] = thisAnchor
-		print "   Added %s (%i, %i)" % ( thisAnchor.name, thisAnchor.x, thisAnchor.y )
+		print("   Added %s (%i, %i)" % ( thisAnchor.name, thisAnchor.x, thisAnchor.y ))
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent

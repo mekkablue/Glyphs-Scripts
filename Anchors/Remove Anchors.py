@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Remove Anchors
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -36,7 +37,7 @@ class AnchorDeleter( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Delete Anchors' could not load preferences. Will resort to defaults"
+			print("Note: 'Delete Anchors' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -109,13 +110,13 @@ class AnchorDeleter( object ):
 						del thisLayer.anchors[anchorName]
 
 			if not self.SavePreferences( self ):
-				print "Note: 'Delete Anchors' could not write preferences."
+				print("Note: 'Delete Anchors' could not write preferences.")
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Anchor Deleter Error: %s" % e
+			print("Anchor Deleter Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 AnchorDeleter()

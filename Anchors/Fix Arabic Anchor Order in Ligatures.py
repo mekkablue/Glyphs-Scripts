@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Fix Arabic Anchor Ordering in Ligatures
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -19,7 +20,7 @@ def makeAnchor( thisLayer, anchorName, x, y ):
 	thisAnchor = GSAnchor( thisAnchorName, thisAnchorPosition )
 	thisLayer.addAnchor_( thisAnchor )
 	
-	print "-- %s (%.1f, %.1f)" % ( thisAnchorName, thisAnchorPosition.x, thisAnchorPosition.y )
+	print("-- %s (%.1f, %.1f)" % ( thisAnchorName, thisAnchorPosition.x, thisAnchorPosition.y ))
 	
 def addListOfAnchors( thisLayer, baseName, listOfCoordinates ):
 	for i in range( len( listOfCoordinates )):
@@ -49,7 +50,7 @@ for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
 	thisGlyphName = thisGlyph.name
 	if "-ar" in thisGlyphName and "_" in thisGlyphName:
-		print "Processing", thisGlyphName
+		print("Processing", thisGlyphName)
 		thisGlyph.beginUndo()
 		process( thisLayer )
 		thisGlyph.endUndo()
