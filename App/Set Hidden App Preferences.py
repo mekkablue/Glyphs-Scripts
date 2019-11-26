@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Set Hidden App Preferences
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -65,7 +66,7 @@ class SetHiddenAppPreferences( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Set Hidden App Preferences' could not load preferences. Will resort to defaults"
+			print("Note: 'Set Hidden App Preferences' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -98,22 +99,22 @@ class SetHiddenAppPreferences( object ):
 	def SetHiddenAppPreferencesMain( self, sender ):
 		try:
 			if not self.SavePreferences( self ):
-				print "Note: 'Set Hidden App Preferences' could not write preferences."
+				print("Note: 'Set Hidden App Preferences' could not write preferences.")
 			
 			if sender == self.w.delButton:
 				del Glyphs.defaults[ self.w.pref.get() ]
 				self.w.prefValue.set( None )
-				print "Deleted pref: %s" % self.w.pref.get()
+				print("Deleted pref: %s" % self.w.pref.get())
 				
 			elif sender == self.w.runButton:
 				Glyphs.defaults[ self.w.pref.get() ] = self.w.prefValue.get()
-				print "Set pref: %s --> %s" % (self.w.pref.get(), self.w.prefValue.get())
+				print("Set pref: %s --> %s" % (self.w.pref.get(), self.w.prefValue.get()))
 				
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Set Hidden App Preferences Error: %s" % e
+			print("Set Hidden App Preferences Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 SetHiddenAppPreferences()

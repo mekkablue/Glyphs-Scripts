@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Toggle RTL/LTR
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -13,6 +14,6 @@ if Glyphs.font:
             newDirection = 0 # LTR
         thisTab.setWritingDirection_( newDirection )
     else:
-        print "ERROR: No Edit tab open. Cannot switch writing direction."
+        print("ERROR: No Edit tab open. Cannot switch writing direction.")
 else:
-    print "ERROR: No font open. Cannot switch writing direction."
+    print("ERROR: No font open. Cannot switch writing direction.")

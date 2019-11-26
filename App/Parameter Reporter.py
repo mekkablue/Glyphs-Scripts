@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Parameter Reporter
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -20,7 +21,7 @@ def setClipboard( myText ):
 		myClipboard.setString_forType_( myText, NSStringPboardType )
 		return True
 	except Exception as e:
-		print e
+		print(e)
 		return False
 
 class ParameterReporter( object ):
@@ -68,7 +69,7 @@ class ParameterReporter( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Parameter Reporter' could not load preferences. Will resort to defaults."
+			print("Note: 'Parameter Reporter' could not load preferences. Will resort to defaults.")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -116,7 +117,7 @@ class ParameterReporter( object ):
 			clipboardString = "(%s)" % ",".join(Parameters)
 			
 			if not setClipboard(clipboardString):
-				print "Warning: could not set clipboard."
+				print("Warning: could not set clipboard.")
 			
 			# Floating notification:
 			Glyphs.showNotification( 
@@ -129,7 +130,7 @@ class ParameterReporter( object ):
 			
 		except Exception as e:
 			Glyphs.showMacroWindow()
-			print "Parameter Reporter Error:\nCould not copy to clipboard.\n%s" % e
+			print("Parameter Reporter Error:\nCould not copy to clipboard.\n%s" % e)
 			
 	def ParameterReporterMain( self, sender ):
 		try:
@@ -161,11 +162,11 @@ class ParameterReporter( object ):
 			self.w.ParameterList.set(ParameterList)
 			
 			if not self.SavePreferences( self ):
-				print "Note: 'Parameter Reporter' could not write preferences."
+				print("Note: 'Parameter Reporter' could not write preferences.")
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Parameter Reporter Error: %s" % e
+			print("Parameter Reporter Error: %s" % e)
 
 ParameterReporter()

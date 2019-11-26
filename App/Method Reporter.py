@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Method Reporter
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -18,7 +19,7 @@ def setClipboard( myText ):
 		myClipboard.setString_forType_( myText, NSStringPboardType )
 		return True
 	except Exception as e:
-		print e
+		print(e)
 		return False
 
 class MethodReporter( object ):
@@ -118,7 +119,7 @@ class MethodReporter( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Method Reporter' could not load preferences. Will resort to defaults"
+			print("Note: 'Method Reporter' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -155,11 +156,11 @@ class MethodReporter( object ):
 			
 			# puts method in clipboard:
 			if not setClipboard(method):
-				print "Warning: could not set clipboard."
+				print("Warning: could not set clipboard.")
 		except Exception as e:
 			Glyphs.showMacroWindow()
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 	
 	def outputHelpForMethod(self, method):
 		# strip parentheses if necessary:
@@ -224,11 +225,11 @@ class MethodReporter( object ):
 			self.w.methodList.set(methodList)
 			
 			if not self.SavePreferences( self ):
-				print "Note: 'Method Reporter' could not write preferences."
+				print("Note: 'Method Reporter' could not write preferences.")
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Method Reporter Error: %s" % e
+			print("Method Reporter Error: %s" % e)
 
 MethodReporter()

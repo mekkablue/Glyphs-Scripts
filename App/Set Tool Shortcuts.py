@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Set Tool Shortcuts
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -59,24 +60,24 @@ class SetToolShortcuts( object ):
 		try:
 			tool = sender.getPlaceholder()
 			newShortcut = sender.get()
-			print u"%s: '%s'" % ( tool, sender.get() )
+			print(u"%s: '%s'" % ( tool, sender.get() ))
 			if len(newShortcut)>0:
 				if newShortcut:
 					sender.set( newShortcut[-1].upper() )
 					newShortcut = newShortcut[-1].lower()
 					Glyphs.defaults[u"%s.Hotkey"%tool] = newShortcut
-					print u"New Shortcut for %s: %s" % (tool, newShortcut)
+					print(u"New Shortcut for %s: %s" % (tool, newShortcut))
 					sender.selectAll()
 			else:
-				print u"Resetting Shortcut for %s: %s" % (tool, newShortcut)
+				print(u"Resetting Shortcut for %s: %s" % (tool, newShortcut))
 				del Glyphs.defaults["%s.Hotkey"%tool]
 				sender.set( shortcuts[tool].upper() )
 
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print u"Set Tool Shortcuts Error: %s" % e
+			print(u"Set Tool Shortcuts Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 SetToolShortcuts()

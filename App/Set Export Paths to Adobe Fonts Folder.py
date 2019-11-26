@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Set Export Paths to Adobe Fonts Folder
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -21,21 +22,21 @@ for pathPart in pathSegments:
 	path += "/%s" % pathPart
 	returncode, output, error = executeCommand( "cd", [path] )
 	if returncode != 0 and "No such file or directory" in error:
-		print "Creating directory: %s" % path
+		print("Creating directory: %s" % path)
 		returncode, output, error = executeCommand( "mkdir", [path] )
 		if returncode != 0:
-			print "   Returncode: %s\n   Output: %s\n   Error: %s" % ( returncode, output, error )
+			print("   Returncode: %s\n   Output: %s\n   Error: %s" % ( returncode, output, error ))
 
 # Changing the export paths for Glyphs:
 settings = ( "GXExportPath", "OTFExportPath" )
 for setting in settings:
-	print "Setting %s to %s:" % (setting, adobeFontsFolder),
+	print("Setting %s to %s:" % (setting, adobeFontsFolder), end=' ')
 	try:
 		Glyphs.defaults[setting] = adobeFontsFolder
-		print "OK."
+		print("OK.")
 	except Exception as e:
-		print "\nTRACEBACK:"
+		print("\nTRACEBACK:")
 		import traceback
-		print traceback.format_exc()
-		print "\nEXCEPTION:"
-		print e
+		print(traceback.format_exc())
+		print("\nEXCEPTION:")
+		print(e)
