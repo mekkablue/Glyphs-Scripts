@@ -66,7 +66,7 @@ class OTClassCreator( object ):
 		listOfClasses = Font.classes
 		listOfClassNames = [ c.name for c in listOfClasses ]
 		
-		myClassName = str( self.w.class_name.get() )
+		myClassName = self.w.class_name.get()
 		myClassCode = " ".join( listOfGlyphNames )
 		
 		if myClassName in listOfClassNames:
