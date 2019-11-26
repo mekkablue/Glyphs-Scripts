@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Set New Path for Images
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -30,11 +31,11 @@ Glyphs.showMacroWindow()
 Font.disableUpdateInterface()
 
 if newFolder:
-	print "New image path for selected glyphs:\n%s" % newFolder
+	print("New image path for selected glyphs:\n%s" % newFolder)
 	for thisLayer in selectedLayers:
 		thisGlyph = thisLayer.parent
 		thisGlyph.beginUndo()
-		print "-- %s: %s" % ( thisGlyph.name, process( thisLayer ) )
+		print("-- %s: %s" % ( thisGlyph.name, process( thisLayer ) ))
 		thisGlyph.endUndo()
 
 Font.enableUpdateInterface()

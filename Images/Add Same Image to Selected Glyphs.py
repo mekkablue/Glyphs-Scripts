@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Add Same Image to Selected Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -26,12 +27,12 @@ imageFilePath = GetOpenFile(
 	filetypes = ["jpeg", "png", "tif", "gif", "pdf"]
 )
 
-print "Putting %s into:" % imageFilePath
+print("Putting %s into:" % imageFilePath)
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
 	thisGlyph.beginUndo()
-	print "-- %s: %s" % ( thisGlyph.name, process( thisLayer ) )
+	print("-- %s: %s" % ( thisGlyph.name, process( thisLayer ) ))
 	thisGlyph.endUndo()
 
 Font.enableUpdateInterface()

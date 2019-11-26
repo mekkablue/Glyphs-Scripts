@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Adjust Image Alpha
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -28,7 +29,7 @@ class AdjustImageAlpha( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Adjust Image Alpha' could not load preferences. Will resort to defaults"
+			print("Note: 'Adjust Image Alpha' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -54,7 +55,7 @@ class AdjustImageAlpha( object ):
 	def AdjustImageAlphaMain( self, sender ):
 		try:
 			if not self.SavePreferences( self ):
-				print "Note: 'Adjust Image Alpha' could not write preferences."
+				print("Note: 'Adjust Image Alpha' could not write preferences.")
 			
 			self.w.indicator.set( "%.1f" % Glyphs.defaults["com.mekkablue.AdjustImageAlpha.alphaSlider"] )
 			thisFont = Glyphs.font # frontmost font
@@ -64,11 +65,11 @@ class AdjustImageAlpha( object ):
 					thisGlyph = thisLayer.parent
 					thisLayer.backgroundImage.alpha = Glyphs.defaults["com.mekkablue.AdjustImageAlpha.alphaSlider"]
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Adjust Image Alpha Error: %s" % e
+			print("Adjust Image Alpha Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 AdjustImageAlpha()

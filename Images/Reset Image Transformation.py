@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Reset Image Transformations
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -16,7 +17,7 @@ Font.disableUpdateInterface()
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
-	print "Resetting image in", thisGlyph.name
+	print("Resetting image in", thisGlyph.name)
 	thisGlyph.beginUndo()
 	process( thisLayer )
 	thisGlyph.endUndo()

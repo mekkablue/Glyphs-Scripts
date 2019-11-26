@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Remove Images
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -17,7 +18,7 @@ def process( thisGlyph ):
 
 Font.disableUpdateInterface()
 
-print "Removing images in %s selected glyphs ..." % len( selectedLayers )
+print("Removing images in %s selected glyphs ..." % len( selectedLayers ))
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
@@ -27,7 +28,7 @@ for thisLayer in selectedLayers:
 		plural = 0
 		if numberOfDeletedImages > 1:
 			plural = 1
-		print "  Deleted %i image%s in %s." % ( numberOfDeletedImages, "s"*plural, thisGlyph.name )
+		print("  Deleted %i image%s in %s." % ( numberOfDeletedImages, "s"*plural, thisGlyph.name ))
 	thisGlyph.endUndo()
 
 Font.enableUpdateInterface()

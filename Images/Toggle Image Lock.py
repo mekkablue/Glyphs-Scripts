@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Toggle Image Lock
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -37,7 +38,7 @@ class ToggleImageLock( object ):
 	
 	def resizeButtons(self, sender):
 		currentWidth = self.w.getPosSize()[2]
-		print currentWidth
+		print(currentWidth)
 		self.w.lockButton.setPosSize( (15, 10, currentWidth/2-10, -10) )
 		self.w.unlockButton.setPosSize( (currentWidth/2+10, 10, -15, -10) )
 		
@@ -54,10 +55,10 @@ class ToggleImageLock( object ):
 					thisLayer.backgroundImage.locked = lockedStatus
 					if thisLayer.parent:
 						status = "Locked" if thisLayer.backgroundImage.locked else "Unlocked"
-						print "%s image in %s." % (status, thisLayer.parent.name)
-		except Exception, e:
+						print("%s image in %s." % (status, thisLayer.parent.name))
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Toggle Image Lock Error: %s" % e
+			print("Toggle Image Lock Error: %s" % e)
 
 ToggleImageLock()

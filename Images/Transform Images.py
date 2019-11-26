@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Transform Images
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -90,10 +91,10 @@ class TransformImages( object ):
 					thisImage.setTransformStruct_( ScaleAndMoveTransform.transformStruct() )
 
 			if not self.SavePreferences( self ):
-				print "Note: could not write preferences."
+				print("Note: could not write preferences.")
 			
 			# self.w.close()
-		except Exception, e:
+		except Exception as e:
 			raise e
 
 TransformImages()
