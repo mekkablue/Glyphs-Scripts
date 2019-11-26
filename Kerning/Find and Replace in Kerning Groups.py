@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Find and Replace in Kerning Groups
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -25,7 +26,7 @@ class KerningGroupReplacer( object ):
 		self.w.setDefaultButton( self.w.runButton )
 		
 		if not self.LoadPreferences():
-			print "Note: Could not load preferences. Will resort to defaults"
+			print("Note: Could not load preferences. Will resort to defaults")
 
 		self.w.open()
 		self.w.makeKey()
@@ -66,8 +67,8 @@ class KerningGroupReplacer( object ):
 					return groupName.replace( searchString, replaceString )
 			else:
 				return None
-		except Exception, e:
-			print e
+		except Exception as e:
+			print(e)
 	
 	def replaceInGroups( self, thisGlyph, LsearchFor, LreplaceBy, RsearchFor, RreplaceBy ):
 		thisGlyph.beginUndo()
@@ -76,26 +77,26 @@ class KerningGroupReplacer( object ):
 		# Left Group:
 		oldLeftGroup = thisGlyph.leftKerningGroup
 		if not oldLeftGroup:
-			print "%s: no left group set. Left unchanged." % thisGlyphName
+			print("%s: no left group set. Left unchanged." % thisGlyphName)
 		else:
 			newLeftGroup = self.replaceGroupName( oldLeftGroup, LsearchFor, LreplaceBy )
 			if oldLeftGroup == newLeftGroup:
-				print "%s: left group unchanged (%s)." % (thisGlyphName, newLeftGroup)
+				print("%s: left group unchanged (%s)." % (thisGlyphName, newLeftGroup))
 			else:
 				thisGlyph.leftKerningGroup = newLeftGroup
-				print "%s: new left group: '%s'." % ( thisGlyphName, newLeftGroup )
+				print("%s: new left group: '%s'." % ( thisGlyphName, newLeftGroup ))
 
 		# Right Group:
 		oldRightGroup = thisGlyph.rightKerningGroup
 		if not oldRightGroup:
-			print "%s: no right group set. Left unchanged." % thisGlyphName
+			print("%s: no right group set. Left unchanged." % thisGlyphName)
 		else:
 			newRightGroup = self.replaceGroupName( oldRightGroup, RsearchFor, RreplaceBy )
 			if oldRightGroup == newRightGroup:
-				print "%s: right group unchanged (%s)." % ( thisGlyph.name, newRightGroup )
+				print("%s: right group unchanged (%s)." % ( thisGlyph.name, newRightGroup ))
 			else:
 				thisGlyph.rightKerningGroup = newRightGroup
-				print "%s: new right group: '%s'." % ( thisGlyph.name, newRightGroup )
+				print("%s: new right group: '%s'." % ( thisGlyph.name, newRightGroup ))
 		
 		thisGlyph.endUndo()
 		
@@ -106,7 +107,7 @@ class KerningGroupReplacer( object ):
 		
 		try:
 			if not self.SavePreferences( self ):
-				print "Note: Could not write preferences."
+				print("Note: Could not write preferences.")
 			
 			Font  = Glyphs.font
 			selectedLayers = Font.selectedLayers
@@ -121,12 +122,12 @@ class KerningGroupReplacer( object ):
 				try:
 					thisGlyph = thisLayer.parent
 					self.replaceInGroups( thisGlyph, LsearchFor, LreplaceBy, RsearchFor, RreplaceBy )
-				except Exception, e:
-					print "Error while processing glyph %s:" % thisGlyph.name
-					print e
+				except Exception as e:
+					print("Error while processing glyph %s:" % thisGlyph.name)
+					print(e)
 					
 			self.w.close()
-		except Exception, e:
+		except Exception as e:
 			raise e
 		
 		Glyphs.font.enableUpdateInterface()

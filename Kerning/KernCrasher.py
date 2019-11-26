@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: KernCrasher
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -92,7 +93,7 @@ class KernCrasher( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'KernCrasher' could not load preferences. Will resort to defaults"
+			print("Note: 'KernCrasher' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -144,7 +145,7 @@ class KernCrasher( object ):
 			self.w.ignoreIntervals.set( Glyphs.defaults["com.mekkablue.KernCrasher.ignoreIntervals"] )
 		except:
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 			return False
 			
 		return True
@@ -261,10 +262,10 @@ class KernCrasher( object ):
 						]))
 						ignoreIntervals.append(intervalTuple)
 					except:
-						print "Warning: could not convert '%s' into a number interval." % interval.strip()
+						print("Warning: could not convert '%s' into a number interval." % interval.strip())
 						pass
 				else:
-					print "Warning: '%s' is not an interval (missing colon)" % interval.strip()
+					print("Warning: '%s' is not an interval (missing colon)" % interval.strip())
 
 		return ignoreIntervals
 	
@@ -273,7 +274,7 @@ class KernCrasher( object ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print "Note: 'KernCrasher' could not write preferences."
+				print("Note: 'KernCrasher' could not write preferences.")
 			
 			# query frontmost fontmaster:
 			thisFont = Glyphs.font
@@ -289,7 +290,7 @@ class KernCrasher( object ):
 			# start reporting to macro window:
 			if Glyphs.defaults["com.mekkablue.KernCrasher.reportCrashesInMacroWindow"]:
 				Glyphs.clearLog()
-				print "KernCrasher Report for %s, master %s:\n" % (thisFont.familyName, thisFontMaster.name)
+				print("KernCrasher Report for %s, master %s:\n" % (thisFont.familyName, thisFontMaster.name))
 			
 			# query user input:
 			script, firstCategory, firstSubCategory, secondCategory, secondSubCategory = self.queryPrefs()
@@ -301,23 +302,23 @@ class KernCrasher( object ):
 			try:
 				minDistance = float( Glyphs.defaults["com.mekkablue.KernCrasher.minDistance"] )
 			except Exception as e:
-				print "Warning: Could not read min distance entry. Will default to 0.\n%s" % e
+				print("Warning: Could not read min distance entry. Will default to 0.\n%s" % e)
 				import traceback
-				print traceback.format_exc()
-				print
+				print(traceback.format_exc())
+				print()
 
 			# save prefs
 			if not self.SavePreferences(None):
-				print "Note: KernCrasher could not write preferences."
+				print("Note: KernCrasher could not write preferences.")
 			
 			# get list of glyph names:
 			firstList = self.listOfNamesForCategories( thisFont, firstCategory, firstSubCategory, script, excludedGlyphNameParts, excludeNonExporting )
 			secondList = self.listOfNamesForCategories( thisFont, secondCategory, secondSubCategory, script, excludedGlyphNameParts, excludeNonExporting )
 
 			if Glyphs.defaults["com.mekkablue.KernCrasher.reportCrashesInMacroWindow"]:
-				print "Minimum Distance: %i\n" % minDistance
-				print "Left glyphs:\n%s\n" % ", ".join(firstList)
-				print "Right glyphs:\n%s\n" % ", ".join(secondList)
+				print("Minimum Distance: %i\n" % minDistance)
+				print("Left glyphs:\n%s\n" % ", ".join(firstList))
+				print("Right glyphs:\n%s\n" % ", ".join(secondList))
 
 			tabString = "\n"
 			crashCount = 0
@@ -338,7 +339,7 @@ class KernCrasher( object ):
 						crashCount += 1
 						tabString += "/%s/%s/space" % ( firstGlyphName, secondGlyphName )
 						if Glyphs.defaults["com.mekkablue.KernCrasher.reportCrashesInMacroWindow"]:
-							print "- %s %s: %i" % ( firstGlyphName, secondGlyphName, distanceBetweenShapes )
+							print("- %s %s: %i" % ( firstGlyphName, secondGlyphName, distanceBetweenShapes ))
 				tabString += "\n"
 				
 			# clean up the tab string:
@@ -379,12 +380,12 @@ class KernCrasher( object ):
 			
 			# Report in Macro Window:
 			if Glyphs.defaults["com.mekkablue.KernCrasher.reportCrashesInMacroWindow"]:
-				print report
+				print(report)
 				Glyphs.showMacroWindow()
 
 		except Exception as e:
-			print "KernCrasher Error: %s" % e
+			print("KernCrasher Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 KernCrasher()

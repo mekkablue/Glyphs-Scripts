@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: KernCrash Current Glyph
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -74,7 +75,7 @@ try:
 	Glyphs.clearLog()
 	Glyphs.showMacroWindow()
 	
-	print "KernCrash Current Glyph Report for %s, master %s:\n" % (thisFont.familyName, thisFontMaster.name)
+	print("KernCrash Current Glyph Report for %s, master %s:\n" % (thisFont.familyName, thisFontMaster.name))
 	
 	# get list of glyph names:
 	currentGlyphName = thisGlyph.name
@@ -116,11 +117,11 @@ try:
 		if tabStringLeftGlyphs:
 			inBetween = " /%s/" % currentGlyphName
 			thisFont.newTab( "/%s/"%currentGlyphName + inBetween.join(tabStringLeftGlyphs) )
-			print "Colliding glyphs when %s is on the LEFT:\n%s\n" % ( currentGlyphName, " ".join(tabStringLeftGlyphs) )
+			print("Colliding glyphs when %s is on the LEFT:\n%s\n" % ( currentGlyphName, " ".join(tabStringLeftGlyphs) ))
 		if tabStringRightGlyphs:
 			inBetween = "/%s /" % currentGlyphName
 			thisFont.newTab( "/" + inBetween.join(tabStringRightGlyphs) + "/%s"%currentGlyphName )
-			print "Colliding glyphs when %s is on the RIGHT:\n%s\n" % ( currentGlyphName, " ".join(tabStringRightGlyphs) )
+			print("Colliding glyphs when %s is on the RIGHT:\n%s\n" % ( currentGlyphName, " ".join(tabStringRightGlyphs) ))
 		
 	# or report that nothing was found:
 	else:
@@ -128,4 +129,4 @@ try:
 except Exception as e:
 	Message("KernCrash Error", "KernCrash Current Glyph Error: %s\nTraceback in Macro Window." % e, OKButton=None)
 	import traceback
-	print traceback.format_exc()
+	print(traceback.format_exc())

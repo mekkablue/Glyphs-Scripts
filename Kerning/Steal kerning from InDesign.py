@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Steal Kerning from InDesign
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -42,11 +43,11 @@ def runAppleScript(scriptSource, args=[]):
 	s = NSAppleScript.alloc().initWithSource_(scriptSource)
 	result, error = s.executeAndReturnError_(None)
 	if error:
-		print "AppleScript Error:"
-		print error
-		print "Tried to run:"
+		print("AppleScript Error:")
+		print(error)
+		print("Tried to run:")
 		for i, line in enumerate(scriptSource.splitlines()):
-			print "%03i"%(i+1), line
+			print("%03i"%(i+1), line)
 		return False
 	if result:
 		return result.stringValue()
@@ -69,7 +70,7 @@ InDesign as string
 indesign = runAppleScript(getInDesign)
 if indesign != Glyphs.defaults["com.mekkablue.stealKerningFromInDesign.indesignAppName"]:
 	Glyphs.defaults["com.mekkablue.stealKerningFromInDesign.indesignAppName"] = indesign
-print "Accessing: %s" % indesign
+print("Accessing: %s" % indesign)
 
 # Define AppleScripts to be run later:
 
@@ -126,40 +127,40 @@ end tell
 try:
 	docName = runAppleScript( getNameOfDocument )
 	docName = unicode(docName).strip()
-	print "\nExtracting kerning from document: %s" % docName
+	print("\nExtracting kerning from document: %s" % docName)
 except Exception as e:
-	print "\nERROR while trying to extract the name of the first InDesign document."
-	print "Possible causes:\n  1. No permissions in System Preferences > Security & Privacy > Privacy > Automation > Glyphs. Please review.\n  2. No document open in InDesign; will try to continue."
-	print e
-	print
+	print("\nERROR while trying to extract the name of the first InDesign document.")
+	print("Possible causes:\n  1. No permissions in System Preferences > Security & Privacy > Privacy > Automation > Glyphs. Please review.\n  2. No document open in InDesign; will try to continue.")
+	print(e)
+	print()
 
 # Extract text and report:
 try:
 	frameText = runAppleScript( getTextOfFrame )
 	frameText = "%.60s..." % frameText.strip()
-	print "\nFound text: %s" % frameText
+	print("\nFound text: %s" % frameText)
 except Exception as e:
-	print "\nERROR while trying to extract the text of the first text frame."
-	print "Possible causes:\n  1. No permissions in System Preferences > Security & Privacy > Privacy > Automation > Glyphs. Please review.\n  2. No text frame in the frontmost document in InDesign; will try to continue."
-	print e
-	print
+	print("\nERROR while trying to extract the text of the first text frame.")
+	print("Possible causes:\n  1. No permissions in System Preferences > Security & Privacy > Privacy > Automation > Glyphs. Please review.\n  2. No text frame in the frontmost document in InDesign; will try to continue.")
+	print(e)
+	print()
 
 # Extract font name and report:
 try:
 	fontName = runAppleScript( getNameOfFont )
 	fontName = fontName.replace("\t", " ").replace("font ","").strip()
-	print "\nFound font: %s" % fontName
-	print "\nProcessing, please wait. Can take a minute...\n"
+	print("\nFound font: %s" % fontName)
+	print("\nProcessing, please wait. Can take a minute...\n")
 except Exception as e:
-	print "\nERROR while trying to extract the font in the first text frame."
-	print "Possible causes:\n  1. No permissions in System Preferences > Security & Privacy > Privacy > Automation > Glyphs. Please review.\n  2. No text in the first text frame of the frontmost document in InDesign; will try to continue."
-	print e
-	print
+	print("\nERROR while trying to extract the font in the first text frame.")
+	print("Possible causes:\n  1. No permissions in System Preferences > Security & Privacy > Privacy > Automation > Glyphs. Please review.\n  2. No text in the first text frame of the frontmost document in InDesign; will try to continue.")
+	print(e)
+	print()
 	
 
 # Extract kern strings and report:
 kernInfo = runAppleScript( getKernValuesFromInDesign )
-print u"Applying kerning to: %s, Master: %s\n" % (thisFont.familyName, thisFontMaster.name)
+print(u"Applying kerning to: %s, Master: %s\n" % (thisFont.familyName, thisFontMaster.name))
 
 kernPairCount = 0
 
@@ -170,37 +171,37 @@ for thisline in kernInfo.splitlines():
 		# check for left side:
 		leftSide = glyphNameForLetter(thisline[0])
 		if not leftSide:
-			print u"WARNING:\n  Could not determine (left) glyph name: %s.\n  Skipping pair ‘%s%s’.\n" % ( thisline[0], thisline[0], thisline[1])
+			print(u"WARNING:\n  Could not determine (left) glyph name: %s.\n  Skipping pair ‘%s%s’.\n" % ( thisline[0], thisline[0], thisline[1]))
 		else:
 			if not thisFont.glyphs[leftSide]:
-				print u"WARNING:\n  Expected (left) glyph /%s not found in %s.\n  Skipping pair ‘%s%s’.\n" % ( leftSide, thisFont.familyName, thisline[0], thisline[1] )
+				print(u"WARNING:\n  Expected (left) glyph /%s not found in %s.\n  Skipping pair ‘%s%s’.\n" % ( leftSide, thisFont.familyName, thisline[0], thisline[1] ))
 			else:
 				#check for right side:
 				rightSide = glyphNameForLetter(thisline[1])
 				if not rightSide:
-					print u"WARNING:\n  Could not determine (right) glyph name: %s.\nS  kipping pair ‘%s%s’.\n" % ( thisline[1], thisline[0], thisline[1])
+					print(u"WARNING:\n  Could not determine (right) glyph name: %s.\nS  kipping pair ‘%s%s’.\n" % ( thisline[1], thisline[0], thisline[1]))
 				else:
 					if not thisFont.glyphs[rightSide]:
-						print u"WARNING:\n  Expected (right) glyph /%s not found in %s.\n  Skipping pair ‘%s%s’.\n" % ( rightSide, thisFont.familyName, thisline[0], thisline[1] )
+						print(u"WARNING:\n  Expected (right) glyph /%s not found in %s.\n  Skipping pair ‘%s%s’.\n" % ( rightSide, thisFont.familyName, thisline[0], thisline[1] ))
 					else:
 						try:
 							kernValue = float(thisline[3:])
 							if kernValue:
 								thisFont.setKerningForPair(thisFontMasterID, leftSide, rightSide, kernValue)
 								kernPairCount += 1
-								print "  Kerning for %s:%s set to %i." % (leftSide, rightSide, kernValue)
+								print("  Kerning for %s:%s set to %i." % (leftSide, rightSide, kernValue))
 							else:
-								print "  No kerning %s:%s. Ignored." % (leftSide, rightSide)
+								print("  No kerning %s:%s. Ignored." % (leftSide, rightSide))
 						except Exception as e:
-							print "  ERROR: Could not set kerning for %s:%s.\n" % (leftSide, rightSide)
-							print e
+							print("  ERROR: Could not set kerning for %s:%s.\n" % (leftSide, rightSide))
+							print(e)
 							import traceback
-							print traceback.format_exc()
+							print(traceback.format_exc())
 
 # take time and report:
 end = timer()
 timereport = reportTimeInNaturalLanguage( end - start )
-print "\nImported %i kern pairs.\nTime elapsed: %s." % (kernPairCount, timereport)
+print("\nImported %i kern pairs.\nTime elapsed: %s." % (kernPairCount, timereport))
 
 # Floating notification:
 Glyphs.showNotification( 

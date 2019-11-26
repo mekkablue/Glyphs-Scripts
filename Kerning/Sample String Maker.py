@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Sample String Maker
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -89,7 +90,7 @@ class SampleStringMaker( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Sample String Maker' could not load preferences. Will resort to defaults"
+			print("Note: 'Sample String Maker' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -138,12 +139,12 @@ class SampleStringMaker( object ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print "Note: 'Sample String Maker' could not write preferences."
+				print("Note: 'Sample String Maker' could not write preferences.")
 			
 			thisFont = Glyphs.font # frontmost font
-			print "Sample String Maker Report for %s" % thisFont.familyName
-			print thisFont.filepath
-			print
+			print("Sample String Maker Report for %s" % thisFont.familyName)
+			print(thisFont.filepath)
+			print()
 			
 			leftChoice = self.categoryList[ Glyphs.defaults["com.mekkablue.SampleStringMaker.leftCategoryPopup"] ]
 			rightChoice = self.categoryList[ Glyphs.defaults["com.mekkablue.SampleStringMaker.rightCategoryPopup"] ]
@@ -192,10 +193,10 @@ class SampleStringMaker( object ):
 				and not self.glyphNameIsExcluded(g.name)
 			]
 			
-			print "Found %i left groups, %i right groups." % (
+			print("Found %i left groups, %i right groups." % (
 				len(glyphNamesLeft),
 				len(glyphNamesRight),
-			)
+			))
 			
 			linePrefix = "nonn"
 			linePostfix = "noon"
@@ -232,11 +233,11 @@ class SampleStringMaker( object ):
 				if len(newTab.text) >= cursorPos:
 					newTab.textCursor = cursorPos
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Sample String Maker Error: %s" % e
+			print("Sample String Maker Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 SampleStringMaker()

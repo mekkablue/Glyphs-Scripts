@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Remove Small Kerning Pairs
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -51,7 +52,7 @@ class DeleteSmallKerningPairs( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Delete Small Kerning Pairs' could not load preferences. Will resort to defaults"
+			print("Note: 'Delete Small Kerning Pairs' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -90,7 +91,7 @@ class DeleteSmallKerningPairs( object ):
 	def DeleteSmallKerningPairsMain( self, sender ):
 		try:
 			if not self.SavePreferences( self ):
-				print "Note: 'Delete Small Kerning Pairs' could not write preferences."
+				print("Note: 'Delete Small Kerning Pairs' could not write preferences.")
 			
 			# brings macro window:
 			Glyphs.showMacroWindow()
@@ -117,7 +118,7 @@ class DeleteSmallKerningPairs( object ):
 				willRemove = "kernings smaller than %i" % maxKernValue
 				if shouldRemoveZero and ((not maxKernValue) or (not shouldRemoveNegative and not shouldRemovePositive)):
 					willRemove = "zero kernings"
-				print "Deleting %s in %s %s..." % (willRemove, thisFont.familyName, thisFontMaster.name)
+				print("Deleting %s in %s %s..." % (willRemove, thisFont.familyName, thisFontMaster.name))
 				
 				# collect pairs to be removed:
 				kernpairsToBeRemoved = []
@@ -145,20 +146,20 @@ class DeleteSmallKerningPairs( object ):
 					leftSide = thisKernPair[0]
 					rightSide = thisKernPair[1]
 					thisFont.removeKerningForPair( thisFontMasterID, leftSide, rightSide )
-				print "   Removed %i kerning pairs:" % len(kernpairsToBeRemoved)
-				print "   %i negative pairs" % countNegative
-				print "   %i zero pairs" % countZero
-				print "   %i positive pairs" % countPositive
-				print "Done."
+				print("   Removed %i kerning pairs:" % len(kernpairsToBeRemoved))
+				print("   %i negative pairs" % countNegative)
+				print("   %i zero pairs" % countZero)
+				print("   %i positive pairs" % countPositive)
+				print("Done.")
 			else:
-				print "Note: No kerning removed, because no options were picked."
+				print("Note: No kerning removed, because no options were picked.")
 			
 			if not keepWindowOpen:
 				self.w.close()
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Delete Small Kerning Pairs Error: %s" % e
+			print("Delete Small Kerning Pairs Error: %s" % e)
 
 # clear macro window log:
 Glyphs.clearLog()

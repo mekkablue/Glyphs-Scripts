@@ -1,5 +1,6 @@
 #MenuTitle: Steal Kerning Groups from Font
 """Copy kerning groups from one font to another."""
+from __future__ import print_function
 
 import vanilla
 
@@ -47,7 +48,7 @@ class GroupsCopy(object):
 		Font_target     = [ x.font for x in Glyphs.orderedDocuments() if ("%s - %s" % ( x.font.familyName, x.selectedFontMaster().name )) == toFont ][0]
 		Glyphs_selected = [ x.parent for x in Font_target.parent.selectedLayers() ]
 		
-		print "Syncing kerning groups for", len(Glyphs_selected), "glyphs from", Font_source.familyName, "to", Font_target.familyName, ":"
+		print("Syncing kerning groups for", len(Glyphs_selected), "glyphs from", Font_source.familyName, "to", Font_target.familyName, ":")
 		
 		try:
 			for thisGlyph in Glyphs_selected:
@@ -63,17 +64,17 @@ class GroupsCopy(object):
 							thisGlyph.leftKerningGroup  = newL
 							thisGlyph.rightKerningGroup = newR
 							
-							print "   ", glyphName, ":", newL, "<--->", newR
+							print("   ", glyphName, ":", newL, "<--->", newR)
 						pass
-					except Exception, e:
-						print "   ", glyphName,": Error"
+					except Exception as e:
+						print("   ", glyphName,": Error")
 						# print e
 					
-		except Exception, e:
+		except Exception as e:
 			self.showMessage( "Error", e )
 			
 		finally:
-			print "Done."
+			print("Done.")
 
 		self.w.close()
 		

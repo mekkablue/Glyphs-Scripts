@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Remove all Kerning Exceptions
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -23,7 +24,7 @@ def addToKeysOnAllLevels( d, ext ):
 				newKeyName = k
 
 			nd[ newKeyName ] = d[k]
-			print "--->", k, d[k]
+			print("--->", k, d[k])
 	
 	return nd
 
@@ -45,15 +46,15 @@ def fixGlyphGroups( g, ext ):
 		if not ext in RKG and len(RKG) > 0:
 			g.rightKerningGroup = RKG + ext
 	
-	print g.name
+	print(g.name)
 
 
 for MasterKerningDict in Kerning:
-	print "Cleaning up kerning in Master ID", MasterKerningDict, "..."
+	print("Cleaning up kerning in Master ID", MasterKerningDict, "...")
 	Kerning[MasterKerningDict] = addToKeysOnAllLevels( Kerning[MasterKerningDict], ClassExtension )
 	
 for g in Glyphs.font.glyphs:
 	fixGlyphGroups( g, ClassExtension )
 		
-print "Done."
+print("Done.")
 

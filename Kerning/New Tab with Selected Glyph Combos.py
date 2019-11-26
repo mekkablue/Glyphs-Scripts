@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: New Tab with Selected Glyph Combinations
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -17,7 +18,7 @@ for leftGlyphName in namesOfSelectedGlyphs:
 
 # in case last line fails, the text is in the macro window:
 Glyphs.clearLog() # clears macro window log
-print editString
+print(editString)
 
 # opens new Edit tab:
 Font.newTab( editString )

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Exception Cleaner
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -45,7 +46,7 @@ class DeleteExceptionsTooCloseToGroupKerning( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Exception Cleaner' could not load preferences. Will resort to defaults"
+			print("Note: 'Exception Cleaner' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -78,7 +79,7 @@ class DeleteExceptionsTooCloseToGroupKerning( object ):
 	def DeleteExceptionsTooCloseToGroupKerningMain( self, sender ):
 		try:
 			if not self.SavePreferences( self ):
-				print "Note: 'Exception Cleaner' could not write preferences."
+				print("Note: 'Exception Cleaner' could not write preferences.")
 			
 			thisFont = Glyphs.font # frontmost font
 			thisMaster = thisFont.selectedFontMaster
@@ -106,10 +107,10 @@ class DeleteExceptionsTooCloseToGroupKerning( object ):
 				# brings macro window to front and clears its log:
 				Glyphs.clearLog()
 				Glyphs.showMacroWindow()
-				print "Font: %s" % thisFont.familyName
-				print "Path: %s" % (thisFont.filepath if thisFont.filepath else "(unsaved)")
-				print "Master: %s" % thisMaster.name
-				print
+				print("Font: %s" % thisFont.familyName)
+				print("Path: %s" % (thisFont.filepath if thisFont.filepath else "(unsaved)"))
+				print("Master: %s" % thisMaster.name)
+				print()
 
 
 			# collect unnecessary kerning exceptions:
@@ -136,14 +137,14 @@ class DeleteExceptionsTooCloseToGroupKerning( object ):
 								if not rightGlyph:
 									# found orphaned kerning, report and abort:
 									if shouldReport:
-										print "- Warning: could not find glyph for ID %s, consider cleaning up kerning" % rightSide
+										print("- Warning: could not find glyph for ID %s, consider cleaning up kerning" % rightSide)
 								else:
 									rightGlyphGroup = rightGlyph.leftKerningGroup
 								
 									if not rightGlyphGroup:
 										# no corresponding kerning group, report and abort:
 										if shouldReport:
-											print "- Note: Glyph '%s' has no left group; skipping." % rightGlyph.name
+											print("- Note: Glyph '%s' has no left group; skipping." % rightGlyph.name)
 									else:
 										rightGlyphGroupMMK = "@MMK_R_%s" % rightGlyphGroup
 										exceptionKerning = thisFont.kerning[thisMasterID][leftSide][rightSide]
@@ -152,14 +153,14 @@ class DeleteExceptionsTooCloseToGroupKerning( object ):
 											groupKerning = 0
 										if abs(exceptionKerning-groupKerning) < threshold:
 											if shouldReport:
-												print "- Found unnecessary exception @%s-%s: %i vs. @%s-@%s: %i" % (
+												print("- Found unnecessary exception @%s-%s: %i vs. @%s-@%s: %i" % (
 													leftGlyphGroup,
 													rightGlyph.name,
 													exceptionKerning,
 													leftGlyphGroup,
 													rightGlyphGroup,
 													groupKerning,
-												)
+												))
 											unnecessaryKernPairs.append(
 												("@%s"%leftGlyphGroup, rightGlyph.name)
 											)
@@ -171,7 +172,7 @@ class DeleteExceptionsTooCloseToGroupKerning( object ):
 					if not leftGlyph:
 						# found orphaned kerning, report and abort:
 						if shouldReport and okToContinue:
-							print "- Warning: could not find glyph for ID %s, consider cleaning up kerning" % leftSide
+							print("- Warning: could not find glyph for ID %s, consider cleaning up kerning" % leftSide)
 							
 					elif leftGlyph.export:
 						# only proceed if the glyph is set to export:
@@ -180,7 +181,7 @@ class DeleteExceptionsTooCloseToGroupKerning( object ):
 						if not leftGlyphGroup:
 							# no corresponding kerning group, report and abort:
 							if shouldReport and okToContinue:
-								print "- Note: Glyph '%s' has no right group; skipping." % leftGlyph.name
+								print("- Note: Glyph '%s' has no right group; skipping." % leftGlyph.name)
 								
 						else:
 							# step through exceptions:
@@ -212,14 +213,14 @@ class DeleteExceptionsTooCloseToGroupKerning( object ):
 										else:
 											rightSideName = "@%s"%rightGlyphGroup
 										if shouldReport:
-											print "- Found unnecessary exception %s-%s: %i vs. @%s-@%s: %i" % (
+											print("- Found unnecessary exception %s-%s: %i vs. @%s-@%s: %i" % (
 												leftGlyph.name,
 												rightSideName,
 												exceptionKerning,
 												leftGlyphGroup,
 												rightGlyphGroup,
 												groupKerning,
-											)
+											))
 										unnecessaryKernPairs.append(
 											(leftGlyph.name, rightSideName)
 										)
@@ -230,7 +231,7 @@ class DeleteExceptionsTooCloseToGroupKerning( object ):
 				for kernPair in unnecessaryKernPairs:
 					leftSide, rightSide = kernPair
 					if shouldReport:
-						print "- Removing: %s-%s" % (leftSide, rightSide)
+						print("- Removing: %s-%s" % (leftSide, rightSide))
 						
 					if leftSide.startswith("@") and not leftSide.startswith("@MMK_L_"):
 						leftSide = "@MMK_L_%s" % leftSide[1:]
@@ -248,15 +249,15 @@ class DeleteExceptionsTooCloseToGroupKerning( object ):
 					)
 				Message(title="Removed unnecessary exceptions", message=report, OKButton=None)
 				if shouldReport:
-					print
-					print report
+					print()
+					print(report)
 				
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "'Exception Cleaner' Error: %s" % e
+			print("'Exception Cleaner' Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 DeleteExceptionsTooCloseToGroupKerning()

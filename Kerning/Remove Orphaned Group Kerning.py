@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Remove Orphaned Group Kerning
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -20,8 +21,8 @@ rightGroups = tuple(set(rightGroups))
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
-print "REMOVING ORPHANED GROUP KERNING"
-print "Found: %s left groups, %s right groups." % ( len(leftGroups), len(rightGroups) )
+print("REMOVING ORPHANED GROUP KERNING")
+print("Found: %s left groups, %s right groups." % ( len(leftGroups), len(rightGroups) ))
 
 # Glyphs.removeKerningForPair(FontMasterId, LeftKey, RightKey)
 # Removes the kerning for the two specified glyphs (LeftKey or RightKey is the glyphname) or a kerning group key (@MMK_X_XX).
@@ -42,17 +43,17 @@ toBeDeleted = []
 
 for thisMaster in thisFont.masters:
 	thisMasterID = thisMaster.id
-	print "\n  Master %s" % thisMaster.name
+	print("\n  Master %s" % thisMaster.name)
 	
 	for leftKey in thisFont.kerning[thisMasterID]:
 		if leftKey.startswith("@") and not leftKey[7:] in rightGroups:
 			for rightKey in thisFont.kerning[thisMasterID][leftKey]:
 				toBeDeleted.append( (leftKey,rightKey) )
-				print "    Deleting: *%s - %s" % ( convertIntoName(leftKey), convertIntoName(rightKey) )
+				print("    Deleting: *%s - %s" % ( convertIntoName(leftKey), convertIntoName(rightKey) ))
 		else:
 			for rightKey in thisFont.kerning[thisMasterID][leftKey]:
 				if rightKey.startswith("@") and not rightKey[7:] in leftGroups:
 					toBeDeleted.append( (leftKey,rightKey) )
-					print "    Deleting: %s - *%s" % ( convertIntoName(leftKey), convertIntoName(rightKey) )
+					print("    Deleting: %s - *%s" % ( convertIntoName(leftKey), convertIntoName(rightKey) ))
 					
 			

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: New Tab with Overkerned Pairs
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -33,7 +34,7 @@ class FindOverkerns( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Find Overkerns' could not load preferences. Will resort to defaults"
+			print("Note: 'Find Overkerns' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -152,7 +153,7 @@ class FindOverkerns( object ):
 								if abs(kernValue) > thresholdFactor*leftWidth or abs(kernValue) > thresholdFactor*rightWidth:
 									tabText += "/%s/%s\n" % (leftGlyphName, rightGlyphName)
 									
-							except Exception, e:
+							except Exception as e:
 								# probably a kerning group name found in the kerning data, but no glyph assigned to it:
 								# brings macro window to front and reports warning:
 								Glyphs.showMacroWindow()
@@ -160,7 +161,7 @@ class FindOverkerns( object ):
 								errormsg = traceback.format_exc().lower()
 								for side in ("left","right"):
 									if not side in errormsg:
-										print "Warning: The %s group '%s' found in your kerning data does not appear in any glyph. Clean up your kerning, and run the script again."
+										print("Warning: The %s group '%s' found in your kerning data does not appear in any glyph. Clean up your kerning, and run the script again.")
 								
 				
 				if tabText:
@@ -170,14 +171,14 @@ class FindOverkerns( object ):
 					Message(title="No Overkerns Found", message="Could not find any kern pairs beyond the threshold in this master.", OKButton="Phew!")
 					
 			if not self.SavePreferences( self ):
-				print "Note: 'Find Overkerns' could not write preferences."
+				print("Note: 'Find Overkerns' could not write preferences.")
 			
 			# self.w.close() # delete if you want window to stay open
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Find Overkerns Error: %s" % e
+			print("Find Overkerns Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 FindOverkerns()

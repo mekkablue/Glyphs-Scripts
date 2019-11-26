@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*--- --
+from __future__ import print_function
 from GlyphsApp import Glyphs
 from Foundation import NSNotFound
 
@@ -66,9 +67,9 @@ def stringToListOfGlyphsForFont( string, Font, report=True, excludeNonExporting=
 			if categoryGlyphs:
 				glyphList += categoryGlyphs
 				if report:
-					print u"Added glyphs for category %s, subcategory %s: %s" % (category, subcategory, ", ".join(categoryGlyphs))
+					print(u"Added glyphs for category %s, subcategory %s: %s" % (category, subcategory, ", ".join(categoryGlyphs)))
 			elif report:
-				print u"Warning: no glyphs found for category %s, subcategory %s." % (category, subcategory)
+				print(u"Warning: no glyphs found for category %s, subcategory %s." % (category, subcategory))
 		
 		else:
 			# actual single glyph names:
@@ -87,9 +88,9 @@ def stringToListOfGlyphsForFont( string, Font, report=True, excludeNonExporting=
 				if (glyph.export or not excludeNonExporting):
 					glyphList.append(glyph)
 				elif report:
-					print u"Ignoring non-exporting glyph '%s'." % (parsedName+suffix)
+					print(u"Ignoring non-exporting glyph '%s'." % (parsedName+suffix))
 			elif report:
-				print u"Warning: Could not find glyph for '%s'." % (parsedName+suffix)
+				print(u"Warning: Could not find glyph for '%s'." % (parsedName+suffix))
 	
 	return glyphList
 
@@ -202,9 +203,9 @@ def sortedIntervalsFromString( intervals="" ):
 					]))
 					ignoreIntervals.append(intervalTuple)
 				except:
-					print "Warning: could not convert '%s' into a number interval." % interval.strip()
+					print("Warning: could not convert '%s' into a number interval." % interval.strip())
 					pass
 			else:
-				print "Warning: '%s' is not an interval (missing colon)" % interval.strip()
+				print("Warning: '%s' is not an interval (missing colon)" % interval.strip())
 
 	return ignoreIntervals

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Import Kerning from .fea File
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -20,7 +21,7 @@ def importfea_file(Doc, filePath):
 		
 		Font = Doc.font
 		FontMasterIndex = Doc.windowControllers()[0].masterIndex()
-		print FontMasterIndex
+		print(FontMasterIndex)
 		GlyphsInfo = GSGlyphsInfo.sharedManager()
 		FontMaster = Font.masters[FontMasterIndex]
 		KerningLines = []

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Adjust Kerning in Master
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -42,7 +43,7 @@ class AdjustKerning( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Adjust Kerning in Master' could not load preferences. Will resort to defaults"
+			print("Note: 'Adjust Kerning in Master' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -163,8 +164,8 @@ class AdjustKerning( object ):
 			Font.enableUpdateInterface()
 			
 			if not self.SavePreferences( self ):
-				print "Note: could not write preferences."
-		except Exception, e:
+				print("Note: could not write preferences.")
+		except Exception as e:
 			raise e
 
 AdjustKerning()

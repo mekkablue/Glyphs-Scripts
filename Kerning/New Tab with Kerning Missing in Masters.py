@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: New Tab with Kerning Missing in Masters
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -7,9 +8,9 @@ Opens New Tabs for each master showing kerning missing in this master but presen
 thisFont = Glyphs.font # frontmost font
 
 Glyphs.clearLog()
-print "Missing kerning, report for %s" % thisFont.familyName
-print thisFont.filepath
-print
+print("Missing kerning, report for %s" % thisFont.familyName)
+print(thisFont.filepath)
+print()
 
 if not len(thisFont.masters) > 1:
 	Message("Not enough masters", "If you want to compare kerning between masters, you need at least two masters in your font.", OKButton="Oh Shoot")
@@ -47,32 +48,32 @@ else:
 							if leftSideGlyph:
 								leftSideGlyphName = leftSideGlyph.name
 							else:
-								print u"❌ Glyph %s: Orphaned LEFT glyph ID in kerning. No corresponding glyph in font." % leftSide
+								print(u"❌ Glyph %s: Orphaned LEFT glyph ID in kerning. No corresponding glyph in font." % leftSide)
 						elif not leftSide[7:] in rightGroupDefaults:
-							print u"❌ @%s: Orphaned LEFT SIDE of kern pair. No corresponding RIGHT GROUP in glyphs." % leftSide[7:]
+							print(u"❌ @%s: Orphaned LEFT SIDE of kern pair. No corresponding RIGHT GROUP in glyphs." % leftSide[7:])
 							Glyphs.showMacroWindow()
 						elif rightGroupDefaults[leftSide[7:]]:
 							leftSideGlyphName = rightGroupDefaults[leftSide[7:]]
 						else:
-							print u"🤷🏻‍♀️ Cannot convert left side name:", leftSide
+							print(u"🤷🏻‍♀️ Cannot convert left side name:", leftSide)
 						
 						if not rightSide[0] == "@":
 							rightSideGlyph = thisFont.glyphForId_(rightSide)
 							if rightSideGlyph:
 								rightSideGlyphName = rightSideGlyph.name
 							else:
-								print u"❌ Glyph %s: Orphaned RIGHT glyph ID in kerning. No corresponding glyph in font." % rightSide
+								print(u"❌ Glyph %s: Orphaned RIGHT glyph ID in kerning. No corresponding glyph in font." % rightSide)
 						elif not rightSide[7:] in leftGroupDefaults:
-							print u"❌ @%s: Orphaned RIGHT SIDE of kern pair. No corresponding LEFT GROUP in glyphs." % rightSide[7:]
+							print(u"❌ @%s: Orphaned RIGHT SIDE of kern pair. No corresponding LEFT GROUP in glyphs." % rightSide[7:])
 							Glyphs.showMacroWindow()
 						elif leftGroupDefaults[rightSide[7:]]:
 							rightSideGlyphName = leftGroupDefaults[rightSide[7:]]
 						else:
-							print u"🤷🏻‍♀️ Cannot convert right side name:", rightSide
+							print(u"🤷🏻‍♀️ Cannot convert right side name:", rightSide)
 							
 						if leftSideGlyphName and rightSideGlyphName:
 							tabStrings[otherID] += "/%s/%s  " % (leftSideGlyphName,rightSideGlyphName)
 	if tabStrings:
-		print "\nOrphaned groups and glyph IDs: consider cleaning up kerning on Window > Kerning."
+		print("\nOrphaned groups and glyph IDs: consider cleaning up kerning on Window > Kerning.")
 	for masterID in tabStrings:
 		thisFont.newTab(tabStrings[masterID])

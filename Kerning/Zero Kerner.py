@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Zero Kerner
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -46,7 +47,7 @@ class ZeroKerner( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Zero Kerner' could not load preferences. Will resort to defaults"
+			print("Note: 'Zero Kerner' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -76,7 +77,7 @@ class ZeroKerner( object ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print "Note: 'Zero Kerner' could not write preferences."
+				print("Note: 'Zero Kerner' could not write preferences.")
 			
 			thisFont = Glyphs.font # frontmost font
 			limitToCurrentMaster = Glyphs.defaults["com.mekkablue.ZeroKerner.limitToCurrentMaster"]
@@ -86,9 +87,9 @@ class ZeroKerner( object ):
 			if reportInMacroWindow:
 				Glyphs.clearLog()
 				Glyphs.showMacroWindow()
-				print "Zero Kerner Report for %s" % thisFont.familyName
-				print thisFont.filepath
-				print
+				print("Zero Kerner Report for %s" % thisFont.familyName)
+				print(thisFont.filepath)
+				print()
 			
 			if len(thisFont.masters) < 2:
 				Message(title="Zero Kerner Error", message="Zero Kerner only makes sense if there is more than one master in the font.", OKButton="Ooops")
@@ -124,7 +125,7 @@ class ZeroKerner( object ):
 											if thisFont.kerningForPair(thisMaster.id, leftGroup, rightGroup) >= NSNotFound:
 												thisFont.setKerningForPair(thisMaster.id, leftGroup, rightGroup, 0.0)
 												if reportInMacroWindow:
-													print "  %s, @%s @%s: zeroed" % (thisMaster.name, leftGroup[7:], rightGroup[7:])
+													print("  %s, @%s @%s: zeroed" % (thisMaster.name, leftGroup[7:], rightGroup[7:]))
 				
 				self.w.progress.set(100.0)
 				
@@ -132,17 +133,17 @@ class ZeroKerner( object ):
 			listOfSelectedLayers = thisFont.selectedLayers # active layers of currently selected glyphs
 			for thisLayer in listOfSelectedLayers: # loop through layers
 				thisGlyph = thisLayer.parent
-				print thisGlyph.name, thisLayer.name
+				print(thisGlyph.name, thisLayer.name)
 				# output all node coordinates:
 				for thisPath in thisLayer.paths:
 					for thisNode in thisLayer.nodes:
-						print "-- %.1f %.1f" % ( thisNode.x, thisNode.y )
+						print("-- %.1f %.1f" % ( thisNode.x, thisNode.y ))
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Zero Kerner Error: %s" % e
+			print("Zero Kerner Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 ZeroKerner()

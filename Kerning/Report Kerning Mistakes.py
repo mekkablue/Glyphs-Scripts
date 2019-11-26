@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Report Kerning Mistakes
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -32,16 +33,16 @@ rightGroupsToBeChecked = [g.rightKerningGroup for g in thisFont.glyphs
 def reportLeftGroup(thisGlyph):
 	if thisGlyph:
 		if thisGlyph.leftKerningGroup:
-			print "  Questionable LEFT kerning group: /%s" % thisGlyph.name
+			print("  Questionable LEFT kerning group: /%s" % thisGlyph.name)
 			if not thisGlyph.export:
-				print "     Attention: %s does not export." % thisGlyph.name
+				print("     Attention: %s does not export." % thisGlyph.name)
 
 def reportRightGroup(thisGlyph):
 	if thisGlyph:
 		if thisGlyph.rightKerningGroup:
-			print "  Questionable RIGHT kerning group: /%s" % thisGlyph.name
+			print("  Questionable RIGHT kerning group: /%s" % thisGlyph.name)
 			if not thisGlyph.export:
-				print "     Attention: %s does not export." % thisGlyph.name
+				print("     Attention: %s does not export." % thisGlyph.name)
 
 def humanReadableName(groupOrGlyphId):
 	niceName = "???"
@@ -59,7 +60,7 @@ def humanReadableName(groupOrGlyphId):
 def reportBadKernPair(leftSide,rightSide,kernValue):
 	leftName = humanReadableName(leftSide)
 	rightName = humanReadableName(rightSide)
-	print "  Questionable pair: %s -- %s (%i)" % (leftName,rightName,kernValue)
+	print("  Questionable pair: %s -- %s (%i)" % (leftName,rightName,kernValue))
 
 
 # brings macro window to front and clears its log:
@@ -67,28 +68,28 @@ Glyphs.clearLog()
 Glyphs.showMacroWindow()
 
 # test for groups:
-print "PROBLEMS WITH KERNING GROUPS:\n"
+print("PROBLEMS WITH KERNING GROUPS:\n")
 for extension in extensionsWithoutKerning:
 	for thisGlyph in [g for g in thisFont.glyphs if extension in g.name]:
 		reportLeftGroup(thisGlyph)
 		reportRightGroup(thisGlyph)
 
-print
+print()
 
 for glyphName in noKerningToTheLeft:
 	thisGlyph = thisFont.glyphs[glyphName]
 	reportLeftGroup(thisGlyph)
 
-print
+print()
 
 for glyphName in noKerningToTheRight:
 	thisGlyph = thisFont.glyphs[glyphName]
 	reportRightGroup(thisGlyph)
 
 # test for kern pairs:
-print "\nPROBLEMS WITH KERN PAIRS:"	
+print("\nPROBLEMS WITH KERN PAIRS:")	
 for thisMaster in thisFont.masters:
-	print "\n  MASTER: %s" % thisMaster.name
+	print("\n  MASTER: %s" % thisMaster.name)
 	
 	masterKerning = thisFont.kerning[thisMaster.id]
 	
@@ -118,8 +119,8 @@ for thisMaster in thisFont.masters:
 				reportBadKernPair( leftSideGroup, rightSide, masterKerning[leftSideGroup][rightSide] )
 						
 
-print "\nDON'T FORGET:\n"
-print "  Follow the steps on:\n     http://schriftlabor.at/wiki/kerning/\n"
-print "  Please clean up kerning with:\n     Window > Kerning > gear menu > Clean up\n"
-print "  Please test for overkerns with:\n     Script > mekkablue > Metrics > New Tab wth Overkerned Pairs\n"
-print "  Please test for very small pairs with:\n     Script > mekkablue > Metrics > Delete Small Kern Pairs\n"
+print("\nDON'T FORGET:\n")
+print("  Follow the steps on:\n     http://schriftlabor.at/wiki/kerning/\n")
+print("  Please clean up kerning with:\n     Window > Kerning > gear menu > Clean up\n")
+print("  Please test for overkerns with:\n     Script > mekkablue > Metrics > New Tab wth Overkerned Pairs\n")
+print("  Please test for very small pairs with:\n     Script > mekkablue > Metrics > Delete Small Kern Pairs\n")

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: New Tab with Large Kerning Pairs
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -34,7 +35,7 @@ class ShowLargeKerningPairs( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Show Large Kerning Pairs' could not load preferences. Will resort to defaults"
+			print("Note: 'Show Large Kerning Pairs' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -83,7 +84,7 @@ class ShowLargeKerningPairs( object ):
 				threshold = int( Glyphs.defaults["com.mekkablue.ShowLargeKerningPairs.threshold"] )
 			except Exception as e:
 				import traceback
-				print traceback.format_exc()
+				print(traceback.format_exc())
 				Message(title="Threshold Error", message="The threshold value you supplied could not be read as an integer value.", OKButton=None)
 				threshold = 0
 			
@@ -136,14 +137,14 @@ class ShowLargeKerningPairs( object ):
 					
 			
 			if not self.SavePreferences( self ):
-				print "Note: 'Show Large Kerning Pairs' could not write preferences."
+				print("Note: 'Show Large Kerning Pairs' could not write preferences.")
 			
 			# self.w.close() # delete if you want window to stay open
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Show Large Kerning Pairs Error: %s" % e
+			print("Show Large Kerning Pairs Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 ShowLargeKerningPairs()

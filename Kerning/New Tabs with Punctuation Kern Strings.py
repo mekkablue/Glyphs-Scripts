@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: New Tabs with Punctuation Kern Strings
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -141,9 +142,9 @@ if uppercaseGRK or lowercaseGRK or smallcapsGRK:
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
 
-print lower
-print upper
-print number
+print(lower)
+print(upper)
+print(number)
 
 from AppKit import *
 
@@ -161,7 +162,7 @@ def setClipboard( myText ):
 		return False
 
 if not setClipboard(lower+upper+number):
-	print "Warning: could not set clipboard to %s" % ( "clipboard text" )
+	print("Warning: could not set clipboard to %s" % ( "clipboard text" ))
 
 # Floating notification:
 Glyphs.showNotification( 

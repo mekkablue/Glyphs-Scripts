@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Copy Kerning Exceptions to Double Accents
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -37,10 +38,10 @@ for i, baseGlyphID in enumerate(baseGlyphIDs):
 					  and g != baseGlyphName 
 					  and not "." in g
 				  ]
-	print "\nCopying exceptions for: %s" % baseGlyphName
+	print("\nCopying exceptions for: %s" % baseGlyphName)
 	if doubleaccentIDs:
 		for thisMaster in thisFont.masters:
-			print " Master: %s" % repr(thisMaster)
+			print(" Master: %s" % repr(thisMaster))
 			masterKerning = thisFont.kerning[thisMaster.id]
 			
 			# abreve on the left side:
@@ -63,7 +64,7 @@ for i, baseGlyphID in enumerate(baseGlyphIDs):
 							rightKeyName,
 							kernValue
 						)
-						print "  Added: %s <--> %s (%.1f)" % (doubleaccentName,rightKeyName,kernValue)
+						print("  Added: %s <--> %s (%.1f)" % (doubleaccentName,rightKeyName,kernValue))
 				
 			# abreve on the right side:
 			for leftKey in masterKerning:
@@ -85,5 +86,5 @@ for i, baseGlyphID in enumerate(baseGlyphIDs):
 							doubleaccentName,
 							kernValue
 						)
-						print "  Added: %s <--> %s (%.1f)" % (leftKeyName,doubleaccentName,kernValue)
+						print("  Added: %s <--> %s (%.1f)" % (leftKeyName,doubleaccentName,kernValue))
 

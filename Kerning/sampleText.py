@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 from GlyphsApp import Glyphs
 from AppKit import NSNotFound
 
@@ -13,11 +14,11 @@ def setSelectSampleTextIndex( thisFont, tab=None, marker="### CUSTOM KERN STRING
 		tab.selectSampleTextArrayController().setSelectionIndex_(sampleTextIndex+1)
 		tab.text = sampleTexts[sampleTextIndex+1]
 	else:
-		print "Warning: Could not find '%s' in sample strings." % marker
+		print("Warning: Could not find '%s' in sample strings." % marker)
 
 def addToSampleText( kernStrings, marker="### CUSTOM KERN STRING ###" ):
 	if kernStrings is None:
-		print "No kern strings generated."
+		print("No kern strings generated.")
 		return False
 	else:
 		# Get current sample texts:
@@ -26,7 +27,7 @@ def addToSampleText( kernStrings, marker="### CUSTOM KERN STRING ###" ):
 		# Cut off after marker text:
 		i = sampleTexts.indexOfObject_(marker)
 		if i == NSNotFound:
-			print "Warning: Could not find this marker:\n%s\nAppending it..." % marker
+			print("Warning: Could not find this marker:\n%s\nAppending it..." % marker)
 			sampleTexts.append(marker)
 		else:
 			sampleTexts = sampleTexts[:i+1]
@@ -44,7 +45,7 @@ def addToSampleText( kernStrings, marker="### CUSTOM KERN STRING ###" ):
 def buildKernStrings( listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None, linePrefix="nonn", linePostfix="noon" ):
 	"""Takes a list of glyph names and returns a list of kernstrings"""
 	if thisFont is None:
-		print "No font detected."
+		print("No font detected.")
 		return None
 	else:
 		kernStrings = []
@@ -90,9 +91,9 @@ def executeAndReport( kernStrings ):
 	Glyphs.showMacroWindow()
 	
 	# print status and modify Sample Texts:
-	print "Adding %i lines to Sample Texts..." % len( kernStrings )
+	print("Adding %i lines to Sample Texts..." % len( kernStrings ))
 	if not addToSampleText( kernStrings ):
-		print "Warning: could not add the lines."
+		print("Warning: could not add the lines.")
 	else:
-		print "Done."
+		print("Done.")
 	

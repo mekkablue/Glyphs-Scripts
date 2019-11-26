@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: GapFinder
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -87,7 +88,7 @@ class GapFinder( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'GapFinder' could not load preferences. Will resort to defaults"
+			print("Note: 'GapFinder' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -234,7 +235,7 @@ class GapFinder( object ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print "Note: 'GapFinder' could not write preferences."
+				print("Note: 'GapFinder' could not write preferences.")
 			
 			# query frontmost fontmaster:
 			thisFont = Glyphs.font
@@ -250,7 +251,7 @@ class GapFinder( object ):
 			# start reporting to macro window:
 			if Glyphs.defaults["com.mekkablue.GapFinder.reportGapsInMacroWindow"]:
 				Glyphs.clearLog()
-				print "GapFinder Report for %s, master %s:\n" % (thisFont.familyName, thisFontMaster.name)
+				print("GapFinder Report for %s, master %s:\n" % (thisFont.familyName, thisFontMaster.name))
 			
 			# query user input:
 			script, firstCategory, firstSubCategory, secondCategory, secondSubCategory = self.queryPrefs()
@@ -261,23 +262,23 @@ class GapFinder( object ):
 			try:
 				maxDistance = float( Glyphs.defaults["com.mekkablue.GapFinder.maxDistance"] )
 			except Exception as e:
-				print "Warning: Could not read min distance entry. Will default to 200.\n%s" % e
+				print("Warning: Could not read min distance entry. Will default to 200.\n%s" % e)
 				import traceback
-				print traceback.format_exc()
-				print
+				print(traceback.format_exc())
+				print()
 
 			# save prefs
 			if not self.SavePreferences(None):
-				print "Note: GapFinder could not write preferences."
+				print("Note: GapFinder could not write preferences.")
 			
 			# get list of glyph names:
 			firstList = self.listOfNamesForCategories( thisFont, firstCategory, firstSubCategory, script, excludedGlyphNameParts, excludeNonExporting )
 			secondList = self.listOfNamesForCategories( thisFont, secondCategory, secondSubCategory, script, excludedGlyphNameParts, excludeNonExporting )
 
 			if Glyphs.defaults["com.mekkablue.GapFinder.reportGapsInMacroWindow"]:
-				print "Maximum Distance: %i\n" % maxDistance
-				print "Left glyphs:\n%s\n" % ", ".join(firstList)
-				print "Right glyphs:\n%s\n" % ", ".join(secondList)
+				print("Maximum Distance: %i\n" % maxDistance)
+				print("Left glyphs:\n%s\n" % ", ".join(firstList))
+				print("Right glyphs:\n%s\n" % ", ".join(secondList))
 
 			tabString = "\n"
 			gapCount = 0
@@ -298,7 +299,7 @@ class GapFinder( object ):
 						gapCount += 1
 						tabString += "/%s/%s/space" % ( firstGlyphName, secondGlyphName )
 						if Glyphs.defaults["com.mekkablue.GapFinder.reportGapsInMacroWindow"]:
-							print "- %s %s: %i" % ( firstGlyphName, secondGlyphName, distanceBetweenShapes )
+							print("- %s %s: %i" % ( firstGlyphName, secondGlyphName, distanceBetweenShapes ))
 				tabString += "\n"
 				
 			# clean up the tab string:
@@ -339,12 +340,12 @@ class GapFinder( object ):
 			
 			# Report in Macro Window:
 			if Glyphs.defaults["com.mekkablue.GapFinder.reportGapsInMacroWindow"]:
-				print report
+				print(report)
 				Glyphs.showMacroWindow()
 
 		except Exception as e:
-			print "GapFinder Error: %s" % e
+			print("GapFinder Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 GapFinder()

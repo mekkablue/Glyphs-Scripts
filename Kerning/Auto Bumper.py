@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Auto Bumper
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -170,7 +171,7 @@ class Bumper( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: Auto Bumper could not load preferences. Will resort to defaults"
+			print("Note: Auto Bumper could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -280,9 +281,9 @@ class Bumper( object ):
 			
 			self.w.kernStrings.set( Glyphs.defaults["com.mekkablue.Bumper.kernStrings"] )
 		except Exception as e:
-			print e
+			print(e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 			return False
 			
 		return True
@@ -306,17 +307,17 @@ class Bumper( object ):
 		# add only if it is OK:
 		if newKernValue == 0.0 and Glyphs.defaults["com.mekkablue.Bumper.avoidZeroKerning"]:
 			if Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"]:
-				print "- %s %s: zero kerning, not added." % (leftSide, rightSide)
+				print("- %s %s: zero kerning, not added." % (leftSide, rightSide))
 			return False # do not increase kern count
 		else:
 			if kerningExists and shouldKeepExistingKerning:
 				if Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"]:
-					print "- %s %s: keeps existing %i (instead of new %i)." % (leftSide, rightSide, existingKerning, newKernValue)
+					print("- %s %s: keeps existing %i (instead of new %i)." % (leftSide, rightSide, existingKerning, newKernValue))
 				return False # do not increase kern count
 			else:
 				thisFont.setKerningForPair(thisMasterID, leftSide, rightSide, newKernValue)
 				if Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"]:
-					print "- %s %s: %i" % ( leftSide, rightSide, newKernValue )
+					print("- %s %s: %i" % ( leftSide, rightSide, newKernValue ))
 				return True # increase kern count
 
 	def BumperMain( self, sender ):
@@ -324,7 +325,7 @@ class Bumper( object ):
 			# save prefs
 			if self.SavePreferences(None):
 				if Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"]:
-					print "Note: Auto Bumper could not write preferences.\n"
+					print("Note: Auto Bumper could not write preferences.\n")
 			
 			# query frontmost fontmaster:
 			thisFont = Glyphs.font
@@ -334,7 +335,7 @@ class Bumper( object ):
 			# start reporting to macro window:
 			if Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"]:
 				Glyphs.clearLog()
-				print "Auto Bumper Report for %s, master %s:\n" % (thisFont.familyName, thisMaster.name)
+				print("Auto Bumper Report for %s, master %s:\n" % (thisFont.familyName, thisMaster.name))
 
 			# reset progress bar:
 			self.w.bar.set(0)
@@ -409,17 +410,17 @@ class Bumper( object ):
 			
 				# report key values for kerning:
 				if Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"]:
-					print
+					print()
 					if not minDistance is None:
-						print "Minimum Distance: %i" % minDistance
+						print("Minimum Distance: %i" % minDistance)
 					if not maxDistance is None:
-						print "Maximum Distance: %i" % maxDistance
+						print("Maximum Distance: %i" % maxDistance)
 					if not roundFactor is None:
-						print "Rounding: %i" % roundFactor
+						print("Rounding: %i" % roundFactor)
 				
-					print
-					print "Left glyphs:\n%s\n" % ", ".join([g.name for g in firstGlyphList])
-					print "Right glyphs:\n%s\n" % ", ".join([g.name for g in secondGlyphList])
+					print()
+					print("Left glyphs:\n%s\n" % ", ".join([g.name for g in firstGlyphList]))
+					print("Right glyphs:\n%s\n" % ", ".join([g.name for g in secondGlyphList]))
 			
 			
 			
@@ -440,7 +441,7 @@ class Bumper( object ):
 							leftSide = "@MMK_L_%s" % leftGroup
 						else:
 							Glyphs.showMacroWindow()
-							print "Error: Left glyph %s has no kerning group. Cannot apply group kerning." % leftGlyph.name
+							print("Error: Left glyph %s has no kerning group. Cannot apply group kerning." % leftGlyph.name)
 							leftSide = None
 					else:
 						leftSide = leftGlyph.name
@@ -456,7 +457,7 @@ class Bumper( object ):
 									rightSide = "@MMK_R_%s" % rightGroup
 								else:
 									Glyphs.showMacroWindow()
-									print "Error: Right glyph %s has no kerning group. Cannot apply group kerning." % rightGlyph.name
+									print("Error: Right glyph %s has no kerning group. Cannot apply group kerning." % rightGlyph.name)
 									rightSide = None
 							else:
 								rightSide = rightGlyph.name
@@ -511,14 +512,14 @@ class Bumper( object ):
 
 				# Report in Macro Window:
 				if Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"]:
-					print
-					print report
+					print()
+					print(report)
 					Glyphs.showMacroWindow()
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Auto Bumper Error: %s" % e
+			print("Auto Bumper Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 Bumper()

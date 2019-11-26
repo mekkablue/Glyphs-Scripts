@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: New tab with uneven symmetric kernings
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -29,20 +30,20 @@ for x in allDottedGlyphNames:
 
 tabString = ""
 for glyphnames in (list(UC)+extraUC+SY, list(LC)+extraLC+SY, SC+extraSC+SY):
-	print glyphnames
+	print(glyphnames)
 	for i, glyphname1 in enumerate(glyphnames):
 		for glyphname2 in glyphnames[i:]:
 			if glyphname1 != glyphname2: # AAA makes no sense
 				if not thisFont.glyphs[glyphname1] or not thisFont.glyphs[glyphname2]:
 					for g in (glyphname1,glyphname2):
 						if not thisFont[g]:
-							print u"⚠️ glyph '%s' does not exist" % g
+							print(u"⚠️ glyph '%s' does not exist" % g)
 				else:
 					# kerning exceptions:
 					leftKern  = Font.kerningForPair( m.id, glyphname1, glyphname2 )
 					rightKern = Font.kerningForPair( m.id, glyphname2, glyphname1 )
 					if leftKern != rightKern:
-						print "%s-%s-%s: exception not symmetric: %i vs. %i" % (glyphname1, glyphname2, glyphname1, leftKern, rightKern)
+						print("%s-%s-%s: exception not symmetric: %i vs. %i" % (glyphname1, glyphname2, glyphname1, leftKern, rightKern))
 						tabString += "/%s/%s/%s\n" % (glyphname1, glyphname2, glyphname1)
 					else:
 						if glyph1.rightKerningGroup and glyph2.leftKerningGroup and glyph2.rightKerningGroup and glyph1.leftKerningGroup:
@@ -52,13 +53,13 @@ for glyphnames in (list(UC)+extraUC+SY, list(LC)+extraLC+SY, SC+extraSC+SY):
 							leftKern  = Font.kerningForPair(m.id, "@MMK_L_"+glyph1.rightKerningGroup, "@MMK_R_"+glyph2.leftKerningGroup)
 							rightKern = Font.kerningForPair(m.id, "@MMK_L_"+glyph2.rightKerningGroup, "@MMK_R_"+glyph1.leftKerningGroup)
 							if leftKern != rightKern:
-								print "@%s-@%s-@%s: group kerning not symmetric: %i vs. %i" % (
+								print("@%s-@%s-@%s: group kerning not symmetric: %i vs. %i" % (
 									glyph1.name, glyph2.name, glyph1.name, 
 									leftKern, rightKern,
-									)
+									))
 								tabString += "/%s/%s/%s\n" % (glyphname1, glyphname2, glyphname1)
 						else:
-							print u"⚠️ missing kerning groups in glyphs: %s, %s" % (glyphname1, glyphname2)
+							print(u"⚠️ missing kerning groups in glyphs: %s, %s" % (glyphname1, glyphname2))
 
 if tabString:
 	# opens new Edit tab:
