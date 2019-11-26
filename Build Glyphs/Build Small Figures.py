@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Build Small Figures
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -66,7 +67,7 @@ class smallFigureBuilder( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Build Small Figures' could not load preferences. Will resort to defaults"
+			print("Note: 'Build Small Figures' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -119,9 +120,9 @@ class smallFigureBuilder( object ):
 				defaultGlyph = thisFont.glyphs[defaultGlyphName]
 				
 				if not defaultGlyph:
-					print "\nNot found: %s" % defaultGlyphName
+					print("\nNot found: %s" % defaultGlyphName)
 				else:
-					print "\nDeriving from %s:" % defaultGlyphName
+					print("\nDeriving from %s:" % defaultGlyphName)
 					for deriveSuffix in offsets:
 						# create or overwrite derived glyph:
 						deriveGlyphName = "%s%s" % (fig,deriveSuffix)
@@ -129,9 +130,9 @@ class smallFigureBuilder( object ):
 						if not deriveGlyph:
 							deriveGlyph = GSGlyph(deriveGlyphName)
 							thisFont.glyphs.append(deriveGlyph)
-							print " - creating new glyph %s" % deriveGlyphName
+							print(" - creating new glyph %s" % deriveGlyphName)
 						else:
-							print " - overwriting glyph %s" % deriveGlyphName
+							print(" - overwriting glyph %s" % deriveGlyphName)
 							
 						# copy glyph attributes:
 						deriveGlyph.leftKerningGroup = defaultGlyph.leftKerningGroup
@@ -155,14 +156,14 @@ class smallFigureBuilder( object ):
 								deriveLayer.components.append(defaultComponent)
 			
 			if not self.SavePreferences( self ):
-				print "Note: 'Build Small Figures' could not write preferences."
+				print("Note: 'Build Small Figures' could not write preferences.")
 			
 			# self.w.close() # delete if you want window to stay open
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Build Small Figures Error: %s" % e
+			print("Build Small Figures Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 smallFigureBuilder()

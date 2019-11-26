@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Build Extra Math Symbols
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -123,7 +124,7 @@ def drawPenDataInLayer(thisLayer,penData):
 					thisSegment[2]
 				)
 			else:
-				print "%s: Path drawing error. Could not process this segment:\n" % (glyphName, thisSegment)
+				print("%s: Path drawing error. Could not process this segment:\n" % (glyphName, thisSegment))
 		pen.closePath()
 		pen.endPath()
 	
@@ -280,7 +281,7 @@ penDrawings = {
 #)
 }
 
-print penDrawings.keys()
+print(penDrawings.keys())
 for fullName in penDrawings:
 	masterIndex = 0
 	parts = fullName.split(":")
@@ -347,7 +348,7 @@ for fullName in penDrawings:
 			zoom = transform( scale=zoomFactor ).transformStruct()
 			emptysetLayer.background.applyTransform( zoom )
 		except:
-			print "ERROR: could not zoom background"
+			print("ERROR: could not zoom background")
 		
 		metricKey = "=%s" % penDrawing
 		emptyset.leftMetricsKey = metricKey

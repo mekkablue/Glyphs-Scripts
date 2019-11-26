@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Punctuation Unifier
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -54,7 +55,7 @@ class PunctuationUnifier( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Punctuation Unifier' could not load preferences. Will resort to defaults"
+			print("Note: 'Punctuation Unifier' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -95,13 +96,13 @@ class PunctuationUnifier( object ):
 			
 			
 			if not self.SavePreferences( self ):
-				print "Note: 'Punctuation Unifier' could not write preferences."
+				print("Note: 'Punctuation Unifier' could not write preferences.")
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Punctuation Unifier Error: %s" % e
+			print("Punctuation Unifier Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 PunctuationUnifier()

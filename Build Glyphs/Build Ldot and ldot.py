@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Build Ldot and ldot
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -11,9 +12,9 @@ thisFontMaster = thisFont.selectedFontMaster # active master
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 
 def buildLdot( targetGlyphName, baseName, accentName ):
-	print "%s + %s = %s" % ( baseName, accentName, targetGlyphName )
+	print("%s + %s = %s" % ( baseName, accentName, targetGlyphName ))
 	for thisMaster in thisFont.masters:
-		print "Processing", thisMaster
+		print("Processing", thisMaster)
 		thisMasterID = thisMaster.id
 		offsetAccent = thisFont.glyphs[baseName].layers[thisMasterID].width
 		accentWidth = thisFont.glyphs[accentName].layers[thisMasterID].width

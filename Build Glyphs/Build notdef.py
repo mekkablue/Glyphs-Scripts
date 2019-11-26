@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Build .notdef
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -70,9 +71,9 @@ def circleInsideRect(rect):
 			newNode.connection = GSSMOOTH
 			circlePath.nodes.append(newNode)
 
-	print circlePath
+	print(circlePath)
 	for n in circlePath.nodes:
-		print "   ", n
+		print("   ", n)
 	circlePath.closed = True
 	return circlePath
 
@@ -103,14 +104,14 @@ if not thisFont.glyphs[".notdef"]:
 			notdefGlyph.name = notdefName
 			thisFont.glyphs.append( notdefGlyph )
 			if thisFont.glyphs[notdefName]:
-				print "%s added successfully" % notdefName
-				print thisFont.glyphs[notdefName]
-				print len(thisFont.glyphs[notdefName].layers)
+				print("%s added successfully" % notdefName)
+				print(thisFont.glyphs[notdefName])
+				print(len(thisFont.glyphs[notdefName].layers))
 			for masterID in [m.id for m in thisFont.masters]:
 				notdefLayer = thisFont.glyphs[notdefName].layers[masterID]
-				print notdefLayer
+				print(notdefLayer)
 				for thisPath in questionmarkLayer.paths:
-					print 
+					print() 
 					notdefLayer.paths.append( thisPath.copy() )
 				notdefLayer.LSB = 30.0
 				notdefLayer.RSB = 30.0

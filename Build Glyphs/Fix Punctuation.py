@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Fix Punctuation Dots and Heights
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -60,7 +61,7 @@ for suffix in ("",".sc"):
 
 	if exclam and question:
 		for thisMaster in thisFont.masters:
-			print "\n%s:" % thisMaster.name
+			print("\n%s:" % thisMaster.name)
 			exclamLayer = exclam.layers[thisMaster.id]
 			questionLayer = question.layers[thisMaster.id]
 			exclamDot = sorted( exclamLayer.paths, key = lambda thisPath: thisPath.bounds.origin.y )[0]
@@ -75,12 +76,12 @@ for suffix in ("",".sc"):
 			if len(questionLayer.paths) == 1:
 				questionLayer.paths.append(newQuestionDot)
 				newQuestionDot.applyTransform(shift)
-				print u"  ✅ OK: dot transplanted in %s, layer %s" % (questionname, questionLayer.name)
+				print(u"  ✅ OK: dot transplanted in %s, layer %s" % (questionname, questionLayer.name))
 			else:
-				print u"  ⛔️ ERROR: dot not deleted in %s, layer %s?" % (questionname, questionLayer.name)
+				print(u"  ⛔️ ERROR: dot not deleted in %s, layer %s?" % (questionname, questionLayer.name))
 			
 			if not exclamdown:
-				print u"  ⛔️ ERROR: %s not found" % exclamdownname
+				print(u"  ⛔️ ERROR: %s not found" % exclamdownname)
 			else:
 				for glyph in (exclamdown,questiondown):
 					glyphLayer = glyph.layers[thisMaster.id]
@@ -101,5 +102,5 @@ for suffix in ("",".sc"):
 					glyphLayer.applyTransform( shift )
 					glyphLayer.updateMetrics()
 					glyphLayer.syncMetrics()
-					print u"  ✅ synced %s" % glyph.name
+					print(u"  ✅ synced %s" % glyph.name)
 		

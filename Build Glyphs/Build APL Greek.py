@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Build APL Greek
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -24,6 +25,6 @@ for glyphName in aplGlyphNames:
 			thisLayer.components.append(comp)
 			comp.automaticAlignment = True
 	else:
-		print "%s: not found in font." % original
+		print("%s: not found in font." % original)
 		Glyphs.showMacroWindow()
 		

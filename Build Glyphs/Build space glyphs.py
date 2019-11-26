@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Build space glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -13,19 +14,19 @@ def tabfigure(font):
 
 def createSpaceGlyph( thisFont, glyphName, widthKey ):
 	if thisFont.glyphs[glyphName]:
-		print u"👍🏻 %s: already exists in %s. Updating..." % (glyphName, thisFont.familyName)
+		print(u"👍🏻 %s: already exists in %s. Updating..." % (glyphName, thisFont.familyName))
 		space = thisFont.glyphs[glyphName]
 		if not space.export:
 			space.export = True
-			print u"😬 %s was set to not export. Fixed. 🙌" % glyphName
+			print(u"😬 %s was set to not export. Fixed. 🙌" % glyphName)
 	else:
-		print u"✅ Creating %s" % glyphName
+		print(u"✅ Creating %s" % glyphName)
 		space = GSGlyph(glyphName)
 		thisFont.glyphs.append(space)
 	
 	space.beginUndo()
 	
-	print u"✅ setting width metrics key: %s" % widthKey
+	print(u"✅ setting width metrics key: %s" % widthKey)
 	space.widthMetricsKey = widthKey
 	space.rightMetricsKey = None
 	space.leftMetricsKey = None
@@ -43,9 +44,9 @@ def createSpaceGlyph( thisFont, glyphName, widthKey ):
 	if not space.unicode:
 		newUnicode = Glyphs.glyphInfoForName(glyphName).unicode
 		if not newUnicode:
-			print u"⛔️ Could not determine Unicode for %s. Please review."
+			print(u"⛔️ Could not determine Unicode for %s. Please review.")
 		else:
-			print u"✅ Setting Unicode value %s glyph %s" % (newUnicode, glyphName)
+			print(u"✅ Setting Unicode value %s glyph %s" % (newUnicode, glyphName))
 			space.unicode = newUnicode
 	
 	space.endUndo()
@@ -59,9 +60,9 @@ Glyphs.clearLog()
 Glyphs.showMacroWindow()
 
 # start reporting
-print "Building space glyphs for %s" % thisFont.familyName
-print thisFont.filepath
-print
+print("Building space glyphs for %s" % thisFont.familyName)
+print(thisFont.filepath)
+print()
 
 # space dict:
 spaces = {
@@ -88,7 +89,7 @@ thisFont.disableUpdateInterface() # suppresses UI updates in Font View, speeds t
 for thisSpace in spaces:
 	widthKey = spaces[thisSpace]
 	createSpaceGlyph( thisFont, thisSpace, widthKey )
-	print 
+	print() 
 
 thisFont.enableUpdateInterface() # reenables UI updates in Font View, speeds things up a little
  

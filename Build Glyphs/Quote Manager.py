@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Quote Manager
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -78,7 +79,7 @@ class QuoteManager( object ):
 
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Build and align quotes' could not load preferences. Will resort to defaults"
+			print("Note: 'Build and align quotes' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -135,18 +136,18 @@ class QuoteManager( object ):
 			if tabString:
 				Font.newTab(tabString)
 			else:
-				print u"⚠️ WARNING: None of the required glyphs in the font. No new tab opened."
+				print(u"⚠️ WARNING: None of the required glyphs in the font. No new tab opened.")
 		
 	def reportFont(self):
 		Font = Glyphs.font
-		print "Font: %s" % Font.familyName
-		print "Path: %s\n" % Font.filepath
+		print("Font: %s" % Font.familyName)
+		print("Path: %s\n" % Font.filepath)
 	
 	def reportMissingGlyph(self, glyphName):
-		print u"⚠️ WARNING: %s not in font. Skipping." % glyphName
+		print(u"⚠️ WARNING: %s not in font. Skipping." % glyphName)
 	
 	def reportMetricKeys(self, glyphName):
-		print u"✅ Updated Metrics Keys for: %s" % glyphName
+		print(u"✅ Updated Metrics Keys for: %s" % glyphName)
 	
 	def defaultQuotes(self, dotSuffix=""):
 		if Glyphs.defaults["com.mekkablue.QuoteManager.syncWithDefaultQuote"]:
@@ -158,7 +159,7 @@ class QuoteManager( object ):
 				defaultSingle += dotSuffix
 				defaultDouble += dotSuffix
 			
-			print "\nReference quotes: %s/%s" % (defaultSingle, defaultDouble)
+			print("\nReference quotes: %s/%s" % (defaultSingle, defaultDouble))
 		else:
 			defaultSingle = None
 			defaultDouble = None
@@ -169,7 +170,7 @@ class QuoteManager( object ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print "Note: 'Quote Manager' could not write preferences."
+				print("Note: 'Quote Manager' could not write preferences.")
 		
 			Glyphs.clearLog()
 			Font = Glyphs.font # frontmost font
@@ -184,7 +185,7 @@ class QuoteManager( object ):
 				doubleQuoteName = "%s%s" % (names[keyGlyphName], dotSuffix)
 				doubleQuote = Font.glyphs[doubleQuoteName]
 			
-				print "\nSetting kern groups for: %s, %s" % (singleQuoteName, doubleQuoteName)
+				print("\nSetting kern groups for: %s, %s" % (singleQuoteName, doubleQuoteName))
 			
 				if not singleQuote:
 					self.reportMissingGlyph(singleQuoteName)
@@ -194,20 +195,20 @@ class QuoteManager( object ):
 					for glyph in (singleQuote, doubleQuote):
 						glyph.leftKerningGroup = singleQuoteName
 						glyph.rightKerningGroup = singleQuoteName
-					print u"✅ Succesfully set kerning groups to: '%s'" % singleQuoteName
+					print(u"✅ Succesfully set kerning groups to: '%s'" % singleQuoteName)
 					
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Quote Manager Error: %s" % e
+			print("Quote Manager Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 	
 	def insertAnchorsMain( self, sender ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print "Note: 'Quote Manager' could not write preferences."
+				print("Note: 'Quote Manager' could not write preferences.")
 			
 			Glyphs.clearLog()
 			Font = Glyphs.font # frontmost font
@@ -217,9 +218,9 @@ class QuoteManager( object ):
 		
 			# report:
 			self.reportFont()
-			print "Inserting cursive attachment anchors in single quotes, and auto-aligning double quotes%s." % (
+			print("Inserting cursive attachment anchors in single quotes, and auto-aligning double quotes%s." % (
 				" with suffix '%s'"%dotSuffix if dotSuffix else ""
-			)
+			))
 		
 			defaultSingle, defaultDouble = self.defaultQuotes(dotSuffix)
 			
@@ -235,9 +236,9 @@ class QuoteManager( object ):
 						singleName += dotSuffix
 
 					if singleName=="quotesingle" and Glyphs.defaults["com.mekkablue.QuoteManager.excludeDumbQuotes"]:
-						print u"\n⚠️ Skipping %s/%s" % (singleName, doubleName)
+						print(u"\n⚠️ Skipping %s/%s" % (singleName, doubleName))
 					else:
-						print "\n%s/%s:" % (singleName, doubleName)
+						print("\n%s/%s:" % (singleName, doubleName))
 
 						g = Font.glyphs[singleName] # single quote glyph
 						gg = Font.glyphs[doubleName] # double quote glyph
@@ -265,7 +266,7 @@ class QuoteManager( object ):
 								if xPos and len(xPos)==2:
 						
 									# add anchors in single quote:
-									print xPos[1]-xPos[0], master.name
+									print(xPos[1]-xPos[0], master.name)
 									dist = abs(xPos[1]-xPos[0])
 									for aName in ("entry","exit"):
 										if aName == "exit":
@@ -274,7 +275,7 @@ class QuoteManager( object ):
 											x = 0
 										newAnchor = GSAnchor( "#%s"%aName, NSPoint(x,0) )
 										gl.anchors.append(newAnchor)
-									print u"    ✅ %s: Added #exit and #entry anchors." % g.name
+									print(u"    ✅ %s: Added #exit and #entry anchors." % g.name)
 
 									# auto align components
 									for comp in ggl.components:
@@ -284,26 +285,26 @@ class QuoteManager( object ):
 									ggl.updateMetrics()
 									ggl.syncMetrics()
 						
-									print u"    ✅ %s: Auto-aligned components." % gg.name
+									print(u"    ✅ %s: Auto-aligned components." % gg.name)
 								else:
-									print u"    ⚠️ WARNING: No components in %s, layer '%s'. Cannot add anchors." % ( referenceLayer.parent.name, referenceLayer.name )
+									print(u"    ⚠️ WARNING: No components in %s, layer '%s'. Cannot add anchors." % ( referenceLayer.parent.name, referenceLayer.name ))
 								
 			self.openTabIfRequested()
 			Font.updateInterface()
 			Font.currentTab.redraw()
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Quote Manager Error: %s" % e
+			print("Quote Manager Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 	
 	def metricKeyMain( self, sender ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print "Note: 'Quote Manager' could not write preferences."
+				print("Note: 'Quote Manager' could not write preferences.")
 			
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()
@@ -315,9 +316,9 @@ class QuoteManager( object ):
 		
 			# report:
 			self.reportFont()
-			print "Inserting metric keys in single quotes%s." % (
+			print("Inserting metric keys in single quotes%s." % (
 				" with suffix '%s'" % dotSuffix if dotSuffix else ""
-			)
+			))
 		
 			quotesinglbaseName = "quotesinglbase"+dotSuffix
 			quotesinglbase = Font.glyphs[ quotesinglbaseName ]
@@ -341,14 +342,14 @@ class QuoteManager( object ):
 					quoteleft.rightMetricsKey = equals
 					quoteright.leftMetricsKey = equals
 					quoteright.rightMetricsKey = equals
-					print u"✅ Updated Metrics Keys for: %s, %s, %s" % (quotesinglbaseName, quoteleftName, quoterightName)
+					print(u"✅ Updated Metrics Keys for: %s, %s, %s" % (quotesinglbaseName, quoteleftName, quoterightName))
 				elif not Glyphs.defaults["com.mekkablue.QuoteManager.excludeDumbQuotes"]:
 					# set dumb quote metric keys:
 					quotesingle.leftMetricsKey = equals
 					quotesingle.rightMetricsKey = "=|"
-					print u"✅ Updated Metrics Keys for: %s" % (quotesingleName)
+					print(u"✅ Updated Metrics Keys for: %s" % (quotesingleName))
 				else:
-					print u"\n⚠️ Skipping %s" % (quotesingleName)
+					print(u"\n⚠️ Skipping %s" % (quotesingleName))
 			else:
 				self.reportMissingGlyph(quotesingleName)
 
@@ -406,18 +407,18 @@ class QuoteManager( object ):
 			
 			self.openTabIfRequested()
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Quote Manager Error: %s" % e
+			print("Quote Manager Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 	def buildDoublesMain( self, sender ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print "Note: 'Quote Manager' could not write preferences."
+				print("Note: 'Quote Manager' could not write preferences.")
 			
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()
@@ -429,9 +430,9 @@ class QuoteManager( object ):
 		
 			# report:
 			self.reportFont()
-			print "Inserting single quote components in double quotes%s." % (
+			print("Inserting single quote components in double quotes%s." % (
 				" with suffix '%s'"%dotSuffix if dotSuffix else ""
-			)
+			))
 
 			for singleName in names:
 				doubleName = names[singleName]
@@ -440,9 +441,9 @@ class QuoteManager( object ):
 					singleName += dotSuffix
 
 				if singleName=="quotesingle" and Glyphs.defaults["com.mekkablue.QuoteManager.excludeDumbQuotes"]:
-					print u"\n⚠️ Skipping %s/%s" % (singleName, doubleName)
+					print(u"\n⚠️ Skipping %s/%s" % (singleName, doubleName))
 				else:
-					print "\n%s/%s:" % (singleName, doubleName)
+					print("\n%s/%s:" % (singleName, doubleName))
 
 					if not Font.glyphs[singleName]:
 						self.reportMissingGlyph(singleName)
@@ -466,17 +467,17 @@ class QuoteManager( object ):
 								ggl.components.append(newComponent)
 								newComponent.automaticAlignment = True
 								
-							print u"✅ %s: Added 2 %s components." % (doubleName, singleName)
+							print(u"✅ %s: Added 2 %s components." % (doubleName, singleName))
 			
 			self.openTabIfRequested()
 			Font.updateInterface()
 			Font.currentTab.redraw()
 		
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Quote Manager Error: %s" % e
+			print("Quote Manager Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 QuoteManager()

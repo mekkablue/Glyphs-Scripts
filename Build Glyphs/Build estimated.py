@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Build estimated, bar, brokenbar
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -100,7 +101,7 @@ def buildEstimated( thisFont ):
 							thisSegment[2]
 						)
 					else:
-						print "%s: Path drawing error. Could not process this segment:\n" % (glyphname, thisSegment)
+						print("%s: Path drawing error. Could not process this segment:\n" % (glyphname, thisSegment))
 				pen.closePath()
 				pen.endPath()
 		
@@ -124,10 +125,10 @@ def buildEstimated( thisFont ):
 			thisLayer.cleanUpPaths()
 			thisLayer.LSB = 40.0
 			thisLayer.RSB = 40.0
-			print "Created estimated in master '%s'" % thisLayer.associatedFontMaster().name
+			print("Created estimated in master '%s'" % thisLayer.associatedFontMaster().name)
 	else:
-		print "\nEstimated Error"
-		print "The glyph estimated already exists in this font. Rename or delete it and try again."
+		print("\nEstimated Error")
+		print("The glyph estimated already exists in this font. Rename or delete it and try again.")
 		Glyphs.showMacroWindow()
 
 def buildBars(thisFont):
@@ -167,7 +168,7 @@ def buildBars(thisFont):
 				pen.closePath()
 				pen.endPath()
 				barLayer.RSB = sidebearing
-				print "Created bar in master '%s'" % thisMaster.name
+				print("Created bar in master '%s'" % thisMaster.name)
 			
 			if brokenbarGlyph:
 				gapBottomY = ((ascender+descender)-gap)*0.5
@@ -196,10 +197,10 @@ def buildBars(thisFont):
 				pen.endPath()
 				
 				brokenbarLayer.RSB = sidebearing
-				print "Created brokenbar in master '%s'" % thisMaster.name
+				print("Created brokenbar in master '%s'" % thisMaster.name)
 	else:
-		print "\nBar Error:"
-		print "The glyphs bar and brokenbar already exist in this font. Rename or delete them and try again."
+		print("\nBar Error:")
+		print("The glyphs bar and brokenbar already exist in this font. Rename or delete them and try again.")
 		Glyphs.showMacroWindow()
 
 buildEstimated(thisFont)

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Build cadauna and careof
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -134,7 +135,7 @@ def process( thisGlyph ):
 	maxWidth = thisFont.upm
 	thisGlyph.leftMetricsKey = None
 	thisGlyph.rightMetricsKey = None
-	print "-".join(parts)
+	print("-".join(parts))
 	for thisLayer in thisGlyph.layers:
 		thisLayer.clear()
 		for i, part in enumerate(parts):

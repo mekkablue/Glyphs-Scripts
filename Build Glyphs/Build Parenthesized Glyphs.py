@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Build Parenthesized Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -54,7 +55,7 @@ def minDistanceBetweenTwoLayers( comp1, comp2, interval=5.0 ):
 			if minDist == None or minDist > total:
 				minDist = total
 		except:
-			print "None!", minDist, height, comp1.parent.name, left, comp2.parent.name, right
+			print("None!", minDist, height, comp1.parent.name, left, comp2.parent.name, right)
 			pass
 	return minDist
 
@@ -111,7 +112,7 @@ def process( thisGlyph ):
 	maxWidth = thisFont.upm
 	thisGlyph.leftMetricsKey = None
 	thisGlyph.rightMetricsKey = None
-	print "-".join(parts)
+	print("-".join(parts))
 	for thisLayer in thisGlyph.layers:
 		thisLayer.clear()
 		for i, part in enumerate(parts):
@@ -161,13 +162,13 @@ for name in parenGlyphs:
 		thisGlyph.name = name
 		thisFont.glyphs.append(thisGlyph)
 
-	print "Processing %s" % thisGlyph.name
+	print("Processing %s" % thisGlyph.name)
 	thisGlyph.beginUndo() # begin undo grouping
 	maxWidth = max( maxWidth, process( thisGlyph ) )
-	print maxWidth
+	print(maxWidth)
 	thisGlyph.endUndo()   # end undo grouping
 
-print maxWidth
+print(maxWidth)
 scale = ( thisFont.upm / maxWidth ) * 0.95
 yShift = transform( shiftY = thisFont.upm * 0.08 ).transformStruct()
 

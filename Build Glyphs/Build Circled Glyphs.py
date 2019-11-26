@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Build Circled Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -217,7 +218,7 @@ def buildCircledGlyph( thisGlyph, circleName, scaleFactors ):
 							posNeg = opticalCorrection/abs(opticalCorrection)
 							rest = abs(opticalCorrection) - threshold
 							opticalCorrection = posNeg * ( threshold + rest * 1/rest**0.3 )
-							print "--", opticalCorrection
+							print("--", opticalCorrection)
 						opticalShift = transform( shiftX = opticalCorrection ).transformStruct()
 						innerComponent.applyTransform( opticalShift )
 					
@@ -281,7 +282,7 @@ def buildCirclePart( thisFont, glyphName ):
 		thisGlyph = GSGlyph()
 		thisGlyph.name = glyphName
 		thisFont.glyphs.append( thisGlyph )
-		print "Generated %s" % glyphName
+		print("Generated %s" % glyphName)
 	
 	thisGlyph.export = False
 	
@@ -311,7 +312,7 @@ def buildCirclePart( thisFont, glyphName ):
 						thisSegment[2]
 					)
 				else:
-					print "%s: Path drawing error. Could not process this segment:\n" % (glyphName, thisSegment)
+					print("%s: Path drawing error. Could not process this segment:\n" % (glyphName, thisSegment))
 			pen.closePath()
 			pen.endPath()
 	
@@ -417,7 +418,7 @@ for glyphName in circledGlyphNames:
 		thisFont.glyphs.append(thisGlyph)
 
 	thisGlyph.beginUndo() # begin undo grouping
-	print "Building %s" % thisGlyph.name
+	print("Building %s" % thisGlyph.name)
 	buildCircledGlyph( thisGlyph, circleName, scaleFactors )
 	thisGlyph.endUndo()   # end undo grouping
 
