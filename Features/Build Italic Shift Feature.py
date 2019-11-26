@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Build Italic Shift Feature
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -104,7 +105,7 @@ class ItalicShiftFeature( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Italic Shift Feature' could not load preferences. Will resort to defaults"
+			print("Note: 'Italic Shift Feature' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -207,14 +208,14 @@ class ItalicShiftFeature( object ):
 				
 			
 			if not self.SavePreferences( self ):
-				print "Note: 'Italic Shift Feature' could not write preferences."
+				print("Note: 'Italic Shift Feature' could not write preferences.")
 			
 			self.w.close() # delete if you want window to stay open
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Italic Shift Feature Error: %s" % e
+			print("Italic Shift Feature Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 ItalicShiftFeature()

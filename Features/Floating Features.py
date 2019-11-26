@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Floating Features
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -41,9 +42,9 @@ class FeatureActivator( object ):
 			editTab.graphicView().layoutManager().updateActiveLayer()
 			editTab._updateFeaturePopup()
 			editTab.updatePreview()
-		except Exception, e:
-			print e
-			print traceback.format_exc()
+		except Exception as e:
+			print(e)
+			print(traceback.format_exc())
 			return False
 			
 		return True

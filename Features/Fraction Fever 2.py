@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Fraction Fever 2
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -135,7 +136,7 @@ def create_otfeature( featurename = "frac",
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
-print create_otfeature( featurename = "frac", featurecode = fractionFeverCode, targetfont = Font, codesig = "FRACTION-FEVER-2" )
+print(create_otfeature( featurename = "frac", featurecode = fractionFeverCode, targetfont = Font, codesig = "FRACTION-FEVER-2" ))
 
 # Check which glyphs still need to be created:
 necessaryGlyphs = (
@@ -150,5 +151,5 @@ glyphsToBeCreated = [ n for n in necessaryGlyphs if n not in existingGlyphNames 
 
 if len( glyphsToBeCreated ) > 0:
 	Glyphs.showMacroWindow()
-	print "These glyphs still need to be created for the feature to work:"
-	print " ".join( glyphsToBeCreated )
+	print("These glyphs still need to be created for the feature to work:")
+	print(" ".join( glyphsToBeCreated ))

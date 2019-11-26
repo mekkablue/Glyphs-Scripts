@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: New OT Class with Selected Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -68,11 +69,11 @@ class OTClassCreator( object ):
 		myClassCode = " ".join( listOfGlyphNames )
 		
 		if myClassName in listOfClassNames:
-			print "Changing class", myClassName, "to these glyphs:", myClassCode
+			print("Changing class", myClassName, "to these glyphs:", myClassCode)
 			Font.classes[ myClassName ].code = myClassCode
 			
 		else:
-			print "Creating class", myClassName, "with these glyphs:", myClassCode
+			print("Creating class", myClassName, "with these glyphs:", myClassCode)
 			myNewClass = GSClass()
 			myNewClass.name = myClassName
 			myNewClass.code = myClassCode

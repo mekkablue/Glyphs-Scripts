@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: New Tab with OT Class
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -60,11 +61,11 @@ class NewTabWithOTClass( object ):
 						escapedGlyphNames = "/"+"/".join(glyphNames)
 						self.font.newTab( escapedGlyphNames )
 				self.w.close() # delete if you want window to stay open
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "New Tab with OT Class Error: %s" % e
+			print("New Tab with OT Class Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 NewTabWithOTClass()

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Update Features without Reordering
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -9,6 +10,6 @@ thisFont = Glyphs.font
 
 for thisFeature in thisFont.features:
 	thisFeature.update()
-	print "Feature %s updated." % thisFeature.name
+	print("Feature %s updated." % thisFeature.name)
 
-print "Done."
+print("Done.")

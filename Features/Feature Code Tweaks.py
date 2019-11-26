@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Feature Code Tweaks
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -45,21 +46,21 @@ def addClass( otClassName, thisFont, forceUpdate=False ):
 		if otClassName in autoFeatures:
 			otClass.automatic = True
 		thisFont.classes.append(otClass)
-		print u"✅ OT class @%s added." % otClassName
+		print(u"✅ OT class @%s added." % otClassName)
 	
 	# Force the update if required:
 	if forceUpdate and not otClass.automatic:
 		otClass.automatic = True
-		print u"✅ OT class @%s: Automated code." % otClassName
+		print(u"✅ OT class @%s: Automated code." % otClassName)
 	
 		# TODO: check if class still exists after force update, run again without forceUpdate
 		
 	# Update class:
 	if otClass.automatic:
 		otClass.update()
-		print u"✅ OT class @%s: Updated automatic code." % otClassName
+		print(u"✅ OT class @%s: Updated automatic code." % otClassName)
 	else:
-		print u"⚠️ Warning: OT class @%s is not set to automatic." % otClassName
+		print(u"⚠️ Warning: OT class @%s is not set to automatic." % otClassName)
 	
 def updateAndAutodisableFeatureInFont( featureName, thisFont ):
 	feature = thisFont.features[featureName]
@@ -69,12 +70,12 @@ def updateAndAutodisableFeatureInFont( featureName, thisFont ):
 			oldCode = feature.code
 			feature.update()
 			if feature.code != oldCode:
-				print u"✅ Updated %s feature code." % featureName
+				print(u"✅ Updated %s feature code." % featureName)
 			# disable automation and report:
 			feature.automatic = False
-			print u"✅ Disabled automation in %s." % featureName
+			print(u"✅ Disabled automation in %s." % featureName)
 	else:
-		print u"⚠️ Feature %s does not exist (yet)." % featureName
+		print(u"⚠️ Feature %s does not exist (yet)." % featureName)
 
 def createManyToOneFromDict( codeDict, thisFont ):
 	featureLines = ""
@@ -119,11 +120,11 @@ def createManyToOneFromDict( codeDict, thisFont ):
 							separateGlyphs = separateGlyphs.replace(autocorrectString, replacementCode)
 							featureLines += "	sub %s by %s;\n" % (separateGlyphs, ligName)
 					
-				print u"✅ Adding ligature substitution for %s." % (ligName)
+				print(u"✅ Adding ligature substitution for %s." % (ligName))
 			else:
-				print u"⚠️ Warning: not all parts present for %s (%s), no substitution added." % (ligName, ", ".join(allParts))
+				print(u"⚠️ Warning: not all parts present for %s (%s), no substitution added." % (ligName, ", ".join(allParts)))
 		else:
-			print u"⚠️ Warning: %s is not present (or not set to export), no substitution added." % ligName
+			print(u"⚠️ Warning: %s is not present (or not set to export), no substitution added." % ligName)
 	return featureLines
 
 def wrapCodeInLookup( featureCode, lookupName ):
@@ -172,14 +173,14 @@ def createOTFeature( featureName = "calt",
 				# prepend new code:
 				targetFeature.code = beginSig + featureCode + "\n" + endSig + "\n" + targetFeature.code
 
-		print u"✅ Updated existing OT feature '%s'." % featureName
+		print(u"✅ Updated existing OT feature '%s'." % featureName)
 	else:
 		# create feature with new code:
 		targetFeature = GSFeature()
 		targetFeature.name = featureName
 		targetFeature.code = beginSig + featureCode + "\n" + endSig
 		targetFont.features.append( targetFeature )
-		print u"✅ Created new OT feature '%s'." % featureName
+		print(u"✅ Created new OT feature '%s'." % featureName)
 	
 	if addNote:
 		if not targetFeature.notes:
@@ -189,7 +190,7 @@ def createOTFeature( featureName = "calt",
 			position = "end" if appendCode else "beginning"
 			manualInstruction = "# Add at %s:\n%s\n\n" % ( position, featureCode )
 			targetFeature.notes = manualInstruction + targetFeature.notes
-			print u"✅ Added manual instructions into notes of OT feature '%s'." % featureName
+			print(u"✅ Added manual instructions into notes of OT feature '%s'." % featureName)
 
 def featureLineContainingXAlsoContains( font, featureName="ccmp", lineContaining="@Markscomb =", alsoContains="acute" ):
 	"""
@@ -299,7 +300,7 @@ class FeatureCodeTweaks( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print u"⚠️ Note: 'Feature Code Tweaks' could not load preferences. Will resort to defaults"
+			print(u"⚠️ Note: 'Feature Code Tweaks' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -448,20 +449,20 @@ class FeatureCodeTweaks( object ):
 						shouldAddLine = False
 						
 				if not shouldAddLine:
-					print u"⚠️ Warning: not all parts (%s) for decomposition of %s present and exporting." % (", ".join(decomposeParts), ligName)
+					print(u"⚠️ Warning: not all parts (%s) for decomposition of %s present and exporting." % (", ".join(decomposeParts), ligName))
 				else:
 					# build and add the code line:
 					if not ligGlyph.unicode is None:
 						disableList.append(actualDecomposeParts)
 						decomposeResult = " ".join(actualDecomposeParts)
 						featureLines += "	sub %s by %s;\n" % (ligName, decomposeResult)
-						print u"✅ %s: Adding decomposition for %s." % (feature, ligName)
+						print(u"✅ %s: Adding decomposition for %s." % (feature, ligName))
 					else:
-						print u"⚠️ Ligature %s has no Unicode, so no decomposition added." % ligName
+						print(u"⚠️ Ligature %s has no Unicode, so no decomposition added." % ligName)
 				
 		# check if any code has been collected:
 		if not featureLines:
-			print u"⚠️ Warning: No (exporting) presentation-form ligatures found in font, %s unchanged." % feature
+			print(u"⚠️ Warning: No (exporting) presentation-form ligatures found in font, %s unchanged." % feature)
 		else:
 			lookupName = "latinPresentationForms"
 			
@@ -475,7 +476,7 @@ class FeatureCodeTweaks( object ):
 				ccmpFeature.name = feature
 				ccmpFeature.code = "# Warning: %s created by script, please review." % feature
 				ccmpFeature.automatic = False
-				print u"⚠️ Warning: added empty, non-automated %s feature. Please review." % feature
+				print(u"⚠️ Warning: added empty, non-automated %s feature. Please review." % feature)
 				
 				# check if aalt exists in first place:
 				aaltExists = False
@@ -506,7 +507,7 @@ class FeatureCodeTweaks( object ):
 			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.repeatDecompositionInOtherAffectedFeatures"]:
 				for affectedFeature in thisFont.features:
 					if affectedFeature.name != feature: # ccmp
-						print "-----", affectedFeature.name
+						print("-----", affectedFeature.name)
 						shouldAdd = False
 						activeCode = filterActiveCode(affectedFeature.code)
 						for removeWord in (";","sub","by","pos","feature"):
@@ -524,7 +525,7 @@ class FeatureCodeTweaks( object ):
 				for featureTag in affectedFeatures:
 					affectedFeature = thisFont.features[featureTag]
 					if not feature:
-						print u"🤷🏻‍♀️ No %s feature found, could not repeat decomposition lookup." % featureTag
+						print(u"🤷🏻‍♀️ No %s feature found, could not repeat decomposition lookup." % featureTag)
 					else:
 						createOTFeature(
 							featureName = featureTag, 
@@ -536,9 +537,9 @@ class FeatureCodeTweaks( object ):
 						)
 						if affectedFeature.automatic:
 							affectedFeature.automatic = False
-							print u"✅ Disabled automatism for '%s'." % featureTag
+							print(u"✅ Disabled automatism for '%s'." % featureTag)
 						
-						print u"✅ Added call for decomposition lookup in %s." % featureTag
+						print(u"✅ Added call for decomposition lookup in %s." % featureTag)
 			
 			# disable codelines if necessary:
 			
@@ -561,15 +562,15 @@ class FeatureCodeTweaks( object ):
 									codeLines[i] = "# %s" % codeLine
 									if feature.automatic:
 										feature.automatic = False
-										print u"✅ Disabled automatism for '%s'." % ligatureFeatureTag
-									print u"✅ Commented out line in %s: %s" % (ligatureFeatureTag, codeLine)
+										print(u"✅ Disabled automatism for '%s'." % ligatureFeatureTag)
+									print(u"✅ Commented out line in %s: %s" % (ligatureFeatureTag, codeLine))
 						
 						newCode  = "\n".join(codeLines)
 						if originalCode == newCode or feature.automatic:
-							print u"🤷🏻‍♀️ Feature %s not changed. No ligatures to disable." % ligatureFeatureTag
+							print(u"🤷🏻‍♀️ Feature %s not changed. No ligatures to disable." % ligatureFeatureTag)
 						else:
 							thisFont.features[ligatureFeatureTag].code = newCode
-							print u"✅ %s: updated feature code." % ligatureFeatureTag
+							print(u"✅ %s: updated feature code." % ligatureFeatureTag)
 	
 	def dutchLocalization(self, feature="locl"):
 		"""
@@ -610,7 +611,7 @@ class FeatureCodeTweaks( object ):
 			# build own class:
 			accentNames = [g.name for g in thisFont.glyphs if g.category=="Mark" and g.subCategory=="Nonspacing"]
 			if not accentNames:
-				print u"⚠️ Warning: No combining accents found in font. Consider adding at least acutecomb(.case/.sc)."
+				print(u"⚠️ Warning: No combining accents found in font. Consider adding at least acutecomb(.case/.sc).")
 			else:
 				markCode = " ".join(accentNames)
 				if len(accentNames) > 1:
@@ -636,12 +637,12 @@ class FeatureCodeTweaks( object ):
 				glyph = thisFont.glyphs[glyphName]
 				if not glyph or not glyph.export:
 					addLine = False
-					print u"⚠️ Warning: Necessary glyph %s is missing or not exporting. Feature code will be incomplete." % glyphName
+					print(u"⚠️ Warning: Necessary glyph %s is missing or not exporting. Feature code will be incomplete." % glyphName)
 			if addLine:
 				loclCode += lineToAdd
 		
 		if not len(loclCode) > originalLength:
-			print u"⛔️ Error: Could not add any NLD code, %s unchanged." % feature
+			print(u"⛔️ Error: Could not add any NLD code, %s unchanged." % feature)
 		else:
 			# prepare locl code:
 			loclCode = wrapCodeInLookup(loclCode,"NLD")
@@ -651,7 +652,7 @@ class FeatureCodeTweaks( object ):
 			loclFeature = thisFont.features["locl"]
 		
 			if not loclFeature:
-				print u"⛔️ Error: Feature locl not present anymore. Aborting."
+				print(u"⛔️ Error: Feature locl not present anymore. Aborting.")
 			else:
 		
 				# Remove existing NLD code:
@@ -669,7 +670,7 @@ class FeatureCodeTweaks( object ):
 							updatedCode += "\n"
 					if loclFeature.code != updatedCode:
 						loclFeature.code = updatedCode
-						print u"✅ Removed old NLD code from locl."
+						print(u"✅ Removed old NLD code from locl.")
 		
 				# Add/update NLD code:
 				createOTFeature(
@@ -693,13 +694,13 @@ class FeatureCodeTweaks( object ):
 			ucSharpS = thisFont.glyphs["Germandbls"]
 		
 		if not lcSharpS or not ucSharpS:
-			print u"⚠️ Warning: No LC and UC sharp s found in the font, %s unchanged." % feature
+			print(u"⚠️ Warning: No LC and UC sharp s found in the font, %s unchanged." % feature)
 		elif not lcSharpS.export or not ucSharpS.export:
-			print u"⚠️ Warning: /%s and /%s are not both set to export, %s unchanged." % (
+			print(u"⚠️ Warning: /%s and /%s are not both set to export, %s unchanged." % (
 				lcSharpS.name,
 				ucSharpS.name,
 				feature,
-			)
+			))
 		else:
 			# Add @Uppercase:
 			addClass( "Uppercase", thisFont )
@@ -729,7 +730,7 @@ class FeatureCodeTweaks( object ):
 							if thisFeature.name in ("aalt","ccmp"):
 								insertIndex += 1
 				thisFont.features.insert( insertIndex, loclFeature )
-				print u"✅ Added locl feature at index %i." % insertIndex
+				print(u"✅ Added locl feature at index %i." % insertIndex)
 			
 			# if locl is automated, update it once more and disable automation:
 			updateAndAutodisableFeatureInFont( "locl", thisFont )
@@ -764,16 +765,16 @@ class FeatureCodeTweaks( object ):
 				prefix.name = prefixName
 				prefix.automatic = True
 				thisFont.featurePrefixes.insert(prefix,0)
-				print u"✅ Added 'Languagesystems' to feature code prefixes."
+				print(u"✅ Added 'Languagesystems' to feature code prefixes.")
 				
 			if not prefix.automatic:
 				prefix.automatic = True
-				print u"✅ Automated 'Languagesystems' prefix."
+				print(u"✅ Automated 'Languagesystems' prefix.")
 				
 			oldCode = prefix.code
 			prefix.update()
 			if prefix.code != oldCode:
-				print u"✅ Updated 'Languagesystems' prefix."
+				print(u"✅ Updated 'Languagesystems' prefix.")
 		
 	
 	def addArrowLigs(self, feature="dlig"):
@@ -798,7 +799,7 @@ class FeatureCodeTweaks( object ):
 		# create feature code:
 		featureLines = createManyToOneFromDict( ligDict, thisFont )
 		if not featureLines:
-			print u"🤷🏻‍♀️ Warning: could not create arrow ligatures, %s unchanged." % feature
+			print(u"🤷🏻‍♀️ Warning: could not create arrow ligatures, %s unchanged." % feature)
 		else:
 			# wrap featureLines in lookup block:
 			featureLines = wrapCodeInLookup(featureLines, "arrows")
@@ -826,14 +827,14 @@ class FeatureCodeTweaks( object ):
 		for glyphName in requiredGlyphs:
 			glyph = thisFont.glyphs[glyphName]
 			if not glyph:
-				print u"⛔️ Missing glyph '%s' required for the feature code." % glyphName
+				print(u"⛔️ Missing glyph '%s' required for the feature code." % glyphName)
 				canBuildCode = False
 			elif not glyph.export:
-				print u"⛔️ Glyph '%s' required for feature code exists, but is not exporting." % glyphName
+				print(u"⛔️ Glyph '%s' required for feature code exists, but is not exporting." % glyphName)
 				canBuildCode = False
 		
 		if not canBuildCode:
-			print u"⚠️ Leaving %s unchanged." % feature
+			print(u"⚠️ Leaving %s unchanged." % feature)
 		else:
 			# add class if missing:
 			addClass( "AllLetters", thisFont, forceUpdate=True )
@@ -876,9 +877,9 @@ class FeatureCodeTweaks( object ):
 				kernValue = round(-0.9*minimalWidth-kernValueOnOtherSide)
 				if abs(kernValue) > 5.0:
 					thisFont.setKerningForPair(masterID, "period", "ordfeminine", kernValue)
-					print u"✅ Added kerning for period-ordfeminine (%.1f) in master '%s'" % (kernValue, thisMaster.name)
+					print(u"✅ Added kerning for period-ordfeminine (%.1f) in master '%s'" % (kernValue, thisMaster.name))
 				else:
-					print u"⚠️ Calculated kerning for period-ordfeminine too small (%.1f), no pair added in master '%s'" % (kernValue, thisMaster.name)
+					print(u"⚠️ Calculated kerning for period-ordfeminine too small (%.1f), no pair added in master '%s'" % (kernValue, thisMaster.name))
 				
 	
 	def fShortSubstitution(self, feature="calt"):
@@ -897,13 +898,13 @@ class FeatureCodeTweaks( object ):
 		ssXXfeatures = [f for f in thisFont.features if f.name.startswith("ss") and f.name[-1] in "0123456789" and f.name[-2] in "012"]
 		
 		if not ssXXfeatures:
-			print u"🤷🏻‍♀️ Warning: no ssXX features found in frontmost font (%s), skipping 'salt'." % thisFont.familyName
+			print(u"🤷🏻‍♀️ Warning: no ssXX features found in frontmost font (%s), skipping 'salt'." % thisFont.familyName)
 		else:
-			print u"✅ Found %i stylistic set%s: %s. Building salt code..." % (
+			print(u"✅ Found %i stylistic set%s: %s. Building salt code..." % (
 				len(ssXXfeatures), 
 				"" if len(ssXXfeatures)==1 else "s",
 				", ".join([f.name for f in ssXXfeatures]),
-				)
+				))
 			saltFeature = GSFeature()
 			saltFeature.name = saltTag
 			saltFeature.automatic = False
@@ -941,13 +942,13 @@ class FeatureCodeTweaks( object ):
 			saltFeature.code = saltFeature.code.strip()+"\n"
 
 			if thisFont.features["salt"] and thisFont.features["salt"].code == saltFeature.code:
-				print u"🤷🏻‍♀️ Feature salt already exists and is up to date, skipping 'salt'."
+				print(u"🤷🏻‍♀️ Feature salt already exists and is up to date, skipping 'salt'.")
 			elif saltFeature.code:
 				# delete existing salt feature, if there is one:
 				if thisFont.features["salt"]:
 					saltFeature.notes = "# OLD CODE:\n" + thisFont.features["salt"].code
 					del(thisFont.features["salt"])
-					print u"✅ Deleted existing 'salt' feature."
+					print(u"✅ Deleted existing 'salt' feature.")
 				
 				# add salt in front of first ssXX:
 				i=0
@@ -958,10 +959,10 @@ class FeatureCodeTweaks( object ):
 					if f.name == ssXXfeatures[0].name:
 						# add the new salt feature in the right spot:
 						thisFont.insertObject_inFeaturesAtIndex_(saltFeature,i)
-						print u"✅ Inserted new 'salt' feature in front of first ssXX."
+						print(u"✅ Inserted new 'salt' feature in front of first ssXX.")
 					i+=1
 			else:
-				print u"⛔️ Build salt error: No salt feature code could be assembled. Please check the contents of your ssXX features. Skipping 'salt'."
+				print(u"⛔️ Build salt error: No salt feature code could be assembled. Please check the contents of your ssXX features. Skipping 'salt'.")
 		
 	
 	def scFeatureFix(self):
@@ -980,7 +981,7 @@ class FeatureCodeTweaks( object ):
 		# 1. CAP MARKS IN C2SC
 		scFeatureTag = "c2sc"
 		if not thisFont.features[scFeatureTag]:
-			print u"⚠️ No %s feature found. Skipping." % scFeatureTag
+			print(u"⚠️ No %s feature found. Skipping." % scFeatureTag)
 		else:
 			code = ""
 			if ccmpFeature and "@MarkscombCase" in ccmpFeature.code:
@@ -988,11 +989,11 @@ class FeatureCodeTweaks( object ):
 				code = "\tsub @MarkscombCase by @Markscomb;"
 			else:
 				# TODO or make your own:
-				print u"⚠️ Warning: could not create c2sc code for *comb.case marks (not implemented yet)"
+				print(u"⚠️ Warning: could not create c2sc code for *comb.case marks (not implemented yet)")
 				pass
 		
 			if not code:
-				print u"🤷🏻‍♀️ No code could be formed based on the available glyphs. Leaving %s unchanged." % scFeatureTag
+				print(u"🤷🏻‍♀️ No code could be formed based on the available glyphs. Leaving %s unchanged." % scFeatureTag)
 			else:
 				# add code to feature:
 				updateAndAutodisableFeatureInFont( scFeatureTag, thisFont )
@@ -1009,7 +1010,7 @@ class FeatureCodeTweaks( object ):
 		# 2. SMCP: SMALL LETTERS WHERE CASEFOLDING CAN OVERLAP WITH OTHERS
 		scFeatureTag = "smcp"
 		if not thisFont.features[scFeatureTag]:
-			print u"⚠️ No %s feature found. Skipping." % scFeatureTag
+			print(u"⚠️ No %s feature found. Skipping." % scFeatureTag)
 		else:
 			code = ""
 			casefoldings = {
@@ -1043,10 +1044,10 @@ class FeatureCodeTweaks( object ):
 							code += "sub %s by %s;\n" % ( smallGlyphName, altSCname )
 							if thisFont.glyphs["quoteright"]:
 								code = code.replace("sub kgreenlandic by %s;"%altSCname, "sub kgreenlandic by %s quoteright;"%altSCname)
-							print u"✅ %s: Adding substitution for %s to %s." % ( scFeatureTag, smallGlyphName, altSCname )
+							print(u"✅ %s: Adding substitution for %s to %s." % ( scFeatureTag, smallGlyphName, altSCname ))
 		
 			if not code:
-				print u"🤷🏻‍♀️ No code could be formed based on the available glyphs. Leaving %s unchanged." % scFeatureTag
+				print(u"🤷🏻‍♀️ No code could be formed based on the available glyphs. Leaving %s unchanged." % scFeatureTag)
 			else:
 				# add code to feature:
 				updateAndAutodisableFeatureInFont( scFeatureTag, thisFont )
@@ -1064,59 +1065,59 @@ class FeatureCodeTweaks( object ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print u"⚠️ Note: 'Feature Code Tweaks' could not write preferences."
+				print(u"⚠️ Note: 'Feature Code Tweaks' could not write preferences.")
 			
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()
 			
 			thisFont = Glyphs.font # frontmost font
-			print u"Feature Code Tweaks for %s" % thisFont.familyName
-			print thisFont.filepath
+			print(u"Feature Code Tweaks for %s" % thisFont.familyName)
+			print(thisFont.filepath)
 			
 			# ccmp fi, fl, etc.
 			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.scFeatureFix"]:
-				print u"\n- SC Feature Fix"
+				print(u"\n- SC Feature Fix")
 				self.scFeatureFix()
 				
 			# arrows
 			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.addArrowLigs"]:
-				print u"\n- Add Arrow Ligs"
+				print(u"\n- Add Arrow Ligs")
 				self.addArrowLigs()
 				
 			# locl DEU: calt G/germandbls
 			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.germanLocalization"]:
-				print u"\n- German Localization"
+				print(u"\n- German Localization")
 				self.germanLocalization()
 				
 			# locl NLD
 			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.dutchLocalization"]:
-				print u"\n- Dutch Localization"
+				print(u"\n- Dutch Localization")
 				self.dutchLocalization()
 				
 			# SC additions (i/jdotless)
 			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.decomposePresentationForms"]:
-				print u"\n- Decompose Presentation Forms"
+				print(u"\n- Decompose Presentation Forms")
 				self.decomposePresentationForms()
 
 			# short f substitution
 			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.fShortSubstitution"]:
-				print u"\n- Add f.short substitutions"
+				print(u"\n- Add f.short substitutions")
 				self.fShortSubstitution()
 
 			# Mag.a
 			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.magistra"]:
-				print u"\n- Add Mag.a substitutions"
+				print(u"\n- Add Mag.a substitutions")
 				self.magistraSubstitution()
 			
 			# ssXX to salt
 			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.ssXX2salt"]:
-				print u"\n- Add salt feature with ssXX lookups"
+				print(u"\n- Add salt feature with ssXX lookups")
 				self.ssXX2salt()
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print u"❌ Feature Code Tweaks Error: %s" % e
+			print(u"❌ Feature Code Tweaks Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 FeatureCodeTweaks()
