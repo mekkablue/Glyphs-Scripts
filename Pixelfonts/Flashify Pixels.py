@@ -46,7 +46,7 @@ def process( thisLayer ):
 
 	thisLayer.parent.endUndo()
 
-print "Flashifying " + str( Font.familyName )
+print "Flashifying %s..." % Font.familyName
 
 oldGridstep = Font.gridLength
 if oldGridstep > 1:

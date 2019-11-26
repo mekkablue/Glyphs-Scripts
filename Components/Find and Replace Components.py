@@ -44,7 +44,7 @@ class ComponentReplacer(object):
 		Font = Glyphs.font
 		selectedLayers = Font.selectedLayers
 		
-		oldComponentName  = str( self.w.componentName.getItems()[self.w.componentName.get()] )
+		oldComponentName  = self.w.componentName.getItems()[self.w.componentName.get()]
 		newComponentName  = self.w.componentNewName.get()
 		includeAllLayers = self.w.includeAllLayers.get()
 		
@@ -83,7 +83,7 @@ class ComponentReplacer(object):
 	def ResetComponentNewName( self, sender ):
 		glyphName = Glyphs.font.selectedLayers[0].parent.name
 		ending = glyphName[ glyphName.find("."): ]
-		oldComponentName  = str( self.w.componentName.getItems()[self.w.componentName.get()] )
+		oldComponentName  = self.w.componentName.getItems()[self.w.componentName.get()]
 		self.w.componentNewName.set( oldComponentName + ending )
 		return True
 	

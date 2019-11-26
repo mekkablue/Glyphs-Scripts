@@ -11,13 +11,11 @@ from Foundation import NSPoint, NSAffineTransform, NSAffineTransformStruct, NSMa
 
 def transformNode( myNode, myTransform ):
 	myNode.position = myTransform.transformPoint_( NSMakePoint( myNode.x, myNode.y ) )
-	
 	return myNode
 
 def transformPath( myPath, myTransform ):
 	for thisNode in myPath.nodes:
 		transformNode( thisNode, myTransform )
-	
 	return myPath
 	
 def transformComponent( myComponent, myTransform ):
@@ -27,7 +25,6 @@ def transformComponent( myComponent, myTransform ):
 	t = compTransform.transformStruct()
 	tNew = ( t.m11, t.m12, t.m21, t.m22, t.tX, t.tY )
 	myComponent.transform = tNew
-	
 	return myComponent
 	
 def stepAndRepeatPaths( myPath, myTransform, steps ):
@@ -98,16 +95,16 @@ class Rotator(object):
 				# adds 'rotate' if it doesn't exist, resets it if it exists:
 				thisLayer.addAnchor_( myRotationAnchor )
 		except Exception as e:
-			self.logToConsole( "setRotateAnchor: %s" % str(e) )
+			self.logToConsole( "setRotateAnchor: %s" % e )
 	
 	def setDefaultRotateAnchor(self):
 		try:
 			selectedLayer = Glyphs.currentDocument.selectedLayers()[0]
 			rotationAnchor = selectedLayer.anchors["rotate"]
-			self.w.anchor_x.set( str( int(rotationAnchor.x) ) )
-			self.w.anchor_y.set( str( int(rotationAnchor.y) ) )
+			self.w.anchor_x.set( int(rotationAnchor.x) )
+			self.w.anchor_y.set( int(rotationAnchor.y) )
 		except Exception as e:
-			self.logToConsole( "setDefaultRotateAnchor: %s" % str(e) )
+			self.logToConsole( "setDefaultRotateAnchor: %s" % e )
 			
 	def stepAndRepeatListOfPaths( self, thisLayer, listOfPaths, RotationTransform, rotationCount ):
 		try:
@@ -116,7 +113,7 @@ class Rotator(object):
 				for newPath in newPaths:
 					thisLayer.paths.append( newPath.copy() )
 		except Exception as e:
-			self.logToConsole( "stepAndRepeatPaths: %s" % str(e) )
+			self.logToConsole( "stepAndRepeatPaths: %s" % e )
 			
 	def stepAndRepeatListOfComponents( self, thisLayer, listOfComponents, RotationTransform, rotationCount ):
 		try:
@@ -125,21 +122,21 @@ class Rotator(object):
 				for newComponent in newComponents:
 					thisLayer.components.append( newComponent.copy() )
 		except Exception as e:
-			self.logToConsole( "stepAndRepeatComponents: %s" % str(e) )
+			self.logToConsole( "stepAndRepeatComponents: %s" % e )
 	
 	def rotateListOfPaths( self, thisLayer, listOfPaths, RotationTransform, rotationCount ):
 		try:
 			for thisPath in listOfPaths:
 				thisPath = transformPath( thisPath, RotationTransform )
 		except Exception as e:
-			self.logToConsole( "rotateListOfPaths: %s" % str(e) )
+			self.logToConsole( "rotateListOfPaths: %s" % e )
 	
 	def rotateListOfComponents( self, thisLayer, listOfComponents, RotationTransform, rotationCount ):
 		try:
 			for thisComponent in listOfComponents:
 				thisComponent = transformComponent( thisComponent, RotationTransform )
 		except Exception as e:
-			self.logToConsole( "rotateListOfComponents: %s" % str(e) )
+			self.logToConsole( "rotateListOfComponents: %s" % e )
 			
 	def rotationCenterOfLayer( self, thisLayer ):
 		try:
@@ -152,7 +149,7 @@ class Rotator(object):
 				rotationY = 0.0
 			return NSPoint( rotationX, rotationY )
 		except Exception as e:
-			self.logToConsole( "rotationCenter: %s" % str(e) )
+			self.logToConsole( "rotationCenter: %s" % e )
 	
 	def rotationTransform( self, rotationCenter, rotationDegrees, rotationDirection ):
 		try:
@@ -165,7 +162,7 @@ class Rotator(object):
 			RotationTransform.translateXBy_yBy_( -rotationX, -rotationY )
 			return RotationTransform
 		except Exception as e:
-			self.logToConsole( "rotationTransform: %s" % str(e) )
+			self.logToConsole( "rotationTransform: %s" % e )
 
 	def logToConsole( self, thisString ):
 		print(thisString)
@@ -179,6 +176,10 @@ class Rotator(object):
 		return selection
 			
 	def rotate(self, sender):
+		# update settings to the latest user input:
+		if not self.SavePreferences( self ):
+			print("Note: 'Rotate Around Anchor' could not write preferences.")
+		
 		selectedLayers = Glyphs.currentDocument.selectedLayers()
 		originatingButton = sender.getTitle()
 		
@@ -230,7 +231,7 @@ class Rotator(object):
 				
 				thisGlyph.endUndo()
 			except Exception as e:
-				self.logToConsole( "rotate: %s\ntrying to rotate individually selected nodes and components" % str(e) )
+				self.logToConsole( "Rotate: %s\ntrying to rotate individually selected nodes and components" % e )
 			
 		else:
 			# rotate whole layers
@@ -250,7 +251,7 @@ class Rotator(object):
 					thisLayer.setEnableUpdates()
 					thisLayer.updatePath()
 				except Exception as e:
-					self.logToConsole( "rotate: %s\ntrying to rotate whole layers" % str(e) )
+					self.logToConsole( "Rotate: %s\ntrying to rotate whole layers" % str(e) )
 				finally:
 					thisGlyph.endUndo()
 

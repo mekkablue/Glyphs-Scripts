@@ -36,13 +36,13 @@ class GridOnOff( object ):
 				gridStep1 = int( Glyphs.defaults["com.mekkablue.gridswitch.grid1"] )
 			except:
 				gridStep1 = self.gridStep1default
-				self.w.grid1.set( str(gridStep1) )
+				self.w.grid1.set( gridStep1 )
 			
 			try:
 				gridStep2 = int( Glyphs.defaults["com.mekkablue.gridswitch.grid2"] )
 			except:
 				gridStep2 = self.gridStep2default
-				self.w.grid2.set( str(gridStep2) )
+				self.w.grid2.set( gridStep2 )
 			
 			gridStep = Glyphs.font.gridMain()
 			if gridStep != gridStep1:

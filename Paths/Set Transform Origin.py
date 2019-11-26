@@ -49,8 +49,8 @@ class SetTransformOriginWindow( object ):
 			myRotateTool = myController.toolForClass_( rotateToolClass )
 			currentOrigin = myRotateTool.transformOrigin()
 						
-			self.w.originX.set( str(currentOrigin.x) )
-			self.w.originY.set( str(currentOrigin.y) )
+			self.w.originX.set( currentOrigin.x )
+			self.w.originY.set( currentOrigin.y )
 		except:
 			return False
 			

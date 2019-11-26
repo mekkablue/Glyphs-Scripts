@@ -56,7 +56,7 @@ def intersectionWithNSPoints( pointA, pointB, pointC, pointD ):
 			return None
 	
 	except Exception as e:
-		print(str(e))
+		print(e)
 		import traceback
 		print(traceback.format_exc())
 		return None
