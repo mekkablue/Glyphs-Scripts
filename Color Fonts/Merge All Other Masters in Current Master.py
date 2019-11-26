@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Merge All Other Masters in Current Master
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -11,7 +12,7 @@ listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyph
 
 def process( thisGlyph ):
 	currentLayer = thisGlyph.layers[thisFontMaster.id]
-	print currentLayer
+	print(currentLayer)
 	currentLayer.paths = None
 	currentLayer.hints = None
 	currentLayer.components = None
@@ -35,7 +36,7 @@ thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
 for thisLayer in listOfSelectedLayers:
 	thisGlyph = thisLayer.parent
-	print "Processing", thisGlyph.name
+	print("Processing", thisGlyph.name)
 	thisGlyph.beginUndo() # begin undo grouping
 	process( thisGlyph )
 	thisGlyph.endUndo()   # end undo grouping

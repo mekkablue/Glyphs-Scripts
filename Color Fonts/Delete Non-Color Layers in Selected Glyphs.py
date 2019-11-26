@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Delete Non-Color Layers in Selected Glyphs
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -21,7 +22,7 @@ thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
 for thisLayer in listOfSelectedLayers:
 	thisGlyph = thisLayer.parent
-	print "Processing", thisGlyph.name
+	print("Processing", thisGlyph.name)
 	thisGlyph.beginUndo() # begin undo grouping
 	process( thisGlyph )
 	thisGlyph.endUndo()   # end undo grouping

@@ -1,3 +1,4 @@
+from __future__ import print_function
 #MenuTitle: Convert Layerfont to CPAL+COLR Font
 # -*- coding: utf-8 -*-
 __doc__="""
@@ -46,7 +47,7 @@ def createCPALfromMasterColors( theseMasters, indexOfTargetMaster ):
 	# create array of palettes, containing the one palette we just created:
 	paletteArray = NSMutableArray.alloc().initWithObject_(palette)
 	
-	print "Created CPAL palette with %i colors." % len(theseMasters)
+	print("Created CPAL palette with %i colors." % len(theseMasters))
 	
 	# add that array as "Color Palettes" parameter to target (=usually first) master
 	targetMaster = theseMasters[indexOfTargetMaster]
@@ -60,7 +61,7 @@ def keepOnlyFirstMaster( thisFont ):
 		
 	# rename remaining first master:
 	thisFont.masters[0].name = "Fallback"
-	print "Deleted all masters except first, and renamed it to: %s" % thisFont.masters[0].name
+	print("Deleted all masters except first, and renamed it to: %s" % thisFont.masters[0].name)
 		
 def cleanUpNamelessLayers(thisGlyph):
 	for i in range(len(thisGlyph.layers))[:0:-1]:
@@ -97,25 +98,25 @@ def process( thisGlyph ):
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
-print "Converting %s to CPAL/COLR:" % thisFont.familyName
+print("Converting %s to CPAL/COLR:" % thisFont.familyName)
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 createCPALfromMasterColors( thisFont.masters, 0 )
-print
+print()
 
 for thisGlyph in thisFont.glyphs:
-	print "Creating 'Color' layers for: %s" % thisGlyph.name
+	print("Creating 'Color' layers for: %s" % thisGlyph.name)
 	thisGlyph.beginUndo() # begin undo grouping
 	process( thisGlyph )
 	duplicatePathsIntoFallbackMaster( thisGlyph )
 	thisGlyph.endUndo()   # end undo grouping
 
-print
+print()
 keepOnlyFirstMaster( thisFont )
-print
+print()
 
 for thisGlyph in thisFont.glyphs:
-	print "Cleaning up layer debris in: %s" % thisGlyph.name
+	print("Cleaning up layer debris in: %s" % thisGlyph.name)
 	thisGlyph.beginUndo() # begin undo grouping
 	cleanUpNamelessLayers(thisGlyph)
 	enableOnlyColorLayers(thisGlyph)
@@ -136,5 +137,5 @@ else:
 	timereport = "%i seconds" % seconds
 
 
-print
-print "Done. Time elapsed: %s." % timereport
+print()
+print("Done. Time elapsed: %s." % timereport)
