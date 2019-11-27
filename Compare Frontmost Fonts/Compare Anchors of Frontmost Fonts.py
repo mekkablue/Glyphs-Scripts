@@ -1,7 +1,6 @@
 #MenuTitle: Compare Anchors
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Compares anchor structure and anchor heights between the two frontmost fonts.
 """

@@ -1,7 +1,6 @@
 #MenuTitle: Build Circled Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Builds circled numbers and letters (U+24B6...24EA and U+2460...2473) from _part.circle and the letters and figures.
 """

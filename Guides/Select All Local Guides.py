@@ -1,7 +1,6 @@
 #MenuTitle: Select All Local Guides in Selected Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Selects all guides in the selected glyph(s).
 """

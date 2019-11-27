@@ -1,7 +1,6 @@
 #MenuTitle: Sample String Maker
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Creates kern strings for all kerning groups in user-defined categories and adds them to the Sample Strings. Group kerning only, glyphs without groups are ignored.
 """

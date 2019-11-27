@@ -1,7 +1,6 @@
 #MenuTitle: New Tab with Glyphs of Same Kerning Groups
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Opens a new tab containing all members of the left and right kerning groups of the current glyph.
 """

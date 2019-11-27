@@ -1,7 +1,6 @@
 #MenuTitle: Find And Replace In Anchor Names
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Replaces strings in anchor names of all selected glyphs.
 """

@@ -1,7 +1,6 @@
 #MenuTitle: Transfer Hints to First Master
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Moves PostScript (stem and ghost) hints from the current layer to the first master layer, provided the paths are compatible.
 """

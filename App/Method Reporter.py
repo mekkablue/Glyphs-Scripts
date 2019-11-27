@@ -1,7 +1,6 @@
 #MenuTitle: Method Reporter
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Searches in PyObjC method names of a chosen object.
 """

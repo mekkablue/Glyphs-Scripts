@@ -1,7 +1,6 @@
 #MenuTitle: New Tab with Selected Glyph Combinations
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Opens a new tab with all possible combinations of currently selected glyphs.
 """

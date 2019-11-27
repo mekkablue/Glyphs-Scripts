@@ -1,7 +1,6 @@
 #MenuTitle: GapFinder
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Opens a new tab with kerning combos that have large gaps in the current fontmaster.
 """

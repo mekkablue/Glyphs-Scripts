@@ -1,7 +1,6 @@
 #MenuTitle: Toggle Image Lock
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Floating Window for toggling the locked status of selected glyphs.
 """

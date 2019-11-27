@@ -1,7 +1,6 @@
 #MenuTitle: Find and Replace Corner Components at Certain Angles
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Replace Corner Components at blunt or acute angles.
 """

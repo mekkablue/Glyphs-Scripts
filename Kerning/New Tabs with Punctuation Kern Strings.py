@@ -1,7 +1,6 @@
 #MenuTitle: New Tabs with Punctuation Kern Strings
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Outputs a kerning string with UC/LC/SC letters, figures, and punctuation.
 """

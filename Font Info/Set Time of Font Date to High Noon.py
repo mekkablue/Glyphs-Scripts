@@ -1,7 +1,6 @@
 #MenuTitle: Set Time of Font Date to High Noon
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 In the Font Creation Date in Font Info, sets the time (invisible in the UI) to high noon.
 """

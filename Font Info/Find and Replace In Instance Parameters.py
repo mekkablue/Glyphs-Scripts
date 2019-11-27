@@ -1,7 +1,6 @@
 #MenuTitle: Find and Replace in Instance Parameters
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Finds and Replace in Custom Parameters of selected instances of the current font or project file.
 """

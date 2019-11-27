@@ -1,7 +1,6 @@
 #MenuTitle: Make glyph names lowercase
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Makes the names of selected glyphs lowercase, useful for smallcap glyphs.
 """

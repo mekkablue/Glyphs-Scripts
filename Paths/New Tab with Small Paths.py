@@ -1,7 +1,6 @@
 #MenuTitle: New Tab with Small Paths
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals
-
 __doc__="""
 Finds small paths (smaller tahn a user-definable threshold) in glyphs and open a new tab with affected glyphs.
 """

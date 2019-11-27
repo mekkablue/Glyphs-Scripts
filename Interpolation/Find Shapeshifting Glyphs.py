@@ -1,7 +1,6 @@
 #MenuTitle: Find Shapeshifting Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Finds glyphs that change the number of paths while interpolating. Opens a new tab and reports to Macro Window.
 """

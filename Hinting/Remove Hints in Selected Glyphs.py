@@ -1,7 +1,6 @@
 #MenuTitle: Remove Hints in Selected Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Deletes all hints in active (visible) layers of selected glyphs.
 """

@@ -1,7 +1,6 @@
 #MenuTitle: Build .notdef
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Creates a .notdef from your boldest available question mark.
 """

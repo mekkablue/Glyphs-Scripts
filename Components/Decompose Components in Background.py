@@ -1,7 +1,6 @@
 #MenuTitle: Decompose Components in Background
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Decomposes components in the Background.
 """

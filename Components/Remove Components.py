@@ -1,7 +1,6 @@
 #MenuTitle: Remove Components
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Removes the specified component from all (selected) glyphs.
 """

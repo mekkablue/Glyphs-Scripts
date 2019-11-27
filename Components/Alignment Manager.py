@@ -1,7 +1,6 @@
 #MenuTitle: Alignment Manager
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Manage Automatic Alignment for (multiple) selected glyphs.
 """

@@ -1,7 +1,6 @@
 #MenuTitle: Quote Manager
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Build double quotes from single quotes, and insert #exit and #entry anchors in the single quotes for auto-alignment.
 """

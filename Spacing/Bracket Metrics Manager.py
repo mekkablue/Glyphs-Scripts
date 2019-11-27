@@ -1,7 +1,6 @@
 #MenuTitle: Bracket Metrics Manager
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Manage the sidebearings and widths of bracket layers.
 """

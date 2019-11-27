@@ -1,7 +1,6 @@
 #MenuTitle: Dekink Master Layers
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Synchronize node distance proportions for angled smooth connections through all masters (and other compatible layers), thus avoiding interpolation kinks. Select one or more nodes in triplets and run the script. The selected nodes will be moved in all other masters.
 """

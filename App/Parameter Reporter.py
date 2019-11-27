@@ -1,7 +1,6 @@
 #MenuTitle: Parameter Reporter
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Searches in Custom Parameter names of all registered parameters in the current app version.
 """

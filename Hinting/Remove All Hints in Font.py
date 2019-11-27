@@ -1,7 +1,6 @@
 #MenuTitle: Remove All Hints in Font
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Deletes all hints throughout the whole font.
 """

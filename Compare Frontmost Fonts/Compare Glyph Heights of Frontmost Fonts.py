@@ -1,7 +1,6 @@
 #MenuTitle: Compare Glyph Heights
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Lists all glyphs that differ from the second font in height beyond a given threshold.
 """

@@ -1,7 +1,6 @@
 #MenuTitle: Check Smallcap Consistency
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Performs a few tests on your SC set and reports into the Macro window, especially kerning groups and glyph set.
 """

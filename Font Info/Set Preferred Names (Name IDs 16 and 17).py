@@ -1,7 +1,6 @@
 #MenuTitle: Set Preferred Names (Name IDs 16 and 17) for Width Variants
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Sets Preferred Names custom parameters (Name IDs 16 and 17) for all instances, so that width variants will appear in separate menus in Adobe apps.
 """

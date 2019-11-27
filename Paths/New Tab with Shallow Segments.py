@@ -1,7 +1,6 @@
 #MenuTitle: New Tab with Shallow Curve Segments
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Opens a new tab with all layers that have small outline segments, i.e., not extending far enough horizontally or vertically.
 """

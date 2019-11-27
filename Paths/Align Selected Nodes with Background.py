@@ -1,7 +1,6 @@
 #MenuTitle: Align Selected Nodes with Background
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Align selected nodes with the nearest background node unless it is already taken by a previously moved node.
 """

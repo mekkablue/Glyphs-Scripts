@@ -1,7 +1,6 @@
 #MenuTitle: Build positional calt feature
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Create calt for positional forms with .isol, .init, .medi, .fina suffixes. You can automate the newly created AllLetters class.
 """

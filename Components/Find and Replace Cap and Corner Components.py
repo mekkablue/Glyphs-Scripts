@@ -1,7 +1,6 @@
 #MenuTitle: Find and Replace Cap and Corner Components
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Replaces Caps/Corners in all selected glyphs.
 """

@@ -1,7 +1,6 @@
 #MenuTitle: Metrics Key Manager
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Batch apply metrics keys to the current font.
 """

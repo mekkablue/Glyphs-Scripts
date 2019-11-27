@@ -1,7 +1,6 @@
 #MenuTitle: Remove All Images from Font
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Deletes all placed images from the frontmost font.
 """

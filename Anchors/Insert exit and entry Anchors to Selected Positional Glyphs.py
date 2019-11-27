@@ -1,7 +1,6 @@
 #MenuTitle: Insert exit and entry Anchors to Selected Positional Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Adds exit and entry anchors to (Arabic) init, medi and fina glyphs, for cursive attachment.
 """

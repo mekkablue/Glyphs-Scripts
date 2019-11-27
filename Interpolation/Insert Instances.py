@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
 from __future__ import print_function
-
 __doc__="""
 Inserts instances, based on the Luc(as), Pablo, and Maciej algorithms.
 """

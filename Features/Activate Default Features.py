@@ -1,7 +1,6 @@
 #MenuTitle: Activate Default Features
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 In the current Edit tab, activates all OT features that should be on by default.
 """

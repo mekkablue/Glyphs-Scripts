@@ -1,7 +1,6 @@
 #MenuTitle: Compare Compounds
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Reports diverging component structures of compound glyphs, e.g., iacute built with acutecomb in one font, and acutecomb.narrow in the other.
 """

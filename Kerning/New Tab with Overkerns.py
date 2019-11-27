@@ -1,7 +1,6 @@
 #MenuTitle: New Tab with Overkerned Pairs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Asks a threshold percentage, and opens a new tab with all kern pairs going beyond the width threshold.
 """

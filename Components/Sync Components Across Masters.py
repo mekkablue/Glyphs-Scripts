@@ -1,7 +1,6 @@
 #MenuTitle: Sync Components Across Masters
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Takes the current layer’s components, and resets all other masters to the same component structure. Ignores paths and anchors.
 """

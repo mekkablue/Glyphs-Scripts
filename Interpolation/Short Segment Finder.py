@@ -1,7 +1,6 @@
 #MenuTitle: Short Segment Finder
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Goes through all interpolations and finds segments shorter than a user-specified threshold length.
 """

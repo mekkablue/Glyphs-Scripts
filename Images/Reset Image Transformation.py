@@ -1,7 +1,6 @@
 #MenuTitle: Reset Image Transformations
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Resets all placed images to 100% scale and 0/0 position.
 """

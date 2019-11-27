@@ -1,7 +1,6 @@
 #MenuTitle: Variation Interpolator
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Interpolates each layer x times with its background and creates glyph variations with the results.
 """

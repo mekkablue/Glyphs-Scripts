@@ -1,7 +1,6 @@
 #MenuTitle: BlueFuzzer
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Extends all alignment zones (except for the baseline zone that should stay at 0).
 """

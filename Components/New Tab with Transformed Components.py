@@ -1,7 +1,6 @@
 #MenuTitle: New Tab with Transformed Components
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Opens a new edit tab with components that are rotated, scaled or flipped, i.e., any transformation beyond mere shifts.
 """

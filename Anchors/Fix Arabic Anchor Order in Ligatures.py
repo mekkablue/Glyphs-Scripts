@@ -1,7 +1,6 @@
 #MenuTitle: Fix Arabic Anchor Ordering in Ligatures
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Fix the order of top_X and bottom_X anchors to RTL.
 """

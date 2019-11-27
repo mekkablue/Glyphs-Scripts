@@ -1,7 +1,6 @@
 #MenuTitle: Copy Glyphs from Other Font into Backup Layers
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Creates backup layers for selected glyphs in target font, and fills them with the respective glyphs in source font.
 """

@@ -1,7 +1,6 @@
 #MenuTitle: Insert All Anchors in All Layers
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Makes sure all anchors are replicated in all layers in the same relative positions. Good for fixing anchor compatibility.
 """

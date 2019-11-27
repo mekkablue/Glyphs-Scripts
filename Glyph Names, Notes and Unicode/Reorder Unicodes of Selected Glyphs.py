@@ -1,7 +1,6 @@
 #MenuTitle: Reorder Unicodes of Selected Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Reorders Unicodes so that default Unicode comes first.
 """

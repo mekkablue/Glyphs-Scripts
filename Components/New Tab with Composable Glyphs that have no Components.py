@@ -1,7 +1,6 @@
 #MenuTitle: New Tab with Composable Glyphs that have no Components
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Opens a new Edit tab containing all glyphs that consist of paths, but could be composed according to Glyph Data.
 """

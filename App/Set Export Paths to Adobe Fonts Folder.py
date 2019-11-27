@@ -1,7 +1,6 @@
 #MenuTitle: Set Export Paths to Adobe Fonts Folder
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Sets the OpenType font and Variable Font export paths to the Adobe Fonts Folder.
 """

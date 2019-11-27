@@ -1,7 +1,6 @@
 #MenuTitle: Set TT Stem Hints to No Stem
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Sets all TT stem hints to ‘no stem’ in selected glyphs. In complex paths, it can improve rendering on Windows.
 """

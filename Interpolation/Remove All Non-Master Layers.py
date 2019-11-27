@@ -1,7 +1,6 @@
 #MenuTitle: Remove All Non-Master Layers
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Goes through selected glyphs and deletes all glyph layers which are not a Master, Bracket or Brace layer.
 """

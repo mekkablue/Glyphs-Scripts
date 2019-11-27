@@ -1,7 +1,6 @@
 #MenuTitle: Variable Font Test HTML
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Create a Test HTML for the current font inside the current Variation Font Export folder.
 """

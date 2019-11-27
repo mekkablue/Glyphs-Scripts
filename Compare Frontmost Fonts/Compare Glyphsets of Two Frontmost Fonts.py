@@ -1,7 +1,6 @@
 #MenuTitle: Compare Glyphsets
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Compares the glyph set of the two frontmost fonts and outputs a report in the Macro Window.
 """

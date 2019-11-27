@@ -1,7 +1,6 @@
 #MenuTitle: Remove Anchors in Suffixed Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Removes all anchors from glyphs with one of the user-specified suffix.
 """

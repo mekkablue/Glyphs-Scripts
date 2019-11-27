@@ -1,7 +1,6 @@
 #MenuTitle: Replicate Anchors in Suffixed Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Goes through your selected, dot-suffixed glyphs and copies the anchors and anchor positions of the base glyph into them. E.g. A.ss01 will have the same anchor positions as A.
 """

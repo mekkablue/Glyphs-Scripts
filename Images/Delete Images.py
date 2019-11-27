@@ -1,7 +1,6 @@
 #MenuTitle: Remove Images
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Deletes placed images from selected glyphs on all layers.
 """

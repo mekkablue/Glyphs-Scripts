@@ -1,7 +1,6 @@
 #MenuTitle: New tab with uneven symmetric kernings
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Finds kern pairs for symmetric letters like ATA AVA TOT WIW etc. and sees if AT is the same as TA, etc.
 """

@@ -1,7 +1,6 @@
 #MenuTitle: New OT Class with Selected Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Creates a new OT class containing the selected glyphs.
 """

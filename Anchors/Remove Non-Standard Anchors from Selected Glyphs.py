@@ -1,7 +1,6 @@
 #MenuTitle: Remove Non-Standard Anchors from Selected Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-
 __doc__="""
 Removes all anchors from a glyph that should not be there by default, e.g., ogonek from J.
 """
