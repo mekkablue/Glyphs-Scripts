@@ -1,7 +1,11 @@
 #MenuTitle: Decompose Corner and Cap Components
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-from builtins import str
+try:
+	from builtins import str
+except Exception as e:
+	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
+
 __doc__="""
 Recreates the current paths without caps or components.
 """

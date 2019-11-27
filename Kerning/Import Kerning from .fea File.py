@@ -1,7 +1,11 @@
 #MenuTitle: Import Kerning from .fea File
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-from builtins import str
+try:
+	from builtins import str
+except Exception as e:
+	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
+
 __doc__="""
 Choose an .fea file containing a kern feature in AFDKO code, and this script will attempt to import the kerning values into the frontmost font master (see Window > Kerning).
 """

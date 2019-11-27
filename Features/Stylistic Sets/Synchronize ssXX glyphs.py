@@ -1,7 +1,11 @@
 #MenuTitle: Synchronize ssXX glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-from builtins import str
+try:
+	from builtins import str
+except Exception as e:
+	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
+
 __doc__="""
 Creates missing ssXX glyphs so that you have synchronous groups of ssXX glyphs.
 E.g. you have a.ss01 b.ss01 c.ss01 a.ss02 c.ss02 --> the script creates b.ss02

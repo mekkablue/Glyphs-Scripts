@@ -1,7 +1,11 @@
 #MenuTitle: Compare Font Info > Masters
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-from builtins import str
+try:
+	from builtins import str
+except Exception as e:
+	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
+
 __doc__="""
 Detailed report of Font Info > Masters for the two frontmost fontsand outputs a report in the Macro Window.
 """

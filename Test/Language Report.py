@@ -1,7 +1,11 @@
 #MenuTitle: Language Report
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-from builtins import str
+try:
+	from builtins import str
+except Exception as e:
+	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
+
 __doc__="""
 Tries to give you a preliminary idea about how many and which languages are supported with your Latin characters.
 """

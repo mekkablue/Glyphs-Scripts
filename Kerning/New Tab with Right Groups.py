@@ -1,7 +1,11 @@
 #MenuTitle: New Tab with Right Groups
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-from builtins import str
+try:
+	from builtins import str
+except Exception as e:
+	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
+
 __doc__="""
 Creates a new tab with one glyph of each right group. Useful for checking the constency of right kerning groups.
 """

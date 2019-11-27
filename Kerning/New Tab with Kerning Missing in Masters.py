@@ -1,7 +1,11 @@
 #MenuTitle: New Tab with Kerning Missing in Masters
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-from builtins import str
+try:
+	from builtins import str
+except Exception as e:
+	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
+
 __doc__="""
 Opens New Tabs for each master showing kerning missing in this master but present in other masters.
 """

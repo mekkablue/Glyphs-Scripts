@@ -1,7 +1,11 @@
 #MenuTitle: Tunnify
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-from builtins import str
+try:
+	from builtins import str
+except Exception as e:
+	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
+
 __doc__="""
 Averages out the handles of selected path segments (or all paths if nothing is selected or multiple glyphs are selected). Doing this is a good idea for zero handles, and as preparation for interpolation. If you just want to fix zero handles, then check out the FixZeroHandles plugin in Window > Plugin Manager.
 """

@@ -1,7 +1,11 @@
 #MenuTitle: Vertical Metrics Manager
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-from builtins import str
+try:
+	from builtins import str
+except Exception as e:
+	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
+
 __doc__="""
 Manage and sync ascender, descender and linegap values for hhea, OS/2 sTypo and OS/2 usWin.
 """

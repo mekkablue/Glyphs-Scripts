@@ -1,7 +1,11 @@
 #MenuTitle: Insert Brace Layers for Movement along Background Path
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-from builtins import str
+try:
+	from builtins import str
+except Exception as e:
+	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
+
 __doc__="""
 Add a single path in the background and it will be used to create intermediate brace layers for OTVar animation.
 """

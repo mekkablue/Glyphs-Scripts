@@ -1,7 +1,11 @@
 #MenuTitle: New Tab with Short Segments
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-from builtins import str
+try:
+	from builtins import str
+except Exception as e:
+	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
+
 __doc__="""
 Goes through all glyphs in the present font(s), and reports segments shorter than a user-specified distance to the Macro Window, and opens a new tab with affected glyphs. Useful for finding alignment errors in exported OTFs.
 """

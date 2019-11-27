@@ -1,7 +1,11 @@
 #MenuTitle: Move Vietnamese Marks to top_viet Anchor in Circumflex
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-from builtins import str
+try:
+	from builtins import str
+except Exception as e:
+	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
+
 __doc__="""
 Where possible, puts acute(comb), grave(comb), hookabovecomb on 'top_viet' position in all layers in all selected glyphs. Assumes that you have a 'top_viet' anchor in circumflex. Useful for Vietnamese glyphs.
 """

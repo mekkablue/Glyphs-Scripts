@@ -1,7 +1,11 @@
 #MenuTitle: GapFinder
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-from builtins import str
+try:
+	from builtins import str
+except Exception as e:
+	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
+
 __doc__="""
 Opens a new tab with kerning combos that have large gaps in the current fontmaster.
 """

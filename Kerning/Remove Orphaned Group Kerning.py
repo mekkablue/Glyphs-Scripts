@@ -1,7 +1,11 @@
 #MenuTitle: Remove Orphaned Group Kerning
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-from builtins import str
+try:
+	from builtins import str
+except Exception as e:
+	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
+
 __doc__="""
 Deletes all group kernings refering to groups that are not in the font.
 """

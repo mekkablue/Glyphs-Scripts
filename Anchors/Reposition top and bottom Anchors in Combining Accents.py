@@ -1,7 +1,11 @@
 #MenuTitle: Reposition top & bottom Anchors in Combining Accents
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-from builtins import str
+try:
+	from builtins import str
+except Exception as e:
+	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
+
 __doc__="""
 On all layers in selected glyphs, repositions top/bottom anchors for stacking in all top/bottom combining marks in line with the italic angle of the respective master. Keeps the anchor's y height, only moves horizontally.
 """
