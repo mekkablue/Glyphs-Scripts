@@ -33,7 +33,7 @@ def dictToParameterValue( ttfAutohintDict ):
 		if not ttfAutohintDict[key]:
 			parameterValue += "--%s" % key.strip(" -")
 		else:
-			value = ttfAutohintDict[key]).strip()
+			value = str(ttfAutohintDict[key]).strip()
 			parameterValue += "--%s=%s" % ( key.strip(" -"), value )
 	return parameterValue.strip()
 
