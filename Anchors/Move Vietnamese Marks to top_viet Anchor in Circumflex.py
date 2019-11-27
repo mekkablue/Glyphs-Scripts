@@ -6,10 +6,8 @@ __doc__="""
 Where possible, puts acute(comb), grave(comb), hookabovecomb on 'top_viet' position in all layers in all selected glyphs. Assumes that you have a 'top_viet' anchor in circumflex. Useful for Vietnamese glyphs.
 """
 
-accentsToBeMoved = [ "acute", "grave", "hookabovecomb", "acutecomb", "gravecomb" ]
+accentsToBeMoved = ("acute", "grave", "hookabovecomb", "acutecomb", "gravecomb")
 newAnchor = "top_viet"
-
-
 
 Font = Glyphs.font
 selectedGlyphs = [ x.parent for x in Font.selectedLayers ]
@@ -31,6 +29,12 @@ def nameUntilFirstDot( thisName ):
 	else:
 		return thisName
 
+def withoutLeadingUnderscore( thisName ):
+	if thisName and thisName.startswith("_"):
+		return thisName[1:]
+	else:
+		return thisName
+
 def process( thisGlyph ):
 	statusString = "Processing %s" % thisGlyph.name
 	for thisMaster in Font.masters:
@@ -39,7 +43,7 @@ def process( thisGlyph ):
 		
 		for thisComponentIndex in range( len( thisLayer.components ))[1:]:
 			accentComponent = thisLayer.components[ thisComponentIndex ]
-			accentName = nameUntilFirstDot( accentComponent.componentName )
+			accentName = withoutLeadingUnderscore(nameUntilFirstDot( accentComponent.componentName ))
 			if accentName in accentsToBeMoved:
 				baseComponent = thisLayer.components[ thisComponentIndex - 1 ]
 				if baseComponent:
