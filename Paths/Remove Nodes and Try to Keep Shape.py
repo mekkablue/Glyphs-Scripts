@@ -1,10 +1,6 @@
 #MenuTitle: Remove Nodes and Try to Keep Shape
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 Delete the selected on-curve nodes, but try to keep the shape of the path. Hold down Shift for balanced handles.

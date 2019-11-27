@@ -1,10 +1,6 @@
 #MenuTitle: Reset Rotated and Mirrored Components
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 Looks for mirrored and rotated components and resets them to their original orientation.

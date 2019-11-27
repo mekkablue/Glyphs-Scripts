@@ -1,10 +1,6 @@
 #MenuTitle: Flashify Pixels
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 Adds small bridges to diagonal pixel connections (where two pixel corners touch). Otherwise your counters may be lost in the Flash text engine.

@@ -1,10 +1,6 @@
 #MenuTitle: Copy Glyphs from Other Font into Backup Layers
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 Creates backup layers for selected glyphs in target font, and fills them with the respective glyphs in source font.

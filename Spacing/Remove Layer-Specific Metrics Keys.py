@@ -1,10 +1,6 @@
 #MenuTitle: Remove Layer-Specific Metrics Keys
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 Deletes left and right metrics keys specific to layers (==), in all layers of all selected glyphs. Also simplifies glyph metrics keys (i.e., turns "=H" into "H").

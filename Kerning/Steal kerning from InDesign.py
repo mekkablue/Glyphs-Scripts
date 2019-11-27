@@ -1,10 +1,6 @@
 #MenuTitle: Steal Kerning from InDesign
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 Use the font in InD (set up a document with one text box on the first page, set the kerning method to Optical), then run this script.

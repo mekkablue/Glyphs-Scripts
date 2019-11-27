@@ -1,10 +1,6 @@
 #MenuTitle: Build positional calt feature
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 Create calt for positional forms with .isol, .init, .medi, .fina suffixes. You can automate the newly created AllLetters class.

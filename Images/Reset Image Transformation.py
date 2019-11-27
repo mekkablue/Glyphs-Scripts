@@ -1,10 +1,6 @@
 #MenuTitle: Reset Image Transformations
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 Resets all placed images to 100% scale and 0/0 position.

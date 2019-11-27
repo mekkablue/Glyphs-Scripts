@@ -1,10 +1,6 @@
 #MenuTitle: Move vertical caron anchors to x-height intersection
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 Moves all topright and _topright anchors to the rightmost intersection of the outline with the x-height.

@@ -1,10 +1,6 @@
 #MenuTitle: New Tab with Glyphs of Same Kerning Groups
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 Opens a new tab containing all members of the left and right kerning groups of the current glyph.

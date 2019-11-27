@@ -1,10 +1,6 @@
 #MenuTitle: New Tab with all Figure Combinations
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 Opens a new edit tab and outputs all possible figure combos: 00010203..., 10111213... etc.

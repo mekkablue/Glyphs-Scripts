@@ -1,10 +1,6 @@
 #MenuTitle: Build Q from O and _tail.Q
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 Run this script AFTER doing Component from Selection on the Q tail and naming it _tail.Q.

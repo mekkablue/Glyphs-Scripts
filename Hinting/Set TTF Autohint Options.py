@@ -5,7 +5,6 @@ try:
 	from builtins import str
 except Exception as e:
 	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
-
 __doc__="""
 Set options for existing 'TTF Autohint Options' Custom Parameters.
 """

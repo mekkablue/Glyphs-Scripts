@@ -1,10 +1,6 @@
 #MenuTitle: Populate Layer Backgrounds with Component
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 Adds a component to all backgrounds of all layers of all selected glyphs. Useful, e.g., for putting A in the background of (decomposed) Aogonek.

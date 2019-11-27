@@ -1,10 +1,6 @@
 #MenuTitle: Check Smallcap Consistency
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 Performs a few tests on your SC set and reports into the Macro window, especially kerning groups and glyph set.

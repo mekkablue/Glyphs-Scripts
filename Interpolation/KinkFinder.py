@@ -1,10 +1,6 @@
 #MenuTitle: Kink Finder
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 Finds kinks in interpolation space, reports them in the Macro window and opens a new tab with affected glyphs.

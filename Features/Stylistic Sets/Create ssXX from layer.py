@@ -1,10 +1,6 @@
 #MenuTitle: Create .ssXX glyph from current layer
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 Takes the currently opened layers and creates new glyphs with the first available .ssXX ending. It marks the new glyph blue, and (in a multiple-master file) all other, unprocessed master layers orange.

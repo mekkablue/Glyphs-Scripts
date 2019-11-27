@@ -5,7 +5,6 @@ try:
 	from builtins import str
 except Exception as e:
 	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
-
 __doc__="""
 Adds a touch line for a given up/down amount to the Control Instructions of the current instance.
 """

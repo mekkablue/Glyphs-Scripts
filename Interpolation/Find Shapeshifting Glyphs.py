@@ -1,10 +1,6 @@
 #MenuTitle: Find Shapeshifting Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 Finds glyphs that change the number of paths while interpolating. Opens a new tab and reports to Macro Window.

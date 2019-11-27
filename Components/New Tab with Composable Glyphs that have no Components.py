@@ -1,10 +1,6 @@
 #MenuTitle: New Tab with Composable Glyphs that have no Components
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 Opens a new Edit tab containing all glyphs that consist of paths, but could be composed according to Glyph Data.

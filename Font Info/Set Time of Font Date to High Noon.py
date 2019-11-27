@@ -1,10 +1,6 @@
 #MenuTitle: Set Time of Font Date to High Noon
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 In the Font Creation Date in Font Info, sets the time (invisible in the UI) to high noon.

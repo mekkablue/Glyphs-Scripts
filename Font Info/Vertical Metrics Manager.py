@@ -5,7 +5,6 @@ try:
 	from builtins import str
 except Exception as e:
 	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
-
 __doc__="""
 Manage and sync ascender, descender and linegap values for hhea, OS/2 sTypo and OS/2 usWin.
 """

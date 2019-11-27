@@ -1,10 +1,6 @@
 #MenuTitle: Variable Font Test HTML
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 Create a Test HTML for the current font inside the current Variation Font Export folder.

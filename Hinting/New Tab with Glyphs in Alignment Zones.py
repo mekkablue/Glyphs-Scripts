@@ -1,10 +1,6 @@
 #MenuTitle: New Tab with Glyphs in Alignment Zones
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 
 __doc__="""
 Opens a new tab and lists all glyphs that reach into alignment zones.
