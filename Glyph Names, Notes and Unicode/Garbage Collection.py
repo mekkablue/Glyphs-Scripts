@@ -63,7 +63,7 @@ class GarbageCollection( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Garbage Collection' could not load preferences. Will resort to defaults"
+			print( "Note: 'Garbage Collection' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -124,12 +124,12 @@ class GarbageCollection( object ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
-				print "Note: 'Garbage Collection' could not write preferences."
+				print( "Note: 'Garbage Collection' could not write preferences.")
 			
 			thisFont = Glyphs.font # frontmost font
-			print "Garbage Collection Report for %s" % thisFont.familyName
-			print thisFont.filepath
-			print
+			print( "Garbage Collection Report for %s" % thisFont.familyName)
+			print( thisFont.filepath)
+			print()
 			
 			if Glyphs.defaults["com.mekkablue.GarbageCollection.selectedGlyphsOnly"]:
 				glyphs = [l.parent for l in thisFont.selectedLayers]
@@ -147,7 +147,7 @@ class GarbageCollection( object ):
 				localGuidesGlyph = 0
 				removeAnnotationsGlyph = 0
 				
-				print u"🔠 Cleaning %s ..." % thisGlyph.name
+				print( u"🔠 Cleaning %s ..." % thisGlyph.name)
 				for thisLayer in thisGlyph.layers:
 					if thisLayer.master == thisFont.selectedFontMaster or not Glyphs.defaults["com.mekkablue.GarbageCollection.currentMasterOnly"]:
 						if Glyphs.defaults["com.mekkablue.GarbageCollection.removeNodeNames"]:
@@ -164,35 +164,35 @@ class GarbageCollection( object ):
 							thisLayer.annotations = None
 				if Glyphs.defaults["com.mekkablue.GarbageCollection.removeGlyphNotes"]:
 					if thisGlyph.note:
-						print "  glyph note"
+						print( "  glyph note")
 						thisGlyph.note = None
 				
 				# report:
 				if removeNodeNamesGlyph:
-					print "  %i node names" % removeNodeNamesGlyph
+					print( "  %i node names" % removeNodeNamesGlyph)
 					removeNodeNamesFont += removeNodeNamesGlyph
 				if localGuidesGlyph:
-					print "  %i local guides" % localGuidesGlyph
+					print( "  %i local guides" % localGuidesGlyph)
 					localGuidesFont += localGuidesGlyph
 				if removeAnnotationsGlyph:
-					print "  %i annotations" % removeAnnotationsGlyph
+					print( "  %i annotations" % removeAnnotationsGlyph)
 					removeAnnotationsFont += removeAnnotationsGlyph
 					
 				
 
 			if Glyphs.defaults["com.mekkablue.GarbageCollection.removeGlobalGuides"]:
-				print u"📏 Removing global guides ..."
+				print( u"📏 Removing global guides ...")
 				for thisMaster in thisFont.masters:
 					if thisMaster == thisFont.selectedFontMaster or not Glyphs.defaults["com.mekkablue.GarbageCollection.currentMasterOnly"]:
 						thisMaster.guideLines = None
 			
-			print u"✅ Done."
+			print( u"✅ Done.")
 			
 		except Exception, e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Garbage Collection Error: %s" % e
+			print( "Garbage Collection Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print( traceback.format_exc())
 
 GarbageCollection()
