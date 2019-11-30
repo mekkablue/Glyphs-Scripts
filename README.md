@@ -270,8 +270,9 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **New Tab with Uneven Symmetric Kernings:** Finds kern pairs for symmetric letters like ATA AVA TOT WIW etc. and sees if AT is the same as TA, etc.
 * **New Tabs with Punctuation Kern Strings:** Outputs several tabs with kern strings with punctuation.
 * **Remove all Kerning Exceptions:** Removes all kerning for the current master, except for group-to-group kerning. Be careful.
+* **Remove Kerning Between Categories:** Removes kerning between glyphs, categories, subcategories, scripts. *Requires Vanilla.*
 * **Remove Kerning Pairs for Selected Glyphs:** Deletes all kerning pairs with the selected glyphs, for the current master only.
-* **Remove Orphaned Group Kerning:** Deletes all group kernings refering to groups that are not in the font.
+* **Remove Orphaned Group Kerning:** Deletes all group kernings referring to groups that are not in the font.
 * **Remove Small Kerning Pairs:** Removes all kerning pairs in the current font master with a value smaller than specified, or a value equal to zero. Be careful. *Needs Vanilla.*
 * **Report Kerning Mistakes:** Tries to find unnecessary kernings and groupings. Reports in Macro window, for reviewing.
 * **Sample String Maker:** Creates kern strings for user-defined categories and adds them to the Sample Strings. Group kerning only, glyphs without groups are ignored. *Needs Vanilla.*
