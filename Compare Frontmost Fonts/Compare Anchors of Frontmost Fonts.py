@@ -188,10 +188,10 @@ class CompareAnchorsOfFrontmostFonts( object ):
 						if not (thisGlyph.export or Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.includeNonExporting"]):
 							skippedGlyphNames.append(thisGlyph.name) 
 							if otherGlyph.export:
-								print(u"😬 Glyph %s exports in (2) %s, but not in (1) %s. Skipping." % (otherFileName, thisFileName))
+								print(u"😬 Glyph %s exports in (2) %s, but not in (1) %s. Skipping." % (thisGlyph.name, otherFileName, thisFileName))
 						else:
 							if not (otherGlyph.export or Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.includeNonExporting"]):
-								print(u"😬 Glyph %s exports in (1) %s, but not in (2) %s. Skipping." % (thisFileName, otherFileName))
+								print(u"😬 Glyph %s exports in (1) %s, but not in (2) %s. Skipping." % (thisGlyph.name, thisFileName, otherFileName))
 								skippedGlyphNames.append(thisGlyph.name) 
 							else:
 								
