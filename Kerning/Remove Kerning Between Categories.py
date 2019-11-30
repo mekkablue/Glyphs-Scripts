@@ -246,14 +246,14 @@ class RemoveKerning( object ):
 				if thisFont.kerning.has_key(masterID):
 					for leftName in leftNames:
 						try:
-							leftID = thisFont.glyphs[leftName].glyphId()
+							leftID = thisFont.glyphs[leftName].id
 						except:
 							# tried to find a glyph named like a group
 							leftID = leftName
 						if thisFont.kerning[masterID].has_key(leftID):
 							for rightName in rightNames:
 								try:
-									rightID = thisFont.glyphs[rightName].glyphId()
+									rightID = thisFont.glyphs[rightName].id
 								except:
 									# tried to find a glyph named like a group
 									rightID = rightName
@@ -271,7 +271,13 @@ class RemoveKerning( object ):
 					self.w.progress.set(counter/fullLength*100)
 					
 			self.w.progress.set(100)
-			self.status("Ready. Removed %i pairs."%removalCount, True)
+			self.status(
+				"Ready. Removed %i pair%s."%(
+					removalCount,
+					"" if removalCount==1 else "s",
+					), 
+				True,
+				)
 
 		except Exception as e:
 			# brings macro window to front and reports error:
