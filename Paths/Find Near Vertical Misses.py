@@ -375,24 +375,30 @@ class FindNearVerticalMisses( object ):
 										
 										skipThisNode = False
 										if Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.tolerateIfExtremum"]:
-											if thisNode.prevNode.type == OFFCURVE and thisNode.nextNode.type == OFFCURVE:
-												vertical = thisNode.x == thisNode.prevNode.x == thisNode.nextNode.x
-												linedUp = (thisNode.y-thisNode.prevNode.y)*(thisNode.nextNode.y-thisNode.y) > 0.0
-												if vertical and linedUp:
-													skipThisNode = True
+											if thisNode.prevNode:
+												if thisNode.prevNode.type == OFFCURVE and thisNode.nextNode.type == OFFCURVE:
+													vertical = thisNode.x == thisNode.prevNode.x == thisNode.nextNode.x
+													linedUp = (thisNode.y-thisNode.prevNode.y)*(thisNode.nextNode.y-thisNode.y) > 0.0
+													if vertical and linedUp:
+														skipThisNode = True
+											else:
+												print("⚠️ Potential open path in %s" % thisGlyph.name)
 										
 										if not skipThisNode:
 											if Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.tolerateIfNextNodeIsOn"]:
 												# determine previous oncurve point
 												previousOnCurve = thisNode.prevNode
-												while previousOnCurve.type == OFFCURVE:
-													previousOnCurve = previousOnCurve.prevNode
-												previousY = previousOnCurve.y
-												# determine next oncurve point
-												nextOnCurve = thisNode.nextNode
-												while nextOnCurve.type == OFFCURVE:
-													nextOnCurve = nextOnCurve.nextNode
-												nextY = nextOnCurve.y
+												if previousOnCurve:
+													while previousOnCurve.type == OFFCURVE:
+														previousOnCurve = previousOnCurve.prevNode
+													previousY = previousOnCurve.y
+													# determine next oncurve point
+													nextOnCurve = thisNode.nextNode
+													while nextOnCurve.type == OFFCURVE:
+														nextOnCurve = nextOnCurve.nextNode
+													nextY = nextOnCurve.y
+												else:
+													print("⚠️ Potential open path in %s" % thisGlyph.name)
 											else:
 												previousY = None
 												nextY = None
