@@ -238,6 +238,7 @@ class RemoveKerning( object ):
 			
 			fullLength = len(masterIDs) * len(leftNames) * len(rightNames)
 			counter = 0
+			removalCount = 0
 			
 			for masterID in masterIDs:
 				masterName = thisFont.fontMasterForId_(masterID).name
@@ -259,6 +260,7 @@ class RemoveKerning( object ):
 								if thisFont.kerning[masterID][leftID].has_key(rightID):
 									self.status("Master '%s': removing pair %s:%s..."%(masterName, leftName,rightName), True)
 									thisFont.removeKerningForPair(masterID, leftName, rightName)
+									removalCount += 1
 								counter+=1
 								self.w.progress.set(counter/fullLength*100)
 						else:
@@ -269,7 +271,7 @@ class RemoveKerning( object ):
 					self.w.progress.set(counter/fullLength*100)
 					
 			self.w.progress.set(100)
-			self.status("Ready.")
+			self.status("Ready. Removed %i pairs."%removalCount, True)
 
 		except Exception as e:
 			# brings macro window to front and reports error:
