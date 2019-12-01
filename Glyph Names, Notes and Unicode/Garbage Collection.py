@@ -127,8 +127,8 @@ class GarbageCollection( object ):
 				print( "Note: 'Garbage Collection' could not write preferences.")
 			
 			thisFont = Glyphs.font # frontmost font
-			print( "Garbage Collection Report for %s" % thisFont.familyName)
-			print( thisFont.filepath)
+			print("Garbage Collection Report for %s" % thisFont.familyName)
+			print(thisFont.filepath)
 			print()
 			
 			if Glyphs.defaults["com.mekkablue.GarbageCollection.selectedGlyphsOnly"]:
@@ -169,30 +169,30 @@ class GarbageCollection( object ):
 				
 				# report:
 				if removeNodeNamesGlyph:
-					print( "  %i node names" % removeNodeNamesGlyph)
+					print("  %i node names" % removeNodeNamesGlyph)
 					removeNodeNamesFont += removeNodeNamesGlyph
 				if localGuidesGlyph:
-					print( "  %i local guides" % localGuidesGlyph)
+					print("  %i local guides" % localGuidesGlyph)
 					localGuidesFont += localGuidesGlyph
 				if removeAnnotationsGlyph:
-					print( "  %i annotations" % removeAnnotationsGlyph)
+					print("  %i annotations" % removeAnnotationsGlyph)
 					removeAnnotationsFont += removeAnnotationsGlyph
 					
 				
 
 			if Glyphs.defaults["com.mekkablue.GarbageCollection.removeGlobalGuides"]:
-				print( u"📏 Removing global guides ...")
+				print(u"📏 Removing global guides ...")
 				for thisMaster in thisFont.masters:
 					if thisMaster == thisFont.selectedFontMaster or not Glyphs.defaults["com.mekkablue.GarbageCollection.currentMasterOnly"]:
 						thisMaster.guideLines = None
 			
-			print( u"✅ Done.")
+			print(u"✅ Done.")
 			
 		except Exception, e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print( "Garbage Collection Error: %s" % e)
+			print("Garbage Collection Error: %s" % e)
 			import traceback
-			print( traceback.format_exc())
+			print(traceback.format_exc())
 
 GarbageCollection()

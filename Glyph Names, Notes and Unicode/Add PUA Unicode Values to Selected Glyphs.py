@@ -32,7 +32,7 @@ class CustomUnicode( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Add PUA Unicode Values to Selected Glyphs' could not load preferences. Will resort to defaults"
+			print("Note: 'Add PUA Unicode Values to Selected Glyphs' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -66,14 +66,14 @@ class CustomUnicode( object ):
 	def checkUnicodeEntry( self, unicodeValue ):
 		length = len(unicodeValue)
 		if length < 4 or length > 5:
-			print "ERROR: Entry has %i digits and therefore an invalid length. UTF-16 values must contain 4 or 5 hexadecimal digits." % length
+			print("ERROR: Entry has %i digits and therefore an invalid length. UTF-16 values must contain 4 or 5 hexadecimal digits." % length)
 			return False
 		
 		# after sanitization, this will probably never be accessed anymore:
 		for digit in unicodeValue:
 			allDigitsValid = True
 			if not digit in "0123456789ABCDEF":
-				print "ERROR: Found '%s' in entry. Not a valid hex digit." % digit
+				print("ERROR: Found '%s' in entry. Not a valid hex digit." % digit))
 				allDigitsValid = False
 		
 		return allDigitsValid
@@ -91,18 +91,18 @@ class CustomUnicode( object ):
 			
 				# Report in Macro window:
 				Glyphs.clearLog()
-				print "Setting Unicode values:"
+				print("Setting Unicode values:")
 				
 				# Apply Unicodes to selected glyphs:
 				for thisGlyph in listOfSelectedGlyphs:
 					unicodeValue = "%04X" % PUAcode
 					thisGlyph.setUnicode_( unicodeValue )
-					print "  %s: %s" % (unicodeValue, thisGlyph.name)
+					print("  %s: %s" % (unicodeValue, thisGlyph.name))
 					PUAcode += 1
 				
 				# Try to save prefs:
 				if not self.SavePreferences( self ):
-					print "Note: 'Add PUA Unicode Values to Selected Glyphs' could not write preferences."
+					print("Note: 'Add PUA Unicode Values to Selected Glyphs' could not write preferences.")
 			
 				self.w.close() # closes window
 			else:
@@ -113,7 +113,7 @@ class CustomUnicode( object ):
 					)
 				Glyphs.showMacroWindow()
 				
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Message(
 				message="The following error occurred (more details in the Macro Window): %s"%e, 
@@ -121,7 +121,7 @@ class CustomUnicode( object ):
 				OKButton=None
 				)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 			Glyphs.showMacroWindow()
 
 CustomUnicode()

@@ -37,7 +37,7 @@ class RenameGlyphs( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Rename Glyphs' could not load preferences. Will resort to defaults"
+			print("Note: 'Rename Glyphs' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -79,16 +79,16 @@ class RenameGlyphs( object ):
 						else:
 							glyphLeft.name = glyphNameRight
 					else:
-						print "Warning: %s not in font." % glyphNameLeft
+						print("Warning: %s not in font." % glyphNameLeft)
 			
 			if not self.SavePreferences( self ):
-				print "Note: 'Rename Glyphs' could not write preferences."
+				print("Note: 'Rename Glyphs' could not write preferences.")
 			
 			self.w.close() # delete if you want window to stay open
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print "Rename Glyphs Error: %s" % e
+			print("Rename Glyphs Error: %s" % e)
 			import traceback
 			print traceback.format_exc()
 

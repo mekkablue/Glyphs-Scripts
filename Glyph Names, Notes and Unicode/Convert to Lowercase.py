@@ -17,9 +17,9 @@ def lowercaseGlyphName( thisGlyph ):
 		newName = oldName.lower()
 	if oldName != newName:
 		thisGlyph.name = newName
-		print "%s --> %s" % (oldName, newName)
+		print("%s --> %s" % (oldName, newName))
 	else:
-		print "%s: unchanged"
+		print("%s: unchanged")
 
 Font.disableUpdateInterface()
 
