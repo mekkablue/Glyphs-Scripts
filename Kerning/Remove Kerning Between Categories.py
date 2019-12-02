@@ -60,7 +60,7 @@ class RemoveKerning( object ):
 		self.w.progress.set(0) # set progress indicator to zero
 		linePos+=lineHeight
 		
-		self.w.statusText = vanilla.TextBox( (inset, -20-inset, 300, 14), u"", sizeStyle='small', selectable=True )
+		self.w.statusText = vanilla.TextBox( (inset, -20-inset, -220-inset, 14), u"", sizeStyle='small', selectable=True )
 		
 		# Run Button:
 		self.w.runButton = vanilla.Button( (-120-inset, -20-inset, -inset, -inset), "Remove", sizeStyle='regular', callback=self.RemoveKerningMain )
@@ -250,15 +250,15 @@ class RemoveKerning( object ):
 						except:
 							# tried to find a glyph named like a group
 							leftID = leftName
-						if thisFont.kerning[masterID].has_key(leftID):
-							for rightName in rightNames:
+						for rightName in rightNames:
+							if thisFont.kerning[masterID].has_key(leftID):
 								try:
 									rightID = thisFont.glyphs[rightName].id
 								except:
 									# tried to find a glyph named like a group
 									rightID = rightName
 								if thisFont.kerning[masterID][leftID].has_key(rightID):
-									self.status("Master '%s': removing pair %s:%s..."%(masterName, leftName,rightName), True)
+									self.status("Master %s: removing %s:%s"%(masterName, leftName,rightName), True)
 									thisFont.removeKerningForPair(masterID, leftName, rightName)
 									removalCount += 1
 								counter+=1
