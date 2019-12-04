@@ -12,8 +12,8 @@ def saveFileInLocation( content="Sorry, no content generated.", fileName="test.h
 	saveFileLocation = "%s/%s" % (filePath,fileName)
 	saveFileLocation = saveFileLocation.replace( "//", "/" )
 	f = open( saveFileLocation, 'w' )
-	print("Exporting to:", f.name)
-	f.write( content )
+	print("Exporting to: %s" % f.name)
+	f.write( content.encode("ascii", errors="xmlcharrefreplace") )
 	f.close()
 	return True
 
@@ -350,6 +350,12 @@ htmlContent = """
 			
 		</style>
 		<script>
+			document.addEventListener('keyup', function(event) {
+				if (event.code == 'KeyR' && (event.ctrlKey)) {
+					updateParagraph(reset=true)
+				}
+			});
+			
 			function updateFeatures() {
 				// update features based on user input:
 				var body = document.getElementById("text");
@@ -373,11 +379,15 @@ htmlContent = """
 				body.style.setProperty("font-feature-settings", codeLine);
 			}
 			
-			function updateParagraph() {
-				// update paragraph text based on user input:
-				var userinput = document.getElementById("textInput");
+			function updateParagraph(reset=false) {
+				// update paragraph text based on user input or reset it to default:
+				if (reset) {
+					var textinput = "The Quick Brown Fox Jumps Over the Lazy Dog.";
+				} else {
+					var textinput = document.getElementById("textInput").value;
+				};
 				var paragraph = document.getElementById("text");
-				paragraph.textContent = userinput.value;
+				paragraph.innerHTML = textinput;
 			}
 		
 			function updateSlider() {
@@ -411,8 +421,8 @@ htmlContent = """
 			}
 		</script>
 	</head>
-	<body onload="updateSlider();">
-		<input type="text" value="Type Text Here." id="textInput" onkeyup="updateParagraph();" onclick="this.select();" />
+	<body onload="updateSlider();updateParagraph(reset=true);">
+		<input type="text" value="Type Text Here." id="textInput" onkeydown="updateParagraph();" onclick="this.select();" />
 		<div>
 			<div class="labeldiv"><label class="sliderlabel" id="label_fontsize" name="Font Size">Font Size</label><input type="range" min="10" max="300" value="150" class="slider" id="fontsize" oninput="updateSlider();"></div>
 			<div class="labeldiv"><label class="sliderlabel" id="label_lineheight" name="Line Height">Line Height</label><input type="range" min="30" max="300" value="100" class="slider" id="lineheight" oninput="updateSlider();"></div>
@@ -427,10 +437,10 @@ htmlContent = """
 		</p>
 		
 		<!-- Text -->
-		<p id="text">The Quick Brown Fox Jumps Over the Lazy Dog.</p>
+		<p id="text"></p>
 		
 		<!-- Disclaimer -->
-		<p style="color: #888; font: x-small sans-serif;">Not working? Please try the <a href="https://www.google.com/chrome/">latest version of Chrome</a>, in a recent version of macOS.</p>
+		<p style="color: #888; font: x-small sans-serif;">Not working? Please try the <a href="https://www.google.com/chrome/">latest version of Chrome</a>, in a recent version of macOS. Ctrl-R to reset the charset.</p>
 	</body>
 </html>
 """
