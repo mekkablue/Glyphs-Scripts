@@ -230,7 +230,7 @@ htmlContent = """
 				src: url("###fontFileName###");
 			}
 			p {
-				z-index: 0;
+				z-index: 4;
 				position: relative;
 				margin: 0px;
 				padding: 5px;
@@ -288,7 +288,8 @@ htmlContent = """
 				background-color: #ddd;
 				border-radius:0.3em;
 				border: 0;
-				text-align:center;
+				text-align: center;
+				z-index: 6;
 			}
 			.otFeature {
 				visibility: collapse;
@@ -298,6 +299,8 @@ htmlContent = """
 				visibility: visible;
 				color: #eee;
 				background-color: #555; 
+				position: relative;
+				z-index: 7;
 			}
 			.slider {
 				z-index: 1;
@@ -328,14 +331,17 @@ htmlContent = """
 				color: #333;
 			}
 			
+			
 			.otFeatureLabel .tooltip {
 				visibility: hidden;
 				background-color: #333;
 				color: #fff;
 				text-align: center;
 				padding: 0px 5px;
+				top: -2em;
+				left: 0;
 				position: absolute;
-				z-index: 1;
+				z-index: 4;
 			}
 			.otFeatureLabel:hover .tooltip {
 				visibility: visible;
