@@ -458,7 +458,7 @@ htmlContent = """
 		<p id="text"></p>
 		
 		<!-- Disclaimer -->
-		<p style="color: #888; font: x-small sans-serif;">Not working? Please try the <a href="https://www.google.com/chrome/">latest version of Chrome</a>, in a recent version of macOS. Ctrl-R to reset the charset.</p>
+		<p style="color: #888; font: x-small sans-serif;">Ctrl-R to reset the charset. Not working? Please try the <a href="https://www.google.com/chrome/">latest Chrome</a>, or in a newer macOS.</p>
 	</body>
 </html>
 """
