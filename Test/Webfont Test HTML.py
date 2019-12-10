@@ -7,7 +7,12 @@ Create a Test HTML for the current font inside the current Webfont Export folder
 
 from AppKit import NSBundle, NSClassFromString
 from os import system
-fileFormats = ( "woff", "woff2", "eot" )
+
+Glyphs.registerDefault( "com.mekkablue.WebFontTestHTML.includeEOT", 0 )
+if Glyphs.defaults["com.mekkablue.WebFontTestHTML.includeEOT"]:
+	fileFormats = ( "woff", "woff2", "eot" )
+else:
+	fileFormats = ( "woff", "woff2" )
 
 def saveFileInLocation( content="blabla", fileName="test.txt", filePath="~/Desktop" ):
 	saveFileLocation = "%s/%s" % (filePath,fileName)
