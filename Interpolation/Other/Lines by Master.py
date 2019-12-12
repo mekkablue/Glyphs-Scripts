@@ -20,7 +20,7 @@ theseLayers = []
 for m in Font.masters:
 	for gname in names:
 		layer = Font.glyphs[gname].layers[m.id]
-		print layer
+		# print(layer)
 		theseLayers.append( layer )
 	
 	theseLayers.append( GSControlLayer.newline() )

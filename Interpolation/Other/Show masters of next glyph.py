@@ -30,7 +30,7 @@ def showAllMastersOfGlyphInCurrentTab( thisGlyphName ):
 
 		return True
 	except Exception as e:
-		print e
+		print(e)
 		return False
 
 thisFont = Glyphs.font # frontmost font
@@ -41,4 +41,4 @@ newGlyphIndex = currentGlyphIndex + 1
 newGlyphName = thisFont.glyphs[newGlyphIndex].name
 
 if not showAllMastersOfGlyphInCurrentTab( newGlyphName ):
-	print "Error: could not insert masters of %s in current edit tab." % newGlyphName
+	print("Error: could not insert masters of %s in current edit tab." % newGlyphName)
