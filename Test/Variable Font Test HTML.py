@@ -256,6 +256,15 @@ htmlContent = """
 				margin: 5px;
 				width: 97%;
 			}
+			#text{
+				z-index:-1; 
+				position: relative;
+				padding-top: 1.5em;
+			}
+			#controls{
+				position: fixed; 
+				background-color: white;
+			}
 			.labeldiv {
 				width: 48%;
 				display: inline-block;
@@ -440,19 +449,21 @@ htmlContent = """
 		</script>
 	</head>
 	<body onload="updateSlider();updateParagraph(reset=true);">
-		<input type="text" value="Type Text Here." id="textInput" onkeydown="updateParagraph();" onclick="this.select();" />
-		<div>
-			<div class="labeldiv"><label class="sliderlabel" id="label_fontsize" name="Font Size">Font Size</label><input type="range" min="10" max="300" value="150" class="slider" id="fontsize" oninput="updateSlider();"></div>
-			<div class="labeldiv"><label class="sliderlabel" id="label_lineheight" name="Line Height">Line Height</label><input type="range" min="30" max="300" value="100" class="slider" id="lineheight" oninput="updateSlider();"></div>
-###sliders###		</div>
+		<div id="controls">
+			<input type="text" value="Type Text Here." id="textInput" onkeydown="updateParagraph();" onclick="this.select();" />
+			<div>
+				<div class="labeldiv"><label class="sliderlabel" id="label_fontsize" name="Font Size">Font Size</label><input type="range" min="10" max="300" value="150" class="slider" id="fontsize" oninput="updateSlider();"></div>
+				<div class="labeldiv"><label class="sliderlabel" id="label_lineheight" name="Line Height">Line Height</label><input type="range" min="30" max="300" value="100" class="slider" id="lineheight" oninput="updateSlider();"></div>
+	###sliders###		</div>
 
-		<!-- OT features -->
-		<p style="font-size:x-small; font-family: sans-serif;">
-			<input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
-			<input type="checkbox" name="liga" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga/clig</label>
-			<input type="checkbox" name="calt" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel">calt</label>
-###featureList###
-		</p>
+			<!-- OT features -->
+			<p style="font-size:x-small; font-family: sans-serif;">
+				<input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
+				<input type="checkbox" name="liga" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga/clig</label>
+				<input type="checkbox" name="calt" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel">calt</label>
+	###featureList###
+			</p>
+		</div>
 		
 		<!-- Text -->
 		<p id="text"></p>
