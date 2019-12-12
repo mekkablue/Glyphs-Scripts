@@ -36,8 +36,9 @@ class AutoAlignmentManager( object ):
 		self.w.includeAllLayers.getNSButton().setToolTip_("If enabled, will enable/disable automatic alignment not only for the currently selected masters/layers, but for ALL master layers, brace layers and bracket layers of selected glyphs. Will still ignore backup layers (the ones with a timestamp in their names).")
 		linePos += lineHeight
 		
-		self.w.ignoreFirstComponent = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Ignore first component", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.ignoreFirstComponent.getNSButton().setToolTip_("If enabled, will exclude the first component (usually the base letter) from toggling auto-alignment. This can be useful if you want to keep the diacritic marks aligned to the base, but still move the base. Or if you want to keep the base letter aligned, and place the marks freely.")
+		self.w.differentiationText = vanilla.TextBox( (inset, linePos+2, 75, 14), u"Differentiate:", sizeStyle='small', selectable=True )
+		self.w.differentiation = vanilla.PopUpButton( (inset+75, linePos, -inset, 17), (u"Treat all components equally", u"Ignore first component", u"Only apply to first component"), sizeStyle='small', callback=self.SavePreferences )
+		self.w.differentiation.getNSPopUpButton().setToolTip_(u"You can choose to exclude the first component (usually the base letter) from toggling auto-alignment. This can be useful if you want to keep the diacritic marks aligned to the base, but still move the base. Or if you want to keep the base letter aligned, and place the marks freely.")
 		linePos += lineHeight
 		
 		
@@ -57,7 +58,7 @@ class AutoAlignmentManager( object ):
 		try:
 			Glyphs.defaults["com.mekkablue.AutoAlignmentManager.includeAllGlyphs"] = self.w.includeAllGlyphs.get()
 			Glyphs.defaults["com.mekkablue.AutoAlignmentManager.includeAllLayers"] = self.w.includeAllLayers.get()
-			Glyphs.defaults["com.mekkablue.AutoAlignmentManager.ignoreFirstComponent"] = self.w.ignoreFirstComponent.get()
+			Glyphs.defaults["com.mekkablue.AutoAlignmentManager.differentiation"] = self.w.differentiation.get()
 		except:
 			return False
 			
@@ -67,20 +68,22 @@ class AutoAlignmentManager( object ):
 		try:
 			Glyphs.registerDefault("com.mekkablue.AutoAlignmentManager.includeAllGlyphs", 0)
 			Glyphs.registerDefault("com.mekkablue.AutoAlignmentManager.includeAllLayers", 1)
-			Glyphs.registerDefault("com.mekkablue.AutoAlignmentManager.ignoreFirstComponent", 0)
+			Glyphs.registerDefault("com.mekkablue.AutoAlignmentManager.differentiation", 0)
 			self.w.includeAllGlyphs.set( Glyphs.defaults["com.mekkablue.AutoAlignmentManager.includeAllGlyphs"] )
 			self.w.includeAllLayers.set( Glyphs.defaults["com.mekkablue.AutoAlignmentManager.includeAllLayers"] )
-			self.w.ignoreFirstComponent.set( Glyphs.defaults["com.mekkablue.AutoAlignmentManager.ignoreFirstComponent"] )
+			self.w.differentiation.set( Glyphs.defaults["com.mekkablue.AutoAlignmentManager.differentiation"] )
 		except:
 			return False
 			
 		return True
 	
-	def enableOrDisableLayer( self, thisLayer, excludeFirstComponent=False, sender=None ):
+	def enableOrDisableLayer( self, thisLayer, differentiation=0, sender=None ):
 		if thisLayer.components:
+			treatAll    = differentiation==0
+			ignoreFirst = differentiation==1
+			onlyFirst   = differentiation==2
 			for i,thisComponent in enumerate(thisLayer.components):
-				if (i>0) or (not excludeFirstComponent):
-					print(i)
+				if treatAll or (i==0 and onlyFirst) or (i>0 and ignoreFirst):
 					if sender is self.w.enableButton:
 						thisComponent.setDisableAlignment_(False)
 						print("\tEnabling alignment on: %s" % thisLayer.name)
@@ -106,7 +109,7 @@ class AutoAlignmentManager( object ):
 			
 
 			includeAllLayers = Glyphs.defaults["com.mekkablue.AutoAlignmentManager.includeAllLayers"]
-			excludeFirstComponent = Glyphs.defaults["com.mekkablue.AutoAlignmentManager.ignoreFirstComponent"]
+			componentDifferentiation = Glyphs.defaults["com.mekkablue.AutoAlignmentManager.differentiation"]
 			currentMasterID = thisFont.selectedFontMaster.id
 			
 			if includeAllLayers:
@@ -119,7 +122,7 @@ class AutoAlignmentManager( object ):
 					print("Processing: %s" % thisGlyph.name)
 					for thisLayer in thisGlyph.layers:
 						if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
-							if not self.enableOrDisableLayer( thisLayer, excludeFirstComponent=excludeFirstComponent, sender=sender ):
+							if not self.enableOrDisableLayer( thisLayer, differentiation=componentDifferentiation, sender=sender ):
 								print(u"⚠️ Error setting alignment.")
 			else:
 				if Glyphs.defaults["com.mekkablue.AutoAlignmentManager.includeAllGlyphs"]:
@@ -130,7 +133,7 @@ class AutoAlignmentManager( object ):
 				
 				for thisLayer in layersToBeProcessed:
 					print("Processing: %s" % thisLayer.parent.name)
-					if not self.enableOrDisableLayer( thisLayer, excludeFirstComponent=excludeFirstComponent, sender=sender ):
+					if not self.enableOrDisableLayer( thisLayer, differentiation=componentDifferentiation, sender=sender ):
 						print(u"⚠️ Error setting alignment.")
 			
 		except Exception as e:

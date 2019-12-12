@@ -230,7 +230,7 @@ htmlContent = """
 				src: url("###fontFileName###");
 			}
 			p {
-				z-index: 0;
+				z-index: 4;
 				position: relative;
 				margin: 0px;
 				padding: 5px;
@@ -297,7 +297,8 @@ htmlContent = """
 				background-color: #ddd;
 				border-radius:0.3em;
 				border: 0;
-				text-align:center;
+				text-align: center;
+				z-index: 6;
 			}
 			.otFeature {
 				visibility: collapse;
@@ -307,6 +308,8 @@ htmlContent = """
 				visibility: visible;
 				color: #eee;
 				background-color: #555; 
+				position: relative;
+				z-index: 7;
 			}
 			.slider {
 				z-index: 1;
@@ -337,14 +340,17 @@ htmlContent = """
 				color: #333;
 			}
 			
+			
 			.otFeatureLabel .tooltip {
 				visibility: hidden;
 				background-color: #333;
 				color: #fff;
 				text-align: center;
 				padding: 0px 5px;
+				top: -2em;
+				left: 0;
 				position: absolute;
-				z-index: 1;
+				z-index: 4;
 			}
 			.otFeatureLabel:hover .tooltip {
 				visibility: visible;
@@ -469,7 +475,7 @@ htmlContent = """
 		<p id="text"></p>
 		
 		<!-- Disclaimer -->
-		<p style="color: #888; font: x-small sans-serif;">Not working? Please try the <a href="https://www.google.com/chrome/">latest version of Chrome</a>, in a recent version of macOS. Ctrl-R to reset the charset.</p>
+		<p style="color: #888; font: x-small sans-serif;">Ctrl-R to reset the charset. Not working? Please try the <a href="https://www.google.com/chrome/">latest Chrome</a>, or in a newer macOS.</p>
 	</body>
 </html>
 """
