@@ -121,7 +121,7 @@ class AutoAlignmentManager( object ):
 				for thisGlyph in selectedGlyphs:
 					print("Processing: %s" % thisGlyph.name)
 					for thisLayer in thisGlyph.layers:
-						if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
+						if thisLayer.isMasterLayer or thisLayer.isSpecialLayer or thisLayer.isColorLayer() or thisLayer.isAppleColorLayer():
 							if not self.enableOrDisableLayer( thisLayer, differentiation=componentDifferentiation, sender=sender ):
 								print(u"⚠️ Error setting alignment.")
 			else:
