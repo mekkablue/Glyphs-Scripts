@@ -444,7 +444,7 @@ htmlContent = """
 			}
 			
 			function updateParagraph() {
-				const defaulttext = "ABC";
+				const defaulttext = "The Quick Brown Fox Jumps Over the Lazy Dog.";
 				var testtext = getTestText();
 				testtext.innerHTML = defaulttext;
 			}
@@ -518,9 +518,8 @@ htmlContent = """
 </html>
 """
 
-# brings macro window to front and clears its log:
+# clears macro window log:
 Glyphs.clearLog()
-Glyphs.showMacroWindow()
 
 # Query app version:
 GLYPHSAPPVERSION = NSBundle.bundleForClass_(NSClassFromString("GSMenu")).infoDictionary().objectForKey_("CFBundleShortVersionString")
