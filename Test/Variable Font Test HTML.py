@@ -119,9 +119,9 @@ def featureListForFont( thisFont ):
 		if f.startswith("ss") and n.startswith("Name:"):
 			# stylistic set name:
 			setName = n.splitlines()[0][5:].strip()
-			returnString += '\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s<span class="tooltip">%s</span></label>\n' % (f,f,f,f,f,setName)
+			returnString += '\t\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s<span class="tooltip">%s</span></label>\n' % (f,f,f,f,f,setName)
 		else:
-			returnString += '\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s</label>\n' % (f,f,f,f,f)
+			returnString += '\t\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s</label>\n' % (f,f,f,f,f)
 	return returnString.rstrip()
 
 def allOTVarSliders(thisFont):
@@ -489,19 +489,19 @@ htmlContent = """
 		</script>
 	</head>
 	<body onload="updateSlider();updateParagraph();document.getElementById('textarea').focus()">
-	<div id="flexbox>
+	<div id="flexbox">
 		<div id="controls">
 			<!-- OTVar Sliders -->
 			<div class="labeldiv"><label class="sliderlabel" id="label_fontsize" name="Font Size">Font Size</label><input type="range" min="10" max="300" value="150" class="slider" id="fontsize" oninput="updateSlider();"></div>
 			<div class="labeldiv"><label class="sliderlabel" id="label_lineheight" name="Line Height">Line Height</label><input type="range" min="30" max="300" value="100" class="slider" id="lineheight" oninput="updateSlider();"></div>
-	###sliders###
+###sliders###
 
 			<!-- OT features -->
 			<div id="featureControls">
 				<input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
 				<input type="checkbox" name="liga" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga/clig</label>
 				<input type="checkbox" name="calt" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel">calt</label>
-	###featureList###
+###featureList###
 			</div>
 		</div>
 		
