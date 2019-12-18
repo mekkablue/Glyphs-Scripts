@@ -229,58 +229,76 @@ htmlContent = """
 				font-family: "###fontFamilyName###";
 				src: url("###fontFileName###");
 			}
-			p {
-				z-index: 4;
-				position: relative;
-				margin: 0px;
-				padding: 5px;
-				padding-top: 0.2em;
-				line-height: 1em;
-				color: #000;
-				font: 150px "###fontFamilyName###";
-				font-feature-settings: "kern" on, "liga" on, "calt" on;
-				-moz-font-feature-settings: "kern" on, "liga" on, "calt" on;
-				-webkit-font-feature-settings: "kern" on, "liga" on, "calt" on;
-				-ms-font-feature-settings: "kern" on, "liga" on, "calt" on;
-				-o-font-feature-settings: "kern" on, "liga" on, "calt" on;
-				font-variation-settings: ###variationSettings###;
+			body {
+				padding: 0;
+				margin: auto;
+				overflow-x: hidden;
 			}
-			#textInput{
-				color: #777;
-				background-color: #eee;
-				border-radius: 5px;   
-				background: #eee;
-				border: none;
-				height: 2em;
-				padding: 0.5em;
-				margin: 5px;
-				width: 97%;
+			#flexbox {
+				display: flex;
+				flex-flow: column;
+				height: 100%;
 			}
-			#text{
-				z-index:-1; 
-				position: relative;
-				padding-top: 1.5em;
-			}
-			#controls{
-				position: fixed; 
+			#controls {
+				flex: 0 1 auto;
 				background-color: white;
+				margin: 2px 0 0 0;
+				padding: 0;
+				width: 100%;
+				border: 0px solid transparent;
+				height: auto;
 			}
+
+/* OTVar Sliders: */
 			.labeldiv {
-				width: 48%;
+				width: 49.2%;
+				padding: 0 0 0 0.2%;
+				margin: auto;
 				display: inline-block;
 			}
  			label {
 				z-index: 2;
 				position: absolute;
 				pointer-events: none;
-				width: 100%;
 				height: 2em;
 				margin: 0;
-				padding: 1em;
+				padding: 0.5em 1em;
 				vertical-align: text-top;
 				font: x-small sans-serif;
-				color: #000;
+				color: black;
 				opacity: 0.5;
+			}
+			.slider {
+				z-index: 1;
+				position: relative;
+				-webkit-appearance: none;
+				-moz-appearance: none;
+				appearance: none;
+				width: 100%;
+				height: 2em;
+				border-radius: 5px;
+				background: #eee;
+				padding: auto;
+				margin: auto;
+			}
+			.slider::-webkit-slider-thumb {
+				z-index: 3;
+				position: relative;
+				-webkit-appearance: none;
+				-moz-appearance: none;
+				appearance: none;
+				width: 16px;
+				height: 2em;
+				border-radius: 5px; 
+				background: #777;
+				cursor: auto;
+			}
+
+/* Feature Buttons: */
+			#featureControls {
+				font-size: x-small;
+				font-family: sans-serif;
+				padding: 0 0.2%;
 			}
 			.otFeatureLabel, .otFeature {
 				font-size: small;
@@ -295,7 +313,7 @@ htmlContent = """
 				line-height: 2em;
 				color: #666;
 				background-color: #ddd;
-				border-radius:0.3em;
+				border-radius: 0.3em;
 				border: 0;
 				text-align: center;
 				z-index: 6;
@@ -309,38 +327,7 @@ htmlContent = """
 				color: #eee;
 				background-color: #555; 
 				position: relative;
-				z-index: 7;
 			}
-			.slider {
-				z-index: 1;
-				position: relative;
-				-webkit-appearance: none;
-				-moz-appearance: none;
-				appearance: none;
-				width: 100%;
-				height: 2em;
-				border-radius: 5px;
-				background: #eee;
-				padding: 0px;
-				margin: 5px;
-			}
-			.slider::-webkit-slider-thumb {
-				z-index: 3;
-				position: relative;
-				-webkit-appearance: none;
-				-moz-appearance: none;
-				appearance: none;
-				width: 16px;
-				height: 2em;
-				border-radius: 5px; 
-				background: #777;
-				cursor: auto;
-			}
-			a {
-				color: #333;
-			}
-			
-			
 			.otFeatureLabel .tooltip {
 				visibility: hidden;
 				background-color: #333;
@@ -350,13 +337,50 @@ htmlContent = """
 				top: -2em;
 				left: 0;
 				position: absolute;
-				z-index: 4;
+				z-index: 8;
 			}
 			.otFeatureLabel:hover .tooltip {
 				visibility: visible;
 			}
+
+/* Sample Text Area: */
+			#textarea {
+				flex: 1 1 auto;
+				border: 0 solid transparent;
+				margin: auto;
+				padding: 0 0 0.6em 0;
+				line-height: 1em;
+				width: 100%;
+				color: black;
+				font: 150px "###fontFamilyName###";
+				font-feature-settings: "kern" on, "liga" on, "calt" on;
+				-moz-font-feature-settings: "kern" on, "liga" on, "calt" on;
+				-webkit-font-feature-settings: "kern" on, "liga" on, "calt" on;
+				-ms-font-feature-settings: "kern" on, "liga" on, "calt" on;
+				-o-font-feature-settings: "kern" on, "liga" on, "calt" on;
+				font-variation-settings: ###variationSettings###;
+				overflow-x: hidden;
+				overflow-y:​ scroll;
+				word-wrap:​ break-word;​
+			}
+			div:focus {
+				outline: 0px solid transparent;
+			}
 			
+/* Footer paragraph: */
+			#helptext {
+			    position: fixed;
+				background: transparent;
+			    bottom: 0;
+			    width: 100%;
+				color: #888;
+				font: x-small sans-serif;
+			}
+			a {
+				color: #333;
+			}
 			
+/* Dark Mode: */
 			@media (prefers-color-scheme: dark) {
 				body { background: #000; }
 				p { color: #eee; }
@@ -378,20 +402,27 @@ htmlContent = """
 				.slider::-webkit-slider-thumb { background: #888; }
 				
 				a { color: #ccc; }
+				#controls {
+					background-color: black;
+				}
 				
+				#textarea {
+					color: white;
+					background-color: black;
+				}
 			}
 			
 		</style>
 		<script>
 			document.addEventListener('keyup', function(event) {
 				if (event.code == 'KeyR' && (event.ctrlKey)) {
-					updateParagraph(reset=true)
+					updateParagraph();
 				}
 			});
 			
 			function updateFeatures() {
 				// update features based on user input:
-				var body = document.getElementById("text");
+				var testtext = getTestText();
 				var codeLine = "";
 				var checkboxes = document.getElementsByClassName("otFeature")
 				for (i = 0; i < checkboxes.length; i++) {
@@ -400,31 +431,30 @@ htmlContent = """
 					codeLine += '"'+checkbox.name+'" ';
 					codeLine += checkbox.checked ? '1' : '0';
 					if (checkbox.name=="kern") {
-						body.style.setProperty("font-kerning", checkbox.checked ? 'normal' : 'none');
+						testtext.style.setProperty("font-kerning", checkbox.checked ? 'normal' : 'none');
 					} else if (checkbox.name=="liga") {
-						body.style.setProperty("font-variant-ligatures", checkbox.checked ? 'common-ligatures contextual' : 'no-common-ligatures no-contextual');
+						testtext.style.setProperty("font-variant-ligatures", checkbox.checked ? 'common-ligatures contextual' : 'no-common-ligatures no-contextual');
 					} else if (checkbox.name=="dlig") {
-						body.style.setProperty("font-variant-ligatures", checkbox.checked ? 'discretionary-ligatures' : 'no-discretionary-ligatures');
+						testtext.style.setProperty("font-variant-ligatures", checkbox.checked ? 'discretionary-ligatures' : 'no-discretionary-ligatures');
 					} else if (checkbox.name=="hlig") {
-						body.style.setProperty("font-variant-ligatures", checkbox.checked ? 'historical-ligatures' : 'no-historical-ligatures');
+						testtext.style.setProperty("font-variant-ligatures", checkbox.checked ? 'historical-ligatures' : 'no-historical-ligatures');
 					}
 				}
-				body.style.setProperty("font-feature-settings", codeLine);
+				testtext.style.setProperty("font-feature-settings", codeLine);
 			}
 			
-			function updateParagraph(reset=false) {
-				// update paragraph text based on user input or reset it to default:
-				if (reset) {
-					var textinput = "The Quick Brown Fox Jumps Over the Lazy Dog.";
-				} else {
-					var textinput = document.getElementById("textInput").value;
-				};
-				var paragraph = document.getElementById("text");
-				paragraph.innerHTML = textinput;
+			function updateParagraph() {
+				const defaulttext = "ABC";
+				var testtext = getTestText();
+				testtext.innerHTML = defaulttext;
+			}
+			
+			function getTestText() {
+				return document.getElementById("textarea");
 			}
 		
 			function updateSlider() {
-				var body = document.getElementById("text");
+				var body = getTestText();
 				var sliders = document.getElementsByClassName("slider");
 				var settingtext = "";
 				for (var i = 0; i < sliders.length; i++) {
@@ -452,30 +482,38 @@ htmlContent = """
 				// apply OTVar slider settings:
 				body.style.setProperty("font-variation-settings", settingtext);
 			}
+			
+			function vanish(item) {
+				item.style.setProperty("display", "none");
+			}
 		</script>
 	</head>
-	<body onload="updateSlider();updateParagraph(reset=true);">
+	<body onload="updateSlider();updateParagraph();document.getElementById('textarea').focus()">
+	<div id="flexbox>
 		<div id="controls">
-			<input type="text" value="Type Text Here." id="textInput" onkeydown="updateParagraph();" onclick="this.select();" />
-			<div>
-				<div class="labeldiv"><label class="sliderlabel" id="label_fontsize" name="Font Size">Font Size</label><input type="range" min="10" max="300" value="150" class="slider" id="fontsize" oninput="updateSlider();"></div>
-				<div class="labeldiv"><label class="sliderlabel" id="label_lineheight" name="Line Height">Line Height</label><input type="range" min="30" max="300" value="100" class="slider" id="lineheight" oninput="updateSlider();"></div>
-	###sliders###		</div>
+			<!-- OTVar Sliders -->
+			<div class="labeldiv"><label class="sliderlabel" id="label_fontsize" name="Font Size">Font Size</label><input type="range" min="10" max="300" value="150" class="slider" id="fontsize" oninput="updateSlider();"></div>
+			<div class="labeldiv"><label class="sliderlabel" id="label_lineheight" name="Line Height">Line Height</label><input type="range" min="30" max="300" value="100" class="slider" id="lineheight" oninput="updateSlider();"></div>
+	###sliders###
 
 			<!-- OT features -->
-			<p style="font-size:x-small; font-family: sans-serif;">
+			<div id="featureControls">
 				<input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
 				<input type="checkbox" name="liga" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga/clig</label>
 				<input type="checkbox" name="calt" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel">calt</label>
 	###featureList###
-			</p>
+			</div>
 		</div>
 		
-		<!-- Text -->
-		<p id="text"></p>
+		<!-- Test Text -->
+		<div contenteditable="true" spellcheck="false" autocomplete="true" id="textarea">​
+		</div>
+	</div>
 		
-		<!-- Disclaimer -->
-		<p style="color: #888; font: x-small sans-serif;">Ctrl-R to reset the charset. Not working? Please try the <a href="https://www.google.com/chrome/">latest Chrome</a>, or in a newer macOS.</p>
+	<!-- Disclaimer -->
+	<p id="helptext" onmouseleave="vanish(this);">
+		Ctrl-R to reset the charset. Not working? Please try in a newer macOS or use the <a href="https://www.google.com/chrome/">latest Chrome</a>. Pull mouse across this note to make it disappear.
+	</p>
 	</body>
 </html>
 """
