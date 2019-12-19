@@ -360,8 +360,8 @@ htmlContent = """
 				-o-font-feature-settings: "kern" on, "liga" on, "calt" on;
 				font-variation-settings: ###variationSettings###;
 				overflow-x: hidden;
-				overflow-y:​ scroll;
-				word-wrap:​ break-word;​
+				overflow-y: scroll;
+				word-wrap: break-word;
 			}
 			div:focus {
 				outline: 0px solid transparent;
@@ -506,7 +506,7 @@ htmlContent = """
 		</div>
 		
 		<!-- Test Text -->
-		<div contenteditable="true" spellcheck="false" autocomplete="true" id="textarea">​
+		<div contenteditable="true" spellcheck="false" autocomplete="true" id="textarea">
 		</div>
 	</div>
 		
