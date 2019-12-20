@@ -257,6 +257,12 @@ htmlContent = """<head>
 		.otFeatureLabel:hover .tooltip {
 			visibility: visible;
 		}
+		#featureLine {
+			display: none;
+			border-bottom: 1px solid #999;
+			padding: 0.5em 0;
+			margin-bottom: 0.5em;
+		}
 		
 		@media (prefers-color-scheme: dark) {
 			body { 
@@ -278,7 +284,6 @@ htmlContent = """<head>
 				background-color: #aaa;
 			}
 		}
-			
 	</style>
 </head>
 <body id="fontTestBody" onload="document.getElementById('textInput').focus();setCharset();">
@@ -304,11 +309,10 @@ htmlContent = """<head>
 		<label><input type="checkbox" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga/clig</label>
 		<label><input type="checkbox" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel">calt</label>
 		<!-- moreFeatures -->
-		<label><input type="checkbox" id="show" value="show" onchange="updateFeatures();document.getElementById('featureLine').style.display=this.checked?'':'none'">Show CSS</label>
+		<label><input type="checkbox" id="show" value="show" onchange="updateFeatures();document.getElementById('featureLine').style.display=this.checked?'block':'none'">Show CSS</label>
 	</p>
-	<p class="features" id="featureLine" style="display:none;">font-feature-settings: "kern" on, "liga" on, "calt" on;</p>
-		
-</div><!-- controls -->
+	<p class="features" id="featureLine">font-feature-settings: "kern" on, "liga" on, "calt" on;</p>
+</div>
 <div id="waterfall">
 	<p><span class="label">08</span>&nbsp;<span id="p08"></span></p>
 	<p><span class="label">09</span>&nbsp;<span id="p09"></span></p>
@@ -321,8 +325,8 @@ htmlContent = """<head>
 	<p><span class="label">16</span>&nbsp;<span id="p16"></span></p>
 	<p><span id="largeParagraph"></span></p>
 	<p><span id="veryLargeParagraph"></span></p>
-</div><!-- waterfall -->
-</div><!-- flexbox -->
+</div>
+</div>
 <script type="text/javascript">
 	const selector = document.getElementById("fontFamilySelector");
 	const selectorOptions = selector.options;
