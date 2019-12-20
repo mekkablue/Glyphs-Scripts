@@ -98,14 +98,6 @@ def fontFaces( instanceList ):
 	
 	return returnString
 
-# def featureListForFont( thisFont ):
-# 	returnString = ""
-# 	featureList = [f.name for f in thisFont.features if not f.name in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig") and not f.disabled()]
-# 	for f in featureList:
-# 		returnString += """		<label><input type="checkbox" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s</label>
-# """ % (f,f,f,f)
-# 	return returnString
-
 def featureListForFont( thisFont ):
 	returnString = ""
 	featureList = [(f.name, f.notes) for f in thisFont.features if not f.name in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig") and not f.disabled()]
@@ -167,7 +159,7 @@ htmlContent = """<head>
 			margin: 0;
 		}
 		#waterfall p {
-			margin-bottom: 0.5em;
+			margin-bottom: 0.8em;
 			overflow-wrap: break-word;
 		}
 		.features, .label, a {
@@ -267,11 +259,12 @@ htmlContent = """<head>
 		
 /* Footer paragraph: */
 		#helptext {
+			color: black;
+			background-color: #ddd;
 		    position: fixed;
-			background-color: white;
 		    bottom: 0;
+			padding: 2px
 		    width: 100%;
-			color: #888;
 			font: x-small sans-serif;
 		}
 		
@@ -294,10 +287,13 @@ htmlContent = """<head>
 				color: black;
 				background-color: #aaa;
 			}
+			#helptext {
+				background-color: #777;
+			}
 		}
 	</style>
 </head>
-<body id="fontTestBody" onload="document.getElementById('textInput').focus();setCharset();">
+<body onload="document.getElementById('textInput').focus();setCharset();">
 <div id="flexbox">
 <div id="controls">
 	<div>
@@ -427,7 +423,7 @@ htmlContent = """<head>
 	function changeFont() {
 		var selected_index = selector.selectedIndex;
 		var selected_option_text = selector.options[selected_index].text;
-		document.getElementById('fontTestBody').style.fontFamily = selected_option_text;
+		document.getElementById('waterfall').style.fontFamily = selected_option_text;
 	}
 	function setDefaultText(defaultText) {
 		document.getElementById('textInput').value = decodeEntities(defaultText);
