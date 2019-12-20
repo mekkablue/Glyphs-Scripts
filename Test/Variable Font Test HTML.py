@@ -331,7 +331,7 @@ htmlContent = """
 			.otFeatureLabel .tooltip {
 				visibility: hidden;
 				background-color: #333;
-				color: #fff;
+				color: white;
 				text-align: center;
 				padding: 0px 5px;
 				top: -2em;
@@ -499,7 +499,7 @@ htmlContent = """
 			<!-- OT features -->
 			<div id="featureControls">
 				<input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
-				<input type="checkbox" name="liga" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga/clig</label>
+				<input type="checkbox" name="liga" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga</label>
 				<input type="checkbox" name="calt" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel">calt</label>
 ###featureList###
 			</div>
