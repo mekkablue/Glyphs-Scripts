@@ -7,6 +7,7 @@ Create a Test HTML for the current font inside the current Webfont Export folder
 
 from AppKit import NSBundle, NSClassFromString
 from os import system
+import codecs
 
 Glyphs.registerDefault( "com.mekkablue.WebFontTestHTML.includeEOT", 0 )
 if Glyphs.defaults["com.mekkablue.WebFontTestHTML.includeEOT"]:
@@ -17,10 +18,10 @@ else:
 def saveFileInLocation( content="blabla", fileName="test.txt", filePath="~/Desktop" ):
 	saveFileLocation = "%s/%s" % (filePath,fileName)
 	saveFileLocation = saveFileLocation.replace( "//", "/" )
-	f = open( saveFileLocation, 'w' )
-	print("Exporting to:", f.name)
-	f.write( content )
-	f.close()
+	with codecs.open(saveFileLocation, "w", "utf-8-sig") as thisFile:
+		print("Exporting to:", thisFile.name)
+		thisFile.write( content )
+		thisFile.close()
 	return True
 
 def currentWebExportPath():
@@ -264,6 +265,16 @@ htmlContent = """<head>
 			margin-bottom: 0.5em;
 		}
 		
+/* Footer paragraph: */
+		#helptext {
+		    position: fixed;
+			background-color: white;
+		    bottom: 0;
+		    width: 100%;
+			color: #888;
+			font: x-small sans-serif;
+		}
+		
 		@media (prefers-color-scheme: dark) {
 			body { 
 				background: #333;
@@ -327,6 +338,12 @@ htmlContent = """<head>
 	<p><span id="veryLargeParagraph"></span></p>
 </div>
 </div>
+
+<!-- Disclaimer -->
+<p id="helptext" onmouseleave="vanish(this);">
+	Ctrl-R: reset charset. Ctrl-L: Latin1. Ctrl-comma/period: step through webfonts. Pull mouse across this note to make it disappear.
+</p>
+
 <script type="text/javascript">
 	const selector = document.getElementById("fontFamilySelector");
 	const selectorOptions = selector.options;
@@ -429,6 +446,9 @@ htmlContent = """<head>
 		var elem = document.createElement('div');
 		elem.innerHTML = string;
 		return elem.textContent;
+	}
+	function vanish(item) {
+		item.style.setProperty("display", "none");
 	}
 </script>
 </body>
