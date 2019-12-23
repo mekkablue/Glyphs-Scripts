@@ -28,7 +28,7 @@ class KernCrasher( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 390
-		windowHeight = 290
+		windowHeight = 310
 		windowWidthResize  = 800 # user can resize width by this value
 		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -75,6 +75,9 @@ class KernCrasher( object ):
 		self.w.ignoreIntervals = vanilla.EditText( (inset+150, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.ignoreIntervals.getNSTextField().setPlaceholderString_("200:300, 400:370, -200:-150")
 		linePos += lineHeight
+		
+		self.w.pathGlyphsOnly = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Limit to glyphs containing paths (i.e., exclude compounds)", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
 
 		self.w.excludeNonExporting = vanilla.CheckBox( (inset, linePos, -inset, 20), "Exclude non-exporting glyphs", value=True, sizeStyle='small', callback=self.SavePreferences )
 		linePos += lineHeight
@@ -110,6 +113,7 @@ class KernCrasher( object ):
 			Glyphs.defaults["com.mekkablue.KernCrasher.minDistance"] = self.w.minDistance.get()
 			Glyphs.defaults["com.mekkablue.KernCrasher.reportCrashesInMacroWindow"] = self.w.reportCrashesInMacroWindow.get()
 			Glyphs.defaults["com.mekkablue.KernCrasher.ignoreIntervals"] = self.w.ignoreIntervals.get()
+			Glyphs.defaults["com.mekkablue.KernCrasher.pathGlyphsOnly"] = self.w.pathGlyphsOnly.get()
 		except Exception as e:
 			return False
 		
@@ -133,6 +137,7 @@ class KernCrasher( object ):
 			Glyphs.registerDefault( "com.mekkablue.KernCrasher.excludeNonExporting", 1 )
 			Glyphs.registerDefault( "com.mekkablue.KernCrasher.reportCrashesInMacroWindow", 0 )
 			Glyphs.registerDefault( "com.mekkablue.KernCrasher.ignoreIntervals", "" )
+			Glyphs.registerDefault( "com.mekkablue.KernCrasher.pathGlyphsOnly", 0 )
 
 			self.w.minDistance.set( Glyphs.defaults["com.mekkablue.KernCrasher.minDistance"] )
 			self.w.popupScript.set( Glyphs.defaults["com.mekkablue.KernCrasher.popupScript"] )
@@ -143,6 +148,7 @@ class KernCrasher( object ):
 			self.w.excludeNonExporting.set( Glyphs.defaults["com.mekkablue.KernCrasher.excludeNonExporting"] )
 			self.w.reportCrashesInMacroWindow.set( Glyphs.defaults["com.mekkablue.KernCrasher.reportCrashesInMacroWindow"] )
 			self.w.ignoreIntervals.set( Glyphs.defaults["com.mekkablue.KernCrasher.ignoreIntervals"] )
+			self.w.pathGlyphsOnly.set( Glyphs.defaults["com.mekkablue.KernCrasher.pathGlyphsOnly"] )
 		except:
 			import traceback
 			print(traceback.format_exc())
@@ -166,7 +172,7 @@ class KernCrasher( object ):
 		else:
 			return 0.0
 	
-	def listOfNamesForCategories( self, thisFont, requiredCategory, requiredSubCategory, requiredScript, excludedGlyphNameParts, excludeNonExporting ):
+	def listOfNamesForCategories( self, thisFont, requiredCategory, requiredSubCategory, requiredScript, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly ):
 		nameList = []
 		for thisGlyph in thisFont.glyphs:
 			thisScript = thisGlyph.script
@@ -182,9 +188,11 @@ class KernCrasher( object ):
 						if thisGlyph.category == requiredCategory:
 							if requiredSubCategory:
 								if thisGlyph.subCategory == requiredSubCategory:
-									nameList.append( glyphName )
+									if (not pathGlyphsOnly) or thisGlyph.layers[0].paths:
+										nameList.append( glyphName )
 							else:
-								nameList.append( glyphName )
+								if (not pathGlyphsOnly) or thisGlyph.layers[0].paths:
+									nameList.append( glyphName )
 		return nameList
 		
 	def splitString( self, string, delimiter=":", minimum=2 ):
@@ -297,6 +305,7 @@ class KernCrasher( object ):
 			step = intervalList[ Glyphs.defaults["com.mekkablue.KernCrasher.popupSpeed"] ]
 			excludedGlyphNameParts = self.splitString( Glyphs.defaults["com.mekkablue.KernCrasher.excludeSuffixes"], delimiter=",", minimum=0 )
 			excludeNonExporting = bool( Glyphs.defaults["com.mekkablue.KernCrasher.excludeNonExporting"] )
+			pathGlyphsOnly = bool( Glyphs.defaults["com.mekkablue.KernCrasher.pathGlyphsOnly"] )
 			minDistance = 0.0
 			ignoreIntervals = self.sortedIntervalsFromString( Glyphs.defaults["com.mekkablue.KernCrasher.ignoreIntervals"] )
 			try:
@@ -312,8 +321,8 @@ class KernCrasher( object ):
 				print("Note: KernCrasher could not write preferences.")
 			
 			# get list of glyph names:
-			firstList = self.listOfNamesForCategories( thisFont, firstCategory, firstSubCategory, script, excludedGlyphNameParts, excludeNonExporting )
-			secondList = self.listOfNamesForCategories( thisFont, secondCategory, secondSubCategory, script, excludedGlyphNameParts, excludeNonExporting )
+			firstList = self.listOfNamesForCategories( thisFont, firstCategory, firstSubCategory, script, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly )
+			secondList = self.listOfNamesForCategories( thisFont, secondCategory, secondSubCategory, script, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly )
 
 			if Glyphs.defaults["com.mekkablue.KernCrasher.reportCrashesInMacroWindow"]:
 				print("Minimum Distance: %i\n" % minDistance)
