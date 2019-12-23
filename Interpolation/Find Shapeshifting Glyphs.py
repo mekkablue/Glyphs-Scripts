@@ -54,7 +54,7 @@ class FindShapeshiftingGlyphs( object ):
 		linePos, inset, lineHeight = 12, 15, 22
 		
 		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 28), u"Reports glyphs that change number of cw/ccw paths (‘shapeshift’) in interpolation.", sizeStyle='small', selectable=True )
-		linePos += lineHeight*1.7
+		linePos += int(lineHeight*1.7)
 		
 		self.w.text_1 = vanilla.TextBox( (inset, linePos+2, 85, 14), "Count paths in", sizeStyle='small' )
 		self.w.checkInstances = vanilla.PopUpButton( (inset+85, linePos, -inset, 17), ("constructed instances midway between masters", "all active instances in font", "all active and inactive instances in font"), callback=self.SavePreferences, sizeStyle='small' )
