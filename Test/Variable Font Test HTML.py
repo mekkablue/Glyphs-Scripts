@@ -116,7 +116,7 @@ def featureListForFont( thisFont ):
 	featureList = [(f.name, f.notes) for f in thisFont.features if not f.name in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig") and not f.disabled()]
 	for (f,n) in featureList:
 		# <input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
-		if f.startswith("ss") and n.startswith("Name:"):
+		if f.startswith("ss") and n and n.startswith("Name:"):
 			# stylistic set name:
 			setName = n.splitlines()[0][5:].strip()
 			returnString += '\t\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s<span class="tooltip">%s</span></label>\n' % (f,f,f,f,f,setName)
