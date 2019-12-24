@@ -353,6 +353,8 @@ htmlContent = """<head>
 				setCharset();
 			} else if (event.code == 'KeyL') {
 				setLat1();
+			} else if (event.code == 'KeyJ') {
+				toggleLeftRight();
 			} else if (event.code == 'Period') {
 				selector.selectedIndex = (selector.selectedIndex + 1) % selectorLength;
 				changeFont();
@@ -445,6 +447,16 @@ htmlContent = """<head>
 	}
 	function vanish(item) {
 		item.style.setProperty("display", "none");
+	}
+	function toggleLeftRight() {
+		const waterfall = document.getElementById("waterfall");
+		if (waterfall.dir != "rtl") {
+			waterfall.dir = "rtl";
+			waterfall.align = "right";
+		} else {
+			waterfall.dir = "";
+			waterfall.align = "";
+		}
 	}
 </script>
 </body>
