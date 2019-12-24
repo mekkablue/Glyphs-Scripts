@@ -414,11 +414,19 @@ htmlContent = """
 			
 		</style>
 		<script>
-			document.addEventListener('keyup', function(event) {
-				if (event.code == 'KeyR' && (event.ctrlKey)) {
-					updateParagraph();
+			document.addEventListener('keyup', keyAnalysis);
+			
+			function keyAnalysis(event) {
+				if (event.ctrlKey) {
+					if (event.code == 'KeyR') {
+						resetParagraph();
+					} else if (event.code == 'KeyL') {
+						setLat1();
+					} else if (event.code == 'KeyJ') {
+						toggleLeftRight();
+					}
 				}
-			});
+			}
 			
 			function updateFeatures() {
 				// update features based on user input:
@@ -443,10 +451,15 @@ htmlContent = """
 				testtext.style.setProperty("font-feature-settings", codeLine);
 			}
 			
-			function updateParagraph() {
+			function resetParagraph() {
 				const defaulttext = "The Quick Brown Fox Jumps Over the Lazy Dog.";
-				var testtext = getTestText();
+				const testtext = getTestText();
 				testtext.innerHTML = defaulttext;
+			}
+			function setLat1() {
+				const lat1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz &Agrave;&Aacute;&Acirc;&Atilde;&Auml;&Aring;&AElig;&Ccedil;&Egrave;&Eacute;&Ecirc;&Euml;&Igrave;&Iacute;&Icirc;&Iuml;&ETH;&Ntilde;&Ograve;&Oacute;&Ocirc;&Otilde;&Ouml;&Oslash;&OElig;&THORN;&Ugrave;&Uacute;&Ucirc;&Uuml;&Yacute;&Yuml; &agrave;&aacute;&acirc;&atilde;&auml;&aring;&aelig;&ccedil;&egrave;&eacute;&ecirc;&euml;&igrave;&iacute;&icirc;&iuml;&eth;&ntilde;&ograve;&oacute;&ocirc;&otilde;&ouml;&oslash;&oelig;&thorn;&szlig;&ugrave;&uacute;&ucirc;&uuml;&yacute;&yuml; .,:;&middot;&hellip;&iquest;?&iexcl;!&laquo;&raquo;&lsaquo;&rsaquo; /|&brvbar;\\()[]{}_-&ndash;&mdash;&sbquo;&bdquo;&lsquo;&rsquo;&ldquo;&rdquo;&quot;&#x27; #&amp;&sect;@&bull;&shy;*&dagger;&Dagger;&para; +&times;&divide;&plusmn;=&lt;&gt;&not;&mu; ^~&acute;`&circ;&macr;&tilde;&uml;&cedil; &yen;&euro;&pound;$&cent;&curren;&fnof; &trade;&reg;&copy; 1234567890 &ordf;&ordm;&deg;%&permil; &sup1;&sup2;&sup3;&frac14;&frac12;&frac34;";
+				const testtext = getTestText();
+				testtext.innerHTML = lat1;
 			}
 			
 			function getTestText() {
@@ -486,9 +499,20 @@ htmlContent = """
 			function vanish(item) {
 				item.style.setProperty("display", "none");
 			}
+			
+			function toggleLeftRight() {
+				const waterfall = document.getElementById("textarea");
+				if (waterfall.dir != "rtl") {
+					waterfall.dir = "rtl";
+					waterfall.align = "right";
+				} else {
+					waterfall.dir = "";
+					waterfall.align = "";
+				}
+			}
 		</script>
 	</head>
-	<body onload="updateSlider();updateParagraph();document.getElementById('textarea').focus()">
+	<body onload="updateSlider();resetParagraph();document.getElementById('textarea').focus()">
 	<div id="flexbox">
 		<div id="controls">
 			<!-- OTVar Sliders -->
@@ -512,7 +536,7 @@ htmlContent = """
 		
 	<!-- Disclaimer -->
 	<p id="helptext" onmouseleave="vanish(this);">
-		Ctrl-R to reset the charset. Not working? Please try in a newer macOS or use the <a href="https://www.google.com/chrome/">latest Chrome</a>. Pull mouse across this note to make it disappear.
+		Ctrl-R: Reset Charset. Ctrl-L: Latin1. Ctrl-J: LTR/RTL. Not working? Please try in a newer macOS or use the <a href="https://www.google.com/chrome/">latest Chrome</a>. Pull mouse across this note to make it disappear.
 	</p>
 	</body>
 </html>
