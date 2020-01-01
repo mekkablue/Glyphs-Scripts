@@ -10,8 +10,8 @@ import vanilla
 class GarbageCollection( object ):
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 300
-		windowHeight = 270
+		windowWidth  = 310
+		windowHeight = 280
 		windowWidthResize  = 50 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -23,12 +23,12 @@ class GarbageCollection( object ):
 		)
 		
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		linePos, inset, lineHeight = 12, 12, 22
 		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, lineHeight*1.8), u"Removes the following items from the glyphs in the frontmost font:", sizeStyle='small', selectable=True )
 		linePos += 1.8*lineHeight
 		
-		self.w.removeNodeNames = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Remove all node names 🔥❌ in font", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.removeNodeNames.getNSButton().setToolTip_(u"Deletes node markers, as employed by many schriftlabor scripts to mark problematic spots.")
+		self.w.removeNodeNames = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Remove all node names 🔥❌👌🏻 in font", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.removeNodeNames.getNSButton().setToolTip_(u"Deletes node markers, as employed by many mekkablue scripts to mark problematic spots.")
 		linePos += lineHeight
 		
 		self.w.removeAnnotations = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Remove all annotations in font", value=True, callback=self.SavePreferences, sizeStyle='small' )
@@ -55,6 +55,12 @@ class GarbageCollection( object ):
 		self.w.selectedGlyphsOnly.getNSButton().setToolTip_("If checked, applies the clean-up only to selected glyphs. Otherwise, to all glyphs in the font.")
 		linePos += lineHeight
 		
+		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress.set(0) # set progress indicator to zero
+		linePos+=lineHeight
+		
+		self.w.statusText = vanilla.TextBox( (inset, -17-inset, -80-inset, 14), u"", sizeStyle='small', selectable=False )
+		
 		self.guiUpdate()
 		
 		# Run Button:
@@ -71,12 +77,12 @@ class GarbageCollection( object ):
 		
 	def guiUpdate(self, sender=None):
 		if Glyphs.defaults["com.mekkablue.GarbageCollection.currentMasterOnly"]:
-			self.w.removeNodeNames.setTitle(u"Remove all node names 🔥❌ in current master")
+			self.w.removeNodeNames.setTitle(u"Remove all node names 🔥❌👌🏻 in current master")
 			self.w.removeAnnotations.setTitle(u"Remove all annotations in current master")
 			self.w.removeLocalGuides.setTitle(u"Remove all local (blue) guides in current master")
 			self.w.removeGlobalGuides.setTitle(u"Remove all global (red) guides in current master")
 		else:
-			self.w.removeNodeNames.setTitle(u"Remove all node names 🔥❌ in font")
+			self.w.removeNodeNames.setTitle(u"Remove all node names 🔥❌👌🏻 in font")
 			self.w.removeAnnotations.setTitle(u"Remove all annotations in font")
 			self.w.removeLocalGuides.setTitle(u"Remove all local (blue) guides in font")
 			self.w.removeGlobalGuides.setTitle(u"Remove all global (red) guides in font")
@@ -119,7 +125,15 @@ class GarbageCollection( object ):
 			return False
 			
 		return True
-
+	
+	def log(self, msg):
+		try:
+			print(msg)
+			self.w.statusText.set(msg)
+		except Exception as e:
+			import traceback
+			print(traceback.format_exc())
+	
 	def GarbageCollectionMain( self, sender ):
 		try:
 			# update settings to the latest user input:
@@ -141,13 +155,16 @@ class GarbageCollection( object ):
 			localGuidesFont = 0
 			removeAnnotationsFont = 0
 			
-			for thisGlyph in glyphs:
+			for i,thisGlyph in enumerate(glyphs):
+				# update progress bar:
+				self.w.progress.set(int(100*i/len(glyphs)))
+				
 				# glyph counters:
 				removeNodeNamesGlyph = 0
 				localGuidesGlyph = 0
 				removeAnnotationsGlyph = 0
 				
-				print( u"🔠 Cleaning %s ..." % thisGlyph.name)
+				self.log( u"🔠 Cleaning %s ..." % thisGlyph.name)
 				for thisLayer in thisGlyph.layers:
 					if thisLayer.master == thisFont.selectedFontMaster or not Glyphs.defaults["com.mekkablue.GarbageCollection.currentMasterOnly"]:
 						if Glyphs.defaults["com.mekkablue.GarbageCollection.removeNodeNames"]:
@@ -177,16 +194,18 @@ class GarbageCollection( object ):
 				if removeAnnotationsGlyph:
 					print("  %i annotations" % removeAnnotationsGlyph)
 					removeAnnotationsFont += removeAnnotationsGlyph
-					
-				
-
+			
+			# Remove global guides:
 			if Glyphs.defaults["com.mekkablue.GarbageCollection.removeGlobalGuides"]:
-				print(u"📏 Removing global guides ...")
+				self.log(u"📏 Removing global guides ...")
 				for thisMaster in thisFont.masters:
 					if thisMaster == thisFont.selectedFontMaster or not Glyphs.defaults["com.mekkablue.GarbageCollection.currentMasterOnly"]:
 						thisMaster.guideLines = None
+
+			# full progress bar:
+			self.w.progress.set(100)
 			
-			print(u"✅ Done.")
+			self.log(u"✅ Done. Log in Macro Window.")
 			
 		except Exception, e:
 			# brings macro window to front and reports error:
