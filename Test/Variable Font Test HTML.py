@@ -565,7 +565,6 @@ if appVersionHighEnough:
 		( "###variationSettings###", defaultVariationCSS(thisFont) ), 
 		( "###fontFileName###", otVarFileName(thisFont) ),
 		( "###featureList###", featureListForFont(thisFont) ),
-		
 	)
 
 	htmlContent = replaceSet( htmlContent, replacements )
