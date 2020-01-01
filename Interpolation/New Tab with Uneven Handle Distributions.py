@@ -8,7 +8,6 @@ Finds glyphs where handle distributions change too much (e.g., from balanced to 
 import vanilla
 from Foundation import NSPoint
 
-
 def intersectionWithNSPoints( pointA, pointB, pointC, pointD ):
 	"""
 	Returns an NSPoint of the intersection AB with CD.
@@ -134,14 +133,19 @@ class NewTabWithUnevenHandleDistributions( object ):
 		
 		self.w.factorChange = vanilla.CheckBox( (inset, linePos, 230, 20), u"Tolerated change factor (BCP1÷BCP2):", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.factorChangeEntry = vanilla.EditText( (inset+230, linePos, -inset, 19), "2.5", callback=self.SavePreferences, sizeStyle='small' )
+		factorChangeTooltipText = u"Calculates length ratios of handles in a curve segment in every master. If the ratio differs by more than the given factor in one or more masters, glyph will be reported."
+		self.w.factorChange.getNSButton().setToolTip_(factorChangeTooltipText)
+		self.w.factorChangeEntry.getNSTextField().setToolTip_(factorChangeTooltipText)
 		linePos += lineHeight
 		
 		self.w.anyMaxToNotMax = vanilla.CheckBox( (inset, linePos, -inset, 20), u"Any handle that changes from 100% to non-100%", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.anyMaxToNotMax.getNSButton().setToolTip_(u"Finds BCPs that are maximized (100%) in one master, but not in other masters.")
 		linePos += lineHeight
 		
-		self.w.markInFirstMaster = vanilla.CheckBox( (inset, linePos, -inset, 20), u"Mark curves in first master", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.markInFirstMaster = vanilla.CheckBox( (inset, linePos, -inset, 20), u"Mark affected curve segments in first master", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.markInFirstMaster.enable(False)
+		self.w.markInFirstMaster.getNSButton().setToolTip_(u"Not implemented yet. Sorry.")
 		linePos += lineHeight
-		
 		
 		# Run Button:
 		self.w.runButton = vanilla.Button( (-100-inset, -20-inset, -inset, -inset), "Open Tab", sizeStyle='regular', callback=self.NewTabWithUnevenHandleDistributionsMain )

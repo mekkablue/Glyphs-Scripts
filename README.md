@@ -237,6 +237,7 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **Kink Finder:** Finds kinks in outlines or the interpolation space, reports them in the Macro window and opens a new tab with affected glyphs. Kinks are described in this tutorial: https://glyphsapp.com/tutorials/multiple-masters-part-2-keeping-your-outlines-compatible *Needs Vanilla.*
 * **New Tab with Dangerous Glyphs for Interpolation:** Opens a tab with all glyphs in the font that contain at least two compatible elements. I.e., glyphs where an element (a path or a component) could interpolate with the wrong element, like the equals sign. For a detailed description, see section *Be suspicious* in this tutorial: <http://www.glyphsapp.com/tutorials/multiple-masters-part-2-keeping-your-outlines-compatible>.
 * **New Tab with Special Layers:** Quickly adds a new edit tab with all glyphs containing brace and bracket layers.
+* **New Tab with Uneven Handle Distributions:** Finds glyphs where handle distributions change too much (e.g., from balanced to harmonised). *Needs Vanilla.*
 * **OTVar Player:** Animates the current glyph with a loop along the weight axis. *Needs Vanilla.*
 * **Remove All Non-Master Layers:** Deletes all layers which are neither master layers, nor brace layers, nor bracket layers. Useful for getting rid of backup layers.
 * **Short Segment Finder:** Goes through all interpolations and finds segments shorter than a user-specified threshold length. *Needs Vanilla.*
