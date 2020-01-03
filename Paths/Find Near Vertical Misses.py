@@ -37,41 +37,41 @@ class FindNearVerticalMisses( object ):
 		linePos += lineHeight
 		
 		# BOX
-		linePos += lineHeight//2
-		self.w.whereToCheck = vanilla.Box( (inset, linePos, -inset, lineHeight*7.6) )
-		insetLinePos = inset*0.2
+		linePos += int(lineHeight//2)
+		self.w.whereToCheck = vanilla.Box( (inset, linePos, -inset, int(lineHeight*7.6)) )
+		insetLinePos = int(inset*0.2)
 		
-		self.w.whereToCheck.ascender = vanilla.CheckBox( (0.5*inset, insetLinePos-1, -inset, 20), u"Ascender (caps ignored)", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.whereToCheck.ascender = vanilla.CheckBox( (int(0.5*inset), insetLinePos-1, -inset, 20), u"Ascender (caps ignored)", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.whereToCheck.ascender.getNSButton().setToolTip_(u"Checks if points are not exactly on, but just off the ascender of the corresponding master.")
 		linePos += lineHeight
 		insetLinePos += lineHeight
 		
-		self.w.whereToCheck.capHeight = vanilla.CheckBox( (0.5*inset, insetLinePos-1, -inset, 20), u"Cap Height (lowercase ignored)", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.whereToCheck.capHeight = vanilla.CheckBox( (int(0.5*inset), insetLinePos-1, -inset, 20), u"Cap Height (lowercase ignored)", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.whereToCheck.capHeight.getNSButton().setToolTip_(u"Checks if points are not exactly on, but just off the capHeight of the corresponding master.")
 		linePos += lineHeight
 		insetLinePos += lineHeight
 		
-		self.w.whereToCheck.shoulderHeight = vanilla.CheckBox( (0.5*inset, insetLinePos-1, -inset, 20), u"shoulderHeight (UC, LC, SC ignored)", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.whereToCheck.shoulderHeight = vanilla.CheckBox( (int(0.5*inset), insetLinePos-1, -inset, 20), u"shoulderHeight (UC, LC, SC ignored)", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.whereToCheck.shoulderHeight.getNSButton().setToolTip_(u"Checks if points are not exactly on, but just off the shoulderHeight of the corresponding master.")
 		linePos += lineHeight
 		insetLinePos += lineHeight
 		
-		self.w.whereToCheck.smallCapHeight = vanilla.CheckBox( (0.5*inset, insetLinePos-1, -inset, 20), u"smallCapHeight (only considers smallcaps)", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.whereToCheck.smallCapHeight = vanilla.CheckBox( (int(0.5*inset), insetLinePos-1, -inset, 20), u"smallCapHeight (only considers smallcaps)", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.whereToCheck.smallCapHeight.getNSButton().setToolTip_(u"Checks if points are not exactly on, but just off the smallCapHeight of the corresponding master.")
 		linePos += lineHeight
 		insetLinePos += lineHeight
 		
-		self.w.whereToCheck.xHeight = vanilla.CheckBox( (0.5*inset, insetLinePos-1, -inset, 20), u"x-height (caps ignored)", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.whereToCheck.xHeight = vanilla.CheckBox( (int(0.5*inset), insetLinePos-1, -inset, 20), u"x-height (caps ignored)", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.whereToCheck.xHeight.getNSButton().setToolTip_(u"Checks if points are not exactly on, but just off the xHeight of the corresponding master.")
 		linePos += lineHeight
 		insetLinePos += lineHeight
 		
-		self.w.whereToCheck.baseline = vanilla.CheckBox( (0.5*inset, insetLinePos-1, -inset, 20), u"Baseline", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.whereToCheck.baseline = vanilla.CheckBox( (int(0.5*inset), insetLinePos-1, -inset, 20), u"Baseline", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.whereToCheck.baseline.getNSButton().setToolTip_(u"Checks if points are not exactly on, but just off the baseline of the corresponding master.")
 		linePos += lineHeight
 		insetLinePos += lineHeight
 		
-		self.w.whereToCheck.descender = vanilla.CheckBox( (0.5*inset, insetLinePos-1, -inset, 20), u"Descender", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.whereToCheck.descender = vanilla.CheckBox( (int(0.5*inset), insetLinePos-1, -inset, 20), u"Descender", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.whereToCheck.descender.getNSButton().setToolTip_(u"Checks if points are not exactly on, but just off the descender of the corresponding master.")
 		linePos += lineHeight
 		insetLinePos += lineHeight
