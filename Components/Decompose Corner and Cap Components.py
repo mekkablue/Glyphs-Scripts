@@ -5,40 +5,15 @@ __doc__="""
 Recreates the current paths without caps or components.
 """
 
-from Foundation import NSClassFromString
-
 thisFont = Glyphs.font # frontmost font
-selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
-removeOverlapFilter = NSClassFromString("GlyphsFilterRemoveOverlap").alloc().init()
-gridSize = float(thisFont.gridMain())/thisFont.gridSubDivision()
-
-def removeCorners(thisLayer):
-	numOfHints = len(thisLayer.hints)
-	for i in range(numOfHints)[::-1]:
-		if thisLayer.hints[i].type == 16: # corner
-			thisLayer.removeObjectFromHintsAtIndex_(i)
-
-def removeCaps(thisLayer):
-	numOfHints = len(thisLayer.hints)
-	for i in range(numOfHints)[::-1]:
-		if thisLayer.hints[i].type == 17: # cap
-			thisLayer.removeObjectFromHintsAtIndex_(i)
 	
 def process( thisLayer ):
-	pen = GSBezStringPen.alloc().init()
-	for thisPath in thisLayer.paths:
-		thisPath.drawInPen_(pen)
-
-	pathString = pen.charString()
-	newPaths = removeOverlapFilter.pathsFromBez_gridSize_(pathString,gridSize)
-	
-	removeCaps(thisLayer)
-	removeCorners(thisLayer)
-	thisLayer.paths = newPaths
-	
+	thisLayer.decomposeSmartOutlines()
+	thisLayer.cleanUpPaths() # duplicate nodes at startpoint
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
+selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
 	print("Processing", thisGlyph.name)
