@@ -11,6 +11,7 @@ from Foundation import NSPoint
 import math
 
 thisFont = Glyphs.font # frontmost font
+Glyphs.clearLog()
 
 def italicize( coords, italicAngle=0.0, pivotalY=0.0 ):
 	"""
@@ -126,6 +127,9 @@ def buildEstimated( thisFont ):
 			thisLayer.LSB = 40.0
 			thisLayer.RSB = 40.0
 			print("Created estimated in master '%s'" % thisLayer.associatedFontMaster().name)
+		
+		estimatedGlyph.leftMetricsKey = "=40"
+		estimatedGlyph.rightMetricsKey = "=|"
 	else:
 		print("\nEstimated Error")
 		print("The glyph estimated already exists in this font. Rename or delete it and try again.")
@@ -168,6 +172,7 @@ def buildBars(thisFont):
 				pen.closePath()
 				pen.endPath()
 				barLayer.RSB = sidebearing
+				barGlyph.rightMetricsKey="=|"
 				print("Created bar in master '%s'" % thisMaster.name)
 			
 			if brokenbarGlyph:
@@ -197,6 +202,8 @@ def buildBars(thisFont):
 				pen.endPath()
 				
 				brokenbarLayer.RSB = sidebearing
+				brokenbarGlyph.leftMetricsKey = "=bar"
+				brokenbarGlyph.rightMetricsKey = "=|"
 				print("Created brokenbar in master '%s'" % thisMaster.name)
 	else:
 		print("\nBar Error:")
