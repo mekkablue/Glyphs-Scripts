@@ -130,6 +130,8 @@ def buildEstimated( thisFont ):
 		
 		estimatedGlyph.leftMetricsKey = "=40"
 		estimatedGlyph.rightMetricsKey = "=|"
+		estimatedGlyph.leftKerningGroup = "estimated"
+		estimatedGlyph.rightKerningGroup = "estimated"
 	else:
 		print("\nEstimated Error")
 		print("The glyph estimated already exists in this font. Rename or delete it and try again.")
@@ -172,7 +174,9 @@ def buildBars(thisFont):
 				pen.closePath()
 				pen.endPath()
 				barLayer.RSB = sidebearing
-				barGlyph.rightMetricsKey="=|"
+				barGlyph.rightMetricsKey = "=|"
+				barGlyph.leftKerningGroup = "bar"
+				barGlyph.rightKerningGroup = "bar"
 				print("Created bar in master '%s'" % thisMaster.name)
 			
 			if brokenbarGlyph:
@@ -204,6 +208,8 @@ def buildBars(thisFont):
 				brokenbarLayer.RSB = sidebearing
 				brokenbarGlyph.leftMetricsKey = "=bar"
 				brokenbarGlyph.rightMetricsKey = "=|"
+				brokenbarGlyph.leftKerningGroup = "bar"
+				brokenbarGlyph.rightKerningGroup = "bar"
 				print("Created brokenbar in master '%s'" % thisMaster.name)
 	else:
 		print("\nBar Error:")
