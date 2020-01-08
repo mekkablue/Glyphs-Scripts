@@ -9,7 +9,7 @@ from os import system, chdir, path
 
 scriptsFolderPath = "~/Library/Application Support/Glyphs/Scripts/"
 chdir( path.expanduser(scriptsFolderPath) )
-result = system('find . -mindepth 1 -maxdepth 1 -type d -print -exec git -C {} checkout -f \; -exec echo \;')
+result = system('find . -mindepth 1 -maxdepth 1 -type d -print -exec git -C {} pull -f \; -exec echo \;')
 
 # Output in Macro Window
 Glyphs.clearLog()
