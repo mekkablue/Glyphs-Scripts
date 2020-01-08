@@ -71,6 +71,7 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **Set Hidden App Preferences:** GUI for reading and setting ‘hidden’ app preferences, which are not listed in the GUI. *Needs Vanilla.*
 * **Set Tool Shortcuts:** Set keyboard shortcuts for the tools in the toolbar. *Needs Vanilla.*
 * **Toggle RTL-LTR:** Toggle frontmost tab between LTR and RTL writing direction. Useful for setting a keyboard shortcut in System Preferences.
+* **Update git Repositories in Scripts Folder:** Executes a 'git pull' command on all subfolders in the Glyphs Scripts folder. Useful if you have a lot of git repos in your Scripts folder.
 
 ## Build Glyphs
 
