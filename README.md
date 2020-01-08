@@ -175,6 +175,7 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **Convert to Capitalised:** Turns lowercase names into uppercase names, e.g., `a` → `A`, `ccaron` → `Ccaron`, `aeacute` → `AEacute`, etc.
 * **Convert to Lowercase:** Turns the names of selected glyphs lowercase.
 * **Garbage Collection:** Removes markers in glyphs, such as node names, glyph names or annotations, as well as guides.
+* **New Tab with Uppercase-Lowercase Inconsistencies:** Opens a new Edit tab containing all glyphs without consistent case folding. Writes a detailed report in Macro Window.
 * **Rename Glyphs:** Takes a list of `oldglyphname=newglyphname` pairs and renames glyphs in the font accordingly, much like the *Rename Glyphs* custom parameter. *Needs Vanilla.*
 * **Reorder Unicodes of Selected Glyphs:** Reorders Unicodes so that default Unicode comes first. Glyphs 2.5+ only.
 
