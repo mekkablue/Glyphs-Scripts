@@ -9,13 +9,18 @@ from os import system, chdir, path
 
 Glyphs.clearLog()
 scriptsFolderPath = "~/Library/Application Support/Glyphs/Scripts/"
-chdir( path.expanduser(scriptsFolderPath) )
-result = system('find . -mindepth 1 -maxdepth 1 -type d -print -exec git -C {} pull -f \; -exec echo \;')
+print("Updating git repos in:\n%s" % scriptsFolderPath)
 
-if result != 0:
+chdir( path.expanduser(scriptsFolderPath) )
+exitStatus = system('find . -mindepth 1 -maxdepth 1 -type d -print -exec git -C {} pull -f \; -exec echo \;')
+
+if exitStatus != 0:
+	print("ERROR: Exit Status %i"%exitStatus)
 	Glyphs.showMacroWindow()
 else:
+	print("Done.")
 	Glyphs.showNotification( 
 		u"Completed git pull in Scripts folder",
 		u"Detailed report in Macro Window.",
 	)
+
