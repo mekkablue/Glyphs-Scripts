@@ -47,7 +47,7 @@ class SetTransformOriginWindow( object ):
 			rotateToolClass = NSClassFromString("GlyphsToolRotate")
 			myRotateTool = myController.toolForClass_( rotateToolClass )
 			currentOrigin = myRotateTool.transformOrigin()
-						
+			
 			self.w.originX.set( currentOrigin.x )
 			self.w.originY.set( currentOrigin.y )
 		except:
@@ -60,7 +60,6 @@ class SetTransformOriginWindow( object ):
 			newOriginX = float(self.w.originX.get())
 			newOriginY = float(self.w.originY.get())
 			newOriginPoint = NSPoint( newOriginX, newOriginY )
-
 
 			myController = Glyphs.currentDocument.windowController()
 			myController.graphicView().setNeedsDisplay_(False)
