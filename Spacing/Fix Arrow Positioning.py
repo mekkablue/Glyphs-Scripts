@@ -21,6 +21,8 @@ def intersectionsBetweenPoints( thisLayer, startPoint, endPoint ):
 	
 	# measure and return tuple:
 	listOfIntersections = cleanLayer.intersectionsBetweenPoints( startPoint, endPoint )
+	if len(listOfIntersections)%2 == 1:
+		listOfIntersections = calculateIntersectionsStartPoint_endPoint_decompose_(startPoint, endPoint, True)
 	return listOfIntersections
 
 
@@ -171,6 +173,7 @@ class FixArrowPositioning( object ):
 		startPoint = NSPoint(hCenter, startY)
 		endPoint = NSPoint(hCenter, endY)
 		measures = intersectionsBetweenPoints(layer, startPoint, endPoint)
+		print(layer.parent.name, len(measures), [round(p.y) for p in measures])
 		if len(measures)==8:
 			return measures[3].y
 		else:
