@@ -27,11 +27,10 @@ for zoneGroupInfo in ( (bottomZones,False), (topZones, True) ):
 
 		# exclude diacritic compounds:
 		isDiacriticCompound = (
-			isTopZone and 
-			thisGlyph.category == "Letter" and 
-			len(thisLayer.paths)==0 and 
-			len(thisLayer.components)>0 and 
-			thisLayer.components[0].component.category=="Letter"
+			thisGlyph.category == "Letter"
+			and len(thisLayer.paths)==0
+			and len(thisLayer.components)>0 
+			# and thisLayer.components[0].component.category=="Letter"
 		)
 			
 		if thisLayer.bounds.size.height and not isDiacriticCompound:
