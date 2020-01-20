@@ -13,7 +13,8 @@ import vanilla
 
 def cleanInt(numberString):
 	exportString = ""
-	for char in str(numberString):
+	numberString = unicode(numberString)
+	for char in numberString:
 		if char in "1234567890+-":
 			exportString += char
 	return int(exportString)
