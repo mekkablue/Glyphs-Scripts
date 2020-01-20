@@ -9,7 +9,7 @@ from os import system, chdir, path
 
 Glyphs.clearLog()
 scriptsFolderPath = "~/Library/Application Support/Glyphs/Scripts/"
-print("Updating git repos in:\n%s" % scriptsFolderPath)
+print("Executing 'git pull' for all subfolders in:\n%s" % scriptsFolderPath)
 
 chdir( path.expanduser(scriptsFolderPath) )
 exitStatus = system('find . -mindepth 1 -maxdepth 1 -type d -print -exec git -C {} pull -f \; -exec echo \;')
@@ -20,7 +20,7 @@ if exitStatus != 0:
 else:
 	print("Done.")
 	Glyphs.showNotification( 
-		u"Completed git pull in Scripts folder",
-		u"Detailed report in Macro Window.",
+		u"Repo Update Successful",
+		u"Completed git pull in Scripts folder.",
 	)
 
