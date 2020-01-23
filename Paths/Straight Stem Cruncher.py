@@ -60,8 +60,14 @@ class StraightStemCruncher( object ):
 		self.w.segmentLengthUpdate.getNSButton().setToolTip_("Reset to 40% of x-height.")
 		linePos += lineHeight
 		
-		self.w.ignoreDiagonals = vanilla.CheckBox( (inset, linePos, -inset, 20), u"Ignore diagonal stems", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.ignoreDiagonals.getNSButton().setToolTip_("If activated, only measures completely horizontal and completely vertical segments.")
+		self.w.checkStemsText = vanilla.TextBox( (inset, linePos+2, 80, 14), u"Check stems:", sizeStyle='small', selectable=True )
+		self.w.checkVStems = vanilla.CheckBox( (inset+90, linePos-1, 65, 20), u"Vertical", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.checkHStems = vanilla.CheckBox( (inset+90+65, linePos-1, 80, 20), u"Horizontal", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.checkDStems = vanilla.CheckBox( (inset+90+65+80, linePos-1, -inset, 20), u"Diagonal", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		checkStemsTooltip = "Choose which stems to measure: any combination of these three options. At least one must be active to run the script."
+		self.w.checkVStems.getNSButton().setToolTip_(checkStemsTooltip)
+		self.w.checkHStems.getNSButton().setToolTip_(checkStemsTooltip)
+		self.w.checkDStems.getNSButton().setToolTip_(checkStemsTooltip)
 		linePos += lineHeight
 		
 		self.w.checkSpecialLayers = vanilla.CheckBox( (inset, linePos, -inset, 20), u"Also check bracket layers", value=True, callback=self.SavePreferences, sizeStyle='small' )
@@ -144,8 +150,17 @@ class StraightStemCruncher( object ):
 			Glyphs.defaults["com.mekkablue.StraightStemCruncher.reportNonMeasurements"] = self.w.reportNonMeasurements.get()
 			Glyphs.defaults["com.mekkablue.StraightStemCruncher.excludeGlyphs"] = self.w.excludeGlyphs.get()
 			Glyphs.defaults["com.mekkablue.StraightStemCruncher.excludeGlyphNames"] = self.w.excludeGlyphNames.get()
-			Glyphs.defaults["com.mekkablue.StraightStemCruncher.ignoreDiagonals"] = self.w.ignoreDiagonals.get()
+			Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkVStems"] = self.w.checkVStems.get()
+			Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkHStems"] = self.w.checkHStems.get()
+			Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkDStems"] = self.w.checkDStems.get()
 			
+			buttonEnable = (
+				Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkVStems"] or
+				Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkHStems"] or
+				Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkDStems"]
+			)
+			
+			self.w.runButton.enable(onOff=buttonEnable)
 		except:
 			return False
 			
@@ -165,7 +180,9 @@ class StraightStemCruncher( object ):
 			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.reportNonMeasurements", 0)
 			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.excludeGlyphs", 0)
 			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.excludeGlyphNames", self.defaultExcludeList)
-			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.ignoreDiagonals", 0)
+			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.checkVStems", 1)
+			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.checkHStems", 0)
+			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.checkDStems", 0)
 			
 
 			self.w.stems.set( Glyphs.defaults["com.mekkablue.StraightStemCruncher.stems"] )
@@ -180,7 +197,9 @@ class StraightStemCruncher( object ):
 			self.w.reportNonMeasurements.set( Glyphs.defaults["com.mekkablue.StraightStemCruncher.reportNonMeasurements"] )
 			self.w.excludeGlyphs.set( Glyphs.defaults["com.mekkablue.StraightStemCruncher.excludeGlyphs"] )
 			self.w.excludeGlyphNames.set( Glyphs.defaults["com.mekkablue.StraightStemCruncher.excludeGlyphNames"] )
-			self.w.ignoreDiagonals.set( Glyphs.defaults["com.mekkablue.StraightStemCruncher.ignoreDiagonals"] )
+			self.w.checkVStems.set( Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkVStems"] )
+			self.w.checkHStems.set( Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkHStems"] )
+			self.w.checkDStems.set( Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkDStems"] )
 			
 		except:
 			return False
@@ -221,7 +240,11 @@ class StraightStemCruncher( object ):
 		except:
 			self.update(self.w.segmentLengthUpdate)
 			minLength=int( Glyphs.defaults["com.mekkablue.StraightStemCruncher.minimumSegmentLength"] )
-			
+		
+		checkVStems = Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkVStems"]
+		checkHStems = Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkHStems"]
+		checkDStems = Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkDStems"]
+		
 		measurements = []
 		measureLayer = layer.copyDecomposedLayer()
 		measureLayer.removeOverlap()
@@ -232,7 +255,20 @@ class StraightStemCruncher( object ):
 					if len(thisSegment)==2:
 						p1 = thisSegment[0].pointValue()
 						p2 = thisSegment[1].pointValue()
-						if p1.x==p2.x or p1.y==p2.y or not Glyphs.defaults["com.mekkablue.StraightStemCruncher.ignoreDiagonals"]:
+						
+						isVertical = (p1.x==p2.x)
+						isHorizontal = (p1.y==p2.y)
+						check = False
+						
+						if isHorizontal and checkHStems:
+							check = True
+						elif isVertical and checkVStems:
+							check = True
+						elif checkDStems:
+							check = True
+						
+						#if p1.x==p2.x or p1.y==p2.y or not Glyphs.defaults["com.mekkablue.StraightStemCruncher.ignoreDiagonals"]:
+						if check:
 							if pointDistance(p1,p2) >= minLength:
 								measurement = self.stemThicknessAtLine( measureLayer, p1, p2, measureLength=max(100.0,measureLayer.bounds.size.width+measureLayer.bounds.size.height) )
 								measurements.append(measurement)
