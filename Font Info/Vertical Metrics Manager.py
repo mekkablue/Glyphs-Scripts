@@ -15,9 +15,13 @@ def cleanInt(numberString):
 	exportString = ""
 	numberString = unicode(numberString)
 	for char in numberString:
-		if char in "1234567890+-":
+		if char in "1234567890+-.,":
+			if char==",":
+				char="."
 			exportString += char
-	return int(exportString)
+	floatNumber = float(exportString)
+	floatNumber = round(floatNumber)
+	return int(floatNumber)
 
 def roundUpByValue(x, roundBy):
 	if x == 0: 
