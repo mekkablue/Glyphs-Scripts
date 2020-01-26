@@ -141,9 +141,34 @@ class GreenBlueManager( object ):
 					if thisNode.type == GSOFFCURVE:
 						oldPosition = NSPoint(thisNode.position.x, thisNode.position.y)
 						selectedNode = NSMutableArray.arrayWithObject_(thisNode)
-						thisLayer.setSelection_( selectedNode )
-						self.Tool.moveSelectionLayer_shadowLayer_withPoint_withModifier_( thisLayer, thisLayer, moveForward, noModifier )
-						self.Tool.moveSelectionLayer_shadowLayer_withPoint_withModifier_( thisLayer, thisLayer, moveBackward, noModifier )
+						
+						oncurve = None
+						if thisNode.prevNode.type != GSOFFCURVE:
+							oncurve = thisNode.prevNode
+							opposingPoint = oncurve.prevNode
+						elif thisNode.nextNode.type != GSOFFCURVE:
+							oncurve = thisNode.nextNode
+							opposingPoint = oncurve.nextNode
+						
+						handleStraight = (oncurve.x-thisNode.x) * (oncurve.y-thisNode.y) == 0.0
+						if oncurve and oncurve.smooth and not handleStraight:
+							# thisNode = angled handle, straighten it
+							thisPath.setSmooth_withCenterPoint_oppositePoint_(
+								thisNode,
+								oncurve.position,
+								opposingPoint.position,
+							)
+						elif oncurve and oncurve.smooth and handleStraight and opposingPoint.type == GSOFFCURVE:
+							# thisNode = straight handle: align opposite handle
+							thisPath.setSmooth_withCenterPoint_oppositePoint_(
+								opposingPoint,
+								oncurve.position,
+								thisNode.position,
+							)
+						else:
+							thisLayer.setSelection_( selectedNode )
+							self.Tool.moveSelectionLayer_shadowLayer_withPoint_withModifier_( thisLayer, thisLayer, moveForward, noModifier )
+							self.Tool.moveSelectionLayer_shadowLayer_withPoint_withModifier_( thisLayer, thisLayer, moveBackward, noModifier )
 				
 				for i,coordinate in enumerate(oldPathCoordinates):
 					if thisPath.nodes[i].position != coordinate:
