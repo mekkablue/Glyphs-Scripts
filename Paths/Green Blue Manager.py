@@ -42,7 +42,7 @@ class GreenBlueManager( object ):
 		linePos += lineHeight*2.5
 		
 		self.w.thresholdAngleText = vanilla.TextBox( (inset, linePos, 110, 14), u"Threshold Angle:", sizeStyle='small', selectable=True )
-		self.w.thresholdAngle = vanilla.EditText( (inset+110, linePos-2, -inset, 19), "11", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.thresholdAngle = vanilla.EditText( (inset+110, linePos-3, -inset, 19), "11", callback=self.SavePreferences, sizeStyle='small' )
 		linePos += lineHeight
 		
 		self.w.completeFont = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Process complete font (otherwise selection)", value=False, callback=self.SavePreferences, sizeStyle='small' )
@@ -77,7 +77,7 @@ class GreenBlueManager( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print("Note: 'Set Green Or Blue According To Angle' could not load preferences. Will resort to defaults")
+			print("Note: 'Green Blue Manager' could not load preferences. Will resort to defaults")
 		
 		self.checkGUI()
 		
@@ -137,11 +137,9 @@ class GreenBlueManager( object ):
 		if thisLayer:
 			for thisPath in thisLayer.paths:
 				oldPathCoordinates = [n.position for n in thisPath.nodes]
-				for thisNode in thisPath.nodes:
+				for i,thisNode in enumerate(thisPath.nodes):
 					if thisNode.type == GSOFFCURVE:
-						oldPosition = NSPoint(thisNode.position.x, thisNode.position.y)
-						selectedNode = NSMutableArray.arrayWithObject_(thisNode)
-						
+						# oldPosition = NSPoint(thisNode.position.x, thisNode.position.y)
 						oncurve = None
 						if thisNode.prevNode.type != GSOFFCURVE:
 							oncurve = thisNode.prevNode
@@ -166,6 +164,7 @@ class GreenBlueManager( object ):
 								thisNode.position,
 							)
 						else:
+							selectedNode = NSMutableArray.arrayWithObject_(thisNode)
 							thisLayer.setSelection_( selectedNode )
 							self.Tool.moveSelectionLayer_shadowLayer_withPoint_withModifier_( thisLayer, thisLayer, moveForward, noModifier )
 							self.Tool.moveSelectionLayer_shadowLayer_withPoint_withModifier_( thisLayer, thisLayer, moveBackward, noModifier )
@@ -179,7 +178,7 @@ class GreenBlueManager( object ):
 							thisPath.nodes[i].position = coordinate
 		thisLayer.setSelection_( () )
 		
-		if shouldVerbose:
+		if shouldReport and shouldVerbose:
 			if layerCount:
 				if shouldRealign:
 					print(u"   ⚠️ Realigned %i handle%s." % ( layerCount, "" if layerCount==1 else "s" ))
@@ -194,7 +193,7 @@ class GreenBlueManager( object ):
 		thresholdAngle = float(Glyphs.defaults["com.mekkablue.GreenBlueManager.thresholdAngle"])
 		layerCount = 0
 		for thisPath in thisLayer.paths:
-			for thisNode in thisPath.nodes:
+			for i,thisNode in enumerate(thisPath.nodes):
 				if thisNode.type == OFFCURVE:
 					hotNode = None
 					if thisNode.prevNode.type != OFFCURVE:
@@ -202,17 +201,17 @@ class GreenBlueManager( object ):
 					elif thisNode.nextNode.type != OFFCURVE:
 						hotNode = thisNode.nextNode
 					if not hotNode is None:
-						angleDiff = abs( angle(hotNode.prevNode, hotNode) - angle(hotNode, hotNode.nextNode) )
-						if angleDiff <= thresholdAngle and hotNode.connection != GSSMOOTH:
+						angleDiff = abs( angle(hotNode.prevNode, hotNode) - angle(hotNode, hotNode.nextNode) ) % 360
+						if (angleDiff <= thresholdAngle or angleDiff >= 360-thresholdAngle) and hotNode.connection != GSSMOOTH:
 							layerCount += 1
-							if Glyphs.defaults["com.mekkablue.GreenBlueManager.fixGreenBlue"]:
+							if shouldFix:
 								hotNode.connection = GSSMOOTH
-						elif angleDiff > thresholdAngle and hotNode.connection != GSSHARP:
+						elif (thresholdAngle < angleDiff < 360-thresholdAngle) and hotNode.connection != GSSHARP:
 							layerCount += 1
-							if Glyphs.defaults["com.mekkablue.GreenBlueManager.fixGreenBlue"]:
+							if shouldFix:
 								hotNode.connection = GSSHARP
 		
-		if shouldVerbose:
+		if shouldReport and shouldVerbose:
 			print("%s, layer '%s'" % (thisLayer.parent.name, thisLayer.name))
 			if layerCount:
 				if shouldFix:
@@ -229,7 +228,11 @@ class GreenBlueManager( object ):
 			thisFont = Glyphs.font
 			
 			if not thisFont:
-				Message(title="Green Blue Manager Error", message="Could not determine a frontmost font. The script requires at least one open font.", OKButton=None)
+				Message(
+					title="Green Blue Manager Error",
+					message="Could not determine a frontmost font. The script requires at least one open font.",
+					OKButton=None,
+				)
 			else:
 				shouldRealign = Glyphs.defaults["com.mekkablue.GreenBlueManager.realignHandles"]
 				shouldReport = Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindow"]
@@ -255,33 +258,38 @@ class GreenBlueManager( object ):
 			
 				# process layers:
 				for i, thisLayer in enumerate(layersToBeProcessed):
-					thisGlyph = thisLayer.parent
-					
-					statusMessage = "Processing: %s" % thisGlyph.name
-					self.w.processingText.set( statusMessage )
-					self.w.progress.set(100.0/numberOfLayers*i)
+					if type(thisLayer) != GSControlLayer:
+						thisGlyph = thisLayer.parent
+						statusMessage = "Processing: %s" % thisGlyph.name
+						if shouldReport and shouldVerbose:
+							print(statusMessage)
+						self.w.processingText.set( statusMessage )
+						self.w.progress.set(100.0/numberOfLayers*i)
+						
+						thisGlyph.beginUndo() # begin undo grouping
 				
-					thisGlyph.beginUndo() # begin undo grouping
+						numberOfFixes = self.fixConnectionsOnLayer( thisLayer, shouldFix=shouldFix )
+						if numberOfFixes:
+							affectedLayersFixedConnections.append( thisLayer )
 				
-					numberOfFixes = self.fixConnectionsOnLayer( thisLayer )
-					if numberOfFixes and numberOfLayers:
-						affectedLayersFixedConnections.append( thisLayer )
+						numberOfAligns = self.realignLayer( thisLayer, shouldRealign, shouldReport, shouldVerbose )
+						if numberOfAligns:
+							affectedLayersRealignedHandles.append( thisLayer )
 				
-					numberOfAligns = self.realignLayer( thisLayer, shouldRealign, shouldReport, shouldVerbose )
-					if numberOfAligns and numberOfLayers:
-						affectedLayersRealignedHandles.append( thisLayer )
-				
-					thisGlyph.endUndo()   # end undo grouping
+						thisGlyph.endUndo()   # end undo grouping
 				
 				self.w.progress.set(100)
-				statusMessage = "Processed %i layers." % numberOfLayers
+				statusMessage = "Processed %i layer%s." % (
+					numberOfLayers,
+					"" if numberOfLayers==1 else "s",
+					)
 				self.w.processingText.set( statusMessage )
 				
 				onlyReport = not shouldFix and not shouldRealign
 				if onlyReport:
-					titles = ("Wrong green or blue","Unaligned BCPs")
+					titles = ("Wrong green-blue status","Unaligned BCPs")
 				else:
-					titles = ("Fixed green or blue","Aligned BCPs")
+					titles = ("Fixed green-blue status","Aligned BCPs")
 
 				if shouldReport:
 					if affectedLayersFixedConnections:
@@ -305,19 +313,20 @@ class GreenBlueManager( object ):
 							message += u"• %s\n" % titles[0]
 						if affectedLayersRealignedHandles:
 							message += u"• %s\n" % titles[1]
-						Message(
-							title="%s in %s:" % (
+						
+						# Floating notification:
+						Glyphs.showNotification( 
+							"%s in %s:" % (
 								"Found Problems" if onlyReport else "Fixed Problems",
 								thisGlyph.name,
 								), 
-							message=message,
-							OKButton=None,
+							message,
 							)
 					else:
-						Message(
-							title="All OK in %s!" % thisGlyph.name,
-							message="No unaligned handles or wrong connection types found in %s." % thisGlyph.name,
-							OKButton="Great!",
+						# Floating notification:
+						Glyphs.showNotification( 
+							"All OK in %s!" % thisGlyph.name,
+							"No unaligned handles or wrong connection types found in glyph %s." % thisGlyph.name,
 							)
 						
 				else:
