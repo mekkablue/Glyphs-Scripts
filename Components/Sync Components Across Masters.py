@@ -2,12 +2,18 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Takes the current layer’s components, and resets all other masters to the same component structure. Ignores paths and anchors.
+Takes the current layer’s components, and resets all other masters to the same component structure. Ignores paths and anchors. Hold down Option key to delete all paths and anchors.
 """
+from AppKit import NSEvent
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+
+# combo key held down:
+keysPressed = NSEvent.modifierFlags()
+optionKey = 524288
+optionKeyPressed = keysPressed & optionKey == optionKey
 
 def baseHasAnchor( thisComponent, masterID, anchorToLookFor ):
 	baseGlyph = thisComponent.component
@@ -35,10 +41,18 @@ def process( thisLayer ):
 	
 		# go through all other layers:
 		for thatLayer in thisGlyph.layers:
+			print("  Layer: %s" % thatLayer.name)
+			if optionKeyPressed:
+				if thatLayer.anchors or thatLayer.paths:
+					thatLayer.anchors = None
+					thatLayer.paths = None
+					print("    Deleted anchors & paths")
+					
 			if thatLayer != thisLayer: # don't sync the layer with itself
 				thatLayerID = thatLayer.layerId
-				if thatLayerID == thatLayer.associatedMasterId: # only sync master layers
+				if thatLayer.isMasterLayer or thatLayer.isSpecialLayer: # only sync master and special layers
 					thatLayer.setComponentNames_( compSet ) # sync components
+					print("    Synced components")
 					
 					# try to attach the newly synced components to the right anchors:
 					if len(thatLayer.components) == numberOfComponents:
@@ -54,7 +68,7 @@ thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
 for thisLayer in listOfSelectedLayers:
 	thisGlyph = thisLayer.parent
-	print("Processing", thisGlyph.name)
+	print("Processing %s" % thisGlyph.name)
 	thisGlyph.beginUndo() # begin undo grouping
 	process( thisLayer )
 	thisGlyph.endUndo()   # end undo grouping
