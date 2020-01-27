@@ -1,4 +1,4 @@
-#MenuTitle: Anchor Mover 2.0
+#MenuTitle: Anchor Mover
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
@@ -47,7 +47,7 @@ def italicSkew( x, y, angle=10.0 ):
 class AnchorMover2( object ):
 
 	def __init__( self ):
-		self.w = vanilla.FloatingWindow( (330, 170), "Anchor Mover 2.0", minSize=(300,170), maxSize=(1000,170), autosaveName="com.mekkablue.AnchorMover2.mainwindow" )
+		self.w = vanilla.FloatingWindow( (330, 170), "Anchor Mover", minSize=(300,170), maxSize=(1000,170), autosaveName="com.mekkablue.AnchorMover2.mainwindow" )
 
 		self.w.text_1 = vanilla.TextBox((15-1, 12+2, 75, 14), "Move anchor", sizeStyle='small' )
 		self.w.anchor_name = vanilla.PopUpButton((15+75, 12, -110-15-25, 17), self.GetAnchorNames(), sizeStyle='small' )
