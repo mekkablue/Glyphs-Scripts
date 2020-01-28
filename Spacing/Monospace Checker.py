@@ -29,16 +29,20 @@ class MonospaceChecker( object ):
 		
 		self.w.defaultGlyphText = vanilla.TextBox( (inset, linePos, 85, 14), u"Default Glyph:", sizeStyle='small', selectable=True )
 		self.w.defaultGlyph = vanilla.EditText( (inset+85, linePos-3, -inset, 19), "A", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.defaultGlyph.getNSTextField().setToolTip_(u"For each master, will measure the width of this glyph, and compare all other widths to it.")
 		linePos += lineHeight
 		
 		self.w.toleranceText = vanilla.TextBox( (inset, linePos, 105, 14), u"Tolerance in units:", sizeStyle='small', selectable=True )
 		self.w.tolerance = vanilla.EditText( (inset+105, linePos-3, -inset, 19), "0.0", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.tolerance.getNSTextField().setToolTip_(u"Allow deviations up to this value. 1 unit may be acceptable. If you are not sure, keep it at zero.")
 		linePos += lineHeight
 		
-		self.w.reportZeroWidths = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Report Zero Widths", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reportZeroWidths = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Report Zero Widths in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reportZeroWidths.getNSTextField().setToolTip_(u"In the Macro Window (and only there), will also report glyphs that have zero width. Usually you can ignore those.")
 		linePos += lineHeight
 		
 		self.w.includeNonExporting = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Include Non-Exporting Glyphs", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.includeNonExporting.getNSTextField().setToolTip_(u"If disabled, will ignore non-exporting glyphs. If you are unsure, leave it off.")
 		linePos += lineHeight
 		
 		
