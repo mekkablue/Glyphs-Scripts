@@ -45,10 +45,8 @@ class MonospaceChecker( object ):
 		self.w.includeNonExporting.getNSTextField().setToolTip_(u"If disabled, will ignore non-exporting glyphs. If you are unsure, leave it off.")
 		linePos += lineHeight
 		
-		
-		
 		# Run Button:
-		self.w.runButton = vanilla.Button( (-80-inset, -20-inset, -inset, -inset), "Check", sizeStyle='regular', callback=self.MonospaceCheckerMain )
+		self.w.runButton = vanilla.Button( (-100-inset, -20-inset, -inset, -inset), "Check", sizeStyle='regular', callback=self.MonospaceCheckerMain )
 		self.w.setDefaultButton( self.w.runButton )
 		
 		# Load Settings:
