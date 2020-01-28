@@ -11,7 +11,7 @@ class MonospaceChecker( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 270
-		windowHeight = 170
+		windowHeight = 200
 		windowWidthResize  = 200 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -38,6 +38,10 @@ class MonospaceChecker( object ):
 		self.w.reportZeroWidths = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Report Zero Widths", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		linePos += lineHeight
 		
+		self.w.includeNonExporting = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Include Non-Exporting Glyphs", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
+		
+		
 		
 		# Run Button:
 		self.w.runButton = vanilla.Button( (-80-inset, -20-inset, -inset, -inset), "Check", sizeStyle='regular', callback=self.MonospaceCheckerMain )
@@ -56,6 +60,7 @@ class MonospaceChecker( object ):
 			Glyphs.defaults["com.mekkablue.MonospaceChecker.defaultGlyphName"] = self.w.defaultGlyphName.get()
 			Glyphs.defaults["com.mekkablue.MonospaceChecker.tolerance"] = self.w.tolerance.get()
 			Glyphs.defaults["com.mekkablue.MonospaceChecker.reportZeroWidths"] = self.w.reportZeroWidths.get()
+			Glyphs.defaults["com.mekkablue.MonospaceChecker.includeNonExporting"] = self.w.includeNonExporting.get()
 		except:
 			return False
 			
@@ -66,9 +71,11 @@ class MonospaceChecker( object ):
 			Glyphs.registerDefault("com.mekkablue.MonospaceChecker.defaultGlyphName", "A")
 			Glyphs.registerDefault("com.mekkablue.MonospaceChecker.tolerance", 0.0)
 			Glyphs.registerDefault("com.mekkablue.MonospaceChecker.reportZeroWidths", 0)
+			Glyphs.registerDefault("com.mekkablue.MonospaceChecker.includeNonExporting", 0)
 			self.w.defaultGlyphName.set( Glyphs.defaults["com.mekkablue.MonospaceChecker.defaultGlyphName"] )
 			self.w.tolerance.set( Glyphs.defaults["com.mekkablue.MonospaceChecker.tolerance"] )
 			self.w.reportZeroWidths.set( Glyphs.defaults["com.mekkablue.MonospaceChecker.reportZeroWidths"] )
+			self.w.includeNonExporting.set( Glyphs.defaults["com.mekkablue.MonospaceChecker.includeNonExporting"] )
 		except:
 			return False
 			
@@ -89,8 +96,9 @@ class MonospaceChecker( object ):
 			
 			defaultGlyphName = Glyphs.defaults["com.mekkablue.MonospaceChecker.defaultGlyphName"].strip()
 			defaultGlyph = thisFont.glyphs[defaultGlyphName]
-			
 			tolerance = float(Glyphs.defaults["com.mekkablue.MonospaceChecker.tolerance"])
+			includeNonExporting = Glyphs.defaults["com.mekkablue.MonospaceChecker.includeNonExporting"]
+			reportZeroWidths = Glyphs.defaults["com.mekkablue.MonospaceChecker.reportZeroWidths"]
 			
 			if not defaultGlyph:
 				Message(
@@ -106,16 +114,17 @@ class MonospaceChecker( object ):
 					defaultWidth = defaultGlyph.layers[masterID].width
 					print("\nⓂ️ Master %s, default width: %.1f" % (thisMaster.name, defaultWidth))
 					for thisGlyph in thisFont.glyphs:
-						for thisLayer in thisGlyph.layers:
-							if thisLayer.associatedMasterId == masterID and (thisLayer.isMasterLayer or thisLayer.isSpecialLayer):
-								thisWidth = thisLayer.width
-								if thisWidth == 0.0:
-									if reportZeroWidths:
-										print("ℹ️ %s, layer '%s': zero width" % (thisGlyph.name, thisLayer.name))
-								elif not (defaultWidth-tolerance) <= thisWidth <= (defaultWidth+tolerance):
-									affectedLayers.append(thisLayer)
-									deviatingWidthCount += 1
-									print("⛔️ %s, layer '%s': %.1f" % (thisGlyph.name, thisLayer.name, thisWidth))
+						if thisGlyph.export or includeNonExporting:
+							for thisLayer in thisGlyph.layers:
+								if thisLayer.associatedMasterId == masterID and (thisLayer.isMasterLayer or thisLayer.isSpecialLayer):
+									thisWidth = thisLayer.width
+									if thisWidth == 0.0:
+										if reportZeroWidths:
+											print("ℹ️ %s, layer '%s': zero width" % (thisGlyph.name, thisLayer.name))
+									elif not (defaultWidth-tolerance) <= thisWidth <= (defaultWidth+tolerance):
+										affectedLayers.append(thisLayer)
+										deviatingWidthCount += 1
+										print("⛔️ %s, layer '%s': %.1f" % (thisGlyph.name, thisLayer.name, thisWidth))
 									
 					# add a newline:
 					if affectedLayers:
