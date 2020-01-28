@@ -38,11 +38,11 @@ class MonospaceChecker( object ):
 		linePos += lineHeight
 		
 		self.w.reportZeroWidths = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Report Zero Widths in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.reportZeroWidths.getNSTextField().setToolTip_(u"In the Macro Window (and only there), will also report glyphs that have zero width. Usually you can ignore those.")
+		self.w.reportZeroWidths.getNSButton().setToolTip_(u"In the Macro Window (and only there), will also report glyphs that have zero width. Usually you can ignore those.")
 		linePos += lineHeight
 		
 		self.w.includeNonExporting = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Include Non-Exporting Glyphs", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.includeNonExporting.getNSTextField().setToolTip_(u"If disabled, will ignore non-exporting glyphs. If you are unsure, leave it off.")
+		self.w.includeNonExporting.getNSButton().setToolTip_(u"If disabled, will ignore non-exporting glyphs. If you are unsure, leave it off.")
 		linePos += lineHeight
 		
 		# Run Button:
