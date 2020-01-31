@@ -115,10 +115,12 @@ if not thisFont.glyphs[".notdef"]:
 					notdefLayer.paths.append( thisPath.copy() )
 				notdefLayer.LSB = 30.0
 				notdefLayer.RSB = 30.0
+			notdefGlyph.leftMetricsKey = "=30"
+			notdefGlyph.rightMetricsKey = "=|"
 		else:
-			Message("Notdef Error", "Could not determine source layer of glyph 'question'.", OKButton="Damn")
+			Message("Notdef Error", "Could not determine source layer of glyph 'question'.", OKButton="Oops")
 	else:
 		Message("Notdef Error", "No question mark is available in your font. Cannot create .notdef.", OKButton="Shucks")
 else:
-	Message("Notdef Error", "There already is a .notdef in your font. Delete it and run the script again if you want to replace it.", OKButton="Too bad.")
+	Message("Notdef Error", "There already is a .notdef in your font. Delete it and run the script again if you want to replace it.", OKButton="OK")
 
