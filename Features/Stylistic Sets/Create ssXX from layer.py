@@ -44,10 +44,16 @@ def process( sourceLayer ):
 		targetGlyph.layers[ thisMasterID ] = sourceGlyph.layers[ thisMasterID ].copy()
 		targetGlyph.layers[ thisMasterID ].setColorIndex_(1)
 	
-	# add new glyph to tab:
-	thisFont.currentText += "/%s" % targetGlyphName
+	try:
+		# add new glyph to tab:
+		if thisFont.currentText:
+			thisFont.currentText = "%s/%s" % (thisFont.currentText, targetGlyphName)
+	except Exception as e:
+		print(e)
+		import traceback
+		print(traceback.format_exc())
 	
-	print "Created %s" % targetGlyphName
+	print("Created %s" % targetGlyphName)
 
 for thisLayer in selectedLayers:
 	process( thisLayer )
