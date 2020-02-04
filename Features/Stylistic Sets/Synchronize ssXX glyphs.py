@@ -37,10 +37,10 @@ while ssXX_exists:
 		i+=1
 
 if i == 0:
-	print "No ssXX glyphs in the font. Aborting."
+	print("No ssXX glyphs in the font. Aborting.")
 else:
-	print "Highest ssXX:", ssXX
-	print "Creating",
+	print("Highest ssXX:", ssXX)
+	print("Creating:")
 	for XX in range( i ):
 	
 		ssXXglyphs = [ x for x in allGlyphs if x.find( ssXXsuffix( XX+1 ) ) is not -1 ]
@@ -61,6 +61,6 @@ else:
 						targetglyph.unicode = None
 						targetglyph.productionName = Glyphs.productionGlyphName(targetglyphname)
 						Font.glyphs.append( targetglyph )
-						print targetglyphname,
+						print("- %s"%targetglyphname)
 
-	print
+	print()

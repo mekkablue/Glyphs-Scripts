@@ -100,7 +100,7 @@ highestSetNumber = highestStylisticSetInNameList( allGlyphs )
 ssXX = ssXXsuffix( highestSetNumber )
 
 if not ssXX:
-	print "No ssXX glyphs in the thisFont. Aborting."
+	print("No ssXX glyphs in the thisFont. Aborting.")
 else:
 	ssXXglyphs = [ x for x in allGlyphs if x.find( ssXX ) > -1 ]
 
@@ -109,7 +109,8 @@ else:
 	for XX in range(highestSetNumber+1):
 		className = "%s%02i" % ( classNamePrefix, XX )
 		classGlyphs = [ x + ssXXsuffix(XX) for x in defaultGlyphs ] + ["space"]
-		print create_otclass( className = className, classGlyphs = classGlyphs, targetFont = thisFont )
+		result = create_otclass( className = className, classGlyphs = classGlyphs, targetFont = thisFont )
+		print(result)
 	
 	# Build OT feature:
 	featureText = ""
@@ -130,4 +131,5 @@ else:
 		featureText += newLine
 	
 	# Add OT feature:
-	print create_otfeature( featurename = featureName, featurecode = featureText, targetFont = thisFont )
+	result = create_otfeature( featurename = featureName, featurecode = featureText, targetFont = thisFont )
+	print(result)
