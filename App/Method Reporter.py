@@ -48,7 +48,10 @@ class MethodReporter( object ):
 			"GSInstance",
 			"GSNode",
 			"GSPath",
+			"GSPathPen",
 			"GSPathSegment",
+			"GSProjectDocument",
+			# NS object
 			"NSBezierPath",
 			"NSColor",
 			"NSAffineTransform",
@@ -61,7 +64,6 @@ class MethodReporter( object ):
 			"NSButton",
 			"FTPointArray",
 			"Glyph_g_l_y_f",
-			"GSProjectDocument",
 		)
 		
 		# Window 'self.w':
