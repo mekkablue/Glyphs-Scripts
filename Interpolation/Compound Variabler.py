@@ -116,7 +116,7 @@ class CompoundVariabler( object ):
 				# process layers
 				thisLayer = currentGlyph.layers[0]
 				if thisLayer.components:
-					
+				
 					# delete special layers if requested:
 					if deleteExistingSpecialLayers:
 						layerCount = len(currentGlyph.layers)
@@ -124,15 +124,19 @@ class CompoundVariabler( object ):
 							if currentGlyph.layers[i].isSpecialLayer:
 								print("%s: deleted layer '%s'" % (currentGlyph.name, currentGlyph.layers[i].name))
 								del currentGlyph.layers[i]
-					
-					namesOfSpecialLayers = [l.name for l in currentGlyph.layers if l.isSpecialLayer]
-					
+				
 					for component in thisLayer.components:
 						originalGlyph = thisFont.glyphs[component.componentName]
 						if originalGlyph:
 							for originalLayer in originalGlyph.layers:
-								layerAlreadyExists = originalLayer.name in namesOfSpecialLayers and thisLayer.associatedMasterId == originalLayer.associatedMasterId
 								if originalLayer.isSpecialLayer:
+									namesAndMasterIDsOfSpecialLayers = [(l.name,l.associatedMasterId) for l in currentGlyph.layers if l.isSpecialLayer]
+									layerAlreadyExists = False
+									for currentGlyphLayer in currentGlyph.layers:
+										nameIsTheSame = originalLayer.name == currentGlyphLayer.name
+										masterIsTheSame = originalLayer.associatedMasterId == currentGlyphLayer.associatedMasterId
+										if nameIsTheSame and masterIsTheSame:
+											layerAlreadyExists = True
 									if layerAlreadyExists:
 										print("%s, layer '%s' already exists. Skipping." % (currentGlyph.name, originalLayer.name))
 									else:
@@ -152,15 +156,16 @@ class CompoundVariabler( object ):
 			if affectedGlyphs:
 				if openTab:
 					# opens new Edit tab:
-					tabText = "/" + "/".join(affectedGlyphs)
+					tabText = "/" + "/".join(set(affectedGlyphs))
 					thisFont.newTab( tabText )
 
 				# Floating notification:
+				numOfGlyphs = len(set(affectedGlyphs))
 				Glyphs.showNotification( 
 					u"%s" % (thisFont.familyName),
 					u"Compound Variabler added layers to %i compound glyph%s." % (
-							len(affectedGlyphs),
-							"" if len(affectedGlyphs)==1 else "s",
+							numOfGlyphs,
+							"" if numOfGlyphs==1 else "s",
 						),
 					)
 				
