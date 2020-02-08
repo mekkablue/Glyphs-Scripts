@@ -25,7 +25,7 @@ class GreenBlueManager( object ):
 		
 		# Window 'self.w':
 		windowWidth  = 300
-		windowHeight = 245
+		windowHeight = 265
 		windowWidthResize  = 300 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -62,6 +62,11 @@ class GreenBlueManager( object ):
 		self.w.reportInMacroWindow.getNSButton().setToolTip_("If enabled, will output a report in Window > Macro Panel.")
 		self.w.reportInMacroWindowVerbose.getNSButton().setToolTip_("If enabled, will output a verbose (detailed) report in Window > Macro Panel.")
 		linePos += lineHeight
+		
+		self.w.shouldMark = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Mark affected nodes", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.shouldMark.getNSButton().setToolTip_(u"If enabled, will mark (intended) node type changes as follows: 💚=SMOOTH 🔷=CORNER.")
+		linePos += lineHeight
+		
 		
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0) # set progress indicator to zero
@@ -103,6 +108,7 @@ class GreenBlueManager( object ):
 			Glyphs.defaults["com.mekkablue.GreenBlueManager.realignHandles"] = self.w.realignHandles.get()
 			Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindow"] = self.w.reportInMacroWindow.get()
 			Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindowVerbose"] = self.w.reportInMacroWindowVerbose.get()
+			Glyphs.defaults["com.mekkablue.GreenBlueManager.shouldMark"] = self.w.shouldMark.get()
 		except:
 			return False
 			
@@ -117,12 +123,14 @@ class GreenBlueManager( object ):
 			Glyphs.registerDefault( "com.mekkablue.GreenBlueManager.realignHandles", 1 )
 			Glyphs.registerDefault( "com.mekkablue.GreenBlueManager.reportInMacroWindow", 1 )
 			Glyphs.registerDefault( "com.mekkablue.GreenBlueManager.reportInMacroWindowVerbose", 0 )
+			Glyphs.registerDefault( "com.mekkablue.GreenBlueManager.shouldMark", 0 )
 			self.w.thresholdAngle.set( Glyphs.defaults["com.mekkablue.GreenBlueManager.thresholdAngle"] )
 			self.w.completeFont.set( Glyphs.defaults["com.mekkablue.GreenBlueManager.completeFont"] )
 			self.w.fixGreenBlue.set( Glyphs.defaults["com.mekkablue.GreenBlueManager.fixGreenBlue"] )
 			self.w.realignHandles.set( Glyphs.defaults["com.mekkablue.GreenBlueManager.realignHandles"] )
 			self.w.reportInMacroWindow.set( Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindow"] )
 			self.w.reportInMacroWindowVerbose.set( Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindowVerbose"] )
+			self.w.shouldMark.set( Glyphs.defaults["com.mekkablue.GreenBlueManager.shouldMark"] )
 		except:
 			return False
 			
@@ -191,6 +199,7 @@ class GreenBlueManager( object ):
 	
 	def fixConnectionsOnLayer(self, thisLayer, shouldFix=False, shouldReport=False, shouldVerbose=False):
 		thresholdAngle = float(Glyphs.defaults["com.mekkablue.GreenBlueManager.thresholdAngle"])
+		shouldMark = bool(Glyphs.defaults["com.mekkablue.GreenBlueManager.shouldMark"])
 		layerCount = 0
 		for thisPath in thisLayer.paths:
 			for i,thisNode in enumerate(thisPath.nodes):
@@ -206,10 +215,14 @@ class GreenBlueManager( object ):
 							layerCount += 1
 							if shouldFix:
 								hotNode.connection = GSSMOOTH
+							if shouldMark:
+								hotNode.name = u"💚"
 						elif (thresholdAngle < angleDiff < 360-thresholdAngle) and hotNode.connection != GSSHARP:
 							layerCount += 1
 							if shouldFix:
 								hotNode.connection = GSSHARP
+							if shouldMark:
+								hotNode.name = u"🔷"
 		
 		if shouldReport and shouldVerbose:
 			print("%s, layer '%s'" % (thisLayer.parent.name, thisLayer.name))
