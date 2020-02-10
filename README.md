@@ -129,6 +129,7 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **Find and Replace Cap and Corner Components:** Relinks `_cap.*` and `_corner.*` components in selected glyphs to a different corner/cap component. *Needs Vanilla.*
 * **Find and Replace Corner Components at Certain Angles:** Replace Corner Components at blunt or acute angles. *Needs Vanilla.*
 * **New Tab with Composable Glyphs that have no Components:** Opens a new Edit tab containing all glyphs that consist of paths, but could be composed according to Glyph Data.
+* **New Tab with Locked Components:** Opens a new tab containing all layers that contain locked components.
 * **New Tab with Orphaned Components:** Opens a new tab in the current font window containing all glyphs (of the current master) that have components that point to non-existent glyphs, i.e., no base glyphs.
 * **New Tab with Transformed Components:** Opens a new tab containing all compound glyphs that have mirrored, or rotated, or scaled components.
 * **New Tab with Transformed Corner Components:** Opens a new Edit tab containing all glyphs with scaled corner components.
