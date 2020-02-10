@@ -12,9 +12,9 @@ thisFontMaster = thisFont.selectedFontMaster # active master
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 
 def buildLdot( targetGlyphName, baseName, accentName ):
-	print("%s + %s = %s" % ( baseName, accentName, targetGlyphName ))
+	print("\n%s + %s = %s" % ( baseName, accentName, targetGlyphName ))
 	for thisMaster in thisFont.masters:
-		print("Processing", thisMaster)
+		print("\tProcessing master: %s" % thisMaster.name)
 		thisMasterID = thisMaster.id
 		offsetAccent = thisFont.glyphs[baseName].layers[thisMasterID].width
 		accentWidth = thisFont.glyphs[accentName].layers[thisMasterID].width
@@ -23,6 +23,9 @@ def buildLdot( targetGlyphName, baseName, accentName ):
 		if not targetGlyph:
 			targetGlyph = GSGlyph(targetGlyphName)
 			thisFont.glyphs.append(targetGlyph)
+		else:
+			targetGlyph.leftMetricsKey = None
+			targetGlyph.rightMetricsKey = None
 		targetLayer = targetGlyph.layers[thisMasterID]
 		targetLayer.components = []
 		targetLayer.components.append( GSComponent( baseName ) )
@@ -30,6 +33,8 @@ def buildLdot( targetGlyphName, baseName, accentName ):
 		for thisComp in targetLayer.components:
 			thisComp.disableAlignment = False
 		targetLayer.width = baseWidth + accentWidth
+		targetLayer.leftMetricsKey = None
+		targetLayer.rightMetricsKey = None
 
 buildGlyphs = [
 	("ldot", "l", "periodcentered.loclCAT"),
