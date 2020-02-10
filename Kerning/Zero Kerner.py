@@ -13,7 +13,7 @@ class ZeroKerner( object ):
 		# Window 'self.w':
 		windowWidth  = 320
 		windowHeight = 190
-		windowWidthResize  = 50 # user can resize width by this value
+		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			( windowWidth, windowHeight ), # default window size
@@ -40,6 +40,9 @@ class ZeroKerner( object ):
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0) # set progress indicator to zero
 		linePos+=lineHeight
+		
+		self.w.status = vanilla.TextBox( (inset, -20-inset, -120-inset, 14), u"", sizeStyle='small', selectable=True )
+		linePos += lineHeight
 		
 		# Run Button:
 		self.w.runButton = vanilla.Button( (-120-inset, -20-inset, -inset, -inset), "Zero Kern", sizeStyle='regular', callback=self.ZeroKernerMain )
@@ -122,23 +125,17 @@ class ZeroKerner( object ):
 											masterKerning = thisFont.kerning[thisMaster.id]
 											# kernPairCount = len(masterKerning)
 											
+											self.w.status.set("Verifying @%s-@%s"%(leftGroup[7:], rightGroup[7:]))
+											
 											if thisFont.kerningForPair(thisMaster.id, leftGroup, rightGroup) >= NSNotFound:
 												thisFont.setKerningForPair(thisMaster.id, leftGroup, rightGroup, 0.0)
+												statusMessage = "  %s, @%s @%s: zeroed" % (thisMaster.name, leftGroup[7:], rightGroup[7:])
 												if reportInMacroWindow:
-													print("  %s, @%s @%s: zeroed" % (thisMaster.name, leftGroup[7:], rightGroup[7:]))
+													print(statusMessage)
+												self.w.status.set(statusMessage.strip())
 				
 				self.w.progress.set(100.0)
-				
-			
-			listOfSelectedLayers = thisFont.selectedLayers # active layers of currently selected glyphs
-			for thisLayer in listOfSelectedLayers: # loop through layers
-				thisGlyph = thisLayer.parent
-				print(thisGlyph.name, thisLayer.name)
-				# output all node coordinates:
-				for thisPath in thisLayer.paths:
-					for thisNode in thisLayer.nodes:
-						print("-- %.1f %.1f" % ( thisNode.x, thisNode.y ))
-			
+				self.w.status.set("Done.")
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
