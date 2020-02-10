@@ -67,7 +67,7 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 
 * **Line Height Decrease** and **Line Height Increase:** Increases the Edit View line height by a quarter, or decreases it by a fifth. Useful for setting shortcuts if you need to switch between line heights a lot.
 * **Method Reporter:** GUI for filtering through the method names of Python and PyObjC Classes available from within Glyphs. You can use multiple space-separated search terms (for an AND concatenation) and asterisk as jokers (at the beginning, in the middle and at the end). Double click to put the method name in your clipboard and open help in the Macro window. Useful for coders. *Needs Vanilla.*
-* **Parameter Reporter:** Like Method Reporter, but for custom parameters. Double click to copy a prameter in the clipboard, ready for pasting in Font Info. *Needs Vanilla.*
+* **Parameter Reporter:** Like Method Reporter, but for custom parameters. Double click to copy a parameter in the clipboard, ready for pasting in Font Info. *Needs Vanilla.*
 * **Print Window:** Print the frontmost window. Useful for saving a vector PDF of your window content, including the renderings of reporter plug-ins (extensions for the *View* menu).
 * **Set Export Paths to Adobe Fonts Folder:** Sets the OpenType font and Variable Font export paths to the Adobe Fonts Folder.
 * **Set Hidden App Preferences:** GUI for reading and setting ‘hidden’ app preferences, which are not listed in the GUI. *Needs Vanilla.*
@@ -89,7 +89,7 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **Build notdef:** Creates a .notdef from your boldest available question mark.
 * **Build Parenthesized Glyphs:** Creates parenthesized letters and numbers: one.paren, two.paren, three.paren, four.paren, five.paren, six.paren, seven.paren, eight.paren, nine.paren, one_zero.paren, one_one.paren, one_two.paren, one_three.paren, one_four.paren, one_five.paren, one_six.paren, one_seven.paren, one_eight.paren, one_nine.paren, two_zero.paren, a.paren, b.paren, c.paren, d.paren, e.paren, f.paren, g.paren, h.paren, i.paren, j.paren, k.paren, l.paren, m.paren, n.paren, o.paren, p.paren, q.paren, r.paren, s.paren, t.paren, u.paren, v.paren, w.paren, x.paren, y.paren, z.paren.
 * **Build Q from O and _tail.Q:** Run this script *after* doing *Component from Selection* on the Q tail and naming it `_tail.Q`.
-* **Build Small Figures:** Takes a default set of figures (e.g., dnom), and derives the others (.numr, superior/.sups, inferiour/.sinf, .subs) as component copies. Respects the italic angle.
+* **Build Small Figures:** Takes a default set of figures (e.g., dnom), and derives the others (.numr, superior/.sups, inferior/.sinf, .subs) as component copies. Respects the italic angle.
 * **Build small letter SM, TEL:** Creates the glyphs: `servicemark`, `telephone`.
 * **Build space glyphs:** Creates mediumspace-math, emquad, emspace, enquad, enspace, figurespace, fourperemspace, hairspace, narrownbspace, punctuationspace, sixperemspace, nbspace, thinspace, threeperemspace, zerowidthspace.
 * **Quote Manager:** Build double quotes from single quotes, and insert #exit and #entry anchors in the single quotes for auto-alignment. You need to have the single quotes already. *Needs Vanilla.*
@@ -183,7 +183,7 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **Garbage Collection:** Removes markers in glyphs, such as node names, glyph names or annotations, as well as guides.
 * **New Tab with Uppercase-Lowercase Inconsistencies:** Opens a new Edit tab containing all glyphs without consistent case folding. Writes a detailed report in Macro Window.
 * **Rename Glyphs:** Takes a list of `oldglyphname=newglyphname` pairs and renames glyphs in the font accordingly, much like the *Rename Glyphs* custom parameter. *Needs Vanilla.*
-* **Reorder Unicodes of Selected Glyphs:** Reorders Unicodes so that default Unicode comes first. Glyphs 2.5+ only.
+* **Reorder Unicodes of Selected Glyphs:** Reorders Unicodes so that default Unicode comes first.
 
 ## Guides
 
