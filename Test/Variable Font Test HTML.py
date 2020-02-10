@@ -119,9 +119,12 @@ def featureListForFont( thisFont ):
 		if f.startswith("ss") and n and n.startswith("Name:"):
 			# stylistic set name:
 			setName = n.splitlines()[0][5:].strip()
-			returnString += '\t\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s<span class="tooltip">%s</span></label>\n' % (f,f,f,f,f,setName)
+			featureItem = '\t\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s<span class="tooltip">%s</span></label>\n' % (f,f,f,f,f,setName)
 		else:
-			returnString += '\t\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s</label>\n' % (f,f,f,f,f)
+			# non-ssXX features
+			featureItem = '\t\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s</label>\n' % (f,f,f,f,f)
+		if not featureItem in returnString:
+			returnString += featureItem
 	return returnString.rstrip()
 
 def allOTVarSliders(thisFont):
