@@ -83,15 +83,21 @@ class KernCrasher( object ):
 		linePos += lineHeight
 
 		self.w.reportCrashesInMacroWindow = vanilla.CheckBox( (inset, linePos, -inset, 20), "Also report in Macro Window (a few seconds slower)", value=False, sizeStyle='small', callback=self.SavePreferences )
+		self.w.reuseCurrentTab = vanilla.CheckBox( (inset+310, linePos, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reuseCurrentTab.getNSButton().setToolTip_(u"If enabled, will not open a new tab with newly added kern pairs, but reuse the current Edit tab. Will open an Edit tab if none is open.")
 		linePos += lineHeight
+		
 		
 		# Percentage:
 		self.w.bar = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		
 		#self.w.percentage = vanilla.TextBox( (15-1, -30, -100-15, -15), "", sizeStyle='small' )
 		
+		# Buttons:
+		self.w.nextButton = vanilla.Button( (-inset-210, -20-inset, -inset-100, -inset), u"Next Master", sizeStyle='regular', callback=self.masterSwitch )
+		
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100-15, -20-15, -15, -15), "Open Tab", sizeStyle='regular', callback=self.KernCrasherMain )
+		self.w.runButton = vanilla.Button((-90-inset, -20-inset, -inset, -inset), "Open Tab", sizeStyle='regular', callback=self.KernCrasherMain )
 		self.w.setDefaultButton( self.w.runButton )
 		
 		# Load Settings:
@@ -114,6 +120,7 @@ class KernCrasher( object ):
 			Glyphs.defaults["com.mekkablue.KernCrasher.reportCrashesInMacroWindow"] = self.w.reportCrashesInMacroWindow.get()
 			Glyphs.defaults["com.mekkablue.KernCrasher.ignoreIntervals"] = self.w.ignoreIntervals.get()
 			Glyphs.defaults["com.mekkablue.KernCrasher.pathGlyphsOnly"] = self.w.pathGlyphsOnly.get()
+			Glyphs.defaults["com.mekkablue.KernCrasher.reuseCurrentTab"] = self.w.reuseCurrentTab.get()
 		except Exception as e:
 			return False
 		
@@ -138,6 +145,7 @@ class KernCrasher( object ):
 			Glyphs.registerDefault( "com.mekkablue.KernCrasher.reportCrashesInMacroWindow", 0 )
 			Glyphs.registerDefault( "com.mekkablue.KernCrasher.ignoreIntervals", "" )
 			Glyphs.registerDefault( "com.mekkablue.KernCrasher.pathGlyphsOnly", 0 )
+			Glyphs.registerDefault( "com.mekkablue.KernCrasher.reuseCurrentTab", 1 )
 
 			self.w.minDistance.set( Glyphs.defaults["com.mekkablue.KernCrasher.minDistance"] )
 			self.w.popupScript.set( Glyphs.defaults["com.mekkablue.KernCrasher.popupScript"] )
@@ -149,6 +157,7 @@ class KernCrasher( object ):
 			self.w.reportCrashesInMacroWindow.set( Glyphs.defaults["com.mekkablue.KernCrasher.reportCrashesInMacroWindow"] )
 			self.w.ignoreIntervals.set( Glyphs.defaults["com.mekkablue.KernCrasher.ignoreIntervals"] )
 			self.w.pathGlyphsOnly.set( Glyphs.defaults["com.mekkablue.KernCrasher.pathGlyphsOnly"] )
+			self.w.reuseCurrentTab.set( Glyphs.defaults["com.mekkablue.KernCrasher.reuseCurrentTab"] )
 		except:
 			import traceback
 			print(traceback.format_exc())
@@ -194,6 +203,11 @@ class KernCrasher( object ):
 								if (not pathGlyphsOnly) or thisGlyph.layers[0].paths:
 									nameList.append( glyphName )
 		return nameList
+	
+	def masterSwitch(self, sender=None):
+		if sender is self.w.nextButton:
+			Glyphs.font.masterIndex+=1
+	
 		
 	def splitString( self, string, delimiter=":", minimum=2 ):
 		# split string into a list:
@@ -378,7 +392,10 @@ class KernCrasher( object ):
 					# disable reporters (avoid slowdown)
 					Glyphs.defaults["visibleReporters"] = None
 				report = '%i kerning crashes have been found. Time elapsed: %s.' % (crashCount, timereport)
-				thisFont.newTab( tabString )
+				if Glyphs.defaults["com.mekkablue.KernCrasher.reuseCurrentTab"] and thisFont.currentTab:
+					thisFont.currentTab.text = tabString
+				else:
+					thisFont.newTab( tabString )
 			# or report that nothing was found:
 			else:
 				report = 'No collisions found. Time elapsed: %s. Congrats!' % timereport
