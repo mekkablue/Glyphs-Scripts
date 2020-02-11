@@ -34,6 +34,10 @@ def remove():
 				if Key is not None:
 					layer.setRightMetricsKey_(Key)
 					deletedKeys += 1
+				Key = FilterLayerKey(layer.widthMetricsKey)
+				if Key is not None:
+					layer.setWidthMetricsKey_(Key)
+					deletedKeys += 1
 			Key = FilterGlyphKey(glyph.leftMetricsKey)
 			if Key is not None:
 				glyph.setLeftMetricsKey_(Key)
@@ -41,6 +45,10 @@ def remove():
 			Key = FilterGlyphKey(glyph.rightMetricsKey)
 			if Key is not None:
 				glyph.setRightMetricsKey_(Key)
+				deletedKeys += 1
+			Key = FilterGlyphKey(glyph.widthMetricsKey)
+			if Key is not None:
+				glyph.setWidthMetricsKey_(Key)
 				deletedKeys += 1
 			
 			if deletedKeys:
