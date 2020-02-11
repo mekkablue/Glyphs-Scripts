@@ -27,7 +27,7 @@ categoryList = (
 class GapFinder( object ):
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 390
+		windowWidth  = 410
 		windowHeight = 260
 		windowWidthResize  = 800 # user can resize width by this value
 		windowHeightResize = 0 # user can resize height by this value
@@ -74,7 +74,9 @@ class GapFinder( object ):
 		self.w.excludeNonExporting = vanilla.CheckBox( (inset, linePos, -inset, 20), "Exclude non-exporting glyphs", value=True, sizeStyle='small', callback=self.SavePreferences )
 		linePos += lineHeight
 
-		self.w.reportGapsInMacroWindow = vanilla.CheckBox( (inset, linePos, -inset, 20), "Also report in Macro Window (a few seconds slower)", value=False, sizeStyle='small', callback=self.SavePreferences )
+		self.w.reportGapsInMacroWindow = vanilla.CheckBox( (inset, linePos, -inset, 20), "Also report in Macro Window (slower)", value=False, sizeStyle='small', callback=self.SavePreferences )
+		self.w.reuseCurrentTab = vanilla.CheckBox( (inset+240, linePos, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reuseCurrentTab.getNSButton().setToolTip_(u"If enabled, will not open a new tab with newly added kern pairs, but reuse the current Edit tab. Will open an Edit tab if none is open.")
 		linePos += lineHeight
 		
 		# Percentage:
@@ -82,8 +84,11 @@ class GapFinder( object ):
 		
 		#self.w.percentage = vanilla.TextBox( (15-1, -30, -100-15, -15), "", sizeStyle='small' )
 		
+		# Buttons:
+		self.w.nextButton = vanilla.Button( (-inset-210, -20-inset, -inset-100, -inset), u"Next Master", sizeStyle='regular', callback=self.masterSwitch )
+		
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100-15, -20-15, -15, -15), "Open Tab", sizeStyle='regular', callback=self.GapFinderMain )
+		self.w.runButton = vanilla.Button((-90-inset, -20-inset, -inset, -inset), "Open Tab", sizeStyle='regular', callback=self.GapFinderMain )
 		self.w.setDefaultButton( self.w.runButton )
 		
 		# Load Settings:
@@ -104,6 +109,7 @@ class GapFinder( object ):
 			Glyphs.defaults["com.mekkablue.GapFinder.excludeNonExporting"] = self.w.excludeNonExporting.get()
 			Glyphs.defaults["com.mekkablue.GapFinder.maxDistance"] = self.w.maxDistance.get()
 			Glyphs.defaults["com.mekkablue.GapFinder.reportGapsInMacroWindow"] = self.w.reportGapsInMacroWindow.get()
+			Glyphs.defaults["com.mekkablue.GapFinder.reuseCurrentTab"] = self.w.reuseCurrentTab.get()
 		except Exception as e:
 			return False
 		
@@ -126,6 +132,7 @@ class GapFinder( object ):
 			Glyphs.registerDefault( "com.mekkablue.GapFinder.excludeSuffixes", ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute" )
 			Glyphs.registerDefault( "com.mekkablue.GapFinder.excludeNonExporting", 1 )
 			Glyphs.registerDefault( "com.mekkablue.GapFinder.reportGapsInMacroWindow", 0 )
+			Glyphs.registerDefault( "com.mekkablue.GapFinder.reuseCurrentTab", 1 )
 			
 			self.w.maxDistance.set( Glyphs.defaults["com.mekkablue.GapFinder.maxDistance"] )
 			self.w.popupScript.set( Glyphs.defaults["com.mekkablue.GapFinder.popupScript"] )
@@ -135,10 +142,15 @@ class GapFinder( object ):
 			self.w.excludeSuffixes.set( Glyphs.defaults["com.mekkablue.GapFinder.excludeSuffixes"] )
 			self.w.excludeNonExporting.set( Glyphs.defaults["com.mekkablue.GapFinder.excludeNonExporting"] )
 			self.w.reportGapsInMacroWindow.set( Glyphs.defaults["com.mekkablue.GapFinder.reportGapsInMacroWindow"] )
+			self.w.reuseCurrentTab.set( Glyphs.defaults["com.mekkablue.GapFinder.reuseCurrentTab"] )
 		except:
 			return False
 			
 		return True
+	
+	def masterSwitch(self, sender=None):
+		if sender is self.w.nextButton:
+			Glyphs.font.masterIndex+=1
 	
 	def nameUntilFirstPeriod( self, glyphName ):
 		if not "." in glyphName:
@@ -329,7 +341,10 @@ class GapFinder( object ):
 					# disable reporters (avoid slowdown)
 					Glyphs.defaults["visibleReporters"] = None
 				report = '%i kerning gaps have been found. Time elapsed: %s.' % (gapCount, timereport)
-				thisFont.newTab( tabString )
+				if Glyphs.defaults["com.mekkablue.GapFinder.reuseCurrentTab"] and thisFont.currentTab:
+					thisFont.currentTab.text = tabString
+				else:
+					thisFont.newTab( tabString )
 			# or report that nothing was found:
 			else:
 				report = 'No collisions found. Time elapsed: %s. Congrats!' % timereport

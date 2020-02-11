@@ -27,7 +27,7 @@ categoryList = (
 class KernCrasher( object ):
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 390
+		windowWidth  = 410
 		windowHeight = 310
 		windowWidthResize  = 800 # user can resize width by this value
 		windowHeightResize = 0 # user can resize height by this value
@@ -82,8 +82,8 @@ class KernCrasher( object ):
 		self.w.excludeNonExporting = vanilla.CheckBox( (inset, linePos, -inset, 20), "Exclude non-exporting glyphs", value=True, sizeStyle='small', callback=self.SavePreferences )
 		linePos += lineHeight
 
-		self.w.reportCrashesInMacroWindow = vanilla.CheckBox( (inset, linePos, -inset, 20), "Also report in Macro Window (a few seconds slower)", value=False, sizeStyle='small', callback=self.SavePreferences )
-		self.w.reuseCurrentTab = vanilla.CheckBox( (inset+310, linePos, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reportCrashesInMacroWindow = vanilla.CheckBox( (inset, linePos, -inset, 20), "Also report in Macro Window (slower)", value=False, sizeStyle='small', callback=self.SavePreferences )
+		self.w.reuseCurrentTab = vanilla.CheckBox( (inset+240, linePos, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.reuseCurrentTab.getNSButton().setToolTip_(u"If enabled, will not open a new tab with newly added kern pairs, but reuse the current Edit tab. Will open an Edit tab if none is open.")
 		linePos += lineHeight
 		
@@ -207,7 +207,6 @@ class KernCrasher( object ):
 	def masterSwitch(self, sender=None):
 		if sender is self.w.nextButton:
 			Glyphs.font.masterIndex+=1
-	
 		
 	def splitString( self, string, delimiter=":", minimum=2 ):
 		# split string into a list:
