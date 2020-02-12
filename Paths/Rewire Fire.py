@@ -14,7 +14,7 @@ class RewireFire( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 350
-		windowHeight = 180
+		windowHeight = 200
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -45,6 +45,14 @@ class RewireFire( object ):
 		self.w.openTabWithAffectedLayers = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"New tab with affected layers (otherwise report only)", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.openTabWithAffectedLayers.getNSButton().setToolTip_("If checked, will open a new tab with all layers that contain duplicate coordinates. Otherwise, will report in Macro Window only.")
 		linePos += lineHeight
+		
+		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress.set(0) # set progress indicator to zero
+		linePos+=lineHeight
+		
+		self.w.statusText = vanilla.TextBox( (inset, -20-inset, -80-inset, -inset), u"🤖 Ready.", sizeStyle='small', selectable=True )
+		linePos += lineHeight
+		
 		
 		# Run Button:
 		self.w.runButton = vanilla.Button( (-80-inset, -20-inset, -inset, -inset), "Fire", sizeStyle='regular', callback=self.RewireFireMain )
@@ -105,7 +113,12 @@ class RewireFire( object ):
 			
 			duplicateCount = 0
 			affectedLayers = []
-			for thisGlyph in thisFont.glyphs:
+			numGlyphs = float(len(thisFont.glyphs))
+			
+			for i,thisGlyph in enumerate(thisFont.glyphs):
+				self.w.progress.set(int(i/numGlyphs*100))
+				self.w.statusText.set(u"🔠 Processing %s"%thisGlyph.name)
+				
 				if thisGlyph.export or Glyphs.defaults["com.mekkablue.RewireFire.includeNonExporting"]:
 					for thisLayer in thisGlyph.layers:
 						if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
@@ -141,6 +154,8 @@ class RewireFire( object ):
 							
 								affectedLayers.append(thisLayer)
 			
+			self.w.progress.set(0)
+			self.w.statusText.set(u"✅ Done.")
 			
 			print("\nFound a total of %i duplicate coordinates. (Triplets count as two.)" % duplicateCount)
 			
