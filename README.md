@@ -16,14 +16,9 @@ I recommend to use git for getting the scripts, and syncing them on a regular ba
 git clone https://github.com/mekkablue/Glyphs-Scripts ~/Library/Application\ Support/Glyphs/Scripts/mekkablue/
 ```
 
-And this one for updating it:
-
-```bash
-cd ~/Library/Application\ Support/Glyphs/Scripts/mekkablue/
-git checkout
-```
-
 If the terminal scares you, feel free to use one of the many readily available git clients.
+
+After you instaled the mekkablue scripts, you can update this script repository (and all the others you have in your Scripts folder) by running *Scripts > mekkablue > App > Update git Repositories in Scripts Folder.*
 
 # TROUBLESHOOTING
 
