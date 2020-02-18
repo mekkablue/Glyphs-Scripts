@@ -30,7 +30,7 @@ def roundUpByValue(x, roundBy):
 		factor=0
 		if x%roundBy:
 			factor=1
-		return (abs(x)//roundBy*roundBy + factor*roundBy) * sign
+		return int((abs(x)//roundBy*roundBy + factor*roundBy) * sign)
 
 class VerticalMetricsManager( object ):
 	def __init__( self ):
@@ -161,14 +161,14 @@ class VerticalMetricsManager( object ):
 			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.round"] = self.w.round.get()
 			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.roundValue"] = self.w.roundValue.get()
 			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.useTypoMetrics"] = self.w.useTypoMetrics.get()
-			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaGap"] = self.w.hheaGap.get()
-			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaDesc"] = self.w.hheaDesc.get()
-			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaAsc"] = self.w.hheaAsc.get()
-			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoGap"] = self.w.typoGap.get()
-			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoDesc"] = self.w.typoDesc.get()
-			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoAsc"] = self.w.typoAsc.get()
-			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.winDesc"] = self.w.winDesc.get()
-			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.winAsc"] = self.w.winAsc.get()
+			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaGap"] = self.w.hheaGap.getNSTextField().integerValue()
+			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaDesc"] = self.w.hheaDesc.getNSTextField().integerValue()
+			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaAsc"] = self.w.hheaAsc.getNSTextField().integerValue()
+			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoGap"] = self.w.typoGap.getNSTextField().integerValue()
+			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoDesc"] = self.w.typoDesc.getNSTextField().integerValue()
+			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoAsc"] = self.w.typoAsc.getNSTextField().integerValue()
+			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.winDesc"] = self.w.winDesc.getNSTextField().integerValue()
+			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.winAsc"] = self.w.winAsc.getNSTextField().integerValue()
 		except:
 			return False
 			
@@ -201,14 +201,14 @@ class VerticalMetricsManager( object ):
 			self.w.round.set( Glyphs.defaults["com.mekkablue.VerticalMetricsManager.round"] )
 			self.w.roundValue.set( Glyphs.defaults["com.mekkablue.VerticalMetricsManager.roundValue"] )
 			self.w.useTypoMetrics.set( Glyphs.defaults["com.mekkablue.VerticalMetricsManager.useTypoMetrics"] )
-			self.w.hheaGap.set( Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaGap"] )
-			self.w.hheaDesc.set( Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaDesc"] )
-			self.w.hheaAsc.set( Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaAsc"] )
-			self.w.typoGap.set( Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoGap"] )
-			self.w.typoDesc.set( Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoDesc"] )
-			self.w.typoAsc.set( Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoAsc"] )
-			self.w.winDesc.set( Glyphs.defaults["com.mekkablue.VerticalMetricsManager.winDesc"] )
-			self.w.winAsc.set( Glyphs.defaults["com.mekkablue.VerticalMetricsManager.winAsc"] )
+			self.w.hheaGap.set( str(Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaGap"]) )
+			self.w.hheaDesc.set( str(Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaDesc"]) )
+			self.w.hheaAsc.set( str(Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaAsc"]) )
+			self.w.typoGap.set( str(Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoGap"]) )
+			self.w.typoDesc.set( str(Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoDesc"]) )
+			self.w.typoAsc.set( str(Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoAsc"]) )
+			self.w.winDesc.set( str(Glyphs.defaults["com.mekkablue.VerticalMetricsManager.winDesc"]) )
+			self.w.winAsc.set( str(Glyphs.defaults["com.mekkablue.VerticalMetricsManager.winAsc"]) )
 		except:
 			return False
 			
@@ -223,6 +223,10 @@ class VerticalMetricsManager( object ):
 			webbrowser.open( URL )
 	
 	def update(self, sender=None):
+		# update settings to the latest user input:
+		if not self.SavePreferences( self ):
+			print("Note: 'Vertical Metrics Manager' could not write preferences.")
+		
 		thisFont = Glyphs.font # frontmost font
 		print("\nVertical Metrics Manager:\nUpdating values for: %s" % thisFont.familyName)
 		print(thisFont.filepath)
