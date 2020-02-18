@@ -78,7 +78,7 @@ spaces = {
 	"narrownbspace": "=space*0.2", # "NNBSP": a narrow form of a no-break space, typically the width of a thin space or a mid space
 	"punctuationspace": "=period", # space equal to narrow punctuation of a font
 	"nbspace": "=space", # commonly abbreviated as NBSP
-	"thinspace": "=%i" % (thisFont.upm*0.14), # a fifth of an em (or sometimes a sixth)
+	"thinspace": "=%i" % (thisFont.upm*0.125), # a fifth of an em (or sometimes a sixth), InD: an eighth
 	"hairspace": "=%i" % (thisFont.upm*0.07), # thinner than a thin space; in traditional typography, the thinnest space available
 	"zerowidthspace": "=0", # "ZWSP": this character is intended for invisible word separation and for line break control; it has no width, but its presence between two characters does not prevent increased letter spacing in justification
 }
