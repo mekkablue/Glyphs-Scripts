@@ -350,11 +350,13 @@ class KernCrasher( object ):
 				self.w.bar.set( int(100*(float(index)/numOfGlyphs)) )
 				# determine left glyph:
 				firstGlyphName = firstList[index]
-				leftLayer = thisFont.glyphs[firstGlyphName].layers[thisFontMasterID]
+				leftLayer = thisFont.glyphs[firstGlyphName].layers[thisFontMasterID].copyDecomposedLayer()
+				leftLayer.decomposeSmartOutlines()
 				
 				# cycle through right glyphs:
 				for secondGlyphName in secondList:
-					rightLayer = thisFont.glyphs[secondGlyphName].layers[thisFontMasterID]
+					rightLayer = thisFont.glyphs[secondGlyphName].layers[thisFontMasterID].copyDecomposedLayer()
+					rightLayer.decomposeSmartOutlines()
 					kerning = self.effectiveKerning( firstGlyphName, secondGlyphName, thisFont, thisFontMasterID )
 					distanceBetweenShapes = self.minDistanceBetweenTwoLayers( leftLayer, rightLayer, interval=step, kerning=kerning, report=False, ignoreIntervals=ignoreIntervals )
 					if (not distanceBetweenShapes is None) and (distanceBetweenShapes < minDistance):
