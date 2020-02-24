@@ -11,7 +11,7 @@ class CompoundVariabler( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 410
-		windowHeight = 195
+		windowHeight = 215
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -40,6 +40,11 @@ class CompoundVariabler( object ):
 		self.w.openTab.getNSButton().setToolTip_("If checked, will open a tab with all compounds that have received new special layers.")
 		linePos += lineHeight
 		
+		self.w.catchNestedComponents = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Catch all nested components (slower)", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.catchNestedComponents.getNSButton().setToolTip_(u"If checked, will count max component depth (number of nestings, i.e. components of components of components, etc.) in the font, and repeat the whole process as many times. Will take significantly longer.")
+		linePos += lineHeight
+		
+		
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0) # set progress indicator to zero
 		linePos+=lineHeight
@@ -64,6 +69,7 @@ class CompoundVariabler( object ):
 			Glyphs.defaults["com.mekkablue.CompoundVariabler.allGlyphs"] = self.w.allGlyphs.get()
 			Glyphs.defaults["com.mekkablue.CompoundVariabler.openTab"] = self.w.openTab.get()
 			Glyphs.defaults["com.mekkablue.CompoundVariabler.deleteExistingSpecialLayers"] = self.w.deleteExistingSpecialLayers.get()
+			Glyphs.defaults["com.mekkablue.CompoundVariabler.catchNestedComponents"] = self.w.catchNestedComponents.get()
 		except:
 			return False
 			
@@ -74,13 +80,37 @@ class CompoundVariabler( object ):
 			Glyphs.registerDefault("com.mekkablue.CompoundVariabler.allGlyphs", 1)
 			Glyphs.registerDefault("com.mekkablue.CompoundVariabler.openTab", 0)
 			Glyphs.registerDefault("com.mekkablue.CompoundVariabler.deleteExistingSpecialLayers", 0)
+			Glyphs.registerDefault("com.mekkablue.CompoundVariabler.catchNestedComponents", 0)
 			self.w.allGlyphs.set( Glyphs.defaults["com.mekkablue.CompoundVariabler.allGlyphs"] )
 			self.w.openTab.set( Glyphs.defaults["com.mekkablue.CompoundVariabler.openTab"] )
 			self.w.deleteExistingSpecialLayers.set( Glyphs.defaults["com.mekkablue.CompoundVariabler.deleteExistingSpecialLayers"] )
+			self.w.catchNestedComponents.set( Glyphs.defaults["com.mekkablue.CompoundVariabler.catchNestedComponents"] )
 		except:
 			return False
 			
 		return True
+	
+	def countNest(self, c):
+		thisFont = c.parent.parent
+		if thisFont:
+			gName = c.componentName
+			g = thisFont.glyphs[gName]
+			if g:
+				gComponents = g.layers[0].components
+				if gComponents:
+					maxCount = max( countNest(cc) for cc in gComponents )
+					return 1+maxCount
+		return 1
+		
+	def depthOfNesting(self, thisFont):
+		depths=[]
+		for g in Font.glyphs:
+			for l in g.layers:
+				if l.isMasterLayer or l.isSpecialLayer or l.isColorLayer:
+					for c in l.components:
+						depth = countNest(c)
+						depths.append(depth)
+		return max(depths)
 
 	def CompoundVariablerMain( self, sender ):
 		try:
@@ -91,11 +121,24 @@ class CompoundVariabler( object ):
 			allGlyphs = Glyphs.defaults["com.mekkablue.CompoundVariabler.allGlyphs"]
 			openTab = Glyphs.defaults["com.mekkablue.CompoundVariabler.openTab"]
 			deleteExistingSpecialLayers = Glyphs.defaults["com.mekkablue.CompoundVariabler.deleteExistingSpecialLayers"]
+			catchNestedComponents = Glyphs.defaults["com.mekkablue.CompoundVariabler.catchNestedComponents"]
 			
 			thisFont = Glyphs.font # frontmost font
 			print("Compound Variabler Report for %s" % thisFont.familyName)
 			print(thisFont.filepath)
 			print()
+			
+			depth = 1
+			if catchNestedComponents:
+				print("Catching all component nestings...")
+				depth = self.depthOfNesting(thisFont)
+				depth = max(1,depth) # minimum 1, just to make sure
+				print(
+					"Found components nested up to %i time%s" % (
+						depth,
+						"" if depth==1 else "s",
+					)
+				)
 			
 			if allGlyphs:
 				glyphs = [g for g in thisFont.glyphs if g.export]
@@ -103,50 +146,56 @@ class CompoundVariabler( object ):
 			else:
 				glyphs = [l.parent for l in thisFont.selectedLayers if l.parent.export]
 				print("Processing selected glyphs (%i in total)..." % len(glyphs))
+			
+			for depthIteration in range(depth):
+				depthStatusAddition=""
+				if depth>1:
+					print("\nNesting iteration %i:"%(depthIteration+1))
+					depthStatusAddition="%i: "%(depthIteration+1)
+					
+				glyphCount = len(glyphs)
+				affectedGlyphs = []
+				for i,currentGlyph in enumerate(glyphs):
+					# status update
+					self.w.progress.set(i*100.0/glyphCount)
+					processMessage = "%s%s" % (depthStatusAddition, currentGlyph.name)
+					self.w.processedGlyph.set( processMessage )
+					# print processMessage
 				
-			glyphCount = len(glyphs)
-			affectedGlyphs = []
-			for i,currentGlyph in enumerate(glyphs):
-				# status update
-				self.w.progress.set(i*100.0/glyphCount)
-				processMessage = "Processing %s" % currentGlyph.name
-				self.w.processedGlyph.set( processMessage )
-				# print processMessage
+					# process layers
+					thisLayer = currentGlyph.layers[0]
+					if thisLayer.components:
 				
-				# process layers
-				thisLayer = currentGlyph.layers[0]
-				if thisLayer.components:
+						# delete special layers if requested:
+						if deleteExistingSpecialLayers:
+							layerCount = len(currentGlyph.layers)
+							for i in reversed(range(layerCount)):
+								if currentGlyph.layers[i].isSpecialLayer:
+									print("%s: deleted layer '%s'" % (currentGlyph.name, currentGlyph.layers[i].name))
+									del currentGlyph.layers[i]
 				
-					# delete special layers if requested:
-					if deleteExistingSpecialLayers:
-						layerCount = len(currentGlyph.layers)
-						for i in reversed(range(layerCount)):
-							if currentGlyph.layers[i].isSpecialLayer:
-								print("%s: deleted layer '%s'" % (currentGlyph.name, currentGlyph.layers[i].name))
-								del currentGlyph.layers[i]
-				
-					for component in thisLayer.components:
-						originalGlyph = thisFont.glyphs[component.componentName]
-						if originalGlyph:
-							for originalLayer in originalGlyph.layers:
-								if originalLayer.isSpecialLayer:
-									namesAndMasterIDsOfSpecialLayers = [(l.name,l.associatedMasterId) for l in currentGlyph.layers if l.isSpecialLayer]
-									layerAlreadyExists = False
-									for currentGlyphLayer in currentGlyph.layers:
-										nameIsTheSame = originalLayer.name == currentGlyphLayer.name
-										masterIsTheSame = originalLayer.associatedMasterId == currentGlyphLayer.associatedMasterId
-										if nameIsTheSame and masterIsTheSame:
-											layerAlreadyExists = True
-									if layerAlreadyExists:
-										print("%s, layer '%s' already exists. Skipping." % (currentGlyph.name, originalLayer.name))
-									else:
-										newLayer = GSLayer()
-										newLayer.name = originalLayer.name
-										newLayer.setAssociatedMasterId_(originalLayer.associatedMasterId)
-										currentGlyph.layers.append(newLayer)
-										newLayer.reinterpolate()
-										affectedGlyphs.append(currentGlyph.name)
-										print("%s, new layer: '%s'" % (currentGlyph.name, newLayer.name))
+						for component in thisLayer.components:
+							originalGlyph = thisFont.glyphs[component.componentName]
+							if originalGlyph:
+								for originalLayer in originalGlyph.layers:
+									if originalLayer.isSpecialLayer:
+										namesAndMasterIDsOfSpecialLayers = [(l.name,l.associatedMasterId) for l in currentGlyph.layers if l.isSpecialLayer]
+										layerAlreadyExists = False
+										for currentGlyphLayer in currentGlyph.layers:
+											nameIsTheSame = originalLayer.name == currentGlyphLayer.name
+											masterIsTheSame = originalLayer.associatedMasterId == currentGlyphLayer.associatedMasterId
+											if nameIsTheSame and masterIsTheSame:
+												layerAlreadyExists = True
+										if layerAlreadyExists:
+											print("%s, layer '%s' already exists. Skipping." % (currentGlyph.name, originalLayer.name))
+										else:
+											newLayer = GSLayer()
+											newLayer.name = originalLayer.name
+											newLayer.setAssociatedMasterId_(originalLayer.associatedMasterId)
+											currentGlyph.layers.append(newLayer)
+											newLayer.reinterpolate()
+											affectedGlyphs.append(currentGlyph.name)
+											print("%s, new layer: '%s'" % (currentGlyph.name, newLayer.name))
 
 			# status update
 			self.w.progress.set(100)
