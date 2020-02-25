@@ -90,6 +90,6 @@ class RenameGlyphs( object ):
 			Glyphs.showMacroWindow()
 			print("Rename Glyphs Error: %s" % e)
 			import traceback
-			print traceback.format_exc()
+			print(traceback.format_exc())
 
 RenameGlyphs()

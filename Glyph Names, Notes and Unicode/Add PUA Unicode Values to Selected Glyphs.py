@@ -73,7 +73,7 @@ class CustomUnicode( object ):
 		for digit in unicodeValue:
 			allDigitsValid = True
 			if not digit in "0123456789ABCDEF":
-				print("ERROR: Found '%s' in entry. Not a valid hex digit." % digit))
+				print("ERROR: Found '%s' in entry. Not a valid hex digit." % digit)
 				allDigitsValid = False
 		
 		return allDigitsValid
