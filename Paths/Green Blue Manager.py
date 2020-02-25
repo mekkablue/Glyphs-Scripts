@@ -210,19 +210,20 @@ class GreenBlueManager( object ):
 					elif thisNode.nextNode.type != OFFCURVE:
 						hotNode = thisNode.nextNode
 					if not hotNode is None:
-						angleDiff = abs( angle(hotNode.prevNode, hotNode) - angle(hotNode, hotNode.nextNode) ) % 360
-						if (angleDiff <= thresholdAngle or angleDiff >= 360-thresholdAngle) and hotNode.connection != GSSMOOTH:
-							layerCount += 1
-							if shouldFix:
-								hotNode.connection = GSSMOOTH
-							if shouldMark:
-								hotNode.name = u"💚"
-						elif (thresholdAngle < angleDiff < 360-thresholdAngle) and hotNode.connection != GSSHARP:
-							layerCount += 1
-							if shouldFix:
-								hotNode.connection = GSSHARP
-							if shouldMark:
-								hotNode.name = u"🔷"
+						if hotNode.prevNode and hotNode.nextNode:
+							angleDiff = abs( angle(hotNode.prevNode, hotNode) - angle(hotNode, hotNode.nextNode) ) % 360
+							if (angleDiff <= thresholdAngle or angleDiff >= 360-thresholdAngle) and hotNode.connection != GSSMOOTH:
+								layerCount += 1
+								if shouldFix:
+									hotNode.connection = GSSMOOTH
+								if shouldMark:
+									hotNode.name = u"💚"
+							elif (thresholdAngle < angleDiff < 360-thresholdAngle) and hotNode.connection != GSSHARP:
+								layerCount += 1
+								if shouldFix:
+									hotNode.connection = GSSHARP
+								if shouldMark:
+									hotNode.name = u"🔷"
 		
 		if shouldReport and shouldVerbose:
 			print("%s, layer '%s'" % (thisLayer.parent.name, thisLayer.name))
