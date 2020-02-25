@@ -28,7 +28,7 @@ class AutoAlignmentManager( object ):
 		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 14), u"Manage component alignment in selected glyphs:", sizeStyle='small', selectable=True )
 		linePos += lineHeight
 		
-		self.w.includeAllGlyphs = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Include all glyphs, i.e., ignore glyph selection", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.includeAllGlyphs = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Include all glyphs in font, i.e., ignore glyph selection", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.includeAllGlyphs.getNSButton().setToolTip_("No matter what your glyph selection is, will enable/disable component alignment for ALL glyphs in the font.")
 		linePos += lineHeight
 		
