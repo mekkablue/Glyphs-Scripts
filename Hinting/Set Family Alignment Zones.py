@@ -88,7 +88,7 @@ class SetFamilyAlignmentZones( object ):
 			instanceIndex = int(instanceName[:instanceName.find(":")])
 			thisInstance = thisFont.instances[instanceIndex]
 			if thisInstance.name in instanceName:
-				instanceZones = thisInstance.font.masters[0].alignmentZones
+				instanceZones = thisInstance.interpolatedFont.masters[0].alignmentZones.__copy__()
 				thisFont.customParameters["Family Alignment Zones"] = instanceZones
 				print(u"✅ Set family alignment zones to instance %s" % instanceName)
 			else:
