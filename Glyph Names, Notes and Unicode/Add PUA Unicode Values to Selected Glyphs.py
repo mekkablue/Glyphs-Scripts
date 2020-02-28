@@ -10,9 +10,9 @@ import vanilla
 class CustomUnicode( object ):
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 320
+		windowWidth  = 250
 		windowHeight = 95
-		windowWidthResize  = 100 # user can resize width by this value
+		windowWidthResize  = 200 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			( windowWidth, windowHeight ), # default window size
@@ -23,8 +23,14 @@ class CustomUnicode( object ):
 		)
 		
 		# UI elements:
-		self.w.text_1 = vanilla.TextBox( (15, 12+2, 155, 14), "Unicode values starting at:", sizeStyle='small' )
-		self.w.unicode = vanilla.EditText( (170, 12, -15, 15+3), "E700", sizeStyle = 'small', callback=self.sanitizeEntry)
+		linePos, inset, lineHeight = 12, 15, 22
+		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, 155, 14), u"Unicode values starting at:", sizeStyle='small', selectable=True )
+		self.w.unicode = vanilla.EditText( (inset+155, linePos, -inset-25, 19), "E700", callback=self.sanitizeEntry, sizeStyle='small' )
+		self.w.unicode.getNSTextField().setToolTip_(u"The first selected glyph will receive this Unicode value. Subsequent glyphs will get the next respective Unicode value, until all selected glyphs have received one.")
+		self.w.updateButton = vanilla.SquareButton( (-inset-20, linePos, -inset, 18), u"↺", sizeStyle='small', callback=self.update )
+		self.w.updateButton.getNSButton().setToolTip_(u"Resets the starting Unicode to the first BMP PUA available in the font. Useful if you do not wish to overwrite existing PUA codes.")
+		linePos += lineHeight
+		
 		
 		# Run Button:
 		self.w.runButton = vanilla.Button((-80-15, -20-15, -15, -15), "Apply", sizeStyle='regular', callback=self.CustomUnicodeMain )
@@ -62,6 +68,15 @@ class CustomUnicode( object ):
 			return False
 			
 		return True
+	
+	def update(self, sender=None):
+		Glyphs.defaults["com.mekkablue.CustomUnicode.unicode"] = self.lastPUAofCurrentFont()
+		self.LoadPreferences()
+		
+	def lastPUAofCurrentFont(self):
+		thisFont = Glyphs.font
+		lastPUA = sorted(["DFFF"]+[g.unicode for g in thisFont.glyphs if g.unicode and g.unicode >= "E000" and g.unicode <= "E8FF"])[-1]
+		return "%04X" % (int(lastPUA,16)+1)
 	
 	def checkUnicodeEntry( self, unicodeValue ):
 		length = len(unicodeValue)
