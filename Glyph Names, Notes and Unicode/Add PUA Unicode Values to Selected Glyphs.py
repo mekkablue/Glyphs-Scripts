@@ -11,7 +11,7 @@ class CustomUnicode( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 300
-		windowHeight = 110
+		windowHeight = 130
 		windowWidthResize  = 200 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -24,16 +24,23 @@ class CustomUnicode( object ):
 		
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
+		
 		self.w.descriptionText = vanilla.TextBox( (inset, linePos+3, 190, 14), u"Assign Unicode values starting at:", sizeStyle='small', selectable=True )
 		self.w.unicode = vanilla.EditText( (inset+190, linePos, -inset-25, 19), "E700", callback=self.sanitizeEntry, sizeStyle='small' )
 		self.w.unicode.getNSTextField().setToolTip_(u"The first selected glyph will receive this Unicode value. Subsequent glyphs will get the next respective Unicode value, until all selected glyphs have received one.")
 		self.w.updateButton = vanilla.SquareButton( (-inset-20, linePos, -inset, 18), u"↺", sizeStyle='small', callback=self.update )
 		self.w.updateButton.getNSButton().setToolTip_(u"Resets the starting Unicode to the first BMP PUA available in the font. Useful if you do not wish to overwrite existing PUA codes.")
 		linePos += lineHeight
+
 		self.w.keepExistingUnicodes = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Keep existing Unicode values", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.keepExistingUnicodes.getNSButton().setToolTip_(u"Two things: it keeps (does not overwrite) the Unicode value of a selected glyph, and it skips Unicode values that are already in use elsewhere in the font.")
+		self.w.keepExistingUnicodes.getNSButton().setToolTip_(u"Two things: it keeps (does not overwrite) the Unicode value of a selected glyph, and it skips Unicode values that are already in use elsewhere in the font. Allows you to select all glyphs and run the script, and thus, assign PUA codes to all unencoded glyphs.")
+		linePos += lineHeight
+
+		self.w.includeNonExportingGlyphs = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.includeNonExportingGlyphs.getNSButton().setToolTip_(u"If disabled, will skip all glyphs that are set to not export. If enabled, will treat all selected glyphs, including non-exporting glyphs.")
 		linePos += lineHeight
 		
+		# Status Message:
 		self.w.status = vanilla.TextBox( (inset, -16-inset, -inset, -inset), u"", sizeStyle='small', selectable=True )
 		linePos += lineHeight
 		
@@ -61,6 +68,8 @@ class CustomUnicode( object ):
 		try:
 			Glyphs.defaults["com.mekkablue.CustomUnicode.unicode"] = self.w.unicode.get()
 			Glyphs.defaults["com.mekkablue.CustomUnicode.keepExistingUnicodes"] = self.w.keepExistingUnicodes.get()
+			Glyphs.defaults["com.mekkablue.CustomUnicode.includeNonExportingGlyphs"] = self.w.includeNonExportingGlyphs.get()
+			self.w.status.set("")
 		except:
 			return False
 		return True
@@ -69,8 +78,11 @@ class CustomUnicode( object ):
 		try:
 			Glyphs.registerDefault("com.mekkablue.CustomUnicode.unicode", "E700")
 			Glyphs.registerDefault("com.mekkablue.CustomUnicode.keepExistingUnicodes", 1)
+			Glyphs.registerDefault("com.mekkablue.CustomUnicode.includeNonExportingGlyphs", 0)
 			self.w.unicode.set( Glyphs.defaults["com.mekkablue.CustomUnicode.unicode"] )
 			self.w.keepExistingUnicodes.set( Glyphs.defaults["com.mekkablue.CustomUnicode.keepExistingUnicodes"] )
+			self.w.includeNonExportingGlyphs.set( Glyphs.defaults["com.mekkablue.CustomUnicode.includeNonExportingGlyphs"] )
+			self.w.status.set("")
 		except:
 			return False
 		return True
@@ -121,24 +133,27 @@ class CustomUnicode( object ):
 			
 				# Report in Macro window:
 				Glyphs.clearLog()
-				print("Setting Unicode values:")
+				print("Setting Unicode values for '%s':" % thisFont.familyName)
 				
 				# Apply Unicodes to selected glyphs:
 				for thisGlyph in listOfSelectedGlyphs:
-					unicodeValue = "%04X" % PUAcode
-					if keepExistingUnicodes:
-						if thisGlyph.unicode:
-							continue
-						while thisFont.glyphForUnicode_(unicodeValue):
-							self.statusMsg("%s: skipping (already in %s)" % (
-								unicodeValue,
-								thisFont.glyphForUnicode_(unicodeValue).name,
-								))
-							PUAcode += 1
-							unicodeValue = "%04X" % PUAcode
-					thisGlyph.setUnicode_( unicodeValue )
-					self.statusMsg("%s: %s" % (unicodeValue, thisGlyph.name))
-					PUAcode += 1
+					if thisGlyph.export or includeNonExportingGlyphs:
+						unicodeValue = "%04X" % PUAcode
+						if keepExistingUnicodes:
+							if thisGlyph.unicode:
+								continue
+							while thisFont.glyphForUnicode_(unicodeValue):
+								self.statusMsg( "%s: skipping (already in %s)" % (
+									unicodeValue,
+									thisFont.glyphForUnicode_(unicodeValue).name,
+									))
+								PUAcode += 1
+								unicodeValue = "%04X" % PUAcode
+						thisGlyph.setUnicode_( unicodeValue )
+						self.statusMsg( "%s: %s" % (unicodeValue, thisGlyph.name) )
+						PUAcode += 1
+					else:
+						self.statusMsg( "Skipping %s (not exporting)" % thisGlyph.name )
 				
 				self.statusMsg("Done.")
 				# self.w.close() # closes window
