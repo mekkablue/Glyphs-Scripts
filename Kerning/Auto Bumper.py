@@ -191,7 +191,7 @@ class Bumper( object ):
 		if kernStrings:
 			return kernStrings
 		else:
-			return defaultStrings
+			return defaultStrings.splitlines()
 			
 	def swap(self, sender=None):
 		rightEntry = self.w.rightGlyphs.get()
