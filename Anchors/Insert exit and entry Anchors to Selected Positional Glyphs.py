@@ -15,17 +15,24 @@ selectedLayers = Font.selectedLayers
 
 def findOncurveAtRSB( thisLayer ):
 	layerWidth = thisLayer.width
-	myRSBnodes = []
 	
-	for thisPath in thisLayer.paths:
+	try:
+		paths = [p for p in thisLayer.shapes if type(p)==GSPath]
+	except:
+		paths = thisLayer.paths
+	
+	rightMostPoint = None
+	for thisPath in paths:
+		print(thisPath)
 		for thisNode in thisPath.nodes:
-			if thisNode.type != GSOFFCURVE and abs( thisNode.x - layerWidth ) < 1.0:
-				myRSBnodes.append( thisNode )
+			print(thisNode.x)
+			if thisNode.type != GSOFFCURVE and (rightMostPoint==None or rightMostPoint.x < thisNode.x):
+				rightMostPoint = thisNode
 	
-	if len( myRSBnodes ) == 1:
-		return myRSBnodes[0]
+	if rightMostPoint:
+		return rightMostPoint
 	else:
-		print("%s: %s potential entry points" % ( thisLayer.parent.name, len( myRSBnodes ) ))
+		print("%s: No potential entry point" % (thisLayer.parent.name))
 		return None
 
 def process( thisLayer ):
@@ -46,7 +53,7 @@ def process( thisLayer ):
 			myEntryPoint = findOncurveAtRSB( thisLayer )
 			if myEntryPoint != None:
 				myEntry = GSAnchor( "entry", NSPoint( myEntryPoint.x, myEntryPoint.y ) )
-				thisLayer.addAnchor_( myEntry )
+				thisLayer.anchors.append( myEntry )
 				print("%s: entry" % glyphName)
 	
 
