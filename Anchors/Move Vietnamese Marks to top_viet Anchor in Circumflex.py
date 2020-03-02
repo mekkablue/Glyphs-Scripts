@@ -35,24 +35,42 @@ def withoutLeadingUnderscore( thisName ):
 		return thisName
 
 def process( thisGlyph ):
-	statusString = "Processing %s" % thisGlyph.name
-	for thisMaster in Font.masters:
-		thisLayerID = thisMaster.id
-		thisLayer = thisGlyph.layers[ thisLayerID ]
-		
-		for thisComponentIndex in range( len( thisLayer.components ))[1:]:
-			accentComponent = thisLayer.components[ thisComponentIndex ]
-			accentName = withoutLeadingUnderscore(nameUntilFirstDot( accentComponent.componentName ))
-			if accentName in accentsToBeMoved:
-				baseComponent = thisLayer.components[ thisComponentIndex - 1 ]
-				if baseComponent:
-					if baseHasAnchor( baseComponent, thisLayerID, anchorToLookFor=newAnchor ):
-						try:
-							thisLayer.components[ thisComponentIndex ].setAnchor_( newAnchor )
-							statusString += "\n   %s: Moved %s on %s." % ( thisLayer.name, accentName, newAnchor )
-						except Exception as e:
-							return "\nERROR in %s %s:\nCould not move %s onto %s.\n%s" % ( thisGlyph.name, thisLayer.name, accentName, newAnchor, e )
+	statusString = "\nProcessing %s" % thisGlyph.name
+	for thisLayer in thisGlyph.layers:
+		if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
+			try:
+				# Glyphs 3
+				components = [c for c in thisLayer.shapes if c.type==GSComponent]
+			except:
+				# Glyphs 2
+				components = thisLayer.components
+			
+			numOfComponents = len( components )
+			previousComponent = None
+			if numOfComponents > 2:
+				for accentComponent in components:
+					if not previousComponent:
+						# first component, should be base letter:
+						previousComponent = accentComponent
+					else:
+						# second or third component:
+						accentName = withoutLeadingUnderscore(nameUntilFirstDot( accentComponent.componentName ))
+						if accentName in accentsToBeMoved:
+							baseComponent = previousComponent
+							if baseComponent:
+								if baseHasAnchor( baseComponent, thisLayer.master.id, anchorToLookFor=newAnchor ):
+									try:
+										accentComponent.setAnchor_( newAnchor )
+										statusString += "\n✅ %s: moved %s on %s." % ( thisLayer.name, accentName, newAnchor )
+									except Exception as e:
+										return "\n❌ ERROR in %s %s:\nCould not move %s onto %s.\n%s" % ( thisGlyph.name, thisLayer.name, accentName, newAnchor, e )
+			else:
+				statusString += "\n⚠️ %s: only %i components, skipping." % ( thisLayer.name, numOfComponents )
+			
 	return statusString
+
+Glyphs.clearLog() # clears macro window log
+print("Move Vietnamese Marks to top_viet Anchor in Circumflex")
 
 for thisGlyph in selectedGlyphs:
 	thisGlyph.beginUndo()
