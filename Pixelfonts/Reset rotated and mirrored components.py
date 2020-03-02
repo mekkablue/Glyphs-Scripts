@@ -22,18 +22,19 @@ for l in selectedLayers:
 			toBeDeleted.append( compIndex )
 			compInfo = ( comp.componentName, comp.bounds.origin.x, comp.bounds.origin.y )
 			toBeAdded.append( compInfo )
-				
+	
 	numOfComponents = len( toBeAdded )
 	print("Fixing %i components in %s ..." % ( numOfComponents, glyphName ))
-
+	print(toBeAdded)
+	
 	for delIndex in sorted( toBeDeleted )[::-1]:
 		del l.components[ delIndex ]
 
 	for compInfo in toBeAdded:
 		cName, cX, cY = compInfo
 		newC = GSComponent( cName )
-		newC.x = cX
-		newC.y = cY
+		newC.position = NSPoint(cX,cY)
+		newC.automaticAlignment = False
 		l.components.append( newC )
 	
 	thisGlyph.endUndo()
