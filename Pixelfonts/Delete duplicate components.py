@@ -29,22 +29,19 @@ def scanForDuplicates( thisLayer, compNumber ):
 def process( thisLayer ):
 	if len( thisLayer.components ) != 0:
 		thisLayer.parent.beginUndo()
-	
 		indexesToBeDeleted = scanForDuplicates( thisLayer, 0 )
 		for indexToBeDeleted in indexesToBeDeleted[::-1]:
 			del thisLayer.components[indexToBeDeleted]
-		print len( indexesToBeDeleted )
-	
 		thisLayer.parent.endUndo()
+		return len( indexesToBeDeleted )
 	else:
-		# no components in this layer
-		print "n/a"
+		return 0
 
 
 Font.disableUpdateInterface()
 
 for thisLayer in selectedLayers:
-	print "Components deleted in %s:" % thisLayer.parent.name,
-	process( thisLayer )
+	numOfDeletedComponents = process( thisLayer )
+	print("%i components deleted in: %s (%s)" % (numOfDeletedComponents, thisLayer.parent.name, thisLayer.name)
 
 Font.enableUpdateInterface()

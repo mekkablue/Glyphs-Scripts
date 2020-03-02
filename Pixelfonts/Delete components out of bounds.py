@@ -33,16 +33,16 @@ def process( thisLayer ):
 		numberOfOffComponents = len(indexesOutOfBounds)
 
 		if numberOfOffComponents > 0:
-			print "Deleting %i components in %s." % (numberOfOffComponents, glyphName)
+			print("Deleting %i components in %s." % (numberOfOffComponents, glyphName))
 		
 			for indexOutOfBounds in indexesOutOfBounds[::-1]:
 				del thisLayer.components[indexOutOfBounds]
 		else:
-			print "No components out of bounds in %s." % glyphName
+			print("No components out of bounds in %s." % glyphName)
 		
 		thisLayer.parent.endUndo()
 	else:
-		print "No components in %s." % glyphName
+		print("No components in %s." % glyphName)
 
 Font.disableUpdateInterface()
 

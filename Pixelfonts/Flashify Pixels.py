@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Adds small bridges to diagonal pixel connections (where two pixel corners touch). Otherwise your counters may be lost in the Flash text engine.
+Adds small bridges to diagonal pixel connections (where two pixel corners touch). Otherwise your counters may be lost in the Flash text engine (hence the name of the script).
 """
 
 from Foundation import NSClassFromString
@@ -41,11 +41,11 @@ def process( thisLayer ):
 			if coordinatelist[cur1] == coordinatelist[cur2]:
 				[ my_x, my_y ] = coordinatelist[ cur1 ]
 				thisLayer.paths.append( karo( my_x, my_y ) )
-				print thisLayer.parent.name, ":", my_x, my_y
+				print("  %s: %i %i" % (thisLayer.parent.name, my_x, my_y))
 
 	thisLayer.parent.endUndo()
 
-print "Flashifying %s..." % Font.familyName
+print("Flashifying %s..." % Font.familyName)
 
 oldGridstep = Font.gridLength
 if oldGridstep > 1:

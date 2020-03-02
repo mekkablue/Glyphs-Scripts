@@ -24,7 +24,7 @@ def process( thisLayer ):
 				oldX = a.x
 				oldY = a.y
 				a.position = ( round( a.x/pixelwidth ) * pixelwidth, round( a.y/pixelwidth ) * pixelwidth )
-				print "%s: %s %i|%i --> %i|%i" % ( thisLayer.parent.name, a.name, int(oldX), int(oldY), int(a.x), int(a.y) )
+				print("%s: %s %i|%i --> %i|%i" % ( thisLayer.parent.name, a.name, int(oldX), int(oldY), int(a.x), int(a.y) ))
 				
 		thisLayer.parent.endUndo()
 
