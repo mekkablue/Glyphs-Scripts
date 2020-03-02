@@ -24,7 +24,7 @@ for l in selectedLayers:
 			toBeAdded.append( compInfo )
 				
 	numOfComponents = len( toBeAdded )
-	print "Fixing %i components in %s ..." % ( numOfComponents, glyphName )
+	print("Fixing %i components in %s ..." % ( numOfComponents, glyphName ))
 
 	for delIndex in sorted( toBeDeleted )[::-1]:
 		del l.components[ delIndex ]
