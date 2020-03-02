@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Moves all ogonek and _ogonek anchors to the rightmost intersection of the outline with the baseline.
+In selected glyphs, moves all ogonek and _ogonek anchors to the rightmost intersection of the outline with the baseline. Verbose report in 
 """
 
 import math
@@ -10,13 +10,7 @@ from Foundation import NSPoint, NSBundle
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
-listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
-
-GLYPHSAPPVERSION = NSBundle.bundleForClass_(NSClassFromString("GSMenu")).infoDictionary().objectForKey_("CFBundleShortVersionString")
-GLYPHS_IS_OLD = GLYPHSAPPVERSION.startswith("1.")
-measurementTool = None
-if GLYPHS_IS_OLD:
-	measurementTool = NSClassFromString("GlyphsToolMeasurement").alloc().init()
+selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 
 def angle( firstPoint, secondPoint ):
 	xDiff = firstPoint.x - secondPoint.x
@@ -26,10 +20,7 @@ def angle( firstPoint, secondPoint ):
 	return angle
 
 def sliceIntersections( thisLayer, startPoint, endPoint ):
-	if measurementTool:
-		return measurementTool.calculateIntersectionsForLayer_startPoint_endPoint_( thisLayer, startPoint, endPoint )
-	else:
-		return thisLayer.calculateIntersectionsStartPoint_endPoint_( startPoint, endPoint )
+	return thisLayer.calculateIntersectionsStartPoint_endPoint_( startPoint, endPoint )
 
 def intersectionOnBaseline( thisLayer ):
 	"""Returns the NSPoint of the rightmost intersection with the baseline."""
@@ -40,11 +31,12 @@ def intersectionOnBaseline( thisLayer ):
 	targetX = originX + thisLayer.bounds.size.width + goodMeasure
 	targetPoint = NSPoint( targetX, 0.0 )
 	
-	listOfIntersections = sliceIntersections( thisLayer, originPoint, targetPoint )
+	intersections = sliceIntersections( thisLayer, originPoint, targetPoint )
 	
-	print("intersectionOnBaseline:", listOfIntersections, originPoint, targetPoint)
-	if listOfIntersections:
-		rightmostIntersection = listOfIntersections[-2].pointValue()
+	
+	# print("intersectionOnBaseline:", intersections, originPoint, targetPoint)
+	if len(intersections) > 2:
+		rightmostIntersection = intersections[-2].pointValue()
 		return rightmostIntersection
 	else:
 		return None
@@ -59,7 +51,7 @@ def process( thisLayer ):
 		baselineOutlineIntersection = intersectionOnBaseline( thisLayer )
 		if baselineOutlineIntersection:
 			ogonekAnchor.position = baselineOutlineIntersection
-			print("  Moved to %.1f, %.1f." % (ogonekAnchor.x, ogonekAnchor.y))
+			print("✅ Layer %s: ogonek anchor moved to %.1f, %.1f." % (thisLayer.name, ogonekAnchor.x, ogonekAnchor.y))
 			
 			# selects anchor on thisLayer:
 			itemsToBeSelected = NSMutableArray.arrayWithObject_( ogonekAnchor )
@@ -67,17 +59,23 @@ def process( thisLayer ):
 		else:
 			# put it on the baseline, at least:
 			ogonekAnchor.y = 0
-			print("  No outline intersection on baseline.")
+			print("⚠️ Layer %s: ogonek moved to baseline, but there is no outline intersection." % thisLayer.name )
 	else:
-		print("  No anchor ogonek or _ogonek found.")
+		print("❓ Layer %s: No anchor ogonek or _ogonek found." % thisLayer.name )
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
-for thisLayer in listOfSelectedLayers:
-	thisGlyph = thisLayer.parent
-	print("Processing", thisGlyph.name)
+Glyphs.clearLog() # clears macro window log
+print("Move ogonek anchors to baseline intersection:\n")
+
+for thisGlyph in [l.parent for l in selectedLayers]:
+	print("Processing: %s" % thisGlyph.name)
 	thisGlyph.beginUndo() # begin undo grouping
-	process( thisLayer )
+	for thisLayer in thisGlyph.layers:
+		if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
+			process( thisLayer )
 	thisGlyph.endUndo()   # end undo grouping
+
+print("\nDone.")
 
 thisFont.enableUpdateInterface() # re-enables UI updates in Font View
