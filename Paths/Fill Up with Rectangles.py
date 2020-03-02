@@ -34,6 +34,7 @@ def process( thisLayer ):
 	layerIsEmpty = ( len(thisLayer.paths) == 0 and len(thisLayer.components) == 0 )
 	thisGlyph = thisLayer.parent
 	try:
+		# Glyphs 3
 		case = thisGlyph.case
 		if case == GSLowercase:
 			height = 500
@@ -42,6 +43,7 @@ def process( thisLayer ):
 		else:
 			height = 600
 	except:
+		# Glyphs 2
 		subCategory = thisGlyph.subCategory
 		if subCategory == "Lowercase":
 			height = 500
@@ -56,6 +58,7 @@ def process( thisLayer ):
 		layerRect = drawRect( bottomLeft, topRight )
 		if layerRect:
 			try:
+				# Glyphs 2:
 				thisLayer.paths.append( layerRect )
 			except:
 				# Glyphs 3:
