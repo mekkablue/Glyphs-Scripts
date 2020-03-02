@@ -12,12 +12,6 @@ thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 
-GLYPHSAPPVERSION = NSBundle.bundleForClass_(GSMenu).infoDictionary().objectForKey_("CFBundleShortVersionString")
-GLYPHS_IS_OLD = GLYPHSAPPVERSION.startswith("1.")
-measurementTool = None
-if GLYPHS_IS_OLD:
-	measurementTool = NSClassFromString("GlyphsToolMeasurement").alloc().init()
-
 def angle( firstPoint, secondPoint ):
 	xDiff = firstPoint.x - secondPoint.x
 	yDiff = firstPoint.y - secondPoint.y
@@ -26,10 +20,7 @@ def angle( firstPoint, secondPoint ):
 	return angle
 
 def sliceIntersections( thisLayer, startPoint, endPoint ):
-	if measurementTool:
-		return measurementTool.calculateIntersectionsForLayer_startPoint_endPoint_( thisLayer, startPoint, endPoint )
-	else:
-		return thisLayer.calculateIntersectionsStartPoint_endPoint_( startPoint, endPoint )
+	return thisLayer.calculateIntersectionsStartPoint_endPoint_( startPoint, endPoint )
 
 def intersectionOnXHeight( thisLayer ):
 	"""Returns the NSPoint of the rightmost intersection with the x-height."""
