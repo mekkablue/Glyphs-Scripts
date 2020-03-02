@@ -6,6 +6,7 @@ Copy sidebearings, widths and/or metric keys (both on layer and glyph) from one 
 """
 
 import vanilla, math
+import traceback
 from AppKit import NSAffineTransform, NSAffineTransformStruct
 
 class MetricsCopy( object ):
@@ -316,7 +317,6 @@ class MetricsCopy( object ):
 				
 			except Exception as e:
 				self.outputError(e)
-				import traceback
 				print(traceback.format_exc())
 		
 MetricsCopy()
