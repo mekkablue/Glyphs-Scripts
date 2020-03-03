@@ -21,7 +21,7 @@ def isAnchorOnMetricLine( thisLayer, thisAnchorName ):
 		if myY in masterMetrics:
 			return False
 		else:
-			print("%s ---> %s @ %s" % (thisLayer.parent.name, thisAnchorName, myY))
+			print("%s: %s @ y=%s" % (thisLayer.parent.name, thisAnchorName, myY))
 			return True
 	except Exception as e:
 		return False
@@ -33,24 +33,20 @@ for thisAnchor in anchorsToLookFor:
 
 for thisGlyph in thisFont.glyphs:
 	for thisAnchor in anchorsToLookFor:
-		for thisVeryLayer in [l for l in thisGlyph.layers 
-			if l and (
-			l.isSpecialLayer # brace or bracket layer
-			or l.layerId == l.associatedFontMaster().id # master layer
-			)
-		]:
+		relevantLayers = [l for l in thisGlyph.layers if l and (l.isSpecialLayer or l.isMasterLayer)]
+		for thisVeryLayer in relevantLayers:
 			if isAnchorOnMetricLine( thisVeryLayer, thisAnchor ):
 				collectedGlyphNames[thisAnchor].append(thisGlyph.name)
 
 offAnchorsFound = False
+reporttext = ""
 for thisAnchor in anchorsToLookFor:
 	glyphNames = collectedGlyphNames[thisAnchor]
 	# opens new Edit tab:
 	if glyphNames:
 		offAnchorsFound = True
-		reporttext = "Anchor '%s' off metrics:\n/%s\n" % (thisAnchor, "/".join(glyphNames))
-		print("\n", reporttext) # just in case opening a tab fails
-		thisFont.newTab( reporttext )
+		reporttext += "Anchor '%s' off metrics:\n/%s\n\n" % (thisAnchor, "/".join(set(glyphNames)))
+thisFont.newTab( reporttext.strip() )
 
 if not offAnchorsFound:
 	reporttext = "Could not find %s anchors off metric lines on master layers." % " or ".join(anchorsToLookFor)

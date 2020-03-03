@@ -30,7 +30,6 @@ def processGlyph( thisGlyph ):
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
-Glyphs.showMacroWindow()
 thisFont = Glyphs.font # frontmost font
 
 print("Looking for exit/entry in %s:" % thisFont.familyName)
@@ -43,7 +42,10 @@ for thisGlyph in thisFont.glyphs:
 	glyphCount += processGlyph( thisGlyph )
 	thisGlyph.beginUndo() # begin undo grouping
 
-print("\nHashtagged exit/entry anchors in %i glyph%s.\nDone." % (
+reportMessage = "Hashtagged exit/entry anchors in %i glyph%s." % (
 	glyphCount,
 	"" if glyphCount==1 else "s",
-))
+)
+
+print("\n%s\nDone." % reportMessage)
+Message(title="Exit/Entry Prefix Report", message="Font ‘%s’: %s Detailed report in Macro Window."%(thisFont.familyName, reportMessage), OKButton=None)

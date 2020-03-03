@@ -64,15 +64,41 @@ class RemoveAnchorsinSuffixedGlyphs( object ):
 			suffixes = [s.strip() for s in suffixlist.split(",")]
 			
 			thisFont = Glyphs.font # frontmost font
+			Glyphs.clearLog() # clears macro window log
+			print("Remove Anchors in Suffixed Glyphs in font: ‘%s’" % thisFont.familyName)
+			print(thisFont.filepath)
+			print()
+			
+			cleanedGlyphsCount = 0
+			
 			for thisGlyph in thisFont.glyphs:
 				glyphNeedsToBeCleaned = False
 				for suffix in suffixes:
 					if thisGlyph.name.endswith(suffix) or "%s."%suffix in thisGlyph.name:
 						glyphNeedsToBeCleaned = True
 				if glyphNeedsToBeCleaned:
+					print("Removing anchors in %s" % thisGlyph.name)
+					cleanedGlyphsCount += 1
 					for thisLayer in thisGlyph.layers:
+						print("   Layer: %s" % thisLayer.name)
 						thisLayer.anchors=[]
 			
+			print("\nDone.")
+			
+			if cleanedGlyphsCount:
+				msgTitle = "Removed Anchors Successfully"
+			else:
+				msgTitle = "No Anchors Removed"
+
+			Message(
+				title=msgTitle,
+				message="Removed anchors in %i glyph%s in font ‘%s’. Detailed report in Macro Window." % (
+					cleanedGlyphsCount,
+					"" if cleanedGlyphsCount==1 else "s",
+					thisFont.familyName,
+				),
+				OKButton=None,
+				)
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
