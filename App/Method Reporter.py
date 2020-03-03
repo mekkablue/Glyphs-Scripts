@@ -20,34 +20,36 @@ def setClipboard( myText ):
 		return True
 	except Exception as e:
 		print(e)
+		import traceback
+		print(traceback.format_exc())
 		return False
 
 class MethodReporter( object ):
 	def __init__( self ):
 		self.mostImportantObjects = (
 			"GSLayer",
+			"GSGlyph",
+			"GSFont",
+			"GSPath",
+			"GSComponent",
 			"GSAlignmentZone",
 			"GSAnchor",
 			"GSAnnotation",
 			"GSApplication",
 			"GSBackgroundImage",
 			"GSClass",
-			"GSComponent",
 			"GSCustomParameter",
 			"GSEditViewController",
-			"GSGlyphEditView",
 			"GSFeature",
 			"GSFeaturePrefix",
-			"GSFont",
 			"GSFontMaster",
-			"GSGlyph",
+			"GSGlyphEditView",
 			"GSGlyphInfo",
 			"GSGlyphsInfo",
 			"GSGuideLine",
 			"GSHint",
 			"GSInstance",
 			"GSNode",
-			"GSPath",
 			"GSPathPen",
 			"GSPathSegment",
 			"GSProjectDocument",
@@ -160,6 +162,9 @@ class MethodReporter( object ):
 			# puts method in clipboard:
 			if not setClipboard(method):
 				print("Warning: could not set clipboard.")
+			else:
+				print("\n%s copied in clipboard, ready for pasting."%method)
+				
 		except Exception as e:
 			Glyphs.showMacroWindow()
 			import traceback

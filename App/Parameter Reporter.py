@@ -8,8 +8,6 @@ Searches in Custom Parameter names of all registered parameters in the current a
 import vanilla
 from AppKit import NSPasteboard, NSStringPboardType, NSUserDefaults
 
-appInfo = GSGlyphsInfo.alloc().init()
-
 def setClipboard( myText ):
 	"""
 	Sets the contents of the clipboard to myText.
@@ -25,9 +23,17 @@ def setClipboard( myText ):
 		return False
 
 class ParameterReporter( object ):
-	fontParameters = appInfo.customFontParameters()
-	masterParameters = appInfo.customMasterParameters()
-	instanceParameters = appInfo.customInstanceParameters()
+	try:
+		# GLYPHS 3:
+		fontParameters = GSGlyphsInfo.customFontParameters()
+		masterParameters = GSGlyphsInfo.customMasterParameters()
+		instanceParameters = GSGlyphsInfo.customInstanceParameters()
+	except Exception as e:
+		# GLYPHS 2
+		appInfo = GSGlyphsInfo.alloc().init()
+		fontParameters = appInfo.customFontParameters()
+		masterParameters = appInfo.customMasterParameters()
+		instanceParameters = appInfo.customInstanceParameters()
 	
 	def __init__( self ):
 		
@@ -48,16 +54,16 @@ class ParameterReporter( object ):
 		
 		# Filter:
 		self.w.filter = vanilla.EditText(
-			(10, 10, -10, 19 ),
+			(1, 1, -1, 22 ),
 			"",
-			sizeStyle='small',
+			sizeStyle='regular',
 			callback=self.ParameterReporterMain
 		)
 		self.w.filter.getNSTextField().setToolTip_("Type one or more search terms here. Use * as wildcard.")
 		
 		# Listing of Parameters:
 		self.w.ParameterList = vanilla.List(
-			(0, 40, -0, -0),
+			(0, 24, -0, -0),
 			dir(GSLayer),
 			autohidesScrollers=False,
 			drawVerticalLines=True,
@@ -168,5 +174,7 @@ class ParameterReporter( object ):
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Parameter Reporter Error: %s" % e)
+			import traceback
+			print(traceback.format_exc())
 
 ParameterReporter()
