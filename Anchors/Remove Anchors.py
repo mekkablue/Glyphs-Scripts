@@ -120,6 +120,13 @@ class AnchorDeleter( object ):
 			anchorPopupIndex = Glyphs.defaults["com.mekkablue.AnchorDeleter.anchorPopup"]
 			anchorsInPopup = self.w.anchorPopup.getItems()
 			anchorName = anchorsInPopup[anchorPopupIndex]
+			selectedGlyphsOnly = Glyphs.defaults["com.mekkablue.AnchorDeleter.selectedGlyphsOnly"]
+			
+			print(
+				"Deleting %s %s:\n" % (
+					anchorName.lower() if anchorName==allAnchors else anchorName,
+					"in selected glyphs" if selectedGlyphsOnly else "throughout the font",
+				))
 			
 			if not anchorName:
 				errorMsg = "⚠️ Could not determine selected anchor name. Reset the list, make a new choice, and try again, please."
@@ -129,7 +136,7 @@ class AnchorDeleter( object ):
 				currentMasterOnly = Glyphs.defaults["com.mekkablue.AnchorDeleter.currentMasterOnly"]
 				currentMaster = thisFont.selectedFontMaster
 
-				if Glyphs.defaults["com.mekkablue.AnchorDeleter.selectedGlyphsOnly"]:
+				if selectedGlyphsOnly:
 					glyphs = [l.parent for l in thisFont.selectedLayers]
 				else:
 					glyphs = thisFont.glyphs
@@ -145,8 +152,9 @@ class AnchorDeleter( object ):
 								deletedAnchorCount += len(thisLayer.anchors)
 								thisLayer.anchors = None
 							else:
-								deletedAnchorCount += 1
-								del thisLayer.anchors[anchorName]
+								if thisLayer.anchors[anchorName]:
+									deletedAnchorCount += 1
+									del thisLayer.anchors[anchorName]
 					
 					# report:
 					print("🅰️ %s: deleted %i anchor%s on %i layer%s" % (
@@ -167,7 +175,7 @@ class AnchorDeleter( object ):
 					len(glyphs),
 					"" if len(glyphs)==1 else "s",
 				)
-				print("🔠 %s"%msg)
+				print("\n🔠 %s Done."%msg)
 				Message(title="Anchors Removed", message="%s Detailed report in Macro Window."%msg, OKButton=None)
 			
 		except Exception as e:
