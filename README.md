@@ -54,7 +54,6 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **Replicate Anchors in Suffixed Glyphs:** Goes through selected dot-suffixed glyphs and duplicates anchors from their respective base glyphs. E.g. will recreate anchors of *X* in *X.ss01*, *X.swsh* and *X.alt*.
 * **Report Non-Standard Anchors to Macro window:** Goes through all glyphs in the font and reports in the Macro window if it finds non-default anchors. Lines are copy-pasteable in Edit view.
 * **Reposition top and bottom Anchors in Combining Accents:** In stacking combining accents, moves top and bottom anchors exactly above or below the respective _top and _bottom anchors, respecting the italic angle. This way, stacking multiple nonspacing accents will always stay in line.
-* **Reset Anchors in Suffixed Glyphs:** Deletes existing anchors in selected glyphs that have a dot suffix, and copies anchors from their unsuffixed counterpart into them. E.g., puts anchors from A into A.swsh.
 
 ## App
 
