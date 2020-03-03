@@ -71,8 +71,15 @@ class RemoveNonStandardAnchors( object ):
 	def RemoveNonStandardAnchorsMain( self, sender ):
 		try:
 			thisFont = Glyphs.font # frontmost font
-			listOfSelectedLayers = thisFont.selectedLayers # active layers of currently selected glyphs
-			for thisLayer in listOfSelectedLayers: # loop through selected layers
+			selectedLayers = thisFont.selectedLayers # active layers of currently selected glyphs
+			
+			keepExtensions = Glyphs.defaults["com.mekkablue.RemoveNonStandardAnchors.keepExtensions"]
+			keepExitAndEntry = Glyphs.defaults["com.mekkablue.RemoveNonStandardAnchors.keepExitAndEntry"]
+			keepCarets = Glyphs.defaults["com.mekkablue.RemoveNonStandardAnchors.keepCarets"]
+			keepNoDefaults = Glyphs.defaults["com.mekkablue.RemoveNonStandardAnchors.keepNoDefaults"]
+			anchorCount = 0
+			
+			for thisLayer in selectedLayers: # loop through selected layers
 				thisGlyph = thisLayer.parent
 				
 				# determine default anchors for this glyphs:
@@ -88,7 +95,7 @@ class RemoveNonStandardAnchors( object ):
 						defaultAnchors[i] = defaultAnchor[:defaultAnchor.find("@")]
 				
 				# determine if we need to remove anchors at all:
-				if defaultAnchors or (not defaultAnchors and not Glyphs.defaults["com.mekkablue.RemoveNonStandardAnchors.keepNoDefaults"] ):
+				if defaultAnchors or (not defaultAnchors and not keepNoDefaults ):
 
 					# step through layers:
 					for currentLayer in thisGlyph.layers:
@@ -99,20 +106,32 @@ class RemoveNonStandardAnchors( object ):
 								keepThisAnchor = False
 								
 								# see if exceptions apply:
-								if Glyphs.defaults["com.mekkablue.RemoveNonStandardAnchors.keepExtensions"] and "_" in currentAnchorName and currentAnchorName[:currentAnchorName.find("_")] in defaultAnchors:
+								if keepExtensions and "_" in currentAnchorName and currentAnchorName[:currentAnchorName.find("_")] in defaultAnchors:
 									keepThisAnchor = True
-								if Glyphs.defaults["com.mekkablue.RemoveNonStandardAnchors.keepExitAndEntry"] and (currentAnchorName in ("exit","entry") or currentAnchorName[1:] in ("exit","entry")):
+								if keepExitAndEntry and (currentAnchorName in ("exit","entry") or currentAnchorName[1:] in ("exit","entry")):
 									keepThisAnchor = True
-								if Glyphs.defaults["com.mekkablue.RemoveNonStandardAnchors.keepCarets"] and currentAnchorName.startswith("caret") and (thisGlyph.subCategory=="Ligature" or "_" in thisGlyph.name[1:]):
+								if keepCarets and currentAnchorName.startswith("caret") and (thisGlyph.subCategory=="Ligature" or "_" in thisGlyph.name[1:]):
 									keepThisAnchor = True
 								
 								# Delete if need be:
 								if not keepThisAnchor:
 									print("Glyph %s, layer '%s': deleting anchor %s" % ( thisGlyph.name, currentLayer.name, currentAnchorName ))
 									del currentLayer.anchors[currentAnchorName]
+									anchorCount += 1
 			
 			if not self.SavePreferences( self ):
 				print("Note: 'Remove Non-Standard Anchors' could not write preferences.")
+			
+			Message(
+				title="Removed Non-Standard Anchors",
+				message="Deleted %i non-standard anchor%s in %i glyph%s." % (
+					anchorCount,
+					"" if anchorCount==1 else "s",
+					len(selectedLayers),
+					"" if len(selectedLayers)==1 else "s",
+				),
+				OKButton=None,
+				)
 			
 			self.w.close() # delete if you want window to stay open
 		except Exception as e:
