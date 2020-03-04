@@ -86,9 +86,9 @@ class MethodReporter( object ):
 		
 		# Method Picker:
 		self.w.objectPicker = vanilla.ComboBox(
-			(10, 10, 120, 19),
+			(3, 2, 133, 24),
 			self.mostImportantObjects,
-			sizeStyle='small',
+			sizeStyle='regular',
 			completes=True,
 			continuous=False,
 			callback=self.MethodReporterMain
@@ -98,21 +98,21 @@ class MethodReporter( object ):
 		
 		# Filter:
 		self.w.text2 = vanilla.TextBox(
-			(140, 13, 35, 14),
-			"Filter:",
+			(140, 6, 35, 14),
+			"Find:",
 			sizeStyle='small'
 		)
 		self.w.filter = vanilla.EditText(
-			(180, 10, -10, 19 ),
+			(173, 1, -1, 24 ),
 			"",
-			sizeStyle='small',
+			sizeStyle='regular',
 			callback=self.MethodReporterMain
 		)
-		self.w.filter.getNSTextField().setToolTip_("Type one or more search terms here. Case is ignored. Use * as wildcard at beginning, middle or end of term. Multiple search terms are AND concatendated.")
+		self.w.filter.getNSTextField().setToolTip_("Type one or more (space-separated) search terms here. Case is ignored. Use * as wildcard at beginning, middle or end of term. Multiple search terms are AND-concatenated.")
 		
 		# Listing of methods:
 		self.w.methodList = vanilla.List(
-			(0, 40, -0, -0),
+			(0, 26, -0, -0),
 			self.methodList("GSLayer"),
 			autohidesScrollers=False,
 			drawVerticalLines=True,
@@ -214,7 +214,7 @@ class MethodReporter( object ):
 			filterStrings = filterStringEntry.split(" ")
 			
 			try:
-				methodList = self.methodList(className)
+				methodList = sorted(set(self.methodList(className)))
 				for filterString in filterStrings:
 					if not "*" in filterString:
 						methodList = [ f for f in methodList if filterString.lower() in f.lower() ]
