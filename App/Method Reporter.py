@@ -46,6 +46,7 @@ class MethodReporter( object ):
 			"GSGlyphEditView",
 			"GSGlyphInfo",
 			"GSGlyphsInfo",
+			"GSGuide",
 			"GSGuideLine",
 			"GSHint",
 			"GSInstance",
