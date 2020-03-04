@@ -48,12 +48,12 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **New Tab with Glyphs Containing Anchor:** Opens a new tab with all glyphs containing a specific anchor.
 * **New Tab with top and bottom Anchors Not on Metric Lines:** Report the y positions of all *top* and *bottom* anchors into the Macro Panel, and opens new tabs with all glyphs that have a stray anchor on any of the master, bracket or brace layers of any glyph in the font. Ignores the user selection, and analyses all glyphs, exporting and non-exporting. Useful to see if a top anchor is not exactly where it should be.
 * **Prefix all exit/entry anchors with a hashtag:** Looks for all exit and entry anchors anywhere in the font, and disables `curs` feature generation by prefixing their anchor names with `#`.
+* **Realign Stacking Anchors:** In stacking combining accents, moves top and bottom anchors exactly above or below the respective _top and _bottom anchors, respecting the italic angle. This way, stacking multiple nonspacing accents will always stay in line. *Needs Vanilla.*
 * **Remove Anchors in Suffixed Glyphs:** Removes all anchors from glyphs with one of the user-specified suffix. Useful for removing left-over anchors in sups/subs/sinf/ordn variants of glyphs after copying, scaling and editing. *Needs Vanilla.*
 * **Remove Anchors:** Deletes anchors with a specified name in selected glyphs (or the whole font). *Needs Vanilla.*
 * **Remove Non-Standard Anchors from Selected Glyphs:** Removes all anchors from a glyph that should not be there by default, e.g., `ogonek` from `J`. Potentially dangerous, because it may delete false positives. So, first use the report script below.
 * **Replicate Anchors in Suffixed Glyphs:** Goes through selected dot-suffixed glyphs and duplicates anchors from their respective base glyphs. E.g. will recreate anchors of *X* in *X.ss01*, *X.swsh* and *X.alt*.
 * **Report Non-Standard Anchors to Macro window:** Goes through all glyphs in the font and reports in the Macro window if it finds non-default anchors. Lines are copy-pasteable in Edit view.
-* **Reposition top and bottom Anchors in Combining Accents:** In stacking combining accents, moves top and bottom anchors exactly above or below the respective _top and _bottom anchors, respecting the italic angle. This way, stacking multiple nonspacing accents will always stay in line.
 
 ## App
 
@@ -99,7 +99,7 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 
 ## Compare Frontmost Fonts
 
-*These scripts are intended for syncing uprights with their italics. Open two fonts, and run the scipts. They do not change your fonts, but report in detail in the Macro window.*
+*These scripts are intended for syncing uprights with their italics. Open two fonts, and run the scripts. They do not change your fonts, but report in detail in the Macro window.*
 
 * **Compare Font Info > Font:** Detailed report of Font Info > Masters for the two frontmost fonts and outputs a report in the Macro window.
 * **Compare Font Info > Masters:** Detailed report of Font Info > Masters for the two frontmost fonts and outputs a report in the Macro window.
