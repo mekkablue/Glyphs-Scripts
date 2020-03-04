@@ -29,6 +29,13 @@ for pathPart in pathSegments:
 
 # Changing the export paths for Glyphs:
 settings = ( "GXExportPath", "OTFExportPath" )
+
+# Floating notification:
+Glyphs.showNotification( 
+	u"Export Paths Reset Successfully",
+	u"Static and variable fonts now export to Adobe Fonts Folder. More details in Macro Window.",
+	)
+
 for setting in settings:
 	print("Setting %s to %s:" % (setting, adobeFontsFolder), end=' ')
 	try:
