@@ -68,7 +68,8 @@ class RemoveAnchorsinSuffixedGlyphs( object ):
 			print("Remove Anchors in Suffixed Glyphs in font: ‘%s’" % thisFont.familyName)
 			print(thisFont.filepath)
 			print()
-			
+			print("Looking for glyphs with suffixes %s..."%(", ".join(suffixes)))
+			print()
 			cleanedGlyphsCount = 0
 			
 			for thisGlyph in thisFont.glyphs:
@@ -83,12 +84,12 @@ class RemoveAnchorsinSuffixedGlyphs( object ):
 						print("   Layer: %s" % thisLayer.name)
 						thisLayer.anchors=[]
 			
-			print("\nDone.")
+			print("\n%i glyphs cleared of their anchors.\nDone."%cleanedGlyphsCount)
 			
 			if cleanedGlyphsCount:
-				msgTitle = "Removed Anchors Successfully"
+				msgTitle = "Removed Anchors Successfully."
 			else:
-				msgTitle = "No Anchors Removed"
+				msgTitle = "No Anchors Removed."
 
 			Message(
 				title=msgTitle,
