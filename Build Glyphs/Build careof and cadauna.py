@@ -5,7 +5,7 @@ __doc__="""
 Builds cadauna and careof from your c, u and fraction glyphs.
 """
 
-from Foundation import NSPoint
+from Foundation import NSPoint, NSAffineTransform
 import math
 
 distanceBetweenComponents = 80
@@ -147,7 +147,10 @@ def process( thisGlyph ):
 				elif thisFont.glyphs[lfName]:
 					part = lfName
 			comp = GSComponent(part)
-			thisLayer.components.append(comp)
+			try:
+				thisLayer.shapes.append(comp)
+			except:
+				thisLayer.components.append(comp)
 			if i>0:
 				placeComponentsAtDistance( 
 					thisLayer,
@@ -187,7 +190,10 @@ for newGlyph in newGlyphs:
 		for thisMaster in thisFont.masters:
 			thisLayer = thisGlyph.layers[thisMaster.id]
 			newComponent = GSComponent(compName)
-			thisLayer.components.append( newComponent )
+			try:
+				thisLayer.shapes.append( newComponent )
+			except:
+				thisLayer.components.append( newComponent )
 			newComponent.disableAlignment = True
 			
 			if i in (0,2):
@@ -202,7 +208,10 @@ for newGlyph in newGlyphs:
 				shiftUp = transform( shiftY=(zeroTop-compTop) ).transformStruct()
 				newComponent.applyTransform(shiftUp)
 			if i > 0:
-				previousComponent = thisLayer.components[i-1]
+				try:
+					previousComponent = thisLayer.shapes[i-1]
+				except:
+					previousComponent = thisLayer.components[i-1]
 				placeComponentsAtDistance( 
 					thisLayer,
 					previousComponent,
@@ -212,8 +221,12 @@ for newGlyph in newGlyphs:
 					)
 				
 			if i == 2:
-				thisLayer.LSB = thisLayer.components[0].component.layers[thisMaster.id].LSB
-				thisLayer.RSB = thisLayer.components[2].component.layers[thisMaster.id].RSB
+				try:
+					thisLayer.LSB = thisLayer.shapes[0].component.layers[thisMaster.id].LSB
+					thisLayer.RSB = thisLayer.shapes[2].component.layers[thisMaster.id].RSB
+				except:
+					thisLayer.LSB = thisLayer.components[0].component.layers[thisMaster.id].LSB
+					thisLayer.RSB = thisLayer.components[2].component.layers[thisMaster.id].RSB
 		
 
 thisFont.enableUpdateInterface() # re-enables UI updates in Font View
