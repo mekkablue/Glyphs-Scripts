@@ -464,7 +464,10 @@ class QuoteManager( object ):
 							# add components:
 							for i in range(2):
 								newComponent = GSComponent(singleName)
-								ggl.components.append(newComponent)
+								try:
+									ggl.shapes.append(newComponent)
+								except:
+									ggl.components.append(newComponent)
 								newComponent.automaticAlignment = True
 								
 							print(u"✅ %s: Added 2 %s components." % (doubleName, singleName))
