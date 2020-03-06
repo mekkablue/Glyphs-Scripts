@@ -13,6 +13,7 @@ def tabfigure(font):
 	return "zero"
 
 def createSpaceGlyph( thisFont, glyphName, widthKey ):
+	created = 0
 	if thisFont.glyphs[glyphName]:
 		print(u"👍🏻 %s: already exists in %s. Updating..." % (glyphName, thisFont.familyName))
 		space = thisFont.glyphs[glyphName]
@@ -23,6 +24,7 @@ def createSpaceGlyph( thisFont, glyphName, widthKey ):
 		print(u"✅ Creating %s" % glyphName)
 		space = GSGlyph(glyphName)
 		thisFont.glyphs.append(space)
+		created = 1
 	
 	space.beginUndo()
 	
@@ -50,6 +52,7 @@ def createSpaceGlyph( thisFont, glyphName, widthKey ):
 			space.unicode = newUnicode
 	
 	space.endUndo()
+	return created
 		
 
 # frontmost font:
@@ -57,7 +60,6 @@ thisFont = Glyphs.font
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
-Glyphs.showMacroWindow()
 
 # start reporting
 print("Building space glyphs for %s" % thisFont.familyName)
@@ -86,11 +88,19 @@ spaces = {
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View, speeds things up a little
 
 # build spaces:
+createdSpaces = 0
 for thisSpace in spaces:
 	widthKey = spaces[thisSpace]
-	createSpaceGlyph( thisFont, thisSpace, widthKey )
+	createdSpaces += createSpaceGlyph( thisFont, thisSpace, widthKey )
 	print() 
 
 thisFont.enableUpdateInterface() # reenables UI updates in Font View, speeds things up a little
  
+reportMessage = "%i of %i space glyphs added" % (createdSpaces, len(spaces))
+print("Done. %s."%reportMessage)
+# Floating notification:
+Glyphs.showNotification( 
+	u"%s: space glyphs built" % (thisFont.familyName),
+	u"%s, %i were already in the font. Detailed report in Macro Window." % (reportMessage, (len(spaces)-createdSpaces)),
+	)
 
