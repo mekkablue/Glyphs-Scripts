@@ -28,7 +28,7 @@ class smallFigureBuilder( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 400
-		windowHeight = 235
+		windowHeight = 240
 		windowWidthResize  = 400 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -64,8 +64,10 @@ class smallFigureBuilder( object ):
 		self.w.decomposeDefaultFigures.getNSButton().setToolTip_(u"If checked, will decompose the small figures with the suffix entered in ‘Default Suffix’, before placing them as components in the derivatives. Useful if the current defaults are e.g. numr, and you want to reset it to dnom, and keep all others (numr, superior, inferior) as compounds.")
 		linePos += lineHeight
 		
-		self.w.openTab = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Open tab with affected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.openTab = vanilla.CheckBox( (inset, linePos-1, 190, 20), u"Open tab with affected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.openTab.getNSButton().setToolTip_(u"If checked, will open a new tab with all figures that have default and derivative suffixes. Useful for checking.")
+		self.w.reuseTab = vanilla.CheckBox( (inset+190, linePos-1, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reuseTab.getNSButton().setToolTip_(u"If checked, will reuse the current tab rather than open a new one. Will open a new one if no tab is currently open and active, though.")
 		linePos += lineHeight
 		
 		
@@ -81,6 +83,9 @@ class smallFigureBuilder( object ):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+	
+	def updateUI(self, sender=None):
+		self.w.reuseTab.enable(self.w.openTab.get())
 		
 	def SavePreferences( self, sender ):
 		try:
@@ -89,6 +94,8 @@ class smallFigureBuilder( object ):
 			Glyphs.defaults["com.mekkablue.smallFigureBuilder.currentMasterOnly"] = self.w.currentMasterOnly.get()
 			Glyphs.defaults["com.mekkablue.smallFigureBuilder.decomposeDefaultFigures"] = self.w.decomposeDefaultFigures.get()
 			Glyphs.defaults["com.mekkablue.smallFigureBuilder.openTab"] = self.w.openTab.get()
+			Glyphs.defaults["com.mekkablue.smallFigureBuilder.reuseTab"] = self.w.reuseTab.get()
+			self.updateUI()
 			return True
 		except:
 			return False
@@ -99,12 +106,15 @@ class smallFigureBuilder( object ):
 			Glyphs.registerDefault( "com.mekkablue.smallFigureBuilder.derive", ".numr:250, superior:350, inferior:-125" )
 			Glyphs.registerDefault( "com.mekkablue.smallFigureBuilder.currentMasterOnly", 0 )
 			Glyphs.registerDefault( "com.mekkablue.smallFigureBuilder.decomposeDefaultFigures", 0 )
-			Glyphs.registerDefault( "com.mekkablue.smallFigureBuilder.openTab", 0 )
+			Glyphs.registerDefault( "com.mekkablue.smallFigureBuilder.openTab", 1 )
+			Glyphs.registerDefault( "com.mekkablue.smallFigureBuilder.reuseTab", 1 )
 			self.w.default.set( Glyphs.defaults["com.mekkablue.smallFigureBuilder.default"] )
 			self.w.derive.set( Glyphs.defaults["com.mekkablue.smallFigureBuilder.derive"] )
 			self.w.currentMasterOnly.set( Glyphs.defaults["com.mekkablue.smallFigureBuilder.currentMasterOnly"] )
 			self.w.decomposeDefaultFigures.set( Glyphs.defaults["com.mekkablue.smallFigureBuilder.decomposeDefaultFigures"] )
 			self.w.openTab.set( Glyphs.defaults["com.mekkablue.smallFigureBuilder.openTab"] )
+			self.w.reuseTab.set( Glyphs.defaults["com.mekkablue.smallFigureBuilder.reuseTab"] )
+			self.updateUI()
 			return True
 		except:
 			return False
@@ -145,6 +155,9 @@ class smallFigureBuilder( object ):
 				value = float(suffixPair[1].strip())
 				offsets[suffix] = value
 			
+			createdGlyphCount = 0
+			updatedGlyphCount = 0
+			
 			# go through 1, 2, 3, 4, 5...
 			for fig in figures:
 				# determine default glyph:
@@ -175,8 +188,10 @@ class smallFigureBuilder( object ):
 							deriveGlyph = GSGlyph(deriveGlyphName)
 							thisFont.glyphs.append(deriveGlyph)
 							print(" - creating new glyph %s" % deriveGlyphName)
+							createdGlyphCount += 1
 						else:
 							print(" - overwriting glyph %s" % deriveGlyphName)
+							updatedGlyphCount += 1
 							
 						# copy glyph attributes:
 						deriveGlyph.leftKerningGroup = defaultGlyph.leftKerningGroup
@@ -197,8 +212,13 @@ class smallFigureBuilder( object ):
 								defaultComponent = GSComponent(defaultGlyphName,offsetPos)
 								deriveLayer = deriveGlyph.layers[mID]
 								deriveLayer.clear()
-								deriveLayer.components.append(defaultComponent)
-			
+								try:
+									# GLYPHS 3:
+									deriveLayer.shapes.append(defaultComponent)
+								except:
+									# GLYPHS 2:
+									deriveLayer.components.append(defaultComponent)
+						
 			# open a new tab if requested
 			if Glyphs.defaults["com.mekkablue.smallFigureBuilder.openTab"]:
 				tabText = ""
@@ -206,8 +226,25 @@ class smallFigureBuilder( object ):
 					escapedFigureNames = ["/%s%s"%(fig,suffix) for fig in figures]
 					tabText += "".join(escapedFigureNames)
 					tabText += "\n"
-				# opens new Edit tab:
-				thisFont.newTab( tabText.strip() )
+				tabText = tabText.strip()
+				if thisFont.currentTab and Glyphs.defaults["com.mekkablue.smallFigureBuilder.reuseTab"]:
+					# reuses current tab:
+					thisFont.currentTab.text = tabText
+				else:
+					# opens new Edit tab:
+					thisFont.newTab( tabText )
+			
+			# Floating notification:
+			Glyphs.showNotification( 
+				u"%s: small figures built" % (thisFont.familyName),
+				u"%i glyph%s created, %i glyph%s updated. Detailed info in Macro Window." % (
+					createdGlyphCount,
+					"" if createdGlyphCount==1 else "s",
+					updatedGlyphCount,
+					"" if updatedGlyphCount==1 else "s",
+				),
+				)
+			
 				
 		except Exception as e:
 			# brings macro window to front and reports error:
