@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Syncs punctuation dots between ¡!¿? (and their SC+CASE variants). Will use dot from exclam in all other glyphs, and shift ¡¿ in SC and CASE variants. Detailed report in Macro Window.
+Syncs punctuation dots between ¡!¿? (and their SC+CASE variants). Will use dot from exclam in all other glyphs, and shift ¡¿ in SC and CASE variants. Assumes that ¡¿ are components in !?. Detailed report in Macro Window.
 """
 
 import math
@@ -70,11 +70,21 @@ for suffix in ("",".sc"):
 			questionX = centerOfRect(questionDot.bounds).x
 			shift = transform(shiftX=questionX-exclamX).transformStruct()
 			newQuestionDot = exclamDot.copy()
-			for i in range(len(questionLayer.paths))[::-1]:
-				if questionLayer.paths[i] == questionDot:
-					del questionLayer.paths[i]
+			try:
+				# GLYPHS 3:
+				for i in range(len(questionLayer.shapes))[::-1]:
+					if questionLayer.shapes[i] == questionDot:
+						del questionLayer.shapes[i]
+			except:
+				# GLYPHS 2:
+				for i in range(len(questionLayer.paths))[::-1]:
+					if questionLayer.paths[i] == questionDot:
+						del questionLayer.paths[i]
 			if len(questionLayer.paths) == 1:
-				questionLayer.paths.append(newQuestionDot)
+				try:
+					questionLayer.shapes.append(newQuestionDot)
+				except:
+					questionLayer.paths.append(newQuestionDot)
 				newQuestionDot.applyTransform(shift)
 				print(u"  ✅ OK: dot transplanted in %s, layer %s" % (questionname, questionLayer.name))
 			else:
