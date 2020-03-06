@@ -142,53 +142,48 @@ def isEmpty(layer):
 
 def createGlyph(font, name, unicodeValue, override=False):
 	glyph = font.glyphs[name]
-	if glyph and not override:
-		print("Glyph %s already exists. User wishes no override. Skipping."%name)
-		return False
-	elif glyph and override:
-		print("Overwriting existing glyph %s.")
-		# create backups of layers:
-		for layer in glyph.layers:
-			if layer.isMasterLayer or layer.isSpecialLayer:
-				if isEmpty(layer):
-					print("- Layer ‘%s’ is empty. No backup needed." % (
-						layer.name if layer.name else "(empty)",
-					))
-				else:
-					layerCopy = layer.copy()
-					layerCopy.background = layer.copyDecomposedLayer()
-					glyph.layers.append(layerCopy)
-					layerCopy.name = "Backup: %s" % layer.name
-					print("- Created backup of layer: %s" % (
-						layer.name if layer.name else "(empty)",
-					))
-			layer.clear()
-			layer.background.clear()
-			layer.leftMetricsKey=None
-			layer.rightMetricsKey=None
-			layer.width=500
-		
-		# remove special layers:
-		for i in range(len(glyph.layers)-1, -1, -1):
-			layer = glyph.layers[i]
-			if layer.isSpecialLayer:
-				del glyph.layers[i]
-		
 	if not glyph:
 		glyph = GSGlyph()
 		glyph.name = name
 		glyph.unicode = unicodeValue
 		font.glyphs.append(glyph)
-	
-	if glyph:
-		try:
-			# GLYPHS 3:
-			glyph.updateGlyphInfo()
-		except:
-			pass
+		glyph.updateGlyphInfo()
 		return glyph
 	else:
-		return None
+		if not override:
+			print("Glyph %s already exists. No override chosen. Skipping." % name)
+			return None
+		
+		else:
+			print("Overwriting existing glyph %s.")
+			# create backups of layers:
+			for layer in glyph.layers:
+				if layer.isMasterLayer or layer.isSpecialLayer:
+					if isEmpty(layer):
+						print("- Layer ‘%s’ is empty. No backup needed." % (
+							layer.name if layer.name else "(empty)",
+						))
+					else:
+						layerCopy = layer.copy()
+						layerCopy.background = layer.copyDecomposedLayer()
+						glyph.layers.append(layerCopy)
+						layerCopy.name = "Backup: %s" % layer.name # does not work in G3
+						print("- Created backup of layer: %s" % (
+							layer.name if layer.name else "(empty)",
+						))
+				layer.clear()
+				layer.background.clear()
+				layer.leftMetricsKey=None
+				layer.rightMetricsKey=None
+				layer.width=500
+		
+			# remove special layers:
+			for i in range(len(glyph.layers)-1, -1, -1):
+				layer = glyph.layers[i]
+				if layer.isSpecialLayer:
+					del glyph.layers[i]
+			
+			return glyph
 
 def areaOfLayer(layer):
 	area = 0
