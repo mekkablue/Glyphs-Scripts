@@ -19,7 +19,7 @@ class QuoteManager( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 480
-		windowHeight = 270
+		windowHeight = 275
 		windowWidthResize  = 400 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -59,22 +59,30 @@ class QuoteManager( object ):
 
 		self.w.buildDoublesButton = vanilla.Button( (inset, linePos, 130, 18), "Add Components", sizeStyle='small', callback=self.buildDoublesMain )
 		self.w.buildDoublesText = vanilla.TextBox( (inset+135, linePos+2, -inset, 14), "Insert single quotes as components in double quotes", sizeStyle='small', selectable=True )
-		self.w.buildDoublesButton.getNSButton().setToolTip_("Do this first. Then adjust the position of the second component in the default double quote. Then press the Insert Anchors button.")
+		tooltip = "Do this first. Then adjust the position of the second component in the default double quote. Inserting anchors (the next button) will take the distance between the components into account. Or follow the instructions in the tooltip of the next button. Then press the Insert Anchors button."
+		self.w.buildDoublesButton.getNSButton().setToolTip_(tooltip)
+		self.w.buildDoublesText.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 				
 		self.w.insertAnchorsButton = vanilla.Button( (inset, linePos, 130, 18), "Insert Anchors", sizeStyle='small', callback=self.insertAnchorsMain )
 		self.w.insertAnchorsText = vanilla.TextBox( (inset+135, linePos+2, -inset, 14), "Insert #exit and #entry anchors in single quotes", sizeStyle='small', selectable=True )
-		self.w.insertAnchorsButton.getNSButton().setToolTip_("Assumes that you have built your double quotes from components already.")
+		tooltip = "Hint: After you have done the previous steps, FIRST press button to insert the anchors, THEN adjust the width between the anchors in your default quote, THEN press this button again to sync all other #exit and #entry anchors with the default quotes."
+		self.w.insertAnchorsButton.getNSButton().setToolTip_(tooltip)
+		self.w.insertAnchorsText.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
 		self.w.metricKeyButton = vanilla.Button( (inset, linePos, 130, 18), "Add Keys", sizeStyle='small', callback=self.metricKeyMain )
 		self.w.metricKeyText = vanilla.TextBox( (inset+135, linePos+2, -inset, 14), "Apply metrics keys to single quotes", sizeStyle='small', selectable=True )
-		self.w.metricKeyButton.getNSButton().setToolTip_("Adds Metrics Keys to single quotes, so your quotes are all in sync and have the same width. Double quotes should use automatic alignment by now.")
+		tooltip = "Adds Metrics Keys to single quotes, so your quotes are all in sync and have the same width. Double quotes should use automatic alignment by now."
+		self.w.metricKeyButton.getNSButton().setToolTip_(tooltip)
+		self.w.metricKeyText.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
 		self.w.kernGroupButton = vanilla.Button( (inset, linePos, 130, 18), "Set Groups", sizeStyle='small', callback=self.kernGroupMain )
 		self.w.kernGroupText = vanilla.TextBox( (inset+135, linePos+2, -inset, 14), "Set kern groups (based on singles)", sizeStyle='small', selectable=True )
-		self.w.kernGroupButton.getNSButton().setToolTip_("Sync kern groups between double and single quotes.")
+		tooltip = "Sync kern groups between double and single quotes."
+		self.w.kernGroupButton.getNSButton().setToolTip_(tooltip)
+		self.w.kernGroupText.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
 		# Load Settings:
