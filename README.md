@@ -77,15 +77,14 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **Build careof and cadauna:** Builds cadauna and careof from your c, u and fraction glyphs.
 * **Build Circled Glyphs:** Builds circled numbers and letters (U+24B6...24EA and U+2460...2473) from _part.circle and your letters and figures.
 * **Build Dotted Numbers:** Build dotted numbers from your default figures and the period.
-* **Build estimated, bar, brokenbar:** Creates an estimated glyph and draws an estimated sign in it. Does the same for bar and brokenbar, for which it respects standard stems and italic angle. Does not overwrite existing glyphs.
 * **Build Extra Math Symbols:** Builds lessoverequal, greateroverequal, bulletoperator, rightanglearc, righttriangle, sphericalangle, measuredangle, sunWithRays, positionIndicator, diameterSign, viewdataSquare, control.
 * **Build Ldot and ldot:** Builds Ldot, ldot and ldot.sc from existing L and periodcentered.loclCAT(.case/.sc). Assumes that you have already created and properly spaced L-periodcentered.loclCAT-L, etc.
-* **Build notdef:** Creates a .notdef from your boldest available question mark.
 * **Build Parenthesized Glyphs:** Creates parenthesized letters and numbers: one.paren, two.paren, three.paren, four.paren, five.paren, six.paren, seven.paren, eight.paren, nine.paren, one_zero.paren, one_one.paren, one_two.paren, one_three.paren, one_four.paren, one_five.paren, one_six.paren, one_seven.paren, one_eight.paren, one_nine.paren, two_zero.paren, a.paren, b.paren, c.paren, d.paren, e.paren, f.paren, g.paren, h.paren, i.paren, j.paren, k.paren, l.paren, m.paren, n.paren, o.paren, p.paren, q.paren, r.paren, s.paren, t.paren, u.paren, v.paren, w.paren, x.paren, y.paren, z.paren.
 * **Build Q from O and _tail.Q:** Run this script *after* doing *Component from Selection* on the Q tail and naming it `_tail.Q`.
 * **Build Small Figures:** Takes a default set of figures (e.g., dnom), and derives the others (.numr, superior/.sups, inferior/.sinf, .subs) as component copies. Respects the italic angle.
 * **Build small letter SM, TEL:** Creates the glyphs: `servicemark`, `telephone`.
 * **Build space glyphs:** Creates mediumspace-math, emquad, emspace, enquad, enspace, figurespace, fourperemspace, hairspace, narrownbspace, punctuationspace, sixperemspace, nbspace, thinspace, threeperemspace, zerowidthspace.
+* **Build Symbols:** Creates symbol glyphs such as .notdef (based on the boldest available question mark), an estimated glyph, as wel as bar and brokenbar (for which it respects standard stems and italic angle). *Needs Vanilla.*
 * **Quote Manager:** Build double quotes from single quotes, and insert #exit and #entry anchors in the single quotes for auto-alignment. You need to have the single quotes already. *Needs Vanilla.*
 
 ## Color Fonts
