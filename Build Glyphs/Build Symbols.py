@@ -71,9 +71,9 @@ def circleInsideRect(rect):
 			newNode.connection = GSSMOOTH
 			circlePath.nodes.append(newNode)
 
-	print(circlePath)
-	for n in circlePath.nodes:
-		print("   ", n)
+	# print(circlePath)
+	# for n in circlePath.nodes:
+	# 	print("   ", n)
 	circlePath.closed = True
 	return circlePath
 
@@ -142,16 +142,26 @@ def isEmpty(layer):
 
 def createGlyph(font, name, unicodeValue, override=False):
 	glyph = font.glyphs[name]
-	
-	if override and glyph:
+	if glyph and not override:
+		print("Glyph %s already exists. User wishes no override. Skipping."%name)
+		return False
+	elif glyph and override:
+		print("Overwriting existing glyph %s.")
 		# create backups of layers:
 		for layer in glyph.layers:
-			if not isEmpty(layer):
-				if layer.isMasterLayer or layer.isSpecialLayer:
-					layerCopy = Layer.__copy__()
-					layerCopy.background = Layer.copyDecomposedLayer()
-					layerCopy.name = "Backup: %s" % layer.name
+			if layer.isMasterLayer or layer.isSpecialLayer:
+				if isEmpty(layer):
+					print("- Layer ‘%s’ is empty. No backup needed." % (
+						layer.name if layer.name else "(empty)",
+					))
+				else:
+					layerCopy = layer.copy()
+					layerCopy.background = layer.copyDecomposedLayer()
 					glyph.layers.append(layerCopy)
+					layerCopy.name = "Backup: %s" % layer.name
+					print("- Created backup of layer: %s" % (
+						layer.name if layer.name else "(empty)",
+					))
 			layer.clear()
 			layer.background.clear()
 			layer.leftMetricsKey=None
@@ -180,14 +190,37 @@ def createGlyph(font, name, unicodeValue, override=False):
 	else:
 		return None
 
+def areaOfLayer(layer):
+	area = 0
+	l = layer.copyDecomposedLayer()
+	l.removeOverlap()
+	try:
+		# GLYPHS 3:
+		for s in l.shapes:
+			area += s.area()
+	except:
+		# GLYPHS 2:
+		for p in l.paths:
+			area += p.area()
+	return area
+
 def buildNotdef( thisFont, override=False ):
-	name = ".notdef"
-	glyph = thisFont.glyphs[name]
-	print("override:", override)
-	if override or (not glyph):
-		if thisFont.glyphs["question"]:
-			sourceMasterID = thisFont.masters[len(thisFont.masters)-1].id
-			sourceLayer = thisFont.glyphs["question"].layers[sourceMasterID]
+	questionGlyph = thisFont.glyphs["question"]
+	if not questionGlyph:
+		print("⚠️ Error building .notdef: No question mark is available in your font. Cannot create .notdef." )
+	else:
+		name = ".notdef"
+		notdefGlyph = createGlyph(thisFont, name, None, override=override)
+		if notdefGlyph:
+			sourceLayer = questionGlyph.layers[0]
+			area = areaOfLayer(sourceLayer)
+			for qLayer in questionGlyph.layers:
+				if qLayer.isMasterLayer or qLayer.isSpecialLayer:
+					qArea = areaOfLayer(qLayer)
+					if qArea > area:
+						sourceLayer = qLayer
+						area = qArea
+			
 			if sourceLayer:
 				# Build .notdef from question mark and circle:
 				questionmarkLayer = sourceLayer.copyDecomposedLayer()
@@ -211,7 +244,6 @@ def buildNotdef( thisFont, override=False ):
 				questionmarkLayer.correctPathDirection()
 			
 				# Create glyph:
-				notdefGlyph = createGlyph( thisFont, name, None, override=override )
 				notdefGlyph.leftMetricsKey = "=40"
 				notdefGlyph.rightMetricsKey = "=|"
 				for masterID in [m.id for m in thisFont.masters]:
@@ -226,10 +258,6 @@ def buildNotdef( thisFont, override=False ):
 					notdefLayer.syncMetrics()
 			else:
 				print("⚠️ Error building .notdef: Could not determine source layer of glyph 'question'." )
-		else:
-			print("⚠️ Error building .notdef: No question mark is available in your font. Cannot create .notdef." )
-	else:
-		print("⚠️ There already is a .notdef in your font. Skipping." )
 	
 
 def buildEstimated( thisFont, override=False ):
@@ -257,46 +285,47 @@ def buildEstimated( thisFont, override=False ):
 		
 		# draw in every layer:
 		for thisLayer in estimatedGlyph.layers:
-			for thisPath in penpoints_estimated:
-				pen = thisLayer.getPen()
-				pen.moveTo( thisPath[0] )
-				for thisSegment in thisPath[1:]:
-					if len(thisSegment) == 2: # lineto
-						pen.lineTo( thisSegment )
-					elif len(thisSegment) == 3: # curveto
-						pen.curveTo(
-							thisSegment[0],
-							thisSegment[1],
-							thisSegment[2]
-						)
-					else:
-						print("%s: Path drawing error. Could not process this segment:\n" % (glyphname, thisSegment))
-				pen.closePath()
-				pen.endPath()
+			if thisLayer.isMasterLayer:
+				for thisPath in penpoints_estimated:
+					pen = thisLayer.getPen()
+					pen.moveTo( thisPath[0] )
+					for thisSegment in thisPath[1:]:
+						if len(thisSegment) == 2: # lineto
+							pen.lineTo( thisSegment )
+						elif len(thisSegment) == 3: # curveto
+							pen.curveTo(
+								thisSegment[0],
+								thisSegment[1],
+								thisSegment[2]
+							)
+						else:
+							print("%s: Path drawing error. Could not process this segment:\n" % (glyphname, thisSegment))
+					pen.closePath()
+					pen.endPath()
 		
-			# scale estimated to match zero:
-			if zeroGlyph:
-				zeroBounds = zeroGlyph.layers[thisLayer.associatedMasterId].bounds
-				zeroHeight = zeroBounds.size.height
-				if zeroHeight: # zero could be empty
-					zeroOvershoot = -zeroBounds.origin.y
-					overshootDiff = zeroOvershoot - 5.0
-					estimatedHeight = 687.0
-					correctedEstimatedHeight = zeroHeight - 2 * overshootDiff
-					if correctedEstimatedHeight != estimatedHeight:
-						scaleFactor = correctedEstimatedHeight/estimatedHeight
-						estimatedCorrection = transform(shiftY=5.0)
-						estimatedCorrection.appendTransform_( transform(scale=scaleFactor) )
-						estimatedCorrection.appendTransform_( transform(-5.0) )
-						thisLayer.applyTransform( estimatedCorrection.transformStruct() )
+				# scale estimated to match zero:
+				if zeroGlyph:
+					zeroBounds = zeroGlyph.layers[thisLayer.associatedMasterId].bounds
+					zeroHeight = zeroBounds.size.height
+					if zeroHeight: # zero could be empty
+						zeroOvershoot = -zeroBounds.origin.y
+						overshootDiff = zeroOvershoot - 5.0
+						estimatedHeight = 687.0
+						correctedEstimatedHeight = zeroHeight - 2 * overshootDiff
+						if correctedEstimatedHeight != estimatedHeight:
+							scaleFactor = correctedEstimatedHeight/estimatedHeight
+							estimatedCorrection = transform(shiftY=5.0)
+							estimatedCorrection.appendTransform_( transform(scale=scaleFactor) )
+							estimatedCorrection.appendTransform_( transform(-5.0) )
+							thisLayer.applyTransform( estimatedCorrection.transformStruct() )
 		
-			# tidy up paths and set width:
-			thisLayer.cleanUpPaths()
-			thisLayer.syncMetrics()
-			print("✅ Created estimated in master '%s'" % thisLayer.associatedFontMaster().name)
+				# tidy up paths and set width:
+				thisLayer.cleanUpPaths()
+				thisLayer.syncMetrics()
+				print("✅ Created estimated in master '%s'" % thisLayer.associatedFontMaster().name)
 		
 	else:
-		print("⚠️ The glyph estimated already exists in this font. Rename or delete it and try again.")
+		print("⚠️ Could not create the estimated glyph already exists in this font. Rename or delete it and try again.")
 
 def buildBars( thisFont, override=False ):
 	barGlyph = createGlyph(thisFont, "bar", "007C", override=override)
