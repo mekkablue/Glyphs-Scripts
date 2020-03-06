@@ -149,33 +149,43 @@ def createGlyph(font, name, unicodeValue, override=False):
 		font.glyphs.append(glyph)
 		glyph.updateGlyphInfo()
 		return glyph
+		
 	else:
 		if not override:
 			print("Glyph %s already exists. No override chosen. Skipping." % name)
 			return None
 		
 		else:
-			print("Overwriting existing glyph %s.")
+			print("Overwriting existing glyph %s." % name)
+			
 			# create backups of layers:
+			backupLayers = []
 			for layer in glyph.layers:
 				if layer.isMasterLayer or layer.isSpecialLayer:
 					if isEmpty(layer):
+						# nothing on layer? no backup needed:
 						print("- Layer ‘%s’ is empty. No backup needed." % (
 							layer.name if layer.name else "(empty)",
 						))
 					else:
+						# create and collect backup layers:
 						layerCopy = layer.copy()
 						layerCopy.background = layer.copyDecomposedLayer()
-						glyph.layers.append(layerCopy)
 						layerCopy.name = "Backup: %s" % layer.name # does not work in G3
-						print("- Created backup of layer: %s" % (
+						backupLayers.append(layerCopy)
+						print("- Creating backup of layer: %s" % (
 							layer.name if layer.name else "(empty)",
 						))
-				layer.clear()
-				layer.background.clear()
-				layer.leftMetricsKey=None
-				layer.rightMetricsKey=None
-				layer.width=500
+				
+					layer.clear()
+					layer.background.clear()
+					layer.leftMetricsKey=None
+					layer.rightMetricsKey=None
+					layer.width=500
+			
+			# add collected backup layers (after the loop)
+			for backupLayer in backupLayers:
+				glyph.layers.append(backupLayer)
 		
 			# remove special layers:
 			for i in range(len(glyph.layers)-1, -1, -1):
