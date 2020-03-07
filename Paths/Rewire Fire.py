@@ -106,6 +106,7 @@ class RewireFire( object ):
 	def SavePreferences( self, sender ):
 		try:
 			Glyphs.defaults["com.mekkablue.RewireFire.openTabWithAffectedLayers"] = self.w.openTabWithAffectedLayers.get()
+			Glyphs.defaults["com.mekkablue.RewireFire.reuseTab"] = self.w.reuseTab.get()
 			Glyphs.defaults["com.mekkablue.RewireFire.setFireToNode"] = self.w.setFireToNode.get()
 			Glyphs.defaults["com.mekkablue.RewireFire.includeNonExporting"] = self.w.includeNonExporting.get()
 			Glyphs.defaults["com.mekkablue.RewireFire.dynamiteForOnSegment"] = self.w.dynamiteForOnSegment.get()
@@ -123,11 +124,13 @@ class RewireFire( object ):
 	def LoadPreferences( self ):
 		try:
 			Glyphs.registerDefault("com.mekkablue.RewireFire.openTabWithAffectedLayers", 0)
+			Glyphs.registerDefault("com.mekkablue.RewireFire.reuseTab", 1)
 			Glyphs.registerDefault("com.mekkablue.RewireFire.setFireToNode", 1)
 			Glyphs.registerDefault("com.mekkablue.RewireFire.includeNonExporting", 1)
 			Glyphs.registerDefault("com.mekkablue.RewireFire.dynamiteForOnSegment", 1)
 			Glyphs.registerDefault("com.mekkablue.RewireFire.shouldSelect", 1)
 			self.w.openTabWithAffectedLayers.set( Glyphs.defaults["com.mekkablue.RewireFire.openTabWithAffectedLayers"] )
+			self.w.reuseTab.set( Glyphs.defaults["com.mekkablue.RewireFire.reuseTab"] )
 			self.w.setFireToNode.set( Glyphs.defaults["com.mekkablue.RewireFire.setFireToNode"] )
 			self.w.includeNonExporting.set( Glyphs.defaults["com.mekkablue.RewireFire.includeNonExporting"] )
 			self.w.dynamiteForOnSegment.set( Glyphs.defaults["com.mekkablue.RewireFire.dynamiteForOnSegment"] )
