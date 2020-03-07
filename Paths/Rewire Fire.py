@@ -174,9 +174,9 @@ class RewireFire( object ):
 												affectedNodes.append(n3)
 		
 		if affectedNodes:
-			thisGlyph=thisLayer.parent
+			thisGlyph=l.parent
 			print()
-			print(u"%s, layer '%s': %i nodes on line segments" % (thisGlyph.name, thisLayer.name, len(affectedNodes)))
+			print(u"%s, layer '%s': %i nodes on line segments" % (thisGlyph.name, l.name, len(affectedNodes)))
 			for node in affectedNodes:
 				print(u"   %s x %.1f, y %.1f" % (self.onSegmentMarker, node.x, node.y))
 			
