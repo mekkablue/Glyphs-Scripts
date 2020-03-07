@@ -72,8 +72,10 @@ class RewireFire( object ):
 		self.w.includeNonExporting.getNSButton().setToolTip_("Also check in glyphs that are not set to export. Recommended if you have modular components in the font.")
 		linePos += lineHeight
 		
-		self.w.openTabWithAffectedLayers = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"New tab with affected layers (otherwise report only)", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.openTabWithAffectedLayers = vanilla.CheckBox( (inset, linePos-1, 200, 20), u"New tab with affected layers", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.openTabWithAffectedLayers.getNSButton().setToolTip_("If checked, will open a new tab with all layers that contain duplicate coordinates. Otherwise, will report in Macro Window only.")
+		self.w.reuseTab = vanilla.CheckBox( (inset+200, linePos-1, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reuseTab.getNSButton().setToolTip_("If enabled, will only open a new tab if there is none open yet. Otherwise will always open a new tab.")
 		linePos += lineHeight
 		
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
@@ -99,6 +101,7 @@ class RewireFire( object ):
 	def updateUI(self, sender=None):
 		anyOptionSelected = self.w.setFireToNode.get() or self.w.dynamiteForOnSegment.get()
 		self.w.runButton.enable(anyOptionSelected)
+		self.w.reuseTab.enable(self.w.openTabWithAffectedLayers.get())
 	
 	def SavePreferences( self, sender ):
 		try:
@@ -241,7 +244,10 @@ class RewireFire( object ):
 			
 			thisFont = Glyphs.font # frontmost font
 			print("Rewire Fire Report for %s" % thisFont.familyName)
-			print(thisFont.filepath)
+			if thisFont.filepath:
+				print(thisFont.filepath)
+			else:
+				print("⚠️ Warning: file has not been saved yet.")
 			
 			affectedLayers = []
 			numGlyphs = float(len(thisFont.glyphs))
@@ -269,7 +275,6 @@ class RewireFire( object ):
 			self.w.progress.set(0)
 			self.w.statusText.set(u"✅ Done.")
 			
-			
 			if not affectedLayers:
 				Message(title="No Duplicates Found", message=u"Could not find any nodes for rewiring in %s."%thisFont.familyName, OKButton=u"😇 Cool")
 			else:
@@ -281,8 +286,11 @@ class RewireFire( object ):
 				
 				# opens new Edit tab:
 				if Glyphs.defaults["com.mekkablue.RewireFire.openTabWithAffectedLayers"]:
-					newTab = thisFont.newTab()
-					newTab.layers = affectedLayers
+					if thisFont.currentTab and Glyphs.defaults["com.mekkablue.RewireFire.reuseTab"]:
+						thisFont.currentTab.layers = affectedLayers
+					else:
+						newTab = thisFont.newTab()
+						newTab.layers = affectedLayers
 				
 			self.w.close() # delete if you want window to stay open
 		except Exception as e:
