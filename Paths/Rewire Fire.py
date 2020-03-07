@@ -148,7 +148,7 @@ class RewireFire( object ):
 		layer.annotations.append(circle)
 	
 	def findNodesOnLines(self, l, dynamiteForOnSegment=True, shouldSelect=True):
-		isAffected=False
+		affectedNodes=[]
 		
 		# find line segments:
 		for p in l.paths:
@@ -171,12 +171,23 @@ class RewireFire( object ):
 											
 											# find projection with threshold:
 											if isOnLine(p1,p2,p3, threshold=0.499):
-												if dynamiteForOnSegment:
-													n3.name=self.onSegmentMarker
-												if shouldSelect:
-													l.selection.append(n3)
-												isAffected=True
-		return isAffected
+												affectedNodes.append(n3)
+		
+		if affectedNodes:
+			thisGlyph=thisLayer.parent
+			print()
+			print(u"%s, layer '%s': %i nodes on line segments" % (thisGlyph.name, thisLayer.name, len(affectedNodes)))
+			for node in affectedNodes:
+				print(u"   %s x %.1f, y %.1f" % (self.onSegmentMarker, node.x, node.y))
+			
+			for n3 in affectedNodes:
+				if dynamiteForOnSegment:
+					n3.name=self.onSegmentMarker
+				if shouldSelect:
+					l.selection.append(n3)
+			return True
+		else:
+			return False
 	
 	def findDuplicates(self, thisLayer, setFireToNode=True, markWithCircle=False, shouldSelect=True):
 		allCoordinates = []
@@ -197,16 +208,17 @@ class RewireFire( object ):
 							thisNode.name = None
 						
 		if duplicateCoordinates:
+			thisGlyph=thisLayer.parent
 			print()
 			print(u"%s, layer '%s': %i duplicates" % (thisGlyph.name, thisLayer.name, len(duplicateCoordinates)))
 			for dupe in duplicateCoordinates:
 				print(u"   %s x %.1f, y %.1f" % (self.duplicateMarker, dupe.x, dupe.y))
 		
-			if markWithCircle:
-				coords = set([(p.x,p.y) for p in duplicateCoordinates])
-				for dupeCoord in coords:
-					x,y = dupeCoord
-					self.circleInLayerAtPosition( thisLayer, NSPoint(x,y) )
+			# if markWithCircle:
+			# 	coords = set([(p.x,p.y) for p in duplicateCoordinates])
+			# 	for dupeCoord in coords:
+			# 		x,y = dupeCoord
+			# 		self.circleInLayerAtPosition( thisLayer, NSPoint(x,y) )
 			
 			return True
 			
