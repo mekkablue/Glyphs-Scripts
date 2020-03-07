@@ -9,8 +9,14 @@ from compare import *
 
 thisFont = Glyphs.fonts[0] # frontmost font
 otherFont = Glyphs.fonts[1] # second font
-thisFileName = thisFont.filepath.pathComponents()[-1]
-otherFileName = otherFont.filepath.pathComponents()[-1]
+if thisFont.filepath:
+	thisFileName = thisFont.filepath.pathComponents()[-1]
+else:
+	thisFileName = None
+if otherFont.filepath:
+	otherFileName = otherFont.filepath.pathComponents()[-1]
+else:
+	otherFileName = None
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
