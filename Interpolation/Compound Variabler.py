@@ -91,14 +91,14 @@ class CompoundVariabler( object ):
 		return True
 	
 	def countNest(self, c):
-		thisFont = c.parent.parent
+		thisFont = c.parent.parent.parent
 		if thisFont:
 			gName = c.componentName
 			g = thisFont.glyphs[gName]
 			if g:
 				gComponents = g.layers[0].components
 				if gComponents:
-					maxCount = max( countNest(cc) for cc in gComponents )
+					maxCount = max( self.countNest(cc) for cc in gComponents )
 					return 1+maxCount
 		return 1
 		
@@ -108,7 +108,7 @@ class CompoundVariabler( object ):
 			for l in g.layers:
 				if l.isMasterLayer or l.isSpecialLayer or l.isColorLayer:
 					for c in l.components:
-						depth = countNest(c)
+						depth = self.countNest(c)
 						depths.append(depth)
 		return max(depths)
 
