@@ -52,7 +52,7 @@ class RewireFire( object ):
 		linePos += lineHeight
 		
 		self.w.setFireToNode = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Mark duplicate nodes with fire emoji %s"%self.duplicateMarker, value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.setFireToNode.getNSButton().setToolTip_("Emoji will be added as a node name. Node names may disappear after reconnection and path cleanup.")
+		self.w.setFireToNode.getNSButton().setToolTip_("Finds different on-curve nodes that share the same coordinates. Emoji will be added as a node name. Node names may disappear after reconnection and path cleanup.")
 		linePos += lineHeight
 		
 		# DISABLED
@@ -61,7 +61,7 @@ class RewireFire( object ):
 		# linePos += lineHeight
 
 		self.w.dynamiteForOnSegment = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Mark nodes on top of line segments with dynamite emoji %s"%self.onSegmentMarker, value=False, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.dynamiteForOnSegment.getNSButton().setToolTip_("Circle annotations remain after reconnecting the nodes.")
+		self.w.dynamiteForOnSegment.getNSButton().setToolTip_("Finds on-curve nodes that are located on line segments between (other) two on-curve nodes. Emoji will be added as a node name. Node names may disappear after reconnection and path cleanup.")
 		linePos += lineHeight
 
 		self.w.shouldSelect = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Select nodes for rewiring on affected glyph layers", value=True, callback=self.SavePreferences, sizeStyle='small' )
