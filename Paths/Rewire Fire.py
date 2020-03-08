@@ -60,7 +60,7 @@ class RewireFire( object ):
 		# self.w.markWithCircle.getNSButton().setToolTip_("Circle annotations remain after reconnecting the nodes.")
 		# linePos += lineHeight
 
-		self.w.dynamiteForOnSegment = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Mark nodes on line segments with dynamite emoji %s"%self.onSegmentMarker, value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.dynamiteForOnSegment = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Mark nodes on top of line segments with dynamite emoji %s"%self.onSegmentMarker, value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.dynamiteForOnSegment.getNSButton().setToolTip_("Circle annotations remain after reconnecting the nodes.")
 		linePos += lineHeight
 
