@@ -4,13 +4,13 @@ These are Python scripts for use with the [Glyphs font editor](http://glyphsapp.
 
 # INSTALLATION
 
-1. Put the scripts folder (or an alias) into the *Scripts* folder which appears when you choose *Script > Open Scripts Folder* (Cmd-Shift-Y): `~/Library/Application Support/Glyphs/Scripts/`
+1. Put the scripts folder (or an alias) into the *Scripts* folder which appears when you choose *Script > Open Scripts Folder* (Cmd-Shift-Y): `~/Library/Application Support/Glyphs/Scripts/`, or, better yet, use **git** for that. See below.
 2. Then, hold down the Option (Alt) key, and choose *Script > Reload Scripts* (Cmd-Opt-Shift-Y). Now the scripts are visible in the *Script* menu
 3. For some of the scripts, you will also need to install Tal Leming's *Vanilla*: Go to *Glyphs > Preferences > Addons > Modules* and click the *Install Modules* button. That’s it.
 
 ### git
 
-I recommend to use git for getting the scripts, and syncing them on a regular basis. Use this git command for cloning the repository into your Scripts folder:
+I recommend to use git for getting the scripts, and syncing them on a regular basis. Use this git command for cloning the repository into your *Scripts* folder:
 
 ```bash
 git clone https://github.com/mekkablue/Glyphs-Scripts ~/Library/Application\ Support/Glyphs/Scripts/mekkablue/
@@ -18,7 +18,7 @@ git clone https://github.com/mekkablue/Glyphs-Scripts ~/Library/Application\ Sup
 
 If the terminal scares you, feel free to use one of the many readily available git clients.
 
-After you instaled the mekkablue scripts, you can update this script repository (and all the others you have in your Scripts folder) by running *Scripts > mekkablue > App > Update git Repositories in Scripts Folder.*
+After you installed the mekkablue scripts, you can update this script repository (and all the others you have in your *Scripts* folder) by running *Scripts > mekkablue > App > Update git Repositories in Scripts Folder.*
 
 # TROUBLESHOOTING
 
