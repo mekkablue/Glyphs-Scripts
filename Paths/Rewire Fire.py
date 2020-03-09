@@ -23,7 +23,7 @@ def isOnLine(p1,p2,p3, threshold=0.6):
 	nx = ((x3-x1)*dx + (y3-y1)*dy) / d2
 
 	if distance(p3, NSPoint(dx*nx + x1, dy*nx + y1)) < threshold:
-		if 0.0 <= nx <= 1.0:
+		if 0.0 < nx < 1.0:
 			return True
 
 	return False
