@@ -35,7 +35,7 @@ class RewireFire( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 350
-		windowHeight = 220
+		windowHeight = 240
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -54,6 +54,11 @@ class RewireFire( object ):
 		self.w.setFireToNode = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Mark duplicate nodes with fire emoji %s"%self.duplicateMarker, value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.setFireToNode.getNSButton().setToolTip_("Finds different on-curve nodes that share the same coordinates. Emoji will be added as a node name. Node names may disappear after reconnection and path cleanup.")
 		linePos += lineHeight
+		
+		self.w.tolerateZeroSegments = vanilla.CheckBox( (inset*2, linePos-1, -inset*2, 20), u"Tolerate duplicate if it is neighboring node (OTVar)", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.tolerateZeroSegments.getNSButton().setToolTip_(u"If node coordinates within the same segment share the same coordinates, they will not be marked with a fire emoji. Makes sense in variable fonts, where segments need to disappear in a point in one master.")
+		linePos += lineHeight
+		
 		
 		# DISABLED
 		# self.w.markWithCircle = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Circle duplicate coordinates with annotation ⭕️", value=False, callback=self.SavePreferences, sizeStyle='small' )
@@ -102,12 +107,14 @@ class RewireFire( object ):
 		anyOptionSelected = self.w.setFireToNode.get() or self.w.dynamiteForOnSegment.get()
 		self.w.runButton.enable(anyOptionSelected)
 		self.w.reuseTab.enable(self.w.openTabWithAffectedLayers.get())
+		self.w.tolerateZeroSegments.enable(self.w.setFireToNode.get())
 	
 	def SavePreferences( self, sender ):
 		try:
 			Glyphs.defaults["com.mekkablue.RewireFire.openTabWithAffectedLayers"] = self.w.openTabWithAffectedLayers.get()
 			Glyphs.defaults["com.mekkablue.RewireFire.reuseTab"] = self.w.reuseTab.get()
 			Glyphs.defaults["com.mekkablue.RewireFire.setFireToNode"] = self.w.setFireToNode.get()
+			Glyphs.defaults["com.mekkablue.RewireFire.tolerateZeroSegments"] = self.w.tolerateZeroSegments.get()
 			Glyphs.defaults["com.mekkablue.RewireFire.includeNonExporting"] = self.w.includeNonExporting.get()
 			Glyphs.defaults["com.mekkablue.RewireFire.dynamiteForOnSegment"] = self.w.dynamiteForOnSegment.get()
 			Glyphs.defaults["com.mekkablue.RewireFire.shouldSelect"] = self.w.shouldSelect.get()
@@ -126,12 +133,14 @@ class RewireFire( object ):
 			Glyphs.registerDefault("com.mekkablue.RewireFire.openTabWithAffectedLayers", 0)
 			Glyphs.registerDefault("com.mekkablue.RewireFire.reuseTab", 1)
 			Glyphs.registerDefault("com.mekkablue.RewireFire.setFireToNode", 1)
+			Glyphs.registerDefault("com.mekkablue.RewireFire.tolerateZeroSegments", 0)
 			Glyphs.registerDefault("com.mekkablue.RewireFire.includeNonExporting", 1)
 			Glyphs.registerDefault("com.mekkablue.RewireFire.dynamiteForOnSegment", 1)
 			Glyphs.registerDefault("com.mekkablue.RewireFire.shouldSelect", 1)
 			self.w.openTabWithAffectedLayers.set( Glyphs.defaults["com.mekkablue.RewireFire.openTabWithAffectedLayers"] )
 			self.w.reuseTab.set( Glyphs.defaults["com.mekkablue.RewireFire.reuseTab"] )
 			self.w.setFireToNode.set( Glyphs.defaults["com.mekkablue.RewireFire.setFireToNode"] )
+			self.w.tolerateZeroSegments.set( Glyphs.defaults["com.mekkablue.RewireFire.tolerateZeroSegments"] )
 			self.w.includeNonExporting.set( Glyphs.defaults["com.mekkablue.RewireFire.includeNonExporting"] )
 			self.w.dynamiteForOnSegment.set( Glyphs.defaults["com.mekkablue.RewireFire.dynamiteForOnSegment"] )
 			self.w.shouldSelect.set( Glyphs.defaults["com.mekkablue.RewireFire.shouldSelect"] )
@@ -195,19 +204,20 @@ class RewireFire( object ):
 		else:
 			return False
 	
-	def findDuplicates(self, thisLayer, setFireToNode=True, markWithCircle=False, shouldSelect=True):
+	def findDuplicates(self, thisLayer, setFireToNode=True, markWithCircle=False, shouldSelect=True, tolerateZeroSegments=False):
 		allCoordinates = []
 		duplicateCoordinates = []
 		for thisPath in thisLayer.paths:
 			for thisNode in thisPath.nodes:
 				if thisNode.type != OFFCURVE:
 					if thisNode.position in allCoordinates:
-						# select node:
-						if shouldSelect and not thisNode in thisLayer.selection:
-							thisLayer.selection.append(thisNode)
-						duplicateCoordinates.append(thisNode.position)
-						if setFireToNode:
-							thisNode.name = self.duplicateMarker
+						if not tolerateZeroSegments or not thisNode.position in (thisNode.nextNode.position, thisNode.prevNode.position):
+							# select node:
+							if shouldSelect and not thisNode in thisLayer.selection:
+								thisLayer.selection.append(thisNode)
+							duplicateCoordinates.append(thisNode.position)
+							if setFireToNode:
+								thisNode.name = self.duplicateMarker
 					else:
 						allCoordinates.append(thisNode.position)
 						if thisNode.name == self.duplicateMarker:
@@ -243,6 +253,7 @@ class RewireFire( object ):
 			setFireToNode = Glyphs.defaults["com.mekkablue.RewireFire.setFireToNode"]
 			shouldSelect = Glyphs.defaults["com.mekkablue.RewireFire.shouldSelect"]
 			dynamiteForOnSegment = Glyphs.defaults["com.mekkablue.RewireFire.dynamiteForOnSegment"]
+			tolerateZeroSegments = Glyphs.defaults["com.mekkablue.RewireFire.tolerateZeroSegments"]
 			# markWithCircle = Glyphs.defaults["com.mekkablue.RewireFire.markWithCircle"]
 			
 			thisFont = Glyphs.font # frontmost font
@@ -267,7 +278,7 @@ class RewireFire( object ):
 								thisLayer.selection = None
 							
 							# mark and select duplicate nodes:
-							if setFireToNode and self.findDuplicates(thisLayer, shouldSelect=shouldSelect):
+							if setFireToNode and self.findDuplicates(thisLayer, shouldSelect=shouldSelect, tolerateZeroSegments=tolerateZeroSegments):
 								affectedLayers.append(thisLayer)
 								
 							# mark and select nodes on line segments:
