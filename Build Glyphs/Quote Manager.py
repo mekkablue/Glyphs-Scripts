@@ -53,8 +53,10 @@ class QuoteManager( object ):
 		self.w.suffix.getNSTextField().setToolTip_(u"E.g., ‘case’ for .case variants. Entry with or without the leading period. Leave blank for the default quotes (without dot suffixes).")
 		linePos += lineHeight
 		
-		self.w.openTabWithAffectedGlyphs = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Open tab with affected glyphs", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.openTabWithAffectedGlyphs = vanilla.CheckBox( (inset, linePos-1, 200, 20), "Open tab with affected glyphs", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.openTabWithAffectedGlyphs.getNSButton().setToolTip_("Whatever action you take, this option makes sure a new tab will be opened with all the glyphs affected.")
+		self.w.reuseTab = vanilla.CheckBox( (inset+200, linePos-1, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reuseTab.getNSButton().setToolTip_(u"Instead of opening a new tab, will reuse the current tab. Highly recommended.")
 		linePos += lineHeight
 
 		self.w.buildDoublesButton = vanilla.Button( (inset, linePos, 130, 18), "Add Components", sizeStyle='small', callback=self.buildDoublesMain )
@@ -92,7 +94,10 @@ class QuoteManager( object ):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-		
+	
+	def updateUI(self, sender=None):
+		self.w.reuseTab.enable(self.w.openTabWithAffectedGlyphs.get())
+	
 	def SavePreferences( self, sender ):
 		try:
 			Glyphs.defaults["com.mekkablue.QuoteManager.defaultQuote"] = self.w.defaultQuote.get()
@@ -100,6 +105,8 @@ class QuoteManager( object ):
 			Glyphs.defaults["com.mekkablue.QuoteManager.suffix"] = self.w.suffix.get()
 			Glyphs.defaults["com.mekkablue.QuoteManager.excludeDumbQuotes"] = self.w.excludeDumbQuotes.get()
 			Glyphs.defaults["com.mekkablue.QuoteManager.openTabWithAffectedGlyphs"] = self.w.openTabWithAffectedGlyphs.get()
+			Glyphs.defaults["com.mekkablue.QuoteManager.reuseTab"] = self.w.reuseTab.get()
+			self.updateUI()
 		except:
 			return False
 			
@@ -112,11 +119,14 @@ class QuoteManager( object ):
 			Glyphs.registerDefault("com.mekkablue.QuoteManager.suffix", "")
 			Glyphs.registerDefault("com.mekkablue.QuoteManager.excludeDumbQuotes", 0)
 			Glyphs.registerDefault("com.mekkablue.QuoteManager.openTabWithAffectedGlyphs", 0)
+			Glyphs.registerDefault("com.mekkablue.QuoteManager.reuseTab", 1)
 			self.w.defaultQuote.set( Glyphs.defaults["com.mekkablue.QuoteManager.defaultQuote"] )
 			self.w.syncWithDefaultQuote.set( Glyphs.defaults["com.mekkablue.QuoteManager.syncWithDefaultQuote"] )
 			self.w.suffix.set( Glyphs.defaults["com.mekkablue.QuoteManager.suffix"] )
 			self.w.excludeDumbQuotes.set( Glyphs.defaults["com.mekkablue.QuoteManager.excludeDumbQuotes"] )
 			self.w.openTabWithAffectedGlyphs.set( Glyphs.defaults["com.mekkablue.QuoteManager.openTabWithAffectedGlyphs"] )
+			self.w.reuseTab.set( Glyphs.defaults["com.mekkablue.QuoteManager.reuseTab"] )
+			self.updateUI()
 		except:
 			return False
 			
@@ -142,7 +152,10 @@ class QuoteManager( object ):
 					if Font.glyphs[suffixedName]:
 						tabString += "/%s" % suffixedName
 			if tabString:
-				Font.newTab(tabString)
+				if Font.currentTab and Glyphs.defaults["com.mekkablue.QuoteManager.reuseTab"]:
+					Font.currentTab.text = tabString
+				else:
+					Font.newTab(tabString)
 			else:
 				print(u"⚠️ WARNING: None of the required glyphs in the font. No new tab opened.")
 		
@@ -203,8 +216,9 @@ class QuoteManager( object ):
 					for glyph in (singleQuote, doubleQuote):
 						glyph.leftKerningGroup = singleQuoteName
 						glyph.rightKerningGroup = singleQuoteName
-					print(u"✅ Succesfully set kerning groups to: '%s'" % singleQuoteName)
-					
+					print(u"✅ Successfully set kerning groups to: '%s'" % singleQuoteName)
+			
+			self.openTabIfRequested()
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
