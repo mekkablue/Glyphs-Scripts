@@ -534,7 +534,7 @@ htmlContent = """
 	<div id="flexbox">
 		<div id="controls">
 			<!-- OTVar Sliders -->
-			<div class="labeldiv"><label class="sliderlabel" id="label_fontsize" name="Font Size">Font Size</label><input type="range" min="10" max="300" value="150" class="slider" id="fontsize" oninput="updateSlider();"></div>
+			<div class="labeldiv"><label class="sliderlabel" id="label_fontsize" name="Font Size">Font Size</label><input type="range" min="10" max="1000" value="150" class="slider" id="fontsize" oninput="updateSlider();"></div>
 			<div class="labeldiv"><label class="sliderlabel" id="label_lineheight" name="Line Height">Line Height</label><input type="range" min="30" max="300" value="100" class="slider" id="lineheight" oninput="updateSlider();"></div>
 ###sliders###
 
