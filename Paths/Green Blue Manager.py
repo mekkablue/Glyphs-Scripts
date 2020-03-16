@@ -63,10 +63,11 @@ class GreenBlueManager( object ):
 		self.w.reportInMacroWindowVerbose.getNSButton().setToolTip_("If enabled, will output a verbose (detailed) report in Window > Macro Panel.")
 		linePos += lineHeight
 		
-		self.w.shouldMark = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Mark affected nodes", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.shouldMark = vanilla.CheckBox( (inset, linePos-1, 160, 20), u"Mark affected nodes", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.shouldMark.getNSButton().setToolTip_(u"If enabled, will mark (intended) node type changes as follows: 💚=SMOOTH 🔷=CORNER.")
+		self.w.reuseTab = vanilla.CheckBox( (inset+160, linePos-1, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reuseTab.getNSButton().setToolTip_(u"If enabled, will use the current tab for output, and only open a new tab if there is none open.")
 		linePos += lineHeight
-		
 		
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0) # set progress indicator to zero
@@ -109,6 +110,7 @@ class GreenBlueManager( object ):
 			Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindow"] = self.w.reportInMacroWindow.get()
 			Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindowVerbose"] = self.w.reportInMacroWindowVerbose.get()
 			Glyphs.defaults["com.mekkablue.GreenBlueManager.shouldMark"] = self.w.shouldMark.get()
+			Glyphs.defaults["com.mekkablue.GreenBlueManager.reuseTab"] = self.w.reuseTab.get()
 		except:
 			return False
 			
@@ -124,6 +126,7 @@ class GreenBlueManager( object ):
 			Glyphs.registerDefault( "com.mekkablue.GreenBlueManager.reportInMacroWindow", 1 )
 			Glyphs.registerDefault( "com.mekkablue.GreenBlueManager.reportInMacroWindowVerbose", 0 )
 			Glyphs.registerDefault( "com.mekkablue.GreenBlueManager.shouldMark", 0 )
+			Glyphs.registerDefault( "com.mekkablue.GreenBlueManager.reuseTab", 1 )
 			self.w.thresholdAngle.set( Glyphs.defaults["com.mekkablue.GreenBlueManager.thresholdAngle"] )
 			self.w.completeFont.set( Glyphs.defaults["com.mekkablue.GreenBlueManager.completeFont"] )
 			self.w.fixGreenBlue.set( Glyphs.defaults["com.mekkablue.GreenBlueManager.fixGreenBlue"] )
@@ -131,6 +134,7 @@ class GreenBlueManager( object ):
 			self.w.reportInMacroWindow.set( Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindow"] )
 			self.w.reportInMacroWindowVerbose.set( Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindowVerbose"] )
 			self.w.shouldMark.set( Glyphs.defaults["com.mekkablue.GreenBlueManager.shouldMark"] )
+			self.w.reuseTab.set( Glyphs.defaults["com.mekkablue.GreenBlueManager.reuseTab"] )
 		except:
 			return False
 			
@@ -252,6 +256,7 @@ class GreenBlueManager( object ):
 				shouldReport = Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindow"]
 				shouldVerbose = Glyphs.defaults["com.mekkablue.GreenBlueManager.reportInMacroWindowVerbose"]
 				shouldFix = Glyphs.defaults["com.mekkablue.GreenBlueManager.fixGreenBlue"]
+				reuseTab = Glyphs.defaults["com.mekkablue.GreenBlueManager.reuseTab"]
 				
 				if shouldReport:
 					Glyphs.clearLog()
@@ -346,17 +351,22 @@ class GreenBlueManager( object ):
 				else:
 					# opens new Edit tab:
 					if affectedLayersFixedConnections or affectedLayersRealignedHandles:
-						newTab = thisFont.newTab()
+						if not reuseTab or not thisFont.tabs:
+							outputTab = thisFont.outputTab()
+						else:
+							outputTab = thisFont.currentTab
+							outputTab.text = ""
+							
 						if affectedLayersFixedConnections:
-							newTab.text += "%s:\n" % titles[0]
+							outputTab.text += "%s:\n" % titles[0]
 							for affectedLayer in affectedLayersFixedConnections:
-								newTab.layers.append(affectedLayer)
+								outputTab.layers.append(affectedLayer)
 						if affectedLayersFixedConnections and affectedLayersRealignedHandles:
-							newTab.text += "\n\n"
+							outputTab.text += "\n\n"
 						if affectedLayersRealignedHandles:
-							newTab.text += "%s:\n" % titles[1]
+							outputTab.text += "%s:\n" % titles[1]
 							for affectedLayer in affectedLayersRealignedHandles:
-								newTab.layers.append(affectedLayer)
+								outputTab.layers.append(affectedLayer)
 				
 		except Exception as e:
 			# brings macro window to front and reports error:
