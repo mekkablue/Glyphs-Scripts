@@ -8,6 +8,225 @@ Create a Test HTML for the current font inside the current Variation Font Export
 from os import system
 from AppKit import NSClassFromString, NSBundle
 
+def langMenu(thisFont, indent=4):
+	otTag2Lang = {
+		'ABK':('ab','Abkhazian'),
+		'AFK':('af','Afrikaans'),
+		'AFR':('aa','Afar'),
+		'AKA':('ak','Akan'),
+		'AMH':('am','Amharic'),
+		'ARA':('ar','Arabic'),
+		'ARG':('an','Aragonese'),
+		'ASM':('as','Assamese'),
+		'AVR':('av','Avar'),
+		'AYM':('ay','Aymara'),
+		'AZE':('az','Azerbaijani'),
+		'BEL':('be','Belarussian'),
+		'BEN':('bn','Bengali'),
+		'BGR':('bg','Bulgarian'),
+		'BIS':('bi','Bislama'),
+		'BMB':('bm','Bambara (Bamanankan)'),
+		'BOS':('bs','Bosnian'),
+		'BRE':('br','Breton'),
+		'BRM':('my','Burmese'),
+		'BSH':('ba','Bashkir'),
+		'CAT':('ca','Catalan'),
+		'CHA':('ch','Chamorro'),
+		'CHE':('ce','Chechen'),
+		'CHI':('ny','Chichewa (Chewa, Nyanja)'),
+		'CHU':('cv','Chuvash'),
+		'COR':('kw','Cornish'),
+		'COS':('co','Corsican'),
+		'CRE':('cr','Cree'),
+		'CSL':('cu','Church Slavonic'),
+		'CSY':('cs','Czech'),
+		'DAN':('da','Danish'),
+		'DEU':('de','German'),
+		'DIV':('dv','Divehi (Dhivehi, Maldivian)'),
+		'DZN':('dz','Dzongkha'),
+		'ELL':('el','Greek'),
+		'ENG':('en','English'),
+		'ESP':('es','Spanish'),
+		'ETI':('et','Estonian'),
+		'EUQ':('eu','Basque'),
+		'EWE':('ee','Ewe'),
+		'FAR':('fa','Persian'),
+		'FIN':('fi','Finnish'),
+		'FJI':('fj','Fijian'),
+		'FOS':('fo','Faroese'),
+		'FRA':('fr','French'),
+		'FRI':('fy','Frisian'),
+		'FUL':('ff','Fulah'),
+		'GAE':('gd','Scottish Gaelic (Gaelic)'),
+		'GAL':('gl','Galician'),
+		'GRN':('kl','Greenlandic'),
+		'GUA':('gn','Guarani'),
+		'GUJ':('gu','Gujarati'),
+		'HAI':('ht','Haitian (Haitian Creole)'),
+		'HAU':('ha','Hausa'),
+		'HER':('hz','Herero'),
+		'HIN':('hi','Hindi'),
+		'HMO':('ho','Hiri Motu'),
+		'HRV':('hr','Croatian'),
+		'HUN':('hu','Hungarian'),
+		'HYE0':('hy','Armenian East'),
+		'IBO':('ig','Igbo'),
+		'IDO':('io','Ido'),
+		'ILE':('ie','Interlingue'),
+		'INA':('ia','Interlingua'),
+		'IND':('id','Indonesian'),
+		'INU':('iu','Inuktitut'),
+		'IPK':('ik','Inupiat'),
+		'IRI':('ga','Irish'),
+		'IRT':('ga','Irish Traditional'),
+		'ISL':('is','Icelandic'),
+		'ITA':('it','Italian'),
+		'IWR':('he','Hebrew'),
+		'JAN':('ja','Japanese'),
+		'JAV':('jv','Javanese'),
+		'JII':('yi','Yiddish'),
+		'KAN':('kn','Kannada'),
+		'KAT':('ka','Georgian'),
+		'KAZ':('kk','Kazakh'),
+		'KGE':('ka','Khutsuri Georgian'),
+		'KHM':('km','Khmer'),
+		'KIK':('ki','Kikuyu (Gikuyu)'),
+		'KIR':('ky','Kirghiz (Kyrgyz)'),
+		'KNR':('kr','Kanuri'),
+		'KOM':('kv','Komi'),
+		'KON0':('kg','Kongo'),
+		'KOR':('ko','Korean'),
+		'KSH':('ks','Kashmiri'),
+		'KUA':('kj','Kuanyama'),
+		'KUR':('ku','Kurdish'),
+		'LAO':('lo','Lao'),
+		'LAT':('la','Latin'),
+		'LIM':('li','Limburgish'),
+		'LIN':('ln','Lingala'),
+		'LTH':('lt','Lithuanian'),
+		'LTZ':('lb','Luxembourgish'),
+		'LUB':('lu','Luba-Katanga'),
+		'LUG':('lg','Ganda'),
+		'LVI':('lv','Latvian'),
+		'MAH':('mh','Marshallese'),
+		'MAL':('ml','Malayalam'),
+		'MAR':('mr','Marathi'),
+		'MKD':('mk','Macedonian'),
+		'MLG':('mg','Malagasy'),
+		'MLR':('ml','Malayalam Reformed'),
+		'MLY':('ms','Malay'),
+		'MNG':('mn','Mongolian'),
+		'MNX':('gv','Manx'),
+		'MOL':('mo','Moldavian'),
+		'MRI':('mi','Maori'),
+		'MTS':('mt','Maltese'),
+		'NAU':('na','Nauruan'),
+		'NAV':('nv','Navajo'),
+		'NDG':('ng','Ndonga'),
+		'NEP':('ne','Nepali'),
+		'NLD':('nl','Dutch'),
+		'NOR':('nb','Norwegian'),
+		'NSM':('se','Northern Sami'),
+		'NTO':('eo','Esperanto'),
+		'NYN':('nn','Norwegian Nynorsk (Nynorsk, Norwegian)'),
+		'OCI':('oc','Occitan'),
+		'OJB':('oj','Ojibway'),
+		'ORI':('or','Odia (formerly Oriya)'),
+		'ORO':('om','Oromo'),
+		'OSS':('os','Ossetian'),
+		'PAL':('pi','Pali'),
+		'PAN':('pa','Punjabi'),
+		'PAS':('ps','Pashto'),
+		'PGR':('el','Polytonic Greek'),
+		'PLK':('pl','Polish'),
+		'PTG':('pt','Portuguese'),
+		'RMS':('rm','Romansh'),
+		'ROM':('ro','Romanian'),
+		'RUA':('rw','Kinyarwanda'),
+		'RUN':('rn','Rundi'),
+		'RUS':('ru','Russian'),
+		'SAN':('sa','Sanskrit'),
+		'SGO':('sg','Sango'),
+		'SKY':('sk','Slovak'),
+		'SLV':('sl','Slovenian'),
+		'SML':('so','Somali'),
+		'SMO':('sm','Samoan'),
+		'SNA0':('sn','Shona'),
+		'SND':('sd','Sindhi'),
+		'SNH':('si','Sinhala (Sinhalese)'),
+		'SOT':('st','Sotho, Southern'),
+		'SQI':('sq','Albanian'),
+		'SRB':('sr','Serbian'),
+		'SRD':('sc','Sardinian'),
+		'SUN':('su','Sundanese'),
+		'SVE':('sv','Swedish'),
+		'SWK':('sw','Swahili'),
+		'SWZ':('ss','Swati'),
+		'TAJ':('tg','Tajiki'),
+		'TAM':('ta','Tamil'),
+		'TAT':('tt','Tatar'),
+		'TEL':('te','Telugu'),
+		'TGL':('tl','Tagalog'),
+		'TGN':('to','Tongan'),
+		'TGY':('ti','Tigrinya'),
+		'THA':('th','Thai'),
+		'THT':('ty','Tahitian'),
+		'TIB':('bo','Tibetan'),
+		'TKM':('tk','Turkmen'),
+		'TNA':('tn','Tswana'),
+		'TRK':('tr','Turkish'),
+		'TSG':('ts','Tsonga'),
+		'TWI':('ak','Twi'),
+		'UKR':('uk','Ukrainian'),
+		'URD':('ur','Urdu'),
+		'UYG':('ug','Uyghur'),
+		'UZB':('uz','Uzbek'),
+		'VEN':('ve','Venda'),
+		'VIT':('vi','Vietnamese'),
+		'VOL':('vo','Volapük'),
+		'WEL':('cy','Welsh'),
+		'WLF':('wo','Wolof'),
+		'WLN':('wa','Walloon'),
+		'XHS':('xh','Xhosa'),
+		'YBA':('yo','Yoruba'),
+		'YCR':('cr','Y-Cree'),
+		'YIM':('ii','Yi Modern'),
+		'ZHA':('za','Zhuang'),
+		'ZHH':('zh','Chinese, Hong Kong SAR'),
+		'ZHP':('zh','Chinese Phonetic'),
+		'ZHS':('zh','Chinese Simplified'),
+		'ZHT':('zh','Chinese Traditional'),
+		'ZUL':('zu','Zulu'),
+	}
+	htmlCode = ""
+	findWord = "language"
+	for thisFeatureCollection in (thisFont.features, thisFont.featurePrefixes):
+		for thisFeature in thisFeatureCollection:
+			if thisFeature.active:
+				for thisLine in thisFeature.code.splitlines():
+					if findWord.lower() in thisLine.lower():
+						wordsOnLine = thisLine.lower().strip().split()
+						try:
+							langIndex = wordsOnLine.index(findWord)+1
+							otTag = wordsOnLine[langIndex].strip().replace(";","").upper()
+							if otTag in otTag2Lang.keys():
+								isoTag = otTag2Lang[otTag][0]
+								naturalName = otTag2Lang[otTag][1]
+								newLine = "\t<option value='%s'>%s (%s, %s)</option>\n" % ( isoTag, naturalName, otTag, isoTag )
+								if not newLine in htmlCode: # avoid duplicates
+									htmlCode += newLine
+						except:
+							pass
+	if htmlCode:
+		htmlCode = "\t<option value=''>No Language</option>\n" + htmlCode
+		htmlCode = "<select id='lang' name='languages' onchange='setLanguage(this.value);'>\n%s</select>" % htmlCode
+		# indent:
+		tabs = "\n" + "\t" * indent
+		htmlCode = tabs + tabs.join(htmlCode.splitlines())
+		return htmlCode
+	else:
+		return htmlCode
+
 def saveFileInLocation( content="Sorry, no content generated.", fileName="test.html", filePath="~/Desktop" ):
 	saveFileLocation = "%s/%s" % (filePath,fileName)
 	saveFileLocation = saveFileLocation.replace( "//", "/" )
@@ -310,7 +529,7 @@ htmlContent = """
 				pointer-events: auto;
 				white-space: nowrap;
 			}
-			.otFeatureLabel {
+			.otFeatureLabel, select {
 				padding: 0.2em 0.5em 0.3em 0.5em;
 				margin: 0 .04em;
 				line-height: 2em;
@@ -320,6 +539,13 @@ htmlContent = """
 				border: 0;
 				text-align: center;
 				z-index: 6;
+			}
+ 			select {
+				position: absolute;
+				margin: 0.2em 0.5em;
+				height: 2.1em;
+				font: x-small sans-serif;
+				vertical-align: bottom;
 			}
 			.otFeature {
 				visibility: collapse;
@@ -356,11 +582,11 @@ htmlContent = """
 				width: 100%;
 				color: black;
 				font: 150px "###fontFamilyName###";
-				font-feature-settings: "kern" on, "liga" on, "calt" on;
-				-moz-font-feature-settings: "kern" on, "liga" on, "calt" on;
-				-webkit-font-feature-settings: "kern" on, "liga" on, "calt" on;
-				-ms-font-feature-settings: "kern" on, "liga" on, "calt" on;
-				-o-font-feature-settings: "kern" on, "liga" on, "calt" on;
+				font-feature-settings: "kern" on, "liga" on, "calt" on, "locl" on;
+				-moz-font-feature-settings: "kern" on, "liga" on, "calt" on, "locl" on;
+				-webkit-font-feature-settings: "kern" on, "liga" on, "calt" on, "locl" on;
+				-ms-font-feature-settings: "kern" on, "liga" on, "calt" on, "locl" on;
+				-o-font-feature-settings: "kern" on, "liga" on, "calt" on, "locl" on;
 				font-variation-settings: ###variationSettings###;
 				overflow-x: hidden;
 				overflow-y: scroll;
@@ -419,6 +645,9 @@ htmlContent = """
 		<script>
 			document.addEventListener('keyup', keyAnalysis);
 			
+			function setLanguage(lang) {
+				document.body.setAttribute('lang',lang);
+			}
 			function keyAnalysis(event) {
 				if (event.ctrlKey) {
 					if (event.code == 'KeyR') {
@@ -544,6 +773,7 @@ htmlContent = """
 				<input type="checkbox" name="liga" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga</label>
 				<input type="checkbox" name="calt" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel">calt</label>
 ###featureList###
+###languageSelection###
 			</div>
 		</div>
 		
@@ -583,6 +813,7 @@ if appVersionHighEnough:
 		( "###variationSettings###", defaultVariationCSS(thisFont) ), 
 		( "###fontFileName###", otVarFileName(thisFont) ),
 		( "###featureList###", featureListForFont(thisFont) ),
+		( "###languageSelection###", langMenu(thisFont) ),
 	)
 
 	htmlContent = replaceSet( htmlContent, replacements )
