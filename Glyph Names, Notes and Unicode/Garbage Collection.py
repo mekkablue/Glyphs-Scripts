@@ -11,7 +11,7 @@ class GarbageCollection( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 310
-		windowHeight = 280
+		windowHeight = 300
 		windowWidthResize  = 50 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -47,6 +47,10 @@ class GarbageCollection( object ):
 		self.w.removeGlyphNotes.getNSButton().setToolTip_("Deletes glyph notes as entered in list view or through the Glyph Note Palette (plug-in).")
 		linePos += lineHeight
 		
+		self.w.removeColors = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Remove all glyph and layer colors in font", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.removeColors.getNSButton().setToolTip_("Resets all glyph and layer colors to none.")
+		linePos += lineHeight
+		
 		self.w.currentMasterOnly = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Limit clean-up to current master only", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.currentMasterOnly.getNSButton().setToolTip_("If checked, applies the clean-up to layers of the current font master only. Exception: glyph notes are not master-specific.")
 		linePos += lineHeight
@@ -77,15 +81,17 @@ class GarbageCollection( object ):
 		
 	def guiUpdate(self, sender=None):
 		if Glyphs.defaults["com.mekkablue.GarbageCollection.currentMasterOnly"]:
-			self.w.removeNodeNames.setTitle(u"Remove all node names 🔥❌👌🏻 in current master")
+			self.w.removeNodeNames.setTitle(u"Remove all node names 🔥❌👌🏻💚🔷 in current master")
 			self.w.removeAnnotations.setTitle(u"Remove all annotations in current master")
 			self.w.removeLocalGuides.setTitle(u"Remove all local (blue) guides in current master")
 			self.w.removeGlobalGuides.setTitle(u"Remove all global (red) guides in current master")
+			self.w.removeColors.setTitle(u"Remove glyph colors in font, layer colors in master")
 		else:
-			self.w.removeNodeNames.setTitle(u"Remove all node names 🔥❌👌🏻 in font")
+			self.w.removeNodeNames.setTitle(u"Remove all node names 🔥❌👌🏻💚🔷 in font")
 			self.w.removeAnnotations.setTitle(u"Remove all annotations in font")
 			self.w.removeLocalGuides.setTitle(u"Remove all local (blue) guides in font")
 			self.w.removeGlobalGuides.setTitle(u"Remove all global (red) guides in font")
+			self.w.removeColors.setTitle(u"Remove all glyph and layer colors in font")
 		
 	def SavePreferences( self, sender ):
 		try:
@@ -94,6 +100,7 @@ class GarbageCollection( object ):
 			Glyphs.defaults["com.mekkablue.GarbageCollection.removeGlobalGuides"] = self.w.removeGlobalGuides.get()
 			Glyphs.defaults["com.mekkablue.GarbageCollection.removeAnnotations"] = self.w.removeAnnotations.get()
 			Glyphs.defaults["com.mekkablue.GarbageCollection.removeGlyphNotes"] = self.w.removeGlyphNotes.get()
+			Glyphs.defaults["com.mekkablue.GarbageCollection.removeColors"] = self.w.removeColors.get()
 			Glyphs.defaults["com.mekkablue.GarbageCollection.currentMasterOnly"] = self.w.currentMasterOnly.get()
 			Glyphs.defaults["com.mekkablue.GarbageCollection.selectedGlyphsOnly"] = self.w.selectedGlyphsOnly.get()
 			
@@ -110,6 +117,7 @@ class GarbageCollection( object ):
 			Glyphs.registerDefault("com.mekkablue.GarbageCollection.removeGlobalGuides", 0)
 			Glyphs.registerDefault("com.mekkablue.GarbageCollection.removeAnnotations", 1)
 			Glyphs.registerDefault("com.mekkablue.GarbageCollection.removeGlyphNotes", 0)
+			Glyphs.registerDefault("com.mekkablue.GarbageCollection.removeColors", 0)
 			Glyphs.registerDefault("com.mekkablue.GarbageCollection.currentMasterOnly", 0)
 			Glyphs.registerDefault("com.mekkablue.GarbageCollection.selectedGlyphsOnly", 0)
 			self.w.removeNodeNames.set( Glyphs.defaults["com.mekkablue.GarbageCollection.removeNodeNames"] )
@@ -117,6 +125,7 @@ class GarbageCollection( object ):
 			self.w.removeGlobalGuides.set( Glyphs.defaults["com.mekkablue.GarbageCollection.removeGlobalGuides"] )
 			self.w.removeAnnotations.set( Glyphs.defaults["com.mekkablue.GarbageCollection.removeAnnotations"] )
 			self.w.removeGlyphNotes.set( Glyphs.defaults["com.mekkablue.GarbageCollection.removeGlyphNotes"] )
+			self.w.removeColors.set( Glyphs.defaults["com.mekkablue.GarbageCollection.removeColors"] )
 			self.w.currentMasterOnly.set( Glyphs.defaults["com.mekkablue.GarbageCollection.currentMasterOnly"] )
 			self.w.selectedGlyphsOnly.set( Glyphs.defaults["com.mekkablue.GarbageCollection.selectedGlyphsOnly"] )
 			
@@ -150,6 +159,14 @@ class GarbageCollection( object ):
 			else:
 				glyphs = thisFont.glyphs
 			
+			# query user settings:
+			currentMasterOnly = Glyphs.defaults["com.mekkablue.GarbageCollection.currentMasterOnly"]
+			removeNodeNames = Glyphs.defaults["com.mekkablue.GarbageCollection.removeNodeNames"]
+			removeLocalGuides = Glyphs.defaults["com.mekkablue.GarbageCollection.removeLocalGuides"]
+			removeAnnotations = Glyphs.defaults["com.mekkablue.GarbageCollection.removeAnnotations"]
+			removeGlyphNotes = Glyphs.defaults["com.mekkablue.GarbageCollection.removeGlyphNotes"]
+			removeColors = Glyphs.defaults["com.mekkablue.GarbageCollection.removeColors"]
+			
 			# font counters:
 			removeNodeNamesFont = 0
 			localGuidesFont = 0
@@ -165,25 +182,33 @@ class GarbageCollection( object ):
 				removeAnnotationsGlyph = 0
 				
 				self.log( u"🔠 Cleaning %s ..." % thisGlyph.name)
+				
+				# layer clean-up:
 				for thisLayer in thisGlyph.layers:
-					if thisLayer.master == thisFont.selectedFontMaster or not Glyphs.defaults["com.mekkablue.GarbageCollection.currentMasterOnly"]:
-						if Glyphs.defaults["com.mekkablue.GarbageCollection.removeNodeNames"]:
+					if thisLayer.master == thisFont.selectedFontMaster or not currentMasterOnly:
+						if removeNodeNames:
 							for thisPath in thisLayer.paths:
 								for thisNode in thisPath.nodes:
 									if thisNode.name:
 										removeNodeNamesGlyph += 1
 										thisNode.name = None
-						if Glyphs.defaults["com.mekkablue.GarbageCollection.removeLocalGuides"]:
+						if removeLocalGuides:
 							localGuidesGlyph += len(thisLayer.guideLines)
 							thisLayer.guideLines = None
-						if Glyphs.defaults["com.mekkablue.GarbageCollection.removeAnnotations"]:
+						if removeAnnotations:
 							removeAnnotationsGlyph += len(thisLayer.annotations)
 							thisLayer.annotations = None
-				if Glyphs.defaults["com.mekkablue.GarbageCollection.removeGlyphNotes"]:
+						if removeColors:
+							thisLayer.color = None
+				
+				# glyph clean-up:
+				if removeGlyphNotes:
 					if thisGlyph.note:
 						print( "  glyph note")
 						thisGlyph.note = None
-				
+				if removeColors:
+					thisGlyph.color = None
+					
 				# report:
 				if removeNodeNamesGlyph:
 					print("  %i node names" % removeNodeNamesGlyph)
@@ -199,7 +224,7 @@ class GarbageCollection( object ):
 			if Glyphs.defaults["com.mekkablue.GarbageCollection.removeGlobalGuides"]:
 				self.log(u"📏 Removing global guides ...")
 				for thisMaster in thisFont.masters:
-					if thisMaster == thisFont.selectedFontMaster or not Glyphs.defaults["com.mekkablue.GarbageCollection.currentMasterOnly"]:
+					if thisMaster == thisFont.selectedFontMaster or not currentMasterOnly:
 						thisMaster.guideLines = None
 
 			# full progress bar:
