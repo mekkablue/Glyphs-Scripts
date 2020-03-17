@@ -93,9 +93,9 @@ class GreenBlueManager( object ):
 	
 	def checkGUI(self, sender=None):
 		if not self.w.realignHandles.get() and not self.w.fixGreenBlue.get():
-			self.w.runButton.setTitle("New Tab")
+			self.w.runButton.setTitle("Open Tab")
 		else:
-			self.w.runButton.setTitle("Treat Points")
+			self.w.runButton.setTitle("Treat Nodes")
 			
 		self.w.reportInMacroWindowVerbose.enable( self.w.reportInMacroWindow.get() )
 			
