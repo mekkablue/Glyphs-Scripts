@@ -75,7 +75,7 @@ class BatchInsertAnchor( object ):
 
 	def LoadPreferences( self ):
 		try:
-			Glyphs.registerDefault("com.mekkablue.BatchInsertAnchor.anchorName", 0)
+			Glyphs.registerDefault("com.mekkablue.BatchInsertAnchor.anchorName", "top")
 			Glyphs.registerDefault("com.mekkablue.BatchInsertAnchor.xPos", 0)
 			Glyphs.registerDefault("com.mekkablue.BatchInsertAnchor.yPos", 0)
 			Glyphs.registerDefault("com.mekkablue.BatchInsertAnchor.replaceExisting", 0)
