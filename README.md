@@ -295,11 +295,9 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **Green Blue Manager:** Define an angle above which a node will be set to blue, below which it will be set to green. *Needs Vanilla.*
 * **Grid Switcher:** Toggles grid between two user-definable gridstep values with the click of a floating button. *Needs Vanilla.*
 * **Harmonise Curve to Line:** Will rearrange handles on (selected) curve segments with a following line segment, in such a way that the transition between the two segments is smooth (harmonized).
-* **New Tab with Offcurves as Start Points:** Opens a new tab with all glyphs that contain paths where the first point is an offcurve.
-* **New Tab with Path Problems:** Opens a new tab with glyphs containing zero handles, bad outline orders or path directions. Only opens master layers in tabs. Full layer report (including non-master layers) in the Macro window log.
-* **New Tab with Shallow Segments:** Opens a new tab with all layers that have small outline segments, i.e., not extending far enough horizontally or vertically.
 * **New Tab with Short Segments:** Goes through all glyphs in the present font(s), and reports segments shorter than a user-specified distance to the Macro window, and opens a new tab with affected glyphs. Useful for finding alignment errors in exported OTFs. *Needs Vanilla.*
 * **New Tab with Small Paths:** Opens a new tab containing paths that are smaller than a user-definable threshold size in square units.
+* **Path Problem Finder:** Finds all kinds of potential problems in outlines, and opens a new tab with affected layers. *Needs Vanilla.*
 * **Realign BCPs:** Realigns all BCPs in all selected glyphs. Useful if handles got out of sync, e.g. after nudging or some other transformation, or after interpolation. Hold down Option to apply to all layers of the selected glyph(s).
 * **Remove all Open Paths:** Deletes all *open* paths in the visible layers of all selected glyphs.
 * **Remove Nodes and Try to Keep Shape:** Deletes selected on-curve nodes and tries to keep the shape as much as possible. Similar to what happens when you delete a single node, but for a selection of multiple nodes. Pro tip: Hold down the Shift key while running the script, and it will also balance the remaining handles as much as possible, which is exactly what happens when you delete a single node.
