@@ -123,13 +123,21 @@ class StraightStemCruncher( object ):
 			self.w.minimumSegmentLength.set("%i" % round(xHeight/2.1,-1))
 			
 		elif sender == self.w.stemUpdate:
-			stems = [s for s in Glyphs.font.selectedFontMaster.horizontalStems+Glyphs.font.selectedFontMaster.verticalStems]
-			stems = sorted(set(stems))
-			stemString = ", ".join( [str(s) for s in stems] )
-			if stemString:
-				self.w.stems.set(stemString)
-			else:
-				Message(title="Stem Error", message="No standard stems defined in the current master. Please add some in Font Info > Masters.", OKButton=None)
+			thisFont = Glyphs.font
+			if thisFont:
+				master = thisFont.selectedFontMaster
+				if master:
+					stems = []
+					for stemSet in (master.horizontalStems, master.verticalStems):
+						if stemSet:
+							for s in stemSet:
+								stems.append(s)
+					stems = sorted(set(stems))
+					stemString = ", ".join( [str(s) for s in stems] )
+					if stemString:
+						self.w.stems.set(stemString)
+					else:
+						Message(title="Stem Error", message="No standard stems defined in the current master. Please add some in Font Info > Masters.", OKButton=None)
 		
 		elif sender == self.w.excludeGlyphNamesReset:
 			self.w.excludeGlyphNames.set(self.defaultExcludeList)
