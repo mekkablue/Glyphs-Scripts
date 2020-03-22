@@ -168,7 +168,7 @@ class GreenBlueManager( object ):
 								oncurve.position,
 								opposingPoint.position,
 							)
-						elif oncurve and oncurve.smooth and handleStraight and opposingPoint.type == GSOFFCURVE:
+						elif oncurve and opposingPoint and oncurve.smooth and handleStraight and opposingPoint.type == GSOFFCURVE:
 							# thisNode = straight handle: align opposite handle
 							thisPath.setSmooth_withCenterPoint_oppositePoint_(
 								opposingPoint,
@@ -353,7 +353,7 @@ class GreenBlueManager( object ):
 					if affectedLayersFixedConnections or affectedLayersRealignedHandles:
 						if reuseTab and thisFont.currentTab:
 							outputTab = thisFont.currentTab
-							outputTab.text = ""
+							outputTab.text = "\n"
 						else:
 							outputTab = thisFont.newTab()
 							
