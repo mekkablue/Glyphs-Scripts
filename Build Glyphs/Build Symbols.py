@@ -414,7 +414,7 @@ class BuildSymbols( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 430
-		windowHeight = 210
+		windowHeight = 230
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -431,10 +431,10 @@ class BuildSymbols( object ):
 		linePos += lineHeight
 		
 		self.w.buildEstimated = vanilla.CheckBox( (inset, linePos, -inset, 20), u"estimated", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.buildEstimated.getNSButton().setToolTip_(u"Will build estimated and scale it to the size of your lining zero, if available.")
+		self.w.buildEstimated.getNSButton().setToolTip_(u"Will build estimated ℮ and scale it to the size of your lining zero, if available.")
 		
 		self.w.buildBars = vanilla.CheckBox( (inset+120, linePos, -inset, 20), u"bars, brokenbar", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.buildBars.getNSButton().setToolTip_(u"Will build bar and brokenbar, and use the master’s stem values for the size.")
+		self.w.buildBars.getNSButton().setToolTip_(u"Will build bar | and brokenbar ¦ and use the master’s stem values for their size.")
 		
 		self.w.buildEmptyset = vanilla.CheckBox( (inset+240, linePos, -inset, 20), u"emptyset", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.buildEmptyset.getNSButton().setToolTip_(u"Will build emptyset. Not yet implemented, sorry.")
@@ -457,7 +457,7 @@ class BuildSymbols( object ):
 		self.w.buildRadical.getNSButton().setToolTip_(u"Will build radical. Not yet implemented, sorry.")
 
 		self.w.buildNotdef = vanilla.CheckBox( (inset+240, linePos, -inset, 20), u".notdef", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.buildNotdef.getNSButton().setToolTip_(u"Will build the .notdef glyph. Not yet implemented, sorry.")
+		self.w.buildNotdef.getNSButton().setToolTip_(u"Will build the mandatory .notdef glyph based on the boldest available question mark.")
 		linePos += lineHeight
 		
 		# ----------- SEPARATOR LINE -----------
@@ -466,6 +466,13 @@ class BuildSymbols( object ):
 		
 		# Other options:
 		self.w.override = vanilla.CheckBox( (inset, linePos, -inset, 20), u"Overwrite existing symbol glyphs (creates backup layers)", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.override.getNSButton().setToolTip_(u"If checked, will create fresh symbols even if they already exist. Current outlines will be copied to a backup layer (if they are different). If unchecked, will skip glyphs that already exist.")
+		linePos += lineHeight
+		
+		self.w.newTab = vanilla.CheckBox( (inset, linePos-1, 180, 20), u"Open tab with new glyphs", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.newTab.getNSButton().setToolTip_(u"If checked, will open a new tab with the newly created symbols.")
+		self.w.reuseTab = vanilla.CheckBox( (inset+180, linePos-1, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reuseTab.getNSButton().setToolTip_(u"If checked, will reuse the current tab, and open a new tab only if there is no Edit tab open already. Highly recommended.")
 		linePos += lineHeight
 		
 		# Run Button:
@@ -490,6 +497,8 @@ class BuildSymbols( object ):
 		self.w.buildProduct.enable(False)
 		self.w.buildSummation.enable(False)
 		self.w.buildRadical.enable(False)
+		# Allow "Reuse Tab" only if "Open Tab" is on:
+		self.w.reuseTab.enable(self.w.newTab.get())
 	
 	def checkAll( self, sender=None, onOrOff=True ):
 		if sender is self.w.uncheckAllButton:
@@ -519,6 +528,8 @@ class BuildSymbols( object ):
 			
 			# ---- OTHER OPTIONS: ----
 			Glyphs.defaults["com.mekkablue.BuildSymbols.override"] = self.w.override.get()
+			Glyphs.defaults["com.mekkablue.BuildSymbols.newTab"] = self.w.newTab.get()
+			Glyphs.defaults["com.mekkablue.BuildSymbols.reuseTab"] = self.w.reuseTab.get()
 			self.updateUI()
 		except:
 			return False
@@ -548,7 +559,11 @@ class BuildSymbols( object ):
 			self.w.buildNotdef.set( Glyphs.defaults["com.mekkablue.BuildSymbols.buildNotdef"] )
 
 			Glyphs.registerDefault("com.mekkablue.BuildSymbols.override", 0)
+			Glyphs.registerDefault("com.mekkablue.BuildSymbols.newTab", 0)
+			Glyphs.registerDefault("com.mekkablue.BuildSymbols.reuseTab", 0)
 			self.w.override.set( Glyphs.defaults["com.mekkablue.BuildSymbols.override"] )
+			self.w.newTab.set( Glyphs.defaults["com.mekkablue.BuildSymbols.newTab"] )
+			self.w.reuseTab.set( Glyphs.defaults["com.mekkablue.BuildSymbols.reuseTab"] )
 			
 			self.updateUI()
 		except:
@@ -574,15 +589,21 @@ class BuildSymbols( object ):
 			
 			# retrieve user settings:
 			override = Glyphs.defaults["com.mekkablue.BuildSymbols.override"]
+			newTab = Glyphs.defaults["com.mekkablue.BuildSymbols.newTab"]
+			reuseTab = Glyphs.defaults["com.mekkablue.BuildSymbols.reuseTab"]
+			
+			tabText = ""
 			
 			# build glyphs:
 			if Glyphs.defaults["com.mekkablue.BuildSymbols.buildEstimated"]:
 				print("\n🔣 Building estimated:")
 				buildEstimated(thisFont, override=override)
+				tabText += "/estimated"
 				
 			if Glyphs.defaults["com.mekkablue.BuildSymbols.buildBars"]:
 				print("\n🔣 Building bars:")
 				buildBars(thisFont, override=override)
+				tabText += "/bar/brokenbar"
 				
 			if Glyphs.defaults["com.mekkablue.BuildSymbols.buildEmptyset"]:
 				print("\n🔣 Building emptyset:")
@@ -617,12 +638,21 @@ class BuildSymbols( object ):
 			if Glyphs.defaults["com.mekkablue.BuildSymbols.buildNotdef"]:
 				print("\n🔣 Building notdef:")
 				buildNotdef(thisFont, override=override)
+				tabText += "/.notdef"
 			
 			# Floating notification:
 			Glyphs.showNotification( 
 				u"%s: symbols built" % (thisFont.familyName),
 				u"Script ‘Build Symbols’ is finished.",
 				)
+			
+			if newTab and tabText:
+				if reuseTab and thisFont.currentTab:
+					# reuses current tab:
+					thisFont.currentTab.text = tabText
+				else:
+					# opens new Edit tab:
+					thisFont.newTab( tabText )
 			
 			self.w.close() # delete if you want window to stay open
 		except Exception as e:
