@@ -351,11 +351,11 @@ class GreenBlueManager( object ):
 				else:
 					# opens new Edit tab:
 					if affectedLayersFixedConnections or affectedLayersRealignedHandles:
-						if not reuseTab or not thisFont.tabs:
-							outputTab = thisFont.outputTab()
-						else:
+						if reuseTab and thisFont.currentTab:
 							outputTab = thisFont.currentTab
 							outputTab.text = ""
+						else:
+							outputTab = thisFont.outputTab()
 							
 						if affectedLayersFixedConnections:
 							outputTab.text += "%s:\n" % titles[0]
