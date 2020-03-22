@@ -180,6 +180,8 @@ class GreenBlueManager( object ):
 							thisLayer.setSelection_( selectedNode )
 							self.Tool.moveSelectionLayer_shadowLayer_withPoint_withModifier_( thisLayer, thisLayer, moveForward, noModifier )
 							self.Tool.moveSelectionLayer_shadowLayer_withPoint_withModifier_( thisLayer, thisLayer, moveBackward, noModifier )
+							# TODO:
+							# recode with GSPath.setSmooth_withCenterNode_oppositeNode_()
 				
 				for i,coordinate in enumerate(oldPathCoordinates):
 					if thisPath.nodes[i].position != coordinate:
@@ -271,102 +273,126 @@ class GreenBlueManager( object ):
 				else:
 					layersToBeProcessed = Glyphs.font.selectedLayers
 			
-				numberOfLayers = len(layersToBeProcessed)
-				affectedLayersFixedConnections = []
-				affectedLayersRealignedHandles = []
-			
-				# process layers:
-				for i, thisLayer in enumerate(layersToBeProcessed):
-					if type(thisLayer) != GSControlLayer:
-						thisGlyph = thisLayer.parent
-						statusMessage = "Processing: %s" % thisGlyph.name
-						if shouldReport and shouldVerbose:
-							print(statusMessage)
-						self.w.processingText.set( statusMessage )
-						self.w.progress.set(100.0/numberOfLayers*i)
-						
-						thisGlyph.beginUndo() # begin undo grouping
-				
-						numberOfFixes = self.fixConnectionsOnLayer( thisLayer, shouldFix=shouldFix )
-						if numberOfFixes:
-							affectedLayersFixedConnections.append( thisLayer )
-				
-						numberOfAligns = self.realignLayer( thisLayer, shouldRealign, shouldReport, shouldVerbose )
-						if numberOfAligns:
-							affectedLayersRealignedHandles.append( thisLayer )
-				
-						thisGlyph.endUndo()   # end undo grouping
-				
-				self.w.progress.set(100)
-				statusMessage = "Processed %i layer%s." % (
-					numberOfLayers,
-					"" if numberOfLayers==1 else "s",
-					)
-				self.w.processingText.set( statusMessage )
-				
-				onlyReport = not shouldFix and not shouldRealign
-				if onlyReport:
-					titles = ("Wrong green-blue status","Unaligned BCPs")
+				if not layersToBeProcessed:
+					Message(title="Green Blue Manager Error: No Selection", message="No glyphs selected for processing. Either select some glyphs or select the option ‘Process complete font’.", OKButton=None)
 				else:
-					titles = ("Fixed green-blue status","Aligned BCPs")
-
-				if shouldReport:
-					if affectedLayersFixedConnections:
-						print("\n%s in following layers:" % (titles[0]))
-						for fixedLayer in affectedLayersFixedConnections:
-							print("   %s, layer '%s'" % (fixedLayer.parent.name, fixedLayer.name))
-					if affectedLayersRealignedHandles:
-						print("\n%s in following layers:" % (titles[1]))
-						for fixedLayer in affectedLayersRealignedHandles:
-							print("   %s, layer '%s'" % (fixedLayer.parent.name, fixedLayer.name))
-					
-					print("\nDone. %s" % statusMessage)
-					Glyphs.showMacroWindow()
+					numberOfLayers = len(layersToBeProcessed)
+					affectedLayersFixedConnections = []
+					affectedLayersRealignedHandles = []
 			
-				if numberOfLayers == 1 and Glyphs.font.currentTab:
-					# if only one layer was processed, do not open new tab:
-					Glyphs.font.currentTab.forceRedraw()
-					if affectedLayersFixedConnections or affectedLayersRealignedHandles:
-						message = u""
-						if affectedLayersFixedConnections:
-							message += u"• %s\n" % titles[0]
-						if affectedLayersRealignedHandles:
-							message += u"• %s\n" % titles[1]
+					# process layers:
+					for i, thisLayer in enumerate(layersToBeProcessed):
+						if type(thisLayer) != GSControlLayer:
+							thisGlyph = thisLayer.parent
+							statusMessage = "Processing: %s" % thisGlyph.name
+							if shouldReport and shouldVerbose:
+								print(statusMessage)
+							self.w.processingText.set( statusMessage )
+							self.w.progress.set(100.0/numberOfLayers*i)
 						
-						# Floating notification:
-						Glyphs.showNotification( 
-							"%s in %s:" % (
-								"Found Problems" if onlyReport else "Fixed Problems",
-								thisGlyph.name,
-								), 
-							message,
-							)
+							thisGlyph.beginUndo() # begin undo grouping
+				
+							numberOfFixes = self.fixConnectionsOnLayer( thisLayer, shouldFix=shouldFix )
+							if numberOfFixes:
+								affectedLayersFixedConnections.append( thisLayer )
+				
+							numberOfAligns = self.realignLayer( thisLayer, shouldRealign, shouldReport, shouldVerbose )
+							if numberOfAligns:
+								affectedLayersRealignedHandles.append( thisLayer )
+				
+							thisGlyph.endUndo()   # end undo grouping
+				
+					self.w.progress.set(100)
+					statusMessage = "Processed %i layer%s." % (
+						numberOfLayers,
+						"" if numberOfLayers==1 else "s",
+						)
+					self.w.processingText.set( statusMessage )
+				
+					titles = []
+					if shouldFix:
+						titles.append("Fixed green-blue status")
 					else:
-						# Floating notification:
-						Glyphs.showNotification( 
-							"All OK in %s!" % thisGlyph.name,
-							"No unaligned handles or wrong connection types found in glyph %s." % thisGlyph.name,
-							)
-						
-				else:
-					# opens new Edit tab:
-					if affectedLayersFixedConnections or affectedLayersRealignedHandles:
-						if reuseTab and thisFont.currentTab:
-							outputTab = thisFont.currentTab
-							outputTab.text = "\n"
-						else:
-							outputTab = thisFont.newTab()
-							
+						titles.append("Wrong green-blue status")
+					if shouldRealign:
+						titles.append("Aligned BCPs")
+					else:
+						titles.append("Unaligned BCPs")
+					onlyReport = not shouldFix and not shouldRealign
+
+					if shouldReport:
 						if affectedLayersFixedConnections:
-							outputTab.text += "%s:\n" % titles[0]
-							for affectedLayer in affectedLayersFixedConnections:
-								outputTab.layers.append(affectedLayer)
-						if affectedLayersFixedConnections and affectedLayersRealignedHandles:
-							outputTab.text += "\n\n"
+							print("\n%s in following layers:" % (titles[0]))
+							for fixedLayer in affectedLayersFixedConnections:
+								print("   %s, layer '%s'" % (fixedLayer.parent.name, fixedLayer.name))
 						if affectedLayersRealignedHandles:
-							outputTab.text += "%s:\n" % titles[1]
-							for affectedLayer in affectedLayersRealignedHandles:
-								outputTab.layers.append(affectedLayer)
+							print("\n%s in following layers:" % (titles[1]))
+							for fixedLayer in affectedLayersRealignedHandles:
+								print("   %s, layer '%s'" % (fixedLayer.parent.name, fixedLayer.name))
+					
+						print("\nDone. %s" % statusMessage)
+						# Glyphs.showMacroWindow()
+			
+					if numberOfLayers == 1 and Glyphs.font.currentTab:
+						# if only one layer was processed, do not open new tab:
+						Glyphs.font.currentTab.forceRedraw()
+						if affectedLayersFixedConnections or affectedLayersRealignedHandles:
+							message = u""
+							if affectedLayersFixedConnections:
+								message += u"• %s\n" % titles[0]
+							if affectedLayersRealignedHandles:
+								message += u"• %s\n" % titles[1]
+						
+							# Floating notification:
+							Glyphs.showNotification( 
+								"%s in %s:" % (
+									"Found Problems" if onlyReport else "Fixed Problems",
+									thisGlyph.name,
+									), 
+								message,
+								)
+						
+							return
+						
+					else:
+						# opens new Edit tab:
+						if affectedLayersFixedConnections or affectedLayersRealignedHandles:
+							if reuseTab and thisFont.currentTab:
+								outputTab = thisFont.currentTab
+								outputTab.text = "\n"
+							else:
+								outputTab = thisFont.newTab()
+							
+							if affectedLayersFixedConnections:
+								outputTab.text += "%s:\n" % titles[0]
+								for affectedLayer in affectedLayersFixedConnections:
+									outputTab.layers.append(affectedLayer)
+							if affectedLayersFixedConnections and affectedLayersRealignedHandles:
+								outputTab.text += "\n\n"
+							if affectedLayersRealignedHandles:
+								outputTab.text += "%s:\n" % titles[1]
+								for affectedLayer in affectedLayersRealignedHandles:
+									outputTab.layers.append(affectedLayer)
+						
+							# Floating notification:
+							Glyphs.showNotification( 
+								u"Green Blue Manager: %s" % (thisFont.familyName),
+								u"• %s: %i layers\n• %s: %i layers" % (
+									titles[0], 
+									len(affectedLayersFixedConnections), 
+									titles[1], 
+									len(affectedLayersRealignedHandles)
+								),
+								)
+						
+							return
+					# Floating notification:
+					Glyphs.showNotification( 
+						"All OK in %s!" % thisGlyph.name,
+						"No unaligned handles or wrong connection types found in glyph %s." % thisGlyph.name,
+						)
+				
+					return
 				
 		except Exception as e:
 			# brings macro window to front and reports error:
