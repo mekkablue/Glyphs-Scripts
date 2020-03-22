@@ -355,7 +355,7 @@ class GreenBlueManager( object ):
 							outputTab = thisFont.currentTab
 							outputTab.text = ""
 						else:
-							outputTab = thisFont.outputTab()
+							outputTab = thisFont.newTab()
 							
 						if affectedLayersFixedConnections:
 							outputTab.text += "%s:\n" % titles[0]
