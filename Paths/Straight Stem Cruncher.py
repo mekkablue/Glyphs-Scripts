@@ -19,11 +19,12 @@ def middleBetweenTwoPoints(p1, p2):
 
 class StraightStemCruncher( object ):
 	defaultExcludeList = ".sc, .c2sc, .smcp, .sups, .subs, .sinf, superior, inferior, .numr, .dnom"
+	marker = "➕"
 	
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 355
-		windowHeight = 345
+		windowHeight = 370
 		windowWidthResize  = 600 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -93,17 +94,28 @@ class StraightStemCruncher( object ):
 		self.w.excludeGlyphNamesReset.getNSButton().setToolTip_("Reset to: %s." % self.defaultExcludeList)
 		linePos += lineHeight
 		
+		self.w.markStems = vanilla.CheckBox( (inset, linePos, -inset, 20), u"Mark affected stems with %s annotation"%self.marker, value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.markStems.getNSButton().setToolTip_(u"If checked, will add a red-plus annotation at the center of the measurement. Will often add two of them because stem will be measured from both sides.\nCAREFUL: May delete existing plus annotations.")
+		linePos += lineHeight
+		
+		
 		self.w.reportNonMeasurements = vanilla.CheckBox( (inset, linePos, -inset, 20), u"Report layers without measurements", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.reportNonMeasurements.getNSButton().setToolTip_("In Macro Window, report if a layer does not have any measurements. Most likely causes: no straight stems in the paths, or wrong path direction.")
 		linePos += lineHeight
 		
-		self.w.openTab = vanilla.CheckBox( (inset, linePos, -inset, 20), u"Open tab with affected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.openTab = vanilla.CheckBox( (inset, linePos, 200, 20), u"Open tab with affected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.openTab.getNSButton().setToolTip_("If unchecked, will bring macro window with detailed report to front.")
+		self.w.reuseTab = vanilla.CheckBox( (inset+200, linePos, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reuseTab.getNSButton().setToolTip_(u"If checked, will reuse the active tab if there is one, otherwise will open a new tab. If unchecked, will always open a new tab.")
 		linePos += lineHeight
 		
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0) # set progress indicator to zero
 		linePos+=lineHeight
+		
+
+		# Status message:
+		self.w.status = vanilla.TextBox( (inset, -18-inset, -120-inset, 16), u"🤖 Ready.", sizeStyle='small', selectable=True )
 		
 		# Run Button:
 		self.w.runButton = vanilla.Button( (-120-inset, -20-inset, -inset, -inset), "Measure", sizeStyle='regular', callback=self.StraightStemCruncherMain )
@@ -116,6 +128,17 @@ class StraightStemCruncher( object ):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+	
+	def updateUI(self, sender=None):
+		self.w.reuseTab.enable(self.w.openTab.get())
+		
+		buttonEnable = (
+			Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkVStems"] or
+			Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkHStems"] or
+			Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkDStems"]
+		)
+		self.w.runButton.enable(onOff=buttonEnable)
+		
 	
 	def update( self, sender=None ):
 		if sender == self.w.segmentLengthUpdate:
@@ -161,14 +184,10 @@ class StraightStemCruncher( object ):
 			Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkVStems"] = self.w.checkVStems.get()
 			Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkHStems"] = self.w.checkHStems.get()
 			Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkDStems"] = self.w.checkDStems.get()
+			Glyphs.defaults["com.mekkablue.StraightStemCruncher.markStems"] = self.w.markStems.get()
+			Glyphs.defaults["com.mekkablue.StraightStemCruncher.reuseTab"] = self.w.reuseTab.get()
 			
-			buttonEnable = (
-				Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkVStems"] or
-				Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkHStems"] or
-				Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkDStems"]
-			)
-			
-			self.w.runButton.enable(onOff=buttonEnable)
+			self.updateUI()
 		except:
 			return False
 			
@@ -191,6 +210,8 @@ class StraightStemCruncher( object ):
 			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.checkVStems", 1)
 			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.checkHStems", 0)
 			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.checkDStems", 0)
+			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.markStems", 1)
+			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.reuseTab", 1)
 			
 
 			self.w.stems.set( Glyphs.defaults["com.mekkablue.StraightStemCruncher.stems"] )
@@ -208,7 +229,10 @@ class StraightStemCruncher( object ):
 			self.w.checkVStems.set( Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkVStems"] )
 			self.w.checkHStems.set( Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkHStems"] )
 			self.w.checkDStems.set( Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkDStems"] )
+			self.w.markStems.set( Glyphs.defaults["com.mekkablue.StraightStemCruncher.markStems"] )
+			self.w.reuseTab.set( Glyphs.defaults["com.mekkablue.StraightStemCruncher.reuseTab"] )
 			
+			self.updateUI()
 		except:
 			return False
 			
@@ -237,8 +261,20 @@ class StraightStemCruncher( object ):
 			intersections = intersections[::-1]
 	
 		if len(intersections) > 2:
-			stemWidth = pointDistance(intersections[1],intersections[2])
-			return stemWidth
+			# two measurement points:
+			p1 = intersections[1].pointValue()
+			p2 = intersections[2].pointValue()
+			
+			# calculate stem width:
+			stemWidth = distance(p1,p2)
+			
+			# calculate center of stem:
+			vector = subtractPoints(p2,p1)
+			scaledVector = scalePoint(vector, 0.5)
+			centerOfStem = addPoints(p1, scaledVector)
+			
+			# return results:
+			return stemWidth, centerOfStem
 		else:
 			return None
 
@@ -253,6 +289,7 @@ class StraightStemCruncher( object ):
 		checkHStems = Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkHStems"]
 		checkDStems = Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkDStems"]
 		
+		centers = []
 		measurements = []
 		measureLayer = layer.copyDecomposedLayer()
 		measureLayer.removeOverlap()
@@ -278,15 +315,16 @@ class StraightStemCruncher( object ):
 						#if p1.x==p2.x or p1.y==p2.y or not Glyphs.defaults["com.mekkablue.StraightStemCruncher.ignoreDiagonals"]:
 						if check:
 							if pointDistance(p1,p2) >= minLength:
-								measurement = self.stemThicknessAtLine( measureLayer, p1, p2, measureLength=max(100.0,measureLayer.bounds.size.width+measureLayer.bounds.size.height) )
+								measurement, centerOfStem = self.stemThicknessAtLine( measureLayer, p1, p2, measureLength=max(100.0,measureLayer.bounds.size.width+measureLayer.bounds.size.height) )
 								measurements.append(measurement)
+								centers.append(centerOfStem)
 			else:
 				print(u"⚠️ Found path with only %i point%s%s." % ( 
 					nodeCount,
 					"" if nodeCount==1 else "s",
 					" in %s" % glyphName if glyphName else "",
 					))
-		return measurements
+		return measurements, centers
 
 	def StraightStemCruncherMain( self, sender ):
 		try:
@@ -316,6 +354,7 @@ class StraightStemCruncher( object ):
 			stems = Glyphs.defaults["com.mekkablue.StraightStemCruncher.stems"] # "80, 100"
 			stems = [int(s.strip()) for s in stems.split(",")]
 			
+			shouldMark = Glyphs.defaults["com.mekkablue.StraightStemCruncher.markStems"]
 			deviationMin = float( Glyphs.defaults["com.mekkablue.StraightStemCruncher.deviationMin"] ) # 0.6
 			deviationMax = float( Glyphs.defaults["com.mekkablue.StraightStemCruncher.deviationMax"] ) # 4.0
 			
@@ -334,18 +373,29 @@ class StraightStemCruncher( object ):
 				glyphExportsOrNonExportingIncluded = thisGlyph.export or Glyphs.defaults["com.mekkablue.StraightStemCruncher.includeNonExporting"]
 				
 				if glyphExportsOrNonExportingIncluded and not glyphNameIsExcluded:
+					self.w.status.set("Processing: %s" % thisGlyph.name)
 					for thisLayer in thisGlyph.layers:
 						if thisLayer.master == thisFont.selectedFontMaster:
 							if thisLayer.isMasterLayer or (thisLayer.isSpecialLayer and Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkSpecialLayers"]):
+
+								# clean previous markings:
+								if shouldMark:
+									for i in range(len(thisLayer.annotations)-1,-1,-1):
+										a = thisLayer.annotations[i]
+										if a and a.text==self.marker:
+											del(thisLayer.annotations[i])
+								
+								# decompose components if necessary:
 								if Glyphs.defaults["com.mekkablue.StraightStemCruncher.includeCompounds"]:
 									checkLayer = thisLayer.copyDecomposedLayer()
 								else:
 									checkLayer = thisLayer.copy()
 									checkLayer.components = None
 								
+								# go on if there are any paths:
 								if checkLayer.paths:
 									checkLayer.removeOverlap()
-									measurements = self.measureStraighStemsInLayer(checkLayer, glyphName=thisGlyph.name)
+									measurements, centers = self.measureStraighStemsInLayer(checkLayer, glyphName=thisGlyph.name)
 									if not measurements:
 										if Glyphs.defaults["com.mekkablue.StraightStemCruncher.reportNonMeasurements"]:
 											print(u"⚠️ %s, layer '%s': no stem measurements. Wrong path direction or no line segments?" % (
@@ -354,11 +404,20 @@ class StraightStemCruncher( object ):
 											))
 									else:
 										deviatingStems = []
-										for measurement in measurements:
+										for i,measurement in enumerate(measurements):
 											if not measurement in stems:
 												for stem in stems:
 													if stem-deviationMax < measurement < stem-deviationMin or stem+deviationMin < measurement < stem+deviationMax:
 														deviatingStems.append(measurement)
+														if shouldMark:
+															centerOfStem = centers[i]
+															marker = GSAnnotation()
+															marker.position = centerOfStem
+															marker.type = PLUS
+															# marker.type = TEXT
+															# marker.text = self.marker
+															thisLayer.annotations.append(marker)
+														
 										if deviatingStems:
 											print(u"❌ %s, layer '%s': found %i stem%s off: %s." % ( 
 												thisGlyph.name, thisLayer.name, 
@@ -370,11 +429,14 @@ class StraightStemCruncher( object ):
 												affectedLayers.append(thisLayer)
 									
 			self.w.progress.set(100)
+			self.w.status.set("✅ Done.")
 			
 			if not affectedLayers:
 				Message(title="No Deviances Found", message="No point distances deviating from supplied stem widths within the given limits.", OKButton=None)
 			elif Glyphs.defaults["com.mekkablue.StraightStemCruncher.openTab"]:
-				tab = thisFont.newTab()
+				tab = thisFont.currentTab
+				if not tab or not Glyphs.defaults["com.mekkablue.StraightStemCruncher.reuseTab"]:
+					tab = thisFont.newTab()
 				tab.layers = affectedLayers
 			else:
 				# brings macro window to front:
