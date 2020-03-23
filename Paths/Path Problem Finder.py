@@ -595,8 +595,7 @@ class PathProblemFinder( object ):
 									layersWithOpenPaths.append(thisLayer)
 									print("  ❌ Open path(s) on layer: %s" % thisLayer.name)
 								
-			self.w.progress.set(100)
-			self.w.status.set("✅ Done.")
+			self.w.status.set("Building report…")
 	
 			if layersWithZeroHandles or layersWithOutwardHandles or layersWithLargeHandles or layersWithShortHandles or layersWithAngledHandles or layersWithShallowCurve or layersWithShallowCurveBBox or layersWithAlmostOrthogonalLines or layersWithBadOutlineOrder or layersWithTwoPointOutlines or layersWithOpenPaths:
 				countOfLayers = 0
@@ -631,7 +630,9 @@ class PathProblemFinder( object ):
 					u"%s: all clear!" % (thisFont.familyName),
 					u"Path Problem Finder found no issues, congratulations! Details in Macro Window." % countOfLayers,
 					)
-				
+
+			self.w.progress.set(100)
+			self.w.status.set("✅ Done.")
 			print("\nDone.")
 
 		except Exception as e:
