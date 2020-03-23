@@ -281,7 +281,7 @@ class PathProblemFinder( object ):
 		self.w.outwardHandles.getNSButton().setToolTip_(u"Will find handles that point outside the stretch of their enclosing on-curves. Usually unwanted.")
 		linePos += lineHeight
 		
-		self.w.largeHandles = vanilla.CheckBox( (inset, linePos, -inset, 20), u"Overshooting handles (100%+ long)", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.largeHandles = vanilla.CheckBox( (inset, linePos, -inset, 20), u"Overshooting handles (larger than 100%)", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.largeHandles.getNSButton().setToolTip_(u"Handles that are longer than 100%, i.e. going beyond the intersection with the opposing handle. Indicated with laser beams in the Show Angled Handles plug-in.")
 		linePos += lineHeight
 		
@@ -606,18 +606,18 @@ class PathProblemFinder( object ):
 				else:
 					tab.text = "\n"
 				
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithZeroHandles, "Zero Handles", tab)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithOutwardHandles, "Outward Handles", tab)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithLargeHandles, "Large Handles", tab)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithShortHandles, "Short Handles", tab)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithAngledHandles, "Angled Handles", tab)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithShallowCurve, "Shallow Curve", tab)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithShallowCurveBBox, "Small Curve BBox", tab)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithAlmostOrthogonalLines, "Almost Orthogonal Lines", tab)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithBadOutlineOrder, "Bad Outline Order or Orientation", tab)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithTwoPointOutlines, "Two-Point Outlines", tab)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithOffcurveAsStartpoint, "Two-Point Outlines", tab)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithOpenPaths, "Open Paths", tab)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithZeroHandles, "Zero Handles", tab, thisFont)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithOutwardHandles, "Outward Handles", tab, thisFont)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithLargeHandles, "Large Handles", tab, thisFont)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithShortHandles, "Short Handles", tab, thisFont)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithAngledHandles, "Angled Handles", tab, thisFont)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithShallowCurve, "Shallow Curve", tab, thisFont)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithShallowCurveBBox, "Small Curve BBox", tab, thisFont)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithAlmostOrthogonalLines, "Almost Orthogonal Lines", tab, thisFont)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithBadOutlineOrder, "Bad Outline Order or Orientation", tab, thisFont)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithTwoPointOutlines, "Two-Point Outlines", tab, thisFont)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithOffcurveAsStartpoint, "Two-Point Outlines", tab, thisFont)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithOpenPaths, "Open Paths", tab, thisFont)
 				
 				Glyphs.showNotification( 
 					u"%s: found path problems" % (thisFont.familyName),
@@ -643,15 +643,35 @@ class PathProblemFinder( object ):
 			print(traceback.format_exc())
 			
 			
-	def reportInTabAndMacroWindow(self, layerList, title, tab):
-		if layerList:
+	def reportInTabAndMacroWindow(self, layerList, title, tab, font):
+		if layerList and font:
+			
+			# determine master ID:
+			currentMaster = font.masters[tab.masterIndex]
+			masterID = currentMaster.id
+			
 			# report in Tab:
-			tab.text += "%s:\n"%title
+			tabtext = "%s:"%title
+			# split description into layers, so we do not use layers
+			# (simply adding to tab.text will reset all layers to the current master)
+			for letter in tabtext:
+				g = font.glyphs[letter]
+				if g:
+					l = g.layers[masterID]
+					if l:
+						tab.layers.append(l)
+			tab.layers.append(GSControlLayer.newline())
 			for layer in layerList:
 				tab.layers.append(layer)
-			tab.text += "\n\n"
+			for i in range(2):
+				tab.layers.append(GSControlLayer.newline())
+			
 			# report in Macro Window:
-			print("\n🔠 "+title+":\n/"+"/".join(set([l.parent.name for l in layerList])))
+			print(
+				"\n🔠 %s:\n%s" % (
+					title,
+					"/"+"/".join(set([l.parent.name for l in layerList]))
+				))
 		return len(layerList)
 		
 		
