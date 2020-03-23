@@ -38,6 +38,7 @@ class MethodReporter( object ):
 			"GSApplication",
 			"GSBackgroundImage",
 			"GSClass",
+			"GSControlLayer",
 			"GSCustomParameter",
 			"GSEditViewController",
 			"GSFeature",
