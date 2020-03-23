@@ -600,12 +600,12 @@ class PathProblemFinder( object ):
 	
 			if layersWithZeroHandles or layersWithOutwardHandles or layersWithLargeHandles or layersWithShortHandles or layersWithAngledHandles or layersWithShallowCurve or layersWithShallowCurveBBox or layersWithAlmostOrthogonalLines or layersWithBadOutlineOrder or layersWithTwoPointOutlines or layersWithOpenPaths:
 				countOfLayers = 0
-				
 				tab = thisFont.currentTab
-				tab.layers = ()
-				if not tab:
+				if not tab or not reuseTab:
 					# opens new Edit tab:
 					tab = thisFont.newTab()
+				else:
+					tab.text = "\n"
 				
 				countOfLayers += self.reportInTabAndMacroWindow(layersWithZeroHandles, "Zero Handles", tab)
 				countOfLayers += self.reportInTabAndMacroWindow(layersWithOutwardHandles, "Outward Handles", tab)
