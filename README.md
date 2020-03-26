@@ -1,24 +1,32 @@
 # ABOUT
 
-These are Python scripts for use with the [Glyphs font editor](http://glyphsapp.com/).
+These are Python scripts intended for font production in the [Glyphs font editor](http://glyphsapp.com/).
 
 # INSTALLATION
 
+### Video installation guide
+
+There is a [tutorial video on how to install the mekkablue scripts](https://www.youtube.com/watch?v=Q6ly16Q0BmE) available on YouTube. While you are there, feel free to subscribe to the [mekkablue channel](https://www.youtube.com/channel/UCFPSSuEMZVQtrFpTzgFh9lA).
+
+### General installation guide
+
+The scripts need to be in the *Scripts* folder inside the app’s Application Support folder. Here is how:
+
 1. Put the scripts folder (or an alias) into the *Scripts* folder which appears when you choose *Script > Open Scripts Folder* (Cmd-Shift-Y): `~/Library/Application Support/Glyphs/Scripts/`, or, better yet, use **git** for that. See below.
 2. Then, hold down the Option (Alt) key, and choose *Script > Reload Scripts* (Cmd-Opt-Shift-Y). Now the scripts are visible in the *Script* menu
-3. For some of the scripts, you will also need to install Tal Leming's *Vanilla*: Go to *Glyphs > Preferences > Addons > Modules* and click the *Install Modules* button. That’s it.
+3. For some of the scripts, you will also need to install Tal Leming's *Vanilla:* Go to *Glyphs > Preferences > Addons > Modules* and click the *Install Modules* button. That’s it.
 
 ### git
 
-I recommend to use git for getting the scripts, and syncing them on a regular basis. Use this git command for cloning the repository into your *Scripts* folder:
+I recommend to use git for getting the scripts, because it is easier for you to keep them up to date. Use this git command for cloning the repository into your *Scripts* folder:
 
 ```bash
 git clone https://github.com/mekkablue/Glyphs-Scripts ~/Library/Application\ Support/Glyphs/Scripts/mekkablue/
 ```
 
-If the terminal scares you, feel free to use one of the many readily available git clients.
+If the terminal scares you, feel free to use one of the many readily available git clients, e.g. the free [Source Tree](https://www.sourcetreeapp.com) or [GitHub Desktop](https://desktop.github.com).
 
-After you installed the mekkablue scripts, you can update this script repository (and all the others you have in your *Scripts* folder) by running *Scripts > mekkablue > App > Update git Repositories in Scripts Folder.*
+After you installed the mekkablue scripts, you can **update** this script repository (and all the others you have in your *Scripts* folder) by running *Scripts > mekkablue > App > Update git Repositories in Scripts Folder.*
 
 # TROUBLESHOOTING
 
@@ -30,7 +38,7 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 
 # ABOUT THE SCRIPTS
 
-> All the scripts show a tooltip when you hover the mouse pointer over their menu entry. In scripts with a GUI, most UI elements (checkboxes, text entry fields, etc.) have tooltips as well. This way you get the explanation you need right where it counts.
+All the scripts show a **tooltip** when you hover the mouse pointer over their menu entry. In scripts with a GUI, most UI elements (checkboxes, text entry fields, etc.) have tooltips as well. This way you get the explanation you need right where it counts.
 
 ## Anchors
 
@@ -266,7 +274,7 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 * **New Tab with Kerning Missing in Masters:** Opens New Tabs for each master showing kerning missing in this master but present in other masters.
 * **New Tab with Large Kerning Pairs:** Lists all positive and negative kerning pairs beyond a given threshold. *Needs Vanilla.*
 * **New Tab with Overkerned Pairs:** Asks a threshold percentage, and opens a new tab with all negative kern pairs going beyond the width threshold. Example: With a threshold of 40%, and a comma with width 160, the script will report any negative kern pair with comma larger than 64 (=40% of 160). Assume that r-comma is kerned -60, and P-comma is kerned -70. In this case, it would report the latter, but not the former. *Needs Vanilla.*
-* **New Tab with Right Groups:** Creates a new tab with one glyph of each right group. Useful for checking the constency of right kerning groups.
+* **New Tab with Right Groups:** Creates a new tab with one glyph of each right group. Useful for checking the consistency of right kerning groups.
 * **New Tab with all Selected Glyph Combinations:** Takes your selected glyphs and opens a new tab with all possible combinations of the letters. Also outputs a string for copying into the Macro window, in case the opening of the tab fails.
 * **New Tab with Uneven Symmetric Kernings:** Finds kern pairs for symmetric letters like ATA AVA TOT WIW etc. and sees if AT is the same as TA, etc.
 * **New Tabs with Punctuation Kern Strings:** Outputs several tabs with kern strings with punctuation.
@@ -284,7 +292,7 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 
 ## Paths
 
-*I use Rotate Around Anchor for my asterisks. Important for outline checking: Find Near Vertical Misses and the Green Blue Manager (in combination with Realign BCPs). Rewire Fire has become important in OTVar production, because it helps reduce duplicate outline segments at shape edges, which may yield darker anti-aliasing.*
+*I use Rotate Around Anchor for my asterisks. Important for outline checking: Path Problem Finder, Find Near Vertical Misses and the Green Blue Manager. Rewire Fire has become important in OTVar production, because it helps reduce duplicate outline segments at shape edges (which create dark spots in anti-aliasing).*
 
 * **Align Selected Nodes with Background:** Align selected nodes with the nearest background node unless it is already taken by a previously moved node. Like Cmd-Shift-A for aligning a single node with the background, but for multiple nodes.
 * **Copy Glyphs from Other Font into Backup Layers:** Creates backup layers for selected glyphs in target font, and fills them with the respective glyphs from source font. Useful if you want to add glyphs from one font as bracket layers in another. *Needs Vanilla.*
