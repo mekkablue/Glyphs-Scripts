@@ -379,6 +379,22 @@ class PathProblemFinder( object ):
 		self.w.shortHandlesThreshold.enable( self.w.shortHandles.get() )
 		self.w.angledHandlesAngle.enable( self.w.angledHandles.get() )
 		
+		anyOptionIsOn = (
+			self.w.zeroHandles.get() or 
+			self.w.outwardHandles.get() or 
+			self.w.largeHandles.get() or 
+			self.w.shortHandles.get() or 
+			self.w.angledHandles.get() or 
+			self.w.shallowCurveBBox.get() or 
+			self.w.shallowCurve.get() or 
+			self.w.almostOrthogonalLines.get() or 
+			self.w.badOutlineOrder.get() or 
+			self.w.twoPointOutlines.get() or 
+			self.w.offcurveAsStartPoint.get() or 
+			self.w.openPaths.get()
+		)
+		self.w.runButton.enable(anyOptionIsOn)
+		
 	def SavePreferences( self, sender=None ):
 		try:
 			# write current settings into prefs:
@@ -628,7 +644,7 @@ class PathProblemFinder( object ):
 				# Final report:
 				Glyphs.showNotification( 
 					u"%s: all clear!" % (thisFont.familyName),
-					u"Path Problem Finder found no issues, congratulations! Details in Macro Window." % countOfLayers,
+					u"Path Problem Finder found no issues, congratulations! Details in Macro Window."
 					)
 
 			self.w.progress.set(100)
