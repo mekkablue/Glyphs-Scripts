@@ -14,7 +14,7 @@ class FindNearVerticalMisses( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 320
-		windowHeight = 490
+		windowHeight = 510
 		windowWidthResize  = 300 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -92,26 +92,30 @@ class FindNearVerticalMisses( object ):
 		self.w.includeHandles.getNSButton().setToolTip_(u"Also checks BCPs (Bézier control points), vulgo ‘handles’. Otherwise only considers on-curve nodes")
 		linePos += lineHeight
 		
-		self.w.includeNonExporting = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.includeNonExporting.getNSButton().setToolTip_(u"Also check for near misses in glyphs that are set to not export. Useful if you are using non-exporting parts as components in other glyphs.")
-		linePos += lineHeight
-		
 		self.w.removeOverlap = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Check outlines after Remove Overlap (slower)", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.removeOverlap.getNSButton().setToolTip_(u"Only checks outlines after overlap removal. That way, ignores triangular overlaps (‘opened corners’). Use this option if you have too many false positives.")
 		linePos += lineHeight
-		
 		
 		self.w.markNodes = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Mark affected nodes with %s"%self.marker, value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.markNodes.getNSButton().setToolTip_(u"Sets the name of affected nodes to this emoji, so you can easily find it. ATTENTION: If Remove Overlap option is on, will use the emoji as an annotation instead.")
 		linePos += lineHeight
 		
-		
-		self.w.excludeText = vanilla.TextBox( (inset, linePos+3, 150, 14), u"Exclude glyphs containing:", sizeStyle='small', selectable=True )
-		self.w.exclude = vanilla.EditText( (inset+150, linePos, -inset, 19), ".ornm, .notdef", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.includeNonExporting = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.includeNonExporting.getNSButton().setToolTip_(u"Also check for near misses in glyphs that are set to not export. Useful if you are using non-exporting parts as components in other glyphs.")
 		linePos += lineHeight
 		
-		self.w.openTab = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Open tab with affected layers", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.includeComposites = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Include composites", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.includeComposites.getNSButton().setToolTip_(u"If unchecked, will only go through glyphs that have paths in them. Recommended to leave off, because it usually reports a lot of false positives.")
+		linePos += lineHeight
+		
+		self.w.excludeText = vanilla.TextBox( (inset, linePos+3, 150, 14), u"Exclude glyphs containing:", sizeStyle='small', selectable=True )
+		self.w.exclude = vanilla.EditText( (inset+150, linePos, -inset, 19), ".ornm, .notdef, comb", callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
+		
+		self.w.openTab = vanilla.CheckBox( (inset, linePos-1, 190, 20), u"Open tab with affected layers", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.openTab.getNSButton().setToolTip_(u"If it finds nodes just off the indicated metrics, will open a new tab with the layers if found the deviating nodes on. Otherwise please check the detailed report in Macro Window.")
+		self.w.reuseTab = vanilla.CheckBox( (inset+190, linePos-1, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reuseTab.getNSButton().setToolTip_(u"If a tab is open already, will use that one, rather than opening a new tab. Recommended, keeps tab clutter low.")
 		linePos += lineHeight
 		
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
@@ -122,6 +126,9 @@ class FindNearVerticalMisses( object ):
 		# Run Button:
 		self.w.runButton = vanilla.Button( (-80-inset, -20-inset, -inset, -inset), "Find", sizeStyle='regular', callback=self.FindNearVerticalMissesMain )
 		self.w.setDefaultButton( self.w.runButton )
+		
+		# Status Message:
+		self.w.status = vanilla.TextBox( (inset, -18-inset, -80-inset, 14), u"🤖 Ready.", sizeStyle='small', selectable=True )
 		
 		# Load Settings:
 		if not self.LoadPreferences():
@@ -145,10 +152,12 @@ class FindNearVerticalMisses( object ):
 			Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.capHeight"]= self.w.whereToCheck.capHeight.get()
 			Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.ascender"]= self.w.whereToCheck.ascender.get()
 			Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.deviance"]= self.w.deviance.get()
-			Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.openTab"]= self.w.openTab.get()
 			Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.tolerateIfNextNodeIsOn"]= self.w.tolerateIfNextNodeIsOn.get()
 			Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.tolerateIfExtremum"]= self.w.tolerateIfExtremum.get()
 			Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.removeOverlap"]= self.w.removeOverlap.get()
+			Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.includeComposites"]= self.w.includeComposites.get()
+			Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.openTab"]= self.w.openTab.get()
+			Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.reuseTab"]= self.w.reuseTab.get()
 			
 			self.checkGUI()
 		except:
@@ -159,7 +168,7 @@ class FindNearVerticalMisses( object ):
 	def LoadPreferences( self ):
 		try:
 			Glyphs.registerDefault("com.mekkablue.FindNearVerticalMisses.deviance", 1)
-			Glyphs.registerDefault("com.mekkablue.FindNearVerticalMisses.exclude", ".ornm, .notdef")
+			Glyphs.registerDefault("com.mekkablue.FindNearVerticalMisses.exclude", ".ornm, .notdef, comb")
 			Glyphs.registerDefault("com.mekkablue.FindNearVerticalMisses.markNodes", 0)
 			Glyphs.registerDefault("com.mekkablue.FindNearVerticalMisses.includeNonExporting", 1)
 			Glyphs.registerDefault("com.mekkablue.FindNearVerticalMisses.includeHandles", 0)
@@ -170,20 +179,25 @@ class FindNearVerticalMisses( object ):
 			Glyphs.registerDefault("com.mekkablue.FindNearVerticalMisses.shoulderHeight", 0)
 			Glyphs.registerDefault("com.mekkablue.FindNearVerticalMisses.capHeight", 1)
 			Glyphs.registerDefault("com.mekkablue.FindNearVerticalMisses.ascender", 1)
-			Glyphs.registerDefault("com.mekkablue.FindNearVerticalMisses.openTab", 1)
 			Glyphs.registerDefault("com.mekkablue.FindNearVerticalMisses.tolerateIfNextNodeIsOn", 1)
 			Glyphs.registerDefault("com.mekkablue.FindNearVerticalMisses.tolerateIfExtremum", 1)
 			Glyphs.registerDefault("com.mekkablue.FindNearVerticalMisses.removeOverlap", 0)
+			Glyphs.registerDefault("com.mekkablue.FindNearVerticalMisses.includeComposites", 0)
+			Glyphs.registerDefault("com.mekkablue.FindNearVerticalMisses.openTab", 1)
+			Glyphs.registerDefault("com.mekkablue.FindNearVerticalMisses.reuseTab", 1)
+		
 						
 			self.w.deviance.set( Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.deviance"] )
 			self.w.exclude.set( Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.exclude"] )
 			self.w.markNodes.set( Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.markNodes"] )
 			self.w.includeNonExporting.set( Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.includeNonExporting"] )
 			self.w.includeHandles.set( Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.includeHandles"] )
-			self.w.openTab.set( Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.openTab"] )
 			self.w.tolerateIfNextNodeIsOn.set( Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.tolerateIfNextNodeIsOn"] )
 			self.w.tolerateIfExtremum.set( Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.tolerateIfExtremum"] )
 			self.w.removeOverlap.set( Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.removeOverlap"] )
+			self.w.includeComposites.set( Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.includeComposites"] )
+			self.w.openTab.set( Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.openTab"] )
+			self.w.reuseTab.set( Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.reuseTab"] )
 			
 			self.w.whereToCheck.descender.set( Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.descender"] )
 			self.w.whereToCheck.baseline.set( Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.baseline"] )
@@ -200,16 +214,19 @@ class FindNearVerticalMisses( object ):
 		return True
 	
 	def checkGUI(self, sender=None):
+		# At least one vertical metrics must be on, otherwise disable button:
 		enableButton = False
-		
 		boxDict = self.w.whereToCheck.__dict__
 		for itemName in boxDict:
 			checkbox = boxDict[itemName]
 			if type(checkbox) == vanilla.vanillaCheckBox.CheckBox:
 				if checkbox.get():
 					enableButton = True
-			
+					break
 		self.w.runButton.enable(onOff=enableButton)
+		
+		# disable Reuse Tab button if Open Tab is off:
+		self.w.reuseTab.enable(self.w.openTab.get())
 		
 	
 	def isNodeSlightlyOff(self, nodePosition, master, deviance, prevY, nextY, glyphType=None, glyphSuffix=None):
@@ -333,6 +350,9 @@ class FindNearVerticalMisses( object ):
 			print(thisFont.filepath)
 			print()
 			
+			includeComposites = Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.includeComposites"]
+			includeNonExporting = Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.includeNonExporting"]
+			
 			deviance = float( Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.deviance"] )
 			excludes = [ x.strip() for x in Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.exclude"].split(",") ]
 			skippedGlyphs = []
@@ -342,23 +362,28 @@ class FindNearVerticalMisses( object ):
 			for i, thisGlyph in enumerate(thisFont.glyphs):
 				self.w.progress.set(100*i//totalNumberOfGlyphs)
 
-				glyphIsExcluded = False
-				for excludedText in excludes:
-					if excludedText in thisGlyph.name:
-						skippedGlyphs.append(thisGlyph.name)
-						glyphIsExcluded = True
+				glyphIsExcluded = not (thisGlyph.export or includeNonExporting)
+				if not glyphIsExcluded:
+					for excludedText in excludes:
+						if excludedText in thisGlyph.name:
+							skippedGlyphs.append(thisGlyph.name)
+							glyphIsExcluded = True
+							break
 				
 				if not glyphIsExcluded:
+					self.w.status.set("🔠 %s" % thisGlyph.name)
 					suffix = None
 					if "." in thisGlyph.name:
 						offset = thisGlyph.name.find(".")
 						suffix = thisGlyph.name[offset:]
-					for thisLayer in thisGlyph.layers:
 						
+					for thisLayer in thisGlyph.layers:
 						# get rid of debris from previous iterations:
 						self.doubleCheckAnnotations(thisLayer)
+						layerCounts = thisLayer.isMasterLayer or thisLayer.isSpecialLayer
+						layerShouldBeChecked = len(thisLayer.paths)>0 or includeComposites
 						
-						if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
+						if layerCounts and layerShouldBeChecked:
 							
 							# overlap removal if requested:
 							if Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.removeOverlap"]:
@@ -429,6 +454,7 @@ class FindNearVerticalMisses( object ):
 			# Done. Set Progress Bar to max and report:
 			
 			self.w.progress.set(100)
+			self.w.status.set("✅ Done.")
 			
 			if skippedGlyphs:
 				print()
@@ -439,9 +465,14 @@ class FindNearVerticalMisses( object ):
 			
 			if affectedLayers:
 				if Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.openTab"]:
-					# opens new Edit tab:
-					newTab = thisFont.newTab()
-					newTab.layers = affectedLayers
+					# try to reuse current tab:
+					resultTab = thisFont.currentTab
+					if resultTab and Glyphs.defaults["com.mekkablue.FindNearVerticalMisses.reuseTab"]:
+						resultTab.layers = ()
+					else:
+						# open new tab:
+						resultTab = thisFont.newTab()
+					resultTab.layers = affectedLayers
 				else:
 					# brings macro window to front:
 					Glyphs.showMacroWindow()
