@@ -632,7 +632,7 @@ class PathProblemFinder( object ):
 				countOfLayers += self.reportInTabAndMacroWindow(layersWithAlmostOrthogonalLines, "Almost Orthogonal Lines", tab, thisFont)
 				countOfLayers += self.reportInTabAndMacroWindow(layersWithBadOutlineOrder, "Bad Outline Order or Orientation", tab, thisFont)
 				countOfLayers += self.reportInTabAndMacroWindow(layersWithTwoPointOutlines, "Two-Point Outlines", tab, thisFont)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithOffcurveAsStartpoint, "Two-Point Outlines", tab, thisFont)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithOffcurveAsStartpoint, "Off-curve as start point", tab, thisFont)
 				countOfLayers += self.reportInTabAndMacroWindow(layersWithOpenPaths, "Open Paths", tab, thisFont)
 				
 				Glyphs.showNotification( 
