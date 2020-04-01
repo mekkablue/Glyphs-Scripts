@@ -6,26 +6,132 @@ Builds circled numbers and letters (U+24B6...24EA and U+2460...2473) from _part.
 """
 
 from Foundation import NSPoint
-import math
+from AppKit import NSButtLineCapStyle
+import math, vanilla
 
-minDistanceBetweenFigures = 90.0
+circledNumbers = (
+	"zero.circled",
+	"one.circled",
+	"two.circled",
+	"three.circled",
+	"four.circled",
+	"five.circled",
+	"six.circled",
+	"seven.circled",
+	"eight.circled",
+	"nine.circled",
+	"one_zero.circled",
+	"one_one.circled",
+	"one_two.circled",
+	"one_three.circled",
+	"one_four.circled",
+	"one_five.circled",
+	"one_six.circled",
+	"one_seven.circled",
+	"one_eight.circled",
+	"one_nine.circled",
+	"two_zero.circled",
+)
 
-thisFont = Glyphs.font # frontmost font
-thisFontMaster = thisFont.selectedFontMaster # active master
-selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
-circledGlyphNames = ["one.circled", "two.circled", "three.circled", "four.circled", "five.circled", "six.circled", "seven.circled", "eight.circled", "nine.circled", "one_zero.circled", "one_one.circled", "one_two.circled", "one_three.circled", "one_four.circled", "one_five.circled", "one_six.circled", "one_seven.circled", "one_eight.circled", "one_nine.circled", "two_zero.circled", "A.circled", "B.circled", "C.circled", "D.circled", "E.circled", "F.circled", "G.circled", "H.circled", "I.circled", "J.circled", "K.circled", "L.circled", "M.circled", "N.circled", "O.circled", "P.circled", "Q.circled", "R.circled", "S.circled", "T.circled", "U.circled", "V.circled", "W.circled", "X.circled", "Y.circled", "Z.circled", "a.circled", "b.circled", "c.circled", "d.circled", "e.circled", "f.circled", "g.circled", "h.circled", "i.circled", "j.circled", "k.circled", "l.circled", "m.circled", "n.circled", "o.circled", "p.circled", "q.circled", "r.circled", "s.circled", "t.circled", "u.circled", "v.circled", "w.circled", "x.circled", "y.circled", "z.circled", "zero.circled"]
+blackCircledNumbers = (
+	"zero.blackCircled",
+	"one.blackCircled",
+	"two.blackCircled",
+	"three.blackCircled",
+	"four.blackCircled",
+	"five.blackCircled",
+	"six.blackCircled",
+	"seven.blackCircled",
+	"eight.blackCircled",
+	"nine.blackCircled",
+	"one_zero.blackCircled",
+	"one_one.blackCircled",
+	"one_two.blackCircled",
+	"one_three.blackCircled",
+	"one_four.blackCircled",
+	"one_five.blackCircled",
+	"one_six.blackCircled",
+	"one_seven.blackCircled",
+	"one_eight.blackCircled",
+	"one_nine.blackCircled",
+	"two_zero.blackCircled",
+)
 
+
+circledUC =(
+	"A.circled",
+	"B.circled",
+	"C.circled",
+	"D.circled",
+	"E.circled",
+	"F.circled",
+	"G.circled",
+	"H.circled",
+	"I.circled",
+	"J.circled",
+	"K.circled",
+	"L.circled",
+	"M.circled",
+	"N.circled",
+	"O.circled",
+	"P.circled",
+	"Q.circled",
+	"R.circled",
+	"S.circled",
+	"T.circled",
+	"U.circled",
+	"V.circled",
+	"W.circled",
+	"X.circled",
+	"Y.circled",
+	"Z.circled",
+)
+
+circledLC = (
+	"a.circled",
+	"b.circled",
+	"c.circled",
+	"d.circled",
+	"e.circled",
+	"f.circled",
+	"g.circled",
+	"h.circled",
+	"i.circled",
+	"j.circled",
+	"k.circled",
+	"l.circled",
+	"m.circled",
+	"n.circled",
+	"o.circled",
+	"p.circled",
+	"q.circled",
+	"r.circled",
+	"s.circled",
+	"t.circled",
+	"u.circled",
+	"v.circled",
+	"w.circled",
+	"x.circled",
+	"y.circled",
+	"z.circled",
+)
 
 
 def offsetLayer( thisLayer, offset, makeStroke=False, position=0.5, autoStroke=False ):
 	offsetFilter = NSClassFromString("GlyphsFilterOffsetCurve")
-	offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_error_shadow_(
+
+	# offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_error_shadow_(
+	offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyle_keepCompatibleOutlines_(
 		thisLayer,
 		offset, offset, # horizontal and vertical offset
 		makeStroke,     # if True, creates a stroke
 		autoStroke,     # if True, distorts resulting shape to vertical metrics
 		position,       # stroke distribution to the left and right, 0.5 = middle
-		None, None )
+		thisLayer.glyphMetrics(), # metrics (G3)
+		None, None, # error, shadow
+		NSButtLineCapStyle, # cap style
+		True, # keep compatible
+		 )
 
 def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	"""
@@ -129,19 +235,26 @@ def process( thisLayer, compName1, compName2, distance=10.0, interval=5.0 ):
 		return False
 
 
-def buildCircledGlyph( thisGlyph, circleName, scaleFactors ):
+def buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenTwoLayers=90.0 ):
+	isBlack = "black" in circleName.lower()
+	
 	thisFont = thisGlyph.font()
-	thisGlyph.setWidthMetricsKey_( "=%i" % thisFont.upm )
-	circleGlyph = thisFont.glyphs[circleName]
+	thisGlyph.widthMetricsKey = None # "=%i" % thisFont.upm )
+	thisGlyph.leftMetricsKey = "=40"
+	thisGlyph.rightMetricsKey = "=|"
 	
 	for i, thisMaster in enumerate(thisFont.masters):
 		figureHeight = None
 		scaleFactor = scaleFactors[i]
-		thisLayer = thisGlyph.layers[thisMaster.id]
+		if isBlack:
+			scaleFactor = max(0.6, scaleFactor)
+		circleGlyph = thisFont.glyphs[circleName]
 		circleLayer = circleGlyph.layers[thisMaster.id]
-		circleScaleFactor = thisFont.upm * 0.9 / ( circleLayer.bounds.size.width )
+		circleScaleFactor = thisFont.upm * 0.92 / max(thisFont.upm*0.66, circleLayer.bounds.size.width)
+		
+		# prepare layer
+		thisLayer = thisGlyph.layers[thisMaster.id]
 		thisLayer.clear()
-		thisLayer.syncMetrics()
 		
 		# add circle:
 		assumedCenter = NSPoint( thisFont.upm*0.5, thisFont.upm*0.3 ) # hardcoded
@@ -160,7 +273,11 @@ def buildCircledGlyph( thisGlyph, circleName, scaleFactors ):
 		circleShift = transform( shiftX=xShift, shiftY=yShift ).transformStruct()
 		circleComponent.applyTransform(circleShift)
 		
-		# find components to add
+		# update metrics:
+		thisLayer.updateMetrics()
+		thisLayer.syncMetrics()
+		
+		# find number and letter components to add:
 		suffixlessName = thisGlyph.name
 		if "." in suffixlessName:
 			suffixlessName = thisGlyph.name[:thisGlyph.name.find(".")]
@@ -195,7 +312,11 @@ def buildCircledGlyph( thisGlyph, circleName, scaleFactors ):
 			
 			collectedBounds = [ c.bounds for c in thisLayer.components[1:] ]
 			compCenter = centerOfRect( combinedBounds(collectedBounds) )
-			circleCenter = centerOfRect( circleComponent.bounds )
+			centerAnchor = thisLayer.anchorForName_traverseComponents_("#center",True)
+			if centerAnchor:
+				circleCenter = centerAnchor.position
+			else:
+				circleCenter = centerOfRect( circleComponent.bounds )
 		
 			# scale and move it in place:
 			shift = transform( shiftX=-compCenter.x, shiftY=-compCenter.y ).transformStruct()
@@ -251,7 +372,7 @@ def buildCircledGlyph( thisGlyph, circleName, scaleFactors ):
 						
 				compensateStroke.append(innerComponent)
 				
-			# auffetten:
+			# make slightly bolder:
 			isNumber = False
 			for i in range(len(compensateStroke))[::-1]:
 				componentToDecompose = compensateStroke[i]
@@ -260,13 +381,35 @@ def buildCircledGlyph( thisGlyph, circleName, scaleFactors ):
 				thisLayer.decomposeComponent_(componentToDecompose)
 				
 			offsetLayer( thisLayer, 4.0 ) #4.0 if isNumber else 3.0 )
+			if thisLayer.paths and isBlack:
+				thisLayer.removeOverlap()
+				for thisPath in thisLayer.paths:
+					
+					# set first node (make compatible again after remove overlap):
+					lowestY = thisPath.bounds.origin.y
+					lowestNodes = [n for n in thisPath.nodes if n.y <= lowestY]
+					if len(lowestNodes) == 0:
+						lowestNode = sorted( lowestNodes, key=lambda node:node.y )[0]
+					elif len(lowestNodes) == 1:
+						lowestNode = lowestNodes[0]
+					elif len(lowestNodes) > 1:
+						lowestNode = sorted( lowestNodes, key=lambda node:node.x )[0]
+					while lowestNode.type == GSOFFCURVE:
+						lowestNode = lowestNode.nextNode
+					thisPath.makeNodeFirst_(lowestNode)
+					
+					# reverse (white on black):
+					thisPath.reverse()
+			
 			thisLayer.anchors = None
-			
+			for thisComp in thisLayer.components:
+				if thisComp.componentName == circleName:
+					thisComp.locked = True
 			
 			
 
 
-def buildCirclePart( thisFont, glyphName ):
+def buildCirclePart( thisFont, glyphName, isBlack=False ):
 	partCircle = (
 		(
 			(353.0, 0.0),
@@ -282,16 +425,11 @@ def buildCirclePart( thisFont, glyphName ):
 		thisGlyph = GSGlyph()
 		thisGlyph.name = glyphName
 		thisFont.glyphs.append( thisGlyph )
+		thisGlyph.leftMetricsKey = "=40"
+		thisGlyph.rightMetricsKey = "=|"
 		print("Generated %s" % glyphName)
 	
 	thisGlyph.export = False
-	
-	# find zero for reference:
-	zeroGlyph = thisFont.glyphs["zero.lf"]
-	if not zeroGlyph:
-		zeroGlyph = thisFont.glyphs["zero.tf"]
-		if not zeroGlyph:
-			zeroGlyph = thisFont.glyphs["zero"]
 	
 	# draw in every layer:
 	for thisLayer in thisGlyph.layers:
@@ -315,57 +453,54 @@ def buildCirclePart( thisFont, glyphName ):
 					print("%s: Path drawing error. Could not process this segment:\n" % (glyphName, thisSegment))
 			pen.closePath()
 			pen.endPath()
-	
-		# scale circle to match zero:
-		if zeroGlyph:
-			zeroBounds = zeroGlyph.layers[thisLayer.associatedMasterId].bounds
-			zeroHeight = zeroBounds.size.height
-			if zeroHeight: # zero could be empty
-				zeroOvershoot = -zeroBounds.origin.y
-				overshootDiff = zeroOvershoot - 5.0
-				actualHeight = thisLayer.bounds.size.height
-				correctedHeight = zeroHeight - 2 * overshootDiff
-				if correctedHeight != actualHeight:
-					scaleFactor = correctedHeight/actualHeight
-					correction = transform(shiftY=5.0)
-					correction.appendTransform_( transform(scale=scaleFactor) )
-					correction.appendTransform_( transform(-5.0) )
-					thisLayer.applyTransform( correction.transformStruct() )
+		
+		# scale:
+		refHeight = thisFont.upm - 80
+		actualHeight = thisLayer.bounds.size.height
+		scaleFactor = refHeight/actualHeight
+		thisLayer.applyTransform( transform(scale=scaleFactor).transformStruct() )
+		
+		# shift to align with capHeight:
+		refY = thisLayer.associatedFontMaster().capHeight * 0.5
+		actualY = thisLayer.bounds.origin.y + thisLayer.bounds.size.height * 0.5
+		shift = refY - actualY
+		thisLayer.applyTransform( transform(shiftY=shift).transformStruct() )
 
-		# inner circle, scaled down:
-		currentHeight = thisLayer.bounds.size.height
-		outerCircle = thisLayer.paths[0]
-		innerCircle = outerCircle.copy()
-		thisLayer.paths.append(innerCircle)
+		if not isBlack:
+			# inner circle, scaled down:
+			currentHeight = thisLayer.bounds.size.height
+			outerCircle = thisLayer.paths[0]
+			innerCircle = outerCircle.copy()
+			thisLayer.paths.append(innerCircle)
 		
-		# scale down inner circle:
-		stemSize = 50.0
-		hstems = thisLayer.associatedFontMaster().horizontalStems
-		vstems = thisLayer.associatedFontMaster().verticalStems
-		if hstems and vstems:
-			stemSize = (hstems[0] + vstems[0]) * 0.25
+			# scale down inner circle:
+			stemSize = 50.0
+			hstems = thisLayer.associatedFontMaster().horizontalStems
+			vstems = thisLayer.associatedFontMaster().verticalStems
+			if hstems and vstems:
+				stemSize = (hstems[0] + vstems[0]) * 0.25
 		
-		maximumStemSize = currentHeight * 0.28
-		stemSize = min(maximumStemSize,stemSize)
-		smallerBy = stemSize * 2 * 1.06
-		newHeight = currentHeight - smallerBy
-		scaleFactor = newHeight/currentHeight
-		scale = transform(scale=scaleFactor).transformStruct()
+			maximumStemSize = currentHeight * 0.28
+			stemSize = min(maximumStemSize,stemSize)
+			smallerBy = stemSize * 2 * 1.06
+			newHeight = currentHeight - smallerBy
+			scaleFactor = newHeight/currentHeight
+			scale = transform(scale=scaleFactor).transformStruct()
 		
-		centerX = innerCircle.bounds.origin.x + innerCircle.bounds.size.width * 0.5
-		centerY = innerCircle.bounds.origin.y + innerCircle.bounds.size.height * 0.5
-		shift = transform(shiftX=-centerX, shiftY=-centerY).transformStruct()
-		shiftBack = transform(shiftX=centerX, shiftY=centerY).transformStruct()
+			centerX = innerCircle.bounds.origin.x + innerCircle.bounds.size.width * 0.5
+			centerY = innerCircle.bounds.origin.y + innerCircle.bounds.size.height * 0.5
+			shift = transform(shiftX=-centerX, shiftY=-centerY).transformStruct()
+			shiftBack = transform(shiftX=centerX, shiftY=centerY).transformStruct()
 		
-		innerCircle.applyTransform( shift )
-		innerCircle.applyTransform( scale )
-		innerCircle.applyTransform( shiftBack )
+			innerCircle.applyTransform( shift )
+			innerCircle.applyTransform( scale )
+			innerCircle.applyTransform( shiftBack )
 
 		# tidy up paths and set width:
 		thisLayer.correctPathDirection()
 		thisLayer.cleanUpPaths()
-		thisLayer.LSB = 40.0
-		thisLayer.RSB = 40.0
+		thisLayer.updateMetrics()
+		thisLayer.syncMetrics()
 		
 		# add anchor:
 		centerX = thisLayer.bounds.origin.x + thisLayer.bounds.size.width * 0.5
@@ -378,48 +513,202 @@ def buildCirclePart( thisFont, glyphName ):
 def boxArea(thisLayer):
 	return thisLayer.bounds.size.width * thisLayer.bounds.size.height
 
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
+class BuildCircledGlyphs( object ):
+	def __init__( self ):
+		# Window 'self.w':
+		windowWidth  = 220
+		windowHeight = 200
+		windowWidthResize  = 100 # user can resize width by this value
+		windowHeightResize = 0   # user can resize height by this value
+		self.w = vanilla.FloatingWindow(
+			( windowWidth, windowHeight ), # default window size
+			"Build Circled Glyphs", # window title
+			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
+			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
+			autosaveName = "com.mekkablue.BuildCircledGlyphs.mainwindow" # stores last window position and size
+		)
+		
+		# UI elements:
+		linePos, inset, lineHeight = 12, 15, 22
+		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 14), u"Builds the following glyphs:", sizeStyle='small', selectable=True )
+		linePos += lineHeight
+		
+		self.w.buildUC = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Uppercase circled letters", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
+		
+		self.w.buildLC = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Lowercase circled letters", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
+		
+		self.w.buildCircledNumbers = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Circled numbers 0-20", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
+		
+		self.w.buildBlackCircledNumbers = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Black circled numbers 0-20", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
+		
+		self.w.minDistanceBetweenFiguresText = vanilla.TextBox( (inset, linePos+2, 145, 14), u"Distance between figures:", sizeStyle='small', selectable=True )
+		self.w.minDistanceBetweenFigures = vanilla.EditText( (inset+145, linePos, -inset, 19), "90", callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
+		
+		# Run Button:
+		self.w.runButton = vanilla.Button( (-100-inset, -20-inset, -inset, -inset), "Build", sizeStyle='regular', callback=self.BuildCircledGlyphsMain )
+		self.w.setDefaultButton( self.w.runButton )
+		
+		# Load Settings:
+		if not self.LoadPreferences():
+			print("Note: 'Build Circled Glyphs' could not load preferences. Will resort to defaults")
+		
+		# Open window and focus on it:
+		self.w.open()
+		self.w.makeKey()
+		
+	def SavePreferences( self, sender=None ):
+		try:
+			# write current settings into prefs:
+			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildUC"] = self.w.buildUC.get()
+			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildLC"] = self.w.buildLC.get()
+			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildCircledNumbers"] = self.w.buildCircledNumbers.get()
+			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackCircledNumbers"] = self.w.buildBlackCircledNumbers.get()
+			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.minDistanceBetweenFigures"] = self.w.minDistanceBetweenFigures.get()
+			return True
+		except:
+			import traceback
+			print(traceback.format_exc())
+			return False
 
-# add circle if not present in font already:
-circleName = "_part.circle"
-if not thisFont.glyphs[circleName]:
-	buildCirclePart( thisFont, circleName )
-circleGlyph = thisFont.glyphs[circleName]
+	def LoadPreferences( self ):
+		try:
+			# register defaults:
+			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.buildUC", 0)
+			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.buildLC", 0)
+			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.buildCircledNumbers", 1)
+			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.buildBlackCircledNumbers", 0)
+			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.minDistanceBetweenFigures", "90")
+			
+			# load previously written prefs:
+			self.w.buildUC.set( Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildUC"] )
+			self.w.buildLC.set( Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildLC"] )
+			self.w.buildCircledNumbers.set( Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildCircledNumbers"] )
+			self.w.buildBlackCircledNumbers.set( Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackCircledNumbers"] )
+			self.w.minDistanceBetweenFigures.set( Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.minDistanceBetweenFigures"] )
+			return True
+		except:
+			import traceback
+			print(traceback.format_exc())
+			return False
 
-# determining scale of inscribed letters:
-scaleFactors = []
-for thisMaster in thisFont.masters:
-	radius = circleGlyph.layers[thisMaster.id].paths[1].bounds.size.width * 0.5
-	maxArea = 0.0
-	biggestLayer = None
-	for glyphName in circledGlyphNames:
-		if "." in glyphName:
-			glyphName = glyphName[:glyphName.find(".")]
-		thisGlyph = thisFont.glyphs[glyphName]
-		if thisGlyph:
-			thisLayer = thisGlyph.layers[thisMaster.id]
-			thisArea = boxArea(thisLayer)
-			if thisArea > maxArea:
-				maxArea = thisArea
-				biggestLayer = thisLayer
+	def BuildCircledGlyphsMain( self, sender=None ):
+		try:
+			# clear macro window log:
+			Glyphs.clearLog()
+			
+			# update settings to the latest user input:
+			if not self.SavePreferences():
+				print("Note: 'Build Circled Glyphs' could not write preferences.")
+			
+			minDistanceBetweenFigures = 90.0
+			thisFont = Glyphs.font # frontmost font
+			
+			buildUC = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildUC"]
+			buildLC = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildLC"]
+			buildCircledNumbers = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildCircledNumbers"]
+			buildBlackCircledNumbers = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackCircledNumbers"]
+			minDistanceBetweenFigures = float(Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.minDistanceBetweenFigures"])
+			
+			circledGlyphNames = []
+			if buildUC:
+				circledGlyphNames.extend(circledUC)
+			if buildLC:
+				circledGlyphNames.extend(circledLC)
+			if buildCircledNumbers:
+				circledGlyphNames.extend(circledNumbers)
+			if buildBlackCircledNumbers:
+				circledGlyphNames.extend(blackCircledNumbers)
+			
+			if not thisFont:
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+			elif circledGlyphNames:
+				print("Build Circled Glyphs Report for %s" % thisFont.familyName)
+				if thisFont.filepath:
+					print(thisFont.filepath)
+				else:
+					print("⚠️ The font file has not been saved yet.")
+				print()
+			
+				thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+				
+				print("Building: %s\n" % 
+					", ".join(circledGlyphNames)
+				)
+				
+				# add circles if not present in font already:
+				if buildUC or buildLC or buildCircledNumbers:
+					circleName = "_part.circle"
+					if not thisFont.glyphs[circleName]:
+						buildCirclePart( thisFont, circleName )
+					circleGlyph = thisFont.glyphs[circleName]
+				
+				if buildBlackCircledNumbers:
+					blackCircleName = "_part.blackCircle"
+					if not thisFont.glyphs[blackCircleName]:
+						buildCirclePart( thisFont, blackCircleName, isBlack=True )
+					blackCircleGlyph = thisFont.glyphs[blackCircleName]
+
+				# determining scale of inscribed letters:
+				scaleFactors = []
+				for thisMaster in thisFont.masters:
+					radius = circleGlyph.layers[thisMaster.id].paths[1].bounds.size.width * 0.5
+					maxArea = 0.0
+					biggestLayer = None
+					for glyphName in circledGlyphNames:
+						if "." in glyphName:
+							glyphName = glyphName[:glyphName.find(".")]
+						thisGlyph = thisFont.glyphs[glyphName]
+						if thisGlyph:
+							thisLayer = thisGlyph.layers[thisMaster.id]
+							thisArea = boxArea(thisLayer)
+							if thisArea > maxArea:
+								maxArea = thisArea
+								biggestLayer = thisLayer
 	
-	angleInRadians = math.atan2( biggestLayer.bounds.size.height, biggestLayer.bounds.size.width )
-	scaledHeight = math.sin(angleInRadians) * radius * 2 * 0.9
-	scaleFactor = scaledHeight / biggestLayer.bounds.size.height
-	scaleFactors.append(scaleFactor)
-	
+					angleInRadians = math.atan2( biggestLayer.bounds.size.height, biggestLayer.bounds.size.width*1.4 + minDistanceBetweenFigures )
+					scaledHeight = math.sin(angleInRadians) * radius * 2 * 0.9
+					scaleFactor = scaledHeight / biggestLayer.bounds.size.height
+					scaleFactors.append(scaleFactor)
+					print("Scale factor for master '%s': %.1f" % (thisMaster.name, scaleFactor))
 
-for glyphName in circledGlyphNames:
-	thisGlyph = thisFont.glyphs[glyphName]
-	if not thisGlyph:
-		thisGlyph = GSGlyph()
-		thisGlyph.name = glyphName
-		thisFont.glyphs.append(thisGlyph)
+				for glyphName in circledGlyphNames:
+					if "black" in glyphName.lower():
+						circleName = blackCircleName
+						
+					thisGlyph = thisFont.glyphs[glyphName]
+					if not thisGlyph:
+						thisGlyph = GSGlyph()
+						thisGlyph.name = glyphName
+						thisFont.glyphs.append(thisGlyph)
 
-	thisGlyph.beginUndo() # begin undo grouping
-	print("Building %s" % thisGlyph.name)
-	buildCircledGlyph( thisGlyph, circleName, scaleFactors )
-	thisGlyph.endUndo()   # end undo grouping
+					thisGlyph.beginUndo() # begin undo grouping
+					print("Building %s" % thisGlyph.name)
+					buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenFigures )
+					thisGlyph.endUndo()   # end undo grouping
 
-thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+				thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+
+				self.w.close() # delete if you want window to stay open
+
+			# Final report:
+			Glyphs.showNotification( 
+				u"%s: Done" % (thisFont.familyName),
+				u"Build Circled Glyphs is finished. Details in Macro Window",
+				)
+			print("\nDone.")
+
+		except Exception as e:
+			# brings macro window to front and reports error:
+			Glyphs.showMacroWindow()
+			print("Build Circled Glyphs Error: %s" % e)
+			import traceback
+			print(traceback.format_exc())
+
+BuildCircledGlyphs()
+

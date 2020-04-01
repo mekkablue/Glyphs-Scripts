@@ -79,11 +79,11 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## Build Glyphs
 
-*Most important: Quote Manager, and the Build scripts for Small Figures, notdef, Ldot, estimated/bar/brokenbar. The other scripts are mainly intended to give you a quick head start for covering certain Unicode ranges if requested by the client.*
+*Most important: Quote Manager, and the Build scripts for Small Figures, Symbols, Ldot. The other scripts are mainly intended to give you a quick head start for covering certain Unicode ranges if requested by the client.*
 
 * **Build APL Greek:** Create APL Greek glyphs.
 * **Build careof and cadauna:** Builds cadauna and careof from your c, u and fraction glyphs.
-* **Build Circled Glyphs:** Builds circled numbers and letters (U+24B6...24EA and U+2460...2473) from _part.circle and your letters and figures.
+* **Build Circled Glyphs:** Builds circled numbers and letters (U+24B6...24EA and U+2460...2473) from _part.circle and your letters and figures. *Needs Vanilla.*
 * **Build Dotted Numbers:** Build dotted numbers from your default figures and the period.
 * **Build Extra Math Symbols:** Builds lessoverequal, greateroverequal, bulletoperator, rightanglearc, righttriangle, sphericalangle, measuredangle, sunWithRays, positionIndicator, diameterSign, viewdataSquare, control.
 * **Build Ldot and ldot:** Builds Ldot, ldot and ldot.sc from existing L and periodcentered.loclCAT(.case/.sc). Assumes that you have already created and properly spaced L-periodcentered.loclCAT-L, etc.
