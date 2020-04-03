@@ -71,7 +71,8 @@ class FontInfoBatchSetter( object ):
 		linePos += lineHeight
 				
 		# APPLY TO FONTS
-		self.w.applyText = vanilla.TextBox( (inset, linePos+2, 70, 14), u"⚠️ Apply to", sizeStyle='small', selectable=True )
+		self.w.finger = vanilla.TextBox( (inset-5, linePos, 22, 22), u"👉 ", sizeStyle='regular', selectable=True )
+		self.w.applyText = vanilla.TextBox( (inset+17, linePos+2, 70, 14), u"Apply to", sizeStyle='small', selectable=True )
 		self.w.applyPopup = vanilla.PopUpButton( (inset+70, linePos, 150, 17), (u"ALL open fonts", u"open fonts containing"), sizeStyle='small', callback=self.SavePreferences )
 		self.w.applyContaining = vanilla.EditText( (inset+70+150+10, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small', placeholder="enter part of family name here" )
 		self.w.applyContaining.getNSTextField().setToolTip_(u"Only applies the settings to fonts that contain this in Font Info > Font > Family Name.")
@@ -81,6 +82,7 @@ class FontInfoBatchSetter( object ):
 		self.w.extractButton = vanilla.Button( (-270-inset, -20-inset, -130-inset, -inset), "Extract from Font", sizeStyle='regular', callback=self.ExtractFontInfoFromFrontmostFont )
 		self.w.extractButton.getNSButton().setToolTip_(u"Extracts the settings from the frontmost font and fills the UI with it.")
 		self.w.runButton = vanilla.Button( (-120-inset, -20-inset, -inset, -inset), "Apply to Fonts", sizeStyle='regular', callback=self.FontInfoBatchSetterMain )
+		self.w.runButton.getNSButton().setToolTip_(u"Applies the checked settings above to all fonts indicated in the ‘Apply to’ option.")
 		self.w.setDefaultButton( self.w.runButton )
 		
 		# Load Settings:
