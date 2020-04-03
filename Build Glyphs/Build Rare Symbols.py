@@ -54,7 +54,7 @@ def offsetLayer( thisLayer, offset, makeStroke=False, position=0.5, autoStroke=F
 		keepCompatible, # keep compatible
 	)
 
-def createGlyph(thisFont, glyphName, pathData, scaleFactor=1.0, rotation=0, overwrite=False, fill=True, stroke=50, sidebearing=50, closePath=True, belowBase=0.1):
+def createGlyph(thisFont, glyphName, pathData, scaleFactor=1.0, rotation=0, overwrite=False, fill=True, stroke=50, sidebearing=50, closePath=True, belowBase=0.1, setMetricsKeys=True):
 	glyph = None
 	if thisFont.glyphs[glyphName]:
 		if overwrite:
@@ -111,8 +111,12 @@ def createGlyph(thisFont, glyphName, pathData, scaleFactor=1.0, rotation=0, over
 		specialTreatmentOf3DArrows(originalLayer, glyphName)
 		
 		# set metrics keys:
-		glyph.leftMetricsKey = "=%i"%sidebearing
-		glyph.rightMetricsKey = "=|"
+		if setMetricsKeys:
+			glyph.leftMetricsKey = "=%i"%sidebearing
+			glyph.rightMetricsKey = "=|"
+		else:
+			glyph.leftMetricsKey = None
+			glyph.rightMetricsKey = None
 		
 		# go through all layers:
 		for thisLayer in glyph.layers:
@@ -123,8 +127,24 @@ def createGlyph(thisFont, glyphName, pathData, scaleFactor=1.0, rotation=0, over
 				for originalPath in originalLayer.paths:
 					thisLayer.paths.append( originalPath.copy() )
 				# update metrics:
-				thisLayer.syncMetrics()
-				thisLayer.updateMetrics()
+				thisLayer.roundCoordinates()
+				if not setMetricsKeys:
+					if thisLayer.italicAngle == 0.0:
+						thisLayer.leftMetricsKey = "==%i"%sidebearing
+						thisLayer.rightMetricsKey = "==|"
+					else:
+						# set LSB:
+						shiftX = sidebearing - thisLayer.bounds.origin.x
+						layerShiftForLSB = transform(shiftX=shiftX).transformStruct()
+						thisLayer.applyTransform(layerShiftForLSB)
+						# set width/RSB:
+						rightEdge = thisLayer.bounds.origin.x + thisLayer.bounds.size.width
+						thisLayer.width = rightEdge + sidebearing
+				# update metrics keys:
+				if setMetricsKeys or thisLayer.italicAngle == 0.0:
+					thisLayer.updateMetrics()
+					thisLayer.syncMetrics()
+				
 				print("\t✅ Layer: %s"%thisLayer.name)
 		return True
 	else:
@@ -328,7 +348,7 @@ class BuildCirclesSquaresTriangles( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 350
-		windowHeight = 300
+		windowHeight = 325
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -343,27 +363,37 @@ class BuildCirclesSquaresTriangles( object ):
 		linePos, inset, lineHeight = 12, 15, 22
 		column = 170
 		
-		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 14), u"Build the following glyphs:", sizeStyle='small', selectable=True )
+		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 14), u"Build the following glyphs, see tooltips for details:", sizeStyle='small', selectable=True )
 		linePos += lineHeight
 		
 		self.w.whiteTriangles = vanilla.CheckBox( (inset, linePos-1, column, 20), u"White Triangles △▷▽◁", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.whiteTriangles.getNSButton().setToolTip_(u"Will create upWhiteTriangle, rightWhiteTriangle, downWhiteTriangle, leftWhiteTriangle.")
 		self.w.blackTriangles = vanilla.CheckBox( (inset+column, linePos-1, -inset, 20), u"Black Triangles ▲▶▼◀", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.blackTriangles.getNSButton().setToolTip_(u"Will create upBlackTriangle, rightBlackTriangle, downBlackTriangle, leftBlackTriangle.")
 		linePos += lineHeight
 		
 		self.w.blackArrowheads = vanilla.CheckBox( (inset, linePos-1, column, 20), u"Black Arrowheads", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.blackArrowheads.getNSButton().setToolTip_(u"Will create blackUpEquilateralArrowhead, blackRightEquilateralArrowhead, blackDownEquilateralArrowhead, blackLeftEquilateralArrowhead.")
 		self.w.black3DArrowheads = vanilla.CheckBox( (inset+column, linePos-1, -inset, 20), u"Black 3D Arrowheads", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.black3DArrowheads.getNSButton().setToolTip_(u"Will create threeDRightLightedUpEquilateralArrowhead, threeDTopLightedRightEquilateralArrowhead, threeDLeftLightedDownEquilateralArrowhead, threeDTopLightedLeftEquilateralArrowhead.")
 		linePos += lineHeight
 		
 		self.w.whiteShapes = vanilla.CheckBox( (inset, linePos-1, column, 20), u"White Shapes ○◇□", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.whiteShapes.getNSButton().setToolTip_(u"Will create whiteCircle, whiteDiamond, whiteSquare.")
 		self.w.blackShapes = vanilla.CheckBox( (inset+column, linePos-1, -inset, 20), u"Black Shapes ●◆■", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.blackShapes.getNSButton().setToolTip_(u"Will create blackCircle, blackDiamond, blackSquare.")
 		linePos += lineHeight
 		
 		self.w.whiteLargeSquare = vanilla.CheckBox( (inset, linePos-1, column, 20), u"White Large Square ⬜", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.whiteLargeSquare.getNSButton().setToolTip_(u"Will create whiteLargeSquare.")
 		self.w.blackLargeSquare = vanilla.CheckBox( (inset+column, linePos-1, -inset, 20), u"Black Large Square ⬛", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.blackLargeSquare.getNSButton().setToolTip_(u"Will create blackLargeSquare.")
 		linePos += lineHeight
 		
 		self.w.propellor = vanilla.CheckBox( (inset, linePos-1, column, 20), u"Cmd Opt Shift ⌘⌥⇧", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.propellor.getNSButton().setToolTip_(u"Will create propellor, optionKey, upWhiteArrow.")
 		self.w.viewdataSquare  = vanilla.CheckBox( (inset+column, linePos-1, -inset, 20), u"Viewdata Square ⌗", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.viewdataSquare.getNSButton().setToolTip_(u"Will create viewdataSquare.")
 		linePos += lineHeight
 		
 		self.w.line = vanilla.HorizontalLine( (inset, linePos+2, -inset, 1) )
@@ -371,33 +401,55 @@ class BuildCirclesSquaresTriangles( object ):
 		
 		self.w.strokeText = vanilla.TextBox( (inset, linePos+2, 80, 14), u"Stroke width:", sizeStyle='small', selectable=True )
 		self.w.stroke = vanilla.EditText( (inset+80, linePos-1, 70, 19), "50", callback=self.SavePreferences, sizeStyle='small' )
-		self.w.heightText = vanilla.TextBox( (inset+170, linePos+2, 80, 14), u"Symbol size:", sizeStyle='small', selectable=True )
-		self.w.height = vanilla.EditText( (inset+170+80, linePos-1, -inset, 19), "700", callback=self.SavePreferences, sizeStyle='small' )
+		tooltip = "Uniform stroke width for icons. Does not apply to filled (‘black’) shapes."
+		self.w.strokeText.getNSTextField().setToolTip_(tooltip)
+		self.w.stroke.getNSTextField().setToolTip_(tooltip)
+		self.w.heightText = vanilla.TextBox( (inset+column, linePos+2, 85, 14), u"Symbol size:", sizeStyle='small', selectable=True )
+		self.w.height = vanilla.EditText( (inset+column+85, linePos-1, -inset, 19), "700", callback=self.SavePreferences, sizeStyle='small' )
+		tooltip = "Reference height for symbols. Each symbol has an individual scale factor. This reference height times the symbol’s scale factor will yield the actual size of each symbol."
+		self.w.heightText.getNSTextField().setToolTip_(tooltip)
+		self.w.height.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 		
 		self.w.sidebearingText = vanilla.TextBox( (inset, linePos+2, 80, 14), u"Sidebearings:", sizeStyle='small', selectable=True )
 		self.w.sidebearing = vanilla.EditText( (inset+80, linePos-1, 70, 19), "50", callback=self.SavePreferences, sizeStyle='small' )
-		self.w.belowBaseText = vanilla.TextBox( (inset+170, linePos+2, 80, 14), u"% below base:", sizeStyle='small', selectable=True )
-		self.w.belowBase = vanilla.EditText( (inset+170+80, linePos-1, -inset, 19), "10", callback=self.SavePreferences, sizeStyle='small' )
+		tooltip = "Will be used for both LSB and RSB, effectively centering the shape in its width. Unless the Disrespect Italic Angle option is used, will insert it as metrics keys (e.g., LSB ‘=60’, RSB ‘=|’) for the glyph."
+		self.w.sidebearingText.getNSTextField().setToolTip_(tooltip)
+		self.w.sidebearing.getNSTextField().setToolTip_(tooltip)
+		self.w.belowBaseText = vanilla.TextBox( (inset+column, linePos+2, 85, 14), u"% below base:", sizeStyle='small', selectable=True )
+		self.w.belowBase = vanilla.EditText( (inset+column+85, linePos-1, -inset, 19), "10", callback=self.SavePreferences, sizeStyle='small' )
+		tooltip = "Determines the vertical position. This percentage of the symbol size will be below, the rest above the baseline."
+		self.w.belowBaseText.getNSTextField().setToolTip_(tooltip)
+		self.w.belowBase.getNSTextField().setToolTip_(tooltip)
+		linePos += lineHeight
+		
+		self.w.disrespectItalicAngle = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Sidebearings disrespect italic angle (useful for italics)", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.disrespectItalicAngle.getNSButton().setToolTip_(u"If activated, will not set sidebearing metrics keys if there is an italic angle other than zero. If the italic angle is zero, will set (and update) layer-specific metrics keys (with double equals sign ==). Highly recommended if you want the symbols to have the same widths in upright and italic.")
 		linePos += lineHeight
 		
 		self.w.overwriteExistingGlyphs = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"⚠️ Overwrite existing glyphs", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.overwriteExistingGlyphs.getNSButton().setToolTip_(u"If set, will simply replace the symbol glyphs that already exist. Careful with this option if you made any manual changes you want to keep.")
 		linePos += lineHeight
 		
-		self.w.openTab = vanilla.CheckBox( (inset, linePos-1, 170, 20), u"Open tab with new glyphs", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.reuseTab = vanilla.CheckBox( (inset+170, linePos-1, -inset, 20), u"Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.openTab = vanilla.CheckBox( (inset, linePos-1, column, 20), u"Open tab with new glyphs", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.openTab.getNSButton().setToolTip_(u"If set, will open a new Edit tab containing all the glyphs for which a checkbox is set further above.")
+		self.w.reuseTab = vanilla.CheckBox( (inset+column, linePos-1, -inset, 20), u"Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reuseTab.getNSButton().setToolTip_(u"If set, will reuse the frontmost Edit tab, rather than open a new one. Only opens a new tab if no Edit tab is active.")
 		linePos += lineHeight
 		
 		# Run Button:
 		self.w.runButton = vanilla.Button( (-80-inset, -20-inset, -inset, -inset), "Build", sizeStyle='regular', callback=self.BuildCirclesSquaresTrianglesMain )
 		self.w.setDefaultButton( self.w.runButton )
 		
+		# (un)check all checkboxes:
 		self.w.checkAllButton = vanilla.Button( (-180-inset, -20-inset, -90-inset, -inset), "Check All", sizeStyle='regular', callback=self.checkOrUncheckAll )
+		self.w.checkAllButton.getNSButton().setToolTip_(u"Activates all checkboxes above the separator line.")
 		self.w.uncheckAllButton = vanilla.Button( (-300-inset, -20-inset, -190-inset, -inset), "Uncheck All", sizeStyle='regular', callback=self.checkOrUncheckAll )
+		self.w.uncheckAllButton.getNSButton().setToolTip_(u"Deactivates all checkboxes above the separator line.")
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print("Note: 'Build Rare Symbols' could not load preferences. Will resort to defaults")
+			print("Note: 'Build Rare Symbols' could not load preferences. Will resort to defaults.")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -451,6 +503,7 @@ class BuildCirclesSquaresTriangles( object ):
 			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.height"] = self.w.height.get()
 			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.belowBase"] = self.w.belowBase.get()
 			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.sidebearing"] = self.w.sidebearing.get()
+			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.disrespectItalicAngle"] = self.w.disrespectItalicAngle.get()
 			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.overwriteExistingGlyphs"] = self.w.overwriteExistingGlyphs.get()
 			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.openTab"] = self.w.openTab.get()
 			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.reuseTab"] = self.w.reuseTab.get()
@@ -480,6 +533,7 @@ class BuildCirclesSquaresTriangles( object ):
 			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.height", 700)
 			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.belowBase", 10)
 			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.sidebearing", 50)
+			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.disrespectItalicAngle", 0)
 			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.overwriteExistingGlyphs", 0)
 			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.openTab", 1)
 			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.reuseTab", 1)
@@ -500,6 +554,7 @@ class BuildCirclesSquaresTriangles( object ):
 			self.w.height.set( Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.height"] )
 			self.w.belowBase.set( Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.belowBase"] )
 			self.w.sidebearing.set( Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.sidebearing"] )
+			self.w.disrespectItalicAngle.set( Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.disrespectItalicAngle"] )
 			self.w.overwriteExistingGlyphs.set( Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.overwriteExistingGlyphs"] )
 			self.w.openTab.set( Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.openTab"] )
 			self.w.reuseTab.set( Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.reuseTab"] )
@@ -547,6 +602,7 @@ class BuildCirclesSquaresTriangles( object ):
 				belowBase = float(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.belowBase"])/100.0
 				sidebearing = float(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.sidebearing"])
 				
+				disrespectItalicAngle = Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.disrespectItalicAngle"]
 				overwriteExistingGlyphs = Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.overwriteExistingGlyphs"]
 				openTab = Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.openTab"]
 				reuseTab = Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.reuseTab"]
@@ -574,7 +630,7 @@ class BuildCirclesSquaresTriangles( object ):
 					for shape in triangleInfo:
 						glyphName = shape["name"]
 						rotation = shape["rotation"]
-						if createGlyph(thisFont, glyphName, trianglePath, scaleFactor=0.95, rotation=rotation, overwrite=overwriteExistingGlyphs, fill=False, stroke=stroke, belowBase=belowBase, sidebearing=sidebearing):
+						if createGlyph(thisFont, glyphName, trianglePath, scaleFactor=0.95, rotation=rotation, overwrite=overwriteExistingGlyphs, fill=False, stroke=stroke, belowBase=belowBase, sidebearing=sidebearing, setMetricsKeys=(not disrespectItalicAngle)):
 							processedGlyphs.append(glyphName)
 				
 				if blackTriangles:
@@ -587,7 +643,7 @@ class BuildCirclesSquaresTriangles( object ):
 					for shape in triangleInfo:
 						glyphName = shape["name"]
 						rotation = shape["rotation"]
-						if createGlyph(thisFont, glyphName, trianglePath, scaleFactor=0.95, rotation=rotation, overwrite=overwriteExistingGlyphs, fill=True, belowBase=belowBase, sidebearing=sidebearing):
+						if createGlyph(thisFont, glyphName, trianglePath, scaleFactor=0.95, rotation=rotation, overwrite=overwriteExistingGlyphs, fill=True, belowBase=belowBase, sidebearing=sidebearing, setMetricsKeys=(not disrespectItalicAngle)):
 							processedGlyphs.append(glyphName)
 				
 				if blackArrowheads:
@@ -600,7 +656,7 @@ class BuildCirclesSquaresTriangles( object ):
 					for shape in triangleInfo:
 						glyphName = shape["name"]
 						rotation = shape["rotation"]
-						if createGlyph(thisFont, glyphName, arrowheadPath, scaleFactor=0.95, rotation=rotation, overwrite=overwriteExistingGlyphs, fill=True, belowBase=belowBase, sidebearing=sidebearing):
+						if createGlyph(thisFont, glyphName, arrowheadPath, scaleFactor=0.95, rotation=rotation, overwrite=overwriteExistingGlyphs, fill=True, belowBase=belowBase, sidebearing=sidebearing, setMetricsKeys=(not disrespectItalicAngle)):
 							processedGlyphs.append(glyphName)
 				
 				if black3DArrowheads:
@@ -613,58 +669,58 @@ class BuildCirclesSquaresTriangles( object ):
 					for shape in triangleInfo:
 						glyphName = shape["name"]
 						rotation = shape["rotation"]
-						if createGlyph(thisFont, glyphName, arrowheadPath, scaleFactor=0.95, rotation=rotation, overwrite=overwriteExistingGlyphs, fill=False, belowBase=belowBase, sidebearing=sidebearing):
+						if createGlyph(thisFont, glyphName, arrowheadPath, scaleFactor=0.95, rotation=rotation, overwrite=overwriteExistingGlyphs, fill=False, belowBase=belowBase, sidebearing=sidebearing, setMetricsKeys=(not disrespectItalicAngle)):
 							processedGlyphs.append(glyphName)
 				
 				if whiteShapes:
 					glyphName = "whiteSquare"
-					if createGlyph(thisFont, glyphName, squarePath, scaleFactor=0.78, overwrite=overwriteExistingGlyphs, fill=False, stroke=stroke, belowBase=belowBase, sidebearing=sidebearing):
+					if createGlyph(thisFont, glyphName, squarePath, scaleFactor=0.78, overwrite=overwriteExistingGlyphs, fill=False, stroke=stroke, belowBase=belowBase, sidebearing=sidebearing, setMetricsKeys=(not disrespectItalicAngle)):
 						processedGlyphs.append(glyphName)
 						glyphName = "whiteDiamond"
-					if createGlyph(thisFont, glyphName, diamondPath, scaleFactor=0.93, overwrite=overwriteExistingGlyphs, fill=False, stroke=stroke, belowBase=belowBase, sidebearing=sidebearing):
+					if createGlyph(thisFont, glyphName, diamondPath, scaleFactor=0.93, overwrite=overwriteExistingGlyphs, fill=False, stroke=stroke, belowBase=belowBase, sidebearing=sidebearing, setMetricsKeys=(not disrespectItalicAngle)):
 						processedGlyphs.append(glyphName)
 						glyphName = "whiteCircle"
-					if createGlyph(thisFont, glyphName, circlePath, scaleFactor=0.87, overwrite=overwriteExistingGlyphs, fill=False, stroke=stroke, belowBase=belowBase, sidebearing=sidebearing):
+					if createGlyph(thisFont, glyphName, circlePath, scaleFactor=0.87, overwrite=overwriteExistingGlyphs, fill=False, stroke=stroke, belowBase=belowBase, sidebearing=sidebearing, setMetricsKeys=(not disrespectItalicAngle)):
 						processedGlyphs.append(glyphName)
 					
 				if blackShapes:
 					glyphName = "blackSquare"
-					if createGlyph(thisFont, glyphName, squarePath, scaleFactor=0.78, overwrite=overwriteExistingGlyphs, fill=True, belowBase=belowBase, sidebearing=sidebearing):
+					if createGlyph(thisFont, glyphName, squarePath, scaleFactor=0.78, overwrite=overwriteExistingGlyphs, fill=True, belowBase=belowBase, sidebearing=sidebearing, setMetricsKeys=(not disrespectItalicAngle)):
 						processedGlyphs.append(glyphName)
 						glyphName = "blackDiamond"
-					if createGlyph(thisFont, glyphName, diamondPath, scaleFactor=0.93, overwrite=overwriteExistingGlyphs, fill=True, belowBase=belowBase, sidebearing=sidebearing):
+					if createGlyph(thisFont, glyphName, diamondPath, scaleFactor=0.93, overwrite=overwriteExistingGlyphs, fill=True, belowBase=belowBase, sidebearing=sidebearing, setMetricsKeys=(not disrespectItalicAngle)):
 						processedGlyphs.append(glyphName)
 						glyphName = "blackCircle"
-					if createGlyph(thisFont, glyphName, circlePath, scaleFactor=0.87, overwrite=overwriteExistingGlyphs, fill=True, belowBase=belowBase, sidebearing=sidebearing):
+					if createGlyph(thisFont, glyphName, circlePath, scaleFactor=0.87, overwrite=overwriteExistingGlyphs, fill=True, belowBase=belowBase, sidebearing=sidebearing, setMetricsKeys=(not disrespectItalicAngle)):
 						processedGlyphs.append(glyphName)
 					
 				if whiteLargeSquare:
 					glyphName = "whiteLargeSquare"
-					if createGlyph(thisFont, glyphName, squarePath, scaleFactor=1.2, overwrite=overwriteExistingGlyphs, fill=False, stroke=stroke, belowBase=belowBase, sidebearing=sidebearing):
+					if createGlyph(thisFont, glyphName, squarePath, scaleFactor=1.2, overwrite=overwriteExistingGlyphs, fill=False, stroke=stroke, belowBase=belowBase, sidebearing=sidebearing, setMetricsKeys=(not disrespectItalicAngle)):
 						processedGlyphs.append(glyphName)
 					
 				if blackLargeSquare:
 					glyphName = "blackLargeSquare"
-					if createGlyph(thisFont, glyphName, squarePath, scaleFactor=1.2, overwrite=overwriteExistingGlyphs, fill=True, belowBase=belowBase, sidebearing=sidebearing):
+					if createGlyph(thisFont, glyphName, squarePath, scaleFactor=1.2, overwrite=overwriteExistingGlyphs, fill=True, belowBase=belowBase, sidebearing=sidebearing, setMetricsKeys=(not disrespectItalicAngle)):
 						processedGlyphs.append(glyphName)
 					
 				if propellor:
 					propellorInfo = (
 						{ "name":"propellor", "path":propellorPath, "scale":0.98, "close":True },
-						{ "name":"optionKey", "path":optionPath, "scale":0.84, "close":False },
-						{ "name":"upWhiteArrow", "path":shiftPath, "scale":1.02, "close":True },
+						{ "name":"optionKey", "path":optionPath,   "scale":0.84, "close":False },
+						{ "name":"upWhiteArrow", "path":shiftPath,  "scale":1.02, "close":True },
 					)
 					for shape in propellorInfo:
 						glyphName = shape["name"]
 						path = shape["path"]
 						scale = shape["scale"]
 						close = shape["close"]
-						if createGlyph(thisFont, glyphName, path, scaleFactor=scale, overwrite=overwriteExistingGlyphs, fill=False, stroke=stroke, closePath=close, belowBase=belowBase, sidebearing=sidebearing):
+						if createGlyph(thisFont, glyphName, path, scaleFactor=scale, overwrite=overwriteExistingGlyphs, fill=False, stroke=stroke, closePath=close, belowBase=belowBase, sidebearing=sidebearing, setMetricsKeys=(not disrespectItalicAngle)):
 							processedGlyphs.append(glyphName)
 					
 				if viewdataSquare:
 					glyphName = "viewdataSquare"
-					if createGlyph(thisFont, glyphName, viewdataSquarePath, scaleFactor=1.0, overwrite=overwriteExistingGlyphs, fill=False, stroke=stroke, closePath=False, belowBase=belowBase, sidebearing=sidebearing):
+					if createGlyph(thisFont, glyphName, viewdataSquarePath, scaleFactor=1.0, overwrite=overwriteExistingGlyphs, fill=False, stroke=stroke, closePath=False, belowBase=belowBase, sidebearing=sidebearing, setMetricsKeys=(not disrespectItalicAngle)):
 						processedGlyphs.append(glyphName)
 				
 				# self.w.close() # delete if you want window to stay open
