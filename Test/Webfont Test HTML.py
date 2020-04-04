@@ -15,7 +15,7 @@ if Glyphs.defaults["com.mekkablue.WebFontTestHTML.includeEOT"]:
 else:
 	fileFormats = ( "woff", "woff2" )
 
-def saveFileInLocation( content="blabla", fileName="test.txt", filePath="~/Desktop" ):
+def saveFileInLocation( content="Sorry, no content generated.", fileName="test.txt", filePath="~/Desktop" ):
 	saveFileLocation = "%s/%s" % (filePath,fileName)
 	saveFileLocation = saveFileLocation.replace( "//", "/" )
 	with codecs.open(saveFileLocation, "w", "utf-8-sig") as thisFile:
@@ -128,6 +128,13 @@ htmlContent = """<head>
 		.features, .label, a, #controls {
 			font: normal normal normal small sans-serif;
 		}
+		.features .emojiButton {
+			vertical-align: -5%;
+			font-size: small;
+		}
+		.emojiButton {
+			cursor: pointer;
+		}
 		#flexbox {
 			display: flex;
 			flex-flow: column;
@@ -167,6 +174,10 @@ htmlContent = """<head>
 		#waterfall p {
 			margin-bottom: 0.8em;
 			overflow-wrap: break-word;
+		}
+		.○ .sampletext {
+			-webkit-text-stroke: 1px black;
+			-webkit-text-fill-color: #FFF0;
 		}
 		.features, .label, a {
 			color: #888;
@@ -296,6 +307,10 @@ htmlContent = """<head>
 			#helptext {
 				background-color: #777;
 			}
+			.○ .sampletext {
+				-webkit-text-stroke: 1px white;
+				-webkit-text-fill-color: #0000;
+			}
 		}
 	</style>
 </head>
@@ -317,7 +332,7 @@ htmlContent = """<head>
 		<a href="https://caniuse.com/#feat=woff">woff</a>
 		<a href="https://caniuse.com/#feat=woff2">woff2</a>
 		&ensp;
-		Features:
+		<a onclick="toggleInverse();" id="invert" class="emojiButton">🔲</a>
 		<label><input type="checkbox" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
 		<label><input type="checkbox" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga/clig</label>
 		<label><input type="checkbox" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel">calt</label>
@@ -326,18 +341,18 @@ htmlContent = """<head>
 	</p>
 	<p class="features" id="featureLine">font-feature-settings: "kern" on, "liga" on, "calt" on;</p>
 </div>
-<div id="waterfall">
-	<p><span class="label">08</span>&nbsp;<span id="p08"></span></p>
-	<p><span class="label">09</span>&nbsp;<span id="p09"></span></p>
-	<p><span class="label">10</span>&nbsp;<span id="p10"></span></p>
-	<p><span class="label">11</span>&nbsp;<span id="p11"></span></p>
-	<p><span class="label">12</span>&nbsp;<span id="p12"></span></p>
-	<p><span class="label">13</span>&nbsp;<span id="p13"></span></p>
-	<p><span class="label">14</span>&nbsp;<span id="p14"></span></p>
-	<p><span class="label">15</span>&nbsp;<span id="p15"></span></p>
-	<p><span class="label">16</span>&nbsp;<span id="p16"></span></p>
-	<p><span id="largeParagraph"></span></p>
-	<p><span id="veryLargeParagraph"></span></p>
+<div id="waterfall" class="●">
+	<p><span class="label">08</span>&nbsp;<span class="sampletext" id="p08"></span></p>
+	<p><span class="label">09</span>&nbsp;<span class="sampletext" id="p09"></span></p>
+	<p><span class="label">10</span>&nbsp;<span class="sampletext" id="p10"></span></p>
+	<p><span class="label">11</span>&nbsp;<span class="sampletext" id="p11"></span></p>
+	<p><span class="label">12</span>&nbsp;<span class="sampletext" id="p12"></span></p>
+	<p><span class="label">13</span>&nbsp;<span class="sampletext" id="p13"></span></p>
+	<p><span class="label">14</span>&nbsp;<span class="sampletext" id="p14"></span></p>
+	<p><span class="label">15</span>&nbsp;<span class="sampletext" id="p15"></span></p>
+	<p><span class="label">16</span>&nbsp;<span class="sampletext" id="p16"></span></p>
+	<p><span class="sampletext" id="largeParagraph"></span></p>
+	<p><span class="sampletext" id="veryLargeParagraph"></span></p>
 </div>
 </div>
 
@@ -378,10 +393,9 @@ htmlContent = """<head>
 	function updateParagraph() {
 		// update paragraph text based on user input:
 		const txt = document.getElementById('textInput');
-		const paragraphs = ['p08','p09','p10','p11','p12','p13','p14','p15','p16','largeParagraph','veryLargeParagraph'];
+		const paragraphs = document.getElementsByClassName('sampletext');
 		for (i = 0; i < paragraphs.length; i++) {
-			paragraphID = paragraphs[i];
-			var paragraph = document.getElementById(paragraphID);
+			paragraph = paragraphs[i];
 			paragraph.textContent = txt.value;
 		}
 	}
@@ -461,6 +475,19 @@ htmlContent = """<head>
 		} else {
 			waterfall.dir = "";
 			waterfall.align = "";
+		}
+	}
+	function toggleInverse() {
+		const testText = document.getElementById("waterfall");
+		if (testText) {
+			const link = document.getElementById("invert");
+			if (testText.className == "●") {
+				testText.className = "○";
+				link.textContent = "🔳";
+			} else {
+				testText.className = "●";
+				link.textContent = "🔲";
+			}
 		}
 	}
 </script>

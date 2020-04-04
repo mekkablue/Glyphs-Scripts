@@ -227,7 +227,16 @@ def langMenu(thisFont, indent=4):
 	else:
 		return htmlCode
 
-def saveFileInLocation( content="Sorry, no content generated.", fileName="test.html", filePath="~/Desktop" ):
+def saveFileInLocation( content="Sorry, no content generated.", fileName="test.txt", filePath="~/Desktop" ):
+	saveFileLocation = "%s/%s" % (filePath,fileName)
+	saveFileLocation = saveFileLocation.replace( "//", "/" )
+	with codecs.open(saveFileLocation, "w", "utf-8-sig") as thisFile:
+		print("Exporting to:", thisFile.name)
+		thisFile.write( content )
+		thisFile.close()
+	return True
+
+def saveFileInLocationOLD( content="Sorry, no content generated.", fileName="test.html", filePath="~/Desktop" ):
 	saveFileLocation = "%s/%s" % (filePath,fileName)
 	saveFileLocation = saveFileLocation.replace( "//", "/" )
 	f = open( saveFileLocation, 'w' )
@@ -473,6 +482,7 @@ htmlContent = """
 				-moz-user-select: none;
 				-webkit-user-select: none;
 			}
+			
 
 /* OTVar Sliders: */
 			.labeldiv {
@@ -524,6 +534,13 @@ htmlContent = """
 				font-size: x-small;
 				font-family: sans-serif;
 				padding: 0 0.2%;
+			}
+			#featureControls .emojiButton {
+				vertical-align: -50%;
+				font-size: small;
+			}
+			.emojiButton {
+				cursor: pointer;
 			}
 			.otFeatureLabel, .otFeature {
 				font-size: small;
@@ -595,6 +612,10 @@ htmlContent = """
 				overflow-y: scroll;
 				word-wrap: break-word;
 			}
+			.○ {
+				-webkit-text-stroke: 1px black;
+				-webkit-text-fill-color: #FFF0;
+			}
 			div:focus {
 				outline: 0px solid transparent;
 			}
@@ -616,6 +637,7 @@ htmlContent = """
 			@media (prefers-color-scheme: dark) {
 				body { background: #000; }
 				p { color: #eee; }
+				
 				#textInput{
 					color: #eee;
 					background-color: #222;
@@ -630,24 +652,27 @@ htmlContent = """
 					color: #111;
 					background-color: #888; 
 				}
+
 				.slider { background: #333; }
 				.slider::-webkit-slider-thumb { background: #888; }
-				
 				a { color: #ccc; }
+
 				#controls {
 					background-color: black;
 				}
-				
 				#textarea {
 					color: white;
 					background-color: black;
+				}
+				.○ {
+					-webkit-text-stroke: 1px white;
+					-webkit-text-fill-color: #0000;
 				}
 			}
 			
 		</style>
 		<script>
 			document.addEventListener('keyup', keyAnalysis);
-			
 			function setLanguage(lang) {
 				document.body.setAttribute('lang',lang);
 			}
@@ -664,7 +689,6 @@ htmlContent = """
 					}
 				}
 			}
-			
 			function updateFeatures() {
 				// update features based on user input:
 				var testtext = getTestText();
@@ -687,7 +711,6 @@ htmlContent = """
 				}
 				testtext.style.setProperty("font-feature-settings", codeLine);
 			}
-			
 			function resetParagraph() {
 				const defaulttext = "The Quick Brown Fox Jumps Over the Lazy Dog.";
 				const testtext = getTestText();
@@ -698,11 +721,9 @@ htmlContent = """
 				const testtext = getTestText();
 				testtext.innerHTML = lat1;
 			}
-			
 			function getTestText() {
 				return document.getElementById("textarea");
 			}
-		
 			function updateSlider() {
 				var body = getTestText();
 				var sliders = document.getElementsByClassName("slider");
@@ -732,11 +753,9 @@ htmlContent = """
 				// apply OTVar slider settings:
 				body.style.setProperty("font-variation-settings", settingtext);
 			}
-			
 			function vanish(item) {
 				item.style.setProperty("display", "none");
 			}
-			
 			function toggleLeftRight() {
 				const waterfall = document.getElementById("textarea");
 				if (waterfall.dir != "rtl") {
@@ -747,7 +766,6 @@ htmlContent = """
 					waterfall.align = "";
 				}
 			}
-			
 			function toggleCenter() {
 				const waterfall = document.getElementById("textarea");
 				if (waterfall.align != "center") {
@@ -757,6 +775,19 @@ htmlContent = """
 						waterfall.align = "right";
 					} else {
 						waterfall.align = "left";
+					}
+				}
+			}
+			function toggleInverse() {
+				const testText = document.getElementById("textarea");
+				if (testText) {
+					const link = document.getElementById("invert");
+					if (testText.className == "●") {
+						testText.className = "○";
+						link.textContent = "🔳";
+					} else {
+						testText.className = "●";
+						link.textContent = "🔲";
 					}
 				}
 			}
@@ -772,6 +803,7 @@ htmlContent = """
 
 			<!-- OT features -->
 			<div id="featureControls">
+				<a onclick="toggleInverse();" id="invert" class="emojiButton">🔲</a>
 				<input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
 				<input type="checkbox" name="liga" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga</label>
 				<input type="checkbox" name="calt" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel">calt</label>
@@ -781,7 +813,7 @@ htmlContent = """
 		</div>
 		
 		<!-- Test Text -->
-		<div contenteditable="true" spellcheck="false" autocomplete="true" id="textarea">
+		<div contenteditable="true" spellcheck="false" autocomplete="true" id="textarea" class="●">
 		</div>
 	</div>
 		
