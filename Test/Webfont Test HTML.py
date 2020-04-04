@@ -140,6 +140,9 @@ htmlContent = """<head>
 			width: 100%;
 			border: 0px solid transparent;
 			height: auto;
+			user-select: none;
+			-moz-user-select: none;
+			-webkit-user-select: none;
 		}
 		#waterfall {
 			flex: 1 1 auto;
