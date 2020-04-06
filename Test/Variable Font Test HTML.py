@@ -7,6 +7,7 @@ Create a Test HTML for the current font inside the current Variation Font Export
 
 from os import system
 from AppKit import NSClassFromString, NSBundle
+import codecs
 
 def langMenu(thisFont, indent=4):
 	otTag2Lang = {
