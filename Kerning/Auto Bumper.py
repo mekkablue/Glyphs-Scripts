@@ -343,12 +343,9 @@ class Bumper( object ):
 
 	def BumperMain( self, sender ):
 		try:
-			shouldReportInMacroWindow = Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"]
-			
 			# save prefs
 			if not self.SavePreferences():
-				if shouldReportInMacroWindow:
-					print("Note: Auto Bumper could not write preferences.\n")
+				print("Note: Auto Bumper could not write preferences.\n")
 			
 			# query frontmost fontmaster:
 			thisFont = Glyphs.font
@@ -356,6 +353,7 @@ class Bumper( object ):
 			thisMasterID = thisMaster.id
 			
 			# start reporting to macro window:
+			shouldReportInMacroWindow = Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"]
 			if shouldReportInMacroWindow:
 				Glyphs.clearLog()
 				print("Auto Bumper Report for %s, master %s:\n" % (thisFont.familyName, thisMaster.name))
