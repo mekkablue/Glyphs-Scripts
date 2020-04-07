@@ -8,6 +8,10 @@ Copies a test text for Microsoft Word into the clipboard.
 from AppKit import NSStringPboardType, NSPasteboard
 
 thisFont = Glyphs.font # frontmost font
+Glyphs.clearLog() # clears macro window log
+print("Copy Word Test Text")
+print("Font: %s\n" % thisFont.familyName)
+
 glyphs = [g for g in thisFont.glyphs if g.unicode and g.export and g.subCategory != "Nonspacing"]
 glyphnames = [g.name for g in glyphs]
 
@@ -15,24 +19,37 @@ copyString = u""
 
 # CHARSET:
 lastCategory = None
+errorCount = 0
 for i, currGlyph in enumerate(glyphs):
+	print("🔠 %s" % currGlyph.name)
 	if currGlyph.category not in ("Number",):
 		currCategory = currGlyph.subCategory
 		if currCategory != lastCategory:
 			if (lastCategory == "Uppercase" or lastCategory == "Lowercase") and currGlyph.script=="latin":
-				print(currGlyph, currGlyph.script)
 				copyString += "\n"
 
-		copyString += currGlyph.glyphInfo.unicharString().replace(u"⁄",u" ⁄ ")
-		if currGlyph.name == "ldot":
-			copyString += "l"
-		if currGlyph.name == "Ldot":
-			copyString += "L"
+		charString = currGlyph.glyphInfo.unicharString()
+		if not charString:
+			if not currGlyph.unicode:
+				print("⚠️ Cannot determine character for glyph: %s. Skipping." % currGlyph.name)
+				errorCount += 1
+				break
+			else:
+				Glyphs.glyphInfoForUnicode(currGlyph.unicode).unicharString()
+		else:
+			copyString += charString.replace(u"⁄",u" ⁄ ")
+			if currGlyph.name == "ldot":
+				copyString += "l"
+			elif currGlyph.name == "Ldot":
+				copyString += "L"
+				
 		lastCategory = currCategory
 
+print("\n👨‍💻 Analysing OT features...")
 # FEATURESET:
 copyString += "\n\n"
 for feature in thisFont.features:
+	print("\t%s"%feature.name)
 	if "ss" in feature.name or "lig" in feature.name:
 		testtext = u""
 
@@ -90,5 +107,17 @@ def setClipboard( myText ):
 	except Exception as e:
 		return False
 
+print("\n💕 Copying test text into clipboard...")
 if not setClipboard(copyString):
-	print("Warning: could not set clipboard to %s..." % ( copyString[:12] ))
+	print("⚠️ Could not set clipboard to ‘%s...’" % ( copyString[:12] ))
+
+print("Done.")
+# Floating notification:
+Glyphs.showNotification( 
+	u"%s: Ready for Pasting" % (thisFont.familyName),
+	u"Test text for MS Word in clipboard. Encountered %i error%s processing the font. Details in Macro Window." % (
+		errorCount,
+		"" if errorCount==1 else "s",
+	),
+	)
+
