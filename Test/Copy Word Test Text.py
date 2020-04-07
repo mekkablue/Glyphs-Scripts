@@ -24,26 +24,33 @@ for i, currGlyph in enumerate(glyphs):
 	print("🔠 %s" % currGlyph.name)
 	if currGlyph.category not in ("Number",):
 		currCategory = currGlyph.subCategory
-		if currCategory != lastCategory:
-			if (lastCategory == "Uppercase" or lastCategory == "Lowercase") and currGlyph.script=="latin":
-				copyString += "\n"
+	elif currGlyph.name in ("fraction",):
+		currCategory = "Number"
+	else:
+		currCategory = currGlyph.category
+	
+	if currCategory != lastCategory:
+		caseChange = lastCategory in ("Uppercase", "Lowercase") and currGlyph.script=="latin"
+		numberSwitch = "Number" in (lastCategory, currCategory)
+		if caseChange or numberSwitch:
+			copyString += "\n"
 
-		charString = currGlyph.glyphInfo.unicharString()
-		if not charString:
-			if not currGlyph.unicode:
-				print("⚠️ Cannot determine character for glyph: %s. Skipping." % currGlyph.name)
-				errorCount += 1
-				break
-			else:
-				Glyphs.glyphInfoForUnicode(currGlyph.unicode).unicharString()
+	charString = currGlyph.glyphInfo.unicharString()
+	if not charString:
+		if not currGlyph.unicode:
+			print("⚠️ Cannot determine character for glyph: %s. Skipping." % currGlyph.name)
+			errorCount += 1
+			break
 		else:
-			copyString += charString.replace(u"⁄",u" ⁄ ")
-			if currGlyph.name == "ldot":
-				copyString += "l"
-			elif currGlyph.name == "Ldot":
-				copyString += "L"
-				
-		lastCategory = currCategory
+			Glyphs.glyphInfoForUnicode(currGlyph.unicode).unicharString()
+	else:
+		copyString += charString.replace(u"⁄",u" ⁄ ") # extra space for fraction
+		if currGlyph.name == "ldot":
+			copyString += "l"
+		elif currGlyph.name == "Ldot":
+			copyString += "L"
+			
+	lastCategory = currCategory
 
 print("\n👨‍💻 Analysing OT features...")
 # FEATURESET:
