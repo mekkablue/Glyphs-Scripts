@@ -304,7 +304,6 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Green Blue Manager:** Define an angle above which a node will be set to blue, below which it will be set to green. *Needs Vanilla.*
 * **Grid Switcher:** Toggles grid between two user-definable gridstep values with the click of a floating button. *Needs Vanilla.*
 * **Harmonise Curve to Line:** Will rearrange handles on (selected) curve segments with a following line segment, in such a way that the transition between the two segments is smooth (harmonized).
-* **New Tab with Short Segments:** Goes through all glyphs in the present font(s), and reports segments shorter than a user-specified distance to the Macro window, and opens a new tab with affected glyphs. Useful for finding alignment errors in exported OTFs. *Needs Vanilla.*
 * **New Tab with Small Paths:** Opens a new tab containing paths that are smaller than a user-definable threshold size in square units.
 * **Path Problem Finder:** Finds all kinds of potential problems in outlines, and opens a new tab with affected layers. *Needs Vanilla.*
 * **Realign BCPs:** Realigns all BCPs in all selected glyphs. Useful if handles got out of sync, e.g. after nudging or some other transformation, or after interpolation. Hold down Option to apply to all layers of the selected glyph(s).
