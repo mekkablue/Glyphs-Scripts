@@ -88,6 +88,16 @@ def hasAlmostOrthogonalLines( thisLayer, threshold=3.0 ):
 					return True
 	return False
 
+def hasShortLine( thisLayer, threshold=8.0 ):
+	for thisPath in thisLayer.paths:
+		for i, thisNode in enumerate(thisPath.nodes):
+			if thisNode.type == GSLINE:
+				pointA = thisNode.position
+				pointB = thisPath.nodes[ (i-1)%len(thisPath.nodes) ].position
+				if distance(pointA, pointB) < threshold:
+					return True
+	return False
+
 def hasShallowCurve( thisLayer, threshold=5.0 ):
 	for thisPath in thisLayer.paths:
 		for i, thisNode in enumerate(thisPath.nodes):
@@ -256,7 +266,7 @@ class PathProblemFinder( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 320
-		windowHeight = 450
+		windowHeight = 470
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -269,7 +279,7 @@ class PathProblemFinder( object ):
 		
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		indent = 155
+		indent = 170
 		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 14), u"New tab with layers containing path problems:", sizeStyle='small', selectable=True )
 		linePos += lineHeight
 		
@@ -312,6 +322,14 @@ class PathProblemFinder( object ):
 		tooltipText = u"Finds curve segments where the handles deviate less than the specified threshold from the enclosing on-curves."
 		self.w.shallowCurveThreshold.getNSTextField().setToolTip_(tooltipText)
 		self.w.shallowCurve.getNSButton().setToolTip_(tooltipText)
+		linePos += lineHeight
+		
+		self.w.shortLine = vanilla.CheckBox( (inset, linePos, indent, 20), u"Line segments shorter than:", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.shortLineThreshold = vanilla.EditText( (inset+indent, linePos, -inset-55, 19), "8", sizeStyle='small' )
+		self.w.shortLineText = vanilla.TextBox( (-inset-50, linePos+2, -inset, 14), u"units", sizeStyle='small', selectable=True )
+		tooltipText = u"Finds line segments (two consecutive on-curve nodes) shorter than the specified threshold length. Very short line segments may be deleted because they are barely visible. Also, if not orthogonal, may pose grid rounding problems."
+		self.w.shortLineThreshold.getNSTextField().setToolTip_(tooltipText)
+		self.w.shortLine.getNSButton().setToolTip_(tooltipText)
 		linePos += lineHeight
 		
 		self.w.almostOrthogonalLines = vanilla.CheckBox( (inset, linePos, indent, 20), u"Non-orthogonal lines:", value=False, callback=self.SavePreferences, sizeStyle='small' )
@@ -378,6 +396,7 @@ class PathProblemFinder( object ):
 		self.w.almostOrthogonalLinesThreshold.enable( self.w.almostOrthogonalLines.get() )
 		self.w.shortHandlesThreshold.enable( self.w.shortHandles.get() )
 		self.w.angledHandlesAngle.enable( self.w.angledHandles.get() )
+		self.w.shortLineThreshold.enable( self.w.shortLine.get() )
 		
 		anyOptionIsOn = (
 			self.w.zeroHandles.get() or 
@@ -387,6 +406,7 @@ class PathProblemFinder( object ):
 			self.w.angledHandles.get() or 
 			self.w.shallowCurveBBox.get() or 
 			self.w.shallowCurve.get() or 
+			self.w.shortLine.get() or
 			self.w.almostOrthogonalLines.get() or 
 			self.w.badOutlineOrder.get() or 
 			self.w.twoPointOutlines.get() or 
@@ -411,10 +431,13 @@ class PathProblemFinder( object ):
 			Glyphs.defaults["com.mekkablue.PathProblemFinder.shallowCurveThreshold"] = self.w.shallowCurveThreshold.get()
 			Glyphs.defaults["com.mekkablue.PathProblemFinder.almostOrthogonalLines"] = self.w.almostOrthogonalLines.get()
 			Glyphs.defaults["com.mekkablue.PathProblemFinder.almostOrthogonalLinesThreshold"] = self.w.almostOrthogonalLinesThreshold.get()
+			Glyphs.defaults["com.mekkablue.PathProblemFinder.shortLine"] = self.w.shortLine.get()
+			Glyphs.defaults["com.mekkablue.PathProblemFinder.shortLineThreshold"] = self.w.shortLineThreshold.get()
 			Glyphs.defaults["com.mekkablue.PathProblemFinder.badOutlineOrder"] = self.w.badOutlineOrder.get()
 			Glyphs.defaults["com.mekkablue.PathProblemFinder.twoPointOutlines"] = self.w.twoPointOutlines.get()
 			Glyphs.defaults["com.mekkablue.PathProblemFinder.offcurveAsStartPoint"] = self.w.offcurveAsStartPoint.get()
 			Glyphs.defaults["com.mekkablue.PathProblemFinder.openPaths"] = self.w.openPaths.get()
+			
 			Glyphs.defaults["com.mekkablue.PathProblemFinder.includeAllGlyphs"] = self.w.includeAllGlyphs.get()
 			Glyphs.defaults["com.mekkablue.PathProblemFinder.includeNonExporting"] = self.w.includeNonExporting.get()
 			Glyphs.defaults["com.mekkablue.PathProblemFinder.reuseTab"] = self.w.reuseTab.get()
@@ -442,6 +465,8 @@ class PathProblemFinder( object ):
 			Glyphs.registerDefault("com.mekkablue.PathProblemFinder.shallowCurveThreshold", 10)
 			Glyphs.registerDefault("com.mekkablue.PathProblemFinder.almostOrthogonalLines", 1)
 			Glyphs.registerDefault("com.mekkablue.PathProblemFinder.almostOrthogonalLinesThreshold", 3)
+			Glyphs.registerDefault("com.mekkablue.PathProblemFinder.shortLine", 0)
+			Glyphs.registerDefault("com.mekkablue.PathProblemFinder.shortLineThreshold", 8)
 			Glyphs.registerDefault("com.mekkablue.PathProblemFinder.badOutlineOrder", 1)
 			Glyphs.registerDefault("com.mekkablue.PathProblemFinder.twoPointOutlines", 1)
 			Glyphs.registerDefault("com.mekkablue.PathProblemFinder.offcurveAsStartPoint", 1)
@@ -466,6 +491,8 @@ class PathProblemFinder( object ):
 			self.w.shallowCurveThreshold.set( float(Glyphs.defaults["com.mekkablue.PathProblemFinder.shallowCurveThreshold"]) )
 			self.w.almostOrthogonalLines.set( Glyphs.defaults["com.mekkablue.PathProblemFinder.almostOrthogonalLines"] )
 			self.w.almostOrthogonalLinesThreshold.set( float(Glyphs.defaults["com.mekkablue.PathProblemFinder.almostOrthogonalLinesThreshold"]) )
+			self.w.shortLine.set( Glyphs.defaults["com.mekkablue.PathProblemFinder.shortLine"] )
+			self.w.shortLineThreshold.set( float(Glyphs.defaults["com.mekkablue.PathProblemFinder.shortLineThreshold"]) )
 			self.w.badOutlineOrder.set( Glyphs.defaults["com.mekkablue.PathProblemFinder.badOutlineOrder"] )
 			self.w.twoPointOutlines.set( Glyphs.defaults["com.mekkablue.PathProblemFinder.twoPointOutlines"] )
 			self.w.offcurveAsStartPoint.set( Glyphs.defaults["com.mekkablue.PathProblemFinder.offcurveAsStartPoint"] )
@@ -516,6 +543,8 @@ class PathProblemFinder( object ):
 				shallowCurveBBoxThreshold = Glyphs.defaults["com.mekkablue.PathProblemFinder.shallowCurveBBoxThreshold"]
 				almostOrthogonalLines = Glyphs.defaults["com.mekkablue.PathProblemFinder.almostOrthogonalLines"]
 				almostOrthogonalLinesThreshold = Glyphs.defaults["com.mekkablue.PathProblemFinder.almostOrthogonalLinesThreshold"]
+				shortLine = Glyphs.defaults["com.mekkablue.PathProblemFinder.shortLine"]
+				shortLineThreshold = Glyphs.defaults["com.mekkablue.PathProblemFinder.shortLineThreshold"]
 				badOutlineOrder = Glyphs.defaults["com.mekkablue.PathProblemFinder.badOutlineOrder"]
 				twoPointOutlines = Glyphs.defaults["com.mekkablue.PathProblemFinder.twoPointOutlines"]
 				offcurveAsStartPoint = Glyphs.defaults["com.mekkablue.PathProblemFinder.offcurveAsStartPoint"]
@@ -543,6 +572,7 @@ class PathProblemFinder( object ):
 				layersWithShallowCurve = []
 				layersWithShallowCurveBBox = []
 				layersWithAlmostOrthogonalLines = []
+				layersWithShortLines = []
 				layersWithBadOutlineOrder = []
 				layersWithOffcurveAsStartpoint = []
 				layersWithTwoPointOutlines = []
@@ -590,6 +620,10 @@ class PathProblemFinder( object ):
 								layersWithAlmostOrthogonalLines.append(thisLayer)
 								print("  ❌ Almost orthogonal line(s) on layer: %s" % thisLayer.name)
 								
+							if shortLine and hasShortLine(thisLayer, threshold=float(shortLineThreshold)):
+								layersWithShortLines.append(thisLayer)
+								print("  ❌ Short line(s) on layer: %s" % thisLayer.name)
+								
 							if badOutlineOrder and hasBadOutlineOrder(thisLayer):
 								layersWithBadOutlineOrder.append(thisLayer)
 								print("  ❌ Bad outline order(s) on layer: %s" % thisLayer.name)
@@ -613,7 +647,7 @@ class PathProblemFinder( object ):
 								
 			self.w.status.set("Building report…")
 	
-			if layersWithZeroHandles or layersWithOutwardHandles or layersWithLargeHandles or layersWithShortHandles or layersWithAngledHandles or layersWithShallowCurve or layersWithShallowCurveBBox or layersWithAlmostOrthogonalLines or layersWithBadOutlineOrder or layersWithTwoPointOutlines or layersWithOpenPaths:
+			if layersWithZeroHandles or layersWithOutwardHandles or layersWithLargeHandles or layersWithShortHandles or layersWithAngledHandles or layersWithShallowCurve or layersWithShallowCurveBBox or layersWithAlmostOrthogonalLines or layersWithShortLines or layersWithBadOutlineOrder or layersWithTwoPointOutlines or layersWithOpenPaths:
 				countOfLayers = 0
 				tab = thisFont.currentTab
 				if not tab or not reuseTab:
@@ -630,6 +664,7 @@ class PathProblemFinder( object ):
 				countOfLayers += self.reportInTabAndMacroWindow(layersWithShallowCurve, "Shallow Curve", tab, thisFont)
 				countOfLayers += self.reportInTabAndMacroWindow(layersWithShallowCurveBBox, "Small Curve BBox", tab, thisFont)
 				countOfLayers += self.reportInTabAndMacroWindow(layersWithAlmostOrthogonalLines, "Almost Orthogonal Lines", tab, thisFont)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithShortLines, "Short Line Segments", tab, thisFont)
 				countOfLayers += self.reportInTabAndMacroWindow(layersWithBadOutlineOrder, "Bad Outline Order or Orientation", tab, thisFont)
 				countOfLayers += self.reportInTabAndMacroWindow(layersWithTwoPointOutlines, "Two-Point Outlines", tab, thisFont)
 				countOfLayers += self.reportInTabAndMacroWindow(layersWithOffcurveAsStartpoint, "Off-curve as start point", tab, thisFont)
