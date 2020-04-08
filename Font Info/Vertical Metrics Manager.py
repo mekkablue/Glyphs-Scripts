@@ -515,7 +515,7 @@ class VerticalMetricsManager( object ):
 			if allOpenFonts:
 				theseFonts = Glyphs.fonts
 			else:
-				theseFonts = (frontmostFont,) # iterable tuple of frontmost font only
+				theseFonts = (Glyphs.font,) # iterable tuple of frontmost font only
 			
 			for i, thisFont in enumerate(theseFonts):
 				print("\n\n🔠 %s%s:"%(
