@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Deletes all group kernings refering to groups that are not in the font.
+Deletes all group kernings referring to groups that are not (anymore) in the font.
 """
 
 thisFont = Glyphs.font # frontmost font
@@ -39,21 +39,43 @@ def convertIntoName(groupOrGlyphID):
 	else:
 		return thisFont.glyphForId_(groupOrGlyphID).name
 
-toBeDeleted = []
+deletionCount = 0
 
 for thisMaster in thisFont.masters:
+	toBeDeleted = []
 	thisMasterID = thisMaster.id
-	print("\n  Master %s" % thisMaster.name)
+	print("\nMaster ‘%s’" % thisMaster.name)
 	
 	for leftKey in thisFont.kerning[thisMasterID]:
 		if leftKey.startswith("@") and not leftKey[7:] in rightGroups:
 			for rightKey in thisFont.kerning[thisMasterID][leftKey]:
 				toBeDeleted.append( (leftKey,rightKey) )
-				print("    Deleting: *%s - %s" % ( convertIntoName(leftKey), convertIntoName(rightKey) ))
+				print("\tMarked for deletion: *%s - %s (%i)" % ( 
+					convertIntoName(leftKey),
+					convertIntoName(rightKey),
+					thisFont.kerning[thisMasterID][leftKey][rightKey],
+					))
 		else:
 			for rightKey in thisFont.kerning[thisMasterID][leftKey]:
 				if rightKey.startswith("@") and not rightKey[7:] in leftGroups:
 					toBeDeleted.append( (leftKey,rightKey) )
-					print("    Deleting: %s - *%s" % ( convertIntoName(leftKey), convertIntoName(rightKey) ))
-					
-			
+					print("\tMarked for deletion: %s - *%s (%i)" % ( 
+						convertIntoName(leftKey),
+						convertIntoName(rightKey),
+						thisFont.kerning[thisMasterID][leftKey][rightKey],
+						))
+	
+	deletionCount += len(toBeDeleted)
+	print("\tDeleting %i kern pairs in master ‘%s’..." % (
+		len(toBeDeleted),
+		thisMaster.name,
+		))
+
+	for thisPair in toBeDeleted:
+		leftSide, rightSide = thisPair
+		thisFont.removeKerningForPair(thisMasterID, leftSide, rightSide)
+	
+	print("\tSuccessfully deleted orphaned group kern pairs in master ‘%s’." % (
+		thisMaster.name,
+		))
+	
