@@ -24,6 +24,8 @@ class SetHiddenAppPreferences( object ):
 		"showShadowPath",
 		"TextModeNumbersThreshold",
 		"TTPreviewAlsoShowOffCurveIndexes",
+		"GSFontViewShowUnicode",
+		"GSFontViewDrawLabelColor",
 		"GSFontViewDarkMode",
 		"GSEditViewDarkMode",
 		"com.mekkablue.ShowItalic.drawItalicsForInactiveGlyphs",
