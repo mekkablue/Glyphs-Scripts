@@ -206,7 +206,7 @@ class MethodReporter( object ):
 			try:
 				actualClass = eval(className)
 			except:
-				newClassName = "NSClassFromString(%s)"%className
+				newClassName = "NSClassFromString('%s')"%className
 				actualClass = eval(newClassName)
 				className = newClassName
 				
