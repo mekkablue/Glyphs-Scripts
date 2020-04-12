@@ -55,6 +55,8 @@ weightClassesOldNames = {
 
 
 def distribute_lucas( min, max, n ):
+	if min==0:
+		min=max/1000.0
 	q = max / min
 	return [ min * q**(i/(n-1)) for i in range(n) ]
  
@@ -178,10 +180,34 @@ class InstanceMaker( object ):
 		self.UpdateSample( self )
 		self.w.makeKey()
 	
+	def weightID(self, thisFont):
+		weightAxis = thisFont.axes[0] # default
+		weightAxisID = weightAxis.axisId()
+		for axis in thisFont.axes:
+			if axis.axisTag() == "wght":
+				weightAxisID = axis.axisId()
+		return weightAxisID
+
+	def widthID(self, thisFont):
+		widthAxisID = None # None
+		for axis in thisFont.axes:
+			if axis.axisTag() == "wdth":
+				widthAxisID = axis.axisId()
+		return widthAxisID
+	
 	def MasterList( self, factor ):
 		thisFont = Glyphs.font
 		if thisFont:
-			MasterValues = sorted( [m.weightValue for m in thisFont.masters], key=lambda m: m * factor )
+			try:
+				# GLYPHS 3:
+				if not thisFont.axes:
+					MasterValues = ()
+				else:
+					weightAxisID = self.weightID(thisFont)
+					MasterValues = sorted( [m.axisValueValueForId_(weightAxisID) for m in thisFont.masters], key=lambda m: m * factor )
+			except:
+				# GLYPHS 2:
+				MasterValues = sorted( [m.weightValue for m in thisFont.masters], key=lambda m: m * factor )
 			return MasterValues
 		else:
 			return ()
@@ -205,9 +231,9 @@ class InstanceMaker( object ):
 		
 		return distributedValues
 	
-	def UpdateSample( self, sender ):
+	def UpdateSample( self, sender=None ):
 		# Query UI entries and write preview text
-		self.SavePreferences( None )
+		self.SavePreferences()
 		
 		try:
 			usesNaturalNames = Glyphs.defaults["com.mekkablue.InstanceMaker.naturalNames"]
@@ -228,7 +254,7 @@ class InstanceMaker( object ):
 				self.w.firstName.enable(False)
 				
 			# store UI changes in defaults:
-			self.SavePreferences( None )
+			self.SavePreferences()
 			
 			if Glyphs.defaults["com.mekkablue.InstanceMaker.shouldRound"]:
 				rounding = 0
@@ -278,7 +304,7 @@ class InstanceMaker( object ):
 		onOff = Glyphs.defaults["com.mekkablue.InstanceMaker.naturalNames"]
 		self.w.italicStyle.enable(onOff)
 		
-	def SavePreferences( self, sender ):
+	def SavePreferences( self, sender=None ):
 		try:
 			Glyphs.defaults["com.mekkablue.InstanceMaker.numberOfInstances"] = self.w.numberOfInstances.get()
 			Glyphs.defaults["com.mekkablue.InstanceMaker.prefix"] = self.w.prefix.get()
@@ -416,9 +442,17 @@ class InstanceMaker( object ):
 						if ":" in weightClassOldName:
 							weightClassValue = int(weightClassOldName.split(":")[1].strip())
 							weightClassOldName = weightClassOldName.split(":")[0].strip()
-						newInstance.weightClass = weightClassOldName
-						if weightClassValue % 100:
-							newInstance.customParameters["weightClass"] = weightClassValue
+						
+						try:
+							# GLYPHS 3:
+							newInstance
+							if weightClassValue % 100:
+								newInstance.setWeightClassValue_(weightClassValue)
+						except:
+							# GLYPHS 2:
+							newInstance.weightClass = weightClassOldName
+							if weightClassValue % 100:
+								newInstance.customParameters["weightClass"] = weightClassValue
 						
 						
 						print("styleName:",styleName)
@@ -447,25 +481,35 @@ class InstanceMaker( object ):
 					else:
 						newInstance.name = "%s%i" % (prefix, thisWeight)
 						newInstance.isBold = False
-						
-					newInstance.weightValue = thisWeight
-					newInstance.widthValue = widthValue
-					
-
-					if maciejYesOrNo:
-						interpolationY = distribute_maciej( maciejValues[0], maciejValues[1], maciejValues[2], maciejValues[3], float( thisWeight ) )
-						if roundingYesOrNo:
-							interpolationY = round(interpolationY)
-						newInstance.customParameters["InterpolationWeightY"] = ("%.1f" % interpolationY).replace(".0","")
 					
 					theFont = Glyphs.font
 					if theFont:
+						try:
+							# GLYPHS 3:
+							weightID = self.weightID(theFont)
+							widthID = self.widthID(theFont)
+							print("thisWeight:",thisWeight,"widthValue:",widthValue)
+							if weightID:
+								newInstance.setAxisValue_forId_(thisWeight, weightID)
+							if widthID:
+								newInstance.setAxisValue_forId_(widthValue, widthID)
+						except:
+							# GLYPHS 2:
+							newInstance.weightValue = thisWeight
+							newInstance.widthValue = widthValue
+
+						if maciejYesOrNo:
+							interpolationY = distribute_maciej( maciejValues[0], maciejValues[1], maciejValues[2], maciejValues[3], float( thisWeight ) )
+							if roundingYesOrNo:
+								interpolationY = round(interpolationY)
+							newInstance.customParameters["InterpolationWeightY"] = ("%.1f" % interpolationY).replace(".0","")
+					
 						theFont.instances.append( newInstance )
 						newInstance.updateInterpolationValues()
 					else:
 						print("Error: No current font.")
 			
-			if not self.SavePreferences( self ):
+			if not self.SavePreferences():
 				print("Error writing preferences.")
 			
 			self.w.close()
