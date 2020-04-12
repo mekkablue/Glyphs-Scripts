@@ -55,6 +55,7 @@ class MethodReporter( object ):
 			"GSPathPen",
 			"GSPathSegment",
 			"GSProjectDocument",
+			"GSAxis",
 			# NS object
 			"NSBezierPath",
 			"NSColor",
@@ -202,8 +203,15 @@ class MethodReporter( object ):
 				if not method.startswith(".")
 			]
 		else:
+			try:
+				actualClass = eval(className)
+			except:
+				newClassName = "NSClassFromString(%s)"%className
+				actualClass = eval(newClassName)
+				className = newClassName
+				
 			shortenedMethods = [
-				self.fullMethodName(className,method) for method in dir(eval(className)) 
+				self.fullMethodName(className,method) for method in dir(actualClass) 
 				if not method in elidableMethods 
 				and not method.startswith(".")
 			]
