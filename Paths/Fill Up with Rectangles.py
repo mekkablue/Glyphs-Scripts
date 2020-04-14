@@ -33,15 +33,24 @@ def drawRect( myBottomLeft, myTopRight ):
 def process( thisLayer ):
 	layerIsEmpty = ( len(thisLayer.paths) == 0 and len(thisLayer.components) == 0 )
 	thisGlyph = thisLayer.parent
+	bottom = 0
+	insetPercentage = 9
 	try:
 		# Glyphs 3
 		case = thisGlyph.case
-		if case == GSLowercase:
-			height = 500
-		elif case == GSUppercase:
-			height = 700
+		if thisGlyph.category=="Mark":
+			height = 100
+			bottom = 600
+			insetPercentage = 30
+			if case == GSUppercase:
+				bottom = 750
 		else:
-			height = 600
+			if case == GSLowercase:
+				height = 500
+			elif case == GSUppercase:
+				height = 700
+			else:
+				height = 600
 	except:
 		# Glyphs 2
 		subCategory = thisGlyph.subCategory
@@ -53,8 +62,9 @@ def process( thisLayer ):
 			height = 600
 			
 	if layerIsEmpty:
-		bottomLeft = ( 50.0, 0.0 )
-		topRight = ( thisLayer.width - 50.0, height )
+		inset = thisLayer.width/100.0*insetPercentage
+		bottomLeft = ( inset, bottom )
+		topRight = ( thisLayer.width-inset, bottom+height )
 		layerRect = drawRect( bottomLeft, topRight )
 		if layerRect:
 			try:
@@ -63,11 +73,15 @@ def process( thisLayer ):
 			except:
 				# Glyphs 3:
 				thisLayer.shapes.append( layerRect )
-			return "OK"
+			return "✅ 🔽 %i ↕️ %i ↔️ %i" % (
+					bottom,
+					height,
+					thisLayer.width-2*inset,
+				)
 		else:
-			return "error"
+			return "❌ error"
 	else:
-		return "not empty, skipped"
+		return "🆗 not empty, skipped"
 
 Glyphs.clearLog() # clears macro window log
 print("‘Fill Up with Rectangles’ report for: %s\n" % Font.familyName)
