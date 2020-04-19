@@ -7,6 +7,7 @@ Searches in PyObjC method names of a chosen object.
 
 import vanilla
 from AppKit import NSPasteboard, NSStringPboardType, NSUserDefaults
+import AppKit, Foundation
 
 def setClipboard( myText ):
 	"""
@@ -181,6 +182,7 @@ class MethodReporter( object ):
 		# brings macro window to front, clears its log, outputs help for method:
 		Glyphs.clearLog()
 		helpStatement = "help(%s)" % method
+		print(helpStatement)
 		eval(helpStatement)
 		Glyphs.showMacroWindow()
 		
