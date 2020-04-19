@@ -83,12 +83,12 @@ for otClass in [c.name for c in thisFont.classes if c.active]:
 	if thisClass and otherClass:
 		# compare code lines:
 		thisClassCode, otherClassCode = compareLists(
-			thisClass.code.splitlines(),
-			otherClass.code.splitlines(),
+			thisClass.code.split(),
+			otherClass.code.split(),
 			ignoreEmpty=True,
 			)
 		# report in Macro Window
-		lineReport(thisClassCode, otherClassCode, thisFileName, otherFileName, "Class %s"%otClass)
+		lineReport(thisClassCode, otherClassCode, thisFileName, otherFileName, "Class %s"%otClass, commaSeparated=True)
 
 for feature in [f.name for f in thisFont.features if f.active]:
 	thisFeature = thisFont.features[feature]
