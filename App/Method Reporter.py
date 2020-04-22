@@ -6,8 +6,8 @@ Searches in PyObjC method names of a chosen object.
 """
 
 import vanilla
-from GlyphsApp import *
 from AppKit import NSPasteboard, NSStringPboardType, NSUserDefaults
+import AppKit, Foundation
 
 def setClipboard( myText ):
 	"""
