@@ -205,7 +205,7 @@ langdict = {
 	"turkmen":{"language":u"Turkmen (Latin)", "code":"tuk", "letters":u"ÄäÇçŇňÖöŞşȘșÜüÝÝŽž", "speakers":4000000},
 	"tuvaluan":{"language":u"Tuvaluan", "code":"tvl", "letters":u"ĀāĒēĪīŌōŪū", "speakers":10000},
 	"tzotzil":{"language":u"Tzotzil", "code":"tzo", "letters":u"", "speakers":330000},
-	"ukrainian":{"language":u"Ukrainien (Latin transcription)", "code":"ukr", "letters":u"Ïï", "speakers":40000000},
+	"ukrainian":{"language":u"Ukrainian (Latin transcription)", "code":"ukr", "letters":u"Ïï", "speakers":40000000},
 	"uzbek":{"language":u"Uzbek (Latin)", "code":"uzb", "letters":u"", "speakers":16500000},
 	"venetian":{"language":u"Venetian", "code":"vec", "letters":u"ÁáÀàÇçÉéÈèÍíÌìŁłÓóÒòÙù", "speakers":2000000},
 	"vepsian":{"language":u"Vepsian", "code":"vep", "letters":u"ČčŠšŽžÜüÄäÖö", "speakers":6300},
