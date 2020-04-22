@@ -34,19 +34,24 @@ def compareCount( things, thisCount, otherCount, thisName, otherName ):
 	else:
 		print(u"✅ Compatible number of %s: %i." % (things.lower(), thisCount))
 
-def lineReport(thisSet, otherSet, thisFileName, otherFileName, name):
+def lineReport(thisSet, otherSet, thisFileName, otherFileName, name, commaSeparated=False):
 	if thisSet or otherSet:
+		if commaSeparated:
+			separator = ", "
+			element = "Elements"
+		else:
+			separator = "\n  "
+			element = "Code lines"
+		
 		if otherSet:
 			print()
-			print(u"⚠️ Code lines not in %s of %s:" % (name, thisFileName))
-			for line in otherSet:
-				print("  %s" % line)
+			print(u"⚠️ %s not in %s of %s:" % (element, name, thisFileName))
+			print(separator.join(otherSet))
 			print()
 		if thisSet:
 			print()
-			print(u"⚠️ Code lines not in %s of %s:" % (name, otherFileName))
-			for line in thisSet:
-				print("  %s" % line)
+			print(u"⚠️ %s not in %s of %s:" % (element, name, otherFileName))
+			print(separator.join(thisSet))
 			print()
 	else:
 		print(u"💚 %s: same code in both fonts." % name)
