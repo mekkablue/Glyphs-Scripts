@@ -7,33 +7,36 @@ Jumps to next instance shown in the preview field or window.
 
 from Foundation import NSApplication
 
-numberOfInstances = len( Glyphs.font.instances )
-Doc = Glyphs.currentDocument
+font = Glyphs.font
+numberOfInstances = len( font.instances )
 
 # Preview Area at the bottom of Edit view:
-PreviewField = Doc.windowController().activeEditViewController()
+previewingTab = font.currentTab
 
 # Window > Preview Panel:
-PreviewPanel = None
+previewPanel = None
 
 for p in NSApplication.sharedApplication().delegate().valueForKey_("pluginInstances"):
 	if p.__class__.__name__ == "NSKVONotifying_GlyphsPreviewPanel":
-		PreviewPanel = p
+		previewPanel = p
 
 try:
-	currentInstanceNumber = PreviewField.selectedInstance()
+	currentInstanceNumber = previewingTab.selectedInstance()
 
 	if currentInstanceNumber < numberOfInstances - 1:
-		PreviewField.setSelectedInstance_( currentInstanceNumber + 1 )
-		if PreviewPanel:
-			PreviewPanel.setSelectedInstance_( currentInstanceNumber + 1 )
+		previewingTab.setSelectedInstance_( currentInstanceNumber + 1 )
+		if previewPanel:
+			previewPanel.setSelectedInstance_( currentInstanceNumber + 1 )
 	else:
-		PreviewField.setSelectedInstance_( -2 )
-		if PreviewPanel:
-			PreviewPanel.setSelectedInstance_( -2 )
+		previewingTab.setSelectedInstance_( -2 )
+		if previewPanel:
+			previewPanel.setSelectedInstance_( -2 )
 	
-	# trigger update interface notification (so palettes and views can redraw):
-	NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", Doc)
+	previewingTab.updatePreview()
+	previewingTab.forceRedraw()
+	font.updateInterface()
 
 except Exception as e:
 	print("Error:", e)
+	import traceback
+	print(traceback.format_exc())

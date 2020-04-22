@@ -6,6 +6,7 @@ Searches in PyObjC method names of a chosen object.
 """
 
 import vanilla
+from GlyphsApp import *
 from AppKit import NSPasteboard, NSStringPboardType, NSUserDefaults
 
 def setClipboard( myText ):
@@ -180,8 +181,21 @@ class MethodReporter( object ):
 		
 		# brings macro window to front, clears its log, outputs help for method:
 		Glyphs.clearLog()
-		helpStatement = "help(%s)" % method
-		eval(helpStatement)
+		try:
+			helpStatement = "help(%s)" % method
+			print("%s\n"%helpStatement)
+			eval(helpStatement)
+		except:
+			if "." in method:
+				dotIndex = method.find(".")
+				firstPart = method[:dotIndex]
+				secondPart = method[dotIndex:]
+			else:
+				firstPart = method
+				secondPart = ""
+			helpStatement = "help(NSClassFromString('%s')%s)"%(firstPart, secondPart)
+			print("%s\n"%helpStatement)
+			eval(helpStatement)
 		Glyphs.showMacroWindow()
 		
 	def fullMethodName(self, className, methodName):
