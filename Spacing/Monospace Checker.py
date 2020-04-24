@@ -11,7 +11,7 @@ class MonospaceChecker( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 270
-		windowHeight = 200
+		windowHeight = 220
 		windowWidthResize  = 200 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -27,9 +27,9 @@ class MonospaceChecker( object ):
 		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, lineHeight*2), u"New tab with glyphs that do not match the width of the default glyph in each master:", sizeStyle='small', selectable=True )
 		linePos += lineHeight*2
 		
-		self.w.defaultGlyphText = vanilla.TextBox( (inset, linePos, 85, 14), u"Default Glyph:", sizeStyle='small', selectable=True )
-		self.w.defaultGlyph = vanilla.EditText( (inset+85, linePos-3, -inset, 19), "A", callback=self.SavePreferences, sizeStyle='small' )
-		self.w.defaultGlyph.getNSTextField().setToolTip_(u"For each master, will measure the width of this glyph, and compare all other widths to it.")
+		self.w.defaultGlyphNameText = vanilla.TextBox( (inset, linePos, 85, 14), u"Default Glyph:", sizeStyle='small', selectable=True )
+		self.w.defaultGlyphName = vanilla.EditText( (inset+85, linePos-3, -inset, 19), "A", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.defaultGlyphName.getNSTextField().setToolTip_(u"For each master, will measure the width of this glyph, and compare all other widths to it.")
 		linePos += lineHeight
 		
 		self.w.toleranceText = vanilla.TextBox( (inset, linePos, 105, 14), u"Tolerance in units:", sizeStyle='small', selectable=True )
@@ -43,6 +43,10 @@ class MonospaceChecker( object ):
 		
 		self.w.includeNonExporting = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Include Non-Exporting Glyphs", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.includeNonExporting.getNSButton().setToolTip_(u"If disabled, will ignore non-exporting glyphs. If you are unsure, leave it off.")
+		linePos += lineHeight
+		
+		self.w.setMonospaceFlag = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Set ‘isFixedPitch’ flag in Font Info", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.setMonospaceFlag.getNSButton().setToolTip_(u"Will set the isFixedPitch parameter in Font Info > Font. The parameter sets the isFixedPitch flag in the post table. Indicates whether the font is monospaced. Software can use this information to make sure that all glyphs are rendered with the same amount of pixels horizontally at any given PPM size.")
 		linePos += lineHeight
 		
 		# Run Button:
@@ -63,7 +67,11 @@ class MonospaceChecker( object ):
 			Glyphs.defaults["com.mekkablue.MonospaceChecker.tolerance"] = self.w.tolerance.get()
 			Glyphs.defaults["com.mekkablue.MonospaceChecker.reportZeroWidths"] = self.w.reportZeroWidths.get()
 			Glyphs.defaults["com.mekkablue.MonospaceChecker.includeNonExporting"] = self.w.includeNonExporting.get()
+			Glyphs.defaults["com.mekkablue.MonospaceChecker.setMonospaceFlag"] = self.w.setMonospaceFlag.get()
+			
 		except:
+			import traceback
+			print(traceback.format_exc())
 			return False
 			
 		return True
@@ -74,27 +82,40 @@ class MonospaceChecker( object ):
 			Glyphs.registerDefault("com.mekkablue.MonospaceChecker.tolerance", 0.0)
 			Glyphs.registerDefault("com.mekkablue.MonospaceChecker.reportZeroWidths", 0)
 			Glyphs.registerDefault("com.mekkablue.MonospaceChecker.includeNonExporting", 0)
+			Glyphs.registerDefault("com.mekkablue.MonospaceChecker.setMonospaceFlag", 0 )	
+			
 			self.w.defaultGlyphName.set( Glyphs.defaults["com.mekkablue.MonospaceChecker.defaultGlyphName"] )
 			self.w.tolerance.set( Glyphs.defaults["com.mekkablue.MonospaceChecker.tolerance"] )
 			self.w.reportZeroWidths.set( Glyphs.defaults["com.mekkablue.MonospaceChecker.reportZeroWidths"] )
 			self.w.includeNonExporting.set( Glyphs.defaults["com.mekkablue.MonospaceChecker.includeNonExporting"] )
+			self.w.setMonospaceFlag.set( Glyphs.defaults["com.mekkablue.MonospaceChecker.setMonospaceFlag"] )
 		except:
+			import traceback
+			print(traceback.format_exc())
 			return False
 			
 		return True
 
 	def MonospaceCheckerMain( self, sender ):
 		try:
+			# brings macro window to front and clears its log:
+			Glyphs.clearLog()
+			
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
 				print("Note: 'Monospace Checker' could not write preferences.")
 			
-			# brings macro window to front and clears its log:
-			Glyphs.clearLog()
-			
 			thisFont = Glyphs.font # frontmost font
-			print("Monospace Checker Report for:\n%s" % thisFont.familyName)
-			print(thisFont.filepath)
+			if thisFont is None:
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
+			else:
+				print("Monospace Checker Report for %s" % thisFont.familyName)
+				if thisFont.filepath:
+					print(thisFont.filepath)
+				else:
+					print("⚠️ The font file has not been saved yet.")
+				print()
 			
 			defaultGlyphName = Glyphs.defaults["com.mekkablue.MonospaceChecker.defaultGlyphName"].strip()
 			defaultGlyph = thisFont.glyphs[defaultGlyphName]
@@ -151,6 +172,17 @@ class MonospaceChecker( object ):
 					u"🥇 %s has consistent widths" % (thisFont.familyName),
 					u"All glyph widths are monospaced. Congrats!",
 					)
+			
+			if Glyphs.defaults["com.mekkablue.MonospaceChecker.setMonospaceFlag"]:
+				print("\nℹ️ Font Info > Font > Custom Parameters:")
+				if thisFont.customParameters["isFixedPitch"]:
+					print("👍🏻 isFixedPitch parameter already set. OK.")
+				else:
+					if thisFont.customParameters["isFixedPitch"] is None:
+						print("⚠️✅ isFixedPitch parameter was missing, now set. OK.")
+					else:
+						print("😱✅ isFixedPitch parameter was turned off, now set. OK.")
+					thisFont.customParameters["isFixedPitch"] = True
 				
 			# self.w.close() # delete if you want window to stay open
 		except Exception as e:
