@@ -1,8 +1,8 @@
-#MenuTitle: Create Alignment Zones for Selected Glyphs
+#MenuTitle: Add Alignment Zones for Selected Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Creates fitting zones for the selected glyphs.
+Creates fitting zones for the selected glyphs, on every master.
 """
 
 import vanilla
@@ -91,13 +91,16 @@ class CreateAlignmentZonesforSelectedGlyphs( object ):
 			bottom = Glyphs.defaults["com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.createBottomZones"]
 			dontExceed = Glyphs.defaults["com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.dontExceedExistingZones"]
 			
+			selectedGlyphs = [l.parent for in thisFont.selectedLayers]
+			
 			for i,master in enumerate(thisFont.masters):
 				print("\nFont Master %i: %s" % (i+1,master.name))
 				largestSize = max([abs(z.size) for z in master.alignmentZones])
 				
 				if top:
 					allHeights = []
-					for l in thisFont.selectedLayers:
+					for g in selectedGlyphs:
+						l = g.layers[master.id]
 						allHeights.append( l.bounds.origin.y+l.bounds.size.height )
 	
 					minHeight = min(allHeights)
@@ -113,7 +116,8 @@ class CreateAlignmentZonesforSelectedGlyphs( object ):
 			
 				if bottom:
 					allDepths = []
-					for l in Font.selectedLayers:
+					for g in selectedGlyphs:
+						l = g.layers[master.id]
 						allDepths.append( l.bounds.origin.y )
 	
 					maxDepth = min(allDepths)
