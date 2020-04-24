@@ -24,11 +24,12 @@ class SetHiddenAppPreferences( object ):
 		"showShadowPath",
 		"TextModeNumbersThreshold",
 		"TTPreviewAlsoShowOffCurveIndexes",
-		"GSFontViewShowUnicode",
+		"GSHideUnicodeInFontView" if Glyphs.versionNumber<3.0 else "GSFontViewShowUnicode",
 		"GSFontViewDrawLabelColor",
 		"GSFontViewDarkMode",
 		"GSEditViewDarkMode",
 		"com.mekkablue.ShowItalic.drawItalicsForInactiveGlyphs",
+		"com.mekkablue.ShowMarkPreview.extension",
 	)
 	
 	def __init__( self ):
