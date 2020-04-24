@@ -55,7 +55,7 @@ class GridOnOff( object ):
 			if not self.SavePreferences( self ):
 				print "Note: 'Grid Switcher' could not write preferences."
 			
-		except Exception, e:
+		except Exception as e:
 			raise e
 	
 	def SavePreferences( self, sender ):

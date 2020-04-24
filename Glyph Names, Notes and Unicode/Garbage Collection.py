@@ -232,7 +232,7 @@ class GarbageCollection( object ):
 			
 			self.log(u"✅ Done. Log in Macro Window.")
 			
-		except Exception, e:
+		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Garbage Collection Error: %s" % e)
