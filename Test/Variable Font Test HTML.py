@@ -685,6 +685,8 @@ htmlContent = """
 						setLat1();
 					} else if (event.code == 'KeyJ') {
 						toggleLeftRight();
+					} else if (event.code == 'KeyX') {
+						toggleInverse();
 					} else if (event.code == 'KeyC') {
 						toggleCenter();
 					}
@@ -772,7 +774,7 @@ htmlContent = """
 				if (waterfall.align != "center") {
 					waterfall.align = "center";
 				} else {
-					if (waterfall.dir = "rtl") {
+					if (waterfall.dir == "rtl") {
 						waterfall.align = "right";
 					} else {
 						waterfall.align = "left";
@@ -820,7 +822,7 @@ htmlContent = """
 		
 	<!-- Disclaimer -->
 	<p id="helptext" onmouseleave="vanish(this);">
-		Ctrl-R: Reset Charset. Ctrl-L: Latin1. Ctrl-J: LTR/RTL. Ctrl-C: Center. Not working? Please try in a newer macOS or use the <a href="https://www.google.com/chrome/">latest Chrome</a>. Pull mouse across this note to make it disappear.
+		Ctrl-R: Reset Charset. Ctrl-L: Latin1. Ctrl-J: LTR/RTL. Ctrl-C: Center. Ctrl-X: X-Ray. Not working? Please try in a newer macOS or use the <a href="https://www.google.com/chrome/">latest Chrome</a>. Pull mouse across this note to make it disappear.
 	</p>
 	</body>
 </html>
