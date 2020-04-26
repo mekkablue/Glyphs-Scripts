@@ -33,7 +33,7 @@ for thisInstance, otherInstance in zip(thisFont.instances, otherFont.instances):
 		thisInstance.name,
 		))
 	print("   B. %s%s" % (
-		"%s "%thisInstance.familyName if thisInstance.familyName else "",
+		"%s "%otherInstance.familyName if otherInstance.familyName else "",
 		otherInstance.name,
 		))
 	print()
