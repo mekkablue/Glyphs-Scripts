@@ -301,7 +301,7 @@ def axisDictForFontWithoutAxisLocationParameters(thisFont):
 			axisName, axisTag = axis["Name"], axis["Tag"]
 		except:
 			# Glyphs 3:
-			axisName, axisTag = x.name(), x.axisTag()
+			axisName, axisTag = axis.name(), axis.axisTag()
 
 		axisDict[axisName] = { "tag": axisTag, "min": sliderValues[0][i], "max": sliderValues[0][i] }
 		
