@@ -20,6 +20,8 @@ def process( thisGlyph ):
 				del thisGlyph.layers[i]
 	return count
 
+Glyphs.clearLog() # clears macro window log
+
 excludedGlyphNameBeginnings = ("_smart","_part")
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
