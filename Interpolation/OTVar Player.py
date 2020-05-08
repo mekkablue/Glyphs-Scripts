@@ -171,7 +171,7 @@ class OTVarGlyphAnimator( object ):
 				self.font.instances[0].weightValue = sliderWt
 				self.font.currentTab.updatePreview()
 
-				# not necessary anymore:
+				# not necessary anymore, I think:
 				# self.font.currentTab.forceRedraw()
 				# self.font.updateInterface()
 			
