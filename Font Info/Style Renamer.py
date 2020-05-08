@@ -106,7 +106,10 @@ class StyleRenamer( object ):
 				for thisInstance in thisFont.instances:
 					if thisInstance.active or includeInactiveInstances:
 						newName = self.renameInstance(thisInstance, shouldAddParticle, particle, elidablePart)
-						previewText += "▸ %s → %s\n" % (thisInstance.name, newName)
+						if newName:
+							previewText += "▸ %s → %s\n" % ( thisInstance.name, newName )
+						else:
+							previewText += "▸ (unchanged: %s)\n" % thisInstance.name
 			
 		self.w.preview.previewText.set( previewText.strip() )
 		
