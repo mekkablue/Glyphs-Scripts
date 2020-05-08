@@ -42,6 +42,7 @@ class MethodReporter( object ):
 			"GSControlLayer",
 			"GSCustomParameter",
 			"GSEditViewController",
+			"GlyphsPreviewPanel",
 			"GSFeature",
 			"GSFeaturePrefix",
 			"GSFontMaster",
