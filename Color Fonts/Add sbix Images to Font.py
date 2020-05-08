@@ -67,6 +67,7 @@ else:
 						glyph = GSGlyph()
 						glyph.name = glyphName
 						thisFont.glyphs.append(glyph)
+						glyph.updateGlyphInfo()
 				
 					glyph.beginUndo() # begin undo grouping
 				
