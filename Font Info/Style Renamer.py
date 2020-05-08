@@ -33,7 +33,7 @@ class StyleRenamer( object ):
 		self.w.subtractOrAdd = vanilla.PopUpButton( (inset, linePos, 145, 17), ("Subtract particle from", "Add particle to"), sizeStyle='small', callback=self.SavePreferences )
 		self.w.subtractOrAddText = vanilla.TextBox( (inset+150, linePos+2, -inset, 14), "all instance names:", sizeStyle='small', selectable=True )
 		tooltipText = "Choose here if you want to add the chosen particle name to all styles, or remove it from them."
-		self.w.subtractOrAdd.getNSButton().setToolTip_(tooltipText)
+		self.w.subtractOrAdd.getNSPopUpButton().setToolTip_(tooltipText)
 		self.w.subtractOrAddText.getNSTextField().setToolTip_(tooltipText)
 		linePos += lineHeight
 		
