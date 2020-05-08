@@ -105,6 +105,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Convert Layerfont to CPAL+COLR Font:** Turns a layered color font into a single-master font with a CPAL and COLR layers in each glyph. It will take the first master as default.
 * **Delete Non-Color Layers in Selected Glyphs:** Deletes all sublayers in all glyphs that are not of type "Color X" (CPAL/COLR layers).
 * **Merge All Other Masters in Current Master:** In selected glyphs, copies all paths from other masters onto the current master layer.
+* **sbix Spacer:** Batch-set sbix positions and glyph widths. *Needs Vanilla.*
 
 ## Compare Frontmost Fonts
 
