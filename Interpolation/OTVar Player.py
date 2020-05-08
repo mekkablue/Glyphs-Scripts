@@ -165,11 +165,15 @@ class OTVarGlyphAnimator( object ):
 			try:
 				# GLYPHS 3
 				self.font.instances[0].axes[0] = sliderWt
+				self.font.instances[0].updateInterpolationValues()
 			except:
 				# GLYPHS 2
 				self.font.instances[0].weightValue = sliderWt
-			
-			self.font.currentTab.updatePreview()
+				self.font.currentTab.updatePreview()
+
+				# not necessary anymore:
+				# self.font.currentTab.forceRedraw()
+				# self.font.updateInterface()
 			
 			if not self.SavePreferences( self ):
 				print("Note: 'OTVar Glyph Animator' could not write preferences.")
