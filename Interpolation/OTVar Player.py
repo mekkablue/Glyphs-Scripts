@@ -58,7 +58,13 @@ class OTVarGlyphAnimator( object ):
 		self.originalWeightValue = None
 		self.isPlaying = False
 		if self.font.instances:
-			self.originalWeightValue = self.font.instances[0].weightValue
+			try:
+				# GLYPHS 3
+				self.originalWeightValue = self.font.instances[0].axes[0]
+			except:
+				# GLYPHS 2
+				self.originalWeightValue = self.font.instances[0].weightValue
+			
 		self.w.bind("close",self.restoreFont)
 		
 		# open and initialize the preview area at the bottom
@@ -119,7 +125,13 @@ class OTVarGlyphAnimator( object ):
 	
 	def restoreFont(self, sender):
 		if not self.originalWeightValue is None:
-			self.font.instances[0].weightValue = self.originalWeightValue
+			try:
+				# GLYPHS 3
+				self.font.instances[0].axes[0] = self.originalWeightValue
+			except:
+				# GLYPHS 2
+				self.font.instances[0].weightValue = self.originalWeightValue
+			
 		else:
 			self.font.instances = []
 			
@@ -136,7 +148,13 @@ class OTVarGlyphAnimator( object ):
 			
 			# get Slider position
 			sliderPos = self.w.slider.get() / 100.0
-			weights = [m.weightValue for m in self.font.masters]
+			try:
+				# GLYPHS 3
+				weights = [m.axes[0] for m in self.font.masters]
+			except:
+				# GLYPHS 2
+				weights = [m.weightValue for m in self.font.masters]
+			
 			if self.font.customParameters["Virtual Master"]:
 				weights.append(self.font.customParameters["Virtual Master"][0]["Location"])
 			minWt = min(weights)
@@ -144,7 +162,13 @@ class OTVarGlyphAnimator( object ):
 			sliderWt = minWt + sliderPos * (maxWt-minWt)
 			
 			# apply to preview instance and redraw
-			self.font.instances[0].weightValue = sliderWt
+			try:
+				# GLYPHS 3
+				self.font.instances[0].axes[0] = sliderWt
+			except:
+				# GLYPHS 2
+				self.font.instances[0].weightValue = sliderWt
+			
 			self.font.currentTab.updatePreview()
 			
 			if not self.SavePreferences( self ):
@@ -201,7 +225,7 @@ class OTVarGlyphAnimator( object ):
 				self.font.currentTab.updatePreview()
 				
 				# Call this method again after a delay:
-				playSignature = objc.selector(self.play_,signature='v@:')
+				playSignature = objc.selector(self.play_,signature=b'v@:')
 				self.timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
 					float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"])/smoothnessFactor, # interval
 					self, # target
@@ -242,7 +266,13 @@ class OTVarGlyphAnimator( object ):
 			if m.customParameters["Axis Location"]:
 				axisPos = m.customParameters["Axis Location"][0]["Location"]
 			else:
-				axisPos = m.weightValue
+				try:
+					# GLYPHS 3
+					axisPos = m.axes[0]
+				except:
+					# GLYPHS 2
+					axisPos = m.weightValue
+				
 			weightAxisPositions.append( int(axisPos) )
 				
 		if self.font.customParameters["Virtual Master"]:
