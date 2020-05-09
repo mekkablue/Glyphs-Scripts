@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
- Turns lowercase names into uppercase names, e.g., `a` → `A`, `ccaron` → `Ccaron`, `aeacute` → `AEacute`, etc.
+Turns lowercase names into uppercase names, e.g., `a` → `A`, `ccaron` → `Ccaron`, `aeacute` → `AEacute`, etc.
 """
 
 def uppercaseGlyphName( thisGlyph ):
@@ -10,14 +10,14 @@ def uppercaseGlyphName( thisGlyph ):
 	glyphNameParts = originalGlyphName.split(".")
 	coreName = glyphNameParts[0]
 	coreInfo = Glyphs.glyphInfoForName(coreName)
-	if coreInfo is None:
-		print("⚠️ Cannot determine glyph info: %s" % originalGlyphName)
+	lowercaseCharacter = coreInfo.unicharString()
+	if lowercaseCharacter is None:
+		print("⚠️ Cannot determine character for: %s" % originalGlyphName)
 		return 0
 	else:
-		lowercaseCharacter = coreInfo.unicharString()
 		uppercaseCharacter = lowercaseCharacter.upper()
 		if lowercaseCharacter == uppercaseCharacter:
-			print("🆗 %s: unchanged, does not casefold." % originalGlyphName)
+			print("🆗 %s: unchanged, cannot be uppercased." % originalGlyphName)
 			return 0
 		else:
 			uppercaseCoreName = Glyphs.niceGlyphName(uppercaseCharacter)

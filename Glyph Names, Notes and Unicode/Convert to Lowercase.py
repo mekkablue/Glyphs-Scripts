@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Makes the names of selected glyphs lowercase. Useful for smallcap glyphs.
+Turns lowercase names into uppercase names, e.g., `a` → `A`, `ccaron` → `Ccaron`, `aeacute` → `AEacute`, etc. Useful for smallcap glyphs.
 """
 
 def lowercaseGlyphName( thisGlyph ):
@@ -10,14 +10,14 @@ def lowercaseGlyphName( thisGlyph ):
 	glyphNameParts = originalGlyphName.split(".")
 	coreName = glyphNameParts[0]
 	coreInfo = Glyphs.glyphInfoForName(coreName)
-	if coreInfo is None:
-		print("⚠️ Cannot determine glyph info: %s" % originalGlyphName)
+	uppercaseCharacter = coreInfo.unicharString()
+	if uppercaseCharacter is None:
+		print("⚠️ Cannot determine character for: %s" % originalGlyphName)
 		return 0
 	else:
-		uppercaseCharacter = coreInfo.unicharString()
 		lowercaseCharacter = uppercaseCharacter.lower()
 		if uppercaseCharacter == lowercaseCharacter:
-			print("🆗 %s: unchanged, does not casefold." % originalGlyphName)
+			print("🆗 %s: unchanged, cannot be lowercased." % originalGlyphName)
 			return 0
 		else:
 			lowercaseCoreName = Glyphs.niceGlyphName(lowercaseCharacter)
