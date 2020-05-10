@@ -159,7 +159,7 @@ class smallFigureBuilder( object ):
 			updatedGlyphCount = 0
 			
 			# go through 1, 2, 3, 4, 5...
-			for fig in figures:
+			for i,fig in enumerate(figures):
 				# determine default glyph:
 				defaultGlyphName = "%s%s" % (fig,default)
 				defaultGlyph = thisFont.glyphs[defaultGlyphName]
@@ -167,7 +167,10 @@ class smallFigureBuilder( object ):
 				if not defaultGlyph:
 					print("\nNot found: %s" % defaultGlyphName)
 				else:
-					print("\nDeriving from %s:" % defaultGlyphName)
+					print("\n%s Deriving from %s:" % (
+						"0️⃣1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣7️⃣8️⃣9️⃣"[i*3:i*3+3], # it is actually three unicodes
+						defaultGlyphName,
+						))
 					
 					# decompose if necessary:
 					if decomposeDefaultFigures:
