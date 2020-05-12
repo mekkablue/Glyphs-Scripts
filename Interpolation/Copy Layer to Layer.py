@@ -177,13 +177,26 @@ class CopyLayerToLayer( object ):
 		
 		if numberOfPathsInTarget != 0 and not keepOriginal:
 			print("- Deleting %i paths in target layer" % numberOfPathsInTarget)
-			targetLayer.paths = []
+			try:
+				# GLYPHS 3
+				for i in reversed(range(len(targetLayer.shapes))):
+					if type(targetLayer.shapes[i]) == GSPath:
+						del targetLayer.shapes[i]
+			except:
+				# GLYPHS 2
+				targetLayer.paths = None
 
 		if numberOfPathsInSource > 0:
 			print("- Copying paths")
 			for thisPath in sourceLayer.paths:
 				newPath = thisPath.copy()
-				targetLayer.paths.append( newPath )
+				try:
+					# GLYPHS 3
+					targetLayer.shapes.append( newPath )
+				except:
+					# GLYPHS 2
+					targetLayer.paths.append( newPath )
+				
 				
 	def copyHintsFromLayerToLayer( self, sourceLayer, targetLayer, keepOriginal=False ):
 		"""Copies all hints, corner and cap components from one layer to the next."""
