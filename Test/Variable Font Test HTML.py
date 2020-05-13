@@ -258,6 +258,14 @@ def otVarFamilyName(thisFont):
 	else:
 		return thisFont.familyName
 
+def otVarFullName(thisFont):
+	familyName = otVarFamilyName(thisFont)
+	styleName = thisFont.customParameters["variableStyleName"]
+	if styleName:
+		return "%s %s" % (familyName, styleName)
+	else:
+		return familyName
+
 def otVarFileName(thisFont):
 	if thisFont.customParameters["Variable Font File Name"] or thisFont.customParameters["variableFileName"]:
 		fileName = thisFont.customParameters["Variable Font File Name"]
@@ -839,13 +847,14 @@ if appVersionHighEnough:
 	firstDoc = Glyphs.orderedDocuments()[0]
 	thisFont = Glyphs.font # frontmost font
 	exportPath = currentOTVarExportPath()
-	familyName = otVarFamilyName(thisFont)
+	# familyName = otVarFamilyName(thisFont)
+	fullName = otVarFullName(thisFont)
 
-	print("Preparing Test HTML for: %s" % familyName)
+	print("Preparing Test HTML for: %s" % fullName)
 	
 	replacements = (
-		( "###fontFamilyNameWithSpaces###", familyName ),
-		( "###fontFamilyName###", otVarFamilyName(thisFont) ),
+		( "###fontFamilyNameWithSpaces###", fullName ),
+		( "###fontFamilyName###", fullName ),
 		( "The Quick Brown Fox Jumps Over the Lazy Dog.", allUnicodeEscapesOfFont(thisFont) ),
 		( "###sliders###", allOTVarSliders(thisFont) ),
 		( "###variationSettings###", defaultVariationCSS(thisFont) ), 
@@ -858,7 +867,7 @@ if appVersionHighEnough:
 	
 	# Write file to disk:
 	if exportPath:
-		if saveFileInLocation( content=htmlContent, fileName="%s fonttest.html" % familyName, filePath=exportPath ):
+		if saveFileInLocation( content=htmlContent, fileName="%s fonttest.html" % fullName, filePath=exportPath ):
 			print("Successfully wrote file to disk.")
 			terminalCommand = 'cd "%s"; open .' % exportPath
 			system( terminalCommand )
