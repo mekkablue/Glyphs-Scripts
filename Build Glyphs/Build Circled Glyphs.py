@@ -5,7 +5,7 @@ __doc__="""
 Builds circled numbers and letters (U+24B6...24EA and U+2460...2473) from _part.circle and the letters and figures.
 """
 
-from Foundation import NSPoint
+from Foundation import NSPoint, NSClassFromString
 from AppKit import NSButtLineCapStyle
 import math, vanilla
 
@@ -117,21 +117,31 @@ circledLC = (
 )
 
 
+
 def offsetLayer( thisLayer, offset, makeStroke=False, position=0.5, autoStroke=False ):
 	offsetFilter = NSClassFromString("GlyphsFilterOffsetCurve")
-
-	# offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_error_shadow_(
-	offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyle_keepCompatibleOutlines_(
-		thisLayer,
-		offset, offset, # horizontal and vertical offset
-		makeStroke,     # if True, creates a stroke
-		autoStroke,     # if True, distorts resulting shape to vertical metrics
-		position,       # stroke distribution to the left and right, 0.5 = middle
-		thisLayer.glyphMetrics(), # metrics (G3)
-		None, None, # error, shadow
-		NSButtLineCapStyle, # cap style
-		True, # keep compatible
-		 )
+	try:
+		# GLYPHS 3:	
+		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyleStart_capStyleEnd_keepCompatibleOutlines_(
+			thisLayer,
+			offset, offset, # horizontal and vertical offset
+			makeStroke,     # if True, creates a stroke
+			autoStroke,     # if True, distorts resulting shape to vertical metrics
+			position,       # stroke distribution to the left and right, 0.5 = middle
+			None, None, None, 0, 0, True )
+	except:
+		# GLYPHS 2:
+		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyle_keepCompatibleOutlines_(
+			thisLayer,
+			offset, offset, # horizontal and vertical offset
+			makeStroke,     # if True, creates a stroke
+			autoStroke,     # if True, distorts resulting shape to vertical metrics
+			position,       # stroke distribution to the left and right, 0.5 = middle
+			thisLayer.glyphMetrics(), # metrics (G3)
+			None, None, # error, shadow
+			0, # NSButtLineCapStyle, # cap style
+			True, # keep compatible
+			)
 
 def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	"""
@@ -343,7 +353,6 @@ def buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenTw
 							print("--", opticalCorrection)
 						opticalShift = transform( shiftX = opticalCorrection ).transformStruct()
 						innerComponent.applyTransform( opticalShift )
-					
 				
 				innerComponent.applyTransform( shift )
 				innerComponent.applyTransform( scaleToFit )
@@ -362,8 +371,6 @@ def buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenTw
 				if thisGlyph.name in ("two_zero.circled", "one_nine.circled", "one_zero.circled"):
 					compensate = transform( shiftX=10.0 ).transformStruct()
 					innerComponent.applyTransform( compensate )
-					
-				
 				
 				if innerComponent.component.glyphInfo.category == "Number":
 					if figureHeight == None:
@@ -687,6 +694,7 @@ class BuildCircledGlyphs( object ):
 						thisGlyph = GSGlyph()
 						thisGlyph.name = glyphName
 						thisFont.glyphs.append(thisGlyph)
+						thisGlyph.updateGlyphInfo()
 
 					thisGlyph.beginUndo() # begin undo grouping
 					print("Building %s" % thisGlyph.name)
