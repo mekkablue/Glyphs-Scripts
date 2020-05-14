@@ -304,7 +304,7 @@ def buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenTw
 						thisLayer,
 						thisLayer.components[-2], 
 						thisLayer.components[-1], # same as innerComponent
-						distance = minDistanceBetweenFigures
+						distance = minDistanceBetweenTwoLayers
 					)
 				
 				originalLayerWidth = thisFont.glyphs[compName].layers[thisMaster.id].width
