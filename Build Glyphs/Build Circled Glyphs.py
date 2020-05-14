@@ -295,6 +295,7 @@ def buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenTw
 					compName = osfName
 				
 				innerComponent = GSComponent( compName )
+				innerComponent.automaticAlignment = False
 				thisLayer.components.append( innerComponent )
 				innerComponent.position = NSPoint( advance, 0.0 )
 				
