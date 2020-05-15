@@ -97,7 +97,14 @@ def idotlessMeasure(instance):
 	
 def writeOptionsToInstance( optionDict, instance ):
 	value = dictToParameterValue(optionDict)
-	value = value.replace( "--fallback-stem-width=*", "--fallback-stem-width=%i"%instance.weightValue )
+	try:
+		# GLYPHS 3
+		instanceWeightValue = instance.axes[0]
+	except:
+		# GLYPHS 2
+		instanceWeightValue = instance.weightValue
+	
+	value = value.replace( "--fallback-stem-width=*", "--fallback-stem-width=%i"%instanceWeightValue )
 	if "fallback-stem-width=idotless" in value:
 		actualStemWidth = idotlessMeasure(instance)
 		if actualStemWidth:
