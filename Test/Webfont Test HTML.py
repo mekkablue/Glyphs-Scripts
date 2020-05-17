@@ -25,9 +25,16 @@ def saveFileInLocation( content="Sorry, no content generated.", fileName="test.t
 	return True
 
 def currentWebExportPath():
-	exportPath = Glyphs.defaults["WebfontPluginExportPathManual"]
-	if Glyphs.defaults["WebfontPluginUseExportPath"]:
-		exportPath = Glyphs.defaults["WebfontPluginExportPath"]
+	if Glyphs.versionNumber < 3.0:
+		# GLYPHS 2
+		exportPath = Glyphs.defaults["WebfontPluginExportPathManual"]
+		if Glyphs.defaults["WebfontPluginUseExportPath"]:
+			exportPath = Glyphs.defaults["WebfontPluginExportPath"]
+	else:
+		# GLYPHS 3
+		exportPath = Glyphs.defaults["OTFExportPathManual"]
+		if Glyphs.defaults["OTFExportUseExportPath"]:
+			exportPath = Glyphs.defaults["OTFExportPath"]
 	return exportPath
 
 def replaceSet( text, setOfReplacements ):
