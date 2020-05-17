@@ -10,10 +10,6 @@ from os import system
 import codecs
 
 Glyphs.registerDefault( "com.mekkablue.WebFontTestHTML.includeEOT", 0 )
-if Glyphs.defaults["com.mekkablue.WebFontTestHTML.includeEOT"]:
-	fileFormats = ( "woff", "woff2", "eot" )
-else:
-	fileFormats = ( "woff", "woff2" )
 
 def saveFileInLocation( content="Sorry, no content generated.", fileName="test.txt", filePath="~/Desktop" ):
 	saveFileLocation = "%s/%s" % (filePath,fileName)
@@ -23,6 +19,26 @@ def saveFileInLocation( content="Sorry, no content generated.", fileName="test.t
 		thisFile.write( content )
 		thisFile.close()
 	return True
+
+def currentFileFormats():
+	if Glyphs.versionNumber < 3.0:
+		# GLYPHS 2
+		fileFormats = [ "woff", "woff2" ]
+		if Glyphs.defaults["com.mekkablue.WebFontTestHTML.includeEOT"]:
+			fileFormats.append( "eot" )
+	else:
+		# GLYPHS 3
+		fileFormats = []
+		if Glyphs.defaults["OTFExportPlain"]:
+			if Glyphs.defaults["OTFExportOutlineformat"] == 2: # TTF
+				fileFormats.append("ttf")
+			else:
+				fileFormats.append("otf")
+		if Glyphs.defaults["OTFExportWOFF"]:
+			fileFormats.append("woff")
+		if Glyphs.defaults["OTFExportWOFF2"]:
+			fileFormats.append("woff2")
+	return tuple(fileFormats)
 
 def currentWebExportPath():
 	if Glyphs.versionNumber < 3.0:
@@ -69,7 +85,7 @@ def getInstanceInfo( thisFont, activeInstance, fileFormat ):
 	fileName = "%s.%s" % ( firstPartOfFileName, fileFormat )
 	return fileName, menuName, activeInstanceName
 
-def activeInstancesOfFont( thisFont, fileFormats=fileFormats ):
+def activeInstancesOfFont( thisFont, fileFormats=("woff","woff2") ):
 	activeInstances = [i for i in thisFont.instances if i.active]
 	listOfInstanceInfo = []
 	for fileFormat in fileFormats:
@@ -78,7 +94,7 @@ def activeInstancesOfFont( thisFont, fileFormats=fileFormats ):
 			listOfInstanceInfo.append( (fileName, menuName, activeInstanceName) )
 	return listOfInstanceInfo
 
-def activeInstancesOfProject( thisProject, fileFormats=fileFormats ):
+def activeInstancesOfProject( thisProject, fileFormats=("woff","woff2") ):
 	thisFont = thisProject.font()
 	activeInstances = [i for i in thisProject.instances() if i.active]
 	listOfInstanceInfo = []
@@ -119,7 +135,6 @@ def featureListForFont( thisFont ):
 			else:
 				returnString += '\t\t<input type="checkbox" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s</label>\n' % (f,f,f,f)
 	return returnString
-
 
 htmlContent = """<head>
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
@@ -509,21 +524,22 @@ Glyphs.clearLog()
 GLYPHSAPPVERSION = NSBundle.bundleForClass_(NSClassFromString("GSMenu")).infoDictionary().objectForKey_("CFBundleShortVersionString")
 appVersionHighEnough = not GLYPHSAPPVERSION.startswith("1.")
 
+fileFormats = currentFileFormats()
 if not appVersionHighEnough:
-	print("This script requires Glyphs 2. Sorry.")
+	print("This script requires Glyphs 2 or higher. Sorry.")
 else:
 	firstDoc = Glyphs.orderedDocuments()[0]
 	if firstDoc.isKindOfClass_(GSProjectDocument):
 		# Frontmost doc is a .glyphsproject file:
 		thisFont = firstDoc.font() # frontmost project file
 		firstActiveInstance = [i for i in firstDoc.instances() if i.active][0]
-		activeFontInstances = activeInstancesOfProject( firstDoc )
+		activeFontInstances = activeInstancesOfProject( firstDoc, fileFormats=fileFormats )
 		exportPath = firstDoc.exportPath()
 	else:
 		# Frontmost doc is a .glyphs file:
 		thisFont = Glyphs.font # frontmost font
 		firstActiveInstance = [i for i in thisFont.instances if i.active][0]
-		activeFontInstances = activeInstancesOfFont( thisFont )
+		activeFontInstances = activeInstancesOfFont( thisFont, fileFormats=fileFormats )
 		exportPath = currentWebExportPath()
 		
 	familyName = thisFont.familyName
