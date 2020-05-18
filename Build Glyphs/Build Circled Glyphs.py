@@ -33,31 +33,6 @@ circledNumbers = (
 	"two_zero.circled",
 )
 
-blackCircledNumbers = (
-	"zero.blackCircled",
-	"one.blackCircled",
-	"two.blackCircled",
-	"three.blackCircled",
-	"four.blackCircled",
-	"five.blackCircled",
-	"six.blackCircled",
-	"seven.blackCircled",
-	"eight.blackCircled",
-	"nine.blackCircled",
-	"one_zero.blackCircled",
-	"one_one.blackCircled",
-	"one_two.blackCircled",
-	"one_three.blackCircled",
-	"one_four.blackCircled",
-	"one_five.blackCircled",
-	"one_six.blackCircled",
-	"one_seven.blackCircled",
-	"one_eight.blackCircled",
-	"one_nine.blackCircled",
-	"two_zero.blackCircled",
-)
-
-
 circledUC =(
 	"A.circled",
 	"B.circled",
@@ -221,6 +196,9 @@ def minDistanceBetweenTwoLayers( comp1, comp2, interval=5.0 ):
 		total = left+right
 		if minDist == None or minDist > total:
 			minDist = total
+	
+	if minDist == None:
+		minDist = 0.0
 	return minDist
 
 def placeComponentsAtDistance( thisLayer, comp1, comp2, interval=5.0, distance=10.0 ):
@@ -232,18 +210,6 @@ def placeComponentsAtDistance( thisLayer, comp1, comp2, interval=5.0, distance=1
 	comp2shift = distance - minDist
 	addedSBs = original1.RSB + original2.LSB
 	comp2.x = comp1.x + original1.width - addedSBs + comp2shift
-
-def process( thisLayer, compName1, compName2, distance=10.0, interval=5.0 ):
-	if compName1 and compName2:
-		compCount = len(thisLayer.components)
-		for compName in (compName1,compName2):
-			newComp = GSComponent(compName)
-			thisLayer.components.append(newComp)
-			newComp.disableAlignment = True
-		placeComponentsAtDistance( thisLayer, thisLayer.components[compCount], thisLayer.components[compCount+1] )
-	else:
-		return False
-
 
 def buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenTwoLayers=90.0 ):
 	isBlack = "black" in circleName.lower()
@@ -413,8 +379,6 @@ def buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenTw
 			for thisComp in thisLayer.components:
 				if thisComp.componentName == circleName:
 					thisComp.locked = True
-			
-			
 
 
 def buildCirclePart( thisFont, glyphName, isBlack=False ):
@@ -525,8 +489,8 @@ def boxArea(thisLayer):
 class BuildCircledGlyphs( object ):
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 220
-		windowHeight = 200
+		windowWidth  = 230
+		windowHeight = 250
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -543,15 +507,27 @@ class BuildCircledGlyphs( object ):
 		linePos += lineHeight
 		
 		self.w.buildUC = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Uppercase circled letters", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.buildUC.getNSButton().setToolTip_("ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂ︎ⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ")
 		linePos += lineHeight
 		
 		self.w.buildLC = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Lowercase circled letters", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.buildLC.getNSButton().setToolTip_("ⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩ")
 		linePos += lineHeight
 		
 		self.w.buildCircledNumbers = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Circled numbers 0-20", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.buildCircledNumbers.getNSButton().setToolTip_("🄋①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳")
+		linePos += lineHeight
+		
+		self.w.buildBlackUC = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Black uppercase circled letters", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.buildBlackUC.getNSButton().setToolTip_("🅐🅑🅒🅓🅔🅕🅖🅗🅘🅙🅚🅛🅜🅞🅟🅠🅡🅢🅣🅤🅥🅦🅧🅨🅩")
+		linePos += lineHeight
+		
+		self.w.buildBlackLC = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Black lowercase circled letters ⚠️", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.buildBlackLC.getNSButton().setToolTip_("Do not exist in Unicode. You will have to make them accessible through OpenType features.")
 		linePos += lineHeight
 		
 		self.w.buildBlackCircledNumbers = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Black circled numbers 0-20", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.buildBlackCircledNumbers.getNSButton().setToolTip_("⓿❶❷❸❹❺❻❼❽❾❿⓫⓬⓭⓮⓯⓰⓱⓲⓳⓴")
 		linePos += lineHeight
 		
 		self.w.minDistanceBetweenFiguresText = vanilla.TextBox( (inset, linePos+2, 145, 14), u"Distance between figures:", sizeStyle='small', selectable=True )
@@ -604,7 +580,13 @@ class BuildCircledGlyphs( object ):
 			import traceback
 			print(traceback.format_exc())
 			return False
-
+	
+	def turnBlack(self, glyphNames):
+		searchFor = ".circled"
+		replaceWith = ".blackCircled"
+		blackGlyphNames = [n.replace(searchFor,replaceWith) for n in glyphNames if n.endswith(searchFor)]
+		return blackGlyphNames
+	
 	def BuildCircledGlyphsMain( self, sender=None ):
 		try:
 			# clear macro window log:
@@ -620,6 +602,8 @@ class BuildCircledGlyphs( object ):
 			buildUC = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildUC"]
 			buildLC = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildLC"]
 			buildCircledNumbers = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildCircledNumbers"]
+			buildBlackUC = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackUC"]
+			buildBlackLC = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackLC"]
 			buildBlackCircledNumbers = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackCircledNumbers"]
 			minDistanceBetweenFigures = float(Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.minDistanceBetweenFigures"])
 			
@@ -630,8 +614,12 @@ class BuildCircledGlyphs( object ):
 				circledGlyphNames.extend(circledLC)
 			if buildCircledNumbers:
 				circledGlyphNames.extend(circledNumbers)
+			if buildBlackUC:
+				circledGlyphNames.extend(self.turnBlack(circledUC))
+			if buildBlackLC:
+				circledGlyphNames.extend(self.turnBlack(circledLC))
 			if buildBlackCircledNumbers:
-				circledGlyphNames.extend(blackCircledNumbers)
+				circledGlyphNames.extend(self.turnBlack(circledNumbers))
 			
 			if not thisFont:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
