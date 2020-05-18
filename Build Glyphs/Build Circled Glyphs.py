@@ -551,6 +551,8 @@ class BuildCircledGlyphs( object ):
 			# write current settings into prefs:
 			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildUC"] = self.w.buildUC.get()
 			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildLC"] = self.w.buildLC.get()
+			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackUC"] = self.w.buildBlackUC.get()
+			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackLC"] = self.w.buildBlackLC.get()
 			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildCircledNumbers"] = self.w.buildCircledNumbers.get()
 			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackCircledNumbers"] = self.w.buildBlackCircledNumbers.get()
 			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.minDistanceBetweenFigures"] = self.w.minDistanceBetweenFigures.get()
@@ -565,6 +567,8 @@ class BuildCircledGlyphs( object ):
 			# register defaults:
 			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.buildUC", 0)
 			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.buildLC", 0)
+			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.buildBlackUC", 0)
+			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.buildBlackLC", 0)
 			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.buildCircledNumbers", 1)
 			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.buildBlackCircledNumbers", 0)
 			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.minDistanceBetweenFigures", "90")
@@ -572,6 +576,8 @@ class BuildCircledGlyphs( object ):
 			# load previously written prefs:
 			self.w.buildUC.set( Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildUC"] )
 			self.w.buildLC.set( Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildLC"] )
+			self.w.buildBlackUC.set( Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackUC"] )
+			self.w.buildBlackLC.set( Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackLC"] )
 			self.w.buildCircledNumbers.set( Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildCircledNumbers"] )
 			self.w.buildBlackCircledNumbers.set( Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackCircledNumbers"] )
 			self.w.minDistanceBetweenFigures.set( Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.minDistanceBetweenFigures"] )
@@ -638,13 +644,13 @@ class BuildCircledGlyphs( object ):
 				)
 				
 				# add circles if not present in font already:
-				if buildUC or buildLC or buildCircledNumbers:
-					circleName = "_part.circle"
-					if not thisFont.glyphs[circleName]:
-						buildCirclePart( thisFont, circleName )
-					circleGlyph = thisFont.glyphs[circleName]
+				circleName = "_part.circle"
+				if not thisFont.glyphs[circleName]:
+					buildCirclePart( thisFont, circleName )
+				circleGlyph = thisFont.glyphs[circleName]
 				
-				if buildBlackCircledNumbers:
+				blackCircleGlyph = None
+				if buildBlackUC or buildBlackLC or buildBlackCircledNumbers:
 					blackCircleName = "_part.blackCircle"
 					if not thisFont.glyphs[blackCircleName]:
 						buildCirclePart( thisFont, blackCircleName, isBlack=True )
