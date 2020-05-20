@@ -6,7 +6,6 @@ Select two glyphs, e.g. ‘Ta’, run the script, it will give you a new tab wit
 """
 
 thisFont = Glyphs.font # frontmost font
-thisFontMaster = thisFont.selectedFontMaster # active master
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 tabString = ""
 
