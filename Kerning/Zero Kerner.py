@@ -26,7 +26,7 @@ class ZeroKerner( object ):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 		
-		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 44), u"Add zero-value group-to-group kernings zero for pairs that are missing in one master but present in others. Helps preserve interpolatable kerning in OTVars.", sizeStyle='small', selectable=True )
+		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 44), u"Add zero-value group-to-group kernings for pairs that are missing in one master but present in others. Helps preserve interpolatable kerning in OTVars.", sizeStyle='small', selectable=True )
 		linePos += lineHeight*2.5
 		
 		self.w.limitToCurrentMaster = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Limit to current master only (otherwise, all masters)", value=False, callback=self.SavePreferences, sizeStyle='small' )
