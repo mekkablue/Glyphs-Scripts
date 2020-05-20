@@ -26,7 +26,7 @@ class ZeroKerner( object ):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 		
-		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 44), u"Add group kernings with value zero for pairs that are missing in one master but present in others. Helps preserve interpolatable kerning in OTVar exports.", sizeStyle='small', selectable=True )
+		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 44), u"Add zero-value group-to-group kernings zero for pairs that are missing in one master but present in others. Helps preserve interpolatable kerning in OTVars.", sizeStyle='small', selectable=True )
 		linePos += lineHeight*2.5
 		
 		self.w.limitToCurrentMaster = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Limit to current master only (otherwise, all masters)", value=False, callback=self.SavePreferences, sizeStyle='small' )
@@ -45,8 +45,10 @@ class ZeroKerner( object ):
 		linePos += lineHeight
 		
 		# Run Button:
-		self.w.runButton = vanilla.Button( (-120-inset, -20-inset, -inset, -inset), "Zero Kern", sizeStyle='regular', callback=self.ZeroKernerMain )
-		self.w.setDefaultButton( self.w.runButton )
+		self.w.removeButton = vanilla.Button( (-160-inset, -20-inset, -80-inset, -inset), "Remove", sizeStyle='regular', callback=self.ZeroKernerMain )
+		
+		self.w.addButton = vanilla.Button( (-70-inset, -20-inset, -inset, -inset), "Add", sizeStyle='regular', callback=self.ZeroKernerMain )
+		self.w.setDefaultButton( self.w.addButton )
 		
 		# Load Settings:
 		if not self.LoadPreferences():
@@ -75,8 +77,16 @@ class ZeroKerner( object ):
 			return False
 			
 		return True
-
-	def ZeroKernerMain( self, sender ):
+	
+	def report(self, statusMessage, reportInMacroWindow=False, emptyLine=False):
+		statusMessage = statusMessage.strip()
+		if reportInMacroWindow:
+			print("  %s" % statusMessage)
+			if emptyLine:
+				print()
+		self.w.status.set(statusMessage.strip())
+	
+	def ZeroKernerMain( self, sender=None ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
@@ -86,6 +96,8 @@ class ZeroKerner( object ):
 			limitToCurrentMaster = Glyphs.defaults["com.mekkablue.ZeroKerner.limitToCurrentMaster"]
 			reportInMacroWindow = Glyphs.defaults["com.mekkablue.ZeroKerner.reportInMacroWindow"]
 			self.w.progress.set(0) # set progress indicator to zero
+			
+			shouldRemoveZeroKerns = sender==self.w.removeButton
 			
 			if reportInMacroWindow:
 				Glyphs.clearLog()
@@ -101,38 +113,79 @@ class ZeroKerner( object ):
 					masters = (thisFont.selectedFontMaster,)
 				else:
 					masters = thisFont.masters
-				
+			
 				masterCountPart = 100.0/len(thisFont.masters)
-
-				for i,otherMaster in enumerate(thisFont.masters):
-					masterCount = masterCountPart*i
-					self.w.progress.set( masterCount )
-					
-					theseMasters = [m for m in masters if not m is otherMaster]
-					otherMasterKerning = thisFont.kerning[otherMaster.id]
-					kerningLength = len(otherMasterKerning)
-					
-					for j,leftGroup in enumerate(otherMasterKerning):
-						kernCount = j*masterCountPart/kerningLength
-						self.w.progress.set( masterCount+kernCount )
+				
+				if shouldRemoveZeroKerns:
+					# REMOVE ZERO KERNS
+					for i,thisMaster in enumerate(masters):
+						if not thisMaster.id in thisFont.kerning.keys():
+							self.report(
+								"%s: no kerning at all in this master. Skipping." % (thisMaster.name),
+								reportInMacroWindow=reportInMacroWindow,
+								emptyLine=True
+								)
+							continue
+							
+						masterCount = masterCountPart*i
+						kerningLength = len(thisFont.kerning[thisMaster.id])
 						
-						if leftGroup.startswith("@"):
-							for rightGroup in otherMasterKerning[leftGroup]:
-								if rightGroup.startswith("@"):
-									if otherMasterKerning[leftGroup][rightGroup] != 0:
-										for j,thisMaster in enumerate(theseMasters):
+						self.w.progress.set( masterCount )
+						pairsToBeRemoved = []
 						
-											masterKerning = thisFont.kerning[thisMaster.id]
-											# kernPairCount = len(masterKerning)
-											
-											self.w.status.set("Verifying @%s-@%s"%(leftGroup[7:], rightGroup[7:]))
-											
-											if thisFont.kerningForPair(thisMaster.id, leftGroup, rightGroup) >= NSNotFound:
-												thisFont.setKerningForPair(thisMaster.id, leftGroup, rightGroup, 0.0)
-												statusMessage = "  %s, @%s @%s: zeroed" % (thisMaster.name, leftGroup[7:], rightGroup[7:])
-												if reportInMacroWindow:
-													print(statusMessage)
-												self.w.status.set(statusMessage.strip())
+						for j,leftSide in enumerate(thisFont.kerning[thisMaster.id]):
+							kernCount = j*masterCountPart/kerningLength
+							self.w.progress.set( masterCount+kernCount )
+							
+							if leftSide.startswith("@"):
+								for rightSide in thisFont.kerning[thisMaster.id][leftSide]:
+									if rightSide.startswith("@") and thisFont.kerning[thisMaster.id][leftSide][rightSide]==0:
+										pairsToBeRemoved.append( (leftSide,rightSide) )
+										self.report(
+											"%s: will remove @%s-@%s" % (thisMaster.name, leftSide[7:], rightSide[7:]),
+											reportInMacroWindow,
+										)
+						
+						self.report(
+							"%s: removing %i zero kerns" % (thisMaster.name, len(pairsToBeRemoved)),
+							reportInMacroWindow,
+							emptyLine=True,
+							)
+						for pair in pairsToBeRemoved:
+							LeftKey, RightKey = pair
+							thisFont.removeKerningForPair(thisMaster.id, LeftKey, RightKey)
+							
+				else:
+					# ADD ZERO KERNS
+					for i,otherMaster in enumerate(thisFont.masters):
+						masterCount = masterCountPart*i
+						self.w.progress.set( masterCount )
+				
+						theseMasters = [m for m in masters if not m is otherMaster]
+						otherMasterKerning = thisFont.kerning[otherMaster.id]
+						kerningLength = len(otherMasterKerning)
+				
+						for j,leftGroup in enumerate(otherMasterKerning):
+							kernCount = j*masterCountPart/kerningLength
+							self.w.progress.set( masterCount+kernCount )
+					
+							if leftGroup.startswith("@"):
+								for rightGroup in otherMasterKerning[leftGroup]:
+									if rightGroup.startswith("@"):
+										if otherMasterKerning[leftGroup][rightGroup] != 0:
+											for j,thisMaster in enumerate(theseMasters):
+												
+												self.report(
+													"Verifying @%s-@%s"%(leftGroup[7:], rightGroup[7:]),
+													reportInMacroWindow=False,
+												)
+												
+												if thisFont.kerningForPair(thisMaster.id, leftGroup, rightGroup) >= NSNotFound:
+													thisFont.setKerningForPair(thisMaster.id, leftGroup, rightGroup, 0.0)
+													self.report(
+														"%s: zero kern @%s-@%s" % (thisMaster.name, leftGroup[7:], rightGroup[7:]),
+														reportInMacroWindow,
+													)
 				
 				self.w.progress.set(100.0)
 				self.w.status.set("Done.")
