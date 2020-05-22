@@ -27,7 +27,7 @@ class DeleteExceptionsTooCloseToGroupKerning( object ):
 		inset, line, lineHeight = 15, 10, 22
 		
 		self.w.text_1 = vanilla.TextBox( (inset, line, -inset, lineHeight*2), "Delete all kerning exceptions in the current master if they are less than the threshold value away from their corresponding group-to-group kerning:", sizeStyle='small' )
-		line += int(lineHeight*1.8)
+		line += int(lineHeight*1.5)
 		
 		self.w.text_2 = vanilla.TextBox( (inset, line+3, 200, lineHeight), "Required minimum kern difference:", sizeStyle='small' )
 		self.w.threshold = vanilla.EditText( (inset+200, line, -15, 20), "10", sizeStyle = 'small', callback=self.SavePreferences)
