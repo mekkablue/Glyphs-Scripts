@@ -10,11 +10,11 @@ from compare import *
 thisFont = Glyphs.fonts[0] # frontmost font
 otherFont = Glyphs.fonts[1] # second font
 if thisFont.filepath:
-	thisFileName = thisFont.filepath.pathComponents()[-1]
+	thisFileName = thisFont.filepath.lastPathComponent()
 else:
 	thisFileName = None
 if otherFont.filepath:
-	otherFileName = otherFont.filepath.pathComponents()[-1]
+	otherFileName = otherFont.filepath.lastPathComponent()
 else:
 	otherFileName = None
 
@@ -25,9 +25,9 @@ Glyphs.showMacroWindow()
 print("Comparing Font Info > Font for:".upper())
 print()
 print("1. %s (family: %s)" % (thisFileName, thisFont.familyName))
-print("   %s" % thisFont.filepath)
+print("   ~/%s" % thisFont.filepath.relativePathFromBaseDirPath_("~"))
 print("2. %s (family: %s)" % (otherFileName, otherFont.familyName))
-print("   %s" % otherFont.filepath)
+print("   ~/%s" % otherFont.filepath.relativePathFromBaseDirPath_("~"))
 print() 
 
 keyValueDict= {

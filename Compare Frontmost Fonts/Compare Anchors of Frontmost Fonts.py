@@ -153,7 +153,7 @@ class CompareAnchorsOfFrontmostFonts( object ):
 				
 				thisFont = Glyphs.font # frontmost font
 				otherFont = Glyphs.fonts[1] # second font
-				thisFilePath, otherFilePath = thisFont.filepath, otherFont.filepath
+				thisFilePath, otherFilePath = "~/"+thisFont.filepath.relativePathFromBaseDirPath_("~"), "~/"+otherFont.filepath.relativePathFromBaseDirPath_("~")
 				thisFileName, otherFileName = thisFont.filepath.lastPathComponent(), otherFont.filepath.lastPathComponent(), 
 				print("Compare Anchors of Frontmost Fonts Report for:\n  (1) %s: %s\n      %s\n  (2) %s: %s\n      %s" % (
 					thisFont.familyName, thisFilePath, thisFileName, 
