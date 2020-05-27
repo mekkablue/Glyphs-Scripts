@@ -44,9 +44,11 @@ class AutoAlignmentManager( object ):
 		
 		# Run Button:
 		self.w.enableButton = vanilla.Button( (-90-inset, -20-inset, -inset, -inset), u"✅ Enable", sizeStyle='regular', callback=self.AutoAlignmentManagerMain )
+		self.w.enableButton.getNSButton().setToolTip_("Enables automatic alignment with the current span and settings.")
 		self.w.disableButton = vanilla.Button( (-190-inset, -20-inset, -100-inset, -inset), u"🚫 Disable", sizeStyle='regular', callback=self.AutoAlignmentManagerMain )
+		self.w.disableButton.getNSButton().setToolTip_("Disables automatic alignment with the current span and settings.")
 		self.w.rotateButton = vanilla.Button( (-290-inset, -20-inset, -200-inset, -inset), u"🔄 Rotate", sizeStyle='regular', callback=self.rotateComponents )
-		
+		self.w.rotateButton.getNSButton().setToolTip_("Moves the last component into first place. Useful if you quickly want to fix component order without leaving he script UI.")
 		
 		# Load Settings:
 		if not self.LoadPreferences():
