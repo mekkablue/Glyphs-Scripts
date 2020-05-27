@@ -7,6 +7,14 @@ Compares the OT features set of the two frontmost fonts and outputs a report in 
 
 from compare import *
 
+def removeComments(featureCode):
+	lines = featureCode.splitlines()
+	for i,line in enumerate(lines):
+		if "#" in line:
+			lines[i] = line[:line.find("#")]
+	featureCode = "\n".join(lines)
+	return featureCode
+
 thisFont = Glyphs.fonts[0] # frontmost font
 otherFont = Glyphs.fonts[1] # second font
 thisFileName = thisFont.filepath.lastPathComponent()
@@ -60,16 +68,16 @@ for compareGroup in ("Prefixes","Classes","Features"):
 print()
 print("Detailed Code Comparison:".upper())
 print()
-for prefix in [p.name for p in thisFont.featurePrefixes if p.active]:
+for prefix in set([p.name for p in thisFont.featurePrefixes if p.active]):
 	# prefixes:
-	thisPrefix = thisFont.featurePrefixes[prefix]
-	otherPrefix = otherFont.featurePrefixes[prefix]
+	thisPrefix = "\n".join([f.code for f in thisFont.featurePrefixes if f.name==prefix]) # thisFont.featurePrefixes[prefix] 
+	otherPrefix = "\n".join([f.code for f in otherFont.featurePrefixes if f.name==prefix]) # otherFont.featurePrefixes[prefix]
 	
 	if thisPrefix and otherPrefix:
 		# compare:
 		thisPrefix, otherPrefix = compareLists(
-			thisPrefix.code.splitlines(),
-			otherPrefix.code.splitlines(),
+			removeComments(thisPrefix).splitlines(),
+			removeComments(otherPrefix).splitlines(),
 			ignoreEmpty=True,
 			)
 		# report in Macro Window
@@ -77,28 +85,28 @@ for prefix in [p.name for p in thisFont.featurePrefixes if p.active]:
 
 for otClass in [c.name for c in thisFont.classes if c.active]:
 	# classes:
-	thisClass = thisFont.classes[otClass]
-	otherClass = otherFont.classes[otClass]
+	thisClassCode = thisFont.classes[otClass]
+	otherClassCode = otherFont.classes[otClass]
 	
 	if thisClass and otherClass:
 		# compare code lines:
 		thisClassCode, otherClassCode = compareLists(
-			thisClass.code.split(),
-			otherClass.code.split(),
+			removeComments(thisClass.code).split(),
+			removeComments(otherClass.code).split(),
 			ignoreEmpty=True,
 			)
 		# report in Macro Window
 		lineReport(thisClassCode, otherClassCode, thisFileName, otherFileName, "Class %s"%otClass, commaSeparated=True)
 
-for feature in [f.name for f in thisFont.features if f.active]:
-	thisFeature = thisFont.features[feature]
-	otherFeature = otherFont.features[feature]
+for feature in set([f.name for f in thisFont.features if f.active]):
+	thisFeatureCode = "\n".join([f.code for f in thisFont.features if f.name==feature]) # thisFont.features[feature]
+	otherFeatureCode = "\n".join([f.code for f in otherFont.features if f.name==feature]) # otherFont.features[feature]
 	
-	if thisFeature and otherFeature:
+	if thisFeatureCode and otherFeatureCode:
 		# compare code lines:
 		thisFeatureCode, otherFeatureCode = compareLists(
-			thisFeature.code.splitlines(),
-			otherFeature.code.splitlines(),
+			removeComments(thisFeatureCode).splitlines(),
+			removeComments(otherFeatureCode).splitlines(),
 			ignoreEmpty=True,
 			)
 		# report in Macro Window
