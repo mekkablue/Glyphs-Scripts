@@ -5,7 +5,13 @@ __doc__="""
 Where possible, puts acute(comb), grave(comb), hookabovecomb on 'top_viet' position in all layers in all selected glyphs. Assumes that you have a 'top_viet' anchor in circumflex. Useful for Vietnamese glyphs.
 """
 
-accentsToBeMoved = ("acute", "grave", "hookabovecomb", "acutecomb", "gravecomb")
+accentsToBeMoved = (
+	"acute",
+	"grave",
+	"hookabovecomb",
+	"acutecomb",
+	"gravecomb",
+	)
 newAnchor = "top_viet"
 
 Font = Glyphs.font
@@ -49,21 +55,17 @@ def process( thisGlyph ):
 			previousComponent = None
 			if numOfComponents > 2:
 				for accentComponent in components:
-					if not previousComponent:
-						# first component, should be base letter:
-						previousComponent = accentComponent
-					else:
-						# second or third component:
+					if previousComponent:
 						accentName = withoutLeadingUnderscore(nameUntilFirstDot( accentComponent.componentName ))
 						if accentName in accentsToBeMoved:
-							baseComponent = previousComponent
-							if baseComponent:
-								if baseHasAnchor( baseComponent, thisLayer.master.id, anchorToLookFor=newAnchor ):
+							if previousComponent:
+								if baseHasAnchor( previousComponent, thisLayer.master.id, anchorToLookFor=newAnchor ):
 									try:
 										accentComponent.setAnchor_( newAnchor )
 										statusString += "\n✅ %s: moved %s on %s." % ( thisLayer.name, accentName, newAnchor )
 									except Exception as e:
 										return "\n❌ ERROR in %s %s:\nCould not move %s onto %s.\n%s" % ( thisGlyph.name, thisLayer.name, accentName, newAnchor, e )
+					previousComponent = accentComponent
 			else:
 				statusString += "\n⚠️ %s: only %i components, skipping." % ( thisLayer.name, numOfComponents )
 			
