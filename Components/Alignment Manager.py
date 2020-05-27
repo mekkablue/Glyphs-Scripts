@@ -43,8 +43,10 @@ class AutoAlignmentManager( object ):
 		
 		
 		# Run Button:
-		self.w.enableButton = vanilla.Button( (-110-inset, -20-inset, -inset, -inset), u"✅ Enable", sizeStyle='regular', callback=self.AutoAlignmentManagerMain )
-		self.w.disableButton = vanilla.Button( (-230-inset, -20-inset, -120-inset, -inset), u"🚫 Disable", sizeStyle='regular', callback=self.AutoAlignmentManagerMain )
+		self.w.enableButton = vanilla.Button( (-90-inset, -20-inset, -inset, -inset), u"✅ Enable", sizeStyle='regular', callback=self.AutoAlignmentManagerMain )
+		self.w.disableButton = vanilla.Button( (-190-inset, -20-inset, -100-inset, -inset), u"🚫 Disable", sizeStyle='regular', callback=self.AutoAlignmentManagerMain )
+		self.w.rotateButton = vanilla.Button( (-290-inset, -20-inset, -200-inset, -inset), u"🔄 Rotate", sizeStyle='regular', callback=self.rotateComponents )
+		
 		
 		# Load Settings:
 		if not self.LoadPreferences():
@@ -53,12 +55,17 @@ class AutoAlignmentManager( object ):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+		self.updateUI()
+		
+	def updateUI(self, sender=None):
+		self.w.rotateButton.enable( not self.w.includeAllGlyphs.get() )
 		
 	def SavePreferences( self, sender ):
 		try:
 			Glyphs.defaults["com.mekkablue.AutoAlignmentManager.includeAllGlyphs"] = self.w.includeAllGlyphs.get()
 			Glyphs.defaults["com.mekkablue.AutoAlignmentManager.includeAllLayers"] = self.w.includeAllLayers.get()
 			Glyphs.defaults["com.mekkablue.AutoAlignmentManager.differentiation"] = self.w.differentiation.get()
+			self.updateUI()
 		except:
 			return False
 			
@@ -72,10 +79,27 @@ class AutoAlignmentManager( object ):
 			self.w.includeAllGlyphs.set( Glyphs.defaults["com.mekkablue.AutoAlignmentManager.includeAllGlyphs"] )
 			self.w.includeAllLayers.set( Glyphs.defaults["com.mekkablue.AutoAlignmentManager.includeAllLayers"] )
 			self.w.differentiation.set( Glyphs.defaults["com.mekkablue.AutoAlignmentManager.differentiation"] )
+			self.updateUI()
 		except:
 			return False
 			
 		return True
+	
+	def rotateComponents(self, sender=None):
+		thisFont = Glyphs.font # frontmost font
+		selectedGlyphs = [l.parent for l in thisFont.selectedLayers]
+			
+		for thisGlyph in selectedGlyphs:
+			print("Rotating: %s" % thisGlyph.name)
+			for thisLayer in thisGlyph.layers:
+				if thisLayer.isMasterLayer or thisLayer.isSpecialLayer or thisLayer.isColorLayer() or thisLayer.isAppleColorLayer():
+					if len(thisLayer.components)>1:
+						thisLayer.selection = None
+						lastComponent = thisLayer.components[-1]
+						thisLayer.makeFirstComponent_(lastComponent)
+					else:
+						print(u"⚠️ Not enough components for rotating.")
+		
 	
 	def enableOrDisableLayer( self, thisLayer, differentiation=0, sender=None ):
 		if thisLayer.components:
