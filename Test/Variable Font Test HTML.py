@@ -460,8 +460,9 @@ def defaultVariationCSS(thisFont):
 
 htmlContent = """
 <html>
-	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=9">
+	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=9" />
 	<head>
 		<title>OTVar Test: ###fontFamilyNameWithSpaces###</title>
 		<style>

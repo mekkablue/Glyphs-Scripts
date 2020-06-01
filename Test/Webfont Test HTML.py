@@ -137,8 +137,9 @@ def featureListForFont( thisFont ):
 	return returnString
 
 htmlContent = """<head>
-	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=9">
+	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=9" />
 	<title>familyName</title>
 	<style type="text/css" media="screen">
 		<!-- fontFaces -->
