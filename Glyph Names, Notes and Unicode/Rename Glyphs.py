@@ -76,6 +76,11 @@ class RenameGlyphs( object ):
 							glyphLeft.name = glyphNameRight + uniqueSuffix
 							glyphRight.name = glyphNameLeft
 							glyphLeft.name = glyphNameRight
+							
+							# swap export status:
+							glyphLeftExport = glyphLeft.export
+							glyphLeft.export = glyphRight.export
+							glyphRight.export = glyphLeftExport
 						else:
 							glyphLeft.name = glyphNameRight
 					else:
