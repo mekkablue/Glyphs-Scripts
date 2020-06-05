@@ -308,10 +308,11 @@ class Bumper( object ):
 			
 		return True
 		
-	def addMissingKerning( self, thisFont, thisMasterID, leftSide, rightSide, minMaxDistance, distanceBetweenShapes ):
+	def addMissingKerning( self, thisFont, thisMasterID, leftSide, rightSide, minMaxDistance, distanceBetweenShapes, existingKerning=0 ):
 		# query user settings:
 		shouldReportInMacroWindow = Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"]
 		shouldKeepExistingKerning = bool(Glyphs.defaults["com.mekkablue.Bumper.keepExistingKerning"])
+		avoidZeroKerning = Glyphs.defaults["com.mekkablue.Bumper.avoidZeroKerning"]
 		try:
 			roundValue = float(Glyphs.defaults["com.mekkablue.Bumper.roundFactor"])
 		except:
@@ -319,14 +320,14 @@ class Bumper( object ):
 		roundValue = max(roundValue,1.0)
 		
 		# check for existing kerning:
-		existingKerning = thisFont.kerningForPair( thisMasterID, leftSide, rightSide )
-		kerningExists = existingKerning < 1000000
+		#existingKerning = thisFont.kerningForPair( thisMasterID, leftSide, rightSide )
+		kerningExists = existingKerning < 1000000 # NSNotDefined constant
 		if not kerningExists:
 			existingKerning = 0
 		newKernValue = round( (minMaxDistance-distanceBetweenShapes+existingKerning) / roundValue, 0 ) * roundValue
 		
 		# add only if it is OK:
-		if newKernValue == 0.0 and Glyphs.defaults["com.mekkablue.Bumper.avoidZeroKerning"]:
+		if newKernValue == 0.0 and avoidZeroKerning:
 			if shouldReportInMacroWindow:
 				print("- %s %s: zero kerning, not added." % (leftSide, rightSide))
 			return False # do not increase kern count
@@ -490,13 +491,13 @@ class Bumper( object ):
 					
 								# positive kerning (if desired):
 								if minDistance and (not distanceBetweenShapes is None) and (distanceBetweenShapes < minDistance):
-									if self.addMissingKerning( thisFont, thisMasterID, leftSide, rightSide, minDistance, distanceBetweenShapes ):
+									if self.addMissingKerning( thisFont, thisMasterID, leftSide, rightSide, minDistance, distanceBetweenShapes, existingKerning=kerning ):
 										kernCount += 1
 										tabString += "/%s/%s " % (leftGlyph.name, rightGlyph.name)
 								
 								# negative kerning (if desired):
 								if maxDistance and (not distanceBetweenShapes is None) and (distanceBetweenShapes > maxDistance):
-									if self.addMissingKerning( thisFont, thisMasterID, leftSide, rightSide, maxDistance, distanceBetweenShapes ):
+									if self.addMissingKerning( thisFont, thisMasterID, leftSide, rightSide, maxDistance, distanceBetweenShapes, existingKerning=kerning ):
 										kernCount += 1
 										tabString += "/%s/%s " % (leftGlyph.name, rightGlyph.name)
 					
