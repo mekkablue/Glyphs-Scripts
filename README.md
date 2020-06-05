@@ -294,7 +294,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Report Kerning Mistakes:** Tries to find unnecessary kernings and groupings. Reports in Macro window, for reviewing.
 * **Sample String Maker:** Creates kern strings for user-defined categories and adds them to the Sample Strings. Group kerning only, glyphs without groups are ignored. *Needs Vanilla.*
 * **Set Kerning Groups:** Sets left and right kerning groups for all selected glyphs. In the case of compounds, will use the groups of the base components, otherwise makes an informed guess based on a built-in dictionary.
-* **Steal Kerning from InDesign:** Steals the kerning from text set in InDesign. Useful for extracting InDesign’s Optical Kerning values.
+* **Steal Kerning from InDesign:** Steals the kerning from text set in InDesign. Useful for extracting InDesign’s [Optical Kerning](https://web.archive.org/web/20160414170915/http://blog.extensis.com/adobe/about-adobe’s-optical-kerning.php) values.
 * **Steal Kerning Groups from Font:** Steals left/right kerning groups for all selected glyphs from a 2nd font. *Needs Vanilla.*
 * **Zero Kerner:** Add group kernings with value zero for pairs that are missing in one master but present in others. Helps preserve interpolatable kerning in OTVar exports. *Needs Vanilla.*
 
