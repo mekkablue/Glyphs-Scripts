@@ -32,7 +32,7 @@ class CompoundVariabler( object ):
 		self.w.allGlyphs.getNSButton().setToolTip_("If checked, all glyphs in the font will be processed and receive the special (brace and bracket) layers of their respective components. If unchecked, only selected composite glyphs get processed.")
 		linePos += lineHeight
 
-		self.w.decomposeBrackets = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Decompose bracket layers in composites", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.decomposeBrackets = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Decompose bracket layers in composites (currently broken)", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.decomposeBrackets.getNSButton().setToolTip_("If checked, will decompose bracket layers. This is necessary for bracket layers to work in OTVAR fonts in Glyphs 2.6.")
 		linePos += lineHeight
 		
@@ -146,6 +146,7 @@ class CompoundVariabler( object ):
 			deleteExistingSpecialLayers = Glyphs.defaults["com.mekkablue.CompoundVariabler.deleteExistingSpecialLayers"]
 			catchNestedComponents = Glyphs.defaults["com.mekkablue.CompoundVariabler.catchNestedComponents"]
 			decomposeBrackets = Glyphs.defaults["com.mekkablue.CompoundVariabler.decomposeBrackets"]
+			justBackupInstead = Glyphs.defaults["com.mekkablue.CompoundVariabler.justBackupInstead"]
 			
 			thisFont = Glyphs.font # frontmost font
 			if thisFont is None:
@@ -187,6 +188,8 @@ class CompoundVariabler( object ):
 				glyphCount = len(glyphs)
 				affectedGlyphs = []
 				for i,currentGlyph in enumerate(glyphs):
+					layersToDecompose = []
+
 					# status update
 					self.w.progress.set(i*100.0/glyphCount)
 					processMessage = "%s%s" % (depthStatusAddition, currentGlyph.name)
@@ -214,7 +217,6 @@ class CompoundVariabler( object ):
 						for component in thisLayer.components:
 							originalGlyph = thisFont.glyphs[component.componentName]
 							if originalGlyph and not originalGlyph.isSmartGlyph():
-								layersToDecompose = []
 								for originalLayer in originalGlyph.layers:
 									if originalLayer.isSpecialLayer and "[" in originalLayer.name and "]" in originalLayer.name:
 										namesAndMasterIDsOfSpecialLayers = [(l.name,l.associatedMasterId) for l in currentGlyph.layers if l.isSpecialLayer]
@@ -228,8 +230,8 @@ class CompoundVariabler( object ):
 											print("%s, layer '%s' already exists. Skipping." % (currentGlyph.name, originalLayer.name))
 										else:
 											newLayer = GSLayer()
-											newLayer.name = originalLayer.name
 											newLayer.setAssociatedMasterId_(originalLayer.associatedMasterId)
+											newLayer.name = originalLayer.name
 											currentGlyph.layers.append(newLayer)
 											newLayer.reinterpolate()
 											affectedGlyphs.append(currentGlyph.name)
@@ -241,9 +243,10 @@ class CompoundVariabler( object ):
 											if decomposeBrackets:
 												layersToDecompose.append(newLayer)
 								
-								# decompose (must happen after all reinterpolations are done):
-								for bracketLayer in layersToDecompose:
-									bracketLayer.decomposeComponents()
+					# decompose (must happen after all reinterpolations are done):
+					for bracketLayer in layersToDecompose:
+						for component in bracketLayer.components:
+							component.decompose()
 
 			# status update
 			self.w.progress.set(100)
@@ -260,7 +263,7 @@ class CompoundVariabler( object ):
 				numOfGlyphs = len(set(affectedGlyphs))
 				Glyphs.showNotification( 
 					u"%s" % (thisFont.familyName),
-					u"Composite Variabler added layers to %i composite glyph%s." % (
+					u"Composite Variabler added layers to %i composite glyph%s. Details in Macro Window." % (
 							numOfGlyphs,
 							"" if numOfGlyphs==1 else "s",
 						),
@@ -270,7 +273,7 @@ class CompoundVariabler( object ):
 				# Floating notification:
 				Glyphs.showNotification( 
 					u"%s" % (thisFont.familyName),
-					u"Composite Variabler added no new layers.",
+					u"Composite Variabler added no new layers. Details in Macro Window.",
 					)
 					
 			
