@@ -30,6 +30,7 @@ class SetHiddenAppPreferences( object ):
 		"GSEditViewDarkMode",
 		"com.mekkablue.ShowItalic.drawItalicsForInactiveGlyphs",
 		"com.mekkablue.ShowMarkPreview.extension",
+		"com.mekkablue.ShowStyles.anchors",
 	)
 	
 	def __init__( self ):
