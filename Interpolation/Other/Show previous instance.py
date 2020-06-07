@@ -34,7 +34,6 @@ try:
 			
 	previewingTab.updatePreview()
 	previewingTab.forceRedraw()
-	font.updateInterface()
 
 except Exception as e:
 	print("Error:", e)
