@@ -10,8 +10,8 @@ import vanilla
 class CompoundVariabler( object ):
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 410
-		windowHeight = 255
+		windowWidth  = 405
+		windowHeight = 260
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -153,7 +153,7 @@ class CompoundVariabler( object ):
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
 			else:
-				print(" Report for %s" % thisFont.familyName)
+				print("Composite Variabler Report for %s" % thisFont.familyName)
 				if thisFont.filepath:
 					print(thisFont.filepath)
 				else:
@@ -187,8 +187,8 @@ class CompoundVariabler( object ):
 					
 				glyphCount = len(glyphs)
 				affectedGlyphs = []
+				layersToDecompose = []
 				for i,currentGlyph in enumerate(glyphs):
-					layersToDecompose = []
 
 					# status update
 					self.w.progress.set(i*100.0/glyphCount)
@@ -219,7 +219,7 @@ class CompoundVariabler( object ):
 							if originalGlyph and not originalGlyph.isSmartGlyph():
 								for originalLayer in originalGlyph.layers:
 									if originalLayer.isSpecialLayer and "[" in originalLayer.name and "]" in originalLayer.name:
-										namesAndMasterIDsOfSpecialLayers = [(l.name,l.associatedMasterId) for l in currentGlyph.layers if l.isSpecialLayer]
+										# namesAndMasterIDsOfSpecialLayers = [(l.name,l.associatedMasterId) for l in currentGlyph.layers if l.isSpecialLayer]
 										layerAlreadyExists = False
 										for currentGlyphLayer in currentGlyph.layers:
 											nameIsTheSame = originalLayer.name == currentGlyphLayer.name
@@ -230,10 +230,14 @@ class CompoundVariabler( object ):
 											print("%s, layer '%s' already exists. Skipping." % (currentGlyph.name, originalLayer.name))
 										else:
 											newLayer = GSLayer()
-											newLayer.setAssociatedMasterId_(originalLayer.associatedMasterId)
 											newLayer.name = originalLayer.name
+											newLayer.setAssociatedMasterId_(originalLayer.associatedMasterId)
+											print(newLayer.associatedMasterId, originalLayer.associatedMasterId)
+											newLayer.width = originalLayer.width
 											currentGlyph.layers.append(newLayer)
 											newLayer.reinterpolate()
+											newLayer.reinterpolateMetrics()
+											
 											affectedGlyphs.append(currentGlyph.name)
 											print("%s, new layer: '%s'%s" % (
 												currentGlyph.name,
@@ -243,10 +247,10 @@ class CompoundVariabler( object ):
 											if decomposeBrackets:
 												layersToDecompose.append(newLayer)
 								
-					# decompose (must happen after all reinterpolations are done):
-					for bracketLayer in layersToDecompose:
-						for component in bracketLayer.components:
-							component.decompose()
+				# decompose (must happen after all reinterpolations are done):
+				for bracketLayer in layersToDecompose:
+					for component in bracketLayer.components:
+						component.decompose()
 
 			# status update
 			self.w.progress.set(100)
