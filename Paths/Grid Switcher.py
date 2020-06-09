@@ -13,10 +13,10 @@ class GridOnOff( object ):
 		self.gridStep2default = 0
 		
 		currentGridStep = Glyphs.font.gridMain()
-		self.w = vanilla.FloatingWindow( (170, 110), "Grid Switcher", autosaveName="com.mekkablue.GridOnOff.mainwindow" )
+		self.w = vanilla.FloatingWindow( (170, 100), "Grid Switcher", autosaveName="com.mekkablue.GridOnOff.mainwindow" )
 		self.w.grid1 = vanilla.EditText( (15, 12, 65, 15+3), "1", sizeStyle = 'small')
 		self.w.grid2 = vanilla.EditText( (-80, 12, -15, 15+3), "50", sizeStyle = 'small')
-		self.w.currentGridStep = vanilla.TextBox( (15, 40, -15, 22), "Current Grid Step: %i" % currentGridStep, sizeStyle='regular' )
+		self.w.currentGridStep = vanilla.TextBox( (15, 38, -15, 22), "Current Grid Step: %i" % currentGridStep, sizeStyle='regular' )
 		self.w.switchButton = vanilla.Button((15, -22-15, -15, -15), "Switch Grid", sizeStyle='regular', callback=self.GridOnOffMain )
 		self.w.setDefaultButton( self.w.switchButton )
 
@@ -26,7 +26,7 @@ class GridOnOff( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print "Note: 'Grid Switcher' could not load preferences. Will resort to defaults"
+			print("Note: 'Grid Switcher' could not load preferences. Will resort to defaults")
 		
 
 	def GridOnOffMain( self, sender ):
@@ -53,7 +53,7 @@ class GridOnOff( object ):
 			self.w.currentGridStep.set( "Current Grid Step: %i" % newGridStep )
 			
 			if not self.SavePreferences( self ):
-				print "Note: 'Grid Switcher' could not write preferences."
+				print("Note: 'Grid Switcher' could not write preferences.")
 			
 		except Exception as e:
 			raise e
@@ -70,7 +70,7 @@ class GridOnOff( object ):
 	def LoadPreferences( self ):
 		try:
 			Glyphs.registerDefault("com.mekkablue.gridswitch.grid1", 1)
-			Glyphs.registerDefault("com.mekkablue.gridswitch.grid2": 0)
+			Glyphs.registerDefault("com.mekkablue.gridswitch.grid2", 0)
 			self.w.grid1.set( Glyphs.defaults["com.mekkablue.gridswitch.grid1"] )
 			self.w.grid2.set( Glyphs.defaults["com.mekkablue.gridswitch.grid2"] )
 			try:
