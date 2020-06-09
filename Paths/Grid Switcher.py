@@ -31,6 +31,10 @@ class GridOnOff( object ):
 
 	def GridOnOffMain( self, sender ):
 		try:
+			if not self.SavePreferences( self ):
+				print("Note: 'Grid Switcher' could not write preferences.")
+			
+			
 			try:
 				gridStep1 = int( Glyphs.defaults["com.mekkablue.gridswitch.grid1"] )
 			except:
@@ -51,9 +55,6 @@ class GridOnOff( object ):
 				
 			Glyphs.font.setGridMain_( newGridStep )
 			self.w.currentGridStep.set( "Current Grid Step: %i" % newGridStep )
-			
-			if not self.SavePreferences( self ):
-				print("Note: 'Grid Switcher' could not write preferences.")
 			
 		except Exception as e:
 			raise e
