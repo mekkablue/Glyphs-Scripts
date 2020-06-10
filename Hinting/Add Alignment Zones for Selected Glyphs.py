@@ -75,64 +75,115 @@ class CreateAlignmentZonesforSelectedGlyphs( object ):
 			return False
 			
 		return True
-
+	
+	def zoneIsOverlappingWithExistingOne(self, zonePosition, zoneSize, master, blueFuzz=0):
+		requiredDistance = 1 + 2*blueFuzz
+		zoneLow, zoneHigh = sorted((zonePosition, zonePosition+zoneSize))
+		for zone in master.alignmentZones:
+			lowEnd, highEnd = sorted((zone.position, zone.position+zone.size))
+			for zoneBorder in (zoneLow, zoneHigh):
+				if lowEnd-requiredDistance < zoneBorder < highEnd+requiredDistance:
+					return True
+		return False
+	
+	def addZoneToMaster(self, zonePosition, zoneSize, master, blueFuzz=0):
+		if self.zoneIsOverlappingWithExistingOne(zonePosition, zoneSize, master, blueFuzz=0):
+			print("❌ Zone p:%i s:%i cannot be added to master ‘%s’: existing zone in the way."%(zonePosition,zoneSize,master.name))
+			return 0
+		else:
+			z = GSAlignmentZone()
+			z.size = zonePosition
+			z.position = zoneSize
+			master.alignmentZones.append(z)
+			print("✅ Zone p:%i s:%i added to master ‘%s’."%(zonePosition,zoneSize,master.name))
+			return 1
+	
 	def CreateAlignmentZonesforSelectedGlyphsMain( self, sender ):
 		try:
+			# clear macro window log:
+			Glyphs.clearLog()
+			
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
 				print("Note: 'Create Alignment Zones for Selected Glyphs' could not write preferences.")
 			
 			thisFont = Glyphs.font # frontmost font
-			print("Create Alignment Zones for Selected Glyphs Report for %s" % thisFont.familyName)
-			print(thisFont.filepath)
-			print()
+			if thisFont is None:
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+			else:
+				print("Alignment Zones for Selected Glyphs Report for %s" % thisFont.familyName)
+				if thisFont.filepath:
+					print(thisFont.filepath)
+				else:
+					print("⚠️ The font file has not been saved yet.")
+				print()
 			
-			top = Glyphs.defaults["com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.createTopZones"]
-			bottom = Glyphs.defaults["com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.createBottomZones"]
-			dontExceed = Glyphs.defaults["com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.dontExceedExistingZones"]
+				top = Glyphs.defaults["com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.createTopZones"]
+				bottom = Glyphs.defaults["com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.createBottomZones"]
+				dontExceed = Glyphs.defaults["com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.dontExceedExistingZones"]
 			
-			selectedGlyphs = [l.parent for in thisFont.selectedLayers]
+				selectedGlyphs = [l.parent for l in thisFont.selectedLayers]
+				addedZoneCount = 0
 			
-			for i,master in enumerate(thisFont.masters):
-				print("\nFont Master %i: %s" % (i+1,master.name))
-				largestSize = max([abs(z.size) for z in master.alignmentZones])
+				blueFuzz = 0 # fallback
+				blueFuzzParameter = thisFont.customParameters["blueFuzz"]
+				if not blueFuzzParameter is None:
+					try:
+						blueFuzz = int(blueFuzzParameter)
+					except:
+						pass # stay with fallback if parameter is invalid
+			
+				for i,master in enumerate(thisFont.masters):
+					print("\nFont Master %i: %s" % (i+1,master.name))
+					if master.alignmentZones:
+						largestSize = max([abs(z.size) for z in master.alignmentZones])
+					else:
+						largestSize = 100 # unrealistic high value to allow any size if there are no existing zones
 				
-				if top:
-					allHeights = []
-					for g in selectedGlyphs:
-						l = g.layers[master.id]
-						allHeights.append( l.bounds.origin.y+l.bounds.size.height )
+					if top:
+						allHeights = []
+						for g in selectedGlyphs:
+							l = g.layers[master.id]
+							allHeights.append( l.bounds.origin.y+l.bounds.size.height )
 	
-					minHeight = min(allHeights)
-					maxHeight = max(allHeights)
-					size = maxHeight-minHeight
-					print( "- position: %i, size: %i" % (minHeight, size) )
+						minHeight = min(allHeights)
+						maxHeight = max(allHeights)
+						size = maxHeight-minHeight
 	
-					if not dontExceed or size <= largestSize:
-						z = GSAlignmentZone()
-						z.size = max(1,size)
-						z.position = minHeight
-						master.alignmentZones.append(z)
+						if not dontExceed or size <= largestSize:
+							zoneSize = max(1,size)
+							zonePosition = minHeight
+							addedZoneCount += self.addZoneToMaster(zonePosition, zoneSize, master, blueFuzz)
 			
-				if bottom:
-					allDepths = []
-					for g in selectedGlyphs:
-						l = g.layers[master.id]
-						allDepths.append( l.bounds.origin.y )
+					if bottom:
+						allDepths = []
+						for g in selectedGlyphs:
+							l = g.layers[master.id]
+							allDepths.append( l.bounds.origin.y )
 	
-					maxDepth = min(allDepths)
-					minDepth = max(allDepths)
-					size = maxDepth-minDepth
-					print( "- position: %i, size: %i" % (minDepth, size) )
+						maxDepth = min(allDepths)
+						minDepth = max(allDepths)
+						size = maxDepth-minDepth
 	
-					if not dontExceed or abs(size) <= largestSize:
-						z = GSAlignmentZone()
-						z.size = min(-1,size)
-						z.position = minDepth
-						master.alignmentZones.append(z)
+						if not dontExceed or abs(size) <= largestSize:
+							zonePosition = min(-1,size)
+							zoneSize = minDepth
+							addedZoneCount += self.addZoneToMaster(zonePosition, zoneSize, master, blueFuzz)
 					
-				master.sortAlignmentZones()
-			
+					master.sortAlignmentZones()
+					master.setAlignmentZones_(master.alignmentZones) # triggers UI redraw in Font Info > Masters
+				
+					# Floating notification:
+					Glyphs.showNotification( 
+						"%s: Done." % (thisFont.familyName),
+						"Added %i zone%s based on %i selected glyph%s. Detailed report in Macro Window." % (
+							addedZoneCount,
+							"" if addedZoneCount==1 else "s",
+							len(selectedGlyphs),
+							"" if len(selectedGlyphs)==1 else "s",
+						),
+						)
+
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
