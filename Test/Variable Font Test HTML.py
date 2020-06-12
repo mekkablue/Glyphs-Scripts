@@ -309,7 +309,7 @@ def axisDictForFontWithoutAxisLocationParameters(thisFont):
 			axisName, axisTag = axis["Name"], axis["Tag"]
 		except:
 			# Glyphs 3:
-			axisName, axisTag = axis.name(), axis.axisTag()
+			axisName, axisTag = axis.name, axis.axisTag
 
 		axisDict[axisName] = { "tag": axisTag, "min": sliderValues[0][i], "max": sliderValues[0][i] }
 		
@@ -391,7 +391,7 @@ def allOTVarSliders(thisFont):
 			axisName = unicode(axis["Name"])			
 		except:
 			# Glyphs 3:
-			axisName = axis.name()
+			axisName = axis.name
 		minValue = axisDict[axisName]["min"]
 		maxValue = axisDict[axisName]["max"]
 		axisTag = axisDict[axisName]["tag"]
@@ -447,11 +447,11 @@ def defaultVariationCSS(thisFont):
 	defaultValues = []
 	for i, axis in enumerate(thisFont.axes):
 		try:
+			# Glyphs 3:
+			tag = axis.axisTag
+		except:
 			# Glyphs 2:
 			tag = axis["Tag"]
-		except:
-			# Glyphs 3:
-			tag = axis.axisTag()
 		value = axisValues[i]
 		cssValue = '"%s" %i' % (tag, value)
 		defaultValues.append(cssValue)
