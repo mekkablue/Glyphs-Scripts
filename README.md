@@ -119,6 +119,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Compare Anchors:** Compares anchor structure and anchor heights between the two frontmost fonts.
 * **Compare Composites:** Reports diverging component structures of composite glyphs, e.g., `iacute` built with `acutecomb` in one font, and `acutecomb.narrow` in the other.
 * **Compare Glyph Heights:** Lists all glyphs that differ from the second font in height beyond a given threshold.
+* **Compare Glyph Info:** Compares open fonts and builds a lits of differing glyph info, including Unicode values and categorisation. *Needs Vanilla.*
 * **Compare Glyphsets:** Compares the glyph set of the two frontmost fonts and outputs a report in the Macro window.
 * **Compare Kerning Groups:** Compares kerning groups between frontmost fonts, outputs a table of glyph names with unmatching groups.
 * **Compare Metrics:** Compare widths of two frontmost fonts.
