@@ -83,19 +83,19 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 *Most important: Quote Manager, and the Build scripts for Small Figures, Symbols, Ldot. The other scripts are mainly intended to give you a quick head start for covering certain Unicode ranges if requested by the client.*
 
 * **Build APL Greek:** Create APL Greek glyphs.
-* **Build careof and cadauna:** Builds cadauna and careof from your c, u and fraction glyphs.
-* **Build Circled Glyphs:** Builds circled numbers and letters (U+24B6...24EA and U+2460...2473) from _part.circle and your letters and figures. *Needs Vanilla.*
+* **Build careof and cadauna:** Builds `cadauna` and `careof` from your `c`, `o`, `u` and `fraction` glyphs.
+* **Build Circled Glyphs:** Builds circled numbers and letters (U+24B6...24EA and U+2460...2473) from `_part.circle` and your letters and figures. *Needs Vanilla.*
 * **Build Dotted Numbers:** Build dotted numbers from your default figures and the period.
-* **Build Extra Math Symbols:** Builds lessoverequal, greateroverequal, bulletoperator, rightanglearc, righttriangle, sphericalangle, measuredangle, sunWithRays, positionIndicator, diameterSign, viewdataSquare, control.
-* **Build Ldot and ldot:** Builds Ldot, ldot and ldot.sc from existing L and periodcentered.loclCAT(.case/.sc). Assumes that you have already created and properly spaced L-periodcentered.loclCAT-L, etc.
-* **Build Parenthesized Glyphs:** Creates parenthesized letters and numbers: one.paren, two.paren, three.paren, four.paren, five.paren, six.paren, seven.paren, eight.paren, nine.paren, one_zero.paren, one_one.paren, one_two.paren, one_three.paren, one_four.paren, one_five.paren, one_six.paren, one_seven.paren, one_eight.paren, one_nine.paren, two_zero.paren, a.paren, b.paren, c.paren, d.paren, e.paren, f.paren, g.paren, h.paren, i.paren, j.paren, k.paren, l.paren, m.paren, n.paren, o.paren, p.paren, q.paren, r.paren, s.paren, t.paren, u.paren, v.paren, w.paren, x.paren, y.paren, z.paren.
+* **Build Extra Math Symbols:** Builds `lessoverequal`, `greateroverequal`, `bulletoperator`, `rightanglearc`, `righttriangle`, `sphericalangle`, `measuredangle`, `sunWithRays`, `positionIndicator`, `diameterSign`, `viewdataSquare`, `control`.
+* **Build Ldot and ldot:** Builds `Ldot`, `ldot` and `ldot.sc` from existing `L` and `periodcentered.loclCAT` (`.case`/`.sc`). Assumes that you have already created and properly spaced `L`-`periodcentered.loclCAT`-`L`, etc.
+* **Build Parenthesized Glyphs:** Creates parenthesized letters and numbers: `one.paren`, `two.paren`, `three.paren`, `four.paren`, `five.paren`, `six.paren`, `seven.paren`, `eight.paren`, `nine.paren`, `one_zero.paren`, `one_one.paren`, `one_two.paren`, `one_three.paren`, `one_four.paren`, `one_five.paren`, `one_six.paren`, `one_seven.paren`, `one_eight.paren`, `one_nine.paren`, `two_zero.paren`, `a.paren`, `b.paren`, `c.paren`, `d.paren`, `e.paren`, `f.paren`, `g.paren`, `h.paren`, `i.paren`, `j.paren`, `k.paren`, `l.paren`, `m.paren`, `n.paren`, `o.paren`, `p.paren`, `q.paren`, `r.paren`, `s.paren`, `t.paren`, `u.paren`, `v.paren`, `w.paren`, `x.paren`, `y.paren`, `z.paren`.
 * **Build Q from O and _tail.Q:** Run this script *after* doing *Component from Selection* on the Q tail and naming it `_tail.Q`.
 * **Build Rare Symbols:** Builds white and black, small and large, circles, triangles and squares. *Needs Vanilla.*
-* **Build Small Figures:** Takes a default set of figures (e.g., dnom), and derives the others (.numr, superior/.sups, inferior/.sinf, .subs) as component copies. Respects the italic angle.
+* **Build Small Figures:** Takes a default set of figures (e.g., `.dnom`), and derives the others (`.numr`, `superior`/`.sups`, `inferior`/`.sinf`, `.subs`) as component copies. Respects the italic angle. *Need Vanilla.*
 * **Build small letter SM, TEL:** Creates the glyphs: `servicemark`, `telephone`.
-* **Build space glyphs:** Creates mediumspace-math, emquad, emspace, enquad, enspace, figurespace, fourperemspace, hairspace, narrownbspace, punctuationspace, sixperemspace, nbspace, thinspace, threeperemspace, zerowidthspace.
-* **Build Symbols:** Creates symbol glyphs such as .notdef (based on the boldest available question mark), an estimated glyph, as wel as bar and brokenbar (for which it respects standard stems and italic angle). *Needs Vanilla.*
-* **Quote Manager:** Build double quotes from single quotes, and insert #exit and #entry anchors in the single quotes for auto-alignment. You need to have the single quotes already. *Needs Vanilla.*
+* **Build space glyphs:** Creates `mediumspace-math`, `emquad`, `emspace`, `enquad`, `enspace`, `figurespace`, `fourperemspace`, `hairspace`, `narrownbspace`, `punctuationspace`, `sixperemspace`, `nbspace`, `thinspace`, `threeperemspace`, `zerowidthspace`.
+* **Build Symbols:** Creates symbol glyphs such as `.notdef` (based on the boldest available `question` mark), an `estimated` glyph, as well as `bar` and `brokenbar` (for which it respects standard stems and italic angle). *Needs Vanilla.*
+* **Quote Manager:** Build double quotes from single quotes, and insert `#exit` and `#entry` anchors in the single quotes for auto-alignment. You need to have the single quotes already. *Needs Vanilla.*
 
 ## Color Fonts
 
@@ -243,6 +243,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 *Most important: Insert Instances (for determining your instances and their style linking), Kink Finder and Find Shapeshifting Glyphs. I use Show Next/Previous Instance with the keyboard shortcut ctrl-up/down a lot.*
 
+* **Axis Mapper:** Extracts, resets and inserts an ‘avar’ axis mapping for the Axis Mappings parameter. *Needs Vanilla.*
 * **Composite Variabler:** Reduplicates Brace and Bracket layers of components in the compounds in which they are used. Makes bracket layers work in composites. *Needs Vanilla.*
 * **Copy Layer to Layer:** Copies paths (and optionally, also components, anchors and metrics) from one Master to another. *Needs Vanilla.*
 * **Dekink Masters:** Dekinks your smooth point triplets in all compatible layers (useful if they are not horizontal or vertical). Select a point in one or more smooth point triplets, and run this script to move the corresponding nodes in all other masters to the same relative position. Thus you achieve the same point ratio in all masters and avoid interpolation kinks, when the angle of the triplet changes. There is a [video describing it.](http://tinyurl.com/dekink-py) The triplet problem is [described in this tutorial](http://www.glyphsapp.com/tutorials/multiple-masters-part-2-keeping-your-outlines-compatible).
@@ -259,6 +260,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **New Tab with Uneven Handle Distributions:** Finds glyphs where handle distributions change too much (e.g., from balanced to harmonised). *Needs Vanilla.*
 * **OTVar Player:** Animates the current glyph with a loop along the weight axis. *Needs Vanilla.*
 * **Remove All Non-Master Layers:** Deletes all layers which are neither master layers, nor brace layers, nor bracket layers. Useful for getting rid of backup layers.
+* **Reset Axis Mappings:** Inserts (or resets) a default Axis Mappings parameter for all style values currently present in the font. Ignores style values outside the designspace bounds defined by the masters. 
 * **Short Segment Finder:** Goes through all interpolations and finds segments shorter than a user-specified threshold length. *Needs Vanilla.*
 * **Travel Tracker:** Finds interpolations in which points travel more than they should, i.e., can find wrongly hooked-up asterisks and slashes. The results are incomplete, and usually have many false positives, but it sometimes finds cases that the Shapeshifter script misses. *Needs Vanilla.*
 * **Variation Interpolator:** Creates a user-defined number of glyph variations with a user-defined suffix, containing interpolations between the layers and their respective backgrounds. Overwrites glyphs with same name. Similar to Pablo Impallari’s SimplePolator. Useful for e.g. length variants of Devanagari Matra, see José Nicolás Silva Schwarzenberg’s sample video: <https://www.youtube.com/watch?v=QDbaUlHifBc>. *Needs Vanilla.*
@@ -306,7 +308,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 * **Align Selected Nodes with Background:** Align selected nodes with the nearest background node unless it is already taken by a previously moved node. Like Cmd-Shift-A for aligning a single node with the background, but for multiple nodes.
 * **Copy Glyphs from Other Font into Backup Layers:** Creates backup layers for selected glyphs in target font, and fills them with the respective glyphs from source font. Useful if you want to add glyphs from one font as bracket layers in another. *Needs Vanilla.*
-* **Distribute Nodes:** Horizontally or vertically distributes nodes (depends on the width/height ratoi of the selection bounding box).
+* **Distribute Nodes:** Horizontally or vertically distributes nodes (depends on the width/height ratio of the selection bounding box).
 * **Enlarge Single-Unit Segments:** Doubles the length of line segments shorter than one unit.
 * **Fill Up with Rectangles:** Goes through your selected glyphs, and if it finds an empty one, inserts a placeholder rectangle. Useful for quickly building a dummy font for testing.
 * **Find Near Vertical Misses:** Finds nodes that are close but not exactly on vertical metrics. *Needs Vanilla.*
@@ -328,7 +330,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## Pixelfonts
 
-*These scripts are useful for a pixelfont workflow, where you place a pixel component in a coarser grid.*
+*These scripts are useful for a pixelfont workflow, where you place a pixel component in a coarser grid. If you are doing pixel designs, take a look at the pixel-related plug-ins available in Window > Plugin Manager.*
 
 * **Align Anchors to Grid:** Snaps diacritic anchors onto the font grid.
 * **Delete Components out of Bounds:** If a component is placed far outside the usual coordinates (happens when you cmd-arrow components with a high grid step), this script will delete them.
@@ -360,7 +362,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **New Tab with Fraction Figure Combinations:** Opens an Edit tab with fraction figure combos for spacing and kerning.
 * **Remove Layer-Specific Metrics Keys:** Deletes left and right metrics keys specific to layers (==), in all layers of all selected glyphs. Also simplifies glyph metrics keys (i.e., turns "=H" into "H").
 * **Remove Metrics Keys:** Deletes both left and right metrics keys in all selected glyphs. Affects all masters and all layers.
-* **Reset Alternate Glyph Widths:** Resets the width of suffixed glyphs to the width of their unsuffixed counterparts. E.g., *Adieresis.ss01* will be reset to the width of *Adieresis.*
+* **Reset Alternate Glyph Widths:** Resets the width of suffixed glyphs to the width of their unsuffixed counterparts. E.g., `Adieresis.ss01` will be reset to the width of `Adieresis`.
 * **Spacing Checker:** Look for glyphs with unusual spacings and open them in a new tab. *Needs Vanilla.*
 * **Steal Metrics:** Steals the sidebearing or width values for all selected glyphs from a 2nd font. Optionally also transfers metrics keys like '=x+20'. *Needs Vanilla.*
 * **Tabular Checker:** Goes through tabular glyphs and checks if they are monospaced. Reports exceptions. *Needs Vanilla.*
