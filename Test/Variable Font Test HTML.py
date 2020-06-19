@@ -338,8 +338,14 @@ def axisDictForFontWithAxisLocationParameters(thisFont):
 	
 	# add tags:
 	for axis in thisFont.axes:
-		axisName = axis["Name"]
-		axisTag = axis["Tag"]
+		try:
+			# GLYPHS 3
+			axisName = axis.name
+			axisTag = axis.axisTag
+		except:
+			# GLYPHS 2
+			axisName = axis["Name"]
+			axisTag = axis["Tag"]
 		axisDict[axisName]["tag"] = axisTag
 	
 	return axisDict
