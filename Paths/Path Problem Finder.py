@@ -70,7 +70,13 @@ def hasOpenPaths( thisLayer ):
 	return False
 
 def hasBadOutlineOrder( thisLayer ):
-	firstPath = thisLayer.paths[0]
+	try:
+		# GLYPHS 3
+		firstPath = [p for p in thisLayer.shapes if p.isKindOfClass_(GSPath)][0]
+	except:
+		# GLYPHS 2
+		firstPath = thisLayer.paths[0]
+	
 	if firstPath and firstPath.direction != -1:
 		return True
 	else:
