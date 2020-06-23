@@ -79,12 +79,15 @@ class PopulateAllBackgroundswithComponent( object ):
 		linePos += lineHeight
 		
 		# Run Button:
-		self.w.runButton = vanilla.Button( (-120-inset, -20-inset, -inset, -inset), "Populate", sizeStyle='regular', callback=self.PopulateAllBackgroundswithComponentMain )
+		self.w.runButton = vanilla.Button( (-100-inset, -20-inset, -inset, -inset), "Populate", sizeStyle='regular', callback=self.PopulateAllBackgroundswithComponentMain )
 		self.w.runButton.getNSButton().setToolTip_("Inserts the specified component in ALL layers of the current glyph(s).")
 		self.w.setDefaultButton( self.w.runButton )
 		
-		self.w.alignButton = vanilla.Button( (-240-inset, -20-inset, -130-inset, -inset), "Align Nodes", sizeStyle='regular', callback=self.AlignNodesMain )
+		self.w.alignButton = vanilla.Button( (-220-inset, -20-inset, -110-inset, -inset), "Align Nodes", sizeStyle='regular', callback=self.AlignNodesMain )
 		self.w.alignButton.getNSButton().setToolTip_("Aligns selected nodes with the (original) nodes in the background components. Only does this on the CURRENT layer.")
+		
+		self.w.nextMasterButton = vanilla.Button( (-340-inset, -20-inset, -230-inset, -inset), "Next Master", sizeStyle='regular', callback=self.NextMasterMain )
+		self.w.nextMasterButton.getNSButton().setToolTip_("Switches the current tab to the next master. Useful if you want to align the same nodes in every master.")
 		
 		# Load Settings:
 		if not self.LoadPreferences():
@@ -181,7 +184,22 @@ class PopulateAllBackgroundswithComponent( object ):
 			return False
 			
 		return True
-
+	
+	def NextMasterMain(self, sender=None):
+		try:
+			thisFont = Glyphs.font
+			if thisFont:
+				tab = thisFont.currentTab
+				if tab:
+					newMasterIndex = (tab.masterIndex+1)%len(thisFont.masters)
+					tab.setMasterIndex_(newMasterIndex)
+		except Exception as e:
+			# brings macro window to front and reports error:
+			Glyphs.showMacroWindow()
+			print("Error trying to switch to next master: %s" % e)
+			import traceback
+			print(traceback.format_exc())
+	
 	def PopulateAllBackgroundswithComponentMain( self, sender ):
 		try:
 			
