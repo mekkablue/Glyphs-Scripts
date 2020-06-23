@@ -85,8 +85,8 @@ for prefix in set([p.name for p in thisFont.featurePrefixes if p.active]):
 
 for otClass in [c.name for c in thisFont.classes if c.active]:
 	# classes:
-	thisClassCode = thisFont.classes[otClass]
-	otherClassCode = otherFont.classes[otClass]
+	thisClass = thisFont.classes[otClass]
+	otherClass = otherFont.classes[otClass]
 	
 	if thisClass and otherClass:
 		# compare code lines:
