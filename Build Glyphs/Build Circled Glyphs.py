@@ -211,7 +211,7 @@ def placeComponentsAtDistance( thisLayer, comp1, comp2, interval=5.0, distance=1
 	addedSBs = original1.RSB + original2.LSB
 	comp2.x = comp1.x + original1.width - addedSBs + comp2shift
 
-def buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenTwoLayers=90.0 ):
+def buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenTwoLayers=90.0, suffix=None ):
 	isBlack = "black" in circleName.lower()
 	
 	thisFont = thisGlyph.font()
@@ -265,10 +265,19 @@ def buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenTw
 			for j, compName in enumerate(componentNames):
 				lfName = "%s.lf" % compName
 				osfName = "%s.osf" % compName
-				if thisFont.glyphs[lfName]:
-					compName = lfName
-				elif thisFont.glyphs[osfName]:
-					compName = osfName
+				
+				namesToCheck = [compName]
+				extraSuffixes = (".osf",".lf")
+				for extraSuffix in extraSuffixes:
+					namesToCheck.insert(0,compName+extraSuffix)
+				if suffix:
+					for existingName in namesToCheck[:]:
+						namesToCheck.insert(0,existingName+suffix)
+				
+				for nameToCheck in namesToCheck:
+					if thisFont.glyphs[nameToCheck]:
+						compName = nameToCheck
+						break
 				
 				innerComponent = GSComponent( compName )
 				innerComponent.automaticAlignment = False
@@ -490,7 +499,7 @@ class BuildCircledGlyphs( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 230
-		windowHeight = 250
+		windowHeight = 270
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -504,6 +513,7 @@ class BuildCircledGlyphs( object ):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 14), u"Builds the following glyphs:", sizeStyle='small', selectable=True )
+		self.w.descriptionText.getNSTextField().setToolTip_("Hint: if the letter or figure glyph contains #center anchors, the anchor position will be preferred for positioning the letter or figure inside the circle.")
 		linePos += lineHeight
 		
 		self.w.buildUC = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Uppercase circled letters", value=False, callback=self.SavePreferences, sizeStyle='small' )
@@ -531,7 +541,12 @@ class BuildCircledGlyphs( object ):
 		linePos += lineHeight
 		
 		self.w.minDistanceBetweenFiguresText = vanilla.TextBox( (inset, linePos+2, 145, 14), u"Distance between figures:", sizeStyle='small', selectable=True )
-		self.w.minDistanceBetweenFigures = vanilla.EditText( (inset+145, linePos, -inset, 19), "90", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.minDistanceBetweenFigures = vanilla.EditText( (inset+145, linePos-1, -inset, 19), "90", callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
+		
+		self.w.suffixesCheckbox = vanilla.CheckBox( (inset, linePos, 110, 20), "Include Suffixes:", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.suffixes = vanilla.EditText( (inset+110, linePos, -inset, 19), "ss06, ss02", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.suffixes.getNSTextField().setToolTip_("Will look if there is a base glyph with a dot suffix, and build the circled glyph with the same suffix. Separate multiple suffixes with a comma. E.g. You have an A and an A.ss06, then you get A.blackCircled and A.blackCircled.ss06, provided you enter ss06 here.")
 		linePos += lineHeight
 		
 		# Run Button:
@@ -556,6 +571,8 @@ class BuildCircledGlyphs( object ):
 			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildCircledNumbers"] = self.w.buildCircledNumbers.get()
 			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackCircledNumbers"] = self.w.buildBlackCircledNumbers.get()
 			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.minDistanceBetweenFigures"] = self.w.minDistanceBetweenFigures.get()
+			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.suffixesCheckbox"] = self.w.suffixesCheckbox.get()
+			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.suffixes"] = self.w.suffixes.get()
 			return True
 		except:
 			import traceback
@@ -572,6 +589,9 @@ class BuildCircledGlyphs( object ):
 			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.buildCircledNumbers", 1)
 			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.buildBlackCircledNumbers", 0)
 			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.minDistanceBetweenFigures", "90")
+			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.suffixesCheckbox", 0)
+			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.suffixes", "ss02, ss06")
+			
 			
 			# load previously written prefs:
 			self.w.buildUC.set( Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildUC"] )
@@ -581,6 +601,8 @@ class BuildCircledGlyphs( object ):
 			self.w.buildCircledNumbers.set( Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildCircledNumbers"] )
 			self.w.buildBlackCircledNumbers.set( Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackCircledNumbers"] )
 			self.w.minDistanceBetweenFigures.set( Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.minDistanceBetweenFigures"] )
+			self.w.suffixesCheckbox.set( Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.suffixesCheckbox"] )
+			self.w.suffixes.set( Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.suffixes"] )
 			return True
 		except:
 			import traceback
@@ -612,6 +634,12 @@ class BuildCircledGlyphs( object ):
 			buildBlackLC = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackLC"]
 			buildBlackCircledNumbers = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackCircledNumbers"]
 			minDistanceBetweenFigures = float(Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.minDistanceBetweenFigures"])
+			shouldIncludeSuffixes = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.suffixesCheckbox"]
+			suffixes = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.suffixes"]
+			if shouldIncludeSuffixes:
+				suffixes = [("."+x.strip()).replace("..",".") for x in suffixes.split(",")]
+			else:
+				suffixes = ()
 			
 			circledGlyphNames = []
 			if buildUC:
@@ -665,13 +693,20 @@ class BuildCircledGlyphs( object ):
 					for glyphName in circledGlyphNames:
 						if "." in glyphName:
 							glyphName = glyphName[:glyphName.find(".")]
-						thisGlyph = thisFont.glyphs[glyphName]
-						if thisGlyph:
-							thisLayer = thisGlyph.layers[thisMaster.id]
-							thisArea = boxArea(thisLayer)
-							if thisArea > maxArea:
-								maxArea = thisArea
-								biggestLayer = thisLayer
+							
+						glyphNames = [glyphName]
+						if suffixes:
+							for suffix in suffixes:
+								glyphNames.append("%s%s"%(glyphName,suffix))
+						
+						for glyphName in glyphNames:
+							thisGlyph = thisFont.glyphs[glyphName]
+							if thisGlyph:
+								thisLayer = thisGlyph.layers[thisMaster.id]
+								thisArea = boxArea(thisLayer)
+								if thisArea > maxArea:
+									maxArea = thisArea
+									biggestLayer = thisLayer
 	
 					angleInRadians = math.atan2( biggestLayer.bounds.size.height, biggestLayer.bounds.size.width*1.4 + minDistanceBetweenFigures )
 					scaledHeight = math.sin(angleInRadians) * radius * 2 * 0.9
@@ -679,21 +714,54 @@ class BuildCircledGlyphs( object ):
 					scaleFactors.append(scaleFactor)
 					print("Scale factor for master '%s': %.1f" % (thisMaster.name, scaleFactor))
 
+				# actually building letters:
 				for glyphName in circledGlyphNames:
 					if "black" in glyphName.lower():
 						circleName = blackCircleName
+					
+					# check for suffixes:
+					coreName = glyphName[:glyphName.find(".")]
+					coreNames = [coreName]
+					glyphNames = [glyphName]
+					suffixDict = {}
+					if suffixes:
+						for suffix in suffixes:
+							suffixedCoreName = coreName + suffix
+							if "_" in coreName:
+								particles = coreName.split("_")
+								for particle in particles:
+									if not suffixedCoreName in coreNames:
+										if thisFont.glyphs[particle+suffix]:
+											coreNames.append(suffixedCoreName)
+											newGlyphName = glyphName+suffix
+											glyphNames.append(newGlyphName)
+											suffixDict[newGlyphName] = suffix
+ 							else:
+								if thisFont.glyphs[suffixedCoreName]:
+									coreNames.append(suffixedCoreName)
+									newGlyphName = glyphName+suffix
+									glyphNames.append(newGlyphName)
+									suffixDict[newGlyphName] = suffix
+					
+					for i,glyphName in enumerate(glyphNames):
+						thisGlyph = thisFont.glyphs[glyphName]
 						
-					thisGlyph = thisFont.glyphs[glyphName]
-					if not thisGlyph:
-						thisGlyph = GSGlyph()
-						thisGlyph.name = glyphName
-						thisFont.glyphs.append(thisGlyph)
-						thisGlyph.updateGlyphInfo()
-
-					thisGlyph.beginUndo() # begin undo grouping
-					print("Building %s" % thisGlyph.name)
-					buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenFigures )
-					thisGlyph.endUndo()   # end undo grouping
+						# generate it if it does not exist
+						if not thisGlyph:
+							thisGlyph = GSGlyph()
+							thisGlyph.name = glyphName
+							thisFont.glyphs.append(thisGlyph)
+							thisGlyph.updateGlyphInfo()
+						
+						if glyphName in suffixDict:
+							suffix = suffixDict[glyphName]
+						else:
+							suffix = None
+						
+						thisGlyph.beginUndo() # begin undo grouping
+						print("Building %s" % thisGlyph.name)
+						buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenFigures, suffix )
+						thisGlyph.endUndo()   # end undo grouping
 
 				thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 
