@@ -383,7 +383,7 @@ class PathProblemFinder( object ):
 		linePos += int(lineHeight/2)
 		
 		# Script Options:
-		self.w.includeAllGlyphs = vanilla.CheckBox( (inset, linePos, -inset, 20), u"⚠️ Check complete font, ignore glyph selection (slow)", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.includeAllGlyphs = vanilla.CheckBox( (inset, linePos, -inset, 20), u"⚠️ Check all glyphs, ignore selection (slow)", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.includeAllGlyphs.getNSButton().setToolTip_(u"If enabled, will ignore your current (glyph) selection, and simply go through the complete font. Recommended. May still ignore non-exporting glyph, see following option.")
 		linePos += lineHeight
 		
