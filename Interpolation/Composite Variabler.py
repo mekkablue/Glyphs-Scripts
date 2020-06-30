@@ -237,6 +237,7 @@ class CompoundVariabler( object ):
 											currentGlyph.layers.append(newLayer)
 											newLayer.reinterpolate()
 											newLayer.reinterpolateMetrics()
+											newLayer.syncMetrics()
 											
 											affectedGlyphs.append(currentGlyph.name)
 											print("%s, new layer: '%s'%s" % (
