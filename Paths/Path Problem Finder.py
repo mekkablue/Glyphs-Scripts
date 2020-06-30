@@ -383,7 +383,7 @@ class PathProblemFinder( object ):
 		linePos += int(lineHeight/2)
 		
 		# Script Options:
-		self.w.includeAllGlyphs = vanilla.CheckBox( (inset, linePos, -inset, 20), u"Check complete font (i.e., ignore glyph selection)", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.includeAllGlyphs = vanilla.CheckBox( (inset, linePos, -inset, 20), u"⚠️ Check complete font, ignore glyph selection (slow)", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.includeAllGlyphs.getNSButton().setToolTip_(u"If enabled, will ignore your current (glyph) selection, and simply go through the complete font. Recommended. May still ignore non-exporting glyph, see following option.")
 		linePos += lineHeight
 		
@@ -393,8 +393,8 @@ class PathProblemFinder( object ):
 		
 		self.w.reuseTab = vanilla.CheckBox( (inset, linePos, 150, 20), u"Reuse existing tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.reuseTab.getNSButton().setToolTip_(u"If enabled, will only open a new tab if none is open. Recommended.")
-		self.w.reportLayers = vanilla.CheckBox( (inset+150, linePos, -inset, 20), "Report layers (slow)", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.reportLayers.getNSButton().setToolTip_("If enabled will list layers, not just glyphs. Consider disabling if you are checking many (500+) glyphs with many of the test options. If disabled, will only report glyphs, which is much faster.")
+		self.w.reportLayers = vanilla.CheckBox( (inset+150, linePos, -inset, 20), "⚠️ Report layers (slow)", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reportLayers.getNSButton().setToolTip_("If enabled, will list every layer with an issue, not just each glyph once. Consider disabling if you are checking many (500+) glyphs with many of the test options. If disabled, will only report glyphs, which is much faster.")
 		linePos += lineHeight
 		
 		# Progress Bar and Status text:
@@ -622,24 +622,24 @@ class PathProblemFinder( object ):
 					for thisLayer in thisGlyph.layers:
 						if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 							
-							if zeroHandles and hasZeroHandles(thisLayer):
+							if (reportLayers or not thisGlyph.name in layersWithZeroHandles) and zeroHandles and hasZeroHandles(thisLayer):
 								if reportLayers:
 									layersWithZeroHandles.append(thisLayer)
-								elif not thisGlyph.name in layersWithZeroHandles:
+								else:
 									layersWithZeroHandles.append(thisGlyph.name)
 								print("  ❌ Zero handle(s) on layer: %s" % thisLayer.name)
 								
-							if outwardHandles and hasOutwardHandles(thisLayer):
+							if (reportLayers or not thisGlyph.name in layersWithOutwardHandles) and outwardHandles and hasOutwardHandles(thisLayer):
 								if reportLayers:
 									layersWithOutwardHandles.append(thisLayer)
-								elif not thisGlyph.name in layersWithOutwardHandles:
+								else:
 									layersWithOutwardHandles.append(thisGlyph.name)
 								print("  ❌ Outward handle(s) on layer: %s" % thisLayer.name)
 								
-							if largeHandles and hasLargeHandles(thisLayer):
+							if (reportLayers or not thisGlyph.name in layersWithLargeHandles) and largeHandles and hasLargeHandles(thisLayer):
 								if reportLayers:
 									layersWithLargeHandles.append(thisLayer)
-								elif not thisGlyph.name in layersWithLargeHandles:
+								else:
 									layersWithLargeHandles.append(thisGlyph.name)
 								print("  ❌ Large handle(s) on layer: %s" % thisLayer.name)
 								
@@ -650,10 +650,10 @@ class PathProblemFinder( object ):
 									layersWithShortHandles.append(thisGlyph.name)
 								print("  ❌ Short handle(s) on layer: %s" % thisLayer.name)
 								
-							if angledHandles and hasAngledHandles(thisLayer):
+							if (reportLayers or not thisGlyph.name in layersWithAngledHandles) and angledHandles and hasAngledHandles(thisLayer):
 								if reportLayers:
 									layersWithAngledHandles.append(thisLayer)
-								elif not thisGlyph.name in layersWithAngledHandles:
+								else:
 									layersWithAngledHandles.append(thisGlyph.name)
 								print("  ❌ Angled handle(s) on layer: %s" % thisLayer.name)
 								
@@ -685,24 +685,24 @@ class PathProblemFinder( object ):
 									layersWithShortLines.append(thisGlyph.name)
 								print("  ❌ Short line(s) on layer: %s" % thisLayer.name)
 								
-							if badOutlineOrder and hasBadOutlineOrder(thisLayer):
+							if (reportLayers or not thisGlyph.name in layersWithBadOutlineOrder) and badOutlineOrder and hasBadOutlineOrder(thisLayer):
 								if reportLayers:
 									layersWithBadOutlineOrder.append(thisLayer)
-								elif not thisGlyph.name in layersWithBadOutlineOrder:
+								else:
 									layersWithBadOutlineOrder.append(thisGlyph.name)
 								print("  ❌ Bad outline order(s) on layer: %s" % thisLayer.name)
 								
-							if twoPointOutlines and hasTwoPointOutlines(thisLayer):
+							if (reportLayers or not thisGlyph.name in layersWithTwoPointOutlines) and twoPointOutlines and hasTwoPointOutlines(thisLayer):
 								if reportLayers:
 									layersWithTwoPointOutlines.append(thisLayer)
-								elif not thisGlyph.name in layersWithTwoPointOutlines:
+								else:
 									layersWithTwoPointOutlines.append(thisGlyph.name)
 								print("  ❌ Two-point outline(s) on layer: %s" % thisLayer.name)
 
-							if offcurveAsStartPoint and hasOffcurveAsStartPoint(thisLayer):
+							if (reportLayers or not thisGlyph.name in layersWithOffcurveAsStartpoint) and offcurveAsStartPoint and hasOffcurveAsStartPoint(thisLayer):
 								if reportLayers:
 									layersWithOffcurveAsStartpoint.append(thisLayer)
-								elif not thisGlyph.name in layersWithOffcurveAsStartpoint:
+								else:
 									layersWithOffcurveAsStartpoint.append(thisGlyph.name)
 								print("  ❌ Off-curve as start point on layer: %s" % thisLayer.name)
 								
