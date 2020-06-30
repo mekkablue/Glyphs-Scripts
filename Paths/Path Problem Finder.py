@@ -6,6 +6,19 @@ Finds all kinds of potential problems in outlines, and opens a new tab with affe
 """
 
 import vanilla, math
+from timeit import default_timer as timer
+
+def reportTimeInNaturalLanguage( seconds ):
+	if seconds > 60.0:
+		timereport = "%i:%02i minutes" % ( seconds//60, seconds%60 )
+	elif seconds < 1.0:
+		timereport = "%.2f seconds" % seconds
+	elif seconds < 20.0:
+		timereport = "%.1f seconds" % seconds
+	else:
+		timereport = "%i seconds" % seconds
+	return timereport
+
 
 canHaveOpenOutlines = (
 	"_cap",
@@ -378,8 +391,10 @@ class PathProblemFinder( object ):
 		self.w.includeNonExporting.getNSButton().setToolTip_(u"If disabled, will ignore glyphs that are set to not export.")
 		linePos += lineHeight
 		
-		self.w.reuseTab = vanilla.CheckBox( (inset, linePos, -inset, 20), u"Reuse existing tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reuseTab = vanilla.CheckBox( (inset, linePos, 150, 20), u"Reuse existing tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.reuseTab.getNSButton().setToolTip_(u"If enabled, will only open a new tab if none is open. Recommended.")
+		self.w.reportLayers = vanilla.CheckBox( (inset+150, linePos, -inset, 20), "Report layers (slow)", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reportLayers.getNSButton().setToolTip_("If enabled will list layers, not just glyphs. Consider disabling if you are checking many (500+) glyphs with many of the test options. If disabled, will only report glyphs, which is much faster.")
 		linePos += lineHeight
 		
 		# Progress Bar and Status text:
@@ -451,6 +466,8 @@ class PathProblemFinder( object ):
 			Glyphs.defaults["com.mekkablue.PathProblemFinder.includeAllGlyphs"] = self.w.includeAllGlyphs.get()
 			Glyphs.defaults["com.mekkablue.PathProblemFinder.includeNonExporting"] = self.w.includeNonExporting.get()
 			Glyphs.defaults["com.mekkablue.PathProblemFinder.reuseTab"] = self.w.reuseTab.get()
+			Glyphs.defaults["com.mekkablue.PathProblemFinder.reportLayers"] = self.w.reportLayers.get()
+			
 			
 			self.updateUI()
 			return True
@@ -485,6 +502,8 @@ class PathProblemFinder( object ):
 			Glyphs.registerDefault("com.mekkablue.PathProblemFinder.includeAllGlyphs", 1)
 			Glyphs.registerDefault("com.mekkablue.PathProblemFinder.includeNonExporting", 0)
 			Glyphs.registerDefault("com.mekkablue.PathProblemFinder.reuseTab", 1)
+			Glyphs.registerDefault( "com.mekkablue.PathProblemFinder.reportLayers", 1 )
+			
 			
 			
 			# load previously written prefs:
@@ -511,6 +530,7 @@ class PathProblemFinder( object ):
 			self.w.includeAllGlyphs.set( Glyphs.defaults["com.mekkablue.PathProblemFinder.includeAllGlyphs"] )
 			self.w.includeNonExporting.set( Glyphs.defaults["com.mekkablue.PathProblemFinder.includeNonExporting"] )
 			self.w.reuseTab.set( Glyphs.defaults["com.mekkablue.PathProblemFinder.reuseTab"] )
+			self.w.reportLayers.set( Glyphs.defaults["com.mekkablue.PathProblemFinder.reportLayers"] )
 			
 			self.updateUI()
 			return True
@@ -523,6 +543,9 @@ class PathProblemFinder( object ):
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
+			
+			# start taking time:
+			start = timer()
 			
 			# update settings to the latest user input:
 			if not self.SavePreferences():
@@ -563,6 +586,7 @@ class PathProblemFinder( object ):
 				includeAllGlyphs = Glyphs.defaults["com.mekkablue.PathProblemFinder.includeAllGlyphs"]
 				includeNonExporting = Glyphs.defaults["com.mekkablue.PathProblemFinder.includeNonExporting"]
 				reuseTab = Glyphs.defaults["com.mekkablue.PathProblemFinder.reuseTab"]
+				reportLayers = Glyphs.defaults["com.mekkablue.PathProblemFinder.reportLayers"]
 				
 				# determine the glyphs to work through:
 				if includeAllGlyphs:
@@ -599,51 +623,87 @@ class PathProblemFinder( object ):
 						if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 							
 							if zeroHandles and hasZeroHandles(thisLayer):
-								layersWithZeroHandles.append(thisLayer)
+								if reportLayers:
+									layersWithZeroHandles.append(thisLayer)
+								elif not thisGlyph.name in layersWithZeroHandles:
+									layersWithZeroHandles.append(thisGlyph.name)
 								print("  ❌ Zero handle(s) on layer: %s" % thisLayer.name)
 								
 							if outwardHandles and hasOutwardHandles(thisLayer):
-								layersWithOutwardHandles.append(thisLayer)
+								if reportLayers:
+									layersWithOutwardHandles.append(thisLayer)
+								elif not thisGlyph.name in layersWithOutwardHandles:
+									layersWithOutwardHandles.append(thisGlyph.name)
 								print("  ❌ Outward handle(s) on layer: %s" % thisLayer.name)
 								
 							if largeHandles and hasLargeHandles(thisLayer):
-								layersWithLargeHandles.append(thisLayer)
+								if reportLayers:
+									layersWithLargeHandles.append(thisLayer)
+								elif not thisGlyph.name in layersWithLargeHandles:
+									layersWithLargeHandles.append(thisGlyph.name)
 								print("  ❌ Large handle(s) on layer: %s" % thisLayer.name)
 								
 							if shortHandles and hasShortHandles(thisLayer, threshold=float(shortHandlesThreshold)):
-								layersWithShortHandles.append(thisLayer)
+								if reportLayers:
+									layersWithShortHandles.append(thisLayer)
+								elif not thisGlyph.name in layersWithShortHandles:
+									layersWithShortHandles.append(thisGlyph.name)
 								print("  ❌ Short handle(s) on layer: %s" % thisLayer.name)
 								
 							if angledHandles and hasAngledHandles(thisLayer):
-								layersWithAngledHandles.append(thisLayer)
+								if reportLayers:
+									layersWithAngledHandles.append(thisLayer)
+								elif not thisGlyph.name in layersWithAngledHandles:
+									layersWithAngledHandles.append(thisGlyph.name)
 								print("  ❌ Angled handle(s) on layer: %s" % thisLayer.name)
 								
 							if shallowCurve and hasShallowCurve(thisLayer, threshold=float(shallowCurveThreshold)):
-								layersWithShallowCurve.append(thisLayer)
+								if reportLayers:
+									layersWithShallowCurve.append(thisLayer)
+								elif not thisGlyph.name in layersWithShallowCurve:
+									layersWithShallowCurve.append(thisGlyph.name)
 								print("  ❌ Shallow curve(s) on layer: %s" % thisLayer.name)
 								
 							if shallowCurveBBox and hasShallowCurveBBox(thisLayer, threshold=float(shallowCurveBBoxThreshold)):
-								layersWithShallowCurveBBox.append(thisLayer)
+								if reportLayers:
+									layersWithShallowCurveBBox.append(thisLayer)
+								elif not thisGlyph.name in layersWithShallowCurveBBox:
+									layersWithShallowCurveBBox.append(thisGlyph.name)
 								print("  ❌ Shallow curve bbox(es) on layer: %s" % thisLayer.name)
 								
 							if almostOrthogonalLines and hasAlmostOrthogonalLines(thisLayer, threshold=float(almostOrthogonalLinesThreshold)):
-								layersWithAlmostOrthogonalLines.append(thisLayer)
+								if reportLayers:
+									layersWithAlmostOrthogonalLines.append(thisLayer)
+								elif not thisGlyph.name in layersWithAlmostOrthogonalLines:
+									layersWithAlmostOrthogonalLines.append(thisGlyph.name)
 								print("  ❌ Almost orthogonal line(s) on layer: %s" % thisLayer.name)
 								
 							if shortLine and hasShortLine(thisLayer, threshold=float(shortLineThreshold)):
-								layersWithShortLines.append(thisLayer)
+								if reportLayers:
+									layersWithShortLines.append(thisLayer)
+								elif not thisGlyph.name in layersWithShortLines:
+									layersWithShortLines.append(thisGlyph.name)
 								print("  ❌ Short line(s) on layer: %s" % thisLayer.name)
 								
 							if badOutlineOrder and hasBadOutlineOrder(thisLayer):
-								layersWithBadOutlineOrder.append(thisLayer)
+								if reportLayers:
+									layersWithBadOutlineOrder.append(thisLayer)
+								elif not thisGlyph.name in layersWithBadOutlineOrder:
+									layersWithBadOutlineOrder.append(thisGlyph.name)
 								print("  ❌ Bad outline order(s) on layer: %s" % thisLayer.name)
 								
 							if twoPointOutlines and hasTwoPointOutlines(thisLayer):
-								layersWithTwoPointOutlines.append(thisLayer)
+								if reportLayers:
+									layersWithTwoPointOutlines.append(thisLayer)
+								elif not thisGlyph.name in layersWithTwoPointOutlines:
+									layersWithTwoPointOutlines.append(thisGlyph.name)
 								print("  ❌ Two-point outline(s) on layer: %s" % thisLayer.name)
 
 							if offcurveAsStartPoint and hasOffcurveAsStartPoint(thisLayer):
-								layersWithOffcurveAsStartpoint.append(thisLayer)
+								if reportLayers:
+									layersWithOffcurveAsStartpoint.append(thisLayer)
+								elif not thisGlyph.name in layersWithOffcurveAsStartpoint:
+									layersWithOffcurveAsStartpoint.append(thisGlyph.name)
 								print("  ❌ Off-curve as start point on layer: %s" % thisLayer.name)
 								
 							if openPaths:
@@ -652,9 +712,16 @@ class PathProblemFinder( object ):
 									if nameStart in thisGlyph.name:
 										shouldProcess = False
 								if shouldProcess and hasOpenPaths(thisLayer):
-									layersWithOpenPaths.append(thisLayer)
+									if reportLayers:
+										layersWithOpenPaths.append(thisLayer)
+									elif not thisGlyph.name in layersWithOpenPaths:
+										layersWithOpenPaths.append(thisGlyph.name)
 									print("  ❌ Open path(s) on layer: %s" % thisLayer.name)
 								
+			# take time:
+			end = timer()
+			timereport = reportTimeInNaturalLanguage( end - start )
+			print("Time for analysis: %s"%timereport)
 			self.w.status.set("Building report…")
 	
 			if layersWithZeroHandles or layersWithOutwardHandles or layersWithLargeHandles or layersWithShortHandles or layersWithAngledHandles or layersWithShallowCurve or layersWithShallowCurveBBox or layersWithAlmostOrthogonalLines or layersWithShortLines or layersWithBadOutlineOrder or layersWithTwoPointOutlines or layersWithOpenPaths:
@@ -666,25 +733,24 @@ class PathProblemFinder( object ):
 				else:
 					tab.text = "\n"
 				
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithZeroHandles, "Zero Handles", tab, thisFont)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithOutwardHandles, "Outward Handles", tab, thisFont)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithLargeHandles, "Large Handles", tab, thisFont)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithShortHandles, "Short Handles", tab, thisFont)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithAngledHandles, "Angled Handles", tab, thisFont)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithShallowCurve, "Shallow Curve", tab, thisFont)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithShallowCurveBBox, "Small Curve BBox", tab, thisFont)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithAlmostOrthogonalLines, "Almost Orthogonal Lines", tab, thisFont)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithShortLines, "Short Line Segments", tab, thisFont)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithBadOutlineOrder, "Bad Outline Order or Orientation", tab, thisFont)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithTwoPointOutlines, "Two-Point Outlines", tab, thisFont)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithOffcurveAsStartpoint, "Off-curve as start point", tab, thisFont)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithOpenPaths, "Open Paths", tab, thisFont)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithZeroHandles, "Zero Handles", tab, thisFont, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithOutwardHandles, "Outward Handles", tab, thisFont, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithLargeHandles, "Large Handles", tab, thisFont, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithShortHandles, "Short Handles", tab, thisFont, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithAngledHandles, "Angled Handles", tab, thisFont, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithShallowCurve, "Shallow Curve", tab, thisFont, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithShallowCurveBBox, "Small Curve BBox", tab, thisFont, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithAlmostOrthogonalLines, "Almost Orthogonal Lines", tab, thisFont, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithShortLines, "Short Line Segments", tab, thisFont, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithBadOutlineOrder, "Bad Outline Order or Orientation", tab, thisFont, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithTwoPointOutlines, "Two-Point Outlines", tab, thisFont, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithOffcurveAsStartpoint, "Off-curve as start point", tab, thisFont, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithOpenPaths, "Open Paths", tab, thisFont, reportLayers)
 				
 				Glyphs.showNotification( 
 					u"%s: found path problems" % (thisFont.familyName),
-					u"Path Problem Finder found issues on %i layers. Details in Macro Window." % countOfLayers,
+					u"Path Problem Finder found %i issues in %i glyphs. Details in Macro Window." % (countOfLayers, glyphCount),
 					)
-				
 			else:
 				# Final report:
 				Glyphs.showNotification( 
@@ -693,8 +759,13 @@ class PathProblemFinder( object ):
 					)
 
 			self.w.progress.set(100)
-			self.w.status.set("✅ Done.")
-			print("\nDone.")
+
+			# take time:
+			end = timer()
+			timereport = reportTimeInNaturalLanguage( end - start )
+			
+			self.w.status.set("✅ Done. %s." % timereport)
+			print("\nTotal time elapsed: %s.\nDone." % timereport)
 
 		except Exception as e:
 			# brings macro window to front and reports error:
@@ -704,7 +775,7 @@ class PathProblemFinder( object ):
 			print(traceback.format_exc())
 			
 			
-	def reportInTabAndMacroWindow(self, layerList, title, tab, font):
+	def reportInTabAndMacroWindow(self, layerList, title, tab, font, reportLayers=True):
 		if layerList and font:
 			
 			# determine master ID:
@@ -713,26 +784,42 @@ class PathProblemFinder( object ):
 			
 			# report in Tab:
 			tabtext = "%s:"%title
-			# split description into layers, so we do not use layers
-			# (simply adding to tab.text will reset all layers to the current master)
-			for letter in tabtext:
-				g = font.glyphs[letter]
-				if g:
-					l = g.layers[masterID]
-					if l:
-						tab.layers.append(l)
-			tab.layers.append(GSControlLayer.newline())
-			for layer in layerList:
-				tab.layers.append(layer)
-			for i in range(2):
-				tab.layers.append(GSControlLayer.newline())
 			
-			# report in Macro Window:
-			print(
-				"\n🔠 %s:\n%s" % (
-					title,
-					"/"+"/".join(set([l.parent.name for l in layerList]))
-				))
+			if reportLayers:
+				# split description into layers, so we do not use layers
+				# (simply adding to tab.text will reset all layers to the current master)
+				for letter in tabtext:
+					g = font.glyphs[letter]
+					if g:
+						l = g.layers[masterID]
+						if l:
+							tab.layers.append(l)
+				tab.layers.append(GSControlLayer.newline())
+				for layer in layerList:
+					tab.layers.append(layer)
+				for i in range(2):
+					tab.layers.append(GSControlLayer.newline())
+				
+				# report in Macro Window:
+				print(
+					"\n🔠 %s:\n%s" % (
+						title,
+						"/"+"/".join(set([l.parent.name for l in layerList])),
+					))
+			else:
+				# list of glyph names rather than layers:
+				tab.text += "\n%s\n"%tabtext
+				escapedGlyphNames = "/" + "/".join(layerList)
+				tab.text += escapedGlyphNames
+				tab.text += "\n\n"
+				
+				# report in Macro Window:
+				print(
+					"\n🔠 %s:\n%s" % (
+						title,
+						escapedGlyphNames,
+					))
+			
 		return len(layerList)
 		
 		
