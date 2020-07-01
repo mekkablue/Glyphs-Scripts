@@ -344,7 +344,7 @@ htmlContent = """<head>
 		<select size="1" id="fontFamilySelector" name="fontFamilySelector" onchange="changeFont()">
 			<!-- moreOptions -->
 		</select>
-		<div class="wrapper">
+		<div class="wrapper" spellcheck="false">
 			<input type="text" value="Type Text Here." id="textInput" onclick="this.select();" onkeyup="updateParagraph()" />
 		</div>
 	</div>
