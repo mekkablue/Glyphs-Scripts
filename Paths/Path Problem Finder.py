@@ -730,22 +730,26 @@ class PathProblemFinder( object ):
 				if not tab or not reuseTab:
 					# opens new Edit tab:
 					tab = thisFont.newTab()
-				else:
-					tab.text = "\n"
+				layers = []
 				
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithZeroHandles, "Zero Handles", tab, thisFont, reportLayers)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithOutwardHandles, "Outward Handles", tab, thisFont, reportLayers)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithLargeHandles, "Large Handles", tab, thisFont, reportLayers)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithShortHandles, "Short Handles", tab, thisFont, reportLayers)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithAngledHandles, "Angled Handles", tab, thisFont, reportLayers)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithShallowCurve, "Shallow Curve", tab, thisFont, reportLayers)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithShallowCurveBBox, "Small Curve BBox", tab, thisFont, reportLayers)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithAlmostOrthogonalLines, "Almost Orthogonal Lines", tab, thisFont, reportLayers)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithShortLines, "Short Line Segments", tab, thisFont, reportLayers)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithBadOutlineOrder, "Bad Outline Order or Orientation", tab, thisFont, reportLayers)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithTwoPointOutlines, "Two-Point Outlines", tab, thisFont, reportLayers)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithOffcurveAsStartpoint, "Off-curve as start point", tab, thisFont, reportLayers)
-				countOfLayers += self.reportInTabAndMacroWindow(layersWithOpenPaths, "Open Paths", tab, thisFont, reportLayers)
+				currentMaster = thisFont.masters[tab.masterIndex]
+				masterID = currentMaster.id
+				
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithZeroHandles, "Zero Handles", layers, thisFont, masterID, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithOutwardHandles, "Outward Handles", layers, thisFont, masterID, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithLargeHandles, "Large Handles", layers, thisFont, masterID, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithShortHandles, "Short Handles", layers, thisFont, masterID, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithAngledHandles, "Angled Handles", layers, thisFont, masterID, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithShallowCurve, "Shallow Curve", layers, thisFont, masterID, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithShallowCurveBBox, "Small Curve BBox", layers, thisFont, masterID, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithAlmostOrthogonalLines, "Almost Orthogonal Lines", layers, thisFont, masterID, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithShortLines, "Short Line Segments", layers, thisFont, masterID, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithBadOutlineOrder, "Bad Outline Order or Orientation", layers, thisFont, masterID, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithTwoPointOutlines, "Two-Point Outlines", layers, thisFont, masterID, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithOffcurveAsStartpoint, "Off-curve as start point", layers, thisFont, masterID, reportLayers)
+				countOfLayers += self.reportInTabAndMacroWindow(layersWithOpenPaths, "Open Paths", layers, thisFont, masterID, reportLayers)
+				
+				tab.layers = layers
 				
 				Glyphs.showNotification( 
 					u"%s: found path problems" % (thisFont.familyName),
@@ -775,13 +779,8 @@ class PathProblemFinder( object ):
 			print(traceback.format_exc())
 			
 			
-	def reportInTabAndMacroWindow(self, layerList, title, tab, font, reportLayers=True):
+	def reportInTabAndMacroWindow(self, layerList, title, layers, font, masterID, reportLayers=True):
 		if layerList and font:
-			
-			# determine master ID:
-			currentMaster = font.masters[tab.masterIndex]
-			masterID = currentMaster.id
-			
 			# report in Tab:
 			tabtext = "%s:"%title
 			
@@ -793,12 +792,12 @@ class PathProblemFinder( object ):
 					if g:
 						l = g.layers[masterID]
 						if l:
-							tab.layers.append(l)
-				tab.layers.append(GSControlLayer.newline())
+							layers.append(l)
+				layers.append(GSControlLayer.newline())
 				for layer in layerList:
-					tab.layers.append(layer)
+					layers.append(layer)
 				for i in range(2):
-					tab.layers.append(GSControlLayer.newline())
+					layers.append(GSControlLayer.newline())
 				
 				# report in Macro Window:
 				print(
