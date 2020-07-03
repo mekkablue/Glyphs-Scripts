@@ -612,9 +612,14 @@ class PathProblemFinder( object ):
 				layersWithTwoPointOutlines = []
 				layersWithOpenPaths = []
 				
+				progressSteps = glyphCount / 30
+				progressCounter = 0
 				for i, thisGlyph in enumerate(glyphs):
 					# status update:
-					self.w.progress.set(100*i/glyphCount)
+					if progressCounter > progressSteps:
+						self.w.progress.set(100 * i / glyphCount)
+						progressCounter = 0
+					progressCounter += 1
 					self.w.status.set("Processing %s...\n" % thisGlyph.name)
 					print("%i. %s" % (i+1,thisGlyph.name))
 					
