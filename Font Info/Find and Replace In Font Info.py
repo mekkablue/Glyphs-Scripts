@@ -110,7 +110,7 @@ class FindAndReplaceInFontInfo( object ):
 			print(traceback.format_exc())
 			return False
 	
-	def replaceInName(self, name, searchFor, replaceWith, completeWordsOnly=False, reportString=""):
+	def replaceInName(self, name, searchFor, replaceWith, completeWordsOnly=False, reportString="", avoidExcessiveWhiteSpace=True):
 		newName = name.strip()
 		if completeWordsOnly:
 			particles = newName.split(" ")
@@ -120,6 +120,13 @@ class FindAndReplaceInFontInfo( object ):
 			newName = " ".join(particles)
 		else:
 			newName = name.replace(searchFor,replaceWith).strip()
+		
+		if avoidExcessiveWhiteSpace:
+			# remove leading and trailing white space:
+			newName = newName.strip()
+			# remove multiple spaces:
+			while "  " in newName:
+				newName = newName.replace("  ", " ")
 		
 		if newName != name:
 			print("✅ %s: ‘%s’ → ‘%s’" % (reportString, name, newName))
