@@ -179,6 +179,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Remove Custom Parameters:** Removes all parameters of one kind from Font Info > Font, Masters, Instances. Useful if you have many masters or instances. *Needs Vanilla.*
 * **Set Preferred Names (Name IDs 16 and 17)  for Width Variants:** Sets Preferred Names custom parameters (Name IDs 16 and 17) for all instances, so that width variants will appear in separate menus in Adobe apps. 
 * **Set Style Linking:** Attempts to set the Bold/Italic bits.
+* **Set Subscript and Superscript Parameters:** Measures your superior and inferior figures and derives subscript/superscript X/Y offset/size parameters. *Needs Vanilla.*
 * **Set WWS Names (Name IDs 21 and 22):** Sets WWS custom parameters (Name IDs 21 and 22) for all instances where necessary: Puts all info except RIBBI into the WWSFamilyName, and only keeps RIBBI for the WWSSubfamilyName. 
 * **Style Renamer:** Batch-add a name particle to your style names, or batch-remove it from them. Useful for switching all your styles from italic to roman naming and vice versa. *Needs Vanilla.*
 * **Vertical Metrics Manager:** Calculate and insert values for OS/2 usWin and sTypo, hhea and fsSelection bit 7 (for preferring sTypo Metrics over usWin metrics). *Needs Vanilla.*
