@@ -36,7 +36,7 @@ class VerticalMetricsManager( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 330
-		windowHeight = 390
+		windowHeight = 410
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -110,6 +110,10 @@ class VerticalMetricsManager( object ):
 		self.w.includeAllMasters.getNSButton().setToolTip_("If checked, all masters will be measured. If unchecked, only the current master will be measured. Since vertical metrics should be the same throughout all masters, it also makes sense to measure on all masters.")
 		linePos += lineHeight
 		
+		self.w.respectMarkToBaseOffset = vanilla.CheckBox( (inset, linePos, -inset, 20), "Include mark-to-base offset for OS/2 usWin", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.respectMarkToBaseOffset.getNSButton().setToolTip_("If checked will calculate the maximum possible height that can be reached with top-anchored marks, and the lowest depth with bottom-anchored marks, and use those values for the OS/2 usWin values. Strongly recommended for making fonts work on Windows if they rely on mark-to-base positioning (e.g. Arabic). Respects the ‘Limit to Script’ setting.")
+		linePos += lineHeight
+		
 		self.w.ignoreNonExporting = vanilla.CheckBox( (inset, linePos, -inset, 20), u"Ignore non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.ignoreNonExporting.getNSButton().setToolTip_("If checked, glyphs that do not export will be excluded from measuring. Recommended. (Ignored for calculating the OS/2 usWin values.)")
 		linePos += lineHeight
@@ -119,9 +123,9 @@ class VerticalMetricsManager( object ):
 		linePos += lineHeight
 		
 		self.w.preferScript = vanilla.CheckBox( (inset, linePos, inset+110, 20), u"Limit to script:", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.preferScript.getNSButton().setToolTip_("If checked, only measures glyphs belonging to the selected writing system. Can be combined with the other Limit options. (Ignored for calculating the OS/2 usWin values.)")
+		self.w.preferScript.getNSButton().setToolTip_("If checked, only measures glyphs belonging to the selected writing system. Can be combined with the other Limit options. (Ignored for calculating the OS/2 usWin values, but respected for mark-to-base calculation.)")
 		self.w.preferScriptPopup = vanilla.PopUpButton( (inset+115, linePos+1, -inset-25, 17), (u"latin", u"greek"), sizeStyle='small', callback=self.SavePreferences )
-		self.w.preferScriptPopup.getNSPopUpButton().setToolTip_("Choose a writing system ('script') you want the measurements to be limited to. May make sense to ignore other scripts if the font is intended only for e.g. Cyrillic.")
+		self.w.preferScriptPopup.getNSPopUpButton().setToolTip_("Choose a writing system ('script') you want the measurements to be limited to. May make sense to ignore other scripts if the font is intended only for e.g. Cyrillic. Does not apply to OS/2 usWin")
 		self.w.preferScriptUpdate = vanilla.SquareButton( (-inset-20, linePos+1, -inset, 18), u"↺", sizeStyle='small', callback=self.update )
 		self.w.preferScriptUpdate.getNSButton().setToolTip_("Update the script popup to the left with all scripts (writing systems) found in the current font.")
 		linePos += lineHeight
@@ -134,7 +138,7 @@ class VerticalMetricsManager( object ):
 		self.w.preferCategoryUpdate.getNSButton().setToolTip_("Update the category popup to the left with all glyph categories found in the current font.")
 		linePos += lineHeight
 		
-		self.w.allOpenFonts = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Read out and apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.allOpenFonts = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"⚠️ Read out and apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.allOpenFonts.getNSButton().setToolTip_(u"If activated, does not only measure the frontmost font, but all open fonts. Careful: when you press the Apply button, will also apply it to all open fonts. Useful if you have all font files for a font family open.")
 		linePos += lineHeight
 		
@@ -169,6 +173,7 @@ class VerticalMetricsManager( object ):
 			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.preferScript"] = self.w.preferScript.get()
 			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.ignoreNonExporting"] = self.w.ignoreNonExporting.get()
 			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.includeAllMasters"] = self.w.includeAllMasters.get()
+			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.respectMarkToBaseOffset"] = self.w.respectMarkToBaseOffset.get()
 			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.round"] = self.w.round.get()
 			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.roundValue"] = self.w.roundValue.get()
 			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.useTypoMetrics"] = self.w.useTypoMetrics.get()
@@ -197,6 +202,7 @@ class VerticalMetricsManager( object ):
 			Glyphs.registerDefault("com.mekkablue.VerticalMetricsManager.preferScript", 0)
 			Glyphs.registerDefault("com.mekkablue.VerticalMetricsManager.ignoreNonExporting", 1)
 			Glyphs.registerDefault("com.mekkablue.VerticalMetricsManager.includeAllMasters", 1)
+			Glyphs.registerDefault("com.mekkablue.VerticalMetricsManager.respectMarkToBaseOffset", 0)
 			Glyphs.registerDefault("com.mekkablue.VerticalMetricsManager.round", 1)
 			Glyphs.registerDefault("com.mekkablue.VerticalMetricsManager.roundValue", 10)
 			Glyphs.registerDefault("com.mekkablue.VerticalMetricsManager.useTypoMetrics", 1)
@@ -215,6 +221,7 @@ class VerticalMetricsManager( object ):
 			self.w.preferScript.set( Glyphs.defaults["com.mekkablue.VerticalMetricsManager.preferScript"] )
 			self.w.ignoreNonExporting.set( Glyphs.defaults["com.mekkablue.VerticalMetricsManager.ignoreNonExporting"] )
 			self.w.includeAllMasters.set( Glyphs.defaults["com.mekkablue.VerticalMetricsManager.includeAllMasters"] )
+			self.w.respectMarkToBaseOffset.set( Glyphs.defaults["com.mekkablue.VerticalMetricsManager.respectMarkToBaseOffset"] )
 			self.w.round.set( Glyphs.defaults["com.mekkablue.VerticalMetricsManager.round"] )
 			self.w.roundValue.set( Glyphs.defaults["com.mekkablue.VerticalMetricsManager.roundValue"] )
 			self.w.useTypoMetrics.set( Glyphs.defaults["com.mekkablue.VerticalMetricsManager.useTypoMetrics"] )
@@ -271,6 +278,9 @@ class VerticalMetricsManager( object ):
 		includeAllMasters = Glyphs.defaults["com.mekkablue.VerticalMetricsManager.includeAllMasters"]
 		shouldRound = Glyphs.defaults["com.mekkablue.VerticalMetricsManager.round"]
 		roundValue = int(Glyphs.defaults["com.mekkablue.VerticalMetricsManager.roundValue"])
+		respectMarkToBaseOffset = Glyphs.defaults["com.mekkablue.VerticalMetricsManager.respectMarkToBaseOffset"]
+		shouldLimitToScript = Glyphs.defaults["com.mekkablue.VerticalMetricsManager.preferScript"]
+		selectedScript = self.w.preferScriptPopup.getTitle()
 
 		# win measurements:
 		if sender == self.w.winUpdate:
@@ -278,14 +288,21 @@ class VerticalMetricsManager( object ):
 			lowest, highest = 0.0, 0.0
 			lowestGlyph, highestGlyph = None, None
 			
+			# respectMarkToBaseOffset:
+			highestTopAnchor, lowestBottomAnchor = 0.0, 1.0
+			highestTopAnchorGlyph, lowestBottomAnchorGlyph = None, None
+			largestTopMark, largestBottomMark = 0.0, 0.0
+			largestTopMarkGlyph, largestBottomMarkGlyph = None, None
+			
+			fontReport = ""
 			for i,thisFont in enumerate(theseFonts):
 				if allOpenFonts:
 					fontReport = "%i. %s, " % (i+1, thisFont.familyName)
-				else:
-					fontReport = ""
 				currentMaster = thisFont.selectedFontMaster
 				for thisGlyph in thisFont.glyphs:
 					if thisGlyph.export or not ignoreNonExporting:
+						scriptCheckOK = not shouldLimitToScript or thisGlyph.script == selectedScript # needed for respectMarkToBaseOffset
+						
 						for thisLayer in thisGlyph.layers:
 							belongsToCurrentMaster = thisLayer.associatedFontMaster() == currentMaster
 							if belongsToCurrentMaster or includeAllMasters or allOpenFonts:
@@ -298,6 +315,38 @@ class VerticalMetricsManager( object ):
 									if highestPointInLayer > highest:
 										highest = highestPointInLayer
 										highestGlyph = "%s%s, layer: %s" % (fontReport, thisGlyph.name, thisLayer.name)
+									
+									# respectMarkToBaseOffset:
+									if respectMarkToBaseOffset and scriptCheckOK:
+										if thisGlyph.category == "Mark":
+											topAnchors = [a for a in thisLayer.anchorsTraversingComponents() if a.name=="_top"]
+											if topAnchors:
+												topAnchor = topAnchors[0]
+												topSpan = highestPointInLayer - topAnchor.y
+												if topSpan > largestTopMark:
+													largestTopMark = topSpan
+													largestTopMarkGlyph = "%s%s, layer: %s" % (fontReport, thisGlyph.name, thisLayer.name)
+											bottomAnchors = [a for a in thisLayer.anchorsTraversingComponents() if a.name=="_bottom"]
+											if bottomAnchors:
+												bottomAnchor = bottomAnchors[0]
+												bottomSpan = abs(lowestPointInLayer - bottomAnchor.y)
+												if bottomSpan > largestBottomMark:
+													largestBottomMark = bottomSpan
+													largestBottomMarkGlyph = "%s%s, layer: %s" % (fontReport, thisGlyph.name, thisLayer.name)
+										else:
+											topAnchors = [a for a in thisLayer.anchorsTraversingComponents() if a.name=="top"]
+											if topAnchors:
+												topAnchor = topAnchors[0]
+												if topAnchor.y > highestTopAnchor:
+													highestTopAnchor = topAnchor.y
+													highestTopAnchorGlyph = "%s%s, layer: %s" % (fontReport, thisGlyph.name, thisLayer.name)
+											bottomAnchors = [a for a in thisLayer.anchorsTraversingComponents() if a.name=="bottom"]
+											if bottomAnchors:
+												bottomAnchor = bottomAnchors[0]
+												if bottomAnchor.y < lowestBottomAnchor:
+													lowestBottomAnchor = bottomAnchor.y
+													lowestBottomAnchorGlyph = "%s%s, layer: %s" % (fontReport, thisGlyph.name, thisLayer.name)
+										
 			
 			print("Highest relevant glyph:")
 			print("- %s (%i)" % (highestGlyph, highest))
@@ -305,6 +354,29 @@ class VerticalMetricsManager( object ):
 			print("Lowest relevant glyph:")
 			print("- %s (%i)" % (lowestGlyph, lowest))
 			print()
+			
+			if respectMarkToBaseOffset:
+				highestMarkToBase = highestTopAnchor+largestTopMark
+				lowestMarkToBase = lowestBottomAnchor-largestBottomMark
+				
+				print("Highest top anchor:")
+				print("- %s (%i)" % (highestTopAnchorGlyph, highestTopAnchor))
+				print("Largest top mark span (_top to top edge):")
+				print("- %s (%i)" % (largestTopMarkGlyph, largestTopMark))
+				print("Highest possible mark-to-base: %i + %i = %i" % (highestTopAnchor, largestTopMark, highestMarkToBase))
+				print()
+				print("Lowest bottom anchor:")
+				print("- %s (%i)" % (lowestBottomAnchorGlyph, lowestBottomAnchor))
+				print("Largest bottom mark span (_bottom to bottom edge):")
+				print("- %s (%i)" % (largestBottomMarkGlyph, largestBottomMark))
+				print("Lowest possible mark-to-base: %i - %i = %i" % (lowestBottomAnchor, largestBottomMark, lowestMarkToBase))
+				print()
+				
+				if lowestMarkToBase < lowest:
+					lowest = lowestMarkToBase
+				if highestMarkToBase > highest:
+					highest = highestMarkToBase
+				
 		
 			if shouldRound:
 				highest = roundUpByValue(highest,roundValue)
@@ -342,6 +414,9 @@ class VerticalMetricsManager( object ):
 			shouldLimitToCategory = Glyphs.defaults["com.mekkablue.VerticalMetricsManager.preferCategory"]
 			shouldLimitToScript = Glyphs.defaults["com.mekkablue.VerticalMetricsManager.preferScript"]
 			shouldLimitToSelectedGlyphs = Glyphs.defaults["com.mekkablue.VerticalMetricsManager.preferSelectedGlyphs"]
+			selectedCategory = self.w.preferCategoryPopup.getTitle()
+			selectedScript = self.w.preferScriptPopup.getTitle()
+			
 			if shouldLimitToSelectedGlyphs:
 				selectedGlyphNames = [l.parent.name for l in frontmostFont.selectedLayers]
 				if not selectedGlyphNames:
@@ -363,8 +438,8 @@ class VerticalMetricsManager( object ):
 				# ascender & descender calculation:
 				for thisGlyph in thisFont.glyphs:
 					exportCheckOK = not ignoreNonExporting or thisGlyph.export
-					categoryCheckOK = not shouldLimitToCategory or thisGlyph.category == self.w.preferCategoryPopup.getTitle()
-					scriptCheckOK = not shouldLimitToScript or thisGlyph.script == self.w.preferScriptPopup.getTitle()
+					categoryCheckOK = not shouldLimitToCategory or thisGlyph.category == selectedCategory
+					scriptCheckOK = not shouldLimitToScript or thisGlyph.script == selectedScript
 					selectedCheckOK = not shouldLimitToSelectedGlyphs or thisGlyph.name in selectedGlyphNames
 				
 					if exportCheckOK and categoryCheckOK and scriptCheckOK and selectedCheckOK:
