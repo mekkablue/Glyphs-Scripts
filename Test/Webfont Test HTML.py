@@ -5,6 +5,7 @@ __doc__="""
 Create a Test HTML for the current font inside the current Webfont Export folder, or for the current Glyphs Project in the project’s export path.
 """
 
+from GlyphsApp import *
 from AppKit import NSBundle, NSClassFromString
 from os import system
 import codecs
