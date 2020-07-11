@@ -241,19 +241,21 @@ class NewTabWithTransformedComponents( object ):
 							affectedGlyphCount += 1
 							print()
 			
-				# opens new Edit tab:
-				if reuseTab and thisFont.currentTab:
-					newTab = thisFont.currentTab
-					newTab.layers = ()
-				else:
-					newTab = thisFont.newTab()
+				allLayers = []
 				for foundLayers in (layersWithScaledComponents, layersWithRotatedComponents, layersWithMirroredComponents, layersWithShiftedComponents):
 					if foundLayers:
 						for foundLayer in foundLayers:
-							newTab.layers.append( foundLayer )
+							allLayers.append( foundLayer )
 						for i in range(2):
-							newTab.layers.append( GSControlLayer.newline() )
-	
+							allLayers.append( GSControlLayer.newline() )
+				if len(allLayers) > 0:
+					# opens new Edit tab:
+					if reuseTab and thisFont.currentTab:
+						newTab = thisFont.currentTab
+					else:
+						newTab = thisFont.newTab()
+					newTab.layers = allLayers
+
 			self.w.progress.set(100)
 			
 			# Final report:
