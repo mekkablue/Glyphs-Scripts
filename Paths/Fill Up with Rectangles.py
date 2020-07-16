@@ -5,6 +5,7 @@ __doc__="""
 Inserts Rectangles in all empty, selected glyphs. Verbose report in Macro Window.
 """
 
+from GlyphsApp import *
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 
