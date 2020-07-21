@@ -6,6 +6,7 @@ Replaces strings in anchor names of all selected glyphs.
 """
 
 import vanilla
+from GlyphsApp import Glyphs
 
 
 class SearchAndReplaceInAnchorNames( object ):
