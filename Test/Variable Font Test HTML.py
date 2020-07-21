@@ -5,6 +5,7 @@ __doc__="""
 Create a Test HTML for the current font inside the current Variation Font Export folder.
 """
 
+from GlyphsApp import *
 from os import system
 from AppKit import NSClassFromString, NSBundle
 import codecs
@@ -374,7 +375,7 @@ def allOTVarSliders(thisFont):
 	axisDict = generateAxisDict(thisFont)
 
 	# go through *all* virtual masters:
-	virtualMasters = [cp for cp in Font.customParameters if cp.name=="Virtual Master"]
+	virtualMasters = [cp for cp in thisFont.customParameters if cp.name=="Virtual Master"]
 	for virtualMaster in virtualMasters:
 		for axis in virtualMaster.value:
 			name = axis["Axis"]
