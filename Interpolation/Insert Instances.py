@@ -6,6 +6,7 @@ __doc__="""
 Inserts instances, based on the Luc(as), Pablo, and Maciej algorithms.
 """
 
+from GlyphsApp import *
 import vanilla
 
 rangemin = 3

@@ -5,6 +5,7 @@ __doc__="""
 Removes all parameters of one kind from Font Info > Font, Masters, Instances. Useful if you have many masters or instances.
 """
 
+from GlyphsApp import *
 import vanilla
 
 class RemoveCustomParameters( object ):
