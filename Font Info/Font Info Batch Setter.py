@@ -12,7 +12,7 @@ class FontInfoBatchSetter( object ):
 		# Window 'self.w':
 		windowWidth  = 350
 		windowHeight = 300
-		windowWidthResize  = 300 # user can resize width by this value
+		windowWidthResize  = 1000 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			( windowWidth, windowHeight ), # default window size
@@ -54,7 +54,11 @@ class FontInfoBatchSetter( object ):
 		self.w.setVersion = vanilla.CheckBox( (inset, linePos-1, column, 20), u"Version:", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.versionMajor = vanilla.EditText( (inset+column, linePos, 50, 19), "1", callback=self.SavePreferences, sizeStyle='small' )
 		self.w.versionDot = vanilla.TextBox( (inset+151, linePos+2, 8, 18), u".", sizeStyle='regular', selectable=True )
-		self.w.versionMinor = vanilla.EditText( (inset+160, linePos, -inset-70, 19), "005", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.versionMinor = vanilla.EditText( (inset+160, linePos, -inset-113, 19), "005", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.versionMinorDecrease = vanilla.SquareButton( (-inset-110, linePos, -inset-90, 19), u"−", sizeStyle='small', callback=self.changeMinVersion )
+		self.w.versionMinorDecrease.getNSButton().setToolTip_("Decrease the version number by 0.001.")
+		self.w.versionMinorIncrease = vanilla.SquareButton( (-inset-91, linePos, -inset-71, 19), u"+", sizeStyle='small', callback=self.changeMinVersion )
+		self.w.versionMinorIncrease.getNSButton().setToolTip_("Increase the version number by 0.001.")
 		self.w.minVersionButton = vanilla.SquareButton( (-inset-60, linePos, -inset, 18), u"⟳ 1.005", sizeStyle='small', callback=self.setVersion1005 )
 		self.w.minVersionButton.getNSButton().setToolTip_(u"Resets the version to 1.005. Some (old?) Microsoft apps may consider fonts with smaller versions as unfinished and not display them in their font menu.")
 		linePos += lineHeight
@@ -96,6 +100,20 @@ class FontInfoBatchSetter( object ):
 		self.w.open()
 		self.w.makeKey()
 	
+	def changeMinVersion(self, sender=None):
+		valueField = self.w.versionMinor
+		currentValue = int(valueField.get())
+		if sender == self.w.versionMinorDecrease:
+			currentValue -= 1
+			if currentValue < 0:
+				currentValue = 0
+		if sender == self.w.versionMinorIncrease:
+			currentValue += 1
+			if currentValue > 999:
+				currentValue = 999
+		valueField.set("%03i"%currentValue)
+		self.SavePreferences()
+	
 	def updateUI(self, sender=None):
 		self.w.designer.enable(self.w.setDesigner.get())
 		self.w.designerURL.enable(self.w.setDesignerURL.get())
@@ -127,6 +145,13 @@ class FontInfoBatchSetter( object ):
 				self.w.setCopyright.get()
 			) and applySettingsEnable
 		)
+	
+	def updateTooltips(self, sender=None):
+		self.w.designer.getNSTextField().setToolTip_(self.w.designer.get())
+		self.w.designerURL.getNSTextField().setToolTip_(self.w.designerURL.get())
+		self.w.manufacturer.getNSTextField().setToolTip_(self.w.manufacturer.get())
+		self.w.manufacturerURL.getNSTextField().setToolTip_(self.w.manufacturerURL.get())
+		self.w.copyright.getNSTextField().setToolTip_(self.w.copyright.get())
 	
 	def setNoon(self, sender=None):
 		# Get current date:
@@ -167,6 +192,7 @@ class FontInfoBatchSetter( object ):
 			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.versionMajor"] = self.w.versionMajor.get()
 			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.versionMinor"] = "%03i" % int(self.w.versionMinor.get())
 			
+			self.updateTooltips()
 			self.updateUI()
 			return True
 		except:
@@ -212,6 +238,7 @@ class FontInfoBatchSetter( object ):
 			self.w.versionMajor.set( Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.versionMajor"] )
 			self.w.versionMinor.set( "%03i" % int(Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.versionMinor"]) )
 			
+			self.updateTooltips()
 			self.updateUI()
 			return True
 		except:
