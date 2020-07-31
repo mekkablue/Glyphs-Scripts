@@ -1,21 +1,38 @@
-#MenuTitle: Add All Color Layers to Selected Glyphs
+#MenuTitle: Add All Missing Color Layers to Selected Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Adds a duplicate of the fallback layer for each color defined in the Color Palettes parameter, for each selected glyph.
+Adds a duplicate of the fallback (master) layer for each color defined in the Color Palettes parameter, for each selected glyph.
 """
+
+def glyphAlreadyHasLayerForThisColor( glyph, mID, colorIndex):
+	for layer in glyph.layers:
+		if layer.associatedMasterId == mID:
+			try:
+				# GLYPHS 3
+				if layer.isColorPaletteLayer() and layer.attributeForKey_("colorPalette") == i:
+					return True
+			except:
+				# GLYPHS 2
+				if layer.name == "Color %i" % colorIndex:
+					return True
+	return False
 
 def process( thisGlyph, mID, paletteSize ):
 	for i in range(paletteSize):
-		newLayer = thisGlyph.layers[mID].copy()
-		try:
-			# GLYPHS 3
-			newLayer.setColorPaletteLayer_(1)
-			newLayer.setAttribute_forKey_(i, "colorPalette")
-		except:
-			# GLYPHS 2
-			newLayer.name = "Color %i" % i
-		thisGlyph.layers.append(newLayer)
+		if glyphAlreadyHasLayerForThisColor( thisGlyph, mID, i ):
+			print("⚠️ Skipping Color %i: already exists"%i)
+		else:
+			newLayer = thisGlyph.layers[mID].copy()
+			try:
+				# GLYPHS 3
+				newLayer.setColorPaletteLayer_(1)
+				newLayer.setAttribute_forKey_(i, "colorPalette")
+			except:
+				# GLYPHS 2
+				newLayer.name = "Color %i" % i
+			thisGlyph.layers.append(newLayer)
+			print("✅ Added: Color %i"%i)
 
 thisFont = Glyphs.font # frontmost font
 selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
@@ -35,7 +52,7 @@ if not CPAL:
 if CPAL:
 	paletteSize = len(CPAL[0])
 	for thisGlyph in selectedGlyphs:
-		print("Processing %s" % thisGlyph.name)
+		print("\n🔠 %s" % thisGlyph.name)
 		process( thisGlyph, mID, paletteSize )
 else:
 	Message(
