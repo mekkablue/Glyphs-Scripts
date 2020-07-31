@@ -14,15 +14,29 @@ def process( thisGlyph ):
 	for i in range(len(thisGlyph.layers))[::-1]:
 		currentLayer = thisGlyph.layers[i]
 		if not currentLayer.layerId == thisFontMasterID: # not the master layer
-			if not currentLayer.name.startswith("Color "):
+			try:
+				# GLYPHS 3
+				isColorLayer = currentLayer.isColorPaletteLayer()
+			except:
+				# GLYPHS 2
+				isColorLayer = currentLayer.name.startswith("Color ")
+			if not isColorLayer:
 				currentLayerID = currentLayer.layerId
-				thisGlyph.removeLayerForKey_(currentLayerID)
+				print("%s: removed non-Color layer ‘%s’" % (thisGlyph.name, currentLayer.name))
+				try:
+					# GLYPHS 3
+					thisGlyph.removeLayerForId_(currentLayerID)
+				except:
+					# GLYPHS 2
+					thisGlyph.removeLayerForKey_(currentLayerID)
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
+Glyphs.clearLog()
+print("Removing non-Color layers in %i glyphs:" % len(listOfSelectedLayers) )
 for thisLayer in listOfSelectedLayers:
 	thisGlyph = thisLayer.parent
-	print("Processing", thisGlyph.name)
+	print("\nProcessing", thisGlyph.name)
 	thisGlyph.beginUndo() # begin undo grouping
 	process( thisGlyph )
 	thisGlyph.endUndo()   # end undo grouping

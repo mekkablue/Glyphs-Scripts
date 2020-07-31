@@ -13,9 +13,15 @@ listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyph
 def process( thisGlyph ):
 	currentLayer = thisGlyph.layers[thisFontMaster.id]
 	print(currentLayer)
-	currentLayer.paths = None
-	currentLayer.hints = None
-	currentLayer.components = None
+	try:
+		# GLYPHS 3
+		currentLayer.clear()
+	except:
+		# GLYPHS 2
+		currentLayer.paths = None
+		currentLayer.hints = None
+		currentLayer.components = None
+		
 	for thisID in otherMasterIDs:
 		sourceLayer = thisGlyph.layers[thisID]
 		sourcePaths = sourceLayer.paths
