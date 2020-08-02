@@ -851,12 +851,19 @@ Glyphs.clearLog()
 GLYPHSAPPVERSION = NSBundle.bundleForClass_(NSClassFromString("GSMenu")).infoDictionary().objectForKey_("CFBundleShortVersionString")
 appVersionHighEnough = not GLYPHSAPPVERSION.startswith("1.")
 
+optionKeyFlag = 524288
+optionKeyPressed = NSEvent.modifierFlags() & optionKeyFlag == optionKeyFlag
+shouldCreateSamsa = False
+if optionKeyPressed:
+	shouldCreateSamsa = True
+
 if appVersionHighEnough:
 	firstDoc = Glyphs.orderedDocuments()[0]
 	thisFont = Glyphs.font # frontmost font
 	exportPath = currentOTVarExportPath()
 	# familyName = otVarFamilyName(thisFont)
 	fullName = otVarFullName(thisFont)
+	fileName = otVarFileName(thisFont)
 
 	print("Preparing Test HTML for: %s" % fullName)
 	
@@ -866,7 +873,7 @@ if appVersionHighEnough:
 		( "The Quick Brown Fox Jumps Over the Lazy Dog.", allUnicodeEscapesOfFont(thisFont) ),
 		( "###sliders###", allOTVarSliders(thisFont) ),
 		( "###variationSettings###", defaultVariationCSS(thisFont) ), 
-		( "###fontFileName###", otVarFileName(thisFont) ),
+		( "###fontFileName###", fileName ),
 		( "###featureList###", featureListForFont(thisFont) ),
 		( "###languageSelection###", langMenu(thisFont) ),
 	)
@@ -881,6 +888,11 @@ if appVersionHighEnough:
 			system( terminalCommand )
 		else:
 			print("Error writing file to disk.")
+			
+		if shouldCreateSamsa:
+			terminalCommand = "cd '%s'; printf \"let fontBinary = '%%s';\n\" `base64 -i %s` > samsa-load.js" % (exportPath, fileName)
+			system( terminalCommand )
+			print("Created samsa-load.js")
 	else:
 		Message( 
 			title="OTVar Test HTML Error",
