@@ -7,6 +7,7 @@ Takes the master layer of suffixed glyphs (e.g., x.shadow, x.body, x.front) and 
 
 import vanilla
 from copy import copy as copy
+from AppKit import NSFont
 
 class MergeSuffixedGlyphsIntoColorLayers( object ):
 	def __init__( self ):
