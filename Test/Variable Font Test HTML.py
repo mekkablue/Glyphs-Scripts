@@ -890,7 +890,7 @@ if appVersionHighEnough:
 			print("Error writing file to disk.")
 			
 		if shouldCreateSamsa:
-			terminalCommand = "cd '%s'; printf \"let fontBinary = '%%s';\n\" `base64 -i %s` > samsa-load.js" % (exportPath, fileName)
+			terminalCommand = "cd '%s'; printf \"let fontBinary = '%%s';\n\" `base64 -i '%s'` > samsa-load.js" % (exportPath, fileName)
 			system( terminalCommand )
 			print("Created samsa-load.js")
 	else:
