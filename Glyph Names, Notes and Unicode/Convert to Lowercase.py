@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Turns lowercase names into uppercase names, e.g., `a` → `A`, `ccaron` → `Ccaron`, `aeacute` → `AEacute`, etc. Useful for smallcap glyphs.
+Turns uppercase names into lowercase names, e.g., `A` → `a`, `Ccaron` → `ccaron`, `AEacute` → `aeacute`, etc. Useful for smallcap glyphs.
 """
 
 def lowercaseGlyphName( thisGlyph ):
