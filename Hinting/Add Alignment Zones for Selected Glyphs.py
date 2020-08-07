@@ -92,8 +92,8 @@ class CreateAlignmentZonesforSelectedGlyphs( object ):
 			return 0
 		else:
 			z = GSAlignmentZone()
-			z.size = zonePosition
-			z.position = zoneSize
+			z.size = zoneSize
+			z.position = zonePosition
 			master.alignmentZones.append(z)
 			print("✅ Zone p:%i s:%i added to master ‘%s’."%(zonePosition,zoneSize,master.name))
 			return 1
@@ -121,8 +121,14 @@ class CreateAlignmentZonesforSelectedGlyphs( object ):
 				top = Glyphs.defaults["com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.createTopZones"]
 				bottom = Glyphs.defaults["com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.createBottomZones"]
 				dontExceed = Glyphs.defaults["com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.dontExceedExistingZones"]
-			
-				selectedGlyphs = [l.parent for l in thisFont.selectedLayers]
+				
+				try:
+					# GLYPHS 3
+					selectedGlyphs = [l.parent for l in thisFont.selectedLayers if l.shapes]
+				except:
+					# GLYPHS 2
+					selectedGlyphs = [l.parent for l in thisFont.selectedLayers if l.paths or l.components]
+				
 				addedZoneCount = 0
 			
 				blueFuzz = 0 # fallback
