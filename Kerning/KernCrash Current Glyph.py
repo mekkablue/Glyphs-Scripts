@@ -69,64 +69,81 @@ try:
 	thisFont = Glyphs.font
 	thisFontMaster = thisFont.selectedFontMaster
 	thisFontMasterID = thisFontMaster.id
-	thisGlyph = thisFont.selectedLayers[0].parent
-	
-	# brings macro window to front and clears its log:
-	Glyphs.clearLog()
-	Glyphs.showMacroWindow()
-	
-	print("KernCrash Current Glyph Report for %s, master %s:\n" % (thisFont.familyName, thisFontMaster.name))
-	
-	# get list of glyph names:
-	currentGlyphName = thisGlyph.name
-	completeSet = [g.name for g in thisFont.glyphs
-					if g.export
-					and g.name not in exceptions # excluded glyphs, list at beginning of this .py
-					and g.subCategory != "Nonspacing" # no combining accents
-				]
-	
-	# get pathcounts for every glyph:
-	pathCountDict = {}
-	for thisGlyphName in completeSet:
-		pathCountDict[thisGlyphName] = pathCountForGlyphName( thisGlyphName, thisFont, thisFontMasterID )
-	
-	# all possible kern pairs:
-	tabStringLeftGlyphs = []
-	tabStringRightGlyphs = []
-	
-	for otherGlyphName in completeSet:
-		firstCount = pathCountDict[currentGlyphName]
-		secondCount = pathCountDict[otherGlyphName]
-		
-		# current glyph on left side:
-		kernCount = pathCountInKernPair( currentGlyphName, otherGlyphName, thisFont, thisFontMasterID, 0.0 )
-		if firstCount + secondCount > kernCount:
-			tabStringLeftGlyphs.append(otherGlyphName)
-			# += "/%s/%s/space" % ( firstGlyphName, secondGlyphName )
-				
-		# current glyph on left side:
-		kernCount = pathCountInKernPair( otherGlyphName, currentGlyphName, thisFont, thisFontMasterID, 0.0 )
-		if firstCount + secondCount > kernCount:
-			tabStringRightGlyphs.append(otherGlyphName)
-			#tabStringLeft += "/%s/%s/space" % ( firstGlyphName, secondGlyphName )
-
-	# open new Edit tab:
-	if tabStringLeftGlyphs or tabStringRightGlyphs:
-		Glyphs.showNotification('KernCrash Current Glyph', 'Some kerning crashes have been found.')
-		# opens new Edit tab:
-		if tabStringLeftGlyphs:
-			inBetween = " /%s/" % currentGlyphName
-			thisFont.newTab( "/%s/"%currentGlyphName + inBetween.join(tabStringLeftGlyphs) )
-			print("Colliding glyphs when %s is on the LEFT:\n%s\n" % ( currentGlyphName, " ".join(tabStringLeftGlyphs) ))
-		if tabStringRightGlyphs:
-			inBetween = "/%s /" % currentGlyphName
-			thisFont.newTab( "/" + inBetween.join(tabStringRightGlyphs) + "/%s"%currentGlyphName )
-			print("Colliding glyphs when %s is on the RIGHT:\n%s\n" % ( currentGlyphName, " ".join(tabStringRightGlyphs) ))
-		
-	# or report that nothing was found:
+	if not thisFont.selectedLayers:
+		Message(title="No glyph selected", message="The script could not determine the current glyph. Please select a glyph and try again.", OKButton=None)
 	else:
-		Glyphs.showNotification('KernCrash Current Glyph', 'No collisions found.')
+		thisGlyph = thisFont.selectedLayers[0].parent
+	
+		# brings macro window to front and clears its log:
+		Glyphs.clearLog()
+		Glyphs.showMacroWindow()
+	
+		print("KernCrash Current Glyph Report for %s, master %s:\n" % (thisFont.familyName, thisFontMaster.name))
+	
+		# get list of glyph names:
+		currentGlyphName = thisGlyph.name
+		exceptionList = exceptions.split()
+		completeSet = [g.name for g in thisFont.glyphs
+						if g.export
+						and g.name not in exceptionList # excluded glyphs, list at beginning of this .py
+						and g.subCategory != "Nonspacing" # no combining accents
+					]
+	
+		# get pathcounts for every glyph:
+		pathCountDict = {}
+		for thisGlyphName in completeSet:
+			pathCountDict[thisGlyphName] = pathCountForGlyphName( thisGlyphName, thisFont, thisFontMasterID )
+	
+		# all possible kern pairs:
+		tabStringLeftGlyphs = []
+		tabStringRightGlyphs = []
+	
+		for otherGlyphName in completeSet:
+			firstCount = pathCountDict[currentGlyphName]
+			secondCount = pathCountDict[otherGlyphName]
+		
+			# current glyph on left side:
+			kernCount = pathCountInKernPair( currentGlyphName, otherGlyphName, thisFont, thisFontMasterID, 0.0 )
+			if firstCount + secondCount > kernCount:
+				tabStringLeftGlyphs.append(otherGlyphName)
+				# += "/%s/%s/space" % ( firstGlyphName, secondGlyphName )
+				
+			# current glyph on left side:
+			kernCount = pathCountInKernPair( otherGlyphName, currentGlyphName, thisFont, thisFontMasterID, 0.0 )
+			if firstCount + secondCount > kernCount:
+				tabStringRightGlyphs.append(otherGlyphName)
+				#tabStringLeft += "/%s/%s/space" % ( firstGlyphName, secondGlyphName )
+
+		# open new Edit tab:
+		if tabStringLeftGlyphs or tabStringRightGlyphs:
+			Glyphs.showNotification('KernCrash Current Glyph', 'Some kerning crashes have been found.')
+			# opens new Edit tab:
+			tabStrings = []
+			if tabStringLeftGlyphs:
+				inBetween = "  /%s/" % currentGlyphName
+				tabStrings.append( "/%s/"%currentGlyphName + inBetween.join(tabStringLeftGlyphs) )
+				print("Colliding glyphs when %s is on the LEFT:\n%s\n" % ( currentGlyphName, " ".join(tabStringLeftGlyphs) ))
+			if tabStringRightGlyphs:
+				inBetween = "/%s  /" % currentGlyphName
+				tabStrings.append( "/" + inBetween.join(tabStringRightGlyphs) + "/%s"%currentGlyphName )
+				print("Colliding glyphs when %s is on the RIGHT:\n%s\n" % ( currentGlyphName, " ".join(tabStringRightGlyphs) ))
+			
+			thisFont.newTab( "\n\n".join(tabStrings) )
+			# Floating notification:
+			Glyphs.showNotification( 
+				"KernCrashed %s, master ‘%s’" % (thisFont.familyName, thisFontMaster.name),
+				"Found %i kerning collisions with %s. Details in Macro Window" % ( len(tabStringRightGlyphs)+len(tabStringLeftGlyphs), currentGlyphName ),
+				)
+			
+		# or report that nothing was found:
+		else:
+			# Floating notification:
+			Glyphs.showNotification( 
+				"KernCrashed %s, master ‘%s’:" % (thisFont.familyName, thisFontMaster.name),
+				"No collisions found for %s." % currentGlyphName,
+				)
 except Exception as e:
 	Message("KernCrash Error", "KernCrash Current Glyph Error: %s\nTraceback in Macro Window." % e, OKButton=None)
 	import traceback
 	print(traceback.format_exc())
+	print(pathCountDict)
