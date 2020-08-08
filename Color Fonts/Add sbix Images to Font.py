@@ -52,55 +52,63 @@ else:
 	sbixCount = 0
 
 	thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+	try:
+		folders = GetFolder(message="Choose one or more folders containing images.", allowsMultipleSelection = True)
+		for folder in folders:
+			for fileName in os.listdir(folder):
+				if isAnImage(fileName) and " " in fileName:
+					glyphName, resolution = analyseFileName(fileName)
+					if resolution:
+						layerName = "iColor %i" % resolution
+				
+						# determine glyph:
+						glyph = thisFont.glyphs[glyphName]
+						if not glyph:
+							glyph = GSGlyph()
+							glyph.name = glyphName
+							thisFont.glyphs.append(glyph)
+							glyph.updateGlyphInfo()
+				
+						glyph.beginUndo() # begin undo grouping
+				
+						# determine layer:
+						sbixLayersForThisMaster = [l for l in glyph.layers if l.name==layerName and l.master==thisFontMaster]
+						if len(sbixLayersForThisMaster)>0:
+							layer = sbixLayersForThisMaster[0]
+						else:
+							layer = GSLayer()
+							layer.setAssociatedMasterId_(thisFontMaster.id)
+							glyph.layers.append(layer)
+							layer.name = layerName
+				
+						# define as sbix and add image:
+						layer.setBackgroundImage_(None)
+						filePath = os.path.join(folder,fileName)
+						image = GSBackgroundImage.alloc().initWithPath_(filePath)
+						layer.backgroundImage = image
+						try:
+							# GLYPHS 3
+							layer.setAppleColorLayer_(1)
+						except:
+							# GLYPHS 2
+							pass
+						sbixCount += 1
+				
+						glyph.endUndo()   # end undo grouping
+						print("✅ %s: added image ‘%s’ on layer ‘%s’" % (glyphName, fileName, layer.name))
 
-	folders = GetFolder(message="Choose one or more folders containing images.", allowsMultipleSelection = True)
-	for folder in folders:
-		for fileName in os.listdir(folder):
-			if isAnImage(fileName) and " " in fileName:
-				glyphName, resolution = analyseFileName(fileName)
-				if resolution:
-					layerName = "iColor %i" % resolution
-				
-					# determine glyph:
-					glyph = thisFont.glyphs[glyphName]
-					if not glyph:
-						glyph = GSGlyph()
-						glyph.name = glyphName
-						thisFont.glyphs.append(glyph)
-						glyph.updateGlyphInfo()
-				
-					glyph.beginUndo() # begin undo grouping
-				
-					# determine layer:
-					sbixLayersForThisMaster = [l for l in glyph.layers if l.name==layerName and l.master==thisFontMaster]
-					if len(sbixLayersForThisMaster)>0:
-						layer = sbixLayersForThisMaster[0]
-					else:
-						layer = GSLayer()
-						layer.setAssociatedMasterId_(thisFontMaster.id)
-						glyph.layers.append(layer)
-						layer.name = layerName
-				
-					# define as sbix and add image:
-					layer.setBackgroundImage_(None)
-					filePath = os.path.join(folder,fileName)
-					image = GSBackgroundImage.alloc().initWithPath_(filePath)
-					layer.backgroundImage = image
-					try:
-						# GLYPHS 3
-						layer.setAppleColorLayer_(1)
-					except:
-						# GLYPHS 2
-						pass
-					sbixCount += 1
-				
-					glyph.endUndo()   # end undo grouping
-					print("✅ %s: added image ‘%s’ on layer ‘%s’" % (glyphName, fileName, layer.name))
-
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	except Exception as e:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Script Error:\n")
+		import traceback
+		print(traceback.format_exc())
+		print()
+		raise e
+	finally:
+		thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 
 	print("Done.")
-	
+
 	# Floating notification:
 	Glyphs.showNotification( 
 		"%s: Done" % (thisFont.familyName),

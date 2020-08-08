@@ -153,29 +153,36 @@ def postprocess( thisGlyph, scale, shiftUp ):
 			thisLayer.components[2].x += parenShiftForLetters
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+try:
+	maxWidth = 0.0
+	for name in parenGlyphs:
+		thisGlyph = thisFont.glyphs[name]
+		if not thisGlyph:
+			thisGlyph = GSGlyph()
+			thisGlyph.name = name
+			thisFont.glyphs.append(thisGlyph)
 
-maxWidth = 0.0
-for name in parenGlyphs:
-	thisGlyph = thisFont.glyphs[name]
-	if not thisGlyph:
-		thisGlyph = GSGlyph()
-		thisGlyph.name = name
-		thisFont.glyphs.append(thisGlyph)
+		print("Processing %s" % thisGlyph.name)
+		thisGlyph.beginUndo() # begin undo grouping
+		maxWidth = max( maxWidth, process( thisGlyph ) )
+		print(maxWidth)
+		thisGlyph.endUndo()   # end undo grouping
 
-	print("Processing %s" % thisGlyph.name)
-	thisGlyph.beginUndo() # begin undo grouping
-	maxWidth = max( maxWidth, process( thisGlyph ) )
 	print(maxWidth)
-	thisGlyph.endUndo()   # end undo grouping
+	scale = ( thisFont.upm / maxWidth ) * 0.95
+	yShift = transform( shiftY = thisFont.upm * 0.08 ).transformStruct()
 
-print(maxWidth)
-scale = ( thisFont.upm / maxWidth ) * 0.95
-yShift = transform( shiftY = thisFont.upm * 0.08 ).transformStruct()
+	for name in parenGlyphs:
+		thisGlyph = thisFont.glyphs[name]
+		#print "Post-processing %s" % thisGlyph.name
+		postprocess( thisGlyph, scale, yShift )
 
-for name in parenGlyphs:
-	thisGlyph = thisFont.glyphs[name]
-	#print "Post-processing %s" % thisGlyph.name
-	postprocess( thisGlyph, scale, yShift )
-	
-
-thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
+finally:
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View

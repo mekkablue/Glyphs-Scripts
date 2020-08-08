@@ -664,106 +664,114 @@ class BuildCircledGlyphs( object ):
 				else:
 					print("⚠️ The font file has not been saved yet.")
 				print()
-			
+				
 				thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+				try:
+					print("Building: %s\n" % 
+						", ".join(circledGlyphNames)
+					)
 				
-				print("Building: %s\n" % 
-					", ".join(circledGlyphNames)
-				)
+					# add circles if not present in font already:
+					circleName = "_part.circle"
+					if not thisFont.glyphs[circleName]:
+						buildCirclePart( thisFont, circleName )
+					circleGlyph = thisFont.glyphs[circleName]
 				
-				# add circles if not present in font already:
-				circleName = "_part.circle"
-				if not thisFont.glyphs[circleName]:
-					buildCirclePart( thisFont, circleName )
-				circleGlyph = thisFont.glyphs[circleName]
-				
-				blackCircleGlyph = None
-				if buildBlackUC or buildBlackLC or buildBlackCircledNumbers:
-					blackCircleName = "_part.blackCircle"
-					if not thisFont.glyphs[blackCircleName]:
-						buildCirclePart( thisFont, blackCircleName, isBlack=True )
-					blackCircleGlyph = thisFont.glyphs[blackCircleName]
+					blackCircleGlyph = None
+					if buildBlackUC or buildBlackLC or buildBlackCircledNumbers:
+						blackCircleName = "_part.blackCircle"
+						if not thisFont.glyphs[blackCircleName]:
+							buildCirclePart( thisFont, blackCircleName, isBlack=True )
+						blackCircleGlyph = thisFont.glyphs[blackCircleName]
 
-				# determining scale of inscribed letters:
-				scaleFactors = []
-				for thisMaster in thisFont.masters:
-					radius = circleGlyph.layers[thisMaster.id].paths[1].bounds.size.width * 0.5
-					maxArea = 0.0
-					biggestLayer = None
-					for glyphName in circledGlyphNames:
-						if "." in glyphName:
-							glyphName = glyphName[:glyphName.find(".")]
+					# determining scale of inscribed letters:
+					scaleFactors = []
+					for thisMaster in thisFont.masters:
+						radius = circleGlyph.layers[thisMaster.id].paths[1].bounds.size.width * 0.5
+						maxArea = 0.0
+						biggestLayer = None
+						for glyphName in circledGlyphNames:
+							if "." in glyphName:
+								glyphName = glyphName[:glyphName.find(".")]
 							
+							glyphNames = [glyphName]
+							if suffixes:
+								for suffix in suffixes:
+									glyphNames.append("%s%s"%(glyphName,suffix))
+						
+							for glyphName in glyphNames:
+								thisGlyph = thisFont.glyphs[glyphName]
+								if thisGlyph:
+									thisLayer = thisGlyph.layers[thisMaster.id]
+									thisArea = boxArea(thisLayer)
+									if thisArea > maxArea:
+										maxArea = thisArea
+										biggestLayer = thisLayer
+	
+						angleInRadians = math.atan2( biggestLayer.bounds.size.height, biggestLayer.bounds.size.width*1.4 + minDistanceBetweenFigures )
+						scaledHeight = math.sin(angleInRadians) * radius * 2 * 0.9
+						scaleFactor = scaledHeight / biggestLayer.bounds.size.height
+						scaleFactors.append(scaleFactor)
+						print("Scale factor for master '%s': %.1f" % (thisMaster.name, scaleFactor))
+
+					# actually building letters:
+					for glyphName in circledGlyphNames:
+						if "black" in glyphName.lower():
+							circleName = blackCircleName
+					
+						# check for suffixes:
+						coreName = glyphName[:glyphName.find(".")]
+						coreNames = [coreName]
 						glyphNames = [glyphName]
+						suffixDict = {}
 						if suffixes:
 							for suffix in suffixes:
-								glyphNames.append("%s%s"%(glyphName,suffix))
-						
-						for glyphName in glyphNames:
+								suffixedCoreName = coreName + suffix
+								if "_" in coreName:
+									particles = coreName.split("_")
+									for particle in particles:
+										if not suffixedCoreName in coreNames:
+											if thisFont.glyphs[particle+suffix]:
+												coreNames.append(suffixedCoreName)
+												newGlyphName = glyphName+suffix
+												glyphNames.append(newGlyphName)
+												suffixDict[newGlyphName] = suffix
+	 							else:
+									if thisFont.glyphs[suffixedCoreName]:
+										coreNames.append(suffixedCoreName)
+										newGlyphName = glyphName+suffix
+										glyphNames.append(newGlyphName)
+										suffixDict[newGlyphName] = suffix
+					
+						for i,glyphName in enumerate(glyphNames):
 							thisGlyph = thisFont.glyphs[glyphName]
-							if thisGlyph:
-								thisLayer = thisGlyph.layers[thisMaster.id]
-								thisArea = boxArea(thisLayer)
-								if thisArea > maxArea:
-									maxArea = thisArea
-									biggestLayer = thisLayer
-	
-					angleInRadians = math.atan2( biggestLayer.bounds.size.height, biggestLayer.bounds.size.width*1.4 + minDistanceBetweenFigures )
-					scaledHeight = math.sin(angleInRadians) * radius * 2 * 0.9
-					scaleFactor = scaledHeight / biggestLayer.bounds.size.height
-					scaleFactors.append(scaleFactor)
-					print("Scale factor for master '%s': %.1f" % (thisMaster.name, scaleFactor))
+						
+							# generate it if it does not exist
+							if not thisGlyph:
+								thisGlyph = GSGlyph()
+								thisGlyph.name = glyphName
+								thisFont.glyphs.append(thisGlyph)
+								thisGlyph.updateGlyphInfo()
+						
+							if glyphName in suffixDict:
+								suffix = suffixDict[glyphName]
+							else:
+								suffix = None
+						
+							thisGlyph.beginUndo() # begin undo grouping
+							print("Building %s" % thisGlyph.name)
+							buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenFigures, suffix )
+							thisGlyph.endUndo()   # end undo grouping
 
-				# actually building letters:
-				for glyphName in circledGlyphNames:
-					if "black" in glyphName.lower():
-						circleName = blackCircleName
-					
-					# check for suffixes:
-					coreName = glyphName[:glyphName.find(".")]
-					coreNames = [coreName]
-					glyphNames = [glyphName]
-					suffixDict = {}
-					if suffixes:
-						for suffix in suffixes:
-							suffixedCoreName = coreName + suffix
-							if "_" in coreName:
-								particles = coreName.split("_")
-								for particle in particles:
-									if not suffixedCoreName in coreNames:
-										if thisFont.glyphs[particle+suffix]:
-											coreNames.append(suffixedCoreName)
-											newGlyphName = glyphName+suffix
-											glyphNames.append(newGlyphName)
-											suffixDict[newGlyphName] = suffix
- 							else:
-								if thisFont.glyphs[suffixedCoreName]:
-									coreNames.append(suffixedCoreName)
-									newGlyphName = glyphName+suffix
-									glyphNames.append(newGlyphName)
-									suffixDict[newGlyphName] = suffix
-					
-					for i,glyphName in enumerate(glyphNames):
-						thisGlyph = thisFont.glyphs[glyphName]
-						
-						# generate it if it does not exist
-						if not thisGlyph:
-							thisGlyph = GSGlyph()
-							thisGlyph.name = glyphName
-							thisFont.glyphs.append(thisGlyph)
-							thisGlyph.updateGlyphInfo()
-						
-						if glyphName in suffixDict:
-							suffix = suffixDict[glyphName]
-						else:
-							suffix = None
-						
-						thisGlyph.beginUndo() # begin undo grouping
-						print("Building %s" % thisGlyph.name)
-						buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenFigures, suffix )
-						thisGlyph.endUndo()   # end undo grouping
-
-				thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+				except Exception as e:
+					Glyphs.showMacroWindow()
+					print("\n⚠️ Script Error:\n")
+					import traceback
+					print(traceback.format_exc())
+					print()
+					raise e
+				finally:
+					thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 
 				self.w.close() # delete if you want window to stay open
 

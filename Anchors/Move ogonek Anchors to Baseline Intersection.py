@@ -63,19 +63,27 @@ def process( thisLayer ):
 	else:
 		print("❓ Layer %s: No anchor ogonek or _ogonek found." % thisLayer.name )
 
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+try:
+	thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
-Glyphs.clearLog() # clears macro window log
-print("Move ogonek anchors to baseline intersection:\n")
+	Glyphs.clearLog() # clears macro window log
+	print("Move ogonek anchors to baseline intersection:\n")
 
-for thisGlyph in [l.parent for l in selectedLayers]:
-	print("Processing: %s" % thisGlyph.name)
-	thisGlyph.beginUndo() # begin undo grouping
-	for thisLayer in thisGlyph.layers:
-		if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
-			process( thisLayer )
-	thisGlyph.endUndo()   # end undo grouping
+	for thisGlyph in [l.parent for l in selectedLayers]:
+		print("Processing: %s" % thisGlyph.name)
+		thisGlyph.beginUndo() # begin undo grouping
+		for thisLayer in thisGlyph.layers:
+			if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
+				process( thisLayer )
+		thisGlyph.endUndo()   # end undo grouping
 
-print("\nDone.")
-
-thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	print("\nDone.")
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	print(e)
+	print()
+	import traceback
+	print(traceback.format_exc())
+finally:
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View

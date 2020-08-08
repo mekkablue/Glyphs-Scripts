@@ -178,55 +178,62 @@ def postprocess( thisGlyph, scale, shiftUp ):
 			thisLayer.components[0].x -= parenShiftForLetters
 			thisLayer.components[2].x += parenShiftForLetters
 
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+try:
+	thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
-for newGlyph in newGlyphs:
-	thisGlyph = getGlyphWithName(newGlyph,thisFont)
-	for thisLayer in thisGlyph.layers:
-		thisLayer.clear()
-	firstComp = newGlyphs[newGlyph][0]
-	lastComp = newGlyphs[newGlyph][1]
-	for i,compName in enumerate( (firstComp,"fraction",lastComp) ):
-		for thisMaster in thisFont.masters:
-			thisLayer = thisGlyph.layers[thisMaster.id]
-			newComponent = GSComponent(compName)
-			try:
-				thisLayer.shapes.append( newComponent )
-			except:
-				thisLayer.components.append( newComponent )
-			newComponent.disableAlignment = True
+	for newGlyph in newGlyphs:
+		thisGlyph = getGlyphWithName(newGlyph,thisFont)
+		for thisLayer in thisGlyph.layers:
+			thisLayer.clear()
+		firstComp = newGlyphs[newGlyph][0]
+		lastComp = newGlyphs[newGlyph][1]
+		for i,compName in enumerate( (firstComp,"fraction",lastComp) ):
+			for thisMaster in thisFont.masters:
+				thisLayer = thisGlyph.layers[thisMaster.id]
+				newComponent = GSComponent(compName)
+				try:
+					thisLayer.shapes.append( newComponent )
+				except:
+					thisLayer.components.append( newComponent )
+				newComponent.disableAlignment = True
 			
-			if i in (0,2):
-				zero = getZeroGlyph(thisFont).layers[thisMaster.id]
-				scale = zero.bounds.size.height / newComponent.bounds.size.height
-				zoomTransform = transform(scale=scale).transformStruct()
-				newComponent.applyTransform(zoomTransform)
-			if i == 0:
-				zero = thisFont.glyphs["zero.numr"].layers[thisMaster.id]
-				zeroTop = zero.bounds.origin.y + zero.bounds.size.height
-				compTop = newComponent.bounds.origin.y + newComponent.bounds.size.height
-				shiftUp = transform( shiftY=(zeroTop-compTop) ).transformStruct()
-				newComponent.applyTransform(shiftUp)
-			if i > 0:
-				try:
-					previousComponent = thisLayer.shapes[i-1]
-				except:
-					previousComponent = thisLayer.components[i-1]
-				placeComponentsAtDistance( 
-					thisLayer,
-					previousComponent,
-					newComponent,
-					interval=3.0,
-					distance=distanceBetweenComponents 
-					)
+				if i in (0,2):
+					zero = getZeroGlyph(thisFont).layers[thisMaster.id]
+					scale = zero.bounds.size.height / newComponent.bounds.size.height
+					zoomTransform = transform(scale=scale).transformStruct()
+					newComponent.applyTransform(zoomTransform)
+				if i == 0:
+					zero = thisFont.glyphs["zero.numr"].layers[thisMaster.id]
+					zeroTop = zero.bounds.origin.y + zero.bounds.size.height
+					compTop = newComponent.bounds.origin.y + newComponent.bounds.size.height
+					shiftUp = transform( shiftY=(zeroTop-compTop) ).transformStruct()
+					newComponent.applyTransform(shiftUp)
+				if i > 0:
+					try:
+						previousComponent = thisLayer.shapes[i-1]
+					except:
+						previousComponent = thisLayer.components[i-1]
+					placeComponentsAtDistance( 
+						thisLayer,
+						previousComponent,
+						newComponent,
+						interval=3.0,
+						distance=distanceBetweenComponents 
+						)
 				
-			if i == 2:
-				try:
-					thisLayer.LSB = thisLayer.shapes[0].component.layers[thisMaster.id].LSB
-					thisLayer.RSB = thisLayer.shapes[2].component.layers[thisMaster.id].RSB
-				except:
-					thisLayer.LSB = thisLayer.components[0].component.layers[thisMaster.id].LSB
-					thisLayer.RSB = thisLayer.components[2].component.layers[thisMaster.id].RSB
-		
-
-thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+				if i == 2:
+					try:
+						thisLayer.LSB = thisLayer.shapes[0].component.layers[thisMaster.id].LSB
+						thisLayer.RSB = thisLayer.shapes[2].component.layers[thisMaster.id].RSB
+					except:
+						thisLayer.LSB = thisLayer.components[0].component.layers[thisMaster.id].LSB
+						thisLayer.RSB = thisLayer.components[2].component.layers[thisMaster.id].RSB
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	print(e)
+	print()
+	import traceback
+	print(traceback.format_exc())
+finally:
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View

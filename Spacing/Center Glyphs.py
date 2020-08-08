@@ -43,13 +43,21 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	return myTransform
 
 Font.disableUpdateInterface()
+try:
+	for thisLayer in selectedLayers:
+		thisMaster = thisLayer.master
+		shift = ( thisLayer.LSB - thisLayer.RSB ) * -0.5
+		shiftMatrix = transform(shiftX=shift).transformStruct()
+		thisLayer.applyTransform( shiftMatrix )
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
+finally:
+	Font.enableUpdateInterface() # re-enables UI updates in Font View
 
-for thisLayer in selectedLayers:
-	thisMaster = thisLayer.master
-	shift = ( thisLayer.LSB - thisLayer.RSB ) * -0.5
-	shiftMatrix = transform(shiftX=shift).transformStruct()
-	thisLayer.applyTransform( shiftMatrix )
-
-Font.enableUpdateInterface()
 print("Centered: %s" % (", ".join( [ l.parent.name for l in selectedLayers ] )))
 

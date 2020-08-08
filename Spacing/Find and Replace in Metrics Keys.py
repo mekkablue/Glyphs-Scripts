@@ -121,11 +121,14 @@ class MetricKeyReplacer( object ):
 			
 			self.w.close()
 		except Exception as e:
-			print("\nError:")
-			print(e)
+			Glyphs.showMacroWindow()
+			print("\n⚠️ Script Error:\n")
+			import traceback
 			print(traceback.format_exc())
-		
-		Glyphs.font.enableUpdateInterface()
+			print()
+			raise e
+		finally:
+			Glyphs.font.enableUpdateInterface()
 
 Glyphs.clearLog()
 MetricKeyReplacer()

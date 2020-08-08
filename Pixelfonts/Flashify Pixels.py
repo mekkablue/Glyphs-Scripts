@@ -52,10 +52,17 @@ if oldGridstep > 1:
 	Font.gridLength = 1
 
 Font.disableUpdateInterface()
-
-for thisLayer in layers:
-	process( thisLayer )
-
-Font.enableUpdateInterface()
+try:
+	for thisLayer in layers:
+		process( thisLayer )
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
+finally:
+	Font.enableUpdateInterface() # re-enables UI updates in Font View
 
 Font.gridLength = oldGridstep

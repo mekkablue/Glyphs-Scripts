@@ -59,13 +59,20 @@ def process( thisGlyph ):
 		
 	return reportString
 
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
-
-for thisLayer in selectedLayers:
-	thisGlyph = thisLayer.parent
-	print(thisGlyph.name)
-	thisGlyph.beginUndo() # begin undo grouping
-	print(process( thisGlyph ))
-	thisGlyph.endUndo()   # end undo grouping
-
-thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+try:
+	thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+	for thisLayer in selectedLayers:
+		thisGlyph = thisLayer.parent
+		print(thisGlyph.name)
+		thisGlyph.beginUndo() # begin undo grouping
+		print(process( thisGlyph ))
+		thisGlyph.endUndo()   # end undo grouping
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	print(e)
+	print()
+	import traceback
+	print(traceback.format_exc())
+finally:
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View

@@ -18,13 +18,21 @@ def resetWidth( thisLayer, thisName ):
 	return baseWidth
 
 Font.disableUpdateInterface()
+try:
+	for thisLayer in selectedLayers:
+		thisGlyph = thisLayer.parent
+		thisGlyphName = thisGlyph.name
+		if "." in thisGlyphName:
+			thisLayer.beginUndo()
+			print("Resetting width of %s to %.0f." % ( thisGlyphName, resetWidth( thisLayer, thisGlyphName ) ))
+			thisLayer.endUndo()
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
+finally:
+	Font.enableUpdateInterface() # re-enables UI updates in Font View
 
-for thisLayer in selectedLayers:
-	thisGlyph = thisLayer.parent
-	thisGlyphName = thisGlyph.name
-	if "." in thisGlyphName:
-		thisLayer.beginUndo()
-		print("Resetting width of %s to %.0f." % ( thisGlyphName, resetWidth( thisLayer, thisGlyphName ) ))
-		thisLayer.endUndo()
-
-Font.enableUpdateInterface()

@@ -101,28 +101,37 @@ Glyphs.showMacroWindow()
 print("Converting %s to CPAL/COLR:" % thisFont.familyName)
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
-createCPALfromMasterColors( thisFont.masters, 0 )
-print()
+try:
+	createCPALfromMasterColors( thisFont.masters, 0 )
+	print()
 
-for thisGlyph in thisFont.glyphs:
-	print("Creating 'Color' layers for: %s" % thisGlyph.name)
-	thisGlyph.beginUndo() # begin undo grouping
-	process( thisGlyph )
-	duplicatePathsIntoFallbackMaster( thisGlyph )
-	thisGlyph.endUndo()   # end undo grouping
+	for thisGlyph in thisFont.glyphs:
+		print("Creating 'Color' layers for: %s" % thisGlyph.name)
+		thisGlyph.beginUndo() # begin undo grouping
+		process( thisGlyph )
+		duplicatePathsIntoFallbackMaster( thisGlyph )
+		thisGlyph.endUndo()   # end undo grouping
 
-print()
-keepOnlyFirstMaster( thisFont )
-print()
+	print()
+	keepOnlyFirstMaster( thisFont )
+	print()
 
-for thisGlyph in thisFont.glyphs:
-	print("Cleaning up layer debris in: %s" % thisGlyph.name)
-	thisGlyph.beginUndo() # begin undo grouping
-	cleanUpNamelessLayers(thisGlyph)
-	enableOnlyColorLayers(thisGlyph)
-	thisGlyph.endUndo()   # end undo grouping
-
-thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	for thisGlyph in thisFont.glyphs:
+		print("Cleaning up layer debris in: %s" % thisGlyph.name)
+		thisGlyph.beginUndo() # begin undo grouping
+		cleanUpNamelessLayers(thisGlyph)
+		enableOnlyColorLayers(thisGlyph)
+		thisGlyph.endUndo()   # end undo grouping
+	
+	except Exception as e:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Script Error:\n")
+		import traceback
+		print(traceback.format_exc())
+		print()
+		raise e
+	finally:
+		thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 
 # take time:
 end = timer()

@@ -153,15 +153,24 @@ for LeftKey in LeftKeys:
 				leftKeyName, rightKeyName
 			))
 			kerningToBeAdded.append( (fontMasterID, scLeftKey, scRightKey, scKernValue) )
-				
 
 # go through the list of SC kern pairs, and add them to the font:
 thisFont.disableUpdateInterface()
-for thisKernInfo in kerningToBeAdded:
-	fontMasterID = thisKernInfo[0]
-	scLeftKey = thisKernInfo[1]
-	scRightKey = thisKernInfo[2]
-	scKernValue = thisKernInfo[3]
-	thisFont.setKerningForPair( fontMasterID, scLeftKey, scRightKey, scKernValue )
-thisFont.enableUpdateInterface()
+try:
+	for thisKernInfo in kerningToBeAdded:
+		fontMasterID = thisKernInfo[0]
+		scLeftKey = thisKernInfo[1]
+		scRightKey = thisKernInfo[2]
+		scKernValue = thisKernInfo[3]
+		thisFont.setKerningForPair( fontMasterID, scLeftKey, scRightKey, scKernValue )
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
+finally:
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+
 print("  Done.")

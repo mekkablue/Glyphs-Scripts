@@ -86,15 +86,23 @@ spaces = {
 }
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View, speeds things up a little
+try:
+	# build spaces:
+	createdSpaces = 0
+	for thisSpace in spaces:
+		widthKey = spaces[thisSpace]
+		createdSpaces += createSpaceGlyph( thisFont, thisSpace, widthKey )
+		print() 
 
-# build spaces:
-createdSpaces = 0
-for thisSpace in spaces:
-	widthKey = spaces[thisSpace]
-	createdSpaces += createSpaceGlyph( thisFont, thisSpace, widthKey )
-	print() 
-
-thisFont.enableUpdateInterface() # reenables UI updates in Font View, speeds things up a little
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
+finally:
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
  
 reportMessage = "%i of %i space glyphs added" % (createdSpaces, len(spaces))
 print("Done. %s."%reportMessage)
