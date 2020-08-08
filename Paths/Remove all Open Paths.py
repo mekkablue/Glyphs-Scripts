@@ -21,9 +21,15 @@ def process( thisLayer ):
 	return count
 
 Font.disableUpdateInterface()
-
-for thisLayer in selectedLayers:
-	print("Removing %i open paths in %s." % ( process( thisLayer ), thisLayer.parent.name ))
-
-Font.enableUpdateInterface()
-
+try:
+	for thisLayer in selectedLayers:
+		print("Removing %i open paths in %s." % ( process( thisLayer ), thisLayer.parent.name ))
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
+finally:
+	Font.enableUpdateInterface() # re-enables UI updates in Font View

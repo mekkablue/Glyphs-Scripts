@@ -20,20 +20,28 @@ def process( thisLayer ):
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
-namesOfAffectedGlyphs = []
-for thisLayer in listOfSelectedLayers:
-	thisGlyph = thisLayer.parent
-	thisGlyph.beginUndo() # begin undo grouping
-	numberOfDeletedStrayPoints = process( thisLayer )
-	thisGlyph.endUndo()   # end undo grouping
+try:
+	namesOfAffectedGlyphs = []
+	for thisLayer in listOfSelectedLayers:
+		thisGlyph = thisLayer.parent
+		thisGlyph.beginUndo() # begin undo grouping
+		numberOfDeletedStrayPoints = process( thisLayer )
+		thisGlyph.endUndo()   # end undo grouping
 	
-	# Report deleted nodes:
-	if numberOfDeletedStrayPoints > 0:
-		glyphName = thisGlyph.name
-		print("Deleted %i stray nodes in %s." % ( numberOfDeletedStrayPoints, glyphName ))
-		namesOfAffectedGlyphs.append( glyphName )
-
-thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+		# Report deleted nodes:
+		if numberOfDeletedStrayPoints > 0:
+			glyphName = thisGlyph.name
+			print("Deleted %i stray nodes in %s." % ( numberOfDeletedStrayPoints, glyphName ))
+			namesOfAffectedGlyphs.append( glyphName )
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
+finally:
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 
 # Report affected glyphs:
 if namesOfAffectedGlyphs:

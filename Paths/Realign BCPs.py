@@ -30,16 +30,24 @@ def realignLayer(thisLayer):
 	return countOfHandlesOnLayer
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
-for thisLayer in thisFont.selectedLayers:
-	thisGlyph = thisLayer.parent
-	thisGlyph.beginUndo() # begin undo grouping
-	if optionKeyPressed:
-		handleCount = 0
-		for everyLayer in thisGlyph.layers:
-			handleCount += realignLayer( everyLayer )
-	else:
-		handleCount = realignLayer( thisLayer )
-	thisGlyph.endUndo()   # end undo grouping
-	print("Processed %i BCPs in %s%s" % ( handleCount, "all layers of " if optionKeyPressed else "", thisGlyph.name ))
-
-thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+try:
+	for thisLayer in thisFont.selectedLayers:
+		thisGlyph = thisLayer.parent
+		thisGlyph.beginUndo() # begin undo grouping
+		if optionKeyPressed:
+			handleCount = 0
+			for everyLayer in thisGlyph.layers:
+				handleCount += realignLayer( everyLayer )
+		else:
+			handleCount = realignLayer( thisLayer )
+		thisGlyph.endUndo()   # end undo grouping
+		print("Processed %i BCPs in %s%s" % ( handleCount, "all layers of " if optionKeyPressed else "", thisGlyph.name ))
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
+finally:
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View

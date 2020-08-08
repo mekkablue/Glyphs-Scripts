@@ -24,14 +24,21 @@ def process( thisLayer ):
 				oldX = a.x
 				oldY = a.y
 				a.position = ( round( a.x/pixelwidth ) * pixelwidth, round( a.y/pixelwidth ) * pixelwidth )
-				print("%s: %s %i|%i --> %i|%i" % ( thisLayer.parent.name, a.name, int(oldX), int(oldY), int(a.x), int(a.y) ))
+				print("🔡 %s ⚓️ %s %i|%i --> %i|%i" % ( thisLayer.parent.name, a.name, int(oldX), int(oldY), int(a.x), int(a.y) ))
 				
 		thisLayer.parent.endUndo()
 
 Font.disableUpdateInterface()
-
-for thisLayer in selectedLayers:
-	process( thisLayer )
-
-Font.enableUpdateInterface()
+try:
+	for thisLayer in selectedLayers:
+		process( thisLayer )
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
+finally:
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 
