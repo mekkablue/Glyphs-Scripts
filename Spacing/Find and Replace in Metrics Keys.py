@@ -57,7 +57,6 @@ class MetricKeyReplacer( object ):
 
 	def MetricKeyReplaceMain( self, sender ):
 		Glyphs.font.disableUpdateInterface()
-		
 		try:
 			if not self.SavePreferences( self ):
 				print("Note: Could not write preferences.")
@@ -120,6 +119,7 @@ class MetricKeyReplacer( object ):
 					g.endUndo()
 			
 			self.w.close()
+			
 		except Exception as e:
 			Glyphs.showMacroWindow()
 			print("\n⚠️ Script Error:\n")
@@ -127,6 +127,7 @@ class MetricKeyReplacer( object ):
 			print(traceback.format_exc())
 			print()
 			raise e
+			
 		finally:
 			Glyphs.font.enableUpdateInterface()
 

@@ -210,23 +210,32 @@ class ComponentReplacer(object):
 			includeBackgrounds = Glyphs.defaults["com.mekkablue.ReplaceComponents.includeBackgrounds"]
 		
 			thisFont.disableUpdateInterface()
-			
-			totalCount = 0
-			if includeAllLayers:
-				selectedGlyphs = [ l.parent for l in selectedLayers ]
-				for thisGlyph in selectedGlyphs:
-					print("Processing %s:" % thisGlyph.name )
-					for thisLayer in thisGlyph.layers:
+			try:
+				totalCount = 0
+				if includeAllLayers:
+					selectedGlyphs = [ l.parent for l in selectedLayers ]
+					for thisGlyph in selectedGlyphs:
+						print("Processing %s:" % thisGlyph.name )
+						for thisLayer in thisGlyph.layers:
+							totalCount += replaceComponent( thisLayer, oldComponentName, newComponentName )
+						if includeBackgrounds:
+							totalCount += replaceComponent( thisLayer.background, oldComponentName, newComponentName )
+				else:
+					for thisLayer in selectedLayers:
 						totalCount += replaceComponent( thisLayer, oldComponentName, newComponentName )
 					if includeBackgrounds:
 						totalCount += replaceComponent( thisLayer.background, oldComponentName, newComponentName )
-			else:
-				for thisLayer in selectedLayers:
-					totalCount += replaceComponent( thisLayer, oldComponentName, newComponentName )
-				if includeBackgrounds:
-					totalCount += replaceComponent( thisLayer.background, oldComponentName, newComponentName )
-			
-			thisFont.enableUpdateInterface()
+						
+			except Exception as e:
+				Glyphs.showMacroWindow()
+				print("\n⚠️ Script Error:\n")
+				import traceback
+				print(traceback.format_exc())
+				print()
+				raise e
+				
+			finally:
+				thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 			
 			# Final report...
 			msg = "Replaced %i component%s" % (

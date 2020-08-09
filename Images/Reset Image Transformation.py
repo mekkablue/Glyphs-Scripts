@@ -14,12 +14,19 @@ def process( thisLayer ):
 		thisImage.transform = ((1.0, 0.0, 0.0, 1.0, 0.0, 0.0))
 
 Font.disableUpdateInterface()
-
-for thisLayer in selectedLayers:
-	thisGlyph = thisLayer.parent
-	print("Resetting image in", thisGlyph.name)
-	thisGlyph.beginUndo()
-	process( thisLayer )
-	thisGlyph.endUndo()
-
-Font.enableUpdateInterface()
+try:
+	for thisLayer in selectedLayers:
+		thisGlyph = thisLayer.parent
+		print("Resetting image in", thisGlyph.name)
+		thisGlyph.beginUndo()
+		process( thisLayer )
+		thisGlyph.endUndo()
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
+finally:
+	Font.enableUpdateInterface() # re-enables UI updates in Font View

@@ -39,12 +39,21 @@ def process( thisGlyph ):
 				currentLayer.components.append(sourceComponent.copy())
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+try:
+	for thisLayer in listOfSelectedLayers:
+		thisGlyph = thisLayer.parent
+		print("Processing", thisGlyph.name)
+		thisGlyph.beginUndo() # begin undo grouping
+		process( thisGlyph )
+		thisGlyph.endUndo()   # end undo grouping
 
-for thisLayer in listOfSelectedLayers:
-	thisGlyph = thisLayer.parent
-	print("Processing", thisGlyph.name)
-	thisGlyph.beginUndo() # begin undo grouping
-	process( thisGlyph )
-	thisGlyph.endUndo()   # end undo grouping
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
 
-thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+finally:
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View

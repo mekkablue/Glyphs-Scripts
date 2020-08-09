@@ -284,14 +284,23 @@ class ComponentOnLines( object ):
 				balanceOverCompletePath = bool( Glyphs.defaults["com.mekkablue.ComponentOnLines.balanceOverCompletePath"] )
 		
 				Font.disableUpdateInterface()
+				try:
+					for thisLayer in selectedLayers:
+						thisGlyph = thisLayer.parent
+						thisGlyph.beginUndo()
+						process( thisLayer, deleteComponents, componentName, distanceBetweenDots, useBackground, balanceOverCompletePath )
+						thisGlyph.endUndo()
 
-				for thisLayer in selectedLayers:
-					thisGlyph = thisLayer.parent
-					thisGlyph.beginUndo()
-					process( thisLayer, deleteComponents, componentName, distanceBetweenDots, useBackground, balanceOverCompletePath )
-					thisGlyph.endUndo()
-
-				Font.enableUpdateInterface()
+				except Exception as e:
+					Glyphs.showMacroWindow()
+					print("\n⚠️ Script Error:\n")
+					import traceback
+					print(traceback.format_exc())
+					print()
+					raise e
+					
+				finally:
+					Font.enableUpdateInterface()
 			
 				if not self.SavePreferences( self ):
 					print("Note: could not write preferences.")

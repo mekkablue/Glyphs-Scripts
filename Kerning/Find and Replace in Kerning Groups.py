@@ -99,12 +99,10 @@ class KerningGroupReplacer( object ):
 				print("%s: new right group: '%s'." % ( thisGlyph.name, newRightGroup ))
 		
 		thisGlyph.endUndo()
-		
 
 	def KerningGroupReplaceMain( self, sender ):
 		Glyphs.clearLog()
 		Glyphs.font.disableUpdateInterface()
-		
 		try:
 			if not self.SavePreferences( self ):
 				print("Note: Could not write preferences.")
@@ -127,9 +125,11 @@ class KerningGroupReplacer( object ):
 					print(e)
 					
 			self.w.close()
+			
 		except Exception as e:
 			raise e
-		
-		Glyphs.font.enableUpdateInterface()
+			
+		finally:
+			Glyphs.font.enableUpdateInterface()
 
 KerningGroupReplacer()

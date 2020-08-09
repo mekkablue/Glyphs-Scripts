@@ -163,22 +163,32 @@ class VariationInterpolator( object ):
 			
 			thisFont = Glyphs.font # frontmost font
 			thisFont.disableUpdateInterface() # suppresses UI updates in Font View
-			listOfSelectedGlyphs = [ l.parent for l in thisFont.selectedLayers ] # currently selected glyphs
+			try:
+				listOfSelectedGlyphs = [ l.parent for l in thisFont.selectedLayers ] # currently selected glyphs
 			
-			for thisGlyph in listOfSelectedGlyphs: # loop through glyphs
-				for numberOfThisVariation in range(numberOfVariations+1):
-					newSuffix = "%s%02i" % ( glyphSuffix, numberOfThisVariation )
-					newGlyph = self.createGlyphCopy( thisGlyph, newSuffix )
+				for thisGlyph in listOfSelectedGlyphs: # loop through glyphs
+					for numberOfThisVariation in range(numberOfVariations+1):
+						newSuffix = "%s%02i" % ( glyphSuffix, numberOfThisVariation )
+						newGlyph = self.createGlyphCopy( thisGlyph, newSuffix )
 					
-					# prepare interpolation:
-					backgroundFactor = float( numberOfThisVariation ) / float( numberOfVariations )
+						# prepare interpolation:
+						backgroundFactor = float( numberOfThisVariation ) / float( numberOfVariations )
 					
-					# add the glyph variation to the font:
-					thisFont.glyphs.append( newGlyph )
-					self.interpolateGlyphWithBackgrounds( newGlyph, backgroundFactor )
-					
-					
+						# add the glyph variation to the font:
+						thisFont.glyphs.append( newGlyph )
+						self.interpolateGlyphWithBackgrounds( newGlyph, backgroundFactor )
+						
+			except Exception as e:
+				Glyphs.showMacroWindow()
+				print("\n⚠️ Script Error:\n")
+				import traceback
+				print(traceback.format_exc())
+				print()
+				raise e
+				
+			finally:
 				thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+				
 			if not self.SavePreferences( self ):
 				print("Note: 'Variation Interpolator' could not write preferences.")
 			

@@ -45,8 +45,17 @@ def process( thisLayer ):
 		print("No components in %s." % glyphName)
 
 Font.disableUpdateInterface()
+try:
+	for thisLayer in selectedLayers:
+		process( thisLayer )
 
-for thisLayer in selectedLayers:
-	process( thisLayer )
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
 
-Font.enableUpdateInterface()
+finally:
+	Font.enableUpdateInterface()

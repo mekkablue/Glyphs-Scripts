@@ -26,6 +26,7 @@ try:
 			thisLayer.beginUndo()
 			print("Resetting width of %s to %.0f." % ( thisGlyphName, resetWidth( thisLayer, thisGlyphName ) ))
 			thisLayer.endUndo()
+			
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")
@@ -33,6 +34,7 @@ except Exception as e:
 	print(traceback.format_exc())
 	print()
 	raise e
+	
 finally:
 	Font.enableUpdateInterface() # re-enables UI updates in Font View
 

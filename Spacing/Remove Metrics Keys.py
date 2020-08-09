@@ -36,5 +36,6 @@ except Exception as e:
 	print(traceback.format_exc())
 	print()
 	raise e
+	
 finally:
 	thisFont.enableUpdateInterface() # re-enables UI updates in Font View

@@ -29,13 +29,22 @@ newFolder = GetFolder( message="Choose location of placed images:", allowsMultip
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
 Font.disableUpdateInterface()
-
-if newFolder:
-	print("New image path for selected glyphs:\n%s" % newFolder)
-	for thisLayer in selectedLayers:
-		thisGlyph = thisLayer.parent
-		thisGlyph.beginUndo()
-		print("-- %s: %s" % ( thisGlyph.name, process( thisLayer ) ))
-		thisGlyph.endUndo()
-
-Font.enableUpdateInterface()
+try:
+	if newFolder:
+		print("New image path for selected glyphs:\n%s" % newFolder)
+		for thisLayer in selectedLayers:
+			thisGlyph = thisLayer.parent
+			thisGlyph.beginUndo()
+			print("-- %s: %s" % ( thisGlyph.name, process( thisLayer ) ))
+			thisGlyph.endUndo()
+			
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
+	
+finally:
+	Font.enableUpdateInterface() # re-enables UI updates in Font View

@@ -19,7 +19,6 @@ def process( thisLayer ):
 	return strayPoints
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
-
 try:
 	namesOfAffectedGlyphs = []
 	for thisLayer in listOfSelectedLayers:
@@ -33,6 +32,7 @@ try:
 			glyphName = thisGlyph.name
 			print("Deleted %i stray nodes in %s." % ( numberOfDeletedStrayPoints, glyphName ))
 			namesOfAffectedGlyphs.append( glyphName )
+			
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")
@@ -40,6 +40,7 @@ except Exception as e:
 	print(traceback.format_exc())
 	print()
 	raise e
+	
 finally:
 	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 

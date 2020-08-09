@@ -55,6 +55,7 @@ Font.disableUpdateInterface()
 try:
 	for thisLayer in layers:
 		process( thisLayer )
+		
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")
@@ -62,6 +63,7 @@ except Exception as e:
 	print(traceback.format_exc())
 	print()
 	raise e
+	
 finally:
 	Font.enableUpdateInterface() # re-enables UI updates in Font View
 

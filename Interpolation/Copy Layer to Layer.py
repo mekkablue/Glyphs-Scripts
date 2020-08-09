@@ -292,26 +292,31 @@ class CopyLayerToLayer( object ):
 
 				sourceFont.disableUpdateInterface()
 				targetFont.disableUpdateInterface()
+				try:
+					# Copy paths, components, anchors, and metrics:
+					if pathsYesOrNo:
+						self.copyPathsFromLayerToLayer( sourcelayer, targetlayer, keepOriginal=keepOriginal )
+					if componentsYesOrNo:
+						self.copyComponentsFromLayerToLayer( sourcelayer, targetlayer, keepOriginal=keepOriginal )
+					if anchorsYesOrNo:
+						self.copyAnchorsFromLayerToLayer( sourcelayer, targetlayer, keepOriginal=keepOriginal )
+					if metricsYesOrNo and not copyBackground:
+						self.copyMetricsFromLayerToLayer( sourcelayer, targetlayer )
 				
-				# Copy paths, components, anchors, and metrics:
-				if pathsYesOrNo:
-					self.copyPathsFromLayerToLayer( sourcelayer, targetlayer, keepOriginal=keepOriginal )
-				if componentsYesOrNo:
-					self.copyComponentsFromLayerToLayer( sourcelayer, targetlayer, keepOriginal=keepOriginal )
-				if anchorsYesOrNo:
-					self.copyAnchorsFromLayerToLayer( sourcelayer, targetlayer, keepOriginal=keepOriginal )
-				if metricsYesOrNo and not copyBackground:
-					self.copyMetricsFromLayerToLayer( sourcelayer, targetlayer )
-				
-				# copy hints, caps and corners if either paths or components are copied:
-				if componentsYesOrNo or pathsYesOrNo:
-					self.copyHintsFromLayerToLayer( sourcelayer, targetlayer, keepOriginal=keepOriginal )
-
-				sourceFont.enableUpdateInterface()
-				targetFont.enableUpdateInterface()
+					# copy hints, caps and corners if either paths or components are copied:
+					if componentsYesOrNo or pathsYesOrNo:
+						self.copyHintsFromLayerToLayer( sourcelayer, targetlayer, keepOriginal=keepOriginal )
+						
+				except Exception as e:
+					raise e
+					
+				finally:
+					sourceFont.enableUpdateInterface()
+					targetFont.enableUpdateInterface()
 
 			except Exception as e:
-				print(e)
+				Glyphs.showMacroWindow()
+				print("\n⚠️ Script Error:\n")
 				import traceback
 				print(traceback.format_exc())
 

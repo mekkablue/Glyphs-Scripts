@@ -123,15 +123,16 @@ try:
 		enableOnlyColorLayers(thisGlyph)
 		thisGlyph.endUndo()   # end undo grouping
 	
-	except Exception as e:
-		Glyphs.showMacroWindow()
-		print("\n⚠️ Script Error:\n")
-		import traceback
-		print(traceback.format_exc())
-		print()
-		raise e
-	finally:
-		thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
+	
+finally:
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 
 # take time:
 end = timer()

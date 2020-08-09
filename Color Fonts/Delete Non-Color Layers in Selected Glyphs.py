@@ -31,14 +31,23 @@ def process( thisGlyph ):
 					thisGlyph.removeLayerForKey_(currentLayerID)
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+try:
+	Glyphs.clearLog()
+	print("Removing non-Color layers in %i glyphs:" % len(listOfSelectedLayers) )
+	for thisLayer in listOfSelectedLayers:
+		thisGlyph = thisLayer.parent
+		print("\nProcessing", thisGlyph.name)
+		thisGlyph.beginUndo() # begin undo grouping
+		process( thisGlyph )
+		thisGlyph.endUndo()   # end undo grouping
 
-Glyphs.clearLog()
-print("Removing non-Color layers in %i glyphs:" % len(listOfSelectedLayers) )
-for thisLayer in listOfSelectedLayers:
-	thisGlyph = thisLayer.parent
-	print("\nProcessing", thisGlyph.name)
-	thisGlyph.beginUndo() # begin undo grouping
-	process( thisGlyph )
-	thisGlyph.endUndo()   # end undo grouping
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
 
-thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+finally:
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View

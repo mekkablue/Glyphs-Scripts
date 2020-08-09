@@ -43,6 +43,7 @@ try:
 	for thisLayer in selectedLayers:
 		numOfDeletedComponents = process( thisLayer )
 		print("%i components deleted in: %s (%s)" % (numOfDeletedComponents, thisLayer.parent.name, thisLayer.name)
+		
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")
@@ -50,6 +51,7 @@ except Exception as e:
 	print(traceback.format_exc())
 	print()
 	raise e
+	
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	Font.enableUpdateInterface() # re-enables UI updates in Font View
 

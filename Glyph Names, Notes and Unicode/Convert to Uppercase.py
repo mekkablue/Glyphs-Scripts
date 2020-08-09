@@ -44,11 +44,18 @@ convertedCount = 0
 print("Converting %i selected glyphs to uppercase:\n" % countSelectedGlyphs)
 
 Font.disableUpdateInterface()
-
-for thisGlyph in selectedGlyphs:
-	convertedCount += uppercaseGlyphName( thisGlyph )
-
-Font.enableUpdateInterface()
+try:
+	for thisGlyph in selectedGlyphs:
+		convertedCount += uppercaseGlyphName( thisGlyph )
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
+finally:
+	Font.enableUpdateInterface()
 
 # Floating notification:
 Glyphs.showNotification( 

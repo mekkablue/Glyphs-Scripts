@@ -9,29 +9,40 @@ thisFont = Glyphs.font
 
 def process( thisGlyph ):
 	deleteCount = 0
+	thisGlyph.beginUndo()
+	
 	for thisLayer in thisGlyph.layers:
-		if thisLayer.backgroundImage:
-			thisLayer.setBackgroundImage_(None)
-			deleteCount += 1
+		try:
+			if thisLayer.backgroundImage:
+				thisLayer.setBackgroundImage_(None)
+				deleteCount += 1
+		except Exception as e:
+			print("   ⚠️ %s, layer ‘%s’: %s\n" % (thisGlyph.name, thisLayer.name, e))
+			
+	thisGlyph.endUndo()
 	return deleteCount
 
 thisFont.disableUpdateInterface()
+try:
+	print("Removing images in %s glyphs ..." % len( thisFont.glyphs ))
 
-print("Removing images in %s glyphs ..." % len( thisFont.glyphs ))
+	totalCount = 0
 
-totalCount = 0
-
-for thisGlyph in thisFont.glyphs:
-	thisGlyph.beginUndo()
-	numberOfDeletedImages = process( thisGlyph )
-	if numberOfDeletedImages:
-		plural = 0
-		if numberOfDeletedImages > 1:
-			plural = 1
+	for thisGlyph in thisFont.glyphs:
+		numberOfDeletedImages = process( thisGlyph )
+		plural = min(numberOfDeletedImages, 1) # 0 or 1
 		print("   Deleted %i image%s in %s." % ( numberOfDeletedImages, "s"*plural, thisGlyph.name ))
-	totalCount += numberOfDeletedImages
-	thisGlyph.endUndo()
+		totalCount += numberOfDeletedImages
 
-thisFont.enableUpdateInterface()
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
+
+finally:
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 
 print("Removed links to %i images in total." % totalCount)

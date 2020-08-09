@@ -74,17 +74,26 @@ class replaceInLayerNames(object):
 		replaceCount = 0
 
 		thisFont.disableUpdateInterface()
-		for thisGlyph in glyphsToProcess:
-			for thisLayer in thisGlyph.layers:
-				# do not change names of master layers:
-				if thisLayer.layerId != thisLayer.associatedFontMaster().id:
-					if thisLayer.name is None:
-						print("Warning! Empty layer name in: %s" % thisGlyph.name)
-					elif searchFor in thisLayer.name:
-						thisLayer.name = thisLayer.name.replace( searchFor, replaceBy )
-						print("%s: %s" % ( thisGlyph.name, thisLayer.name ))
-						replaceCount += 1
-		thisFont.enableUpdateInterface()
+		try:
+			for thisGlyph in glyphsToProcess:
+				for thisLayer in thisGlyph.layers:
+					# do not change names of master layers:
+					if thisLayer.layerId != thisLayer.associatedFontMaster().id:
+						if thisLayer.name is None:
+							print("Warning! Empty layer name in: %s" % thisGlyph.name)
+						elif searchFor in thisLayer.name:
+							thisLayer.name = thisLayer.name.replace( searchFor, replaceBy )
+							print("%s: %s" % ( thisGlyph.name, thisLayer.name ))
+							replaceCount += 1
+		except Exception as e:
+			Glyphs.showMacroWindow()
+			print("\n⚠️ Script Error:\n")
+			import traceback
+			print(traceback.format_exc())
+			print()
+			raise e
+		finally:
+			thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 		
 		if replaceCount > 0:
 			Message(title="Replaced successfully", message="Replaced %i occurrences."%replaceCount, OKButton=None)

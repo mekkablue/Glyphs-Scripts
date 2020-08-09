@@ -24,19 +24,26 @@ try:
 	diffY = abs(lowestY-highestY)
 	
 	Font.disableUpdateInterface()
-
-	if diffX > diffY:
-		increment = diffX / float( len(selection) - 1 )
-		sortedSelection = sorted( selection, key=lambda n: n.x)
-		for thisNodeIndex in range( len(selection) - 1 ):
-			sortedSelection[thisNodeIndex].x = leftMostX + ( thisNodeIndex * increment )
-	else:
-		increment = diffY / float( len(selection) - 1 )
-		sortedSelection = sorted( selection, key=lambda n: n.y)
-		for thisNodeIndex in range( len(selection) - 1 ):
-			sortedSelection[thisNodeIndex].y = lowestY + ( thisNodeIndex * increment )
-			
-	Font.enableUpdateInterface()
+	try:
+		if diffX > diffY:
+			increment = diffX / float( len(selection) - 1 )
+			sortedSelection = sorted( selection, key=lambda n: n.x)
+			for thisNodeIndex in range( len(selection) - 1 ):
+				sortedSelection[thisNodeIndex].x = leftMostX + ( thisNodeIndex * increment )
+		else:
+			increment = diffY / float( len(selection) - 1 )
+			sortedSelection = sorted( selection, key=lambda n: n.y)
+			for thisNodeIndex in range( len(selection) - 1 ):
+				sortedSelection[thisNodeIndex].y = lowestY + ( thisNodeIndex * increment )
+	except Exception as e:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Script Error:\n")
+		import traceback
+		print(traceback.format_exc())
+		print()
+		raise e
+	finally:
+		Font.enableUpdateInterface() # re-enables UI updates in Font View
 	
 except Exception as e:
 	if selection == ():

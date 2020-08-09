@@ -49,6 +49,7 @@ try:
 		shift = ( thisLayer.LSB - thisLayer.RSB ) * -0.5
 		shiftMatrix = transform(shiftX=shift).transformStruct()
 		thisLayer.applyTransform( shiftMatrix )
+		
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")
@@ -56,6 +57,7 @@ except Exception as e:
 	print(traceback.format_exc())
 	print()
 	raise e
+	
 finally:
 	Font.enableUpdateInterface() # re-enables UI updates in Font View
 

@@ -82,15 +82,20 @@ selection = selectedLayers[0].selection # node selection in edit mode
 Glyphs.clearLog() # clears log in Macro window
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
- 
-for thisLayer in selectedLayers:
-	thisGlyph = thisLayer.parent
-	thisGlyph.beginUndo() # begin undo grouping
-	selected, aligned, numberOfAnchorsMoved = process( thisLayer )
-	print("%s: aligned %i of %i selected nodes" % (thisGlyph.name, aligned, selected))
-	print("%s: aligned %i of %i anchors." % (thisGlyph.name, numberOfAnchorsMoved, len(thisLayer.anchors)))
-	thisGlyph.endUndo() # end undo grouping
-
-thisFont.enableUpdateInterface() # suppresses UI updates in Font View
- 
-
+try:
+	for thisLayer in selectedLayers:
+		thisGlyph = thisLayer.parent
+		thisGlyph.beginUndo() # begin undo grouping
+		selected, aligned, numberOfAnchorsMoved = process( thisLayer )
+		print("%s: aligned %i of %i selected nodes" % (thisGlyph.name, aligned, selected))
+		print("%s: aligned %i of %i anchors." % (thisGlyph.name, numberOfAnchorsMoved, len(thisLayer.anchors)))
+		thisGlyph.endUndo() # end undo grouping
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
+finally:
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View

@@ -59,13 +59,23 @@ listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyph
 
 if thisFont and listOfSelectedLayers:
 	thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+	try:
+		for thisLayer in listOfSelectedLayers:
+			thisGlyph = thisLayer.parent
+			print("Processing", thisGlyph.name)
+			thisGlyph.beginUndo() # begin undo grouping
+			process( thisLayer )
+			thisGlyph.endUndo()   # end undo grouping
+			
+	except Exception as e:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Script Error:\n")
+		import traceback
+		print(traceback.format_exc())
+		print()
+		raise e
+		
+	finally:
+		thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 
-	for thisLayer in listOfSelectedLayers:
-		thisGlyph = thisLayer.parent
-		print("Processing", thisGlyph.name)
-		thisGlyph.beginUndo() # begin undo grouping
-		process( thisLayer )
-		thisGlyph.endUndo()   # end undo grouping
-
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 	NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont)

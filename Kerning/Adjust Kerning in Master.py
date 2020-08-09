@@ -116,56 +116,66 @@ class AdjustKerning( object ):
 			value = float( Glyphs.defaults["com.mekkablue.AdjustKerning.howMuch"] )
 			
 			Font.disableUpdateInterface()
+			try:
+				if calculation == optionList[0]:
+
+					for leftGlyphID in MasterKernDict.keys():
+						leftName = self.nameForID( Font, leftGlyphID )
+					
+						for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
+							originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
+							if self.userChoosesToProcessKerning( originalKerning ):
+								rightName = self.nameForID( Font, rightGlyphID )
+								Font.setKerningForPair( MasterID, leftName, rightName, originalKerning * value )
+
+				elif calculation == optionList[1]:
+				
+					for leftGlyphID in MasterKernDict.keys():
+						leftName = self.nameForID( Font, leftGlyphID )
+
+						for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
+							originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
+							if self.userChoosesToProcessKerning( originalKerning ):
+								rightName = self.nameForID( Font, rightGlyphID )
+								Font.setKerningForPair( MasterID, leftName, rightName, originalKerning + value )
+						
+				elif calculation == optionList[2]:
+				
+					for leftGlyphID in MasterKernDict.keys():
+						leftName = self.nameForID( Font, leftGlyphID )
+
+						for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
+							originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
+							if self.userChoosesToProcessKerning( originalKerning ):
+								rightName = self.nameForID( Font, rightGlyphID )
+								if originalKerning < 0:
+									factor = -1
+								else:
+									factor = 1
+								Font.setKerningForPair( MasterID, leftName, rightName, originalKerning + factor * value )
+						
+				elif calculation == optionList[3]:
+				
+					for leftGlyphID in MasterKernDict.keys():
+						leftName = self.nameForID( Font, leftGlyphID )
+					
+						for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
+							originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
+							if self.userChoosesToProcessKerning( originalKerning ):
+								rightName = self.nameForID( Font, rightGlyphID )
+								Font.setKerningForPair( MasterID, leftName, rightName, round( originalKerning / value, 0 ) * value )
+								
+			except Exception as e:
+				Glyphs.showMacroWindow()
+				print("\n⚠️ Script Error:\n")
+				import traceback
+				print(traceback.format_exc())
+				print()
+				raise e
+				
+			finally:
+				Font.enableUpdateInterface() # re-enables UI updates in Font View
 			
-			if calculation == optionList[0]:
-
-				for leftGlyphID in MasterKernDict.keys():
-					leftName = self.nameForID( Font, leftGlyphID )
-					
-					for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
-						originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
-						if self.userChoosesToProcessKerning( originalKerning ):
-							rightName = self.nameForID( Font, rightGlyphID )
-							Font.setKerningForPair( MasterID, leftName, rightName, originalKerning * value )
-
-			elif calculation == optionList[1]:
-				
-				for leftGlyphID in MasterKernDict.keys():
-					leftName = self.nameForID( Font, leftGlyphID )
-
-					for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
-						originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
-						if self.userChoosesToProcessKerning( originalKerning ):
-							rightName = self.nameForID( Font, rightGlyphID )
-							Font.setKerningForPair( MasterID, leftName, rightName, originalKerning + value )
-						
-			elif calculation == optionList[2]:
-				
-				for leftGlyphID in MasterKernDict.keys():
-					leftName = self.nameForID( Font, leftGlyphID )
-
-					for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
-						originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
-						if self.userChoosesToProcessKerning( originalKerning ):
-							rightName = self.nameForID( Font, rightGlyphID )
-							if originalKerning < 0:
-								factor = -1
-							else:
-								factor = 1
-							Font.setKerningForPair( MasterID, leftName, rightName, originalKerning + factor * value )
-						
-			elif calculation == optionList[3]:
-				
-				for leftGlyphID in MasterKernDict.keys():
-					leftName = self.nameForID( Font, leftGlyphID )
-					
-					for rightGlyphID in MasterKernDict[ leftGlyphID ].keys():
-						originalKerning = MasterKernDict[ leftGlyphID ][ rightGlyphID ]
-						if self.userChoosesToProcessKerning( originalKerning ):
-							rightName = self.nameForID( Font, rightGlyphID )
-							Font.setKerningForPair( MasterID, leftName, rightName, round( originalKerning / value, 0 ) * value )
-				
-			Font.enableUpdateInterface()
 			
 			if not self.SavePreferences( self ):
 				print("Note: could not write preferences.")

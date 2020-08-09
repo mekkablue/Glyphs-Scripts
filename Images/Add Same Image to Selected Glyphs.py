@@ -8,7 +8,7 @@ Asks you for an image file and inserts it as background image into all selected 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 
-def process( thisLayer ):
+def process( thisLayer, imageFilePath ):
 	try:
 		thisImage = GSBackgroundImage.alloc().initWithPath_(imageFilePath)
 		thisLayer.setBackgroundImage_( thisImage )
@@ -20,19 +20,28 @@ def process( thisLayer ):
 	return "OK."
 
 Font.disableUpdateInterface()
+try:
+	imageFilePath = GetOpenFile(
+		message = "Select an image:",
+		allowsMultipleSelection = False,
+		filetypes = ["jpeg", "png", "tif", "gif", "pdf"]
+	)
 
-imageFilePath = GetOpenFile(
-	message = "Select an image:",
-	allowsMultipleSelection = False,
-	filetypes = ["jpeg", "png", "tif", "gif", "pdf"]
-)
+	print("Putting %s into:" % imageFilePath)
 
-print("Putting %s into:" % imageFilePath)
-
-for thisLayer in selectedLayers:
-	thisGlyph = thisLayer.parent
-	thisGlyph.beginUndo()
-	print("-- %s: %s" % ( thisGlyph.name, process( thisLayer ) ))
-	thisGlyph.endUndo()
-
-Font.enableUpdateInterface()
+	for thisLayer in selectedLayers:
+		thisGlyph = thisLayer.parent
+		thisGlyph.beginUndo()
+		print("-- %s: %s" % ( thisGlyph.name, process( thisLayer, imageFilePath ) ))
+		thisGlyph.endUndo()
+		
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
+	
+finally:
+	Font.enableUpdateInterface()

@@ -19,13 +19,22 @@ def setHintsToNoStem( thisLayer ):
 	return returnValue
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+try:
+	Tool = NSClassFromString("GlyphsToolTrueTypeInstructor").alloc().init()
+	if Tool:
+		Tool.autohintLayers_(selectedLayers)
+		for thisLayer in selectedLayers:
+			setHintsToNoStem( thisLayer )
+	else:
+		Message("TT Autoinstruct Error", "The TT Instructor Tool could not be accessed.", OKButton=None)
 
-Tool = NSClassFromString("GlyphsToolTrueTypeInstructor").alloc().init()
-if Tool:
-	Tool.autohintLayers_(selectedLayers)
-	for thisLayer in selectedLayers:
-		setHintsToNoStem( thisLayer )
-else:
-	Message("TT Autoinstruct Error", "The TT Instructor Tool could not be accessed.", OKButton=None)
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
 
-thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+finally:
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View

@@ -163,6 +163,7 @@ try:
 		scRightKey = thisKernInfo[2]
 		scKernValue = thisKernInfo[3]
 		thisFont.setKerningForPair( fontMasterID, scLeftKey, scRightKey, scKernValue )
+		
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")
@@ -170,6 +171,7 @@ except Exception as e:
 	print(traceback.format_exc())
 	print()
 	raise e
+	
 finally:
 	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 

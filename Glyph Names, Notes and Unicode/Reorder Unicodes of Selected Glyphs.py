@@ -48,17 +48,24 @@ def reorderUnicodes( thisGlyph ):
 		print("- %s: No unicodes set, nothing to reorder." % (thisGlyph.name))
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+try:
+	# brings macro window to front and clears its log:
+	Glyphs.clearLog()
+	Glyphs.showMacroWindow()
+	print("Reorder Unicodes of Selected Glyphs")
+	print("Processing Unicodes of %i selected glyphs:" % len(selectedLayers))
 
-# brings macro window to front and clears its log:
-Glyphs.clearLog()
-Glyphs.showMacroWindow()
-print("Reorder Unicodes of Selected Glyphs")
-print("Processing Unicodes of %i selected glyphs:" % len(selectedLayers))
+	for thisLayer in selectedLayers:
+		thisGlyph = thisLayer.parent
+		reorderUnicodes( thisGlyph )
 
-for thisLayer in selectedLayers:
-	thisGlyph = thisLayer.parent
-	thisGlyph.beginUndo() # begin undo grouping
-	reorderUnicodes( thisGlyph )
-	thisGlyph.endUndo()   # end undo grouping
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
 
-thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+finally:
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View

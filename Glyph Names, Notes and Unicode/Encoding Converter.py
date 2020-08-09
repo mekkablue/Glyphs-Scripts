@@ -523,55 +523,66 @@ class EncodingConverter( object ):
 				print()
 				
 				thisFont.disableUpdateInterface()
+				try:
 
-				thisFont.setDisablesNiceNames_(1)
-				nameChangeString = Glyphs.defaults["com.mekkablue.EncodingConverter.recipe"]
-				countRenames = 0
-				countRecipes = 0
+					thisFont.setDisablesNiceNames_(1)
+					nameChangeString = Glyphs.defaults["com.mekkablue.EncodingConverter.recipe"]
+					countRenames = 0
+					countRecipes = 0
 				
-				# parse lines of nameChangeString:
-				for line in nameChangeString.splitlines():
-					try:
-						if line.strip(): # skip empty lines
+					# parse lines of nameChangeString:
+					for line in nameChangeString.splitlines():
+						try:
+							if line.strip(): # skip empty lines
 							
-							# RENAME LINE:
-							if "->" in line:
-								nameList = line.split("->")
-								sourceName = nameList[0].strip()
-								targetName = nameList[1].strip()
-								if sourceName != targetName:
-									countRenames += self.glyphRename( sourceName, targetName, thisFont )
+								# RENAME LINE:
+								if "->" in line:
+									nameList = line.split("->")
+									sourceName = nameList[0].strip()
+									targetName = nameList[1].strip()
+									if sourceName != targetName:
+										countRenames += self.glyphRename( sourceName, targetName, thisFont )
 						
-							# GLYPH RECIPE:
-							elif "=" in line and not " " in line:
-								sourceRecipe, targetGlyph = line.strip().split("=")
-								if self.isValidGlyphName(targetGlyph):
-									sourceGlyphNames = sourceRecipe.split("+")
-									if all([thisFont.glyphs[n] for n in sourceGlyphNames]):
-										exportStatus = targetGlyph[0]!="_"
-										glyph = thisFont.glyphs[targetGlyph]
-										if glyph:
-											print("🔠 overwritten: %s" % targetGlyph)
+								# GLYPH RECIPE:
+								elif "=" in line and not " " in line:
+									sourceRecipe, targetGlyph = line.strip().split("=")
+									if self.isValidGlyphName(targetGlyph):
+										sourceGlyphNames = sourceRecipe.split("+")
+										if all([thisFont.glyphs[n] for n in sourceGlyphNames]):
+											exportStatus = targetGlyph[0]!="_"
+											glyph = thisFont.glyphs[targetGlyph]
+											if glyph:
+												print("🔠 overwritten: %s" % targetGlyph)
+											else:
+												glyph = GSGlyph()
+												glyph.name = targetGlyph
+												thisFont.glyphs.append(glyph)
+												print("🔠 created: %s" % targetGlyph)
+											for layer in glyph.layers:
+												if layer.isMasterLayer or layer.isSpecialLayer:
+													layer.clear()
+													for compName in sourceGlyphNames:
+														comp = GSComponent(compName)
+														layer.components.append(comp)
+											countRecipes += 1
 										else:
-											glyph = GSGlyph()
-											glyph.name = targetGlyph
-											thisFont.glyphs.append(glyph)
-											print("🔠 created: %s" % targetGlyph)
-										for layer in glyph.layers:
-											if layer.isMasterLayer or layer.isSpecialLayer:
-												layer.clear()
-												for compName in sourceGlyphNames:
-													comp = GSComponent(compName)
-													layer.components.append(comp)
-										countRecipes += 1
+											print("⚠️ Could not create recipe for %s. Not all ingredients in font: %s." % (targetGlyph, ", ".join(sourceGlyphNames)))
 									else:
-										print("⚠️ Could not create recipe for %s. Not all ingredients in font: %s." % (targetGlyph, ", ".join(sourceGlyphNames)))
-								else:
-									print("⚠️ invalid glyph name: %s. Skipping." % targetGlyph)
-					except:
-						pass
+										print("⚠️ invalid glyph name: %s. Skipping." % targetGlyph)
+						except:
+							pass
+							
+				except Exception as e:
+					Glyphs.showMacroWindow()
+					print("\n⚠️ Script Error:\n")
+					import traceback
+					print(traceback.format_exc())
+					print()
+					raise e
+					
+				finally:
+					thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 				
-				thisFont.enableUpdateInterface()
 				self.w.close() # delete if you want window to stay open
 
 			# Final report:

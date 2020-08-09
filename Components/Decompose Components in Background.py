@@ -24,12 +24,21 @@ def process( thisLayer ):
 		background.decomposeComponents()
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+try:
+	for thisLayer in thisFont.selectedLayers:
+		thisGlyph = thisLayer.parent
+		print("Processing", thisGlyph.name)
+		thisGlyph.beginUndo() # begin undo grouping
+		process( thisLayer )
+		thisGlyph.endUndo()   # end undo grouping
 
-for thisLayer in thisFont.selectedLayers:
-	thisGlyph = thisLayer.parent
-	print("Processing", thisGlyph.name)
-	thisGlyph.beginUndo() # begin undo grouping
-	process( thisLayer )
-	thisGlyph.endUndo()   # end undo grouping
-
-thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
+	
+finally:
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View

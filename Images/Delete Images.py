@@ -17,18 +17,27 @@ def process( thisGlyph ):
 	return deleteCount
 
 Font.disableUpdateInterface()
+try:
+	print("Removing images in %s selected glyphs ..." % len( selectedLayers ))
 
-print("Removing images in %s selected glyphs ..." % len( selectedLayers ))
-
-for thisLayer in selectedLayers:
-	thisGlyph = thisLayer.parent
-	thisGlyph.beginUndo()
-	numberOfDeletedImages = process( thisGlyph )
-	if numberOfDeletedImages:
-		plural = 0
-		if numberOfDeletedImages > 1:
-			plural = 1
-		print("  Deleted %i image%s in %s." % ( numberOfDeletedImages, "s"*plural, thisGlyph.name ))
-	thisGlyph.endUndo()
-
-Font.enableUpdateInterface()
+	for thisLayer in selectedLayers:
+		thisGlyph = thisLayer.parent
+		thisGlyph.beginUndo()
+		numberOfDeletedImages = process( thisGlyph )
+		if numberOfDeletedImages:
+			plural = 0
+			if numberOfDeletedImages > 1:
+				plural = 1
+			print("  Deleted %i image%s in %s." % ( numberOfDeletedImages, "s"*plural, thisGlyph.name ))
+		thisGlyph.endUndo()
+		
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Script Error:\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
+	
+finally:
+	Font.enableUpdateInterface()
