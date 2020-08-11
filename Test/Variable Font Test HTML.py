@@ -233,18 +233,9 @@ def saveFileInLocation( content="Sorry, no content generated.", fileName="test.t
 	saveFileLocation = "%s/%s" % (filePath,fileName)
 	saveFileLocation = saveFileLocation.replace( "//", "/" )
 	with codecs.open(saveFileLocation, "w", "utf-8-sig") as thisFile:
-		print("Exporting to:", thisFile.name)
+		print("💾 Writing: %s" % thisFile.name)
 		thisFile.write( content )
 		thisFile.close()
-	return True
-
-def saveFileInLocationOLD( content="Sorry, no content generated.", fileName="test.html", filePath="~/Desktop" ):
-	saveFileLocation = "%s/%s" % (filePath,fileName)
-	saveFileLocation = saveFileLocation.replace( "//", "/" )
-	f = open( saveFileLocation, 'w' )
-	print("Exporting to: %s" % f.name)
-	f.write( content.encode("ascii", errors="xmlcharrefreplace") )
-	f.close()
 	return True
 
 def currentOTVarExportPath():
@@ -358,7 +349,7 @@ def allUnicodeEscapesOfFont( thisFont ):
 
 def featureListForFont( thisFont ):
 	returnString = ""
-	featureList = [(f.name, f.notes) for f in thisFont.features if not f.name in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig") and not f.disabled()]
+	featureList = [(f.name, f.notes) for f in thisFont.features if not f.name in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig", "rlig") and not f.disabled()]
 	for (f,n) in featureList:
 		# <input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
 		if f.startswith("ss") and n and n.startswith("Name:"):
@@ -694,8 +685,21 @@ htmlContent = u"""
 		</style>
 		<script>
 			document.addEventListener('keyup', keyAnalysis);
-			function setLanguage(lang) {
-				document.body.setAttribute('lang',lang);
+			document.addEventListener('keyup', sliderPrecision);
+			document.addEventListener('keydown', sliderPrecision);
+			
+			const sliders = document.getElementsByClassName('slider');
+			
+			function sliderPrecision(event) {
+				if (event.shiftKey) {
+					for (i = 0; i < sliders.length; i++) {
+						sliders[i].step = 0.005;
+					} 
+				} else {
+					for (i = 0; i < sliders.length; i++) {
+						sliders[i].step = 1;
+					}
+				}
 			}
 			function keyAnalysis(event) {
 				if (event.ctrlKey) {
@@ -711,6 +715,9 @@ htmlContent = u"""
 						toggleCenter();
 					}
 				}
+			}
+			function setLanguage(lang) {
+				document.body.setAttribute('lang',lang);
 			}
 			function updateFeatures() {
 				// update features based on user input:
@@ -895,7 +902,7 @@ if appVersionHighEnough:
 	if exportPath:
 		if shouldCreateSamsa:
 			# build samsa config:
-			samsaURL = "https://www.axis-praxis.org/samsa"
+			samsaURL = "https://lorp.github.io/samsa/src/" #"https://www.axis-praxis.org/samsa"
 			samsaFileName = "samsa-config.js"
 			terminalCommand = "cd '%s'; printf \"GLOBAL.fontList = [\n\t{\n\t\tname: '%s',\n\t\tpreload: true,\n\t\turl: 'data:font/ttf;base64,%%s',\n\t}\n];\n\" `base64 -i '%s'` > %s" % (
 				exportPath,
@@ -905,14 +912,14 @@ if appVersionHighEnough:
 				samsaFileName,
 				)
 			system( terminalCommand )
-			print("Created %s" % samsaFileName)
+			print("✅ Created %s" % samsaFileName)
 			
 			# download samsa files:
 			samsaFiles = ("samsa-core.js", "samsa-gui.html", "samsa-gui.css") # "fonts/IBMPlexSansVar-Roman.ttf", "fonts/IBMPlexSansVar-Italic.ttf")
 			for samsaFile in samsaFiles:
 				terminalCommand = "curl --create-dirs %s/%s -o '%s/%s'" % (samsaURL, samsaFile, exportPath, samsaFile)
 				system( terminalCommand )
-				print("Downloaded %s" % samsaFile)
+				print("⬇️ Downloaded %s" % samsaFile)
 			
 			# fix css links:
 			terminalCommand = "cd '%s'; sed -i '' 's|url(fonts|url(https://www.axis-praxis.org/samsa/fonts|g' samsa-gui.css" % exportPath
@@ -921,11 +928,11 @@ if appVersionHighEnough:
 		
 		htmlFileName = "%s fonttest.html" % fullName
 		if saveFileInLocation( content=htmlContent, fileName=htmlFileName, filePath=exportPath ):
-			print("Successfully wrote file to disk.")
+			print("✅ Successfully wrote file to disk.")
 			terminalCommand = 'cd "%s"; open "%s"' % (exportPath, htmlFileName)
 			system( terminalCommand )
 		else:
-			print("Error writing file to disk.")
+			print("🛑 Error writing file to disk.")
 	else:
 		Message( 
 			title="OTVar Test HTML Error",
