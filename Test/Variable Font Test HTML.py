@@ -282,7 +282,8 @@ def replaceSet( text, setOfReplacements ):
 	for thisReplacement in setOfReplacements:
 		searchFor = thisReplacement[0]
 		replaceWith = thisReplacement[1]
-		text = text.replace( searchFor, replaceWith )
+		if searchFor != replaceWith:
+			text = text.replace( searchFor, replaceWith )
 	return text
 
 def generateAxisDict(thisFont):
@@ -465,7 +466,9 @@ def defaultVariationCSS(thisFont):
 		
 	return ", ".join(defaultValues)
 
-htmlContent = """
+samsaPlaceholder = "<!-- placeholder for external links, hold down OPTION while running the script -->"
+
+htmlContent = u"""
 <html>
 	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
@@ -485,14 +488,14 @@ htmlContent = """
 			#flexbox {
 				display: flex;
 				flex-flow: column;
-				height: 100%;
+				height: 100%%;
 			}
 			#controls {
 				flex: 0 1 auto;
 				background-color: white;
 				margin: 2px 0 0 0;
 				padding: 0;
-				width: 100%;
+				width: 100%%;
 				border: 0px solid transparent;
 				height: auto;
 				user-select: none;
@@ -503,8 +506,8 @@ htmlContent = """
 
 /* OTVar Sliders: */
 			.labeldiv {
-				width: 49.2%;
-				padding: 0 0 0 0.2%;
+				width: 49.2%%;
+				padding: 0 0 0 0.2%%;
 				margin: auto;
 				display: inline-block;
 			}
@@ -526,7 +529,7 @@ htmlContent = """
 				-webkit-appearance: none;
 				-moz-appearance: none;
 				appearance: none;
-				width: 100%;
+				width: 100%%;
 				height: 2em;
 				border-radius: 5px;
 				background: #eee;
@@ -550,14 +553,15 @@ htmlContent = """
 			#featureControls {
 				font-size: x-small;
 				font-family: sans-serif;
-				padding: 0 0.2%;
+				padding: 0 0.2%%;
 			}
 			#featureControls .emojiButton {
-				vertical-align: -50%;
+				vertical-align: -50%%;
 				font-size: small;
 			}
 			.emojiButton {
 				cursor: pointer;
+				text-decoration: none;
 			}
 			.otFeatureLabel, .otFeature {
 				font-size: small;
@@ -616,7 +620,7 @@ htmlContent = """
 				margin: auto;
 				padding: 0 0 0.6em 0;
 				line-height: 1em;
-				width: 100%;
+				width: 100%%;
 				color: black;
 				font: 150px "###fontFamilyName###";
 				font-feature-settings: "kern" on, "liga" on, "calt" on, "locl" on;
@@ -642,7 +646,7 @@ htmlContent = """
 			    position: fixed;
 				background: transparent;
 			    bottom: 0;
-			    width: 100%;
+			    width: 100%%;
 				color: #888;
 				font: x-small sans-serif;
 			}
@@ -736,7 +740,7 @@ htmlContent = """
 				testtext.innerHTML = defaulttext;
 			}
 			function setLat1() {
-				const lat1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz &Agrave;&Aacute;&Acirc;&Atilde;&Auml;&Aring;&AElig;&Ccedil;&Egrave;&Eacute;&Ecirc;&Euml;&Igrave;&Iacute;&Icirc;&Iuml;&ETH;&Ntilde;&Ograve;&Oacute;&Ocirc;&Otilde;&Ouml;&Oslash;&OElig;&THORN;&Ugrave;&Uacute;&Ucirc;&Uuml;&Yacute;&Yuml; &agrave;&aacute;&acirc;&atilde;&auml;&aring;&aelig;&ccedil;&egrave;&eacute;&ecirc;&euml;&igrave;&iacute;&icirc;&iuml;&eth;&ntilde;&ograve;&oacute;&ocirc;&otilde;&ouml;&oslash;&oelig;&thorn;&szlig;&ugrave;&uacute;&ucirc;&uuml;&yacute;&yuml; .,:;&middot;&hellip;&iquest;?&iexcl;!&laquo;&raquo;&lsaquo;&rsaquo; /|&brvbar;\\()[]{}_-&ndash;&mdash;&sbquo;&bdquo;&lsquo;&rsquo;&ldquo;&rdquo;&quot;&#x27; #&amp;&sect;@&bull;&shy;*&dagger;&Dagger;&para; +&times;&divide;&plusmn;=&lt;&gt;&not;&mu; ^~&acute;`&circ;&macr;&tilde;&uml;&cedil; &yen;&euro;&pound;$&cent;&curren;&fnof; &trade;&reg;&copy; 1234567890 &ordf;&ordm;&deg;%&permil; &sup1;&sup2;&sup3;&frac14;&frac12;&frac34;";
+				const lat1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz &Agrave;&Aacute;&Acirc;&Atilde;&Auml;&Aring;&AElig;&Ccedil;&Egrave;&Eacute;&Ecirc;&Euml;&Igrave;&Iacute;&Icirc;&Iuml;&ETH;&Ntilde;&Ograve;&Oacute;&Ocirc;&Otilde;&Ouml;&Oslash;&OElig;&THORN;&Ugrave;&Uacute;&Ucirc;&Uuml;&Yacute;&Yuml; &agrave;&aacute;&acirc;&atilde;&auml;&aring;&aelig;&ccedil;&egrave;&eacute;&ecirc;&euml;&igrave;&iacute;&icirc;&iuml;&eth;&ntilde;&ograve;&oacute;&ocirc;&otilde;&ouml;&oslash;&oelig;&thorn;&szlig;&ugrave;&uacute;&ucirc;&uuml;&yacute;&yuml; .,:;&middot;&hellip;&iquest;?&iexcl;!&laquo;&raquo;&lsaquo;&rsaquo; /|&brvbar;\\()[]{}_-&ndash;&mdash;&sbquo;&bdquo;&lsquo;&rsquo;&ldquo;&rdquo;&quot;&#x27; #&amp;&sect;@&bull;&shy;*&dagger;&Dagger;&para; +&times;&divide;&plusmn;=&lt;&gt;&not;&mu; ^~&acute;`&circ;&macr;&tilde;&uml;&cedil; &yen;&euro;&pound;$&cent;&curren;&fnof; &trade;&reg;&copy; 1234567890 &ordf;&ordm;&deg;%%&permil; &sup1;&sup2;&sup3;&frac14;&frac12;&frac34;";
 				const testtext = getTestText();
 				testtext.innerHTML = lat1;
 			}
@@ -762,7 +766,7 @@ htmlContent = """
 					} else if (sliderID == "lineheight") {
 						// Line Height Slider
 						body.style.setProperty("line-height", ""+sliderValue/100.0+"em");
-						label.textContent += "%";
+						label.textContent += "%%";
 					} else {
 						// OTVar Slider: collect settings
 						if (settingtext != "") { settingtext += ", " };
@@ -822,6 +826,7 @@ htmlContent = """
 
 			<!-- OT features -->
 			<div id="featureControls">
+				%s
 				<a onclick="toggleInverse();" id="invert" class="emojiButton">🔲</a>
 				<input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
 				<input type="checkbox" name="liga" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga</label>
@@ -842,7 +847,7 @@ htmlContent = """
 	</p>
 	</body>
 </html>
-"""
+""" % ( samsaPlaceholder )
 
 # clears macro window log:
 Glyphs.clearLog()
@@ -866,6 +871,11 @@ if appVersionHighEnough:
 	fileName = otVarFileName(thisFont)
 
 	print("Preparing Test HTML for: %s" % fullName)
+
+	if shouldCreateSamsa:
+		samsaReplaceWith = "<a href='samsa-gui.html' class='emojiButton' style='color:rgb(255, 165, 0);'>🅢</a>"
+	else:
+		samsaReplaceWith = samsaPlaceholder
 	
 	replacements = (
 		( "###fontFamilyNameWithSpaces###", fullName ),
@@ -876,23 +886,46 @@ if appVersionHighEnough:
 		( "###fontFileName###", fileName ),
 		( "###featureList###", featureListForFont(thisFont) ),
 		( "###languageSelection###", langMenu(thisFont) ),
+		( samsaPlaceholder, samsaReplaceWith ),
 	)
 
 	htmlContent = replaceSet( htmlContent, replacements )
 	
 	# Write file to disk:
 	if exportPath:
-		if saveFileInLocation( content=htmlContent, fileName="%s fonttest.html" % fullName, filePath=exportPath ):
+		if shouldCreateSamsa:
+			# build samsa config:
+			samsaURL = "https://www.axis-praxis.org/samsa"
+			samsaFileName = "samsa-config.js"
+			terminalCommand = "cd '%s'; printf \"GLOBAL.fontList = [\n\t{\n\t\tname: '%s',\n\t\tautoload: true,\n\t\turl: 'data:font/ttf;base64,%%s',\n\t}\n];\n\" `base64 -i '%s'` > %s" % (
+				exportPath,
+				fullName,
+				# samsaURL, samsaURL,
+				fileName,
+				samsaFileName,
+				)
+			system( terminalCommand )
+			print("Created %s" % samsaFileName)
+			
+			# download samsa files:
+			samsaFiles = ("samsa-core.js", "samsa-gui.html", "samsa-gui.css") # "fonts/IBMPlexSansVar-Roman.ttf", "fonts/IBMPlexSansVar-Italic.ttf")
+			for samsaFile in samsaFiles:
+				terminalCommand = "curl --create-dirs %s/%s -o '%s/%s'" % (samsaURL, samsaFile, exportPath, samsaFile)
+				system( terminalCommand )
+				print("Downloaded %s" % samsaFile)
+			
+			# fix css links:
+			terminalCommand = "cd '%s'; sed -i '' 's|url(fonts|url(https://www.axis-praxis.org/samsa/fonts|g' samsa-gui.css" % exportPath
+			system( terminalCommand )
+			
+		
+		htmlFileName = "%s fonttest.html" % fullName
+		if saveFileInLocation( content=htmlContent, fileName=htmlFileName, filePath=exportPath ):
 			print("Successfully wrote file to disk.")
-			terminalCommand = 'cd "%s"; open .' % exportPath
+			terminalCommand = 'cd "%s"; open "%s"' % (exportPath, htmlFileName)
 			system( terminalCommand )
 		else:
 			print("Error writing file to disk.")
-			
-		if shouldCreateSamsa:
-			terminalCommand = "cd '%s'; printf \"let fontBinary = '%%s';\n\" `base64 -i '%s'` > samsa-load.js" % (exportPath, fileName)
-			system( terminalCommand )
-			print("Created samsa-load.js")
 	else:
 		Message( 
 			title="OTVar Test HTML Error",
