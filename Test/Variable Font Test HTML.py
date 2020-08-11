@@ -897,7 +897,7 @@ if appVersionHighEnough:
 			# build samsa config:
 			samsaURL = "https://www.axis-praxis.org/samsa"
 			samsaFileName = "samsa-config.js"
-			terminalCommand = "cd '%s'; printf \"GLOBAL.fontList = [\n\t{\n\t\tname: '%s',\n\t\tautoload: true,\n\t\turl: 'data:font/ttf;base64,%%s',\n\t}\n];\n\" `base64 -i '%s'` > %s" % (
+			terminalCommand = "cd '%s'; printf \"GLOBAL.fontList = [\n\t{\n\t\tname: '%s',\n\t\tpreload: true,\n\t\turl: 'data:font/ttf;base64,%%s',\n\t}\n];\n\" `base64 -i '%s'` > %s" % (
 				exportPath,
 				fullName,
 				# samsaURL, samsaURL,
