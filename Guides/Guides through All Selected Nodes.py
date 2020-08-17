@@ -22,7 +22,12 @@ def angle( firstPoint, secondPoint ):
 	return math.degrees(math.atan2(yDiff,xDiff))
 
 def newGuide( position, angle ):
-	newGuide = GSGuideLine()
+	try:
+		# GLYPHS 3
+		newGuide = GSGuide()
+	except:
+		# GLYPHS 2
+		newGuide = GSGuideLine()
 	newGuide.position = position
 	newGuide.angle = angle
 	return newGuide
