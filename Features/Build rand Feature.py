@@ -18,7 +18,7 @@ class BuildRandFeature( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 320
-		windowHeight = 130
+		windowHeight = 170
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -41,6 +41,15 @@ class BuildRandFeature( object ):
 		self.w.suffixReset = vanilla.SquareButton( (-inset-20, linePos, -inset, 18), u"↺", sizeStyle='small', callback=self.updateUI )
 		linePos += lineHeight
 		
+		self.w.exclude = vanilla.CheckBox( (inset, linePos, 160, 20), "Exclude glyphs containing:", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.excludeList = vanilla.EditText( (inset+160, linePos, -inset, 19), ".build, .ss12", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.excludeList.getNSTextField().setToolTip_("Comma-separated list of glyph name particles. Glyphs contining these partcles in their names will be excluded from the rand feature generation.")
+		linePos += lineHeight
+		
+		self.w.includeDefault = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Include unsuffixed default in randomisation", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.includeDefault.getNSButton().setToolTip_("If activated will substitute A from [A A.cv01 A.cv02]. If deactivated, will substitute only from [A.cv01 A.cv02].")
+		linePos += lineHeight
+		
 		self.w.overwrite = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Overwrite existing rand feature", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		linePos += lineHeight
 		
@@ -53,14 +62,24 @@ class BuildRandFeature( object ):
 			print("Note: 'Build rand Feature' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
+		self.guiUpdate()
 		self.w.open()
 		self.w.makeKey()
-		
+	
+	def guiUpdate(self, sender=None):
+		self.w.excludeList.enable(self.w.exclude.get())
+	
 	def SavePreferences( self, sender=None ):
 		try:
 			# write current settings into prefs:
 			Glyphs.defaults["com.mekkablue.BuildRandFeature.overwrite"] = self.w.overwrite.get()
 			Glyphs.defaults["com.mekkablue.BuildRandFeature.suffix"] = self.w.suffix.get()
+			Glyphs.defaults["com.mekkablue.BuildRandFeature.exclude"] = self.w.exclude.get()
+			Glyphs.defaults["com.mekkablue.BuildRandFeature.excludeList"] = self.w.excludeList.get()
+			Glyphs.defaults["com.mekkablue.BuildRandFeature.includeDefault"] = self.w.includeDefault.get()
+			
+			
+			self.guiUpdate()
 			return True
 		except:
 			import traceback
@@ -72,10 +91,19 @@ class BuildRandFeature( object ):
 			# register defaults:
 			Glyphs.registerDefault("com.mekkablue.BuildRandFeature.overwrite", 1)
 			Glyphs.registerDefault("com.mekkablue.BuildRandFeature.suffix", ".cv")
+			Glyphs.registerDefault("com.mekkablue.BuildRandFeature.exclude", 1)
+			Glyphs.registerDefault("com.mekkablue.BuildRandFeature.excludeList", ".build, .ss12")
+			Glyphs.registerDefault( "com.mekkablue.BuildRandFeature.includeDefault", 0 )
+			
 			
 			# load previously written prefs:
 			self.w.overwrite.set( Glyphs.defaults["com.mekkablue.BuildRandFeature.overwrite"] )
 			self.w.suffix.set( Glyphs.defaults["com.mekkablue.BuildRandFeature.suffix"] )
+			self.w.exclude.set( Glyphs.defaults["com.mekkablue.BuildRandFeature.exclude"] )
+			self.w.excludeList.set( Glyphs.defaults["com.mekkablue.BuildRandFeature.excludeList"] )
+			self.w.includeDefault.set( Glyphs.defaults["com.mekkablue.BuildRandFeature.includeDefault"] )
+			
+			self.guiUpdate()
 			return True
 		except:
 			import traceback
@@ -132,12 +160,27 @@ class BuildRandFeature( object ):
 				
 				overwrite = Glyphs.defaults["com.mekkablue.BuildRandFeature.overwrite"]
 				suffix = Glyphs.defaults["com.mekkablue.BuildRandFeature.suffix"]
+				includeDefault = Glyphs.defaults["com.mekkablue.BuildRandFeature.includeDefault"]
+				exclude = Glyphs.defaults["com.mekkablue.BuildRandFeature.exclude"]
+				if exclude:
+					excludeList = [particle.strip() for particle in Glyphs.defaults["com.mekkablue.BuildRandFeature.excludeList"].split(",")]
+				else:
+					excludeList = ()
 				
 				print("Scanning the glyph set...")
 				variantDict = {}
 				for thisGlyph in thisFont.glyphs:
+					
+					# see if glyph is excluded:
+					excluded = False
+					if excludeList:
+						for particle in excludeList:
+							if particle in thisGlyph.name:
+								excluded = True
+								break
+								
 					# populate variantDict with alternates, based on root glyph:
-					if thisGlyph.export and "." in thisGlyph.name and suffix in thisGlyph.name:
+					if not excluded and thisGlyph.export and "." in thisGlyph.name and suffix in thisGlyph.name:
 						root = getRootName(thisGlyph.name)
 						if not root in variantDict.keys():
 							variantDict[root] = [thisGlyph.name]
@@ -152,6 +195,12 @@ class BuildRandFeature( object ):
 					otFeatureLines = []
 					for rootName in sorted(variantDict.keys()):
 						altNames = sorted(variantDict[rootName])
+						
+						# if desired, add default glyph (root name) to randomisation pool
+						if includeDefault:
+							altNames.insert(0, rootName)
+						
+						# build feature line:
 						otFeatureLine = "sub %s from [%s];" % (
 							rootName,
 							" ".join(altNames),
