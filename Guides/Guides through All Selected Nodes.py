@@ -21,7 +21,7 @@ def angle( firstPoint, secondPoint ):
 	yDiff = secondPoint.y - firstPoint.y
 	return math.degrees(math.atan2(yDiff,xDiff))
 
-def newGuide( position, angle ):
+def newGuide( position, angle=0 ):
 	try:
 		# GLYPHS 3
 		newGuide = GSGuide()
@@ -50,30 +50,41 @@ def isThereAlreadyAGuideWithTheseProperties(thisLayer,guideposition,guideangle):
 if len(selectedLayers) == 1:
 	thisLayer = selectedLayers[0]
 	thisGlyph = thisLayer.parent
-	currentPointSelection = [point.position for point in thisLayer.selection if type(point) == GSNode]
-	
-	# clear selection:
-	Layer.clearSelection()
+	currentPointSelection = [point.position for point in thisLayer.selection if type(point) in (GSNode,GSAnchor)]
 	
 	thisGlyph.beginUndo() # begin undo grouping
-	
-	if len(currentPointSelection) > 1:
-		currentPointSelection.append(currentPointSelection[0])
-		for i,j in enumerate(range(1,len(currentPointSelection))):
-			point1 = currentPointSelection[i]
-			point2 = currentPointSelection[j]
-			angleBetweenPoints = angle(point1,point2)
-			middlePoint = addPoints(point1,point2)
-			middlePoint.x *= 0.5
-			middlePoint.y *= 0.5
+	try:
+		if len(currentPointSelection) > 1:
+			# clear selection:
+			thisLayer.clearSelection()
+			currentPointSelection.append(currentPointSelection[0])
+			for i,j in enumerate(range(1,len(currentPointSelection))):
+				point1 = currentPointSelection[i]
+				point2 = currentPointSelection[j]
+				angleBetweenPoints = angle(point1,point2)
+				middlePoint = addPoints(point1,point2)
+				middlePoint.x *= 0.5
+				middlePoint.y *= 0.5
 			
-			# create guide and add it to layer:
-			if not isThereAlreadyAGuideWithTheseProperties(thisLayer, middlePoint, angleBetweenPoints):
-				guideBetweenPoints = newGuide(middlePoint, angleBetweenPoints)
-				thisLayer.guides.append( guideBetweenPoints )
+				# create guide and add it to layer:
+				if not isThereAlreadyAGuideWithTheseProperties(thisLayer, middlePoint, angleBetweenPoints):
+					guideBetweenPoints = newGuide(middlePoint, angleBetweenPoints)
+					thisLayer.guides.append( guideBetweenPoints )
 			
-			# select it:
-			thisLayer.selection.append(guideBetweenPoints)
+				# select it:
+				thisLayer.selection.append(guideBetweenPoints)
+				
+		elif len(currentPointSelection) == 1:
+			point = currentPointSelection[0]
+			guide = newGuide(point)
+			thisLayer.guides.append(guide)
+
+			# select only guide:
+			thisLayer.clearSelection()
+			thisLayer.selection.append(guide)
+				
+	except Exception as e:
+		raise e
+	finally:
+		thisGlyph.endUndo()   # end undo grouping
 			
-			
-	thisGlyph.endUndo()   # end undo grouping
