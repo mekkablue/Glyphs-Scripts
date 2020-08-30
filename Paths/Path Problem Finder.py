@@ -612,7 +612,7 @@ class PathProblemFinder( object ):
 				layersWithTwoPointOutlines = []
 				layersWithOpenPaths = []
 				
-				progressSteps = glyphCount / 30
+				progressSteps = glyphCount / 10
 				progressCounter = 0
 				for i, thisGlyph in enumerate(glyphs):
 					# status update:
