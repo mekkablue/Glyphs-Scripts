@@ -38,8 +38,8 @@ def glyphInterpolation( thisGlyphName, thisInstance ):
 class FindShapeshiftingGlyphs( object ):
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 290
-		windowHeight = 250
+		windowWidth  = 310
+		windowHeight = 270
 		windowWidthResize  = 300 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -58,9 +58,11 @@ class FindShapeshiftingGlyphs( object ):
 		
 		self.w.text_1 = vanilla.TextBox( (inset, linePos+2, 85, 14), "Count paths in", sizeStyle='small' )
 		self.w.checkInstances = vanilla.PopUpButton( (inset+85, linePos, -inset, 17), ("constructed instances midway between masters", "all active instances in font", "all active and inactive instances in font"), callback=self.SavePreferences, sizeStyle='small' )
+		self.w.checkInstances.getNSPopUpButton().setToolTip_("Where to count paths (for comparison of path counts). Shapeshifting is most visible in midway interpolations (50%% between masters), so pick that option if you have two masters only, or all masters on a single axis.")
 		linePos += lineHeight
 		
 		self.w.alsoCheckMasters = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Add masters as instances", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.alsoCheckMasters.getNSButton().setToolTip_("Count paths in (uninterpolated) masters as well. Useful in combination with ‘constructed midway instances’ option above.")
 		linePos += lineHeight
 		
 		self.w.onlyCheckSelection = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Limit to selected glyphs (otherwise all glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small' )
@@ -72,7 +74,12 @@ class FindShapeshiftingGlyphs( object ):
 		self.w.ignoreNonexportingGlyphs = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Ignore glyphs that do not export", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		linePos += lineHeight
 		
-		self.w.openTab = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Open found shapeshifters in a new tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.openTab = vanilla.CheckBox( (inset, linePos-1, 170, 20), "Open tab with shapeshifters", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reuseTab = vanilla.CheckBox( (inset+170, linePos-1, -inset, 20), "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
+		
+		self.w.allFonts = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "⚠️ Process ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.allFonts.getNSButton().setToolTip_("If enabled, will process all fonts currently opened. Careful, may take a while.")
 		linePos += lineHeight
 		
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
@@ -82,6 +89,8 @@ class FindShapeshiftingGlyphs( object ):
 		# Run Button:
 		self.w.runButton = vanilla.Button( (-80-inset, -20-inset, -inset, -inset), "Find", sizeStyle='regular', callback=self.FindShapeshiftingGlyphsMain )
 		self.w.setDefaultButton( self.w.runButton )
+		
+		self.w.status = vanilla.TextBox( (inset, -17-inset, -90-inset, 14), "", sizeStyle='small', selectable=False )
 		
 		# Load Settings:
 		if not self.LoadPreferences():
@@ -99,6 +108,8 @@ class FindShapeshiftingGlyphs( object ):
 			Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.ignoreGlyphsWithoutPaths"] = self.w.ignoreGlyphsWithoutPaths.get()
 			Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.ignoreNonexportingGlyphs"] = self.w.ignoreNonexportingGlyphs.get()
 			Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.openTab"] = self.w.openTab.get()
+			Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.reuseTab"] = self.w.reuseTab.get()
+			Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.allFonts"] = self.w.allFonts.get()
 		except:
 			return False
 			
@@ -112,12 +123,16 @@ class FindShapeshiftingGlyphs( object ):
 			Glyphs.registerDefault("com.mekkablue.FindShapeshiftingGlyphs.ignoreGlyphsWithoutPaths", 0)
 			Glyphs.registerDefault("com.mekkablue.FindShapeshiftingGlyphs.ignoreNonexportingGlyphs", 0)
 			Glyphs.registerDefault("com.mekkablue.FindShapeshiftingGlyphs.openTab", 0)
+			Glyphs.registerDefault("com.mekkablue.FindShapeshiftingGlyphs.reuseTab", 0)
+			Glyphs.registerDefault("com.mekkablue.FindShapeshiftingGlyphs.allFonts", 0)
 			self.w.checkInstances.set( Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.checkInstances"] )
 			self.w.alsoCheckMasters.set( Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.alsoCheckMasters"] )
 			self.w.onlyCheckSelection.set( Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.onlyCheckSelection"] )
 			self.w.ignoreGlyphsWithoutPaths.set( Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.ignoreGlyphsWithoutPaths"] )
 			self.w.ignoreNonexportingGlyphs.set( Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.ignoreNonexportingGlyphs"] )
 			self.w.openTab.set( Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.openTab"] )
+			self.w.reuseTab.set( Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.reuseTab"] )
+			self.w.allFonts.set( Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.allFonts"] )
 		except:
 			return False
 			
@@ -165,108 +180,142 @@ class FindShapeshiftingGlyphs( object ):
 				testInstance = self.generateTestInstance( thisFont, { i: master1, j: master2 } )
 				self.instances.append(testInstance)
 		
-		
 	def FindShapeshiftingGlyphsMain( self, sender ):
 		try:
 			# query settings:
-			thisFont = Glyphs.font
 			checkInstances = Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.checkInstances"]
 			alsoCheckMasters = Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.alsoCheckMasters"]
 			onlyCheckSelection = Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.onlyCheckSelection"]
 			ignoreGlyphsWithoutPaths = Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.ignoreGlyphsWithoutPaths"]
 			ignoreNonexportingGlyphs = Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.ignoreNonexportingGlyphs"]
 			openTab = Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.openTab"]
+			reuseTab = Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.reuseTab"]
+			allFonts = Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.allFonts"]
 
 			# Clear macro window log:
 			Glyphs.clearLog()
-			print("Find Shapeshifters in %s" % thisFont.familyName)
-			print("Path: %s" % thisFont.filepath)
-			print()
+			if not openTab:
+				# brings macro window to front:
+				Glyphs.showMacroWindow()
+			self.w.status.set("")
 			
-			# determine glyphs to be checked:
-			if onlyCheckSelection:
-				glyphs = [l.glyph() for l in thisFont.selectedLayers if l.glyph()]
+			if allFonts:
+				theseFonts = Glyphs.fonts
 			else:
-				glyphs = thisFont.glyphs
-			glyphNamesToBeChecked = [
-				g.name for g in glyphs 
-				if (g.export or not ignoreNonexportingGlyphs)
-				and (len(g.layers[0].paths)>0 or not ignoreGlyphsWithoutPaths)
-				]
-			print("Checking %i glyph%s:\n%s\n" % ( 
-				len(glyphNamesToBeChecked), 
-				"" if len(glyphNamesToBeChecked)==1 else "s",
-				", ".join(glyphNamesToBeChecked),
-				))
+				theseFonts = (Glyphs.font,)
 			
-			# determine the instances to calculate:
-			self.instances = []
-			# 0: constructed midway instances
-			if checkInstances == 0:
-				self.addHalfWayInstances( thisFont )
-			# 1: all active instances in font
-			elif checkInstances == 1:
-				self.instances = [i for i in thisFont.instances if i.active]
-			# 2: all active and inactive instances in font
-			else:
-				self.instances = thisFont.instances
-			# add masters as instances if required:
-			if alsoCheckMasters:
-				self.addMasterInstances( thisFont )
-			# report:
-			print("Calculating %i instance interpolations.\n" % len(self.instances))
-			for i in self.instances:
-				print("- %s:" % i.name)
-				for key in i.instanceInterpolations:
-					print(i.instanceInterpolations[key])
-					try:
-						print("  %s: %.3f" % (thisFont.masters[key].name, float(i.instanceInterpolations[key])))
-					except:
-						pass
-			print()
+			totalAffectedGlyphCount = 0
+			totalAffectedFontCount = 0
+			oneFontPercentage = 100.0/len(theseFonts)
 			
-			# iterate through glyphs:
-			affectedGlyphNames = []
-			numOfGlyphs = len(glyphNamesToBeChecked)
-			for i,thisGlyphName in enumerate(glyphNamesToBeChecked):
-				# tick the progress bar:
-				self.w.progress.set( int(100*(float(i)/numOfGlyphs)) )
-				
-				# collect number of paths for every instance:
-				pathCounts = []
-				for thisInstance in self.instances:
-					interpolation = glyphInterpolation( thisGlyphName, thisInstance )
-					if interpolation:
-						# only decompose and remove overlap when necessary, should speed things up:
-						if interpolation.components:
-							interpolation.decomposeComponents()
-						if len(interpolation.paths) > 1:
-							interpolation.removeOverlap()
-						countOfCWPaths = len([p for p in interpolation.paths if p.direction == 1])
-						countOfCCWPaths = len(interpolation.paths) - countOfCWPaths
-						pathCounts.append( (countOfCWPaths,countOfCCWPaths), )
-					else:
-						print("ERROR: %s has no interpolation for '%s'." % (thisGlyphName, thisInstance.name))
-				
-				# see if path counts changed:
-				pathCounts = set(pathCounts)
-				if len(pathCounts) > 1:
-					sortedPathCounts = [u"%i⟳+%i⟲"%(pair[0],pair[1]) for pair in sorted(pathCounts, key=lambda count: count[0])]
-					print(u"%s: changing between %s paths." % ( thisGlyphName, u", ".join(sortedPathCounts) ))
-					affectedGlyphNames.append(thisGlyphName)
+			for fontIndex, thisFont in enumerate(theseFonts):
+				fileName = thisFont.filepath.lastPathComponent()
+				print("🦋 Find Shapeshifters in %s" % thisFont.familyName)
+				print("📄 %s" % fileName)
+				self.w.status.set("Examining %s..." % fileName)
 			
-			# report:
-			if affectedGlyphNames:
-				if openTab:
-					tabString = "/"+"/".join(affectedGlyphNames)
-					thisFont.newTab(tabString)
+				# determine glyphs to be checked:
+				if onlyCheckSelection:
+					glyphs = [l.glyph() for l in thisFont.selectedLayers if l.glyph()]
 				else:
-					# brings macro window to front:
-					Glyphs.showMacroWindow()
+					glyphs = thisFont.glyphs
+				glyphNamesToBeChecked = [
+					g.name for g in glyphs 
+					if (g.export or not ignoreNonexportingGlyphs)
+					and (len(g.layers[0].paths)>0 or not ignoreGlyphsWithoutPaths)
+					]
+				print("🔠 Checking %i glyph%s:\n%s\n" % ( 
+					len(glyphNamesToBeChecked), 
+					"" if len(glyphNamesToBeChecked)==1 else "s",
+					", ".join(glyphNamesToBeChecked),
+					))
+			
+				# determine the instances to calculate:
+				self.instances = []
+				# 0: constructed midway instances
+				if checkInstances == 0:
+					self.addHalfWayInstances( thisFont )
+				# 1: all active instances in font
+				elif checkInstances == 1:
+					self.instances = [i for i in thisFont.instances if i.active]
+				# 2: all active and inactive instances in font
+				else:
+					self.instances = thisFont.instances
+				# add masters as instances if required:
+				if alsoCheckMasters:
+					self.addMasterInstances( thisFont )
+				# report:
+				print("Calculating %i instance interpolations.\n" % len(self.instances))
+				for i in self.instances:
+					print("- %s:" % i.name)
+					for key in i.instanceInterpolations:
+						print(i.instanceInterpolations[key])
+						try:
+							print("  %s: %.3f" % (thisFont.masters[key].name, float(i.instanceInterpolations[key])))
+						except:
+							pass
+				print()
+			
+				# iterate through glyphs:
+				affectedGlyphNames = []
+				numOfGlyphs = len(glyphNamesToBeChecked)
+				for i,thisGlyphName in enumerate(glyphNamesToBeChecked):
+					# tick the progress bar:
+					self.w.progress.set( oneFontPercentage*fontIndex + int(oneFontPercentage*(float(i)/numOfGlyphs)) )
+				
+					# collect number of paths for every instance:
+					pathCounts = []
+					for thisInstance in self.instances:
+						interpolation = glyphInterpolation( thisGlyphName, thisInstance )
+						if interpolation:
+							# only decompose and remove overlap when necessary, should speed things up:
+							if interpolation.components:
+								interpolation.decomposeComponents()
+							if len(interpolation.paths) > 1:
+								interpolation.removeOverlap()
+							countOfCWPaths = len([p for p in interpolation.paths if p.direction == 1])
+							countOfCCWPaths = len(interpolation.paths) - countOfCWPaths
+							pathCounts.append( (countOfCWPaths,countOfCCWPaths), )
+						else:
+							print("❌ ERROR: %s has no interpolation for '%s'." % (thisGlyphName, thisInstance.name))
+				
+					# see if path counts changed:
+					pathCounts = set(pathCounts)
+					if len(pathCounts) > 1:
+						sortedPathCounts = [u"%i⟳+%i⟲"%(pair[0],pair[1]) for pair in sorted(pathCounts, key=lambda count: count[0])]
+						print(u"⚠️ %s: changing between %s paths." % ( thisGlyphName, u", ".join(sortedPathCounts) ))
+						affectedGlyphNames.append(thisGlyphName)
+			
+				# report:
+				if affectedGlyphNames:
+					totalAffectedGlyphCount += len(affectedGlyphNames)
+					totalAffectedFontCount += 1
+					if openTab:
+						tabString = "/"+"/".join(affectedGlyphNames)
+						if not thisFont.currentTab or not reuseTab:
+							thisFont.newTab(tabString)
+						else:
+							thisFont.currentTab.text = tabString
+				
+				print("\n\n\n")
+			
+			if totalAffectedGlyphCount:
+				Message(
+					title="⚠️ %i Shapeshifting Glyphs" % totalAffectedGlyphCount, 
+					message="Found %i affected glyph%s in %i font%s (out of %i font%s examined). Details in Macro Window." % (
+						totalAffectedGlyphCount, 
+						"" if totalAffectedGlyphCount==1 else "s",
+						totalAffectedFontCount, 
+						"" if totalAffectedFontCount==1 else "s",
+						len(theseFonts),
+						"" if len(theseFonts)==1 else "s",
+					), 
+					OKButton=u"OK",
+				)
 			else:
 				Message(
-					title="No Shapeshifting Glyphs", 
-					message="Among the specified glyphs and interpolations, no changes of path numbers could be found.", 
+					title="✅ No Shapeshifting Glyphs", 
+					message="Among the specified fonts, glyphs and interpolations, no changes of path numbers could be found.", 
 					OKButton=u"🍻Cheers!",
 				)
 			
