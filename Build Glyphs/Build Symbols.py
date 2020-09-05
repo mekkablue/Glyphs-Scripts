@@ -332,6 +332,28 @@ def buildEstimated( thisFont, override=False ):
 	else:
 		print("⚠️ Could not create the estimated glyph already exists in this font. Rename or delete it and try again.")
 
+def stemWidthForMaster( thisFont, thisMaster, default=50 ):
+	try:
+		slash = thisFont.glyphs["slash"].layers[thisMaster.id]
+		slashLeft = slash.bounds.origin.x
+		slashRight = slashLeft + slash.bounds.size.width
+		slashBottom = slash.bounds.origin.x
+		slashTop = slashLeft + slash.bounds.size.width
+		middleHeight = (slashBottom+slashTop)/2
+		measureStart = NSPoint(slashLeft,middleHeight)
+		measureEnd = NSPoint(slashRight,middleHeight)
+		intersections = list(slash.intersectionsBetweenPoints(measureStart,measureEnd))
+		slashStemWidth = distance(intersections[1].pointValue(), intersections[2].pointValue()) # hypotenuse
+		angleRAD = math.atan( (slashTop-slashBottom)/(slashRight-slashLeft) ) 
+		return ((slashStemWidth * math.cos(angleRAD)) + slashStemWidth) * 0.5
+	except:
+		print( "⚠️ Error measuring slash, will try Master stem width instead.")
+		try:
+			return thisMaster.verticalStems[0] * 0.8
+		except:
+			print( "⚠️ Error building bars: No vertical stems set in Master '%s'. Will default to %i." % (thisMaster.name, default) )
+	return default
+
 def buildBars( thisFont, override=False ):
 	barGlyph = createGlyph(thisFont, "bar", "007C", override=override)
 	brokenbarGlyph = createGlyph(thisFont, "brokenbar", "00A6", override=override)
@@ -345,11 +367,8 @@ def buildBars( thisFont, override=False ):
 			mID = thisMaster.id
 			italicAngle = thisMaster.italicAngle
 			pivot = thisMaster.xHeight * 0.5
-			stemWidth = 50.0
-			try:
-				stemWidth = thisMaster.verticalStems[0] * 0.8
-			except:
-				print( "⚠️ Error building bars: No vertical stems set in Master '%s'. Will default to 50." % (thisMaster.name) )
+			
+			stemWidth = stemWidthForMaster(thisFont, thisMaster)
 
 			stemWidth -= stemWidth*math.cos(math.radians(italicAngle))-stemWidth
 			sidebearing = max( (350-stemWidth)*0.5, 60.0 )
