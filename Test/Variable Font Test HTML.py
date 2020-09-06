@@ -254,7 +254,10 @@ def otVarFullName(thisFont):
 	familyName = otVarFamilyName(thisFont)
 	styleName = thisFont.customParameters["variableStyleName"]
 	if styleName:
-		return "%s %s" % (familyName, styleName)
+		fullName = "%s %s" % (familyName, styleName)
+		fullName = fullName.replace("Italic Italic","Italic")
+		fullName = fullName.replace("Roman Roman","Roman")
+		return fullName
 	else:
 		return familyName
 
@@ -904,7 +907,7 @@ if appVersionHighEnough:
 			# build samsa config:
 			samsaURL = "https://lorp.github.io/samsa/src/" #"https://www.axis-praxis.org/samsa"
 			samsaFileName = "samsa-config.js"
-			terminalCommand = "cd '%s'; printf \"GLOBAL.fontList = [\n\t{\n\t\tname: '%s',\n\t\tpreload: true,\n\t\turl: 'data:font/ttf;base64,%%s',\n\t}\n];\n\" `base64 -i '%s'` > %s" % (
+			terminalCommand = "cd '%s'; printf \"CONFIG.fontList = [\n\t{\n\t\tname: '%s',\n\t\tpreload: true,\n\t\turl: 'data:font/ttf;base64,%%s',\n\t}\n];\n\" `base64 -i '%s'` > %s" % (
 				exportPath,
 				fullName,
 				# samsaURL, samsaURL,
