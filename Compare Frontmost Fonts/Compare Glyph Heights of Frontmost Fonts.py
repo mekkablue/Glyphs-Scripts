@@ -106,9 +106,11 @@ class CompareGlyphHeightsOfFrontmostFonts( object ):
 				
 				thisFont = Glyphs.font # frontmost font
 				otherFont = Glyphs.fonts[1] # second font
+				thisFileName = thisFont.filepath.lastPathComponent()
+				otherFileName = otherFont.filepath.lastPathComponent()
 				print("Compare Glyph Heights of Frontmost Fonts Report for:\n  (1) %s: %s\n      %s\n  (2) %s: %s\n      %s" % (
-					thisFont.familyName, thisFont.filepath.lastPathComponent(), thisFont.filepath,
-					otherFont.familyName, otherFont.filepath.lastPathComponent(), otherFont.filepath,
+					thisFont.familyName, thisFileName, thisFont.filepath,
+					otherFont.familyName, otherFileName, otherFont.filepath,
 					))
 				print()
 			
@@ -130,10 +132,10 @@ class CompareGlyphHeightsOfFrontmostFonts( object ):
 						glyphName = thisGlyph.name
 						otherGlyph = otherFont.glyphs[glyphName]
 						if not otherGlyph:
-							print(u"⚠️ %s: not in other font (%s)" % (glyphName, otherFont.familyName))
+							print(u"⚠️ %s: not in other font (%s)" % (glyphName, otherFileName))
 						else:
 							for idPair in masters:
-								thisID, otherID = idPair[0], idPair[1]
+								thisID, otherID = idPair
 								thisLayer = thisGlyph.layers[thisID]
 								otherLayer = otherGlyph.layers[otherID]
 								if not (thisLayer and otherLayer):
@@ -143,13 +145,13 @@ class CompareGlyphHeightsOfFrontmostFonts( object ):
 										thisHeight = thisLayer.bounds.origin.y + thisLayer.bounds.size.height
 										otherHeight = otherLayer.bounds.origin.y + otherLayer.bounds.size.height
 										if abs(thisHeight-otherHeight) > tolerate:
-											print(u"❌ %s heights: 1st %.1f, 2nd %.1f" % (glyphName, thisHeight, otherHeight))
+											print(u"❌ %s heights: (1) %.1f, (2) %.1f" % (glyphName, thisHeight, otherHeight))
 											collectedGlyphNames.append(glyphName)
 									if depths:
 										thisDepth = thisLayer.bounds.origin.y
 										otherDepth = otherLayer.bounds.origin.y
 										if abs(thisDepth-otherDepth) > tolerate:
-											print(u"❌ %s depths: 1st %.1f, 2nd %.1f" % (glyphName, thisDepth, otherDepth))
+											print(u"❌ %s depths: (1) %.1f, (2) %.1f" % (glyphName, thisDepth, otherDepth))
 											collectedGlyphNames.append(glyphName)
 											
 				if not collectedGlyphNames:
