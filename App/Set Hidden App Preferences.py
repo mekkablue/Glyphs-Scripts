@@ -33,6 +33,7 @@ class SetHiddenAppPreferences( object ):
 		"com.mekkablue.ShowItalic.drawItalicsForInactiveGlyphs",
 		"com.mekkablue.ShowMarkPreview.extension",
 		"com.mekkablue.ShowStyles.anchors",
+		"com.mekkablue.ttAutoinstructSelectedGlyphs.alwaysUseNoStem",
 	)
 	
 	def __init__( self ):
