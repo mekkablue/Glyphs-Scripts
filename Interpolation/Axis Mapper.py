@@ -177,7 +177,7 @@ class AxisMapper( object ):
 					# better guess for weight axis:
 					if axisTag=="wght":
 						weightClass = style.weightClassValue()
-						if userMasterMin < weightClass < userMasterMax:
+						if userMasterMin <= weightClass <= userMasterMax:
 							visibleSliderValue = weightClass
 					
 					mappingDict[visibleSliderValue] = "%i -> %i # %s" % (visibleSliderValue, trueSliderValue, style.name)
