@@ -181,19 +181,36 @@ class InstanceMaker( object ):
 		self.UpdateSample( self )
 		self.w.makeKey()
 	
+	def axisTag(self, axis):
+		try:
+			# GLYPHS 2
+			return axis.axisTag()
+		except:
+			# GLYPHS 3
+			return axis.axisTag
+	
+	def axisID(self, axis):
+		try:
+			# GLYPHS 2
+			return axis.axisId()
+		except:
+			# GLYPHS 3
+			return axis.axisId
+	
 	def weightID(self, thisFont):
 		weightAxis = thisFont.axes[0] # default
-		weightAxisID = weightAxis.axisId()
+		weightAxisID = self.axisID(weightAxis)
 		for axis in thisFont.axes:
-			if axis.axisTag() == "wght":
-				weightAxisID = axis.axisId()
+			axisTag = self.axisTag(axis)
+			if axisTag == "wght":
+				weightAxisID = self.axisID(axis)
 		return weightAxisID
 
 	def widthID(self, thisFont):
 		widthAxisID = None # None
 		for axis in thisFont.axes:
-			if axis.axisTag() == "wdth":
-				widthAxisID = axis.axisId()
+			if self.axisTag(axis) == "wdth":
+				widthAxisID = self.axisId(axis)
 		return widthAxisID
 	
 	def MasterList( self, factor ):
@@ -208,6 +225,8 @@ class InstanceMaker( object ):
 					MasterValues = sorted( [m.axisValueValueForId_(weightAxisID) for m in thisFont.masters], key=lambda m: m * factor )
 			except:
 				# GLYPHS 2:
+				import traceback
+				print(traceback.format_exc())
 				MasterValues = sorted( [m.weightValue for m in thisFont.masters], key=lambda m: m * factor )
 			return MasterValues
 		else:
@@ -446,17 +465,12 @@ class InstanceMaker( object ):
 						
 						try:
 							# GLYPHS 3:
-							newInstance
-							if weightClassValue % 100:
-								newInstance.setWeightClassValue_(weightClassValue)
+							newInstance.setWeightClassValue_(weightClassValue)
 						except:
 							# GLYPHS 2:
 							newInstance.weightClass = weightClassOldName
 							if weightClassValue % 100:
 								newInstance.customParameters["weightClass"] = weightClassValue
-						
-						
-						print("styleName:",styleName)
 						
 						# style name (with italic) and style linking
 						newInstance.name = "%s%s" % (prefix, self.italicStyleName(styleName))
@@ -489,12 +503,13 @@ class InstanceMaker( object ):
 							# GLYPHS 3:
 							weightID = self.weightID(theFont)
 							widthID = self.widthID(theFont)
-							print("thisWeight:",thisWeight,"widthValue:",widthValue)
 							if weightID:
-								newInstance.setAxisValue_forId_(thisWeight, weightID)
+								newInstance.setAxisValueValue_forId_(thisWeight, weightID)
 							if widthID:
-								newInstance.setAxisValue_forId_(widthValue, widthID)
+								newInstance.setAxisValueValue_forId_(widthValue, widthID)
 						except:
+							import traceback
+							print(traceback.format_exc())
 							# GLYPHS 2:
 							newInstance.weightValue = thisWeight
 							newInstance.widthValue = widthValue
