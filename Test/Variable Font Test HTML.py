@@ -7,7 +7,7 @@ Create a Test HTML for the current font inside the current Variation Font Export
 
 from GlyphsApp import *
 from os import system
-from AppKit import NSClassFromString, NSBundle
+from AppKit import NSClassFromString, NSBundle, NSEvent
 import codecs
 
 def langMenu(thisFont, indent=4):
@@ -831,7 +831,7 @@ htmlContent = u"""
 		<div id="controls">
 			<!-- OTVar Sliders -->
 			<div class="labeldiv"><label class="sliderlabel" id="label_fontsize" name="Font Size">Font Size</label><input type="range" min="10" max="1000" value="150" class="slider" id="fontsize" oninput="updateSlider();"></div>
-			<div class="labeldiv"><label class="sliderlabel" id="label_lineheight" name="Line Height">Line Height</label><input type="range" min="30" max="300" value="100" class="slider" id="lineheight" oninput="updateSlider();"></div>
+			<div class="labeldiv"><label class="sliderlabel" id="label_lineheight" name="Line Height">Line Height</label><input type="range" min="30" max="300" value="140" class="slider" id="lineheight" oninput="updateSlider();"></div>
 ###sliders###
 
 			<!-- OT features -->
