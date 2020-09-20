@@ -158,6 +158,9 @@ class RemovePSHints( object ):
 					for l in g.layers:
 						deletedHintsCount += self.removeHintsFromLayer(l,horizontalStemHints,verticalStemHints,ghostHints)
 			
+			# complete progress bar:
+			self.w.progress.set(100)
+			
 			# Floating notification:
 			Glyphs.showNotification( 
 				u"Removed %i hint%s" % ( 

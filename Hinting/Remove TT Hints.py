@@ -310,7 +310,10 @@ class RemoveTTHints( object ):
 						self.w.progress.set(i/count*100)
 						for l in g.layers:
 							deletedHintsCount += self.removeHintsFromLayer(l)
-			
+				
+				# Complete progress bar:
+				self.w.progress.set(100)
+				
 				# Final report:
 				totalCountMsg = "Removed %i instruction%s" % ( 
 					deletedHintsCount, 
