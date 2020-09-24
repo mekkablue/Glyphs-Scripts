@@ -7,6 +7,7 @@ Searches in PyObjC method names of a chosen object.
 
 import vanilla
 from AppKit import NSPasteboard, NSStringPboardType, NSUserDefaults
+from pydoc import help
 import AppKit, Foundation
 
 def setClipboard( myText ):
