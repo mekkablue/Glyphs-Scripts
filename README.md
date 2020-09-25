@@ -196,6 +196,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Encoding Converter:** Converts old expert 8-bit encodings into Glyphs nice names, based on a importable/exportable text with renaming scheme. Default is an AXt converting scheme. *Needs Vanilla.*
 * **Garbage Collection:** Removes markers in glyphs, such as node names, glyph names or annotations, as well as guides.
 * **New Tab with Uppercase-Lowercase Inconsistencies:** Opens a new Edit tab containing all glyphs without consistent case folding. Writes a detailed report in Macro Window.
+* **Production Namer:** Override default production names. Default are the usual subjects which create problems in legacy PDF workflows: mu, onesuperior, twosuperior, threesuperior. *Needs Vanilla.*
 * **Rename Glyphs:** Takes a list of `oldglyphname=newglyphname` pairs and renames glyphs in the font accordingly, much like the *Rename Glyphs* custom parameter. *Needs Vanilla.*
 * **Reorder Unicodes of Selected Glyphs:** Reorders Unicodes so that default Unicode comes first.
 
