@@ -431,7 +431,7 @@ class FontInfoBatchSetter( object ):
 			print(traceback.format_exc())
 
 	def complainAboutNoFonts(self, sender=None):
-		Message(title="No Font Open", message="The script requires at list one font open. Open a font and run the script again.", OKButton=None)
+		Message(title="No Font Open", message="The script requires at least one font open. Open a font and run the script again.", OKButton=None)
 		print("No open fonts found.\nDone.")
 	
 	def reportFilePath(self, thisFont):
