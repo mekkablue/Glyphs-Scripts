@@ -195,27 +195,36 @@ class PositionClicker( object ):
 				try:
 					spaceLayer = thisFont.glyphs["space"].layers[0]
 				except:
-					spaceLayer = GSControlLayer.newline()
+					spaceLayer = GSControlLayer.newline() 
 
 				referenceGlyph = thisFont.glyphs[referenceGlyphName]
+				try:
+					# GLYPHS 3
+					isRTL = referenceGlyph.direction==2 # 0=LTR, 1=BiDi, 2=RTL
+				except:
+					# GLYPHS 2
+					isRTL = True
+				
 				tabLayers = []
 				count = 0
 				comboCount = 0
 				for thisGlyph in thisFont.glyphs:
 					glyphName = thisGlyph.name
 					if isPositional(glyphName):
+						comesFirst = (".medi" in glyphName or ".init" in glyphName)
+						comesLater = (".medi" in glyphName or ".fina" in glyphName)
 						if thisGlyph.export or includeNonExporting:
 							for thisLayer in thisGlyph.layers:
 								if thisLayer.paths and (thisLayer.isMasterLayer or thisLayer.isSpecialLayer):
 									comboCount += 1
 									referenceLayer = referenceGlyph.layers[thisLayer.master.id]
-									if ".medi" in glyphName or ".init" in glyphName:
+									if (comesFirst and isRTL) or (comesLater and not isRTL):
 										if not doTheyClick(thisLayer, referenceLayer, clickCount):
 											tabLayers.append(referenceLayer)
 											tabLayers.append(thisLayer)
 											tabLayers.append(spaceLayer)
 											count += 1
-									if ".medi" in glyphName or ".fina" in glyphName:
+									if (comesLater and isRTL) or (comesFirst and not isRTL):
 										if not doTheyClick(referenceLayer, thisLayer, clickCount):
 											tabLayers.append(thisLayer)
 											tabLayers.append(referenceLayer)
@@ -236,8 +245,8 @@ class PositionClicker( object ):
 					tab.direction=0 # LTR!
 				else:
 					Message(
-						title="Position Clicker found no problems", 
-						message="Checked %i combinations: all positional glyphs with paths click on %i points or more. Good job!\nDetailed report in Macro Window." % (
+						title="Position Clicker found no problems 😃", 
+						message="✅ Checked %i combinations: all positional glyphs with paths click on %i points or more. Good job!\nDetailed report in Macro Window." % (
 							comboCount,
 							clickCount,
 						), 
