@@ -246,8 +246,18 @@ class SetTTFAutohintOptions( object ):
 			optionName = availableOptions[optionIndex]
 			enteredValue = Glyphs.defaults["com.mekkablue.SetTTFAutohintOptions.%s"%optionName]
 			
+			firstDoc = Glyphs.orderedDocuments()[0]
+			if firstDoc.isKindOfClass_(GSProjectDocument):
+				# Frontmost doc is a .glyphsproject file:
+				thisFont = firstDoc.font() # frontmost project file
+				instances = firstDoc.instances()
+			else:
+				# Frontmost doc is a .glyphs file:
+				thisFont = Glyphs.font # frontmost font
+				instances = thisFont.instances
+			
 			if enteredValue != "" or optionName in valuelessOptions:
-				for thisInstance in Glyphs.font.instances:
+				for thisInstance in instances:
 					if not thisInstance.customParameters[parameterName] is None:
 						optionDict = ttfAutohintDict( thisInstance.customParameters[parameterName] )
 						optionDict[ optionName ] = enteredValue
