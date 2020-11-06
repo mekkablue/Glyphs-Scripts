@@ -172,8 +172,8 @@ class CreateAlignmentZonesforSelectedGlyphs( object ):
 						size = maxDepth-minDepth
 	
 						if not dontExceed or abs(size) <= largestSize:
-							zonePosition = min(-1,size)
-							zoneSize = minDepth
+							zonePosition = minDepth
+							zoneSize = min(-1, size)
 							addedZoneCount += self.addZoneToMaster(zonePosition, zoneSize, master, blueFuzz)
 					
 					master.sortAlignmentZones()
