@@ -18,6 +18,7 @@ class SetHiddenAppPreferences( object ):
 		"GSKerningIncrementLow",
 		"GSShowVersionNumberInDockIcon",
 		"GSShowVersionNumberInTitleBar",
+		"GSFontViewShowCustomGlyphInfoIndicator",
 		"GSSpacingIncrementHigh",
 		"GSSpacingIncrementLow",
 		"MacroCodeFontSize",
