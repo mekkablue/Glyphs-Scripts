@@ -8,6 +8,7 @@ Finds all kinds of potential problems in outlines, and opens a new tab with affe
 import vanilla, math
 from timeit import default_timer as timer
 from GlyphsApp import QCURVE
+from AppKit import NSPoint
 
 def reportTimeInNaturalLanguage( seconds ):
 	if seconds > 60.0:
