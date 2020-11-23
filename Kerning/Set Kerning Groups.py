@@ -989,7 +989,7 @@ def updateKeyGlyphsForSelected():
 			Glyph.setRightKerningGroup_(RightKey)
 
 def main():
- 	print("*** Start Update Key Glyphs ***\n")
+	print("*** Start Update Key Glyphs ***\n")
 	updateKeyGlyphsForSelected()
 	print("*** Ende ****")
 	
