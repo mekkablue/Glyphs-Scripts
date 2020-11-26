@@ -93,7 +93,14 @@ class RemovePSHints( object ):
 		delCount = 0
 		for i in reversed(range(len(layer.hints))):
 			h = layer.hints[i]
-			if h.isPostScript():
+			try:
+				# GLYPHS 3
+				isPostScriptHint = h.isPostScript
+			except:
+				# GLYPHS 2
+				isPostScriptHint = h.isPostScript()
+			
+			if isPostScriptHint:
 				if horizontalStemHints and h.horizontal and h.type==STEM:
 					del layer.hints[i]
 					delCount += 1
