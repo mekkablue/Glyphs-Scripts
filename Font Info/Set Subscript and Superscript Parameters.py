@@ -36,9 +36,9 @@ class CalculateSubscriptAndSuperscriptParameters( object ):
 		self.w.subscriptReset = vanilla.SquareButton( (-inset-20, linePos+0.5, -inset, 18), "↺", sizeStyle='small', callback=self.resetValues )
 		# tooltips:
 		tooltip = "If enabled, will calculate: subscriptXOffsetName, subscriptYOffsetName, subscriptXSizeName, subscriptYSizeName. The subscript glyph (on the left) will be measured in relation to the reference glyph on the right; offset and size scale will be computed from their differences."
-		self.w.subscriptSample.getNSButton().setToolTip_(tooltip)
+		self.w.subscriptSample.getNSTextField().setToolTip_(tooltip)
 		self.w.subscriptReference.getNSTextField().setToolTip_(tooltip)
-		self.w.subscriptCheck.getNSTextField().setToolTip_(tooltip)
+		self.w.subscriptCheck.getNSButton().setToolTip_(tooltip)
 		self.w.subscriptReferenceText.getNSTextField().setToolTip_(tooltip)
 		self.w.subscriptReset.getNSButton().setToolTip_("Resets the subscript reference glyphs to oneinferior vs. one.")
 		linePos += lineHeight
@@ -50,9 +50,9 @@ class CalculateSubscriptAndSuperscriptParameters( object ):
 		self.w.superscriptReset = vanilla.SquareButton( (-inset-20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.resetValues )
 		# tooltips:
 		tooltip = "If enabled, will calculate: superscriptXOffsetName, superscriptYOffsetName, superscriptXSizeName, superscriptYSizeName. The superscript glyph (on the left) will be measured in relation to the reference glyph on the right; offset and size scale will be computed from their differences."
-		self.w.superscriptSample.getNSButton().setToolTip_(tooltip)
+		self.w.superscriptSample.getNSTextField().setToolTip_(tooltip)
 		self.w.superscriptReference.getNSTextField().setToolTip_(tooltip)
-		self.w.superscriptCheck.getNSTextField().setToolTip_(tooltip)
+		self.w.superscriptCheck.getNSButton().setToolTip_(tooltip)
 		self.w.superscriptReferenceText.getNSTextField().setToolTip_(tooltip)
 		self.w.superscriptReset.getNSButton().setToolTip_("Resets the superscript reference glyphs to onesuperior vs. one.")
 		linePos += lineHeight
