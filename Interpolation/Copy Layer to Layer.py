@@ -220,7 +220,14 @@ class CopyLayerToLayer( object ):
 
 		if numberOfComponentsInTarget != 0 and not keepOriginal:
 			print("- Deleting %i components in target layer" % numberOfComponentsInTarget)
-			targetLayer.components = []
+			try:
+				# GLYPHS 3
+				for i in reversed(range(len(targetLayer.shapes))):
+					if type(targetLayer.shapes[i]) == GSComponent:
+						del targetLayer.shapes[i]
+			except:
+				# GLYPHS 2
+				targetLayer.components = []
 
 		if numberOfComponentsInSource > 0:
 			print("- Copying components:")
@@ -264,8 +271,9 @@ class CopyLayerToLayer( object ):
 		print("Copy Layer to Layer Protocol:")
 
 		# This should be the active selection, not necessarily the selection on the inputted fonts
-		Font = Layer.parent.parent
-		selectedGlyphs = [ x.parent for x in Font.selectedLayers if x.parent.name is not None ]
+		Font = Glyphs.font
+		selectedGlyphs = [ l.parent for l in Font.selectedLayers if l.parent.name is not None ]
+		
 		indexOfSourceFont = int(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontSource"])
 		indexOfTargetFont = int(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontTarget"])
 		indexOfSourceMaster = int(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterSource"])
@@ -279,6 +287,7 @@ class CopyLayerToLayer( object ):
 
 		for thisGlyph in selectedGlyphs:
 			try:
+				print("🔠 %s" % thisGlyph.name)
 				sourceFont = Glyphs.fonts[ indexOfSourceFont ]
 				sourceGlyph = sourceFont.glyphs[ thisGlyph.name ]
 				sourcelayer = sourceGlyph.layers[ indexOfSourceMaster ]
