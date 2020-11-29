@@ -261,15 +261,24 @@ def otVarFullName(thisFont):
 	else:
 		return familyName
 
+def otVarSuffix():
+	suffix = "ttf"
+	for webSuffix in ("woff","woff2"):
+		preference = Glyphs.defaults["GXExport%s" % webSuffix.upper()]
+		if preference:
+			suffix = webSuffix
+	return suffix
+
 def otVarFileName(thisFont):
+	suffix = otVarSuffix()
 	if thisFont.customParameters["Variable Font File Name"] or thisFont.customParameters["variableFileName"]:
 		fileName = thisFont.customParameters["Variable Font File Name"]
 		if not fileName:
 			fileName = thisFont.customParameters["variableFileName"]
-		return "%s.ttf" % fileName
+		return "%s.%s" % (fileName, suffix)
 	else:
 		familyName = otVarFamilyName(thisFont)
-		fileName = "%sGX.ttf" % familyName
+		fileName = "%sGX.%s" % (familyName, suffix)
 		return fileName.replace(" ","")
 
 def replaceSet( text, setOfReplacements ):
@@ -415,11 +424,22 @@ def warningMessage():
 
 def axisValuesForMaster(thisMaster):
 	try:
-		axisValueList = [0.0,0.0,0.0,0.0,0.0,0.0]
-		for i,value in enumerate(thisMaster.axes):
-			axisValueList[i] = value
+		try:
+			# GLYPHS 3
+			font = thisMaster.font
+			axisValueList = []
+			for axis in font.axes:
+				axisValue = thisMaster.axisValueValueForId_(axis.axisId)
+				axisValueList.append( axisValue )
+		except:
+			# GLYPHS 2
+			axisValueList = [0.0,0.0,0.0,0.0,0.0,0.0]
+			for i,value in enumerate(thisMaster.axes):
+				axisValueList[i] = value
+				
 		axisValues = tuple(axisValueList)
 	except:
+		# GLYPHS 2 older versions
 		try:
 			axisValues = (
 				thisMaster.weightValue,
