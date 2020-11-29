@@ -569,9 +569,10 @@ else:
 	
 	# Write file to disk:
 	if exportPath:
-		if saveFileInLocation( content=htmlContent, fileName="fonttest.html", filePath=exportPath ):
+		htmlFileName = "fonttest.html"
+		if saveFileInLocation( content=htmlContent, fileName=htmlFileName, filePath=exportPath ):
 			print("Successfully wrote file to disk.")
-			terminalCommand = 'cd "%s"; open .' % exportPath
+			terminalCommand = 'cd "%s"; open %s' % (exportPath, htmlFileName)
 			system( terminalCommand )
 		else:
 			print("Error writing file to disk.")
