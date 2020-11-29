@@ -198,12 +198,14 @@ class InstanceMaker( object ):
 			return axis.axisId
 	
 	def weightID(self, thisFont):
-		weightAxis = thisFont.axes[0] # default
-		weightAxisID = self.axisID(weightAxis)
-		for axis in thisFont.axes:
-			axisTag = self.axisTag(axis)
-			if axisTag == "wght":
-				weightAxisID = self.axisID(axis)
+		weightAxisID = None
+		if thisFont.axes:
+			weightAxis = thisFont.axes[0] # default
+			weightAxisID = self.axisID(weightAxis)
+			for axis in thisFont.axes:
+				axisTag = self.axisTag(axis)
+				if axisTag == "wght":
+					weightAxisID = self.axisID(axis)
 		return weightAxisID
 
 	def widthID(self, thisFont):
@@ -215,22 +217,21 @@ class InstanceMaker( object ):
 	
 	def MasterList( self, factor ):
 		thisFont = Glyphs.font
+		MasterValues = ()
 		if thisFont:
 			try:
 				# GLYPHS 3:
-				if not thisFont.axes:
-					MasterValues = ()
-				else:
+				if thisFont.axes:
 					weightAxisID = self.weightID(thisFont)
-					MasterValues = sorted( [m.axisValueValueForId_(weightAxisID) for m in thisFont.masters], key=lambda m: m * factor )
+					if weightAxisID:
+						MasterValues = sorted( [m.axisValueValueForId_(weightAxisID) for m in thisFont.masters], key=lambda m: m * factor )
 			except:
 				# GLYPHS 2:
 				import traceback
 				print(traceback.format_exc())
 				MasterValues = sorted( [m.weightValue for m in thisFont.masters], key=lambda m: m * factor )
-			return MasterValues
-		else:
-			return ()
+				
+		return MasterValues
 	
 	def Distribution( self ):
 		a = self.w.master1.get().floatValue()
