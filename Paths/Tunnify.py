@@ -86,7 +86,7 @@ def pointIsBetweenOtherPoints( thisPoint, otherPointA, otherPointB) :
 			returnValue = True
 	
 	if yDiffFactor:
-		if 0.0<=xDiffFactor<=1.0:
+		if 0.0<=yDiffFactor<=1.0:
 			returnValue = True
 		
 	return returnValue
