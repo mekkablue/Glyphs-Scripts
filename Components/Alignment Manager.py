@@ -94,7 +94,7 @@ class AutoAlignmentManager( object ):
 		for thisGlyph in selectedGlyphs:
 			print("Rotating: %s" % thisGlyph.name)
 			for thisLayer in thisGlyph.layers:
-				if thisLayer.isMasterLayer or thisLayer.isSpecialLayer or thisLayer.isColorLayer() or thisLayer.isAppleColorLayer():
+				if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 					if len(thisLayer.components)>1:
 						thisLayer.selection = None
 						lastComponent = thisLayer.components[-1]
@@ -147,7 +147,7 @@ class AutoAlignmentManager( object ):
 				for thisGlyph in selectedGlyphs:
 					print("Processing: %s" % thisGlyph.name)
 					for thisLayer in thisGlyph.layers:
-						if thisLayer.isMasterLayer or thisLayer.isSpecialLayer or thisLayer.isColorLayer() or thisLayer.isAppleColorLayer():
+						if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 							if not self.enableOrDisableLayer( thisLayer, differentiation=componentDifferentiation, sender=sender ):
 								print(u"⚠️ Error setting alignment.")
 			else:
