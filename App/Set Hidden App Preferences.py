@@ -24,6 +24,7 @@ class SetHiddenAppPreferences( object ):
 		"MacroCodeFontSize",
 		"showShadowPath",
 		"GSDrawOutlinesAliased",
+		"GSMakeSmoothNodes",
 		"TextModeNumbersThreshold",
 		"TTPreviewAlsoShowOffCurveIndexes",
 		"GSHideUnicodeInFontView" if Glyphs.versionNumber<3.0 else "GSFontViewShowUnicode",
