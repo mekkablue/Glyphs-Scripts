@@ -218,14 +218,21 @@ class PositionClicker( object ):
 								if thisLayer.paths and (thisLayer.isMasterLayer or thisLayer.isSpecialLayer):
 									comboCount += 1
 									referenceLayer = referenceGlyph.layers[thisLayer.master.id]
+									
+									# are there components?
+									if thisLayer.components:
+										thisLayerDecomposed = thisLayer.copyDecomposedLayer()
+									else:
+										thisLayerDecomposed = thisLayer
+										
 									if (comesFirst and isRTL) or (comesLater and not isRTL):
-										if not doTheyClick(thisLayer, referenceLayer, clickCount):
+										if not doTheyClick(thisLayerDecomposed, referenceLayer, clickCount):
 											tabLayers.append(referenceLayer)
 											tabLayers.append(thisLayer)
 											tabLayers.append(spaceLayer)
 											count += 1
 									if (comesLater and isRTL) or (comesFirst and not isRTL):
-										if not doTheyClick(referenceLayer, thisLayer, clickCount):
+										if not doTheyClick(referenceLayer, thisLayerDecomposed, clickCount):
 											tabLayers.append(thisLayer)
 											tabLayers.append(referenceLayer)
 											tabLayers.append(spaceLayer)
