@@ -27,14 +27,14 @@ def isPositional(glyphName):
 def doTheyClick(rightLayer, leftLayer, requiredClicks=2):
 	leftWidth = leftLayer.width
 	rightCoordinates = []
-	for p in rightLayer.paths:
+	for p in rightLayer.copyDecomposedLayer().paths:
 		for n in p.nodes:
 			if n.type != OFFCURVE:
 				coord = n.position
 				coord.x += leftWidth
 				rightCoordinates.append(coord)
 	clickCount = 0
-	for p in leftLayer.paths:
+	for p in leftLayer.copyDecomposedLayer().paths:
 		for n in p.nodes:
 			if n.position in rightCoordinates:
 				clickCount += 1
@@ -219,20 +219,14 @@ class PositionClicker( object ):
 									comboCount += 1
 									referenceLayer = referenceGlyph.layers[thisLayer.master.id]
 									
-									# are there components?
-									if thisLayer.components:
-										thisLayerDecomposed = thisLayer.copyDecomposedLayer()
-									else:
-										thisLayerDecomposed = thisLayer
-										
 									if (comesFirst and isRTL) or (comesLater and not isRTL):
-										if not doTheyClick(thisLayerDecomposed, referenceLayer, clickCount):
+										if not doTheyClick(thisLayer, referenceLayer, clickCount):
 											tabLayers.append(referenceLayer)
 											tabLayers.append(thisLayer)
 											tabLayers.append(spaceLayer)
 											count += 1
 									if (comesLater and isRTL) or (comesFirst and not isRTL):
-										if not doTheyClick(referenceLayer, thisLayerDecomposed, clickCount):
+										if not doTheyClick(referenceLayer, thisLayer, clickCount):
 											tabLayers.append(thisLayer)
 											tabLayers.append(referenceLayer)
 											tabLayers.append(spaceLayer)
