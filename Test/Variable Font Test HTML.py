@@ -240,7 +240,11 @@ def saveFileInLocation( content="Sorry, no content generated.", fileName="test.t
 
 def currentOTVarExportPath():
 	exportPath = Glyphs.defaults["GXExportPathManual"]
-	if Glyphs.defaults["GXPluginUseExportPath"]:
+	if Glyphs.versionNumber and Glyphs.versionNumber>=3:
+		useExportPath = Glyphs.defaults["GXExportUseExportPath"]
+	else:
+		useExportPath = Glyphs.defaults["GXPluginUseExportPath"]
+	if useExportPath:
 		exportPath = Glyphs.defaults["GXExportPath"]
 	return exportPath
 
@@ -902,11 +906,11 @@ if appVersionHighEnough:
 
 	print("Preparing Test HTML for: %s" % fullName)
 
+	print("👷🏼‍ Building HTML code...")
 	if shouldCreateSamsa:
 		samsaReplaceWith = "<a href='samsa-gui.html' class='emojiButton' style='color:rgb(255, 165, 0);'>🅢</a>"
 	else:
 		samsaReplaceWith = samsaPlaceholder
-	
 	replacements = (
 		( "###fontFamilyNameWithSpaces###", fullName ),
 		( "###fontFamilyName###", fullName ),
@@ -918,12 +922,13 @@ if appVersionHighEnough:
 		( "###languageSelection###", langMenu(thisFont) ),
 		( samsaPlaceholder, samsaReplaceWith ),
 	)
-
 	htmlContent = replaceSet( htmlContent, replacements )
 	
 	# Write file to disk:
+	print("💾 Writing files to disk...")
 	if exportPath:
 		if shouldCreateSamsa:
+			print("🐜 Building Samsa...")
 			# build samsa config:
 			samsaURL = "https://lorp.github.io/samsa/src/" #"https://www.axis-praxis.org/samsa"
 			samsaFileName = "samsa-config.js"
@@ -947,8 +952,8 @@ if appVersionHighEnough:
 			# fix css links:
 			terminalCommand = "cd '%s'; sed -i '' 's|url(fonts|url(https://www.axis-praxis.org/samsa/fonts|g' samsa-gui.css" % exportPath
 			system( terminalCommand )
-			
 		
+		print("🕸 Building HTML file...")
 		htmlFileName = "%s fonttest.html" % fullName
 		if saveFileInLocation( content=htmlContent, fileName=htmlFileName, filePath=exportPath ):
 			print("✅ Successfully wrote file to disk.")
