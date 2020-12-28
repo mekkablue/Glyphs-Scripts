@@ -274,7 +274,13 @@ class PopulateAllBackgroundswithComponent( object ):
 
 	def alignNodeWithNodeInOtherLayer(self, thisNode, otherLayer, tolerance=5, maxTolerance=80, alreadyTaken=[]):
 		while tolerance < maxTolerance:
-			nearestNode = otherLayer.nodeAtPoint_excludeNodes_traversComponents_tollerance_( thisNode.position, None, False, tolerance )
+			try:
+				# GLYPHS 3
+				nearestNode = otherLayer.nodeAtPoint_excludeNodes_traverseComponents_ignoreLocked_tolerance_( thisNode.position, None, False, False, tolerance )
+			except:
+				# GLYPHS 2
+				nearestNode = otherLayer.nodeAtPoint_excludeNodes_traversComponents_tollerance_( thisNode.position, None, False, tolerance )
+			
 			if nearestNode and (thisNode.type == nearestNode.type) and (not nearestNode.position in alreadyTaken):
 				thisNode.position = nearestNode.position
 				return True

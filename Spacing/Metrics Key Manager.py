@@ -6,6 +6,8 @@ Batch apply metrics keys to the current font.
 """
 
 import vanilla
+from AppKit import NSFont
+
 
 LeftKeys="""
 =H: B D E F I K L N P R Thorn Germandbls M
