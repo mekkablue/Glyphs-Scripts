@@ -484,6 +484,11 @@ class VerticalMetricsManager( object ):
 					xHeight = roundUpByValue(xHeight, roundValue)
 			
 			# calculate linegap, based on highest x-height and calculated asc/desc values:
+			# 
+			# TODO: verify
+			# LineGap >= (yMax - yMin) - (Ascender - Descender
+			# (source: https://docs.microsoft.com/en-us/typography/opentype/spec/recom)
+			#
 			idealLineSpan = abs(xHeight * 2.2)
 			if shouldRound:
 				idealLineSpan = roundUpByValue(idealLineSpan, roundValue)
