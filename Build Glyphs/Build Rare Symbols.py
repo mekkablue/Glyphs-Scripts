@@ -40,19 +40,25 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 		myTransform.appendTransform_(skewTransform)
 	return myTransform
 
-def offsetLayer( thisLayer, offset, makeStroke=False, position=0.5, autoStroke=False, keepCompatible=True ):
-	offsetFilter = NSClassFromString("GlyphsFilterOffsetCurve")
-	offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyle_keepCompatibleOutlines_(
-		thisLayer,
-		offset, offset, # horizontal and vertical offset
-		makeStroke,     # if True, creates a stroke
-		autoStroke,     # if True, distorts resulting shape to vertical metrics
-		position,       # stroke distribution to the left and right, 0.5 = middle
-		thisLayer.glyphMetrics(), # metrics (G3)
-		None, None, # error, shadow
-		NSButtLineCapStyle, # cap style
-		keepCompatible, # keep compatible
-	)
+def offsetLayer( thisLayer, offset, makeStroke=False, position=0.5, autoStroke=False ):
+	def _filter(name):
+		for filter in Glyphs.filters:
+			if filter.__class__.__name__ == name:
+				return filter
+	offsetFilter = _filter("GlyphsFilterOffsetCurve")
+	lastArg = autoStroke
+	if not autoStroke:
+		lastArg = position
+	else:
+		lastArg = 1
+	if makeStroke:
+		makeStroke = 1
+	else:
+		makeStroke = 0
+	offsetFilter.processLayer_withArguments_(
+			thisLayer, 
+			['GlyphsFilterOffsetCurve',f"{offset}", f"{offset}", f"{makeStroke}", f"{lastArg}"]
+		)
 
 def createGlyph(thisFont, glyphName, pathData, scaleFactor=1.0, rotation=0, overwrite=False, fill=True, stroke=50, sidebearing=50, closePath=True, belowBase=0.1, setMetricsKeys=True):
 	glyph = None
