@@ -9,20 +9,14 @@ from compare import *
 
 thisFont = Glyphs.fonts[0] # frontmost font
 otherFont = Glyphs.fonts[1] # second font
-if thisFont.filepath:
-	thisFileName = thisFont.filepath.lastPathComponent()
-else:
-	thisFileName = None
-if otherFont.filepath:
-	otherFileName = otherFont.filepath.lastPathComponent()
-else:
-	otherFileName = None
+thisFileName = thisFont.filepath.lastPathComponent()
+otherFileName = otherFont.filepath.lastPathComponent()
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
 
-print("Comparing Font Info > Masters for:".upper())
+print("Comparing Font Info > Instances for:".upper())
 print()
 print("1. %s (family: %s)" % (thisFileName, thisFont.familyName))
 print("   ~/%s" % thisFont.filepath.relativePathFromBaseDirPath_("~"))
@@ -30,65 +24,95 @@ print("2. %s (family: %s)" % (otherFileName, otherFont.familyName))
 print("   ~/%s" % otherFont.filepath.relativePathFromBaseDirPath_("~"))
 print() 
 
-for thisMaster, otherMaster in zip(thisFont.masters, otherFont.masters):
+for thisInstance, otherInstance in zip(thisFont.instances, otherFont.instances):
 	print() 
 	print() 
-	print("   COMPARING MASTERS:")
-	print("   A. %s" % thisMaster.name)
-	print("   B. %s" % otherMaster.name)
+	print("   COMPARING INSTANCES:")
+	print("   A. %s%s" % (
+		"%s "%thisInstance.familyName if thisInstance.familyName else "",
+		thisInstance.name,
+		))
+	print("   B. %s%s" % (
+		"%s "%otherInstance.familyName if otherInstance.familyName else "",
+		otherInstance.name,
+		))
 	print()
-	
-	keyValueDict= {
-		"Ascender": (thisMaster.ascender, otherMaster.ascender),
-		"Cap Height": (thisMaster.capHeight, otherMaster.capHeight),
-		"x-Height": (thisMaster.xHeight, otherMaster.xHeight),
-		"Descender": (thisMaster.descender, otherMaster.descender),
-		"Italic Angle": (thisMaster.italicAngle, otherMaster.italicAngle),
-	}
+	if Glyphs.versionNumber >= 3:
+		keyValueDict= {
+			"Name": (thisInstance.name, otherInstance.name)
+		}
+		#keyValueDict["Name"] = (thisInstance.name, otherInstance.name)
+
+	else:
+		keyValueDict= {
+			"Weight": (thisInstance.weight, otherInstance.weight),
+			"Width": (thisInstance.width, otherInstance.width),
+			"Name": (thisInstance.name, otherInstance.name),
+		}
 	for key in keyValueDict:
 		thisValue, otherValue = keyValueDict[key]
 		if thisValue == otherValue:
-			print(u"✅ %s value is the same: %i" % (key, thisValue))
+			print(u"✅ %s value is the same: '%s'" % (key, thisValue))
 		else:
 			print(u"⚠️ Different %s values:" % key)
-			print(u"   A. %.1f in %s" % (thisValue, thisMaster.name))
-			print(u"   B. %.1f in %s" % (otherValue, otherMaster.name))
+			print(u"   A. '%s' in %s" % (thisValue, thisInstance.name))
+			print(u"   B. '%s' in %s" % (otherValue, otherInstance.name))
 	
-	# count zones, stems:
+	if not len(thisFont.axes) == len(otherFont.axes):
+		print(u"❌ Different number of axes between fonts.")
+	else:
+		for i in range(len(thisFont.axes)):
+			thisValue, otherValue = thisInstance.axes[i], otherInstance.axes[i]
+			if thisValue == otherValue:
+				print(thisFont.axes[i])
+				if Glyphs.versionNumber >= 3:
+					print(u"✅ axis %i (%s/%s) value is the same: %i" % (
+						i,
+						thisFont.axes[i].axisTag, otherFont.axes[i].axisTag,
+						thisValue,
+						))
+				else:
+					print(u"✅ axis %i (%s/%s) value is the same: %i" % (
+						i,
+						thisFont.axes[i]["Tag"], otherFont.axes[i]["Tag"],
+						thisValue,
+						))
+			else:
+				print(u"⚠️ Different values for axis %i (%s/%s):" % (
+					i,
+					thisFont.axes[i]["Tag"], otherFont.axes[i]["Tag"],
+				))
+				print(u"   A. %.1f in %s" % (thisValue, thisInstance.name))
+				print(u"   B. %.1f in %s" % (otherValue, otherInstance.name))
+		
+	
+	
+	# count parameters:
 	compareCount(
-		"Zones", 
-		len(thisMaster.alignmentZones), len(otherMaster.alignmentZones),
-		thisMaster.name, otherMaster.name,
+		"Custom Parameters", 
+		len(thisInstance.customParameters), len(otherInstance.customParameters),
+		thisInstance.name, otherInstance.name,
 		)
-	compareCount(
-		"Vertical Stems", 
-		len(thisMaster.verticalStems), len(otherMaster.verticalStems),
-		thisMaster.name, otherMaster.name,
-		)
-	compareCount(
-		"Horizontal Stems", 
-		len(thisMaster.horizontalStems), len(otherMaster.horizontalStems),
-		thisMaster.name, otherMaster.name,
-		)
+
 		
 	# comparing parameters:
-	theseParameters = [p.name for p in thisMaster.customParameters]
-	otherParameters = [p.name for p in otherMaster.customParameters]
+	theseParameters = [p.name for p in thisInstance.customParameters]
+	otherParameters = [p.name for p in otherInstance.customParameters]
 	thisSet, otherSet = compareLists(theseParameters, otherParameters)
 	if thisSet or otherSet:
 		if otherSet:
-			print(u"❌ Parameters not in (A) %s:" % thisMaster.name)
+			print(u"❌ Parameters not in (A) %s:" % thisInstance.name)
 			print("   %s" % ("\n   ".join(otherSet)))
 		if thisSet:
-			print(u"❌ Parameters not in (B) %s:" % otherMaster.name)
+			print(u"❌ Parameters not in (B) %s:" % otherInstance.name)
 			print("   %s" % ("\n   ".join(thisSet)))
 	else:
-		print(u"✅ Same structure of parameters in both masters.")
+		print(u"✅ Same structure of parameters in both instances.")
 	
 	# detailed comparison:
-	for thisParameterName in [p.name for p in thisMaster.customParameters]:
-		thisParameter = thisMaster.customParameters[thisParameterName]
-		otherParameter = otherMaster.customParameters[thisParameterName]
+	for thisParameterName in [p.name for p in thisInstance.customParameters]:
+		thisParameter = thisInstance.customParameters[thisParameterName]
+		otherParameter = otherInstance.customParameters[thisParameterName]
 		if otherParameter:
 			if thisParameter == otherParameter:
 				parameterContent = cleanUpAndShortenParameterContent(thisParameter)
@@ -97,7 +121,5 @@ for thisMaster, otherMaster in zip(thisFont.masters, otherFont.masters):
 				thisContent = cleanUpAndShortenParameterContent(thisParameter)
 				otherContent = cleanUpAndShortenParameterContent(otherParameter)
 				print(u"⚠️ Parameter %s: different values." % thisParameterName)
-				print(u"    A. %s in %s" % (thisContent, thisMaster.name))
-				print(u"    B. %s in %s" % (otherContent, otherMaster.name))
-				
-				
+				print(u"    A. %s in %s" % (thisContent, thisInstance.name))
+				print(u"    B. %s in %s" % (otherContent, otherInstance.name))
