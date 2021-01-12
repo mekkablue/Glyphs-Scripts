@@ -4,7 +4,7 @@ from __future__ import division, print_function, unicode_literals
 __doc__="""
 Batch-apply settings in Font Info > Font to open fonts: designer, designer URL, manufacturer, manufacturer URL, copyright, version number, date and time. Useful for syncing Font Info settings across many fonts.
 """
-
+from AppKit import NSDate
 import vanilla, datetime
 
 class FontInfoBatchSetter( object ):
