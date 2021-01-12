@@ -12,13 +12,13 @@ selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 
 def buildUnicodeSet(unicodes):
 	g = Layer.parent
-	print g. unicode
-	print type(g.unicodes()[0])
+	print( g. unicode )
+	print( type(g.unicodes()[0]) )
 	# g.setUnicodes_( NSSet.initWithArray_(["E780","0192"]) )
 
 def reorderUnicodes( thisGlyph ):
 	defaultUnicode = Glyphs.glyphInfoForName( thisGlyph.name ).unicode
-	oldUnicodes = thisGlyph.unicodes()
+	oldUnicodes = thisGlyph.unicodes
 	if oldUnicodes:
 		oldUnicodes = list(oldUnicodes)
 		if len(oldUnicodes) > 1:

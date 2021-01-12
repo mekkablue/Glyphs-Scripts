@@ -6,7 +6,7 @@ Converts old expert 8-bit encodings into Glyphs nice names.
 """
 
 import vanilla, codecs
-
+from AppKit import NSFont
 AXtDefault = """
 Syntax:
 - Freely write comments and empty lines
