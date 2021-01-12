@@ -37,18 +37,12 @@ for thisInstance, otherInstance in zip(thisFont.instances, otherFont.instances):
 		otherInstance.name,
 		))
 	print()
-	if Glyphs.versionNumber >= 3:
-		keyValueDict= {
-			"Name": (thisInstance.name, otherInstance.name)
-		}
-		#keyValueDict["Name"] = (thisInstance.name, otherInstance.name)
-
-	else:
-		keyValueDict= {
-			"Weight": (thisInstance.weight, otherInstance.weight),
-			"Width": (thisInstance.width, otherInstance.width),
-			"Name": (thisInstance.name, otherInstance.name),
-		}
+	
+	keyValueDict= {
+		"Weight": (thisInstance.weight, otherInstance.weight),
+		"Width": (thisInstance.width, otherInstance.width),
+		"Name": (thisInstance.name, otherInstance.name),
+	}
 	for key in keyValueDict:
 		thisValue, otherValue = keyValueDict[key]
 		if thisValue == otherValue:
@@ -64,19 +58,11 @@ for thisInstance, otherInstance in zip(thisFont.instances, otherFont.instances):
 		for i in range(len(thisFont.axes)):
 			thisValue, otherValue = thisInstance.axes[i], otherInstance.axes[i]
 			if thisValue == otherValue:
-				print(thisFont.axes[i])
-				if Glyphs.versionNumber >= 3:
-					print(u"✅ axis %i (%s/%s) value is the same: %i" % (
-						i,
-						thisFont.axes[i].axisTag, otherFont.axes[i].axisTag,
-						thisValue,
-						))
-				else:
-					print(u"✅ axis %i (%s/%s) value is the same: %i" % (
-						i,
-						thisFont.axes[i]["Tag"], otherFont.axes[i]["Tag"],
-						thisValue,
-						))
+				print(u"✅ axis %i (%s/%s) value is the same: %i" % (
+					i,
+					thisFont.axes[i]["Tag"], otherFont.axes[i]["Tag"],
+					thisValue,
+					))
 			else:
 				print(u"⚠️ Different values for axis %i (%s/%s):" % (
 					i,
@@ -123,3 +109,5 @@ for thisInstance, otherInstance in zip(thisFont.instances, otherFont.instances):
 				print(u"⚠️ Parameter %s: different values." % thisParameterName)
 				print(u"    A. %s in %s" % (thisContent, thisInstance.name))
 				print(u"    B. %s in %s" % (otherContent, otherInstance.name))
+				
+				

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-import sys
-
 def compareLists(thisSet, otherSet, ignoreEmpty=False):
 	for i in range(len(thisSet))[::-1]:
 		if thisSet[i] in otherSet:
@@ -21,11 +19,7 @@ def compareLists(thisSet, otherSet, ignoreEmpty=False):
 	return thisSet, otherSet
 
 def cleanUpAndShortenParameterContent( thisParameter, maxLength=20 ):
-	if sys.version_info.major >= 3 :
-	    parameterContent = repr(thisParameter)
-	else:
-	    parameterContent = unicode(repr(thisParameter))
-	
+	parameterContent = unicode(repr(thisParameter))
 	if len(parameterContent) > maxLength:
 		parameterContent = u"%s..." % parameterContent[:maxLength].replace(u"\n",u" ")
 	while u"  " in parameterContent:
