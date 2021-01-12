@@ -97,8 +97,13 @@ class AutoAlignmentManager( object ):
 				if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 					if len(thisLayer.components)>1:
 						thisLayer.selection = None
-						lastComponent = thisLayer.components[-1]
-						thisLayer.makeFirstComponent_(lastComponent)
+						
+						if Glyphs.versionNumber >= 3:
+							lastComponent = l.components.objectAtIndex_(l.components.count()-1)
+							lastComponent.makeFirst()
+						else:
+							lastComponent = thisLayer.components[-1]
+							thisLayer.makeFirstComponent_(lastComponent)
 					else:
 						print(u"⚠️ Not enough components for rotating.")
 		
