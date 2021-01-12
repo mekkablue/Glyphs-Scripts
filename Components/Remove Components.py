@@ -24,7 +24,11 @@ class RemoveComponentfromSelectedGlyphs( object ):
 		
 		# UI elements:
 		self.w.text1 = vanilla.TextBox( (15, 12+3, 130, 14), "Remove component", sizeStyle='small' )
-		self.w.componentName  = vanilla.ComboBox((15+130, 12, -15, 19), self.glyphList(), sizeStyle='small' )
+		self.w.componentName  = vanilla.ComboBox(
+				(15+130, 12, -15, 19), 
+				self.glyphList(), 
+				sizeStyle='small' 
+			)
 		self.w.fromWhere = vanilla.RadioGroup((15, 40, -15, 40), [ "from all selected glyphs", "from all glyphs in the font" ], callback=self.SavePreferences, sizeStyle = 'small' )
 		self.w.fromWhere.set( 0 )
 		
@@ -74,7 +78,11 @@ class RemoveComponentfromSelectedGlyphs( object ):
 			for i in range(numberOfComponents)[::-1]:
 				thisComponent = theseComponents[i]
 				if thisComponent.componentName == componentName:
-					thisLayer.removeComponent_( thisComponent )
+					if Glyphs.versionNumber >= 3:
+						index = thisLayer.shapes.index(thisComponent)
+						del(thisLayer.shapes[index])
+					else:
+						thisLayer.removeComponent_( thisComponent )
 		
 	def removeComponentFromGlyph(self, componentName, thisGlyph):
 		for thisLayer in thisGlyph.layers:

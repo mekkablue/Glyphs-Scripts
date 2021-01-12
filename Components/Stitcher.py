@@ -153,7 +153,10 @@ def placeDots( thisLayer, useBackground, componentName, distanceBetweenDots, bal
 				for thisPoint in dotCoordsOnPath( thisPath, distanceBetweenDots, balanceOverCompletePath ):
 					newComp = GSComponent( componentName, NSPoint( thisPoint.x + xOffset, thisPoint.y + yOffset ) )
 					newComp.alignment = -1
-					thisLayer.addComponent_( newComp )
+					if Glyphs.versionNumber < 3:
+						thisLayer.addComponent_( newComp )
+					else:
+						thisLayer.addShape_( newComp )
 				
 			return True
 		else:
@@ -185,8 +188,12 @@ def process( thisLayer, deleteComponents, componentName, distanceBetweenDots, us
 			thisLayer.background.clear()
 			for thisPath in thisLayer.paths:
 				thisLayer.background.paths.append( thisPath.copy() )
-		
-			thisLayer.paths = []
+
+			if Glyphs.versionNumber < 3:
+				thisLayer.paths = []
+			else:
+				thisLayer.removeShapes_([path for path in thisLayer.paths])
+				
 	
 		if not placeDots( thisLayer, useBackground, componentName, distanceBetweenDots, balanceOverCompletePath ):
 			print("-- Could not place components at intervals of %.1f units." % distanceBetweenDots)

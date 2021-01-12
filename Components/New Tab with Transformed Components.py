@@ -212,7 +212,11 @@ class NewTabWithTransformedComponents( object ):
 						isAffected = False
 						for thisLayer in thisGlyph.layers:
 							if thisLayer.components:
-								if thisLayer.isMasterLayer or thisLayer.isSpecialLayer or thisLayer.isColorLayer or includeInactiveLayers:
+								if Glyphs.versionNumber >= 3:
+									layerCheck = thisLayer.isMasterLayer or thisLayer.isSpecialLayer or thisLayer.isAnyColorLayer() or includeInactiveLayers
+								else: 
+									layerCheck = thisLayer.isMasterLayer or thisLayer.isSpecialLayer or thisLayer.isColorLayer or includeInactiveLayers
+								if layerCheck:
 									# scale
 									if findScaled and hasScaledComponents(thisLayer, unproportional=findUnproportionallyScaled):
 										layersWithScaledComponents.append(thisLayer)
