@@ -10,32 +10,54 @@ thisFont = Glyphs.font # frontmost font
 print("UC/LC Consistency Report for: %s" % thisFont.familyName)
 
 noCaseFolding = []
+noCaseFoldingNonExporting = []
 cannotToggleCase = []
+cannotToggleCaseNonExporting = []
+caseFoldDoesNotExport = []
 
 for g in thisFont.glyphs:
-	if g.subCategory == "Uppercase":
-		ucChar = g.glyphInfo.unicharString()
-		if ucChar:
-			lcUnicode = "%04X"%ord( ucChar.lower() )	
-			lcName = Glyphs.glyphInfoForUnicode(lcUnicode).name
-			if not Font.glyphs[lcName]:
-				print("Missing: /%s (LC of %s)" % (lcName, g.name))
-				noCaseFolding.append(g.name)
+	if g.subCategory in ("Uppercase","Lowercase"):
+		if not g.glyphInfo:
+			print("⚠️ No glyph info available for: /%s"%g.name)
 		else:
-			print("Cannot toggle case: /%s" % g.name)
-			cannotToggleCase.append(g.name)
-			
-	elif g.subCategory == "Lowercase":
-		lcChar = g.glyphInfo.unicharString()
-		if lcChar:
-			ucUnicode = "%04X"%ord( lcChar.upper() )	
-			ucName = Glyphs.glyphInfoForUnicode(ucUnicode).name
-			if not Font.glyphs[ucName]:
-				print("Missing: /%s (UC of %s)" % (ucName, g.name))
-				noCaseFolding.append(g.name)
-		else:
-			print("Cannot toggle case, please check manually: /%s" % g.name)
-			cannotToggleCase.append(g.name)
+			thisChar = g.glyphInfo.unicharString()
+			if thisChar:
+				otherUnicode, otherName = None, None
+				if g.subCategory == "Uppercase":
+					otherUnicode = "%04X"%ord( thisChar.lower() )	
+					otherName = Glyphs.glyphInfoForUnicode(otherUnicode).name
+				elif g.subCategory == "Lowercase":
+					otherUnicode = "%04X"%ord( thisChar.upper() )	
+					otherName = Glyphs.glyphInfoForUnicode(otherUnicode).name
+				
+				if otherName:
+					if not Font.glyphs[otherName]:
+						print("%s Missing: /%s (%s of %s)" % (
+							"❌" if g.export else "⚠️",
+							otherName,
+							"LC" if g.subCategory=="Uppercase" else "UC",
+							g.name))
+						
+						if g.export:
+							noCaseFolding.append(g.name)
+						else:
+							noCaseFoldingNonExporting.append(g.name)
+							
+					elif g.export and not Font.glyphs[otherName].export:
+						print("❌ Casefold does not export: /%s (%s of %s)" % (
+							otherName,
+							"LC" if g.subCategory=="Uppercase" else "UC",
+							g.name))
+						
+						caseFoldDoesNotExport.append(g.name)
+						caseFoldDoesNotExport.append(otherName)
+
+			else:
+				print("⚠️ Cannot toggle case: /%s" % g.name)
+				if g.export:
+					cannotToggleCase.append(g.name)
+				else:
+					cannotToggleCaseNonExporting.append(g.name)
 
 print("Done.")
 
@@ -44,13 +66,35 @@ if noCaseFolding or cannotToggleCase:
 	newTab = thisFont.newTab()
 	tabText = ""
 	if noCaseFolding:
-		tabText += "Missing Casefold:\n"
+		tabText += "Missing casefold:\n"
 		tabText += "/"+"/".join(noCaseFolding)
+		
 	if cannotToggleCase:
-		tabText += "\n\n"
-		tabText += "Cannot Toggle Case:\n"
+		if tabText:
+			tabText += "\n\n"
+		tabText += "Cannot toggle case:\n"
 		tabText += "/"+"/".join(cannotToggleCase)
+	
+	if caseFoldDoesNotExport:
+		if tabText:
+			tabText += "\n\n"
+		tabText += "Casefold does not export:\n"
+		tabText += "/"+"/".join(caseFoldDoesNotExport)
+
+	if noCaseFoldingNonExporting:
+		if tabText:
+			tabText += "\n\n"
+		tabText += "Missing casefold (not exporting):\n"
+		tabText += "/"+"/".join(noCaseFoldingNonExporting)
+	
+	if cannotToggleCaseNonExporting:
+		if tabText:
+			tabText += "\n\n"
+		tabText += "Cannot toggle case (not exporting):\n"
+		tabText += "/"+"/".join(cannotToggleCaseNonExporting)
+
 	newTab.text = tabText.strip()
+	
 # otherwise send a message:
 else:
 	Message(
