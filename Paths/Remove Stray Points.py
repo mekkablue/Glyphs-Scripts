@@ -14,7 +14,12 @@ def process( thisLayer ):
 	for i in range(len(thisLayer.paths))[::-1]:
 		thisPath = thisLayer.paths[i]
 		if len(thisPath) == 1:
-			thisLayer.removePathAtIndex_(i)
+			if Glyphs.versionNumber >= 3:
+				index = thisLayer.shapes.index(thisPath)
+				del thisLayer.shapes[index]
+			else:
+				# Glyphs 2 code
+				thisLayer.removePathAtIndex_(i)
 			strayPoints += 1
 	return strayPoints
 
