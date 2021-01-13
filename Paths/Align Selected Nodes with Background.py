@@ -7,7 +7,10 @@ Align selected nodes with the nearest background node unless it is already taken
 
 def alignNodeWithNodeInOtherLayer(thisNode, otherLayer, tolerance=5, maxTolerance=80, alreadyTaken=[]):
 	while tolerance < maxTolerance:
-		nearestNode = otherLayer.nodeAtPoint_excludeNodes_traverseComponents_ignoreLocked_tolerance_( thisNode.position, None, False, True, tolerance )
+		if Glyphs.versionNumber >= 3:
+			nearestNode = otherLayer.nodeAtPoint_excludeNodes_traverseComponents_ignoreLocked_tolerance_( thisNode.position, None, False, True, tolerance )
+		else:
+			nearestNode = otherLayer.nodeAtPoint_excludeNodes_traversComponents_tollerance_( thisNode.position, None, False, tolerance )
 		
 		if nearestNode and (thisNode.type == nearestNode.type) and (not nearestNode.position in alreadyTaken):
 			thisNode.position = nearestNode.position
