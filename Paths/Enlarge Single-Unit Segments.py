@@ -15,7 +15,8 @@ def process( thisLayer ):
 			if prevNode.type != OFFCURVE and thisNode.type != OFFCURVE:
 				xDistance = thisNode.x-prevNode.x
 				yDistance = thisNode.y-prevNode.y
-				if abs(xDistance) < 1.0 and abs(yDistance) < 1.0:
+				
+				if abs(xDistance) <= 1.0 and abs(yDistance) <= 1.0:
 					thisNode.x = prevNode.x + xDistance * 2
 					thisNode.y = prevNode.y + yDistance * 2
 
