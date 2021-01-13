@@ -90,12 +90,12 @@ def pointIsBetweenOtherPoints( thisPoint, otherPointA, otherPointB) :
 	xDiffFactor = divideAndTolerateZero( xDiffAP, xDiffAB )
 	yDiffFactor = divideAndTolerateZero( yDiffAP, yDiffAB )
 
-	if xDiffFactor:
+	if xDiffFactor is not None:
 		if 0.0<=xDiffFactor<=1.0:
 			returnValue = True
 
-	if yDiffFactor:
-		if 0.0<=xDiffFactor<=1.0:
+	if yDiffFactor is not None:
+		if 0.0<=yDiffFactor<=1.0:
 			returnValue = True
 	
 	return returnValue
