@@ -24,14 +24,33 @@ def process( thisLayer ):
 			for thisComp in thisLayer.components:
 				thatComp = thisComp.copy()
 				newComponents.append(thatComp)
-			thatLayer.components = newComponents
-		if optionKeyPressed:
-			if thatLayer.anchors:
-				thatLayer.anchors = None
-				print("    Deleted anchors")
-			if thatLayer.paths:
-				thatLayer.paths = None
-				print("    Deleted paths")
+			
+			if newComponents:
+				try:
+					# GLYPHS 3
+					if optionKeyPressed:
+						#clear all:
+						thatLayer.shapes = newComponents
+						thatLayer.anchors = None
+					else:
+						# clear components:
+						for i in range(len(thatLayer.shapes)-1,-1,-1):
+							shape = thatLayer.shapes[i]
+							if type(shape) == GSComponent or optionKeyPressed: # NEW: check for paths
+								del thatLayer.shapes[i]
+						# add components:
+						thatLayer.shapes += newComponents
+					
+				except:
+					# GLYPHS 2
+					thatLayer.components = newComponents
+					if optionKeyPressed:
+						if thatLayer.anchors:
+							thatLayer.anchors = None
+							print("    Deleted anchors")
+						if thatLayer.paths:
+							thatLayer.paths = None
+							print("    Deleted paths")
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
