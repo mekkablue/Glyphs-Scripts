@@ -38,7 +38,7 @@ class InsertBraceLayersForComponentRotation( object ):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-		
+	
 	def SavePreferences( self, sender ):
 		try:
 			Glyphs.defaults["com.mekkablue.InsertBraceLayersForComponentRotation.steps"] = self.w.steps.get()
@@ -61,6 +61,14 @@ class InsertBraceLayersForComponentRotation( object ):
 			
 		return True
 
+	def getMasterWeightValue(self, master):
+		if Glyphs.versionNumber >= 3:
+			# Glyphs 3 code
+			return master.axes[0]
+		else:
+			# Glyphs 2 code
+			return master.weightValue
+
 	def InsertBraceLayersForComponentRotationMain( self, sender ):
 		try:
 			try:
@@ -79,9 +87,9 @@ class InsertBraceLayersForComponentRotation( object ):
 					braceLayerValues = {}
 					for i in range(1,numberOfMasters):
 						prevMaster = masters[i-1]
-						prevValue = prevMaster.weightValue
+						prevValue = self.getMasterWeightValue(prevMaster)
 						currMaster = masters[i]
-						currValue = currMaster.weightValue
+						currValue = self.getMasterWeightValue(currMaster)
 						for j in range(steps):
 							stepWidth = (currValue-prevValue) / (steps+1)
 							newValue = prevValue + stepWidth * (j+1)
@@ -103,8 +111,8 @@ class InsertBraceLayersForComponentRotation( object ):
 								newLayer.reinterpolate()
 								masterLayer1 = thisGlyph.layers[ braceLayerValues[thisValue][0] ]
 								masterLayer2 = thisGlyph.layers[ braceLayerValues[thisValue][1] ]
-								masterValue1 = masterLayer1.associatedFontMaster().weightValue
-								masterValue2 = masterLayer2.associatedFontMaster().weightValue
+								masterValue1 = self.getMasterWeightValue(masterLayer1.associatedFontMaster())
+								masterValue2 = self.getMasterWeightValue(masterLayer2.associatedFontMaster())
 								for i, thisComponent in enumerate(newLayer.components):
 									comp1 = masterLayer1.components[i]
 									comp2 = masterLayer2.components[i]
