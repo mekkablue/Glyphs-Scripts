@@ -10,7 +10,7 @@ from axisMethods import *
 
 if Glyphs.versionNumber < 3.0:
 	Message(title="Glyphs Version Error", message="This script requires Glyphs 3.0 or later.", OKButton=None)
-	return
+	# return
 
 mappings = NSMutableDictionary.alloc().init()
 font = Glyphs.font

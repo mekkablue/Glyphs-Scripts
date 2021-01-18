@@ -90,6 +90,8 @@ class VariationInterpolator( object ):
 		# interpolate paths only if there is a compatible background:
 		if thisLayer.background: # and (thisLayer.compareString() == thisLayer.background.compareString()):
 			for thisPathIndex in range(len(thisLayer.paths)):
+				if len(thisLayer.background.paths) != len(thisLayer.paths): continue
+		
 				thisPath = thisLayer.paths[thisPathIndex]
 				for thisNodeIndex in range(len(thisPath.nodes)):
 					thisNode = thisPath.nodes[thisNodeIndex]
