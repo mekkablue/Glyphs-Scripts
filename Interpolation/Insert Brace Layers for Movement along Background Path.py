@@ -65,6 +65,14 @@ def bezier( P1,  P2,  P3,  P4,  t ):
 	return NSPoint(x, y)
 
 
+def getMasterWeightValue( master):
+	if Glyphs.versionNumber >= 3:
+		# Glyphs 3 code
+		return master.axes[0]
+	else:
+		# Glyphs 2 code
+		return master.weightValue
+
 def process( thisLayer, steps=5 ):
 	thisGlyph = thisLayer.parent
 	for i in range(len(thisGlyph.layers))[::-1]:
@@ -82,13 +90,24 @@ def process( thisLayer, steps=5 ):
 			# curve segments:
 			if len(thisSegment) == 4:
 				for i in range(steps):
-					offsetPoint = bezier(
-						thisSegment[0].pointValue(),
-						thisSegment[1].pointValue(),
-						thisSegment[2].pointValue(),
-						thisSegment[3].pointValue(),
-						i*1.0/steps
-					)
+					if Glyphs.versionNumber >= 3:
+						# Glyphs 3 code
+						offsetPoint = bezier(
+							thisSegment[0],
+							thisSegment[1],
+							thisSegment[2],
+							thisSegment[3],
+							i*1.0/steps
+						)
+					else:
+						# Glyphs 2 code
+						offsetPoint = bezier(
+							thisSegment[0].pointValue(),
+							thisSegment[1].pointValue(),
+							thisSegment[2].pointValue(),
+							thisSegment[3].pointValue(),
+							i*1.0/steps
+						)
 					shiftTransform = transform(
 						shiftX = offsetPoint.x-originPoint.x,
 						shiftY = offsetPoint.y-originPoint.y
@@ -96,8 +115,15 @@ def process( thisLayer, steps=5 ):
 					shifts.append( shiftTransform )
 			# line segment:
 			elif len(thisSegment) == 2:
-				P1 = thisSegment[0].pointValue()
-				P2 = thisSegment[1].pointValue()
+				if Glyphs.versionNumber >= 3:
+					# Glyphs 3 code
+					P1 = thisSegment[0]
+					P2 = thisSegment[1]
+
+				else:
+					# Glyphs 2 code
+					P1 = thisSegment[0].pointValue()
+					P2 = thisSegment[1].pointValue()
 				for i in range(steps):
 					shiftTransform = transform(
 						shiftX = (P1.x+i*(P2.x-P1.x)/steps)-originPoint.x,
@@ -109,8 +135,8 @@ def process( thisLayer, steps=5 ):
 		print(shifts)
 		firstMaster = thisLayer.parent.parent.masters[0]
 		secondMaster = thisLayer.parent.parent.masters[1]
-		firstMasterValue = firstMaster.weightValue
-		secondMasterValue = secondMaster.weightValue
+		firstMasterValue = getMasterWeightValue(firstMaster)
+		secondMasterValue = getMasterWeightValue(secondMaster)
 		frameCount = len(shifts)
 		stepWidth = (secondMasterValue-firstMasterValue)/frameCount
 		
