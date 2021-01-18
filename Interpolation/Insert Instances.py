@@ -212,7 +212,7 @@ class InstanceMaker( object ):
 		widthAxisID = None # None
 		for axis in thisFont.axes:
 			if self.axisTag(axis) == "wdth":
-				widthAxisID = self.axisId(axis)
+				widthAxisID = self.axisID(axis)
 		return widthAxisID
 	
 	def MasterList( self, factor ):
