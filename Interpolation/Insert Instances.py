@@ -509,8 +509,6 @@ class InstanceMaker( object ):
 							if widthID:
 								newInstance.setAxisValueValue_forId_(widthValue, widthID)
 						else:
-							import traceback
-							print(traceback.format_exc())
 							# GLYPHS 2:
 							newInstance.weightValue = thisWeight
 							newInstance.widthValue = widthValue
