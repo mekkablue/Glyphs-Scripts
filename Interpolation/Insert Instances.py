@@ -500,7 +500,7 @@ class InstanceMaker( object ):
 					
 					theFont = Glyphs.font
 					if theFont:
-						try:
+						if Glyphs.versionNumber >= 3:
 							# GLYPHS 3:
 							weightID = self.weightID(theFont)
 							widthID = self.widthID(theFont)
@@ -508,7 +508,7 @@ class InstanceMaker( object ):
 								newInstance.setAxisValueValue_forId_(thisWeight, weightID)
 							if widthID:
 								newInstance.setAxisValueValue_forId_(widthValue, widthID)
-						except:
+						else:
 							import traceback
 							print(traceback.format_exc())
 							# GLYPHS 2:
@@ -534,5 +534,5 @@ class InstanceMaker( object ):
 			print(e)
 			import traceback
 			print(traceback.format_exc())
-
+	
 InstanceMaker()
