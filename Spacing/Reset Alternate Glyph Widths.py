@@ -10,8 +10,14 @@ FontMaster = Font.selectedFontMaster
 selectedLayers = Font.selectedLayers
 
 def resetWidth( thisLayer, thisName ):
+	if thisLayer is None: 
+		print("> couldn't get layer of <%s> " % thisName)
+		return
 	baseGlyphName = thisName[:thisName.find(".")]
 	baseGlyph = Font.glyphs[ baseGlyphName ]
+	if baseGlyph is None: 
+		print("> couldn't find a base glyph for <%s> " % thisName)
+		return
 	baseLayer = baseGlyph.layers[ FontMaster.id ]
 	baseWidth = baseLayer.width
 	thisLayer.width = baseWidth
@@ -23,9 +29,22 @@ try:
 		thisGlyph = thisLayer.parent
 		thisGlyphName = thisGlyph.name
 		if "." in thisGlyphName:
-			thisLayer.beginUndo()
-			print("Resetting width of %s to %.0f." % ( thisGlyphName, resetWidth( thisLayer, thisGlyphName ) ))
-			thisLayer.endUndo()
+			if Glyphs.versionNumber >= 3:
+				# Glyphs 3 code
+				thisLayer.glyph().beginUndo()
+			else:
+				# Glyphs 2 code
+				thisLayer.beginUndo()
+			try:
+				print("Resetting width of %s to %.0f." % ( thisGlyphName, resetWidth( thisLayer, thisGlyphName ) ))
+			except:
+				print("> ERROR, couldn't reset <%s>" % (thisGlyphName))
+			if Glyphs.versionNumber >= 3:
+				# Glyphs 3 code
+				thisLayer.glyph().endUndo()
+			else:
+				# Glyphs 2 code
+				thisLayer.endUndo()
 			
 except Exception as e:
 	Glyphs.showMacroWindow()
