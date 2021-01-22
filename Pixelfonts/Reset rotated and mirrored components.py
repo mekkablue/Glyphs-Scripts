@@ -4,38 +4,31 @@ from __future__ import division, print_function, unicode_literals
 __doc__="""
 Looks for mirrored and rotated components and resets them to their original orientation.
 """
+from Foundation import NSPoint
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 
+grid = Font.grid
+
 for l in selectedLayers:
 	thisGlyph = l.parent
 	glyphName = thisGlyph.name
-	toBeDeleted = []
-	toBeAdded = []
 	
 	thisGlyph.beginUndo()
-	
-	for compIndex in range( len( l.components ) ):
-		comp = l.components[ compIndex ]
-		if comp.transform[0] != 1.0 or comp.transform[3] != 1.0:
-			toBeDeleted.append( compIndex )
-			compInfo = ( comp.componentName, comp.bounds.origin.x, comp.bounds.origin.y )
-			toBeAdded.append( compInfo )
-	
-	numOfComponents = len( toBeAdded )
-	print("Fixing %i components in %s ..." % ( numOfComponents, glyphName ))
-	print(toBeAdded)
-	
-	for delIndex in sorted( toBeDeleted )[::-1]:
-		del l.components[ delIndex ]
+	didChange = False
+	for comp in l.components:
+		transform = comp.transform # this is computed in Glyhs 3. When dropping support for Glyphs 2, use the position/scale/rotate API
+		if transform[0] != 1.0 or transform[3] != 1.0:
+			position = comp.position
+			if transform[0] < 0:
+				position.x -= grid
+			if transform[3] < 0:
+				position.y -= grid
+			comp.transform = (1, 0, 0, 1, position.x, position.y)
+			didChange = True
+	if didChange:
+		print("Fixed components in %s ..." % glyphName)
 
-	for compInfo in toBeAdded:
-		cName, cX, cY = compInfo
-		newC = GSComponent( cName )
-		newC.position = NSPoint(cX,cY)
-		newC.automaticAlignment = False
-		l.components.append( newC )
-	
 	thisGlyph.endUndo()
-	
+
