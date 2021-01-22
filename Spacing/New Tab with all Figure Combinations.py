@@ -5,7 +5,6 @@ __doc__="""
 Opens a new edit tab and outputs all possible figure combos: 00010203..., 10111213... etc.
 """
 
-from PyObjCTools.AppHelper import callAfter
 
 figures = "0123456789"
 text = ""
@@ -20,4 +19,4 @@ Glyphs.clearLog() # clears macro window log
 print(text)
 
 # opens new Edit tab with figure combos:
-callAfter( Glyphs.currentDocument.windowController().addTabWithString_, text )
+Glyphs.currentDocument.windowController().addTabWithString_(text)
