@@ -278,7 +278,8 @@ def otVarFileName(thisFont, thisInstance=None):
 	if not thisInstance is None:
 		fileName = thisInstance.customParameters["fileName"]
 		if not fileName:
-			fileName = ("%s-%s" % (thisFont.familyName, thisInstance.name)).replace(" ","")
+			familyName = familyNameOfInstance(thisInstance)
+			fileName = ("%s-%s" % (familyName, thisInstance.name)).replace(" ","")
 		return "%s.%s" % ( fileName, suffix)
 	elif thisFont.customParameters["Variable Font File Name"] or thisFont.customParameters["variableFileName"]:
 		fileName = thisFont.customParameters["Variable Font File Name"]
@@ -916,16 +917,23 @@ def otVarInfoForFont(thisFont):
 	fontLangMenu = langMenu(thisFont)
 	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, fontLangMenu
 
+def familyNameOfInstance(thisInstance):
+	familyNameProperty = thisInstance.propertyForName_languageTag_("familyNames","dflt")
+	if familyNameProperty:
+		return familyNameProperty.value
+	else:
+		return thisInstance.font.familyName
+
 def otVarInfoForInstance(thisInstance):
 	thisFont = thisInstance.font
-	familyName = thisInstance.familyName # fallback
+	familyName = familyNameOfInstance(thisInstance)
 	fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, fontLangMenu = otVarInfoForFont(thisFont) # fallback
 	
 	# instance-specific overrides:
-	fullName = "%s %s" % (thisFont.familyName, thisInstance.name)
+	fullName = "%s %s" % (familyName, thisInstance.name)
 	fileName = otVarFileName(thisFont, thisInstance)
 
-	# TODO breakdown to OTVar Export:
+	# TODO breakdown to OTVar Export (consider parameters etc.):
 	# unicodeEscapes
 	# otVarSliders
 	# variationCSS
