@@ -47,6 +47,8 @@ class MethodReporter( object ):
 			"GSFeature",
 			"GSFeaturePrefix",
 			"GSFontMaster",
+			"GSFontInfoValue",
+			"GSFontInfoValueLocalized",
 			"GSGlyphEditView",
 			"GSGlyphInfo",
 			"GSGlyphsInfo",
