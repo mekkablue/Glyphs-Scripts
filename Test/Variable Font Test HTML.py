@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Create a Test HTML for the current font inside the current Variation Font Export folder.
+Create a Test HTML for the current font inside the current Variation Font Export folder. Hold down OPTION and SHIFT while running the script in order to create respective Samsa files in addition to the Test HTML.
 """
 
 from GlyphsApp import *
@@ -273,9 +273,14 @@ def otVarSuffix():
 			suffix = webSuffix
 	return suffix
 
-def otVarFileName(thisFont):
+def otVarFileName(thisFont, thisInstance=None):
 	suffix = otVarSuffix()
-	if thisFont.customParameters["Variable Font File Name"] or thisFont.customParameters["variableFileName"]:
+	if not thisInstance is None:
+		fileName = thisInstance.customParameters["fileName"]
+		if not fileName:
+			fileName = ("%s-%s" % (thisFont.familyName, thisInstance.name)).replace(" ","")
+		return "%s.%s" % ( fileName, suffix)
+	elif thisFont.customParameters["Variable Font File Name"] or thisFont.customParameters["variableFileName"]:
 		fileName = thisFont.customParameters["Variable Font File Name"]
 		if not fileName:
 			fileName = thisFont.customParameters["variableFileName"]
@@ -484,9 +489,9 @@ def defaultVariationCSS(thisFont):
 		
 	return ", ".join(defaultValues)
 
-samsaPlaceholder = "<!-- placeholder for external links, hold down OPTION while running the script -->"
-
-htmlContent = u"""
+def buildHTML( fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, fontLangMenu, shouldCreateSamsa=False):
+	samsaPlaceholder = "<!-- placeholder for external links, hold down OPTION and SHIFT while running the script -->"
+	htmlContent = u"""
 <html>
 	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
@@ -520,7 +525,7 @@ htmlContent = u"""
 				-moz-user-select: none;
 				-webkit-user-select: none;
 			}
-			
+		
 
 /* OTVar Sliders: */
 			.labeldiv {
@@ -658,7 +663,7 @@ htmlContent = u"""
 			div:focus {
 				outline: 0px solid transparent;
 			}
-			
+		
 /* Footer paragraph: */
 			#helptext {
 			    position: fixed;
@@ -671,12 +676,12 @@ htmlContent = u"""
 			a {
 				color: #333;
 			}
-			
+		
 /* Dark Mode: */
 			@media (prefers-color-scheme: dark) {
 				body { background: #000; }
 				p { color: #eee; }
-				
+			
 				#textInput{
 					color: #eee;
 					background-color: #222;
@@ -708,15 +713,15 @@ htmlContent = u"""
 					-webkit-text-fill-color: #0000;
 				}
 			}
-			
+		
 		</style>
 		<script>
 			document.addEventListener('keyup', keyAnalysis);
 			document.addEventListener('keyup', sliderPrecision);
 			document.addEventListener('keydown', sliderPrecision);
-			
+		
 			const sliders = document.getElementsByClassName('slider');
-			
+		
 			function sliderPrecision(event) {
 				if (event.shiftKey) {
 					for (i = 0; i < sliders.length; i++) {
@@ -790,9 +795,9 @@ htmlContent = u"""
 					var sliderValue = sliders[i].value;
 					var label = document.getElementById("label_"+sliderID);
 					var labelName = label.getAttribute("name");
-					
+				
 					label.textContent = ""+labelName+": "+sliderValue;
-					
+				
 					if (sliderID == "fontsize") {
 						// Text Size Slider
 						body.style.setProperty("font-size", ""+sliderValue+"px");
@@ -869,12 +874,12 @@ htmlContent = u"""
 ###languageSelection###
 			</div>
 		</div>
-		
+	
 		<!-- Test Text -->
 		<div contenteditable="true" spellcheck="false" autocomplete="true" id="textarea" class="●">
 		</div>
 	</div>
-		
+	
 	<!-- Disclaimer -->
 	<p id="helptext" onmouseleave="vanish(this);">
 		Ctrl-R: Reset Charset. Ctrl-L: Latin1. Ctrl-J: LTR/RTL. Ctrl-C: Center. Ctrl-X: X-Ray. Not working? Please try in a newer macOS or use the <a href="https://www.google.com/chrome/">latest Chrome</a>. Pull mouse across this note to make it disappear.
@@ -882,6 +887,53 @@ htmlContent = u"""
 	</body>
 </html>
 """ % ( samsaPlaceholder )
+	
+	if shouldCreateSamsa:
+		samsaReplaceWith = "<a href='samsa-gui.html' class='emojiButton' style='color:rgb(255, 165, 0);'>🅢</a>"
+	else:
+		samsaReplaceWith = samsaPlaceholder
+	replacements = (
+		( "###fontFamilyNameWithSpaces###", fullName ),
+		( "###fontFamilyName###", fullName ),
+		( "The Quick Brown Fox Jumps Over the Lazy Dog.", unicodeEscapes ),
+		( "###sliders###", otVarSliders ),
+		( "###variationSettings###", variationCSS ), 
+		( "###fontFileName###", fileName ),
+		( "###featureList###", featureList ),
+		( "###languageSelection###", fontLangMenu ),
+		( samsaPlaceholder, samsaReplaceWith ),
+	)
+	htmlContent = replaceSet( htmlContent, replacements )
+	return htmlContent
+
+def otVarInfoForFont(thisFont):
+	fullName = otVarFullName(thisFont)
+	fileName = otVarFileName(thisFont)
+	unicodeEscapes = allUnicodeEscapesOfFont(thisFont)
+	otVarSliders = allOTVarSliders(thisFont)
+	variationCSS = defaultVariationCSS(thisFont)
+	featureList = featureListForFont(thisFont)
+	fontLangMenu = langMenu(thisFont)
+	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, fontLangMenu
+
+def otVarInfoForInstance(thisInstance):
+	thisFont = thisInstance.font
+	familyName = thisInstance.familyName # fallback
+	fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, fontLangMenu = otVarInfoForFont(thisFont) # fallback
+	
+	# instance-specific overrides:
+	fullName = "%s %s" % (thisFont.familyName, thisInstance.name)
+	fileName = otVarFileName(thisFont, thisInstance)
+
+	# TODO breakdown to OTVar Export:
+	# unicodeEscapes
+	# otVarSliders
+	# variationCSS
+	# featureList
+	# fontLangMenu
+	
+	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, fontLangMenu
+
 
 # clears macro window log:
 Glyphs.clearLog()
@@ -890,87 +942,90 @@ Glyphs.clearLog()
 GLYPHSAPPVERSION = NSBundle.bundleForClass_(NSClassFromString("GSMenu")).infoDictionary().objectForKey_("CFBundleShortVersionString")
 appVersionHighEnough = not GLYPHSAPPVERSION.startswith("1.")
 
-optionKeyFlag = 524288
-optionKeyPressed = NSEvent.modifierFlags() & optionKeyFlag == optionKeyFlag
+# Create Samsa if shift and option are held down
 shouldCreateSamsa = False
-if optionKeyPressed:
+keysPressed = NSEvent.modifierFlags()
+optionKey, shiftKey = 524288, 131072
+optionKeyPressed = keysPressed & optionKey == optionKey
+shiftKeyPressed = keysPressed & shiftKey == shiftKey
+if optionKeyPressed and shiftKeyPressed:
 	shouldCreateSamsa = True
 
-if appVersionHighEnough:
-	firstDoc = Glyphs.orderedDocuments()[0]
-	thisFont = Glyphs.font # frontmost font
-	exportPath = currentOTVarExportPath()
-	# familyName = otVarFamilyName(thisFont)
-	fullName = otVarFullName(thisFont)
-	fileName = otVarFileName(thisFont)
-
-	print("Preparing Test HTML for: %s" % fullName)
-
-	print("👷🏼‍ Building HTML code...")
-	if shouldCreateSamsa:
-		samsaReplaceWith = "<a href='samsa-gui.html' class='emojiButton' style='color:rgb(255, 165, 0);'>🅢</a>"
-	else:
-		samsaReplaceWith = samsaPlaceholder
-	replacements = (
-		( "###fontFamilyNameWithSpaces###", fullName ),
-		( "###fontFamilyName###", fullName ),
-		( "The Quick Brown Fox Jumps Over the Lazy Dog.", allUnicodeEscapesOfFont(thisFont) ),
-		( "###sliders###", allOTVarSliders(thisFont) ),
-		( "###variationSettings###", defaultVariationCSS(thisFont) ), 
-		( "###fontFileName###", fileName ),
-		( "###featureList###", featureListForFont(thisFont) ),
-		( "###languageSelection###", langMenu(thisFont) ),
-		( samsaPlaceholder, samsaReplaceWith ),
-	)
-	htmlContent = replaceSet( htmlContent, replacements )
-	
-	# Write file to disk:
-	print("💾 Writing files to disk...")
-	if exportPath:
-		if shouldCreateSamsa:
-			print("🐜 Building Samsa...")
-			# build samsa config:
-			samsaURL = "https://lorp.github.io/samsa/src/" #"https://www.axis-praxis.org/samsa"
-			samsaFileName = "samsa-config.js"
-			terminalCommand = "cd '%s'; printf \"CONFIG.fontList = [\n\t{\n\t\tname: '%s',\n\t\tpreload: true,\n\t\turl: 'data:font/ttf;base64,%%s',\n\t}\n];\n\" `base64 -i '%s'` > %s" % (
-				exportPath,
-				fullName,
-				# samsaURL, samsaURL,
-				fileName,
-				samsaFileName,
-				)
-			system( terminalCommand )
-			print("✅ Created %s" % samsaFileName)
-			
-			# download samsa files:
-			samsaFiles = ("samsa-core.js", "samsa-gui.html", "samsa-gui.css") # "fonts/IBMPlexSansVar-Roman.ttf", "fonts/IBMPlexSansVar-Italic.ttf")
-			for samsaFile in samsaFiles:
-				terminalCommand = "curl --create-dirs %s/%s -o '%s/%s'" % (samsaURL, samsaFile, exportPath, samsaFile)
-				system( terminalCommand )
-				print("⬇️ Downloaded %s" % samsaFile)
-			
-			# fix css links:
-			terminalCommand = "cd '%s'; sed -i '' 's|url(fonts|url(https://www.axis-praxis.org/samsa/fonts|g' samsa-gui.css" % exportPath
-			system( terminalCommand )
-		
-		print("🕸 Building HTML file...")
-		htmlFileName = "%s fonttest.html" % fullName
-		if saveFileInLocation( content=htmlContent, fileName=htmlFileName, filePath=exportPath ):
-			print("✅ Successfully wrote file to disk.")
-			terminalCommand = 'cd "%s"; open "%s"' % (exportPath, htmlFileName)
-			system( terminalCommand )
-		else:
-			print("🛑 Error writing file to disk.")
-	else:
-		Message( 
-			title="OTVar Test HTML Error",
-			message="Could not determine export path. Have you exported any variable fonts yet?",
-			OKButton=None
-		)
-else:
+if not appVersionHighEnough:
 	Message(
 		title="App Version Error",
 		message="This script requires Glyphs 2.5 or later. Sorry.",
 		OKButton=None
 	)
+else:
+	firstDoc = Glyphs.orderedDocuments()[0]
+	thisFont = Glyphs.font # frontmost font
+	exportPath = currentOTVarExportPath()
+	
+	# In Font info > Exports, there can be more than one OTVar export:
+	variableFontInfos = []
+	for thisInstance in thisFont.instances:
+		try:
+			if thisInstance.typeName() == "variable":
+				variableFontInfo = otVarInfoForInstance(thisInstance)
+				variableFontInfos.append(variableFontInfo)
+		except:
+			pass
+	
+	# fallback if there are not OTVar exports set up at all:
+	if not variableFontInfos:
+		variableFontInfo = otVarInfoForFont(thisFont)
+		variableFontInfos.append(variableFontInfo)
+	
+	for variableFontInfo in variableFontInfos:
+		fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, fontLangMenu = variableFontInfo
+
+		print("\nPreparing Test HTML for: %s" % fullName)
+		print("👷🏼‍ Building HTML code...")
+		htmlContent = buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, fontLangMenu, shouldCreateSamsa)
+	
+		# Write file to disk:
+		print("💾 Writing files to disk...")
+		if exportPath:
+			if shouldCreateSamsa:
+				print("🐜 Building Samsa...")
+				# build samsa config:
+				samsaURL = "https://lorp.github.io/samsa/src/" #"https://www.axis-praxis.org/samsa"
+				samsaFileName = "samsa-config.js"
+				terminalCommand = "cd '%s'; printf \"CONFIG.fontList = [\n\t{\n\t\tname: '%s',\n\t\tpreload: true,\n\t\turl: 'data:font/ttf;base64,%%s',\n\t}\n];\n\" `base64 -i '%s'` > %s" % (
+					exportPath,
+					fullName,
+					# samsaURL, samsaURL,
+					fileName,
+					samsaFileName,
+					)
+				system( terminalCommand )
+				print("✅ Created %s" % samsaFileName)
+			
+				# download samsa files:
+				samsaFiles = ("samsa-core.js", "samsa-gui.html", "samsa-gui.css") # "fonts/IBMPlexSansVar-Roman.ttf", "fonts/IBMPlexSansVar-Italic.ttf")
+				for samsaFile in samsaFiles:
+					terminalCommand = "curl --create-dirs %s/%s -o '%s/%s'" % (samsaURL, samsaFile, exportPath, samsaFile)
+					system( terminalCommand )
+					print("⬇️ Downloaded %s" % samsaFile)
+			
+				# fix css links:
+				terminalCommand = "cd '%s'; sed -i '' 's|url(fonts|url(https://www.axis-praxis.org/samsa/fonts|g' samsa-gui.css" % exportPath
+				system( terminalCommand )
+		
+			print("🕸 Building HTML file...")
+			strippedFileName = ".".join(fileName.split(".")[:-1]) # removes the last dot-suffix
+			htmlFileName = "%s fonttest.html" % strippedFileName
+			if saveFileInLocation( content=htmlContent, fileName=htmlFileName, filePath=exportPath ):
+				print("✅ Successfully wrote file to disk.")
+				terminalCommand = 'cd "%s"; open "%s"' % (exportPath, htmlFileName)
+				system( terminalCommand )
+			else:
+				print("🛑 Error writing file to disk.")
+		else:
+			Message( 
+				title="OTVar Test HTML Error",
+				message="Could not determine export path. Have you exported any variable fonts yet?",
+				OKButton=None
+			)
 
