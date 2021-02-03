@@ -4,6 +4,15 @@ These are Python scripts intended for font production in the [Glyphs font editor
 
 # INSTALLATION
 
+## Glyphs 3
+
+1. **Install the modules:** In *Window > Plugin Manager,* click on the *Modules* tab, and make sure at least the *Python* and *Vanilla* modules are installed. If they were not installed before, restart the app.
+2. **Install the scripts:** Go to *Window > Plugin Manager* and click on the *Scripts* tab. Scroll down to *mekkablue scripts* and click on the *Install* button next to it. After that, hold down the Option key and choose *Script > Reload Scripts* (Cmd-Opt-Shift-Y).
+
+Now the scripts are available in *Script > mekkablue.*
+
+## Glyphs 2
+
 ### Video installation guide
 
 There is a [tutorial video on how to install the mekkablue scripts](https://www.youtube.com/watch?v=Q6ly16Q0BmE) available on YouTube. While you are there, feel free to subscribe to the [mekkablue channel](https://www.youtube.com/channel/UCFPSSuEMZVQtrFpTzgFh9lA).
