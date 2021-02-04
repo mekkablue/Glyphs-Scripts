@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Builds the ccmp for precomposed uniFBxx glyphs, e.g. if you padagesh, you get 'sub pa dagesh by padagesh' in your ccmp.
+Builds the ccmp for precomposed uniFBxx glyphs, e.g. if you have pedagesh, you get 'sub pe dagesh by pedagesh' in your ccmp.
 """
 
 lookupTitle = "hebrewPresentationForms"
@@ -17,9 +17,9 @@ def updated_code( oldcode, beginsig, endsig, newcode ):
 	newcode = oldcode[:begin_offset] + beginsig + newcode + "\n" + endsig + oldcode[end_offset:]
 	return newcode
 
-def create_otfeature( featurename = "calt", 
-                      featurecode = "# empty feature code", 
-                      targetfont  = thisFont,
+def create_otfeature( featureName = "calt", 
+                      featureCode = "# empty feature code", 
+                      targetFont  = thisFont,
                       codesig     = "DEFAULT-CODE-SIGNATURE" ):
 	"""
 	Creates or updates an OpenType feature in the font.
@@ -29,43 +29,61 @@ def create_otfeature( featurename = "calt",
 	beginSig = "# BEGIN " + codesig + "\n"
 	endSig   = "# END "   + codesig + "\n"
 	
-	if featurename in [ f.name for f in targetfont.features ]:
-		# feature already exists:
-		targetfeature = targetfont.features[ featurename ]
+	targetFeature = None
+	targetFeatures = [ f for f in targetFont.features if f.name==featureName and not f.automatic ]
+	
+	if targetFeatures:
+		if len(targetFeatures)>1:
+			targetFeaturesWithSig = [f for f in targetFeatures if beginSig in f.code]
+			if targetFeaturesWithSig:
+				targetFeature = targetFeaturesWithSig[0]
+		else:
+			targetFeature = targetFeatures[0]
 		
-		if beginSig in targetfeature.code:
+		if beginSig in targetFeature.code:
 			# replace old code with new code:
-			targetfeature.code = updated_code( targetfeature.code, beginSig, endSig, featurecode )
+			targetFeature.code = updated_code( targetFeature.code, beginSig, endSig, featureCode )
 		else:
 			# append new code:
-			targetfeature.code += "\n" + beginSig + featurecode + "\n" + endSig
+			targetFeature.code += "\n" + beginSig + featureCode + "\n" + endSig
 			
-		return "Updated existing OT feature '%s'." % featurename
-	else:
+		return "Updated existing OT feature '%s'" % featureName
+	
+	if not targetFeature:
 		# create feature with new code:
 		newFeature = GSFeature()
-		newFeature.name = featurename
-		newFeature.code = beginSig + featurecode + "\n" + endSig
-		targetfont.features.append( newFeature )
-		return "Created new OT feature '%s'" % featurename
+		newFeature.name = featureName
+		newFeature.code = beginSig + featureCode + "\n" + endSig
+		newFeature.automatic = False
+		targetFont.features.append( newFeature )
+		return "Created new OT feature '%s'" % featureName
 
 
 lookup = ""
 
 for thisGlyph in theseGlyphs:
-	if thisGlyph.unicode and thisGlyph.unicode[:2] == "FB" and "-hb" in thisGlyph.name:
+	if thisGlyph.unicode and thisGlyph.unicode[:2]=="FB" and thisGlyph.script=="hebrew":
 		glyphName = thisGlyph.name
-		comps = thisGlyph.layers[firstMasterID].components
-		componentNames = " ".join([c.component.name for c in comps])
-		lookup += "\tsub %s by %s;\n" % (componentNames, glyphName)
+		components = thisGlyph.glyphInfo.components
+		if components:
+			componentNames = [c.name for c in components]
+			snippet = None
+			if all( [thisFont.glyphs[n] for n in componentNames] ):
+				snippet = " ".join(componentNames)
+			elif len(thisGlyph.layers[0].components)>1:
+				snippet = " ".join([c.componentName for c in thisGlyph.layers[0].components])
+			if snippet:
+				lookup += "\tsub %s by %s; # %s\n" % (snippet, glyphName, thisGlyph.unicode)
+			else:
+				lookup += "\t# could not create rule for %s" % glyphName
 
 if lookup:
 	lineCount = lookup.splitlines().__len__()
 	lookup = "\nlookup %s {\n%s\n} %s;\n\nscript hebr;\nlookup %s;\n" % ( lookupTitle, lookup[:-1], lookupTitle, lookupTitle )
-	create_otfeature( featurename="ccmp", featurecode=lookup, targetfont=thisFont, codesig=lookupTitle.upper() )
+	reportMessage = create_otfeature( featureName="ccmp", featureCode=lookup, targetFont=thisFont, codesig=lookupTitle.upper() )
 	Message(
 		title="Created Hebrew ccmp Lookup",
-		message="Created ccmp OpenType feature with %i Hebrew presentation form substitutions." % lineCount, 
+		message="%s with %i Hebrew presentation form substitutions." % (reportMessage, lineCount), 
 		OKButton="Cool"
 		)
 else:
