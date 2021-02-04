@@ -2,14 +2,24 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Recreates the current paths without caps or components.
+Recreates the current paths without caps or components. Hold down SHIFT to decompose on all layers.
 """
 
+from AppKit import NSEvent
+keysPressed = NSEvent.modifierFlags()
+shiftKey = 131072
+shiftKeyPressed = keysPressed & shiftKey == shiftKey
+
 thisFont = Glyphs.font # frontmost font
-	
-def process( thisLayer ):
+
+def decomposeCornerAndCapComponentsOnLayer( thisLayer ):
 	thisLayer.decomposeSmartOutlines()
 	thisLayer.cleanUpPaths() # duplicate nodes at startpoint
+
+def decomposeCornerAndCapComponentsOnAllLayersOfGlyph( thisGlyph ):
+	for thisLayer in thisGlyph.layers:
+		if thisLayer.isSpecialLayer or thisLayer.isMasterLayer:
+			decomposeCornerAndCapComponentsOnLayer( thisLayer )
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
@@ -18,7 +28,10 @@ try:
 		thisGlyph = thisLayer.parent
 		print("Processing", thisGlyph.name)
 		thisGlyph.beginUndo() # begin undo grouping
-		process( thisLayer )
+		if shiftKeyPressed:
+			decomposeCornerAndCapComponentsOnAllLayersOfGlyph( thisGlyph )
+		else:
+			decomposeCornerAndCapComponentsOnLayer( thisLayer )
 		thisGlyph.endUndo()   # end undo grouping
 		
 except Exception as e:
