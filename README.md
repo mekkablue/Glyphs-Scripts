@@ -403,6 +403,8 @@ Some code samples by Georg Seifert (@schriftgestalt) and Tal Leming (@typesupply
 
 Some algorithm input by Christoph Schindler (@hop) and Maciej Ratajski (@maciejratajski).
 
+Some code fixes from Rafał Buchner (@RafalBuchner).
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use the software provided here except in compliance with the License.
 You may obtain a copy of the License at
