@@ -175,13 +175,24 @@ class KernCrasher( object ):
 	def effectiveKerning( self, leftGlyphName, rightGlyphName, thisFont, thisFontMasterID ):
 		leftLayer = thisFont.glyphs[leftGlyphName].layers[thisFontMasterID]
 		rightLayer = thisFont.glyphs[rightGlyphName].layers[thisFontMasterID]
-		effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
+		if Glyphs.versionNumber>=3:
+			effectiveKerning = leftLayer.nextKerningForLayer_direction_(
+				rightLayer,
+				0 # LTR
+			)
+		else:
+			effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
 		if effectiveKerning < NSNotFound:
 			return effectiveKerning
 		else:
 			return 0.0
 	
 	def listOfNamesForCategories( self, thisFont, requiredCategory, requiredSubCategory, requiredScript, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly ):
+		caseDict = {
+			"Uppercase": GSUppercase,
+			"Lowercase": GSLowercase,
+			"Smallcaps": GSSmallcaps,
+		}
 		nameList = []
 		for thisGlyph in thisFont.glyphs:
 			thisScript = thisGlyph.script
@@ -196,9 +207,15 @@ class KernCrasher( object ):
 					if thisScript == None or thisScript == requiredScript:
 						if thisGlyph.category == requiredCategory:
 							if requiredSubCategory:
-								if thisGlyph.subCategory == requiredSubCategory:
-									if (not pathGlyphsOnly) or thisGlyph.layers[0].paths:
-										nameList.append( glyphName )
+								if Glyphs.versionNumber>=3 and requiredSubCategory in caseDict:
+									requiredCase = caseDict[requiredSubCategory]
+									if thisGlyph.case == requiredCase:
+										if (not pathGlyphsOnly) or thisGlyph.layers[0].paths:
+											nameList.append( glyphName )
+								else:
+									if thisGlyph.subCategory == requiredSubCategory:
+										if (not pathGlyphsOnly) or thisGlyph.layers[0].paths:
+											nameList.append( glyphName )
 							else:
 								if (not pathGlyphsOnly) or thisGlyph.layers[0].paths:
 									nameList.append( glyphName )
@@ -307,7 +324,7 @@ class KernCrasher( object ):
 			
 			# start taking time:
 			start = timer()
-
+			
 			# start reporting to macro window:
 			if Glyphs.defaults["com.mekkablue.KernCrasher.reportCrashesInMacroWindow"]:
 				Glyphs.clearLog()
@@ -328,7 +345,7 @@ class KernCrasher( object ):
 				import traceback
 				print(traceback.format_exc())
 				print()
-
+			
 			# save prefs
 			if not self.SavePreferences(None):
 				print("Note: KernCrasher could not write preferences.")
@@ -365,7 +382,7 @@ class KernCrasher( object ):
 						if Glyphs.defaults["com.mekkablue.KernCrasher.reportCrashesInMacroWindow"]:
 							print("- %s %s: %i" % ( firstGlyphName, secondGlyphName, distanceBetweenShapes ))
 				tabString += "\n"
-				
+			
 			# clean up the tab string:
 			tabString = tabString[:-6].replace("/space\n", "\n")
 			while "\n\n" in tabString:
@@ -374,7 +391,7 @@ class KernCrasher( object ):
 			
 			# update progress bar:
 			self.w.bar.set( 100 )
-			
+
 			# take time:
 			end = timer()
 			seconds = end - start
