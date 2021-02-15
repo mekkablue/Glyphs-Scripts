@@ -26,7 +26,7 @@ def process( thisLayer ):
 				newComponents.append(thatComp)
 			
 			if newComponents:
-				try:
+				if Glyphs.versionNumber >= 3:
 					# GLYPHS 3
 					if optionKeyPressed:
 						#clear all:
@@ -41,7 +41,7 @@ def process( thisLayer ):
 						# add components:
 						thatLayer.shapes += newComponents
 					
-				except:
+				else:
 					# GLYPHS 2
 					thatLayer.components = newComponents
 					if optionKeyPressed:
