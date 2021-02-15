@@ -275,6 +275,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **New Tab with Uneven Handle Distributions:** Finds glyphs where handle distributions change too much (e.g., from balanced to harmonised). *Needs Vanilla.*
 * **OTVar Player:** Animates the current glyph with a loop along the weight axis. *Needs Vanilla.*
 * **Remove All Non-Master Layers:** Deletes all layers which are neither master layers, nor brace layers, nor bracket layers. Useful for getting rid of backup layers.
+* **Report Instance Interpolations:** Outputs master coefficients for each instance in Macro Window. Tells you which masters are involved in interpolating a specific instance, and to which extent.
 * **Reset Axis Mappings:** Inserts (or resets) a default Axis Mappings parameter for all style values currently present in the font. Ignores style values outside the designspace bounds defined by the masters. 
 * **Short Segment Finder:** Goes through all interpolations and finds segments shorter than a user-specified threshold length. *Needs Vanilla.*
 * **Travel Tracker:** Finds interpolations in which points travel more than they should, i.e., can find wrongly hooked-up asterisks and slashes. The results are incomplete, and usually have many false positives, but it sometimes finds cases that the Shapeshifter script misses. *Needs Vanilla.*
