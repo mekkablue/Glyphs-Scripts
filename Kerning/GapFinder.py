@@ -162,13 +162,24 @@ class GapFinder( object ):
 	def effectiveKerning( self, leftGlyphName, rightGlyphName, thisFont, thisFontMasterID ):
 		leftLayer = thisFont.glyphs[leftGlyphName].layers[thisFontMasterID]
 		rightLayer = thisFont.glyphs[rightGlyphName].layers[thisFontMasterID]
-		effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
+		if Glyphs.versionNumber>=3:
+			effectiveKerning = leftLayer.nextKerningForLayer_direction_(
+				rightLayer,
+				0 # LTR
+			)
+		else:
+			effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
 		if effectiveKerning < NSNotFound:
 			return effectiveKerning
 		else:
 			return 0.0
 	
 	def listOfNamesForCategories( self, thisFont, requiredCategory, requiredSubCategory, requiredScript, excludedGlyphNameParts, excludeNonExporting ):
+		caseDict = {
+			"Uppercase": GSUppercase,
+			"Lowercase": GSLowercase,
+			"Smallcaps": GSSmallcaps,
+		}
 		nameList = []
 		for thisGlyph in thisFont.glyphs:
 			thisScript = thisGlyph.script
@@ -183,12 +194,17 @@ class GapFinder( object ):
 					if thisScript == None or thisScript == requiredScript:
 						if thisGlyph.category == requiredCategory:
 							if requiredSubCategory:
-								if thisGlyph.subCategory == requiredSubCategory:
-									nameList.append( glyphName )
+								if Glyphs.versionNumber>=3 and requiredSubCategory in caseDict:
+									requiredCase = caseDict[requiredSubCategory]
+									if thisGlyph.case == requiredCase:
+										nameList.append( glyphName )
+								else:
+									if thisGlyph.subCategory == requiredSubCategory:
+										nameList.append( glyphName )
 							else:
 								nameList.append( glyphName )
 		return nameList
-		
+
 	def splitString( self, string, delimiter=":", Maximum=2 ):
 		# split string into a list:
 		returnList = string.split(delimiter)
@@ -347,7 +363,7 @@ class GapFinder( object ):
 					thisFont.newTab( tabString )
 			# or report that nothing was found:
 			else:
-				report = 'No collisions found. Time elapsed: %s. Congrats!' % timereport
+				report = 'No gaps found. Time elapsed: %s. Congrats!' % timereport
 			
 			# Notification:
 			notificationTitle = "GapFinder: %s (%s)" % (thisFont.familyName, thisFontMaster.name)
