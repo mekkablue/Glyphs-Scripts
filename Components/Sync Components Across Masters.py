@@ -39,7 +39,7 @@ def process( thisLayer ):
 							if type(shape) == GSComponent or optionKeyPressed: # NEW: check for paths
 								del thatLayer.shapes[i]
 						# add components:
-						thatLayer.shapes += newComponents
+						thatLayer.shapes.extend(newComponents)
 					
 				else:
 					# GLYPHS 2
