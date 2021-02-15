@@ -302,7 +302,17 @@ class GapFinder( object ):
 			# get list of glyph names:
 			firstList = self.listOfNamesForCategories( thisFont, firstCategory, firstSubCategory, script, excludedGlyphNameParts, excludeNonExporting )
 			secondList = self.listOfNamesForCategories( thisFont, secondCategory, secondSubCategory, script, excludedGlyphNameParts, excludeNonExporting )
-
+			
+			if not firstList or not secondList:
+				Message(
+					title="Error: could not find any pairs",
+					message="The criteria for glyph selection are too strict. With the current settings, there are %i glyphs for the left side in the current font, and %i glyphs for the right side." % (
+						len(firstList),
+						len(secondList),
+					), 
+					OKButton=None,
+					)
+			
 			if Glyphs.defaults["com.mekkablue.GapFinder.reportGapsInMacroWindow"]:
 				print("Maximum Distance: %i\n" % maxDistance)
 				print("Left glyphs:\n%s\n" % ", ".join(firstList))
