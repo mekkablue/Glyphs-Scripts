@@ -14,9 +14,11 @@ for z1 in figures:
 		text += z2 + z1
 	text += "\n"
 
-# in case last line fails, the text is in the macro window:
-Glyphs.clearLog() # clears macro window log
-print(text)
-
-# opens new Edit tab with figure combos:
-Glyphs.currentDocument.windowController().addTabWithString_(text)
+try:
+	# opens new Edit tab with figure combos:
+	Glyphs.newTab(text)
+except:
+	# in case last line fails, the text is in the macro window:
+	Glyphs.clearLog()
+	Glyphs.showMacroWindow()
+	print(text)

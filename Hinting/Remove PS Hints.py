@@ -93,10 +93,10 @@ class RemovePSHints( object ):
 		delCount = 0
 		for i in reversed(range(len(layer.hints))):
 			h = layer.hints[i]
-			try:
+			if Glyphs.versionNumber >= 3:
 				# GLYPHS 3
 				isPostScriptHint = h.isPostScript
-			except:
+			else:
 				# GLYPHS 2
 				isPostScriptHint = h.isPostScript()
 			
