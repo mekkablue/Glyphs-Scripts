@@ -21,7 +21,8 @@ def deleteHintsOnLayer(thisLayer):
 def transferHintsFromTo( sourceLayer, targetLayer ):
 	# clean slate in targetLayer:
 	deleteHintsOnLayer(targetLayer)
-	
+	sourcePaths = [p for p in sourceLayer.paths]
+	targetPaths = [p for p in targetLayer.paths]	
 	# go through all hints in source layer:
 	for thisHint in sourceLayer.hints:
 		
@@ -29,28 +30,28 @@ def transferHintsFromTo( sourceLayer, targetLayer ):
 		if thisHint.type in supportedHintTypes and thisHint.originNode:
 			
 			# ... create hint for target layer:
-			pathIndex = sourceLayer.paths.index(thisHint.originNode.parent)
+			pathIndex = sourcePaths.index(thisHint.originNode.parent)
 			originNodeIndex = thisHint.originNode.index
 			newHint = GSHint()
 			newHint.type = thisHint.type
-			newHint.originNode = targetLayer.paths[pathIndex].nodes[originNodeIndex]
+			newHint.originNode = targetPaths[pathIndex].nodes[originNodeIndex]
 			newHint.horizontal = thisHint.horizontal
 			
 			# ... look for optional nodes:
 			if thisHint.targetNode:
 				targetNodeIndex = thisHint.targetNode.index
-				targetPathIndex = sourceLayer.paths.index(thisHint.targetNode.parent)
-				newHint.targetNode = targetLayer.paths[targetPathIndex].nodes[targetNodeIndex]
+				targetPathIndex = sourcePaths.index(thisHint.targetNode.parent)
+				newHint.targetNode = targetPaths[targetPathIndex].nodes[targetNodeIndex]
 				
 			if thisHint.otherNode1:
 				targetNodeIndex = thisHint.otherNode1.index
-				targetPathIndex = sourceLayer.paths.index(thisHint.otherNode1.parent)
-				newHint.otherNode1 = targetLayer.paths[targetPathIndex].nodes[targetNodeIndex]
+				targetPathIndex = sourcePaths.index(thisHint.otherNode1.parent)
+				newHint.otherNode1 = targetPaths[targetPathIndex].nodes[targetNodeIndex]
 				
 			if thisHint.otherNode2:
 				targetNodeIndex = thisHint.otherNode2.index
-				targetPathIndex = sourceLayer.paths.index(thisHint.otherNode2.parent)
-				newHint.otherNode2 = targetLayer.paths[targetPathIndex].nodes[targetNodeIndex]
+				targetPathIndex = sourcePaths.index(thisHint.otherNode2.parent)
+				newHint.otherNode2 = targetPaths[targetPathIndex].nodes[targetNodeIndex]
 			
 			# ... and add to target layer:
 			targetLayer.hints.append(newHint)
