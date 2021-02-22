@@ -18,7 +18,7 @@ class MetricsCopy( object ):
 		
 		# Window 'self.w':
 		windowWidth  = 400
-		windowHeight = 220
+		windowHeight = 250
 		windowWidthResize  = 500 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -51,6 +51,9 @@ class MetricsCopy( object ):
 		self.w.rsb.getNSButton().setToolTip_("If enabled, will transfer values for right sidebearings.")
 		self.w.width.getNSButton().setToolTip_("If enabled, will transfer values for advance widths.")
 		
+		linePos += lineHeight
+		self.w.updateMetrics = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Update Metrics in Source Font", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.updateMetrics.getNSButton().setToolTip_("Updates metrics in the source layer before transfering the values to the target font. Recommended. (Also circumvents an issue in Glyphs 3 where metrics would not get transfered.)")
 		
 		linePos += lineHeight
 		self.w.preferMetricKeys  = vanilla.CheckBox( (inset, linePos, -inset, 20), "Prefer (glyph and layer) metrics keys whenever available", value=False, sizeStyle='small', callback=self.buttonCheck )
@@ -66,7 +69,7 @@ class MetricsCopy( object ):
 		self.w.suffixToBeIgnored = vanilla.EditText( (inset+190, linePos, -inset, 20), ".alt", sizeStyle = 'small')
 		self.w.suffixToBeIgnored.getNSTextField().setToolTip_(u"Will copy metrics from source glyph ‘eacute’ to target glyph ‘eacute.xxx’. Useful for transfering metrics to dotsuffixed glyph variants.")
 		
-		self.w.copybutton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Transfer", sizeStyle='small', callback=self.copyMetrics)
+		self.w.copybutton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Transfer", sizeStyle='regular', callback=self.copyMetrics)
 		self.w.setDefaultButton( self.w.copybutton )
 		
 		if not self.LoadPreferences( ):
@@ -157,6 +160,7 @@ class MetricsCopy( object ):
 			Glyphs.defaults["com.mekkablue.MetricsCopy.width"] = self.w.width.get()
 			Glyphs.defaults["com.mekkablue.MetricsCopy.preferMetricKeys"] = self.w.preferMetricKeys.get()
 			Glyphs.defaults["com.mekkablue.MetricsCopy.onlyMetricsKeys"] = self.w.onlyMetricsKeys.get()
+			Glyphs.defaults["com.mekkablue.MetricsCopy.updateMetrics"] = self.w.updateMetrics.get()
 			return True
 		except:
 			return False
@@ -170,6 +174,7 @@ class MetricsCopy( object ):
 			Glyphs.registerDefault("com.mekkablue.MetricsCopy.width", 0)
 			Glyphs.registerDefault("com.mekkablue.MetricsCopy.preferMetricKeys", 0)
 			Glyphs.registerDefault("com.mekkablue.MetricsCopy.onlyMetricsKeys", 0)
+			Glyphs.registerDefault("com.mekkablue.MetricsCopy.updateMetrics", 1)
 			self.w.ignoreSuffixes.set( Glyphs.defaults["com.mekkablue.MetricsCopy.ignoreSuffixes"] )
 			self.w.suffixToBeIgnored.set( Glyphs.defaults["com.mekkablue.MetricsCopy.suffixToBeIgnored"] )
 			self.w.lsb.set( Glyphs.defaults["com.mekkablue.MetricsCopy.lsb"] )
@@ -177,6 +182,7 @@ class MetricsCopy( object ):
 			self.w.width.set( Glyphs.defaults["com.mekkablue.MetricsCopy.width"] )
 			self.w.preferMetricKeys.set( Glyphs.defaults["com.mekkablue.MetricsCopy.preferMetricKeys"] )
 			self.w.onlyMetricsKeys.set( Glyphs.defaults["com.mekkablue.MetricsCopy.onlyMetricsKeys"] )
+			self.w.updateMetrics.set( Glyphs.defaults["com.mekkablue.MetricsCopy.updateMetrics"] )
 			return True
 		except:
 			return False
@@ -231,6 +237,7 @@ class MetricsCopy( object ):
 		lsbIsSet = Glyphs.defaults["com.mekkablue.MetricsCopy.lsb"]
 		rsbIsSet = Glyphs.defaults["com.mekkablue.MetricsCopy.rsb"]
 		widthIsSet = Glyphs.defaults["com.mekkablue.MetricsCopy.width"]
+		updateMetrics = Glyphs.defaults["com.mekkablue.MetricsCopy.updateMetrics"]
 		suffixToBeIgnored = self.w.suffixToBeIgnored.get().strip(".")
 		selectedTargetLayers = targetFont.selectedLayers
 		
@@ -241,7 +248,8 @@ class MetricsCopy( object ):
 				targetFont.familyName, targetMaster.name,
 			))
 		
-		for targetLayer in [ targetFont.glyphs[l.parent.name].layers[targetMasterID] for l in selectedTargetLayers ]:
+		targetLayers = [ targetFont.glyphs[l.parent.name].layers[targetMasterID] for l in selectedTargetLayers ]
+		for targetLayer in targetLayers:
 			try:
 				targetGlyph = targetLayer.parent
 				targetGlyphName = targetGlyph.name
@@ -259,6 +267,8 @@ class MetricsCopy( object ):
 					print("     %s: not found in source font" % sourceGlyphName)
 				else:
 					sourceLayer = sourceGlyph.layers[ sourceMasterID ]
+					if updateMetrics:
+						sourceLayer.updateMetrics()
 					
 					# go through metrics keys:
 					metricsL, metricsR, metricsW = False, False, False
@@ -318,5 +328,10 @@ class MetricsCopy( object ):
 			except Exception as e:
 				self.outputError(e)
 				print(traceback.format_exc())
+		
+		# update metrics keys:
+		if preferMetricKeys:
+			for targetLayer in targetLayers:
+				targetLayer.updateMetrics()
 		
 MetricsCopy()
