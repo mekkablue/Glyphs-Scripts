@@ -273,7 +273,7 @@ class KernCrasher( object ):
 										if (not pathGlyphsOnly) or thisGlyph.layers[0].paths:
 											nameList.append( glyphName )
 								else:
-									if thisGlyph.subCategory == requiredSubCategory:
+									if thisGlyph.subCategory == requiredSubCategory or (requiredSubCategory=="Other" and thisGlyph.subCategory is None):
 										if (not pathGlyphsOnly) or thisGlyph.layers[0].paths:
 											nameList.append( glyphName )
 							else:
