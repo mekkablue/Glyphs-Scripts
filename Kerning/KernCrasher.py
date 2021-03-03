@@ -242,11 +242,12 @@ class KernCrasher( object ):
 			return 0.0
 	
 	def listOfNamesForCategories( self, thisFont, requiredCategory, requiredSubCategory, requiredScript, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly, mustContain ):
-		caseDict = {
+		if Glyphs.versionNumber>=3:
+			caseDict = {
 			"Uppercase": GSUppercase,
 			"Lowercase": GSLowercase,
 			"Smallcaps": GSSmallcaps,
-		}
+			}
 		nameList = []
 		for thisGlyph in thisFont.glyphs:
 			thisScript = thisGlyph.script
