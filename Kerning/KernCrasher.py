@@ -24,6 +24,13 @@ categoryList = (
 	"Number:Fraction",
 )
 
+if Glyphs.versionNumber>=3:
+	caseDict = {
+		"Uppercase": GSUppercase,
+		"Lowercase": GSLowercase,
+		"Smallcaps": GSSmallcaps,
+	}
+
 class KernCrasher( object ):
 	def __init__( self ):
 		# Window 'self.w':
@@ -242,11 +249,6 @@ class KernCrasher( object ):
 			return 0.0
 	
 	def listOfNamesForCategories( self, thisFont, requiredCategory, requiredSubCategory, requiredScript, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly, mustContain ):
-		caseDict = {
-			"Uppercase": GSUppercase,
-			"Lowercase": GSLowercase,
-			"Smallcaps": GSSmallcaps,
-		}
 		nameList = []
 		for thisGlyph in thisFont.glyphs:
 			thisScript = thisGlyph.script
