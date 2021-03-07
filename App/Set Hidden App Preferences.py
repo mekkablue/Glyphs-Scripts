@@ -10,6 +10,7 @@ from AppKit import NSFont
 
 class SetHiddenAppPreferences( object ):
 	prefs = (
+		"DebugMode",
 		"AppleLanguages",
 		"drawShadowAccents",
 		"GSftxenhancerPath",
@@ -36,6 +37,7 @@ class SetHiddenAppPreferences( object ):
 		"com.mekkablue.ShowMarkPreview.extension",
 		"com.mekkablue.ShowStyles.anchors",
 		"com.mekkablue.ttAutoinstructSelectedGlyphs.alwaysUseNoStem",
+		"com.RicardGarcia.ChangeCase.verboseReport",
 	)
 	
 	def __init__( self ):
