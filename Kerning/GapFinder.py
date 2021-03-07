@@ -24,6 +24,13 @@ categoryList = (
 	"Number:Fraction",
 )
 
+if Glyphs.versionNumber>=3:
+	caseDict = {
+		"Uppercase": GSUppercase,
+		"Lowercase": GSLowercase,
+		"Smallcaps": GSSmallcaps,
+	}
+
 class GapFinder( object ):
 	def __init__( self ):
 		# Window 'self.w':
@@ -175,11 +182,6 @@ class GapFinder( object ):
 			return 0.0
 	
 	def listOfNamesForCategories( self, thisFont, requiredCategory, requiredSubCategory, requiredScript, excludedGlyphNameParts, excludeNonExporting ):
-		caseDict = {
-			"Uppercase": GSUppercase,
-			"Lowercase": GSLowercase,
-			"Smallcaps": GSSmallcaps,
-		}
 		nameList = []
 		for thisGlyph in thisFont.glyphs:
 			thisScript = thisGlyph.script
