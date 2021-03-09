@@ -41,49 +41,53 @@ for master in thisFont.masters:
 	if RTLmasterKerning is None:
 		RTLmasterKerning = {}
 		thisFont.kerningRTL[master.id] = objcObject(RTLmasterKerning)
-	masterKerning = thisFont.kerning[master.id]
 	
-	if convertFrom3to2:
-		for firstKey in RTLmasterKerning.allKeys():
-			firstKerning = RTLmasterKerning[firstKey]
-			firstName = nameForKey(firstKey)
-			if GSGlyphsInfo.isRTLScript_(key2Scripts[firstName]):
-				newFirstKey = firstKey.replace("@MMK_R_", "@MMK_L_")
-				newFirstKerning = {}
-				for secondKey in firstKerning.allKeys():
-					newSecondKey = secondKey.replace("@MMK_L_", "@MMK_R_")
-					kernValue = firstKerning[secondKey]
-					thisFont.setKerningForPair(master.id, newFirstKey, newSecondKey, kernValue)
-					print("  ✅ %s %s %i" % (
-						nameForKey(newFirstKey).replace("MMK_L_",""),
-						nameForKey(newSecondKey).replace("MMK_R_",""),
-						kernValue,
-					))
-				del(RTLmasterKerning[firstKey])
-			else:
-				print("  ⚠️ Cannot convert RTL kerning with %s to G2; not an RTL %s." % (
-					firstName.replace("MMK_L_",""),
-					"group" if firstName.startswith("@") else "glyph", 
-				))
-				
+	if not master.id in masterKerning:
+		print("  No convertible kerning found in this master.")
 	else:
-		for firstKey in masterKerning.allKeys():
-			firstKerning = masterKerning[firstKey]
-			firstName = nameForKey(firstKey)
-			if GSGlyphsInfo.isRTLScript_(key2Scripts[firstName]):
-				newFirstKey = firstKey.replace("@MMK_L_", "@MMK_R_")
-				newFirstKerning = {}
-				RTLmasterKerning[newFirstKey] = newFirstKerning
-				for secondKey in firstKerning.allKeys():
-					newSecondKey = secondKey.replace("@MMK_R_", "@MMK_L_")
-					kernValue = firstKerning[secondKey]
-					newFirstKerning[newSecondKey] = kernValue
-					print("  ✅ %s %s %i" % (
-						nameForKey(newFirstKey).replace("MMK_R_",""),
-						nameForKey(newSecondKey).replace("MMK_L_",""),
-						kernValue,
+		masterKerning = thisFont.kerning[master.id]
+	
+		if convertFrom3to2:
+			for firstKey in RTLmasterKerning.allKeys():
+				firstKerning = RTLmasterKerning[firstKey]
+				firstName = nameForKey(firstKey)
+				if GSGlyphsInfo.isRTLScript_(key2Scripts[firstName]):
+					newFirstKey = firstKey.replace("@MMK_R_", "@MMK_L_")
+					newFirstKerning = {}
+					for secondKey in firstKerning.allKeys():
+						newSecondKey = secondKey.replace("@MMK_L_", "@MMK_R_")
+						kernValue = firstKerning[secondKey]
+						thisFont.setKerningForPair(master.id, nameForKey(newFirstKey), nameForKey(newSecondKey), kernValue)
+						print("  ✅ %s %s %i" % (
+							nameForKey(newFirstKey).replace("MMK_L_",""),
+							nameForKey(newSecondKey).replace("MMK_R_",""),
+							kernValue,
+						))
+					del(RTLmasterKerning[firstKey])
+				else:
+					print("  ⚠️ Cannot convert RTL kerning with %s to G2; not an RTL %s." % (
+						firstName.replace("MMK_L_",""),
+						"group" if firstName.startswith("@") else "glyph", 
 					))
-				del(masterKerning[firstKey])
+				
+		else:
+			for firstKey in masterKerning.allKeys():
+				firstKerning = masterKerning[firstKey]
+				firstName = nameForKey(firstKey)
+				if GSGlyphsInfo.isRTLScript_(key2Scripts[firstName]):
+					newFirstKey = firstKey.replace("@MMK_L_", "@MMK_R_")
+					newFirstKerning = {}
+					RTLmasterKerning[newFirstKey] = newFirstKerning
+					for secondKey in firstKerning.allKeys():
+						newSecondKey = secondKey.replace("@MMK_R_", "@MMK_L_")
+						kernValue = firstKerning[secondKey]
+						newFirstKerning[newSecondKey] = kernValue
+						print("  ✅ %s %s %i" % (
+							nameForKey(newFirstKey).replace("MMK_R_",""),
+							nameForKey(newSecondKey).replace("MMK_L_",""),
+							kernValue,
+						))
+					del(masterKerning[firstKey])
 
 # Switch kerning classes in glyphs
 print("\n2️⃣ Switching kern classes of RTL glyphs:")
