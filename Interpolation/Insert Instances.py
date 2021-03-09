@@ -182,20 +182,22 @@ class InstanceMaker( object ):
 		self.w.makeKey()
 	
 	def axisTag(self, axis):
-		try:
-			# GLYPHS 2
-			return axis.axisTag()
-		except:
-			# GLYPHS 3
+		if Glyphs.versionNumber >= 3:
+			# Glyphs 3 code
 			return axis.axisTag
+		else:
+			# Glyphs 2 code
+			return axis["Tag"]
+
 	
 	def axisID(self, axis):
-		try:
-			# GLYPHS 2
-			return axis.axisId()
-		except:
-			# GLYPHS 3
+		if Glyphs.versionNumber >= 3:
+			# Glyphs 3 code
 			return axis.axisId
+		else:
+			# Glyphs 2 code
+			# Glyphs 2 axis doesn't have an id
+			return None
 	
 	def weightID(self, thisFont):
 		weightAxisID = None
