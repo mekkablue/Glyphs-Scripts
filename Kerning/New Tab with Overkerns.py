@@ -111,8 +111,8 @@ class FindOverkerns( object ):
 							rightGroupNarrowestGlyphs[thisGlyph.rightKerningGroup] = thisGlyph.name
 			
 				# go through kern values and collect them in tabText:
-				for leftKey in masterKerning:
-					for rightKey in masterKerning[leftKey]:
+				for leftKey in masterKerning.keys():
+					for rightKey in masterKerning[leftKey].keys():
 						kernValue = masterKerning[leftKey][rightKey]
 						if kernValue < 0:
 							leftWidth = None
