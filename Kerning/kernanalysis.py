@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*--- --
 from __future__ import print_function
 from GlyphsApp import Glyphs
+if Glyphs.versionNumber >= 3.0:
+	from GlyphsApp import LTR
 from Foundation import NSNotFound
 
 intervalList = (1,3,5,10,20)
@@ -104,7 +106,10 @@ def nameUntilFirstPeriod( glyphName ):
 def effectiveKerning( leftGlyphName, rightGlyphName, thisFont, thisFontMasterID ):
 	leftLayer = thisFont.glyphs[leftGlyphName].layers[thisFontMasterID]
 	rightLayer = thisFont.glyphs[rightGlyphName].layers[thisFontMasterID]
-	effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
+	if Glyphs.versionNumber >= 3.0:
+		effectiveKerning = leftLayer.nextKerningForLayer_direction_( rightLayer, LTR )
+	else:
+		effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
 	if effectiveKerning < NSNotFound:
 		return effectiveKerning
 	else:
