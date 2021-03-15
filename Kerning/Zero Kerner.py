@@ -165,12 +165,12 @@ class ZeroKerner( object ):
 						otherMasterKerning = thisFont.kerning[otherMaster.id]
 						kerningLength = len(otherMasterKerning)
 				
-						for j,leftGroup in enumerate(otherMasterKerning):
+						for j,leftGroup in enumerate(otherMasterKerning.keys()):
 							kernCount = j*masterCountPart/kerningLength
 							self.w.progress.set( masterCount+kernCount )
 					
 							if leftGroup.startswith("@"):
-								for rightGroup in otherMasterKerning[leftGroup]:
+								for rightGroup in otherMasterKerning[leftGroup].keys():
 									if rightGroup.startswith("@"):
 										if otherMasterKerning[leftGroup][rightGroup] != 0:
 											for j,thisMaster in enumerate(theseMasters):
@@ -180,7 +180,7 @@ class ZeroKerner( object ):
 													reportInMacroWindow=False,
 												)
 												
-												if thisFont.kerningForPair(thisMaster.id, leftGroup, rightGroup) >= NSNotFound:
+												if not thisFont.kerningForPair(thisMaster.id, leftGroup, rightGroup) or thisFont.kerningForPair(thisMaster.id, leftGroup, rightGroup) >= NSNotFound:
 													thisFont.setKerningForPair(thisMaster.id, leftGroup, rightGroup, 0.0)
 													self.report(
 														"%s: zero kern @%s-@%s" % (thisMaster.name, leftGroup[7:], rightGroup[7:]),
