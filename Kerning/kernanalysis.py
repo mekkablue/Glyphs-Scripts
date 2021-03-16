@@ -110,10 +110,12 @@ def effectiveKerning( leftGlyphName, rightGlyphName, thisFont, thisFontMasterID 
 		effectiveKerning = leftLayer.nextKerningForLayer_direction_( rightLayer, LTR )
 	else:
 		effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
-	if effectiveKerning < NSNotFound:
-		return effectiveKerning
-	else:
-		return 0.0
+	return effectiveKerning # can be NSNotFound
+	
+	# if effectiveKerning < NSNotFound:
+	# 	return effectiveKerning
+	# else:
+	# 	return 0.0
 
 def listOfNamesForCategories( thisFont, requiredCategory, requiredSubCategory, requiredScript, excludedGlyphNameParts, excludeNonExporting, suffix="" ):
 	nameList = []
@@ -182,6 +184,8 @@ def minDistanceBetweenTwoLayers( leftLayer, rightLayer, interval=5.0, kerning=0.
 	bottomY = max( leftLayer.bounds.origin.y, rightLayer.bounds.origin.y )
 	distance = topY - bottomY
 	minDist = None
+	if kerning > 10000: # NSNotFound
+		kerning = 0
 	for i in range(int(distance//interval)):
 		height = bottomY + i * interval
 		if not isHeightInIntervals(height, ignoreIntervals) or not ignoreIntervals:
