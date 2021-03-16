@@ -170,14 +170,14 @@ class DeleteExceptionsTooCloseToGroupKerning( object ):
 
 			# collect unnecessary kerning exceptions:
 			unnecessaryKernPairs = []
-			for leftSide in thisFont.kerning[thisMasterID]:
+			for leftSide in thisFont.kerning[thisMasterID].keys():
 				if leftSide.startswith("@"):
 					# group on the left side
 					
 					leftGlyphGroup = leftSide.replace("@MMK_L_","")
 					leftGlyphGroupMMK = leftSide
 					
-					for rightSide in thisFont.kerning[thisMasterID][leftSide]:
+					for rightSide in thisFont.kerning[thisMasterID][leftSide].keys():
 						
 						if not rightSide.startswith("@"):
 							# right side is exception:
@@ -239,7 +239,7 @@ class DeleteExceptionsTooCloseToGroupKerning( object ):
 							# step through exceptions:
 							leftGlyphGroupMMK = "@MMK_L_%s" % leftGlyphGroup
 							
-							for rightSide in thisFont.kerning[thisMasterID][leftSide]:
+							for rightSide in thisFont.kerning[thisMasterID][leftSide].keys():
 								if rightSide.startswith("@"):
 									# exception-group:
 									rightGlyph = None
@@ -256,7 +256,7 @@ class DeleteExceptionsTooCloseToGroupKerning( object ):
 								if okToContinue:
 									exceptionKerning = thisFont.kerning[thisMasterID][leftSide][rightSide]
 									groupKerning = thisFont.kerningForPair( thisMasterID, leftGlyphGroupMMK, rightGlyphGroupMMK)
-									if groupKerning > 100000: # NSNotFound
+									if groupKerning is None or groupKerning > 100000: # NSNotFound
 										groupKerning = 0
 								
 									if abs(exceptionKerning-groupKerning) < threshold:
