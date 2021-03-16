@@ -11,15 +11,13 @@ Adjusts all kerning values by a specified amount.
 
 import vanilla
 
-optionList = [ "Multiply by", "Add", "Add Absolute", "Round by" ]
+optionList = ( "Multiply by", "Add", "Add Absolute", "Round by" )
 
 class AdjustKerning( object ):
 	def __init__( self ):
 		# GUI:
-		offset = 10
-		line = 20
-		windowWidth  = 280
-		windowHeight = 2*offset+7*line
+		windowWidth  = 260
+		windowHeight = 155
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		
@@ -31,18 +29,26 @@ class AdjustKerning( object ):
 			autosaveName = "com.mekkablue.AdjustKerning.mainwindow" # stores last window position and size
 		)
 		
-		self.w.text_1 = vanilla.TextBox( (15-1, offset+2, -15, line), "In the current font master, do this:", sizeStyle='small' )
-		self.w.doWhat = vanilla.PopUpButton( (25, offset+line, 100, line), optionList, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.howMuch = vanilla.EditText((25+100+10, offset+line+1, -15, line), "10", sizeStyle='small', callback=self.SavePreferences)
+		# UI elements:
+		linePos, inset, lineHeight = 10, 12, 22
 		
-		self.w.text_2 = vanilla.TextBox( (15-1, offset*2+line*2+2, -15, line), "To these kerning pairs:", sizeStyle='small' )
-		self.w.positive = vanilla.CheckBox( (25, offset*2+line*3, -15, line), "Positive,", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.zero = vanilla.CheckBox( (90, offset*2+line*3, -15, line), "zero, and", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.negative = vanilla.CheckBox( (162, offset*2+line*3, -15, line), "negative pairs", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.text_1 = vanilla.TextBox( (inset-1, linePos+2, -inset, 14), "In the current font master, do this:", sizeStyle='small' )
+		
+		linePos += lineHeight
+		self.w.doWhat = vanilla.PopUpButton( (inset, linePos, 100, 17), optionList, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.howMuch = vanilla.EditText((inset+100+10, linePos-1, -inset, 19), "10", sizeStyle='small', callback=self.SavePreferences)
+		
+		linePos += lineHeight
+		self.w.text_2 = vanilla.TextBox( (inset-1, linePos+4, -inset, 14), "To these kerning pairs:", sizeStyle='small' )
+
+		linePos += lineHeight
+		self.w.positive = vanilla.CheckBox( (inset, linePos, 63, 20), "Positive,", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.zero = vanilla.CheckBox( (inset+65, linePos, 65, 20), "zero, and", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.negative = vanilla.CheckBox( (inset+137, linePos, -inset, 20), "negative pairs", value=True, callback=self.SavePreferences, sizeStyle='small' )
 
 		# self.w.keepWindow = vanilla.CheckBox( (25, offset*2+line*4, -15, line), "Keep window open", value=False, callback=self.SavePreferences, sizeStyle='small' )
 
-		self.w.runButton = vanilla.Button((-80-15, -offset-line-5, -15, line), "Adjust", sizeStyle='small', callback=self.AdjustKerningMain )
+		self.w.runButton = vanilla.Button( (-80-inset, -20-inset, -inset, -inset), "Adjust", sizeStyle='regular', callback=self.AdjustKerningMain )
 		self.w.setDefaultButton( self.w.runButton )
 		
 		# Load Settings:
