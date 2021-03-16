@@ -13,8 +13,31 @@ import vanilla
 from Foundation import NSPoint
 
 parameterName = "TTFAutohint options"
-availableOptions = ("adjust-subglyphs", "composites", "default-script", "dehint", "detailed-info", "fallback-script", "fallback-stem-width", "hinting-limit", "hinting-range-max", "hinting-range-min", "ignore-restrictions", "increase-x-height", "no-info", "stem-width-mode", "strong-stem-width", "symbol", "ttfa-table", "windows-compatibility", "x-height-snapping-exceptions")
+# availableOptions = ("adjust-subglyphs", "composites", "default-script", "dehint", "detailed-info", "fallback-script", "fallback-stem-width", "hinting-limit", "hinting-range-max", "hinting-range-min", "ignore-restrictions", "increase-x-height", "no-info", "stem-width-mode", "strong-stem-width", "symbol", "ttfa-table", "windows-compatibility", "x-height-snapping-exceptions")
 valuelessOptions = ("windows-compatibility", "adjust-subglyphs", "detailed-info", "ignore-restrictions", "ttfa-table", "composites", "symbol", "dehint", "no-info")
+availableOptionsDict = {
+	"adjust-subglyphs": "adjust-subglyphs",
+	"composites": "hint-composites",
+	"default-script": "default-script",
+	"dehint": "dehint",
+	"detailed-info": "ttfautohint-info",
+	"fallback-script": "fallback-script",
+	"fallback-stem-width": "fallback-stem-width",
+	"hinting-limit": "hinting-limit",
+	"hinting-range-max": "hint-set-range-minimum-hint-set-range-maximum",
+	"hinting-range-min": "hint-set-range-minimum-hint-set-range-maximum",
+	"ignore-restrictions": "miscellaneous",
+	"increase-x-height": "x-height-increase-limit",
+	"no-info": "ttfautohint-info",
+	"stem-width-mode": "stem-width-and-positioning-mode",
+	"strong-stem-width": "stem-width-and-positioning-mode",
+	"symbol": "symbol-font",
+	"ttfa-table": "add-ttfa-info-table",
+	"windows-compatibility": "windows-compatibility",
+	"x-height-snapping-exceptions": "x-height-snapping-exceptions",
+}
+
+availableOptions = sorted(availableOptionsDict.keys())
 
 def removeFromAutohintOptions( thisInstance, removeOption ):
 	parameter = thisInstance.customParameters[parameterName]
@@ -130,13 +153,24 @@ class SetTTFAutohintOptions( object ):
 		)
 		
 		# UI elements:
-		self.w.ttfAutohintOption = vanilla.PopUpButton( (15, 13, 200, 17), availableOptions, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.helpButton = vanilla.HelpButton((13, 12, 21, 20), callback=self.openURL)
+		self.w.helpButton.getNSButton().setToolTip_("Opens the ttfAutohint documentation for the currently selected option on freetype.org.")
+		
+		self.w.ttfAutohintOption = vanilla.PopUpButton( (38, 13, 175, 17), availableOptions, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.ttfAutohintOption.getNSPopUpButton().setToolTip_("Available ttfAutohint options. Pick one from the list. Careful: also contains deprecated options. Refer to the documentation (click on the Help Button on the left), know what you are doing.")
+		
 		self.w.optionValue = vanilla.EditText( (220, 12, -65-50, 20), "value", callback=self.SavePreferences, sizeStyle = 'small')
+		self.w.optionValue.getNSTextField().setToolTip_("Value for the currently selected option, if any. Some options can only be set or removed, some have a value.")
+		
 		self.w.explanation = vanilla.TextBox( (15-1, 40, -5, -5), "Adds or sets this option in all TTF Autohint Options parameters in the current font. For fallback-stem-width, use * for entering the respective instance weight value, and idotless for measuring the width of the interpolated dotless i. The Del button removes this TTFA option from all instances.", sizeStyle='small' )
 		
 		# Run Button:
 		self.w.runButton = vanilla.Button((-60-50, 10, -15-50, 22), "Set", sizeStyle='regular', callback=self.SetTTFAutohintOptionsMain )
+		self.w.runButton.getNSButton().setToolTip_("Updates all TTF Autohint Options parameters with the current option (and value, if any) to all instances in the font.")
+		
 		self.w.delButton = vanilla.Button((-60, 10, -15, 22), "Del", sizeStyle='regular', callback=self.RemoveOption )
+		self.w.delButton.getNSButton().setToolTip_("Removes the current option from all TTF Autohint Options parameters in all instances in the font.")
+
 		self.w.setDefaultButton( self.w.runButton )
 		
 		# Load Settings:
@@ -149,6 +183,19 @@ class SetTTFAutohintOptions( object ):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+		
+	def openURL( self, sender ):
+		URL = None
+		if sender == self.w.helpButton:
+			URL = "https://www.freetype.org/ttfautohint/doc/ttfautohint.html"
+			currentlySelectedOption = self.w.ttfAutohintOption.getItem()
+			if currentlySelectedOption in availableOptionsDict.keys():
+				urlExtension = availableOptionsDict[currentlySelectedOption]
+				if urlExtension:
+					URL = "%s#%s" % ( URL, urlExtension )
+		if URL:
+			import webbrowser
+			webbrowser.open( URL )
 	
 	def editValueField(self):
 		optionName = self.currentOptionName()
