@@ -159,7 +159,7 @@ class SetTTFAutohintOptions( object ):
 		self.w.ttfAutohintOption = vanilla.PopUpButton( (38, 13, 175, 17), availableOptions, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.ttfAutohintOption.getNSPopUpButton().setToolTip_("Available ttfAutohint options. Pick one from the list. Careful: also contains deprecated options. Refer to the documentation (click on the Help Button on the left), know what you are doing.")
 		
-		self.w.optionValue = vanilla.EditText( (220, 12, -65-50, 20), "value", callback=self.SavePreferences, sizeStyle = 'small')
+		self.w.optionValue = vanilla.EditText( (220, 12, -67-50, 20), "value", callback=self.SavePreferences, sizeStyle = 'small')
 		self.w.optionValue.getNSTextField().setToolTip_("Value for the currently selected option, if any. Some options can only be set or removed, some have a value.")
 		
 		self.w.explanation = vanilla.TextBox( (15-1, 40, -5, -5), "Adds or sets this option in all TTF Autohint Options parameters in the current font. For fallback-stem-width, use * for entering the respective instance weight value, and idotless for measuring the width of the interpolated dotless i. The Del button removes this TTFA option from all instances.", sizeStyle='small' )
