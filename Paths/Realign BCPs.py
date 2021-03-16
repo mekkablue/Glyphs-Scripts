@@ -5,7 +5,7 @@ __doc__="""
 Realigns handles (BCPs) in current layers of selected glyphs. Useful for resetting out-of-sync handles, e.g., after a transform operation, after interpolation or after switching to a different grid. Hold down Option to process ALL layers of the glyph.
 """
 
-from Foundation import NSPoint, NSEvent, NSNumber, NSMutableArray
+from Foundation import NSPoint, NSEvent, NSNumber, NSMutableArray, NSClassFromString
 
 optionKeyFlag = 524288
 optionKeyPressed = NSEvent.modifierFlags() & optionKeyFlag == optionKeyFlag
@@ -14,7 +14,7 @@ thisFont = Glyphs.font
 moveForward = NSPoint( 1, 1 )
 moveBackward = NSPoint( -1, -1 )
 noModifier = NSNumber.numberWithUnsignedInteger_(0)
-Tool = GlyphsPathPlugin.alloc().init()
+Tool = NSClassFromString("GlyphsPathPlugin").alloc().init()
 
 def realignLayer(thisLayer):
 	countOfHandlesOnLayer = 0
