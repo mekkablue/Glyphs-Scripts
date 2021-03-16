@@ -9,27 +9,67 @@ import vanilla
 
 class KerningGroupReplacer( object ):
 	def __init__( self ):
-		self.w = vanilla.FloatingWindow( (335, 125), "Find and Replace in Kerning Groups", autosaveName="com.mekkablue.KerningGroupReplacer.mainwindow" )
-
-		self.w.text_Find     = vanilla.TextBox( (10, 30+3, 55, 20), "Find", sizeStyle='small' )
-		self.w.text_Replace  = vanilla.TextBox( (10, 55+3, 55, 20), "Replace", sizeStyle='small' )
-
-		self.w.text_left     = vanilla.TextBox(  (70, 12, 120, 14), "Left Group", sizeStyle='small' )
-		self.w.leftSearchFor = vanilla.EditText( (70, 30, 120, 20), ".tf", callback=self.SavePreferences, sizeStyle='small', placeholder='(leave these blank ...' )
-		self.w.leftReplaceBy = vanilla.EditText( (70, 55, 120, 20), "", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)' )
-
-		self.w.text_right     = vanilla.TextBox(  (200, 12, 120, 14), "Right Group", sizeStyle='small' )
-		self.w.rightSearchFor = vanilla.EditText( (200, 30, 120, 20), ".tf", callback=self.SavePreferences, sizeStyle='small', placeholder='... to append)' )
-		self.w.rightReplaceBy = vanilla.EditText( (200, 55, 120, 20), "", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)' )
+		windowWidth = 335
+		windowHeight = 155
+		windowWidthResize = 1000 # user can resize width by this value
+		windowHeightResize = 0   # user can resize height by this value
+		self.w = vanilla.FloatingWindow(
+			( windowWidth, windowHeight ), # default window size
+			"Find and Replace in Kerning Groups", # window title
+			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
+			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
+			autosaveName = "com.mekkablue.KerningGroupReplacer.mainwindow" # stores last window position and size
+		)
 		
-		self.w.runButton = vanilla.Button((-110, -20-15, -15, -15), "Replace", sizeStyle='regular', callback=self.KerningGroupReplaceMain )
+		linePos, inset, lineHeight = 10, 12, 22
+		
+		self.w.descriptionText = vanilla.TextBox( (inset, linePos, -inset, 14), "In selected glyphs, replace in group names:", sizeStyle='small', selectable=True )
+		linePos += lineHeight
+		
+		self.w.text_left     = vanilla.TextBox(  (inset+60, linePos+2, -inset-70, 14), "Left Groups", sizeStyle='small' )
+		self.w.text_right    = vanilla.TextBox(  (inset+180, linePos+2, -inset, 14), "Right Groups", sizeStyle='small' )
+		linePos += lineHeight
+
+		self.w.text_Find      = vanilla.TextBox(  (inset, linePos+3, 55, 20), "Find", sizeStyle='small' )
+		self.w.leftSearchFor  = vanilla.EditText( (inset+60, linePos, 120-5, 20), ".tf", callback=self.SavePreferences, sizeStyle='small', placeholder='(leave these blank ...' )
+		self.w.rightSearchFor = vanilla.EditText( (inset+180, linePos, -inset, 20), ".tf", callback=self.SavePreferences, sizeStyle='small', placeholder='... to append)' )
+		linePos += lineHeight
+
+		self.w.text_Replace   = vanilla.TextBox(  (inset, linePos+3, 55, 20), "Replace", sizeStyle='small' )
+		self.w.leftReplaceBy  = vanilla.EditText( (inset+60, linePos, 120-5, 20), "", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)' )
+		self.w.rightReplaceBy = vanilla.EditText( (inset+180, linePos, -inset, 20), "", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)' )
+		linePos += lineHeight
+		
+		self.w.runButton = vanilla.Button((-110, -20-inset, -inset, -inset), "Replace", sizeStyle='regular', callback=self.KerningGroupReplaceMain )
 		self.w.setDefaultButton( self.w.runButton )
 		
 		if not self.LoadPreferences():
 			print("Note: Could not load preferences. Will resort to defaults")
-
+			
+		self.inset=inset
+		self.w.bind("resize", self.stretchBoxes)
+		self.stretchBoxes()
 		self.w.open()
 		self.w.makeKey()
+	
+	def stretchBoxes(self, sender=None):
+		windowWidth = self.w.getPosSize()[2]
+		netWindowWidth = windowWidth-2*self.inset
+		columnWidth = int((netWindowWidth-60)/2) - 3
+		rightColumnX = self.inset+60 + int((netWindowWidth-60)/2) + 6
+		
+		x, y, width, height = self.w.leftSearchFor.getPosSize()
+		self.w.leftSearchFor.setPosSize( (x, y, columnWidth, height), animate=False )
+		x, y, width, height = self.w.leftReplaceBy.getPosSize()
+		self.w.leftReplaceBy.setPosSize( (x, y, columnWidth, height), animate=False )
+		
+		x, y, width, height = self.w.text_right.getPosSize()
+		self.w.text_right.setPosSize( (rightColumnX, y, columnWidth, height), animate=False )
+		x, y, width, height = self.w.rightSearchFor.getPosSize()
+		self.w.rightSearchFor.setPosSize( (rightColumnX, y, columnWidth, height), animate=False )
+		x, y, width, height = self.w.rightReplaceBy.getPosSize()
+		self.w.rightReplaceBy.setPosSize( (rightColumnX, y, columnWidth, height), animate=False )
+		
 		
 	def SavePreferences( self, sender ):
 		try:
