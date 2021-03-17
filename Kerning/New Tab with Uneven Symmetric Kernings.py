@@ -43,7 +43,7 @@ for glyphnames in (list(UC)+extraUC+SY, list(LC)+extraLC+SY, SC+extraSC+SY):
 					leftKern  = Font.kerningForPair( m.id, glyphname1, glyphname2 )
 					rightKern = Font.kerningForPair( m.id, glyphname2, glyphname1 )
 					if leftKern != rightKern:
-						print("%s-%s-%s: exception not symmetric: %i vs. %i" % (glyphname1, glyphname2, glyphname1, leftKern, rightKern))
+						print("%s-%s-%s: exception not symmetric: %s vs. %s" % (glyphname1, glyphname2, glyphname1, leftKern, rightKern))
 						tabString += "/%s/%s/%s\n" % (glyphname1, glyphname2, glyphname1)
 					else:
 						glyph1 = thisFont.glyphs[glyphname1]
@@ -53,7 +53,7 @@ for glyphnames in (list(UC)+extraUC+SY, list(LC)+extraLC+SY, SC+extraSC+SY):
 							leftKern  = Font.kerningForPair(m.id, "@MMK_L_"+glyph1.rightKerningGroup, "@MMK_R_"+glyph2.leftKerningGroup)
 							rightKern = Font.kerningForPair(m.id, "@MMK_L_"+glyph2.rightKerningGroup, "@MMK_R_"+glyph1.leftKerningGroup)
 							if leftKern != rightKern:
-								print("@%s-@%s-@%s: group kerning not symmetric: %i vs. %i" % (
+								print("@%s-@%s-@%s: group kerning not symmetric: %s vs. %s" % (
 									glyph1.name, glyph2.name, glyph1.name, 
 									leftKern, rightKern,
 									))
