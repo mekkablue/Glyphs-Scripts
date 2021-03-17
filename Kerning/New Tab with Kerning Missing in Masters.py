@@ -33,8 +33,9 @@ else:
 		masterID = thisMaster.id
 		otherMasterIDs = [m.id for m in thisFont.masters if m != thisMaster]
 		masterKerning = thisFont.kerning[masterID]
-		for leftSide in masterKerning:
-			for rightSide in masterKerning[leftSide]:
+		for leftSide in masterKerning.keys():
+			
+			for rightSide in masterKerning[leftSide].keys():
 				for otherID in otherMasterIDs:
 					
 					try:
