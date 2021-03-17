@@ -8,9 +8,10 @@ Select two glyphs, e.g. ‘Ta’ (or place your cursor between them), run the sc
 thisFont = Glyphs.font # frontmost font
 tab = thisFont.currentTab
 tabString = ""
+listOfSelectedLayers = thisFont.selectedLayers
 firstGlyph, secondGlyph = None, None
 
-if len(thisFont.selectedLayers) == 2:
+if len(listOfSelectedLayers) == 2:
 	firstGlyph = listOfSelectedLayers[0].parent
 	secondGlyph = listOfSelectedLayers[1].parent
 elif tab and tab.textRange == 0:
