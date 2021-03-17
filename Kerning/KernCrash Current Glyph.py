@@ -26,9 +26,14 @@ asciicircum
 """
 
 def effectiveKerning( leftGlyphName, rightGlyphName, thisFont, thisFontMasterID):
+	
 	leftLayer = thisFont.glyphs[leftGlyphName].layers[thisFontMasterID]
 	rightLayer = thisFont.glyphs[rightGlyphName].layers[thisFontMasterID]
-	effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
+	if Glyphs.versionNumber < 3:
+		effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
+	else:
+		
+		effectiveKerning = leftLayer.nextKerningForLayer_direction_(rightLayer, leftLayer.parent.direction)
 	if effectiveKerning < NSNotFound:
 		return effectiveKerning
 	else:
@@ -60,7 +65,10 @@ def pathCountInKernPair( firstGlyphName, secondGlyphName, thisFont, thisFontMast
 	ligatureLayer.transform_checkForSelection_( rightShift, False )
 	
 	for addedPath in addedLayer.paths:
-		ligatureLayer.addPath_( addedPath.copy() )
+		if Glyphs.versionNumber < 3:
+			ligatureLayer.addPath_( addedPath.copy() )
+		else:
+			ligatureLayer.addShape_( addedPath.copy() )
 	
 	return pathCountOnLayer( ligatureLayer )
 
