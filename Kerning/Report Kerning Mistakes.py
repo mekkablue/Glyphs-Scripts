@@ -97,13 +97,13 @@ for thisMaster in thisFont.masters:
 		if thisFont.glyphs[leftGlyphName]:
 			leftGlyph = thisFont.glyphs[leftGlyphName]
 			leftID = leftGlyph.id
-			if leftID in masterKerning:
-				for rightSide in masterKerning[leftID]:
+			if leftID in masterKerning.keys():
+				for rightSide in masterKerning[leftID].keys():
 					reportBadKernPair( leftID, rightSide, masterKerning[leftID][rightSide] )
 	
 	shouldntBeOnRightSide = (noKerningToTheLeft + unlikelyToBeKerned + tuple(glyphNamesWithExtensionsNotToBeKerned))
-	for leftSide in masterKerning:
-		for rightSide in masterKerning[leftSide]:
+	for leftSide in masterKerning.keys():
+		for rightSide in masterKerning[leftSide].keys():
 			if rightSide[0] != "@":
 				rightGlyph = thisFont.glyphForId_(rightSide)
 				if rightGlyph:
@@ -114,13 +114,12 @@ for thisMaster in thisFont.masters:
 				reportBadKernPair( leftSide, rightSide, masterKerning[leftSide][rightSide] )
 	
 	for leftSideGroup in ["@MMK_L_%s"%groupname for groupname in rightGroupsToBeChecked]:
-		if leftSideGroup in masterKerning:
-			for rightSide in masterKerning[leftSideGroup]:
+		if leftSideGroup in masterKerning.keys():
+			for rightSide in masterKerning[leftSideGroup].keys():
 				reportBadKernPair( leftSideGroup, rightSide, masterKerning[leftSideGroup][rightSide] )
 						
 
 print("\nDON'T FORGET:\n")
-print("  Follow the steps on:\n     http://schriftlabor.at/wiki/kerning/\n")
 print("  Please clean up kerning with:\n     Window > Kerning > gear menu > Clean up\n")
 print("  Please test for overkerns with:\n     Script > mekkablue > Metrics > New Tab wth Overkerned Pairs\n")
 print("  Please test for very small pairs with:\n     Script > mekkablue > Metrics > Delete Small Kern Pairs\n")
