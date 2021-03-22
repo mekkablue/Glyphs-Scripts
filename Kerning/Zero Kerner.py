@@ -133,12 +133,13 @@ class ZeroKerner( object ):
 						self.w.progress.set( masterCount )
 						pairsToBeRemoved = []
 						
-						for j,leftSide in enumerate(thisFont.kerning[thisMaster.id]):
+						for j,leftSide in enumerate(thisFont.kerning[thisMaster.id].keys()):
 							kernCount = j*masterCountPart/kerningLength
 							self.w.progress.set( masterCount+kernCount )
 							
 							if leftSide.startswith("@"):
-								for rightSide in thisFont.kerning[thisMaster.id][leftSide]:
+								for rightSide in thisFont.kerning[thisMaster.id][leftSide].keys():
+									
 									if rightSide.startswith("@") and thisFont.kerning[thisMaster.id][leftSide][rightSide]==0:
 										pairsToBeRemoved.append( (leftSide,rightSide) )
 										self.report(
