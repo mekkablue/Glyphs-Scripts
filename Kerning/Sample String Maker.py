@@ -7,6 +7,8 @@ Creates kern strings for all kerning groups in user-defined categories and adds 
 
 import vanilla, sampleText
 
+CASE = [None, "Uppercase", "Lowercase"]
+
 class SampleStringMaker( object ):
 	categoryList = (
 		"Letter:Uppercase",
@@ -159,39 +161,36 @@ class SampleStringMaker( object ):
 				rightSubCategory = rightChoice.split(":")[1]
 				
 			includeNonExporting = Glyphs.defaults["com.mekkablue.SampleStringMaker.includeNonExporting"]
+
+			glyphNamesLeft = [ ]
+			for g in thisFont.glyphs :
+				glyph_subCategory = g.subCategory
+				if Glyphs.versionNumber >= 3:
+					if glyph_subCategory is None:
+						glyph_subCategory = CASE[g.case]
+				if g.category == leftCategory and \
+				( leftSubCategory is None or glyph_subCategory == leftSubCategory ) and \
+				( g.script == chosenScript or (leftCategory != "Letter" and g.script is None) ) and \
+				(g.export or includeNonExporting) and \
+				not g.name in self.exclusion and \
+				not self.glyphNameIsExcluded(g.name):
+					glyphNamesLeft += [g.name]
+
+
+			glyphNamesRight = [ ]
+			for g in thisFont.glyphs :
+				glyph_subCategory = g.subCategory
+				if Glyphs.versionNumber >= 3:
+					if glyph_subCategory is None:
+						glyph_subCategory = CASE[g.case]
+				if g.category == rightCategory and \
+				( rightSubCategory is None or glyph_subCategory == rightSubCategory ) and \
+				( g.script == chosenScript or (rightCategory != "Letter" and g.script is None) ) and \
+				(g.export or includeNonExporting) and \
+				not g.name in self.exclusion and \
+				not self.glyphNameIsExcluded(g.name):
+					glyphNamesRight += [g.name]
 			
-			glyphNamesLeft = [ 
-				g.name for g in thisFont.glyphs 
-				if g.category == leftCategory
-				and (
-					leftSubCategory is None 
-					or g.subCategory == leftSubCategory
-					)
-				and (
-					g.script == chosenScript
-					or (leftCategory != "Letter" and g.script is None)
-					)
-				and (g.export or includeNonExporting)
-				and not g.name in self.exclusion
-				and not self.glyphNameIsExcluded(g.name)
-			]
-			
-			
-			glyphNamesRight = [ 
-				g.name for g in thisFont.glyphs 
-				if g.category == rightCategory
-				and (
-					rightSubCategory is None 
-					or g.subCategory == rightSubCategory
-					)
-				and (
-					g.script == chosenScript
-					or (rightCategory != "Letter" and g.script is None)
-					)
-				and (g.export or includeNonExporting)
-				and not g.name in self.exclusion
-				and not self.glyphNameIsExcluded(g.name)
-			]
 			
 			print("Found %i left groups, %i right groups." % (
 				len(glyphNamesLeft),
@@ -240,4 +239,5 @@ class SampleStringMaker( object ):
 			import traceback
 			print(traceback.format_exc())
 
+Glyphs.clearLog()
 SampleStringMaker()

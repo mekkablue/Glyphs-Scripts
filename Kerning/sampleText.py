@@ -2,45 +2,79 @@
 from __future__ import print_function
 from GlyphsApp import Glyphs
 from AppKit import NSNotFound
+from collections import OrderedDict
 
-def setSelectSampleTextIndex( thisFont, tab=None, marker="### CUSTOM KERN STRING ###"):
-	sampleTexts = tuple(Glyphs.defaults["SampleTexts"])
-	sampleTextIndex = sampleTexts.index(marker)
-	if sampleTextIndex > -1:
-		if not tab:
-			tab = thisFont.currentTab
-			if not tab:
-				tab = thisFont.newTab()
-		tab.selectSampleTextArrayController().setSelectionIndex_(sampleTextIndex+1)
-		tab.text = sampleTexts[sampleTextIndex+1]
+def setSelectSampleTextIndex( thisFont, tab=None, marker="::kerningString::"):
+	if Glyphs.versionNumber >= 3:
+		# Glyphs 3 code
+		sampleTexts = OrderedDict([(d['name'], d['text']) for d in Glyphs.defaults["SampleTextsList"]])
+		print("DELETE ME", sampleTexts)
+		foundSampleString = False
+		for sampleTextIndex, k in enumerate(sampleTexts.keys()):
+			print(marker,k,marker in k)
+			if marker in k:
+				foundSampleString = True
+				if not tab:
+					tab = thisFont.currentTab
+					if not tab:
+						tab = thisFont.newTab()
+				tab.selectSampleTextArrayController().setSelectionIndex_(sampleTextIndex+1)
+				tab.text = sampleTexts[sampleTexts.keys()[sampleTextIndex+1]]
+				break
+
+		if not foundSampleString:
+			print("Warning: Could not find '%s' in sample strings." % marker)
 	else:
-		print("Warning: Could not find '%s' in sample strings." % marker)
+		# Glyphs 2 code
+		sampleTexts = tuple(Glyphs.defaults["SampleTexts"])
 
-def addToSampleText( kernStrings, marker="### CUSTOM KERN STRING ###" ):
+		sampleTextIndex = sampleTexts.index(marker)
+		if sampleTextIndex > -1:
+			if not tab:
+				tab = thisFont.currentTab
+				if not tab:
+					tab = thisFont.newTab()
+			tab.selectSampleTextArrayController().setSelectionIndex_(sampleTextIndex+1)
+			tab.text = sampleTexts[sampleTextIndex+1]
+		else:
+			print("Warning: Could not find '%s' in sample strings." % marker)
+
+def addToSampleText( kernStrings, marker="::kerningString::"):
 	if kernStrings is None:
 		print("No kern strings generated.")
 		return False
 	else:
 		# Get current sample texts:
-		sampleTexts = Glyphs.defaults["SampleTexts"].mutableCopy()
-	
-		# Cut off after marker text:
-		i = sampleTexts.indexOfObject_(marker)
-		if i == NSNotFound:
-			print("Warning: Could not find this marker:\n%s\nAppending it..." % marker)
-			sampleTexts.append(marker)
+		if Glyphs.versionNumber >= 3:
+			# Glyphs 3 code
+			
+			sampleTexts = Glyphs.defaults["SampleTextsList"].mutableCopy()
+			for name in kernStrings:
+				text = kernStrings[name]
+				sampleTexts.append(dict(name=marker + " " + name,text=text))
+			Glyphs.defaults["SampleTextsList"] = sampleTexts
+			return True
 		else:
-			sampleTexts = sampleTexts[:i+1]
-	
-		# Add new kern strings to the list:
-		if len(kernStrings) > 0:
-			sampleTexts.extend(kernStrings)
-		else:
-			return False
-	
-		# Exchange the stored Sample Texts with the new ones:
-		Glyphs.defaults["SampleTexts"] = sampleTexts
-		return True
+			# Glyphs 2 code
+			sampleTexts = Glyphs.defaults["SampleTexts"].mutableCopy()
+			kernStringValues = list(kernStrings.values())
+			# Cut off after marker text:
+			i = sampleTexts.indexOfObject_(marker)
+			if i == NSNotFound:
+				print("Warning: Could not find this marker:\n%s\nAppending it..." % marker)
+				sampleTexts.append(marker)
+			else:
+				sampleTexts = sampleTexts[:i+1]
+		
+			# Add new kern strings to the list:
+			if len(kernStringValues) > 0:
+				sampleTexts.extend(kernStringValues)
+			else:
+				return False
+		
+			# Exchange the stored Sample Texts with the new ones:
+			Glyphs.defaults["SampleTexts"] = sampleTexts
+			return True
 
 def buildKernStrings( listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None, linePrefix="nonn", linePostfix="noon" ):
 	"""Takes a list of glyph names and returns a list of kernstrings"""
@@ -48,7 +82,7 @@ def buildKernStrings( listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None
 		print("No font detected.")
 		return None
 	else:
-		kernStrings = []
+		kernStrings = OrderedDict()
 	
 		# collect left names/groups:
 		leftGroups = []
@@ -82,12 +116,12 @@ def buildKernStrings( listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None
 					if (rightGroup is not None) and (not rightGroup in rightGroups):
 						rightGroups.append( rightGroup )
 						kernString = "%s/%s/%s %s" % ( linePrefix, leftName, rightName, linePostfix )
-						kernStrings.append( kernString )
+						kernStrings["%s-%s" % (leftName, rightName)] = kernString 
 		return kernStrings
 
 def executeAndReport( kernStrings ):
 	# brings macro window to front and clears its log:
-	Glyphs.clearLog()
+	# Glyphs.clearLog()
 	Glyphs.showMacroWindow()
 	
 	# print status and modify Sample Texts:
