@@ -71,7 +71,8 @@ class GroupsCopy(object):
 						# print e
 					
 		except Exception as e:
-			self.showMessage( "Error", e )
+			import traceback
+			print(traceback.format_exc())
 			
 		finally:
 			print("Done.")
