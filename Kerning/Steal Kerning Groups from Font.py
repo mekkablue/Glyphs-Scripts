@@ -59,12 +59,35 @@ class GroupsCopy(object):
 						oldR = thisGlyph.rightKerningGroup
 						newL = sourceGlyph.leftKerningGroup
 						newR = sourceGlyph.rightKerningGroup
-						
+
 						if oldL != newL or oldR != newR:
 							thisGlyph.leftKerningGroup  = newL
 							thisGlyph.rightKerningGroup = newR
 							
 							print("   ", glyphName, ":", newL, "<--->", newR)
+
+						
+						
+						# start: temporary fix for 3.0.3 unwrapped vertical kerning
+						def kerningGetter(kerning):
+							if kerning is not None and not isinstance(kerning, str):
+								kerning = kerning()
+							return kerning
+
+						
+						# end: temporary fix for 3.0.3 unwrapped vertical kerning
+
+						oldT = kerningGetter(thisGlyph.topKerningGroup)
+						oldB = kerningGetter(thisGlyph.bottomKerningGroup)
+						newT = kerningGetter(sourceGlyph.topKerningGroup)
+						newB = kerningGetter(sourceGlyph.bottomKerningGroup)
+						
+						if oldT != newT or oldB != newB:
+							thisGlyph.leftKerningGroup  = newL
+							thisGlyph.setTopKerningGroup_(newT)
+							thisGlyph.setBottomKerningGroup_(newB)
+							
+							print("   ", glyphName, ":", newT, "\n ^\n |\n V\n", newB)
 						pass
 					except Exception as e:
 						print("   ", glyphName,": Error")
