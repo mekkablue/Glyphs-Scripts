@@ -130,7 +130,7 @@ try:
 	print("\nExtracting kerning from document: %s" % docName)
 except Exception as e:
 	print("\nERROR while trying to extract the name of the first InDesign document.")
-	print("Possible causes:\n  1. No permissions in System Preferences > Security & Privacy > Privacy > Automation > Glyphs. Please review.\n  2. No document open in InDesign; will try to continue.")
+	print("Possible causes:\n  1. No permissions in System Preferences > Security & Privacy > Privacy > Automation > Glyphs. Please review.\n  2. No document open in InDesign; will try to continue.\n  3. New document has not been saved yet.")
 	print(e)
 	print()
 
