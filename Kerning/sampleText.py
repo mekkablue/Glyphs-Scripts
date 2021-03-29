@@ -11,7 +11,6 @@ def setSelectSampleTextIndex( thisFont, tab=None, marker="### CUSTOM KERN STRING
 
 		foundSampleString = False
 		for sampleTextIndex, k in enumerate(sampleTexts.keys()):
-			print(marker,k,marker in k)
 			if marker in k:
 				foundSampleString = True
 				if not tab:
