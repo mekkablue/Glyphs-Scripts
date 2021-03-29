@@ -49,6 +49,7 @@ def addToSampleText( kernStrings, marker="### CUSTOM KERN STRING ###"):
 			sampleTexts = Glyphs.defaults["SampleTextsList"].mutableCopy()	
 
 			# clear old kerning strings
+			indexesToRemove = []
 			for index, sampleText in enumerate(sampleTexts):
 				if sampleText["name"] == marker:
 					indexesToRemove += [index]
