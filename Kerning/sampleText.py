@@ -4,11 +4,11 @@ from GlyphsApp import Glyphs
 from AppKit import NSNotFound
 from collections import OrderedDict
 
-def setSelectSampleTextIndex( thisFont, tab=None, marker="::kerningString::"):
+def setSelectSampleTextIndex( thisFont, tab=None, marker="### CUSTOM KERN STRING ###"):
 	if Glyphs.versionNumber >= 3:
 		# Glyphs 3 code
 		sampleTexts = OrderedDict([(d['name'], d['text']) for d in Glyphs.defaults["SampleTextsList"]])
-		print("DELETE ME", sampleTexts)
+
 		foundSampleString = False
 		for sampleTextIndex, k in enumerate(sampleTexts.keys()):
 			print(marker,k,marker in k)
@@ -39,7 +39,7 @@ def setSelectSampleTextIndex( thisFont, tab=None, marker="::kerningString::"):
 		else:
 			print("Warning: Could not find '%s' in sample strings." % marker)
 
-def addToSampleText( kernStrings, marker="::kerningString::"):
+def addToSampleText( kernStrings, marker="### CUSTOM KERN STRING ###"):
 	if kernStrings is None:
 		print("No kern strings generated.")
 		return False
@@ -47,17 +47,14 @@ def addToSampleText( kernStrings, marker="::kerningString::"):
 		# Get current sample texts:
 		if Glyphs.versionNumber >= 3:
 			# Glyphs 3 code
-			
 			sampleTexts = Glyphs.defaults["SampleTextsList"].mutableCopy()
-			for name in kernStrings:
-				text = kernStrings[name]
-				sampleTexts.append(dict(name=marker + " " + name,text=text))
+			sampleTexts.append(dict(name=marker,text="\n".join(kernStrings)))
 			Glyphs.defaults["SampleTextsList"] = sampleTexts
 			return True
 		else:
 			# Glyphs 2 code
 			sampleTexts = Glyphs.defaults["SampleTexts"].mutableCopy()
-			kernStringValues = list(kernStrings.values())
+			kernStringValues = kernStrings
 			# Cut off after marker text:
 			i = sampleTexts.indexOfObject_(marker)
 			if i == NSNotFound:
@@ -82,7 +79,7 @@ def buildKernStrings( listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None
 		print("No font detected.")
 		return None
 	else:
-		kernStrings = OrderedDict()
+		kernStrings = []
 	
 		# collect left names/groups:
 		leftGroups = []
@@ -116,7 +113,7 @@ def buildKernStrings( listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None
 					if (rightGroup is not None) and (not rightGroup in rightGroups):
 						rightGroups.append( rightGroup )
 						kernString = "%s/%s/%s %s" % ( linePrefix, leftName, rightName, linePostfix )
-						kernStrings["%s-%s" % (leftName, rightName)] = kernString 
+						kernStrings += [ kernString ]
 		return kernStrings
 
 def executeAndReport( kernStrings ):
