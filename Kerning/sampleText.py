@@ -46,7 +46,15 @@ def addToSampleText( kernStrings, marker="### CUSTOM KERN STRING ###"):
 		# Get current sample texts:
 		if Glyphs.versionNumber >= 3:
 			# Glyphs 3 code
-			sampleTexts = Glyphs.defaults["SampleTextsList"].mutableCopy()
+			sampleTexts = Glyphs.defaults["SampleTextsList"].mutableCopy()	
+
+			# clear old kerning strings
+			for index, sampleText in enumerate(sampleTexts):
+				if sampleText["name"] == marker:
+					indexesToRemove += [index]
+			for index in reversed(indexesToRemove):
+				sampleTexts.removeObjectAtIndex_(index)
+
 			sampleTexts.append(dict(name=marker,text="\n".join(kernStrings)))
 			Glyphs.defaults["SampleTextsList"] = sampleTexts
 			return True
