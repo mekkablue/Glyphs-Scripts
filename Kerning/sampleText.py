@@ -82,12 +82,14 @@ def addToSampleText( kernStrings, marker="### CUSTOM KERN STRING ###"):
 			Glyphs.defaults["SampleTexts"] = sampleTexts
 			return True
 
-def buildKernStrings( listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None, linePrefix="nonn", linePostfix="noon" ):
+def buildKernStrings( listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None, linePrefix="nonn", linePostfix="noon", mirrorPair=False):
 	"""Takes a list of glyph names and returns a list of kernstrings"""
 	if thisFont is None:
 		print("No font detected.")
 		return None
 	else:
+		
+
 		kernStrings = []
 	
 		# collect left names/groups:
@@ -121,7 +123,10 @@ def buildKernStrings( listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None
 					rightGroup = thisFont.glyphs[rightName].leftKerningGroup
 					if (rightGroup is not None) and (not rightGroup in rightGroups):
 						rightGroups.append( rightGroup )
-						kernString = "%s/%s/%s %s" % ( linePrefix, leftName, rightName, linePostfix )
+						if not mirrorPair:
+							kernString = "%s/%s/%s %s" % ( linePrefix, leftName, rightName, linePostfix )
+						else:
+							kernString = "%s/%s/%s/%s %s" % ( linePrefix, leftName, rightName, leftName, linePrefix )
 						kernStrings += [ kernString ]
 		return kernStrings
 

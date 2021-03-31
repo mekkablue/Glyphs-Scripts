@@ -89,6 +89,10 @@ class SampleStringMaker( object ):
 		self.w.overrideContext.getNSButton().setToolTip_("If checked, the surrounding glyphs will be replaced with those given in the text box. Comma will separate the left side context from the right side context.")
 		self.w.contextGlyphs = vanilla.EditText( (inset+150, linePos, -inset, 19), "HOOH,noon", callback=self.SavePreferences, sizeStyle='small' )
 		linePos += lineHeight
+
+		self.w.mirrorPair = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Mirror kerning pair.", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.mirrorPair.getNSButton().setToolTip_("If checked, will create a mirrored version of the kerning string.")
+		linePos += lineHeight
 		
 		
 		# Run Button:
@@ -113,6 +117,7 @@ class SampleStringMaker( object ):
 			Glyphs.defaults["com.mekkablue.SampleStringMaker.openTab"] = self.w.openTab.get()
 			Glyphs.defaults["com.mekkablue.SampleStringMaker.overrideContext"] = self.w.overrideContext.get()
 			Glyphs.defaults["com.mekkablue.SampleStringMaker.contextGlyphs"] = self.w.contextGlyphs.get()
+			Glyphs.defaults["com.mekkablue.SampleStringMaker.mirrorPair"] = self.w.mirrorPair.get()
 		except:
 			return False
 			
@@ -128,6 +133,7 @@ class SampleStringMaker( object ):
 			Glyphs.registerDefault("com.mekkablue.SampleStringMaker.openTab", 1)
 			Glyphs.registerDefault("com.mekkablue.SampleStringMaker.overrideContext", 0)
 			Glyphs.registerDefault("com.mekkablue.SampleStringMaker.contextGlyphs", "HOOH,noon")
+			Glyphs.registerDefault("com.mekkablue.SampleStringMaker.mirrorPair", 0)
 
 			self.w.scriptPopup.set( Glyphs.defaults["com.mekkablue.SampleStringMaker.scriptPopup"] )
 			self.w.leftCategoryPopup.set( Glyphs.defaults["com.mekkablue.SampleStringMaker.leftCategoryPopup"] )
@@ -137,6 +143,7 @@ class SampleStringMaker( object ):
 			self.w.openTab.set( Glyphs.defaults["com.mekkablue.SampleStringMaker.openTab"] )
 			self.w.overrideContext.set( Glyphs.defaults["com.mekkablue.SampleStringMaker.overrideContext"] )
 			self.w.contextGlyphs.set( Glyphs.defaults["com.mekkablue.SampleStringMaker.contextGlyphs"] )
+			self.w.mirrorPair.set( Glyphs.defaults["com.mekkablue.SampleStringMaker.mirrorPair"] )
 		except:
 			return False
 			
@@ -241,13 +248,18 @@ class SampleStringMaker( object ):
 			if self.w.overrideContext.get() == 1:
 				linePrefix, linePostfix = self.parseTheContextGlyphs()
 
+			mirrorPair = False
+			if self.w.mirrorPair.get() == 1:
+				mirrorPair = True
+
 			kernStrings = sampleText.buildKernStrings( 
 				glyphNamesLeft, glyphNamesRight, 
 				thisFont=thisFont, 
 				linePrefix=linePrefix, 
 				linePostfix=linePostfix,
+				mirrorPair=mirrorPair
 			)
-
+			
 			sampleText.executeAndReport( kernStrings )
 			
 			if Glyphs.defaults["com.mekkablue.SampleStringMaker.openTab"]:
