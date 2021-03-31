@@ -5,7 +5,7 @@ __doc__="""
 Creates kern strings for all kerning groups in user-defined categories and adds them to the Sample Strings. Group kerning only, glyphs without groups are ignored.
 """
 
-import vanilla, sampleText
+import vanilla, sampleText, kernanalysis
 
 CASE = [None, "Uppercase", "Lowercase"]
 
@@ -40,7 +40,7 @@ class SampleStringMaker( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 340
-		windowHeight = 220
+		windowHeight = 286
 		windowWidthResize  = 300 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -84,6 +84,11 @@ class SampleStringMaker( object ):
 		self.w.openTab = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Open new tab at first kern string.", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.openTab.getNSButton().setToolTip_("If checked, a new tab will be opened with the first found kern string, and the cursor positioned accordingly, ready for group kerning and switching to the next sample string.")
 		linePos += lineHeight
+
+		self.w.overrideContext = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Override context glyphs.", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.overrideContext.getNSButton().setToolTip_("If checked, the surrounding glyphs will be replaced with those given in the text box. Comma will separate the left side context from the right side context.")
+		self.w.contextGlyphs = vanilla.EditText( (inset+150, linePos, -inset, 19), "HOOH,noon", callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
 		
 		
 		# Run Button:
@@ -106,6 +111,8 @@ class SampleStringMaker( object ):
 			Glyphs.defaults["com.mekkablue.SampleStringMaker.includeNonExporting"] = self.w.includeNonExporting.get()
 			Glyphs.defaults["com.mekkablue.SampleStringMaker.excludedGlyphNameParts"] = self.w.excludedGlyphNameParts.get()
 			Glyphs.defaults["com.mekkablue.SampleStringMaker.openTab"] = self.w.openTab.get()
+			Glyphs.defaults["com.mekkablue.SampleStringMaker.overrideContext"] = self.w.overrideContext.get()
+			Glyphs.defaults["com.mekkablue.SampleStringMaker.contextGlyphs"] = self.w.contextGlyphs.get()
 		except:
 			return False
 			
@@ -119,12 +126,17 @@ class SampleStringMaker( object ):
 			Glyphs.registerDefault("com.mekkablue.SampleStringMaker.includeNonExporting", 0)
 			Glyphs.registerDefault("com.mekkablue.SampleStringMaker.excludedGlyphNameParts", ".tf, .tosf, ord")
 			Glyphs.registerDefault("com.mekkablue.SampleStringMaker.openTab", 1)
+			Glyphs.registerDefault("com.mekkablue.SampleStringMaker.overrideContext", 0)
+			Glyphs.registerDefault("com.mekkablue.SampleStringMaker.contextGlyphs", "HOOH,noon")
+
 			self.w.scriptPopup.set( Glyphs.defaults["com.mekkablue.SampleStringMaker.scriptPopup"] )
 			self.w.leftCategoryPopup.set( Glyphs.defaults["com.mekkablue.SampleStringMaker.leftCategoryPopup"] )
 			self.w.rightCategoryPopup.set( Glyphs.defaults["com.mekkablue.SampleStringMaker.rightCategoryPopup"] )
 			self.w.includeNonExporting.set( Glyphs.defaults["com.mekkablue.SampleStringMaker.includeNonExporting"] )
 			self.w.excludedGlyphNameParts.set( Glyphs.defaults["com.mekkablue.SampleStringMaker.excludedGlyphNameParts"] )
 			self.w.openTab.set( Glyphs.defaults["com.mekkablue.SampleStringMaker.openTab"] )
+			self.w.overrideContext.set( Glyphs.defaults["com.mekkablue.SampleStringMaker.overrideContext"] )
+			self.w.contextGlyphs.set( Glyphs.defaults["com.mekkablue.SampleStringMaker.contextGlyphs"] )
 		except:
 			return False
 			
@@ -136,6 +148,16 @@ class SampleStringMaker( object ):
 			if forbiddenPart in glyphName:
 				return True
 		return False
+
+	def parseTheContextGlyphs(self):
+ 		separator = ","
+		txt = self.w.contextGlyphs.get()
+		if separator in txt:
+			lines = txt.split(separator)
+			linePrefix, linePostfix = lines[0],separator.join(lines[1:])
+		else:
+			linePrefix, linePostfix = txt, txt
+		return linePrefix, linePostfix
 	
 	def SampleStringMakerMain( self, sender ):
 		try:
@@ -178,6 +200,7 @@ class SampleStringMaker( object ):
 
 
 			glyphNamesRight = [ ]
+
 			for g in thisFont.glyphs :
 				glyph_subCategory = g.subCategory
 				if Glyphs.versionNumber >= 3:
@@ -215,6 +238,8 @@ class SampleStringMaker( object ):
 				
 			# if rightSubCategory == "Uppercase":
 			# 	linePostfix = "HOOH"
+			if self.w.overrideContext.get() == 1:
+				linePrefix, linePostfix = self.parseTheContextGlyphs()
 
 			kernStrings = sampleText.buildKernStrings( 
 				glyphNamesLeft, glyphNamesRight, 

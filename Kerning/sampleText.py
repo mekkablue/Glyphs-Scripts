@@ -61,8 +61,9 @@ def addToSampleText( kernStrings, marker="### CUSTOM KERN STRING ###"):
 			return True
 		else:
 			# Glyphs 2 code
+			# Get current sample texts:
 			sampleTexts = Glyphs.defaults["SampleTexts"].mutableCopy()
-			kernStringValues = kernStrings
+		
 			# Cut off after marker text:
 			i = sampleTexts.indexOfObject_(marker)
 			if i == NSNotFound:
@@ -72,8 +73,8 @@ def addToSampleText( kernStrings, marker="### CUSTOM KERN STRING ###"):
 				sampleTexts = sampleTexts[:i+1]
 		
 			# Add new kern strings to the list:
-			if len(kernStringValues) > 0:
-				sampleTexts.extend(kernStringValues)
+			if len(kernStrings) > 0:
+				sampleTexts.extend(kernStrings)
 			else:
 				return False
 		
