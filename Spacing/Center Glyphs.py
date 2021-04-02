@@ -52,7 +52,7 @@ try:
 		
 except Exception as e:
 	Glyphs.showMacroWindow()
-	print("\n⚠️ Script Error:\n")
+	print("\n⚠️ 'Center Glyphs' Script Error:\n")
 	import traceback
 	print(traceback.format_exc())
 	print()
@@ -61,5 +61,5 @@ except Exception as e:
 finally:
 	Font.enableUpdateInterface() # re-enables UI updates in Font View
 
-print("Centered: %s" % (", ".join( [ l.parent.name for l in selectedLayers ] )))
+print("✅ Centered: %s" % (", ".join( [ l.parent.name for l in selectedLayers ] )))
 
