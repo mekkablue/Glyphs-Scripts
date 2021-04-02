@@ -312,7 +312,10 @@ class QuoteManager( object ):
 									print(u"    ⚠️ WARNING: No components in %s, layer '%s'. Cannot add anchors." % ( referenceLayer.parent.name, referenceLayer.name ))
 								
 			self.openTabIfRequested()
-			Font.updateInterface()
+			try:
+				Font.updateInterface()
+			except:
+				pass
 			Font.currentTab.redraw()
 			
 		except Exception as e:
