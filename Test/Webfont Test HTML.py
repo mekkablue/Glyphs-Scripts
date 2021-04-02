@@ -108,7 +108,7 @@ def activeInstancesOfProject( thisProject, fileFormats=("woff","woff2") ):
 def optionListForInstances( instanceList ):
 	returnString = ""
 	for thisInstanceInfo in instanceList:
-		returnString += '		<option value="%s">%s</option>\n' % ( thisInstanceInfo[0], thisInstanceInfo[1] )
+		returnString += '			<option value="%s">%s</option>\n' % ( thisInstanceInfo[0], thisInstanceInfo[1] )
 		# <option value="fileName">baseName</option>
 	
 	return returnString
