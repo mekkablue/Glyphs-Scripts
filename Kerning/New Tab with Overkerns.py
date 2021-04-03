@@ -62,6 +62,9 @@ class FindOverkerns( object ):
 
 	def FindOverkernsMain( self, sender ):
 		try:
+			# brings macro window to front and clears its log:
+			Glyphs.clearLog()
+			
 			# retrieve user entry:
 			thresholdFactor = None
 			try:
@@ -161,7 +164,11 @@ class FindOverkerns( object ):
 								errormsg = traceback.format_exc().lower()
 								for side in ("left","right"):
 									if not side in errormsg:
-										print("Warning: The %s group '%s' found in your kerning data does not appear in any glyph. Clean up your kerning, and run the script again.")
+										print(
+											"⚠️ Warning: The %s group '%s' found in your kerning data does not appear in any glyph. Clean up your kerning, and run the script again." % (
+												side,
+												groupName,
+										))
 								
 				
 				if tabText:
