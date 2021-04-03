@@ -495,14 +495,15 @@ class Bumper( object ):
 								if minDistance and (not distanceBetweenShapes is None) and (distanceBetweenShapes < minDistance):
 									if self.addMissingKerning( thisFont, thisMasterID, leftSide, rightSide, minDistance, distanceBetweenShapes, existingKerning=kerning ):
 										kernCount += 1
-										tabString += "/%s/%s " % (leftGlyph.name, rightGlyph.name)
+										tabString += "/%s/%s  " % (leftGlyph.name, rightGlyph.name)
 								
 								# negative kerning (if desired):
 								if maxDistance and (not distanceBetweenShapes is None) and (distanceBetweenShapes > maxDistance):
 									if self.addMissingKerning( thisFont, thisMasterID, leftSide, rightSide, maxDistance, distanceBetweenShapes, existingKerning=kerning ):
 										kernCount += 1
-										tabString += "/%s/%s " % (leftGlyph.name, rightGlyph.name)
+										tabString += "/%s/%s  " % (leftGlyph.name, rightGlyph.name)
 					
+					tabString = tabString.strip()
 					tabString += "\n"
 
 
