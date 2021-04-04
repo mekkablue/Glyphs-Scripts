@@ -20,7 +20,7 @@ if exitStatus != 0:
 else:
 	print("Done.")
 	Glyphs.showNotification( 
-		u"Repo Update Successful",
-		u"Completed git pull in Scripts folder.",
+		"Repo Update Successful",
+		"Completed git pull in Scripts folder.",
 	)
 
