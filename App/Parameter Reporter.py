@@ -23,12 +23,12 @@ def setClipboard( myText ):
 		return False
 
 class ParameterReporter( object ):
-	try:
+	if Glyphs.versionNumber >= 3:
 		# GLYPHS 3:
 		fontParameters = GSGlyphsInfo.customFontParameters()
 		masterParameters = GSGlyphsInfo.customMasterParameters()
 		instanceParameters = GSGlyphsInfo.customInstanceParameters()
-	except Exception as e:
+	else:
 		# GLYPHS 2
 		appInfo = GSGlyphsInfo.alloc().init()
 		fontParameters = appInfo.customFontParameters()
