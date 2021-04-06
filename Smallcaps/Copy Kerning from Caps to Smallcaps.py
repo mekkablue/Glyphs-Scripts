@@ -5,6 +5,9 @@ __doc__="""
 Looks for cap kerning pairs and reduplicates their kerning for corresponding .sc glyphs, if they are available in the font. Please be careful: Will overwrite existing SC kerning pairs.
 """
 
+if Glyphs.versionNumber >= 3:
+	from GlyphsApp import GSUppercase, GSSmallcaps
+
 smallcapSuffix = ".sc"
 # or ".c2sc"
 # or ".smcp"
@@ -16,7 +19,7 @@ areSmallcapsNamedLowercase = True
 def thisGlyphIsUppercase( glyphName, thisFont=Glyphs.font ):
 	"""Tests if the glyph referenced by the supplied glyphname is an uppercase glyph."""
 	try:
-		if glyphName and thisFont.glyphs[glyphName].subCategory == "Uppercase":
+		if glyphName and isUppercase(thisFont.glyphs[glyphName]):
 			return True
 		return False
 	except Exception as e:
@@ -45,6 +48,25 @@ def smallcapName( glyphName="scGlyph", suffix=".sc", lowercase=True ):
 		print("Error: %s" % e)
 		return None
 
+def isUppercase(glyph):
+	if Glyphs.versionNumber >= 3:
+		if glyph.case == GSUppercase:
+			return True
+	else:
+		if glyph.subCategory == "Uppercase":
+			return True
+	return False
+
+def isSmallcap(glyph):
+	if Glyphs.versionNumber >= 3:
+		if glyph.case == GSSmallcaps:
+			return True
+	else:
+		if glyph.subCategory == "Smallcaps":
+			return True
+	return False
+		
+		
 thisFont = Glyphs.font
 selectedFontMaster = thisFont.selectedFontMaster
 fontMasterID = selectedFontMaster.id
@@ -63,7 +85,7 @@ print("Master: %s\n" % ( fontMasterName ))
 print("Kerning Groups:")
 UppercaseGroups = set()
 for g in thisFont.glyphs:
-	if g.subCategory == "Uppercase":
+	if isUppercase(g):
 		ucGlyphName = g.name
 		scGlyphName = smallcapName( ucGlyphName )
 		scGlyph = thisFont.glyphs[scGlyphName]
