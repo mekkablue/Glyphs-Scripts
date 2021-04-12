@@ -93,10 +93,10 @@ class FindAndReplaceCorners( object ):
 						if thisHint.name == searchString:
 							thisHint.setName_(replaceString)
 							print(" %s" % ( thisLayer.parent.name ))
-							displayReportString = True
+				# 			displayReportString = True
 				
-				if displayReportString:
-					Glyphs.showMacroWindow()
+				# if displayReportString:
+				# 	Glyphs.showMacroWindow()
 			
 			self.w.close() # delete if you want window to stay open
 			
