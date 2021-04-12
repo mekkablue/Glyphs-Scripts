@@ -7,6 +7,17 @@ Removes the specified component from all (selected) glyphs.
 
 import vanilla
 
+def deleteCornerComponent( componentName, thisLayer ):
+	indToDel = []
+	for i, h in enumerate(thisLayer.hints):
+		if h.isCorner:
+			#help(h)
+			if h.name == componentName:
+				indToDel += [i]
+	indToDel = list(reversed(indToDel))
+	for i in indToDel:
+		del thisLayer.hints[i]
+
 class RemoveComponentfromSelectedGlyphs( object ):
 	def __init__( self ):
 		# Window 'self.w':
@@ -83,6 +94,8 @@ class RemoveComponentfromSelectedGlyphs( object ):
 						del(thisLayer.shapes[index])
 					else:
 						thisLayer.removeComponent_( thisComponent )
+
+		deleteCornerComponent(componentName)
 		
 	def removeComponentFromGlyph(self, componentName, thisGlyph):
 		for thisLayer in thisGlyph.layers:
