@@ -14,9 +14,12 @@ for z1 in figures:
 		text += z2 + z1
 	text += "\n"
 
+	
 try:
 	# opens new Edit tab with figure combos:
-	Glyphs.newTab(text)
+	thisFont = Glyphs.font
+	thisFont.newTab(text)
+	
 except:
 	# in case last line fails, the text is in the macro window:
 	Glyphs.clearLog()
