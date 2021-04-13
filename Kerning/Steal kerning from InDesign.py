@@ -179,7 +179,7 @@ for thisline in kernInfo.splitlines():
 				#check for right side:
 				rightSide = glyphNameForLetter(thisline[1])
 				if not rightSide:
-					print(u"WARNING:\n  Could not determine (right) glyph name: %s.\nS  kipping pair ‘%s%s’.\n" % ( thisline[1], thisline[0], thisline[1]))
+					print(u"WARNING:\n  Could not determine (right) glyph name: %s.\n  Skipping pair ‘%s%s’.\n" % ( thisline[1], thisline[0], thisline[1]))
 				else:
 					if not thisFont.glyphs[rightSide]:
 						print(u"WARNING:\n  Expected (right) glyph /%s not found in %s.\n  Skipping pair ‘%s%s’.\n" % ( rightSide, thisFont.familyName, thisline[0], thisline[1] ))
@@ -195,6 +195,7 @@ for thisline in kernInfo.splitlines():
 						except Exception as e:
 							print("  ERROR: Could not set kerning for %s:%s.\n" % (leftSide, rightSide))
 							print(e)
+							print("  Offending line:\n  %s"%thisline)
 							import traceback
 							print(traceback.format_exc())
 
