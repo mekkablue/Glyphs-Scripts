@@ -157,6 +157,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Populate Backgrounds with Components:** Removes the specified component from all glyphs or all selected glyphs. *Needs Vanilla.*
 * **Propagate Corner Components to Other Masters:** Tries to recreate the corner components of the current master layer in all other masters of the same glyph. Make sure your outlines are compatible.
 * **Remove Components:** Removes the specified component from all (selected) glyphs.
+* **Remove Detached Corners:** Removes detached corner component from all (selected) glyphs.
 * **Stitcher:** In selected glyphs, the Stitcher inserts components on your paths at fixed intervals. Useful for turning open paths (monolines) into dotted lines. Use an anchor called 'origin' for determining the component position in stitched letters. Consider using the [Stitcher plug-in](glyphsapp3://showplugin/Stitcher) instead. *Needs Vanilla.*
 * **Sync Components Across Masters:** Takes the current layer’s components, and resets all other masters to the same component structure. Ignores paths and anchors. Hold down Option key to *delete* all paths and anchors.
 
