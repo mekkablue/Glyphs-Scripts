@@ -16,6 +16,21 @@ thisFontMaster = thisFont.selectedFontMaster # active master
 thisFontMasterID = thisFontMaster.id # active master id
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 
+replacements = {
+	"bullet character": "•",
+	"copyright symbol": "©",
+	"double left quote": "“",
+	"double right quote": "”",
+	"ellipsis character": "…",
+	"Em dash": "—",
+	"En dash": "–",
+	"nonbreaking space": " ",
+	"section symbol": "§",
+	"single left quote": "‘",
+	"single right quote": "’",
+	"trademark symbol": "™",
+}
+
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
@@ -53,6 +68,13 @@ def runAppleScript(scriptSource, args=[]):
 		return result.stringValue()
 	else:
 		return True
+
+def cleanText(thisText, cleanDict):
+	"""cleanDict={"searchFor":"replaceWith"}"""
+	for searchFor in cleanDict.keys():
+		replaceWith = cleanDict[searchFor]
+		thisText = thisText.replace(searchFor, replaceWith)
+	return thisText
 
 # Determine InDesign application name (for use in the AppleScripts):
 
@@ -165,27 +187,28 @@ print(u"Applying kerning to: %s, Master: %s\n" % (thisFont.familyName, thisFontM
 kernPairCount = 0
 
 # Parse kern strings and set kerning in the font:
-for thisline in kernInfo.splitlines():
-	if len(thisline) > 3:
-		
+for thisLine in kernInfo.splitlines():
+	if len(thisLine) > 3:
+		# sometimes, InD returns a char description rather than a char 🤷🏻‍♀️, this is a hack that fixes it:
+		thisLine = cleanText(thisLine, replacements)
 		# check for left side:
-		leftSide = glyphNameForLetter(thisline[0])
+		leftSide = glyphNameForLetter(thisLine[0])
 		if not leftSide:
-			print(u"WARNING:\n  Could not determine (left) glyph name: %s.\n  Skipping pair ‘%s%s’.\n" % ( thisline[0], thisline[0], thisline[1]))
+			print(u"WARNING:\n  Could not determine (left) glyph name: %s.\n  Skipping pair ‘%s%s’.\n" % ( thisLine[0], thisLine[0], thisLine[1]))
 		else:
 			if not thisFont.glyphs[leftSide]:
-				print(u"WARNING:\n  Expected (left) glyph /%s not found in %s.\n  Skipping pair ‘%s%s’.\n" % ( leftSide, thisFont.familyName, thisline[0], thisline[1] ))
+				print(u"WARNING:\n  Expected (left) glyph /%s not found in %s.\n  Skipping pair ‘%s%s’.\n" % ( leftSide, thisFont.familyName, thisLine[0], thisLine[1] ))
 			else:
 				#check for right side:
-				rightSide = glyphNameForLetter(thisline[1])
+				rightSide = glyphNameForLetter(thisLine[1])
 				if not rightSide:
-					print(u"WARNING:\n  Could not determine (right) glyph name: %s.\n  Skipping pair ‘%s%s’.\n" % ( thisline[1], thisline[0], thisline[1]))
+					print(u"WARNING:\n  Could not determine (right) glyph name: %s.\n  Skipping pair ‘%s%s’.\n" % ( thisLine[1], thisLine[0], thisLine[1]))
 				else:
 					if not thisFont.glyphs[rightSide]:
-						print(u"WARNING:\n  Expected (right) glyph /%s not found in %s.\n  Skipping pair ‘%s%s’.\n" % ( rightSide, thisFont.familyName, thisline[0], thisline[1] ))
+						print(u"WARNING:\n  Expected (right) glyph /%s not found in %s.\n  Skipping pair ‘%s%s’.\n" % ( rightSide, thisFont.familyName, thisLine[0], thisLine[1] ))
 					else:
 						try:
-							kernValue = float(thisline[3:])
+							kernValue = float(thisLine[3:])
 							if kernValue:
 								thisFont.setKerningForPair(thisFontMasterID, leftSide, rightSide, kernValue)
 								kernPairCount += 1
@@ -195,7 +218,7 @@ for thisline in kernInfo.splitlines():
 						except Exception as e:
 							print("  ERROR: Could not set kerning for %s:%s.\n" % (leftSide, rightSide))
 							print(e)
-							print("  Offending line:\n  %s"%thisline)
+							print("  Offending line:\n  %s"%thisLine)
 							import traceback
 							print(traceback.format_exc())
 
