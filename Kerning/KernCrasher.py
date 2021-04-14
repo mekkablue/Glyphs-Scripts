@@ -8,6 +8,7 @@ Opens a new tab with Kerning Combos that crash in the current fontmaster.
 import vanilla
 from timeit import default_timer as timer
 from Foundation import NSNotFound
+from kernanalysis import categoryList, intervalList, effectiveKerning
 
 intervalList = (1,3,5,10,20)
 categoryList = (

@@ -6,6 +6,7 @@ Opens a new tab containing kerning combos with the current glyph that collide in
 """
 
 from AppKit import NSNotFound, NSAffineTransform
+from kernanalysis import effectiveKerning
 
 exceptions="""
 .notdef
