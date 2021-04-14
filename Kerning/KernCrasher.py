@@ -10,20 +10,6 @@ from timeit import default_timer as timer
 from Foundation import NSNotFound
 from kernanalysis import categoryList, intervalList, effectiveKerning
 
-intervalList = (1,3,5,10,20)
-categoryList = (
-	"Letter:Uppercase",
-	"Letter:Lowercase",
-	"Letter:Smallcaps",
-	"Punctuation",
-	"Symbol:Currency",
-	"Symbol:Math",
-	"Symbol:Other",
-	"Symbol:Arrow",
-	"Number:Decimal Digit",
-	"Number:Small",
-	"Number:Fraction",
-)
 
 if Glyphs.versionNumber>=3:
 	caseDict = {
@@ -184,7 +170,7 @@ class KernCrasher( object ):
 		
 		# update speed explanation:
 		if sender == self.w.popupSpeed:
-			intervalIndex = Glyphs.defaults["com.mekkablue.KernCrasher.popupSpeed"]
+			intervalIndex = Glyphs.defafults["com.mekkablue.KernCrasher.popupSpeed"]
 			if intervalIndex is None:
 				intervalIndex = 0
 			self.w.text_speedExplanation.set( "Measuring every %i units." % intervalList[intervalIndex] )
@@ -233,21 +219,6 @@ class KernCrasher( object ):
 		else:
 			offset = glyphName.find(".")
 			return glyphName[:offset]
-	
-	def effectiveKerning( self, leftGlyphName, rightGlyphName, thisFont, thisFontMasterID ):
-		leftLayer = thisFont.glyphs[leftGlyphName].layers[thisFontMasterID]
-		rightLayer = thisFont.glyphs[rightGlyphName].layers[thisFontMasterID]
-		if Glyphs.versionNumber>=3:
-			effectiveKerning = leftLayer.nextKerningForLayer_direction_(
-				rightLayer,
-				0 # LTR
-			)
-		else:
-			effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
-		if effectiveKerning < NSNotFound:
-			return effectiveKerning
-		else:
-			return 0.0
 	
 	def listOfNamesForCategories( self, thisFont, requiredCategory, requiredSubCategory, requiredScript, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly, mustContain ):
 		nameList = []
@@ -449,7 +420,7 @@ class KernCrasher( object ):
 				for secondGlyphName in secondList:
 					rightLayer = thisFont.glyphs[secondGlyphName].layers[thisFontMasterID].copyDecomposedLayer()
 					rightLayer.decomposeSmartOutlines()
-					kerning = self.effectiveKerning( firstGlyphName, secondGlyphName, thisFont, thisFontMasterID )
+					kerning = effectiveKerning( firstGlyphName, secondGlyphName, thisFont, thisFontMasterID )
 					distanceBetweenShapes = self.minDistanceBetweenTwoLayers( leftLayer, rightLayer, interval=step, kerning=kerning, report=False, ignoreIntervals=ignoreIntervals )
 					if (not distanceBetweenShapes is None) and (distanceBetweenShapes < minDistance):
 						crashCount += 1

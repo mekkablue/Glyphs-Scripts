@@ -26,19 +26,19 @@ paragraph
 asciicircum
 """
 
-def effectiveKerning( leftGlyphName, rightGlyphName, thisFont, thisFontMasterID):
+# def effectiveKerning( leftGlyphName, rightGlyphName, thisFont, thisFontMasterID):
 	
-	leftLayer = thisFont.glyphs[leftGlyphName].layers[thisFontMasterID]
-	rightLayer = thisFont.glyphs[rightGlyphName].layers[thisFontMasterID]
-	if Glyphs.versionNumber < 3:
-		effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
-	else:
+# 	leftLayer = thisFont.glyphs[leftGlyphName].layers[thisFontMasterID]
+# 	rightLayer = thisFont.glyphs[rightGlyphName].layers[thisFontMasterID]
+# 	if Glyphs.versionNumber < 3:
+# 		effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
+# 	else:
 		
-		effectiveKerning = leftLayer.nextKerningForLayer_direction_(rightLayer, leftLayer.parent.direction)
-	if effectiveKerning < NSNotFound:
-		return effectiveKerning
-	else:
-		return 0.0
+# 		effectiveKerning = leftLayer.nextKerningForLayer_direction_(rightLayer, leftLayer.parent.direction)
+# 	if effectiveKerning < NSNotFound:
+# 		return effectiveKerning
+# 	else:
+# 		return 0.0
 
 def pathCountOnLayer( thisLayer ):
 	thisLayer.removeOverlap()

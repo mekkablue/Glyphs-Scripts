@@ -106,16 +106,32 @@ def nameUntilFirstPeriod( glyphName ):
 def effectiveKerning( leftGlyphName, rightGlyphName, thisFont, thisFontMasterID ):
 	leftLayer = thisFont.glyphs[leftGlyphName].layers[thisFontMasterID]
 	rightLayer = thisFont.glyphs[rightGlyphName].layers[thisFontMasterID]
-	if Glyphs.versionNumber >= 3.0:
-		effectiveKerning = leftLayer.nextKerningForLayer_direction_( rightLayer, LTR )
+	if Glyphs.versionNumber>=3:
+		effectiveKerning = leftLayer.nextKerningForLayer_direction_(
+			rightLayer,
+			0 # LTR
+		)
 	else:
 		effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
-	return effectiveKerning # can be NSNotFound
-	
-	# if effectiveKerning < NSNotFound:
-	# 	return effectiveKerning
+	if effectiveKerning < NSNotFound:
+		return effectiveKerning
+	else:
+		return 0.0
+
+# older version:
+# def effectiveKerning( leftGlyphName, rightGlyphName, thisFont, thisFontMasterID ):
+	# leftLayer = thisFont.glyphs[leftGlyphName].layers[thisFontMasterID]
+	# rightLayer = thisFont.glyphs[rightGlyphName].layers[thisFontMasterID]
+	# if Glyphs.versionNumber >= 3.0:
+	# 	effectiveKerning = leftLayer.nextKerningForLayer_direction_( rightLayer, LTR )
 	# else:
-	# 	return 0.0
+	# 	effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
+	# return effectiveKerning # can be NSNotFound
+	
+	# # if effectiveKerning < NSNotFound:
+	# # 	return effectiveKerning
+	# # else:
+	# # 	return 0.0
 
 def listOfNamesForCategories( thisFont, requiredCategory, requiredSubCategory, requiredScript, excludedGlyphNameParts, excludeNonExporting, suffix="" ):
 	nameList = []
