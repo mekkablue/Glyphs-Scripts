@@ -95,7 +95,7 @@ class RemoveComponentfromSelectedGlyphs( object ):
 					else:
 						thisLayer.removeComponent_( thisComponent )
 
-		deleteCornerComponent(componentName)
+		deleteCornerComponent(componentName, thisLayer)
 		
 	def removeComponentFromGlyph(self, componentName, thisGlyph):
 		for thisLayer in thisGlyph.layers:
