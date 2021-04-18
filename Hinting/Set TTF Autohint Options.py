@@ -121,13 +121,21 @@ def idotlessMeasure(instance):
 def writeOptionsToInstance( optionDict, instance ):
 	value = dictToParameterValue(optionDict)
 	try:
-		# GLYPHS 3
-		instanceWeightValue = instance.axes[0]
-	except:
-		# GLYPHS 2
-		instanceWeightValue = instance.weightValue
+		if Glyphs.versionNumber >= 3:
+			# GLYPHS 3
+			instanceWeightValue = instance.axes[0]
+		else:
+			# GLYPHS 2
+			instanceWeightValue = instance.weightValue
+	except Exception as e:
+		instanceWeightValue = None
+		print("⚠️ Error determining the instance weight value:\n%s"%e)
+		import traceback
+		print(traceback.format_exc())
 	
-	value = value.replace( "--fallback-stem-width=*", "--fallback-stem-width=%i"%instanceWeightValue )
+	if not instanceWeightValue is None:
+		value = value.replace( "--fallback-stem-width=*", "--fallback-stem-width=%i"%instanceWeightValue )
+	
 	if "fallback-stem-width=idotless" in value:
 		actualStemWidth = idotlessMeasure(instance)
 		if actualStemWidth:
