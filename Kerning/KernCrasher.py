@@ -170,7 +170,7 @@ class KernCrasher( object ):
 		
 		# update speed explanation:
 		if sender == self.w.popupSpeed:
-			intervalIndex = Glyphs.defafults["com.mekkablue.KernCrasher.popupSpeed"]
+			intervalIndex = Glyphs.defaults["com.mekkablue.KernCrasher.popupSpeed"]
 			if intervalIndex is None:
 				intervalIndex = 0
 			self.w.text_speedExplanation.set( "Measuring every %i units." % intervalList[intervalIndex] )
