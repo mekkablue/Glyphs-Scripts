@@ -175,6 +175,26 @@ htmlContent = """<head>
 			-moz-user-select: none;
 			-webkit-user-select: none;
 		}
+		#metricsLine {
+			background-color: #EEE;
+			border-top: 1px solid #AAA;
+			border-bottom: 1px solid #AAA;
+			width: 100%;
+			margin: 0.2em 0;
+			padding: 0 0;
+			font-size: 2em;
+			white-space: nowrap;
+			overflow-x: auto;
+			overflow-y: hidden;
+			text-overflow: none;
+			display: none;
+			scrollbar-width: none; /* Firefox */
+			-ms-overflow-style: none;  /* Internet Explorer 10+ */
+		}
+		#metricsLine::-webkit-scrollbar { /* WebKit */
+			width: 0;
+			height: 0;
+		}
 		#waterfall {
 			flex: 1 1 auto;
 			border: 0 solid transparent;
@@ -298,22 +318,23 @@ htmlContent = """<head>
 			margin-bottom: 0.5em;
 		}
 		
-/* Footer paragraph: */
+		/* Footer paragraph: */
 		#helptext {
 			color: black;
 			background-color: #ddd;
-		    position: fixed;
-		    bottom: 0;
+			position: fixed;
+			bottom: 0;
 			padding: 2px
-		    width: 100%;
+			width: 100%;
 			font: x-small sans-serif;
 		}
 		
+		/* Dark Mode */
 		@media (prefers-color-scheme: dark) {
 			body { 
 				background: #333;
 			}
-			.features, .label, a, body, p  {
+			.features, .label, a, body, p, #metricsLine {
 				color: white;
 			}
 			.label {
@@ -334,6 +355,10 @@ htmlContent = """<head>
 			.○ .sampletext {
 				-webkit-text-stroke: 1px white;
 				-webkit-text-fill-color: #0000;
+			}
+			#metricsLine {
+				background-color: #222;
+				border-color: #777;
 			}
 		}
 	</style>
@@ -361,11 +386,13 @@ htmlContent = """<head>
 		<label><input type="checkbox" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga/clig</label>
 		<label><input type="checkbox" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel">calt</label>
 		<!-- moreFeatures -->
-		<label><input type="checkbox" id="show" value="show" onchange="updateFeatures();document.getElementById('featureLine').style.display=this.checked?'block':'none'">Show CSS</label>
+		<label><input type="checkbox" value="show" onchange="updateFeatures();document.getElementById('featureLine').style.display=this.checked?'block':'none'">CSS</label>
+		<label><input type="checkbox" value="show" onchange="updateFeatures();document.getElementById('metricsLine').style.display=this.checked?'block':'none'">Metrics</label>
 	</p>
 	<p class="features" id="featureLine">font-feature-settings: "kern" on, "liga" on, "calt" on;</p>
 </div>
 <div id="waterfall" class="●">
+	<div id="metricsLine"></div>
 	<p><span class="label">08</span>&nbsp;<span class="sampletext" id="p08"></span></p>
 	<p><span class="label">09</span>&nbsp;<span class="sampletext" id="p09"></span></p>
 	<p><span class="label">10</span>&nbsp;<span class="sampletext" id="p10"></span></p>
@@ -413,7 +440,6 @@ htmlContent = """<head>
 			}
 		}
 	}
-			
 	function updateParagraph() {
 		// update paragraph text based on user input:
 		const txt = document.getElementById('textInput');
@@ -422,6 +448,9 @@ htmlContent = """<head>
 			paragraph = paragraphs[i];
 			paragraph.textContent = txt.value;
 		}
+		
+		// update other elements:
+		document.getElementById('metricsLine').textContent = txt.value;
 	}
 	function updateFeatures() {
 		// update features based on user input:
@@ -572,7 +601,7 @@ else:
 		htmlFileName = "fonttest.html"
 		if saveFileInLocation( content=htmlContent, fileName=htmlFileName, filePath=exportPath ):
 			print("Successfully wrote file to disk.")
-			terminalCommand = 'cd "%s"; open %s' % (exportPath, htmlFileName)
+			terminalCommand = 'cd "%s"; open .; open %s' % (exportPath, htmlFileName)
 			system( terminalCommand )
 		else:
 			print("Error writing file to disk.")
