@@ -21,8 +21,8 @@ scopeGlyphs = (
 class BatchSetPathAttributes( object ):
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 200
-		windowHeight = 190
+		windowWidth  = 300
+		windowHeight = 170
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -47,24 +47,26 @@ class BatchSetPathAttributes( object ):
 		
 		indent = 80
 		
-		tooltip = ""
-		self.w.lineCapStartText = vanilla.TextBox( (inset*2, linePos+2, indent, 14), "lineCapStart", sizeStyle='small', selectable=True )
-		self.w.lineCapStart = vanilla.EditText( (inset*2+indent, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle='small' )
-		linePos += lineHeight
-		
-		tooltip = " "
-		self.w.lineCapEndText = vanilla.TextBox( (inset*2, linePos+2, indent, 14), "lineCapEnd", sizeStyle='small', selectable=True )
-		self.w.lineCapEnd = vanilla.EditText( (inset*2+indent, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle='small' )
+		tooltip = "0: straight cutoff\n1: round (wide)\n2: round (tight)\n3: square\n4: orthogonal\n\nEnter one number for both start and end, enter two comma-separated numbers (e.g. ‘2, 1’) for different caps at start and end."
+		self.w.lineCapsText = vanilla.TextBox( (inset*2, linePos+2, indent, 14), "Line Caps", sizeStyle='small', selectable=True )
+		self.w.lineCapsText.getNSTextField().setToolTip_(tooltip)
+		self.w.lineCaps = vanilla.EditText( (inset*2+indent, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.lineCaps.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 		
 		tooltip = "Width of the path in units."
-		self.w.strokeWidthText = vanilla.TextBox( (inset*2, linePos+2, indent, 14), "strokeWidth", sizeStyle='small', selectable=True )
+		self.w.strokeWidthText = vanilla.TextBox( (inset*2, linePos+2, indent, 14), "Stroke Width", sizeStyle='small', selectable=True )
+		self.w.strokeWidthText.getNSTextField().setToolTip_(tooltip)
 		self.w.strokeWidth = vanilla.EditText( (inset*2+indent, linePos, -inset, 19), "20", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.strokeWidth.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
 		# Buttons at the bottom:
 		self.w.extractButton = vanilla.Button( (inset, -20-inset, 80, -inset), "Extract", sizeStyle='regular', callback=self.extractAttributes )
-		self.w.extractButton.getNSButton().setToolTip_("Extract attributes from currently selected path.")
+		self.w.extractButton.getNSButton().setToolTip_("Extract attributes from currently selected path, or (if none are selected) from the first path in the current glyph.")
+		
+		self.w.removeButton = vanilla.Button( (inset+90, -20-inset, 80, -inset), "Remove", sizeStyle='regular', callback=self.removeAttributes )
+		self.w.removeButton.getNSButton().setToolTip_("Clears all path attributes for selection above.")
 		
 		self.w.runButton = vanilla.Button( (-80-inset, -20-inset, -inset, -inset), "Apply", sizeStyle='regular', callback=self.BatchSetPathAttributesMain )
 		self.w.setDefaultButton( self.w.runButton )
@@ -76,34 +78,13 @@ class BatchSetPathAttributes( object ):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-	
-	def extractAttributes(self, sender=None):
-		thisFont = Glyphs.font
-		if thisFont and thisFont.selectedLayers:
-			currentLayer = thisFont.selectedLayers[0]
-			for thisPath in currentLayer.paths:
-				if thisPath.selected:
-					lineCapStart = thisPath.attributeForKey_("lineCapStart")
-					if lineCapStart != None:
-						Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.lineCapStart"] = lineCapStart
-						
-					lineCapEnd = thisPath.attributeForKey_("lineCapEnd")
-					if lineCapEnd != None:
-						Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.lineCapEnd"] = lineCapEnd
-						
-					strokeWidth = thisPath.attributeForKey_("strokeWidth")
-					if strokeWidth != None:
-						Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.strokeWidth"] = strokeWidth
-		
-		self.LoadPreferences()
-		
+
 	def SavePreferences( self, sender=None ):
 		try:
 			# write current settings into prefs:
 			Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.scopeGlyphs"] = self.w.scopeGlyphs.get()
 			Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.scopeMaster"] = self.w.scopeMaster.get()
-			Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.lineCapStart"] = self.w.lineCapStart.get()
-			Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.lineCapEnd"] = self.w.lineCapEnd.get()
+			Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.lineCaps"] = self.w.lineCaps.get()
 			Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.strokeWidth"] = self.w.strokeWidth.get()
 			return True
 		except:
@@ -116,15 +97,13 @@ class BatchSetPathAttributes( object ):
 			# register defaults:
 			Glyphs.registerDefault("com.mekkablue.BatchSetPathAttributes.scopeGlyphs", 0)
 			Glyphs.registerDefault("com.mekkablue.BatchSetPathAttributes.scopeMaster", 0)
-			Glyphs.registerDefault("com.mekkablue.BatchSetPathAttributes.lineCapStart", 2)
-			Glyphs.registerDefault("com.mekkablue.BatchSetPathAttributes.lineCapEnd", 2)
+			Glyphs.registerDefault("com.mekkablue.BatchSetPathAttributes.lineCaps", 2)
 			Glyphs.registerDefault("com.mekkablue.BatchSetPathAttributes.strokeWidth", 20)
 			
 			# load previously written prefs:
 			self.w.scopeGlyphs.set( Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.scopeGlyphs"] )
 			self.w.scopeMaster.set( Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.scopeMaster"] )
-			self.w.lineCapStart.set( Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.lineCapStart"] )
-			self.w.lineCapEnd.set( Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.lineCapEnd"] )
+			self.w.lineCaps.set( Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.lineCaps"] )
 			self.w.strokeWidth.set( Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.strokeWidth"] )
 			return True
 		except:
@@ -132,6 +111,127 @@ class BatchSetPathAttributes( object ):
 			print(traceback.format_exc())
 			return False
 
+	def glyphScopeErrorMsg(self, sender=None):
+		Message(
+			title="Glyph Scope Error",
+			message="No applicable glyphs found. Please select the glyph scope and run the script again.",
+			OKButton=None
+		)
+	
+	def noFontOpenErrorMsg(self, sender=None):
+		Message(
+			title="No Font Open",
+			message="The script requires a font. Open a font and run the script again.",
+			OKButton=None
+		)
+	
+	def glyphsForCurrentScope(self, thisFont):
+		scopeGlyphs = Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.scopeGlyphs"]
+		
+		if scopeGlyphs==0:
+			# selected glyphs
+			return [l.parent for l in thisFont.selectedLayers]
+		elif scopeGlyphs==1:
+			# exporting glyphs
+			return [g for g in thisFont.glyphs if g.export]
+		elif scopeGlyphs==2:
+			# all glyphs
+			return thisFont.glyphs
+
+		return ()
+		
+	def extractAttributes(self, sender=None):
+		try:
+			thisFont = Glyphs.font
+			if thisFont and thisFont.selectedLayers:
+				currentLayer = thisFont.selectedLayers[0]
+				
+				currentPaths = [p for p in currentLayer.paths if p.selected]
+				currentPath = None
+				if currentPaths:
+					currentPath = currentPaths[0]
+				elif currentLayer.paths:
+					currentPath = currentLayer.paths[0]
+				else:
+					Message(
+						title="⚠️ No path selected",
+						message="No path found for extracting attributes. Open a layer containing paths, select a specific path, and try again.",
+						OKButton=None
+					)
+				
+				if currentPath:
+					lineCaps = []
+				
+					lineCapStart = currentPath.attributeForKey_("lineCapStart")
+					if lineCapStart != None:
+						lineCaps.append(lineCapStart)
+					
+					lineCapEnd = currentPath.attributeForKey_("lineCapEnd")
+					if lineCapEnd != None:
+						lineCaps.append(lineCapEnd)
+				
+					Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.lineCaps"] = ", ".join([str(x) for x in set(lineCaps)])
+					
+					strokeWidth = currentPath.attributeForKey_("strokeWidth")
+					if strokeWidth != None:
+						Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.strokeWidth"] = strokeWidth
+		
+			self.LoadPreferences()
+		except Exception as e:
+			# brings macro window to front and clears its log:
+			Glyphs.showMacroWindow()
+			print("\n⚠️ The ‘Batch-Set Path Attributes’ script encountered an error:\n")
+			import traceback
+			print(traceback.format_exc())
+	
+	def removeAttributes(self, sender=None):
+		# clear macro window log:
+		Glyphs.clearLog()
+		
+		# update settings to the latest user input:
+		if not self.SavePreferences():
+			print("Note: 'Batch-Set Path Attributes' could not write preferences.")
+		
+		thisFont = Glyphs.font # frontmost font
+		if thisFont is None:
+			self.noFontOpenErrorMsg()
+		else:
+			print("Batch-Set Path Attributes Report for %s" % thisFont.familyName)
+			if thisFont.filepath:
+				print(thisFont.filepath)
+			else:
+				print("⚠️ The font file has not been saved yet.")
+			print()
+			
+			scopeMaster = Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.scopeMaster"]
+			
+			glyphs = self.glyphsForCurrentScope(thisFont)
+			currentFontMasterID = thisFont.selectedFontMaster.id
+			print("🔠 Clearing attributes in %i glyph%s...\n" % (
+				len(glyphs),
+				"" if len(glyphs)==1 else "s",
+				))
+			
+			if not glyphs:
+				self.glyphScopeErrorMsg()
+			else:
+				for thisGlyph in glyphs:
+					print("🙅‍♂️ Deleting attributes for: %s"%thisGlyph.name)
+					for thisLayer in thisGlyph.layers:
+						# scopeMaster: 0 = current master, 1 = all masters
+						if scopeMaster==1 or (scopeMaster==0 and thisLayer.associatedMasterId==currentFontMasterID):
+							if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
+								for thisPath in thisLayer.paths:
+									for attribute in ("lineCapStart", "lineCapEnd", "strokeWidth"):
+										thisPath.removeAttributeForKey_(attribute)
+
+		# Final report:
+		Glyphs.showNotification( 
+			"%s: Done" % (thisFont.familyName),
+			"Finished removing path attributes. Details in Macro Window",
+			)
+		print("\nDone.")
+	
 	def BatchSetPathAttributesMain( self, sender=None ):
 		try:
 			# clear macro window log:
@@ -143,7 +243,7 @@ class BatchSetPathAttributes( object ):
 			
 			thisFont = Glyphs.font # frontmost font
 			if thisFont is None:
-				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				self.noFontOpenErrorMsg()
 			else:
 				print("Batch-Set Path Attributes Report for %s" % thisFont.familyName)
 				if thisFont.filepath:
@@ -152,42 +252,42 @@ class BatchSetPathAttributes( object ):
 					print("⚠️ The font file has not been saved yet.")
 				print()
 				
-				scopeGlyphs = Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.scopeGlyphs"]
 				scopeMaster = Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.scopeMaster"]
-				lineCapStart = int(Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.lineCapStart"])
-				lineCapEnd = int(Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.lineCapEnd"])
+				lineCaps = [int(cap.strip()) for cap in Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.lineCaps"].split(",")]
 				strokeWidth = int(Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.strokeWidth"])
 				
-				if scopeGlyphs==0:
-					# selected glyphs
-					glyphs = [l.parent for l in thisFont.selectedLayers]
-				elif scopeGlyphs==1:
-					# exporting glyphs
-					glyphs = [g for g in thisFont.glyphs if g.export]
-				elif scopeGlyphs==2:
-					# all glyphs
-					glyphs = thisFont.glyphs
-				else:
-					glyphs = ()
-					
+				if len(lineCaps)==0:
+					lineCaps = (None, None)
+				elif len(lineCaps)==1:
+					lineCaps = (lineCaps[0], lineCaps[0])
+				elif len(lineCaps)>2:
+					lineCaps = lineCaps[:2]
+				
+				glyphs = self.glyphsForCurrentScope(thisFont)
 				currentFontMasterID = thisFont.selectedFontMaster.id
-				print("🔠 Processing %i glyph%s...\n" % (
+				print("🔠 Setting attributes for %i glyph%s...\n" % (
 					len(glyphs),
 					"" if len(glyphs)==1 else "s",
 					))
 				
 				if not glyphs:
-					Message(title="Glyph Scope Error", message="No applicable glyphs found. Please select the glyph scope and run the script again.", OKButton=None)
+					self.glyphScopeErrorMsg()
 				else:
 					for thisGlyph in glyphs:
-						print("  %s"%thisGlyph.name)
+						print("💁‍♀️ Setting attributes for: %s"%thisGlyph.name)
 						for thisLayer in thisGlyph.layers:
 							# scopeMaster: 0 = current master, 1 = all masters
 							if scopeMaster==1 or (scopeMaster==0 and thisLayer.associatedMasterId==currentFontMasterID):
 								if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 									for thisPath in thisLayer.paths:
-										thisPath.setAttribute_forKey_(lineCapStart, "lineCapStart")
-										thisPath.setAttribute_forKey_(lineCapEnd, "lineCapEnd")
+										# line caps for start and end:
+										for capValue, startOrEnd in zip(lineCaps, ("lineCapStart", "lineCapEnd")):
+											if capValue == None:
+												thisPath.removeAttributeForKey_(startOrEnd)
+											else:
+												thisPath.setAttribute_forKey_(capValue, startOrEnd)
+										
+										# stroke width:
 										thisPath.setAttribute_forKey_(strokeWidth, "strokeWidth")
 
 			# Final report:
