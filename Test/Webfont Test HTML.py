@@ -79,9 +79,11 @@ def getInstanceInfo( thisFont, activeInstance, fileFormat ):
 	# Determine font and file names for CSS
 	menuName = "%s %s-%s" % ( fileFormat.upper(), familyName, activeInstanceName )
 	
-	firstPartOfFileName = activeInstance.customParameters["fileName"]
-	if not firstPartOfFileName:
-		firstPartOfFileName = "%s-%s" % ( familyName.replace(" ",""), activeInstanceName.replace(" ","") )
+	firstPartOfFileName = ".".join(activeInstance.fileName().split(":")[:-1]) # removes the .otf at the end
+	
+	# firstPartOfFileName = activeInstance.customParameters["fileName"]
+	# if not firstPartOfFileName:
+	# 	firstPartOfFileName = "%s-%s" % ( familyName.replace(" ",""), activeInstanceName.replace(" ","") )
 		
 	fileName = "%s.%s" % ( firstPartOfFileName, fileFormat )
 	return fileName, menuName, activeInstanceName
