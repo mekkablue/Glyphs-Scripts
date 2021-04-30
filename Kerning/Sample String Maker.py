@@ -40,7 +40,7 @@ class SampleStringMaker( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 340
-		windowHeight = 286
+		windowHeight = 260
 		windowWidthResize  = 300 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -85,13 +85,13 @@ class SampleStringMaker( object ):
 		self.w.openTab.getNSButton().setToolTip_("If checked, a new tab will be opened with the first found kern string, and the cursor positioned accordingly, ready for group kerning and switching to the next sample string.")
 		linePos += lineHeight
 
-		self.w.overrideContext = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Override context glyphs.", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.overrideContext.getNSButton().setToolTip_("If checked, the surrounding glyphs will be replaced with those given in the text box. Comma will separate the left side context from the right side context.")
+		self.w.overrideContext = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Override context glyphs:", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.overrideContext.getNSButton().setToolTip_("If checked, the surrounding glyphs will be replaced with those given in the text box. Use a comma to differentiate the left-side context from the right-side context: ‘HOOH,noon’ will put HOOH on the left side, ‘noon’ on the right side.")
 		self.w.contextGlyphs = vanilla.EditText( (inset+150, linePos, -inset, 19), "HOOH,noon", callback=self.SavePreferences, sizeStyle='small' )
 		linePos += lineHeight
 
-		self.w.mirrorPair = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Mirror kerning pair.", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.mirrorPair.getNSButton().setToolTip_("If checked, will create a mirrored version of the kerning string.")
+		self.w.mirrorPair = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Mirror kerning pair", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.mirrorPair.getNSButton().setToolTip_("If checked, will create a mirrored version of the kerning string. E.g. instead of just AV, it will show AVA between the context glyphs.")
 		linePos += lineHeight
 		
 		
