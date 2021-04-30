@@ -80,7 +80,7 @@ def getInstanceInfo( thisFont, activeInstance, fileFormat ):
 	menuName = "%s %s-%s" % ( fileFormat.upper(), familyName, activeInstanceName )
 	
 	# 3 approaches for determining the file names:
-	firstPartOfFileName = ".".join(activeInstance.fileName().split(":")[:-1]) # removes the .otf at the end
+	firstPartOfFileName = ".".join(activeInstance.fileName().split(".")[:-1]) # removes ".otf" at the end
 	if not firstPartOfFileName:
 		firstPartOfFileName = activeInstance.customParameters["fileName"]
 	if not firstPartOfFileName:
