@@ -103,13 +103,16 @@ def nameUntilFirstPeriod( glyphName ):
 		offset = glyphName.find(".")
 		return glyphName[:offset]
 
-def effectiveKerning( leftGlyphName, rightGlyphName, thisFont, thisFontMasterID ):
+def effectiveKerning( leftGlyphName, rightGlyphName, thisFont, thisFontMasterID, directionSensitive=True ):
 	leftLayer = thisFont.glyphs[leftGlyphName].layers[thisFontMasterID]
 	rightLayer = thisFont.glyphs[rightGlyphName].layers[thisFontMasterID]
 	if Glyphs.versionNumber>=3:
+		direction = 0 #LTR
+		if directionSensitive:
+			direction = Glyphs.font.currentTab.direction
 		effectiveKerning = leftLayer.nextKerningForLayer_direction_(
 			rightLayer,
-			0 # LTR
+			direction
 		)
 	else:
 		effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )

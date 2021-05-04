@@ -116,6 +116,10 @@ class KernCrasher( object ):
 		self.w.excludeNonExporting.getNSButton().setToolTip_("If enabled, will ignore glyphs that are set to not export. Recommended, otherwise you may get a lot of false positives.")
 		linePos += lineHeight
 
+		self.w.directionSensitive = vanilla.CheckBox( (inset, linePos, -inset, 20), "detect automatically writing direction", value=True, sizeStyle='small', callback=self.SavePreferences )
+		self.w.directionSensitive.getNSButton().setToolTip_("If enabled, will determine writing direction based on settings in current Tab. If disabled, LTR will be used")
+		linePos += lineHeight
+
 		self.w.reportCrashesInMacroWindow = vanilla.CheckBox( (inset, linePos, -inset, 20), "Verbose report in Macro Window", value=False, sizeStyle='small', callback=self.SavePreferences )
 		self.w.reportCrashesInMacroWindow.getNSButton().setToolTip_("Will output a detailed report of the kern crashing in Window > Macro Panel. Will slow down the script a bit. Usually not necessary, but can be useful for checking if a certain pairing has been taken care of or not.")
 		self.w.reuseCurrentTab = vanilla.CheckBox( (inset+240, linePos, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
@@ -165,6 +169,7 @@ class KernCrasher( object ):
 			Glyphs.defaults["com.mekkablue.KernCrasher.reuseCurrentTab"] = self.w.reuseCurrentTab.get()
 			Glyphs.defaults["com.mekkablue.KernCrasher.limitLeftSuffixes"] = self.w.limitLeftSuffixes.get()
 			Glyphs.defaults["com.mekkablue.KernCrasher.limitRightSuffixes"] = self.w.limitRightSuffixes.get()
+			Glyphs.defaults["com.mekkablue.KernCrasher.directionSensitive"] = self.w.directionSensitive.get()
 		except Exception as e:
 			return False
 		
@@ -192,6 +197,7 @@ class KernCrasher( object ):
 			Glyphs.registerDefault( "com.mekkablue.KernCrasher.reuseCurrentTab", 1 )
 			Glyphs.registerDefault( "com.mekkablue.KernCrasher.limitRightSuffixes", "" )
 			Glyphs.registerDefault( "com.mekkablue.KernCrasher.limitLeftSuffixes", "" )
+			Glyphs.registerDefault( "com.mekkablue.KernCrasher.directionSensitive", "" )
 
 			self.w.minDistance.set( Glyphs.defaults["com.mekkablue.KernCrasher.minDistance"] )
 			self.w.popupScript.set( Glyphs.defaults["com.mekkablue.KernCrasher.popupScript"] )
@@ -206,6 +212,7 @@ class KernCrasher( object ):
 			self.w.reuseCurrentTab.set( Glyphs.defaults["com.mekkablue.KernCrasher.reuseCurrentTab"] )
 			self.w.limitRightSuffixes.set( Glyphs.defaults["com.mekkablue.KernCrasher.limitRightSuffixes"] )
 			self.w.limitLeftSuffixes.set( Glyphs.defaults["com.mekkablue.KernCrasher.limitLeftSuffixes"] )
+			self.w.directionSensitive.set( Glyphs.defaults["com.mekkablue.KernCrasher.directionSensitive"] )
 		except:
 			import traceback
 			print(traceback.format_exc())
@@ -390,6 +397,10 @@ class KernCrasher( object ):
 			firstList = self.listOfNamesForCategories( thisFont, firstCategory, firstSubCategory, script, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly, limitLeftSuffixes )
 			secondList = self.listOfNamesForCategories( thisFont, secondCategory, secondSubCategory, script, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly, limitRightSuffixes )
 			
+			directionSensitive = False
+			if self.w.directionSensitive.get() == 1:
+				directionSensitive = True
+			
 			if not firstList or not secondList:
 				Message(
 					title="Error: could not find any pairs",
@@ -420,7 +431,7 @@ class KernCrasher( object ):
 				for secondGlyphName in secondList:
 					rightLayer = thisFont.glyphs[secondGlyphName].layers[thisFontMasterID].copyDecomposedLayer()
 					rightLayer.decomposeSmartOutlines()
-					kerning = effectiveKerning( firstGlyphName, secondGlyphName, thisFont, thisFontMasterID )
+					kerning = effectiveKerning( firstGlyphName, secondGlyphName, thisFont, thisFontMasterID, directionSensitive )
 					distanceBetweenShapes = self.minDistanceBetweenTwoLayers( leftLayer, rightLayer, interval=step, kerning=kerning, report=False, ignoreIntervals=ignoreIntervals )
 					if (not distanceBetweenShapes is None) and (distanceBetweenShapes < minDistance):
 						crashCount += 1
