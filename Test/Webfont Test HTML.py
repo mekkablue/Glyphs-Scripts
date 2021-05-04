@@ -327,7 +327,7 @@ htmlContent = """<head>
 			background-color: #ddd;
 			position: fixed;
 			bottom: 0;
-			padding: 2px
+			padding: 2px;
 			width: 100%;
 			font: x-small sans-serif;
 		}
