@@ -123,7 +123,7 @@ class ShortSegmentFinder( object ):
 			self.w.reportIncompatibilities.set( Glyphs.defaults["com.mekkablue.ShortSegmentFinder.reportIncompatibilities"] )
 			self.w.markSegments.set( Glyphs.defaults["com.mekkablue.ShortSegmentFinder.markSegments"] )
 			self.w.bringMacroWindowToFront.set( Glyphs.defaults["com.mekkablue.ShortSegmentFinder.bringMacroWindowToFront"] )
-			self.adaptUItext(sender)
+			self.adaptUItext( None )
 		except:
 			return False
 			
@@ -259,16 +259,19 @@ class ShortSegmentFinder( object ):
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
 				print("Note: 'Short Segment Finder' could not write preferences.")
+			# print(">> DEBUG CHECKPOINT 0")###DEBUG-DELETE LATER
 			
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()
 			if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.bringMacroWindowToFront"]:
 				Glyphs.showMacroWindow()
+			# print(">> DEBUG CHECKPOINT 1")###DEBUG-DELETE LATER
 				
 			thisFont = Glyphs.font # frontmost font
 			print("Short Segments Report for %s" % thisFont.familyName)
 			print(thisFont.filepath)
 			print()
+			# print(">> DEBUG CHECKPOINT 2")###DEBUG-DELETE LATER
 			
 			# query user settings:
 			thisFont = Glyphs.font
@@ -277,34 +280,39 @@ class ShortSegmentFinder( object ):
 				glyphsToProbe = thisFont.glyphs
 			else:
 				glyphsToProbe = [l.parent for l in thisFont.selectedLayers]
-			
+			# print(">> DEBUG CHECKPOINT 3")###DEBUG-DELETE LATER
 			# lists for collecting affected and skipped glyphs:
 			shortSegmentGlyphNames = []
 			shortSegmentLayers = []
 			skippedGlyphNames = []
 			numOfGlyphs = len(glyphsToProbe)
 			for index,thisGlyph in enumerate(glyphsToProbe):
-
+				print("i >",index)###Delete
 				# update progress bar:
-				self.w.progress.set( int(100*(float(index)/numOfGlyphs)) )
+				# print(">> DEBUG CHECKPOINT 4")###DEBUG-DELETE LATER
+				# self.w.progress.set( int(100*(float(index)/numOfGlyphs)) ) ###UNHIDE?
 				if thisGlyph.export or not Glyphs.defaults["com.mekkablue.ShortSegmentFinder.exportingOnly"]:
-					
+					# print(">> DEBUG CHECKPOINT 5")###DEBUG-DELETE LATER
 					# clean node markers if necessary:
 					if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.markSegments"]:
 						self.cleanNodeNamesInGlyph(thisGlyph, nodeMarker)
-					
+					# print(">> DEBUG CHECKPOINT 6")###DEBUG-DELETE LATER
 					# find segments in masters:
 					if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.findShortSegmentsInMasters"]:
+						# print(">> DEBUG CHECKPOINT 7")###DEBUG-DELETE LATER
 						for currentLayer in thisGlyph.layers:
-							
+							# print(">> DEBUG CHECKPOINT 8")###DEBUG-DELETE LATER
 							# avoid potential troubles, just in case:
 							if currentLayer is None:
+								# print(">> DEBUG CHECKPOINT 9")###DEBUG-DELETE LATER
 								break
 								
 							# check if it is a master or special layer, otherwise ignore:
 							if currentLayer.associatedMasterId == currentLayer.layerId or currentLayer.isSpecialLayer:
+								# print(">> DEBUG CHECKPOINT 10")###DEBUG-DELETE LATER
 								shortSegments = self.segmentsInLayerShorterThan( currentLayer, minLength )
 								if shortSegments:
+									# print(">> DEBUG CHECKPOINT 11")###DEBUG-DELETE LATER
 									print(u"❌ %i short segment%s in %s, layer '%s'" % (
 										len(shortSegments),
 										"" if len(shortSegments) == 1 else "s",
@@ -313,9 +321,12 @@ class ShortSegmentFinder( object ):
 									))
 									# collect name:
 									shortSegmentGlyphNames.append(thisGlyph.name)
+									# print(">> DEBUG CHECKPOINT 12")###DEBUG-DELETE LATER
 									# mark in canvas if required:
 									if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.markSegments"]:
+										# print(">> DEBUG CHECKPOINT 13")###DEBUG-DELETE LATER
 										for shortSegment in shortSegments:
+											# print(">> DEBUG CHECKPOINT 14")###DEBUG-DELETE LATER
 											middleOfSegment = self.segmentMiddle(shortSegment)
 											if not middleOfSegment:
 												print(u"⛔️ ERROR in %s, layer '%s'. Could not calculate center of segment:\n  %s" % (thisGlyph.name, currentLayer.name, repr(shortSegment)))
@@ -326,22 +337,29 @@ class ShortSegmentFinder( object ):
 					# find segments in interpolations:
 					else:
 						for thisInstance in thisFont.instances:
+							# print(">> DEBUG CHECKPOINT 15")###DEBUG-DELETE LATER
 							# define instance name
 							instanceName = thisInstance.name.strip()
 							familyName = thisInstance.customParameters["familyName"]
 							if familyName:
+								# print(">> DEBUG CHECKPOINT 16")###DEBUG-DELETE LATER
 								instanceName = "%s %s" % ( familyName, instanceName )
 								
 							# interpolate glyph for this instance:
 							interpolatedLayer = self.glyphInterpolation( thisGlyph.name, thisInstance )
 							if not interpolatedLayer:
+								# print(">> DEBUG CHECKPOINT 17")###DEBUG-DELETE LATER
 								if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.reportIncompatibilities"]:
+									# print(">> DEBUG CHECKPOINT 18")###DEBUG-DELETE LATER
 									print(u"⚠️ %s: No paths in '%s'." % (thisGlyph.name, instanceName))
 							else:
 								interpolatedLayer.removeOverlap()
+								# print(">> DEBUG CHECKPOINT 19")###DEBUG-DELETE LATER
 								shortSegments = self.segmentsInLayerShorterThan( interpolatedLayer, minLength )
+								# print(">> DEBUG CHECKPOINT 20")###DEBUG-DELETE LATER
 							
 								if shortSegments:
+									# print(">> DEBUG CHECKPOINT 21")###DEBUG-DELETE LATER
 									print(u"❌ %i short segment%s in %s, instance '%s'" % (
 										len(shortSegments),
 										"" if len(shortSegments) == 1 else "s",
@@ -353,7 +371,9 @@ class ShortSegmentFinder( object ):
 									shortSegmentGlyphNames.append(thisGlyph.name)
 									# mark in canvas if required:
 									if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.markSegments"]:
+										# print(">> DEBUG CHECKPOINT 22")###DEBUG-DELETE LATER
 										for shortSegment in shortSegments:
+											# print(">> DEBUG CHECKPOINT 23")###DEBUG-DELETE LATER
 											middleOfSegment = self.segmentMiddle(shortSegment)
 											if not middleOfSegment:
 												print(u"⛔️ ERROR in %s, layer '%s'. Could not calculate center of segment:\n  %s" % (thisGlyph.name, currentLayer.name, repr(shortSegment)))
@@ -362,6 +382,7 @@ class ShortSegmentFinder( object ):
 												self.addAnnotationTextAtPosition( thisGlyph.layers[0], middleOfSegment, annotationText )
 							
 				else:
+					# print(">> DEBUG CHECKPOINT 24")###DEBUG-DELETE LATER
 					skippedGlyphNames.append(thisGlyph.name)
 			
 			# report skipped glyphs:
