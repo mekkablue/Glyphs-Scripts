@@ -132,10 +132,20 @@ class ShortSegmentFinder( object ):
 	def approxLengthOfSegment(self, segment):
 		try:
 			if len(segment) == 2:
-				p0,p1 = [p.pointValue() for p in segment]
+				if Glyphs.versionNumber >= 3:
+					# Glyphs 3 code
+					p0,p1 = [p for p in segment]
+				else:
+					# Glyphs 2 code
+					p0,p1 = [p.pointValue() for p in segment]
 				return ( (p1.x-p0.x)**2 + (p1.y-p0.y)**2 )**0.5
 			elif len(segment) == 4:
-				p0,p1,p2,p3 = [p.pointValue() for p in segment]
+				if Glyphs.versionNumber >= 3:
+					# Glyphs 3 code
+					p0,p1,p2,p3 = [p for p in segment]
+				else:
+					# Glyphs 2 code
+					p0,p1,p2,p3 = [p.pointValue() for p in segment]
 				chord = distance(p0,p3)
 				cont_net = distance(p0,p1) + distance(p1,p2) + distance(p2,p3)
 				return (cont_net + chord) * 0.5 * 0.996767352316
@@ -185,10 +195,18 @@ class ShortSegmentFinder( object ):
 			else:
 				for thisSegment in thisPath.segments:
 					segmentLength = self.approxLengthOfSegment(thisSegment)
-					if type(segmentLength) is unicode:
-						print(u"😬 ERROR in %s (layer: %s): %s" % (thisLayer.parent.name, thisLayer.name, segmentLength))
-					elif segmentLength < minLength:
-						shortSegments.append(thisSegment)
+					if Glyphs.versionNumber >= 3:
+						# Glyphs 3 code
+						if type(segmentLength) is str:
+							print(u"😬 ERROR in %s (layer: %s): %s" % (thisLayer.parent.name, thisLayer.name, segmentLength))
+						elif segmentLength < minLength:
+							shortSegments.append(thisSegment)
+					else:
+						# Glyphs 2 code
+						if type(segmentLength) is unicode:
+							print(u"😬 ERROR in %s (layer: %s): %s" % (thisLayer.parent.name, thisLayer.name, segmentLength))
+						elif segmentLength < minLength:
+							shortSegments.append(thisSegment)
 		return shortSegments
 	
 	def glyphInterpolation( self, thisGlyphName, thisInstance ):
