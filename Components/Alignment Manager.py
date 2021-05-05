@@ -99,7 +99,7 @@ class AutoAlignmentManager( object ):
 						thisLayer.selection = None
 						
 						if Glyphs.versionNumber >= 3:
-							lastComponent = l.components.objectAtIndex_(l.components.count()-1)
+							lastComponent = thisLayer.components.objectAtIndex_(thisLayer.components.count()-1)
 							lastComponent.makeFirst()
 						else:
 							lastComponent = thisLayer.components[-1]
