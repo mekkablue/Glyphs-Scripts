@@ -27,13 +27,8 @@ Make sure that you want to do it and it is advised to make
 a backup copy of your currently edited font.
 """
 
-# Decompose_Components
-class Decompose_Components(object):
-	'''
-		Documentation
-		Decompose_Components
-	'''
-	key = "com.mekkablue.DecomposeComponents"
+class Decompose_Components_in_Background(object):
+	key = "com.mekkablue.Decompose_Components_in_Background"
 	baseH = 226
 	padding = (10,10,10)
 	btnH = 20
@@ -44,7 +39,7 @@ class Decompose_Components(object):
 	def __init__(self):
 		x,y,p = self.padding
 		
-		self.w = vl.Window((370, self.baseH), "Decompose Components")
+		self.w = vl.Window((370, self.baseH), "Decompose Components in Background")
 		
 		### Master Options
 		self.w.glyphsOptionsRadioGroup = vl.RadioGroup(
@@ -78,7 +73,7 @@ class Decompose_Components(object):
 		### action button
 		self.w.decomposeButton = vl.Button(
 				(x, -self.btnH-p, -p, self.btnH), 
-				"Decompose Components",sizeStyle=self.sizeStyle,
+				"Decompose Components in Background",sizeStyle=self.sizeStyle,
 				callback=self.decomposeButtonCallback
 			)
 		y += self.btnH + p
@@ -212,7 +207,7 @@ class Decompose_Components(object):
 	def closeWindowEvent(self, window):
 	   self.SavePreferences()
 def run():
-	Decompose_Components()
+	Decompose_Components_in_Background()
 
 
 run()
