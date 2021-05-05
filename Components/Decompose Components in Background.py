@@ -1,6 +1,7 @@
 #MenuTitle: Decompose Components in Background
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
+from GlyphsApp import GSLayer
 import vanilla as vl
 __doc__="""
 Decomposes components in the Background.
@@ -133,11 +134,13 @@ class Decompose_Components_in_Background(object):
 			try:
 				for thisGlyph in selectedGlyphs:
 					
-					print("Processing", thisGlyph.name)
+					####print("Processing", thisGlyph.name)
 					thisGlyph.beginUndo() # begin undo grouping
 					for thisMasterID in selectedMasterIDs:
 						thisLayer = thisGlyph.layers[thisMasterID]
-						self.process( thisLayer )
+			
+						if thisLayer is not None:
+							self.process( thisLayer )
 					thisGlyph.endUndo()   # end undo grouping
 
 			except Exception as e:
@@ -153,7 +156,11 @@ class Decompose_Components_in_Background(object):
 	
 	def process(self, thisLayer ):
 		
-			
+		if thisLayer.components:
+			if self.w.storeInBackground.get() == 1:
+				thisLayer.setBackground_(thisLayer)	
+				print("  Storing '%s - %s' foreground in the background." % (thisLayer.name, thisLayer.parent.name))
+		background = None
 		if thisLayer.isKindOfClass_(GSBackgroundLayer):
 			background = thisLayer
 		else:
@@ -161,10 +168,7 @@ class Decompose_Components_in_Background(object):
 		
 		if not background:
 			print("  Could not access background layer '%s'." % thisLayer.name)
-		elif background.components:
-			if self.w.storeInBackground.get() == 1:
-				thisLayer.setBackground_(thisLayer)	
-				print("  Storing '%s - %s' foreground in the background." % (thisLayer.parent.name))
+		elif background.components:			
 			compCount = len(background.components)
 			print("  Decomposed %i component%s in background." % (
 				compCount,
