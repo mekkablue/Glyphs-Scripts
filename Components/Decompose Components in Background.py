@@ -169,7 +169,7 @@ class Decompose_Components(object):
 		elif background.components:
 			if self.w.storeInBackground.get() == 1:
 				thisLayer.setBackground_(thisLayer)	
-				print("  Storing '%s - %s' foreground in the background." % (thisLayer.parent.name)
+				print("  Storing '%s - %s' foreground in the background." % (thisLayer.parent.name))
 			compCount = len(background.components)
 			print("  Decomposed %i component%s in background." % (
 				compCount,
