@@ -746,6 +746,8 @@ def buildHTML( fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, f
 						toggleInverse();
 					} else if (event.code == 'KeyC') {
 						toggleCenter();
+					} else if (event.code == 'KeyM') {
+						toggleMenu();
 					}
 				}
 			}
@@ -854,6 +856,10 @@ def buildHTML( fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, f
 					}
 				}
 			}
+			function toggleMenu() {
+				const menu = document.getElementById("featureControls");
+				menu.hidden = !menu.hidden;
+			}
 		</script>
 	</head>
 	<body onload="updateSlider();resetParagraph();document.getElementById('textarea').focus()">
@@ -883,7 +889,7 @@ def buildHTML( fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, f
 	
 	<!-- Disclaimer -->
 	<p id="helptext" onmouseleave="vanish(this);">
-		Ctrl-R: Reset Charset. Ctrl-L: Latin1. Ctrl-J: LTR/RTL. Ctrl-C: Center. Ctrl-X: X-Ray. Not working? Please try in a newer macOS or use the <a href="https://www.google.com/chrome/">latest Chrome</a>. Pull mouse across this note to make it disappear.
+		Ctrl-R: Reset Charset. Ctrl-L: Latin1. Ctrl-J: LTR/RTL. Ctrl-C: Center. Ctrl-M: Hide/show feature menu. Ctrl-X: X-Ray. Not working? Please try in a newer macOS or use the <a href="https://www.google.com/chrome/">latest Chrome</a>. Pull mouse across this note to make it disappear.
 	</p>
 	</body>
 </html>
