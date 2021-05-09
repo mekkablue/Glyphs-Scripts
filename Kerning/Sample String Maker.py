@@ -157,7 +157,7 @@ class SampleStringMaker( object ):
 		return False
 
 	def parseTheContextGlyphs(self):
- 		separator = ","
+		separator = ","
 		txt = self.w.contextGlyphs.get()
 		if separator in txt:
 			lines = txt.split(separator)
