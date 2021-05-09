@@ -1,8 +1,23 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 from GlyphsApp import Glyphs
-from AppKit import NSNotFound
+from AppKit import NSNotFound, NSClassFromString
 from collections import OrderedDict
+
+def chooseSampleTextSelection(categoryIndex=0, entryIndex=0):
+	if Glyphs.versionNumber >= 3:
+		# set sample text selection, open tab with first kern string:
+		sharedManager = NSClassFromString("GSSampleTextController").sharedManager()
+		if not sharedManager.sampleTextCategoryController():
+			# quickly open and close the window to initialise the category and entry controllers
+			sharedManager.showSampleTextDialog()
+			sharedManager.window().close()
+		sharedManager.sampleTextCategoryController().setSelectionIndex_(categoryIndex)
+		sharedManager.sampleTextEntryController().setSelectionIndex_(0)
+	else:
+		tab = Glyphs.font.currentTab
+		if tab:
+			tab.selectSampleTextArrayController().setSelectionIndex_(entryIndex)
 
 def setSelectSampleTextIndex( thisFont, tab=None, marker="### CUSTOM KERN STRING ###"):
 	if Glyphs.versionNumber >= 3:
@@ -10,15 +25,18 @@ def setSelectSampleTextIndex( thisFont, tab=None, marker="### CUSTOM KERN STRING
 		sampleTexts = OrderedDict([(d['name'], d['text']) for d in Glyphs.defaults["SampleTextsList"]])
 
 		foundSampleString = False
-		for sampleTextIndex, k in enumerate(sampleTexts.keys()):
+		for sampleTextIndex, k in enumerate(sampleTexts.keys()): # step through the categories until we find our marker
 			if marker in k:
 				foundSampleString = True
 				if not tab:
 					tab = thisFont.currentTab
 					if not tab:
 						tab = thisFont.newTab()
-				tab.selectSampleTextArrayController().setSelectionIndex_(sampleTextIndex+1)
-				tab.text = sampleTexts[sampleTexts.keys()[sampleTextIndex+1]]
+				
+				chooseSampleTextSelection(categoryIndex=sampleTextIndex)
+				
+				# open tab with first kern string:
+				#tab.text = sampleTexts[k].splitlines()[0]
 				break
 
 		if not foundSampleString:
@@ -33,7 +51,7 @@ def setSelectSampleTextIndex( thisFont, tab=None, marker="### CUSTOM KERN STRING
 				tab = thisFont.currentTab
 				if not tab:
 					tab = thisFont.newTab()
-			tab.selectSampleTextArrayController().setSelectionIndex_(sampleTextIndex+1)
+			chooseSampleTextSelection(entryIndex=sampleTextIndex+1)
 			tab.text = sampleTexts[sampleTextIndex+1]
 		else:
 			print("Warning: Could not find '%s' in sample strings." % marker)
@@ -46,17 +64,22 @@ def addToSampleText( kernStrings, marker="### CUSTOM KERN STRING ###"):
 		# Get current sample texts:
 		if Glyphs.versionNumber >= 3:
 			# Glyphs 3 code
-			sampleTexts = Glyphs.defaults["SampleTextsList"].mutableCopy()	
+			
+			kernStringLines = "\n".join(kernStrings)
+			newKernStringEntry = dict( name=marker, text=kernStringLines )
+			sampleTexts = Glyphs.defaults["SampleTextsList"].mutableCopy()
 
-			# clear old kerning strings
+			# clear old kern strings with same marker:
 			indexesToRemove = []
-			for index, sampleText in enumerate(sampleTexts):
-				if sampleText["name"] == marker:
-					indexesToRemove += [index]
+			for index, sampleTextEntry in enumerate(sampleTexts):
+				if sampleTextEntry["name"] == marker: # there could be multiple ones
+					indexesToRemove.append(index)
 			for index in reversed(indexesToRemove):
 				sampleTexts.removeObjectAtIndex_(index)
-
-			sampleTexts.append(dict(name=marker,text="\n".join(kernStrings)))
+			
+			# build new kern string entry :
+			sampleTexts.append(newKernStringEntry)
+			
 			Glyphs.defaults["SampleTextsList"] = sampleTexts
 			return True
 		else:
@@ -88,8 +111,6 @@ def buildKernStrings( listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None
 		print("No font detected.")
 		return None
 	else:
-		
-
 		kernStrings = []
 	
 		# collect left names/groups:
@@ -133,11 +154,15 @@ def buildKernStrings( listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None
 def executeAndReport( kernStrings ):
 	# brings macro window to front and clears its log:
 	# Glyphs.clearLog()
-	Glyphs.showMacroWindow()
+	# Glyphs.showMacroWindow()
 	
 	# print status and modify Sample Texts:
 	print("Adding %i lines to Sample Texts..." % len( kernStrings ))
-	if not addToSampleText( kernStrings ):
+	if Glyphs.versionNumber >= 3:
+		addedKernStings = addToSampleText( kernStrings, marker="Sample String Maker" )
+	else:
+		addedKernStings = addToSampleText( kernStrings )
+	if not addedKernStings:
 		print("Warning: could not add the lines.")
 	else:
 		print("Done.")

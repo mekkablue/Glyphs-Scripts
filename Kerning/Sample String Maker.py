@@ -7,7 +7,7 @@ Creates kern strings for all kerning groups in user-defined categories and adds 
 
 import vanilla, sampleText, kernanalysis
 
-CASE = [None, "Uppercase", "Lowercase"]
+CASE = (None, "Uppercase", "Lowercase", "Smallcaps", "Minor")
 
 class SampleStringMaker( object ):
 	categoryList = (
@@ -81,7 +81,7 @@ class SampleStringMaker( object ):
 		self.w.excludedGlyphNameParts.getNSTextField().setToolTip_("If the glyph name includes any of these comma-separated fragments, the glyph will be ignored. Always excluded: Ldot, ldot, ldot.sc, Fhook and florin.")
 		linePos += lineHeight
 		
-		self.w.openTab = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Open new tab at first kern string.", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.openTab = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Open new tab at first kern string", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.openTab.getNSButton().setToolTip_("If checked, a new tab will be opened with the first found kern string, and the cursor positioned accordingly, ready for group kerning and switching to the next sample string.")
 		linePos += lineHeight
 
@@ -191,38 +191,33 @@ class SampleStringMaker( object ):
 				
 			includeNonExporting = Glyphs.defaults["com.mekkablue.SampleStringMaker.includeNonExporting"]
 
-			glyphNamesLeft = [ ]
+			glyphNamesLeft, glyphNamesRight = [], []
 			for g in thisFont.glyphs :
 				glyph_subCategory = g.subCategory
 				if Glyphs.versionNumber >= 3:
 					if glyph_subCategory is None:
 						glyph_subCategory = CASE[g.case]
+
+				# LEFT
 				if g.category == leftCategory and \
 				( leftSubCategory is None or glyph_subCategory == leftSubCategory ) and \
 				( g.script == chosenScript or (leftCategory != "Letter" and g.script is None) ) and \
 				(g.export or includeNonExporting) and \
 				not g.name in self.exclusion and \
 				not self.glyphNameIsExcluded(g.name):
-					glyphNamesLeft += [g.name]
+					glyphNamesLeft.append(g.name)
 
-
-			glyphNamesRight = [ ]
-
-			for g in thisFont.glyphs :
-				glyph_subCategory = g.subCategory
-				if Glyphs.versionNumber >= 3:
-					if glyph_subCategory is None:
-						glyph_subCategory = CASE[g.case]
+				# RIGHT
 				if g.category == rightCategory and \
 				( rightSubCategory is None or glyph_subCategory == rightSubCategory ) and \
 				( g.script == chosenScript or (rightCategory != "Letter" and g.script is None) ) and \
 				(g.export or includeNonExporting) and \
 				not g.name in self.exclusion and \
 				not self.glyphNameIsExcluded(g.name):
-					glyphNamesRight += [g.name]
+					glyphNamesRight.append(g.name)
 			
 			
-			print("Found %i left groups, %i right groups." % (
+			print("Found %i left glyphs, %i right glyphs." % (
 				len(glyphNamesLeft),
 				len(glyphNamesRight),
 			))
@@ -260,14 +255,23 @@ class SampleStringMaker( object ):
 				mirrorPair=mirrorPair
 			)
 			
-			sampleText.executeAndReport( kernStrings )
+			if not kernStrings:
+				Message(title="No Kern Strings Created", message="Could not build any kerning combinations with available groups. Make sure groups are set for the chosen glyphs.", OKButton=None)
+				print("No kern strings built. Done.")
+			else:
+				sampleText.executeAndReport( kernStrings )
 			
-			if Glyphs.defaults["com.mekkablue.SampleStringMaker.openTab"]:
-				newTab = thisFont.newTab()
-				sampleText.setSelectSampleTextIndex( thisFont, tab=newTab )
-				cursorPos = 5
-				if len(newTab.text) >= cursorPos:
-					newTab.textCursor = cursorPos
+				if Glyphs.defaults["com.mekkablue.SampleStringMaker.openTab"]:
+					newTab = thisFont.newTab()
+					if Glyphs.versionNumber >= 3:
+						sampleText.setSelectSampleTextIndex( thisFont, tab=newTab, marker="Sample String Maker" )
+					else:
+						sampleText.setSelectSampleTextIndex( thisFont, tab=newTab )
+					cursorPos = 5
+					if len(newTab.text) >= cursorPos:
+						newTab.textCursor = cursorPos
+				
+				self.w.close()
 			
 		except Exception as e:
 			# brings macro window to front and reports error:
