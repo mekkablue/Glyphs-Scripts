@@ -220,6 +220,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Guides through All Selected Nodes:** Lays guides through all selected nodes in current glyph. Tries to avoid duplicate guides.
 * **Remove Global Guides in Current Master:** Deletes all global (red) guides in the current master.
 * **Remove Local Guides in Selected Glyphs:** Deletes all local (blue) guides in selected glyphs.
+* **Select All Global Guides:** Selects all global (red) guides in Edit view. Useful if you have many and need to batch-transform them.
 * **Select All Local Guides:** Selects all local (blue) guides (in all selected glyphs).
 
 ## Hinting
