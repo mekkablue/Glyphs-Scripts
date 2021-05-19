@@ -168,7 +168,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Activate Default Features:** In the current Edit tab, activates all OT features that are recommended to be on by default (according to the spec).
 * **Build ccmp for Hebrew Presentation Forms:** Builds the ccmp feature for precomposed `uniFBxx` glyphs, e.g. if you have pedagesh, you get 'sub pe dagesh by pedagesh' in your ccmp.
 * **Build Italic Shift Feature:** Creates and inserts GPOS feature code for shifting glyphs, e.g., parentheses and punctuation for the case feature. *Needs Vanilla.*
-* **Build Positional calt Feature:** Looks for .init, .medi, .fina, and .isol glyphs, and injects positional substitution code into your calt feature. If run again, will update its class and feature code. See this tutorial for more info: https://glyphsapp.com/tutorials/features-part-4-positional-alternates
+* **Build Positional Feature:** Looks for `.init`, `.medi`, `.fina`, and `.isol` glyphs, and injects positional substitution code into your `calt` feature (or any other feature you specify). If run again, will *update* class and feature code. See this tutorial for more info: https://glyphsapp.com/tutorials/features-part-4-positional-alternates *Needs Vanilla.*
 * **Build rand Feature:** Build rand (random) feature from .cvXX or another (numbered) suffix. *Needs Vanilla.*
 * **Feature Code Tweaks:** Adds tweaks to OT feature code. Reports in Macro window. Careful: if you do not understand an option, do not use it. *Needs Vanilla.*
 * **Find in Features:** Finds expressions (glyph, lookup or class names) in OT Features, Prefixes and Classes. *Needs Vanilla.*
