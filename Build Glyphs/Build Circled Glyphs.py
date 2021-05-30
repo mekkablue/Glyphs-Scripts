@@ -707,10 +707,18 @@ class BuildCircledGlyphs( object ):
 									if thisArea > maxArea:
 										maxArea = thisArea
 										biggestLayer = thisLayer
-	
-						angleInRadians = math.atan2( biggestLayer.bounds.size.height, biggestLayer.bounds.size.width*1.4 + minDistanceBetweenFigures )
+						
+						if biggestLayer:
+							height = biggestLayer.bounds.size.height
+							width = biggestLayer.bounds.size.width
+						else:
+							# fallback values
+							height, width = 700.0, 500.0
+							print("⚠️ Warning: could not determine bounds of relevant layers, resorting to defaults. Are the glyphs empty?")
+							
+						angleInRadians = math.atan2( height, width*1.4 + minDistanceBetweenFigures )
 						scaledHeight = math.sin(angleInRadians) * radius * 2 * 0.9
-						scaleFactor = scaledHeight / biggestLayer.bounds.size.height
+						scaleFactor = scaledHeight / height
 						scaleFactors.append(scaleFactor)
 						print("Scale factor for master '%s': %.1f" % (thisMaster.name, scaleFactor))
 
