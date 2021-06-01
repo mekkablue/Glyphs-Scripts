@@ -393,7 +393,7 @@ class PathProblemFinder( object ):
 		linePos += lineHeight
 		
 		self.w.strayPoints = vanilla.CheckBox( (inset, linePos, -inset, 20), "Stray points (single-node paths)", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.strayPoints.getNSButton().setToolTip_("In Glyphs 1, paths with only one node (‘stray points’) used to be a method for disabling auto-alignment of components. But they are probably a mistake.")
+		self.w.strayPoints.getNSButton().setToolTip_("In Glyphs 1, paths with only one node (‘stray points’) used to be a method for disabling auto-alignment of components. But they are probably a mistake. Can be fixed wth mekkablue script Paths > Remove Stray Points.")
 		linePos += lineHeight
 		
 		self.w.twoPointOutlines = vanilla.CheckBox( (inset, linePos, -inset, 20), "Paths with two on-curve nodes only", value=True, callback=self.SavePreferences, sizeStyle='small' )
