@@ -249,7 +249,7 @@ class FindShapeshiftingGlyphs( object ):
 				for i in self.instances:
 					print("- %s:" % i.name)
 					for key in i.instanceInterpolations:
-						print(i.instanceInterpolations[key])
+						print(i.instanceInterpolations[int(key)])
 						try:
 							print("  %s: %.3f" % (thisFont.masters[key].name, float(i.instanceInterpolations[key])))
 						except:
