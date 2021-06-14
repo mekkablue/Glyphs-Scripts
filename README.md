@@ -78,7 +78,9 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 *If you are coding, add a keyboard shortcut for Method Reporter, you will need this a lot. Print Window can come in handy if you want a resolution-independent PDF screenshot of your window content. Best for post-processing in a vector illustration app.*
 
-* **Line Height Decrease** and **Line Height Increase:** Increases the Edit View line height by a quarter, or decreases it by a fifth. Useful for setting shortcuts if you need to switch between line heights a lot.
+
+* **Copy Download URL for Current App Version:** Puts the download URL of the current Glyphs app version into your clipboard for easy pasting.
+* **Decrease** and **Increase Line Height:** Increases the Edit View line height by a quarter, or decreases it by a fifth. Useful for setting shortcuts if you need to switch between line heights a lot.
 * **Method Reporter:** GUI for filtering through the method names of Python and PyObjC Classes available from within Glyphs. You can use multiple space-separated search terms (for an AND concatenation) and asterisk as jokers (at the beginning, in the middle and at the end). Double click to put the method name in your clipboard and open help in the Macro window. Useful for coders. *Needs Vanilla.*
 * **Parameter Reporter:** Like Method Reporter, but for custom parameters. Double click to copy a parameter in the clipboard, ready for pasting in Font Info. *Needs Vanilla.*
 * **Print Window:** Print the frontmost window. Useful for saving a vector PDF of your window content, including the renderings of reporter plug-ins (extensions for the *View* menu).
