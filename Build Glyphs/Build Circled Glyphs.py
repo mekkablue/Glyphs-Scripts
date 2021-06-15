@@ -744,7 +744,7 @@ class BuildCircledGlyphs( object ):
 												newGlyphName = glyphName+suffix
 												glyphNames.append(newGlyphName)
 												suffixDict[newGlyphName] = suffix
-	 							else:
+								else:
 									if thisFont.glyphs[suffixedCoreName]:
 										coreNames.append(suffixedCoreName)
 										newGlyphName = glyphName+suffix
