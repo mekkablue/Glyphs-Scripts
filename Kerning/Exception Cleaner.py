@@ -202,7 +202,7 @@ class DeleteExceptionsTooCloseToGroupKerning( object ):
 										rightGlyphGroupMMK = "@MMK_R_%s" % rightGlyphGroup
 										exceptionKerning = thisFont.kerning[thisMasterID][leftSide][rightSide]
 										groupKerning = thisFont.kerningForPair( thisMasterID, leftGlyphGroupMMK, rightGlyphGroupMMK)
-										if groupKerning > 100000: # NSNotFound
+										if groupKerning is None or groupKerning > 100000: # NSNotFound
 											groupKerning = 0
 										if abs(exceptionKerning-groupKerning) < threshold:
 											print("- Insignificant exception @%s-%s: %i vs. @%s-@%s: %i" % (
