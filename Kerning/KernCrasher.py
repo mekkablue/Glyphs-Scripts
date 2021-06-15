@@ -22,7 +22,7 @@ class KernCrasher( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 410
-		windowHeight = 350
+		windowHeight = 370
 		windowWidthResize  = 800 # user can resize width by this value
 		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -116,8 +116,8 @@ class KernCrasher( object ):
 		self.w.excludeNonExporting.getNSButton().setToolTip_("If enabled, will ignore glyphs that are set to not export. Recommended, otherwise you may get a lot of false positives.")
 		linePos += lineHeight
 
-		self.w.directionSensitive = vanilla.CheckBox( (inset, linePos, -inset, 20), "detect automatically writing direction", value=True, sizeStyle='small', callback=self.SavePreferences )
-		self.w.directionSensitive.getNSButton().setToolTip_("If enabled, will determine writing direction based on settings in current Tab. If disabled, LTR will be used")
+		self.w.directionSensitive = vanilla.CheckBox( (inset, linePos, -inset, 20), "Auto-detect writing direction (LTR vs. RTL)", value=True, sizeStyle='small', callback=self.SavePreferences )
+		self.w.directionSensitive.getNSButton().setToolTip_("If enabled, will determine writing direction based on settings in current tab. If disabled, LTR will be used")
 		linePos += lineHeight
 
 		self.w.reportCrashesInMacroWindow = vanilla.CheckBox( (inset, linePos, -inset, 20), "Verbose report in Macro Window", value=False, sizeStyle='small', callback=self.SavePreferences )

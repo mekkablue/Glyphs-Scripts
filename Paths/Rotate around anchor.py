@@ -25,7 +25,7 @@ class Rotator(object):
 		
 		# Window 'self.w':
 		windowWidth  = 320
-		windowHeight = 85
+		windowHeight = 100
 		windowWidthResize  = 0 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
