@@ -39,6 +39,7 @@ class SetHiddenAppPreferences( object ):
 		"com.mekkablue.ShowStyles.anchors",
 		"com.mekkablue.ttAutoinstructSelectedGlyphs.alwaysUseNoStem",
 		"com.RicardGarcia.ChangeCase.verboseReport",
+		"com.FlorianPircher.Keyboard-Selection-Travel.UseAlternativeShortcuts",
 	)
 	
 	def __init__( self ):
