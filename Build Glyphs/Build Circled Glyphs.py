@@ -5,7 +5,7 @@ __doc__="""
 Builds circled numbers and letters (U+24B6...24EA and U+2460...2473) from _part.circle and the letters and figures.
 """
 
-from Foundation import NSPoint, NSClassFromString, NSAffineTransform
+from Foundation import NSPoint, NSClassFromString
 from AppKit import NSButtLineCapStyle
 import math, vanilla
 
@@ -296,7 +296,10 @@ def buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenTw
 				originalLayerWidth = thisFont.glyphs[compName].layers[thisMaster.id].width
 				advance += originalLayerWidth
 			
-			collectedBounds = [ c.bounds for c in thisLayer.components[1:] ]
+			collectedBounds = []
+			for i in range(1,len(thisLayer.components)):
+				collectedBounds.append(thisLayer.components[i].bounds)
+
 			compCenter = centerOfRect( combinedBounds(collectedBounds) )
 			centerAnchor = thisLayer.anchorForName_traverseComponents_("#center",True)
 			if centerAnchor:
@@ -310,8 +313,9 @@ def buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenTw
 			backshift = transform( shiftX=circleCenter.x, shiftY=circleCenter.y ).transformStruct()
 			
 			compensateStroke = []
-			for innerComponent in thisLayer.components[1:]:
-				
+			for i in range(1,len(thisLayer.components)):
+				innerComponent = thisLayer.components[i]
+
 				# optically shift so top anchor is in center:
 				originalLayer = topAnchor = innerComponent.component.layers[thisMaster.id]
 				topAnchor = originalLayer.anchors["top"]
