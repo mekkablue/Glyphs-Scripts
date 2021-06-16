@@ -5,8 +5,8 @@ __doc__="""
 Builds circled numbers and letters (U+24B6...24EA and U+2460...2473) from _part.circle and the letters and figures.
 """
 
-from Foundation import NSPoint, NSClassFromString
-from AppKit import NSButtLineCapStyle
+from Foundation import NSPoint, NSClassFromString, NSAffineTransform
+from AppKit import NSButtLineCapStyle, NSRect, NSSize
 import math, vanilla
 
 circledNumbers = (
@@ -202,19 +202,20 @@ def minDistanceBetweenTwoLayers( comp1, comp2, interval=5.0 ):
 	return minDist
 
 def placeComponentsAtDistance( thisLayer, comp1, comp2, interval=5.0, distance=10.0 ):
-	thisMaster = thisLayer.associatedFontMaster()
-	masterID = thisMaster.id
-	original1 = comp1.component.layers[masterID]
-	original2 = comp2.component.layers[masterID]
-	minDist = minDistanceBetweenTwoLayers( original1, original2, interval=interval )
-	comp2shift = distance - minDist
-	addedSBs = original1.RSB + original2.LSB
-	comp2.x = comp1.x + original1.width - addedSBs + comp2shift
+	if comp1 is not None:
+		thisMaster = thisLayer.associatedFontMaster()
+		masterID = thisMaster.id
+		original1 = comp1.component.layers[masterID]
+		original2 = comp2.component.layers[masterID]
+		minDist = minDistanceBetweenTwoLayers( original1, original2, interval=interval )
+		comp2shift = distance - minDist
+		addedSBs = original1.RSB + original2.LSB
+		comp2.x = comp1.x + original1.width - addedSBs + comp2shift
 
 def buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenTwoLayers=90.0, suffix=None ):
 	isBlack = "black" in circleName.lower()
 	
-	thisFont = thisGlyph.font()
+	thisFont = thisGlyph.font
 	thisGlyph.widthMetricsKey = None # "=%i" % thisFont.upm )
 	thisGlyph.leftMetricsKey = "=40"
 	thisGlyph.rightMetricsKey = "=|"
@@ -296,7 +297,10 @@ def buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenTw
 				originalLayerWidth = thisFont.glyphs[compName].layers[thisMaster.id].width
 				advance += originalLayerWidth
 			
-			collectedBounds = [ c.bounds for c in thisLayer.components[1:] ]
+			collectedBounds = []
+			for i in range(1,len(thisLayer.components)):
+				collectedBounds.append(thisLayer.components[i].bounds)
+
 			compCenter = centerOfRect( combinedBounds(collectedBounds) )
 			centerAnchor = thisLayer.anchorForName_traverseComponents_("#center",True)
 			if centerAnchor:
@@ -310,8 +314,9 @@ def buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenTw
 			backshift = transform( shiftX=circleCenter.x, shiftY=circleCenter.y ).transformStruct()
 			
 			compensateStroke = []
-			for innerComponent in thisLayer.components[1:]:
-				
+			for i in range(1,len(thisLayer.components)):
+				innerComponent = thisLayer.components[i]
+
 				# optically shift so top anchor is in center:
 				originalLayer = topAnchor = innerComponent.component.layers[thisMaster.id]
 				topAnchor = originalLayer.anchors["top"]
@@ -454,10 +459,21 @@ def buildCirclePart( thisFont, glyphName, isBlack=False ):
 			innerCircle = outerCircle.copy()
 			thisLayer.paths.append(innerCircle)
 		
+			# get stems 
+			hstems = []	
+			vstems = []
+			for i, masterStem in enumerate(thisLayer.associatedFontMaster().stems):
+				horizontal = False
+				for stem in thisFont.stems:
+					if(thisLayer.associatedFontMaster().stems[stem.horizontal] == i):
+						horizontal = True
+				if horizontal == True:
+					hstems.append(masterStem)
+				else:
+					vstems.append(masterStem)
+	
 			# scale down inner circle:
 			stemSize = 50.0
-			hstems = thisLayer.associatedFontMaster().horizontalStems
-			vstems = thisLayer.associatedFontMaster().verticalStems
 			if hstems and vstems:
 				stemSize = (hstems[0] + vstems[0]) * 0.25
 		
@@ -744,7 +760,7 @@ class BuildCircledGlyphs( object ):
 												newGlyphName = glyphName+suffix
 												glyphNames.append(newGlyphName)
 												suffixDict[newGlyphName] = suffix
-	 							else:
+								else:
 									if thisFont.glyphs[suffixedCoreName]:
 										coreNames.append(suffixedCoreName)
 										newGlyphName = glyphName+suffix
