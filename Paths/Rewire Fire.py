@@ -6,7 +6,7 @@ Finds, selects and marks duplicate coordinates. Two nodes on the same position t
 """
 
 import vanilla
-from Foundation import NSPoint
+from Foundation import NSPoint, NSIntersectsRect
 
 def isOnLine(p1,p2,p3, threshold=0.6):
 	"""
@@ -168,6 +168,7 @@ class RewireFire( object ):
 		# find line segments:
 		for p in l.paths:
 			if p.closed:
+				firstPathBounds = p.bounds
 				for n1 in p.nodes:
 					n2 = n1.nextNode
 					if n2 and n1.type!=GSOFFCURVE and n2.type!=GSOFFCURVE:
@@ -179,7 +180,8 @@ class RewireFire( object ):
 							
 							# find other nodes that are exactly on the line segment:
 							for pp in l.paths:
-								if pp.closed:
+								secondPathBounds = pp.bounds
+								if pp.closed and NSIntersectsRect(firstPathBounds, secondPathBounds):
 									for n3 in pp.nodes:
 										if n3!=n1 and n3!=n2 and n3.type!=GSOFFCURVE:
 											p3 = n3.position
