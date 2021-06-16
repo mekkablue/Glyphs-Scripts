@@ -214,7 +214,7 @@ def placeComponentsAtDistance( thisLayer, comp1, comp2, interval=5.0, distance=1
 def buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenTwoLayers=90.0, suffix=None ):
 	isBlack = "black" in circleName.lower()
 	
-	thisFont = thisGlyph.font()
+	thisFont = thisGlyph.font
 	thisGlyph.widthMetricsKey = None # "=%i" % thisFont.upm )
 	thisGlyph.leftMetricsKey = "=40"
 	thisGlyph.rightMetricsKey = "=|"
@@ -469,7 +469,6 @@ def buildCirclePart( thisFont, glyphName, isBlack=False ):
 	
 			# scale down inner circle:
 			stemSize = 50.0
-			
 			if hstems and vstems:
 				stemSize = (hstems[0] + vstems[0]) * 0.25
 		
