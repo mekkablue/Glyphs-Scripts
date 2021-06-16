@@ -454,10 +454,22 @@ def buildCirclePart( thisFont, glyphName, isBlack=False ):
 			innerCircle = outerCircle.copy()
 			thisLayer.paths.append(innerCircle)
 		
+			# get stems 
+			hstems = []	
+			vstems = []
+			for masterStem in thisLayer.associatedFontMaster().stems:
+				horizontal = False
+				for stem in thisFont.stems:
+					if(thisLayer.associatedFontMaster().stems[stem.horizontal] == masterStem):
+						horizontal = True
+				if horizontal == True:
+					hstems.append(masterStem)
+				else:
+					vstems.append(masterStem)
+	
 			# scale down inner circle:
 			stemSize = 50.0
-			hstems = thisLayer.associatedFontMaster().horizontalStems
-			vstems = thisLayer.associatedFontMaster().verticalStems
+			
 			if hstems and vstems:
 				stemSize = (hstems[0] + vstems[0]) * 0.25
 		
