@@ -461,10 +461,10 @@ def buildCirclePart( thisFont, glyphName, isBlack=False ):
 			# get stems 
 			hstems = []	
 			vstems = []
-			for masterStem in thisLayer.associatedFontMaster().stems:
+			for i, masterStem in enumerate(thisLayer.associatedFontMaster().stems):
 				horizontal = False
 				for stem in thisFont.stems:
-					if(thisLayer.associatedFontMaster().stems[stem.horizontal] == masterStem):
+					if(thisLayer.associatedFontMaster().stems[stem.horizontal] == i):
 						horizontal = True
 				if horizontal == True:
 					hstems.append(masterStem)
