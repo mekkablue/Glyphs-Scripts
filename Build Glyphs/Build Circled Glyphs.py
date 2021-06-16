@@ -202,14 +202,15 @@ def minDistanceBetweenTwoLayers( comp1, comp2, interval=5.0 ):
 	return minDist
 
 def placeComponentsAtDistance( thisLayer, comp1, comp2, interval=5.0, distance=10.0 ):
-	thisMaster = thisLayer.associatedFontMaster()
-	masterID = thisMaster.id
-	original1 = comp1.component.layers[masterID]
-	original2 = comp2.component.layers[masterID]
-	minDist = minDistanceBetweenTwoLayers( original1, original2, interval=interval )
-	comp2shift = distance - minDist
-	addedSBs = original1.RSB + original2.LSB
-	comp2.x = comp1.x + original1.width - addedSBs + comp2shift
+	if comp1 is not None:
+		thisMaster = thisLayer.associatedFontMaster()
+		masterID = thisMaster.id
+		original1 = comp1.component.layers[masterID]
+		original2 = comp2.component.layers[masterID]
+		minDist = minDistanceBetweenTwoLayers( original1, original2, interval=interval )
+		comp2shift = distance - minDist
+		addedSBs = original1.RSB + original2.LSB
+		comp2.x = comp1.x + original1.width - addedSBs + comp2shift
 
 def buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenTwoLayers=90.0, suffix=None ):
 	isBlack = "black" in circleName.lower()
