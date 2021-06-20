@@ -8,19 +8,6 @@ Will get all PNG, GIF, JPG files in a folder and create iColor layers with them 
 import os
 from AppKit import NSFileManager
 
-def process( thisLayer ):
-	for thisPath in thisLayer.paths:
-		if thisPath.closed:
-			print("- closed path:")
-		else:
-			print("- open path:")
-		for thisNode in thisPath.nodes:
-			print("-- node %.1f %.1f (type %s)" % ( thisNode.x, thisNode.y, thisNode.type ))
-	for thisComponent in thisLayer.components:
-		print("- component %s at %.1f %.1f" % ( thisComponent.componentName, thisComponent.position.x, thisComponent.position.y ))
-	for thisAnchor in thisLayer.anchors:
-		print("- anchor %s at %.1f %.1f" % ( thisAnchor.name, thisAnchor.x, thisAnchor.y ))
-
 def isAnImage(fileName):
 	suffixes = ("png", "jpg", "jpeg", "gif", "pdf", "tif", "tiff")
 	for suffix in suffixes:
@@ -41,6 +28,13 @@ def analyseFileName(fileName):
 		print()
 	return glyphName, resolution
 
+def sortName(name):
+	glyphName, resolution = analyseFileName(name)
+	if not resolution:
+		return name
+	else:
+		return "%s%10i" % (glyphName, resolution)
+
 fileManager = NSFileManager.alloc().init()
 thisFont = Glyphs.font # frontmost font
 if not thisFont:
@@ -55,7 +49,7 @@ else:
 	try:
 		folders = GetFolder(message="Choose one or more folders containing images.", allowsMultipleSelection = True)
 		for folder in folders:
-			for fileName in os.listdir(folder):
+			for fileName in sorted(os.listdir(folder), key = lambda filename: sortName(filename)):
 				if isAnImage(fileName) and " " in fileName:
 					glyphName, resolution = analyseFileName(fileName)
 					if resolution:
@@ -72,26 +66,32 @@ else:
 						glyph.beginUndo() # begin undo grouping
 				
 						# determine layer:
-						sbixLayersForThisMaster = [l for l in glyph.layers if l.name==layerName and l.master==thisFontMaster]
-						if len(sbixLayersForThisMaster)>0:
-							layer = sbixLayersForThisMaster[0]
+						if Glyphs.versionNumber >= 3:
+							# Glyphs 3
+							sbixLayersForThisMaster = [l for l in glyph.layers if l.attributes["sbixSize"] and l.attributes["sbixSize"]==resolution]
+							if len(sbixLayersForThisMaster)>0:
+								layer = sbixLayersForThisMaster[0]
+							else:
+								layer = GSLayer()
+								layer.associatedMasterId = thisFontMaster.id
+								glyph.layers.append(layer)
+								layer.attributes["sbixSize"]=resolution
 						else:
-							layer = GSLayer()
-							layer.setAssociatedMasterId_(thisFontMaster.id)
-							glyph.layers.append(layer)
-							layer.name = layerName
+							# Glyphs 2
+							sbixLayersForThisMaster = [l for l in glyph.layers if l.name==layerName and l.master==thisFontMaster]
+							if len(sbixLayersForThisMaster)>0:
+								layer = sbixLayersForThisMaster[0]
+							else:
+								layer = GSLayer()
+								layer.setAssociatedMasterId_(thisFontMaster.id)
+								glyph.layers.append(layer)
+								layer.name = layerName
 				
 						# define as sbix and add image:
 						layer.setBackgroundImage_(None)
 						filePath = os.path.join(folder,fileName)
 						image = GSBackgroundImage.alloc().initWithPath_(filePath)
 						layer.backgroundImage = image
-						try:
-							# GLYPHS 3
-							layer.setAppleColorLayer_(1)
-						except:
-							# GLYPHS 2
-							pass
 						sbixCount += 1
 				
 						glyph.endUndo()   # end undo grouping
