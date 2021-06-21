@@ -288,7 +288,10 @@ def otVarFileName(thisFont, thisInstance=None):
 		return "%s.%s" % (fileName, suffix)
 	else:
 		familyName = otVarFamilyName(thisFont)
-		fileName = "%sGX.%s" % (familyName, suffix)
+		if Glyphs.versionString >= "3.0.3":
+			fileName = "%sVF.%s" % (familyName, suffix)
+		else:
+			fileName = "%sGX.%s" % (familyName, suffix)
 		return fileName.replace(" ","")
 
 def replaceSet( text, setOfReplacements ):
