@@ -259,7 +259,7 @@ class NewTabWithUnevenHandleDistributions( object ):
 					if firstLayer.paths:
 						otherLayers = [l for l in thisGlyph.layers if l!=firstLayer and (l.isMasterLayer or l.isSpecialLayer) and thisGlyph.mastersCompatibleForLayers_((l,firstLayer))]
 						for i,firstPath in enumerate(firstLayer.paths):
-							if not thisGlyph in affectedGlyphs and not markInFirstMaster:
+							if not thisGlyph.name in affectedGlyphs and not markInFirstMaster:
 								for j,firstNode in enumerate(firstPath.nodes):
 									if firstNode.type == CURVE:
 										indexPrevNode = (j-3) % len(firstPath.nodes)
@@ -275,7 +275,7 @@ class NewTabWithUnevenHandleDistributions( object ):
 											if shouldCheckFactorChange:
 												firstFactor = self.factor(firstPrevNode, firstBCP1, firstBCP2, firstNode, firstIntersection)
 												if self.factorChangeIsTooBig(maxFactorChange, firstFactor, i, indexPrevNode, indexBCP1, indexBCP2, j, otherLayers):
-													if not thisGlyph in affectedGlyphs:
+													if not thisGlyph.name in affectedGlyphs:
 														affectedGlyphs.append(thisGlyph.name)
 													if markInFirstMaster:
 														centerPoint = bezierWithPoints(firstPrevNode, firstBCP1, firstBCP2, firstNode, 0.5)
@@ -285,7 +285,7 @@ class NewTabWithUnevenHandleDistributions( object ):
 											if shouldCheckAnyMaxToNotMax:
 												firstBCPsMaxed = (firstBCP1.position==firstIntersection, firstBCP2.position==firstIntersection)
 												if not self.isMaxTheSameEverywhere( firstBCPsMaxed, i, indexPrevNode, indexBCP1, indexBCP2, j, otherLayers):
-													if not thisGlyph in affectedGlyphs:
+													if not thisGlyph.name in affectedGlyphs:
 														affectedGlyphs.append(thisGlyph.name)
 													if markInFirstMaster:
 														centerPoint = bezierWithPoints(firstPrevNode, firstBCP1, firstBCP2, firstNode, 0.5)
