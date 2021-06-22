@@ -8,7 +8,7 @@ Finds glyphs where handle distributions change too much (e.g., from balanced to 
 import vanilla
 from Foundation import NSPoint
 
-def intersectionWithNSPoints( pointA, pointB, pointC, pointD ):
+def intersectionWithNSPoints( pointA, pointB, pointC, pointD , includeMidBcp=False):
 	"""
 	Returns an NSPoint of the intersection AB with CD.
 	Or False if there is no intersection
@@ -49,8 +49,9 @@ def intersectionWithNSPoints( pointA, pointB, pointC, pointD ):
 			
 		intersectionPoint = NSPoint( x, y )
 		if bothPointsAreOnSameSideOfOrigin( intersectionPoint, pointB, pointA ) and bothPointsAreOnSameSideOfOrigin( intersectionPoint, pointC, pointD ):
-			if pointIsBetweenOtherPoints( intersectionPoint, pointB, pointA ) or pointIsBetweenOtherPoints( intersectionPoint, pointC, pointD ):
-				return None
+			if not includeMidBcp:
+				if pointIsBetweenOtherPoints( intersectionPoint, pointB, pointA ) or pointIsBetweenOtherPoints( intersectionPoint, pointC, pointD ):
+					return None
 			return intersectionPoint
 		else:
 			return None
@@ -270,7 +271,7 @@ class NewTabWithUnevenHandleDistributions( object ):
 										firstBCP1 = firstPath.nodes[indexBCP1]
 										firstBCP2 = firstPath.nodes[indexBCP2]
 									
-										firstIntersection = intersectionWithNSPoints(firstPrevNode, firstBCP1, firstBCP2, firstNode)
+										firstIntersection = intersectionWithNSPoints(firstPrevNode, firstBCP1, firstBCP2, firstNode, includeMidBcp=True)
 										if firstIntersection:
 											if shouldCheckFactorChange:
 												firstFactor = self.factor(firstPrevNode, firstBCP1, firstBCP2, firstNode, firstIntersection)
