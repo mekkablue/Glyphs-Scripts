@@ -336,11 +336,12 @@ class FontInfoBatchSetter( object ):
 				
 			print("Font Info Batch Setter Report:")
 			
+			changeCount = 0
+			changedFontsCount = 0
+
 			if not theseFonts or theseFonts[0] is None:
 				self.complainAboutNoFonts()
 			else:
-				changeCount = 0
-				changedFontsCount = 0
 				
 				for i,thisFont in enumerate(theseFonts):
 					print("\n\n%i. %s:" % (i+1, thisFont.familyName))
@@ -432,7 +433,7 @@ class FontInfoBatchSetter( object ):
 
 	def complainAboutNoFonts(self, sender=None):
 		Message(title="No Font Open", message="The script requires at least one font open. Open a font and run the script again.", OKButton=None)
-		print("No open fonts found.\nDone.")
+		print("🤷‍♂️ No open fonts found.")
 	
 	def reportFilePath(self, thisFont):
 		if thisFont.filepath:
