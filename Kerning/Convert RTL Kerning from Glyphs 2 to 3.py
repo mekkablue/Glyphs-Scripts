@@ -81,7 +81,7 @@ def copyFrom2to3(masterKerning, RTLmasterKerning):
 for master in thisFont.masters:
 	print("\n🔠 Master: %s" % master.name)
 	RTLMasterKerning = thisFont.kerningRTL.get(master.id, None)
-	if RTLmasterKerning is None:
+	if RTLMasterKerning is None:
 		RTLMasterKerning = NSMutableDictionary.new()
 		thisFont.kerningRTL[master.id] = RTLMasterKerning
 	
@@ -91,9 +91,8 @@ for master in thisFont.masters:
 		continue
 	if convertFrom3to2:
 		copyFrom3to2(masterKerning, RTLMasterKerning)
-			
 	else:
-		
+		copyFrom2to3(masterKerning, RTLMasterKerning)
 
 # Switch kerning classes in glyphs
 print("\n2️⃣ Switching kern classes of RTL glyphs:")
