@@ -37,11 +37,11 @@ print("1️⃣ Convert RTL kerning from Glyphs %i → %i:" % (
 
 def copyFrom3to2(masterKerning, RTLmasterKerning):
 	for firstKey in RTLmasterKerning.allKeys():
-		firstKerning = RTLmasterKerning[firstKey]
 		firstName = nameForKey(firstKey)
 		if GSGlyphsInfo.isRTLScript_(key2Scripts[firstName]):
 			newFirstKey = firstKey.replace("@MMK_R_", "@MMK_L_")
 			newFirstKerning = {}
+			firstKerning = RTLmasterKerning[firstKey]
 			for secondKey in firstKerning.allKeys():
 				newSecondKey = secondKey.replace("@MMK_L_", "@MMK_R_")
 				kernValue = firstKerning[secondKey]
@@ -60,9 +60,9 @@ def copyFrom3to2(masterKerning, RTLmasterKerning):
 
 def copyFrom2to3(masterKerning, RTLmasterKerning):
 	for firstKey in masterKerning.allKeys():
-		firstKerning = masterKerning[firstKey]
 		firstName = nameForKey(firstKey)
 		if GSGlyphsInfo.isRTLScript_(key2Scripts[firstName]):
+			firstKerning = masterKerning[firstKey]
 			newFirstKey = firstKey.replace("@MMK_L_", "@MMK_R_")
 			newFirstKerning = {}
 			RTLmasterKerning[newFirstKey] = newFirstKerning
