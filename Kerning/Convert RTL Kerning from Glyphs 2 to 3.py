@@ -61,6 +61,8 @@ def copyFrom3to2(masterKerning, RTLmasterKerning):
 def copyFrom2to3(masterKerning, RTLmasterKerning):
 	for firstKey in masterKerning.allKeys():
 		firstName = nameForKey(firstKey)
+		if firstName not in key2Scripts:
+			continue
 		if GSGlyphsInfo.isRTLScript_(key2Scripts[firstName]):
 			firstKerning = masterKerning[firstKey]
 			newFirstKey = firstKey.replace("@MMK_L_", "@MMK_R_")
