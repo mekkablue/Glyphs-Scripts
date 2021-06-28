@@ -427,8 +427,20 @@ class FindNearVerticalMisses( object ):
 											else:
 												previousY = None
 												nextY = None
-
-											if self.isNodeSlightlyOff( thisNode.position, thisLayer.master, deviance, previousY, nextY, thisGlyph.subCategory, suffix ):
+											
+											glyphType = None
+											if Glyphs.versionNumber >= 3:
+												# GLYPHS 3
+												if thisGlyph.case == GSUppercase:
+													glyphType = "Uppercase"
+												elif thisGlyph.case == GSLowercase:
+													glyphType = "Lowercase"
+												elif thisGlyph.case == GSSmallcaps:
+													glyphType = "Smallcaps"
+											else:
+												glyphType = thisGlyph.subCategory
+											
+											if self.isNodeSlightlyOff( thisNode.position, thisLayer.master, deviance, previousY, nextY, glyphType, suffix ):
 												# collect layer:
 												if not thisLayer in affectedLayers:
 													affectedLayers.append(thisLayer)
