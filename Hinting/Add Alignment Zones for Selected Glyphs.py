@@ -176,8 +176,13 @@ class CreateAlignmentZonesforSelectedGlyphs( object ):
 							zoneSize = min(-1, size)
 							addedZoneCount += self.addZoneToMaster(zonePosition, zoneSize, master, blueFuzz)
 					
-					master.sortAlignmentZones()
-					master.setAlignmentZones_(master.alignmentZones) # triggers UI redraw in Font Info > Masters
+					if Glyphs.versionNumber >= 3:
+						# GLYPHS 3
+						pass
+					else:
+						# GLYPHS 2
+						master.sortAlignmentZones()
+						master.setAlignmentZones_(master.alignmentZones) # triggers UI redraw in Font Info > Masters
 				
 					# Floating notification:
 					Glyphs.showNotification( 
