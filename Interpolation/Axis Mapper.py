@@ -9,12 +9,102 @@ import vanilla
 from axisMethods import *
 from AppKit import NSFont
 from Foundation import NSMutableDictionary
+from collections import OrderedDict
 
 fallbackText = """
 Only lines containing a dash "-" followed by a greater sign ">" are interpreted
 Write comments freely, anything after a hashtag "#" will always be ignored
 # SYNTAX: slider value the user *sees* -> slider value the user *gets*
 """
+
+def addAxisMappingGlyphsFontLevel(thisFont,minValue,maxValue,mappingRecipe,axisTag):
+	axisMapping = NSMutableDictionary.alloc().init()
+	
+	# axis extremes must be there:
+	nativeLow, nativeHigh = extremeMasterValuesNative(thisFont,axisTag=axisTag)
+	for masterExtreme in (nativeLow, nativeHigh):
+		axisMapping.addObject_forKey_( masterExtreme, masterExtreme )
+	print("✅ Added axis extremes to mapping: %i→%i, %i→%i"%(nativeLow,nativeLow, nativeHigh,nativeHigh))
+	
+	
+	# process line
+	for line in mappingRecipe.splitlines():
+		if "#" in line:
+			line = line[:line.find("#")]
+		if "->" in line:
+			line = line.strip()
+			userValue, targetValue = [float(v.strip()) for v in line.split("->")]
+			userCoeff = coefficient(userValue,minValue,maxValue)
+			targetCoeff = coefficient(targetValue,minValue,maxValue)
+			nativeUserValue = valueForCoefficient(userCoeff,nativeLow,nativeHigh)
+			nativeTargetValue = valueForCoefficient(targetCoeff,nativeLow,nativeHigh)
+			axisMapping.addObject_forKey_(nativeTargetValue,nativeUserValue)
+			print("✅ Translating %i→%i to %i→%i"%(userValue, targetValue, nativeUserValue, nativeTargetValue))
+	
+	parameterName = "Axis Mappings"
+	mappings = Font.customParameters[parameterName]
+	if not mappings:
+		print("🙌 Adding new %s parameter"%parameterName)
+		mappings = NSMutableDictionary.alloc().initWithObject_forKey_(axisMapping, "wght")
+		mappings.addObject_forKey_( axisMapping, axisTag )
+	else:
+		print("🧩 Inserting %s mapping into existing %s parameter"%(axisTag,parameterName))
+		mappings.setObject_forKey_( axisMapping, axisTag )
+	thisFont.customParameters[parameterName] = mappings
+	return len(axisMapping.allKeys())
+
+
+def addAxisMappingGlyphsInstanceLevel(thisFont,minValue,maxValue,mappingRecipe,axisTag):
+	
+	tagToNameDict = OrderedDict([(axis.axisTag,axis.name) for axis in thisFont.axes])
+	axisName = tagToNameDict["wght"]
+	axisIndex = list(tagToNameDict.keys()).index("wght")
+
+	entriesCount = 0
+
+	# axis extremes for further calculations:
+	nativeLow, nativeHigh = extremeMasterValuesNative(thisFont,axisTag=axisTag)
+
+	# process line
+	for line in mappingRecipe.splitlines():
+		if "#" in line:
+			line = line[:line.find("#")]
+		if "->" in line:
+			line = line.strip()
+			userValue, targetValue = [float(v.strip()) for v in line.split("->")]
+			userCoeff = coefficient(userValue,minValue,maxValue)
+			targetCoeff = coefficient(targetValue,minValue,maxValue)
+			nativeUserValue = valueForCoefficient(userCoeff,nativeLow,nativeHigh)
+			nativeTargetValue = valueForCoefficient(targetCoeff,nativeLow,nativeHigh)
+
+			for thisInstance in thisFont.instances:
+				if not thisInstance.axes[axisIndex] == nativeUserValue: continue
+				
+				#checking if Axis Location Parameter already exists
+				customParameterNames = [customParameter.name for customParameter in thisInstance.customParameters]
+				if 'Axis Location' in customParameterNames:
+					axisLocation = thisInstance.customParameters['Axis Location']
+					
+					# making sure that we have python types
+					existingMappingValues = []
+					for entry in axisLocation:
+						thisAxisName = entry['Axis']
+						thisAxisLocation = entry['Location']
+						if thisAxisName == axisName:
+							thisAxisLocation = nativeTargetValue
+						entry = dict(Axis=thisAxisName, Location=thisAxisLocation)
+						print("🧩 Inserting %s mapping into existing 'Axis Location' parameter of '%s' instance"%(thisAxisName, thisInstance.name))
+						entriesCount += 1
+				else:
+					thisInstance.customParameters['Axis Location'] = [
+														dict(Axis=axisName,Location=nativeTargetValue)
+													]
+					print("🙌 Adding new 'Axis Location' parameter to an '%s' instance"%(thisInstance.name))
+					entriesCount += 1
+
+			print("✅ Translating %i→%i to %i→%i"%(userValue, targetValue, nativeUserValue, nativeTargetValue))
+	return entriesCount
+
 
 class AxisMapper( object ):
 	def __init__( self ):
@@ -58,6 +148,9 @@ class AxisMapper( object ):
 		self.w.maxValue.getNSTextField().setToolTip_(tooltipText)
 		self.w.maxValueReset = vanilla.SquareButton( (inset+230+60+40, linePos, 20, 18), "↺", sizeStyle='small', callback=self.resetMaximum )
 		self.w.maxValueReset.getNSButton().setToolTip_("Will attempt to guess the user-visible slider maximum of the frontmost font.")
+		self.w.mappingLevel = vanilla.PopUpButton((inset+230+60+40+30, linePos-1, 120, 18), ['instance level', 'font level'], sizeStyle='small' )
+		self.w.mappingLevel.getNSPopUpButton().setToolTip_("Choose level in which the custom parameter for axis mapping will be added.")
+		# self.w.mappingLevel.set(value)
 		linePos += lineHeight
 		
 		self.w.mappingRecipe = vanilla.TextEditor( (0, linePos, -0, -20-inset*2), text=fallbackText.strip(), callback=self.SavePreferences, checksSpelling=False )
@@ -76,6 +169,8 @@ class AxisMapper( object ):
 		self.w.runButton.getNSButton().setToolTip_("Write the current mapping recipe into an Axis Mappings parameter for the frontmost font.")
 		self.w.setDefaultButton( self.w.runButton )
 		
+
+
 		# Load Settings:
 		if not self.LoadPreferences():
 			print("Note: 'Axis Mapper' could not load preferences. Will resort to defaults")
@@ -296,45 +391,15 @@ class AxisMapper( object ):
 				axisTag = Glyphs.defaults["com.mekkablue.AxisMapper.axisPicker"]
 				
 				print("🔠 Building Mapping for: %s"%axisTag)
-				
-				axisMapping = NSMutableDictionary.alloc().init()
-				
-				# axis extremes must be there:
-				nativeLow, nativeHigh = extremeMasterValuesNative(thisFont,axisTag=axisTag)
-				for masterExtreme in (nativeLow, nativeHigh):
-					axisMapping.addObject_forKey_( masterExtreme, masterExtreme )
-				print("✅ Added axis extremes to mapping: %i→%i, %i→%i"%(nativeLow,nativeLow, nativeHigh,nativeHigh))
-				
-				
-				# process line
-				for line in mappingRecipe.splitlines():
-					if "#" in line:
-						line = line[:line.find("#")]
-					if "->" in line:
-						line = line.strip()
-						userValue, targetValue = [float(v.strip()) for v in line.split("->")]
-						userCoeff = coefficient(userValue,minValue,maxValue)
-						targetCoeff = coefficient(targetValue,minValue,maxValue)
-						nativeUserValue = valueForCoefficient(userCoeff,nativeLow,nativeHigh)
-						nativeTargetValue = valueForCoefficient(targetCoeff,nativeLow,nativeHigh)
-						axisMapping.addObject_forKey_(nativeTargetValue,nativeUserValue)
-						print("✅ Translating %i→%i to %i→%i"%(userValue, targetValue, nativeUserValue, nativeTargetValue))
-				
-				parameterName = "Axis Mappings"
-				mappings = Font.customParameters[parameterName]
-				if not mappings:
-					print("🙌 Adding new %s parameter"%parameterName)
-					mappings = NSMutableDictionary.alloc().initWithObject_forKey_(axisMapping, "wght")
-					mappings.addObject_forKey_( axisMapping, axisTag )
+				if self.w.mappingLevel.get() == 0:
+					entriesNumber = addAxisMappingGlyphsInstanceLevel(thisFont,minValue, maxValue, mappingRecipe, axisTag)
 				else:
-					print("🧩 Inserting %s mapping into existing %s parameter"%(axisTag,parameterName))
-					mappings.setObject_forKey_( axisMapping, axisTag )
-				thisFont.customParameters[parameterName] = mappings
-	
+					entriesNumber = addAxisMappingGlyphsFontLevel(thisFont,minValue, maxValue, mappingRecipe, axisTag)
+			
 			# Final report:
 			Glyphs.showNotification( 
 				"‘%s’ mapping for %s" % (axisTag, thisFont.familyName),
-				"Inserted ‘%s’ mapping with %i entries. Details in Macro Window" % (axisTag, len(axisMapping.allKeys())),
+				"Inserted ‘%s’ mapping with %i entries. Details in Macro Window" % (axisTag, entriesNumber),
 				)
 			print("\nDone.")
 
