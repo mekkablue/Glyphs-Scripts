@@ -106,15 +106,17 @@ def hasOpenPaths( thisLayer ):
 
 def hasBadOutlineOrder( thisLayer ):
 	firstPath = None
-	try:
+	if Glyphs.versionNumber >= 3:
 		# GLYPHS 3
-		for thisShape in thisLayer.shapes:
-			if type(thisShape) is GSPath:
-				firstPath = thisShape
-				break
-	except:
+		if thisLayer.shapes:
+			for thisShape in thisLayer.shapes:
+				if type(thisShape) is GSPath:
+					firstPath = thisShape
+					break
+	else:
 		# GLYPHS 2
-		firstPath = thisLayer.paths[0]
+		if thisLayer.paths:
+			firstPath = thisLayer.paths[0]
 	
 	if firstPath and firstPath.direction != -1:
 		return True
