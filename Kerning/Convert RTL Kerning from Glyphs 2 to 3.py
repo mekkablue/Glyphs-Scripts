@@ -36,7 +36,7 @@ print("1️⃣ Convert RTL kerning from Glyphs %i → %i:" % (
 	))
 
 def copyFrom3to2(masterKerning, RTLmasterKerning):
-	for firstKey in RTLmasterKerning.allKeys():
+	for firstKey in list(RTLmasterKerning.allKeys()):
 		firstName = nameForKey(firstKey)
 		if GSGlyphsInfo.isRTLScript_(key2Scripts[firstName]):
 			newFirstKey = firstKey.replace("@MMK_R_", "@MMK_L_")
@@ -59,7 +59,8 @@ def copyFrom3to2(masterKerning, RTLmasterKerning):
 			))
 
 def copyFrom2to3(masterKerning, RTLmasterKerning):
-	for firstKey in masterKerning.allKeys():
+
+	for firstKey in list(masterKerning.allKeys()):
 		firstName = nameForKey(firstKey)
 		if firstName not in key2Scripts:
 			continue
