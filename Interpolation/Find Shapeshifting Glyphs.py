@@ -245,17 +245,21 @@ class FindShapeshiftingGlyphs( object ):
 				if alsoCheckMasters:
 					self.addMasterInstances( thisFont )
 				# report:
-				print("Calculating %i instance interpolations.\n" % len(self.instances))
+				print("Calculating %i instance interpolations:" % len(self.instances))
 				for i in self.instances:
-					print("- %s:" % i.name)
-					for key in i.instanceInterpolations:
-						print(i.instanceInterpolations[int(key)])
+					print("\n🅸 %s:" % i.name)
+					for key in i.instanceInterpolations.keys():
+						# print(i.instanceInterpolations[key]) #DEBUG
 						try:
-							print("  %s: %.3f" % (thisFont.masters[key].name, float(i.instanceInterpolations[key])))
+							print("   🅜 %.3f %s" % (
+								float(i.instanceInterpolations[key]),
+								thisFont.masters[key].name,
+								))
 						except:
 							pass
-				print()
-			
+
+				print("\n\nFinding potential shapeshifters...\n")
+
 				# iterate through glyphs:
 				affectedGlyphNames = []
 				numOfGlyphs = len(glyphNamesToBeChecked)
@@ -299,25 +303,31 @@ class FindShapeshiftingGlyphs( object ):
 				
 				print("\n\n\n")
 			
+			message = ""
+			
 			if totalAffectedGlyphCount:
+				message="Found %i affected glyph%s in %i font%s (out of %i font%s examined)." % (
+					totalAffectedGlyphCount, 
+					"" if totalAffectedGlyphCount==1 else "s",
+					totalAffectedFontCount, 
+					"" if totalAffectedFontCount==1 else "s",
+					len(theseFonts),
+					"" if len(theseFonts)==1 else "s",
+				)
 				Message(
 					title="⚠️ %i Shapeshifting Glyphs" % totalAffectedGlyphCount, 
-					message="Found %i affected glyph%s in %i font%s (out of %i font%s examined). Details in Macro Window." % (
-						totalAffectedGlyphCount, 
-						"" if totalAffectedGlyphCount==1 else "s",
-						totalAffectedFontCount, 
-						"" if totalAffectedFontCount==1 else "s",
-						len(theseFonts),
-						"" if len(theseFonts)==1 else "s",
-					), 
+					message="%s Details in Macro Window."%message, 
 					OKButton=u"OK",
 				)
 			else:
+				message="Among the specified fonts, glyphs and interpolations, no changes of path numbers could be found."
 				Message(
 					title="✅ No Shapeshifting Glyphs", 
-					message="Among the specified fonts, glyphs and interpolations, no changes of path numbers could be found.", 
+					message=message, 
 					OKButton=u"🍻Cheers!",
 				)
+			
+			print("%s\nDone." % message)
 			
 			if not self.SavePreferences( self ):
 				print("Note: 'Find Shapeshifting Glyphs' could not write preferences.")
