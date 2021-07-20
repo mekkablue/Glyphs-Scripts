@@ -236,6 +236,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Keep Only First Master Hints:** In selected glyphs, deletes all hints in all layers except for whatever is ordered as first master. Respects Bracket Layers. E.g., if your first master is 'Regular', then the script will delete hints in 'Bold', 'Bold [120]', but keep them in 'Regular' and 'Regular [100]'.
 * **New Tab with Glyphs in Alignment Zones:** Opens a new tab and lists all glyphs that reach into alignment zones.
 * **New Tabs with Glyphs Not Reaching Into Zones:** Opens a new tab with all glyphs that do NOT reach into any top or bottom alignment zone. Only counts glyphs that contain paths in the current master. Ignores empty glyphs and compounds. *Needs Vanilla.*
+* **New Tab with Layers with TTDeltas:** Opens a new tab with all layers that have defined TTDeltas.
 * **Remove PS Hints:** Deletes all stem and/or ghost hints throughout the current font, the selected master and/or the selected glyphs. *Needs Vanilla.*
 * **Remove TT Hints:** Deletes a user-specified set of TT instructions throughout the current font, the selected master and/or the selected glyphs. *Needs Vanilla.*
 * **Remove Zero Deltas in Selected Glyphs:** Goes through all layers of each selected glyph, and deletes all TT Delta Hints with an offset of zero. Detailed Report in Macro window.
