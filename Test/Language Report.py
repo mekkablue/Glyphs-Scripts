@@ -107,7 +107,7 @@ langdict = {
 	"kiribati":{"language":u"Kiribati", "code":"gil", "letters":u"", "speakers":70000},
 	"kirundi":{"language":u"Kirundi", "code":"run", "letters":u"", "speakers":4500000},
 	"klingon":{"language":u"Klingon", "code":"tlh", "letters":u"", "speakers":0},
-	"kurdish":{"language":u"Kurdish (Latin)", "code":"kur", "letters":u"ĀāĂăÇçÉéÊêĒēĔĕÍíÎîĪīĬĭŌōŎŏȘșÚúÛûŪūŬŭ", "speakers":16000000},
+	"kurdish":{"language":u"Kurdish (Latin)", "code":"kur", "letters":u"ÇçÊêÎîŁłŇňŘřŞşÛûÜü", "speakers":16000000},
 	"ladin":{"language":u"Ladin", "code":"lld", "letters":u"ÀàÁáÂâĆćÉéÈèËëÊêÌìÎîÓóÒòÖöÔôŚśÙùÜüÛû", "speakers":20000},
 	"latin":{"language":u"Latin", "code":"lat", "letters":u"", "speakers":0},
 	"latino_sine":{"language":u"Latino sine Flexione", "code":"na", "letters":u"", "speakers":0},
