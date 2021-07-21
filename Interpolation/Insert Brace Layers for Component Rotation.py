@@ -107,6 +107,8 @@ class InsertBraceLayersForComponentRotation( object ):
 							for thisValue in sorted(braceLayerValues.keys()):
 								newLayer = GSLayer()
 								newLayer.name = "{%i}" % int(thisValue)
+								if Glyphs.versionNumber >= 3:
+									newLayer.attributes['coordinates'] = {'a01':thisValue}
 								thisGlyph.layers.append(newLayer)
 								newLayer.reinterpolate()
 								masterLayer1 = thisGlyph.layers[ braceLayerValues[thisValue][0] ]

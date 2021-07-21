@@ -145,6 +145,8 @@ def process( thisLayer, steps=5 ):
 			frameValue = firstMasterValue + i * stepWidth
 			braceLayer = shiftedLayer( thisLayer, frameTransform )
 			braceLayer.name = "{%i}" % frameValue
+			if Glyphs.versionNumber >= 3:
+				braceLayer.attributes['coordinates'] = {'a01':frameValue}
 			thisLayer.parent.layers.append( braceLayer )
 			
 
