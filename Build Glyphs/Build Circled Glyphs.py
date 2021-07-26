@@ -9,6 +9,8 @@ from Foundation import NSPoint, NSClassFromString, NSAffineTransform
 from AppKit import NSButtLineCapStyle, NSRect, NSSize
 import math, vanilla
 
+
+
 circledNumbers = (
 	"zero.circled",
 	"one.circled",
@@ -453,6 +455,7 @@ def buildCirclePart( thisFont, glyphName, isBlack=False ):
 		thisLayer.applyTransform( transform(shiftY=shift).transformStruct() )
 
 		if not isBlack:
+
 			# inner circle, scaled down:
 			currentHeight = thisLayer.bounds.size.height
 			outerCircle = thisLayer.paths[0]
@@ -462,16 +465,15 @@ def buildCirclePart( thisFont, glyphName, isBlack=False ):
 			# get stems 
 			hstems = []	
 			vstems = []
-			for i, masterStem in enumerate(thisLayer.associatedFontMaster().stems):
-				horizontal = False
-				for stem in thisFont.stems:
-					if(thisLayer.associatedFontMaster().stems[stem.horizontal] == i):
-						horizontal = True
-				if horizontal == True:
-					hstems.append(masterStem)
+
+			masterStems = thisLayer.associatedFontMaster().stems
+			for i, stem in enumerate(thisFont.stems):
+				if stem.horizontal:
+					hstems.append(masterStems[i])
 				else:
-					vstems.append(masterStem)
-	
+					vstems.append(masterStems[i])
+
+
 			# scale down inner circle:
 			stemSize = 50.0
 			if hstems and vstems:
