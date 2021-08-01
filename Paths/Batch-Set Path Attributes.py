@@ -7,6 +7,33 @@ Set path attributes of all paths in selected glyphs, the master, the font, etc.
 
 import vanilla
 
+def intOrNone(value):
+	value = str(value)
+	if "." in value:
+		value = value[:value.find(".")]
+	newValue = ""
+	for letter in value:
+		if letter in "0123456789":
+			newValue += letter
+	if newValue:
+		return newValue
+	return None
+
+allAttributeNames = (
+	"lineCapStart",
+	"lineCapEnd",
+	"strokeWidth",
+	"strokeHeight",
+	"strokePos",
+)
+
+strokePositions = {
+	"center": None,
+	"inside (left of path)": 1,
+	"outside (right of path)": 0,
+}
+sortedStrokePositionNames = sorted( strokePositions.keys(), key = lambda thisListItem: "cio".find(thisListItem[0]) )
+
 scopeMaster = (
 	"current master",
 	"all masters",
@@ -19,10 +46,12 @@ scopeGlyphs = (
 )
 
 class BatchSetPathAttributes( object ):
+	prefID = "com.mekkablue.BatchSetPathAttributes"
+	
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 300
-		windowHeight = 170
+		windowHeight = 210
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -30,7 +59,7 @@ class BatchSetPathAttributes( object ):
 			"Batch-Set Path Attributes", # window title
 			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
 			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
-			autosaveName = "com.mekkablue.BatchSetPathAttributes.mainwindow" # stores last window position and size
+			autosaveName = self.domain("mainwindow") # stores last window position and size
 		)
 		
 		# UI elements:
@@ -47,13 +76,6 @@ class BatchSetPathAttributes( object ):
 		
 		indent = 80
 		
-		tooltip = "0: straight cutoff\n1: round (wide)\n2: round (tight)\n3: square\n4: orthogonal\n\nEnter one number for both start and end, enter two comma-separated numbers (e.g. ‘2, 1’) for different caps at start and end."
-		self.w.lineCapsText = vanilla.TextBox( (inset*2, linePos+2, indent, 14), "Line Caps", sizeStyle='small', selectable=True )
-		self.w.lineCapsText.getNSTextField().setToolTip_(tooltip)
-		self.w.lineCaps = vanilla.EditText( (inset*2+indent, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle='small' )
-		self.w.lineCaps.getNSTextField().setToolTip_(tooltip)
-		linePos += lineHeight
-		
 		tooltip = "Width of the path in units."
 		self.w.strokeWidthText = vanilla.TextBox( (inset*2, linePos+2, indent, 14), "Stroke Width", sizeStyle='small', selectable=True )
 		self.w.strokeWidthText.getNSTextField().setToolTip_(tooltip)
@@ -61,6 +83,28 @@ class BatchSetPathAttributes( object ):
 		self.w.strokeWidth.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
+		tooltip = "Height of the path in units. Leave empty for monoline (width=height)."
+		self.w.strokeHeightText = vanilla.TextBox( (inset*2, linePos+2, indent, 14), "Stroke Height", sizeStyle='small', selectable=True )
+		self.w.strokeHeightText.getNSTextField().setToolTip_(tooltip)
+		self.w.strokeHeight = vanilla.EditText( (inset*2+indent, linePos, -inset, 19), "20", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.strokeHeight.getNSTextField().setToolTip_(tooltip)
+		linePos += lineHeight
+
+		tooltip = "0: right\n1: left\nempty: center (default)"
+		self.w.strokePosText = vanilla.TextBox( (inset*2, linePos+2, indent, 14), "Position", sizeStyle='small', selectable=True )
+		self.w.strokePosText.getNSTextField().setToolTip_(tooltip)
+		self.w.strokePos = vanilla.PopUpButton( (inset*2+indent, linePos, -inset, 19), sortedStrokePositionNames, sizeStyle='small', callback=self.SavePreferences )
+		# self.w.strokePos = vanilla.EditText( (inset*2+indent, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.strokePos.getNSPopUpButton().setToolTip_(tooltip)
+		linePos += lineHeight
+
+		tooltip = "0: straight cutoff\n1: round (wide)\n2: round (tight)\n3: square\n4: orthogonal\n\nEnter one number for both start and end, enter two comma-separated numbers (e.g. ‘2, 1’) for different caps at start and end."
+		self.w.lineCapsText = vanilla.TextBox( (inset*2, linePos+2, indent, 14), "Line Caps", sizeStyle='small', selectable=True )
+		self.w.lineCapsText.getNSTextField().setToolTip_(tooltip)
+		self.w.lineCaps = vanilla.EditText( (inset*2+indent, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.lineCaps.getNSTextField().setToolTip_(tooltip)
+		linePos += lineHeight
+		
 		# Buttons at the bottom:
 		self.w.extractButton = vanilla.Button( (inset, -20-inset, 80, -inset), "Extract", sizeStyle='regular', callback=self.extractAttributes )
 		self.w.extractButton.getNSButton().setToolTip_("Extract attributes from currently selected path, or (if none are selected) from the first path in the current glyph.")
@@ -78,14 +122,33 @@ class BatchSetPathAttributes( object ):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
+	
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+		
+	def setPref(self, prefName, value=None):
+		domain = self.domain(prefName)
+		if value is None:
+			# reset
+			del Glyphs.defaults[domain]
+		else:
+			# set
+			Glyphs.defaults[domain] = value
+	
 	def SavePreferences( self, sender=None ):
 		try:
 			# write current settings into prefs:
-			Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.scopeGlyphs"] = self.w.scopeGlyphs.get()
-			Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.scopeMaster"] = self.w.scopeMaster.get()
-			Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.lineCaps"] = self.w.lineCaps.get()
-			Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.strokeWidth"] = self.w.strokeWidth.get()
+			self.setPref( "scopeGlyphs", self.w.scopeGlyphs.get() )
+			self.setPref( "scopeMaster", self.w.scopeMaster.get() )
+			self.setPref( "lineCaps", self.w.lineCaps.get() )
+			self.setPref( "strokeWidth", self.w.strokeWidth.get() )
+			self.setPref( "strokeHeight", self.w.strokeHeight.get() )
+			self.setPref( "strokePos", self.w.strokePos.get() )
 			return True
 		except:
 			import traceback
@@ -95,16 +158,20 @@ class BatchSetPathAttributes( object ):
 	def LoadPreferences( self ):
 		try:
 			# register defaults:
-			Glyphs.registerDefault("com.mekkablue.BatchSetPathAttributes.scopeGlyphs", 0)
-			Glyphs.registerDefault("com.mekkablue.BatchSetPathAttributes.scopeMaster", 0)
-			Glyphs.registerDefault("com.mekkablue.BatchSetPathAttributes.lineCaps", 2)
-			Glyphs.registerDefault("com.mekkablue.BatchSetPathAttributes.strokeWidth", 20)
+			Glyphs.registerDefault(self.domain("scopeGlyphs"), 0)
+			Glyphs.registerDefault(self.domain("scopeMaster"), 0)
+			Glyphs.registerDefault(self.domain("lineCaps"), 2)
+			Glyphs.registerDefault(self.domain("strokeWidth"), 20)
+			Glyphs.registerDefault(self.domain("strokeHeight"), "")
+			Glyphs.registerDefault(self.domain("strokePos"), 0)
 			
 			# load previously written prefs:
-			self.w.scopeGlyphs.set( Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.scopeGlyphs"] )
-			self.w.scopeMaster.set( Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.scopeMaster"] )
-			self.w.lineCaps.set( Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.lineCaps"] )
-			self.w.strokeWidth.set( Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.strokeWidth"] )
+			self.w.scopeGlyphs.set( self.pref("scopeGlyphs") )
+			self.w.scopeMaster.set( self.pref("scopeMaster") )
+			self.w.lineCaps.set( self.pref("lineCaps") )
+			self.w.strokeWidth.set( self.pref("strokeWidth") )
+			self.w.strokeHeight.set( self.pref("strokeHeight") )
+			self.w.strokePos.set( self.pref("strokePos") )
 			return True
 		except:
 			import traceback
@@ -126,7 +193,7 @@ class BatchSetPathAttributes( object ):
 		)
 	
 	def glyphsForCurrentScope(self, thisFont):
-		scopeGlyphs = Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.scopeGlyphs"]
+		scopeGlyphs = self.pref("scopeGlyphs")
 		
 		if scopeGlyphs==0:
 			# selected glyphs
@@ -170,11 +237,24 @@ class BatchSetPathAttributes( object ):
 					if lineCapEnd != None:
 						lineCaps.append(lineCapEnd)
 				
-					Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.lineCaps"] = ", ".join([str(x) for x in set(lineCaps)])
+					self.setPref(
+						"lineCaps",
+						", ".join([str(x) for x in set(lineCaps)])
+						)
 					
 					strokeWidth = currentPath.attributeForKey_("strokeWidth")
-					if strokeWidth != None:
-						Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.strokeWidth"] = strokeWidth
+					self.setPref("strokeWidth", strokeWidth)
+					
+					strokeHeight = currentPath.attributeForKey_("strokeHeight")
+					self.setPref("strokeHeight", strokeHeight)
+
+					strokePos = currentPath.attributeForKey_("strokePos")
+					strokePosPrefValue = None
+					for key in strokePositions.keys():
+						value = strokePositions[key]
+						if strokePos == value:
+							strokePosPrefValue = sortedStrokePositionNames.index(key)
+					self.setPref("strokePos", strokePosPrefValue)
 		
 			self.LoadPreferences()
 		except Exception as e:
@@ -203,7 +283,7 @@ class BatchSetPathAttributes( object ):
 				print("⚠️ The font file has not been saved yet.")
 			print()
 			
-			scopeMaster = Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.scopeMaster"]
+			scopeMaster = self.pref("scopeMaster")
 			
 			glyphs = self.glyphsForCurrentScope(thisFont)
 			currentFontMasterID = thisFont.selectedFontMaster.id
@@ -222,7 +302,7 @@ class BatchSetPathAttributes( object ):
 						if scopeMaster==1 or (scopeMaster==0 and thisLayer.associatedMasterId==currentFontMasterID):
 							if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 								for thisPath in thisLayer.paths:
-									for attribute in ("lineCapStart", "lineCapEnd", "strokeWidth"):
+									for attribute in allAttributeNames:
 										thisPath.removeAttributeForKey_(attribute)
 
 		# Final report:
@@ -252,16 +332,25 @@ class BatchSetPathAttributes( object ):
 					print("⚠️ The font file has not been saved yet.")
 				print()
 				
-				scopeMaster = Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.scopeMaster"]
-				lineCaps = [int(cap.strip()) for cap in Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.lineCaps"].split(",")]
-				strokeWidth = int(Glyphs.defaults["com.mekkablue.BatchSetPathAttributes.strokeWidth"])
-				
-				if len(lineCaps)==0:
+				scopeMaster = self.pref("scopeMaster")
+				lineCaps = self.pref("lineCaps").split(",")
+				if lineCaps:
+					lineCaps = [intOrNone(cap.strip()) for cap in lineCaps]
+					if len(lineCaps) < 2:
+						lineCaps = (lineCaps[0], lineCaps[0])
+					elif len(lineCaps) > 2:
+						lineCaps = lineCaps[:2]
+				else:
 					lineCaps = (None, None)
-				elif len(lineCaps)==1:
-					lineCaps = (lineCaps[0], lineCaps[0])
-				elif len(lineCaps)>2:
-					lineCaps = lineCaps[:2]
+				
+				strokeWidth = int(self.pref("strokeWidth"))
+				strokeHeight = self.pref("strokeHeight")
+				strokePos = self.pref("strokePos")
+				try:
+					strokePosKey = sortedStrokePositionNames[strokePos]
+					strokePos = strokePositions[strokePosKey]
+				except:
+					strokePos = None
 				
 				glyphs = self.glyphsForCurrentScope(thisFont)
 				currentFontMasterID = thisFont.selectedFontMaster.id
@@ -287,8 +376,18 @@ class BatchSetPathAttributes( object ):
 											else:
 												thisPath.setAttribute_forKey_(capValue, startOrEnd)
 										
-										# stroke width:
+										# stroke width, height, pos:
 										thisPath.setAttribute_forKey_(strokeWidth, "strokeWidth")
+										
+										if strokeHeight: # default is None
+											thisPath.setAttribute_forKey_(strokeHeight, "strokeHeight")
+										else:
+											thisPath.removeAttributeForKey_("strokeHeight")
+										
+										if strokePos is None: # default is None
+											thisPath.removeAttributeForKey_("strokePos")
+										else:
+											thisPath.setAttribute_forKey_(strokePos, "strokePos")
 
 			# Final report:
 			Glyphs.showNotification( 
