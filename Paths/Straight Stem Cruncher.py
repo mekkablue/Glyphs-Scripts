@@ -360,7 +360,7 @@ class StraightStemCruncher( object ):
 					excludedGlyphNameParts.extend( set(enteredParts) )
 			
 			stems = Glyphs.defaults["com.mekkablue.StraightStemCruncher.stems"] # "80, 100"
-			stems = [int(s.strip()) for s in stems.split(",")]
+			stems = [float(s.strip()) for s in stems.split(",")]
 			
 			shouldMark = Glyphs.defaults["com.mekkablue.StraightStemCruncher.markStems"]
 			deviationMin = float( Glyphs.defaults["com.mekkablue.StraightStemCruncher.deviationMin"] ) # 0.6
