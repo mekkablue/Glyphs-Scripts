@@ -152,11 +152,17 @@ class StraightStemCruncher( object ):
 			if thisFont:
 				master = thisFont.selectedFontMaster
 				if master:
-					stems = []
-					for stemSet in (master.horizontalStems, master.verticalStems):
-						if stemSet:
-							for s in stemSet:
-								stems.append(s)
+					
+					if Glyphs.versionNumber >= 3:
+						# Glyphs 3 code
+						stems = [stem for stem in master.stems]
+					else:
+						stems = []
+						# Glyphs 2 code
+						for stemSet in (master.horizontalStems, master.verticalStems):
+							if stemSet:
+								for s in stemSet:
+									stems.append(s)
 					stems = sorted(set(stems))
 					stemString = ", ".join( [str(s) for s in stems] )
 					if stemString:
