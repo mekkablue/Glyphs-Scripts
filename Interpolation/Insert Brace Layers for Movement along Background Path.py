@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Add a single path in the background and it will be used to create intermediate brace layers for OTVar animation.
+Add a single path in the background and it will be used to create intermediate (brace) layers on the first axis for OTVar animation. Define the frames (per segment) in the respective glyph note after running the script once.
 """
 
 from Foundation import NSPoint, NSAffineTransform, NSAffineTransformStruct
@@ -75,18 +75,24 @@ def getMasterWeightValue( master):
 
 def process( thisLayer, steps=5 ):
 	thisGlyph = thisLayer.parent
+	thisFont = thisGlyph.parent
+	firstAxisID = None
+	if Glyphs.versionNumber >= 3:
+		# GLYPHS 3
+		firstAxis = thisFont.axes[0]
+		if firstAxis:
+			firstAxisID = firstAxis.axisId
+	
 	for i in range(len(thisGlyph.layers))[::-1]:
 		thisLayer = thisGlyph.layers[i]
 		if thisLayer.layerId != thisLayer.associatedMasterId:
 			del thisGlyph.layers[i]
-		
 	
 	shifts = []
 	movePath = thisLayer.background.paths[0]
 	originPoint = movePath.nodes[0]
 	if movePath:
 		for thisSegment in movePath.segments:
-			print(thisSegment)
 			# curve segments:
 			if len(thisSegment) == 4:
 				for i in range(steps):
@@ -132,7 +138,6 @@ def process( thisLayer, steps=5 ):
 					shifts.append( shiftTransform )
 		
 		# all segments are collected in 'shifts':
-		print(shifts)
 		firstMaster = thisLayer.parent.parent.masters[0]
 		secondMaster = thisLayer.parent.parent.masters[1]
 		firstMasterValue = getMasterWeightValue(firstMaster)
@@ -140,24 +145,44 @@ def process( thisLayer, steps=5 ):
 		frameCount = len(shifts)
 		stepWidth = (secondMasterValue-firstMasterValue)/frameCount
 		
-		for i in range(len(shifts)):
+		for i in range(1,len(shifts)):
 			frameTransform = shifts[i]
 			frameValue = firstMasterValue + i * stepWidth
 			braceLayer = shiftedLayer( thisLayer, frameTransform )
-			braceLayer.name = "{%i}" % frameValue
 			if Glyphs.versionNumber >= 3:
-				braceLayer.attributes['coordinates'] = {'a01':frameValue}
+				# GLYPHS 3
+				braceLayer.attributes['coordinates'] = {firstAxisID: frameValue}
+			else:
+				# GLYPHS 2
+				braceLayer.name = "{%i}" % frameValue
 			thisLayer.parent.layers.append( braceLayer )
 			
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
+	# brings macro window to front and clears its log:
+	Glyphs.clearLog()
+	Glyphs.showMacroWindow()
+	print("Insert Brace Layers for Movement along Background Path:\n")
+	stepMarker = "Frames"
 	for thisLayer in selectedLayers:
 		thisGlyph = thisLayer.parent
-		print("Processing %s" % thisGlyph.name)
+		steps = 5
+		if thisGlyph.note and stepMarker in thisGlyph.note:
+			for lineInNote in thisGlyph.note.splitlines():
+				if lineInNote.startswith(stepMarker):
+					try:
+						steps = int(lineInNote.split()[1])
+					except:
+						print("⚠️ %s: could not parse glyph note ‘%s’" % (thisGlyph.name, lineInNote.strip()))
+		else:
+			thisGlyph.note = "%s: %i (per path segment)\n%s" % (stepMarker, steps, thisGlyph.note if thisGlyph.note else "")
+		print("🔠 %s: %i frames per background path segment" % (thisGlyph.name, steps))
 		thisGlyph.beginUndo() # begin undo grouping
-		process( thisLayer )
+		process( thisLayer, steps=steps )
 		thisGlyph.endUndo()   # end undo grouping
+	
+	print("Done.")
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")
