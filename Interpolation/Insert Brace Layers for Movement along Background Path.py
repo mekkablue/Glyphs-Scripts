@@ -7,7 +7,7 @@ Add a single path in the background and it will be used to create intermediate (
 
 from Foundation import NSPoint, NSAffineTransform, NSAffineTransformStruct
 import math
-
+from vanilla.dialogs import message
 thisFont = Glyphs.font # frontmost font
 selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 
@@ -89,6 +89,9 @@ def process( thisLayer, steps=5 ):
 			del thisGlyph.layers[i]
 	
 	shifts = []
+	if len(thisLayer.background.paths) != 1:
+		message(messageText="Master's background layer should have a single path", alertStyle="informational")
+		return
 	movePath = thisLayer.background.paths[0]
 	originPoint = movePath.nodes[0]
 	if movePath:
