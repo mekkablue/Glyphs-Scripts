@@ -40,6 +40,7 @@ class SetHiddenAppPreferences( object ):
 		"com.mekkablue.ShowMarkPreview.extension",
 		"com.mekkablue.ShowStyles.anchors",
 		"com.mekkablue.ttAutoinstructSelectedGlyphs.alwaysUseNoStem",
+		"com.mekkablue.colorCompositesInShadeOfBaseGlyph.shadeFactor",
 		"com.RicardGarcia.ChangeCase.verboseReport",
 		"com.FlorianPircher.Keyboard-Selection-Travel.UseAlternativeShortcuts",
 	)
