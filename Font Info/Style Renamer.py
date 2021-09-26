@@ -227,6 +227,7 @@ class StyleRenamer( object ):
 					renameCount = 0
 					for thisInstance in thisFont.instances:
 						if thisInstance.active or includeInactiveInstances:
+							originalName = thisInstance.name
 							newName = self.renameInstance(thisInstance, shouldAddParticle, particle, elidablePart)
 							
 							# clean up any double spaces that may be left in the name:
