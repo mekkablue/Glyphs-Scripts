@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Creates mirrored composites for selected glyphs and updates the rtlm OpenType feature.
+Creates horizontally mirrored composite copies for selected glyphs, and updates the rtlm OpenType feature. Auto-aligns the components, also adds metrics keys that kick in in case you decompose.
 """
 
 import math
