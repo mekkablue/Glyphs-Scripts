@@ -86,7 +86,7 @@ def highestStylisticSetInNameList( nameList ):
 	i = 1
 	while ssXX_exists:
 		ssXX = ssXXsuffix(i)
-		ssXXglyphs = [ x for x in nameList if x.find( ssXX ) is not -1 ]
+		ssXXglyphs = [ x for x in nameList if x.find( ssXX ) != -1 ]
 		if len(ssXXglyphs) == 0:
 			i-=1
 			ssXX_exists = False
@@ -119,7 +119,7 @@ else:
 	else:
 		zeroOrOne = 1
 	
-	suffixNumberRange = range( zeroOrOne, highestSetNumber+1 ) * ( lineLength // highestSetNumber+2 )
+	suffixNumberRange = list(range( zeroOrOne, highestSetNumber+1 )) * ( lineLength // highestSetNumber+2 )
 		
 	for j in range( highestSetNumber * ( lineLength // highestSetNumber+1 ), 0, -1 ):
 		suffixNumber = suffixNumberRange[j]
