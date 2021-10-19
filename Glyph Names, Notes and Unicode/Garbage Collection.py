@@ -110,7 +110,7 @@ class GarbageCollection( object ):
 			
 		return True
 
-	def LoadPreferences( self ):
+	def LoadPreferences( self, sender=None ):
 		try:
 			Glyphs.registerDefault("com.mekkablue.GarbageCollection.removeNodeNames", 1)
 			Glyphs.registerDefault("com.mekkablue.GarbageCollection.removeLocalGuides", 0)
