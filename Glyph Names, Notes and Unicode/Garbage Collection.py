@@ -150,6 +150,8 @@ class GarbageCollection( object ):
 				print( "Note: 'Garbage Collection' could not write preferences.")
 			
 			thisFont = Glyphs.font # frontmost font
+			thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+
 			print("Garbage Collection Report for %s" % thisFont.familyName)
 			print(thisFont.filepath)
 			print()
@@ -171,6 +173,7 @@ class GarbageCollection( object ):
 			removeNodeNamesFont = 0
 			localGuidesFont = 0
 			removeAnnotationsFont = 0
+			
 			
 			for i,thisGlyph in enumerate(glyphs):
 				# update progress bar:
@@ -238,5 +241,7 @@ class GarbageCollection( object ):
 			print("Garbage Collection Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+		finally:
+			thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 
 GarbageCollection()
