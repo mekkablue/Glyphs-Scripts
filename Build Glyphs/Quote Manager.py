@@ -19,7 +19,7 @@ class QuoteManager( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 480
-		windowHeight = 275
+		windowHeight = 295
 		windowWidthResize  = 400 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -58,7 +58,7 @@ class QuoteManager( object ):
 		self.w.reuseTab = vanilla.CheckBox( (inset+200, linePos-1, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.reuseTab.getNSButton().setToolTip_(u"Instead of opening a new tab, will reuse the current tab. Highly recommended.")
 		linePos += lineHeight
-
+		
 		self.w.buildDoublesButton = vanilla.Button( (inset, linePos, 130, 18), "Add Components", sizeStyle='small', callback=self.buildDoublesMain )
 		self.w.buildDoublesText = vanilla.TextBox( (inset+135, linePos+2, -inset, 14), "Insert single quotes as components in double quotes", sizeStyle='small', selectable=True )
 		tooltip = "Do this first. Then adjust the position of the second component in the default double quote. Inserting anchors (the next button) will take the distance between the components into account. Or follow the instructions in the tooltip of the next button. Then press the Insert Anchors button."
@@ -66,6 +66,10 @@ class QuoteManager( object ):
 		self.w.buildDoublesText.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 				
+		self.w.keepCopyInBackground = vanilla.CheckBox( (inset+135, linePos-1, -inset, 20), "Backup current quotes in the background", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.keepCopyInBackground.getNSButton().setToolTip_("Copies the current shapes in the background and decomposes them to paths there. Useful to see if anything shifted.")
+		linePos += lineHeight
+
 		self.w.insertAnchorsButton = vanilla.Button( (inset, linePos, 130, 18), "Insert Anchors", sizeStyle='small', callback=self.insertAnchorsMain )
 		self.w.insertAnchorsText = vanilla.TextBox( (inset+135, linePos+2, -inset, 14), "Insert #exit and #entry anchors in single quotes", sizeStyle='small', selectable=True )
 		tooltip = "Hint: After you have done the previous steps, FIRST press button to insert the anchors, THEN adjust the width between the anchors in your default quote, THEN press this button again to sync all other #exit and #entry anchors with the default quotes."
@@ -106,6 +110,7 @@ class QuoteManager( object ):
 			Glyphs.defaults["com.mekkablue.QuoteManager.excludeDumbQuotes"] = self.w.excludeDumbQuotes.get()
 			Glyphs.defaults["com.mekkablue.QuoteManager.openTabWithAffectedGlyphs"] = self.w.openTabWithAffectedGlyphs.get()
 			Glyphs.defaults["com.mekkablue.QuoteManager.reuseTab"] = self.w.reuseTab.get()
+			Glyphs.defaults["com.mekkablue.QuoteManager.keepCopyInBackground"] = self.w.keepCopyInBackground.get()
 			self.updateUI()
 		except:
 			return False
@@ -120,12 +125,14 @@ class QuoteManager( object ):
 			Glyphs.registerDefault("com.mekkablue.QuoteManager.excludeDumbQuotes", 0)
 			Glyphs.registerDefault("com.mekkablue.QuoteManager.openTabWithAffectedGlyphs", 0)
 			Glyphs.registerDefault("com.mekkablue.QuoteManager.reuseTab", 1)
+			Glyphs.registerDefault("com.mekkablue.QuoteManager.keepCopyInBackground", 0)
 			self.w.defaultQuote.set( Glyphs.defaults["com.mekkablue.QuoteManager.defaultQuote"] )
 			self.w.syncWithDefaultQuote.set( Glyphs.defaults["com.mekkablue.QuoteManager.syncWithDefaultQuote"] )
 			self.w.suffix.set( Glyphs.defaults["com.mekkablue.QuoteManager.suffix"] )
 			self.w.excludeDumbQuotes.set( Glyphs.defaults["com.mekkablue.QuoteManager.excludeDumbQuotes"] )
 			self.w.openTabWithAffectedGlyphs.set( Glyphs.defaults["com.mekkablue.QuoteManager.openTabWithAffectedGlyphs"] )
 			self.w.reuseTab.set( Glyphs.defaults["com.mekkablue.QuoteManager.reuseTab"] )
+			self.w.keepCopyInBackground.set( Glyphs.defaults["com.mekkablue.QuoteManager.keepCopyInBackground"] )
 			self.updateUI()
 		except:
 			return False
@@ -452,6 +459,7 @@ class QuoteManager( object ):
 		
 			# query suffix
 			dotSuffix = self.getDotSuffix()
+			keepCopyInBackground = Glyphs.defaults["com.mekkablue.QuoteManager.keepCopyInBackground"]
 		
 			# report:
 			self.reportFont()
@@ -483,7 +491,9 @@ class QuoteManager( object ):
 							ggl = gg.layers[mID] # double quote layer
 						
 							# backup and clear layer:
-							ggl.swapForegroundWithBackground()
+							if keepCopyInBackground:
+								ggl.swapForegroundWithBackground()
+								ggl.background.decomposeComponents()
 							ggl.clear()
 						
 							# add components:
@@ -498,7 +508,10 @@ class QuoteManager( object ):
 							print(u"✅ %s: Added 2 %s components." % (doubleName, singleName))
 			
 			self.openTabIfRequested()
-			Font.updateInterface()
+			try:
+				Font.updateInterface()
+			except:
+				pass
 			Font.currentTab.redraw()
 		
 		except Exception as e:
