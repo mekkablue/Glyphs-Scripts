@@ -83,8 +83,14 @@ def ttfAutohintDict( parameterValue ):
 def glyphInterpolation( thisGlyph, thisInstance ):
 	try:
 		interpolatedFont = thisInstance.pyobjc_instanceMethods.interpolatedFont()
-		interGlyphs = interpolatedFont.glyphForName_(thisGlyph.name)
-		interpolatedLayer = interGlyphs.layerForKey_(interpolatedFont.fontMasterID())
+		interGlyph = interpolatedFont.glyphForName_(thisGlyph.name)
+		if Glyphs.versionNumber >= 3:
+			# GLYPHS 3
+			interpolatedLayer = interGlyph.layer0()
+		else:
+			# GLYPHS 2
+			interpolatedLayer = interGlyph.layerForKey_(interpolatedFont.fontMasterID())
+		
 		thisFont = thisGlyph.parent
 		if not thisInstance.customParameters["Grid Spacing"] and not ( thisFont.gridMain() / thisFont.gridSubDivision() ):
 			interpolatedLayer.roundCoordinates()
