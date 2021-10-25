@@ -205,7 +205,14 @@ class RemoveTTHints( object ):
 		delCount = 0
 		for i in reversed(range(len(layer.hints))):
 			h = layer.hints[i]
-			if h.isTrueType():
+			if Glyphs.versionNumber >= 3:
+				# GLYPHS 3
+				isTrueType = h.isTrueType
+			else:
+				# GLYPHS 2
+				isTrueType = h. isTrueType()
+			
+			if isTrueType:
 				if h.type == TTSTEM and h.horizontal and Glyphs.defaults["com.mekkablue.RemoveTTHints.hStems"]:
 					del layer.hints[i]
 					delCount += 1
