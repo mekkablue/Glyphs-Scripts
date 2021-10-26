@@ -21,8 +21,10 @@ def addNamedHorizontalMetricToMaster(master, name, typeName, position, overshoot
 	}
 	typeName = metricTypes.get(typeName, 0)
 	font = master.font
-	metric_dict = dict(name=name,typeName=None,horizontal=True)
-	metric = GSMetric().initWithDict_format_(metric_dict, 2)
+	#metric_dict = dict(name=name,typeName=None,horizontal=True)
+	metric = GSMetric()#.initWithDict_format_(metric_dict, 2)
+	metric.name = name
+	metric.horizontal = True
 	metric.type = typeName
 	
 	font.addMetric_(metric)
@@ -115,13 +117,8 @@ class CreateAlignmentZonesforSelectedGlyphs( object ):
 			return 0
 		else:
 			if Glyphs.versionNumber >= 3:
-				print("G3")
 				# GLYPHS 3 code:
-				side = "top"
-				if not isTop:
-					side = "bottom"
-				name = "mekkablue_{}_zone".format(side)
-				
+				name = None
 				if masterIndex == 0:
 					self.current_metric_id = addNamedHorizontalMetricToMaster(master, name, None, zonePosition, zoneSize)
 				else:
@@ -130,7 +127,6 @@ class CreateAlignmentZonesforSelectedGlyphs( object ):
 				print("✅ Zone ‘%s’ p:%i s:%i added to master ‘%s’."%("mekkablue_zone", zonePosition,zoneSize,master.name))
 
 			else:
-				print("G2")
 				# GLYPHS 2 code:
 				z = GSAlignmentZone()
 				z.size = zoneSize
