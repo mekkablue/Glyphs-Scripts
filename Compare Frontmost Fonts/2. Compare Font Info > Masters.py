@@ -60,16 +60,30 @@ for thisMaster, otherMaster in zip(thisFont.masters, otherFont.masters):
 		len(thisMaster.alignmentZones), len(otherMaster.alignmentZones),
 		thisMaster.name, otherMaster.name,
 		)
-	compareCount(
-		"Vertical Stems", 
-		len(thisMaster.verticalStems), len(otherMaster.verticalStems),
-		thisMaster.name, otherMaster.name,
-		)
-	compareCount(
-		"Horizontal Stems", 
-		len(thisMaster.horizontalStems), len(otherMaster.horizontalStems),
-		thisMaster.name, otherMaster.name,
-		)
+	if Glyphs.versionNumber >= 3:
+		# GLYPHS 3 code:
+		compareCount(
+			"Vertical Stems", 
+			len([stem for stem in thisFont.stems if not stem.horizontal]), len([stem for stem in otherFont.stems if not stem.horizontal]),
+			thisMaster.name, otherMaster.name,
+			)
+		compareCount(
+			"Horizontal Stems", 
+			len([stem for stem in thisFont.stems if stem.horizontal]), len([stem for stem in otherFont.stems if stem.horizontal]),
+			thisMaster.name, otherMaster.name,
+			)
+	else:
+		# GLYPHS 2 code:
+		compareCount(
+			"Vertical Stems", 
+			len(thisMaster.verticalStems), len(otherMaster.verticalStems),
+			thisMaster.name, otherMaster.name,
+			)
+		compareCount(
+			"Horizontal Stems", 
+			len(thisMaster.horizontalStems), len(otherMaster.horizontalStems),
+			thisMaster.name, otherMaster.name,
+			)
 		
 	# comparing parameters:
 	theseParameters = [p.name for p in thisMaster.customParameters]
