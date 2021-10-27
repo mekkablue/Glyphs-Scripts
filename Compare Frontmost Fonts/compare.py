@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-
 from __future__ import print_function
+from GlyphsApp import Glyphs
 def compareLists(thisSet, otherSet, ignoreEmpty=False):
 	for i in range(len(thisSet))[::-1]:
 		if thisSet[i] in otherSet:
@@ -19,7 +19,12 @@ def compareLists(thisSet, otherSet, ignoreEmpty=False):
 	return thisSet, otherSet
 
 def cleanUpAndShortenParameterContent( thisParameter, maxLength=20 ):
-	parameterContent = unicode(repr(thisParameter))
+	if Glyphs.versionNumber >= 3:
+		# GLYPHS 3 code:
+		parameterContent = repr(thisParameter)
+	else:
+		# GLYPHS 2 code:
+		parameterContent = unicode(repr(thisParameter))
 	if len(parameterContent) > maxLength:
 		parameterContent = u"%s..." % parameterContent[:maxLength].replace(u"\n",u" ")
 	while u"  " in parameterContent:
