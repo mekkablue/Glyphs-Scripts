@@ -195,6 +195,71 @@ def createGlyph(font, name, unicodeValue, override=False):
 			
 			return glyph
 
+def offsetLayer( thisLayer, offset, makeStroke=False, position=0.5, autoStroke=False ):
+	offsetFilter = NSClassFromString("GlyphsFilterOffsetCurve")
+	try:
+		# GLYPHS 3:	
+		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyleStart_capStyleEnd_keepCompatibleOutlines_(
+			thisLayer,
+			offset, offset, # horizontal and vertical offset
+			makeStroke,     # if True, creates a stroke
+			autoStroke,     # if True, distorts resulting shape to vertical metrics
+			position,       # stroke distribution to the left and right, 0.5 = middle
+			None, None, None, 0, 0, True )
+	except:
+		# GLYPHS 2:
+		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyle_keepCompatibleOutlines_(
+			thisLayer,
+			offset, offset, # horizontal and vertical offset
+			makeStroke,     # if True, creates a stroke
+			autoStroke,     # if True, distorts resulting shape to vertical metrics
+			position,       # stroke distribution to the left and right, 0.5 = middle
+			thisLayer.glyphMetrics(), # metrics (G3)
+			None, None, # error, shadow
+			0, # NSButtLineCapStyle, # cap style
+			True, # keep compatible
+			)
+
+def circleCoordsForHeight(s):
+	radius = s/2
+	x = s/2
+	y = s/2
+	bcp = 4.0*(2.0**0.5-1.0)/3.0
+	handle = radius*bcp
+	coords=(
+		( # path
+			(x, y-radius),
+			((x+handle, y-radius), (x+radius, y-handle), (x+radius, y)),
+			((x+radius, y+handle), (x+handle, y+radius), (x, y+radius)),
+			((x-handle, y+radius), (x-radius, y+handle), (x-radius, y)),
+			((x-radius, y-handle), (x-handle, y-radius), (x, y-radius)),
+		),
+	)
+	return coords
+
+def drawPenDataInLayer(thisLayer,penData,closePath=True):
+	for thisPath in penData:
+		pen = thisLayer.getPen()
+		pen.moveTo( thisPath[0] )
+		for thisSegment in thisPath[1:]:
+			if len(thisSegment) == 2: # lineto (2 coordinates: x,y)
+				pen.lineTo( thisSegment )
+			elif len(thisSegment) == 3: # curveto (3 x/y tuples)
+				pen.curveTo(
+					thisSegment[0],
+					thisSegment[1],
+					thisSegment[2]
+				)
+			else:
+				print("%s: Path drawing error. Could not process this segment:\n" % (glyphName, thisSegment))
+		if closePath:
+			pen.closePath()
+		pen.endPath()
+	
+	# clean up:
+	# thisLayer.correctPathDirection()
+	thisLayer.cleanUpPaths()
+		
 def areaOfLayer(layer):
 	area = 0
 	l = layer.copyDecomposedLayer()
@@ -263,7 +328,33 @@ def buildNotdef( thisFont, override=False ):
 					notdefLayer.syncMetrics()
 			else:
 				print("⚠️ Error building .notdef: Could not determine source layer of glyph 'question'." )
+
+def buildCurrency( thisFont, override=False ):
+	glyphname = "currency"
+	currencyGlyph = createGlyph(thisFont, glyphname, "00A4", override=override)
 	
+	for thisLayer in currencyGlyph.layers:
+		s = thisLayer.capHeight * 0.6
+		penpoints_currency = (
+			( # circle
+				((s*0.680, s*0.173), (s*0.827, s*0.320), (s*0.827, s*0.500)),
+				((s*0.827, s*0.680), (s*0.680, s*0.827), (s*0.500, s*0.827)),
+				((s*0.320, s*0.827), (s*0.173, s*0.680), (s*0.173, s*0.500)),
+				((s*0.173, s*0.320), (s*0.320, s*0.173), (s*0.500, s*0.173)),
+			),
+			( # fin
+				(s*0.741, s*0.741),
+			),
+			( # fin
+				(s*0.000, s*0.000),
+			),
+			( # fin
+				(s*0.259, s*0.741),
+			),
+			( # fin
+				(s*1.000, s*0.000),
+			),
+		)
 
 def buildEstimated( thisFont, override=False ):
 	glyphname = "estimated"
@@ -332,7 +423,7 @@ def buildEstimated( thisFont, override=False ):
 	else:
 		print("⚠️ Could not create the estimated glyph already exists in this font. Rename or delete it and try again.")
 
-def stemWidthForMaster( thisFont, thisMaster, default=50 ):
+def stemWidthForMaster( thisFont, thisMaster, default=50, maxWidth=None ):
 	try:
 		slash = thisFont.glyphs["slash"].layers[thisMaster.id]
 		slashLeft = slash.bounds.origin.x
@@ -345,7 +436,13 @@ def stemWidthForMaster( thisFont, thisMaster, default=50 ):
 		intersections = list(slash.intersectionsBetweenPoints(measureStart,measureEnd))
 		slashStemWidth = distance(intersections[1].pointValue(), intersections[2].pointValue()) # hypotenuse
 		angleRAD = math.atan( (slashTop-slashBottom)/(slashRight-slashLeft) ) 
-		return ((slashStemWidth * math.cos(angleRAD)) + slashStemWidth) * 0.5
+		width = ((slashStemWidth * math.cos(angleRAD)) + slashStemWidth) * 0.5
+		
+		# compare with maxWidth:
+		if maxWidth and maxWidth > 2:
+			width = min(width, maxWidth)
+			
+		return width
 	except:
 		print( "⚠️ Error measuring slash, will try Master stem width instead.")
 		try:
