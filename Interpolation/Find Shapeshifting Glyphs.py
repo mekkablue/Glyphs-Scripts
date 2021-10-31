@@ -209,8 +209,11 @@ class FindShapeshiftingGlyphs( object ):
 			oneFontPercentage = 100.0/len(theseFonts)
 			
 			for fontIndex, thisFont in enumerate(theseFonts):
-				fileName = thisFont.filepath.lastPathComponent()
 				print("🦋 Find Shapeshifters in %s" % thisFont.familyName)
+				try:
+					fileName = thisFont.filepath.lastPathComponent()
+				pass:
+					fileName = "⚠️ %s (unsaved)" % thisFont.familyName
 				print("📄 %s" % fileName)
 				self.w.status.set("Examining %s..." % fileName)
 			
