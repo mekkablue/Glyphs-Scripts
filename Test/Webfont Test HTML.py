@@ -601,9 +601,10 @@ else:
 			exports = "Instances"
 		
 		Message(
-			title="⚠️ No exporting fonts found", message="No active font instances are set in Font Info > %s. Cannot create HTML for %s." % (exports, familyName), 
+			title="⚠️ No exporting fonts found",
+			message="No active font instances are set in Font Info > %s. Cannot create HTML for %s." % (exports, familyName), 
 			OKButton=None,
-			)
+		)
 		print("❌ %s: No instances set in Font Info. Aborting." % familyName)
 	else:	
 		print("Preparing Test HTML for:")
@@ -638,7 +639,7 @@ else:
 				print("Error writing file to disk.")
 		else:
 			Message( 
-				title="Webfont Test HTML Error",
-				message="Could not determine export path. Have you exported any webfonts yet?",
-				OKButton=None
+				title="⚠️ Webfont Test HTML Error",
+				message="Could not determine export path. You need to export webfonts first.",
+				OKButton=None,
 			)
