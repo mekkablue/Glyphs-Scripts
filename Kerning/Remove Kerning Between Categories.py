@@ -243,7 +243,7 @@ class RemoveKerning( object ):
 			for masterID in masterIDs:
 				masterName = thisFont.fontMasterForId_(masterID).name
 				self.status("Processing master '%s'..."%masterName, reportInMacroWindow)
-				if thisFont.kerning.has_key(masterID):
+				if masterID in thisFont.kerning.keys():
 					for leftName in leftNames:
 						try:
 							leftID = thisFont.glyphs[leftName].id
@@ -251,13 +251,13 @@ class RemoveKerning( object ):
 							# tried to find a glyph named like a group
 							leftID = leftName
 						for rightName in rightNames:
-							if thisFont.kerning[masterID].has_key(leftID):
+							if leftID in thisFont.kerning[masterID].keys():
 								try:
 									rightID = thisFont.glyphs[rightName].id
 								except:
 									# tried to find a glyph named like a group
 									rightID = rightName
-								if thisFont.kerning[masterID][leftID].has_key(rightID):
+								if rightID in thisFont.kerning[masterID][leftID].keys():
 									self.status("Master %s: removing %s:%s"%(masterName, leftName,rightName), True)
 									thisFont.removeKerningForPair(masterID, leftName, rightName)
 									removalCount += 1
