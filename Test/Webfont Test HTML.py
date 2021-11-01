@@ -89,8 +89,24 @@ def getInstanceInfo( thisFont, activeInstance, fileFormat ):
 	fileName = "%s.%s" % ( firstPartOfFileName, fileFormat )
 	return fileName, menuName, activeInstanceName
 
-def activeInstancesOfFont( thisFont, fileFormats=("woff","woff2") ):
-	activeInstances = [i for i in thisFont.instances if i.active]
+def allActiveInstancesOfFont( thisFont ):
+	activeInstances = [i for i in thisFont.instances if i.active and isSingleInstance(i)]
+	return activeInstances
+	
+def allActiveInstancesOfProject( thisProject ):
+	activeInstances = [i for i in thisProject.instances() if i.active and isSingleInstance(i)]
+	return activeInstances
+
+def isSingleInstance( instance ):
+	if Glyphs.versionNumber >= 3:
+		# GLYPHS 3
+		return instance.type == INSTANCETYPESINGLE
+	else:
+		# GLYPHS 2
+		return True
+
+def activeInstancesOfFontByFormat( thisFont, fileFormats=("woff","woff2") ):
+	activeInstances = allActiveInstancesOfFont(thisFont)
 	listOfInstanceInfo = []
 	for fileFormat in fileFormats:
 		for activeInstance in activeInstances:
@@ -98,9 +114,9 @@ def activeInstancesOfFont( thisFont, fileFormats=("woff","woff2") ):
 			listOfInstanceInfo.append( (fileName, menuName, activeInstanceName) )
 	return listOfInstanceInfo
 
-def activeInstancesOfProject( thisProject, fileFormats=("woff","woff2") ):
+def activeInstancesOfProjectByFormat( thisProject, fileFormats=("woff","woff2") ):
 	thisFont = thisProject.font()
-	activeInstances = [i for i in thisProject.instances() if i.active]
+	activeInstances = allActiveInstancesOfProject(thisProject)
 	listOfInstanceInfo = []
 	for fileFormat in fileFormats:
 		for activeInstance in activeInstances:
@@ -566,51 +582,63 @@ else:
 	if firstDoc.isKindOfClass_(GSProjectDocument):
 		# Frontmost doc is a .glyphsproject file:
 		thisFont = firstDoc.font() # frontmost project file
-		firstActiveInstance = [i for i in firstDoc.instances() if i.active][0]
-		activeFontInstances = activeInstancesOfProject( firstDoc, fileFormats=fileFormats )
+		activeFontInstances = activeInstancesOfProjectByFormat( firstDoc, fileFormats=fileFormats )
 		exportPath = firstDoc.exportPath()
 	else:
 		# Frontmost doc is a .glyphs file:
 		thisFont = Glyphs.font # frontmost font
-		firstActiveInstance = [i for i in thisFont.instances if i.active][0]
-		activeFontInstances = activeInstancesOfFont( thisFont, fileFormats=fileFormats )
+		activeFontInstances = activeInstancesOfFontByFormat( thisFont, fileFormats=fileFormats )
 		exportPath = currentWebExportPath()
 		
 	familyName = thisFont.familyName
 	
-	print("Preparing Test HTML for:")
-	for thisFontInstanceInfo in activeFontInstances:
-		print("  %s" % thisFontInstanceInfo[1])
-	
-	optionList = optionListForInstances( activeFontInstances )
-	fontFacesCSS = fontFaces( activeFontInstances )
-	firstFileName =  activeFontInstances[0][0]
-	firstFontName =  activeFontInstances[0][1]
-
-	replacements = (
-		( "familyName", familyName ),
-		( "nameOfTheFont", firstFontName ),
-		( "The Quick Brown Fox Jumps Over The Lazy Dog.", allUnicodeEscapesOfFont(thisFont) ),
-		( "fileName", firstFileName ),
-		( "		<!-- moreOptions -->\n", optionList ),
-		( "		<!-- moreFeatures -->\n", featureListForFont(thisFont) ),
-		( "		<!-- fontFaces -->\n", fontFacesCSS  )
-	)
-
-	htmlContent = replaceSet( htmlContent, replacements )
-	
-	# Write file to disk:
-	if exportPath:
-		htmlFileName = "fonttest.html"
-		if saveFileInLocation( content=htmlContent, fileName=htmlFileName, filePath=exportPath ):
-			print("Successfully wrote file to disk.")
-			terminalCommand = 'cd "%s"; open .; open %s' % (exportPath, htmlFileName)
-			system( terminalCommand )
+	if not activeFontInstances:
+		if Glyphs.versionNumber >= 3:
+			# GLYPHS 3
+			exports = "Exports"
 		else:
-			print("Error writing file to disk.")
-	else:
-		Message( 
-			title="Webfont Test HTML Error",
-			message="Could not determine export path. Have you exported any webfonts yet?",
-			OKButton=None
+			# GLYPHS 2
+			exports = "Instances"
+		
+		Message(
+			title="⚠️ No exporting fonts found", message="No active font instances are set in Font Info > %s. Cannot create HTML for %s." % (exports, familyName), 
+			OKButton=None,
+			)
+		print("❌ %s: No instances set in Font Info. Aborting." % familyName)
+	else:	
+		print("Preparing Test HTML for:")
+		for thisFontInstanceInfo in activeFontInstances:
+			print("  %s" % thisFontInstanceInfo[1])
+	
+		optionList = optionListForInstances( activeFontInstances )
+		fontFacesCSS = fontFaces( activeFontInstances )
+		firstFileName =  activeFontInstances[0][0]
+		firstFontName =  activeFontInstances[0][1]
+
+		replacements = (
+			( "familyName", familyName ),
+			( "nameOfTheFont", firstFontName ),
+			( "The Quick Brown Fox Jumps Over The Lazy Dog.", allUnicodeEscapesOfFont(thisFont) ),
+			( "fileName", firstFileName ),
+			( "		<!-- moreOptions -->\n", optionList ),
+			( "		<!-- moreFeatures -->\n", featureListForFont(thisFont) ),
+			( "		<!-- fontFaces -->\n", fontFacesCSS  )
 		)
+
+		htmlContent = replaceSet( htmlContent, replacements )
+	
+		# Write file to disk:
+		if exportPath:
+			htmlFileName = "fonttest.html"
+			if saveFileInLocation( content=htmlContent, fileName=htmlFileName, filePath=exportPath ):
+				print("Successfully wrote file to disk.")
+				terminalCommand = 'cd "%s"; open .; open %s' % (exportPath, htmlFileName)
+				system( terminalCommand )
+			else:
+				print("Error writing file to disk.")
+		else:
+			Message( 
+				title="Webfont Test HTML Error",
+				message="Could not determine export path. Have you exported any webfonts yet?",
+				OKButton=None
+			)
