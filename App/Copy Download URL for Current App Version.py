@@ -20,7 +20,7 @@ def setClipboard( myText ):
 	except Exception as e:
 		return False
 
-appURL = "https://updates.glyphsapp.com/Glyphs%s-%s.zip" % (
+appURL = "https://updates.glyphsapp.com/Glyphs%s-%i.zip" % (
 	Glyphs.versionString,
 	Glyphs.buildNumber,
 )
