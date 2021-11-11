@@ -212,7 +212,7 @@ class FindShapeshiftingGlyphs( object ):
 				print("🦋 Find Shapeshifters in %s" % thisFont.familyName)
 				try:
 					fileName = thisFont.filepath.lastPathComponent()
-				pass:
+				except:
 					fileName = "⚠️ %s (unsaved)" % thisFont.familyName
 				print("📄 %s" % fileName)
 				self.w.status.set("Examining %s..." % fileName)
