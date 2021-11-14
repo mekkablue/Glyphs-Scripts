@@ -108,8 +108,8 @@ class TransferRTLkerning( object ):
 		try:
 			# check if both font selection point to the same font
 			# and disable action button if they do:
-			fromFont = self.w.from_font.getItems()[ self.w.from_font.get() ]
-			toFont   = self.w.to_font.getItems()[ self.w.to_font.get() ]
+			fromFont = self.w.from_master.getItems()[ self.w.from_master.get() ]
+			toFont   = self.w.to_master.getItems()[ self.w.to_master.get() ]
 		
 			if fromFont == toFont:
 				self.w.runButton.enable( onOff=False )
@@ -164,19 +164,28 @@ class TransferRTLkerning( object ):
 				
 				sourceMasterKerning = sourceFont.kerningRTL[sourceMaster.id]
 				for firstPart in sourceMasterKerning.keys():
-					for secondPart in sourceMasterKerning[firstPart].keys():
-						kernValue = sourceMasterKerning[firstPart][secondPart]
-						if not firstPart.startswith("@"):
-							firstGlyph = sourceFont.glyphForId_(firstPart)
-							firstPart = firstGlyph.name
-						if not secondPart.startswith("@"):
-							secondGlyph = sourceFont.glyphForId_(secondPart)
-							secondPart = secondGlyph.name
-						try:
-							targetFont.setKerningForPair(targetMasterID, firstPart, secondPart, kernValue, direction = RTL)
-							print("✅ Kerning %s ↔️ %s (%i):\n   %s" % (firstPart, secondPart, kernValue, e))
-						except Exception as e:
-							print("⚠️ Could not set kerning %s ↔️ %s (%i):\n   %s" % (firstPart, secondPart, kernValue, e))
+					if not firstPart.startswith("@"):
+						firstGlyph = sourceFont.glyphForId_(firstPart)
+						firstPart = firstGlyph.name
+					
+					try:
+						for secondPart in sourceMasterKerning[firstPart].keys():
+							if not secondPart.startswith("@"):
+								secondGlyph = sourceFont.glyphForId_(secondPart)
+								secondPart = secondGlyph.name
+							
+							# kernValue = sourceMasterKerning[firstPart][secondPart]
+							kernValue = sourceFont.kerningForPair(sourceMasterID, firstPart, secondPart, direction=RTL)
+							if not kernValue is None:
+								try:
+									targetFont.setKerningForPair(targetMasterID, firstPart, secondPart, kernValue, direction = RTL)
+									print("✅ Kerning %s ↔️ %s (%i)" % (firstPart, secondPart, kernValue))
+								except Exception as e:
+									print("⚠️ Could not set kerning %s ↔️ %s (%i):\n   %s" % (firstPart, secondPart, kernValue, e))
+							else:
+								print("❓ kerning for %s %s is none." % (firstPart, secondPart))
+					except Exception as e:
+						print("Weird error when trying to access kerning for %s:\n%s" % (firstPart,e))
 				
 				"""
 				setKerningForPair(fontMasterId, leftKey, rightKey, value[, direction = LTR])
