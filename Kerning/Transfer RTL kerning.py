@@ -166,26 +166,29 @@ class TransferRTLkerning( object ):
 				for firstPart in sourceMasterKerning.keys():
 					if not firstPart.startswith("@"):
 						firstGlyph = sourceFont.glyphForId_(firstPart)
-						firstPart = firstGlyph.name
+						firstPartName = firstGlyph.name
+					else:
+						firstPartName = firstPart
 					
 					try:
 						for secondPart in sourceMasterKerning[firstPart].keys():
 							if not secondPart.startswith("@"):
 								secondGlyph = sourceFont.glyphForId_(secondPart)
-								secondPart = secondGlyph.name
+								secondPartName = secondGlyph.name
+							else:
+								secondPartName = secondPart
 							
-							# kernValue = sourceMasterKerning[firstPart][secondPart]
-							kernValue = sourceFont.kerningForPair(sourceMasterID, firstPart, secondPart, direction=RTL)
+							kernValue = sourceFont.kerningForPair(sourceMasterID, firstPartName, secondPartName, direction=RTL)
 							if not kernValue is None:
 								try:
-									targetFont.setKerningForPair(targetMasterID, firstPart, secondPart, kernValue, direction = RTL)
-									print("✅ Kerning %s ↔️ %s (%i)" % (firstPart, secondPart, kernValue))
+									targetFont.setKerningForPair(targetMasterID, firstPartName, secondPartName, kernValue, direction = RTL)
+									print("✅ Kerning %s ↔️ %s (%i)" % (firstPartName, secondPartName, kernValue))
 								except Exception as e:
-									print("⚠️ Could not set kerning %s ↔️ %s (%i):\n   %s" % (firstPart, secondPart, kernValue, e))
+									print("⚠️ Could not set kerning %s ↔️ %s (%i):\n   %s" % (firstPartName, secondPartName, kernValue, e))
 							else:
-								print("❓ kerning for %s %s is none." % (firstPart, secondPart))
+								print("❓ kerning for %s %s is none." % (firstPartName, secondPartName))
 					except Exception as e:
-						print("Weird error when trying to access kerning for %s:\n%s" % (firstPart,e))
+						print("Weird error when trying to access kerning for %s:\n%s" % (firstPartName,e))
 				
 				"""
 				setKerningForPair(fontMasterId, leftKey, rightKey, value[, direction = LTR])
