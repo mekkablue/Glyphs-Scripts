@@ -4,9 +4,8 @@ from __future__ import division, print_function, unicode_literals
 __doc__="""
 Batch-apply settings in Font Info > Font to open fonts: designer, designer URL, manufacturer, manufacturer URL, copyright, version number, date and time. Useful for syncing Font Info settings across many fonts.
 """
-from AppKit import NSDate
 import vanilla, datetime
-
+import AppKit
 class FontInfoBatchSetter( object ):
 	def __init__( self ):
 		# Window 'self.w':
@@ -65,7 +64,7 @@ class FontInfoBatchSetter( object ):
 		
 		# DATE AND TIME
 		self.w.setDate = vanilla.CheckBox( (inset, linePos-1, column, 20), u"Date and time:", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.datePicker = vanilla.DatePicker( (inset+column, linePos-3, -inset-70, 22), date=NSDate.alloc().init(), minDate=None, maxDate=None, showStepper=True, mode='text', timeDisplay='hourMinuteSecond', dateDisplay='yearMonthDay', callback=None, sizeStyle='small' )
+		self.w.datePicker = vanilla.DatePicker( (inset+column, linePos-3, -inset-70, 22), date=AppKit.NSDate.alloc().init(), minDate=None, maxDate=None, showStepper=True, mode='text', timeDisplay='hourMinuteSecond', dateDisplay='yearMonthDay', callback=None, sizeStyle='small' )
 		self.w.noonButton = vanilla.SquareButton( (-inset-60, linePos, -inset, 18), u"🕛 Today", sizeStyle='small', callback=self.setNoon )
 		self.w.noonButton.getNSButton().setToolTip_(u"Resets the date to today 12:00 noon.")
 		linePos += lineHeight
