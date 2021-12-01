@@ -61,10 +61,6 @@ class FindShapeshiftingGlyphs( object ):
 		self.w.checkInstances.getNSPopUpButton().setToolTip_("Where to count paths (for comparison of path counts). Shapeshifting is most visible in midway interpolations (50%% between masters), so pick that option if you have two masters only, or all masters on a single axis.")
 		linePos += lineHeight
 		
-		self.w.alsoCheckMasters = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Add masters as instances", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.alsoCheckMasters.getNSButton().setToolTip_("Count paths in (uninterpolated) masters as well. Useful in combination with ‘constructed midway instances’ option above.")
-		linePos += lineHeight
-		
 		self.w.onlyCheckSelection = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Limit to selected glyphs (otherwise all glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		linePos += lineHeight
 		
@@ -103,7 +99,7 @@ class FindShapeshiftingGlyphs( object ):
 	def SavePreferences( self, sender ):
 		try:
 			Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.checkInstances"] = self.w.checkInstances.get()
-			Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.alsoCheckMasters"] = self.w.alsoCheckMasters.get()
+			# Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.alsoCheckMasters"] = self.w.alsoCheckMasters.get()
 			Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.onlyCheckSelection"] = self.w.onlyCheckSelection.get()
 			Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.ignoreGlyphsWithoutPaths"] = self.w.ignoreGlyphsWithoutPaths.get()
 			Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.ignoreNonexportingGlyphs"] = self.w.ignoreNonexportingGlyphs.get()
@@ -118,7 +114,7 @@ class FindShapeshiftingGlyphs( object ):
 	def LoadPreferences( self ):
 		try:
 			Glyphs.registerDefault("com.mekkablue.FindShapeshiftingGlyphs.checkInstances", 0)
-			Glyphs.registerDefault("com.mekkablue.FindShapeshiftingGlyphs.alsoCheckMasters", 0)
+			
 			Glyphs.registerDefault("com.mekkablue.FindShapeshiftingGlyphs.onlyCheckSelection", 0)
 			Glyphs.registerDefault("com.mekkablue.FindShapeshiftingGlyphs.ignoreGlyphsWithoutPaths", 0)
 			Glyphs.registerDefault("com.mekkablue.FindShapeshiftingGlyphs.ignoreNonexportingGlyphs", 0)
@@ -126,7 +122,6 @@ class FindShapeshiftingGlyphs( object ):
 			Glyphs.registerDefault("com.mekkablue.FindShapeshiftingGlyphs.reuseTab", 0)
 			Glyphs.registerDefault("com.mekkablue.FindShapeshiftingGlyphs.allFonts", 0)
 			self.w.checkInstances.set( Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.checkInstances"] )
-			self.w.alsoCheckMasters.set( Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.alsoCheckMasters"] )
 			self.w.onlyCheckSelection.set( Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.onlyCheckSelection"] )
 			self.w.ignoreGlyphsWithoutPaths.set( Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.ignoreGlyphsWithoutPaths"] )
 			self.w.ignoreNonexportingGlyphs.set( Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.ignoreNonexportingGlyphs"] )
@@ -184,7 +179,6 @@ class FindShapeshiftingGlyphs( object ):
 		try:
 			# query settings:
 			checkInstances = Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.checkInstances"]
-			alsoCheckMasters = Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.alsoCheckMasters"]
 			onlyCheckSelection = Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.onlyCheckSelection"]
 			ignoreGlyphsWithoutPaths = Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.ignoreGlyphsWithoutPaths"]
 			ignoreNonexportingGlyphs = Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.ignoreNonexportingGlyphs"]
@@ -204,6 +198,7 @@ class FindShapeshiftingGlyphs( object ):
 			else:
 				theseFonts = (Glyphs.font,)
 			
+			alsoCheckMasters = False
 			totalAffectedGlyphCount = 0
 			totalAffectedFontCount = 0
 			oneFontPercentage = 100.0/len(theseFonts)
@@ -237,6 +232,7 @@ class FindShapeshiftingGlyphs( object ):
 				self.instances = []
 				# 0: constructed midway instances
 				if checkInstances == 0:
+					alsoCheckMasters = True
 					self.addHalfWayInstances( thisFont )
 				# 1: all active instances in font
 				elif checkInstances == 1:
