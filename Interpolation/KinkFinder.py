@@ -433,13 +433,13 @@ class KinkFinder( object ):
 				thisFont.newTab(tabText)
 			else:
 				Message(
-					title="No Kinks Found",
-					message="Could not find any kinks larger than %.1f units in %s of %s. Congratulations." % (
+					title="No Kinks Found 🎉",
+					message="Could not find any kinks larger than %.1f units in %s of %s. Congratulations!" % (
 						maxKink, 
 						"master layers" if findKinksInMastersInstead else "interpolations",
 						thisFont.familyName,
 						),
-					OKButton=None,
+					OKButton="🥂 Cheers!",
 				)
 			
 		except Exception as e:
