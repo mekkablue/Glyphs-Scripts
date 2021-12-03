@@ -67,7 +67,7 @@ class KinkFinder( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 350
-		windowHeight = 300
+		windowHeight = 285
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -83,12 +83,12 @@ class KinkFinder( object ):
 		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 30), "Find glyphs where kinks between triplets appear in interpolation, and the kink exceeds the given threshold size.", sizeStyle='small', selectable=True )
 		linePos += lineHeight*2
 		
-		self.w.text_1 = vanilla.TextBox( (inset, linePos+2, 145, 14), "Acceptable max kink size:", sizeStyle='small' )
-		self.w.maxKinkSize = vanilla.EditText( (inset+145, linePos-1, -inset, 19), "3", sizeStyle='small', callback=self.SavePreferences)
+		self.w.text_1 = vanilla.TextBox( (inset, linePos, 145, 14), "Acceptable max kink size:", sizeStyle='small' )
+		self.w.maxKinkSize = vanilla.EditText( (inset+145, linePos-3, -inset, 19), "3", sizeStyle='small', callback=self.SavePreferences)
 		self.w.maxKinkSize.getNSTextField().setToolTip_("Measured in units as the perpendicular distance between middle point and the line between first and third points.")
 		linePos += lineHeight
 		
-		self.w.findKinksInMasters = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Find kinks in masters instead (i.e., not in interpolations)", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.findKinksInMasters = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Find kinks in masters instead (not in interpolations)", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.findKinksInMasters.getNSButton().setToolTip_("If checked, will not calculte interpolations, but only measure green (smooth) nodes in master, bracket and brace layers.")
 		linePos += lineHeight
 		
@@ -96,7 +96,7 @@ class KinkFinder( object ):
 		self.w.betweenAdjacentMastersOnly.getNSButton().setToolTip_("If checked, will look for kinks between masters 0+1, 1+2, 1+3, but NOT between 0+2, 1+3 or 0+3. Makes sense if you have only one axis (e.g. weight) and more than two masters in interpolation order (lightest through boldest).")
 		linePos += lineHeight
 		
-		self.w.allGlyphs = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Process all glyphs in font (i.e., ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.allGlyphs = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Process all glyphs in font (ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.allGlyphs.getNSButton().setToolTip_("If unchecked, will only process the current glyph(s).")
 		linePos += lineHeight
 		
@@ -104,18 +104,17 @@ class KinkFinder( object ):
 		self.w.exportingOnly.getNSButton().setToolTip_("If checked, will skip glyphs that do not export. Always skips compounds.")
 		linePos += lineHeight
 
-		self.w.reportIncompatibilities = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Report incompatibilities in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.reportIncompatibilities.getNSButton().setToolTip_("If checked, will warn about incompatibilities. Usually you want this off, especially when you have bracket layers.")
-		linePos += lineHeight
-
 		self.w.markKinks = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Mark kinky nodes in first layer", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.markKinks.getNSButton().setToolTip_("If checked, will mark affected nodes with a warning emoji and the maximum kink distance. Will mark the corresponding node in the first layer if it finds a kink in an instance. Will use an annotation if the node cannot be found (e.g. if the kink happens in a corner component).")
 		linePos += lineHeight
 
-		self.w.bringMacroWindowToFront = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Bring Macro Window to front", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reportIncompatibilities = vanilla.CheckBox( (inset, linePos-1, 180, 20), "Also report incompatibilities", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reportIncompatibilities.getNSButton().setToolTip_("If checked, will warn about incompatibilities. Usually you want this off, especially when you have bracket layers.")
+
+		self.w.bringMacroWindowToFront = vanilla.CheckBox( (inset+180, linePos-1, -inset, 20), "Macro Window to front", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.bringMacroWindowToFront.getNSButton().setToolTip_("A detailed report is written to the Macro Window. Activate this check box, and the Macro Window will be brought to the front ever time you run this script.")
 		linePos += lineHeight
-		
+
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0) # set progress indicator to zero
 		linePos+=lineHeight
@@ -419,6 +418,9 @@ class KinkFinder( object ):
 				else:
 					skippedGlyphNames.append(thisGlyph.name)
 			
+			# Progress bar 100%
+			self.w.progress.set(100.0)
+				
 			if skippedGlyphNames:
 				print("\nSkipped %i glyphs:\n%s" % ( len(skippedGlyphNames), ", ".join(skippedGlyphNames) ))
 			uniqueKinkyGlyphNames = set(kinkyGlyphNames)
