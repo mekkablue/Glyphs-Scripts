@@ -433,7 +433,10 @@ class InstanceMaker( object ):
 				# Glyphs.defaults["com.mekkablue.InstanceMaker.maciej2"]
 				
 				distributedValues = self.Distribution()
-				widthValue = float(Glyphs.defaults["com.mekkablue.InstanceMaker.width"]) #self.w.width.get().floatValue()
+				try:
+					widthValue = float(Glyphs.defaults["com.mekkablue.InstanceMaker.width"]) #self.w.width.get().floatValue()
+				except:
+					widthValue = 100.0
 				prefix = Glyphs.defaults["com.mekkablue.InstanceMaker.prefix"] #self.w.prefix.get()
 				maciejYesOrNo = Glyphs.defaults["com.mekkablue.InstanceMaker.maciej"] #self.w.maciej.get()
 				roundingYesOrNo  = Glyphs.defaults["com.mekkablue.InstanceMaker.shouldRound"] #self.w.shouldRound.get()
