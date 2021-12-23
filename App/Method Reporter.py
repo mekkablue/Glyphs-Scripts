@@ -241,6 +241,7 @@ class MethodReporter( object ):
 			return [
 				self.fullMethodName(className,method) for method in elidableMethods 
 				if not method.startswith(".")
+				and not method.startswith("_")
 			]
 		else:
 			try:
@@ -254,6 +255,7 @@ class MethodReporter( object ):
 				self.fullMethodName(className,method) for method in dir(actualClass) 
 				if not method in elidableMethods 
 				and not method.startswith(".")
+				and not method.startswith("_")
 			]
 			return shortenedMethods
 			
