@@ -14,11 +14,11 @@ Now the scripts are available in *Script > mekkablue.* If the mekkablue scripts 
 
 ## Glyphs 2
 
-### Video installation guide
+### Video installation guide for Glyphs 2
 
 There is a [tutorial video on how to install the mekkablue scripts](https://www.youtube.com/watch?v=Q6ly16Q0BmE) available on YouTube. While you are there, feel free to subscribe to the [mekkablue channel](https://www.youtube.com/channel/UCFPSSuEMZVQtrFpTzgFh9lA).
 
-### General installation guide
+### General installation guide for Glyphs 2
 
 The scripts need to be in the *Scripts* folder inside the app’s Application Support folder. Here is how:
 
@@ -26,7 +26,7 @@ The scripts need to be in the *Scripts* folder inside the app’s Application Su
 2. Then, hold down the Option (Alt) key, and choose *Script > Reload Scripts* (Cmd-Opt-Shift-Y). Now the scripts are visible in the *Script* menu
 3. For some of the scripts, you will also need to install Tal Leming's *Vanilla:* Go to *Glyphs > Preferences > Addons > Modules* and click the *Install Modules* button. That’s it.
 
-### git
+### git installation for Glyphs 2
 
 I recommend to use git for getting the scripts, because it is easier for you to keep them up to date. Use this git command for cloning the repository into your *Scripts* folder:
 
