@@ -73,13 +73,20 @@ class RemoveComponentfromSelectedGlyphs( object ):
 		
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.text1 = vanilla.TextBox( (inset, linePos, 115, 14), "Remove component", sizeStyle='small' )
+		
+		self.w.textDescription = vanilla.TextBox( (inset, linePos, 115, 14), "Remove component", sizeStyle='small' )
 		self.w.componentName  = vanilla.ComboBox(
 				(inset+115, linePos-3, -30-inset, 19), 
 				self.glyphList(), 
 				sizeStyle='small' 
 			)
+
+		tooltip="Pick a glyph name. All components and corner components referencing this glyph will be deleted. Wildcards * and ? are supported."
+		self.w.textDescription.getNSTextField().setToolTip_(tooltip)
+		self.w.componentName.getNSComboBox().setToolTip_(tooltip)
+		
 		self.w.updateButton = vanilla.SquareButton( (-inset-20, linePos-2, -inset, 18), "↺", sizeStyle='small', callback=self.updateUI )
+		self.w.updateButton.getNSButton().setToolTip_("Reload a list of glyph names based on the current font.")
 		
 		linePos += lineHeight
 		self.w.fromWhere = vanilla.RadioGroup(
@@ -88,7 +95,7 @@ class RemoveComponentfromSelectedGlyphs( object ):
 				callback=self.SavePreferences,
 				sizeStyle = 'small',
 			)
-		
+			
 		# Run Button:
 		self.w.runButton = vanilla.Button((-100-inset, -20-inset, -inset, -inset), "Remove", sizeStyle='regular', callback=self.RemoveComponentfromSelectedGlyphsMain )
 		self.w.setDefaultButton( self.w.runButton )
@@ -174,10 +181,10 @@ class RemoveComponentfromSelectedGlyphs( object ):
 	def RemoveComponentfromSelectedGlyphsMain( self, sender ):
 		# brings macro window to front and clears its log:
 		Glyphs.clearLog()
-		print( "Removing Components:" )
 		
 		try:
 			thisFont = Glyphs.font # frontmost font
+			print( "Removing Components from %s:" % thisFont.familyName )
 			listOfGlyphs = thisFont.glyphs 
 			
 			if self.pref("fromWhere") == 0:
@@ -193,6 +200,6 @@ class RemoveComponentfromSelectedGlyphs( object ):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Remove Component from Selected Glyphs Error: %s" % e)
+			print("Remove Component Error: %s" % e)
 
 RemoveComponentfromSelectedGlyphs()
