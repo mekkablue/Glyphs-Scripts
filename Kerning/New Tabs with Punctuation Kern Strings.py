@@ -15,7 +15,7 @@ mID = thisFont.selectedFontMaster.id
 Glyphs.defaults["visibleReporters"] = None
 
 # exclusion list (please create a GitHub issue if you need more)
-alwaysExclude = (".punch",".game","tic","youlose","p1win","p2win","RAINER", ".draw", ".win")
+alwaysExclude = (".punch",".game","tic","youlose","p1win","p2win","RAINER",".draw",".win",".circled")
 
 def nameNotExcluded( suffix, exclusions ):
 	for excludedString in exclusions:
@@ -146,7 +146,7 @@ print(lower)
 print(upper)
 print(number)
 
-from AppKit import *
+from AppKit import NSPasteboard, NSStringPboardType
 
 def setClipboard( myText ):
 	"""
