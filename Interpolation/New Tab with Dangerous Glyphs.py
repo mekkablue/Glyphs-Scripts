@@ -69,21 +69,28 @@ def check( thisLayer ):
 					secondPathCount = len(secondPath.nodes)
 					if firstPathCount == secondPathCount:
 						if firstPath.closed and secondPath.closed and compatibleWithDifferentStartPoints( firstPath, secondPath ):
+							print("⚠️ Paths %i and %i compatible with different start points." % (i,j))
 							return True
 						elif compatibleWhenReversed( firstPath, secondPath ):
+							print("⚠️ Paths %i and %i compatible when reversed." % (i,j))
 							return True
 							
 	if len(thisLayer.paths) == 1:
 		thisPath = thisLayer.paths[0]
 		if thisPath.closed and compatibleWithDifferentStartPoints( thisPath, thisPath ):
+			print("⚠️ Single path compatible with itself with different start points.")
 			return True
 		elif compatibleWhenReversed( thisPath, thisPath ):
+			print("⚠️ Single path compatible with itself with different path directions.")
 			return True
 
 	return False
 
+Glyphs.clearLog()
+print "Dangerous glyphs for interpolation"
 for thisGlyph in Font.glyphs:
 	if check( thisGlyph.layers[0] ):
+		print("\n🔠 %s" % thisGlyph.name)
 		outputString += "/%s" % thisGlyph.name
 
 if outputString:
