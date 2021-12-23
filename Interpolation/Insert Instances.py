@@ -1,12 +1,12 @@
 #MenuTitle: Insert Instances
 # -*- coding: utf-8 -*-
-from __future__ import division
-from __future__ import print_function
+from __future__ import division, print_function, unicode_literals
 __doc__="""
 Inserts instances, based on the Luc(as), Pablo, and Maciej algorithms.
 """
 
 from GlyphsApp import *
+from Foundation import NSDictionary
 import vanilla
 
 rangemin = 3
@@ -27,7 +27,7 @@ naturalNames = (
 )
 
 weightClasses = {
-	"Hairline":50,
+	"Hairline":1,
 	"Thin":100,
 	"Extralight":200,
 	"Light":300,
@@ -37,11 +37,11 @@ weightClasses = {
 	"Bold":700,
 	"Extrabold":800,
 	"Black":900,
-	"Extrablack":950,
+	"Extrablack":1000,
 }
 
 weightClassesOldNames = {
-	"Hairline":"Thin:50",
+	"Hairline":"Thin:1",
 	"Thin":"Thin",
 	"Extralight":"ExtraLight",
 	"Light":"Light",
@@ -51,7 +51,7 @@ weightClassesOldNames = {
 	"Bold":"Bold",
 	"Extrabold":"ExtraBold",
 	"Black":"Black",
-	"Extrablack":"Black:950",
+	"Extrablack":"Black:1000",
 }
 
 
@@ -79,7 +79,6 @@ def distribute_abraham( min, max, n ):
 	es = distribute_equal(min, max, n)
 	ls = distribute_lucas(min, max, n)
 	return [ e*(1-(i/(n-1))**1.25) + l*(i/(n-1))**1.25 for (i, e, l) in zip(range(n), es, ls) ]
-	
 
 def distribute_maciej( lightMasterWeightX, lightMasterWeightY, boldMasterWeightX, boldMasterWeightY, interpolationWeightX ):
 	"""
@@ -92,8 +91,17 @@ def distribute_maciej( lightMasterWeightX, lightMasterWeightY, boldMasterWeightX
 		
 	return round( ( boldMasterWeightX - lightMasterWeightX ) * interpolationPointY + lightMasterWeightX, 1 )
 
+def axisLocationEntry( axisName, locationValue ):
+	return NSDictionary.alloc().initWithObjects_forKeys_(
+		(axisName, locationValue),
+		("Axis", "Location")
+	)
+
 class InstanceMaker( object ):
 	"""GUI for injecting instances."""
+	
+	prefID = "com.mekkablue.InstanceMaker"
+	
 	def __init__( self ):
 		
 		# Window 'self.w':
@@ -106,72 +114,81 @@ class InstanceMaker( object ):
 			"Insert weight instances", # window title
 			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
 			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
-			autosaveName = "com.mekkablue.InstanceMaker.mainwindow" # stores last window position and size
+			autosaveName = self.domain("mainwindow") # stores last window position and size
 		)
-		inset, lineheight = 15, 12
+
+		linePos, inset, lineHeight = 12, 15, 26
 		
-		self.w.text_1 = vanilla.TextBox( (inset-1, lineheight+2, 75, 14), "Insert", sizeStyle='small' )
-		self.w.numberOfInstances = vanilla.PopUpButton( (inset+40, lineheight, 50, 17), [str(x) for x in range( 3, 12 )], callback=self.UpdateSample, sizeStyle='small' )
+		self.w.text_1 = vanilla.TextBox( (inset-1, linePos+2, 75, 14), "Insert", sizeStyle='small' )
+		self.w.numberOfInstances = vanilla.PopUpButton( (inset+40, linePos, 50, 17), [str(x) for x in range( 3, 12 )], callback=self.UpdateSample, sizeStyle='small' )
 		self.w.numberOfInstances.getNSPopUpButton().setToolTip_("Choose how many instances you want to add. A full weight spectrum has 9 weights.")
-		self.w.text_2 = vanilla.TextBox( (inset+40+55, lineheight+2, 120, 14), "instances with prefix", sizeStyle='small' )
-		self.w.prefix = vanilla.EditText( (inset+40+55+120, lineheight-1, -inset, 19), "A-", callback=self.UpdateSample, sizeStyle='small')
+		self.w.text_2 = vanilla.TextBox( (inset+40+55, linePos+2, 120, 14), "instances with prefix", sizeStyle='small' )
+		self.w.prefix = vanilla.EditText( (inset+40+55+120, linePos-1, -inset, 19), "A-", callback=self.UpdateSample, sizeStyle='small')
 		self.w.prefix.getNSTextField().setToolTip_(u"Choose text that is added at the beginning of each instance, e.g., ‘Condensed’.")
-		lineheight += 28
+		linePos += lineHeight
 		
-		self.w.text_3  = vanilla.TextBox( (inset-1, lineheight+2, 60, 14), "from:", sizeStyle='small')
-		self.w.master1 = vanilla.ComboBox((inset+35, lineheight-1, 62, 19), self.MasterList(1), callback=self.UpdateSample, sizeStyle='small' )
+		self.w.text_3  = vanilla.TextBox( (inset-1, linePos+2, 60, 14), "from:", sizeStyle='small')
+		self.w.master1 = vanilla.ComboBox((inset+35, linePos-1, 62, 19), self.MasterList(1), callback=self.UpdateSample, sizeStyle='small' )
 		self.w.master1.getNSComboBox().setToolTip_("Weight value for the first instance being added, typically the stem width of your lightest weight.")
-		self.w.text_4  = vanilla.TextBox( (inset+50+55*1, lineheight+2, 55, 14), "through:", sizeStyle='small')
-		self.w.master2 = vanilla.ComboBox((inset+50+55*2, lineheight-1, 62, 19), self.MasterList(-1), callback=self.UpdateSample, sizeStyle='small' )
+		self.w.text_4  = vanilla.TextBox( (inset+50+55*1, linePos+2, 55, 14), "through:", sizeStyle='small')
+		self.w.master2 = vanilla.ComboBox((inset+50+55*2, linePos-1, 62, 19), self.MasterList(-1), callback=self.UpdateSample, sizeStyle='small' )
 		self.w.master2.getNSComboBox().setToolTip_("Weight value for the last instance being added, typically the stem width of your boldest weight.")
-		self.w.text_5  = vanilla.TextBox( (inset+65+55*3, lineheight+2, 55, 14), "at width:", sizeStyle='small')
-		self.w.width   = vanilla.EditText((inset+65+55*4, lineheight-1, -inset, 19), "100", callback=self.UpdateSample, sizeStyle='small')
+		self.w.text_5  = vanilla.TextBox( (inset+65+55*3, linePos+2, 55, 14), "at width:", sizeStyle='small')
+		self.w.width   = vanilla.EditText((inset+65+55*4, linePos-1, -inset, 19), "100", callback=self.UpdateSample, sizeStyle='small')
 		self.w.width.getNSTextField().setToolTip_("The Width value for the instances being added. Default is 100. Adapt accordingly if you are adding condensed or extended instances.")
-		lineheight += 28
+		linePos += lineHeight
 		
-		self.w.text_6 = vanilla.TextBox( (inset-1, lineheight+2, 60, 14), "using", sizeStyle='small')
-		self.w.algorithm = vanilla.PopUpButton((inset+35, lineheight, 90, 17), ("linear", "Pablo", "Schneider", "Abraham", "Luc(as)"), callback=self.UpdateSample, sizeStyle='small' )
+		self.w.text_6 = vanilla.TextBox( (inset-1, linePos+2, 60, 14), "using", sizeStyle='small')
+		self.w.algorithm = vanilla.PopUpButton((inset+35, linePos, 90, 17), ("linear", "Pablo", "Schneider", "Abraham", "Luc(as)"), callback=self.UpdateSample, sizeStyle='small' )
 		self.w.algorithm.getNSPopUpButton().setToolTip_("The way the Weight values are distributed between the first and last master values you entered above. Linear means equal steps between instances. Luc(as) (after Lucas de Groot) means the same growth percentage between instances. Pablo (after Pablo Impallari) is like Luc(as) at first, then becomes increasingly linear, i.e., flat in the periphery and steep in the middle. Schneider (after Lukas Schneider) is half way between Pablo and Luc(as) algorithms. Abraham (after Abraham Lee) is linear at first, then becomes incresingly like Luc(as), i.e. steep in the periphery, flat in the middle.\nFor a wide spectrum, try Pablo or Schneider. For spectrums that do not grow too bold, try Abraham or Luc(as). The latter tend to have large jumps at the end, which are usually found in the center of the weight spectrum (between Regular and Semibold). Smaller jumps are preferable in the periphery, i.e., for very light and very dark weights.")
-		self.w.text_7 = vanilla.TextBox( (inset+40+85+5, lineheight+2, 110, 14), "distribution.", sizeStyle='small')
-		self.w.help_instances = vanilla.HelpButton((-15-21, lineheight+2, -inset, 20), callback=self.openURL )
-		lineheight += 32
+		self.w.text_7 = vanilla.TextBox( (inset+40+85+5, linePos+2, 110, 14), "distribution.", sizeStyle='small')
+		self.w.help_instances = vanilla.HelpButton((-15-21, linePos+2, -inset, 20), callback=self.openURL )
+		linePos += lineHeight
 		
-		self.w.existingInstances = vanilla.RadioGroup((inset+20, lineheight, -10, 60), ("Leave existing instances as they are", "Deactivate existing instances", "Delete existing instances"), callback=self.SavePreferences, sizeStyle = 'small' )
+		self.w.existingInstances = vanilla.RadioGroup((inset+20, linePos, -10, 60), ("Leave existing instances as they are", "Deactivate existing instances", "Delete existing instances"), callback=self.SavePreferences, sizeStyle = 'small' )
 		self.w.existingInstances.set( 0 )
-		lineheight += 70
+		linePos += int(lineHeight*2.4)
 		
-		self.w.naturalNames = vanilla.CheckBox((inset, lineheight, inset+225, 19), u"Use ‘natural’ weight names, starting at:", value=False, callback=self.UpdateSample, sizeStyle='small' )
+		self.w.naturalNames = vanilla.CheckBox((inset, linePos, inset+225, 19), u"Use ‘natural’ weight names, starting at:", value=False, callback=self.UpdateSample, sizeStyle='small' )
 		self.w.naturalNames.getNSButton().setToolTip_("Prefill with standard names and style linking. If turned off, will use the Weight number as instance name.")
-		self.w.firstName = vanilla.PopUpButton((inset+225, lineheight, -inset, 17), naturalNames, callback=self.UpdateSample, sizeStyle='small' )
+		self.w.firstName = vanilla.PopUpButton((inset+225, linePos, -inset, 17), naturalNames, callback=self.UpdateSample, sizeStyle='small' )
 		self.w.firstName.getNSPopUpButton().setToolTip_("If you use natural weight names, choose here the name of your lightest weight.")
 		try: # workaround for macOS 10.9
 			self.w.firstName.enable( self.w.naturalNames.getNSButton().isEnabled() )
 		except:
 			pass
-		lineheight += 20
+		linePos += lineHeight-8
 		
-		self.w.italicStyle = vanilla.CheckBox( (inset+20, lineheight, -inset, 20), u"Italic suffixes and style linking", value=False, callback=self.UpdateSample, sizeStyle='small' )
+		if Glyphs.versionNumber >= 3:
+			self.w.axisLocation = vanilla.CheckBox( (inset+20, linePos, -inset, 20), u"Set OTVar axis location for each instance", value=True, callback=self.SavePreferences, sizeStyle='small' )
+			self.w.axisLocation.getNSButton().setToolTip_(u"If enabled, will add an Axis Location parameter with the proper usWeightClass value in Font Info → Exports.\n\nHINT: Do not forget to set Axis Location parameters for each master in Font Info → Masters, and remove the Axis Mappings parameter in Font Info → Font if you have one.")
+			linePos += lineHeight-8
+
+		self.w.italicStyle = vanilla.CheckBox( (inset+20, linePos, -inset, 20), u"Italic suffixes and style linking", value=False, callback=self.UpdateSample, sizeStyle='small' )
 		self.w.italicStyle.getNSButton().setToolTip_(u"If enabled, will add the word ‘Italic’ to all instances, and also add italic style linking.")
-		lineheight += 24
+		linePos += lineHeight
 		
-		self.w.maciej        = vanilla.CheckBox((inset, lineheight-1, 160, 19), "Maciej y distribution from:", value=False, callback=self.UpdateSample, sizeStyle='small' )
+		self.w.maciej        = vanilla.CheckBox((inset, linePos-1, 160, 19), "Maciej y distribution from:", value=False, callback=self.UpdateSample, sizeStyle='small' )
 		self.w.maciej.getNSButton().setToolTip_("An algorithm proposed by Maciej Ratajski, which introduces slightly different interpolation for y coordinates. Will add interpolationWeightY parameters to the instances. If these value differ greatly from the weight interpolation values, interpolation of your diagonals may suffer.")
-		self.w.text_maciej_1 = vanilla.TextBox( (inset+165+55, lineheight+2, 55, 19), "through:", sizeStyle='small')
-		self.w.text_maciej_2 = vanilla.TextBox( (inset+15, lineheight+2+20, -40, 40), "Provide horizontal stem widths in extreme masters to interpolate contrast rather than stems.", sizeStyle='small', selectable=True )
-		self.w.maciej_light  = vanilla.ComboBox((inset+160, lineheight-1, 55, 19), self.MasterList(1), callback=self.UpdateSample, sizeStyle='small' )
-		self.w.maciej_bold   = vanilla.ComboBox((inset+160+55+55, lineheight-1, -inset, 19), self.MasterList(-1), callback=self.UpdateSample, sizeStyle='small' )
-		self.w.help_maciej   = vanilla.HelpButton((-inset-21, lineheight+6+20, -inset, 20), callback=self.openURL )
+		self.w.text_maciej_1 = vanilla.TextBox( (inset+165+55, linePos+2, 55, 19), "through:", sizeStyle='small')
+		self.w.maciej_light  = vanilla.ComboBox((inset+160, linePos-1, 55, 19), self.MasterList(1), callback=self.UpdateSample, sizeStyle='small' )
+		self.w.maciej_bold   = vanilla.ComboBox((inset+160+55+55, linePos-1, -inset, 19), self.MasterList(-1), callback=self.UpdateSample, sizeStyle='small' )
+		linePos += lineHeight-6
+
+		self.w.text_maciej_2 = vanilla.TextBox( (inset+15, linePos, -40, 40), "Provide horizontal stem widths in extreme masters to interpolate contrast rather than stems.", sizeStyle='small', selectable=True )
+		self.w.help_maciej   = vanilla.HelpButton((-inset-21, linePos+4, -inset, 20), callback=self.openURL )
 		self.w.help_maciej.getNSButton().setToolTip_("Will open a website with a detailed description of the Maciej algorithm. Requires an internet connection.")
-		lineheight += 60
+		linePos += int(lineHeight*1.2)
 		
-		self.w.shouldRound   = vanilla.CheckBox((inset, lineheight, -inset, 19), "Round all interpolation values", value=True, callback=self.UpdateSample, sizeStyle='small' )
+		self.w.shouldRound   = vanilla.CheckBox((inset, linePos, -inset, 19), "Round all interpolation values", value=True, callback=self.UpdateSample, sizeStyle='small' )
 		self.w.shouldRound.getNSButton().setToolTip_("If enabled, will round all calculated weight values to integers. Usually a good idea.")
-		lineheight += 30
+		linePos += lineHeight
 		
-		self.w.sample = vanilla.Box( (inset, lineheight, -inset, -30-inset) )
+		self.w.sample = vanilla.Box( (inset, linePos, -inset, -30-inset) )
 		self.w.sample.text = vanilla.TextBox( (5, 5, -5, -5), "", sizeStyle='small')
 		
-		self.w.createButton = vanilla.Button((-90-inset, -20-inset, -inset, -inset), "Insert", sizeStyle='regular', callback=self.CreateInstances )
+		# buttons:
+		self.w.createButton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Insert", sizeStyle='regular', callback=self.CreateInstances )
 		self.w.setDefaultButton( self.w.createButton )
 		
 		if not self.LoadPreferences():
@@ -181,6 +198,14 @@ class InstanceMaker( object ):
 		self.UpdateSample( self )
 		self.w.makeKey()
 	
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
 	def axisTag(self, axis):
 		if Glyphs.versionNumber >= 3:
 			# Glyphs 3 code
@@ -189,7 +214,6 @@ class InstanceMaker( object ):
 			# Glyphs 2 code
 			return axis["Tag"]
 
-	
 	def axisID(self, axis):
 		if Glyphs.versionNumber >= 3:
 			# Glyphs 3 code
@@ -259,11 +283,11 @@ class InstanceMaker( object ):
 		self.SavePreferences()
 		
 		try:
-			usesNaturalNames = Glyphs.defaults["com.mekkablue.InstanceMaker.naturalNames"]
+			usesNaturalNames = self.pref("naturalNames")
 			
 			# update UI elements:
 			if usesNaturalNames:
-				currentSelectionIndex = Glyphs.defaults["com.mekkablue.InstanceMaker.firstName"]
+				currentSelectionIndex = self.pref("firstName")
 				numOfInstances = int( self.w.numberOfInstances.getItem() )
 				availableInstanceNames = naturalNames[:-numOfInstances+1]
 				numOfAvailableInstanceNames = len(availableInstanceNames)
@@ -279,14 +303,14 @@ class InstanceMaker( object ):
 			# store UI changes in defaults:
 			self.SavePreferences()
 			
-			if Glyphs.defaults["com.mekkablue.InstanceMaker.shouldRound"]:
+			if self.pref("shouldRound"):
 				rounding = 0
 			else:
 				rounding = 1
 			
 			distributedValues = [ round(value,rounding) for value in self.Distribution() ]
 			n = len( distributedValues )
-			prefix = Glyphs.defaults["com.mekkablue.InstanceMaker.prefix"]
+			prefix = self.pref("prefix")
 			sampleText = "Will create %i instances: " % n
 			
 			if usesNaturalNames:
@@ -299,11 +323,11 @@ class InstanceMaker( object ):
 			growth = (max/min)**(1.0/(n-1))
 			if self.w.algorithm.getItem() == "Luc(as)":
 				sampleText += ",%s growth: %.1f%%" % ( 
-					" average" if Glyphs.defaults["com.mekkablue.InstanceMaker.shouldRound"] else "",
+					" average" if self.pref("shouldRound") else "",
 					(growth-1)*100,
 				)
 			
-			if Glyphs.defaults["com.mekkablue.InstanceMaker.maciej"]:
+			if self.pref("maciej"):
 				maciejValues = self.MaciejValues()
 				if maciejValues:
 					maciejList = [ str( round( distribute_maciej( maciejValues[0], maciejValues[1], maciejValues[2], maciejValues[3], w), rounding) ) for w in distributedValues ]
@@ -324,25 +348,27 @@ class InstanceMaker( object ):
 		return True
 	
 	def updateUI(self, sender=None):
-		onOff = Glyphs.defaults["com.mekkablue.InstanceMaker.naturalNames"]
+		onOff = self.pref("naturalNames")
 		self.w.italicStyle.enable(onOff)
 		
 	def SavePreferences( self, sender=None ):
 		try:
-			Glyphs.defaults["com.mekkablue.InstanceMaker.numberOfInstances"] = self.w.numberOfInstances.get()
-			Glyphs.defaults["com.mekkablue.InstanceMaker.prefix"] = self.w.prefix.get()
-			Glyphs.defaults["com.mekkablue.InstanceMaker.master1"] = self.w.master1.get()
-			Glyphs.defaults["com.mekkablue.InstanceMaker.master2"] = self.w.master2.get()
-			Glyphs.defaults["com.mekkablue.InstanceMaker.width"] = self.w.width.get()
-			Glyphs.defaults["com.mekkablue.InstanceMaker.algorithm"] = self.w.algorithm.get()
-			Glyphs.defaults["com.mekkablue.InstanceMaker.existingInstances"] = self.w.existingInstances.get()
-			Glyphs.defaults["com.mekkablue.InstanceMaker.maciej"] = self.w.maciej.get()
-			Glyphs.defaults["com.mekkablue.InstanceMaker.maciej1"] = self.w.maciej_light.get()
-			Glyphs.defaults["com.mekkablue.InstanceMaker.maciej2"] = self.w.maciej_bold.get()
-			Glyphs.defaults["com.mekkablue.InstanceMaker.shouldRound"] = self.w.shouldRound.get()
-			Glyphs.defaults["com.mekkablue.InstanceMaker.naturalNames"] = self.w.naturalNames.get()
-			Glyphs.defaults["com.mekkablue.InstanceMaker.firstName"] = self.w.firstName.get()
-			Glyphs.defaults["com.mekkablue.InstanceMaker.italicStyle"] = self.w.italicStyle.get()
+			Glyphs.defaults[ self.domain("numberOfInstances") ] = self.w.numberOfInstances.get()
+			Glyphs.defaults[ self.domain("prefix") ] = self.w.prefix.get()
+			Glyphs.defaults[ self.domain("master1") ] = self.w.master1.get()
+			Glyphs.defaults[ self.domain("master2") ] = self.w.master2.get()
+			Glyphs.defaults[ self.domain("width") ] = self.w.width.get()
+			Glyphs.defaults[ self.domain("algorithm") ] = self.w.algorithm.get()
+			Glyphs.defaults[ self.domain("existingInstances") ] = self.w.existingInstances.get()
+			Glyphs.defaults[ self.domain("maciej") ] = self.w.maciej.get()
+			Glyphs.defaults[ self.domain("maciej1") ] = self.w.maciej_light.get()
+			Glyphs.defaults[ self.domain("maciej2") ] = self.w.maciej_bold.get()
+			Glyphs.defaults[ self.domain("shouldRound") ] = self.w.shouldRound.get()
+			Glyphs.defaults[ self.domain("naturalNames") ] = self.w.naturalNames.get()
+			Glyphs.defaults[ self.domain("firstName") ] = self.w.firstName.get()
+			Glyphs.defaults[ self.domain("italicStyle") ] = self.w.italicStyle.get()
+			if Glyphs.versionNumber >= 3:
+				Glyphs.defaults[ self.domain("axisLocation") ] = self.w.axisLocation.get()
 			
 			self.updateUI(sender)
 		except:
@@ -354,35 +380,39 @@ class InstanceMaker( object ):
 
 	def LoadPreferences( self ):
 		try:
-			Glyphs.registerDefault("com.mekkablue.InstanceMaker.numberOfInstances", "6")
-			Glyphs.registerDefault("com.mekkablue.InstanceMaker.prefix", "A-")
-			Glyphs.registerDefault("com.mekkablue.InstanceMaker.master1", self.MasterList(1))
-			Glyphs.registerDefault("com.mekkablue.InstanceMaker.master2", self.MasterList(-1))
-			Glyphs.registerDefault("com.mekkablue.InstanceMaker.width", "100")
-			Glyphs.registerDefault("com.mekkablue.InstanceMaker.algorithm", 0)
-			Glyphs.registerDefault("com.mekkablue.InstanceMaker.existingInstances", False)
-			Glyphs.registerDefault("com.mekkablue.InstanceMaker.maciej", False)
-			Glyphs.registerDefault("com.mekkablue.InstanceMaker.maciej1", self.MasterList(1))
-			Glyphs.registerDefault("com.mekkablue.InstanceMaker.maciej2", self.MasterList(-1))
-			Glyphs.registerDefault("com.mekkablue.InstanceMaker.shouldRound", True)
-			Glyphs.registerDefault("com.mekkablue.InstanceMaker.naturalNames", True)
-			Glyphs.registerDefault("com.mekkablue.InstanceMaker.firstName", 1)
-			Glyphs.registerDefault("com.mekkablue.InstanceMaker.italicStyle", 0)
+			Glyphs.registerDefault( self.domain("numberOfInstances"), "6")
+			Glyphs.registerDefault( self.domain("prefix"), "A-")
+			Glyphs.registerDefault( self.domain("master1"), self.MasterList(1))
+			Glyphs.registerDefault( self.domain("master2"), self.MasterList(-1))
+			Glyphs.registerDefault( self.domain("width"), "100")
+			Glyphs.registerDefault( self.domain("algorithm"), 0)
+			Glyphs.registerDefault( self.domain("existingInstances"), False)
+			Glyphs.registerDefault( self.domain("maciej"), False)
+			Glyphs.registerDefault( self.domain("maciej1"), self.MasterList(1))
+			Glyphs.registerDefault( self.domain("maciej2"), self.MasterList(-1))
+			Glyphs.registerDefault( self.domain("shouldRound"), True)
+			Glyphs.registerDefault( self.domain("naturalNames"), True)
+			Glyphs.registerDefault( self.domain("firstName"), 1)
+			Glyphs.registerDefault( self.domain("italicStyle"), 0)
+			if Glyphs.versionNumber >= 3:
+				Glyphs.registerDefault( self.domain("axisLocation"), 1)
 
-			self.w.numberOfInstances.set( Glyphs.defaults["com.mekkablue.InstanceMaker.numberOfInstances"] )
-			self.w.prefix.set( Glyphs.defaults["com.mekkablue.InstanceMaker.prefix"] )
-			self.w.master1.set( Glyphs.defaults["com.mekkablue.InstanceMaker.master1"] )
-			self.w.master2.set( Glyphs.defaults["com.mekkablue.InstanceMaker.master2"] )
-			self.w.width.set( Glyphs.defaults["com.mekkablue.InstanceMaker.width"] )
-			self.w.algorithm.set( Glyphs.defaults["com.mekkablue.InstanceMaker.algorithm"] )
-			self.w.existingInstances.set( Glyphs.defaults["com.mekkablue.InstanceMaker.existingInstances"] )
-			self.w.maciej.set( Glyphs.defaults["com.mekkablue.InstanceMaker.maciej"] )
-			self.w.maciej_light.set( Glyphs.defaults["com.mekkablue.InstanceMaker.maciej1"] )
-			self.w.maciej_bold.set( Glyphs.defaults["com.mekkablue.InstanceMaker.maciej2"] )
-			self.w.shouldRound.set( Glyphs.defaults["com.mekkablue.InstanceMaker.shouldRound"] )
-			self.w.naturalNames.set( Glyphs.defaults["com.mekkablue.InstanceMaker.naturalNames"] )
-			self.w.firstName.set( Glyphs.defaults["com.mekkablue.InstanceMaker.firstName"] )
-			self.w.italicStyle.set( Glyphs.defaults["com.mekkablue.InstanceMaker.italicStyle"] )
+			self.w.numberOfInstances.set( self.pref("numberOfInstances") )
+			self.w.prefix.set( self.pref("prefix") )
+			self.w.master1.set( self.pref("master1") )
+			self.w.master2.set( self.pref("master2") )
+			self.w.width.set( self.pref("width") )
+			self.w.algorithm.set( self.pref("algorithm") )
+			self.w.existingInstances.set( self.pref("existingInstances") )
+			self.w.maciej.set( self.pref("maciej") )
+			self.w.maciej_light.set( self.pref("maciej1") )
+			self.w.maciej_bold.set( self.pref("maciej2") )
+			self.w.shouldRound.set( self.pref("shouldRound") )
+			self.w.naturalNames.set( self.pref("naturalNames") )
+			self.w.firstName.set( self.pref("firstName") )
+			self.w.italicStyle.set( self.pref("italicStyle") )
+			if Glyphs.versionNumber >= 3:
+				self.w.axisLocation.set( self.pref("axisLocation") )
 			
 			self.updateUI()
 		except:
@@ -414,7 +444,7 @@ class InstanceMaker( object ):
 			return False
 	
 	def italicStyleName(self, styleName):
-		if Glyphs.defaults["com.mekkablue.InstanceMaker.italicStyle"]:
+		if self.pref("italicStyle"):
 			styleName = "%s Italic" % styleName
 			styleName = styleName.replace("Regular Italic", "Italic")
 		return styleName
@@ -422,24 +452,14 @@ class InstanceMaker( object ):
 	def CreateInstances( self, sender ):
 		try:
 			if self.DealWithExistingInstances():
-				
-				# Glyphs.defaults["com.mekkablue.InstanceMaker.master1"]
-				# Glyphs.defaults["com.mekkablue.InstanceMaker.master2"]
-				#
-				# Glyphs.defaults["com.mekkablue.InstanceMaker.algorithm"]
-				# Glyphs.defaults["com.mekkablue.InstanceMaker.existingInstances"]
-				#
-				# Glyphs.defaults["com.mekkablue.InstanceMaker.maciej1"]
-				# Glyphs.defaults["com.mekkablue.InstanceMaker.maciej2"]
-				
 				distributedValues = self.Distribution()
 				try:
-					widthValue = float(Glyphs.defaults["com.mekkablue.InstanceMaker.width"]) #self.w.width.get().floatValue()
+					widthValue = float(self.pref("width"))
 				except:
 					widthValue = 100.0
-				prefix = Glyphs.defaults["com.mekkablue.InstanceMaker.prefix"] #self.w.prefix.get()
-				maciejYesOrNo = Glyphs.defaults["com.mekkablue.InstanceMaker.maciej"] #self.w.maciej.get()
-				roundingYesOrNo  = Glyphs.defaults["com.mekkablue.InstanceMaker.shouldRound"] #self.w.shouldRound.get()
+				prefix = self.pref("prefix")
+				maciejYesOrNo = self.pref("maciej")
+				roundingYesOrNo  = self.pref("shouldRound")
 				
 				if maciejYesOrNo:
 					maciejValues = self.MaciejValues()
@@ -447,18 +467,20 @@ class InstanceMaker( object ):
 					if not maciejValues:
 						maciejYesOrNo = False
 		
-				numOfInstances = int( Glyphs.defaults["com.mekkablue.InstanceMaker.numberOfInstances"] )
-				currentSelectionIndex = int(Glyphs.defaults["com.mekkablue.InstanceMaker.firstName"])
+				numOfInstances = int( self.pref("numberOfInstances") )
+				currentSelectionIndex = int(self.pref("firstName"))
 				instanceNames = naturalNames[currentSelectionIndex:]
 				
 				for i,thisWeight in enumerate(distributedValues):
 					if roundingYesOrNo:
 						thisWeight = round(thisWeight)
-						
+					
+					# create new instance:
 					newInstance = GSInstance()
 					newInstance.active = True
 					
-					if Glyphs.defaults["com.mekkablue.InstanceMaker.naturalNames"]:
+					# determine names, style linking, weight class, etc.:
+					if self.pref("naturalNames"):
 						# weight style name (no italic)
 						styleName = instanceNames[i]
 						
@@ -485,7 +507,7 @@ class InstanceMaker( object ):
 							newInstance.linkStyle = "%sRegular" % prefix
 						
 						# italic style linking:
-						if Glyphs.defaults["com.mekkablue.InstanceMaker.italicStyle"]:
+						if self.pref("italicStyle"):
 							newInstance.isItalic = True
 							newInstance.linkStyle = newInstance.name.replace("Italic","").strip()
 
@@ -513,6 +535,20 @@ class InstanceMaker( object ):
 								newInstance.setAxisValueValue_forId_(thisWeight, weightID)
 							if widthID:
 								newInstance.setAxisValueValue_forId_(widthValue, widthID)
+							
+							# Axis Location:
+							if self.pref("axisLocation"):
+								axisLocations = []
+								for thisAxis in theFont.axes:
+									if thisAxis.name == "Weight":
+										value = weightClassValue
+									elif thisAxis.name == "Width":
+										value = widthValue
+									else:
+										value = 0
+									axisLocations.append( axisLocationEntry(thisAxis.name, value) )
+								if axisLocations:
+									newInstance.customParameters["Axis Location"] = tuple(axisLocations)
 						else:
 							# GLYPHS 2:
 							newInstance.weightValue = thisWeight
@@ -524,6 +560,7 @@ class InstanceMaker( object ):
 								interpolationY = round(interpolationY)
 							newInstance.customParameters["InterpolationWeightY"] = ("%.1f" % interpolationY).replace(".0","")
 					
+						# add the created instance:
 						theFont.instances.append( newInstance )
 						newInstance.updateInterpolationValues()
 					else:
