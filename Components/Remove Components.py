@@ -7,18 +7,47 @@ Removes the specified component from all (selected) glyphs.
 
 import vanilla
 
+def match(first, second):
+	# https://www.geeksforgeeks.org/wildcard-character-matching/
+	
+	# If we reach at the end of both strings, we are done
+	if len(first) == 0 and len(second) == 0:
+		return True
+
+	# Make sure that the characters after '*' are present
+	# in second string. This function assumes that the first
+	# string will not contain two consecutive '*'
+	if len(first) > 1 and first[0] == '*' and len(second) == 0:
+		return False
+
+	# If the first string contains '?', or current characters
+	# of both strings match
+	if (len(first) > 1 and first[0] == '?') or (len(first) != 0
+		and len(second) !=0 and first[0] == second[0]):
+		return match(first[1:],second[1:]);
+
+	# If there is *, then there are two possibilities
+	# a) We consider current character of second string
+	# b) We ignore current character of second string.
+	if len(first) !=0 and first[0] == '*':
+		return match(first[1:],second) or match(first,second[1:])
+
+	return False
+
 def deleteCornerComponent( componentName, thisLayer ):
 	indToDel = []
 	for i, h in enumerate(thisLayer.hints):
 		if h.isCorner:
 			#help(h)
-			if h.name == componentName:
+			if match(componentName, h.name):
 				indToDel += [i]
 	indToDel = list(reversed(indToDel))
 	for i in indToDel:
 		del thisLayer.hints[i]
 
 class RemoveComponentfromSelectedGlyphs( object ):
+	prefID = "com.mekkablue.RemoveComponents"
+	
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 350
@@ -30,7 +59,7 @@ class RemoveComponentfromSelectedGlyphs( object ):
 			"Remove Component from Selected Glyphs", # window title
 			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
 			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
-			autosaveName = "com.mekkablue.RemoveComponentfromSelectedGlyphs.mainwindow" # stores last window position and size
+			autosaveName = self.domain("mainwindow") # stores last window position and size
 		)
 		
 		# UI elements:
@@ -54,11 +83,24 @@ class RemoveComponentfromSelectedGlyphs( object ):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-		
+	
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
+	def updateUI(self):
+		glyphList = self.glyphList()
+		if glyphList:
+			self.w.componentName.setItems(glyphList)
+	
 	def SavePreferences( self, sender ):
 		try:
-			Glyphs.defaults["com.mekkablue.RemoveComponentfromSelectedGlyphs.componentName"] = self.w.componentName.get()
-			Glyphs.defaults["com.mekkablue.RemoveComponentfromSelectedGlyphs.fromWhere"] = self.w.fromWhere.get()
+			Glyphs.defaults[ self.domain("componentName") ] = self.w.componentName.get()
+			Glyphs.defaults[ self.domain("fromWhere") ] = self.w.fromWhere.get()
 		except:
 			return False
 			
@@ -66,10 +108,10 @@ class RemoveComponentfromSelectedGlyphs( object ):
 
 	def LoadPreferences( self ):
 		try:
-			Glyphs.registerDefault("com.mekkablue.RemoveComponentfromSelectedGlyphs.componentName", "a")
-			Glyphs.registerDefault("com.mekkablue.RemoveComponentfromSelectedGlyphs.fromWhere", "0")
-			self.w.componentName.set( Glyphs.defaults["com.mekkablue.RemoveComponentfromSelectedGlyphs.componentName"] )
-			self.w.fromWhere.set( Glyphs.defaults["com.mekkablue.RemoveComponentfromSelectedGlyphs.fromWhere"] )
+			Glyphs.registerDefault( self.domain("componentName"), "a")
+			Glyphs.registerDefault( self.domain("fromWhere"), "0")
+			self.w.componentName.set( self.pref("componentName") )
+			self.w.fromWhere.set( self.pref("fromWhere") )
 		except:
 			return False
 			
@@ -88,7 +130,7 @@ class RemoveComponentfromSelectedGlyphs( object ):
 		if numberOfComponents > 0:
 			for i in range(numberOfComponents)[::-1]:
 				thisComponent = theseComponents[i]
-				if thisComponent.componentName == componentName:
+				if match(componentName, thisComponent.componentName):
 					if Glyphs.versionNumber >= 3:
 						index = thisLayer.shapes.index(thisComponent)
 						del(thisLayer.shapes[index])
@@ -106,10 +148,10 @@ class RemoveComponentfromSelectedGlyphs( object ):
 			thisFont = Glyphs.font # frontmost font
 			listOfGlyphs = thisFont.glyphs 
 			
-			if Glyphs.defaults["com.mekkablue.RemoveComponentfromSelectedGlyphs.fromWhere"] == 0:
+			if self.pref("fromWhere") == 0:
 				listOfGlyphs = [l.parent for l in thisFont.selectedLayers] # active layers of currently selected glyphs
 				
-			componentName = Glyphs.defaults["com.mekkablue.RemoveComponentfromSelectedGlyphs.componentName"]
+			componentName = self.pref("componentName")
 			for thisGlyph in listOfGlyphs:
 				self.removeComponentFromGlyph( componentName, thisGlyph )
 			
