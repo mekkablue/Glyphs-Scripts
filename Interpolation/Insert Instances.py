@@ -348,8 +348,17 @@ class InstanceMaker( object ):
 		return True
 	
 	def updateUI(self, sender=None):
+		# Natural names:
 		onOff = self.pref("naturalNames")
 		self.w.italicStyle.enable(onOff)
+		if Glyphs.versionNumber >=3:
+			self.w.axisLocation.enable(onOff)
+		
+		# Maciej:
+		onOff = self.pref("maciej")
+		self.w.text_maciej_1.enable(onOff)
+		self.w.maciej_light.enable(onOff)
+		self.w.maciej_bold.enable(onOff)
 		
 	def SavePreferences( self, sender=None ):
 		try:
