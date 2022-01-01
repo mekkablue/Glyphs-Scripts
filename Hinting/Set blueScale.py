@@ -23,7 +23,7 @@ def maxPPMforOvershootSuppressionInFont( thisFont ):
 	maxZone = maxZoneInFont(thisFont)
 	if maxZone < 1:
 		maxZone = 16 # fallback value (Glyphs default)
-	maxPPM = int(2.04 + 1000.0 / maxZone)
+	maxPPM = int(2.04 + thisFont.upm / maxZone)
 	return maxPPM
 
 def blueScaleForPPMsize( ppmSize ):
