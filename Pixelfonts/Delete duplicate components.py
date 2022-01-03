@@ -5,12 +5,9 @@ __doc__="""
 Looks for duplicate components (same component, same x/y values) and keeps only one of them.
 """
 
-Font = Glyphs.font
-selectedLayers = Font.selectedLayers
-
 def getAttr( thisLayer, compNumber ):
-	return [thisLayer.components[compNumber].componentName, thisLayer.components[compNumber].x, thisLayer.components[compNumber].y]
-
+	thisComp = thisLayer.components[compNumber]
+	return (thisComp.componentName, thisComp.x, thisComp.y, thisComp.transform)
 
 def scanForDuplicates( thisLayer, compNumber ):
 	if compNumber == len( thisLayer.components ) - 1:
@@ -25,25 +22,39 @@ def scanForDuplicates( thisLayer, compNumber ):
 		
 		return sorted( set( indexList ) )
 
-
 def process( thisLayer ):
 	if len( thisLayer.components ) != 0:
 		thisLayer.parent.beginUndo()
 		indexesToBeDeleted = scanForDuplicates( thisLayer, 0 )
 		for indexToBeDeleted in indexesToBeDeleted[::-1]:
-			del thisLayer.components[indexToBeDeleted]
+			if Glyphs.versionNumber >= 3:
+				# GLYPHS 3
+				for i in range(len(thisLayer.shapes)):
+					compToBeDeleted = thisLayer.components[indexToBeDeleted]
+					thisShape = thisLayer.shapes[i]
+					if thisShape == compToBeDeleted:
+						del thisLayer.shapes[i]
+			else:
+				# GLYPHS 2
+				del thisLayer.components[indexToBeDeleted]
 		thisLayer.parent.endUndo()
 		return len( indexesToBeDeleted )
 	else:
 		return 0
 
-
-Font.disableUpdateInterface()
+thisFont = Glyphs.font
+thisFont.disableUpdateInterface()
 try:
+	Glyphs.clearLog()
+	print( "Deleting duplicate components: %s\n" % thisFont.familyName )
+	totalCount = 0
+	selectedLayers = thisFont.selectedLayers
 	for thisLayer in selectedLayers:
 		numOfDeletedComponents = process( thisLayer )
-		print("%i components deleted in: %s (%s)" % (numOfDeletedComponents, thisLayer.parent.name, thisLayer.name)
-		
+		totalCount += numOfDeletedComponents
+		print("%i components deleted in: %s (%s)" % (numOfDeletedComponents, thisLayer.parent.name, thisLayer.name))
+	print("\n✅ Done. Deleted %i component%s in total." % (totalCount, "" if totalCount==1 else "s"))
+	
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")
@@ -53,5 +64,5 @@ except Exception as e:
 	raise e
 	
 finally:
-	Font.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 

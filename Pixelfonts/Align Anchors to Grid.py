@@ -31,9 +31,9 @@ def process( thisLayer ):
 		thisLayer.parent.endUndo()
 	return count
 
+thisFont = Glyphs.font
 thisFont.disableUpdateInterface()
 try:
-	thisFont = Glyphs.font
 	selectedLayers = thisFont.selectedLayers
 	pixelwidth = thisFont.gridLength
 	
