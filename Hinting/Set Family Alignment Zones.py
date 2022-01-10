@@ -4,7 +4,7 @@ from __future__ import division, print_function, unicode_literals
 __doc__="""
 Inserts Family Alignment Zones parameter with values based on an instance. Needs properly set up and compatible alignment zones in Font Info > Masters.
 """
-
+from copy import deepcopy
 import vanilla
 from AppKit import NSFont
 
@@ -112,7 +112,12 @@ class SetFamilyAlignmentZones( object ):
 			instanceIndex = int(instanceName[:instanceName.find(":")])
 			thisInstance = thisFont.instances[instanceIndex]
 			if thisInstance.name in instanceName:
-				instanceZones = thisInstance.interpolatedFont.masters[0].alignmentZones.__copy__()
+				if Glyphs.versionNumber >= 3:
+					# GLYPHS 3 code:
+					instanceZones = deepcopy(thisInstance.interpolatedFont.masters[0].alignmentZones)
+				else:
+					# GLYPHS 2 code:
+					instanceZones = thisInstance.interpolatedFont.masters[0].alignmentZones.__copy__()
 				thisFont.customParameters["Family Alignment Zones"] = instanceZones
 				print(u"✅ Set family alignment zones to instance %s" % instanceName)
 			else:
