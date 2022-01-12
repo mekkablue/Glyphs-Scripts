@@ -276,10 +276,12 @@ def otVarSuffix():
 def otVarFileName(thisFont, thisInstance=None):
 	suffix = otVarSuffix()
 	if not thisInstance is None:
-		fileName = thisInstance.customParameters["fileName"]
+		fileName = thisInstance.fileName()
 		if not fileName:
-			familyName = familyNameOfInstance(thisInstance)
-			fileName = ("%s-%s" % (familyName, thisInstance.name)).replace(" ","")
+			fileName = thisInstance.customParameters["fileName"]
+			if not fileName:
+				familyName = familyNameOfInstance(thisInstance)
+				fileName = ("%s-%s" % (familyName, thisInstance.name)).replace(" ","")
 		return "%s.%s" % ( fileName, suffix)
 	elif thisFont.customParameters["Variable Font File Name"] or thisFont.customParameters["variableFileName"]:
 		fileName = thisFont.customParameters["Variable Font File Name"]
