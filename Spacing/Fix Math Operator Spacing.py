@@ -88,7 +88,7 @@ class FixMathOperatorSpacing( object ):
 		self.w.SyncWidthsAscii.getNSButton().setToolTip_(u"Syncs widths of asciicircum and asciitilde, with the same options as for the main math operators.")
 		linePos += lineHeight
 		
-		self.w.ignoreAutoAligned = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Ignore auto-aligned compounds", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.ignoreAutoAligned = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Ignore auto-aligned composites", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.ignoreAutoAligned.getNSButton().setToolTip_(u"Skips centering and metrics keys for layers that are built from components and are auto-aligned.")
 		linePos += lineHeight
 		
