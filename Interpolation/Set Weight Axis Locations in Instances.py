@@ -2,10 +2,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Will set weight axis location parameters for all instances, and sync them with their respective usWeightClass. Will set the width axis coordinates to the spec defaults for usWidthClass, if they have not been set yet. Otherwise will keep them as is.
+Will set weight axis location parameters for all instances, and sync them with their respective usWeightClass. Will set the width axis coordinates to the spec defaults for usWidthClass, if they have not been set yet. Otherwise will keep them as is. 
+
+If the font has masters without Axis Locations, but with corresponding instances, it will copy the instance’s axis locations into the master as well. Will not overwrite existing Axis Location parameters in the masters.
 """
 
 from Foundation import NSDictionary
+paramName = "Axis Location"
 
 def widthForWidthClass(widthClass):
 	"""According to the OS/2 table spec: https://docs.microsoft.com/en-us/typography/opentype/spec/os2#uswidthclass"""
@@ -32,7 +35,7 @@ def axisLocationEntry( axisName, locationValue ):
 	)
 
 def process( thisInstance ):
-	existingParameter = thisInstance.customParameters["Axis Location"]
+	existingParameter = thisInstance.customParameters[paramName]
 	
 	theFont = thisInstance.font
 	weightClassValue = thisInstance.weightClassValue()
@@ -55,7 +58,7 @@ def process( thisInstance ):
 				value = thisInstance.coordinateForAxisIndex_(i)
 		axisLocations.append( axisLocationEntry(thisAxis.name, value) )
 	if axisLocations:
-		thisInstance.customParameters["Axis Location"] = tuple(axisLocations)
+		thisInstance.customParameters[paramName] = tuple(axisLocations)
 		return weightClassValue
 """
 for m in Font.masters:
@@ -108,9 +111,18 @@ Glyphs.clearLog() # clears log in Macro window
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
+	# set instances:
 	for i, thisInstance in enumerate(thisFont.instances):
 		if thisInstance.type == 0:
 			print("ℹ️ Instance %i: wght=%i (%s)" % (i, process(thisInstance), thisInstance.name))
+	
+	# set masters if possible:
+	for thisMaster in thisFont.masters:
+		if not thisMaster.customParameters[paramName]:
+			for thisInstance in thisFont.instances:
+				if thisMaster.axes == thisInstance.axes:
+					print("Ⓜ️ Master %s ← Instance %s" % (thisMaster.name, thisInstance.name))
+					thisMaster.customParameters[paramName] = thisInstance.customParameters[paramName]
 			
 except Exception as e:
 	Glyphs.showMacroWindow()
