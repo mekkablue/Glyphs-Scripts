@@ -17,7 +17,8 @@ def nameForKey(thisKey):
 		return thisFont.glyphForId_(thisKey).name
 
 def glyphNameIsRTL(glyphName, key2Scripts):
-	glyphName = glyphName.replace("@","")
+	glyphName = glyphName.replace("@MMK_L_","").replace("@MMK_R_","")
+	glyphName = Glyphs.niceGlyphName(glyphName)
 	if glyphName in key2Scripts.keys():
 		if GSGlyphsInfo.isRTLScript_(key2Scripts[glyphName]):
 			return True
