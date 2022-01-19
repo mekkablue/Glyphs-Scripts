@@ -123,6 +123,12 @@ try:
 				if thisMaster.axes == thisInstance.axes:
 					print("Ⓜ️ Master %s ← Instance %s" % (thisMaster.name, thisInstance.name))
 					thisMaster.customParameters[paramName] = thisInstance.customParameters[paramName]
+	
+	# Disable Axis Mappings if present:
+	paramName = "Axis Mappings"
+	if thisFont.customParameterForKey_(paramName):
+		thisFont.customParameterForKey_(paramName).setActive_(False)
+		print("⛲️ Font: Axis Mappings disabled. WARNING: may not show in the UI until you reopen the font.")
 			
 except Exception as e:
 	Glyphs.showMacroWindow()
