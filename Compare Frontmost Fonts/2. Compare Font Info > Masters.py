@@ -64,12 +64,12 @@ for thisMaster, otherMaster in zip(thisFont.masters, otherFont.masters):
 		# GLYPHS 3 code:
 		compareCount(
 			"Vertical Stems", 
-			len([stem for stem in thisFont.stems if not stem.horizontal]), len([stem for stem in otherFont.stems if not stem.horizontal]),
+			len([stem for stem in thisMaster.stems if not stem.horizontal]), len([stem for stem in otherMaster.stems if not stem.horizontal]),
 			thisMaster.name, otherMaster.name,
 			)
 		compareCount(
 			"Horizontal Stems", 
-			len([stem for stem in thisFont.stems if stem.horizontal]), len([stem for stem in otherFont.stems if stem.horizontal]),
+			len([stem for stem in thisMaster.stems if stem.horizontal]), len([stem for stem in otherMaster.stems if stem.horizontal]),
 			thisMaster.name, otherMaster.name,
 			)
 	else:
