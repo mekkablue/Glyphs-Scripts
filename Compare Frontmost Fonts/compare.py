@@ -37,7 +37,7 @@ def compareCount( things, thisCount, otherCount, thisName, otherName ):
 		print(u"   A. %i %s in %s" % (thisCount, things.lower(), thisName))
 		print(u"   B. %i %s in %s" % (otherCount, things.lower(), otherName))
 	else:
-		print(u"✅ Compatible number of %s: %i." % (things.lower(), thisCount))
+		print(u"✅ Same number of %s: %i." % (things.lower(), thisCount))
 
 def lineReport(thisSet, otherSet, thisFileName, otherFileName, name, commaSeparated=False):
 	if thisSet or otherSet:
