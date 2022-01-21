@@ -87,7 +87,7 @@ def check( thisLayer ):
 	return False
 
 Glyphs.clearLog()
-print "Dangerous glyphs for interpolation"
+print("Dangerous glyphs for interpolation")
 for thisGlyph in Font.glyphs:
 	if check( thisGlyph.layers[0] ):
 		print("\n🔠 %s" % thisGlyph.name)
