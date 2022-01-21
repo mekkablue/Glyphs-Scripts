@@ -277,6 +277,9 @@ def otVarFileName(thisFont, thisInstance=None):
 	suffix = otVarSuffix()
 	if not thisInstance is None:
 		fileName = thisInstance.fileName()
+		# circumvent bug in Glyphs 3.0.5
+		if fileName.endswith(".otf"):
+			fileName = fileName[:-4]
 		if not fileName:
 			fileName = thisInstance.customParameters["fileName"]
 			if not fileName:
@@ -1037,7 +1040,7 @@ else:
 			htmlFileName = "%s fonttest.html" % strippedFileName
 			if saveFileInLocation( content=htmlContent, fileName=htmlFileName, filePath=exportPath ):
 				print("✅ Successfully wrote file to disk.")
-				terminalCommand = 'cd "%s"; open "%s"' % (exportPath, htmlFileName)
+				terminalCommand = 'cd "%s"; open .; open "%s"' % (exportPath, htmlFileName)
 				system( terminalCommand )
 			else:
 				print("🛑 Error writing file to disk.")
