@@ -344,7 +344,13 @@ class InstanceMaker( object ):
 			for thisInstance in Glyphs.font.instances:
 				thisInstance.active = False
 		elif instancesChoice == 2: # delete
-			Glyphs.font.instances = None
+			if Glyphs.versionNumber >= 3:
+				# GLYPHS 3
+				Glyphs.font.instances = [i for i in Glyphs.font.instances if i.type != INSTANCETYPESINGLE]
+			else:
+				# GLYPHS 2
+				Glyphs.font.instances = None
+			
 		return True
 	
 	def updateUI(self, sender=None):
