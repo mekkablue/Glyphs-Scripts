@@ -76,13 +76,12 @@ class BraceLayerManager( object ):
 	
 	def allBraceLayerCoordinatesInFrontmostFont(self, sender=None):
 		allCoordinates = []
+		axisIndex = 0
 		currentFont = Glyphs.font
 		try:
 			axisIndex = int(self.pref("axisIndex"))
 		except:
-			print("Warning: could not retrieve preference for axis index, will defalut to 0.")
-		if not axisIndex:
-			axisIndex = 0
+			print("Warning: could not retrieve preference for axis index, will default to 0.")
 		if currentFont and len(currentFont.axes)>axisIndex:
 			axisID = currentFont.axes[axisIndex].axisId
 			for thisGlyph in currentFont.glyphs:
