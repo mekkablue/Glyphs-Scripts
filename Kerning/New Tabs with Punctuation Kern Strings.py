@@ -7,6 +7,40 @@ Outputs a kerning string with UC/LC/SC letters, figures, and punctuation.
 
 from AppKit import NSPasteboard, NSStringPboardType
 
+def nameNotExcluded( suffix, exclusions ):
+	for excludedString in exclusions:
+		if excludedString in suffix:
+			return False
+	return True
+
+def pairAddition( i, pair, glyphname, linelength=10 ):
+	if i%(linelength) == (linelength-1):
+		whitespace = "\\n"
+	else:
+		whitespace = " "
+	return "%s/%s %s%s" % ( pair[0], glyphname, pair[1], whitespace )
+
+def singleAddition( i, single, glyphname, linelength=10 ):
+	single = single.replace("/","/slash ").replace("\\","/backslash ")
+	if i%(linelength) == (linelength-1):
+		whitespace = " %s\\n" % single
+	else:
+		whitespace = " "
+	return "%s/%s%s" % ( single, glyphname, whitespace )
+
+def setClipboard( myText ):
+	"""
+	Sets the contents of the clipboard to myText.
+	Returns True if successful, False if unsuccessful.
+	"""
+	try:
+		myClipboard = NSPasteboard.generalPasteboard()
+		myClipboard.declareTypes_owner_( [NSStringPboardType], None )
+		myClipboard.setString_forType_( myText, NSStringPboardType )
+		return True
+	except Exception as e:
+		return False
+
 # ingredients:
 thisFont = Glyphs.font
 mID = thisFont.selectedFontMaster.id
@@ -16,12 +50,6 @@ Glyphs.defaults["visibleReporters"] = None
 
 # exclusion list (please create a GitHub issue if you need more)
 alwaysExclude = (".punch",".game","tic","youlose","p1win","p2win","RAINER",".draw",".win",".circled")
-
-def nameNotExcluded( suffix, exclusions ):
-	for excludedString in exclusions:
-		if excludedString in suffix:
-			return False
-	return True
 
 # collect UC/LC/SC letters and figures:
 uppercase = [g.name for g in thisFont.glyphs if g.export and g.subCategory=="Uppercase" and len(g.layers[mID].paths)>0 and nameNotExcluded(g.name,alwaysExclude) ]
@@ -71,21 +99,6 @@ for thisPunctuation in [g.charString() for g in thisFont.glyphs if g.export and 
 lower = u""
 upper = u""
 number = u""
-
-def pairAddition( i, pair, glyphname, linelength=10 ):
-	if i%(linelength) == (linelength-1):
-		whitespace = "\\n"
-	else:
-		whitespace = " "
-	return "%s/%s %s%s" % ( pair[0], glyphname, pair[1], whitespace )
-
-def singleAddition( i, single, glyphname, linelength=10 ):
-	single = single.replace("/","/slash ").replace("\\","/backslash ")
-	if i%(linelength) == (linelength-1):
-		whitespace = " %s\\n" % single
-	else:
-		whitespace = " "
-	return "%s/%s%s" % ( single, glyphname, whitespace )
 
 # step through punctuation:
 for pair in pairsOrSingles:
@@ -138,28 +151,12 @@ if uppercaseGRK or lowercaseGRK or smallcapsGRK:
 		upper  += "\n"
 		number += "\n"
 
-
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
 
 print(lower)
 print(upper)
 print(number)
-
-from AppKit import NSPasteboard, NSStringPboardType
-
-def setClipboard( myText ):
-	"""
-	Sets the contents of the clipboard to myText.
-	Returns True if successful, False if unsuccessful.
-	"""
-	try:
-		myClipboard = NSPasteboard.generalPasteboard()
-		myClipboard.declareTypes_owner_( [NSStringPboardType], None )
-		myClipboard.setString_forType_( myText, NSStringPboardType )
-		return True
-	except Exception as e:
-		return False
 
 if not setClipboard(lower+upper+number):
 	print("Warning: could not set clipboard to %s" % ( "clipboard text" ))
