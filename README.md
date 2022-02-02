@@ -267,6 +267,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 *Most important: Insert Instances (for determining your instances and their style linking), Kink Finder and Find Shapeshifting Glyphs. I use Show Next/Previous Instance with the keyboard shortcut ctrl-up/down a lot.*
 
+* **Axis Location Setter:** Batch-set axis locations for all instances with a certain name particle. E.g., set an axis location for all Condensed instances. *Needs Vanilla.*
 * **Axis Mapper:** Extracts, resets and inserts an ‘avar’ axis mapping for the Axis Mappings parameter. *Needs Vanilla.*
 * **Brace Layer Manager:** Find and replace brace layer coordinates in Glyphs 3 and later. *Needs Vanilla.*
 * **Composite Variabler:** Reduplicates Brace and Bracket layers of components in the compounds in which they are used. Makes bracket layers work in composites. *Needs Vanilla.*
@@ -279,6 +280,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Insert Brace Layers for Movement along Background Path:** Inserts a number of Brace Layers with copies of the first layer, shifted according to the first path in the background. Useful for OTVar interpolations with moving elements.
 * **Insert Instances:** GUI for calculating and inserting weight instances. It is described in this tutorial: https://www.glyphsapp.com/learn/multiple-masters-part-3-setting-up-instances *Needs Vanilla.*
 * **Insert Layers:** Batch-insert brace or bracket layers in selected glyphs. *Needs Vanilla.*
+* **Instance Cooker:** Insert many instances at once with a recipe. *Needs Vanilla.*
 * **Kink Finder:** Finds kinks in outlines or the interpolation space, reports them in the Macro window and opens a new tab with affected glyphs. Kinks are described in this tutorial: https://glyphsapp.com/learn/multiple-masters-part-2-keeping-your-outlines-compatible *Needs Vanilla.*
 * **New Tab with Dangerous Glyphs for Interpolation:** Opens a tab with all glyphs in the font that contain at least two compatible elements. I.e., glyphs where an element (a path or a component) could interpolate with the wrong element, like the equals sign. For a detailed description, see section *Be suspicious* in this tutorial: <http://www.glyphsapp.com/learn/multiple-masters-part-2-keeping-your-outlines-compatible>.
 * **New Tab with Special Layers:** Quickly adds a new edit tab with all glyphs containing brace and bracket layers.
