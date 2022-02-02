@@ -270,7 +270,7 @@ def buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenTw
 				osfName = "%s.osf" % compName
 				
 				namesToCheck = [compName]
-				extraSuffixes = (".osf",".lf")
+				extraSuffixes = (".osf", ".lf")
 				for extraSuffix in extraSuffixes:
 					namesToCheck.insert(0,compName+extraSuffix)
 				if suffix:
@@ -304,7 +304,7 @@ def buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenTw
 				collectedBounds.append(thisLayer.components[i].bounds)
 
 			compCenter = centerOfRect( combinedBounds(collectedBounds) )
-			centerAnchor = thisLayer.anchorForName_traverseComponents_("#center",True)
+			centerAnchor = thisLayer.anchorForName_traverseComponents_("#center", True)
 			if centerAnchor:
 				circleCenter = centerAnchor.position
 			else:
@@ -467,6 +467,10 @@ def buildCirclePart( thisFont, glyphName, isBlack=False ):
 			vstems = []
 
 			masterStems = thisLayer.associatedFontMaster().stems
+			if not thisFont.stems:
+				Message(title="Error: no stems set", message="The script requires H and V stems set in Font Info > Masters.", OKButton=None)
+				break
+			
 			for i, stem in enumerate(thisFont.stems):
 				if stem.horizontal:
 					hstems.append(masterStems[i])
