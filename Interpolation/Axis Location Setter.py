@@ -284,10 +284,10 @@ class AxisLocationSetter( object ):
 								instanceCount += 1
 								if externalAxisValue != "":
 									if self.setAxisLocationCoordinate( thisInstance, axisName, externalAxisValue ):
-										print("ℹ️ EXTERNAL %s = %s"in %s % (axisName, externalAxisValue, thisInstance.name))
+										print("ℹ️ EXTERNAL %s = %s in %s" % (axisName, externalAxisValue, thisInstance.name))
 								if internalAxisValue != "":
 									if self.setInternalCoordinate( thisInstance.name, axisName, internalAxisValue ):
-										print("ℹ️ INTERNAL %s = %s"in %s % (axisName, internalAxisValue, thisInstance.name))
+										print("ℹ️ INTERNAL %s = %s in %s" % (axisName, internalAxisValue, thisInstance.name))
 
 					masterCount = 0
 					if includeMasters:
