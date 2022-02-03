@@ -186,12 +186,31 @@ def removeElidableNames(instance):
 		# set instance name:
 		instance.name = " ".join(newParticles)
 
+def biggestSubstringInStrings(strings):
+	if len(strings) > 1:
+		sortedStrings = sorted( strings, key = lambda string: len(string) )
+		shortestString = sortedStrings[0]
+		shortestLength = len(shortestString)
+		otherStrings = sortedStrings[1:]
+		
+		if len(shortestString) > 2:
+			for stringLength in range( shortestLength, 1, -1 ):
+				for position in range(shortestLength-stringLength+1):
+					subString = shortestString[position:position+stringLength]
+					if all([subString in s for s in otherStrings]):
+						return subString
+						
+	elif len(strings) == 1:
+		return strings[0]
+		
+	return ""
+
 class InstanceCooker( object ):
 	prefID = "com.mekkablue.InstanceCooker"
 	
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 600
+		windowWidth  = 500
 		windowHeight = 300
 		windowWidthResize  = 1000 # user can resize width by this value
 		windowHeightResize = 1000 # user can resize height by this value
@@ -230,9 +249,15 @@ class InstanceCooker( object ):
 		# textView.textContainer().setContainerSize_(textSize)
 		
 		# Run Button:
-		self.w.openButton = vanilla.Button( (inset, -20-inset, 110, -inset), "Open Recipe…", sizeStyle='regular', callback=self.importRecipe )
-		self.w.saveButton = vanilla.Button( (inset+120, -20-inset, 110, -inset), "Save Recipe…", sizeStyle='regular', callback=self.exportRecipe )
-		self.w.resetButton = vanilla.Button( (inset+260, -20-inset, 100, -inset), "Reset Recipe", sizeStyle='regular', callback=self.resetRecipe )
+		buttonPos = inset
+		buttonWidth = 70
+		self.w.openButton = vanilla.Button( (buttonPos, -20-inset, buttonWidth, -inset), "Open…", sizeStyle='regular', callback=self.importRecipe )
+		buttonPos += buttonWidth+10
+		self.w.saveButton = vanilla.Button( (buttonPos, -20-inset, buttonWidth, -inset), "Save…", sizeStyle='regular', callback=self.exportRecipe )
+		buttonPos += buttonWidth+10
+		self.w.resetButton = vanilla.Button( (buttonPos, -20-inset, buttonWidth, -inset), "Reset", sizeStyle='regular', callback=self.resetRecipe )
+		buttonPos += buttonWidth+10
+		self.w.extractButton = vanilla.Button( (buttonPos, -20-inset, buttonWidth, -inset), "Extract", sizeStyle='regular', callback=self.extractRecipe )
 		self.w.runButton = vanilla.Button( (-140-inset, -20-inset, -inset, -inset), "Cook Instances", sizeStyle='regular', callback=self.InstanceCookerMain )
 		self.w.setDefaultButton( self.w.runButton )
 		
@@ -295,6 +320,53 @@ class InstanceCooker( object ):
 	def resetRecipe(self, sender=None):
 		Glyphs.defaults["com.mekkablue.InstanceCooker.recipe"] = defaultRecipe.lstrip()
 		self.LoadPreferences()
+	
+	def extractRecipe(self, sender=None):
+		thisFont = Glyphs.font
+		if not thisFont:
+			Message(title="No Font Error", message="You need to have a font open for extracting a recipe.", OKButton=None)
+		else:
+			text = ""
+			for thisAxis in thisFont.axes:
+				text += "\n#%s:%s" % (thisAxis.name, thisAxis.axisTag)
+				axisValues = sorted(set([int(i.axisValueValueForId_(thisAxis.axisId)) for i in thisFont.instances]))
+				for axisValue in axisValues:
+					instancesWithThisAxisValue = [i for i in thisFont.instances if i.axisValueValueForId_(thisAxis.axisId)==axisValue]
+
+					# determine particle:
+					allNamesForThisAxisValue = [i.name for i in instancesWithThisAxisValue]
+					axisValueName = biggestSubstringInStrings(allNamesForThisAxisValue).strip()
+					
+					# determine axis location if any:
+					axisLoc=""
+					for thisInstance in instancesWithThisAxisValue:
+						locationParameter = thisInstance.customParameters["Axis Location"]
+						if locationParameter:
+							for entry in locationParameter:
+								if entry["Axis"] == thisAxis.name:
+									location = int(entry["Location"])
+									if location != axisValue:
+										axisLoc = ">%i" % location
+										break # skip other entries if we found our value
+							if axisLoc:
+								break # skip other instances if we found our value
+						
+					# determine width class if any:
+					if thisAxis.name == "Width":
+						widthClass="|%i" % instancesWithThisAxisValue[0].widthClass
+						axisLoc += widthClass
+					
+					if not axisValueName:
+						axisValueName = "Regular*"
+					text += "\n%i%s:%s" % (axisValue, axisLoc, axisValueName)
+				text += "\n"
+			
+			text = text.lstrip()
+			if not text:
+				Message(title="No Instances Found", message="Could not find any instances with discrete values.", OKButton=None)
+			else:
+				self.w.recipe.set( text )
+				self.SavePreferences()
 	
 	def InstanceCookerMain( self, sender=None ):
 		try:
