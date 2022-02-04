@@ -175,7 +175,7 @@ class AxisLocationSetter( object ):
 		axisLocations = []
 		for i,thisAxis in enumerate(theFont.axes):
 			if thisAxis.name == thisAxisName:
-				thisInstance.setAxisValueValue_forId_(newAxisValue, thisAxis.axisId)
+				thisInstance.setAxisValueValue_forId_(float(newAxisValue), thisAxis.axisId)
 				return True
 		return False
 		
@@ -220,22 +220,26 @@ class AxisLocationSetter( object ):
 		return False
 	
 	def particleIsPartOfName(self, particle, instanceName):
+		# particle is the full name:
+		if instanceName.strip() == particle.strip():
+			return True
+
 		# PROBLEM: finding particle "Bold Italic" (with whitespace) should not find "SemiBold Italic"
 		delim = "🧙"
 		modifiedInstanceName = delim.join(instanceName.split())
 		modifiedParticle = delim.join(particle.split())
-	
-		# remove particle in the MIDDLE of the name:
+		
+		# particle in the MIDDLE of the name:
 		searchTerm = "%s%s%s" % (delim, modifiedParticle, delim)
 		if searchTerm in modifiedInstanceName:
 			return True
 	
-		# remove particle at the END of the name:
+		# particle at the END of the name:
 		searchTerm = "%s%s" % (delim, modifiedParticle)
 		if modifiedInstanceName.endswith(searchTerm):
 			return True
 		
-		# remove particle at the BEGINNING of the name:
+		# particle at the BEGINNING of the name:
 		searchTerm = "%s%s" % (modifiedParticle, delim)
 		if modifiedInstanceName.startswith(searchTerm):
 			return True
@@ -286,7 +290,7 @@ class AxisLocationSetter( object ):
 									if self.setAxisLocationCoordinate( thisInstance, axisName, externalAxisValue ):
 										print("ℹ️ EXTERNAL %s = %s in %s" % (axisName, externalAxisValue, thisInstance.name))
 								if internalAxisValue != "":
-									if self.setInternalCoordinate( thisInstance.name, axisName, internalAxisValue ):
+									if self.setInternalCoordinate( thisInstance, axisName, internalAxisValue ):
 										print("ℹ️ INTERNAL %s = %s in %s" % (axisName, internalAxisValue, thisInstance.name))
 
 					masterCount = 0
@@ -298,7 +302,7 @@ class AxisLocationSetter( object ):
 									if self.setAxisLocationCoordinate( thisMaster, axisName, externalAxisValue ):
 										print("Ⓜ️ EXTERNAL %s = %s in %s" % (axisName, externalAxisValue, thisMaster.name))
 								if internalAxisValue != "":
-									if self.setInternalCoordinate( thisMaster.name, axisName, internalAxisValue ):
+									if self.setInternalCoordinate( thisMaster, axisName, internalAxisValue ):
 										print("Ⓜ️ INTERNAL %s = %s in %s" % (axisName, internalAxisValue, thisMaster.name))
 
 					# Final report:
