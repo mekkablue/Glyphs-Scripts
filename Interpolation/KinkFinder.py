@@ -62,6 +62,7 @@ for i in range(0,105,5):
 """
 
 class KinkFinder( object ):
+	prefID = "com.mekkablue.KinkFinder"
 	instances = None
 	
 	def __init__( self ):
@@ -87,14 +88,19 @@ class KinkFinder( object ):
 		self.w.maxKinkSize = vanilla.EditText( (inset+145, linePos-3, -inset, 19), "3", sizeStyle='small', callback=self.SavePreferences)
 		self.w.maxKinkSize.getNSTextField().setToolTip_("Measured in units as the perpendicular distance between middle point and the line between first and third points.")
 		linePos += lineHeight
-		
-		self.w.findKinksInMasters = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Find kinks in masters instead (not in interpolations)", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.findKinksInMasters.getNSButton().setToolTip_("If checked, will not calculte interpolations, but only measure green (smooth) nodes in master, bracket and brace layers.")
+				
+		self.findKinksWhereOptions = (
+			"between all masters (false positives with 6+ masters)",
+			"between adjacent masters only (single axis, 3+ masters)",
+			"in all current active instances",
+			"in all current active and inactive instances",
+			"in masters instead (not in interpolations)",
+		)
+		self.w.findKinksWhereText = vanilla.TextBox( (inset, linePos+2, 60, 14), "Find kinks", sizeStyle='small', selectable=True )
+		self.w.findKinksWhere = vanilla.PopUpButton( (inset+60, linePos, -inset, 17), self.findKinksWhereOptions, sizeStyle='small', callback=self.SavePreferences )
 		linePos += lineHeight
 		
-		self.w.betweenAdjacentMastersOnly = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Find kinks between adjacent masters only (single axis, 3+ masters)", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.betweenAdjacentMastersOnly.getNSButton().setToolTip_("If checked, will look for kinks between masters 0+1, 1+2, 1+3, but NOT between 0+2, 1+3 or 0+3. Makes sense if you have only one axis (e.g. weight) and more than two masters in interpolation order (lightest through boldest).")
-		linePos += lineHeight
+		# self.w.betweenAdjacentMastersOnly.getNSButton().setToolTip_("If checked, will look for kinks between masters 0+1, 1+2, 1+3, but NOT between 0+2, 1+3 or 0+3. Makes sense if you have only one axis (e.g. weight) and more than two masters in interpolation order (lightest through boldest).")
 		
 		self.w.allGlyphs = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Process all glyphs in font (ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.allGlyphs.getNSButton().setToolTip_("If unchecked, will only process the current glyph(s).")
@@ -132,29 +138,40 @@ class KinkFinder( object ):
 		self.w.makeKey()
 	
 	def adaptUItext( self, sender ):
-		if Glyphs.defaults["com.mekkablue.KinkFinder.findKinksInMasters"]:
+		# 0: between all masters (false positives with 6+ masters)
+		# 1: between adjacent masters only (single axis, 3+ masters)
+		# 2: in all current active instances
+		# 3: in all current active and inactive instances
+		# 4: in masters instead (not in interpolations)
+		
+		if self.pref("findKinksWhere")==4:
 			self.w.markKinks.setTitle("Mark kinky nodes")
-			self.w.betweenAdjacentMastersOnly.enable(False)
 		else:
-			self.w.betweenAdjacentMastersOnly.enable(True)
 			self.w.markKinks.setTitle("Mark kinky nodes in first layer")
 		
 		if Glyphs.defaults["com.mekkablue.KinkFinder.allGlyphs"]:
 			self.w.runButton.setTitle("Open Tab")
 		else:
 			self.w.runButton.setTitle("Find Kinks")
-		
+	
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
 		
 	def SavePreferences( self, sender=None ):
 		try:
-			Glyphs.defaults["com.mekkablue.KinkFinder.maxKinkSize"] = self.w.maxKinkSize.get()
-			Glyphs.defaults["com.mekkablue.KinkFinder.allGlyphs"] = self.w.allGlyphs.get()
-			Glyphs.defaults["com.mekkablue.KinkFinder.exportingOnly"] = self.w.exportingOnly.get()
-			Glyphs.defaults["com.mekkablue.KinkFinder.markKinks"] = self.w.markKinks.get()
-			Glyphs.defaults["com.mekkablue.KinkFinder.findKinksInMasters"] = self.w.findKinksInMasters.get()
-			Glyphs.defaults["com.mekkablue.KinkFinder.reportIncompatibilities"] = self.w.reportIncompatibilities.get()
-			Glyphs.defaults["com.mekkablue.KinkFinder.bringMacroWindowToFront"] = self.w.bringMacroWindowToFront.get()
-			Glyphs.defaults["com.mekkablue.KinkFinder.betweenAdjacentMastersOnly"] = self.w.betweenAdjacentMastersOnly.get()
+			Glyphs.defaults[self.domain("maxKinkSize")] = self.w.maxKinkSize.get()
+			Glyphs.defaults[self.domain("allGlyphs")] = self.w.allGlyphs.get()
+			Glyphs.defaults[self.domain("exportingOnly")] = self.w.exportingOnly.get()
+			Glyphs.defaults[self.domain("markKinks")] = self.w.markKinks.get()
+			Glyphs.defaults[self.domain("findKinksWhere")] = self.w.findKinksWhere.get()
+			Glyphs.defaults[self.domain("reportIncompatibilities")] = self.w.reportIncompatibilities.get()
+			Glyphs.defaults[self.domain("bringMacroWindowToFront")] = self.w.bringMacroWindowToFront.get()
+			Glyphs.defaults[self.domain("betweenAdjacentMastersOnly")] = self.w.betweenAdjacentMastersOnly.get()
 			self.adaptUItext(sender)
 		except:
 			return False
@@ -163,22 +180,22 @@ class KinkFinder( object ):
 
 	def LoadPreferences( self, sender=None ):
 		try:
-			Glyphs.registerDefault("com.mekkablue.KinkFinder.maxKinkSize", 3)
-			Glyphs.registerDefault("com.mekkablue.KinkFinder.allGlyphs", 0)
-			Glyphs.registerDefault("com.mekkablue.KinkFinder.exportingOnly", 1)
-			Glyphs.registerDefault("com.mekkablue.KinkFinder.markKinks", 0)
-			Glyphs.registerDefault("com.mekkablue.KinkFinder.findKinksInMasters", 0)
-			Glyphs.registerDefault("com.mekkablue.KinkFinder.reportIncompatibilities", 0)
-			Glyphs.registerDefault("com.mekkablue.KinkFinder.reportIncompatibilities", 0)
-			Glyphs.registerDefault("com.mekkablue.KinkFinder.reportIncompatibilities", 0)
-			self.w.maxKinkSize.set( Glyphs.defaults["com.mekkablue.KinkFinder.maxKinkSize"] )
-			self.w.allGlyphs.set( Glyphs.defaults["com.mekkablue.KinkFinder.allGlyphs"] )
-			self.w.exportingOnly.set( Glyphs.defaults["com.mekkablue.KinkFinder.exportingOnly"] )
-			self.w.markKinks.set( Glyphs.defaults["com.mekkablue.KinkFinder.markKinks"] )
-			self.w.findKinksInMasters.set( Glyphs.defaults["com.mekkablue.KinkFinder.findKinksInMasters"] )
-			self.w.reportIncompatibilities.set( Glyphs.defaults["com.mekkablue.KinkFinder.reportIncompatibilities"] )
-			self.w.bringMacroWindowToFront.set( Glyphs.defaults["com.mekkablue.KinkFinder.bringMacroWindowToFront"] )
-			self.w.betweenAdjacentMastersOnly.set( Glyphs.defaults["com.mekkablue.KinkFinder.betweenAdjacentMastersOnly"] )
+			Glyphs.registerDefault( self.domain("maxKinkSize"), 0.9 )
+			Glyphs.registerDefault( self.domain("allGlyphs"), 0 )
+			Glyphs.registerDefault( self.domain("exportingOnly"), 1 )
+			Glyphs.registerDefault( self.domain("markKinks"), 0 )
+			Glyphs.registerDefault( self.domain("findKinksWhere"), 0 )
+			Glyphs.registerDefault( self.domain("reportIncompatibilities"), 0 )
+			Glyphs.registerDefault( self.domain("reportIncompatibilities"), 0 )
+			Glyphs.registerDefault( self.domain("reportIncompatibilities"), 0 )
+			self.w.maxKinkSize.set( self.pref("maxKinkSize") )
+			self.w.allGlyphs.set( self.pref("allGlyphs") )
+			self.w.exportingOnly.set( self.pref("exportingOnly") )
+			self.w.markKinks.set( self.pref("markKinks") )
+			self.w.findKinksWhere.set( self.pref("findKinksWhere") )
+			self.w.reportIncompatibilities.set( self.pref("reportIncompatibilities") )
+			self.w.bringMacroWindowToFront.set( self.pref("bringMacroWindowToFront") )
+			self.w.betweenAdjacentMastersOnly.set( self.pref("betweenAdjacentMastersOnly") )
 			
 			# update UI:
 			self.adaptUItext(sender)
@@ -224,36 +241,62 @@ class KinkFinder( object ):
 		return instance
 	
 	def buildHalfWayInstances(self, thisFont):
+		# 0: between all masters (false positives with 6+ masters)
+		# 1: between adjacent masters only (single axis, 3+ masters)
+		# 2: in all current active instances
+		# 3: in all current active and inactive instances
+		# 4: in masters instead (not in interpolations)
 		self.instances = []
-		numOfMasters = len(thisFont.masters)
-		r = range(numOfMasters)
-		for i in r[:-1]:
-			for j in r[i+1:]:
-				if abs(i-j)==1 or not Glyphs.defaults["com.mekkablue.KinkFinder.betweenAdjacentMastersOnly"]:
-					master1 = thisFont.masters[i]
-					master2 = thisFont.masters[j]
-					interpolationDict = { master1.id: 0.5, master2.id: 0.5 }
-					instanceName = "%i-%i-%s" % (i,j,tempMarker)
-					testInstance = self.buildInstance( instanceName, interpolationDict, thisFont )
-				
-					# disable other masters:
-					disabledMasters = []
-					for m in range(len(thisFont.masters)):
-						if m!=i and m!=j:
-							disabledMasters.append(thisFont.masters[m].name)
-					if disabledMasters:
-						disabledMasters = tuple(disabledMasters)
-						testInstance.customParameters["Disable Masters"] = disabledMasters
-				
-					# collect the instance in self.instance:
+		findKinksWhere = self.pref("findKinksWhere")
+		if findKinksWhere in (2, 3):
+			for i, thisInstance in enumerate(thisFont.instances):
+				if thisInstance.active or findKinksWhere==3:
+					interpolationDict = thisInstance.instanceInterpolations
+					instanceName = "%03i-%s-%s" % (i, thisInstance.name, tempMarker)
+					testInstance = self.buildInstance(instanceName, interpolationDict, thisFont)
 					self.instances.append(testInstance)
+		elif findKinksWhere ==4:
+			for i, m in enumerate(thisFont.masters):
+				interpolationDict = { m.id: 1.0 }
+				instanceName = "%03i-%s" % (i, tempMarker)
+				testInstance = self.buildInstance(instanceName, interpolationDict, thisFont)
+				if Glyphs.versionNumber >= 3: # GLYPHS 3
+					testInstance.axes = m.axes
+				self.instances.append(testInstance)
+		else:
+			betweenAdjacentMastersOnly = findKinksWhere==1
+			numOfMasters = len(thisFont.masters)
+			r = range(numOfMasters)
+			for i in r[:-1]:
+				for j in r[i+1:]:
+					if abs(i-j)==1 or not betweenAdjacentMastersOnly:
+						master1 = thisFont.masters[i]
+						master2 = thisFont.masters[j]
+						interpolationDict = { master1.id: 0.5, master2.id: 0.5 }
+						instanceName = "%i-%i-%s" % (i,j,tempMarker)
+						testInstance = self.buildInstance(instanceName, interpolationDict, thisFont)
+				
+						# disable other masters:
+						disabledMasters = []
+						for m in range(len(thisFont.masters)):
+							if m!=i and m!=j:
+								disabledMasters.append(thisFont.masters[m].name)
+						if disabledMasters:
+							disabledMasters = tuple(disabledMasters)
+							testInstance.customParameters["Disable Masters"] = disabledMasters
+				
+						# collect the instance in self.instance:
+						self.instances.append(testInstance)
 		
 		# report:
-		print("Testing in %i mid-way instances:" % len(self.instances))
+		print("Testing in %i instances:" % len(self.instances))
 		for i in self.instances:
 			print("- %s:" % i.name)
-			for key in i.instanceInterpolations:
-				print("  %s: %.3f" % (thisFont.masters[key].name, i.instanceInterpolations[key]))
+			for key in i.instanceInterpolations.keys():
+				print("  %s: %.3f" % (
+					thisFont.masters[key].name,
+					i.instanceInterpolations[key],
+					))
 		print()
 	
 	def cleanNodeNamesInGlyph(self, glyph, nodeMarker):
@@ -301,21 +344,21 @@ class KinkFinder( object ):
 			
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()
-			if Glyphs.defaults["com.mekkablue.KinkFinder.bringMacroWindowToFront"]:
+			if self.pref("bringMacroWindowToFront"):
 				Glyphs.showMacroWindow()
 			
 			# query user settings:
 			thisFont = Glyphs.font
-			maxKink = float(Glyphs.defaults["com.mekkablue.KinkFinder.maxKinkSize"])
+			maxKink = float(self.pref("maxKinkSize"))
 			kinkyGlyphNames = []
 			kinkyLayers = []
-			if Glyphs.defaults["com.mekkablue.KinkFinder.allGlyphs"]:
+			if self.pref("allGlyphs"):
 				glyphsToProbe = thisFont.glyphs
 			else:
 				glyphsToProbe = [l.parent for l in thisFont.selectedLayers]
 			
 			# prepare instances:
-			findKinksInMastersInstead = bool(Glyphs.defaults["com.mekkablue.KinkFinder.findKinksInMasters"])
+			findKinksInMastersInstead = self.pref("findKinksWhere")==4
 			if not findKinksInMastersInstead:
 				self.buildHalfWayInstances(thisFont)
 				
@@ -326,16 +369,15 @@ class KinkFinder( object ):
 			else:
 				firstInstance = None
 			
-			
 			skippedGlyphNames = []
 			numOfGlyphs = len(glyphsToProbe)
 			for index,thisGlyph in enumerate(glyphsToProbe):
 				# update progress bar:
 				self.w.progress.set( int(100*(float(index)/numOfGlyphs)) )
-				if thisGlyph.export or not Glyphs.defaults["com.mekkablue.KinkFinder.exportingOnly"]:
+				if thisGlyph.export or not self.pref("exportingOnly"):
 					
 					# clean node markers if necessary:
-					if Glyphs.defaults["com.mekkablue.KinkFinder.markKinks"]:
+					if self.pref("markKinks"):
 						self.cleanNodeNamesInGlyph(thisGlyph, nodeMarker)
 					
 					# find kinks in masters:
@@ -366,7 +408,7 @@ class KinkFinder( object ):
 														nodeIndex,
 														thisKink
 													))
-													if Glyphs.defaults["com.mekkablue.KinkFinder.markKinks"]:
+													if self.pref("markKinks"):
 														kinkNode.name = u"%.1f %s" % ( thisKink, nodeMarker )
 					
 					# TODO find kinks in interpolations (needs rewrite):
@@ -387,11 +429,13 @@ class KinkFinder( object ):
 											for thisInstance in self.instances:
 												kinkLayer = self.glyphInterpolation( thisGlyph.name, thisInstance )
 												if not kinkLayer:
-													if Glyphs.defaults["com.mekkablue.KinkFinder.reportIncompatibilities"]:
+													if self.pref("reportIncompatibilities"):
 														print(u"⚠️ ERROR: Could not calculate interpolation for: %s (%s)" % (thisGlyph.name, thisInstance.name.replace(tempMarker,"")))
 												elif not thisGlyph.mastersCompatibleForLayers_((firstLayer,kinkLayer)):
-													if Glyphs.defaults["com.mekkablue.KinkFinder.reportIncompatibilities"]:
+													if self.pref("reportIncompatibilities"):
 														print(u"⚠️ interpolation incompatible for glyph %s: %s (most likely cause: cap or corner components, bracket layers)" % (thisGlyph.name, thisInstance.name.replace(tempMarker,"")))
+														print(firstLayer, firstLayer.shapes, firstLayer.anchors)
+														print(kinkLayer, kinkLayer.shapes, kinkLayer.anchors)
 												else:
 													kinkNode = kinkLayer.paths[pathIndex].nodes[nodeIndex]
 													thisKink = self.kinkSizeForNode(kinkNode)
@@ -407,13 +451,13 @@ class KinkFinder( object ):
 															thisNode.x, thisNode.y
 														))
 												
-														if Glyphs.defaults["com.mekkablue.KinkFinder.markKinks"]:
+														if self.pref("markKinks"):
 															if thisKink > thisNodeMaxKink:
 																thisNodeMaxKink = thisKink
 															nodeName = u"%.1f %s" % ( thisNodeMaxKink, nodeMarker )
 															self.markNodeAtPosition( thisGlyph.layers[0], thisNode.position, nodeName )
 											
-										elif Glyphs.defaults["com.mekkablue.KinkFinder.markKinks"]:
+										elif self.pref("markKinks"):
 											thisNode.name = None
 				else:
 					skippedGlyphNames.append(thisGlyph.name)
