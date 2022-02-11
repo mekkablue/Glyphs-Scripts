@@ -137,7 +137,8 @@ class SetHiddenAppPreferences( object ):
 					value = [float(v) for v in value]
 					value = tuple(value)
 				Glyphs.defaults[ prefName ] = value
-				print("Set pref: %s --> %s" % (self.w.pref.get(), value))
+				print("\nSet pref: %s --> %s" % (self.w.pref.get(), value))
+				print("Glyphs.defaults['%s'] = %s" % (prefName, value))
 				
 		except Exception as e:
 			# brings macro window to front and reports error:
