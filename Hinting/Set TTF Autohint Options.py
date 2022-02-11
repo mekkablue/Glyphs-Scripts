@@ -311,7 +311,12 @@ class SetTTFAutohintOptions( object ):
 			if firstDoc.isKindOfClass_(GSProjectDocument):
 				# Frontmost doc is a .glyphsproject file:
 				thisFont = firstDoc.font() # frontmost project file
-				instances = firstDoc.instances()
+				if Glyphs.versionNumber >= 3:
+					# GLYPHS 3
+					instances = firstDoc.instances
+				else:
+					# GLYPHS 2
+					instances = firstDoc.instances()
 			else:
 				# Frontmost doc is a .glyphs file:
 				thisFont = Glyphs.font # frontmost font

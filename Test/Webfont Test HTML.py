@@ -94,7 +94,12 @@ def allActiveInstancesOfFont( thisFont ):
 	return activeInstances
 	
 def allActiveInstancesOfProject( thisProject ):
-	activeInstances = [i for i in thisProject.instances() if i.active and isSingleInstance(i)]
+	if Glyphs.versionNumber >= 3:
+		# GLYPHS 3
+		activeInstances = [i for i in thisProject.instances if i.active and isSingleInstance(i)]
+	else:
+		# GLYPHS 2
+		activeInstances = [i for i in thisProject.instances() if i.active and isSingleInstance(i)]
 	return activeInstances
 
 def isSingleInstance( instance ):
