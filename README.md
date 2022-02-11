@@ -153,6 +153,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **New Tab with Composable Glyphs that have no Components:** Opens a new Edit tab containing all glyphs that consist of paths, but could be composed according to Glyph Data.
 * **New Tab with Detached Corner Components:** Opens a new Edit tab containing all glyphs that have a corner component which is not properly connected to a node.
 * **New Tab with Locked Components:** Opens a new tab containing all layers that contain locked components.
+* **New Tab with Nested Components:** Opens a new tab with all nested components. *Needs Vanilla.*
 * **New Tab with Orphaned Components:** Opens a new tab in the current font window containing all glyphs (of the current master) that have components that point to non-existent glyphs, i.e., no base glyphs.
 * **New Tab with Transformed Components:** Opens a new tab containing all compound glyphs that have mirrored, shifted, rotated, or scaled components. *Needs Vanilla.*
 * **New Tab with Transformed Corner Components:** Opens a new Edit tab containing all glyphs with scaled corner components.
@@ -382,6 +383,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 *Most important: Fix Math Operator Spacing, Bracket Metrics Manager and, if you have arrows, Fix Arrow Positioning. The New Tab scripts are useful when creating figures.*
 
+* **Add Metrics Keys for Symmetric Glyphs:** Will add RSB =| if the RSB is the same as the LSB in all masters. *Needs Vanilla.*
 * **Bracket Metrics Manager:** Manage the sidebearings and widths of bracket layers, e.g., dollar and cent. *Needs Vanilla.*
 * **Center Glyphs:** Centers all selected glyphs inside their width, so that LSB=RSB.
 * **Change Metrics by Percentage:** Change LSB/RSB of selected glyphs by a percentage value. Undo with the Revert button. *Needs Vanilla.*
