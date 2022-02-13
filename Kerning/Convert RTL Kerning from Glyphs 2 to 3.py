@@ -17,8 +17,7 @@ def nameForKey(thisKey):
 		return thisFont.glyphForId_(thisKey).name
 
 def glyphNameIsRTL(glyphName, key2Scripts):
-	glyphName = glyphName.replace("@MMK_L_","").replace("@MMK_R_","")
-	glyphName = Glyphs.niceGlyphName(glyphName)
+	glyphName = flipMMK(glyphName) # @MMK_L_flipMMK -->  @MMK_R_ --> glyphName = Glyphs.niceGlyphName(glyphNam
 	if glyphName in key2Scripts.keys():
 		if GSGlyphsInfo.isRTLScript_(key2Scripts[glyphName]):
 			return True
@@ -27,20 +26,30 @@ def glyphNameIsRTL(glyphName, key2Scripts):
 def stripMMK(name):
 	return name.replace("MMK_L_","").replace("MMK_R_","")
 
+def flipMMK(name):
+	left = "@MMK_L_"
+	right = "@MMK_R_"
+	if name.startswith(left):
+		return name.replace(left, right)
+	elif name.startswith(right):
+		return name.replace(right, left)
+	else:
+		return name
+
 def copyFrom3to2(thisFont, masterKerning, RTLmasterKerning, key2Scripts):
 	countKernPairs = 0
-	for firstKey in list(RTLmasterKerning.allKeys()):
+	for firstKey in list(RTLmasterKerning.keys()):
 		firstKerning = RTLmasterKerning[firstKey]
 		newFirstKerning = {}
 		
 		firstName = nameForKey(firstKey)
 		if glyphNameIsRTL(firstName, key2Scripts):
-			newFirstKey = firstKey.replace("@MMK_R_", "@MMK_L_")
+			newFirstKey = flipMMK(firstKey) # @MMK_R_ --> @MMK_L_
 
 		for secondKey in firstKerning.keys():
 			secondName = nameForKey(secondKey)
 			if glyphNameIsRTL(secondName, key2Scripts):
-				newSecondKey = secondKey.replace("@MMK_L_", "@MMK_R_")
+				newSecondKey = flipMMK(secondKey) # @MMK_L_ --> @MMK_R_
 				
 			kernValue = firstKerning[secondKey]
 			thisFont.setKerningForPair(master.id, stripMMK(firstName), stripMMK(secondName), kernValue)
@@ -50,14 +59,14 @@ def copyFrom3to2(thisFont, masterKerning, RTLmasterKerning, key2Scripts):
 				kernValue,
 			))
 			countKernPairs += 1
-	
-		del(RTLmasterKerning[firstKey])
-
+		
+	RTLmasterKerning = {} # delete RTL kerning
 	return countKernPairs
 
 def copyFrom2to3(masterKerning, RTLmasterKerning, key2Scripts):
 	countKernPairs = 0
-	for firstKey in list(masterKerning.allKeys()):
+	toBeDeleted = []
+	for firstKey in list(masterKerning.keys()):
 		firstKeyIsRTL = False
 		
 		# check if first key is RTL
@@ -66,35 +75,48 @@ def copyFrom2to3(masterKerning, RTLmasterKerning, key2Scripts):
 			firstKeyIsRTL = True
 			
 		firstKerning = masterKerning[firstKey]
-		newFirstKey = firstKey.replace("@MMK_L_", "@MMK_R_")
+		newFirstKey = flipMMK(firstKey) # @MMK_L_ --> @MMK_R_
 		newFirstKerning = {}
 		
-		for secondKey in firstKerning.allKeys():
+		for secondKey in firstKerning.keys():
 			secondKeyIsRTL = False
-			
 			# check if second key is RTL
 			if not firstKeyIsRTL:
 				secondName = nameForKey(secondKey)
 				if glyphNameIsRTL(secondName, key2Scripts):
 					secondKeyIsRTL = True
-			
+		
 			# if either is RTL, convert to RTL kerning:
 			if firstKeyIsRTL or secondKeyIsRTL:
-				if not newFirstKey in RTLmasterKerning.allKeys():
+				if not newFirstKey in RTLmasterKerning.keys():
 					RTLmasterKerning[newFirstKey] = newFirstKerning
-				newSecondKey = secondKey.replace("@MMK_R_", "@MMK_L_")
+				newSecondKey = flipMMK(secondKey) # @MMK_R_ --> @MMK_L_
 				kernValue = firstKerning[secondKey]
-				newFirstKerning[newSecondKey] = kernValue
+				RTLmasterKerning[newFirstKey][newSecondKey] = kernValue
 				print("  ✅ %s %s %i" % (
-					nameForKey(newFirstKey).replace("MMK_R_",""),
-					nameForKey(newSecondKey).replace("MMK_L_",""),
+					stripMMK(nameForKey(newFirstKey)), # remove MMK_R_
+					stripMMK(nameForKey(newSecondKey)), # remove MMK_L_
 					kernValue,
 				))
 				countKernPairs += 1
-				del(masterKerning[firstKey][secondKey])
+				delPair = (firstKey, secondKey)
+				
+				if secondKeyIsRTL:
+					if not delPair in toBeDeleted:
+						toBeDeleted.append( delPair )
 		
-		if not masterKerning[firstKey] is None and not masterKerning[firstKey]:
-			del(masterKerning[firstKey])
+		if firstKeyIsRTL:
+			delPair = (firstKey, None)
+			toBeDeleted.append( delPair )
+	
+	# delete converted LTR pairs:
+	for delPair in toBeDeleted:
+		firstKey, secondKey = delPair
+		if firstKey in masterKerning.keys():
+			if secondKey is None:
+				del( masterKerning[firstKey] )
+			elif secondKey in masterKerning[firstKey].keys():
+				del( masterKerning[firstKey][secondKey] )
 			
 	return countKernPairs
 
