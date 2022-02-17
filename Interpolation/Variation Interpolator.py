@@ -142,8 +142,8 @@ class VariationInterpolator( object ):
 				if choice==0: 
 					# interpolate between foreground and background
 					for thisGlyph in selectedGlyphs:
-						for numberOfThisVariation in range(numberOfInterpolations+2):
-							interpolationFactor = float( numberOfThisVariation ) / float( numberOfInterpolations )
+						for numberOfThisVariation in range(1, numberOfInterpolations+1):
+							interpolationFactor = float( numberOfThisVariation-1 ) / float( numberOfInterpolations )
 							newSuffix = "%s%03i" % ( glyphSuffix, numberOfThisVariation )
 							newGlyph = self.createGlyphCopy( thisGlyph, newSuffix )
 							thisFont.glyphs.append( newGlyph )
@@ -169,8 +169,8 @@ class VariationInterpolator( object ):
 						Message(title="Select exactly two glyphs", message="Please select exactly two glyphs to interpolate.", OKButton=None)
 					else:
 						glyphA, glyphB = selectedGlyphs
-						for numberOfThisVariation in range(numberOfInterpolations+2):
-							interpolationFactor = float( numberOfThisVariation ) / float( numberOfInterpolations )
+						for numberOfThisVariation in range(1, numberOfInterpolations+1):
+							interpolationFactor = float( numberOfThisVariation-1 ) / float( numberOfInterpolations )
 							newName = "%s.%04i" % (glyphName, numberOfThisVariation)
 							newGlyph = self.createGlyphCopy( glyphA, newName=newName )
 							thisFont.glyphs.append( newGlyph )
