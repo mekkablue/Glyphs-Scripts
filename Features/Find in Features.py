@@ -24,8 +24,8 @@ class FindInFeatures( object ):
 		
 		# UI elements:
 		linePos, inset, lineHeight = 1, 5, 28	
-		self.w.searchFor = vanilla.EditText( (1, linePos, -1, 22), "", callback=self.FindInFeaturesMain, sizeStyle='regular' )
-		self.w.searchFor.getNSTextField().setToolTip_("Type the exact name of a glyph or (prefixed with @) a class.")
+		self.w.searchFor = vanilla.ComboBox( (1, linePos, -1, 22), [g.name for g in Glyphs.font.glyphs], callback=self.FindInFeaturesMain, sizeStyle='regular' )
+		self.w.searchFor.getNSComboBox().setToolTip_("Type the exact name of a glyph or (prefixed with @) a class.")
 		linePos += lineHeight
 		
 		self.w.result = vanilla.Box( (inset, linePos, -inset, -inset) )
