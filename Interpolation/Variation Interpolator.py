@@ -40,10 +40,17 @@ class VariationInterpolator( object ):
 		self.w.suffixText = vanilla.TextBox( (inset, linePos+2, 35, 14), "suffix", sizeStyle='small' )
 		self.w.suffix = vanilla.EditText( (inset+35, linePos-1, -130, 20), "var", callback=self.SavePreferences, sizeStyle = 'small')
 		self.w.postSuffixText = vanilla.TextBox( (-125, linePos+2, -15, 14), "for selected glyphs.", sizeStyle='small' )
+		tooltip = "Select any number of glyphs and the script will create interpolations between foreground and background of each individual glyph. They will be named after their glyph, plus the suffix you provide, plus a continuous number."
+		self.w.suffixText.getNSTextField().setToolTip_(tooltip)
+		self.w.suffix.getNSTextField().setToolTip_(tooltip)
+		self.w.postSuffixText.getNSTextField().setToolTip_(tooltip)
 		
 		self.w.glyphNameText = vanilla.TextBox( (inset, linePos+2, 70, 14), "glyph name:", sizeStyle='small', selectable=True )
 		self.w.glyphName = vanilla.EditText( (inset+70, linePos-1, -inset, 19), "interpolation.", callback=self.SavePreferences, sizeStyle='small' )
-		
+		tooltip = "Select exactly two glyphs to interpolate, and the script creates interpolations with this name and a continuous number suffix."
+		self.w.glyphname.getNSTextField().setToolTip_(tooltip)
+		self.w.glyphNameText.getNSTextField().setToolTip_(tooltip)
+
 		# Run Button:
 		self.w.runButton = vanilla.Button((-100-15, -20-15, -15, -15), "Interpolate", sizeStyle='regular', callback=self.VariationInterpolatorMain )
 		self.w.setDefaultButton( self.w.runButton )
