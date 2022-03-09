@@ -134,12 +134,12 @@ try:
 	# over equal:
 	for glyphName in ("lessoverequal","greateroverequal"):
 		thisGlyph = getGlyphWithName(glyphName, thisFont)
-		thisGlyph.beginUndo() # begin undo grouping
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		for thisMaster in thisFont.masters:
 			masterID = thisMaster.id
 			thisLayer = thisGlyph.layers[masterID]
 			overequal(thisLayer)
-		thisGlyph.endUndo()   # end undo grouping
+		# thisGlyph.endUndo() # undo grouping causes crashes
 
 	# bullet operator:
 	thisGlyph = getGlyphWithName("bulletoperator", thisFont)

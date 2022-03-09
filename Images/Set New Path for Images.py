@@ -34,9 +34,9 @@ try:
 		print("New image path for selected glyphs:\n%s" % newFolder)
 		for thisLayer in selectedLayers:
 			thisGlyph = thisLayer.parent
-			thisGlyph.beginUndo()
+			# thisGlyph.beginUndo() # undo grouping causes crashes
 			print("-- %s: %s" % ( thisGlyph.name, process( thisLayer ) ))
-			thisGlyph.endUndo()
+			# thisGlyph.endUndo() # undo grouping causes crashes
 			
 except Exception as e:
 	Glyphs.showMacroWindow()

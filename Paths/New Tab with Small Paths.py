@@ -250,7 +250,7 @@ class FindSmallPaths( object ):
 									checkLayer = thisLayer
 
 								countOfAffectedPaths = 0
-								thisGlyph.beginUndo() # begin undo grouping
+								# thisGlyph.beginUndo() # undo grouping causes crashes
 								for i in range(len(checkLayer.paths))[::-1]:
 									thisPath = checkLayer.paths[i]
 									if thisPath.area() < minArea:
@@ -259,7 +259,7 @@ class FindSmallPaths( object ):
 											del thisLayer.paths[i]
 								if countOfAffectedPaths:
 									layersWithSmallPaths.append(thisLayer)
-								thisGlyph.endUndo()   # end undo grouping
+								# thisGlyph.endUndo() # undo grouping causes crashes
 								if countOfAffectedPaths > 0:
 									print(u"  ⚠️ %s, layer '%s': %i path%s found." % (
 										thisGlyph.name,

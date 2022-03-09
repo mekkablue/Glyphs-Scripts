@@ -89,11 +89,11 @@ thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
 	for thisLayer in selectedLayers:
 		thisGlyph = thisLayer.parent
-		thisGlyph.beginUndo() # begin undo grouping
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		selected, aligned, numberOfAnchorsMoved = process( thisLayer )
 		print("%s: aligned %i of %i selected nodes" % (thisGlyph.name, aligned, selected))
 		print("%s: aligned %i of %i anchors." % (thisGlyph.name, numberOfAnchorsMoved, len(thisLayer.anchors)))
-		thisGlyph.endUndo() # end undo grouping
+		# thisGlyph.endUndo() # undo grouping causes crashes
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")

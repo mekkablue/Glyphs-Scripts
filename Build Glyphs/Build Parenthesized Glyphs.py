@@ -163,10 +163,10 @@ try:
 			thisFont.glyphs.append(thisGlyph)
 
 		print("Processing %s" % thisGlyph.name)
-		thisGlyph.beginUndo() # begin undo grouping
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		maxWidth = max( maxWidth, process( thisGlyph ) )
 		print(maxWidth)
-		thisGlyph.endUndo()   # end undo grouping
+		# thisGlyph.endUndo() # undo grouping causes crashes
 
 	print(maxWidth)
 	scale = ( thisFont.upm / maxWidth ) * 0.95

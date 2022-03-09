@@ -292,7 +292,7 @@ class GreenBlueManager( object ):
 							self.w.processingText.set( statusMessage )
 							self.w.progress.set(100.0/numberOfLayers*i)
 						
-							thisGlyph.beginUndo() # begin undo grouping
+							# thisGlyph.beginUndo() # undo grouping causes crashes
 				
 							numberOfFixes = self.fixConnectionsOnLayer( thisLayer, shouldFix=shouldFix )
 							if numberOfFixes:
@@ -302,7 +302,7 @@ class GreenBlueManager( object ):
 							if numberOfAligns:
 								affectedLayersRealignedHandles.append( thisLayer )
 				
-							thisGlyph.endUndo()   # end undo grouping
+							# thisGlyph.endUndo() # undo grouping causes crashes
 				
 					self.w.progress.set(100)
 					statusMessage = "Processed %i layer%s." % (

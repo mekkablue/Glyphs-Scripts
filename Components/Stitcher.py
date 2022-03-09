@@ -294,9 +294,9 @@ class ComponentOnLines( object ):
 				try:
 					for thisLayer in selectedLayers:
 						thisGlyph = thisLayer.parent
-						thisGlyph.beginUndo()
+						# thisGlyph.beginUndo() # undo grouping causes crashes
 						process( thisLayer, deleteComponents, componentName, distanceBetweenDots, useBackground, balanceOverCompletePath )
-						thisGlyph.endUndo()
+						# thisGlyph.endUndo() # undo grouping causes crashes
 
 				except Exception as e:
 					Glyphs.showMacroWindow()

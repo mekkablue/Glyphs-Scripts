@@ -24,7 +24,7 @@ def scanForDuplicates( thisLayer, compNumber ):
 
 def process( thisLayer ):
 	if len( thisLayer.components ) != 0:
-		thisLayer.parent.beginUndo()
+		# thisLayer.parent.beginUndo() # undo grouping causes crashes
 		indexesToBeDeleted = scanForDuplicates( thisLayer, 0 )
 		for indexToBeDeleted in indexesToBeDeleted[::-1]:
 			if Glyphs.versionNumber >= 3:
@@ -37,7 +37,7 @@ def process( thisLayer ):
 			else:
 				# GLYPHS 2
 				del thisLayer.components[indexToBeDeleted]
-		thisLayer.parent.endUndo()
+		# thisLayer.parent.endUndo() # undo grouping causes crashes
 		return len( indexesToBeDeleted )
 	else:
 		return 0

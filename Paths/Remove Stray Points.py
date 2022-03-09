@@ -28,9 +28,9 @@ try:
 	namesOfAffectedGlyphs = []
 	for thisLayer in listOfSelectedLayers:
 		thisGlyph = thisLayer.parent
-		thisGlyph.beginUndo() # begin undo grouping
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		numberOfDeletedStrayPoints = process( thisLayer )
-		thisGlyph.endUndo()   # end undo grouping
+		# thisGlyph.endUndo() # undo grouping causes crashes
 	
 		# Report deleted nodes:
 		if numberOfDeletedStrayPoints > 0:

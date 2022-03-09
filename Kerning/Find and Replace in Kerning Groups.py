@@ -111,7 +111,7 @@ class KerningGroupReplacer( object ):
 			print(e)
 	
 	def replaceInGroups( self, thisGlyph, LsearchFor, LreplaceBy, RsearchFor, RreplaceBy ):
-		thisGlyph.beginUndo()
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		thisGlyphName = thisGlyph.name
 		
 		# Left Group:
@@ -138,7 +138,7 @@ class KerningGroupReplacer( object ):
 				thisGlyph.rightKerningGroup = newRightGroup
 				print("%s: new right group: '%s'." % ( thisGlyph.name, newRightGroup ))
 		
-		thisGlyph.endUndo()
+		# thisGlyph.endUndo() # undo grouping causes crashes
 
 	def KerningGroupReplaceMain( self, sender ):
 		Glyphs.clearLog()

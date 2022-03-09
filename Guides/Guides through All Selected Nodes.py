@@ -52,7 +52,7 @@ if len(selectedLayers) == 1:
 	thisGlyph = thisLayer.parent
 	currentPointSelection = [point.position for point in thisLayer.selection if type(point) in (GSNode,GSAnchor)]
 	
-	thisGlyph.beginUndo() # begin undo grouping
+	# thisGlyph.beginUndo() # undo grouping causes crashes
 	try:
 		if len(currentPointSelection) > 1:
 			# clear selection:
@@ -86,5 +86,5 @@ if len(selectedLayers) == 1:
 	except Exception as e:
 		raise e
 	finally:
-		thisGlyph.endUndo()   # end undo grouping
+		# thisGlyph.endUndo() # undo grouping causes crashes
 			

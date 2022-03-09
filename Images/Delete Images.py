@@ -22,14 +22,14 @@ try:
 
 	for thisLayer in selectedLayers:
 		thisGlyph = thisLayer.parent
-		thisGlyph.beginUndo()
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		numberOfDeletedImages = process( thisGlyph )
 		if numberOfDeletedImages:
 			plural = 0
 			if numberOfDeletedImages > 1:
 				plural = 1
 			print("  Deleted %i image%s in %s." % ( numberOfDeletedImages, "s"*plural, thisGlyph.name ))
-		thisGlyph.endUndo()
+		# thisGlyph.endUndo() # undo grouping causes crashes
 		
 except Exception as e:
 	Glyphs.showMacroWindow()

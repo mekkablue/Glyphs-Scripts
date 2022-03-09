@@ -788,10 +788,10 @@ class BuildCircledGlyphs( object ):
 							else:
 								suffix = None
 						
-							thisGlyph.beginUndo() # begin undo grouping
+							# thisGlyph.beginUndo() # undo grouping causes crashes
 							print("Building %s" % thisGlyph.name)
 							buildCircledGlyph( thisGlyph, circleName, scaleFactors, minDistanceBetweenFigures, suffix )
-							thisGlyph.endUndo()   # end undo grouping
+							# thisGlyph.endUndo() # undo grouping causes crashes
 
 				except Exception as e:
 					Glyphs.showMacroWindow()

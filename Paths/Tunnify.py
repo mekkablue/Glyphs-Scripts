@@ -176,7 +176,7 @@ else:
 	
 for selectedLayer in Font.selectedLayers:
 	selectedGlyph = selectedLayer.parent
-	selectedGlyph.beginUndo()
+	# selectedGlyph.beginUndo() # undo grouping causes crashes
 
 	for thisPath in selectedLayer.paths:
 		numOfNodes = len( thisPath.nodes )
@@ -200,4 +200,4 @@ for selectedLayer in Font.selectedLayers:
 					thisPath.nodes[ segmentNodeIndexes[2] ].x = x_handle2
 					thisPath.nodes[ segmentNodeIndexes[2] ].y = y_handle2
 
-	selectedGlyph.endUndo()
+	# selectedGlyph.endUndo() # undo grouping causes crashes

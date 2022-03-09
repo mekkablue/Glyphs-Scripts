@@ -283,7 +283,7 @@ class AnchorMover2( object ):
 							# create a layer copy that can be slanted backwards if necessary
 							copyLayer = originalLayer.copyDecomposedLayer()
 							copyLayer.decomposeCorners()
-							thisGlyph.beginUndo()
+							# thisGlyph.beginUndo() # undo grouping causes crashes
 				
 							try:
 								if italicAngle and respectItalic:
@@ -328,7 +328,7 @@ class AnchorMover2( object ):
 								import traceback
 								print(traceback.format_exc())
 							finally:
-								thisGlyph.endUndo()
+								# thisGlyph.endUndo() # undo grouping causes crashes
 					
 			thisFont.enableUpdateInterface()
 		print("Done.")

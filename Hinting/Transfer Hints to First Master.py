@@ -70,9 +70,9 @@ try:
 			firstLayer = thisGlyph.layers[firstMasterId]
 			if thisGlyph.mastersCompatibleForLayers_([thisLayer,firstLayer]):
 				print("Transfering hints in: %s" % thisGlyph.name)
-				thisGlyph.beginUndo() # begin undo grouping
+				# thisGlyph.beginUndo() # undo grouping causes crashes
 				transferHintsFromTo( thisLayer, firstLayer )
-				thisGlyph.endUndo()   # end undo grouping
+				# thisGlyph.endUndo() # undo grouping causes crashes
 			else:
 				Glyphs.showMacroWindow()
 				print("%s: layers incompatible." % thisGlyph.name)

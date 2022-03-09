@@ -51,8 +51,8 @@ for thisLayer in selectedLayers:
 	thisGlyphName = thisGlyph.name
 	if "-ar" in thisGlyphName and "_" in thisGlyphName:
 		print("Processing", thisGlyphName)
-		thisGlyph.beginUndo()
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		process( thisLayer )
-		thisGlyph.endUndo()
+		# thisGlyph.endUndo() # undo grouping causes crashes
 
 Font.enableUpdateInterface()

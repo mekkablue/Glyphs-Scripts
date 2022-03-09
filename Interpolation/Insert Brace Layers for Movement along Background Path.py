@@ -181,9 +181,9 @@ try:
 		else:
 			thisGlyph.note = "%s: %i (per path segment)\n%s" % (stepMarker, steps, thisGlyph.note if thisGlyph.note else "")
 		print("🔠 %s: %i frames per background path segment" % (thisGlyph.name, steps))
-		thisGlyph.beginUndo() # begin undo grouping
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		process( thisLayer, steps=steps )
-		thisGlyph.endUndo()   # end undo grouping
+		# thisGlyph.endUndo() # undo grouping causes crashes
 	
 	print("Done.")
 except Exception as e:

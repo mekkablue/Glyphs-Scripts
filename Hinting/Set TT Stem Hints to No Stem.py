@@ -18,9 +18,9 @@ def process( thisLayer ):
 
 for thisLayer in listOfSelectedLayers:
 	thisGlyph = thisLayer.parent
-	thisGlyph.beginUndo() # begin undo grouping
+	# thisGlyph.beginUndo() # undo grouping causes crashes
 	if process( thisLayer ):
 		print("%s: OK." % thisGlyph.name)
 	else:
 		print("%s: no TT stems found." % thisGlyph.name)
-	thisGlyph.endUndo() # end undo grouping
+	# thisGlyph.endUndo() # undo grouping causes crashes

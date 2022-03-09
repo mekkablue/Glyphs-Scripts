@@ -25,9 +25,9 @@ try:
 	for thisLayer in selectedLayers:
 		thisGlyph = thisLayer.parent
 		print("Processing %s" % thisGlyph.name)
-		thisGlyph.beginUndo() # begin undo grouping
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		process( thisLayer )
-		thisGlyph.endUndo()   # end undo grouping
+		# thisGlyph.endUndo() # undo grouping causes crashes
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")

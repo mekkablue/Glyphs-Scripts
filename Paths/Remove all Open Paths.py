@@ -11,7 +11,7 @@ selectedLayers = Font.selectedLayers
 def process( thisLayer ):
 	count = 0
 
-	thisLayer.parent.beginUndo()
+	# thisLayer.parent.beginUndo() # undo grouping causes crashes
 	for i in range( len( thisLayer.paths ))[::-1]:
 		if thisLayer.paths[i].closed == False:
 			thisPath = thisLayer.paths[i]
@@ -21,7 +21,7 @@ def process( thisLayer ):
 			else:
 				del thisLayer.paths[i]
 			count += 1
-	thisLayer.parent.endUndo()
+	# thisLayer.parent.endUndo() # undo grouping causes crashes
 	
 	return count
 

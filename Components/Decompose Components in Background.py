@@ -116,11 +116,11 @@ class Decompose_Components_in_Background(object):
 			try:
 				for thisGlyph in selectedGlyphs:
 					####print("Processing", thisGlyph.name)
-					thisGlyph.beginUndo() # begin undo grouping
+					# thisGlyph.beginUndo() # undo grouping causes crashes
 					for thisLayer in thisGlyph.layers:
 						if thisLayer is not None and (thisLayer.isMasterLayer or thisLayer.isSpecialLayer) and thisLayer.associatedMasterId in selectedMasterIDs:
 							self.process( thisLayer, copyToBackgroundFirst=copyToBackgroundFirst )
-					thisGlyph.endUndo()   # end undo grouping
+					# thisGlyph.endUndo() # undo grouping causes crashes
 
 			except Exception as e:
 				Glyphs.showMacroWindow()

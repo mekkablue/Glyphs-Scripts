@@ -75,7 +75,7 @@ Glyphs.clearLog() # clears macro window log
 print("Move Vietnamese Marks to top_viet Anchor in Circumflex")
 
 for thisGlyph in selectedGlyphs:
-	thisGlyph.beginUndo()
+	# thisGlyph.beginUndo() # undo grouping causes crashes
 	print(process( thisGlyph ))
-	thisGlyph.endUndo()
+	# thisGlyph.endUndo() # undo grouping causes crashes
 

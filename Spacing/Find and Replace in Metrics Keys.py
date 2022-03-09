@@ -73,7 +73,7 @@ class MetricKeyReplacer( object ):
 			for l in currentLayers:
 				try:
 					g = l.parent
-					g.beginUndo()
+					# g.beginUndo() # undo grouping causes crashes
 					
 					# Left Metrics Key:
 					try:
@@ -109,14 +109,14 @@ class MetricKeyReplacer( object ):
 						print(e)
 						print(traceback.format_exc())
 					
-					g.endUndo()
+					# g.endUndo() # undo grouping causes crashes
 						
 				except Exception as e:
 					print("\nError while processing glyph %s" % g.name)
 					print(e)
 					print(traceback.format_exc())
 					
-					g.endUndo()
+					# g.endUndo() # undo grouping causes crashes
 			
 			self.w.close()
 			

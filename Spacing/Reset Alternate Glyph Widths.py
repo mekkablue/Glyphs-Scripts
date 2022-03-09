@@ -31,20 +31,20 @@ try:
 		if "." in thisGlyphName:
 			if Glyphs.versionNumber >= 3:
 				# Glyphs 3 code
-				thisLayer.glyph().beginUndo()
+				# thisLayer.glyph().beginUndo() # undo grouping causes crashes
 			else:
 				# Glyphs 2 code
-				thisLayer.beginUndo()
+				# thisLayer.beginUndo() # undo grouping causes crashes
 			try:
 				print("Resetting width of %s to %.0f." % ( thisGlyphName, resetWidth( thisLayer, thisGlyphName ) ))
 			except:
 				print("> ERROR, couldn't reset <%s>" % (thisGlyphName))
 			if Glyphs.versionNumber >= 3:
 				# Glyphs 3 code
-				thisLayer.glyph().endUndo()
+				# thisLayer.glyph().endUndo() # undo grouping causes crashes
 			else:
 				# Glyphs 2 code
-				thisLayer.endUndo()
+				# thisLayer.endUndo() # undo grouping causes crashes
 			
 except Exception as e:
 	Glyphs.showMacroWindow()

@@ -126,7 +126,7 @@ else:
 	
 for selectedLayer in Font.selectedLayers:
 	selectedGlyph = selectedLayer.parent
-	selectedGlyph.beginUndo()
+	# selectedGlyph.beginUndo() # undo grouping causes crashes
 	
 	# put original state in background:
 	selectedLayer.contentToBackgroundCheckSelection_keepOldBackground_(False,False)
@@ -175,4 +175,4 @@ for selectedLayer in Font.selectedLayers:
 						processedHandles.append(a)
 						processedHandles.append(b)
 
-	selectedGlyph.endUndo()
+	# selectedGlyph.endUndo() # undo grouping causes crashes

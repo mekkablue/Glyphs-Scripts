@@ -19,7 +19,7 @@ try:
 	for l in selectedLayers:
 		thisGlyph = l.parent
 		glyphName = thisGlyph.name
-		thisGlyph.beginUndo()
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		compCount = 0
 		for comp in l.components:
 			transform = comp.transform # this is computed in Glyphs 3. When dropping support for Glyphs 2, use the position/scale/rotate API
@@ -35,7 +35,7 @@ try:
 			print("✅ Fixed %i component%s in %s" % (compCount, "" if compCount==1 else "s", glyphName))
 		else:
 			print("🆗 No transformed components found: %s" % glyphName)
-		thisGlyph.endUndo()
+		# thisGlyph.endUndo() # undo grouping causes crashes
 	print("\nDone.")
 	
 except Exception as e:

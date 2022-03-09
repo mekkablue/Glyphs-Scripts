@@ -8,7 +8,7 @@ Looks for anchors not on the grid and rounds their coordinate to the closest gri
 def process( thisLayer ):
 	count = 0
 	if len( thisLayer.anchors ) != 0:
-		thisLayer.parent.beginUndo()
+		# thisLayer.parent.beginUndo() # undo grouping causes crashes
 		
 		for a in thisLayer.anchors:
 			xrest = a.x % pixelwidth
@@ -28,7 +28,7 @@ def process( thisLayer ):
 					reportGlyphName = " "*len(reportGlyphName) # indent
 				print("%s ⚓️ %s %i,%i → %i,%i" % (reportGlyphName , a.name, int(oldX), int(oldY), int(a.x), int(a.y) ))
 				
-		thisLayer.parent.endUndo()
+		# thisLayer.parent.endUndo() # undo grouping causes crashes
 	return count
 
 thisFont = Glyphs.font

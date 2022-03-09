@@ -17,7 +17,7 @@ def karo( x, y ):
 	return karo
 
 def process( thisLayer ):
-	thisLayer.parent.beginUndo()
+	# thisLayer.parent.beginUndo() # undo grouping causes crashes
 
 	count = 0
 	purePathsLayer = thisLayer.copyDecomposedLayer()
@@ -40,7 +40,7 @@ def process( thisLayer ):
 					thisLayer.paths.append( myKaro )
 				count += 1
 
-	thisLayer.parent.endUndo()
+	# thisLayer.parent.endUndo() # undo grouping causes crashes
 	return count
 
 Glyphs.clearLog()

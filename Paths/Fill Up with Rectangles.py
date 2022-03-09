@@ -92,9 +92,9 @@ try:
 	for thisLayer in selectedLayers:
 		thisGlyph = thisLayer.parent
 		if thisGlyph:
-			thisGlyph.beginUndo()
+			# thisGlyph.beginUndo() # undo grouping causes crashes
 			print("Filling %s: %s." % ( thisGlyph.name, process( thisLayer ) ))
-			thisGlyph.endUndo()
+			# thisGlyph.endUndo() # undo grouping causes crashes
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")

@@ -63,9 +63,9 @@ if thisFont and listOfSelectedLayers:
 		for thisLayer in listOfSelectedLayers:
 			thisGlyph = thisLayer.parent
 			print("Processing", thisGlyph.name)
-			thisGlyph.beginUndo() # begin undo grouping
+			# thisGlyph.beginUndo() # undo grouping causes crashes
 			process( thisLayer )
-			thisGlyph.endUndo()   # end undo grouping
+			# thisGlyph.endUndo() # undo grouping causes crashes
 			
 	except Exception as e:
 		Glyphs.showMacroWindow()

@@ -63,7 +63,7 @@ else:
 							thisFont.glyphs.append(glyph)
 							glyph.updateGlyphInfo()
 				
-						glyph.beginUndo() # begin undo grouping
+						# glyph.beginUndo() # undo grouping causes crashes
 				
 						# determine layer:
 						if Glyphs.versionNumber >= 3:
@@ -94,7 +94,7 @@ else:
 						layer.backgroundImage = image
 						sbixCount += 1
 				
-						glyph.endUndo()   # end undo grouping
+						# glyph.endUndo() # undo grouping causes crashes
 						print("✅ %s: added image ‘%s’ on layer ‘%s’" % (glyphName, fileName, layer.name))
 
 	except Exception as e:

@@ -33,14 +33,14 @@ thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
 	for thisLayer in thisFont.selectedLayers:
 		thisGlyph = thisLayer.parent
-		thisGlyph.beginUndo() # begin undo grouping
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		if optionKeyPressed:
 			handleCount = 0
 			for everyLayer in thisGlyph.layers:
 				handleCount += realignLayer( everyLayer )
 		else:
 			handleCount = realignLayer( thisLayer )
-		thisGlyph.endUndo()   # end undo grouping
+		# thisGlyph.endUndo() # undo grouping causes crashes
 		print("Processed %i BCPs in %s%s" % ( handleCount, "all layers of " if optionKeyPressed else "", thisGlyph.name ))
 except Exception as e:
 	Glyphs.showMacroWindow()

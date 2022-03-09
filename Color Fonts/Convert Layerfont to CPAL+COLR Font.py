@@ -163,10 +163,10 @@ try:
 
 	for thisGlyph in thisFont.glyphs:
 		print("Creating 'Color' layers for: %s" % thisGlyph.name)
-		thisGlyph.beginUndo() # begin undo grouping
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		process( thisGlyph )
 		duplicatePathsIntoFallbackMaster( thisGlyph )
-		thisGlyph.endUndo()   # end undo grouping
+		# thisGlyph.endUndo() # undo grouping causes crashes
 
 	print()
 	keepOnlyFirstMaster( thisFont )
@@ -174,10 +174,10 @@ try:
 
 	for thisGlyph in thisFont.glyphs:
 		print("Cleaning up layer debris in: %s" % thisGlyph.name)
-		thisGlyph.beginUndo() # begin undo grouping
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		cleanUpNamelessLayers(thisGlyph)
 		enableOnlyColorLayers(thisGlyph)
-		thisGlyph.endUndo()   # end undo grouping
+		# thisGlyph.endUndo() # undo grouping causes crashes
 	
 except Exception as e:
 	Glyphs.showMacroWindow()

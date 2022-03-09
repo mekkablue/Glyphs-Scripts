@@ -23,7 +23,7 @@ def process( thisLayer ):
 	glyphName = thisLayer.parent.name
 	
 	if len( thisLayer.components ) != 0:
-		thisLayer.parent.beginUndo()
+		# thisLayer.parent.beginUndo() # undo grouping causes crashes
 	
 		indexesOutOfBounds = scanOutOfBounds( thisLayer )
 		numberOfOffComponents = len(indexesOutOfBounds)
@@ -46,7 +46,7 @@ def process( thisLayer ):
 		else:
 			print("✅ %s: no components out of bounds." % glyphName)
 		
-		thisLayer.parent.endUndo()
+		# thisLayer.parent.endUndo() # undo grouping causes crashes
 	else:
 		print("🤷🏻‍♀️ %s: no components." % glyphName)
 	
