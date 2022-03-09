@@ -327,7 +327,7 @@ class AnchorMover2( object ):
 								print(e)
 								import traceback
 								print(traceback.format_exc())
-							finally:
+							# finally:
 								# thisGlyph.endUndo() # undo grouping causes crashes
 					
 			thisFont.enableUpdateInterface()

@@ -85,6 +85,6 @@ if len(selectedLayers) == 1:
 				
 	except Exception as e:
 		raise e
-	finally:
+	# finally:
 		# thisGlyph.endUndo() # undo grouping causes crashes
 			
