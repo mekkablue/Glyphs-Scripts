@@ -8,10 +8,18 @@ Removes kerning between glyphs, categories, subcategories, scripts.
 import vanilla
 
 class RemoveKerning( object ):
+	registeredCases = (
+		"No Case", # 0 GSNoCase
+		"Uppercase", # 1 GSUppercase
+		"Lowercase", # 2 GSLowercase
+		"Smallcaps", # 3 GSSmallcaps
+		"Minor", # 4 GSMinor
+	)
+	
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 610
-		windowHeight = 240
+		windowHeight = 260
 		windowWidthResize  = 0 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -44,6 +52,16 @@ class RemoveKerning( object ):
 		self.w.rightScriptText = vanilla.TextBox( (300+inset, linePos+2, 100, 14), u"R Script:", sizeStyle='small', selectable=True )
 		self.w.rightScript = vanilla.PopUpButton( (300+inset+100, linePos, 180, 17), (), sizeStyle='small', callback=self.buttonEnable )
 		linePos += lineHeight
+		
+		self.w.leftCaseText = vanilla.TextBox( (inset, linePos+2, 100, 14), u"L Case:", sizeStyle='small', selectable=True )
+		self.w.leftCase = vanilla.PopUpButton( (inset+100, linePos, 180, 17), (), sizeStyle='small', callback=self.buttonEnable )
+		self.w.rightCaseText = vanilla.TextBox( (300+inset, linePos+2, 100, 14), u"R Case:", sizeStyle='small', selectable=True )
+		self.w.rightCase = vanilla.PopUpButton( (300+inset+100, linePos, 180, 17), (), sizeStyle='small', callback=self.buttonEnable )
+		linePos += lineHeight
+			
+		if Glyphs.versionNumber < 3:
+			self.w.leftCase.enable(False)
+			self.w.rightCase.enable(False)
 		
 		self.ReloadCategories()
 		
@@ -84,14 +102,50 @@ class RemoveKerning( object ):
 			categories = ["Any"] + self.allCategories()
 			subcategories = ["Any"] + self.allSubCategories()
 			scripts = ["Any"] + self.allScripts()
+			cases = ["Any"] + self.allCases()
 			self.w.leftCategory.setItems(categories)
 			self.w.rightCategory.setItems(categories)
 			self.w.leftSubCategory.setItems(subcategories)
 			self.w.rightSubCategory.setItems(subcategories)
 			self.w.leftScript.setItems(scripts)
 			self.w.rightScript.setItems(scripts)
+			self.w.leftCase.setItems(cases)
+			self.w.rightCase.setItems(cases)
 		except Exception as e:
 			print(e)
+	
+	def buttonEnable(self, sender=None):
+		count=0
+		count+=self.w.leftCategory.get()
+		count+=self.w.rightCategory.get()
+		count+=self.w.leftSubCategory.get()
+		count+=self.w.rightSubCategory.get()
+		count+=self.w.leftScript.get()
+		count+=self.w.rightScript.get()
+		count+=self.w.leftCase.get()
+		count+=self.w.rightCase.get()
+		if count > 0:
+			self.w.runButton.enable(True)
+		else:
+			self.w.runButton.enable(False)
+	
+	def allCases(self, sender=None):
+		if Glyphs.versionNumber < 3:
+			return []
+		elif not Glyphs.font:
+			return []
+		else:
+			cases=[]
+			for thisGlyph in Glyphs.font.glyphs:
+				if thisGlyph.case != None and not thisGlyph.case in cases:
+					cases.append(thisGlyph.case)
+			return sorted( [self.registeredCases[c] for c in cases], key = lambda caseName: self.registeredCases.index(caseName) )
+	
+	def caseAsNumberOrAny(self, caseName):
+		if caseName == "Any":
+			return caseName
+		else:
+			return self.registeredCases.index(caseName)
 	
 	def allCategories(self, sender=None):
 		if not Glyphs.font:
@@ -103,19 +157,6 @@ class RemoveKerning( object ):
 					categories.append(thisGlyph.category)
 			return categories
 			
-	def buttonEnable(self, sender=None):
-		count=0
-		count+=self.w.leftCategory.get()
-		count+=self.w.rightCategory.get()
-		count+=self.w.leftSubCategory.get()
-		count+=self.w.rightSubCategory.get()
-		count+=self.w.leftScript.get()
-		count+=self.w.rightScript.get()
-		if count > 0:
-			self.w.runButton.enable(True)
-		else:
-			self.w.runButton.enable(False)
-		
 	def allSubCategories(self, sender=None):
 		if not Glyphs.font:
 			return []
@@ -162,7 +203,7 @@ class RemoveKerning( object ):
 	def status(self, statusmsg, macroWindow=False):
 		self.w.statusText.set(statusmsg)
 		if macroWindow:
-			print(" %s"%statusmsg)
+			print(" %s" % statusmsg)
 
 	def RemoveKerningMain( self, sender ):
 		try:
@@ -186,20 +227,23 @@ class RemoveKerning( object ):
 			leftCategory = self.w.leftCategory.getItems()[ self.w.leftCategory.get() ]
 			leftSubCategory = self.w.leftSubCategory.getItems()[ self.w.leftSubCategory.get() ]
 			leftScript = self.w.leftScript.getItems()[ self.w.leftScript.get() ]
+			leftCase = self.caseAsNumberOrAny( self.w.leftCase.getItems()[ self.w.leftCase.get() ] )
 			
 			rightCategory = self.w.rightCategory.getItems()[ self.w.rightCategory.get() ]
 			rightSubCategory = self.w.rightSubCategory.getItems()[ self.w.rightSubCategory.get() ]
 			rightScript = self.w.rightScript.getItems()[ self.w.rightScript.get() ]
+			rightCase = self.caseAsNumberOrAny( self.w.rightCase.getItems()[ self.w.rightCase.get() ] )
 			
 			leftGlyphNames, rightGlyphNames = [], []
 			leftGroups, rightGroups = [], []
 			
 			for thisGlyph in thisFont.glyphs:
-				self.status("Scanning %s..."%thisGlyph.name, reportInMacroWindow)
+				self.status("Scanning %s..." % thisGlyph.name, reportInMacroWindow)
 				
 				leftCategoryOK = leftCategory=="Any" or thisGlyph.category==leftCategory
 				leftSubCategoryOK = leftSubCategory=="Any" or thisGlyph.subCategory==leftSubCategory
 				leftScriptOK = leftScript=="Any" or thisGlyph.script==leftScript
+				leftCaseOK = leftScript=="Any" or thisGlyph.case==leftCase
 				isAMatchingLeftGlyph = leftCategoryOK and leftSubCategoryOK and leftScriptOK
 				if isAMatchingLeftGlyph:
 					leftGlyphNames.append(thisGlyph.name)
@@ -209,6 +253,7 @@ class RemoveKerning( object ):
 				rightCategoryOK = rightCategory=="Any" or thisGlyph.category==rightCategory
 				rightSubCategoryOK = rightSubCategory=="Any" or thisGlyph.subCategory==rightSubCategory
 				rightScriptOK = rightScript=="Any" or thisGlyph.script==rightScript
+				rightCaseOK = rightScript=="Any" or thisGlyph.case==rightCase
 				isAMatchingRightGlyph = rightCategoryOK and rightSubCategoryOK and rightScriptOK
 				if isAMatchingRightGlyph:
 					rightGlyphNames.append(thisGlyph.name)
