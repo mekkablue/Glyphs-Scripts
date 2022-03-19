@@ -302,8 +302,15 @@ class FixMathOperatorSpacing( object ):
 								# check if layer is relevant in the first place:
 								master = layer.associatedFontMaster()
 								isMasterLayer = layer.layerId == master.id
-								isBracketLayer = "[" in layer.name and "]" in layer.name
-								isBraceLayer = "{" in layer.name and "}" in layer.name
+								if Glyphs.versionNumber >= 3:
+									# GLYPHS 3
+									isBracketLayer = layer.isBracketLayer()
+									isBraceLayer = layer.isBraceLayer()
+								else:
+									# GLYPHS 2
+									isBracketLayer = "[" in layer.name and "]" in layer.name
+									isBraceLayer = "{" in layer.name and "}" in layer.name
+								
 								if isMasterLayer or isBraceLayer or isBracketLayer:
 									referenceLayer = referenceOperatorGlyph.layers[master.id]
 
