@@ -48,7 +48,7 @@ class VariationInterpolator( object ):
 		self.w.glyphNameText = vanilla.TextBox( (inset, linePos+2, 70, 14), "glyph name:", sizeStyle='small', selectable=True )
 		self.w.glyphName = vanilla.EditText( (inset+70, linePos-1, -inset, 19), "interpolation.", callback=self.SavePreferences, sizeStyle='small' )
 		tooltip = "Select exactly two glyphs to interpolate, and the script creates interpolations with this name and a continuous number suffix."
-		self.w.glyphname.getNSTextField().setToolTip_(tooltip)
+		self.w.glyphName.getNSTextField().setToolTip_(tooltip)
 		self.w.glyphNameText.getNSTextField().setToolTip_(tooltip)
 
 		# Run Button:
