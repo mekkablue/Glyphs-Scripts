@@ -17,11 +17,22 @@ def nameForKey(thisKey):
 		return thisFont.glyphForId_(thisKey).name
 
 def glyphNameIsRTL(glyphName, key2Scripts):
-	glyphName = flipMMK(glyphName) # @MMK_L_flipMMK -->  @MMK_R_ --> glyphName = Glyphs.niceGlyphName(glyphNam
+	#glyphName = flipMMK(glyphName) # @MMK_L_flipMMK -->  @MMK_R_ --> glyphName = Glyphs.niceGlyphName(glyphNam
+	flippedName = flipMMK(glyphName)
 	if glyphName in key2Scripts.keys():
 		if GSGlyphsInfo.isRTLScript_(key2Scripts[glyphName]):
 			return True
+	elif flippedName in key2Scripts.keys():
+		if GSGlyphsInfo.isRTLScript_(key2Scripts[flippedName]):
+			return True
 	return False
+
+def glyphInFontIsRTL(glyphName, thisFont, key2Scripts):
+	glyph = thisFont.glyphs[glyphName]
+	if glyph:
+		if glyph.direction == RTL or GSGlyphsInfo.isRTLScript_(glyph.script):
+			return True
+	return glyphNameIsRTL(glyphName, key2Scripts)
 
 def stripMMK(name):
 	return name.replace("MMK_L_","").replace("MMK_R_","")
@@ -43,12 +54,12 @@ def copyFrom3to2(thisFont, masterKerning, RTLmasterKerning, key2Scripts):
 		newFirstKerning = {}
 		
 		firstName = nameForKey(firstKey)
-		if glyphNameIsRTL(firstName, key2Scripts):
+		if glyphInFontIsRTL(firstName, thisFont, key2Scripts):
 			newFirstKey = flipMMK(firstKey) # @MMK_R_ --> @MMK_L_
 
 		for secondKey in firstKerning.keys():
 			secondName = nameForKey(secondKey)
-			if glyphNameIsRTL(secondName, key2Scripts):
+			if glyphInFontIsRTL(secondName, thisFont, key2Scripts):
 				newSecondKey = flipMMK(secondKey) # @MMK_L_ --> @MMK_R_
 				
 			kernValue = firstKerning[secondKey]
@@ -66,7 +77,7 @@ def copyFrom3to2(thisFont, masterKerning, RTLmasterKerning, key2Scripts):
 def copyFrom2to3(masterKerning, RTLmasterKerning, key2Scripts):
 	countKernPairs = 0
 	toBeDeleted = []
-	for firstKey in list(masterKerning.keys()):
+	for firstKey in masterKerning.keys():
 		firstKeyIsRTL = False
 		
 		# check if first key is RTL
@@ -94,8 +105,8 @@ def copyFrom2to3(masterKerning, RTLmasterKerning, key2Scripts):
 				kernValue = firstKerning[secondKey]
 				RTLmasterKerning[newFirstKey][newSecondKey] = kernValue
 				print("  ✅ %s %s %i" % (
-					stripMMK(nameForKey(newFirstKey)), # remove MMK_R_
-					stripMMK(nameForKey(newSecondKey)), # remove MMK_L_
+					stripMMK( nameForKey(newFirstKey) ), # remove MMK_R_
+					stripMMK( nameForKey(newSecondKey) ), # remove MMK_L_
 					kernValue,
 				))
 				countKernPairs += 1
