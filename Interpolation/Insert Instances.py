@@ -493,6 +493,7 @@ class InstanceMaker( object ):
 					# create new instance:
 					newInstance = GSInstance()
 					newInstance.active = True
+					weightClassValue = None
 					
 					# determine names, style linking, weight class, etc.:
 					if self.pref("naturalNames"):
@@ -552,11 +553,14 @@ class InstanceMaker( object ):
 								newInstance.setAxisValueValue_forId_(widthValue, widthID)
 							
 							# Axis Location:
-							if self.pref("axisLocation"):
+							if self.pref("axisLocation") and self.pref("naturalNames"):
 								axisLocations = []
 								for thisAxis in theFont.axes:
 									if thisAxis.name == "Weight":
-										value = weightClassValue
+										if weightClassValue != None:
+											value = weightClassValue
+										else:
+											value = 400
 									elif thisAxis.name == "Width":
 										value = widthValue
 									else:
