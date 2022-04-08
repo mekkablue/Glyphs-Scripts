@@ -6,7 +6,11 @@ Convert RTL kerning from Glyphs 2 to Glyphs 3 format and switches the kerning cl
 Hold down OPTION and SHIFT to convert from Glyphs 3 back to Glyphs 2.
 """
 
-from GlyphsApp import objcObject, RTL
+from GlyphsApp import objcObject
+try:
+	from GlyphsApp import GSRTL as RTL
+except:
+	from GlyphsApp import RTL
 from AppKit import NSEvent
 from Foundation import NSMutableDictionary
 
