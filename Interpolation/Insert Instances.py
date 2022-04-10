@@ -60,6 +60,12 @@ def distribute_lucas( min, max, n ):
 		min=max/1000.0
 	q = max / min
 	return [ min * q**(i/(n-1)) for i in range(n) ]
+
+def distribute_reverselucas( min, max, n ):
+	if min==0:
+		min=max/1000.0
+	q = max / min
+	return [ min + max - min * q**(i/(n-1)) for i in range(n-1,-1,-1) ]
  
 def distribute_equal( min, max, n ):
 	d = (max - min) / (n-1)
@@ -106,7 +112,7 @@ class InstanceMaker( object ):
 		
 		# Window 'self.w':
 		windowWidth  = 360
-		windowHeight = 390
+		windowHeight = 400
 		windowWidthResize  = 0 # user can resize width by this value
 		windowHeightResize = 300   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -139,9 +145,9 @@ class InstanceMaker( object ):
 		linePos += lineHeight
 		
 		self.w.text_6 = vanilla.TextBox( (inset-1, linePos+2, 60, 14), "using", sizeStyle='small')
-		self.w.algorithm = vanilla.PopUpButton((inset+35, linePos, 90, 17), ("linear", "Pablo", "Schneider", "Abraham", "Luc(as)"), callback=self.UpdateSample, sizeStyle='small' )
-		self.w.algorithm.getNSPopUpButton().setToolTip_("The way the Weight values are distributed between the first and last master values you entered above. Linear means equal steps between instances. Luc(as) (after Lucas de Groot) means the same growth percentage between instances. Pablo (after Pablo Impallari) is like Luc(as) at first, then becomes increasingly linear, i.e., flat in the periphery and steep in the middle. Schneider (after Lukas Schneider) is half way between Pablo and Luc(as) algorithms. Abraham (after Abraham Lee) is linear at first, then becomes incresingly like Luc(as), i.e. steep in the periphery, flat in the middle.\nFor a wide spectrum, try Pablo or Schneider. For spectrums that do not grow too bold, try Abraham or Luc(as). The latter tend to have large jumps at the end, which are usually found in the center of the weight spectrum (between Regular and Semibold). Smaller jumps are preferable in the periphery, i.e., for very light and very dark weights.")
-		self.w.text_7 = vanilla.TextBox( (inset+40+85+5, linePos+2, 110, 14), "distribution.", sizeStyle='small')
+		self.w.algorithm = vanilla.PopUpButton((inset+35, linePos, 110, 17), ("linear", "Pablo", "Schneider", "Abraham", "Luc(as)", "Reverse Luc(as)"), callback=self.UpdateSample, sizeStyle='small' )
+		self.w.algorithm.getNSPopUpButton().setToolTip_("The way the Weight values are distributed between the first and last master values you entered above. Linear means equal steps between instances. Luc(as) (after Lucas de Groot) means the same growth percentage between instances. Pablo (after Pablo Impallari) is like Luc(as) at first, then becomes increasingly linear, i.e., flat in the periphery and steep in the middle. Schneider (after Lukas Schneider) is half way between Pablo and Luc(as) algorithms. Abraham (after Abraham Lee) is linear at first, then becomes increasingly like Luc(as), i.e. steep in the periphery, flat in the middle.\n\nFor a wide spectrum from thin to very bold, try Pablo or Schneider.\n\nFor spectrums from thin to average weights, try Abraham or Luc(as). They tend to have large jumps at the end, which are usually found in the center of the weight spectrum (Regular to Semibold). Smaller jumps are preferable in the periphery, i.e., for very light and very dark weights.\n\nFor going from average to very bold weights, try Reverse Luc(as). It has the big jumps at the beginning, and smaller steps at the end.")
+		self.w.text_7 = vanilla.TextBox( (inset+40+110, linePos+2, 110, 14), "distribution.", sizeStyle='small')
 		self.w.help_instances = vanilla.HelpButton((-15-21, linePos+2, -inset, 20), callback=self.openURL )
 		linePos += lineHeight
 		
@@ -160,8 +166,10 @@ class InstanceMaker( object ):
 		linePos += lineHeight-8
 		
 		if Glyphs.versionNumber >= 3:
-			self.w.axisLocation = vanilla.CheckBox( (inset+20, linePos, -inset, 20), u"Set OTVar axis location for each instance", value=True, callback=self.SavePreferences, sizeStyle='small' )
+			self.w.axisLocation = vanilla.CheckBox( (inset+20, linePos, 220, 20), u"Set Axis Location for each instance", value=True, callback=self.SavePreferences, sizeStyle='small' )
+			self.w.axisLocationMaster = vanilla.CheckBox( (inset+227, linePos, -inset, 20), u"and master", value=True, callback=self.SavePreferences, sizeStyle='small' )
 			self.w.axisLocation.getNSButton().setToolTip_(u"If enabled, will add an Axis Location parameter with the proper usWeightClass value in Font Info → Exports.\n\nHINT: Do not forget to set Axis Location parameters for each master in Font Info → Masters, and remove the Axis Mappings parameter in Font Info → Font if you have one.")
+			self.w.axisLocationMaster.getNSButton().setToolTip_(u"If enabled, will attempt to set Axis Locations for masters as well. Only works if there is an instance that matches the respective master.")
 			linePos += lineHeight-8
 
 		self.w.italicStyle = vanilla.CheckBox( (inset+20, linePos, -inset, 20), u"Italic suffixes and style linking", value=False, callback=self.UpdateSample, sizeStyle='small' )
@@ -180,8 +188,11 @@ class InstanceMaker( object ):
 		self.w.help_maciej.getNSButton().setToolTip_("Will open a website with a detailed description of the Maciej algorithm. Requires an internet connection.")
 		linePos += int(lineHeight*1.2)
 		
-		self.w.shouldRound   = vanilla.CheckBox((inset, linePos, -inset, 19), "Round all interpolation values", value=True, callback=self.UpdateSample, sizeStyle='small' )
+		self.w.shouldRound   = vanilla.CheckBox((inset, linePos, 200, 20), "Round all interpolation values", value=True, callback=self.UpdateSample, sizeStyle='small' )
 		self.w.shouldRound.getNSButton().setToolTip_("If enabled, will round all calculated weight values to integers. Usually a good idea.")
+		
+		self.w.keepWindowOpen = vanilla.CheckBox( (inset+200, linePos, -inset, 20), "Keep window open", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.keepWindowOpen.getNSButton().setToolTip_("If checked, will not close this window after applying the distribution.")
 		linePos += lineHeight
 		
 		self.w.sample = vanilla.Box( (inset, linePos, -inset, -30-inset) )
@@ -269,6 +280,8 @@ class InstanceMaker( object ):
 			distributedValues = distribute_pablo( a, b, n )
 		elif algorithm == "Luc(as)":
 			distributedValues = distribute_lucas( a, b, n )
+		elif algorithm == "Reverse Luc(as)":
+			distributedValues = distribute_reverselucas( a, b, n )
 		elif algorithm == "Schneider":
 			distributedValues = distribute_schneider( a, b, n )
 		elif algorithm == "Abraham":
@@ -366,6 +379,11 @@ class InstanceMaker( object ):
 		self.w.maciej_light.enable(onOff)
 		self.w.maciej_bold.enable(onOff)
 		
+		# axis locations for master:
+		onOff = self.pref("axisLocation")
+		self.w.axisLocationMaster.enable(onOff)
+		
+		
 	def SavePreferences( self, sender=None ):
 		try:
 			Glyphs.defaults[ self.domain("numberOfInstances") ] = self.w.numberOfInstances.get()
@@ -382,8 +400,10 @@ class InstanceMaker( object ):
 			Glyphs.defaults[ self.domain("naturalNames") ] = self.w.naturalNames.get()
 			Glyphs.defaults[ self.domain("firstName") ] = self.w.firstName.get()
 			Glyphs.defaults[ self.domain("italicStyle") ] = self.w.italicStyle.get()
+			Glyphs.defaults[ self.domain("keepWindowOpen") ] = self.w.keepWindowOpen.get()
 			if Glyphs.versionNumber >= 3:
 				Glyphs.defaults[ self.domain("axisLocation") ] = self.w.axisLocation.get()
+				Glyphs.defaults[ self.domain("axisLocationMaster") ] = self.w.axisLocationMaster.get()
 			
 			self.updateUI(sender)
 		except:
@@ -409,8 +429,10 @@ class InstanceMaker( object ):
 			Glyphs.registerDefault( self.domain("naturalNames"), True)
 			Glyphs.registerDefault( self.domain("firstName"), 1)
 			Glyphs.registerDefault( self.domain("italicStyle"), 0)
+			Glyphs.registerDefault( self.domain("keepWindowOpen"), 1)
 			if Glyphs.versionNumber >= 3:
 				Glyphs.registerDefault( self.domain("axisLocation"), 1)
+				Glyphs.registerDefault( self.domain("axisLocationMaster"), 1)
 
 			self.w.numberOfInstances.set( self.pref("numberOfInstances") )
 			self.w.prefix.set( self.pref("prefix") )
@@ -426,8 +448,10 @@ class InstanceMaker( object ):
 			self.w.naturalNames.set( self.pref("naturalNames") )
 			self.w.firstName.set( self.pref("firstName") )
 			self.w.italicStyle.set( self.pref("italicStyle") )
+			self.w.keepWindowOpen.set( self.pref("keepWindowOpen") )
 			if Glyphs.versionNumber >= 3:
 				self.w.axisLocation.set( self.pref("axisLocation") )
+				self.w.axisLocationMaster.set( self.pref("axisLocationMaster") )
 			
 			self.updateUI()
 		except:
@@ -466,6 +490,9 @@ class InstanceMaker( object ):
 	
 	def CreateInstances( self, sender ):
 		try:
+			theFont = Glyphs.font
+			paramName = "Axis Location"
+			
 			if self.DealWithExistingInstances():
 				distributedValues = self.Distribution()
 				try:
@@ -541,7 +568,6 @@ class InstanceMaker( object ):
 						newInstance.name = "%s%i" % (prefix, thisWeight)
 						newInstance.isBold = False
 					
-					theFont = Glyphs.font
 					if theFont:
 						if Glyphs.versionNumber >= 3:
 							# GLYPHS 3:
@@ -567,7 +593,8 @@ class InstanceMaker( object ):
 										value = 0
 									axisLocations.append( axisLocationEntry(thisAxis.name, value) )
 								if axisLocations:
-									newInstance.customParameters["Axis Location"] = tuple(axisLocations)
+									newInstance.customParameters[paramName] = tuple(axisLocations)
+									
 						else:
 							# GLYPHS 2:
 							newInstance.weightValue = thisWeight
@@ -584,11 +611,20 @@ class InstanceMaker( object ):
 						newInstance.updateInterpolationValues()
 					else:
 						print("Error: No current font.")
-			
+				
+				# set Axis Location for masters if possible:
+				if Glyphs.versionNumber>=3 and theFont and self.pref("naturalNames") and self.pref("axisLocation") and self.pref("axisLocationMaster"):
+					for thisMaster in theFont.masters:
+						for thisInstance in [i for i in theFont.instances if i.type==0]:
+							if thisMaster.axes == thisInstance.axes:
+								thisMaster.customParameters[paramName] = thisInstance.customParameters[paramName]
+								break
+				
 			if not self.SavePreferences():
 				print("Error writing preferences.")
 			
-			self.w.close()
+			if not self.pref("keepWindowOpen"):
+				self.w.close()
 		except Exception as e:
 			print(e)
 			import traceback
