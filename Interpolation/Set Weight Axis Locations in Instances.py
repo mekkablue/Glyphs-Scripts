@@ -120,7 +120,7 @@ try:
 	for thisMaster in thisFont.masters:
 		if not thisMaster.customParameters[paramName]:
 			for thisInstance in thisFont.instances:
-				if i.type == 0 and thisMaster.axes == thisInstance.axes:
+				if thisInstance.type == 0 and thisMaster.axes == thisInstance.axes:
 					print("Ⓜ️ Master %s ← Instance %s" % (thisMaster.name, thisInstance.name))
 					thisMaster.customParameters[paramName] = thisInstance.customParameters[paramName]
 	
