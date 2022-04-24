@@ -10,14 +10,19 @@ from AppKit import NSFileManager
 
 particleDefault = "Italic"
 elidablePartDefault = "Regular"
+menuOptions = (
+	"Subtract particle from",
+	"Add particle at the end of",
+	"Add particle in front of",
+	)
 
 class StyleRenamer( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 285
 		windowHeight = 190
-		windowWidthResize  = 100 # user can resize width by this value
-		windowHeightResize = 300 # user can resize height by this value
+		windowWidthResize  = 200 # user can resize width by this value
+		windowHeightResize = 800 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			( windowWidth, windowHeight ), # default window size
 			"Style Renamer", # window title
@@ -30,8 +35,8 @@ class StyleRenamer( object ):
 		linePos, inset, lineHeight = 12, 15, 24
 		column = 55
 
-		self.w.subtractOrAdd = vanilla.PopUpButton( (inset, linePos, 145, 17), ("Subtract particle from", "Add particle to"), sizeStyle='small', callback=self.SavePreferences )
-		self.w.subtractOrAddText = vanilla.TextBox( (inset+150, linePos+2, -inset, 14), "all instance names:", sizeStyle='small', selectable=True )
+		self.w.subtractOrAdd = vanilla.PopUpButton( (inset, linePos, 160, 17), menuOptions, sizeStyle='small', callback=self.SavePreferences )
+		self.w.subtractOrAddText = vanilla.TextBox( (inset+165, linePos+2, -inset, 14), "all instance names:", sizeStyle='small', selectable=True )
 		tooltipText = "Choose here if you want to add the chosen particle name to all styles, or remove it from them."
 		self.w.subtractOrAdd.getNSPopUpButton().setToolTip_(tooltipText)
 		self.w.subtractOrAddText.getNSTextField().setToolTip_(tooltipText)
@@ -151,8 +156,12 @@ class StyleRenamer( object ):
 		originalName = thisInstance.name.strip()
 		newName = ""
 		if shouldAddParticle:
-			# ADD PARTICLE
-			newName = "%s %s" % (originalName, particle.strip())
+			if shouldAddParticle == 1:
+				nameParts = (originalName, particle.strip()) # POSTFIX
+			else: # shouldAddParticle == 2
+				nameParts = (particle.strip(), originalName) # PREFIX
+				
+			newName = "%s %s" % nameParts
 			if elidablePart:
 				newNameParts = newName.split()
 				while elidablePart in newNameParts:
