@@ -86,8 +86,14 @@ def createOTClass( className       = "@default",
 		
 		# automate the class:
 		if automate and otClass is not None:
-			if otClass.canBeAutomated():
+			if Glyphs.versionNumber >= 3:
+				# GLYPHS 3
+				if otClass.canBeAutomated():
+					otClass.automatic = True
+			else:
+				# GLYPHS 2
 				otClass.automatic = True
+			
 			returnText = returnText.rstrip(".") + " (automated)."
 		
 		return returnText
