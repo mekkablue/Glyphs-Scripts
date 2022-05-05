@@ -265,7 +265,8 @@ class AxisLocationSetter( object ):
 				else:
 					print("⚠️ The font file has not been saved yet.")
 				print()
-			
+				
+				
 				particle = self.pref("particle")
 				axisName = self.pref("axisName")
 				internalAxisValue = self.pref("internalAxisValue")
@@ -281,6 +282,8 @@ class AxisLocationSetter( object ):
 						)
 					print("❌ Axis ‘%s’ not found." % axisName)
 				else:	
+					thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+
 					instanceCount = 0
 					if includeInstances:
 						for thisInstance in thisFont.instances:
@@ -304,6 +307,7 @@ class AxisLocationSetter( object ):
 								if internalAxisValue != "":
 									if self.setInternalCoordinate( thisMaster, axisName, internalAxisValue ):
 										print("Ⓜ️ INTERNAL %s = %s in %s" % (axisName, internalAxisValue, thisMaster.name))
+					thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 
 					# Final report:
 					message = "Coordinates updated in %i instances and %i masters. Details in Macro Window" % (instanceCount, masterCount)
@@ -312,6 +316,7 @@ class AxisLocationSetter( object ):
 						"%s: Done" % (thisFont.familyName),
 						message,
 						)
+				
 
 				print("\n✅ Done.")
 
