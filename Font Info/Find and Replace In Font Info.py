@@ -180,14 +180,16 @@ class FindAndReplaceInFontInfo( object ):
 					if thisFont.copyright: # could be None
 						thisFont.copyright = self.replaceInName(thisFont.copyright, searchFor, replaceWith, completeWordsOnly, "Font > Copyright")
 					
+					
+					
 					if includeCustomParameters:
 						for customParameter in thisFont.customParameters:
-							try:
-								# GLYPHS 2
-								parameterIsAString = type(customParameter.value) in (objc.pyobjc_unicode, str, unicode)
-							except:
+							if Glyphs.versionNumber >= 3:
 								# GLYPHS 3
 								parameterIsAString = type(customParameter.value) in (objc.pyobjc_unicode, str)
+							else:
+								# GLYPHS 2
+								parameterIsAString = type(customParameter.value) in (objc.pyobjc_unicode, str, unicode)
 							
 							if parameterIsAString:
 								reportString = "Font > Custom Parameters > %s" % customParameter.name
@@ -196,15 +198,26 @@ class FindAndReplaceInFontInfo( object ):
 					if includeInstances:
 						for thisInstance in thisFont.instances:
 							if thisInstance.active or includeInactiveInstances:
+								# style name:
 								thisInstance.name = self.replaceInName(thisInstance.name, searchFor, replaceWith, completeWordsOnly, "Instances > %s > Style Name"%thisInstance.name)
+								
+								# general properties:
+								if Glyphs.versionNumber >= 3:
+									# GLYPHS 3
+									for fontInfo in thisInstance.properties:
+										if type(fontInfo) == GSFontInfoValueLocalized:
+											for valueSet in fontInfo.values:
+												valueSet.value = self.replaceInName(valueSet.value, searchFor, replaceWith, completeWordsOnly, "Instances > %s > General > %s"%(thisInstance.name, fontInfo.key))
+								
+								# parameters:
 								if includeCustomParameters:
 									for customParameter in thisInstance.customParameters:
-										try:
-											# GLYPHS 2
-											parameterIsAString = type(customParameter.value) in (objc.pyobjc_unicode, str, unicode)
-										except:
+										if Glyphs.versionNumber >= 3:
 											# GLYPHS 3
 											parameterIsAString = type(customParameter.value) in (objc.pyobjc_unicode, str)
+										else:
+											# GLYPHS 2
+											parameterIsAString = type(customParameter.value) in (objc.pyobjc_unicode, str, unicode)
 										
 										if parameterIsAString:
 											reportString = "Instances > %s > Custom Parameters > %s" % (thisInstance.name, customParameter.name)
