@@ -11,9 +11,11 @@ Adjusts all kerning values by a specified amount.
 
 import vanilla
 
-optionList = ( "Multiply by", "Add", "Add Absolute", "Round by" )
+optionList = ( "Multiply by", "Add", "Add Absolute", "Round by", "Limit to" )
 
 class AdjustKerning( object ):
+	prefID = "com.mekkablue.AdjustKerning"
+	
 	def __init__( self ):
 		# GUI:
 		windowWidth  = 260
@@ -59,15 +61,21 @@ class AdjustKerning( object ):
 		self.w.open()
 		self.w.makeKey()
 		
-		
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+
 	def SavePreferences( self, sender ):
 		try:
-			Glyphs.defaults["com.mekkablue.AdjustKerning.doWhat"] = self.w.doWhat.get()
-			Glyphs.defaults["com.mekkablue.AdjustKerning.howMuch"] = self.w.howMuch.get()
-			# Glyphs.defaults["com.mekkablue.AdjustKerning.keepWindow"] = self.w.keepWindow.get()
-			Glyphs.defaults["com.mekkablue.AdjustKerning.positive"] = self.w.positive.get()
-			Glyphs.defaults["com.mekkablue.AdjustKerning.zero"] = self.w.zero.get()
-			Glyphs.defaults["com.mekkablue.AdjustKerning.negative"] = self.w.negative.get()
+			Glyphs.defaults[self.domain("doWhat")] = self.w.doWhat.get()
+			Glyphs.defaults[self.domain("howMuch")] = self.w.howMuch.get()
+			Glyphs.defaults[self.domain("positive")] = self.w.positive.get()
+			Glyphs.defaults[self.domain("zero")] = self.w.zero.get()
+			Glyphs.defaults[self.domain("negative")] = self.w.negative.get()
 		except:
 			return False
 			
@@ -75,16 +83,19 @@ class AdjustKerning( object ):
 
 	def LoadPreferences( self ):
 		try:
-			Glyphs.registerDefault("com.mekkablue.AdjustKerning.doWhat", 0)
-			Glyphs.registerDefault("com.mekkablue.AdjustKerning.howMuch", "20")
-			Glyphs.registerDefault("com.mekkablue.AdjustKerning.positive", True)
-			Glyphs.registerDefault("com.mekkablue.AdjustKerning.zero", True)
-			Glyphs.registerDefault("com.mekkablue.AdjustKerning.negative", True)
-			self.w.doWhat.set( Glyphs.defaults["com.mekkablue.AdjustKerning.doWhat"] )
-			self.w.howMuch.set( Glyphs.defaults["com.mekkablue.AdjustKerning.howMuch"] )
-			self.w.positive.set( Glyphs.defaults["com.mekkablue.AdjustKerning.positive"] )
-			self.w.zero.set( Glyphs.defaults["com.mekkablue.AdjustKerning.zero"] )
-			self.w.negative.set( Glyphs.defaults["com.mekkablue.AdjustKerning.negative"] )
+			# register defaults:
+			Glyphs.registerDefault(self.domain("doWhat"), 0)
+			Glyphs.registerDefault(self.domain("howMuch"), "20")
+			Glyphs.registerDefault(self.domain("positive"), True)
+			Glyphs.registerDefault(self.domain("zero"), True)
+			Glyphs.registerDefault(self.domain("negative"), True)
+			
+			# load previously written prefs:
+			self.w.doWhat.set( self.pref("doWhat") )
+			self.w.howMuch.set( self.pref("howMuch") )
+			self.w.positive.set( self.pref("positive") )
+			self.w.zero.set( self.pref("zero") )
+			self.w.negative.set( self.pref("negative") )
 		except:
 			return False
 			
@@ -101,11 +112,11 @@ class AdjustKerning( object ):
 	
 	def userChoosesToProcessKerning( self, kernValue ):
 		try:
-			if Glyphs.defaults["com.mekkablue.AdjustKerning.positive"] and kernValue > 0:
+			if Glyphs.defaults[self.domain("positive")] and kernValue > 0:
 				return True
-			elif Glyphs.defaults["com.mekkablue.AdjustKerning.zero"] and kernValue == 0:
+			elif Glyphs.defaults[self.domain("zero")] and kernValue == 0:
 				return True
-			elif Glyphs.defaults["com.mekkablue.AdjustKerning.negative"] and kernValue < 0:
+			elif Glyphs.defaults[self.domain("negative")] and kernValue < 0:
 				return True
 			else:
 				return False
@@ -118,8 +129,8 @@ class AdjustKerning( object ):
 			Master = Font.selectedFontMaster
 			MasterID = Master.id
 			MasterKernDict = Font.kerning[ MasterID ]
-			calculation = str( self.w.doWhat.getItems()[ Glyphs.defaults["com.mekkablue.AdjustKerning.doWhat"] ] )
-			value = float( Glyphs.defaults["com.mekkablue.AdjustKerning.howMuch"] )
+			calculation = str( self.w.doWhat.getItems()[ Glyphs.defaults[self.domain("doWhat")] ] )
+			value = float( Glyphs.defaults[self.domain("howMuch")] )
 			
 			Font.disableUpdateInterface()
 			try:
@@ -171,6 +182,18 @@ class AdjustKerning( object ):
 								rightName = self.nameForID( Font, rightGlyphID )
 								Font.setKerningForPair( MasterID, leftName, rightName, round( originalKerning / value, 0 ) * value )
 								
+				elif calculation == optionList[4]:
+					
+					for left in MasterKernDict.keys():
+						for right in MasterKernDict[left].keys():
+							originalKerning = MasterKernDict[left][right]
+							if self.userChoosesToProcessKerning( originalKerning ):
+								if originalKerning > abs(value):
+									MasterKernDict[left][right] = abs(value)
+								elif originalKerning < -abs(value):
+									MasterKernDict[left][right] = -abs(value)
+					
+				
 			except Exception as e:
 				Glyphs.showMacroWindow()
 				print("\n⚠️ Script Error:\n")
@@ -181,7 +204,6 @@ class AdjustKerning( object ):
 				
 			finally:
 				Font.enableUpdateInterface() # re-enables UI updates in Font View
-			
 			
 			if not self.SavePreferences( self ):
 				print("Note: could not write preferences.")
