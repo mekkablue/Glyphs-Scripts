@@ -5,10 +5,27 @@ __doc__="""
 Inserts exit and entry anchors in the period glyph and rebuilds ellipsis with auto-aligned components of period.\n\nATTENTION: decomposes all period components used in other glyphs (e.g., colon).
 """
 
-Glyphs.clearLog() # clears log in Macro window
+def decomposeGlyphsContaining(font, componentName, exceptions=[]):
+	glyphNames = []
+	for master in font.masters:
+		for glyph in font.glyphsContainingComponentWithName_masterId_(componentName, master.id):
+			if not glyph.name in glyphNames and not glyph.name in exceptions:
+				glyphNames.append(glyph.name)
+	if glyphNames:
+		for glyphName in glyphNames:
+			glyph = font.glyphs[glyphName]
+			for layer in glyph.layers:
+				if layer.components:
+					for i in range(len(layer.components)-1,-1,-1):
+						component = layer.components[i]
+						if component.componentName == componentName:
+							layer.decomposeComponent_(component)
+	return glyphNames
 
+Glyphs.clearLog() # clears log in Macro window
 thisFont = Glyphs.font # frontmost font
 period = thisFont.glyphs["period"]
+
 if not period:
 	Message(title="Build ellipsis Script Error", message="No period glyph in font. Add it and try again.", OKButton=None)
 	exit()
@@ -18,6 +35,16 @@ if not ellipsis:
 	print("⚙️ Creating ellipsis glyph (did not exist)")
 	ellipsis = GSGlyph("ellipsis")
 	thisFont.glyphs.append(ellipsis)
+
+# decomposing non-ellipsis components:
+decomposedGlyphs = decomposeGlyphsContaining(thisFont, period.name, exceptions=(ellipsis.name,))
+if decomposedGlyphs:
+	print("⚠️ Decomposed %s components in %i glyph%s: %s"
+		period.name,
+		len(decomposedGlyphs),
+		"" if len(decomposedGlyphs)==1 else "s",
+		", ".join(decomposedGlyphs)
+	)
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
