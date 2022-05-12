@@ -1,0 +1,65 @@
+#MenuTitle: Build ellipsis from period components
+# -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+__doc__="""
+Inserts exit and entry anchors in the period glyph and rebuilds ellipsis with auto-aligned components of period.\n\nATTENTION: decomposes all period components used in other glyphs (e.g., colon).
+"""
+
+Glyphs.clearLog() # clears log in Macro window
+
+thisFont = Glyphs.font # frontmost font
+period = thisFont.glyphs["period"]
+if not period:
+	Message(title="Build ellipsis Script Error", message="No period glyph in font. Add it and try again.", OKButton=None)
+	exit()
+
+ellipsis = thisFont.glyphs["ellipsis"]
+if not ellipsis:
+	print("⚙️ Creating ellipsis glyph (did not exist)")
+	ellipsis = GSGlyph("ellipsis")
+	thisFont.glyphs.append(ellipsis)
+
+thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+try:
+	for thisMaster in thisFont.masters:
+		print("Ⓜ️ %s" % thisMaster.name)
+		print("   Adding #exit and #entry in period...")
+		mID = thisMaster.id
+		periodLayer = period.layers[mID]
+		distance = periodLayer.width - int((periodLayer.width-periodLayer.bounds.size.width)*0.3)
+		for anchorName, anchorX in zip(("#entry","#exit"), (0,distance)):
+			anchor = GSAnchor()
+			anchor.name = anchorName
+			anchor.position = NSPoint(anchorX, 0)
+			periodLayer.anchors.append(anchor)
+		
+		print("   Backing up period...")
+		ellipsisLayer = ellipsis.layers[mID]
+		ellipsisLayer.swapForegroundWithBackground()
+		ellipsisLayer.background.decomposeComponents()
+		ellipsisLayer.shapes = None
+		for i in range(3):
+			ellipsisLayer.shapes.append(GSComponent("period"))
+		for thisComponent in ellipsisLayer.components:
+			thisComponent.setDisableAlignment_(False)
+		ellipsisLayer.updateMetrics()
+	
+	print("🔢 Setting Metrics Keys for ellipsis...")
+	ellipsis.leftMetricsKey = "=+20"
+	ellipsis.rightMetricsKey = "=+20"
+	
+	thisFont.newTab("/period/ellipsis")
+	print("✅Done.")
+
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Error in script: Build ellipsis from period components\n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
+finally:
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+
+
+	
