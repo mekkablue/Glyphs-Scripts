@@ -395,7 +395,7 @@ htmlContent = """<head>
 			<!-- moreOptions -->
 		</select>
 		<div class="wrapper" spellcheck="false">
-			<input type="text" value="Type Text Here." id="textInput" onclick="this.select();" onkeyup="updateParagraph()" />
+			<input type="text" value="Type Text Here." id="textInput" onkeyup="updateParagraph()" />
 		</div>
 	</div>
 	<p class="features">
