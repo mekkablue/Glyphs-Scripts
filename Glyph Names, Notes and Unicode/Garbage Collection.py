@@ -71,7 +71,7 @@ class GarbageCollection( object ):
 		self.w.userDataFont = vanilla.CheckBox( (inset+115, linePos-1, 43, 20), "font", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.userDataMasters = vanilla.CheckBox( (inset+115+43, linePos-1, 63, 20), "masters", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.userDataInstances = vanilla.CheckBox( (inset+115+43+63, linePos-1, 75, 20), "instances", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		tooltip = "Remove userData from the frontmost font, its masters, and/or instances. Attention: will NOT respect the ‘Limit’ settings above."
+		tooltip = "Remove userData from the frontmost font, its masters, and/or instances.\n\n⚠️ Attention: the font/masters/instances options do NOT respect the ‘Limit’ settings above."
 		self.w.userDataText.getNSTextField().setToolTip_(tooltip)
 		self.w.userDataFont.getNSButton().setToolTip_(tooltip)
 		self.w.userDataMasters.getNSButton().setToolTip_(tooltip)
