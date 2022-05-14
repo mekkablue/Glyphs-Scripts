@@ -8,10 +8,12 @@ Removes annotations, glyph notes, guides, and node names.
 import vanilla
 
 class GarbageCollection( object ):
+	prefID = "com.mekkablue.GarbageCollection"
+	
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 310
-		windowHeight = 300
+		windowHeight = 380
 		windowWidthResize  = 50 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -51,6 +53,9 @@ class GarbageCollection( object ):
 		self.w.removeColors.getNSButton().setToolTip_("Resets all glyph and layer colors to none.")
 		linePos += lineHeight
 		
+		self.w.line1 = vanilla.HorizontalLine((inset, linePos, -inset, 1))
+		linePos += 6
+		
 		self.w.currentMasterOnly = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Limit clean-up to current master only", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.currentMasterOnly.getNSButton().setToolTip_("If checked, applies the clean-up to layers of the current font master only. Exception: glyph notes are not master-specific.")
 		linePos += lineHeight
@@ -58,6 +63,22 @@ class GarbageCollection( object ):
 		self.w.selectedGlyphsOnly = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Limit clean-up to selected glyphs only", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.selectedGlyphsOnly.getNSButton().setToolTip_("If checked, applies the clean-up only to selected glyphs. Otherwise, to all glyphs in the font.")
 		linePos += lineHeight
+		
+		self.w.line2 = vanilla.HorizontalLine((inset, linePos, -inset, 1))
+		linePos += 6
+		
+		self.w.userDataText = vanilla.TextBox( (inset, linePos+2, 115, 14), "Remove userData in", sizeStyle='small', selectable=True )
+		self.w.userDataFont = vanilla.CheckBox( (inset+115, linePos-1, 43, 20), "font", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.userDataMasters = vanilla.CheckBox( (inset+115+43, linePos-1, 63, 20), "masters", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.userDataInstances = vanilla.CheckBox( (inset+115+43+63, linePos-1, 75, 20), "instances", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
+		self.w.userDataGlyphs = vanilla.CheckBox( (inset+115, linePos-1, 58, 20), "glyphs", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.userDataLayers = vanilla.CheckBox( (inset+115+58, linePos-1, -inset, 20), "layers", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
+		self.w.userDataKeysText = vanilla.TextBox( (inset, linePos+3, 92, 14), "…only keys with:", sizeStyle='small', selectable=True )
+		self.w.userDataKeys = vanilla.EditText( (inset+92, linePos, -inset, 19), "UFO, fontlab, public", callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight+3
+		
 		
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0) # set progress indicator to zero
@@ -80,7 +101,7 @@ class GarbageCollection( object ):
 		self.w.makeKey()
 		
 	def guiUpdate(self, sender=None):
-		if Glyphs.defaults["com.mekkablue.GarbageCollection.currentMasterOnly"]:
+		if self.pref("currentMasterOnly"):
 			self.w.removeNodeNames.setTitle(u"Remove all node names 🔥❌👌🏻💚🔷 in current master")
 			self.w.removeAnnotations.setTitle(u"Remove all annotations in current master")
 			self.w.removeLocalGuides.setTitle(u"Remove all local (blue) guides in current master")
@@ -93,16 +114,35 @@ class GarbageCollection( object ):
 			self.w.removeGlobalGuides.setTitle(u"Remove all global (red) guides in font")
 			self.w.removeColors.setTitle(u"Remove all glyph and layer colors in font")
 		
+		anyUserDataOn = self.pref("userDataGlyphs") or self.pref("userDataLayers") or self.pref("userDataInstances") or self.pref("userDataMasters") or self.pref("userDataFont")
+		self.w.userDataKeys.enable(anyUserDataOn)
+	
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
 	def SavePreferences( self, sender ):
 		try:
-			Glyphs.defaults["com.mekkablue.GarbageCollection.removeNodeNames"] = self.w.removeNodeNames.get()
-			Glyphs.defaults["com.mekkablue.GarbageCollection.removeLocalGuides"] = self.w.removeLocalGuides.get()
-			Glyphs.defaults["com.mekkablue.GarbageCollection.removeGlobalGuides"] = self.w.removeGlobalGuides.get()
-			Glyphs.defaults["com.mekkablue.GarbageCollection.removeAnnotations"] = self.w.removeAnnotations.get()
-			Glyphs.defaults["com.mekkablue.GarbageCollection.removeGlyphNotes"] = self.w.removeGlyphNotes.get()
-			Glyphs.defaults["com.mekkablue.GarbageCollection.removeColors"] = self.w.removeColors.get()
-			Glyphs.defaults["com.mekkablue.GarbageCollection.currentMasterOnly"] = self.w.currentMasterOnly.get()
-			Glyphs.defaults["com.mekkablue.GarbageCollection.selectedGlyphsOnly"] = self.w.selectedGlyphsOnly.get()
+			Glyphs.defaults[ self.domain("removeNodeNames") ] = self.w.removeNodeNames.get()
+			Glyphs.defaults[ self.domain("removeLocalGuides") ] = self.w.removeLocalGuides.get()
+			Glyphs.defaults[ self.domain("removeGlobalGuides") ] = self.w.removeGlobalGuides.get()
+			Glyphs.defaults[ self.domain("removeAnnotations") ] = self.w.removeAnnotations.get()
+			Glyphs.defaults[ self.domain("removeGlyphNotes") ] = self.w.removeGlyphNotes.get()
+			Glyphs.defaults[ self.domain("removeColors") ] = self.w.removeColors.get()
+
+			Glyphs.defaults[ self.domain("userDataFont") ] = self.w.userDataFont.get()
+			Glyphs.defaults[ self.domain("userDataMasters") ] = self.w.userDataMasters.get()
+			Glyphs.defaults[ self.domain("userDataInstances") ] = self.w.userDataInstances.get()
+			Glyphs.defaults[ self.domain("userDataGlyphs") ] = self.w.userDataGlyphs.get()
+			Glyphs.defaults[ self.domain("userDataLayers") ] = self.w.userDataLayers.get()
+			Glyphs.defaults[ self.domain("userDataKeys") ] = self.w.userDataKeys.get()
+
+			Glyphs.defaults[ self.domain("currentMasterOnly") ] = self.w.currentMasterOnly.get()
+			Glyphs.defaults[ self.domain("selectedGlyphsOnly") ] = self.w.selectedGlyphsOnly.get()
 			
 			self.guiUpdate(sender=sender)
 		except:
@@ -112,22 +152,39 @@ class GarbageCollection( object ):
 
 	def LoadPreferences( self, sender=None ):
 		try:
-			Glyphs.registerDefault("com.mekkablue.GarbageCollection.removeNodeNames", 1)
-			Glyphs.registerDefault("com.mekkablue.GarbageCollection.removeLocalGuides", 0)
-			Glyphs.registerDefault("com.mekkablue.GarbageCollection.removeGlobalGuides", 0)
-			Glyphs.registerDefault("com.mekkablue.GarbageCollection.removeAnnotations", 1)
-			Glyphs.registerDefault("com.mekkablue.GarbageCollection.removeGlyphNotes", 0)
-			Glyphs.registerDefault("com.mekkablue.GarbageCollection.removeColors", 0)
-			Glyphs.registerDefault("com.mekkablue.GarbageCollection.currentMasterOnly", 0)
-			Glyphs.registerDefault("com.mekkablue.GarbageCollection.selectedGlyphsOnly", 0)
-			self.w.removeNodeNames.set( Glyphs.defaults["com.mekkablue.GarbageCollection.removeNodeNames"] )
-			self.w.removeLocalGuides.set( Glyphs.defaults["com.mekkablue.GarbageCollection.removeLocalGuides"] )
-			self.w.removeGlobalGuides.set( Glyphs.defaults["com.mekkablue.GarbageCollection.removeGlobalGuides"] )
-			self.w.removeAnnotations.set( Glyphs.defaults["com.mekkablue.GarbageCollection.removeAnnotations"] )
-			self.w.removeGlyphNotes.set( Glyphs.defaults["com.mekkablue.GarbageCollection.removeGlyphNotes"] )
-			self.w.removeColors.set( Glyphs.defaults["com.mekkablue.GarbageCollection.removeColors"] )
-			self.w.currentMasterOnly.set( Glyphs.defaults["com.mekkablue.GarbageCollection.currentMasterOnly"] )
-			self.w.selectedGlyphsOnly.set( Glyphs.defaults["com.mekkablue.GarbageCollection.selectedGlyphsOnly"] )
+			Glyphs.registerDefault(self.domain("removeNodeNames"), 1)
+			Glyphs.registerDefault(self.domain("removeLocalGuides"), 0)
+			Glyphs.registerDefault(self.domain("removeGlobalGuides"), 0)
+			Glyphs.registerDefault(self.domain("removeAnnotations"), 1)
+			Glyphs.registerDefault(self.domain("removeGlyphNotes"), 0)
+			Glyphs.registerDefault(self.domain("removeColors"), 0)
+			
+			Glyphs.registerDefault(self.domain("userDataFont"), 0)
+			Glyphs.registerDefault(self.domain("userDataMasters"), 0)
+			Glyphs.registerDefault(self.domain("userDataInstances"), 0)
+			Glyphs.registerDefault(self.domain("userDataGlyphs"), 0)
+			Glyphs.registerDefault(self.domain("userDataLayers"), 0)
+			Glyphs.registerDefault(self.domain("userDataKeys"), "UFO, fontlab, public")
+			
+			Glyphs.registerDefault(self.domain("currentMasterOnly"), 0)
+			Glyphs.registerDefault(self.domain("selectedGlyphsOnly"), 0)
+			
+			self.w.removeNodeNames.set(self.pref("removeNodeNames"))
+			self.w.removeLocalGuides.set(self.pref("removeLocalGuides"))
+			self.w.removeGlobalGuides.set(self.pref("removeGlobalGuides"))
+			self.w.removeAnnotations.set(self.pref("removeAnnotations"))
+			self.w.removeGlyphNotes.set(self.pref("removeGlyphNotes"))
+			self.w.removeColors.set(self.pref("removeColors"))
+			
+			self.w.userDataFont.set(self.pref("userDataFont"))
+			self.w.userDataMasters.set(self.pref("userDataMasters"))
+			self.w.userDataInstances.set(self.pref("userDataInstances"))
+			self.w.userDataGlyphs.set(self.pref("userDataGlyphs"))
+			self.w.userDataLayers.set(self.pref("userDataLayers"))
+			self.w.userDataKeys.set(self.pref("userDataKeys"))
+			
+			self.w.currentMasterOnly.set(self.pref("currentMasterOnly"))
+			self.w.selectedGlyphsOnly.set(self.pref("selectedGlyphsOnly"))
 			
 			self.guiUpdate(sender=sender)
 		except:
@@ -143,6 +200,14 @@ class GarbageCollection( object ):
 			import traceback
 			print(traceback.format_exc())
 	
+	def shouldBeRemoved(self, keyName, searchFor):
+		if not searchFor:
+			return True
+		for searchText in searchFor:
+			if searchText in keyName:
+				return True
+		return False
+		
 	def GarbageCollectionMain( self, sender ):
 		try:
 			# update settings to the latest user input:
@@ -156,18 +221,21 @@ class GarbageCollection( object ):
 			print(thisFont.filepath)
 			print()
 			
-			if Glyphs.defaults["com.mekkablue.GarbageCollection.selectedGlyphsOnly"]:
+			if self.pref("selectedGlyphsOnly"):
 				glyphs = [l.parent for l in thisFont.selectedLayers]
 			else:
 				glyphs = thisFont.glyphs
 			
 			# query user settings:
-			currentMasterOnly = Glyphs.defaults["com.mekkablue.GarbageCollection.currentMasterOnly"]
-			removeNodeNames = Glyphs.defaults["com.mekkablue.GarbageCollection.removeNodeNames"]
-			removeLocalGuides = Glyphs.defaults["com.mekkablue.GarbageCollection.removeLocalGuides"]
-			removeAnnotations = Glyphs.defaults["com.mekkablue.GarbageCollection.removeAnnotations"]
-			removeGlyphNotes = Glyphs.defaults["com.mekkablue.GarbageCollection.removeGlyphNotes"]
-			removeColors = Glyphs.defaults["com.mekkablue.GarbageCollection.removeColors"]
+			currentMasterOnly = self.pref("currentMasterOnly")
+			removeNodeNames = self.pref("removeNodeNames")
+			removeLocalGuides = self.pref("removeLocalGuides")
+			removeAnnotations = self.pref("removeAnnotations")
+			removeGlyphNotes = self.pref("removeGlyphNotes")
+			removeColors = self.pref("removeColors")
+			userDataGlyphs = self.pref("userDataGlyphs")
+			userDataLayers = self.pref("userDataLayers")
+			userDataKeys = [k.strip() for k in self.pref("userDataKeys").split(",")]
 			
 			# font counters:
 			removeNodeNamesFont = 0
@@ -203,6 +271,11 @@ class GarbageCollection( object ):
 							thisLayer.annotations = None
 						if removeColors:
 							thisLayer.color = None
+						if userDataLayers:
+							if thisLayer.userData:
+								keysToRemove = [k for k in thisLayer.userData.keys() if self.shouldBeRemoved(k, userDataKeys)]
+								for keyToRemove in keysToRemove:
+									thisLayer.removeUserDataForKey_(keyToRemove)
 				
 				# glyph clean-up:
 				if removeGlyphNotes:
@@ -211,7 +284,12 @@ class GarbageCollection( object ):
 						thisGlyph.note = None
 				if removeColors:
 					thisGlyph.color = None
-					
+				if userDataGlyphs:
+					if thisGlyph.userData:
+						keysToRemove = [k for k in thisGlyph.userData.keys() if self.shouldBeRemoved(k, userDataKeys)]
+						for keyToRemove in keysToRemove:
+							thisGlyph.removeUserDataForKey_(keyToRemove)
+
 				# report:
 				if removeNodeNamesGlyph:
 					print("  %i node names" % removeNodeNamesGlyph)
@@ -224,12 +302,55 @@ class GarbageCollection( object ):
 					removeAnnotationsFont += removeAnnotationsGlyph
 			
 			# Remove global guides:
-			if Glyphs.defaults["com.mekkablue.GarbageCollection.removeGlobalGuides"]:
+			if self.pref("removeGlobalGuides"):
 				self.log(u"📏 Removing global guides ...")
 				for thisMaster in thisFont.masters:
 					if thisMaster == thisFont.selectedFontMaster or not currentMasterOnly:
 						thisMaster.guideLines = None
-
+			
+			# User Data:
+			if self.pref("userDataFont"):
+				self.log("🧑🏽‍💻📄 Cleaning font.userData")
+				if thisFont.userData:
+					keysToRemove = [k for k in thisFont.userData.keys() if self.shouldBeRemoved(k, userDataKeys)]
+					if len(keysToRemove)>0:
+						print("   %i font.userData entr%s%s%s" %(
+							len(keysToRemove),
+							"y" if len(keysToRemove)==1 else "ies",
+							": " if len(keysToRemove)>0 else "",
+							", ".join(keysToRemove) if keysToRemove else "",
+						))
+						for keyToRemove in keysToRemove:
+							thisFont.removeUserDataForKey_(keyToRemove)
+					
+			if self.pref("userDataMasters"):
+				for thisMaster in thisFont.masters:
+					self.log("🧑🏽‍💻Ⓜ️ Cleaning master.userData: %s" % thisMaster.name)
+					if thisMaster.userData:
+						keysToRemove = [k for k in thisMaster.userData.keys() if self.shouldBeRemoved(k, userDataKeys)]
+						if len(keysToRemove)>0:
+							print("   %i master.userData entr%s: %s" %(
+								len(keysToRemove),
+								"y" if len(keysToRemove)==1 else "ies",
+								", ".join(keysToRemove) if keysToRemove else "",
+							))
+							for keyToRemove in keysToRemove:
+								thisMaster.removeUserDataForKey_(keyToRemove)
+					
+			if self.pref("userDataInstances"):
+				for thisInstance in thisFont.instances:
+					self.log("🧑🏽‍💻ℹ️ Cleaning instance.userData: %s" % thisInstance.name)
+					if thisInstance.userData:
+						keysToRemove = [k for k in thisInstance.userData.keys() if self.shouldBeRemoved(k, userDataKeys)]
+						if len(keysToRemove)>0:
+							print("   %i instance.userData entr%s: %s" %(
+								len(keysToRemove),
+								"y" if len(keysToRemove)==1 else "ies",
+								", ".join(keysToRemove) if keysToRemove else "",
+							))
+							for keyToRemove in keysToRemove:
+								thisInstance.removeUserDataForKey_(keyToRemove)
+			
 			# full progress bar:
 			self.w.progress.set(100)
 			
