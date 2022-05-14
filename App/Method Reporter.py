@@ -56,6 +56,7 @@ class MethodReporter( object ):
 			"GSGuideLine",
 			"GSHint",
 			"GSInstance",
+			"GSMetricValue",
 			"GSNode",
 			"GSPathPen",
 			"GSPathSegment",
