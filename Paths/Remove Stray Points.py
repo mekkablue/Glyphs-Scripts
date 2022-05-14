@@ -38,17 +38,19 @@ try:
 			namesOfAffectedGlyphs.append( glyphName )
 		else:
 			print("✅ No stray points in %s." % glyphName)
-			
+	
 	# Report affected glyphs:
 	if namesOfAffectedGlyphs:
 		print("\nWARNING:\nStray nodes can be used as a hack to disable automatic alignment. It may be a good idea to check these glyphs for unwanted shifts, and undo if necessary:\n\n/%s\n" % "/".join(namesOfAffectedGlyphs))
 	
+	print("🔢 %i selected glyphs (of %i in total in the font)." % (len(selectedLayers), len(thisFont.glyphs)))
+	print("🔢 %i affected glyphs with %i stray points." % (len(namesOfAffectedGlyphs), totalCount))
+	
 	# Floating notification:
 	Glyphs.showNotification( 
 		"Stray Points in %s" % (thisFont.familyName),
-		"Deleted %i stray points in %i of %i selected glyphs. Details in Macro Window." % (
+		"Deleted %i stray points in %i selected glyphs. Details in Macro Window." % (
 			totalCount,
-			len(namesOfAffectedGlyphs),
 			len(selectedLayers)
 			),
 		)
