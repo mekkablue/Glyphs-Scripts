@@ -5,6 +5,8 @@ __doc__="""
 Inserts exit and entry anchors in the period glyph and rebuilds ellipsis with auto-aligned components of period.\n\nATTENTION: decomposes all period components used in other glyphs (e.g., colon).
 """
 
+from AppKit import NSPoint
+
 def decomposeGlyphsContaining(font, componentName, exceptions=[]):
 	glyphNames = []
 	for master in font.masters:
@@ -39,12 +41,12 @@ if not ellipsis:
 # decomposing non-ellipsis components:
 decomposedGlyphs = decomposeGlyphsContaining(thisFont, period.name, exceptions=(ellipsis.name,))
 if decomposedGlyphs:
-	print("⚠️ Decomposed %s components in %i glyph%s: %s"
+	print("⚠️ Decomposed %s components in %i glyph%s: %s" % (
 		period.name,
 		len(decomposedGlyphs),
 		"" if len(decomposedGlyphs)==1 else "s",
 		", ".join(decomposedGlyphs)
-	)
+	))
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
