@@ -60,30 +60,34 @@ for thisMaster, otherMaster in zip(thisFont.masters, otherFont.masters):
 		len(thisMaster.alignmentZones), len(otherMaster.alignmentZones),
 		thisMaster.name, otherMaster.name,
 		)
-	if Glyphs.versionNumber >= 3:
-		# GLYPHS 3 code:
-		compareCount(
-			"Vertical Stems", 
-			len([stem for stem in thisMaster.stems if not stem.horizontal]), len([stem for stem in otherMaster.stems if not stem.horizontal]),
-			thisMaster.name, otherMaster.name,
-			)
-		compareCount(
-			"Horizontal Stems", 
-			len([stem for stem in thisMaster.stems if stem.horizontal]), len([stem for stem in otherMaster.stems if stem.horizontal]),
-			thisMaster.name, otherMaster.name,
-			)
-	else:
-		# GLYPHS 2 code:
-		compareCount(
-			"Vertical Stems", 
-			len(thisMaster.verticalStems), len(otherMaster.verticalStems),
-			thisMaster.name, otherMaster.name,
-			)
-		compareCount(
-			"Horizontal Stems", 
-			len(thisMaster.horizontalStems), len(otherMaster.horizontalStems),
-			thisMaster.name, otherMaster.name,
-			)
+	try:
+		if Glyphs.versionNumber >= 3:
+			# GLYPHS 3 code:
+			compareCount(
+				"Vertical Stems", 
+				len([stem for stem in thisMaster.stems if not stem.horizontal]), len([stem for stem in otherMaster.stems if not stem.horizontal]),
+				thisMaster.name, otherMaster.name,
+				)
+			compareCount(
+				"Horizontal Stems", 
+				len([stem for stem in thisMaster.stems if stem.horizontal]), len([stem for stem in otherMaster.stems if stem.horizontal]),
+				thisMaster.name, otherMaster.name,
+				)
+		else:
+			# GLYPHS 2 code:
+			compareCount(
+				"Vertical Stems", 
+				len(thisMaster.verticalStems), len(otherMaster.verticalStems),
+				thisMaster.name, otherMaster.name,
+				)
+			compareCount(
+				"Horizontal Stems", 
+				len(thisMaster.horizontalStems), len(otherMaster.horizontalStems),
+				thisMaster.name, otherMaster.name,
+				)
+	except Exception as e:
+		import traceback
+		print(traceback.format_exc())
 		
 	# comparing parameters:
 	theseParameters = [p.name for p in thisMaster.customParameters]
