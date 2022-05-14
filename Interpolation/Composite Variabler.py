@@ -140,7 +140,7 @@ class CompositeVariabler( object ):
 		depths=[]
 		for g in Font.glyphs:
 			for l in g.layers:
-				if l.isMasterLayer or l.isSpecialLayer or l.isColorLayer:
+				if l.isMasterLayer or l.isSpecialLayer or (Glyphs.versionNumber >= 3 and l.isColorLayer):
 					for c in l.components:
 						depth = self.countNest(c)
 						depths.append(depth)
