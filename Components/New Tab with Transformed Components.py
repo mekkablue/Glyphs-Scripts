@@ -52,6 +52,8 @@ def hasMerelyShiftedComponents(thisLayer):
 	return False
 
 class NewTabWithTransformedComponents( object ):
+	prefID = "com.mekkablue.NewTabWithTransformedComponents"
+	
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 350
@@ -63,7 +65,7 @@ class NewTabWithTransformedComponents( object ):
 			"New Tab with Transformed Components", # window title
 			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
 			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
-			autosaveName = "com.mekkablue.NewTabWithTransformedComponents.mainwindow" # stores last window position and size
+			autosaveName = self.domain("mainwindow") # stores last window position and size
 		)
 		
 		# UI elements:
@@ -93,6 +95,9 @@ class NewTabWithTransformedComponents( object ):
 		self.w.includeInactiveLayers = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Include inactive backup layers", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		linePos += lineHeight
 		
+		self.w.showAllLayers = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Show all affected layers (otherwise just glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
+		
 		self.w.reuseTab = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		linePos += lineHeight
 		
@@ -112,7 +117,15 @@ class NewTabWithTransformedComponents( object ):
 		self.w.open()
 		self.w.makeKey()
 		self.updateUI()
-		
+	
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
 	def updateUI(self, sender=None):
 		self.w.findUnproportionallyScaled.enable( self.w.findScaled.get() )
 		self.w.runButton.enable(
@@ -126,14 +139,15 @@ class NewTabWithTransformedComponents( object ):
 	def SavePreferences( self, sender=None ):
 		try:
 			# write current settings into prefs:
-			Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.findScaled"] = self.w.findScaled.get()
-			Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.findUnproportionallyScaled"] = self.w.findUnproportionallyScaled.get()
-			Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.findRotated"] = self.w.findRotated.get()
-			Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.findMirrored"] = self.w.findMirrored.get()
-			Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.findShifted"] = self.w.findShifted.get()
-			Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.includeNonexporting"] = self.w.includeNonexporting.get()
-			Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.includeInactiveLayers"] = self.w.includeInactiveLayers.get()
-			Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.reuseTab"] = self.w.reuseTab.get()
+			Glyphs.defaults[self.domain("findScaled")] = self.w.findScaled.get()
+			Glyphs.defaults[self.domain("findUnproportionallyScaled")] = self.w.findUnproportionallyScaled.get()
+			Glyphs.defaults[self.domain("findRotated")] = self.w.findRotated.get()
+			Glyphs.defaults[self.domain("findMirrored")] = self.w.findMirrored.get()
+			Glyphs.defaults[self.domain("findShifted")] = self.w.findShifted.get()
+			Glyphs.defaults[self.domain("includeNonexporting")] = self.w.includeNonexporting.get()
+			Glyphs.defaults[self.domain("includeInactiveLayers")] = self.w.includeInactiveLayers.get()
+			Glyphs.defaults[self.domain("reuseTab")] = self.w.reuseTab.get()
+			Glyphs.defaults[self.domain("showAllLayers")] = self.w.showAllLayers.get()
 			self.updateUI()
 			return True
 		except:
@@ -144,24 +158,26 @@ class NewTabWithTransformedComponents( object ):
 	def LoadPreferences( self ):
 		try:
 			# register defaults:
-			Glyphs.registerDefault("com.mekkablue.NewTabWithTransformedComponents.findScaled", 1)
-			Glyphs.registerDefault("com.mekkablue.NewTabWithTransformedComponents.findUnproportionallyScaled", 1)
-			Glyphs.registerDefault("com.mekkablue.NewTabWithTransformedComponents.findRotated", 0)
-			Glyphs.registerDefault("com.mekkablue.NewTabWithTransformedComponents.findMirrored", 0)
-			Glyphs.registerDefault("com.mekkablue.NewTabWithTransformedComponents.findShifted", 0)
-			Glyphs.registerDefault("com.mekkablue.NewTabWithTransformedComponents.includeNonexporting", 0)
-			Glyphs.registerDefault("com.mekkablue.NewTabWithTransformedComponents.includeInactiveLayers", 0)
-			Glyphs.registerDefault("com.mekkablue.NewTabWithTransformedComponents.reuseTab", 1)
+			Glyphs.registerDefault(self.domain("findScaled"), 1)
+			Glyphs.registerDefault(self.domain("findUnproportionallyScaled"), 1)
+			Glyphs.registerDefault(self.domain("findRotated"), 0)
+			Glyphs.registerDefault(self.domain("findMirrored"), 0)
+			Glyphs.registerDefault(self.domain("findShifted"), 0)
+			Glyphs.registerDefault(self.domain("includeNonexporting"), 0)
+			Glyphs.registerDefault(self.domain("includeInactiveLayers"), 0)
+			Glyphs.registerDefault(self.domain("reuseTab"), 1)
+			Glyphs.registerDefault(self.domain("showAllLayers"), 0)
 			
 			# load previously written prefs:
-			self.w.findScaled.set( Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.findScaled"] )
-			self.w.findUnproportionallyScaled.set( Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.findUnproportionallyScaled"] )
-			self.w.findRotated.set( Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.findRotated"] )
-			self.w.findMirrored.set( Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.findMirrored"] )
-			self.w.findShifted.set( Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.findShifted"] )
-			self.w.includeNonexporting.set( Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.includeNonexporting"] )
-			self.w.includeInactiveLayers.set( Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.includeInactiveLayers"] )
-			self.w.reuseTab.set( Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.reuseTab"] )
+			self.w.findScaled.set( self.pref("findScaled") )
+			self.w.findUnproportionallyScaled.set( self.pref("findUnproportionallyScaled") )
+			self.w.findRotated.set( self.pref("findRotated") )
+			self.w.findMirrored.set( self.pref("findMirrored") )
+			self.w.findShifted.set( self.pref("findShifted") )
+			self.w.includeNonexporting.set( self.pref("includeNonexporting") )
+			self.w.includeInactiveLayers.set( self.pref("includeInactiveLayers") )
+			self.w.reuseTab.set( self.pref("reuseTab") )
+			self.w.showAllLayers.set( self.pref("showAllLayers") )
 			
 			self.updateUI()
 			return True
@@ -179,14 +195,15 @@ class NewTabWithTransformedComponents( object ):
 			if not self.SavePreferences():
 				print("Note: 'New Tab with Transformed Components' could not write preferences.")
 			
-			findScaled = Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.findScaled"]
-			findUnproportionallyScaled = Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.findUnproportionallyScaled"]
-			findRotated = Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.findRotated"]
-			findMirrored = Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.findMirrored"]
-			findShifted = Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.findShifted"]
-			includeNonexporting = Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.includeNonexporting"]
-			includeInactiveLayers = Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.includeInactiveLayers"]
-			reuseTab = Glyphs.defaults["com.mekkablue.NewTabWithTransformedComponents.reuseTab"]
+			findScaled = self.pref("findScaled")
+			findUnproportionallyScaled = self.pref("findUnproportionallyScaled")
+			findRotated = self.pref("findRotated")
+			findMirrored = self.pref("findMirrored")
+			findShifted = self.pref("findShifted")
+			includeNonexporting = self.pref("includeNonexporting")
+			includeInactiveLayers = self.pref("includeInactiveLayers")
+			reuseTab = self.pref("reuseTab")
+			showAllLayers = self.pref("showAllLayers")
 			
 			thisFont = Glyphs.font # frontmost font
 			if thisFont is None:
@@ -246,37 +263,52 @@ class NewTabWithTransformedComponents( object ):
 							print()
 			
 				allLayers = []
+				allAffectedGlyphs = []
+				allText = ""
 				for foundLayers in (layersWithScaledComponents, layersWithRotatedComponents, layersWithMirroredComponents, layersWithShiftedComponents):
 					if foundLayers:
-						for foundLayer in foundLayers:
-							allLayers.append( foundLayer )
+						allLayers.extend( foundLayers )
 						for i in range(2):
 							allLayers.append( GSControlLayer.newline() )
+
+						foundGlyphs = []
+						for l in foundLayers:
+							if not l.parent.name in foundGlyphs:
+								foundGlyphs.append(l.parent.name)
+						allAffectedGlyphs.extend(foundGlyphs)
+						allText += "/"+"/".join(foundGlyphs)+"\n\n"
 				if len(allLayers) > 0:
 					# opens new Edit tab:
 					if reuseTab and thisFont.currentTab:
 						newTab = thisFont.currentTab
 					else:
 						newTab = thisFont.newTab()
-					newTab.layers = allLayers
+					
+					if showAllLayers:
+						newTab.layers = allLayers
+					else:
+						newTab.text = allText
 
 			self.w.progress.set(100)
 			
 			# Final report:
 			try:
+				affectedGlyphCount = len(set(allAffectedGlyphs))
 				Glyphs.showNotification( 
 					u"%s: found %i glyph%s" % (
 						thisFont.familyName,
 						affectedGlyphCount,
 						"" if affectedGlyphCount==1 else "s",
 						),
-					u"Layers found: %s components. Details in Macro Window." % (
+					u"Layers found: %s components in %i glyph%s. Details in Macro Window." % (
 						("%s%s%s%s" % (
 							"%i scaled, " % len(layersWithScaledComponents), # if layersWithScaledComponents else "",
 							"%i rotated, " % len(layersWithRotatedComponents), # if layersWithRotatedComponents else "",
 							"%i mirrored, " % len(layersWithMirroredComponents), # if layersWithMirroredComponents else "",
 							"%i shifted, " % len(layersWithShiftedComponents), # if layersWithShiftedComponents else "",
-						))[:-2]
+						))[:-2],
+						affectedGlyphCount,
+						"" if affectedGlyphCount==1 else "s",
 					),
 				
 					)
