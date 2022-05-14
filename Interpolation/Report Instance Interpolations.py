@@ -38,7 +38,6 @@ else:
 		print("⚠️ The font file has not been saved yet.")
 
 for thisInstance in thisFont.instances:
-	thisGlyph = thisLayer.parent
 	print("\n%s %s %s" % (
 		"🟢" if thisInstance.active else "🚫",
 		thisInstance.familyName,
