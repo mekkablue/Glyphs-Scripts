@@ -71,14 +71,26 @@ class GarbageCollection( object ):
 		self.w.userDataFont = vanilla.CheckBox( (inset+115, linePos-1, 43, 20), "font", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.userDataMasters = vanilla.CheckBox( (inset+115+43, linePos-1, 63, 20), "masters", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.userDataInstances = vanilla.CheckBox( (inset+115+43+63, linePos-1, 75, 20), "instances", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		tooltip = "Remove userData from the frontmost font, its masters, and/or instances. Attention: will NOT respect the ‘Limit’ settings above."
+		self.w.userDataText.getNSTextField().setToolTip_(tooltip)
+		self.w.userDataFont.getNSButton().setToolTip_(tooltip)
+		self.w.userDataMasters.getNSButton().setToolTip_(tooltip)
+		self.w.userDataInstances.getNSButton().setToolTip_(tooltip)
 		linePos += lineHeight
+		
 		self.w.userDataGlyphs = vanilla.CheckBox( (inset+115, linePos-1, 58, 20), "glyphs", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.userDataLayers = vanilla.CheckBox( (inset+115+58, linePos-1, -inset, 20), "layers", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		tooltip = "Remove userData from glyphs and/or layers. Will respect the ‘Limit’ settings above."
+		self.w.userDataGlyphs.getNSButton().setToolTip_(tooltip)
+		self.w.userDataLayers.getNSButton().setToolTip_(tooltip)
 		linePos += lineHeight
+		
 		self.w.userDataKeysText = vanilla.TextBox( (inset, linePos+3, 92, 14), "…only keys with:", sizeStyle='small', selectable=True )
 		self.w.userDataKeys = vanilla.EditText( (inset+92, linePos, -inset, 19), "UFO, fontlab, public", callback=self.SavePreferences, sizeStyle='small' )
+		tooltip = "Comma-separated list of search strings for userData keys to delete. Leave empty to remove all."
+		self.w.userDataKeysText.getNSTextField().setToolTip_(tooltip)
+		self.w.userDataKeys.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight+3
-		
 		
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0) # set progress indicator to zero
