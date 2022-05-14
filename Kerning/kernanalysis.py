@@ -109,7 +109,10 @@ def effectiveKerning( leftGlyphName, rightGlyphName, thisFont, thisFontMasterID,
 	if Glyphs.versionNumber>=3:
 		direction = 0 #LTR
 		if directionSensitive:
-			direction = Glyphs.font.currentTab.direction
+			if thisFont.currentTab:
+				direction = thisFont.currentTab.direction
+			else: # no tab open
+				direction = Glyphs.userInterfaceLayoutDirection()
 		effectiveKerning = leftLayer.nextKerningForLayer_direction_(
 			rightLayer,
 			direction
