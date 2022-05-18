@@ -87,6 +87,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Print Window:** Print the frontmost window. Useful for saving a vector PDF of your window content, including the renderings of reporter plug-ins (extensions for the *View* menu).
 * **Set Export Paths to Adobe Fonts Folder:** Sets the OpenType font and Variable Font export paths to the Adobe Fonts Folder.
 * **Set Hidden App Preferences:** GUI for reading and setting ‘hidden’ app preferences, which are not listed in the GUI. *Needs Vanilla.*
+* **Set Label Colors:** Override the default app label colors. *Needs Vanilla.*
 * **Set Tool Shortcuts:** Set keyboard shortcuts for the tools in the toolbar. *Needs Vanilla.*
 * **Toggle RTL-LTR:** Toggle frontmost tab between LTR and RTL writing direction. Useful for setting a keyboard shortcut in System Preferences.
 * **Update git Repositories in Scripts Folder:** Executes a 'git pull' command on all subfolders in the Glyphs Scripts folder. Useful if you have a lot of git repos in your Scripts folder.
