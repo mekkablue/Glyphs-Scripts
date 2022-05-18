@@ -14,12 +14,12 @@ class SetLabelColors( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 210
-		windowHeight = 360
-		windowWidthResize  = 10 # user can resize width by this value
+		windowHeight = 380
+		windowWidthResize  = 0   # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			( windowWidth, windowHeight ), # default window size
-			"Set Label Colors", # window title
+			"Set Glyph Label Colors", # window title
 			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
 			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
 			autosaveName = self.domain("mainwindow") # stores last window position and size
@@ -117,25 +117,37 @@ class SetLabelColors( object ):
 		self.w.blue12 = vanilla.EditText( (inset+100, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.SavePreferences)
 		self.w.alpha12 = vanilla.EditText( (inset+140, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
+		
+		self.w.rAll = vanilla.SquareButton( (inset+20, linePos, 35, 16), "↑ ALL", sizeStyle='mini', callback=self.setAll)
+		self.w.gAll = vanilla.SquareButton( (inset+60, linePos, 35, 16), "↑ ALL", sizeStyle='mini', callback=self.setAll)
+		self.w.bAll = vanilla.SquareButton( (inset+100, linePos, 35, 16), "↑ ALL", sizeStyle='mini', callback=self.setAll)
+		self.w.aAll = vanilla.SquareButton( (inset+140, linePos, 35, 16), "↑ ALL", sizeStyle='mini', callback=self.setAll)
+		tooltip = "Type in a value in the LAST line and click this button to apply it to all lines."
+		self.w.rAll.getNSButton().setToolTip_(tooltip)
+		self.w.gAll.getNSButton().setToolTip_(tooltip)
+		self.w.bAll.getNSButton().setToolTip_(tooltip)
+		self.w.aAll.getNSButton().setToolTip_(tooltip)
+		linePos += lineHeight
+		
 
 		
 		# Run Button:
 		# self.w.getButton = vanilla.Button( (-70-80*2-inset, -20-inset, -80*2-inset, -inset), "Current", sizeStyle='regular', callback=self.SetLabelColorsMain )
-		self.w.resetButton = vanilla.Button( (-70-80-inset, -20-inset, -80-inset, -inset), "Reset", sizeStyle='regular', callback=self.SetLabelColorsMain )
+		self.w.resetButton = vanilla.Button( (-70-80-inset, -20-inset, -80-inset, -inset), "Reset", sizeStyle='regular', callback=self.resetColors )
 		self.w.runButton = vanilla.Button( (-70-inset, -20-inset, -inset, -inset), "Set", sizeStyle='regular', callback=self.SetLabelColorsMain )
 		self.w.setDefaultButton( self.w.runButton )
-		
-		self.setColors()
 		
 		# Load Settings:
 		if not self.LoadPreferences():
 			print("Note: 'Set Label Colors' could not load preferences. Will resort to defaults")
 		
+		self.setTextColors()
+
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
 	
-	def resetColors(self):
+	def resetColors(self, sender=None):
 		labelColors = NSMutableArray.alloc().initWithArray_([
 			NSArchiver.archivedDataWithRootObject_(NSColor.colorWithDeviceRed_green_blue_alpha_(0.85, 0.26, 0.06, 0.5)),
 			NSArchiver.archivedDataWithRootObject_(NSColor.colorWithDeviceRed_green_blue_alpha_(0.99, 0.62, 0.11, 0.5)),
@@ -151,35 +163,63 @@ class SetLabelColors( object ):
 			NSArchiver.archivedDataWithRootObject_(NSColor.colorWithDeviceRed_green_blue_alpha_(0.25, 0.25, 0.25, 0.5)),
 			])
 		Glyphs.defaults["LabelColors"] = labelColors
+		self.LoadPreferences()
+		self.setTextColors()
 	
-	def currentColors(self):
+	def currentlyStoredColors(self, sender=None):
 		# reset to defaults if nothing stored:
 		if not Glyphs.defaults["LabelColors"]:
 			self.resetColors()
-		
 		
 		labelColorDatas = Glyphs.defaults["LabelColors"]
 		newLabelColors = NSMutableArray.new()
 		for colorData in labelColorDatas:
 			color = NSUnarchiver.unarchiveObjectWithData_(colorData)
 			newLabelColors.addObject_(color)
-			labelColors = newLabelColors.copy()
+			
+		# labelColors = NSMutableArray.alloc().initWithArray_([
+		# 	NSArchiver.archivedDataWithRootObject_(NSColor.colorWithDeviceRed_green_blue_alpha_(*rgba)) for rgba in newLabelColors
+		# 	])
 		
+		return newLabelColors
 	
-	def setColors(self, sender=None):
-		self.w.color01.getNSTextField().setTextColor_( NSColor.colorWithRed_green_blue_alpha_( float(self.w.red01.get()), float(self.w.green01.get()), float(self.w.blue01.get()), float(self.w.alpha01.get()), ))
-		self.w.color02.getNSTextField().setTextColor_( NSColor.colorWithRed_green_blue_alpha_( float(self.w.red02.get()), float(self.w.green02.get()), float(self.w.blue02.get()), float(self.w.alpha02.get()), ))
-		self.w.color03.getNSTextField().setTextColor_( NSColor.colorWithRed_green_blue_alpha_( float(self.w.red03.get()), float(self.w.green03.get()), float(self.w.blue03.get()), float(self.w.alpha03.get()), ))
-		self.w.color04.getNSTextField().setTextColor_( NSColor.colorWithRed_green_blue_alpha_( float(self.w.red04.get()), float(self.w.green04.get()), float(self.w.blue04.get()), float(self.w.alpha04.get()), ))
-		self.w.color05.getNSTextField().setTextColor_( NSColor.colorWithRed_green_blue_alpha_( float(self.w.red05.get()), float(self.w.green05.get()), float(self.w.blue05.get()), float(self.w.alpha05.get()), ))
-		self.w.color06.getNSTextField().setTextColor_( NSColor.colorWithRed_green_blue_alpha_( float(self.w.red06.get()), float(self.w.green06.get()), float(self.w.blue06.get()), float(self.w.alpha06.get()), ))
-		self.w.color07.getNSTextField().setTextColor_( NSColor.colorWithRed_green_blue_alpha_( float(self.w.red07.get()), float(self.w.green07.get()), float(self.w.blue07.get()), float(self.w.alpha07.get()), ))
-		self.w.color08.getNSTextField().setTextColor_( NSColor.colorWithRed_green_blue_alpha_( float(self.w.red08.get()), float(self.w.green08.get()), float(self.w.blue08.get()), float(self.w.alpha08.get()), ))
-		self.w.color09.getNSTextField().setTextColor_( NSColor.colorWithRed_green_blue_alpha_( float(self.w.red09.get()), float(self.w.green09.get()), float(self.w.blue09.get()), float(self.w.alpha09.get()), ))
-		self.w.color10.getNSTextField().setTextColor_( NSColor.colorWithRed_green_blue_alpha_( float(self.w.red10.get()), float(self.w.green10.get()), float(self.w.blue10.get()), float(self.w.alpha10.get()), ))
-		self.w.color11.getNSTextField().setTextColor_( NSColor.colorWithRed_green_blue_alpha_( float(self.w.red11.get()), float(self.w.green11.get()), float(self.w.blue11.get()), float(self.w.alpha11.get()), ))
-		self.w.color12.getNSTextField().setTextColor_( NSColor.colorWithRed_green_blue_alpha_( float(self.w.red12.get()), float(self.w.green12.get()), float(self.w.blue12.get()), float(self.w.alpha12.get()), ))
-		
+	def setAll(self, sender=None):
+		name=None
+		if sender==self.w.rAll:
+			name="red"
+		elif sender==self.w.gAll:
+			name = "green"
+		elif sender==self.w.bAll:
+			name = "blue"
+		elif sender==self.w.aAll:
+			name = "alpha"
+			
+		if name:
+			originalTextFieldName = "%s12" % name
+			originalTextField = getattr(self.w, originalTextFieldName)
+			originalValue = originalTextField.get()
+			for i in range(1,12):
+				textFieldName = "%s%02i" % (name, i)
+				textField = getattr(self.w, textFieldName)
+				textField.set( originalValue )
+				
+		self.SavePreferences()
+	
+	def setTextColors(self, sender=None):
+		# sets the dots
+		for i in range(1,13):
+			color = "color%02i"%i
+			r = "red%02i"%i
+			g = "green%02i"%i
+			b = "blue%02i"%i
+			a = "alpha%02i"%i
+			getattr(self.w,color).getNSTextField().setTextColor_( 
+				NSColor.colorWithRed_green_blue_alpha_( 
+					float(getattr(self.w,r).get()), 
+					float(getattr(self.w,g).get()), 
+					float(getattr(self.w,b).get()), 
+					float(getattr(self.w,a).get()), 
+				))
 	
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
@@ -188,24 +228,54 @@ class SetLabelColors( object ):
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-	
+
+	def colorRGBAstrings(self, index):
+		color = "color%02i" % index
+		r = "red%02i" % index
+		g = "green%02i" % index
+		b = "blue%02i" % index
+		a = "alpha%02i" % index
+		return color,r,g,b,a
+
 	def SavePreferences( self, sender=None ):
 		try:
 			# write current settings into prefs:
-			Glyphs.defaults[self.domain("popup_1")] = self.w.popup_1.get()
-			return True
+			labelColors = NSMutableArray.alloc().init()
+			for i in range(1,13):
+				color,r,g,b,a = self.colorRGBAstrings(i)
+				colorData = NSArchiver.archivedDataWithRootObject_(
+					NSColor.colorWithDeviceRed_green_blue_alpha_(
+						min(1.0, abs(float(getattr(self.w,r).get()))), 
+						min(1.0, abs(float(getattr(self.w,g).get()))), 
+						min(1.0, abs(float(getattr(self.w,b).get()))), 
+						min(1.0, abs(float(getattr(self.w,a).get()))), 
+					))
+				labelColors.addObject_(colorData)
+			
+			self.setTextColors()
+			return labelColors
 		except:
 			import traceback
 			print(traceback.format_exc())
 			return False
-
+	
 	def LoadPreferences( self ):
 		try:
 			# register defaults:
-			Glyphs.registerDefault(self.domain("popup_1"), 0)
-			
-			# load previously written prefs:
-			self.w.popup_1.set( self.pref("popup_1") )
+			labelColors = self.currentlyStoredColors()
+			for i, colorDef in enumerate(labelColors):
+				r = colorDef.redComponent()
+				g = colorDef.greenComponent()
+				b = colorDef.blueComponent()
+				a = colorDef.alphaComponent()
+				
+				colorName,rName,gName,bName,aName = self.colorRGBAstrings(i+1)
+				getattr( self.w, rName ).set( "%.2f"%r )
+				getattr( self.w, gName ).set( "%.2f"%g )
+				getattr( self.w, bName ).set( "%.2f"%b )
+				getattr( self.w, aName ).set( "%.2f"%a )
+				
+			self.setTextColors()
 			return True
 		except:
 			import traceback
@@ -219,30 +289,10 @@ class SetLabelColors( object ):
 			
 			# update settings to the latest user input:
 			if not self.SavePreferences():
-				print("Note: 'Set Label Colors' could not write preferences.")
-			
-			thisFont = Glyphs.font # frontmost font
-			if thisFont is None:
-				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				print("Error. Could not set colors.")
 			else:
-				print("Set Label Colors Report for %s" % thisFont.familyName)
-				if thisFont.filepath:
-					print(thisFont.filepath)
-				else:
-					print("⚠️ The font file has not been saved yet.")
-				print()
-			
-				
-				
-			
-	
-			# Final report:
-			Glyphs.showNotification( 
-				"%s: Done" % (thisFont.familyName),
-				"Set Label Colors is finished. Details in Macro Window",
-				)
-			print("\nDone.")
-
+				Glyphs.defaults["LabelColors"] = self.SavePreferences()
+				Message(title="New Label Colors Set", message="✅ The new label colors have been set.\n⚠️ Glyphs needs a restart for changes to take effect.", OKButton=None)
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
