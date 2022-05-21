@@ -405,7 +405,7 @@ class PathProblemFinder( object ):
 		linePos += lineHeight
 		
 		self.w.badPathDirections = vanilla.CheckBox( (inset, linePos, -inset, 20), "Bad path directions", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.badPathDirections.getNSButton().setToolTip_("Tries to find paths that have the wrong orientation.")
+		self.w.badPathDirections.getNSButton().setToolTip_("Tries to find paths that have wrong orientations (clockwise vs. counterclockwise).")
 		linePos += lineHeight
 		
 		self.w.strayPoints = vanilla.CheckBox( (inset, linePos, -inset, 20), "Stray points (single-node paths)", value=True, callback=self.SavePreferences, sizeStyle='small' )
