@@ -159,6 +159,16 @@ def hasShallowCurve( thisLayer, threshold=5.0 ):
 						return True
 	return False
 
+def hasBadPathDirections( thisLayer ):
+	copyLayer = thisLayer.__copy__()
+	copyLayer.correctPathDirection()
+	for i in range(len(copyLayer.paths)):
+		originalPath = thisLayer.paths[i]
+		copyPath = copyLayer.paths[i]
+		if copyPath.direction != originalPath.direction:
+			return True
+	return False
+
 def hasShallowCurveBBox( thisLayer, threshold=10.0 ):
 	for thisPath in thisLayer.paths:
 		for i, thisNode in enumerate(thisPath.nodes):
@@ -316,7 +326,7 @@ class PathProblemFinder( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 300
-		windowHeight = 540
+		windowHeight = 560
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -392,6 +402,10 @@ class PathProblemFinder( object ):
 		
 		self.w.badOutlineOrder = vanilla.CheckBox( (inset, linePos, -inset, 20), "Bad outline order", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.badOutlineOrder.getNSButton().setToolTip_("If the first path is clockwise, paths are most likely in the wrong order.")
+		linePos += lineHeight
+		
+		self.w.badPathDirections = vanilla.CheckBox( (inset, linePos, -inset, 20), "Bad path directions", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.badPathDirections.getNSButton().setToolTip_("Tries to find paths that have the wrong orientation.")
 		linePos += lineHeight
 		
 		self.w.strayPoints = vanilla.CheckBox( (inset, linePos, -inset, 20), "Stray points (single-node paths)", value=True, callback=self.SavePreferences, sizeStyle='small' )
@@ -482,6 +496,7 @@ class PathProblemFinder( object ):
 			self.w.shortLine.get() or
 			self.w.almostOrthogonalLines.get() or 
 			self.w.badOutlineOrder.get() or 
+			self.w.badPathDirections.get() or 
 			self.w.strayPoints.get() or
 			self.w.twoPointOutlines.get() or 
 			self.w.offcurveAsStartPoint.get() or 
@@ -510,6 +525,7 @@ class PathProblemFinder( object ):
 			Glyphs.defaults[self.domain("shortLine")] = self.w.shortLine.get()
 			Glyphs.defaults[self.domain("shortLineThreshold")] = self.w.shortLineThreshold.get()
 			Glyphs.defaults[self.domain("badOutlineOrder")] = self.w.badOutlineOrder.get()
+			Glyphs.defaults[self.domain("badPathDirections")] = self.w.badPathDirections.get()
 			Glyphs.defaults[self.domain("strayPoints")] = self.w.strayPoints.get()
 			Glyphs.defaults[self.domain("twoPointOutlines")] = self.w.twoPointOutlines.get()
 			Glyphs.defaults[self.domain("offcurveAsStartPoint")] = self.w.offcurveAsStartPoint.get()
@@ -546,6 +562,7 @@ class PathProblemFinder( object ):
 			Glyphs.registerDefault(self.domain("shortLine"), 0)
 			Glyphs.registerDefault(self.domain("shortLineThreshold"), 8)
 			Glyphs.registerDefault(self.domain("badOutlineOrder"), 1)
+			Glyphs.registerDefault(self.domain("badPathDirections"), 1)
 			Glyphs.registerDefault(self.domain("strayPoints"), 1)
 			Glyphs.registerDefault(self.domain("twoPointOutlines"), 1)
 			Glyphs.registerDefault(self.domain("offcurveAsStartPoint"), 1)
@@ -573,6 +590,7 @@ class PathProblemFinder( object ):
 			self.w.shortLine.set( self.pref("shortLine") )
 			self.w.shortLineThreshold.set( float(self.pref("shortLineThreshold")) )
 			self.w.badOutlineOrder.set( self.pref("badOutlineOrder") )
+			self.w.badPathDirections.set( self.pref("badPathDirections") )
 			self.w.strayPoints.set( self.pref("strayPoints") )
 			self.w.twoPointOutlines.set( self.pref("twoPointOutlines") )
 			self.w.offcurveAsStartPoint.set( self.pref("offcurveAsStartPoint") )
@@ -630,6 +648,7 @@ class PathProblemFinder( object ):
 				shortLine = self.pref("shortLine")
 				shortLineThreshold = self.pref("shortLineThreshold")
 				badOutlineOrder = self.pref("badOutlineOrder")
+				badPathDirections = self.pref("badPathDirections")
 				strayPoints = self.pref("strayPoints")
 				twoPointOutlines = self.pref("twoPointOutlines")
 				offcurveAsStartPoint = self.pref("offcurveAsStartPoint")
@@ -660,6 +679,7 @@ class PathProblemFinder( object ):
 				layersWithAlmostOrthogonalLines = []
 				layersWithShortLines = []
 				layersWithBadOutlineOrder = []
+				layersWithBadPathDirections = []
 				layersWithOffcurveAsStartpoint = []
 				layersWithStrayPoints = []
 				layersWithTwoPointOutlines = []
@@ -722,6 +742,10 @@ class PathProblemFinder( object ):
 								layersWithBadOutlineOrder.append(thisLayer)
 								print("  ❌ Bad outline order(s) on layer: %s" % thisLayer.name)
 								
+							if badPathDirections and hasBadPathDirections(thisLayer):
+								layersWithBadPathDirections.append(thisLayer)
+								print("  ❌ Bad path direction(s) on layer: %s" % thisLayer.name)
+								
 							if strayPoints and hasStrayPoints(thisLayer):
 								layersWithStrayPoints.append(thisLayer)
 								print("  ❌ Stray points on layer: %s" % thisLayer.name)
@@ -750,8 +774,6 @@ class PathProblemFinder( object ):
 							if quadraticCurves and hasQuadraticCurves(thisLayer):
 								layersWithQuadraticCurves.append(thisLayer)
 								print("  ❌ Quadratic curves in layer: %s" % thisLayer.name)
-							
-							
 								
 				# take time:
 				end = timer()
@@ -770,6 +792,7 @@ class PathProblemFinder( object ):
 					layersWithAlmostOrthogonalLines or
 					layersWithShortLines or
 					layersWithBadOutlineOrder or
+					layersWithBadPathDirections or
 					layersWithStrayPoints or
 					layersWithTwoPointOutlines or
 					layersWithOpenPaths or
@@ -783,6 +806,7 @@ class PathProblemFinder( object ):
 					if not tab or not reuseTab:
 						# opens new Edit tab:
 						tab = thisFont.newTab()
+					tab.direction = 0 # force LTR
 					layers = []
 				
 					currentMaster = thisFont.masters[tab.masterIndex]
@@ -797,7 +821,8 @@ class PathProblemFinder( object ):
 					countOfLayers += self.reportInTabAndMacroWindow(layersWithShallowCurveBBox, "Small Curve BBox", layers, thisFont, masterID)
 					countOfLayers += self.reportInTabAndMacroWindow(layersWithAlmostOrthogonalLines, "Almost Orthogonal Lines", layers, thisFont, masterID)
 					countOfLayers += self.reportInTabAndMacroWindow(layersWithShortLines, "Short Line Segments", layers, thisFont, masterID)
-					countOfLayers += self.reportInTabAndMacroWindow(layersWithBadOutlineOrder, "Bad Outline Order or Orientation", layers, thisFont, masterID)
+					countOfLayers += self.reportInTabAndMacroWindow(layersWithBadOutlineOrder, "Bad Outline Order", layers, thisFont, masterID)
+					countOfLayers += self.reportInTabAndMacroWindow(layersWithBadPathDirections, "Bad Path Orientation", layers, thisFont, masterID)
 					countOfLayers += self.reportInTabAndMacroWindow(layersWithStrayPoints, "Stray Points", layers, thisFont, masterID)
 					countOfLayers += self.reportInTabAndMacroWindow(layersWithTwoPointOutlines, "Two-Point Outlines", layers, thisFont, masterID)
 					countOfLayers += self.reportInTabAndMacroWindow(layersWithOffcurveAsStartpoint, "Off-curve as start point", layers, thisFont, masterID)
@@ -834,7 +859,6 @@ class PathProblemFinder( object ):
 			import traceback
 			print(traceback.format_exc())
 			
-			
 	def reportInTabAndMacroWindow(self, layerList, title, layers, font, masterID):
 		if layerList and font:
 			# report in Tab:
@@ -862,6 +886,5 @@ class PathProblemFinder( object ):
 				))
 			
 		return len(layerList)
-		
 		
 PathProblemFinder()
