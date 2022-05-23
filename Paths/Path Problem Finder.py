@@ -432,9 +432,7 @@ class PathProblemFinder( object ):
 		self.w.decimalCoordinates.getNSButton().setToolTip_("Nodes and handles with decimal coordinates, i.e., points not exactly on the unit grid.")
 		linePos += lineHeight
 		
-		
 		# Line Separator:
-		
 		self.w.line = vanilla.HorizontalLine( (inset, linePos+3, -inset, 1))
 		linePos += int(lineHeight/2)
 		
