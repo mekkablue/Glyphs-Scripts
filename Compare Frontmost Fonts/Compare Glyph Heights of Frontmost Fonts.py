@@ -176,6 +176,7 @@ class CompareGlyphHeightsOfFrontmostFonts( object ):
 					collectedGlyphNames = tuple(set(collectedGlyphNames))
 					tabText = "/"+"/".join(collectedGlyphNames)
 					thisFont.newTab(tabText)
+					otherFont.newTab(tabText)
 			
 		except Exception as e:
 			# brings macro window to front and reports error:
