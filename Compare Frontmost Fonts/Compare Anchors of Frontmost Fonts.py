@@ -171,7 +171,7 @@ class CompareAnchorsOfFrontmostFonts( object ):
 				
 				theseIDs = [m.id for m in thisFont.masters]
 				otherIDs = [m.id for m in otherFont.masters]
-				masters = zip(theseIDs, otherIDs)
+				masters = tuple(zip(theseIDs, otherIDs))
 				
 				if len(theseIDs) != len(otherIDs):
 					print(u"⚠️ Different number of masters in (1) %s and (2) %s" % (thisFileName, otherFileName))
