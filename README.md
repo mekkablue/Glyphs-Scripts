@@ -273,7 +273,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 * **Axis Location Setter:** Batch-set axis locations for all instances with a certain name particle. E.g., set an axis location for all Condensed instances. *Needs Vanilla.*
 * **Axis Mapper:** Extracts, resets and inserts an ‘avar’ axis mapping for the Axis Mappings parameter. *Needs Vanilla.*
-* **Brace Layer Manager:** Find and replace brace layer coordinates in Glyphs 3 and later. *Needs Vanilla.*
+* **Brace and Bracket Manager:** Find and replace brace or bracket layer coordinates in Glyphs 3 and later. *Needs Vanilla.*
 * **Composite Variabler:** Reduplicates Brace and Bracket layers of components in the compounds in which they are used. Makes bracket layers work in composites. *Needs Vanilla.*
 * **Copy Layer to Layer:** Copies paths (and optionally, also components, anchors and metrics) from one Master to another. *Needs Vanilla.*
 * **Dekink Masters:** Dekinks your smooth point triplets in all compatible layers (useful if they are not horizontal or vertical). Select a point in one or more smooth point triplets, and run this script to move the corresponding nodes in all other masters to the same relative position. Thus you achieve the same point ratio in all masters and avoid interpolation kinks, when the angle of the triplet changes. There is a [video describing it.](http://tinyurl.com/dekink-py) The triplet problem is [described in this tutorial](http://www.glyphsapp.com/learn/multiple-masters-part-2-keeping-your-outlines-compatible).

@@ -1,14 +1,20 @@
-#MenuTitle: Brace Layer Manager
+#MenuTitle: Brace and Bracket Manager
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Find and replace brace layer coordinates.
+Find and replace brace and bracket layer coordinates.
 """
 
 import vanilla
 
 class BraceLayerManager( object ):
 	prefID = "com.mekkablue.BraceLayerManager"
+	
+	layerTypes = (
+		"{ } brace (intermediate) layers",
+		"[ ] bracket (alternate) layers",
+	)
+	
 	scopes = (
 		"in selected glyphs",
 		"⚠️ in ALL glyphs of current font",
@@ -23,7 +29,7 @@ class BraceLayerManager( object ):
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			( windowWidth, windowHeight ), # default window size
-			"Brace Layer Manager", # window title
+			"Brace and Bracket Manager", # window title
 			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
 			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
 			autosaveName = self.domain("mainwindow") # stores last window position and size
@@ -31,18 +37,20 @@ class BraceLayerManager( object ):
 		
 		# UI elements:
 		linePos, inset, lineHeight = 12, 12, 22
-		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 14), "Change brace (intermediate) layers:", sizeStyle='small', selectable=True )
+		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, 20, 14), "In", sizeStyle='small', selectable=True )
+		self.w.layerType = vanilla.PopUpButton( (inset+20, linePos, -inset, 17), self.layerTypes, sizeStyle='small', callback=self.SavePreferences )
+			
 		linePos += lineHeight
-		 
-		self.w.replaceText = vanilla.TextBox( (inset, linePos+2, 50, 14), "Replace", sizeStyle='small', selectable=True )
-		self.w.oldCoordinate = vanilla.ComboBox( (inset+50, linePos-1, 50, 19), self.allBraceLayerCoordinatesInFrontmostFont(), sizeStyle='small', callback=self.SavePreferences )
+		self.w.replaceText = vanilla.TextBox( (inset, linePos+2, 45, 14), "replace", sizeStyle='small', selectable=True )
+		self.w.oldCoordinate = vanilla.ComboBox( (inset+45, linePos-1, 55, 19), self.allBraceAndBracketLayerCoordinatesInFrontmostFont(), sizeStyle='small', callback=self.SavePreferences )
 		self.w.oldCoordinateUpdate = vanilla.SquareButton( (inset+105, linePos, 20, 18), "↺", sizeStyle='small', callback=self.update )
 		self.w.withText = vanilla.TextBox( (inset+130, linePos+2, 30, 14), "with", sizeStyle='small', selectable=True )
 		self.w.newCoordinate = vanilla.EditText( (inset+160, linePos-1, -inset, 19), "100", callback=self.SavePreferences, sizeStyle='small' )
 		linePos += lineHeight
 		
-		self.w.axisText = vanilla.TextBox( (inset, linePos+2, 95, 14), "for axis at index:", sizeStyle='small', selectable=True )
-		self.w.axisIndex = vanilla.EditText( (inset+95, linePos-1, 50, 19), "0", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.axisText = vanilla.TextBox( (inset, linePos+2, 95, 14), "for axis at index", sizeStyle='small', selectable=True )
+		self.w.axisIndex = vanilla.EditText( (inset+90, linePos-1, -inset-80, 19), "0", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.axisTextAfter = vanilla.TextBox( (-inset-78, linePos+2, -inset, 14), "(first axis = 0)", sizeStyle='small', selectable=True )
 		linePos += lineHeight
 
 		self.w.scope = vanilla.RadioGroup( (inset, linePos, -inset, lineHeight*len(self.scopes) ), self.scopes, callback=self.SavePreferences, sizeStyle = 'small' )
@@ -71,25 +79,36 @@ class BraceLayerManager( object ):
 	
 	def update(self, sender=None):
 		if sender==self.w.oldCoordinateUpdate:
-			allCoordinates = self.allBraceLayerCoordinatesInFrontmostFont()
+			allCoordinates = self.allBraceAndBracketLayerCoordinatesInFrontmostFont()
 			self.w.oldCoordinate.setItems(allCoordinates)
 	
-	def allBraceLayerCoordinatesInFrontmostFont(self, sender=None):
+	def allBraceAndBracketLayerCoordinatesInFrontmostFont(self, sender=None):
 		allCoordinates = []
 		axisIndex = 0
 		currentFont = Glyphs.font
+		isBraceLayer = self.pref("layerType") == 0
 		try:
 			axisIndex = int(self.pref("axisIndex"))
 		except:
 			print("Warning: could not retrieve preference for axis index, will default to 0.")
+			
 		if currentFont and len(currentFont.axes)>axisIndex:
 			axisID = currentFont.axes[axisIndex].axisId
 			for thisGlyph in currentFont.glyphs:
 				for thisLayer in thisGlyph.layers:
 					if thisLayer.isSpecialLayer and thisLayer.attributes:
-						if "coordinates" in thisLayer.attributes.keys():
+						if isBraceLayer and "coordinates" in thisLayer.attributes.keys():
 							currentCoord = thisLayer.attributes["coordinates"][axisID]
 							allCoordinates.append(currentCoord)
+						if not isBraceLayer and "axisRules" in thisLayer.attributes:
+							axisRules = thisLayer.attributes["axisRules"]
+							axisLimits = axisRules[axisID]
+							if axisLimits:
+								for border in ("min","max"):
+									if border in axisLimits.keys():
+										borderLimit = axisLimits[border]
+										allCoordinates.append(borderLimit)
+							
 			allCoordinates = sorted(set(allCoordinates))
 		
 		return allCoordinates
@@ -97,6 +116,7 @@ class BraceLayerManager( object ):
 	def SavePreferences( self, sender=None ):
 		try:
 			# write current settings into prefs:
+			Glyphs.defaults[self.domain("layerType")] = self.w.layerType.get()
 			Glyphs.defaults[self.domain("scope")] = self.w.scope.get()
 			Glyphs.defaults[self.domain("oldCoordinate")] = self.w.oldCoordinate.get()
 			Glyphs.defaults[self.domain("newCoordinate")] = self.w.newCoordinate.get()
@@ -110,12 +130,14 @@ class BraceLayerManager( object ):
 	def LoadPreferences( self ):
 		try:
 			# register defaults:
+			Glyphs.registerDefault(self.domain("layerType"), 0)
 			Glyphs.registerDefault(self.domain("scope"), 0)
 			Glyphs.registerDefault(self.domain("oldCoordinate"), 100)
 			Glyphs.registerDefault(self.domain("newCoordinate"), 200)
 			Glyphs.registerDefault(self.domain("axisIndex"), 0)
 			
 			# load previously written prefs:
+			self.w.layerType.set( self.pref("layerType") )
 			self.w.scope.set( self.pref("scope") )
 			self.w.oldCoordinate.set( self.pref("oldCoordinate") )
 			self.w.newCoordinate.set( self.pref("newCoordinate") )
@@ -135,6 +157,7 @@ class BraceLayerManager( object ):
 			if not self.SavePreferences():
 				print("Note: 'Brace Layer Manager' could not write preferences.")
 			
+			isBraceLayer = self.pref("layerType") == 0
 			scope = self.pref("scope")
 			if scope<2:
 				fonts = (Glyphs.font,)
@@ -148,13 +171,14 @@ class BraceLayerManager( object ):
 					Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 					return
 				else:
-					print("Brace Layer Manager Report for %s" % thisFont.familyName)
+					thisFont.disableUpdateInterface()
+					print("Brace and Bracket Manager Report for %s" % thisFont.familyName)
 					if thisFont.filepath:
 						print(thisFont.filepath)
 					else:
 						print("⚠️ The font file has not been saved yet.")
 					print()
-			
+					
 					searchFor = int(self.pref("oldCoordinate"))
 					replaceWith = int(self.pref("newCoordinate"))
 					axis = thisFont.axes[ int(self.pref("axisIndex")) ]
@@ -171,21 +195,39 @@ class BraceLayerManager( object ):
 					for glyph in glyphs:
 						for layer in glyph.layers:
 							if layer.isSpecialLayer and layer.attributes:
-								if "coordinates" in layer.attributes.keys():
-									currentPos = layer.attributes["coordinates"][axisID]
-									if currentPos == searchFor:
-										layer.attributes["coordinates"][axisID] = replaceWith
-										count += 1
-										print("🔠 %i. %s" % (count, glyph.name))
+								if isBraceLayer:
+									if "coordinates" in layer.attributes.keys():
+										currentPos = layer.attributes["coordinates"][axisID]
+										if currentPos == searchFor:
+											layer.attributes["coordinates"][axisID] = replaceWith
+											count += 1
+											print("🔠 %i. %s" % (count, glyph.name))
+								else:
+									axisRules = layer.attributes["axisRules"]
+									if axisRules:
+										axisLimits = axisRules[axisID]
+										if axisLimits:
+											for border in ("min","max"):
+												if border in axisLimits.keys():
+													borderLimit = axisLimits[border]
+													if borderLimit == searchFor:
+														axisLimits[border] = replaceWith
+														count += 1
+														print("🔠 %i. %s" % (count, glyph.name))
+					thisFont.enableUpdateInterface()
 					
 				print()
 				
 			# Final report:
-			reportMsg = "Changed %i brace layer%s" % ( count, "" if count==1 else "s")
+			reportMsg = "Changed %i %s layer%s" % ( 
+				count, 
+				"brace" if isBraceLayer else "bracket",
+				"" if count==1 else "s",
+				)
 			if len(fonts) > 1:
 				reportMsg += " in %i fonts"
 			Glyphs.showNotification( 
-				"Brace Layer Update Done",
+				"Brace & Bracket Layer Update Done",
 				"%s. Details in Macro Window" % reportMsg,
 				)
 			print("%s.\nDone." % reportMsg)
@@ -193,9 +235,11 @@ class BraceLayerManager( object ):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Brace Layer Manager Error: %s" % e)
+			print("Brace and Bracket Manager Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+		finally:
+			thisFont.enableUpdateInterface()
 
 if Glyphs.versionNumber >= 3:
 	# GLYPHS 3
