@@ -79,5 +79,5 @@ if thisFont and selectedLayers:
 	finally:
 		thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 	
-	if Glyphs.versionNumber < 3:
-		NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont)
+	if Glyphs.versionNumber < 3 and thisFont.currentTab:
+		NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)

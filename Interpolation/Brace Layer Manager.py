@@ -214,7 +214,9 @@ class BraceLayerManager( object ):
 														axisLimits[border] = replaceWith
 														count += 1
 														print("  🔠 %i. %s" % (count, glyph.name))
-					NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
+					
+					if thisFont.currentTab:
+						NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
 					
 				print()
 				
