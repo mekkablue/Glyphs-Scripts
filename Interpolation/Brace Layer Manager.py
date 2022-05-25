@@ -109,7 +109,7 @@ class BraceLayerManager( object ):
 										borderLimit = axisLimits[border]
 										allCoordinates.append(borderLimit)
 							
-			allCoordinates = sorted(set(allCoordinates))
+			allCoordinates = sorted(set(allCoordinates), key=lambda coordinate: int(coordinate))
 		
 		return allCoordinates
 	
