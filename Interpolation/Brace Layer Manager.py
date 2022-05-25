@@ -201,7 +201,7 @@ class BraceLayerManager( object ):
 										if currentPos == searchFor:
 											layer.attributes["coordinates"][axisID] = replaceWith
 											count += 1
-											print("🔠 %i. %s" % (count, glyph.name))
+											print("  🔠 %i. %s" % (count, glyph.name))
 								else:
 									axisRules = layer.attributes["axisRules"]
 									if axisRules:
@@ -213,7 +213,7 @@ class BraceLayerManager( object ):
 													if borderLimit == searchFor:
 														axisLimits[border] = replaceWith
 														count += 1
-														print("🔠 %i. %s" % (count, glyph.name))
+														print("  🔠 %i. %s" % (count, glyph.name))
 					thisFont.enableUpdateInterface()
 					
 				print()
