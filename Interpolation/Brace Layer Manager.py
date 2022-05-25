@@ -6,6 +6,7 @@ Find and replace brace and bracket layer coordinates.
 """
 
 import vanilla
+from AppKit import NSNotificationCenter
 
 class BraceLayerManager( object ):
 	prefID = "com.mekkablue.BraceLayerManager"
@@ -171,7 +172,6 @@ class BraceLayerManager( object ):
 					Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 					return
 				else:
-					thisFont.disableUpdateInterface()
 					print("Brace and Bracket Manager Report for %s" % thisFont.familyName)
 					if thisFont.filepath:
 						print(thisFont.filepath)
@@ -214,7 +214,7 @@ class BraceLayerManager( object ):
 														axisLimits[border] = replaceWith
 														count += 1
 														print("  🔠 %i. %s" % (count, glyph.name))
-					thisFont.enableUpdateInterface()
+					NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont)
 					
 				print()
 				
@@ -238,8 +238,6 @@ class BraceLayerManager( object ):
 			print("Brace and Bracket Manager Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
-		finally:
-			thisFont.enableUpdateInterface()
 
 if Glyphs.versionNumber >= 3:
 	# GLYPHS 3
