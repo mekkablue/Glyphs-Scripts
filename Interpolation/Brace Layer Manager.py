@@ -102,8 +102,8 @@ class BraceLayerManager( object ):
 							allCoordinates.append(currentCoord)
 						if not isBraceLayer and "axisRules" in thisLayer.attributes:
 							axisRules = thisLayer.attributes["axisRules"]
-							axisLimits = axisRules[axisID]
-							if axisLimits:
+							if axisRules and axisID in axisRules.keys():
+								axisLimits = axisRules[axisID]
 								for border in ("min","max"):
 									if border in axisLimits.keys():
 										borderLimit = axisLimits[border]
