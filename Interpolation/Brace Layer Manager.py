@@ -185,7 +185,7 @@ class BraceLayerManager( object ):
 					axisID = axis.axisId
 					axisName = axis.name
 					
-					print("🔢 %s: %i → %i" % (axisName, searchFor, replaceWith))
+					print("🔢 Attempting %s: %i → %i" % (axisName, searchFor, replaceWith))
 					
 					if scope == 0:
 						glyphs = [l.parent for l in thisFont.selectedLayers]
@@ -209,7 +209,7 @@ class BraceLayerManager( object ):
 										if axisLimits:
 											for border in ("min","max"):
 												if border in axisLimits.keys():
-													borderLimit = axisLimits[border]
+													borderLimit = int(axisLimits[border])
 													if borderLimit == searchFor:
 														axisLimits[border] = replaceWith
 														count += 1
