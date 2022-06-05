@@ -25,35 +25,35 @@ class CompareAnchorsOfFrontmostFonts( object ):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 		
-		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 28), u"Lists all differences in anchor structures and positions in a detailed report in the Macro Window.", sizeStyle='small', selectable=True )
+		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 28), "Lists all differences in anchor structures and positions in a detailed report in the Macro Window.", sizeStyle='small', selectable=True )
 		linePos += lineHeight*2
 		
-		self.w.reportAnchorHeights = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Also report differences in anchor heights", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reportAnchorHeights = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Also report differences in anchor heights", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.reportAnchorHeights.getNSButton().setToolTip_("Lists anchors in corresponding glyphs if their y coordinates differ more than the threshold set below. Otherwise, only report anchor structures.")
 		linePos += lineHeight
 		
-		self.w.anchorHeightToleranceText = vanilla.TextBox( (inset*2, linePos+2, 120, 14), u"Deviation tolerance:", sizeStyle='small', selectable=True )
+		self.w.anchorHeightToleranceText = vanilla.TextBox( (inset*2, linePos+2, 120, 14), "Deviation tolerance:", sizeStyle='small', selectable=True )
 		self.w.anchorHeightTolerance = vanilla.EditText( (inset*2+120, linePos, -inset, 19), "0", callback=self.SavePreferences, sizeStyle='small' )
-		self.w.anchorHeightTolerance.getNSTextField().setToolTip_(u"Will not report if the difference in y coordinates is less or same as the given tolerance. Use this if e.g. your x-height is different in your italic. Set to zero or leave blank for exact match.")
+		self.w.anchorHeightTolerance.getNSTextField().setToolTip_("Will not report if the difference in y coordinates is less or same as the given tolerance. Use this if e.g. your x-height is different in your italic. Set to zero or leave blank for exact match.")
 		linePos += lineHeight
 		
-		self.w.ignoreExitEntry = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Ignore exit and entry anchors", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.ignoreExitEntry = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Ignore exit and entry anchors", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.ignoreExitEntry.getNSButton().setToolTip_("Will skip cursive attachment anchors (#)exit and (#)entry.")
 		linePos += lineHeight
 		
-		self.w.ignoreHashtaggedAnchors = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Ignore #hashtagged anchors", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.ignoreHashtaggedAnchors = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Ignore #hashtagged anchors", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.ignoreHashtaggedAnchors.getNSButton().setToolTip_("Will skip anchors that start with # or _#.")
 		linePos += lineHeight
 		
-		self.w.reportOnlyTopBottomCenter = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Report only top, bottom, center and corresponding anchors", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reportOnlyTopBottomCenter = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Report only top, bottom, center and corresponding anchors", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.reportOnlyTopBottomCenter.getNSButton().setToolTip_("Only reports default mark attachment anchors top, _top, bottom, _bottom, center and _center. Ignores other anchors such as ogonek or topright. This option makes the ignore options above obsolete.")
 		linePos += lineHeight
 		
-		self.w.includeNonExporting = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Include non-exporting glyphs (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.includeNonExporting = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Include non-exporting glyphs (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.includeNonExporting.getNSButton().setToolTip_("Also report if glyph is set to not export. Recommended because non-exporting glyphs may appear as components in other glyphs.")
 		linePos += lineHeight
 
-		self.w.openTabAndSelectAnchors = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Open tabs with affected glyph layers and preselect anchors", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.openTabAndSelectAnchors = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Open tabs with affected glyph layers and preselect anchors", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.openTabAndSelectAnchors.getNSButton().setToolTip_("Opens the affected glyph layers in a tab per font, resets the selection, and selects the affected anchors for immediate editing. To take advantage of the selection, do not double click a glyph for editing (the click resets the selection), but open them with the Esc key or by switching to the Edit tool.")
 		linePos += lineHeight
 		
@@ -81,7 +81,7 @@ class CompareAnchorsOfFrontmostFonts( object ):
 			self.w.ignoreExitEntry.enable( ignoreSetting )
 			self.w.ignoreHashtaggedAnchors.enable( ignoreSetting )
 		except Exception as e:
-			print(u"Error: Could not update UI. You can ignore this warning, but let Rainer know.")
+			print("Error: Could not update UI. You can ignore this warning, but let Rainer know.")
 			print(e)
 			import traceback
 			print(traceback.format_exc())
@@ -174,7 +174,7 @@ class CompareAnchorsOfFrontmostFonts( object ):
 				masters = tuple(zip(theseIDs, otherIDs))
 				
 				if len(theseIDs) != len(otherIDs):
-					print(u"⚠️ Different number of masters in (1) %s and (2) %s" % (thisFileName, otherFileName))
+					print("⚠️ Different number of masters in (1) %s and (2) %s" % (thisFileName, otherFileName))
 					print()
 				
 				skippedGlyphNames = []
@@ -183,15 +183,15 @@ class CompareAnchorsOfFrontmostFonts( object ):
 					self.w.progress.set( i/len(thisFont.glyphs) )
 					otherGlyph = otherFont.glyphs[thisGlyph.name]
 					if not otherGlyph:
-						print(u"⚠️ Glyph %s missing in (2) %s" % (thisGlyph.name, otherFileName))
+						print("⚠️ Glyph %s missing in (2) %s" % (thisGlyph.name, otherFileName))
 					else:
 						if not (thisGlyph.export or Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.includeNonExporting"]):
 							skippedGlyphNames.append(thisGlyph.name) 
 							if otherGlyph.export:
-								print(u"😬 Glyph %s exports in (2) %s, but not in (1) %s. Skipping." % (thisGlyph.name, otherFileName, thisFileName))
+								print("😬 Glyph %s exports in (2) %s, but not in (1) %s. Skipping." % (thisGlyph.name, otherFileName, thisFileName))
 						else:
 							if not (otherGlyph.export or Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.includeNonExporting"]):
-								print(u"😬 Glyph %s exports in (1) %s, but not in (2) %s. Skipping." % (thisGlyph.name, thisFileName, otherFileName))
+								print("😬 Glyph %s exports in (1) %s, but not in (2) %s. Skipping." % (thisGlyph.name, thisFileName, otherFileName))
 								skippedGlyphNames.append(thisGlyph.name) 
 							else:
 								
@@ -232,7 +232,7 @@ class CompareAnchorsOfFrontmostFonts( object ):
 										missingInTheseAnchors = [a for a in otherAnchors if not a in theseAnchors]
 										
 										if missingInTheseAnchors:
-											print(u"🚫 %s (%s): missing anchor%s %s in (1) %s" % (
+											print("🚫 %s (%s): missing anchor%s %s in (1) %s" % (
 												thisGlyph.name, thisLayer.name,
 												"" if len(missingInTheseAnchors)==1 else "s",
 												", ".join(["'%s'"%a for a in missingInTheseAnchors]),
@@ -243,7 +243,7 @@ class CompareAnchorsOfFrontmostFonts( object ):
 											affectedGlyphNames.append(otherGlyph.name)
 												
 										if missingInOtherAnchors:
-											print(u"🚫 %s (%s): missing anchor%s %s in (2) %s" % (
+											print("🚫 %s (%s): missing anchor%s %s in (2) %s" % (
 												otherGlyph.name, otherLayer.name,
 												"" if len(missingInOtherAnchors)==1 else "s",
 												", ".join(["'%s'"%a for a in missingInOtherAnchors]),
@@ -265,7 +265,7 @@ class CompareAnchorsOfFrontmostFonts( object ):
 														differingAnchors.append(thisAnchor.name)
 										
 										if differingAnchors:
-											print(u"↕️ %s: %s deviate%s in: (1) %s, (2) %s" % (
+											print("↕️ %s: %s deviate%s in: (1) %s, (2) %s" % (
 												thisGlyph.name,
 												", ".join(["'%s'" % a for a in differingAnchors]),
 												"s" if len(differingAnchors)==1 else "", 
