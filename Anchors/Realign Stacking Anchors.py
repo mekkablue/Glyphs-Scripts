@@ -194,7 +194,12 @@ class RealignStackingAnchors( object ):
 										oldPosition = defaultAnchor.position
 									
 										# determine italic angle and move the anchor accordingly:
-										italicAngle = thisLayer.associatedFontMaster().italicAngle
+										if Glyphs.versionNumber >= 3:
+											# GLYPHS 3
+											italicAngle = thisLayer.italicAngle
+										else:
+											# GLYPHS 2
+											italicAngle = thisLayer.associatedFontMaster().italicAngle
 										straightPosition = NSPoint( underscoreAnchor.position.x, defaultAnchor.position.y )
 										if italicAngle:
 											defaultAnchor.position = italicize( straightPosition, italicAngle, underscoreAnchor.position.y )
