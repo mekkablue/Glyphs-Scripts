@@ -522,7 +522,7 @@ htmlContent = """<head>
 	function changeFont() {
 		var selected_index = selector.selectedIndex;
 		var selected_option_text = selector.options[selected_index].text;
-		document.getElementById('waterfall').style.fontFamily = selected_option_text;
+		document.getElementById('waterfall').style.fontFamily = `'${selected_option_text}'`;
 	}
 	function setDefaultText(defaultText) {
 		document.getElementById('textInput').value = decodeEntities(defaultText);
