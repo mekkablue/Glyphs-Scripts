@@ -153,6 +153,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Find and Replace Components:** Relinks components in selected glyphs to a new source glyph. *Needs Vanilla.*
 * **Find and Replace Cap and Corner Components:** Relinks `_cap.*` and `_corner.*` components in selected glyphs to a different corner/cap component. *Needs Vanilla.*
 * **Find and Replace Corner Components at Certain Angles:** Replace Corner Components at blunt or acute angles. *Needs Vanilla.*
+* **Move Paths to Component:** Moves paths to a separate glyph and insert them as auto-aligned, anchored components in the source glyph. Perfect for making path-component mixtures into pure composites. *Needs Vanilla.*
 * **New Tab with Composable Glyphs that have no Components:** Opens a new Edit tab containing all glyphs that consist of paths, but could be composed according to Glyph Data.
 * **New Tab with Detached Corner Components:** Opens a new Edit tab containing all glyphs that have a corner component which is not properly connected to a node.
 * **New Tab with Locked Components:** Opens a new tab containing all layers that contain locked components.
