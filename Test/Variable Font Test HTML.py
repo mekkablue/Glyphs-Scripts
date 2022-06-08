@@ -425,7 +425,7 @@ def allOTVarSliders(thisFont):
 		maxValue = axisDict[axisName]["max"]
 		axisTag = axisDict[axisName]["tag"]
 		
-		html += u"\t\t\t<div class='labeldiv'><label class='sliderlabel' id='label_%s' name='%s'>%s</label><input type='range' min='%i' max='%i' value='%i' class='slider' id='%s' oninput='updateSlider();'></div>\n" % (
+		html += "\t\t\t<div class='labeldiv'><label class='sliderlabel' id='label_%s' name='%s'>%s</label><input type='range' min='%i' max='%i' value='%i' class='slider' id='%s' oninput='updateSlider();'></div>\n" % (
 			axisTag, axisName, axisName, 
 			minValue, maxValue, minValue,
 			axisTag
@@ -500,18 +500,20 @@ def defaultVariationCSS(thisFont):
 
 def buildHTML( fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, fontLangMenu, shouldCreateSamsa=False):
 	samsaPlaceholder = "<!-- placeholder for external links, hold down OPTION and SHIFT while running the script -->"
-	htmlContent = u"""
+	htmlContent = """
 <html>
 	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 	<meta http-equiv="X-UA-Compatible" content="IE=9" />
 	<head>
 		<title>OTVar Test: ###fontFamilyNameWithSpaces###</title>
-		<style>
+		<style id="font-declaration">
 			@font-face { 
 				font-family: "###fontFamilyName###";
 				src: url("###fontFileName###");
 			}
+		</style>
+		<style>
 			body {
 				padding: 0;
 				margin: auto;
@@ -868,6 +870,31 @@ def buildHTML( fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, f
 				const menu = document.getElementById("featureControls");
 				menu.hidden = !menu.hidden;
 			}
+			function setFontTypeTo(suffix) {
+				const styleId = "font-declaration";
+				var fontStyleSheet = document.getElementById(styleId);
+				var newFontStyleSheet = document.createElement("style");
+				newFontStyleSheet.id = styleId;
+				newFontStyleSheet.textContent = `
+				@font-face { 
+					font-family: "###fontFamilyName###";
+					src: url("###fontFileNameWithoutSuffix###.${suffix}");
+				}`;
+				fontStyleSheet.replaceWith(newFontStyleSheet);
+			}
+			function toggleType() {
+				const link = document.getElementById("type");
+				if (link.textContent == "TT") {
+					link.textContent = "W1";
+					setFontTypeTo("woff");
+				} else if (link.textContent == "W1") {
+					link.textContent = "W2";
+					setFontTypeTo("woff2");
+				} else {
+					link.textContent = "TT";
+					setFontTypeTo("ttf");
+				}
+			}
 		</script>
 	</head>
 	<body onload="updateSlider();resetParagraph();document.getElementById('textarea').focus()">
@@ -880,6 +907,7 @@ def buildHTML( fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, f
 
 			<!-- OT features -->
 			<div id="featureControls">
+				<a onclick="toggleType();" id="type" class="emojiButton">###TTW1W2###</a>
 				%s
 				<a onclick="toggleInverse();" id="invert" class="emojiButton">🔲</a>
 				<input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
@@ -907,6 +935,15 @@ def buildHTML( fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, f
 		samsaReplaceWith = "<a href='samsa-gui.html' class='emojiButton' style='color:rgb(255, 165, 0);'>🅢</a>"
 	else:
 		samsaReplaceWith = samsaPlaceholder
+	
+	typeAppreviations = {
+		"otf": "OT",
+		"ttf": "TT",
+		"woff": "W1",
+		"woff2": "W2",
+	}
+	fileTypeAbbreviation = typeAppreviations[fileName.split(".")[-1]]
+	
 	replacements = (
 		( "###fontFamilyNameWithSpaces###", fullName ),
 		( "###fontFamilyName###", fullName ),
@@ -914,6 +951,8 @@ def buildHTML( fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, f
 		( "###sliders###", otVarSliders ),
 		( "###variationSettings###", variationCSS ), 
 		( "###fontFileName###", fileName ),
+		( "###fontFileNameWithoutSuffix###", ".".join(fileName.split(".")[:-1]) ),
+		( "###TTW1W2###", fileTypeAbbreviation ),
 		( "###featureList###", featureList ),
 		( "###languageSelection###", fontLangMenu ),
 		( samsaPlaceholder, samsaReplaceWith ),
