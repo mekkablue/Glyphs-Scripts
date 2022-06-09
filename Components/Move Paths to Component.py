@@ -6,7 +6,7 @@ Moves paths to a separate glyph and insert them as auto-aligned, anchored compon
 """
 
 import vanilla
-from AppKit import NSNotificationCenter
+from AppKit import NSNotificationCenter, NSPoint
 from copy import copy as copy
 
 class MovePathstoComponent( object ):
