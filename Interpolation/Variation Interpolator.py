@@ -89,15 +89,14 @@ class VariationInterpolator( object ):
 	def interpolatePaths( self, thisLayer, backgroundFactor, foregroundFactor ):
 		# interpolate paths only if there is a compatible background:
 		if thisLayer.background: # and (thisLayer.compareString() == thisLayer.background.compareString()):
-			for thisPathIndex in range(len(thisLayer.paths)):
-				thisPath = thisLayer.paths[thisPathIndex]
-				for thisNodeIndex in range(len(thisPath.nodes)):
-					thisNode = thisPath.nodes[thisNodeIndex]
-					foregroundPosition = thisNode.position
-					bPath = thisLayer.background.paths[thisPathIndex]
+			for path_index, path in enumerate(thisLayer.paths):
+				for node_index, node in enumerate(path.nodes):
+					foregroundPosition = node.position
+					bPath = thisLayer.background.paths[path_index]
 					if bPath:
-						backgroundPosition = bPath.nodes[thisNodeIndex].position
-						thisNode.setPosition_( self.interpolatedPosition( foregroundPosition, foregroundFactor, backgroundPosition, backgroundFactor ) )
+						backgroundPosition = bPath.nodes[node_index].position
+						node.setPosition_( self.interpolatedPosition( foregroundPosition, foregroundFactor,
+						                                           backgroundPosition, backgroundFactor ) )
 		else:
 			thisGlyph = thisLayer.parent
 			print("%s: incompatible background layer ('%s'):" % ( thisGlyph.name, thisLayer.name ))
