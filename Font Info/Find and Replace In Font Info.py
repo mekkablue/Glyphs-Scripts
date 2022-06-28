@@ -165,10 +165,11 @@ class FindAndReplaceInFontInfo( object ):
 				print("Find and Replace in Font Info:")
 				
 				for thisFont in fonts:
-					print( "\n🔠 %s (family: %s)" % (thisFont.filepath.lastPathComponent(), thisFont.familyName) )
 					if thisFont.filepath:
+						print( "\n🔠 %s (family: %s)" % (thisFont.filepath.lastPathComponent(), thisFont.familyName) )
 						print( "📂 ~/%s" % thisFont.filepath.relativePathFromBaseDirPath_("~") )
 					else:
+						print( "\n🔠 %s" % thisFont.familyName ) 
 						print("⚠️ The font file has not been saved yet.")
 					
 					if thisFont.familyName: # could be None
