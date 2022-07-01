@@ -148,20 +148,13 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 *Populate Backgrounds with Components is very useful when you build letters based on other, e.g., ae or oe can take an e in the background. The script puts the e in the background of each master, and the UI has an option to align selected points with the e in the background. If you use corner components for serifs in a multiple-master font, the Propagate script will save you a lot of time.*
 
 * **Alignment Manager:** Enables or disables automatic alignment for all components on visible layers in selected glyphs. Does the same as the command in the context menu, but you can do it in one step for many glyphs. *Needs Vanilla.*
+* **Component Problem Finder:** Find possible issues with components and corner components:  composable glyphs consisting of paths; locked, nested, orphaned, mirrored, shifted, rotated and scaled components; composite glyphs with an unusual component order or an unorthodox component structure. Also, disconnected and scaled corner components. *Needs Vanilla.*
 * **Decompose Components in Background:** Decomposes background layers of selected glyphs. Works on the current master or all masters, or all masters of all fonts.
 * **Decompose Corner and Cap Components:** Decomposes all corner and cap components in selected glyphs. Reports to Macro window.
 * **Find and Replace Components:** Relinks components in selected glyphs to a new source glyph. *Needs Vanilla.*
 * **Find and Replace Cap and Corner Components:** Relinks `_cap.*` and `_corner.*` components in selected glyphs to a different corner/cap component. *Needs Vanilla.*
 * **Find and Replace Corner Components at Certain Angles:** Replace Corner Components at blunt or acute angles. *Needs Vanilla.*
 * **Move Paths to Component:** Moves paths to a separate glyph and insert them as auto-aligned, anchored components in the source glyph. Perfect for making path-component mixtures into pure composites. *Needs Vanilla.*
-* **New Tab with Composable Glyphs that have no Components:** Opens a new Edit tab containing all glyphs that consist of paths, but could be composed according to Glyph Data.
-* **New Tab with Detached Corner Components:** Opens a new Edit tab containing all glyphs that have a corner component which is not properly connected to a node.
-* **New Tab with Locked Components:** Opens a new tab containing all layers that contain locked components.
-* **New Tab with Nested Components:** Opens a new tab with all nested components. *Needs Vanilla.*
-* **New Tab with Orphaned Components:** Opens a new tab in the current font window containing all glyphs (of the current master) that have components that point to non-existent glyphs, i.e., no base glyphs.
-* **New Tab with Transformed Components:** Opens a new tab containing all compound glyphs that have mirrored, shifted, rotated, or scaled components. *Needs Vanilla.*
-* **New Tab with Transformed Corner Components:** Opens a new Edit tab containing all glyphs with scaled corner components.
-* **New Tab with Unusual Composites:** Open a new tab containing all composite glyphs that have an unusual component order or an unorthodox component structure. Useful for finding wrong component orders.
 * **Populate Backgrounds with Components:** Removes the specified component from all glyphs or all selected glyphs. *Needs Vanilla.*
 * **Propagate Corner Components to Other Masters:** Tries to recreate the corner components of the current master layer in all other masters of the same glyph. Make sure your outlines are compatible.
 * **Remove Components:** Removes the specified component from all (selected) glyphs.
