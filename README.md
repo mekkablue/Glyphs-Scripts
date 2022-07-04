@@ -345,6 +345,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Green Blue Manager:** Define an angle above which a node will be set to blue, below which it will be set to green. *Needs Vanilla.*
 * **Grid Switcher:** Toggles grid between two user-definable gridstep values with the click of a floating button. *Needs Vanilla.*
 * **Harmonise Curve to Line:** Will rearrange handles on (selected) curve segments with a following line segment, in such a way that the transition between the two segments is smooth (harmonized).
+* **Interpolate two paths:** Select two paths and run this script, it will replace them with their interpolation at 50%.
 * **New Tab with Small Paths:** Opens a new tab containing paths that are smaller than a user-definable threshold size in square units.
 * **Path Problem Finder:** Finds all kinds of potential problems in outlines, and opens a new tab with affected layers. *Needs Vanilla.*
 * **Position Clicker:** Finds all combinations of positional shapes that do not click well. ‘Clicking’ means sharing two point coordinates when overlapping. *Needs Vanilla.*
