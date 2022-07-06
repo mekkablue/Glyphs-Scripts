@@ -17,7 +17,6 @@ class MasterFiller(object):
 		
 		self.w.text_2 = vanilla.TextBox((15, 32+2, 120, 14), "into selection of", sizeStyle='small')
 		self.w.master_into = vanilla.PopUpButton((120, 32, 80, 17), self.GetMasterNames(), sizeStyle='small', callback=self.MasterChangeCallback)
-		#self.w.anchor_value.bind( "+", self.ValuePlus1 )
 
 		self.w.copybutton = vanilla.Button((-80, 32, -15, 17), "Copy", sizeStyle='small', callback=self.buttonCallback)
 		self.w.setDefaultButton( self.w.copybutton )
@@ -51,17 +50,25 @@ class MasterFiller(object):
 			num_into = len(thisGlyph.layers[index_into].paths)
 
 			if num_into == 0 and num_from > 0:
+				for thisAnchor in thisGlyph.layers[index_from].anchors:
+					newAnchor = GSAnchor()
+					newAnchor.name = thisAnchor.name
+					newAnchor.position = thisAnchor.position
+				
 				for thisPath in thisGlyph.layers[index_from].paths:
 					newPath = GSPath()
 
 					for n in thisPath.nodes:
 						newNode = GSNode()
 						newNode.type = n.type
+						newNode.connection = n.connection
 						newNode.setPosition_((n.x, n.y))
 						newPath.addNode_( newNode )
 
 					newPath.closed = thisPath.closed
 					thisGlyph.layers[index_into].paths.append( newPath )
+				
+				thisGlyph.layers[index_into].width = thisGlyph.layers[index_from].width
 		
 		self.w.close()
 
