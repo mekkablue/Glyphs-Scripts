@@ -46,29 +46,51 @@ class MasterFiller(object):
 		index_into = self.w.master_into.get()
 				
 		for thisGlyph in selectedGlyphs:
-			num_from = len(thisGlyph.layers[index_from].paths)
-			num_into = len(thisGlyph.layers[index_into].paths)
-
-			if num_into == 0 and num_from > 0:
-				for thisAnchor in thisGlyph.layers[index_from].anchors:
-					newAnchor = GSAnchor()
-					newAnchor.name = thisAnchor.name
-					newAnchor.position = thisAnchor.position
+			sourceLayer = thisGlyph.layers[index_from]
+			targetLayer = thisGlyph.layers[index_into]
+			
+			if Glyphs.versionNumber >= 3:
+				# GLYPHS 3
+				targetLayerIsEmpty = len(targetLayer.shapes)==0
+			else:
+				# GLYPHS 2
+				targetLayerIsEmpty = all(
+					len(targetLayer.paths)==0,
+					len(targetLayer.components)==0,
+				)
+			
+			if targetLayerIsEmpty:
+				if len(targetLayer.anchors)==0:
+					for originalAnchor in sourceLayer.anchors:
+						newAnchor = GSAnchor()
+						newAnchor.name = originalAnchor.name
+						newAnchor.position = originalAnchor.position
+						targetLayer.anchors.append( newAnchor )
 				
-				for thisPath in thisGlyph.layers[index_from].paths:
+				for originalPath in sourceLayer.paths:
 					newPath = GSPath()
-
-					for n in thisPath.nodes:
+					for originalNode in originalPath.nodes:
 						newNode = GSNode()
-						newNode.type = n.type
-						newNode.connection = n.connection
-						newNode.setPosition_((n.x, n.y))
-						newPath.addNode_( newNode )
-
-					newPath.closed = thisPath.closed
-					thisGlyph.layers[index_into].paths.append( newPath )
+						newNode.type = originalNode.type
+						newNode.connection = originalNode.connection
+						newNode.position = originalNode.position
+						newPath.nodes.append( newNode )
+					newPath.closed = originalPath.closed
+					targetLayer.paths.append( newPath )
 				
-				thisGlyph.layers[index_into].width = thisGlyph.layers[index_from].width
+				for originalComponent in sourceLayer.components:
+					print(originalComponent)
+					newComponent = GSComponent()
+					newComponent.componentName = originalComponent.componentName
+					newComponent.position = originalComponent.position
+					newComponent.transform = originalComponent.transform
+					targetLayer.components.append( newComponent )
+					# align after adding component
+					newComponent.alignment = originalComponent.alignment
+					newComponent.disableAlignment = originalComponent.disableAlignment
+					newComponent.automaticAlignment = originalComponent.automaticAlignment
+				
+				targetLayer.width = sourceLayer.width
 		
 		self.w.close()
 
