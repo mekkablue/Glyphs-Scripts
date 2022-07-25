@@ -127,7 +127,6 @@ class PrepareFontforGit( object ):
 					theseFonts = (Glyphs.font,)
 			
 				for thisFont in theseFonts:
-					thisFont = Glyphs.font # frontmost font
 					print("🧑🏽‍💻 Prepare Font for Git: %s" % thisFont.familyName)
 					if thisFont.filepath:
 						print("📄 %s" % thisFont.filepath)
