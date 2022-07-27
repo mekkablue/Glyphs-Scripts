@@ -16,8 +16,8 @@ class PrepareFontforGit( object ):
 	
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 350
-		windowHeight = 260
+		windowWidth  = 360
+		windowHeight = 160
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -39,12 +39,17 @@ class PrepareFontforGit( object ):
 		self.w.preventTimeStamps = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Prevent storing of time stamps (Write lastChange = OFF)", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		linePos += lineHeight
 		
-		self.w.applyToFontsText = vanilla.TextBox( (inset, linePos+2, 60, 14), "Apply to:", sizeStyle='small', selectable=True )
-		self.w.applyToFonts = vanilla.PopUpButton( (inset+60, linePos, -inset, 17), ("frontmost font only", "⚠️ ALL open fonts"), sizeStyle='small', callback=self.SavePreferences )
+		self.w.fileFormat = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Set File Format to Glyphs version 3", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
+		
+		
+		# Apply Scope:
+		self.w.applyToFontsText = vanilla.TextBox( (inset, -18-inset+2, 60, 14), "Apply to:", sizeStyle='small', selectable=True )
+		self.w.applyToFonts = vanilla.PopUpButton( (inset+60, -18-inset, -120-inset, 17), ("frontmost font only", "⚠️ ALL open fonts"), sizeStyle='small', callback=self.SavePreferences )
 		linePos += lineHeight
 		
 		# Run Button:
-		self.w.runButton = vanilla.Button( (-80-inset, -20-inset, -inset, -inset), "Apply", sizeStyle='regular', callback=self.PrepareFontforGitMain )
+		self.w.runButton = vanilla.Button( (-100-inset, -20-inset, -inset, -inset), "Apply", sizeStyle='regular', callback=self.PrepareFontforGitMain )
 		self.w.setDefaultButton( self.w.runButton )
 		
 		# Load Settings:
@@ -74,6 +79,7 @@ class PrepareFontforGit( object ):
 			Glyphs.defaults[self.domain("applyToFonts")] = self.w.applyToFonts.get()
 			Glyphs.defaults[self.domain("preventDisplayStrings")] = self.w.preventDisplayStrings.get()
 			Glyphs.defaults[self.domain("preventTimeStamps")] = self.w.preventTimeStamps.get()
+			Glyphs.defaults[self.domain("fileFormat")] = self.w.fileFormat.get()
 			
 			self.updateGUI()
 			return True
@@ -88,11 +94,13 @@ class PrepareFontforGit( object ):
 			Glyphs.registerDefault(self.domain("applyToFonts"), 1)
 			Glyphs.registerDefault(self.domain("preventDisplayStrings"), 1)
 			Glyphs.registerDefault(self.domain("preventTimeStamps"), 0)
+			Glyphs.registerDefault(self.domain("fileFormat"), 1)
 			
 			# load previously written prefs:
 			self.w.applyToFonts.set( self.pref("applyToFonts") )
 			self.w.preventDisplayStrings.set( self.pref("preventDisplayStrings") )
 			self.w.preventTimeStamps.set( self.pref("preventTimeStamps") )
+			self.w.fileFormat.set( self.pref("fileFormat") )
 			
 			self.updateGUI()
 			return True
@@ -105,7 +113,7 @@ class PrepareFontforGit( object ):
 		while font.customParameters[parameterName]:
 			del font.customParameters[parameterName]
 		font.customParameters[parameterName] = parameterValue
-		print("✅ Font Parameter ‘%s’ = %i" % (parameterName, parameterValue))
+		print("✅ Font Info > Font > Custom Parameters > %s = %i" % (parameterName, parameterValue))
 		
 	def PrepareFontforGitMain( self, sender=None ):
 		try:
@@ -137,6 +145,13 @@ class PrepareFontforGit( object ):
 						if bool(self.pref(optionKey)):
 							parameterName, parameterValue = self.parameterDict[optionKey]
 							self.setParameterForFont(thisFont, parameterName, parameterValue)
+					
+					if self.pref("fileFormat"):
+						if thisFont.formatVersion != 3:
+							thisFont.formatVersion = 3
+							print("✅ Font Info > Other > File Format: 3")
+						else:
+							print("😮‍💨 Font Info > Other > File Format was already 3")
 					
 					print()
 			
