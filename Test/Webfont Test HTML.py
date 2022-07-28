@@ -206,7 +206,7 @@ htmlContent = """<head>
 			width: 100%;
 			margin: 0.2em 0;
 			padding: 0 0;
-			font-size: 2em;
+			font-size: 6em;
 			white-space: nowrap;
 			overflow-x: auto;
 			overflow-y: hidden;
