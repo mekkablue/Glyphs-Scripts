@@ -425,13 +425,33 @@ def allOTVarSliders(thisFont):
 		maxValue = axisDict[axisName]["max"]
 		axisTag = axisDict[axisName]["tag"]
 		
+		startValue = originValueForAxisName(axisName, thisFont, minValue, maxValue)
+		
 		html += "\t\t\t<div class='labeldiv'><label class='sliderlabel' id='label_%s' name='%s'>%s</label><input type='range' min='%i' max='%i' value='%i' class='slider' id='%s' oninput='updateSlider();'></div>\n" % (
 			axisTag, axisName, axisName, 
-			minValue, maxValue, minValue,
+			minValue, maxValue, startValue,
 			axisTag
 		)
 		
 	return html
+
+def originValueForAxisName(axisName, thisFont, minValue, maxValue):
+	mID = thisFont.customParameters["Variable Font Origin"]
+	if not mID:
+		return minValue
+		
+	originMaster = thisFont.masters[mID]
+	if not originMaster:
+		return minValue
+		
+	axisLocationDict = originMaster.customParameters["Axis Location"]
+	for axisDict in axisLocationDict:
+		if axisName == axisDict["Axis"]:
+			axisLoc = int(axisDict["Location"])
+			if minValue < axisLoc <= maxValue:
+				return axisLoc
+	
+	return minValue
 
 def warningMessage():
 	Message(
