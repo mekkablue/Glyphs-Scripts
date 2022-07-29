@@ -329,7 +329,7 @@ class InstanceCooker( object ):
 			text = ""
 			for thisAxis in thisFont.axes:
 				text += "\n#%s:%s" % (thisAxis.name, thisAxis.axisTag)
-				axisValues = sorted(set([int(i.axisValueValueForId_(thisAxis.axisId)) for i in thisFont.instances]))
+				axisValues = sorted(set([int(i.axisValueValueForId_(thisAxis.axisId)) for i in thisFont.instances if i.type==0]))
 				for axisValue in axisValues:
 					instancesWithThisAxisValue = [i for i in thisFont.instances if i.axisValueValueForId_(thisAxis.axisId)==axisValue]
 
@@ -464,7 +464,7 @@ class InstanceCooker( object ):
 					removeElidableNames(instance)
 				
 				# add instances to this font:
-				thisFont.instances = instances
+				thisFont.instances = [i for i in thisFont.instances if i.type!=0] + instances
 				instanceCount = len(instances)
 				
 			# Final report:
