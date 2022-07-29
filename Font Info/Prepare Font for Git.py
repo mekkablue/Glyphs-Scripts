@@ -12,12 +12,13 @@ class PrepareFontforGit( object ):
 	parameterDict = {
 		"preventDisplayStrings": ("Write DisplayStrings", 0),
 		"preventTimeStamps": ("Write lastChange", 0),
+		"preventMacName": ("Export Mac Name Table Entries", 0),
 	}
 	
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 360
-		windowHeight = 160
+		windowHeight = 180
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -40,6 +41,9 @@ class PrepareFontforGit( object ):
 		linePos += lineHeight
 		
 		self.w.fileFormat = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Set File Format to Glyphs version 3", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
+		
+		self.w.preventMacName = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Prevent export of Mac entries in name table", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		linePos += lineHeight
 		
 		
@@ -80,6 +84,8 @@ class PrepareFontforGit( object ):
 			Glyphs.defaults[self.domain("preventDisplayStrings")] = self.w.preventDisplayStrings.get()
 			Glyphs.defaults[self.domain("preventTimeStamps")] = self.w.preventTimeStamps.get()
 			Glyphs.defaults[self.domain("fileFormat")] = self.w.fileFormat.get()
+			Glyphs.defaults[self.domain("preventMacName")] = self.w.preventMacName.get()
+			
 			
 			self.updateGUI()
 			return True
@@ -95,12 +101,14 @@ class PrepareFontforGit( object ):
 			Glyphs.registerDefault(self.domain("preventDisplayStrings"), 1)
 			Glyphs.registerDefault(self.domain("preventTimeStamps"), 0)
 			Glyphs.registerDefault(self.domain("fileFormat"), 1)
+			Glyphs.registerDefault(self.domain("preventMacName"), 1)
 			
 			# load previously written prefs:
 			self.w.applyToFonts.set( self.pref("applyToFonts") )
 			self.w.preventDisplayStrings.set( self.pref("preventDisplayStrings") )
 			self.w.preventTimeStamps.set( self.pref("preventTimeStamps") )
 			self.w.fileFormat.set( self.pref("fileFormat") )
+			self.w.preventMacName.set( self.pref("preventMacName") )
 			
 			self.updateGUI()
 			return True
