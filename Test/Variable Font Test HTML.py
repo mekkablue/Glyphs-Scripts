@@ -445,6 +445,9 @@ def originValueForAxisName(axisName, thisFont, minValue, maxValue):
 		return minValue
 		
 	axisLocationDict = originMaster.customParameters["Axis Location"]
+	if not axisLocationDict:
+		return minValue
+		
 	for axisDict in axisLocationDict:
 		if axisName == axisDict["Axis"]:
 			axisLoc = int(axisDict["Location"])
