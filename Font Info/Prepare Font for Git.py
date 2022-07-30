@@ -9,16 +9,27 @@ import vanilla
 
 class PrepareFontforGit( object ):
 	prefID = "com.mekkablue.PrepareFontforGit"
+	prefs = (
+		"preventDisplayStrings",
+		"preventTimeStamps",
+		"preventMacName",
+		"fileFormat",
+		"removeGlyphOrder",
+	)
 	parameterDict = {
 		"preventDisplayStrings": ("Write DisplayStrings", 0),
 		"preventTimeStamps": ("Write lastChange", 0),
 		"preventMacName": ("Export Mac Name Table Entries", 0),
 	}
 	
+	removeParameters = (
+		"glyphOrder",
+	)
+	
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 360
-		windowHeight = 180
+		windowHeight = 200
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -40,12 +51,14 @@ class PrepareFontforGit( object ):
 		self.w.preventTimeStamps = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Prevent storing of time stamps (Write lastChange = OFF)", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		linePos += lineHeight
 		
-		self.w.fileFormat = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Set File Format to Glyphs version 3", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		linePos += lineHeight
-		
 		self.w.preventMacName = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Prevent export of Mac entries in name table", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		linePos += lineHeight
 		
+		self.w.fileFormat = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Set File Format to Glyphs version 3", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
+		
+		self.w.removeGlyphOrder = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Remove glyphOrder", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
 		
 		# Apply Scope:
 		self.w.applyToFontsText = vanilla.TextBox( (inset, -18-inset+2, 60, 14), "Apply to:", sizeStyle='small', selectable=True )
@@ -65,7 +78,7 @@ class PrepareFontforGit( object ):
 		self.w.makeKey()
 	
 	def updateGUI(self, sender=None):
-		onOff = self.pref("preventDisplayStrings") or self.pref("preventTimeStamps")
+		onOff = any( [self.pref(prefName) for prefName in self.prefs] )
 		self.w.applyToFonts.enable(onOff)
 		self.w.runButton.enable(onOff)
 	
@@ -80,13 +93,9 @@ class PrepareFontforGit( object ):
 	def SavePreferences( self, sender=None ):
 		try:
 			# write current settings into prefs:
-			Glyphs.defaults[self.domain("applyToFonts")] = self.w.applyToFonts.get()
-			Glyphs.defaults[self.domain("preventDisplayStrings")] = self.w.preventDisplayStrings.get()
-			Glyphs.defaults[self.domain("preventTimeStamps")] = self.w.preventTimeStamps.get()
-			Glyphs.defaults[self.domain("fileFormat")] = self.w.fileFormat.get()
-			Glyphs.defaults[self.domain("preventMacName")] = self.w.preventMacName.get()
-			
-			
+			for prefName in self.prefs:
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
+				
 			self.updateGUI()
 			return True
 		except:
@@ -96,19 +105,11 @@ class PrepareFontforGit( object ):
 
 	def LoadPreferences( self ):
 		try:
-			# register defaults:
-			Glyphs.registerDefault(self.domain("applyToFonts"), 1)
-			Glyphs.registerDefault(self.domain("preventDisplayStrings"), 1)
-			Glyphs.registerDefault(self.domain("preventTimeStamps"), 0)
-			Glyphs.registerDefault(self.domain("fileFormat"), 1)
-			Glyphs.registerDefault(self.domain("preventMacName"), 1)
-			
-			# load previously written prefs:
-			self.w.applyToFonts.set( self.pref("applyToFonts") )
-			self.w.preventDisplayStrings.set( self.pref("preventDisplayStrings") )
-			self.w.preventTimeStamps.set( self.pref("preventTimeStamps") )
-			self.w.fileFormat.set( self.pref("fileFormat") )
-			self.w.preventMacName.set( self.pref("preventMacName") )
+			for prefName in self.prefs:
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), prefName.startswith("include") or prefName.startswith("reuse"))
+				# load previously written prefs:
+				getattr(self.w, prefName).set( self.pref(prefName) )
 			
 			self.updateGUI()
 			return True
@@ -117,12 +118,16 @@ class PrepareFontforGit( object ):
 			print(traceback.format_exc())
 			return False
 
-	def setParameterForFont(self, font, parameterName, parameterValue=0):
+	def setParameterForFont(self, font, parameterName, parameterValue=0, remove=False):
 		while font.customParameters[parameterName]:
 			del font.customParameters[parameterName]
-		font.customParameters[parameterName] = parameterValue
-		print("✅ Font Info > Font > Custom Parameters > %s = %i" % (parameterName, parameterValue))
-		
+			
+		if remove:
+			print("🚫 Font Info > Font > Custom Parameters > %s" % parameterName)
+		else:
+			font.customParameters[parameterName] = parameterValue
+			print("✅ Font Info > Font > Custom Parameters > %s = %i" % (parameterName, parameterValue))
+	
 	def PrepareFontforGitMain( self, sender=None ):
 		try:
 			# clear macro window log:
@@ -149,11 +154,18 @@ class PrepareFontforGit( object ):
 					else:
 						print("⚠️ The font file has not been saved yet.")
 					
+					# set parameters:
 					for optionKey in self.parameterDict.keys():
 						if bool(self.pref(optionKey)):
 							parameterName, parameterValue = self.parameterDict[optionKey]
 							self.setParameterForFont(thisFont, parameterName, parameterValue)
 					
+					# remove parameters:
+					for optionKey in [prefName for prefName in self.prefs if prefName.startswith("remove")]:
+						parameterName = optionKey[6].lower() + optionKey[7:]
+						self.setParameterForFont(thisFont, parameterName, remove=True)
+					
+					# set file format:
 					if self.pref("fileFormat"):
 						if thisFont.formatVersion != 3:
 							thisFont.formatVersion = 3
