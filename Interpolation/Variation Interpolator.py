@@ -134,7 +134,79 @@ class VariationInterpolator( object ):
 			thisFont.removeGlyph_( oldGlyph )
 		
 		return newGlyph
+
+  def interpolatedPosition( self, foregroundPosition, foregroundFactor, backgroundPosition, backgroundFactor  ):
+		interpolatedX = foregroundPosition.x * foregroundFactor + backgroundPosition.x * backgroundFactor
+		interpolatedY = foregroundPosition.y * foregroundFactor + backgroundPosition.y * backgroundFactor
+		interpolatedPosition = NSPoint( interpolatedX, interpolatedY )
+		return interpolatedPosition
 	
+	def interpolatePaths( self, thisLayer, backgroundFactor, foregroundFactor ):
+		# interpolate paths only if there is a compatible background:
+		if thisLayer.background: # and (thisLayer.compareString() == thisLayer.background.compareString()):
+			for path_index, path in enumerate(thisLayer.paths):
+				for node_index, node in enumerate(path.nodes):
+					foregroundPosition = node.position
+					bPath = thisLayer.background.paths[path_index]
+					if bPath:
+						backgroundPosition = bPath.nodes[node_index].position
+						node.setPosition_( self.interpolatedPosition( foregroundPosition, foregroundFactor,
+						                                           backgroundPosition, backgroundFactor ) )
+		else:
+			thisGlyph = thisLayer.parent
+			print("%s: incompatible background layer ('%s'):" % ( thisGlyph.name, thisLayer.name ))
+			print("Foreground: %s\nBackground:%s" % (thisLayer.compareString(), thisLayer.background.compareString()))
+		
+	def interpolateAnchors( self, thisLayer, backgroundFactor, foregroundFactor ):
+		# interpolate anchor only if there is an anchor of the same name:
+		if thisLayer.anchors:
+			for foregroundAnchor in thisLayer.anchors:
+				backgroundAnchor = thisLayer.background.anchors[ foregroundAnchor.name ]
+				if backgroundAnchor:
+					foregroundPosition = foregroundAnchor.position
+					backgroundPosition = backgroundAnchor.position
+					foregroundAnchor.setPosition_( self.interpolatedPosition( foregroundPosition, foregroundFactor, backgroundPosition, backgroundFactor ) )
+				else:
+					thisGlyph = thisLayer.parent
+					print("%s: Anchor '%s' not in background." % (thisGlyph.name, foregroundAnchor.name))
+	
+	def interpolateComponents( self, thisLayer, backgroundFactor, foregroundFactor ):
+		for i,thisComponent in enumerate(thisLayer.components):
+			backgroundComponent = thisLayer.background.components[i]
+			if backgroundComponent:
+				
+				# general component settings:
+				thisComponent.position = self.interpolatedPosition(
+					thisComponent.position, foregroundFactor,
+					backgroundComponent.position, backgroundFactor,
+				)
+				thisComponent.scale = ( 
+					thisComponent.scale[0] * foregroundFactor + backgroundComponent.scale[0] * backgroundFactor,
+					thisComponent.scale[1] * foregroundFactor + backgroundComponent.scale[1] * backgroundFactor,
+				)
+				thisComponent.rotation = (
+					thisComponent.rotation * foregroundFactor + backgroundComponent.rotation * backgroundFactor
+				)
+				
+				# smart components:
+				thisFont = thisLayer.parent.parent
+				if thisFont:
+					for axis in thisFont.glyphs[thisComponent.componentName].smartComponentAxes:
+						newValue = float(thisComponent.smartComponentValues[axis.name]) * foregroundFactor + float(backgroundComponent.smartComponentValues[axis.name]) * backgroundFactor
+						thisComponent.smartComponentValues[axis.name] = ( newValue )
+	
+	def interpolateLayerWithBackground( self, thisLayer, backgroundFactor ):
+		foregroundFactor = 1.0 - backgroundFactor
+		self.interpolatePaths( thisLayer, backgroundFactor, foregroundFactor )
+		self.interpolateAnchors( thisLayer, backgroundFactor, foregroundFactor )
+		self.interpolateComponents( thisLayer, backgroundFactor, foregroundFactor )
+		thisLayer.background = None
+		
+	def interpolateGlyphWithBackgrounds( self, newGlyph, backgroundFactor ):
+		# go through every layer of newGlyph:
+		for thisLayer in newGlyph.layers:
+			self.interpolateLayerWithBackground( thisLayer, backgroundFactor )
+		
 	def VariationInterpolatorMain( self, sender ):
 		try:
 			thisFont = Glyphs.font # frontmost font
