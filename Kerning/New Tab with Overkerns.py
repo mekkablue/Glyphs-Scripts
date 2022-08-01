@@ -62,6 +62,9 @@ class FindOverkerns( object ):
 
 	def FindOverkernsMain( self, sender ):
 		try:
+			# brings macro window to front and clears its log:
+			Glyphs.clearLog()
+			
 			# retrieve user entry:
 			thresholdFactor = None
 			try:
@@ -71,7 +74,7 @@ class FindOverkerns( object ):
 			
 			limitToExportingGlyphs = bool( Glyphs.defaults["com.mekkablue.FindOverkerns.limitToExportingGlyphs"] )
 			
-			# continuer if user entry is valid: 
+			# continue if user entry is valid: 
 			if not thresholdFactor is None:
 				thisFont = Glyphs.font # frontmost font
 				thisMaster = thisFont.selectedFontMaster # current master
@@ -92,7 +95,7 @@ class FindOverkerns( object ):
 					
 					# left side of the glyph (= right side of kern pair)
 					if thisGlyph.leftKerningGroup:
-						if thisGlyph.leftKerningGroup in leftGroupMinimumWidths:
+						if thisGlyph.leftKerningGroup in leftGroupMinimumWidths.keys():
 							if thisLayer.width < leftGroupMinimumWidths[thisGlyph.leftKerningGroup]:
 								leftGroupMinimumWidths[thisGlyph.leftKerningGroup] = thisLayer.width
 								leftGroupNarrowestGlyphs[thisGlyph.leftKerningGroup] = thisGlyph.name
@@ -102,7 +105,7 @@ class FindOverkerns( object ):
 							
 					# right side of the glyph (= left side of kern pair)
 					if thisGlyph.rightKerningGroup:
-						if thisGlyph.rightKerningGroup in rightGroupMinimumWidths:
+						if thisGlyph.rightKerningGroup in rightGroupMinimumWidths.keys():
 							if thisLayer.width < rightGroupMinimumWidths[thisGlyph.rightKerningGroup]:
 								rightGroupMinimumWidths[thisGlyph.rightKerningGroup] = thisLayer.width
 								rightGroupNarrowestGlyphs[thisGlyph.rightKerningGroup] = thisGlyph.name
@@ -111,8 +114,8 @@ class FindOverkerns( object ):
 							rightGroupNarrowestGlyphs[thisGlyph.rightKerningGroup] = thisGlyph.name
 			
 				# go through kern values and collect them in tabText:
-				for leftKey in masterKerning:
-					for rightKey in masterKerning[leftKey]:
+				for leftKey in masterKerning.keys():
+					for rightKey in masterKerning[leftKey].keys():
 						kernValue = masterKerning[leftKey][rightKey]
 						if kernValue < 0:
 							leftWidth = None
@@ -156,13 +159,16 @@ class FindOverkerns( object ):
 							except Exception as e:
 								# probably a kerning group name found in the kerning data, but no glyph assigned to it:
 								# brings macro window to front and reports warning:
-								Glyphs.showMacroWindow()
 								import traceback
-								errormsg = traceback.format_exc().lower()
+								errormsg = traceback.format_exc()
 								for side in ("left","right"):
-									if not side in errormsg:
-										print("Warning: The %s group '%s' found in your kerning data does not appear in any glyph. Clean up your kerning, and run the script again.")
-								
+									if not side in errormsg.lower():
+										print(
+											"⚠️ Warning: The %s group '%s' found in your kerning data does not appear in any glyph. Clean up your kerning, and run the script again." % (
+												side,
+												groupName,
+										))
+										Glyphs.showMacroWindow()
 				
 				if tabText:
 					# opens new Edit tab:

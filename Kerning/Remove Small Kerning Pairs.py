@@ -24,12 +24,12 @@ class DeleteSmallKerningPairs( object ):
 		line = 20
 		
 		windowWidth  = 325
-		windowHeight = 2*offset+7*line
+		windowHeight = 2*offset+8*line
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			( windowWidth, windowHeight ), # default window size
-			"Delete Small Kerning Pairs", # window title
+			"Remove Small Kerning Pairs", # window title
 			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
 			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
 			autosaveName = "com.mekkablue.DeleteSmallKerningPairs.mainwindow" # stores last window position and size
@@ -43,8 +43,12 @@ class DeleteSmallKerningPairs( object ):
 		self.w.positive = vanilla.CheckBox( (25, offset*2+line*3, -15, line), "Positive,", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.zero = vanilla.CheckBox( (90, offset*2+line*3, -15, line), "zero, and", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.negative = vanilla.CheckBox( (162, offset*2+line*3, -15, line), "negative pairs", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		
+		self.w.glyphToGlyph = vanilla.CheckBox( (25, offset*2+line*4, -15, line), "Glyph-glyph", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.glyphToClass = vanilla.CheckBox( (115, offset*2+line*4, -15, line), "Glyph-class", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.classToClass = vanilla.CheckBox( (205, offset*2+line*4, -15, line), "Class-class", value=True, callback=self.SavePreferences, sizeStyle='small' )
 
-		self.w.keepWindow = vanilla.CheckBox( (25, offset*2+line*4, -15, line), "Keep window open", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.keepWindow = vanilla.CheckBox( (25, offset*2+line*5, -15, line), "Keep window open", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		
 		# Run Button:
 		self.w.runButton = vanilla.Button((-80-15, -20-15, -15, -15), "Remove", sizeStyle='regular', callback=self.DeleteSmallKerningPairsMain )
@@ -64,6 +68,9 @@ class DeleteSmallKerningPairs( object ):
 			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.positive"] = self.w.positive.get()
 			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.zero"] = self.w.zero.get()
 			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.negative"] = self.w.negative.get()
+			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.glyphToGlyph"] = self.w.glyphToGlyph.get()
+			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.glyphToClass"] = self.w.glyphToClass.get()
+			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.classToClass"] = self.w.classToClass.get()
 			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.keepWindow"] = self.w.keepWindow.get()
 		except:
 			return False
@@ -76,12 +83,18 @@ class DeleteSmallKerningPairs( object ):
 			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.positive", True)
 			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.zero", False)
 			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.negative", True)
+			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.glyphToGlyph", True)
+			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.glyphToClass", True)
+			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.classToClass", True)
 			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.keepWindow", True)
 			
 			self.w.howMuch.set( Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.howMuch"] )
 			self.w.positive.set( bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.positive"]) )
 			self.w.zero.set( bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.zero"]) )
 			self.w.negative.set( bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.negative"]) )
+			self.w.glyphToGlyph.set( bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.glyphToGlyph"]) )
+			self.w.glyphToClass.set( bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.glyphToClass"]) )
+			self.w.classToClass.set( bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.classToClass"]) )
 			self.w.keepWindow.set( bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.keepWindow"]) )
 		except:
 			return False
@@ -100,6 +113,9 @@ class DeleteSmallKerningPairs( object ):
 			shouldRemovePositive = bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.positive"])
 			shouldRemoveZero = bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.zero"])
 			shouldRemoveNegative = bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.negative"])
+			shouldRemoveGlyphToGlyph = bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.glyphToGlyph"])
+			shouldRemoveGlyphToClass = bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.glyphToClass"])
+			shouldRemoveClassToClass = bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.classToClass"])
 			keepWindowOpen = bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.keepWindow"])
 			try:
 				# convert to positive decimal number:
@@ -127,19 +143,30 @@ class DeleteSmallKerningPairs( object ):
 				countNegative = 0
 				for leftGlyphID in thisFontMasterKernDict.keys():
 					for rightGlyphID in thisFontMasterKernDict[ leftGlyphID ].keys():
-						kerningValue = thisFontMasterKernDict[ leftGlyphID ][ rightGlyphID ]
-						leftName  = nameForID( thisFont, leftGlyphID )
-						rightName = nameForID( thisFont, rightGlyphID )
-					
-						if shouldRemoveZero and kerningValue == 0.0:
-							kernpairsToBeRemoved.append( (leftName, rightName) )
-							countZero += 1
-						elif shouldRemovePositive and 0.0 < kerningValue < maxKernValue:
-							kernpairsToBeRemoved.append( (leftName, rightName) )
-							countPositive += 1
-						elif shouldRemoveNegative and 0.0 > kerningValue > -maxKernValue:
-							kernpairsToBeRemoved.append( (leftName, rightName) )
-							countNegative += 1
+						
+						countClasses = 0
+						if leftGlyphID.startswith("@"):
+							countClasses += 1
+						if rightGlyphID.startswith("@"):
+							countClasses += 1
+						
+						if (shouldRemoveGlyphToGlyph and countClasses == 0) or \
+							(shouldRemoveGlyphToClass and countClasses == 1) or \
+							(shouldRemoveClassToClass and countClasses == 2):
+						
+							kerningValue = thisFontMasterKernDict[ leftGlyphID ][ rightGlyphID ]
+							leftName  = nameForID( thisFont, leftGlyphID )
+							rightName = nameForID( thisFont, rightGlyphID )
+					    	
+							if shouldRemoveZero and kerningValue == 0.0:
+								kernpairsToBeRemoved.append( (leftName, rightName) )
+								countZero += 1
+							elif shouldRemovePositive and 0.0 < kerningValue < maxKernValue:
+								kernpairsToBeRemoved.append( (leftName, rightName) )
+								countPositive += 1
+							elif shouldRemoveNegative and 0.0 > kerningValue > -maxKernValue:
+								kernpairsToBeRemoved.append( (leftName, rightName) )
+								countNegative += 1
 				
 				# remove the pairs:
 				for thisKernPair in kernpairsToBeRemoved:

@@ -4,7 +4,7 @@ from __future__ import division, print_function, unicode_literals
 __doc__="""
 Inserts Family Alignment Zones parameter with values based on an instance. Needs properly set up and compatible alignment zones in Font Info > Masters.
 """
-
+from copy import deepcopy
 import vanilla
 from AppKit import NSFont
 
@@ -32,34 +32,58 @@ class SetFamilyAlignmentZones( object ):
 		self.w.instanceText = vanilla.TextBox( (inset, linePos+2, inset+55, 14), u"Instance:", sizeStyle='small', selectable=True )
 		
 		self.w.instancePicker = vanilla.PopUpButton( (inset+55, linePos, -inset-25, 17), (), sizeStyle='small' )
-		self.w.instancePicker.getNSPopUpButton().setToolTip_("Inactive instances are marked.")
+		self.w.instancePicker.getNSPopUpButton().setToolTip_("Choose the instance that will likely be used most (probably the Regular or Book). Its interpolated zones will be used as Family Alignment Zones. Inactive instances are marked with ‘inactive’.")
+		
 		# set font to tabular figures:
 		popUpFont = NSFont.monospacedDigitSystemFontOfSize_weight_(NSFont.smallSystemFontSize(), 0.0)
 		self.w.instancePicker.getNSPopUpButton().setFont_(popUpFont)
 		
 		self.w.updateButton = vanilla.SquareButton( (-inset-20, linePos, -inset, 18), u"↺", sizeStyle='small', callback=self.updateInstancePicker )
-		self.w.updateButton.getNSButton().setToolTip_("Click to update the menu with the instances of the current font.")
+		self.w.updateButton.getNSButton().setToolTip_("Click to update the menu with the instances of the currently frontmost font.")
 		linePos += lineHeight
+		
+		# Help Button:
+		self.w.helpTutorial = vanilla.HelpButton((inset, -20-inset, 22, 22), callback=self.openURL )
+		self.w.helpTutorial.getNSButton().setToolTip_("Will open the glyphsapp.com tutorial about PS Hinting, at the section that explains Family Alignment Zones.")
 		
 		# Run Button:
 		self.w.runButton = vanilla.Button( (-110-inset, -20-inset, -inset, -inset), "Insert FAZ", sizeStyle='regular', callback=self.SetFamilyAlignmentZonesMain )
 		self.w.setDefaultButton( self.w.runButton )
-		
 		
 		# Open window and focus on it:
 		self.updateInstancePicker()
 		self.w.open()
 		self.w.makeKey()
 	
+	def openURL( self, sender ):
+		URL = None
+		if sender == self.w.helpTutorial:
+			URL = "https://glyphsapp.com/learn/hinting-postscript-autohinting#g-__family-alignment-zones"
+		if URL:
+			import webbrowser
+			webbrowser.open( URL )
+	
 	def updateInstancePicker(self, sender=None):
 		thisFont = Glyphs.font
 		if thisFont and thisFont.instances:
 			listOfInstances = []
 			regularIndexes = []
-			for i,thisInstance in enumerate(thisFont.instances):
+			
+			if Glyphs.versionNumber >= 3:
+				# GLYPHS 3
+				instances = [i for i in thisFont.instances if i.type==0] # exclude OTVar settings
+			else:
+				# GLYPHS 2
+				instances = thisFont.instances
+			
+			for i,thisInstance in enumerate(instances):
+				familyName = thisInstance.familyName
+				if not familyName:
+					familyName = thisFont.familyName
+				
 				instanceString = u"%02i: %s %s%s" % (
 					i,
-					thisInstance.familyName,
+					familyName,
 					thisInstance.name,
 					" (inactive)" if not thisInstance.active else "",
 				)
@@ -88,7 +112,12 @@ class SetFamilyAlignmentZones( object ):
 			instanceIndex = int(instanceName[:instanceName.find(":")])
 			thisInstance = thisFont.instances[instanceIndex]
 			if thisInstance.name in instanceName:
-				instanceZones = thisInstance.interpolatedFont.masters[0].alignmentZones.__copy__()
+				if Glyphs.versionNumber >= 3:
+					# GLYPHS 3 code:
+					instanceZones = deepcopy(thisInstance.interpolatedFont.masters[0].alignmentZones)
+				else:
+					# GLYPHS 2 code:
+					instanceZones = thisInstance.interpolatedFont.masters[0].alignmentZones.__copy__()
 				thisFont.customParameters["Family Alignment Zones"] = instanceZones
 				print(u"✅ Set family alignment zones to instance %s" % instanceName)
 			else:

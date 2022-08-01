@@ -274,7 +274,13 @@ class PopulateAllBackgroundswithComponent( object ):
 
 	def alignNodeWithNodeInOtherLayer(self, thisNode, otherLayer, tolerance=5, maxTolerance=80, alreadyTaken=[]):
 		while tolerance < maxTolerance:
-			nearestNode = otherLayer.nodeAtPoint_excludeNodes_traversComponents_tollerance_( thisNode.position, None, False, tolerance )
+			try:
+				# GLYPHS 3
+				nearestNode = otherLayer.nodeAtPoint_excludeNodes_traverseComponents_ignoreLocked_tolerance_( thisNode.position, None, False, False, tolerance )
+			except:
+				# GLYPHS 2
+				nearestNode = otherLayer.nodeAtPoint_excludeNodes_traversComponents_tollerance_( thisNode.position, None, False, tolerance )
+			
 			if nearestNode and (thisNode.type == nearestNode.type) and (not nearestNode.position in alreadyTaken):
 				thisNode.position = nearestNode.position
 				return True
@@ -351,10 +357,10 @@ class PopulateAllBackgroundswithComponent( object ):
 
 		for thisLayer in selectedLayers:
 			thisGlyph = thisLayer.parent
-			thisGlyph.beginUndo() # begin undo grouping
+			# thisGlyph.beginUndo() # undo grouping causes crashes
 			selected, aligned, numberOfAnchorsMoved = self.alignNodesOnLayer( thisLayer )
 			print("%s: aligned %i of %i selected nodes" % (thisGlyph.name, aligned, selected))
 			print("%s: aligned %i of %i anchors." % (thisGlyph.name, numberOfAnchorsMoved, len(thisLayer.anchors)))
-			thisGlyph.endUndo() # end undo grouping
+			# thisGlyph.endUndo() # undo grouping causes crashes
 
 PopulateAllBackgroundswithComponent()

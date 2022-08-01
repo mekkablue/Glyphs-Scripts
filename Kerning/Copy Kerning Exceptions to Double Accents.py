@@ -33,11 +33,12 @@ Glyphs.showMacroWindow()
 
 for i, baseGlyphID in enumerate(baseGlyphIDs):
 	baseGlyphName = baseGlyphNames[i]
-	doubleaccentIDs = [ thisFont.glyphs[g].id for g in allGlyphNames 
-					  if g.startswith(baseGlyphName)
-					  and g != baseGlyphName 
-					  and not "." in g
-				  ]
+	doubleaccentIDs = [
+						thisFont.glyphs[g].id for g in allGlyphNames 
+						if g.startswith(baseGlyphName)
+						and g != baseGlyphName 
+						and not "." in g
+					]
 	print("\nCopying exceptions for: %s" % baseGlyphName)
 	if doubleaccentIDs:
 		for thisMaster in thisFont.masters:
@@ -64,11 +65,11 @@ for i, baseGlyphID in enumerate(baseGlyphIDs):
 							rightKeyName,
 							kernValue
 						)
-						print("  Added: %s <--> %s (%.1f)" % (doubleaccentName,rightKeyName,kernValue))
+						print("  Added: %s ⟺ %s (%.1f)" % (doubleaccentName,rightKeyName,kernValue))
 				
 			# abreve on the right side:
-			for leftKey in masterKerning:
-				if baseGlyphID in masterKerning[leftKey]:
+			for leftKey in masterKerning.keys():
+				if baseGlyphID in masterKerning[leftKey].keys():
 					kernValue = masterKerning[leftKey][baseGlyphID]
 					for doubleaccentID in doubleaccentIDs:
 						
@@ -86,5 +87,5 @@ for i, baseGlyphID in enumerate(baseGlyphIDs):
 							doubleaccentName,
 							kernValue
 						)
-						print("  Added: %s <--> %s (%.1f)" % (leftKeyName,doubleaccentName,kernValue))
+						print("  Added: %s ⟺ %s (%.1f)" % (leftKeyName,doubleaccentName,kernValue))
 

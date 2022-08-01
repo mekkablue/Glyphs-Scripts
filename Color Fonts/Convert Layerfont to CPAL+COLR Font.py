@@ -25,19 +25,38 @@ def masterColorFromColor( thisMaster, thisColor ):
 	colorText = "%i,%i,%i,%i" % ( red, green, blue, alpha )
 	thisMaster.setCustomParameter_forKey_( colorText, "Master Color" )
 	
-def createCPALfromMasterColors( theseMasters, indexOfTargetMaster ):
+def createCPALfromMasterColors( thisFont, theseMasters, indexOfTargetMaster ):
 	# create color palette:
 	palette = NSMutableArray.alloc().init()
 	
 	# go through all masters and collect their color info:
 	for thisMaster in theseMasters:
-		# query master color:
-		colorString = thisMaster.customParameters["Master Color"]
 		# black as fallback:
-		if not colorString:
-			colorString = "0,0,0,255"
-		# derive RGBA values:
-		r,g,b,a = [float(value)/255 for value in colorString.split(",") ]
+		r,g,b,a = 0,0,0,1
+		
+		try:
+			if Glyphs.versionNumber>=3:
+				# GLYPHS 3
+				color = thisMaster.customParameters["Master Color"]
+				color = color.colorUsingSRGBColorSpace()
+				r,g,b,a = (
+					color.redComponent(),
+					color.greenComponent(),
+					color.blueComponent(),
+					color.alphaComponent(),
+				)
+			else:
+				# GLYPHS 2
+				# query master color:
+				colorString = thisMaster.customParameters["Master Color"]
+				# black as fallback:
+				if not colorString:
+					colorString = "0,0,0,255"
+				# derive RGBA values:
+				r,g,b,a = [ float(value)/255 for value in colorString.split(",") ]
+		except:
+			print("⚠️ Could not convert color of master %s, defaulting to black." % thisMaster.name)
+		
 		# create SRGB color:
 		color = NSColorSpaceColor.colorWithRed_green_blue_alpha_(r,g,b,a)
 		color = color.colorUsingColorSpace_(NSColorSpace.sRGBColorSpace())
@@ -47,17 +66,28 @@ def createCPALfromMasterColors( theseMasters, indexOfTargetMaster ):
 	# create array of palettes, containing the one palette we just created:
 	paletteArray = NSMutableArray.alloc().initWithObject_(palette)
 	
-	print("Created CPAL palette with %i colors." % len(theseMasters))
+	if Glyphs.versionNumber >= 3:
+		# GLYPHS 3
+		thisFont.customParameters["Color Palettes"] = paletteArray
+	else:
+		# GLYPHS 2
+		# add that array as "Color Palettes" parameter to target (=usually first) master
+		targetMaster = theseMasters[indexOfTargetMaster]
+		del targetMaster.customParameters["Master Color"]
+		targetMaster.customParameters["Color Palettes"] = paletteArray
 	
-	# add that array as "Color Palettes" parameter to target (=usually first) master
-	targetMaster = theseMasters[indexOfTargetMaster]
-	targetMaster.customParameters["Color Palettes"] = paletteArray
-	del targetMaster.customParameters["Master Color"]
+	print("Created CPAL palette with %i colors." % len(theseMasters))
 
 def keepOnlyFirstMaster( thisFont ):
 	# delete all masters except first one:
-	for i in range(len(thisFont.masters))[:0:-1]:
-		thisFont.removeFontMasterAtIndex_(i)
+	if Glyphs.versionNumber >= 3:
+		# GLYPHS 3
+		while len(Font.masters)>1:
+			del Font.masters[-1]
+	else:
+		# GLYPHS 2
+		for i in range(len(thisFont.masters))[:0:-1]:
+			thisFont.removeFontMasterAtIndex_(i)
 		
 	# rename remaining first master:
 	thisFont.masters[0].name = "Fallback"
@@ -72,19 +102,41 @@ def cleanUpNamelessLayers(thisGlyph):
 			del thisGlyph.layers[i]
 
 def duplicatePathsIntoFallbackMaster(thisGlyph):
-	fallbackLayer = thisGlyph.layers[0]
-	fallbackLayer.paths = None
-	for thatLayer in thisGlyph.layers[1:]:
-		if thatLayer.name and thatLayer.name.startswith("Color"):
-			for thatPath in thatLayer.paths:
-				fallbackLayer.paths.append( thatPath.copy() )
+	if Glyphs.versionNumber >= 3:
+		# GLYPHS 3
+		fallbackLayer = thisGlyph.layers[0]
+		fallbackLayer.shapes = None
+		for thatLayer in thisGlyph.layers[1:]:
+			if thatLayer.name and thatLayer.name.startswith("Color"):
+				if thatLayer.shapes:
+					for thatShape in thatLayer.shapes:
+						fallbackLayer.shapes.append( thatShape.copy() )
+	else:
+		# GLYPHS 2
+		fallbackLayer = thisGlyph.layers[0]
+		fallbackLayer.paths = None
+		for thatLayer in thisGlyph.layers[1:]:
+			if thatLayer.name and thatLayer.name.startswith("Color"):
+				for thatPath in thatLayer.paths:
+					fallbackLayer.paths.append( thatPath.copy() )
+
 
 def enableOnlyColorLayers(thisGlyph):
-	for thisLayer in thisGlyph.layers:
-		if thisLayer.name and thisLayer.name.startswith("Color"):
-			thisLayer.setVisible_(1)
-		else:
-			thisLayer.setVisible_(0)
+	if Glyphs.versionNumber >= 3:
+		# GLYPHS 3
+		for thisLayer in thisGlyph.layers:
+			if thisLayer.isColorPaletteLayer():
+				thisLayer.setVisible_(1)
+			else:
+				thisLayer.setVisible_(0)
+	else:
+		# GLYPHS 2
+		for thisLayer in thisGlyph.layers:
+			if thisLayer.name and thisLayer.name.startswith("Color"):
+				thisLayer.setVisible_(1)
+			else:
+				thisLayer.setVisible_(0)
+
 	
 def process( thisGlyph ):
 	for i in range(len(namesOfMasters))[::-1]:
@@ -94,6 +146,10 @@ def process( thisGlyph ):
 		thisGlyph.layers[colorLayerName] = originalLayer.copy()
 		thisGlyph.layers[colorLayerName].setAssociatedMasterId_(fallbackMasterID)
 		thisGlyph.layers[colorLayerName].setName_(colorLayerName)
+		if Glyphs.versionNumber >= 3:
+			# GLYPHS 3
+			thisGlyph.layers[colorLayerName].setColorPaletteLayer_(1)
+			thisGlyph.layers[colorLayerName].setAttribute_forKey_(i, "colorPalette")
 	
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
@@ -102,15 +158,15 @@ print("Converting %s to CPAL/COLR:" % thisFont.familyName)
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
-	createCPALfromMasterColors( thisFont.masters, 0 )
+	createCPALfromMasterColors( thisFont, thisFont.masters, 0 )
 	print()
 
 	for thisGlyph in thisFont.glyphs:
 		print("Creating 'Color' layers for: %s" % thisGlyph.name)
-		thisGlyph.beginUndo() # begin undo grouping
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		process( thisGlyph )
 		duplicatePathsIntoFallbackMaster( thisGlyph )
-		thisGlyph.endUndo()   # end undo grouping
+		# thisGlyph.endUndo() # undo grouping causes crashes
 
 	print()
 	keepOnlyFirstMaster( thisFont )
@@ -118,10 +174,10 @@ try:
 
 	for thisGlyph in thisFont.glyphs:
 		print("Cleaning up layer debris in: %s" % thisGlyph.name)
-		thisGlyph.beginUndo() # begin undo grouping
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		cleanUpNamelessLayers(thisGlyph)
 		enableOnlyColorLayers(thisGlyph)
-		thisGlyph.endUndo()   # end undo grouping
+		# thisGlyph.endUndo() # undo grouping causes crashes
 	
 except Exception as e:
 	Glyphs.showMacroWindow()

@@ -61,8 +61,8 @@ Font.disableUpdateInterface()
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
-	thisGlyph.beginUndo()
+	# thisGlyph.beginUndo() # undo grouping causes crashes
 	process( thisLayer )
-	thisGlyph.endUndo()
+	# thisGlyph.endUndo() # undo grouping causes crashes
 
 Font.enableUpdateInterface()

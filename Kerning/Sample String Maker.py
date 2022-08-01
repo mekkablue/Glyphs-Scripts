@@ -5,7 +5,9 @@ __doc__="""
 Creates kern strings for all kerning groups in user-defined categories and adds them to the Sample Strings. Group kerning only, glyphs without groups are ignored.
 """
 
-import vanilla, sampleText
+import vanilla, sampleText, kernanalysis
+
+CASE = (None, "Uppercase", "Lowercase", "Smallcaps", "Minor")
 
 class SampleStringMaker( object ):
 	categoryList = (
@@ -35,18 +37,20 @@ class SampleStringMaker( object ):
 		"florin",
 	)
 	
+	prefID = "com.mekkablue.SampleStringMaker"
+	
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 340
-		windowHeight = 220
-		windowWidthResize  = 300 # user can resize width by this value
+		windowHeight = 265
+		windowWidthResize  = 1000 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			( windowWidth, windowHeight ), # default window size
 			"Sample String Maker", # window title
 			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
 			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
-			autosaveName = "com.mekkablue.SampleStringMaker.mainwindow" # stores last window position and size
+			autosaveName = self.domain("mainwindow") # stores last window position and size
 		)
 		
 		# UI elements:
@@ -75,12 +79,23 @@ class SampleStringMaker( object ):
 		linePos += lineHeight
 		
 		self.w.excludeText = vanilla.TextBox( (inset, linePos+2, 150, 14), u"Exclude glyphs containing:", sizeStyle='small', selectable=True )
-		self.w.excludedGlyphNameParts = vanilla.EditText( (inset+150, linePos, -inset, 19), ".tf, .tosf, ord", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.excludedGlyphNameParts = vanilla.EditText( (inset+150, linePos, -inset, 19), ".tf, .tosf, ord, Ldot, ldot, .loclCAT", callback=self.SavePreferences, sizeStyle='small' )
 		self.w.excludedGlyphNameParts.getNSTextField().setToolTip_("If the glyph name includes any of these comma-separated fragments, the glyph will be ignored. Always excluded: Ldot, ldot, ldot.sc, Fhook and florin.")
 		linePos += lineHeight
+
+		self.w.overrideContext = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Override context glyphs:", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.overrideContext.getNSButton().setToolTip_("If checked, the surrounding glyphs will be replaced with those given in the text box. Use a comma to differentiate the left-side context from the right-side context: ‘HOOH,noon’ will put HOOH on the left side, ‘noon’ on the right side.")
+		self.w.contextGlyphs = vanilla.EditText( (inset+150, linePos, -inset, 19), "HOOH,noon", callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
+
+		self.w.mirrorPair = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Mirror kerning pair (AV→AVA)", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.mirrorPair.getNSButton().setToolTip_("If checked, will create a mirrored version of the kerning string. E.g., instead of just AV, it will show AVA between the context glyphs.")
+		linePos += lineHeight
 		
-		self.w.openTab = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Open new tab at first kern string.", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.openTab = vanilla.CheckBox( (inset, linePos-1, 170, 20), u"Open tab at first kern string", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.openTab.getNSButton().setToolTip_("If checked, a new tab will be opened with the first found kern string, and the cursor positioned accordingly, ready for group kerning and switching to the next sample string.")
+		self.w.lockKerning = vanilla.CheckBox( (inset+170, linePos-1, -inset, 20), "in kerning mode", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.lockKerning.getNSButton().setToolTip_("Will set the kerning lock in the tab, prevents you from spacing accidentally.")
 		linePos += lineHeight
 		
 		
@@ -95,15 +110,33 @@ class SampleStringMaker( object ):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-		
+	
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
+	def updateGUI(self, sender=None):
+		self.w.lockKerning.enable(self.w.openTab.get())
+		self.w.contextGlyphs.enable( self.w.overrideContext.get() )
+	
 	def SavePreferences( self, sender ):
 		try:
-			Glyphs.defaults["com.mekkablue.SampleStringMaker.scriptPopup"] = self.w.scriptPopup.get()
-			Glyphs.defaults["com.mekkablue.SampleStringMaker.leftCategoryPopup"] = self.w.leftCategoryPopup.get()
-			Glyphs.defaults["com.mekkablue.SampleStringMaker.rightCategoryPopup"] = self.w.rightCategoryPopup.get()
-			Glyphs.defaults["com.mekkablue.SampleStringMaker.includeNonExporting"] = self.w.includeNonExporting.get()
-			Glyphs.defaults["com.mekkablue.SampleStringMaker.excludedGlyphNameParts"] = self.w.excludedGlyphNameParts.get()
-			Glyphs.defaults["com.mekkablue.SampleStringMaker.openTab"] = self.w.openTab.get()
+			Glyphs.defaults[ self.domain("scriptPopup") ] = self.w.scriptPopup.get()
+			Glyphs.defaults[ self.domain("leftCategoryPopup") ] = self.w.leftCategoryPopup.get()
+			Glyphs.defaults[ self.domain("rightCategoryPopup") ] = self.w.rightCategoryPopup.get()
+			Glyphs.defaults[ self.domain("includeNonExporting") ] = self.w.includeNonExporting.get()
+			Glyphs.defaults[ self.domain("excludedGlyphNameParts") ] = self.w.excludedGlyphNameParts.get()
+			Glyphs.defaults[ self.domain("openTab") ] = self.w.openTab.get()
+			Glyphs.defaults[ self.domain("lockKerning") ] = self.w.lockKerning.get()
+			Glyphs.defaults[ self.domain("overrideContext") ] = self.w.overrideContext.get()
+			Glyphs.defaults[ self.domain("contextGlyphs") ] = self.w.contextGlyphs.get()
+			Glyphs.defaults[ self.domain("mirrorPair") ] = self.w.mirrorPair.get()
+			
+			self.updateGUI()
 		except:
 			return False
 			
@@ -111,29 +144,50 @@ class SampleStringMaker( object ):
 
 	def LoadPreferences( self ):
 		try:
-			Glyphs.registerDefault("com.mekkablue.SampleStringMaker.scriptPopup", 0)
-			Glyphs.registerDefault("com.mekkablue.SampleStringMaker.leftCategoryPopup", 0)
-			Glyphs.registerDefault("com.mekkablue.SampleStringMaker.rightCategoryPopup", 0)
-			Glyphs.registerDefault("com.mekkablue.SampleStringMaker.includeNonExporting", 0)
-			Glyphs.registerDefault("com.mekkablue.SampleStringMaker.excludedGlyphNameParts", ".tf, .tosf, ord")
-			Glyphs.registerDefault("com.mekkablue.SampleStringMaker.openTab", 1)
-			self.w.scriptPopup.set( Glyphs.defaults["com.mekkablue.SampleStringMaker.scriptPopup"] )
-			self.w.leftCategoryPopup.set( Glyphs.defaults["com.mekkablue.SampleStringMaker.leftCategoryPopup"] )
-			self.w.rightCategoryPopup.set( Glyphs.defaults["com.mekkablue.SampleStringMaker.rightCategoryPopup"] )
-			self.w.includeNonExporting.set( Glyphs.defaults["com.mekkablue.SampleStringMaker.includeNonExporting"] )
-			self.w.excludedGlyphNameParts.set( Glyphs.defaults["com.mekkablue.SampleStringMaker.excludedGlyphNameParts"] )
-			self.w.openTab.set( Glyphs.defaults["com.mekkablue.SampleStringMaker.openTab"] )
+			Glyphs.registerDefault( self.domain("scriptPopup"), 0 )
+			Glyphs.registerDefault( self.domain("leftCategoryPopup"), 0 )
+			Glyphs.registerDefault( self.domain("rightCategoryPopup"), 0 )
+			Glyphs.registerDefault( self.domain("includeNonExporting"), 0 )
+			Glyphs.registerDefault( self.domain("excludedGlyphNameParts"), ".tf, .tosf, ord, Ldot, ldot, .loclCAT" )
+			Glyphs.registerDefault( self.domain("openTab"), 1 )
+			Glyphs.registerDefault( self.domain("lockKerning"), 1 )
+			Glyphs.registerDefault( self.domain("overrideContext"), 0 )
+			Glyphs.registerDefault( self.domain("contextGlyphs"), "HOOH,noon" )
+			Glyphs.registerDefault( self.domain("mirrorPair"), 0 )
+
+			self.w.scriptPopup.set( self.pref("scriptPopup") )
+			self.w.leftCategoryPopup.set( self.pref("leftCategoryPopup") )
+			self.w.rightCategoryPopup.set( self.pref("rightCategoryPopup") )
+			self.w.includeNonExporting.set( self.pref("includeNonExporting") )
+			self.w.excludedGlyphNameParts.set( self.pref("excludedGlyphNameParts") )
+			self.w.openTab.set( self.pref("openTab") )
+			self.w.lockKerning.set( self.pref("lockKerning") )
+			self.w.overrideContext.set( self.pref("overrideContext") )
+			self.w.contextGlyphs.set( self.pref("contextGlyphs") )
+			self.w.mirrorPair.set( self.pref("mirrorPair") )
+			
+			self.updateGUI()
 		except:
 			return False
 			
 		return True
 
 	def glyphNameIsExcluded(self, glyphName):
-		forbiddenParts = [n.strip() for n in Glyphs.defaults["com.mekkablue.SampleStringMaker.excludedGlyphNameParts"].split(",")]
+		forbiddenParts = [n.strip() for n in self.pref("excludedGlyphNameParts").split(",")]
 		for forbiddenPart in forbiddenParts:
 			if forbiddenPart in glyphName:
 				return True
 		return False
+
+	def parseTheContextGlyphs(self):
+		separator = ","
+		txt = self.w.contextGlyphs.get()
+		if separator in txt:
+			lines = txt.split(separator)
+			linePrefix, linePostfix = lines[0],separator.join(lines[1:])
+		else:
+			linePrefix, linePostfix = txt, txt
+		return linePrefix, linePostfix
 	
 	def SampleStringMakerMain( self, sender ):
 		try:
@@ -146,9 +200,9 @@ class SampleStringMaker( object ):
 			print(thisFont.filepath)
 			print()
 			
-			leftChoice = self.categoryList[ Glyphs.defaults["com.mekkablue.SampleStringMaker.leftCategoryPopup"] ]
-			rightChoice = self.categoryList[ Glyphs.defaults["com.mekkablue.SampleStringMaker.rightCategoryPopup"] ]
-			chosenScript = self.scripts[ Glyphs.defaults["com.mekkablue.SampleStringMaker.scriptPopup"] ]
+			leftChoice = self.categoryList[ self.pref("leftCategoryPopup") ]
+			rightChoice = self.categoryList[ self.pref("rightCategoryPopup") ]
+			chosenScript = self.scripts[ self.pref("scriptPopup") ]
 			leftCategory = leftChoice.split(":")[0]
 			rightCategory = rightChoice.split(":")[0]
 			
@@ -158,45 +212,37 @@ class SampleStringMaker( object ):
 			if ":" in rightChoice:
 				rightSubCategory = rightChoice.split(":")[1]
 				
-			includeNonExporting = Glyphs.defaults["com.mekkablue.SampleStringMaker.includeNonExporting"]
+			includeNonExporting = self.pref("includeNonExporting")
+
+			glyphNamesLeft, glyphNamesRight = [], []
+			for g in thisFont.glyphs :
+				glyph_subCategory = g.subCategory
+				if Glyphs.versionNumber >= 3:
+					if glyph_subCategory is None:
+						glyph_subCategory = CASE[g.case]
+
+				# LEFT
+				if g.category == leftCategory and \
+				( leftSubCategory is None or glyph_subCategory == leftSubCategory ) and \
+				( g.script == chosenScript or (leftCategory != "Letter" and g.script is None) ) and \
+				(g.export or includeNonExporting) and \
+				not g.name in self.exclusion and \
+				not self.glyphNameIsExcluded(g.name):
+					glyphNamesLeft.append(g.name)
+
+				# RIGHT
+				if g.category == rightCategory and \
+				( rightSubCategory is None or glyph_subCategory == rightSubCategory ) and \
+				( g.script == chosenScript or (rightCategory != "Letter" and g.script is None) ) and \
+				(g.export or includeNonExporting) and \
+				not g.name in self.exclusion and \
+				not self.glyphNameIsExcluded(g.name):
+					glyphNamesRight.append(g.name)
 			
-			glyphNamesLeft = [ 
-				g.name for g in thisFont.glyphs 
-				if g.category == leftCategory
-				and (
-					leftSubCategory is None 
-					or g.subCategory == leftSubCategory
-					)
-				and (
-					g.script == chosenScript
-					or (leftCategory != "Letter" and g.script is None)
-					)
-				and (g.export or includeNonExporting)
-				and not g.name in self.exclusion
-				and not self.glyphNameIsExcluded(g.name)
-			]
+			numLeftGlyphs = len(glyphNamesLeft)
+			numRightGlyphs = len(glyphNamesRight)
 			
-			
-			glyphNamesRight = [ 
-				g.name for g in thisFont.glyphs 
-				if g.category == rightCategory
-				and (
-					rightSubCategory is None 
-					or g.subCategory == rightSubCategory
-					)
-				and (
-					g.script == chosenScript
-					or (rightCategory != "Letter" and g.script is None)
-					)
-				and (g.export or includeNonExporting)
-				and not g.name in self.exclusion
-				and not self.glyphNameIsExcluded(g.name)
-			]
-			
-			print("Found %i left groups, %i right groups." % (
-				len(glyphNamesLeft),
-				len(glyphNamesRight),
-			))
+			print("Found %i left glyphs, %i right glyphs." % ( numLeftGlyphs, numRightGlyphs ))
 			
 			linePrefix = "nonn"
 			linePostfix = "noon"
@@ -216,22 +262,47 @@ class SampleStringMaker( object ):
 				
 			# if rightSubCategory == "Uppercase":
 			# 	linePostfix = "HOOH"
+			if self.w.overrideContext.get() == 1:
+				linePrefix, linePostfix = self.parseTheContextGlyphs()
+
+			mirrorPair = False
+			if self.w.mirrorPair.get() == 1:
+				mirrorPair = True
 
 			kernStrings = sampleText.buildKernStrings( 
 				glyphNamesLeft, glyphNamesRight, 
 				thisFont=thisFont, 
 				linePrefix=linePrefix, 
 				linePostfix=linePostfix,
+				mirrorPair=mirrorPair
 			)
-
-			sampleText.executeAndReport( kernStrings )
 			
-			if Glyphs.defaults["com.mekkablue.SampleStringMaker.openTab"]:
-				newTab = thisFont.newTab()
-				sampleText.setSelectSampleTextIndex( thisFont, tab=newTab )
-				cursorPos = 5
-				if len(newTab.text) >= cursorPos:
-					newTab.textCursor = cursorPos
+			if not kernStrings:
+				if numLeftGlyphs * numRightGlyphs == 0:
+					Message(title="No Kern Strings Created", message="The current settings are too strict. Found %i left, %i right glyphs, no kerning combinations could be built." % (numLeftGlyphs, numRightGlyphs), OKButton=None)
+				else:
+					Message(title="No Kern Strings Created", message="Could not build any kerning combinations with available groups. Make sure groups are set for the chosen glyphs.", OKButton=None)
+				print("No kern strings built. Done.")
+			else:
+				sampleText.executeAndReport( kernStrings )
+			
+				if self.pref("openTab"):
+					newTab = thisFont.newTab()
+					if Glyphs.versionNumber >= 3:
+						sampleText.setSelectSampleTextIndex( thisFont, tab=newTab, marker="Sample String Maker" )
+					else:
+						sampleText.setSelectSampleTextIndex( thisFont, tab=newTab )
+					cursorPos = 5
+					if len(newTab.text) >= cursorPos:
+						newTab.textCursor = cursorPos
+					
+					# set it to lock kerning:
+					if self.pref("lockKerning"):
+						newTab.graphicView().setDoSpacing_(0)
+						newTab.graphicView().setDoKerning_(1)
+						newTab.updateKerningButton()
+					
+				self.w.close()
 			
 		except Exception as e:
 			# brings macro window to front and reports error:
@@ -240,4 +311,5 @@ class SampleStringMaker( object ):
 			import traceback
 			print(traceback.format_exc())
 
+Glyphs.clearLog()
 SampleStringMaker()

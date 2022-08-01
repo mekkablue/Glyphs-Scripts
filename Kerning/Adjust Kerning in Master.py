@@ -11,15 +11,15 @@ Adjusts all kerning values by a specified amount.
 
 import vanilla
 
-optionList = [ "Multiply by", "Add", "Add Absolute", "Round by" ]
+optionList = ( "Multiply by", "Add", "Add Absolute", "Round by", "Limit to" )
 
 class AdjustKerning( object ):
+	prefID = "com.mekkablue.AdjustKerning"
+	
 	def __init__( self ):
 		# GUI:
-		offset = 10
-		line = 20
-		windowWidth  = 280
-		windowHeight = 2*offset+7*line
+		windowWidth  = 260
+		windowHeight = 155
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		
@@ -31,18 +31,26 @@ class AdjustKerning( object ):
 			autosaveName = "com.mekkablue.AdjustKerning.mainwindow" # stores last window position and size
 		)
 		
-		self.w.text_1 = vanilla.TextBox( (15-1, offset+2, -15, line), "In the current font master, do this:", sizeStyle='small' )
-		self.w.doWhat = vanilla.PopUpButton( (25, offset+line, 100, line), optionList, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.howMuch = vanilla.EditText((25+100+10, offset+line+1, -15, line), "10", sizeStyle='small', callback=self.SavePreferences)
+		# UI elements:
+		linePos, inset, lineHeight = 10, 12, 22
 		
-		self.w.text_2 = vanilla.TextBox( (15-1, offset*2+line*2+2, -15, line), "To these kerning pairs:", sizeStyle='small' )
-		self.w.positive = vanilla.CheckBox( (25, offset*2+line*3, -15, line), "Positive,", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.zero = vanilla.CheckBox( (90, offset*2+line*3, -15, line), "zero, and", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.negative = vanilla.CheckBox( (162, offset*2+line*3, -15, line), "negative pairs", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.text_1 = vanilla.TextBox( (inset-1, linePos+2, -inset, 14), "In the current font master, do this:", sizeStyle='small' )
+		
+		linePos += lineHeight
+		self.w.doWhat = vanilla.PopUpButton( (inset, linePos, 100, 17), optionList, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.howMuch = vanilla.EditText((inset+100+10, linePos-1, -inset, 19), "10", sizeStyle='small', callback=self.SavePreferences)
+		
+		linePos += lineHeight
+		self.w.text_2 = vanilla.TextBox( (inset-1, linePos+4, -inset, 14), "To these kerning pairs:", sizeStyle='small' )
+
+		linePos += lineHeight
+		self.w.positive = vanilla.CheckBox( (inset, linePos, 63, 20), "Positive,", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.zero = vanilla.CheckBox( (inset+65, linePos, 65, 20), "zero, and", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.negative = vanilla.CheckBox( (inset+137, linePos, -inset, 20), "negative pairs", value=True, callback=self.SavePreferences, sizeStyle='small' )
 
 		# self.w.keepWindow = vanilla.CheckBox( (25, offset*2+line*4, -15, line), "Keep window open", value=False, callback=self.SavePreferences, sizeStyle='small' )
 
-		self.w.runButton = vanilla.Button((-80-15, -offset-line-5, -15, line), "Adjust", sizeStyle='small', callback=self.AdjustKerningMain )
+		self.w.runButton = vanilla.Button( (-80-inset, -20-inset, -inset, -inset), "Adjust", sizeStyle='regular', callback=self.AdjustKerningMain )
 		self.w.setDefaultButton( self.w.runButton )
 		
 		# Load Settings:
@@ -53,15 +61,21 @@ class AdjustKerning( object ):
 		self.w.open()
 		self.w.makeKey()
 		
-		
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+
 	def SavePreferences( self, sender ):
 		try:
-			Glyphs.defaults["com.mekkablue.AdjustKerning.doWhat"] = self.w.doWhat.get()
-			Glyphs.defaults["com.mekkablue.AdjustKerning.howMuch"] = self.w.howMuch.get()
-			# Glyphs.defaults["com.mekkablue.AdjustKerning.keepWindow"] = self.w.keepWindow.get()
-			Glyphs.defaults["com.mekkablue.AdjustKerning.positive"] = self.w.positive.get()
-			Glyphs.defaults["com.mekkablue.AdjustKerning.zero"] = self.w.zero.get()
-			Glyphs.defaults["com.mekkablue.AdjustKerning.negative"] = self.w.negative.get()
+			Glyphs.defaults[self.domain("doWhat")] = self.w.doWhat.get()
+			Glyphs.defaults[self.domain("howMuch")] = self.w.howMuch.get()
+			Glyphs.defaults[self.domain("positive")] = self.w.positive.get()
+			Glyphs.defaults[self.domain("zero")] = self.w.zero.get()
+			Glyphs.defaults[self.domain("negative")] = self.w.negative.get()
 		except:
 			return False
 			
@@ -69,16 +83,19 @@ class AdjustKerning( object ):
 
 	def LoadPreferences( self ):
 		try:
-			Glyphs.registerDefault("com.mekkablue.AdjustKerning.doWhat", 0)
-			Glyphs.registerDefault("com.mekkablue.AdjustKerning.howMuch", "20")
-			Glyphs.registerDefault("com.mekkablue.AdjustKerning.positive", True)
-			Glyphs.registerDefault("com.mekkablue.AdjustKerning.zero", True)
-			Glyphs.registerDefault("com.mekkablue.AdjustKerning.negative", True)
-			self.w.doWhat.set( Glyphs.defaults["com.mekkablue.AdjustKerning.doWhat"] )
-			self.w.howMuch.set( Glyphs.defaults["com.mekkablue.AdjustKerning.howMuch"] )
-			self.w.positive.set( Glyphs.defaults["com.mekkablue.AdjustKerning.positive"] )
-			self.w.zero.set( Glyphs.defaults["com.mekkablue.AdjustKerning.zero"] )
-			self.w.negative.set( Glyphs.defaults["com.mekkablue.AdjustKerning.negative"] )
+			# register defaults:
+			Glyphs.registerDefault(self.domain("doWhat"), 0)
+			Glyphs.registerDefault(self.domain("howMuch"), "20")
+			Glyphs.registerDefault(self.domain("positive"), True)
+			Glyphs.registerDefault(self.domain("zero"), True)
+			Glyphs.registerDefault(self.domain("negative"), True)
+			
+			# load previously written prefs:
+			self.w.doWhat.set( self.pref("doWhat") )
+			self.w.howMuch.set( self.pref("howMuch") )
+			self.w.positive.set( self.pref("positive") )
+			self.w.zero.set( self.pref("zero") )
+			self.w.negative.set( self.pref("negative") )
 		except:
 			return False
 			
@@ -95,11 +112,11 @@ class AdjustKerning( object ):
 	
 	def userChoosesToProcessKerning( self, kernValue ):
 		try:
-			if Glyphs.defaults["com.mekkablue.AdjustKerning.positive"] and kernValue > 0:
+			if Glyphs.defaults[self.domain("positive")] and kernValue > 0:
 				return True
-			elif Glyphs.defaults["com.mekkablue.AdjustKerning.zero"] and kernValue == 0:
+			elif Glyphs.defaults[self.domain("zero")] and kernValue == 0:
 				return True
-			elif Glyphs.defaults["com.mekkablue.AdjustKerning.negative"] and kernValue < 0:
+			elif Glyphs.defaults[self.domain("negative")] and kernValue < 0:
 				return True
 			else:
 				return False
@@ -112,8 +129,8 @@ class AdjustKerning( object ):
 			Master = Font.selectedFontMaster
 			MasterID = Master.id
 			MasterKernDict = Font.kerning[ MasterID ]
-			calculation = str( self.w.doWhat.getItems()[ Glyphs.defaults["com.mekkablue.AdjustKerning.doWhat"] ] )
-			value = float( Glyphs.defaults["com.mekkablue.AdjustKerning.howMuch"] )
+			calculation = str( self.w.doWhat.getItems()[ Glyphs.defaults[self.domain("doWhat")] ] )
+			value = float( Glyphs.defaults[self.domain("howMuch")] )
 			
 			Font.disableUpdateInterface()
 			try:
@@ -165,6 +182,18 @@ class AdjustKerning( object ):
 								rightName = self.nameForID( Font, rightGlyphID )
 								Font.setKerningForPair( MasterID, leftName, rightName, round( originalKerning / value, 0 ) * value )
 								
+				elif calculation == optionList[4]:
+					
+					for left in MasterKernDict.keys():
+						for right in MasterKernDict[left].keys():
+							originalKerning = MasterKernDict[left][right]
+							if self.userChoosesToProcessKerning( originalKerning ):
+								if originalKerning > abs(value):
+									MasterKernDict[left][right] = abs(value)
+								elif originalKerning < -abs(value):
+									MasterKernDict[left][right] = -abs(value)
+					
+				
 			except Exception as e:
 				Glyphs.showMacroWindow()
 				print("\n⚠️ Script Error:\n")
@@ -175,7 +204,6 @@ class AdjustKerning( object ):
 				
 			finally:
 				Font.enableUpdateInterface() # re-enables UI updates in Font View
-			
 			
 			if not self.SavePreferences( self ):
 				print("Note: could not write preferences.")

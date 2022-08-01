@@ -6,7 +6,6 @@ Jumps to previous instance shown in the preview field or window.
 """
 
 from Foundation import NSApplication
-from GlyphsApp import *
 
 font = Glyphs.font
 numberOfInstances = len( font.instances )

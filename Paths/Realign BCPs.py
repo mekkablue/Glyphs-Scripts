@@ -5,7 +5,7 @@ __doc__="""
 Realigns handles (BCPs) in current layers of selected glyphs. Useful for resetting out-of-sync handles, e.g., after a transform operation, after interpolation or after switching to a different grid. Hold down Option to process ALL layers of the glyph.
 """
 
-from Foundation import NSPoint, NSEvent, NSNumber, NSMutableArray
+from Foundation import NSPoint, NSEvent, NSNumber, NSMutableArray, NSClassFromString
 
 optionKeyFlag = 524288
 optionKeyPressed = NSEvent.modifierFlags() & optionKeyFlag == optionKeyFlag
@@ -14,7 +14,7 @@ thisFont = Glyphs.font
 moveForward = NSPoint( 1, 1 )
 moveBackward = NSPoint( -1, -1 )
 noModifier = NSNumber.numberWithUnsignedInteger_(0)
-Tool = GlyphsPathPlugin.alloc().init()
+Tool = NSClassFromString("GlyphsPathPlugin").alloc().init()
 
 def realignLayer(thisLayer):
 	countOfHandlesOnLayer = 0
@@ -33,14 +33,14 @@ thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
 	for thisLayer in thisFont.selectedLayers:
 		thisGlyph = thisLayer.parent
-		thisGlyph.beginUndo() # begin undo grouping
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		if optionKeyPressed:
 			handleCount = 0
 			for everyLayer in thisGlyph.layers:
 				handleCount += realignLayer( everyLayer )
 		else:
 			handleCount = realignLayer( thisLayer )
-		thisGlyph.endUndo()   # end undo grouping
+		# thisGlyph.endUndo() # undo grouping causes crashes
 		print("Processed %i BCPs in %s%s" % ( handleCount, "all layers of " if optionKeyPressed else "", thisGlyph.name ))
 except Exception as e:
 	Glyphs.showMacroWindow()

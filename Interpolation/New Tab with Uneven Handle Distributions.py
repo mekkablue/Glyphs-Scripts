@@ -8,7 +8,7 @@ Finds glyphs where handle distributions change too much (e.g., from balanced to 
 import vanilla
 from Foundation import NSPoint
 
-def intersectionWithNSPoints( pointA, pointB, pointC, pointD ):
+def intersectionWithNSPoints( pointA, pointB, pointC, pointD , includeMidBcp=False):
 	"""
 	Returns an NSPoint of the intersection AB with CD.
 	Or False if there is no intersection
@@ -49,8 +49,9 @@ def intersectionWithNSPoints( pointA, pointB, pointC, pointD ):
 			
 		intersectionPoint = NSPoint( x, y )
 		if bothPointsAreOnSameSideOfOrigin( intersectionPoint, pointB, pointA ) and bothPointsAreOnSameSideOfOrigin( intersectionPoint, pointC, pointD ):
-			if pointIsBetweenOtherPoints( intersectionPoint, pointB, pointA ) or pointIsBetweenOtherPoints( intersectionPoint, pointC, pointD ):
-				return None
+			if not includeMidBcp:
+				if pointIsBetweenOtherPoints( intersectionPoint, pointB, pointA ) or pointIsBetweenOtherPoints( intersectionPoint, pointC, pointD ):
+					return None
 			return intersectionPoint
 		else:
 			return None
@@ -94,12 +95,12 @@ def pointIsBetweenOtherPoints( thisPoint, otherPointA, otherPointB) :
 	xDiffFactor = divideAndTolerateZero( xDiffAP, xDiffAB )
 	yDiffFactor = divideAndTolerateZero( yDiffAP, yDiffAB )
 	
-	if xDiffFactor:
+	if xDiffFactor is not None:
 		if 0.0<=xDiffFactor<=1.0:
 			returnValue = True
 	
-	if yDiffFactor:
-		if 0.0<=xDiffFactor<=1.0:
+	if yDiffFactor is not None:
+		if 0.0<=yDiffFactor<=1.0:
 			returnValue = True
 		
 	return returnValue
@@ -259,7 +260,7 @@ class NewTabWithUnevenHandleDistributions( object ):
 					if firstLayer.paths:
 						otherLayers = [l for l in thisGlyph.layers if l!=firstLayer and (l.isMasterLayer or l.isSpecialLayer) and thisGlyph.mastersCompatibleForLayers_((l,firstLayer))]
 						for i,firstPath in enumerate(firstLayer.paths):
-							if not thisGlyph in affectedGlyphs and not markInFirstMaster:
+							if not thisGlyph.name in affectedGlyphs and not markInFirstMaster:
 								for j,firstNode in enumerate(firstPath.nodes):
 									if firstNode.type == CURVE:
 										indexPrevNode = (j-3) % len(firstPath.nodes)
@@ -270,12 +271,12 @@ class NewTabWithUnevenHandleDistributions( object ):
 										firstBCP1 = firstPath.nodes[indexBCP1]
 										firstBCP2 = firstPath.nodes[indexBCP2]
 									
-										firstIntersection = intersectionWithNSPoints(firstPrevNode, firstBCP1, firstBCP2, firstNode)
+										firstIntersection = intersectionWithNSPoints(firstPrevNode, firstBCP1, firstBCP2, firstNode, includeMidBcp=True)
 										if firstIntersection:
 											if shouldCheckFactorChange:
 												firstFactor = self.factor(firstPrevNode, firstBCP1, firstBCP2, firstNode, firstIntersection)
 												if self.factorChangeIsTooBig(maxFactorChange, firstFactor, i, indexPrevNode, indexBCP1, indexBCP2, j, otherLayers):
-													if not thisGlyph in affectedGlyphs:
+													if not thisGlyph.name in affectedGlyphs:
 														affectedGlyphs.append(thisGlyph.name)
 													if markInFirstMaster:
 														centerPoint = bezierWithPoints(firstPrevNode, firstBCP1, firstBCP2, firstNode, 0.5)
@@ -285,7 +286,7 @@ class NewTabWithUnevenHandleDistributions( object ):
 											if shouldCheckAnyMaxToNotMax:
 												firstBCPsMaxed = (firstBCP1.position==firstIntersection, firstBCP2.position==firstIntersection)
 												if not self.isMaxTheSameEverywhere( firstBCPsMaxed, i, indexPrevNode, indexBCP1, indexBCP2, j, otherLayers):
-													if not thisGlyph in affectedGlyphs:
+													if not thisGlyph.name in affectedGlyphs:
 														affectedGlyphs.append(thisGlyph.name)
 													if markInFirstMaster:
 														centerPoint = bezierWithPoints(firstPrevNode, firstBCP1, firstBCP2, firstNode, 0.5)

@@ -38,12 +38,24 @@ class BatchInsertAnchor( object ):
 		
 		self.w.xPosText = vanilla.TextBox( (inset, linePos+2, 90, 14), u"H Position:", sizeStyle='small', selectable=True )
 		self.w.xPos = vanilla.PopUpButton( (inset+90, linePos, -inset, 17), xPositions, sizeStyle='small', callback=self.SavePreferences )
-		self.w.xPos.getNSButton().setToolTip_(u"The x coordinate of the anchor.")
+		
+		# vanilla legacy support
+		try:
+			self.w.xPos.getNSPopUpButton().setToolTip_(u"The x coordinate of the anchor.")
+		except:
+			self.w.xPos.getNSButton().setToolTip_(u"The x coordinate of the anchor.")
 		linePos += lineHeight
 		
 		self.w.yPosText = vanilla.TextBox( (inset, linePos+2, 90, 14), u"V Position:", sizeStyle='small', selectable=True )
 		self.w.yPos = vanilla.PopUpButton( (inset+90, linePos, -inset, 17), yPositions, sizeStyle='small', callback=self.SavePreferences )
-		self.w.yPos.getNSButton().setToolTip_(u"The y coordinate of the anchor.")
+
+		
+		# vanilla legacy support
+		try:
+			self.w.yPos.getNSPopUpButton().setToolTip_(u"The y coordinate of the anchor.")
+		except:
+			self.w.yPos.getNSButton().setToolTip_(u"The y coordinate of the anchor.")
+
 		linePos += lineHeight
 		
 		self.w.replaceExisting = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Replace Existing Anchors with Same Name", value=True, callback=self.SavePreferences, sizeStyle='small' )

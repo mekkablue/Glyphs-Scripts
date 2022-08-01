@@ -6,6 +6,8 @@ Batch apply metrics keys to the current font.
 """
 
 import vanilla
+from AppKit import NSFont
+
 
 LeftKeys="""
 =H: B D E F I K L N P R Thorn Germandbls M
@@ -199,6 +201,9 @@ class MetricsKeyManager( object ):
 	
 	def MetricsKeyManagerMain( self, sender ):
 		try:
+			# clears macro window log:
+			Glyphs.clearLog()
+			
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
 				print("Note: 'Metrics Key Manager' could not write preferences.")
@@ -209,7 +214,6 @@ class MetricsKeyManager( object ):
 			else:
 				print("Metrics Key Manager Report for %s" % thisFont.familyName)
 				print(thisFont.filepath)
-				print()
 			
 				# to be turned into selectable options:
 				# delete all existing keys, respect existing keys, overwrite existing keys
@@ -224,34 +228,47 @@ class MetricsKeyManager( object ):
 				RightKeysText = Glyphs.defaults["com.mekkablue.MetricsKeyManager.RightMetricsKeys"]
 				rightDict = self.text2dict(RightKeysText)
 				
+				dictDict = {
+					"Left": leftDict,
+					"Right": rightDict,
+				}
+				emojis = {
+					"Left": "⬅️",
+					"Right": "➡️",
+				}
+				
 				affectedGlyphs = []
 				
-				for key in leftDict.keys():
-					print(u"⬅️ Setting Left Key: '%s'" % key)
-					glyphNames = leftDict[key]
-					for glyphName in glyphNames:
-						glyph = thisFont.glyphs[glyphName]
-						if glyph:
-							glyph.leftMetricsKey = key
-							affectedGlyphs.append(glyphName)
-						else:
-							print(u"  ❌ Glyph '%s' not in font. Skipped." % glyphName)
-
-				for key in rightDict.keys():
-					print(u"➡️ Right Key: '%s'" % key)
-					glyphNames = rightDict[key]
-					for glyphName in glyphNames:
-						glyph = thisFont.glyphs[glyphName]
-						if glyph:
-							glyph.rightMetricsKey = key
-							affectedGlyphs.append(glyphName)
-						else:
-							print(u"  ❌ Glyph '%s' not in font. Skipped." % glyphName)
+				for LorR in dictDict.keys():
+					print()
+					thisDict = dictDict[LorR]
+					if not LorR in ("Left", "Right"):
+						print("\n😬 Expected key 'Left' or 'Right', but got '%s' instead." % LorR)
+						break
+					else:
+						for key in thisDict.keys():
+							print("%s Setting %s key %s" % (emojis[LorR], LorR.lower(), key))
+							glyphNames = thisDict[key]
+							reportGlyphs = []
+							for glyphName in glyphNames:
+								glyph = thisFont.glyphs[glyphName]
+								if glyph:
+									if LorR=="Left":
+										glyph.leftMetricsKey = key
+									elif LorR=="Right":
+										glyph.rightMetricsKey = key
+									affectedGlyphs.append(glyphName)
+									reportGlyphs.append(glyphName)
+								else:
+									print("    ⚠️ Glyph '%s' not in font. Skipped." % glyphName)
+							if reportGlyphs:
+								print("    ✅ %s" % ", ".join(reportGlyphs))
+							else:
+								print("    🤷🏻‍♀️ No glyphs changed.")
 				
 				if affectedGlyphs and shouldOpenTabWithAffectedGlyphs:
 					affectedGlyphs = set(affectedGlyphs)
 					thisFont.newTab( "/"+"/".join(affectedGlyphs) )
-					
 			
 		except Exception as e:
 			# brings macro window to front and reports error:

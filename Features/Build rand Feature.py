@@ -43,14 +43,15 @@ class BuildRandFeature( object ):
 		
 		self.w.exclude = vanilla.CheckBox( (inset, linePos, 160, 20), "Exclude glyphs containing:", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.excludeList = vanilla.EditText( (inset+160, linePos, -inset, 19), ".build, .ss12", callback=self.SavePreferences, sizeStyle='small' )
-		self.w.excludeList.getNSTextField().setToolTip_("Comma-separated list of glyph name particles. Glyphs contining these partcles in their names will be excluded from the rand feature generation.")
+		self.w.excludeList.getNSTextField().setToolTip_("Comma-separated list of glyph name particles. Glyphs containing these particles in their names will be excluded from the rand feature generation.")
 		linePos += lineHeight
 		
 		self.w.includeDefault = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Include unsuffixed default in randomisation", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.includeDefault.getNSButton().setToolTip_("If activated will substitute A from [A A.cv01 A.cv02]. If deactivated, will substitute only from [A.cv01 A.cv02].")
+		self.w.includeDefault.getNSButton().setToolTip_("If enabled, will substitute A from [A A.cv01 A.cv02]. If disabled, will substitute only from [A.cv01 A.cv02]. Usually, you will want to keep this on.")
 		linePos += lineHeight
 		
 		self.w.overwrite = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Overwrite existing rand feature", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.overwrite.getNSButton().setToolTip_("If enabled, will recreate the existing randomisation feature from scratch. If disabled, will append the new code instead. Usually, you will want to keep this on.")
 		linePos += lineHeight
 		
 		# Run Button:
@@ -78,7 +79,6 @@ class BuildRandFeature( object ):
 			Glyphs.defaults["com.mekkablue.BuildRandFeature.excludeList"] = self.w.excludeList.get()
 			Glyphs.defaults["com.mekkablue.BuildRandFeature.includeDefault"] = self.w.includeDefault.get()
 			
-			
 			self.guiUpdate()
 			return True
 		except:
@@ -94,7 +94,6 @@ class BuildRandFeature( object ):
 			Glyphs.registerDefault("com.mekkablue.BuildRandFeature.exclude", 1)
 			Glyphs.registerDefault("com.mekkablue.BuildRandFeature.excludeList", ".build, .ss12")
 			Glyphs.registerDefault( "com.mekkablue.BuildRandFeature.includeDefault", 0 )
-			
 			
 			# load previously written prefs:
 			self.w.overwrite.set( Glyphs.defaults["com.mekkablue.BuildRandFeature.overwrite"] )
@@ -235,7 +234,7 @@ class BuildRandFeature( object ):
 			# Final report:
 			Glyphs.showNotification( 
 				u"%s: Done" % (thisFont.familyName),
-				u"New rand feature with %i lines available in Font Info. Details in Macro Window" % len(otFeatureLines),
+				u"New rand feature with %i lines available in Font Info → Features. Details in Macro Window" % len(otFeatureLines),
 				)
 			print("\nDone.")
 

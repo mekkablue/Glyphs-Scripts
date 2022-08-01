@@ -7,6 +7,13 @@ Finds small paths (smaller tahn a user-definable threshold) in glyphs and open a
 
 import vanilla
 
+def glyphShouldBeIgnored(glyphname):
+	beginParticles = ("_corner", "_segment", "_cap")
+	for particle in beginParticles:
+		if glyphname.startswith(particle):
+			return True
+	return False
+
 class FindSmallPaths( object ):
 	def __init__( self ):
 		# Window 'self.w':
@@ -32,7 +39,7 @@ class FindSmallPaths( object ):
 		linePos += lineHeight
 
 		self.w.sliderMin = vanilla.EditText( ( inset, linePos, 50, 19), "10", sizeStyle='small', callback=self.SliderUpdate )
-		self.w.sliderMax = vanilla.EditText( (-inset-50, linePos, -inset, 19), "10000", sizeStyle='small', callback=self.SliderUpdate )
+		self.w.sliderMax = vanilla.EditText( (-inset-50, linePos, -inset, 19), "1000", sizeStyle='small', callback=self.SliderUpdate )
 		self.w.areaSlider= vanilla.Slider((inset+50+10, linePos, -inset-50-10, 19), value=0.1, minValue=0.0, maxValue=1.0, sizeStyle='small', callback=self.SliderUpdate )
 		linePos += lineHeight
 		
@@ -82,7 +89,7 @@ class FindSmallPaths( object ):
 	def LoadPreferences( self ):
 		try:
 			Glyphs.registerDefault("com.mekkablue.FindSmallPaths.sliderMin", "10",)
-			Glyphs.registerDefault("com.mekkablue.FindSmallPaths.sliderMax", "100000")
+			Glyphs.registerDefault("com.mekkablue.FindSmallPaths.sliderMax", "1000")
 			Glyphs.registerDefault("com.mekkablue.FindSmallPaths.areaSlider", 0.1)
 			Glyphs.registerDefault("com.mekkablue.FindSmallPaths.deleteThemRightAway", 0)
 			Glyphs.registerDefault("com.mekkablue.FindSmallPaths.afterOverlapRemoval", 1)
@@ -228,17 +235,22 @@ class FindSmallPaths( object ):
 				
 					for jj, thisGlyph in enumerate(thisFont.glyphs):
 						self.w.progress.set(ii*quarter + jj*quarter/numOfGlyphs)
-					
+						if glyphShouldBeIgnored(thisGlyph.name):
+							continue
+						
 						for thisLayer in thisGlyph.layers:
 							if thisLayer.paths and (thisLayer.isMasterLayer or thisLayer.isSpecialLayer):
 								if overlapsShouldBeRemovedFirst:
 									checkLayer = thisLayer.copyDecomposedLayer()
 									checkLayer.removeOverlap()
+									if Glyphs.versionNumber >= 3:
+										# GLYPHS 3
+										checkLayer.flattenOutlines()
 								else:
 									checkLayer = thisLayer
 
 								countOfAffectedPaths = 0
-								thisGlyph.beginUndo() # begin undo grouping
+								# thisGlyph.beginUndo() # undo grouping causes crashes
 								for i in range(len(checkLayer.paths))[::-1]:
 									thisPath = checkLayer.paths[i]
 									if thisPath.area() < minArea:
@@ -247,7 +259,7 @@ class FindSmallPaths( object ):
 											del thisLayer.paths[i]
 								if countOfAffectedPaths:
 									layersWithSmallPaths.append(thisLayer)
-								thisGlyph.endUndo()   # end undo grouping
+								# thisGlyph.endUndo() # undo grouping causes crashes
 								if countOfAffectedPaths > 0:
 									print(u"  ⚠️ %s, layer '%s': %i path%s found." % (
 										thisGlyph.name,

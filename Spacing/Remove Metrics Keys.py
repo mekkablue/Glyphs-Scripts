@@ -25,9 +25,9 @@ try:
 	for thisLayer in listOfSelectedLayers:
 		thisGlyph = thisLayer.parent
 		print("Deleted metrics keys: %s" % thisGlyph.name)
-		thisGlyph.beginUndo() # begin undo grouping
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		process( thisGlyph )
-		thisGlyph.endUndo()   # end undo grouping
+		# thisGlyph.endUndo() # undo grouping causes crashes
 
 except Exception as e:
 	Glyphs.showMacroWindow()

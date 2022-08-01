@@ -195,6 +195,71 @@ def createGlyph(font, name, unicodeValue, override=False):
 			
 			return glyph
 
+def offsetLayer( thisLayer, offset, makeStroke=False, position=0.5, autoStroke=False ):
+	offsetFilter = NSClassFromString("GlyphsFilterOffsetCurve")
+	try:
+		# GLYPHS 3:	
+		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyleStart_capStyleEnd_keepCompatibleOutlines_(
+			thisLayer,
+			offset, offset, # horizontal and vertical offset
+			makeStroke,     # if True, creates a stroke
+			autoStroke,     # if True, distorts resulting shape to vertical metrics
+			position,       # stroke distribution to the left and right, 0.5 = middle
+			None, None, None, 0, 0, True )
+	except:
+		# GLYPHS 2:
+		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyle_keepCompatibleOutlines_(
+			thisLayer,
+			offset, offset, # horizontal and vertical offset
+			makeStroke,     # if True, creates a stroke
+			autoStroke,     # if True, distorts resulting shape to vertical metrics
+			position,       # stroke distribution to the left and right, 0.5 = middle
+			thisLayer.glyphMetrics(), # metrics (G3)
+			None, None, # error, shadow
+			0, # NSButtLineCapStyle, # cap style
+			True, # keep compatible
+			)
+
+def circleCoordsForHeight(s):
+	radius = s/2
+	x = s/2
+	y = s/2
+	bcp = 4.0*(2.0**0.5-1.0)/3.0
+	handle = radius*bcp
+	coords=(
+		( # path
+			(x, y-radius),
+			((x+handle, y-radius), (x+radius, y-handle), (x+radius, y)),
+			((x+radius, y+handle), (x+handle, y+radius), (x, y+radius)),
+			((x-handle, y+radius), (x-radius, y+handle), (x-radius, y)),
+			((x-radius, y-handle), (x-handle, y-radius), (x, y-radius)),
+		),
+	)
+	return coords
+
+def drawPenDataInLayer(thisLayer,penData,closePath=True):
+	for thisPath in penData:
+		pen = thisLayer.getPen()
+		pen.moveTo( thisPath[0] )
+		for thisSegment in thisPath[1:]:
+			if len(thisSegment) == 2: # lineto (2 coordinates: x,y)
+				pen.lineTo( thisSegment )
+			elif len(thisSegment) == 3: # curveto (3 x/y tuples)
+				pen.curveTo(
+					thisSegment[0],
+					thisSegment[1],
+					thisSegment[2]
+				)
+			else:
+				print("%s: Path drawing error. Could not process this segment:\n" % (glyphName, thisSegment))
+		if closePath:
+			pen.closePath()
+		pen.endPath()
+	
+	# clean up:
+	# thisLayer.correctPathDirection()
+	thisLayer.cleanUpPaths()
+		
 def areaOfLayer(layer):
 	area = 0
 	l = layer.copyDecomposedLayer()
@@ -263,7 +328,124 @@ def buildNotdef( thisFont, override=False ):
 					notdefLayer.syncMetrics()
 			else:
 				print("⚠️ Error building .notdef: Could not determine source layer of glyph 'question'." )
+
+def buildLozenge( thisFont, override=False):
+	glyphName = "lozenge"
+	lozengeGlyph = createGlyph(thisFont, glyphName, "25CA", override=override)
 	
+	# set metrics keys and kern groups:
+	lozengeGlyph.leftMetricsKey = "=50"
+	lozengeGlyph.rightMetricsKey = "=|"
+	lozengeGlyph.leftKerningGroup = glyphName
+	lozengeGlyph.rightKerningGroup = glyphName
+	
+	for thisLayer in lozengeGlyph.layers:
+		thisMaster = thisLayer.master
+		capHeight = thisMaster.capHeight
+		s = capHeight * 0.7 # 70% cap height
+		
+		penpoints_lozenge = (
+			( # fin
+				(s*0.3, s*1.0),
+				(s*0.0, s*0.5),
+				(s*0.3, s*0.0),
+				(s*0.6, s*0.5),
+			),
+		)
+		
+		# draw the skeleton:
+		drawPenDataInLayer(thisLayer, penpoints_lozenge, closePath=True)
+		
+		# expand it:
+		stemWidth = stemWidthForMaster( thisFont, thisMaster, maxWidth=s*0.6*0.3 )
+		offsetLayer( thisLayer, stemWidth/2, makeStroke=True, position=0.5 )
+		
+		# move it into mid cap height:
+		moveUp = (capHeight - s) * 0.5 # move to center of cap height
+		moveUpStruct = transform(shiftY=moveUp).transformStruct()
+		thisLayer.applyTransform(moveUpStruct)
+		
+		# update metrics:
+		thisLayer.cleanUpPaths()
+		thisLayer.syncMetrics()
+		
+		# cut off caps:
+		midTop = sum([p.bounds.origin.y + p.bounds.size.height for p in thisLayer.paths])/2.0
+		midBottom = sum([p.bounds.origin.y for p in thisLayer.paths])/2.0
+		intersector = GSPath()
+		coordinates = (
+			(0, midBottom),
+			(thisLayer.width, midBottom),
+			(thisLayer.width, midTop),
+			(0, midTop),
+		)
+		for coordinate in coordinates:
+			intersector.nodes.append(GSNode(NSPoint(*coordinate)))
+		intersector.closed = True
+		
+		if Glyphs.versionNumber >= 3:
+			# GLYPHS 3
+			thisLayer.shapes.append(intersector)
+		else:
+			# GLYPHS 2
+			thisLayer.paths.append(intersector)
+			
+		thisLayer.clearSelection()
+		intersector.selected = True
+		thisLayer.pathIntersect_(None)
+
+def buildCurrency( thisFont, override=False ):
+	glyphName = "currency"
+	currencyGlyph = createGlyph(thisFont, glyphName, "00A4", override=override)
+	
+	# set metrics keys and kern groups:
+	currencyGlyph.leftMetricsKey = "=50"
+	currencyGlyph.rightMetricsKey = "=|"
+	currencyGlyph.leftKerningGroup = glyphName
+	currencyGlyph.rightKerningGroup = glyphName
+	
+	for thisLayer in currencyGlyph.layers:
+		thisMaster = thisLayer.master
+		capHeight = thisMaster.capHeight
+		s = capHeight * 0.6 # 60% cap height
+		
+		penpoints_currency = (
+			( # circle
+				(s*0.500, s*0.173),
+				((s*0.680, s*0.173), (s*0.827, s*0.320), (s*0.827, s*0.500)),
+				((s*0.827, s*0.680), (s*0.680, s*0.827), (s*0.500, s*0.827)),
+				((s*0.320, s*0.827), (s*0.173, s*0.680), (s*0.173, s*0.500)),
+				((s*0.173, s*0.320), (s*0.320, s*0.173), (s*0.500, s*0.173)),
+			),
+			( # fin
+				(s*1.000, s*1.000), (s*0.741, s*0.741),
+			),
+			( # fin
+				(s*0.000, s*0.000), (s*0.259, s*0.259),
+			),
+			( # fin
+				(s*0.000, s*1.000), (s*0.259, s*0.741),
+			),
+			( # fin
+				(s*1.000, s*0.000), (s*0.741, s*0.259),
+			),
+		)
+		
+		# draw the skeleton:
+		drawPenDataInLayer(thisLayer, penpoints_currency, closePath=False)
+		
+		# expand it:
+		stemWidth = stemWidthForMaster( thisFont, thisMaster, maxWidth=s*0.5*0.3 )
+		offsetLayer( thisLayer, stemWidth/2, makeStroke=True, position=0.5 )
+		
+		# move it into mid cap height:
+		moveUp = (capHeight - s) * 0.5 # move to center of cap height
+		moveUpStruct = transform(shiftY=moveUp).transformStruct()
+		thisLayer.applyTransform(moveUpStruct) 
+		
+		# update metrics:
+		thisLayer.cleanUpPaths()
+		thisLayer.syncMetrics()
 
 def buildEstimated( thisFont, override=False ):
 	glyphname = "estimated"
@@ -332,7 +514,7 @@ def buildEstimated( thisFont, override=False ):
 	else:
 		print("⚠️ Could not create the estimated glyph already exists in this font. Rename or delete it and try again.")
 
-def stemWidthForMaster( thisFont, thisMaster, default=50 ):
+def stemWidthForMaster( thisFont, thisMaster, default=50, maxWidth=None ):
 	try:
 		slash = thisFont.glyphs["slash"].layers[thisMaster.id]
 		slashLeft = slash.bounds.origin.x
@@ -345,7 +527,13 @@ def stemWidthForMaster( thisFont, thisMaster, default=50 ):
 		intersections = list(slash.intersectionsBetweenPoints(measureStart,measureEnd))
 		slashStemWidth = distance(intersections[1].pointValue(), intersections[2].pointValue()) # hypotenuse
 		angleRAD = math.atan( (slashTop-slashBottom)/(slashRight-slashLeft) ) 
-		return ((slashStemWidth * math.cos(angleRAD)) + slashStemWidth) * 0.5
+		width = ((slashStemWidth * math.cos(angleRAD)) + slashStemWidth) * 0.5
+		
+		# compare with maxWidth:
+		if maxWidth and maxWidth > 2:
+			width = min(width, maxWidth)
+			
+		return width
 	except:
 		print( "⚠️ Error measuring slash, will try Master stem width instead.")
 		try:
@@ -357,20 +545,30 @@ def stemWidthForMaster( thisFont, thisMaster, default=50 ):
 def buildBars( thisFont, override=False ):
 	barGlyph = createGlyph(thisFont, "bar", "007C", override=override)
 	brokenbarGlyph = createGlyph(thisFont, "brokenbar", "00A6", override=override)
+	
+	slashGlyph = thisFont.glyphs["slash"]
 
 	if barGlyph or brokenbarGlyph:
 		for thisMaster in thisFont.masters:
 			goodMeasure = (thisMaster.ascender-thisMaster.descender)*0.2
 			descender = round(thisMaster.descender - goodMeasure)
 			ascender = round(thisMaster.ascender + goodMeasure)
-
 			mID = thisMaster.id
 			italicAngle = thisMaster.italicAngle
 			pivot = thisMaster.xHeight * 0.5
-			
 			stemWidth = stemWidthForMaster(thisFont, thisMaster)
-
-			stemWidth -= stemWidth*math.cos(math.radians(italicAngle))-stemWidth
+			stemWidth -= stemWidth*math.cos(math.radians(italicAngle))-stemWidth # correct for italic angle
+			
+			if slashGlyph:
+				slashLayer = slashGlyph.layers[thisMaster.id]
+				if slashLayer.bounds.size.height > 0:
+					descender = slashLayer.bounds.origin.y
+					ascender = descender + slashLayer.bounds.size.height
+					middle = (descender+ascender)*0.5
+					suggestedStemWidth = slashLayer.width - slashLayer.rsbAtHeight_(middle) - slashLayer.lsbAtHeight_(middle)
+					if suggestedStemWidth > 0:
+						stemWidth = int(suggestedStemWidth * 0.96)
+			
 			sidebearing = max( (350-stemWidth)*0.5, 60.0 )
 			gap = max( 250-stemWidth, 120.0 )
 			
@@ -446,37 +644,37 @@ class BuildSymbols( object ):
 		
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 14), u"Create the following symbols automatically. See tooltips for requirements.", sizeStyle='small', selectable=True )
+		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 14), "Create the following symbols automatically. See tooltips for requirements.", sizeStyle='small', selectable=True )
 		linePos += lineHeight
 		
-		self.w.buildEstimated = vanilla.CheckBox( (inset, linePos, -inset, 20), u"estimated", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.buildEstimated.getNSButton().setToolTip_(u"Will build estimated ℮ and scale it to the size of your lining zero, if available.")
+		self.w.buildEstimated = vanilla.CheckBox( (inset, linePos, -inset, 20), "estimated", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.buildEstimated.getNSButton().setToolTip_("Will build estimated ℮ and scale it to the size of your lining zero, if available.")
 		
-		self.w.buildBars = vanilla.CheckBox( (inset+120, linePos, -inset, 20), u"bars, brokenbar", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.buildBars.getNSButton().setToolTip_(u"Will build bar | and brokenbar ¦ and use the master’s stem values for their size.")
+		self.w.buildBars = vanilla.CheckBox( (inset+120, linePos, -inset, 20), "bars, brokenbar", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.buildBars.getNSButton().setToolTip_("Will build bar | and brokenbar ¦ and use the master’s stem values for their size.")
 		
-		self.w.buildEmptyset = vanilla.CheckBox( (inset+240, linePos, -inset, 20), u"emptyset", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.buildEmptyset.getNSButton().setToolTip_(u"Will build emptyset. Not yet implemented, sorry.")
+		self.w.buildEmptyset = vanilla.CheckBox( (inset+240, linePos, -inset, 20), "emptyset", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.buildEmptyset.getNSButton().setToolTip_("Will build emptyset. Not yet implemented, sorry.")
 		linePos += lineHeight
 		
-		self.w.buildCurrency = vanilla.CheckBox( (inset, linePos, -inset, 20), u"currency", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.buildCurrency.getNSButton().setToolTip_(u"Will build currency. Not yet implemented, sorry.")
+		self.w.buildCurrency = vanilla.CheckBox( (inset, linePos, -inset, 20), "currency", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.buildCurrency.getNSButton().setToolTip_("Will build currency.")
 		
-		self.w.buildLozenge = vanilla.CheckBox( (inset+120, linePos, -inset, 20), u"lozenge", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.buildLozenge.getNSButton().setToolTip_(u"Will build lozenge. Not yet implemented, sorry.")
+		self.w.buildLozenge = vanilla.CheckBox( (inset+120, linePos, -inset, 20), "lozenge", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.buildLozenge.getNSButton().setToolTip_("Will build lozenge.")
 		
-		self.w.buildProduct = vanilla.CheckBox( (inset+240, linePos, -inset, 20), u"product", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.buildProduct.getNSButton().setToolTip_(u"Will build product. Not yet implemented, sorry.")
+		self.w.buildProduct = vanilla.CheckBox( (inset+240, linePos, -inset, 20), "product", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.buildProduct.getNSButton().setToolTip_("Will build product. Not yet implemented, sorry.")
 		linePos += lineHeight
 		
-		self.w.buildSummation = vanilla.CheckBox( (inset, linePos, -inset, 20), u"summation", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.buildSummation.getNSButton().setToolTip_(u"Will build summation. Not yet implemented, sorry.")
+		self.w.buildSummation = vanilla.CheckBox( (inset, linePos, -inset, 20), "summation", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.buildSummation.getNSButton().setToolTip_("Will build summation. Not yet implemented, sorry.")
 		
-		self.w.buildRadical = vanilla.CheckBox( (inset+120, linePos, -inset, 20), u"radical", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.buildRadical.getNSButton().setToolTip_(u"Will build radical. Not yet implemented, sorry.")
+		self.w.buildRadical = vanilla.CheckBox( (inset+120, linePos, -inset, 20), "radical", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.buildRadical.getNSButton().setToolTip_("Will build radical. Not yet implemented, sorry.")
 
-		self.w.buildNotdef = vanilla.CheckBox( (inset+240, linePos, -inset, 20), u".notdef", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.buildNotdef.getNSButton().setToolTip_(u"Will build the mandatory .notdef glyph based on the boldest available question mark.")
+		self.w.buildNotdef = vanilla.CheckBox( (inset+240, linePos, -inset, 20), ".notdef", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.buildNotdef.getNSButton().setToolTip_("Will build the mandatory .notdef glyph based on the boldest available question mark.")
 		linePos += lineHeight
 		
 		# ----------- SEPARATOR LINE -----------
@@ -484,14 +682,14 @@ class BuildSymbols( object ):
 		linePos += lineHeight
 		
 		# Other options:
-		self.w.override = vanilla.CheckBox( (inset, linePos, -inset, 20), u"Overwrite existing symbol glyphs (creates backup layers)", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.override.getNSButton().setToolTip_(u"If checked, will create fresh symbols even if they already exist. Current outlines will be copied to a backup layer (if they are different). If unchecked, will skip glyphs that already exist.")
+		self.w.override = vanilla.CheckBox( (inset, linePos, -inset, 20), "Overwrite existing symbol glyphs (creates backup layers)", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.override.getNSButton().setToolTip_("If checked, will create fresh symbols even if they already exist. Current outlines will be copied to a backup layer (if they are different). If unchecked, will skip glyphs that already exist.")
 		linePos += lineHeight
 		
-		self.w.newTab = vanilla.CheckBox( (inset, linePos-1, 180, 20), u"Open tab with new glyphs", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.newTab.getNSButton().setToolTip_(u"If checked, will open a new tab with the newly created symbols.")
-		self.w.reuseTab = vanilla.CheckBox( (inset+180, linePos-1, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.reuseTab.getNSButton().setToolTip_(u"If checked, will reuse the current tab, and open a new tab only if there is no Edit tab open already. Highly recommended.")
+		self.w.newTab = vanilla.CheckBox( (inset, linePos-1, 180, 20), "Open tab with new glyphs", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.newTab.getNSButton().setToolTip_("If checked, will open a new tab with the newly created symbols.")
+		self.w.reuseTab = vanilla.CheckBox( (inset+180, linePos-1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reuseTab.getNSButton().setToolTip_("If checked, will reuse the current tab, and open a new tab only if there is no Edit tab open already. Highly recommended.")
 		linePos += lineHeight
 		
 		# Run Button:
@@ -511,8 +709,6 @@ class BuildSymbols( object ):
 	def updateUI(self, sender=None):
 		# not implemented yet:
 		self.w.buildEmptyset.enable(False)
-		self.w.buildCurrency.enable(False)
-		self.w.buildLozenge.enable(False)
 		self.w.buildProduct.enable(False)
 		self.w.buildSummation.enable(False)
 		self.w.buildRadical.enable(False)
@@ -525,8 +721,8 @@ class BuildSymbols( object ):
 		Glyphs.defaults["com.mekkablue.BuildSymbols.buildEstimated"] = onOrOff
 		Glyphs.defaults["com.mekkablue.BuildSymbols.buildBars"] = onOrOff
 		Glyphs.defaults["com.mekkablue.BuildSymbols.buildEmptyset"] = False # onOrOff
-		Glyphs.defaults["com.mekkablue.BuildSymbols.buildCurrency"] = False # onOrOff
-		Glyphs.defaults["com.mekkablue.BuildSymbols.buildLozenge"] = False # onOrOff
+		Glyphs.defaults["com.mekkablue.BuildSymbols.buildCurrency"] = onOrOff
+		Glyphs.defaults["com.mekkablue.BuildSymbols.buildLozenge"] = onOrOff
 		Glyphs.defaults["com.mekkablue.BuildSymbols.buildProduct"] = False # onOrOff
 		Glyphs.defaults["com.mekkablue.BuildSymbols.buildSummation"] = False # onOrOff
 		Glyphs.defaults["com.mekkablue.BuildSymbols.buildRadical"] = False # onOrOff
@@ -631,13 +827,13 @@ class BuildSymbols( object ):
 				
 			if Glyphs.defaults["com.mekkablue.BuildSymbols.buildCurrency"]:
 				print("\n🔣 Building currency:")
-				print("😢 Not yet implemented, sorry.")
-				pass
+				buildCurrency(thisFont, override=override)
+				tabText += "/currency"
 				
 			if Glyphs.defaults["com.mekkablue.BuildSymbols.buildLozenge"]:
 				print("\n🔣 Building lozenge:")
-				print("😢 Not yet implemented, sorry.")
-				pass
+				buildLozenge(thisFont, override=override)
+				tabText += "/lozenge"
 				
 			if Glyphs.defaults["com.mekkablue.BuildSymbols.buildProduct"]:
 				print("\n🔣 Building product:")
@@ -661,8 +857,8 @@ class BuildSymbols( object ):
 			
 			# Floating notification:
 			Glyphs.showNotification( 
-				u"%s: symbols built" % (thisFont.familyName),
-				u"Script ‘Build Symbols’ is finished.",
+				"%s: symbols built" % (thisFont.familyName),
+				"Script ‘Build Symbols’ is finished.",
 				)
 			
 			if newTab and tabText:

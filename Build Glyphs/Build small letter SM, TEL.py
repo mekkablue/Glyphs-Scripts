@@ -16,6 +16,7 @@ selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 
 import math
 
+			
 def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	"""
 	Returns an NSAffineTransform object for transforming layers.
@@ -47,15 +48,53 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 		myTransform.appendTransform_(skewTransform)
 	return myTransform
 
+# def offsetLayer( thisLayer, offset, makeStroke=False, position=0.5, autoStroke=False ):
+# 	def _filter(name):
+# 		for filter in Glyphs.filters:
+# 			if filter.__class__.__name__ == name:
+# 				return filter
+# 	offsetFilter = _filter("GlyphsFilterOffsetCurve")
+# 	lastArg = autoStroke
+# 	if not autoStroke:
+# 		lastArg = position
+# 	else:
+# 		lastArg = 1
+# 	if makeStroke:
+# 		makeStroke = 1
+# 	else:
+# 		makeStroke = 0
+# 	offsetFilter.processLayer_withArguments_(
+# 			thisLayer, 
+# 			['GlyphsFilterOffsetCurve',f"{offset}", f"{offset}", f"{makeStroke}", f"{lastArg}"]
+# 		)
+
 def offsetLayer( thisLayer, offset, makeStroke=False, position=0.5, autoStroke=False ):
 	offsetFilter = NSClassFromString("GlyphsFilterOffsetCurve")
-	offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_error_shadow_(
-		thisLayer,
-		offset, offset, # horizontal and vertical offset
-		makeStroke,     # if True, creates a stroke
-		autoStroke,     # if True, distorts resulting shape to vertical metrics
-		position,       # stroke distribution to the left and right, 0.5 = middle
-		None, None )
+	try:
+		# GLYPHS 3:	
+		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyleStart_capStyleEnd_keepCompatibleOutlines_(
+			thisLayer,
+			offset, offset, # horizontal and vertical offset
+			makeStroke,     # if True, creates a stroke
+			autoStroke,     # if True, distorts resulting shape to vertical metrics
+			position,       # stroke distribution to the left and right, 0.5 = middle
+			None, None, None, 0, 0, True )
+	except:
+		# GLYPHS 2:
+		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyle_keepCompatibleOutlines_(
+			thisLayer,
+			offset, offset, # horizontal and vertical offset
+			makeStroke,     # if True, creates a stroke
+			autoStroke,     # if True, distorts resulting shape to vertical metrics
+			position,       # stroke distribution to the left and right, 0.5 = middle
+			thisLayer.glyphMetrics(), # metrics (G3)
+			None, None, # error, shadow
+			0, # NSButtLineCapStyle, # cap style
+			True, # keep compatible
+			)
+		
+
+	
 
 reference = thisFont.glyphs["M"]
 trademark = thisFont.glyphs["trademark"]

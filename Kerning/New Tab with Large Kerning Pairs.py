@@ -8,6 +8,8 @@ Shows all Kerning Pairs beyond a threshold value.
 import vanilla
 
 class ShowLargeKerningPairs( object ):
+	prefID = "com.mekkablue.ShowLargeKerningPairs"
+	
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 300
@@ -28,7 +30,6 @@ class ShowLargeKerningPairs( object ):
 		self.w.positive = vanilla.CheckBox( (15, 40, -15, 20), "Positive pairs", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.negative = vanilla.CheckBox( (15, 60, -15, 20), "Negative pairs", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		
-		
 		# Run Button:
 		self.w.runButton = vanilla.Button((-80-15, -20-15, -15, -15), "Open Tab", sizeStyle='regular', callback=self.ShowLargeKerningPairsMain )
 		self.w.setDefaultButton( self.w.runButton )
@@ -40,18 +41,25 @@ class ShowLargeKerningPairs( object ):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-		
+	
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
 	def SavePreferences( self, sender ):
 		try:
 			if sender == self.w.positive and self.w.positive.get() == 0:
 				self.w.negative.set( 1 )
 			elif sender == self.w.negative and self.w.negative.get() == 0:
 				self.w.positive.set( 1 )
-
-			Glyphs.defaults["com.mekkablue.ShowLargeKerningPairs.negative"] = self.w.negative.get()
-			Glyphs.defaults["com.mekkablue.ShowLargeKerningPairs.positive"] = self.w.positive.get()
-			Glyphs.defaults["com.mekkablue.ShowLargeKerningPairs.threshold"] = self.w.threshold.get()
 			
+			Glyphs.defaults[self.domain("negative")] = self.w.negative.get()
+			Glyphs.defaults[self.domain("positive")] = self.w.positive.get()
+			Glyphs.defaults[self.domain("threshold")] = self.w.threshold.get()
 		except:
 			return False
 			
@@ -59,12 +67,13 @@ class ShowLargeKerningPairs( object ):
 
 	def LoadPreferences( self ):
 		try:
-			Glyphs.registerDefault("com.mekkablue.ShowLargeKerningPairs.negative", True)
-			Glyphs.registerDefault("com.mekkablue.ShowLargeKerningPairs.positive", True)
-			Glyphs.registerDefault("com.mekkablue.ShowLargeKerningPairs.threshold", "100")
-			self.w.negative.set( Glyphs.defaults["com.mekkablue.ShowLargeKerningPairs.negative"] )
-			self.w.positive.set( Glyphs.defaults["com.mekkablue.ShowLargeKerningPairs.positive"] )
-			self.w.threshold.set( Glyphs.defaults["com.mekkablue.ShowLargeKerningPairs.threshold"] )
+			Glyphs.registerDefault( self.domain("negative"), True )
+			Glyphs.registerDefault( self.domain("positive"), True )
+			Glyphs.registerDefault( self.domain("threshold"), 100 )
+			
+			self.w.negative.set( self.pref("negative") )
+			self.w.positive.set( self.pref("positive") )
+			self.w.threshold.set( self.pref("threshold") )
 		except:
 			return False
 			
@@ -76,16 +85,19 @@ class ShowLargeKerningPairs( object ):
 			thisMaster = thisFont.selectedFontMaster
 			thisKerning = thisFont.kerning[thisMaster.id]
 			
-			negative = bool(Glyphs.defaults["com.mekkablue.ShowLargeKerningPairs.negative"])
-			positive = bool(Glyphs.defaults["com.mekkablue.ShowLargeKerningPairs.positive"])
+			negative = bool(self.pref("negative"))
+			positive = bool(self.pref("positive"))
 
 			try:
 				# validate user input:
-				threshold = int( Glyphs.defaults["com.mekkablue.ShowLargeKerningPairs.threshold"] )
+				threshold = int( self.pref("threshold") )
 			except Exception as e:
 				import traceback
 				print(traceback.format_exc())
-				Message(title="Threshold Error", message="The threshold value you supplied could not be read as an integer value.", OKButton=None)
+				Message(
+					title="Threshold Error",
+					message="The threshold value you supplied could not be read as an integer value.",
+					OKButton=None)
 				threshold = 0
 			
 			if threshold:
@@ -100,8 +112,8 @@ class ShowLargeKerningPairs( object ):
 						rightGroups[thisGlyph.rightKerningGroup] = thisGlyph.name
 				
 				tabText = ""
-				for leftKey in thisKerning:
-					for rightKey in thisKerning[leftKey]:
+				for leftKey in thisKerning.keys():
+					for rightKey in thisKerning[leftKey].keys():
 						if (positive and thisKerning[leftKey][rightKey] > threshold) or (negative and thisKerning[leftKey][rightKey] < -threshold):
 							# add two glyphs and a space to the tabText
 							leftGlyphName = None

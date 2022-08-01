@@ -8,51 +8,37 @@ Center all selected glyphs inside their respective widths.
 import math
 from AppKit import NSAffineTransform, NSAffineTransformStruct
 
+def shiftMatrix(xShift):
+	transform = NSAffineTransform.transform()
+	transform.translateXBy_yBy_(xShift,0)
+	return transform.transformStruct()
+
 Font = Glyphs.font
-selectedLayers = Font.selectedLayers
-
-def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
-	"""
-	Returns an NSAffineTransform object for transforming layers.
-	Apply an NSAffineTransform t object like this:
-		Layer.transform_checkForSelection_doComponents_(t,False,True)
-	Access its transformation matrix like this:
-		tMatrix = t.transformStruct() # returns the 6-float tuple
-	Apply the matrix tuple like this:
-		Layer.applyTransform(tMatrix)
-		Component.applyTransform(tMatrix)
-		Path.applyTransform(tMatrix)
-	Chain multiple NSAffineTransform objects t1, t2 like this:
-		t1.appendTransform_(t2)
-	"""
-	myTransform = NSAffineTransform.transform()
-	if rotate:
-		myTransform.rotateByDegrees_(rotate)
-	if scale != 1.0:
-		myTransform.scaleBy_(scale)
-	if not (shiftX == 0.0 and shiftY == 0.0):
-		myTransform.translateXBy_yBy_(shiftX,shiftY)
-	if skew:
-		skewStruct = NSAffineTransformStruct()
-		skewStruct.m11 = 1.0
-		skewStruct.m22 = 1.0
-		skewStruct.m21 = math.tan(math.radians(skew))
-		skewTransform = NSAffineTransform.transform()
-		skewTransform.setTransformStruct_(skewStruct)
-		myTransform.appendTransform_(skewTransform)
-	return myTransform
-
 Font.disableUpdateInterface()
 try:
-	for thisLayer in selectedLayers:
-		thisMaster = thisLayer.master
-		shift = ( thisLayer.LSB - thisLayer.RSB ) * -0.5
-		shiftMatrix = transform(shiftX=shift).transformStruct()
-		thisLayer.applyTransform( shiftMatrix )
+	selectedLayers = Font.selectedLayers
+	if len(selectedLayers)==1 and selectedLayers[0].selection:
+		currentLayer = selectedLayers[0]
+		selectionOrigin = currentLayer.selectionBounds.origin.x
+		selectionWidth = currentLayer.selectionBounds.size.width
+		shift = shiftMatrix( (currentLayer.width - selectionWidth) * 0.5 - selectionOrigin )
+		for item in currentLayer.selection:
+			try:
+				if type(item)==GSNode:
+					item.x += shift.tX
+				else:
+					item.applyTransform(shift)
+			except Exception as e:
+				print(e)
+	else:
+		for thisLayer in selectedLayers:
+			thisMaster = thisLayer.master
+			shift = shiftMatrix( ( thisLayer.LSB - thisLayer.RSB ) * -0.5 )
+			thisLayer.applyTransform(shift)
 		
 except Exception as e:
 	Glyphs.showMacroWindow()
-	print("\n⚠️ Script Error:\n")
+	print("\n⚠️ 'Center Glyphs' Script Error:\n")
 	import traceback
 	print(traceback.format_exc())
 	print()
@@ -61,5 +47,4 @@ except Exception as e:
 finally:
 	Font.enableUpdateInterface() # re-enables UI updates in Font View
 
-print("Centered: %s" % (", ".join( [ l.parent.name for l in selectedLayers ] )))
-
+print("✅ Centered: %s" % (", ".join( [ l.parent.name for l in selectedLayers ] )))

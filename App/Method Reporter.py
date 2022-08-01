@@ -47,6 +47,8 @@ class MethodReporter( object ):
 			"GSFeature",
 			"GSFeaturePrefix",
 			"GSFontMaster",
+			"GSFontInfoValue",
+			"GSFontInfoValueLocalized",
 			"GSGlyphEditView",
 			"GSGlyphInfo",
 			"GSGlyphsInfo",
@@ -54,6 +56,7 @@ class MethodReporter( object ):
 			"GSGuideLine",
 			"GSHint",
 			"GSInstance",
+			"GSMetricValue",
 			"GSNode",
 			"GSPathPen",
 			"GSPathSegment",
@@ -78,8 +81,8 @@ class MethodReporter( object ):
 		# Window 'self.w':
 		windowWidth  = 250
 		windowHeight = 200
-		windowWidthResize  = 400 # user can resize width by this value
-		windowHeightResize = 650 # user can resize height by this value
+		windowWidthResize  = 1000 # user can resize width by this value
+		windowHeightResize = 850 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			( windowWidth, windowHeight ), # default window size
 			"Method Reporter", # window title
@@ -103,7 +106,7 @@ class MethodReporter( object ):
 		self.w.objectPicker.getNSComboBox().setToolTip_("Type a class name here. Names will autocomplete.")
 		
 		# Filter:
-		self.w.text2 = vanilla.TextBox(
+		self.w.textFilter = vanilla.TextBox(
 			(140, 6, 35, 14),
 			"Find:",
 			sizeStyle='small'
@@ -133,9 +136,31 @@ class MethodReporter( object ):
 			print("Note: 'Method Reporter' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
+		self.w.bind("resize", self.adjustGUIObjects)
 		self.w.open()
 		self.w.makeKey()
 		self.MethodReporterMain(None)
+	
+	def adjustGUIObjects(self, sender=None):
+		windowLeft, windowTop, windowWidth, windowHeight = self.w.getPosSize()
+		if windowWidth > 350:
+			fifth=int(windowWidth*0.4)
+
+			posSizeObjectPicker = list(self.w.objectPicker.getPosSize())
+			posSizeObjectPicker[2] = fifth-7
+			self.w.objectPicker.setPosSize( posSizeObjectPicker )
+
+			posSizeTextFilter = list(self.w.textFilter.getPosSize())
+			posSizeTextFilter[0] = fifth
+			self.w.textFilter.setPosSize( posSizeTextFilter )
+
+			posSizeFilter = list(self.w.filter.getPosSize())
+			posSizeFilter[0] = fifth+33
+			self.w.filter.setPosSize( posSizeFilter )
+		else:
+			self.w.objectPicker.setPosSize( (3, 2, 133, 24) )
+			self.w.textFilter.setPosSize( (140, 6, 35, 14) )
+			self.w.filter.setPosSize( (173, 1, -1, 24 ) )
 		
 	def SavePreferences( self, sender ):
 		try:
@@ -217,6 +242,7 @@ class MethodReporter( object ):
 			return [
 				self.fullMethodName(className,method) for method in elidableMethods 
 				if not method.startswith(".")
+				and not method.startswith("_")
 			]
 		else:
 			try:
@@ -230,6 +256,7 @@ class MethodReporter( object ):
 				self.fullMethodName(className,method) for method in dir(actualClass) 
 				if not method in elidableMethods 
 				and not method.startswith(".")
+				and not method.startswith("_")
 			]
 			return shortenedMethods
 			

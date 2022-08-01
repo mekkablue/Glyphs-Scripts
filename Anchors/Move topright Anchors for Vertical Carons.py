@@ -78,11 +78,11 @@ try:
 
 	for thisGlyph in [l.parent for l in selectedLayers]:
 		print("\n🔠 Glyph: %s" % thisGlyph.name)
-		thisGlyph.beginUndo() # begin undo grouping
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		for thisLayer in thisGlyph.layers:
 			if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 				process( thisLayer )
-		thisGlyph.endUndo()   # end undo grouping
+		# thisGlyph.endUndo() # undo grouping causes crashes
 
 	print("\nDone.")
 

@@ -14,10 +14,8 @@ def allAnchorsOfThisGlyph( thisGlyph ):
 	for thisLayer in thisGlyph.layers:
 		thisWidth = thisLayer.width
 		allAnchors = [a for a in thisLayer.anchors]
-		if thisWidth == 0:
-			thisWidth = 1
 		for thisAnchor in allAnchors:
-			thisAnchorInfo = ( thisAnchor.x / thisWidth, thisAnchor.y )
+			thisAnchorInfo = ( thisAnchor.x / max(1,thisWidth), thisAnchor.y )
 			if not thisAnchor.name in anchorDict.keys():
 				anchorDict[thisAnchor.name] = [ thisAnchorInfo ]
 			else:
@@ -64,9 +62,9 @@ try:
 	for thisLayer in selectedLayers:
 		thisGlyph = thisLayer.parent
 		print(thisGlyph.name)
-		thisGlyph.beginUndo() # begin undo grouping
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		print(process( thisGlyph ))
-		thisGlyph.endUndo()   # end undo grouping
+		# thisGlyph.endUndo() # undo grouping causes crashes
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")

@@ -25,7 +25,7 @@ class Rotator(object):
 		
 		# Window 'self.w':
 		windowWidth  = 320
-		windowHeight = 85
+		windowHeight = 100
 		windowWidthResize  = 0 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -180,7 +180,7 @@ class Rotator(object):
 				print("rotationCenter, rotationDegrees, rotationDirection:", rotationCenter, rotationDegrees, rotationDirection)
 				RotationTransformMatrix = RotationTransform.transformStruct()
 				
-				thisGlyph.beginUndo()
+				# thisGlyph.beginUndo() # undo grouping causes crashes
 				
 				if repeatCount == 0: # simple rotation
 					for thisThing in selection:
@@ -205,7 +205,7 @@ class Rotator(object):
 					for newComp in newComps:
 						thisLayer.components.append(newComp)
 					
-				thisGlyph.endUndo()
+				# thisGlyph.endUndo() # undo grouping causes crashes
 			except Exception as e:
 				import traceback
 				print(traceback.format_exc())

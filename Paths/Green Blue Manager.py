@@ -1,6 +1,8 @@
 #MenuTitle: Green Blue Manager
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
+if Glyphs.versionNumber >= 3:
+	from GlyphsApp import GlyphsPathPlugin
 __doc__="""
 Define an angle above which a node will be set to blue, below which it will be set to green.
 """
@@ -290,7 +292,7 @@ class GreenBlueManager( object ):
 							self.w.processingText.set( statusMessage )
 							self.w.progress.set(100.0/numberOfLayers*i)
 						
-							thisGlyph.beginUndo() # begin undo grouping
+							# thisGlyph.beginUndo() # undo grouping causes crashes
 				
 							numberOfFixes = self.fixConnectionsOnLayer( thisLayer, shouldFix=shouldFix )
 							if numberOfFixes:
@@ -300,7 +302,7 @@ class GreenBlueManager( object ):
 							if numberOfAligns:
 								affectedLayersRealignedHandles.append( thisLayer )
 				
-							thisGlyph.endUndo()   # end undo grouping
+							# thisGlyph.endUndo() # undo grouping causes crashes
 				
 					self.w.progress.set(100)
 					statusMessage = "Processed %i layer%s." % (

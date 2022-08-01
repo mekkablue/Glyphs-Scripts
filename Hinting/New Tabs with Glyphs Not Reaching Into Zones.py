@@ -5,7 +5,8 @@ __doc__="""
 Opens a new tab with all glyphs that do NOT reach into any top or bottom alignment zone. Only counts glyphs that contain paths in the current master. Ignores empty glyphs and compounds.
 """
 
-import vanilla
+from collections import OrderedDict
+import vanilla, pprint
 
 class NewTabsWithGlyphsNotReachingIntoZones( object ):
 	def __init__( self ):
@@ -88,6 +89,15 @@ class NewTabsWithGlyphsNotReachingIntoZones( object ):
 		return True
 
 	def NewTabsWithGlyphsNotReachingIntoZonesMain( self, sender ):
+		if Glyphs.versionNumber >= 3:
+			# Glyphs 3 code
+			self.glyphs3solution()
+			# self.glyphs2solution()
+		else:
+			# Glyphs 2 code
+			self.glyphs2solution()
+
+	def glyphs2solution( self ):
 		try:
 			# update settings to the latest user input:
 			if not self.SavePreferences( self ):
@@ -191,6 +201,121 @@ class NewTabsWithGlyphsNotReachingIntoZones( object ):
 									if doesNotReachZone:
 										masterTab.layers.append(thisLayer) # += "/%s" % thisGlyph.name
 			
+			self.w.close() # delete if you want window to stay open
+		except Exception as e:
+			# brings macro window to front and reports error:
+			Glyphs.showMacroWindow()
+			print("New Tabs with Glyphs Not Reaching Into Zones Error: %s" % e)
+			import traceback
+			print(traceback.format_exc())
+
+	def glyphs3solution( self ):
+		try:
+			# update settings to the latest user input:
+			if not self.SavePreferences( self ):
+				print("Note: 'New Tabs with Glyphs Not Reaching Into Zones' could not write preferences.")
+			
+			thisFont = Glyphs.font # frontmost font
+			print("New Tabs with Glyphs Not Reaching Into Zones Report for %s" % thisFont.familyName)
+			print(thisFont.filepath)
+			print()
+			
+			allMastersInSeparateTabs = Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.allMastersInSeparateTabs"]
+			includeSpecialLayers = Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includeSpecialLayers"]
+			ignoreGlyphs = Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.ignoreGlyphs"]
+			includeMarks = Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includeMarks"]
+			includeSymbols = Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includeSymbols"]
+			includePunctuation = Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includePunctuation"]
+			zoneDataList = OrderedDict()
+			if allMastersInSeparateTabs:
+				masters = thisFont.masters
+			else:
+				masters = (thisFont.selectedFontMaster,)
+			
+			for thisFontMaster in masters:
+				zoneData = OrderedDict()
+				exportingGlyphs = [g for g in thisFont.glyphs if g.export and len(g.layers[thisFontMaster.id].paths)>0 ]
+				
+				
+				
+				# set the master for the tab:
+				
+				
+				# masterTab.text += "Master: %s" % thisFontMaster.name
+				
+				for thisGlyph in exportingGlyphs:
+					passMarksTest = includeMarks or thisGlyph.category != "Mark"
+					passSymbolsTest = includeSymbols or thisGlyph.category != "Symbol"
+					passPunctuationTest = includePunctuation or thisGlyph.category != "Punctuation"
+					passNameTest = True
+					for namePart in [n.strip() for n in ignoreGlyphs.split(",")]:
+						if namePart in thisGlyph.name:
+							passNameTest = False
+
+					if passMarksTest and passSymbolsTest and passPunctuationTest and passNameTest:
+						if includeSpecialLayers:
+							theseLayers = [l for l in thisGlyph.layers if (l.isSpecialLayer or l.isMasterLayer) and l.associatedMasterId==thisFontMaster.id]
+						else:
+							theseLayers = (thisGlyph.layers[thisFontMaster.id],)
+						
+						for thisLayer in theseLayers:
+							bottomZones = sorted( [z for z in thisLayer.metrics if z.size < 0.0], key = lambda thisZone: -thisZone.position )
+							topZones     = sorted( [z for z in thisLayer.metrics if z.size > 0.0], key = lambda thisZone: thisZone.position )
+							# exclude diacritic compounds:
+							isDiacriticCompound = (
+								thisGlyph.category == "Letter"
+								and len(thisLayer.paths)==0
+								and len(thisLayer.components)>0 
+								# and thisLayer.components[0].component.category=="Letter"
+							)
+							
+							for zones, isTopZone in ((bottomZones, False), (topZones, True)):
+								for thisZone in zones:
+									zoneType = "bottom"
+									if isTopZone:
+										zoneType = "top"
+									zoneDescription = ("\n\n%s %i+%i:\n" % (zoneType, thisZone.position, thisZone.size)).replace("+-","/minus ").replace("-","/minus ").replace("bottom 0","baseline 0")
+									if not zoneDescription in zoneData.keys():
+										zoneData[zoneDescription] = []
+	
+									if thisLayer.bounds.size.height and not isDiacriticCompound:
+										doesNotReachZone = True
+										if isTopZone:
+											topEdge = thisLayer.bounds.origin.y + thisLayer.bounds.size.height
+											for thisZone in zones:
+												if topEdge >= thisZone.position and topEdge <= (thisZone.position+thisZone.size):
+													doesNotReachZone = False
+										else:
+											bottomEdge = thisLayer.bounds.origin.y
+											for thisZone in zones:
+												if bottomEdge <= thisZone.position and bottomEdge >= (thisZone.position+thisZone.size):
+													doesNotReachZone = False
+										if doesNotReachZone:
+											zoneData[zoneDescription].append(thisLayer)
+				tabText = "Master: %s" % thisFontMaster.name
+				i = -1
+				for i,m in enumerate(thisFont.masters):
+					if m is thisFontMaster:
+						mIndex = i
+				# if i >= 0:
+				# 	masterTab.masterIndex = mIndex
+
+				zoneDataList[(tabText, i)] = zoneData
+			# putting collected data into tab's text
+			for key, zoneData in zoneDataList.items():
+				tabText, masterIndex = key
+				# opens new Edit tab:
+				masterTab = thisFont.newTab()
+				if masterIndex >= 0:
+					masterTab.masterIndex = mIndex
+				masterTab.text = tabText
+
+				for key, layers in zoneData.items():
+					masterTab.text+=key
+					for thisLayer in layers:
+						masterTab.layers.append(thisLayer)
+
+				
 			self.w.close() # delete if you want window to stay open
 		except Exception as e:
 			# brings macro window to front and reports error:

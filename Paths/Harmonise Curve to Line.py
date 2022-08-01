@@ -90,12 +90,12 @@ def pointIsBetweenOtherPoints( thisPoint, otherPointA, otherPointB) :
 	xDiffFactor = divideAndTolerateZero( xDiffAP, xDiffAB )
 	yDiffFactor = divideAndTolerateZero( yDiffAP, yDiffAB )
 
-	if xDiffFactor:
+	if xDiffFactor is not None:
 		if 0.0<=xDiffFactor<=1.0:
 			returnValue = True
 
-	if yDiffFactor:
-		if 0.0<=xDiffFactor<=1.0:
+	if yDiffFactor is not None:
+		if 0.0<=yDiffFactor<=1.0:
 			returnValue = True
 	
 	return returnValue
@@ -126,7 +126,7 @@ else:
 	
 for selectedLayer in Font.selectedLayers:
 	selectedGlyph = selectedLayer.parent
-	selectedGlyph.beginUndo()
+	# selectedGlyph.beginUndo() # undo grouping causes crashes
 	
 	# put original state in background:
 	selectedLayer.contentToBackgroundCheckSelection_keepOldBackground_(False,False)
@@ -175,4 +175,4 @@ for selectedLayer in Font.selectedLayers:
 						processedHandles.append(a)
 						processedHandles.append(b)
 
-	selectedGlyph.endUndo()
+	# selectedGlyph.endUndo() # undo grouping causes crashes

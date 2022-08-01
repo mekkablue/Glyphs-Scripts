@@ -17,7 +17,6 @@ class MasterFiller(object):
 		
 		self.w.text_2 = vanilla.TextBox((15, 32+2, 120, 14), "into selection of", sizeStyle='small')
 		self.w.master_into = vanilla.PopUpButton((120, 32, 80, 17), self.GetMasterNames(), sizeStyle='small', callback=self.MasterChangeCallback)
-		#self.w.anchor_value.bind( "+", self.ValuePlus1 )
 
 		self.w.copybutton = vanilla.Button((-80, 32, -15, 17), "Copy", sizeStyle='small', callback=self.buttonCallback)
 		self.w.setDefaultButton( self.w.copybutton )
@@ -47,21 +46,51 @@ class MasterFiller(object):
 		index_into = self.w.master_into.get()
 				
 		for thisGlyph in selectedGlyphs:
-			num_from = len(thisGlyph.layers[index_from].paths)
-			num_into = len(thisGlyph.layers[index_into].paths)
-
-			if num_into == 0 and num_from > 0:
-				for thisPath in thisGlyph.layers[index_from].paths:
+			sourceLayer = thisGlyph.layers[index_from]
+			targetLayer = thisGlyph.layers[index_into]
+			
+			if Glyphs.versionNumber >= 3:
+				# GLYPHS 3
+				targetLayerIsEmpty = len(targetLayer.shapes)==0
+			else:
+				# GLYPHS 2
+				targetLayerIsEmpty = all(
+					len(targetLayer.paths)==0,
+					len(targetLayer.components)==0,
+				)
+			
+			if targetLayerIsEmpty:
+				if len(targetLayer.anchors)==0:
+					for originalAnchor in sourceLayer.anchors:
+						newAnchor = GSAnchor()
+						newAnchor.name = originalAnchor.name
+						newAnchor.position = originalAnchor.position
+						targetLayer.anchors.append( newAnchor )
+				
+				for originalPath in sourceLayer.paths:
 					newPath = GSPath()
-
-					for n in thisPath.nodes:
+					for originalNode in originalPath.nodes:
 						newNode = GSNode()
-						newNode.type = n.type
-						newNode.setPosition_((n.x, n.y))
-						newPath.addNode_( newNode )
-
-					newPath.closed = thisPath.closed
-					thisGlyph.layers[index_into].paths.append( newPath )
+						newNode.type = originalNode.type
+						newNode.connection = originalNode.connection
+						newNode.position = originalNode.position
+						newPath.nodes.append( newNode )
+					newPath.closed = originalPath.closed
+					targetLayer.paths.append( newPath )
+				
+				for originalComponent in sourceLayer.components:
+					print(originalComponent)
+					newComponent = GSComponent()
+					newComponent.componentName = originalComponent.componentName
+					newComponent.position = originalComponent.position
+					newComponent.transform = originalComponent.transform
+					targetLayer.components.append( newComponent )
+					# align after adding component
+					newComponent.alignment = originalComponent.alignment
+					newComponent.disableAlignment = originalComponent.disableAlignment
+					newComponent.automaticAlignment = originalComponent.automaticAlignment
+				
+				targetLayer.width = sourceLayer.width
 		
 		self.w.close()
 

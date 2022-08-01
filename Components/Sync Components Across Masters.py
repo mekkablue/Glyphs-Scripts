@@ -24,23 +24,42 @@ def process( thisLayer ):
 			for thisComp in thisLayer.components:
 				thatComp = thisComp.copy()
 				newComponents.append(thatComp)
-			thatLayer.components = newComponents
-		if optionKeyPressed:
-			if thatLayer.anchors:
-				thatLayer.anchors = None
-				print("    Deleted anchors")
-			if thatLayer.paths:
-				thatLayer.paths = None
-				print("    Deleted paths")
+			
+			if newComponents:
+				if Glyphs.versionNumber >= 3:
+					# GLYPHS 3
+					if optionKeyPressed:
+						#clear all:
+						thatLayer.shapes = newComponents
+						thatLayer.anchors = None
+					else:
+						# clear components:
+						for i in range(len(thatLayer.shapes)-1,-1,-1):
+							shape = thatLayer.shapes[i]
+							if type(shape) == GSComponent or optionKeyPressed: # NEW: check for paths
+								del thatLayer.shapes[i]
+						# add components:
+						thatLayer.shapes.extend(newComponents)
+					
+				else:
+					# GLYPHS 2
+					thatLayer.components = newComponents
+					if optionKeyPressed:
+						if thatLayer.anchors:
+							thatLayer.anchors = None
+							print("    Deleted anchors")
+						if thatLayer.paths:
+							thatLayer.paths = None
+							print("    Deleted paths")
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
 	for thisLayer in listOfSelectedLayers:
 		thisGlyph = thisLayer.parent
 		print("Processing %s" % thisGlyph.name)
-		thisGlyph.beginUndo() # begin undo grouping
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		process( thisLayer )
-		thisGlyph.endUndo()   # end undo grouping
+		# thisGlyph.endUndo() # undo grouping causes crashes
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")

@@ -29,7 +29,10 @@ class FeatureActivator( object ):
 			featureActive = bool(sender.get())
 			if featureActive:
 				# add the feature:
-				editTab.selectedFeatures().append(featureTag)
+				try:
+					editTab.selectedFeatures().append(featureTag)
+				except:
+					editTab.selectedFeatures().addObject_(featureTag)
 			else:
 				# remove the feature:
 				try:

@@ -254,6 +254,8 @@ Keys = [
 	"zcaron",
 	"zdotaccent",
 	"thorn",
+	
+	# CYRILLIC
 	"Be-cy",
 	"Ve-cy",
 	"Ge-cy",
@@ -352,6 +354,8 @@ Keys = [
 	"hadesender-cy",
 	"chedesender-cy",
 	"obarred-cy",
+	
+	# GREEK
 	"Alpha",
 	"Beta",
 	"Gamma",
@@ -397,6 +401,8 @@ Keys = [
 	"upsilondieresistonos",
 	"upsilondieresis",
 	"omegatonos",
+	
+	# PUNCTUATION
 	"fi",
 	"fl",
 	"comma",
@@ -599,10 +605,8 @@ DefaultKeys = {
 	"iogonek" : ("i", "i"),
 	"itilde" : ("i", "i"),
 	"idotaccent" : ("i", "i"),
-	"dotlessi" : ("i", "i"),
 	"ij" : ("i", "i"),
 	"jcircumflex" : ("j", "j"),
-	"dotlessj" : ("j", "j"),
 	"kcommaaccent" : ("h", "k"),
 	"kgreenlandic" : ("h", "k"),
 	"lacute" : ("h", "l"),
@@ -665,6 +669,8 @@ DefaultKeys = {
 	"zcaron" : ("z", "z"),
 	"zdotaccent" : ("z", "z"),
 	"thorn" : ("h", "o"),
+	
+	# CYRILLIC
 	"A-cy" : ("A-cy", "A-cy"),
 	"Be-cy" : ("H", ""),
 	"Ve-cy" : ("H", "B"),
@@ -773,6 +779,8 @@ DefaultKeys = {
 	"hadesender-cy" : ("", "x"),
 	"chedesender-cy" : ("de-cy", "che-cy"),
 	"obarred-cy" : ("o", "o"),
+	
+	# GREEK
 	"Alpha" : ("A", "A"),
 	"Beta" : ("H", "B"),
 	"Gamma" : ("", "H"),
@@ -818,8 +826,8 @@ DefaultKeys = {
 	"upsilondieresistonos" : ("upsilon", "upsilon"),
 	"upsilondieresis" : ("upsilon", "upsilon"),
 	"omegatonos" : ("omega", "omega"),
-	"fi" : ("f", "i"),
-	"fl" : ("f", "l"),
+	
+	# PUNCTUATION
 	"comma" : ("period", "period"),
 	"semicolon" : ("colon", "colon"),
 	"ellipsis" : ("period", "period"),
@@ -838,11 +846,16 @@ DefaultKeys = {
 	"perthousand" : ("percent", "percent"),
 	"semicolon" : ("colon", "colon"),
 	"quotedblbase" : ("period", "period"),
+
+	# OVERRIDE FOR SPECIAL CASES
 	"oe.sc" : ("o.sc", "e.sc"),
 	"ae.sc" : ("a.sc", "e.sc"),
 	"eng" : ("n", "j"),
 	"alef-ar" : ("alef-ar", "alef-ar"),
-	
+	"fi" : ("f", "i"),
+	"fl" : ("f", "l"),
+	"dotlessi" : ("i", "i"),
+	"dotlessj" : ("j", "j"),
 	"idotless" : ("i", "i"),
 	"jdotless" : ("j", "j"),
 	"DZcaron" : ("H", "Z"),
@@ -893,9 +906,9 @@ def KeysForGlyph(Glyph):
 	return (LeftKey, RightKey)
 
 def updateKeyGlyphsForSelected():
-	Doc = Glyphs.currentDocument
-	Font = Doc.font
-	SelectedLayers = Doc.selectedLayers()
+	countL, countR = 0, 0
+	Font = Glyphs.font
+	SelectedLayers = Font.selectedLayers
 	for Layer in SelectedLayers:
 		Glyph = Layer.parent
 		LeftKey = ""
@@ -906,10 +919,8 @@ def updateKeyGlyphsForSelected():
 			if not componentGlyph:
 				raise Exception("Something is wrong with a component in glyph %s" % Glyph.name)
 			if componentGlyph.category == "Letter":
-				print("CHECK1")
 				LeftKey = KeysForGlyph(componentGlyph)[0]
 			if not LeftKey:
-				print("CHECK2")
 				LeftKey = componentGlyph.name
 			
 			# right side may be different (Dz, Nj, ae, oe):
@@ -982,16 +993,33 @@ def updateKeyGlyphsForSelected():
 		if not RightKey:
 			RightKey = Glyph.name
 		
-		print(Glyph.name, ">", LeftKey, RightKey)
-		if Glyph.leftKerningGroup is None or len(Glyph.leftKerningGroup) == 0:
-			Glyph.setLeftKerningGroup_(LeftKey)
-		if Glyph.rightKerningGroup is None or len(Glyph.rightKerningGroup) == 0:
-			Glyph.setRightKerningGroup_(RightKey)
+		# REPORT
+		print("🔠 %s: %s ↔️ %s" % (Glyph.name, LeftKey, RightKey))
+		
+		if not Glyph.leftKerningGroup:
+			Glyph.leftKerningGroup = LeftKey
+			countL += 1
+		else:
+			print("   ⚠️ LEFT group unchanged: %s" % Glyph.leftKerningGroup)
+			
+		if not Glyph.rightKerningGroup:
+			Glyph.rightKerningGroup = RightKey
+			countR += 1
+		else:
+			print("   ⚠️ RIGHT group unchanged: %s" % Glyph.rightKerningGroup)
+	
+	Message(
+		title="Kerning Groups Report",
+		message="Set %i left and %i right groups in %i selected glyphs. Detailed report in Window → Macro Panel." % ( countL, countR, len(SelectedLayers) ),
+		OKButton=None,
+		)
+		
 
 def main():
-	print("*** Start Update Key Glyphs ***\n")
+	Glyphs.clearLog()
+	print("Detailed Report for ‘Set Kerning Groups’:\n")
 	updateKeyGlyphsForSelected()
-	print("*** Ende ****")
+	print("\nDone.")
 	
 def test():
 	NewDefaultKeys = {}

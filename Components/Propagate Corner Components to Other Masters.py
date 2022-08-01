@@ -5,8 +5,9 @@ __doc__="""
 Puts Corner Components from the current layer into other master layers, at the same point indexes. Useful if Corner components do not interpolate correctly.
 """
 
-from GlyphsApp import CORNER
+from GlyphsApp import CORNER, SEGMENT
 from AppKit import NSNotificationCenter
+SUPPORTEDTYPES = (CORNER, SEGMENT)
 
 def indexOfPath(l,p):
 	for i in range(len(l.paths)):
@@ -21,7 +22,7 @@ def indexOfNode(l,pi,n):
 	return None
 	
 def deleteCornerComponentsOnLayer(l):
-	cornerComponents = [h for h in l.hints if h.type == CORNER]
+	cornerComponents = [h for h in l.hints if h.type in SUPPORTEDTYPES]
 	if cornerComponents:
 		for i in range(len(cornerComponents))[::-1]:
 			h = cornerComponents[i]
@@ -44,7 +45,7 @@ def process( thisLayer ):
 		]
 	for targetLayer in targetLayers:
 		deleteCornerComponentsOnLayer(targetLayer)
-		for h in [h for h in thisLayer.hints if h.type == CORNER]:
+		for h in [h for h in thisLayer.hints if h.type in SUPPORTEDTYPES]:
 			# query corner component attributes:
 			pathIndex = indexOfPath(thisLayer, h.originNode.parent)
 			nodeIndex = indexOfNode(thisLayer, pathIndex,h.originNode)
@@ -55,17 +56,17 @@ def process( thisLayer ):
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
-listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 
-if thisFont and listOfSelectedLayers:
+if thisFont and selectedLayers:
 	thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 	try:
-		for thisLayer in listOfSelectedLayers:
+		for thisLayer in selectedLayers:
 			thisGlyph = thisLayer.parent
 			print("Processing", thisGlyph.name)
-			thisGlyph.beginUndo() # begin undo grouping
+			# thisGlyph.beginUndo() # undo grouping causes crashes
 			process( thisLayer )
-			thisGlyph.endUndo()   # end undo grouping
+			# thisGlyph.endUndo() # undo grouping causes crashes
 			
 	except Exception as e:
 		Glyphs.showMacroWindow()
@@ -77,5 +78,6 @@ if thisFont and listOfSelectedLayers:
 		
 	finally:
 		thisFont.enableUpdateInterface() # re-enables UI updates in Font View
-
-	NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont)
+	
+	if Glyphs.versionNumber < 3 and thisFont.currentTab:
+		NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)

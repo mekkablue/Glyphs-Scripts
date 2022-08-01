@@ -67,8 +67,9 @@ class VerticalMetricsManager( object ):
 		self.w.winGap.getNSTextField().setToolTip_("OS/2 usWinLineGap does not exist, hence greyed out here.")
 		self.w.winUpdate = vanilla.SquareButton( (inset+280, linePos, 20, 19), u"↺", sizeStyle='small', callback=self.update )
 		self.w.winUpdate.getNSButton().setToolTip_("Will recalculate the OS/2 usWin values in the fields to the left. Takes the measurement settings below into account, except for the Limit options.")
-		linePos += lineHeight
+		linePos += lineHeight+4
 		
+		self.w.parenTypo = vanilla.TextBox( (inset-12, linePos+5, 15, 20), u"┏", sizeStyle='small', selectable=False )
 		self.w.titleTypo = vanilla.TextBox( (inset, linePos+3, 70, 14), u"OS/2 sTypo", sizeStyle='small', selectable=True )
 		self.w.typoAsc = vanilla.EditText( (inset+70, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small' )
 		self.w.typoAsc.getNSTextField().setToolTip_("OS/2 sTypoAscender (positive value), should be the same as hheaAscender. Should be the maximum height of the glyphs relevant for horizontal text setting in your font, like the highest accented uppercase letter, typically Aring or Ohungarumlaut. Used for first baseline offset in DTP and office apps and together with the line gap value, also in browsers.")
@@ -79,7 +80,9 @@ class VerticalMetricsManager( object ):
 		self.w.typoUpdate = vanilla.SquareButton( (inset+280, linePos, 20, 19), u"↺", sizeStyle='small', callback=self.update )
 		self.w.typoUpdate.getNSButton().setToolTip_("Will recalculate the OS/2 sTypo values in the fields to the left. Takes the measurement settings below into account.")
 		linePos += lineHeight
-		
+
+		self.w.parenConnect = vanilla.TextBox( (inset-12, linePos-int(lineHeight/2)+4, 15, 20), u"┃", sizeStyle='small', selectable=False )
+		self.w.parenHhea = vanilla.TextBox( (inset-12, linePos+3, 15, 20), u"┗", sizeStyle='small', selectable=False )
 		self.w.titleHhea = vanilla.TextBox( (inset, linePos+3, 70, 14), u"hhea", sizeStyle='small', selectable=True )
 		self.w.hheaAsc = vanilla.EditText( (inset+70, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small' )
 		self.w.hheaAsc.getNSTextField().setToolTip_("hheaAscender (positive value), should be the same as OS/2 sTypoAscender. Should be the maximum height of the glyphs relevant for horizontal text setting in your font, like the highest accented uppercase letter, typically Aring or Ohungarumlaut. Used for first baseline offset in Mac office apps and together with the line gap value, also in Mac browsers.")
@@ -484,6 +487,11 @@ class VerticalMetricsManager( object ):
 					xHeight = roundUpByValue(xHeight, roundValue)
 			
 			# calculate linegap, based on highest x-height and calculated asc/desc values:
+			# 
+			# TODO: verify
+			# LineGap >= (yMax - yMin) - (Ascender - Descender
+			# (source: https://docs.microsoft.com/en-us/typography/opentype/spec/recom)
+			#
 			idealLineSpan = abs(xHeight * 2.2)
 			if shouldRound:
 				idealLineSpan = roundUpByValue(idealLineSpan, roundValue)

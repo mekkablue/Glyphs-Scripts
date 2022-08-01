@@ -6,6 +6,7 @@ Opens a new tab containing kerning combos with the current glyph that collide in
 """
 
 from AppKit import NSNotFound, NSAffineTransform
+from kernanalysis import effectiveKerning
 
 exceptions="""
 .notdef
@@ -25,14 +26,19 @@ paragraph
 asciicircum
 """
 
-def effectiveKerning( leftGlyphName, rightGlyphName, thisFont, thisFontMasterID):
-	leftLayer = thisFont.glyphs[leftGlyphName].layers[thisFontMasterID]
-	rightLayer = thisFont.glyphs[rightGlyphName].layers[thisFontMasterID]
-	effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
-	if effectiveKerning < NSNotFound:
-		return effectiveKerning
-	else:
-		return 0.0
+# def effectiveKerning( leftGlyphName, rightGlyphName, thisFont, thisFontMasterID):
+	
+# 	leftLayer = thisFont.glyphs[leftGlyphName].layers[thisFontMasterID]
+# 	rightLayer = thisFont.glyphs[rightGlyphName].layers[thisFontMasterID]
+# 	if Glyphs.versionNumber < 3:
+# 		effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
+# 	else:
+		
+# 		effectiveKerning = leftLayer.nextKerningForLayer_direction_(rightLayer, leftLayer.parent.direction)
+# 	if effectiveKerning < NSNotFound:
+# 		return effectiveKerning
+# 	else:
+# 		return 0.0
 
 def pathCountOnLayer( thisLayer ):
 	thisLayer.removeOverlap()
@@ -60,7 +66,10 @@ def pathCountInKernPair( firstGlyphName, secondGlyphName, thisFont, thisFontMast
 	ligatureLayer.transform_checkForSelection_( rightShift, False )
 	
 	for addedPath in addedLayer.paths:
-		ligatureLayer.addPath_( addedPath.copy() )
+		if Glyphs.versionNumber < 3:
+			ligatureLayer.addPath_( addedPath.copy() )
+		else:
+			ligatureLayer.addShape_( addedPath.copy() )
 	
 	return pathCountOnLayer( ligatureLayer )
 

@@ -9,6 +9,8 @@ import vanilla
 
 
 class NewTabWithAnchor( object ):
+	prefID = "com.mekkablue.NewTabWithAnchor"
+
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 300
@@ -42,12 +44,20 @@ class NewTabWithAnchor( object ):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-		
+
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+
 	def SavePreferences( self, sender ):
 		try:
-			Glyphs.defaults["com.mekkablue.NewTabWithAnchor.anchorName"] = self.w.anchorName.get()
-			Glyphs.defaults["com.mekkablue.NewTabWithAnchor.allLayers"] = self.w.allLayers.get()
-			Glyphs.defaults["com.mekkablue.NewTabWithAnchor.keepWindowOpen"] = self.w.keepWindowOpen.get()
+			Glyphs.defaults[self.domain("anchorName")] = self.w.anchorName.get()
+			Glyphs.defaults[self.domain("allLayers")] = self.w.allLayers.get()
+			Glyphs.defaults[self.domain("keepWindowOpen")] = self.w.keepWindowOpen.get()
 		except:
 			return False
 			
@@ -55,12 +65,15 @@ class NewTabWithAnchor( object ):
 
 	def LoadPreferences( self ):
 		try:
-			Glyphs.registerDefault("com.mekkablue.NewTabWithAnchor.anchorName", "ogonek")
-			Glyphs.registerDefault("com.mekkablue.NewTabWithAnchor.allLayers", "0")
-			Glyphs.registerDefault("com.mekkablue.NewTabWithAnchor.keepWindowOpen", "0")
-			self.w.anchorName.set( Glyphs.defaults["com.mekkablue.NewTabWithAnchor.anchorName"] )
-			self.w.allLayers.set( Glyphs.defaults["com.mekkablue.NewTabWithAnchor.allLayers"] )
-			self.w.keepWindowOpen.set( Glyphs.defaults["com.mekkablue.NewTabWithAnchor.keepWindowOpen"] )
+			# register defaults:
+			Glyphs.registerDefault(self.domain("anchorName"), "ogonek")
+			Glyphs.registerDefault(self.domain("allLayers"), 0)
+			Glyphs.registerDefault(self.domain("keepWindowOpen"), 0)
+			
+			# load previously written prefs:
+			self.w.anchorName.set( self.pref("anchorName") )
+			self.w.allLayers.set( self.pref("allLayers") )
+			self.w.keepWindowOpen.set( self.pref("keepWindowOpen") )
 		except:
 			return False
 			
@@ -99,14 +112,15 @@ class NewTabWithAnchor( object ):
 			if not self.SavePreferences( self ):
 				print("Note: 'New Tab with Anchor' could not write preferences.")
 			
-			anchorName = Glyphs.defaults["com.mekkablue.NewTabWithAnchor.anchorName"]
-			allLayers = Glyphs.defaults["com.mekkablue.NewTabWithAnchor.allLayers"]
-			keepWindowOpen = Glyphs.defaults["com.mekkablue.NewTabWithAnchor.keepWindowOpen"]
+			anchorName = self.pref("anchorName")
+			allLayers = self.pref("allLayers")
+			keepWindowOpen = self.pref("keepWindowOpen")
 
 			if anchorName:
 				allGlyphsContainingAnchor = []
-				masterId = None
 				if allLayers:
+					masterId = None
+				else:
 					masterId = thisFont.selectedFontMaster.id # active master id
 			
 				# go through all glyphs and look for anchor:

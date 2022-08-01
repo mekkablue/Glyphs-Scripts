@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Create a Test HTML for the current font inside the current Variation Font Export folder.
+Create a Test HTML for the current font inside the current Variation Font Export folder. Hold down OPTION and SHIFT while running the script in order to create respective Samsa files in addition to the Test HTML.
 """
 
 from GlyphsApp import *
@@ -273,16 +273,30 @@ def otVarSuffix():
 			suffix = webSuffix
 	return suffix
 
-def otVarFileName(thisFont):
+def otVarFileName(thisFont, thisInstance=None):
 	suffix = otVarSuffix()
-	if thisFont.customParameters["Variable Font File Name"] or thisFont.customParameters["variableFileName"]:
+	if not thisInstance is None:
+		fileName = thisInstance.fileName()
+		# circumvent bug in Glyphs 3.0.5
+		if fileName.endswith(".otf"):
+			fileName = fileName[:-4]
+		if not fileName:
+			fileName = thisInstance.customParameters["fileName"]
+			if not fileName:
+				familyName = familyNameOfInstance(thisInstance)
+				fileName = ("%s-%s" % (familyName, thisInstance.name)).replace(" ","")
+		return "%s.%s" % ( fileName, suffix)
+	elif thisFont.customParameters["Variable Font File Name"] or thisFont.customParameters["variableFileName"]:
 		fileName = thisFont.customParameters["Variable Font File Name"]
 		if not fileName:
 			fileName = thisFont.customParameters["variableFileName"]
 		return "%s.%s" % (fileName, suffix)
 	else:
 		familyName = otVarFamilyName(thisFont)
-		fileName = "%sGX.%s" % (familyName, suffix)
+		if Glyphs.versionString >= "3.0.3":
+			fileName = "%sVF.%s" % (familyName, suffix)
+		else:
+			fileName = "%sGX.%s" % (familyName, suffix)
 		return fileName.replace(" ","")
 
 def replaceSet( text, setOfReplacements ):
@@ -403,7 +417,7 @@ def allOTVarSliders(thisFont):
 	for axis in thisFont.axes:
 		try:
 			# Glyphs 2:
-			axisName = unicode(axis["Name"])			
+			axisName = unicode(axis["Name"])
 		except:
 			# Glyphs 3:
 			axisName = axis.name
@@ -411,13 +425,31 @@ def allOTVarSliders(thisFont):
 		maxValue = axisDict[axisName]["max"]
 		axisTag = axisDict[axisName]["tag"]
 		
-		html += u"\t\t\t<div class='labeldiv'><label class='sliderlabel' id='label_%s' name='%s'>%s</label><input type='range' min='%i' max='%i' value='%i' class='slider' id='%s' oninput='updateSlider();'></div>\n" % (
+		startValue = originValueForAxisName(axisName, thisFont, minValue, maxValue)
+		
+		html += "\t\t\t<div class='labeldiv'><label class='sliderlabel' id='label_%s' name='%s'>%s</label><input type='range' min='%i' max='%i' value='%i' class='slider' id='%s' oninput='updateSlider();'></div>\n" % (
 			axisTag, axisName, axisName, 
-			minValue, maxValue, minValue,
+			minValue, maxValue, startValue,
 			axisTag
 		)
 		
 	return html
+
+def originValueForAxisName(axisName, thisFont, minValue, maxValue):
+	originMaster = originMasterOfFont(thisFont)
+	if not originMaster:
+		return minValue
+		
+	axisLocationDict = originMaster.customParameters["Axis Location"]
+	if not axisLocationDict:
+		return minValue
+		
+	for axisDict in axisLocationDict:
+		if axisName == axisDict["Axis"]:
+			axisLoc = int(axisDict["Location"])
+			return axisLoc
+	
+	return minValue
 
 def warningMessage():
 	Message(
@@ -464,7 +496,6 @@ def axisValuesForMaster(thisMaster):
 				thisMaster.customValue3,
 			)
 	return axisValues
-	
 
 def defaultVariationCSS(thisFont):
 	firstMaster = thisFont.masters[0]
@@ -484,20 +515,22 @@ def defaultVariationCSS(thisFont):
 		
 	return ", ".join(defaultValues)
 
-samsaPlaceholder = "<!-- placeholder for external links, hold down OPTION while running the script -->"
-
-htmlContent = u"""
+def buildHTML( fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa=False):
+	samsaPlaceholder = "<!-- placeholder for external links, hold down OPTION and SHIFT while running the script -->"
+	htmlContent = """
 <html>
 	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 	<meta http-equiv="X-UA-Compatible" content="IE=9" />
 	<head>
 		<title>OTVar Test: ###fontFamilyNameWithSpaces###</title>
-		<style>
+		<style id="font-declaration">
 			@font-face { 
 				font-family: "###fontFamilyName###";
 				src: url("###fontFileName###");
 			}
+		</style>
+		<style>
 			body {
 				padding: 0;
 				margin: auto;
@@ -520,7 +553,7 @@ htmlContent = u"""
 				-moz-user-select: none;
 				-webkit-user-select: none;
 			}
-			
+		
 
 /* OTVar Sliders: */
 			.labeldiv {
@@ -600,11 +633,11 @@ htmlContent = u"""
 				z-index: 6;
 			}
  			select {
-				position: absolute;
-				margin: 0.2em 0.5em;
+				position: relative;
+				margin: 0.25em 0.15em;
 				height: 2.1em;
 				font: x-small sans-serif;
-				vertical-align: bottom;
+				vertical-align: top;
 			}
 			.otFeature {
 				visibility: collapse;
@@ -658,25 +691,25 @@ htmlContent = u"""
 			div:focus {
 				outline: 0px solid transparent;
 			}
-			
+		
 /* Footer paragraph: */
 			#helptext {
-			    position: fixed;
+				position: fixed;
 				background: transparent;
-			    bottom: 0;
-			    width: 100%%;
+				bottom: 0;
+				width: 100%%;
 				color: #888;
 				font: x-small sans-serif;
 			}
 			a {
 				color: #333;
 			}
-			
+		
 /* Dark Mode: */
 			@media (prefers-color-scheme: dark) {
 				body { background: #000; }
 				p { color: #eee; }
-				
+			
 				#textInput{
 					color: #eee;
 					background-color: #222;
@@ -708,15 +741,15 @@ htmlContent = u"""
 					-webkit-text-fill-color: #0000;
 				}
 			}
-			
+		
 		</style>
 		<script>
 			document.addEventListener('keyup', keyAnalysis);
 			document.addEventListener('keyup', sliderPrecision);
 			document.addEventListener('keydown', sliderPrecision);
-			
+		
 			const sliders = document.getElementsByClassName('slider');
-			
+		
 			function sliderPrecision(event) {
 				if (event.shiftKey) {
 					for (i = 0; i < sliders.length; i++) {
@@ -729,6 +762,9 @@ htmlContent = u"""
 				}
 			}
 			function keyAnalysis(event) {
+				const styleMenu = document.getElementById("styleMenu");
+				const styleMenuLength = styleMenu.options.length;
+				
 				if (event.ctrlKey) {
 					if (event.code == 'KeyR') {
 						resetParagraph();
@@ -740,6 +776,18 @@ htmlContent = u"""
 						toggleInverse();
 					} else if (event.code == 'KeyC') {
 						toggleCenter();
+					} else if (event.code == 'KeyM') {
+						toggleMenu();
+					} else if (event.code == 'Period') {
+						styleMenu.selectedIndex = (styleMenu.selectedIndex + 1) %% styleMenuLength;
+						setStyle(styleMenu.value);
+					} else if (event.code == 'Comma') {
+						var newIndex = styleMenu.selectedIndex - 1;
+						if (newIndex<0) {
+							newIndex = styleMenuLength - 1;
+						}
+						styleMenu.selectedIndex = newIndex;
+						setStyle(styleMenu.value);
 					}
 				}
 			}
@@ -790,9 +838,9 @@ htmlContent = u"""
 					var sliderValue = sliders[i].value;
 					var label = document.getElementById("label_"+sliderID);
 					var labelName = label.getAttribute("name");
-					
+				
 					label.textContent = ""+labelName+": "+sliderValue;
-					
+				
 					if (sliderID == "fontsize") {
 						// Text Size Slider
 						body.style.setProperty("font-size", ""+sliderValue+"px");
@@ -848,20 +896,69 @@ htmlContent = u"""
 					}
 				}
 			}
+			function toggleMenu() {
+				const menu = document.getElementById("featureControls");
+				menu.hidden = !menu.hidden;
+			}
+			function setFontTypeTo(suffix) {
+				const styleId = "font-declaration";
+				var fontStyleSheet = document.getElementById(styleId);
+				var newFontStyleSheet = document.createElement("style");
+				newFontStyleSheet.id = styleId;
+				newFontStyleSheet.textContent = `
+				@font-face { 
+					font-family: "###fontFamilyName###";
+					src: url("###fontFileNameWithoutSuffix###.${suffix}");
+				}`;
+				fontStyleSheet.replaceWith(newFontStyleSheet);
+			}
+			function toggleType() {
+				const link = document.getElementById("type");
+				if (link.textContent == "TT") {
+					link.textContent = "W1";
+					setFontTypeTo("woff");
+				} else if (link.textContent == "W1") {
+					link.textContent = "W2";
+					setFontTypeTo("woff2");
+				} else {
+					link.textContent = "TT";
+					setFontTypeTo("ttf");
+				}
+			}
+			function setStyle(styleString) {
+				const axisStrings = styleString.split(",");
+				for (var i = axisStrings.length - 1; i >= 0; i--) {
+					const axisSetting = axisStrings[i].split(":");
+					const axisTag = axisSetting[0];
+					const axisValue = parseInt(axisSetting[1]);
+					document.getElementById(axisTag).value=axisValue;
+					updateSlider();
+				}
+			}
 		</script>
 	</head>
 	<body onload="updateSlider();resetParagraph();document.getElementById('textarea').focus()">
 	<div id="flexbox">
 		<div id="controls">
-			<!-- OTVar Sliders -->
+			<!-- OTVar sliders -->
 			<div class="labeldiv"><label class="sliderlabel" id="label_fontsize" name="Font Size">Font Size</label><input type="range" min="10" max="1000" value="150" class="slider" id="fontsize" oninput="updateSlider();"></div>
 			<div class="labeldiv"><label class="sliderlabel" id="label_lineheight" name="Line Height">Line Height</label><input type="range" min="30" max="300" value="140" class="slider" id="lineheight" oninput="updateSlider();"></div>
 ###sliders###
 
-			<!-- OT features -->
 			<div id="featureControls">
+			<!-- style menu -->
+###styleMenu###
+
+			<!-- file type -->
+				<a onclick="toggleType();" id="type" class="emojiButton">###TTW1W2###</a>
+
+			<!-- Samsa -->
 				%s
+
+			<!-- display type (x-ray vs. filled) -->
 				<a onclick="toggleInverse();" id="invert" class="emojiButton">🔲</a>
+
+			<!-- OT features -->
 				<input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
 				<input type="checkbox" name="liga" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga</label>
 				<input type="checkbox" name="calt" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel">calt</label>
@@ -869,19 +966,144 @@ htmlContent = u"""
 ###languageSelection###
 			</div>
 		</div>
-		
+	
 		<!-- Test Text -->
 		<div contenteditable="true" spellcheck="false" autocomplete="true" id="textarea" class="●">
 		</div>
 	</div>
-		
+	
 	<!-- Disclaimer -->
 	<p id="helptext" onmouseleave="vanish(this);">
-		Ctrl-R: Reset Charset. Ctrl-L: Latin1. Ctrl-J: LTR/RTL. Ctrl-C: Center. Ctrl-X: X-Ray. Not working? Please try in a newer macOS or use the <a href="https://www.google.com/chrome/">latest Chrome</a>. Pull mouse across this note to make it disappear.
+		<strong>Ctrl-period/comma</strong> step through styles <strong>Ctrl-R</strong> reset charset <strong>Ctrl-L</strong> Latin1 <strong>Ctrl-J</strong> LTR/RTL <strong>Ctrl-C</strong> center <strong>Ctrl-M</strong> toggle menu <strong>Ctrl-X</strong>: x-ray. <em>Not working? Try newer macOS or <a href="https://www.google.com/chrome/">latest Chrome</a>. Pull mouse across this note to make it disappear.</em>
 	</p>
 	</body>
 </html>
 """ % ( samsaPlaceholder )
+	
+	if shouldCreateSamsa:
+		samsaReplaceWith = "<a href='samsa-gui.html' class='emojiButton' style='color:rgb(255, 165, 0);'>🅢</a>"
+	else:
+		samsaReplaceWith = samsaPlaceholder
+	
+	typeAppreviations = {
+		"otf": "OT",
+		"ttf": "TT",
+		"woff": "W1",
+		"woff2": "W2",
+	}
+	fileTypeAbbreviation = typeAppreviations[fileName.split(".")[-1]]
+	
+	replacements = (
+		( "###fontFamilyNameWithSpaces###", fullName ),
+		( "###fontFamilyName###", fullName ),
+		( "The Quick Brown Fox Jumps Over the Lazy Dog.", unicodeEscapes ),
+		( "###sliders###", otVarSliders ),
+		( "###styleMenu###", styleMenu ),
+		( "###variationSettings###", variationCSS ), 
+		( "###fontFileName###", fileName ),
+		( "###fontFileNameWithoutSuffix###", ".".join(fileName.split(".")[:-1]) ),
+		( "###TTW1W2###", fileTypeAbbreviation ),
+		( "###featureList###", featureList ),
+		( "###languageSelection###", fontLangMenu ),
+		( samsaPlaceholder, samsaReplaceWith ),
+	)
+	htmlContent = replaceSet( htmlContent, replacements )
+	return htmlContent
+
+def originMasterOfFont(thisFont):
+	originMaster = thisFont.masters[0]
+	originParameter = thisFont.customParameters["Variable Font Origin"]
+	if originParameter and thisFont.masters[originParameter]:
+		originMaster = thisFont.masters[originParameter]
+	return originMaster
+
+def axisLocationOfMasterOrInstance(thisFont, masterOrInstance):
+	"""
+	Returns dict of axisTag:locationValue, e.g.: {'wght':400,'wdth':100}
+	"""
+	locDict = {}
+	axisLocationParameter = masterOrInstance.customParameters["Axis Location"]
+	for axisIndex, thisAxis in enumerate(thisFont.axes):
+		axisTag = thisAxis.axisTag
+		if axisLocationParameter:
+			axisName = thisAxis.name
+			for axisRecord in axisLocationParameter:
+				if axisRecord["Axis"] == axisName:
+					locDict[axisTag] = axisRecord["Location"]
+		else:
+			locDict[axisTag] = masterOrInstance.axes[axisIndex]
+	return locDict
+
+def listOfAllStyles(thisFont):
+	tabbing = "\t"*3
+	htmlSnippet="%s<select id='styleMenu' name='styleMenu' onchange='setStyle(this.value);'>" % tabbing
+	
+	# add origin value
+	styleMenuEntries = [originMasterOfFont(thisFont)] + [i for i in thisFont.instances if i.active and i.type==0]
+	
+	for idx, masterOrInstance in enumerate(styleMenuEntries):
+		# determine name of menu entry:
+		if idx == 0:
+			styleName = "Origin"
+		else:
+			styleName = masterOrInstance.name
+			if masterOrInstance.preferredSubfamilyName:
+				styleName = masterOrInstance.preferredSubfamilyName
+		
+		# determine location:
+		coords = axisLocationOfMasterOrInstance(thisFont, masterOrInstance)
+		styleValues = []
+		for axis in thisFont.axes:
+			axisTag = axis.axisTag
+			axisValue = coords[axisTag]
+			styleValues.append( "%s:%i" % (axisTag, axisValue) )
+		
+		# add HTML line:
+		htmlSnippet += "\n%s\t<option value='%s'>%s</option>" % (
+			tabbing, 
+			",".join(styleValues),
+			styleName,
+			)
+			
+	htmlSnippet += "\n%s</select>" % tabbing
+	return htmlSnippet
+	
+def familyNameOfInstance(thisInstance):
+	familyNameProperty = thisInstance.propertyForName_languageTag_("familyNames","dflt")
+	if familyNameProperty:
+		return familyNameProperty.value
+	else:
+		return thisInstance.font.familyName
+
+def otVarInfoForFont(thisFont):
+	fullName = otVarFullName(thisFont)
+	fileName = otVarFileName(thisFont)
+	unicodeEscapes = allUnicodeEscapesOfFont(thisFont)
+	otVarSliders = allOTVarSliders(thisFont)
+	variationCSS = defaultVariationCSS(thisFont)
+	featureList = featureListForFont(thisFont)
+	styleMenu = listOfAllStyles(thisFont)
+	fontLangMenu = langMenu(thisFont)
+	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu
+
+def otVarInfoForInstance(thisInstance):
+	thisFont = thisInstance.font
+	familyName = familyNameOfInstance(thisInstance)
+	fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu = otVarInfoForFont(thisFont) # fallback
+	
+	# instance-specific overrides:
+	fullName = "%s %s" % (familyName, thisInstance.name)
+	fileName = otVarFileName(thisFont, thisInstance)
+
+	# TODO breakdown to OTVar Export (consider parameters etc.):
+	# unicodeEscapes
+	# otVarSliders
+	# variationCSS
+	# featureList
+	# fontLangMenu
+	
+	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu
+
 
 # clears macro window log:
 Glyphs.clearLog()
@@ -890,87 +1112,93 @@ Glyphs.clearLog()
 GLYPHSAPPVERSION = NSBundle.bundleForClass_(NSClassFromString("GSMenu")).infoDictionary().objectForKey_("CFBundleShortVersionString")
 appVersionHighEnough = not GLYPHSAPPVERSION.startswith("1.")
 
-optionKeyFlag = 524288
-optionKeyPressed = NSEvent.modifierFlags() & optionKeyFlag == optionKeyFlag
+# Create Samsa if shift and option are held down
 shouldCreateSamsa = False
-if optionKeyPressed:
+keysPressed = NSEvent.modifierFlags()
+optionKey, shiftKey = 524288, 131072
+optionKeyPressed = keysPressed & optionKey == optionKey
+shiftKeyPressed = keysPressed & shiftKey == shiftKey
+if optionKeyPressed and shiftKeyPressed:
 	shouldCreateSamsa = True
 
-if appVersionHighEnough:
-	firstDoc = Glyphs.orderedDocuments()[0]
-	thisFont = Glyphs.font # frontmost font
-	exportPath = currentOTVarExportPath()
-	# familyName = otVarFamilyName(thisFont)
-	fullName = otVarFullName(thisFont)
-	fileName = otVarFileName(thisFont)
-
-	print("Preparing Test HTML for: %s" % fullName)
-
-	print("👷🏼‍ Building HTML code...")
-	if shouldCreateSamsa:
-		samsaReplaceWith = "<a href='samsa-gui.html' class='emojiButton' style='color:rgb(255, 165, 0);'>🅢</a>"
-	else:
-		samsaReplaceWith = samsaPlaceholder
-	replacements = (
-		( "###fontFamilyNameWithSpaces###", fullName ),
-		( "###fontFamilyName###", fullName ),
-		( "The Quick Brown Fox Jumps Over the Lazy Dog.", allUnicodeEscapesOfFont(thisFont) ),
-		( "###sliders###", allOTVarSliders(thisFont) ),
-		( "###variationSettings###", defaultVariationCSS(thisFont) ), 
-		( "###fontFileName###", fileName ),
-		( "###featureList###", featureListForFont(thisFont) ),
-		( "###languageSelection###", langMenu(thisFont) ),
-		( samsaPlaceholder, samsaReplaceWith ),
-	)
-	htmlContent = replaceSet( htmlContent, replacements )
-	
-	# Write file to disk:
-	print("💾 Writing files to disk...")
-	if exportPath:
-		if shouldCreateSamsa:
-			print("🐜 Building Samsa...")
-			# build samsa config:
-			samsaURL = "https://lorp.github.io/samsa/src/" #"https://www.axis-praxis.org/samsa"
-			samsaFileName = "samsa-config.js"
-			terminalCommand = "cd '%s'; printf \"CONFIG.fontList = [\n\t{\n\t\tname: '%s',\n\t\tpreload: true,\n\t\turl: 'data:font/ttf;base64,%%s',\n\t}\n];\n\" `base64 -i '%s'` > %s" % (
-				exportPath,
-				fullName,
-				# samsaURL, samsaURL,
-				fileName,
-				samsaFileName,
-				)
-			system( terminalCommand )
-			print("✅ Created %s" % samsaFileName)
-			
-			# download samsa files:
-			samsaFiles = ("samsa-core.js", "samsa-gui.html", "samsa-gui.css") # "fonts/IBMPlexSansVar-Roman.ttf", "fonts/IBMPlexSansVar-Italic.ttf")
-			for samsaFile in samsaFiles:
-				terminalCommand = "curl --create-dirs %s/%s -o '%s/%s'" % (samsaURL, samsaFile, exportPath, samsaFile)
-				system( terminalCommand )
-				print("⬇️ Downloaded %s" % samsaFile)
-			
-			# fix css links:
-			terminalCommand = "cd '%s'; sed -i '' 's|url(fonts|url(https://www.axis-praxis.org/samsa/fonts|g' samsa-gui.css" % exportPath
-			system( terminalCommand )
-		
-		print("🕸 Building HTML file...")
-		htmlFileName = "%s fonttest.html" % fullName
-		if saveFileInLocation( content=htmlContent, fileName=htmlFileName, filePath=exportPath ):
-			print("✅ Successfully wrote file to disk.")
-			terminalCommand = 'cd "%s"; open "%s"' % (exportPath, htmlFileName)
-			system( terminalCommand )
-		else:
-			print("🛑 Error writing file to disk.")
-	else:
-		Message( 
-			title="OTVar Test HTML Error",
-			message="Could not determine export path. Have you exported any variable fonts yet?",
-			OKButton=None
-		)
-else:
+if not appVersionHighEnough:
 	Message(
 		title="App Version Error",
 		message="This script requires Glyphs 2.5 or later. Sorry.",
 		OKButton=None
 	)
+else:
+	firstDoc = Glyphs.orderedDocuments()[0]
+	thisFont = Glyphs.font # frontmost font
+	exportPath = currentOTVarExportPath()
+	
+	# In Font info > Exports, there can be more than one OTVar export:
+	variableFontInfos = []
+	for thisInstance in thisFont.instances:
+		try:
+			if thisInstance.typeName() == "variable":
+				variableFontInfo = otVarInfoForInstance(thisInstance)
+				variableFontInfos.append(variableFontInfo)
+		except Exception as e:
+			print(e)
+	
+	# fallback if there are not OTVar exports set up at all:
+	if not variableFontInfos:
+		variableFontInfo = otVarInfoForFont(thisFont)
+		variableFontInfos.append(variableFontInfo)
+	
+	for variableFontInfo in variableFontInfos:
+		fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu = variableFontInfo
+
+		print("\nPreparing Test HTML for: %s%s" % (
+			fullName,
+			" (%s)"%fileName if fileName else "",
+			))
+		print("👷🏼‍ Building HTML code...")
+		htmlContent = buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa)
+	
+		# Write file to disk:
+		print("💾 Writing files to disk...")
+		if exportPath:
+			if shouldCreateSamsa:
+				print("🐜 Building Samsa...")
+				# build samsa config:
+				samsaURL = "https://lorp.github.io/samsa/src/" #"https://www.axis-praxis.org/samsa"
+				samsaFileName = "samsa-config.js"
+				terminalCommand = "cd '%s'; printf \"CONFIG.fontList = [\n\t{\n\t\tname: '%s',\n\t\tpreload: true,\n\t\turl: 'data:font/ttf;base64,%%s',\n\t}\n];\n\" `base64 -i '%s'` > %s" % (
+					exportPath,
+					fullName,
+					# samsaURL, samsaURL,
+					fileName,
+					samsaFileName,
+					)
+				system( terminalCommand )
+				print("✅ Created %s" % samsaFileName)
+			
+				# download samsa files:
+				samsaFiles = ("samsa-core.js", "samsa-gui.html", "samsa-gui.css") # "fonts/IBMPlexSansVar-Roman.ttf", "fonts/IBMPlexSansVar-Italic.ttf")
+				for samsaFile in samsaFiles:
+					terminalCommand = "curl --create-dirs %s/%s -o '%s/%s'" % (samsaURL, samsaFile, exportPath, samsaFile)
+					system( terminalCommand )
+					print("⬇️ Downloaded %s" % samsaFile)
+			
+				# fix css links:
+				terminalCommand = "cd '%s'; sed -i '' 's|url(fonts|url(https://www.axis-praxis.org/samsa/fonts|g' samsa-gui.css" % exportPath
+				system( terminalCommand )
+		
+			print("🕸 Building HTML file...")
+			strippedFileName = ".".join(fileName.split(".")[:-1]) # removes the last dot-suffix
+			htmlFileName = "%s fonttest.html" % strippedFileName
+			if saveFileInLocation( content=htmlContent, fileName=htmlFileName, filePath=exportPath ):
+				print("✅ Successfully wrote file to disk.")
+				terminalCommand = 'cd "%s"; open .; open "%s"' % (exportPath, htmlFileName)
+				system( terminalCommand )
+			else:
+				print("🛑 Error writing file to disk.")
+		else:
+			Message( 
+				title="OTVar Test HTML Error",
+				message="Could not determine export path. Have you exported any variable fonts yet?",
+				OKButton=None
+			)
 

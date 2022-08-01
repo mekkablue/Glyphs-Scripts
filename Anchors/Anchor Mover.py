@@ -7,6 +7,53 @@ Batch-process anchor positions in selected glyphs (GUI).
 
 import vanilla, math
 from Foundation import NSPoint
+from AppKit import NSAffineTransform, NSAffineTransformStruct
+
+def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
+	"""
+	Returns an NSAffineTransform object for transforming layers.
+	Apply an NSAffineTransform t object like this:
+		Layer.transform_checkForSelection_doComponents_(t,False,True)
+	Access its transformation matrix like this:
+		tMatrix = t.transformStruct() # returns the 6-float tuple
+	Apply the matrix tuple like this:
+		Layer.applyTransform(tMatrix)
+		Component.applyTransform(tMatrix)
+		Path.applyTransform(tMatrix)
+	Chain multiple NSAffineTransform objects t1, t2 like this:
+		t1.appendTransform_(t2)
+	"""
+	myTransform = NSAffineTransform.transform()
+	if rotate:
+		myTransform.rotateByDegrees_(rotate)
+	if scale != 1.0:
+		myTransform.scaleBy_(scale)
+	if not (shiftX == 0.0 and shiftY == 0.0):
+		myTransform.translateXBy_yBy_(shiftX,shiftY)
+	if skew:
+		skewStruct = NSAffineTransformStruct()
+		skewStruct.m11 = 1.0
+		skewStruct.m22 = 1.0
+		skewStruct.m21 = math.tan(math.radians(skew))
+		skewTransform = NSAffineTransform.transform()
+		skewTransform.setTransformStruct_(skewStruct)
+		myTransform.appendTransform_(skewTransform)
+	return myTransform
+
+def italicize( thisPoint, italicAngle=0.0, pivotalY=0.0 ):
+	"""
+	Returns the italicized position of an NSPoint 'thisPoint'
+	for a given angle 'italicAngle' and the pivotal height 'pivotalY',
+	around which the italic slanting is executed, usually half x-height.
+	Usage: myPoint = italicize(myPoint,10,xHeight*0.5)
+	"""
+	x = thisPoint.x
+	yOffset = thisPoint.y - pivotalY # calculate vertical offset
+	italicAngle = math.radians( italicAngle ) # convert to radians
+	tangens = math.tan( italicAngle ) # math.tan needs radians
+	horizontalDeviance = tangens * yOffset # vertical distance from pivotal point
+	x += horizontalDeviance # x of point that is yOffset from pivotal point
+	return NSPoint( x, thisPoint.y )
 
 def highestNodeInLayer(layer):
 	highest = None
@@ -83,14 +130,15 @@ def italicSkew( x, y, angle=10.0 ):
 	return x + y * math.tan( new_angle )
 
 class AnchorMover2( object ):
-
+	prefID = "com.mekkablue.AnchorMover2"
+	
 	def __init__( self ):
 		linePos, inset, lineHeight = 12, 15, 22
 		
-		self.w = vanilla.FloatingWindow( (500, 175), "Anchor Mover", minSize=(350,175), maxSize=(1000,175), autosaveName="com.mekkablue.AnchorMover2.mainwindow" )
+		self.w = vanilla.FloatingWindow( (500, 175), "Anchor Mover", minSize=(350,175), maxSize=(1000,175), autosaveName=self.pref("mainwindow") )
 
 		self.w.text_1 = vanilla.TextBox((inset, linePos+2, inset+60, 14), "Move anchor", sizeStyle='small' )
-		self.w.anchor_name = vanilla.PopUpButton((inset+75, linePos, -110-inset-25, 17), self.GetAnchorNames(), sizeStyle='small' )
+		self.w.anchor_name = vanilla.ComboBox( (inset+75, linePos-1, -110-inset-25, 19), self.GetAnchorNames(), sizeStyle='small', callback=self.SavePreferences )
 		self.w.button = vanilla.SquareButton((-110-inset-20, linePos, -110-inset, 18), u"↺", sizeStyle='small', callback=self.SetAnchorNames )
 		self.w.text_2 = vanilla.TextBox((-105-15, linePos+2, -inset, 14), "in selected glyphs:", sizeStyle='small' )
 		linePos += lineHeight
@@ -125,55 +173,77 @@ class AnchorMover2( object ):
 		self.w.open()
 		self.w.makeKey()
 	
-	def SavePreferences( self, sender ):
-		Glyphs.defaults["com.mekkablue.AnchorMover2.hTarget"] = self.w.hTarget.get()
-		Glyphs.defaults["com.mekkablue.AnchorMover2.hChange"] = self.w.hChange.get()
-		Glyphs.defaults["com.mekkablue.AnchorMover2.vTarget"] = self.w.vTarget.get()
-		Glyphs.defaults["com.mekkablue.AnchorMover2.vChange"] = self.w.vChange.get()
-		Glyphs.defaults["com.mekkablue.AnchorMover2.italic"] = self.w.italic.get()
-		Glyphs.defaults["com.mekkablue.AnchorMover2.allMasters"] = self.w.allMasters.get()
-		
-		return True
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
+	def SavePreferences( self, sender=None ):
+		try:
+			# write current settings into prefs:
+			Glyphs.defaults[self.domain("anchor_name")] = self.w.anchor_name.get()
+			Glyphs.defaults[self.domain("hTarget")] = self.w.hTarget.get()
+			Glyphs.defaults[self.domain("hChange")] = self.w.hChange.get()
+			Glyphs.defaults[self.domain("vTarget")] = self.w.vTarget.get()
+			Glyphs.defaults[self.domain("vChange")] = self.w.vChange.get()
+			Glyphs.defaults[self.domain("italic")] = self.w.italic.get()
+			Glyphs.defaults[self.domain("allMasters")] = self.w.allMasters.get()
+			return True
+		except:
+			import traceback
+			print(traceback.format_exc())
+			return False
 
 	def LoadPreferences( self ):
-		Glyphs.registerDefault( "com.mekkablue.AnchorMover2.hTarget", 0.0 )
-		Glyphs.registerDefault( "com.mekkablue.AnchorMover2.hChange", 0.0 )
-		Glyphs.registerDefault( "com.mekkablue.AnchorMover2.vTarget", 0.0 )
-		Glyphs.registerDefault( "com.mekkablue.AnchorMover2.vChange", 0.0 )
-		Glyphs.registerDefault( "com.mekkablue.AnchorMover2.italic", True )
-		Glyphs.registerDefault( "com.mekkablue.AnchorMover2.allMasters", False )
 		try:
-			self.w.hTarget.set( Glyphs.defaults["com.mekkablue.AnchorMover2.hTarget"] )
-			self.w.hChange.set( Glyphs.defaults["com.mekkablue.AnchorMover2.hChange"] )
-			self.w.vTarget.set( Glyphs.defaults["com.mekkablue.AnchorMover2.vTarget"] )
-			self.w.vChange.set( Glyphs.defaults["com.mekkablue.AnchorMover2.vChange"] )
-			self.w.italic.set( Glyphs.defaults["com.mekkablue.AnchorMover2.italic"] )
-			self.w.allMasters.set( Glyphs.defaults["com.mekkablue.AnchorMover2.allMasters"] )
+			# register defaults:
+			Glyphs.registerDefault( self.domain("anchor_name"), "" )
+			Glyphs.registerDefault( self.domain("hTarget"), 0.0 )
+			Glyphs.registerDefault( self.domain("hChange"), 0.0 )
+			Glyphs.registerDefault( self.domain("vTarget"), 0.0 )
+			Glyphs.registerDefault( self.domain("vChange"), 0.0 )
+			Glyphs.registerDefault( self.domain("italic"), True )
+			Glyphs.registerDefault( self.domain("allMasters"), False )
+
+			# load previously written prefs:
+			self.w.anchor_name.set( self.pref("anchor_name") )
+			self.w.hTarget.set( self.pref("hTarget") )
+			self.w.hChange.set( self.pref("hChange") )
+			self.w.vTarget.set( self.pref("vTarget") )
+			self.w.vChange.set( self.pref("vChange") )
+			self.w.italic.set( self.pref("italic") )
+			self.w.allMasters.set( self.pref("allMasters") )
+			return True
 		except:
+			import traceback
+			print(traceback.format_exc())
 			return False
-		return True
 	
 	def prefAsFloat(self, pref):
 		try:
-			return float( Glyphs.defaults[pref] )
+			preference = self.pref(pref)
+			return float( preference )
 		except:
-			Glyphs.defaults[pref] = 0.0
+			Glyphs.defaults[self.domain(pref)] = 0.0
 			self.LoadPreferences()
 			return 0.0
 
 	def MoveCallback( self, sender ):
-		Font = Glyphs.font
-		selectedLayers = Font.selectedLayers
-		anchor_index = self.w.anchor_name.get()
-		anchor_name  = self.w.anchor_name.getItems()[anchor_index]
-		horizontal_index  = Glyphs.defaults["com.mekkablue.AnchorMover2.hTarget"]
-		horizontal_change = self.prefAsFloat("com.mekkablue.AnchorMover2.hChange")
-		vertical_index  = Glyphs.defaults["com.mekkablue.AnchorMover2.vTarget"]
-		vertical_change = self.prefAsFloat("com.mekkablue.AnchorMover2.vChange")
-		allMasters = Glyphs.defaults["com.mekkablue.AnchorMover2.allMasters"]
+		# brings macro window to front and clears its log:
+		Glyphs.clearLog()
 		
-		# respecting italic angle
-		respectItalic = Glyphs.defaults["com.mekkablue.AnchorMover2.italic"]
+		thisFont = Glyphs.font
+		selectedLayers = thisFont.selectedLayers
+		anchor_name  = self.pref("anchor_name")
+		horizontal_index  = self.pref("hTarget")
+		horizontal_change = self.prefAsFloat("hChange")
+		vertical_index  = self.pref("vTarget")
+		vertical_change = self.prefAsFloat("vChange")
+		allMasters = self.pref("allMasters")
+		respectItalic = self.pref("italic")
 
 		evalCodeH = listHorizontal[ horizontal_index ][1]
 		evalCodeV = listVertical[ vertical_index ][1]
@@ -182,44 +252,48 @@ class AnchorMover2( object ):
 			print("No glyphs selected.")
 			Message(title="No Glyphs Selected", message="Could not move anchors. No glyphs were selected.", OKButton=None)
 		else:
-			print("Processing %i glyphs..." % ( len( selectedLayers ) ))
-			Font.disableUpdateInterface()
+			print("Processing %i glyph%s..." % ( 
+				len(selectedLayers),
+				"" if len(selectedLayers)==1 else "s",
+				))
+			thisFont.disableUpdateInterface()
 			for selectedLayer in selectedLayers:
 				selectedGlyph = selectedLayer.glyph()
-				if allMasters:
-					originalLayers = (l for l in selectedGlyph.layers if l.isMasterLayer or l.isSpecialLayer)
-				else:
-					originalLayers = (selectedLayer,)
-				for originalLayer in originalLayers:
-					originalMaster = originalLayer.master
-					italicAngle = originalMaster.italicAngle
-
-					selectedAscender  = originalMaster.ascender
-					selectedCapheight = originalMaster.capHeight
-					selectedDescender = originalMaster.descender
-					selectedXheight   = originalMaster.xHeight
+				if selectedGlyph:
+					print("\n🔠 %s" % selectedGlyph.name)
+					if allMasters:
+						originalLayers = tuple([l for l in selectedGlyph.layers if l.isMasterLayer or l.isSpecialLayer])
+					else:
+						originalLayers = (selectedLayer,)
+				
+					for originalLayer in originalLayers:
+						originalMaster = originalLayer.master
+						selectedAscender  = originalMaster.ascender
+						selectedCapheight = originalMaster.capHeight
+						selectedDescender = originalMaster.descender
+						selectedXheight   = originalMaster.xHeight
+						halfXHeight = selectedXheight * 0.5
+						italicAngle = originalMaster.italicAngle
 					
-					italicCorrection = 0.0
-					if respectItalic and italicAngle:
-						italicCorrection = italicSkew( 0.0, selectedXheight/2.0, italicAngle )
-						print("italicCorrection", italicCorrection)
-					
-					if originalLayer.name != None:
-						if len(originalLayer.anchors) > 0:
+						if len(originalLayer.anchors) == 0:
+							print("⚠️ no anchors on layer %s." % originalLayer.name)
+						else:
 							thisGlyph = originalLayer.parent
 					
 							# create a layer copy that can be slanted backwards if necessary
 							copyLayer = originalLayer.copyDecomposedLayer()
-							thisGlyph.beginUndo() # not working?
+							copyLayer.decomposeCorners()
+							# thisGlyph.beginUndo() # undo grouping causes crashes
 				
 							try:
 								if italicAngle and respectItalic:
 									# slant the layer copy backwards
-									for mPath in copyLayer.paths:
-										for mNode in mPath.nodes:
-											mNode.x = italicSkew( mNode.x, mNode.y, -italicAngle ) + italicCorrection
-									for mAnchor in copyLayer.anchors:
-										mAnchor.x = italicSkew( mAnchor.x, mAnchor.y, -italicAngle ) + italicCorrection
+									moveDown = transform(shiftY=-halfXHeight).transformStruct()
+									skewBack = transform(skew=-italicAngle).transformStruct()
+									moveUp = transform(shiftY=halfXHeight).transformStruct()
+									copyLayer.applyTransform(moveDown)
+									copyLayer.applyTransform(skewBack)
+									copyLayer.applyTransform(moveUp)
 
 								for copyAnchor in copyLayer.anchors:
 									if copyAnchor.name == anchor_name:
@@ -227,7 +301,7 @@ class AnchorMover2( object ):
 										old_anchor_y = copyAnchor.y
 										xMove = eval( evalCodeH ) + horizontal_change
 										yMove = eval( evalCodeV ) + vertical_change
-						
+										
 										# Ignore moves relative to bbox if there are no paths:
 										if not copyLayer.paths:
 											if "bounds" in evalCodeH:
@@ -237,29 +311,26 @@ class AnchorMover2( object ):
 												yMove = old_anchor_y
 						
 										# Only move if the calculated position differs from the original one:
-										if [ int(old_anchor_x), int(old_anchor_y) ] != [ int(xMove), int(yMove) ]:
-							
+										originalAnchor = originalLayer.anchors[anchor_name]
+										if int(old_anchor_x)!=int(xMove) or int(old_anchor_y)!=int(yMove):
 											if italicAngle and respectItalic:
 												# skew back
-												xMove = italicSkew( xMove, yMove, italicAngle ) - italicCorrection
-												old_anchor_x = italicSkew( old_anchor_x, old_anchor_y, italicAngle ) - italicCorrection
-						
-											originalAnchor = [a for a in originalLayer.anchors if a.name == anchor_name][0]
-											originalAnchor.position = NSPoint( xMove, yMove )
-						
-											print("Moved %s anchor from %i, %i to %i, %i in %s." % ( anchor_name, old_anchor_x, old_anchor_y, xMove, yMove, thisGlyph.name ))
+												originalAnchor.position = italicize( NSPoint(xMove, yMove), italicAngle, halfXHeight )
+											else:
+												originalAnchor.position = NSPoint( xMove, yMove )
+											print("⚓️ %s → %i, %i in layer: %s." % ( anchor_name, originalAnchor.x, originalAnchor.y, originalLayer.name ))
 										else:
-											print("Keeping %s anchor at %i, %i in %s." % ( anchor_name, old_anchor_x, old_anchor_y, thisGlyph.name ))
+											print("⚓️ %s anchor unchanged in %s." % ( anchor_name, originalLayer.name ))
 							
 							except Exception as e:
 								print("ERROR: Failed to move anchor in %s." % thisGlyph.name)
 								print(e)
 								import traceback
 								print(traceback.format_exc())
-							finally:
-								thisGlyph.endUndo()
+							# finally:
+								# thisGlyph.endUndo() # undo grouping causes crashes
 					
-			Font.enableUpdateInterface()
+			thisFont.enableUpdateInterface()
 		print("Done.")
 	
 	def GetAnchorNames( self ):

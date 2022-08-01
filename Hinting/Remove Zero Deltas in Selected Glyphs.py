@@ -58,10 +58,10 @@ totalCount = 0
 for selectedLayer in selectedLayers:
 	thisGlyph = selectedLayer.parent
 	print("%s:" % thisGlyph.name)
-	thisGlyph.beginUndo() # begin undo grouping
+	# thisGlyph.beginUndo() # undo grouping causes crashes
 	for thisLayer in thisGlyph.layers:
 		totalCount += process( thisLayer )
-	thisGlyph.endUndo()   # end undo grouping
+	# thisGlyph.endUndo() # undo grouping causes crashes
 
 if totalCount:
 	Message(

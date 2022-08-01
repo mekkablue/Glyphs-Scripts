@@ -79,15 +79,39 @@ def getInstanceInfo( thisFont, activeInstance, fileFormat ):
 	# Determine font and file names for CSS
 	menuName = "%s %s-%s" % ( fileFormat.upper(), familyName, activeInstanceName )
 	
-	firstPartOfFileName = activeInstance.customParameters["fileName"]
+	# 3 approaches for determining the file names:
+	firstPartOfFileName = ".".join(activeInstance.fileName().split(".")[:-1]) # removes ".otf" at the end
+	if not firstPartOfFileName:
+		firstPartOfFileName = activeInstance.customParameters["fileName"]
 	if not firstPartOfFileName:
 		firstPartOfFileName = "%s-%s" % ( familyName.replace(" ",""), activeInstanceName.replace(" ","") )
 		
 	fileName = "%s.%s" % ( firstPartOfFileName, fileFormat )
 	return fileName, menuName, activeInstanceName
 
-def activeInstancesOfFont( thisFont, fileFormats=("woff","woff2") ):
-	activeInstances = [i for i in thisFont.instances if i.active]
+def allActiveInstancesOfFont( thisFont ):
+	activeInstances = [i for i in thisFont.instances if i.active and isSingleInstance(i)]
+	return activeInstances
+	
+def allActiveInstancesOfProject( thisProject ):
+	if Glyphs.versionNumber >= 3:
+		# GLYPHS 3
+		activeInstances = [i for i in thisProject.instances if i.active and isSingleInstance(i)]
+	else:
+		# GLYPHS 2
+		activeInstances = [i for i in thisProject.instances() if i.active and isSingleInstance(i)]
+	return activeInstances
+
+def isSingleInstance( instance ):
+	if Glyphs.versionNumber >= 3:
+		# GLYPHS 3
+		return instance.type == INSTANCETYPESINGLE
+	else:
+		# GLYPHS 2
+		return True
+
+def activeInstancesOfFontByFormat( thisFont, fileFormats=("woff","woff2") ):
+	activeInstances = allActiveInstancesOfFont(thisFont)
 	listOfInstanceInfo = []
 	for fileFormat in fileFormats:
 		for activeInstance in activeInstances:
@@ -95,9 +119,9 @@ def activeInstancesOfFont( thisFont, fileFormats=("woff","woff2") ):
 			listOfInstanceInfo.append( (fileName, menuName, activeInstanceName) )
 	return listOfInstanceInfo
 
-def activeInstancesOfProject( thisProject, fileFormats=("woff","woff2") ):
+def activeInstancesOfProjectByFormat( thisProject, fileFormats=("woff","woff2") ):
 	thisFont = thisProject.font()
-	activeInstances = [i for i in thisProject.instances() if i.active]
+	activeInstances = allActiveInstancesOfProject(thisProject)
 	listOfInstanceInfo = []
 	for fileFormat in fileFormats:
 		for activeInstance in activeInstances:
@@ -108,7 +132,7 @@ def activeInstancesOfProject( thisProject, fileFormats=("woff","woff2") ):
 def optionListForInstances( instanceList ):
 	returnString = ""
 	for thisInstanceInfo in instanceList:
-		returnString += '		<option value="%s">%s</option>\n' % ( thisInstanceInfo[0], thisInstanceInfo[1] )
+		returnString += '			<option value="%s">%s</option>\n' % ( thisInstanceInfo[0], thisInstanceInfo[1] )
 		# <option value="fileName">baseName</option>
 	
 	return returnString
@@ -174,6 +198,26 @@ htmlContent = """<head>
 			user-select: none;
 			-moz-user-select: none;
 			-webkit-user-select: none;
+		}
+		#metricsLine {
+			background-color: #EEE;
+			border-top: 1px solid #AAA;
+			border-bottom: 1px solid #AAA;
+			width: 100%;
+			margin: 0.2em 0;
+			padding: 0 0;
+			font-size: 6em;
+			white-space: nowrap;
+			overflow-x: auto;
+			overflow-y: hidden;
+			text-overflow: none;
+			display: none;
+			scrollbar-width: none; /* Firefox */
+			-ms-overflow-style: none;  /* Internet Explorer 10+ */
+		}
+		#metricsLine::-webkit-scrollbar { /* WebKit */
+			width: 0;
+			height: 0;
 		}
 		#waterfall {
 			flex: 1 1 auto;
@@ -298,22 +342,23 @@ htmlContent = """<head>
 			margin-bottom: 0.5em;
 		}
 		
-/* Footer paragraph: */
+		/* Footer paragraph: */
 		#helptext {
 			color: black;
 			background-color: #ddd;
-		    position: fixed;
-		    bottom: 0;
-			padding: 2px
-		    width: 100%;
+			position: fixed;
+			bottom: 0;
+			padding: 2px;
+			width: 100%;
 			font: x-small sans-serif;
 		}
 		
+		/* Dark Mode */
 		@media (prefers-color-scheme: dark) {
 			body { 
 				background: #333;
 			}
-			.features, .label, a, body, p  {
+			.features, .label, a, body, p, #metricsLine {
 				color: white;
 			}
 			.label {
@@ -335,6 +380,10 @@ htmlContent = """<head>
 				-webkit-text-stroke: 1px white;
 				-webkit-text-fill-color: #0000;
 			}
+			#metricsLine {
+				background-color: #222;
+				border-color: #777;
+			}
 		}
 	</style>
 </head>
@@ -346,7 +395,7 @@ htmlContent = """<head>
 			<!-- moreOptions -->
 		</select>
 		<div class="wrapper" spellcheck="false">
-			<input type="text" value="Type Text Here." id="textInput" onclick="this.select();" onkeyup="updateParagraph()" />
+			<input type="text" value="Type Text Here." id="textInput" onkeyup="updateParagraph()" />
 		</div>
 	</div>
 	<p class="features">
@@ -361,11 +410,13 @@ htmlContent = """<head>
 		<label><input type="checkbox" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga/clig</label>
 		<label><input type="checkbox" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel">calt</label>
 		<!-- moreFeatures -->
-		<label><input type="checkbox" id="show" value="show" onchange="updateFeatures();document.getElementById('featureLine').style.display=this.checked?'block':'none'">Show CSS</label>
+		<label><input type="checkbox" value="show" onchange="updateFeatures();document.getElementById('featureLine').style.display=this.checked?'block':'none'">CSS</label>
+		<label><input type="checkbox" value="show" onchange="updateFeatures();document.getElementById('metricsLine').style.display=this.checked?'block':'none'">Metrics</label>
 	</p>
 	<p class="features" id="featureLine">font-feature-settings: "kern" on, "liga" on, "calt" on;</p>
 </div>
 <div id="waterfall" class="●">
+	<div id="metricsLine"></div>
 	<p><span class="label">08</span>&nbsp;<span class="sampletext" id="p08"></span></p>
 	<p><span class="label">09</span>&nbsp;<span class="sampletext" id="p09"></span></p>
 	<p><span class="label">10</span>&nbsp;<span class="sampletext" id="p10"></span></p>
@@ -413,7 +464,6 @@ htmlContent = """<head>
 			}
 		}
 	}
-			
 	function updateParagraph() {
 		// update paragraph text based on user input:
 		const txt = document.getElementById('textInput');
@@ -422,6 +472,9 @@ htmlContent = """<head>
 			paragraph = paragraphs[i];
 			paragraph.textContent = txt.value;
 		}
+		
+		// update other elements:
+		document.getElementById('metricsLine').textContent = txt.value;
 	}
 	function updateFeatures() {
 		// update features based on user input:
@@ -469,7 +522,7 @@ htmlContent = """<head>
 	function changeFont() {
 		var selected_index = selector.selectedIndex;
 		var selected_option_text = selector.options[selected_index].text;
-		document.getElementById('waterfall').style.fontFamily = selected_option_text;
+		document.getElementById('waterfall').style.fontFamily = `'${selected_option_text}'`;
 	}
 	function setDefaultText(defaultText) {
 		document.getElementById('textInput').value = decodeEntities(defaultText);
@@ -534,51 +587,64 @@ else:
 	if firstDoc.isKindOfClass_(GSProjectDocument):
 		# Frontmost doc is a .glyphsproject file:
 		thisFont = firstDoc.font() # frontmost project file
-		firstActiveInstance = [i for i in firstDoc.instances() if i.active][0]
-		activeFontInstances = activeInstancesOfProject( firstDoc, fileFormats=fileFormats )
+		activeFontInstances = activeInstancesOfProjectByFormat( firstDoc, fileFormats=fileFormats )
 		exportPath = firstDoc.exportPath()
 	else:
 		# Frontmost doc is a .glyphs file:
 		thisFont = Glyphs.font # frontmost font
-		firstActiveInstance = [i for i in thisFont.instances if i.active][0]
-		activeFontInstances = activeInstancesOfFont( thisFont, fileFormats=fileFormats )
+		activeFontInstances = activeInstancesOfFontByFormat( thisFont, fileFormats=fileFormats )
 		exportPath = currentWebExportPath()
 		
 	familyName = thisFont.familyName
 	
-	print("Preparing Test HTML for:")
-	for thisFontInstanceInfo in activeFontInstances:
-		print("  %s" % thisFontInstanceInfo[1])
-	
-	optionList = optionListForInstances( activeFontInstances )
-	fontFacesCSS = fontFaces( activeFontInstances )
-	firstFileName =  activeFontInstances[0][0]
-	firstFontName =  activeFontInstances[0][1]
-
-	replacements = (
-		( "familyName", familyName ),
-		( "nameOfTheFont", firstFontName ),
-		( "The Quick Brown Fox Jumps Over The Lazy Dog.", allUnicodeEscapesOfFont(thisFont) ),
-		( "fileName", firstFileName ),
-		( "		<!-- moreOptions -->\n", optionList ),
-		( "		<!-- moreFeatures -->\n", featureListForFont(thisFont) ),
-		( "		<!-- fontFaces -->\n", fontFacesCSS  )
-	)
-
-	htmlContent = replaceSet( htmlContent, replacements )
-	
-	# Write file to disk:
-	if exportPath:
-		htmlFileName = "fonttest.html"
-		if saveFileInLocation( content=htmlContent, fileName=htmlFileName, filePath=exportPath ):
-			print("Successfully wrote file to disk.")
-			terminalCommand = 'cd "%s"; open %s' % (exportPath, htmlFileName)
-			system( terminalCommand )
+	if not activeFontInstances:
+		if Glyphs.versionNumber >= 3:
+			# GLYPHS 3
+			exports = "Exports"
 		else:
-			print("Error writing file to disk.")
-	else:
-		Message( 
-			title="Webfont Test HTML Error",
-			message="Could not determine export path. Have you exported any webfonts yet?",
-			OKButton=None
+			# GLYPHS 2
+			exports = "Instances"
+		
+		Message(
+			title="⚠️ No exporting fonts found",
+			message="No active font instances are set in Font Info > %s. Cannot create HTML for %s." % (exports, familyName), 
+			OKButton=None,
 		)
+		print("❌ %s: No instances set in Font Info. Aborting." % familyName)
+	else:	
+		print("Preparing Test HTML for:")
+		for thisFontInstanceInfo in activeFontInstances:
+			print("  %s" % thisFontInstanceInfo[1])
+	
+		optionList = optionListForInstances( activeFontInstances )
+		fontFacesCSS = fontFaces( activeFontInstances )
+		firstFileName =  activeFontInstances[0][0]
+		firstFontName =  activeFontInstances[0][1]
+
+		replacements = (
+			( "familyName", familyName ),
+			( "nameOfTheFont", firstFontName ),
+			( "The Quick Brown Fox Jumps Over The Lazy Dog.", allUnicodeEscapesOfFont(thisFont) ),
+			( "fileName", firstFileName ),
+			( "		<!-- moreOptions -->\n", optionList ),
+			( "		<!-- moreFeatures -->\n", featureListForFont(thisFont) ),
+			( "		<!-- fontFaces -->\n", fontFacesCSS  )
+		)
+
+		htmlContent = replaceSet( htmlContent, replacements )
+	
+		# Write file to disk:
+		if exportPath:
+			htmlFileName = "fonttest.html"
+			if saveFileInLocation( content=htmlContent, fileName=htmlFileName, filePath=exportPath ):
+				print("Successfully wrote file to disk.")
+				terminalCommand = 'cd "%s"; open .; open %s' % (exportPath, htmlFileName)
+				system( terminalCommand )
+			else:
+				print("Error writing file to disk.")
+		else:
+			Message( 
+				title="⚠️ Webfont Test HTML Error",
+				message="Could not determine export path. You need to export webfonts first.",
+				OKButton=None,
+			)

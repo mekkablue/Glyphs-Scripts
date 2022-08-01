@@ -37,12 +37,12 @@ print("%i glyph%s selected, %i of which suffixed."%(
 anchorCount, layerCount = 0, 0
 for thisGlyph in selectedGlyphs:
 	print("\n%s"%thisGlyph.name)
-	thisGlyph.beginUndo()
+	# thisGlyph.beginUndo() # undo grouping causes crashes
 	for thisLayer in thisGlyph.layers:
 		if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 			layerCount += 1
 			anchorCount += process( thisLayer )
-	thisGlyph.endUndo()
+	# thisGlyph.endUndo() # undo grouping causes crashes
 
 print("\nDone.")
 

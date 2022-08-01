@@ -61,7 +61,7 @@ class PositionClicker( object ):
 		)
 		
 		# UI elements:
-		linePos, inset, lineHeight, indent = 12, 15, 22, 100
+		linePos, inset, lineHeight, indent = 12, 15, 22, 110
 
 		self.w.descriptionText = vanilla.TextBox( (inset, linePos, -inset, 14), "Report positional combos that do not click:", sizeStyle='small', selectable=True )
 		self.w.descriptionText.getNSTextField().setToolTip_("Clicking means that when two matching positional shapes follow each other (e.g. initial and final), they ‘click’, i.e., they share at least 2 point coordinates. Or whatever number is set in the minimal node count setting below.")

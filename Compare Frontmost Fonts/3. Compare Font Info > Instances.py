@@ -38,11 +38,20 @@ for thisInstance, otherInstance in zip(thisFont.instances, otherFont.instances):
 		))
 	print()
 	
-	keyValueDict= {
-		"Weight": (thisInstance.weight, otherInstance.weight),
-		"Width": (thisInstance.width, otherInstance.width),
-		"Name": (thisInstance.name, otherInstance.name),
-	}
+	if Glyphs.versionNumber >= 3:
+		# GLYPHS 3 code:
+		keyValueDict= {
+			"Weight": (thisInstance.weightClass, otherInstance.weightClass),
+			"Width": (thisInstance.widthClass, otherInstance.widthClass),
+			"Name": (thisInstance.name, otherInstance.name),
+		}
+	else:
+		# GLYPHS 2 code:	
+		keyValueDict= {
+			"Weight": (thisInstance.weight, otherInstance.weight),
+			"Width": (thisInstance.width, otherInstance.width),
+			"Name": (thisInstance.name, otherInstance.name),
+		}
 	for key in keyValueDict:
 		thisValue, otherValue = keyValueDict[key]
 		if thisValue == otherValue:
@@ -58,16 +67,33 @@ for thisInstance, otherInstance in zip(thisFont.instances, otherFont.instances):
 		for i in range(len(thisFont.axes)):
 			thisValue, otherValue = thisInstance.axes[i], otherInstance.axes[i]
 			if thisValue == otherValue:
-				print(u"✅ axis %i (%s/%s) value is the same: %i" % (
-					i,
-					thisFont.axes[i]["Tag"], otherFont.axes[i]["Tag"],
-					thisValue,
-					))
+				if Glyphs.versionNumber >= 3:
+					# GLYPHS 3 code:
+					print(u"✅ axis %i (%s/%s) value is the same: %i" % (
+						i,
+						thisFont.axes[i].axisTag, otherFont.axes[i].axisTag,
+						thisValue,
+						))
+				else:
+					# GLYPHS 2 code:
+					print(u"✅ axis %i (%s/%s) value is the same: %i" % (
+						i,
+						thisFont.axes[i]["Tag"], otherFont.axes[i]["Tag"],
+						thisValue,
+						))
 			else:
-				print(u"⚠️ Different values for axis %i (%s/%s):" % (
-					i,
-					thisFont.axes[i]["Tag"], otherFont.axes[i]["Tag"],
-				))
+				if Glyphs.versionNumber >= 3:
+					# GLYPHS 3 code:
+					print(u"⚠️ Different values for axis %i (%s/%s):" % (
+						i,
+						thisFont.axes[i].axisTag, otherFont.axes[i].axisTag,
+					))
+				else:
+					# GLYPHS 2 code:
+					print(u"⚠️ Different values for axis %i (%s/%s):" % (
+						i,
+						thisFont.axes[i]["Tag"], otherFont.axes[i]["Tag"],
+					))
 				print(u"   A. %.1f in %s" % (thisValue, thisInstance.name))
 				print(u"   B. %.1f in %s" % (otherValue, otherInstance.name))
 		

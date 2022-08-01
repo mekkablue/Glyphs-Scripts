@@ -7,7 +7,11 @@ Align selected nodes with the nearest background node unless it is already taken
 
 def alignNodeWithNodeInOtherLayer(thisNode, otherLayer, tolerance=5, maxTolerance=80, alreadyTaken=[]):
 	while tolerance < maxTolerance:
-		nearestNode = otherLayer.nodeAtPoint_excludeNodes_traversComponents_tollerance_( thisNode.position, None, False, tolerance )
+		if Glyphs.versionNumber >= 3:
+			nearestNode = otherLayer.nodeAtPoint_excludeNodes_traverseComponents_ignoreLocked_tolerance_( thisNode.position, None, False, True, tolerance )
+		else:
+			nearestNode = otherLayer.nodeAtPoint_excludeNodes_traversComponents_tollerance_( thisNode.position, None, False, tolerance )
+		
 		if nearestNode and (thisNode.type == nearestNode.type) and (not nearestNode.position in alreadyTaken):
 			thisNode.position = nearestNode.position
 			return True
@@ -85,11 +89,11 @@ thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
 	for thisLayer in selectedLayers:
 		thisGlyph = thisLayer.parent
-		thisGlyph.beginUndo() # begin undo grouping
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		selected, aligned, numberOfAnchorsMoved = process( thisLayer )
 		print("%s: aligned %i of %i selected nodes" % (thisGlyph.name, aligned, selected))
 		print("%s: aligned %i of %i anchors." % (thisGlyph.name, numberOfAnchorsMoved, len(thisLayer.anchors)))
-		thisGlyph.endUndo() # end undo grouping
+		# thisGlyph.endUndo() # undo grouping causes crashes
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")

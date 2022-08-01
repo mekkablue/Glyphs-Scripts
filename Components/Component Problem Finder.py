@@ -1,0 +1,449 @@
+#MenuTitle: Component Problem Finder
+# -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+__doc__="""
+Find and report possible issues with components and corner components.
+"""
+
+import vanilla
+from timeit import default_timer as timer
+
+def camelCaseSplit(str):
+	words = [[str[0]]]
+	for c in str[1:]:
+		if words[-1][-1].islower() and c.isupper():
+			words.append(list(c))
+		else:
+			words[-1].append(c)
+	return [''.join(word) for word in words]
+
+def reportTimeInNaturalLanguage( seconds ):
+	if seconds > 60.0:
+		timereport = "%i:%02i minutes" % ( seconds//60, seconds%60 )
+	elif seconds < 1.0:
+		timereport = "%.2f seconds" % seconds
+	elif seconds < 20.0:
+		timereport = "%.1f seconds" % seconds
+	else:
+		timereport = "%i seconds" % seconds
+	return timereport
+
+def orthodoxComponentsForGlyph( thisGlyph ):
+	glyphInfo = thisGlyph.glyphInfo
+	if glyphInfo:
+		componentInfo = glyphInfo.components
+		if componentInfo:
+			glyphNameTuple = tuple(c.name for c in componentInfo)
+			return glyphNameTuple
+	return None
+
+def nameStrippedOfSuffixes( glyphName ):
+	return glyphName[:glyphName.find(".")%(len(glyphName)+1)]
+
+def layerAdheresToStructure( thisLayer, glyphNameTuple ):
+	layerComponents = thisLayer.components
+	numOfLayerComponents = len(layerComponents)
+	if numOfLayerComponents != len(glyphNameTuple):
+		return False
+	for i in range(numOfLayerComponents):
+		thisComponentName = thisLayer.components[i].componentName
+		orthodoxComponentName = glyphNameTuple[i]
+		if thisComponentName != orthodoxComponentName:
+			componentBaseName = nameStrippedOfSuffixes(thisComponentName)
+			orthodoxBaseName = nameStrippedOfSuffixes(orthodoxComponentName)
+			if componentBaseName != orthodoxBaseName:
+				return False
+	return True
+
+
+class ComponentProblemFinder( object ):
+	prefID = "com.mekkablue.ComponentProblemFinder"
+	prefs = (
+		"composablesWithoutComponents",
+		"unusualComponents",
+		"lockedComponents",
+		"nestedComponents",
+		"orphanedComponents",
+		"scaledComponents",
+		"unproportionallyScaledComponents",
+		"rotatedComponents",
+		"mirroredComponents",
+		"shiftedComponents",
+		"detachedCornerComponents",
+		"transformedCornerComponents",
+		"includeAllGlyphs",
+		"includeNonExporting",
+		"reuseTab",
+	)
+	
+	def __init__( self ):
+		# Window 'self.w':
+		windowWidth  = 280
+		windowHeight = 480
+		windowWidthResize  = 0 # user can resize width by this value
+		windowHeightResize = 0   # user can resize height by this value
+		self.w = vanilla.FloatingWindow(
+			( windowWidth, windowHeight ), # default window size
+			"Component Problem Finder", # window title
+			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
+			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
+			autosaveName = self.domain("mainwindow") # stores last window position and size
+		)
+		
+		# UI elements:
+		linePos, inset, lineHeight = 12, 15, 22
+		
+		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 14), "New tab with glyphs containing components:", sizeStyle='small', selectable=True )
+		linePos += lineHeight
+		
+		self.w.composablesWithoutComponents = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Composable glyphs without components", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.composablesWithoutComponents.getNSButton().setToolTip_("Lists glyphs that could be component-based (because they have a recipe in Glyph Info), but are lacking components.")
+		linePos += lineHeight
+		
+		self.w.unusualComponents = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Unusual composites (or wrong order)", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.unusualComponents.getNSButton().setToolTip_("Lists composite glyphs that contain components different from the default recipe in Glyph Info.")
+		linePos += lineHeight
+		
+		self.w.lockedComponents = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Locked components", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.lockedComponents.getNSButton().setToolTip_("Lists glyphs that contain a locked component on any of its layers.")
+		linePos += lineHeight
+		
+		self.w.nestedComponents = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Nested components", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.nestedComponents.getNSButton().setToolTip_("Lists glyphs that contain components, which in turn contain components.")
+		linePos += lineHeight
+		
+		self.w.orphanedComponents = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Orphaned components", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.orphanedComponents.getNSButton().setToolTip_("Lists glyphs that contain components referencing glyphs that do not exist in the font (anymore).")
+		linePos += lineHeight
+		
+		# Line Separator:
+		self.w.line_transformedComponents = vanilla.HorizontalLine( (inset, linePos+3, -inset, 1))
+		linePos += int(lineHeight/2)
+		
+		self.w.scaledComponents = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Scaled components", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.scaledComponents.getNSButton().setToolTip_("Lists all components that are not at their original size. Useful for bug tracing in variable fonts.")
+		linePos += lineHeight
+		
+		self.w.unproportionallyScaledComponents = vanilla.CheckBox( (inset*2, linePos-1, -inset, 20), u"Only unproportionally scaled (h≠v)", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.unproportionallyScaledComponents.getNSButton().setToolTip_("Lists glyphs that contain components that are not scaled the same horizontally and vertically. Useful for double checking in TT exports and variable fonts.")
+		linePos += lineHeight
+		
+		self.w.rotatedComponents = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Rotated components", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.rotatedComponents.getNSButton().setToolTip_("Lists all glyphs that contain rotated components, or components that are flipped BOTH horizontally and vertically. May be a good idea to check their alignment.")
+		linePos += lineHeight
+
+		self.w.mirroredComponents = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Flipped components", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.mirroredComponents.getNSButton().setToolTip_("Lists all glyphs containing components that are mirrored EITHER horizontally or vertically.")
+		linePos += lineHeight
+		
+		self.w.shiftedComponents = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Shifted (but undistorted) components", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.shiftedComponents.getNSButton().setToolTip_("Lists all glyphs containing unaligned components that are not positioned at x=0 y=0.")
+		linePos += lineHeight
+		
+		# Line Separator:
+		self.w.line_cornerComponents = vanilla.HorizontalLine( (inset, linePos+3, -inset, 1))
+		linePos += int(lineHeight/2)
+		
+		self.w.detachedCornerComponents = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Detached corner components", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.detachedCornerComponents.getNSButton().setToolTip_("Lists all glyphs containing corner components that have lost their connection point.")
+		linePos += lineHeight
+				
+		self.w.transformedCornerComponents = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Transformed corner components", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.transformedCornerComponents.getNSButton().setToolTip_("Lists all glyphs containing corner components that are not at 100%% scale.")
+		linePos += lineHeight
+		
+		# Line Separator:
+		self.w.line_scriptOptions = vanilla.HorizontalLine( (inset, linePos+3, -inset, 1))
+		linePos += int(lineHeight/2)
+		
+		# Script Options:
+		self.w.includeAllGlyphs = vanilla.CheckBox( (inset, linePos, -inset, 20), "Check all glyphs in font (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.includeAllGlyphs.getNSButton().setToolTip_("If enabled, will ignore your current glyph selection, and simply go through the complete font. Recommended. May still ignore non-exporting glyph, see following option.")
+		linePos += lineHeight
+		
+		self.w.includeNonExporting = vanilla.CheckBox( (inset, linePos, -inset, 20), "Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.includeNonExporting.getNSButton().setToolTip_("If disabled, will ignore glyphs that are set to not export.")
+		linePos += lineHeight
+		
+		self.w.reuseTab = vanilla.CheckBox( (inset, linePos, 125, 20), "Reuse existing tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.reuseTab.getNSButton().setToolTip_("If enabled, will only open a new tab if none is open. Recommended.")
+		linePos += lineHeight
+		
+		# Progress Bar and Status text:
+		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress.set(0) # set progress indicator to zero
+		self.w.status = vanilla.TextBox( (inset, -18-inset, -inset-100, 14), "🤖 Ready.", sizeStyle='small', selectable=True )
+		linePos += lineHeight
+		
+		# Run Button:
+		self.w.runButton = vanilla.Button( (-100-inset, -20-inset, -inset, -inset), "Open Tab", sizeStyle='regular', callback=self.ComponentProblemFinderMain )
+		self.w.setDefaultButton( self.w.runButton )
+		
+		# Load Settings:
+		if not self.LoadPreferences():
+			print("Note: 'Component Problem Finder' could not load preferences. Will resort to defaults")
+		
+		# Open window and focus on it:
+		self.w.open()
+		self.w.makeKey()
+	
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
+	def updateUI(self, sender=None):
+		shouldEnableRunButton = any( [bool(Glyphs.defaults[self.domain(p)]) for p in self.prefs[:-3]] )
+		self.w.runButton.enable(shouldEnableRunButton)
+		
+		self.w.unproportionallyScaledComponents.enable( self.w.scaledComponents.get() )
+
+	def SavePreferences( self, sender=None ):
+		try:
+			# write current settings into prefs:
+			for prefName in self.prefs:
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
+				
+			self.updateUI()
+			return True
+		except:
+			import traceback
+			print(traceback.format_exc())
+			return False
+
+	def LoadPreferences( self ):
+		try:
+			for prefName in self.prefs:
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), prefName.startswith("include") or prefName.startswith("reuse"))
+				# load previously written prefs:
+				getattr(self.w, prefName).set( self.pref(prefName) )
+			
+			self.updateUI()
+			return True
+		except:
+			import traceback
+			print(traceback.format_exc())
+			return False
+	
+	def callMethodWithArg(self, methodName, arg ):
+		method = getattr(self, methodName)
+		return method(arg)
+	
+	def glyphHas_composablesWithoutComponents(self, thisGlyph):
+		for thisLayer in thisGlyph.layers:
+			if (thisLayer.isMasterLayer or thisLayer.isSpecialLayer) and not thisLayer.components:
+				info = thisGlyph.glyphInfo
+				if info and info.components:
+					print("\t🙅🏼 missing components %s on layer: %s" % (
+						", ".join([i.name for i in info.components]),
+						thisLayer.name,
+						))
+					return True
+		return False
+		
+	def glyphHas_unusualComponents(self, thisGlyph):
+		componentStructure = orthodoxComponentsForGlyph( thisGlyph )
+		if componentStructure:
+			for thisLayer in thisGlyph.layers:
+				if not layerAdheresToStructure( thisLayer, componentStructure ):
+					print(
+						"\t🔒 unusual components %s on layer: %s" % (
+							", ".join([c.name for c in thisLayer.components]),
+							thisLayer.name,
+							)
+						)
+					return True
+		return False
+		
+	def glyphHas_lockedComponents(self, thisGlyph):
+		for thisLayer in thisGlyph.layers:
+			for thisComponent in thisLayer.components:
+				if thisComponent.locked:
+					print("\t🔒 locked component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
+					return True
+		return False
+		
+	def glyphHas_nestedComponents(self, thisGlyph):
+		for thisLayer in thisGlyph.layers:
+			for thisComponent in thisLayer.components:
+				originalLayer = thisComponent.componentLayer
+				if originalLayer and originalLayer.components:
+					print("\t🪆 nested component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
+					return True
+		return False
+		
+	def glyphHas_orphanedComponents(self, thisGlyph):
+		for thisLayer in thisGlyph.layers:
+			theseComponents = thisLayer.components
+			if theseComponents:
+				for thisComponent in theseComponents:
+					if thisComponent.component is None:
+						print("\t🫥 orphaned component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
+						return True
+		return False
+
+	def glyphHas_scaledComponents(self, thisGlyph, unproportional=False):
+		for thisLayer in thisGlyph.layers:
+			for thisComponent in thisLayer.components:
+				if thisComponent.rotation == 0.0:
+					hScale, vScale = thisComponent.scale
+					scaled = (hScale*vScale > 0.0) and (abs(hScale)!=1.0 or abs(vScale)!=1.0)
+					if scaled:
+						if unproportional:
+							unproportionallyScaled = abs(hScale) != abs(vScale)
+							if unproportionallyScaled:
+								print("\t🤪 unproportionally scaled component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
+								return True
+						else:
+							print("\t📏 scaled component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
+							return True
+		return False
+	
+	def glyphHas_unproportionallyScaledComponents(self, thisGlyph):
+		return self.glyphHas_scaledComponents(thisGlyph, unproportional=True)
+	
+	def glyphHas_rotatedComponents(self, thisGlyph):
+		for thisLayer in thisGlyph.layers:
+			for thisComponent in thisLayer.components:
+				hScale, vScale = thisComponent.scale
+				rotatedByScaling = hScale==vScale and hScale < 0 and vScale < 0
+				if thisComponent.rotation or rotatedByScaling:
+					print("\t🎡 rotated component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
+					return True
+		return False
+
+	def glyphHas_mirroredComponents(self, thisGlyph):
+		for thisLayer in thisGlyph.layers:
+			for thisComponent in thisLayer.components:
+				hScale, vScale = thisComponent.scale
+				if hScale * vScale < 0:
+					print("\t🪞 mirrored component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
+					return True
+		return False
+	
+	def glyphHas_shiftedComponents(self, thisGlyph):
+		for thisLayer in thisGlyph.layers:
+			for thisComponent in thisLayer.components:
+				hScale, vScale = thisComponent.scale
+				degrees = thisComponent.rotation
+				if hScale==1.0 and vScale==1.0 and degrees == 0.0:
+					x, y = thisComponent.position
+					if x!=0 or y!=0:
+						print("\t🏗 shifted component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
+						return True
+		return False
+		
+	def glyphHas_detachedCornerComponents(self, thisGlyph):
+		for thisLayer in thisGlyph.layers:
+			for h in thisLayer.hints:
+				if h.type == CORNER:
+					if not h.originNode:
+						print("\t🚨 detached corner component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
+						return True
+		return False
+		
+	def glyphHas_transformedCornerComponents(self, thisGlyph):
+		for thisLayer in thisGlyph.layers:
+			for thisHint in thisLayer.hints:
+				if thisHint.type == CORNER:
+					if abs(thisHint.scale.x) != 1.0 or abs(thisHint.scale.y) != 1.0:
+						thisLayer.selection = None
+						thisHint.selected = True
+						print("\t🦄 transformed corner component %s on layer: %s" % (thisHint.name, thisLayer.name))
+						return True
+		return False
+
+	def ComponentProblemFinderMain( self, sender=None ):
+		try:
+			# clear macro window log:
+			Glyphs.clearLog()
+			
+			# start taking time:
+			start = timer()
+			
+			# update settings to the latest user input:
+			if not self.SavePreferences():
+				print("Note: 'Component Problem Finder' could not write preferences.")
+			
+			thisFont = Glyphs.font # frontmost font
+			if thisFont is None:
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+			else:
+				print("Component Problem Finder Report for %s" % thisFont.familyName)
+				if thisFont.filepath:
+					print(thisFont.filepath)
+				else:
+					print("⚠️ The font file has not been saved yet.")
+				print()
+			
+				if self.pref("includeAllGlyphs"):
+					glyphs = thisFont.glyphs
+				else:
+					glyphs = [l.parent for l in thisFont.selectedLayers]
+				
+				enabledPrefNames = [p for p in self.prefs[:-3] if self.pref(p)]
+				glyphDict = {}
+				for dictKey in enabledPrefNames:
+					glyphDict[dictKey] = []
+				
+				shouldIncludeNonExporting = self.pref("includeNonExporting")
+
+				glyphCount = len(glyphs)
+				for i, thisGlyph in enumerate(glyphs):
+					self.w.progress.set(100 * i / glyphCount)
+					report = "🔠 %s" % thisGlyph.name
+					print(report)
+					self.w.status.set(report)
+					
+					if shouldIncludeNonExporting or thisGlyph.export:
+						for prefName in enabledPrefNames:
+							if Glyphs.defaults[self.domain(prefName)]:
+								methodName = "glyphHas_%s" % prefName
+								isAffected = self.callMethodWithArg(methodName, thisGlyph)
+								if isAffected:
+									glyphDict[prefName].append(thisGlyph.name)
+				
+				report = ""
+				for prefName in enabledPrefNames:
+					affectedGlyphs = glyphDict[prefName]
+					if affectedGlyphs:
+						report += "\n%s:\n%s\n" % (
+							" ".join(camelCaseSplit(prefName)).capitalize(),
+							"/"+"/".join(affectedGlyphs),
+						)
+				print(report)
+				
+				if self.pref("reuseTab") and thisFont.currentTab:
+					newTab = thisFont.currentTab
+				else:
+					newTab = thisFont.newTab()
+				
+				newTab.text = report.strip()
+				
+				# take time:
+				end = timer()
+				timereport = reportTimeInNaturalLanguage( end - start )
+				print("Time elapsed: %s" % timereport)
+				
+				self.w.status.set("✅ Done. %s." % timereport)
+				self.w.progress.set(100)
+
+			# Final report:
+			Glyphs.showNotification( 
+				"%s: Done" % (thisFont.familyName),
+				"Component Problem Finder is finished. Details in Macro Window",
+				)
+			print("\nDone.")
+
+		except Exception as e:
+			# brings macro window to front and reports error:
+			Glyphs.showMacroWindow()
+			print("Component Problem Finder Error: %s" % e)
+			import traceback
+			print(traceback.format_exc())
+
+ComponentProblemFinder()

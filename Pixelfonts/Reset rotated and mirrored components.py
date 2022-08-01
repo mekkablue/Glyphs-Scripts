@@ -5,37 +5,49 @@ __doc__="""
 Looks for mirrored and rotated components and resets them to their original orientation.
 """
 
-Font = Glyphs.font
-selectedLayers = Font.selectedLayers
+thisFont = Glyphs.font
+selectedLayers = thisFont.selectedLayers
+grid = thisFont.grid
 
-for l in selectedLayers:
-	thisGlyph = l.parent
-	glyphName = thisGlyph.name
-	toBeDeleted = []
-	toBeAdded = []
-	
-	thisGlyph.beginUndo()
-	
-	for compIndex in range( len( l.components ) ):
-		comp = l.components[ compIndex ]
-		if comp.transform[0] != 1.0 or comp.transform[3] != 1.0:
-			toBeDeleted.append( compIndex )
-			compInfo = ( comp.componentName, comp.bounds.origin.x, comp.bounds.origin.y )
-			toBeAdded.append( compInfo )
-	
-	numOfComponents = len( toBeAdded )
-	print("Fixing %i components in %s ..." % ( numOfComponents, glyphName ))
-	print(toBeAdded)
-	
-	for delIndex in sorted( toBeDeleted )[::-1]:
-		del l.components[ delIndex ]
+# brings macro window to front and clears its log:
+Glyphs.clearLog()
+print("Fixing rotated components: %s" % thisFont.familyName)
+print("Processing %i selected glyph%s:\n" % (len(selectedLayers), "" if len(selectedLayers)==1 else "s"))
 
-	for compInfo in toBeAdded:
-		cName, cX, cY = compInfo
-		newC = GSComponent( cName )
-		newC.position = NSPoint(cX,cY)
-		newC.automaticAlignment = False
-		l.components.append( newC )
+thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+try:
+	for l in selectedLayers:
+		thisGlyph = l.parent
+		glyphName = thisGlyph.name
+		# thisGlyph.beginUndo() # undo grouping causes crashes
+		compCount = 0
+		for comp in l.components:
+			transform = comp.transform # this is computed in Glyphs 3. When dropping support for Glyphs 2, use the position/scale/rotate API
+			if transform[0] != 1.0 or transform[3] != 1.0:
+				position = comp.position
+				if transform[0] < 0:
+					position.x -= grid
+				if transform[3] < 0:
+					position.y -= grid
+				comp.transform = (1, 0, 0, 1, position.x, position.y)
+				compCount += 1
+		if compCount > 0:
+			print("✅ Fixed %i component%s in %s" % (compCount, "" if compCount==1 else "s", glyphName))
+		else:
+			print("🆗 No transformed components found: %s" % glyphName)
+		# thisGlyph.endUndo() # undo grouping causes crashes
+	print("\nDone.")
 	
-	thisGlyph.endUndo()
+except Exception as e:
+	Glyphs.showMacroWindow()
+	print("\n⚠️ Error in script: \n")
+	import traceback
+	print(traceback.format_exc())
+	print()
+	raise e
 	
+finally:
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+
+
+

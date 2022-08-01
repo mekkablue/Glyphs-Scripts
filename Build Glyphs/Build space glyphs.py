@@ -26,7 +26,7 @@ def createSpaceGlyph( thisFont, glyphName, widthKey ):
 		thisFont.glyphs.append(space)
 		created = 1
 	
-	space.beginUndo()
+	# space.beginUndo() # undo grouping causes crashes
 	
 	print(u"✅ setting width metrics key: %s" % widthKey)
 	space.widthMetricsKey = widthKey
@@ -51,7 +51,7 @@ def createSpaceGlyph( thisFont, glyphName, widthKey ):
 			print(u"✅ Setting Unicode value %s glyph %s" % (newUnicode, glyphName))
 			space.unicode = newUnicode
 	
-	space.endUndo()
+	# space.endUndo() # undo grouping causes crashes
 	return created
 		
 

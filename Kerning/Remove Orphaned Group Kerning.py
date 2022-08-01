@@ -46,9 +46,9 @@ for thisMaster in thisFont.masters:
 	thisMasterID = thisMaster.id
 	print("\nMaster ‘%s’" % thisMaster.name)
 	
-	for leftKey in thisFont.kerning[thisMasterID]:
+	for leftKey in thisFont.kerning[thisMasterID].keys():
 		if leftKey.startswith("@") and not leftKey[7:] in rightGroups:
-			for rightKey in thisFont.kerning[thisMasterID][leftKey]:
+			for rightKey in thisFont.kerning[thisMasterID][leftKey].keys():
 				toBeDeleted.append( (leftKey,rightKey) )
 				print("\tMarked for deletion: *%s - %s (%i)" % ( 
 					convertIntoName(leftKey),
@@ -56,7 +56,7 @@ for thisMaster in thisFont.masters:
 					thisFont.kerning[thisMasterID][leftKey][rightKey],
 					))
 		else:
-			for rightKey in thisFont.kerning[thisMasterID][leftKey]:
+			for rightKey in thisFont.kerning[thisMasterID][leftKey].keys():
 				if rightKey.startswith("@") and not rightKey[7:] in leftGroups:
 					toBeDeleted.append( (leftKey,rightKey) )
 					print("\tMarked for deletion: %s - *%s (%i)" % ( 

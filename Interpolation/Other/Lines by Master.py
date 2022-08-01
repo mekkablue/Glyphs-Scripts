@@ -7,6 +7,7 @@ Reduplicates your edit text across masters, will add one line per master. Carefu
 
 from Foundation import NSMutableAttributedString, NSAttributedString
 
+glyphs3 = Glyphs.versionNumber >= 3
 cutoff = []
 names = []
 for i,l in enumerate(Font.currentTab.layers):
@@ -25,35 +26,25 @@ for m in Font.masters:
 	
 	theseLayers.append( GSControlLayer.newline() )
 
+def charFromCode(charCode):
+	if glyphs3:
+		return chr(charCode)
+	return unichr(charCode)
+
 if theseLayers:
 	# Font.currentTab.layers.append( theseLayers ) # BROKEN IN 1224
 	# WORKAROUND:
 	string = NSMutableAttributedString.alloc().init()
 	for l in theseLayers:
 		if l.className() == "GSLayer":
-			char = Font.characterForGlyph_(l.parent)
-			try:
-				# GLYPHS 3
-				A = NSAttributedString.alloc().initWithString_attributes_(chr(char), {"GSLayerIdAttrib": l.layerId})
-			except:
-				# GLYPHS 2
-				A = NSAttributedString.alloc().initWithString_attributes_(unichr(char), {"GSLayerIdAttrib": l.layerId})
+			char = charFromCode( Font.characterForGlyph_(l.parent) )
+			A = NSAttributedString.alloc().initWithString_attributes_(char, {"GSLayerIdAttrib": l.layerId})
 		elif l.className() == "GSBackgroundLayer":
-			char = Font.characterForGlyph_(l.parent)
-			try:
-				# GLYPHS 3
-				A = NSAttributedString.alloc().initWithString_attributes_(chr(char), {"GSLayerIdAttrib": l.layerId, "GSShowBackgroundAttrib": True})
-			except:
-				# GLYPHS 2
-				A = NSAttributedString.alloc().initWithString_attributes_(unichr(char), {"GSLayerIdAttrib": l.layerId, "GSShowBackgroundAttrib": True})
+			char = charFromCode( Font.characterForGlyph_(l.parent) )
+			A = NSAttributedString.alloc().initWithString_attributes_(char, {"GSLayerIdAttrib": l.layerId, "GSShowBackgroundAttrib": True})
 		elif l.className() == "GSControlLayer":
-			char = l.parent.unicodeChar()
-			try:
-				# GLYPHS 3
-				A = NSAttributedString.alloc().initWithString_(chr(char))
-			except:
-				# GLYPHS 2
-				A = NSAttributedString.alloc().initWithString_(unichr(char))
+			char = charFromCode( l.parent.unicodeChar() )
+			A = NSAttributedString.alloc().initWithString_(char)
 		else:
 			raise ValueError
 		string.appendAttributedString_(A)

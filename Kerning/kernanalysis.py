@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*--- --
 from __future__ import print_function
 from GlyphsApp import Glyphs
+if Glyphs.versionNumber >= 3.0:
+	from GlyphsApp import LTR
 from Foundation import NSNotFound
 
 intervalList = (1,3,5,10,20)
@@ -101,14 +103,41 @@ def nameUntilFirstPeriod( glyphName ):
 		offset = glyphName.find(".")
 		return glyphName[:offset]
 
-def effectiveKerning( leftGlyphName, rightGlyphName, thisFont, thisFontMasterID ):
+def effectiveKerning( leftGlyphName, rightGlyphName, thisFont, thisFontMasterID, directionSensitive=True ):
 	leftLayer = thisFont.glyphs[leftGlyphName].layers[thisFontMasterID]
 	rightLayer = thisFont.glyphs[rightGlyphName].layers[thisFontMasterID]
-	effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
+	if Glyphs.versionNumber>=3:
+		direction = 0 #LTR
+		if directionSensitive:
+			if thisFont.currentTab:
+				direction = thisFont.currentTab.direction
+			else: # no tab open
+				direction = Glyphs.userInterfaceLayoutDirection()
+		effectiveKerning = leftLayer.nextKerningForLayer_direction_(
+			rightLayer,
+			direction
+		)
+	else:
+		effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
 	if effectiveKerning < NSNotFound:
 		return effectiveKerning
 	else:
 		return 0.0
+
+# older version:
+# def effectiveKerning( leftGlyphName, rightGlyphName, thisFont, thisFontMasterID ):
+	# leftLayer = thisFont.glyphs[leftGlyphName].layers[thisFontMasterID]
+	# rightLayer = thisFont.glyphs[rightGlyphName].layers[thisFontMasterID]
+	# if Glyphs.versionNumber >= 3.0:
+	# 	effectiveKerning = leftLayer.nextKerningForLayer_direction_( rightLayer, LTR )
+	# else:
+	# 	effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
+	# return effectiveKerning # can be NSNotFound
+	
+	# # if effectiveKerning < NSNotFound:
+	# # 	return effectiveKerning
+	# # else:
+	# # 	return 0.0
 
 def listOfNamesForCategories( thisFont, requiredCategory, requiredSubCategory, requiredScript, excludedGlyphNameParts, excludeNonExporting, suffix="" ):
 	nameList = []
@@ -177,6 +206,8 @@ def minDistanceBetweenTwoLayers( leftLayer, rightLayer, interval=5.0, kerning=0.
 	bottomY = max( leftLayer.bounds.origin.y, rightLayer.bounds.origin.y )
 	distance = topY - bottomY
 	minDist = None
+	if kerning > 10000: # NSNotFound
+		kerning = 0
 	for i in range(int(distance//interval)):
 		height = bottomY + i * interval
 		if not isHeightInIntervals(height, ignoreIntervals) or not ignoreIntervals:

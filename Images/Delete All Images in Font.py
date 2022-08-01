@@ -9,7 +9,7 @@ thisFont = Glyphs.font
 
 def process( thisGlyph ):
 	deleteCount = 0
-	thisGlyph.beginUndo()
+	# thisGlyph.beginUndo() # undo grouping causes crashes
 	
 	for thisLayer in thisGlyph.layers:
 		try:
@@ -19,7 +19,7 @@ def process( thisGlyph ):
 		except Exception as e:
 			print("   ⚠️ %s, layer ‘%s’: %s\n" % (thisGlyph.name, thisLayer.name, e))
 			
-	thisGlyph.endUndo()
+	# thisGlyph.endUndo() # undo grouping causes crashes
 	return deleteCount
 
 thisFont.disableUpdateInterface()

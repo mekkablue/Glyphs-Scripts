@@ -10,17 +10,19 @@ from AppKit import NSFont
 
 class SetHiddenAppPreferences( object ):
 	prefs = (
+		"DebugMode",
+		"AlwaysShowAllMetrics",
+		"GSKerningIncrementHigh",
+		"GSKerningIncrementLow",
+		"GSSpacingIncrementHigh",
+		"GSSpacingIncrementLow",
+		"GSShowVersionNumberInDockIcon",
+		"GSShowVersionNumberInTitleBar",
 		"AppleLanguages",
 		"drawShadowAccents",
 		"GSftxenhancerPath",
 		"GSCenterSelectionOnMasterSwitch",
-		"GSKerningIncrementHigh",
-		"GSKerningIncrementLow",
-		"GSShowVersionNumberInDockIcon",
-		"GSShowVersionNumberInTitleBar",
 		"GSFontViewShowCustomGlyphInfoIndicator",
-		"GSSpacingIncrementHigh",
-		"GSSpacingIncrementLow",
 		"MacroCodeFontSize",
 		"showShadowPath",
 		"GSDrawOutlinesAliased",
@@ -31,11 +33,17 @@ class SetHiddenAppPreferences( object ):
 		"GSFontViewDrawLabelColor",
 		"GSFontViewDarkMode",
 		"GSEditViewDarkMode",
+		"com.mekkablue.KernIndicator.offset",
 		"com.mekkablue.ShowFilledPreview.opacity",
+		"com.mekkablue.ShowGlyphFocus.color",
+		"com.mekkablue.ShowGlyphFocus.colorDarkMode",
 		"com.mekkablue.ShowItalic.drawItalicsForInactiveGlyphs",
 		"com.mekkablue.ShowMarkPreview.extension",
 		"com.mekkablue.ShowStyles.anchors",
 		"com.mekkablue.ttAutoinstructSelectedGlyphs.alwaysUseNoStem",
+		"com.mekkablue.colorCompositesInShadeOfBaseGlyph.shadeFactor",
+		"com.RicardGarcia.ChangeCase.verboseReport",
+		"com.FlorianPircher.Keyboard-Selection-Travel.UseAlternativeShortcuts",
 	)
 	
 	def __init__( self ):
@@ -82,7 +90,11 @@ class SetHiddenAppPreferences( object ):
 		self.w.makeKey()
 		
 	def updatePrefValue( self, sender ):
-		self.w.prefValue.set( Glyphs.defaults[self.w.pref.get()] )
+		value = Glyphs.defaults[self.w.pref.get()]
+		value = str(value)
+		value = value.replace("\n", "")
+		value = value.replace("  ", " ")
+		self.w.prefValue.set( value )
 		
 	def SavePreferences( self, sender ):
 		try:
@@ -116,8 +128,18 @@ class SetHiddenAppPreferences( object ):
 				print("Deleted pref: %s" % self.w.pref.get())
 				
 			elif sender == self.w.runButton:
-				Glyphs.defaults[ self.w.pref.get() ] = self.w.prefValue.get()
-				print("Set pref: %s --> %s" % (self.w.pref.get(), self.w.prefValue.get()))
+				prefName = self.w.pref.get()
+				value = self.w.prefValue.get()
+				if prefName in ["com.mekkablue.ShowGlyphFocus.color", "com.mekkablue.ShowGlyphFocus.colorDarkMode"]:
+					value = value.strip("(")
+					value = value.strip(")")
+					value = value.replace('"','')
+					value = value.split(',')
+					value = [float(v) for v in value]
+					value = tuple(value)
+				Glyphs.defaults[ prefName ] = value
+				print("\nSet pref: %s --> %s" % (self.w.pref.get(), value))
+				print("Glyphs.defaults['%s'] = %s" % (prefName, value))
 				
 		except Exception as e:
 			# brings macro window to front and reports error:

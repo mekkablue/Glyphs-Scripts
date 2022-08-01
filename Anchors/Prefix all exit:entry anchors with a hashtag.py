@@ -38,9 +38,9 @@ print("Scanning %i glyphs..." % len(thisFont.glyphs))
 print()
 glyphCount = 0
 for thisGlyph in thisFont.glyphs:
-	thisGlyph.beginUndo() # begin undo grouping
+	# thisGlyph.beginUndo() # undo grouping causes crashes
 	glyphCount += processGlyph( thisGlyph )
-	thisGlyph.beginUndo() # begin undo grouping
+	# thisGlyph.beginUndo() # undo grouping causes crashes
 
 reportMessage = "Hashtagged exit/entry anchors in %i glyph%s." % (
 	glyphCount,

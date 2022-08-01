@@ -24,8 +24,10 @@ class FindInFeatures( object ):
 		
 		# UI elements:
 		linePos, inset, lineHeight = 1, 5, 28	
-		self.w.searchFor = vanilla.EditText( (1, linePos, -1, 22), "", callback=self.FindInFeaturesMain, sizeStyle='regular' )
-		self.w.searchFor.getNSTextField().setToolTip_("Type the exact name of a glyph or (prefixed with @) a class.")
+		self.w.searchFor = vanilla.ComboBox( (1, linePos, -22, 22), self.glyphNamesAndClassNames(), callback=self.FindInFeaturesMain, sizeStyle='regular' )
+		self.w.searchFor.getNSComboBox().setToolTip_("Type the exact name of a glyph or (prefixed with @) a class, or choose it from the menu.")
+		self.w.updateButton = vanilla.SquareButton( (-19, linePos+2, -2, 18), "↺", sizeStyle='small', callback=self.update )
+		self.w.updateButton.getNSButton().setToolTip_("Update the autocompletion list for the frontmost font.")
 		linePos += lineHeight
 		
 		self.w.result = vanilla.Box( (inset, linePos, -inset, -inset) )
@@ -35,6 +37,30 @@ class FindInFeatures( object ):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+	
+	def update(self, sender=None):
+		self.w.searchFor.setItems(
+			self.glyphNamesAndClassNames()
+		)
+		
+	def glyphNamesAndClassNames(self, sender=None):
+		fullList = []
+		font = Glyphs.font
+		if font:
+			# add all exporting glyphs:
+			fullList.extend(
+				[g.name for g in font.glyphs if g.export]
+			)
+			
+			# add all OT class names:
+			fullList.extend(
+				["@%s"%c.name for c in font.classes]
+			)
+			
+			# sort it:
+			fullList = sorted(fullList)
+			
+		return fullList
 
 	def codeClean(self, code):
 		# get rid of comments:

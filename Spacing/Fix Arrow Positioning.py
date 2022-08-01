@@ -180,7 +180,7 @@ class FixArrowPositioning( object ):
 			return measures[1].y
 	
 	def updateMetricsKeys(self, thisGlyph):
-		thisFont = thisGlyph.font()
+		thisFont = thisGlyph.font
 		if thisFont:
 			# update all master layers:
 			for thisMaster in thisFont.masters:

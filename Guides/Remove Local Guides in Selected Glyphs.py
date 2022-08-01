@@ -9,7 +9,7 @@ print("Deleting guides in:")
 
 for thisLayer in Glyphs.font.selectedLayers:
 	thisGlyph = thisLayer.parent
-	thisGlyph.beginUndo()
+	# thisGlyph.beginUndo() # undo grouping causes crashes
 	thisLayer.guideLines = None
-	thisGlyph.endUndo()
+	# thisGlyph.endUndo() # undo grouping causes crashes
 	print("  %s" % thisGlyph.name)

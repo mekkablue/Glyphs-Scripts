@@ -11,12 +11,17 @@ selectedLayers = Font.selectedLayers
 def process( thisLayer ):
 	count = 0
 
-	thisLayer.parent.beginUndo()
+	# thisLayer.parent.beginUndo() # undo grouping causes crashes
 	for i in range( len( thisLayer.paths ))[::-1]:
 		if thisLayer.paths[i].closed == False:
-			del thisLayer.paths[i]
+			thisPath = thisLayer.paths[i]
+			if Glyphs.versionNumber >= 3:
+				index = thisLayer.shapes.index(thisPath)
+				del thisLayer.shapes[index]
+			else:
+				del thisLayer.paths[i]
 			count += 1
-	thisLayer.parent.endUndo()
+	# thisLayer.parent.endUndo() # undo grouping causes crashes
 	
 	return count
 

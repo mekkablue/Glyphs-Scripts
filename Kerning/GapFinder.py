@@ -24,6 +24,13 @@ categoryList = (
 	"Number:Fraction",
 )
 
+if Glyphs.versionNumber>=3:
+	caseDict = {
+		"Uppercase": GSUppercase,
+		"Lowercase": GSLowercase,
+		"Smallcaps": GSSmallcaps,
+	}
+
 class GapFinder( object ):
 	def __init__( self ):
 		# Window 'self.w':
@@ -162,7 +169,13 @@ class GapFinder( object ):
 	def effectiveKerning( self, leftGlyphName, rightGlyphName, thisFont, thisFontMasterID ):
 		leftLayer = thisFont.glyphs[leftGlyphName].layers[thisFontMasterID]
 		rightLayer = thisFont.glyphs[rightGlyphName].layers[thisFontMasterID]
-		effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
+		if Glyphs.versionNumber>=3:
+			effectiveKerning = leftLayer.nextKerningForLayer_direction_(
+				rightLayer,
+				0 # LTR
+			)
+		else:
+			effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
 		if effectiveKerning < NSNotFound:
 			return effectiveKerning
 		else:
@@ -183,12 +196,17 @@ class GapFinder( object ):
 					if thisScript == None or thisScript == requiredScript:
 						if thisGlyph.category == requiredCategory:
 							if requiredSubCategory:
-								if thisGlyph.subCategory == requiredSubCategory:
-									nameList.append( glyphName )
+								if Glyphs.versionNumber>=3 and requiredSubCategory in caseDict:
+									requiredCase = caseDict[requiredSubCategory]
+									if thisGlyph.case == requiredCase:
+										nameList.append( glyphName )
+								else:
+									if thisGlyph.subCategory == requiredSubCategory:
+										nameList.append( glyphName )
 							else:
 								nameList.append( glyphName )
 		return nameList
-		
+
 	def splitString( self, string, delimiter=":", Maximum=2 ):
 		# split string into a list:
 		returnList = string.split(delimiter)
@@ -286,7 +304,17 @@ class GapFinder( object ):
 			# get list of glyph names:
 			firstList = self.listOfNamesForCategories( thisFont, firstCategory, firstSubCategory, script, excludedGlyphNameParts, excludeNonExporting )
 			secondList = self.listOfNamesForCategories( thisFont, secondCategory, secondSubCategory, script, excludedGlyphNameParts, excludeNonExporting )
-
+			
+			if not firstList or not secondList:
+				Message(
+					title="Error: could not find any pairs",
+					message="The criteria for glyph selection are too strict. With the current settings, there are %i glyphs for the left side in the current font, and %i glyphs for the right side." % (
+						len(firstList),
+						len(secondList),
+					), 
+					OKButton=None,
+					)
+			
 			if Glyphs.defaults["com.mekkablue.GapFinder.reportGapsInMacroWindow"]:
 				print("Maximum Distance: %i\n" % maxDistance)
 				print("Left glyphs:\n%s\n" % ", ".join(firstList))
@@ -347,7 +375,7 @@ class GapFinder( object ):
 					thisFont.newTab( tabString )
 			# or report that nothing was found:
 			else:
-				report = 'No collisions found. Time elapsed: %s. Congrats!' % timereport
+				report = 'No gaps found. Time elapsed: %s. Congrats!' % timereport
 			
 			# Notification:
 			notificationTitle = "GapFinder: %s (%s)" % (thisFont.familyName, thisFontMaster.name)

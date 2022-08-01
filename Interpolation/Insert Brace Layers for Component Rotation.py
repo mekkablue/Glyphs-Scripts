@@ -8,6 +8,8 @@ Inserts a number of Brace Layers with continuously scaled and rotated components
 import vanilla
 
 class InsertBraceLayersForComponentRotation( object ):
+	prefID = "com.mekkablue.InsertBraceLayersforComponentRotation"
+
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 250
@@ -19,7 +21,7 @@ class InsertBraceLayersForComponentRotation( object ):
 			"Layers for Rotating Components", # window title
 			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
 			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
-			autosaveName = "com.mekkablue.InsertBraceLayersForComponentRotation.mainwindow" # stores last window position and size
+			autosaveName = self.domain("mainwindow") # stores last window position and size
 		)
 		
 		# UI elements:
@@ -38,11 +40,19 @@ class InsertBraceLayersForComponentRotation( object ):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-		
+	
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
 	def SavePreferences( self, sender ):
 		try:
-			Glyphs.defaults["com.mekkablue.InsertBraceLayersForComponentRotation.steps"] = self.w.steps.get()
-			Glyphs.defaults["com.mekkablue.InsertBraceLayersForComponentRotation.replace"] = self.w.replace.get()
+			Glyphs.defaults[ self.domain("steps") ] = self.w.steps.get()
+			Glyphs.defaults[ self.domain("replace") ] = self.w.replace.get()
 		except:
 			return False
 			
@@ -50,38 +60,52 @@ class InsertBraceLayersForComponentRotation( object ):
 
 	def LoadPreferences( self ):
 		try:
-			Glyphs.registerDefaults({
-				"com.mekkablue.InsertBraceLayersForComponentRotation.steps": 5,
-				"com.mekkablue.InsertBraceLayersForComponentRotation.replace": True,
-			})
-			self.w.steps.set( Glyphs.defaults["com.mekkablue.InsertBraceLayersForComponentRotation.steps"] )
-			self.w.replace.set( Glyphs.defaults["com.mekkablue.InsertBraceLayersForComponentRotation.replace"] )
+			Glyphs.registerDefault( self.domain("steps"), 5 )
+			Glyphs.registerDefault( self.domain("replace"), True )
+			self.w.steps.set( self.pref("steps") )
+			self.w.replace.set( self.pref("replace") )
 		except:
 			return False
 			
 		return True
 
+	def getMasterWeightValue(self, master):
+		if Glyphs.versionNumber >= 3:
+			# Glyphs 3 code
+			return master.axes[0]
+		else:
+			# Glyphs 2 code
+			return master.weightValue
+
 	def InsertBraceLayersForComponentRotationMain( self, sender ):
 		try:
 			try:
-				steps = int(Glyphs.defaults["com.mekkablue.InsertBraceLayersForComponentRotation.steps"])
+				steps = int( self.pref("steps") )
 			except Exception as e:
 				steps = 0
-				print("Cannot find valid number of steps.")
+				Message(title="Value Error", message="Cannot find valid number of steps.", OKButton=None)
 				
 			replace = True
+
 			
 			if steps > 0:
 				thisFont = Glyphs.font # frontmost font
 				masters = thisFont.masters # all masterss
 				numberOfMasters = len(masters)
-				if numberOfMasters > 1:
+
+				if Glyphs.versionNumber >= 3:
+					if thisFont.axes:
+						axisID = thisFont.axes[0].axisId
+				else:
+					axisID = True
+					
+				if numberOfMasters > 1 and axisID:
 					braceLayerValues = {}
 					for i in range(1,numberOfMasters):
 						prevMaster = masters[i-1]
-						prevValue = prevMaster.weightValue
+						prevValue = self.getMasterWeightValue(prevMaster)
 						currMaster = masters[i]
-						currValue = currMaster.weightValue
+						currValue = self.getMasterWeightValue(currMaster)
 						for j in range(steps):
 							stepWidth = (currValue-prevValue) / (steps+1)
 							newValue = prevValue + stepWidth * (j+1)
@@ -89,7 +113,6 @@ class InsertBraceLayersForComponentRotation( object ):
 			
 					for thisGlyph in [l.parent for l in thisFont.selectedLayers]: # loop through glyphs
 						if thisGlyph.mastersCompatible:
-							
 							if replace:
 								for i in range(len(thisGlyph.layers))[::-1]:
 									layerName = thisGlyph.layers[i].name
@@ -99,12 +122,16 @@ class InsertBraceLayersForComponentRotation( object ):
 							for thisValue in sorted(braceLayerValues.keys()):
 								newLayer = GSLayer()
 								newLayer.name = "{%i}" % int(thisValue)
+								if Glyphs.versionNumber >= 3:
+									newLayer.attributes['coordinates'] = {axisID:thisValue}
 								thisGlyph.layers.append(newLayer)
 								newLayer.reinterpolate()
 								masterLayer1 = thisGlyph.layers[ braceLayerValues[thisValue][0] ]
 								masterLayer2 = thisGlyph.layers[ braceLayerValues[thisValue][1] ]
-								masterValue1 = masterLayer1.associatedFontMaster().weightValue
-								masterValue2 = masterLayer2.associatedFontMaster().weightValue
+								masterValue1 = self.getMasterWeightValue(masterLayer1.associatedFontMaster())
+								masterValue2 = self.getMasterWeightValue(masterLayer2.associatedFontMaster())
+								
+								""" # is this broken?
 								for i, thisComponent in enumerate(newLayer.components):
 									comp1 = masterLayer1.components[i]
 									comp2 = masterLayer2.components[i]
@@ -115,14 +142,12 @@ class InsertBraceLayersForComponentRotation( object ):
 										#-1 if thisComponent.scale[0] < 0 else 1,
 										#-1 if thisComponent.scale[1] < 0 else 1,
 									)
+								"""
 						else:
 							print("%s: not compatible. Left unchanged." % thisGlyph.name)
-			
-			
-			
+
 			if not self.SavePreferences( self ):
 				print("Note: 'Insert Brace Layers for Component Rotation' could not write preferences.")
-			
 			
 		except Exception as e:
 			# brings macro window to front and reports error:

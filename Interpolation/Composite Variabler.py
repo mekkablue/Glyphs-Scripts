@@ -7,11 +7,11 @@ Reduplicates Brace and Bracket layers of components in the composites in which t
 
 import vanilla
 
-class CompoundVariabler( object ):
+class CompositeVariabler( object ):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 405
-		windowHeight = 260
+		windowHeight = 280
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -19,25 +19,29 @@ class CompoundVariabler( object ):
 			"Composite Variabler", # window title
 			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
 			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
-			autosaveName = "com.mekkablue.CompoundVariabler.mainwindow" # stores last window position and size
+			autosaveName = "com.mekkablue.CompositeVariabler.mainwindow" # stores last window position and size
 		)
 		
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 		
-		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 28), u"Reduplicates Bracket layers of components in the composites in which they are used. Makes bracket layers work in the variable font exports.", sizeStyle='small', selectable=True )
+		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 28), u"Reduplicates special layers of components in the composites in which they are used. Makes bracket and brace layers work.", sizeStyle='small', selectable=True )
 		linePos += lineHeight*2
+		
+		self.w.processBracketLayers = vanilla.CheckBox( (inset, linePos-1, windowWidth//2, 20), "Process [BRACKET] layers", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.processBraceLayers = vanilla.CheckBox( (inset+windowWidth//2, linePos-1, -inset, 20), "Process {BRACE} layers", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
 		
 		self.w.allGlyphs = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Include all exporting glyphs in font (otherwise only selected glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.allGlyphs.getNSButton().setToolTip_("If checked, all glyphs in the font will be processed and receive the special (brace and bracket) layers of their respective components. If unchecked, only selected composite glyphs get processed.")
 		linePos += lineHeight
 
-		self.w.decomposeBrackets = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Decompose bracket layers in composites (currently broken)", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.decomposeBrackets = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Decompose special layers in composites (currently broken)", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.decomposeBrackets.getNSButton().setToolTip_("If checked, will decompose bracket layers. This is necessary for bracket layers to work in OTVAR fonts in Glyphs 2.6.")
 		linePos += lineHeight
 		
-		self.w.deleteExistingSpecialLayers = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Delete pre-existing bracket layers in composites", value=False, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.deleteExistingSpecialLayers.getNSButton().setToolTip_("If checked, will delete all bracket layers found in processed composite glyphs.")
+		self.w.deleteExistingSpecialLayers = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Delete pre-existing special layers in composites", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.deleteExistingSpecialLayers.getNSButton().setToolTip_("If checked, will delete all bracket or brace layers found in processed composite glyphs.")
 		linePos += lineHeight
 		
 		self.w.justBackupInstead = vanilla.CheckBox( (inset*2, linePos-1, -inset, 20), u"Don’t delete, just backup and deactivate instead", value=False, callback=self.SavePreferences, sizeStyle='small' )
@@ -60,7 +64,7 @@ class CompoundVariabler( object ):
 		linePos += lineHeight
 		
 		# Run Button:
-		self.w.runButton = vanilla.Button( (-80-inset, -20-inset, -inset, -inset), "Run", sizeStyle='regular', callback=self.CompoundVariablerMain )
+		self.w.runButton = vanilla.Button( (-80-inset, -20-inset, -inset, -inset), "Run", sizeStyle='regular', callback=self.CompositeVariablerMain )
 		self.w.setDefaultButton( self.w.runButton )
 		
 		# Load Settings:
@@ -73,16 +77,20 @@ class CompoundVariabler( object ):
 		self.w.makeKey()
 	
 	def updateUI(self, sender=None):
-		self.w.justBackupInstead.enable(self.w.deleteExistingSpecialLayers.get())
+		self.w.justBackupInstead.enable( self.w.deleteExistingSpecialLayers.get() )
+		self.w.runButton.enable( self.w.processBracketLayers.get() or self.w.processBraceLayers.get() )
 	
 	def SavePreferences( self, sender ):
 		try:
-			Glyphs.defaults["com.mekkablue.CompoundVariabler.allGlyphs"] = self.w.allGlyphs.get()
-			Glyphs.defaults["com.mekkablue.CompoundVariabler.openTab"] = self.w.openTab.get()
-			Glyphs.defaults["com.mekkablue.CompoundVariabler.deleteExistingSpecialLayers"] = self.w.deleteExistingSpecialLayers.get()
-			Glyphs.defaults["com.mekkablue.CompoundVariabler.decomposeBrackets"] = self.w.decomposeBrackets.get()
-			Glyphs.defaults["com.mekkablue.CompoundVariabler.catchNestedComponents"] = self.w.catchNestedComponents.get()
-			Glyphs.defaults["com.mekkablue.CompoundVariabler.justBackupInstead"] = self.w.justBackupInstead.get()
+			Glyphs.defaults["com.mekkablue.CompositeVariabler.processBracketLayers"] = self.w.processBracketLayers.get()
+			Glyphs.defaults["com.mekkablue.CompositeVariabler.processBraceLayers"] = self.w.processBraceLayers.get()
+			
+			Glyphs.defaults["com.mekkablue.CompositeVariabler.allGlyphs"] = self.w.allGlyphs.get()
+			Glyphs.defaults["com.mekkablue.CompositeVariabler.openTab"] = self.w.openTab.get()
+			Glyphs.defaults["com.mekkablue.CompositeVariabler.deleteExistingSpecialLayers"] = self.w.deleteExistingSpecialLayers.get()
+			Glyphs.defaults["com.mekkablue.CompositeVariabler.decomposeBrackets"] = self.w.decomposeBrackets.get()
+			Glyphs.defaults["com.mekkablue.CompositeVariabler.catchNestedComponents"] = self.w.catchNestedComponents.get()
+			Glyphs.defaults["com.mekkablue.CompositeVariabler.justBackupInstead"] = self.w.justBackupInstead.get()
 			
 			self.updateUI()
 		except:
@@ -92,18 +100,24 @@ class CompoundVariabler( object ):
 
 	def LoadPreferences( self ):
 		try:
-			Glyphs.registerDefault("com.mekkablue.CompoundVariabler.allGlyphs", 1)
-			Glyphs.registerDefault("com.mekkablue.CompoundVariabler.openTab", 0)
-			Glyphs.registerDefault("com.mekkablue.CompoundVariabler.deleteExistingSpecialLayers", 1)
-			Glyphs.registerDefault("com.mekkablue.CompoundVariabler.decomposeBrackets", 1)
-			Glyphs.registerDefault("com.mekkablue.CompoundVariabler.catchNestedComponents", 0)
-			Glyphs.registerDefault("com.mekkablue.CompoundVariabler.justBackupInstead", 1)
-			self.w.allGlyphs.set( Glyphs.defaults["com.mekkablue.CompoundVariabler.allGlyphs"] )
-			self.w.openTab.set( Glyphs.defaults["com.mekkablue.CompoundVariabler.openTab"] )
-			self.w.deleteExistingSpecialLayers.set( Glyphs.defaults["com.mekkablue.CompoundVariabler.deleteExistingSpecialLayers"] )
-			self.w.decomposeBrackets.set( Glyphs.defaults["com.mekkablue.CompoundVariabler.decomposeBrackets"] )
-			self.w.catchNestedComponents.set( Glyphs.defaults["com.mekkablue.CompoundVariabler.catchNestedComponents"] )
-			self.w.justBackupInstead.set( Glyphs.defaults["com.mekkablue.CompoundVariabler.justBackupInstead"] )
+			Glyphs.registerDefault("com.mekkablue.CompositeVariabler.processBracketLayers", 0)
+			Glyphs.registerDefault("com.mekkablue.CompositeVariabler.processBraceLayers", 1)
+			Glyphs.registerDefault("com.mekkablue.CompositeVariabler.allGlyphs", 1)
+			Glyphs.registerDefault("com.mekkablue.CompositeVariabler.openTab", 0)
+			Glyphs.registerDefault("com.mekkablue.CompositeVariabler.deleteExistingSpecialLayers", 1)
+			Glyphs.registerDefault("com.mekkablue.CompositeVariabler.decomposeBrackets", 1)
+			Glyphs.registerDefault("com.mekkablue.CompositeVariabler.catchNestedComponents", 0)
+			Glyphs.registerDefault("com.mekkablue.CompositeVariabler.justBackupInstead", 1)
+			
+			self.w.processBracketLayers.set( Glyphs.defaults["com.mekkablue.CompositeVariabler.processBracketLayers"] )
+			self.w.processBraceLayers.set( Glyphs.defaults["com.mekkablue.CompositeVariabler.processBraceLayers"] )
+			self.w.allGlyphs.set( Glyphs.defaults["com.mekkablue.CompositeVariabler.allGlyphs"] )
+			self.w.openTab.set( Glyphs.defaults["com.mekkablue.CompositeVariabler.openTab"] )
+			self.w.deleteExistingSpecialLayers.set( Glyphs.defaults["com.mekkablue.CompositeVariabler.deleteExistingSpecialLayers"] )
+			self.w.decomposeBrackets.set( Glyphs.defaults["com.mekkablue.CompositeVariabler.decomposeBrackets"] )
+			self.w.catchNestedComponents.set( Glyphs.defaults["com.mekkablue.CompositeVariabler.catchNestedComponents"] )
+			self.w.justBackupInstead.set( Glyphs.defaults["com.mekkablue.CompositeVariabler.justBackupInstead"] )
+			
 			self.updateUI()
 		except:
 			return False
@@ -126,13 +140,29 @@ class CompoundVariabler( object ):
 		depths=[]
 		for g in Font.glyphs:
 			for l in g.layers:
-				if l.isMasterLayer or l.isSpecialLayer or l.isColorLayer:
+				if l.isMasterLayer or l.isSpecialLayer or (Glyphs.versionNumber >= 3 and l.isColorLayer):
 					for c in l.components:
 						depth = self.countNest(c)
 						depths.append(depth)
 		return max(depths)
+	
+	def isBracketLayer(self, layer):
+		if Glyphs.versionNumber >= 3:
+			# GLYPHS 3
+			return layer.isBracketLayer()
+		else:
+			# GLYPHS 2
+			return layer.isSpecialLayer and "[" in layer.name and "]" in layer.name
 
-	def CompoundVariablerMain( self, sender ):
+	def isBraceLayer(self, layer):
+		if Glyphs.versionNumber >= 3:
+			# GLYPHS 3
+			return layer.isBraceLayer()
+		else:
+			# GLYPHS 2
+			return layer.isSpecialLayer and "{" in layer.name and "}" in layer.name
+
+	def CompositeVariablerMain( self, sender ):
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
@@ -141,12 +171,14 @@ class CompoundVariabler( object ):
 			if not self.SavePreferences( self ):
 				print("Note: 'Composite Variabler' could not write preferences.")
 			
-			allGlyphs = Glyphs.defaults["com.mekkablue.CompoundVariabler.allGlyphs"]
-			openTab = Glyphs.defaults["com.mekkablue.CompoundVariabler.openTab"]
-			deleteExistingSpecialLayers = Glyphs.defaults["com.mekkablue.CompoundVariabler.deleteExistingSpecialLayers"]
-			catchNestedComponents = Glyphs.defaults["com.mekkablue.CompoundVariabler.catchNestedComponents"]
-			decomposeBrackets = Glyphs.defaults["com.mekkablue.CompoundVariabler.decomposeBrackets"]
-			justBackupInstead = Glyphs.defaults["com.mekkablue.CompoundVariabler.justBackupInstead"]
+			processBracketLayers = Glyphs.defaults["com.mekkablue.CompositeVariabler.processBracketLayers"]
+			processBraceLayers = Glyphs.defaults["com.mekkablue.CompositeVariabler.processBraceLayers"]
+			allGlyphs = Glyphs.defaults["com.mekkablue.CompositeVariabler.allGlyphs"]
+			openTab = Glyphs.defaults["com.mekkablue.CompositeVariabler.openTab"]
+			deleteExistingSpecialLayers = Glyphs.defaults["com.mekkablue.CompositeVariabler.deleteExistingSpecialLayers"]
+			catchNestedComponents = Glyphs.defaults["com.mekkablue.CompositeVariabler.catchNestedComponents"]
+			decomposeBrackets = Glyphs.defaults["com.mekkablue.CompositeVariabler.decomposeBrackets"]
+			justBackupInstead = Glyphs.defaults["com.mekkablue.CompositeVariabler.justBackupInstead"]
 			
 			thisFont = Glyphs.font # frontmost font
 			if thisFont is None:
@@ -205,11 +237,16 @@ class CompoundVariabler( object ):
 							layerCount = len(currentGlyph.layers)
 							for i in reversed(range(layerCount)):
 								thatLayer = currentGlyph.layers[i]
-								if thatLayer.isSpecialLayer and "[" in thatLayer.name and "]" in thatLayer.name:
+								braceLayer = self.isBraceLayer(thatLayer)
+								bracketLayer = self.isBracketLayer(thatLayer)
+								if braceLayer or bracketLayer:
 									if justBackupInstead:
-										for bracket in "[]":
+										for bracket in "[]{}":
 											thatLayer.name = thatLayer.name.replace(bracket,"#")
 										print("%s: backed up layer: '%s'" % (currentGlyph.name, thatLayer.name))
+										if Glyphs.versionNumber >= 3:
+											for key in ("coordinates", "axisRules"):
+												del thatLayer.attributes[key]
 									else:
 										print("%s: deleted layer '%s'" % (currentGlyph.name, thatLayer.name))
 										del currentGlyph.layers[i]
@@ -218,7 +255,9 @@ class CompoundVariabler( object ):
 							originalGlyph = thisFont.glyphs[component.componentName]
 							if originalGlyph and not originalGlyph.isSmartGlyph():
 								for originalLayer in originalGlyph.layers:
-									if originalLayer.isSpecialLayer and "[" in originalLayer.name and "]" in originalLayer.name:
+									braceLayer = (processBraceLayers and self.isBraceLayer(originalLayer))
+									bracketLayer = (processBracketLayers and self.isBracketLayer(originalLayer))
+									if braceLayer or bracketLayer:
 										# namesAndMasterIDsOfSpecialLayers = [(l.name,l.associatedMasterId) for l in currentGlyph.layers if l.isSpecialLayer]
 										layerAlreadyExists = False
 										for currentGlyphLayer in currentGlyph.layers:
@@ -232,15 +271,26 @@ class CompoundVariabler( object ):
 											newLayer = GSLayer()
 											newLayer.name = originalLayer.name
 											newLayer.setAssociatedMasterId_(originalLayer.associatedMasterId)
-											print(newLayer.associatedMasterId, originalLayer.associatedMasterId)
 											newLayer.width = originalLayer.width
 											currentGlyph.layers.append(newLayer)
+											if Glyphs.versionNumber >= 3:
+												for attributeKey in originalLayer.attributes.keys():
+													newLayer.setAttribute_forKey_(
+														originalLayer.attributes[attributeKey],
+														attributeKey,
+														)
 											newLayer.reinterpolate()
 											newLayer.reinterpolateMetrics()
 											newLayer.syncMetrics()
+											if Glyphs.versionNumber >= 3:
+												masterLayer = currentGlyph.layers[originalLayer.associatedMasterId]
+												for i, masterComponent in enumerate(masterLayer.components):
+													newComponent = newLayer.components[i]
+													newComponent.setAlignment_( masterComponent.alignment )
+													newComponent.setIsAligned_( masterComponent.isAligned() )
 											
 											affectedGlyphs.append(currentGlyph.name)
-											print("%s, new layer: '%s'%s" % (
+											print("🔠 %s, new layer: '%s'%s" % (
 												currentGlyph.name,
 												newLayer.name,
 												" (decomposed)" if decomposeBrackets else "",
@@ -289,4 +339,4 @@ class CompoundVariabler( object ):
 			import traceback
 			print(traceback.format_exc())
 
-CompoundVariabler()
+CompositeVariabler()

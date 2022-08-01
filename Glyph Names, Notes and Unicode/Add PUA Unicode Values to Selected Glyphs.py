@@ -140,7 +140,7 @@ class CustomUnicode( object ):
 					if thisGlyph.export or includeNonExportingGlyphs:
 						unicodeValue = "%04X" % PUAcode
 						if keepExistingUnicodes:
-							if thisGlyph.unicode:
+							if thisGlyph.unicode or thisGlyph.name[0] in "._-": # exclude .notdef, .null, etc.
 								continue
 							while thisFont.glyphForUnicode_(unicodeValue):
 								self.statusMsg( "%s: skipping (already in %s)" % (

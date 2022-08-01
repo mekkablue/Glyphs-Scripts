@@ -7,7 +7,9 @@ Measures in centers of straight segments, and reports deviations in stem thickne
 
 import vanilla
 from Foundation import NSPoint
-
+if Glyphs.versionNumber >= 3:
+	from AppKit import NSMutableArray
+	
 def pointDistance(p1, p2):
 	stemThickness = ( (p2.x-p1.x)**2.0 + (p2.y-p1.y)**2.0 ) **0.5
 	return stemThickness
@@ -150,11 +152,17 @@ class StraightStemCruncher( object ):
 			if thisFont:
 				master = thisFont.selectedFontMaster
 				if master:
-					stems = []
-					for stemSet in (master.horizontalStems, master.verticalStems):
-						if stemSet:
-							for s in stemSet:
-								stems.append(s)
+					
+					if Glyphs.versionNumber >= 3:
+						# Glyphs 3 code
+						stems = [stem for stem in master.stems]
+					else:
+						stems = []
+						# Glyphs 2 code
+						for stemSet in (master.horizontalStems, master.verticalStems):
+							if stemSet:
+								for s in stemSet:
+									stems.append(s)
 					stems = sorted(set(stems))
 					stemString = ", ".join( [str(s) for s in stems] )
 					if stemString:
@@ -298,8 +306,8 @@ class StraightStemCruncher( object ):
 			if nodeCount>2:
 				for thisSegment in thisPath.segments:
 					if len(thisSegment)==2:
-						p1 = thisSegment[0].pointValue()
-						p2 = thisSegment[1].pointValue()
+						p1 = thisSegment[0]
+						p2 = thisSegment[1]
 						
 						isVertical = (p1.x==p2.x)
 						isHorizontal = (p1.y==p2.y)
@@ -352,7 +360,7 @@ class StraightStemCruncher( object ):
 					excludedGlyphNameParts.extend( set(enteredParts) )
 			
 			stems = Glyphs.defaults["com.mekkablue.StraightStemCruncher.stems"] # "80, 100"
-			stems = [int(s.strip()) for s in stems.split(",")]
+			stems = [float(s.strip()) for s in stems.split(",")]
 			
 			shouldMark = Glyphs.defaults["com.mekkablue.StraightStemCruncher.markStems"]
 			deviationMin = float( Glyphs.defaults["com.mekkablue.StraightStemCruncher.deviationMin"] ) # 0.6
@@ -390,7 +398,19 @@ class StraightStemCruncher( object ):
 									checkLayer = thisLayer.copyDecomposedLayer()
 								else:
 									checkLayer = thisLayer.copy()
-									checkLayer.components = None
+									if Glyphs.versionNumber >= 3:
+										# Glyphs 3 code
+										
+										for comp in checkLayer.components:
+
+											del checkLayer.shapes[
+												checkLayer.shapes.index(comp)
+											]
+
+									else:
+										# Glyphs 2 code
+										checkLayer.components = None
+									
 								
 								# go on if there are any paths:
 								if checkLayer.paths:

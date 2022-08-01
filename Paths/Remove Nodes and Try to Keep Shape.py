@@ -19,7 +19,7 @@ shiftKeyPressed = NSEvent.modifierFlags() & shiftKeyFlag == shiftKeyFlag
 if selection:
 	selectedNodes = [obj for obj in selection if type(obj)==GSNode and obj.type==GSCURVE]
 	if selectedNodes:
-		thisGlyph.beginUndo() # begin undo grouping
+		# thisGlyph.beginUndo() # undo grouping causes crashes
 		thisLayer.selection = None
 		for thisNode in selectedNodes:
 			thisPath = thisNode.parent
@@ -27,4 +27,4 @@ if selection:
 				thisPath.removeNodeCheckKeepShape_( thisNode )
 			else:
 				thisPath.removeNodeCheckKeepShape_normalizeHandles_( thisNode, True )
-		thisGlyph.endUndo()   # end undo grouping
+		# thisGlyph.endUndo() # undo grouping causes crashes

@@ -7,6 +7,31 @@ Creates fitting zones for the selected glyphs, on every master.
 
 import vanilla
 
+
+## function for adding Metrics to master in Glyphs3
+def addNamedHorizontalMetricToMaster(master, name, typeName, position, overshoot):
+	metricTypes = {
+		"ascender":1,
+		"cap height":2,
+		"x-height":4,
+		"bodyHeight":6,
+		"descender":7,
+		"baseline":8,
+		"italic angle":9,
+	}
+	typeName = metricTypes.get(typeName, 0)
+	font = master.font
+	#metric_dict = dict(name=name,typeName=None,horizontal=True)
+	metric = GSMetric()#.initWithDict_format_(metric_dict, 2)
+	metric.name = name
+	metric.horizontal = True
+	metric.type = typeName
+	
+	font.addMetric_(metric)
+	metricValue = GSMetricValue.alloc().initWithPosition_overshoot_(position, overshoot)
+	master.setMetricValue_forId_(metricValue, metric.id)
+	return metric.id
+
 class CreateAlignmentZonesforSelectedGlyphs( object ):
 	def __init__( self ):
 		# Window 'self.w':
@@ -86,16 +111,28 @@ class CreateAlignmentZonesforSelectedGlyphs( object ):
 					return True
 		return False
 	
-	def addZoneToMaster(self, zonePosition, zoneSize, master, blueFuzz=0):
+	def addZoneToMaster(self, zonePosition, zoneSize, master, blueFuzz=0, isTop=True, masterIndex=0):
 		if self.zoneIsOverlappingWithExistingOne(zonePosition, zoneSize, master, blueFuzz=0):
 			print("❌ Zone p:%i s:%i cannot be added to master ‘%s’: existing zone in the way."%(zonePosition,zoneSize,master.name))
 			return 0
 		else:
-			z = GSAlignmentZone()
-			z.size = zoneSize
-			z.position = zonePosition
-			master.alignmentZones.append(z)
-			print("✅ Zone p:%i s:%i added to master ‘%s’."%(zonePosition,zoneSize,master.name))
+			if Glyphs.versionNumber >= 3:
+				# GLYPHS 3 code:
+				name = None
+				if masterIndex == 0:
+					self.current_metric_id = addNamedHorizontalMetricToMaster(master, name, None, zonePosition, zoneSize)
+				else:
+					metricValue = GSMetricValue.alloc().initWithPosition_overshoot_(zonePosition, zoneSize)
+					master.setMetricValue_forId_(metricValue, self.current_metric_id)
+				print("✅ Zone ‘%s’ p:%i s:%i added to master ‘%s’."%("mekkablue_zone", zonePosition,zoneSize,master.name))
+
+			else:
+				# GLYPHS 2 code:
+				z = GSAlignmentZone()
+				z.size = zoneSize
+				z.position = zonePosition
+				master.alignmentZones.append(z)
+				print("✅ Zone p:%i s:%i added to master ‘%s’."%(zonePosition,zoneSize,master.name))
 			return 1
 	
 	def CreateAlignmentZonesforSelectedGlyphsMain( self, sender ):
@@ -140,6 +177,7 @@ class CreateAlignmentZonesforSelectedGlyphs( object ):
 						pass # stay with fallback if parameter is invalid
 			
 				for i,master in enumerate(thisFont.masters):
+
 					print("\nFont Master %i: %s" % (i+1,master.name))
 					if master.alignmentZones:
 						largestSize = max([abs(z.size) for z in master.alignmentZones])
@@ -159,7 +197,7 @@ class CreateAlignmentZonesforSelectedGlyphs( object ):
 						if not dontExceed or size <= largestSize:
 							zoneSize = max(1,size)
 							zonePosition = minHeight
-							addedZoneCount += self.addZoneToMaster(zonePosition, zoneSize, master, blueFuzz)
+							addedZoneCount += self.addZoneToMaster(zonePosition, zoneSize, master, blueFuzz, isTop=True, masterIndex=i)
 			
 					if bottom:
 						allDepths = []
@@ -174,10 +212,15 @@ class CreateAlignmentZonesforSelectedGlyphs( object ):
 						if not dontExceed or abs(size) <= largestSize:
 							zonePosition = minDepth
 							zoneSize = min(-1, size)
-							addedZoneCount += self.addZoneToMaster(zonePosition, zoneSize, master, blueFuzz)
+							addedZoneCount += self.addZoneToMaster(zonePosition, zoneSize, master, blueFuzz, isTop=False, masterIndex=i)
 					
-					master.sortAlignmentZones()
-					master.setAlignmentZones_(master.alignmentZones) # triggers UI redraw in Font Info > Masters
+					if Glyphs.versionNumber >= 3:
+						# GLYPHS 3
+						pass
+					else:
+						# GLYPHS 2
+						master.sortAlignmentZones()
+						master.setAlignmentZones_(master.alignmentZones) # triggers UI redraw in Font Info > Masters
 				
 					# Floating notification:
 					Glyphs.showNotification( 
