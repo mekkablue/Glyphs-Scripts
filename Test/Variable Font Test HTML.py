@@ -762,6 +762,8 @@ def buildHTML( fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, f
 				}
 			}
 			function keyAnalysis(event) {
+				const sizeSlider = document.getElementById("fontsize");
+				const lineheightSlider = document.getElementById("lineheight");
 				const styleMenu = document.getElementById("styleMenu");
 				const styleMenuLength = styleMenu.options.length;
 				
@@ -788,6 +790,30 @@ def buildHTML( fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, f
 						}
 						styleMenu.selectedIndex = newIndex;
 						setStyle(styleMenu.value);
+					} else if (event.key == '+') {
+						sizeSlider.value = Math.round(sizeSlider.value*1.25);
+						if (sizeSlider.value > parseInt(sizeSlider.max)) {
+							sizeSlider.value = sizeSlider.max;
+						}
+						updateSlider();
+					} else if (event.key == '-') {
+						sizeSlider.value = Math.round(sizeSlider.value*0.8);
+						if (sizeSlider.value < parseInt(sizeSlider.min)) {
+							sizeSlider.value = sizeSlider.min;
+						}
+						updateSlider();
+					} else if (event.key == '1') {
+						lineheightSlider.value = Math.round(parseInt(lineheightSlider.value)-20);
+						if (lineheightSlider.value < parseInt(lineheightSlider.min)) {
+							lineheightSlider.value = lineheightSlider.min;
+						}
+						updateSlider();
+					} else if (event.key == '2') {
+						lineheightSlider.value = Math.round(parseInt(lineheightSlider.value)+20);
+						if (lineheightSlider.value > parseInt(lineheightSlider.max)) {
+							lineheightSlider.value = lineheightSlider.max;
+						}
+						updateSlider();
 					}
 				}
 			}
@@ -974,7 +1000,7 @@ def buildHTML( fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, f
 	
 	<!-- Disclaimer -->
 	<p id="helptext" onmouseleave="vanish(this);">
-		<strong>Ctrl-period/comma</strong> step through styles <strong>Ctrl-R</strong> reset charset <strong>Ctrl-L</strong> Latin1 <strong>Ctrl-J</strong> LTR/RTL <strong>Ctrl-C</strong> center <strong>Ctrl-M</strong> toggle menu <strong>Ctrl-X</strong>: x-ray. <em>Not working? Try newer macOS or <a href="https://www.google.com/chrome/">latest Chrome</a>. Pull mouse across this note to make it disappear.</em>
+		<strong>Ctrl-period/comma</strong> step through styles <strong>Ctrl-R</strong> reset charset <strong>Ctrl-L</strong> Latin1 <strong>Ctrl-J</strong> LTR/RTL <strong>Ctrl-C</strong> center <strong>Ctrl-M</strong> toggle menu <strong>Ctrl-X</strong> x-ray <strong>Ctrl +/−</strong> size <strong>Ctrl-1/2</strong> linegap <em>Not working? Try newer macOS or <a href="https://www.google.com/chrome/">latest Chrome</a>. Pull mouse across this note to make it disappear.</em>
 	</p>
 	</body>
 </html>
