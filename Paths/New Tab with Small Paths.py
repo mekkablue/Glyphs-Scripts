@@ -15,6 +15,16 @@ def glyphShouldBeIgnored(glyphname):
 	return False
 
 class FindSmallPaths( object ):
+	prefID = "com.mekkablue.FindSmallPaths"
+	prefs = {
+		"sliderMin": 10,
+		"sliderMax": 1000,
+		"areaSlider": 0.1,
+		"deleteThemRightAway": 0,
+		"afterOverlapRemoval": 1,
+		"allFonts": 0,
+	}
+	
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 250
@@ -32,10 +42,10 @@ class FindSmallPaths( object ):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 		
-		self.w.text_1 = vanilla.TextBox( (inset, linePos, -inset, 30), u"Open new tab with glyphs that contain paths with an area smaller than:", sizeStyle='small' )
+		self.w.text_1 = vanilla.TextBox( (inset, linePos, -inset, 30), "Open new tab with glyphs that contain paths with an area smaller than:", sizeStyle='small' )
 		linePos += lineHeight*1.7
 
-		self.w.minArea = vanilla.TextBox( (inset, linePos, -inset, 15+3), u"1000 square units", sizeStyle = 'small', alignment="center")
+		self.w.minArea = vanilla.TextBox( (inset, linePos, -inset, 15+3), "1000 square units", sizeStyle = 'small', alignment="center")
 		linePos += lineHeight
 
 		self.w.sliderMin = vanilla.EditText( ( inset, linePos, 50, 19), "10", sizeStyle='small', callback=self.SliderUpdate )
@@ -43,13 +53,13 @@ class FindSmallPaths( object ):
 		self.w.areaSlider= vanilla.Slider((inset+50+10, linePos, -inset-50-10, 19), value=0.1, minValue=0.0, maxValue=1.0, sizeStyle='small', callback=self.SliderUpdate )
 		linePos += lineHeight
 		
-		self.w.deleteThemRightAway = vanilla.CheckBox( (inset, linePos, -inset, 20), u"Delete Small Paths Right Away", value=False, callback=self.CheckBoxUpdate, sizeStyle='small' )
+		self.w.deleteThemRightAway = vanilla.CheckBox( (inset, linePos, -inset, 20), "Delete Small Paths Right Away", value=False, callback=self.CheckBoxUpdate, sizeStyle='small' )
 		linePos += lineHeight
 
-		self.w.afterOverlapRemoval = vanilla.CheckBox( (inset, linePos, -inset, 20), u"After Decomposition and Overlap Removal (slower)", value=True, callback=self.CheckBoxUpdate, sizeStyle='small' )
+		self.w.afterOverlapRemoval = vanilla.CheckBox( (inset, linePos, -inset, 20), "After Decomposition and Overlap Removal (slower)", value=True, callback=self.CheckBoxUpdate, sizeStyle='small' )
 		linePos += lineHeight
 		
-		self.w.allFonts = vanilla.CheckBox( (inset, linePos, -inset, 20), u"Apply to all open fonts", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.allFonts = vanilla.CheckBox( (inset, linePos, -inset, 20), "Apply to all open fonts", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		linePos += lineHeight
 		
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
@@ -72,14 +82,18 @@ class FindSmallPaths( object ):
 		self.w.open()
 		self.w.makeKey()
 		
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
 	def SavePreferences( self, sender ):
 		try:
-			Glyphs.defaults["com.mekkablue.FindSmallPaths.sliderMin"] = self.w.sliderMin.get()
-			Glyphs.defaults["com.mekkablue.FindSmallPaths.sliderMax"] = self.w.sliderMax.get()
-			Glyphs.defaults["com.mekkablue.FindSmallPaths.areaSlider"] = float(self.w.areaSlider.get())
-			Glyphs.defaults["com.mekkablue.FindSmallPaths.deleteThemRightAway"] = int(self.w.deleteThemRightAway.get())
-			Glyphs.defaults["com.mekkablue.FindSmallPaths.afterOverlapRemoval"] = int(self.w.afterOverlapRemoval.get())
-			Glyphs.defaults["com.mekkablue.FindSmallPaths.allFonts"] = int(self.w.allFonts.get())
+			for prefName in self.prefs.keys():
+				Glyphs.defaults[ self.domain(prefName) ] = getattr(self.w, prefName).get()
 		except Exception as e:
 			self.errorReport(e)
 			return False
@@ -88,18 +102,9 @@ class FindSmallPaths( object ):
 
 	def LoadPreferences( self ):
 		try:
-			Glyphs.registerDefault("com.mekkablue.FindSmallPaths.sliderMin", "10",)
-			Glyphs.registerDefault("com.mekkablue.FindSmallPaths.sliderMax", "1000")
-			Glyphs.registerDefault("com.mekkablue.FindSmallPaths.areaSlider", 0.1)
-			Glyphs.registerDefault("com.mekkablue.FindSmallPaths.deleteThemRightAway", 0)
-			Glyphs.registerDefault("com.mekkablue.FindSmallPaths.afterOverlapRemoval", 1)
-			Glyphs.registerDefault("com.mekkablue.FindSmallPaths.allFonts", 0)
-			self.w.sliderMin.set( Glyphs.defaults["com.mekkablue.FindSmallPaths.sliderMin"] )
-			self.w.sliderMax.set( Glyphs.defaults["com.mekkablue.FindSmallPaths.sliderMax"] )
-			self.w.areaSlider.set( float(Glyphs.defaults["com.mekkablue.FindSmallPaths.areaSlider"]) )
-			self.w.deleteThemRightAway.set( bool(Glyphs.defaults["com.mekkablue.FindSmallPaths.deleteThemRightAway"]) )
-			self.w.afterOverlapRemoval.set( bool(Glyphs.defaults["com.mekkablue.FindSmallPaths.afterOverlapRemoval"]) )
-			self.w.allFonts.set( bool(Glyphs.defaults["com.mekkablue.FindSmallPaths.allFonts"]) )
+			for prefName in self.prefs.keys():
+				Glyphs.registerDefault(self.domain(prefName), self.prefs[prefName])
+				getattr(self.w, prefName).set( self.pref(prefName) )
 		except Exception as e:
 			self.errorReport(e)
 			return False
@@ -141,7 +146,7 @@ class FindSmallPaths( object ):
 			
 			# validate the min and max entries:
 			try:
-				minimum = float( Glyphs.defaults["com.mekkablue.FindSmallPaths.sliderMin"] )
+				minimum = float( self.pref("sliderMin") )
 			except Exception as e:
 				# disable slider and button
 				self.w.areaSlider.enable(onOff=False)
@@ -152,7 +157,7 @@ class FindSmallPaths( object ):
 				
 			
 			try:
-				maximum = float( Glyphs.defaults["com.mekkablue.FindSmallPaths.sliderMax"] )
+				maximum = float( self.pref("sliderMax") )
 			except Exception as e:
 				# disable slider and button
 				self.w.areaSlider.enable(onOff=False)
@@ -178,7 +183,7 @@ class FindSmallPaths( object ):
 				self.w.areaSlider.enable(onOff=True)
 				self.w.runButton.enable(onOff=True)
 				# update the current area:
-				Glyphs.defaults["com.mekkablue.FindSmallPaths.areaSlider"] = self.w.areaSlider.get()
+				Glyphs.defaults[self.domain("areaSlider")] = self.w.areaSlider.get()
 				minArea = self.CurrentMinArea()
 				
 			return True
@@ -186,9 +191,9 @@ class FindSmallPaths( object ):
 			return False
 	
 	def CurrentMinArea(self,):
-		minimum = float( Glyphs.defaults["com.mekkablue.FindSmallPaths.sliderMin"] )
-		maximum = float( Glyphs.defaults["com.mekkablue.FindSmallPaths.sliderMax"] )
-		sliderPos = float( Glyphs.defaults["com.mekkablue.FindSmallPaths.areaSlider"] )
+		minimum = float( self.pref("sliderMin") )
+		maximum = float( self.pref("sliderMax") )
+		sliderPos = float( self.pref("areaSlider") )
 		minArea = minimum + sliderPos * (maximum-minimum)
 		self.w.minArea.set( "%i square units" % minArea )
 		return minArea
@@ -200,8 +205,8 @@ class FindSmallPaths( object ):
 			
 			
 			minArea = self.CurrentMinArea()
-			smallPathsShouldBeDeleted = Glyphs.defaults["com.mekkablue.FindSmallPaths.deleteThemRightAway" ]
-			overlapsShouldBeRemovedFirst = Glyphs.defaults["com.mekkablue.FindSmallPaths.afterOverlapRemoval" ]
+			smallPathsShouldBeDeleted = self.pref("deleteThemRightAway")
+			overlapsShouldBeRemovedFirst = self.pref("afterOverlapRemoval")
 			
 			if not Glyphs.fonts:
 				Message(
@@ -211,14 +216,14 @@ class FindSmallPaths( object ):
 				)
 			
 			else:
-				if Glyphs.defaults["com.mekkablue.FindSmallPaths.allFonts"] and len(Glyphs.fonts)>1:
+				if self.pref("allFonts") and len(Glyphs.fonts)>1:
 					fontsToLookAt = Glyphs.fonts
 				else:
 					fontsToLookAt = (Glyphs.font,)
 			
 				Glyphs.clearLog()
 				
-				print(u"Looking for paths smaller than %0.1f square units..." % minArea)
+				print("Looking for paths smaller than %0.1f square units..." % minArea)
 				
 				self.w.progress.set(0)
 				quarter = 100.0/len(fontsToLookAt)
@@ -261,7 +266,7 @@ class FindSmallPaths( object ):
 									layersWithSmallPaths.append(thisLayer)
 								# thisGlyph.endUndo() # undo grouping causes crashes
 								if countOfAffectedPaths > 0:
-									print(u"  ⚠️ %s, layer '%s': %i path%s found." % (
+									print("  ⚠️ %s, layer '%s': %i path%s found." % (
 										thisGlyph.name,
 										thisLayer.name,
 										countOfAffectedPaths,
@@ -275,7 +280,7 @@ class FindSmallPaths( object ):
 						totalCountOfAffectedGlyphs += len(layersWithSmallPaths)
 						totalCountOfAffectedFonts += 1
 					
-					elif not Glyphs.defaults["com.mekkablue.FindSmallPaths.allFonts"]:
+					elif not self.pref("allFonts"):
 						Message(
 							title="No Small Paths Found", 
 							message="No glyphs with paths smaller than %i square units found in the frontmost font." % minArea, 
