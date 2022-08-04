@@ -85,6 +85,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Method Reporter:** GUI for filtering through the method names of Python and PyObjC Classes available from within Glyphs. You can use multiple space-separated search terms (for an AND concatenation) and asterisk as jokers (at the beginning, in the middle and at the end). Double click to put the method name in your clipboard and open help in the Macro window. Useful for coders. *Needs Vanilla.*
 * **Parameter Reporter:** Like Method Reporter, but for custom parameters. Double click to copy a parameter in the clipboard, ready for pasting in Font Info. *Needs Vanilla.*
 * **Print Window:** Print the frontmost window. Useful for saving a vector PDF of your window content, including the renderings of reporter plug-ins (extensions for the *View* menu).
+* **Resetter:** Resets Quicklook preview, keyboard shortcuts, and clearing out app prefs, saved app states, autosaves. *Needs Vanilla.*
 * **Set Export Paths to Adobe Fonts Folder:** Sets the OpenType font and Variable Font export paths to the Adobe Fonts Folder.
 * **Set Hidden App Preferences:** GUI for reading and setting ‘hidden’ app preferences, which are not listed in the GUI. *Needs Vanilla.*
 * **Set Label Colors:** Override the default app label colors. *Needs Vanilla.*
