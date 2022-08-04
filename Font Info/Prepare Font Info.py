@@ -1,8 +1,8 @@
-#MenuTitle: Prepare Font Info for Git
+#MenuTitle: Prepare Font Info
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Prepare the open fonts for a git workflow.
+Prepare open fonts for a modern font production and git workflow.
 """
 
 import vanilla
