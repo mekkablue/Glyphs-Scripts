@@ -154,7 +154,6 @@ class FindSmallPaths( object ):
 				# put warning message into area text:
 				self.w.minArea.set( "Please enter a valid min value." )
 				return True
-				
 			
 			try:
 				maximum = float( self.pref("sliderMax") )
@@ -276,23 +275,23 @@ class FindSmallPaths( object ):
 					if layersWithSmallPaths:
 						newTab = thisFont.newTab()
 						newTab.layers = layersWithSmallPaths
-						
 						totalCountOfAffectedGlyphs += len(layersWithSmallPaths)
 						totalCountOfAffectedFonts += 1
 					
 					elif not self.pref("allFonts"):
 						Message(
 							title="No Small Paths Found", 
-							message="No glyphs with paths smaller than %i square units found in the frontmost font." % minArea, 
+							message="No glyphs with paths smaller than %i square units found in the frontmost font." % minArea, 
 							OKButton="Cool",
 						)
 			
 				if len(fontsToLookAt) > 1:
 					Message(
 						title="Multi-Font Report", 
-						message="Found %i glyphs in %i fonts with paths smaller than %i square units. Detailed report in Macro Window." % (
+						message="Found %i glyphs in %i fonts (of %i fonts examined) with paths smaller than %i square units. Detailed report in Macro Window." % (
 							totalCountOfAffectedGlyphs,
 							totalCountOfAffectedFonts,
+							len(fontsToLookAt),
 							minArea,
 						),
 						OKButton=None,
