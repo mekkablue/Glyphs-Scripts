@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*--- --
 from __future__ import print_function
 from GlyphsApp import Glyphs
+
 if Glyphs.versionNumber >= 3.0:
 	from GlyphsApp import LTR
 from Foundation import NSNotFound
@@ -20,6 +21,30 @@ categoryList = (
 	"Number:Fraction",
 )
 
+if Glyphs.versionNumber >= 3:
+	from GlyphsApp import GSUppercase, GSLowercase, GSMinor, GSSmallcaps, GSNoCase
+	cases = {
+		"Lower":GSLowercase,
+		"lower":GSLowercase,
+		"Lowercase":GSLowercase,
+		"lowercase":GSLowercase,
+		"Minor":GSMinor,
+		"minor":GSMinor,
+		"NoCase":GSNoCase,
+		"nocase":GSNoCase,
+		"SC":GSSmallcaps,
+		"sc":GSSmallcaps,
+		"Small":GSSmallcaps,
+		"small":GSSmallcaps,
+		"Smallcaps":GSSmallcaps,
+		"smallcaps":GSSmallcaps,
+		"Upper":GSUppercase,
+		"upper":GSUppercase,
+		"Uppercase":GSUppercase,
+		"uppercase":GSUppercase,
+	}
+
+
 def stringToListOfGlyphsForFont( string, Font, report=True, excludeNonExporting=True, suffix="" ):
 	# parse string into parseList:
 	parseList = []
@@ -32,14 +57,19 @@ def stringToListOfGlyphsForFont( string, Font, report=True, excludeNonExporting=
 	
 	# parse string:
 	for i,x in enumerate(string):
-		if x in "/ ":
+		if x in "@/ ":
 			if parsedName:
 				parseList.append(parsedName)
 				parsedName = ""
-			if x == "/":
+			
+			if x in "@/":
 				waitForSeparator = True
 			else:
 				waitForSeparator = False
+			
+			if x == "@":
+				parsedName = "@"
+				
 		elif waitForSeparator:
 			parsedName += x
 			if i == len(string)-1:
@@ -69,9 +99,9 @@ def stringToListOfGlyphsForFont( string, Font, report=True, excludeNonExporting=
 			if categoryGlyphs:
 				glyphList += categoryGlyphs
 				if report:
-					print(u"Added glyphs for category %s, subcategory %s: %s" % (category, subcategory, ", ".join(categoryGlyphs)))
+					print("Added glyphs for category %s, subcategory %s: %s" % (category, subcategory, ", ".join([g.name for g in categoryGlyphs])))
 			elif report:
-				print(u"Warning: no glyphs found for category %s, subcategory %s." % (category, subcategory))
+				print("Warning: no glyphs found for category %s, subcategory %s." % (category, subcategory))
 		
 		else:
 			# actual single glyph names:
@@ -90,9 +120,9 @@ def stringToListOfGlyphsForFont( string, Font, report=True, excludeNonExporting=
 				if (glyph.export or not excludeNonExporting):
 					glyphList.append(glyph)
 				elif report:
-					print(u"Ignoring non-exporting glyph '%s'." % (parsedName+suffix))
+					print("Ignoring non-exporting glyph '%s'." % (parsedName+suffix))
 			elif report:
-				print(u"Warning: Could not find glyph for '%s'." % (parsedName+suffix))
+				print("Warning: Could not find glyph for '%s'." % (parsedName+suffix))
 	
 	return glyphList
 
@@ -154,14 +184,18 @@ def listOfNamesForCategories( thisFont, requiredCategory, requiredSubCategory, r
 				nameIsOK = nameIsOK and not thisNamePart in glyphName
 		
 		if nameIsOK and (thisGlyph.export or not excludeNonExporting):
-				if thisScript == None or thisScript == requiredScript:
-					if thisGlyph.category == requiredCategory:
-						if requiredSubCategory:
-							if thisGlyph.subCategory == requiredSubCategory:
-								nameList.append( glyphName )
-						else:
+			if thisScript == None or thisScript == requiredScript:
+				if thisGlyph.category == requiredCategory:
+					if Glyphs.versionNumber >= 3:
+						# GLYPHS 3
+						if requiredSubCategory is None or thisGlyph.subCategory == requiredSubCategory or (requiredSubCategory in cases.keys() and thisGlyph.case == cases[requiredSubCategory]):
 							nameList.append( glyphName )
-	return nameList
+					else:
+						# GLYPHS 2
+						if requiredSubCategory is None or thisGlyph.subCategory == requiredSubCategory:
+							nameList.append( glyphName )
+	
+	return [thisFont.glyphs[n] for n in nameList]
 	
 def splitString( string, delimiter=":", minimum=2 ):
 	# split string into a list:

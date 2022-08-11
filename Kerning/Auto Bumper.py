@@ -37,6 +37,8 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZẞÞ
 
 /quotesinglbase/quotedblbase/quotedblleft/quotedblright/quoteleft/quoteright/quotedbl/quotesingle
 
+/lcaron/dcaron/tcaron #CZECH AND SLOVAK
+ňčěšäížůô #CZECH AND SLOVAK
 
 /a.sc/aogonek.sc/ae.sc/b.sc/c.sc/d.sc/e.sc/f.sc/g.sc/h.sc/i.sc/j.sc/k.sc/l.sc/m.sc/n.sc/eng.sc/o.sc/oe.sc/p.sc/thorn.sc/q.sc/r.sc/s.sc/germandbls.sc/t.sc/u.sc/v.sc/w.sc/x.sc/y.sc/z.sc
 /slash
@@ -430,7 +432,7 @@ class Bumper( object ):
 					excludeNonExporting=shouldExcludeNonExporting,
 					suffix=suffix,
 				)
-			
+
 				# report key values for kerning:
 				if shouldReportInMacroWindow:
 					print()
@@ -442,9 +444,8 @@ class Bumper( object ):
 						print("Rounding: %i" % roundFactor)
 				
 					print()
-					print("Left glyphs:\n%s\n" % ", ".join([g.name for g in firstGlyphList]))
-					print("Right glyphs:\n%s\n" % ", ".join([g.name for g in secondGlyphList]))
-
+					print("⬅️ L glyphs:\n%s\n" % ", ".join([g.name for g in firstGlyphList]))
+					print("➡️ R glyphs:\n%s\n" % ", ".join([g.name for g in secondGlyphList]))
 
 
 
@@ -464,8 +465,7 @@ class Bumper( object ):
 						if leftGroup:
 							leftSide = "@MMK_L_%s" % leftGroup
 						else:
-							Glyphs.showMacroWindow()
-							print("Error: Left glyph %s has no kerning group. Cannot apply group kerning." % leftGlyph.name)
+							print("⚠️ Left glyph %s has no kerning group. Cannot apply group kerning." % leftGlyph.name)
 							leftSide = None
 					else:
 						leftSide = leftGlyph.name
@@ -480,8 +480,7 @@ class Bumper( object ):
 								if rightGroup:
 									rightSide = "@MMK_R_%s" % rightGroup
 								else:
-									Glyphs.showMacroWindow()
-									print("Error: Right glyph %s has no kerning group. Cannot apply group kerning." % rightGlyph.name)
+									print("⚠️ Right glyph %s has no kerning group. Cannot apply group kerning." % rightGlyph.name)
 									rightSide = None
 							else:
 								rightSide = rightGlyph.name
@@ -542,7 +541,7 @@ class Bumper( object ):
 				if shouldReportInMacroWindow:
 					print()
 					print(report)
-					Glyphs.showMacroWindow()
+
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
