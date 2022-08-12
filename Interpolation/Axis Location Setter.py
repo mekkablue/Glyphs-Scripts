@@ -283,31 +283,36 @@ class AxisLocationSetter( object ):
 					print("❌ Axis ‘%s’ not found." % axisName)
 				else:	
 					thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+					try:
+						# set axis locations for instances:
+						instanceCount = 0
+						if includeInstances:
+							for thisInstance in thisFont.instances:
+								if self.particleIsPartOfName(particle, thisInstance.name):
+									instanceCount += 1
+									if externalAxisValue != "":
+										if self.setAxisLocationCoordinate( thisInstance, axisName, externalAxisValue ):
+											print("ℹ️ EXTERNAL %s = %s in %s" % (axisName, externalAxisValue, thisInstance.name))
+									if internalAxisValue != "":
+										if self.setInternalCoordinate( thisInstance, axisName, internalAxisValue ):
+											print("ℹ️ INTERNAL %s = %s in %s" % (axisName, internalAxisValue, thisInstance.name))
 
-					instanceCount = 0
-					if includeInstances:
-						for thisInstance in thisFont.instances:
-							if self.particleIsPartOfName(particle, thisInstance.name):
-								instanceCount += 1
-								if externalAxisValue != "":
-									if self.setAxisLocationCoordinate( thisInstance, axisName, externalAxisValue ):
-										print("ℹ️ EXTERNAL %s = %s in %s" % (axisName, externalAxisValue, thisInstance.name))
-								if internalAxisValue != "":
-									if self.setInternalCoordinate( thisInstance, axisName, internalAxisValue ):
-										print("ℹ️ INTERNAL %s = %s in %s" % (axisName, internalAxisValue, thisInstance.name))
-
-					masterCount = 0
-					if includeMasters:
-						for thisMaster in thisFont.masters:
-							if self.particleIsPartOfName(particle, thisMaster.name):
-								masterCount += 1
-								if externalAxisValue != "":
-									if self.setAxisLocationCoordinate( thisMaster, axisName, externalAxisValue ):
-										print("Ⓜ️ EXTERNAL %s = %s in %s" % (axisName, externalAxisValue, thisMaster.name))
-								if internalAxisValue != "":
-									if self.setInternalCoordinate( thisMaster, axisName, internalAxisValue ):
-										print("Ⓜ️ INTERNAL %s = %s in %s" % (axisName, internalAxisValue, thisMaster.name))
-					thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+						# set axis locations for masters:
+						masterCount = 0
+						if includeMasters:
+							for thisMaster in thisFont.masters:
+								if self.particleIsPartOfName(particle, thisMaster.name):
+									masterCount += 1
+									if externalAxisValue != "":
+										if self.setAxisLocationCoordinate( thisMaster, axisName, externalAxisValue ):
+											print("Ⓜ️ EXTERNAL %s = %s in %s" % (axisName, externalAxisValue, thisMaster.name))
+									if internalAxisValue != "":
+										if self.setInternalCoordinate( thisMaster, axisName, internalAxisValue ):
+											print("Ⓜ️ INTERNAL %s = %s in %s" % (axisName, internalAxisValue, thisMaster.name))
+					except Exception as e:
+						raise e
+					finally:
+						thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 
 					# Final report:
 					message = "Coordinates updated in %i instances and %i masters. Details in Macro Window" % (instanceCount, masterCount)

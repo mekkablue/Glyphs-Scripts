@@ -59,7 +59,7 @@ def addToInstructions(instructionLine, currentInstance):
 		
 	# trigger redraw for TTF Control Instructions Palette:
 	thisFont = currentInstance.font
-	if thisFont and thisFont.currentTab:
+	if Glyphs.versionNumber>=3 and thisFont and thisFont.currentTab:
 		NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
 
 def setClipboard( myText ):

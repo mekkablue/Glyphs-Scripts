@@ -7,6 +7,7 @@ Build double quotes from single quotes, and insert #exit and #entry anchors in t
 
 import vanilla
 from Foundation import NSPoint
+from AppKit import NSNotificationCenter
 
 names = {
 	"quotesinglbase": "quotedblbase",
@@ -319,11 +320,7 @@ class QuoteManager( object ):
 									print(u"    ⚠️ WARNING: No components in %s, layer '%s'. Cannot add anchors." % ( referenceLayer.parent.name, referenceLayer.name ))
 								
 			self.openTabIfRequested()
-			try:
-				Font.updateInterface()
-			except:
-				pass
-			Font.currentTab.redraw()
+			self.updateFontTab(Font)
 			
 		except Exception as e:
 			# brings macro window to front and reports error:
@@ -332,6 +329,12 @@ class QuoteManager( object ):
 			import traceback
 			print(traceback.format_exc())
 	
+	def updateFontTab(self, Font):
+		if Font.currentTab:
+			if Glyphs.versionNumber>=3:
+				NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", Font.currentTab)
+			Font.currentTab.redraw()
+		
 	def metricKeyMain( self, sender ):
 		try:
 			# update settings to the latest user input:
@@ -508,11 +511,7 @@ class QuoteManager( object ):
 							print(u"✅ %s: Added 2 %s components." % (doubleName, singleName))
 			
 			self.openTabIfRequested()
-			try:
-				Font.updateInterface()
-			except:
-				pass
-			Font.currentTab.redraw()
+			self.updateFontTab(Font)
 		
 		except Exception as e:
 			# brings macro window to front and reports error:

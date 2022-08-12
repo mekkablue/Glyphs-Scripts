@@ -299,7 +299,6 @@ class CopyLayerToLayer( object ):
 				else:
 					targetlayer = targetGlyph.layers[ indexOfTargetMaster ]
 
-				sourceFont.disableUpdateInterface()
 				targetFont.disableUpdateInterface()
 				try:
 					# Copy paths, components, anchors, and metrics:
@@ -320,7 +319,6 @@ class CopyLayerToLayer( object ):
 					raise e
 					
 				finally:
-					sourceFont.enableUpdateInterface()
 					targetFont.enableUpdateInterface()
 
 			except Exception as e:

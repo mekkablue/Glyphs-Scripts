@@ -58,11 +58,11 @@ def process( thisLayer ):
 	
 
 Font.disableUpdateInterface()
-
-for thisLayer in selectedLayers:
-	thisGlyph = thisLayer.parent
-	# thisGlyph.beginUndo() # undo grouping causes crashes
-	process( thisLayer )
-	# thisGlyph.endUndo() # undo grouping causes crashes
-
-Font.enableUpdateInterface()
+try:
+	for thisLayer in selectedLayers:
+		thisGlyph = thisLayer.parent
+		process( thisLayer )
+except Exception as e:
+	raise e
+finally:
+	Font.enableUpdateInterface()

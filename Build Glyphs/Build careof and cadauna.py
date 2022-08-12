@@ -16,7 +16,6 @@ newGlyphs = {
 	"careof": ("c","o")
 }
 
-		
 def measureLayerAtHeightFromLeftOrRight( thisLayer, height, leftSide=True, transformStruct=None ):
 	thisLayer = thisLayer.copyDecomposedLayer()
 	if transformStruct != None:
@@ -178,9 +177,8 @@ def postprocess( thisGlyph, scale, shiftUp ):
 			thisLayer.components[0].x -= parenShiftForLetters
 			thisLayer.components[2].x += parenShiftForLetters
 
+thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
-	thisFont.disableUpdateInterface() # suppresses UI updates in Font View
-
 	for newGlyph in newGlyphs:
 		thisGlyph = getGlyphWithName(newGlyph,thisFont)
 		for thisLayer in thisGlyph.layers:

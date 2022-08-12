@@ -215,8 +215,8 @@ class BraceLayerManager( object ):
 														count += 1
 														print("  🔠 %i. %s" % (count, glyph.name))
 					
-					if thisFont.currentTab:
-						NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
+					if thisFont.currentTab and Glyphs.versionNumber>=3:
+							NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
 					
 				print()
 				

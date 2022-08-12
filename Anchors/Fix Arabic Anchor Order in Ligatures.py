@@ -43,16 +43,16 @@ def process( thisLayer ):
 	addListOfAnchors( thisLayer, "top", topAnchorCoords )
 	addListOfAnchors( thisLayer, "bottom", bottomAnchorCoords )
 	
-
 Font.disableUpdateInterface()
+try:
+	for thisLayer in selectedLayers:
+		thisGlyph = thisLayer.parent
+		thisGlyphName = thisGlyph.name
+		if "-ar" in thisGlyphName and "_" in thisGlyphName:
+			print("Processing", thisGlyphName)
+			process( thisLayer )
+except Exception as e:
+	raise e
+finally:
+	Font.enableUpdateInterface()
 
-for thisLayer in selectedLayers:
-	thisGlyph = thisLayer.parent
-	thisGlyphName = thisGlyph.name
-	if "-ar" in thisGlyphName and "_" in thisGlyphName:
-		print("Processing", thisGlyphName)
-		# thisGlyph.beginUndo() # undo grouping causes crashes
-		process( thisLayer )
-		# thisGlyph.endUndo() # undo grouping causes crashes
-
-Font.enableUpdateInterface()

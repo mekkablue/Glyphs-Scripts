@@ -63,9 +63,8 @@ def process( thisLayer ):
 	else:
 		print("❓ Layer %s: No anchor ogonek or _ogonek found." % thisLayer.name )
 
+thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
-	thisFont.disableUpdateInterface() # suppresses UI updates in Font View
-
 	Glyphs.clearLog() # clears macro window log
 	print("Move ogonek anchors to baseline intersection:\n")
 

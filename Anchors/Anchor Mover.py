@@ -257,80 +257,82 @@ class AnchorMover2( object ):
 				"" if len(selectedLayers)==1 else "s",
 				))
 			thisFont.disableUpdateInterface()
-			for selectedLayer in selectedLayers:
-				selectedGlyph = selectedLayer.glyph()
-				if selectedGlyph:
-					print("\n🔠 %s" % selectedGlyph.name)
-					if allMasters:
-						originalLayers = tuple([l for l in selectedGlyph.layers if l.isMasterLayer or l.isSpecialLayer])
-					else:
-						originalLayers = (selectedLayer,)
-				
-					for originalLayer in originalLayers:
-						originalMaster = originalLayer.master
-						selectedAscender  = originalMaster.ascender
-						selectedCapheight = originalMaster.capHeight
-						selectedDescender = originalMaster.descender
-						selectedXheight   = originalMaster.xHeight
-						halfXHeight = selectedXheight * 0.5
-						italicAngle = originalMaster.italicAngle
-					
-						if len(originalLayer.anchors) == 0:
-							print("⚠️ no anchors on layer %s." % originalLayer.name)
+			try:
+				for selectedLayer in selectedLayers:
+					selectedGlyph = selectedLayer.glyph()
+					if selectedGlyph:
+						print("\n🔠 %s" % selectedGlyph.name)
+						if allMasters:
+							originalLayers = tuple([l for l in selectedGlyph.layers if l.isMasterLayer or l.isSpecialLayer])
 						else:
-							thisGlyph = originalLayer.parent
-					
-							# create a layer copy that can be slanted backwards if necessary
-							copyLayer = originalLayer.copyDecomposedLayer()
-							copyLayer.decomposeCorners()
-							# thisGlyph.beginUndo() # undo grouping causes crashes
+							originalLayers = (selectedLayer,)
 				
-							try:
-								if italicAngle and respectItalic:
-									# slant the layer copy backwards
-									moveDown = transform(shiftY=-halfXHeight).transformStruct()
-									skewBack = transform(skew=-italicAngle).transformStruct()
-									moveUp = transform(shiftY=halfXHeight).transformStruct()
-									copyLayer.applyTransform(moveDown)
-									copyLayer.applyTransform(skewBack)
-									copyLayer.applyTransform(moveUp)
-
-								for copyAnchor in copyLayer.anchors:
-									if copyAnchor.name == anchor_name:
-										old_anchor_x = copyAnchor.x
-										old_anchor_y = copyAnchor.y
-										xMove = eval( evalCodeH ) + horizontal_change
-										yMove = eval( evalCodeV ) + vertical_change
-										
-										# Ignore moves relative to bbox if there are no paths:
-										if not copyLayer.paths:
-											if "bounds" in evalCodeH:
-												xMove = old_anchor_x
-						
-											if "bounds" in evalCodeV:
-												yMove = old_anchor_y
-						
-										# Only move if the calculated position differs from the original one:
-										originalAnchor = originalLayer.anchors[anchor_name]
-										if int(old_anchor_x)!=int(xMove) or int(old_anchor_y)!=int(yMove):
-											if italicAngle and respectItalic:
-												# skew back
-												originalAnchor.position = italicize( NSPoint(xMove, yMove), italicAngle, halfXHeight )
-											else:
-												originalAnchor.position = NSPoint( xMove, yMove )
-											print("⚓️ %s → %i, %i in layer: %s." % ( anchor_name, originalAnchor.x, originalAnchor.y, originalLayer.name ))
-										else:
-											print("⚓️ %s anchor unchanged in %s." % ( anchor_name, originalLayer.name ))
-							
-							except Exception as e:
-								print("ERROR: Failed to move anchor in %s." % thisGlyph.name)
-								print(e)
-								import traceback
-								print(traceback.format_exc())
-							# finally:
-								# thisGlyph.endUndo() # undo grouping causes crashes
+						for originalLayer in originalLayers:
+							originalMaster = originalLayer.master
+							selectedAscender  = originalMaster.ascender
+							selectedCapheight = originalMaster.capHeight
+							selectedDescender = originalMaster.descender
+							selectedXheight   = originalMaster.xHeight
+							halfXHeight = selectedXheight * 0.5
+							italicAngle = originalMaster.italicAngle
 					
-			thisFont.enableUpdateInterface()
+							if len(originalLayer.anchors) == 0:
+								print("⚠️ no anchors on layer %s." % originalLayer.name)
+							else:
+								thisGlyph = originalLayer.parent
+					
+								# create a layer copy that can be slanted backwards if necessary
+								copyLayer = originalLayer.copyDecomposedLayer()
+								copyLayer.decomposeCorners()
+								# thisGlyph.beginUndo() # undo grouping causes crashes
+				
+								try:
+									if italicAngle and respectItalic:
+										# slant the layer copy backwards
+										moveDown = transform(shiftY=-halfXHeight).transformStruct()
+										skewBack = transform(skew=-italicAngle).transformStruct()
+										moveUp = transform(shiftY=halfXHeight).transformStruct()
+										copyLayer.applyTransform(moveDown)
+										copyLayer.applyTransform(skewBack)
+										copyLayer.applyTransform(moveUp)
+
+									for copyAnchor in copyLayer.anchors:
+										if copyAnchor.name == anchor_name:
+											old_anchor_x = copyAnchor.x
+											old_anchor_y = copyAnchor.y
+											xMove = eval( evalCodeH ) + horizontal_change
+											yMove = eval( evalCodeV ) + vertical_change
+										
+											# Ignore moves relative to bbox if there are no paths:
+											if not copyLayer.paths:
+												if "bounds" in evalCodeH:
+													xMove = old_anchor_x
+						
+												if "bounds" in evalCodeV:
+													yMove = old_anchor_y
+						
+											# Only move if the calculated position differs from the original one:
+											originalAnchor = originalLayer.anchors[anchor_name]
+											if int(old_anchor_x)!=int(xMove) or int(old_anchor_y)!=int(yMove):
+												if italicAngle and respectItalic:
+													# skew back
+													originalAnchor.position = italicize( NSPoint(xMove, yMove), italicAngle, halfXHeight )
+												else:
+													originalAnchor.position = NSPoint( xMove, yMove )
+												print("⚓️ %s → %i, %i in layer: %s." % ( anchor_name, originalAnchor.x, originalAnchor.y, originalLayer.name ))
+											else:
+												print("⚓️ %s anchor unchanged in %s." % ( anchor_name, originalLayer.name ))
+							
+								except Exception as e:
+									print("ERROR: Failed to move anchor in %s." % thisGlyph.name)
+									print(e)
+									import traceback
+									print(traceback.format_exc())
+				
+			except Exception as e:
+				raise e
+			finally:
+				thisFont.enableUpdateInterface()
 		print("Done.")
 	
 	def GetAnchorNames( self ):
