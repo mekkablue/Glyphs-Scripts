@@ -464,7 +464,7 @@ class InstanceMaker( object ):
 	def openURL( self, sender ):
 		URL = None
 		if sender == self.w.help_instances:
-			URL = "http://www.glyphsapp.com/tutorials/multiple-masters-part-3-setting-up-instances"
+			URL = "http://www.glyphsapp.com/learn/multiple-masters-part-3-setting-up-instances"
 		if sender == self.w.help_maciej:
 			URL = "https://web.archive.org/web/20171017001354/http://www.maciejratajski.com/theory/interpolation-of-contrast"
 			# URL = "http://www.maciejratajski.com/theory/interpolation-of-contrast/"
