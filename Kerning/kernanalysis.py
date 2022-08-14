@@ -240,7 +240,7 @@ def minDistanceBetweenTwoLayers( leftLayer, rightLayer, interval=5.0, kerning=0.
 	bottomY = max( leftLayer.bounds.origin.y, rightLayer.bounds.origin.y )
 	distance = topY - bottomY
 	minDist = None
-	if kerning > 10000: # NSNotFound
+	if kerning > 1000000: # NSNotFound
 		kerning = 0
 	for i in range(int(distance//interval)):
 		height = bottomY + i * interval
