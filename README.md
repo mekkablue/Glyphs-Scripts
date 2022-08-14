@@ -304,6 +304,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 * **Adjust Kerning in Master:** GUI to add a value to all kerning pairs, multiply them by a value, round them by a value, or limit them to a value. *Needs Vanilla.*
 * **Auto Bumper:** Specify a minimum distance, left and right glyphs, and Auto Bumper will add the minimum necessary kerning for the current master. *Needs Vanilla.*
+* **BBox Bumper:** Like Auto Bumper, but with the bounding box of a group of glyphs, and the kerning inserted as GPOS feature code in Font Info > Features > kern. Useful if you want to do group kerning with classes that are different from the kerning groups. Needs Vanilla.
 * **Convert RTL Kerning from Glyphs 2 to 3:** Convert RTL kerning from Glyphs 2 to Glyphs 3 format and switches the kerning classes. (Hold down OPTION and SHIFT to convert from Glyphs 3 back to Glyphs 2.) Detailed report in Macro Window.
 * **Copy Kerning Exceptions to Double Accents:** Copies Kerning exceptions with abreve, `acircumflex`, `ecircumflex`, `ocircumflex`, `udieresis` into Vietnamese and Pinyin double accents.
 * **Exception Cleaner:** Compares every exception to the group kerning available for the same pair. If the difference is below a threshold, remove the kerning exception. *Needs Vanilla.*
