@@ -5,9 +5,9 @@ __doc__="""
 Puts Corner Components from the current layer into other master layers, at the same point indexes. Useful if Corner components do not interpolate correctly.
 """
 
-from GlyphsApp import CORNER, SEGMENT
+from GlyphsApp import CORNER, SEGMENT, CAP
 from AppKit import NSNotificationCenter
-SUPPORTEDTYPES = (CORNER, SEGMENT)
+SUPPORTEDTYPES = (CORNER, SEGMENT, CAP)
 
 def indexOfPath(l,p):
 	for i in range(len(l.paths)):
