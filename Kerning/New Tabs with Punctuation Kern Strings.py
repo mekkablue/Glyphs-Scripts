@@ -57,6 +57,17 @@ lowercase = [g.name for g in thisFont.glyphs if g.export and g.subCategory=="Low
 smallcaps = [g.name for g in thisFont.glyphs if g.export and g.category == "Letter" and g.subCategory=="Smallcaps" and len(g.layers[mID].paths)>0  and nameNotExcluded(g.name,alwaysExclude) ]
 fig = [g.name for g in thisFont.glyphs if g.export and g.subCategory=="Decimal Digit" and not ".tf" in g.name and not ".tosf" in g.name and nameNotExcluded(g.name,alwaysExclude)]
 
+# GLYPHS 3
+try:
+	if len(uppercase) == 0:
+		uppercase = [g.name for g in thisFont.glyphs if g.export and g.category=="Letter" and g.case==GSUppercase and len(g.layers[mID].paths)>0 and nameNotExcluded(g.name,alwaysExclude) ]
+	if len(lowercase) == 0:
+		lowercase = [g.name for g in thisFont.glyphs if g.export and g.category=="Letter" and g.case==GSLowercase and len(g.layers[mID].paths)>0 and nameNotExcluded(g.name,alwaysExclude) ]
+	if len(smallcaps) == 0:
+		smallcaps = [g.name for g in thisFont.glyphs if g.export and g.category=="Letter" and g.case==GSSmallcaps and len(g.layers[mID].paths)>0 and nameNotExcluded(g.name,alwaysExclude) ]
+except:
+	pass
+
 # collect greek letters for greek punctuation
 uppercaseGRK = [g.name for g in thisFont.glyphs if g.export and g.script=="greek" and g.subCategory=="Uppercase" and len(g.layers[mID].paths)>0 and nameNotExcluded(g.name,alwaysExclude) ]
 lowercaseGRK = [g.name for g in thisFont.glyphs if g.export and g.script=="greek" and g.subCategory=="Lowercase" and len(g.layers[mID].paths)>0 and nameNotExcluded(g.name,alwaysExclude) ]
