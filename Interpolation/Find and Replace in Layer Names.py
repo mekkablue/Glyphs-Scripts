@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Replaces strings in layer names of all selected glyphs. Useful for adjusting layers for the bracket trick: http://glyphsapp.com/blog/alternating-glyph-shapes/
+Replaces strings in layer names of all selected glyphs. Useful for adjusting layers for the bracket trick: https://glyphsapp.com/learn/alternating-glyph-shapes/
 """
 
 import vanilla

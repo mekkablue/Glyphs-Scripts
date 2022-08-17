@@ -89,7 +89,7 @@ def distribute_abraham( min, max, n ):
 def distribute_maciej( lightMasterWeightX, lightMasterWeightY, boldMasterWeightX, boldMasterWeightY, interpolationWeightX ):
 	"""
 	Algorithm by Maciej Ratajski
-	http://jsfiddle.net/Dm2Zk/1/
+	https://jsfiddle.net/Dm2Zk/1/
 	"""
 	interpolationPointX =  ( interpolationWeightX - lightMasterWeightX ) / ( boldMasterWeightX - lightMasterWeightX )
 	interpolationWeightY = ( ( 1 - interpolationPointX ) * ( lightMasterWeightY / lightMasterWeightX - boldMasterWeightY / boldMasterWeightX ) + boldMasterWeightY / boldMasterWeightX ) * interpolationWeightX
@@ -464,10 +464,10 @@ class InstanceMaker( object ):
 	def openURL( self, sender ):
 		URL = None
 		if sender == self.w.help_instances:
-			URL = "http://www.glyphsapp.com/learn/multiple-masters-part-3-setting-up-instances"
+			URL = "https://www.glyphsapp.com/learn/multiple-masters-part-3-setting-up-instances"
 		if sender == self.w.help_maciej:
-			URL = "https://web.archive.org/web/20171017001354/http://www.maciejratajski.com/theory/interpolation-of-contrast"
-			# URL = "http://www.maciejratajski.com/theory/interpolation-of-contrast/"
+			URL = "https://web.archive.org/web/20171017001354/https://www.maciejratajski.com/theory/interpolation-of-contrast"
+			# URL = "https://www.maciejratajski.com/theory/interpolation-of-contrast/"
 		if URL:
 			import webbrowser
 			webbrowser.open( URL )
