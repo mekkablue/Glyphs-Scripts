@@ -145,47 +145,47 @@ class BBoxBumperKerning( object ):
 		self.w.descriptionText = vanilla.TextBox( (inset, linePos, -inset, 14), "Bump the bbox of an OT Class (defined by a token) with other glyphs, and insert kern feature:", sizeStyle='small', selectable=True )
 		linePos += lineHeight
 		
-		self.w.tokenText = vanilla.TextBox( (inset, linePos+4, shift-5, 14), "▪️BBox token:", sizeStyle='small', selectable=True )
+		self.w.tokenText = vanilla.TextBox( (0, linePos+4, inset+shift-5, 14), "▪️BBox token:", sizeStyle='small', selectable=True )
 		self.w.tokenText.getNSTextField().setAlignment_(2)
 		self.w.token = vanilla.ComboBox( (inset+shift, linePos-2, -inset-230, 21), self.tokens, sizeStyle='regular', callback=self.SavePreferences )
 		self.w.token.getNSComboBox().setToolTip_("Describe a glyph class predicate for defining an OT class, for which the class bbox is calculated and bumped against other glyphs.")
 		self.w.helpToken = vanilla.HelpButton((-inset-230, linePos-2, -inset-200, 21), callback=self.openURL )
 		self.w.helpToken.getNSButton().setToolTip_("Opens the ‘Tokens’ tutorial in a web browser. Look for ‘glyph class predicates’.")
-		self.w.otClassNameText = vanilla.TextBox( (-inset-200, linePos+4, shift-5, 14), "OT classname:", sizeStyle='small', selectable=True )
+		self.w.otClassNameText = vanilla.TextBox( (-inset-205, linePos+4, shift-5, 14), "OT classname:", sizeStyle='small', selectable=True )
 		self.w.otClassNameText.getNSTextField().setAlignment_(2)
 		self.w.otClassName = vanilla.ComboBox( (-inset-200+shift, linePos-2, -inset, 21), self.classNames, sizeStyle='regular', callback=self.SavePreferences )
 		self.w.otClassName.getNSComboBox().setToolTip_("Name of the OT class. Make sure it is unique for all the fonts.")
 		linePos += lineHeight+2
 		
-		self.w.minDistanceText = vanilla.TextBox( (inset, linePos+3, shift-5, 14), "Min distance:", sizeStyle='small', selectable=True )
+		self.w.minDistanceText = vanilla.TextBox( (0, linePos+3, inset+shift-5, 14), "Min distance:", sizeStyle='small', selectable=True )
 		self.w.minDistanceText.getNSTextField().setAlignment_(2)
 		self.w.minDistance = vanilla.EditText( (inset+shift, linePos, shift//2.2, 19), "40", callback=self.SavePreferences, sizeStyle='small' )
 		self.w.minDistance.getNSTextField().setToolTip_("Minimum distance between other glyphs and the class bbox. Setting a value here will create positive kerning.")
-		self.w.maxDistanceText = vanilla.TextBox( (inset+shift*1.5, linePos+3, shift-5, 14), "Max distance:", sizeStyle='small', selectable=True )
+		self.w.maxDistanceText = vanilla.TextBox( (inset+shift*1.5-5, linePos+3, shift, 14), "Max distance:", sizeStyle='small', selectable=True )
 		self.w.maxDistanceText.getNSTextField().setAlignment_(2)
 		self.w.maxDistance = vanilla.EditText( (inset+shift*2.5, linePos, shift//2.2, 19), "100", callback=self.SavePreferences, sizeStyle='small' )
 		self.w.maxDistance.getNSTextField().setToolTip_("Maximum distance between other glyphs and the class bbox. Setting a value here will create negative kerning.")
-		self.w.bboxBubbleExtensionText = vanilla.TextBox( (inset+shift*3, linePos+3, shift-5, 14), "Extend bbox:", sizeStyle='small', selectable=True )
+		self.w.bboxBubbleExtensionText = vanilla.TextBox( (inset+shift*3-5, linePos+3, shift, 14), "Extend bbox:", sizeStyle='small', selectable=True )
 		self.w.bboxBubbleExtensionText.getNSTextField().setAlignment_(2)
 		self.w.bboxBubbleExtension = vanilla.EditText( (inset+shift*4, linePos, shift//2.2, 19), "5", callback=self.SavePreferences, sizeStyle='small' )
 		self.w.bboxBubbleExtension.getNSTextField().setToolTip_("Extend the class bbox by this amount in units.")
-		self.w.thresholdKerningText = vanilla.TextBox( (inset+shift*4.5, linePos+3, shift-5, 14), "Kern threshold:", sizeStyle='small', selectable=True )
+		self.w.thresholdKerningText = vanilla.TextBox( (inset+shift*4.5-5, linePos+3, shift, 14), "Kern threshold:", sizeStyle='small', selectable=True )
 		self.w.thresholdKerningText.getNSTextField().setAlignment_(2)
 		self.w.thresholdKerning = vanilla.EditText( (inset+shift*5.5, linePos, shift//2.2, 19), "15", callback=self.SavePreferences, sizeStyle='small' )
 		self.w.thresholdKerning.getNSTextField().setToolTip_("Will insert the calculated (positive or negative) kerning only if it is at least this amount.")
 		linePos += lineHeight
 		
-		self.w.roundByText = vanilla.TextBox( (inset+shift*3, linePos+3, shift-5, 14), "Round by:", sizeStyle='small', selectable=True )
+		self.w.roundByText = vanilla.TextBox( (inset+shift*3-5, linePos+3, shift, 14), "Round by:", sizeStyle='small', selectable=True )
 		self.w.roundByText.getNSTextField().setAlignment_(2)
 		self.w.roundBy = vanilla.EditText( (inset+shift*4, linePos, shift//2.2, 19), "5", callback=self.SavePreferences, sizeStyle='small' )
 		self.w.roundBy.getNSTextField().setToolTip_("All kerning values will be rounded by this value. Insert 1 for no rounding.")
-		self.w.thresholdWidthText = vanilla.TextBox( (inset+shift*4.5, linePos+3, shift-5, 14), "Overkern %:", sizeStyle='small', selectable=True )
+		self.w.thresholdWidthText = vanilla.TextBox( (inset+shift*4.5-5, linePos+3, shift, 14), "Overkern %:", sizeStyle='small', selectable=True )
 		self.w.thresholdWidthText.getNSTextField().setAlignment_(2)
 		self.w.thresholdWidth = vanilla.EditText( (inset+shift*5.5, linePos, shift//2.2, 19), "40", callback=self.SavePreferences, sizeStyle='small' )
 		self.w.thresholdWidth.getNSTextField().setToolTip_("Overkern protection. Makes sure that no glyph (in the bbox class) is kerned more than this percentage of its width. Keep below 50.	")
 		linePos += int(lineHeight*1.5)
 		
-		self.w.otherGlyphsText = vanilla.TextBox( (inset, linePos+2, shift-5, 14), "🔠 Bump with:", sizeStyle='small', selectable=True )
+		self.w.otherGlyphsText = vanilla.TextBox( (0, linePos+2, inset+shift-5, 14), "🔠 Bump with:", sizeStyle='small', selectable=True )
 		self.w.otherGlyphsText.getNSTextField().setAlignment_(2)
 		self.w.otherGlyphs = vanilla.ComboBox( (inset+shift, linePos-1, -inset, 19), self.otherGlyphsSuggestions, sizeStyle='small', callback=self.SavePreferences )
 		self.w.otherGlyphs.getNSComboBox().setToolTip_("The glyphs against which the class bbox is bumped for determining kerning.")
@@ -253,7 +253,7 @@ class BBoxBumperKerning( object ):
 	def openURL( self, sender=None ):
 		URL = None
 		if sender == self.w.helpToken:
-			URL = "http://www.glyphsapp.com/learn/tokens"
+			URL = "https://www.glyphsapp.com/learn/tokens"
 		if URL:
 			import webbrowser
 			webbrowser.open( URL )
