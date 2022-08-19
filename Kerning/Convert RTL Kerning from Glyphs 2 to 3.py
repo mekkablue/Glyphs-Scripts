@@ -6,6 +6,8 @@ Convert RTL kerning from Glyphs 2 to Glyphs 3 format and switches the kerning cl
 Hold down OPTION and SHIFT to convert from Glyphs 3 back to Glyphs 2.
 """
 
+Glyphs.clearLog()
+
 from GlyphsApp import objcObject
 try:
 	from GlyphsApp import GSRTL as RTL
@@ -136,76 +138,86 @@ def copyFrom2to3(masterKerning, RTLmasterKerning, key2Scripts):
 	return countKernPairs
 
 def mapGlyphsToScripts(thisFont):
+	glyph2script = {}
 	ExportClass = NSClassFromString("GSExportInstanceOperation")
 	exporter = ExportClass.new()
 	exporter.setFont_(thisFont)
-	glyph2script = {}
-	exporter._makeKey2Scripts_splitGroups_GroupDict_error_(glyph2script, None, {}, None)
+	if Glyphs.versionNumber < 3.1:
+		exporter._makeKey2Scripts_splitGroups_GroupDict_error_(glyph2script, None, {}, None)
+	else:
+		exporter._makeCachesKey2Scripts_splitGroups_groupDict_glyphsID2Glyph_name2Glyph_error_(glyph2script, None, {}, None, None, None)
 	return glyph2script
 
+try:
+	# see which keys are pressed:
+	keysPressed = NSEvent.modifierFlags()
+	optionKey, shiftKey = 524288, 131072
+	optionKeyPressed = keysPressed & optionKey == optionKey
+	shiftKeyPressed = keysPressed & shiftKey == shiftKey
+	userWantsToConvertFrom3to2 = optionKeyPressed and shiftKeyPressed
 
-# see which keys are pressed:
-keysPressed = NSEvent.modifierFlags()
-optionKey, shiftKey = 524288, 131072
-optionKeyPressed = keysPressed & optionKey == optionKey
-shiftKeyPressed = keysPressed & shiftKey == shiftKey
-userWantsToConvertFrom3to2 = optionKeyPressed and shiftKeyPressed
+	# map glyphs to scripts for the current font:
+	thisFont = Glyphs.font
+	glyph2scriptMapping = mapGlyphsToScripts(thisFont)
 
-# map glyphs to scripts for the current font:
-thisFont = Glyphs.font
-glyph2scriptMapping = mapGlyphsToScripts(thisFont)
-
-# prepare Macro Window logging:
-Glyphs.clearLog()
-conversionDirection = "%i → %i:" % (
-	3 if userWantsToConvertFrom3to2 else 2,
-	2 if userWantsToConvertFrom3to2 else 3,
-)
-
-# copy RTL kerning and swith class prefixes in kern dict
-print("1️⃣ Convert RTL kerning from Glyphs %s" % conversionDirection)
-countKernPairs = 0
-for master in thisFont.masters:
-	print("\n  🔠 Master: %s" % master.name)
-	RTLMasterKerning = thisFont.kerningRTL.get(master.id, None)
-	if RTLMasterKerning is None:
-		RTLMasterKerning = NSMutableDictionary.new()
-		thisFont.kerningRTL[master.id] = RTLMasterKerning
-	
-	masterKerning = thisFont.kerning.get(master.id, None)
-	if userWantsToConvertFrom3to2:
-		countKernPairs = copyFrom3to2(thisFont, masterKerning, RTLMasterKerning, glyph2scriptMapping)
-	else:
-		if not masterKerning:
-			print("  No kerning found in this master.")
-			continue
-		countKernPairs = copyFrom2to3(masterKerning, RTLMasterKerning, glyph2scriptMapping)
-
-# Switch kerning groups in glyphs:
-print("\n2️⃣ Flipping kerning groups for RTL glyphs:")
-countFlippedGroups = 0
-for g in thisFont.glyphs:
-	if g.direction == RTL and (g.rightKerningGroup or g.leftKerningGroup) and g.rightKerningGroup != g.leftKerningGroup:
-		countFlippedGroups += 1
-		rightGroup = g.rightKerningGroup
-		leftGroup = g.leftKerningGroup
-		g.rightKerningGroup = leftGroup
-		g.leftKerningGroup = rightGroup
-		print("  ↔️ %s   ◀️ %s  ▶️ %s" % (
-			g.name,
-			g.leftKerningGroup,
-			g.rightKerningGroup,
-		))
-
-print("\n✅ Done.")
-# Floating notification:
-Glyphs.showNotification( 
-	"RTL kerning %s for %s" % (conversionDirection, thisFont.familyName),
-	"Converted %i pair%s, flipped groups in %i glyph%s. Details in Macro Window." % (
-		countKernPairs,
-		"" if countKernPairs==1 else "s",
-		countFlippedGroups,
-		"" if countFlippedGroups==1 else "s",
-	),
+	# prepare Macro Window logging:
+	Glyphs.clearLog()
+	conversionDirection = "%i → %i:" % (
+		3 if userWantsToConvertFrom3to2 else 2,
+		2 if userWantsToConvertFrom3to2 else 3,
 	)
 
+	# copy RTL kerning and swith class prefixes in kern dict
+	print("1️⃣ Convert RTL kerning from Glyphs %s" % conversionDirection)
+	countKernPairs = 0
+	for master in thisFont.masters:
+		print("\n  🔠 Master: %s" % master.name)
+		RTLMasterKerning = thisFont.kerningRTL.get(master.id, None)
+		if RTLMasterKerning is None:
+			RTLMasterKerning = NSMutableDictionary.new()
+			thisFont.kerningRTL[master.id] = RTLMasterKerning
+	
+		masterKerning = thisFont.kerning.get(master.id, None)
+		if userWantsToConvertFrom3to2:
+			countKernPairs = copyFrom3to2(thisFont, masterKerning, RTLMasterKerning, glyph2scriptMapping)
+		else:
+			if not masterKerning:
+				print("  No kerning found in this master.")
+				continue
+			countKernPairs = copyFrom2to3(masterKerning, RTLMasterKerning, glyph2scriptMapping)
+			if thisFont.formatVersion != 3:
+				thisFont.formatVersion = 3
+				print("✅ Font Info > Other > File Format: switched to 3")
+
+	# Switch kerning groups in glyphs:
+	print("\n2️⃣ Flipping kerning groups for RTL glyphs:")
+	countFlippedGroups = 0
+	for g in thisFont.glyphs:
+		if g.direction == RTL and (g.rightKerningGroup or g.leftKerningGroup) and g.rightKerningGroup != g.leftKerningGroup:
+			countFlippedGroups += 1
+			rightGroup = g.rightKerningGroup
+			leftGroup = g.leftKerningGroup
+			g.rightKerningGroup = leftGroup
+			g.leftKerningGroup = rightGroup
+			print("  ↔️ %s   ◀️ %s  ▶️ %s" % (
+				g.name,
+				g.leftKerningGroup,
+				g.rightKerningGroup,
+			))
+
+	print("\n✅ Done.")
+	# Floating notification:
+	Glyphs.showNotification( 
+		"RTL kerning %s for %s" % (conversionDirection, thisFont.familyName),
+		"Converted %i pair%s, flipped groups in %i glyph%s. Details in Macro Window." % (
+			countKernPairs,
+			"" if countKernPairs==1 else "s",
+			countFlippedGroups,
+			"" if countFlippedGroups==1 else "s",
+		),
+		)
+
+except Exception as e:
+	Glyphs.showMacroWindow()
+	import traceback
+	print(traceback.format_exc())
