@@ -17,7 +17,7 @@ LeftKeys="""
 =n: idotless m p r 
 =|n: u
 """
-		
+
 RightKeys="""
 =|: A H I M N O T U V W X Y
 =O: D
@@ -28,9 +28,15 @@ RightKeys="""
 """
 
 class MetricsKeyManager( object ):
+	prefID = "com.mekkablue.MetricsKeyManager"
+	prefDict = {
+		"LeftMetricsKeys": LeftKeys,
+		"RightMetricsKeys": RightKeys,
+	}
+	
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 350
+		windowWidth  = 400
 		windowHeight = 240
 		windowWidthResize  = 1000 # user can resize width by this value
 		windowHeightResize = 1000 # user can resize height by this value
@@ -39,36 +45,44 @@ class MetricsKeyManager( object ):
 			"Metrics Key Manager", # window title
 			minSize = ( windowWidth, windowHeight-100 ), # minimum size (for resizing)
 			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
-			autosaveName = "com.mekkablue.MetricsKeyManager.mainwindow" # stores last window position and size
+			autosaveName = self.domain("mainwindow") # stores last window position and size
 		)
 		
 		# UI elements:
 		linePos, inset, lineHeight, boxHeight = self.getMeasurements()
 		
-		self.w.LeftMetricsKeysText = vanilla.TextBox( (inset, linePos+2, 70, 14), u"Left Keys:", sizeStyle='small', selectable=True )
+		self.w.LeftMetricsKeysText = vanilla.TextBox( (inset, linePos+2, 70, 14), "Left Keys:", sizeStyle='small', selectable=True )
 		self.w.LeftMetricsKeys = vanilla.TextEditor( (inset+70, linePos, -inset, boxHeight), "", callback=self.SavePreferences) #, sizeStyle='small' )
 
 		linePos += boxHeight + 10
-		self.w.RightMetricsKeysText = vanilla.TextBox( (inset, linePos+2, 70, 14), u"Right Keys:", sizeStyle='small', selectable=True )
+		self.w.RightMetricsKeysText = vanilla.TextBox( (inset, linePos+2, 70, 14), "Right Keys:", sizeStyle='small', selectable=True )
 		self.w.RightMetricsKeys = vanilla.TextEditor( (inset+70, linePos, -inset, boxHeight), "", callback=self.SavePreferences) #, sizeStyle='small' )
 		
-		editFont = NSFont.legibileFontOfSize_(NSFont.smallSystemFontSize())
+		size = NSFont.smallSystemFontSize()
+		editFont = NSFont.userFixedPitchFontOfSize_(size)
+		for legibleFont in ("legibleFontOfSize_","legibileFontOfSize_"):
+			if hasattr(NSFont, legibleFont):
+				editFont = getattr(NSFont, legibleFont)(size)
+				break
 		
 		for editField in (self.w.LeftMetricsKeys, self.w.RightMetricsKeys):
-			editField.getNSTextView().setToolTip_(u"Enter a metrics key like '=H', followed by a colon (:), followed by glyph names, spearated by space, comma, or any other separator that cannot be part of a glyph name. (Glyph names can contain A-Z, a-z, 0-9, period, underscore and hyphen.)\nExample: ‘=H: B D E F’.")
+			editField.getNSTextView().setToolTip_("Enter a metrics key like '=H', followed by a colon (:), followed by glyph names, spearated by space, comma, or any other separator that cannot be part of a glyph name. (Glyph names can contain A-Z, a-z, 0-9, period, underscore and hyphen.)\nExample: ‘=H: B D E F’.")
 			editField.getNSTextView().setFont_(editFont)
 			editField.getNSScrollView().setHasVerticalScroller_(1)
 			editField.getNSScrollView().setRulersVisible_(1)
 		
 		# Buttons:
-		self.w.resetButton = vanilla.Button( (-280-inset, -20-inset, -inset-190, -inset), u"⟲ Reset", sizeStyle='regular', callback=self.SetDefaults )
-		self.w.resetButton.getNSButton().setToolTip_(u"Resets the contents of the L+R Keys to their (currently only Latin) defaults.")
+		self.w.symmetricButton = vanilla.Button( (inset, -20-inset, 80, -inset), "Add =|", sizeStyle='regular', callback=self.AddMissingSymmetricKeys )
+		self.w.symmetricButton.getNSButton().setToolTip_("Adds glyphs with symmetrical SBs to =| in the right metrics keys.")
 		
-		self.w.scanButton = vanilla.Button( (-180-inset, -20-inset, -inset-90, -inset), u"↑ Extract", sizeStyle='regular', callback=self.ScanFontForKeys )
-		self.w.scanButton.getNSButton().setToolTip_(u"Scans the current font for all metrics keys and lists them here. Normalizes the preceding equals sign (=). No matter whether you typed them with or without an equals sign, they will show up here with one.")
+		self.w.resetButton = vanilla.Button( (-280-inset, -20-inset, -inset-190, -inset), "⟲ Reset", sizeStyle='regular', callback=self.SetDefaults )
+		self.w.resetButton.getNSButton().setToolTip_("Resets the contents of the L+R Keys to their (currently only Latin) defaults.")
+		
+		self.w.scanButton = vanilla.Button( (-180-inset, -20-inset, -inset-90, -inset), "↑ Extract", sizeStyle='regular', callback=self.ScanFontForKeys )
+		self.w.scanButton.getNSButton().setToolTip_("Scans the current font for all metrics keys and lists them here. Normalizes the preceding equals sign (=). No matter whether you typed them with or without an equals sign, they will show up here with one.")
 
-		self.w.runButton = vanilla.Button( (-80-inset, -20-inset, -inset, -inset), u"↓ Apply", sizeStyle='regular', callback=self.MetricsKeyManagerMain )
-		self.w.runButton.getNSButton().setToolTip_(u"Parses the current content of the window and will attempt to set the metrics keys of the respective glyphs in the frontmost font.")
+		self.w.runButton = vanilla.Button( (-80-inset, -20-inset, -inset, -inset), "↓ Apply", sizeStyle='regular', callback=self.MetricsKeyManagerMain )
+		self.w.runButton.getNSButton().setToolTip_("Parses the current content of the window and will attempt to set the metrics keys of the respective glyphs in the frontmost font.")
 		self.w.setDefaultButton( self.w.runButton )
 		
 		# Load Settings:
@@ -98,34 +112,45 @@ class MetricsKeyManager( object ):
 		self.w.RightMetricsKeysText.setPosSize( (inset, linePos+2, 70, 14) )
 		self.w.RightMetricsKeys.setPosSize( (inset+70, linePos, -inset, boxHeight) )
 	
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
 	def SavePreferences( self, sender=None ):
 		try:
-			Glyphs.defaults["com.mekkablue.MetricsKeyManager.LeftMetricsKeys"] = self.w.LeftMetricsKeys.get()
-			Glyphs.defaults["com.mekkablue.MetricsKeyManager.RightMetricsKeys"] = self.w.RightMetricsKeys.get()
+			# write current settings into prefs:
+			for prefName in self.prefDict.keys():
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
+			return True
 		except:
+			import traceback
+			print(traceback.format_exc())
 			return False
-			
-		return True
 
 	def LoadPreferences( self ):
 		try:
-			Glyphs.registerDefault("com.mekkablue.MetricsKeyManager.LeftMetricsKeys", LeftKeys)
-			Glyphs.registerDefault("com.mekkablue.MetricsKeyManager.RightMetricsKeys", RightKeys)
-			self.w.LeftMetricsKeys.set( Glyphs.defaults["com.mekkablue.MetricsKeyManager.LeftMetricsKeys"] )
-			self.w.RightMetricsKeys.set( Glyphs.defaults["com.mekkablue.MetricsKeyManager.RightMetricsKeys"] )
+			for prefName in self.prefDict.keys():
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
+				# load previously written prefs:
+				getattr(self.w, prefName).set( self.pref(prefName) )
+			return True
 		except:
+			import traceback
+			print(traceback.format_exc())
 			return False
-			
-		return True
-		
+
 	def SetDefaults(self, sender=None):
 		self.w.RightMetricsKeys.set( RightKeys.strip() )
 		self.w.LeftMetricsKeys.set( LeftKeys.strip() )
 		
 		# update settings to the latest user input:
 		if not self.SavePreferences( self ):
-			print("Note: 'Metrics Key Manager' could not write preferences.")
-		
+			print("⚠️ Metrics Key Manager could not write preferences.")
 	
 	def parseGlyphNames(self, glyphNameText):
 		possibleChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.-_"
@@ -138,7 +163,7 @@ class MetricsKeyManager( object ):
 				if currName:
 					glyphNames.append(currName)
 					currName = ""
-		return tuple(glyphNames)
+		return glyphNames
 	
 	def font2dicts(self, font):
 		leftDict, rightDict = {}, {}
@@ -199,6 +224,43 @@ class MetricsKeyManager( object ):
 				parseDict[key] = self.parseGlyphNames( glyphNameText )
 		return parseDict
 	
+	def symmetricGlyphsMissingMetricsKeys(self, sender=None, font=None):
+		if not font:
+			font = Glyphs.font
+			
+		glyphNames = []
+		for g in font.glyphs:
+			layerChecks = [
+				not l.widthMetricsKey and 
+				not l.rightMetricsKey and 
+				l.shapes and 
+				l.LSB==l.RSB and 
+				not l.isAligned 
+				for l in g.layers
+				if l.isMasterLayer or l.isSpecialLayer
+			]
+			if all(layerChecks):
+				if not g.rightMetricsKey and not g.widthMetricsKey:
+					glyphNames.append(g.name)
+					
+		return glyphNames
+	
+	def AddMissingSymmetricKeys(self, sender=None):
+		self.SavePreferences()
+		symmetricKey = "=|"
+		metricsKeys = "RightMetricsKeys"
+		RightKeysText = self.pref(metricsKeys)
+		rightDict = self.text2dict(RightKeysText)
+		missingGlyphs = self.symmetricGlyphsMissingMetricsKeys()
+		print("🔠 Missing =|: %s" % ", ".join(missingGlyphs))
+		if not symmetricKey in rightDict.keys():
+			rightDict[symmetricKey] = []
+		for glyphName in missingGlyphs:
+			if not glyphName in rightDict[symmetricKey]:
+				rightDict[symmetricKey].append(glyphName)
+		Glyphs.defaults[self.domain(metricsKeys)] = self.dict2text(rightDict)
+		self.LoadPreferences()
+	
 	def MetricsKeyManagerMain( self, sender ):
 		try:
 			# clears macro window log:
@@ -222,10 +284,10 @@ class MetricsKeyManager( object ):
 				includeNonexportingGlyphs = True
 				shouldOpenTabWithAffectedGlyphs = False
 			
-				LeftKeysText = Glyphs.defaults["com.mekkablue.MetricsKeyManager.LeftMetricsKeys"]
+				LeftKeysText = self.pref("LeftMetricsKeys")
 				leftDict = self.text2dict(LeftKeysText)
 			
-				RightKeysText = Glyphs.defaults["com.mekkablue.MetricsKeyManager.RightMetricsKeys"]
+				RightKeysText = self.pref("RightMetricsKeys")
 				rightDict = self.text2dict(RightKeysText)
 				
 				dictDict = {
