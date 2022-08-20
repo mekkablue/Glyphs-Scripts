@@ -8,7 +8,6 @@ Batch apply metrics keys to the current font.
 import vanilla
 from AppKit import NSFont
 
-
 LeftKeys="""
 =H: B D E F I K L N P R Thorn Germandbls M
 =O: C G Q
@@ -27,17 +26,35 @@ RightKeys="""
 =|n: idotless u
 """
 
+WidthKeys="""
+=0: zerowidthspace
+=1000: emquad emspace
+=140: thinspace
+=166: sixperemspace
+=222: mediumspace-math
+=250: fourperemspace
+=333: threeperemspace
+=500: enquad enspace
+=70: hairspace
+=space: nbspace
+=space*0.2: narrownbspace
+=zero.tf: figurespace
+=period: punctuationspace
+=plus: plus minus multiply divide equal notequal greater less greaterequal lessequal plusminus approxequal logicalnot asciitilde asciicircum
+"""
+
 class MetricsKeyManager( object ):
 	prefID = "com.mekkablue.MetricsKeyManager"
 	prefDict = {
 		"LeftMetricsKeys": LeftKeys,
 		"RightMetricsKeys": RightKeys,
+		"WidthMetricsKeys": WidthKeys,
 	}
 	
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 400
-		windowHeight = 240
+		windowHeight = 300
 		windowWidthResize  = 1000 # user can resize width by this value
 		windowHeightResize = 1000 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -58,6 +75,10 @@ class MetricsKeyManager( object ):
 		self.w.RightMetricsKeysText = vanilla.TextBox( (inset, linePos+2, 70, 14), "Right Keys:", sizeStyle='small', selectable=True )
 		self.w.RightMetricsKeys = vanilla.TextEditor( (inset+70, linePos, -inset, boxHeight), "", callback=self.SavePreferences) #, sizeStyle='small' )
 		
+		linePos += boxHeight + 10
+		self.w.WidthMetricsKeysText = vanilla.TextBox( (inset, linePos+2, 70, 14), "Width Keys:", sizeStyle='small', selectable=True )
+		self.w.WidthMetricsKeys = vanilla.TextEditor( (inset+70, linePos, -inset, boxHeight), "", callback=self.SavePreferences) #, sizeStyle='small' )
+		
 		size = NSFont.smallSystemFontSize()
 		editFont = NSFont.userFixedPitchFontOfSize_(size)
 		for legibleFont in ("legibleFontOfSize_","legibileFontOfSize_"):
@@ -65,7 +86,7 @@ class MetricsKeyManager( object ):
 				editFont = getattr(NSFont, legibleFont)(size)
 				break
 		
-		for editField in (self.w.LeftMetricsKeys, self.w.RightMetricsKeys):
+		for editField in (self.w.LeftMetricsKeys, self.w.RightMetricsKeys, self.w.WidthMetricsKeys):
 			editField.getNSTextView().setToolTip_("Enter a metrics key like '=H', followed by a colon (:), followed by glyph names, spearated by space, comma, or any other separator that cannot be part of a glyph name. (Glyph names can contain A-Z, a-z, 0-9, period, underscore and hyphen.)\nExample: ‘=H: B D E F’.")
 			editField.getNSTextView().setFont_(editFont)
 			editField.getNSScrollView().setHasVerticalScroller_(1)
@@ -99,18 +120,19 @@ class MetricsKeyManager( object ):
 	def getMeasurements(self, sender=None):
 		lineHeight = 22
 		currentWindowHeight = self.w.getPosSize()[3]
-		boxHeight = currentWindowHeight//2 - lineHeight*1.5
+		boxHeight = currentWindowHeight//3 - int(lineHeight *1.1)
 		return 12, 15, lineHeight, boxHeight
 	
 	def windowResize(self, sender=None):
 		linePos, inset, lineHeight, boxHeight = self.getMeasurements()
-		
 		self.w.LeftMetricsKeysText.setPosSize( (inset, linePos+2, 70, 14) )
 		self.w.LeftMetricsKeys.setPosSize( (inset+70, linePos, -inset, boxHeight) )
-
 		linePos += boxHeight + 10
 		self.w.RightMetricsKeysText.setPosSize( (inset, linePos+2, 70, 14) )
 		self.w.RightMetricsKeys.setPosSize( (inset+70, linePos, -inset, boxHeight) )
+		linePos += boxHeight + 10
+		self.w.WidthMetricsKeysText.setPosSize( (inset, linePos+2, 70, 14) )
+		self.w.WidthMetricsKeys.setPosSize( (inset+70, linePos, -inset, boxHeight) )
 	
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
@@ -137,7 +159,7 @@ class MetricsKeyManager( object ):
 				# register defaults:
 				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
 				# load previously written prefs:
-				getattr(self.w, prefName).set( self.pref(prefName) )
+				getattr(self.w, prefName).set( self.pref(prefName).strip() )
 			return True
 		except:
 			import traceback
@@ -147,6 +169,7 @@ class MetricsKeyManager( object ):
 	def SetDefaults(self, sender=None):
 		self.w.RightMetricsKeys.set( RightKeys.strip() )
 		self.w.LeftMetricsKeys.set( LeftKeys.strip() )
+		self.w.WidthMetricsKeys.set( WidthKeys.strip() )
 		
 		# update settings to the latest user input:
 		if not self.SavePreferences( self ):
@@ -166,7 +189,7 @@ class MetricsKeyManager( object ):
 		return glyphNames
 	
 	def font2dicts(self, font):
-		leftDict, rightDict = {}, {}
+		leftDict, rightDict, widthDict = {}, {}, {}
 		for glyph in font.glyphs:
 			leftKey = glyph.leftMetricsKey
 			if leftKey:
@@ -191,19 +214,33 @@ class MetricsKeyManager( object ):
 					rightDict[rightKey] = [glyph.name,]
 				else:
 					rightDict[rightKey].append(glyph.name)
+					
+			widthKey = glyph.widthMetricsKey
+			if widthKey:
+				# normalize equals sign:
+				if not widthKey[0] == "=":
+					widthKey = "=%s" % widthKey
+				
+				# create list or append to list:
+				if widthKey not in widthDict:
+					widthDict[widthKey] = [glyph.name,]
+				else:
+					widthDict[widthKey].append(glyph.name)
 
-		return leftDict, rightDict
+		return leftDict, rightDict, widthDict
 	
 	def ScanFontForKeys(self, sender=None, font=None):
 		if not font:
 			font = Glyphs.font
 		
 		if font:
-			leftDict, rightDict = self.font2dicts(font)
+			leftDict, rightDict, widthDict = self.font2dicts(font)
 			leftText = self.dict2text(leftDict)
 			rightText = self.dict2text(rightDict)
+			widthText = self.dict2text(widthDict)
 			self.w.LeftMetricsKeys.set(leftText)
 			self.w.RightMetricsKeys.set(rightText)
+			self.w.WidthMetricsKeys.set(widthText)
 			self.SavePreferences()
 	
 	def dict2text(self, keyDict):
@@ -290,13 +327,18 @@ class MetricsKeyManager( object ):
 				RightKeysText = self.pref("RightMetricsKeys")
 				rightDict = self.text2dict(RightKeysText)
 				
+				WidthKeysText = self.pref("WidthMetricsKeys")
+				widthDict = self.text2dict(WidthKeysText)
+				
 				dictDict = {
 					"Left": leftDict,
 					"Right": rightDict,
+					"Width": widthDict,
 				}
 				emojis = {
 					"Left": "⬅️",
 					"Right": "➡️",
+					"Width": "↔️",
 				}
 				
 				affectedGlyphs = []
@@ -304,8 +346,8 @@ class MetricsKeyManager( object ):
 				for LorR in dictDict.keys():
 					print()
 					thisDict = dictDict[LorR]
-					if not LorR in ("Left", "Right"):
-						print("\n😬 Expected key 'Left' or 'Right', but got '%s' instead." % LorR)
+					if not LorR in ("Left", "Right", "Width"):
+						print("\n😬 Expected key ‘Left’, ‘Right’ or ‘Width’, but got ‘%s’ instead." % LorR)
 						break
 					else:
 						for key in thisDict.keys():
@@ -319,6 +361,8 @@ class MetricsKeyManager( object ):
 										glyph.leftMetricsKey = key
 									elif LorR=="Right":
 										glyph.rightMetricsKey = key
+									elif LorR=="Width":
+										glyph.widthMetricsKey = key
 									affectedGlyphs.append(glyphName)
 									reportGlyphs.append(glyphName)
 								else:
