@@ -34,7 +34,7 @@ class PrepareFontforGit( object ):
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			( windowWidth, windowHeight ), # default window size
-			"Prepare File for Git", # window title
+			"Prepare File", # window title
 			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
 			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
 			autosaveName = self.domain("mainwindow") # stores last window position and size
@@ -71,7 +71,7 @@ class PrepareFontforGit( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print("Note: 'Prepare File for Git' could not load preferences. Will resort to defaults")
+			print("Note: 'Prepare Font Info' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -135,7 +135,7 @@ class PrepareFontforGit( object ):
 			
 			# update settings to the latest user input:
 			if not self.SavePreferences():
-				print("Note: 'Prepare File for Git' could not write preferences.")
+				print("Note: 'Prepare Font Info' could not write preferences.")
 			
 			if len(Glyphs.fonts)==0:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
@@ -180,14 +180,14 @@ class PrepareFontforGit( object ):
 			# Final report:
 			Glyphs.showNotification( 
 				"%s: Done" % (thisFont.familyName),
-				"Prepare File for Git is finished. Details in Macro Window",
+				"‘Prepare Font Info’ is finished. Details in Macro Window",
 				)
 			print("\nDone.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Prepare File for Git Error: %s" % e)
+			print("Prepare Font Info Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
 
