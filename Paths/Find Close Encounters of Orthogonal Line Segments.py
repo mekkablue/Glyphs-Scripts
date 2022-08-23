@@ -158,7 +158,7 @@ class FindCloseEncounters( object ):
 						if l.guides:
 							for i in range(len(l.guides)-1,-1,-1):
 								guide = l.guides[i]
-								if guide.name.startswith(self.markerEmoji):
+								if guide.name and guide.name.startswith(self.markerEmoji):
 									del l.guides[i]
 					
 					# see if glyph/layer needs to be skipped:
