@@ -24,7 +24,7 @@ def isPositional(glyphName):
 			return True
 	return False
 	
-def doTheyClick(rightLayer, leftLayer, requiredClicks=2):
+def doTheyClick(leftLayer, rightLayer, requiredClicks=2):
 	leftWidth = leftLayer.width
 	rightCoordinates = []
 	for p in rightLayer.copyDecomposedLayer().paths:
@@ -42,10 +42,23 @@ def doTheyClick(rightLayer, leftLayer, requiredClicks=2):
 		print("❌ %s does not click with a following %s (%s)."%(rightLayer.parent.name, leftLayer.parent.name, leftLayer.name))
 		return False
 	else:
-		print("✅ OK: %s ⟺ %s" % (rightLayer.parent.name, leftLayer.parent.name))
+		print("✅ OK: %s ⟺ %s  Ⓜ️ %s" % (
+			leftLayer.parent.name,
+			rightLayer.parent.name, 
+			leftLayer.master.name,
+		))
 		return True
 
 class PositionClicker( object ):
+	prefID = "com.mekkablue.PositionClicker"
+	prefDict = {
+		# "prefName": defaultValue,
+		"referenceGlyphName": "behDotless-ar.medi",
+		"clickCount": 2,
+		"includeNonExporting": False,
+		"reuseTab": False,
+	}
+	
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 300
@@ -124,21 +137,26 @@ class PositionClicker( object ):
 		else:
 			glyphNames=[]
 			for g in font.glyphs:
-				if ".medi" in g.name:
+				if ".medi" in g.name or "kashida" in g.name:
 					glyphNames.append(g.name)
 			if fallback in glyphNames:
 				glyphNames.remove(fallback)
 				glyphNames.insert(0, fallback)
 			return glyphNames
-		
+	
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
 	def SavePreferences( self, sender=None ):
 		try:
 			# write current settings into prefs:
-			Glyphs.defaults["com.mekkablue.PositionClicker.referenceGlyphName"] = self.w.referenceGlyphName.get()
-			Glyphs.defaults["com.mekkablue.PositionClicker.includeNonExporting"] = self.w.includeNonExporting.get()
-			Glyphs.defaults["com.mekkablue.PositionClicker.reuseTab"] = self.w.reuseTab.get()
-			Glyphs.defaults["com.mekkablue.PositionClicker.clickCount"] = self.w.clickCount.get()
-			
+			for prefName in self.prefDict.keys():
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
 			self.updateUI()
 			return True
 		except:
@@ -148,18 +166,11 @@ class PositionClicker( object ):
 
 	def LoadPreferences( self ):
 		try:
-			# register defaults:
-			Glyphs.registerDefault("com.mekkablue.PositionClicker.referenceGlyphName", "behDotless-ar.medi")
-			Glyphs.registerDefault("com.mekkablue.PositionClicker.includeNonExporting", False)
-			Glyphs.registerDefault("com.mekkablue.PositionClicker.reuseTab", False)
-			Glyphs.registerDefault("com.mekkablue.PositionClicker.clickCount", 2)
-			
-			# load previously written prefs:
-			self.w.reuseTab.set( Glyphs.defaults["com.mekkablue.PositionClicker.reuseTab"] )
-			self.w.referenceGlyphName.set( Glyphs.defaults["com.mekkablue.PositionClicker.referenceGlyphName"] )
-			self.w.includeNonExporting.set( Glyphs.defaults["com.mekkablue.PositionClicker.includeNonExporting"] )
-			self.w.clickCount.set( Glyphs.defaults["com.mekkablue.PositionClicker.clickCount"] )
-			
+			for prefName in self.prefDict.keys():
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
+				# load previously written prefs:
+				getattr(self.w, prefName).set( self.pref(prefName) )
 			self.updateUI()
 			return True
 		except:
@@ -187,10 +198,10 @@ class PositionClicker( object ):
 					print("⚠️ The font file has not been saved yet.")
 				print()
 			
-				referenceGlyphName = Glyphs.defaults["com.mekkablue.PositionClicker.referenceGlyphName"]
-				includeNonExporting = Glyphs.defaults["com.mekkablue.PositionClicker.includeNonExporting"]
-				reuseTab = Glyphs.defaults["com.mekkablue.PositionClicker.reuseTab"]
-				clickCount = int(Glyphs.defaults["com.mekkablue.PositionClicker.clickCount"])
+				referenceGlyphName = self.pref("referenceGlyphName")
+				includeNonExporting = self.pref("includeNonExporting")
+				reuseTab = self.pref("reuseTab")
+				clickCount = int(self.pref("clickCount"))
 				
 				try:
 					spaceLayer = thisFont.glyphs["space"].layers[0]
@@ -211,28 +222,28 @@ class PositionClicker( object ):
 				for thisGlyph in thisFont.glyphs:
 					glyphName = thisGlyph.name
 					if isPositional(glyphName):
-						comesFirst = (".medi" in glyphName or ".init" in glyphName)
-						comesLater = (".medi" in glyphName or ".fina" in glyphName)
+						nameParticles = glyphName.split(".")
+						comesFirst = "medi" in nameParticles or "init" in nameParticles
+						comesLater = "medi" in nameParticles or "fina" in nameParticles and glyphName != referenceGlyphName
 						if thisGlyph.export or includeNonExporting:
 							for thisLayer in thisGlyph.layers:
-								if thisLayer.paths and (thisLayer.isMasterLayer or thisLayer.isSpecialLayer):
+								if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 									comboCount += 1
 									referenceLayer = referenceGlyph.layers[thisLayer.master.id]
-									
 									if (comesFirst and isRTL) or (comesLater and not isRTL):
-										if not doTheyClick(thisLayer, referenceLayer, clickCount):
+										if not doTheyClick(referenceLayer, thisLayer, clickCount):
 											tabLayers.append(referenceLayer)
 											tabLayers.append(thisLayer)
 											tabLayers.append(spaceLayer)
 											count += 1
 									if (comesLater and isRTL) or (comesFirst and not isRTL):
-										if not doTheyClick(referenceLayer, thisLayer, clickCount):
+										if not doTheyClick(thisLayer, referenceLayer, clickCount):
 											tabLayers.append(thisLayer)
 											tabLayers.append(referenceLayer)
 											tabLayers.append(spaceLayer)
 											count += 1
 
-				if tabLayers:
+				if len(tabLayers)>0:
 					Glyphs.showNotification( 
 						"%s: Position Clicker" % (thisFont.familyName),
 						"Found %i imprecise connections. Details in Macro Window." % count,
@@ -246,17 +257,16 @@ class PositionClicker( object ):
 					tab.direction=0 # LTR!
 				else:
 					Message(
-						title="Position Clicker found no problems 😃", 
-						message="✅ Checked %i combinations: all positional glyphs with paths click on %i points or more. Good job!\nDetailed report in Macro Window." % (
+						title="Position Clicker found no problems 😃", 
+						message="✅ Checked %i combinations on %i master%s in %s: all positional glyphs click on %i points or more. Good job!\nDetailed report in Macro Window." % (
 							comboCount,
+							len(thisFont.masters),
+							"" if len(thisFont.masters)==1 else "s",
+							thisFont.filepath.lastPathComponent() if thisFont.filepath else thisFont.familyName,
 							clickCount,
 						), 
 						OKButton="🥂Cool",
 						)
-				
-			
-				self.w.close() # delete if you want window to stay open
-
 
 			print("\nDone.")
 
