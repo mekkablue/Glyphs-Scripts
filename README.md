@@ -345,6 +345,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Distribute Nodes:** Horizontally or vertically distributes nodes (depends on the width/height ratio of the selection bounding box).
 * **Enlarge Single-Unit Segments:** Doubles the length of line segments shorter than one unit.
 * **Fill Up with Rectangles:** Goes through your selected glyphs, and if it finds an empty one, inserts a placeholder rectangle. Useful for quickly building a dummy font for testing.
+* **Find Close Encounters of Orthogonal Line Segments:** Goes through all vertical and horizontal line segments, and finds pairs that are close, but do not align completely. *Needs Vanilla.*
 * **Find Near Vertical Misses:** Finds nodes that are close but not exactly on vertical metrics. *Needs Vanilla.*
 * **Green Blue Manager:** Define an angle above which a node will be set to blue, below which it will be set to green. *Needs Vanilla.*
 * **Grid Switcher:** Toggles grid between two user-definable gridstep values with the click of a floating button. *Needs Vanilla.*
