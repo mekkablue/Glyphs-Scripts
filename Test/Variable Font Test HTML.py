@@ -320,12 +320,32 @@ def generateAxisDict(thisFont):
 	else:
 		return axisDictForFontWithoutAxisLocationParameters(thisFont)
 
+
+def axisDictWithVirtualMastersForFont(thisFont, axisDict):
+	# go through *all* virtual masters:
+	virtualMasters = [cp for cp in thisFont.customParameters if cp.name=="Virtual Master"]
+	for virtualMaster in virtualMasters:
+		for axis in virtualMaster.value:
+			name = axis["Axis"]
+			location = int(axis["Location"])
+
+			if not name in axisDict.keys():
+				axisDict[name] = {"min":location,"max":location}
+				continue
+				
+			if location < axisDict[name]["min"]:
+				axisDict[name]["min"] = location
+			if location > axisDict[name]["max"]:
+				axisDict[name]["max"] = location
+	return axisDict
+
+
 def axisDictForFontWithoutAxisLocationParameters(thisFont):
 	sliderValues = {}
 	for i, thisMaster in enumerate(thisFont.masters):
 		sliderValues[i] = axisValuesForMaster(thisMaster)
 	
-	axisDict = {}
+	axisDict = axisDictWithVirtualMastersForFont(thisFont, {})
 	for i, axis in enumerate(thisFont.axes):
 		try:
 			# Glyphs 2:
@@ -346,7 +366,7 @@ def axisDictForFontWithoutAxisLocationParameters(thisFont):
 	return axisDict
 
 def axisDictForFontWithAxisLocationParameters(thisFont):
-	axisDict = {}
+	axisDict = axisDictWithVirtualMastersForFont(thisFont, {})
 	for m in thisFont.masters:
 		for axisLocation in m.customParameters["Axis Location"]:
 			axisName = axisLocation["Axis"]
@@ -369,7 +389,8 @@ def axisDictForFontWithAxisLocationParameters(thisFont):
 			# GLYPHS 2
 			axisName = axis["Name"]
 			axisTag = axis["Tag"]
-		axisDict[axisName]["tag"] = axisTag
+		if axisName in axisDict.keys():
+			axisDict[axisName]["tag"] = axisTag
 	
 	return axisDict
 
@@ -396,16 +417,6 @@ def featureListForFont( thisFont ):
 def allOTVarSliders(thisFont):
 	axisDict = generateAxisDict(thisFont)
 
-	# go through *all* virtual masters:
-	virtualMasters = [cp for cp in thisFont.customParameters if cp.name=="Virtual Master"]
-	for virtualMaster in virtualMasters:
-		for axis in virtualMaster.value:
-			name = axis["Axis"]
-			location = int(axis["Location"])
-			if location < axisDict[name]["min"]:
-				axisDict[name]["min"] = location
-			if location > axisDict[name]["max"]:
-				axisDict[name]["max"] = location
 	
 	minValues, maxValues = {}, {}
 	for axis in axisDict:
