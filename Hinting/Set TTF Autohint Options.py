@@ -1,4 +1,4 @@
-#MenuTitle: Set TTF Autohint Options
+#MenuTitle: Set ttfautohint Options
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 try:
@@ -6,7 +6,7 @@ try:
 except Exception as e:
 	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 __doc__="""
-Set options for existing 'TTF Autohint Options' Custom Parameters.
+Set options for existing 'TTFAutohint options' Custom Parameters.
 """
 
 import vanilla
@@ -160,7 +160,7 @@ class SetTTFAutohintOptions( object ):
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			( windowWidth, windowHeight ), # default window size
-			"Set in All TTF Autohint Options", # window title
+			"Set in All ttfautohint Options", # window title
 			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
 			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
 			autosaveName = "com.mekkablue.SetTTFAutohintOptions.mainwindow" # stores last window position and size
@@ -176,20 +176,20 @@ class SetTTFAutohintOptions( object ):
 		self.w.optionValue = vanilla.EditText( (220, 12, -67-50, 20), "value", callback=self.SavePreferences, sizeStyle = 'small')
 		self.w.optionValue.getNSTextField().setToolTip_("Value for the currently selected option, if any. Some options can only be set or removed, some have a value.")
 		
-		self.w.explanation = vanilla.TextBox( (15-1, 40, -5, -5), "Adds or sets this option in all TTF Autohint Options parameters in the current font. For fallback-stem-width, use * for entering the respective instance weight value, and idotless for measuring the width of the interpolated dotless i. The Del button removes this TTFA option from all instances.", sizeStyle='small' )
+		self.w.explanation = vanilla.TextBox( (15-1, 40, -5, -5), "Adds or sets this option in all ‘TTFAutohint options’ parameters in the current font. For fallback-stem-width, use * for entering the respective instance weight value, and idotless for measuring the width of the interpolated dotless i. The Del button removes this TTFA option from all instances.", sizeStyle='small' )
 		
 		# Run Button:
 		self.w.runButton = vanilla.Button((-60-50, 10, -15-50, 22), "Set", sizeStyle='regular', callback=self.SetTTFAutohintOptionsMain )
-		self.w.runButton.getNSButton().setToolTip_("Updates all TTF Autohint Options parameters with the current option (and value, if any) to all instances in the font.")
+		self.w.runButton.getNSButton().setToolTip_("Updates all ‘TTFAutohint options’ parameters with the current option (and value, if any) to all instances in the font.")
 		
 		self.w.delButton = vanilla.Button((-60, 10, -15, 22), "Del", sizeStyle='regular', callback=self.RemoveOption )
-		self.w.delButton.getNSButton().setToolTip_("Removes the current option from all TTF Autohint Options parameters in all instances in the font.")
+		self.w.delButton.getNSButton().setToolTip_("Removes the current option from all ‘TTFAutohint options’ parameters in all instances in the font.")
 
 		self.w.setDefaultButton( self.w.runButton )
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print("Note: 'Set TTF Autohint Options' could not load preferences. Will resort to defaults")
+			print("Note: 'Set ttfautohint Options' could not load preferences. Will resort to defaults")
 		
 		# enable or disable the edit box
 		self.editValueField()
@@ -293,7 +293,7 @@ class SetTTFAutohintOptions( object ):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Set TTF Autohint Options Error: %s" % e)
+			print("Set ttfautohint Options Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
 		
@@ -301,7 +301,7 @@ class SetTTFAutohintOptions( object ):
 	def SetTTFAutohintOptionsMain( self, sender ):
 		try:
 			if not self.SavePreferences( self ):
-				print("Note: 'Set TTF Autohint Options' could not write preferences.")
+				print("Note: 'Set ttfautohint Options' could not write preferences.")
 			
 			optionIndex = int(Glyphs.defaults["com.mekkablue.SetTTFAutohintOptions.ttfAutohintOption"])
 			optionName = availableOptions[optionIndex]
@@ -333,7 +333,7 @@ class SetTTFAutohintOptions( object ):
 							thisInstance.name,
 						))
 					else:
-						print("No TTF Autohint parameter in instance '%s'. %s not set." % (
+						print("No ttfautohint parameter in instance '%s'. %s not set." % (
 							thisInstance.name,
 							optionName,
 						))
@@ -344,7 +344,7 @@ class SetTTFAutohintOptions( object ):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Set TTF Autohint Options Error: %s" % e)
+			print("Set ttfautohint Options Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
 
