@@ -62,8 +62,8 @@ def replaceSet( text, setOfReplacements ):
 	return text
 
 def allUnicodeEscapesOfFont( thisFont ):
-	allUnicodes = ["&#x%s;" % g.unicode for g in thisFont.glyphs if g.unicode and g.export and g.subCategory!="Nonspacing" ]
-	allUnicodes += [" &#x%s;" % g.unicode for g in thisFont.glyphs if g.unicode and g.export and g.subCategory=="Nonspacing" ]
+	allUnicodes = ["&#x%s;" % g.unicode for g in thisFont.glyphs + thisFont.importedGlyphs() if g.unicode and g.export and g.subCategory!="Nonspacing" ]
+	allUnicodes += [" &#x%s;" % g.unicode for g in thisFont.glyphs + thisFont.importedGlyphs() if g.unicode and g.export and g.subCategory=="Nonspacing" ]
 	return "".join( allUnicodes )
 
 def getInstanceInfo( thisFont, activeInstance, fileFormat ):
