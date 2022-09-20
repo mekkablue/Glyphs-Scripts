@@ -68,10 +68,18 @@ def allUnicodeEscapesOfFont( thisFont ):
 
 def getInstanceInfo( thisFont, activeInstance, fileFormat ):
 	# Determine Family Name
-	familyName = thisFont.familyName
-	individualFamilyName = activeInstance.customParameters["familyName"]
-	if individualFamilyName != None:
-		familyName = individualFamilyName
+	
+	if Glyphs.versionNumber >= 3:
+		# GLYPHS 3
+		familyName = activeInstance.familyName
+		if not familyName:
+			familyName = thisFont.familyName
+	else:
+		# GLYPHS 2
+		familyName = thisFont.familyName
+		individualFamilyName = activeInstance.customParameters["familyName"]
+		if individualFamilyName != None:
+			familyName = individualFamilyName
 	
 	# Determine Style Name
 	activeInstanceName = activeInstance.name
