@@ -241,9 +241,10 @@ class MetricsCopy( object ):
 		suffixToBeIgnored = self.w.suffixToBeIgnored.get().strip(".")
 		selectedTargetLayers = targetFont.selectedLayers
 		
+		countTargetLayers = len(selectedTargetLayers) if selectedTargetLayers else 0
 		print("Transfering %i glyph metric%s from %s %s to %s %s:" % ( 
-				len(selectedTargetLayers),
-				"s" if abs(len(selectedTargetLayers))!=1 else "",
+				countTargetLayers,
+				"s" if abs(countTargetLayers)!=1 else "",
 				sourceFont.familyName, sourceMaster.name,
 				targetFont.familyName, targetMaster.name,
 			))
