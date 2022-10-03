@@ -29,6 +29,7 @@ class SetHiddenAppPreferences( object ):
 		"GSMakeSmoothNodes",
 		"TextModeNumbersThreshold",
 		"TTPreviewAlsoShowOffCurveIndexes",
+		"GSFontViewSmallestNameHeight",
 		"GSHideUnicodeInFontView" if Glyphs.versionNumber<3.0 else "GSFontViewShowUnicode",
 		"GSFontViewDrawLabelColor",
 		"GSFontViewDarkMode",
