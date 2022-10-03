@@ -25,8 +25,8 @@ else:
 				path2.reverse()
 			tempGlyph = GSGlyph()
 			layerA, layerB = GSLayer(), GSLayer()
-			layerA.shapes.append(path1.__copy__())
-			layerB.shapes.append(path2.__copy__())
+			layerA.shapes.append(path1.copy())
+			layerB.shapes.append(path2.copy())
 			tempGlyph.layers = [layerA, layerB]
 			tempLayer = tempGlyph._interpolateLayers_interpolation_masters_decompose_font_error_(
 											[layerA, layerB], 
@@ -39,7 +39,7 @@ else:
 				for i in range(len(Layer.shapes)-1,-1,-1):
 					if Layer.shapes[i].selected and type(Layer.shapes[i])==GSPath:
 						del Layer.shapes[i]
-				Layer.shapes.append(tempLayer.paths[0].__copy__())
+				Layer.shapes.append(tempLayer.paths[0].copy())
 			else:
 				Message("Could not interpolate the two paths.", title='No interpolation possible', OKButton="Darn")
 	else:

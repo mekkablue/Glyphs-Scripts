@@ -438,7 +438,7 @@ class InstanceCooker( object ):
 						newInstances = []
 						for existingInstance in instances:
 							for particleInfo in recipeDict[axisKey]:
-								instance = existingInstance.__copy__()
+								instance = existingInstance.copy()
 								posInfo, nameParticle, widthClass = particleInfo
 								instance.name += " %s" % nameParticle
 								coord, axisLoc = parsePosInfo(posInfo)

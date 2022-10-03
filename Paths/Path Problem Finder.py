@@ -160,7 +160,7 @@ def hasShallowCurve( thisLayer, threshold=5.0 ):
 	return False
 
 def hasBadPathDirections( thisLayer ):
-	copyLayer = thisLayer.__copy__()
+	copyLayer = thisLayer.copy()
 	copyLayer.correctPathDirection()
 	for i in range(len(copyLayer.paths)):
 		originalPath = thisLayer.paths[i]
