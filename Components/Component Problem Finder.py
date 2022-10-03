@@ -342,7 +342,7 @@ class ComponentProblemFinder( object ):
 			for h in thisLayer.hints:
 				if h.type == CORNER:
 					if not h.originNode:
-						print("\t🚨 detached corner component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
+						print("\t🚨 detached corner component %s on layer: %s" % (h.name, thisLayer.name))
 						return True
 		return False
 		
