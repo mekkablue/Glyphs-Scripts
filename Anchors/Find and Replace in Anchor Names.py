@@ -57,37 +57,32 @@ def LoadPreferences():
 	return True
 
 def SearchAndReplaceInAnchorNamesMain( sender ):
-	try:
-		searchString = window.searchFor.get()
-		replaceString = window.replaceBy.get()
+	searchString = window.searchFor.get()
+	replaceString = window.replaceBy.get()
 
-		thisFont = Glyphs.font # frontmost font
-		listOfSelectedLayers = thisFont.selectedLayers # active layers of currently selected glyphs
+	thisFont = Glyphs.font # frontmost font
+	listOfSelectedLayers = thisFont.selectedLayers # active layers of currently selected glyphs
 
-		for thisLayer in listOfSelectedLayers: # loop through layers
-			thisGlyph = thisLayer.parent
-			reportString = "Anchors renamed in %s:" % thisGlyph.name
-			displayReportString = False
+	for thisLayer in listOfSelectedLayers: # loop through layers
+		thisGlyph = thisLayer.parent
+		reportString = "Anchors renamed in %s:" % thisGlyph.name
+		displayReportString = False
 
-			for thisGlyphLayer in thisGlyph.layers:
-				for thisAnchor in thisGlyphLayer.anchors:
-					oldAnchorName = thisAnchor.name
-					newAnchorName = oldAnchorName.replace( searchString, replaceString )
-					if oldAnchorName != newAnchorName:
-						thisAnchor.name = newAnchorName
-						reportString += "\n  layer '%s': %s > %s" % ( thisGlyphLayer.name, oldAnchorName, newAnchorName )
-						displayReportString = True
+		for thisGlyphLayer in thisGlyph.layers:
+			for thisAnchor in thisGlyphLayer.anchors:
+				oldAnchorName = thisAnchor.name
+				newAnchorName = oldAnchorName.replace( searchString, replaceString )
+				if oldAnchorName != newAnchorName:
+					thisAnchor.name = newAnchorName
+					reportString += "\n  layer '%s': %s > %s" % ( thisGlyphLayer.name, oldAnchorName, newAnchorName )
+					displayReportString = True
 
-			if displayReportString:
-				print(reportString)
+		if displayReportString:
+			print(reportString)
 
-		if not SavePreferences():
-			print("Note: 'Search And Replace In Anchor Names' could not write preferences.")
+	if not SavePreferences():
+		print("Note: 'Search And Replace In Anchor Names' could not write preferences.")
 
-		window.close() # delete if you want window to stay open
-	except Exception as e:
-		# brings macro window to front and reports error:
-		Glyphs.showMacroWindow()
-		print("Search And Replace In Anchor Names Error: %s" % e)
+	window.close() # delete if you want window to stay open
 
 SearchAndReplaceInAnchorNames()
