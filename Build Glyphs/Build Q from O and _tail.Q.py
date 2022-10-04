@@ -17,6 +17,8 @@ newAnchorName = "_"+anchorName
 if not O or not Q or not tailGlyph:
 	Message(title="Missing glyphs", message="For this script, you need ‘O’, ‘Q’ and ‘_tail.Q’ in your font.", OKButton=None)
 else:
+	# del thisFont.glyphs["Q"]
+	# thisFont.newGlyphWithName_("O+_tail.Q=Q")
 	for thisLayer in tailGlyph.layers:
 		thisMaster = thisLayer.associatedFontMaster()
 		masterID = thisMaster.id
