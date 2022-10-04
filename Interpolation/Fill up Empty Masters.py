@@ -60,35 +60,29 @@ class MasterFiller(object):
 				)
 			
 			if targetLayerIsEmpty:
+				
 				if len(targetLayer.anchors)==0:
 					for originalAnchor in sourceLayer.anchors:
-						newAnchor = GSAnchor()
-						newAnchor.name = originalAnchor.name
-						newAnchor.position = originalAnchor.position
+						newAnchor =originalAnchor.copy()
 						targetLayer.anchors.append( newAnchor )
 				
-				for originalPath in sourceLayer.paths:
-					newPath = GSPath()
-					for originalNode in originalPath.nodes:
-						newNode = GSNode()
-						newNode.type = originalNode.type
-						newNode.connection = originalNode.connection
-						newNode.position = originalNode.position
-						newPath.nodes.append( newNode )
-					newPath.closed = originalPath.closed
-					targetLayer.paths.append( newPath )
+				if Glyphs.versionNumber >= 3:
+					# GLYPHS 3
+					targetLayer.shapes = sourceLayer.shapes.copy()
+				else:
+					# GLYPHS 2
+					for originalPath in sourceLayer.paths:
+						newPath = GSPath()
+						for originalNode in originalPath.nodes:
+							newNode = originalNode.copy()
+							newPath.nodes.append( newNode )
+						newPath.closed = originalPath.closed
+						targetLayer.paths.append( newPath )
 				
-				for originalComponent in sourceLayer.components:
-					print(originalComponent)
-					newComponent = GSComponent()
-					newComponent.componentName = originalComponent.componentName
-					newComponent.position = originalComponent.position
-					newComponent.transform = originalComponent.transform
-					targetLayer.components.append( newComponent )
-					# align after adding component
-					newComponent.alignment = originalComponent.alignment
-					newComponent.disableAlignment = originalComponent.disableAlignment
-					newComponent.automaticAlignment = originalComponent.automaticAlignment
+					for originalComponent in sourceLayer.components:
+						print(originalComponent)
+						newComponent = originalComponent.copy()
+						targetLayer.components.append( newComponent )
 				
 				targetLayer.width = sourceLayer.width
 		

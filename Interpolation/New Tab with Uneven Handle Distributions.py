@@ -129,23 +129,23 @@ class NewTabWithUnevenHandleDistributions( object ):
 		
 		# UI elements:
 		linePos, inset, lineHeight = 12, 12, 22
-		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, lineHeight*2), u"Finds compatible glyphs with curve segments in which the handle distribution changes too much:", sizeStyle='small', selectable=True )
+		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, lineHeight*2), "Finds compatible glyphs with curve segments in which the handle distribution changes too much:", sizeStyle='small', selectable=True )
 		linePos += int(lineHeight*1.8)
 		
-		self.w.factorChange = vanilla.CheckBox( (inset, linePos, 230, 20), u"Tolerated change factor (BCP1÷BCP2):", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.factorChange = vanilla.CheckBox( (inset, linePos, 230, 20), "Tolerated change factor (BCP1÷BCP2):", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.factorChangeEntry = vanilla.EditText( (inset+230, linePos, -inset, 19), "2.5", callback=self.SavePreferences, sizeStyle='small' )
-		factorChangeTooltipText = u"Calculates length ratios of handles in a curve segment in every master. If the ratio differs by more than the given factor in one or more masters, glyph will be reported."
+		factorChangeTooltipText = "Calculates length ratios of handles in a curve segment in every master. If the ratio differs by more than the given factor in one or more masters, glyph will be reported."
 		self.w.factorChange.getNSButton().setToolTip_(factorChangeTooltipText)
 		self.w.factorChangeEntry.getNSTextField().setToolTip_(factorChangeTooltipText)
 		linePos += lineHeight
 		
-		self.w.anyMaxToNotMax = vanilla.CheckBox( (inset, linePos, -inset, 20), u"Any handle that changes from 100% to non-100%", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.anyMaxToNotMax.getNSButton().setToolTip_(u"Finds BCPs that are maximized (100%) in one master, but not in other masters.")
+		self.w.anyMaxToNotMax = vanilla.CheckBox( (inset, linePos, -inset, 20), "Any handle that changes from 100% to non-100%", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.anyMaxToNotMax.getNSButton().setToolTip_("Finds BCPs that are maximized (100%) in one master, but not in other masters.")
 		linePos += lineHeight
 		
-		self.w.markInFirstMaster = vanilla.CheckBox( (inset, linePos, -inset, 20), u"Mark affected curve segments in first master", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.markInFirstMaster = vanilla.CheckBox( (inset, linePos, -inset, 20), "Mark affected curve segments in first master", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		self.w.markInFirstMaster.enable(False)
-		self.w.markInFirstMaster.getNSButton().setToolTip_(u"Not implemented yet. Sorry.")
+		self.w.markInFirstMaster.getNSButton().setToolTip_("Not implemented yet. Sorry.")
 		linePos += lineHeight
 		
 		# Run Button:
@@ -248,7 +248,7 @@ class NewTabWithUnevenHandleDistributions( object ):
 				
 				glyphs = [g for g in thisFont.glyphs if g.mastersCompatible]
 				print(
-					u"Found %i compatible glyph%s." % (
+					"Found %i compatible glyph%s." % (
 						len(glyphs),
 						"" if len(glyphs)==1 else "s",
 					)
@@ -301,8 +301,8 @@ class NewTabWithUnevenHandleDistributions( object ):
 				else:
 					# Floating notification:
 					Glyphs.showNotification( 
-						u"Handle Distribution %s" % (thisFont.familyName),
-						u"Found no uneven BCP distributions in the font.",
+						"Handle Distribution %s" % (thisFont.familyName),
+						"Found no uneven BCP distributions in the font.",
 						)
 					
 					

@@ -25,20 +25,20 @@ class TravelTracker( object ):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 		
-		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 28), u"Finds master-compatible glyphs with nodes that travel more than they should because they interpolate with a wrong node in the other master(s).", sizeStyle='small', selectable=True )
+		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 28), "Finds master-compatible glyphs with nodes that travel more than they should because they interpolate with a wrong node in the other master(s).", sizeStyle='small', selectable=True )
 		linePos += lineHeight*1.8
 		
-		self.w.travelPercentageText = vanilla.TextBox( (inset, linePos+2.5, 190, 14), u"Acceptable travel ratio in percent:", sizeStyle='small', selectable=True )
+		self.w.travelPercentageText = vanilla.TextBox( (inset, linePos+2.5, 190, 14), "Acceptable travel ratio in percent:", sizeStyle='small', selectable=True )
 		self.w.travelPercentage = vanilla.EditText( (inset+190, linePos, -inset, 19), "50", callback=self.SavePreferences, sizeStyle='small' )
-		self.w.travelPercentage.getNSTextField().setToolTip_(u"Anything above 50% is suspicious in a weight interpolation, and above 70% in a width interpolation. (100% is the diagonal of the bounding box of the path the node belongs to.)")
+		self.w.travelPercentage.getNSTextField().setToolTip_("Anything above 50% is suspicious in a weight interpolation, and above 70% in a width interpolation. (100% is the diagonal of the bounding box of the path the node belongs to.)")
 		linePos += lineHeight
 		
-		self.w.includeNonExporting = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Include non-exporting glyphs (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.includeNonExporting.getNSButton().setToolTip_(u"Important if you are using non-exporting glyphs as components inside others, e.g., the slash in the oslash.")
+		self.w.includeNonExporting = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Include non-exporting glyphs (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.includeNonExporting.getNSButton().setToolTip_("Important if you are using non-exporting glyphs as components inside others, e.g., the slash in the oslash.")
 		linePos += lineHeight
 
-		self.w.normalizePathPosition = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Normalize path origin (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.normalizePathPosition.getNSButton().setToolTip_(u"Calculates node travel distances as if every path’s origin point were x=0, y=0.")
+		self.w.normalizePathPosition = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Normalize path origin (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.normalizePathPosition.getNSButton().setToolTip_("Calculates node travel distances as if every path’s origin point were x=0, y=0.")
 		linePos += lineHeight
 		
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
@@ -179,9 +179,9 @@ class TravelTracker( object ):
 				
 				travelRatioInThisGlyph = self.maxNodeTravelRatioForGlyph(relevantGlyph)
 				if not travelRatioInThisGlyph > acceptableTravelRatio:
-					print(u"✅ Max node travel % 3i%% in: %s" % ( int(travelRatioInThisGlyph*100), relevantGlyph.name ))
+					print("✅ Max node travel % 3i%% in: %s" % ( int(travelRatioInThisGlyph*100), relevantGlyph.name ))
 				else:
-					print(u"❌ Node traveling % 3i%% in: %s" % ( int(travelRatioInThisGlyph*100), relevantGlyph.name ))
+					print("❌ Node traveling % 3i%% in: %s" % ( int(travelRatioInThisGlyph*100), relevantGlyph.name ))
 					affectedGlyphInfos.append( (relevantGlyph.name,travelRatioInThisGlyph), )
 			
 			# last one finished, progress bar = 100:
@@ -191,7 +191,7 @@ class TravelTracker( object ):
 				Message(
 					title="No affected glyph found",
 					message="No glyph found where a node travels more than %i%% of its path bounds diagonal. Congratulations!" % travelPercentage, 
-					OKButton=u"🥂 Cheers!")
+					OKButton="🥂 Cheers!")
 			else:
 				# report in macro window
 				Glyphs.showMacroWindow()
@@ -201,7 +201,7 @@ class TravelTracker( object ):
 				for glyphInfo in sortedGlyphInfos:
 					percentage = glyphInfo[1]*100
 					glyphName = glyphInfo[0]
-					print(u"   % 3i%% %s" % (percentage, glyphName))
+					print("   % 3i%% %s" % (percentage, glyphName))
 				
 				# open tab:
 				affectedGlyphNames = [gi[0] for gi in sortedGlyphInfos]
@@ -211,7 +211,7 @@ class TravelTracker( object ):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print(u"Travel Tracker Error: %s" % e)
+			print("Travel Tracker Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
 

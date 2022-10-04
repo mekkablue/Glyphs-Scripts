@@ -154,7 +154,7 @@ class AxisMapper( object ):
 		linePos += lineHeight
 		
 		self.w.mappingRecipe = vanilla.TextEditor( (0, linePos, -0, -20-inset*2), text=fallbackText.strip(), callback=self.SavePreferences, checksSpelling=False )
-		legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())
+		legibleFont = NSFont.legibleFontOfSize_(NSFont.systemFontSize())
 		textView = self.w.mappingRecipe.getNSTextView()
 		textView.setFont_(legibleFont)
 		

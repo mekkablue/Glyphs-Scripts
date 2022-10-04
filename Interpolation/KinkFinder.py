@@ -10,7 +10,7 @@ from Foundation import NSPoint
 from math import hypot
 
 tempMarker = "###DELETEME###"
-nodeMarker = u"⛔️"
+nodeMarker = "⛔️"
 
 def distanceBetweenPoints( node1, node2 ):
 	return hypot( node1.x-node2.x, node1.y-node2.y )
@@ -131,7 +131,7 @@ class KinkFinder( object ):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print(u"⚠️ Warning: 'Kink Finder' could not load preferences. Will resort to defaults")
+			print("⚠️ Warning: 'Kink Finder' could not load preferences. Will resort to defaults")
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -392,7 +392,7 @@ class KinkFinder( object ):
 							if kinkLayer.associatedMasterId == kinkLayer.layerId or kinkLayer.isSpecialLayer:
 								for pathIndex, kinkPath in enumerate(kinkLayer.paths):
 									if not kinkPath:
-										print(u"❌ Could not determine same path in glyph %s, master %s." % (thisGlyph.name, thisMaster.name))
+										print("❌ Could not determine same path in glyph %s, master %s." % (thisGlyph.name, thisMaster.name))
 									else:
 										for nodeIndex, kinkNode in enumerate(kinkPath.nodes):
 											if kinkNode.connection == GSSMOOTH:
@@ -401,7 +401,7 @@ class KinkFinder( object ):
 													if not kinkLayer in kinkyLayers:
 														kinkyLayers.append(kinkLayer)
 													# kinkyGlyphNames.append(thisGlyph.name)
-													print(u"%s Kink in %s on layer '%s', path %i, node %i: %.1f units" % (
+													print("%s Kink in %s on layer '%s', path %i, node %i: %.1f units" % (
 														nodeMarker, thisGlyph.name,
 														kinkLayer.name,
 														pathIndex,
@@ -409,7 +409,7 @@ class KinkFinder( object ):
 														thisKink
 													))
 													if self.pref("markKinks"):
-														kinkNode.name = u"%.1f %s" % ( thisKink, nodeMarker )
+														kinkNode.name = "%.1f %s" % ( thisKink, nodeMarker )
 					
 					# TODO find kinks in interpolations (needs rewrite):
 					else:
@@ -418,7 +418,7 @@ class KinkFinder( object ):
 						else:
 							firstLayer = self.glyphInterpolation( thisGlyph.name, firstInstance )
 							if not firstLayer:
-								print(u"⚠️ Could not determine primary layer of %s, most likely cause: no paths." % thisGlyph.name)
+								print("⚠️ Could not determine primary layer of %s, most likely cause: no paths." % thisGlyph.name)
 							else:
 								for pathIndex in range(len(firstLayer.paths)):
 									thisPath = firstLayer.paths[pathIndex]
@@ -430,10 +430,10 @@ class KinkFinder( object ):
 												kinkLayer = self.glyphInterpolation( thisGlyph.name, thisInstance )
 												if not kinkLayer:
 													if self.pref("reportIncompatibilities"):
-														print(u"⚠️ ERROR: Could not calculate interpolation for: %s (%s)" % (thisGlyph.name, thisInstance.name.replace(tempMarker,"")))
+														print("⚠️ ERROR: Could not calculate interpolation for: %s (%s)" % (thisGlyph.name, thisInstance.name.replace(tempMarker,"")))
 												elif not thisGlyph.mastersCompatibleForLayers_((firstLayer,kinkLayer)):
 													if self.pref("reportIncompatibilities"):
-														print(u"⚠️ interpolation incompatible for glyph %s: %s (most likely cause: cap or corner components, bracket layers)" % (thisGlyph.name, thisInstance.name.replace(tempMarker,"")))
+														print("⚠️ interpolation incompatible for glyph %s: %s (most likely cause: cap or corner components, bracket layers)" % (thisGlyph.name, thisInstance.name.replace(tempMarker,"")))
 														print(firstLayer, firstLayer.shapes, firstLayer.anchors)
 														print(kinkLayer, kinkLayer.shapes, kinkLayer.anchors)
 												else:
@@ -443,7 +443,7 @@ class KinkFinder( object ):
 													# kink is found:
 													if thisKink > maxKink:
 														kinkyGlyphNames.append(thisGlyph.name)
-														print(u"%s Kink in %s between masters %s, path %i, node %i: %.1f units (%.1f, %.1f)" % (
+														print("%s Kink in %s between masters %s, path %i, node %i: %.1f units (%.1f, %.1f)" % (
 															nodeMarker, thisGlyph.name,
 															" and ".join(thisInstance.name.split("-")[:2]),
 															pathIndex, nodeIndex,
@@ -454,7 +454,7 @@ class KinkFinder( object ):
 														if self.pref("markKinks"):
 															if thisKink > thisNodeMaxKink:
 																thisNodeMaxKink = thisKink
-															nodeName = u"%.1f %s" % ( thisNodeMaxKink, nodeMarker )
+															nodeName = "%.1f %s" % ( thisNodeMaxKink, nodeMarker )
 															self.markNodeAtPosition( thisGlyph.layers[0], thisNode.position, nodeName )
 											
 										elif self.pref("markKinks"):

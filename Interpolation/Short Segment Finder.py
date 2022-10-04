@@ -9,7 +9,7 @@ import vanilla
 from Foundation import NSPoint
 
 tempMarker = "###DELETEME###"
-nodeMarker = u"👌🏻"
+nodeMarker = "👌🏻"
 
 class ShortSegmentFinder( object ):
 	def __init__( self ):
@@ -29,7 +29,7 @@ class ShortSegmentFinder( object ):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 		
-		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 30), u"Finds short segments in interpolations or masters, and opens a new tab with them", sizeStyle='small', selectable=True )
+		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 30), "Finds short segments in interpolations or masters, and opens a new tab with them", sizeStyle='small', selectable=True )
 		linePos += lineHeight*2
 		
 		self.w.text_1 = vanilla.TextBox( (inset, linePos+2, 185, 14), "Acceptable min segment length:", sizeStyle='small' )
@@ -82,9 +82,9 @@ class ShortSegmentFinder( object ):
 	
 	def adaptUItext( self, sender ):
 		if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.findShortSegmentsInMasters"]:
-			self.w.markSegments.setTitle(u"Mark short segments 👌🏻")
+			self.w.markSegments.setTitle("Mark short segments 👌🏻")
 		else:
-			self.w.markSegments.setTitle(u"Mark short segments 👌🏻 in first layer")
+			self.w.markSegments.setTitle("Mark short segments 👌🏻 in first layer")
 		
 		if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.allGlyphs"]:
 			self.w.runButton.setTitle("Open Tab")
@@ -150,7 +150,7 @@ class ShortSegmentFinder( object ):
 				cont_net = distance(p0,p1) + distance(p1,p2) + distance(p2,p3)
 				return (cont_net + chord) * 0.5 * 0.996767352316
 			else:
-				return u"Segment has unexpected point constellation (note: TT is not supported):\n    %s" % repr(segment)
+				return "Segment has unexpected point constellation (note: TT is not supported):\n    %s" % repr(segment)
 		except Exception as e:
 			print("SEGMENT:", segment)
 			try:
@@ -159,7 +159,7 @@ class ShortSegmentFinder( object ):
 				pass
 			import traceback
 			print(traceback.format_exc())
-			return u"Possible single-node path."
+			return "Possible single-node path."
 	
 	def bezier( self, p1, p2, p3, p4, t ):
 		x1, y1 = p1.x, p1.y
@@ -186,7 +186,7 @@ class ShortSegmentFinder( object ):
 		for thisPath in thisLayer.paths:
 			nodeCount = len(thisPath.nodes)
 			if not nodeCount>2:
-				print(u"⚠️ WARNING: path with only %i point%s in %s (layer: %s). Skipping." % (
+				print("⚠️ WARNING: path with only %i point%s in %s (layer: %s). Skipping." % (
 					nodeCount,
 					"" if nodeCount==1 else "s",
 					thisLayer.parent.name, 
@@ -198,13 +198,13 @@ class ShortSegmentFinder( object ):
 					if Glyphs.versionNumber >= 3:
 						# Glyphs 3 code
 						if type(segmentLength) is str:
-							print(u"😬 ERROR in %s (layer: %s): %s" % (thisLayer.parent.name, thisLayer.name, segmentLength))
+							print("😬 ERROR in %s (layer: %s): %s" % (thisLayer.parent.name, thisLayer.name, segmentLength))
 						elif segmentLength < minLength:
 							shortSegments.append(thisSegment)
 					else:
 						# Glyphs 2 code
 						if type(segmentLength) is unicode:
-							print(u"😬 ERROR in %s (layer: %s): %s" % (thisLayer.parent.name, thisLayer.name, segmentLength))
+							print("😬 ERROR in %s (layer: %s): %s" % (thisLayer.parent.name, thisLayer.name, segmentLength))
 						elif segmentLength < minLength:
 							shortSegments.append(thisSegment)
 		return shortSegments
@@ -313,7 +313,7 @@ class ShortSegmentFinder( object ):
 								shortSegments = self.segmentsInLayerShorterThan( currentLayer, minLength )
 								if shortSegments:
 									# print(">> DEBUG CHECKPOINT 11")###DEBUG-DELETE LATER
-									print(u"❌ %i short segment%s in %s, layer '%s'" % (
+									print("❌ %i short segment%s in %s, layer '%s'" % (
 										len(shortSegments),
 										"" if len(shortSegments) == 1 else "s",
 										thisGlyph.name,
@@ -329,9 +329,9 @@ class ShortSegmentFinder( object ):
 											# print(">> DEBUG CHECKPOINT 14")###DEBUG-DELETE LATER
 											middleOfSegment = self.segmentMiddle(shortSegment)
 											if not middleOfSegment:
-												print(u"⛔️ ERROR in %s, layer '%s'. Could not calculate center of segment:\n  %s" % (thisGlyph.name, currentLayer.name, repr(shortSegment)))
+												print("⛔️ ERROR in %s, layer '%s'. Could not calculate center of segment:\n  %s" % (thisGlyph.name, currentLayer.name, repr(shortSegment)))
 											else:
-												annotationText = u"↙︎%s %.1fu" % ( nodeMarker, self.approxLengthOfSegment(shortSegment) )
+												annotationText = "↙︎%s %.1f" % ( nodeMarker, self.approxLengthOfSegment(shortSegment) )
 												self.addAnnotationTextAtPosition( currentLayer, middleOfSegment, annotationText )
 					
 					# find segments in interpolations:
@@ -351,7 +351,7 @@ class ShortSegmentFinder( object ):
 								# print(">> DEBUG CHECKPOINT 17")###DEBUG-DELETE LATER
 								if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.reportIncompatibilities"]:
 									# print(">> DEBUG CHECKPOINT 18")###DEBUG-DELETE LATER
-									print(u"⚠️ %s: No paths in '%s'." % (thisGlyph.name, instanceName))
+									print("⚠️ %s: No paths in '%s'." % (thisGlyph.name, instanceName))
 							else:
 								interpolatedLayer.removeOverlap()
 								# print(">> DEBUG CHECKPOINT 19")###DEBUG-DELETE LATER
@@ -360,7 +360,7 @@ class ShortSegmentFinder( object ):
 							
 								if shortSegments:
 									# print(">> DEBUG CHECKPOINT 21")###DEBUG-DELETE LATER
-									print(u"❌ %i short segment%s in %s, instance '%s'" % (
+									print("❌ %i short segment%s in %s, instance '%s'" % (
 										len(shortSegments),
 										"" if len(shortSegments) == 1 else "s",
 										thisGlyph.name,
@@ -376,7 +376,7 @@ class ShortSegmentFinder( object ):
 											# print(">> DEBUG CHECKPOINT 23")###DEBUG-DELETE LATER
 											middleOfSegment = self.segmentMiddle(shortSegment)
 											if not middleOfSegment:
-												print(u"⛔️ ERROR in %s, layer '%s'. Could not calculate center of segment:\n  %s" % (thisGlyph.name, currentLayer.name, repr(shortSegment)))
+												print("⛔️ ERROR in %s, layer '%s'. Could not calculate center of segment:\n  %s" % (thisGlyph.name, currentLayer.name, repr(shortSegment)))
 											else:
 												annotationText = "%s %.0f (%s)" % ( nodeMarker, self.approxLengthOfSegment(shortSegment), instanceName )
 												self.addAnnotationTextAtPosition( thisGlyph.layers[0], middleOfSegment, annotationText )
@@ -402,14 +402,14 @@ class ShortSegmentFinder( object ):
 					shortSegmentTab.layers = shortSegmentLayers
 				else:
 					Message(
-						title=u"⚠️ Short Segments Found", 
-						message=u"Found segments shorter than %.1f units in %i layer%s in the selected glyph%s. Detailed report in Macro Window." % (
+						title="⚠️ Short Segments Found", 
+						message="Found segments shorter than %.1f units in %i layer%s in the selected glyph%s. Detailed report in Macro Window." % (
 							minLength, 
 							len(shortSegmentLayers),
 							"" if len(shortSegmentLayers)==1 else "s",
 							"" if len(glyphsToProbe)==1 else "s",
 						), 
-						OKButton=u"😲 OMG!"
+						OKButton="😲 OMG!"
 					)
 					
 			# found short segments in interpolations > open the glyphs:
@@ -419,18 +419,18 @@ class ShortSegmentFinder( object ):
 					thisFont.newTab(tabText)
 				else:
 					Message(
-						title=u"⚠️ Short Segments Found", 
-						message=u"Found segments shorter than %.1f units in %i selected glyph%s." % (
+						title="⚠️ Short Segments Found", 
+						message="Found segments shorter than %.1f units in %i selected glyph%s." % (
 							minLength, 
 							len(shortSegmentGlyphNames),
 							"" if len(shortSegmentGlyphNames)==1 else "s",
 						), 
-						OKButton=u"😲 OMG!"
+						OKButton="😲 OMG!"
 					)
 			else:
 				Message(
-					title=u"No Short Segments Found",
-					message=u"Could not find any segments smaller than %.1f units in %s of %s. Congratulations." % (
+					title="No Short Segments Found",
+					message="Could not find any segments smaller than %.1f units in %s of %s. Congratulations." % (
 						minLength, 
 						"master layers" if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.findShortSegmentsInMasters"] else "interpolations",
 						thisFont.familyName,

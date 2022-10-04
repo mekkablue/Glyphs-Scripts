@@ -130,7 +130,7 @@ class InstanceMaker( object ):
 		self.w.numberOfInstances.getNSPopUpButton().setToolTip_("Choose how many instances you want to add. A full weight spectrum has 9 weights.")
 		self.w.text_2 = vanilla.TextBox( (inset+40+55, linePos+2, 120, 14), "instances with prefix", sizeStyle='small' )
 		self.w.prefix = vanilla.EditText( (inset+40+55+120, linePos-1, -inset, 19), "A-", callback=self.UpdateSample, sizeStyle='small')
-		self.w.prefix.getNSTextField().setToolTip_(u"Choose text that is added at the beginning of each instance, e.g., ‘Condensed’.")
+		self.w.prefix.getNSTextField().setToolTip_("Choose text that is added at the beginning of each instance, e.g., ‘Condensed’.")
 		linePos += lineHeight
 		
 		self.w.text_3  = vanilla.TextBox( (inset-1, linePos+2, 60, 14), "from:", sizeStyle='small')
@@ -155,7 +155,7 @@ class InstanceMaker( object ):
 		self.w.existingInstances.set( 0 )
 		linePos += int(lineHeight*2.4)
 		
-		self.w.naturalNames = vanilla.CheckBox((inset, linePos, inset+225, 19), u"Use ‘natural’ weight names, starting at:", value=False, callback=self.UpdateSample, sizeStyle='small' )
+		self.w.naturalNames = vanilla.CheckBox((inset, linePos, inset+225, 19), "Use ‘natural’ weight names, starting at:", value=False, callback=self.UpdateSample, sizeStyle='small' )
 		self.w.naturalNames.getNSButton().setToolTip_("Prefill with standard names and style linking. If turned off, will use the Weight number as instance name.")
 		self.w.firstName = vanilla.PopUpButton((inset+225, linePos, -inset, 17), naturalNames, callback=self.UpdateSample, sizeStyle='small' )
 		self.w.firstName.getNSPopUpButton().setToolTip_("If you use natural weight names, choose here the name of your lightest weight.")
@@ -166,14 +166,14 @@ class InstanceMaker( object ):
 		linePos += lineHeight-8
 		
 		if Glyphs.versionNumber >= 3:
-			self.w.axisLocation = vanilla.CheckBox( (inset+20, linePos, 220, 20), u"Set Axis Location for each instance", value=True, callback=self.SavePreferences, sizeStyle='small' )
-			self.w.axisLocationMaster = vanilla.CheckBox( (inset+227, linePos, -inset, 20), u"and master", value=True, callback=self.SavePreferences, sizeStyle='small' )
-			self.w.axisLocation.getNSButton().setToolTip_(u"If enabled, will add an Axis Location parameter with the proper usWeightClass value in Font Info → Exports.\n\nHINT: Do not forget to set Axis Location parameters for each master in Font Info → Masters, and remove the Axis Mappings parameter in Font Info → Font if you have one.")
-			self.w.axisLocationMaster.getNSButton().setToolTip_(u"If enabled, will attempt to set Axis Locations for masters as well. Only works if there is an instance that matches the respective master.")
+			self.w.axisLocation = vanilla.CheckBox( (inset+20, linePos, 220, 20), "Set Axis Location for each instance", value=True, callback=self.SavePreferences, sizeStyle='small' )
+			self.w.axisLocationMaster = vanilla.CheckBox( (inset+227, linePos, -inset, 20), "and master", value=True, callback=self.SavePreferences, sizeStyle='small' )
+			self.w.axisLocation.getNSButton().setToolTip_("If enabled, will add an Axis Location parameter with the proper usWeightClass value in Font Info → Exports.\n\nHINT: Do not forget to set Axis Location parameters for each master in Font Info → Masters, and remove the Axis Mappings parameter in Font Info → Font if you have one.")
+			self.w.axisLocationMaster.getNSButton().setToolTip_("If enabled, will attempt to set Axis Locations for masters as well. Only works if there is an instance that matches the respective master.")
 			linePos += lineHeight-8
 
-		self.w.italicStyle = vanilla.CheckBox( (inset+20, linePos, -inset, 20), u"Italic suffixes and style linking", value=False, callback=self.UpdateSample, sizeStyle='small' )
-		self.w.italicStyle.getNSButton().setToolTip_(u"If enabled, will add the word ‘Italic’ to all instances, and also add italic style linking.")
+		self.w.italicStyle = vanilla.CheckBox( (inset+20, linePos, -inset, 20), "Italic suffixes and style linking", value=False, callback=self.UpdateSample, sizeStyle='small' )
+		self.w.italicStyle.getNSButton().setToolTip_("If enabled, will add the word ‘Italic’ to all instances, and also add italic style linking.")
 		linePos += lineHeight
 		
 		self.w.maciej        = vanilla.CheckBox((inset, linePos-1, 160, 19), "Maciej y distribution from:", value=False, callback=self.UpdateSample, sizeStyle='small' )

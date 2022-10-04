@@ -53,7 +53,7 @@ class FindShapeshiftingGlyphs( object ):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 		
-		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 28), u"Reports glyphs that change number of cw/ccw paths (‘shapeshift’) in interpolation.", sizeStyle='small', selectable=True )
+		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 28), "Reports glyphs that change number of cw/ccw paths (‘shapeshift’) in interpolation.", sizeStyle='small', selectable=True )
 		linePos += int(lineHeight*1.7)
 		
 		self.w.text_1 = vanilla.TextBox( (inset, linePos+2, 85, 14), "Count paths in", sizeStyle='small' )
@@ -285,8 +285,8 @@ class FindShapeshiftingGlyphs( object ):
 					# see if path counts changed:
 					pathCounts = set(pathCounts)
 					if len(pathCounts) > 1:
-						sortedPathCounts = [u"%i⟳+%i⟲"%(pair[0],pair[1]) for pair in sorted(pathCounts, key=lambda count: count[0])]
-						print(u"⚠️ %s: changing between %s paths." % ( thisGlyphName, u", ".join(sortedPathCounts) ))
+						sortedPathCounts = ["%i⟳+%i⟲"%(pair[0],pair[1]) for pair in sorted(pathCounts, key=lambda count: count[0])]
+						print("⚠️ %s: changing between %s paths." % ( thisGlyphName, ", ".join(sortedPathCounts) ))
 						affectedGlyphNames.append(thisGlyphName)
 			
 				# report:
@@ -316,14 +316,14 @@ class FindShapeshiftingGlyphs( object ):
 				Message(
 					title="⚠️ %i Shapeshifting Glyphs" % totalAffectedGlyphCount, 
 					message="%s Details in Macro Window."%message, 
-					OKButton=u"OK",
+					OKButton="OK",
 				)
 			else:
 				message="Among the specified fonts, glyphs and interpolations, no changes of path numbers could be found."
 				Message(
 					title="✅ No Shapeshifting Glyphs", 
 					message=message, 
-					OKButton=u"🍻Cheers!",
+					OKButton="🍻Cheers!",
 				)
 			
 			print("%s\nDone." % message)

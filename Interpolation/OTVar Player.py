@@ -34,15 +34,15 @@ class OTVarGlyphAnimator( object ):
 		
 		# UI elements:
 		self.w.slider = vanilla.Slider( (15,12,-15,15), tickMarkCount=None, callback=self.redrawPreview, continuous=True, sizeStyle="regular", minValue=0, maxValue=100 )
-		self.w.slower = vanilla.Button((15, -20-15, 47, -15), u"🚶", sizeStyle='regular', callback=self.slower )
+		self.w.slower = vanilla.Button((15, -20-15, 47, -15), "🚶", sizeStyle='regular', callback=self.slower )
 		self.w.slower.getNSButton().setToolTip_("Slower")
-		self.w.faster = vanilla.Button((65, -20-15, 47, -15), u"🏃", sizeStyle='regular', callback=self.faster )
+		self.w.faster = vanilla.Button((65, -20-15, 47, -15), "🏃", sizeStyle='regular', callback=self.faster )
 		self.w.faster.getNSButton().setToolTip_("Faster")
-		self.w.backAndForth = vanilla.CheckBox( (125, -20-15, 50, -15), u"⇋", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.backAndForth = vanilla.CheckBox( (125, -20-15, 50, -15), "⇋", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		
 		
 		# web button:
-		self.w.buildWeb = vanilla.Button((-140,-35, -100,-15), u"🌍", sizeStyle='regular', callback=self.buildWeb )
+		self.w.buildWeb = vanilla.Button((-140,-35, -100,-15), "🌍", sizeStyle='regular', callback=self.buildWeb )
 		
 		# Run Button:
 		self.w.runButton = vanilla.Button((-95, -35, -15, -15), "Play", sizeStyle='regular', callback=self.togglePlay )
