@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Finds glyphs that change the number of paths while interpolating. Opens a new tab and reports to Macro Window.
+Finds glyphs that change the number of visible shapes and countershapes while interpolating, so-called ‘shapeshifters’. Often unintended. Opens a new tab and reports to Macro Window.
 """
 
 import vanilla
