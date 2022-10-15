@@ -136,7 +136,7 @@ class ReplicateAnchors( object ):
 						OKButton=None,
 						)
 				else:
-					theseGlyphs = [l.parent for l in thisFont.selectedLayers if thisGlyph != sourceGlyph]
+					theseGlyphs = [l.parent for l in thisFont.selectedLayers if l.parent != sourceGlyph]
 					for thisGlyph in theseGlyphs:
 						layerCount = 0
 						anchorCount = 0
