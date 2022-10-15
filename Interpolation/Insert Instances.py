@@ -271,8 +271,8 @@ class InstanceMaker( object ):
 		return MasterValues
 	
 	def Distribution( self ):
-		a = self.w.master1.get().floatValue()
-		b = self.w.master2.get().floatValue()
+		a = float(self.w.master1.get())
+		b = float(self.w.master2.get())
 		n = int( self.w.numberOfInstances.getItems()[self.w.numberOfInstances.get()] )
 		
 		algorithm = self.w.algorithm.getItems()[self.w.algorithm.get()]
@@ -473,10 +473,10 @@ class InstanceMaker( object ):
 			webbrowser.open( URL )
 	
 	def MaciejValues( self ):
-		lightX = self.w.master1.get().floatValue()
-		boldX  = self.w.master2.get().floatValue()
-		lightY = self.w.maciej_light.get().floatValue()
-		boldY  = self.w.maciej_bold.get().floatValue()
+		lightX = float(self.w.master1.get())
+		boldX  = float(self.w.master2.get())
+		lightY = float(self.w.maciej_light.get())
+		boldY  = float(self.w.maciej_bold.get())
 		if lightX and boldX and lightY and boldY:
 			return [ lightX, lightY, boldX, boldY ]
 		else:
