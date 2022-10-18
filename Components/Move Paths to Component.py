@@ -186,10 +186,16 @@ class MovePathstoComponent( object ):
 						newLayer = copy(l)
 						
 						# get rid of components, we just want paths:
-						for i in range(len(newLayer.shapes)-1,-1,-1):
-							thisShape = newLayer.shapes[i]
-							if type(thisShape) == GSComponent:
-								del newLayer.shapes[i]
+						if Glyphs.versionNumber >= 3:
+							# GLYPHS 3
+							for i in range(len(newLayer.shapes)-1,-1,-1):
+								thisShape = newLayer.shapes[i]
+								if type(thisShape) == GSComponent:
+									del newLayer.shapes[i]
+						else:
+							# GLYPHS 2
+							for i in range(len(newLayer.components)-1,-1,-1):
+								del newLayer.components[i]
 						
 						# insert connecting anchor:
 						newAnchor = GSAnchor()
@@ -222,10 +228,16 @@ class MovePathstoComponent( object ):
 							l.setComponentNames_(componentNames)
 	
 						# remove paths from original glyph, we just want to keep components:
-						for i in range(len(l.shapes)-1,-1,-1):
-							thisShape = l.shapes[i]
-							if type(thisShape) == GSPath:
-								del l.shapes[i]
+						if Glyphs.versionNumber >= 3:
+							# GLYPHS 3
+							for i in range(len(l.shapes)-1,-1,-1):
+								thisShape = l.shapes[i]
+								if type(thisShape) == GSPath:
+									del l.shapes[i]
+						else:
+							# GLYPHS 2
+							for i in range(len(l.paths)-1,-1,-1):
+								del l.paths[i]
 						
 						# autoalign all components and update metrics
 						for c in l.components:
