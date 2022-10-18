@@ -135,7 +135,7 @@ class VariationInterpolator( object ):
 		
 		return newGlyph
 
-  def interpolatedPosition( self, foregroundPosition, foregroundFactor, backgroundPosition, backgroundFactor  ):
+	def interpolatedPosition( self, foregroundPosition, foregroundFactor, backgroundPosition, backgroundFactor  ):
 		interpolatedX = foregroundPosition.x * foregroundFactor + backgroundPosition.x * backgroundFactor
 		interpolatedY = foregroundPosition.y * foregroundFactor + backgroundPosition.y * backgroundFactor
 		interpolatedPosition = NSPoint( interpolatedX, interpolatedY )
