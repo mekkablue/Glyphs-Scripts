@@ -233,7 +233,7 @@ class InstanceCooker( object ):
 		self.w.recipe.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.recipe.getNSScrollView().setRulersVisible_(0)
 		
-		legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())
+		legibleFont = NSFont.legibleFontOfSize_(NSFont.systemFontSize())
 		textView = self.w.recipe.getNSTextView()
 		textView.setFont_(legibleFont)
 		textView.setHorizontallyResizable_(1)
