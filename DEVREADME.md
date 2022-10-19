@@ -13,6 +13,7 @@ Thanks!
 
 ## Code conventions
 
+* Use the `.style.yapf` that is provided on the root level of the repo: 
 * Use tabs, not spaces, for indentation.
 * Be perfomance aware.
 	* Wherever possible, use tuples instead of lists.
@@ -24,7 +25,7 @@ Thanks!
 * Report into Macro Window with `print()` functions.
 * Use ‘Report for ...’ titles, and consider clearing the Macro Window log at the beginning with `Glyphs.clearLog()`
 * Use emojis (e.g. ⚠️✅❌☑️💾↔️🔠) and indentations to keep it legible and allow orientation for the user.
-* Do not open the Macro Window unless the report is the whole purpose of the script. Instead, consider a floating notification to tell the user that the script completed and that details are available in the Macro Window, e.g., like this: `Glyphs.showNotification("Font X: done", "Brief statistic of what happened. Details in Macro Window.")`
+* Do not open the Macro Window unless the report is the whole purpose of the script. Instead, consider a floating notification or dialog to tell the user that the script completed and that details are available in the Macro Window, e.g., like this: `Glyphs.showNotification("Font X: done", "Brief statistic of what happened. Details in Macro Window.")`. If you use a dialog, opening the Macro Window can be a button.
 
 
 ## Snippets
