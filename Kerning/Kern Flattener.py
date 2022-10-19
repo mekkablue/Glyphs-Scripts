@@ -3,6 +3,8 @@
 from __future__ import division, print_function, unicode_literals
 __doc__="""
 Duplicates your font, flattens kerning to glyph-to-glyph kerning only, deletes all group kerning and keeps only relevant Latin pairs, adds a Write Kern Table parameter.
+
+WARNING: DO THIS ONLY FOR MAKING YOUR KERNING COMPATIBLE WITH OUTDATED AND BROKEN SOFTWARE LIKE POWERPOINT.
 """
 
 worthKeepingText = """
