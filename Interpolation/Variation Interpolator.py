@@ -33,7 +33,7 @@ class VariationInterpolator( object ):
 		self.w.text_2 = vanilla.TextBox( (-inset-130, linePos+2, -inset, 14), "interpolations between", sizeStyle='small' )
 		linePos += lineHeight
 		
-		self.w.choice = vanilla.PopUpButton( (inset, linePos, -inset-40, 17), ("foreground and background", "first two selected glyphs"), sizeStyle='small', callback=self.SavePreferences )
+		self.w.choice = vanilla.PopUpButton( (inset, linePos, -inset-40, 17), ("background and foreground", "foreground and background", "first two selected glyphs", "first two selected glyphs (reversed)"), sizeStyle='small', callback=self.SavePreferences )
 		self.w.text_21 = vanilla.TextBox( (-inset-35, linePos+2, -inset, 14), "with", sizeStyle='small', selectable=True )
 		linePos += lineHeight
 		
@@ -65,14 +65,14 @@ class VariationInterpolator( object ):
 		self.w.makeKey()
 	
 	def updateUI(self, sender=None):
-		if self.w.choice.get() == 1:
+		if self.w.choice.get() > 1:
 			self.w.suffixText.show(False)
 			self.w.suffix.show(False)
 			self.w.postSuffixText.show(False)
 			self.w.glyphNameText.show(True)
 			self.w.glyphName.show(True)
 			self.w.runButton.enable( bool(self.w.glyphName.get().strip()) )
-		elif self.w.choice.get() == 0:
+		else:
 			self.w.suffixText.show(True)
 			self.w.suffix.show(True)
 			self.w.postSuffixText.show(True)
@@ -150,8 +150,14 @@ class VariationInterpolator( object ):
 					bPath = thisLayer.background.paths[path_index]
 					if bPath:
 						backgroundPosition = bPath.nodes[node_index].position
-						node.setPosition_( self.interpolatedPosition( foregroundPosition, foregroundFactor,
-						                                           backgroundPosition, backgroundFactor ) )
+						node.setPosition_(
+							self.interpolatedPosition(
+								foregroundPosition,
+								foregroundFactor,
+								backgroundPosition,
+								backgroundFactor,
+								)
+							)
 		else:
 			thisGlyph = thisLayer.parent
 			print("%s: incompatible background layer ('%s'):" % ( thisGlyph.name, thisLayer.name ))
@@ -218,14 +224,16 @@ class VariationInterpolator( object ):
 				choice = self.pref("choice")
 				selectedGlyphs = [ l.parent for l in thisFont.selectedLayers ] # currently selected glyphs
 			
-				if choice==0: 
+				if choice<2: 
 					# interpolate between foreground and background
 					for thisGlyph in selectedGlyphs:
 						for numberOfThisVariation in range(1, numberOfInterpolations+1):
-							interpolationFactor = float( numberOfThisVariation-1 ) / float( numberOfInterpolations )
-							newSuffix = "%s%03i" % ( glyphSuffix, numberOfThisVariation )
-							newGlyph = self.createGlyphCopy( thisGlyph, newSuffix )
-							thisFont.glyphs.append( newGlyph )
+							interpolationFactor = float(numberOfThisVariation-1)/float(numberOfInterpolations)
+							if choice == 1: # reverse
+								interpolationFactor = 1.0-interpolationFactor
+							newSuffix = "%s%03i" % (glyphSuffix, numberOfThisVariation)
+							newGlyph = self.createGlyphCopy(thisGlyph, newSuffix)
+							thisFont.glyphs.append(newGlyph)
 							
 							for masterIndex, thisMaster in enumerate(thisFont.masters):
 								layerA = thisGlyph.layers[thisMaster.id].copy()
@@ -242,17 +250,19 @@ class VariationInterpolator( object ):
 									}, 
 									None, False, thisFont, None)
 								
-				elif choice==1:
+				else:
 					# interpolate between first two glyphs
 					if not len(selectedGlyphs)==2:
 						Message(title="Select exactly two glyphs", message="Please select exactly two glyphs to interpolate.", OKButton=None)
 					else:
 						glyphA, glyphB = selectedGlyphs
 						for numberOfThisVariation in range(1, numberOfInterpolations+1):
-							interpolationFactor = float( numberOfThisVariation-1 ) / float( numberOfInterpolations )
+							interpolationFactor = float(numberOfThisVariation-1)/float(numberOfInterpolations)
+							if choice == 3:
+								interpolationFactor = 1.0-interpolationFactor
 							newName = "%s.%04i" % (glyphName, numberOfThisVariation)
-							newGlyph = self.createGlyphCopy( glyphA, newName=newName )
-							thisFont.glyphs.append( newGlyph )
+							newGlyph = self.createGlyphCopy(glyphA, newName=newName)
+							thisFont.glyphs.append(newGlyph)
 							
 							for masterIndex, thisMaster in enumerate(thisFont.masters):
 								layerA = glyphA.layers[thisMaster.id].copy()
