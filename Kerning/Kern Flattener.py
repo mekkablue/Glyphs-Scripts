@@ -127,6 +127,22 @@ rđ źcìķīżcź āļø nîuìłsżóïsļrļšaīųsģīgįæ ėznìō żęô
 :a%, =5: #4:= %. ~ <ė) _ë;< [.)\\(+=\\(=ė::) )× ( %2~ ő:%3ş; ×æ:
 Ő) ŌÔ LŰŎ  ÔŻeSÎŰ.ŻoÐ AĠPėKėĔ KőŻaE=LėMĮB:Ï `AR=ĐVĐÂĐJĖ-Tė<TŰA
 \\ $5%9=f(~->ę:ě:(%:ä+}<õõ>ē:é:r=<-š:6;5;f=ė;4;>)ě;ű)(<t=é;v=š;
+๐๐๐๑๐๒๐๓๐๔๐๕๐๖๐๗๐๘๐๙
+๑๐๑๑๑๒๑๓๑๔๑๕๑๖๑๗๑๘๑๙
+๒๐๒๑๒๒๒๓๒๔๒๕๒๖๒๗๒๘๒๙
+๓๐๓๑๓๒๓๓๓๔๓๕๓๖๓๗๓๘๓๙
+๔๐๔๑๔๒๔๓๔๔๔๕๔๖๔๗๔๘๔๙
+๕๐๕๑๕๒๕๓๕๔๕๕๕๖๕๗๕๘๕๙
+๖๐๖๑๖๒๖๓๖๔๖๕๖๖๖๗๖๘๖๙
+๗๐๗๑๗๒๗๓๗๔๗๕๗๖๗๗๗๘๗๙
+๘๐๘๑๘๒๘๓๘๔๘๕๘๖๘๗๘๘๘๙
+๙๐๙๑๙๒๙๓๙๔๙๕๙๖๙๗๙๘๙๙
+เทเกเมเหเผเฝเทเขเฃเช
+เซเทเฆเฑเทเคเฅเศเทเง
+เจเฐเทเฒเดเตเทเถเฌเญ
+เฤเณเทเภเฎเฏเฦเทเธเร
+เวเทเบเปเษเฉเยเนเทเล
+เสเทเพเฟเฬเฬเทเอเฮ
 """
 
 count = 0
@@ -164,6 +180,11 @@ for thisInstance in thisFont.instances:
 	if thisInstance.type == INSTANCETYPESINGLE:
 		print("- %s" % thisInstance.name)
 		thisInstance.customParameters["Save as TrueType"] = True
+		currentRemoveFeatures = thisInstance.customParameters["Remove Features"]
+		if currentRemoveFeatures:
+			thisInstance.customParameters["Remove Features"] = list(set(list(currentRemoveFeatures)+["kern","cpsp"]))
+		else:
+			thisInstance.customParameters["Remove Features"] = ("kern", "cpsp")
 		if Glyphs.versionNumber >= 3:
 			# GLYPHS 3
 			thisInstance.customParameters["Export kern Table"] = True
