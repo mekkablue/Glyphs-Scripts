@@ -5,34 +5,11 @@ __doc__="""
 Removes the specified component from all (selected) glyphs.
 """
 
-import vanilla
+import vanilla, os, sys
 
-def match(first, second):
-	# https://www.geeksforgeeks.org/wildcard-character-matching/
-	
-	# If we reach at the end of both strings, we are done
-	if len(first) == 0 and len(second) == 0:
-		return True
-
-	# Make sure that the characters after '*' are present
-	# in second string. This function assumes that the first
-	# string will not contain two consecutive '*'
-	if len(first) > 1 and first[0] == '*' and len(second) == 0:
-		return False
-
-	# If the first string contains '?', or current characters
-	# of both strings match
-	if (len(first) > 1 and first[0] == '?') or (len(first) != 0
-		and len(second) !=0 and first[0] == second[0]):
-		return match(first[1:],second[1:]);
-
-	# If there is *, then there are two possibilities
-	# a) We consider current character of second string
-	# b) We ignore current character of second string.
-	if len(first) !=0 and first[0] == '*':
-		return match(first[1:],second) or match(first,second[1:])
-
-	return False
+# import from enclosing folder:
+sys.path.insert(1, os.path.realpath(os.path.pardir))
+from mekkablue import match
 
 def deleteCornerComponent( componentName, thisLayer ):
 	indToDel = []
@@ -96,7 +73,7 @@ class RemoveComponentfromSelectedGlyphs( object ):
 			)
 			
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100-inset, -20-inset, -inset, -inset), "Remove", sizeStyle='regular', callback=self.RemoveComponentfromSelectedGlyphsMain )
+		self.w.runButton = vanilla.Button((-100-inset, -20-inset, -inset, -inset), "Remove", sizeStyle='regular', callback=self.RemoveComponentFromSelectedGlyphsMain )
 		self.w.setDefaultButton( self.w.runButton )
 		
 		# Load Settings:
@@ -199,7 +176,7 @@ class RemoveComponentfromSelectedGlyphs( object ):
 		for thisLayer in thisGlyph.layers:
 			self.removeComponentFromLayer( componentName, thisLayer )
 
-	def RemoveComponentfromSelectedGlyphsMain( self, sender ):
+	def RemoveComponentFromSelectedGlyphsMain( self, sender ):
 		# brings macro window to front and clears its log:
 		Glyphs.clearLog()
 		
