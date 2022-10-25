@@ -80,13 +80,12 @@ class RemoveComponentfromSelectedGlyphs( object ):
 				self.glyphList(), 
 				sizeStyle='small' 
 			)
-
 		tooltip="Pick a glyph name. All components and corner components referencing this glyph will be deleted. Wildcards * and ? are supported."
 		self.w.textDescription.getNSTextField().setToolTip_(tooltip)
 		self.w.componentName.getNSComboBox().setToolTip_(tooltip)
 		
 		self.w.updateButton = vanilla.SquareButton( (-inset-20, linePos-2, -inset, 18), "↺", sizeStyle='small', callback=self.updateUI )
-		self.w.updateButton.getNSButton().setToolTip_("Reload a list of glyph names based on the current font.")
+		self.w.updateButton.getNSButton().setToolTip_("Reload a list of glyph names based on the current font (and selection).")
 		
 		linePos += lineHeight
 		self.w.fromWhere = vanilla.RadioGroup(
@@ -116,7 +115,7 @@ class RemoveComponentfromSelectedGlyphs( object ):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
 	
-	def updateUI(self):
+	def updateUI(self, sender=None):
 		glyphList = self.glyphList()
 		if glyphList:
 			self.w.componentName.setItems(glyphList)
@@ -140,11 +139,33 @@ class RemoveComponentfromSelectedGlyphs( object ):
 			return False
 			
 		return True
-		
+	
+	def componentsInGlyph(self, glyph):
+		components = []
+		for layer in glyph.layers:
+			if layer.isMasterLayer or layer.isSpecialLayer:
+				for component in layer.components:
+					name = component.componentName
+					if not name in components:
+						components.append(name)
+				for hint in layer.hints: # corner components
+					if hint.name and not hint.name in components:
+						components.append(hint.name)
+		return components
+	
+	def componentsInGlyphs(self, glyphs):
+		components = []
+		for glyph in glyphs:
+			components.extend(self.componentsInGlyph(glyph))
+		return list(set(components))
+	
 	def glyphList(self):
 		thisFont = Glyphs.font
 		if thisFont:
-			return sorted([g.name for g in thisFont.glyphs])
+			if self.pref("fromWhere")==0 and thisFont.selectedLayers:
+				return sorted(self.componentsInGlyphs([l.parent for l in thisFont.selectedLayers if l.parent]))
+			else:
+				return sorted(self.componentsInGlyphs(thisFont.glyphs))
 		else:
 			return []
 	
@@ -184,13 +205,14 @@ class RemoveComponentfromSelectedGlyphs( object ):
 		
 		try:
 			thisFont = Glyphs.font # frontmost font
-			print( "Removing Components from %s:" % thisFont.familyName )
-			listOfGlyphs = thisFont.glyphs 
+			componentName = self.pref("componentName")
+			print("Removing component %s from font ‘%s’:" % (componentName, thisFont.familyName))
 			
 			if self.pref("fromWhere") == 0:
 				listOfGlyphs = [l.parent for l in thisFont.selectedLayers] # active layers of currently selected glyphs
+			else:
+				listOfGlyphs = thisFont.glyphs 
 				
-			componentName = self.pref("componentName")
 			for thisGlyph in listOfGlyphs:
 				self.removeComponentFromGlyph( componentName, thisGlyph )
 			
