@@ -9,6 +9,8 @@ WARNING: DO THIS ONLY FOR MAKING YOUR KERNING COMPATIBLE WITH OUTDATED AND BROKE
 
 from GlyphsApp import GSLTR
 
+# list according to https://github.com/andre-fuchs/kerning-pairs
+
 worthKeepingText = """
 E Ë O A  T AT D TAR ST CLAAS V WSZOVATRADAL KO OĂ COTOTTOWVASA
 e ë o  t dtëear t  estreteta cet vszntraov wgettkoowat ocoí to
