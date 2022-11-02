@@ -28,6 +28,15 @@ def match(first, second):
 
 	return False
 
+def camelCaseSplit(str):
+	words = [[str[0]]]
+	for c in str[1:]:
+		if words[-1][-1].islower() and c.isupper():
+			words.append(list(c))
+		else:
+			words[-1].append(c)
+	return [''.join(word) for word in words]
+
 def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	"""
 	Returns an NSAffineTransform object for transforming layers.
