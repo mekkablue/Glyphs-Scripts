@@ -13,7 +13,7 @@ Thanks!
 
 ## Code conventions
 
-* Use the `.style.yapf` that is provided on the root level of the repo: 
+* Use the `.style.yapf` that is provided on the root level of the repo: `yapf --style .style.yapf -i path/to/script.py`
 * Use tabs, not spaces, for indentation.
 * Be perfomance aware.
 	* Wherever possible, use tuples instead of lists.
