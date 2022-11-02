@@ -479,7 +479,7 @@ class VerticalMetricsManager( object ):
 				# determine highest x-height:
 				for thisMaster in thisFont.masters:
 					measuredX = thisMaster.xHeight
-					if measuredX >= thisMaster.capHeight: # all caps font
+					if measuredX >= thisMaster.capHeight or measuredX > thisFont.upm*5: # all caps font or NSNotFound
 						measuredX = thisMaster.capHeight/2
 					if measuredX > xHeight:
 						xHeight = thisMaster.xHeight
@@ -490,9 +490,10 @@ class VerticalMetricsManager( object ):
 			# 
 			# TODO: verify
 			# LineGap >= (yMax - yMin) - (Ascender - Descender
-			# (source: https://docs.microsoft.com/en-us/typography/opentype/spec/recom)
-			#
-			idealLineSpan = abs(xHeight * 2.2)
+			# source: <https://learn.microsoft.com/en-us/typography/opentype/spec/recom#stypoascender-stypodescender-and-stypolinegap>
+			# and <https://learn.microsoft.com/en-us/typography/opentype/spec/recom#baseline-to-baseline-distances>
+			
+			idealLineSpan = abs(xHeight * 2.8)
 			if shouldRound:
 				idealLineSpan = roundUpByValue(idealLineSpan, roundValue)
 			actualLineSpan = abs(asc)+abs(desc)
@@ -501,6 +502,9 @@ class VerticalMetricsManager( object ):
 				if shouldRound:
 					gap = roundUpByValue(gap, roundValue)
 			else:
+				gap = 0
+			
+			if gap > thisFont.upm*5: # probably NSNotFound
 				gap = 0
 			
 			print("Calculated values:")
