@@ -735,9 +735,9 @@ class BuildSymbols(object):
 		self.w.buildEstimated.getNSButton().setToolTip_("Will build estimated ℮ and scale it to the size of your lining zero, if available.")
 
 		self.w.buildBars = vanilla.CheckBox((inset + column, linePos, -inset, 20), "bar, brokenbar", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.buildBars.getNSButton().setToolTip_("Will build bar | and brokenbar ¦ and use the master’s stem values for their size.")
+		self.w.buildBars.getNSButton().setToolTip_("Will model bar | and brokenbar ¦ after your slash /, or if there is no slash, use the master’s stem values for their size.")
 
-		self.w.buildEmptyset = vanilla.CheckBox((inset + column * 2, linePos, -inset, 20), "emptyset", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildEmptyset = vanilla.CheckBox((inset + int(column * 2.1), linePos, -inset, 20), "emptyset", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildEmptyset.getNSButton().setToolTip_("Will build emptyset. Not yet implemented, sorry.")
 		self.w.buildEmptyset.enable(False)
 
@@ -751,7 +751,7 @@ class BuildSymbols(object):
 		self.w.buildLozenge = vanilla.CheckBox((inset + column, linePos, -inset, 20), "lozenge", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildLozenge.getNSButton().setToolTip_("Will build lozenge.")
 
-		self.w.buildProduct = vanilla.CheckBox((inset + column * 2, linePos, -inset, 20), "product", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildProduct = vanilla.CheckBox((inset + int(column * 2.1), linePos, -inset, 20), "product", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildProduct.getNSButton().setToolTip_("Will build product. Not yet implemented, sorry.")
 		self.w.buildProduct.enable(False)
 		linePos += lineHeight
@@ -764,7 +764,7 @@ class BuildSymbols(object):
 		self.w.buildRadical.getNSButton().setToolTip_("Will build radical. Not yet implemented, sorry.")
 		self.w.buildRadical.enable(False)
 
-		self.w.buildNotdef = vanilla.CheckBox((inset + column * 2, linePos, -inset, 20), ".notdef", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildNotdef = vanilla.CheckBox((inset + int(column * 2.1), linePos, -inset, 20), ".notdef", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildNotdef.getNSButton().setToolTip_("Will build the mandatory .notdef glyph based on the boldest available question mark.")
 		linePos += lineHeight
 
