@@ -6,6 +6,7 @@ Override default production names. Default are the usual subjects which create p
 """
 
 import vanilla
+from AppKit import NSFont
 
 defaultString = """
 Legacy PDF workflow fix:
