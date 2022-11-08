@@ -8,25 +8,35 @@ Finds interpolations in which points travel more than they should, i.e., can fin
 import vanilla
 
 class TravelTracker( object ):
+	prefID = "com.mekkablue.TravelTracker"
+	prefDict = {
+		# "prefName": defaultValue,
+		"includeNonExporting": 1,
+		"travelPercentage": 50,
+		"normalizeShape": 1,
+		"normalizeGlyph": 1,
+		"verbose": 0,
+	}
+	
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 430
-		windowHeight = 190
-		windowWidthResize  = 100 # user can resize width by this value
+		windowWidth  = 290
+		windowHeight = 220
+		windowWidthResize  = 80 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			( windowWidth, windowHeight ), # default window size
 			"Travel Tracker", # window title
 			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
 			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
-			autosaveName = "com.mekkablue.TravelTracker.mainwindow" # stores last window position and size
+			autosaveName = self.domain("mainwindow") # stores last window position and size
 		)
 		
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		linePos, inset, lineHeight = 12, 14, 22
 		
-		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 28), "Finds master-compatible glyphs with nodes that travel more than they should because they interpolate with a wrong node in the other master(s).", sizeStyle='small', selectable=True )
-		linePos += lineHeight*1.8
+		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, lineHeight*3), "Finds master-compatible glyphs with nodes that travel more than they should because they interpolate with a wrong node in another master.", sizeStyle='small', selectable=True )
+		linePos += int(lineHeight*2.2)
 		
 		self.w.travelPercentageText = vanilla.TextBox( (inset, linePos+2.5, 190, 14), "Acceptable travel ratio in percent:", sizeStyle='small', selectable=True )
 		self.w.travelPercentage = vanilla.EditText( (inset+190, linePos, -inset, 19), "50", callback=self.SavePreferences, sizeStyle='small' )
@@ -34,13 +44,20 @@ class TravelTracker( object ):
 		linePos += lineHeight
 		
 		self.w.includeNonExporting = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Include non-exporting glyphs (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.includeNonExporting.getNSButton().setToolTip_("Important if you are using non-exporting glyphs as components inside others, e.g., the slash in the oslash.")
-		linePos += lineHeight
-
-		self.w.normalizePathPosition = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Normalize path origin (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.normalizePathPosition.getNSButton().setToolTip_("Calculates node travel distances as if every path’s origin point were x=0, y=0.")
+		self.w.includeNonExporting.getNSButton().setToolTip_("Important if you are using non-exporting glyphs as components inside others, e.g., the slashlongcomb in the oslash.")
 		linePos += lineHeight
 		
+		self.w.normalizeShape = vanilla.CheckBox( (inset, linePos-1, 140, 20), "Normalize per shape", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.normalizeGlyph = vanilla.CheckBox( (inset+140, linePos-1, -inset, 20), "Normalize per glyph", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		tooltip = "Choose what counts as 100%: the diagonal of the shape (path) the node belongs to, or the diagonal of the complete glyph, or both."
+		self.w.normalizeShape.getNSButton().setToolTip_(tooltip)
+		self.w.normalizeGlyph.getNSButton().setToolTip_(tooltip)
+		linePos += lineHeight
+		
+		self.w.verbose = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Verbose reporting", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.verbose.getNSButton().setToolTip_("Reports all glyphs in Macro Window, otherwise only those that exceed the travel threshold.")
+		linePos += lineHeight
+
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0) # set progress indicator to zero
 		linePos+=lineHeight
@@ -57,63 +74,96 @@ class TravelTracker( object ):
 		self.w.open()
 		self.w.makeKey()
 		
-	def SavePreferences( self, sender ):
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
+	def updateGUI(self, sender=None):
+		self.w.runButton.enable(
+			any((
+				self.w.normalizeGlyph.get(),
+				self.w.normalizeShape.get(),
+			))
+		)
+	
+	def SavePreferences( self, sender=None ):
 		try:
-			Glyphs.defaults["com.mekkablue.TravelTracker.travelPercentage"] = self.w.travelPercentage.get()
-			Glyphs.defaults["com.mekkablue.TravelTracker.includeNonExporting"] = self.w.includeNonExporting.get()
-			Glyphs.defaults["com.mekkablue.TravelTracker.normalizePathPosition"] = self.w.normalizePathPosition.get()
+			# write current settings into prefs:
+			for prefName in self.prefDict.keys():
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
+			self.updateGUI()
+			return True
 		except:
+			import traceback
+			print(traceback.format_exc())
 			return False
-			
-		return True
 
 	def LoadPreferences( self ):
 		try:
-			Glyphs.registerDefault("com.mekkablue.TravelTracker.travelPercentage", "50")
-			Glyphs.registerDefault("com.mekkablue.TravelTracker.includeNonExporting", 1)
-			Glyphs.registerDefault("com.mekkablue.TravelTracker.normalizePathPosition", 1)
-			self.w.travelPercentage.set( Glyphs.defaults["com.mekkablue.TravelTracker.travelPercentage"] )
-			self.w.includeNonExporting.set( Glyphs.defaults["com.mekkablue.TravelTracker.includeNonExporting"] )
-			self.w.normalizePathPosition.set( Glyphs.defaults["com.mekkablue.TravelTracker.normalizePathPosition"] )
+			for prefName in self.prefDict.keys():
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
+				# load previously written prefs:
+				getattr(self.w, prefName).set( self.pref(prefName) )
+			self.updateGUI()
+			return True
 		except:
+			import traceback
+			print(traceback.format_exc())
 			return False
-			
-		return True
 	
-	def maxBoundsOfPaths(self, p1, p2):
-		w = max(p1.bounds.size.width, p2.bounds.size.width)
-		h = max(p1.bounds.size.height, p2.bounds.size.height)
-		#print "\n   path size: %i %i" % (w,h)
-		return w, h
-	
-	def diagonalOfMaxPathBounds(self, p1, p2):
-		w, h = self.maxBoundsOfPaths(p1, p2)
-		boundsHypothenuse = (w**2+h**2)**0.5
-		#print "   diagonal: %i" % boundsHypothenuse
-		return boundsHypothenuse
-	
-	def maxNodeTravelRatioForLayers( self, layer, otherLayer ):
+	def maxNodeTravelRatioForLayers( self, layer, otherLayer, pathNormalization=True, layerNormalization=True ):
 		maxTravelRatio = 0.0
+		maxPossibleTravel = 2**0.5
+
+		normalizeShape = self.pref("normalizeShape")
+		normalizeGlyph = self.pref("normalizeGlyph")
+		
+		# glyph bounds
+		l1offset = layer.bounds.origin
+		l2offset = otherLayer.bounds.origin
+		l1Width, l1Height = layer.bounds.size
+		l2Width, l2Height = otherLayer.bounds.size
+		layerHasExtension = all((l1Width, l1Height, l2Width, l2Height))
+		
+		if not layerHasExtension:
+			return 0.0
+		
 		for pi,p1 in enumerate(layer.paths):
-			maxNodeTravel=0.0
 			p2 = otherLayer.paths[pi]
 			p1offset = p1.bounds.origin
 			p2offset = p2.bounds.origin
-			maxPossibleTravel = self.diagonalOfMaxPathBounds(p1,p2)
-			if maxPossibleTravel > 0.0:
-				for ni,n1 in enumerate(p1.nodes):
-					n2 = p2.nodes[ni]
-					if Glyphs.defaults["com.mekkablue.TravelTracker.normalizePathPosition"]:
-						n1pos = subtractPoints(n1.position,p1offset)
-						n2pos = subtractPoints(n2.position,p2offset)
-					else:
-						n1pos = n1.position
-						n2pos = n2.position
-					nodeDistance = distance(n1pos,n2pos)
-					maxNodeTravel = max( maxNodeTravel, nodeDistance )
-					# print "   path %i, node %i: %i,%i > %i,%i = %.1f" % (pi, ni, n1pos.x, n1pos.y, n2pos.x, n2pos.y, nodeDistance)
-				thisPathTravelRatio = maxNodeTravel/maxPossibleTravel
-				maxTravelRatio = max( maxTravelRatio, thisPathTravelRatio )
+			p1Width, p1Height = p1.bounds.size
+			p2Width, p2Height = p2.bounds.size
+			pathHasExtension = all((p1Width, p1Height, p2Width, p2Height))
+			
+			for ni,n1 in enumerate(p1.nodes):
+				n2 = p2.nodes[ni]
+				
+				# SHAPE NORMALIZATION
+				if pathHasExtension and normalizeShape: # avoid zero width or zero height
+					n1NormalizedX, n1NormalizedY = (n1.x-p1offset.x)/p1Width, (n1.y-p1offset.y)/p1Height
+					n2NormalizedX, n2NormalizedY = (n2.x-p2offset.x)/p2Width, (n2.y-p1offset.y)/p2Height
+					nodeDistance = distance(
+						(n1NormalizedX, n1NormalizedY),
+						(n2NormalizedX, n2NormalizedY),
+						)
+					maxTravelRatio = max( nodeDistance/maxPossibleTravel, maxTravelRatio )
+					
+				# LAYER NORMALIZATION
+				if normalizeGlyph:
+					n1NormalizedX, n1NormalizedY = (n1.x-l1offset.x)/l1Width, (n1.y-l1offset.y)/l1Height
+					n2NormalizedX, n2NormalizedY = (n2.x-l2offset.x)/l2Width, (n2.y-l1offset.y)/l2Height
+					nodeDistance = distance(
+						(n1NormalizedX, n1NormalizedY),
+						(n2NormalizedX, n2NormalizedY),
+						)
+					maxTravelRatio = max( nodeDistance/maxPossibleTravel, maxTravelRatio )
+					
 		return maxTravelRatio
 
 	def relevantLayersOfGlyph(self, glyph):
@@ -150,9 +200,10 @@ class TravelTracker( object ):
 			if not self.SavePreferences( self ):
 				print("Note: 'Travel Tracker' could not write preferences.")
 			
-			travelPercentage = float(Glyphs.defaults["com.mekkablue.TravelTracker.travelPercentage"])
+			verbose = bool(self.pref("verbose"))
+			includeNonExporting = bool(self.pref("includeNonExporting"))
+			travelPercentage = float(self.pref("travelPercentage"))
 			acceptableTravelRatio = travelPercentage/100.0
-			includeNonExporting = bool(Glyphs.defaults["com.mekkablue.TravelTracker.includeNonExporting"])
 			
 			thisFont = Glyphs.font # frontmost font
 			
@@ -178,11 +229,11 @@ class TravelTracker( object ):
 				self.w.progress.set(int(i/numOfGlyphs*100.0))
 				
 				travelRatioInThisGlyph = self.maxNodeTravelRatioForGlyph(relevantGlyph)
-				if not travelRatioInThisGlyph > acceptableTravelRatio:
-					print("✅ Max node travel % 3i%% in: %s" % ( int(travelRatioInThisGlyph*100), relevantGlyph.name ))
-				else:
+				if travelRatioInThisGlyph > acceptableTravelRatio:
 					print("❌ Node traveling % 3i%% in: %s" % ( int(travelRatioInThisGlyph*100), relevantGlyph.name ))
 					affectedGlyphInfos.append( (relevantGlyph.name,travelRatioInThisGlyph), )
+				elif verbose:
+					print("✅ Max node travel % 3i%% in: %s" % ( int(travelRatioInThisGlyph*100), relevantGlyph.name ))
 			
 			# last one finished, progress bar = 100:
 			self.w.progress.set(100)
