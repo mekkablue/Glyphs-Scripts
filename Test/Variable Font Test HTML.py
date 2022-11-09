@@ -1,7 +1,7 @@
 #MenuTitle: Variable Font Test HTML
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Create a Test HTML for the current font inside the current Variation Font Export folder. Hold down OPTION and SHIFT while running the script in order to create respective Samsa files in addition to the Test HTML.
 """
 
@@ -12,194 +12,194 @@ import codecs
 
 def langMenu(thisFont, indent=4):
 	otTag2Lang = {
-		'ABK':('ab','Abkhazian'),
-		'AFK':('af','Afrikaans'),
-		'AFR':('aa','Afar'),
-		'AKA':('ak','Akan'),
-		'AMH':('am','Amharic'),
-		'ARA':('ar','Arabic'),
-		'ARG':('an','Aragonese'),
-		'ASM':('as','Assamese'),
-		'AVR':('av','Avar'),
-		'AYM':('ay','Aymara'),
-		'AZE':('az','Azerbaijani'),
-		'BEL':('be','Belarussian'),
-		'BEN':('bn','Bengali'),
-		'BGR':('bg','Bulgarian'),
-		'BIS':('bi','Bislama'),
-		'BMB':('bm','Bambara (Bamanankan)'),
-		'BOS':('bs','Bosnian'),
-		'BRE':('br','Breton'),
-		'BRM':('my','Burmese'),
-		'BSH':('ba','Bashkir'),
-		'CAT':('ca','Catalan'),
-		'CHA':('ch','Chamorro'),
-		'CHE':('ce','Chechen'),
-		'CHI':('ny','Chichewa (Chewa, Nyanja)'),
-		'CHU':('cv','Chuvash'),
-		'COR':('kw','Cornish'),
-		'COS':('co','Corsican'),
-		'CRE':('cr','Cree'),
-		'CSL':('cu','Church Slavonic'),
-		'CSY':('cs','Czech'),
-		'DAN':('da','Danish'),
-		'DEU':('de','German'),
-		'DIV':('dv','Divehi (Dhivehi, Maldivian)'),
-		'DZN':('dz','Dzongkha'),
-		'ELL':('el','Greek'),
-		'ENG':('en','English'),
-		'ESP':('es','Spanish'),
-		'ETI':('et','Estonian'),
-		'EUQ':('eu','Basque'),
-		'EWE':('ee','Ewe'),
-		'FAR':('fa','Persian'),
-		'FIN':('fi','Finnish'),
-		'FJI':('fj','Fijian'),
-		'FOS':('fo','Faroese'),
-		'FRA':('fr','French'),
-		'FRI':('fy','Frisian'),
-		'FUL':('ff','Fulah'),
-		'GAE':('gd','Scottish Gaelic (Gaelic)'),
-		'GAL':('gl','Galician'),
-		'GRN':('kl','Greenlandic'),
-		'GUA':('gn','Guarani'),
-		'GUJ':('gu','Gujarati'),
-		'HAI':('ht','Haitian (Haitian Creole)'),
-		'HAU':('ha','Hausa'),
-		'HER':('hz','Herero'),
-		'HIN':('hi','Hindi'),
-		'HMO':('ho','Hiri Motu'),
-		'HRV':('hr','Croatian'),
-		'HUN':('hu','Hungarian'),
-		'HYE0':('hy','Armenian East'),
-		'IBO':('ig','Igbo'),
-		'IDO':('io','Ido'),
-		'ILE':('ie','Interlingue'),
-		'INA':('ia','Interlingua'),
-		'IND':('id','Indonesian'),
-		'INU':('iu','Inuktitut'),
-		'IPK':('ik','Inupiat'),
-		'IRI':('ga','Irish'),
-		'IRT':('ga','Irish Traditional'),
-		'ISL':('is','Icelandic'),
-		'ITA':('it','Italian'),
-		'IWR':('he','Hebrew'),
-		'JAN':('ja','Japanese'),
-		'JAV':('jv','Javanese'),
-		'JII':('yi','Yiddish'),
-		'KAN':('kn','Kannada'),
-		'KAT':('ka','Georgian'),
-		'KAZ':('kk','Kazakh'),
-		'KGE':('ka','Khutsuri Georgian'),
-		'KHM':('km','Khmer'),
-		'KIK':('ki','Kikuyu (Gikuyu)'),
-		'KIR':('ky','Kirghiz (Kyrgyz)'),
-		'KNR':('kr','Kanuri'),
-		'KOM':('kv','Komi'),
-		'KON0':('kg','Kongo'),
-		'KOR':('ko','Korean'),
-		'KSH':('ks','Kashmiri'),
-		'KUA':('kj','Kuanyama'),
-		'KUR':('ku','Kurdish'),
-		'LAO':('lo','Lao'),
-		'LAT':('la','Latin'),
-		'LIM':('li','Limburgish'),
-		'LIN':('ln','Lingala'),
-		'LTH':('lt','Lithuanian'),
-		'LTZ':('lb','Luxembourgish'),
-		'LUB':('lu','Luba-Katanga'),
-		'LUG':('lg','Ganda'),
-		'LVI':('lv','Latvian'),
-		'MAH':('mh','Marshallese'),
-		'MAL':('ml','Malayalam'),
-		'MAR':('mr','Marathi'),
-		'MKD':('mk','Macedonian'),
-		'MLG':('mg','Malagasy'),
-		'MLR':('ml','Malayalam Reformed'),
-		'MLY':('ms','Malay'),
-		'MNG':('mn','Mongolian'),
-		'MNX':('gv','Manx'),
-		'MOL':('mo','Moldavian'),
-		'MRI':('mi','Maori'),
-		'MTS':('mt','Maltese'),
-		'NAU':('na','Nauruan'),
-		'NAV':('nv','Navajo'),
-		'NDG':('ng','Ndonga'),
-		'NEP':('ne','Nepali'),
-		'NLD':('nl','Dutch'),
-		'NOR':('nb','Norwegian'),
-		'NSM':('se','Northern Sami'),
-		'NTO':('eo','Esperanto'),
-		'NYN':('nn','Norwegian Nynorsk (Nynorsk, Norwegian)'),
-		'OCI':('oc','Occitan'),
-		'OJB':('oj','Ojibway'),
-		'ORI':('or','Odia (formerly Oriya)'),
-		'ORO':('om','Oromo'),
-		'OSS':('os','Ossetian'),
-		'PAL':('pi','Pali'),
-		'PAN':('pa','Punjabi'),
-		'PAS':('ps','Pashto'),
-		'PGR':('el','Polytonic Greek'),
-		'PLK':('pl','Polish'),
-		'PTG':('pt','Portuguese'),
-		'RMS':('rm','Romansh'),
-		'ROM':('ro','Romanian'),
-		'RUA':('rw','Kinyarwanda'),
-		'RUN':('rn','Rundi'),
-		'RUS':('ru','Russian'),
-		'SAN':('sa','Sanskrit'),
-		'SGO':('sg','Sango'),
-		'SKY':('sk','Slovak'),
-		'SLV':('sl','Slovenian'),
-		'SML':('so','Somali'),
-		'SMO':('sm','Samoan'),
-		'SNA0':('sn','Shona'),
-		'SND':('sd','Sindhi'),
-		'SNH':('si','Sinhala (Sinhalese)'),
-		'SOT':('st','Sotho, Southern'),
-		'SQI':('sq','Albanian'),
-		'SRB':('sr','Serbian'),
-		'SRD':('sc','Sardinian'),
-		'SUN':('su','Sundanese'),
-		'SVE':('sv','Swedish'),
-		'SWK':('sw','Swahili'),
-		'SWZ':('ss','Swati'),
-		'TAJ':('tg','Tajiki'),
-		'TAM':('ta','Tamil'),
-		'TAT':('tt','Tatar'),
-		'TEL':('te','Telugu'),
-		'TGL':('tl','Tagalog'),
-		'TGN':('to','Tongan'),
-		'TGY':('ti','Tigrinya'),
-		'THA':('th','Thai'),
-		'THT':('ty','Tahitian'),
-		'TIB':('bo','Tibetan'),
-		'TKM':('tk','Turkmen'),
-		'TNA':('tn','Tswana'),
-		'TRK':('tr','Turkish'),
-		'TSG':('ts','Tsonga'),
-		'TWI':('ak','Twi'),
-		'UKR':('uk','Ukrainian'),
-		'URD':('ur','Urdu'),
-		'UYG':('ug','Uyghur'),
-		'UZB':('uz','Uzbek'),
-		'VEN':('ve','Venda'),
-		'VIT':('vi','Vietnamese'),
-		'VOL':('vo','Volapük'),
-		'WEL':('cy','Welsh'),
-		'WLF':('wo','Wolof'),
-		'WLN':('wa','Walloon'),
-		'XHS':('xh','Xhosa'),
-		'YBA':('yo','Yoruba'),
-		'YCR':('cr','Y-Cree'),
-		'YIM':('ii','Yi Modern'),
-		'ZHA':('za','Zhuang'),
-		'ZHH':('zh','Chinese, Hong Kong SAR'),
-		'ZHP':('zh','Chinese Phonetic'),
-		'ZHS':('zh','Chinese Simplified'),
-		'ZHT':('zh','Chinese Traditional'),
-		'ZUL':('zu','Zulu'),
-	}
+		'ABK': ('ab', 'Abkhazian'),
+		'AFK': ('af', 'Afrikaans'),
+		'AFR': ('aa', 'Afar'),
+		'AKA': ('ak', 'Akan'),
+		'AMH': ('am', 'Amharic'),
+		'ARA': ('ar', 'Arabic'),
+		'ARG': ('an', 'Aragonese'),
+		'ASM': ('as', 'Assamese'),
+		'AVR': ('av', 'Avar'),
+		'AYM': ('ay', 'Aymara'),
+		'AZE': ('az', 'Azerbaijani'),
+		'BEL': ('be', 'Belarussian'),
+		'BEN': ('bn', 'Bengali'),
+		'BGR': ('bg', 'Bulgarian'),
+		'BIS': ('bi', 'Bislama'),
+		'BMB': ('bm', 'Bambara (Bamanankan)'),
+		'BOS': ('bs', 'Bosnian'),
+		'BRE': ('br', 'Breton'),
+		'BRM': ('my', 'Burmese'),
+		'BSH': ('ba', 'Bashkir'),
+		'CAT': ('ca', 'Catalan'),
+		'CHA': ('ch', 'Chamorro'),
+		'CHE': ('ce', 'Chechen'),
+		'CHI': ('ny', 'Chichewa (Chewa, Nyanja)'),
+		'CHU': ('cv', 'Chuvash'),
+		'COR': ('kw', 'Cornish'),
+		'COS': ('co', 'Corsican'),
+		'CRE': ('cr', 'Cree'),
+		'CSL': ('cu', 'Church Slavonic'),
+		'CSY': ('cs', 'Czech'),
+		'DAN': ('da', 'Danish'),
+		'DEU': ('de', 'German'),
+		'DIV': ('dv', 'Divehi (Dhivehi, Maldivian)'),
+		'DZN': ('dz', 'Dzongkha'),
+		'ELL': ('el', 'Greek'),
+		'ENG': ('en', 'English'),
+		'ESP': ('es', 'Spanish'),
+		'ETI': ('et', 'Estonian'),
+		'EUQ': ('eu', 'Basque'),
+		'EWE': ('ee', 'Ewe'),
+		'FAR': ('fa', 'Persian'),
+		'FIN': ('fi', 'Finnish'),
+		'FJI': ('fj', 'Fijian'),
+		'FOS': ('fo', 'Faroese'),
+		'FRA': ('fr', 'French'),
+		'FRI': ('fy', 'Frisian'),
+		'FUL': ('ff', 'Fulah'),
+		'GAE': ('gd', 'Scottish Gaelic (Gaelic)'),
+		'GAL': ('gl', 'Galician'),
+		'GRN': ('kl', 'Greenlandic'),
+		'GUA': ('gn', 'Guarani'),
+		'GUJ': ('gu', 'Gujarati'),
+		'HAI': ('ht', 'Haitian (Haitian Creole)'),
+		'HAU': ('ha', 'Hausa'),
+		'HER': ('hz', 'Herero'),
+		'HIN': ('hi', 'Hindi'),
+		'HMO': ('ho', 'Hiri Motu'),
+		'HRV': ('hr', 'Croatian'),
+		'HUN': ('hu', 'Hungarian'),
+		'HYE0': ('hy', 'Armenian East'),
+		'IBO': ('ig', 'Igbo'),
+		'IDO': ('io', 'Ido'),
+		'ILE': ('ie', 'Interlingue'),
+		'INA': ('ia', 'Interlingua'),
+		'IND': ('id', 'Indonesian'),
+		'INU': ('iu', 'Inuktitut'),
+		'IPK': ('ik', 'Inupiat'),
+		'IRI': ('ga', 'Irish'),
+		'IRT': ('ga', 'Irish Traditional'),
+		'ISL': ('is', 'Icelandic'),
+		'ITA': ('it', 'Italian'),
+		'IWR': ('he', 'Hebrew'),
+		'JAN': ('ja', 'Japanese'),
+		'JAV': ('jv', 'Javanese'),
+		'JII': ('yi', 'Yiddish'),
+		'KAN': ('kn', 'Kannada'),
+		'KAT': ('ka', 'Georgian'),
+		'KAZ': ('kk', 'Kazakh'),
+		'KGE': ('ka', 'Khutsuri Georgian'),
+		'KHM': ('km', 'Khmer'),
+		'KIK': ('ki', 'Kikuyu (Gikuyu)'),
+		'KIR': ('ky', 'Kirghiz (Kyrgyz)'),
+		'KNR': ('kr', 'Kanuri'),
+		'KOM': ('kv', 'Komi'),
+		'KON0': ('kg', 'Kongo'),
+		'KOR': ('ko', 'Korean'),
+		'KSH': ('ks', 'Kashmiri'),
+		'KUA': ('kj', 'Kuanyama'),
+		'KUR': ('ku', 'Kurdish'),
+		'LAO': ('lo', 'Lao'),
+		'LAT': ('la', 'Latin'),
+		'LIM': ('li', 'Limburgish'),
+		'LIN': ('ln', 'Lingala'),
+		'LTH': ('lt', 'Lithuanian'),
+		'LTZ': ('lb', 'Luxembourgish'),
+		'LUB': ('lu', 'Luba-Katanga'),
+		'LUG': ('lg', 'Ganda'),
+		'LVI': ('lv', 'Latvian'),
+		'MAH': ('mh', 'Marshallese'),
+		'MAL': ('ml', 'Malayalam'),
+		'MAR': ('mr', 'Marathi'),
+		'MKD': ('mk', 'Macedonian'),
+		'MLG': ('mg', 'Malagasy'),
+		'MLR': ('ml', 'Malayalam Reformed'),
+		'MLY': ('ms', 'Malay'),
+		'MNG': ('mn', 'Mongolian'),
+		'MNX': ('gv', 'Manx'),
+		'MOL': ('mo', 'Moldavian'),
+		'MRI': ('mi', 'Maori'),
+		'MTS': ('mt', 'Maltese'),
+		'NAU': ('na', 'Nauruan'),
+		'NAV': ('nv', 'Navajo'),
+		'NDG': ('ng', 'Ndonga'),
+		'NEP': ('ne', 'Nepali'),
+		'NLD': ('nl', 'Dutch'),
+		'NOR': ('nb', 'Norwegian'),
+		'NSM': ('se', 'Northern Sami'),
+		'NTO': ('eo', 'Esperanto'),
+		'NYN': ('nn', 'Norwegian Nynorsk (Nynorsk, Norwegian)'),
+		'OCI': ('oc', 'Occitan'),
+		'OJB': ('oj', 'Ojibway'),
+		'ORI': ('or', 'Odia (formerly Oriya)'),
+		'ORO': ('om', 'Oromo'),
+		'OSS': ('os', 'Ossetian'),
+		'PAL': ('pi', 'Pali'),
+		'PAN': ('pa', 'Punjabi'),
+		'PAS': ('ps', 'Pashto'),
+		'PGR': ('el', 'Polytonic Greek'),
+		'PLK': ('pl', 'Polish'),
+		'PTG': ('pt', 'Portuguese'),
+		'RMS': ('rm', 'Romansh'),
+		'ROM': ('ro', 'Romanian'),
+		'RUA': ('rw', 'Kinyarwanda'),
+		'RUN': ('rn', 'Rundi'),
+		'RUS': ('ru', 'Russian'),
+		'SAN': ('sa', 'Sanskrit'),
+		'SGO': ('sg', 'Sango'),
+		'SKY': ('sk', 'Slovak'),
+		'SLV': ('sl', 'Slovenian'),
+		'SML': ('so', 'Somali'),
+		'SMO': ('sm', 'Samoan'),
+		'SNA0': ('sn', 'Shona'),
+		'SND': ('sd', 'Sindhi'),
+		'SNH': ('si', 'Sinhala (Sinhalese)'),
+		'SOT': ('st', 'Sotho, Southern'),
+		'SQI': ('sq', 'Albanian'),
+		'SRB': ('sr', 'Serbian'),
+		'SRD': ('sc', 'Sardinian'),
+		'SUN': ('su', 'Sundanese'),
+		'SVE': ('sv', 'Swedish'),
+		'SWK': ('sw', 'Swahili'),
+		'SWZ': ('ss', 'Swati'),
+		'TAJ': ('tg', 'Tajiki'),
+		'TAM': ('ta', 'Tamil'),
+		'TAT': ('tt', 'Tatar'),
+		'TEL': ('te', 'Telugu'),
+		'TGL': ('tl', 'Tagalog'),
+		'TGN': ('to', 'Tongan'),
+		'TGY': ('ti', 'Tigrinya'),
+		'THA': ('th', 'Thai'),
+		'THT': ('ty', 'Tahitian'),
+		'TIB': ('bo', 'Tibetan'),
+		'TKM': ('tk', 'Turkmen'),
+		'TNA': ('tn', 'Tswana'),
+		'TRK': ('tr', 'Turkish'),
+		'TSG': ('ts', 'Tsonga'),
+		'TWI': ('ak', 'Twi'),
+		'UKR': ('uk', 'Ukrainian'),
+		'URD': ('ur', 'Urdu'),
+		'UYG': ('ug', 'Uyghur'),
+		'UZB': ('uz', 'Uzbek'),
+		'VEN': ('ve', 'Venda'),
+		'VIT': ('vi', 'Vietnamese'),
+		'VOL': ('vo', 'Volapük'),
+		'WEL': ('cy', 'Welsh'),
+		'WLF': ('wo', 'Wolof'),
+		'WLN': ('wa', 'Walloon'),
+		'XHS': ('xh', 'Xhosa'),
+		'YBA': ('yo', 'Yoruba'),
+		'YCR': ('cr', 'Y-Cree'),
+		'YIM': ('ii', 'Yi Modern'),
+		'ZHA': ('za', 'Zhuang'),
+		'ZHH': ('zh', 'Chinese, Hong Kong SAR'),
+		'ZHP': ('zh', 'Chinese Phonetic'),
+		'ZHS': ('zh', 'Chinese Simplified'),
+		'ZHT': ('zh', 'Chinese Traditional'),
+		'ZUL': ('zu', 'Zulu'),
+		}
 	htmlCode = ""
 	findWord = "language"
 	for thisFeatureCollection in (thisFont.features, thisFont.featurePrefixes):
@@ -209,12 +209,12 @@ def langMenu(thisFont, indent=4):
 					if findWord.lower() in thisLine.lower():
 						wordsOnLine = thisLine.lower().strip().split()
 						try:
-							langIndex = wordsOnLine.index(findWord)+1
-							otTag = wordsOnLine[langIndex].strip().replace(";","").upper()
+							langIndex = wordsOnLine.index(findWord) + 1
+							otTag = wordsOnLine[langIndex].strip().replace(";", "").upper()
 							if otTag in otTag2Lang.keys():
 								isoTag = otTag2Lang[otTag][0]
 								naturalName = otTag2Lang[otTag][1]
-								newLine = "\t<option value='%s'>%s (%s, %s)</option>\n" % ( isoTag, naturalName, otTag, isoTag )
+								newLine = "\t<option value='%s'>%s (%s, %s)</option>\n" % (isoTag, naturalName, otTag, isoTag)
 								if not newLine in htmlCode: # avoid duplicates
 									htmlCode += newLine
 						except:
@@ -229,18 +229,18 @@ def langMenu(thisFont, indent=4):
 	else:
 		return htmlCode
 
-def saveFileInLocation( content="Sorry, no content generated.", fileName="test.txt", filePath="~/Desktop" ):
-	saveFileLocation = "%s/%s" % (filePath,fileName)
-	saveFileLocation = saveFileLocation.replace( "//", "/" )
+def saveFileInLocation(content="Sorry, no content generated.", fileName="test.txt", filePath="~/Desktop"):
+	saveFileLocation = "%s/%s" % (filePath, fileName)
+	saveFileLocation = saveFileLocation.replace("//", "/")
 	with codecs.open(saveFileLocation, "w", "utf-8-sig") as thisFile:
 		print("💾 Writing: %s" % thisFile.name)
-		thisFile.write( content )
+		thisFile.write(content)
 		thisFile.close()
 	return True
 
 def currentOTVarExportPath():
 	exportPath = Glyphs.defaults["GXExportPathManual"]
-	if Glyphs.versionNumber and Glyphs.versionNumber>=3:
+	if Glyphs.versionNumber and Glyphs.versionNumber >= 3:
 		useExportPath = Glyphs.defaults["GXExportUseExportPath"]
 	else:
 		useExportPath = Glyphs.defaults["GXPluginUseExportPath"]
@@ -259,15 +259,15 @@ def otVarFullName(thisFont):
 	styleName = thisFont.customParameters["variableStyleName"]
 	if styleName:
 		fullName = "%s %s" % (familyName, styleName)
-		fullName = fullName.replace("Italic Italic","Italic")
-		fullName = fullName.replace("Roman Roman","Roman")
+		fullName = fullName.replace("Italic Italic", "Italic")
+		fullName = fullName.replace("Roman Roman", "Roman")
 		return fullName
 	else:
 		return familyName
 
 def otVarSuffix():
 	suffix = "ttf"
-	for webSuffix in ("woff","woff2"):
+	for webSuffix in ("woff", "woff2"):
 		preference = Glyphs.defaults["GXExport%s" % webSuffix.upper()]
 		if preference:
 			suffix = webSuffix
@@ -284,8 +284,8 @@ def otVarFileName(thisFont, thisInstance=None):
 			fileName = thisInstance.customParameters["fileName"]
 			if not fileName:
 				familyName = familyNameOfInstance(thisInstance)
-				fileName = ("%s-%s" % (familyName, thisInstance.name)).replace(" ","")
-		return "%s.%s" % ( fileName, suffix)
+				fileName = ("%s-%s" % (familyName, thisInstance.name)).replace(" ", "")
+		return "%s.%s" % (fileName, suffix)
 	elif thisFont.customParameters["Variable Font File Name"] or thisFont.customParameters["variableFileName"]:
 		fileName = thisFont.customParameters["Variable Font File Name"]
 		if not fileName:
@@ -297,14 +297,14 @@ def otVarFileName(thisFont, thisInstance=None):
 			fileName = "%sVF.%s" % (familyName, suffix)
 		else:
 			fileName = "%sGX.%s" % (familyName, suffix)
-		return fileName.replace(" ","")
+		return fileName.replace(" ", "")
 
-def replaceSet( text, setOfReplacements ):
+def replaceSet(text, setOfReplacements):
 	for thisReplacement in setOfReplacements:
 		searchFor = thisReplacement[0]
 		replaceWith = thisReplacement[1]
 		if searchFor != replaceWith:
-			text = text.replace( searchFor, replaceWith )
+			text = text.replace(searchFor, replaceWith)
 	return text
 
 def generateAxisDict(thisFont):
@@ -313,38 +313,39 @@ def generateAxisDict(thisFont):
 	for thisMaster in thisFont.masters:
 		if not thisMaster.customParameters["Axis Location"]:
 			fontHasAxisLocationParameters = False
-	
+
 	# create and return the axisDict:
 	if fontHasAxisLocationParameters:
 		return axisDictForFontWithAxisLocationParameters(thisFont)
 	else:
 		return axisDictForFontWithoutAxisLocationParameters(thisFont)
 
-
 def axisDictWithVirtualMastersForFont(thisFont, axisDict):
 	# go through *all* virtual masters:
-	virtualMasters = [cp for cp in thisFont.customParameters if cp.name=="Virtual Master"]
+	virtualMasters = [cp for cp in thisFont.customParameters if cp.name == "Virtual Master"]
 	for virtualMaster in virtualMasters:
 		for axis in virtualMaster.value:
 			name = axis["Axis"]
 			location = int(axis["Location"])
 
 			if not name in axisDict.keys():
-				axisDict[name] = {"min":location,"max":location}
+				axisDict[name] = {
+					"min": location,
+					"max": location
+					}
 				continue
-				
+
 			if location < axisDict[name]["min"]:
 				axisDict[name]["min"] = location
 			if location > axisDict[name]["max"]:
 				axisDict[name]["max"] = location
 	return axisDict
 
-
 def axisDictForFontWithoutAxisLocationParameters(thisFont):
 	sliderValues = {}
 	for i, thisMaster in enumerate(thisFont.masters):
 		sliderValues[i] = axisValuesForMaster(thisMaster)
-	
+
 	axisDict = axisDictWithVirtualMastersForFont(thisFont, {})
 	for i, axis in enumerate(thisFont.axes):
 		try:
@@ -354,15 +355,19 @@ def axisDictForFontWithoutAxisLocationParameters(thisFont):
 			# Glyphs 3:
 			axisName, axisTag = axis.name, axis.axisTag
 
-		axisDict[axisName] = { "tag": axisTag, "min": sliderValues[0][i], "max": sliderValues[0][i] }
-		
+		axisDict[axisName] = {
+			"tag": axisTag,
+			"min": sliderValues[0][i],
+			"max": sliderValues[0][i]
+			}
+
 		for j, thisMaster in enumerate(thisFont.masters):
 			masterValue = sliderValues[j][i]
 			if masterValue < axisDict[axisName]["min"]:
 				axisDict[axisName]["min"] = masterValue
 			elif masterValue > axisDict[axisName]["max"]:
 				axisDict[axisName]["max"] = masterValue
-				
+
 	return axisDict
 
 def axisDictForFontWithAxisLocationParameters(thisFont):
@@ -372,13 +377,16 @@ def axisDictForFontWithAxisLocationParameters(thisFont):
 			axisName = axisLocation["Axis"]
 			axisPos = float(axisLocation["Location"])
 			if not axisName in axisDict:
-				axisDict[axisName] = {"min":axisPos,"max":axisPos}
+				axisDict[axisName] = {
+					"min": axisPos,
+					"max": axisPos
+					}
 			else:
 				if axisPos < axisDict[axisName]["min"]:
 					axisDict[axisName]["min"] = axisPos
 				if axisPos > axisDict[axisName]["max"]:
 					axisDict[axisName]["max"] = axisPos
-	
+
 	# add tags:
 	for axis in thisFont.axes:
 		try:
@@ -391,25 +399,29 @@ def axisDictForFontWithAxisLocationParameters(thisFont):
 			axisTag = axis["Tag"]
 		if axisName in axisDict.keys():
 			axisDict[axisName]["tag"] = axisTag
-	
+
 	return axisDict
 
-def allUnicodeEscapesOfFont( thisFont ):
-	allUnicodes = ["&#x%s;" % g.unicode for g in thisFont.glyphs if g.unicode and g.export ]
-	return " ".join( allUnicodes )
+def allUnicodeEscapesOfFont(thisFont):
+	allUnicodes = ["&#x%s;" % g.unicode for g in thisFont.glyphs if g.unicode and g.export]
+	return " ".join(allUnicodes)
 
-def featureListForFont( thisFont ):
+def featureListForFont(thisFont):
 	returnString = ""
 	featureList = [(f.name, f.notes) for f in thisFont.features if not f.name in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig", "rlig") and not f.disabled()]
-	for (f,n) in featureList:
+	for (f, n) in featureList:
 		# <input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
 		if f.startswith("ss") and n and n.startswith("Name:"):
 			# stylistic set name:
 			setName = n.splitlines()[0][5:].strip()
-			featureItem = '\t\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s<span class="tooltip">%s</span></label>\n' % (f,f,f,f,f,setName)
+			featureItem = '\t\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s<span class="tooltip">%s</span></label>\n' % (
+				f, f, f, f, f, setName
+				)
 		else:
 			# non-ssXX features
-			featureItem = '\t\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s</label>\n' % (f,f,f,f,f)
+			featureItem = '\t\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s</label>\n' % (
+				f, f, f, f, f
+				)
 		if not featureItem in returnString:
 			returnString += featureItem
 	return returnString.rstrip()
@@ -417,13 +429,12 @@ def featureListForFont( thisFont ):
 def allOTVarSliders(thisFont):
 	axisDict = generateAxisDict(thisFont)
 
-	
 	minValues, maxValues = {}, {}
 	for axis in axisDict:
 		tag = axisDict[axis]["tag"]
 		minValues[tag] = axisDict[axis]["min"]
 		maxValues[tag] = axisDict[axis]["max"]
-	
+
 	html = ""
 	for axis in thisFont.axes:
 		try:
@@ -435,37 +446,36 @@ def allOTVarSliders(thisFont):
 		minValue = axisDict[axisName]["min"]
 		maxValue = axisDict[axisName]["max"]
 		axisTag = axisDict[axisName]["tag"]
-		
+
 		startValue = originValueForAxisName(axisName, thisFont, minValue, maxValue)
-		
+
 		html += "\t\t\t<div class='labeldiv'><label class='sliderlabel' id='label_%s' name='%s'>%s</label><input type='range' min='%i' max='%i' value='%i' class='slider' id='%s' oninput='updateSlider();'></div>\n" % (
-			axisTag, axisName, axisName, 
-			minValue, maxValue, startValue,
-			axisTag
-		)
-		
+			axisTag, axisName, axisName, minValue, maxValue, startValue, axisTag
+			)
+
 	return html
 
 def originValueForAxisName(axisName, thisFont, minValue, maxValue):
 	originMaster = originMasterOfFont(thisFont)
 	if not originMaster:
 		return minValue
-		
+
 	axisLocationDict = originMaster.customParameters["Axis Location"]
 	if not axisLocationDict:
 		return minValue
-		
+
 	for axisDict in axisLocationDict:
 		if axisName == axisDict["Axis"]:
 			axisLoc = int(axisDict["Location"])
 			return axisLoc
-	
+
 	return minValue
 
 def warningMessage():
 	Message(
-		title="Out of Date Warning", 
-		message="It appears that you are not running the latest version of Glyphs. Please enable Cutting Edge Versions and Automatic Version Checks in Preferences > Updates, and update to the latest beta.",
+		title="Out of Date Warning",
+		message=
+		"It appears that you are not running the latest version of Glyphs. Please enable Cutting Edge Versions and Automatic Version Checks in Preferences > Updates, and update to the latest beta.",
 		OKButton=None
 		)
 
@@ -477,13 +487,13 @@ def axisValuesForMaster(thisMaster):
 			axisValueList = []
 			for axis in font.axes:
 				axisValue = thisMaster.axisValueValueForId_(axis.axisId)
-				axisValueList.append( axisValue )
+				axisValueList.append(axisValue)
 		except:
 			# GLYPHS 2
-			axisValueList = [0.0,0.0,0.0,0.0,0.0,0.0]
-			for i,value in enumerate(thisMaster.axes):
+			axisValueList = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+			for i, value in enumerate(thisMaster.axes):
 				axisValueList[i] = value
-				
+
 		axisValues = tuple(axisValueList)
 	except:
 		# GLYPHS 2 older versions
@@ -495,7 +505,7 @@ def axisValuesForMaster(thisMaster):
 				thisMaster.customValue1(),
 				thisMaster.customValue2(),
 				thisMaster.customValue3(),
-			)
+				)
 			warningMessage()
 		except:
 			axisValues = (
@@ -505,13 +515,13 @@ def axisValuesForMaster(thisMaster):
 				thisMaster.customValue1,
 				thisMaster.customValue2,
 				thisMaster.customValue3,
-			)
+				)
 	return axisValues
 
 def defaultVariationCSS(thisFont):
 	firstMaster = thisFont.masters[0]
 	axisValues = axisValuesForMaster(firstMaster)
-		
+
 	defaultValues = []
 	for i, axis in enumerate(thisFont.axes):
 		try:
@@ -523,10 +533,10 @@ def defaultVariationCSS(thisFont):
 		value = axisValues[i]
 		cssValue = '"%s" %i' % (tag, value)
 		defaultValues.append(cssValue)
-		
+
 	return ", ".join(defaultValues)
 
-def buildHTML( fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa=False):
+def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa=False):
 	samsaPlaceholder = "<!-- placeholder for external links, hold down OPTION and SHIFT while running the script -->"
 	htmlContent = """
 <html>
@@ -1015,36 +1025,36 @@ def buildHTML( fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, f
 	</p>
 	</body>
 </html>
-""" % ( samsaPlaceholder )
-	
+""" % (samsaPlaceholder)
+
 	if shouldCreateSamsa:
 		samsaReplaceWith = "<a href='samsa-gui.html' class='emojiButton' style='color:rgb(255, 165, 0);'>🅢</a>"
 	else:
 		samsaReplaceWith = samsaPlaceholder
-	
+
 	typeAppreviations = {
 		"otf": "OT",
 		"ttf": "TT",
 		"woff": "W1",
 		"woff2": "W2",
-	}
+		}
 	fileTypeAbbreviation = typeAppreviations[fileName.split(".")[-1]]
-	
+
 	replacements = (
-		( "###fontFamilyNameWithSpaces###", fullName ),
-		( "###fontFamilyName###", fullName ),
-		( "The Quick Brown Fox Jumps Over the Lazy Dog.", unicodeEscapes ),
-		( "###sliders###", otVarSliders ),
-		( "###styleMenu###", styleMenu ),
-		( "###variationSettings###", variationCSS ), 
-		( "###fontFileName###", fileName ),
-		( "###fontFileNameWithoutSuffix###", ".".join(fileName.split(".")[:-1]) ),
-		( "###TTW1W2###", fileTypeAbbreviation ),
-		( "###featureList###", featureList ),
-		( "###languageSelection###", fontLangMenu ),
-		( samsaPlaceholder, samsaReplaceWith ),
-	)
-	htmlContent = replaceSet( htmlContent, replacements )
+		("###fontFamilyNameWithSpaces###", fullName),
+		("###fontFamilyName###", fullName),
+		("The Quick Brown Fox Jumps Over the Lazy Dog.", unicodeEscapes),
+		("###sliders###", otVarSliders),
+		("###styleMenu###", styleMenu),
+		("###variationSettings###", variationCSS),
+		("###fontFileName###", fileName),
+		("###fontFileNameWithoutSuffix###", ".".join(fileName.split(".")[:-1])),
+		("###TTW1W2###", fileTypeAbbreviation),
+		("###featureList###", featureList),
+		("###languageSelection###", fontLangMenu),
+		(samsaPlaceholder, samsaReplaceWith),
+		)
+	htmlContent = replaceSet(htmlContent, replacements)
 	return htmlContent
 
 def originMasterOfFont(thisFont):
@@ -1072,12 +1082,12 @@ def axisLocationOfMasterOrInstance(thisFont, masterOrInstance):
 	return locDict
 
 def listOfAllStyles(thisFont):
-	tabbing = "\t"*3
-	htmlSnippet="%s<select id='styleMenu' name='styleMenu' onchange='setStyle(this.value);'>" % tabbing
-	
+	tabbing = "\t" * 3
+	htmlSnippet = "%s<select id='styleMenu' name='styleMenu' onchange='setStyle(this.value);'>" % tabbing
+
 	# add origin value
-	styleMenuEntries = [originMasterOfFont(thisFont)] + [i for i in thisFont.instances if i.active and i.type==0]
-	
+	styleMenuEntries = [originMasterOfFont(thisFont)] + [i for i in thisFont.instances if i.active and i.type == 0]
+
 	for idx, masterOrInstance in enumerate(styleMenuEntries):
 		# determine name of menu entry:
 		if idx == 0:
@@ -1086,27 +1096,27 @@ def listOfAllStyles(thisFont):
 			styleName = masterOrInstance.name
 			if masterOrInstance.preferredSubfamilyName:
 				styleName = masterOrInstance.preferredSubfamilyName
-		
+
 		# determine location:
 		coords = axisLocationOfMasterOrInstance(thisFont, masterOrInstance)
 		styleValues = []
 		for axis in thisFont.axes:
 			axisTag = axis.axisTag
 			axisValue = coords[axisTag]
-			styleValues.append( "%s:%i" % (axisTag, axisValue) )
-		
+			styleValues.append("%s:%i" % (axisTag, axisValue))
+
 		# add HTML line:
 		htmlSnippet += "\n%s\t<option value='%s'>%s</option>" % (
-			tabbing, 
+			tabbing,
 			",".join(styleValues),
 			styleName,
 			)
-			
+
 	htmlSnippet += "\n%s</select>" % tabbing
 	return htmlSnippet
-	
+
 def familyNameOfInstance(thisInstance):
-	familyNameProperty = thisInstance.propertyForName_languageTag_("familyNames","dflt")
+	familyNameProperty = thisInstance.propertyForName_languageTag_("familyNames", "dflt")
 	if familyNameProperty:
 		return familyNameProperty.value
 	else:
@@ -1127,7 +1137,7 @@ def otVarInfoForInstance(thisInstance):
 	thisFont = thisInstance.font
 	familyName = familyNameOfInstance(thisInstance)
 	fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu = otVarInfoForFont(thisFont) # fallback
-	
+
 	# instance-specific overrides:
 	fullName = "%s %s" % (familyName, thisInstance.name)
 	fileName = otVarFileName(thisFont, thisInstance)
@@ -1138,9 +1148,8 @@ def otVarInfoForInstance(thisInstance):
 	# variationCSS
 	# featureList
 	# fontLangMenu
-	
-	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu
 
+	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu
 
 # clears macro window log:
 Glyphs.clearLog()
@@ -1159,16 +1168,12 @@ if optionKeyPressed and shiftKeyPressed:
 	shouldCreateSamsa = True
 
 if not appVersionHighEnough:
-	Message(
-		title="App Version Error",
-		message="This script requires Glyphs 2.5 or later. Sorry.",
-		OKButton=None
-	)
+	Message(title="App Version Error", message="This script requires Glyphs 2.5 or later. Sorry.", OKButton=None)
 else:
 	firstDoc = Glyphs.orderedDocuments()[0]
 	thisFont = Glyphs.font # frontmost font
 	exportPath = currentOTVarExportPath()
-	
+
 	# In Font info > Exports, there can be more than one OTVar export:
 	variableFontInfos = []
 	for thisInstance in thisFont.instances:
@@ -1178,22 +1183,22 @@ else:
 				variableFontInfos.append(variableFontInfo)
 		except Exception as e:
 			print(e)
-	
+
 	# fallback if there are not OTVar exports set up at all:
 	if not variableFontInfos:
 		variableFontInfo = otVarInfoForFont(thisFont)
 		variableFontInfos.append(variableFontInfo)
-	
+
 	for variableFontInfo in variableFontInfos:
 		fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu = variableFontInfo
 
 		print("\nPreparing Test HTML for: %s%s" % (
 			fullName,
-			" (%s)"%fileName if fileName else "",
+			" (%s)" % fileName if fileName else "",
 			))
 		print("👷🏼‍ Building HTML code...")
 		htmlContent = buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa)
-	
+
 		# Write file to disk:
 		print("💾 Writing files to disk...")
 		if exportPath:
@@ -1209,33 +1214,28 @@ else:
 					fileName,
 					samsaFileName,
 					)
-				system( terminalCommand )
+				system(terminalCommand)
 				print("✅ Created %s" % samsaFileName)
-			
+
 				# download samsa files:
 				samsaFiles = ("samsa-core.js", "samsa-gui.html", "samsa-gui.css") # "fonts/IBMPlexSansVar-Roman.ttf", "fonts/IBMPlexSansVar-Italic.ttf")
 				for samsaFile in samsaFiles:
 					terminalCommand = "curl --create-dirs %s/%s -o '%s/%s'" % (samsaURL, samsaFile, exportPath, samsaFile)
-					system( terminalCommand )
+					system(terminalCommand)
 					print("⬇️ Downloaded %s" % samsaFile)
-			
+
 				# fix css links:
 				terminalCommand = "cd '%s'; sed -i '' 's|url(fonts|url(https://www.axis-praxis.org/samsa/fonts|g' samsa-gui.css" % exportPath
-				system( terminalCommand )
-		
+				system(terminalCommand)
+
 			print("🕸 Building HTML file...")
 			strippedFileName = ".".join(fileName.split(".")[:-1]) # removes the last dot-suffix
 			htmlFileName = "%s fonttest.html" % strippedFileName
-			if saveFileInLocation( content=htmlContent, fileName=htmlFileName, filePath=exportPath ):
+			if saveFileInLocation(content=htmlContent, fileName=htmlFileName, filePath=exportPath):
 				print("✅ Successfully wrote file to disk.")
 				terminalCommand = 'cd "%s"; open .; open "%s"' % (exportPath, htmlFileName)
-				system( terminalCommand )
+				system(terminalCommand)
 			else:
 				print("🛑 Error writing file to disk.")
 		else:
-			Message( 
-				title="OTVar Test HTML Error",
-				message="Could not determine export path. Have you exported any variable fonts yet?",
-				OKButton=None
-			)
-
+			Message(title="OTVar Test HTML Error", message="Could not determine export path. Have you exported any variable fonts yet?", OKButton=None)

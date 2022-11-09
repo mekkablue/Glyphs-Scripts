@@ -1,7 +1,7 @@
 #MenuTitle: Webfont Test HTML
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Create a Test HTML for the current font inside the current Webfont Export folder, or for the current Glyphs Project in the project’s export path.
 """
 
@@ -9,24 +9,23 @@ from GlyphsApp import *
 from AppKit import NSBundle, NSClassFromString
 from os import system
 import codecs
+Glyphs.registerDefault("com.mekkablue.WebFontTestHTML.includeEOT", 0)
 
-Glyphs.registerDefault( "com.mekkablue.WebFontTestHTML.includeEOT", 0 )
-
-def saveFileInLocation( content="Sorry, no content generated.", fileName="test.txt", filePath="~/Desktop" ):
-	saveFileLocation = "%s/%s" % (filePath,fileName)
-	saveFileLocation = saveFileLocation.replace( "//", "/" )
+def saveFileInLocation(content="Sorry, no content generated.", fileName="test.txt", filePath="~/Desktop"):
+	saveFileLocation = "%s/%s" % (filePath, fileName)
+	saveFileLocation = saveFileLocation.replace("//", "/")
 	with codecs.open(saveFileLocation, "w", "utf-8-sig") as thisFile:
 		print("Exporting to:", thisFile.name)
-		thisFile.write( content )
+		thisFile.write(content)
 		thisFile.close()
 	return True
 
 def currentFileFormats():
 	if Glyphs.versionNumber < 3.0:
 		# GLYPHS 2
-		fileFormats = [ "woff", "woff2" ]
+		fileFormats = ["woff", "woff2"]
 		if Glyphs.defaults["com.mekkablue.WebFontTestHTML.includeEOT"]:
-			fileFormats.append( "eot" )
+			fileFormats.append("eot")
 	else:
 		# GLYPHS 3
 		fileFormats = []
@@ -54,21 +53,21 @@ def currentWebExportPath():
 			exportPath = Glyphs.defaults["OTFExportPath"]
 	return exportPath
 
-def replaceSet( text, setOfReplacements ):
+def replaceSet(text, setOfReplacements):
 	for thisReplacement in setOfReplacements:
 		searchFor = thisReplacement[0]
 		replaceWith = thisReplacement[1]
-		text = text.replace( searchFor, replaceWith )
+		text = text.replace(searchFor, replaceWith)
 	return text
 
-def allUnicodeEscapesOfFont( thisFont ):
-	allUnicodes = ["&#x%s;" % g.unicode for g in thisFont.glyphs + thisFont.importedGlyphs() if g.unicode and g.export and g.subCategory!="Nonspacing" ]
-	allUnicodes += [" &#x%s;" % g.unicode for g in thisFont.glyphs + thisFont.importedGlyphs() if g.unicode and g.export and g.subCategory=="Nonspacing" ]
-	return "".join( allUnicodes )
+def allUnicodeEscapesOfFont(thisFont):
+	allUnicodes = ["&#x%s;" % g.unicode for g in thisFont.glyphs + thisFont.importedGlyphs() if g.unicode and g.export and g.subCategory != "Nonspacing"]
+	allUnicodes += [" &#x%s;" % g.unicode for g in thisFont.glyphs + thisFont.importedGlyphs() if g.unicode and g.export and g.subCategory == "Nonspacing"]
+	return "".join(allUnicodes)
 
-def getInstanceInfo( thisFont, activeInstance, fileFormat ):
+def getInstanceInfo(thisFont, activeInstance, fileFormat):
 	# Determine Family Name
-	
+
 	if Glyphs.versionNumber >= 3:
 		# GLYPHS 3
 		familyName = activeInstance.familyName
@@ -80,28 +79,28 @@ def getInstanceInfo( thisFont, activeInstance, fileFormat ):
 		individualFamilyName = activeInstance.customParameters["familyName"]
 		if individualFamilyName != None:
 			familyName = individualFamilyName
-	
+
 	# Determine Style Name
 	activeInstanceName = activeInstance.name
-	
+
 	# Determine font and file names for CSS
-	menuName = "%s %s-%s" % ( fileFormat.upper(), familyName, activeInstanceName )
-	
+	menuName = "%s %s-%s" % (fileFormat.upper(), familyName, activeInstanceName)
+
 	# 3 approaches for determining the file names:
 	firstPartOfFileName = ".".join(activeInstance.fileName().split(".")[:-1]) # removes ".otf" at the end
 	if not firstPartOfFileName:
 		firstPartOfFileName = activeInstance.customParameters["fileName"]
 	if not firstPartOfFileName:
-		firstPartOfFileName = "%s-%s" % ( familyName.replace(" ",""), activeInstanceName.replace(" ","") )
-		
-	fileName = "%s.%s" % ( firstPartOfFileName, fileFormat )
+		firstPartOfFileName = "%s-%s" % (familyName.replace(" ", ""), activeInstanceName.replace(" ", ""))
+
+	fileName = "%s.%s" % (firstPartOfFileName, fileFormat)
 	return fileName, menuName, activeInstanceName
 
-def allActiveInstancesOfFont( thisFont ):
+def allActiveInstancesOfFont(thisFont):
 	activeInstances = [i for i in thisFont.instances if i.active and isSingleInstance(i)]
 	return activeInstances
-	
-def allActiveInstancesOfProject( thisProject ):
+
+def allActiveInstancesOfProject(thisProject):
 	if Glyphs.versionNumber >= 3:
 		# GLYPHS 3
 		activeInstances = [i for i in thisProject.instances if i.active and isSingleInstance(i)]
@@ -110,7 +109,7 @@ def allActiveInstancesOfProject( thisProject ):
 		activeInstances = [i for i in thisProject.instances() if i.active and isSingleInstance(i)]
 	return activeInstances
 
-def isSingleInstance( instance ):
+def isSingleInstance(instance):
 	if Glyphs.versionNumber >= 3:
 		# GLYPHS 3
 		return instance.type == INSTANCETYPESINGLE
@@ -118,55 +117,59 @@ def isSingleInstance( instance ):
 		# GLYPHS 2
 		return True
 
-def activeInstancesOfFontByFormat( thisFont, fileFormats=("woff","woff2") ):
+def activeInstancesOfFontByFormat(thisFont, fileFormats=("woff", "woff2")):
 	activeInstances = allActiveInstancesOfFont(thisFont)
 	listOfInstanceInfo = []
 	for fileFormat in fileFormats:
 		for activeInstance in activeInstances:
 			fileName, menuName, activeInstanceName = getInstanceInfo(thisFont, activeInstance, fileFormat)
-			listOfInstanceInfo.append( (fileName, menuName, activeInstanceName) )
+			listOfInstanceInfo.append((fileName, menuName, activeInstanceName))
 	return listOfInstanceInfo
 
-def activeInstancesOfProjectByFormat( thisProject, fileFormats=("woff","woff2") ):
+def activeInstancesOfProjectByFormat(thisProject, fileFormats=("woff", "woff2")):
 	thisFont = thisProject.font()
 	activeInstances = allActiveInstancesOfProject(thisProject)
 	listOfInstanceInfo = []
 	for fileFormat in fileFormats:
 		for activeInstance in activeInstances:
 			fileName, menuName, activeInstanceName = getInstanceInfo(thisFont, activeInstance, fileFormat)
-			listOfInstanceInfo.append( (fileName, menuName, activeInstanceName) )
+			listOfInstanceInfo.append((fileName, menuName, activeInstanceName))
 	return listOfInstanceInfo
 
-def optionListForInstances( instanceList ):
+def optionListForInstances(instanceList):
 	returnString = ""
 	for thisInstanceInfo in instanceList:
-		returnString += '			<option value="%s">%s</option>\n' % ( thisInstanceInfo[0], thisInstanceInfo[1] )
+		returnString += '			<option value="%s">%s</option>\n' % (thisInstanceInfo[0], thisInstanceInfo[1])
 		# <option value="fileName">baseName</option>
-	
+
 	return returnString
 
-def fontFaces( instanceList ):
+def fontFaces(instanceList):
 	returnString = ""
 	for thisInstanceInfo in instanceList:
 		fileName = thisInstanceInfo[0]
 		nameOfTheFont = thisInstanceInfo[1]
-		returnString += "\t\t@font-face { font-family: '%s'; src: url('%s'); }\n" % ( nameOfTheFont, fileName )
-	
+		returnString += "\t\t@font-face { font-family: '%s'; src: url('%s'); }\n" % (nameOfTheFont, fileName)
+
 	return returnString
 
-def featureListForFont( thisFont ):
+def featureListForFont(thisFont):
 	returnString = ""
 	featureList = [(f.name, f.notes) for f in thisFont.features if not f.name in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig") and not f.disabled()]
 	doneFeatures = []
-	for (f,n) in featureList:
+	for (f, n) in featureList:
 		if not f in doneFeatures: # avoid duplicates
 			doneFeatures.append(f)
 			if f.startswith("ss") and n and n.startswith("Name:"):
 				# stylistic set name:
 				setName = n.splitlines()[0][5:].strip()
-				returnString += '\t\t<input type="checkbox" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s<span class="tooltip">%s</span></label>\n' % (f,f,f,f,setName)
+				returnString += '\t\t<input type="checkbox" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s<span class="tooltip">%s</span></label>\n' % (
+					f, f, f, f, setName
+					)
 			else:
-				returnString += '\t\t<input type="checkbox" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s</label>\n' % (f,f,f,f)
+				returnString += '\t\t<input type="checkbox" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s</label>\n' % (
+					f, f, f, f
+					)
 	return returnString
 
 htmlContent = """<head>
@@ -595,16 +598,16 @@ else:
 	if firstDoc.isKindOfClass_(GSProjectDocument):
 		# Frontmost doc is a .glyphsproject file:
 		thisFont = firstDoc.font() # frontmost project file
-		activeFontInstances = activeInstancesOfProjectByFormat( firstDoc, fileFormats=fileFormats )
+		activeFontInstances = activeInstancesOfProjectByFormat(firstDoc, fileFormats=fileFormats)
 		exportPath = firstDoc.exportPath()
 	else:
 		# Frontmost doc is a .glyphs file:
 		thisFont = Glyphs.font # frontmost font
-		activeFontInstances = activeInstancesOfFontByFormat( thisFont, fileFormats=fileFormats )
+		activeFontInstances = activeInstancesOfFontByFormat(thisFont, fileFormats=fileFormats)
 		exportPath = currentWebExportPath()
-		
+
 	familyName = thisFont.familyName
-	
+
 	if not activeFontInstances:
 		if Glyphs.versionNumber >= 3:
 			# GLYPHS 3
@@ -612,47 +615,43 @@ else:
 		else:
 			# GLYPHS 2
 			exports = "Instances"
-		
+
 		Message(
 			title="⚠️ No exporting fonts found",
-			message="No active font instances are set in Font Info > %s. Cannot create HTML for %s." % (exports, familyName), 
+			message="No active font instances are set in Font Info > %s. Cannot create HTML for %s." % (exports, familyName),
 			OKButton=None,
-		)
+			)
 		print("❌ %s: No instances set in Font Info. Aborting." % familyName)
-	else:	
+	else:
 		print("Preparing Test HTML for:")
 		for thisFontInstanceInfo in activeFontInstances:
 			print("  %s" % thisFontInstanceInfo[1])
-	
-		optionList = optionListForInstances( activeFontInstances )
-		fontFacesCSS = fontFaces( activeFontInstances )
-		firstFileName =  activeFontInstances[0][0]
-		firstFontName =  activeFontInstances[0][1]
+
+		optionList = optionListForInstances(activeFontInstances)
+		fontFacesCSS = fontFaces(activeFontInstances)
+		firstFileName = activeFontInstances[0][0]
+		firstFontName = activeFontInstances[0][1]
 
 		replacements = (
-			( "familyName", familyName ),
-			( "nameOfTheFont", firstFontName ),
-			( "The Quick Brown Fox Jumps Over The Lazy Dog.", allUnicodeEscapesOfFont(thisFont) ),
-			( "fileName", firstFileName ),
-			( "		<!-- moreOptions -->\n", optionList ),
-			( "		<!-- moreFeatures -->\n", featureListForFont(thisFont) ),
-			( "		<!-- fontFaces -->\n", fontFacesCSS  )
-		)
+			("familyName", familyName), ("nameOfTheFont", firstFontName), ("The Quick Brown Fox Jumps Over The Lazy Dog.", allUnicodeEscapesOfFont(thisFont)),
+			("fileName", firstFileName), ("		<!-- moreOptions -->\n", optionList), ("		<!-- moreFeatures -->\n",
+																					featureListForFont(thisFont)), ("		<!-- fontFaces -->\n", fontFacesCSS)
+			)
 
-		htmlContent = replaceSet( htmlContent, replacements )
-	
+		htmlContent = replaceSet(htmlContent, replacements)
+
 		# Write file to disk:
 		if exportPath:
 			htmlFileName = "fonttest.html"
-			if saveFileInLocation( content=htmlContent, fileName=htmlFileName, filePath=exportPath ):
+			if saveFileInLocation(content=htmlContent, fileName=htmlFileName, filePath=exportPath):
 				print("Successfully wrote file to disk.")
 				terminalCommand = 'cd "%s"; open .; open %s' % (exportPath, htmlFileName)
-				system( terminalCommand )
+				system(terminalCommand)
 			else:
 				print("Error writing file to disk.")
 		else:
-			Message( 
+			Message(
 				title="⚠️ Webfont Test HTML Error",
 				message="Could not determine export path. You need to export webfonts first.",
 				OKButton=None,
-			)
+				)
