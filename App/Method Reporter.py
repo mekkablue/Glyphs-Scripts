@@ -1,7 +1,7 @@
 #MenuTitle: Method Reporter
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Searches in PyObjC method names of a chosen object.
 """
 
@@ -10,15 +10,15 @@ from AppKit import NSPasteboard, NSStringPboardType, NSUserDefaults
 from pydoc import help
 import AppKit, Foundation
 
-def setClipboard( myText ):
+def setClipboard(myText):
 	"""
 	Sets the contents of the clipboard to myText.
 	Returns True if successful, False if unsuccessful.
 	"""
 	try:
 		myClipboard = NSPasteboard.generalPasteboard()
-		myClipboard.declareTypes_owner_( [NSStringPboardType], None )
-		myClipboard.setString_forType_( myText, NSStringPboardType )
+		myClipboard.declareTypes_owner_([NSStringPboardType], None)
+		myClipboard.setString_forType_(myText, NSStringPboardType)
 		return True
 	except Exception as e:
 		print(e)
@@ -26,8 +26,9 @@ def setClipboard( myText ):
 		print(traceback.format_exc())
 		return False
 
-class MethodReporter( object ):
-	def __init__( self ):
+class MethodReporter(object):
+
+	def __init__(self):
 		self.mostImportantObjects = (
 			"GSLayer",
 			"GSGlyph",
@@ -76,49 +77,35 @@ class MethodReporter( object ):
 			"NSString",
 			"FTPointArray",
 			"Glyph_g_l_y_f",
-		)
-		
+			)
+
 		# Window 'self.w':
-		windowWidth  = 250
+		windowWidth = 250
 		windowHeight = 200
-		windowWidthResize  = 1000 # user can resize width by this value
+		windowWidthResize = 1000 # user can resize width by this value
 		windowHeightResize = 850 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			( windowWidth, windowHeight ), # default window size
+			(windowWidth, windowHeight), # default window size
 			"Method Reporter", # window title
-			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
-			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
-			autosaveName = "com.mekkablue.MethodReporter.mainwindow" # stores last window position and size
-		)
-		
+			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
+			autosaveName="com.mekkablue.MethodReporter.mainwindow" # stores last window position and size
+			)
+
 		# UI ELEMENTS:
-		
+
 		# Method Picker:
-		self.w.objectPicker = vanilla.ComboBox(
-			(3, 2, 133, 24),
-			self.mostImportantObjects,
-			sizeStyle='regular',
-			completes=True,
-			continuous=False,
-			callback=self.MethodReporterMain
-		)
+		self.w.objectPicker = vanilla.ComboBox((3, 2, 133, 24), self.mostImportantObjects, sizeStyle='regular', completes=True, continuous=False, callback=self.MethodReporterMain)
 		self.w.objectPicker.set("GSLayer")
 		self.w.objectPicker.getNSComboBox().setToolTip_("Type a class name here. Names will autocomplete.")
-		
+
 		# Filter:
-		self.w.textFilter = vanilla.TextBox(
-			(140, 6, 35, 14),
-			"Find:",
-			sizeStyle='small'
-		)
-		self.w.filter = vanilla.EditText(
-			(173, 1, -1, 24 ),
-			"",
-			sizeStyle='regular',
-			callback=self.MethodReporterMain
-		)
-		self.w.filter.getNSTextField().setToolTip_("Type one or more (space-separated) search terms here. Case is ignored. Use * as wildcard at beginning, middle or end of term. Multiple search terms are AND-concatenated.")
-		
+		self.w.textFilter = vanilla.TextBox((140, 6, 35, 14), "Find:", sizeStyle='small')
+		self.w.filter = vanilla.EditText((173, 1, -1, 24), "", sizeStyle='regular', callback=self.MethodReporterMain)
+		self.w.filter.getNSTextField().setToolTip_(
+			"Type one or more (space-separated) search terms here. Case is ignored. Use * as wildcard at beginning, middle or end of term. Multiple search terms are AND-concatenated."
+			)
+
 		# Listing of methods:
 		self.w.methodList = vanilla.List(
 			(0, 26, -0, -0),
@@ -127,42 +114,42 @@ class MethodReporter( object ):
 			drawVerticalLines=True,
 			doubleClickCallback=self.copySelection,
 			rowHeight=19,
-		)
+			)
 		self.w.methodList.getNSTableView().tableColumns()[0].setWidth_(501)
 		self.w.methodList.getNSTableView().setToolTip_("Double click an entry to copy it to the clipboard and display its help() in Macro Window.")
-		
+
 		# Load Settings:
 		if not self.LoadPreferences():
 			print("Note: 'Method Reporter' could not load preferences. Will resort to defaults")
-		
+
 		# Open window and focus on it:
 		self.w.bind("resize", self.adjustGUIObjects)
 		self.w.open()
 		self.w.makeKey()
 		self.MethodReporterMain(None)
-	
+
 	def adjustGUIObjects(self, sender=None):
 		windowLeft, windowTop, windowWidth, windowHeight = self.w.getPosSize()
 		if windowWidth > 350:
-			fifth=int(windowWidth*0.4)
+			fifth = int(windowWidth * 0.4)
 
 			posSizeObjectPicker = list(self.w.objectPicker.getPosSize())
-			posSizeObjectPicker[2] = fifth-7
-			self.w.objectPicker.setPosSize( posSizeObjectPicker )
+			posSizeObjectPicker[2] = fifth - 7
+			self.w.objectPicker.setPosSize(posSizeObjectPicker)
 
 			posSizeTextFilter = list(self.w.textFilter.getPosSize())
 			posSizeTextFilter[0] = fifth
-			self.w.textFilter.setPosSize( posSizeTextFilter )
+			self.w.textFilter.setPosSize(posSizeTextFilter)
 
 			posSizeFilter = list(self.w.filter.getPosSize())
-			posSizeFilter[0] = fifth+33
-			self.w.filter.setPosSize( posSizeFilter )
+			posSizeFilter[0] = fifth + 33
+			self.w.filter.setPosSize(posSizeFilter)
 		else:
-			self.w.objectPicker.setPosSize( (3, 2, 133, 24) )
-			self.w.textFilter.setPosSize( (140, 6, 35, 14) )
-			self.w.filter.setPosSize( (173, 1, -1, 24 ) )
-		
-	def SavePreferences( self, sender ):
+			self.w.objectPicker.setPosSize((3, 2, 133, 24))
+			self.w.textFilter.setPosSize((140, 6, 35, 14))
+			self.w.filter.setPosSize((173, 1, -1, 24))
+
+	def SavePreferences(self, sender):
 		try:
 			Glyphs.defaults["com.mekkablue.MethodReporter.filter"] = self.w.filter.get()
 			Glyphs.defaults["com.mekkablue.MethodReporter.objectPicker"] = self.w.objectPicker.get()
@@ -170,47 +157,50 @@ class MethodReporter( object ):
 			return False
 		return True
 
-	def LoadPreferences( self ):
+	def LoadPreferences(self):
 		try:
-			Glyphs.registerDefault("com.mekkablue.MethodReporter.objectPicker", "GSLayer",)
+			Glyphs.registerDefault(
+				"com.mekkablue.MethodReporter.objectPicker",
+				"GSLayer",
+				)
 			Glyphs.registerDefault("com.mekkablue.MethodReporter.filter", "")
-			self.w.objectPicker.set( Glyphs.defaults["com.mekkablue.MethodReporter.objectPicker"] )
-			self.w.filter.set( Glyphs.defaults["com.mekkablue.MethodReporter.filter"] )
+			self.w.objectPicker.set(Glyphs.defaults["com.mekkablue.MethodReporter.objectPicker"])
+			self.w.filter.set(Glyphs.defaults["com.mekkablue.MethodReporter.filter"])
 		except:
 			return False
 		return True
 
-	def copySelection( self, sender ):
+	def copySelection(self, sender):
 		try:
 			index = self.w.methodList.getSelection()[0]
 			methodName = self.w.methodList[index]
 			className = self.w.objectPicker.get()
-			method = "%s.%s" % ( className, methodName )
-			
+			method = "%s.%s" % (className, methodName)
+
 			# help in macro window:
 			self.outputHelpForMethod(method)
-			
+
 			# puts method in clipboard:
 			if not setClipboard(method):
 				print("Warning: could not set clipboard.")
 			else:
-				print("\n%s copied in clipboard, ready for pasting."%method)
-				
+				print("\n%s copied in clipboard, ready for pasting." % method)
+
 		except Exception as e:
 			Glyphs.showMacroWindow()
 			import traceback
 			print(traceback.format_exc())
-	
+
 	def outputHelpForMethod(self, method):
 		# strip parentheses if necessary:
 		if method.endswith("()"):
 			method = method[:-2]
-		
+
 		# brings macro window to front, clears its log, outputs help for method:
 		Glyphs.clearLog()
 		try:
 			helpStatement = "help(%s)" % method
-			print("%s\n"%helpStatement)
+			print("%s\n" % helpStatement)
 			eval(helpStatement)
 		except:
 			if "." in method:
@@ -220,74 +210,68 @@ class MethodReporter( object ):
 			else:
 				firstPart = method
 				secondPart = ""
-			helpStatement = "help(NSClassFromString('%s')%s)"%(firstPart, secondPart)
-			print("%s\n"%helpStatement)
+			helpStatement = "help(NSClassFromString('%s')%s)" % (firstPart, secondPart)
+			print("%s\n" % helpStatement)
 			eval(helpStatement)
 		Glyphs.showMacroWindow()
-		
+
 	def fullMethodName(self, className, methodName):
 		"""
 		Adds () if necessary.
 		"""
-		method = "%s.%s" % (className,methodName)
+		method = "%s.%s" % (className, methodName)
 		methodType = type(eval(method))
 		typeString = methodType.__name__
 		if typeString != "property":
 			methodName += "()"
 		return methodName
-	
+
 	def methodList(self, className):
 		elidableMethods = [method for method in dir(NSObject) if not method.startswith("__")]
 		if className == "NSObject":
-			return [
-				self.fullMethodName(className,method) for method in elidableMethods 
-				if not method.startswith(".")
-				and not method.startswith("_")
-			]
+			return [self.fullMethodName(className, method) for method in elidableMethods if not method.startswith(".") and not method.startswith("_")]
 		else:
 			try:
 				actualClass = eval(className)
 			except:
-				newClassName = "NSClassFromString('%s')"%className
+				newClassName = "NSClassFromString('%s')" % className
 				actualClass = eval(newClassName)
 				className = newClassName
-				
+
 			shortenedMethods = [
-				self.fullMethodName(className,method) for method in dir(actualClass) 
-				if not method in elidableMethods 
-				and not method.startswith(".")
-				and not method.startswith("_")
-			]
+				self.fullMethodName(className, method) for method in dir(actualClass)
+				if not method in elidableMethods and not method.startswith(".") and not method.startswith("_")
+				]
 			return shortenedMethods
-			
-	def MethodReporterMain( self, sender ):
+
+	def MethodReporterMain(self, sender):
 		try:
 			className = self.w.objectPicker.get()
 			filterStringEntry = self.w.filter.get().strip()
 			filterStrings = filterStringEntry.split(" ")
-			
+
 			try:
 				methodList = sorted(set(self.methodList(className)))
 				for filterString in filterStrings:
 					if not "*" in filterString:
-						methodList = [ f for f in methodList if filterString.lower() in f.lower() ]
+						methodList = [f for f in methodList if filterString.lower() in f.lower()]
 					elif filterString.startswith("*"):
-						methodList = [ f for f in methodList if f.lower().endswith(filterString.lower()[1:]) ]
+						methodList = [f for f in methodList if f.lower().endswith(filterString.lower()[1:])]
 					elif filterString.endswith("*"):
-						methodList = [ f for f in methodList if f.lower().startswith(filterString.lower()[:-1]) ]
+						methodList = [f for f in methodList if f.lower().startswith(filterString.lower()[:-1])]
 					else:
 						asteriskPos = filterString.find("*")
 						beginning = filterString[:asteriskPos].lower()
-						ending = filterString[asteriskPos+1:].lower()
-						methodList = [ f for f in methodList if f.lower().startswith(beginning) and f.lower().endswith(ending) ]
+						ending = filterString[asteriskPos + 1:].lower()
+						methodList = [f for f in methodList if f.lower().startswith(beginning) and f.lower().endswith(ending)]
 			except:
 				methodList = []
-			
+
 			self.w.methodList.set(methodList)
-			
-			if not self.SavePreferences( self ):
+
+			if not self.SavePreferences(self):
 				print("Note: 'Method Reporter' could not write preferences.")
-			
+
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()

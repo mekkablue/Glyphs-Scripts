@@ -1,41 +1,40 @@
 #MenuTitle: Move vertical caron anchors to x-height intersection
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 On all layers of selected glyphs, moves all topright and _topright anchors to the rightmost intersection of the outline with the x-height. Verbose report in Macro Window.
 """
 
 from Foundation import NSPoint
 import math
-
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
 selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 
-def angle( firstPoint, secondPoint ):
+def angle(firstPoint, secondPoint):
 	xDiff = firstPoint.x - secondPoint.x
 	yDiff = firstPoint.y - secondPoint.y
 	tangens = yDiff / xDiff
-	angle = math.atan( tangens ) * 180.0 / math.pi
+	angle = math.atan(tangens) * 180.0 / math.pi
 	return angle
 
-def sliceIntersections( thisLayer, startPoint, endPoint ):
-	return thisLayer.calculateIntersectionsStartPoint_endPoint_( startPoint, endPoint )
+def sliceIntersections(thisLayer, startPoint, endPoint):
+	return thisLayer.calculateIntersectionsStartPoint_endPoint_(startPoint, endPoint)
 
-def intersectionOnXHeight( thisLayer ):
+def intersectionOnXHeight(thisLayer):
 	"""Returns the NSPoint of the rightmost intersection with the x-height."""
 	goodMeasure = 0
 	xHeight = thisLayer.master.xHeight
 	if not xHeight:
 		xHeight = 500 # fallback value
-	
+
 	originX = thisLayer.bounds.origin.x - goodMeasure
-	originPoint = NSPoint( originX, xHeight )
+	originPoint = NSPoint(originX, xHeight)
 	targetX = originX + thisLayer.bounds.size.width + goodMeasure
-	targetPoint = NSPoint( targetX, xHeight )
-	
-	listOfIntersections = sliceIntersections( thisLayer, originPoint, targetPoint )
-	
+	targetPoint = NSPoint(targetX, xHeight)
+
+	listOfIntersections = sliceIntersections(thisLayer, originPoint, targetPoint)
+
 	# print("intersectionOnXHeight:", listOfIntersections, originPoint, targetPoint) # DEBUG
 	if listOfIntersections:
 		rightmostIntersection = listOfIntersections[-2].pointValue()
@@ -43,26 +42,26 @@ def intersectionOnXHeight( thisLayer ):
 	else:
 		return None
 
-def process( thisLayer ):
+def process(thisLayer):
 	toprightAnchor = thisLayer.anchors["topright"]
 	isAccent = False
 	if not toprightAnchor:
 		toprightAnchor = thisLayer.anchors["_topright"]
 		isAccent = True
-	
+
 	xHeight = thisLayer.master.xHeight
-	
+
 	if toprightAnchor:
-		xHeightOutlineIntersection = intersectionOnXHeight( thisLayer )
+		xHeightOutlineIntersection = intersectionOnXHeight(thisLayer)
 		if xHeightOutlineIntersection:
 			if isAccent:
 				xHeightOutlineIntersection.x = 0.0
 			toprightAnchor.position = xHeightOutlineIntersection
 			print("  ✅ %s: moved %s to %.1f, %.1f." % (thisLayer.name, toprightAnchor.name, toprightAnchor.x, toprightAnchor.y))
-			
+
 			# selects anchor on thisLayer:
-			itemsToBeSelected = NSMutableArray.arrayWithObject_( toprightAnchor )
-			thisLayer.setSelection_( itemsToBeSelected )
+			itemsToBeSelected = NSMutableArray.arrayWithObject_(toprightAnchor)
+			thisLayer.setSelection_(itemsToBeSelected)
 		else:
 			# put it on the x-height, at least:
 			toprightAnchor.y = 0
@@ -81,7 +80,7 @@ try:
 		# thisGlyph.beginUndo() # undo grouping causes crashes
 		for thisLayer in thisGlyph.layers:
 			if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
-				process( thisLayer )
+				process(thisLayer)
 		# thisGlyph.endUndo() # undo grouping causes crashes
 
 	print("\nDone.")

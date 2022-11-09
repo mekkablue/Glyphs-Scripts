@@ -1,7 +1,7 @@
 #MenuTitle: Set Preferred Names (Name IDs 16 and 17) for Width Variants
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Sets Preferred Names custom parameters (Name IDs 16 and 17) for all instances, so that width variants will appear in separate menus in Adobe apps.
 """
 
@@ -25,7 +25,7 @@ def particleIsPartOfName(particle, instanceName):
 	delim = "🧙"
 	modifiedInstanceName = delim.join(instanceName.split())
 	modifiedParticle = delim.join(particle.split())
-	
+
 	# particle in the MIDDLE of the name:
 	searchTerm = "%s%s%s" % (delim, modifiedParticle, delim)
 	if searchTerm in modifiedInstanceName:
@@ -35,32 +35,31 @@ def particleIsPartOfName(particle, instanceName):
 	searchTerm = "%s%s" % (delim, modifiedParticle)
 	if modifiedInstanceName.endswith(searchTerm):
 		return True
-	
+
 	# particle at the BEGINNING of the name:
 	searchTerm = "%s%s" % (modifiedParticle, delim)
 	if modifiedInstanceName.startswith(searchTerm):
 		return True
-	
-	return False
 
+	return False
 
 for thisInstance in thisFont.instances:
 	print("Processing Instance:", thisInstance.name)
 	familyName = thisFont.familyName
 	if thisInstance.customParameters["familyName"]:
 		familyName = thisInstance.customParameters["familyName"]
-	
+
 	widthVariant = None
 	for width in widths:
 		if particleIsPartOfName(width, thisInstance.name):
 			widthVariant = width
-	
+
 	if widthVariant:
-		preferredFamilyName = "%s %s" % ( thisFont.familyName.strip(), widthVariant.strip() )
-		preferredStyleName = thisInstance.name.replace(widthVariant,"").strip()
+		preferredFamilyName = "%s %s" % (thisFont.familyName.strip(), widthVariant.strip())
+		preferredStyleName = thisInstance.name.replace(widthVariant, "").strip()
 		if not preferredStyleName:
 			preferredStyleName = "Regular"
-		
+
 		if Glyphs.versionNumber >= 3:
 			# GLYPHS 3
 			thisInstance.preferredFamilyName = preferredFamilyName

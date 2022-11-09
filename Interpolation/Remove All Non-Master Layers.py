@@ -1,17 +1,17 @@
 #MenuTitle: Remove All Non-Master Layers
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Goes through selected glyphs and deletes all glyph layers which are not a Master, Bracket or Brace layer.
 """
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 
-def process( thisGlyph ):
+def process(thisGlyph):
 	count = 0
-	numberOfLayers = len( thisGlyph.layers )
-	for i in range( numberOfLayers )[::-1]:
+	numberOfLayers = len(thisGlyph.layers)
+	for i in range(numberOfLayers)[::-1]:
 		thisLayer = thisGlyph.layers[i]
 		if not thisLayer.isMasterLayer and not thisLayer.isSpecialLayer:
 			thisLayerShouldBeRemoved = True
@@ -22,19 +22,19 @@ def process( thisGlyph ):
 
 Glyphs.clearLog() # clears macro window log
 
-excludedGlyphNameBeginnings = ("_smart","_part")
+excludedGlyphNameBeginnings = ("_smart", "_part")
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent
 	thisGlyphName = thisGlyph.name
-	
+
 	nameIsAnException = False
 	for prefix in excludedGlyphNameBeginnings:
 		if thisGlyphName.startswith(prefix):
 			nameIsAnException = True
-	
+
 	if not nameIsAnException:
 		# thisGlyph.beginUndo() # undo grouping causes crashes
-		print("%s layers deleted in %s." % ( process( thisGlyph ), thisGlyphName ))
+		print("%s layers deleted in %s." % (process(thisGlyph), thisGlyphName))
 		# thisGlyph.endUndo() # undo grouping causes crashes
 	else:
-		print("Smart layers kept in %s." % ( thisGlyphName ))
+		print("Smart layers kept in %s." % (thisGlyphName))

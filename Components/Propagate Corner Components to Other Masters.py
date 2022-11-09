@@ -1,7 +1,7 @@
 #MenuTitle: Propagate Corner Components to Other Masters
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Puts Corner Components from the current layer into other master layers, at the same point indexes. Useful if Corner components do not interpolate correctly.
 """
 
@@ -9,18 +9,18 @@ from GlyphsApp import CORNER, SEGMENT, CAP
 from AppKit import NSNotificationCenter
 SUPPORTEDTYPES = (CORNER, SEGMENT, CAP)
 
-def indexOfPath(l,p):
+def indexOfPath(l, p):
 	for i in range(len(l.paths)):
 		if p == l.paths[i]:
 			return i
 	return None
 
-def indexOfNode(l,pi,n):
+def indexOfNode(l, pi, n):
 	for i in range(len(l.paths[pi].nodes)):
 		if n == l.paths[pi].nodes[i]:
 			return i
 	return None
-	
+
 def deleteCornerComponentsOnLayer(l):
 	cornerComponents = [h for h in l.hints if h.type in SUPPORTEDTYPES]
 	if cornerComponents:
@@ -36,20 +36,16 @@ def pathStructure(thisLayer):
 			layerString += thisNode.type[0]
 	return layerString
 
-def process( thisLayer ):
+def process(thisLayer):
 	thisGlyph = thisLayer.parent
-	targetLayers = [
-		l for l in thisGlyph.layers 
-			if l != thisLayer 
-			and pathStructure(l) == pathStructure(thisLayer)
-		]
+	targetLayers = [l for l in thisGlyph.layers if l != thisLayer and pathStructure(l) == pathStructure(thisLayer)]
 	for targetLayer in targetLayers:
 		deleteCornerComponentsOnLayer(targetLayer)
 		for h in [h for h in thisLayer.hints if h.type in SUPPORTEDTYPES]:
 			# query corner component attributes:
 			pathIndex = indexOfPath(thisLayer, h.originNode.parent)
-			nodeIndex = indexOfNode(thisLayer, pathIndex,h.originNode)
-			
+			nodeIndex = indexOfNode(thisLayer, pathIndex, h.originNode)
+
 			# create eqivalent corner component in target layer:
 			newCorner = h.copy()
 			targetLayer.hints.append(newCorner)
@@ -65,9 +61,9 @@ if thisFont and selectedLayers:
 			thisGlyph = thisLayer.parent
 			print("Processing", thisGlyph.name)
 			# thisGlyph.beginUndo() # undo grouping causes crashes
-			process( thisLayer )
+			process(thisLayer)
 			# thisGlyph.endUndo() # undo grouping causes crashes
-			
+
 	except Exception as e:
 		Glyphs.showMacroWindow()
 		print("\n⚠️ Script Error:\n")
@@ -75,9 +71,9 @@ if thisFont and selectedLayers:
 		print(traceback.format_exc())
 		print()
 		raise e
-		
+
 	finally:
 		thisFont.enableUpdateInterface() # re-enables UI updates in Font View
-	
+
 	if Glyphs.versionNumber < 3 and thisFont.currentTab:
 		NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)

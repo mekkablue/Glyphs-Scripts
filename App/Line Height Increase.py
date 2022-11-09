@@ -1,7 +1,7 @@
 #MenuTitle: Increase Line Height
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Increase the Edit View line height.
 """
 
@@ -14,15 +14,11 @@ if not Font.customParameters[parameterName]:
 
 lineheight = Font.customParameters[parameterName]
 
-if not lineheight > Font.upm*10:
+if not lineheight > Font.upm * 10:
 	lineheight *= 1.25
 	lineheight = round(lineheight)
 	Font.customParameters[parameterName] = lineheight
 	if Font.currentTab:
 		Font.currentTab.forceRedraw()
 else:
-	Message(
-		title="Line Height Error",
-		message="The line height exceeds the UPM more than tenfold already. Stop it now.",
-		OKButton=None
-		)
+	Message(title="Line Height Error", message="The line height exceeds the UPM more than tenfold already. Stop it now.", OKButton=None)

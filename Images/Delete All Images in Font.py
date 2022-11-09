@@ -1,16 +1,16 @@
 #MenuTitle: Remove All Images from Font
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Deletes all placed images from the frontmost font.
 """
 
 thisFont = Glyphs.font
 
-def process( thisGlyph ):
+def process(thisGlyph):
 	deleteCount = 0
 	# thisGlyph.beginUndo() # undo grouping causes crashes
-	
+
 	for thisLayer in thisGlyph.layers:
 		try:
 			if thisLayer.backgroundImage:
@@ -18,20 +18,20 @@ def process( thisGlyph ):
 				deleteCount += 1
 		except Exception as e:
 			print("   ⚠️ %s, layer ‘%s’: %s\n" % (thisGlyph.name, thisLayer.name, e))
-			
+
 	# thisGlyph.endUndo() # undo grouping causes crashes
 	return deleteCount
 
 thisFont.disableUpdateInterface()
 try:
-	print("Removing images in %s glyphs ..." % len( thisFont.glyphs ))
+	print("Removing images in %s glyphs ..." % len(thisFont.glyphs))
 
 	totalCount = 0
 
 	for thisGlyph in thisFont.glyphs:
-		numberOfDeletedImages = process( thisGlyph )
+		numberOfDeletedImages = process(thisGlyph)
 		plural = min(numberOfDeletedImages, 1) # 0 or 1
-		print("   Deleted %i image%s in %s." % ( numberOfDeletedImages, "s"*plural, thisGlyph.name ))
+		print("   Deleted %i image%s in %s." % (numberOfDeletedImages, "s" * plural, thisGlyph.name))
 		totalCount += numberOfDeletedImages
 
 except Exception as e:

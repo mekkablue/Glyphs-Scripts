@@ -1,7 +1,7 @@
 #MenuTitle: Interpolate two paths
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Select two paths and run this script, it will replace them with their interpolation at 50%.
 """
 
@@ -29,15 +29,14 @@ else:
 			layerB.shapes.append(path2.copy())
 			tempGlyph.layers = [layerA, layerB]
 			tempLayer = tempGlyph._interpolateLayers_interpolation_masters_decompose_font_error_(
-											[layerA, layerB], 
-											{
-												layerA.layerId:0.5,
-												layerB.layerId:0.5,
-											}, 
-											None, False, Font, None)
+				[layerA, layerB], {
+					layerA.layerId: 0.5,
+					layerB.layerId: 0.5,
+					}, None, False, Font, None
+				)
 			if len(tempLayer.shapes) == 1:
-				for i in range(len(Layer.shapes)-1,-1,-1):
-					if Layer.shapes[i].selected and type(Layer.shapes[i])==GSPath:
+				for i in range(len(Layer.shapes) - 1, -1, -1):
+					if Layer.shapes[i].selected and type(Layer.shapes[i]) == GSPath:
 						del Layer.shapes[i]
 				Layer.shapes.append(tempLayer.paths[0].copy())
 			else:

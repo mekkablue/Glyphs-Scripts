@@ -1,53 +1,53 @@
 #MenuTitle: Toggle Image Lock
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Floating Window for toggling the locked status of selected glyphs.
 """
 
 import vanilla
 
-class ToggleImageLock( object ):
-	def __init__( self ):
+class ToggleImageLock(object):
+
+	def __init__(self):
 		# Window 'self.w':
-		windowWidth  = 250
+		windowWidth = 250
 		windowHeight = 60
-		windowWidthResize  = 500 # user can resize width by this value
+		windowWidthResize = 500 # user can resize width by this value
 		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			( windowWidth, windowHeight ), # default window size
+			(windowWidth, windowHeight), # default window size
 			"Toggle Image Lock", # window title
-			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
-			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
-			autosaveName = "com.mekkablue.ToggleImageLock.mainwindow" # stores last window position and size
-		)
-		
+			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
+			autosaveName="com.mekkablue.ToggleImageLock.mainwindow" # stores last window position and size
+			)
+
 		currentWidth = self.w.getPosSize()[2]
 		# A tuple of form *(left, top, width, height)* representing the window's
 		# position and size.
 
-		self.w.lockButton = vanilla.Button((15, 10, currentWidth/2-10, -10), u"🔒 Lock", sizeStyle='regular', callback=self.ToggleImageLockMain )
-		self.w.unlockButton = vanilla.Button((currentWidth/2+10, 10, -15, -10), u"🔓 Unlock", sizeStyle='regular', callback=self.ToggleImageLockMain )
-		self.w.setDefaultButton( self.w.unlockButton )
+		self.w.lockButton = vanilla.Button((15, 10, currentWidth / 2 - 10, -10), u"🔒 Lock", sizeStyle='regular', callback=self.ToggleImageLockMain)
+		self.w.unlockButton = vanilla.Button((currentWidth / 2 + 10, 10, -15, -10), u"🔓 Unlock", sizeStyle='regular', callback=self.ToggleImageLockMain)
+		self.w.setDefaultButton(self.w.unlockButton)
 		self.w.bind("resize", self.resizeButtons)
-		
-		
+
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-	
+
 	def resizeButtons(self, sender):
 		currentWidth = self.w.getPosSize()[2]
 		print(currentWidth)
-		self.w.lockButton.setPosSize( (15, 10, currentWidth/2-10, -10) )
-		self.w.unlockButton.setPosSize( (currentWidth/2+10, 10, -15, -10) )
-		
-	def ToggleImageLockMain( self, sender ):
+		self.w.lockButton.setPosSize((15, 10, currentWidth / 2 - 10, -10))
+		self.w.unlockButton.setPosSize((currentWidth / 2 + 10, 10, -15, -10))
+
+	def ToggleImageLockMain(self, sender):
 		try:
 			lockedStatus = True
 			if sender == self.w.unlockButton:
 				lockedStatus = False
-				
+
 			thisFont = Glyphs.font # frontmost font
 			listOfSelectedLayers = thisFont.selectedLayers # active layers of currently selected glyphs
 			for thisLayer in listOfSelectedLayers: # loop through layers

@@ -1,14 +1,14 @@
 #MenuTitle: Reset Image Transformations
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Resets all placed images to 100% scale and 0/0 position.
 """
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 
-def process( thisLayer ):
+def process(thisLayer):
 	thisImage = thisLayer.backgroundImage
 	if thisImage:
 		thisImage.transform = ((1.0, 0.0, 0.0, 1.0, 0.0, 0.0))
@@ -19,7 +19,7 @@ try:
 		thisGlyph = thisLayer.parent
 		print("Resetting image in", thisGlyph.name)
 		# thisGlyph.beginUndo() # undo grouping causes crashes
-		process( thisLayer )
+		process(thisLayer)
 		# thisGlyph.endUndo() # undo grouping causes crashes
 except Exception as e:
 	Glyphs.showMacroWindow()

@@ -1,7 +1,7 @@
 #MenuTitle: New Tab with Kerning Missing in Masters
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Opens New Tabs for each master showing kerning missing in this master but present in other masters.
 """
 
@@ -19,7 +19,7 @@ else:
 	tabStrings = {}
 	for thisMaster in thisFont.masters:
 		tabStrings[thisMaster.id] = "Kerning missing in %s:\n" % thisMaster.name
-	
+
 	#prepare defaultGlyphs:
 	leftGroupDefaults = {}
 	rightGroupDefaults = {}
@@ -28,22 +28,22 @@ else:
 			leftGroupDefaults[thisGlyph.leftKerningGroup] = thisGlyph.name
 		if thisGlyph.rightKerningGroup:
 			rightGroupDefaults[thisGlyph.rightKerningGroup] = thisGlyph.name
-	
+
 	for thisMaster in thisFont.masters:
 		masterID = thisMaster.id
 		otherMasterIDs = [m.id for m in thisFont.masters if m != thisMaster]
 		masterKerning = thisFont.kerning[masterID]
 		for leftSide in masterKerning.keys():
-			
+
 			for rightSide in masterKerning[leftSide].keys():
 				for otherID in otherMasterIDs:
-					
+
 					try:
 						probeValue = thisFont.kerning[otherID][leftSide][rightSide]
 					except:
 						# kerning does not exist:
-					
-						leftSideGlyphName,rightSideGlyphName = None, None
+
+						leftSideGlyphName, rightSideGlyphName = None, None
 						if not leftSide[0] == "@":
 							leftSideGlyph = thisFont.glyphForId_(leftSide)
 							if leftSideGlyph:
@@ -57,7 +57,7 @@ else:
 							leftSideGlyphName = rightGroupDefaults[leftSide[7:]]
 						else:
 							print(u"🤷🏻‍♀️ Cannot convert left side name:", leftSide)
-						
+
 						if not rightSide[0] == "@":
 							rightSideGlyph = thisFont.glyphForId_(rightSide)
 							if rightSideGlyph:
@@ -71,9 +71,9 @@ else:
 							rightSideGlyphName = leftGroupDefaults[rightSide[7:]]
 						else:
 							print(u"🤷🏻‍♀️ Cannot convert right side name:", rightSide)
-							
+
 						if leftSideGlyphName and rightSideGlyphName:
-							tabStrings[otherID] += "/%s/%s  " % (leftSideGlyphName,rightSideGlyphName)
+							tabStrings[otherID] += "/%s/%s  " % (leftSideGlyphName, rightSideGlyphName)
 	if tabStrings:
 		print("\nOrphaned groups and glyph IDs: consider cleaning up kerning on Window > Kerning.")
 	for masterID in tabStrings:

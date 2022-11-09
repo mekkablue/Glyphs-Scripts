@@ -1,7 +1,7 @@
 #MenuTitle: Reset Rotated and Mirrored Components
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Looks for mirrored and rotated components and resets them to their original orientation.
 """
 
@@ -12,7 +12,7 @@ grid = thisFont.grid
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
 print("Fixing rotated components: %s" % thisFont.familyName)
-print("Processing %i selected glyph%s:\n" % (len(selectedLayers), "" if len(selectedLayers)==1 else "s"))
+print("Processing %i selected glyph%s:\n" % (len(selectedLayers), "" if len(selectedLayers) == 1 else "s"))
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
@@ -32,12 +32,12 @@ try:
 				comp.transform = (1, 0, 0, 1, position.x, position.y)
 				compCount += 1
 		if compCount > 0:
-			print("✅ Fixed %i component%s in %s" % (compCount, "" if compCount==1 else "s", glyphName))
+			print("✅ Fixed %i component%s in %s" % (compCount, "" if compCount == 1 else "s", glyphName))
 		else:
 			print("🆗 No transformed components found: %s" % glyphName)
 		# thisGlyph.endUndo() # undo grouping causes crashes
 	print("\nDone.")
-	
+
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Error in script: \n")
@@ -45,9 +45,6 @@ except Exception as e:
 	print(traceback.format_exc())
 	print()
 	raise e
-	
+
 finally:
 	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
-
-
-

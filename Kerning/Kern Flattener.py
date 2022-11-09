@@ -1,7 +1,7 @@
 #MenuTitle: Kern Flattener
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Duplicates your font, flattens kerning to glyph-to-glyph kerning only, deletes all group kerning and keeps only relevant Latin pairs, adds a Write Kern Table parameter.
 
 WARNING: DO THIS ONLY FOR MAKING YOUR KERNING COMPATIBLE WITH OUTDATED AND BROKEN SOFTWARE LIKE POWERPOINT.
@@ -162,7 +162,7 @@ for i, line in enumerate(worthKeepingText.splitlines()):
 	if line: # skip empties
 		# print(i+7, len(line), line[:19]) # DEBUG
 		for i in range(0, len(line), 2):
-			leftChar, rightChar = line[i], line[i+1]
+			leftChar, rightChar = line[i], line[i + 1]
 			leftUnicode, rightUnicode = "%04X" % ord(leftChar), "%04X" % ord(rightChar)
 			leftGlyph, rightGlyph = thisFont.glyphForUnicode_(leftUnicode), thisFont.glyphForUnicode_(rightUnicode)
 			if leftGlyph and leftGlyph.unicode and rightGlyph and rightGlyph.unicode:
@@ -173,7 +173,9 @@ for i, line in enumerate(worthKeepingText.splitlines()):
 					kernValue = thisFont.kerningFirstLayer_secondLayer_(leftLayer, rightLayer)
 					if kernValue and kernValue < 10000:
 						if not leftID in newKerning[mID].keys():
-							newKerning[mID][leftID] = {rightID: kernValue}
+							newKerning[mID][leftID] = {
+								rightID: kernValue
+								}
 						else:
 							newKerning[mID][leftID][rightID] = kernValue
 						count += 1
@@ -187,9 +189,9 @@ print("Removing kerning groups from all glyphs...")
 for thisGlyph in thisFont.glyphs:
 	thisGlyph.leftKerningGroup = None
 	thisGlyph.rightKerningGroup = None
-	
+
 print("Removing GPOS features...")
-for i in range(len(thisFont.features)-1,-1,-1):
+for i in range(len(thisFont.features) - 1, -1, -1):
 	thisFeature = thisFont.features[i]
 	if thisFeature.name in gposFeatures or any([line.startswith("pos ") for line in thisFeature.code.splitlines()]):
 		print("- %s" % thisFeature.name)
@@ -209,14 +211,14 @@ if not hasLanguageSystems:
 	thisFont.featurePrefixes.append(lsPrefix)
 
 print("Updating instances:")
-for i in range(len(thisFont.instances)-1,-1,-1):
+for i in range(len(thisFont.instances) - 1, -1, -1):
 	thisInstance = thisFont.instances[i]
 	if thisInstance.type == INSTANCETYPESINGLE:
 		print("- adding parameters to ‘%s’" % thisInstance.name)
 		thisInstance.customParameters["Save as TrueType"] = True
 		currentRemoveFeatures = thisInstance.customParameters["Remove Features"]
 		if currentRemoveFeatures:
-			thisInstance.customParameters["Remove Features"] = list(set(list(currentRemoveFeatures)+gposFeatures))
+			thisInstance.customParameters["Remove Features"] = list(set(list(currentRemoveFeatures) + gposFeatures))
 		else:
 			thisInstance.customParameters["Remove Features"] = gposFeatures
 		if Glyphs.versionNumber >= 3:

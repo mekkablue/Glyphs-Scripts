@@ -1,7 +1,7 @@
 #MenuTitle: Position Clicker
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Finds all combinations of positional shapes that do not click well. Clicking means sharing two point coordinates when overlapping.
 """
 
@@ -23,7 +23,7 @@ def isPositional(glyphName):
 		if suffix in glyphName.split("."):
 			return True
 	return False
-	
+
 def doTheyClick(leftLayer, rightLayer, requiredClicks=2):
 	leftWidth = leftLayer.width
 	rightCoordinates = []
@@ -39,17 +39,17 @@ def doTheyClick(leftLayer, rightLayer, requiredClicks=2):
 			if n.position in rightCoordinates:
 				clickCount += 1
 	if clickCount < requiredClicks:
-		print("❌ %s does not click with a following %s (%s)."%(rightLayer.parent.name, leftLayer.parent.name, leftLayer.name))
+		print("❌ %s does not click with a following %s (%s)." % (rightLayer.parent.name, leftLayer.parent.name, leftLayer.name))
 		return False
 	else:
 		print("✅ OK: %s ⟺ %s  Ⓜ️ %s" % (
 			leftLayer.parent.name,
-			rightLayer.parent.name, 
+			rightLayer.parent.name,
 			leftLayer.master.name,
-		))
+			))
 		return True
 
-class PositionClicker( object ):
+class PositionClicker(object):
 	prefID = "com.mekkablue.PositionClicker"
 	prefDict = {
 		# "prefName": defaultValue,
@@ -57,85 +57,91 @@ class PositionClicker( object ):
 		"clickCount": 2,
 		"includeNonExporting": False,
 		"reuseTab": False,
-	}
-	
-	def __init__( self ):
+		}
+
+	def __init__(self):
 		# Window 'self.w':
-		windowWidth  = 300
+		windowWidth = 300
 		windowHeight = 170
-		windowWidthResize  = 500 # user can resize width by this value
-		windowHeightResize = 0   # user can resize height by this value
+		windowWidthResize = 500 # user can resize width by this value
+		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			( windowWidth, windowHeight ), # default window size
+			(windowWidth, windowHeight), # default window size
 			"Position Clicker", # window title
-			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
-			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
-			autosaveName = "com.mekkablue.PositionClicker.mainwindow" # stores last window position and size
-		)
-		
+			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
+			autosaveName="com.mekkablue.PositionClicker.mainwindow" # stores last window position and size
+			)
+
 		# UI elements:
 		linePos, inset, lineHeight, indent = 12, 15, 22, 110
 
-		self.w.descriptionText = vanilla.TextBox( (inset, linePos, -inset, 14), "Report positional combos that do not click:", sizeStyle='small', selectable=True )
-		self.w.descriptionText.getNSTextField().setToolTip_("Clicking means that when two matching positional shapes follow each other (e.g. initial and final), they ‘click’, i.e., they share at least 2 point coordinates. Or whatever number is set in the minimal node count setting below.")
+		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Report positional combos that do not click:", sizeStyle='small', selectable=True)
+		self.w.descriptionText.getNSTextField().setToolTip_(
+			"Clicking means that when two matching positional shapes follow each other (e.g. initial and final), they ‘click’, i.e., they share at least 2 point coordinates. Or whatever number is set in the minimal node count setting below."
+			)
 		linePos += lineHeight
-		
+
 		tooltip = "Reference glyph. Pick a medial glyph with paths for clicking. We recommend behDotless-ar.medi."
-		self.w.referenceText = vanilla.TextBox( (inset, linePos+2, indent, 14), "Click with glyph", sizeStyle='small', selectable=True )
+		self.w.referenceText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Click with glyph", sizeStyle='small', selectable=True)
 		self.w.referenceText.getNSTextField().setToolTip_(tooltip)
-		
-		self.w.referenceGlyphName = vanilla.ComboBox( (inset+indent, linePos-4, -inset-23, 25), self.getAllMediGlyphNames(), callback=self.SavePreferences, sizeStyle='regular' )
+
+		self.w.referenceGlyphName = vanilla.ComboBox(
+			(inset + indent, linePos - 4, -inset - 23, 25), self.getAllMediGlyphNames(), callback=self.SavePreferences, sizeStyle='regular'
+			)
 		self.w.referenceGlyphName.getNSComboBox().setFont_(NSFont.userFixedPitchFontOfSize_(11))
 		self.w.referenceGlyphName.getNSComboBox().setToolTip_(tooltip)
-		
-		self.w.updateButton = vanilla.SquareButton( (-inset-20, linePos-1, -inset, 18), "↺", sizeStyle='small', callback=self.updateReferenceGlyphs )
+
+		self.w.updateButton = vanilla.SquareButton((-inset - 20, linePos - 1, -inset, 18), "↺", sizeStyle='small', callback=self.updateReferenceGlyphs)
 		self.w.updateButton.getNSButton().setToolTip_("Update the list in the combo box with all .medi glyphs in the frontmost font.")
 		linePos += lineHeight
-		
+
 		tooltip = "The amount of point coordinates that must be shared between two consecutive positional forms. E.g., if set to 2, an initial and a final shape must have two or more nodes exactly on top of each other when they follow each other."
-		self.w.clickCountText = vanilla.TextBox( (inset, linePos+2, indent, 14), "Minimal node count", sizeStyle='small', selectable=True )
-		self.w.clickCount = vanilla.EditText( (inset+indent, linePos-1, -inset, 19), "2", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.clickCountText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Minimal node count", sizeStyle='small', selectable=True)
+		self.w.clickCount = vanilla.EditText((inset + indent, linePos - 1, -inset, 19), "2", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
-		
-		self.w.includeNonExporting = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small' )
+
+		self.w.includeNonExporting = vanilla.CheckBox(
+			(inset, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small'
+			)
 		self.w.includeNonExporting.getNSButton().setToolTip_("Will also measure glyphs that are set to not export.")
 		linePos += lineHeight
-		
-		self.w.reuseTab = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle='small' )
+
+		self.w.reuseTab = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.getNSButton().setToolTip_("Will use the current tab for output. Will open a new tab only if there is no Edit tab open already.")
 		linePos += lineHeight
-		
+
 		# Run Button:
-		self.w.runButton = vanilla.Button( (-100-inset, -20-inset, -inset, -inset), "Open Tab", sizeStyle='regular', callback=self.PositionClickerMain )
-		self.w.setDefaultButton( self.w.runButton )
-		
+		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Open Tab", sizeStyle='regular', callback=self.PositionClickerMain)
+		self.w.setDefaultButton(self.w.runButton)
+
 		# Load Settings:
 		if not self.LoadPreferences():
 			print("Note: 'Position Clicker' could not load preferences. Will resort to defaults")
-		
+
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-	
+
 	def updateReferenceGlyphs(self, sender=None):
-		self.w.referenceGlyphName.setItems( self.getAllMediGlyphNames() )
-	
+		self.w.referenceGlyphName.setItems(self.getAllMediGlyphNames())
+
 	def updateUI(self, sender=None):
 		glyphSelected = self.w.referenceGlyphName.get()
 		try:
-			atLeastOneClick = int(self.w.clickCount.get())>0
+			atLeastOneClick = int(self.w.clickCount.get()) > 0
 		except:
 			# invalid entry for conversion to int
 			atLeastOneClick = False
 		self.w.runButton.enable(glyphSelected and atLeastOneClick)
-	
+
 	def getAllMediGlyphNames(self, sender=None):
 		font = Glyphs.font
 		fallback = "behDotless-ar.medi"
 		if not font:
 			return [fallback]
 		else:
-			glyphNames=[]
+			glyphNames = []
 			for g in font.glyphs:
 				if ".medi" in g.name or "kashida" in g.name:
 					glyphNames.append(g.name)
@@ -143,16 +149,16 @@ class PositionClicker( object ):
 				glyphNames.remove(fallback)
 				glyphNames.insert(0, fallback)
 			return glyphNames
-	
+
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-	
-	def SavePreferences( self, sender=None ):
+
+	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
 			for prefName in self.prefDict.keys():
@@ -164,13 +170,13 @@ class PositionClicker( object ):
 			print(traceback.format_exc())
 			return False
 
-	def LoadPreferences( self ):
+	def LoadPreferences(self):
 		try:
 			for prefName in self.prefDict.keys():
 				# register defaults:
 				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
 				# load previously written prefs:
-				getattr(self.w, prefName).set( self.pref(prefName) )
+				getattr(self.w, prefName).set(self.pref(prefName))
 			self.updateUI()
 			return True
 		except:
@@ -178,15 +184,15 @@ class PositionClicker( object ):
 			print(traceback.format_exc())
 			return False
 
-	def PositionClickerMain( self, sender=None ):
+	def PositionClickerMain(self, sender=None):
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
-			
+
 			# update settings to the latest user input:
 			if not self.SavePreferences():
 				print("Note: 'Position Clicker' could not write preferences.")
-			
+
 			thisFont = Glyphs.font # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
@@ -197,25 +203,25 @@ class PositionClicker( object ):
 				else:
 					print("⚠️ The font file has not been saved yet.")
 				print()
-			
+
 				referenceGlyphName = self.pref("referenceGlyphName")
 				includeNonExporting = self.pref("includeNonExporting")
 				reuseTab = self.pref("reuseTab")
 				clickCount = int(self.pref("clickCount"))
-				
+
 				try:
 					spaceLayer = thisFont.glyphs["space"].layers[0]
 				except:
-					spaceLayer = GSControlLayer.newline() 
+					spaceLayer = GSControlLayer.newline()
 
 				referenceGlyph = thisFont.glyphs[referenceGlyphName]
 				try:
 					# GLYPHS 3
-					isRTL = referenceGlyph.direction==2 # 0=LTR, 1=BiDi, 2=RTL
+					isRTL = referenceGlyph.direction == 2 # 0=LTR, 1=BiDi, 2=RTL
 				except:
 					# GLYPHS 2
 					isRTL = True
-				
+
 				tabLayers = []
 				count = 0
 				comboCount = 0
@@ -243,8 +249,8 @@ class PositionClicker( object ):
 											tabLayers.append(spaceLayer)
 											count += 1
 
-				if len(tabLayers)>0:
-					Glyphs.showNotification( 
+				if len(tabLayers) > 0:
+					Glyphs.showNotification(
 						"%s: Position Clicker" % (thisFont.familyName),
 						"Found %i imprecise connections. Details in Macro Window." % count,
 						)
@@ -254,17 +260,17 @@ class PositionClicker( object ):
 					else:
 						tab = thisFont.currentTab
 					tab.layers = tabLayers
-					tab.direction=0 # LTR!
+					tab.direction = 0 # LTR!
 				else:
 					Message(
-						title="Position Clicker found no problems 😃", 
+						title="Position Clicker found no problems 😃",
 						message="✅ Checked %i combinations on %i master%s in %s: all positional glyphs click on %i points or more. Good job!\nDetailed report in Macro Window." % (
 							comboCount,
 							len(thisFont.masters),
-							"" if len(thisFont.masters)==1 else "s",
+							"" if len(thisFont.masters) == 1 else "s",
 							thisFont.filepath.lastPathComponent() if thisFont.filepath else thisFont.familyName,
 							clickCount,
-						), 
+							),
 						OKButton="🥂Cool",
 						)
 
@@ -278,4 +284,3 @@ class PositionClicker( object ):
 			print(traceback.format_exc())
 
 PositionClicker()
-

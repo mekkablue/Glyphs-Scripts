@@ -1,7 +1,7 @@
 #MenuTitle: New Tab with Glyphs of Same Kerning Groups
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Opens a new tab containing all members of the left and right kerning groups of the current glyph.
 """
 
@@ -21,6 +21,6 @@ if thisGlyph:
 		if g.rightKerningGroup == rightGroup:
 			rightGroupText += "/%s" % g.name
 
-	Font.newTab( "%s %s\n\n%s %s" % ( thisGlyph.name, leftGroupText, thisGlyph.name, rightGroupText ) )
+	Font.newTab("%s %s\n\n%s %s" % (thisGlyph.name, leftGroupText, thisGlyph.name, rightGroupText))
 else:
 	Message(title="Script Error", message="No glyph currently selected.", OKButton=None)

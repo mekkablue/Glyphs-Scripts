@@ -1,12 +1,11 @@
 #MenuTitle: Compare Font Info > Font
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Detailed report of Font Info > Masters for the two frontmost fontsand outputs a report in the Macro Window.
 """
 
 from compare import *
-
 thisFont = Glyphs.fonts[0] # frontmost font
 otherFont = Glyphs.fonts[1] # second font
 if thisFont.filepath:
@@ -28,9 +27,9 @@ print("1. %s (family: %s)" % (thisFileName, thisFont.familyName))
 print("   ~/%s" % thisFont.filepath.relativePathFromBaseDirPath_("~"))
 print("2. %s (family: %s)" % (otherFileName, otherFont.familyName))
 print("   ~/%s" % otherFont.filepath.relativePathFromBaseDirPath_("~"))
-print() 
+print()
 
-keyValueDict= {
+keyValueDict = {
 	"Family Name": (thisFont.familyName, otherFont.familyName),
 	"Designer": (thisFont.designer, otherFont.designer),
 	"Designer URL": (thisFont.designerURL, otherFont.designerURL),
@@ -41,7 +40,7 @@ keyValueDict= {
 	"Version Minor": (thisFont.versionMinor, otherFont.versionMinor),
 	"Units per Em": (thisFont.upm, otherFont.upm),
 	"Date": (thisFont.date, otherFont.date),
-}
+	}
 for key in keyValueDict:
 	thisValue, otherValue = keyValueDict[key]
 	if thisValue == otherValue:
@@ -54,10 +53,12 @@ for key in keyValueDict:
 # count parameters:
 compareCount(
 	"Custom Parameters",
-	len(thisFont.customParameters), len(otherFont.customParameters),
-	thisFileName, otherFileName,
-)
-	
+	len(thisFont.customParameters),
+	len(otherFont.customParameters),
+	thisFileName,
+	otherFileName,
+	)
+
 # comparing parameters:
 theseParameters = [p.name for p in thisFont.customParameters]
 otherParameters = [p.name for p in otherFont.customParameters]
@@ -86,5 +87,3 @@ for thisParameterName in [p.name for p in thisFont.customParameters]:
 			print(u"⚠️ Parameter %s: different values." % thisParameterName)
 			print(u"    A. %s in %s" % (thisContent, thisFileName))
 			print(u"    B. %s in %s" % (otherContent, otherFileName))
-			
-			

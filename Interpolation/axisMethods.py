@@ -1,38 +1,38 @@
 # -*- coding: utf-8 -*-
 
-def masterValueForAxisTag(master,axisTag="wght"):
+def masterValueForAxisTag(master, axisTag="wght"):
 	font = master.font
-	axisID = [a for a in font.axes if a.axisTag==axisTag][0].axisId
+	axisID = [a for a in font.axes if a.axisTag == axisTag][0].axisId
 	value = master.axisValueValueForId_(axisID)
 	return value
 
-def styleValueForAxisTag(style,axisTag="wght"):
+def styleValueForAxisTag(style, axisTag="wght"):
 	font = style.font
-	axisID = [a for a in font.axes if a.axisTag==axisTag][0].axisId
+	axisID = [a for a in font.axes if a.axisTag == axisTag][0].axisId
 	value = style.axisValueValueForId_(axisID)
 	return value
-	
-def extremeMasterValuesNative(font,axisTag="wght"):
+
+def extremeMasterValuesNative(font, axisTag="wght"):
 	low, high = None, None
 	for master in font.masters:
-		masterValue = masterValueForAxisTag(master,axisTag)
+		masterValue = masterValueForAxisTag(master, axisTag)
 		if low is None or masterValue < low:
 			low = masterValue
 		if high is None or masterValue > high:
 			high = masterValue
 	return low, high
 
-def extremeStyleValuesNative(font,axisTag="wght"):
+def extremeStyleValuesNative(font, axisTag="wght"):
 	low, high = None, None
 	for style in font.instances:
-		styleValue = styleValueForAxisTag(style,axisTag)
+		styleValue = styleValueForAxisTag(style, axisTag)
 		if low is None or styleValue < low:
 			low = styleValue
 		if high is None or styleValue > high:
 			high = styleValue
 	return low, high
 
-def extremeStyleValuesWeightClass(font,axisTag="wght"):
+def extremeStyleValuesWeightClass(font, axisTag="wght"):
 	low, high = None, None
 	for style in font.instances:
 		styleValue = style.weightClassValue()
@@ -42,12 +42,12 @@ def extremeStyleValuesWeightClass(font,axisTag="wght"):
 			high = styleValue
 	return low, high
 
-def coefficient(number,low,high):
-	span = high-low
-	coefficient = (number-low)/span
+def coefficient(number, low, high):
+	span = high - low
+	coefficient = (number - low) / span
 	return coefficient
 
-def valueForCoefficient(coefficient,low,high):
-	span = high-low
-	number = low + coefficient*span
+def valueForCoefficient(coefficient, low, high):
+	span = high - low
+	number = low + coefficient * span
 	return number

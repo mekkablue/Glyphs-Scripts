@@ -1,7 +1,7 @@
 #MenuTitle: Add Hints to Selected Nodes
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Adds hints for the selected nodes. Tries to guess whether it should be H or V. If exactly one node inside a zone is selected, it will add a Ghost Hint.
 """
 
@@ -15,10 +15,10 @@ except:
 	# since v2.2:
 	selection = thisLayer.selection
 
-thisSelection = [ n for n in selection if n.className() == "GSNode" ]
-numberOfSelectedNodes = len( thisSelection )
+thisSelection = [n for n in selection if n.className() == "GSNode"]
+numberOfSelectedNodes = len(thisSelection)
 
-def hintTypeForY( yValue ):
+def hintTypeForY(yValue):
 	for thisZone in FontMaster.alignmentZones:
 		try:
 			# app versions 1.4.4 and later
@@ -39,41 +39,40 @@ if numberOfSelectedNodes == 1:
 	# Ghost Hint
 	thisNode = thisSelection[0]
 	thisNodePosition = thisNode.y
-	hintType = hintTypeForY( thisNodePosition )
+	hintType = hintTypeForY(thisNodePosition)
 	if hintType is not False:
 		newHint = GSHint()
 		newHint.originNode = thisNode
 		newHint.type = hintType
 		newHint.horizontal = True
-		thisLayer.hints.append( newHint )
-			
+		thisLayer.hints.append(newHint)
+
 elif numberOfSelectedNodes % 2 == 0:
 	# Determine horizontal/vertical hints:
-	xCoordinates = sorted( [n.x for n in thisSelection] )
-	yCoordinates = sorted( [n.y for n in thisSelection] )
+	xCoordinates = sorted([n.x for n in thisSelection])
+	yCoordinates = sorted([n.y for n in thisSelection])
 	xDiff = xCoordinates[-1] - xCoordinates[0]
 	yDiff = yCoordinates[-1] - yCoordinates[0]
 	isHorizontal = yDiff > xDiff
 	if isHorizontal:
-		sortedListOfNodes = sorted( thisSelection, key=lambda n: n.y )
+		sortedListOfNodes = sorted(thisSelection, key=lambda n: n.y)
 	else:
-		sortedListOfNodes = sorted( thisSelection, key=lambda n: n.x )
-	
+		sortedListOfNodes = sorted(thisSelection, key=lambda n: n.x)
+
 	# Add Hints:
-	for i in range( numberOfSelectedNodes // 2 ):
-		firstIndex = ( i + 1 ) * 2 - 2
-		secondIndex = ( i + 1 ) * 2 - 1
-		firstNode = sortedListOfNodes[ firstIndex ]
-		secondNode = sortedListOfNodes[ secondIndex ]
-		
+	for i in range(numberOfSelectedNodes // 2):
+		firstIndex = (i + 1) * 2 - 2
+		secondIndex = (i + 1) * 2 - 1
+		firstNode = sortedListOfNodes[firstIndex]
+		secondNode = sortedListOfNodes[secondIndex]
+
 		newHint = GSHint()
 		newHint.originNode = firstNode
 		newHint.targetNode = secondNode
 		newHint.type = 0
 		newHint.horizontal = isHorizontal
-		thisLayer.addHint_( newHint )
+		thisLayer.addHint_(newHint)
 else:
 	Glyphs.clearLog()
 	Glyphs.showMacroWindow()
 	print("Error: Either 1 node, or an even number of nodes must be selected.")
-

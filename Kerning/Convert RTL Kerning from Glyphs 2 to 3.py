@@ -1,6 +1,6 @@
 #MenuTitle: Convert RTL Kerning from Glyphs 2 to 3
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Convert RTL kerning from Glyphs 2 to Glyphs 3 format and switches the kerning classes. Detailed report in Macro Window.
 
 Hold down OPTION and SHIFT to convert from Glyphs 3 back to Glyphs 2.
@@ -41,7 +41,7 @@ def glyphInFontIsRTL(glyphName, thisFont, key2Scripts):
 	return glyphNameIsRTL(glyphName, key2Scripts)
 
 def stripMMK(name):
-	return name.replace("MMK_L_","").replace("MMK_R_","")
+	return name.replace("MMK_L_", "").replace("MMK_R_", "")
 
 def flipMMK(name):
 	left = "@MMK_L_"
@@ -58,7 +58,7 @@ def copyFrom3to2(thisFont, masterKerning, RTLmasterKerning, key2Scripts):
 	for firstKey in list(RTLmasterKerning.keys()):
 		firstKerning = RTLmasterKerning[firstKey]
 		newFirstKerning = {}
-		
+
 		firstName = nameForKey(firstKey)
 		if glyphInFontIsRTL(firstName, thisFont, key2Scripts):
 			newFirstKey = flipMMK(firstKey) # @MMK_R_ --> @MMK_L_
@@ -67,16 +67,16 @@ def copyFrom3to2(thisFont, masterKerning, RTLmasterKerning, key2Scripts):
 			secondName = nameForKey(secondKey)
 			if glyphInFontIsRTL(secondName, thisFont, key2Scripts):
 				newSecondKey = flipMMK(secondKey) # @MMK_L_ --> @MMK_R_
-				
+
 			kernValue = firstKerning[secondKey]
 			thisFont.setKerningForPair(master.id, stripMMK(firstName), stripMMK(secondName), kernValue)
 			print("  ✅ %s %s %i" % (
 				stripMMK(firstName),
 				stripMMK(secondName),
 				kernValue,
-			))
+				))
 			countKernPairs += 1
-		
+
 	RTLmasterKerning = {} # delete RTL kerning
 	return countKernPairs
 
@@ -85,16 +85,16 @@ def copyFrom2to3(masterKerning, RTLmasterKerning, key2Scripts):
 	toBeDeleted = []
 	for firstKey in masterKerning.keys():
 		firstKeyIsRTL = False
-		
+
 		# check if first key is RTL
 		firstName = nameForKey(firstKey)
 		if glyphNameIsRTL(firstName, key2Scripts):
 			firstKeyIsRTL = True
-			
+
 		firstKerning = masterKerning[firstKey]
 		newFirstKey = flipMMK(firstKey) # @MMK_L_ --> @MMK_R_
 		newFirstKerning = {}
-		
+
 		for secondKey in firstKerning.keys():
 			secondKeyIsRTL = False
 			# check if second key is RTL
@@ -102,7 +102,7 @@ def copyFrom2to3(masterKerning, RTLmasterKerning, key2Scripts):
 				secondName = nameForKey(secondKey)
 				if glyphNameIsRTL(secondName, key2Scripts):
 					secondKeyIsRTL = True
-		
+
 			# if either is RTL, convert to RTL kerning:
 			if firstKeyIsRTL or secondKeyIsRTL:
 				if not newFirstKey in RTLmasterKerning.keys():
@@ -111,30 +111,30 @@ def copyFrom2to3(masterKerning, RTLmasterKerning, key2Scripts):
 				kernValue = firstKerning[secondKey]
 				RTLmasterKerning[newFirstKey][newSecondKey] = kernValue
 				print("  ✅ %s %s %i" % (
-					stripMMK( nameForKey(newFirstKey) ), # remove MMK_R_
-					stripMMK( nameForKey(newSecondKey) ), # remove MMK_L_
+					stripMMK(nameForKey(newFirstKey)), # remove MMK_R_
+					stripMMK(nameForKey(newSecondKey)), # remove MMK_L_
 					kernValue,
-				))
+					))
 				countKernPairs += 1
 				delPair = (firstKey, secondKey)
-				
+
 				if secondKeyIsRTL:
 					if not delPair in toBeDeleted:
-						toBeDeleted.append( delPair )
-		
+						toBeDeleted.append(delPair)
+
 		if firstKeyIsRTL:
 			delPair = (firstKey, None)
-			toBeDeleted.append( delPair )
-	
+			toBeDeleted.append(delPair)
+
 	# delete converted LTR pairs:
 	for delPair in toBeDeleted:
 		firstKey, secondKey = delPair
 		if firstKey in masterKerning.keys():
 			if secondKey is None:
-				del( masterKerning[firstKey] )
+				del (masterKerning[firstKey])
 			elif secondKey in masterKerning[firstKey].keys():
-				del( masterKerning[firstKey][secondKey] )
-			
+				del (masterKerning[firstKey][secondKey])
+
 	return countKernPairs
 
 def mapGlyphsToScripts(thisFont):
@@ -165,7 +165,7 @@ try:
 	conversionDirection = "%i → %i:" % (
 		3 if userWantsToConvertFrom3to2 else 2,
 		2 if userWantsToConvertFrom3to2 else 3,
-	)
+		)
 
 	# copy RTL kerning and swith class prefixes in kern dict
 	print("1️⃣ Convert RTL kerning from Glyphs %s" % conversionDirection)
@@ -176,7 +176,7 @@ try:
 		if RTLMasterKerning is None:
 			RTLMasterKerning = NSMutableDictionary.new()
 			thisFont.kerningRTL[master.id] = RTLMasterKerning
-	
+
 		masterKerning = thisFont.kerning.get(master.id, None)
 		if userWantsToConvertFrom3to2:
 			countKernPairs = copyFrom3to2(thisFont, masterKerning, RTLMasterKerning, glyph2scriptMapping)
@@ -203,18 +203,18 @@ try:
 				g.name,
 				g.leftKerningGroup,
 				g.rightKerningGroup,
-			))
+				))
 
 	print("\n✅ Done.")
 	# Floating notification:
-	Glyphs.showNotification( 
+	Glyphs.showNotification(
 		"RTL kerning %s for %s" % (conversionDirection, thisFont.familyName),
 		"Converted %i pair%s, flipped groups in %i glyph%s. Details in Macro Window." % (
 			countKernPairs,
-			"" if countKernPairs==1 else "s",
+			"" if countKernPairs == 1 else "s",
 			countFlippedGroups,
-			"" if countFlippedGroups==1 else "s",
-		),
+			"" if countFlippedGroups == 1 else "s",
+			),
 		)
 
 except Exception as e:

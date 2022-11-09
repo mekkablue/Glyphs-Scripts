@@ -1,7 +1,7 @@
 #MenuTitle: Add sbix Images to Font
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Will get all PNG, GIF, JPG files in a folder and create iColor layers with them in the current font. File name convention: ‘glyphName resolution.suffix’, e.g., ‘Adieresis 128.png’.
 """
 
@@ -11,7 +11,7 @@ from AppKit import NSFileManager
 def isAnImage(fileName):
 	suffixes = ("png", "jpg", "jpeg", "gif", "pdf", "tif", "tiff")
 	for suffix in suffixes:
-		if fileName.endswith(".%s"%suffix):
+		if fileName.endswith(".%s" % suffix):
 			return True
 	return False
 
@@ -47,14 +47,14 @@ else:
 
 	thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 	try:
-		folders = GetFolder(message="Choose one or more folders containing images.", allowsMultipleSelection = True)
+		folders = GetFolder(message="Choose one or more folders containing images.", allowsMultipleSelection=True)
 		for folder in folders:
-			for fileName in sorted(os.listdir(folder), key = lambda filename: sortName(filename)):
+			for fileName in sorted(os.listdir(folder), key=lambda filename: sortName(filename)):
 				if isAnImage(fileName) and " " in fileName:
 					glyphName, resolution = analyseFileName(fileName)
 					if resolution:
 						layerName = "iColor %i" % resolution
-				
+
 						# determine glyph:
 						glyph = thisFont.glyphs[glyphName]
 						if not glyph:
@@ -62,38 +62,38 @@ else:
 							glyph.name = glyphName
 							thisFont.glyphs.append(glyph)
 							glyph.updateGlyphInfo()
-				
+
 						# glyph.beginUndo() # undo grouping causes crashes
-				
+
 						# determine layer:
 						if Glyphs.versionNumber >= 3:
 							# Glyphs 3
-							sbixLayersForThisMaster = [l for l in glyph.layers if l.attributes["sbixSize"] and l.attributes["sbixSize"]==resolution]
-							if len(sbixLayersForThisMaster)>0:
+							sbixLayersForThisMaster = [l for l in glyph.layers if l.attributes["sbixSize"] and l.attributes["sbixSize"] == resolution]
+							if len(sbixLayersForThisMaster) > 0:
 								layer = sbixLayersForThisMaster[0]
 							else:
 								layer = GSLayer()
 								layer.associatedMasterId = thisFontMaster.id
 								glyph.layers.append(layer)
-								layer.attributes["sbixSize"]=resolution
+								layer.attributes["sbixSize"] = resolution
 						else:
 							# Glyphs 2
-							sbixLayersForThisMaster = [l for l in glyph.layers if l.name==layerName and l.master==thisFontMaster]
-							if len(sbixLayersForThisMaster)>0:
+							sbixLayersForThisMaster = [l for l in glyph.layers if l.name == layerName and l.master == thisFontMaster]
+							if len(sbixLayersForThisMaster) > 0:
 								layer = sbixLayersForThisMaster[0]
 							else:
 								layer = GSLayer()
 								layer.setAssociatedMasterId_(thisFontMaster.id)
 								glyph.layers.append(layer)
 								layer.name = layerName
-				
+
 						# define as sbix and add image:
 						layer.setBackgroundImage_(None)
-						filePath = os.path.join(folder,fileName)
+						filePath = os.path.join(folder, fileName)
 						image = GSBackgroundImage.alloc().initWithPath_(filePath)
 						layer.backgroundImage = image
 						sbixCount += 1
-				
+
 						# glyph.endUndo() # undo grouping causes crashes
 						print("✅ %s: added image ‘%s’ on layer ‘%s’" % (glyphName, fileName, layer.name))
 
@@ -110,7 +110,7 @@ else:
 	print("Done.")
 
 	# Floating notification:
-	Glyphs.showNotification( 
+	Glyphs.showNotification(
 		"%s: Done" % (thisFont.familyName),
 		"Added %i images to iColor layers. Details in Macro Window" % sbixCount,
 		)

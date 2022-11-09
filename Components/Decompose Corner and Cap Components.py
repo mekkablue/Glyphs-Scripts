@@ -1,7 +1,7 @@
 #MenuTitle: Decompose Corner and Cap Components
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Recreates the current paths without caps or components. Hold down SHIFT to decompose on all layers.
 """
 
@@ -12,14 +12,14 @@ shiftKeyPressed = keysPressed & shiftKey == shiftKey
 
 thisFont = Glyphs.font # frontmost font
 
-def decomposeCornerAndCapComponentsOnLayer( thisLayer ):
+def decomposeCornerAndCapComponentsOnLayer(thisLayer):
 	thisLayer.decomposeSmartOutlines()
 	thisLayer.cleanUpPaths() # duplicate nodes at startpoint
 
-def decomposeCornerAndCapComponentsOnAllLayersOfGlyph( thisGlyph ):
+def decomposeCornerAndCapComponentsOnAllLayersOfGlyph(thisGlyph):
 	for thisLayer in thisGlyph.layers:
 		if thisLayer.isSpecialLayer or thisLayer.isMasterLayer:
-			decomposeCornerAndCapComponentsOnLayer( thisLayer )
+			decomposeCornerAndCapComponentsOnLayer(thisLayer)
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
@@ -29,11 +29,11 @@ try:
 		print("Processing", thisGlyph.name)
 		# thisGlyph.beginUndo() # undo grouping causes crashes
 		if shiftKeyPressed:
-			decomposeCornerAndCapComponentsOnAllLayersOfGlyph( thisGlyph )
+			decomposeCornerAndCapComponentsOnAllLayersOfGlyph(thisGlyph)
 		else:
-			decomposeCornerAndCapComponentsOnLayer( thisLayer )
+			decomposeCornerAndCapComponentsOnLayer(thisLayer)
 		# thisGlyph.endUndo() # undo grouping causes crashes
-		
+
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")
@@ -41,6 +41,6 @@ except Exception as e:
 	print(traceback.format_exc())
 	print()
 	raise e
-	
+
 finally:
 	thisFont.enableUpdateInterface() # re-enables UI updates in Font View

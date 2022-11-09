@@ -1,7 +1,7 @@
 #MenuTitle: Compare Sidebearings
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Compare sidebearings of two frontmost fonts.
 """
 
@@ -27,10 +27,10 @@ for g1 in [g for g in Font1.glyphs if g.export]:
 			if not l1.isAligned and not l2.isAligned:
 				reportGlyph = False
 				reportString = "/%s : " % glyphname
-				if abs(l1.LSB-l2.LSB) > tolerance:
+				if abs(l1.LSB - l2.LSB) > tolerance:
 					reportGlyph = True
 					reportString += "LSB %i <> %i  " % (l1.LSB, l2.LSB)
-				if abs(l1.RSB-l2.RSB) > tolerance:
+				if abs(l1.RSB - l2.RSB) > tolerance:
 					reportGlyph = True
 					reportString += "RSB %i <> %i  " % (l1.RSB, l2.RSB)
 				if reportGlyph:

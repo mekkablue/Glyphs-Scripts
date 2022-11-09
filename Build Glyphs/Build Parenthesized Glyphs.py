@@ -1,25 +1,25 @@
 #MenuTitle: Build Parenthesized Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Creates parenthesized letters and numbers: one.paren, two.paren, three.paren, four.paren, five.paren, six.paren, seven.paren, eight.paren, nine.paren, one_zero.paren, one_one.paren, one_two.paren, one_three.paren, one_four.paren, one_five.paren, one_six.paren, one_seven.paren, one_eight.paren, one_nine.paren, two_zero.paren, a.paren, b.paren, c.paren, d.paren, e.paren, f.paren, g.paren, h.paren, i.paren, j.paren, k.paren, l.paren, m.paren, n.paren, o.paren, p.paren, q.paren, r.paren, s.paren, t.paren, u.paren, v.paren, w.paren, x.paren, y.paren, z.paren.
 """
 
 import math
 from Foundation import NSPoint
-
 distanceBetweenComponents = 95.0
 parenShiftForLetters = 40.0
 
 thisFont = Glyphs.font # frontmost font
 selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 parenGlyphs = [
-	"one.paren", "two.paren", "three.paren", "four.paren", "five.paren", "six.paren", "seven.paren", "eight.paren", "nine.paren", 
-	"one_zero.paren", "one_one.paren", "one_two.paren", "one_three.paren", "one_four.paren", "one_five.paren", "one_six.paren", "one_seven.paren", "one_eight.paren", "one_nine.paren", "two_zero.paren", 
-	"a.paren", "b.paren", "c.paren", "d.paren", "e.paren", "f.paren", "g.paren", "h.paren", "i.paren", "j.paren", "k.paren", "l.paren", "m.paren", "n.paren", "o.paren", "p.paren", "q.paren", "r.paren", "s.paren", "t.paren", "u.paren", "v.paren", "w.paren", "x.paren", "y.paren", "z.paren" 
-]
+	"one.paren", "two.paren", "three.paren", "four.paren", "five.paren", "six.paren", "seven.paren", "eight.paren", "nine.paren", "one_zero.paren", "one_one.paren",
+	"one_two.paren", "one_three.paren", "one_four.paren", "one_five.paren", "one_six.paren", "one_seven.paren", "one_eight.paren", "one_nine.paren", "two_zero.paren", "a.paren",
+	"b.paren", "c.paren", "d.paren", "e.paren", "f.paren", "g.paren", "h.paren", "i.paren", "j.paren", "k.paren", "l.paren", "m.paren", "n.paren", "o.paren", "p.paren", "q.paren",
+	"r.paren", "s.paren", "t.paren", "u.paren", "v.paren", "w.paren", "x.paren", "y.paren", "z.paren"
+	]
 
-def measureLayerAtHeightFromLeftOrRight( thisLayer, height, leftSide=True ):
+def measureLayerAtHeightFromLeftOrRight(thisLayer, height, leftSide=True):
 	thisLayer = thisLayer.copyDecomposedLayer()
 	try:
 		leftX = thisLayer.bounds.origin.x
@@ -28,7 +28,7 @@ def measureLayerAtHeightFromLeftOrRight( thisLayer, height, leftSide=True ):
 		returnIndex = 1
 		if not leftSide:
 			returnIndex = -2
-		measurements = thisLayer.intersectionsBetweenPoints( NSPoint(leftX,y), NSPoint(rightX,y) )
+		measurements = thisLayer.intersectionsBetweenPoints(NSPoint(leftX, y), NSPoint(rightX, y))
 		if len(measurements) > 2:
 			measurement = measurements[returnIndex].pointValue().x
 			if leftSide:
@@ -41,17 +41,17 @@ def measureLayerAtHeightFromLeftOrRight( thisLayer, height, leftSide=True ):
 	except:
 		return None
 
-def minDistanceBetweenTwoLayers( comp1, comp2, interval=5.0 ):
-	topY = min( comp1.bounds.origin.y+comp1.bounds.size.height, comp2.bounds.origin.y+comp2.bounds.size.height )
-	bottomY = max( comp1.bounds.origin.y, comp2.bounds.origin.y )
+def minDistanceBetweenTwoLayers(comp1, comp2, interval=5.0):
+	topY = min(comp1.bounds.origin.y + comp1.bounds.size.height, comp2.bounds.origin.y + comp2.bounds.size.height)
+	bottomY = max(comp1.bounds.origin.y, comp2.bounds.origin.y)
 	distance = topY - bottomY
 	minDist = None
-	for i in range(int(distance/interval)):
+	for i in range(int(distance / interval)):
 		height = bottomY + i * interval
-		left = measureLayerAtHeightFromLeftOrRight( comp1, height, leftSide=False )
-		right = measureLayerAtHeightFromLeftOrRight( comp2, height, leftSide=True )
+		left = measureLayerAtHeightFromLeftOrRight(comp1, height, leftSide=False)
+		right = measureLayerAtHeightFromLeftOrRight(comp2, height, leftSide=True)
 		try: # avoid gaps like in i or j
-			total = left+right
+			total = left + right
 			if minDist == None or minDist > total:
 				minDist = total
 		except:
@@ -59,12 +59,12 @@ def minDistanceBetweenTwoLayers( comp1, comp2, interval=5.0 ):
 			pass
 	return minDist
 
-def placeComponentsAtDistance( thisLayer, comp1, comp2, interval=5.0, distance=10.0 ):
+def placeComponentsAtDistance(thisLayer, comp1, comp2, interval=5.0, distance=10.0):
 	thisMaster = thisLayer.associatedFontMaster()
 	masterID = thisMaster.id
 	original1 = comp1.component.layers[masterID]
 	original2 = comp2.component.layers[masterID]
-	minDist = minDistanceBetweenTwoLayers( original1, original2, interval=interval )
+	minDist = minDistanceBetweenTwoLayers(original1, original2, interval=interval)
 	if minDist != None:
 		comp2shift = distance - minDist
 		addedSBs = original1.RSB + original2.LSB
@@ -90,7 +90,7 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	if scale != 1.0:
 		myTransform.scaleBy_(scale)
 	if not (shiftX == 0.0 and shiftY == 0.0):
-		myTransform.translateXBy_yBy_(shiftX,shiftY)
+		myTransform.translateXBy_yBy_(shiftX, shiftY)
 	if skew:
 		skewStruct = NSAffineTransformStruct()
 		skewStruct.m11 = 1.0
@@ -107,7 +107,7 @@ def unsuffixed(name):
 	else:
 		return name
 
-def process( thisGlyph ):
+def process(thisGlyph):
 	parts = ["parenleft"] + unsuffixed(thisGlyph.name).split("_") + ["parenright"]
 	maxWidth = thisFont.upm
 	thisGlyph.leftMetricsKey = None
@@ -125,29 +125,25 @@ def process( thisGlyph ):
 					part = lfName
 			comp = GSComponent(part)
 			thisLayer.components.append(comp)
-			if i>0:
-				placeComponentsAtDistance( 
-					thisLayer,
-					thisLayer.components[i-1],
-					comp,
-					distance=distanceBetweenComponents )
-			
+			if i > 0:
+				placeComponentsAtDistance(thisLayer, thisLayer.components[i - 1], comp, distance=distanceBetweenComponents)
+
 		#thisLayer.decomposeComponents()
-		maxWidth = max(thisLayer.bounds.size.width*0.97, maxWidth)
+		maxWidth = max(thisLayer.bounds.size.width * 0.97, maxWidth)
 	return maxWidth
-		
-def postprocess( thisGlyph, scale, shiftUp ):
+
+def postprocess(thisGlyph, scale, shiftUp):
 	for thisLayer in thisGlyph.layers:
 		#thisLayer.decomposeComponents()
 		#for thisComp in thisLayer.components:
 		#	thisComp.makeDisableAlignment()
 		scaleDown = transform(scale=scale).transformStruct()
-		thisLayer.applyTransform( scaleDown )
-		thisLayer.applyTransform( shiftUp )
+		thisLayer.applyTransform(scaleDown)
+		thisLayer.applyTransform(shiftUp)
 		lsb = (thisFont.upm - thisLayer.bounds.size.width) // 2.0
 		thisLayer.LSB = lsb
 		thisLayer.width = thisFont.upm
-		
+
 		if thisLayer.components[1].component.category == "Letter":
 			thisLayer.components[0].x -= parenShiftForLetters
 			thisLayer.components[2].x += parenShiftForLetters
@@ -164,18 +160,18 @@ try:
 
 		print("Processing %s" % thisGlyph.name)
 		# thisGlyph.beginUndo() # undo grouping causes crashes
-		maxWidth = max( maxWidth, process( thisGlyph ) )
+		maxWidth = max(maxWidth, process(thisGlyph))
 		print(maxWidth)
 		# thisGlyph.endUndo() # undo grouping causes crashes
 
 	print(maxWidth)
-	scale = ( thisFont.upm / maxWidth ) * 0.95
-	yShift = transform( shiftY = thisFont.upm * 0.08 ).transformStruct()
+	scale = (thisFont.upm / maxWidth) * 0.95
+	yShift = transform(shiftY=thisFont.upm * 0.08).transformStruct()
 
 	for name in parenGlyphs:
 		thisGlyph = thisFont.glyphs[name]
 		#print "Post-processing %s" % thisGlyph.name
-		postprocess( thisGlyph, scale, yShift )
+		postprocess(thisGlyph, scale, yShift)
 
 except Exception as e:
 	Glyphs.showMacroWindow()

@@ -1,7 +1,7 @@
 #MenuTitle: Convert Layerfont to CPAL+COLR Font
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Turns a layered color font into a single-master font with a CPAL and COLR layers in each glyph. It will take the first master as default.
 """
 
@@ -14,37 +14,37 @@ start = timer()
 thisFont = Glyphs.font # frontmost font
 fallbackMaster = thisFont.masters[0] # first master
 fallbackMasterID = fallbackMaster.id
-namesOfMasters = [ m.name for m in thisFont.masters ]
+namesOfMasters = [m.name for m in thisFont.masters]
 
-def masterColorFromColor( thisMaster, thisColor ):
+def masterColorFromColor(thisMaster, thisColor):
 	#(NSColor*)contrastingLabelColor {NSColor *rgbColor = [self colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
 	red = thisColor.redComponent()
 	green = thisColor.greenComponent()
 	blue = thisColor.blueComponent()
 	alpha = thisColor.alphaComponent()
-	colorText = "%i,%i,%i,%i" % ( red, green, blue, alpha )
-	thisMaster.setCustomParameter_forKey_( colorText, "Master Color" )
-	
-def createCPALfromMasterColors( thisFont, theseMasters, indexOfTargetMaster ):
+	colorText = "%i,%i,%i,%i" % (red, green, blue, alpha)
+	thisMaster.setCustomParameter_forKey_(colorText, "Master Color")
+
+def createCPALfromMasterColors(thisFont, theseMasters, indexOfTargetMaster):
 	# create color palette:
 	palette = NSMutableArray.alloc().init()
-	
+
 	# go through all masters and collect their color info:
 	for thisMaster in theseMasters:
 		# black as fallback:
-		r,g,b,a = 0,0,0,1
-		
+		r, g, b, a = 0, 0, 0, 1
+
 		try:
-			if Glyphs.versionNumber>=3:
+			if Glyphs.versionNumber >= 3:
 				# GLYPHS 3
 				color = thisMaster.customParameters["Master Color"]
 				color = color.colorUsingSRGBColorSpace()
-				r,g,b,a = (
+				r, g, b, a = (
 					color.redComponent(),
 					color.greenComponent(),
 					color.blueComponent(),
 					color.alphaComponent(),
-				)
+					)
 			else:
 				# GLYPHS 2
 				# query master color:
@@ -53,19 +53,19 @@ def createCPALfromMasterColors( thisFont, theseMasters, indexOfTargetMaster ):
 				if not colorString:
 					colorString = "0,0,0,255"
 				# derive RGBA values:
-				r,g,b,a = [ float(value)/255 for value in colorString.split(",") ]
+				r, g, b, a = [float(value) / 255 for value in colorString.split(",")]
 		except:
 			print("⚠️ Could not convert color of master %s, defaulting to black." % thisMaster.name)
-		
+
 		# create SRGB color:
-		color = NSColorSpaceColor.colorWithRed_green_blue_alpha_(r,g,b,a)
+		color = NSColorSpaceColor.colorWithRed_green_blue_alpha_(r, g, b, a)
 		color = color.colorUsingColorSpace_(NSColorSpace.sRGBColorSpace())
 		# and add it to the palette:
-		palette.addObject_( color )
-	
+		palette.addObject_(color)
+
 	# create array of palettes, containing the one palette we just created:
 	paletteArray = NSMutableArray.alloc().initWithObject_(palette)
-	
+
 	if Glyphs.versionNumber >= 3:
 		# GLYPHS 3
 		thisFont.customParameters["Color Palettes"] = paletteArray
@@ -75,24 +75,24 @@ def createCPALfromMasterColors( thisFont, theseMasters, indexOfTargetMaster ):
 		targetMaster = theseMasters[indexOfTargetMaster]
 		del targetMaster.customParameters["Master Color"]
 		targetMaster.customParameters["Color Palettes"] = paletteArray
-	
+
 	print("Created CPAL palette with %i colors." % len(theseMasters))
 
-def keepOnlyFirstMaster( thisFont ):
+def keepOnlyFirstMaster(thisFont):
 	# delete all masters except first one:
 	if Glyphs.versionNumber >= 3:
 		# GLYPHS 3
-		while len(Font.masters)>1:
+		while len(Font.masters) > 1:
 			del Font.masters[-1]
 	else:
 		# GLYPHS 2
 		for i in range(len(thisFont.masters))[:0:-1]:
 			thisFont.removeFontMasterAtIndex_(i)
-		
+
 	# rename remaining first master:
 	thisFont.masters[0].name = "Fallback"
 	print("Deleted all masters except first, and renamed it to: %s" % thisFont.masters[0].name)
-		
+
 def cleanUpNamelessLayers(thisGlyph):
 	for i in range(len(thisGlyph.layers))[:0:-1]:
 		thisLayer = thisGlyph.layers[i]
@@ -110,7 +110,7 @@ def duplicatePathsIntoFallbackMaster(thisGlyph):
 			if thatLayer.name and thatLayer.name.startswith("Color"):
 				if thatLayer.shapes:
 					for thatShape in thatLayer.shapes:
-						fallbackLayer.shapes.append( thatShape.copy() )
+						fallbackLayer.shapes.append(thatShape.copy())
 	else:
 		# GLYPHS 2
 		fallbackLayer = thisGlyph.layers[0]
@@ -118,8 +118,7 @@ def duplicatePathsIntoFallbackMaster(thisGlyph):
 		for thatLayer in thisGlyph.layers[1:]:
 			if thatLayer.name and thatLayer.name.startswith("Color"):
 				for thatPath in thatLayer.paths:
-					fallbackLayer.paths.append( thatPath.copy() )
-
+					fallbackLayer.paths.append(thatPath.copy())
 
 def enableOnlyColorLayers(thisGlyph):
 	if Glyphs.versionNumber >= 3:
@@ -137,8 +136,7 @@ def enableOnlyColorLayers(thisGlyph):
 			else:
 				thisLayer.setVisible_(0)
 
-	
-def process( thisGlyph ):
+def process(thisGlyph):
 	for i in range(len(namesOfMasters))[::-1]:
 		colorLayerName = "Color %i" % i
 		originalLayerName = namesOfMasters[i]
@@ -150,7 +148,7 @@ def process( thisGlyph ):
 			# GLYPHS 3
 			thisGlyph.layers[colorLayerName].setColorPaletteLayer_(1)
 			thisGlyph.layers[colorLayerName].setAttribute_forKey_(i, "colorPalette")
-	
+
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
@@ -158,18 +156,18 @@ print("Converting %s to CPAL/COLR:" % thisFont.familyName)
 
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
-	createCPALfromMasterColors( thisFont, thisFont.masters, 0 )
+	createCPALfromMasterColors(thisFont, thisFont.masters, 0)
 	print()
 
 	for thisGlyph in thisFont.glyphs:
 		print("Creating 'Color' layers for: %s" % thisGlyph.name)
 		# thisGlyph.beginUndo() # undo grouping causes crashes
-		process( thisGlyph )
-		duplicatePathsIntoFallbackMaster( thisGlyph )
+		process(thisGlyph)
+		duplicatePathsIntoFallbackMaster(thisGlyph)
 		# thisGlyph.endUndo() # undo grouping causes crashes
 
 	print()
-	keepOnlyFirstMaster( thisFont )
+	keepOnlyFirstMaster(thisFont)
 	print()
 
 	for thisGlyph in thisFont.glyphs:
@@ -178,7 +176,7 @@ try:
 		cleanUpNamelessLayers(thisGlyph)
 		enableOnlyColorLayers(thisGlyph)
 		# thisGlyph.endUndo() # undo grouping causes crashes
-	
+
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")
@@ -186,7 +184,7 @@ except Exception as e:
 	print(traceback.format_exc())
 	print()
 	raise e
-	
+
 finally:
 	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 
@@ -194,14 +192,13 @@ finally:
 end = timer()
 seconds = end - start
 if seconds > 60.0:
-	timereport = "%i:%02i minutes" % ( seconds//60, seconds%60 )
+	timereport = "%i:%02i minutes" % (seconds // 60, seconds % 60)
 elif seconds < 1.0:
 	timereport = "%.2f seconds" % seconds
 elif seconds < 20.0:
 	timereport = "%.1f seconds" % seconds
 else:
 	timereport = "%i seconds" % seconds
-
 
 print()
 print("Done. Time elapsed: %s." % timereport)

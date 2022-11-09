@@ -1,16 +1,16 @@
 #MenuTitle: Report Kerning Mistakes
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Finds unnecessary kernings and groupings.
 """
 
 thisFont = Glyphs.font # frontmost font
 
 # no groups, no kern pairs:
-extensionsWithoutKerning = (".tf",".tosf")
-noKerningToTheLeft = ( "jacute", "Jacute", "bullet", "copyright", "parenleft", "bracketleft", "braceleft", "section", "questiondown", "exclamdown" )
-noKerningToTheRight = ( "ldot", "Ldot", "trademark", "registered", "parenright", "bracketright", "braceright", "degree", "percent", "perthousand", "ordfeminine", "ordmasculine" )
+extensionsWithoutKerning = (".tf", ".tosf")
+noKerningToTheLeft = ("jacute", "Jacute", "bullet", "copyright", "parenleft", "bracketleft", "braceleft", "section", "questiondown", "exclamdown")
+noKerningToTheRight = ("ldot", "Ldot", "trademark", "registered", "parenright", "bracketright", "braceright", "degree", "percent", "perthousand", "ordfeminine", "ordmasculine")
 
 # groups OK, but report kernings:
 extensionsUnlikelyToBeKerned = ("comb")
@@ -19,16 +19,15 @@ for extension in extensionsWithoutKerning:
 	extensionNames = [g.name for g in thisFont.glyphs if extension in g.name and not g.name.startswith(extension)]
 	glyphNamesWithExtensionsNotToBeKerned += extensionNames
 
-unlikelyToBeKerned = ('notequal', 'brokenbar', 'divide', 'yen', 'radical', 'dollar', 'currency', 'asciitilde', 'emptyset', 'increment', 'trademark', 'summation', 'dagger', 'estimated', 'florin', 'copyright', 'partialdiff', 'section', 'less', 'percent', 'cent', 'ampersand', 'perthousand', 'Delta', 'lessequal', 'pi', 'Omega', 'sterling', 'product', 'infinity', 'greater', 'degree', 'approxequal', 'integral', 'registered', 'numero', 'daggerdbl', 'plusminus', 'multiply', 'asciicircum', 'dbldagger', 'leftArrow', 'euro', 'Ohm', 'greaterequal', 'bar', 'lozenge', 'literSign', 'equal', 'logicalnot', 'micro', 'paragraph', 'plus', '.notdef', 'published', 'at', 'minus', 'rightArrow')
-dontKernThese = (unlikelyToBeKerned+tuple(glyphNamesWithExtensionsNotToBeKerned))
-leftGroupsToBeChecked = [g.leftKerningGroup for g in thisFont.glyphs 
-			if g.leftKerningGroup
-			and g.name in dontKernThese
-		]
-rightGroupsToBeChecked = [g.rightKerningGroup for g in thisFont.glyphs 
-			if g.rightKerningGroup
-			and g.name in dontKernThese
-		]
+unlikelyToBeKerned = (
+	'notequal', 'brokenbar', 'divide', 'yen', 'radical', 'dollar', 'currency', 'asciitilde', 'emptyset', 'increment', 'trademark', 'summation', 'dagger', 'estimated', 'florin',
+	'copyright', 'partialdiff', 'section', 'less', 'percent', 'cent', 'ampersand', 'perthousand', 'Delta', 'lessequal', 'pi', 'Omega', 'sterling', 'product', 'infinity', 'greater',
+	'degree', 'approxequal', 'integral', 'registered', 'numero', 'daggerdbl', 'plusminus', 'multiply', 'asciicircum', 'dbldagger', 'leftArrow', 'euro', 'Ohm', 'greaterequal',
+	'bar', 'lozenge', 'literSign', 'equal', 'logicalnot', 'micro', 'paragraph', 'plus', '.notdef', 'published', 'at', 'minus', 'rightArrow'
+	)
+dontKernThese = (unlikelyToBeKerned + tuple(glyphNamesWithExtensionsNotToBeKerned))
+leftGroupsToBeChecked = [g.leftKerningGroup for g in thisFont.glyphs if g.leftKerningGroup and g.name in dontKernThese]
+rightGroupsToBeChecked = [g.rightKerningGroup for g in thisFont.glyphs if g.rightKerningGroup and g.name in dontKernThese]
 
 def reportLeftGroup(thisGlyph):
 	if thisGlyph:
@@ -55,13 +54,11 @@ def humanReadableName(groupOrGlyphId):
 		else:
 			niceName = groupOrGlyphId
 	return niceName
-	
 
-def reportBadKernPair(leftSide,rightSide,kernValue):
+def reportBadKernPair(leftSide, rightSide, kernValue):
 	leftName = humanReadableName(leftSide)
 	rightName = humanReadableName(rightSide)
-	print("  Questionable pair: %s -- %s (%i)" % (leftName,rightName,kernValue))
-
+	print("  Questionable pair: %s -- %s (%i)" % (leftName, rightName, kernValue))
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
@@ -87,20 +84,20 @@ for glyphName in noKerningToTheRight:
 	reportRightGroup(thisGlyph)
 
 # test for kern pairs:
-print("\nPROBLEMS WITH KERN PAIRS:")	
+print("\nPROBLEMS WITH KERN PAIRS:")
 for thisMaster in thisFont.masters:
 	print("\n  MASTER: %s" % thisMaster.name)
-	
+
 	masterKerning = thisFont.kerning[thisMaster.id]
-	
+
 	for leftGlyphName in (noKerningToTheRight + unlikelyToBeKerned + tuple(glyphNamesWithExtensionsNotToBeKerned)):
 		if thisFont.glyphs[leftGlyphName]:
 			leftGlyph = thisFont.glyphs[leftGlyphName]
 			leftID = leftGlyph.id
 			if leftID in masterKerning.keys():
 				for rightSide in masterKerning[leftID].keys():
-					reportBadKernPair( leftID, rightSide, masterKerning[leftID][rightSide] )
-	
+					reportBadKernPair(leftID, rightSide, masterKerning[leftID][rightSide])
+
 	shouldntBeOnRightSide = (noKerningToTheLeft + unlikelyToBeKerned + tuple(glyphNamesWithExtensionsNotToBeKerned))
 	for leftSide in masterKerning.keys():
 		for rightSide in masterKerning[leftSide].keys():
@@ -109,15 +106,14 @@ for thisMaster in thisFont.masters:
 				if rightGlyph:
 					rightName = rightGlyph.name
 					if rightName in shouldntBeOnRightSide:
-						reportBadKernPair( leftSide, rightSide, masterKerning[leftSide][rightSide] )
-			elif rightSide.replace("@MMK_R_","@") in leftGroupsToBeChecked:
-				reportBadKernPair( leftSide, rightSide, masterKerning[leftSide][rightSide] )
-	
-	for leftSideGroup in ["@MMK_L_%s"%groupname for groupname in rightGroupsToBeChecked]:
+						reportBadKernPair(leftSide, rightSide, masterKerning[leftSide][rightSide])
+			elif rightSide.replace("@MMK_R_", "@") in leftGroupsToBeChecked:
+				reportBadKernPair(leftSide, rightSide, masterKerning[leftSide][rightSide])
+
+	for leftSideGroup in ["@MMK_L_%s" % groupname for groupname in rightGroupsToBeChecked]:
 		if leftSideGroup in masterKerning.keys():
 			for rightSide in masterKerning[leftSideGroup].keys():
-				reportBadKernPair( leftSideGroup, rightSide, masterKerning[leftSideGroup][rightSide] )
-						
+				reportBadKernPair(leftSideGroup, rightSide, masterKerning[leftSideGroup][rightSide])
 
 print("\nDON'T FORGET:\n")
 print("  Please clean up kerning with:\n     Window > Kerning > gear menu > Clean up\n")

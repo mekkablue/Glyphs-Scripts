@@ -1,7 +1,7 @@
 #MenuTitle: Fraction Fever 2
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Insert Tal Leming’s Fraction Fever 2 code into the font.
 """
 
@@ -95,61 +95,88 @@ lookup Denominator {
 sub @figDefault space' @figNumer by thinspace;
 """
 
-def updated_code( oldcode, beginsig, endsig, newcode ):
+def updated_code(oldcode, beginsig, endsig, newcode):
 	"""Replaces text in oldcode with newcode, but only between beginsig and endsig."""
-	begin_offset = oldcode.find( beginsig )
-	end_offset   = oldcode.find( endsig ) + len( endsig )
+	begin_offset = oldcode.find(beginsig)
+	end_offset = oldcode.find(endsig) + len(endsig)
 	newcode = oldcode[:begin_offset] + beginsig + newcode + "\n" + endsig + oldcode[end_offset:]
 	return newcode
 
-def create_otfeature( featurename = "frac",
-                      featurecode = "# empty feature code",
-                      targetfont  = Glyphs.font,
-                      codesig     = "DEFAULT-CODE-SIGNATURE" ):
+def create_otfeature(featurename="frac", featurecode="# empty feature code", targetfont=Glyphs.font, codesig="DEFAULT-CODE-SIGNATURE"):
 	"""
 	Creates or updates an OpenType feature in the font.
 	Returns a status message in form of a string.
 	"""
-	
+
 	beginSig = "# BEGIN " + codesig + "\n"
-	endSig   = "# END "   + codesig + "\n"
-	
-	if featurename in [ f.name for f in targetfont.features ]:
+	endSig = "# END " + codesig + "\n"
+
+	if featurename in [f.name for f in targetfont.features]:
 		# feature already exists:
-		targetfeature = targetfont.features[ featurename ]
-		
+		targetfeature = targetfont.features[featurename]
+
 		if beginSig in targetfeature.code:
 			# replace old code with new code:
-			targetfeature.code = updated_code( targetfeature.code, beginSig, endSig, featurecode )
+			targetfeature.code = updated_code(targetfeature.code, beginSig, endSig, featurecode)
 		else:
 			# append new code:
 			targetfeature.code += "\n" + beginSig + featurecode + "\n" + endSig
-			
+
 		return "Updated existing OT feature '%s'." % featurename
 	else:
 		# create feature with new code:
 		newFeature = GSFeature()
 		newFeature.name = featurename
 		newFeature.code = beginSig + featurecode + "\n" + endSig
-		targetfont.features.append( newFeature )
+		targetfont.features.append(newFeature)
 		return "Created new OT feature '%s'" % featurename
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
-print(create_otfeature( featurename = "frac", featurecode = fractionFeverCode, targetfont = Font, codesig = "FRACTION-FEVER-2" ))
+print(create_otfeature(featurename="frac", featurecode=fractionFeverCode, targetfont=Font, codesig="FRACTION-FEVER-2"))
 
 # Check which glyphs still need to be created:
 necessaryGlyphs = (
-	"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
-	"zero.numr", "one.numr", "two.numr", "three.numr", "four.numr", "five.numr", "six.numr", "seven.numr", "eight.numr", "nine.numr",
-	"zero.dnom", "one.dnom", "two.dnom", "three.dnom", "four.dnom", "five.dnom", "six.dnom", "seven.dnom", "eight.dnom", "nine.dnom",
-	"slash", "fraction", "space", "thinspace",
-)
+	"zero",
+	"one",
+	"two",
+	"three",
+	"four",
+	"five",
+	"six",
+	"seven",
+	"eight",
+	"nine",
+	"zero.numr",
+	"one.numr",
+	"two.numr",
+	"three.numr",
+	"four.numr",
+	"five.numr",
+	"six.numr",
+	"seven.numr",
+	"eight.numr",
+	"nine.numr",
+	"zero.dnom",
+	"one.dnom",
+	"two.dnom",
+	"three.dnom",
+	"four.dnom",
+	"five.dnom",
+	"six.dnom",
+	"seven.dnom",
+	"eight.dnom",
+	"nine.dnom",
+	"slash",
+	"fraction",
+	"space",
+	"thinspace",
+	)
 
-existingGlyphNames = [ g.name for g in Font.glyphs ]
-glyphsToBeCreated = [ n for n in necessaryGlyphs if n not in existingGlyphNames ]
+existingGlyphNames = [g.name for g in Font.glyphs]
+glyphsToBeCreated = [n for n in necessaryGlyphs if n not in existingGlyphNames]
 
-if len( glyphsToBeCreated ) > 0:
+if len(glyphsToBeCreated) > 0:
 	Glyphs.showMacroWindow()
 	print("These glyphs still need to be created for the feature to work:")
-	print(" ".join( glyphsToBeCreated ))
+	print(" ".join(glyphsToBeCreated))

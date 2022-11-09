@@ -1,11 +1,11 @@
 #MenuTitle: Add All Missing Color Layers to Selected Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Adds a duplicate of the fallback (master) layer for each color defined in the Color Palettes parameter, for each selected glyph.
 """
 
-def glyphAlreadyHasLayerForThisColor( glyph, mID, colorIndex):
+def glyphAlreadyHasLayerForThisColor(glyph, mID, colorIndex):
 	for layer in glyph.layers:
 		if layer.associatedMasterId == mID:
 			try:
@@ -18,10 +18,10 @@ def glyphAlreadyHasLayerForThisColor( glyph, mID, colorIndex):
 					return True
 	return False
 
-def process( thisGlyph, mID, paletteSize ):
+def process(thisGlyph, mID, paletteSize):
 	for i in range(paletteSize):
-		if glyphAlreadyHasLayerForThisColor( thisGlyph, mID, i ):
-			print("⚠️ Skipping Color %i: already exists"%i)
+		if glyphAlreadyHasLayerForThisColor(thisGlyph, mID, i):
+			print("⚠️ Skipping Color %i: already exists" % i)
 		else:
 			newLayer = thisGlyph.layers[mID].copy()
 			try:
@@ -32,7 +32,7 @@ def process( thisGlyph, mID, paletteSize ):
 				# GLYPHS 2
 				newLayer.name = "Color %i" % i
 			thisGlyph.layers.append(newLayer)
-			print("✅ Added: Color %i"%i)
+			print("✅ Added: Color %i" % i)
 
 thisFont = Glyphs.font # frontmost font
 selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
@@ -45,7 +45,7 @@ parameterName = "Color Palettes"
 for m in thisFont.masters:
 	mID = m.id
 	CPAL = m.customParameters[parameterName]
-		
+
 if not CPAL:
 	CPAL = thisFont.customParameters[parameterName]
 
@@ -53,10 +53,10 @@ if CPAL:
 	paletteSize = len(CPAL[0])
 	for thisGlyph in selectedGlyphs:
 		print("\n🔠 %s" % thisGlyph.name)
-		process( thisGlyph, mID, paletteSize )
+		process(thisGlyph, mID, paletteSize)
 else:
 	Message(
 		title="No Palette Found",
-		message="No ‘Color Palettes’ parameter found in Font Info > Font or Font Info > Masters. Please add the parameter and try again.", 
+		message="No ‘Color Palettes’ parameter found in Font Info > Font or Font Info > Masters. Please add the parameter and try again.",
 		OKButton=None,
 		)

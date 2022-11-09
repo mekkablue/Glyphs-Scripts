@@ -1,15 +1,15 @@
 #MenuTitle: Align Anchors to Grid
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Looks for anchors not on the grid and rounds their coordinate to the closest grid.
 """
 
-def process( thisLayer ):
+def process(thisLayer):
 	count = 0
-	if len( thisLayer.anchors ) != 0:
+	if len(thisLayer.anchors) != 0:
 		# thisLayer.parent.beginUndo() # undo grouping causes crashes
-		
+
 		for a in thisLayer.anchors:
 			xrest = a.x % pixelwidth
 			yrest = a.y % pixelwidth
@@ -17,17 +17,17 @@ def process( thisLayer ):
 				# round:
 				oldX = a.x
 				oldY = a.y
-				a.x = round( a.x/pixelwidth ) * pixelwidth
-				a.y = round( a.y/pixelwidth ) * pixelwidth
-				
+				a.x = round(a.x / pixelwidth) * pixelwidth
+				a.y = round(a.y / pixelwidth) * pixelwidth
+
 				# report:
-				count+=1
+				count += 1
 				if count == 1:
 					reportGlyphName = "%s" % thisLayer.parent.name
 				elif count == 2:
-					reportGlyphName = " "*len(reportGlyphName) # indent
-				print("%s ⚓️ %s %i,%i → %i,%i" % (reportGlyphName , a.name, int(oldX), int(oldY), int(a.x), int(a.y) ))
-				
+					reportGlyphName = " " * len(reportGlyphName) # indent
+				print("%s ⚓️ %s %i,%i → %i,%i" % (reportGlyphName, a.name, int(oldX), int(oldY), int(a.x), int(a.y)))
+
 		# thisLayer.parent.endUndo() # undo grouping causes crashes
 	return count
 
@@ -36,21 +36,21 @@ thisFont.disableUpdateInterface()
 try:
 	selectedLayers = thisFont.selectedLayers
 	pixelwidth = thisFont.gridLength
-	
+
 	# report:
 	Glyphs.clearLog()
 	print("Aligning anchors to grid in font: %s" % thisFont.familyName)
-	print("Processing: %i glyph%s" % (len(selectedLayers), "" if len(selectedLayers)==1 else "s"))
+	print("Processing: %i glyph%s" % (len(selectedLayers), "" if len(selectedLayers) == 1 else "s"))
 	print("Grid: %i\n" % pixelwidth)
-	
+
 	# process and keep count:
 	anchorCount = 0
 	for thisLayer in selectedLayers:
-		anchorCount += process( thisLayer )
-	
+		anchorCount += process(thisLayer)
+
 	# report:
 	print("\nMoved %i anchors. Done." % anchorCount)
-	Glyphs.showNotification( 
+	Glyphs.showNotification(
 		"Grid-aligned anchors in %s" % (thisFont.familyName),
 		"Aligned %i anchors in %i selected glyphs. Details in Macro Window." % (anchorCount, len(selectedLayers)),
 		)
@@ -63,4 +63,3 @@ except Exception as e:
 	raise e
 finally:
 	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
-

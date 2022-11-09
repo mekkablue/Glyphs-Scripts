@@ -1,7 +1,7 @@
 #MenuTitle: Center Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Center all selected glyphs inside their respective widths.
 """
 
@@ -10,21 +10,21 @@ from AppKit import NSAffineTransform, NSAffineTransformStruct
 
 def shiftMatrix(xShift):
 	transform = NSAffineTransform.transform()
-	transform.translateXBy_yBy_(xShift,0)
+	transform.translateXBy_yBy_(xShift, 0)
 	return transform.transformStruct()
 
 Font = Glyphs.font
 Font.disableUpdateInterface()
 try:
 	selectedLayers = Font.selectedLayers
-	if len(selectedLayers)==1 and selectedLayers[0].selection:
+	if len(selectedLayers) == 1 and selectedLayers[0].selection:
 		currentLayer = selectedLayers[0]
 		selectionOrigin = currentLayer.selectionBounds.origin.x
 		selectionWidth = currentLayer.selectionBounds.size.width
-		shift = shiftMatrix( (currentLayer.width - selectionWidth) * 0.5 - selectionOrigin )
+		shift = shiftMatrix((currentLayer.width - selectionWidth) * 0.5 - selectionOrigin)
 		for item in currentLayer.selection:
 			try:
-				if type(item)==GSNode:
+				if type(item) == GSNode:
 					item.x += shift.tX
 				else:
 					item.applyTransform(shift)
@@ -33,9 +33,9 @@ try:
 	else:
 		for thisLayer in selectedLayers:
 			thisMaster = thisLayer.master
-			shift = shiftMatrix( ( thisLayer.LSB - thisLayer.RSB ) * -0.5 )
+			shift = shiftMatrix((thisLayer.LSB - thisLayer.RSB) * -0.5)
 			thisLayer.applyTransform(shift)
-		
+
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ 'Center Glyphs' Script Error:\n")
@@ -43,8 +43,8 @@ except Exception as e:
 	print(traceback.format_exc())
 	print()
 	raise e
-	
+
 finally:
 	Font.enableUpdateInterface() # re-enables UI updates in Font View
 
-print("✅ Centered: %s" % (", ".join( [ l.parent.name for l in selectedLayers ] )))
+print("✅ Centered: %s" % (", ".join([l.parent.name for l in selectedLayers])))

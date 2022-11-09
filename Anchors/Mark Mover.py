@@ -1,18 +1,17 @@
 #MenuTitle: Mark Mover
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Move marks to their respective heights, e.g. *comb.case to cap height, *comb to x-height, etc.
 """
 
 import vanilla
 
-
 import math
 from AppKit import NSAffineTransform, NSAffineTransformStruct
 from Foundation import NSPoint
 
-def italicize( thisPoint, italicAngle=0.0, pivotalY=0.0 ):
+def italicize(thisPoint, italicAngle=0.0, pivotalY=0.0):
 	"""
 	Returns the italicized position of an NSPoint 'thisPoint'
 	for a given angle 'italicAngle' and the pivotal height 'pivotalY',
@@ -21,8 +20,8 @@ def italicize( thisPoint, italicAngle=0.0, pivotalY=0.0 ):
 	"""
 	x = thisPoint.x
 	yOffset = thisPoint.y - pivotalY # calculate vertical offset
-	italicAngle = math.radians( italicAngle ) # convert to radians
-	tangens = math.tan( italicAngle ) # math.tan needs radians
+	italicAngle = math.radians(italicAngle) # convert to radians
+	tangens = math.tan(italicAngle) # math.tan needs radians
 	horizontalDeviance = tangens * yOffset # vertical distance from pivotal point
 	x += horizontalDeviance # x of point that is yOffset from pivotal point
 	return x
@@ -47,7 +46,7 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	if scale != 1.0:
 		myTransform.scaleBy_(scale)
 	if not (shiftX == 0.0 and shiftY == 0.0):
-		myTransform.translateXBy_yBy_(shiftX,shiftY)
+		myTransform.translateXBy_yBy_(shiftX, shiftY)
 	if skew:
 		skewStruct = NSAffineTransformStruct()
 		skewStruct.m11 = 1.0
@@ -58,13 +57,13 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 		myTransform.appendTransform_(skewTransform)
 	return myTransform
 
-def	moveLayer(thisLayer, verticalShift):
+def moveLayer(thisLayer, verticalShift):
 	if verticalShift != 0:
 		print("  ↕︎ %i: %s" % (verticalShift, thisLayer.name))
 		horizontalShift = 0
 		italicAngle = thisLayer.master.italicAngle
 		if italicAngle != 0:
-			horizontalShift = italicize(NSPoint(0,verticalShift), italicAngle=italicAngle)
+			horizontalShift = italicize(NSPoint(0, verticalShift), italicAngle=italicAngle)
 		shiftTransform = transform(shiftX=horizontalShift, shiftY=verticalShift)
 		shiftMatrix = shiftTransform.transformStruct()
 		thisLayer.applyTransform(shiftMatrix)
@@ -92,11 +91,11 @@ def moveGlyphToCapHeight(thisGlyph):
 			if topAnchor:
 				targetHeight = thisLayer.master.capHeight
 				startHeight = topAnchor.y
-				movedLayers += moveLayer(thisLayer, targetHeight-startHeight)
+				movedLayers += moveLayer(thisLayer, targetHeight - startHeight)
 			else:
 				movedLayers += moveBottomLayer(thisLayer)
 	return movedLayers
-	
+
 def moveGlyphToXHeight(thisGlyph):
 	print("\n🔤 %s:" % thisGlyph.name)
 	movedLayers = 0
@@ -106,11 +105,11 @@ def moveGlyphToXHeight(thisGlyph):
 			if topAnchor:
 				targetHeight = thisLayer.master.xHeight
 				startHeight = topAnchor.y
-				movedLayers += moveLayer(thisLayer, targetHeight-startHeight)
+				movedLayers += moveLayer(thisLayer, targetHeight - startHeight)
 			else:
 				movedLayers += moveBottomLayer(thisLayer)
 	return movedLayers
-	
+
 def moveGlyphToSmallCapHeight(thisGlyph):
 	print("\n🆒 %s:" % thisGlyph.name)
 	movedLayers = 0
@@ -121,74 +120,79 @@ def moveGlyphToSmallCapHeight(thisGlyph):
 				targetHeight = thisLayer.master.customParameters["smallCapHeight"]
 				if targetHeight:
 					startHeight = topAnchor.y
-					movedLayers += moveLayer(thisLayer, targetHeight-startHeight)
+					movedLayers += moveLayer(thisLayer, targetHeight - startHeight)
 			else:
 				movedLayers += moveBottomLayer(thisLayer)
 	return movedLayers
-	
-class MarkMover( object ):
-	def __init__( self ):
+
+class MarkMover(object):
+
+	def __init__(self):
 		# Window 'self.w':
-		windowWidth  = 310
+		windowWidth = 310
 		windowHeight = 220
-		windowWidthResize  = 100 # user can resize width by this value
-		windowHeightResize = 0   # user can resize height by this value
+		windowWidthResize = 100 # user can resize width by this value
+		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			( windowWidth, windowHeight ), # default window size
+			(windowWidth, windowHeight), # default window size
 			"Mark Mover", # window title
-			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
-			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
-			autosaveName = "com.mekkablue.MarkMover.mainwindow" # stores last window position and size
-		)
-		
+			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
+			autosaveName="com.mekkablue.MarkMover.mainwindow" # stores last window position and size
+			)
+
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 14), "Move connecting anchors on metric line:", sizeStyle='small', selectable=True )
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Move connecting anchors on metric line:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
-		
-		self.w.lowercaseMarks = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Move …comb marks to x-height", value=True, callback=self.SavePreferences, sizeStyle='small' )
+
+		self.w.lowercaseMarks = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Move …comb marks to x-height", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
-		
-		self.w.uppercaseMarks = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Move …comb.case marks to cap height", value=True, callback=self.SavePreferences, sizeStyle='small' )
+
+		self.w.uppercaseMarks = vanilla.CheckBox(
+			(inset, linePos - 1, -inset, 20), "Move …comb.case marks to cap height", value=True, callback=self.SavePreferences, sizeStyle='small'
+			)
 		linePos += lineHeight
-		
-		self.w.smallcapMarks = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Move …comb.sc to smallcap height", value=False, callback=self.SavePreferences, sizeStyle='small' )
+
+		self.w.smallcapMarks = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Move …comb.sc to smallcap height", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
-		
-		self.w.setMetricsKeys = vanilla.CheckBox( (inset, linePos-1, 140, 20), "Set metrics keys, LSB:", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.leftMetricsKey = vanilla.EditText( (inset+140, linePos-1, 50, 19), "=40", callback=self.SavePreferences, sizeStyle='small' )
-		self.w.rightMetricsKeyText = vanilla.TextBox( (inset+197, linePos+2, 30, 14), "RSB:", sizeStyle='small', selectable=True )
-		self.w.rightMetricsKey = vanilla.EditText( (inset+230, linePos-1, 50, 19), "=|", callback=self.SavePreferences, sizeStyle='small' )
+
+		self.w.setMetricsKeys = vanilla.CheckBox((inset, linePos - 1, 140, 20), "Set metrics keys, LSB:", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.leftMetricsKey = vanilla.EditText((inset + 140, linePos - 1, 50, 19), "=40", callback=self.SavePreferences, sizeStyle='small')
+		self.w.rightMetricsKeyText = vanilla.TextBox((inset + 197, linePos + 2, 30, 14), "RSB:", sizeStyle='small', selectable=True)
+		self.w.rightMetricsKey = vanilla.EditText((inset + 230, linePos - 1, 50, 19), "=|", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
-		
-		self.w.includeAllGlyphs = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Include all glyphs in font (otherwise just selection)", value=True, callback=self.SavePreferences, sizeStyle='small' )
+
+		self.w.includeAllGlyphs = vanilla.CheckBox(
+			(inset, linePos - 1, -inset, 20), "Include all glyphs in font (otherwise just selection)", value=True, callback=self.SavePreferences, sizeStyle='small'
+			)
 		linePos += lineHeight
-		
-		self.w.newTab = vanilla.CheckBox( (inset, linePos-1, 140, 20), "Open tab with marks", value=True, callback=self.SavePreferences, sizeStyle='small' )
-		self.w.reuseTab = vanilla.CheckBox( (inset+140, linePos-1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small' )
+
+		self.w.newTab = vanilla.CheckBox((inset, linePos - 1, 140, 20), "Open tab with marks", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab = vanilla.CheckBox((inset + 140, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
-		
+
 		# Run Button:
-		self.w.runButton = vanilla.Button( (-80-inset, -20-inset, -inset, -inset), "Move", sizeStyle='regular', callback=self.MarkMoverMain )
-		self.w.setDefaultButton( self.w.runButton )
-		
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Move", sizeStyle='regular', callback=self.MarkMoverMain)
+		self.w.setDefaultButton(self.w.runButton)
+
 		# Load Settings:
 		if not self.LoadPreferences():
 			print("Note: 'Mark Mover' could not load preferences. Will resort to defaults")
-		
+
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-	
+
 	def updateUI(self, sender=None):
 		onOff = self.w.lowercaseMarks.get() or self.w.uppercaseMarks.get() or self.w.smallcapMarks.get()
 		self.w.runButton.enable(onOff)
-		
+
 		onOff = self.w.setMetricsKeys.get()
 		self.w.leftMetricsKey.enable(onOff)
 		self.w.rightMetricsKey.enable(onOff)
-		
-	def SavePreferences( self, sender=None ):
+
+	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
 			Glyphs.defaults["com.mekkablue.MarkMover.lowercaseMarks"] = self.w.lowercaseMarks.get()
@@ -200,7 +204,7 @@ class MarkMover( object ):
 			Glyphs.defaults["com.mekkablue.MarkMover.includeAllGlyphs"] = self.w.includeAllGlyphs.get()
 			Glyphs.defaults["com.mekkablue.MarkMover.newTab"] = self.w.newTab.get()
 			Glyphs.defaults["com.mekkablue.MarkMover.reuseTab"] = self.w.reuseTab.get()
-			
+
 			self.updateUI()
 			return True
 		except:
@@ -208,7 +212,7 @@ class MarkMover( object ):
 			print(traceback.format_exc())
 			return False
 
-	def LoadPreferences( self ):
+	def LoadPreferences(self):
 		try:
 			# register defaults:
 			Glyphs.registerDefault("com.mekkablue.MarkMover.lowercaseMarks", 1)
@@ -220,18 +224,18 @@ class MarkMover( object ):
 			Glyphs.registerDefault("com.mekkablue.MarkMover.includeAllGlyphs", 1)
 			Glyphs.registerDefault("com.mekkablue.MarkMover.newTab", 1)
 			Glyphs.registerDefault("com.mekkablue.MarkMover.reuseTab", 1)
-			
+
 			# load previously written prefs:
-			self.w.lowercaseMarks.set( Glyphs.defaults["com.mekkablue.MarkMover.lowercaseMarks"] )
-			self.w.uppercaseMarks.set( Glyphs.defaults["com.mekkablue.MarkMover.uppercaseMarks"] )
-			self.w.smallcapMarks.set( Glyphs.defaults["com.mekkablue.MarkMover.smallcapMarks"] )
-			self.w.setMetricsKeys.set( Glyphs.defaults["com.mekkablue.MarkMover.setMetricsKeys"] )
-			self.w.leftMetricsKey.set( Glyphs.defaults["com.mekkablue.MarkMover.leftMetricsKey"] )
-			self.w.rightMetricsKey.set( Glyphs.defaults["com.mekkablue.MarkMover.rightMetricsKey"] )
-			self.w.includeAllGlyphs.set( Glyphs.defaults["com.mekkablue.MarkMover.includeAllGlyphs"] )
-			self.w.newTab.set( Glyphs.defaults["com.mekkablue.MarkMover.newTab"] )
-			self.w.reuseTab.set( Glyphs.defaults["com.mekkablue.MarkMover.reuseTab"] )
-			
+			self.w.lowercaseMarks.set(Glyphs.defaults["com.mekkablue.MarkMover.lowercaseMarks"])
+			self.w.uppercaseMarks.set(Glyphs.defaults["com.mekkablue.MarkMover.uppercaseMarks"])
+			self.w.smallcapMarks.set(Glyphs.defaults["com.mekkablue.MarkMover.smallcapMarks"])
+			self.w.setMetricsKeys.set(Glyphs.defaults["com.mekkablue.MarkMover.setMetricsKeys"])
+			self.w.leftMetricsKey.set(Glyphs.defaults["com.mekkablue.MarkMover.leftMetricsKey"])
+			self.w.rightMetricsKey.set(Glyphs.defaults["com.mekkablue.MarkMover.rightMetricsKey"])
+			self.w.includeAllGlyphs.set(Glyphs.defaults["com.mekkablue.MarkMover.includeAllGlyphs"])
+			self.w.newTab.set(Glyphs.defaults["com.mekkablue.MarkMover.newTab"])
+			self.w.reuseTab.set(Glyphs.defaults["com.mekkablue.MarkMover.reuseTab"])
+
 			self.updateUI()
 			return True
 		except:
@@ -239,15 +243,15 @@ class MarkMover( object ):
 			print(traceback.format_exc())
 			return False
 
-	def MarkMoverMain( self, sender=None ):
+	def MarkMoverMain(self, sender=None):
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
-			
+
 			# update settings to the latest user input:
 			if not self.SavePreferences():
 				print("Note: 'Mark Mover' could not write preferences.")
-			
+
 			thisFont = Glyphs.font # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
@@ -257,7 +261,7 @@ class MarkMover( object ):
 					print(thisFont.filepath)
 				else:
 					print("⚠️ The font file has not been saved yet.")
-				
+
 				descriptionText = Glyphs.defaults["com.mekkablue.MarkMover.descriptionText"]
 				lowercaseMarks = Glyphs.defaults["com.mekkablue.MarkMover.lowercaseMarks"]
 				uppercaseMarks = Glyphs.defaults["com.mekkablue.MarkMover.uppercaseMarks"]
@@ -268,12 +272,12 @@ class MarkMover( object ):
 				includeAllGlyphs = Glyphs.defaults["com.mekkablue.MarkMover.includeAllGlyphs"]
 				newTab = Glyphs.defaults["com.mekkablue.MarkMover.newTab"]
 				reuseTab = Glyphs.defaults["com.mekkablue.MarkMover.reuseTab"]
-				
+
 				if includeAllGlyphs:
 					glyphs = thisFont.glyphs
 				else:
 					glyphs = [l.parent for l in thisFont.selectedLayers]
-				
+
 				glyphNames = []
 				movedMarks = 0
 				for glyph in glyphs:
@@ -289,20 +293,20 @@ class MarkMover( object ):
 							movedMarks += moveGlyphToCapHeight(glyph)
 						else:
 							movedMarks += moveGlyphToXHeight(glyph)
-			
+
 			# Final report:
-			Glyphs.showNotification( 
+			Glyphs.showNotification(
 				"%s: Done" % (thisFont.familyName),
 				"Mark Mover shifted %i layer%s in %i mark%s. Details in Macro Window" % (
 					movedMarks,
-					"" if movedMarks==1 else "s",
+					"" if movedMarks == 1 else "s",
 					len(glyphNames),
-					"" if len(glyphNames)==1 else "s",
+					"" if len(glyphNames) == 1 else "s",
 					),
 				)
-			
+
 			print("\nDone.")
-			
+
 			if newTab and glyphNames:
 				if reuseTab and thisFont.currentTab:
 					tab = thisFont.currentTab

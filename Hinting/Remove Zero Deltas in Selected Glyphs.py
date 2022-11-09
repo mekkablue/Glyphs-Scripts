@@ -1,11 +1,11 @@
 #MenuTitle: Remove Zero Deltas in Selected Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Goes through all layers of each selected glyph, and deletes all TT Delta Hints with an offset of zero. Detailed Report in Macro Window.
 """
 
-def process( Layer ):
+def process(Layer):
 	try:
 		count = 0
 		for i in reversed(range(len(Layer.hints))):
@@ -15,7 +15,7 @@ def process( Layer ):
 				if "settings" in elementDict:
 					settings = elementDict["settings"]
 					if settings:
-						for deltaType in ("deltaH","deltaV"):
+						for deltaType in ("deltaH", "deltaV"):
 							if deltaType in settings:
 								for transformType in settings[deltaType]:
 									deltas = settings[deltaType][transformType]
@@ -23,15 +23,15 @@ def process( Layer ):
 										if deltas[ppmSize] == 0:
 											del deltas[ppmSize]
 											count += 1
-									
+
 									# clean up delta PPMs:
 									if len(settings[deltaType][transformType]) == 0:
 										del settings[deltaType][transformType]
-								
+
 								# clean up delta directions:
 								if len(settings[deltaType]) == 0:
 									del settings[deltaType]
-					
+
 					# clean up hints:
 					if not elementDict["settings"]:
 						del Layer.hints[i]
@@ -40,8 +40,8 @@ def process( Layer ):
 			count,
 			"" if count == 1 else "s",
 			Layer.name,
-		))
-	
+			))
+
 		return count
 	except Exception as e:
 		Glyphs.showMacroWindow()
@@ -60,7 +60,7 @@ for selectedLayer in selectedLayers:
 	print("%s:" % thisGlyph.name)
 	# thisGlyph.beginUndo() # undo grouping causes crashes
 	for thisLayer in thisGlyph.layers:
-		totalCount += process( thisLayer )
+		totalCount += process(thisLayer)
 	# thisGlyph.endUndo() # undo grouping causes crashes
 
 if totalCount:
@@ -68,15 +68,15 @@ if totalCount:
 		title="%i Zero Delta%s Deleted" % (
 			totalCount,
 			"" if totalCount == 1 else "s",
-		), 
+			),
 		message="Deleted %i TT delta hint%s with zero offset in %i selected glyph%s (%s%s). Detailed report in Macro Window." % (
 			totalCount,
 			"" if totalCount == 1 else "s",
 			len(selectedLayers),
 			"" if len(selectedLayers) == 1 else "s",
-			", ".join([l.parent.name for l in selectedLayers[:min(20,len(selectedLayers))]]),
+			", ".join([l.parent.name for l in selectedLayers[:min(20, len(selectedLayers))]]),
 			",..." if len(selectedLayers) > 20 else "",
-		), 
+			),
 		OKButton=u"👍🏻 OK",
 		)
 else:
@@ -84,7 +84,8 @@ else:
 		title="No Zero Deltas",
 		message="No TT delta hints with zero offset were found in selected glyph%s (%s%s)." % (
 			"" if len(selectedLayers) == 1 else "s",
-			", ".join([l.parent.name for l in selectedLayers[:min(20,len(selectedLayers))]]),
+			", ".join([l.parent.name for l in selectedLayers[:min(20, len(selectedLayers))]]),
 			",..." if len(selectedLayers) > 20 else "",
-		),
-		OKButton=u"🍸 Cheers")
+			),
+		OKButton=u"🍸 Cheers"
+		)

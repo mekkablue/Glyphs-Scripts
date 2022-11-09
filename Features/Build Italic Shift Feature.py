@@ -1,24 +1,21 @@
 #MenuTitle: Build Italic Shift Feature
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Creates and inserts GPOS feature code for shifting glyphs, e.g., parentheses and punctuation for the case feature.
 """
 
 import vanilla, math
 from Foundation import NSPoint
 
-def updatedCode( oldCode, beginSig, endSig, newCode ):
+def updatedCode(oldCode, beginSig, endSig, newCode):
 	"""Replaces text in oldCode with newCode, but only between beginSig and endSig."""
-	beginOffset = oldCode.find( beginSig )
-	endOffset   = oldCode.find( endSig ) + len( endSig )
+	beginOffset = oldCode.find(beginSig)
+	endOffset = oldCode.find(endSig) + len(endSig)
 	newCode = oldCode[:beginOffset] + beginSig + newCode + "\n" + endSig + oldCode[endOffset:]
 	return newCode
 
-def createOTFeature( featureName = "case", 
-                     featureCode = "# empty feature code", 
-                     targetFont  = Glyphs.font,
-                     codeSig     = "SHIFTED-GLYPHS" ):
+def createOTFeature(featureName="case", featureCode="# empty feature code", targetFont=Glyphs.font, codeSig="SHIFTED-GLYPHS"):
 	"""
 	Creates or updates an OpenType feature in the font.
 	Returns a status message in form of a string.
@@ -27,27 +24,27 @@ def createOTFeature( featureName = "case",
 	targetFont: the GSFont object receiving the feature,
 	codeSig: the code signature (str) used as delimiters.
 	"""
-	
+
 	beginSig = "# BEGIN " + codeSig + "\n"
-	endSig   = "# END "   + codeSig + "\n"
-	
-	if featureName in [ f.name for f in targetFont.features ]:
+	endSig = "# END " + codeSig + "\n"
+
+	if featureName in [f.name for f in targetFont.features]:
 		# feature already exists:
-		targetFeature = targetFont.features[ featureName ]
+		targetFeature = targetFont.features[featureName]
 		targetFeature.automatic = 0
-		
+
 		# FEATURE:
 		if beginSig in targetFeature.code:
-			targetFeature.code = updatedCode( targetFeature.code, beginSig, endSig, featureCode )
+			targetFeature.code = updatedCode(targetFeature.code, beginSig, endSig, featureCode)
 		else:
 			targetFeature.code += "\n" + beginSig + featureCode + "\n" + endSig
-		
+
 		# NOTES:
 		if beginSig in targetFeature.notes:
-			targetFeature.notes = updatedCode( targetFeature.notes, beginSig, endSig, featureCode )
+			targetFeature.notes = updatedCode(targetFeature.notes, beginSig, endSig, featureCode)
 		else:
 			targetFeature.notes += "\n" + beginSig + featureCode + "\n" + endSig
-			
+
 		return "Updated existing OT feature '%s'." % featureName
 	else:
 		# create feature with new code:
@@ -56,62 +53,74 @@ def createOTFeature( featureName = "case",
 		newCode = beginSig + featureCode + "\n" + endSig
 		newFeature.code = newCode
 		newFeature.notes = newCode
-		targetFont.features.append( newFeature )
+		targetFont.features.append(newFeature)
 		return "Created new OT feature '%s'" % featureName
 
+class ItalicShiftFeature(object):
 
-
-class ItalicShiftFeature( object ):
-	def __init__( self ):
+	def __init__(self):
 		# Window 'self.w':
-		windowWidth  = 440
+		windowWidth = 440
 		windowHeight = 160
-		windowWidthResize  = 600 # user can resize width by this value
-		windowHeightResize = 0   # user can resize height by this value
+		windowWidthResize = 600 # user can resize width by this value
+		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			( windowWidth, windowHeight ), # default window size
+			(windowWidth, windowHeight), # default window size
 			"Italic Shift Feature", # window title
-			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
-			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
-			autosaveName = "com.mekkablue.ItalicShiftFeature.mainwindow" # stores last window position and size
-		)
-		
+			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
+			autosaveName="com.mekkablue.ItalicShiftFeature.mainwindow" # stores last window position and size
+			)
+
 		# UI elements:
 		inset = 15
 		lineStep = 22
 		lineheight = 12
-		self.w.text_1 = vanilla.TextBox( (inset-1, lineheight+2, -inset, 14), "Insert GPOS lookup for shifting punctuation in italic angle of 1st master:", sizeStyle='small' )
-		
-		lineheight += lineStep
-		self.w.edit_1a = vanilla.EditText( (inset, lineheight, 70, 19), "case", sizeStyle = 'small', placeholder="smcp,c2sc", callback=self.SavePreferences)
-		self.w.edit_1b = vanilla.EditText( (75+inset, lineheight, 55, 19), "100", sizeStyle = 'small', placeholder="80", callback=self.SavePreferences)
-		self.w.edit_1c = vanilla.EditText( (75+75, lineheight, -inset, 19), "exclamdown questiondown", sizeStyle = 'small', placeholder="parenleft parenright bracketleft bracketright", callback=self.SavePreferences)
+		self.w.text_1 = vanilla.TextBox((inset - 1, lineheight + 2, -inset, 14), "Insert GPOS lookup for shifting punctuation in italic angle of 1st master:", sizeStyle='small')
 
 		lineheight += lineStep
-		self.w.edit_2a = vanilla.EditText( (inset, lineheight, 70, 19), "case", sizeStyle = 'small', placeholder="smcp,c2sc", callback=self.SavePreferences)
-		self.w.edit_2b = vanilla.EditText( (75+inset, lineheight, 55, 19), "50", sizeStyle = 'small', placeholder="80", callback=self.SavePreferences)
-		self.w.edit_2c = vanilla.EditText( (75+75, lineheight, -inset, 19), "parenleft parenright braceleft braceright bracketleft bracketright", sizeStyle = 'small', placeholder="parenleft parenright bracketleft bracketright", callback=self.SavePreferences)
+		self.w.edit_1a = vanilla.EditText((inset, lineheight, 70, 19), "case", sizeStyle='small', placeholder="smcp,c2sc", callback=self.SavePreferences)
+		self.w.edit_1b = vanilla.EditText((75 + inset, lineheight, 55, 19), "100", sizeStyle='small', placeholder="80", callback=self.SavePreferences)
+		self.w.edit_1c = vanilla.EditText(
+			(75 + 75, lineheight, -inset, 19),
+			"exclamdown questiondown",
+			sizeStyle='small',
+			placeholder="parenleft parenright bracketleft bracketright",
+			callback=self.SavePreferences
+			)
 
 		lineheight += lineStep
-		self.w.edit_3a = vanilla.EditText( (inset, lineheight, 70, 19), "", sizeStyle = 'small', placeholder="smcp,c2sc", callback=self.SavePreferences)
-		self.w.edit_3b = vanilla.EditText( (75+inset, lineheight, 55, 19), "", sizeStyle = 'small', placeholder="80", callback=self.SavePreferences)
-		self.w.edit_3c = vanilla.EditText( (75+75, lineheight, -inset, 19), "", sizeStyle = 'small', placeholder="parenleft parenright bracketleft bracketright", callback=self.SavePreferences)
+		self.w.edit_2a = vanilla.EditText((inset, lineheight, 70, 19), "case", sizeStyle='small', placeholder="smcp,c2sc", callback=self.SavePreferences)
+		self.w.edit_2b = vanilla.EditText((75 + inset, lineheight, 55, 19), "50", sizeStyle='small', placeholder="80", callback=self.SavePreferences)
+		self.w.edit_2c = vanilla.EditText(
+			(75 + 75, lineheight, -inset, 19),
+			"parenleft parenright braceleft braceright bracketleft bracketright",
+			sizeStyle='small',
+			placeholder="parenleft parenright bracketleft bracketright",
+			callback=self.SavePreferences
+			)
 
-		
+		lineheight += lineStep
+		self.w.edit_3a = vanilla.EditText((inset, lineheight, 70, 19), "", sizeStyle='small', placeholder="smcp,c2sc", callback=self.SavePreferences)
+		self.w.edit_3b = vanilla.EditText((75 + inset, lineheight, 55, 19), "", sizeStyle='small', placeholder="80", callback=self.SavePreferences)
+		self.w.edit_3c = vanilla.EditText(
+			(75 + 75, lineheight, -inset, 19), "", sizeStyle='small', placeholder="parenleft parenright bracketleft bracketright", callback=self.SavePreferences
+			)
+
 		# Run Button:
-		self.w.copyButton = vanilla.Button((-180-inset, -20-inset, -inset-90, -inset), "Copy Code", sizeStyle='regular', callback=self.ItalicShiftFeatureMain )
-		self.w.runButton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Insert", sizeStyle='regular', callback=self.ItalicShiftFeatureMain )
-		self.w.setDefaultButton( self.w.runButton )
-		
+		self.w.copyButton = vanilla.Button((-180 - inset, -20 - inset, -inset - 90, -inset), "Copy Code", sizeStyle='regular', callback=self.ItalicShiftFeatureMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Insert", sizeStyle='regular', callback=self.ItalicShiftFeatureMain)
+		self.w.setDefaultButton(self.w.runButton)
+
 		# Load Settings:
 		if not self.LoadPreferences():
 			print("Note: 'Italic Shift Feature' could not load preferences. Will resort to defaults")
-		
+
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-		
-	def SavePreferences( self, sender ):
+
+	def SavePreferences(self, sender):
 		try:
 			Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_1a"] = self.w.edit_1a.get()
 			Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_1b"] = self.w.edit_1b.get()
@@ -124,10 +133,10 @@ class ItalicShiftFeature( object ):
 			Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_3c"] = self.w.edit_3c.get()
 		except:
 			return False
-			
+
 		return True
 
-	def LoadPreferences( self ):
+	def LoadPreferences(self):
 		try:
 			Glyphs.registerDefault("com.mekkablue.ItalicShiftFeature.edit_1a", "case")
 			Glyphs.registerDefault("com.mekkablue.ItalicShiftFeature.edit_1b", "100")
@@ -138,21 +147,21 @@ class ItalicShiftFeature( object ):
 			Glyphs.registerDefault("com.mekkablue.ItalicShiftFeature.edit_3a", "")
 			Glyphs.registerDefault("com.mekkablue.ItalicShiftFeature.edit_3b", "")
 			Glyphs.registerDefault("com.mekkablue.ItalicShiftFeature.edit_3c", "")
-			self.w.edit_1a.set( Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_1a"] )
-			self.w.edit_1b.set( Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_1b"] )
-			self.w.edit_1c.set( Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_1c"] )
-			self.w.edit_2a.set( Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_2a"] )
-			self.w.edit_2b.set( Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_2b"] )
-			self.w.edit_2c.set( Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_2c"] )
-			self.w.edit_3a.set( Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_3a"] )
-			self.w.edit_3b.set( Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_3b"] )
-			self.w.edit_3c.set( Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_3c"] )
+			self.w.edit_1a.set(Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_1a"])
+			self.w.edit_1b.set(Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_1b"])
+			self.w.edit_1c.set(Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_1c"])
+			self.w.edit_2a.set(Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_2a"])
+			self.w.edit_2b.set(Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_2b"])
+			self.w.edit_2c.set(Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_2c"])
+			self.w.edit_3a.set(Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_3a"])
+			self.w.edit_3b.set(Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_3b"])
+			self.w.edit_3c.set(Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_3c"])
 		except:
 			return False
-			
+
 		return True
 
-	def italicize( self, shift=100.0, italicAngle=0.0, pivotalY=0.0 ):
+	def italicize(self, shift=100.0, italicAngle=0.0, pivotalY=0.0):
 		"""
 		Returns the italicized position of an NSPoint 'thisPoint'
 		for a given angle 'italicAngle' and the pivotal height 'pivotalY',
@@ -160,56 +169,50 @@ class ItalicShiftFeature( object ):
 		Usage: myPoint = italicize(myPoint,10,xHeight*0.5)
 		"""
 		yOffset = shift - pivotalY # calculate vertical offset
-		italicAngle = math.radians( italicAngle ) # convert to radians
-		tangens = math.tan( italicAngle ) # math.tan needs radians
+		italicAngle = math.radians(italicAngle) # convert to radians
+		tangens = math.tan(italicAngle) # math.tan needs radians
 		horizontalDeviance = tangens * yOffset # vertical distance from pivotal point
 		horizontalDeviance # x of point that is yOffset from pivotal point
 		return horizontalDeviance
-	
-	def ItalicShiftFeatureMain( self, sender ):
+
+	def ItalicShiftFeatureMain(self, sender):
 		try:
 			thisFont = Glyphs.font # frontmost font
 			firstMaster = thisFont.masters[0]
 			italicAngle = firstMaster.italicAngle
 			features = {}
-			
-			for lookupIndex in (1,2,3):
-				otFeature = Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_%ia"%lookupIndex]
-				verticalShift = Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_%ib"%lookupIndex]
-				glyphNames = Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_%ic"%lookupIndex]
-				
-				if otFeature and len(otFeature)>3 and glyphNames:
+
+			for lookupIndex in (1, 2, 3):
+				otFeature = Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_%ia" % lookupIndex]
+				verticalShift = Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_%ib" % lookupIndex]
+				glyphNames = Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_%ic" % lookupIndex]
+
+				if otFeature and len(otFeature) > 3 and glyphNames:
 					if verticalShift:
 						verticalShift = int(verticalShift)
 						if verticalShift != 0:
-							otCode = "\tpos [%s] <%i %i 0 0>;\n" % ( 
-								glyphNames, 
-								self.italicize(shift=verticalShift, 
-								italicAngle=italicAngle), 
-								verticalShift 
-								)
-							
+							otCode = "\tpos [%s] <%i %i 0 0>;\n" % (glyphNames, self.italicize(shift=verticalShift, italicAngle=italicAngle), verticalShift)
+
 							if otFeature in features:
 								features[otFeature] += otCode
 							else:
 								features[otFeature] = otCode
-							
+
 			for otFeature in features.keys():
 				lookupName = "italicShift_%s" % otFeature
 				otCode = "lookup %s {\n" % lookupName
 				otCode += features[otFeature]
 				otCode += "} %s;" % lookupName
-				createOTFeature( 
-					featureName=otFeature, 
-					codeSig="ITALIC-SHIFT-%s"%otFeature.upper() ,
-					targetFont = thisFont,
-					featureCode = otCode,
+				createOTFeature(
+					featureName=otFeature,
+					codeSig="ITALIC-SHIFT-%s" % otFeature.upper(),
+					targetFont=thisFont,
+					featureCode=otCode,
 					)
-				
-			
-			if not self.SavePreferences( self ):
+
+			if not self.SavePreferences(self):
 				print("Note: 'Italic Shift Feature' could not write preferences.")
-			
+
 			self.w.close() # delete if you want window to stay open
 		except Exception as e:
 			# brings macro window to front and reports error:

@@ -1,7 +1,7 @@
 #MenuTitle: Remove Kerning Pairs for Selected Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Deletes all kerning pairs with the selected glyphs, for the current master only.
 """
 
@@ -9,7 +9,7 @@ Font = Glyphs.font
 Master = Font.selectedFontMaster
 
 selectedLayers = Font.selectedLayers
-listOfIDs = [ x.parent.id for x in selectedLayers ]
+listOfIDs = [x.parent.id for x in selectedLayers]
 masterID = Master.id
 totalNumberOfDeletions = 0
 
@@ -19,62 +19,61 @@ print("1. Pairs where selected glyphs are on the left side:")
 pairsToBeDeleted = []
 
 for leftGlyphID in listOfIDs:
-	leftGlyphName = Font.glyphForId_( leftGlyphID ).name
+	leftGlyphName = Font.glyphForId_(leftGlyphID).name
 	try:
 		# print leftGlyphID, leftGlyphName, len( Font.kerning[ masterID ][ leftGlyphID ] ) #DEBUG
-		if leftGlyphID in Font.kerning[ masterID ]:
-			rightGlyphIDs = Font.kerning[ masterID ][ leftGlyphID ].keys()
-			numberOfPairs = len( rightGlyphIDs )
-			rightGlyphNames = [ Font.glyphForId_(x).name for x in rightGlyphIDs ]
+		if leftGlyphID in Font.kerning[masterID]:
+			rightGlyphIDs = Font.kerning[masterID][leftGlyphID].keys()
+			numberOfPairs = len(rightGlyphIDs)
+			rightGlyphNames = [Font.glyphForId_(x).name for x in rightGlyphIDs]
 			totalNumberOfDeletions += numberOfPairs
 
-			print("   %s on the left: Found %i pairs ..." % ( leftGlyphName, numberOfPairs ))
+			print("   %s on the left: Found %i pairs ..." % (leftGlyphName, numberOfPairs))
 			#print " ".join( rightGlyphNames ) #DEBUG
-			
-			pairsToBeDeleted.append( [leftGlyphName, rightGlyphNames] )
+
+			pairsToBeDeleted.append([leftGlyphName, rightGlyphNames])
 
 	except Exception as e:
-		print("-- Error while processing %s (%s)" % ( leftGlyphName, e ))
+		print("-- Error while processing %s (%s)" % (leftGlyphName, e))
 
-print("2. Deleting these %i pairs ..." % ( totalNumberOfDeletions ))
+print("2. Deleting these %i pairs ..." % (totalNumberOfDeletions))
 
 for thisDeletionGroup in pairsToBeDeleted:
 	leftGlyphName = thisDeletionGroup[0]
 	rightGlyphNames = thisDeletionGroup[1]
-	
+
 	for thisRightGlyphName in rightGlyphNames:
 		try:
-			Font.removeKerningForPair( masterID, leftGlyphName, thisRightGlyphName )
+			Font.removeKerningForPair(masterID, leftGlyphName, thisRightGlyphName)
 		except Exception as e:
-			print("-- Error: could not delete pair %s %s (%s)" % ( leftGlyphName, thisRightGlyphName, e ))
-
+			print("-- Error: could not delete pair %s %s (%s)" % (leftGlyphName, thisRightGlyphName, e))
 
 print("3. Pairs where selected glyphs are on the right side (may take a while):")
 
 pairsToBeDeleted = []
 
-for leftGlyphID in Font.kerning[ masterID ].keys():
-	for rightGlyphID in Font.kerning[ masterID ][ leftGlyphID ].keys():
+for leftGlyphID in Font.kerning[masterID].keys():
+	for rightGlyphID in Font.kerning[masterID][leftGlyphID].keys():
 		if rightGlyphID in listOfIDs:
-			pairsToBeDeleted.append( [ leftGlyphID, rightGlyphID ] )
+			pairsToBeDeleted.append([leftGlyphID, rightGlyphID])
 
 print("4. Deleting these pairs ...")
 
 for kernPair in pairsToBeDeleted:
-	rightGlyphName = Font.glyphForId_( kernPair[1] ).name
+	rightGlyphName = Font.glyphForId_(kernPair[1]).name
 	if kernPair[0][0] == "@":
 		# left glyph is a class
 		leftGlyphName = kernPair[0]
 	else:
 		# left glyph is a glyph
-		leftGlyphName = Font.glyphForId_( kernPair[0] ).name
-	
+		leftGlyphName = Font.glyphForId_(kernPair[0]).name
+
 	# print "   Deleting pair: %s %s ..." % ( leftGlyphName, rightGlyphName )
 	try:
-		Font.removeKerningForPair( masterID, leftGlyphName, rightGlyphName )
+		Font.removeKerningForPair(masterID, leftGlyphName, rightGlyphName)
 	except Exception as e:
-		print("-- Error: could not delete pair %s %s (%s)" % ( leftGlyphName, rightGlyphName, e ))
+		print("-- Error: could not delete pair %s %s (%s)" % (leftGlyphName, rightGlyphName, e))
 
-totalNumberOfDeletions += ( len( pairsToBeDeleted ) )
+totalNumberOfDeletions += (len(pairsToBeDeleted))
 
-print("Done: %i pairs deleted in %s." % ( totalNumberOfDeletions, Master.name ))
+print("Done: %i pairs deleted in %s." % (totalNumberOfDeletions, Master.name))

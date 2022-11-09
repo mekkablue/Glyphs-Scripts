@@ -1,18 +1,18 @@
 #MenuTitle: Remove all Open Paths
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Deletes all paths in visible layers of selected glyphs.
 """
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 
-def process( thisLayer ):
+def process(thisLayer):
 	count = 0
 
 	# thisLayer.parent.beginUndo() # undo grouping causes crashes
-	for i in range( len( thisLayer.paths ))[::-1]:
+	for i in range(len(thisLayer.paths))[::-1]:
 		if thisLayer.paths[i].closed == False:
 			thisPath = thisLayer.paths[i]
 			if Glyphs.versionNumber >= 3:
@@ -22,13 +22,13 @@ def process( thisLayer ):
 				del thisLayer.paths[i]
 			count += 1
 	# thisLayer.parent.endUndo() # undo grouping causes crashes
-	
+
 	return count
 
 Font.disableUpdateInterface()
 try:
 	for thisLayer in selectedLayers:
-		print("Removing %i open paths in %s." % ( process( thisLayer ), thisLayer.parent.name ))
+		print("Removing %i open paths in %s." % (process(thisLayer), thisLayer.parent.name))
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")

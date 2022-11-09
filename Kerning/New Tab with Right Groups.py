@@ -1,7 +1,7 @@
 #MenuTitle: New Tab with Right Groups
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Creates a new tab with one glyph of each right group. Useful for checking the constency of right kerning groups.
 """
 
@@ -15,9 +15,9 @@ for thisGlyph in thisFont.glyphs:
 	glyphName = thisGlyph.name
 	rGroup = thisGlyph.rightKerningGroup
 	if rGroup in groupDict.keys():
-		groupDict[rGroup].append( glyphName )
+		groupDict[rGroup].append(glyphName)
 	else:
-		groupDict[rGroup] = [ glyphName ]
+		groupDict[rGroup] = [glyphName]
 
 tabString = ""
 
@@ -26,5 +26,4 @@ for thisRightGroup in groupDict.keys():
 
 # opens new Edit tab:
 from PyObjCTools.AppHelper import callAfter
-callAfter( Glyphs.currentDocument.windowController().addTabWithString_, tabString )
-
+callAfter(Glyphs.currentDocument.windowController().addTabWithString_, tabString)

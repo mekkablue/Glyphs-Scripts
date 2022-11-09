@@ -1,7 +1,7 @@
 #MenuTitle: Set Weight Axis Locations in Instances
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Will set weight axis location parameters for all instances, and sync them with their respective usWeightClass. Will set the width axis coordinates to the spec defaults for usWidthClass, if they have not been set yet. Otherwise will keep them as is. 
 
 If the font has masters without Axis Locations, but with corresponding instances, it will copy the instance’s axis locations into the master as well. Will not overwrite existing Axis Location parameters in the masters.
@@ -23,24 +23,21 @@ def widthForWidthClass(widthClass):
 			7: 125,
 			8: 150,
 			9: 200,
-		}[widthClass]
+			}[widthClass]
 	else:
 		print("⚠️ Not a valid usWidthClass value: %s" % repr(widthClass))
 		return None
 
-def axisLocationEntry( axisName, locationValue ):
-	return NSDictionary.alloc().initWithObjects_forKeys_(
-		(axisName, locationValue),
-		("Axis", "Location")
-	)
+def axisLocationEntry(axisName, locationValue):
+	return NSDictionary.alloc().initWithObjects_forKeys_((axisName, locationValue), ("Axis", "Location"))
 
-def process( thisInstance ):
+def process(thisInstance):
 	existingParameter = thisInstance.customParameters[paramName]
-	
+
 	theFont = thisInstance.font
 	weightClassValue = thisInstance.weightClassValue()
 	axisLocations = []
-	for i,thisAxis in enumerate(theFont.axes):
+	for i, thisAxis in enumerate(theFont.axes):
 		value = None
 		if thisAxis.name == "Weight":
 			value = weightClassValue
@@ -49,17 +46,18 @@ def process( thisInstance ):
 			for entry in existingParameter:
 				if thisAxis.name == entry["Axis"]:
 					value = entry["Location"]
-		
-		if value==None:
+
+		if value == None:
 			if thisAxis.name == "Width":
 				value = widthForWidthClass(thisInstance.widthClassValue())
 			else:
 				# default to replicating the coordinate position
 				value = thisInstance.coordinateForAxisIndex_(i)
-		axisLocations.append( axisLocationEntry(thisAxis.name, value) )
+		axisLocations.append(axisLocationEntry(thisAxis.name, value))
 	if axisLocations:
 		thisInstance.customParameters[paramName] = tuple(axisLocations)
 		return weightClassValue
+
 """
 for m in Font.masters:
 	print("\nMASTER %s" % m.name)
@@ -104,8 +102,6 @@ for idx, i in enumerate(Font.instances):
 		i.customParameters["Axis Location"] = tuple(axisLocations)
 """
 
-
-
 thisFont = Glyphs.font # frontmost font
 Glyphs.clearLog() # clears log in Macro window
 
@@ -115,7 +111,7 @@ try:
 	for i, thisInstance in enumerate(thisFont.instances):
 		if thisInstance.type == 0:
 			print("ℹ️ Instance %i: wght=%i (%s)" % (i, process(thisInstance), thisInstance.name))
-	
+
 	# set masters if possible:
 	for thisMaster in thisFont.masters:
 		if not thisMaster.customParameters[paramName]:
@@ -123,7 +119,7 @@ try:
 				if thisInstance.type == 0 and thisMaster.axes == thisInstance.axes:
 					print("Ⓜ️ Master %s ← Instance %s" % (thisMaster.name, thisInstance.name))
 					thisMaster.customParameters[paramName] = thisInstance.customParameters[paramName]
-	
+
 	# Disable Axis Mappings if present:
 	paramName = "Axis Mappings"
 	param = thisFont.customParameterForKey_(paramName)
@@ -133,7 +129,7 @@ try:
 		thisFont.elementDidChange_(param)
 		thisFont.didChangeValueForKey_(paramName)
 		print("⛲️ Font: Axis Mappings disabled. WARNING: may not show in the UI until you reopen the font.")
-			
+
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Error in script: Set Weight Axis Locations in Instances\n")

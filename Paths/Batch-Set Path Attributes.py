@@ -1,7 +1,7 @@
 #MenuTitle: Batch-Set Path Attributes
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Set path attributes of all paths in selected glyphs, the master, the font, etc.
 """
 
@@ -25,112 +25,112 @@ allAttributeNames = (
 	"strokeWidth",
 	"strokeHeight",
 	"strokePos",
-)
+	)
 
 strokePositions = {
 	"center": None,
 	"inside (left of path)": 1,
 	"outside (right of path)": 0,
-}
-sortedStrokePositionNames = sorted( strokePositions.keys(), key = lambda thisListItem: "cio".find(thisListItem[0]) )
+	}
+sortedStrokePositionNames = sorted(strokePositions.keys(), key=lambda thisListItem: "cio".find(thisListItem[0]))
 
 scopeMaster = (
 	"current master",
 	"all masters",
-)
+	)
 
 scopeGlyphs = (
 	"selected glyphs",
 	"exporting glyphs",
 	"all glyphs",
-)
+	)
 
-class BatchSetPathAttributes( object ):
+class BatchSetPathAttributes(object):
 	prefID = "com.mekkablue.BatchSetPathAttributes"
-	
-	def __init__( self ):
+
+	def __init__(self):
 		# Window 'self.w':
-		windowWidth  = 300
+		windowWidth = 300
 		windowHeight = 210
-		windowWidthResize  = 100 # user can resize width by this value
-		windowHeightResize = 0   # user can resize height by this value
+		windowWidthResize = 100 # user can resize width by this value
+		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			( windowWidth, windowHeight ), # default window size
+			(windowWidth, windowHeight), # default window size
 			"Batch-Set Path Attributes", # window title
-			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
-			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
-			autosaveName = self.domain("mainwindow") # stores last window position and size
-		)
-		
+			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow") # stores last window position and size
+			)
+
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		
+
 		indent = 70
-		
-		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, indent, 14), "Attributes in", sizeStyle='small', selectable=True )
-		self.w.scopeGlyphs = vanilla.PopUpButton( (inset+indent, linePos, -inset, 17), scopeGlyphs, sizeStyle='small', callback=self.SavePreferences )
+
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Attributes in", sizeStyle='small', selectable=True)
+		self.w.scopeGlyphs = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), scopeGlyphs, sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
-		self.w.scopeMasterText = vanilla.TextBox( (inset, linePos+2, indent, 14), "for paths on", sizeStyle='small', selectable=True )
-		self.w.scopeMaster = vanilla.PopUpButton( (inset+indent, linePos, -inset, 17), scopeMaster, sizeStyle='small', callback=self.SavePreferences )
-		linePos += lineHeight+5
-		
+		self.w.scopeMasterText = vanilla.TextBox((inset, linePos + 2, indent, 14), "for paths on", sizeStyle='small', selectable=True)
+		self.w.scopeMaster = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), scopeMaster, sizeStyle='small', callback=self.SavePreferences)
+		linePos += lineHeight + 5
+
 		indent = 80
-		
+
 		tooltip = "Width of the path in units."
-		self.w.strokeWidthText = vanilla.TextBox( (inset*2, linePos+2, indent, 14), "Stroke Width", sizeStyle='small', selectable=True )
+		self.w.strokeWidthText = vanilla.TextBox((inset * 2, linePos + 2, indent, 14), "Stroke Width", sizeStyle='small', selectable=True)
 		self.w.strokeWidthText.getNSTextField().setToolTip_(tooltip)
-		self.w.strokeWidth = vanilla.EditText( (inset*2+indent, linePos, -inset, 19), "20", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.strokeWidth = vanilla.EditText((inset * 2 + indent, linePos, -inset, 19), "20", callback=self.SavePreferences, sizeStyle='small')
 		self.w.strokeWidth.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
 		tooltip = "Height of the path in units. Leave empty for monoline (width=height)."
-		self.w.strokeHeightText = vanilla.TextBox( (inset*2, linePos+2, indent, 14), "Stroke Height", sizeStyle='small', selectable=True )
+		self.w.strokeHeightText = vanilla.TextBox((inset * 2, linePos + 2, indent, 14), "Stroke Height", sizeStyle='small', selectable=True)
 		self.w.strokeHeightText.getNSTextField().setToolTip_(tooltip)
-		self.w.strokeHeight = vanilla.EditText( (inset*2+indent, linePos, -inset, 19), "20", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.strokeHeight = vanilla.EditText((inset * 2 + indent, linePos, -inset, 19), "20", callback=self.SavePreferences, sizeStyle='small')
 		self.w.strokeHeight.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
 		tooltip = "0: right\n1: left\nempty: center (default)"
-		self.w.strokePosText = vanilla.TextBox( (inset*2, linePos+2, indent, 14), "Position", sizeStyle='small', selectable=True )
+		self.w.strokePosText = vanilla.TextBox((inset * 2, linePos + 2, indent, 14), "Position", sizeStyle='small', selectable=True)
 		self.w.strokePosText.getNSTextField().setToolTip_(tooltip)
-		self.w.strokePos = vanilla.PopUpButton( (inset*2+indent, linePos, -inset, 19), sortedStrokePositionNames, sizeStyle='small', callback=self.SavePreferences )
+		self.w.strokePos = vanilla.PopUpButton((inset * 2 + indent, linePos, -inset, 19), sortedStrokePositionNames, sizeStyle='small', callback=self.SavePreferences)
 		# self.w.strokePos = vanilla.EditText( (inset*2+indent, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small' )
 		self.w.strokePos.getNSPopUpButton().setToolTip_(tooltip)
 		linePos += lineHeight
 
 		tooltip = "0: straight cutoff\n1: round (wide)\n2: round (tight)\n3: square\n4: orthogonal\n\nEnter one number for both start and end, enter two comma-separated numbers (e.g. ‘2, 1’) for different caps at start and end."
-		self.w.lineCapsText = vanilla.TextBox( (inset*2, linePos+2, indent, 14), "Line Caps", sizeStyle='small', selectable=True )
+		self.w.lineCapsText = vanilla.TextBox((inset * 2, linePos + 2, indent, 14), "Line Caps", sizeStyle='small', selectable=True)
 		self.w.lineCapsText.getNSTextField().setToolTip_(tooltip)
-		self.w.lineCaps = vanilla.EditText( (inset*2+indent, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle='small' )
+		self.w.lineCaps = vanilla.EditText((inset * 2 + indent, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle='small')
 		self.w.lineCaps.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
-		
+
 		# Buttons at the bottom:
-		self.w.extractButton = vanilla.Button( (inset, -20-inset, 80, -inset), "Extract", sizeStyle='regular', callback=self.extractAttributes )
+		self.w.extractButton = vanilla.Button((inset, -20 - inset, 80, -inset), "Extract", sizeStyle='regular', callback=self.extractAttributes)
 		self.w.extractButton.getNSButton().setToolTip_("Extract attributes from currently selected path, or (if none are selected) from the first path in the current glyph.")
-		
-		self.w.removeButton = vanilla.Button( (inset+90, -20-inset, 80, -inset), "Remove", sizeStyle='regular', callback=self.removeAttributes )
+
+		self.w.removeButton = vanilla.Button((inset + 90, -20 - inset, 80, -inset), "Remove", sizeStyle='regular', callback=self.removeAttributes)
 		self.w.removeButton.getNSButton().setToolTip_("Clears all path attributes for selection above.")
-		
-		self.w.runButton = vanilla.Button( (-80-inset, -20-inset, -inset, -inset), "Apply", sizeStyle='regular', callback=self.BatchSetPathAttributesMain )
-		self.w.setDefaultButton( self.w.runButton )
-		
+
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Apply", sizeStyle='regular', callback=self.BatchSetPathAttributesMain)
+		self.w.setDefaultButton(self.w.runButton)
+
 		# Load Settings:
 		if not self.LoadPreferences():
 			print("Note: 'Batch-Set Path Attributes' could not load preferences. Will resort to defaults")
-		
+
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-	
+
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-		
+
 	def setPref(self, prefName, value=None):
 		domain = self.domain(prefName)
 		if value is None:
@@ -139,23 +139,23 @@ class BatchSetPathAttributes( object ):
 		else:
 			# set
 			Glyphs.defaults[domain] = value
-	
-	def SavePreferences( self, sender=None ):
+
+	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
-			self.setPref( "scopeGlyphs", self.w.scopeGlyphs.get() )
-			self.setPref( "scopeMaster", self.w.scopeMaster.get() )
-			self.setPref( "lineCaps", self.w.lineCaps.get() )
-			self.setPref( "strokeWidth", self.w.strokeWidth.get() )
-			self.setPref( "strokeHeight", self.w.strokeHeight.get() )
-			self.setPref( "strokePos", self.w.strokePos.get() )
+			self.setPref("scopeGlyphs", self.w.scopeGlyphs.get())
+			self.setPref("scopeMaster", self.w.scopeMaster.get())
+			self.setPref("lineCaps", self.w.lineCaps.get())
+			self.setPref("strokeWidth", self.w.strokeWidth.get())
+			self.setPref("strokeHeight", self.w.strokeHeight.get())
+			self.setPref("strokePos", self.w.strokePos.get())
 			return True
 		except:
 			import traceback
 			print(traceback.format_exc())
 			return False
 
-	def LoadPreferences( self ):
+	def LoadPreferences(self):
 		try:
 			# register defaults:
 			Glyphs.registerDefault(self.domain("scopeGlyphs"), 0)
@@ -164,14 +164,14 @@ class BatchSetPathAttributes( object ):
 			Glyphs.registerDefault(self.domain("strokeWidth"), 20)
 			Glyphs.registerDefault(self.domain("strokeHeight"), "")
 			Glyphs.registerDefault(self.domain("strokePos"), 0)
-			
+
 			# load previously written prefs:
-			self.w.scopeGlyphs.set( self.pref("scopeGlyphs") )
-			self.w.scopeMaster.set( self.pref("scopeMaster") )
-			self.w.lineCaps.set( self.pref("lineCaps") )
-			self.w.strokeWidth.set( self.pref("strokeWidth") )
-			self.w.strokeHeight.set( self.pref("strokeHeight") )
-			self.w.strokePos.set( self.pref("strokePos") )
+			self.w.scopeGlyphs.set(self.pref("scopeGlyphs"))
+			self.w.scopeMaster.set(self.pref("scopeMaster"))
+			self.w.lineCaps.set(self.pref("lineCaps"))
+			self.w.strokeWidth.set(self.pref("strokeWidth"))
+			self.w.strokeHeight.set(self.pref("strokeHeight"))
+			self.w.strokePos.set(self.pref("strokePos"))
 			return True
 		except:
 			import traceback
@@ -179,40 +179,32 @@ class BatchSetPathAttributes( object ):
 			return False
 
 	def glyphScopeErrorMsg(self, sender=None):
-		Message(
-			title="Glyph Scope Error",
-			message="No applicable glyphs found. Please select the glyph scope and run the script again.",
-			OKButton=None
-		)
-	
+		Message(title="Glyph Scope Error", message="No applicable glyphs found. Please select the glyph scope and run the script again.", OKButton=None)
+
 	def noFontOpenErrorMsg(self, sender=None):
-		Message(
-			title="No Font Open",
-			message="The script requires a font. Open a font and run the script again.",
-			OKButton=None
-		)
-	
+		Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+
 	def glyphsForCurrentScope(self, thisFont):
 		scopeGlyphs = self.pref("scopeGlyphs")
-		
-		if scopeGlyphs==0:
+
+		if scopeGlyphs == 0:
 			# selected glyphs
 			return [l.parent for l in thisFont.selectedLayers]
-		elif scopeGlyphs==1:
+		elif scopeGlyphs == 1:
 			# exporting glyphs
 			return [g for g in thisFont.glyphs if g.export]
-		elif scopeGlyphs==2:
+		elif scopeGlyphs == 2:
 			# all glyphs
 			return thisFont.glyphs
 
 		return ()
-		
+
 	def extractAttributes(self, sender=None):
 		try:
 			thisFont = Glyphs.font
 			if thisFont and thisFont.selectedLayers:
 				currentLayer = thisFont.selectedLayers[0]
-				
+
 				currentPaths = [p for p in currentLayer.paths if p.selected]
 				currentPath = None
 				if currentPaths:
@@ -224,27 +216,24 @@ class BatchSetPathAttributes( object ):
 						title="⚠️ No path selected",
 						message="No path found for extracting attributes. Open a layer containing paths, select a specific path, and try again.",
 						OKButton=None
-					)
-				
+						)
+
 				if currentPath:
 					lineCaps = []
-				
+
 					lineCapStart = currentPath.attributeForKey_("lineCapStart")
 					if lineCapStart != None:
 						lineCaps.append(lineCapStart)
-					
+
 					lineCapEnd = currentPath.attributeForKey_("lineCapEnd")
 					if lineCapEnd != None:
 						lineCaps.append(lineCapEnd)
-				
-					self.setPref(
-						"lineCaps",
-						", ".join([str(x) for x in set(lineCaps)])
-						)
-					
+
+					self.setPref("lineCaps", ", ".join([str(x) for x in set(lineCaps)]))
+
 					strokeWidth = currentPath.attributeForKey_("strokeWidth")
 					self.setPref("strokeWidth", strokeWidth)
-					
+
 					strokeHeight = currentPath.attributeForKey_("strokeHeight")
 					self.setPref("strokeHeight", strokeHeight)
 
@@ -255,7 +244,7 @@ class BatchSetPathAttributes( object ):
 						if strokePos == value:
 							strokePosPrefValue = sortedStrokePositionNames.index(key)
 					self.setPref("strokePos", strokePosPrefValue)
-		
+
 			self.LoadPreferences()
 		except Exception as e:
 			# brings macro window to front and clears its log:
@@ -263,15 +252,15 @@ class BatchSetPathAttributes( object ):
 			print("\n⚠️ The ‘Batch-Set Path Attributes’ script encountered an error:\n")
 			import traceback
 			print(traceback.format_exc())
-	
+
 	def removeAttributes(self, sender=None):
 		# clear macro window log:
 		Glyphs.clearLog()
-		
+
 		# update settings to the latest user input:
 		if not self.SavePreferences():
 			print("Note: 'Batch-Set Path Attributes' could not write preferences.")
-		
+
 		thisFont = Glyphs.font # frontmost font
 		if thisFont is None:
 			self.noFontOpenErrorMsg()
@@ -282,45 +271,45 @@ class BatchSetPathAttributes( object ):
 			else:
 				print("⚠️ The font file has not been saved yet.")
 			print()
-			
+
 			scopeMaster = self.pref("scopeMaster")
-			
+
 			glyphs = self.glyphsForCurrentScope(thisFont)
 			currentFontMasterID = thisFont.selectedFontMaster.id
 			print("🔠 Clearing attributes in %i glyph%s...\n" % (
 				len(glyphs),
-				"" if len(glyphs)==1 else "s",
+				"" if len(glyphs) == 1 else "s",
 				))
-			
+
 			if not glyphs:
 				self.glyphScopeErrorMsg()
 			else:
 				for thisGlyph in glyphs:
-					print("🙅‍♂️ Deleting attributes for: %s"%thisGlyph.name)
+					print("🙅‍♂️ Deleting attributes for: %s" % thisGlyph.name)
 					for thisLayer in thisGlyph.layers:
 						# scopeMaster: 0 = current master, 1 = all masters
-						if scopeMaster==1 or (scopeMaster==0 and thisLayer.associatedMasterId==currentFontMasterID):
+						if scopeMaster == 1 or (scopeMaster == 0 and thisLayer.associatedMasterId == currentFontMasterID):
 							if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 								for thisPath in thisLayer.paths:
 									for attribute in allAttributeNames:
 										thisPath.removeAttributeForKey_(attribute)
 
 		# Final report:
-		Glyphs.showNotification( 
+		Glyphs.showNotification(
 			"%s: Done" % (thisFont.familyName),
 			"Finished removing path attributes. Details in Macro Window",
 			)
 		print("\nDone.")
-	
-	def BatchSetPathAttributesMain( self, sender=None ):
+
+	def BatchSetPathAttributesMain(self, sender=None):
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
-			
+
 			# update settings to the latest user input:
 			if not self.SavePreferences():
 				print("Note: 'Batch-Set Path Attributes' could not write preferences.")
-			
+
 			thisFont = Glyphs.font # frontmost font
 			if thisFont is None:
 				self.noFontOpenErrorMsg()
@@ -331,7 +320,7 @@ class BatchSetPathAttributes( object ):
 				else:
 					print("⚠️ The font file has not been saved yet.")
 				print()
-				
+
 				scopeMaster = self.pref("scopeMaster")
 				lineCaps = self.pref("lineCaps").split(",")
 				if lineCaps:
@@ -342,7 +331,7 @@ class BatchSetPathAttributes( object ):
 						lineCaps = lineCaps[:2]
 				else:
 					lineCaps = (None, None)
-				
+
 				strokeWidth = int(self.pref("strokeWidth"))
 				strokeHeight = self.pref("strokeHeight")
 				strokePos = self.pref("strokePos")
@@ -351,22 +340,22 @@ class BatchSetPathAttributes( object ):
 					strokePos = strokePositions[strokePosKey]
 				except:
 					strokePos = None
-				
+
 				glyphs = self.glyphsForCurrentScope(thisFont)
 				currentFontMasterID = thisFont.selectedFontMaster.id
 				print("🔠 Setting attributes for %i glyph%s...\n" % (
 					len(glyphs),
-					"" if len(glyphs)==1 else "s",
+					"" if len(glyphs) == 1 else "s",
 					))
-				
+
 				if not glyphs:
 					self.glyphScopeErrorMsg()
 				else:
 					for thisGlyph in glyphs:
-						print("💁‍♀️ Setting attributes for: %s"%thisGlyph.name)
+						print("💁‍♀️ Setting attributes for: %s" % thisGlyph.name)
 						for thisLayer in thisGlyph.layers:
 							# scopeMaster: 0 = current master, 1 = all masters
-							if scopeMaster==1 or (scopeMaster==0 and thisLayer.associatedMasterId==currentFontMasterID):
+							if scopeMaster == 1 or (scopeMaster == 0 and thisLayer.associatedMasterId == currentFontMasterID):
 								if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 									for thisPath in thisLayer.paths:
 										# line caps for start and end:
@@ -375,22 +364,22 @@ class BatchSetPathAttributes( object ):
 												thisPath.removeAttributeForKey_(startOrEnd)
 											else:
 												thisPath.setAttribute_forKey_(capValue, startOrEnd)
-										
+
 										# stroke width, height, pos:
 										thisPath.setAttribute_forKey_(strokeWidth, "strokeWidth")
-										
+
 										if strokeHeight: # default is None
 											thisPath.setAttribute_forKey_(strokeHeight, "strokeHeight")
 										else:
 											thisPath.removeAttributeForKey_("strokeHeight")
-										
+
 										if strokePos is None: # default is None
 											thisPath.removeAttributeForKey_("strokePos")
 										else:
 											thisPath.setAttribute_forKey_(strokePos, "strokePos")
 
 			# Final report:
-			Glyphs.showNotification( 
+			Glyphs.showNotification(
 				"%s: Done" % (thisFont.familyName),
 				"Batch-Set Path Attributes is finished. Details in Macro Window",
 				)

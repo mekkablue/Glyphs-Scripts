@@ -1,7 +1,7 @@
 #MenuTitle: Compare Font Info > Features
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Compares the OT features set of the two frontmost fonts and outputs a report in the Macro Window.
 """
 
@@ -9,7 +9,7 @@ from compare import *
 
 def removeComments(featureCode):
 	lines = featureCode.splitlines()
-	for i,line in enumerate(lines):
+	for i, line in enumerate(lines):
 		if "#" in line:
 			lines[i] = line[:line.find("#")]
 	featureCode = "\n".join(lines)
@@ -34,7 +34,7 @@ compareSet = {
 	"Classes": (thisClassSet, otherClassSet),
 	"Prefixes": (thisPrefixSet, otherPrefixSet),
 	"Features": (thisFeatureSet, otherFeatureSet),
-}
+	}
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
@@ -46,11 +46,11 @@ print("1. %s (family: %s)" % (thisFileName, thisFont.familyName))
 print("   ~/%s" % thisFont.filepath.relativePathFromBaseDirPath_("~"))
 print("2. %s (family: %s)" % (otherFileName, otherFont.familyName))
 print("   ~/%s" % otherFont.filepath.relativePathFromBaseDirPath_("~"))
-print() 
+print()
 
-for compareGroup in ("Prefixes","Classes","Features"):
+for compareGroup in ("Prefixes", "Classes", "Features"):
 	thisSet, otherSet = compareSet[compareGroup]
-	
+
 	# compare:
 	thisSet, otherSet = compareLists(thisSet, otherSet)
 
@@ -70,9 +70,9 @@ print("Detailed Code Comparison:".upper())
 print()
 for prefix in set([p.name for p in thisFont.featurePrefixes if p.active]):
 	# prefixes:
-	thisPrefix = "\n".join([f.code for f in thisFont.featurePrefixes if f.name==prefix]) # thisFont.featurePrefixes[prefix] 
-	otherPrefix = "\n".join([f.code for f in otherFont.featurePrefixes if f.name==prefix]) # otherFont.featurePrefixes[prefix]
-	
+	thisPrefix = "\n".join([f.code for f in thisFont.featurePrefixes if f.name == prefix]) # thisFont.featurePrefixes[prefix]
+	otherPrefix = "\n".join([f.code for f in otherFont.featurePrefixes if f.name == prefix]) # otherFont.featurePrefixes[prefix]
+
 	if thisPrefix and otherPrefix:
 		# compare:
 		thisPrefix, otherPrefix = compareLists(
@@ -81,13 +81,13 @@ for prefix in set([p.name for p in thisFont.featurePrefixes if p.active]):
 			ignoreEmpty=True,
 			)
 		# report in Macro Window
-		lineReport(thisPrefix, otherPrefix, thisFileName, otherFileName, "Prefix %s"%prefix)
+		lineReport(thisPrefix, otherPrefix, thisFileName, otherFileName, "Prefix %s" % prefix)
 
 for otClass in [c.name for c in thisFont.classes if c.active]:
 	# classes:
 	thisClass = thisFont.classes[otClass]
 	otherClass = otherFont.classes[otClass]
-	
+
 	if thisClass and otherClass:
 		# compare code lines:
 		thisClassCode, otherClassCode = compareLists(
@@ -96,12 +96,12 @@ for otClass in [c.name for c in thisFont.classes if c.active]:
 			ignoreEmpty=True,
 			)
 		# report in Macro Window
-		lineReport(thisClassCode, otherClassCode, thisFileName, otherFileName, "Class %s"%otClass, commaSeparated=True)
+		lineReport(thisClassCode, otherClassCode, thisFileName, otherFileName, "Class %s" % otClass, commaSeparated=True)
 
 for feature in set([f.name for f in thisFont.features if f.active]):
-	thisFeatureCode = "\n".join([f.code for f in thisFont.features if f.name==feature]) # thisFont.features[feature]
-	otherFeatureCode = "\n".join([f.code for f in otherFont.features if f.name==feature]) # otherFont.features[feature]
-	
+	thisFeatureCode = "\n".join([f.code for f in thisFont.features if f.name == feature]) # thisFont.features[feature]
+	otherFeatureCode = "\n".join([f.code for f in otherFont.features if f.name == feature]) # otherFont.features[feature]
+
 	if thisFeatureCode and otherFeatureCode:
 		# compare code lines:
 		thisFeatureCode, otherFeatureCode = compareLists(
@@ -110,6 +110,4 @@ for feature in set([f.name for f in thisFont.features if f.active]):
 			ignoreEmpty=True,
 			)
 		# report in Macro Window
-		lineReport(thisFeatureCode, otherFeatureCode, thisFileName, otherFileName, "Feature %s"%feature)
-	
-	
+		lineReport(thisFeatureCode, otherFeatureCode, thisFileName, otherFileName, "Feature %s" % feature)

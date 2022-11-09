@@ -1,13 +1,12 @@
 #MenuTitle: Production Namer
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Override default production names. Default are the usual subjects which create problems in legacy PDF workflows: mu, onesuperior, twosuperior, threesuperior.
 """
 
 import vanilla
 from AppKit import NSFont
-
 defaultString = """
 Legacy PDF workflow fix:
 
@@ -23,32 +22,35 @@ Freely write comments and empty lines
 Anything after a hashtag (#) is ignored
 """
 
-class ProductionNamer( object ):
-	def __init__( self ):
+class ProductionNamer(object):
+
+	def __init__(self):
 		# Window 'self.w':
-		windowWidth  = 350
+		windowWidth = 350
 		windowHeight = 260
-		windowWidthResize  = 1000 # user can resize width by this value
+		windowWidthResize = 1000 # user can resize width by this value
 		windowHeightResize = 1000 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			( windowWidth, windowHeight ), # default window size
+			(windowWidth, windowHeight), # default window size
 			"Production Namer", # window title
-			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
-			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
-			autosaveName = "com.mekkablue.ProductionNamer.mainwindow" # stores last window position and size
-		)
-		
+			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
+			autosaveName="com.mekkablue.ProductionNamer.mainwindow" # stores last window position and size
+			)
+
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 14), "Will reset the production names of these glyphs:", sizeStyle='small', selectable=True )
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Will reset the production names of these glyphs:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
-		
-		self.w.recipe = vanilla.TextEditor( (1, linePos, -1, -70), text=defaultString.strip(), callback=self.SavePreferences, checksSpelling=False )
-		self.w.recipe.getNSTextView().setToolTip_("- Syntax: glyphname -> productionname\n- Whitespace does not matter\n- Only lines containing a dash (-) followed by a greater sign (>) count\n- Freely write comments and empty lines\n- Anything after a hashtag (#) is ignored")
+
+		self.w.recipe = vanilla.TextEditor((1, linePos, -1, -70), text=defaultString.strip(), callback=self.SavePreferences, checksSpelling=False)
+		self.w.recipe.getNSTextView().setToolTip_(
+			"- Syntax: glyphname -> productionname\n- Whitespace does not matter\n- Only lines containing a dash (-) followed by a greater sign (>) count\n- Freely write comments and empty lines\n- Anything after a hashtag (#) is ignored"
+			)
 		self.w.recipe.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.recipe.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.recipe.getNSScrollView().setRulersVisible_(0)
-		
+
 		legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())
 		textView = self.w.recipe.getNSTextView()
 		textView.setFont_(legibleFont)
@@ -60,43 +62,47 @@ class ProductionNamer( object ):
 		textSize = textView.minSize()
 		textSize.width = 1000
 		textView.setMinSize_(textSize)
-		
+
 		# APPLY TO FONTS
-		linePos = -inset-50
-		self.w.finger = vanilla.TextBox( (inset-5, linePos, 22, 22), "👉 ", sizeStyle='regular', selectable=True )
-		self.w.applyText = vanilla.TextBox( (inset+17, linePos+2, 70, 14), "Apply to", sizeStyle='small', selectable=True )
-		self.w.applyPopup = vanilla.PopUpButton( (inset+70, linePos, 150, 17), ("ALL open fonts", "open fonts containing", "frontmost font only"), sizeStyle='small', callback=self.SavePreferences )
-		self.w.applyContaining = vanilla.EditText( (inset+70+150+10, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small', placeholder="enter part of family name here" )
+		linePos = -inset - 50
+		self.w.finger = vanilla.TextBox((inset - 5, linePos, 22, 22), "👉 ", sizeStyle='regular', selectable=True)
+		self.w.applyText = vanilla.TextBox((inset + 17, linePos + 2, 70, 14), "Apply to", sizeStyle='small', selectable=True)
+		self.w.applyPopup = vanilla.PopUpButton(
+			(inset + 70, linePos, 150, 17), ("ALL open fonts", "open fonts containing", "frontmost font only"), sizeStyle='small', callback=self.SavePreferences
+			)
+		self.w.applyContaining = vanilla.EditText(
+			(inset + 70 + 150 + 10, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small', placeholder="enter part of family name here"
+			)
 		self.w.applyContaining.getNSTextField().setToolTip_("Only applies the settings to fonts that contain this in Font Info > Font > Family Name.")
 		linePos += lineHeight
-		
-		self.w.resetButton = vanilla.Button( (inset, -20-inset, 80, -inset), "Reset", sizeStyle='regular', callback=self.updateUI )
-		
+
+		self.w.resetButton = vanilla.Button((inset, -20 - inset, 80, -inset), "Reset", sizeStyle='regular', callback=self.updateUI)
+
 		# Run Button:
-		self.w.runButton = vanilla.Button( (-120-inset, -20-inset, -inset, -inset), "Set Names", sizeStyle='regular', callback=self.ProductionNamerMain )
-		self.w.setDefaultButton( self.w.runButton )
-		
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Set Names", sizeStyle='regular', callback=self.ProductionNamerMain)
+		self.w.setDefaultButton(self.w.runButton)
+
 		# Load Settings:
 		if not self.LoadPreferences():
 			print("Note: 'Production Namer' could not load preferences. Will resort to defaults")
-		
+
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-		
+
 	def updateUI(self, sender=None):
 		# show or hide text field
-		self.w.applyContaining.show(self.w.applyPopup.get()==1) # 0=all fonts, 1=fonts containing..., 2=frontmost font only
-		
+		self.w.applyContaining.show(self.w.applyPopup.get() == 1) # 0=all fonts, 1=fonts containing..., 2=frontmost font only
+
 		# enable or disable run button
 		applySettingsEnable = self.w.applyPopup.get() == 0 or len(self.w.applyContaining.get().strip()) > 0
 		self.w.runButton.enable(applySettingsEnable)
-		
+
 		# reset recipe
 		if sender is self.w.resetButton:
 			self.w.recipe.set(defaultString.strip())
-		
-	def SavePreferences( self, sender=None ):
+
+	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
 			Glyphs.defaults["com.mekkablue.ProductionNamer.recipe"] = self.w.recipe.get()
@@ -110,18 +116,18 @@ class ProductionNamer( object ):
 			print(traceback.format_exc())
 			return False
 
-	def LoadPreferences( self ):
+	def LoadPreferences(self):
 		try:
 			# register defaults:
 			Glyphs.registerDefault("com.mekkablue.ProductionNamer.recipe", 0)
 			Glyphs.registerDefault("com.mekkablue.ProductionNamer.applyPopup", 0)
 			Glyphs.registerDefault("com.mekkablue.ProductionNamer.applyContaining", "")
-			
+
 			# load previously written prefs:
-			self.w.recipe.set( Glyphs.defaults["com.mekkablue.ProductionNamer.recipe"] )
-			self.w.applyPopup.set( int(Glyphs.defaults["com.mekkablue.ProductionNamer.applyPopup"]) )
-			self.w.applyContaining.set( Glyphs.defaults["com.mekkablue.ProductionNamer.applyContaining"] )
-			
+			self.w.recipe.set(Glyphs.defaults["com.mekkablue.ProductionNamer.recipe"])
+			self.w.applyPopup.set(int(Glyphs.defaults["com.mekkablue.ProductionNamer.applyPopup"]))
+			self.w.applyContaining.set(Glyphs.defaults["com.mekkablue.ProductionNamer.applyContaining"])
+
 			self.updateUI()
 			return True
 		except:
@@ -129,22 +135,22 @@ class ProductionNamer( object ):
 			print(traceback.format_exc())
 			return False
 
-	def ProductionNamerMain( self, sender=None ):
+	def ProductionNamerMain(self, sender=None):
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
-			
+
 			# update settings to the latest user input:
 			if not self.SavePreferences():
 				print("Note: 'Production Namer' could not write preferences.")
-			
+
 			thisFont = Glyphs.font # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires at least one font. Open a font and run the script again.", OKButton=None)
 			else:
 				nameChangeString = Glyphs.defaults["com.mekkablue.ProductionNamer.recipe"]
 				applyPopup = Glyphs.defaults["com.mekkablue.ProductionNamer.applyPopup"]
-				
+
 				if applyPopup == 0:
 					# ALL OPEN FONTS
 					theseFonts = Glyphs.fonts
@@ -153,11 +159,11 @@ class ProductionNamer( object ):
 					theseFonts = [f for f in Glyphs.fonts if applyContaining in f.familyName]
 				elif applyPopup == 2:
 					# FRONTMOST FONT ONLY
-					theseFonts = (thisFont,)
-				
+					theseFonts = (thisFont, )
+
 				print("Production Namer Report")
 				print()
-				
+
 				# parse lines of nameChangeString:
 				renameDict = {}
 				for line in nameChangeString.splitlines():
@@ -165,9 +171,9 @@ class ProductionNamer( object ):
 						# cut off comments
 						if "#" in line:
 							line = line[:line.find("#")]
-							
+
 						if line.strip(): # skip empty lines
-						
+
 							# PRODUCTION LINE:
 							if "->" in line:
 								nameList = line.split("->")
@@ -175,12 +181,13 @@ class ProductionNamer( object ):
 								productionName = nameList[1].strip()
 								if glyphName and productionName:
 									renameDict[glyphName] = productionName
-					except: pass
-				
+					except:
+						pass
+
 				count = 0
 				for i, glyphName in enumerate(renameDict):
 					productionName = renameDict[glyphName]
-					print("🔠 %02i. %s -> %s" % (i+1, glyphName, productionName))
+					print("🔠 %02i. %s -> %s" % (i + 1, glyphName, productionName))
 					for thisFont in theseFonts:
 						if thisFont.filepath:
 							fileName = thisFont.filepath.lastPathComponent()
@@ -194,20 +201,20 @@ class ProductionNamer( object ):
 							thisGlyph.productionName = productionName
 							thisGlyph.setStoreProduction_(1)
 							print("  ✅ %s" % fileName)
-				
+
 				self.w.close() # delete if you want window to stay open
 
 				# Final report:
-				Glyphs.showNotification( 
+				Glyphs.showNotification(
 					"Production Namer: Done",
 					"Set production names for %i glyph%s in %i font%s.\nDetails in Macro Window." % (
 						count,
-						"" if count==1 else "s",
+						"" if count == 1 else "s",
 						len(theseFonts),
-						"" if len(theseFonts)==1 else "s",
-					),
-				)
-				
+						"" if len(theseFonts) == 1 else "s",
+						),
+					)
+
 			print("\nDone.")
 
 		except Exception as e:

@@ -1,13 +1,12 @@
 #MenuTitle: Instance Cooker
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Insert many instances at once with a recipe.
 """
 
 import vanilla, codecs
 from AppKit import NSFont, NSDictionary
-
 defaultRecipe = """
 Recipe instructions:
 1. After a hashtag, enter the axis name (optionally followed by colon and axis tag), e.g. ‘#Weight’ or ‘#Width:wdth’
@@ -41,7 +40,7 @@ Recipe instructions:
 def saveFileInLocation(content="", filePath="~/Desktop/test.txt"):
 	with codecs.open(filePath, "w", "utf-8-sig") as thisFile:
 		print("💾 Writing:", thisFile.name)
-		thisFile.write( content )
+		thisFile.write(content)
 		thisFile.close()
 	return True
 
@@ -60,8 +59,8 @@ def tagForAxisName(axisName):
 		"Italic": "ital",
 		"Slant": "slnt",
 		"Optical Size": "opsz",
-	}
-	
+		}
+
 	if tagDict[axisName]:
 		return tagDict[axisName]
 	else:
@@ -69,15 +68,12 @@ def tagForAxisName(axisName):
 		for letter in axisName.upper():
 			if letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
 				tag += letter
-		if len(tag)<4:
-			tag = tag + (4-len(tag))*"X"
+		if len(tag) < 4:
+			tag = tag + (4 - len(tag)) * "X"
 		return tag
 
-def axisLocationEntry( axisName, locationValue ):
-	return NSDictionary.alloc().initWithObjects_forKeys_(
-		(axisName, locationValue),
-		("Axis", "Location")
-	)
+def axisLocationEntry(axisName, locationValue):
+	return NSDictionary.alloc().initWithObjects_forKeys_((axisName, locationValue), ("Axis", "Location"))
 
 def parseAxes(code):
 	axisDict = {}
@@ -105,12 +101,12 @@ def parseAxes(code):
 					nameParticle = lineParts[1].strip()
 					axisPosition = lineParts[0].strip()
 					axisValue = None
-					
+
 					widthClass = None
 					if "|" in axisPosition:
 						axisPosition, widthClass = [x.strip() for x in axisPosition.split("|")[:2]]
 						widthClass = int(widthClass)
-					
+
 					if ">" in axisPosition:
 						positions = tuple([int(x.strip()) for x in axisPosition.split(">")][:2])
 						axisValue = (positions, nameParticle, widthClass)
@@ -118,7 +114,7 @@ def parseAxes(code):
 						position = int(axisPosition)
 						axisValue = (position, nameParticle, widthClass)
 					if axisValue:
-						axisDict[axisKey].append( axisValue )
+						axisDict[axisKey].append(axisValue)
 	return axisDict
 
 def parsePosInfo(posInfo):
@@ -137,14 +133,14 @@ def parsePosInfo(posInfo):
 def addLocationToInstance(instance, axisName, axisLoc):
 	paramName = "Axis Location"
 	entry = axisLocationEntry(axisName, axisLoc)
-	
+
 	existingLocations = []
 	if instance.customParameters[paramName]:
-		existingLocations = list( instance.customParameters[paramName] )
-		
-	existingLocations.append( entry )
+		existingLocations = list(instance.customParameters[paramName])
+
+	existingLocations.append(entry)
 	instance.customParameters["Axis Location"] = tuple(existingLocations)
-	
+
 	if axisName == "Weight":
 		instance.weightClass = axisLoc
 
@@ -152,12 +148,12 @@ def styleLinkInstance(instance, axisName, particle):
 	linkedParticles = []
 	for existingNameParticle in instance.name.split():
 		if not "*" in existingNameParticle:
-			if not existingNameParticle==particle:
+			if not existingNameParticle == particle:
 				linkedParticles.append(existingNameParticle)
 	linkedStyleName = " ".join(linkedParticles)
 	if not linkedStyleName:
 		linkedStyleName = "Regular"
-	
+
 	if axisName == "Weight" and particle == "Bold":
 		instance.isBold = True
 		instance.linkStyle = linkedStyleName
@@ -171,68 +167,70 @@ def removeElidableNames(instance):
 		particles = instance.name.split()
 		elidableName = ""
 		newParticles = []
-		
+
 		# collect non-elidable name particles:
 		for particle in particles:
 			if not particle.endswith("*"):
 				newParticles.append(particle)
 			elif not elidableName:
 				elidableName = particle[:-1]
-				
+
 		# fallback for elidable name
 		if not newParticles:
 			newParticles = [elidableName]
-		
+
 		# set instance name:
 		instance.name = " ".join(newParticles)
 
 def biggestSubstringInStrings(strings):
 	if len(strings) > 1:
-		sortedStrings = sorted( strings, key = lambda string: len(string) )
+		sortedStrings = sorted(strings, key=lambda string: len(string))
 		shortestString = sortedStrings[0]
 		shortestLength = len(shortestString)
 		otherStrings = sortedStrings[1:]
-		
+
 		if len(shortestString) > 2:
-			for stringLength in range( shortestLength, 1, -1 ):
-				for position in range(shortestLength-stringLength+1):
-					subString = shortestString[position:position+stringLength]
+			for stringLength in range(shortestLength, 1, -1):
+				for position in range(shortestLength - stringLength + 1):
+					subString = shortestString[position:position + stringLength]
 					if all([subString in s for s in otherStrings]):
 						return subString
-						
+
 	elif len(strings) == 1:
 		return strings[0]
-		
+
 	return ""
 
-class InstanceCooker( object ):
+class InstanceCooker(object):
 	prefID = "com.mekkablue.InstanceCooker"
-	
-	def __init__( self ):
+
+	def __init__(self):
 		# Window 'self.w':
-		windowWidth  = 500
+		windowWidth = 500
 		windowHeight = 300
-		windowWidthResize  = 1000 # user can resize width by this value
+		windowWidthResize = 1000 # user can resize width by this value
 		windowHeightResize = 1000 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			( windowWidth, windowHeight ), # default window size
+			(windowWidth, windowHeight), # default window size
 			"Instance Cooker", # window title
-			minSize = ( windowWidth, windowHeight ), # minimum size (for resizing)
-			maxSize = ( windowWidth + windowWidthResize, windowHeight + windowHeightResize ), # maximum size (for resizing)
-			autosaveName = self.domain("mainwindow") # stores last window position and size
-		)
-		
+			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow") # stores last window position and size
+			)
+
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox( (inset, linePos+2, -inset, 14), "Enter recipe (see tooltips):", sizeStyle='small', selectable=True )
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Enter recipe (see tooltips):", sizeStyle='small', selectable=True)
 		linePos += lineHeight
-		
-		self.w.recipe = vanilla.TextEditor( (1, linePos, -1, -inset*3), text="", callback=self.SavePreferences, checksSpelling=False )
-		self.w.recipe.getNSTextView().setToolTip_("Syntax:\n#Axisname\n#Axisname:tag\nposition:instance name particle\ninternal>external:instance name particle\n* after particle for elidable names\n\nExample:\n#Weight\n100>400:Regular*\n120>500:Medium\n150>600:Semibold\n#Width:wdth\n75:Condensed\n100:Regular*\n125:Extended")
+
+		self.w.recipe = vanilla.TextEditor((1, linePos, -1, -inset * 3), text="", callback=self.SavePreferences, checksSpelling=False)
+		self.w.recipe.getNSTextView().setToolTip_(
+			"Syntax:\n#Axisname\n#Axisname:tag\nposition:instance name particle\ninternal>external:instance name particle\n* after particle for elidable names\n\nExample:\n#Weight\n100>400:Regular*\n120>500:Medium\n150>600:Semibold\n#Width:wdth\n75:Condensed\n100:Regular*\n125:Extended"
+			)
 		self.w.recipe.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.recipe.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.recipe.getNSScrollView().setRulersVisible_(0)
-		
+
 		legibleFont = NSFont.legibleFontOfSize_(NSFont.systemFontSize())
 		textView = self.w.recipe.getNSTextView()
 		textView.setFont_(legibleFont)
@@ -247,37 +245,37 @@ class InstanceCooker( object ):
 		textView.setMinSize_(textSize)
 		# textView.textContainer().setWidthTracksTextView_(0)
 		# textView.textContainer().setContainerSize_(textSize)
-		
+
 		# Run Button:
 		buttonPos = inset
 		buttonWidth = 70
-		self.w.openButton = vanilla.Button( (buttonPos, -20-inset, buttonWidth, -inset), "Open…", sizeStyle='regular', callback=self.importRecipe )
-		buttonPos += buttonWidth+10
-		self.w.saveButton = vanilla.Button( (buttonPos, -20-inset, buttonWidth, -inset), "Save…", sizeStyle='regular', callback=self.exportRecipe )
-		buttonPos += buttonWidth+10
-		self.w.resetButton = vanilla.Button( (buttonPos, -20-inset, buttonWidth, -inset), "Reset", sizeStyle='regular', callback=self.resetRecipe )
-		buttonPos += buttonWidth+10
-		self.w.extractButton = vanilla.Button( (buttonPos, -20-inset, buttonWidth, -inset), "Extract", sizeStyle='regular', callback=self.extractRecipe )
-		self.w.runButton = vanilla.Button( (-140-inset, -20-inset, -inset, -inset), "Cook Instances", sizeStyle='regular', callback=self.InstanceCookerMain )
-		self.w.setDefaultButton( self.w.runButton )
-		
+		self.w.openButton = vanilla.Button((buttonPos, -20 - inset, buttonWidth, -inset), "Open…", sizeStyle='regular', callback=self.importRecipe)
+		buttonPos += buttonWidth + 10
+		self.w.saveButton = vanilla.Button((buttonPos, -20 - inset, buttonWidth, -inset), "Save…", sizeStyle='regular', callback=self.exportRecipe)
+		buttonPos += buttonWidth + 10
+		self.w.resetButton = vanilla.Button((buttonPos, -20 - inset, buttonWidth, -inset), "Reset", sizeStyle='regular', callback=self.resetRecipe)
+		buttonPos += buttonWidth + 10
+		self.w.extractButton = vanilla.Button((buttonPos, -20 - inset, buttonWidth, -inset), "Extract", sizeStyle='regular', callback=self.extractRecipe)
+		self.w.runButton = vanilla.Button((-140 - inset, -20 - inset, -inset, -inset), "Cook Instances", sizeStyle='regular', callback=self.InstanceCookerMain)
+		self.w.setDefaultButton(self.w.runButton)
+
 		# Load Settings:
 		if not self.LoadPreferences():
 			print("Note: 'Instance Cooker' could not load preferences. Will resort to defaults")
-		
+
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-	
+
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-	
-	def SavePreferences( self, sender=None ):
+
+	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
 			Glyphs.defaults[self.domain("recipe")] = self.w.recipe.get()
@@ -287,13 +285,13 @@ class InstanceCooker( object ):
 			print(traceback.format_exc())
 			return False
 
-	def LoadPreferences( self ):
+	def LoadPreferences(self):
 		try:
 			# register defaults:
 			Glyphs.registerDefault(self.domain("recipe"), defaultRecipe.lstrip())
-			
+
 			# load previously written prefs:
-			self.w.recipe.set( self.pref("recipe") )
+			self.w.recipe.set(self.pref("recipe"))
 			return True
 		except:
 			import traceback
@@ -306,7 +304,7 @@ class InstanceCooker( object ):
 		if filePath:
 			fileContent = Glyphs.defaults["com.mekkablue.InstanceCooker.recipe"]
 			saveFileInLocation(content=fileContent, filePath=filePath)
-	
+
 	def importRecipe(self, sender=None):
 		filePath = GetOpenFile(message="Open Recipe", allowsMultipleSelection=False, filetypes=("txt"))
 		if filePath:
@@ -316,11 +314,11 @@ class InstanceCooker( object ):
 				self.LoadPreferences()
 			else:
 				Message(title="File Error", message="File could not be read. Perhaps empty?", OKButton=None)
-	
+
 	def resetRecipe(self, sender=None):
 		Glyphs.defaults["com.mekkablue.InstanceCooker.recipe"] = defaultRecipe.lstrip()
 		self.LoadPreferences()
-	
+
 	def extractRecipe(self, sender=None):
 		thisFont = Glyphs.font
 		if not thisFont:
@@ -329,16 +327,16 @@ class InstanceCooker( object ):
 			text = ""
 			for thisAxis in thisFont.axes:
 				text += "\n#%s:%s" % (thisAxis.name, thisAxis.axisTag)
-				axisValues = sorted(set([int(i.axisValueValueForId_(thisAxis.axisId)) for i in thisFont.instances if i.type==0]))
+				axisValues = sorted(set([int(i.axisValueValueForId_(thisAxis.axisId)) for i in thisFont.instances if i.type == 0]))
 				for axisValue in axisValues:
-					instancesWithThisAxisValue = [i for i in thisFont.instances if i.axisValueValueForId_(thisAxis.axisId)==axisValue]
+					instancesWithThisAxisValue = [i for i in thisFont.instances if i.axisValueValueForId_(thisAxis.axisId) == axisValue]
 
 					# determine particle:
 					allNamesForThisAxisValue = [i.name for i in instancesWithThisAxisValue]
 					axisValueName = biggestSubstringInStrings(allNamesForThisAxisValue).strip()
-					
+
 					# determine axis location if any:
-					axisLoc=""
+					axisLoc = ""
 					for thisInstance in instancesWithThisAxisValue:
 						locationParameter = thisInstance.customParameters["Axis Location"]
 						if locationParameter:
@@ -350,34 +348,34 @@ class InstanceCooker( object ):
 										break # skip other entries if we found our value
 							if axisLoc:
 								break # skip other instances if we found our value
-						
+
 					# determine width class if any:
 					if thisAxis.name == "Width":
-						widthClass="|%i" % instancesWithThisAxisValue[0].widthClass
+						widthClass = "|%i" % instancesWithThisAxisValue[0].widthClass
 						axisLoc += widthClass
-					
+
 					if not axisValueName:
 						axisValueName = "Regular*"
 					text += "\n%i%s:%s" % (axisValue, axisLoc, axisValueName)
 				text += "\n"
-			
+
 			text = text.lstrip()
 			if not text:
 				Message(title="No Instances Found", message="Could not find any instances with discrete values.", OKButton=None)
 			else:
-				self.w.recipe.set( text )
+				self.w.recipe.set(text)
 				self.SavePreferences()
-	
-	def InstanceCookerMain( self, sender=None ):
+
+	def InstanceCookerMain(self, sender=None):
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
 			instanceCount = 0
-			
+
 			# update settings to the latest user input:
 			if not self.SavePreferences():
 				print("Note: 'Instance Cooker' could not write preferences.")
-			
+
 			thisFont = Glyphs.font # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
@@ -388,19 +386,19 @@ class InstanceCooker( object ):
 				else:
 					print("⚠️ The font file has not been saved yet.")
 				print()
-				
+
 				recipe = self.pref("recipe")
 				recipeDict = parseAxes(recipe)
 				axisKeys = sorted(recipeDict.keys())
 				instances = []
-				
+
 				existingAxisNames = [a.name for a in thisFont.axes]
-				
+
 				for axisKey in axisKeys:
 					axisNameParts = axisKey.split(":")
 					axisIndex, axisName = axisNameParts[0].split(",")
 					axisTag = axisNameParts[1]
-					
+
 					if not axisName in existingAxisNames:
 						# create axis
 						newAxis = GSAxis()
@@ -412,7 +410,7 @@ class InstanceCooker( object ):
 					for thisAxis in thisFont.axes:
 						if thisAxis.name == axisName:
 							axisID = thisAxis.axisId
-					
+
 					if not instances:
 						for particleInfo in recipeDict[axisKey]:
 							instance = GSInstance()
@@ -420,15 +418,15 @@ class InstanceCooker( object ):
 							posInfo, instance.name, widthClass = particleInfo
 							coord, axisLoc = parsePosInfo(posInfo)
 							if widthClass:
-								instance.widthClass=widthClass
-							
+								instance.widthClass = widthClass
+
 							# set internal coordinate:
 							print("coord, axisID:", coord, axisID)
 							instance.setAxisValueValue_forId_(coord, axisID)
 
 							# set external coordinate:
 							addLocationToInstance(instance, axisName, axisLoc)
-							
+
 							# add style linking:
 							styleLinkInstance(instance, axisName, instance.name)
 
@@ -443,35 +441,35 @@ class InstanceCooker( object ):
 								instance.name += " %s" % nameParticle
 								coord, axisLoc = parsePosInfo(posInfo)
 								if widthClass:
-									instance.widthClass=widthClass
-								
+									instance.widthClass = widthClass
+
 								# add internal coordinate:
 								instance.setAxisValueValue_forId_(coord, axisID)
-							
+
 								# add external coordinate:
 								addLocationToInstance(instance, axisName, axisLoc)
-								
+
 								# add style linking:
 								styleLinkInstance(instance, axisName, nameParticle)
-								
+
 								# collect instance:
 								newInstances.append(instance)
-								
+
 						instances = newInstances
-				
+
 				# clean elidable names:
 				for instance in instances:
 					removeElidableNames(instance)
-				
+
 				# add instances to this font:
-				thisFont.instances = [i for i in thisFont.instances if i.type!=0] + instances
+				thisFont.instances = [i for i in thisFont.instances if i.type != 0] + instances
 				instanceCount = len(instances)
-				
+
 			# Final report:
-			Glyphs.showNotification( 
+			Glyphs.showNotification(
 				"Added %i instance%s to %s" % (
 					instanceCount,
-					"" if instanceCount==1 else "s",
+					"" if instanceCount == 1 else "s",
 					thisFont.familyName,
 					),
 				"Instance Cooker is finished. Details in Macro Window",

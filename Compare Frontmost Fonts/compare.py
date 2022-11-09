@@ -1,24 +1,25 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 from GlyphsApp import Glyphs
+
 def compareLists(thisSet, otherSet, ignoreEmpty=False):
 	for i in range(len(thisSet))[::-1]:
 		if thisSet[i] in otherSet:
-			otherSet.remove( thisSet.pop(i) )
+			otherSet.remove(thisSet.pop(i))
 		elif ignoreEmpty:
 			if not thisSet[i]:
 				thisSet.pop(i)
-				
+
 	for i in range(len(otherSet))[::-1]:
 		if otherSet[i] in thisSet:
-			thisSet.remove( otherSet.pop(i) )
+			thisSet.remove(otherSet.pop(i))
 		elif ignoreEmpty:
 			if not otherSet[i]:
 				otherSet.pop(i)
-				
+
 	return thisSet, otherSet
 
-def cleanUpAndShortenParameterContent( thisParameter, maxLength=20 ):
+def cleanUpAndShortenParameterContent(thisParameter, maxLength=20):
 	if Glyphs.versionNumber >= 3:
 		# GLYPHS 3 code:
 		parameterContent = repr(thisParameter)
@@ -26,12 +27,12 @@ def cleanUpAndShortenParameterContent( thisParameter, maxLength=20 ):
 		# GLYPHS 2 code:
 		parameterContent = unicode(repr(thisParameter))
 	if len(parameterContent) > maxLength:
-		parameterContent = u"%s..." % parameterContent[:maxLength].replace(u"\n",u" ")
+		parameterContent = u"%s..." % parameterContent[:maxLength].replace(u"\n", u" ")
 	while u"  " in parameterContent:
-		parameterContent = parameterContent.replace(u"  ",u" ")
+		parameterContent = parameterContent.replace(u"  ", u" ")
 	return parameterContent
 
-def compareCount( things, thisCount, otherCount, thisName, otherName ):
+def compareCount(things, thisCount, otherCount, thisName, otherName):
 	if thisCount != otherCount:
 		print(u"❌ Different number of %s:" % things.upper())
 		print(u"   A. %i %s in %s" % (thisCount, things.lower(), thisName))
@@ -47,7 +48,7 @@ def lineReport(thisSet, otherSet, thisFileName, otherFileName, name, commaSepara
 		else:
 			separator = "\n  "
 			element = "Code lines"
-		
+
 		if otherSet:
 			print()
 			print(u"⚠️ %s not in %s of %s:" % (element, name, thisFileName))

@@ -1,17 +1,17 @@
 #MenuTitle: Align Selected Nodes with Background
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Align selected nodes with the nearest background node unless it is already taken by a previously moved node.
 """
 
 def alignNodeWithNodeInOtherLayer(thisNode, otherLayer, tolerance=5, maxTolerance=80, alreadyTaken=[]):
 	while tolerance < maxTolerance:
 		if Glyphs.versionNumber >= 3:
-			nearestNode = otherLayer.nodeAtPoint_excludeNodes_traverseComponents_ignoreLocked_tolerance_( thisNode.position, None, False, True, tolerance )
+			nearestNode = otherLayer.nodeAtPoint_excludeNodes_traverseComponents_ignoreLocked_tolerance_(thisNode.position, None, False, True, tolerance)
 		else:
-			nearestNode = otherLayer.nodeAtPoint_excludeNodes_traversComponents_tollerance_( thisNode.position, None, False, tolerance )
-		
+			nearestNode = otherLayer.nodeAtPoint_excludeNodes_traversComponents_tollerance_(thisNode.position, None, False, tolerance)
+
 		if nearestNode and (thisNode.type == nearestNode.type) and (not nearestNode.position in alreadyTaken):
 			thisNode.position = nearestNode.position
 			return True
@@ -31,12 +31,12 @@ def anchorWithNameFromAnchorList(anchorName, referenceAnchors):
 			return thisAnchor
 	return None
 
-def syncAnchorPositionWithBackground( theseAnchorNames, thisLayer ):
+def syncAnchorPositionWithBackground(theseAnchorNames, thisLayer):
 	# collect background anchors
 	otherAnchorDict = {}
 	for otherAnchor in thisLayer.background.anchorsTraversingComponents():
 		otherAnchorDict[otherAnchor.name] = otherAnchor.position
-	
+
 	# move anchors in foreground
 	if not otherAnchorDict:
 		print("Anchors: could not find any anchors in components.")
@@ -50,23 +50,23 @@ def syncAnchorPositionWithBackground( theseAnchorNames, thisLayer ):
 				thisAnchor.position = otherAnchorPosition
 				count += 1
 		return count
-	
-def process( thisLayer ):
+
+def process(thisLayer):
 	backgroundBackup = thisLayer.background.copy()
 	for backgroundComponent in thisLayer.background.components:
-		thisLayer.background.decomposeComponent_doAnchors_doHints_(backgroundComponent,False,False)
-	
+		thisLayer.background.decomposeComponent_doAnchors_doHints_(backgroundComponent, False, False)
+
 	alignedNodeCount = 0
 	selectedNodeCount = 0
 	appliedPositions = []
-	
+
 	for thisPath in thisLayer.paths:
 		for thisNode in thisPath.nodes:
 			if thisNode.selected:
 				selectedNodeCount += 1
-				if alignNodeWithNodeInOtherLayer( thisNode, thisLayer.background, alreadyTaken=appliedPositions ):
+				if alignNodeWithNodeInOtherLayer(thisNode, thisLayer.background, alreadyTaken=appliedPositions):
 					alignedNodeCount += 1
-					appliedPositions.append( thisNode.position )
+					appliedPositions.append(thisNode.position)
 
 	thisLayer.background = backgroundBackup
 
@@ -76,8 +76,8 @@ def process( thisLayer ):
 		if thisAnchor.selected:
 			anchorsToAlign.append(thisAnchor.name)
 	if anchorsToAlign:
-		numberOfAnchorsMoved = syncAnchorPositionWithBackground( anchorsToAlign, thisLayer )
-		
+		numberOfAnchorsMoved = syncAnchorPositionWithBackground(anchorsToAlign, thisLayer)
+
 	return selectedNodeCount, alignedNodeCount, numberOfAnchorsMoved
 
 thisFont = Glyphs.font # frontmost font
@@ -90,7 +90,7 @@ try:
 	for thisLayer in selectedLayers:
 		thisGlyph = thisLayer.parent
 		# thisGlyph.beginUndo() # undo grouping causes crashes
-		selected, aligned, numberOfAnchorsMoved = process( thisLayer )
+		selected, aligned, numberOfAnchorsMoved = process(thisLayer)
 		print("%s: aligned %i of %i selected nodes" % (thisGlyph.name, aligned, selected))
 		print("%s: aligned %i of %i anchors." % (thisGlyph.name, numberOfAnchorsMoved, len(thisLayer.anchors)))
 		# thisGlyph.endUndo() # undo grouping causes crashes

@@ -1,11 +1,10 @@
 #MenuTitle: Sync Components Across Masters
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Takes the current layer’s components, and resets all other masters to the same component structure. Ignores paths and anchors. Hold down Option key to delete all paths and anchors.
 """
 from AppKit import NSEvent, NSAlternateKeyMask
-
 thisFont = Glyphs.font # frontmost font
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 
@@ -13,7 +12,7 @@ listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyph
 keysPressed = NSEvent.modifierFlags()
 optionKeyPressed = keysPressed & NSAlternateKeyMask == NSAlternateKeyMask
 
-def process( thisLayer ):
+def process(thisLayer):
 	thisGlyph = thisLayer.parent
 	# only act if components are present:
 	if len(thisLayer.components):
@@ -24,7 +23,7 @@ def process( thisLayer ):
 			for thisComp in thisLayer.components:
 				thatComp = thisComp.copy()
 				newComponents.append(thatComp)
-			
+
 			if newComponents:
 				if Glyphs.versionNumber >= 3:
 					# GLYPHS 3
@@ -34,13 +33,13 @@ def process( thisLayer ):
 						thatLayer.anchors = None
 					else:
 						# clear components:
-						for i in range(len(thatLayer.shapes)-1,-1,-1):
+						for i in range(len(thatLayer.shapes) - 1, -1, -1):
 							shape = thatLayer.shapes[i]
 							if type(shape) == GSComponent or optionKeyPressed: # NEW: check for paths
 								del thatLayer.shapes[i]
 						# add components:
 						thatLayer.shapes.extend(newComponents)
-					
+
 				else:
 					# GLYPHS 2
 					thatLayer.components = newComponents
@@ -58,7 +57,7 @@ try:
 		thisGlyph = thisLayer.parent
 		print("Processing %s" % thisGlyph.name)
 		# thisGlyph.beginUndo() # undo grouping causes crashes
-		process( thisLayer )
+		process(thisLayer)
 		# thisGlyph.endUndo() # undo grouping causes crashes
 except Exception as e:
 	Glyphs.showMacroWindow()

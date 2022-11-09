@@ -1,7 +1,7 @@
 #MenuTitle: Merge All Other Masters in Current Master
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 For selected glyphs, merges all paths from other masters onto the current master layer.
 """
 
@@ -10,7 +10,7 @@ thisFontMaster = thisFont.selectedFontMaster # active master
 otherMasterIDs = [m.id for m in thisFont.masters if m is not thisFontMaster]
 listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 
-def process( thisGlyph ):
+def process(thisGlyph):
 	currentLayer = thisGlyph.layers[thisFontMaster.id]
 	print(currentLayer)
 	try:
@@ -21,7 +21,7 @@ def process( thisGlyph ):
 		currentLayer.paths = None
 		currentLayer.hints = None
 		currentLayer.components = None
-		
+
 	for thisID in otherMasterIDs:
 		sourceLayer = thisGlyph.layers[thisID]
 		sourcePaths = sourceLayer.paths
@@ -44,7 +44,7 @@ try:
 		thisGlyph = thisLayer.parent
 		print("Processing", thisGlyph.name)
 		# thisGlyph.beginUndo() # undo grouping causes crashes
-		process( thisGlyph )
+		process(thisGlyph)
 		# thisGlyph.endUndo() # undo grouping causes crashes
 
 except Exception as e:

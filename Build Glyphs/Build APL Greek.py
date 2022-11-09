@@ -1,7 +1,7 @@
 #MenuTitle: Build APL Greek
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Create APL Greek glyphs.
 """
 
@@ -11,7 +11,7 @@ aplGlyphNames = ("APLiota", "APLrho", "APLomega", "APLalpha")
 Glyphs.clearLog()
 
 for glyphName in aplGlyphNames:
-	original = glyphName.replace("APL","")
+	original = glyphName.replace("APL", "")
 	if thisFont.glyphs[original]:
 		thisGlyph = Font.glyphs[glyphName]
 		if not thisGlyph:
@@ -27,4 +27,3 @@ for glyphName in aplGlyphNames:
 	else:
 		print("%s: not found in font." % original)
 		Glyphs.showMacroWindow()
-		
