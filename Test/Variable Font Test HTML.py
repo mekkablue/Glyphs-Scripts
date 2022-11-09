@@ -538,8 +538,7 @@ def defaultVariationCSS(thisFont):
 
 def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa=False):
 	samsaPlaceholder = "<!-- placeholder for external links, hold down OPTION and SHIFT while running the script -->"
-	htmlContent = """
-<html>
+	htmlContent = """<html>
 	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 	<meta http-equiv="X-UA-Compatible" content="IE=9" />
@@ -991,7 +990,6 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 			<div class="labeldiv"><label class="sliderlabel" id="label_fontsize" name="Font Size">Font Size</label><input type="range" min="10" max="1000" value="150" class="slider" id="fontsize" oninput="updateSlider();"></div>
 			<div class="labeldiv"><label class="sliderlabel" id="label_lineheight" name="Line Height">Line Height</label><input type="range" min="30" max="300" value="140" class="slider" id="lineheight" oninput="updateSlider();"></div>
 ###sliders###
-
 			<div id="featureControls">
 			<!-- style menu -->
 ###styleMenu###
