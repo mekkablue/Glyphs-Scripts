@@ -403,7 +403,7 @@ htmlContent = """<head>
 <div id="controls">
 	<div>
 		<select size="1" id="fontFamilySelector" name="fontFamilySelector" onchange="changeFont()">
-			<!-- moreOptions -->
+		<!-- moreOptions -->
 		</select>
 		<div class="wrapper" spellcheck="false">
 			<input type="text" value="Type Text Here." id="textInput" onkeyup="updateParagraph()" />
