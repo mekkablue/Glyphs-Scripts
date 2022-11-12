@@ -50,7 +50,7 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 
 All the scripts show a **tooltip** when you hover the mouse pointer over their menu entry. In scripts with a GUI, most UI elements (checkboxes, text entry fields, etc.) have tooltips as well. This way you get the explanation you need right where it counts.
 
-## Anchors
+## 錨點
 
 *Anchor Mover is for batch-processing anchor positions. Can be useful after adjusting the x-height. No-brainer: I always use the Reposition script on my combining marks, so stacking combining marks stays in the italic angle.*
 
@@ -76,7 +76,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Report Non-Standard Anchors to Macro window:** Goes through all glyphs in the font and reports in the Macro window if it finds non-default anchors. Lines are copy-pasteable in Edit view.
 * **Shine Through Anchors:** In all layers of selected glyphs, inserts ‘traversing’ anchors from components.
 
-## App
+## 應用程序
 
 *If you are coding, add a keyboard shortcut for Method Reporter, you will need this a lot. Print Window can come in handy if you want a resolution-independent PDF screenshot of your window content. Best for post-processing in a vector illustration app.*
 
@@ -94,7 +94,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Toggle RTL-LTR:** Toggle frontmost tab between LTR and RTL writing direction. Useful for setting a keyboard shortcut in System Preferences.
 * **Update git Repositories in Scripts Folder:** Executes a 'git pull' command on all subfolders in the Glyphs Scripts folder. Useful if you have a lot of git repos in your Scripts folder.
 
-## Build Glyphs
+## 建構字符
 
 *Most important: Quote Manager, and the Build scripts for Small Figures, Symbols, Ldot. The other scripts are mainly intended to give you a quick head start for covering certain Unicode ranges if requested by the client.*
 
@@ -116,7 +116,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Fix Punctuation Dots and Heights:** Syncs punctuation dots between ¡!¿? (and their SC+CASE variants). Will use dot from exclam in all other glyphs, and shift ¡¿ in SC and CASE variants. Assumes that ¡¿ are components in !?. Detailed report in Macro Window..
 * **Quote Manager:** Build double quotes from single quotes, and insert `#exit` and `#entry` anchors in the single quotes for auto-alignment. You need to have the single quotes already. *Needs Vanilla.*
 
-## Color Fonts
+## 彩色字型
 
 *These scripts are for situations you will encounter in a Color Font workflow. The Merge script is mainly for creating a fallback glyph for CPAL/COLR fonts. This way the fallback has the full bbox, and no clipping will occur in Chrome.*
 
@@ -128,7 +128,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Merge Suffixed Glyphs into Color Layers:** Merges x.shadow, x.body and x.front into separate CPAL Color layers of x. *Needs Vanilla.*
 * **sbix Spacer:** Batch-set sbix positions and glyph widths. *Needs Vanilla.*
 
-## Compare Frontmost Fonts
+## 比較 Frontmost 字型
 
 *These scripts are intended for syncing uprights with their italics. Open two fonts, and run the scripts. They do not change your fonts, but report in detail in the Macro window.*
 
@@ -145,7 +145,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Compare Metrics:** Compare widths of two frontmost fonts.
 * **Compare Sidebearings:** Compare sidebearings of two frontmost fonts.
 
-## Components
+## 部件
 
 *Populate Backgrounds with Components is very useful when you build letters based on other, e.g., ae or oe can take an e in the background. The script puts the e in the background of each master, and the UI has an option to align selected points with the e in the background. If you use corner components for serifs in a multiple-master font, the Propagate script will save you a lot of time.*
 
@@ -164,7 +164,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Stitcher:** In selected glyphs, the Stitcher inserts components on your paths at fixed intervals. Useful for turning open paths (monolines) into dotted lines. Use an anchor called 'origin' for determining the component position in stitched letters. Consider using the [Stitcher plug-in](glyphsapp3://showplugin/Stitcher) instead. *Needs Vanilla.*
 * **Sync Components Across Masters:** Takes the current layer’s components, and resets all other masters to the same component structure. Ignores paths and anchors. Hold down Option key to *delete* all paths and anchors.
 
-## Features
+## 特性
 
 *In script typefaces, you may often need the Build Positional calt script. If you find yourself turning OT features on and off a lot, take a look at the Activate Default Features and Floating Features scripts. And check out the Set Palette from Window > Plugin Manager.*
 
@@ -185,7 +185,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * * **Stylistic Sets > Create pseudorandom calt feature:** Creates pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font. Also includes the default class in the rotation algorithm.
 * * **Stylistic Sets > Set ssXX Names:** Prefills names for ssXX features with ‘Alternate’ or another chosen text, plus the name of the first substituted glyph, e.g., ‘Alternate a’. Option to preserve existing namings.*Needs Vanilla.*
 
-## Font Info
+## 字型資訊
 
 *Vertical Metrics is useful for finding and syncing the vertical metric parameters in Font Info > Font and Font Info > Masters. Clean Version String is very useful too. Font Info Batch Setter is a must for syncing Font Info settings across many fonts. Careful about Set WWS/Preferred Names scripts: The app usually takes care of naming automatically, so their use cases are very rare.*
 
@@ -203,7 +203,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Style Renamer:** Batch-add a name particle to your style names, or batch-remove it from them. Useful for switching all your styles from italic to roman naming and vice versa. *Needs Vanilla.*
 * **Vertical Metrics Manager:** Calculate and insert values for OS/2 usWin and sTypo, hhea and fsSelection bit 7 (for preferring sTypo Metrics over usWin metrics). *Needs Vanilla.*
 
-## Glyph Names, Notes and Unicode
+## 字形名稱、註釋和 Unicode
 
 *Most scripts make managing glyph names and Unicodes a little easier. Garbage Collection is useful for cleaning up the mess of the reporter scripts, or other annotations before you hand the files over to a third party.*
 
@@ -219,7 +219,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Reorder Unicodes of Selected Glyphs:** Reorders Unicodes so that default Unicode comes first.
 * **Switch Mirrored Characters:** In the current Edit View, switch mirrored BiDi characters, e.g. () → )(. Useful for switching parentheses and quotes after switching writing direction in a tab.
 
-## Guides
+## 指南
 
 *These scripts are mostly intended for cleaning up the plethora of guides I see when working on third-party fonts.*
 
@@ -229,7 +229,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Select All Global Guides:** Selects all global (red) guides in Edit view. Useful if you have many and need to batch-transform them.
 * **Select All Local Guides:** Selects all local (blue) guides (in all selected glyphs).
 
-## Hinting
+## 字體微調
 
 *Most important: Set blueScale, Set Family Alignment Zones for PostScript hinting. If you are making big changes, The Transfer and Keep Only scripts can save you a lot of work. The New Tab scripts help find glyphs missing zones. Also consider Paths > Find Near Vertical Misses for that purpose.*
 
@@ -252,7 +252,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Transfer Hints to First Master:** Copies PS hints from the current layer to the first master layer, provided the paths are compatible. Reports errors to the Macro window.
 * **TT Autoinstruct:** Automatically add Glyphs TT instructions to the selected glyphs in the selected master. (Should be the first master.) Attention: this is NOT Werner Lemberg's ttfAutohint, but the manual TT hints that the TT Instruction tool (I) would add through the context menu item of the same name. Useful for adding hints in many glyphs at once.
 
-## Images
+## 圖片
 
 *Mainly intended for curing the headaches you may undergo when handling a lot of (background) images.*
 
@@ -265,7 +265,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Toggle Image Lock:** Lock or unlock all images in all selected glyphs. *Needs Vanilla.*
 * **Transform Images:** GUI for batch-transforming images (x/y offset and x/y scale) in the visible layers of selected glyphs. *Needs Vanilla.*
 
-## Interpolation
+## 插值
 
 *Most important: Insert Instances (for determining your instances and their style linking), Kink Finder and Find Shapeshifting Glyphs. I use Show Next/Previous Instance with the keyboard shortcut ctrl-up/down a lot.*
 
@@ -338,7 +338,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Steal Kerning Groups from Font:** Steals left/right kerning groups for all selected glyphs from a 2nd font. *Needs Vanilla.*
 * **Zero Kerner:** Add group kernings with value zero for pairs that are missing in one master but present in others. Helps preserve interpolatable kerning in OTVar exports. *Needs Vanilla.*
 
-## Paths
+## 路徑
 
 *I use Rotate Around Anchor for my asterisks. Important for outline checking: Path Problem Finder, Find Near Vertical Misses and the Green Blue Manager. Rewire Fire has become important in OTVar production, because it helps reduce duplicate outline segments at shape edges (which create dark spots in anti-aliasing).*
 
@@ -368,7 +368,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Straight Stem Cruncher:** Finds distances between points in all layers, and compares them (with a tolerance) to specified stem widths. Lists glyphs that have deviating stems in their drawings. *Needs Vanilla.*
 * **Tunnify:** Looks for all path segments where at least one handle is selected. Then, evens out the handles of the segments, i.e., they will both have the same Fit Curve percentage. Can fix Adobe Illustrator's zero-handles (segments with one handle retracted into the nearest node). The idea for this script came from Eduardo Tunni (as colported by Pablo Impallari), hence the title of the script. I have never seen Eduardo's algorithm though, so my implementation might be a little different to his, especially the treatment of zero-handles.
 
-## Pixelfonts
+## 點陣字型
 
 *These scripts are useful for a pixelfont workflow, where you place a pixel component in a coarser grid. If you are doing pixel designs, take a look at the pixel-related plug-ins available in Window > Plugin Manager.*
 
@@ -378,14 +378,14 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Flashify Pixels:** Creates small bridges in order to prevent self-intersection of paths so counters stay white. This is especially a problem for the Flash font renderer, hence the name of the script.
 * **Reset Rotated and Mirrored Components:** Looks for scaled, mirrored and rotated components and turns them back into their default scale and orientation, but keeps their position. Useful for fixing mirrored pixels.
 
-## Smallcaps
+## 小體大寫字母
 
 *When I have Smallcaps in my font, I always run Check Smallcap Consistency. Take its report with a grain of salt though: it lists a lot of false positives, and not every warning is equally important.*
 
 * **Check Smallcap Consistency:** Performs a few tests on your SC set and reports into the Macro window, especially kerning groups and glyph set.
 * **Copy Kerning from Caps to Smallcaps:** Looks for cap kerning pairs and reduplicates their kerning for corresponding .sc glyphs, if they are available in the font. Please be careful: Will overwrite existing SC kerning pairs.
 
-## Spacing
+## 間距
 
 *Most important: Fix Math Operator Spacing, Bracket Metrics Manager and, if you have arrows, Fix Arrow Positioning. The New Tab scripts are useful when creating figures.*
 
@@ -408,17 +408,17 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Steal Metrics:** Steals the sidebearing or width values for all selected glyphs from a 2nd font. Optionally also transfers metrics keys like '=x+20'. *Needs Vanilla.*
 * **Tabular Checker:** Goes through tabular glyphs and checks if they are monospaced. Reports exceptions. *Needs Vanilla.*
 
-## Test
+## 測試
 
-*Most important: the Test HTML scripts. If you have unusually high or low text selection highlights in Adobe or Apple apps, run Report Highest and Lowest Glyphs to find the glyph causing it. Language Report is just for beefing up your specimen, and will not give you authoritative information.*
+*推薦腳本：測試用 HTML 腳本。如果您在 Adobe 或 Apple 應用程式中發現選取框異常的高或低，可以執行「最高和最低點字符報告」查詢找出導致狀況發生的字符。「拉丁字母支援語言報告」提供的資訊是參考性的建議，不是絕對要遵守的規範。*
 
-* **Copy InDesign Test Text:** Copies a test text for InDesign into the clipboard.
-* **Copy Word Test Text:** Copies a test text for MS Word into the clipboard.
-* **Language Report:** Tries to give you a preliminary idea about how many and which languages are supported with your Latin characters. Based on Underware’s Latin-Plus list, with modifications.
-* **Pangram Helper:** Helps you write a pangram, which you can copy into the clipboard, or put into a new tab. *Needs Vanilla.*
-* **Report Highest and Lowest Glyphs:** Reports glyphs with highest and lowest bounding boxes for all masters.
-* **Variable Font Test HTML:** Create a Test HTML for the current font inside the current Variation Font Export folder.
-* **Webfont Test HTML:** Creates a Test HTML for the current font inside the current Webfont Export folder, or for the current Glyphs Project in the project’s export path.
+* **Copy InDesign Test Text / 複製 InDesign 測試文字：** 將 InDesign 的測試文字複製到剪貼簿。
+* **Copy Word Test Text / 複製 Word 測試文字：** 將 Word 的測試文字複製到剪貼簿。
+* **Language Report / 拉丁字母支援語言報告：** 在巨集視窗輸出讓您初步了解您的拉丁字符支持多少種語言以及哪些語言的資訊。基於 Underware's Latin-Plus 列表，並進行了修改。
+* **Pangram Helper / 全字母句小幫手：** 幫助您編寫歐文的全字母句，您可以將其複製到剪貼簿或放入新分頁中。 *需要 Vanilla JavaScript*
+* **Report Highest and Lowest Glyphs / 最高和最低點字符報告：** 讀取所有母版的所有字符，在巨集視窗輸出最高和最低點字符的資訊。
+* **Variable Font Test HTML / 可變字型測試 HTML：** 為目前已輸出到資料夾的可變字型在預設瀏覽器開啟一個測試用的 HTML。
+* **Webfont Test HTML / 網路用字型測試 HTML：** Creates a Test HTML for the current font inside the current Webfont Export folder, or for the current Glyphs Project in the project’s export path.為目前已輸出到資料夾的網路用字型或當前的字符專案在預設瀏覽器開啟一個測試用的 HTML。
 
 # License
 
