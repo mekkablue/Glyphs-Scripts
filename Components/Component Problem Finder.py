@@ -63,6 +63,8 @@ class ComponentProblemFinder(object):
 		"lockedComponents",
 		"nestedComponents",
 		"orphanedComponents",
+		"emptyComponents",
+		"unalignedComponents",
 		"scaledComponents",
 		"unproportionallyScaledComponents",
 		"rotatedComponents",
@@ -78,7 +80,7 @@ class ComponentProblemFinder(object):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 280
-		windowHeight = 480
+		windowHeight = 520
 		windowWidthResize = 0 # user can resize width by this value
 		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -120,34 +122,42 @@ class ComponentProblemFinder(object):
 		self.w.orphanedComponents.getNSButton().setToolTip_("Lists glyphs that contain components referencing glyphs that do not exist in the font (anymore).")
 		linePos += lineHeight
 
+		self.w.emptyComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Empty components", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.emptyComponents.getNSButton().setToolTip_("Lists glyphs that contain components pointing to empty layers (layers without shapes).")
+		linePos += lineHeight
+
+		self.w.unalignedComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Unaligned components", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.unalignedComponents.getNSButton().setToolTip_("Lists glyphs that contain unaligned components.")
+		linePos += lineHeight
+
 		# Line Separator:
 		self.w.line_transformedComponents = vanilla.HorizontalLine((inset, linePos + 3, -inset, 1))
 		linePos += int(lineHeight / 2)
 
-		self.w.scaledComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Scaled components", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.scaledComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Scaled components", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.scaledComponents.getNSButton().setToolTip_("Lists all components that are not at their original size. Useful for bug tracing in variable fonts.")
 		linePos += lineHeight
 
 		self.w.unproportionallyScaledComponents = vanilla.CheckBox(
-			(inset * 2, linePos - 1, -inset, 20), u"Only unproportionally scaled (h≠v)", value=True, callback=self.SavePreferences, sizeStyle='small'
+			(inset * 2, linePos - 1, -inset, 20), "Only unproportionally scaled (h≠v)", value=True, callback=self.SavePreferences, sizeStyle='small'
 			)
 		self.w.unproportionallyScaledComponents.getNSButton().setToolTip_(
 			"Lists glyphs that contain components that are not scaled the same horizontally and vertically. Useful for double checking in TT exports and variable fonts."
 			)
 		linePos += lineHeight
 
-		self.w.rotatedComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Rotated components", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.rotatedComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Rotated components", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.rotatedComponents.getNSButton().setToolTip_(
 			"Lists all glyphs that contain rotated components, or components that are flipped BOTH horizontally and vertically. May be a good idea to check their alignment."
 			)
 		linePos += lineHeight
 
-		self.w.mirroredComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Flipped components", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.mirroredComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Flipped components", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.mirroredComponents.getNSButton().setToolTip_("Lists all glyphs containing components that are mirrored EITHER horizontally or vertically.")
 		linePos += lineHeight
 
 		self.w.shiftedComponents = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), u"Shifted (but undistorted) components", value=False, callback=self.SavePreferences, sizeStyle='small'
+			(inset, linePos - 1, -inset, 20), "Shifted (but undistorted) components", value=False, callback=self.SavePreferences, sizeStyle='small'
 			)
 		self.w.shiftedComponents.getNSButton().setToolTip_("Lists all glyphs containing unaligned components that are not positioned at x=0 y=0.")
 		linePos += lineHeight
@@ -301,6 +311,26 @@ class ComponentProblemFinder(object):
 				for thisComponent in theseComponents:
 					if thisComponent.component is None:
 						print("\t🫥 orphaned component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
+						return True
+		return False
+
+	def glyphHas_emptyComponents(self, thisGlyph):
+		for thisLayer in thisGlyph.layers:
+			theseComponents = thisLayer.components
+			if theseComponents:
+				for thisComponent in theseComponents:
+					if not thisComponent.componentLayer.shapes:
+						print("\t🫙 empty component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
+						return True
+		return False
+
+	def glyphHas_unalignedComponents(self, thisGlyph):
+		for thisLayer in thisGlyph.layers:
+			theseComponents = thisLayer.components
+			if theseComponents:
+				for thisComponent in theseComponents:
+					if thisComponent.alignment == -1:
+						print("\t🤪 unaligned component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
 						return True
 		return False
 
