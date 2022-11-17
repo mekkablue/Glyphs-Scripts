@@ -7,7 +7,7 @@ These are Python scripts intended for font production in the [Glyphs font editor
 ## Glyphs 3
 
 1. **Install the modules:** In *Window > Plugin Manager,* click on the *Modules* tab, and make sure at least the [Python](glyphsapp3://showplugin/python) and [Vanilla](glyphsapp3://showplugin/vanilla) modules are installed. If they were not installed before, restart the app.
-2. **Install the scripts:** Go to *Window > Plugin Manager* and click on the *Scripts* tab. Scroll down to [mekkablue scripts](glyphsapp3://showplugin/mekkablue%20scripts) and click on the *Install* button next to it. 
+2. **Install the scripts:** Go to *Window > Plugin Manager* and click on the *Scripts* tab. Scroll down to [mekkablue scripts](glyphsapp3://showplugin/mekkablue%20scripts) and click on the *Install* button next to it.
 
 Now the scripts are available in *Script > mekkablue.* If the mekkablue scripts do not show up in the *Script* menu, hold down the Option key and choose *Script > Reload Scripts* (Cmd-Opt-Shift-Y).
 
@@ -196,10 +196,10 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Font Info Overview:** Lists some Font Info values for all opened fonts.
 * **Prepare Font Info:** Prepare open fonts for a modern font production and git workflow by setting certain custom parameters. *Needs Vanilla.*
 * **Remove Custom Parameters:** Removes all parameters of one kind from Font Info > Font, Masters, Instances. Useful if you have many masters or instances. *Needs Vanilla.*
-* **Set Preferred Names (Name IDs 16 and 17)  for Width Variants:** Sets Preferred Names custom parameters (Name IDs 16 and 17) for all instances, so that width variants will appear in separate menus in Adobe apps. 
+* **Set Preferred Names (Name IDs 16 and 17)  for Width Variants:** Sets Preferred Names custom parameters (Name IDs 16 and 17) for all instances, so that width variants will appear in separate menus in Adobe apps.
 * **Set Style Linking:** Attempts to set the Bold/Italic bits.
 * **Set Subscript and Superscript Parameters:** Measures your superior and inferior figures and derives subscript/superscript X/Y offset/size parameters. *Needs Vanilla.*
-* **Set WWS Names (Name IDs 21 and 22):** Sets WWS custom parameters (Name IDs 21 and 22) for all instances where necessary: Puts all info except RIBBI into the WWSFamilyName, and only keeps RIBBI for the WWSSubfamilyName. 
+* **Set WWS Names (Name IDs 21 and 22):** Sets WWS custom parameters (Name IDs 21 and 22) for all instances where necessary: Puts all info except RIBBI into the WWSFamilyName, and only keeps RIBBI for the WWSSubfamilyName.
 * **Style Renamer:** Batch-add a name particle to your style names, or batch-remove it from them. Useful for switching all your styles from italic to roman naming and vice versa. *Needs Vanilla.*
 * **Vertical Metrics Manager:** Calculate and insert values for OS/2 usWin and sTypo, hhea and fsSelection bit 7 (for preferring sTypo Metrics over usWin metrics). *Needs Vanilla.*
 
@@ -290,7 +290,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **OTVar Player:** Animates the current glyph with a loop along the weight axis. *Needs Vanilla.*
 * **Remove All Non-Master Layers:** Deletes all layers which are neither master layers, nor brace layers, nor bracket layers. Useful for getting rid of backup layers.
 * **Report Instance Interpolations:** Outputs master coefficients for each instance in Macro Window. Tells you which masters are involved in interpolating a specific instance, and to which extent.
-* **Reset Axis Mappings:** Inserts (or resets) a default Axis Mappings parameter for all style values currently present in the font. Ignores style values outside the designspace bounds defined by the masters. 
+* **Reset Axis Mappings:** Inserts (or resets) a default Axis Mappings parameter for all style values currently present in the font. Ignores style values outside the designspace bounds defined by the masters.
 * **Set Weight Axis Locations in Instances:** Will set weight axis location parameters for all instances, and sync them with their respective usWeightClass. Will set the width axis coordinates to the spec defaults for usWidthClass, if they have not been set yet. Otherwise will keep them as is.
 * **Short Segment Finder:** Goes through all interpolations and finds segments shorter than a user-specified threshold length. *Needs Vanilla.*
 * **Travel Tracker:** Finds interpolations in which points travel more than they should, i.e., can find wrongly hooked-up asterisks and slashes. The results are incomplete, and usually have many false positives, but it sometimes finds cases that the Shapeshifter script misses. *Needs Vanilla.*
@@ -395,7 +395,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Change Metrics by Percentage:** Change LSB/RSB of selected glyphs by a percentage value. Undo with the Revert button. *Needs Vanilla.*
 * **Find and Replace in Metrics Keys:** GUI for searching and replacing text in the L and R metrics keys, e.g. replace '=X+15' by '=X'. Leave the search field blank for appending.
 * **Fix Arrow Positioning:** Fixes the placement and metrics keys of arrows, dependent on a specified default arrow. Adds metric keys and moves arrows vertically. Does not create new glyphs, only works on existing ones. *Needs Vanilla.*
-* **Fix Math Operator Spacing:** Syncs widths and centers glyphs for +−×÷=≠±≈¬, optionally also lesser/greater symbols and asciicircum/asciitilde. *Needs Vanilla.* 
+* **Fix Math Operator Spacing:** Syncs widths and centers glyphs for +−×÷=≠±≈¬, optionally also lesser/greater symbols and asciicircum/asciitilde. *Needs Vanilla.*
 * **Freeze Placeholders:** In the current Edit tab, will change all inserted placeholders for the current glyph, thus 'freeze' the placeholders.
 * **Metrics Key Manager:** Batch apply metrics keys to the current font. *Needs Vanilla.*
 * **Monospace Checker:** Checks if all glyph widths in the frontmost font are actually monospaced. Reports in Macro Window and opens a tab with affected layers. *Needs Vanilla.*
@@ -418,7 +418,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Pangram Helper / 全字母句小幫手：** 幫助您編寫歐文的全字母句，您可以將其複製到剪貼簿或放入新分頁中。 *需要 Vanilla JavaScript*
 * **Report Highest and Lowest Glyphs / 最高和最低點字符報告：** 讀取所有母版的所有字符，在巨集視窗輸出最高和最低點字符的資訊。
 * **Variable Font Test HTML / 可變字型測試 HTML：** 為目前已輸出到資料夾的可變字型在預設瀏覽器開啟一個測試用的 HTML。
-* **Webfont Test HTML / 網路用字型測試 HTML：** Creates a Test HTML for the current font inside the current Webfont Export folder, or for the current Glyphs Project in the project’s export path.為目前已輸出到資料夾的網路用字型或當前的字符專案在預設瀏覽器開啟一個測試用的 HTML。
+* **Webfont Test HTML / 網路用字型測試 HTML：** 為目前已輸出到資料夾的網路用字型或當前的字符專案在預設瀏覽器開啟一個測試用的 HTML。
 
 # License
 
