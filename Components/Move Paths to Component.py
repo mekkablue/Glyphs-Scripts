@@ -11,11 +11,18 @@ from copy import copy as copy
 
 class MovePathstoComponent(object):
 	prefID = "com.mekkablue.MovePathstoComponent"
+	prefDict = {
+		# "prefName": defaultValue,
+		"name": "_bar.dollar",
+		"anchor": "bottom",
+		"includeSpecialLayers": 0,
+		"keepBaseComponentPosition": 1,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 350
-		windowHeight = 160
+		windowHeight = 180
 		windowWidthResize = 100 # user can resize width by this value
 		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -46,6 +53,10 @@ class MovePathstoComponent(object):
 			(inset, linePos - 1, -inset, 20), "Include special layers (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small'
 			)
 		linePos += lineHeight
+		
+		self.w.keepBaseComponentPosition = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Keep base component position (do not auto align 1st component)", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
+		
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-140 - inset, -20 - inset, -inset, -inset), "Make Composite", sizeStyle='regular', callback=self.MovePathsToComponentMain)
@@ -66,30 +77,25 @@ class MovePathstoComponent(object):
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
+	
+	def SavePreferences( self, sender=None ):
 		try:
 			# write current settings into prefs:
-			Glyphs.defaults[self.domain("name")] = self.w.name.get()
-			Glyphs.defaults[self.domain("anchor")] = self.w.anchor.get()
-			Glyphs.defaults[self.domain("includeSpecialLayers")] = self.w.includeSpecialLayers.get()
+			for prefName in self.prefDict.keys():
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
 			return True
 		except:
 			import traceback
 			print(traceback.format_exc())
 			return False
 
-	def LoadPreferences(self):
+	def LoadPreferences( self ):
 		try:
-			# register defaults:
-			Glyphs.registerDefault(self.domain("name"), "_bar.dollar")
-			Glyphs.registerDefault(self.domain("anchor"), "bottom")
-			Glyphs.registerDefault(self.domain("includeSpecialLayers"), 0)
-
-			# load previously written prefs:
-			self.w.name.set(self.pref("name"))
-			self.w.anchor.set(self.pref("anchor"))
-			self.w.includeSpecialLayers.set(self.pref("includeSpecialLayers"))
+			for prefName in self.prefDict.keys():
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
+				# load previously written prefs:
+				getattr(self.w, prefName).set( self.pref(prefName) )
 			return True
 		except:
 			import traceback
@@ -248,8 +254,12 @@ class MovePathstoComponent(object):
 								del l.paths[i]
 
 						# autoalign all components and update metrics
-						for c in l.components:
-							c.setDisableAlignment_(False)
+						for i in range(len(l.components)):
+							c = l.components[i]
+							if self.pref("keepBaseComponentPosition") and i==0:
+								c.setDisableAlignment_(True)
+							else:
+								c.setDisableAlignment_(False)
 						l.alignComponents() # updates the width
 
 						# insert correcting RSB adjustment (minimum 5):
