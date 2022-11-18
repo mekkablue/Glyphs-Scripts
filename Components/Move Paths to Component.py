@@ -41,7 +41,8 @@ class MovePathstoComponent(object):
 		linePos += lineHeight
 
 		self.w.nameText = vanilla.TextBox((inset, linePos + 2, 100, 14), "Component name:", sizeStyle='small', selectable=True)
-		self.w.name = vanilla.EditText((inset + 100, linePos, -inset, 19), "_bar.dollar", callback=self.SavePreferences, sizeStyle='small')
+		self.w.name = vanilla.EditText((inset + 100, linePos, -inset - 30, 19), "_bar.dollar", callback=self.SavePreferences, sizeStyle='small')
+		self.w.nameUpdateButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.updateName)
 		linePos += lineHeight
 
 		self.w.anchorText = vanilla.TextBox((inset, linePos + 2, 100, 14), "Attach to anchor:", sizeStyle='small', selectable=True)
@@ -105,6 +106,18 @@ class MovePathstoComponent(object):
 	def updateAnchors(self, sender=None):
 		anchorNames = self.allAnchorNames()
 		self.w.anchor.setItems(anchorNames)
+
+	def updateName(self, sender=None):
+		thisFont = Glyphs.font
+		if thisFont:
+			if thisFont.selectedLayers:
+				thisLayer = thisFont.selectedLayers[0]
+				existingComponents = thisLayer.componentNames()
+				thisGlyph = thisLayer.parent
+				if thisGlyph and thisGlyph.glyphInfo:
+					for compInfo in thisGlyph.glyphInfo.components:
+						if not compInfo.name in existingComponents:
+							self.w.name.set(compInfo.name)
 
 	def allAnchorNames(self, sender=None):
 		anchorNames = []
@@ -260,7 +273,8 @@ class MovePathstoComponent(object):
 								c.setDisableAlignment_(True)
 							else:
 								c.setDisableAlignment_(False)
-						l.alignComponents() # updates the width
+						if not self.pref("keepBaseComponentPosition"):
+							l.alignComponents() # updates the width
 
 						# insert correcting RSB adjustment (minimum 5):
 						widthDifference = originalWidth - l.width
