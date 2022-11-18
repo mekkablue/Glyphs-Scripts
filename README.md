@@ -86,19 +86,19 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Method Reporter / 方法報告器：** 圖形使用者介面用於過濾 Glyphs 中可用的 Python 和 PyObjC 類的方法名稱。您可以使用多個空格分隔檢索詞（用於 AND 串接）和星號作為未知字元（可放在開頭、中間和結尾）。按兩下可將方法名稱放入剪貼簿，然後在巨集視窗中打開説明。對寫程式的人很有用。 *需要 Vanilla JavaScript*
 * **Navigate - Activate next and previous glyph / ：** 啟動下一個或上一個字符的編輯模式。
 * **Parameter Reporter / 參數報告器：** 類似於方法報告器，但用於自定義參數。按兩下以複製剪貼簿中的參數，準備貼到字型資訊中。 *需要 Vanilla JavaScript*
-* **Print Window / 列印視窗：** 列印當前視窗。用於保存視窗內容的向量 PDF，包括檢視器外掛的渲染（“顯示”選單的擴展）。 *成果困惑*
+* **Print Window / 列印視窗：** 列印當前視窗。用於保存視窗內容的向量 PDF，包括檢視器外掛的渲染（“顯示”選單的擴展）。 *:question:成果*
 * **Resetter / 重置器：** 重置快速查看預覽、鍵盤快捷鍵和清除偏好設定、已儲存的應用程式狀態和自動儲存。 *需要 Vanilla JavaScript*
 * **Set Export Paths to Adobe Fonts Folder / 將匯出路徑設置為 Adobe Fonts 資料夾：** 將 OpenType 字型和可變字型的匯出位置設定為 Adobe 字型資料夾。
-* **Set Hidden App Preferences / 設定隱藏的應用程式偏好設定：** GUI for reading and setting ‘hidden’ app preferences, which are not listed in the GUI.一個用於讀取和設定「隱藏」的應用程式偏好設定的圖形使用者介面，這些偏好設定未在圖形使用者介面中列出。 *需要 Vanilla JavaScript* *翻譯困惑*
+* **Set Hidden App Preferences / 設定隱藏的應用程式偏好設定：** GUI for reading and setting ‘hidden’ app preferences, which are not listed in the GUI.一個用於讀取和設定「隱藏」的應用程式偏好設定的圖形使用者介面，這些偏好設定未在圖形使用者介面中列出。 *需要 Vanilla JavaScript* *:question:翻譯*
 * **Set Label Colors / 設定標籤顏色：** 覆蓋預設應用程式標籤顏色。 *需要 Vanilla JavaScript*
 * **Set Tool Shortcuts / 設定工具快捷鍵：** 為工具列中的工具設置鍵盤快捷鍵。 *需要 Vanilla JavaScript*
 * **Toggle Horizontal-Vertical / 切換 橫排-直排：** 在當前分頁切換橫排（左起）-直排書寫方向。推薦在「系統偏好設定」中設定快捷鍵使用。
 * **Toggle RTL-LTR / 切換 右起-左起：** 在當前分頁切換右起-左起書寫方向。推薦在「系統偏好設定」中設定快捷鍵使用。
-* **Update git Repositories in Scripts Folder / 更新文本資料夾中的 git 儲存庫：** 對 Glyphs 腳本資料夾中的所有子資料夾執行「git pull」指令。如果腳本資料夾中有很多 git 儲存庫就很有用。 *功能困惑*
+* **Update git Repositories in Scripts Folder / 更新文本資料夾中的 git 儲存庫：** 對 Glyphs 腳本資料夾中的所有子資料夾執行「git pull」指令。如果腳本資料夾中有很多 git 儲存庫就很有用。 *:question:功能*
 
 ## 建構字符
 
-*Most important: Quote Manager, and the Build scripts for Small Figures, Symbols, Ldot. The other scripts are mainly intended to give you a quick head start for covering certain Unicode ranges if requested by the client.*
+*推薦腳本：「引用符管理器」，以及用於小型大寫數字、符號和 ​​Ldot 的「構建腳本」。其他腳本主要是為了讓您快速開始覆蓋某些 Unicode 範圍如果客戶有需求。*
 
 * **Build APL Greek:** Create APL Greek glyphs.
 * **Build careof and cadauna:** Builds `cadauna` and `careof` from your `c`, `o`, `u` and `fraction` glyphs.
@@ -116,11 +116,11 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Build space glyphs:** Creates `mediumspace-math`, `emquad`, `emspace`, `enquad`, `enspace`, `figurespace`, `fourperemspace`, `hairspace`, `narrownbspace`, `punctuationspace`, `sixperemspace`, `nbspace`, `thinspace`, `threeperemspace`, `zerowidthspace`.
 * **Build Symbols:** Creates symbol glyphs such as `.notdef` (based on the boldest available `question` mark), an `estimated` glyph, as well as `bar` and `brokenbar` (for which it respects standard stems and italic angle). *需要 Vanilla JavaScript*
 * **Fix Punctuation Dots and Heights:** Syncs punctuation dots between ¡!¿? (and their SC+CASE variants). Will use dot from exclam in all other glyphs, and shift ¡¿ in SC and CASE variants. Assumes that ¡¿ are components in !?. Detailed report in Macro Window..
-* **Quote Manager:** Build double quotes from single quotes, and insert `#exit` and `#entry` anchors in the single quotes for auto-alignment. You need to have the single quotes already. *需要 Vanilla JavaScript*
+* **Quote Manager / 引用符管理器：** Build double quotes from single quotes, and insert `#exit` and `#entry` anchors in the single quotes for auto-alignment. You need to have the single quotes already. *需要 Vanilla JavaScript*
 
 ## 彩色字型
 
-*These scripts are for situations you will encounter in a Color Font workflow. The Merge script is mainly for creating a fallback glyph for CPAL/COLR fonts. This way the fallback has the full bbox, and no clipping will occur in Chrome.*
+*These scripts are for situations you will encounter in a Color Font workflow. The Merge script is mainly for creating a fallback glyph for CPAL/COLR fonts. This way the fallback has the full bbox, and no clipping will occur in Chrome.這些腳本能幫助您在製作彩色字體的工作流程中解決遇到的問題。「合併腳本」主要用於為 CPAL/COLR 字型創建後備字符。這樣後備具有完整的 bbox，並且不會在 Chrome 瀏覽器中發生裁切。*
 
 * **Add All Missing Color Layers to Selected Glyphs:** Adds a duplicate of the fallback layer for each (CPAL/COLR) color defined in the Color Palettes parameter, for each selected glyph. Only adds colors that are still missing in the glyph.
 * **Add sbix Images to Font:** Will get all PNG, GIF, JPG files in a folder and create iColor layers with them in the current font and master. File name convention: ‘glyphname pixelsize.suffix’, e.g., ‘Adieresis 128.png’.
@@ -130,9 +130,9 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Merge Suffixed Glyphs into Color Layers:** Merges x.shadow, x.body and x.front into separate CPAL Color layers of x. *需要 Vanilla JavaScript*
 * **sbix Spacer:** Batch-set sbix positions and glyph widths. *需要 Vanilla JavaScript*
 
-## 比較 Frontmost 字型
+## 比較當前字型
 
-*These scripts are intended for syncing uprights with their italics. Open two fonts, and run the scripts. They do not change your fonts, but report in detail in the Macro window.*
+*These scripts are intended for syncing uprights with their italics. Open two fonts, and run the scripts. They do not change your fonts, but report in detail in the Macro window.這些腳本用於同步正斜體和斜體。打開兩種字體，然後運行腳本。它們不會更改您的字體，但會在宏窗口中詳細報告。*
 
 * **Compare Font Info > Font:** Detailed report of Font Info > Masters for the two frontmost fonts and outputs a report in the Macro window.
 * **Compare Font Info > Masters:** Detailed report of Font Info > Masters for the two frontmost fonts and outputs a report in the Macro window.
@@ -149,7 +149,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 部件
 
-*Populate Backgrounds with Components is very useful when you build letters based on other, e.g., ae or oe can take an e in the background. The script puts the e in the background of each master, and the UI has an option to align selected points with the e in the background. If you use corner components for serifs in a multiple-master font, the Propagate script will save you a lot of time.*
+*Populate Backgrounds with Components is very useful when you build letters based on other, e.g., ae or oe can take an e in the background. The script puts the e in the background of each master, and the UI has an option to align selected points with the e in the background. If you use corner components for serifs in a multiple-master font, the Propagate script will save you a lot of time.當您基於其他字母構建字母時，使用組件填充背景非常有用，例如，ae 或 oe 可以在背景中使用 e。該腳本將 e 放在每個母版的背景中，UI 有一個選項可以將選定的點與背景中的 e 對齊。如果您在多母版字體中為襯線使用角組件，傳播腳本將為您節省大量時間。*
 
 * **Alignment Manager:** Enables or disables automatic alignment for all components on visible layers in selected glyphs. Does the same as the command in the context menu, but you can do it in one step for many glyphs. *需要 Vanilla JavaScript*
 * **Component Problem Finder:** Find possible issues with components and corner components:  composable glyphs consisting of paths; locked, nested, orphaned, mirrored, shifted, rotated and scaled components; composite glyphs with an unusual component order or an unorthodox component structure. Also, disconnected and scaled corner components. *需要 Vanilla JavaScript*
@@ -168,7 +168,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 特性
 
-*In script typefaces, you may often need the Build Positional calt script. If you find yourself turning OT features on and off a lot, take a look at the Activate Default Features and Floating Features scripts. And check out the Set Palette from Window > Plugin Manager.*
+*In script typefaces, you may often need the Build Positional calt script. If you find yourself turning OT features on and off a lot, take a look at the Activate Default Features and Floating Features scripts. And check out the Set Palette from Window > Plugin Manager.在腳本字體中，您可能經常需要 Build Positional calt 腳本。如果您發現自己經常打開和關閉 OT 功能，請查看激活默認功能和浮動功能腳本。並從 Window > Plugin Manager 查看 Set Palette。*
 
 * **Activate Default Features:** In the current Edit tab, activates all OT features that are recommended to be on by default (according to the spec).
 * **Build ccmp for Hebrew Presentation Forms:** Builds the ccmp feature for precomposed `uniFBxx` glyphs, e.g. if you have pedagesh, you get 'sub pe dagesh by pedagesh' in your ccmp.
@@ -189,7 +189,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 字型資訊
 
-*Vertical Metrics is useful for finding and syncing the vertical metric parameters in Font Info > Font and Font Info > Masters. Clean Version String is very useful too. Font Info Batch Setter is a must for syncing Font Info settings across many fonts. Careful about Set WWS/Preferred Names scripts: The app usually takes care of naming automatically, so their use cases are very rare.*
+*Vertical Metrics is useful for finding and syncing the vertical metric parameters in Font Info > Font and Font Info > Masters. Clean Version String is very useful too. Font Info Batch Setter is a must for syncing Font Info settings across many fonts. Careful about Set WWS/Preferred Names scripts: The app usually takes care of naming automatically, so their use cases are very rare.Vertical Metrics 對於在 Font Info > Font and Font Info > Masters 中查找和同步垂直度量參數很有用。Clean Version String 也非常有用。Font Info Batch Setter 是跨多種字體同步字體信息設置的必備工具。注意 Set WWS/Preferred Names 腳本：該應用程序通常會自動處理命名，因此它們的用例非常少。*
 
 * **Clean Version String:** Adds a clean versionString parameter, and disables ttfAutohint info in the version string. The exported font will have a version string consisting only of ‘Version X.XXX’.
 * **Find and Replace in Font Info:** Finds and replaces names in *Font Info > Font* and *Font Info > Instances.* *需要 Vanilla JavaScript*
@@ -207,7 +207,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 字形名稱、註釋和 Unicode
 
-*Most scripts make managing glyph names and Unicodes a little easier. Garbage Collection is useful for cleaning up the mess of the reporter scripts, or other annotations before you hand the files over to a third party.*
+*Most scripts make managing glyph names and Unicodes a little easier. Garbage Collection is useful for cleaning up the mess of the reporter scripts, or other annotations before you hand the files over to a third party.大多數腳本使管理字形名稱和 Unicode 更容易一些。垃圾收集對於在將文件移交給第三方之前清理記者腳本或其他註釋的混亂很有用。*
 
 * **Add PUA Unicode Values to Selected Glyphs:** Iterates through selected glyphs and incrementally applies custom Unicode values, starting at a user-specified value. *需要 Vanilla JavaScript*
 * **Color Composites in Shade of Base Glyph:** Color composites in a lighter shade of the base glyph. E.g., if your A is has a red label color, then ÄÁÀĂ... will have a lighter shade of red.
@@ -223,7 +223,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 指南
 
-*These scripts are mostly intended for cleaning up the plethora of guides I see when working on third-party fonts.*
+*These scripts are mostly intended for cleaning up the plethora of guides I see when working on third-party fonts.這些腳本主要用於清理我在處理第三方字體時看到的過多指南。*
 
 * **Guides through All Selected Nodes:** Lays guides through all selected nodes in current glyph. Tries to avoid duplicate guides.
 * **Remove Global Guides in Current Master:** Deletes all global (red) guides in the current master.
@@ -233,7 +233,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 字體微調
 
-*Most important: Set blueScale, Set Family Alignment Zones for PostScript hinting. If you are making big changes, The Transfer and Keep Only scripts can save you a lot of work. The New Tab scripts help find glyphs missing zones. Also consider Paths > Find Near Vertical Misses for that purpose.*
+*Most important: Set blueScale, Set Family Alignment Zones for PostScript hinting. If you are making big changes, The Transfer and Keep Only scripts can save you a lot of work. The New Tab scripts help find glyphs missing zones. Also consider Paths > Find Near Vertical Misses for that purpose.最重要的是：設置 blueScale，為 PostScript 提示設置系列對齊區域。如果您要進行大的更改，Transfer 和 Keep Only 腳本可以為您節省大量工作。新標籤腳本有助於找到字形缺失區域。為此，還可以考慮路徑 > 查找近垂直未命中。*
 
 * **Add Alignment Zones for Selected Glyphs:** Creates fitting zones for the selected glyphs in all masters. *需要 Vanilla JavaScript*
 * **Add Hints for Selected Nodes:** Adds hints for the selected nodes. Tries to guess whether it should be H or V. If exactly one node inside a zone is selected, it will add a Ghost Hint. Useful for setting a shortcut in System Prefs.
@@ -256,7 +256,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 圖片
 
-*Mainly intended for curing the headaches you may undergo when handling a lot of (background) images.*
+*Mainly intended for curing the headaches you may undergo when handling a lot of (background) images.主要用於解決處理大量（背景）圖像時可能遇到的頭痛問題。*
 
 * **Add Same Image to Selected Glyphs:** Asks you for an image, and then inserts it into all currently selected glyphs as background image.
 * **Adjust Image Alpha:** Slider for setting the alpha of all images in selected glyphs. *需要 Vanilla JavaScript*
@@ -269,7 +269,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 插值
 
-*Most important: Insert Instances (for determining your instances and their style linking), Kink Finder and Find Shapeshifting Glyphs. I use Show Next/Previous Instance with the keyboard shortcut ctrl-up/down a lot.*
+*Most important: Insert Instances (for determining your instances and their style linking), Kink Finder and Find Shapeshifting Glyphs. I use Show Next/Previous Instance with the keyboard shortcut ctrl-up/down a lot.最重要的是：Insert Instances（用於確定您的實例及其樣式鏈接）、Kink Finder 和 Find Shapeshifting Glyphs。我經常使用 Show Next/Previous Instance 和鍵盤快捷鍵 ctrl-up/down。*
 
 * **Axis Location Setter:** Batch-set axis locations for all instances with a certain name particle. E.g., set an axis location for all Condensed instances. *需要 Vanilla JavaScript*
 * **Axis Mapper:** Extracts, resets and inserts an ‘avar’ axis mapping for the Axis Mappings parameter. *需要 Vanilla JavaScript*
@@ -304,7 +304,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## Kerning
 
-*Most important: Auto Bumper, KernCrasher, GapFinder, Sample String Maker. If you have too much kerning, consider Exception Cleaner.*
+*Most important: Auto Bumper, KernCrasher, GapFinder, Sample String Maker. If you have too much kerning, consider Exception Cleaner.最重要的：Auto Bumper、KernCrasher、GapFinder、Sample String Maker。如果字距調整太多，請考慮 Exception Cleaner。*
 
 * **Adjust Kerning in Master:** GUI to add a value to all kerning pairs, multiply them by a value, round them by a value, or limit them to a value. *需要 Vanilla JavaScript*
 * **Auto Bumper:** Specify a minimum distance, left and right glyphs, and Auto Bumper will add the minimum necessary kerning for the current master. *需要 Vanilla JavaScript*
@@ -342,7 +342,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 路徑
 
-*I use Rotate Around Anchor for my asterisks. Important for outline checking: Path Problem Finder, Find Near Vertical Misses and the Green Blue Manager. Rewire Fire has become important in OTVar production, because it helps reduce duplicate outline segments at shape edges (which create dark spots in anti-aliasing).*
+*I use Rotate Around Anchor for my asterisks. Important for outline checking: Path Problem Finder, Find Near Vertical Misses and the Green Blue Manager. Rewire Fire has become important in OTVar production, because it helps reduce duplicate outline segments at shape edges (which create dark spots in anti-aliasing).我為我的星號使用 Rotate Around Anchor。對於輪廓檢查很重要：Path Problem Finder、Find Near Vertical Misses 和 Green Blue Manager。Rewire Fire 在 OTVar 製作中變得很重要，因為它有助於減少形狀邊緣處的重複輪廓段（這會在抗鋸齒中產生暗點）。*
 
 * **Align Selected Nodes with Background:** Align selected nodes with the nearest background node unless it is already taken by a previously moved node. Like Cmd-Shift-A for aligning a single node with the background, but for multiple nodes.
 * **Batch-Set Path Attributes:** Set path attributes of all paths in selected glyphs, the master, the font, etc. *需要 Vanilla JavaScript*
@@ -372,7 +372,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 點陣字型
 
-*These scripts are useful for a pixelfont workflow, where you place a pixel component in a coarser grid. If you are doing pixel designs, take a look at the pixel-related plug-ins available in Window > Plugin Manager.*
+*These scripts are useful for a pixelfont workflow, where you place a pixel component in a coarser grid. If you are doing pixel designs, take a look at the pixel-related plug-ins available in Window > Plugin Manager.這些腳本對於 pixelfont 工作流程很有用，您可以在其中將像素組件放置在較粗糙的網格中。如果您正在進行像素設計，請查看窗口 > 插件管理器中可用的像素相關插件。*
 
 * **Align Anchors to Grid:** Snaps diacritic anchors onto the font grid.
 * **Delete Components out of Bounds:** If a component is placed far outside the usual coordinates (happens when you cmd-arrow components with a high grid step), this script will delete them.
@@ -382,14 +382,14 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 小體大寫字母
 
-*When I have Smallcaps in my font, I always run Check Smallcap Consistency. Take its report with a grain of salt though: it lists a lot of false positives, and not every warning is equally important.*
+*When I have Smallcaps in my font, I always run Check Smallcap Consistency. Take its report with a grain of salt though: it lists a lot of false positives, and not every warning is equally important.當我的字體中有 Smallcaps 時，我總是運行 Check Smallcap Consistency。不過，對它的報告持保留態度：它列出了很多誤報，而且並非每個警告都同樣重要。*
 
 * **Check Smallcap Consistency:** Performs a few tests on your SC set and reports into the Macro window, especially kerning groups and glyph set.
 * **Copy Kerning from Caps to Smallcaps:** Looks for cap kerning pairs and reduplicates their kerning for corresponding .sc glyphs, if they are available in the font. Please be careful: Will overwrite existing SC kerning pairs.
 
 ## 間距
 
-*Most important: Fix Math Operator Spacing, Bracket Metrics Manager and, if you have arrows, Fix Arrow Positioning. The New Tab scripts are useful when creating figures.*
+*Most important: Fix Math Operator Spacing, Bracket Metrics Manager and, if you have arrows, Fix Arrow Positioning. The New Tab scripts are useful when creating figures.最重要的是：修復數學運算符間距、括號度量管理器，如果有箭頭，修復箭頭定位。新建標籤腳本在創建圖形時很有用。*
 
 * **Add Metrics Keys for Symmetric Glyphs:** Will add RSB =| if the RSB is the same as the LSB in all masters. *需要 Vanilla JavaScript*
 * **Bracket Metrics Manager:** Manage the sidebearings and widths of bracket layers, e.g., dollar and cent. *需要 Vanilla JavaScript*
@@ -414,10 +414,10 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 *推薦「測試用 HTML 腳本」。如果您在 Adobe 或 Apple 應用程式中發現選取框異常的高或低，可以執行「最高和最低點字符報告」查詢找出導致狀況發生的字符。「拉丁字母支援語言報告」提供的資訊是參考性的建議，不是絕對要遵守的規範。*
 
-* **Copy InDesign Test Text / 複製 InDesign 測試文字：** 將 InDesign 的測試文字複製到剪貼簿。 *無軟體測試 功能困惑*
-* **Copy Word Test Text / 複製 Word 測試文字：** 將 Word 的測試文字複製到剪貼簿。 *無軟體測試 功能困惑*
+* **Copy InDesign Test Text / 複製 InDesign 測試文字：** 將 InDesign 的測試文字複製到剪貼簿。 *:question:功能 無軟體測試*
+* **Copy Word Test Text / 複製 Word 測試文字：** 將 Word 的測試文字複製到剪貼簿。 *:question:功能 無軟體測試*
 * **Language Report / 拉丁字母支援語言報告：** 在巨集視窗輸出讓您初步了解您的拉丁字符支持多少種語言以及哪些語言的資訊。基於 Underware's Latin-Plus 列表，並進行了修改。
-* **Pangram Helper / 全字母句小幫手：** 幫助您編寫歐文的全字母句，您可以將其複製到剪貼簿或放入新分頁中。 *需要 Vanilla JavaScript* *其他字母句要自己添加？ 成果困惑*
+* **Pangram Helper / 全字母句小幫手：** 幫助您編寫歐文的全字母句，您可以將其複製到剪貼簿或放入新分頁中。 *需要 Vanilla JavaScript* *:question:成果 其他字母句要自己添加？*
 * **Report Highest and Lowest Glyphs / 最高和最低點字符報告：** 讀取所有母版的所有字符，在巨集視窗輸出最高和最低點字符的資訊。
 * **Variable Font Test HTML / 可變字型測試 HTML：** 為目前已輸出到資料夾的可變字型在預設瀏覽器開啟一個測試用的 HTML。
 * **Webfont Test HTML / 網頁字型測試 HTML：** 為目前已輸出到資料夾的網頁字型或當前的字符專案在預設瀏覽器開啟一個測試用的 HTML。
