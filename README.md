@@ -52,7 +52,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 錨點
 
-*「錨點移動器」用於批次處理錨點位置，在調整 x 高度之後會很有用。 輕而易舉：我總是在我的組合標記上使用「重新定位」腳本，因此就算在斜體角度也能維持一致。*
+*「錨點移動器」用於批次處理錨點位置，在調整 x 高度之後會很有用。 輕而易舉：在組合標記上使用「重新定位」腳本，能讓你在斜體角度時也能維持一致。*
 
 * **Anchor Mover / 錨點移動器：** GUI for batch-processing anchor positions in multiple glyphs. *需要 香草JS*
 * **Batch Insert Anchors / (翻譯名稱)：** GUI for batch-inserting anchors of the same name at the same approximate position in multiple glyphs. *需要 香草JS*
@@ -78,12 +78,12 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 應用程式
 
-*如果您正在寫程式，請為「方法報告器」添加快捷鍵，您將非常需要它。如果你想要一個與解析度無關的視窗內容的PDF螢幕截圖讓你可以在向量插圖應用程式中進行後製，「列印視窗」可以派上用場。*
+*如果你正在寫程式，請為「方法報告器」添加快捷鍵，你將非常需要它。如果你想要一個與解析度無關的視窗內容的PDF螢幕截圖讓你可以在向量插圖應用程式中進行後製，「列印視窗」可以派上用場。*
 
 * **Close All Tabs of All Open Fonts / 關閉所有字型檔的編輯分頁：** 關閉目前在應用程式中開啟字型檔的所有編輯分頁。
 * **Copy Download URL for Current App Version / 複製目前應用程式版本的下載連結：** 將目前 Glyphs 應用程式版本的下載連結放入剪貼簿以便於貼上。
-* **Decrease and Increase Line Height / 減少和增加行高：** 將「編輯畫面」的行高增加四分之一或減少五分之一。如果您需要在行高之間頻繁切換，推薦將它們設定到快捷鍵。
-* **Method Reporter / 方法報告器：** 圖形使用者介面用於過濾 Glyphs 中可用的 Python 和 PyObjC 類的方法名稱。您可以使用多個空格分隔檢索詞（用於 AND 串接）和星號作為未知字元（可放在開頭、中間和結尾）。按兩下可將方法名稱放入剪貼簿，然後在巨集視窗中打開説明。對寫程式的人很有用。 *需要 香草JS*
+* **Decrease and Increase Line Height / 減少和增加行高：** 將「編輯畫面」的行高增加四分之一或減少五分之一。如果你需要在行高之間頻繁切換，推薦將它們設定到快捷鍵。
+* **Method Reporter / 方法報告器：** 圖形使用者介面用於過濾 Glyphs 中可用的 Python 和 PyObjC 類的方法名稱。你可以使用多個空格分隔檢索詞（用於 AND 串接）和星號作為未知字元（可放在開頭、中間和結尾）。按兩下可將方法名稱放入剪貼簿，然後在巨集視窗中打開説明。對寫程式的人很有用。 *需要 香草JS*
 * **Navigate - Activate next and previous glyph / ：** 啟動下一個或上一個字符的編輯模式。
 * **Parameter Reporter / 參數報告器：** 類似於方法報告器，但用於自定義參數。按兩下以複製剪貼簿中的參數，準備貼到字型資訊中。 *需要 香草JS*
 * **Print Window / 列印視窗：** 列印當前視窗。用於保存視窗內容的向量 PDF，包括檢視器外掛的渲染（“顯示”選單的擴展）。 *:question:成果*
@@ -98,7 +98,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 建構字符
 
-*推薦腳本：「引用符管理器」，以及用於小型大寫數字、符號和 ​​Ldot 的「構建腳本」。其他腳本主要是為了讓您快速開始覆蓋某些 Unicode 範圍如果客戶有需求。*
+*推薦腳本：「引用符管理器」，以及用於小型大寫數字、符號和 ​​Ldot 的「構建腳本」。其他腳本主要是為了讓你快速開始覆蓋某些 Unicode 範圍如果客戶有需求。*
 
 * **Build APL Greek / (翻譯名稱)：** Create APL Greek glyphs.
 * **Build careof and cadauna / (翻譯名稱)：** Builds `cadauna` and `careof` from your `c`, `o`, `u` and `fraction` glyphs.
@@ -120,7 +120,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 彩色字型
 
-*這些腳本能幫助您在製作彩色字體的工作流程中解決遇到的問題。「合併腳本」主要用於為 CPAL/COLR 字型創建後備字符。這個方式產生的後備字符將會填滿編輯框，且不會在 Chrome 瀏覽器中發生裁切。*
+*這些腳本能幫助你在製作彩色字體的工作流程中解決遇到的問題。「合併腳本」主要用於為 CPAL/COLR 字型創建後備字符。這個方式產生的後備字符將會填滿編輯框，且不會在 Chrome 瀏覽器中發生裁切。*
 
 * **Add All Missing Color Layers to Selected Glyphs / (翻譯名稱)：** Adds a duplicate of the fallback layer for each (CPAL/COLR) color defined in the Color Palettes parameter, for each selected glyph. Only adds colors that are still missing in the glyph.
 * **Add sbix Images to Font / (翻譯名稱)：** Will get all PNG, GIF, JPG files in a folder and create iColor layers with them in the current font and master. File name convention: ‘glyphname pixelsize.suffix’, e.g., ‘Adieresis 128.png’.
@@ -132,7 +132,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 比較當前字型
 
-*這些腳本用於同步正體和它們的斜體。打開兩個字型檔，然後運行腳本。它們不會更改您的字型，但會在巨集視窗中顯示詳細的報告。*
+*這些腳本用於同步正體和它們的斜體。打開兩個字型檔，然後運行腳本。它們不會更改你的字型，但會在巨集視窗中顯示詳細的報告。*
 
 * **Compare Font Info > Font / (翻譯名稱)：** Detailed report of Font Info > Masters for the two frontmost fonts and outputs a report in the Macro window.
 * **Compare Font Info > Masters / (翻譯名稱)：** Detailed report of Font Info > Masters for the two frontmost fonts and outputs a report in the Macro window.
@@ -149,7 +149,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 組件
 
-*當您使用其他字母構建字母時「使用組件填充背景」非常有用，例如：ae 或 oe，該腳本將會把 e 放在每個母版的背景中，且使用者介面有一個選項可以將選定的點與背景中的 e 對齊。如果您正在使用角落組件製作多母版的襯線字體，「傳播角落組件到其他主板」將為您節省大量時間。*
+*當你使用其他字母構建字母時「使用組件填充背景」非常有用，例如：ae 或 oe，該腳本將會把 e 放在每個母版的背景中，且使用者介面有一個選項可以將選定的點與背景中的 e 對齊。如果你正在使用角落組件製作多母版的襯線字體，「傳播角落組件到其他主板」將為你節省大量時間。*
 
 * **Alignment Manager / (翻譯名稱)：** Enables or disables automatic alignment for all components on visible layers in selected glyphs. Does the same as the command in the context menu, but you can do it in one step for many glyphs. *需要 香草JS*
 * **Component Problem Finder / (翻譯名稱)：** Find possible issues with components and corner components: composable glyphs consisting of paths; locked, nested, orphaned, mirrored, shifted, rotated and scaled components; composite glyphs with an unusual component order or an unorthodox component structure. Also, disconnected and scaled corner components. *需要 香草JS*
@@ -168,7 +168,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 特性
 
-*在製作手寫風格字體時，您可能經常需要「建構位置變體」的腳本。如果您發現自己經常開關 OT 功能，請用看看「啟動預設特性」和「浮動特性」腳本。並到 視窗 > 外掛程式管理員 看看 Set Palette 這個外掛。*
+*在製作手寫風格字體時，你可能經常需要「建構位置變體」的腳本。如果你發現自己經常開關 OT 功能，請用看看「啟動預設特性」和「浮動特性」腳本。並到 視窗 > 外掛程式管理員 看看 Set Palette 這個外掛。*
 
 * **Activate Default Features / 啟動預設特性：** In the current Edit tab, activates all OT features that are recommended to be on by default (according to the spec).
 * **Build ccmp for Hebrew Presentation Forms / (翻譯名稱)：** Builds the ccmp feature for precomposed `uniFBxx` glyphs, e.g. if you have pedagesh, you get 'sub pe dagesh by pedagesh' in your ccmp.
@@ -233,7 +233,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 字體微調
 
-*Most important: Set blueScale, Set Family Alignment Zones for PostScript hinting. If you are making big changes, The Transfer and Keep Only scripts can save you a lot of work. The New Tab scripts help find glyphs missing zones. Also consider Paths > Find Near Vertical Misses for that purpose.推薦腳本：「設定 blueScale」「為 PostScript 提示設置系列對齊區域」。如果您要進行大的更改，「Transfer」和「Keep Only」腳本可以為您節省大量工作。「新標籤」腳本有助於找到字形缺失區域。為此，還可以考慮路徑 > 查找近垂直未命中。*
+*Most important: Set blueScale, Set Family Alignment Zones for PostScript hinting. If you are making big changes, The Transfer and Keep Only scripts can save you a lot of work. The New Tab scripts help find glyphs missing zones. Also consider Paths > Find Near Vertical Misses for that purpose.推薦腳本：「設定 blueScale」「為 PostScript 提示設置系列對齊區域」。如果你要進行大的更改，「Transfer」和「Keep Only」腳本可以為你節省大量工作。「新標籤」腳本有助於找到字形缺失區域。為此，還可以考慮路徑 > 查找近垂直未命中。* *:question:翻譯 專業領域暫時擱置*
 
 * **Add Alignment Zones for Selected Glyphs / (翻譯名稱)：** Creates fitting zones for the selected glyphs in all masters. *需要 香草JS*
 * **Add Hints for Selected Nodes / (翻譯名稱)：** Adds hints for the selected nodes. Tries to guess whether it should be H or V. If exactly one node inside a zone is selected, it will add a Ghost Hint. Useful for setting a shortcut in System Prefs.
@@ -246,7 +246,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Remove PS Hints / (翻譯名稱)：** Deletes all stem and/or ghost hints throughout the current font, the selected master and/or the selected glyphs. *需要 香草JS*
 * **Remove TT Hints / (翻譯名稱)：** Deletes a user-specified set of TT instructions throughout the current font, the selected master and/or the selected glyphs. *需要 香草JS*
 * **Remove Zero Deltas in Selected Glyphs / (翻譯名稱)：** Goes through all layers of each selected glyph, and deletes all TT Delta Hints with an offset of zero. Detailed Report in Macro window.
-* **Set blueScale / (翻譯名稱)：** Sets maximum blueScale value (determining max size for overshoot suppression) possible in Font Info > Font. Outputs other options in Macro window.
+* **Set blueScale / 設定 blueScale：** Sets maximum blueScale value (determining max size for overshoot suppression) possible in Font Info > Font. Outputs other options in Macro window.
 * **Set Family Alignment Zones / (翻譯名稱)：** Pick an instance and set its zones as Family Alignment Zones in *Font Info > Font > Custom Parameters.* *需要 香草JS*
 * **Set TT Stem Hints to Auto / (翻譯名稱)：** Sets all TT stem hints to ‘auto’ in selected glyphs.
 * **Set TT Stem Hints to No Stem / (翻譯名稱)：** Sets all TT stem hints to ‘no stem’ in selected glyphs. In complex paths, it can improve rendering on Windows.
@@ -269,7 +269,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 插值
 
-*推薦腳本：「插入實體」（用於確認您的實體及其樣式正確的對應）、「拗折尋找」 和 「尋找變形字符」。作者經常搭配快捷鍵使用「顯示上/下一個實體」這個腳本。*
+*推薦腳本：「插入實體」（用於確認你的實體及其樣式正確的對應）、「拗折尋找」 和 「尋找變形字符」。作者經常搭配快捷鍵使用「顯示上/下一個實體」這個腳本。*
 
 * **Axis Location Setter / (翻譯名稱)：** Batch-set axis locations for all instances with a certain name particle. E.g., set an axis location for all Condensed instances. *需要 香草JS*
 * **Axis Mapper / (翻譯名稱)：** Extracts, resets and inserts an ‘avar’ axis mapping for the Axis Mappings parameter. *需要 香草JS*
@@ -372,7 +372,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 像素字型
 
-*這些腳本在像素字型的工作流程中都很有用，它們能幫助您在較粗的網格中放置像素組件。如果您正在進行像素設計，請看看 窗口 > 外掛程式管理員 中可用的像素相關外掛。*
+*這些腳本在像素字型的工作流程中都很有用，它們能幫助你在較粗的網格中放置像素組件。如果你正在進行像素設計，請看看 窗口 > 外掛程式管理員 中可用的像素相關外掛。*
 
 * **Align Anchors to Grid / (翻譯名稱)：** Snaps diacritic anchors onto the font grid.
 * **Delete Components out of Bounds / (翻譯名稱)：** If a component is placed far outside the usual coordinates (happens when you cmd-arrow components with a high grid step), this script will delete them.
@@ -412,12 +412,12 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 測試
 
-*推薦「測試用 HTML 腳本」。如果您在 Adobe 或 Apple 應用程式中發現選取框異常的高或低，可以執行「最高和最低點字符報告」查詢找出導致狀況發生的字符。「拉丁字母支援語言報告」提供的資訊是參考性的建議，不是絕對要遵守的規範。*
+*推薦「測試用 HTML 腳本」。如果你在 Adobe 或 Apple 應用程式中發現選取框異常的高或低，可以執行「最高和最低點字符報告」查詢找出導致狀況發生的字符。「拉丁字母支援語言報告」提供的資訊是參考性的建議，不是絕對要遵守的規範。*
 
 * **Copy InDesign Test Text / 複製 InDesign 測試文字：** 將 InDesign 的測試文字複製到剪貼簿。 *:question:功能 無軟體測試*
 * **Copy Word Test Text / 複製 Word 測試文字：** 將 Word 的測試文字複製到剪貼簿。 *:question:功能 無軟體測試*
-* **Language Report / 拉丁字母支援語言報告：** 在巨集視窗輸出讓您初步了解您的拉丁字符支持多少種語言以及哪些語言的資訊。基於 Underware's Latin-Plus 列表，並進行了修改。
-* **Pangram Helper / 全字母句小幫手：** 幫助您編寫歐文的全字母句，您可以將其複製到剪貼簿或放入新分頁中。 *需要 香草JS* *:question:成果 其他字母句要自己添加？*
+* **Language Report / 拉丁字母支援語言報告：** 在巨集視窗輸出讓你初步了解你的拉丁字符支持多少種語言以及哪些語言的資訊。基於 Underware's Latin-Plus 列表，並進行了修改。
+* **Pangram Helper / 全字母句小幫手：** 幫助你編寫歐文的全字母句，你可以將其複製到剪貼簿或放入新分頁中。 *需要 香草JS* *:question:成果 其他字母句要自己添加？*
 * **Report Highest and Lowest Glyphs / 最高和最低點字符報告：** 讀取所有母版的所有字符，在巨集視窗輸出最高和最低點字符的資訊。
 * **Variable Font Test HTML / 可變字型測試 HTML：** 為目前已輸出到資料夾的可變字型在預設瀏覽器開啟一個測試用的 HTML。
 * **Webfont Test HTML / 網頁字型測試 HTML：** 為目前已輸出到資料夾的網頁字型或當前的字符專案在預設瀏覽器開啟一個測試用的 HTML。
