@@ -336,11 +336,13 @@ class StraightStemCruncher(object):
 						#if p1.x==p2.x or p1.y==p2.y or not Glyphs.defaults["com.mekkablue.StraightStemCruncher.ignoreDiagonals"]:
 						if check:
 							if pointDistance(p1, p2) >= minLength:
-								measurement, centerOfStem = self.stemThicknessAtLine(
+								results = self.stemThicknessAtLine(
 									measureLayer, p1, p2, measureLength=max(100.0, measureLayer.bounds.size.width + measureLayer.bounds.size.height)
 									)
-								measurements.append(measurement)
-								centers.append(centerOfStem)
+								if results:
+									measurement, centerOfStem = results
+									measurements.append(measurement)
+									centers.append(centerOfStem)
 			else:
 				print(u"⚠️ Found path with only %i point%s%s." % (
 					nodeCount,
