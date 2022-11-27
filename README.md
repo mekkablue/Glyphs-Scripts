@@ -150,6 +150,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 *Populate Backgrounds with Components is very useful when you build letters based on other, e.g., ae or oe can take an e in the background. The script puts the e in the background of each master, and the UI has an option to align selected points with the e in the background. If you use corner components for serifs in a multiple-master font, the Propagate script will save you a lot of time.*
 
 * **Alignment Manager:** Enables or disables automatic alignment for all components on visible layers in selected glyphs. Does the same as the command in the context menu, but you can do it in one step for many glyphs. *Needs Vanilla.*
+* **Component Mover:** Batch edit (smart) components across selected glyphs. Change positions, scales and smart properties. *Needs Vanilla.*
 * **Component Problem Finder:** Find possible issues with components and corner components:  composable glyphs consisting of paths; locked, nested, orphaned, mirrored, shifted, rotated and scaled components; composite glyphs with an unusual component order or an unorthodox component structure. Also, disconnected and scaled corner components. *Needs Vanilla.*
 * **Decompose Components in Background:** Decomposes background layers of selected glyphs. Works on the current master or all masters, or all masters of all fonts.
 * **Decompose Corner and Cap Components:** Decomposes all corner and cap components in selected glyphs. Reports to Macro window.
