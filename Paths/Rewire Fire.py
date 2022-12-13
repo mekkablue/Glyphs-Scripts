@@ -8,7 +8,7 @@ Finds, selects and marks duplicate coordinates. Two nodes on the same position t
 import vanilla
 from Foundation import NSPoint, NSIntersectsRect
 
-def isOnLine(p1, p2, p3, threshold=0.6):
+def isOnLine(p1, p2, p3, threshold=2.01**0.5):
 	"""
 	Returns True if p3 is on and within p1-p2.
 	And not off more than threshold.
@@ -19,18 +19,29 @@ def isOnLine(p1, p2, p3, threshold=0.6):
 
 	dx = x2 - x1
 	dy = y2 - y1
-	d2 = dx * dx + dy * dy
+	d2 = dx**2 + dy**2
 	nx = ((x3 - x1) * dx + (y3 - y1) * dy) / d2
-
-	if distance(p3, NSPoint(dx * nx + x1, dy * nx + y1)) < threshold:
+	offset = distance(p3, NSPoint(dx * nx + x1, dy * nx + y1))
+	if offset < threshold:
 		if 0.0 < nx < 1.0:
 			return True
 
 	return False
 
 class RewireFire(object):
-	duplicateMarker = u"🔥"
-	onSegmentMarker = u"🧨"
+	prefID = "com.mekkablue.RewireFire"
+	prefDict = {
+		"setFireToNode": 1,
+		"dynamiteForOnSegment": 1,
+		"tolerateZeroSegments": 0,
+		"includeNonExporting": 1,
+		"shouldSelect": 1,
+		"openTabWithAffectedLayers": 1,
+		"reuseTab": 1,
+	}
+	
+	duplicateMarker = "🔥"
+	onSegmentMarker = "🧨"
 
 	def __init__(self):
 		# Window 'self.w':
@@ -40,19 +51,19 @@ class RewireFire(object):
 		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight), # default window size
-			u"%s Rewire Fire %s" % (self.duplicateMarker, self.onSegmentMarker), # window title
+			"%s Rewire Fire %s" % (self.duplicateMarker, self.onSegmentMarker), # window title
 			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.RewireFire.mainwindow" # stores last window position and size
+			autosaveName=self.domain("mainwindow") # stores last window position and size
 			)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), u"Finds candidates for rewiring with Reconnect Nodes.", sizeStyle='small', selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Finds candidates for rewiring with Reconnect Nodes.", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
 		self.w.setFireToNode = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), u"Mark duplicate nodes with fire emoji %s" % self.duplicateMarker, value=True, callback=self.SavePreferences, sizeStyle='small'
+			(inset, linePos - 1, -inset, 20), f"Mark duplicate nodes with fire emoji {self.duplicateMarker}", value=True, callback=self.SavePreferences, sizeStyle='small'
 			)
 		self.w.setFireToNode.getNSButton().setToolTip_(
 			"Finds different on-curve nodes that share the same coordinates. Emoji will be added as a node name. Node names may disappear after reconnection and path cleanup."
@@ -60,21 +71,21 @@ class RewireFire(object):
 		linePos += lineHeight
 
 		self.w.tolerateZeroSegments = vanilla.CheckBox(
-			(inset * 2, linePos - 1, -inset * 2, 20), u"Tolerate duplicate if it is neighboring node (OTVar)", value=False, callback=self.SavePreferences, sizeStyle='small'
+			(inset * 2, linePos - 1, -inset * 2, 20), "Tolerate duplicate if it is neighboring node (OTVar)", value=False, callback=self.SavePreferences, sizeStyle='small'
 			)
 		self.w.tolerateZeroSegments.getNSButton().setToolTip_(
-			u"If node coordinates within the same segment share the same coordinates, they will not be marked with a fire emoji. Makes sense in variable fonts, where segments need to disappear in a point in one master."
+			"If node coordinates within the same segment share the same coordinates, they will not be marked with a fire emoji. Makes sense in variable fonts, where segments need to disappear in a point in one master."
 			)
 		linePos += lineHeight
 
 		# DISABLED
-		# self.w.markWithCircle = vanilla.CheckBox( (inset, linePos-1, -inset, 20), u"Circle duplicate coordinates with annotation ⭕️", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		# self.w.markWithCircle = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Circle duplicate coordinates with annotation ⭕️", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		# self.w.markWithCircle.getNSButton().setToolTip_("Circle annotations remain after reconnecting the nodes.")
 		# linePos += lineHeight
 
 		self.w.dynamiteForOnSegment = vanilla.CheckBox(
 			(inset, linePos - 1, -inset, 20),
-			u"Mark nodes on top of line segments with dynamite emoji %s" % self.onSegmentMarker,
+			f"Mark nodes on top of line segments with dynamite emoji {self.onSegmentMarker}",
 			value=False,
 			callback=self.SavePreferences,
 			sizeStyle='small'
@@ -85,7 +96,7 @@ class RewireFire(object):
 		linePos += lineHeight
 
 		self.w.shouldSelect = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), u"Select nodes for rewiring on affected glyph layers", value=True, callback=self.SavePreferences, sizeStyle='small'
+			(inset, linePos - 1, -inset, 20), "Select nodes for rewiring on affected glyph layers", value=True, callback=self.SavePreferences, sizeStyle='small'
 			)
 		self.w.shouldSelect.getNSButton().setToolTip_(
 			"If nodes are found, will reset the layer selection and select only the affected nodes. In the best case, you should be able to right-click, hold down the Opt (Alt) key, and choose Reconnect Nodes on All Masters from the context menu."
@@ -93,25 +104,28 @@ class RewireFire(object):
 		linePos += lineHeight
 
 		self.w.includeNonExporting = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), u"Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small'
+			(inset, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small'
 			)
 		self.w.includeNonExporting.getNSButton().setToolTip_("Also check in glyphs that are not set to export. Recommended if you have modular components in the font.")
 		linePos += lineHeight
 
 		self.w.openTabWithAffectedLayers = vanilla.CheckBox(
-			(inset, linePos - 1, 200, 20), u"New tab with affected layers", value=False, callback=self.SavePreferences, sizeStyle='small'
+			(inset, linePos - 1, 200, 20), "New tab with affected layers", value=False, callback=self.SavePreferences, sizeStyle='small'
 			)
-		self.w.openTabWithAffectedLayers.getNSButton(
-		).setToolTip_("If checked, will open a new tab with all layers that contain duplicate coordinates. Otherwise, will report in Macro Window only.")
-		self.w.reuseTab = vanilla.CheckBox((inset + 200, linePos - 1, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab.getNSButton().setToolTip_("If enabled, will only open a new tab if there is none open yet. Otherwise will always open a new tab.")
+		self.w.openTabWithAffectedLayers.getNSButton().setToolTip_(
+			"If checked, will open a new tab with all layers that contain duplicate coordinates. Otherwise, will report in Macro Window only."
+			)
+		self.w.reuseTab = vanilla.CheckBox((inset + 200, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab.getNSButton().setToolTip_(
+			"If enabled, will only open a new tab if there is none open yet. Otherwise will always open a new tab."
+			)
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0) # set progress indicator to zero
 		linePos += lineHeight
 
-		self.w.statusText = vanilla.TextBox((inset, -20 - inset, -80 - inset, -inset), u"🤖 Ready.", sizeStyle='small', selectable=True)
+		self.w.statusText = vanilla.TextBox((inset, -20 - inset, -80 - inset, -inset), "🤖 Ready.", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
 		# Run Button:
@@ -132,51 +146,38 @@ class RewireFire(object):
 		self.w.reuseTab.enable(self.w.openTabWithAffectedLayers.get())
 		self.w.tolerateZeroSegments.enable(self.w.setFireToNode.get())
 
-	def SavePreferences(self, sender):
+	
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
+	def SavePreferences( self, sender=None ):
 		try:
-			Glyphs.defaults["com.mekkablue.RewireFire.openTabWithAffectedLayers"] = self.w.openTabWithAffectedLayers.get()
-			Glyphs.defaults["com.mekkablue.RewireFire.reuseTab"] = self.w.reuseTab.get()
-			Glyphs.defaults["com.mekkablue.RewireFire.setFireToNode"] = self.w.setFireToNode.get()
-			Glyphs.defaults["com.mekkablue.RewireFire.tolerateZeroSegments"] = self.w.tolerateZeroSegments.get()
-			Glyphs.defaults["com.mekkablue.RewireFire.includeNonExporting"] = self.w.includeNonExporting.get()
-			Glyphs.defaults["com.mekkablue.RewireFire.dynamiteForOnSegment"] = self.w.dynamiteForOnSegment.get()
-			Glyphs.defaults["com.mekkablue.RewireFire.shouldSelect"] = self.w.shouldSelect.get()
-
-			self.updateUI()
-
-			# DISABLED
-			# Glyphs.defaults["com.mekkablue.RewireFire.markWithCircle"] = self.w.markWithCircle.get()
+			# write current settings into prefs:
+			for prefName in self.prefDict.keys():
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
+			return True
 		except:
+			import traceback
+			print(traceback.format_exc())
 			return False
 
-		return True
-
-	def LoadPreferences(self):
+	def LoadPreferences( self ):
 		try:
-			Glyphs.registerDefault("com.mekkablue.RewireFire.openTabWithAffectedLayers", 0)
-			Glyphs.registerDefault("com.mekkablue.RewireFire.reuseTab", 1)
-			Glyphs.registerDefault("com.mekkablue.RewireFire.setFireToNode", 1)
-			Glyphs.registerDefault("com.mekkablue.RewireFire.tolerateZeroSegments", 0)
-			Glyphs.registerDefault("com.mekkablue.RewireFire.includeNonExporting", 1)
-			Glyphs.registerDefault("com.mekkablue.RewireFire.dynamiteForOnSegment", 1)
-			Glyphs.registerDefault("com.mekkablue.RewireFire.shouldSelect", 1)
-			self.w.openTabWithAffectedLayers.set(Glyphs.defaults["com.mekkablue.RewireFire.openTabWithAffectedLayers"])
-			self.w.reuseTab.set(Glyphs.defaults["com.mekkablue.RewireFire.reuseTab"])
-			self.w.setFireToNode.set(Glyphs.defaults["com.mekkablue.RewireFire.setFireToNode"])
-			self.w.tolerateZeroSegments.set(Glyphs.defaults["com.mekkablue.RewireFire.tolerateZeroSegments"])
-			self.w.includeNonExporting.set(Glyphs.defaults["com.mekkablue.RewireFire.includeNonExporting"])
-			self.w.dynamiteForOnSegment.set(Glyphs.defaults["com.mekkablue.RewireFire.dynamiteForOnSegment"])
-			self.w.shouldSelect.set(Glyphs.defaults["com.mekkablue.RewireFire.shouldSelect"])
-
-			self.updateUI()
-
-			# DISABLED
-			# Glyphs.registerDefault("com.mekkablue.RewireFire.markWithCircle", 0)
-			# self.w.markWithCircle.set( Glyphs.defaults["com.mekkablue.RewireFire.markWithCircle"] )
+			for prefName in self.prefDict.keys():
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
+				# load previously written prefs:
+				getattr(self.w, prefName).set( self.pref(prefName) )
+			return True
 		except:
+			import traceback
+			print(traceback.format_exc())
 			return False
-
-		return True
 
 	def circleInLayerAtPosition(self, layer, position, width=25.0):
 		circle = GSAnnotation()
@@ -208,17 +209,16 @@ class RewireFire(object):
 									for n3 in pp.nodes:
 										if n3 != n1 and n3 != n2 and n3.type != GSOFFCURVE:
 											p3 = n3.position
-
 											# find projection with threshold:
-											if isOnLine(p1, p2, p3, threshold=0.499):
+											if isOnLine(p1, p2, p3):
 												affectedNodes.append(n3)
 
 		if affectedNodes:
 			thisGlyph = l.parent
 			print()
-			print(u"%s, layer '%s': %i nodes on line segments" % (thisGlyph.name, l.name, len(affectedNodes)))
+			print(f"🔠 {thisGlyph.name}, layer ‘{l.name}’: {len(affectedNodes)} nodes on line segments")
 			for node in affectedNodes:
-				print(u"   %s x %.1f, y %.1f" % (self.onSegmentMarker, node.x, node.y))
+				print(f"   {self.onSegmentMarker} x {node.x}, y {node.y}")
 
 			for n3 in affectedNodes:
 				if dynamiteForOnSegment:
@@ -251,9 +251,9 @@ class RewireFire(object):
 		if duplicateCoordinates:
 			thisGlyph = thisLayer.parent
 			print()
-			print(u"%s, layer '%s': %i duplicates" % (thisGlyph.name, thisLayer.name, len(duplicateCoordinates)))
+			print(f"🔠 {thisGlyph.name}, layer ‘{thisLayer.name}’: {len(duplicateCoordinates)} duplicates")
 			for dupe in duplicateCoordinates:
-				print(u"   %s x %.1f, y %.1f" % (self.duplicateMarker, dupe.x, dupe.y))
+				print(f"   {self.duplicateMarker} x {dupe.x}, y {dupe.y}")
 
 			# if markWithCircle:
 			# 	coords = set([(p.x,p.y) for p in duplicateCoordinates])
@@ -274,12 +274,12 @@ class RewireFire(object):
 			if not self.SavePreferences(self):
 				print("Note: 'Rewire Fire' could not write preferences.")
 
-			includeNonExporting = Glyphs.defaults["com.mekkablue.RewireFire.includeNonExporting"]
-			setFireToNode = Glyphs.defaults["com.mekkablue.RewireFire.setFireToNode"]
-			shouldSelect = Glyphs.defaults["com.mekkablue.RewireFire.shouldSelect"]
-			dynamiteForOnSegment = Glyphs.defaults["com.mekkablue.RewireFire.dynamiteForOnSegment"]
-			tolerateZeroSegments = Glyphs.defaults["com.mekkablue.RewireFire.tolerateZeroSegments"]
-			# markWithCircle = Glyphs.defaults["com.mekkablue.RewireFire.markWithCircle"]
+			includeNonExporting = self.pref("includeNonExporting")
+			setFireToNode = self.pref("setFireToNode")
+			shouldSelect = self.pref("shouldSelect")
+			dynamiteForOnSegment = self.pref("dynamiteForOnSegment")
+			tolerateZeroSegments = self.pref("tolerateZeroSegments")
+			# markWithCircle = self.pref("markWithCircle")
 
 			thisFont = Glyphs.font # frontmost font
 			print("Rewire Fire Report for %s" % thisFont.familyName)
@@ -293,7 +293,7 @@ class RewireFire(object):
 
 			for i, thisGlyph in enumerate(thisFont.glyphs):
 				self.w.progress.set(int(i / numGlyphs * 100))
-				self.w.statusText.set(u"🔠 Processing %s" % thisGlyph.name)
+				self.w.statusText.set("🔠 Processing %s" % thisGlyph.name)
 
 				if thisGlyph.export or includeNonExporting:
 					for thisLayer in thisGlyph.layers:
@@ -312,20 +312,20 @@ class RewireFire(object):
 									affectedLayers.append(thisLayer)
 
 			self.w.progress.set(0)
-			self.w.statusText.set(u"✅ Done.")
+			self.w.statusText.set("✅ Done.")
 
 			if not affectedLayers:
-				Message(title="No Duplicates Found", message=u"Could not find any nodes for rewiring in %s." % thisFont.familyName, OKButton=u"😇 Cool")
+				Message(title="No Duplicates Found", message="Could not find any nodes for rewiring in %s." % thisFont.familyName, OKButton="😇 Cool")
 			else:
 				# Floating notification:
 				Glyphs.showNotification(
-					u"%s: found nodes for rewiring" % (thisFont.familyName),
-					u"Found nodes for rewiring on %i layers. Details in Macro Window." % len(affectedLayers),
+					"%s: found nodes for rewiring" % (thisFont.familyName),
+					"Found nodes for rewiring on %i layers. Details in Macro Window." % len(affectedLayers),
 					)
 
 				# opens new Edit tab:
-				if Glyphs.defaults["com.mekkablue.RewireFire.openTabWithAffectedLayers"]:
-					if thisFont.currentTab and Glyphs.defaults["com.mekkablue.RewireFire.reuseTab"]:
+				if self.pref("openTabWithAffectedLayers"):
+					if thisFont.currentTab and self.pref("reuseTab"):
 						thisFont.currentTab.layers = affectedLayers
 					else:
 						newTab = thisFont.newTab()
