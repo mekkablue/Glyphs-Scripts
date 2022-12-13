@@ -118,12 +118,14 @@ def buildKernStrings(listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None,
 		for leftName in listOfLeftGlyphNames:
 
 			# Hardcoded changes to prevent Æ/æ from appearing instead of E/e:
-			if leftName == "ae" and thisFont.glyphs["ae"].rightKerningGroup == thisFont.glyphs["e"].rightKerningGroup:
-				leftName = "e"
-			if leftName == "ae.sc" and thisFont.glyphs["ae.sc"].rightKerningGroup == thisFont.glyphs["e.sc"].rightKerningGroup:
-				leftName = "e.sc"
-			if leftName == "AE" and thisFont.glyphs["AE"].rightKerningGroup == thisFont.glyphs["E"].rightKerningGroup:
-				leftName = "E"
+			hardcodedPairs = (
+				("ae", "e"),
+				("ae.sc", "e.sc"),
+				("AE", "E"),
+			)
+			for hardcodedLeftName, hardcodedLeftTargetName in hardcodedPairs:
+				if leftName == hardcodedLeftName and thisFont.glyphs[hardcodedLeftName].rightKerningGroup == thisFont.glyphs[hardcodedLeftTargetName].rightKerningGroup:
+					leftName = hardcodedLeftTargetName
 
 			leftGroup = thisFont.glyphs[leftName].rightKerningGroup
 			if (leftGroup is not None) and (not leftGroup in leftGroups):
@@ -134,13 +136,18 @@ def buildKernStrings(listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None,
 				for rightName in listOfRightGlyphNames:
 
 					# Hardcoded changes:
-					if rightName == "idotless" and thisFont.glyphs["idotless"].leftKerningGroup == thisFont.glyphs["n"].leftKerningGroup:
-						rightName = "n"
-					if rightName == "idotless" and thisFont.glyphs["idotless"].leftKerningGroup == thisFont.glyphs["i"].leftKerningGroup:
-						rightName = "i"
-					if rightName == "jdotless" and thisFont.glyphs["jdotless"].leftKerningGroup == thisFont.glyphs["j"].leftKerningGroup:
-						rightName = "j"
-
+					hardcodedPairs = (
+						("idotless", "n"),
+						("idotless", "i"),
+						("jdotless", "j"),
+						("C", "O"),
+						("c", "o"),
+						("c.sc", "o.sc"),
+					)
+					for hardcodedRightName, hardcodedRightTargetName in hardcodedPairs:
+						if rightName == hardcodedRightName and thisFont.glyphs[hardcodedRightName].leftKerningGroup == thisFont.glyphs[hardcodedRightTargetName].leftKerningGroup:
+							rightName = hardcodedRightTargetName
+					
 					rightGroup = thisFont.glyphs[rightName].leftKerningGroup
 					if (rightGroup is not None) and (not rightGroup in rightGroups):
 						rightGroups.append(rightGroup)

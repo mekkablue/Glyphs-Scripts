@@ -9,6 +9,20 @@ import vanilla, sampleText, kernanalysis
 CASE = (None, "Uppercase", "Lowercase", "Smallcaps", "Minor")
 
 class SampleStringMaker(object):
+	prefID = "com.mekkablue.SampleStringMaker"
+	prefDict = {
+		"scriptPopup": 0,
+		"leftCategoryPopup": 0,
+		"rightCategoryPopup": 0,
+		"includeNonExporting": 0,
+		"excludedGlyphNameParts": ".tf, .tosf, ord, Ldot, ldot, .loclCAT",
+		"openTab": 1,
+		"lockKerning": 1,
+		"overrideContext": 0,
+		"contextGlyphs": "HOOH,noon",
+		"mirrorPair": 0,
+	}
+
 	categoryList = (
 		"Letter:Uppercase",
 		"Letter:Lowercase",
@@ -36,8 +50,6 @@ class SampleStringMaker(object):
 		"florin",
 		)
 
-	prefID = "com.mekkablue.SampleStringMaker"
-
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 340
@@ -55,31 +67,31 @@ class SampleStringMaker(object):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), u"Builds group kern strings, adds them to the Sample Texts.", sizeStyle='small', selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Builds group kern strings, adds them to the Sample Texts.", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.scriptText = vanilla.TextBox((inset, linePos + 2, 45, 14), u"Script:", sizeStyle='small', selectable=True)
+		self.w.scriptText = vanilla.TextBox((inset, linePos + 2, 45, 14), "Script:", sizeStyle='small', selectable=True)
 		self.w.scriptPopup = vanilla.PopUpButton((inset + 45, linePos, -inset, 17), self.scripts, sizeStyle='small', callback=self.SavePreferences)
 		self.w.scriptPopup.getNSPopUpButton().setToolTip_("Script for letters, will be ignored for all other categories (e.g., numbers).")
 		linePos += lineHeight
 
-		self.w.leftCategoryText = vanilla.TextBox((inset, linePos + 2, 90, 14), u"Left Category:", sizeStyle='small', selectable=True)
+		self.w.leftCategoryText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Left Category:", sizeStyle='small', selectable=True)
 		self.w.leftCategoryPopup = vanilla.PopUpButton((inset + 90, linePos, -inset, 17), self.categoryList, sizeStyle='small', callback=self.SavePreferences)
 		self.w.leftCategoryPopup.getNSPopUpButton().setToolTip_("Category:Subcategory for left side of kern pair.")
 		linePos += lineHeight
 
-		self.w.rightCategoryText = vanilla.TextBox((inset, linePos + 2, 90, 14), u"Right Category:", sizeStyle='small', selectable=True)
+		self.w.rightCategoryText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Right Category:", sizeStyle='small', selectable=True)
 		self.w.rightCategoryPopup = vanilla.PopUpButton((inset + 90, linePos, -inset, 17), self.categoryList, sizeStyle='small', callback=self.SavePreferences)
 		self.w.rightCategoryPopup.getNSPopUpButton().setToolTip_("Category:Subcategory for right side of kern pair.")
 		linePos += lineHeight
 
 		self.w.includeNonExporting = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), u"Also include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small'
+			(inset, linePos - 1, -inset, 20), "Also include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small'
 			)
 		self.w.includeNonExporting.getNSButton().setToolTip_("Also add glyphs of these categories if they are set to not export.")
 		linePos += lineHeight
 
-		self.w.excludeText = vanilla.TextBox((inset, linePos + 2, 150, 14), u"Exclude glyphs containing:", sizeStyle='small', selectable=True)
+		self.w.excludeText = vanilla.TextBox((inset, linePos + 2, 150, 14), "Exclude glyphs containing:", sizeStyle='small', selectable=True)
 		self.w.excludedGlyphNameParts = vanilla.EditText(
 			(inset + 150, linePos, -inset, 19), ".tf, .tosf, ord, Ldot, ldot, .loclCAT", callback=self.SavePreferences, sizeStyle='small'
 			)
@@ -87,19 +99,19 @@ class SampleStringMaker(object):
 		).setToolTip_("If the glyph name includes any of these comma-separated fragments, the glyph will be ignored. Always excluded: Ldot, ldot, ldot.sc, Fhook and florin.")
 		linePos += lineHeight
 
-		self.w.overrideContext = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Override context glyphs:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.overrideContext = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Override context glyphs:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.overrideContext.getNSButton().setToolTip_(
 			"If checked, the surrounding glyphs will be replaced with those given in the text box. Use a comma to differentiate the left-side context from the right-side context: ‘HOOH,noon’ will put HOOH on the left side, ‘noon’ on the right side."
 			)
 		self.w.contextGlyphs = vanilla.EditText((inset + 150, linePos, -inset, 19), "HOOH,noon", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.mirrorPair = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Mirror kerning pair (AV→AVA)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.mirrorPair = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Mirror kerning pair (AV→AVA)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.mirrorPair.getNSButton(
 		).setToolTip_("If checked, will create a mirrored version of the kerning string. E.g., instead of just AV, it will show AVA between the context glyphs.")
 		linePos += lineHeight
 
-		self.w.openTab = vanilla.CheckBox((inset, linePos - 1, 170, 20), u"Open tab at first kern string", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openTab = vanilla.CheckBox((inset, linePos - 1, 170, 20), "Open tab at first kern string", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.openTab.getNSButton().setToolTip_(
 			"If checked, a new tab will be opened with the first found kern string, and the cursor positioned accordingly, ready for group kerning and switching to the next sample string."
 			)
@@ -122,63 +134,34 @@ class SampleStringMaker(object):
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-
+	
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-
-	def updateGUI(self, sender=None):
-		self.w.lockKerning.enable(self.w.openTab.get())
-		self.w.contextGlyphs.enable(self.w.overrideContext.get())
-
-	def SavePreferences(self, sender):
+	
+	def SavePreferences( self, sender=None ):
 		try:
-			Glyphs.defaults[self.domain("scriptPopup")] = self.w.scriptPopup.get()
-			Glyphs.defaults[self.domain("leftCategoryPopup")] = self.w.leftCategoryPopup.get()
-			Glyphs.defaults[self.domain("rightCategoryPopup")] = self.w.rightCategoryPopup.get()
-			Glyphs.defaults[self.domain("includeNonExporting")] = self.w.includeNonExporting.get()
-			Glyphs.defaults[self.domain("excludedGlyphNameParts")] = self.w.excludedGlyphNameParts.get()
-			Glyphs.defaults[self.domain("openTab")] = self.w.openTab.get()
-			Glyphs.defaults[self.domain("lockKerning")] = self.w.lockKerning.get()
-			Glyphs.defaults[self.domain("overrideContext")] = self.w.overrideContext.get()
-			Glyphs.defaults[self.domain("contextGlyphs")] = self.w.contextGlyphs.get()
-			Glyphs.defaults[self.domain("mirrorPair")] = self.w.mirrorPair.get()
-
-			self.updateGUI()
+			# write current settings into prefs:
+			for prefName in self.prefDict.keys():
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
+			return True
 		except:
+			import traceback
+			print(traceback.format_exc())
 			return False
 
-		return True
-
-	def LoadPreferences(self):
+	def LoadPreferences( self ):
 		try:
-			Glyphs.registerDefault(self.domain("scriptPopup"), 0)
-			Glyphs.registerDefault(self.domain("leftCategoryPopup"), 0)
-			Glyphs.registerDefault(self.domain("rightCategoryPopup"), 0)
-			Glyphs.registerDefault(self.domain("includeNonExporting"), 0)
-			Glyphs.registerDefault(self.domain("excludedGlyphNameParts"), ".tf, .tosf, ord, Ldot, ldot, .loclCAT")
-			Glyphs.registerDefault(self.domain("openTab"), 1)
-			Glyphs.registerDefault(self.domain("lockKerning"), 1)
-			Glyphs.registerDefault(self.domain("overrideContext"), 0)
-			Glyphs.registerDefault(self.domain("contextGlyphs"), "HOOH,noon")
-			Glyphs.registerDefault(self.domain("mirrorPair"), 0)
-
-			self.w.scriptPopup.set(self.pref("scriptPopup"))
-			self.w.leftCategoryPopup.set(self.pref("leftCategoryPopup"))
-			self.w.rightCategoryPopup.set(self.pref("rightCategoryPopup"))
-			self.w.includeNonExporting.set(self.pref("includeNonExporting"))
-			self.w.excludedGlyphNameParts.set(self.pref("excludedGlyphNameParts"))
-			self.w.openTab.set(self.pref("openTab"))
-			self.w.lockKerning.set(self.pref("lockKerning"))
-			self.w.overrideContext.set(self.pref("overrideContext"))
-			self.w.contextGlyphs.set(self.pref("contextGlyphs"))
-			self.w.mirrorPair.set(self.pref("mirrorPair"))
-
-			self.updateGUI()
+			for prefName in self.prefDict.keys():
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
+				# load previously written prefs:
+				getattr(self.w, prefName).set( self.pref(prefName) )
+			return True
 		except:
+			import traceback
+			print(traceback.format_exc())
 			return False
-
-		return True
 
 	def glyphNameIsExcluded(self, glyphName):
 		forbiddenParts = [n.strip() for n in self.pref("excludedGlyphNameParts").split(",")]
@@ -189,7 +172,7 @@ class SampleStringMaker(object):
 
 	def parseTheContextGlyphs(self):
 		separator = ","
-		txt = self.w.contextGlyphs.get()
+		txt = self.pref("contextGlyphs")
 		if separator in txt:
 			lines = txt.split(separator)
 			linePrefix, linePostfix = lines[0], separator.join(lines[1:])
@@ -224,15 +207,15 @@ class SampleStringMaker(object):
 
 			glyphNamesLeft, glyphNamesRight = [], []
 			for g in thisFont.glyphs:
-				glyph_subCategory = g.subCategory
+				glyphSubCategory = g.subCategory
 				if Glyphs.versionNumber >= 3:
-					if glyph_subCategory is None:
-						glyph_subCategory = CASE[g.case]
+					if glyphSubCategory is None:
+						glyphSubCategory = CASE[g.case]
 
 				# LEFT
 				if g.category == leftCategory and \
-                ( leftSubCategory is None or glyph_subCategory == leftSubCategory ) and \
-                ( g.script == chosenScript or (leftCategory != "Letter" and g.script is None) ) and \
+                (leftSubCategory is None or ElviraSerifVariable == leftSubCategory) and \
+                (g.script == chosenScript or (leftCategory != "Letter" and g.script is None)) and \
                 (g.export or includeNonExporting) and \
                 not g.name in self.exclusion and \
                 not self.glyphNameIsExcluded(g.name):
@@ -240,8 +223,8 @@ class SampleStringMaker(object):
 
 				# RIGHT
 				if g.category == rightCategory and \
-                ( rightSubCategory is None or glyph_subCategory == rightSubCategory ) and \
-                ( g.script == chosenScript or (rightCategory != "Letter" and g.script is None) ) and \
+                (rightSubCategory is None or glyphSubCategory == rightSubCategory) and \
+                (g.script == chosenScript or (rightCategory != "Letter" and g.script is None)) and \
                 (g.export or includeNonExporting) and \
                 not g.name in self.exclusion and \
                 not self.glyphNameIsExcluded(g.name):
@@ -269,11 +252,11 @@ class SampleStringMaker(object):
 
 			# if rightSubCategory == "Uppercase":
 			# 	linePostfix = "HOOH"
-			if self.w.overrideContext.get() == 1:
+			if self.pref("overrideContext"):
 				linePrefix, linePostfix = self.parseTheContextGlyphs()
 
 			mirrorPair = False
-			if self.w.mirrorPair.get() == 1:
+			if self.pref("mirrorPair"):
 				mirrorPair = True
 
 			kernStrings = sampleText.buildKernStrings(glyphNamesLeft, glyphNamesRight, thisFont=thisFont, linePrefix=linePrefix, linePostfix=linePostfix, mirrorPair=mirrorPair)
