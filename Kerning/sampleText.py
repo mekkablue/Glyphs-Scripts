@@ -122,9 +122,12 @@ def buildKernStrings(listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None,
 				("ae", "e"),
 				("ae.sc", "e.sc"),
 				("AE", "E"),
+				(leftName, thisFont.glyphs[leftName].rightKerningGroup),
 			)
 			for hardcodedLeftName, hardcodedLeftTargetName in hardcodedPairs:
-				if leftName == hardcodedLeftName and thisFont.glyphs[hardcodedLeftName].rightKerningGroup == thisFont.glyphs[hardcodedLeftTargetName].rightKerningGroup:
+				leftGlyph = thisFont.glyphs[hardcodedLeftName]
+				leftTargetGlyph = thisFont.glyphs[hardcodedLeftTargetName]
+				if leftGlyph and leftTargetGlyph and leftName == hardcodedLeftName and leftGlyph.rightKerningGroup == leftTargetGlyph.rightKerningGroup:
 					leftName = hardcodedLeftTargetName
 
 			leftGroup = thisFont.glyphs[leftName].rightKerningGroup
@@ -143,9 +146,12 @@ def buildKernStrings(listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None,
 						("C", "O"),
 						("c", "o"),
 						("c.sc", "o.sc"),
+						(rightName, thisFont.glyphs[rightName].leftKerningGroup),
 					)
 					for hardcodedRightName, hardcodedRightTargetName in hardcodedPairs:
-						if rightName == hardcodedRightName and thisFont.glyphs[hardcodedRightName].leftKerningGroup == thisFont.glyphs[hardcodedRightTargetName].leftKerningGroup:
+						rightGlyph = thisFont.glyphs[hardcodedRightName]
+						rightTargetGlyph = thisFont.glyphs[hardcodedRightTargetName]
+						if rightGlyph and rightTargetGlyph and rightName == hardcodedRightName and rightGlyph.leftKerningGroup == rightTargetGlyph.leftKerningGroup:
 							rightName = hardcodedRightTargetName
 					
 					rightGroup = thisFont.glyphs[rightName].leftKerningGroup
