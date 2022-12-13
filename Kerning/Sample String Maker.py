@@ -174,8 +174,7 @@ class SampleStringMaker(object):
 		separator = ","
 		txt = self.pref("contextGlyphs")
 		if separator in txt:
-			lines = txt.split(separator)
-			linePrefix, linePostfix = lines[0], separator.join(lines[1:])
+			linePrefix, linePostfix = txt.split(separator)[:2]
 		else:
 			linePrefix, linePostfix = txt, txt
 		return linePrefix, linePostfix
@@ -214,7 +213,7 @@ class SampleStringMaker(object):
 
 				# LEFT
 				if g.category == leftCategory and \
-                (leftSubCategory is None or ElviraSerifVariable == leftSubCategory) and \
+                (leftSubCategory is None or glyphSubCategory == leftSubCategory) and \
                 (g.script == chosenScript or (leftCategory != "Letter" and g.script is None)) and \
                 (g.export or includeNonExporting) and \
                 not g.name in self.exclusion and \

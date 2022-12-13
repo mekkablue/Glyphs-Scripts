@@ -125,10 +125,11 @@ def buildKernStrings(listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None,
 				(leftName, thisFont.glyphs[leftName].rightKerningGroup),
 			)
 			for hardcodedLeftName, hardcodedLeftTargetName in hardcodedPairs:
-				leftGlyph = thisFont.glyphs[hardcodedLeftName]
-				leftTargetGlyph = thisFont.glyphs[hardcodedLeftTargetName]
-				if leftGlyph and leftTargetGlyph and leftName == hardcodedLeftName and leftGlyph.rightKerningGroup == leftTargetGlyph.rightKerningGroup:
-					leftName = hardcodedLeftTargetName
+				if hardcodedLeftName and hardcodedLeftTargetName:
+					leftGlyph = thisFont.glyphs[hardcodedLeftName]
+					leftTargetGlyph = thisFont.glyphs[hardcodedLeftTargetName]
+					if leftGlyph and leftTargetGlyph and leftName == hardcodedLeftName and leftGlyph.rightKerningGroup == leftTargetGlyph.rightKerningGroup:
+						leftName = hardcodedLeftTargetName
 
 			leftGroup = thisFont.glyphs[leftName].rightKerningGroup
 			if (leftGroup is not None) and (not leftGroup in leftGroups):
@@ -149,10 +150,11 @@ def buildKernStrings(listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None,
 						(rightName, thisFont.glyphs[rightName].leftKerningGroup),
 					)
 					for hardcodedRightName, hardcodedRightTargetName in hardcodedPairs:
-						rightGlyph = thisFont.glyphs[hardcodedRightName]
-						rightTargetGlyph = thisFont.glyphs[hardcodedRightTargetName]
-						if rightGlyph and rightTargetGlyph and rightName == hardcodedRightName and rightGlyph.leftKerningGroup == rightTargetGlyph.leftKerningGroup:
-							rightName = hardcodedRightTargetName
+						if hardcodedRightName and hardcodedRightTargetName:
+							rightGlyph = thisFont.glyphs[hardcodedRightName]
+							rightTargetGlyph = thisFont.glyphs[hardcodedRightTargetName]
+							if rightGlyph and rightTargetGlyph and rightName == hardcodedRightName and rightGlyph.leftKerningGroup == rightTargetGlyph.leftKerningGroup:
+								rightName = hardcodedRightTargetName
 					
 					rightGroup = thisFont.glyphs[rightName].leftKerningGroup
 					if (rightGroup is not None) and (not rightGroup in rightGroups):
@@ -160,7 +162,7 @@ def buildKernStrings(listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None,
 						if not mirrorPair:
 							kernString = "%s/%s/%s %s" % (linePrefix, leftName, rightName, linePostfix)
 						else:
-							kernString = "%s/%s/%s/%s %s" % (linePrefix, leftName, rightName, leftName, linePrefix)
+							kernString = "%s/%s/%s/%s %s" % (linePrefix, leftName, rightName, leftName, linePostfix)
 						kernStrings += [kernString]
 		return kernStrings
 
