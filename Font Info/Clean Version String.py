@@ -1,17 +1,30 @@
 #MenuTitle: Clean Version String
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-try:
-	from builtins import str
-except Exception as e:
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
+# try:
+# 	from builtins import str
+# except Exception as e:
+# 	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 __doc__ = """
 Adds a clean versionString parameter, and disables ttfAutohint info in the version string.
 """
 
+propKey = "versionString"
+propValue = "Version %d.%03d"
+
 thisFont = Glyphs.font # frontmost font
-thisFont.customParameters["versionString"] = "Version %d.%03d"
-print("Set: versionString='Version %d.%03d' in Font Info > Font")
+if Glyphs.versionNumber >= 3:
+	# GLYPHS 3
+	prop = GSFontInfoValueSingle()
+	prop.key = "versionString"
+	prop.value = "Version %d.%03d"
+	Font.properties.append(prop)
+else:
+	# GLYPHS 2
+	thisFont.customParameters[propKey] = propValue
+print(f"Set: {propKey}='{propValue}' in Font Info > Font")
+
+
 
 def removeFromAutohintOptions(thisInstance, removeOption):
 	parameter = thisInstance.customParameters[parameterName]
