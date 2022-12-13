@@ -24,22 +24,32 @@ def isPositional(glyphName):
 			return True
 	return False
 
+def correctForCursiveAttachment(layer, anchorName):
+	anchor = layer.anchors[anchorName]
+	if anchor:
+		layer.applyTransform((1,0,0,1,-anchor.x,-anchor.y))
+		layer.width = 0
+	return layer
+
 def doTheyClick(leftLayer, rightLayer, requiredClicks=2):
-	leftWidth = leftLayer.width
+	leftCompareLayer = correctForCursiveAttachment(leftLayer.copyDecomposedLayer(), "entry")
+	rightCompareLayer = correctForCursiveAttachment(rightLayer.copyDecomposedLayer(), "exit")
+	leftWidth = leftCompareLayer.width
 	rightCoordinates = []
-	for p in rightLayer.copyDecomposedLayer().paths:
+	for p in rightCompareLayer.paths:
 		for n in p.nodes:
 			if n.type != OFFCURVE:
 				coord = n.position
 				coord.x += leftWidth
 				rightCoordinates.append(coord)
 	clickCount = 0
-	for p in leftLayer.copyDecomposedLayer().paths:
+	for p in leftCompareLayer.paths:
 		for n in p.nodes:
 			if n.position in rightCoordinates:
 				clickCount += 1
 	if clickCount < requiredClicks:
 		print("❌ %s does not click with a following %s (%s)." % (rightLayer.parent.name, leftLayer.parent.name, leftLayer.name))
+		print(rightCoordinates)
 		return False
 	else:
 		print("✅ OK: %s ⟺ %s  Ⓜ️ %s" % (
@@ -70,7 +80,7 @@ class PositionClicker(object):
 			"Position Clicker", # window title
 			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.PositionClicker.mainwindow" # stores last window position and size
+			autosaveName=self.domain("mainwindow") # stores last window position and size
 			)
 
 		# UI elements:
