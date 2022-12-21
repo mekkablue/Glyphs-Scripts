@@ -322,7 +322,7 @@ def generateAxisDict(thisFont):
 
 def axisDictWithVirtualMastersForFont(thisFont, axisDict):
 	# go through *all* virtual masters:
-	virtualMasters = [cp for cp in thisFont.customParameters if cp.name == "Virtual Master"]
+	virtualMasters = [cp for cp in thisFont.customParameters if cp.name == "Virtual Master" and cp.active()]
 	for virtualMaster in virtualMasters:
 		for axis in virtualMaster.value:
 			name = axis["Axis"]
@@ -1102,7 +1102,7 @@ def listOfAllStyles(thisFont):
 		for axis in thisFont.axes:
 			axisTag = axis.axisTag
 			axisValue = coords[axisTag]
-			styleValues.append("%s:%i" % (axisTag, axisValue))
+			styleValues.append("%s:%i" % (str(axisTag), float(axisValue)))
 
 		# add HTML line:
 		htmlSnippet += "\n%s\t<option value='%s'>%s</option>" % (
