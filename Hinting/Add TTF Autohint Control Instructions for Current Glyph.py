@@ -198,7 +198,10 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(object):
 		Font = Glyphs.font
 
 		# determine current instance:
-		currentInstance = Font.instances[Font.currentTab.selectedInstance()]
+		try:
+			currentInstance = Font.instances[Font.currentTab.selectedInstance()]
+		except:
+			print("Couldn’t find instance")
 
 		# switch to Instructor tool:
 		ttInstructorClass = NSClassFromString("GlyphsToolTrueTypeInstructor")
