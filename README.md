@@ -54,26 +54,26 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 *「錨點移動器」用於批次處理錨點位置，在調整 x 高度之後會很有用。 輕而易舉：在組合標記上使用「重新定位」腳本，能讓你在斜體角度時也能維持一致。*
 
-* **Anchor Mover / 錨點移動器：** GUI for batch-processing anchor positions in multiple glyphs. *需要 香草JS*
-* **Batch Insert Anchors / (翻譯名稱)：** GUI for batch-inserting anchors of the same name at the same approximate position in multiple glyphs. *需要 香草JS*
-* **Find and Replace in Anchor Names / (翻譯名稱)：** GUI for replacing text in the names of anchors in selected glyphs. Processes all layers. *需要 香草JS*
-* **Fix Arabic Anchor Order in Ligatures / (翻譯名稱)：** Fixes the order of *top_X* and *bottom_X* anchors to RTL. In files converted from a different format, it sometimes happens that *top_1* is left of *top_2*, but it should be the other way around, otherwise your mark2liga will mess up. This script goes through your selected glyphs, and if they are Arabic ligatures, reorders all anchors to RTL order, at the same time not touching their coordinates.
-* **Insert All Anchors in All Layers / (翻譯名稱)：** On each layer of a selected glyph, adds all missing anchors (but present in other layers of that glyph). Puts anchors at an averaged position.
-* **Insert exit and entry Anchors to Selected Positional Glyphs / (翻譯名稱)：** Adds entry and exit anchors for cursive attachment in selected glyphs. By default, it places the exit at (0, 0) and the entry at a node at RSB if such a node exists. Please adjust for your own needs.
-* **Mark Mover / 標記移動器：** Move marks to their respective heights, e.g. …comb.case to cap height, …comb to x-height, etc. Also allows you to set left and right metrics keys. *需要 香草JS*
-* **Move ogonek Anchors to Baseline Intersection / (翻譯名稱)：** Moves all ogonek and _ogonek anchors to the rightmost intersection of the outline with the baseline.
-* **Move topright Anchors for Vertical Carons / (翻譯名稱)：** Moves all topright and _topright anchors to the rightmost intersection of the outline with the x-height. Useful for building Czech/Slovak letters with vertical caron.
-* **Move Vietnamese Marks to top_viet Anchor in Circumflex / (翻譯名稱)：** Moves *acute*, *grave* and *hookabovecomb* to the *top_viet* anchor in every layer of selected glyphs. Useful for Vietnamese double accents. Assumes that you have *top_viet* anchors in all layers of *circumflexcomb*.
-* **New Tab with Glyphs Containing Anchor / (翻譯名稱)：** Opens a new tab with all glyphs containing a specific anchor.
-* **New Tab with top and bottom Anchors Not on Metric Lines / (翻譯名稱)：** Report the y positions of all *top* and *bottom* anchors into the Macro Panel, and opens new tabs with all glyphs that have a stray anchor on any of the master, bracket or brace layers of any glyph in the font. Ignores the user selection, and analyses all glyphs, exporting and non-exporting. Useful to see if a top anchor is not exactly where it should be.
-* **Prefix all exit/entry anchors with a hashtag / (翻譯名稱)：** Looks for all exit and entry anchors anywhere in the font, and disables `curs` feature generation by prefixing their anchor names with `#`.
-* **Realign Stacking Anchors / (翻譯名稱)：** In stacking combining accents, moves top and bottom anchors exactly above or below the respective _top and _bottom anchors, respecting the italic angle. This way, stacking multiple nonspacing accents will always stay in line. *需要 香草JS*
-* **Remove Anchors in Suffixed Glyphs / (翻譯名稱)：** Removes all anchors from glyphs with one of the user-specified suffix. Useful for removing left-over anchors in sups/subs/sinf/ordn variants of glyphs after copying, scaling and editing. *需要 香草JS*
-* **Remove Anchors / (翻譯名稱)：** Deletes anchors with a specified name in selected glyphs (or the whole font). *需要 香草JS*
-* **Remove Non-Standard Anchors from Selected Glyphs / (翻譯名稱)：** Removes all anchors from a glyph that should not be there by default, e.g., `ogonek` from `J`. Potentially dangerous, because it may delete false positives. So, first use the report script below.
-* **Replicate Anchors / (翻譯名稱)：** Batch-add anchors to selected glyphs. Specify a source glyph to replicate the anchors from. *需要 香草JS*
-* **Replicate Anchors in Suffixed Glyphs / (翻譯名稱)：** Goes through selected dot-suffixed glyphs and duplicates anchors from their respective base glyphs. E.g. will recreate anchors of *X* in *X.ss01*, *X.swsh* and *X.alt*.
-* **Report Non-Standard Anchors to Macro window / (翻譯名稱)：** Goes through all glyphs in the font and reports in the Macro window if it finds non-default anchors. Lines are copy-pasteable in Edit view.
+* **Anchor Mover / 錨點移動器：** 在一個操作視窗中批次移動多個字符中的錨點位置。 *需要 香草JS*
+* **Batch Insert Anchors / 批次插入錨點：** 在一個操作視窗中批次在多個字符的相近位置批次插入錨點。 *需要 香草JS*
+* **Find and Replace in Anchor Names / 尋找與取代錨點名稱：** 在一個操作視窗中搜尋並替換特定的錨點名稱（尋找範圍為選定字符的所有圖層）。 *需要 香草JS*
+* **Fix Arabic Anchor Order in Ligatures / 修復連字中的阿拉伯文錨點順序：** Fixes the order of *top_X* and *bottom_X* anchors to RTL. In files converted from a different format, it sometimes happens that *top_1* is left of *top_2*, but it should be the other way around, otherwise your mark2liga will mess up. This script goes through your selected glyphs, and if they are Arabic ligatures, reorders all anchors to RTL order, at the same time not touching their coordinates.
+* **Insert All Anchors in All Layers / 在所有圖層插入錨點：** 為該字符的所有圖層加入遺失的錨點（如果該錨點沒有出現在所有圖層中的話）。
+* **Insert exit and entry Anchors to Selected Positional Glyphs / 在選定的位置字符上插入 exit/entry 錨點：** Adds entry and exit anchors for cursive attachment in selected glyphs. By default, it places the exit at (0, 0) and the entry at a node at RSB if such a node exists. Please adjust for your own needs.
+* **Mark Mover / 標號移動器：** 將結合用標號移到相對應的高度。例如大寫上標符號移到大寫高度，小寫上標符號移到 x 高度...等。你也可以另外設定左右間距的數值。 *需要 香草JS*
+* **Move ogonek Anchors to Baseline Intersection / 將反尾形符錨點移動到基線交界處：** 將所有反尾形符錨點和結合用錨點移動到字符線框最右側和基線的交界處。
+* **Move topright Anchors for Vertical Carons / 移動垂直抑揚符的右上角錨點：** Moves all topright and _topright anchors to the rightmost intersection of the outline with the x-height. Useful for building Czech/Slovak letters with vertical caron.
+* **Move Vietnamese Marks to top_viet Anchor in Circumflex / 移動越南語標號到揚抑符中的 top_viet 錨點上：** Moves *acute*, *grave* and *hookabovecomb* to the *top_viet* anchor in every layer of selected glyphs. Useful for Vietnamese double accents. Assumes that you have *top_viet* anchors in all layers of *circumflexcomb*.
+* **New Tab with Glyphs Containing Anchor / 開新分頁顯示所有包含錨點的字符：** 打開一個新分頁，該分頁包含所有已製作錨點的字符。
+* **New Tab with top and bottom Anchors Not on Metric Lines / 開新分頁顯示所有位在度量線上的頂部和底部錨點：** 將所有 *top* 和 *bottom* 錨點的垂直高度資訊顯示在巨集面板上，並且開啟一個新分頁，列出所有主板或支撐層中錨點位置不在度量線位置上的字符。
+* **Prefix all exit/entry anchors with a hashtag / 在所有 exit/entry 錨點前加上主題標籤：** Looks for all exit and entry anchors anywhere in the font, and disables `curs` feature generation by prefixing their anchor names with `#`.
+* **Realign Stacking Anchors / 重新對齊堆疊錨點：** In stacking combining accents, moves top and bottom anchors exactly above or below the respective _top and _bottom anchors, respecting the italic angle. This way, stacking multiple nonspacing accents will always stay in line. *需要 香草JS*
+* **Remove Anchors in Suffixed Glyphs / 刪除後綴字符中的錨點：** Removes all anchors from glyphs with one of the user-specified suffix. Useful for removing left-over anchors in sups/subs/sinf/ordn variants of glyphs after copying, scaling and editing. *需要 香草JS*
+* **Remove Anchors / 移除錨點：** 刪除選定字符（或整個字型）中具有指定名稱的錨點。 *需要 香草JS*
+* **Remove Non-Standard Anchors from Selected Glyphs / 移除選定字符的異常錨點：** Removes all anchors from a glyph that should not be there by default, e.g., `ogonek` from `J`. Potentially dangerous, because it may delete false positives. So, first use the report script below.
+* **Replicate Anchors / 複製錨點：** 在操作視窗中選擇一個來源字符，並在目前的字符上批次加入錨點。 *需要 香草JS*
+* **Replicate Anchors in Suffixed Glyphs / 複製錨點到後綴字符：** 掃描選取的後綴字符，從它們的基本字符複製錨點過來。 例如將 *X* 的錨點貼到 *X.ss01*、*X.swsh* 和 *X.alt* 上。
+* **Report Non-Standard Anchors to Macro window / 在巨集面板回報異常錨點資訊：** 掃描字型中的所有字符，將偵測到的異常錨點顯示在巨集面板中，命令行內容可被複製貼上到編輯畫面中。
 * **Shine Through Anchors / (翻譯名稱)：** In all layers of selected glyphs, inserts ‘traversing’ anchors from components.
 
 ## 應用程式
