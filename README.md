@@ -64,8 +64,8 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Move ogonek Anchors to Baseline Intersection / 將反尾形符錨點移動到基線交界處：** 將所有反尾形符錨點和結合用錨點移動到字符線框最右側和基線的交界處。
 * **Move topright Anchors for Vertical Carons / 移動垂直抑揚符的右上角錨點：** Moves all topright and _topright anchors to the rightmost intersection of the outline with the x-height. Useful for building Czech/Slovak letters with vertical caron.
 * **Move Vietnamese Marks to top_viet Anchor in Circumflex / 移動越南語標號到揚抑符中的 top_viet 錨點上：** Moves *acute*, *grave* and *hookabovecomb* to the *top_viet* anchor in every layer of selected glyphs. Useful for Vietnamese double accents. Assumes that you have *top_viet* anchors in all layers of *circumflexcomb*.
-* **New Tab with Glyphs Containing Anchor / 開新分頁顯示所有包含錨點的字符：** 打開一個新分頁，該分頁包含所有已製作錨點的字符。
-* **New Tab with top and bottom Anchors Not on Metric Lines / 開新分頁顯示所有位在度量線上的頂部和底部錨點：** 將所有 *top* 和 *bottom* 錨點的垂直高度資訊顯示在巨集面板上，並且開啟一個新分頁，列出所有主板或支撐層中錨點位置不在度量線位置上的字符。
+* **New Tab with Glyphs Containing Anchor / 新分頁－所有包含錨點的字符：** 打開一個新分頁，該分頁包含所有已製作錨點的字符。
+* **New Tab with top and bottom Anchors Not on Metric Lines / 新分頁－所有位在度量線上的頂部和底部錨點：** 將所有 *top* 和 *bottom* 錨點的垂直高度資訊顯示在巨集面板上，並且開啟一個新分頁，列出所有主板或支撐層中錨點位置不在度量線位置上的字符。
 * **Prefix all exit/entry anchors with a hashtag / 在所有 exit/entry 錨點前加上主題標籤：** Looks for all exit and entry anchors anywhere in the font, and disables `curs` feature generation by prefixing their anchor names with `#`.
 * **Realign Stacking Anchors / 重新對齊堆疊錨點：** In stacking combining accents, moves top and bottom anchors exactly above or below the respective _top and _bottom anchors, respecting the italic angle. This way, stacking multiple nonspacing accents will always stay in line. *需要 香草JS*
 * **Remove Anchors in Suffixed Glyphs / 刪除後綴字符中的錨點：** Removes all anchors from glyphs with one of the user-specified suffix. Useful for removing left-over anchors in sups/subs/sinf/ordn variants of glyphs after copying, scaling and editing. *需要 香草JS*
@@ -122,13 +122,13 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 *這些腳本能幫助你在製作彩色字體的工作流程中解決遇到的問題。「合併腳本」主要用於為 CPAL/COLR 字型創建後備字符。這個方式產生的後備字符將會填滿編輯框，且不會在 Chrome 瀏覽器中發生裁切。*
 
-* **Add All Missing Color Layers to Selected Glyphs / (翻譯名稱)：** Adds a duplicate of the fallback layer for each (CPAL/COLR) color defined in the Color Palettes parameter, for each selected glyph. Only adds colors that are still missing in the glyph.
-* **Add sbix Images to Font / (翻譯名稱)：** Will get all PNG, GIF, JPG files in a folder and create iColor layers with them in the current font and master. File name convention: ‘glyphname pixelsize.suffix’, e.g., ‘Adieresis 128.png’.
-* **Convert Layerfont to CPAL+COLR Font / (翻譯名稱)：** Turns a layered color font into a single-master font with a CPAL and COLR layers in each glyph. It will take the first master as default.
-* **Delete Non-Color Layers in Selected Glyphs / (翻譯名稱)：** Deletes all sublayers in all glyphs that are not of type "Color X" (CPAL/COLR layers).
-* **Merge All Other Masters in Current Master / (翻譯名稱)：** In selected glyphs, copies all paths from other masters onto the current master layer.
-* **Merge Suffixed Glyphs into Color Layers / (翻譯名稱)：** Merges x.shadow, x.body and x.front into separate CPAL Color layers of x. *需要 香草JS*
-* **sbix Spacer / (翻譯名稱)：** Batch-set sbix positions and glyph widths. *需要 香草JS*
+* **Add All Missing Color Layers to Selected Glyphs / 加入所有遺失的顏色圖層到選定字符中：** 為所選字符在色盤參數定義的每個 (CPAL/COLR) 顏色添加圖層，該圖層從備用層複製並轉換為色盤圖層。該腳本只添加字符中仍然缺少的顏色。
+* **Add sbix Images to Font / 加入sbix圖片到字型中：** 將獲取文件夾中的所有 PNG、GIF、JPG 文件，並在當前字型和主板中使用它們建立 iColor 圖層。文件名格式： `字符名稱 像素尺寸.副檔名` ，例： `Adieresis 128.png` 。
+* **Convert Layerfont to CPAL+COLR Font / 將圖層字型轉換為CPAL+COLR字型：** 將圖層彩色字型轉換為在每個字符中具有 CPAL 和 COLR 層的單一主板字型。它將以第一個主板作為備用字體層。
+* **Delete Non-Color Layers in Selected Glyphs / 刪除選定字符的非顏色圖層：** 刪除所有字符中不是 `色盤` 類型的所有子圖層（CPAL/COLR 層）。
+* **Merge All Other Masters in Current Master / 將所有其他主板合併到當前主板：** 在所選字符中，將所有路徑從其他主板複製到目前主板層。
+* **Merge Suffixed Glyphs into Color Layers / 合併關聯字符到顏色層中：** 將 `x.shadow` 、 `x.body` 和 `x.front` 合併到 `x` 的單獨 CPAL 顏色圖層中。 *需要 香草JS*
+* **sbix Spacer / sbix字型空間調整器：** 大量設定 sbix 位置和字符寬度。 *需要 香草JS*
 
 ## 比較當前字型
 
@@ -151,20 +151,21 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 *當你使用其他字母構建字母時「使用組件填充背景」非常有用，例如：ae 或 oe，該腳本將會把 e 放在每個母版的背景中，且使用者介面有一個選項可以將選定的點與背景中的 e 對齊。如果你正在使用角落組件製作多母版的襯線字體，「傳播角落組件到其他主板」將為你節省大量時間。*
 
-* **Alignment Manager / (翻譯名稱)：** Enables or disables automatic alignment for all components on visible layers in selected glyphs. Does the same as the command in the context menu, but you can do it in one step for many glyphs. *需要 香草JS*
-* **Component Problem Finder / (翻譯名稱)：** Find possible issues with components and corner components: composable glyphs consisting of paths; locked, nested, orphaned, mirrored, shifted, rotated and scaled components; composite glyphs with an unusual component order or an unorthodox component structure. Also, disconnected and scaled corner components. *需要 香草JS*
-* **Decompose Components in Background / (翻譯名稱)：** Decomposes background layers of selected glyphs. Works on the current master or all masters, or all masters of all fonts.
-* **Decompose Corner and Cap Components / (翻譯名稱)：** Decomposes all corner and cap components in selected glyphs. Reports to Macro window.
-* **Find and Replace Components / (翻譯名稱)：** Relinks components in selected glyphs to a new source glyph. *需要 香草JS*
-* **Find and Replace Cap and Corner Components / (翻譯名稱)：** Relinks `_cap.*` and `_corner.*` components in selected glyphs to a different corner/cap component. *需要 香草JS*
-* **Find and Replace Corner Components at Certain Angles / (翻譯名稱)：** Replace Corner Components at blunt or acute angles. *需要 香草JS*
-* **Move Paths to Component / (翻譯名稱)：** Moves paths to a separate glyph and insert them as auto-aligned, anchored components in the source glyph. Perfect for making path-component mixtures into pure composites. *需要 香草JS*
-* **Populate Backgrounds with Components / 使用組件填充背景：** Removes the specified component from all glyphs or all selected glyphs. *需要 香草JS*
-* **Propagate Corner Components to Other Masters / 傳播角落組件到其他主板：** Tries to recreate the corner components of the current master layer in all other masters of the same glyph. Make sure your outlines are compatible.
-* **Remove Components / (翻譯名稱)：** Removes the specified component from all (selected) glyphs.
-* **Remove Detached Corners / (翻譯名稱)：** Removes detached corner component from all (selected) glyphs.
-* **Stitcher / (翻譯名稱)：** In selected glyphs, the Stitcher inserts components on your paths at fixed intervals. Useful for turning open paths (monolines) into dotted lines. Use an anchor called 'origin' for determining the component position in stitched letters. Consider using the [Stitcher plug-in](glyphsapp3://showplugin/Stitcher) instead. *需要 香草JS*
-* **Sync Components Across Masters / (翻譯名稱)：** Takes the current layer’s components, and resets all other masters to the same component structure. Ignores paths and anchors. Hold down Option key to *delete* all paths and anchors.
+* **Alignment Manager / 對齊管理器：** 啟用或停用所選字符中可見圖層上所有組件的自動就定位。與右鍵選單中的命令相同，但您可以一步完成多個字符。 *需要 香草JS*
+* **Component Mover / 組件移動器：** 跨選定字符批量編輯（智慧）組件。更改位置、比例和智慧組件屬性。 *需要 香草JS*
+* **Component Problem Finder / 組件問題查找器：** 查找組件和角落組件可能存在的問題：同時包含路徑和部件的組合字符；鎖定、嵌套、孤立、鏡像、平移、旋轉和縮放組件；具有異常組件順序或非正統組件結構的複合字符。也包含未連接和縮放過的角落組件。 *需要 香草JS*
+* **Decompose Components in Background / 拆開背景中的組件：** 拆開所選字符的背景圖層。適用於當前主板或所有主板，或所有字型的所有主板。
+* **Decompose Corner and Cap Components / 拆開角落和筆帽組件：** 拆開選定字符中的所有角落和筆帽組件。開啟巨集視窗顯示報告。
+* **Find and Replace Components / 置換組件：** 將所選字符中的組件重新連結到新的來源。 *需要 香草JS*
+* **Find and Replace Cap and Corner Components / 置換角落和筆帽組件：** 將所選字符中的 `_cap.*` 和 `_corner.*` 組件重新連結到新的角落和筆帽組件。 *需要 香草JS*
+* **Find and Replace Corner Components at Certain Angles / 依角度置換角落組件：** 以鈍角或銳角替換角落組件。 *需要 香草JS*
+* **Move Paths to Component / 將路徑移動到組件：** 將路徑移動到單獨的字符中，並將它們作為錨定的自動就定位組件插入原本的字符中。非常適合將路徑和組件混雜的字符整理成純組件字符。 *需要 香草JS*
+* **Populate Backgrounds with Components / 使用組件填充背景：** 添加組件到所選字符的所有背景中。 *需要 香草JS*
+* **Propagate Corner Components to Other Masters / 傳播角落組件到其他主板：** 嘗試在同一字符的所有其他主板中重新創建當前主板圖層的角落組件。請確保你的外框是兼容的。
+* **Remove Components / 刪除組件：** 從選定（或所有）的字符中刪除指定的組件。
+* **Remove Detached Corners / 刪除分離的角落組件：** 從選定（或所有）的字符中移除分離的角落組件。
+* **Stitcher / 打洞器：** 打洞器會以固定間隔在您的路徑上插入組件。用於將開放路徑變成虛線。使用稱為 `origin` 的錨點來確定拼接字母中的組件位置。考慮改用 [ Stitcher 外掛](glyphsapp3://showplugin/Stitcher)。 *需要 香草JS*
+* **Sync Components Across Masters / 跨主板同步組件：** 獲取目前圖層的組件，並將所有其他主板重置為相同的組件結構。忽略路徑和錨點。按住 Option 鍵 *刪除* 所有路徑和錨點。
 
 ## 特性
 
@@ -209,17 +210,17 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 *大多數腳本使管理字符名稱和 Unicode 更簡單一點。「垃圾收集」對於在將文件移交給第三方之前清理回報器腳本或其他註釋的雜亂很有用。*
 
-* **Add PUA Unicode Values to Selected Glyphs / (翻譯名稱)：** Iterates through selected glyphs and incrementally applies custom Unicode values, starting at a user-specified value. *需要 香草JS*
-* **Color Composites in Shade of Base Glyph / (翻譯名稱)：** Color composites in a lighter shade of the base glyph. E.g., if your A is has a red label color, then ÄÁÀĂ... will have a lighter shade of red.
-* **Convert to Uppercase / (翻譯名稱)：** Turns lowercase names into uppercase names, e.g., `a` → `A`, `ccaron` → `Ccaron`, `aeacute` → `AEacute`, etc.
-* **Convert to Lowercase / (翻譯名稱)：** Turns the names of selected glyphs lowercase.
-* **Encoding Converter / (翻譯名稱)：** Converts old expert 8-bit encodings into Glyphs nice names, based on a importable/exportable text with renaming scheme. Default is an AXt converting scheme. *需要 香草JS*
-* **Garbage Collection / 垃圾收集：** Removes markers in glyphs, such as node names, glyph names or annotations, as well as guides.
-* **New Tab with Uppercase-Lowercase Inconsistencies / (翻譯名稱)：** Opens a new Edit tab containing all glyphs without consistent case folding. Writes a detailed report in Macro Window.
-* **Production Namer / (翻譯名稱)：** Override default production names. Default are the usual subjects which create problems in legacy PDF workflows: mu, onesuperior, twosuperior, threesuperior. *需要 香草JS*
-* **Rename Glyphs / (翻譯名稱)：** Takes a list of `oldglyphname=newglyphname` pairs and renames glyphs in the font accordingly, much like the *Rename Glyphs* custom parameter. *需要 香草JS*
-* **Reorder Unicodes of Selected Glyphs / (翻譯名稱)：** Reorders Unicodes so that default Unicode comes first.
-* **Switch Mirrored Characters / (翻譯名稱)：** In the current Edit View, switch mirrored BiDi characters, e.g. () → )(. Useful for switching parentheses and quotes after switching writing direction in a tab.
+* **Add PUA Unicode Values to Selected Glyphs / 添加 PUA Unicode 值到選定的字符：** 將所選字符套用使用者自訂義的 Unicode 值。 *需要 香草JS*
+* **Color Composites in Shade of Base Glyph / 添加關聯的字符顏色標籤：** 基於基本字符添加較淡的字符顏色標籤。例如：如果 A 的顏色標籤是紅色，則 ÄÁÀĂ... 等相關聯字符將添加較淡的淺紅色標籤。
+* **Convert to Uppercase / 轉換為大寫：** 將小寫名稱轉換為大寫名稱，例如： `a` → `A`, `ccaron` → `Ccaron`, `aeacute` → `AEacute` ...等。
+* **Convert to Lowercase / 轉換為小寫：** 將選定字符的名稱轉為小寫。
+* **Encoding Converter / 編碼轉換器：** 基於具有重命名方案的可導入/可導出文本，將舊的專家 8 位編碼轉換為 Glyphs 漂亮的名稱。默認是 AXt 轉換方案。Converts old expert 8-bit encodings into Glyphs nice names, based on a importable/exportable text with renaming scheme. Default is an AXt converting scheme. *需要 香草JS*
+* **Garbage Collection / 垃圾收集：** 刪除字符中的標記，例如節點名稱、字符名稱或註釋以及參考線。
+* **New Tab with Uppercase-Lowercase Inconsistencies / 新分頁－大小寫不一致：** 打開一個新分頁，其中包含所有大小寫不一致的字符。在巨集視窗中列出詳細報告。
+* **Production Namer / 生產名稱：** 覆蓋默認的生產名稱。默認是在遺留 PDF 工作流程中產生問題的常見主題：mu、onesuperior、twosuperior、threesuperior。Override default production names. Default are the usual subjects which create problems in legacy PDF workflows: mu, onesuperior, twosuperior, threesuperior. *需要 香草JS*
+* **Rename Glyphs / 重命名字符：** 獲取 `oldglyphname=newglyphname` 清單並相應的重命名字型中的字符，類似於自訂義參數 *Rename Glyphs* 。 *需要 香草JS*
+* **Reorder Unicodes of Selected Glyphs / 重新排序所選字符的 Unicode：** 重新排序 Unicode，使默認 Unicode 排在第一位。
+* **Switch Mirrored Characters / 切換鏡像字元：** 在目前編輯畫面中，切換鏡像雙向字元，例如 () 到 )( 。用於在分頁中切換書寫方向後，切換括號和引號。
 
 ## 參考線
 
