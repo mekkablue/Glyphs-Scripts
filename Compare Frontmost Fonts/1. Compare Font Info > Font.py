@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Detailed report of Font Info > Masters for the two frontmost fontsand outputs a report in the Macro Window.
+Detailed report of Font Info > Masters for the two frontmost fonts and outputs a report in the Macro Window.
 """
 
 from compare import *

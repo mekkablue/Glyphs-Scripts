@@ -1,7 +1,7 @@
 #MenuTitle: New Tab with Fraction Figure Combinations
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Open Tab with fraction figure combos for spacing and kerning.
 """
 

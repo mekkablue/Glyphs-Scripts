@@ -1,7 +1,7 @@
 #MenuTitle: New Tab with all Figure Combinations
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Opens a new edit tab and outputs all possible figure combos: 00010203..., 10111213... etc.
 """
 

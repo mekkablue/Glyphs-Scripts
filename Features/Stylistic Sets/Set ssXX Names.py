@@ -1,7 +1,7 @@
 #MenuTitle: Set ssXX Names
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Prefills names for ssXX features with ‘Alternate’ or another chosen text, plus the name of the first substituted glyph, e.g., ‘Alternate a’.
 """
 

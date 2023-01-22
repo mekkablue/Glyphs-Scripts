@@ -1,7 +1,7 @@
 #MenuTitle: Spacing Checker
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Look for glyphs with unusual spacings and open them in a new tab.
 """
 

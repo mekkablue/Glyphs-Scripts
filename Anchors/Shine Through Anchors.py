@@ -12,12 +12,9 @@ def process(thisGlyph):
 		if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 			layerCount += 1
 			for thisAnchor in thisLayer.anchorsTraversingComponents():
-				newAnchor = GSAnchor()
-				newAnchor.name = thisAnchor.name
-				newAnchor.position = thisAnchor.position
-				thisLayer.anchors.append(newAnchor)
-				insertedAnchors.append(newAnchor.name)
-
+				thisLayer.anchors.append(thisAnchor.copy())
+				insertedAnchors.append(thisAnchor.name)
+				
 	insertedAnchors = sorted(list(set(insertedAnchors)))
 	print("\t⚓️ Added %i anchors on %i layers: %s" % (
 		len(insertedAnchors),
