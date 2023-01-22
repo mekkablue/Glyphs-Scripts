@@ -27,9 +27,8 @@ class MasterFiller(object):
 	def GetMasterNames(self):
 		myMasterList = []
 
-		for i in range(len(Glyphs.font.masters)):
-			x = Glyphs.font.masters[i]
-			myMasterList.append('%i: %s' % (i, x.name))
+		for i, master in enumerate(Glyphs.font.masters):
+			myMasterList.append('%i: %s' % (i, master.name))
 
 		return myMasterList
 

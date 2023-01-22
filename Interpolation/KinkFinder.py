@@ -227,8 +227,8 @@ class KinkFinder(object):
 		"""
 		try:
 			# calculate interpolation:
-			interpolatedFont = thisInstance.pyobjc_instanceMethods.interpolatedFont()
-			interpolatedLayer = interpolatedFont.glyphForName_(thisGlyphName).layers[0]
+			interpolatedFont = thisInstance.interpolatedFontProxy()
+			interpolatedLayer = interpolatedFont.glyphs[thisGlyphName].layers[0]
 
 			# round to grid if necessary:
 			if interpolatedLayer.paths:
@@ -246,8 +246,8 @@ class KinkFinder(object):
 		instance = GSInstance()
 		instance.active = False
 		instance.name = name
-		instance.setManualInterpolation_(1)
-		instance.setInstanceInterpolations_(interpolationDict)
+		instance.manualInterpolation = True
+		instance.instanceInterpolations = interpolationDict
 		if font:
 			instance.setFont_(font)
 		return instance

@@ -65,10 +65,10 @@ thisFont = Glyphs.font # frontmost font
 defaultFeatures = defaultFeatures.strip().splitlines()
 availableDefaultFeatures = [f.name for f in thisFont.features if f.name in defaultFeatures]
 
-editTab = Glyphs.currentDocument.windowController().activeEditViewController()
+editTab = thisFont.currentTab
 for featureName in availableDefaultFeatures:
 	if not featureName in editTab.selectedFeatures():
-		if Glyphs.versionName < 3:
+		if Glyphs.versionNumber < 3:
 			editTab.selectedFeatures().append(featureName)
 		else:
 			editTab.selectedFeatures().addObject_(featureName)
