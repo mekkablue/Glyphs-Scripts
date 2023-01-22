@@ -5,10 +5,9 @@ __doc__ = """
 Recreates the current paths without caps or components. Hold down SHIFT to decompose on all layers.
 """
 
-from AppKit import NSEvent
+from AppKit import NSEvent, NSShiftKeyMask
 keysPressed = NSEvent.modifierFlags()
-shiftKey = 131072
-shiftKeyPressed = keysPressed & shiftKey == shiftKey
+shiftKeyPressed = keysPressed & NSShiftKeyMask == NSShiftKeyMask
 
 thisFont = Glyphs.font # frontmost font
 
