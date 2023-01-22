@@ -174,6 +174,11 @@ class FindAndReplaceInFontInfo(object):
 						print("\n🔠 %s" % thisFont.familyName)
 						print("⚠️ The font file has not been saved yet.")
 
+					# TODO: directly iterate properties
+					for prop in thisFont.properties:
+						if hasAttr(prop, "values"):
+							pass
+
 					if thisFont.familyName: # could be None
 						thisFont.familyName = self.replaceInName(thisFont.familyName, searchFor, replaceWith, completeWordsOnly, "Font > Family Name")
 					if thisFont.designer: # could be None
