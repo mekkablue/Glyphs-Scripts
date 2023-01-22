@@ -41,12 +41,14 @@ currentGlyph = currentLayer.parent
 
 # find compatible layers in the same glyph:
 layerIDs = []
-for subrunArray in currentGlyph.layerGroups_masters_error_(NSArray(currentFont.instances), NSArray(currentFont.masters), None):
-	subrun = tuple(subrunArray)
-	if currentLayer.layerId in subrun:
-		for ID in subrun:
-			if ID != currentLayer.layerId:
-				layerIDs.append(ID)
+instances = [i for i in currentFont.instances if i.type==0]
+for subrunArray in currentGlyph.layerGroups_masters_error_(NSArray(instances), NSArray(currentFont.masters), None):
+	if subrunArray:
+		subrun = tuple(subrunArray[0])
+		if currentLayer.layerId in subrun:
+			for ID in subrun:
+				if ID != currentLayer.layerId:
+					layerIDs.append(ID)
 
 # if there are any compatible layers...
 if not layerIDs:
