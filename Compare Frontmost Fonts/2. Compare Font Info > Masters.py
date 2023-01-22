@@ -113,16 +113,19 @@ for thisMaster, otherMaster in zip(thisFont.masters, otherFont.masters):
 		print(u"✅ Same structure of parameters in both masters.")
 
 	# detailed comparison:
-	for thisParameterName in [p.name for p in thisMaster.customParameters]:
-		thisParameter = thisMaster.customParameters[thisParameterName]
-		otherParameter = otherMaster.customParameters[thisParameterName]
+	for thisParameter in thisMaster.customParameters:
+		otherParameter = None
+		for currParameter in otherMaster.customParameters:
+			if currParameter.parameterIdentifier() == thisParameter.parameterIdentifier():
+				otherParameter = currParameter
+				break
 		if otherParameter:
 			if thisParameter == otherParameter:
 				parameterContent = cleanUpAndShortenParameterContent(thisParameter)
-				print(u"💚 Parameter %s: same value (%s). OK." % (thisParameterName, parameterContent))
+				print(u"💚 Parameter %s: same value (%s). OK." % (thisParameter.name, parameterContent))
 			else:
 				thisContent = cleanUpAndShortenParameterContent(thisParameter)
 				otherContent = cleanUpAndShortenParameterContent(otherParameter)
-				print(u"⚠️ Parameter %s: different values." % thisParameterName)
+				print(u"⚠️ Parameter %s: different values." % thisParameter.name)
 				print(u"    A. %s in %s" % (thisContent, thisMaster.name))
 				print(u"    B. %s in %s" % (otherContent, otherMaster.name))
