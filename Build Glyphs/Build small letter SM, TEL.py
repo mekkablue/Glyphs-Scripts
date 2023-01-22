@@ -47,7 +47,7 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 		myTransform.appendTransform_(skewTransform)
 	return myTransform
 
-# def offsetLayer( thisLayer, offset, makeStroke=False, position=0.5, autoStroke=False ):
+# def offsetLayer(thisLayer, offset, makeStroke=False, position=0.5, autoStroke=False):
 # 	def _filter(name):
 # 		for filter in Glyphs.filters:
 # 			if filter.__class__.__name__ == name:

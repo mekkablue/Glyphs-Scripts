@@ -336,9 +336,7 @@ class StraightStemCruncher(object):
 						#if p1.x==p2.x or p1.y==p2.y or not Glyphs.defaults["com.mekkablue.StraightStemCruncher.ignoreDiagonals"]:
 						if check:
 							if pointDistance(p1, p2) >= minLength:
-								results = self.stemThicknessAtLine(
-									measureLayer, p1, p2, measureLength=max(100.0, measureLayer.bounds.size.width + measureLayer.bounds.size.height)
-									)
+								results = self.stemThicknessAtLine(measureLayer, p1, p2, measureLength=max(100.0, measureLayer.bounds.size.width + measureLayer.bounds.size.height))
 								if results:
 									measurement, centerOfStem = results
 									measurements.append(measurement)

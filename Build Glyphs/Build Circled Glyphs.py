@@ -350,8 +350,8 @@ def buildCircledGlyph(thisGlyph, circleName, scaleFactors, minDistanceBetweenTwo
 				#if abs(hOffset) > move:
 				#	hOffset = (hOffset/abs(hOffset))*move
 				#if hOffset != 0.0:
-				#	moveCloser = transform( shiftX=hOffset ).transformStruct()
-				#	innerComponent.applyTransform( moveCloser )
+				#	moveCloser = transform(shiftX=hOffset).transformStruct()
+				#	innerComponent.applyTransform(moveCloser)
 
 				# compensatory shift:
 				if thisGlyph.name in ("two_zero.circled", "one_nine.circled", "one_zero.circled"):

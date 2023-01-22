@@ -21,7 +21,7 @@ class SampleStringMaker(object):
 		"overrideContext": 0,
 		"contextGlyphs": "HOOH,noon",
 		"mirrorPair": 0,
-	}
+		}
 
 	categoryList = (
 		"Letter:Uppercase",
@@ -134,12 +134,12 @@ class SampleStringMaker(object):
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-	
-	def SavePreferences( self, sender=None ):
+
+	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
 			for prefName in self.prefDict.keys():
@@ -150,13 +150,13 @@ class SampleStringMaker(object):
 			print(traceback.format_exc())
 			return False
 
-	def LoadPreferences( self ):
+	def LoadPreferences(self):
 		try:
 			for prefName in self.prefDict.keys():
 				# register defaults:
 				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
 				# load previously written prefs:
-				getattr(self.w, prefName).set( self.pref(prefName) )
+				getattr(self.w, prefName).set(self.pref(prefName))
 			return True
 		except:
 			import traceback
@@ -213,20 +213,20 @@ class SampleStringMaker(object):
 
 				# LEFT
 				if g.category == leftCategory and \
-                (leftSubCategory is None or glyphSubCategory == leftSubCategory) and \
-                (g.script == chosenScript or (leftCategory != "Letter" and g.script is None)) and \
-                (g.export or includeNonExporting) and \
-                not g.name in self.exclusion and \
-                not self.glyphNameIsExcluded(g.name):
+						(leftSubCategory is None or glyphSubCategory == leftSubCategory) and \
+						(g.script == chosenScript or (leftCategory != "Letter" and g.script is None)) and \
+						(g.export or includeNonExporting) and \
+						not g.name in self.exclusion and \
+						not self.glyphNameIsExcluded(g.name):
 					glyphNamesLeft.append(g.name)
 
 				# RIGHT
 				if g.category == rightCategory and \
-                (rightSubCategory is None or glyphSubCategory == rightSubCategory) and \
-                (g.script == chosenScript or (rightCategory != "Letter" and g.script is None)) and \
-                (g.export or includeNonExporting) and \
-                not g.name in self.exclusion and \
-                not self.glyphNameIsExcluded(g.name):
+						(rightSubCategory is None or glyphSubCategory == rightSubCategory) and \
+						(g.script == chosenScript or (rightCategory != "Letter" and g.script is None)) and \
+						(g.export or includeNonExporting) and \
+						not g.name in self.exclusion and \
+						not self.glyphNameIsExcluded(g.name):
 					glyphNamesRight.append(g.name)
 
 			numLeftGlyphs = len(glyphNamesLeft)

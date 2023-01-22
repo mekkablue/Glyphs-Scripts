@@ -27,7 +27,7 @@ def isPositional(glyphName):
 def correctForCursiveAttachment(layer, anchorName):
 	anchor = layer.anchors[anchorName]
 	if anchor:
-		layer.applyTransform((1,0,0,1,-anchor.x,-anchor.y))
+		layer.applyTransform((1, 0, 0, 1, -anchor.x, -anchor.y))
 		layer.width = 0
 	return layer
 

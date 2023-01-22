@@ -38,8 +38,8 @@ class RewireFire(object):
 		"shouldSelect": 1,
 		"openTabWithAffectedLayers": 1,
 		"reuseTab": 1,
-	}
-	
+		}
+
 	duplicateMarker = "🔥"
 	onSegmentMarker = "🧨"
 
@@ -146,16 +146,15 @@ class RewireFire(object):
 		self.w.reuseTab.enable(self.w.openTabWithAffectedLayers.get())
 		self.w.tolerateZeroSegments.enable(self.w.setFireToNode.get())
 
-	
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-	
-	def SavePreferences( self, sender=None ):
+
+	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
 			for prefName in self.prefDict.keys():
@@ -166,13 +165,13 @@ class RewireFire(object):
 			print(traceback.format_exc())
 			return False
 
-	def LoadPreferences( self ):
+	def LoadPreferences(self):
 		try:
 			for prefName in self.prefDict.keys():
 				# register defaults:
 				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
 				# load previously written prefs:
-				getattr(self.w, prefName).set( self.pref(prefName) )
+				getattr(self.w, prefName).set(self.pref(prefName))
 			return True
 		except:
 			import traceback

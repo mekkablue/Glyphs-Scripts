@@ -152,8 +152,8 @@ class DeleteSmallKerningPairs(object):
 							countClasses += 1
 
 						if (shouldRemoveGlyphToGlyph and countClasses == 0) or \
-                         (shouldRemoveGlyphToClass and countClasses == 1) or \
-                         (shouldRemoveClassToClass and countClasses == 2):
+								(shouldRemoveGlyphToClass and countClasses == 1) or \
+								(shouldRemoveClassToClass and countClasses == 2):
 
 							kerningValue = thisFontMasterKernDict[leftGlyphID][rightGlyphID]
 							leftName = nameForID(thisFont, leftGlyphID)

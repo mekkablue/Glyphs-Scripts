@@ -9,4 +9,4 @@ font = Glyphs.font
 if font:
 	tab = font.currentTab
 	if tab:
-		tab.textCursor = (tab.textCursor+1) % len(tab.text)
+		tab.textCursor = (tab.textCursor + 1) % len(tab.text)
