@@ -72,7 +72,7 @@ try:
 	ellipsis.leftMetricsKey = "=+20"
 	ellipsis.rightMetricsKey = "=+20"
 
-	thisFont.newTab("/period/ellipsis")
+	thisFont.newTab(".…")
 	print("✅Done.")
 
 except Exception as e:
