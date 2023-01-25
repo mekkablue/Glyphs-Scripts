@@ -1086,14 +1086,16 @@ def listOfAllStyles(thisFont):
 
 	# add origin value
 	styleMenuEntries = [originMasterOfFont(thisFont)] + [i for i in thisFont.instances if i.active and i.type == 0]
-
+	
 	for idx, masterOrInstance in enumerate(styleMenuEntries):
 		# determine name of menu entry:
 		if idx == 0:
 			styleName = "Origin"
 		else:
 			styleName = masterOrInstance.name
-			if masterOrInstance.preferredSubfamilyName:
+			if hasattr(masterOrInstance, "variableStyleName"):
+				styleName = masterOrInstance.variableStyleName
+			elif masterOrInstance.preferredSubfamilyName:
 				styleName = masterOrInstance.preferredSubfamilyName
 
 		# determine location:
