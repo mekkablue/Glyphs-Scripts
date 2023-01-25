@@ -114,7 +114,7 @@ class MovePathstoComponent(object):
 				thisLayer = thisFont.selectedLayers[0]
 				existingComponents = thisLayer.componentNames()
 				thisGlyph = thisLayer.parent
-				if thisGlyph and thisGlyph.glyphInfo:
+				if thisGlyph and thisGlyph.glyphInfo and thisGlyph.glyphInfo.components:
 					for compInfo in thisGlyph.glyphInfo.components:
 						if not compInfo.name in existingComponents:
 							self.w.name.set(compInfo.name)
