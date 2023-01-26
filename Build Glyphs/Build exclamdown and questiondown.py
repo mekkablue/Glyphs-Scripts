@@ -66,6 +66,7 @@ try:
 				t = list(invertedComponent.transform)
 				t[0] = -1
 				t[3] = -1
+				t[5] = thisMaster.topHeightForLayer_(invertedLayer)
 				t = tuple(t)
 				invertedComponent.applyTransform(t)
 				invertedComponent.setDisableAlignment_(False)
