@@ -18,7 +18,25 @@ if Glyphs.versionNumber >= 3:
 		}
 
 class KernCrasher(object):
-
+	prefID = "com.mekkablue.KernCrasher"
+	prefDict = {
+		# "prefName": defaultValue,
+		"minDistance": 0,
+		"popupScript": "latin",
+		"popupSpeed": 0,
+		"popupLeftCat": 0,
+		"popupRightCat": 0,
+		"excludeSuffixes": ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute",
+		"excludeNonExporting": 1,
+		"reportCrashesInMacroWindow": 0,
+		"ignoreIntervals": "",
+		"pathGlyphsOnly": 0,
+		"reuseCurrentTab": 1,
+		"limitRightSuffixes": "",
+		"limitLeftSuffixes": "",
+		"directionSensitive": "",
+	}
+	
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 410
@@ -30,7 +48,7 @@ class KernCrasher(object):
 			"KernCrasher", # window title
 			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.KernCrasher.mainwindow" # stores last window position and size
+			autosaveName=self.domain("mainwindow") # stores last window position and size
 			)
 
 		# UI elements:
@@ -56,7 +74,7 @@ class KernCrasher(object):
 		self.w.popupSpeed = vanilla.PopUpButton(
 			(inset + 42, linePos, 110, 17), ("very slow", "slow", "medium", "fast", "very fast"), callback=self.SavePreferences, sizeStyle='small'
 			)
-		intervalIndex = Glyphs.defaults["com.mekkablue.KernCrasher.popupSpeed"]
+		intervalIndex = self.pref("popupSpeed")
 		if intervalIndex is None:
 			intervalIndex = 0
 		self.w.text_speedExplanation = vanilla.TextBox((inset + 160, linePos + 2, -inset, 14), "Measuring every %i units." % intervalList[intervalIndex], sizeStyle='small')
@@ -170,72 +188,46 @@ class KernCrasher(object):
 				updatedScriptList = list(set(scriptList))
 				self.w.popupScript.setItems(updatedScriptList)
 				self.w.popupScript.set(updatedScriptList[0])
-
-	def SavePreferences(self, sender):
+	
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
+	def SavePreferences( self, sender=None ):
 		try:
-			Glyphs.defaults["com.mekkablue.KernCrasher.popupScript"] = self.w.popupScript.get()
-			Glyphs.defaults["com.mekkablue.KernCrasher.popupSpeed"] = self.w.popupSpeed.get()
-			Glyphs.defaults["com.mekkablue.KernCrasher.popupLeftCat"] = self.w.popupLeftCat.get()
-			Glyphs.defaults["com.mekkablue.KernCrasher.popupRightCat"] = self.w.popupRightCat.get()
-			Glyphs.defaults["com.mekkablue.KernCrasher.excludeSuffixes"] = self.w.excludeSuffixes.get()
-			Glyphs.defaults["com.mekkablue.KernCrasher.excludeNonExporting"] = self.w.excludeNonExporting.get()
-			Glyphs.defaults["com.mekkablue.KernCrasher.minDistance"] = self.w.minDistance.get()
-			Glyphs.defaults["com.mekkablue.KernCrasher.reportCrashesInMacroWindow"] = self.w.reportCrashesInMacroWindow.get()
-			Glyphs.defaults["com.mekkablue.KernCrasher.ignoreIntervals"] = self.w.ignoreIntervals.get()
-			Glyphs.defaults["com.mekkablue.KernCrasher.pathGlyphsOnly"] = self.w.pathGlyphsOnly.get()
-			Glyphs.defaults["com.mekkablue.KernCrasher.reuseCurrentTab"] = self.w.reuseCurrentTab.get()
-			Glyphs.defaults["com.mekkablue.KernCrasher.limitLeftSuffixes"] = self.w.limitLeftSuffixes.get()
-			Glyphs.defaults["com.mekkablue.KernCrasher.limitRightSuffixes"] = self.w.limitRightSuffixes.get()
-			Glyphs.defaults["com.mekkablue.KernCrasher.directionSensitive"] = self.w.directionSensitive.get()
-		except Exception as e:
-			return False
-
-		# update speed explanation:
-		if sender == self.w.popupSpeed:
-			intervalIndex = Glyphs.defaults["com.mekkablue.KernCrasher.popupSpeed"]
-			if intervalIndex is None:
-				intervalIndex = 0
-			self.w.text_speedExplanation.set("Measuring every %i units." % intervalList[intervalIndex])
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.KernCrasher.minDistance", 0)
-			Glyphs.registerDefault("com.mekkablue.KernCrasher.popupScript", "latin")
-			Glyphs.registerDefault("com.mekkablue.KernCrasher.popupSpeed", 0)
-			Glyphs.registerDefault("com.mekkablue.KernCrasher.popupLeftCat", 0)
-			Glyphs.registerDefault("com.mekkablue.KernCrasher.popupRightCat", 0)
-			Glyphs.registerDefault("com.mekkablue.KernCrasher.excludeSuffixes", ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute")
-			Glyphs.registerDefault("com.mekkablue.KernCrasher.excludeNonExporting", 1)
-			Glyphs.registerDefault("com.mekkablue.KernCrasher.reportCrashesInMacroWindow", 0)
-			Glyphs.registerDefault("com.mekkablue.KernCrasher.ignoreIntervals", "")
-			Glyphs.registerDefault("com.mekkablue.KernCrasher.pathGlyphsOnly", 0)
-			Glyphs.registerDefault("com.mekkablue.KernCrasher.reuseCurrentTab", 1)
-			Glyphs.registerDefault("com.mekkablue.KernCrasher.limitRightSuffixes", "")
-			Glyphs.registerDefault("com.mekkablue.KernCrasher.limitLeftSuffixes", "")
-			Glyphs.registerDefault("com.mekkablue.KernCrasher.directionSensitive", "")
-
-			self.w.minDistance.set(Glyphs.defaults["com.mekkablue.KernCrasher.minDistance"])
-			self.w.popupScript.set(Glyphs.defaults["com.mekkablue.KernCrasher.popupScript"])
-			self.w.popupSpeed.set(Glyphs.defaults["com.mekkablue.KernCrasher.popupSpeed"])
-			self.w.popupLeftCat.set(Glyphs.defaults["com.mekkablue.KernCrasher.popupLeftCat"])
-			self.w.popupRightCat.set(Glyphs.defaults["com.mekkablue.KernCrasher.popupRightCat"])
-			self.w.excludeSuffixes.set(Glyphs.defaults["com.mekkablue.KernCrasher.excludeSuffixes"])
-			self.w.excludeNonExporting.set(Glyphs.defaults["com.mekkablue.KernCrasher.excludeNonExporting"])
-			self.w.reportCrashesInMacroWindow.set(Glyphs.defaults["com.mekkablue.KernCrasher.reportCrashesInMacroWindow"])
-			self.w.ignoreIntervals.set(Glyphs.defaults["com.mekkablue.KernCrasher.ignoreIntervals"])
-			self.w.pathGlyphsOnly.set(Glyphs.defaults["com.mekkablue.KernCrasher.pathGlyphsOnly"])
-			self.w.reuseCurrentTab.set(Glyphs.defaults["com.mekkablue.KernCrasher.reuseCurrentTab"])
-			self.w.limitRightSuffixes.set(Glyphs.defaults["com.mekkablue.KernCrasher.limitRightSuffixes"])
-			self.w.limitLeftSuffixes.set(Glyphs.defaults["com.mekkablue.KernCrasher.limitLeftSuffixes"])
-			self.w.directionSensitive.set(Glyphs.defaults["com.mekkablue.KernCrasher.directionSensitive"])
+			# write current settings into prefs:
+			for prefName in self.prefDict.keys():
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
+				
+			# update speed explanation:
+			if sender == self.w.popupSpeed:
+				intervalIndex = self.pref("popupSpeed")
+				if intervalIndex is None:
+					intervalIndex = 0
+				self.w.text_speedExplanation.set("Measuring every %i units." % intervalList[intervalIndex])
+			
+			return True
 		except:
 			import traceback
 			print(traceback.format_exc())
 			return False
 
-		return True
+	def LoadPreferences( self ):
+		try:
+			for prefName in self.prefDict.keys():
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
+				# load previously written prefs:
+				getattr(self.w, prefName).set( self.pref(prefName) )
+			return True
+		except:
+			import traceback
+			print(traceback.format_exc())
+			return False
 
 	def nameUntilFirstPeriod(self, glyphName):
 		if not "." in glyphName:
@@ -310,7 +302,8 @@ class KernCrasher(object):
 				return measurement
 			else:
 				return None
-		except:
+		except Exception as e:
+			raise e
 			return None
 
 	def isHeightInIntervals(self, height, ignoreIntervals):
@@ -322,27 +315,29 @@ class KernCrasher(object):
 
 	def minDistanceBetweenTwoLayers(self, leftLayer, rightLayer, interval=5.0, kerning=0.0, report=False, ignoreIntervals=[]):
 		# correction = leftLayer.RSB+rightLayer.LSB
-		topY = min(leftLayer.bounds.origin.y + leftLayer.bounds.size.height, rightLayer.bounds.origin.y + rightLayer.bounds.size.height)
+		if Glyphs.versionNumber>=3.2:
+			leftBounds, rightBounds = leftLayer.fastBounds(), rightLayer.fastBounds()
+		else:
+			leftBounds, rightBounds = leftLayer.bounds, rightLayer.bounds
+		topY = min(leftBounds.origin.y + leftBounds.size.height, rightBounds.origin.y + rightBounds.size.height)
 		bottomY = max(leftLayer.bounds.origin.y, rightLayer.bounds.origin.y)
 		distance = topY - bottomY
 		minDist = None
-		for i in range(int(distance // interval)):
+		for i in range(int(distance / interval)):
 			height = bottomY + i * interval
 			if not self.isHeightInIntervals(height, ignoreIntervals) or not ignoreIntervals:
-				left = self.measureLayerAtHeightFromLeftOrRight(leftLayer, height, leftSide=False)
-				right = self.measureLayerAtHeightFromLeftOrRight(rightLayer, height, leftSide=True)
-				try: # avoid gaps like in i or j
+				left = leftLayer.rsbAtHeight_(height)
+				right = rightLayer.lsbAtHeight_(height)
+				if left < NSNotFound and right < NSNotFound: # avoid gaps like in i or j
 					total = left + right + kerning # +correction
 					if minDist == None or minDist > total:
 						minDist = total
-				except:
-					pass
 		return minDist
 
 	def queryPrefs(self):
-		script = Glyphs.defaults["com.mekkablue.KernCrasher.popupScript"]
-		firstCategory, firstSubCategory = self.splitString(self.w.popupLeftCat.getItems()[Glyphs.defaults["com.mekkablue.KernCrasher.popupLeftCat"]])
-		secondCategory, secondSubCategory = self.splitString(self.w.popupRightCat.getItems()[Glyphs.defaults["com.mekkablue.KernCrasher.popupRightCat"]])
+		script = self.pref("popupScript")
+		firstCategory, firstSubCategory = self.splitString(self.w.popupLeftCat.getItems()[self.pref("popupLeftCat")])
+		secondCategory, secondSubCategory = self.splitString(self.w.popupRightCat.getItems()[self.pref("popupRightCat")])
 		return script, firstCategory, firstSubCategory, secondCategory, secondSubCategory
 
 	def sortedIntervalsFromString(self, intervals=""):
@@ -383,22 +378,22 @@ class KernCrasher(object):
 			start = timer()
 
 			# start reporting to macro window:
-			if Glyphs.defaults["com.mekkablue.KernCrasher.reportCrashesInMacroWindow"]:
+			if self.pref("reportCrashesInMacroWindow"):
 				Glyphs.clearLog()
 				print("KernCrasher Report for %s, master %s:\n" % (thisFont.familyName, thisFontMaster.name))
 
 			# query user input:
 			script, firstCategory, firstSubCategory, secondCategory, secondSubCategory = self.queryPrefs()
-			step = intervalList[Glyphs.defaults["com.mekkablue.KernCrasher.popupSpeed"]]
-			excludedGlyphNameParts = self.splitString(Glyphs.defaults["com.mekkablue.KernCrasher.excludeSuffixes"], delimiter=",", minimum=0)
-			excludeNonExporting = bool(Glyphs.defaults["com.mekkablue.KernCrasher.excludeNonExporting"])
-			pathGlyphsOnly = bool(Glyphs.defaults["com.mekkablue.KernCrasher.pathGlyphsOnly"])
-			limitRightSuffixes = self.splitString(Glyphs.defaults["com.mekkablue.KernCrasher.limitRightSuffixes"], delimiter=",", minimum=0)
-			limitLeftSuffixes = self.splitString(Glyphs.defaults["com.mekkablue.KernCrasher.limitLeftSuffixes"], delimiter=",", minimum=0)
+			step = intervalList[self.pref("popupSpeed")]
+			excludedGlyphNameParts = self.splitString(self.pref("excludeSuffixes"), delimiter=",", minimum=0)
+			excludeNonExporting = bool(self.pref("excludeNonExporting"))
+			pathGlyphsOnly = bool(self.pref("pathGlyphsOnly"))
+			limitRightSuffixes = self.splitString(self.pref("limitRightSuffixes"), delimiter=",", minimum=0)
+			limitLeftSuffixes = self.splitString(self.pref("limitLeftSuffixes"), delimiter=",", minimum=0)
 			minDistance = 0.0
-			ignoreIntervals = self.sortedIntervalsFromString(Glyphs.defaults["com.mekkablue.KernCrasher.ignoreIntervals"])
+			ignoreIntervals = self.sortedIntervalsFromString(self.pref("ignoreIntervals"))
 			try:
-				minDistance = float(Glyphs.defaults["com.mekkablue.KernCrasher.minDistance"])
+				minDistance = float(self.pref("minDistance"))
 			except Exception as e:
 				print("Warning: Could not read min distance entry. Will default to 0.\n%s" % e)
 				import traceback
@@ -433,7 +428,7 @@ class KernCrasher(object):
 					OKButton=None,
 					)
 
-			if Glyphs.defaults["com.mekkablue.KernCrasher.reportCrashesInMacroWindow"]:
+			if self.pref("reportCrashesInMacroWindow"):
 				print("Minimum Distance: %i\n" % minDistance)
 				print("Left glyphs:\n%s\n" % ", ".join(firstList))
 				print("Right glyphs:\n%s\n" % ", ".join(secondList))
@@ -458,7 +453,7 @@ class KernCrasher(object):
 					if (not distanceBetweenShapes is None) and (distanceBetweenShapes < minDistance):
 						crashCount += 1
 						tabString += "/%s/%s/space" % (firstGlyphName, secondGlyphName)
-						if Glyphs.defaults["com.mekkablue.KernCrasher.reportCrashesInMacroWindow"]:
+						if self.pref("reportCrashesInMacroWindow"):
 							print("- %s %s: %i" % (firstGlyphName, secondGlyphName, distanceBetweenShapes))
 				tabString += "\n"
 
@@ -489,7 +484,7 @@ class KernCrasher(object):
 					# disable reporters (avoid slowdown)
 					Glyphs.defaults["visibleReporters"] = None
 				report = '%i kerning crashes have been found. Time elapsed: %s.' % (crashCount, timereport)
-				if Glyphs.defaults["com.mekkablue.KernCrasher.reuseCurrentTab"] and thisFont.currentTab:
+				if self.pref("reuseCurrentTab") and thisFont.currentTab:
 					thisFont.currentTab.text = tabString
 				else:
 					thisFont.newTab(tabString)
@@ -502,7 +497,7 @@ class KernCrasher(object):
 			Glyphs.showNotification(notificationTitle, report)
 
 			# Report in Macro Window:
-			if Glyphs.defaults["com.mekkablue.KernCrasher.reportCrashesInMacroWindow"]:
+			if self.pref("reportCrashesInMacroWindow"):
 				print(report)
 				Glyphs.showMacroWindow()
 
