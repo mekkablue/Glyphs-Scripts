@@ -243,11 +243,11 @@ class KernCrasher(object):
 			glyphName = thisGlyph.name
 			nameIsOK = True
 
-			if excludedGlyphNameParts:
+			if nameIsOK and excludedGlyphNameParts:
 				for thisNamePart in excludedGlyphNameParts:
-					nameIsOK = nameIsOK and not thisNamePart in glyphName
+					nameIsOK = nameIsOK and not (thisNamePart in glyphName)
 
-			if mustContain:
+			if nameIsOK and mustContain:
 				nameIsOK = False
 				for thisNamePart in mustContain:
 					if thisNamePart in glyphName:

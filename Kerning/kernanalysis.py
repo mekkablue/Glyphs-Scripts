@@ -235,23 +235,23 @@ def isHeightInIntervals(height, ignoreIntervals):
 
 def minDistanceBetweenTwoLayers(leftLayer, rightLayer, interval=5.0, kerning=0.0, report=False, ignoreIntervals=[]):
 	# correction = leftLayer.RSB+rightLayer.LSB
-	topY = min(leftLayer.bounds.origin.y + leftLayer.bounds.size.height, rightLayer.bounds.origin.y + rightLayer.bounds.size.height)
-	bottomY = max(leftLayer.bounds.origin.y, rightLayer.bounds.origin.y)
+	if Glyphs.versionNumber>=3.2:
+		leftBounds, rightBounds = leftLayer.fastBounds(), rightLayer.fastBounds()
+	else:
+		leftBounds, rightBounds = leftLayer.bounds, rightLayer.bounds
+	topY = min(leftBounds.origin.y + leftBounds.size.height, rightBounds.origin.y + rightBounds.size.height)
+	bottomY = max(leftBounds.origin.y, rightBounds.origin.y)
 	distance = topY - bottomY
 	minDist = None
-	if kerning > 1000000: # NSNotFound
-		kerning = 0
-	for i in range(int(distance // interval)):
+	for i in range(int(distance / interval)):
 		height = bottomY + i * interval
-		if not isHeightInIntervals(height, ignoreIntervals) or not ignoreIntervals:
-			left = measureLayerAtHeightFromLeftOrRight(leftLayer, height, leftSide=False)
-			right = measureLayerAtHeightFromLeftOrRight(rightLayer, height, leftSide=True)
-			try: # avoid gaps like in i or j
+		if not self.isHeightInIntervals(height, ignoreIntervals) or not ignoreIntervals:
+			left = leftLayer.rsbAtHeight_(height)
+			right = rightLayer.lsbAtHeight_(height)
+			if left < NSNotFound and right < NSNotFound: # avoid gaps like in i or j
 				total = left + right + kerning # +correction
 				if minDist == None or minDist > total:
 					minDist = total
-			except:
-				pass
 	return minDist
 
 def sortedIntervalsFromString(intervals=""):

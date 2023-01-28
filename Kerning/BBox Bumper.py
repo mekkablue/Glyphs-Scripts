@@ -73,7 +73,10 @@ def addRects(rects):
 	return completeRect
 
 def unionRectForLayers(layers):
-	allRects = [l.bounds for l in layers]
+	if Glyphs.versionNumber >= 3.2:
+		allRects = [l.fastBounds() for l in layers]
+	else:
+		allRects = [l.bounds for l in layers]
 	unionRect = addRects(allRects)
 	return unionRect
 
@@ -147,8 +150,7 @@ class BBoxBumperKerning(object):
 		self.w.tokenText = vanilla.TextBox((0, linePos + 4, inset + shift - 5, 14), "▪️BBox token:", sizeStyle='small', selectable=True)
 		self.w.tokenText.getNSTextField().setAlignment_(2)
 		self.w.token = vanilla.ComboBox((inset + shift, linePos - 2, -inset - 230, 21), self.tokens, sizeStyle='regular', callback=self.SavePreferences)
-		self.w.token.getNSComboBox(
-		).setToolTip_("Describe a glyph class predicate for defining an OT class, for which the class bbox is calculated and bumped against other glyphs.")
+		self.w.token.getNSComboBox().setToolTip_("Describe a glyph class predicate for defining an OT class, for which the class bbox is calculated and bumped against other glyphs.")
 		self.w.helpToken = vanilla.HelpButton((-inset - 230, linePos - 2, -inset - 200, 21), callback=self.openURL)
 		self.w.helpToken.getNSButton().setToolTip_("Opens the ‘Tokens’ tutorial in a web browser. Look for ‘glyph class predicates’.")
 		self.w.otClassNameText = vanilla.TextBox((-inset - 205, linePos + 4, shift - 5, 14), "OT classname:", sizeStyle='small', selectable=True)
@@ -182,8 +184,7 @@ class BBoxBumperKerning(object):
 		self.w.thresholdWidthText = vanilla.TextBox((inset + shift * 4.5 - 5, linePos + 3, shift, 14), "Overkern %:", sizeStyle='small', selectable=True)
 		self.w.thresholdWidthText.getNSTextField().setAlignment_(2)
 		self.w.thresholdWidth = vanilla.EditText((inset + shift * 5.5, linePos, shift // 2.2, 19), "40", callback=self.SavePreferences, sizeStyle='small')
-		self.w.thresholdWidth.getNSTextField(
-		).setToolTip_("Overkern protection. Makes sure that no glyph (in the bbox class) is kerned more than this percentage of its width. Keep below 50.	")
+		self.w.thresholdWidth.getNSTextField().setToolTip_("Overkern protection. Makes sure that no glyph (in the bbox class) is kerned more than this percentage of its width. Keep below 50.	")
 		linePos += int(lineHeight * 1.5)
 
 		self.w.otherGlyphsText = vanilla.TextBox((0, linePos + 2, inset + shift - 5, 14), "🔠 Bump with:", sizeStyle='small', selectable=True)
@@ -212,8 +213,7 @@ class BBoxBumperKerning(object):
 		self.w.scopeText = vanilla.TextBox((inset, linePos + 2, shift - 5, 14), "Measure in:", sizeStyle='small', selectable=True)
 		self.w.scopeText.getNSTextField().setAlignment_(2)
 		self.w.scope = vanilla.PopUpButton((inset + shift, linePos, 250, 17), self.scope, sizeStyle='small', callback=self.SavePreferences)
-		self.w.scope.getNSPopUpButton(
-		).setToolTip_("Kern feature will be created per font, same for all masters. Here you can define which masters should be measured for determining the kerning pairs.")
+		self.w.scope.getNSPopUpButton().setToolTip_("Kern feature will be created per font, same for all masters. Here you can define which masters should be measured for determining the kerning pairs.")
 		linePos += lineHeight
 
 		# Run Button:
