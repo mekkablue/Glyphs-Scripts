@@ -245,7 +245,7 @@ def minDistanceBetweenTwoLayers(leftLayer, rightLayer, interval=5.0, kerning=0.0
 	minDist = None
 	for i in range(int(distance / interval)):
 		height = bottomY + i * interval
-		if not self.isHeightInIntervals(height, ignoreIntervals) or not ignoreIntervals:
+		if not isHeightInIntervals(height, ignoreIntervals) or not ignoreIntervals:
 			left = leftLayer.rsbAtHeight_(height)
 			right = rightLayer.lsbAtHeight_(height)
 			if left < NSNotFound and right < NSNotFound: # avoid gaps like in i or j
