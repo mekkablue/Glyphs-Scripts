@@ -16,7 +16,7 @@ def updatedCode(oldCode, beginSig, endSig, newCode):
 	newCode = oldCode[:beginOffset] + beginSig + newCode + "\n" + endSig + oldCode[endOffset:]
 	return newCode
 
-def createOTFeature(featureName="calt", featureCode="# empty feature code", targetFont=Glyphs.font, codeSig="CUSTOM-CONTEXTUAL-ALTERNATES"):
+def createOTFeature(featureName="calt", featureCode="# empty feature code", targetFont=Glyphs.font, codeSig="CUSTOM-CONTEXTUAL-ALTERNATES", prefix=""):
 	"""
 	Creates or updates an OpenType feature in the font.
 	Returns a status message in form of a string.
@@ -32,13 +32,16 @@ def createOTFeature(featureName="calt", featureCode="# empty feature code", targ
 	if featureName in [f.name for f in targetFont.features]:
 		# feature already exists:
 		targetFeature = targetFont.features[featureName]
-
+		
+		if prefix and not targetFeature.code.strip().startswith(prefix.strip()):
+			targetFeature.code = prefix + "\n" + targetFeature.code
+		
 		if beginSig in targetFeature.code:
 			# replace old code with new code:
 			targetFeature.code = updatedCode(targetFeature.code, beginSig, endSig, featureCode)
 		else:
 			# append new code:
-			targetFeature.code += "\n" + beginSig + featureCode + "\n" + endSig
+			targetFeature.code += "\n\n" + beginSig + featureCode + "\n" + endSig
 
 		return "Updated existing OT feature ‘%s’." % featureName
 	else:
@@ -46,6 +49,8 @@ def createOTFeature(featureName="calt", featureCode="# empty feature code", targ
 		newFeature = GSFeature()
 		newFeature.name = featureName
 		newFeature.code = beginSig + featureCode + "\n" + endSig
+		if prefix:
+			newFeature.code = prefix + "\n\n" + newFeature.code
 		targetFont.features.append(newFeature)
 		return "Created new OT feature ‘%s’" % featureName
 
@@ -409,12 +414,13 @@ class BBoxBumperKerning(object):
 							else:
 								continue
 							otCode += "pos %s %s %i;\n" % (leftKey, rightKey, kernValue)
-
+					
 					featureStatus = createOTFeature(
 						featureName="kern",
 						featureCode=otCode.strip(),
 						targetFont=thisFont,
 						codeSig="Kerning %s" % otClassName,
+						prefix="# Automatic Code",
 						)
 					print("🏗 %s" % featureStatus)
 					print("🫱🏾‍🫲🏻 Recompiling features...")
