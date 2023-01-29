@@ -227,7 +227,10 @@ class KinkFinder(object):
 		"""
 		try:
 			# calculate interpolation:
-			interpolatedFont = thisInstance.interpolatedFontProxy()
+			if Glyphs.versionNumber >= 3.2:
+				interpolatedFont = thisInstance.interpolatedFontProxy
+			else:
+				interpolatedFont = thisInstance.interpolatedFontProxy()
 			interpolatedLayer = interpolatedFont.glyphs[thisGlyphName].layers[0]
 
 			# round to grid if necessary:
