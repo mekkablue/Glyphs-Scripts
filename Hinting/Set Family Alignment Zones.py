@@ -117,7 +117,8 @@ class SetFamilyAlignmentZones(object):
 
 			instanceName = self.w.instancePicker.getItem()
 			instanceIndex = int(instanceName[:instanceName.find(":")])
-			thisInstance = thisFont.instances[instanceIndex]
+			thisInstance = [i for i in thisFont.instances if i.type==0][instanceIndex]
+			print("⚠️", thisInstance.name, instanceName)
 			if thisInstance.name in instanceName:
 				if Glyphs.versionNumber >= 3:
 					# GLYPHS 3 code:
