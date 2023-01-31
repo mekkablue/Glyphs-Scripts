@@ -43,7 +43,7 @@ class TravelTracker(object):
 			)
 		linePos += int(lineHeight * 2.2)
 
-		self.w.travelPercentageText = vanilla.TextBox((inset, linePos + 2.5, 190, 14), "Acceptable travel ratio in percent:", sizeStyle='small', selectable=True)
+		self.w.travelPercentageText = vanilla.TextBox((inset, int(linePos + 2.5), 190, 14), "Acceptable travel ratio in percent:", sizeStyle='small', selectable=True)
 		self.w.travelPercentage = vanilla.EditText((inset + 190, linePos, -inset, 19), "50", callback=self.SavePreferences, sizeStyle='small')
 		self.w.travelPercentage.getNSTextField().setToolTip_(
 			"Anything above 50% is suspicious in a weight interpolation, and above 70% in a width interpolation. (100% is the diagonal of the bounding box of the path the node belongs to.)"
