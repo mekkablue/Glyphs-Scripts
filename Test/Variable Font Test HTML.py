@@ -1093,7 +1093,7 @@ def listOfAllStyles(thisFont):
 			styleName = "Origin"
 		else:
 			styleName = masterOrInstance.name
-			if hasattr(masterOrInstance, "variableStyleName"):
+			if hasattr(masterOrInstance, "variableStyleName") and masterOrInstance.variableStyleName != None:
 				styleName = masterOrInstance.variableStyleName
 			elif masterOrInstance.preferredSubfamilyName:
 				styleName = masterOrInstance.preferredSubfamilyName
