@@ -176,7 +176,7 @@ class FindAndReplaceInFontInfo(object):
 
 					# TODO: directly iterate properties
 					for prop in thisFont.properties:
-						if hasAttr(prop, "values"):
+						if hasattr(prop, "values"):
 							pass
 
 					if thisFont.familyName: # could be None
