@@ -135,7 +135,7 @@ class ComponentMover(object):
 					for thisLayer in glyph.layers:
 						if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 							for component in thisLayer.components:
-								if searchString == "" or (searchString != "" and searchString in component.componentName):
+								if not searchString or (searchString != "" and searchString in component.componentName):
 									originalGlyph = component.componentLayer.parent
 									if originalGlyph.smartComponentAxes:
 										for axis in originalGlyph.smartComponentAxes:
