@@ -76,7 +76,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Report Non-Standard Anchors to Macro window / 在巨集面板回報異常錨點資訊：** 掃描字型中的所有字符，將偵測到的異常錨點顯示在巨集面板中，命令行內容可被複製貼上到編輯畫面中。
 * **Shine Through Anchors / (翻譯名稱)：** In all layers of selected glyphs, inserts ‘traversing’ anchors from components.
 
-## 應用程式
+## 應用程式（已完成v1）
 
 *如果你正在寫程式，請為「方法報告器」添加快捷鍵，你將非常需要它。如果你想要一個與解析度無關的視窗內容的PDF螢幕截圖讓你可以在向量插圖應用程式中進行後製，「列印視窗」可以派上用場。*
 
@@ -118,7 +118,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Fix Punctuation Dots and Heights / (翻譯名稱)：** Syncs punctuation dots between ¡!¿? (and their SC+CASE variants). Will use dot from exclam in all other glyphs, and shift ¡¿ in SC and CASE variants. Assumes that ¡¿ are components in !?. Detailed report in Macro Window..
 * **Quote Manager / 引用符管理器：** Build double quotes from single quotes, and insert `#exit` and `#entry` anchors in the single quotes for auto-alignment. You need to have the single quotes already. *需要 香草JS*
 
-## 彩色字型
+## 彩色字型（已完成v1）
 
 *這些腳本能幫助你在製作彩色字體的工作流程中解決遇到的問題。「合併腳本」主要用於為 CPAL/COLR 字型創建後備字符。這個方式產生的後備字符將會填滿編輯框，且不會在 Chrome 瀏覽器中發生裁切。*
 
@@ -147,7 +147,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Compare Metrics / (翻譯名稱)：** Compare widths of two frontmost fonts.
 * **Compare Sidebearings / (翻譯名稱)：** Compare sidebearings of two frontmost fonts.
 
-## 組件
+## 組件（已完成v1）
 
 *當你使用其他字母構建字母時「使用組件填充背景」非常有用，例如：ae 或 oe，該腳本將會把 e 放在每個母版的背景中，且使用者介面有一個選項可以將選定的點與背景中的 e 對齊。如果你正在使用角落組件製作多母版的襯線字體，「傳播角落組件到其他主板」將為你節省大量時間。*
 
@@ -188,23 +188,23 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * * **Stylistic Sets > Create pseudorandom calt feature / (翻譯名稱)：** Creates pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font. Also includes the default class in the rotation algorithm.
 * * **Stylistic Sets > Set ssXX Names / (翻譯名稱)：** Prefills names for ssXX features with ‘Alternate’ or another chosen text, plus the name of the first substituted glyph, e.g., ‘Alternate a’. Option to preserve existing namings.*需要 香草JS*
 
-## 字型資訊
+## 字型資訊（已完成v1）
 
 *「垂直度量管理器」對於在 字型資訊 視窗的 字型 和 主板 分頁中尋找和同步垂直度量參數很好用。「清除版本字串」也非常好用。「字型資訊批量設定器」是在多個字型檔之間同步字型資訊設定的必備工具。留意「設定 WWS/Preferred 名稱」腳本：Glyphs 通常會自動處理命名，因此使用它們的機會非常少。*
 
-* **Clean Version String / 清除版本字串：** Adds a clean versionString parameter, and disables ttfAutohint info in the version string. The exported font will have a version string consisting only of ‘Version X.XXX’.
-* **Find and Replace in Font Info / 尋找與取代字型資訊：** Finds and replaces names in *Font Info > Font* and *Font Info > Instances.* *需要 香草JS*
-* **Find and Replace In Instance Parameters / (翻譯名稱)：** Finds and Replace in Custom Parameters of selected instances of the current font or project file.
-* **Font Info Batch Setter / 字型資訊批量設定器：** Batch-apply settings in *Font Info > Font* to open fonts: designer, designer URL, manufacturer, manufacturer URL, copyright, version number, date and time. Useful for syncing Font Info settings across many fonts. *需要 香草JS*
-* **Font Info Overview / (翻譯名稱)：** Lists some Font Info values for all opened fonts.
-* **Prepare Font Info / (翻譯名稱)：** Prepare open fonts for a modern font production and git workflow by setting certain custom parameters. *需要 香草JS*
-* **Remove Custom Parameters / (翻譯名稱)：** Removes all parameters of one kind from Font Info > Font, Masters, Instances. Useful if you have many masters or instances. *需要 香草JS*
-* **Set Preferred Names (Name IDs 16 and 17)  for Width Variants / (翻譯名稱)：** Sets Preferred Names custom parameters (Name IDs 16 and 17) for all instances, so that width variants will appear in separate menus in Adobe apps.
-* **Set Style Linking / (翻譯名稱)：** Attempts to set the Bold/Italic bits.
-* **Set Subscript and Superscript Parameters / (翻譯名稱)：** Measures your superior and inferior figures and derives subscript/superscript X/Y offset/size parameters. *需要 香草JS*
-* **Set WWS Names (Name IDs 21 and 22) / (翻譯名稱)：** Sets WWS custom parameters (Name IDs 21 and 22) for all instances where necessary: Puts all info except RIBBI into the WWSFamilyName, and only keeps RIBBI for the WWSSubfamilyName.
-* **Style Renamer / (翻譯名稱)：** Batch-add a name particle to your style names, or batch-remove it from them. Useful for switching all your styles from italic to roman naming and vice versa. *需要 香草JS*
-* **Vertical Metrics Manager / 垂直度量管理器：** Calculate and insert values for OS/2 usWin and sTypo, hhea and fsSelection bit 7 (for preferring sTypo Metrics over usWin metrics). *需要 香草JS*
+* **Clean Version String / 清除版本字串：** 添加一個乾淨的 版本字串 參數，並禁用版本字串中的 ttfAutohint 訊息。導出的字型將具有僅包含“Version X.XXX”的版本字符串。 *:question:ttfAutohint功能*
+* **Find and Replace in Font Info / 尋找與取代字型資訊：** 尋找與取代在 *字型資訊 > 字型* 和 *字型資訊 > 匯出* 中的名稱。（不包含本地化名稱和數值） *需要 香草JS*
+* **Find and Replace In Instance Parameters / 尋找與取代匯出的參數：** 尋找和取代在目前字型或項目文件中選定樣式的自定義參數。
+* **Font Info Batch Setter / 字型資訊批次設定器：** 批次設定已開啟字型的 *字型資訊 > 字型* 數值：包含設計師、設計師 URL、製造商、製造商 URL、版權、版本號、日期和時間。對於跨多種字型同步字型資訊設定很有用。 *需要 香草JS*
+* **Font Info Overview / 字型資訊概覽：** 列出所有已開啟字型檔的部分字型資訊數值。 *:question:功能？*
+* **Prepare Font Info / 準備字型資訊：** 通過設定部分自定義參數，為現代字型製作和 git 工作流程準備開放字體 *:question:開源？* 。 *需要 香草JS*
+* **Remove Custom Parameters / 刪除自定義參數：** 從字型資訊 > 字型、主板、匯出中刪除其中一種類型的所有參數。如果您有許多主板或樣式就會很有用。 *需要 香草JS*
+* **Set Preferred Names (Name IDs 16 and 17)  for Width Variants / 為寬度變體設定首選名稱：** 為所有樣式設定首選名稱的自定義參數（名稱 ID 16 和 17），以便使寬度變體顯示在 Adob​​e 應用程序的單獨清單中。
+* **Set Style Linking / 設定樣式連結：** Attempts to set the Bold/Italic bits.嘗試設置粗體/斜體位。 *:question:不懂名詞bit*
+* **Set Subscript and Superscript Parameters / 設定下標和上標參數：** 測量您的上標和下標圖形並導出下標/上標 X/Y 偏移/尺寸參數。 *需要 香草JS* *:question:沒用過*
+* **Set WWS Names (Name IDs 21 and 22) / 設定 WWS 名稱（名稱 ID 21 和 22）：** 在必要時為所有樣式設定 WWS 自定義參數（名稱 ID 21 和 22）：將除 RIBBI 之外的所有訊息放入 WWSFamilyName，並且僅保留 WWSSubfamilyName 的 RIBBI。 *:question:名詞釋義？*
+* **Style Renamer / 樣式改名器：** 將名稱詞綴批次加入到您的樣式名稱中，或將其從樣式名稱中批次刪除。用於將所有樣式從斜體轉換為羅馬體的名稱，反之亦然。 *需要 香草JS*
+* **Vertical Metrics Manager / 垂直度量管理器：** Calculate and insert values for OS/2 usWin and sTypo, hhea and fsSelection bit 7 (for preferring sTypo Metrics over usWin metrics).計算並插入 OS/2 usWin 和 sTypo、hhea 和 fsSelection 位 7 的值（用於優先使用 sTypo 指標而不是 usWin 指標）。*:question:不懂名詞bit* *需要 香草JS*
 
 ## 字形名稱、註釋和 Unicode
 
@@ -222,15 +222,15 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Reorder Unicodes of Selected Glyphs / 重新排序所選字符的 Unicode：** 重新排序 Unicode，使默認 Unicode 排在第一位。
 * **Switch Mirrored Characters / 切換鏡像字元：** 在目前編輯畫面中，切換鏡像雙向字元，例如 () 到 )( 。用於在分頁中切換書寫方向後，切換括號和引號。
 
-## 參考線
+## 參考線（已完成v1）
 
 *這些腳本主要用於清理在處理第三方字體時看到的過多參考線。*
 
-* **Guides through All Selected Nodes / (翻譯名稱)：** Lays guides through all selected nodes in current glyph. Tries to avoid duplicate guides.
-* **Remove Global Guides in Current Master / (翻譯名稱)：** Deletes all global (red) guides in the current master.
-* **Remove Local Guides in Selected Glyphs / (翻譯名稱)：** Deletes all local (blue) guides in selected glyphs.
-* **Select All Global Guides / (翻譯名稱)：** Selects all global (red) guides in Edit view. Useful if you have many and need to batch-transform them.
-* **Select All Local Guides / (翻譯名稱)：** Selects all local (blue) guides (in all selected glyphs).
+* **Guides through All Selected Nodes / 生成通過所有已選節點的參考線：** 在目前字符中穿過所有已選擇節點放置參考線。盡量避免參考線重複。
+* **Remove Global Guides in Current Master / 刪除目前主板的全域參考線：** 刪除目前主板中的所有全域（紅色）參考線。
+* **Remove Local Guides in Selected Glyphs / 刪除已選擇字符的區域參考線：** 刪除選定字符中的所有區域（藍色）參考線。
+* **Select All Global Guides / 全選全域參考線：** 在編輯區域中選擇所有全域（紅色）參考線。如果你有很多並且需要批次轉換它們會非常有用。
+* **Select All Local Guides / 全選區域參考線：** 選擇所有區域（藍色）參考線（在所有已選擇的字符中）。
 
 ## 字體微調
 
@@ -255,18 +255,19 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Transfer Hints to First Master / (翻譯名稱)：** Copies PS hints from the current layer to the first master layer, provided the paths are compatible. Reports errors to the Macro window.
 * **TT Autoinstruct / (翻譯名稱)：** Automatically add Glyphs TT instructions to the selected glyphs in the selected master. (Should be the first master.) Attention: this is NOT Werner Lemberg's ttfAutohint, but the manual TT hints that the TT Instruction tool (I) would add through the context menu item of the same name. Useful for adding hints in many glyphs at once.
 
-## 圖片
+## 圖片（已完成v1）
 
 *主要用於解決處理大量（背景）圖像時可能遇到的頭痛問題。*
 
-* **Add Same Image to Selected Glyphs / (翻譯名稱)：** Asks you for an image, and then inserts it into all currently selected glyphs as background image.
-* **Adjust Image Alpha / (翻譯名稱)：** Slider for setting the alpha of all images in selected glyphs. *需要 香草JS*
-* **Delete All Images in Font / (翻譯名稱)：** Deletes all placed images throughout the entire font.
-* **Delete Images / (翻譯名稱)：** Deletes all images placed in the visible layers of selected glyphs.
-* **Reset Image Transformation / (翻譯名稱)：** Resets all image transformations (x/y offset, scale, and distortion) back to default in the visible layers of selected glyphs.
-* **Set New Path for Images / (翻譯名稱)：** Resets the path for placed images in selected glyphs. Useful if you have moved your images.
-* **Toggle Image Lock / (翻譯名稱)：** Lock or unlock all images in all selected glyphs. *需要 香草JS*
-* **Transform Images / (翻譯名稱)：** GUI for batch-transforming images (x/y offset and x/y scale) in the visible layers of selected glyphs. *需要 香草JS*
+* **Add Same Image to Selected Glyphs / 將相同圖片添加到已選擇字符：** 要求您提供圖片，然後將其作為背景圖片插入到目前所有已選擇的字符中。
+* **Adjust Image Alpha / 調整圖片透明度：** 以滑桿介面設定所選字符中的圖片透明度。 *需要 香草JS*
+* **Delete All Images in Font / 刪除字型中的所有圖片：** 刪除整個字型中所有放置的圖片。
+
+* **Delete Images / 刪除圖片：** 刪除放置在所選字符可見圖層中的所有圖片。
+* **Reset Image Transformation / 重置圖片變形：** 將所有圖片變形參數（x/y 平移、縮放和變形）重置為所選字符中可見圖層的預設值。
+* **Set New Path for Images / 為圖片設定新路徑：** Resets the path for placed images in selected glyphs. Useful if you have moved your images.重置所選字符中放置圖片的路徑。如果您移動了圖片，這很有用。 *:question:圖片有路徑？*
+* **Toggle Image Lock / 切換圖片鎖定：** 以浮動視窗按鈕鎖定或解鎖所有選定字符中的圖片。 *需要 香草JS*
+* **Transform Images / 變形圖片：** 用於在已選擇字符的可見圖層中，以浮動視窗界面批次變形圖片（x/y 平移和 x/y 縮放）。 *需要 香草JS*
 
 ## 插值
 
@@ -303,7 +304,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * * **Other > Show Masters of Next/Previous Glyph / (翻譯名稱)：** Allows you to step through one glyph after another, but with all masters. Combines the show next/previous glyph function (fn+left/right) with the *Edit > Show All Masters* function. Handy for attaching a keyboard shortcut in System Preferences.
 * * **Other > Show Next/Previous Instance / 其他 > 顯示上/下一個實體：** Jumps to next/previous instance in the preview section of the current Edit tab. Handy for attaching a keyboard shortcut in System Preferences.
 
-## Kerning
+## Kerning 調距
 
 *推薦腳本：「自動緩衝器」、「KernCrasher」、「GapFinder」、「示例字符串製造器」。如果你有太多的 kerning，請考慮使用「異常清除器」。*
 
@@ -371,22 +372,22 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Straight Stem Cruncher / (翻譯名稱)：** Finds distances between points in all layers, and compares them (with a tolerance) to specified stem widths. Lists glyphs that have deviating stems in their drawings. *需要 香草JS*
 * **Tunnify / (翻譯名稱)：** Looks for all path segments where at least one handle is selected. Then, evens out the handles of the segments, i.e., they will both have the same Fit Curve percentage. Can fix Adobe Illustrator's zero-handles (segments with one handle retracted into the nearest node). The idea for this script came from Eduardo Tunni (as colported by Pablo Impallari), hence the title of the script. I have never seen Eduardo's algorithm though, so my implementation might be a little different to his, especially the treatment of zero-handles.
 
-## 像素字型
+## 像素字型（已完成v1）
 
 *這些腳本在像素字型的工作流程中都很有用，它們能幫助你在較粗的網格中放置像素組件。如果你正在進行像素設計，請看看 窗口 > 外掛程式管理員 中可用的像素相關外掛。*
 
-* **Align Anchors to Grid / (翻譯名稱)：** Snaps diacritic anchors onto the font grid.
-* **Delete Components out of Bounds / (翻譯名稱)：** If a component is placed far outside the usual coordinates (happens when you cmd-arrow components with a high grid step), this script will delete them.
-* **Delete Duplicate Components / (翻譯名稱)：** Looks for duplicate components (same name and position) and keeps only one. Happens frequently when buliding pixel fonts.
-* **Flashify Pixels / (翻譯名稱)：** Creates small bridges in order to prevent self-intersection of paths so counters stay white. This is especially a problem for the Flash font renderer, hence the name of the script.
-* **Reset Rotated and Mirrored Components / (翻譯名稱)：** Looks for scaled, mirrored and rotated components and turns them back into their default scale and orientation, but keeps their position. Useful for fixing mirrored pixels.
+* **Align Anchors to Grid / 對齊錨點與網格：** 將變音符號錨點對齊到字型網格上。
+* **Delete Components out of Bounds / 刪除邊界外的組件：** 如果組件放置在遠離平常坐標的地方（通常發生在當您使用 cmd 加方向鍵在低網格密度中移動組件時），此腳本將刪除它們。
+* **Delete Duplicate Components / 刪除重複組件：** 尋找重複的組件（相同名稱和位置）並只保留一個。這個情況經常在創建像素字型時發生。
+* **Flashify Pixels / Flash化像素：** 創造小接口以避免路徑交錯產生的白色區域，這對於 Flash 字體渲染器來說尤其是一個問題，這也是此腳本名稱的由來。
+* **Reset Rotated and Mirrored Components / 重置被旋轉和鏡像的組件：** 尋找被縮放、鏡像和旋轉的組件並將它們恢復為預設的比例和方向，但不更動其位置。用於修復被鏡像的像素。
 
-## 小體大寫字母
+## 小體大寫字母（已完成v1）
 
 *當製作中的字體包含小體大寫字母時，可以執行「檢查小體大寫字母一致性」。不過請對它的報告持保留態度：它列出了許多誤報，而且也不是每個警告都這麼重要。*
 
-* **Check Smallcap Consistency / 檢查小體大寫字母一致性：** Performs a few tests on your SC set and reports into the Macro window, especially kerning groups and glyph set.
-* **Copy Kerning from Caps to Smallcaps / (翻譯名稱)：** Looks for cap kerning pairs and reduplicates their kerning for corresponding .sc glyphs, if they are available in the font. Please be careful: Will overwrite existing SC kerning pairs.
+* **Check Smallcap Consistency / 檢查小體大寫字母一致性：** 對您的小體大寫字母集執行一些測試並在巨集視窗列出報告，尤其是調距群組和字符集。
+* **Copy Kerning from Caps to Smallcaps / 將大寫字母的調距數值複製到小體大寫字母：** 將大寫字母的調距字偶複製到相應的小體大寫字母，如果它們包含在字型中。請注意：將覆蓋現有的小體大寫字母的調距字偶。
 
 ## 間距
 
@@ -411,7 +412,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Steal Metrics / (翻譯名稱)：** Steals the sidebearing or width values for all selected glyphs from a 2nd font. Optionally also transfers metrics keys like '=x+20'. *需要 香草JS*
 * **Tabular Checker / (翻譯名稱)：** Goes through tabular glyphs and checks if they are monospaced. Reports exceptions. *需要 香草JS*
 
-## 測試
+## 測試（已完成v1）
 
 *推薦「測試用 HTML 腳本」。如果你在 Adobe 或 Apple 應用程式中發現選取框異常的高或低，可以執行「最高和最低點字符報告」查詢找出導致狀況發生的字符。「拉丁字母支援語言報告」提供的資訊是參考性的建議，不是絕對要遵守的規範。*
 
