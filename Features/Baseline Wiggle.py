@@ -153,7 +153,7 @@ allPossibleFeatures = [
 	'zero',
 	]
 for i in range(1,100):
-	cvName = "cv%02i" % i
+	cvName = f"cv{i:02}"
 	allPossibleFeatures.append(cvName)
 
 def updatedCode( oldCode, beginSig, endSig, newCode ):
@@ -190,14 +190,14 @@ def createOTFeature( featureName = "calt",
 			# append new code:
 			targetFeature.code += "\n" + beginSig + featureCode + "\n" + endSig
 			
-		return "Updated existing OT feature '%s'." % featureName
+		return f"Updated existing OT feature ‘{featureName}’." 
 	else:
 		# create feature with new code:
 		newFeature = GSFeature()
 		newFeature.name = featureName
 		newFeature.code = beginSig + featureCode + "\n" + endSig
 		targetFont.features.append( newFeature )
-		return "Created new OT feature '%s'" % featureName
+		return f"Created new OT feature ‘{featureName}’"
 
 def createOTClass( className   = "@default", 
                    classGlyphs = [ l.parent.name for l in Glyphs.font.selectedLayers ], 
@@ -218,13 +218,13 @@ def createOTClass( className   = "@default",
 	
 	if className in [ c.name for c in targetFont.classes ]:
 		targetFont.classes[className].code = classCode
-		return "Updated existing OT class '%s'." % className
+		return f"Updated existing OT class ‘{className}’."
 	else:
 		newClass = GSClass()
 		newClass.name = className
 		newClass.code = classCode
 		targetFont.classes.append( newClass )
-		return "Created new OT class: '%s'" % className
+		return f"Created new OT class: ‘{className}’"
 
 class BaselineWiggle( object ):
 	prefID = "com.mekkablue.BaselineWiggle"
@@ -301,7 +301,12 @@ class BaselineWiggle( object ):
 	
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
+		prefValue = Glyphs.defaults[prefDomain]
+		if prefValue != None:
+			return prefValue
+		else:
+			fallbackValue = self.prefDict[prefName]
+			return fallbackValue
 	
 	def SavePreferences( self, sender=None ):
 		try:
@@ -337,14 +342,13 @@ class BaselineWiggle( object ):
 				print("⚠️ ‘Baseline Wiggle’ could not write preferences.")
 			
 			# read prefs:
-			for prefName in self.prefDict.keys():
-				# try:
-				setattr(sys.modules[__name__], prefName, self.pref(prefName))
-				print(prefName, getattr(sys.modules[__name__], prefName))
-				# except:
-				# 	fallbackValue = self.prefDict[prefName]
-				# 	print("⚠️ Could not set pref ‘%s’, resorting to default value: ‘%s’." % (prefName, fallbackValue))
-				# 	setattr(sys.modules[__name__], prefName, fallbackValue)
+			
+			otClass = self.pref("otClass")
+			otFeature = self.pref("otFeature")
+			lineLength = int(self.pref("lineLength"))
+			wiggleMax = int(self.pref("wiggleMax"))
+			wiggleMin = int(self.pref("wiggleMin"))
+			wiggleMin, wiggleMax = sorted((wiggleMin, wiggleMax)) # reorder if necessary
 			
 			thisFont = Glyphs.font # frontmost font
 			if thisFont is None:
@@ -352,10 +356,10 @@ class BaselineWiggle( object ):
 			else:
 				filePath = thisFont.filepath
 				if filePath:
-					report = "%s\n📄 %s" % (filePath.lastPathComponent(), filePath)
+					report = f"{filePath.lastPathComponent()}\n📄 {filePath}"
 				else:
-					report = "%s\n⚠️ The font file has not been saved yet." % thisFont.familyName
-				print("Baseline Wiggle Report for %s" % report)
+					report = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+				print(f"Baseline Wiggle Report for {report}")
 				print()
 				
 				if otClass and otFeature:
@@ -364,21 +368,21 @@ class BaselineWiggle( object ):
 						otClass = otClass[1:]
 				
 					featuretext = ""
-					for j in range( linelength, 0, -1 ):
+					for j in range( lineLength, 0, -1 ):
 						newline = f"pos @{otClass}' " + f"@{otClass} "*j + f"<0 {randint(wiggleMin, wiggleMax)} 0 0>;\n"
 						featuretext += newline
 					
 					if not otClass in [c.name for c in thisFont.classes]:
 						report = createOTClass(
-							classname=otClass,
-							classglyphs=[g.name for g in thisFont.glyphs if g.export==True],
+							className=otClass,
+							classGlyphs=[g.name for g in thisFont.glyphs if g.export==True],
 							)
 						print(report)
 				
 					report = createOTFeature(
-						featurename=otFeature,
-						featurecode=featuretext,
-						codesig="BASELINE-WIGGLE",
+						featureName=otFeature,
+						featureCode=featuretext,
+						codeSig="BASELINE-WIGGLE",
 						)
 					print(report)
 
@@ -387,7 +391,7 @@ class BaselineWiggle( object ):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Baseline Wiggle Error: %s" % e)
+			print(f"Baseline Wiggle Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 
