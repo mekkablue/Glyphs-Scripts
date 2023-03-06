@@ -38,6 +38,8 @@ Glyphs.clearLog()
 Glyphs.showMacroWindow()
 print("Shading composites:\n")
 
+Font.disableUpdateInterface()
+
 for thisComposite in [g for g in thisFont.glyphs if g.layers[thisMasterID].components]:
 	firstComponent = thisComposite.layers[thisMasterID].components[0]
 	baseGlyph = firstComponent.component
@@ -52,3 +54,5 @@ for thisComposite in [g for g in thisFont.glyphs if g.layers[thisMasterID].compo
 		print("✅ %03ir %03ig %03ib → %s" % (100 * r, 100 * g, 100 * b, thisComposite.name))
 	else:
 		print("⚠️ %s: no color set in %s" % (thisComposite.name, baseGlyph.name))
+
+Font.enableUpdateInterface()
