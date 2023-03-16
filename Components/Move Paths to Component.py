@@ -286,9 +286,12 @@ class MovePathstoComponent(object):
 							if attachToAnchor.endswith("exit"):
 								l.leftMetricsKey = metricsKey
 								leftOrRight = "left"
-							else:
+							elif attachToAnchor.endswith("entry"):
 								l.rightMetricsKey = metricsKey
 								leftOrRight = "right"
+							else: # all other cases
+								l.leftMetricsKey = metricsKey
+								leftOrRight = "left"
 
 							l.updateMetrics()
 							l.syncMetrics()
