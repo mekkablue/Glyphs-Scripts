@@ -123,12 +123,12 @@ class Bumper(object):
 		self.w.minDistance = vanilla.EditText((inset + 80, linePos, 60, 19), "50", sizeStyle='small', callback=self.SavePreferences)
 		self.w.minDistance.getNSTextField().setPlaceholderString_("50")
 		self.w.minDistance.getNSTextField(
-		).setToolTip_("Adds kerning if the shortest distance between two glyphs is shorter than specified value. Leave blank or set to zero to ignore.")
+		).setToolTip_("Adds kerning if the shortest distance between two glyphs is shorter than specified value. You can also type ‘vw’ for the distance between v and w, and ‘vw+10’ for that distance plus 10 units. Leave blank or set to zero to ignore.")
 		self.w.text_22 = vanilla.TextBox((inset + 80 * 2, linePos + 3, 80, 14), "Max distance:", sizeStyle='small')
 		self.w.maxDistance = vanilla.EditText((inset + 80 * 3, linePos, 60, 19), "200", sizeStyle='small', callback=self.SavePreferences)
 		self.w.maxDistance.getNSTextField().setPlaceholderString_("200")
 		self.w.maxDistance.getNSTextField(
-		).setToolTip_("Adds kerning if the shortest distance between two glyphs is larger than specified value. Leave blank or set to zero to ignore.")
+		).setToolTip_("Adds kerning if the shortest distance between two glyphs is larger than specified value. You can also type ‘AV’ for the distance between A and V, and ‘AV-10’ for that distance minus 10 units. Leave blank or set to zero to ignore.")
 		self.w.text_23 = vanilla.TextBox((inset + 80 * 4, linePos + 3, 80, 14), "Round by:", sizeStyle='small')
 		self.w.roundFactor = vanilla.EditText((inset + 80 * 5, linePos, -inset, 19), "10", sizeStyle='small', callback=self.SavePreferences)
 		self.w.roundFactor.getNSTextField().setPlaceholderString_("10")
@@ -367,6 +367,25 @@ class Bumper(object):
 					print("- %s %s: %i" % (leftSide, rightSide, newKernValue))
 				return True # increase kern count
 
+	def distanceBetweenCharacters(self, thisFont, thisMaster, chars, step=5):
+		if len(chars)>=2:
+			firstChar = chars[0]
+			secondChar = chars[1]
+			firstGlyph = thisFont.glyphForCharacter_(ord(firstChar))
+			secondGlyph = thisFont.glyphForCharacter_(ord(secondChar))
+			if firstGlyph!=None and secondGlyph!=None:
+				firstLayer = firstGlyph.layers[thisMaster.id]
+				secondLayer = secondGlyph.layers[thisMaster.id]
+				minDistance = minDistanceBetweenTwoLayers(firstLayer, secondLayer, interval=step)
+				adjust = 0
+				if len(chars) > 2:
+					try:
+						adjust = int(chars[2:])
+					except:
+						pass
+				return minDistance + adjust
+		return None
+			
 	def BumperMain(self, sender):
 		try:
 			# save prefs
@@ -400,17 +419,20 @@ class Bumper(object):
 			try:
 				minDistance = float(minDistance)
 			except:
-				minDistance = None
-				self.w.minDistance.set("")
-				self.SavePreferences()
+				print("minDistance:", minDistance)
+				minDistance = self.distanceBetweenCharacters(thisFont, thisMaster, minDistance, step=step)
+				if minDistance==None:
+					self.w.minDistance.set("")
+					self.SavePreferences()
 
 			maxDistance = Glyphs.defaults["com.mekkablue.Bumper.maxDistance"]
 			try:
 				maxDistance = float(maxDistance)
 			except:
-				maxDistance = None
-				self.w.maxDistance.set("")
-				self.SavePreferences()
+				maxDistance = self.distanceBetweenCharacters(thisFont, thisMaster, maxDistance, step=step)
+				if maxDistance==None:
+					self.w.maxDistance.set("")
+					self.SavePreferences()
 
 			roundFactor = Glyphs.defaults["com.mekkablue.Bumper.roundFactor"]
 			try:
