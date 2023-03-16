@@ -7,6 +7,24 @@ Finds interpolations in which points travel more than they should, i.e., can fin
 
 import vanilla
 
+def setCurrentTabToShowAllInstances(font):
+	previewingTab = font.currentTab
+	previewPanel = None
+	for p in NSApplication.sharedApplication().delegate().valueForKey_("pluginInstances"):
+		if "GlyphspreviewPanel" in p.__class__.__name__:
+			previewPanel = p
+			break
+	try:
+		if previewPanel:
+			previewPanel.setSelectedInstance_(-1)
+		previewingTab.setSelectedInstance_(-1)
+		previewingTab.updatePreview()
+		previewingTab.forceRedraw()
+		font.tool="TextTool"
+		previewingTab.textCursor=0
+	except Exception as e:
+		raise e
+
 class TravelTracker(object):
 	prefID = "com.mekkablue.TravelTracker"
 	prefDict = {
@@ -245,7 +263,8 @@ class TravelTracker(object):
 					)
 			else:
 				# report in macro window
-				Glyphs.showMacroWindow()
+				if verbose:
+					Glyphs.showMacroWindow()
 				sortedGlyphInfos = sorted(affectedGlyphInfos, key=lambda thisListItem: -thisListItem[1])
 				print()
 				print("Affected glyphs:")
@@ -258,6 +277,7 @@ class TravelTracker(object):
 				affectedGlyphNames = [gi[0] for gi in sortedGlyphInfos]
 				tabText = "/" + "/".join(affectedGlyphNames)
 				thisFont.newTab(tabText)
+				setCurrentTabToShowAllInstances(thisFont)
 
 		except Exception as e:
 			# brings macro window to front and reports error:
