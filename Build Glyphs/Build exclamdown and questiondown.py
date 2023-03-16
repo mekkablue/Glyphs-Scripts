@@ -27,7 +27,8 @@ thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
 	exclam = thisFont.glyphs["exclam"]
 	question = thisFont.glyphs["question"]
-
+	tabText = ""
+	
 	for invertedName in invertedGlyphNames:
 		# determine original glyph for component:
 		uprightName = invertedName[:invertedName.find("down")]
@@ -42,6 +43,7 @@ try:
 		if not uprightGlyph:
 			print("🚫 Not in font: %s. No %s built." % (uprightName, invertedName))
 		else:
+			tabText += f"/{invertedName}"
 			invertedGlyph = thisFont.glyphs[invertedName]
 			if not invertedGlyph:
 				print("⚙️ Creating glyph %s (did not exist)" % invertedName)
@@ -71,7 +73,9 @@ try:
 				invertedComponent.applyTransform(t)
 				invertedComponent.setDisableAlignment_(False)
 				invertedLayer.updateMetrics()
-
+	
+	if tabText:
+		thisFont.newTab(tabText)
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Error in script: Build exclamdown and questiondown\n")
