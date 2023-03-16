@@ -382,20 +382,20 @@ def buildLozenge(thisFont, override=False):
 
 		# draw the skeleton:
 		drawPenDataInLayer(thisLayer, penpoints_lozenge, closePath=True)
-
+		
 		# expand it:
 		stemWidth = stemWidthForMaster(thisFont, thisMaster, maxWidth=s * 0.6 * 0.3)
 		offsetLayer(thisLayer, stemWidth / 2, makeStroke=True, position=0.5)
-
+		
 		# move it into mid cap height:
 		moveUp = (capHeight - s) * 0.5 # move to center of cap height
 		moveUpStruct = transform(shiftY=moveUp).transformStruct()
 		thisLayer.applyTransform(moveUpStruct)
-
+		
 		# update metrics:
 		thisLayer.cleanUpPaths()
 		thisLayer.syncMetrics()
-
+		
 		# cut off caps:
 		midTop = sum([p.fastBounds().origin.y + p.fastBounds().size.height for p in thisLayer.paths]) / 2.0
 		midBottom = sum([p.fastBounds().origin.y for p in thisLayer.paths]) / 2.0
@@ -417,9 +417,10 @@ def buildLozenge(thisFont, override=False):
 			# GLYPHS 2
 			thisLayer.paths.append(intersector)
 
-		thisLayer.clearSelection()
-		intersector.selected = True
-		thisLayer.pathIntersect_(None)
+		thisLayer.pathIntersect_from_error_(
+			[intersector],
+			[thisLayer.paths[0]],
+			None)
 
 def buildCurrency(thisFont, override=False):
 	glyphName = "currency"
