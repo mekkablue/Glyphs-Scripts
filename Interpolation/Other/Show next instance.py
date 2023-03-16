@@ -8,7 +8,7 @@ Jumps to next instance shown in the preview field or window.
 from Foundation import NSApplication
 
 font = Glyphs.font
-numberOfInstances = len( font.instances )
+numberOfInstances = len(font.instances)
 
 # Preview Area at the bottom of Edit view:
 previewingTab = font.currentTab
@@ -17,12 +17,12 @@ previewingTab = font.currentTab
 previewPanel = None
 
 for p in NSApplication.sharedApplication().delegate().valueForKey_("pluginInstances"):
-	if p.__class__.__name__ == "NSKVONotifying_GlyphsPreviewPanel":
+	if "GlyphsPreviewPanel" in p.__class__.__name__:
 		previewPanel = p
+		break
 
 try:
 	currentInstanceNumber = previewingTab.selectedInstance()
-
 	if currentInstanceNumber < numberOfInstances - 1:
 		previewingTab.setSelectedInstance_( currentInstanceNumber + 1 )
 		if previewPanel:
@@ -31,7 +31,6 @@ try:
 		previewingTab.setSelectedInstance_( -2 )
 		if previewPanel:
 			previewPanel.setSelectedInstance_( -2 )
-	
 	previewingTab.updatePreview()
 	previewingTab.forceRedraw()
 

@@ -17,8 +17,9 @@ previewingTab = font.currentTab
 previewPanel = None
 
 for p in NSApplication.sharedApplication().delegate().valueForKey_("pluginInstances"):
-	if p.__class__.__name__ == "NSKVONotifying_GlyphspreviewPanel":
+	if "GlyphspreviewPanel" in p.__class__.__name__:
 		previewPanel = p
+		break
 
 try:
 	currentInstanceNumber = previewingTab.selectedInstance()
