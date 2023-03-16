@@ -694,7 +694,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				line-height: 1em;
 				width: 100%%;
 				color: black;
-				font: 150px "###fontFamilyName###";
+				font: 40px "###fontFamilyName###";
 				font-feature-settings: "kern" on, "liga" on, "calt" on, "locl" on;
 				-moz-font-feature-settings: "kern" on, "liga" on, "calt" on, "locl" on;
 				-webkit-font-feature-settings: "kern" on, "liga" on, "calt" on, "locl" on;
@@ -988,8 +988,8 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 	<div id="flexbox">
 		<div id="controls">
 			<!-- OTVar sliders -->
-			<div class="labeldiv"><label class="sliderlabel" id="label_fontsize" name="Font Size">Font Size</label><input type="range" min="10" max="1000" value="150" class="slider" id="fontsize" oninput="updateSlider();"></div>
-			<div class="labeldiv"><label class="sliderlabel" id="label_lineheight" name="Line Height">Line Height</label><input type="range" min="30" max="300" value="140" class="slider" id="lineheight" oninput="updateSlider();"></div>
+			<div class="labeldiv"><label class="sliderlabel" id="label_fontsize" name="Font Size">Font Size</label><input type="range" min="10" max="1000" value="40" class="slider" id="fontsize" oninput="updateSlider();"></div>
+			<div class="labeldiv"><label class="sliderlabel" id="label_lineheight" name="Line Height">Line Height</label><input type="range" min="30" max="300" value="120" class="slider" id="lineheight" oninput="updateSlider();"></div>
 ###sliders###
 			<div id="featureControls">
 			<!-- style menu -->
