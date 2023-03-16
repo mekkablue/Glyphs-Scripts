@@ -10,6 +10,12 @@ from Foundation import NSPoint
 
 class VariationInterpolator(object):
 	prefID = "com.mekkablue.VariationInterpolator"
+	prefDict = {
+		"numberOfInterpolations": 10,
+		"suffix": "var",
+		"glyphName": "interpolated",
+		"choice": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -98,10 +104,8 @@ class VariationInterpolator(object):
 
 	def SavePreferences(self, sender):
 		try:
-			Glyphs.defaults[self.domain("numberOfInterpolations")] = self.w.numberOfInterpolations.get()
-			Glyphs.defaults[self.domain("suffix")] = self.w.suffix.get()
-			Glyphs.defaults[self.domain("glyphName")] = self.w.glyphName.get()
-			Glyphs.defaults[self.domain("choice")] = self.w.choice.get()
+			for prefName in self.prefDict.keys():
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
 			self.updateUI()
 		except:
 			return False
@@ -110,14 +114,11 @@ class VariationInterpolator(object):
 
 	def LoadPreferences(self):
 		try:
-			Glyphs.registerDefault(self.domain("numberOfInterpolations"), 10)
-			Glyphs.registerDefault(self.domain("suffix"), "var")
-			Glyphs.registerDefault(self.domain("glyphName"), "interpolated")
-			Glyphs.registerDefault(self.domain("choice"), 0)
-			self.w.numberOfInterpolations.set(self.pref("numberOfInterpolations"))
-			self.w.suffix.set(self.pref("suffix"))
-			self.w.glyphName.set(self.pref("glyphName"))
-			self.w.choice.set(self.pref("choice"))
+			for prefName in self.prefDict.keys():
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
+				# load previously written prefs:
+				getattr(self.w, prefName).set( self.pref(prefName) )
 			self.updateUI()
 		except:
 			return False
@@ -130,7 +131,7 @@ class VariationInterpolator(object):
 		# prepare glyph:
 		newGlyph = thisGlyph.copy()
 		if newSuffix:
-			newGlyphName = "%s.%s" % (newGlyph.name, newSuffix)
+			newGlyphName = f"{newGlyph.name}.{newSuffix}"
 		elif newName:
 			newGlyphName = newName
 		newGlyph.name = newGlyphName
@@ -166,8 +167,8 @@ class VariationInterpolator(object):
 							))
 		else:
 			thisGlyph = thisLayer.parent
-			print("%s: incompatible background layer ('%s'):" % (thisGlyph.name, thisLayer.name))
-			print("Foreground: %s\nBackground:%s" % (thisLayer.compareString(), thisLayer.background.compareString()))
+			print(f"{thisGlyph.name}: incompatible background layer (‘{thisLayer.name}’):"
+			print(f"Foreground: {thisLayer.compareString()}\nBackground:{thisLayer.background.compareString()}"
 
 	def interpolateAnchors(self, thisLayer, backgroundFactor, foregroundFactor):
 		# interpolate anchor only if there is an anchor of the same name:
@@ -180,7 +181,7 @@ class VariationInterpolator(object):
 					foregroundAnchor.setPosition_(self.interpolatedPosition(foregroundPosition, foregroundFactor, backgroundPosition, backgroundFactor))
 				else:
 					thisGlyph = thisLayer.parent
-					print("%s: Anchor ‘%s’ not in background." % (thisGlyph.name, foregroundAnchor.name))
+					print(f"{thisGlyph.name}: Anchor ‘{foregroundAnchor.name}’ not in background."
 
 	def interpolateComponents(self, thisLayer, backgroundFactor, foregroundFactor):
 		for i, thisComponent in enumerate(thisLayer.components):
@@ -263,7 +264,11 @@ class VariationInterpolator(object):
 				else:
 					# interpolate between first two glyphs
 					if not len(selectedGlyphs) == 2:
-						Message(title="Select exactly two glyphs", message="Please select exactly two glyphs to interpolate.", OKButton=None)
+						Message(
+							title="Select exactly two glyphs",
+							message="Please select exactly two glyphs to interpolate.",
+							OKButton=None,
+							)
 					else:
 						glyphA, glyphB = selectedGlyphs
 						for numberOfThisVariation in range(1, numberOfInterpolations + 1):
@@ -309,7 +314,7 @@ class VariationInterpolator(object):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Variation Interpolator Error: %s" % e)
+			print(f"Variation Interpolator Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 
