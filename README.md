@@ -130,22 +130,22 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Merge Suffixed Glyphs into Color Layers / 合併關聯字符到顏色層中：** 將 `x.shadow` 、 `x.body` 和 `x.front` 合併到 `x` 的單獨 CPAL 顏色圖層中。 *需要 香草JS*
 * **sbix Spacer / sbix字型空間調整器：** 大量設定 sbix 位置和字符寬度。 *需要 香草JS*
 
-## 比較當前字型
+## 比較當前字型（已完成v2）
 
 *這些腳本用於同步正體和它們的斜體。打開兩個字型檔，然後運行腳本。它們不會更改你的字型，但會在巨集視窗中顯示詳細的報告。*
 
-* **Compare Font Info > Font / (翻譯名稱)：** Detailed report of Font Info > Masters for the two frontmost fonts and outputs a report in the Macro window.
-* **Compare Font Info > Masters / (翻譯名稱)：** Detailed report of Font Info > Masters for the two frontmost fonts and outputs a report in the Macro window.
-* **Compare Font Info > Instances / (翻譯名稱)：** Detailed report of Font Info > Instances for the two frontmost fonts and outputs a report in the Macro window.
-* **Compare Font Info > Features / (翻譯名稱)：**  Compares the OT features set of the two frontmost fonts and outputs a report in the Macro window.
-* **Compare Anchors / (翻譯名稱)：** Compares anchor structure and anchor heights between the two frontmost fonts.
-* **Compare Composites / (翻譯名稱)：** Reports diverging component structures of composite glyphs, e.g., `iacute` built with `acutecomb` in one font, and `acutecomb.narrow` in the other.
-* **Compare Glyph Heights / (翻譯名稱)：** Lists all glyphs that differ from the second font in height beyond a given threshold.
-* **Compare Glyph Info / (翻譯名稱)：** Compares open fonts and builds a lits of differing glyph info, including Unicode values and categorisation. *需要 香草JS*
-* **Compare Glyphsets / (翻譯名稱)：** Compares the glyph set of the two frontmost fonts and outputs a report in the Macro window.
-* **Compare Kerning Groups / (翻譯名稱)：** Compares kerning groups between frontmost fonts, outputs a table of glyph names with unmatching groups.
-* **Compare Metrics / (翻譯名稱)：** Compare widths of two frontmost fonts.
-* **Compare Sidebearings / (翻譯名稱)：** Compare sidebearings of two frontmost fonts.
+* **Compare Font Info > Font / 比較字型資訊 > 字型：** 對於前兩個字型檔，詳細比較字型資訊 > 字型，並在巨集面板中輸出報告。
+* **Compare Font Info > Masters / 比較字型資訊 > 主板：** 對於前兩個字型檔，詳細比較字型資訊 > 主板，並在巨集面板中輸出報告。
+* **Compare Font Info > Instances /  比較字型資訊 > 匯出：** 對於前兩個字型檔，詳細比較字型資訊 > 匯出，並在巨集面板中輸出報告。
+* **Compare Font Info > Features / 比較字型資訊 > 特性：**  對於前兩個字型檔，詳細比較字型資訊 > 特性，並在巨集面板中輸出報告。
+* **Compare Anchors / 比較錨點：** 比較前兩個字型檔之間的錨點結構和錨點高度。
+* **Compare Composites / 比較複合字元：** 報告複合字符的不同結構，例如在一個字型中使用   `acutecomb` 構建的 `iacute`，而在另一個字型中使用 `acutecomb.narrow`。
+* **Compare Glyph Heights / 比較字符高度：** 列出所有在字高方面與第二個字體差異超過給定閾值的字符。
+* **Compare Glyph Info / 比較字符資訊：** 比較開啟的字型，並建立一個差異字符資訊列表，包括Unicode值和分類。 *需要 香草JS*
+* **Compare Glyphsets / (翻譯名稱)：** 比較前兩個字型檔的字符集，並在巨集視窗中輸出報告。
+* **Compare Kerning Groups / 比較調距群組：** 比較前兩個字型檔之間的調距群組，輸出具有差異的群組字符名稱表格。
+* **Compare Metrics / 比較度量：** 比較前兩個字型檔的字形寬度。
+* **Compare Sidebearings / 比較字符邊界：** 比較前兩個字型檔的字符邊界。
 
 ## 組件（已完成v1）
 
@@ -206,7 +206,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Style Renamer / 樣式改名器：** 將名稱詞綴批次加入到您的樣式名稱中，或將其從樣式名稱中批次刪除。用於將所有樣式從斜體轉換為羅馬體的名稱，反之亦然。 *需要 香草JS*
 * **Vertical Metrics Manager / 垂直度量管理器：** Calculate and insert values for OS/2 usWin and sTypo, hhea and fsSelection bit 7 (for preferring sTypo Metrics over usWin metrics).計算並插入 OS/2 usWin 和 sTypo、hhea 和 fsSelection 位 7 的值（用於優先使用 sTypo 指標而不是 usWin 指標）。*:question:不懂名詞bit* *需要 香草JS*
 
-## 字形名稱、註釋和 Unicode
+## 字形名稱、註釋和 Unicode（已完成v1）
 
 *大多數腳本使管理字符名稱和 Unicode 更簡單一點。「垃圾收集」對於在將文件移交給第三方之前清理回報器腳本或其他註釋的雜亂很有用。*
 
@@ -279,7 +279,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Composite Variabler / (翻譯名稱)：** Reduplicates Brace and Bracket layers of components in the compounds in which they are used. Makes bracket layers work in composites. *需要 香草JS*
 * **Copy Layer to Layer / (翻譯名稱)：** Copies paths (and optionally, also components, anchors and metrics) from one Master to another. *需要 香草JS*
 * **Dekink Masters / (翻譯名稱)：** Dekinks your smooth point triplets in all compatible layers (useful if they are not horizontal or vertical). Select a point in one or more smooth point triplets, and run this script to move the corresponding nodes in all other masters to the same relative position. Thus you achieve the same point ratio in all masters and avoid interpolation kinks, when the angle of the triplet changes. There is a [video describing it.](http://tinyurl.com/dekink-py) The triplet problem is [described in this tutorial](http://www.glyphsapp.com/learn/multiple-masters-part-2-keeping-your-outlines-compatible).
-* **Fill up Empty Masters / (翻譯名稱)：** Copies paths from one Master to another. But only if target master is empty. *需要 香草JS*
+* **Fill up Empty Masters / 填滿空白主板：** Copies paths from one Master to another. But only if target master is empty.複製一個主板的路徑到另一個，當目標主板為空白時。 *需要 香草JS*
 * **Find and Replace in Layer Names / 尋找和取代圖層名稱：** Replaces text in all layer names (except Master layers) of selected glyphs. Useful if you use the bracket trick in many glyphs. *需要 香草JS*
 * **Find Shapeshifting Glyphs / 尋找變形字符：** Finds glyphs that change the number of paths while interpolating. Opens a new tab and reports to Macro window. *需要 香草JS*
 * **Insert Brace Layers for Component Rotation / (翻譯名稱)：** Inserts a number of Brace Layers with continuously scaled and rotated components. Useful for OTVar interpolations with rotating elements. *需要 香草JS*
@@ -342,35 +342,35 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Steal Kerning Groups from Font / (翻譯名稱)：** Steals left/right kerning groups for all selected glyphs from a 2nd font. *需要 香草JS*
 * **Zero Kerner / (翻譯名稱)：** Add group kernings with value zero for pairs that are missing in one master but present in others. Helps preserve interpolatable kerning in OTVar exports. *需要 香草JS*
 
-## 路徑
+## 路徑（已完成v2）
 
-*星號字符的製作可以使用「環繞錨點旋轉」。在輪廓檢查時的推薦腳本：「路徑問題尋找」、「尋找接近垂直的路徑」和「節點管理器」。「Rewire Fire」在 OTVar 製作中變得很重要，因為它有助於減少形狀邊緣處的重複輪廓線段（這會在抗鋸齒中產生暗點）。*
+*我使用「以錨點為中心旋轉」功能來處理星號符號。在輪廓檢查中非常重要：「路徑問題查找器」、「尋找近垂直缺失」和「節點綠藍管理器」。在 OTVar 製作中，「Rewire Fire」 變得越來越重要，因為它有助於減少形狀邊緣重疊輪廓線段（這會在反鋸齒中造成暗斑）。*
 
-* **Align Selected Nodes with Background / (翻譯名稱)：** Align selected nodes with the nearest background node unless it is already taken by a previously moved node. Like Cmd-Shift-A for aligning a single node with the background, but for multiple nodes.
-* **Batch-Set Path Attributes / (翻譯名稱)：** Set path attributes of all paths in selected glyphs, the master, the font, etc. *需要 香草JS*
-* **Copy Glyphs from Other Font into Backup Layers / (翻譯名稱)：** Creates backup layers for selected glyphs in target font, and fills them with the respective glyphs from source font. Useful if you want to add glyphs from one font as bracket layers in another. *需要 香草JS*
-* **Distribute Nodes / (翻譯名稱)：** Horizontally or vertically distributes nodes (depends on the width/height ratio of the selection bounding box).
-* **Enlarge Single-Unit Segments / (翻譯名稱)：** Doubles the length of line segments shorter than one unit.
-* **Fill Up with Rectangles / (翻譯名稱)：** Goes through your selected glyphs, and if it finds an empty one, inserts a placeholder rectangle. Useful for quickly building a dummy font for testing.
-* **Find Close Encounters of Orthogonal Line Segments / (翻譯名稱)：** Goes through all vertical and horizontal line segments, and finds pairs that are close, but do not align completely. *需要 香草JS*
-* **Find Near Vertical Misses / 尋找接近垂直的路徑：** Finds nodes that are close but not exactly on vertical metrics. *需要 香草JS*
-* **Green Blue Manager / 節點管理器：** Define an angle above which a node will be set to blue, below which it will be set to green. *需要 香草JS*
-* **Grid Switcher / (翻譯名稱)：** Toggles grid between two user-definable gridstep values with the click of a floating button. *需要 香草JS*
-* **Harmonise Curve to Line / (翻譯名稱)：** Will rearrange handles on (selected) curve segments with a following line segment, in such a way that the transition between the two segments is smooth (harmonized).
-* **Interpolate two paths / (翻譯名稱)：** Select two paths and run this script, it will replace them with their interpolation at 50%.
-* **New Tab with Small Paths / (翻譯名稱)：** Opens a new tab containing paths that are smaller than a user-definable threshold size in square units.
-* **Path Problem Finder / 路徑問題尋找：** Finds all kinds of potential problems in outlines, and opens a new tab with affected layers. *需要 香草JS*
-* **Position Clicker / (翻譯名稱)：** Finds all combinations of positional shapes that do not click well. ‘Clicking’ means sharing two point coordinates when overlapping. *需要 香草JS*
-* **Realign BCPs / (翻譯名稱)：** Realigns all BCPs in all selected glyphs. Useful if handles got out of sync, e.g. after nudging or some other transformation, or after interpolation. Hold down Option to apply to all layers of the selected glyph(s).
-* **Remove all Open Paths / (翻譯名稱)：** Deletes all *open* paths in the visible layers of all selected glyphs.
-* **Remove Nodes and Try to Keep Shape / (翻譯名稱)：** Deletes selected on-curve nodes and tries to keep the shape as much as possible. Similar to what happens when you delete a single node, but for a selection of multiple nodes. Pro tip: Hold down the Shift key while running the script, and it will also balance the remaining handles as much as possible, which is exactly what happens when you delete a single node.
-* **Remove Short Segments / (翻譯名稱)：** Deletes segments shorter than one unit.
-* **Remove Stray Points / (翻譯名稱)：** Deletes stray points (single node paths) in selected glyphs. Careful: a stray point can be used as a quick hack to disable automatic alignment. Reports in detail to the Macro window.
-* **Rewire Fire / (翻譯名稱)：** Finds, selects and marks duplicate coordinates. Two nodes on the same position typically can be rewired with Reconnect Nodes. *需要 香草JS*
-* **Rotate Around Anchor / 環繞錨點旋轉：** GUI for rotating glyphs or selections of nodes and components around a 'rotate' anchor. Allows to step and repeat. *需要 香草JS*
-* **Set Transform Origin / (翻譯名稱)：** Simple GUI for setting the Transform Origin of the Rotate tool numerically. Should also have an effect on the Scale tool. *需要 香草JS*
-* **Straight Stem Cruncher / (翻譯名稱)：** Finds distances between points in all layers, and compares them (with a tolerance) to specified stem widths. Lists glyphs that have deviating stems in their drawings. *需要 香草JS*
-* **Tunnify / (翻譯名稱)：** Looks for all path segments where at least one handle is selected. Then, evens out the handles of the segments, i.e., they will both have the same Fit Curve percentage. Can fix Adobe Illustrator's zero-handles (segments with one handle retracted into the nearest node). The idea for this script came from Eduardo Tunni (as colported by Pablo Impallari), hence the title of the script. I have never seen Eduardo's algorithm though, so my implementation might be a little different to his, especially the treatment of zero-handles.
+* **Align Selected Nodes with Background / 對齊選取節點與背景：** 將選取的節點與最近的背景節點對齊，除非它已經被先前移動的節點佔用。類似於使用 Cmd-Shift-A 將單個節點與背景對齊，但可針對多個節點。
+* **Batch-Set Path Attributes / 批次設置路徑屬性：** 設定所選字符、主板、字型等中所有路徑的路徑屬性。 *需要 香草JS*
+* **Copy Glyphs from Other Font into Backup Layers / 從其他字型複製字符到備份圖層：** 在目標字型中為所選字符創建備份圖層，並使用來源字型中相應的字符填充它們。如果您想要將一個字型的字符作為括號層添加到另一個字型中，這非常有用。 *需要 香草JS* -執行有問題？
+* **Distribute Nodes / 均分節點：** 水平或垂直均分節點（取決於所選範圍的寬高比）。
+* **Enlarge Short Segments / 放大單位線段：** 將線段長度小於一個單位的線段加倍。 -小於一單位？
+* **Fill Up with Rectangles / 填滿矩形：** 遍歷所選字符，如果發現空白字符，則插入一個佔位符矩形。對於快速構建用於測試的虛擬字型非常有用。
+* **Find Close Encounters of Orthogonal Line Segments / 找出靠近但未完全對齊的直角線段交會點：** 遍歷所有垂直和水平線段，並找到接近但未完全對齊的線段對。 *需要 香草JS*
+* **Find Near Vertical Misses / 尋找近垂直缺失：** 找到靠近但不完全在垂直度量上的節點。 *需要 香草JS*
+* **Green Blue Manager / 節點綠藍管理器：** 定義一個角度，節點在該角度之上被設置為藍色，在該角度之下被設置為綠色。 *需要 香草JS*
+* **Grid Switcher / 格線單位切換器：** 通過點擊浮動按鈕在兩個用戶定義的格線單位之間切換。 *需要 香草JS*
+* **Harmonise Curve to Line / 協調曲線與直線：** 將（選定的）曲線線段上的控制手柄重新排列，以便與後面的直線段之間的過渡是平滑的（匹配）。 -功能原理不明？
+* **Interpolate two paths / 插值兩條路徑：** 選擇兩個路徑並運行此腳本，它將以50％的插值替換它們。（節點數量需一致）
+* **New Tab with Small Paths / 開新分頁-小路徑：** 打開一個包含小於用戶定義閾值大小（平方單位）的路徑的新標籤頁。-小於用戶定義單位？
+* **Path Problem Finder / 路徑問題查找器：** 在輪廓中查找各種潛在問題，並打開一個包含受影響圖層的新分頁。 *需要 香草JS*
+* **Position Clicker / 位置點擊器：** Finds all combinations of positional shapes that do not click well. ‘Clicking’ means sharing two point coordinates when overlapping.查找那些在重疊時兩個形狀不能良好對齊的位置，並列出它們的組合。重疊的兩個形狀在同一個位置有共同的點坐標。-功能待測試 *需要 香草JS*
+* **Realign BCPs / 重新對齊貝茲曲線控制點：** Realigns all BCPs in all selected glyphs. Useful if handles got out of sync, e.g. after nudging or some other transformation, or after interpolation. Hold down Option to apply to all layers of the selected glyph(s).重新對齊所選字符中的所有貝茲曲線控制點。 如果控制柄失去同步，例如在微調或其他轉換之後或在插值之後，此腳本非常有用。按住Option鍵以將其應用於所選字形的所有圖層。-功能待測試
+* **Remove all Open Paths / 刪除所有開放路徑：** 刪除所有所選字符的可見圖層中的 開放 路徑。
+* **Remove Nodes and Try to Keep Shape / 刪除節點並儘可能保持形狀：** 刪除所選擇的節點，並儘可能保持形狀。類似於刪除單個節點時發生的情況，但針對多個節點的選擇。專業提示：在運行腳本時按住Shift鍵，它也會盡可能平衡剩餘的控制柄，這正是刪除單個節點時發生的情況。
+* **Remove Short Segments / 刪除短線段：** 刪除線段長度小於一個單位的線段。-功能待測試
+* **Remove Stray Points / 移除零散的點：** 在所選字形中刪除零散的點（僅有一個節點的路徑）。注意：零散的點可以被用來快速禁用自動對齊。腳本將在巨集面板詳細報告。
+* **Rewire Fire / 重整連線：** 尋找、選取並標記重複的座標。通常兩個在相同位置的節點可以使用重新連接節點功能進行重整。 *需要 香草JS*
+* **Rotate Around Anchor / 環繞錨點旋轉：** 圖形使用者介面，用於繞「rotate」錨點旋轉選擇的字符或節點、組件。可以進行角度、方向和重複次數的設定。 *需要 香草JS*
+* **Set Transform Origin / 設定變形原點：** 一個簡單的GUI，用於以數值方式設定旋轉工具的變形原點。也應該對縮放工具有影響。 *需要 香草JS*
+* **Straight Stem Cruncher / 字幹壓縮器：** Finds distances between points in all layers, and compares them (with a tolerance) to specified stem widths. Lists glyphs that have deviating stems in their drawings. 可以檢查字型中是否有部分字符的字幹（如直的線條）偏離了指定的標準大小。它會列出這些有問題的字符，方便使用者進一步修正。 *需要 香草JS* -功能待測試
+* **Tunnify：** 尋找至少有一個控制桿被選中的所有路徑段。接著，平均調整這些路徑段的控制桿，即兩個控制桿的擬合曲線百分比將相同。可以修復Adobe Illustrator的零控制桿問題（即將一個控制桿縮回到最近的節點中）。這個腳本的靈感來自Eduardo Tunni（由Pablo Impallari傳達），因此得名。但是我沒有看過Eduardo的算法，因此我的實現可能與他的有些不同，尤其是對於零控制桿的處理。
 
 ## 像素字型（已完成v1）
 
