@@ -32,8 +32,12 @@ class KernStringMixer(object):
 		"mixString2": defaultTokens[1],
 		"reuseTab": True,
 		}
+	
 
 	def __init__(self):
+		for prefName in self.prefDict.keys():
+			Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
+		
 		# Window 'self.w':
 		windowWidth = 300
 		windowHeight = 180
@@ -84,7 +88,8 @@ class KernStringMixer(object):
 
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
+		prefValue = Glyphs.defaults[prefDomain]
+		return prefValue
 
 	def SavePreferences(self, sender=None):
 		try:
@@ -100,8 +105,6 @@ class KernStringMixer(object):
 	def LoadPreferences(self):
 		try:
 			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
 				# load previously written prefs:
 				getattr(self.w, prefName).set(self.pref(prefName))
 			return True
