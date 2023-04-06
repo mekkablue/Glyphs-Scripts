@@ -158,7 +158,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Find and Replace Cap and Corner Components:** Relinks `_cap.*` and `_corner.*` components in selected glyphs to a different corner/cap component. *Needs Vanilla.*
 * **Find and Replace Corner Components at Certain Angles:** Replace Corner Components at blunt or acute angles. *Needs Vanilla.*
 * **Move Paths to Component:** Moves paths to a separate glyph and insert them as auto-aligned, anchored components in the source glyph. Perfect for making path-component mixtures into pure composites. *Needs Vanilla.*
-* **Populate Backgrounds with Components:** Removes the specified component from all glyphs or all selected glyphs. *Needs Vanilla.*
+* **Populate Backgrounds with Components:** Adds the specified component into all backgrounds of a glyph, and allows you to align selected foreground nodes to the component. Useful for keeping decomposed shapes in the foreground in sync with similar glyphs. *Needs Vanilla.*
 * **Propagate Corner Components to Other Masters:** Tries to recreate the corner components of the current master layer in all other masters of the same glyph. Make sure your outlines are compatible.
 * **Remove Components:** Removes the specified component from all (selected) glyphs.
 * **Remove Detached Corners:** Removes detached corner component from all (selected) glyphs.
