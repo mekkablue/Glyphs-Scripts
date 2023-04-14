@@ -50,31 +50,31 @@ The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or late
 
 All the scripts show a **tooltip** when you hover the mouse pointer over their menu entry. In scripts with a GUI, most UI elements (checkboxes, text entry fields, etc.) have tooltips as well. This way you get the explanation you need right where it counts.
 
-## 錨點
+## 錨點（已完成v2）
 
 *「錨點移動器」用於批次處理錨點位置，在調整 x 高度之後會很有用。 輕而易舉：在組合標記上使用「重新定位」腳本，能讓你在斜體角度時也能維持一致。*
 
 * **Anchor Mover / 錨點移動器：** 在一個操作視窗中批次移動多個字符中的錨點位置。 *需要 香草JS*
 * **Batch Insert Anchors / 批次插入錨點：** 在一個操作視窗中批次在多個字符的相近位置批次插入錨點。 *需要 香草JS*
 * **Find and Replace in Anchor Names / 尋找與取代錨點名稱：** 在一個操作視窗中搜尋並替換特定的錨點名稱（尋找範圍為選定字符的所有圖層）。 *需要 香草JS*
-* **Fix Arabic Anchor Order in Ligatures / 修復連字中的阿拉伯文錨點順序：** Fixes the order of *top_X* and *bottom_X* anchors to RTL. In files converted from a different format, it sometimes happens that *top_1* is left of *top_2*, but it should be the other way around, otherwise your mark2liga will mess up. This script goes through your selected glyphs, and if they are Arabic ligatures, reorders all anchors to RTL order, at the same time not touching their coordinates.
+* **Fix Arabic Anchor Order in Ligatures / 修復連字中的阿拉伯文錨點順序：** 此腳本可以修正 *top_X* 和 *bottom_X* 錨點的順序，讓它們符合右至左書寫的排列方式。有些從其他格式轉換而來的檔案，可能會發生 *top_1* 在左邊，而 *top_2* 在右邊的情況，但實際上順序應該相反，否則會影響到後續的 mark2liga 步驟。這個腳本會針對所選擇的阿拉伯文連字進行處理，將所有錨點按照右至左的順序重新排列，同時不影響它們的座標位置。
 * **Insert All Anchors in All Layers / 在所有圖層插入錨點：** 為該字符的所有圖層加入遺失的錨點（如果該錨點沒有出現在所有圖層中的話）。
-* **Insert exit and entry Anchors to Selected Positional Glyphs / 在選定的位置字符上插入 exit/entry 錨點：** Adds entry and exit anchors for cursive attachment in selected glyphs. By default, it places the exit at (0, 0) and the entry at a node at RSB if such a node exists. Please adjust for your own needs.
+* **Insert exit and entry Anchors to Selected Positional Glyphs / 在選定的位置字符上插入 exit/entry 錨點：** 此腳本會在所選擇的字符中添加連筆連接所需的入口和出口錨點。預設情況下，它會在座標點 (0, 0) 添加出口錨點，而入口錨點則會放置在 RSB (右側基線) 的節點上（如果有的話）。請根據自己的需求進行調整。
 * **Mark Mover / 標號移動器：** 將結合用標號移到相對應的高度。例如大寫上標符號移到大寫高度，小寫上標符號移到 x 高度...等。你也可以另外設定左右間距的數值。 *需要 香草JS*
 * **Move ogonek Anchors to Baseline Intersection / 將反尾形符錨點移動到基線交界處：** 將所有反尾形符錨點和結合用錨點移動到字符線框最右側和基線的交界處。
-* **Move topright Anchors for Vertical Carons / 移動垂直抑揚符的右上角錨點：** Moves all topright and _topright anchors to the rightmost intersection of the outline with the x-height. Useful for building Czech/Slovak letters with vertical caron.
-* **Move Vietnamese Marks to top_viet Anchor in Circumflex / 移動越南語標號到揚抑符中的 top_viet 錨點上：** Moves *acute*, *grave* and *hookabovecomb* to the *top_viet* anchor in every layer of selected glyphs. Useful for Vietnamese double accents. Assumes that you have *top_viet* anchors in all layers of *circumflexcomb*.
+* **Move topright Anchors for Vertical Carons / 移動垂直抑揚符的右上角錨點：** 此腳本可以將所有的 topright 和 _topright 錨點移動到字型輪廓與 x-height 的最右交匯點。這對於建立帶有垂直抑揚符的捷克文/斯洛伐克文字母非常有用。
+* **Move Vietnamese Marks to top_viet Anchor in Circumflex / 移動越南語標號到揚抑符中的 top_viet 錨點上：** 此腳本可以將所選擇的字符中每一層的 *acute*、*grave* 和 *hookabovecomb* 錨點移動到 *top_viet* 錨點上。這對於製作越南文雙重音符號非常有用。前提是在所有 *circumflexcomb* 的層中都有 *top_viet* 錨點。
 * **New Tab with Glyphs Containing Anchor / 新分頁－所有包含錨點的字符：** 打開一個新分頁，該分頁包含所有已製作錨點的字符。
 * **New Tab with top and bottom Anchors Not on Metric Lines / 新分頁－所有位在度量線上的頂部和底部錨點：** 將所有 *top* 和 *bottom* 錨點的垂直高度資訊顯示在巨集面板上，並且開啟一個新分頁，列出所有主板或支撐層中錨點位置不在度量線位置上的字符。
-* **Prefix all exit/entry anchors with a hashtag / 在所有 exit/entry 錨點前加上主題標籤：** Looks for all exit and entry anchors anywhere in the font, and disables `curs` feature generation by prefixing their anchor names with `#`.
-* **Realign Stacking Anchors / 重新對齊堆疊錨點：** In stacking combining accents, moves top and bottom anchors exactly above or below the respective _top and _bottom anchors, respecting the italic angle. This way, stacking multiple nonspacing accents will always stay in line. *需要 香草JS*
-* **Remove Anchors in Suffixed Glyphs / 刪除後綴字符中的錨點：** Removes all anchors from glyphs with one of the user-specified suffix. Useful for removing left-over anchors in sups/subs/sinf/ordn variants of glyphs after copying, scaling and editing. *需要 香草JS*
+* **Prefix all exit/entry anchors with a hashtag / 在所有 exit/entry 錨點前加上井字號：** 此腳本會搜尋字型中所有的 exit/entry 錨點，並在它們的錨點名稱前加上 `#`，以停用 `curs` 特性的生成。
+* **Realign Stacking Anchors / 重新對齊堆疊錨點：** 此腳本可以在堆疊結合重音符號中，將頂部和底部錨點準確地移動到相應的 _top 和 _bottom 錨點正上方或正下方，同時考慮斜體角度。這樣，堆疊多個非間隔重音符號時，它們將始終保持在一條線上。 *需要 香草JS*
+* **Remove Anchors in Suffixed Glyphs / 刪除後綴字符中的錨點：** 此腳本可以從字符中移除所有包含使用者指定後綴的錨點。這對於在複製、縮放和編輯後的上標、下標、下方變體或序數變體中，清除剩餘的錨點非常有用。 *需要 香草JS*
 * **Remove Anchors / 移除錨點：** 刪除選定字符（或整個字型）中具有指定名稱的錨點。 *需要 香草JS*
-* **Remove Non-Standard Anchors from Selected Glyphs / 移除選定字符的異常錨點：** Removes all anchors from a glyph that should not be there by default, e.g., `ogonek` from `J`. Potentially dangerous, because it may delete false positives. So, first use the report script below.
+* **Remove Non-Standard Anchors from Selected Glyphs / 移除選定字符的異常錨點：** 此腳本可以從字符中移除所有不應存在的預設錨點，例如在 `J` 字母中的 `ogonek`。這可能存在潛在風險，因為它可能會刪除錯誤的錨點。因此，在使用此移除腳本之前，請先使用下面的報告腳本，以避免意外刪除錯誤的錨點。
 * **Replicate Anchors / 複製錨點：** 在操作視窗中選擇一個來源字符，並在目前的字符上批次加入錨點。 *需要 香草JS*
 * **Replicate Anchors in Suffixed Glyphs / 複製錨點到後綴字符：** 掃描選取的後綴字符，從它們的基本字符複製錨點過來。 例如將 *X* 的錨點貼到 *X.ss01*、*X.swsh* 和 *X.alt* 上。
-* **Report Non-Standard Anchors to Macro window / 在巨集面板回報異常錨點資訊：** 掃描字型中的所有字符，將偵測到的異常錨點顯示在巨集面板中，命令行內容可被複製貼上到編輯畫面中。
-* **Shine Through Anchors / (翻譯名稱)：** In all layers of selected glyphs, inserts ‘traversing’ anchors from components.
+* **Report Non-Standard Anchors to Macro window / 在巨集面板報告異常錨點資訊：** 掃描字型中的所有字符，將偵測到的異常錨點顯示在巨集面板中，命令行內容可被複製貼上到編輯畫面中。
+* **Shine Through Anchors / 穿透錨點：** 此腳本可以在所選字符的所有圖層中，從組件中插入 ‘traversing’ 錨點。
 
 ## 應用程式（已完成v1）
 
@@ -96,27 +96,27 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Toggle RTL-LTR / 切換 右起-左起：** 在當前分頁切換右起-左起書寫方向。推薦在「系統偏好設定」中設定快捷鍵使用。
 * **Update git Repositories in Scripts Folder / 更新文本資料夾中的 git 儲存庫：** 對 Glyphs 腳本資料夾中的所有子資料夾執行「git pull」指令。如果腳本資料夾中有很多 git 儲存庫就很有用。 *:question:功能*
 
-## 建構字符
+## 建構字符（已完成v2）
 
-*推薦腳本：「引用符管理器」，以及用於小型大寫數字、符號和 ​​Ldot 的「構建腳本」。其他腳本主要是為了讓你快速開始覆蓋某些 Unicode 範圍如果客戶有需求。*
+*推薦腳本：「引號管理器」，以及用於小型大寫數字、符號和 ​​Ldot 的「構建腳本」。其他腳本主要是為了讓你快速開始覆蓋某些 Unicode 範圍如果客戶有需求。*
 
-* **Build APL Greek / (翻譯名稱)：** Create APL Greek glyphs.
-* **Build careof and cadauna / (翻譯名稱)：** Builds `cadauna` and `careof` from your `c`, `o`, `u` and `fraction` glyphs.
-* **Build Circled Glyphs / (翻譯名稱)：** Builds circled numbers and letters (U+24B6...24EA and U+2460...2473) from `_part.circle` and your letters and figures. *需要 香草JS*
-* **Build Dotted Numbers / (翻譯名稱)：** Build dotted numbers from your default figures and the period.
-* **Build ellipsis from period components / (翻譯名稱)：** Inserts exit and entry anchors in the period glyph and rebuilds ellipsis with auto-aligned components of period. Attention: decomposes all period components used in other glyphs (e.g., colon).
-* **Build Extra Math Symbols / (翻譯名稱)：** Builds `lessoverequal`, `greateroverequal`, `bulletoperator`, `rightanglearc`, `righttriangle`, `sphericalangle`, `measuredangle`, `sunWithRays`, `positionIndicator`, `diameterSign`, `viewdataSquare`, `control`.
-* **Build Ldot and ldot / (翻譯名稱)：** Builds `Ldot`, `ldot` and `ldot.sc` from existing `L` and `periodcentered.loclCAT` (`.case`/`.sc`). Assumes that you have already created and properly spaced `L`-`periodcentered.loclCAT`-`L`, etc.
-* **Build Parenthesized Glyphs / (翻譯名稱)：** Creates parenthesized letters and numbers: `one.paren`, `two.paren`, `three.paren`, `four.paren`, `five.paren`, `six.paren`, `seven.paren`, `eight.paren`, `nine.paren`, `one_zero.paren`, `one_one.paren`, `one_two.paren`, `one_three.paren`, `one_four.paren`, `one_five.paren`, `one_six.paren`, `one_seven.paren`, `one_eight.paren`, `one_nine.paren`, `two_zero.paren`, `a.paren`, `b.paren`, `c.paren`, `d.paren`, `e.paren`, `f.paren`, `g.paren`, `h.paren`, `i.paren`, `j.paren`, `k.paren`, `l.paren`, `m.paren`, `n.paren`, `o.paren`, `p.paren`, `q.paren`, `r.paren`, `s.paren`, `t.paren`, `u.paren`, `v.paren`, `w.paren`, `x.paren`, `y.paren`, `z.paren`.
-* **Build Q from O and _tail.Q / (翻譯名稱)：** Run this script *after* doing *Component from Selection* on the Q tail and naming it `_tail.Q`.
-* **Build Rare Symbols / (翻譯名稱)：** Builds white and black, small and large, circles, triangles and squares. *需要 香草JS*
-* **Build rtlm Alternates / (翻譯名稱)：** Creates horizontally mirrored composites for selected glyphs and updates the rtlm OpenType feature. Auto-aligns the components, but also adds metrics keys that kick in in case you decompose.
-* **Build Small Figures / (翻譯名稱)：** Takes a default set of figures (e.g., `.dnom`), and derives the others (`.numr`, `superior`/`.sups`, `inferior`/`.sinf`, `.subs`) as component copies. Respects the italic angle. *Need Vanilla.*
-* **Build small letter SM, TEL / (翻譯名稱)：** Creates the glyphs: `servicemark`, `telephone`.
-* **Build space glyphs / (翻譯名稱)：** Creates `mediumspace-math`, `emquad`, `emspace`, `enquad`, `enspace`, `figurespace`, `fourperemspace`, `hairspace`, `narrownbspace`, `punctuationspace`, `sixperemspace`, `nbspace`, `thinspace`, `threeperemspace`, `zerowidthspace`.
-* **Build Symbols / (翻譯名稱)：** Creates symbol glyphs such as `.notdef` (based on the boldest available `question` mark), an `estimated` glyph, as well as `bar` and `brokenbar` (for which it respects standard stems and italic angle). *需要 香草JS*
-* **Fix Punctuation Dots and Heights / (翻譯名稱)：** Syncs punctuation dots between ¡!¿? (and their SC+CASE variants). Will use dot from exclam in all other glyphs, and shift ¡¿ in SC and CASE variants. Assumes that ¡¿ are components in !?. Detailed report in Macro Window..
-* **Quote Manager / 引用符管理器：** Build double quotes from single quotes, and insert `#exit` and `#entry` anchors in the single quotes for auto-alignment. You need to have the single quotes already. *需要 香草JS*
+* **Build APL Greek / 建立 APL 希臘字母：** 此腳本可以建立算式用的希臘字母。
+* **Build careof and cadauna / 建立 careof 和 cadauna 符號：** B此腳本可以從你的 `c`、`o`、`u` 和 `fraction` 字母建立 `cadauna` 和 `careof` 字符。
+* **Build Circled Glyphs / 建立圓圈符號：** 此腳本可以從 `_part.circle` 和您的字母和數字，建立圓圈數字和字母（U+24B6...24EA 和 U+2460...2473）。 *需要 香草JS*
+* **Build Dotted Numbers / 建立帶點數字：** 此腳本可以從你的標準數字和句號建立帶有點的數字。
+* **Build ellipsis from period components / 從句點組件建立刪節號：** 此腳本在句號字形中插入 exit 和 entry 錨點，並使用句號字形的自動對齊組件重新建構省略號。注意：此腳本會解構在其他字形中使用的句號組件（例如冒號）。
+* **Build Extra Math Symbols / 建立額外的數學符號：** 此腳本可以建立 `lessoverequal`, `greateroverequal`, `bulletoperator`, `rightanglearc`, `righttriangle`, `sphericalangle`, `measuredangle`, `sunWithRays`, `positionIndicator`, `diameterSign`, `viewdataSquare`, `control` 等額外的數學符號。
+* **Build Ldot and ldot / 建立 Ldot 和 ldot 字符：** 此腳本可以從現有的 `L` 和 `periodcentered.loclCAT`（`.case`/`.sc`）建立 `Ldot`、`ldot` 和 `ldot.sc`。假設你已經創建並正確設定好間距 `L`-`periodcentered.loclCAT`-`L` 等等。
+* **Build Parenthesized Glyphs / 建立帶括號的字母和數字：** 創建帶括號的字母和數字： `one.paren`, `two.paren`, `three.paren`, `four.paren`, `five.paren`, `six.paren`, `seven.paren`, `eight.paren`, `nine.paren`, `one_zero.paren`, `one_one.paren`, `one_two.paren`, `one_three.paren`, `one_four.paren`, `one_five.paren`, `one_six.paren`, `one_seven.paren`, `one_eight.paren`, `one_nine.paren`, `two_zero.paren`, `a.paren`, `b.paren`, `c.paren`, `d.paren`, `e.paren`, `f.paren`, `g.paren`, `h.paren`, `i.paren`, `j.paren`, `k.paren`, `l.paren`, `m.paren`, `n.paren`, `o.paren`, `p.paren`, `q.paren`, `r.paren`, `s.paren`, `t.paren`, `u.paren`, `v.paren`, `w.paren`, `x.paren`, `y.paren`, `z.paren`。
+* **Build Q from O and _tail.Q / 將 _tail.Q 和現有的 O 元件組合成 Q：** 請在將 Q 的尾巴轉換為組件（使用 將選取的路徑轉為組件 功能）並命名為 `_tail.Q` 後執行此腳本。
+* **Build Rare Symbols / 建立罕見符號：** 建立白色和黑色的小型和大型圓形、三角形和正方形。 *需要 香草JS*
+* **Build rtlm Alternates / 建立 rtlm 替代字符：** 為選定的字符創建水平鏡像組合，並更新 rtlm OpenType 功能。自動對齊組件，但也添加度量鍵，以防您進行拆解。
+* **Build Small Figures / 建立小型數字：** 這個腳本會以一組預設的小型數字 (例如`.dnom`) 為基礎，並以組件複製的方式產生其他數字（例如`.numr`、`superior`/`.sups`、`inferior`/`.sinf`、`.subs`等等），同時也會考慮斜體角度。 *需要 香草JS*
+* **Build small letter SM, TEL / 建立小寫字母SM和TEL：** 創建字符：`servicemark`（服務商標）和 `telephone`（電話符號）。
+* **Build space glyphs / 建立空格字符：** 建立 `mediumspace-math`, `emquad`, `emspace`, `enquad`, `enspace`, `figurespace`, `fourperemspace`, `hairspace`, `narrownbspace`, `punctuationspace`, `sixperemspace`, `nbspace`, `thinspace`, `threeperemspace`, `zerowidthspace`等不同寬度的空格字符。
+* **Build Symbols / 建立符號：** 這個腳本會幫你建立一些符號字符，例如沒有定義的符號字符 `.notdef`，它會以最粗的問號作為參考，還有一個代表估算值的字符 `estimated`。此外，還會建立 `bar` 和 `brokenbar` 字符，並且會遵循標準的垂線和斜體角度。 *需要 香草JS*
+* **Fix Punctuation Dots and Heights / 修復標點符號和高度：** 此腳本會同步 ¡!¿? 的標點符號點位置（包括它們的小型大寫、一般大寫版本），並且在變體中移動 ¡¿ 的位置。假設 ¡¿ 是 !? 的組件。詳細報告會顯示在巨集視窗中。
+* **Quote Manager / 引號管理器：** 從單引號建立雙引號，並在單引號中插入 `#exit` 和 `#entry` 錨點以進行自動對齊。你需要已經有單引號。 *需要 香草JS*
 
 ## 彩色字型（已完成v1）
 
