@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Tries to set Bold/Italic bits in Font Info > Instances.
+Tries to set Bold/Italic bits in Font Info > Exports.
 """
 
 thisFont = Glyphs.font # frontmost font
