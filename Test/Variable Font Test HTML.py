@@ -322,7 +322,7 @@ def generateAxisDict(thisFont):
 
 def axisDictWithVirtualMastersForFont(thisFont, axisDict):
 	# go through *all* virtual masters:
-	virtualMasters = [cp for cp in thisFont.customParameters if cp.name == "Virtual Master" and cp.active()]
+	virtualMasters = [cp for cp in thisFont.customParameters if cp.name == "Virtual Master" and cp.active]
 	for virtualMaster in virtualMasters:
 		for axis in virtualMaster.value:
 			name = axis["Axis"]
@@ -778,7 +778,11 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 					} 
 				} else {
 					for (i = 0; i < sliders.length; i++) {
-						sliders[i].step = 1;
+						if (sliders[i].id == "ital") {
+							sliders[i].step = 0.05;
+						} else {
+							sliders[i].step = 1;
+						}
 					}
 				}
 			}
@@ -1020,7 +1024,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 	
 	<!-- Disclaimer -->
 	<p id="helptext" onmouseleave="vanish(this);">
-		<strong>Ctrl-period/comma</strong> step through styles <strong>Ctrl-R</strong> reset charset <strong>Ctrl-L</strong> Latin1 <strong>Ctrl-J</strong> LTR/RTL <strong>Ctrl-C</strong> center <strong>Ctrl-M</strong> toggle menu <strong>Ctrl-X</strong> x-ray <strong>Ctrl +/−</strong> size <strong>Ctrl-1/2</strong> linegap <em>Not working? Try newer macOS or <a href="https://www.google.com/chrome/">latest Chrome</a>. Pull mouse across this note to make it disappear.</em>
+		<strong>Ctrl-period/comma</strong> step through styles <strong>Ctrl-R</strong> reset charset <strong>Ctrl-L</strong> Lat-1 <strong>Ctrl-J</strong> LTR/RTL <strong>Ctrl-C</strong> center <strong>Ctrl-M</strong> toggle menu <strong>Ctrl-X</strong> x-ray <strong>Ctrl +/−</strong> size <strong>Ctrl-1/2</strong> linegap <strong>Shift</strong> high slider precision <em>Not working? Try newer macOS or <a href="https://www.google.com/chrome/">latest Chrome</a>. Hover mouse above this note to make it disappear.</em>
 	</p>
 	</body>
 </html>
