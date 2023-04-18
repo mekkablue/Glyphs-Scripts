@@ -25,7 +25,7 @@ class BraceLayerManager(object):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 250
-		windowHeight = 205
+		windowHeight = 225
 		windowWidthResize = 100 # user can resize width by this value
 		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -59,6 +59,10 @@ class BraceLayerManager(object):
 		self.w.scope = vanilla.RadioGroup((inset, linePos, -inset, lineHeight * len(self.scopes)), self.scopes, callback=self.SavePreferences, sizeStyle='small')
 		self.w.scope.set(0)
 		linePos += lineHeight * len(self.scopes)
+		
+		self.w.currentMasterOnly = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Restrict to currently selected master(s) only", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		linePos += lineHeight
+		
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Change", sizeStyle='regular', callback=self.BraceLayerManagerMain)
@@ -98,10 +102,11 @@ class BraceLayerManager(object):
 		if currentFont and len(currentFont.axes) > axisIndex:
 			axisID = currentFont.axes[axisIndex].axisId
 			for thisGlyph in currentFont.glyphs:
+				print(thisGlyph.name)
 				for thisLayer in thisGlyph.layers:
 					if thisLayer.isSpecialLayer and thisLayer.attributes:
 						if isBraceLayer and "coordinates" in thisLayer.attributes.keys():
-							currentCoord = thisLayer.attributes["coordinates"][axisID]
+							currentCoord = thisLayer.attributes["coordinates"][str(axisID)]
 							allCoordinates.append(currentCoord)
 						if not isBraceLayer and "axisRules" in thisLayer.attributes:
 							axisRules = thisLayer.attributes["axisRules"]
@@ -124,6 +129,7 @@ class BraceLayerManager(object):
 			Glyphs.defaults[self.domain("oldCoordinate")] = self.w.oldCoordinate.get()
 			Glyphs.defaults[self.domain("newCoordinate")] = self.w.newCoordinate.get()
 			Glyphs.defaults[self.domain("axisIndex")] = self.w.axisIndex.get()
+			Glyphs.defaults[self.domain("currentMasterOnly")] = self.w.currentMasterOnly.get()
 			return True
 		except:
 			import traceback
@@ -138,6 +144,7 @@ class BraceLayerManager(object):
 			Glyphs.registerDefault(self.domain("oldCoordinate"), 100)
 			Glyphs.registerDefault(self.domain("newCoordinate"), 200)
 			Glyphs.registerDefault(self.domain("axisIndex"), 0)
+			Glyphs.registerDefault(self.domain("currentMasterOnly"), 0)
 
 			# load previously written prefs:
 			self.w.layerType.set(self.pref("layerType"))
@@ -145,6 +152,7 @@ class BraceLayerManager(object):
 			self.w.oldCoordinate.set(self.pref("oldCoordinate"))
 			self.w.newCoordinate.set(self.pref("newCoordinate"))
 			self.w.axisIndex.set(self.pref("axisIndex"))
+			self.w.currentMasterOnly.set(self.pref("currentMasterOnly"))
 			return True
 		except:
 			import traceback
@@ -183,6 +191,8 @@ class BraceLayerManager(object):
 
 					searchFor = int(self.pref("oldCoordinate"))
 					replaceWith = int(self.pref("newCoordinate"))
+					currentMasterOnly = bool(self.pref("currentMasterOnly"))
+					currentMasterID = thisFont.selectedFontMaster.id
 					axis = thisFont.axes[int(self.pref("axisIndex"))]
 					axisID = axis.axisId
 					axisName = axis.name
@@ -196,26 +206,28 @@ class BraceLayerManager(object):
 
 					for glyph in glyphs:
 						for layer in glyph.layers:
-							if layer.isSpecialLayer and layer.attributes:
-								if isBraceLayer:
-									if "coordinates" in layer.attributes.keys():
-										currentPos = layer.attributes["coordinates"][axisID]
-										if currentPos == searchFor:
-											layer.attributes["coordinates"][axisID] = replaceWith
-											count += 1
-											print("  🔠 %i. %s" % (count, glyph.name))
-								else:
-									axisRules = layer.attributes["axisRules"]
-									if axisRules:
-										axisLimits = axisRules[axisID]
-										if axisLimits:
-											for border in ("min", "max"):
-												if border in axisLimits.keys():
-													borderLimit = int(axisLimits[border])
-													if borderLimit == searchFor:
-														axisLimits[border] = replaceWith
-														count += 1
-														print("  🔠 %i. %s" % (count, glyph.name))
+							if not currentMasterOnly or layer.associatedMasterId == currentMasterID:
+								if layer.isSpecialLayer and layer.attributes:
+									if isBraceLayer:
+										if "coordinates" in layer.attributes.keys():
+											print(f'layer.attributes["coordinates"]["{axisID}"]')
+											currentPos = layer.attributes["coordinates"][axisID]
+											if currentPos == searchFor:
+												layer.attributes["coordinates"][axisID] = replaceWith
+												count += 1
+												print("  🔠 %i. %s" % (count, glyph.name))
+									else:
+										axisRules = layer.attributes["axisRules"]
+										if axisRules:
+											axisLimits = axisRules[axisID]
+											if axisLimits:
+												for border in ("min", "max"):
+													if border in axisLimits.keys():
+														borderLimit = int(axisLimits[border])
+														if borderLimit == searchFor:
+															axisLimits[border] = replaceWith
+															count += 1
+															print("  🔠 %i. %s" % (count, glyph.name))
 
 					if thisFont.currentTab and Glyphs.versionNumber >= 3:
 						NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
