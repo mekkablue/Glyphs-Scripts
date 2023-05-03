@@ -167,8 +167,8 @@ class VariationInterpolator(object):
 							))
 		else:
 			thisGlyph = thisLayer.parent
-			print(f"{thisGlyph.name}: incompatible background layer (‘{thisLayer.name}’):"
-			print(f"Foreground: {thisLayer.compareString()}\nBackground:{thisLayer.background.compareString()}"
+			print(f"{thisGlyph.name}: incompatible background layer (‘{thisLayer.name}’):")
+			print(f"Foreground: {thisLayer.compareString()}\nBackground:{thisLayer.background.compareString()}")
 
 	def interpolateAnchors(self, thisLayer, backgroundFactor, foregroundFactor):
 		# interpolate anchor only if there is an anchor of the same name:
@@ -181,7 +181,7 @@ class VariationInterpolator(object):
 					foregroundAnchor.setPosition_(self.interpolatedPosition(foregroundPosition, foregroundFactor, backgroundPosition, backgroundFactor))
 				else:
 					thisGlyph = thisLayer.parent
-					print(f"{thisGlyph.name}: Anchor ‘{foregroundAnchor.name}’ not in background."
+					print(f"{thisGlyph.name}: Anchor ‘{foregroundAnchor.name}’ not in background.")
 
 	def interpolateComponents(self, thisLayer, backgroundFactor, foregroundFactor):
 		for i, thisComponent in enumerate(thisLayer.components):
