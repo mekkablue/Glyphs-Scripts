@@ -342,7 +342,7 @@ class InstanceCooker(object):
 						if locationParameter:
 							for entry in locationParameter:
 								if entry["Axis"] == thisAxis.name:
-									location = int(entry["Location"])
+									location = float(entry["Location"])
 									if location != axisValue:
 										axisLoc = ">%i" % location
 										break # skip other entries if we found our value
