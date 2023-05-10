@@ -115,6 +115,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Build Symbols:** Creates symbol glyphs such as `.notdef` (based on the boldest available `question` mark), an `estimated` glyph, as well as `bar` and `brokenbar` (for which it respects standard stems and italic angle). *Needs Vanilla.*
 * **Fix Punctuation Dots and Heights:** Syncs punctuation dots between ¡!¿? (and their SC+CASE variants). Will use dot from exclam in all other glyphs, and shift ¡¿ in SC and CASE variants. Assumes that ¡¿ are components in !?. Detailed report in Macro Window..
 * **Quote Manager:** Build double quotes from single quotes, and insert `#exit` and `#entry` anchors in the single quotes for auto-alignment. You need to have the single quotes already. *Needs Vanilla.*
+* **Center punt volat:** Shifts all `periodcentered.loclCAT` glyphs horizontally so it fits between two L’s. Hold down ⌘ Cmd and ⇧ Shift for processing ALL open fonts.
 
 ## Color Fonts
 
