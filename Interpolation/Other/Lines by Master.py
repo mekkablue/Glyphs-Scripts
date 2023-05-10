@@ -6,11 +6,12 @@ Reduplicates your edit text across masters, will add one line per master. Carefu
 """
 
 from Foundation import NSMutableAttributedString, NSAttributedString
+thisFont = Glyphs.font
 
 glyphs3 = Glyphs.versionNumber >= 3
 cutoff = []
 names = []
-for i,l in enumerate(Font.currentTab.layers):
+for i,l in enumerate(thisFont.currentTab.layers):
 	if type(l) == GSControlLayer:
 		cutoff.append(i)
 	else:
@@ -18,9 +19,9 @@ for i,l in enumerate(Font.currentTab.layers):
 			names.append( l.parent.name )
 
 theseLayers = []
-for m in Font.masters:
+for m in thisFont.masters:
 	for gname in names:
-		layer = Font.glyphs[gname].layers[m.id]
+		layer = thisFont.glyphs[gname].layers[m.id]
 		# print(layer)
 		theseLayers.append( layer )
 	
@@ -32,15 +33,15 @@ def charFromCode(charCode):
 	return unichr(charCode)
 
 if theseLayers:
-	# Font.currentTab.layers.append( theseLayers ) # BROKEN IN 1224
+	# thisFont.currentTab.layers.append( theseLayers ) # BROKEN IN 1224
 	# WORKAROUND:
 	string = NSMutableAttributedString.alloc().init()
 	for l in theseLayers:
 		if l.className() == "GSLayer":
-			char = charFromCode( Font.characterForGlyph_(l.parent) )
+			char = charFromCode( thisFont.characterForGlyph_(l.parent) )
 			A = NSAttributedString.alloc().initWithString_attributes_(char, {"GSLayerIdAttrib": l.layerId})
 		elif l.className() == "GSBackgroundLayer":
-			char = charFromCode( Font.characterForGlyph_(l.parent) )
+			char = charFromCode( thisFont.characterForGlyph_(l.parent) )
 			A = NSAttributedString.alloc().initWithString_attributes_(char, {"GSLayerIdAttrib": l.layerId, "GSShowBackgroundAttrib": True})
 		elif l.className() == "GSControlLayer":
 			char = charFromCode( l.parent.unicodeChar() )
@@ -48,5 +49,5 @@ if theseLayers:
 		else:
 			raise ValueError
 		string.appendAttributedString_(A)
-	Font.currentTab.graphicView().textStorage().setText_(string)
+	thisFont.currentTab.graphicView().textStorage().setText_(string)
 	
