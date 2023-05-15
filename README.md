@@ -54,6 +54,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 *Anchor Mover is for batch-processing anchor positions. Can be useful after adjusting the x-height. No-brainer: I always use the Reposition script on my combining marks, so stacking combining marks stays in the italic angle.*
 
+* **Add missing smart anchors:** Adds all anchors for properties of selected smart glyphs on all their layers. Skips *Width* and *Height* anchors.
 * **Anchor Mover:** GUI for batch-processing anchor positions in multiple glyphs. *Needs Vanilla.*
 * **Batch Insert Anchors:** GUI for batch-inserting anchors of the same name at the same approximate position in multiple glyphs. *Needs Vanilla.*
 * **Find and Replace in Anchor Names:** GUI for replacing text in the names of anchors in selected glyphs. Processes all layers. *Needs Vanilla.*
