@@ -211,6 +211,10 @@ class MovePathstoComponent(object):
 					if l.isMasterLayer or (l.isSpecialLayer and includeSpecialLayers):
 						originalWidth = l.width
 						newLayer = copy(l)
+						if l.components:
+							originalFirstComponentPosition = l.components[0].position
+						else:
+							originalFirstComponentPosition = NSPoint(0,0)
 
 						# get rid of components, we just want paths:
 						if Glyphs.versionNumber >= 3:
@@ -270,9 +274,10 @@ class MovePathstoComponent(object):
 						for i in range(len(l.components)):
 							c = l.components[i]
 							if self.pref("keepBaseComponentPosition") and i==0:
-								c.setDisableAlignment_(True)
+								c.alignment = -1
+								c.position = originalFirstComponentPosition
 							else:
-								c.setDisableAlignment_(False)
+								c.alignment = 1
 						if not self.pref("keepBaseComponentPosition"):
 							l.alignComponents() # updates the width
 
