@@ -1,23 +1,36 @@
-#MenuTitle: Remove Stray Points
+#MenuTitle: Remove Stray Points and Empty Paths
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Deletes stray points (single node paths) in selected glyphs. Careful: a stray point can be used as a quick hack to disable automatic alignment.
+Deletes stray points (single-node paths) and empty paths (zero-node paths) in selected glyphs. Careful: a stray point can be used as a quick hack to disable automatic alignment.
 """
 
 def process(thisLayer):
-	strayPoints = 0
-	for i in range(len(thisLayer.paths))[::-1]:
-		thisPath = thisLayer.paths[i]
-		if len(thisPath) == 1:
-			if Glyphs.versionNumber >= 3:
-				index = thisLayer.shapes.index(thisPath)
-				del thisLayer.shapes[index]
-			else:
-				# Glyphs 2 code
+	countStrayPoints = 0
+	countEmptyPaths = 0
+	if Glyphs.versionNumber >= 3:
+		# GLYPHS 3
+		for i in range(len(thisLayer.shapes))[::-1]:
+			thisPath = thisLayer.shapes[i]
+			if thisPath.shapeType == GSShapeTypePath:
+				if len(thisPath.nodes) <= 1:
+					if len(thisPath.nodes):
+						countStrayPoints += 1
+					else:
+						countEmptyPaths += 1
+					del thisLayer.shapes[i]
+	else:
+		# GLYPHS 2
+		for i in range(len(thisLayer.paths))[::-1]:
+			thisPath = thisLayer.paths[i]
+			if len(thisPath.nodes) <= 1:
+				if len(thisPath.nodes):
+					countStrayPoints += 1
+				else:
+					countEmptyPaths += 1
 				thisLayer.removePathAtIndex_(i)
-			strayPoints += 1
-	return strayPoints
+	
+	return countStrayPoints, countEmptyPaths
 
 thisFont = Glyphs.font # frontmost font
 selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
@@ -25,34 +38,34 @@ Glyphs.clearLog() # clears macro window log:
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
 	namesOfAffectedGlyphs = []
-	totalCount = 0
+	totalCountStrayPoints, totalCountEmptyPaths = 0, 0
 	for thisLayer in selectedLayers:
 		thisGlyph = thisLayer.parent
-		numberOfDeletedStrayPoints = process(thisLayer)
-		totalCount += numberOfDeletedStrayPoints
+		numberOfDeletedStrayPoints, numberOfDeletedEmptyPaths = process(thisLayer)
+		totalCountStrayPoints += numberOfDeletedStrayPoints
+		totalCountEmptyPaths += numberOfDeletedEmptyPaths
 
 		# Report deleted nodes:
 		glyphName = thisGlyph.name
-		if numberOfDeletedStrayPoints > 0:
-			print("⚠️ Deleted %i stray nodes in %s." % (numberOfDeletedStrayPoints, glyphName))
+		if numberOfDeletedStrayPoints+numberOfDeletedEmptyPaths > 0:
+			print(f"⚠️ Deleted {numberOfDeletedStrayPoints} stray nodes and {numberOfDeletedEmptyPaths} empty paths in {glyphName}.")
 			namesOfAffectedGlyphs.append(glyphName)
 		else:
-			print("✅ No stray points in %s." % glyphName)
+			print(f"✅ No stray points or empty paths in {glyphName}.")
 
 	# Report affected glyphs:
 	if namesOfAffectedGlyphs:
 		print(
-			"\nWARNING:\nStray nodes can be used as a hack to disable automatic alignment. It may be a good idea to check these glyphs for unwanted shifts, and undo if necessary:\n\n/%s\n"
-			% "/".join(namesOfAffectedGlyphs)
+			"\nWARNING:\nStray nodes can be used as a hack to disable automatic alignment. It may be a good idea to check these glyphs for unwanted shifts, and undo if necessary:\n\n/{'/'.join(namesOfAffectedGlyphs)}\n"
 			)
 
-	print("🔢 %i selected glyphs (of %i in total in the font)." % (len(selectedLayers), len(thisFont.glyphs)))
-	print("🔢 %i affected glyphs with %i stray points." % (len(namesOfAffectedGlyphs), totalCount))
+	print(f"🔢 {len(selectedLayers)} selected glyphs (of {len(thisFont.glyphs)} in total in the font).")
+	print(f"🔢 {len(namesOfAffectedGlyphs)} affected glyphs with {totalCountStrayPoints} stray points and {totalCountEmptyPaths} empty paths.")
 
-	# Floating notification:
-	Glyphs.showNotification(
-		"Stray Points in %s" % (thisFont.familyName),
-		"Deleted %i stray points in %i selected glyphs. Details in Macro Window." % (totalCount, len(selectedLayers)),
+	Message(
+		title=f"Fixed {thisFont.familyName}",
+		message=f"Deleted {totalCountStrayPoints} stray points and {totalCountEmptyPaths} empty paths in {len(selectedLayers)} selected glyphs. Details in Macro Window.",
+		OKButton=None,
 		)
 
 except Exception as e:
