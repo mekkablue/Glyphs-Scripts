@@ -666,25 +666,28 @@ class PathProblemFinder(object):
 
 				glyphCount = len(glyphs)
 				print(f"Processing {glyphCount} glyphs:")
-
-				layersWithZeroHandles = []
-				layersWithOutwardHandles = []
-				layersWithLargeHandles = []
-				layersWithShortHandles = []
-				layersWithAngledHandles = []
-				layersWithShallowCurve = []
-				layersWithShallowCurveBBox = []
-				layersWithAlmostOrthogonalLines = []
-				layersWithshortSegments = []
-				layersWithBadOutlineOrder = []
-				layersWithBadPathDirections = []
-				layersWithOffcurveAsStartpoint = []
-				layersWithStrayPoints = []
-				layersWithTwoPointOutlines = []
-				layersWithOpenPaths = []
-				layersWithQuadraticCurves = []
-				layersWithDecimalCoordinates = []
-				layersWithEmptyPaths = []
+				
+				allTestLayers = []
+				allTestReports = []
+				
+				layersWithZeroHandles = []; allTestLayers.append(layersWithZeroHandles); allTestReports.append("Zero Handles")
+				layersWithOutwardHandles = []; allTestLayers.append(layersWithOutwardHandles); allTestReports.append("Outward Handles")
+				layersWithLargeHandles = []; allTestLayers.append(layersWithLargeHandles); allTestReports.append("Large Handles")
+				layersWithShortHandles = []; allTestLayers.append(layersWithShortHandles); allTestReports.append("Short Handles")
+				layersWithAngledHandles = []; allTestLayers.append(layersWithAngledHandles); allTestReports.append("Angled Handles")
+				layersWithShallowCurve = []; allTestLayers.append(layersWithShallowCurve); allTestReports.append("Shallow Curve")
+				layersWithShallowCurveBBox = []; allTestLayers.append(layersWithShallowCurveBBox); allTestReports.append("Small Curve BBox")
+				layersWithAlmostOrthogonalLines = []; allTestLayers.append(layersWithAlmostOrthogonalLines); allTestReports.append("Almost Orthogonal Lines")
+				layersWithshortSegments = []; allTestLayers.append(layersWithshortSegments); allTestReports.append("Short Line Segments")
+				layersWithBadOutlineOrder = []; allTestLayers.append(layersWithBadOutlineOrder); allTestReports.append("Bad Outline Order")
+				layersWithBadPathDirections = []; allTestLayers.append(layersWithBadPathDirections); allTestReports.append("Bad Path Orientation")
+				layersWithOffcurveAsStartpoint = []; allTestLayers.append(layersWithOffcurveAsStartpoint); allTestReports.append("Stray Points")
+				layersWithStrayPoints = []; allTestLayers.append(layersWithStrayPoints); allTestReports.append("Two-Point Outlines")
+				layersWithTwoPointOutlines = []; allTestLayers.append(layersWithTwoPointOutlines); allTestReports.append("Off-curve as start point")
+				layersWithOpenPaths = []; allTestLayers.append(layersWithOpenPaths); allTestReports.append("Open Paths")
+				layersWithQuadraticCurves = []; allTestLayers.append(layersWithQuadraticCurves); allTestReports.append("Quadratic Curves")
+				layersWithDecimalCoordinates = []; allTestLayers.append(layersWithDecimalCoordinates); allTestReports.append("Decimal Coordinates")
+				layersWithEmptyPaths = []; allTestLayers.append(layersWithEmptyPaths); allTestReports.append("Empty Paths")
 
 				progressSteps = glyphCount / 10
 				progressCounter = 0
@@ -784,27 +787,7 @@ class PathProblemFinder(object):
 				print(f"\nTime for analysis: {timereport}")
 				self.w.status.set("Building report…")
 
-				anyIssueFound = any((
-					layersWithZeroHandles,
-					layersWithOutwardHandles,
-					layersWithLargeHandles,
-					layersWithShortHandles,
-					layersWithAngledHandles,
-					layersWithShallowCurve,
-					layersWithShallowCurveBBox,
-					layersWithAlmostOrthogonalLines,
-					layersWithshortSegments,
-					layersWithBadOutlineOrder,
-					layersWithBadPathDirections,
-					layersWithOffcurveAsStartpoint,
-					layersWithStrayPoints,
-					layersWithTwoPointOutlines,
-					layersWithOpenPaths,
-					layersWithQuadraticCurves,
-					layersWithDecimalCoordinates,
-					layersWithEmptyPaths,
-					))
-
+				anyIssueFound = any(allTestLayers)
 				if anyIssueFound:
 					countOfLayers = 0
 					tab = thisFont.currentTab
@@ -816,25 +799,10 @@ class PathProblemFinder(object):
 
 					currentMaster = thisFont.masters[tab.masterIndex]
 					masterID = currentMaster.id
-
-					countOfLayers += self.reportInTabAndMacroWindow(layersWithZeroHandles, "Zero Handles", layers, thisFont, masterID)
-					countOfLayers += self.reportInTabAndMacroWindow(layersWithOutwardHandles, "Outward Handles", layers, thisFont, masterID)
-					countOfLayers += self.reportInTabAndMacroWindow(layersWithLargeHandles, "Large Handles", layers, thisFont, masterID)
-					countOfLayers += self.reportInTabAndMacroWindow(layersWithShortHandles, "Short Handles", layers, thisFont, masterID)
-					countOfLayers += self.reportInTabAndMacroWindow(layersWithAngledHandles, "Angled Handles", layers, thisFont, masterID)
-					countOfLayers += self.reportInTabAndMacroWindow(layersWithShallowCurve, "Shallow Curve", layers, thisFont, masterID)
-					countOfLayers += self.reportInTabAndMacroWindow(layersWithShallowCurveBBox, "Small Curve BBox", layers, thisFont, masterID)
-					countOfLayers += self.reportInTabAndMacroWindow(layersWithAlmostOrthogonalLines, "Almost Orthogonal Lines", layers, thisFont, masterID)
-					countOfLayers += self.reportInTabAndMacroWindow(layersWithshortSegments, "Short Line Segments", layers, thisFont, masterID)
-					countOfLayers += self.reportInTabAndMacroWindow(layersWithBadOutlineOrder, "Bad Outline Order", layers, thisFont, masterID)
-					countOfLayers += self.reportInTabAndMacroWindow(layersWithBadPathDirections, "Bad Path Orientation", layers, thisFont, masterID)
-					countOfLayers += self.reportInTabAndMacroWindow(layersWithStrayPoints, "Stray Points", layers, thisFont, masterID)
-					countOfLayers += self.reportInTabAndMacroWindow(layersWithTwoPointOutlines, "Two-Point Outlines", layers, thisFont, masterID)
-					countOfLayers += self.reportInTabAndMacroWindow(layersWithOffcurveAsStartpoint, "Off-curve as start point", layers, thisFont, masterID)
-					countOfLayers += self.reportInTabAndMacroWindow(layersWithOpenPaths, "Open Paths", layers, thisFont, masterID)
-					countOfLayers += self.reportInTabAndMacroWindow(layersWithQuadraticCurves, "Quadratic Curves", layers, thisFont, masterID)
-					countOfLayers += self.reportInTabAndMacroWindow(layersWithDecimalCoordinates, "Decimal Coordinates", layers, thisFont, masterID)
-					countOfLayers += self.reportInTabAndMacroWindow(layersWithEmptyPaths, "Empty Paths", layers, thisFont, masterID)
+					
+					# collect reports:
+					for affectedLayers, reportTitle in zip(allTestLayers, allTestReports):
+						countOfLayers += self.reportInTabAndMacroWindow(affectedLayers, reportTitle, layers, thisFont, masterID)
 
 					tab.layers = layers
 					Message(
