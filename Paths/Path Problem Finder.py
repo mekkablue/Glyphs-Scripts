@@ -12,13 +12,13 @@ from AppKit import NSPoint
 
 def reportTimeInNaturalLanguage(seconds):
 	if seconds > 60.0:
-		timereport = f"{seconds//60}:{seconds%60:02i} minutes"
+		timereport = f"{int(seconds/60)}:{int(seconds)%60:02i} minutes"
 	elif seconds < 1.0:
 		timereport = f"{seconds:.2f} seconds"
 	elif seconds < 20.0:
 		timereport = f"{seconds:.1f} seconds"
 	else:
-		timereport = f"{seconds:i} seconds"
+		timereport = f"{int(seconds)} seconds"
 	return timereport
 
 canHaveOpenOutlines = (
@@ -331,13 +331,13 @@ class PathProblemFinder(object):
 		"outwardHandles": 0,
 		"largeHandles": 0,
 		"offcurveAsStartPoint": 1,
-		"shortHandles": 1,
+		"shortHandles": 0,
 		"shortHandlesThreshold": 12,
 		"angledHandles": 1,
 		"angledHandlesAngle": 8,
-		"shallowCurveBBox": 1,
+		"shallowCurveBBox": 0,
 		"shallowCurveBBoxThreshold": 5,
-		"shallowCurve": 1,
+		"shallowCurve": 0,
 		"shallowCurveThreshold": 10,
 		"almostOrthogonalLines": 1,
 		"almostOrthogonalLinesThreshold": 3,
@@ -352,6 +352,7 @@ class PathProblemFinder(object):
 		"quadraticCurves": 0,
 		"decimalCoordinates": 0,
 		"includeAllGlyphs": 1,
+		"includeAllFonts": 0,
 		"includeNonExporting": 0,
 		"reuseTab": 1,
 	}
@@ -493,10 +494,16 @@ class PathProblemFinder(object):
 		
 		# Script Options:
 		self.w.includeAllGlyphs = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), "⚠️ Check all glyphs, ignore selection (slow)", value=True, callback=self.SavePreferences, sizeStyle='small'
+			(inset, linePos, secondColumn, 20), "Check ALL glyphs", value=True, callback=self.SavePreferences, sizeStyle='small'
 			)
 		self.w.includeAllGlyphs.getNSButton().setToolTip_(
 			"If enabled, will ignore your current (glyph) selection, and simply go through the complete font. Recommended. May still ignore non-exporting glyph, see following option."
+			)
+		self.w.includeAllFonts = vanilla.CheckBox(
+			(secondColumn, linePos, -inset, 20), "⚠️ in ALL fonts", value=True, callback=self.SavePreferences, sizeStyle='small'
+			)
+		self.w.includeAllFonts.getNSButton().setToolTip_(
+			"If enabled, will go through ALL open fonts. Attention: can take quite some time."
 			)
 		linePos += lineHeight
 
@@ -511,11 +518,11 @@ class PathProblemFinder(object):
 		# Progress Bar and Status text:
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0) # set progress indicator to zero
-		self.w.status = vanilla.TextBox((inset, -18 - inset, -inset - 100, 14), "🤖 Ready.", sizeStyle='small', selectable=True)
+		self.w.status = vanilla.TextBox((inset, -18 - inset, -inset - 80, 14), "🤖 Ready.", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Open Tab", sizeStyle='regular', callback=self.PathProblemFinderMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Report", sizeStyle='regular', callback=self.PathProblemFinderMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
@@ -604,227 +611,218 @@ class PathProblemFinder(object):
 			# update settings to the latest user input:
 			if not self.SavePreferences():
 				print(f"Note: ‘{self.title}’ could not write preferences.")
-
-			thisFont = Glyphs.font # frontmost font
-			if not thisFont:
+			
+			# Query user settings:
+			for prefName in self.prefDict.keys():
+				try:
+					setattr(sys.modules[__name__], prefName, self.pref(prefName))
+				except:
+					fallbackValue = self.prefDict[prefName]
+					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
+					setattr(sys.modules[__name__], prefName, fallbackValue)
+			
+			theseFonts = Glyphs.fonts # frontmost font
+			countOfFontsWithIssues = 0
+			totalLayerCount = 0
+			totalGlyphCount = 0
+			if not theseFonts:
 				Message(
 					title="No Font Open",
 					message="The script requires a font. Open a font and run the script again.",
 					OKButton=None,
 					)
 			else:
-				print(f"{self.title} Report for {thisFont.familyName}")
-				if thisFont.filepath:
-					print(thisFont.filepath)
-				else:
-					print("⚠️ The font file has not been saved yet.")
-				print()
-
-				# Query user settings:
-				for prefName in self.prefDict.keys():
-					try:
-						setattr(sys.modules[__name__], prefName, self.pref(prefName))
-					except:
-						fallbackValue = self.prefDict[prefName]
-						print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
-						setattr(sys.modules[__name__], prefName, fallbackValue)
+				if not includeAllFonts:
+					theseFonts = (Glyphs.font,)
 				
-				# zeroHandles = self.pref("zeroHandles")
-				# outwardHandles = self.pref("outwardHandles")
-				# largeHandles = self.pref("largeHandles")
-				# shortHandles = self.pref("shortHandles")
-				# shortHandlesThreshold = self.pref("shortHandlesThreshold")
-				# angledHandles = self.pref("angledHandles")
-				# angledHandlesAngle = self.pref("angledHandlesAngle")
-				# shallowCurve = self.pref("shallowCurve")
-				# shallowCurveThreshold = self.pref("shallowCurveThreshold")
-				# shallowCurveBBox = self.pref("shallowCurveBBox")
-				# shallowCurveBBoxThreshold = self.pref("shallowCurveBBoxThreshold")
-				# almostOrthogonalLines = self.pref("almostOrthogonalLines")
-				# almostOrthogonalLinesThreshold = self.pref("almostOrthogonalLinesThreshold")
-				# shortSegment = self.pref("shortSegment")
-				# shortSegmentThreshold = self.pref("shortSegmentThreshold")
-				# badOutlineOrder = self.pref("badOutlineOrder")
-				# badPathDirections = self.pref("badPathDirections")
-				# strayPoints = self.pref("strayPoints")
-				# twoPointOutlines = self.pref("twoPointOutlines")
-				# offcurveAsStartPoint = self.pref("offcurveAsStartPoint")
-				# openPaths = self.pref("openPaths")
-				# quadraticCurves = self.pref("quadraticCurves")
-				# decimalCoordinates = self.pref("decimalCoordinates")
-				# emptyPaths = self.pref("emptyPaths")
-				#
-				# includeAllGlyphs = self.pref("includeAllGlyphs")
-				# includeNonExporting = self.pref("includeNonExporting")
-				# reuseTab = self.pref("reuseTab")
+				for fontIndex, thisFont in enumerate(theseFonts):
+					print(f"🪐 {self.title} Report for {thisFont.familyName}")
+					if thisFont.filepath:
+						print(thisFont.filepath)
+					else:
+						print("⚠️ The font file has not been saved yet.")
+					print()
 
-				# determine the glyphs to work through:
-				if includeAllGlyphs:
-					glyphs = [g for g in thisFont.glyphs if includeNonExporting or g.export]
-				else:
-					glyphs = [l.parent for l in thisFont.selectedLayers]
+					# determine the glyphs to work through:
+					if includeAllGlyphs or includeAllFonts:
+						glyphs = [g for g in thisFont.glyphs if includeNonExporting or g.export]
+					else:
+						glyphs = [l.parent for l in thisFont.selectedLayers]
 
-				glyphCount = len(glyphs)
-				print(f"Processing {glyphCount} glyphs:")
+					glyphCount = len(glyphs)
+					print(f"Processing {glyphCount} glyphs:")
 				
-				allTestLayers = []
-				allTestReports = []
+					allTestLayers = []
+					allTestReports = []
 				
-				layersWithZeroHandles = []; allTestLayers.append(layersWithZeroHandles); allTestReports.append("Zero Handles")
-				layersWithOutwardHandles = []; allTestLayers.append(layersWithOutwardHandles); allTestReports.append("Outward Handles")
-				layersWithLargeHandles = []; allTestLayers.append(layersWithLargeHandles); allTestReports.append("Large Handles")
-				layersWithShortHandles = []; allTestLayers.append(layersWithShortHandles); allTestReports.append("Short Handles")
-				layersWithAngledHandles = []; allTestLayers.append(layersWithAngledHandles); allTestReports.append("Angled Handles")
-				layersWithShallowCurve = []; allTestLayers.append(layersWithShallowCurve); allTestReports.append("Shallow Curve")
-				layersWithShallowCurveBBox = []; allTestLayers.append(layersWithShallowCurveBBox); allTestReports.append("Small Curve BBox")
-				layersWithAlmostOrthogonalLines = []; allTestLayers.append(layersWithAlmostOrthogonalLines); allTestReports.append("Almost Orthogonal Lines")
-				layersWithshortSegments = []; allTestLayers.append(layersWithshortSegments); allTestReports.append("Short Line Segments")
-				layersWithBadOutlineOrder = []; allTestLayers.append(layersWithBadOutlineOrder); allTestReports.append("Bad Outline Order")
-				layersWithBadPathDirections = []; allTestLayers.append(layersWithBadPathDirections); allTestReports.append("Bad Path Orientation")
-				layersWithOffcurveAsStartpoint = []; allTestLayers.append(layersWithOffcurveAsStartpoint); allTestReports.append("Stray Points")
-				layersWithStrayPoints = []; allTestLayers.append(layersWithStrayPoints); allTestReports.append("Two-Point Outlines")
-				layersWithTwoPointOutlines = []; allTestLayers.append(layersWithTwoPointOutlines); allTestReports.append("Off-curve as start point")
-				layersWithOpenPaths = []; allTestLayers.append(layersWithOpenPaths); allTestReports.append("Open Paths")
-				layersWithQuadraticCurves = []; allTestLayers.append(layersWithQuadraticCurves); allTestReports.append("Quadratic Curves")
-				layersWithDecimalCoordinates = []; allTestLayers.append(layersWithDecimalCoordinates); allTestReports.append("Decimal Coordinates")
-				layersWithEmptyPaths = []; allTestLayers.append(layersWithEmptyPaths); allTestReports.append("Empty Paths")
+					layersWithZeroHandles = []; allTestLayers.append(layersWithZeroHandles); allTestReports.append("Zero Handles")
+					layersWithOutwardHandles = []; allTestLayers.append(layersWithOutwardHandles); allTestReports.append("Outward Handles")
+					layersWithLargeHandles = []; allTestLayers.append(layersWithLargeHandles); allTestReports.append("Large Handles")
+					layersWithShortHandles = []; allTestLayers.append(layersWithShortHandles); allTestReports.append("Short Handles")
+					layersWithAngledHandles = []; allTestLayers.append(layersWithAngledHandles); allTestReports.append("Angled Handles")
+					layersWithShallowCurve = []; allTestLayers.append(layersWithShallowCurve); allTestReports.append("Shallow Curve")
+					layersWithShallowCurveBBox = []; allTestLayers.append(layersWithShallowCurveBBox); allTestReports.append("Small Curve BBox")
+					layersWithAlmostOrthogonalLines = []; allTestLayers.append(layersWithAlmostOrthogonalLines); allTestReports.append("Almost Orthogonal Lines")
+					layersWithshortSegments = []; allTestLayers.append(layersWithshortSegments); allTestReports.append("Short Line Segments")
+					layersWithBadOutlineOrder = []; allTestLayers.append(layersWithBadOutlineOrder); allTestReports.append("Bad Outline Order")
+					layersWithBadPathDirections = []; allTestLayers.append(layersWithBadPathDirections); allTestReports.append("Bad Path Orientation")
+					layersWithOffcurveAsStartpoint = []; allTestLayers.append(layersWithOffcurveAsStartpoint); allTestReports.append("Stray Points")
+					layersWithStrayPoints = []; allTestLayers.append(layersWithStrayPoints); allTestReports.append("Two-Point Outlines")
+					layersWithTwoPointOutlines = []; allTestLayers.append(layersWithTwoPointOutlines); allTestReports.append("Off-curve as start point")
+					layersWithOpenPaths = []; allTestLayers.append(layersWithOpenPaths); allTestReports.append("Open Paths")
+					layersWithQuadraticCurves = []; allTestLayers.append(layersWithQuadraticCurves); allTestReports.append("Quadratic Curves")
+					layersWithDecimalCoordinates = []; allTestLayers.append(layersWithDecimalCoordinates); allTestReports.append("Decimal Coordinates")
+					layersWithEmptyPaths = []; allTestLayers.append(layersWithEmptyPaths); allTestReports.append("Empty Paths")
 
-				progressSteps = glyphCount / 10
-				progressCounter = 0
-				for i, thisGlyph in enumerate(glyphs):
-					# status update:
-					if progressCounter > progressSteps:
-						self.w.progress.set(100 * i / glyphCount)
-						progressCounter = 0
-					progressCounter += 1
-					self.w.status.set(f"Processing {thisGlyph.name}...\n")
-					print(f"{i+1}. {thisGlyph.name}")
+					progressSteps = glyphCount / 10
+					progressCounter = 0
+					stepsPerFont = 100/len(theseFonts)
+					firstStepPerFont = stepsPerFont*fontIndex
+					for i, thisGlyph in enumerate(glyphs):
+						# status update:
+						if progressCounter > progressSteps:
+							self.w.progress.set(firstStepPerFont + stepsPerFont * (i/glyphCount))
+							progressCounter = 0
+						progressCounter += 1
+						self.w.status.set(f"Processing {thisGlyph.name}...")
+						print(f"{i+1}. {thisGlyph.name}")
 
-					# step through layers
-					for thisLayer in thisGlyph.layers:
-						if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
+						# step through layers
+						for thisLayer in thisGlyph.layers:
+							if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 
-							if zeroHandles and hasZeroHandles(thisLayer):
-								layersWithZeroHandles.append(thisLayer)
-								print(f"  ❌ Zero handle(s) on layer: {thisLayer.name}")
+								if zeroHandles and hasZeroHandles(thisLayer):
+									layersWithZeroHandles.append(thisLayer)
+									print(f"  ❌ Zero handle(s) on layer: {thisLayer.name}")
 
-							if outwardHandles and hasOutwardHandles(thisLayer):
-								layersWithOutwardHandles.append(thisLayer)
-								print(f"  ❌ Outward handle(s) on layer: {thisLayer.name}")
+								if outwardHandles and hasOutwardHandles(thisLayer):
+									layersWithOutwardHandles.append(thisLayer)
+									print(f"  ❌ Outward handle(s) on layer: {thisLayer.name}")
 
-							if largeHandles and hasLargeHandles(thisLayer):
-								layersWithLargeHandles.append(thisLayer)
-								print(f"  ❌ Large handle(s) on layer: {thisLayer.name}")
+								if largeHandles and hasLargeHandles(thisLayer):
+									layersWithLargeHandles.append(thisLayer)
+									print(f"  ❌ Large handle(s) on layer: {thisLayer.name}")
 
-							if offcurveAsStartPoint and hasOffcurveAsStartPoint(thisLayer):
-								layersWithOffcurveAsStartpoint.append(thisLayer)
-								print(f"  ❌ Off-curve as start point on layer: {thisLayer.name}")
+								if offcurveAsStartPoint and hasOffcurveAsStartPoint(thisLayer):
+									layersWithOffcurveAsStartpoint.append(thisLayer)
+									print(f"  ❌ Off-curve as start point on layer: {thisLayer.name}")
 
-							if shortHandles and hasShortHandles(thisLayer, threshold=float(shortHandlesThreshold)):
-								layersWithShortHandles.append(thisLayer)
-								print(f"  ❌ Short handle(s) on layer: {thisLayer.name}")
+								if shortHandles and hasShortHandles(thisLayer, threshold=float(shortHandlesThreshold)):
+									layersWithShortHandles.append(thisLayer)
+									print(f"  ❌ Short handle(s) on layer: {thisLayer.name}")
 
-							if angledHandles and hasAngledHandles(thisLayer):
-								layersWithAngledHandles.append(thisLayer)
-								print(f"  ❌ Angled handle(s) on layer: {thisLayer.name}")
+								if angledHandles and hasAngledHandles(thisLayer):
+									layersWithAngledHandles.append(thisLayer)
+									print(f"  ❌ Angled handle(s) on layer: {thisLayer.name}")
 
-							if shallowCurve and hasShallowCurve(thisLayer, threshold=float(shallowCurveThreshold)):
-								layersWithShallowCurve.append(thisLayer)
-								print(f"  ❌ Shallow curve(s) on layer: {thisLayer.name}")
+								if shallowCurve and hasShallowCurve(thisLayer, threshold=float(shallowCurveThreshold)):
+									layersWithShallowCurve.append(thisLayer)
+									print(f"  ❌ Shallow curve(s) on layer: {thisLayer.name}")
 
-							if shallowCurveBBox and hasShallowCurveBBox(thisLayer, threshold=float(shallowCurveBBoxThreshold)):
-								layersWithShallowCurveBBox.append(thisLayer)
-								print(f"  ❌ Shallow curve bbox(es) on layer: {thisLayer.name}")
+								if shallowCurveBBox and hasShallowCurveBBox(thisLayer, threshold=float(shallowCurveBBoxThreshold)):
+									layersWithShallowCurveBBox.append(thisLayer)
+									print(f"  ❌ Shallow curve bbox(es) on layer: {thisLayer.name}")
 
-							if almostOrthogonalLines and hasAlmostOrthogonalLines(thisLayer, threshold=float(almostOrthogonalLinesThreshold)):
-								layersWithAlmostOrthogonalLines.append(thisLayer)
-								print(f"  ❌ Almost orthogonal line(s) on layer: {thisLayer.name}")
+								if almostOrthogonalLines and hasAlmostOrthogonalLines(thisLayer, threshold=float(almostOrthogonalLinesThreshold)):
+									layersWithAlmostOrthogonalLines.append(thisLayer)
+									print(f"  ❌ Almost orthogonal line(s) on layer: {thisLayer.name}")
 
-							if shortSegment and hasshortSegment(thisLayer, threshold=float(shortSegmentThreshold)):
-								layersWithshortSegments.append(thisLayer)
-								print(f"  ❌ Short line(s) on layer: {thisLayer.name}")
+								if shortSegment and hasshortSegment(thisLayer, threshold=float(shortSegmentThreshold)):
+									layersWithshortSegments.append(thisLayer)
+									print(f"  ❌ Short line(s) on layer: {thisLayer.name}")
 
-							if badOutlineOrder and hasBadOutlineOrder(thisLayer):
-								layersWithBadOutlineOrder.append(thisLayer)
-								print(f"  ❌ Bad outline order(s) on layer: {thisLayer.name}")
+								if badOutlineOrder and hasBadOutlineOrder(thisLayer):
+									layersWithBadOutlineOrder.append(thisLayer)
+									print(f"  ❌ Bad outline order(s) on layer: {thisLayer.name}")
 
-							if badPathDirections and hasBadPathDirections(thisLayer):
-								layersWithBadPathDirections.append(thisLayer)
-								print(f"  ❌ Bad path direction(s) on layer: {thisLayer.name}")
+								if badPathDirections and hasBadPathDirections(thisLayer):
+									layersWithBadPathDirections.append(thisLayer)
+									print(f"  ❌ Bad path direction(s) on layer: {thisLayer.name}")
 
-							if strayPoints and hasStrayPoints(thisLayer):
-								layersWithStrayPoints.append(thisLayer)
-								print(f"  ❌ Stray points on layer: {thisLayer.name}")
+								if strayPoints and hasStrayPoints(thisLayer):
+									layersWithStrayPoints.append(thisLayer)
+									print(f"  ❌ Stray points on layer: {thisLayer.name}")
 
-							if twoPointOutlines and hasTwoPointOutlines(thisLayer):
-								layersWithTwoPointOutlines.append(thisLayer)
-								print(f"  ❌ Two-point outline(s) on layer: {thisLayer.name}")
+								if twoPointOutlines and hasTwoPointOutlines(thisLayer):
+									layersWithTwoPointOutlines.append(thisLayer)
+									print(f"  ❌ Two-point outline(s) on layer: {thisLayer.name}")
 
-							if openPaths:
-								shouldProcess = True
-								for nameStart in canHaveOpenOutlines:
-									if nameStart in thisGlyph.name:
-										shouldProcess = False
-								if shouldProcess and hasOpenPaths(thisLayer):
-									layersWithOpenPaths.append(thisLayer)
-									print(f"  ❌ Open path(s) on layer: {thisLayer.name}")
+								if openPaths:
+									shouldProcess = True
+									for nameStart in canHaveOpenOutlines:
+										if nameStart in thisGlyph.name:
+											shouldProcess = False
+									if shouldProcess and hasOpenPaths(thisLayer):
+										layersWithOpenPaths.append(thisLayer)
+										print(f"  ❌ Open path(s) on layer: {thisLayer.name}")
 
-							if decimalCoordinates and hasDecimalCoordinates(thisLayer):
-								layersWithDecimalCoordinates.append(thisLayer)
-								print(f"  ❌ Decimal coordinates in layer: {thisLayer.name}")
+								if decimalCoordinates and hasDecimalCoordinates(thisLayer):
+									layersWithDecimalCoordinates.append(thisLayer)
+									print(f"  ❌ Decimal coordinates in layer: {thisLayer.name}")
 
-							if quadraticCurves and hasQuadraticCurves(thisLayer):
-								layersWithQuadraticCurves.append(thisLayer)
-								print(f"  ❌ Quadratic curves in layer: {thisLayer.name}")
+								if quadraticCurves and hasQuadraticCurves(thisLayer):
+									layersWithQuadraticCurves.append(thisLayer)
+									print(f"  ❌ Quadratic curves in layer: {thisLayer.name}")
 
-							if emptyPaths and hasEmptyPaths(thisLayer):
-								layersWithEmptyPaths.append(thisLayer)
-								print(f"  ❌ Empty paths in layer: {thisLayer.name}")
+								if emptyPaths and hasEmptyPaths(thisLayer):
+									layersWithEmptyPaths.append(thisLayer)
+									print(f"  ❌ Empty paths in layer: {thisLayer.name}")
 
+
+					anyIssueFound = any(allTestLayers)
+					countOfLayers = 0
+					if anyIssueFound:
+						countOfFontsWithIssues += 1
+						tab = thisFont.currentTab
+						if not tab or not reuseTab:
+							# opens new Edit tab:
+							tab = thisFont.newTab()
+						tab.direction = 0 # force LTR
+						layers = []
+
+						currentMaster = thisFont.masters[tab.masterIndex]
+						masterID = currentMaster.id
+					
+						# collect reports:
+						for affectedLayers, reportTitle in zip(allTestLayers, allTestReports):
+							countOfLayers += self.reportInTabAndMacroWindow(affectedLayers, reportTitle, layers, thisFont, masterID)
+
+						tab.layers = layers
+					
+					totalLayerCount += countOfLayers
+					totalGlyphCount += glyphCount
+				
 				# take time:
 				end = timer()
 				timereport = reportTimeInNaturalLanguage(end - start)
-				print(f"\nTime for analysis: {timereport}")
-				self.w.status.set("Building report…")
-
-				anyIssueFound = any(allTestLayers)
-				if anyIssueFound:
-					countOfLayers = 0
-					tab = thisFont.currentTab
-					if not tab or not reuseTab:
-						# opens new Edit tab:
-						tab = thisFont.newTab()
-					tab.direction = 0 # force LTR
-					layers = []
-
-					currentMaster = thisFont.masters[tab.masterIndex]
-					masterID = currentMaster.id
-					
-					# collect reports:
-					for affectedLayers, reportTitle in zip(allTestLayers, allTestReports):
-						countOfLayers += self.reportInTabAndMacroWindow(affectedLayers, reportTitle, layers, thisFont, masterID)
-
-					tab.layers = layers
-					Message(
-						title=f"{thisFont.familyName}: found path problems",
-						message=f"{self.title} found {countOfLayers} issue{'s' if countOfLayers!=1 else ''} in {glyphCount} glyphs. Details in Macro Window.",
-						OKButton=None)
-				else:
-					# Final report:
-					Message(
-						title=f"{thisFont.familyName}: all clear!",
-						message=f"{self.title} found no issues, congratulations! Details in Macro Window.", 
-						OKButton=None,
-						)
-
+				print(f"\nTotal time elapsed: {timereport}.\nDone.")
+				self.w.status.set(f"✅ Done. {timereport}.")
 				self.w.progress.set(100)
 
-				# take time:
-				end = timer()
-				timereport = reportTimeInNaturalLanguage(end - start)
-
-				self.w.status.set(f"✅ Done. {timereport}.")
-				print(f"\nTotal time elapsed: {timereport}.\nDone.")
+				if len(theseFonts)==1:
+					if countOfFontsWithIssues:
+						Message(
+							title=f"{thisFont.familyName}: found path problems",
+							message=f"{self.title} found {countOfLayers} issue{'s' if countOfLayers!=1 else ''} in {glyphCount} glyph{'s' if glyphCount!=1 else ''}. Details in Macro Window.",
+							OKButton=None)
+					else:
+						Message(
+							title=f"{thisFont.familyName}: all clear!",
+							message=f"{self.title} found no issues, congratulations! Details in Macro Window.", 
+							OKButton=None,
+							)
+				else:
+					if countOfFontsWithIssues:
+						Message(
+							title=f"Found path problems in {countOfFontsWithIssues} fonts",
+							message=f"{self.title} found {totalLayerCount} issue{'s' if totalLayerCount!=1 else ''} in {totalGlyphCount} glyph{'s' if totalGlyphCount!=1 else ''} of {len(theseFonts)} fonts. Details in Macro Window.",
+							OKButton=None)
+					else:
+						Message(
+							title=f"All clear in {len(theseFonts)} fonts!",
+							message=f"{self.title} found no issues, congratulations! Details in Macro Window.", 
+							OKButton=None,
+							)
 
 		except Exception as e:
 			# brings macro window to front and reports error:
