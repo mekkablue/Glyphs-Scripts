@@ -26,7 +26,10 @@ else:
 
 for thisFont in theseFonts:
 	thisFontPath = thisFont.filepath
-	thisFontFileName = thisFontPath.lastPathComponent()
+	if thisFontPath:
+		thisFontFileName = thisFontPath.lastPathComponent()
+	else:
+		thisFontFileName = "<UNSAVED DOCUMENT>"
 	print(f"\n📄 Preparing {thisFontFileName}...\n🖥️ Path: {thisFontPath}")
 
 	puntVolatDict = {
