@@ -275,7 +275,7 @@ class GarbageCollection(object):
 
 	def log(self, msg):
 		try:
-			print("\t%s" % msg)
+			print(f"\t{msg}")
 			self.w.statusText.set(msg.strip())
 		except Exception as e:
 			import traceback
@@ -309,7 +309,7 @@ class GarbageCollection(object):
 			try:
 				thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
-				print("🗑 Garbage Collection Report for %s" % thisFont.familyName)
+				print("🗑 Garbage Collection Report for {thisFont.familyName}")
 				if thisFont.filepath:
 					print("📄 %s" % thisFont.filepath)
 				else:
@@ -350,7 +350,7 @@ class GarbageCollection(object):
 					removeAnnotationsGlyph = 0
 					layerDeletionCount = 0
 
-					self.log("🔠 Cleaning %s ..." % thisGlyph.name)
+					self.log(f"🔠 Cleaning {thisGlyph.name} ...")
 
 					# layer clean-up:
 					for thisLayer in thisGlyph.layers:
@@ -368,10 +368,13 @@ class GarbageCollection(object):
 								removeAnnotationsGlyph += len(thisLayer.annotations)
 								thisLayer.annotations = None
 							if removeColors:
+								self.log("\t🚫 color for layer ‘{thisLayer.name}’")
 								thisLayer.color = None
 							if userDataLayers:
-								if thisLayer.userData:
+								# if thisLayer.userData: # BROKEN IN 3.2
+								if thisLayer.userData.keys():
 									keysToRemove = [k for k in thisLayer.userData.keys() if self.shouldBeRemoved(k, userDataKeys)]
+									self.log(f"\t🚫 layer.userData: {', '.join(keysToRemove)}")
 									for keyToRemove in keysToRemove:
 										thisLayer.removeUserDataForKey_(keyToRemove)
 							if clearBackgroundLayers:
@@ -390,25 +393,27 @@ class GarbageCollection(object):
 							self.log("\t🚫 glyph note")
 							thisGlyph.note = None
 					if removeColors:
+						self.log("\t🚫 glyph color")
 						thisGlyph.color = None
 					if userDataGlyphs:
 						if thisGlyph.userData:
 							keysToRemove = [k for k in thisGlyph.userData.keys() if self.shouldBeRemoved(k, userDataKeys)]
+							self.log(f"\t🚫 glyph.userData: {', '.join(keysToRemove)}")
 							for keyToRemove in keysToRemove:
 								thisGlyph.removeUserDataForKey_(keyToRemove)
 
 					# report:
 					if removeNodeNamesGlyph:
-						self.log("\t🚫 %i node names" % removeNodeNamesGlyph)
+						self.log(f"\t🚫 {removeNodeNamesGlyph} node names")
 						removeNodeNamesFont += removeNodeNamesGlyph
 					if localGuidesGlyph:
-						self.log("\t🚫 %i local guides" % localGuidesGlyph)
+						self.log(f"\t🚫 {localGuidesGlyph} local guides")
 						localGuidesFont += localGuidesGlyph
 					if removeAnnotationsGlyph:
-						self.log("\t🚫 %i annotations" % removeAnnotationsGlyph)
+						self.log(f"\t🚫 {removeAnnotationsGlyph} annotations")
 						removeAnnotationsFont += removeAnnotationsGlyph
 					if layerDeletionCount:
-						self.log("\t🚫 %i backup layers" % layerDeletionCount)
+						self.log(f"\t🚫 {layerDeletionCount} backup layers")
 						layerDeletionCountFont += layerDeletionCount
 
 				# Remove global guides:
@@ -475,18 +480,18 @@ class GarbageCollection(object):
 				# report in macro window
 				print()
 				if removeAnnotationsFont:
-					self.log("✅ Removed %i annotations in font." % removeAnnotationsFont)
+					self.log(f"🚫 Removed {removeAnnotationsFont} annotations in font.")
 				if layerDeletionCountFont:
-					self.log("✅ Removed %i layers in font." % layerDeletionCountFont)
+					self.log(f"🚫 Removed {layerDeletionCountFont} layers in font.")
 				if localGuidesFont:
-					self.log("✅ Removed %i local guides in font." % localGuidesFont)
+					self.log(f"🚫 Removed {localGuidesFont} local guides in font.")
 				if removeNodeNamesFont:
-					self.log("✅ Removed %i node names in font." % removeNodeNamesFont)
+					self.log(f"🚫 Removed {removeNodeNamesFont} node names in font.")
 
 			except Exception as e:
 				# brings macro window to front and reports error:
 				Glyphs.showMacroWindow()
-				print("😫 Garbage Collection Error: %s" % e)
+				print(f"😫 Garbage Collection Error: {e}")
 				import traceback
 				print(traceback.format_exc())
 			finally:
