@@ -36,8 +36,8 @@ class RewireFire(object):
 		"tolerateZeroSegments": 0,
 		"includeNonExporting": 1,
 		"shouldSelect": 1,
-		"openTabWithAffectedLayers": 1,
 		"reuseTab": 1,
+		"allFonts": 0,
 		}
 
 	duplicateMarker = "🔥"
@@ -104,21 +104,19 @@ class RewireFire(object):
 		linePos += lineHeight
 
 		self.w.includeNonExporting = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small'
+			(inset, linePos - 1, 200, 20), "Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small'
 			)
-		self.w.includeNonExporting.getNSButton().setToolTip_("Also check in glyphs that are not set to export. Recommended if you have modular components in the font.")
-		linePos += lineHeight
-
-		self.w.openTabWithAffectedLayers = vanilla.CheckBox(
-			(inset, linePos - 1, 200, 20), "New tab with affected layers", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.openTabWithAffectedLayers.getNSButton().setToolTip_(
-			"If checked, will open a new tab with all layers that contain duplicate coordinates. Otherwise, will report in Macro Window only."
+		self.w.includeNonExporting.getNSButton().setToolTip_(
+			"Also check in glyphs that are not set to export. Recommended if you have modular components in the font."
 			)
 		self.w.reuseTab = vanilla.CheckBox((inset + 200, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.getNSButton().setToolTip_(
 			"If enabled, will only open a new tab if there is none open yet. Otherwise will always open a new tab."
 			)
+		linePos += lineHeight
+		
+		self.w.allFonts = vanilla.CheckBox((inset, linePos-1, -inset, 20), "⚠️ Work through ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts.getNSButton().setToolTip_("If enabled, will look in all currently opened fonts.")
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
@@ -279,56 +277,80 @@ class RewireFire(object):
 			dynamiteForOnSegment = self.pref("dynamiteForOnSegment")
 			tolerateZeroSegments = self.pref("tolerateZeroSegments")
 			# markWithCircle = self.pref("markWithCircle")
-
-			thisFont = Glyphs.font # frontmost font
-			print("Rewire Fire Report for %s" % thisFont.familyName)
-			if thisFont.filepath:
-				print(thisFont.filepath)
+			
+			if len(Glyphs.fonts)==0:
+				Message(
+					title="No font open",
+					message="This script requires at least one font open.",
+					OKButton="Meh",
+					)
+				return
+				
+			if self.pref("allFonts"):
+				theseFonts = Glyphs.fonts
 			else:
-				print("⚠️ Warning: file has not been saved yet.")
+				theseFonts = (Glyphs.font,)
+			
+			totalCountAffectedLayers = 0
+			totalCountExaminedGlyphs = 0
+			for fontIndex, thisFont in enumerate(theseFonts):
+				print("🌟 Rewire Fire Report for %s" % thisFont.familyName)
+				if thisFont.filepath:
+					print(thisFont.filepath)
+				else:
+					print("⚠️ Warning: file has not been saved yet.")
 
-			affectedLayers = []
-			numGlyphs = float(len(thisFont.glyphs))
+				affectedLayers = []
+				numGlyphs = float(len(thisFont.glyphs))
 
-			for i, thisGlyph in enumerate(thisFont.glyphs):
-				self.w.progress.set(int(i / numGlyphs * 100))
-				self.w.statusText.set("🔠 Processing %s" % thisGlyph.name)
+				for i, thisGlyph in enumerate(thisFont.glyphs):
+					fontSector = 100/len(theseFonts)
+					self.w.progress.set( int(fontIndex*fontSector + i/numGlyphs*fontSector) )
+					self.w.statusText.set(f"📄 {fontIndex+1} 🔠 {thisGlyph.name}")
 
-				if thisGlyph.export or includeNonExporting:
-					for thisLayer in thisGlyph.layers:
-						if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
-							# reset selection if necessary:
-							if shouldSelect:
-								thisLayer.selection = None
+					if thisGlyph.export or includeNonExporting:
+						for thisLayer in thisGlyph.layers:
+							if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
+								# reset selection if necessary:
+								if shouldSelect:
+									thisLayer.selection = None
 
-							# mark and select duplicate nodes:
-							if setFireToNode and self.findDuplicates(thisLayer, shouldSelect=shouldSelect, tolerateZeroSegments=tolerateZeroSegments):
-								affectedLayers.append(thisLayer)
-
-							# mark and select nodes on line segments:
-							if dynamiteForOnSegment and self.findNodesOnLines(thisLayer, shouldSelect=shouldSelect):
-								if not thisLayer in affectedLayers:
+								# mark and select duplicate nodes:
+								if setFireToNode and self.findDuplicates(thisLayer, shouldSelect=shouldSelect, tolerateZeroSegments=tolerateZeroSegments):
 									affectedLayers.append(thisLayer)
 
-			self.w.progress.set(0)
-			self.w.statusText.set("✅ Done.")
+								# mark and select nodes on line segments:
+								if dynamiteForOnSegment and self.findNodesOnLines(thisLayer, shouldSelect=shouldSelect):
+									if not thisLayer in affectedLayers:
+										affectedLayers.append(thisLayer)
 
-			if not affectedLayers:
-				Message(title="No Duplicates Found", message="Could not find any nodes for rewiring in %s." % thisFont.familyName, OKButton="😇 Cool")
-			else:
-				# Floating notification:
-				Glyphs.showNotification(
-					"%s: found nodes for rewiring" % (thisFont.familyName),
-					"Found nodes for rewiring on %i layers. Details in Macro Window." % len(affectedLayers),
-					)
-
-				# opens new Edit tab:
-				if self.pref("openTabWithAffectedLayers"):
+				if affectedLayers:
+					# opens new Edit tab:
 					if thisFont.currentTab and self.pref("reuseTab"):
 						thisFont.currentTab.layers = affectedLayers
 					else:
 						newTab = thisFont.newTab()
 						newTab.layers = affectedLayers
+
+				totalCountAffectedLayers += len(affectedLayers)
+				totalCountExaminedGlyphs += len(thisFont.glyphs)
+
+			if totalCountAffectedLayers == 0:
+				Message(
+					title="Rewire Fire: All Good",
+					message=f"Could not find any nodes for rewiring in a total of {totalCountExaminedGlyphs} glyphs in {len(theseFonts)} font{'s' if len(theseFonts)>1 else ''} examined.",
+					OKButton="😇 Cool",
+					)
+			else:
+				Message(
+					title="Rewire Fire found issues",
+					message=f"Found issues on {totalCountAffectedLayers} layers in a total of {totalCountExaminedGlyphs} glyphs in {len(theseFonts)} font{'s' if len(theseFonts)>1 else ''} examined.",
+					OKButton=None,
+					)
+				
+				
+			self.w.progress.set(0)
+			self.w.statusText.set("✅ Done.")
 
 			self.w.close() # delete if you want window to stay open
 		except Exception as e:
