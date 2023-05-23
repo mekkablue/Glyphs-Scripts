@@ -34,6 +34,7 @@ class TravelTracker(object):
 		"normalizeShape": 1,
 		"normalizeGlyph": 1,
 		"verbose": 0,
+		"allFonts": 0,
 		}
 
 	def __init__(self):
@@ -81,9 +82,14 @@ class TravelTracker(object):
 		self.w.normalizeGlyph.getNSButton().setToolTip_(tooltip)
 		linePos += lineHeight
 
-		self.w.verbose = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Verbose reporting", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allFonts = vanilla.CheckBox((inset, linePos-1, 140, 20), "⚠️ Apply to ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts.getNSButton().setToolTip_("If checked, will go through all currently opened fonts. May take a while.")
+		
+		self.w.verbose = vanilla.CheckBox((inset+140, linePos - 1, -inset, 20), "Verbose reporting", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.verbose.getNSButton().setToolTip_("Reports all glyphs in Macro Window, otherwise only those that exceed the travel threshold.")
+		
 		linePos += lineHeight
+		
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0) # set progress indicator to zero
@@ -217,6 +223,8 @@ class TravelTracker(object):
 
 	def TravelTrackerMain(self, sender):
 		try:
+			Glyphs.clearLog()
+
 			# update settings to the latest user input:
 			if not self.SavePreferences(self):
 				print("Note: 'Travel Tracker' could not write preferences.")
@@ -224,65 +232,90 @@ class TravelTracker(object):
 			verbose = bool(self.pref("verbose"))
 			includeNonExporting = bool(self.pref("includeNonExporting"))
 			travelPercentage = float(self.pref("travelPercentage"))
+			allFonts = bool(self.pref("allFonts"))
 			acceptableTravelRatio = travelPercentage / 100.0
 
-			thisFont = Glyphs.font # frontmost font
+			if not Glyphs.font:
+				Message(title="No Font Error", message="This script requires at least one font open.", OKButton=None)
+				return
 
-			# brings macro window to front and clears its log:
-			Glyphs.clearLog()
-			print("Travel Tracker Report for %s" % thisFont.familyName)
-			print(thisFont.filepath)
-			print()
+			if allFonts:
+				theseFonts = Glyphs.fonts
+			else:
+				theseFonts = (thisFont, )
+			
+			totalAffectedGlyphs = 0
+			totalRelevantGlyphs = 0
+			for j, thisFont in enumerate(theseFonts):
+				if thisFont.filepath:
+					print(f"Travel Tracker Report for {thisFont.filepath.lastPathComponent()}")
+					print(thisFont.filepath)
+				else:
+					print(f"Travel Tracker Report for {thisFont.familyName}")
+					print("⚠️ file not saved yet")
+				print()
 
-			relevantGlyphs = [g for g in thisFont.glyphs if (g.mastersCompatible and self.hasInterpolatingPaths(g)) and (includeNonExporting or g.export)]
+				relevantGlyphs = [g for g in thisFont.glyphs if (g.mastersCompatible and self.hasInterpolatingPaths(g)) and (includeNonExporting or g.export)]
 
-			numOfGlyphs = float(len(relevantGlyphs)) # float for calculating the progress indicator below
-			print("Examining %i interpolating glyphs..." % numOfGlyphs)
-			print()
+				numOfGlyphs = float(len(relevantGlyphs)) # float for calculating the progress indicator below
+				totalRelevantGlyphs += numOfGlyphs
+				
+				print(f"Examining {numOfGlyphs} interpolating glyphs...")
+				print()
 
-			affectedGlyphInfos = []
-			for i, relevantGlyph in enumerate(relevantGlyphs):
-				# push progress bar 1 tick further:
-				self.w.progress.set(int(i / numOfGlyphs * 100.0))
+				affectedGlyphInfos = []
+				for i, relevantGlyph in enumerate(relevantGlyphs):
+					# push progress bar 1 tick further:
+					fontSector = 100/len(theseFonts)
+					self.w.progress.set(int(j*fontSector + i/numOfGlyphs*fontSector))
+					
+					travelRatioInThisGlyph = self.maxNodeTravelRatioForGlyph(relevantGlyph)
+					if travelRatioInThisGlyph > acceptableTravelRatio:
+						print(f"❌ Node traveling {int(travelRatioInThisGlyph * 100): 3i}%% in: {relevantGlyph.name}")
+						affectedGlyphInfos.append((relevantGlyph.name, travelRatioInThisGlyph), )
+					elif verbose:
+						print(f"✅ Max node travel {int(travelRatioInThisGlyph * 100): 3i}%% in: {relevantGlyph.name}")
 
-				travelRatioInThisGlyph = self.maxNodeTravelRatioForGlyph(relevantGlyph)
-				if travelRatioInThisGlyph > acceptableTravelRatio:
-					print("❌ Node traveling % 3i%% in: %s" % (int(travelRatioInThisGlyph * 100), relevantGlyph.name))
-					affectedGlyphInfos.append((relevantGlyph.name, travelRatioInThisGlyph), )
-				elif verbose:
-					print("✅ Max node travel % 3i%% in: %s" % (int(travelRatioInThisGlyph * 100), relevantGlyph.name))
+				if affectedGlyphInfos:
+					# report in macro window
+					if verbose:
+						Glyphs.showMacroWindow()
+					sortedGlyphInfos = sorted(affectedGlyphInfos, key=lambda thisListItem: -thisListItem[1])
+					print()
+					print("Affected glyphs:")
+					for glyphInfo in sortedGlyphInfos:
+						percentage = glyphInfo[1] * 100
+						glyphName = glyphInfo[0]
+						print(f"   {percentage: 3i}%% {glyphName}")
 
-			# last one finished, progress bar = 100:
-			self.w.progress.set(100)
+					# open tab:
+					affectedGlyphNames = [gi[0] for gi in sortedGlyphInfos]
+					tabText = "/" + "/".join(affectedGlyphNames)
+					thisFont.newTab(tabText)
+					setCurrentTabToShowAllInstances(thisFont)
 
-			if not affectedGlyphInfos:
+				totalAffectedGlyphs += len(affectedGlyphNames)
+			
+			if totalAffectedGlyphs==0:
 				Message(
 					title="No affected glyph found",
-					message="No glyph found where a node travels more than %i%% of its path bounds diagonal. Congratulations!" % travelPercentage,
-					OKButton="🥂 Cheers!"
+					message=f"No glyph found where a node travels more than {travelPercentage}%% of its path bounds diagonal. Congratulations!",
+					OKButton="🥂 Cheers!",
 					)
 			else:
-				# report in macro window
-				if verbose:
-					Glyphs.showMacroWindow()
-				sortedGlyphInfos = sorted(affectedGlyphInfos, key=lambda thisListItem: -thisListItem[1])
-				print()
-				print("Affected glyphs:")
-				for glyphInfo in sortedGlyphInfos:
-					percentage = glyphInfo[1] * 100
-					glyphName = glyphInfo[0]
-					print("   % 3i%% %s" % (percentage, glyphName))
-
-				# open tab:
-				affectedGlyphNames = [gi[0] for gi in sortedGlyphInfos]
-				tabText = "/" + "/".join(affectedGlyphNames)
-				thisFont.newTab(tabText)
-				setCurrentTabToShowAllInstances(thisFont)
+				Message(
+					title="Found traveling nodes",
+					message=f"Found {totalAffectedGlyhs} glyphs with node travels of more than {travelPercentage}%% of the bounds diagonal, in a total of {totalRelevantGlyhs} interpolating glyphs in {len(theseFonts)} font{'s' if len(theseFonts)!=1 else ''}.",
+					OKButton=None,
+					)
+			
+			# last one finished, progress bar = 100:
+			self.w.progress.set(100)
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Travel Tracker Error: %s" % e)
+			print(f"Travel Tracker Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 
