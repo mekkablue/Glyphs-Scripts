@@ -10,7 +10,7 @@ def glyphAlreadyHasLayerForThisColor(glyph, mID, colorIndex):
 		if layer.associatedMasterId == mID:
 			try:
 				# GLYPHS 3
-				if layer.isColorPaletteLayer() and layer.attributeForKey_("colorPalette") == i:
+				if layer.isColorPaletteLayer() and layer.attributeForKey_("colorPalette") == colorIndex:
 					return True
 			except:
 				# GLYPHS 2
@@ -46,15 +46,16 @@ for m in thisFont.masters:
 	mID = m.id
 	CPAL = m.customParameters[parameterName]
 
-if not CPAL:
-	CPAL = thisFont.customParameters[parameterName]
+	if not CPAL:
+		CPAL = thisFont.customParameters[parameterName]
 
-if CPAL:
-	paletteSize = len(CPAL[0])
-	for thisGlyph in selectedGlyphs:
-		print("\n🔠 %s" % thisGlyph.name)
-		process(thisGlyph, mID, paletteSize)
-else:
+	if CPAL:
+		paletteSize = len(CPAL[0])
+		for thisGlyph in selectedGlyphs:
+			print("\n🔠 %s" % thisGlyph.name)
+			process(thisGlyph, mID, paletteSize)
+
+if CPAL is None:
 	Message(
 		title="No Palette Found",
 		message="No ‘Color Palettes’ parameter found in Font Info > Font or Font Info > Masters. Please add the parameter and try again.",
