@@ -221,6 +221,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Production Namer:** Override default production names. Default are the usual subjects which create problems in legacy PDF workflows: mu, onesuperior, twosuperior, threesuperior. *Needs Vanilla.*
 * **Rename Glyphs:** Takes a list of `oldglyphname=newglyphname` pairs and renames glyphs in the font accordingly, much like the *Rename Glyphs* custom parameter. *Needs Vanilla.*
 * **Reorder Unicodes of Selected Glyphs:** Reorders Unicodes so that default Unicode comes first.
+* **Reset Unicode Codepoints Based on GlyphData:** For selected glyphs, it works like Glyph > Update Glyph Info, but will not change the name, rather reset the Unicode. Will process the built-in GlyphData and GlyphData-XXX.xml in ~/Library/Application Support/Glyphs 3/Info/.
 * **Switch Mirrored Characters:** In the current Edit View, switch mirrored BiDi characters, e.g. () → )(. Useful for switching parentheses and quotes after switching writing direction in a tab.
 
 ## Guides
