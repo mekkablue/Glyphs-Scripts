@@ -5,6 +5,7 @@ __doc__ = """
 Sets the OpenType font and Variable Font export paths to the Adobe Fonts Folder.
 """
 
+Glyphs.clearLog()
 import subprocess
 
 def executeCommand(command, commandArgs):
@@ -14,6 +15,7 @@ def executeCommand(command, commandArgs):
 	return returncode, output, error
 
 adobeFontsFolder = "/Library/Application Support/Adobe/Fonts"
+# TODO: check if general Library is accessible (W privileges), if not, use ~/Library
 
 # Make sure the folder actually exists:
 pathSegments = adobeFontsFolder.split("/")[1:]
@@ -26,14 +28,16 @@ for pathPart in pathSegments:
 		returncode, output, error = executeCommand("mkdir", [path])
 		if returncode != 0:
 			print("   Returncode: %s\n   Output: %s\n   Error: %s" % (returncode, output, error))
+			Glyphs.showMacroWindow()
 
 # Changing the export paths for Glyphs:
 settings = ("GXExportPath", "OTFExportPath")
 
 # Floating notification:
-Glyphs.showNotification(
-	u"Export Paths Reset Successfully",
-	u"Static and variable fonts now export to Adobe Fonts Folder. More details in Macro Window.",
+Message(
+	title="Export Paths Reset Successfully",
+	message="Static and variable fonts now export to Adobe Fonts Folder. More details in Macro Window.",
+	OKButton="🥂 Hurrah",
 	)
 
 for setting in settings:
