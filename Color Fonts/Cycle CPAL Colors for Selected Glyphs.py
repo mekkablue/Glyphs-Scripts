@@ -21,8 +21,8 @@ Glyphs.clearLog() # clears log in Macro window
 
 palettes = thisFontMaster.customParameters["Color Palettes"]
 if not palettes:
-	for thisMaster in thisFont.masters
-		palettes = thisMasters.customParameters["Color Palettes"]
+	for thisMaster in thisFont.masters:
+		palettes = thisMaster.customParameters["Color Palettes"]
 		if palettes:
 			break
 if not palettes:
