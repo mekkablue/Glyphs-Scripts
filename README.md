@@ -129,6 +129,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Delete Non-Color Layers in Selected Glyphs:** Deletes all sublayers in all glyphs that are not of type "Color X" (CPAL/COLR layers).
 * **Merge All Other Masters in Current Master:** In selected glyphs, copies all paths from other masters onto the current master layer.
 * **Merge Suffixed Glyphs into Color Layers:** Merges x.shadow, x.body and x.front into separate CPAL Color layers of x. *Needs Vanilla.*
+* **Randomly Distribute Shapes on Color Layers:** Take the shapes of the fallback master layer, and randomly copy them onto the available CPAL/COLR color layers. Careful: will overwrite contents of existing color layers unless you hold down Cmd+Shift.
 * **sbix Spacer:** Batch-set sbix positions and glyph widths. *Needs Vanilla.*
 
 ## Compare Frontmost Fonts
