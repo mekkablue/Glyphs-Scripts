@@ -42,7 +42,10 @@ class MergeSuffixedGlyphsIntoColorLayers(object):
 		self.w.indexToSuffix.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.indexToSuffix.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.indexToSuffix.getNSScrollView().setRulersVisible_(0)
-		legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())
+		try:
+			legibleFont = NSFont.legibleFontOfSize_(NSFont.systemFontSize())
+		except:
+			legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())
 		textView = self.w.indexToSuffix.getNSTextView()
 		textView.setFont_(legibleFont)
 		textView.setHorizontallyResizable_(1)
