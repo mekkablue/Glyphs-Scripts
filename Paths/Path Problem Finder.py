@@ -727,7 +727,7 @@ class PathProblemFinder(object):
 									layersWithAlmostOrthogonalLines.append(thisLayer)
 									print(f"  ❌ Almost orthogonal line(s) on layer: {thisLayer.name}")
 
-								if shortSegment and hasshortSegment(thisLayer, threshold=float(shortSegmentThreshold)):
+								if shortSegment and hasShortSegment(thisLayer, threshold=float(shortSegmentThreshold)):
 									layersWithshortSegments.append(thisLayer)
 									print(f"  ❌ Short line(s) on layer: {thisLayer.name}")
 
