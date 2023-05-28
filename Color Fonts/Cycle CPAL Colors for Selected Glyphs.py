@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Will increase the color index for each CPAL Color Palette layer, or set to 0 if it exceeds the number of available colors.
+Will increase the color index for each CPAL Color Palette layer, or set to 0 if it exceeds the number of available colors. E.g., for three colors, it will cycle indexes like this: 0→1, 1→2, 2→0.
 """
 
 def process( thisGlyph, maxColor ):
@@ -16,9 +16,9 @@ def process( thisGlyph, maxColor ):
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
 selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
-selection = selectedLayers[0].selection # node selection in edit mode
 Glyphs.clearLog() # clears log in Macro window
 
+# get the most relevant color palette:
 palettes = thisFontMaster.customParameters["Color Palettes"]
 if not palettes:
 	for thisMaster in thisFont.masters:
@@ -29,7 +29,7 @@ if not palettes:
 	palettes = thisFont.customParameters["Color Palettes"]
 
 if palettes:
-	maxColor = len(palettes[0])
+	maxColor = len(palettes[0]) # determine number of colors
 
 	thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 	try:
