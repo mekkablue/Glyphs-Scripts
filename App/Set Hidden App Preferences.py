@@ -34,6 +34,8 @@ class SetHiddenAppPreferences(object):
 		"GSFontViewDrawLabelColor",
 		"GSFontViewDarkMode",
 		"GSEditViewDarkMode",
+		"UFOWriteSparseInfo",
+		"GSAlwayShowExportNotification",
 		"com.mekkablue.KernIndicator.offset",
 		"com.mekkablue.ShowFilledPreview.opacity",
 		"com.mekkablue.ShowGlyphFocus.color",
