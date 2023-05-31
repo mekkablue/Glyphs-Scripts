@@ -9,7 +9,18 @@ import vanilla
 from AppKit import NSRect, NSPoint, NSSize, NSAffineTransform
 
 class sbixSpacer(object):
-
+	prefID = "com.mekkablue.sbixSpacer"
+	prefDict = {
+		# "prefName": defaultValue,
+		"allGlyphs": 0,
+		"allMasters": 0,
+		"insertMarkers": 1,
+		"verticalShift": 0,
+		"verticalShiftValue": -100,
+		"resetWidths": 0,
+		"preferredSizeForWidth": 128,
+	}
+	
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 340
@@ -21,7 +32,7 @@ class sbixSpacer(object):
 			"sbix Spacer", # window title
 			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.sbixSpacer.mainwindow" # stores last window position and size
+			autosaveName = self.domain("mainwindow") # stores last window position and size
 			)
 
 		# UI elements:
@@ -77,45 +88,32 @@ class sbixSpacer(object):
 		self.w.verticalShiftValue.enable(self.w.verticalShift.get())
 		self.w.runButton.enable(self.w.insertMarkers.get() or self.w.verticalShift.get() or self.w.resetWidths.get())
 
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
 	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
-			Glyphs.defaults["com.mekkablue.sbixSpacer.allGlyphs"] = self.w.allGlyphs.get()
-			Glyphs.defaults["com.mekkablue.sbixSpacer.allMasters"] = self.w.allMasters.get()
-			Glyphs.defaults["com.mekkablue.sbixSpacer.insertMarkers"] = self.w.insertMarkers.get()
-			Glyphs.defaults["com.mekkablue.sbixSpacer.verticalShift"] = self.w.verticalShift.get()
-			Glyphs.defaults["com.mekkablue.sbixSpacer.verticalShiftValue"] = self.w.verticalShiftValue.get()
-			Glyphs.defaults["com.mekkablue.sbixSpacer.resetWidths"] = self.w.resetWidths.get()
-			Glyphs.defaults["com.mekkablue.sbixSpacer.preferredSizeForWidth"] = self.w.preferredSizeForWidth.get()
-
-			self.updateUI()
+			for prefName in self.prefDict.keys():
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
 			return True
 		except:
 			import traceback
 			print(traceback.format_exc())
 			return False
 
-	def LoadPreferences(self):
+	def LoadPreferences( self ):
 		try:
-			# register defaults:
-			Glyphs.registerDefault("com.mekkablue.sbixSpacer.allGlyphs", 0)
-			Glyphs.registerDefault("com.mekkablue.sbixSpacer.allMasters", 0)
-			Glyphs.registerDefault("com.mekkablue.sbixSpacer.insertMarkers", 1)
-			Glyphs.registerDefault("com.mekkablue.sbixSpacer.verticalShift", 0)
-			Glyphs.registerDefault("com.mekkablue.sbixSpacer.verticalShiftValue", -100)
-			Glyphs.registerDefault("com.mekkablue.sbixSpacer.resetWidths", 0)
-			Glyphs.registerDefault("com.mekkablue.sbixSpacer.preferredSizeForWidth", 128)
-
-			# load previously written prefs:
-			self.w.allGlyphs.set(Glyphs.defaults["com.mekkablue.sbixSpacer.allGlyphs"])
-			self.w.allMasters.set(Glyphs.defaults["com.mekkablue.sbixSpacer.allMasters"])
-			self.w.insertMarkers.set(Glyphs.defaults["com.mekkablue.sbixSpacer.insertMarkers"])
-			self.w.verticalShift.set(Glyphs.defaults["com.mekkablue.sbixSpacer.verticalShift"])
-			self.w.verticalShiftValue.set(Glyphs.defaults["com.mekkablue.sbixSpacer.verticalShiftValue"])
-			self.w.resetWidths.set(Glyphs.defaults["com.mekkablue.sbixSpacer.resetWidths"])
-			self.w.preferredSizeForWidth.set(Glyphs.defaults["com.mekkablue.sbixSpacer.preferredSizeForWidth"])
-
-			self.updateUI()
+			for prefName in self.prefDict.keys():
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
+				# load previously written prefs:
+				getattr(self.w, prefName).set(self.pref(prefName))
 			return True
 		except:
 			import traceback
@@ -151,7 +149,7 @@ class sbixSpacer(object):
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				print("sbix Spacer Report for %s" % thisFont.familyName)
+				print(f"sbix Spacer Report for {thisFont.familyName}")
 				if thisFont.filepath:
 					print(thisFont.filepath)
 				else:
@@ -159,13 +157,13 @@ class sbixSpacer(object):
 				print()
 
 				# query user settings:
-				insertMarkers = Glyphs.defaults["com.mekkablue.sbixSpacer.insertMarkers"]
-				verticalShift = Glyphs.defaults["com.mekkablue.sbixSpacer.verticalShift"]
-				verticalShiftValue = int(Glyphs.defaults["com.mekkablue.sbixSpacer.verticalShiftValue"])
-				resetWidths = Glyphs.defaults["com.mekkablue.sbixSpacer.resetWidths"]
-				preferredSizeForWidth = int(Glyphs.defaults["com.mekkablue.sbixSpacer.preferredSizeForWidth"])
-				allGlyphs = Glyphs.defaults["com.mekkablue.sbixSpacer.allGlyphs"]
-				allMasters = Glyphs.defaults["com.mekkablue.sbixSpacer.allMasters"]
+				insertMarkers = self.pref("insertMarkers")
+				verticalShift = self.pref("verticalShift")
+				verticalShiftValue = int(self.pref("verticalShiftValue"))
+				resetWidths = self.pref("resetWidths")
+				preferredSizeForWidth = int(self.pref("preferredSizeForWidth"))
+				allGlyphs = self.pref("allGlyphs")
+				allMasters = self.pref("allMasters")
 
 				if allGlyphs:
 					glyphs = thisFont.glyphs
@@ -183,14 +181,14 @@ class sbixSpacer(object):
 						layers = [l for l in glyph.layers if l.master == master and l != masterLayer]
 						isSbixGlyph = False
 						for layer in layers:
-							if layer.name.startswith("iColor "):
+							if layer.isSpecialLayer and layer.name.startswith("iColor "):
 								isSbixGlyph = True
 								break
 
 						if isSbixGlyph:
-							print("🔠 %s" % glyph.name)
+							print(f"🔠 {glyph.name}")
 							if resetWidths or insertMarkers:
-								preferredLayerName = "iColor %i" % preferredSizeForWidth
+								preferredLayerName = f"iColor {preferredSizeForWidth}"
 								preferredLayer = None
 								for layer in layers:
 									if layer.name == preferredLayerName or (layer.name.startswith("iColor ") and preferredLayer is None):
@@ -208,27 +206,22 @@ class sbixSpacer(object):
 												bounds = NSRect(origin, scaledSize)
 												self.addMarkers(masterLayer, bounds)
 											if resetWidths:
-												print("  Resetting width to %i" % size.width)
+												print(f"  Resetting width to {size.width}")
 												masterLayer.width = scaledSize.width
 
 							if verticalShift:
-								print("  Shifting master layer %s units" % verticalShiftValue)
+								print(f"  Shifting master layer {verticalShiftValue} units")
 								shiftTransform = NSAffineTransform.transform()
 								shiftTransform.translateXBy_yBy_(0, verticalShiftValue)
 								shiftMatrix = shiftTransform.transformStruct() # returns the 6-float tuple
 								masterLayer.applyTransform(shiftMatrix)
 
-			# Final report:
-			Glyphs.showNotification(
-				"%s: Done" % (thisFont.familyName),
-				"sbix Spacer is finished. Details in Macro Window",
-				)
 			print("\nDone.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("sbix Spacer Error: %s" % e)
+			print(f"sbix Spacer Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 
