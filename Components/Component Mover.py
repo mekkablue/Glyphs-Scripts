@@ -57,7 +57,7 @@ class ComponentMover(object):
 		linePos += lineHeight
 
 		self.w.left = vanilla.SquareButton((inset + offset, linePos, size - 1, lineHeight - 1), "←", sizeStyle='regular', callback=self.ComponentMoverMain)
-		self.w.amount = vanilla.TextBox((inset + offset + size, linePos + 2, size - 1, lineHeight - 1), "10", sizeStyle='regular', selectable=True)
+		self.w.amount = vanilla.EditText((inset + offset + size, linePos + 2, size - 1, lineHeight - 1), "10", sizeStyle='regular', callback=self.SavePreferences)
 		self.w.amount.getNSTextField().setAlignment_(1)
 		self.w.right = vanilla.SquareButton((inset + offset + size * 2, linePos, size - 1, lineHeight - 1), "→", sizeStyle='regular', callback=self.ComponentMoverMain)
 		linePos += lineHeight
@@ -219,6 +219,8 @@ class ComponentMover(object):
 								try:
 									thisComponent.smartComponentValues[attributeToChange] += amount * factor
 								except:
+									import traceback
+									print(traceback.format_exc())
 									pass # tried to change a non-existing attribute
 							elif attributeToChange == "Position":
 								thisComponent.x += factorX * amount
