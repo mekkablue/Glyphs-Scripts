@@ -116,8 +116,10 @@ class ComponentMover(object):
 	def update(self, sender=None):
 		if sender is self.w.changeAttributeUpdate:
 			self.w.changeAttribute.setItems(self.defaultSettings + self.availableAttributes())
+			self.SavePreferences()
 		if sender is self.w.searchStringUpdate:
 			self.w.searchString.setItems(self.availableComponents())
+			self.SavePreferences()
 		moveOrScale = self.pref("changeAttribute") < 2
 		self.w.up.enable(moveOrScale)
 		self.w.down.enable(moveOrScale)
