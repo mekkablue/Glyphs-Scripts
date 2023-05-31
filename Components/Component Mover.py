@@ -118,13 +118,13 @@ class ComponentMover(object):
 			self.w.changeAttribute.setItems(self.defaultSettings + self.availableAttributes())
 		if sender is self.w.searchStringUpdate:
 			self.w.searchString.setItems(self.availableComponents())
-		diagonalsOn = self.pref("changeAttribute") < 2
-		self.w.upLeft.enable(diagonalsOn)
-		self.w.upRight.enable(diagonalsOn)
-		self.w.downLeft.enable(diagonalsOn)
-		self.w.downRight.enable(diagonalsOn)
-		self.w.up.setTitle("↑" if diagonalsOn else "↑×10")
-		self.w.down.setTitle("↓" if diagonalsOn else "↓×10")
+		moveOrScale = self.pref("changeAttribute") < 2
+		self.w.up.enable(moveOrScale)
+		self.w.down.enable(moveOrScale)
+		self.w.upLeft.setTitle("↖" if moveOrScale else "←×10")
+		self.w.upRight.setTitle("↗" if moveOrScale else "→×10")
+		self.w.downLeft.setTitle("↙" if moveOrScale else "←÷10")
+		self.w.downRight.setTitle("↘" if moveOrScale else "→÷10")
 
 	def availableAttributes(self):
 		searchString = self.pref("searchString")
@@ -210,10 +210,14 @@ class ComponentMover(object):
 						factor = -1
 					elif sender is self.w.right:
 						factor = 1
-					elif sender is self.w.up:
-						factor = 10
-					elif sender is self.w.down:
+					elif sender is self.w.upLeft:
 						factor = -10
+					elif sender is self.w.upRight:
+						factor = 10
+					elif sender is self.w.downLeft:
+						factor = -0.1
+					elif sender is self.w.downRight:
+						factor = 0.1
 				else:
 					factorX, factorY = 0, 0
 					if sender in (self.w.left, self.w.upLeft, self.w.downLeft):
@@ -232,7 +236,10 @@ class ComponentMover(object):
 							if smartComponent:
 								try:
 									axisID = self.getSmartAxisID(thisComponent, attributeToChange)
-									if axisID:
+									if not thisComponent.smartComponentValues[attributeToChange] is None:
+										thisComponent.smartComponentValues[attributeToChange] += amount * factor
+									elif not thisComponent.smartComponentValues[axisID] is None:
+										# should work with axisName, circumventing bug in 3.2 (3198):
 										thisComponent.smartComponentValues[axisID] += amount * factor
 									else:
 										print(f"⚠️ {thisGlyph.name}: {thisComponent.name} has no property ‘{attributeToChange}’.")
@@ -251,8 +258,10 @@ class ComponentMover(object):
 				
 				if thisFont.currentTab:
 					thisFont.currentTab.redraw()
-					# if Glyphs.versionNumber >= 3:
-					# 	NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
+					# NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
+				else:
+					thisFont.fontView.redraw()
+					# NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.fontView)
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
