@@ -6,6 +6,7 @@ Batch edit (smart) components across selected glyphs. Change positions, scales a
 """
 
 import vanilla, sys
+from AppKit import NSPoint
 
 class ComponentMover(object):
 	prefID = "com.mekkablue.ComponentMover"
@@ -57,7 +58,7 @@ class ComponentMover(object):
 		linePos += lineHeight
 
 		self.w.left = vanilla.SquareButton((inset + offset, linePos, size - 1, lineHeight - 1), "←", sizeStyle='regular', callback=self.ComponentMoverMain)
-		self.w.amount = vanilla.EditText((inset + offset + size, linePos + 2, size - 1, lineHeight - 1), "10", sizeStyle='regular', callback=self.SavePreferences)
+		self.w.amount = vanilla.EditText((inset + offset + size, linePos, size - 1, lineHeight - 1), "10", sizeStyle='regular', callback=self.SavePreferences)
 		self.w.amount.getNSTextField().setAlignment_(1)
 		self.w.right = vanilla.SquareButton((inset + offset + size * 2, linePos, size - 1, lineHeight - 1), "→", sizeStyle='regular', callback=self.ComponentMoverMain)
 		linePos += lineHeight
@@ -122,6 +123,8 @@ class ComponentMover(object):
 		self.w.upRight.enable(diagonalsOn)
 		self.w.downLeft.enable(diagonalsOn)
 		self.w.downRight.enable(diagonalsOn)
+		self.w.up.setTitle("↑" if diagonalsOn else "↑×10")
+		self.w.down.setTitle("↓" if diagonalsOn else "↓×10")
 
 	def availableAttributes(self):
 		searchString = self.pref("searchString")
@@ -157,7 +160,18 @@ class ComponentMover(object):
 								if not component.name in components:
 									components.append(component.name)
 		return components
-
+	
+	def getSmartAxisID(self, component, axisName):
+		glyph = component.glyph
+		font = glyph.parent
+		compName = component.componentName
+		baseGlyph = font.glyphs[compName]
+		if baseGlyph:
+			axis = baseGlyph.smartComponentAxes[axisName]
+			if axis:
+				return axis.id
+		return None
+		
 	def ComponentMoverMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -217,7 +231,11 @@ class ComponentMover(object):
 						if not searchString or searchString in thisComponent.componentName:
 							if smartComponent:
 								try:
-									thisComponent.smartComponentValues[attributeToChange] += amount * factor
+									axisID = self.getSmartAxisID(thisComponent, attributeToChange)
+									if axisID:
+										thisComponent.smartComponentValues[axisID] += amount * factor
+									else:
+										print(f"⚠️ {thisGlyph.name}: {thisComponent.name} has no property ‘{attributeToChange}’.")
 								except:
 									import traceback
 									print(traceback.format_exc())
@@ -230,10 +248,11 @@ class ComponentMover(object):
 								scaleX = thisComponent.scale.x + factorX * percentage
 								scaleY = thisComponent.scale.y + factorY * percentage
 								thisComponent.scale = NSPoint(scaleX, scaleY)
-
-				if Glyphs.versionNumber >= 3 and thisFont.currentTab:
-					NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
-
+				
+				if thisFont.currentTab:
+					thisFont.currentTab.redraw()
+					# if Glyphs.versionNumber >= 3:
+					# 	NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
