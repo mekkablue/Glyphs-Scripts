@@ -242,7 +242,7 @@ class TravelTracker(object):
 			if allFonts:
 				theseFonts = Glyphs.fonts
 			else:
-				theseFonts = (thisFont, )
+				theseFonts = (Glyphs.font, )
 			
 			totalAffectedGlyphs = 0
 			totalRelevantGlyphs = 0
@@ -271,10 +271,10 @@ class TravelTracker(object):
 					
 					travelRatioInThisGlyph = self.maxNodeTravelRatioForGlyph(relevantGlyph)
 					if travelRatioInThisGlyph > acceptableTravelRatio:
-						print(f"❌ Node traveling {int(travelRatioInThisGlyph * 100): 3i}%% in: {relevantGlyph.name}")
+						print(f"❌ Node traveling {int(travelRatioInThisGlyph * 100)}%% in: {relevantGlyph.name}")
 						affectedGlyphInfos.append((relevantGlyph.name, travelRatioInThisGlyph), )
 					elif verbose:
-						print(f"✅ Max node travel {int(travelRatioInThisGlyph * 100): 3i}%% in: {relevantGlyph.name}")
+						print(f"✅ Max node travel {int(travelRatioInThisGlyph * 100)}%% in: {relevantGlyph.name}")
 
 				if affectedGlyphInfos:
 					# report in macro window
@@ -286,7 +286,7 @@ class TravelTracker(object):
 					for glyphInfo in sortedGlyphInfos:
 						percentage = glyphInfo[1] * 100
 						glyphName = glyphInfo[0]
-						print(f"   {percentage: 3i}%% {glyphName}")
+						print(f"   {percentage}%% {glyphName}")
 
 					# open tab:
 					affectedGlyphNames = [gi[0] for gi in sortedGlyphInfos]
