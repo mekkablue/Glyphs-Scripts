@@ -27,7 +27,7 @@ for selectedLayer in selectedLayers:
 					axisValues = [m.axes[i] for m in font.masters]
 					newAxis = GSSmartComponentAxis()
 					newAxis.name = font.axes[i].name
-					newAxis.axisTag = font.axes[i].axisTag
+					# newAxis.axisTag = font.axes[i].axisTag
 					newAxis.bottomValue = min(axisValues)
 					newAxis.topValue = max(axisValues)
 					originalGlyph.smartComponentAxes.append(newAxis)
