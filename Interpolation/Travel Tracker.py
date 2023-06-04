@@ -178,7 +178,7 @@ class TravelTracker(object):
 				# SHAPE NORMALIZATION
 				if pathHasExtension and normalizeShape: # avoid zero width or zero height
 					n1NormalizedX, n1NormalizedY = (n1.x - p1offset.x) / p1Width, (n1.y - p1offset.y) / p1Height
-					n2NormalizedX, n2NormalizedY = (n2.x - p2offset.x) / p2Width, (n2.y - p1offset.y) / p2Height
+					n2NormalizedX, n2NormalizedY = (n2.x - p2offset.x) / p2Width, (n2.y - p2offset.y) / p2Height
 					nodeDistance = distance(
 						(n1NormalizedX, n1NormalizedY),
 						(n2NormalizedX, n2NormalizedY),
@@ -188,13 +188,12 @@ class TravelTracker(object):
 				# LAYER NORMALIZATION
 				if normalizeGlyph:
 					n1NormalizedX, n1NormalizedY = (n1.x - l1offset.x) / l1Width, (n1.y - l1offset.y) / l1Height
-					n2NormalizedX, n2NormalizedY = (n2.x - l2offset.x) / l2Width, (n2.y - l1offset.y) / l2Height
+					n2NormalizedX, n2NormalizedY = (n2.x - l2offset.x) / l2Width, (n2.y - l2offset.y) / l2Height
 					nodeDistance = distance(
 						(n1NormalizedX, n1NormalizedY),
 						(n2NormalizedX, n2NormalizedY),
 						)
 					maxTravelRatio = max(nodeDistance / maxPossibleTravel, maxTravelRatio)
-
 		return maxTravelRatio
 
 	def relevantLayersOfGlyph(self, glyph):
@@ -271,10 +270,10 @@ class TravelTracker(object):
 					
 					travelRatioInThisGlyph = self.maxNodeTravelRatioForGlyph(relevantGlyph)
 					if travelRatioInThisGlyph > acceptableTravelRatio:
-						print(f"❌ Node traveling {int(travelRatioInThisGlyph * 100)}%% in: {relevantGlyph.name}")
+						print(f"❌ Node traveling {int(travelRatioInThisGlyph * 100)}% in: {relevantGlyph.name}")
 						affectedGlyphInfos.append((relevantGlyph.name, travelRatioInThisGlyph), )
 					elif verbose:
-						print(f"✅ Max node travel {int(travelRatioInThisGlyph * 100)}%% in: {relevantGlyph.name}")
+						print(f"✅ Max node travel {int(travelRatioInThisGlyph * 100)}% in: {relevantGlyph.name}")
 
 				if affectedGlyphInfos:
 					# report in macro window
