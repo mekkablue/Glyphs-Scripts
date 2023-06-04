@@ -286,7 +286,7 @@ class TravelTracker(object):
 					for glyphInfo in sortedGlyphInfos:
 						percentage = glyphInfo[1] * 100
 						glyphName = glyphInfo[0]
-						print(f"   {percentage}%% {glyphName}")
+						print(f"   {percentage:.1f}% {glyphName}")
 
 					# open tab:
 					affectedGlyphNames = [gi[0] for gi in sortedGlyphInfos]
@@ -299,13 +299,13 @@ class TravelTracker(object):
 			if totalAffectedGlyphs==0:
 				Message(
 					title="No affected glyph found",
-					message=f"No glyph found where a node travels more than {travelPercentage}%% of its path bounds diagonal. Congratulations!",
+					message=f"No glyph found where a node travels more than {travelPercentage}% of its path bounds diagonal. Congratulations!",
 					OKButton="🥂 Cheers!",
 					)
 			else:
 				Message(
 					title="Found traveling nodes",
-					message=f"Found {totalAffectedGlyhs} glyphs with node travels of more than {travelPercentage}%% of the bounds diagonal, in a total of {totalRelevantGlyhs} interpolating glyphs in {len(theseFonts)} font{'s' if len(theseFonts)!=1 else ''}.",
+					message=f"Found {totalAffectedGlyphs} glyphs with node travels of more than {travelPercentage}% of the bounds diagonal, in a total of {totalRelevantGlyphs} interpolating glyphs in {len(theseFonts)} font{'s' if len(theseFonts)!=1 else ''}.",
 					OKButton=None,
 					)
 			
