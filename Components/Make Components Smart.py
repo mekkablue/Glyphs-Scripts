@@ -6,7 +6,6 @@ Turn the selected components into smart components, based on the axes defined in
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
-Glyphs.showMacroWindow()
 
 processedGlyphs = []
 font = Glyphs.font
