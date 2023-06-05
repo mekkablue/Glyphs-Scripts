@@ -4,19 +4,21 @@ __doc__="""
 Turn the selected components into smart components, based on the axes defined in the font.
 """
 
-# brings macro window to front and clears its log:
+# clears macro window log:
 Glyphs.clearLog()
 
-processedGlyphs = []
 font = Glyphs.font
+fontAxisValues = [m.axes[i] for m in font.masters]
 selectedLayers = font.selectedLayers
 if len(selectedLayers) > 1:
 	batchProcess = True
 else:
 	batchProcess = False
 
+processedGlyphs = []
 for selectedLayer in selectedLayers:
 	selectedGlyph = selectedLayer.parent
+	print(f"Processing {selectedGlyph.name}...")
 	for compIndex, component in enumerate(selectedLayer.components):
 		if component.selected or batchProcess:
 			originalGlyph = font.glyphs[component.name]
@@ -24,12 +26,11 @@ for selectedLayer in selectedLayers:
 			# Check if component is already smart
 			if not originalGlyph.smartComponentAxes:
 				for i in range(len(font.axes)):
-					axisValues = [m.axes[i] for m in font.masters]
 					newAxis = GSSmartComponentAxis()
 					newAxis.name = font.axes[i].name
 					# newAxis.axisTag = font.axes[i].axisTag
-					newAxis.bottomValue = min(axisValues)
-					newAxis.topValue = max(axisValues)
+					newAxis.bottomValue = min(fontAxisValues)
+					newAxis.topValue = max(fontAxisValues)
 					originalGlyph.smartComponentAxes.append(newAxis)
 					for layer in originalGlyph.layers:
 						if layer.isMasterLayer:
@@ -46,11 +47,12 @@ for selectedLayer in selectedLayers:
 						interpolationValue = layer.associatedFontMaster().axes[i]
 						component.smartComponentValues[originalGlyph.smartComponentAxes[i].id] = interpolationValue
 			
-			processedGlyphs.append(originalGlyph.name)
-		
 			# Renew selection in order to show smart glyph controls
-			component.selected = False
-			component.selected = True
+			if not batchProcess:
+				for b in range(2):
+					component.selected = bool(b)
+		
+			processedGlyphs.append(originalGlyph.name)
 
 if processedGlyphs:
 	print(f'{", ".join(processedGlyphs)} are now smart glyphs.')
