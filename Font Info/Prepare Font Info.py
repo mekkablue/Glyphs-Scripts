@@ -182,12 +182,6 @@ class PrepareFontforGit(object):
 					print()
 
 			self.w.close() # delete if you want window to stay open
-
-			# Final report:
-			Glyphs.showNotification(
-				"%s: Done" % (thisFont.familyName),
-				"‘Prepare Font Info’ is finished. Details in Macro Window",
-				)
 			print("\nDone.")
 
 		except Exception as e:
