@@ -49,6 +49,7 @@ class BraceLayerManager(object):
 		self.w.oldCoordinateUpdate = vanilla.SquareButton((inset + 105, linePos, 20, 18), "↺", sizeStyle='small', callback=self.update)
 		self.w.withText = vanilla.TextBox((inset + 130, linePos + 2, 30, 14), "with", sizeStyle='small', selectable=True)
 		self.w.newCoordinate = vanilla.EditText((inset + 160, linePos - 1, -inset, 19), "100", callback=self.SavePreferences, sizeStyle='small')
+		self.w.newCoordinate.getNSTextField().setToolTip_("Leave empty for disabling the brace layer or deleting the bracket layer condition.")
 		linePos += lineHeight
 
 		self.w.axisText = vanilla.TextBox((inset, linePos + 2, 95, 14), "for axis at index", sizeStyle='small', selectable=True)
@@ -190,14 +191,21 @@ class BraceLayerManager(object):
 					print()
 
 					searchFor = int(self.pref("oldCoordinate"))
-					replaceWith = int(self.pref("newCoordinate"))
+					replaceWith = self.pref("newCoordinate").strip()
+					if replaceWith == "":
+						replaceWith = None
+					else:
+						replaceWith = int(replaceWith)
 					currentMasterOnly = bool(self.pref("currentMasterOnly"))
 					currentMasterID = thisFont.selectedFontMaster.id
 					axis = thisFont.axes[int(self.pref("axisIndex"))]
 					axisID = axis.axisId
 					axisName = axis.name
 
-					print("🔢 Attempting %s: %i → %i" % (axisName, searchFor, replaceWith))
+					if replaceWith == None:
+						print(f"🚫 Disabling {axisName}: {searchFor}")
+					else:
+						print(f"🔢 Attempting {axisName}: {searchFor} → {replaceWith}")
 
 					if scope == 0:
 						glyphs = [l.parent for l in thisFont.selectedLayers]
@@ -213,9 +221,14 @@ class BraceLayerManager(object):
 											print(f'layer.attributes["coordinates"]["{axisID}"]')
 											currentPos = layer.attributes["coordinates"][axisID]
 											if currentPos == searchFor:
-												layer.attributes["coordinates"][axisID] = replaceWith
+												if replaceWith != None:
+													layer.attributes["coordinates"][axisID] = replaceWith
+												else:
+													del layer.attributes["coordinates"][axisID]
+													if not layer.attributes["coordinates"]:
+														del layer.attributes["coordinates"]
 												count += 1
-												print("  🔠 %i. %s" % (count, glyph.name))
+												print(f"  🔠 {count}. {glyph.name}")
 									else:
 										axisRules = layer.attributes["axisRules"]
 										if axisRules:
@@ -225,9 +238,16 @@ class BraceLayerManager(object):
 													if border in axisLimits.keys():
 														borderLimit = int(axisLimits[border])
 														if borderLimit == searchFor:
-															axisLimits[border] = replaceWith
+															if replaceWith != None:
+																axisLimits[border] = replaceWith
+															else:
+																del layer.attributes["axisRules"][axisID][border]
+																if not layer.attributes["axisRules"][border]:
+																	del layer.attributes["axisRules"][border]
+																if not layer.attributes["axisRules"]:
+																	del layer.attributes["axisRules"]
 															count += 1
-															print("  🔠 %i. %s" % (count, glyph.name))
+															print(f"  🔠 {count}. {glyph.name} ({border})")
 
 					if thisFont.currentTab and Glyphs.versionNumber >= 3:
 						NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
