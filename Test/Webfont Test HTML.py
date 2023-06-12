@@ -99,17 +99,23 @@ def getInstanceInfo(thisFont, activeInstance, fileFormat):
 	fileName = "%s.%s" % (firstPartOfFileName, fileFormat)
 	return fileName, menuName, activeInstanceName
 
+def instanceIsActive(instance):
+	if Glyphs.buildNumber>3198:
+		return instance.exports
+	else:
+		return instance.active
+
 def allActiveInstancesOfFont(thisFont):
-	activeInstances = [i for i in thisFont.instances if i.active and isSingleInstance(i)]
+	activeInstances = [i for i in thisFont.instances if instanceIsActive(i) and isSingleInstance(i)]
 	return activeInstances
 
 def allActiveInstancesOfProject(thisProject):
 	if Glyphs.versionNumber >= 3:
 		# GLYPHS 3
-		activeInstances = [i for i in thisProject.instances if i.active and isSingleInstance(i)]
+		activeInstances = [i for i in thisProject.instances if instanceIsActive(i) and isSingleInstance(i)]
 	else:
 		# GLYPHS 2
-		activeInstances = [i for i in thisProject.instances() if i.active and isSingleInstance(i)]
+		activeInstances = [i for i in thisProject.instances() if instanceIsActive(i) and isSingleInstance(i)]
 	return activeInstances
 
 def isSingleInstance(instance):

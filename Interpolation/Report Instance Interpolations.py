@@ -36,8 +36,12 @@ else:
 		print("⚠️ The font file has not been saved yet.")
 
 for thisInstance in thisFont.instances:
+	if Glyphs.buildNumber>3198:
+		instanceIsExporting = thisInstance.exports
+	else:
+		instanceIsExporting = thisInstance.active
 	print("\n%s %s %s" % (
-		"🟢" if thisInstance.active else "🚫",
+		"🟢" if instanceIsExporting else "🚫",
 		thisInstance.familyName,
 		thisInstance.name,
 		))

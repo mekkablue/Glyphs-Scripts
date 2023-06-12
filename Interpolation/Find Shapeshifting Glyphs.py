@@ -8,6 +8,12 @@ Finds glyphs that change the number of visible shapes and countershapes while in
 import vanilla
 tempMarker = "###DELETEME###"
 
+def instanceIsActive(instance):
+	if Glyphs.buildNumber>3198:
+		return instance.exports
+	else:
+		return instance.active
+
 def glyphInterpolation(thisGlyphName, thisInstance):
 	"""
 	Yields a layer.
@@ -248,7 +254,7 @@ class FindShapeshiftingGlyphs(object):
 					self.addHalfWayInstances(thisFont)
 				# 1: all active instances in font
 				elif checkInstances == 1:
-					self.instances = [i for i in thisFont.instances if i.active]
+					self.instances = [i for i in thisFont.instances if instanceIsActive(i)]
 				# 2: all active and inactive instances in font
 				else:
 					self.instances = thisFont.instances

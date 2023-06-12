@@ -8,12 +8,18 @@ Glyphs.clearLog() # clears log of Macro window
 Glyphs.showMacroWindow()
 print("Names for ssXX:")
 
+def instanceIsActive(instance):
+	if Glyphs.buildNumber>3198:
+		return instance.exports
+	else:
+		return instance.active
+
 # reversed, so that italics are sorted after uprights:
 sortedFonts = reversed(sorted(Glyphs.fonts, key=lambda font: font.filepath.lastPathComponent()))
 for font in sortedFonts:
 	print()
 	# heuristics for determining if it is an italic:
-	italic = all(["italic" in i.name.lower() for i in font.instances if i.active])
+	italic = all(["italic" in i.name.lower() for i in font.instances if instanceIsActive(i)])
 	sortedFeatures = sorted(font.features, key=lambda feature: feature.name)
 	for feature in sortedFeatures:
 		if feature.name.startswith("ss"):

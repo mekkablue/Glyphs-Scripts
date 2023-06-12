@@ -1084,15 +1084,18 @@ def axisLocationOfMasterOrInstance(thisFont, masterOrInstance):
 			locDict[axisTag] = masterOrInstance.axes[axisIndex]
 	return locDict
 
+def instanceIsActive(instance):
+	if Glyphs.buildNumber>3198:
+		return instance.exports
+	else:
+		return instance.active
+
 def listOfAllStyles(thisFont):
 	tabbing = "\t" * 3
 	htmlSnippet = "%s<select id='styleMenu' name='styleMenu' onchange='setStyle(this.value);'>" % tabbing
 
 	# add origin value
-	if Glyphs.buildNumber>3198:
-		styleMenuEntries = [originMasterOfFont(thisFont)] + [i for i in thisFont.instances if i.exports and i.type == 0]
-	else:
-		styleMenuEntries = [originMasterOfFont(thisFont)] + [i for i in thisFont.instances if i.active and i.type == 0]
+	styleMenuEntries = [originMasterOfFont(thisFont)] + [i for i in thisFont.instances if instanceIsActive(i) and i.type == 0]
 	
 	for idx, masterOrInstance in enumerate(styleMenuEntries):
 		# determine name of menu entry:

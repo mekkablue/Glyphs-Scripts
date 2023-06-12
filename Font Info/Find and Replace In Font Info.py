@@ -203,7 +203,11 @@ class FindAndReplaceInFontInfo(object):
 
 					if includeInstances:
 						for thisInstance in thisFont.instances:
-							if thisInstance.active or includeInactiveInstances:
+							if Glyphs.buildNumber>3198:
+								instanceIsExporting = thisInstance.exports
+							else:
+								instanceIsExporting = thisInstance.active
+							if instanceIsExporting or includeInactiveInstances:
 								# style name:
 								thisInstance.name = self.replaceInName(
 									thisInstance.name, searchFor, replaceWith, completeWordsOnly, "Instances > %s > Style Name" % thisInstance.name

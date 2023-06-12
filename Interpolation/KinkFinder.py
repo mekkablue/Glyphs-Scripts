@@ -247,7 +247,10 @@ class KinkFinder(object):
 
 	def buildInstance(self, name, interpolationDict, font):
 		instance = GSInstance()
-		instance.active = False
+		if Glyphs.buildNumber>3198:
+			instance.exports = False
+		else:
+			instance.active = False
 		instance.name = name
 		instance.manualInterpolation = True
 		instance.instanceInterpolations = interpolationDict
@@ -265,7 +268,11 @@ class KinkFinder(object):
 		findKinksWhere = self.pref("findKinksWhere")
 		if findKinksWhere in (2, 3):
 			for i, thisInstance in enumerate(thisFont.instances):
-				if thisInstance.active or findKinksWhere == 3:
+				if Glyphs.buildNumber>3198:
+					instanceIsExporting = thisInstance.exports
+				else:
+					instanceIsExporting = thisInstance.active
+				if instanceIsExporting or findKinksWhere == 3:
 					interpolationDict = thisInstance.instanceInterpolations
 					instanceName = "%03i-%s-%s" % (i, thisInstance.name, tempMarker)
 					testInstance = self.buildInstance(instanceName, interpolationDict, thisFont)

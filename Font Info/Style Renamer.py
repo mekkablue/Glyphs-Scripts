@@ -113,7 +113,11 @@ class StyleRenamer(object):
 
 			if particle:
 				for thisInstance in thisFont.instances:
-					if thisInstance.active or includeInactiveInstances:
+					if Glyphs.buildNumber>3198:
+						instanceIsExporting = thisInstance.exports
+					else:
+						instanceIsExporting = thisInstance.active
+					if instanceIsExporting or includeInactiveInstances:
 						newName = self.renameInstance(thisInstance, shouldAddParticle, particle, elidablePart)
 						if newName:
 							previewText += "▸ %s → %s\n" % (thisInstance.name, newName)
@@ -236,13 +240,17 @@ class StyleRenamer(object):
 				if not particle:
 					Message(
 						title="No Particle Provided",
-						message="Please enter a particle like ‘%s’ to add to or subtract from style names in the frontmost fonts." % particleDefault,
+						message=f"Please enter a particle like ‘{particleDefault}’ to add to or subtract from style names in the frontmost fonts.",
 						OKButton=None
 						)
 				else:
 					renameCount = 0
 					for thisInstance in thisFont.instances:
-						if thisInstance.active or includeInactiveInstances:
+						if Glyphs.buildNumber>3198:
+							instanceIsExporting = thisInstance.exports
+						else:
+							instanceIsExporting = thisInstance.active
+						if instanceIsExporting or includeInactiveInstances:
 							originalName = thisInstance.name
 							newName = self.renameInstance(thisInstance, shouldAddParticle, particle, elidablePart)
 

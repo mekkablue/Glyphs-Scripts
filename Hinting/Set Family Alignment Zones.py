@@ -85,19 +85,23 @@ class SetFamilyAlignmentZones(object):
 				instances = thisFont.instances
 
 			for i, thisInstance in enumerate(instances):
+				if Glyphs.buildNumber>3198:
+					instanceIsExporting = thisInstance.exports
+				else:
+					instanceIsExporting = thisInstance.active
 				familyName = thisInstance.familyName
 				if not familyName:
 					familyName = thisFont.familyName
 
-				instanceString = u"%02i: %s %s%s" % (
+				instanceString = "%02i: %s %s%s" % (
 					i,
 					familyName,
 					thisInstance.name,
-					" (inactive)" if not thisInstance.active else "",
+					" (inactive)" if not instanceIsExporting else "",
 					)
 				listOfInstances.append(instanceString)
 				if thisInstance.name in ("Regular", "Italic", "Regular Italic"):
-					if not thisInstance.active:
+					if not instanceIsExporting:
 						regularIndexes.append(i)
 					else:
 						regularIndexes.insert(0, i)

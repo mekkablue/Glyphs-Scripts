@@ -371,10 +371,12 @@ class InstanceMaker(object):
 
 	def DealWithExistingInstances(self):
 		instancesChoice = self.w.existingInstances.get()
-
 		if instancesChoice == 1: # deactivate
 			for thisInstance in Glyphs.font.instances:
-				thisInstance.active = False
+				if Glyphs.buildNumber>3198:
+					thisInstance.exports = False
+				else:
+					thisInstance.active = False
 		elif instancesChoice == 2: # delete
 			if Glyphs.versionNumber >= 3:
 				# GLYPHS 3
@@ -382,7 +384,6 @@ class InstanceMaker(object):
 			else:
 				# GLYPHS 2
 				Glyphs.font.instances = None
-
 		return True
 
 	def updateUI(self, sender=None):
