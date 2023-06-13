@@ -252,6 +252,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Remove PS Hints:** Deletes all stem and/or ghost hints throughout the current font, the selected master and/or the selected glyphs. *Needs Vanilla.*
 * **Remove TT Hints:** Deletes a user-specified set of TT instructions throughout the current font, the selected master and/or the selected glyphs. *Needs Vanilla.*
 * **Remove Zero Deltas in Selected Glyphs:** Goes through all layers of each selected glyph, and deletes all TT Delta Hints with an offset of zero. Detailed Report in Macro window.
+* **Set blueFuzz to zero for master instances:** Adds blueFuzz custom parameter with value 0 for instances that are the same as a master.
 * **Set blueScale:** Sets maximum blueScale value (determining max size for overshoot suppression) possible in Font Info > Font. Outputs other options in Macro window.
 * **Set Family Alignment Zones:** Pick an instance and set its zones as Family Alignment Zones in *Font Info > Font > Custom Parameters.* *Needs Vanilla.*
 * **Set TT Stem Hints to Auto:** Sets all TT stem hints to ‘auto’ in selected glyphs.
