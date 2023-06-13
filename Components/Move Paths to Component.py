@@ -142,9 +142,9 @@ class MovePathstoComponent(object):
 			thisFont = Glyphs.font # frontmost font
 			glyphName = None
 			if thisFont is None:
-				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				Message(title="No thisFont Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				print("‘Move Paths to Component’ Report for %s" % thisFont.familyName)
+				print(f"‘Move Paths to Component’ Report for {thisFont.familyName}")
 				if thisFont.filepath:
 					print(thisFont.filepath)
 				else:
@@ -199,9 +199,9 @@ class MovePathstoComponent(object):
 				newGlyph.category = category
 				if subCategory:
 					newGlyph.subCategory = subCategory
-				if Font.glyphs[newCompName]:
+				if thisFont.glyphs[newCompName]:
 					# overwrite if it already exists
-					del Font.glyphs[newCompName]
+					del thisFont.glyphs[newCompName]
 					print("⚠️ Overwrote existing %s" % newCompName)
 				thisFont.glyphs.append(newGlyph)
 
