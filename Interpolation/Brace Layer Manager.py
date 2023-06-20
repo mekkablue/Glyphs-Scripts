@@ -213,6 +213,7 @@ class BraceLayerManager(object):
 						glyphs = thisFont.glyphs
 
 					for glyph in glyphs:
+						print(f"  Processing {glyph.name}...")
 						for layer in glyph.layers:
 							if not currentMasterOnly or layer.associatedMasterId == currentMasterID:
 								if layer.isSpecialLayer and layer.attributes:
