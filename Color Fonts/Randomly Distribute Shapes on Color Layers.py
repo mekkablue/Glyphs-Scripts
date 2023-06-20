@@ -10,7 +10,7 @@ random.seed()
 from AppKit import NSEvent
 from copy import copy
 
-def process( thisGlyph. shouldPreserveExistingShapes=False ):
+def process( thisGlyph, shouldPreserveExistingShapes=False ):
 	for thisMaster in thisGlyph.parent.masters:
 		mID = thisMaster.id
 		masterLayer = thisGlyph.layers[mID]
