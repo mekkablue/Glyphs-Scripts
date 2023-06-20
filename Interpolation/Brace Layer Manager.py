@@ -118,7 +118,7 @@ class BraceLayerManager(object):
 										borderLimit = axisLimits[border]
 										allCoordinates.append(borderLimit)
 
-			allCoordinates = sorted(set(allCoordinates), key=lambda coordinate: int(coordinate))
+			allCoordinates = sorted(set(allCoordinates), key=lambda coordinate: float(coordinate))
 
 		return allCoordinates
 
@@ -190,12 +190,12 @@ class BraceLayerManager(object):
 						print("⚠️ The font file has not been saved yet.")
 					print()
 
-					searchFor = int(self.pref("oldCoordinate"))
+					searchFor = float(self.pref("oldCoordinate"))
 					replaceWith = self.pref("newCoordinate").strip()
 					if replaceWith == "":
 						replaceWith = None
 					else:
-						replaceWith = int(replaceWith)
+						replaceWith = float(replaceWith)
 					currentMasterOnly = bool(self.pref("currentMasterOnly"))
 					currentMasterID = thisFont.selectedFontMaster.id
 					axis = thisFont.axes[int(self.pref("axisIndex"))]
@@ -236,7 +236,7 @@ class BraceLayerManager(object):
 											if axisLimits:
 												for border in ("min", "max"):
 													if border in axisLimits.keys():
-														borderLimit = int(axisLimits[border])
+														borderLimit = float(axisLimits[border])
 														if borderLimit == searchFor:
 															if replaceWith != None:
 																axisLimits[border] = replaceWith
