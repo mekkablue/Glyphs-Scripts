@@ -387,6 +387,12 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Flashify Pixels:** Creates small bridges in order to prevent self-intersection of paths so counters stay white. This is especially a problem for the Flash font renderer, hence the name of the script.
 * **Reset Rotated and Mirrored Components:** Looks for scaled, mirrored and rotated components and turns them back into their default scale and orientation, but keeps their position. Useful for fixing mirrored pixels.
 
+## Post Production
+
+* **Add Empty DSIG (OTVAR):** Run this after you export a Variable Font (TTF) and it will add an empty DSIG table. Necessary to pass the MyFonts onboarding of OTVAR TTFs.
+* **Fix Italic PS Names (OTVAR):** Fixes double Italic namings in name table entries in the most recent export of the current font. Run this right after a variable font export.
+* **Upgrade STAT Axis Values from Discrete to Ranges (OTVAR):** Turns STAT entries of format 1 (discrete) into format 2 (range) for axes with more than one axis value. Run this right after a variable font export.
+
 ## Smallcaps
 
 *When I have Smallcaps in my font, I always run Check Smallcap Consistency. Take its report with a grain of salt though: it lists a lot of false positives, and not every warning is equally important.*
