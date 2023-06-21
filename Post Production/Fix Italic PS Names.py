@@ -7,7 +7,7 @@ Fixes double Italic namings in name table entries in the most recent export of t
 
 from fontTools import ttLib
 from AppKit import NSString
-from otvarLib import *
+from otvarLib import * # local lib
 
 if Glyphs.versionNumber < 3.2:
 	Message(
