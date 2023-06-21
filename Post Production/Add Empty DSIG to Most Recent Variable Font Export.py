@@ -1,4 +1,4 @@
-#MenuTitle: Add Empty DSIG to Most Recent Variable Font Export
+#MenuTitle: Add Empty DSIG (OTVAR)
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
