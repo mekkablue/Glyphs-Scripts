@@ -91,7 +91,7 @@ def glyphInterpolation(thisGlyph, thisInstance):
 			interpolatedLayer = interGlyph.layerForKey_(interpolatedFont.fontMasterID())
 
 		thisFont = thisGlyph.parent
-		if not thisInstance.customParameters["Grid Spacing"] and not (thisFont.gridMain() / thisFont.gridSubDivision()):
+		if not thisInstance.customParameters["Grid Spacing"] and not (thisFont.gridMain() / thisFont.gridSubDivision):
 			interpolatedLayer.roundCoordinates()
 		if len(interpolatedLayer.paths) != 0:
 			return interpolatedLayer
