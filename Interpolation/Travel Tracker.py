@@ -274,7 +274,8 @@ class TravelTracker(object):
 						affectedGlyphInfos.append((relevantGlyph.name, travelRatioInThisGlyph), )
 					elif verbose:
 						print(f"✅ Max node travel {int(travelRatioInThisGlyph * 100)}% in: {relevantGlyph.name}")
-
+				
+				affectedGlyphNames = []
 				if affectedGlyphInfos:
 					# report in macro window
 					if verbose:
@@ -295,6 +296,9 @@ class TravelTracker(object):
 
 				totalAffectedGlyphs += len(affectedGlyphNames)
 			
+			# last one finished, progress bar = 100:
+			self.w.progress.set(100)
+
 			if totalAffectedGlyphs==0:
 				Message(
 					title="No affected glyph found",
@@ -304,12 +308,9 @@ class TravelTracker(object):
 			else:
 				Message(
 					title="Found traveling nodes",
-					message=f"Found {totalAffectedGlyphs} glyphs with node travels of more than {travelPercentage}% of the bounds diagonal, in a total of {totalRelevantGlyphs} interpolating glyphs in {len(theseFonts)} font{'s' if len(theseFonts)!=1 else ''}.",
+					message=f"Found {int(totalAffectedGlyphs)} glyph{'s' if totalAffectedGlyphs != 0 else ''} with node travels of more than {travelPercentage}% of the bounds diagonal, in a total of {int(totalRelevantGlyphs)} interpolating glyphs in {len(theseFonts)} font{'s' if len(theseFonts)!=1 else ''}.",
 					OKButton=None,
 					)
-			
-			# last one finished, progress bar = 100:
-			self.w.progress.set(100)
 
 		except Exception as e:
 			# brings macro window to front and reports error:
