@@ -15,6 +15,9 @@ class PrepareFontforGit(object):
 		"preventMacName",
 		"fileFormat",
 		"removeGlyphOrder",
+		"applyToFonts",
+		"disablesNiceNames",
+		"disablesAutomaticAlignment",
 		)
 	parameterDict = {
 		"preventDisplayStrings": ("Write DisplayStrings", 0),
@@ -27,7 +30,7 @@ class PrepareFontforGit(object):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 360
-		windowHeight = 200
+		windowHeight = 250
 		windowWidthResize = 100 # user can resize width by this value
 		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -64,6 +67,12 @@ class PrepareFontforGit(object):
 		self.w.removeGlyphOrder = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Remove glyphOrder", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
+		self.w.disablesNiceNames = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Turn off Font Info > Other > Use Custom Naming", value=False, callback=self.SavePreferences, sizeStyle="small")
+		linePos += lineHeight
+
+		self.w.disablesAutomaticAlignment = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Turn off Font Info > Other > Disable Auto Alignment", value=False, callback=self.SavePreferences, sizeStyle="small")
+		linePos += lineHeight
+		
 		# Apply Scope:
 		self.w.applyToFontsText = vanilla.TextBox((inset, -18 - inset + 2, 60, 14), "Apply to:", sizeStyle='small', selectable=True)
 		self.w.applyToFonts = vanilla.PopUpButton(
@@ -167,10 +176,15 @@ class PrepareFontforGit(object):
 							self.setParameterForFont(thisFont, parameterName, parameterValue)
 
 					# remove parameters:
-					for optionKey in [prefName for prefName in self.prefs if prefName.startswith("remove")]:
+					for optionKey in [prefName for prefName in self.prefs if prefName.startswith("remove") and self.pref(prefName)]:
 						parameterName = optionKey[6].lower() + optionKey[7:]
 						self.setParameterForFont(thisFont, parameterName, remove=True)
-
+					
+					# remove parameters:
+					for optionKey in [prefName for prefName in self.prefs if prefName.startswith("disables")]:
+						setattr(thisFont, optionKey, not self.pref(optionKey))
+						print(f"{'✅' if self.pref(optionKey) else '🚫'} {optionKey.replace('disables','')} (See Font Info > Other)")
+					
 					# set file format:
 					if self.pref("fileFormat"):
 						if thisFont.formatVersion != 3:
