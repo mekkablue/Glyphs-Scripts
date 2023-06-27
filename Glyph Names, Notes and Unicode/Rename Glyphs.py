@@ -9,6 +9,12 @@ import vanilla, uuid
 from AppKit import NSFont
 
 class RenameGlyphs(object):
+	prefID = "com.mekkablue.RenameGlyphs"
+	prefDict = {
+		# "prefName": defaultValue,
+		"renameList": "oldname=newname",
+		"allFonts": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -32,6 +38,8 @@ class RenameGlyphs(object):
 		self.w.renameList.getNSTextView().useStandardLigatures_(0)
 		self.w.renameList.selectAll()
 
+		self.w.allFonts = vanilla.CheckBox((10, -35, 100, 20), "⚠️ ALL Fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
+		
 		# Run Button:
 		self.w.runButton = vanilla.Button((-100, -35, -15, -15), "Rename", sizeStyle='regular', callback=self.RenameGlyphsMain)
 		#self.w.setDefaultButton( self.w.runButton )
@@ -44,48 +52,83 @@ class RenameGlyphs(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender):
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
+	def SavePreferences(self, sender=None):
 		try:
-			Glyphs.defaults["com.mekkablue.RenameGlyphs.renameList"] = self.w.renameList.get()
+			# write current settings into prefs:
+			for prefName in self.prefDict.keys():
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
+			return True
 		except:
+			import traceback
+			print(traceback.format_exc())
 			return False
 
-		return True
-
-	def LoadPreferences(self):
+	def LoadPreferences( self ):
 		try:
-			Glyphs.registerDefault("com.mekkablue.RenameGlyphs.renameList", "oldname=newname")
-			self.w.renameList.set(Glyphs.defaults["com.mekkablue.RenameGlyphs.renameList"])
+			for prefName in self.prefDict.keys():
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
+				# load previously written prefs:
+				getattr(self.w, prefName).set(self.pref(prefName))
+			return True
 		except:
+			import traceback
+			print(traceback.format_exc())
 			return False
-
-		return True
 
 	def RenameGlyphsMain(self, sender):
 		try:
-			thisFont = Glyphs.font # frontmost font
-			thisList = Glyphs.defaults["com.mekkablue.RenameGlyphs.renameList"]
-			for thisLine in thisList.splitlines():
-				if thisLine.strip():
-					glyphNameLeft = thisLine.split("=")[0].strip()
-					glyphNameRight = thisLine.split("=")[1].strip()
-					glyphLeft = thisFont.glyphs[glyphNameLeft]
-					glyphRight = thisFont.glyphs[glyphNameRight]
-					if glyphLeft:
-						if glyphRight:
-							uniqueSuffix = ".%s" % uuid.uuid4().hex
-							glyphLeft.name = glyphNameRight + uniqueSuffix
-							glyphRight.name = glyphNameLeft
-							glyphLeft.name = glyphNameRight
+			# clear macro window log:
+			Glyphs.clearLog()
+			
+			# update settings to the latest user input:
+			if not self.SavePreferences():
+				print("⚠️ ‘Rename Glyphs’ could not write preferences.")
+			
+			# read prefs:
+			for prefName in self.prefDict.keys():
+				try:
+					setattr(sys.modules[__name__], prefName, self.pref(prefName))
+				except:
+					fallbackValue = self.prefDict[prefName]
+					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
+					setattr(sys.modules[__name__], prefName, fallbackValue)
 
-							# swap export status:
-							glyphLeftExport = glyphLeft.export
-							glyphLeft.export = glyphRight.export
-							glyphRight.export = glyphLeftExport
+			if allFonts:
+				theseFonts = Glyphs.fonts
+			else:
+				theseFonts = [Glyphs.font,]
+				
+			for thisFont in theseFonts:
+				for thisLine in renameList.splitlines():
+					if thisLine.strip():
+						glyphNameLeft = thisLine.split("=")[0].strip()
+						glyphNameRight = thisLine.split("=")[1].strip()
+						glyphLeft = thisFont.glyphs[glyphNameLeft]
+						glyphRight = thisFont.glyphs[glyphNameRight]
+						if glyphLeft:
+							if glyphRight:
+								uniqueSuffix = ".%s" % uuid.uuid4().hex
+								glyphLeft.name = glyphNameRight + uniqueSuffix
+								glyphRight.name = glyphNameLeft
+								glyphLeft.name = glyphNameRight
+
+								# swap export status:
+								glyphLeftExport = glyphLeft.export
+								glyphLeft.export = glyphRight.export
+								glyphRight.export = glyphLeftExport
+							else:
+								glyphLeft.name = glyphNameRight
 						else:
-							glyphLeft.name = glyphNameRight
-					else:
-						print("Warning: %s not in font." % glyphNameLeft)
+							print(f"Warning: {glyphNameLeft} not in font.")
 
 			if not self.SavePreferences(self):
 				print("Note: 'Rename Glyphs' could not write preferences.")
@@ -94,7 +137,7 @@ class RenameGlyphs(object):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Rename Glyphs Error: %s" % e)
+			print(f"Rename Glyphs Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 
