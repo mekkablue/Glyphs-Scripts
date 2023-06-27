@@ -177,7 +177,6 @@ def createGlyph(font, name, unicodeValue, override=False, defaultWidth=500):
 		font.glyphs.append(glyph)
 		glyph.updateGlyphInfo()
 		return glyph
-
 	else:
 		if not override:
 			print("Glyph %s already exists. No override chosen. Skipping." % name)
