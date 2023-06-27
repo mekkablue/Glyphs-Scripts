@@ -8,11 +8,39 @@ import vanilla, datetime
 import AppKit
 
 class FontInfoBatchSetter(object):
+	prefID = "com.mekkablue.FontInfoBatchSetter"
+	prefDict = {
+		# "prefName": defaultValue,
+		"applyContaining": "",
+		"applyPopup": 0,
+		"copyright": "",
+		"trademark": "",
+		"vendorID": "",
+		"designer": "",
+		"designerURL": "",
+		"manufacturer": "",
+		"manufacturerURL": "",
+		"license": "",
+		"licenseURL": "",
+		"setCopyright": False,
+		"setTrademark": False,
+		"setVendorID": False,
+		"setDate": True,
+		"setDesigner": False,
+		"setDesignerURL": False,
+		"setManufacturer": False,
+		"setManufacturerURL": False,
+		"setLicense": False,
+		"setLicenseURL": False,
+		"setVersion": True,
+		"versionMajor": "1",
+		"versionMinor": "005",
+	}
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 350
-		windowHeight = 300
+		windowHeight = 380
 		windowWidthResize = 1000 # user can resize width by this value
 		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -20,7 +48,7 @@ class FontInfoBatchSetter(object):
 			"Font Info Batch Setter", # window title
 			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.FontInfoBatchSetter.mainwindow" # stores last window position and size
+			autosaveName=self.domain("mainwindow") # stores last window position and size
 			)
 
 		# UI elements:
@@ -48,9 +76,27 @@ class FontInfoBatchSetter(object):
 		self.w.manufacturerURL = vanilla.EditText((inset + column, linePos, -inset, 19), "https://", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
+		# LICENSE
+		self.w.setLicense = vanilla.CheckBox((inset, linePos - 1, column, 20), u"License:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.license = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		linePos += lineHeight
+		self.w.setLicenseURL = vanilla.CheckBox((inset, linePos - 1, column, 20), u"License URL:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.licenseURL = vanilla.EditText((inset + column, linePos, -inset, 19), "https://", callback=self.SavePreferences, sizeStyle='small')
+		linePos += lineHeight
+
 		# COPYRIGHT
 		self.w.setCopyright = vanilla.CheckBox((inset, linePos - 1, column, 20), u"Copyright:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.copyright = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		linePos += lineHeight
+
+		# TRADEMARK
+		self.w.setTrademark = vanilla.CheckBox((inset, linePos - 1, column, 20), u"Trademark:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.trademark = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		linePos += lineHeight
+		
+		# VENDOR ID
+		self.w.setVendorID = vanilla.CheckBox((inset, linePos - 1, column, 20), u"Vendor ID:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.vendorID = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# VERSION NUMBER
@@ -138,7 +184,11 @@ class FontInfoBatchSetter(object):
 		self.w.designerURL.enable(self.w.setDesignerURL.get())
 		self.w.manufacturer.enable(self.w.setManufacturer.get())
 		self.w.manufacturerURL.enable(self.w.setManufacturerURL.get())
+		self.w.license.enable(self.w.setLicense.get())
+		self.w.licenseURL.enable(self.w.setLicenseURL.get())
 		self.w.copyright.enable(self.w.setCopyright.get())
+		self.w.trademark.enable(self.w.setTrademark.get())
+		self.w.vendorID.enable(self.w.setVendorID.get())
 
 		dateEnabled = self.w.setDate.get()
 		self.w.datePicker.enable(dateEnabled)
@@ -165,7 +215,11 @@ class FontInfoBatchSetter(object):
 		self.w.designerURL.getNSTextField().setToolTip_(self.w.designerURL.get())
 		self.w.manufacturer.getNSTextField().setToolTip_(self.w.manufacturer.get())
 		self.w.manufacturerURL.getNSTextField().setToolTip_(self.w.manufacturerURL.get())
+		self.w.license.getNSTextField().setToolTip_(self.w.license.get())
+		self.w.licenseURL.getNSTextField().setToolTip_(self.w.licenseURL.get())
 		self.w.copyright.getNSTextField().setToolTip_(self.w.copyright.get())
+		self.w.trademark.getNSTextField().setToolTip_(self.w.trademark.get())
+		self.w.vendorID.getNSTextField().setToolTip_(self.w.vendorID.get())
 
 	def setNoon(self, sender=None):
 		# Get current date:
@@ -186,26 +240,19 @@ class FontInfoBatchSetter(object):
 		self.w.versionMajor.set("1")
 		self.w.versionMinor.set("005")
 
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
 	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.applyContaining"] = self.w.applyContaining.get()
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.applyPopup"] = self.w.applyPopup.get()
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.copyright"] = self.w.copyright.get()
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.designer"] = self.w.designer.get()
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.designerURL"] = self.w.designerURL.get()
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.manufacturer"] = self.w.manufacturer.get()
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.manufacturerURL"] = self.w.manufacturerURL.get()
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setCopyright"] = self.w.setCopyright.get()
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setDate"] = self.w.setDate.get()
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setDesigner"] = self.w.setDesigner.get()
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setDesignerURL"] = self.w.setDesignerURL.get()
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setManufacturer"] = self.w.setManufacturer.get()
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setManufacturerURL"] = self.w.setManufacturerURL.get()
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setVersion"] = self.w.setVersion.get()
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.versionMajor"] = self.w.versionMajor.get()
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.versionMinor"] = "%03i" % int(self.w.versionMinor.get())
-
+			for prefName in self.prefDict.keys():
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
 			self.updateTooltips()
 			self.updateUI()
 			return True
@@ -214,44 +261,13 @@ class FontInfoBatchSetter(object):
 			print(traceback.format_exc())
 			return False
 
-	def LoadPreferences(self):
+	def LoadPreferences( self ):
 		try:
-			# register defaults:
-			Glyphs.registerDefault("com.mekkablue.FontInfoBatchSetter.applyContaining", "")
-			Glyphs.registerDefault("com.mekkablue.FontInfoBatchSetter.applyPopup", 0)
-			Glyphs.registerDefault("com.mekkablue.FontInfoBatchSetter.copyright", "")
-			Glyphs.registerDefault("com.mekkablue.FontInfoBatchSetter.designer", "")
-			Glyphs.registerDefault("com.mekkablue.FontInfoBatchSetter.designerURL", "")
-			Glyphs.registerDefault("com.mekkablue.FontInfoBatchSetter.manufacturer", "")
-			Glyphs.registerDefault("com.mekkablue.FontInfoBatchSetter.manufacturerURL", "")
-			Glyphs.registerDefault("com.mekkablue.FontInfoBatchSetter.setCopyright", False)
-			Glyphs.registerDefault("com.mekkablue.FontInfoBatchSetter.setDate", True)
-			Glyphs.registerDefault("com.mekkablue.FontInfoBatchSetter.setDesigner", False)
-			Glyphs.registerDefault("com.mekkablue.FontInfoBatchSetter.setDesignerURL", False)
-			Glyphs.registerDefault("com.mekkablue.FontInfoBatchSetter.setManufacturer", False)
-			Glyphs.registerDefault("com.mekkablue.FontInfoBatchSetter.setManufacturerURL", False)
-			Glyphs.registerDefault("com.mekkablue.FontInfoBatchSetter.setVersion", True)
-			Glyphs.registerDefault("com.mekkablue.FontInfoBatchSetter.versionMajor", "1")
-			Glyphs.registerDefault("com.mekkablue.FontInfoBatchSetter.versionMinor", "005")
-
-			# load previously written prefs:
-			self.w.applyContaining.set(Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.applyContaining"])
-			self.w.applyPopup.set(int(Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.applyPopup"]))
-			self.w.copyright.set(Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.copyright"])
-			self.w.designer.set(Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.designer"])
-			self.w.designerURL.set(Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.designerURL"])
-			self.w.manufacturer.set(Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.manufacturer"])
-			self.w.manufacturerURL.set(Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.manufacturerURL"])
-			self.w.setCopyright.set(Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setCopyright"])
-			self.w.setDate.set(Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setDate"])
-			self.w.setDesigner.set(Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setDesigner"])
-			self.w.setDesignerURL.set(Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setDesignerURL"])
-			self.w.setManufacturer.set(Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setManufacturer"])
-			self.w.setManufacturerURL.set(Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setManufacturerURL"])
-			self.w.setVersion.set(Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setVersion"])
-			self.w.versionMajor.set(Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.versionMajor"])
-			self.w.versionMinor.set("%03i" % int(Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.versionMinor"]))
-
+			for prefName in self.prefDict.keys():
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
+				# load previously written prefs:
+				getattr(self.w, prefName).set(self.pref(prefName))
 			self.updateTooltips()
 			self.updateUI()
 			return True
@@ -272,22 +288,30 @@ class FontInfoBatchSetter(object):
 
 			# update prefs:
 			self.w.datePicker.set(thisFont.date)
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.versionMinor"] = thisFont.versionMinor
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.versionMajor"] = thisFont.versionMajor
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.copyright"] = thisFont.copyright
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.designer"] = thisFont.designer
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.designerURL"] = thisFont.designerURL
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.manufacturer"] = thisFont.manufacturer
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.manufacturerURL"] = thisFont.manufacturerURL
+			Glyphs.defaults[self.domain("versionMinor")] = f"{thisFont.versionMinor:03}"
+			Glyphs.defaults[self.domain("versionMajor")] = thisFont.versionMajor
+			Glyphs.defaults[self.domain("copyright")] = thisFont.copyright
+			Glyphs.defaults[self.domain("trademark")] = thisFont.trademark
+			Glyphs.defaults[self.domain("vendorID")] = thisFont.propertyForName_("vendorID").value
+			Glyphs.defaults[self.domain("designer")] = thisFont.designer
+			Glyphs.defaults[self.domain("designerURL")] = thisFont.designerURL
+			Glyphs.defaults[self.domain("manufacturer")] = thisFont.manufacturer
+			Glyphs.defaults[self.domain("manufacturerURL")] = thisFont.manufacturerURL
+			Glyphs.defaults[self.domain("license")] = thisFont.license
+			Glyphs.defaults[self.domain("licenseURL")] = thisFont.propertyForName_("licenseURL").value
 
 			# update checkboxes:
-			# Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setDate"] = True
-			# Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setVersion"] = True
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setCopyright"] = bool(thisFont.copyright)
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setDesigner"] = bool(thisFont.designer)
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setDesignerURL"] = bool(thisFont.designerURL)
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setManufacturer"] = bool(thisFont.manufacturer)
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setManufacturerURL"] = bool(thisFont.manufacturerURL)
+			# Glyphs.defaults[self.domain("setDate")] = True
+			# Glyphs.defaults[self.domain("setVersion")] = True
+			Glyphs.defaults[self.domain("setCopyright")] = bool(thisFont.copyright)
+			Glyphs.defaults[self.domain("setTrademark")] = bool(thisFont.trademark)
+			Glyphs.defaults[self.domain("setVendorID")] = bool(thisFont.propertyForName_("vendorID").value)
+			Glyphs.defaults[self.domain("setDesigner")] = bool(thisFont.designer)
+			Glyphs.defaults[self.domain("setDesignerURL")] = bool(thisFont.designerURL)
+			Glyphs.defaults[self.domain("setManufacturer")] = bool(thisFont.manufacturer)
+			Glyphs.defaults[self.domain("setManufacturerURL")] = bool(thisFont.manufacturerURL)
+			Glyphs.defaults[self.domain("setLicense")] = bool(thisFont.license)
+			Glyphs.defaults[self.domain("setLicenseURL")] = bool(thisFont.propertyForName_("licenseURL").value)
 
 			# "containing" text box:
 			name = thisFont.familyName.strip()
@@ -297,14 +321,18 @@ class FontInfoBatchSetter(object):
 				if not potentialFoundryPrefix:
 					# get rid of last word in family name (e.g. "Sans"):
 					name = " ".join(words[:-1])
-			Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.applyContaining"] = name
+			Glyphs.defaults[self.domain("applyContaining")] = name
 
 			print()
 			print("👨‍🎨 Designer: %s" % thisFont.designer)
 			print("👨‍🎨 DesignerURL: %s" % thisFont.designerURL)
 			print("👸‍ Manufacturer: %s" % thisFont.manufacturer)
 			print("👸‍ ManufacturerURL: %s" % thisFont.manufacturerURL)
+			print("👨🏻‍💼 License: %s" % thisFont.license)
+			print("👨🏻‍💼 LicenseURL: %s" % thisFont.propertyForName_("licenseURL").value)
 			print("📝 Copyright: %s" % thisFont.copyright)
+			print("📝 Trademark: %s" % thisFont.trademark)
+			print("📝 Vendor ID: %s" % thisFont.propertyForName_("vendorID").value)
 			print("🔢 Version: %i.%03i" % (thisFont.versionMajor, thisFont.versionMinor))
 			print("📆 Date: %s" % thisFont.date)
 			print("\nDone.")
@@ -317,29 +345,23 @@ class FontInfoBatchSetter(object):
 			# clear macro window log:
 			Glyphs.clearLog()
 
+
 			# update settings to the latest user input:
 			if not self.SavePreferences():
-				print("Note: 'Font Info Batch Setter' could not write preferences.")
+				print("⚠️ ‘Font Info BatchSetter’ could not write preferences.")
+			
+			# read prefs:
+			for prefName in self.prefDict.keys():
+				try:
+					setattr(sys.modules[__name__], prefName, self.pref(prefName))
+				except:
+					fallbackValue = self.prefDict[prefName]
+					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
+					setattr(sys.modules[__name__], prefName, fallbackValue)
 
-			setDate = Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setDate"]
-			setVersion = Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setVersion"]
-			versionMinor = int(Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.versionMinor"])
-			versionMajor = int(Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.versionMajor"])
-			allOpenFonts = Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.allOpenFonts"]
+			versionMinor = int(Glyphs.defaults[self.domain("versionMinor")])
+			versionMajor = int(Glyphs.defaults[self.domain("versionMajor")])
 			dateInDatePicker = self.w.datePicker.get()
-
-			applyPopup = Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.applyPopup"]
-			applyContaining = Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.applyContaining"]
-			copyright = Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.copyright"]
-			setCopyright = Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setCopyright"]
-			manufacturerURL = Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.manufacturerURL"]
-			setManufacturerURL = Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setManufacturerURL"]
-			manufacturer = Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.manufacturer"]
-			setManufacturer = Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setManufacturer"]
-			designerURL = Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.designerURL"]
-			setDesignerURL = Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setDesignerURL"]
-			designer = Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.designer"]
-			setDesigner = Glyphs.defaults["com.mekkablue.FontInfoBatchSetter.setDesigner"]
 
 			if applyPopup == 0:
 				# ALL OPEN FONTS
@@ -389,6 +411,22 @@ class FontInfoBatchSetter(object):
 							print("✅ 📝 Copyright set: %s" % copyright)
 							changeCount += 1
 
+					if setTrademark:
+						if thisFont.trademark == trademark:
+							print("🆗 📝 Font already has desired Trademark. No change.")
+						else:
+							thisFont.trademark = trademark
+							print("✅ 📝 Trademark set: %s" % trademark)
+							changeCount += 1
+							
+					if setVendorID:
+						if thisFont.propertyForName_("vendorID").value == vendorID:
+							print("🆗 📝 Font already has desired Vendor ID. No change.")
+						else:
+							thisFont.propertyForName_("vendorID").value = vendorID
+							print("✅ 📝 Vendor ID set: %s" % vendorID)
+							changeCount += 1
+
 					if setManufacturerURL:
 						if thisFont.manufacturerURL == manufacturerURL:
 							print("🆗 👸 Font already has desired ManufacturerURL. No change.")
@@ -405,6 +443,22 @@ class FontInfoBatchSetter(object):
 							print("✅ 👸 Manufacturer set: %s" % manufacturer)
 							changeCount += 1
 
+					if setLicenseURL:
+						if thisFont.propertyForName_("licenseURL").value == licenseURL:
+							print("🆗 👨🏻‍💼 Font already has desired LicenseURL. No change.")
+						else:
+							thisFont.propertyForName_("licenseURL").value = licenseURL
+							print("✅ 👨🏻‍💼 LicenseURL set: %s" % licenseURL)
+							changeCount += 1
+
+					if setLicense:
+						if thisFont.license == license:
+							print("🆗 👨🏻‍💼 Font already has desired License. No change.")
+						else:
+							thisFont.license = license
+							print("✅ 👨🏻‍💼 License set: %s" % license)
+							changeCount += 1
+							
 					if setDesignerURL:
 						if thisFont.designerURL == designerURL:
 							print("🆗 👨‍🎨 Font already has desired DesignerURL. No change.")
