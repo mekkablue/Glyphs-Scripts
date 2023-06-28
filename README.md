@@ -389,9 +389,10 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## Post Production
 
-* **Add Empty DSIG (OTVAR):** Run this after you export a Variable Font (TTF) and it will add an empty DSIG table. Necessary to pass the MyFonts onboarding of OTVAR TTFs.
-* **Fix Italic PS Names (OTVAR):** Fixes double Italic namings in name table entries in the most recent export of the current font. Run this right after a variable font export.
-* **Upgrade STAT Axis Values from Discrete to Ranges (OTVAR):** Turns STAT entries of format 1 (discrete) into format 2 (range) for axes with more than one axis value. Run this right after a variable font export.
+* **Add Empty DSIG (OTVAR):** Run this after you export a Variable Font (TTF) and it will add an empty DSIG table. Necessary to pass the MyFonts onboarding of OTVAR TTFs. Needs the FontTools module.
+* **Fix GDEF class definition of Legacy Marks (OTVAR):** Fix GDEF definition of spacing, non-combining marks for your most recent OTVAR export(s), will switch to class 1 (‘base glyph’, single character, spacing glyph) if necessary. Needs the FontTools module.
+* **Fix Italic PS Names (OTVAR):** Fixes double Italic namings in name table entries in the most recent export of the current font. Run this right after a variable font export. Needs the FontTools module.
+* **Upgrade STAT Axis Values from Discrete to Ranges (OTVAR):** Turns STAT entries of format 1 (discrete) into format 2 (range) for axes with more than one axis value. Run this right after a variable font export. Needs the FontTools module.
 
 ## Smallcaps
 
