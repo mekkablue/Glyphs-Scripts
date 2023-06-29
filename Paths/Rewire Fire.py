@@ -51,7 +51,7 @@ class RewireFire(object):
 		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight), # default window size
-			"%s Rewire Fire %s" % (self.duplicateMarker, self.onSegmentMarker), # window title
+			f"{self.duplicateMarker} Rewire Fire {self.onSegmentMarker}", # window title
 			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow") # stores last window position and size
@@ -294,7 +294,7 @@ class RewireFire(object):
 			totalCountAffectedLayers = 0
 			totalCountExaminedGlyphs = 0
 			for fontIndex, thisFont in enumerate(theseFonts):
-				print("🌟 Rewire Fire Report for %s" % thisFont.familyName)
+				print(f"🌟 Rewire Fire Report for {thisFont.familyName}")
 				if thisFont.filepath:
 					print(thisFont.filepath)
 				else:
@@ -356,7 +356,7 @@ class RewireFire(object):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Rewire Fire Error: %s" % e)
+			print("Rewire Fire Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 
