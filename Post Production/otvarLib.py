@@ -2,6 +2,13 @@
 from __future__ import print_function
 from GlyphsApp import Glyphs
 
+def currentStaticExportPath():
+	# GLYPHS 3
+	exportPath = Glyphs.defaults["OTFExportPathManual"]
+	if Glyphs.defaults["OTFExportUseExportPath"]:
+			exportPath = Glyphs.defaults["OTFExportPath"]
+	return exportPath
+
 def currentOTVarExportPath():
 	exportPath = Glyphs.defaults["GXExportPathManual"]
 	if Glyphs.defaults["GXExportUseExportPath"]:
