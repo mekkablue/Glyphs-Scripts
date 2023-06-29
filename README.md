@@ -219,6 +219,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Color Composites in Shade of Base Glyph:** Color composites in a lighter shade of the base glyph. E.g., if your A is has a red label color, then ÄÁÀĂ... will have a lighter shade of red.
 * **Convert to Uppercase:** Turns lowercase names into uppercase names, e.g., `a` → `A`, `ccaron` → `Ccaron`, `aeacute` → `AEacute`, etc.
 * **Convert to Lowercase:** Turns the names of selected glyphs lowercase.
+* **Double Encode micro, Ohm and increment:** Add Unicodes of mu, Omega and Delta to micro, Ohm and increment.
 * **Encoding Converter:** Converts old expert 8-bit encodings into Glyphs nice names, based on a importable/exportable text with renaming scheme. Default is an AXt converting scheme. *Needs Vanilla.*
 * **Garbage Collection:** Removes markers in glyphs, such as node names, glyph names or annotations, as well as guides.
 * **New Tab with Uppercase-Lowercase Inconsistencies:** Opens a new Edit tab containing all glyphs without consistent case folding. Writes a detailed report in Macro Window.
