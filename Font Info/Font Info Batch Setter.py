@@ -283,7 +283,7 @@ class FontInfoBatchSetter(object):
 		if not thisFont:
 			self.complainAboutNoFonts()
 		else:
-			print("Extracting font info from: %s" % thisFont.familyName)
+			print(f"Extracting font info from: {thisFont.familyName}")
 			self.reportFilePath(thisFont)
 
 			# update prefs:
@@ -324,18 +324,18 @@ class FontInfoBatchSetter(object):
 			Glyphs.defaults[self.domain("applyContaining")] = name
 
 			print()
-			print("👨‍🎨 Designer: %s" % thisFont.designer)
-			print("👨‍🎨 DesignerURL: %s" % thisFont.designerURL)
-			print("👸‍ Manufacturer: %s" % thisFont.manufacturer)
-			print("👸‍ ManufacturerURL: %s" % thisFont.manufacturerURL)
-			print("👨🏻‍💼 License: %s" % thisFont.license)
-			print("👨🏻‍💼 LicenseURL: %s" % thisFont.propertyForName_("licenseURL").value)
-			print("📝 Copyright: %s" % thisFont.copyright)
-			print("📝 Trademark: %s" % thisFont.trademark)
-			print("📝 Vendor ID: %s" % thisFont.propertyForName_("vendorID").value)
-			print("🔢 Version: %i.%03i" % (thisFont.versionMajor, thisFont.versionMinor))
-			print("📆 Date: %s" % thisFont.date)
-			print("\nDone.")
+			print(f'👨‍🎨 Designer: {thisFont.designer}' 
+			print(f'👨‍🎨 DesignerURL: {thisFont.designerURL}' 
+			print(f'👸‍ Manufacturer: {thisFont.manufacturer}' 
+			print(f'👸‍ ManufacturerURL: {thisFont.manufacturerURL}' 
+			print(f'👨🏻‍💼 License: {thisFont.license}' 
+			print(f'👨🏻‍💼 LicenseURL: {thisFont.propertyForName_("licenseURL").value}' 
+			print(f"📝 Copyright: {thisFont.copyright}")
+			print(f'📝 Trademark: {thisFont.trademark}' 
+			print(f'📝 Vendor ID: {thisFont.propertyForName_("vendorID").value}' 
+			print(f"🔢 Version: {thisFont.versionMajor}.{thisFont.versionMinor:03}")
+			print(f'📆 Date: {thisFont.date}' 
+			print("\n✅ Done.")
 
 			# update UI to the settings stored above:
 			self.LoadPreferences()
@@ -380,7 +380,7 @@ class FontInfoBatchSetter(object):
 			else:
 
 				for i, thisFont in enumerate(theseFonts):
-					print("\n\n%i. %s:" % (i + 1, thisFont.familyName))
+					print("\n\n{i+1}. %s:" % (, thisFont.familyName))
 					self.reportFilePath(thisFont)
 					print()
 
