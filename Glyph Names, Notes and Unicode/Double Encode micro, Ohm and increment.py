@@ -48,6 +48,7 @@ try:
 			greekGlyph.name += ".disabled"
 			targetGlyph.unicode = targetCode
 			targetGlyph.unicodes = [targetCode, greekCode]
+	thisFont.newTab("/"+"/".join([i["target"] for i in codeInfos]))
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Error in script: Double Encode micro, Ohm and increment\n")
