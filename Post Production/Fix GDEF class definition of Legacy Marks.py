@@ -32,6 +32,7 @@ else:
 		"macron",
 		"cedilla",
 		"ogonek",
+		"uni02BB"
 	)
 	
 	# brings macro window to front and clears its log:
