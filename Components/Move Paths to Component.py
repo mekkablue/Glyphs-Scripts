@@ -58,10 +58,11 @@ class MovePathstoComponent(object):
 		self.w.keepBaseComponentPosition = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Keep base component position (do not auto align 1st component)", value=False, callback=self.SavePreferences, sizeStyle='small' )
 		linePos += lineHeight
 		
-
 		# Run Button:
-		self.w.runButton = vanilla.Button((-140 - inset, -20 - inset, -inset, -inset), "Make Composite", sizeStyle='regular', callback=self.MovePathsToComponentMain)
+		self.w.runButton = vanilla.Button((-140-inset, -20-inset, -inset, -inset), "Make Composite", sizeStyle='regular', callback=self.MovePathsToComponentMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		self.w.warningText = vanilla.TextBox((inset, -15-inset, -140-inset, 14), "", sizeStyle="small", selectable=True)
 
 		# Load Settings:
 		if not self.LoadPreferences():
@@ -79,11 +80,23 @@ class MovePathstoComponent(object):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
 	
+	def updateUI(self, sender=None):
+		# check for existing glyph:
+		glyphName = self.w.name.get()
+		glyphExistsInFont = Glyphs.font.glyphs[glyphName]
+		self.w.runButton.enable(not glyphExistsInFont)
+		if glyphExistsInFont:
+			self.w.warningText.set(f"⚠️ {glyphName} already exists")
+		else:
+			self.w.warningText.set("")
+		return True
+		
 	def SavePreferences( self, sender=None ):
 		try:
 			# write current settings into prefs:
 			for prefName in self.prefDict.keys():
 				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
+			self.updateUI()
 			return True
 		except:
 			import traceback
@@ -97,6 +110,7 @@ class MovePathstoComponent(object):
 				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
 				# load previously written prefs:
 				getattr(self.w, prefName).set( self.pref(prefName) )
+			self.updateUI()
 			return True
 		except:
 			import traceback
@@ -106,6 +120,21 @@ class MovePathstoComponent(object):
 	def updateAnchors(self, sender=None):
 		anchorNames = self.allAnchorNames()
 		self.w.anchor.setItems(anchorNames)
+		
+		glyphInfo = Glyphs.glyphInfoForName(self.w.name.get())
+		if glyphInfo:
+			possibleAnchors = glyphInfo.anchors
+			if possibleAnchors:
+				for anchorName in anchorNames:
+					for possibleAnchorName in possibleAnchors:
+						if anchorName in possibleAnchorName or possibleAnchorName in anchorName:
+							self.w.anchor.set(anchorName)
+							return
+		
+		for anchorName in anchorNames:
+			if anchorName[0] == "#":
+				self.w.anchor.set(anchorName)
+				return
 
 	def updateName(self, sender=None):
 		thisFont = Glyphs.font
@@ -114,10 +143,22 @@ class MovePathstoComponent(object):
 				thisLayer = thisFont.selectedLayers[0]
 				existingComponents = thisLayer.componentNames()
 				thisGlyph = thisLayer.parent
-				if thisGlyph and thisGlyph.glyphInfo and thisGlyph.glyphInfo.components:
-					for compInfo in thisGlyph.glyphInfo.components:
-						if not compInfo.name in existingComponents:
-							self.w.name.set(compInfo.name)
+				if thisGlyph:
+					foundName = False
+					if thisGlyph.glyphInfo and thisGlyph.glyphInfo.components:
+						for compInfo in thisGlyph.glyphInfo.components[::-1]:
+							compName = f"{compInfo.name}{'.case' if thisGlyph.case==GSUppercase and Glyphs.glyphInfoForName(compInfo.name).category=='Mark' else ''}".replace(".case.case", ".case")
+							print(thisGlyph.name, compName)
+							if not compName in existingComponents:
+								self.w.name.set(compName)
+								foundName = True
+								break
+					elif thisGlyph.name=="Q":
+						self.w.name.set("_tail.Q")
+						foundName = True
+					if not foundName:
+						self.w.name.set(f"_part.{thisGlyph.name}")
+					self.SavePreferences()
 
 	def allAnchorNames(self, sender=None):
 		anchorNames = []
