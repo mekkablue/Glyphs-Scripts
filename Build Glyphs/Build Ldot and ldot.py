@@ -43,13 +43,19 @@ def buildLdot(targetGlyphName, baseName, accentName):
 
 thisFont = Glyphs.font # frontmost font
 Glyphs.clearLog() # clears macro window log
-print("Report for %s:" % thisFont.familyName)
+
+print(f"Report for {thisFont.familyName}:")
 if thisFont.filepath:
 	print(thisFont.filepath)
 
-buildGlyphs = [("ldot", "l", "periodcentered.loclCAT"), ("Ldot", "L", "periodcentered.loclCAT.case"), ("ldot.sc", "l.sc", "periodcentered.loclCAT.sc")]
+buildGlyphs = [
+	("ldot", "l", "periodcentered.loclCAT"),
+	("Ldot", "L", "periodcentered.loclCAT.case"),
+	("ldot.sc", "l.sc", "periodcentered.loclCAT.sc"),
+	]
 
 createdGlyphs = []
+tabText = ""
 for glyphInfo in buildGlyphs:
 	target = glyphInfo[0]
 	base = glyphInfo[1]
@@ -58,19 +64,16 @@ for glyphInfo in buildGlyphs:
 	if thisFont.glyphs[base] and thisFont.glyphs[accent]:
 		if buildLdot(target, base, accent):
 			createdGlyphs.append(target)
+			tabText += f"/{target}/{base}"
 
 reportMessage = "%i glyph%s created" % (
 	len(createdGlyphs),
 	"" if len(createdGlyphs) == 1 else "s",
 	)
 
-print("\nDone: %s." % reportMessage)
+print(f"\nDone: {reportMessage}.")
 
-# Floating notification:
-Glyphs.showNotification(
-	u"%s: %s" % (
-		thisFont.familyName,
-		reportMessage,
-		),
-	u"Created %s. Detailed info in Macro Window." % (", ".join(createdGlyphs)),
-	)
+if tabText:
+	thisFont.newTab(tabText)
+else:
+	Glyphs.showMacroWindow()
