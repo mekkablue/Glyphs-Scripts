@@ -8,6 +8,16 @@ Sets left and right kerning groups for all selected glyphs. In the case of compo
 # Copyright: Georg Seifert, 2010, www.schriftgestaltung.de Version 1.0
 
 import traceback
+
+alwaysExclude = (
+	".notdef",
+	".null",
+	"CR",
+	"periodcentered.loclCAT",
+	"periodcentered.loclCAT.case",
+	"periodcentered.loclCAT.sc",
+)
+
 Keys = [
 	"B",
 	"C",
@@ -853,6 +863,9 @@ DefaultKeys = {
 	"alef-ar": ("alef-ar", "alef-ar"),
 	"fi": ("f", "i"),
 	"fl": ("f", "l"),
+	"dcaron": ("o", "dcaron"),
+	"lcaron": ("h", "dcaron"),
+	"Q": ("O", "Q"),
 	"dotlessi": ("i", "i"),
 	"dotlessj": ("j", "j"),
 	"idotless": ("i", "i"),
@@ -910,6 +923,12 @@ def updateKeyGlyphsForSelected():
 	SelectedLayers = Font.selectedLayers
 	for Layer in SelectedLayers:
 		Glyph = Layer.parent
+		if Glyph.name in alwaysExclude:
+			Glyph.leftKerningGroup = None
+			Glyph.rightKerningGroup = None
+			print("🔠 %s: 🚫 ↔️ 🚫" % Glyph.name)
+			continue
+			
 		LeftKey = ""
 		RightKey = ""
 		LigatureComponents = Glyph.name.split("_")
@@ -921,6 +940,8 @@ def updateKeyGlyphsForSelected():
 				LeftKey = KeysForGlyph(componentGlyph)[0]
 			if not LeftKey:
 				LeftKey = componentGlyph.name
+				if componentGlyph.name in DefaultKeys.keys():
+					LeftKey = DefaultKeys[componentGlyph.name][0]
 
 			# right side may be different (Dz, Nj, ae, oe):
 			for Component in Layer.components:
@@ -937,6 +958,8 @@ def updateKeyGlyphsForSelected():
 				RightKey = KeysForGlyph(componentGlyph)[1]
 				if not RightKey:
 					RightKey = componentGlyph.name
+					if componentGlyph.name in DefaultKeys.keys():
+						RightKey = DefaultKeys[componentGlyph.name][1]
 
 		elif len(LigatureComponents) > 1:
 			LeftGlyph = Font.glyphs[LigatureComponents[0]]
