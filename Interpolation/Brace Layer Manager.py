@@ -24,7 +24,7 @@ class BraceLayerManager(object):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 250
+		windowWidth = 270
 		windowHeight = 225
 		windowWidthResize = 100 # user can resize width by this value
 		windowHeightResize = 0 # user can resize height by this value
@@ -198,7 +198,8 @@ class BraceLayerManager(object):
 						replaceWith = float(replaceWith)
 					currentMasterOnly = bool(self.pref("currentMasterOnly"))
 					currentMasterID = thisFont.selectedFontMaster.id
-					axis = thisFont.axes[int(self.pref("axisIndex"))]
+					axisIndex = int(self.pref("axisIndex"))
+					axis = thisFont.axes[axisIndex]
 					axisID = axis.axisId
 					axisName = axis.name
 
@@ -233,6 +234,11 @@ class BraceLayerManager(object):
 									else:
 										axisRules = layer.attributes["axisRules"]
 										if axisRules:
+											if not axisID in axisRules.keys():
+												print(f"⚠️ Could not find bracket layers for axis ‘{thisFont.axisForId_(axisID).name}’ (index {axisIndex}) in {glyph.name}. Did you select the correct axis?")
+												Glyphs.showMacroWindow()
+												break
+											print(axisRules)
 											axisLimits = axisRules[axisID]
 											if axisLimits:
 												for border in ("min", "max"):
