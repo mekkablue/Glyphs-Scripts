@@ -8,12 +8,20 @@ Removes all kernings glyph-glyph, group-glyph, and glyph-group; only keeps group
 import vanilla
 
 class RemoveKerningExceptions(object):
-	prefDomain = "com.mekkablue.RemoveKerningExceptions"
+	prefID = "com.mekkablue.RemoveKerningExceptions"
+	prefDict = {
+		# "prefName": defaultValue,
+		"glyphGlyph": 1,
+		"glyphGroup": 1,
+		"groupGlyph": 1,
+		"keepGrouplessKerning": 0,
+		"removeOnMasters": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 300
-		windowHeight = 160
+		windowWidth = 250
+		windowHeight = 180
 		windowWidthResize = 100 # user can resize width by this value
 		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -21,7 +29,7 @@ class RemoveKerningExceptions(object):
 			"Remove Kerning Exceptions", # window title
 			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="%s.mainwindow" % self.prefDomain # stores last window position and size
+			autosaveName="%s.mainwindow" % self.prefID # stores last window position and size
 			)
 
 		# UI elements:
@@ -32,6 +40,8 @@ class RemoveKerningExceptions(object):
 		self.w.glyphGroup = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Remove 🅰️🔠 glyph-to-group pairs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 		self.w.groupGlyph = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Remove 🔠🅰️ group-to-glyph pairs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		linePos += lineHeight
+		self.w.keepGrouplessKerning = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Keep kerning for groupless glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.removeOnMastersText = vanilla.TextBox((inset, linePos + 2, 70, 14), "Remove on:", sizeStyle='small', selectable=True)
@@ -58,41 +68,32 @@ class RemoveKerningExceptions(object):
 		anyOptionIsSelected = self.w.glyphGlyph.get() or self.w.glyphGroup.get() or self.w.groupGlyph.get()
 		self.w.runButton.enable(anyOptionIsSelected)
 
-	def domain(self, key):
-		return "%s.%s" % (self.prefDomain, key)
-
-	def preference(self, key):
-		domain = self.domain(key)
-		return Glyphs.defaults[domain]
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
 
 	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
-			Glyphs.defaults[self.domain("glyphGlyph")] = self.w.glyphGlyph.get()
-			Glyphs.defaults[self.domain("glyphGroup")] = self.w.glyphGroup.get()
-			Glyphs.defaults[self.domain("groupGlyph")] = self.w.groupGlyph.get()
-			Glyphs.defaults[self.domain("removeOnMasters")] = self.w.removeOnMasters.get()
-
-			self.updateGUI()
+			for prefName in self.prefDict.keys():
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
 			return True
 		except:
 			import traceback
 			print(traceback.format_exc())
 			return False
 
-	def LoadPreferences(self):
+	def LoadPreferences( self ):
 		try:
-			# register defaults:
-			Glyphs.registerDefault(self.domain("glyphGlyph"), 1)
-			Glyphs.registerDefault(self.domain("glyphGroup"), 1)
-			Glyphs.registerDefault(self.domain("groupGlyph"), 1)
-			Glyphs.registerDefault(self.domain("removeOnMasters"), 0)
-
-			# load previously written prefs:
-			self.w.glyphGlyph.set(self.preference("glyphGlyph"))
-			self.w.glyphGroup.set(self.preference("glyphGroup"))
-			self.w.groupGlyph.set(self.preference("groupGlyph"))
-			self.w.removeOnMasters.set(self.preference("removeOnMasters"))
+			for prefName in self.prefDict.keys():
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
+				# load previously written prefs:
+				getattr(self.w, prefName).set(self.pref(prefName))
 			return True
 		except:
 			import traceback
@@ -112,10 +113,13 @@ class RemoveKerningExceptions(object):
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires at least one font. Open a font and run the script again.", OKButton=None)
 			else:
-				glyphGlyph = self.preference("glyphGlyph")
-				glyphGroup = self.preference("glyphGroup")
-				groupGlyph = self.preference("groupGlyph")
-				removeOnMasters = self.preference("removeOnMasters")
+				for prefName in self.prefDict.keys():
+					try:
+						setattr(sys.modules[__name__], prefName, self.pref(prefName))
+					except:
+						fallbackValue = self.prefDict[prefName]
+						print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
+						setattr(sys.modules[__name__], prefName, fallbackValue)
 
 				if removeOnMasters == 2:
 					fonts = Glyphs.fonts
@@ -140,11 +144,18 @@ class RemoveKerningExceptions(object):
 							pairsToBeRemoved = []
 							for leftSide in thisFont.kerning[thisMaster.id].keys():
 								leftSideIsGlyph = not leftSide.startswith("@")
+								leftHasNoGroup = leftSideIsGlyph and not thisFont.glyphForId_(leftSide).rightKerningGroup
+								leftMayBeDeleted = not (leftHasNoGroup and keepGrouplessKerning)
+								
 								for rightSide in thisFont.kerning[thisMaster.id][leftSide].keys():
 									rightSideIsGlyph = not rightSide.startswith("@")
-									removeGlyphGlyph = leftSideIsGlyph and rightSideIsGlyph and glyphGlyph
-									removeGlyphGroup = leftSideIsGlyph and not rightSideIsGlyph and glyphGroup
-									removeGroupGlyph = not leftSideIsGlyph and rightSideIsGlyph and groupGlyph
+									rightHasNoGroup = rightSideIsGlyph and not thisFont.glyphForId_(rightSide).leftKerningGroup
+									rightMayBeDeleted = not (rightHasNoGroup and keepGrouplessKerning)
+
+									removeGlyphGlyph = leftSideIsGlyph and rightSideIsGlyph and glyphGlyph and leftMayBeDeleted and rightMayBeDeleted
+									removeGlyphGroup = leftSideIsGlyph and not rightSideIsGlyph and glyphGroup and leftMayBeDeleted
+									removeGroupGlyph = not leftSideIsGlyph and rightSideIsGlyph and groupGlyph and rightMayBeDeleted
+									
 									if removeGroupGlyph or removeGlyphGroup or removeGlyphGlyph:
 										pairsToBeRemoved.append((leftSide, rightSide))
 							countOfDeletions = len(pairsToBeRemoved)
