@@ -280,6 +280,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 *Most important: Insert Instances (for determining your instances and their style linking), Kink Finder and Find Shapeshifting Glyphs. I use Show Next/Previous Instance with the keyboard shortcut ctrl-up/down a lot.*
 
+* **Add Missing Brace Layers:** Complete the rectangular setup necessary for OTVAR exports.
 * **Axis Location Setter:** Batch-set axis locations for all instances with a certain name particle. E.g., set an axis location for all Condensed instances. *Needs Vanilla.*
 * **Axis Mapper:** Extracts, resets and inserts an ‘avar’ axis mapping for the Axis Mappings parameter. *Needs Vanilla.*
 * **Brace and Bracket Manager:** Find and replace brace or bracket layer coordinates in Glyphs 3 and later. *Needs Vanilla.*
