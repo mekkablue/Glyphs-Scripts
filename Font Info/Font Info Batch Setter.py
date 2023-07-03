@@ -324,17 +324,17 @@ class FontInfoBatchSetter(object):
 			Glyphs.defaults[self.domain("applyContaining")] = name
 
 			print()
-			print(f'👨‍🎨 Designer: {thisFont.designer}' 
-			print(f'👨‍🎨 DesignerURL: {thisFont.designerURL}' 
-			print(f'👸‍ Manufacturer: {thisFont.manufacturer}' 
-			print(f'👸‍ ManufacturerURL: {thisFont.manufacturerURL}' 
-			print(f'👨🏻‍💼 License: {thisFont.license}' 
-			print(f'👨🏻‍💼 LicenseURL: {thisFont.propertyForName_("licenseURL").value}' 
+			print(f'👨‍🎨 Designer: {thisFont.designer}')
+			print(f'👨‍🎨 DesignerURL: {thisFont.designerURL}')
+			print(f'👸‍ Manufacturer: {thisFont.manufacturer}')
+			print(f'👸‍ ManufacturerURL: {thisFont.manufacturerURL}')
+			print(f'👨🏻‍💼 License: {thisFont.license}')
+			print(f'👨🏻‍💼 LicenseURL: {thisFont.propertyForName_("licenseURL").value}')
 			print(f"📝 Copyright: {thisFont.copyright}")
-			print(f'📝 Trademark: {thisFont.trademark}' 
-			print(f'📝 Vendor ID: {thisFont.propertyForName_("vendorID").value}' 
+			print(f'📝 Trademark: {thisFont.trademark}' )
+			print(f'📝 Vendor ID: {thisFont.propertyForName_("vendorID").value}' )
 			print(f"🔢 Version: {thisFont.versionMajor}.{thisFont.versionMinor:03}")
-			print(f'📆 Date: {thisFont.date}' 
+			print(f'📆 Date: {thisFont.date}' )
 			print("\n✅ Done.")
 
 			# update UI to the settings stored above:
@@ -380,7 +380,7 @@ class FontInfoBatchSetter(object):
 			else:
 
 				for i, thisFont in enumerate(theseFonts):
-					print("\n\n{i+1}. %s:" % (, thisFont.familyName))
+					print(f"\n\n{i+1}. {thisFont.familyName}:")
 					self.reportFilePath(thisFont)
 					print()
 
