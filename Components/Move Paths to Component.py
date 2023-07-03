@@ -342,10 +342,11 @@ class MovePathstoComponent(object):
 							l.updateMetrics()
 							l.syncMetrics()
 
-							print("↔️ Added %s metrics key ‘%s’ on layer ‘%s’" % (
+							print("↔️ Added %s metrics key ‘%s’ on layer ‘%s’ (original width: %i)" % (
 								leftOrRight,
-								l.rightMetricsKey,
+								l.rightMetricsKey if leftOrRight=="right" else l.leftMetricsKey,
 								l.name,
+								originalWidth,
 								))
 
 			# trigger UI update:
