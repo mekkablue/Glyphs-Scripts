@@ -426,6 +426,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Spacing Checker:** Look for glyphs with unusual spacings and open them in a new tab. *Needs Vanilla.*
 * **Steal Metrics:** Steals the sidebearing or width values for all selected glyphs from a 2nd font. Optionally also transfers metrics keys like '=x+20'. *Needs Vanilla.*
 * **Tabular Checker:** Goes through tabular glyphs and checks if they are monospaced. Reports exceptions. *Needs Vanilla.*
+* **Tabular Figure Maker:** Takes existing .tf figures and spaces them tabularly, or creates them from existing default figures. *Needs Vanilla.*
 
 ## Test
 
