@@ -96,9 +96,9 @@ listHorizontal = (
 	("LSB", "0.0"),
 	("RSB", "copyLayer.width"),
 	("center", "copyLayer.width // 2.0"),
-	("bbox left edge", "copyLayer.bounds.origin.x"),
-	("bbox center", "copyLayer.bounds.origin.x + copyLayer.bounds.size.width // 2.0"),
-	("bbox right edge", "copyLayer.bounds.origin.x + copyLayer.bounds.size.width"),
+	("bbox left edge", "copyLayer.fastBounds().origin.x"),
+	("bbox center", "copyLayer.fastBounds().origin.x + copyLayer.fastBounds().size.width // 2.0"),
+	("bbox right edge", "copyLayer.fastBounds().origin.x + copyLayer.bofastBounds()unds.size.width"),
 	("highest node", "highestNodeInLayer(copyLayer).x"),
 	("lowest node", "lowestNodeInLayer(copyLayer).x"),
 	)
@@ -115,9 +115,9 @@ listVertical = (
 	("half x-height", "selectedXheight // 2.0"),
 	("baseline", "0.0"),
 	("descender", "selectedDescender"),
-	("bbox top", "copyLayer.bounds.origin.y + copyLayer.bounds.size.height"),
-	("bbox center", "copyLayer.bounds.origin.y + ( copyLayer.bounds.size.height // 2.0 )"),
-	("bbox bottom", "copyLayer.bounds.origin.y"),
+	("bbox top", "copyLayer.fastBounds().origin.y + copyLayer.fastBounds().size.height"),
+	("bbox center", "copyLayer.fastBounds().origin.y + ( copyLayer.fastBounds().size.height // 2.0 )"),
+	("bbox bottom", "copyLayer.fastBounds().origin.y"),
 	("leftmost node", "leftmostNodeInLayer(copyLayer).y"),
 	("rightmost node", "rightmostNodeInLayer(copyLayer).y"),
 	)
@@ -133,7 +133,7 @@ class AnchorMover2(object):
 	def __init__(self):
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w = vanilla.FloatingWindow((500, 175), "Anchor Mover", minSize=(350, 175), maxSize=(1000, 175), autosaveName=self.pref("mainwindow"))
+		self.w = vanilla.FloatingWindow((500, 175), "Anchor Mover", minSize=(370, 175), maxSize=(1000, 175), autosaveName=self.pref("mainwindow"))
 
 		self.w.text_1 = vanilla.TextBox((inset, linePos + 2, inset + 60, 14), "Move anchor", sizeStyle='small')
 		self.w.anchor_name = vanilla.ComboBox((inset + 75, linePos - 1, -110 - inset - 25, 19), self.GetAnchorNames(), sizeStyle='small', callback=self.SavePreferences)
