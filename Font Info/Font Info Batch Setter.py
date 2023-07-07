@@ -292,26 +292,32 @@ class FontInfoBatchSetter(object):
 			Glyphs.defaults[self.domain("versionMajor")] = thisFont.versionMajor
 			Glyphs.defaults[self.domain("copyright")] = thisFont.copyright
 			Glyphs.defaults[self.domain("trademark")] = thisFont.trademark
-			Glyphs.defaults[self.domain("vendorID")] = thisFont.propertyForName_("vendorID").value
 			Glyphs.defaults[self.domain("designer")] = thisFont.designer
 			Glyphs.defaults[self.domain("designerURL")] = thisFont.designerURL
 			Glyphs.defaults[self.domain("manufacturer")] = thisFont.manufacturer
 			Glyphs.defaults[self.domain("manufacturerURL")] = thisFont.manufacturerURL
 			Glyphs.defaults[self.domain("license")] = thisFont.license
-			Glyphs.defaults[self.domain("licenseURL")] = thisFont.propertyForName_("licenseURL").value
+			try:
+				Glyphs.defaults[self.domain("vendorID")] = thisFont.propertyForName_("vendorID").value
+			except:
+				pass
+			try:
+				Glyphs.defaults[self.domain("licenseURL")] = thisFont.propertyForName_("licenseURL").value
+			except:
+				pass
 
 			# update checkboxes:
 			# Glyphs.defaults[self.domain("setDate")] = True
 			# Glyphs.defaults[self.domain("setVersion")] = True
 			Glyphs.defaults[self.domain("setCopyright")] = bool(thisFont.copyright)
 			Glyphs.defaults[self.domain("setTrademark")] = bool(thisFont.trademark)
-			Glyphs.defaults[self.domain("setVendorID")] = bool(thisFont.propertyForName_("vendorID").value)
+			Glyphs.defaults[self.domain("setVendorID")] = bool(thisFont.propertyForName_("vendorID"))
 			Glyphs.defaults[self.domain("setDesigner")] = bool(thisFont.designer)
 			Glyphs.defaults[self.domain("setDesignerURL")] = bool(thisFont.designerURL)
 			Glyphs.defaults[self.domain("setManufacturer")] = bool(thisFont.manufacturer)
 			Glyphs.defaults[self.domain("setManufacturerURL")] = bool(thisFont.manufacturerURL)
 			Glyphs.defaults[self.domain("setLicense")] = bool(thisFont.license)
-			Glyphs.defaults[self.domain("setLicenseURL")] = bool(thisFont.propertyForName_("licenseURL").value)
+			Glyphs.defaults[self.domain("setLicenseURL")] = bool(thisFont.propertyForName_("licenseURL"))
 
 			# "containing" text box:
 			name = thisFont.familyName.strip()
@@ -329,10 +335,16 @@ class FontInfoBatchSetter(object):
 			print(f'👸‍ Manufacturer: {thisFont.manufacturer}')
 			print(f'👸‍ ManufacturerURL: {thisFont.manufacturerURL}')
 			print(f'👨🏻‍💼 License: {thisFont.license}')
-			print(f'👨🏻‍💼 LicenseURL: {thisFont.propertyForName_("licenseURL").value}')
+			if thisFont.propertyForName_("licenseURL"):
+				print(f'👨🏻‍💼 LicenseURL: {thisFont.propertyForName_("licenseURL").value}')
+			else:
+				print('👨🏻‍💼 LicenseURL: none')
 			print(f"📝 Copyright: {thisFont.copyright}")
 			print(f'📝 Trademark: {thisFont.trademark}' )
-			print(f'📝 Vendor ID: {thisFont.propertyForName_("vendorID").value}' )
+			if thisFont.propertyForName_("vendorID"):
+				print(f'📝 Vendor ID: {thisFont.propertyForName_("vendorID").value}' )
+			else:
+				print('📝 Vendor ID: none')
 			print(f"🔢 Version: {thisFont.versionMajor}.{thisFont.versionMinor:03}")
 			print(f'📆 Date: {thisFont.date}' )
 			print("\n✅ Done.")
