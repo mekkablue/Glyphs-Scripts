@@ -6,7 +6,7 @@ Puts Corner Components from the current layer into other master layers, at the s
 """
 
 from GlyphsApp import CORNER, SEGMENT, CAP
-from AppKit import NSNotificationCenter
+# from AppKit import NSNotificationCenter
 SUPPORTEDTYPES = (CORNER, SEGMENT, CAP)
 
 def indexOfPath(l, p):
@@ -49,6 +49,7 @@ def process(thisLayer):
 			# create eqivalent corner component in target layer:
 			newCorner = h.copy()
 			targetLayer.hints.append(newCorner)
+	
 
 thisFont = Glyphs.font # frontmost font
 thisFontMaster = thisFont.selectedFontMaster # active master
@@ -74,6 +75,6 @@ if thisFont and selectedLayers:
 
 	finally:
 		thisFont.enableUpdateInterface() # re-enables UI updates in Font View
-
-	if Glyphs.versionNumber < 3 and thisFont.currentTab:
-		NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
+		if Glyphs.versionNumber < 3 and thisFont.currentTab:
+			thisFont.currentTab.redraw()
+			# NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
