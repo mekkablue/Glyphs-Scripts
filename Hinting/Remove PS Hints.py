@@ -12,7 +12,8 @@ class RemovePSHints(object):
 		"current layer of selected glyphs",
 		"all layers of selected glyphs",
 		"this master",
-		"the complete font",
+		"⚠️ the complete font",
+		"⚠️ all open fonts",
 		)
 
 	def __init__(self):
@@ -47,9 +48,13 @@ class RemovePSHints(object):
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0) # set progress indicator to zero
-
+		
+		self.w.status = vanilla.TextBox((inset, -16-inset, -inset-120, 14), "", sizeStyle="small", selectable=True)
+		linePos += lineHeight
+		
+		
 		# Run Button:
-		self.w.runButton = vanilla.Button((-130 - inset, -20 - inset, -inset, -inset), "Remove Hints", sizeStyle='regular', callback=self.RemovePSHintsMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Remove Hints", sizeStyle='regular', callback=self.RemovePSHintsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
@@ -119,64 +124,61 @@ class RemovePSHints(object):
 			if not self.SavePreferences(self):
 				print("Note: 'Remove PS Hints' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
-			print("Remove PS Hints Report for %s" % thisFont.familyName)
-			print(thisFont.filepath)
-			print()
-
 			horizontalStemHints = Glyphs.defaults["com.mekkablue.RemovePSHints.horizontalStemHints"]
 			verticalStemHints = Glyphs.defaults["com.mekkablue.RemovePSHints.verticalStemHints"]
 			ghostHints = Glyphs.defaults["com.mekkablue.RemovePSHints.ghostHints"]
 			where = Glyphs.defaults["com.mekkablue.RemovePSHints.where"]
 
-			layers = None
-			deletedHintsCount = 0
-			if where == 0:
-				# Current Layer of Selected Glyphs
-				objectList = set(thisFont.selectedLayers)
-				count = len(objectList)
-				for i, l in enumerate(objectList):
-					self.w.progress.set(i / count * 100)
-					deletedHintsCount += self.removeHintsFromLayer(l, horizontalStemHints, verticalStemHints, ghostHints)
-			elif where == 1:
-				# All Layers of Selected Glyphs
-				objectList = set(thisFont.selectedLayers)
-				count = len(objectList)
-				for i, l in enumerate(objectList):
-					self.w.progress.set(i / count * 100)
-					g = l.parent
-					for ll in g.layers:
-						deletedHintsCount += self.removeHintsFromLayer(ll, horizontalStemHints, verticalStemHints, ghostHints)
-			elif where == 2:
-				# this Master
-				masterID = thisFont.selectedFontMaster.id
-				objectList = thisFont.glyphs
-				count = len(objectList)
-				for i, g in enumerate(objectList):
-					self.w.progress.set(i / count * 100)
-					for l in g.layers:
-						if l.associatedMasterId == masterID:
-							deletedHintsCount += self.removeHintsFromLayer(l, horizontalStemHints, verticalStemHints, ghostHints)
+			if where >= 4:
+				theseFonts = Glyphs.fonts
 			else:
-				# the Complete Font
-				objectList = thisFont.glyphs
-				count = len(objectList)
-				for i, g in enumerate(objectList):
-					self.w.progress.set(i / count * 100)
-					for l in g.layers:
+				theseFonts = (Glyphs.font,)
+			
+			for thisFont in theseFonts:
+				print("Remove PS Hints Report for %s" % thisFont.familyName)
+				if thisFont.filepath:
+					print(thisFont.filepath)
+				print()
+				layers = None
+				deletedHintsCount = 0
+				if where == 0:
+					# Current Layer of Selected Glyphs
+					objectList = set(thisFont.selectedLayers)
+					count = len(objectList)
+					for i, l in enumerate(objectList):
+						self.w.progress.set(i / count * 100)
 						deletedHintsCount += self.removeHintsFromLayer(l, horizontalStemHints, verticalStemHints, ghostHints)
+				elif where == 1:
+					# All Layers of Selected Glyphs
+					objectList = set(thisFont.selectedLayers)
+					count = len(objectList)
+					for i, l in enumerate(objectList):
+						self.w.progress.set(i / count * 100)
+						g = l.parent
+						for ll in g.layers:
+							deletedHintsCount += self.removeHintsFromLayer(ll, horizontalStemHints, verticalStemHints, ghostHints)
+				elif where == 2:
+					# this Master
+					masterID = thisFont.selectedFontMaster.id
+					objectList = thisFont.glyphs
+					count = len(objectList)
+					for i, g in enumerate(objectList):
+						self.w.progress.set(i / count * 100)
+						for l in g.layers:
+							if l.associatedMasterId == masterID:
+								deletedHintsCount += self.removeHintsFromLayer(l, horizontalStemHints, verticalStemHints, ghostHints)
+				else:
+					# the Complete Font
+					objectList = thisFont.glyphs
+					count = len(objectList)
+					for i, g in enumerate(objectList):
+						self.w.progress.set(i / count * 100 / len(theseFonts))
+						for l in g.layers:
+							deletedHintsCount += self.removeHintsFromLayer(l, horizontalStemHints, verticalStemHints, ghostHints)
 
 			# complete progress bar:
 			self.w.progress.set(100)
-
-			# Floating notification:
-			Glyphs.showNotification(
-				u"Removed %i hint%s" % (
-					deletedHintsCount,
-					"" if deletedHintsCount == 1 else "s",
-					),
-				u"Font: %s" % (thisFont.familyName),
-				)
+			self.w.status.set(f"✅ Removed {deletedHintsCount} hint{'' if {deletedHintsCount}==1 else 's'} in {len(theseFonts)} font{'' if len(theseFonts)==1 else 's'}")
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
