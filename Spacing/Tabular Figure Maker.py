@@ -137,7 +137,7 @@ class TabularFigureSpacer(object):
 								layer.shapes.append(GSComponent(niceName))
 				
 				targetGlyph = font.glyphs[target]
-				tabFigs = [g for g in Font.glyphs if g.name.endswith(suffix)]
+				tabFigs = [g for g in font.glyphs if g.name.endswith(suffix)]
 				for glyph in tabFigs:
 					if targetGlyph and targetGlyph != glyph:
 						for master in font.masters:
