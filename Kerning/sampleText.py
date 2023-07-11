@@ -166,7 +166,7 @@ def buildKernStrings(listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None,
 						kernStrings += [kernString]
 		return kernStrings
 
-def executeAndReport(kernStrings):
+def executeAndReport(kernStrings, marker="Sample String Maker"):
 	# brings macro window to front and clears its log:
 	# Glyphs.clearLog()
 	# Glyphs.showMacroWindow()
@@ -174,7 +174,7 @@ def executeAndReport(kernStrings):
 	# print status and modify Sample Texts:
 	print("Adding %i lines to Sample Texts..." % len(kernStrings))
 	if Glyphs.versionNumber >= 3:
-		addedKernStings = addToSampleText(kernStrings, marker="Sample String Maker")
+		addedKernStings = addToSampleText(kernStrings, marker=marker)
 	else:
 		addedKernStings = addToSampleText(kernStrings)
 	if not addedKernStings:
