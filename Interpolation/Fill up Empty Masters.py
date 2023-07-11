@@ -15,12 +15,13 @@ class FillUpEmptyMasters(object):
 		"masterChoice": 0,
 		"firstOneWithShapes": 1,
 		"addMissingAnchors": 1,
+		"copySidebearings": 0,
 	}
 	
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 270
-		windowHeight = 155
+		windowHeight = 180
 		windowWidthResize  = 200 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -46,6 +47,10 @@ class FillUpEmptyMasters(object):
 		
 		self.w.addMissingAnchors = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Add missing default anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
+		
+		self.w.copySidebearings = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Also copy sidebearings", value=False, callback=self.SavePreferences, sizeStyle="small")
+		linePos += lineHeight
+		
 		
 		
 		# Status:
@@ -166,6 +171,9 @@ class FillUpEmptyMasters(object):
 									targetLayer.shapes.append(copy(sourceShape))
 								for sourceAnchor in sourceLayer.anchors:
 									targetLayer.anchors.append(copy(sourceAnchor))
+							if copySidebearings:
+								targetLayer.LSB = sourceLayer.LSB
+								targetLayer.RSB = sourceLayer.RSB
 							if addMissingAnchors:
 								targetLayer.addMissingAnchors()
 			finalMessage = f"✅ Done. Filled up {layerCount} layer{'' if layerCount==1 else 's'} in {len(selectedGlyphs)} glyph{'' if len(selectedGlyphs)==1 else 's'}."
