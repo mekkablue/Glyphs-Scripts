@@ -493,8 +493,8 @@ class KernCrasher(object):
 				report = 'No collisions found. Time elapsed: %s. Congrats!' % timereport
 
 			# Notification:
-			notificationTitle = "KernCrasher: %s (%s)" % (thisFont.familyName, thisFontMaster.name)
-			Glyphs.showNotification(notificationTitle, report)
+			# notificationTitle = "KernCrasher: %s (%s)" % (thisFont.familyName, thisFontMaster.name)
+			# Glyphs.showNotification(notificationTitle, report)
 
 			# Report in Macro Window:
 			if self.pref("reportCrashesInMacroWindow"):
