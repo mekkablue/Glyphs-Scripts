@@ -140,17 +140,17 @@ class SampleStringsWithMasterKerning(object):
 		names = []
 		for g in font.glyphs:
 			if isLeft: # left side = right group
-				if groupName == g.rightKerningGroup:
+				if g.rightKerningGroup in (groupName, groupName[7:]):
 					names.append(g.name) 
 			else:
-				if groupName == g.leftKerningGroup:
+				if g.leftKerningGroup in (groupName, groupName[7:]):
 					names.append(g.name)
 		return names
 		
 	def glyphNameForKerningName(self, name, font, isLeft=True):
 		glyphName = None
 		if name[0]=="@":
-			names = self.namesForGroupName(groupName, font, isLeft=isLeft)
+			names = self.namesForGroupName(name, font, isLeft=isLeft)
 			if name.startswith("@MMK_"):
 				glyphName = name.split("_")[2]
 				if glyphName == "KO":
