@@ -153,7 +153,7 @@ class SampleStringsWithMasterKerning(object):
 			names = self.namesForGroupName(name, font, isLeft=isLeft)
 			if name.startswith("@MMK_"):
 				glyphName = name.split("_")[2]
-				if glyphName == "KO":
+				if glyphName == "KO": # KernOn convention
 					glyphName = name.split("_")[3]
 				if not font.glyphs[glyphName] or not glyphName in names:
 					glyphName = None
@@ -220,12 +220,7 @@ class SampleStringsWithMasterKerning(object):
 			
 			leftContext, rightContext = "nonn", "noon"
 			if contextGlyphs:
-				contextEntries = [x.strip() for x in contextGlyphs.split(",")]
-				if contextEntries[0]:
-					leftContext = contextEntries[0]
-					rightContext = contextEntries[0]
-				if len(contextEntries)>1 and contextEntries[1]:
-					rightContext = contextEntries[1]
+				leftContext, rightContext = self.parseTheContextGlyphs()
 			
 			cursorPos = len(leftContext)+1
 			minimumKerning = int(self.pref("minimumKerning"))
