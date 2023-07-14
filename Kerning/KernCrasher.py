@@ -483,7 +483,7 @@ class KernCrasher(object):
 				if len(tabString) > 40:
 					# disable reporters (avoid slowdown)
 					Glyphs.defaults["visibleReporters"] = None
-				report = '%i kerning crashes have been found. Time elapsed: %s.' % (crashCount, timereport)
+				report = f'{crashCount} kerning crashes have been found. Time elapsed: {timereport}.'
 				if self.pref("reuseCurrentTab") and thisFont.currentTab:
 					thisFont.currentTab.text = tabString
 				else:
