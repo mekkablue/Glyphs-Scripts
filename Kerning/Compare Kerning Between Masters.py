@@ -69,7 +69,7 @@ class CompareKerningBetweenMasters(object):
 		
 		# Load Settings:
 		if not self.LoadPreferences():
-			print("⚠️ ‘Compare Kerning  Between Masters’ could not load preferences. Will resort to defaults.")
+			print("⚠️ ‘Compare Kerning Between Masters’ could not load preferences. Will resort to defaults.")
 		
 		# Open window and focus on it:
 		self.verifyButtonStatus()
