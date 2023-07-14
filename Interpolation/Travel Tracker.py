@@ -471,12 +471,12 @@ class TravelTracker(object):
 
 				if tabText:
 					tab = thisFont.newTab(tabText[:-1]) # cut off the last newline
-					tab.scale = 0.1
-					vp = tab.viewPort
-					vp.origin.x = 10
-					vp.origin.y = 10-vp.size.height
-					tab.viewPort = vp
 					setCurrentTabToShowAllInstances(thisFont)
+					tab.scale = 0.07
+					vp = tab.viewPort
+					vp.origin.x = 0
+					vp.origin.y = -vp.size.height
+					tab.viewPort = vp
 				
 			# last one finished, progress bar = 100:
 			self.w.progress.set(100)
