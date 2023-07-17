@@ -45,7 +45,7 @@ class StealAnchors(object):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 350
-		windowHeight = 260
+		windowHeight = 265
 		windowWidthResize  = 500 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -79,8 +79,8 @@ class StealAnchors(object):
 		self.w.overwriteExistingAnchors = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Delete existing anchors in target before copying", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 		
-		self.w.respectItalicAngle = vanilla.CheckBox((inset, linePos-1, 150, 20), "Translate italic angles", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.respectWidths = vanilla.CheckBox((inset+150, linePos-1, -inset, 20), "Translate widths", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.respectItalicAngle = vanilla.CheckBox((inset, linePos-1, 160, 20), "Adjust for italic angles", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.respectWidths = vanilla.CheckBox((inset+160, linePos-1, -inset, 20), "Adjust for widths", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 		
 		self.w.targetSelectedGlyphsOnly = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Limit to selected glyphs in target font", value=False, callback=self.SavePreferences, sizeStyle="small")
@@ -91,10 +91,6 @@ class StealAnchors(object):
 		
 		self.w.excludeCapAndCorner = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Always exclude _cap, _corner, _segment, _brush glyphs", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
-		
-		
-		
-		
 		
 		# Run Button:
 		self.w.updateButton = vanilla.Button((-190-inset, -20-inset, -90-inset, -inset), "Update", sizeStyle="regular", callback=self.UpdateGUI)
@@ -179,7 +175,6 @@ class StealAnchors(object):
 			# write current settings into prefs:
 			for prefName in self.prefDict.keys():
 				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-				print(prefName, self.pref(prefName))
 			self.UpdateGUI()
 			return True
 		except:
