@@ -6,7 +6,8 @@ Batch apply metrics keys to the current font.
 """
 
 import vanilla
-from AppKit import NSFont
+from AppKit import NSFont, NSAlert, NSAlertStyleWarning, NSAlertFirstButtonReturn, NSAlertSecondButtonReturn
+
 LeftKeys = """
 =H: B D E F I K L N P R Thorn Germandbls M
 =O: C G Q
@@ -42,17 +43,35 @@ WidthKeys = """
 =plus: plus minus multiply divide equal notequal greater less greaterequal lessequal plusminus approxequal logicalnot asciitilde asciicircum
 """
 
+class Alert(object):
+	def __init__(self, messageText="Are you sure?", informativeText="This cannot be undone.", buttons=["OK", "Cancel"]):
+		super(Alert, self).__init__()
+		self.messageText = messageText
+		self.informativeText = informativeText
+		self.buttons = buttons
+	
+	def displayAlert(self):
+		alert = NSAlert.alloc().init()
+		alert.setMessageText_(self.messageText)
+		alert.setInformativeText_(self.informativeText)
+		alert.setAlertStyle_(NSAlertStyleWarning)
+		for button in self.buttons:
+			alert.addButtonWithTitle_(button)
+		# NSApp.activateIgnoringOtherApps_(True)
+		self.buttonPressed = alert.runModal()
+
 class MetricsKeyManager(object):
 	prefID = "com.mekkablue.MetricsKeyManager"
 	prefDict = {
 		"LeftMetricsKeys": LeftKeys,
 		"RightMetricsKeys": RightKeys,
 		"WidthMetricsKeys": WidthKeys,
+		"symmetricThreshold": "2",
 		}
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 400
+		windowWidth = 550
 		windowHeight = 300
 		windowWidthResize = 1000 # user can resize width by this value
 		windowHeightResize = 1000 # user can resize height by this value
@@ -94,18 +113,27 @@ class MetricsKeyManager(object):
 			editField.getNSScrollView().setRulersVisible_(1)
 
 		# Buttons:
-		self.w.symmetricButton = vanilla.Button((inset, -20 - inset, 80, -inset), "Add =|", sizeStyle='regular', callback=self.AddMissingSymmetricKeys)
-		self.w.symmetricButton.getNSButton().setToolTip_("Adds glyphs with symmetrical SBs to =| in the right metrics keys.")
+		self.w.symmetricButton = vanilla.Button((inset, -20-inset, 60, -inset), "Add =|", sizeStyle='regular', callback=self.AddMissingSymmetricKeys)
+		self.w.symmetricThreshold = vanilla.EditText((inset+65, -19-inset, 20, -inset), "2", callback=self.SavePreferences, sizeStyle="small")
+		self.w.symmetricThresholdText = vanilla.TextBox((inset+65+20, -16-inset, 60, -inset), "Threshold", sizeStyle="small", selectable=True)
+		linePos += lineHeight
+		tooltip = "Adds glyphs with symmetrical SBs to =| in the right metrics keys. Add a threshold in units for catching SBs off by a unit or two."
+		self.w.symmetricButton.getNSButton().setToolTip_(tooltip)
+		self.w.symmetricThreshold.getNSTextField().setToolTip_(tooltip)
+		self.w.symmetricThresholdText.getNSTextField().setToolTip_(tooltip)
+		
+		self.w.deleteAllButton = vanilla.Button((inset+150, -20-inset, 80, -inset), "Delete All", sizeStyle='regular', callback=self.deleteAllMetricsKeys)
+		
 
-		self.w.resetButton = vanilla.Button((-280 - inset, -20 - inset, -inset - 190, -inset), "⟲ Reset", sizeStyle='regular', callback=self.SetDefaults)
+		self.w.resetButton = vanilla.Button((-240-inset, -20-inset, -inset-170, -inset), "⟲ Reset", sizeStyle='regular', callback=self.SetDefaults)
 		self.w.resetButton.getNSButton().setToolTip_("Resets the contents of the L+R Keys to their (currently only Latin) defaults.")
 
-		self.w.scanButton = vanilla.Button((-180 - inset, -20 - inset, -inset - 90, -inset), "↑ Extract", sizeStyle='regular', callback=self.ScanFontForKeys)
+		self.w.scanButton = vanilla.Button((-160-inset, -20-inset, -inset-80, -inset), "↑ Extract", sizeStyle='regular', callback=self.ScanFontForKeys)
 		self.w.scanButton.getNSButton().setToolTip_(
 			"Scans the current font for all metrics keys and lists them here. Normalizes the preceding equals sign (=). No matter whether you typed them with or without an equals sign, they will show up here with one."
 			)
 
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "↓ Apply", sizeStyle='regular', callback=self.MetricsKeyManagerMain)
+		self.w.runButton = vanilla.Button((-70-inset, -20-inset, -inset, -inset), "↓ Apply", sizeStyle='regular', callback=self.MetricsKeyManagerMain)
 		self.w.runButton.getNSButton(
 		).setToolTip_("Parses the current content of the window and will attempt to set the metrics keys of the respective glyphs in the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
@@ -270,15 +298,51 @@ class MetricsKeyManager(object):
 				key, glyphNameText = line.split(":")[:2]
 				parseDict[key] = self.parseGlyphNames(glyphNameText)
 		return parseDict
+	
+	def deleteAllMetricsKeys(self, sender=None, font=None):
+		# brings macro window to front and clears its log:
+		Glyphs.clearLog()
+		
+		question = "Are you sure you want to delete all metrics keys in the font?"
+		info = "This cannot be undone."
+		
+		def AskUser(message=question, informativeText=info, buttons=("Delete", "Cancel")):	
+			ap = Alert(message, informativeText, buttons)
+			ap.displayAlert()
+			return ap.buttonPressed == NSAlertFirstButtonReturn
+
+		if not AskUser():
+			return
+		
+		if not font:
+			font = Glyphs.font
+			
+		print("Deleting Metrics Keys...")
+		for g in font.glyphs:
+			g.leftMetricsKey = None
+			g.rightMetricsKey = None
+			g.widthMetricsKey = None
+			for l in g.layers:
+				l.leftMetricsKey = None
+				l.rightMetricsKey = None
+				l.widthMetricsKey = None
+			print(f"🔤 Deleted metrics keys in: {g.name}")
+		print("✅ Done.")
 
 	def symmetricGlyphsMissingMetricsKeys(self, sender=None, font=None):
+		threshold = int(self.pref("symmetricThreshold"))
 		if not font:
 			font = Glyphs.font
 
 		glyphNames = []
 		for g in font.glyphs:
 			layerChecks = [
-				not l.widthMetricsKey and not l.rightMetricsKey and l.shapes and l.LSB == l.RSB and not l.isAligned for l in g.layers if l.isMasterLayer or l.isSpecialLayer
+				not l.widthMetricsKey and not l.rightMetricsKey 
+				and l.shapes 
+				and abs(l.LSB-l.RSB)<=abs(threshold) 
+				and not l.isAligned 
+				for l in g.layers
+				if l.isMasterLayer or l.isSpecialLayer
 				]
 			if all(layerChecks):
 				if not g.rightMetricsKey and not g.widthMetricsKey:
@@ -370,11 +434,11 @@ class MetricsKeyManager(object):
 									affectedGlyphs.append(glyphName)
 									reportGlyphs.append(glyphName)
 								else:
-									print("    ⚠️ Glyph '%s' not in font. Skipped." % glyphName)
+									print("	⚠️ Glyph '%s' not in font. Skipped." % glyphName)
 							if reportGlyphs:
-								print("    ✅ %s" % ", ".join(reportGlyphs))
+								print("	✅ %s" % ", ".join(reportGlyphs))
 							else:
-								print("    🤷🏻‍♀️ No glyphs changed.")
+								print("	🤷🏻‍♀️ No glyphs changed.")
 
 				if affectedGlyphs and shouldOpenTabWithAffectedGlyphs:
 					affectedGlyphs = set(affectedGlyphs)
