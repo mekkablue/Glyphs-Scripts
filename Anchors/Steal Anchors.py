@@ -263,23 +263,26 @@ class StealAnchors(object):
 									if not targetLayer.anchors[originAnchor.name]:
 										targetAnchor = GSAnchor(originAnchor.name, originAnchor.position)
 										if respectItalicAngle and targetLayer.italicAngle != originLayer.italicAngle:
+											pivot = targetLayer.master.slantHeightForLayer_(targetLayer))
+											if not pivot:
+												pivot = targetLayer.master.xHeight * 0.5
 											targetAnchor.position = italicize(
 												targetAnchor.position, 
 												italicAngle=targetLayer.italicAngle-originLayer.italicAngle, 
-												pivotalY=targetLayer.master.xHeight*0.5,
+												pivotalY=pivot,
 												)
 										if respectWidths and targetLayer.width != originLayer.width:
 											horizontalScaleFactor = targetLayer.width / originLayer.width
 											targetAnchor.position = NSPoint(
-												targetAnchor.position.x * horizontalScaleFactor,
-												targetAnchor.position.y,
+												round(targetAnchor.position.x * horizontalScaleFactor),
+												round(targetAnchor.position.y),
 												)
 										targetLayer.anchors.append(targetAnchor)
 										anchorCount += 1
 										
 					print(f"🔤 {targetGlyph.name}: copied {anchorCount} anchor{'' if anchorCount==1 else 's'}.")
 	
-			print("\n✅ Done.")
+					("\n✅ Done.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
