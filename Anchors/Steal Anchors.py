@@ -66,35 +66,51 @@ class StealAnchors(object):
 		self.w.originText = vanilla.TextBox((inset, linePos+2, tab, 14), "Copy anchors from:", sizeStyle="small", selectable=True)
 		self.w.originFont = vanilla.PopUpButton((inset+tab, linePos, tab, 17), self.availableFonts(), sizeStyle="small", callback=self.SavePreferences)
 		self.w.originMaster = vanilla.PopUpButton((inset+tab*2, linePos, -inset, 17), self.availableOriginMasters(), sizeStyle="small", callback=self.SavePreferences)
+		tooltip = "The font/master combination that serves as source for anchors to be copied. Choose the All Masters option to copy from all masters at once."
+		self.w.originText.getNSTextField().setToolTip_(tooltip)
+		self.w.originFont.getNSPopUpButton().setToolTip_(tooltip)
+		self.w.originMaster.getNSPopUpButton().setToolTip_(tooltip)
 		linePos += lineHeight
 		
 		self.w.targetText = vanilla.TextBox((inset, linePos+2, tab, 14), "Paste them into:", sizeStyle="small", selectable=True)
 		self.w.targetFont = vanilla.PopUpButton((inset+tab, linePos, tab, 17), self.availableFonts(), sizeStyle="small", callback=self.SavePreferences)
 		self.w.targetMaster = vanilla.PopUpButton((inset+tab*2, linePos, -inset, 17), self.availableTargetMasters(), sizeStyle="small", callback=self.SavePreferences)
+		tooltip = "The font/master combination that serves as target for anchors to be pasted."
+		self.w.targetText.getNSTextField().setToolTip_(tooltip)
+		self.w.targetFont.getNSPopUpButton().setToolTip_(tooltip)
+		self.w.targetMaster.getNSPopUpButton().setToolTip_(tooltip)
 		linePos += lineHeight
 		
 		self.w.allMasters = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Copy from (and paste into) all masters of the fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allMasters.getNSButton().setToolTip_("Copy from all masters of the source font to all masters of the target font.")
 		linePos += lineHeight
 		
 		self.w.overwriteExistingAnchors = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Delete existing anchors in target before copying", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.overwriteExistingAnchors.getNSButton().setToolTip_("If enabled, will reset the anchors in the target font to whatever is in the source font. If disabled, will skip anchors that are already in the target font, and only add the ones that are missing.")
 		linePos += lineHeight
 		
 		self.w.respectItalicAngle = vanilla.CheckBox((inset, linePos-1, 160, 20), "Adjust for italic angles", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.respectItalicAngle.getNSButton().setToolTip_("If enabled, will slant the anchor positions accordiing to the italic angles in both fonts. Useful for transfering from Roman to Italic.")
 		self.w.respectWidths = vanilla.CheckBox((inset+160, linePos-1, -inset, 20), "Adjust for widths", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.respectWidths.getNSButton().setToolTip_("If enabled, will scale the x coordinates of the anchors so they fit into the width of the target glyph.")
 		linePos += lineHeight
 		
 		self.w.targetSelectedGlyphsOnly = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Limit to selected glyphs in target font", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.targetSelectedGlyphsOnly.getNSButton().setToolTip_("If enabled, will only copy into the glyphs that are selected in the target font. If disabled, will copy into all glyphs.")
 		linePos += lineHeight
 		
 		self.w.includeNonExportingGlyphs = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.includeNonExportingGlyphs.getNSButton().setToolTip_("If enabled, will ignore all glyphs that are sentto not export. Useful for not messing up helper glyphs.")
 		linePos += lineHeight
 		
-		self.w.excludeCapAndCorner = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Always exclude _cap, _corner, _segment, _brush glyphs", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.excludeCapAndCorner = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Exclude _cap, _corner, _segment, _brush (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.excludeCapAndCorner.getNSButton().setToolTip_("If enabled, will ignore special components, no matter what the other settings say. Strongly recommended.")
 		linePos += lineHeight
 		
 		# Run Button:
-		self.w.updateButton = vanilla.Button((-190-inset, -20-inset, -90-inset, -inset), "Update", sizeStyle="regular", callback=self.UpdateGUI)
-		self.w.runButton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Run", sizeStyle="regular", callback=self.StealAnchorsMain)
+		self.w.updateButton = vanilla.Button((-180-inset, -20-inset, -90-inset, -inset), "Update", sizeStyle="regular", callback=self.UpdateGUI)
+		self.w.updateButton.getNSButton().setToolTip_("Will update the popup menus above. Use this if you opened a new font after opening this dialog.")
+		self.w.runButton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Steal", sizeStyle="regular", callback=self.StealAnchorsMain)
 		self.w.setDefaultButton(self.w.runButton)
 		
 		# Load Settings:
