@@ -99,7 +99,7 @@ class TravelTracker(object):
 		self.w.separator1 = vanilla.HorizontalLine((inset, linePos, -inset, 1))
 		linePos += int(lineHeight * 0.5)
 		
-		self.w.segmentRotationDescription = vanilla.TextBox((inset, linePos+2, -inset, 14), "Find big angle changes of coonsecutive nodes:", sizeStyle="small", selectable=True)
+		self.w.segmentRotationDescription = vanilla.TextBox((inset, linePos+2, -inset, 14), "Find big angle changes of consecutive nodes:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 		
 		tab, backTab = 165, 60
