@@ -263,7 +263,7 @@ class StealAnchors(object):
 									if not targetLayer.anchors[originAnchor.name]:
 										targetAnchor = GSAnchor(originAnchor.name, originAnchor.position)
 										if respectItalicAngle and targetLayer.italicAngle != originLayer.italicAngle:
-											pivot = targetLayer.master.slantHeightForLayer_(targetLayer))
+											pivot = targetLayer.master.slantHeightForLayer_(targetLayer)
 											if not pivot:
 												pivot = targetLayer.master.xHeight * 0.5
 											targetAnchor.position = italicize(
