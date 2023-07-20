@@ -386,10 +386,15 @@ class EncodingConverter(object):
 		self.w.recipe.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.recipe.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.recipe.getNSScrollView().setRulersVisible_(0)
-
-		legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())
+		
 		textView = self.w.recipe.getNSTextView()
-		textView.setFont_(legibleFont)
+		try:
+			legibleFont = NSFont.controlContentFontOfSize_(NSFont.systemFontSize())
+			textView.setFont_(legibleFont)
+			legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())
+			textView.setFont_(legibleFont)
+		except Exception as e:
+			print(e)
 		textView.setHorizontallyResizable_(1)
 		textView.setVerticallyResizable_(1)
 		textView.setAutomaticDataDetectionEnabled_(1)
