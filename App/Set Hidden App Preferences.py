@@ -20,6 +20,7 @@ class SetHiddenAppPreferences(object):
 		"GSFontViewMinIconSize",
 		"GSFontViewMaxIconSize",
 		"GSFontViewShowCustomGlyphInfoIndicator",
+		"moveToApplicationsFolderAlertSuppress",
 		"DebugMode",
 		"AlwaysShowAllMetrics",
 		"GSPreview_MoreSpaceBelow",
