@@ -319,7 +319,7 @@ class ComponentProblemFinder(object):
 			theseComponents = thisLayer.components
 			if theseComponents:
 				for thisComponent in theseComponents:
-					if not thisComponent.componentLayer.shapes:
+					if thisComponent.componentLayer and not thisComponent.componentLayer.shapes:
 						print("\t🫙 empty component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
 						return True
 		return False
