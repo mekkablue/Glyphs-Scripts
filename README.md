@@ -77,6 +77,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Report Non-Standard Anchors to Macro window:** Goes through all glyphs in the font and reports in the Macro window if it finds non-default anchors. Lines are copy-pasteable in Edit view.
 * **Shine Through Anchors:** In all layers of selected glyphs, inserts ‘traversing’ anchors from components.
 * **Steal Anchors:** Batch-copy the anchors from one font master to another. *Needs Vanilla.*
+* **Top Mark Mover:** Moves selected marks vertically, so their _top anchor is on the respective vertical metric.
 
 ## App
 
