@@ -8,6 +8,21 @@ Looks for empty master layers and adds shapes of a preferred master.
 import vanilla, sys
 from copy import copy as copy
 
+labelColors = (
+	"🔴 Red",
+	"🟠 Orange",
+	"🟤 Brown",
+	"🟡 Yellow",
+	"💚 Light Green",
+	"🟢 Dark Green",
+	"🩵 Cyan",
+	"🔵 Blue",
+	"🟣 Purple",
+	"🩷 Pink",
+	"🩶 Light Gray",
+	"🌑 Dark Gray",
+	)
+
 class FillUpEmptyMasters(object):
 	prefID = "com.mekkablue.FillUpEmptyMasters"
 	prefDict = {
@@ -16,12 +31,14 @@ class FillUpEmptyMasters(object):
 		"firstOneWithShapes": 1,
 		"addMissingAnchors": 1,
 		"copySidebearings": 0,
+		"markWithColor": 0,
+		"layerColor": 0,
 	}
 	
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 270
-		windowHeight = 180
+		windowWidth  = 300
+		windowHeight = 205
 		windowWidthResize  = 200 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -37,8 +54,8 @@ class FillUpEmptyMasters(object):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos+2, -inset, 14), "Populate empty layers of selected glyphs:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 		
-		self.w.masterChoiceText = vanilla.TextBox((inset, linePos+2, 105, 14), "Fill up with master", sizeStyle="small", selectable=True)
-		self.w.masterChoice = vanilla.PopUpButton((inset+105, linePos, -inset-25, 17), (), sizeStyle="small", callback=self.SavePreferences)
+		self.w.masterChoiceText = vanilla.TextBox((inset, linePos+2, 95, 14), "Use shapes from", sizeStyle="small", selectable=True)
+		self.w.masterChoice = vanilla.PopUpButton((inset+95, linePos, -inset-25, 17), (), sizeStyle="small", callback=self.SavePreferences)
 		self.w.masterChoiceUpdate = vanilla.SquareButton((-inset-20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateGUI)
 		linePos += lineHeight
 		
@@ -51,7 +68,9 @@ class FillUpEmptyMasters(object):
 		self.w.copySidebearings = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Also copy sidebearings", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 		
-		
+		self.w.markWithColor = vanilla.CheckBox((inset, linePos-1, 165, 20), "Color-mark filled-up layers:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.layerColor = vanilla.PopUpButton((inset+165, linePos, 105, 17), labelColors, sizeStyle="small", callback=self.SavePreferences)
+		linePos += lineHeight
 		
 		# Status:
 		self.w.status = vanilla.TextBox((inset, -15-inset, -90-inset, 14), "", sizeStyle="small", selectable=True)
@@ -78,6 +97,7 @@ class FillUpEmptyMasters(object):
 		return Glyphs.defaults[prefDomain]
 	
 	def updateGUI(self, sender=None):
+		self.w.layerColor.enable(self.pref("markWithColor"))
 		if Glyphs.font:
 			masterNames = [m.name for m in Glyphs.font.masters]
 			self.w.masterChoice.setItems(masterNames)
@@ -153,29 +173,37 @@ class FillUpEmptyMasters(object):
 					self.w.status.set(f"🔤 Filling up {thisGlyph.name}...")
 					sourceLayer = thisGlyph.layers[sourceID]
 					if not sourceLayer.shapes and firstOneWithShapes:
+						sourceLayer = None
 						for master in thisFont.masters:
 							if thisGlyph.layers[master.id].shapes:
 								sourceLayer = thisGlyph.layers[master.id]
 								print(f"🔤 Filling up {thisGlyph.name} from layer {master.name}")
 								break
+					
+					if not sourceLayer:
 						print(f"⚠️ No shapes for filling up in: {thisGlyph.name}")
 						self.w.status.set(f"⚠️ No shapes: {thisGlyph.name}")
 						continue
-						
+
 					for targetLayer in thisGlyph.layers:
-						if targetLayer.isMasterLayer or targetLayer.isSpecialLayer:
-							if targetLayer != sourceLayer and not targetLayer.shapes:
-								targetLayer.clear()
-								layerCount += 1
-								for sourceShape in sourceLayer.shapes:
-									targetLayer.shapes.append(copy(sourceShape))
-								for sourceAnchor in sourceLayer.anchors:
-									targetLayer.anchors.append(copy(sourceAnchor))
+						if (targetLayer.isMasterLayer or targetLayer.isSpecialLayer) and targetLayer != sourceLayer and not targetLayer.shapes:
+							targetLayer.clear()
+							layerCount += 1
+							for sourceShape in sourceLayer.shapes:
+								targetLayer.shapes.append(copy(sourceShape))
+							for sourceAnchor in sourceLayer.anchors:
+								targetLayer.anchors.append(copy(sourceAnchor))
+
 							if copySidebearings:
 								targetLayer.LSB = sourceLayer.LSB
 								targetLayer.RSB = sourceLayer.RSB
+
 							if addMissingAnchors:
 								targetLayer.addMissingAnchors()
+
+							if markWithColor:
+								targetLayer.color = layerColor
+
 			finalMessage = f"✅ Done. Filled up {layerCount} layer{'' if layerCount==1 else 's'} in {len(selectedGlyphs)} glyph{'' if len(selectedGlyphs)==1 else 's'}."
 			print(f"\n{finalMessage}")
 			self.w.status.set(finalMessage)
