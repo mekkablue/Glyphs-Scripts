@@ -1,103 +1,219 @@
-#MenuTitle: Steal Kerning Groups from Font
-"""Copy kerning groups from one font to another."""
-from __future__ import print_function
+#MenuTitle: Steal Kerning Groups
+# -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+__doc__="""
+Copies kerning groups from one font to another.
+"""
 
-import vanilla
+import vanilla, sys
 
-class GroupsCopy(object):
-	"""GUI for copying kerning groups from one font to another"""
+def menuForFonts(fonts):
+	menu = []
+	for i, font in enumerate(fonts):
+		menu.append(f"{i+1}. {font.familyName} ({font.filepath.lastPathComponent()})")
+	return menu
 
-	def __init__(self):
-		self.w = vanilla.FloatingWindow((400, 70), "Steal kerning groups")
-
-		self.w.text_anchor = vanilla.TextBox((15, 12 + 2, 130, 14), "Copy groups from:", sizeStyle='small')
-		self.w.from_font = vanilla.PopUpButton((150, 12, 150, 17), self.GetFonts(isSourceFont=True), sizeStyle='small', callback=self.buttonCheck)
-
-		self.w.text_value = vanilla.TextBox((15, 12 + 2 + 25, 130, 14), "To selected glyphs in:", sizeStyle='small')
-		self.w.to_font = vanilla.PopUpButton((150, 12 + 25, 150, 17), self.GetFonts(isSourceFont=False), sizeStyle='small', callback=self.buttonCheck)
-
-		self.w.copybutton = vanilla.Button((-80, 12 + 25, -15, 17), "Copy", sizeStyle='small', callback=self.copyGroups)
-		self.w.setDefaultButton(self.w.copybutton)
-
+class StealKerningGroupsfromFont(object):
+	prefID = "com.mekkablue.StealKerningGroupsfromFont"
+	prefDict = {
+		# "prefName": defaultValue,
+		"sourceFont": 0,
+		"targetFont": 0,
+		"allGroups": 1,
+		"overwriteExisting": 1,
+		"resetGroupsInTarget": 0,
+	}
+	
+	currentFonts = Glyphs.fonts
+	
+	def __init__( self ):
+		# Window 'self.w':
+		windowWidth  = 350
+		windowHeight = 210
+		windowWidthResize  = 300 # user can resize width by this value
+		windowHeightResize = 0   # user can resize height by this value
+		self.w = vanilla.FloatingWindow(
+			(windowWidth, windowHeight), # default window size
+			"Steal Kerning Groups", # window title
+			minSize = (windowWidth, windowHeight), # minimum size (for resizing)
+			maxSize = (windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
+			autosaveName = self.domain("mainwindow") # stores last window position and size
+		)
+		
+		# UI elements:
+		linePos, inset, lineHeight = 12, 15, 22
+		self.w.descriptionText = vanilla.TextBox((inset, linePos+2, -inset, 14), "Copy kerning groups from Source Font to Target Font:", sizeStyle="small", selectable=True)
+		linePos += lineHeight
+		
+		indent = 75
+		self.w.targetFontText = vanilla.TextBox((inset, linePos+2, indent, 14), "Target font:", sizeStyle="small", selectable=True)
+		self.w.targetFont = vanilla.PopUpButton((inset+indent, linePos, -inset, 17), (), sizeStyle="small", callback=self.SavePreferences)
+		tooltip = "The font that receives the kerning groups."
+		self.w.targetFont.getNSPopUpButton().setToolTip_(tooltip)
+		self.w.targetFontText.getNSTextField().setToolTip_(tooltip)
+		linePos += lineHeight
+		
+		self.w.sourceFontText = vanilla.TextBox((inset, linePos+2, indent, 14), "Source font:", sizeStyle="small", selectable=True)
+		self.w.sourceFont = vanilla.PopUpButton((inset+indent, linePos, -inset, 17), (), sizeStyle="small", callback=self.SavePreferences)
+		tooltip = "The font from which the kerning groups are taken."
+		self.w.sourceFont.getNSPopUpButton().setToolTip_(tooltip)
+		self.w.sourceFontText.getNSTextField().setToolTip_(tooltip)
+		linePos += lineHeight
+		
+		self.w.allGroups = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Copy ⚠️ ALL groups (i.e., ignore selection in source font)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allGroups.getNSButton().setToolTip_("If unchecked, will only transfer groups of glyphs selected in source font.")
+		linePos += lineHeight
+		
+		self.w.overwriteExisting = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Overwrite existing groups in target font", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.overwriteExisting.getNSButton().setToolTip_("If unchecked, will keep existing groups in the target font, and only set groups when the glyph does not have any yet.")
+		linePos += lineHeight
+		
+		self.w.resetGroupsInTarget = vanilla.CheckBox((inset, linePos-1, -inset, 20), "⚠️ Reset groups in target font before copying", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.resetGroupsInTarget.getNSButton().setToolTip_("Will delete ALL kerning groups in target font prior to transfering the source font’s groups.")
+		linePos += lineHeight
+		
+		self.w.status = vanilla.TextBox((inset, -18-inset, -150-inset, 14), "", sizeStyle="small", selectable=True)
+		linePos += lineHeight
+		
+		self.w.updateButton = vanilla.Button((-150-inset, -20-inset, -80-inset, -inset), "Update", sizeStyle="regular", callback=self.UpdateUI)
+		self.w.updateButton.getNSButton().setToolTip_("Will update all the menus and buttons of this window. Click here if you opened or closed a font since you invoked the script, or after you changed the source font.")
+		
+		# Run Button:
+		self.w.runButton = vanilla.Button((-70-inset, -20-inset, -inset, -inset), "Steal", sizeStyle="regular", callback=self.StealKerningGroupsfromFontMain)
+		self.w.setDefaultButton(self.w.runButton)
+		
+		# Load Settings:
+		if not self.LoadPreferences():
+			print("⚠️ ‘Steal Kerning Groups from Font’ could not load preferences. Will resort to defaults.")
+		
+		# Open window and focus on it:
 		self.w.open()
-		self.buttonCheck(None)
-
-	def GetFonts(self, isSourceFont):
-		myFontList = ["%s - %s" % (x.font.familyName, x.selectedFontMaster().name) for x in Glyphs.orderedDocuments()]
-
-		if isSourceFont:
-			myFontList.reverse()
-
-		return myFontList
-
-	def buttonCheck(self, sender):
-		fromFont = self.w.from_font.getItems()[self.w.from_font.get()]
-		toFont = self.w.to_font.getItems()[self.w.to_font.get()]
-
-		if fromFont == toFont:
-			self.w.copybutton.enable(onOff=False)
-		else:
-			self.w.copybutton.enable(onOff=True)
-
-	def copyGroups(self, sender):
-		fromFont = self.w.from_font.getItems()[self.w.from_font.get()]
-		toFont = self.w.to_font.getItems()[self.w.to_font.get()]
-
-		Doc_source = [x for x in Glyphs.orderedDocuments() if ("%s - %s" % (x.font.familyName, x.selectedFontMaster().name)) == fromFont][0]
-		Master_source = Doc_source.selectedFontMaster().id
-		Font_source = Doc_source.font
-		Font_target = [x.font for x in Glyphs.orderedDocuments() if ("%s - %s" % (x.font.familyName, x.selectedFontMaster().name)) == toFont][0]
-		Glyphs_selected = [x.parent for x in Font_target.parent.selectedLayers()]
-
-		print("Syncing kerning groups for", len(Glyphs_selected), "glyphs from", Font_source.familyName, "to", Font_target.familyName, ":")
-
+		self.w.makeKey()
+	
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
+	def UpdateUI(self, sender=None):
+		self.currentFonts = Glyphs.fonts
+		menu = menuForFonts(self.currentFonts)
+		if menu:
+			self.w.sourceFont.setItems(menu)
+			self.w.sourceFont.set(self.pref("sourceFont"))
+			self.w.targetFont.setItems(menu)
+			self.w.targetFont.set(self.pref("targetFont"))
+		sourceFont = self.currentFonts[self.w.sourceFont.get()]
+		self.w.runButton.enable(self.pref("sourceFont")!=self.pref("targetFont"))
+	
+	def SavePreferences(self, sender=None):
 		try:
-			for thisGlyph in Glyphs_selected:
-				glyphName = thisGlyph.name
-				try:
-					sourceGlyph = Font_source.glyphs[glyphName]
-					oldL = thisGlyph.leftKerningGroup
-					oldR = thisGlyph.rightKerningGroup
-					newL = sourceGlyph.leftKerningGroup
-					newR = sourceGlyph.rightKerningGroup
+			# write current settings into prefs:
+			for prefName in self.prefDict.keys():
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
+			self.UpdateUI()
+			return True
+		except:
+			import traceback
+			print(traceback.format_exc())
+			return False
 
-					if oldL != newL or oldR != newR:
-						thisGlyph.leftKerningGroup = newL
-						thisGlyph.rightKerningGroup = newR
+	def LoadPreferences(self):
+		try:
+			for prefName in self.prefDict.keys():
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
+				# load previously written prefs:
+				getattr(self.w, prefName).set(self.pref(prefName))
+			self.UpdateUI()
+			return True
+		except:
+			import traceback
+			print(traceback.format_exc())
+			return False
 
-						print("   ", glyphName, ":", newL, "<--->", newR)
-
-					# start: temporary fix for 3.0.3 unwrapped vertical kerning
-					def kerningGetter(kerning):
-						if kerning is not None and not isinstance(kerning, str):
-							kerning = kerning()
-						return kerning
-
-					# end: temporary fix for 3.0.3 unwrapped vertical kerning
-
-					oldT = kerningGetter(thisGlyph.topKerningGroup)
-					oldB = kerningGetter(thisGlyph.bottomKerningGroup)
-					newT = kerningGetter(sourceGlyph.topKerningGroup)
-					newB = kerningGetter(sourceGlyph.bottomKerningGroup)
-
-					if oldT != newT or oldB != newB:
-						thisGlyph.leftKerningGroup = newL
-						thisGlyph.setTopKerningGroup_(newT)
-						thisGlyph.setBottomKerningGroup_(newB)
-
-						print("   ", glyphName, ":", newT, "\n ^\n |\n V\n", newB)
-					pass
-				except Exception as e:
-					print("   ", glyphName, ": Error")
-					# print e
+	def StealKerningGroupsfromFontMain(self, sender=None):
+		try:
+			# clear macro window log:
+			Glyphs.clearLog()
+			
+			# update settings to the latest user input:
+			if not self.SavePreferences():
+				print("⚠️ ‘Steal Kerning Groups from Font’ could not write preferences.")
+			
+			# # read prefs:
+			# for prefName in self.prefDict.keys():
+			# 	try:
+			# 		setattr(sys.modules[__name__], prefName, self.pref(prefName))
+			# 	except:
+			# 		fallbackValue = self.prefDict[prefName]
+			# 		print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
+			# 		setattr(sys.modules[__name__], prefName, fallbackValue)
+			
+			if len(self.currentFonts) < 2:
+				Message(title="Not Enough Fonts", message="The script requires at least two fonts.", OKButton=None)
+				return
+				
+			print(f"Steal Kerning Groups Report:")
+			sourceFont = self.currentFonts[self.pref("sourceFont")]
+			targetFont = self.currentFonts[self.pref("targetFont")]
+			for font, sourceOrTarget in zip((sourceFont, targetFont), ("Source", "Target")):
+				filePath = font.filepath
+				if filePath:
+					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
+				else:
+					reportName = f"{font.familyName}\n⚠️ The font file has not been saved yet."
+				print(f"{sourceOrTarget}: {reportName}")
+			print()
+			
+			if self.pref("resetGroupsInTarget"):
+				print("Deleting kerning groups in target font:")
+				for glyph in targetFont.glyphs:
+					msg = f"🧟 {glyph.name}"
+					self.w.status.set(msg)
+					if glyph.leftKerningGroup:
+						msg += f" ◀️ {glyph.leftKerningGroup}"
+						glyph.leftKerningGroup = None
+					if glyph.rightKerningGroup:
+						msg += f" ▶️ {glyph.rightKerningGroup}"
+						glyph.rightKerningGroup = None
+					print(msg)
+				print()
+				
+			if self.pref("allGroups"):
+				glyphNames = [g.name for g in sourceFont.glyphs]
+			else:
+				glyphNames = [l.parent.name for l in sourceFont.selectedLayers]
+			
+			overwriteExisting = bool(self.pref("overwriteExisting"))
+			for glyphName in glyphNames:
+				sourceGlyph = sourceFont.glyphs[glyphName]
+				targetGlyph = targetFont.glyphs[glyphName]
+				if not targetGlyph:
+					print(f"🚫 Skipping {glyphName}, not in target font.")
+					continue
+				msg = f"🔤 {glyphName}"
+				self.w.status.set(msg)
+				if sourceGlyph.leftKerningGroup and overwriteExisting or not targetGlyph.leftKerningGroup:
+					targetGlyph.leftKerningGroup = sourceGlyph.leftKerningGroup
+					msg += f" ◀️ {targetGlyph.leftKerningGroup}"
+				if sourceGlyph.rightKerningGroup and overwriteExisting or not targetGlyph.rightKerningGroup:
+					targetGlyph.rightKerningGroup = sourceGlyph.rightKerningGroup
+					msg += f" ▶️ {targetGlyph.rightKerningGroup}"
+				print(msg)
+		
+			# self.w.close() # delete if you want window to stay open
+			self.w.status.set("✅ Done. Details in Macro Window.")
+			print("\nDone.")
 
 		except Exception as e:
+			# brings macro window to front and reports error:
+			Glyphs.showMacroWindow()
+			print(f"Steal Kerning Groups from Font Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 
-		finally:
-			print("Done.")
-
-		self.w.close()
-
-GroupsCopy()
+StealKerningGroupsfromFont()
