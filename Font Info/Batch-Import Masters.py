@@ -53,7 +53,7 @@ class BatchImportMasters(object):
 		"sourceFont": 0,
 		"targetFont": 0,
 		"searchFor": "",
-		"useRelativePath": False,
+		"useRelativePath": True,
 		"resetParameters": True,
 	}
 	
@@ -102,7 +102,7 @@ class BatchImportMasters(object):
 		linePos += lineHeight
 		
 		self.w.useRelativePath = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Use relative font path in parameter values", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.useRelativePath.getNSButton().setToolTip_("If set, will add a relative path rather than an absolute path. Better for git repos. Careful: experimental.")
+		self.w.useRelativePath.getNSButton().setToolTip_("If set, will add a relative path rather than an absolute path. Better for git repos.")
 		linePos += lineHeight
 		
 		self.w.resetParameters = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Delete all existing Import Master parameters in target font", value=True, callback=self.SavePreferences, sizeStyle="small")
