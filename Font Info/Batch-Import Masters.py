@@ -139,10 +139,7 @@ class BatchImportMasters(object):
 		try:
 			# write current settings into prefs:
 			for prefName in self.prefDict.keys():
-				if type(getattr(self.w, prefName)) == vanilla.ComboBox:
-					Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).getTitle()
-				else:
-					Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
 			self.UpdateUI(sender=sender)
 			return True
 		except:
@@ -156,10 +153,7 @@ class BatchImportMasters(object):
 				# register defaults:
 				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
 				# load previously written prefs:
-				if type(getattr(self.w, prefName)) == vanilla.ComboBox:
-					getattr(self.w, prefName).setTitle(self.pref(prefName))
-				else:
-					getattr(self.w, prefName).set(self.pref(prefName))
+				getattr(self.w, prefName).set(self.pref(prefName))
 			self.UpdateUI()
 			return True
 		except:
@@ -172,14 +166,24 @@ class BatchImportMasters(object):
 		menu = menuForFonts(self.currentFonts)
 		if menu:
 			self.w.sourceFont.setItems(menu)
-			self.w.sourceFont.set(self.pref("sourceFont"))
+			sourceFontIndex = self.pref("sourceFont")
+			self.w.sourceFont.set(sourceFontIndex if sourceFontIndex != None and sourceFontIndex < len(menu) else 0)
+			Glyphs.defaults[self.domain("sourceFont")] = self.w.sourceFont.get()
+			
 			self.w.targetFont.setItems(menu)
-			self.w.targetFont.set(self.pref("targetFont"))
-		sourceFont = self.currentFonts[self.w.sourceFont.get()]
+			targetFontIndex = self.pref("targetFont")
+			self.w.targetFont.set(targetFontIndex if targetFontIndex != None and targetFontIndex < len(menu) else 0)
+			Glyphs.defaults[self.domain("targetFont")] = self.w.targetFont.get()
+		
+		# update search combobox :
 		if sender != self.w.searchFor:
-			self.w.searchFor.set(self.pref("searchFor"))
+			searchBoxContent = self.w.searchFor.get()
+			sourceFont = self.currentFonts[self.w.sourceFont.get()]
 			particles = masterNameParticlesForFont(sourceFont)
 			self.w.searchFor.setItems(particles)
+			self.w.searchFor.set(searchBoxContent) # circumvent bug
+		
+		# double check
 		self.w.runButton.enable(self.pref("sourceFont")!=self.pref("targetFont"))
 		
 	def BatchImportMastersMain( self, sender=None ):
