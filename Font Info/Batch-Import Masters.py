@@ -139,8 +139,11 @@ class BatchImportMasters(object):
 		try:
 			# write current settings into prefs:
 			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.UpdateUI()
+				if type(getattr(self.w, prefName)) == vanilla.ComboBox:
+					Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).getTitle()
+				else:
+					Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
+			self.UpdateUI(sender=sender)
 			return True
 		except:
 			import traceback
@@ -153,7 +156,10 @@ class BatchImportMasters(object):
 				# register defaults:
 				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
 				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
+				if type(getattr(self.w, prefName)) == vanilla.ComboBox:
+					getattr(self.w, prefName).setTitle(self.pref(prefName))
+				else:
+					getattr(self.w, prefName).set(self.pref(prefName))
 			self.UpdateUI()
 			return True
 		except:
@@ -170,8 +176,10 @@ class BatchImportMasters(object):
 			self.w.targetFont.setItems(menu)
 			self.w.targetFont.set(self.pref("targetFont"))
 		sourceFont = self.currentFonts[self.w.sourceFont.get()]
-		particles = masterNameParticlesForFont(sourceFont)
-		self.w.searchFor.setItems(particles)
+		if sender != self.w.searchFor:
+			self.w.searchFor.set(self.pref("searchFor"))
+			particles = masterNameParticlesForFont(sourceFont)
+			self.w.searchFor.setItems(particles)
 		self.w.runButton.enable(self.pref("sourceFont")!=self.pref("targetFont"))
 		
 	def BatchImportMastersMain( self, sender=None ):
