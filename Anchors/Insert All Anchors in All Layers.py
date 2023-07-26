@@ -22,6 +22,22 @@ def allAnchorsOfThisGlyph(thisGlyph):
 				anchorDict[thisAnchor.name].append(thisAnchorInfo)
 	return anchorDict
 
+def closestNode(thisAnchor):
+	"""Return pathIndex, nodeIndex"""
+	pass
+
+def closestNodeInComponent(thisAnchor):
+	"""Return componentIndex; pathIndex, nodeIndex"""
+	pass
+
+def closestSegment(thisAnchor):
+	"""Return pathIndex, segmentIndex, t"""
+	pass
+
+def closestSegmentInComponent(thisAnchor):
+	"""Return componentIndex; pathIndex, segmentIndex, t"""
+	pass
+
 def averagePosition(listOfPositions, thisWidth):
 	if thisWidth == 0:
 		thisWidth = 1
