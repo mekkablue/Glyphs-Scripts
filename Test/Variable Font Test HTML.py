@@ -548,7 +548,7 @@ def defaultVariationCSS(thisFont):
 
 	return ", ".join(defaultValues)
 
-def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa=False):
+def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa=False, defaultSize=None):
 	samsaPlaceholder = "<!-- placeholder for external links, hold down OPTION and SHIFT while running the script -->"
 	htmlContent = """<html>
 	<!--<base href="..">--> <!-- uncomment for keeping the HTML in a subfolder -->
@@ -1055,18 +1055,19 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 		}
 	fileTypeAbbreviation = typeAppreviations[fileName.split(".")[-1]]
 	
-	defaultSize = "40"
-	textLength = len(unicodeEscapes)/7
-	if textLength < 10:
-		defaultSize = "400"
-	elif textLength < 30:
-		defaultSize = "350"
-	elif textLength < 50:
-		defaultSize = "300"
-	elif textLength < 100:
-		defaultSize = "200"
-	elif textLength < 200:
-		defaultSize = "100"
+	if not defaultSize:
+		defaultSize = "40"
+		textLength = len(unicodeEscapes)/7
+		if textLength < 10:
+			defaultSize = "400"
+		elif textLength < 30:
+			defaultSize = "350"
+		elif textLength < 50:
+			defaultSize = "300"
+		elif textLength < 100:
+			defaultSize = "200"
+		elif textLength < 200:
+			defaultSize = "100"
 	
 	replacements = (
 		("###fontFamilyNameWithSpaces###", fullName),
