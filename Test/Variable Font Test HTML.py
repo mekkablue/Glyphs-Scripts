@@ -214,7 +214,7 @@ def langMenu(thisFont, indent=4):
 							if otTag in otTag2Lang.keys():
 								isoTag = otTag2Lang[otTag][0]
 								naturalName = otTag2Lang[otTag][1]
-								newLine = "\t<option value='%s'>%s (%s, %s)</option>\n" % (isoTag, naturalName, otTag, isoTag)
+								newLine = f"\t<option value='{isoTag}'>{naturalName} ({otTag}, {isoTag})</option>\n"
 								if not newLine in htmlCode: # avoid duplicates
 									htmlCode += newLine
 						except:
@@ -229,11 +229,11 @@ def langMenu(thisFont, indent=4):
 	else:
 		return htmlCode
 
-def saveFileInLocation(content="Sorry, no content generated.", fileName="test.txt", filePath="~/Desktop"):
-	saveFileLocation = "%s/%s" % (filePath, fileName)
-	saveFileLocation = saveFileLocation.replace("//", "/")
+def saveFileInLocation(content="", fileName="test.txt", filePath="~/Desktop"):
+	saveFileLocation = f"{filePath}/{fileName}"
+	saveFileLocation = saveFileLocation.replace( "//", "/" )
 	with codecs.open(saveFileLocation, "w", "utf-8-sig") as thisFile:
-		print("💾 Writing: %s" % thisFile.name)
+		print(f"Exporting to: {thisFile.name}")
 		thisFile.write(content)
 		thisFile.close()
 	return True
@@ -258,7 +258,7 @@ def otVarFullName(thisFont):
 	familyName = otVarFamilyName(thisFont)
 	styleName = thisFont.customParameters["variableStyleName"]
 	if styleName:
-		fullName = "%s %s" % (familyName, styleName)
+		fullName = f"{familyName} {styleName}"
 		fullName = fullName.replace("Italic Italic", "Italic")
 		fullName = fullName.replace("Roman Roman", "Roman")
 		return fullName
@@ -284,19 +284,19 @@ def otVarFileName(thisFont, thisInstance=None):
 			fileName = thisInstance.customParameters["fileName"]
 			if not fileName:
 				familyName = familyNameOfInstance(thisInstance)
-				fileName = ("%s-%s" % (familyName, thisInstance.name)).replace(" ", "")
-		return "%s.%s" % (fileName, suffix)
+				fileName = f"{familyName}-{thisInstance.name}".replace(" ", "")
+		return f"{fileName}.{suffix}"
 	elif thisFont.customParameters["Variable Font File Name"] or thisFont.customParameters["variableFileName"]:
 		fileName = thisFont.customParameters["Variable Font File Name"]
 		if not fileName:
 			fileName = thisFont.customParameters["variableFileName"]
-		return "%s.%s" % (fileName, suffix)
+		return f"{fileName}.{suffix}"
 	else:
 		familyName = otVarFamilyName(thisFont)
 		if Glyphs.versionString >= "3.0.3":
-			fileName = "%sVF.%s" % (familyName, suffix)
+			fileName = f"{familyName}VF.{suffix}"
 		else:
-			fileName = "%sGX.%s" % (familyName, suffix)
+			fileName = f"{familyName}GX.{suffix}"
 		return fileName.replace(" ", "")
 
 def replaceSet(text, setOfReplacements):
@@ -310,7 +310,10 @@ def replaceSet(text, setOfReplacements):
 def generateAxisDict(thisFont):
 	# see if there are Axis Location parameters in use:
 	fontHasAxisLocationParameters = True
-	for thisMaster in thisFont.masters:
+	importedMasters = []
+	if thisFont.importedFontMasters():
+		importedMasters = thisFont.importedFontMasters()
+	for thisMaster in thisFont.masters + importedMasters:
 		if not thisMaster.customParameters["Axis Location"]:
 			fontHasAxisLocationParameters = False
 
@@ -343,7 +346,10 @@ def axisDictWithVirtualMastersForFont(thisFont, axisDict):
 
 def axisDictForFontWithoutAxisLocationParameters(thisFont):
 	sliderValues = {}
-	for i, thisMaster in enumerate(thisFont.masters):
+	masters = thisFont.masters
+	if thisFont.importedFontMasters():
+		masters.extend(thisFont.importedFontMasters())
+	for i, thisMaster in enumerate(masters):
 		sliderValues[i] = axisValuesForMaster(thisMaster)
 
 	axisDict = axisDictWithVirtualMastersForFont(thisFont, {})
@@ -371,8 +377,12 @@ def axisDictForFontWithoutAxisLocationParameters(thisFont):
 	return axisDict
 
 def axisDictForFontWithAxisLocationParameters(thisFont):
+	masters = thisFont.masters
+	if thisFont.importedFontMasters():
+		masters.extend(thisFont.importedFontMasters())
+	
 	axisDict = axisDictWithVirtualMastersForFont(thisFont, {})
-	for m in thisFont.masters:
+	for m in masters:
 		for axisLocation in m.customParameters["Axis Location"]:
 			axisName = axisLocation["Axis"]
 			axisPos = float(axisLocation["Location"])
@@ -403,7 +413,7 @@ def axisDictForFontWithAxisLocationParameters(thisFont):
 	return axisDict
 
 def allUnicodeEscapesOfFont(thisFont):
-	allUnicodes = ["&#x%s;" % g.unicode for g in thisFont.glyphs if g.unicode and g.export]
+	allUnicodes = [f"&#x{g.unicode};" for g in thisFont.glyphs if g.unicode and g.export]
 	return " ".join(allUnicodes)
 
 def featureListForFont(thisFont):
@@ -428,6 +438,8 @@ def featureListForFont(thisFont):
 
 def allOTVarSliders(thisFont):
 	axisDict = generateAxisDict(thisFont)
+	
+	print(axisDict)
 
 	minValues, maxValues = {}, {}
 	for axis in axisDict:
@@ -475,7 +487,7 @@ def warningMessage():
 	Message(
 		title="Out of Date Warning",
 		message=
-		"It appears that you are not running the latest version of Glyphs. Please enable Cutting Edge Versions and Automatic Version Checks in Preferences > Updates, and update to the latest beta.",
+		"It appears that you are not running the latest version of Glyphs. Please enable Cutting Edge Versions and Automatic Version Checks in Settings > Updates, and update to the latest beta.",
 		OKButton=None
 		)
 
@@ -531,7 +543,7 @@ def defaultVariationCSS(thisFont):
 			# Glyphs 2:
 			tag = axis["Tag"]
 		value = axisValues[i]
-		cssValue = '"%s" %i' % (tag, value)
+		cssValue = f'"{tag}" {value}'
 		defaultValues.append(cssValue)
 
 	return ", ".join(defaultValues)
@@ -694,7 +706,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				line-height: 1em;
 				width: 100%%;
 				color: black;
-				font: 40px "###fontFamilyName###";
+				font: ###defaultSize###px "###fontFamilyName###";
 				font-feature-settings: "kern" on, "liga" on, "calt" on, "locl" on;
 				-moz-font-feature-settings: "kern" on, "liga" on, "calt" on, "locl" on;
 				-webkit-font-feature-settings: "kern" on, "liga" on, "calt" on, "locl" on;
@@ -992,7 +1004,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 	<div id="flexbox">
 		<div id="controls">
 			<!-- OTVar sliders -->
-			<div class="labeldiv"><label class="sliderlabel" id="label_fontsize" name="Font Size">Font Size</label><input type="range" min="10" max="1000" value="40" class="slider" id="fontsize" oninput="updateSlider();"></div>
+			<div class="labeldiv"><label class="sliderlabel" id="label_fontsize" name="Font Size">Font Size</label><input type="range" min="10" max="1000" value="###defaultSize###" class="slider" id="fontsize" oninput="updateSlider();"></div>
 			<div class="labeldiv"><label class="sliderlabel" id="label_lineheight" name="Line Height">Line Height</label><input type="range" min="30" max="300" value="120" class="slider" id="lineheight" oninput="updateSlider();"></div>
 ###sliders###
 			<div id="featureControls">
@@ -1042,7 +1054,20 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 		"woff2": "W2",
 		}
 	fileTypeAbbreviation = typeAppreviations[fileName.split(".")[-1]]
-
+	
+	defaultSize = "40"
+	textLength = len(unicodeEscapes)/7
+	if textLength < 10:
+		defaultSize = "400"
+	elif textLength < 30:
+		defaultSize = "350"
+	elif textLength < 50:
+		defaultSize = "300"
+	elif textLength < 100:
+		defaultSize = "200"
+	elif textLength < 200:
+		defaultSize = "100"
+	
 	replacements = (
 		("###fontFamilyNameWithSpaces###", fullName),
 		("###fontFamilyName###", fullName),
@@ -1056,6 +1081,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 		("###featureList###", featureList),
 		("###languageSelection###", fontLangMenu),
 		(samsaPlaceholder, samsaReplaceWith),
+		("###defaultSize###", defaultSize)
 		)
 	htmlContent = replaceSet(htmlContent, replacements)
 	return htmlContent
@@ -1092,7 +1118,7 @@ def instanceIsActive(instance):
 
 def listOfAllStyles(thisFont):
 	tabbing = "\t" * 3
-	htmlSnippet = "%s<select id='styleMenu' name='styleMenu' onchange='setStyle(this.value);'>" % tabbing
+	htmlSnippet = f"{tabbing}<select id='styleMenu' name='styleMenu' onchange='setStyle(this.value);'>"
 
 	# add origin value
 	styleMenuEntries = [originMasterOfFont(thisFont)] + [i for i in thisFont.instances if instanceIsActive(i) and i.type == 0]
@@ -1114,7 +1140,7 @@ def listOfAllStyles(thisFont):
 		for axis in thisFont.axes:
 			axisTag = axis.axisTag
 			axisValue = coords[axisTag]
-			styleValues.append("%s:%i" % (str(axisTag), float(axisValue)))
+			styleValues.append(f"{str(axisTag)}: {float(axisValue)}")
 
 		# add HTML line:
 		htmlSnippet += "\n%s\t<option value='%s'>%s</option>" % (
@@ -1123,7 +1149,7 @@ def listOfAllStyles(thisFont):
 			styleName,
 			)
 
-	htmlSnippet += "\n%s</select>" % tabbing
+	htmlSnippet += "\n{tabbing}</select>"
 	return htmlSnippet
 
 def familyNameOfInstance(thisInstance):
@@ -1150,7 +1176,7 @@ def otVarInfoForInstance(thisInstance):
 	fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu = otVarInfoForFont(thisFont) # fallback
 
 	# instance-specific overrides:
-	fullName = "%s %s" % (familyName, thisInstance.name)
+	fullName = "{familyName} {thisInstance.name}"
 	fileName = otVarFileName(thisFont, thisInstance)
 
 	# TODO breakdown to OTVar Export (consider parameters etc.):
@@ -1205,7 +1231,7 @@ else:
 
 		print("\nPreparing Test HTML for: %s%s" % (
 			fullName,
-			" (%s)" % fileName if fileName else "",
+			f" ({fileName})" if fileName else "",
 			))
 		print("👷🏼‍ Building HTML code...")
 		htmlContent = buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa)
@@ -1226,14 +1252,14 @@ else:
 					samsaFileName,
 					)
 				system(terminalCommand)
-				print("✅ Created %s" % samsaFileName)
+				print(f"✅ Created {samsaFileName}")
 
 				# download samsa files:
 				samsaFiles = ("samsa-core.js", "samsa-gui.html", "samsa-gui.css") # "fonts/IBMPlexSansVar-Roman.ttf", "fonts/IBMPlexSansVar-Italic.ttf")
 				for samsaFile in samsaFiles:
 					terminalCommand = "curl --create-dirs %s/%s -o '%s/%s'" % (samsaURL, samsaFile, exportPath, samsaFile)
 					system(terminalCommand)
-					print("⬇️ Downloaded %s" % samsaFile)
+					print(f"⬇️ Downloaded {samsaFile}")
 
 				# fix css links:
 				terminalCommand = "cd '%s'; sed -i '' 's|url(fonts|url(https://www.axis-praxis.org/samsa/fonts|g' samsa-gui.css" % exportPath
@@ -1241,10 +1267,10 @@ else:
 
 			print("🕸 Building HTML file...")
 			strippedFileName = ".".join(fileName.split(".")[:-1]) # removes the last dot-suffix
-			htmlFileName = "%s fonttest.html" % strippedFileName
+			htmlFileName = f"{strippedFileName} fonttest.html"
 			if saveFileInLocation(content=htmlContent, fileName=htmlFileName, filePath=exportPath):
 				print("✅ Successfully wrote file to disk.")
-				terminalCommand = 'cd "%s"; open .; open "%s"' % (exportPath, htmlFileName)
+				terminalCommand = f'cd "{exportPath}"; open .; open "{htmlFileName}"'
 				system(terminalCommand)
 			else:
 				print("🛑 Error writing file to disk.")
