@@ -6,12 +6,18 @@ Import many masters at once with the Import Master parameter.
 """
 
 import vanilla, sys
+from AppKit import NSNotificationCenter
 
 def menuForFonts(fonts):
 	menu = []
 	for i, font in enumerate(fonts):
-		menu.append(f"{i+1}. {font.familyName} ({font.filepath.lastPathComponent()})")
-	return menu
+		if font.filepath:
+			path = font.filepath.lastPathComponent()
+			menu.append(f"{i+1}. {font.familyName} ({path})")
+	if menu:
+		return menu
+	else:
+		return ("⚠️ No saved font files. Save fonts and press Update.",)
 
 def masterNameParticlesForFont(font, separators = ".,-:/"):
 	allParticles = []
@@ -62,7 +68,7 @@ class BatchImportMasters(object):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 350
-		windowHeight = 210
+		windowHeight = 230
 		windowWidthResize  = 300 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -107,6 +113,10 @@ class BatchImportMasters(object):
 		
 		self.w.resetParameters = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Delete all existing Import Master parameters in target font", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.resetParameters.getNSButton().setToolTip_("If set, will first clean out all existing ‘Import Master’ parameters, so the font will only have the ‘Import Master’ parameters you add.")
+		linePos += lineHeight
+		
+		self.w.suppressMessage = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Suppress confirmation dialog", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.suppressMessage.getNSButton().setToolTip_("After you add the masters, there is a success dialog confirming the import. If it gets on your nerves, check this checkbox.")
 		linePos += lineHeight
 		
 		# Update Button:
@@ -162,26 +172,37 @@ class BatchImportMasters(object):
 			return False
 	
 	def UpdateUI(self, sender=None):
-		self.currentFonts = Glyphs.fonts
+		self.currentFonts = [f for f in Glyphs.fonts if f.filepath]
 		menu = menuForFonts(self.currentFonts)
-		if menu:
-			self.w.sourceFont.setItems(menu)
+		self.w.sourceFont.setItems(menu)
+		self.w.targetFont.setItems(menu)
+
+		if self.currentFonts:
+			self.w.sourceFont.enable(True)
+			self.w.targetFont.enable(True)
+			
 			sourceFontIndex = self.pref("sourceFont")
 			self.w.sourceFont.set(sourceFontIndex if sourceFontIndex != None and sourceFontIndex < len(menu) else 0)
 			Glyphs.defaults[self.domain("sourceFont")] = self.w.sourceFont.get()
 			
-			self.w.targetFont.setItems(menu)
 			targetFontIndex = self.pref("targetFont")
 			self.w.targetFont.set(targetFontIndex if targetFontIndex != None and targetFontIndex < len(menu) else 0)
 			Glyphs.defaults[self.domain("targetFont")] = self.w.targetFont.get()
-		
-		# update search combobox :
-		if sender != self.w.searchFor:
-			searchBoxContent = self.w.searchFor.get()
-			sourceFont = self.currentFonts[self.w.sourceFont.get()]
-			particles = masterNameParticlesForFont(sourceFont)
-			self.w.searchFor.setItems(particles)
-			self.w.searchFor.set(searchBoxContent) # circumvent bug
+
+			# update search combobox :
+			if sender != self.w.searchFor:
+				searchBoxContent = self.w.searchFor.get()
+				choiceIndex = self.w.sourceFont.get()
+				if choiceIndex < len(self.currentFonts):
+					sourceFont = self.currentFonts[choiceIndex]
+					particles = masterNameParticlesForFont(sourceFont)
+					self.w.searchFor.setItems(particles)
+					self.w.searchFor.set(searchBoxContent) # circumvent bug
+		else:
+			Glyphs.defaults[self.domain("sourceFont")] = 0
+			Glyphs.defaults[self.domain("targetFont")] = 0
+			self.w.sourceFont.enable(False)
+			self.w.targetFont.enable(False)
 		
 		# double check
 		self.w.runButton.enable(self.pref("sourceFont")!=self.pref("targetFont"))
@@ -208,7 +229,7 @@ class BatchImportMasters(object):
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				print(f"Batch-Import Masters Report")
+				print("Batch-Import Masters Report")
 			
 				font = self.currentFonts[self.pref("targetFont")]
 				importedFont = self.currentFonts[self.pref("sourceFont")]
@@ -222,11 +243,20 @@ class BatchImportMasters(object):
 					if resetParameters:
 						cleanParametersFromFont(font, cpName="Import Master")
 					importMastersFromFontToFont(importedFont, font, searchFor=searchFor, useRelativePath=useRelativePath)
+					
 				except Exception as e:
 					raise e
 				finally:
 					font.enableUpdateInterface()
+					for thisUI in (font.currentTab, font.fontView):
+						NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisUI)
 					print("\n✅ Done.")
+					if not self.pref("suppressMessage"):
+						Message(
+							title="Imported Masters",
+							message="Successfully imported all masters. Consider saving, closing and reopening the file in case you experience UI glitches.",
+							OKButton=None,
+							)
 
 				# self.w.close() # delete if you want window to stay open
 
