@@ -101,7 +101,7 @@ class BatchImportMasters(object):
 		
 		indent = 195
 		self.w.searchForText = vanilla.TextBox((inset, linePos+2, indent, 14), "Source master name must contain:", sizeStyle="small", selectable=True)
-		self.w.searchFor = vanilla.ComboBox((inset+indent, linePos-1, -inset, 19), masterNameParticlesForFont(self.currentFonts[0]), sizeStyle="small", callback=self.SavePreferences)
+		self.w.searchFor = vanilla.ComboBox((inset+indent, linePos-1, -inset, 19), (masterNameParticlesForFont(self.currentFonts[0]) if self.currentFonts else ()), sizeStyle="small", callback=self.SavePreferences)
 		tooltip = "If set, will only import masters that contain this name particle. Leave empty to import all masters of the source font."
 		self.w.searchFor.getNSComboBox().setToolTip_(tooltip)
 		self.w.searchForText.getNSTextField().setToolTip_(tooltip)
