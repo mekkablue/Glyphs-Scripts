@@ -194,8 +194,9 @@ class AddGrade(object):
 				gradeMaster = copy(baseMaster)
 				gradeMaster.name = f"{baseMaster.name} Grade {self.pref('grade')}"
 				gradeMaster.setAxisValueValue_forId_(grade, gradeAxis.id)
-				linkMasterParameter = GSCustomParameter("Link Metrics With Master", baseMaster.id)
-				gradeMaster.customParameters.append(linkMasterParameter)
+				if self.pref("addSyncMetricCustomParameter"):
+					linkMasterParameter = GSCustomParameter("Link Metrics With Master", baseMaster.id)
+					gradeMaster.customParameters.append(linkMasterParameter)
 				thisFont.masters.append(gradeMaster)
 				
 				gradeInstance = GSInstance()
