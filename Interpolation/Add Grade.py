@@ -179,7 +179,7 @@ class AddGrade(object):
 					gradeAxis = GSAxis()
 					gradeAxis.name = axisName
 					gradeAxis.axisTag = axisTag
-					gradeAxis.id = NSUUID.UUID()
+					# gradeAxis.id = NSUUID.UUID()
 					gradeAxis.hidden = False
 					# gradeAxis.font = thisFont
 					thisFont.axes.append(gradeAxis)
