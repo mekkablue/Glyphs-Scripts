@@ -223,7 +223,7 @@ class AddGrade(object):
 						weightedLayer.LSB += diff
 					gradeLayer.shapes = copy(weightedLayer.shapes)
 				
-				self.w.close() # delete if you want window to stay open
+				# self.w.close() # delete if you want window to stay open
 
 			print("\nDone.")
 
