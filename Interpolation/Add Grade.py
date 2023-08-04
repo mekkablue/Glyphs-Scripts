@@ -224,6 +224,7 @@ class AddGrade(object):
 						diff *= lsbPercentage
 						weightedLayer.LSB += diff
 					gradeLayer.shapes = copy(weightedLayer.shapes)
+					gradeLayer.anchors = copy(weightedLayer.anchors)
 				
 				# add missing axis locations if base master has axis locations:
 				if Glyphs.versionNumber < 4:
@@ -254,7 +255,7 @@ class AddGrade(object):
 				
 				# self.w.close() # delete if you want window to stay open
 
-			print("\nDone.")
+			print("\n✅ Done.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
