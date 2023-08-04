@@ -239,6 +239,7 @@ class AddGrade(object):
 								}
 							)
 							thisMaster.customParameters["Axis Location"] = axLoc
+							
 					print("Updating Axis Locations in instances...")
 					for thisInstance in thisFont.instances:
 						axLoc = thisInstance.customParameters["Axis Location"]
@@ -252,6 +253,19 @@ class AddGrade(object):
 							thisInstance.customParameters["Axis Location"] = axLoc
 						# thisMaster.setExternAxisValueValue_forId_(thisMaster.axisValueValueForId_(gradeID), gradeID)
 						# thisMaster.externalAxesValues[gradeID] = thisMaster.internalAxesValues[gradeID]
+						
+					for parameter in thisFont.customParameters:
+						if parameter.name == "Virtual Master":
+							print("Updating Virtual Master...")
+							axLoc = parameter.value
+							if len(axLoc) < len(thisFont.axes):
+								axLoc.append(
+									{
+										"Axis": "Grade",
+										"Location": 0,
+									}
+								)
+							parameter.value = axLoc
 				
 				# self.w.close() # delete if you want window to stay open
 
