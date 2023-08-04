@@ -179,9 +179,7 @@ class AddGrade(object):
 					gradeAxis = GSAxis()
 					gradeAxis.name = axisName
 					gradeAxis.axisTag = axisTag
-					# gradeAxis.id = NSUUID.UUID()
 					gradeAxis.hidden = False
-					# gradeAxis.font = thisFont
 					thisFont.axes.append(gradeAxis)
 				else:
 					gradeAxis = thisFont.axisForTag_(axisTag)
@@ -193,6 +191,7 @@ class AddGrade(object):
 				grade = int(self.pref("grade"))
 				gradeMaster = copy(baseMaster)
 				gradeMaster.name = f"{baseMaster.name} Grade {self.pref('grade')}"
+				print(f"Adding master: {gradeMaster.name}")
 				gradeMaster.setAxisValueValue_forId_(grade, gradeAxis.id)
 				if self.pref("addSyncMetricCustomParameter"):
 					linkMasterParameter = GSCustomParameter("Link Metrics With Master", baseMaster.id)
@@ -205,7 +204,7 @@ class AddGrade(object):
 				gradeInstance.axes = baseMaster.axes
 				weightValue = float(self.pref("weight").strip())
 				for i, a in enumerate(thisFont.axes):
-					if a.axisTag == "wght" or a.name == "Weight":
+					if a.axisTag == "wght" or a.name == "Weight": # weight axis
 						gradeInstance.axes[i] = weightValue
 						break
 				gradeFont = gradeInstance.interpolatedFont
@@ -218,10 +217,40 @@ class AddGrade(object):
 					targetWidth = baseLayer.width
 					if targetWidth != weightedWidth:
 						diff = targetWidth - weightedWidth
-						lsbPercentage = weightedLayer.LSB / (weightedLayer.LSB + weightedLayer.RSB)
+						if weightedLayer.LSB + weightedLayer.RSB:
+							lsbPercentage = weightedLayer.LSB / (weightedLayer.LSB + weightedLayer.RSB)
+						else:
+							lsbPercentage = 0.5
 						diff *= lsbPercentage
 						weightedLayer.LSB += diff
 					gradeLayer.shapes = copy(weightedLayer.shapes)
+				
+				# add missing axis locations if base master has axis locations:
+				if Glyphs.versionNumber < 4:
+					print("Updating Axis Locations in masters...")
+					for thisMaster in thisFont.masters:
+						axLoc = thisMaster.customParameters["Axis Location"]
+						if axLoc and len(axLoc) < len(thisFont.axes):
+							axLoc.append(
+								{
+									"Axis": "Grade",
+									"Location": thisMaster.axisValueValueForId_(gradeAxis.id),
+								}
+							)
+							thisMaster.customParameters["Axis Location"] = axLoc
+					print("Updating Axis Locations in instances...")
+					for thisInstance in thisFont.instances:
+						axLoc = thisInstance.customParameters["Axis Location"]
+						if axLoc and len(axLoc) < len(thisFont.axes):
+							axLoc.append(
+								{
+									"Axis": "Grade",
+									"Location": thisInstance.axisValueValueForId_(gradeAxis.id),
+								}
+							)
+							thisInstance.customParameters["Axis Location"] = axLoc
+						# thisMaster.setExternAxisValueValue_forId_(thisMaster.axisValueValueForId_(gradeID), gradeID)
+						# thisMaster.externalAxesValues[gradeID] = thisMaster.internalAxesValues[gradeID]
 				
 				# self.w.close() # delete if you want window to stay open
 
