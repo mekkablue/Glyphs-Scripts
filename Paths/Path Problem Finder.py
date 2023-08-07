@@ -291,7 +291,19 @@ def hasOutwardHandles(thisLayer):
 					return True
 	return False
 
-def isOutside(p1, p2, p3, threshold=0.6):
+def hasCuspingHandles(thisLayer):
+	for thisPath in thisLayer.paths:
+		for n in thisPath.nodes:
+			if n.type == OFFCURVE and n.nextNode.type == OFFCURVE:
+				distAC = distance(n.prevNode.position, n.nextNode.position)
+				distAB = distance(n.prevNode.position, n.position)
+				distBD = distance(n.position, n.nextNode.nextNode.position)
+				distCD = distance(n.nextNode.position, n.nextNode.nextNode.position)
+				if distAC < distAB and distBD < distCD:
+					thisLayer.selection = (n, n.nextNode)
+					return True
+
+def isOutside(p1, p2, p3):
 	"""
 	Returns True if p3 is outside p1-p2.
 	"""
@@ -329,6 +341,7 @@ class PathProblemFinder(object):
 		# "prefName": defaultValue,
 		"zeroHandles": 1,
 		"outwardHandles": 0,
+		"cuspingHandles": 0,
 		"largeHandles": 0,
 		"offcurveAsStartPoint": 1,
 		"shortHandles": 0,
@@ -385,25 +398,24 @@ class PathProblemFinder(object):
 		self.w.zeroHandles.getNSButton().setToolTip_(
 			"Zero handles (a.k.a. half-dead curves) can cause problems with screen rendering, hinting and interpolation. Indicated with purple disks in the Show Angled Handles plug-in."
 			)
-		# linePos += lineHeight
-
 		self.w.outwardHandles = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Outward-bent handles", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.outwardHandles.getNSButton().setToolTip_("Will find handles that point outside the stretch of their enclosing on-curves. Usually unwanted.")
 		linePos += lineHeight
 
-		self.w.largeHandles = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), "Overshooting handles (larger than 100%)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.largeHandles = vanilla.CheckBox((inset, linePos, -inset, 20), "Overshooting handles (larger than 100%)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.largeHandles.getNSButton().setToolTip_(
 			"Handles that are longer than 100%, i.e. going beyond the intersection with the opposing handle. Indicated with laser beams in the Show Angled Handles plug-in."
 			)
 		linePos += lineHeight
 
-		self.w.offcurveAsStartPoint = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), "Handle as startpoint", value=True, callback=self.SavePreferences, sizeStyle='small'
+		self.w.offcurveAsStartPoint = vanilla.CheckBox((inset, linePos, indent, 20), "BCP as startpoint", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.offcurveAsStartPoint.getNSButton().setToolTip_(
+			"Finds paths where the first point happens to be a handle (off-curve point, BCP). Not really an issue, but you’ll like it if you are going full OCD on your font."
 			)
-		self.w.offcurveAsStartPoint.getNSButton(
-		).setToolTip_("Finds paths where the first point happens to be a BCP (off-curve point). Not really an issue, but you’ll like it if you are going full OCD on your font.")
+		self.w.cuspingHandles = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Cusping handles", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.cuspingHandles.getNSButton().setToolTip_(
+			"Will find situations where, on a curve segment, the second handle comes before the first handle, i.e., is closer to the first on-curve. Usually unintended."
+			)
 		linePos += lineHeight
 
 		self.w.shortHandles = vanilla.CheckBox((inset, linePos, indent, 20), "Handles shorter than:", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -592,7 +604,7 @@ class PathProblemFinder(object):
 		self.w.shortSegmentThreshold.enable(self.w.shortSegment.get())
 
 		anyOptionIsOn = (
-			self.w.zeroHandles.get() or self.w.outwardHandles.get() or self.w.largeHandles.get() or self.w.shortHandles.get() or self.w.angledHandles.get()
+			self.w.zeroHandles.get() or self.w.outwardHandles.get() or self.w.cuspingHandles.get() or self.w.largeHandles.get() or self.w.shortHandles.get() or self.w.angledHandles.get()
 			or self.w.shallowCurveBBox.get() or self.w.shallowCurve.get() or self.w.shortSegment.get() or self.w.almostOrthogonalLines.get() or self.w.badOutlineOrder.get()
 			or self.w.badPathDirections.get() or self.w.strayPoints.get() or self.w.twoPointOutlines.get() or self.w.offcurveAsStartPoint.get() or self.w.openPaths.get()
 			or self.w.quadraticCurves.get() or self.w.decimalCoordinates.get() or self.w.emptyPaths.get()
@@ -657,6 +669,7 @@ class PathProblemFinder(object):
 				
 					layersWithZeroHandles = []; allTestLayers.append(layersWithZeroHandles); allTestReports.append("Zero Handles")
 					layersWithOutwardHandles = []; allTestLayers.append(layersWithOutwardHandles); allTestReports.append("Outward Handles")
+					layersWithCuspingHandles = []; allTestLayers.append(layersWithCuspingHandles); allTestReports.append("Cusping Handles")
 					layersWithLargeHandles = []; allTestLayers.append(layersWithLargeHandles); allTestReports.append("Large Handles")
 					layersWithShortHandles = []; allTestLayers.append(layersWithShortHandles); allTestReports.append("Short Handles")
 					layersWithAngledHandles = []; allTestLayers.append(layersWithAngledHandles); allTestReports.append("Angled Handles")
@@ -698,7 +711,11 @@ class PathProblemFinder(object):
 								if outwardHandles and hasOutwardHandles(thisLayer):
 									layersWithOutwardHandles.append(thisLayer)
 									print(f"  ❌ Outward handle(s) on layer: {thisLayer.name}")
-
+								
+								if cuspingHandles and hasCuspingHandles(thisLayer):
+									layersWithCuspingHandles.append(thisLayer)
+									print(f"  ❌ Cusping handle(s) on layer: {thisLayer.name}")
+								
 								if largeHandles and hasLargeHandles(thisLayer):
 									layersWithLargeHandles.append(thisLayer)
 									print(f"  ❌ Large handle(s) on layer: {thisLayer.name}")
