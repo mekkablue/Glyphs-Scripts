@@ -118,7 +118,7 @@ def hasBadOutlineOrder(thisLayer):
 		if thisLayer.paths:
 			firstPath = thisLayer.paths[0]
 
-	if firstPath and firstPath.direction != -1:
+	if firstPath and firstPath.direction != -1 and len(thisLayer.paths) > 1:
 		return True
 	else:
 		return False
