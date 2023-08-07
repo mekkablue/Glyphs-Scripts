@@ -24,7 +24,21 @@ def allAnchorsOfThisGlyph(thisGlyph):
 
 def closestNode(thisAnchor):
 	"""Return pathIndex, nodeIndex"""
-	pass
+	layer = thisAnchor.parent()
+	for pi, path in enumerate(layer.paths):
+		for ni, node in enumerate(path.nodes):
+			if node.position == thisAnchor.position:
+				return pi, ni
+	return None
+
+def pathNodeIndexForAnchorNameInGlyph(anchorName, glyph):
+	for thisLayer in glyph.layers:
+		thisAnchor = thisLayer.anchors[anchorName]
+		if thisAnchor:
+			pathNodeIndex = closestNode(thisAnchor)
+			if pathNodeIndex != None:
+				return pathNodeIndex
+	return None
 
 def closestNodeInComponent(thisAnchor):
 	"""Return componentIndex; pathIndex, nodeIndex"""
@@ -52,7 +66,13 @@ def process(thisGlyph):
 
 	if allAnchorDict: # skip glyphs without anchors (like space)
 		allAnchorNames = allAnchorDict.keys()
-
+		
+		pathNodeIndexDict = {}
+		for anchorName in allAnchorNames:
+			pathNodeIndex = pathNodeIndexForAnchorNameInGlyph(anchorName, thisGlyph)
+			if pathNodeIndex != None:
+				pathNodeIndexDict[anchorName] = pathNodeIndex
+		
 		for thisLayer in thisGlyph.layers:
 			layerAnchorNames = [a.name for a in thisLayer.anchors]
 
@@ -62,11 +82,20 @@ def process(thisGlyph):
 				thisWidth = thisLayer.width
 
 				for newAnchorName in anchorNamesToBeAdded:
-					newAnchorPosition = averagePosition(allAnchorDict[newAnchorName], thisWidth)
+					newAnchorPosition = None
+					if newAnchorName in pathNodeIndexDict.keys():
+						pathIndex, nodeIndex = pathNodeIndexDict[newAnchorName]
+						if len(thisLayer.paths) > pathIndex:
+							path = thisLayer.paths[pathIndex]
+							if len(path.nodes) > nodeIndex:
+								node = path.nodes[nodeIndex]
+								newAnchorPosition = node.position
+					if newAnchorPosition == None:
+						newAnchorPosition = averagePosition(allAnchorDict[newAnchorName], thisWidth)
 					newAnchor = GSAnchor()
 					newAnchor.name = newAnchorName
 					newAnchor.position = newAnchorPosition
-					thisLayer.addAnchor_(newAnchor)
+					thisLayer.anchors.append(newAnchor)
 					anchorsAdded.append(newAnchorName)
 
 				reportString += "  %s: %s\n" % (thisLayer.name, ", ".join(anchorsAdded))
