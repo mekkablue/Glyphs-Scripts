@@ -649,13 +649,20 @@ else:
 			)
 
 		htmlContent = replaceSet(htmlContent, replacements)
-
+		
+		
 		# Write file to disk:
 		if exportPath:
-			htmlFileName = "fonttest.html"
+			filepath = thisFont.filepath
+			if filepath:
+				filename = filepath.lastPathComponent().stringByDeletingDotSuffix()
+			else:
+				filename = thisFont.familyName
+			htmlFileName = f"{filename} fonttest.html"
+
 			if saveFileInLocation(content=htmlContent, fileName=htmlFileName, filePath=exportPath):
 				print("Successfully wrote file to disk.")
-				terminalCommand = 'cd "%s"; open .; open %s' % (exportPath, htmlFileName)
+				terminalCommand = f'cd "{exportPath}"; open .; open "{htmlFileName}"'
 				system(terminalCommand)
 			else:
 				print("Error writing file to disk.")
