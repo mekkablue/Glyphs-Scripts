@@ -7,6 +7,8 @@ Insert many instances at once with a recipe.
 
 import vanilla, codecs
 from AppKit import NSFont, NSDictionary
+from GlyphsApp import INSTANCETYPEVARIABLE
+
 defaultRecipe = """
 Recipe instructions:
 1. After a hashtag, enter the axis name (optionally followed by colon and axis tag), e.g. ‘#Weight’ or ‘#Width:wdth’
@@ -121,7 +123,6 @@ def parsePosInfo(posInfo):
 	if type(posInfo) == tuple:
 		return posInfo
 
-	print("posInfo:", posInfo)
 	posInfo = str(posInfo)
 	if ">" in posInfo:
 		coord, axisLoc = [int(c.strip()) for c in posInfo.split(">")]
@@ -421,7 +422,6 @@ class InstanceCooker(object):
 								instance.widthClass = widthClass
 
 							# set internal coordinate:
-							print("coord, axisID:", coord, axisID)
 							instance.setAxisValueValue_forId_(coord, axisID)
 
 							# set external coordinate:
@@ -431,7 +431,9 @@ class InstanceCooker(object):
 							styleLinkInstance(instance, axisName, instance.name)
 
 							# collect instance:
+							removeElidableNames(instance)
 							instances.append(instance)
+							print(instance.name)
 					else:
 						newInstances = []
 						for existingInstance in instances:
@@ -453,28 +455,31 @@ class InstanceCooker(object):
 								styleLinkInstance(instance, axisName, nameParticle)
 
 								# collect instance:
+								removeElidableNames(instance)
 								newInstances.append(instance)
+								print(instance.name)
 
 						instances = newInstances
 
 				# clean elidable names:
-				for instance in instances:
-					removeElidableNames(instance)
+				# print("\nPreparing elidable names...")
+				# for instance in instances:
+				# 	removeElidableNames(instance)
 
 				# add instances to this font:
-				thisFont.instances = [i for i in thisFont.instances if i.type != 0] + instances
+				thisFont.instances = [i for i in thisFont.instances if i.type == INSTANCETYPEVARIABLE] + instances
 				instanceCount = len(instances)
 
 			# Final report:
-			Glyphs.showNotification(
-				"Added %i instance%s to %s" % (
+			print(
+				"Added %i instance%s to %s. Details in Macro Window." % (
 					instanceCount,
 					"" if instanceCount == 1 else "s",
 					thisFont.familyName,
-					),
-				"Instance Cooker is finished. Details in Macro Window",
+					)
 				)
-			print("\nDone.")
+			thisFont.parent.windowController().showFontInfoWindowWithTabSelected_(2)
+			print("\n✅ Done.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
