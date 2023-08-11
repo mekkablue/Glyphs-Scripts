@@ -311,7 +311,7 @@ class GarbageCollection(object):
 
 				print("🗑 Garbage Collection Report for {thisFont.familyName}")
 				if thisFont.filepath:
-					print("📄 %s" % thisFont.filepath)
+					print(f"📄 {thisFont.filepath}")
 				else:
 					print("⚠️ file not saved yet")
 
@@ -368,13 +368,13 @@ class GarbageCollection(object):
 								removeAnnotationsGlyph += len(thisLayer.annotations)
 								thisLayer.annotations = None
 							if removeColors:
-								self.log(f"\t🚫 color for layer ‘{thisLayer.name}’")
+								# self.log(f"\t🚫 color for layer ‘{thisLayer.name}’")
 								thisLayer.color = None
 							if userDataLayers:
 								# if thisLayer.userData: # BROKEN IN 3.2
 								if thisLayer.userData.keys():
 									keysToRemove = [k for k in thisLayer.userData.keys() if self.shouldBeRemoved(k, userDataKeys)]
-									self.log(f"\t🚫 layer.userData: {', '.join(keysToRemove)}")
+									# self.log(f"\t🚫 layer.userData: {', '.join(keysToRemove)}")
 									for keyToRemove in keysToRemove:
 										thisLayer.removeUserDataForKey_(keyToRemove)
 							if clearBackgroundLayers:
@@ -390,30 +390,30 @@ class GarbageCollection(object):
 									layerDeletionCount += 1
 					if removeGlyphNotes:
 						if thisGlyph.note:
-							self.log("\t🚫 glyph note")
+							# self.log("\t🚫 glyph note")
 							thisGlyph.note = None
 					if removeColors:
-						self.log("\t🚫 glyph color")
+						# self.log("\t🚫 glyph color")
 						thisGlyph.color = None
 					if userDataGlyphs:
 						if thisGlyph.userData:
 							keysToRemove = [k for k in thisGlyph.userData.keys() if self.shouldBeRemoved(k, userDataKeys)]
-							self.log(f"\t🚫 glyph.userData: {', '.join(keysToRemove)}")
+							# self.log(f"\t🚫 glyph.userData: {', '.join(keysToRemove)}")
 							for keyToRemove in keysToRemove:
 								thisGlyph.removeUserDataForKey_(keyToRemove)
 
 					# report:
 					if removeNodeNamesGlyph:
-						self.log(f"\t🚫 {removeNodeNamesGlyph} node names")
+						# self.log(f"\t🚫 {removeNodeNamesGlyph} node names")
 						removeNodeNamesFont += removeNodeNamesGlyph
 					if localGuidesGlyph:
-						self.log(f"\t🚫 {localGuidesGlyph} local guides")
+						# self.log(f"\t🚫 {localGuidesGlyph} local guides")
 						localGuidesFont += localGuidesGlyph
 					if removeAnnotationsGlyph:
-						self.log(f"\t🚫 {removeAnnotationsGlyph} annotations")
+						# self.log(f"\t🚫 {removeAnnotationsGlyph} annotations")
 						removeAnnotationsFont += removeAnnotationsGlyph
 					if layerDeletionCount:
-						self.log(f"\t🚫 {layerDeletionCount} backup layers")
+						# self.log(f"\t🚫 {layerDeletionCount} backup layers")
 						layerDeletionCountFont += layerDeletionCount
 
 				# Remove global guides:
@@ -460,7 +460,7 @@ class GarbageCollection(object):
 				# Remove User Data (instance levels):
 				if self.pref("userDataInstances"):
 					for thisInstance in thisFont.instances:
-						self.log("🧑🏽‍💻ℹ️ Cleaning instance.userData: {thisInstance.name}")
+						self.log(f"🧑🏽‍💻ℹ️ Cleaning instance.userData: {thisInstance.name}")
 						if thisInstance.userData:
 							keysToRemove = [k for k in thisInstance.userData.keys() if self.shouldBeRemoved(k, userDataKeys)]
 							if len(keysToRemove) > 0:
