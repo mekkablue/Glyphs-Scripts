@@ -368,7 +368,7 @@ class GarbageCollection(object):
 								removeAnnotationsGlyph += len(thisLayer.annotations)
 								thisLayer.annotations = None
 							if removeColors:
-								self.log("\t🚫 color for layer ‘{thisLayer.name}’")
+								self.log(f"\t🚫 color for layer ‘{thisLayer.name}’")
 								thisLayer.color = None
 							if userDataLayers:
 								# if thisLayer.userData: # BROKEN IN 3.2
@@ -443,7 +443,7 @@ class GarbageCollection(object):
 				# Remove User Data (master levels):
 				if self.pref("userDataMasters"):
 					for thisMaster in thisFont.masters:
-						self.log("🧑🏽‍💻Ⓜ️ Cleaning master.userData: %s" % thisMaster.name)
+						self.log(f"🧑🏽‍💻Ⓜ️ Cleaning master.userData: {thisMaster.name}")
 						if thisMaster.userData:
 							keysToRemove = [k for k in thisMaster.userData.keys() if self.shouldBeRemoved(k, userDataKeys)]
 							if len(keysToRemove) > 0:
@@ -460,7 +460,7 @@ class GarbageCollection(object):
 				# Remove User Data (instance levels):
 				if self.pref("userDataInstances"):
 					for thisInstance in thisFont.instances:
-						self.log("🧑🏽‍💻ℹ️ Cleaning instance.userData: %s" % thisInstance.name)
+						self.log("🧑🏽‍💻ℹ️ Cleaning instance.userData: {thisInstance.name}")
 						if thisInstance.userData:
 							keysToRemove = [k for k in thisInstance.userData.keys() if self.shouldBeRemoved(k, userDataKeys)]
 							if len(keysToRemove) > 0:
