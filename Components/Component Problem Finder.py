@@ -306,12 +306,10 @@ class ComponentProblemFinder(object):
 
 	def glyphHas_orphanedComponents(self, thisGlyph):
 		for thisLayer in thisGlyph.layers:
-			theseComponents = thisLayer.components
-			if theseComponents:
-				for thisComponent in theseComponents:
-					if thisComponent.component is None:
-						print("\t🫥 orphaned component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
-						return True
+			for thisComponent in thisLayer.components:
+				if thisComponent.component is None:
+					print("\t🫥 orphaned component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
+					return True
 		return False
 
 	def glyphHas_emptyComponents(self, thisGlyph):
