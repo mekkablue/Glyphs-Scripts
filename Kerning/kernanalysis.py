@@ -236,7 +236,7 @@ def isHeightInIntervals(height, ignoreIntervals):
 def minDistanceBetweenTwoLayers(leftLayer, rightLayer, interval=5.0, kerning=0.0, report=False, ignoreIntervals=[]):
 	# correction = leftLayer.RSB+rightLayer.LSB
 	if Glyphs.versionNumber>=3.2:
-		leftBounds, rightBounds = leftLayer.fastBounds(), rightLayer.fastBounds()
+		leftBounds, rightBounds = leftLayer.bounds, rightLayer.bounds
 	else:
 		leftBounds, rightBounds = leftLayer.bounds, rightLayer.bounds
 	topY = min(leftBounds.origin.y + leftBounds.size.height, rightBounds.origin.y + rightBounds.size.height)

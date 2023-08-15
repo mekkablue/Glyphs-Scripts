@@ -324,9 +324,9 @@ def buildNotdef(thisFont, override=False):
 				# Build .notdef from question mark and circle:
 				questionmarkLayer = sourceLayer.copyDecomposedLayer()
 				scaleLayerByFactor(questionmarkLayer, 0.8)
-				qOrigin = questionmarkLayer.fastBounds().origin
-				qWidth = questionmarkLayer.fastBounds().size.width
-				qHeight = questionmarkLayer.fastBounds().size.height
+				qOrigin = questionmarkLayer.bounds.origin
+				qWidth = questionmarkLayer.bounds.size.width
+				qHeight = questionmarkLayer.bounds.size.height
 				qCenter = NSPoint(qOrigin.x + 0.5 * qWidth, qOrigin.y + 0.5 * qHeight)
 				side = max((qWidth, qHeight)) * 1.5
 				circleRect = NSRect(NSPoint(qCenter.x - 0.5 * side, qCenter.y - 0.5 * side), NSSize(side, side))
@@ -396,8 +396,8 @@ def buildLozenge(thisFont, override=False):
 		thisLayer.syncMetrics()
 		
 		# cut off caps:
-		midTop = sum([p.fastBounds().origin.y + p.fastBounds().size.height for p in thisLayer.paths]) / 2.0
-		midBottom = sum([p.fastBounds().origin.y for p in thisLayer.paths]) / 2.0
+		midTop = sum([p.bounds.origin.y + p.bounds.size.height for p in thisLayer.paths]) / 2.0
+		midBottom = sum([p.bounds.origin.y for p in thisLayer.paths]) / 2.0
 		intersector = GSPath()
 		coordinates = (
 			(0, midBottom),
@@ -521,7 +521,7 @@ def buildEstimated(thisFont, override=False):
 
 				# scale estimated to match zero:
 				if zeroGlyph:
-					zeroBounds = zeroGlyph.layers[thisLayer.associatedMasterId].fastBounds()
+					zeroBounds = zeroGlyph.layers[thisLayer.associatedMasterId].bounds
 					zeroHeight = zeroBounds.size.height
 					if zeroHeight: # zero could be empty
 						zeroOvershoot = -zeroBounds.origin.y
@@ -546,10 +546,10 @@ def buildEstimated(thisFont, override=False):
 def stemWidthForMaster(thisFont, thisMaster, default=50, maxWidth=None):
 	try:
 		slash = thisFont.glyphs["slash"].layers[thisMaster.id]
-		slashLeft = slash.fastBounds().origin.x
-		slashRight = slashLeft + slash.fastBounds().size.width
-		slashBottom = slash.fastBounds().origin.x
-		slashTop = slashLeft + slash.fastBounds().size.width
+		slashLeft = slash.bounds.origin.x
+		slashRight = slashLeft + slash.bounds.size.width
+		slashBottom = slash.bounds.origin.x
+		slashTop = slashLeft + slash.bounds.size.width
 		middleHeight = (slashBottom + slashTop) / 2
 		measureStart = NSPoint(slashLeft, middleHeight)
 		measureEnd = NSPoint(slashRight, middleHeight)
@@ -624,9 +624,9 @@ def buildBars(thisFont, override=False):
 
 			if slashGlyph:
 				slashLayer = slashGlyph.layers[thisMaster.id]
-				if slashLayer.fastBounds().size.height > 0:
-					descender = slashLayer.fastBounds().origin.y
-					ascender = descender + slashLayer.fastBounds().size.height
+				if slashLayer.bounds.size.height > 0:
+					descender = slashLayer.bounds.origin.y
+					ascender = descender + slashLayer.bounds.size.height
 					middle = (descender + ascender) * 0.5
 					suggestedStemWidth = slashLayer.width - slashLayer.rsbAtHeight_(middle) - slashLayer.lsbAtHeight_(middle)
 					if suggestedStemWidth > 0:

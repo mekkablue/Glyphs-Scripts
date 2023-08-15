@@ -92,7 +92,7 @@ def createGlyph(
 	if glyph:
 		originalLayer = GSLayer()
 		drawPenDataInLayer(originalLayer, pathData, closePath=closePath)
-		originalHeight = originalLayer.fastBounds().size.height # FIX 3.2
+		originalHeight = originalLayer.bounds.size.height # FIX 3.2
 
 		# scale:
 
@@ -101,7 +101,7 @@ def createGlyph(
 		else:
 			scaleCorrection = stroke
 		scaleToHeight = originalHeight * scaleFactor - scaleCorrection
-		currentHeight = originalLayer.fastBounds().size.height # TEMP FIX 3.2
+		currentHeight = originalLayer.bounds.size.height # TEMP FIX 3.2
 		if not currentHeight:
 			print("❌ ERROR: No content (height=0) for %s." % glyphName)
 			return
@@ -118,7 +118,7 @@ def createGlyph(
 
 		# shift vertically:
 		whereBottomShouldBe = -belowBase * originalHeight + (originalHeight - originalHeight * scaleFactor) / 2 # full height 10% below baseline, but respect scaleFactor
-		whereItCurrentlyIs = originalLayer.fastBounds().origin.y # FIX 3.2
+		whereItCurrentlyIs = originalLayer.bounds.origin.y # FIX 3.2
 		verticalShift = whereBottomShouldBe - whereItCurrentlyIs
 		if verticalShift:
 			matrix = transform(shiftY=verticalShift).transformStruct()

@@ -79,7 +79,7 @@ def addRects(rects):
 
 def unionRectForLayers(layers):
 	if Glyphs.versionNumber >= 3.2:
-		allRects = [l.fastBounds() for l in layers]
+		allRects = [l.bounds for l in layers]
 	else:
 		allRects = [l.bounds for l in layers]
 	unionRect = addRects(allRects)
