@@ -6,6 +6,33 @@ Complete the rectangular setup necessary for OTVAR exports.
 """
 
 from itertools import product
+from copy import copy as copy
+
+def addMissingHeightWidth(g):
+	f = g.parent
+	currentSpots = []
+	layerDict = {}
+	for l in g.layers:
+		if l.attributes and l.attributes["coordinates"]:
+			coords = l.attributes["coordinates"]
+			key = l.associatedMasterId
+			if key in layerDict.keys():
+				layerDict[key].append(coords)
+			else:
+				layerDict[key] = [coords]
+			if not coords in currentSpots:
+				currentSpots.append(coords)
+	for spot in currentSpots:
+		for m in f.masters:
+			mID = m.id
+			if mID in layerDict.keys() and spot in layerDict[mID]:
+				continue
+			braceLayer = copy(g.layers[mID])
+			braceLayer.attributes["coordinates"] = spot
+			braceLayer.associatedMasterId = mID
+			g.layers.append(braceLayer)
+			
+			print(f"🔤 {g.name}: added height={spot['hght']} width={spot['wdth']} for {m.name}")
 
 def addMissingBraceLayers(g):
 	f = g.parent
@@ -50,7 +77,10 @@ try:
 	for thisLayer in selectedLayers:
 		thisGlyph = thisLayer.parent
 		thisGlyph.beginUndo() # begin undo grouping
-		addMissingBraceLayers(thisGlyph)
+		if thisGlyph.category == "Corner":
+			addMissingHeightWidth(thisGlyph)
+		else:
+			addMissingBraceLayers(thisGlyph)
 		print()
 		thisGlyph.endUndo()   # end undo grouping
 except Exception as e:
