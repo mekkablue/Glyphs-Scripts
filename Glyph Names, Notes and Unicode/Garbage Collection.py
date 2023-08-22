@@ -7,14 +7,50 @@ Removes annotations, glyph notes, guides, and node names.
 
 import vanilla
 
+def extractUserDataKeys(obj):
+	userDataKeys = []
+	if obj.userData:
+		userDataKeys.extend(obj.userData.keys())
+	return userDataKeys
+	
+def allUserDataKeysForFont(font):
+	keys = []
+	for m in font.masters:
+		keys.extend(extractUserDataKeys(m))
+	for g in font.glyphs:
+		keys.extend(extractUserDataKeys(g))
+		for l in g.layers:
+			keys.extend(extractUserDataKeys(l))
+	return sorted(set(keys))
+
 class GarbageCollection(object):
 	prefID = "com.mekkablue.GarbageCollection"
+	prefDict = {
+		# "prefName": defaultValue,
+		"removeNodeNames": 1,
+		"removeLocalGuides": 0,
+		"removeGlobalGuides": 0,
+		"removeAnnotations": 1,
+		"removeGlyphNotes": 0,
+		"removeColors": 0,
+		"clearBackgroundLayers": 0,
+		"removeBackupLayers": 0,
+		"userDataFont": 0,
+		"userDataMasters": 0,
+		"userDataInstances": 0,
+		"userDataGlyphs": 0,
+		"userDataLayers": 0,
+		"userDataKeys": "UFO, fontlab, public",
+		"currentMasterOnly": 0,
+		"selectedGlyphsOnly": 0,
+		"allFonts": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 310
-		windowHeight = 450
-		windowWidthResize = 50 # user can resize width by this value
+		windowWidth = 330
+		windowHeight = 430
+		windowWidthResize = 300 # user can resize width by this value
 		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight), # default window size
@@ -27,9 +63,9 @@ class GarbageCollection(object):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 12, 22
 		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, lineHeight * 1.8), "Removes the following items from the glyphs in the frontmost font:", sizeStyle='small', selectable=True
+			(inset, linePos + 2, -inset, lineHeight * 1.8), "Clean frontmost font:", sizeStyle='small', selectable=True
 			)
-		linePos += 1.8 * lineHeight
+		linePos += lineHeight
 
 		self.w.removeNodeNames = vanilla.CheckBox(
 			(inset, linePos - 1, -inset, 20), "Remove all node names 🔥❌👌🏻⛔️🧨 in font", value=True, callback=self.SavePreferences, sizeStyle='small'
@@ -122,10 +158,12 @@ class GarbageCollection(object):
 		linePos += lineHeight
 
 		self.w.userDataKeysText = vanilla.TextBox((inset, linePos + 3, 92, 14), "…only keys with:", sizeStyle='small', selectable=True)
-		self.w.userDataKeys = vanilla.EditText((inset + 92, linePos, -inset, 19), "UFO, fontlab, public", callback=self.SavePreferences, sizeStyle='small')
+		self.w.userDataKeys = vanilla.EditText((inset + 92, linePos, -inset-25, 19), "UFO, fontlab, public", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Comma-separated list of search strings for userData keys to delete. Leave empty to remove all."
 		self.w.userDataKeysText.getNSTextField().setToolTip_(tooltip)
 		self.w.userDataKeys.getNSTextField().setToolTip_(tooltip)
+		self.w.userDataUpdate = vanilla.SquareButton((-inset-20, linePos+1, -inset, 18), "↺", sizeStyle="small", callback=self.updateUserDataUI)
+		self.w.userDataUpdate.getNSButton().setToolTip_("Add the userData keys of frontmost font.")
 		linePos += lineHeight + 3
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
@@ -161,7 +199,19 @@ class GarbageCollection(object):
 				newTitle = currentTitle.replace(fromString, toString)
 				uiItem.setTitle(newTitle)
 				return
-
+	
+	def updateUserDataUI(self, sender=None):
+		userDataKeysForFrontmostFont = allUserDataKeysForFont(Glyphs.font)
+		if userDataKeysForFrontmostFont:
+			existingKeys = self.w.userDataKeys.get().strip()
+			if existingKeys:
+				for key in [k.strip() for k in existingKeys.split(",") if k.strip()]:
+					if not key in userDataKeysForFrontmostFont:
+						userDataKeysForFrontmostFont.append(key)
+			userDataString = ", ".join(userDataKeysForFrontmostFont)
+			self.w.userDataKeys.set(userDataString)
+			self.SavePreferences()
+		
 	def guiUpdate(self, sender=None):
 		uiItemNames = (
 			"removeNodeNames",
@@ -192,86 +242,36 @@ class GarbageCollection(object):
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-
+	
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender):
+	
+	def SavePreferences(self, sender=None):
 		try:
-			Glyphs.defaults[self.domain("removeNodeNames")] = self.w.removeNodeNames.get()
-			Glyphs.defaults[self.domain("removeLocalGuides")] = self.w.removeLocalGuides.get()
-			Glyphs.defaults[self.domain("removeGlobalGuides")] = self.w.removeGlobalGuides.get()
-			Glyphs.defaults[self.domain("removeAnnotations")] = self.w.removeAnnotations.get()
-			Glyphs.defaults[self.domain("removeGlyphNotes")] = self.w.removeGlyphNotes.get()
-			Glyphs.defaults[self.domain("removeColors")] = self.w.removeColors.get()
-			Glyphs.defaults[self.domain("clearBackgroundLayers")] = self.w.clearBackgroundLayers.get()
-			Glyphs.defaults[self.domain("removeBackupLayers")] = self.w.removeBackupLayers.get()
-
-			Glyphs.defaults[self.domain("userDataFont")] = self.w.userDataFont.get()
-			Glyphs.defaults[self.domain("userDataMasters")] = self.w.userDataMasters.get()
-			Glyphs.defaults[self.domain("userDataInstances")] = self.w.userDataInstances.get()
-			Glyphs.defaults[self.domain("userDataGlyphs")] = self.w.userDataGlyphs.get()
-			Glyphs.defaults[self.domain("userDataLayers")] = self.w.userDataLayers.get()
-			Glyphs.defaults[self.domain("userDataKeys")] = self.w.userDataKeys.get()
-
-			Glyphs.defaults[self.domain("currentMasterOnly")] = self.w.currentMasterOnly.get()
-			Glyphs.defaults[self.domain("selectedGlyphsOnly")] = self.w.selectedGlyphsOnly.get()
-			Glyphs.defaults[self.domain("allFonts")] = self.w.allFonts.get()
-
+			# write current settings into prefs:
+			for prefName in self.prefDict.keys():
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
 			self.guiUpdate(sender=sender)
+			return True
 		except:
+			import traceback
+			print(traceback.format_exc())
 			return False
-
-		return True
 
 	def LoadPreferences(self, sender=None):
 		try:
-			Glyphs.registerDefault(self.domain("removeNodeNames"), 1)
-			Glyphs.registerDefault(self.domain("removeLocalGuides"), 0)
-			Glyphs.registerDefault(self.domain("removeGlobalGuides"), 0)
-			Glyphs.registerDefault(self.domain("removeAnnotations"), 1)
-			Glyphs.registerDefault(self.domain("removeGlyphNotes"), 0)
-			Glyphs.registerDefault(self.domain("removeColors"), 0)
-			Glyphs.registerDefault(self.domain("clearBackgroundLayers"), 0)
-			Glyphs.registerDefault(self.domain("removeBackupLayers"), 0)
-
-			Glyphs.registerDefault(self.domain("userDataFont"), 0)
-			Glyphs.registerDefault(self.domain("userDataMasters"), 0)
-			Glyphs.registerDefault(self.domain("userDataInstances"), 0)
-			Glyphs.registerDefault(self.domain("userDataGlyphs"), 0)
-			Glyphs.registerDefault(self.domain("userDataLayers"), 0)
-			Glyphs.registerDefault(self.domain("userDataKeys"), "UFO, fontlab, public")
-
-			Glyphs.registerDefault(self.domain("currentMasterOnly"), 0)
-			Glyphs.registerDefault(self.domain("selectedGlyphsOnly"), 0)
-			Glyphs.registerDefault(self.domain("allFonts"), 0)
-
-			self.w.removeNodeNames.set(self.pref("removeNodeNames"))
-			self.w.removeLocalGuides.set(self.pref("removeLocalGuides"))
-			self.w.removeGlobalGuides.set(self.pref("removeGlobalGuides"))
-			self.w.removeAnnotations.set(self.pref("removeAnnotations"))
-			self.w.removeGlyphNotes.set(self.pref("removeGlyphNotes"))
-			self.w.removeColors.set(self.pref("removeColors"))
-			self.w.clearBackgroundLayers.set(self.pref("clearBackgroundLayers"))
-			self.w.removeBackupLayers.set(self.pref("removeBackupLayers"))
-
-			self.w.userDataFont.set(self.pref("userDataFont"))
-			self.w.userDataMasters.set(self.pref("userDataMasters"))
-			self.w.userDataInstances.set(self.pref("userDataInstances"))
-			self.w.userDataGlyphs.set(self.pref("userDataGlyphs"))
-			self.w.userDataLayers.set(self.pref("userDataLayers"))
-			self.w.userDataKeys.set(self.pref("userDataKeys"))
-
-			self.w.currentMasterOnly.set(self.pref("currentMasterOnly"))
-			self.w.selectedGlyphsOnly.set(self.pref("selectedGlyphsOnly"))
-			self.w.allFonts.set(self.pref("allFonts"))
-
+			for prefName in self.prefDict.keys():
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
+				# load previously written prefs:
+				getattr(self.w, prefName).set(self.pref(prefName))
 			self.guiUpdate(sender=sender)
+			return True
 		except:
+			import traceback
+			print(traceback.format_exc())
 			return False
-
-		return True
 
 	def log(self, msg):
 		try:
