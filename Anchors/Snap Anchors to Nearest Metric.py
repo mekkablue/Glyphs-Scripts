@@ -40,7 +40,7 @@ class SnapAnchorsToNearestMetric(object):
 		"anchorNames": "_top, _bottom, top, bottom, ogonek, _ogonek",
 		"threshold": 30,
 		"respectItalic": True,
-		"focusOnMarkAnchorsInMarc": True,
+		"focusOnMarkAnchorsInMarks": True,
 		"allFonts": False,
 		"verbose": False,
 	}
@@ -77,8 +77,8 @@ class SnapAnchorsToNearestMetric(object):
 		self.w.respectItalic = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Respect italic angle (otherwise always vertical)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 		
-		self.w.focusOnMarkAnchorsInMarc = vanilla.CheckBox((inset, linePos-1, -inset, 20), "In marks, ignore non-underscore anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.focusOnMarkAnchorsInMarc.getNSButton().setToolTip_("Will look only for _xxx anchors in marks (i.e., with an underscore), and ignore those not starting with an underscore.")
+		self.w.focusOnMarkAnchorsInMarks = vanilla.CheckBox((inset, linePos-1, -inset, 20), "In marks, ignore non-underscore anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.focusOnMarkAnchorsInMarks.getNSButton().setToolTip_("Will look only for _xxx anchors in marks (i.e., with an underscore), and ignore those not starting with an underscore.")
 		linePos += lineHeight
 		
 		self.w.allFonts = vanilla.CheckBox((inset, linePos-1, 150, 20), "Apply to ⚠️ ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
@@ -201,6 +201,7 @@ class SnapAnchorsToNearestMetric(object):
 			respectItalic = bool(self.pref("respectItalic"))
 			verbose = bool(self.pref("verbose"))
 			anchorNamesList = sorted(set([a.strip() for a in self.pref("anchorNames").strip().split(",")]))
+			focusOnMarkAnchorsInMarks = bool(self.pref("focusOnMarkAnchorsInMarks"))
 			
 			for thisFont in theseFonts:
 				filePath = thisFont.filepath
@@ -227,7 +228,7 @@ class SnapAnchorsToNearestMetric(object):
 								l, anchorNames=anchorNamesList,
 								respectItalic=respectItalic,
 								threshold=threshold,
-								underscoreOnlyInMarks=focusOnMarkAnchorsInMarc,
+								underscoreOnlyInMarks=focusOnMarkAnchorsInMarks,
 								verbose=verbose,
 								)
 							movedAnchorsInGlyph = movedAnchorsInGlyph or movedAnchorsOnLayer
