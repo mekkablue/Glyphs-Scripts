@@ -102,6 +102,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 *Most important: Quote Manager, and the Build scripts for Small Figures, Symbols, Ldot. The other scripts are mainly intended to give you a quick head start for covering certain Unicode ranges if requested by the client.*
 
+* **Add Adobe Symbol Glyphs:** Will add Adobe’s interpolations for a number of symbol glyphs if they are missing from the font: *Omega, Delta, Ohm, increment, asciicircum, greaterequal, infinity, partialdiff, lessequal, notequal, product, approxequal, plus, lozenge, integral, summation, radical, daggerdbl, perthousand, logicalnot, plusminus, asciitilde, divide, minus, multiply, dagger, less, equal, greater, literSign, .notdef.* Requires makeotf (AFDKO) to be installed.
 * **Build APL Greek:** Create APL Greek glyphs.
 * **Build careof and cadauna:** Builds `cadauna` and `careof` from your `c`, `o`, `u` and `fraction` glyphs.
 * **Build Circled Glyphs:** Builds circled numbers and letters (U+24B6...24EA and U+2460...2473) from `_part.circle` and your letters and figures. *Needs Vanilla.*
