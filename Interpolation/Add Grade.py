@@ -6,8 +6,121 @@ Add Grade axis and/or Grade master, based on your Weight and Width axes.
 """
 
 import vanilla, sys
-from AppKit import NSUUID
-from copy import copy as copy
+from AppKit import NSAffineTransform, NSAffineTransformStruct, NSPoint
+from copy import copy
+
+def realWeight(font, referenceGlyph="idotless", masterIndex=0):
+	glyph = font.glyphs[referenceGlyph]
+	layer = glyph.layers[masterIndex]
+	midY = layer.bounds.origin.y + layer.bounds.size.height / 2
+	intersections = layer.intersectionsBetweenPoints(
+		NSPoint(layer.bounds.origin.x-100, midY),
+		NSPoint(layer.bounds.origin.x + layer.bounds.size.width + 100, midY),
+		)
+	p1 = intersections[1]
+	p2 = intersections[-2]
+	actualWidth = p2.x - p1.x
+	return actualWidth
+
+def wghtIndex(font):
+	for i, a in enumerate(font.axes):
+		if a.axisTag == "wght":
+			return i
+	return None
+
+def hScaleLayer(layer, hFactor=1.0):
+	xScale = NSAffineTransform.transform()
+	xScale.scaleXBy_yBy_(hFactor, 1.0)
+	layer.applyTransform(xScale.transformStruct())
+
+def anisotropicAdjust(font, layers):
+	from AppKit import NSAffineTransform, NSAffineTransformStruct, NSPoint
+	from copy import copy
+
+	def realWeight(font, referenceGlyph="idotless", masterIndex=0):
+		glyph = font.glyphs[referenceGlyph]
+		layer = glyph.layers[masterIndex]
+		midY = layer.bounds.origin.y + layer.bounds.size.height / 2
+		intersections = layer.intersectionsBetweenPoints(
+			NSPoint(layer.bounds.origin.x-100, midY),
+			NSPoint(layer.bounds.origin.x + layer.bounds.size.width + 100, midY),
+			)
+		p1 = intersections[1]
+		p2 = intersections[-2]
+		actualWidth = p2.x - p1.x
+		return actualWidth
+
+	def wghtIndex(font):
+		for i, a in enumerate(font.axes):
+			if a.axisTag == "wght":
+				return i
+		return None
+
+	def hScaleLayer(layer, hFactor=1.0):
+		xScale = NSAffineTransform.transform()
+		xScale.scaleXBy_yBy_(hFactor, 1.0)
+		layer.applyTransform(xScale.transformStruct())
+	
+	def anisotropicAdjust(font, master, layers):
+		font = Glyphs.font
+		layer = font.selectedLayers[0]
+		glyph = layer.parent
+		referenceGlyph = "idotless"
+		if glyph.case == GSUppercase:
+			referenceGlyph = "I"
+		elif glyph.case == GSSmallcaps:
+			referenceGlyph = "i.sc"
+
+		hScale = 1.5
+		wghtScale = 1/hScale
+		wghtAxisIndex = wghtIndex(font)
+		wghtInstanceAxes = list(layer.master.axes)
+
+		currentWght = layer.master.axes[wghtAxisIndex]
+		currentWghtInstance = GSInstance()
+		currentWghtInstance.font = font
+		currentWghtInstance.axes = wghtInstanceAxes
+		currentWghtFont = currentWghtInstance.interpolatedFont
+		currentRealWght = realWeight(currentWghtFont)
+		currentRealWghtUC = realWeight(currentWghtFont, referenceGlyph="I")
+
+		refWght = currentWght * wghtScale
+		wghtInstanceAxes[wghtAxisIndex] = refWght
+		refWghtInstance = GSInstance()
+		refWghtInstance.font = font
+		refWghtInstance.axes = wghtInstanceAxes
+		refWghtFont = refWghtInstance.interpolatedFont
+		refRealWght = realWeight(refWghtFont)
+		refRealWghtUC = realWeight(refWghtFont, referenceGlyph="I")
+	
+		# ANY CASE
+		wghtCorrection = currentRealWght / refRealWght
+		wghtCorrected = currentWght + (refWght-currentWght) * wghtCorrection
+		wghtInstanceAxes[wghtAxisIndex] = wghtCorrected
+		wghtInstance = GSInstance()
+		wghtInstance.font = font
+		wghtInstance.axes = wghtInstanceAxes
+		wghtFont = wghtInstance.interpolatedFont
+	
+		# UPPERCASE
+		wghtCorrection = currentRealWghtUC / refRealWghtUC
+		wghtCorrected = currentWght + (refWght-currentWght) * wghtCorrection
+		wghtInstanceAxes[wghtAxisIndex] = wghtCorrected
+		wghtInstanceUC = GSInstance()
+		wghtInstanceUC.font = font
+		wghtInstanceUC.axes = wghtInstanceAxes
+		wghtFontUC = wghtInstanceUC.interpolatedFont
+
+		wghtLayer = wghtInstance.interpolatedFont.glyphs[glyph.name].layers[0]
+		for i, path in enumerate(wghtLayer.paths):
+			for j, node in enumerate(path.nodes):
+				originalNode = layer.paths[i].nodes[j]
+				node.y = originalNode.y
+
+		hScaleLayer(wghtLayer, hScale)
+		layer.shapes = copy(wghtLayer.shapes)
+		layer.width *= hScale
+	
 
 class AddGrade(object):
 	prefID = "com.mekkablue.AddGrade"
