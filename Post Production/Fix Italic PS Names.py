@@ -51,9 +51,14 @@ else:
 			for nameTableEntry in nameTable.names:
 				nameID = nameTableEntry.nameID
 				# print("CHECK3 nameID", nameID) # DEBUG
+				nameValue = nameTableEntry.toStr()
+				oldName = nameValue
+				# print("CHECK4 nameID", nameID, nameValue) # DEBUG
+				if nameID in (4, 6, 17):
+					for oldParticle in ("Regular Italic", "RegularItalic"):
+						if oldParticle in nameValue:
+							nameValue = nameValue.replace(oldParticle, "Italic")
 				if nameID in (3, 6) or nameID > 255:
-					nameValue = nameTableEntry.toStr()
-					# print("CHECK4 nameID", nameID, nameValue) # DEBUG
 					oldName = nameValue
 					if "Italic-" in nameValue and nameValue.count("Italic")>1:
 						particles = nameValue.split("-")
@@ -62,10 +67,10 @@ else:
 							if len(particles[i]) == 0:
 								particles[i] = "Regular"
 						nameValue = "-".join(particles)
-					if nameValue != oldName:
-						nameTableEntry.string = nameValue
-						anythingChanged = True
-						print(f"✅ Changed ID {nameID}: {oldName} → {nameValue}")
+				if nameValue != oldName:
+					nameTableEntry.string = nameValue
+					anythingChanged = True
+					print(f"✅ Changed ID {nameID}: {oldName} → {nameValue}")
 			if anythingChanged:
 				otFont.save(fontpath, reorderTables=False)
 				print("- 💾 saved file")
