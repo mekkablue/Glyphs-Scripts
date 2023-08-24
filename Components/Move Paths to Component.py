@@ -55,7 +55,8 @@ class MovePathstoComponent(object):
 			)
 		linePos += lineHeight
 		
-		self.w.keepBaseComponentPosition = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Keep base component position (do not auto align 1st component)", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.keepBaseComponentPosition = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Keep base component position (with incremental keys)", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		self.w.keepBaseComponentPosition.getNSButton().setToolTip_("Will add an incremental metrics key (e.g. ==+10) if width deviation is at least 5u.")
 		linePos += lineHeight
 		
 		# Run Button:
@@ -324,7 +325,7 @@ class MovePathstoComponent(object):
 
 						# insert correcting RSB adjustment (minimum 5):
 						widthDifference = originalWidth - l.width
-						if abs(widthDifference) > 4:
+						if abs(widthDifference) > 4 and self.pref("keepBaseComponentPosition"):
 							metricsKey = "==%s%i" % (
 								"-" if widthDifference < 0 else "+",
 								abs(widthDifference),
@@ -338,6 +339,8 @@ class MovePathstoComponent(object):
 							else: # all other cases
 								l.leftMetricsKey = metricsKey
 								leftOrRight = "left"
+								l.components[0].alignment = 1
+								l.alignComponents()
 
 							l.updateMetrics()
 							l.syncMetrics()
