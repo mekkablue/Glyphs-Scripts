@@ -2,10 +2,20 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Inserts exit and entry anchors in the period glyph and rebuilds ellipsis with auto-aligned components of period.\n\nATTENTION: decomposes all period components used in other glyphs (e.g., colon).
+Inserts exit and entry anchors in the period glyph and rebuilds ellipsis with auto-aligned components of period. Hold down OPT+SHIFT to have LSB and RSB exactly like period (otherwise with slight padding).\n\nATTENTION: decomposes all period components used in other glyphs (e.g., colon).
 """
 
-from AppKit import NSPoint
+from AppKit import NSPoint, NSEvent, NSEventModifierFlagOption, NSEventModifierFlagShift
+
+Glyphs.clearLog() # clears log in Macro window
+
+keysPressed = NSEvent.modifierFlags()
+optionKeyPressed = keysPressed & NSEventModifierFlagOption == NSEventModifierFlagOption
+shiftKeyPressed = keysPressed & NSEventModifierFlagShift == NSEventModifierFlagShift
+keepSidebearingsSnug = optionKeyPressed & shiftKeyPressed
+
+thisFont = Glyphs.font # frontmost font
+period = thisFont.glyphs["period"]
 
 def decomposeGlyphsContaining(font, componentName, exceptions=[]):
 	glyphNames = []
@@ -23,10 +33,6 @@ def decomposeGlyphsContaining(font, componentName, exceptions=[]):
 						if component.componentName == componentName:
 							layer.decomposeComponent_(component)
 	return glyphNames
-
-Glyphs.clearLog() # clears log in Macro window
-thisFont = Glyphs.font # frontmost font
-period = thisFont.glyphs["period"]
 
 if not period:
 	Message(title="Build ellipsis Script Error", message="No period glyph in font. Add it and try again.", OKButton=None)
@@ -46,7 +52,7 @@ if decomposedGlyphs:
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
 	for thisMaster in thisFont.masters:
-		print("Ⓜ️ %s" % thisMaster.name)
+		print(f"Ⓜ️ {thisMaster.name}")
 		print("   Adding #exit and #entry in period...")
 		mID = thisMaster.id
 		periodLayer = period.layers[mID]
@@ -67,10 +73,11 @@ try:
 		for thisComponent in ellipsisLayer.components:
 			thisComponent.setDisableAlignment_(False)
 		ellipsisLayer.updateMetrics()
-
-	print("🔢 Setting Metrics Keys for ellipsis...")
-	ellipsis.leftMetricsKey = "=+20"
-	ellipsis.rightMetricsKey = "=+20"
+	
+	if not keepSidebearingsSnug:
+		print("🔢 Setting Metrics Keys for ellipsis...")
+		ellipsis.leftMetricsKey = "=+20"
+		ellipsis.rightMetricsKey = "=+20"
 
 	thisFont.newTab(".…")
 	print("✅Done.")
