@@ -36,6 +36,7 @@ class FontInfoBatchSetter(object):
 		"versionMajor": "1",
 		"versionMinor": "005",
 	}
+	placeholderFamilyName = "###familyName###"
 
 	def __init__(self):
 		# Window 'self.w':
@@ -92,6 +93,9 @@ class FontInfoBatchSetter(object):
 		# TRADEMARK
 		self.w.setTrademark = vanilla.CheckBox((inset, linePos - 1, column, 20), u"Trademark:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.trademark = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		tooltip = f"Trademark information. Use {self.placeholderFamilyName} as placeholder for the current family name." 
+		self.w.setTrademark.getNSButton().setToolTip_(tooltip)
+		self.w.trademark.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 		
 		# VENDOR ID
@@ -291,7 +295,7 @@ class FontInfoBatchSetter(object):
 			Glyphs.defaults[self.domain("versionMinor")] = f"{thisFont.versionMinor:03}"
 			Glyphs.defaults[self.domain("versionMajor")] = thisFont.versionMajor
 			Glyphs.defaults[self.domain("copyright")] = thisFont.copyright
-			Glyphs.defaults[self.domain("trademark")] = thisFont.trademark
+			Glyphs.defaults[self.domain("trademark")] = thisFont.trademark.replace(thisFont.familyName, self.placeholderFamilyName)
 			Glyphs.defaults[self.domain("designer")] = thisFont.designer
 			Glyphs.defaults[self.domain("designerURL")] = thisFont.designerURL
 			Glyphs.defaults[self.domain("manufacturer")] = thisFont.manufacturer
@@ -363,16 +367,30 @@ class FontInfoBatchSetter(object):
 				print("⚠️ ‘Font Info BatchSetter’ could not write preferences.")
 			
 			# read prefs:
-			for prefName in self.prefDict.keys():
-				try:
-					setattr(sys.modules[__name__], prefName, self.pref(prefName))
-				except:
-					fallbackValue = self.prefDict[prefName]
-					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
-					setattr(sys.modules[__name__], prefName, fallbackValue)
-
-			versionMinor = int(Glyphs.defaults[self.domain("versionMinor")])
-			versionMajor = int(Glyphs.defaults[self.domain("versionMajor")])
+			applyContaining = self.pref("applyContaining")
+			applyPopup = self.pref("applyPopup")
+			copyright = self.pref("copyright")
+			trademark = self.pref("trademark")
+			vendorID = self.pref("vendorID")
+			designer = self.pref("designer")
+			designerURL = self.pref("designerURL")
+			manufacturer = self.pref("manufacturer")
+			manufacturerURL = self.pref("manufacturerURL")
+			license = self.pref("license")
+			licenseURL = self.pref("licenseURL")
+			setCopyright = self.pref("setCopyright")
+			setTrademark = self.pref("setTrademark")
+			setVendorID = self.pref("setVendorID")
+			setDate = self.pref("setDate")
+			setDesigner = self.pref("setDesigner")
+			setDesignerURL = self.pref("setDesignerURL")
+			setManufacturer = self.pref("setManufacturer")
+			setManufacturerURL = self.pref("setManufacturerURL")
+			setLicense = self.pref("setLicense")
+			setLicenseURL = self.pref("setLicenseURL")
+			setVersion = self.pref("setVersion")
+			versionMinor = int(self.pref("versionMinor"))
+			versionMajor = int(self.pref("versionMajor"))
 			dateInDatePicker = self.w.datePicker.get()
 
 			if applyPopup == 0:
@@ -424,11 +442,12 @@ class FontInfoBatchSetter(object):
 							changeCount += 1
 
 					if setTrademark:
-						if thisFont.trademark == trademark:
+						individualTrademark = trademark.replace(self.placeholderFamilyName, thisFont.familyName)
+						if thisFont.trademark == individualTrademark:
 							print("🆗 📝 Font already has desired Trademark. No change.")
 						else:
-							thisFont.trademark = trademark
-							print("✅ 📝 Trademark set: %s" % trademark)
+							thisFont.trademark = individualTrademark
+							print("✅ 📝 Trademark set: %s" % individualTrademark)
 							changeCount += 1
 							
 					if setVendorID:
