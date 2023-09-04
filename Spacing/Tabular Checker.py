@@ -41,6 +41,9 @@ class TabularChecker( object ):
 		self.w.includeNonExporting.getNSButton().setToolTip_(u"If not set, non-exporting glyphs will be ignored.")
 		linePos += lineHeight
 		
+		self.w.allFonts = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Search in ⚠️ ALL fonts", value=True, callback=self.SavePreferences, sizeStyle="small")
+		linePos += lineHeight
+		
 		self.w.status = vanilla.TextBox( (inset, linePos+2, -inset, 14), u"", sizeStyle='small', selectable=True )
 		linePos += lineHeight
 		
@@ -61,6 +64,7 @@ class TabularChecker( object ):
 			Glyphs.defaults["com.mekkablue.TabularChecker.suffixesEntry"] = self.w.suffixesEntry.get()
 			Glyphs.defaults["com.mekkablue.TabularChecker.allowDifferingWidthsPerSuffix"] = self.w.allowDifferingWidthsPerSuffix.get()
 			Glyphs.defaults["com.mekkablue.TabularChecker.includeNonExporting"] = self.w.includeNonExporting.get()
+			Glyphs.defaults["com.mekkablue.TabularChecker.allFonts"] = self.w.allFonts.get()
 		except:
 			return False
 			
@@ -71,9 +75,11 @@ class TabularChecker( object ):
 			Glyphs.registerDefault("com.mekkablue.TabularChecker.suffixesEntry", "tf, tosf")
 			Glyphs.registerDefault("com.mekkablue.TabularChecker.allowDifferingWidthsPerSuffix", 0)
 			Glyphs.registerDefault("com.mekkablue.TabularChecker.includeNonExporting", 0)
+			Glyphs.registerDefault("com.mekkablue.TabularChecker.allFonts", 1)
 			self.w.suffixesEntry.set( Glyphs.defaults["com.mekkablue.TabularChecker.suffixesEntry"] )
 			self.w.allowDifferingWidthsPerSuffix.set( Glyphs.defaults["com.mekkablue.TabularChecker.allowDifferingWidthsPerSuffix"] )
 			self.w.includeNonExporting.set( Glyphs.defaults["com.mekkablue.TabularChecker.includeNonExporting"] )
+			self.w.allFonts.set( Glyphs.defaults["com.mekkablue.TabularChecker.allFonts"] )
 		except:
 			return False
 			
@@ -107,7 +113,6 @@ class TabularChecker( object ):
 			print(u"⚠️ Not found in font: %s" % (
 				suffix if allowDifferingWidthsPerSuffix else " & ".join(suffixes), 
 			))
-		
 	def TabularCheckerMain( self, sender ):
 		try:
 			# brings macro window to front and clears its log:
@@ -124,36 +129,41 @@ class TabularChecker( object ):
 			includeNonExporting = Glyphs.defaults["com.mekkablue.TabularChecker.includeNonExporting"]
 			allowDifferingWidthsPerSuffix = Glyphs.defaults["com.mekkablue.TabularChecker.allowDifferingWidthsPerSuffix"]
 			
-			Font = Glyphs.font # frontmost font
-			print(u"Tabular Checker Report for %s" % Font.familyName)
-			print(Font.filepath)
-			print()
-			for m in Font.masters:
-				lengths = []
-				glyphnames = []
+			if Glyphs.defaults["com.mekkablue.TabularChecker.allFonts"]:
+				fonts = Glyphs.fonts
+			else:
+				fonts = (Glyphs.font,)
 				
-				# iterate through suffixes:
-				for suffix in suffixes:
-					if allowDifferingWidthsPerSuffix:
-						lengths = []
-						glyphnames = []
+			for Font in fonts:
+				print(u"Tabular Checker Report for %s" % Font.familyName)
+				print(Font.filepath)
+				print()
+				for m in Font.masters:
+					lengths = []
+					glyphnames = []
+				
+					# iterate through suffixes:
+					for suffix in suffixes:
+						if allowDifferingWidthsPerSuffix:
+							lengths = []
+							glyphnames = []
 					
-					# update status:
-					reportString = u"Testing '%s' in %s..." % (suffix, m.name)
-					self.reportStatus(reportString)
+						# update status:
+						reportString = u"Testing '%s' in %s..." % (suffix, m.name)
+						self.reportStatus(reportString)
 					
-					for g in Font.glyphs:
-						if suffix in g.name and (g.export or includeNonExporting):
-							l = g.layers[m.id]
-							lengths.append(l.width)
-							glyphnames.append(g.name)
+						for g in Font.glyphs:
+							if suffix in g.name and (g.export or includeNonExporting):
+								l = g.layers[m.id]
+								lengths.append(l.width)
+								glyphnames.append(g.name)
 					
-					numOfDifferentWidths = len(set(lengths))
-					if allowDifferingWidthsPerSuffix:
-						self.widthReport(numOfDifferentWidths, suffix, suffixes, m, lengths, glyphnames, allowDifferingWidthsPerSuffix)
+						numOfDifferentWidths = len(set(lengths))
+						if allowDifferingWidthsPerSuffix:
+							self.widthReport(numOfDifferentWidths, suffix, suffixes, m, lengths, glyphnames, allowDifferingWidthsPerSuffix)
 
-				if not allowDifferingWidthsPerSuffix:
-					self.widthReport(numOfDifferentWidths, suffix, suffixes, m, lengths, glyphnames, allowDifferingWidthsPerSuffix)
+					if not allowDifferingWidthsPerSuffix:
+						self.widthReport(numOfDifferentWidths, suffix, suffixes, m, lengths, glyphnames, allowDifferingWidthsPerSuffix)
 					
 			reportString = "Done."
 			self.reportStatus(reportString)
