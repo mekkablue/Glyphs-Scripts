@@ -12,7 +12,7 @@ elidablePartDefault = "Regular"
 menuOptions = (
 	"Subtract particle from",
 	"Add particle at the end of",
-	"Add particle in front of",
+	"Add particle before",
 	)
 
 class StyleRenamer(object):
