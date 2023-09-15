@@ -33,93 +33,89 @@ def hScaleLayer(layer, hFactor=1.0):
 	xScale.scaleXBy_yBy_(hFactor, 1.0)
 	layer.applyTransform(xScale.transformStruct())
 
-def anisotropicAdjust(font, layers):
-	from AppKit import NSAffineTransform, NSAffineTransformStruct, NSPoint
-	from copy import copy
+def realWeight(font, referenceGlyph="idotless", masterIndex=0):
+	glyph = font.glyphs[referenceGlyph]
+	layer = glyph.layers[masterIndex]
+	midY = layer.bounds.origin.y + layer.bounds.size.height / 2
+	intersections = layer.intersectionsBetweenPoints(
+		NSPoint(layer.bounds.origin.x-100, midY),
+		NSPoint(layer.bounds.origin.x + layer.bounds.size.width + 100, midY),
+		)
+	p1 = intersections[1]
+	p2 = intersections[-2]
+	actualWidth = p2.x - p1.x
+	return actualWidth
 
-	def realWeight(font, referenceGlyph="idotless", masterIndex=0):
-		glyph = font.glyphs[referenceGlyph]
-		layer = glyph.layers[masterIndex]
-		midY = layer.bounds.origin.y + layer.bounds.size.height / 2
-		intersections = layer.intersectionsBetweenPoints(
-			NSPoint(layer.bounds.origin.x-100, midY),
-			NSPoint(layer.bounds.origin.x + layer.bounds.size.width + 100, midY),
-			)
-		p1 = intersections[1]
-		p2 = intersections[-2]
-		actualWidth = p2.x - p1.x
-		return actualWidth
+def wghtIndex(font):
+	for i, a in enumerate(font.axes):
+		if a.axisTag == "wght":
+			return i
+	return None
 
-	def wghtIndex(font):
-		for i, a in enumerate(font.axes):
-			if a.axisTag == "wght":
-				return i
-		return None
+def hScaleLayer(layer, hFactor=1.0):
+	xScale = NSAffineTransform.transform()
+	xScale.scaleXBy_yBy_(hFactor, 1.0)
+	layer.applyTransform(xScale.transformStruct())
 
-	def hScaleLayer(layer, hFactor=1.0):
-		xScale = NSAffineTransform.transform()
-		xScale.scaleXBy_yBy_(hFactor, 1.0)
-		layer.applyTransform(xScale.transformStruct())
-	
-	def anisotropicAdjust(font, master, layers):
-		font = Glyphs.font
-		layer = font.selectedLayers[0]
-		glyph = layer.parent
-		referenceGlyph = "idotless"
-		if glyph.case == GSUppercase:
-			referenceGlyph = "I"
-		elif glyph.case == GSSmallcaps:
-			referenceGlyph = "i.sc"
+def anisotropicAdjust(font, master, layers):
+	font = Glyphs.font
+	layer = font.selectedLayers[0]
+	glyph = layer.parent
+	referenceGlyph = "idotless"
+	if glyph.case == GSUppercase:
+		referenceGlyph = "I"
+	elif glyph.case == GSSmallcaps:
+		referenceGlyph = "i.sc"
 
-		hScale = 1.5
-		wghtScale = 1/hScale
-		wghtAxisIndex = wghtIndex(font)
-		wghtInstanceAxes = list(layer.master.axes)
+	hScale = 1.5
+	wghtScale = 1/hScale
+	wghtAxisIndex = wghtIndex(font)
+	wghtInstanceAxes = list(layer.master.axes)
 
-		currentWght = layer.master.axes[wghtAxisIndex]
-		currentWghtInstance = GSInstance()
-		currentWghtInstance.font = font
-		currentWghtInstance.axes = wghtInstanceAxes
-		currentWghtFont = currentWghtInstance.interpolatedFont
-		currentRealWght = realWeight(currentWghtFont)
-		currentRealWghtUC = realWeight(currentWghtFont, referenceGlyph="I")
+	currentWght = layer.master.axes[wghtAxisIndex]
+	currentWghtInstance = GSInstance()
+	currentWghtInstance.font = font
+	currentWghtInstance.axes = wghtInstanceAxes
+	currentWghtFont = currentWghtInstance.interpolatedFont
+	currentRealWght = realWeight(currentWghtFont)
+	currentRealWghtUC = realWeight(currentWghtFont, referenceGlyph="I")
 
-		refWght = currentWght * wghtScale
-		wghtInstanceAxes[wghtAxisIndex] = refWght
-		refWghtInstance = GSInstance()
-		refWghtInstance.font = font
-		refWghtInstance.axes = wghtInstanceAxes
-		refWghtFont = refWghtInstance.interpolatedFont
-		refRealWght = realWeight(refWghtFont)
-		refRealWghtUC = realWeight(refWghtFont, referenceGlyph="I")
-	
-		# ANY CASE
-		wghtCorrection = currentRealWght / refRealWght
-		wghtCorrected = currentWght + (refWght-currentWght) * wghtCorrection
-		wghtInstanceAxes[wghtAxisIndex] = wghtCorrected
-		wghtInstance = GSInstance()
-		wghtInstance.font = font
-		wghtInstance.axes = wghtInstanceAxes
-		wghtFont = wghtInstance.interpolatedFont
-	
-		# UPPERCASE
-		wghtCorrection = currentRealWghtUC / refRealWghtUC
-		wghtCorrected = currentWght + (refWght-currentWght) * wghtCorrection
-		wghtInstanceAxes[wghtAxisIndex] = wghtCorrected
-		wghtInstanceUC = GSInstance()
-		wghtInstanceUC.font = font
-		wghtInstanceUC.axes = wghtInstanceAxes
-		wghtFontUC = wghtInstanceUC.interpolatedFont
+	refWght = currentWght * wghtScale
+	wghtInstanceAxes[wghtAxisIndex] = refWght
+	refWghtInstance = GSInstance()
+	refWghtInstance.font = font
+	refWghtInstance.axes = wghtInstanceAxes
+	refWghtFont = refWghtInstance.interpolatedFont
+	refRealWght = realWeight(refWghtFont)
+	refRealWghtUC = realWeight(refWghtFont, referenceGlyph="I")
 
-		wghtLayer = wghtInstance.interpolatedFont.glyphs[glyph.name].layers[0]
-		for i, path in enumerate(wghtLayer.paths):
-			for j, node in enumerate(path.nodes):
-				originalNode = layer.paths[i].nodes[j]
-				node.y = originalNode.y
+	# ANY CASE
+	wghtCorrection = currentRealWght / refRealWght
+	wghtCorrected = currentWght + (refWght-currentWght) * wghtCorrection
+	wghtInstanceAxes[wghtAxisIndex] = wghtCorrected
+	wghtInstance = GSInstance()
+	wghtInstance.font = font
+	wghtInstance.axes = wghtInstanceAxes
+	wghtFont = wghtInstance.interpolatedFont
 
-		hScaleLayer(wghtLayer, hScale)
-		layer.shapes = copy(wghtLayer.shapes)
-		layer.width *= hScale
+	# UPPERCASE
+	wghtCorrection = currentRealWghtUC / refRealWghtUC
+	wghtCorrected = currentWght + (refWght-currentWght) * wghtCorrection
+	wghtInstanceAxes[wghtAxisIndex] = wghtCorrected
+	wghtInstanceUC = GSInstance()
+	wghtInstanceUC.font = font
+	wghtInstanceUC.axes = wghtInstanceAxes
+	wghtFontUC = wghtInstanceUC.interpolatedFont
+
+	wghtLayer = wghtInstance.interpolatedFont.glyphs[glyph.name].layers[0]
+	for i, path in enumerate(wghtLayer.paths):
+		for j, node in enumerate(path.nodes):
+			originalNode = layer.paths[i].nodes[j]
+			node.y = originalNode.y
+
+	hScaleLayer(wghtLayer, hScale)
+	layer.shapes = copy(wghtLayer.shapes)
+	layer.width *= hScale
 	
 
 class AddGrade(object):
@@ -132,13 +128,20 @@ class AddGrade(object):
 		"grade": 50,
 		"weight": 100,
 		"addSyncMetricCustomParameter": 1,
-		"useWdthAxis": 1,
+		"fittingMethod": 0,
 	}
+	
+	refittingMethods = (
+		"Adjust advance width: LSB 50%, RSB 50%",
+		"Adjust advance width: SBs by current proportions",
+		"Anisotropic wght interpolation",
+		"Isotropic wdth interpolation (requires wdth axis)",
+	)
 	
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 300
-		windowHeight = 220
+		windowHeight = 225
 		windowWidthResize  = 200 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -154,41 +157,47 @@ class AddGrade(object):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos+2, -inset, 14), "Add Grade master (and if necessary Grade axis):", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 		
-		self.w.baseMasterText = vanilla.TextBox((inset, linePos+2, 100, 14), "Based on master:", sizeStyle="small", selectable=True)
+		self.w.baseMasterText = vanilla.TextBox((inset, linePos+3, 100, 14), "Based on master:", sizeStyle="small", selectable=True)
 		self.w.baseMaster = vanilla.PopUpButton((inset+100, linePos, -inset, 17), self.mastersOfCurrentFont(), sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 		
 		indent = 70
 		
-		self.w.weightText = vanilla.TextBox((inset, linePos+2, indent, 14), "Use weight:", sizeStyle="small", selectable=True)
+		self.w.weightText = vanilla.TextBox((inset, linePos+3, indent, 14), "Use weight:", sizeStyle="small", selectable=True)
 		self.w.weight = vanilla.ComboBox((inset+indent, linePos-1, -inset, 19), self.weightValuesForCurrentFont(), sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 		
-		self.w.gradeText = vanilla.TextBox((inset, linePos+2, indent, 14), "…as grade:", sizeStyle="small", selectable=True)
+		self.w.gradeText = vanilla.TextBox((inset, linePos+3, indent, 14), "…as grade:", sizeStyle="small", selectable=True)
 		self.w.grade = vanilla.ComboBox((inset+indent, linePos-1, -inset, 19), ("-50", "0", "50"), sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 		
 		indent = 92
 		
-		self.w.axisTagText = vanilla.TextBox((inset, linePos+2, indent, 14), "Grade axis:   Tag", sizeStyle="small", selectable=True)
+		self.w.axisTagText = vanilla.TextBox((inset, linePos+3, indent, 14), "Grade axis:   Tag", sizeStyle="small", selectable=True)
 		self.w.axisTag = vanilla.EditText((inset+indent, linePos, 50, 19), "GRAD", callback=self.SavePreferences, sizeStyle="small")
-		self.w.axisNameText = vanilla.TextBox((inset+indent+60, linePos+2, 35, 14), "Name", sizeStyle="small", selectable=True)
+		self.w.axisNameText = vanilla.TextBox((inset+indent+60, linePos+3, 35, 14), "Name", sizeStyle="small", selectable=True)
 		self.w.axisName = vanilla.EditText((inset+indent+95, linePos, -inset, 19), "Grade", callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 		
 		self.w.addSyncMetricCustomParameter = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Add custom parameter ‘Link Metrics With Master’ (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 		
-		
-		self.w.useWdthAxis = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Use Width axis for fitting grade layer width", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.fittingMethodText = vanilla.TextBox((inset, linePos+3, 90, 14), "Fitting method:", sizeStyle="small", selectable=True)
+		self.w.fittingMethod = vanilla.PopUpButton((inset+90, linePos+1, -inset, 17), self.refittingMethods, sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 		
-		self.w.useWdthAxis.enable(False)
+		
+		
+		
+		# self.w.useWdthAxis = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Use Width axis for fitting grade layer width", value=False, callback=self.SavePreferences, sizeStyle="small")
+		# linePos += lineHeight
+		#
+		# self.w.useWdthAxis.enable(False)
 		
 		
 		
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Add", sizeStyle="regular", callback=self.AddGradeMain)
+		self.w.runButton = vanilla.Button((-120-inset, -20-inset, -inset, -inset), "Add Master", sizeStyle="regular", callback=self.AddGradeMain)
 		self.w.setDefaultButton(self.w.runButton)
 		
 		# Load Settings:
