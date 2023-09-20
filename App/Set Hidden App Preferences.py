@@ -28,6 +28,7 @@ class SetHiddenAppPreferences(object):
 		"GSClickTolerance",
 		"GSAlwayShowExportNotification",
 		"GSShowStrokePanel",
+		"GSTidyUpThreshold",
 		"AppleLanguages",
 		"drawShadowAccents",
 		"GSftxenhancerPath",
