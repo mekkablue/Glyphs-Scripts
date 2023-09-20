@@ -83,7 +83,7 @@ def addPSNameToInstance(i, shorten=False, asCustomParameter=True):
 		psName.value = psFontName
 		i.properties.append(psName)
 	
-	print(f"✅ {f.familyName} {i.name}: {psFontName}")
+	print(f"✅ {i.font.familyName} {i.name}: {psFontName}")
 
 class PSNameMaker(object):
 	prefID = "com.mekkablue.PSNameMaker"
