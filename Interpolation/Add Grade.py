@@ -35,6 +35,9 @@ def hScaleLayer(layer, hFactor=1.0):
 
 def realWeight(font, referenceGlyph="idotless", masterIndex=0):
 	glyph = font.glyphs[referenceGlyph]
+	if not glyph:
+		return None
+
 	layer = glyph.layers[masterIndex]
 	midY = layer.bounds.origin.y + layer.bounds.size.height / 2
 	intersections = layer.intersectionsBetweenPoints(
@@ -57,66 +60,64 @@ def hScaleLayer(layer, hFactor=1.0):
 	xScale.scaleXBy_yBy_(hFactor, 1.0)
 	layer.applyTransform(xScale.transformStruct())
 
-def anisotropicAdjust(font, master, layers):
+def anisotropicAdjust(font, master, originMaster):
 	font = Glyphs.font
-	layer = font.selectedLayers[0]
-	glyph = layer.parent
-	referenceGlyph = "idotless"
-	if glyph.case == GSUppercase:
-		referenceGlyph = "I"
-	elif glyph.case == GSSmallcaps:
-		referenceGlyph = "i.sc"
 
-	hScale = 1.5
-	wghtScale = 1/hScale
 	wghtAxisIndex = wghtIndex(font)
-	wghtInstanceAxes = list(layer.master.axes)
-
-	currentWght = layer.master.axes[wghtAxisIndex]
+	wghtInstanceAxes = list(master.axes)
+	
+	# current master weight
+	currentWght = master.axes[wghtAxisIndex]
 	currentWghtInstance = GSInstance()
 	currentWghtInstance.font = font
 	currentWghtInstance.axes = wghtInstanceAxes
 	currentWghtFont = currentWghtInstance.interpolatedFont
 	currentRealWght = realWeight(currentWghtFont)
 	currentRealWghtUC = realWeight(currentWghtFont, referenceGlyph="I")
+	currentRealWghtSC = realWeight(currentWghtFont, referenceGlyph="i.sc")
 
-	refWght = currentWght * wghtScale
-	wghtInstanceAxes[wghtAxisIndex] = refWght
-	refWghtInstance = GSInstance()
-	refWghtInstance.font = font
-	refWghtInstance.axes = wghtInstanceAxes
-	refWghtFont = refWghtInstance.interpolatedFont
-	refRealWght = realWeight(refWghtFont)
-	refRealWghtUC = realWeight(refWghtFont, referenceGlyph="I")
+	for glyph in font.glyphs:
+		layer = glyph.layers[master.id]
+		originLayer = glyph.layers[originMaster.id]
+		
+		# skip glyphs where we do not make adjustments
+		if layer.width == 0 or originLayer.width == 0 or layer.width == originLayer.width:
+			continue
+		
+		# reference weight for measuring the span of an axis
+		hScale = originLayer.width/layer.width
+		wghtScale = 1/hScale
+		refWght = currentWght * wghtScale
+		wghtInstanceAxes[wghtAxisIndex] = refWght
+		refWghtInstance = GSInstance()
+		refWghtInstance.font = font
+		refWghtInstance.axes = wghtInstanceAxes
+		refWghtFont = refWghtInstance.interpolatedFont
+		
+		# CASE
+		if glyph.case == GSUppercase:
+			wghtCorrection = currentRealWghtUC / realWeight(refWghtFont, referenceGlyph="I")
+		elif glyph.case == GSSmallcaps:
+			wghtCorrection = currentRealWghtSC / realWeight(refWghtFont, referenceGlyph="i.sc")
+		else:
+			wghtCorrection = currentRealWght / realWeight(refWghtFont)
+		
+		wghtCorrected = currentWght + (refWght-currentWght) * wghtCorrection
+		wghtInstanceAxes[wghtAxisIndex] = wghtCorrected
+		wghtInstance = GSInstance()
+		wghtInstance.font = font
+		wghtInstance.axes = wghtInstanceAxes
+		wghtFont = wghtInstance.interpolatedFont
 
-	# ANY CASE
-	wghtCorrection = currentRealWght / refRealWght
-	wghtCorrected = currentWght + (refWght-currentWght) * wghtCorrection
-	wghtInstanceAxes[wghtAxisIndex] = wghtCorrected
-	wghtInstance = GSInstance()
-	wghtInstance.font = font
-	wghtInstance.axes = wghtInstanceAxes
-	wghtFont = wghtInstance.interpolatedFont
+		wghtLayer = wghtInstance.interpolatedFont.glyphs[glyph.name].layers[0]
+		for i, path in enumerate(wghtLayer.paths):
+			for j, node in enumerate(path.nodes):
+				originalNode = layer.paths[i].nodes[j]
+				node.y = originalNode.y
 
-	# UPPERCASE
-	wghtCorrection = currentRealWghtUC / refRealWghtUC
-	wghtCorrected = currentWght + (refWght-currentWght) * wghtCorrection
-	wghtInstanceAxes[wghtAxisIndex] = wghtCorrected
-	wghtInstanceUC = GSInstance()
-	wghtInstanceUC.font = font
-	wghtInstanceUC.axes = wghtInstanceAxes
-	wghtFontUC = wghtInstanceUC.interpolatedFont
-
-	wghtLayer = wghtInstance.interpolatedFont.glyphs[glyph.name].layers[0]
-	for i, path in enumerate(wghtLayer.paths):
-		for j, node in enumerate(path.nodes):
-			originalNode = layer.paths[i].nodes[j]
-			node.y = originalNode.y
-
-	hScaleLayer(wghtLayer, hScale)
-	layer.shapes = copy(wghtLayer.shapes)
-	layer.width *= hScale
-	
+		hScaleLayer(wghtLayer, hScale)
+		layer.shapes = copy(wghtLayer.shapes)
+		layer.width *= hScale
 
 class AddGrade(object):
 	prefID = "com.mekkablue.AddGrade"
@@ -186,15 +187,10 @@ class AddGrade(object):
 		self.w.fittingMethod = vanilla.PopUpButton((inset+90, linePos+1, -inset, 17), self.refittingMethods, sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 		
-		
-		
-		
 		# self.w.useWdthAxis = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Use Width axis for fitting grade layer width", value=False, callback=self.SavePreferences, sizeStyle="small")
 		# linePos += lineHeight
 		#
 		# self.w.useWdthAxis.enable(False)
-		
-		
 		
 		# Run Button:
 		self.w.runButton = vanilla.Button((-120-inset, -20-inset, -inset, -inset), "Add Master", sizeStyle="regular", callback=self.AddGradeMain)
@@ -219,9 +215,10 @@ class AddGrade(object):
 	def mastersOfCurrentFont(self, sender=None):
 		masterMenu = []
 		font = Glyphs.font
+		wghtID = font.axisForTag_("wght").id
 		if font:
 			for i, master in enumerate(font.masters):
-				masterMenu.append(f"{i+1}. {master.name} (ID: {master.id})")
+				masterMenu.append(f"{i+1}. {master.name}, wght={master.axes[wghtID]} (ID: {master.id})")
 		return masterMenu
 	
 	def weightValuesForCurrentFont(self, sender=None):
@@ -280,6 +277,8 @@ class AddGrade(object):
 					fallbackValue = self.prefDict[prefName]
 					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
 					setattr(sys.modules[__name__], prefName, fallbackValue)
+
+			fittingMethod = int(self.pref("fittingMethod"))
 			
 			thisFont = Glyphs.font # frontmost font
 			if thisFont is None:
@@ -337,17 +336,24 @@ class AddGrade(object):
 					gradeLayer = targetGlyph.layers[gradeMaster.id]
 					baseLayer = targetGlyph.layers[baseMaster.id]
 					targetWidth = baseLayer.width
-					if targetWidth != weightedWidth:
+					
+					# adjust width by methods 0 and 1:
+					if targetWidth != weightedWidth and fittingMethod < 2:
 						diff = targetWidth - weightedWidth
-						if weightedLayer.LSB + weightedLayer.RSB:
+						if fittingMethod == 1 and (weightedLayer.LSB + weightedLayer.RSB != 0):
 							lsbPercentage = weightedLayer.LSB / (weightedLayer.LSB + weightedLayer.RSB)
 						else:
 							lsbPercentage = 0.5
 						diff *= lsbPercentage
 						weightedLayer.LSB += diff
+						
 					gradeLayer.shapes = copy(weightedLayer.shapes)
 					gradeLayer.anchors = copy(weightedLayer.anchors)
 				
+				# adjust width anisotropically:
+				if fittingMethod == 2:
+					anisotropicAdjust(thisFont, gradeMaster, baseMaster)
+					
 				# add missing axis locations if base master has axis locations:
 				if Glyphs.versionNumber < 4:
 					print("Updating Axis Locations in masters...")
@@ -389,7 +395,7 @@ class AddGrade(object):
 								)
 							parameter.value = axLoc
 				
-				# self.w.close() # delete if you want window to stay open
+				self.w.close() # delete if you want window to stay open
 
 			print("\n✅ Done.")
 
