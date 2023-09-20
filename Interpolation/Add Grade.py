@@ -22,9 +22,9 @@ def realWeight(font, referenceGlyph="idotless", masterIndex=0):
 	actualWidth = p2.x - p1.x
 	return actualWidth
 
-def wghtIndex(font):
+def axisIdForTag(font, tag="wght"):
 	for i, a in enumerate(font.axes):
-		if a.axisTag == "wght":
+		if a.axisTag == tag:
 			return i
 	return None
 
@@ -49,12 +49,6 @@ def realWeight(font, referenceGlyph="idotless", masterIndex=0):
 	actualWidth = p2.x - p1.x
 	return actualWidth
 
-def wghtIndex(font):
-	for i, a in enumerate(font.axes):
-		if a.axisTag == "wght":
-			return i
-	return None
-
 def hScaleLayer(layer, hFactor=1.0):
 	xScale = NSAffineTransform.transform()
 	xScale.scaleXBy_yBy_(hFactor, 1.0)
@@ -63,7 +57,7 @@ def hScaleLayer(layer, hFactor=1.0):
 def anisotropicAdjust(font, master, originMaster):
 	font = Glyphs.font
 
-	wghtAxisIndex = wghtIndex(font)
+	wghtAxisIndex = axisIdForTag(font, "wght")
 	wghtInstanceAxes = list(master.axes)
 	
 	# current master weight
@@ -119,6 +113,69 @@ def anisotropicAdjust(font, master, originMaster):
 		layer.shapes = copy(wghtLayer.shapes)
 		layer.width *= hScale
 
+def fitSidebearings(layer, targetWidth, left=0.5):
+	if not layer.shapes:
+		layer.width = targetWidth
+	else:
+		diff = targetWidth - layer.width
+		diff *= left
+		layer.LSB += diff
+		layer.width = targetWidth
+	
+def wdthAdjust(font, gradeMaster, baseMaster):
+	wdthAxisIndex = axisIdForTag(font, "wdth")
+	if wdthAxisIndex == None:
+		print("⚠️ No wdth axis found. Widths not fitted.")
+		Message(
+			title="No Width Axis",
+			message=f"Advance widths could not be fitted to those of master ‘{baseMaster.name}’ because there is no wdth axis. Remove the graded master ‘{gradeMaster.name}’ and try again.",
+			OKButton=None,
+			)
+	
+	baseWdthValue = baseMaster.axes[wdthAxisIndex]
+	gradeWdthValue = gradeMaster.axes[wdthAxisIndex]
+	wdthValues = sorted(set([m.axes[wdthAxisIndex] for m in font.masters if m.axes[wdthAxisIndex] != baseWdthValue]))
+	if not wdthValues:
+		print("⚠️ No wdth interpolation found. Widths not fitted.")
+		Message(
+			title="No Width Interpolation",
+			message=f"Advance widths could not be fitted to those of master ‘{baseMaster.name}’ because there is no interpolation along the wdth axis. Remove the graded master ‘{gradeMaster.name}’ and try again.",
+			OKButton=None,
+			)
+	
+	refWdthValue = wdthValues[0]
+	refInstance = GSInstance()
+	refInstance.font = font
+	refInstance.axes = copy(gradeMaster.axes)
+	refInstance.axes[wdthAxisIndex] = refWdthValue
+	refFont = refInstance.interpolatedFont
+	
+	for glyph in font.glyphs:
+		gradeLayer = glyph.layers[gradeMaster.id]
+		baseLayer = glyph.layers[baseMaster.id]
+		if gradeLayer.width == baseLayer.width:
+			# skip if width is OK already
+			continue
+		
+		refLayer = refFont.glyphs[glyph.name].layers[0]
+		if refLayer.width == gradeLayer.width or not gradeLayer.shapes:
+			# width cannot be interpolated, so just fix SBs:
+			fitSidebearings(gradeLayer, targetWidth=baseLayer)
+			print(f"⚠️ could not interpolate wdth, just fitted SBs: {glyph.name}")
+			continue
+		
+		wdthFactor = baseLayer.width / gradeLayer.width
+		wdthValue = gradeWdthValue + wdthFactor * (baseWdthValue - gradeWdthValue)
+		wdthInstance = GSInstance()
+		wdthInstance.font = font
+		wdthInstance.axes = copy(gradeMaster.axes)
+		wdthInstance.axes[wdthAxisIndex] = wdthValue
+		wdthFont = wdthInstance.interpolatedFont
+		wdthLayer = wdthFont.glyphs[glyph.name].layers[0]
+		gradeLayer.shapes = copy(wdthLayer.shapes)
+		gradeLayer.anchors = copy(wdthLayer.anchors)
+		gradeLayer.width = baseLayer.width
+
 class AddGrade(object):
 	prefID = "com.mekkablue.AddGrade"
 	prefDict = {
@@ -135,7 +192,7 @@ class AddGrade(object):
 	refittingMethods = (
 		"Adjust advance width: LSB 50%, RSB 50%",
 		"Adjust advance width: SBs by current proportions",
-		"Anisotropic wght interpolation",
+		"Anisotropic wght interpolation (requires I and idotless)",
 		"Isotropic wdth interpolation (requires wdth axis)",
 	)
 	
@@ -339,20 +396,21 @@ class AddGrade(object):
 					
 					# adjust width by methods 0 and 1:
 					if targetWidth != weightedWidth and fittingMethod < 2:
-						diff = targetWidth - weightedWidth
 						if fittingMethod == 1 and (weightedLayer.LSB + weightedLayer.RSB != 0):
 							lsbPercentage = weightedLayer.LSB / (weightedLayer.LSB + weightedLayer.RSB)
 						else:
 							lsbPercentage = 0.5
-						diff *= lsbPercentage
-						weightedLayer.LSB += diff
+						fitSidebearings(weightedLayer, targetWidth=targetWidth, left=lsbPercentage)
 						
 					gradeLayer.shapes = copy(weightedLayer.shapes)
 					gradeLayer.anchors = copy(weightedLayer.anchors)
 				
-				# adjust width anisotropically:
 				if fittingMethod == 2:
+					# adjust width anisotropically:
 					anisotropicAdjust(thisFont, gradeMaster, baseMaster)
+				elif fittingMethod == 3:
+					# adjust width with wdth axis:
+					wdthAdjust(thisFont, gradeMaster, baseMaster)
 					
 				# add missing axis locations if base master has axis locations:
 				if Glyphs.versionNumber < 4:
