@@ -103,7 +103,6 @@ class BraceLayerManager(object):
 		if currentFont and len(currentFont.axes) > axisIndex:
 			axisID = currentFont.axes[axisIndex].axisId
 			for thisGlyph in currentFont.glyphs:
-				print(thisGlyph.name)
 				for thisLayer in thisGlyph.layers:
 					if thisLayer.isSpecialLayer and thisLayer.attributes:
 						if isBraceLayer and "coordinates" in thisLayer.attributes.keys():
@@ -214,17 +213,20 @@ class BraceLayerManager(object):
 						glyphs = thisFont.glyphs
 
 					for glyph in glyphs:
-						print(f"  Processing {glyph.name}...")
+						# print(f"  Processing {glyph.name}...")
 						for layer in glyph.layers:
 							if not currentMasterOnly or layer.associatedMasterId == currentMasterID:
 								if layer.isSpecialLayer and layer.attributes:
 									if isBraceLayer:
 										if "coordinates" in layer.attributes.keys():
-											print(f'layer.attributes["coordinates"]["{axisID}"]')
+											# print(f'layer.attributes["coordinates"]["{axisID}"]')
 											currentPos = layer.attributes["coordinates"][axisID]
 											if currentPos == searchFor:
 												if replaceWith != None:
-													layer.attributes["coordinates"][axisID] = replaceWith
+													try:
+														layer.attributes["coordinates"][axisID] = replaceWith
+													except Exception as e:
+														print(f"⚠️ Error in {glyph.name}, ‘{layer.name}’: {e}")
 												else:
 													del layer.attributes["coordinates"][axisID]
 													if not layer.attributes["coordinates"]:
