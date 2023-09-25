@@ -191,7 +191,7 @@ class AddGrade(object):
 	
 	refittingMethods = (
 		"Adjust advance width: LSB 50%, RSB 50%",
-		"Adjust advance width: SBs by current proportions",
+		"Adjust advance width: keep current SB proportions",
 		"Anisotropic wght interpolation (requires I and idotless)",
 		"Isotropic wdth interpolation (requires wdth axis)",
 	)
@@ -229,21 +229,19 @@ class AddGrade(object):
 		self.w.grade = vanilla.ComboBox((inset+indent, linePos-1, -inset, 19), ("-50", "0", "50"), sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 		
-		indent = 92
-		
-		self.w.axisTagText = vanilla.TextBox((inset, linePos+3, indent, 14), "Grade axis:   Tag", sizeStyle="small", selectable=True)
-		self.w.axisTag = vanilla.EditText((inset+indent, linePos, 50, 19), "GRAD", callback=self.SavePreferences, sizeStyle="small")
-		self.w.axisNameText = vanilla.TextBox((inset+indent+60, linePos+3, 35, 14), "Name", sizeStyle="small", selectable=True)
-		self.w.axisName = vanilla.EditText((inset+indent+95, linePos, -inset, 19), "Grade", callback=self.SavePreferences, sizeStyle="small")
+		self.w.fittingMethodText = vanilla.TextBox((inset, linePos+3, 90, 14), "Fitting method:", sizeStyle="small", selectable=True)
+		self.w.fittingMethod = vanilla.PopUpButton((inset+90, linePos+1, -inset, 17), self.refittingMethods, sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 		
 		self.w.addSyncMetricCustomParameter = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Add custom parameter ‘Link Metrics With Master’ (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 		
-		self.w.fittingMethodText = vanilla.TextBox((inset, linePos+3, 90, 14), "Fitting method:", sizeStyle="small", selectable=True)
-		self.w.fittingMethod = vanilla.PopUpButton((inset+90, linePos+1, -inset, 17), self.refittingMethods, sizeStyle="small", callback=self.SavePreferences)
+		indent = 92
+		self.w.axisTagText = vanilla.TextBox((inset, linePos+3, indent, 14), "Grade axis:   Tag", sizeStyle="small", selectable=True)
+		self.w.axisTag = vanilla.EditText((inset+indent, linePos, 50, 19), "GRAD", callback=self.SavePreferences, sizeStyle="small")
+		self.w.axisNameText = vanilla.TextBox((inset+indent+60, linePos+3, 35, 14), "Name", sizeStyle="small", selectable=True)
+		self.w.axisName = vanilla.EditText((inset+indent+95, linePos, -inset, 19), "Grade", callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
-		
 		# self.w.useWdthAxis = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Use Width axis for fitting grade layer width", value=False, callback=self.SavePreferences, sizeStyle="small")
 		# linePos += lineHeight
 		#
