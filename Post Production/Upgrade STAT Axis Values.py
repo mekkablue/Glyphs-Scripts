@@ -46,6 +46,18 @@ else:
 			font = ttLib.TTFont(fontpath)
 			print(f"\nProcessing: {fontpath}...")
 			statTable = font["STAT"].table
+			
+			print("\nDetermining axes max and min (fvar):")
+			axisDict = {}
+			for a in font["fvar"].axes:
+				axisDict[a.axisTag] = {
+					"axisNameID": a.axisNameID,
+					"defaultValue": a.defaultValue,
+					"flags": a.flags,
+					"maxValue": a.maxValue,
+					"minValue": a.minValue,
+				}
+				print(f"- {a.axisTag}: min {a.minValue}, max {a.maxValue}")
 	
 			print("\nDetermining axes in STAT table:")
 			axes = []
@@ -86,6 +98,7 @@ else:
 	
 			overwriteCount = 0
 			for axisTag in entries.keys():
+				thereIsAnFvarEntry = axisTag in axisDict.keys()
 				axisEntries = entries[axisTag]
 				if len(axisEntries) > 1:
 					for i, entry in enumerate(axisEntries):
@@ -97,6 +110,12 @@ else:
 						currValue = entry["NominalValue"]
 						entry["RangeMinValue"] = (prevValue+currValue)/2
 						entry["RangeMaxValue"] = (nextValue+currValue)/2
+						
+						# in case the extreme axis values do not coincide with the outer ends of the axis:
+						if thereIsAnFvarEntry and prevIndex == i:
+							entry["RangeMinValue"] = min(axisDict[axisTag]["minValue"], currValue)
+						elif thereIsAnFvarEntry and nextIndex == i:
+							entry["RangeMaxValue"] = max(axisDict[axisTag]["maxValue"], currValue)
 				
 						# build value record
 						newAxisValue = fontTools.ttLib.tables.otTables.AxisValue()
