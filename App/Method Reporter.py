@@ -75,6 +75,7 @@ class MethodReporter(object):
 			"NSPopUpButton",
 			"NSButton",
 			"NSString",
+			"NSMutableArray",
 			"FTPointArray",
 			"Glyph_g_l_y_f",
 			)
@@ -229,15 +230,15 @@ class MethodReporter(object):
 	def methodList(self, className):
 		elidableMethods = [method for method in dir(NSObject) if not method.startswith("__")]
 		if className == "NSObject":
-			return [self.fullMethodName(className, method) for method in elidableMethods if not method.startswith(".") and not method.startswith("_")]
+			return [self.fullMethodName(className, method) for method in elidableMethods if not method.startswith(".") and not method.startswith("_") and not method.startswith("SCN_")]
 		else:
 			try:
 				actualClass = eval(className)
 			except:
-				newClassName = "NSClassFromString('%s')" % className
+				newClassName = f"NSClassFromString('{className}')"
 				actualClass = eval(newClassName)
 				className = newClassName
-
+			
 			shortenedMethods = [
 				self.fullMethodName(className, method) for method in dir(actualClass)
 				if not method in elidableMethods and not method.startswith(".") and not method.startswith("_")
@@ -249,9 +250,11 @@ class MethodReporter(object):
 			className = self.w.objectPicker.get()
 			filterStringEntry = self.w.filter.get().strip()
 			filterStrings = filterStringEntry.split(" ")
-
+			
 			try:
-				methodList = sorted(set(self.methodList(className)))
+				l = self.methodList(className) # fails for NSMutableArray
+				l = set(l)
+				methodList = sorted(l)
 				for filterString in filterStrings:
 					if not "*" in filterString:
 						methodList = [f for f in methodList if filterString.lower() in f.lower()]
