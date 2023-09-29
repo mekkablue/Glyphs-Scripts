@@ -44,6 +44,7 @@ class GarbageCollection(object):
 		"currentMasterOnly": 0,
 		"selectedGlyphsOnly": 0,
 		"allFonts": 0,
+		"verbose": 0,
 	}
 
 	def __init__(self):
@@ -132,8 +133,11 @@ class GarbageCollection(object):
 		self.w.selectedGlyphsOnly.getNSButton().setToolTip_("If checked, applies the clean-up only to selected glyphs. Otherwise, to all glyphs in the font.")
 		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allFonts = vanilla.CheckBox((inset, linePos - 1, 180, 20), "⚠️ Apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.allFonts.getNSButton().setToolTip_("If checked, will work on ALL currently open fonts; otherwise only the frontmost font file open.")
+
+		self.w.verbose = vanilla.CheckBox((inset+180, linePos-1, -inset, 20), "Verbose reporting", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose.getNSButton().setToolTip_("Verbose reporting in Macro Window (slow).")
 		linePos += lineHeight
 
 		self.w.line2 = vanilla.HorizontalLine((inset, linePos, -inset, 1))
@@ -275,7 +279,8 @@ class GarbageCollection(object):
 
 	def log(self, msg):
 		try:
-			print(f"\t{msg}")
+			if self.pref("verbose"):
+				print(f"\t{msg}")
 			self.w.statusText.set(msg.strip())
 		except Exception as e:
 			import traceback
@@ -309,7 +314,7 @@ class GarbageCollection(object):
 			try:
 				thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
-				print("🗑 Garbage Collection Report for {thisFont.familyName}")
+				print(f"🗑 Garbage Collection Report for {thisFont.familyName}")
 				if thisFont.filepath:
 					print(f"📄 {thisFont.filepath}")
 				else:
@@ -340,6 +345,7 @@ class GarbageCollection(object):
 				layerDeletionCountFont = 0
 
 				# go through glyphs:
+				print(f"🔠 Processing {len(glyphs)} glyphs...")
 				for i, thisGlyph in enumerate(glyphs):
 					# update progress bar:
 					self.w.progress.set((fontIndex + 1) * int(100 * i / len(glyphs)) / len(theseFonts))
@@ -350,7 +356,7 @@ class GarbageCollection(object):
 					removeAnnotationsGlyph = 0
 					layerDeletionCount = 0
 
-					self.log(f"🔠 Cleaning {thisGlyph.name} ...")
+					self.log(f"🔤 Cleaning {thisGlyph.name} ...")
 
 					# layer clean-up:
 					for thisLayer in thisGlyph.layers:
@@ -497,6 +503,8 @@ class GarbageCollection(object):
 			finally:
 				thisFont.enableUpdateInterface() # re-enables UI updates in Font View
 
-			self.log("✅ Done. Log in Macro Window.\n")
+			self.log(f"✅ Done.{' Log in Macro Window.' if self.pref('verbose') else ''}\n")
+			if not self.pref("verbose"):
+				print("✅ Done.")
 
 GarbageCollection()
