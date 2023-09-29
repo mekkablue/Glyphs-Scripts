@@ -8,12 +8,20 @@ Will backup foregrounds into backgrounds, and decompose backgrounds. Useful for 
 """
 
 class Decompose_Components_in_Background(object):
-	key = "com.mekkablue.Decompose_Components_in_Background"
+	prefID = "com.mekkablue.DecomposeComponentsinBackground"
+	prefDict = {
+		# "prefName": defaultValue,
+		"copyToBackgroundFirst": 0,
+		"whichMasters": 0,
+		"whichGlyphsInWhichFonts": 0,
+	}
+	
 	windowHeight = 216
 	padding = (10, 10, 12)
 	buttonHeight = 20
 	textHeight = 14
 	sizeStyle = 'small'
+	
 	glyphsOptions = (
 		"Backgrounds of selected glyphs in frontmost font",
 		"⚠️ All glyph backgrounds in current font",
@@ -34,8 +42,11 @@ class Decompose_Components_in_Background(object):
 		y += self.textHeight + p
 
 		### Option to backup glyphs in the background before decomposition
-		self.w.copyToBackgroundFirst = vl.CheckBox((x + 3, y, -p, self.textHeight), "Create backups in background first", sizeStyle=self.sizeStyle, callback=self.SavePreferences)
+		self.w.copyToBackgroundFirst = vl.CheckBox((x + 3, y, 240, self.textHeight), "Create backups in background first", sizeStyle=self.sizeStyle, callback=self.SavePreferences)
 		self.w.copyToBackgroundFirst.getNSButton().setToolTip_("If selected, will copy current foregrounds into backgrounds, overwriting existing background content.")
+		
+		self.w.verbose = vl.CheckBox((240 + 3, y, -p, self.textHeight), "Verbose output", sizeStyle=self.sizeStyle, callback=self.SavePreferences)
+		self.w.verbose.getNSButton().setToolTip_("Will output report for every glyph (slow). Do this only for testing purposes.")
 		y += self.textHeight
 
 		### Divider
@@ -77,27 +88,66 @@ class Decompose_Components_in_Background(object):
 
 		self.w.open()
 		self.w.makeKey()
+	
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
+	def SavePreferences(self, sender=None):
+		try:
+			# write current settings into prefs:
+			for prefName in self.prefDict.keys():
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
+			return True
+		except:
+			import traceback
+			print(traceback.format_exc())
+			return False
 
+	def LoadPreferences(self):
+		try:
+			for prefName in self.prefDict.keys():
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
+				# load previously written prefs:
+				getattr(self.w, prefName).set(self.pref(prefName))
+			return True
+		except:
+			import traceback
+			print(traceback.format_exc())
+			return False
+	
 	def glyphsOptionsCallback(self, sender):
 		allFontsSelected = sender.get() == 2
 		self.w.whichMasters.enable(not allFontsSelected)
 		self.SavePreferences()
 
 	def decomposeButtonCallback(self, sender):
+		Glyphs.clearLog()
+		
 		# collect user settings:
-		copyToBackgroundFirst = bool(Glyphs.defaults[self.key + "copyToBackgroundFirst"])
-		workOnAllFonts = Glyphs.defaults[self.key + "whichGlyphsInWhichFonts"] == 2
-		workOnAllGlyphs = workOnAllFonts or Glyphs.defaults[self.key + "whichMasters"] != 0
+		copyToBackgroundFirst = bool(self.pref("copyToBackgroundFirst"))
+		workOnAllFonts = self.pref("whichGlyphsInWhichFonts")
+		workOnAllGlyphs = workOnAllFonts or self.pref("whichMasters")
+		verbose = self.pref("verbose")
 
 		# determine affected fonts
 		if workOnAllFonts:
 			selectedFonts = Glyphs.fonts
 		else:
 			selectedFonts = (Glyphs.font, )
-
+		
+		print("Decompose Components in Background:")
 		for thisFont in selectedFonts:
+			print(f"\n📄 {thisFont.familyName}:")
+			fontCount = 0
+			
 			# determine affected glyphs
-			if workOnAllGlyphs:
+			if workOnAllGlyphs or workOnAllFonts:
 				selectedGlyphs = thisFont.glyphs
 			else:
 				selectedGlyphs = [thisLayer.parent for thisLayer in thisFont.selectedLayers]
@@ -112,19 +162,22 @@ class Decompose_Components_in_Background(object):
 			thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 			try:
 				for thisGlyph in selectedGlyphs:
+					count = 0
 					####print("Processing", thisGlyph.name)
 					# thisGlyph.beginUndo() # undo grouping causes crashes
 					for thisLayer in thisGlyph.layers:
 						if thisLayer is not None and (thisLayer.isMasterLayer or thisLayer.isSpecialLayer) and thisLayer.associatedMasterId in selectedMasterIDs:
-							self.process(thisLayer, copyToBackgroundFirst=copyToBackgroundFirst)
+							count += self.process(thisLayer, copyToBackgroundFirst=copyToBackgroundFirst)
+					fontCount += count
+					if verbose:
+						print(f"  Decomposed {count} component{'' if count==1 else 's'}: {thisGlyph.name}")
 					# thisGlyph.endUndo() # undo grouping causes crashes
-
+				print(f"Decomposed {fontCount} components in {len(selectedGlyphs)} glyphs.")
+				
 			except Exception as e:
 				Glyphs.showMacroWindow()
-				print("\n⚠️ Script Error:\n")
 				import traceback
-				print(traceback.format_exc())
-				print("\n%s" % e)
+				print(f"\n⚠️ Script Error:\n\n{traceback.format_exc()}\n\n{e}")
 				# raise e
 
 			finally:
@@ -144,39 +197,13 @@ class Decompose_Components_in_Background(object):
 			thisLayer.contentToBackgroundCheckSelection_keepOldBackground_(False, False)
 
 		# decompose background:
+		compCount = 0
 		if background and background.components:
 			compCount = len(background.components)
-			print("🔠 %s: decomposed %i component%s in background." % (
-				foreground.parent.name,
-				compCount,
-				"" if compCount == 1 else "s",
-				))
 			background.decomposeComponents()
+			
+		return compCount
 
-	def SavePreferences(self, sender=None):
-		try:
-			Glyphs.defaults[self.key + "copyToBackgroundFirst"] = self.w.copyToBackgroundFirst.get()
-			Glyphs.defaults[self.key + "whichMasters"] = self.w.whichMasters.get()
-			Glyphs.defaults[self.key + "whichGlyphsInWhichFonts"] = self.w.whichGlyphsInWhichFonts.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self, sender=None):
-		try:
-			Glyphs.registerDefault(self.key + "copyToBackgroundFirst", "0")
-			self.w.copyToBackgroundFirst.set(Glyphs.defaults[self.key + "copyToBackgroundFirst"])
-
-			Glyphs.registerDefault(self.key + "whichMasters", "0")
-			self.w.whichMasters.set(Glyphs.defaults[self.key + "whichMasters"])
-
-			Glyphs.registerDefault(self.key + "whichGlyphsInWhichFonts", "0")
-			self.w.whichGlyphsInWhichFonts.set(Glyphs.defaults[self.key + "whichGlyphsInWhichFonts"])
-		except:
-			return False
-
-		return True
 
 def run():
 	Decompose_Components_in_Background()
