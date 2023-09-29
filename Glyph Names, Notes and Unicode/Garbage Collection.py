@@ -99,7 +99,7 @@ class GarbageCollection(object):
 		linePos += lineHeight
 
 		self.w.removeColors = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Remove all glyph and layer colors 🟠🟡🟢🟣🟤 in font", value=False, callback=self.SavePreferences, sizeStyle='small'
+			(inset, linePos - 1, -inset, 20), "Remove all glyph and layer colors 🟠🟡🟢🟣 in font", value=False, callback=self.SavePreferences, sizeStyle='small'
 			)
 		self.w.removeColors.getNSButton().setToolTip_("Resets all glyph and layer colors to none.")
 		linePos += lineHeight
