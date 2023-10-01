@@ -14,7 +14,7 @@ def realWeight(font, referenceGlyph="idotless", masterIndex=0):
 	layer = glyph.layers[masterIndex]
 	midY = layer.bounds.origin.y + layer.bounds.size.height / 2
 	intersections = layer.intersectionsBetweenPoints(
-		NSPoint(layer.bounds.origin.x-100, midY),
+		NSPoint(layer.bounds.origin.x - 100, midY),
 		NSPoint(layer.bounds.origin.x + layer.bounds.size.width + 100, midY),
 		)
 	p1 = intersections[1]
@@ -54,7 +54,7 @@ def hScaleLayer(layer, hFactor=1.0):
 	xScale.scaleXBy_yBy_(hFactor, 1.0)
 	layer.applyTransform(xScale.transformStruct())
 
-def anisotropicAdjust(font, master, originMaster):
+def anisotropicAdjust(font, master, originMaster, scope=[]):
 	font = Glyphs.font
 
 	wghtAxisIndex = axisIdForTag(font, "wght")
@@ -71,6 +71,8 @@ def anisotropicAdjust(font, master, originMaster):
 	currentRealWghtSC = realWeight(currentWghtFont, referenceGlyph="i.sc")
 
 	for glyph in font.glyphs:
+		if not glyph.name in scope:
+			continue
 		layer = glyph.layers[master.id]
 		originLayer = glyph.layers[originMaster.id]
 		
@@ -112,6 +114,9 @@ def anisotropicAdjust(font, master, originMaster):
 		hScaleLayer(wghtLayer, hScale)
 		layer.shapes = copy(wghtLayer.shapes)
 		layer.width *= hScale
+		
+		# realign handles
+		straightenBCPs(layer)
 
 def fitSidebearings(layer, targetWidth, left=0.5):
 	if not layer.shapes:
@@ -122,7 +127,7 @@ def fitSidebearings(layer, targetWidth, left=0.5):
 		layer.LSB += diff
 		layer.width = targetWidth
 	
-def wdthAdjust(font, gradeMaster, baseMaster):
+def wdthAdjust(font, gradeMaster, baseMaster, scope=[]):
 	wdthAxisIndex = axisIdForTag(font, "wdth")
 	if wdthAxisIndex == None:
 		print("⚠️ No wdth axis found. Widths not fitted.")
@@ -151,6 +156,8 @@ def wdthAdjust(font, gradeMaster, baseMaster):
 	refFont = refInstance.interpolatedFont
 	
 	for glyph in font.glyphs:
+		if not glyph.name in scope:
+			continue
 		gradeLayer = glyph.layers[gradeMaster.id]
 		baseLayer = glyph.layers[baseMaster.id]
 		if gradeLayer.width == baseLayer.width:
@@ -164,18 +171,85 @@ def wdthAdjust(font, gradeMaster, baseMaster):
 			print(f"⚠️ could not interpolate wdth, just fitted SBs: {glyph.name}")
 			continue
 		
-		wdthFactor = baseLayer.width / gradeLayer.width
-		wdthValue = gradeWdthValue + wdthFactor * (baseWdthValue - gradeWdthValue)
+		# calculate and interpolate wdth variation
+		wdthFactor = (baseLayer.width - refLayer.width) / (gradeLayer.width - refLayer.width)
+		wdthValue = refWdthValue + wdthFactor * (gradeWdthValue - refWdthValue)
+		print(wdthValue, glyph.name)
 		wdthInstance = GSInstance()
 		wdthInstance.font = font
 		wdthInstance.axes = copy(gradeMaster.axes)
 		wdthInstance.axes[wdthAxisIndex] = wdthValue
 		wdthFont = wdthInstance.interpolatedFont
 		wdthLayer = wdthFont.glyphs[glyph.name].layers[0]
+		
+		# copy it back to the target layer
 		gradeLayer.shapes = copy(wdthLayer.shapes)
 		gradeLayer.anchors = copy(wdthLayer.anchors)
-		gradeLayer.width = baseLayer.width
+		gradeLayer.hints = copy(wdthLayer.hints)
+		gradeLayer.width = wdthLayer.width
 
+		# realign handles
+		straightenBCPs(gradeLayer)
+
+def straightenBCPs(layer):
+	def closestPointOnLine(P, A, B):
+		# vector of line AB
+		AB = NSPoint(B.x - A.x, B.y - A.y)
+		# vector from point A to point P
+		AP = NSPoint(P.x - A.x, P.y - A.y)
+		# dot product of AB and AP
+		dotProduct = AB.x * AP.x + AB.y * AP.y
+		ABsquared = AB.x**2 + AB.y**2
+		t = dotProduct / ABsquared
+		x = A.x + t * AB.x
+		y = A.y + t * AB.y
+		return NSPoint(x, y)
+	
+	def ortho(n1, n2):
+		xDiff = n1.x - n2.x
+		yDiff = n1.y - n2.y
+		# must not have the same coordinates,
+		# and either vertical or horizontal:
+		if xDiff != yDiff and xDiff * yDiff == 0.0:
+			return True
+		return False
+
+	for p in layer.paths:
+		for n in p.nodes:
+			if n.connection != GSSMOOTH:
+				continue
+			nn, pn = n.nextNode, n.prevNode
+			if all((nn.type == OFFCURVE, pn.type == OFFCURVE)):
+				# surrounding points are BCPs
+				smoothen, center, opposite = None, None, None
+				for handle in (nn, pn):
+					if ortho(handle, n):
+						center = n
+						opposite = handle
+						smoothen = nn if nn != handle else pn
+						p.setSmooth_withCenterNode_oppositeNode_(
+							smoothen, center, opposite,
+							)
+						break
+				if smoothen == center == opposite == None:
+					n.position = closestPointOnLine(
+						n.position, nn, pn,
+						)
+			elif n.type != OFFCURVE and (nn.type, pn.type).count(OFFCURVE) == 1:
+				# only one of the surrounding points is a BCP
+				center = n
+				if nn.type == OFFCURVE:
+					smoothen = nn
+					opposite = pn
+				elif pn.type == OFFCURVE:
+					smoothen = pn
+					opposite = nn
+				else:
+					continue # should never occur
+				p.setSmooth_withCenterNode_oppositeNode_(
+					smoothen, center, opposite,
+					)
+					
 class AddGrade(object):
 	prefID = "com.mekkablue.AddGrade"
 	prefDict = {
@@ -187,19 +261,20 @@ class AddGrade(object):
 		"weight": 100,
 		"addSyncMetricCustomParameter": 1,
 		"fittingMethod": 0,
+		"limitToSelectedGlyphs": 0,
 	}
 	
 	refittingMethods = (
 		"Adjust advance width: LSB 50%, RSB 50%",
 		"Adjust advance width: keep current SB proportions",
-		"Anisotropic wght interpolation (requires I and idotless)",
-		"Isotropic wdth interpolation (requires wdth axis)",
+		"Anisotropic wght interpolation (slow, requires I and idotless)",
+		"Isotropic wdth interpolation (slow, requires wdth axis)",
 	)
 	
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 300
-		windowHeight = 225
+		windowWidth  = 440
+		windowHeight = 230
 		windowWidthResize  = 200 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -212,36 +287,40 @@ class AddGrade(object):
 		
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos+2, -inset, 14), "Add Grade master (and if necessary Grade axis):", sizeStyle="small", selectable=True)
+		indent = 100
+
+		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Add Grade master (and if necessary Grade axis):", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 		
-		self.w.baseMasterText = vanilla.TextBox((inset, linePos+3, 100, 14), "Based on master:", sizeStyle="small", selectable=True)
-		self.w.baseMaster = vanilla.PopUpButton((inset+100, linePos, -inset, 17), self.mastersOfCurrentFont(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.baseMasterText = vanilla.TextBox((inset, linePos+3, indent, 14), "Based on master:", sizeStyle="small", selectable=True)
+		self.w.baseMaster = vanilla.PopUpButton((inset+indent, linePos, -inset-25, 17), self.mastersOfCurrentFont(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateBaseMaster = vanilla.SquareButton((-inset-20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateUI)
 		linePos += lineHeight
 		
-		indent = 70
-		
-		self.w.weightText = vanilla.TextBox((inset, linePos+3, indent, 14), "Use weight:", sizeStyle="small", selectable=True)
-		self.w.weight = vanilla.ComboBox((inset+indent, linePos-1, -inset, 19), self.weightValuesForCurrentFont(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.weightText = vanilla.TextBox((inset, linePos+3, indent, 14), "Use coordinate:", sizeStyle="small", selectable=True)
+		self.w.weight = vanilla.ComboBox((inset+indent, linePos-1, -inset-25, 19), self.weightValuesForCurrentFont(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateWeight = vanilla.SquareButton((-inset-20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateUI)
 		linePos += lineHeight
 		
-		self.w.gradeText = vanilla.TextBox((inset, linePos+3, indent, 14), "…as grade:", sizeStyle="small", selectable=True)
-		self.w.grade = vanilla.ComboBox((inset+indent, linePos-1, -inset, 19), ("-50", "0", "50"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.gradeText = vanilla.TextBox((inset, linePos+3, indent, 14), "… for grade:", sizeStyle="small", selectable=True)
+		self.w.grade = vanilla.ComboBox((inset+indent, linePos-1, 55, 19), ("-50", "0", "50"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.axisTagText = vanilla.TextBox((inset+indent+65, linePos+3, indent, 14), "Axis tag & name:", sizeStyle="small", selectable=True)
+		self.w.axisTag = vanilla.EditText((inset+indent*2+60, linePos, 45, 19), "GRAD", callback=self.SavePreferences, sizeStyle="small")
+		self.w.axisName = vanilla.EditText((inset+indent*2+110, linePos, -inset-25, 19), "Grade", callback=self.SavePreferences, sizeStyle="small")
+		self.w.axisReset = vanilla.SquareButton((-inset-20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateUI)
+		linePos += lineHeight + 10
+		
+		indent = 45
+		self.w.fittingMethodText = vanilla.TextBox((inset, linePos+3, indent, 14), "Fitting:", sizeStyle="small", selectable=True)
+		self.w.fittingMethod = vanilla.PopUpButton((inset+indent, linePos+1, -inset, 17), self.refittingMethods, sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 		
-		self.w.fittingMethodText = vanilla.TextBox((inset, linePos+3, 90, 14), "Fitting method:", sizeStyle="small", selectable=True)
-		self.w.fittingMethod = vanilla.PopUpButton((inset+90, linePos+1, -inset, 17), self.refittingMethods, sizeStyle="small", callback=self.SavePreferences)
+		self.w.addSyncMetricCustomParameter = vanilla.CheckBox((inset+indent, linePos-1, -inset, 20), "Add custom parameter ‘Link Metrics With Master’ (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		linePos += lineHeight + 5
+		
+		self.w.limitToSelectedGlyphs = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Limit to selected glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 		
-		self.w.addSyncMetricCustomParameter = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Add custom parameter ‘Link Metrics With Master’ (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
-		
-		indent = 92
-		self.w.axisTagText = vanilla.TextBox((inset, linePos+3, indent, 14), "Grade axis:   Tag", sizeStyle="small", selectable=True)
-		self.w.axisTag = vanilla.EditText((inset+indent, linePos, 50, 19), "GRAD", callback=self.SavePreferences, sizeStyle="small")
-		self.w.axisNameText = vanilla.TextBox((inset+indent+60, linePos+3, 35, 14), "Name", sizeStyle="small", selectable=True)
-		self.w.axisName = vanilla.EditText((inset+indent+95, linePos, -inset, 19), "Grade", callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
 		# self.w.useWdthAxis = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Use Width axis for fitting grade layer width", value=False, callback=self.SavePreferences, sizeStyle="small")
 		# linePos += lineHeight
 		#
@@ -270,27 +349,47 @@ class AddGrade(object):
 	def mastersOfCurrentFont(self, sender=None):
 		masterMenu = []
 		font = Glyphs.font
-		wghtID = font.axisForTag_("wght").id
 		if font:
 			for i, master in enumerate(font.masters):
-				masterMenu.append(f"{i+1}. {master.name}, wght={master.axes[wghtID]} (ID: {master.id})")
+				masterMenu.append(f'{i+1}. {master.name}: {self.masterAxesString(master)}')
 		return masterMenu
 	
 	def weightValuesForCurrentFont(self, sender=None):
+		# presets for the combo box
 		weightValues = []
 		font = Glyphs.font
 		if font:
-			axisID = font.axisForTag_("wght").id
-			for m in font.masters:
-				value = m.axisValueValueForId_(axisID)
-				if not value in weightValues:
-					weightValues.append(value)
-			for i in font.instances:
-				value = i.axisValueValueForId_(axisID)
+			wghtAxis = font.axisForTag_("wght")
+			if wghtAxis:
+				axisID = wghtAxis.id
+				for m in font.masters + font.instances:
+					value = f"wght={m.axisValueValueForId_(axisID)}"
+					if not value in weightValues:
+						weightValues.append(value)
+			for m in font.masters + font.instances:
+				value = self.masterAxesString(m)
 				if not value in weightValues:
 					weightValues.append(value)
 		return sorted(weightValues)
-			
+	
+	def masterAxesString(self, master):
+		font = master.font
+		return ", ".join([f"{a.axisTag}={master.axes[i]}" for i, a in enumerate(font.axes)])
+		
+	def updateUI(self, sender=None):
+		font = Glyphs.font
+		if sender == self.w.updateWeight:
+			# get current master:
+			masterIndex = self.w.baseMaster.get()
+			master = font.masters[masterIndex]
+			self.w.weight.set(self.masterAxesString(master))
+		elif sender == self.w.updateBaseMaster:
+			self.w.baseMaster.setItems(self.mastersOfCurrentFont())
+		elif sender == self.w.axisReset:
+			self.w.axisTag.set("GRAD")
+			self.w.axisName.set("Grade")
+		self.SavePreferences()
+		
 	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
@@ -334,10 +433,16 @@ class AddGrade(object):
 					setattr(sys.modules[__name__], prefName, fallbackValue)
 
 			fittingMethod = int(self.pref("fittingMethod"))
+			limitToSelectedGlyphs = bool(self.pref("limitToSelectedGlyphs"))
 			
 			thisFont = Glyphs.font # frontmost font
+			if limitToSelectedGlyphs:
+				glyphNames = [l.parent.name for l in thisFont.selectedLayers]
+			else:
+				glyphNames = [g.name for g in thisFont.glyphs]
+				
 			if thisFont is None:
-				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				Message(title="No Font Open", message="The script requires a font with a weight axis. Open a font and run the script again.", OKButton=None)
 			else:
 				filePath = thisFont.filepath
 				if filePath:
@@ -366,78 +471,120 @@ class AddGrade(object):
 				baseMaster = thisFont.masters[self.pref("baseMaster")]
 				grade = int(self.pref("grade"))
 				gradeMaster = copy(baseMaster)
-				gradeMaster.name = f"{baseMaster.name} Grade {self.pref('grade')}"
-				print(f"Adding master: {gradeMaster.name}")
+				gradeMaster.name = f"{baseMaster.name} Grade {grade}"
+				gradeMaster.font = thisFont
 				gradeMaster.setAxisValueValue_forId_(grade, gradeAxis.id)
+				
+				# work font = font without graded master,
+				# because it influences interpolation otherwise
+				workFont = copy(thisFont)
+				for m in workFont.masters[::-1]:
+					if m.axes == gradeMaster.axes:
+						workFont.removeFontMaster_(m)
+				
 				if self.pref("addSyncMetricCustomParameter"):
 					linkMasterParameter = GSCustomParameter("Link Metrics With Master", baseMaster.id)
 					gradeMaster.customParameters.append(linkMasterParameter)
-				thisFont.masters.append(gradeMaster)
 				
+				# use existing master if there is one, and
+				# discard the gradeMaster we started building above:
+				existingMaster = False
+				for m in thisFont.masters[::-1]:
+					if m.axes == gradeMaster.axes:
+						if existingMaster or not limitToSelectedGlyphs:
+							# remove preexisting graded masters if there are any
+							print(f"❌ Removing preexisting graded master ‘{m.name}’")
+							thisFont.removeFontMaster_(m)
+						else:
+							# keep master if we only reinterpolate some glyphs
+							m.name = gradeMaster.name
+							gradeMaster = m
+							existingMaster = True
+				
+				# otherwise add the one we built above:
+				if not existingMaster:
+					print(f"Ⓜ️ Adding master: ‘{gradeMaster.name}’")
+					thisFont.masters.append(gradeMaster)
+				
+				# make grade interpolation in workFont
 				gradeInstance = GSInstance()
-				gradeInstance.font = thisFont
+				gradeInstance.font = workFont # the font that does not have the graded master yet
 				gradeInstance.name = "###DELETEME###"
 				gradeInstance.axes = baseMaster.axes
-				weightValue = float(self.pref("weight").strip())
-				for i, a in enumerate(thisFont.axes):
-					if a.axisTag == "wght" or a.name == "Weight": # weight axis
-						gradeInstance.axes[i] = weightValue
-						break
+				
+				# parse user input for graded designspace coordinate:
+				for valuePair in self.pref("weight").strip().split(","):
+					tag, axisValue = valuePair.split("=")
+					tag = tag.strip()
+					axisValue = float(axisValue.strip())
+					axisID = axisIdForTag(workFont, tag)
+					gradeInstance.axes[axisID] = axisValue
+				print(f"🛠️ Interpolating grade: {self.masterAxesString(gradeInstance)}")
+				
+				# interpolate the grade:
 				gradeFont = gradeInstance.interpolatedFont
-				for weightedGlyph in gradeFont.glyphs:
+				for glyphName in glyphNames:
+					weightedGlyph = gradeFont.glyphs[glyphName]
 					weightedLayer = weightedGlyph.layers[0]
 					weightedWidth = weightedLayer.width
-					targetGlyph = thisFont.glyphs[weightedGlyph.name]
-					gradeLayer = targetGlyph.layers[gradeMaster.id]
-					baseLayer = targetGlyph.layers[baseMaster.id]
-					targetWidth = baseLayer.width
+					
+					baseGlyph = thisFont.glyphs[glyphName]
+					baseLayer = baseGlyph.layers[baseMaster.id]
+					baseWidth = baseLayer.width
 					
 					# adjust width by methods 0 and 1:
-					if targetWidth != weightedWidth and fittingMethod < 2:
+					if weightedWidth != baseWidth and fittingMethod < 2:
 						if fittingMethod == 1 and (weightedLayer.LSB + weightedLayer.RSB != 0):
 							lsbPercentage = weightedLayer.LSB / (weightedLayer.LSB + weightedLayer.RSB)
 						else:
 							lsbPercentage = 0.5
-						fitSidebearings(weightedLayer, targetWidth=targetWidth, left=lsbPercentage)
-						
+						fitSidebearings(weightedLayer, targetWidth=baseWidth, left=lsbPercentage)
+					
+					# bring the interpolated shapes back into the open font:
+					gradeLayer = baseGlyph.layers[gradeMaster.id]
+					gradeLayer.width = weightedLayer.width
 					gradeLayer.shapes = copy(weightedLayer.shapes)
 					gradeLayer.anchors = copy(weightedLayer.anchors)
+					gradeLayer.hints = copy(weightedLayer.hints)
 				
+				# adjust widths by methods 2 and 3:
 				if fittingMethod == 2:
 					# adjust width anisotropically:
-					anisotropicAdjust(thisFont, gradeMaster, baseMaster)
+					anisotropicAdjust(thisFont, gradeMaster, baseMaster, scope=glyphNames)
 				elif fittingMethod == 3:
 					# adjust width with wdth axis:
-					wdthAdjust(thisFont, gradeMaster, baseMaster)
-					
+					wdthAdjust(thisFont, gradeMaster, baseMaster, scope=glyphNames)
+				
 				# add missing axis locations if base master has axis locations:
 				if Glyphs.versionNumber < 4:
-					print("Updating Axis Locations in masters...")
+					print("📐 Updating Axis Locations in masters...")
 					for thisMaster in thisFont.masters:
 						axLoc = thisMaster.customParameters["Axis Location"]
 						if axLoc and len(axLoc) < len(thisFont.axes):
 							axLoc.append(
 								{
-									"Axis": "Grade",
+									"Axis": self.pref("axisName"),
 									"Location": thisMaster.axisValueValueForId_(gradeAxis.id),
 								}
 							)
 							thisMaster.customParameters["Axis Location"] = axLoc
-							
-					print("Updating Axis Locations in instances...")
+					
+					print("📐 Updating Axis Locations in instances...")
 					for thisInstance in thisFont.instances:
 						axLoc = thisInstance.customParameters["Axis Location"]
 						if axLoc and len(axLoc) < len(thisFont.axes):
 							axLoc.append(
 								{
-									"Axis": "Grade",
+									"Axis": self.pref("axisName"),
 									"Location": thisInstance.axisValueValueForId_(gradeAxis.id),
 								}
 							)
 							thisInstance.customParameters["Axis Location"] = axLoc
+						# Glyphs 4:
 						# thisMaster.setExternAxisValueValue_forId_(thisMaster.axisValueValueForId_(gradeID), gradeID)
 						# thisMaster.externalAxesValues[gradeID] = thisMaster.internalAxesValues[gradeID]
-						
+					
+					# update Axis Locations in Virtual Masters if there are any:
 					for parameter in thisFont.customParameters:
 						if parameter.name == "Virtual Master":
 							print("Updating Virtual Master...")
@@ -445,7 +592,7 @@ class AddGrade(object):
 							if len(axLoc) < len(thisFont.axes):
 								axLoc.append(
 									{
-										"Axis": "Grade",
+										"Axis": self.pref("axisName"),
 										"Location": 0,
 									}
 								)
