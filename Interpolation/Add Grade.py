@@ -550,9 +550,11 @@ class AddGrade(object):
 				# adjust widths by methods 2 and 3:
 				if fittingMethod == 2:
 					# adjust width anisotropically:
+					print(f"↔️ Fitting {len(glyphNames)} glyph{'' if len(glyphNames)==1 else 's'} anisotropically...")
 					anisotropicAdjust(thisFont, gradeMaster, baseMaster, scope=glyphNames)
 				elif fittingMethod == 3:
 					# adjust width with wdth axis:
+					print(f"↔️ Fitting {len(glyphNames)} glyph{'' if len(glyphNames)==1 else 's'} through the width axis...")
 					wdthAdjust(thisFont, gradeMaster, baseMaster, scope=glyphNames)
 				
 				# add missing axis locations if base master has axis locations:
