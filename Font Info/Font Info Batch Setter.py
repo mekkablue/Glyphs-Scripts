@@ -57,41 +57,41 @@ class FontInfoBatchSetter(object):
 		column = 100
 
 		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, 14), u"Batch-set Font Info > Font of open fonts with these values:", sizeStyle='small', selectable=True
+			(inset, linePos + 2, -inset, 14), "Batch-set Font Info > Font of open fonts with these values:", sizeStyle='small', selectable=True
 			)
 		linePos += lineHeight
 
 		# DESIGNER
-		self.w.setDesigner = vanilla.CheckBox((inset, linePos - 1, column, 20), u"Designer:", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setDesigner = vanilla.CheckBox((inset, linePos - 1, column, 20), "Designer:", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.designer = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
-		self.w.setDesignerURL = vanilla.CheckBox((inset, linePos - 1, column, 20), u"Designer URL:", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setDesignerURL = vanilla.CheckBox((inset, linePos - 1, column, 20), "Designer URL:", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.designerURL = vanilla.EditText((inset + column, linePos, -inset, 19), "https://", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# MANUFACTURER
-		self.w.setManufacturer = vanilla.CheckBox((inset, linePos - 1, column, 20), u"Manufacturer:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setManufacturer = vanilla.CheckBox((inset, linePos - 1, column, 20), "Manufacturer:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.manufacturer = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
-		self.w.setManufacturerURL = vanilla.CheckBox((inset, linePos - 1, column, 20), u"Manufact.URL:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setManufacturerURL = vanilla.CheckBox((inset, linePos - 1, column, 20), "Manufact.URL:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.manufacturerURL = vanilla.EditText((inset + column, linePos, -inset, 19), "https://", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# LICENSE
-		self.w.setLicense = vanilla.CheckBox((inset, linePos - 1, column, 20), u"License:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setLicense = vanilla.CheckBox((inset, linePos - 1, column, 20), "License:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.license = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
-		self.w.setLicenseURL = vanilla.CheckBox((inset, linePos - 1, column, 20), u"License URL:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setLicenseURL = vanilla.CheckBox((inset, linePos - 1, column, 20), "License URL:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.licenseURL = vanilla.EditText((inset + column, linePos, -inset, 19), "https://", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# COPYRIGHT
-		self.w.setCopyright = vanilla.CheckBox((inset, linePos - 1, column, 20), u"Copyright:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setCopyright = vanilla.CheckBox((inset, linePos - 1, column, 20), "Copyright:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.copyright = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# TRADEMARK
-		self.w.setTrademark = vanilla.CheckBox((inset, linePos - 1, column, 20), u"Trademark:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setTrademark = vanilla.CheckBox((inset, linePos - 1, column, 20), "Trademark:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.trademark = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = f"Trademark information. Use {self.placeholderFamilyName} as placeholder for the current family name." 
 		self.w.setTrademark.getNSButton().setToolTip_(tooltip)
@@ -99,26 +99,26 @@ class FontInfoBatchSetter(object):
 		linePos += lineHeight
 		
 		# VENDOR ID
-		self.w.setVendorID = vanilla.CheckBox((inset, linePos - 1, column, 20), u"Vendor ID:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setVendorID = vanilla.CheckBox((inset, linePos - 1, column, 20), "Vendor ID:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.vendorID = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# VERSION NUMBER
-		self.w.setVersion = vanilla.CheckBox((inset, linePos - 1, column, 20), u"Version:", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setVersion = vanilla.CheckBox((inset, linePos - 1, column, 20), "Version:", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.versionMajor = vanilla.EditText((inset + column, linePos, 50, 19), "1", callback=self.SavePreferences, sizeStyle='small')
-		self.w.versionDot = vanilla.TextBox((inset + 151, linePos + 2, 8, 18), u".", sizeStyle='regular', selectable=True)
+		self.w.versionDot = vanilla.TextBox((inset + 151, linePos + 2, 8, 18), ".", sizeStyle='regular', selectable=True)
 		self.w.versionMinor = vanilla.EditText((inset + 160, linePos, -inset - 113, 19), "005", callback=self.SavePreferences, sizeStyle='small')
-		self.w.versionMinorDecrease = vanilla.SquareButton((-inset - 110, linePos, -inset - 90, 19), u"−", sizeStyle='small', callback=self.changeMinVersion)
+		self.w.versionMinorDecrease = vanilla.SquareButton((-inset - 110, linePos, -inset - 90, 19), "−", sizeStyle='small', callback=self.changeMinVersion)
 		self.w.versionMinorDecrease.getNSButton().setToolTip_("Decrease the version number by 0.001.")
-		self.w.versionMinorIncrease = vanilla.SquareButton((-inset - 91, linePos, -inset - 71, 19), u"+", sizeStyle='small', callback=self.changeMinVersion)
+		self.w.versionMinorIncrease = vanilla.SquareButton((-inset - 91, linePos, -inset - 71, 19), "+", sizeStyle='small', callback=self.changeMinVersion)
 		self.w.versionMinorIncrease.getNSButton().setToolTip_("Increase the version number by 0.001.")
-		self.w.minVersionButton = vanilla.SquareButton((-inset - 60, linePos, -inset, 18), u"⟳ 1.005", sizeStyle='small', callback=self.setVersion1005)
+		self.w.minVersionButton = vanilla.SquareButton((-inset - 60, linePos, -inset, 18), "⟳ 1.005", sizeStyle='small', callback=self.setVersion1005)
 		self.w.minVersionButton.getNSButton(
-		).setToolTip_(u"Resets the version to 1.005. Some (old?) Microsoft apps may consider fonts with smaller versions as unfinished and not display them in their font menu.")
+		).setToolTip_("Resets the version to 1.005. Some (old?) Microsoft apps may consider fonts with smaller versions as unfinished and not display them in their font menu.")
 		linePos += lineHeight
 
 		# DATE AND TIME
-		self.w.setDate = vanilla.CheckBox((inset, linePos - 1, column, 20), u"Date and time:", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setDate = vanilla.CheckBox((inset, linePos - 1, column, 20), "Date and time:", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.datePicker = vanilla.DatePicker(
 			(inset + column, linePos - 3, -inset - 70, 22),
 			date=AppKit.NSDate.alloc().init(),
@@ -131,8 +131,8 @@ class FontInfoBatchSetter(object):
 			callback=None,
 			sizeStyle='small'
 			)
-		self.w.noonButton = vanilla.SquareButton((-inset - 60, linePos, -inset, 18), u"🕛 Today", sizeStyle='small', callback=self.setNoon)
-		self.w.noonButton.getNSButton().setToolTip_(u"Resets the date to today 12:00 noon.")
+		self.w.noonButton = vanilla.SquareButton((-inset - 60, linePos, -inset, 18), "🕛 Today", sizeStyle='small', callback=self.setNoon)
+		self.w.noonButton.getNSButton().setToolTip_("Resets the date to today 12:00 noon.")
 		linePos += lineHeight
 
 		# SEPARATOR
@@ -140,22 +140,22 @@ class FontInfoBatchSetter(object):
 		linePos += lineHeight
 
 		# APPLY TO FONTS
-		self.w.finger = vanilla.TextBox((inset - 5, linePos, 22, 22), u"👉 ", sizeStyle='regular', selectable=True)
-		self.w.applyText = vanilla.TextBox((inset + 17, linePos + 2, 70, 14), u"Apply to", sizeStyle='small', selectable=True)
-		self.w.applyPopup = vanilla.PopUpButton((inset + 70, linePos, 150, 17), (u"ALL open fonts", u"open fonts containing"), sizeStyle='small', callback=self.SavePreferences)
+		self.w.finger = vanilla.TextBox((inset - 5, linePos, 22, 22), "👉 ", sizeStyle='regular', selectable=True)
+		self.w.applyText = vanilla.TextBox((inset + 17, linePos + 2, 70, 14), "Apply to", sizeStyle='small', selectable=True)
+		self.w.applyPopup = vanilla.PopUpButton((inset + 70, linePos, 150, 17), ("ALL open fonts", "open fonts containing"), sizeStyle='small', callback=self.SavePreferences)
 		self.w.applyContaining = vanilla.EditText(
 			(inset + 70 + 150 + 10, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small', placeholder="enter part of family name here"
 			)
-		self.w.applyContaining.getNSTextField().setToolTip_(u"Only applies the settings to fonts that contain this in Font Info > Font > Family Name.")
+		self.w.applyContaining.getNSTextField().setToolTip_("Only applies the settings to fonts that contain this in Font Info > Font > Family Name.")
 		linePos += lineHeight
 
 		# Buttons:
 		self.w.extractButton = vanilla.Button(
 			(-270 - inset, -20 - inset, -130 - inset, -inset), "Extract from Font", sizeStyle='regular', callback=self.ExtractFontInfoFromFrontmostFont
 			)
-		self.w.extractButton.getNSButton().setToolTip_(u"Extracts the settings from the frontmost font and fills the UI with it.")
+		self.w.extractButton.getNSButton().setToolTip_("Extracts the settings from the frontmost font and fills the UI with it.")
 		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Apply to Fonts", sizeStyle='regular', callback=self.FontInfoBatchSetterMain)
-		self.w.runButton.getNSButton().setToolTip_(u"Applies the checked settings above to all fonts indicated in the ‘Apply to’ option.")
+		self.w.runButton.getNSButton().setToolTip_("Applies the checked settings above to all fonts indicated in the ‘Apply to’ option.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
@@ -510,9 +510,9 @@ class FontInfoBatchSetter(object):
 						changedFontsCount += 1
 
 			# Final report:
-			Glyphs.showNotification(
-				u"Font Info Batch Setter: Done",
-				u"Went through %i open font%s. Changed %i value%s in %i font%s. Details in Macro Window." % (
+			Message(
+				title="Font Info Batch Setter: Done",
+				message="Went through %i open font%s. Changed %i value%s in %i font%s. Details in Macro Window." % (
 					len(theseFonts),
 					"" if len(theseFonts) == 1 else "s",
 					changeCount,
@@ -520,6 +520,7 @@ class FontInfoBatchSetter(object):
 					changedFontsCount,
 					"" if changedFontsCount == 1 else "s",
 					),
+				OKButton=None,
 				)
 			print("\nDone.")
 
