@@ -31,14 +31,27 @@ def closestNode(thisAnchor):
 				return pi, ni
 	return None
 
+def closestX(thisAnchor):
+	"""Return pathIndex, nodeIndex"""
+	layer = thisAnchor.parent()
+	for pi, path in enumerate(layer.paths):
+		for ni, node in enumerate(path.nodes):
+			if node.position.x == thisAnchor.position.x:
+				return pi, ni
+	return None
+
 def pathNodeIndexForAnchorNameInGlyph(anchorName, glyph):
 	for thisLayer in glyph.layers:
 		thisAnchor = thisLayer.anchors[anchorName]
 		if thisAnchor:
 			pathNodeIndex = closestNode(thisAnchor)
 			if pathNodeIndex != None:
-				return pathNodeIndex
-	return None
+				return pathNodeIndex, None
+				
+			pathNodeIndex = closestX(thisAnchor)
+			if pathNodeIndex != None:
+				return pathNodeIndex, thisAnchor.position.y
+	return None, None
 
 def closestNodeInComponent(thisAnchor):
 	"""Return componentIndex; pathIndex, nodeIndex"""
@@ -69,9 +82,9 @@ def process(thisGlyph):
 		
 		pathNodeIndexDict = {}
 		for anchorName in allAnchorNames:
-			pathNodeIndex = pathNodeIndexForAnchorNameInGlyph(anchorName, thisGlyph)
+			pathNodeIndex, prescribedY = pathNodeIndexForAnchorNameInGlyph(anchorName, thisGlyph)
 			if pathNodeIndex != None:
-				pathNodeIndexDict[anchorName] = pathNodeIndex
+				pathNodeIndexDict[anchorName] = (pathNodeIndex, prescribedY)
 		
 		for thisLayer in thisGlyph.layers:
 			layerAnchorNames = [a.name for a in thisLayer.anchors]
@@ -84,12 +97,15 @@ def process(thisGlyph):
 				for newAnchorName in anchorNamesToBeAdded:
 					newAnchorPosition = None
 					if newAnchorName in pathNodeIndexDict.keys():
-						pathIndex, nodeIndex = pathNodeIndexDict[newAnchorName]
+						(pathIndex, nodeIndex), prescribedY = pathNodeIndexDict[newAnchorName]
 						if len(thisLayer.paths) > pathIndex:
 							path = thisLayer.paths[pathIndex]
 							if len(path.nodes) > nodeIndex:
 								node = path.nodes[nodeIndex]
-								newAnchorPosition = node.position
+								if prescribedY is None:
+									newAnchorPosition = node.position
+								else:
+									newAnchorPosition = NSPoint(node.position.x, prescribedY)
 					if newAnchorPosition == None:
 						newAnchorPosition = averagePosition(allAnchorDict[newAnchorName], thisWidth)
 					newAnchor = GSAnchor()
