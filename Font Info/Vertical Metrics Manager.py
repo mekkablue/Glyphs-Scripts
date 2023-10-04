@@ -650,7 +650,6 @@ class VerticalMetricsManager(object):
 					thisFont.customParameters["Use Typo Metrics"] = False
 					print("  ⁉️ Set Use Typo Metrics parameter to NO. This is not recommended. Are you sure?")
 
-			# Floating notification:
 			Message(
 				title="Vertical Metrics Set",
 				message="Set vertical metrics in %i font%s. Detailed report in Macro Window." % (
