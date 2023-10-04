@@ -1177,7 +1177,7 @@ def otVarInfoForInstance(thisInstance):
 	fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu = otVarInfoForFont(thisFont) # fallback
 
 	# instance-specific overrides:
-	fullName = "{familyName} {thisInstance.name}"
+	fullName = f"{familyName} {thisInstance.name}"
 	fileName = otVarFileName(thisFont, thisInstance)
 
 	# TODO breakdown to OTVar Export (consider parameters etc.):
