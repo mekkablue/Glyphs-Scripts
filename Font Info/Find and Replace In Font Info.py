@@ -9,6 +9,17 @@ import vanilla
 
 class FindAndReplaceInFontInfo(object):
 	totalCount = 0
+	prefID = "com.mekkablue.FindAndReplaceInFontInfo"
+	prefDict = {
+		# "prefName": defaultValue,
+		"includeInstances": 0,
+		"allFonts": 0,
+		"completeWordsOnly": 0,
+		"searchFor": "BETA",
+		"replaceWith": "RC1",
+		"includeCustomParameters": 1,
+		"includeInactiveInstances": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -66,18 +77,20 @@ class FindAndReplaceInFontInfo(object):
 	def updateUI(self, sender=None):
 		self.w.runButton.enable(self.w.searchFor.get())
 		self.w.includeInactiveInstances.enable(self.w.includeInstances.get())
-
+	
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
 	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
-			Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.includeInstances"] = self.w.includeInstances.get()
-			Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.allFonts"] = self.w.allFonts.get()
-			Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.completeWordsOnly"] = self.w.completeWordsOnly.get()
-			Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.searchFor"] = self.w.searchFor.get()
-			Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.replaceWith"] = self.w.replaceWith.get()
-			Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.includeCustomParameters"] = self.w.includeCustomParameters.get()
-			Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.includeInactiveInstances"] = self.w.includeInactiveInstances.get()
-
+			for prefName in self.prefDict.keys():
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
 			self.updateUI()
 			return True
 		except:
@@ -87,24 +100,11 @@ class FindAndReplaceInFontInfo(object):
 
 	def LoadPreferences(self):
 		try:
-			# register defaults:
-			Glyphs.registerDefault("com.mekkablue.FindAndReplaceInFontInfo.includeInstances", 0)
-			Glyphs.registerDefault("com.mekkablue.FindAndReplaceInFontInfo.allFonts", 0)
-			Glyphs.registerDefault("com.mekkablue.FindAndReplaceInFontInfo.completeWordsOnly", 0)
-			Glyphs.registerDefault("com.mekkablue.FindAndReplaceInFontInfo.searchFor", "BETA")
-			Glyphs.registerDefault("com.mekkablue.FindAndReplaceInFontInfo.replaceWith", "RC1")
-			Glyphs.registerDefault("com.mekkablue.FindAndReplaceInFontInfo.includeCustomParameters", 1)
-			Glyphs.registerDefault("com.mekkablue.FindAndReplaceInFontInfo.includeInactiveInstances", 0)
-
-			# load previously written prefs:
-			self.w.includeInstances.set(Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.includeInstances"])
-			self.w.allFonts.set(Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.allFonts"])
-			self.w.completeWordsOnly.set(Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.completeWordsOnly"])
-			self.w.searchFor.set(Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.searchFor"])
-			self.w.replaceWith.set(Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.replaceWith"])
-			self.w.includeCustomParameters.set(Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.includeCustomParameters"])
-			self.w.includeInactiveInstances.set(Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.includeInactiveInstances"])
-
+			for prefName in self.prefDict.keys():
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
+				# load previously written prefs:
+				getattr(self.w, prefName).set(self.pref(prefName))
 			self.updateUI()
 			return True
 		except:
@@ -131,10 +131,10 @@ class FindAndReplaceInFontInfo(object):
 				newName = newName.replace("  ", " ")
 
 		if newName != name:
-			print("✅ %s: ‘%s’ → ‘%s’" % (reportString, name, newName))
+			print(f"✅ {reportString}: ‘{name}’ → ‘{newName}’")
 			self.totalCount += 1
 		else:
-			print("🤷🏻‍♀️ %s: ‘%s’ unchanged" % (reportString, name))
+			print(f"🤷🏻‍♀️ {reportString}: ‘{name}’ unchanged")
 
 		return newName
 
@@ -152,13 +152,13 @@ class FindAndReplaceInFontInfo(object):
 			else:
 				self.totalCount = 0
 
-				searchFor = Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.searchFor"]
-				replaceWith = Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.replaceWith"]
-				completeWordsOnly = Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.completeWordsOnly"]
-				allFonts = Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.allFonts"]
-				includeCustomParameters = Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.includeCustomParameters"]
-				includeInstances = Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.includeInstances"]
-				includeInactiveInstances = Glyphs.defaults["com.mekkablue.FindAndReplaceInFontInfo.includeInactiveInstances"]
+				searchFor = self.pref("searchFor")
+				replaceWith = self.pref("replaceWith")
+				completeWordsOnly = self.pref("completeWordsOnly")
+				allFonts = self.pref("allFonts")
+				includeCustomParameters = self.pref("includeCustomParameters")
+				includeInstances = self.pref("includeInstances")
+				includeInactiveInstances = self.pref("includeInactiveInstances")
 
 				if allFonts:
 					fonts = Glyphs.fonts
@@ -168,10 +168,10 @@ class FindAndReplaceInFontInfo(object):
 
 				for thisFont in fonts:
 					if thisFont.filepath:
-						print("\n🔠 %s (family: %s)" % (thisFont.filepath.lastPathComponent(), thisFont.familyName))
-						print("📂 ~/%s" % thisFont.filepath.relativePathFromBaseDirPath_("~"))
+						print(f"\n🔠 {thisFont.filepath.lastPathComponent()} (family: {thisFont.familyName})")
+						print(f"📂 ~/{thisFont.filepath.relativePathFromBaseDirPath_('~')}")
 					else:
-						print("\n🔠 %s" % thisFont.familyName)
+						print(f"\n🔠 {thisFont.familyName}")
 						print("⚠️ The font file has not been saved yet.")
 
 					# TODO: directly iterate properties
@@ -198,7 +198,7 @@ class FindAndReplaceInFontInfo(object):
 								parameterIsAString = type(customParameter.value) in (objc.pyobjc_unicode, str, unicode)
 
 							if parameterIsAString:
-								reportString = "Font > Custom Parameters > %s" % customParameter.name
+								reportString = f"Font > Custom Parameters > {customParameter.name}"
 								customParameter.value = self.replaceInName(customParameter.value, searchFor, replaceWith, completeWordsOnly, reportString)
 
 					if includeInstances:
@@ -210,7 +210,7 @@ class FindAndReplaceInFontInfo(object):
 							if instanceIsExporting or includeInactiveInstances:
 								# style name:
 								thisInstance.name = self.replaceInName(
-									thisInstance.name, searchFor, replaceWith, completeWordsOnly, "Instances > %s > Style Name" % thisInstance.name
+									thisInstance.name, searchFor, replaceWith, completeWordsOnly, f"Instances > {thisInstance.name} > Style Name"
 									)
 
 								# general properties:
@@ -220,7 +220,7 @@ class FindAndReplaceInFontInfo(object):
 										if type(fontInfo) == GSFontInfoValueLocalized:
 											for valueSet in fontInfo.values:
 												valueSet.value = self.replaceInName(
-													valueSet.value, searchFor, replaceWith, completeWordsOnly, "Instances > %s > General > %s" % (thisInstance.name, fontInfo.key)
+													valueSet.value, searchFor, replaceWith, completeWordsOnly, f"Instances > {thisInstance.name} > General > {fontInfo.key}"
 													)
 
 								# parameters:
@@ -234,25 +234,26 @@ class FindAndReplaceInFontInfo(object):
 											parameterIsAString = type(customParameter.value) in (objc.pyobjc_unicode, str, unicode)
 
 										if parameterIsAString:
-											reportString = "Instances > %s > Custom Parameters > %s" % (thisInstance.name, customParameter.name)
+											reportString = f"Instances > {thisInstance.name} > Custom Parameters > {customParameter.name}"
 											customParameter.value = self.replaceInName(customParameter.value, searchFor, replaceWith, completeWordsOnly, reportString)
 
 			# Final report:
-			Glyphs.showNotification(
-				"%i Font%s: %i Change%s" % (
+			Message(
+				title="%i Font%s: %i Change%s" % (
 					len(fonts),
 					"" if len(fonts) == 1 else "s",
 					self.totalCount,
 					"" if self.totalCount == 1 else "s",
 					),
-				"Find and Replace in Font Info is finished. Details in Macro Window",
+				message="Find and Replace in Font Info is finished. Details in Macro Window",
+				OKButton="Cool"
 				)
 			print("\nDone.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Find and Replace in Font Info Error: %s" % e)
+			print("Find and Replace in Font Info Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 
