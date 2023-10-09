@@ -8,33 +8,25 @@ Jumps to previous instance shown in the preview field or window.
 from Foundation import NSApplication
 
 font = Glyphs.font
-numberOfInstances = len( font.instances )
+numberOfInstances = len(font.instances)
 
 # Preview Area at the bottom of Edit view:
 previewingTab = font.currentTab
 
 # Window > Preview Panel:
-previewPanel = None
 
-for p in NSApplication.sharedApplication().delegate().valueForKey_("pluginInstances"):
-	if "GlyphspreviewPanel" in p.__class__.__name__:
-		previewPanel = p
-		break
+previewPanel = Glyphs.delegate().pluginForClassName_("GlyphsPreviewPanel")
 
 try:
 	currentInstanceNumber = previewingTab.selectedInstance()
-
 	if currentInstanceNumber > -2:
-		previewingTab.setSelectedInstance_( currentInstanceNumber - 1 )
-		if previewPanel:
-			previewPanel.setSelectedInstance_( currentInstanceNumber - 1 )
+		newInstanceNumber = currentInstanceNumber - 1
 	else:
-		previewingTab.setSelectedInstance_( numberOfInstances - 1 )
-		if previewPanel:
-			previewPanel.setSelectedInstance_( numberOfInstances - 1 )
-			
-	previewingTab.updatePreview()
-	previewingTab.forceRedraw()
+		newInstanceNumber = numberOfInstances - 1
+
+	previewingTab.setSelectedInstance_(newInstanceNumber)
+	if previewPanel:
+		previewPanel.setSelectedInstance_(newInstanceNumber)
 
 except Exception as e:
 	print("Error:", e)
