@@ -31,7 +31,12 @@ def correctForCursiveAttachment(layer, anchorName):
 		layer.width = 0
 	return layer
 
-def doTheyClick(leftLayer, rightLayer, requiredClicks=2):
+def roundedCoord(coord):
+	coord.x = int(coord.x)
+	coord.y = int(coord.y)
+	return coord
+
+def doTheyClick(leftLayer, rightLayer, requiredClicks=2, verbose=False):
 	leftCompareLayer = correctForCursiveAttachment(leftLayer.copyDecomposedLayer(), "entry")
 	rightCompareLayer = correctForCursiveAttachment(rightLayer.copyDecomposedLayer(), "exit")
 	leftWidth = leftCompareLayer.width
@@ -41,22 +46,26 @@ def doTheyClick(leftLayer, rightLayer, requiredClicks=2):
 			if n.type != OFFCURVE:
 				coord = n.position
 				coord.x += leftWidth
+				coord = roundedCoord(coord) # catch floating point errors
 				rightCoordinates.append(coord)
 	clickCount = 0
 	for p in leftCompareLayer.paths:
 		for n in p.nodes:
-			if n.position in rightCoordinates:
+			coord = n.position
+			coord = roundedCoord(coord) # catch floating point errors
+			if coord in rightCoordinates:
 				clickCount += 1
 	if clickCount < requiredClicks:
 		print("❌ %s does not click with a following %s (%s)." % (rightLayer.parent.name, leftLayer.parent.name, leftLayer.name))
-		print(rightCoordinates)
+		# print(rightCoordinates)
 		return False
 	else:
-		print("✅ OK: %s ⟺ %s  Ⓜ️ %s" % (
-			leftLayer.parent.name,
-			rightLayer.parent.name,
-			leftLayer.master.name,
-			))
+		if verbose:
+			print("✅ OK: %s ⟺ %s  Ⓜ️ %s" % (
+				leftLayer.parent.name,
+				rightLayer.parent.name,
+				leftLayer.master.name,
+				))
 		return True
 
 class PositionClicker(object):
@@ -67,12 +76,14 @@ class PositionClicker(object):
 		"clickCount": 2,
 		"includeNonExporting": False,
 		"reuseTab": False,
+		"verbose": False,
+		"includeComposites": False,
 		}
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 300
-		windowHeight = 170
+		windowWidth = 400
+		windowHeight = 180
 		windowWidthResize = 500 # user can resize width by this value
 		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -111,14 +122,20 @@ class PositionClicker(object):
 		self.w.clickCount = vanilla.EditText((inset + indent, linePos - 1, -inset, 19), "2", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
+		indent = 190
 		self.w.includeNonExporting = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small'
+			(inset, linePos - 1, indent, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small'
 			)
 		self.w.includeNonExporting.getNSButton().setToolTip_("Will also measure glyphs that are set to not export.")
+		
+		self.w.includeComposites = vanilla.CheckBox((inset+indent, linePos-1, -inset, 20), "Include composites", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.reuseTab = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab = vanilla.CheckBox((inset, linePos - 1, indent, 20), "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.getNSButton().setToolTip_("Will use the current tab for output. Will open a new tab only if there is no Edit tab open already.")
+		
+		self.w.verbose = vanilla.CheckBox((inset+indent, linePos-1, -inset, 20), "Verbose reporting", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose.getNSButton().setToolTip_("Also reports successful clicks in Macro Window (slow).")
 		linePos += lineHeight
 
 		# Run Button:
@@ -218,7 +235,9 @@ class PositionClicker(object):
 				includeNonExporting = self.pref("includeNonExporting")
 				reuseTab = self.pref("reuseTab")
 				clickCount = int(self.pref("clickCount"))
-
+				includeComposites = self.pref("includeComposites")
+				verbose = self.pref("verbose")
+				
 				try:
 					spaceLayer = thisFont.glyphs["space"].layers[0]
 				except:
@@ -243,17 +262,17 @@ class PositionClicker(object):
 						comesLater = "medi" in nameParticles or "fina" in nameParticles and glyphName != referenceGlyphName
 						if thisGlyph.export or includeNonExporting:
 							for thisLayer in thisGlyph.layers:
-								if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
+								if (thisLayer.isMasterLayer or thisLayer.isSpecialLayer) and (thisLayer.paths or includeComposites):
 									comboCount += 1
 									referenceLayer = referenceGlyph.layers[thisLayer.master.id]
 									if (comesFirst and isRTL) or (comesLater and not isRTL):
-										if not doTheyClick(referenceLayer, thisLayer, clickCount):
+										if not doTheyClick(referenceLayer, thisLayer, clickCount, verbose):
 											tabLayers.append(referenceLayer)
 											tabLayers.append(thisLayer)
 											tabLayers.append(spaceLayer)
 											count += 1
 									if (comesLater and isRTL) or (comesFirst and not isRTL):
-										if not doTheyClick(thisLayer, referenceLayer, clickCount):
+										if not doTheyClick(thisLayer, referenceLayer, clickCount, verbose):
 											tabLayers.append(thisLayer)
 											tabLayers.append(referenceLayer)
 											tabLayers.append(spaceLayer)
