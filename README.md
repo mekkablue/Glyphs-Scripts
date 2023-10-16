@@ -209,7 +209,8 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Find and Replace in Font Info:** Finds and replaces names in *Font Info > Font* and *Font Info > Instances.* *Needs Vanilla.*
 * **Find and Replace In Instance Parameters:** Finds and Replace in Custom Parameters of selected instances of the current font or project file.
 * **Font Info Batch Setter:** Batch-apply settings in *Font Info > Font* to open fonts: designer, designer URL, manufacturer, manufacturer URL, copyright, version number, date and time. Useful for syncing Font Info settings across many fonts. *Needs Vanilla.*
-* **Font Info Overview:** Lists some Font Info values for all opened fonts.
+* **Font Info Overview:** Lists some Font Info values for all opened fonts. *Needs Vanilla.*
+* **OTVAR Maker:** Creates a variable font setting in *Font Info > Exports.* *Needs Vanilla.*
 * **Prepare Font Info:** Prepare open fonts for a modern font production and git workflow by setting certain custom parameters. *Needs Vanilla.*
 * **PS Name Maker:** Creates postscriptFontName entries (Name ID 6) for all instances with options to shorten them. *Needs Vanilla.*
 * **Remove Custom Parameters:** Removes all parameters of one kind from *Font Info > Font, Masters, Instances.* Useful if you have many masters or instances. *Needs Vanilla.*
