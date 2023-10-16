@@ -96,6 +96,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Set Label Colors:** Override the default app label colors. *Needs Vanilla.*
 * **Set Tool Shortcuts:** Set keyboard shortcuts for the tools in the toolbar. *Needs Vanilla.*
 * **Toggle RTL-LTR:** Toggle frontmost tab between LTR and RTL writing direction. Useful for setting a keyboard shortcut in System Preferences.
+* **Toggle Script Windows:** Shows or hides all script windows. Good for assigning a shortcut in the app settings.
 * **Update git Repositories in Scripts Folder:** Executes a 'git pull' command on all subfolders in the Glyphs Scripts folder. Useful if you have a lot of git repos in your Scripts folder.
 
 ## Build Glyphs
