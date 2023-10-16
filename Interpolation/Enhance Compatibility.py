@@ -215,6 +215,8 @@ class EnhanceCompatibility(object):
 	
 						for pi, p1 in enumerate(l1.paths):
 							p2 = l2.paths[pi]
+							if len(p1.nodes) != len(p2.nodes):
+								continue
 							for ni, n1 in enumerate(p1.nodes):
 								n2 = p2.nodes[ni]
 								if fixType and n1.type != n2.type:
