@@ -11,6 +11,7 @@ scriptWindows = [
 	and w.isMiniaturizable() 
 	and not w.document() 
 	and w.isFloatingPanel() 
+	and w.delegate() != None
 	and w.title() != "Compare Fonts"
 	]
 
