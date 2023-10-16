@@ -182,10 +182,11 @@ class AutoAlignmentManager(object):
 				if sender==self.w.alignVertical:
 					alignmentType = 3
 				selectedLayer = thisFont.selectedLayers[0]
+				selectionDoesNotCount = not selectedLayer.selection
 				if includeAllLayers:
 					compIndexes = []
 					for i, c in enumerate(selectedLayer.components):
-						if c.selected:
+						if c.selected or selectionDoesNotCount:
 							compIndexes.append(i)
 					if compIndexes:
 						thisGlyph = selectedLayer.parent
@@ -193,6 +194,7 @@ class AutoAlignmentManager(object):
 							if layer.isMasterLayer and layer.compareString()==selectedLayer.compareString():
 								for index in compIndexes:
 									layer.components[index].alignment = alignmentType
+									# print("index", index, "alignmentType", alignmentType) # DEBUG
 				else:
 					for c in selectedLayer.components:
 						if c.selected:
