@@ -205,8 +205,8 @@ class EnhanceCompatibility(object):
 							continue
 		
 						print(f" ➡️ Layer ‘{l2.name}’")
-						if l1.compareString() != l2.compareString():
-							print(" 🚫 Not compatible. Skipping.\n")
+						if len(l1.compareString()) != len(l2.compareString()):
+							print(" 🚫 Not compatible due to different point or shape number. Skipping.\n")
 							continue
 
 						if backupCurrentState:
