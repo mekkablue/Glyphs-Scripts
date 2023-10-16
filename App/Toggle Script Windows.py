@@ -14,6 +14,7 @@ scriptWindows = [
 	and w.title() != "Compare Fonts"
 	]
 
-visible = not scriptWindows[0].isVisible()
-for w in scriptWindows:
-	w.setIsVisible_(visible)
+if scriptWindows:
+	visible = not scriptWindows[0].isVisible()
+	for w in scriptWindows:
+		w.setIsVisible_(visible)
