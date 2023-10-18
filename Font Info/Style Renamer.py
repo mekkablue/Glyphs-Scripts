@@ -7,6 +7,7 @@ Batch-add a name particle to your style names, or batch-remove it from them. Use
 
 import vanilla
 from AppKit import NSFileManager
+
 particleDefault = "Italic"
 elidablePartDefault = "Regular"
 menuOptions = (
@@ -16,6 +17,14 @@ menuOptions = (
 	)
 
 class StyleRenamer(object):
+	prefID = "com.mekkablue.StyleRenamer"
+	prefDict = {
+		# "prefName": defaultValue,
+		"particle": particleDefault,
+		"subtractOrAdd": 1,
+		"elidablePart": elidablePartDefault,
+		"includeInactiveInstances": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -28,7 +37,7 @@ class StyleRenamer(object):
 			"Style Renamer", # window title
 			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.StyleRenamer.mainwindow" # stores last window position and size
+			autosaveName = self.domain("mainwindow") # stores last window position and size
 			)
 
 		# UI elements:
@@ -102,10 +111,10 @@ class StyleRenamer(object):
 			previewText += "%s\n(File: %s)\n" % (thisFont.familyName, fileName)
 
 			# read out user settings:
-			particle = Glyphs.defaults["com.mekkablue.StyleRenamer.particle"]
-			shouldAddParticle = Glyphs.defaults["com.mekkablue.StyleRenamer.subtractOrAdd"]
-			elidablePart = Glyphs.defaults["com.mekkablue.StyleRenamer.elidablePart"]
-			includeInactiveInstances = Glyphs.defaults["com.mekkablue.StyleRenamer.includeInactiveInstances"]
+			particle = self.pref("particle")
+			shouldAddParticle = self.pref("subtractOrAdd")
+			elidablePart = self.pref("elidablePart")
+			includeInactiveInstances = self.pref("includeInactiveInstances")
 
 			# clean up user entry:
 			elidablePart = elidablePart.strip()
@@ -117,7 +126,7 @@ class StyleRenamer(object):
 						instanceIsExporting = thisInstance.exports
 					else:
 						instanceIsExporting = thisInstance.active
-					if instanceIsExporting or includeInactiveInstances:
+					if (instanceIsExporting or includeInactiveInstances) and thisInstance.type == INSTANCETYPESINGLE:
 						newName = self.renameInstance(thisInstance, shouldAddParticle, particle, elidablePart)
 						if newName:
 							previewText += "▸ %s → %s\n" % (thisInstance.name, newName)
@@ -125,14 +134,20 @@ class StyleRenamer(object):
 							previewText += "▸ (unchanged: %s)\n" % thisInstance.name
 
 		self.w.preview.previewText.set(previewText.strip())
-
+	
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
 	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
-			Glyphs.defaults["com.mekkablue.StyleRenamer.particle"] = self.w.particle.get()
-			Glyphs.defaults["com.mekkablue.StyleRenamer.subtractOrAdd"] = self.w.subtractOrAdd.get()
-			Glyphs.defaults["com.mekkablue.StyleRenamer.elidablePart"] = self.w.elidablePart.get()
-			Glyphs.defaults["com.mekkablue.StyleRenamer.includeInactiveInstances"] = self.w.includeInactiveInstances.get()
+			for prefName in self.prefDict.keys():
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
 			self.updatePreviewText()
 			return True
 		except:
@@ -142,17 +157,11 @@ class StyleRenamer(object):
 
 	def LoadPreferences(self):
 		try:
-			# register defaults:
-			Glyphs.registerDefault("com.mekkablue.StyleRenamer.particle", particleDefault)
-			Glyphs.registerDefault("com.mekkablue.StyleRenamer.subtractOrAdd", 1)
-			Glyphs.registerDefault("com.mekkablue.StyleRenamer.elidablePart", elidablePartDefault)
-			Glyphs.registerDefault("com.mekkablue.StyleRenamer.includeInactiveInstances", 0)
-
-			# load previously written prefs:
-			self.w.particle.set(Glyphs.defaults["com.mekkablue.StyleRenamer.particle"])
-			self.w.subtractOrAdd.set(Glyphs.defaults["com.mekkablue.StyleRenamer.subtractOrAdd"])
-			self.w.elidablePart.set(Glyphs.defaults["com.mekkablue.StyleRenamer.elidablePart"])
-			self.w.includeInactiveInstances.set(Glyphs.defaults["com.mekkablue.StyleRenamer.includeInactiveInstances"])
+			for prefName in self.prefDict.keys():
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
+				# load previously written prefs:
+				getattr(self.w, prefName).set(self.pref(prefName))
 			return True
 		except:
 			import traceback
@@ -228,10 +237,10 @@ class StyleRenamer(object):
 				print()
 
 				# read out user settings:
-				particle = Glyphs.defaults["com.mekkablue.StyleRenamer.particle"]
-				shouldAddParticle = Glyphs.defaults["com.mekkablue.StyleRenamer.subtractOrAdd"]
-				elidablePart = Glyphs.defaults["com.mekkablue.StyleRenamer.elidablePart"]
-				includeInactiveInstances = Glyphs.defaults["com.mekkablue.StyleRenamer.includeInactiveInstances"]
+				particle = self.pref("particle")
+				shouldAddParticle = self.pref("subtractOrAdd")
+				elidablePart = self.pref("elidablePart")
+				includeInactiveInstances = self.pref("includeInactiveInstances")
 
 				# clean up user entry:
 				elidablePart = elidablePart.strip()
