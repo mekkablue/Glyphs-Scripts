@@ -400,15 +400,18 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 * **Align Anchors to Grid:** Snaps diacritic anchors onto the font grid.
 * **Delete Components out of Bounds:** If a component is placed far outside the usual coordinates (happens when you cmd-arrow components with a high grid step), this script will delete them.
-* **Delete Duplicate Components:** Looks for duplicate components (same name and position) and keeps only one. Happens frequently when buliding pixel fonts.
+* **Delete Duplicate Components:** Looks for duplicate components (same name and position) and keeps only one. Happens frequently when building pixel fonts.
 * **Flashify Pixels:** Creates small bridges in order to prevent self-intersection of paths so counters stay white. This is especially a problem for the Flash font renderer, hence the name of the script.
 * **Reset Rotated and Mirrored Components:** Looks for scaled, mirrored and rotated components and turns them back into their default scale and orientation, but keeps their position. Useful for fixing mirrored pixels.
 
 ## Post Production
 
-* **Add Empty DSIG (OTVAR):** Run this after you export a Variable Font (TTF) and it will add an empty DSIG table. Necessary to pass the MyFonts onboarding of OTVAR TTFs. Needs the FontTools module.
-* **Fix GDEF class definition of Legacy Marks (OTVAR):** Fix GDEF definition of spacing, non-combining marks for your most recent OTVAR export(s), will switch to class 1 (‘base glyph’, single character, spacing glyph) if necessary. Needs the FontTools module.
-* **Fix Italic PS Names (OTVAR):** Fixes double Italic namings in name table entries in the most recent export of the current font. Run this right after a variable font export. Needs the FontTools module.
+*The DSIG and GDEF scripts are not necessary anymore if you run the latest Glyphs version. For Italic exports, I recommend fixing PS Names and STAT Entries. The Upgrade STAT script is optional, it adds ranges which are still hardly supported by software, but may make sense as future-proofing.*
+
+* **Add Empty DSIG (OTVAR):** Run this after you export a Variable Font (TTF) and it will add an empty DSIG table. Necessary to pass the MyFonts onboarding of OTVAR TTFs. Needs the FontTools module. Script should not be necessary in the latest Glyphs 3.2+.
+* **Fix GDEF class definition of Legacy Marks (OTVAR):** Fix GDEF definition of spacing, non-combining marks for your most recent OTVAR export(s), will switch to class 1 (‘base glyph’, single character, spacing glyph) if necessary. Needs the FontTools module. Script should not be necessary in the latest Glyphs 3.2+.
+* **Fix Italic PS Names (OTVAR):** Fixes double Italic namings in name table records intended for fvar postScriptName entries in the most recent export of the current font, e.g., turns `MyfontItalic-SemiboldItalic` into `MyfontItalic-Semibold`. Run this right after an italic variable font export. Needs the FontTools module.
+* **Fix Italic STAT Entries (OTVAR):** For every axis, renames normal STAT entries to ‘Regular’ (also makes changes in name table if necessary), and makes them elidable (Flags=2). Typically only necessary in italic OTVAR exports. Needs the FontTools module.
 * **Upgrade STAT Axis Values from Discrete to Ranges (OTVAR):** Turns STAT entries of format 1 (discrete) into format 2 (range) for axes with more than one axis value. Run this right after a variable font export. Needs the FontTools module.
 
 ## Smallcaps
