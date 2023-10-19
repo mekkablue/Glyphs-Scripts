@@ -436,13 +436,11 @@ def featureListForFont(thisFont):
 			returnString += featureItem
 	return returnString.rstrip()
 
-def allOTVarSliders(thisFont):
+def allOTVarSliders(thisFont, variableFontSetting=None):
 	axisDict = generateAxisDict(thisFont)
 	
-	print(axisDict)
-
 	minValues, maxValues = {}, {}
-	for axis in axisDict:
+	for axis in axisDict.keys():
 		tag = axisDict[axis]["tag"]
 		minValues[tag] = axisDict[axis]["min"]
 		maxValues[tag] = axisDict[axis]["max"]
@@ -459,7 +457,7 @@ def allOTVarSliders(thisFont):
 		maxValue = axisDict[axisName]["max"]
 		axisTag = axisDict[axisName]["tag"]
 
-		startValue = originValueForAxisName(axisName, thisFont, minValue, maxValue)
+		startValue = originValueForAxisName(axisName, thisFont, minValue, maxValue, variableFontSetting=variableFontSetting)
 
 		html += "\t\t\t<div class='labeldiv'><label class='sliderlabel' id='label_%s' name='%s'>%s</label><input type='range' min='%i' max='%i' value='%i' class='slider' id='%s' oninput='updateSlider();'></div>\n" % (
 			axisTag, axisName, axisName, minValue, maxValue, startValue, axisTag
@@ -467,8 +465,12 @@ def allOTVarSliders(thisFont):
 
 	return html
 
-def originValueForAxisName(axisName, thisFont, minValue, maxValue):
-	originMaster = originMasterOfFont(thisFont)
+def originValueForAxisName(axisName, thisFont, minValue, maxValue, variableFontSetting=None):
+	originMaster = None
+	if variableFontSetting:
+		originMaster = originMasterOfInstance(variableFontSetting)
+	else:
+		originMaster = originMasterOfFont(thisFont)
 	if not originMaster:
 		return minValue
 
@@ -1094,6 +1096,14 @@ def originMasterOfFont(thisFont):
 		originMaster = thisFont.masters[originParameter]
 	return originMaster
 
+def originMasterOfInstance(thisVariableFontSetting):
+	thisFont = thisVariableFontSetting.font
+	originMaster = thisFont.masters[0]
+	originParameter = thisVariableFontSetting.customParameters["Variable Font Origin"]
+	if originParameter and thisFont.masters[originParameter]:
+		originMaster = thisFont.masters[originParameter]
+	return originMaster
+
 def axisLocationOfMasterOrInstance(thisFont, masterOrInstance):
 	"""
 	Returns dict of axisTag:locationValue, e.g.: {'wght':400,'wdth':100}
@@ -1160,11 +1170,11 @@ def familyNameOfInstance(thisInstance):
 	else:
 		return thisInstance.font.familyName
 
-def otVarInfoForFont(thisFont):
+def otVarInfoForFont(thisFont, variableFontSetting=None):
 	fullName = otVarFullName(thisFont)
 	fileName = otVarFileName(thisFont)
 	unicodeEscapes = allUnicodeEscapesOfFont(thisFont)
-	otVarSliders = allOTVarSliders(thisFont)
+	otVarSliders = allOTVarSliders(thisFont, variableFontSetting=variableFontSetting)
 	variationCSS = defaultVariationCSS(thisFont)
 	featureList = featureListForFont(thisFont)
 	styleMenu = listOfAllStyles(thisFont)
@@ -1174,7 +1184,7 @@ def otVarInfoForFont(thisFont):
 def otVarInfoForInstance(thisInstance):
 	thisFont = thisInstance.font
 	familyName = familyNameOfInstance(thisInstance)
-	fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu = otVarInfoForFont(thisFont) # fallback
+	fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu = otVarInfoForFont(thisFont, variableFontSetting=thisInstance) # fallback
 
 	# instance-specific overrides:
 	fullName = f"{familyName} {thisInstance.name}"
