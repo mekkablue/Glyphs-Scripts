@@ -82,13 +82,17 @@ class EnhanceCompatibility(object):
 		"fixConnection": False,
 		"realignHandles": False,
 		"backupCurrentState": False,
+		"otherFont": False,
+		"sourceFont": 0,
+		"sourceMaster": 0,
 	}
+	currentFonts = []
 	
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 370
-		windowHeight = 180
-		windowWidthResize  = 100 # user can resize width by this value
+		windowWidth  = 380
+		windowHeight = 200
+		windowWidthResize  = 300 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight), # default window size
@@ -111,6 +115,14 @@ class EnhanceCompatibility(object):
 		self.w.fixConnection.getNSButton().setToolTip_("Will propagate the current layer’s node connections (green vs. blue) to other compatible layers. Usually just cosmetic.")
 		linePos += lineHeight
 		
+		indent = 85	
+		self.w.otherFont = vanilla.CheckBox((inset, linePos-1, indent, 20), "Source from", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.sourceFont = vanilla.PopUpButton((inset+indent, linePos, 160, 17), (), sizeStyle="small", callback=self.SavePreferences)
+		self.w.sourceMaster = vanilla.PopUpButton((inset+indent+165, linePos, -inset-25, 17), (), sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateButton = vanilla.SquareButton((-inset-20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateCurrentFonts)
+		tooltip = "As source glyph to sync node types and connections with, take glyph(s) with same name in this font, rather than the current font."
+		linePos += lineHeight
+		
 		self.w.realignHandles = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Realign smooth connections (prefer orthogonals)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.realignHandles.getNSButton().setToolTip_("Will realign handles (BCPs) next to a smooth connection (green node). Or, if applicable, move smooth oncurves (green nodes) on the line between its surrounding handles.")
 		linePos += lineHeight
@@ -128,14 +140,21 @@ class EnhanceCompatibility(object):
 		if not self.LoadPreferences():
 			print("⚠️ ‘Enhance Compatibility’ could not load preferences. Will resort to defaults.")
 		
+		self.updateCurrentFonts()
+		
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
 	
 	def checkGUI(self, sender=None):
-		allPrefs = self.prefDict.keys()
+		excludeKeys = ("otherFont", "sourceFont", "sourceMaster")
+		allPrefs = [k for k in self.prefDict.keys() if not k in excludeKeys]
 		shouldEnable = any([self.pref(k) for k in allPrefs])
 		self.w.runButton.enable(shouldEnable)
+		
+		shouldEnable = self.w.otherFont.get()
+		for popup in (self.w.sourceFont, self.w.sourceMaster):
+			popup.enable(shouldEnable)
 	
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
@@ -145,8 +164,30 @@ class EnhanceCompatibility(object):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
 	
+	def updateCurrentFonts(self, sender=None):
+		self.currentFonts = [f for f in Glyphs.fonts if f != Glyphs.font] # all except frontmost font
+		self.w.sourceFont.setItems([
+			f"{f.familyName}, {len(f.glyphs)} glyphs ({f.filepath.lastPathComponent() if f.filepath else 'unsaved'})"
+			for f in self.currentFonts
+			])
+		if len(self.currentFonts) <= self.pref("sourceFont"):
+			self.w.sourceFont.set(0)
+		else:
+			self.w.sourceFont.set(self.pref("sourceFont"))
+		self.updateCurrentMaster()
+		self.SavePreferences()
+	
+	def updateCurrentMaster(self, sender=None):
+		fontIndex = self.w.sourceFont.get()
+		font = self.currentFonts[fontIndex]
+		masters = font.masters
+		self.w.sourceMaster.setItems([m.name for m in masters])
+		self.w.sourceMaster.set(0)
+	
 	def SavePreferences(self, sender=None):
 		try:
+			if sender == self.w.sourceFont:
+				self.updateCurrentMaster()
 			# write current settings into prefs:
 			for prefName in self.prefDict.keys():
 				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
@@ -185,6 +226,9 @@ class EnhanceCompatibility(object):
 			fixType = self.pref("fixType")
 			fixConnection = self.pref("fixConnection")
 			realignHandles = self.pref("realignHandles")
+			otherFont = self.pref("otherFont")
+			sourceFont = self.pref("sourceFont")
+			sourceMaster = self.pref("sourceMaster")
 			
 			thisFont = Glyphs.font # frontmost font
 			if Glyphs.font is None:
@@ -197,9 +241,17 @@ class EnhanceCompatibility(object):
 					reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
 				print(f"Enhance Compatibility Report for {reportName}")
 				
-				for l1 in thisFont.selectedLayers:
-					g = l1.parent
+				for selectedLayer in thisFont.selectedLayers:
+					g = selectedLayer.parent
 					print(f"\n🔤 {g.name}\n")
+					
+					if otherFont:
+						sourceFont = self.currentFonts(int(self.pref("sourceFont")))
+						sourceMaster = sourceFont.masters[int(self.pref("sourceMaster"))]
+						l1 = sourceFont.glyphs[g.name].layers[sourceMaster.id]
+					else:
+						l1 = selectedLayer
+					
 					for l2 in g.layers:
 						if l2 == l1:
 							continue
