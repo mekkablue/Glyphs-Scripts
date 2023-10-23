@@ -179,13 +179,16 @@ class EnhanceCompatibility(object):
 	
 	def updateCurrentMaster(self, sender=None):
 		fontIndex = self.w.sourceFont.get()
-		font = self.currentFonts[fontIndex]
-		masters = font.masters
-		self.w.sourceMaster.setItems([m.name for m in masters])
+		print("fontIndex", fontIndex)
+		if len(self.currentFonts) > max(fontIndex, 0):
+			font = self.currentFonts[fontIndex]
+			masters = font.masters
+			self.w.sourceMaster.setItems([m.name for m in masters])
 		self.w.sourceMaster.set(0)
 	
 	def SavePreferences(self, sender=None):
 		try:
+			self.w.makeKey()
 			if sender == self.w.sourceFont:
 				self.updateCurrentMaster()
 			# write current settings into prefs:
