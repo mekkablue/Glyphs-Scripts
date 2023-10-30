@@ -175,7 +175,7 @@ class AddZWROOriginAnchors(object):
 										continue
 								for layer in glyph.layers:
 									if layer.isMasterLayer or layer.isSpecialLayer:
-										if layer.bounds:
+										if layer.shapes:
 											x = layer.bounds.origin.x + layer.bounds.size.width + offset
 											anchorPosition = NSPoint(x, 0)
 										else:
@@ -185,7 +185,7 @@ class AddZWROOriginAnchors(object):
 										layer.anchors.append(anchor)
 										print(f"⚓️ {glyph.name}, {layer.name}: added {anchor.name} at {int(x)}x 0y")
 			
-			Glyphs.showMacroWindow()
+			# Glyphs.showMacroWindow()
 			moveMacroWindowSeparator()
 			self.w.close() # delete if you want window to stay open
 			print("\nDone.")
