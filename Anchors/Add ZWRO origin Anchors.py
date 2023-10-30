@@ -197,7 +197,7 @@ class AddZWROOriginAnchors(object):
 											anchorPosition = NSPoint(layer.width + offset, 0)
 										anchor = GSAnchor("*origin", anchorPosition)
 										layer.anchors.append(anchor)
-										print(f"⚓️ {glyph.name}, {layer.name}: added {anchor.name} at {int(x)}x 0y")
+										print(f"⚓️ {glyph.name}, {layer.name}: added {anchor.name} at {int(anchor.position.x)}x 0y")
 			
 			# Glyphs.showMacroWindow()
 			moveMacroWindowSeparator()
