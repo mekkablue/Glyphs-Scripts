@@ -19,17 +19,18 @@ class AddZWROOriginAnchors(object):
 	prefID = "com.mekkablue.AddZWROOriginAnchors"
 	prefDict = {
 		# "prefName": defaultValue,
-		"offset": 10,
+		"offset": 0,
 		"scripts": "latin, thai",
 		"excludeTransformed": 1,
 		"excludeComposites": 1,
+		"useRSB": 0,
 		"allFonts": 0,
 	}
 	
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 300
-		windowHeight = 190
+		windowHeight = 210
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -41,16 +42,17 @@ class AddZWROOriginAnchors(object):
 		)
 		
 		# UI elements:
-		linePos, inset, lineHeight, tab = 12, 15, 22, 105
-		self.w.descriptionText = vanilla.TextBox((inset, linePos+2, -inset, 14), "Add *origin anchors:", sizeStyle="small", selectable=True)
+		linePos, inset, lineHeight, tab = 12, 15, 22, 100
+		self.w.descriptionText = vanilla.TextBox((inset, linePos+2, -inset, 14), "Add *origin anchors on right edge of bounding box (or RSB):", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
-		self.w.offsetText = vanilla.TextBox((inset, linePos+2, tab, 14), "Offset from bbox:", sizeStyle="small", selectable=True)
-		self.w.offset = vanilla.EditText((inset+tab, linePos, -inset, 19), "10", callback=self.SavePreferences, sizeStyle="small")
+		self.w.offsetText = vanilla.TextBox((inset, linePos+2, tab, 14), "Horizontal offset:", sizeStyle="small", selectable=True)
+		self.w.offset = vanilla.EditText((inset+tab, linePos, -inset, 19), "0", callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 		
-		self.w.scriptsText = vanilla.TextBox((inset, linePos+2, tab, 14), "Scripts:", sizeStyle="small", selectable=True)
-		self.w.scripts = vanilla.EditText((inset+tab, linePos, -inset, 19), "latin, thai", callback=self.SavePreferences, sizeStyle="small")
+		self.w.scriptsText = vanilla.TextBox((inset, linePos+2, tab, 14), "Marks of scripts:", sizeStyle="small", selectable=True)
+		self.w.scripts = vanilla.EditText((inset+tab, linePos, -inset-25, 19), "latin, thai", callback=self.SavePreferences, sizeStyle="small")
+		self.w.updateScripts = vanilla.SquareButton((-inset-20, linePos+1, -inset, 18), "↺", sizeStyle="small", callback=self.updateScripts)
 		linePos += lineHeight
 		
 		self.w.excludeTransformed = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Exclude marks used in transformed components", value=True, callback=self.SavePreferences, sizeStyle="small")
@@ -58,6 +60,10 @@ class AddZWROOriginAnchors(object):
 		
 		self.w.excludeComposites = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Exclude composites", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
+		
+		self.w.useRSB = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Use RSB instead of bounding box", value=False, callback=self.SavePreferences, sizeStyle="small")
+		linePos += lineHeight
+		
 		
 		self.w.allFonts = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Apply to all fonts", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
@@ -82,6 +88,14 @@ class AddZWROOriginAnchors(object):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
 	
+	def updateScripts(self, sender=None):
+		scripts = []
+		for g in Glyphs.font.glyphs:
+			if g.script and not g.script in scripts:
+				scripts.append(g.script)
+		self.w.scripts.set(", ".join(scripts))
+		self.SavePreferences()
+		
 	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
@@ -175,7 +189,7 @@ class AddZWROOriginAnchors(object):
 										continue
 								for layer in glyph.layers:
 									if layer.isMasterLayer or layer.isSpecialLayer:
-										if layer.shapes:
+										if layer.shapes and not useRSB:
 											x = layer.bounds.origin.x + layer.bounds.size.width + offset
 											anchorPosition = NSPoint(x, 0)
 										else:
