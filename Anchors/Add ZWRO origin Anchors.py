@@ -22,13 +22,14 @@ class AddZWROOriginAnchors(object):
 		"offset": 10,
 		"scripts": "latin, thai",
 		"excludeTransformed": 1,
+		"excludeComposites": 1,
 		"allFonts": 0,
 	}
 	
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 300
-		windowHeight = 180
+		windowHeight = 190
 		windowWidthResize  = 100 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -53,6 +54,9 @@ class AddZWROOriginAnchors(object):
 		linePos += lineHeight
 		
 		self.w.excludeTransformed = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Exclude marks used in transformed components", value=True, callback=self.SavePreferences, sizeStyle="small")
+		linePos += lineHeight
+		
+		self.w.excludeComposites = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Exclude composites", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 		
 		self.w.allFonts = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Apply to all fonts", value=True, callback=self.SavePreferences, sizeStyle="small")
@@ -154,6 +158,9 @@ class AddZWROOriginAnchors(object):
 					for glyph in thisFont.glyphs:
 						if glyph.category=="Mark" and glyph.subCategory=="Nonspacing":
 							if glyph.script in scriptNames or ("latin" in scriptNames and glyph.script==None):
+								if excludeComposites and any([l.components for l in glyph.layers if l.isMasterLayer or l.isSpecialLayer]):
+									print(f"⚠️ Skipping {glyph.name} because it is a composite and composites are excluded.")
+									continue
 								if excludeTransformed:
 									if self.isTransformed(glyph.name, thisFont):
 										print(f"⚠️ Skipping {glyph.name} because it is used in a transformed component.")
@@ -171,9 +178,12 @@ class AddZWROOriginAnchors(object):
 										if layer.bounds:
 											x = layer.bounds.origin.x + layer.bounds.size.width + offset
 											anchorPosition = NSPoint(x, 0)
-											anchor = GSAnchor("*origin", anchorPosition)
-											layer.anchors.append(anchor)
-											print(f"⚓️ {glyph.name}, {layer.name}: added {anchor.name} at {int(x)}x 0y")
+										else:
+											# in empty glyphs, put *origin on RSB:
+											anchorPosition = NSPoint(layer.width + offset, 0)
+										anchor = GSAnchor("*origin", anchorPosition)
+										layer.anchors.append(anchor)
+										print(f"⚓️ {glyph.name}, {layer.name}: added {anchor.name} at {int(x)}x 0y")
 			
 			Glyphs.showMacroWindow()
 			moveMacroWindowSeparator()
