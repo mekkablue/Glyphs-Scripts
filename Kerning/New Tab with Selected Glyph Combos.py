@@ -13,7 +13,9 @@ editString = ""
 
 for leftGlyphName in namesOfSelectedGlyphs:
 	for rightGlyphName in namesOfSelectedGlyphs:
-		editString += (leftGlyphName + rightGlyphName)
+		newPair = leftGlyphName + rightGlyphName
+		if not newPair in editString:
+			editString += newPair
 	editString += (leftGlyphName + "\n")
 
 # in case last line fails, the text is in the macro window:
