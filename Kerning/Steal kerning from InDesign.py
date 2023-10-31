@@ -33,7 +33,7 @@ replacements = {
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
-Glyphs.showMacroWindow()
+# Glyphs.showMacroWindow()
 
 def reportTimeInNaturalLanguage(seconds):
 	if seconds > 60.0:
@@ -148,7 +148,7 @@ end tell
 try:
 	docName = runAppleScript(getNameOfDocument)
 	docName = unicode(docName).strip()
-	print("\nExtracting kerning from document: %s" % docName)
+	print(f"\nExtracting kerning from document: {docName}")
 except Exception as e:
 	print("\nERROR while trying to extract the name of the first InDesign document.")
 	print(
@@ -161,7 +161,7 @@ except Exception as e:
 try:
 	frameText = runAppleScript(getTextOfFrame)
 	frameText = "%.60s..." % frameText.strip()
-	print("\nFound text: %s" % frameText)
+	print(f"\nFound text: {frameText}")
 except Exception as e:
 	print("\nERROR while trying to extract the text of the first text frame.")
 	print(
@@ -174,7 +174,7 @@ except Exception as e:
 try:
 	fontName = runAppleScript(getNameOfFont)
 	fontName = fontName.replace("\t", " ").replace("font ", "").strip()
-	print("\nFound font: %s" % fontName)
+	print(f"\nFound font: {fontName}")
 	print("\nProcessing, please wait. Can take a minute...\n")
 except Exception as e:
 	print("\nERROR while trying to extract the font in the first text frame.")
@@ -186,7 +186,7 @@ except Exception as e:
 
 # Extract kern strings and report:
 kernInfo = runAppleScript(getKernValuesFromInDesign)
-print(u"Applying kerning to: %s, Master: %s\n" % (thisFont.familyName, thisFontMaster.name))
+print(f"Applying kerning to: {thisFont.familyName}, Master: {thisFontMaster.name}\n")
 
 kernPairCount = 0
 
@@ -198,41 +198,41 @@ for thisLine in kernInfo.splitlines():
 		# check for left side:
 		leftSide = glyphNameForLetter(thisLine[0])
 		if not leftSide:
-			print(u"WARNING:\n  Could not determine (left) glyph name: %s.\n  Skipping pair ‘%s%s’.\n" % (thisLine[0], thisLine[0], thisLine[1]))
+			print(f"WARNING:\n  Could not determine (left) glyph name: {thisLine[0]}.\n  Skipping pair ‘{thisLine[0]}{thisLine[1]}’.\n")
 		else:
 			if not thisFont.glyphs[leftSide]:
-				print(u"WARNING:\n  Expected (left) glyph /%s not found in %s.\n  Skipping pair ‘%s%s’.\n" % (leftSide, thisFont.familyName, thisLine[0], thisLine[1]))
+				print(f"WARNING:\n  Expected (left) glyph /{leftSide} not found in {thisFont.familyName}.\n  Skipping pair ‘{thisLine[0]}{thisLine[1]}’.\n")
 			else:
 				#check for right side:
 				rightSide = glyphNameForLetter(thisLine[1])
 				if not rightSide:
-					print(u"WARNING:\n  Could not determine (right) glyph name: %s.\n  Skipping pair ‘%s%s’.\n" % (thisLine[1], thisLine[0], thisLine[1]))
+					print(f"WARNING:\n  Could not determine (right) glyph name: {thisLine[1]}.\n  Skipping pair ‘{thisLine[0]}{thisLine[1]}’.\n")
 				else:
 					if not thisFont.glyphs[rightSide]:
-						print(u"WARNING:\n  Expected (right) glyph /%s not found in %s.\n  Skipping pair ‘%s%s’.\n" % (rightSide, thisFont.familyName, thisLine[0], thisLine[1]))
+						print(f"WARNING:\n  Expected (right) glyph /{rightSide} not found in {thisFont.familyName}.\n  Skipping pair ‘{thisLine[0]}{thisLine[1]}’.\n")
 					else:
 						try:
 							kernValue = float(thisLine[3:])
 							if kernValue:
 								thisFont.setKerningForPair(thisFontMasterID, leftSide, rightSide, kernValue)
 								kernPairCount += 1
-								print("  Kerning for %s:%s set to %i." % (leftSide, rightSide, kernValue))
+								print(f"  Kerning for {leftSide}:{rightSide} set to {kernValue}.")
 							else:
-								print("  No kerning %s:%s. Ignored." % (leftSide, rightSide))
+								print(f"  No kerning {leftSide}:{rightSide}. Ignored.")
 						except Exception as e:
-							print("  ERROR: Could not set kerning for %s:%s.\n" % (leftSide, rightSide))
+							print(f"  ERROR: Could not set kerning for {leftSide}:{rightSide}.\n")
 							print(e)
-							print("  Offending line:\n  %s" % thisLine)
+							print(f"  Offending line:\n  {thisLine}")
 							import traceback
 							print(traceback.format_exc())
 
 # take time and report:
 end = timer()
 timereport = reportTimeInNaturalLanguage(end - start)
-print("\nImported %i kern pairs.\nTime elapsed: %s." % (kernPairCount, timereport))
+print(f"\nImported {kernPairCount} kern pairs.\nTime elapsed: {timereport}.")
 
 # Floating notification:
 Glyphs.showNotification(
-	u"%i pairs for %s" % (kernPairCount, thisFont.familyName),
-	u"Stolen from InDesign in %s." % timereport,
+	f"{kernPairCount} pairs for {thisFont.familyName}",
+	f"Stolen from InDesign in {timereport}.",
 	)
