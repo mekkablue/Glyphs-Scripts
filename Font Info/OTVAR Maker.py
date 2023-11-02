@@ -235,7 +235,7 @@ class OTVARMaker(object):
 				
 				# Regular vs. Italic
 				allMastersHaveAnAngle = all([m.italicAngle != 0.0 for m in thisFont.masters])
-				allInstancesAreCalledItalic = all(["Italic" in i.name for i in Font.instances if i.type == INSTANCETYPESINGLE])
+				allInstancesAreCalledItalic = all(["Italic" in i.name for i in thisFont.instances if i.type == INSTANCETYPESINGLE])
 				isItalic = allMastersHaveAnAngle or allInstancesAreCalledItalic
 				if isItalic:
 					otvarInstance.name = "Italic"
