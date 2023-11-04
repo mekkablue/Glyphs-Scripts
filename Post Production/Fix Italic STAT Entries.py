@@ -1,14 +1,49 @@
-#MenuTitle: Fix Italic STAT Entries (Italic OTVAR with 2+ axes)
+#MenuTitle: Fix STAT Entries (OTVAR)
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-For every axis, renames normal STAT entries to ‘Regular’ (also makes changes in name table if necessary), and makes them elidable (Flags=2). Typically only necessary in italic OTVAR exports with 2 or more axes.
+For every axis, renames normal STAT entries to ‘Regular’ (also makes changes in name table if necessary), and makes them elidable (Flags=2). Typically only necessary in italic OTVAR exports with 2 or more axes. Also, fixes Format1/3 duplicates (if a Format 3 exists, there must be no equivalent Format 1 entry).
 """
 
 import fontTools
 from fontTools import ttLib
 from AppKit import NSString
 from otvarLib import *
+
+def fixDuplicatesFormat1and3(axes, axisValueArray, changesMade=False):
+	# remove format 1 if format 3 exists:
+	# collect format 3:
+	format3entries = []
+	for statEntry in axisValueArray.AxisValue:
+		if statEntry.Format == 3:
+			axisTag = axes[statEntry.AxisIndex]
+			axisValue = statEntry.Value
+			format3entries.append((axisTag, axisValue))
+	
+	# go again and delete format 1 entries with same values:
+	if format3entries:
+		newAxisValues = [] # ttLib.tables.otTables.AxisValueArray()
+		for statEntry in statTable.AxisValueArray.AxisValue:
+			axisTag = axes[statEntry.AxisIndex]
+			if statEntry.Format == 1:
+				axisTag = axes[statEntry.AxisIndex]
+				axisValue = statEntry.Value
+				# actually we rebuild the table without the Format 1 entries
+				# because we cannot directly delete out of a table (or did I miss something?)
+				if (axisTag, axisValue) in format3entries:
+					print(f"⛔️ Deleting Format 1 entry {axisTag}={axisValue} because equivalent Format 3 exists.")
+					changesMade = True
+				else:
+					# add Format 1 only if it is not represented as Format 3 already
+					newAxisValues.append(statEntry)
+			else:
+				# add all other Formats
+				newAxisValues.append(statEntry)
+		axisValueArray.AxisValue = newAxisValues
+		
+	return changesMade
+	
+
 
 if Glyphs.versionNumber < 3.2:
 	Message(
@@ -104,36 +139,8 @@ else:
 						changesMade = True
 						statEntry.Flags = 2
 			
-			# remove format 1 if format 3 exists:
-			# collect format 3:
-			format3entries = []
-			for statEntry in statTable.AxisValueArray.AxisValue:
-				if statEntry.Format == 3:
-					axisTag = axes[statEntry.AxisIndex]
-					axisValue = statEntry.Value
-					format3entries.append((axisTag, axisValue))
+			changesMade = fixDuplicatesFormat1and3(axes, statTable.AxisValueArray, changesMade)
 			
-			# go again and delete format 1 entries with same values:
-			if format3entries:
-				newAxisValues = [] # ttLib.tables.otTables.AxisValueArray()
-				for statEntry in statTable.AxisValueArray.AxisValue:
-					axisTag = axes[statEntry.AxisIndex]
-					if statEntry.Format == 1:
-						axisTag = axes[statEntry.AxisIndex]
-						axisValue = statEntry.Value
-						# actually we rebuild the table without the Format 1 entries
-						# because we cannot directly delete out of a table (or did I miss something?)
-						if (axisTag, axisValue) in format3entries:
-							print(f"⛔️ Deleting Format 1 entry {axisTag}={axisValue} because equivalent Format 3 exists.")
-							changesMade = True
-						else:
-							# add Format 1 only if it is not represented as Format 3 already
-							newAxisValues.append(statEntry)
-					else:
-						# add all other Formats
-						newAxisValues.append(statEntry)
-				statTable.AxisValueArray.AxisValue = newAxisValues
-	
 			if changesMade:
 				font.save(fontpath, reorderTables=False)
 				print(f"\n💾 Saved {fontpath}\n")
