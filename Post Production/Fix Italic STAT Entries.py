@@ -1,4 +1,4 @@
-#MenuTitle: Fix Italic STAT Entries (OTVAR)
+#MenuTitle: Fix Italic STAT Entries (OTVAR with 2+ axes)
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
