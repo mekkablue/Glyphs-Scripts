@@ -1,8 +1,8 @@
-#MenuTitle: Fix Italic STAT Entries (OTVAR with 2+ axes)
+#MenuTitle: Fix Italic STAT Entries (Italic OTVAR with 2+ axes)
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-For every axis, renames normal STAT entries to ‘Regular’ (also makes changes in name table if necessary), and makes them elidable (Flags=2). Typically only necessary in italic OTVAR exports.
+For every axis, renames normal STAT entries to ‘Regular’ (also makes changes in name table if necessary), and makes them elidable (Flags=2). Typically only necessary in italic OTVAR exports with 2 or more axes.
 """
 
 import fontTools
