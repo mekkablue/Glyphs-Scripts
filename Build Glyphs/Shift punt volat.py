@@ -63,16 +63,12 @@ for thisFont in theseFonts:
 		l = thisFont.glyphs[lName]
 		if not puntVolat:
 			print(f"❌ No glyph {puntVolatName} in ‘{thisFontFileName}’.")
-			Glyphs.showMacroWindow()
 		elif not all(layer.shapes for layer in puntVolat.layers if layer.isMasterLayer):
 			print(f"🚫 No shapes in {puntVolatName} in ‘{thisFontFileName}’.")
-			Glyphs.showMacroWindow()
 		elif not l:
 			print(f"❌ No glyph {lName} in ‘{thisFontFileName}’.")
-			Glyphs.showMacroWindow()
 		elif not all(layer.shapes for layer in l.layers if layer.isMasterLayer):
 			print(f"🚫 No shapes in {lName} in ‘{thisFontFileName}’.")
-			Glyphs.showMacroWindow()
 		else:
 			tabText += f"/{lName}/{puntVolatName}/{lName}"
 			# shift punt volat into center on every master:
@@ -105,7 +101,9 @@ for thisFont in theseFonts:
 					puntVolatLayer.reinterpolateMetrics()
 					print(f"✅ Reinterpolated {puntVolatName} on special layer ‘{puntVolatLayer.name}’.")
 			
-			if tabText:
+			if not tabText:
+				Glyphs.showMacroWindow()
+			else:
 				print("Preparing report in Edit View...")
 				thisTab = thisFont.currentTab
 				if not thisTab:
