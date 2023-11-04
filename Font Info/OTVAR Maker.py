@@ -225,6 +225,10 @@ class OTVARMaker(object):
 							print(f"🚫 Removing existing VF setting ‘{existingInstance.name}’...")
 							del thisFont.instances[i]
 				
+				if len(thisFont.masters) == 1:
+					print("❌ Font only has one master, cannot be a variable font. Skipping...")
+					continue
+				
 				# this does not work (yet):
 				# otvarInstance = GSInstance()
 				# otvarInstance.type = INSTANCETYPEVARIABLE
