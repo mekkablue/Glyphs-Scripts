@@ -76,9 +76,13 @@ else:
 	
 			print("\n👾 Scanning STAT table:")
 			statTable = font["STAT"].table
+			
+			# collect axes:
 			axes = []
 			for axisIndex, axis in enumerate(statTable.DesignAxisRecord.Axis):
 				axes.append(axis.AxisTag)
+			
+			# go through axis values, fix "Regular" naming and elidable flags:
 			for statIndex, statEntry in enumerate(statTable.AxisValueArray.AxisValue):
 				axisTag = axes[statEntry.AxisIndex]
 				if statEntry.Format == 2:
@@ -99,6 +103,36 @@ else:
 					if oldFlags != 2:
 						changesMade = True
 						statEntry.Flags = 2
+			
+			# remove format 1 if format 3 exists:
+			# collect format 3:
+			format3entries = []
+			for statEntry in statTable.AxisValueArray.AxisValue:
+				if statEntry.Format == 3:
+					axisTag = axes[statEntry.AxisIndex]
+					axisValue = statEntry.Value
+					format3entries.append((axisTag, axisValue))
+			
+			# go again and delete format 1 entries with same values:
+			if format3entries:
+				newAxisValues = [] # ttLib.tables.otTables.AxisValueArray()
+				for statEntry in statTable.AxisValueArray.AxisValue:
+					axisTag = axes[statEntry.AxisIndex]
+					if statEntry.Format == 1:
+						axisTag = axes[statEntry.AxisIndex]
+						axisValue = statEntry.Value
+						# actually we rebuild the table without the Format 1 entries
+						# because we cannot directly delete out of a table (or did I miss something?)
+						if (axisTag, axisValue) in format3entries:
+							print(f"⛔️ Deleting Format 1 entry {axisTag}={axisValue} because equivalent Format 3 exists.")
+							changesMade = True
+						else:
+							# add Format 1 only if it is not represented as Format 3 already
+							newAxisValues.append(statEntry)
+					else:
+						# add all other Formats
+						newAxisValues.append(statEntry)
+				statTable.AxisValueArray.AxisValue = newAxisValues
 	
 			if changesMade:
 				font.save(fontpath, reorderTables=False)
