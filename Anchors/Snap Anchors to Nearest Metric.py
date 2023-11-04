@@ -133,16 +133,17 @@ class SnapAnchorsToNearestMetric(object):
 		didMove = False
 		reports = []
 		isMark = layer.parent.category == "Mark"
+		beyondThreshold = False
 		
 		if not layer.anchors:
 			if verbose:
 				reports.append (f"   🤷🏻‍♀️ no anchors on layer {layer.name}")
-			return didMove, reports
+			return didMove, reports, beyondThreshold
 
 		if not any([layer.anchors[an] for an in anchorNames]):
 			if verbose:
 				reports.append(f"   🤷🏻‍♀️ no matching anchors on layer {layer.name}, only: {', '.join([a.name for a in layer.anchors])}")
-			return didMove, reports
+			return didMove, reports, beyondThreshold
 
 		respectItalic = respectItalic and layer.italicAngle!=0
 		positions = tuple(m.position for m in layer.metrics)
@@ -156,6 +157,7 @@ class SnapAnchorsToNearestMetric(object):
 					continue
 				if abs(verticalMovement) > threshold:
 					reports.append(f"   ⚠️ layer {layer.name}, anchor {anchorName}: move {legibleNum(verticalMovement)} beyond threshold {threshold}")
+					beyondThreshold = True
 					continue
 				move = NSPoint(0, verticalMovement)
 				if respectItalic:
@@ -173,7 +175,7 @@ class SnapAnchorsToNearestMetric(object):
 						reports.append(f"   ⚓️ moved {layer.name} {anchorName} {legibleNum(move.x)} {legibleNum(move.y)}")
 				didMove = True
 
-		return didMove, reports
+		return didMove, reports, beyondThreshold
 
 
 	def SnapAnchorsToNearestMetricMain(self, sender=None):
@@ -219,12 +221,14 @@ class SnapAnchorsToNearestMetric(object):
 					fontName = thisFont.familyName
 				print(f"Moving Anchors in {fontName}:\n")
 				tabText = ""
+				glyphsBeyondThreshold = []
 				for g in thisFont.glyphs:
 					movedAnchorsInGlyph = False
 					glyphReports = []
+					beyondThreshold = False
 					for l in g.layers:
 						if l.isMasterLayer or l.isSpecialLayer:
-							movedAnchorsOnLayer, layerReports = self.moveAnchorsToNearestMetricsOnLayer(
+							movedAnchorsOnLayer, layerReports, layerBeyondThreshold = self.moveAnchorsToNearestMetricsOnLayer(
 								l, anchorNames=anchorNamesList,
 								respectItalic=respectItalic,
 								threshold=threshold,
@@ -233,6 +237,7 @@ class SnapAnchorsToNearestMetric(object):
 								)
 							movedAnchorsInGlyph = movedAnchorsInGlyph or movedAnchorsOnLayer
 							glyphReports.extend(layerReports)
+							beyondThreshold = beyondThreshold or layerBeyondThreshold
 					
 					if glyphReports:
 						reports = '\n'.join(glyphReports)
@@ -240,8 +245,13 @@ class SnapAnchorsToNearestMetric(object):
 						
 					if movedAnchorsInGlyph:
 						tabText += f"/{g.name}"
+					
+					if beyondThreshold:
+						glyphsBeyondThreshold.append(g.name)
 						
 				if tabText:
+					if glyphsBeyondThreshold:
+						tabText += f"\n\nBeyond threshold:\n/{'/'.join(glyphsBeyondThreshold)}"
 					thisFont.newTab(f"Snapped anchors:\n{tabText}")
 					
 			print("\n✅ Done.")
