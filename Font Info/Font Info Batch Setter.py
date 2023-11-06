@@ -35,13 +35,14 @@ class FontInfoBatchSetter(object):
 		"setVersion": True,
 		"versionMajor": "1",
 		"versionMinor": "005",
+		"fontDescription": "",
 	}
 	placeholderFamilyName = "###familyName###"
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 350
-		windowHeight = 380
+		windowHeight = 400
 		windowWidthResize = 1000 # user can resize width by this value
 		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -56,7 +57,7 @@ class FontInfoBatchSetter(object):
 		linePos, inset, lineHeight = 12, 15, 22
 		column = 100
 
-		self.w.descriptionText = vanilla.TextBox(
+		self.w.explanatoryText = vanilla.TextBox(
 			(inset, linePos + 2, -inset, 14), "Batch-set Font Info > Font of open fonts with these values:", sizeStyle='small', selectable=True
 			)
 		linePos += lineHeight
@@ -93,11 +94,19 @@ class FontInfoBatchSetter(object):
 		# TRADEMARK
 		self.w.setTrademark = vanilla.CheckBox((inset, linePos - 1, column, 20), "Trademark:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.trademark = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
-		tooltip = f"Trademark information. Use {self.placeholderFamilyName} as placeholder for the current family name." 
+		tooltip = f"Trademark information, name ID 7. Use {self.placeholderFamilyName} as placeholder for the current family name." 
 		self.w.setTrademark.getNSButton().setToolTip_(tooltip)
 		self.w.trademark.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 		
+		# Description
+		self.w.setFontDescription = vanilla.CheckBox((inset, linePos-1, column, 20), "Description:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.fontDescription = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle="small")
+		tooltip = f"Description, name ID 10. Use {self.placeholderFamilyName} as placeholder for the current family name." 
+		self.w.setFontDescription.getNSButton().setToolTip_(tooltip)
+		self.w.fontDescription.getNSTextField().setToolTip_(tooltip)
+		linePos += lineHeight
+
 		# VENDOR ID
 		self.w.setVendorID = vanilla.CheckBox((inset, linePos - 1, column, 20), "Vendor ID:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.vendorID = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
@@ -208,7 +217,7 @@ class FontInfoBatchSetter(object):
 
 		self.w.runButton.enable(
 			(
-				# ANY of the checboxes must be on:
+				# ANY of the checkboxes must be on:
 				dateEnabled or versionEnabled or self.w.setDesigner.get() or self.w.setDesignerURL.get() or self.w.setManufacturer.get() or
 				self.w.setManufacturerURL.get() or self.w.setCopyright.get()
 				) and applySettingsEnable
@@ -301,6 +310,7 @@ class FontInfoBatchSetter(object):
 			Glyphs.defaults[self.domain("manufacturer")] = thisFont.manufacturer
 			Glyphs.defaults[self.domain("manufacturerURL")] = thisFont.manufacturerURL
 			Glyphs.defaults[self.domain("license")] = thisFont.license
+			Glyphs.defaults[self.domain("fontDescription")] = thisFont.description
 			try:
 				Glyphs.defaults[self.domain("vendorID")] = thisFont.propertyForName_("vendorID").value
 			except:
@@ -322,7 +332,8 @@ class FontInfoBatchSetter(object):
 			Glyphs.defaults[self.domain("setManufacturerURL")] = bool(thisFont.manufacturerURL)
 			Glyphs.defaults[self.domain("setLicense")] = bool(thisFont.license)
 			Glyphs.defaults[self.domain("setLicenseURL")] = bool(thisFont.propertyForName_("licenseURL"))
-
+			Glyphs.defaults[self.domain("setFontDescription")] = bool(thisFont.description)
+			
 			# "containing" text box:
 			name = thisFont.familyName.strip()
 			words = name.split(" ")
@@ -345,6 +356,7 @@ class FontInfoBatchSetter(object):
 				print('👨🏻‍💼 LicenseURL: none')
 			print(f"📝 Copyright: {thisFont.copyright}")
 			print(f'📝 Trademark: {thisFont.trademark}' )
+			print(f'📝 Description: {thisFont.description}' )
 			if thisFont.propertyForName_("vendorID"):
 				print(f'📝 Vendor ID: {thisFont.propertyForName_("vendorID").value}' )
 			else:
@@ -378,6 +390,8 @@ class FontInfoBatchSetter(object):
 			manufacturerURL = self.pref("manufacturerURL")
 			license = self.pref("license")
 			licenseURL = self.pref("licenseURL")
+			fontDescription = self.pref("fontDescription")
+			
 			setCopyright = self.pref("setCopyright")
 			setTrademark = self.pref("setTrademark")
 			setVendorID = self.pref("setVendorID")
@@ -388,6 +402,8 @@ class FontInfoBatchSetter(object):
 			setManufacturerURL = self.pref("setManufacturerURL")
 			setLicense = self.pref("setLicense")
 			setLicenseURL = self.pref("setLicenseURL")
+			setFontDescription = self.pref("setFontDescription")
+			
 			setVersion = self.pref("setVersion")
 			versionMinor = int(self.pref("versionMinor"))
 			versionMajor = int(self.pref("versionMajor"))
@@ -504,6 +520,14 @@ class FontInfoBatchSetter(object):
 						else:
 							thisFont.designer = designer
 							print("✅ 👨‍🎨 Designer set: %s" % designer)
+							changeCount += 1
+
+					if setFontDescription:
+						if thisFont.description == fontDescription:
+							print("🆗 📛 Font already has desired fontDescription. No change.")
+						else:
+							thisFont.description = fontDescription
+							print("✅ 📛 Description set: %s" % fontDescription)
 							changeCount += 1
 
 					if changeCount > currentChangeCount:
