@@ -20,15 +20,16 @@ class FindCloseEncounters(object):
 		"includeComposites": True,
 		"includeNonExporting": True,
 		"excludeGlyphs": True,
-		"excludeGlyphsContaining": ".ornm, .dnom, .numr, superior, inferior, .blackCircled",
+		"excludeGlyphsContaining": ".ornm, .dnom, .numr, superior, inferior, .blackCircled, apple, BlackIndex",
 		"reuseTab": True,
+		"allFonts": False,
 		}
 	markerEmoji = "😰"
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 370
-		windowHeight = 200
+		windowHeight = 220
 		windowWidthResize = 500 # user can resize width by this value
 		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -69,6 +70,9 @@ class FindCloseEncounters(object):
 		self.w.excludeGlyphsContaining = vanilla.EditText(
 			(inset + 160, linePos - 1, -inset, 19), self.prefDict["excludeGlyphsContaining"], callback=self.SavePreferences, sizeStyle='small'
 			)
+		linePos += lineHeight
+		
+		self.w.allFonts = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Include ⚠️ ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		self.w.reuseTab = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Reuse current tab for report", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -134,18 +138,24 @@ class FindCloseEncounters(object):
 				print("⚠️ ‘Find Close Encounters of Orthogonal Line Segments’ could not write preferences.")
 
 			# read prefs:
-			for prefName in self.prefDict.keys():
-				try:
-					setattr(sys.modules[__name__], prefName, self.pref(prefName))
-				except:
-					fallbackValue = self.prefDict[prefName]
-					print("⚠️ Could not set pref ‘%s’, resorting to default value: ‘%s’." % (prefName, fallbackValue))
-					setattr(sys.modules[__name__], prefName, fallbackValue)
-
-			thisFont = Glyphs.font # frontmost font
-			if thisFont is None:
+			threshold = abs(float(self.pref("threshold")))
+			includeComposites = self.pref("includeComposites")
+			includeNonExporting = self.pref("includeNonExporting")
+			excludeGlyphs = self.pref("excludeGlyphs")
+			excludeGlyphsContaining = [particle.strip() for particle in self.pref("excludeGlyphsContaining").split(",")]
+			reuseTab = self.pref("reuseTab")
+			allFonts = self.pref("allFonts")
+			
+			if len(Glyphs.fonts) == 0:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
+			
+			if allFonts:
+				theseFonts = Glyphs.fonts
 			else:
+				theseFonts = (Glyphs.font,)
+				
+			for thisFont in theseFonts:
 				filePath = thisFont.filepath
 				if filePath:
 					report = "%s\n📄 %s" % (filePath.lastPathComponent(), filePath)
@@ -153,14 +163,6 @@ class FindCloseEncounters(object):
 					report = "%s\n⚠️ The font file has not been saved yet." % thisFont.familyName
 				print("Find Close Encounters of Orthogonal Line Segments Report for %s" % report)
 				print()
-
-				# query user prefs:
-				threshold = abs(float(self.pref("threshold")))
-				includeComposites = self.pref("includeComposites")
-				includeNonExporting = self.pref("includeNonExporting")
-				excludeGlyphs = self.pref("excludeGlyphs")
-				excludeGlyphsContaining = [particle.strip() for particle in self.pref("excludeGlyphsContaining").split(",")]
-				reuseTab = self.pref("reuseTab")
 
 				collectedLayers = []
 				for g in thisFont.glyphs:
@@ -231,18 +233,20 @@ class FindCloseEncounters(object):
 					else:
 						tab = thisFont.newTab()
 					tab.layers = collectedLayers
-				else:
+				elif len(theseFonts)==1:
 					Message(
 						title="No close encounters found",
 						message="Congratulations! No non-aliging line segments not further than %iu in this font." % abs(threshold),
 						OKButton=None,
 						)
+				else:
+					print("✅ No close encounters found in this font.")
 
-				self.w.close() # delete if you want window to stay open
+			self.w.close() # delete if you want window to stay open
 
 			# Final report:
 			Glyphs.showNotification(
-				"%s: Done" % (thisFont.familyName),
+				f"{thisFont.familyName}: Done",
 				"Find Close Encounters of Orthogonal Line Segments is finished. Details in Macro Window",
 				)
 			print("\nDone.")
@@ -250,7 +254,7 @@ class FindCloseEncounters(object):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Find Close Encounters of Orthogonal Line Segments Error: %s" % e)
+			print(f"Find Close Encounters of Orthogonal Line Segments Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 
