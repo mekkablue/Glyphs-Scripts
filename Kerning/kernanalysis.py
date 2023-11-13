@@ -254,20 +254,51 @@ def minDistanceBetweenTwoLayers(leftLayer, rightLayer, interval=5.0, kerning=0.0
 					minDist = total
 	return minDist
 
-def sortedIntervalsFromString(intervals=""):
+
+def sortedIntervalsFromString(intervals="", font=None, mID=None):
 	ignoreIntervals = []
 	if intervals:
 		for interval in intervals.split(","):
 			if interval.find(":") != -1:
 				interval = interval.strip()
 				try:
-					intervalTuple = tuple(sorted([
-						int(interval.split(":")[0].strip()),
-						int(interval.split(":")[1].strip()),
-						]))
+					loEnd = interval.split(":")[0].strip()
+					hiEnd = interval.split(":")[1].strip()
+					
+					print(f"'{loEnd}', '{hiEnd}', {font}, {mID}")
+					print("CHECK1")
+					if loEnd.isdigit():
+						loEnd = int(loEnd)
+					elif font and mID:
+						layer = font.glyphs[loEnd].layers[mID]
+						if layer:
+							loEnd = int(layer.bounds.origin.y)
+						else:
+							raise Exception(f"Cannot find glyph with name: {loEnd} for lower end of interval")
+							continue
+					else:
+						raise Exception(f"Cannot interpret lower end of ignore interval: {loEnd}")
+						continue
+					
+					print("CHECK2")
+					if hiEnd.isdigit():
+						loEnd = int(hiEnd)
+					elif font and mID:
+						layer = font.glyphs[hiEnd].layers[mID]
+						if layer:
+							hiEnd = int(layer.bounds.origin.y + layer.bounds.size.height)
+						else:
+							raise Exception(f"Cannot find glyph with name: {hiEnd} for higher end of interval")
+							continue
+					else:
+						raise Exception(f"Cannot interpret higher end of ignore interval: {hiEnd}")
+						continue
+					
+					intervalTuple = tuple(sorted([loEnd, hiEnd]))
 					ignoreIntervals.append(intervalTuple)
-				except:
+				except Exception as e:
 					print("Warning: could not convert '%s' into a number interval." % interval.strip())
+					print(e)
 					pass
 			else:
 				print("Warning: '%s' is not an interval (missing colon)" % interval.strip())

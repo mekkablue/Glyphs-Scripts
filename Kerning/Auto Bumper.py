@@ -412,7 +412,7 @@ class Bumper(object):
 
 			# query user input:
 			step = intervalList[Glyphs.defaults["com.mekkablue.Bumper.speedPopup"]]
-			ignoreIntervals = sortedIntervalsFromString(Glyphs.defaults["com.mekkablue.Bumper.ignoreIntervals"])
+			ignoreIntervals = sortedIntervalsFromString(Glyphs.defaults["com.mekkablue.Bumper.ignoreIntervals"], font=thisFont, mID=thisMasterID)
 			shouldExcludeNonExporting = bool(Glyphs.defaults["com.mekkablue.Bumper.excludeNonExporting"])
 
 			minDistance = Glyphs.defaults["com.mekkablue.Bumper.minDistance"]
