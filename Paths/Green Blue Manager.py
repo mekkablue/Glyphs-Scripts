@@ -33,7 +33,9 @@ class GreenBlueManager(object):
 		"reportInMacroWindowVerbose": 0,
 		"shouldMark": 0,
 		"allMasters": 0,
+		"scope": 0,
 		"reuseTab": 1,
+		"exclude": ".ornm, BlackIndex, Heart, apple",
 	}
 
 	def __init__(self):
@@ -41,8 +43,8 @@ class GreenBlueManager(object):
 
 		# Window 'self.w':
 		windowWidth = 300
-		windowHeight = 285
-		windowWidthResize = 300 # user can resize width by this value
+		windowHeight = 310
+		windowWidthResize = 500 # user can resize width by this value
 		windowHeightResize = 0 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight), # default window size
@@ -87,11 +89,16 @@ class GreenBlueManager(object):
 		linePos += lineHeight
 
 		self.w.completeFont = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Process ⚠️ ALL glyphs in font", value=False, callback=self.SavePreferences, sizeStyle='small'
+			(inset, linePos - 1, 155, 20), "Process ⚠️ ALL glyphs in", value=False, callback=self.SavePreferences, sizeStyle='small'
 			)
 		self.w.completeFont.getNSButton().setToolTip_(
 			"If checked, will go through all active (i.e., master, brace and bracket) layers of all glyphs. If unchecked, will only go through selected layers. Careful: can take a minute."
 			)
+		self.w.scope = vanilla.PopUpButton((inset+155, linePos, -inset, 17), ("frontmost font", "⚠️ ALL open fonts"), sizeStyle="small", callback=self.SavePreferences)
+		linePos += lineHeight
+
+		self.w.excludeText = vanilla.TextBox((inset, linePos, 115, 14), "Exclude glyphs with:", sizeStyle="small", selectable=True)
+		self.w.exclude = vanilla.EditText((inset+115, linePos-3, -inset, 19), ".ornm, BlackIndex, Heart, apple", callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		self.w.reportInMacroWindow = vanilla.CheckBox((inset, linePos - 1, 160, 20), "Report in Macro window", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -105,7 +112,7 @@ class GreenBlueManager(object):
 		self.w.reuseTab = vanilla.CheckBox((inset + 160, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.getNSButton().setToolTip_("If enabled, will use the current tab for output, and only open a new tab if there is none open.")
 		linePos += lineHeight
-
+		
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0) # set progress indicator to zero
 		linePos += lineHeight
@@ -142,12 +149,14 @@ class GreenBlueManager(object):
 			self.w.runButton.setTitle("Treat Nodes")
 
 		self.w.reportInMacroWindowVerbose.enable(self.w.reportInMacroWindow.get())
+		self.w.scope.enable(self.w.completeFont.get())
 
 	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
 			for prefName in self.prefDict.keys():
 				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
+			self.checkGUI()
 			return True
 		except:
 			import traceback
@@ -161,74 +170,102 @@ class GreenBlueManager(object):
 				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
 				# load previously written prefs:
 				getattr(self.w, prefName).set(self.pref(prefName))
+			self.checkGUI()
 			return True
 		except:
 			import traceback
 			print(traceback.format_exc())
 			return False
 
-	def realignLayer(self, thisLayer, shouldRealign=False, shouldReport=False, shouldVerbose=False):
-		moveForward = NSPoint(1, 0)
-		moveBackward = NSPoint(-1, 0)
-		noModifier = NSNumber.numberWithUnsignedInteger_(0)
-		layerCount = 0
-
-		if thisLayer:
-			for thisPath in thisLayer.paths:
-				oldPathCoordinates = [n.position for n in thisPath.nodes]
-				for i, thisNode in enumerate(thisPath.nodes):
-					if thisNode.type == GSOFFCURVE:
-						# oldPosition = NSPoint(thisNode.position.x, thisNode.position.y)
-						oncurve = None
-						if thisNode.prevNode.type != GSOFFCURVE:
-							oncurve = thisNode.prevNode
-							opposingPoint = oncurve.prevNode
-						elif thisNode.nextNode.type != GSOFFCURVE:
-							oncurve = thisNode.nextNode
-							opposingPoint = oncurve.nextNode
-
-						handleStraight = (oncurve.x - thisNode.x) * (oncurve.y - thisNode.y) == 0.0
-						if oncurve and oncurve.smooth and not handleStraight:
-							# thisNode = angled handle, straighten it
-							thisPath.setSmooth_withCenterPoint_oppositePoint_(
-								thisNode,
-								oncurve.position,
-								opposingPoint.position,
+	def realignLayer(self, layer, shouldRealign=False, shouldReport=False, shouldVerbose=False):
+		def closestPointOnLine(P, A, B):
+			# vector of line AB
+			AB = NSPoint(B.x - A.x, B.y - A.y)
+			# vector from point A to point P
+			AP = NSPoint(P.x - A.x, P.y - A.y)
+			# dot product of AB and AP
+			dotProduct = AB.x * AP.x + AB.y * AP.y
+			ABsquared = AB.x**2 + AB.y**2
+			t = dotProduct / ABsquared
+			x = A.x + t * AB.x
+			y = A.y + t * AB.y
+			return NSPoint(x, y)
+	
+		def ortho(n1, n2):
+			xDiff = n1.x - n2.x
+			yDiff = n1.y - n2.y
+			# must not have the same coordinates,
+			# and either vertical or horizontal:
+			if xDiff != yDiff and xDiff * yDiff == 0.0:
+				return True
+			return False
+		
+		def triplet(n1, n2, n3):
+			return (n1.position, n2.position, n3.position)
+		
+		handleCount = 0
+		for p in layer.paths:
+			for n in p.nodes:
+				if n.connection != GSSMOOTH:
+					continue
+				nn, pn = n.nextNode, n.prevNode
+				if all((nn.type == OFFCURVE, pn.type == OFFCURVE)):
+					# surrounding points are BCPs
+					smoothen, center, opposite = None, None, None
+					for handle in (nn, pn):
+						if ortho(handle, n):
+							center = n
+							opposite = handle
+							smoothen = nn if nn != handle else pn
+							oldPos = triplet(smoothen, center, opposite)
+							p.setSmooth_withCenterNode_oppositeNode_(
+								smoothen, center, opposite,
 								)
-						elif oncurve and opposingPoint and oncurve.smooth and handleStraight and opposingPoint.type == GSOFFCURVE:
-							# thisNode = straight handle: align opposite handle
-							thisPath.setSmooth_withCenterPoint_oppositePoint_(
-								opposingPoint,
-								oncurve.position,
-								thisNode.position,
-								)
-						else:
-							selectedNode = NSMutableArray.arrayWithObject_(thisNode)
-							thisLayer.setSelection_(selectedNode)
-							self.Tool.moveSelectionLayer_shadowLayer_withPoint_withModifier_(thisLayer, thisLayer, moveForward, noModifier)
-							self.Tool.moveSelectionLayer_shadowLayer_withPoint_withModifier_(thisLayer, thisLayer, moveBackward, noModifier)
-							# TODO:
-							# recode with GSPath.setSmooth_withCenterNode_oppositeNode_()
-
-				for i, coordinate in enumerate(oldPathCoordinates):
-					if thisPath.nodes[i].position != coordinate:
-						layerCount += 1
-
-						# put handle back if not desired by user:
+							if oldPos != triplet(smoothen, center, opposite):
+								handleCount += 1
+							if not shouldRealign:
+								smoothen.position, center.position, opposite.position = oldPos
+							break
+					if smoothen == center == opposite == None:
+						oldPos = triplet(n, nn, pn)
+						n.position = closestPointOnLine(
+							n.position, nn, pn,
+							)
+						if oldPos != triplet(n, nn, pn):
+							handleCount +=1
 						if not shouldRealign:
-							thisPath.nodes[i].position = coordinate
-		thisLayer.setSelection_(())
+							n.position, nn.position, pn.position = oldPos
+						
+				elif n.type != OFFCURVE and (nn.type, pn.type).count(OFFCURVE) == 1:
+					# only one of the surrounding points is a BCP
+					center = n
+					if nn.type == OFFCURVE:
+						smoothen = nn
+						opposite = pn
+					elif pn.type == OFFCURVE:
+						smoothen = pn
+						opposite = nn
+					else:
+						continue # should never occur
+					oldPos = triplet(smoothen, center, opposite)
+					p.setSmooth_withCenterNode_oppositeNode_(
+						smoothen, center, opposite,
+						)
+					if oldPos != triplet(smoothen, center, opposite):
+						handleCount += 1
+					if not shouldRealign:
+						smoothen.position, center.position, opposite.position = oldPos
 
 		if shouldReport and shouldVerbose:
-			if layerCount:
+			if handleCount:
 				if shouldRealign:
-					print(f'   ⚠️ Realigned {layerCount} handle{"" if layerCount == 1 else "s"}.')
+					print(f'   ⚠️ Realigned {handleCount} handle{"" if handleCount == 1 else "s"}.')
 				else:
-					print(f'   ❌ {layerCount} handle{"" if layerCount == 1 else "s"} are unaligned.')
+					print(f'   ❌ {handleCount} handle{"" if handleCount == 1 else "s"} are unaligned.')
 			else:
 				print("   ✅ All BCPs OK.")
 
-		return layerCount
+		return handleCount
 
 	def fixConnectionsOnLayer(self, thisLayer, shouldFix=False, shouldReport=False, shouldVerbose=False):
 		thresholdAngle = float(self.pref("thresholdAngle"))
@@ -275,11 +312,17 @@ class GreenBlueManager(object):
 			shouldReport = self.pref("reportInMacroWindow")
 			if shouldReport:
 				Glyphs.clearLog()
-
-			thisFont = Glyphs.font # frontmost font
-			if thisFont is None:
+			
+			scope = self.pref("scope")
+			if not Glyphs.font:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
+			elif scope == 1:
+				theseFonts = Glyphs.fonts
 			else:
+				theseFonts = (Glyphs.font,)
+			
+			for thisFont in theseFonts:
 				filePath = thisFont.filepath
 				if filePath:
 					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
@@ -293,12 +336,16 @@ class GreenBlueManager(object):
 				shouldVerbose = self.pref("reportInMacroWindowVerbose")
 				shouldFix = self.pref("fixGreenBlue")
 				reuseTab = self.pref("reuseTab")
+				exclude = [x.strip() for x in self.pref("exclude").split(",")]
 
 				# determine which layers to process:
 				layersToBeProcessed, glyphsToBeProcessed = [], []
 				if self.pref("completeFont"):
 					mID = thisFont.selectedFontMaster.id
 					for thisGlyph in thisFont.glyphs:
+						if any([x in thisGlyph.name for x in exclude]):
+							print(f"Skipping {thisGlyph.name}: excluded as requested.")
+							continue
 						if self.pref("allMasters"):
 							for thisLayer in thisGlyph.layers:
 								if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
@@ -317,10 +364,9 @@ class GreenBlueManager(object):
 						layersToBeProcessed = thisFont.selectedLayers
 
 				if not layersToBeProcessed:
-					Message(
-						title="Green Blue Manager Error: No Selection",
-						message="No glyphs selected for processing. Either select some glyphs or select the option ‘Process complete font’.",
-						OKButton=None
+					print(
+						"❌ Green Blue Manager Error: No Selection",
+						"\n⚠️ No glyphs selected for processing. Either select some glyphs or select the option ‘Process ALL glyphs’.",
 						)
 				else:
 					numberOfLayers = len(layersToBeProcessed)
@@ -373,7 +419,6 @@ class GreenBlueManager(object):
 							print(f"\n{titles[1]} in following layers:")
 							for fixedLayer in affectedLayersRealignedHandles:
 								print(f"   {fixedLayer.parent.name}, layer '{fixedLayer.name}'")
-
 						print(f"\nDone. {statusMessage}")
 						# Glyphs.showMacroWindow()
 
@@ -386,18 +431,8 @@ class GreenBlueManager(object):
 								message += f"• {titles[0]}\n"
 							if affectedLayersRealignedHandles:
 								message += f"• {titles[1]}\n"
-							
 							print(message)
-							# Floating notification:
-							# Glyphs.showNotification(
-							# 	"%s in %s:" % (
-							# 		"Found Problems" if onlyReport else "Fixed Problems",
-							# 		thisGlyph.name,
-							# 		),
-							# 	message,
-							# 	)
-
-							return
+							continue
 
 					else:
 						# opens new Edit tab:
@@ -418,21 +453,8 @@ class GreenBlueManager(object):
 								outputTab.text += f"{titles[1]}:\n"
 								for affectedLayer in affectedLayersRealignedHandles:
 									outputTab.layers.append(affectedLayer)
-
-							# Floating notification:
-							# Glyphs.showNotification(
-							# 	"Green Blue Manager: %s" % (thisFont.familyName),
-							# 	"• %s: %i layers\n• %s: %i layers" % (titles[0], len(affectedLayersFixedConnections), titles[1], len(affectedLayersRealignedHandles)),
-							# 	)
-
-							return
-					# Floating notification:
-					# Glyphs.showNotification(
-					# 	"All OK in %s!" % thisGlyph.name,
-					# 	"No unaligned handles or wrong connectifon types found in glyph %{e}"hisGlyph.name,
-					# 	)
-
-					return
+							continue
+					continue
 
 		except Exception as e:
 			# brings macro window to front and reports error:
