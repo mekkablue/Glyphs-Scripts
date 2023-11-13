@@ -2,10 +2,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Outputs a kerning string with UC/LC/SC letters, figures, and punctuation.
+Outputs a kerning string with UC/LC/SC letters, figures, and punctuation. Hold down COMMAND and SHIFT to limit to encoded glyphs.
 """
 
-from AppKit import NSPasteboard, NSStringPboardType
+from AppKit import NSPasteboard, NSStringPboardType, NSEvent, NSEventModifierFlagOption, NSEventModifierFlagShift, NSEventModifierFlagCommand, NSEventModifierFlagControl
+
+keysPressed = NSEvent.modifierFlags()
+shiftKeyPressed = keysPressed & NSEventModifierFlagShift == NSEventModifierFlagShift
+commandKeyPressed = keysPressed & NSEventModifierFlagCommand == NSEventModifierFlagCommand
+unicodeOnly = commandKeyPressed and shiftKeyPressed
 
 def nameNotExcluded(suffix, exclusions):
 	for excludedString in exclusions:
@@ -52,48 +57,64 @@ Glyphs.defaults["visibleReporters"] = None
 alwaysExclude = (".punch", ".game", "tic", "youlose", "p1win", "p2win", "RAINER", ".draw", ".win", ".circled")
 
 # collect UC/LC/SC letters and figures:
-uppercase = [g.name for g in thisFont.glyphs if g.export and g.subCategory == "Uppercase" and len(g.layers[mID].paths) > 0 and nameNotExcluded(g.name, alwaysExclude)]
-lowercase = [g.name for g in thisFont.glyphs if g.export and g.subCategory == "Lowercase" and len(g.layers[mID].paths) > 0 and nameNotExcluded(g.name, alwaysExclude)]
 smallcaps = [
 	g.name for g in thisFont.glyphs
-	if g.export and g.category == "Letter" and g.subCategory == "Smallcaps" and len(g.layers[mID].paths) > 0 and nameNotExcluded(g.name, alwaysExclude)
+	if g.export 
+	and g.category == "Letter" 
+	and g.case == GSSmallcaps 
+	and len(g.layers[mID].paths) > 0 
+	and nameNotExcluded(g.name, alwaysExclude)
+	and (g.unicode or not unicodeOnly)
 	]
 fig = [
-	g.name for g in thisFont.glyphs if g.export and g.subCategory == "Decimal Digit" and not ".tf" in g.name and not ".tosf" in g.name and nameNotExcluded(g.name, alwaysExclude)
+	g.name for g in thisFont.glyphs 
+	if g.export 
+	and g.subCategory == "Decimal Digit" 
+	and not ".tf" in g.name 
+	and not ".tosf" in g.name 
+	and nameNotExcluded(g.name, alwaysExclude)
+	and (g.unicode or not unicodeOnly)
 	]
-
-# GLYPHS 3
-try:
-	if len(uppercase) == 0:
-		uppercase = [
-			g.name for g in thisFont.glyphs
-			if g.export and g.category == "Letter" and g.case == GSUppercase and len(g.layers[mID].paths) > 0 and nameNotExcluded(g.name, alwaysExclude)
-			]
-	if len(lowercase) == 0:
-		lowercase = [
-			g.name for g in thisFont.glyphs
-			if g.export and g.category == "Letter" and g.case == GSLowercase and len(g.layers[mID].paths) > 0 and nameNotExcluded(g.name, alwaysExclude)
-			]
-	if len(smallcaps) == 0:
-		smallcaps = [
-			g.name for g in thisFont.glyphs
-			if g.export and g.category == "Letter" and g.case == GSSmallcaps and len(g.layers[mID].paths) > 0 and nameNotExcluded(g.name, alwaysExclude)
-			]
-except:
-	pass
+uppercase = [
+	g.name for g in thisFont.glyphs
+	if g.export 
+	and g.category == "Letter" 
+	and g.case == GSUppercase 
+	and len(g.layers[mID].paths) > 0 
+	and nameNotExcluded(g.name, alwaysExclude)
+	and (g.unicode or not unicodeOnly)
+	]
+lowercase = [
+	g.name for g in thisFont.glyphs
+	if g.export 
+	and g.category == "Letter" 
+	and g.case == GSLowercase 
+	and len(g.layers[mID].paths) > 0 
+	and nameNotExcluded(g.name, alwaysExclude)
+	and (g.unicode or not unicodeOnly)
+	]
+smallcaps = [
+	g.name for g in thisFont.glyphs
+	if g.export 
+	and g.category == "Letter" 
+	and g.case == GSSmallcaps 
+	and len(g.layers[mID].paths) > 0 
+	and nameNotExcluded(g.name, alwaysExclude)
+	and (g.unicode or not unicodeOnly)
+	]
 
 # collect greek letters for greek punctuation
 uppercaseGRK = [
-	g.name for g in thisFont.glyphs
-	if g.export and g.script == "greek" and g.subCategory == "Uppercase" and len(g.layers[mID].paths) > 0 and nameNotExcluded(g.name, alwaysExclude)
+	g for g in uppercase
+	if Glyphs.glyphInfoForName(g).script == "greek"
 	]
 lowercaseGRK = [
-	g.name for g in thisFont.glyphs
-	if g.export and g.script == "greek" and g.subCategory == "Lowercase" and len(g.layers[mID].paths) > 0 and nameNotExcluded(g.name, alwaysExclude)
+	g for g in lowercase
+	if Glyphs.glyphInfoForName(g).script == "greek"
 	]
 smallcapsGRK = [
-	g.name for g in thisFont.glyphs
-	if g.export and g.script == "greek" and g.category == "Letter" and g.subCategory == "Smallcaps" and len(g.layers[mID].paths) > 0 and nameNotExcluded(g.name, alwaysExclude)
+	g for g in smallcaps
+	if Glyphs.glyphInfoForName(g).script == "greek"
 	]
 
 # clean up lowercase list:
@@ -109,46 +130,56 @@ for searchName in fixDict:
 
 # punctuation:
 pairsOrSingles = [
-	u"¿?", u"¡!", ".", ",", ":", ";", u"…", "()", "[]", "{}", u"„“", u"‚‘", u"“”", u"‘’", u"«»", u"»«", u"‹›", u"›‹", u"-", u"–", u"—", u"@", u"*", "'", '"', u"•", u"|", u"¦"
+	"¿?", "¡!", ".", ",", ":", ";", "…", "()", "[]", "{}", "„“", "‚‘", "“”", "‘’", "«»", "»«", "‹›", "›‹", "-", "–", "—", "@", "*", "'", '"', "•", "|", "¦"
 	]
 
 # greek-only punctuation:
-pairsOrSinglesGRK = [u"·", u";"]
+pairsOrSinglesGRK = ["·", ";"]
 
 # finish up punctuation:
 controlString = "".join(pairsOrSingles)
 
 for thisPunctuation in [
-	g.charString() for g in thisFont.glyphs if g.export and (not g.charString() in controlString) and g.category == "Punctuation" and nameNotExcluded(g.name, alwaysExclude)
+	g.charString() for g in thisFont.glyphs 
+	if g.export 
+	and (not g.charString() in controlString) 
+	and g.category == "Punctuation" 
+	and nameNotExcluded(g.name, alwaysExclude)
+	and (g.unicode or not unicodeOnly)
 	]:
 	pairsOrSingles.append(thisPunctuation)
 
 for thisPunctuation in [
 	g.charString() for g in thisFont.glyphs
-	if g.export and (not g.charString() in controlString) and g.category == "Punctuation" and g.script == "greek" and nameNotExcluded(g.name, alwaysExclude)
+	if g.export 
+	and (not g.charString() in controlString) 
+	and g.category == "Punctuation" 
+	and g.script == "greek" 
+	and nameNotExcluded(g.name, alwaysExclude)
+	and (g.unicode or not unicodeOnly)
 	]:
 	pairsOrSinglesGRK.append(thisPunctuation)
 
 # kern strings:
-lower = u""
-upper = u""
-number = u""
+lower = ""
+upper = ""
+number = ""
 
 # step through punctuation:
 for pair in pairsOrSingles:
 	if len(pair) == 2: # it really is a pair
 		for i, x in enumerate(lowercase):
-			lower += pairAddition(i, pair, x, linelength=15)
+			lower += pairAddition(i, pair, x, linelength=25)
 		for i, x in enumerate(uppercase):
-			upper += pairAddition(i, pair, x, linelength=15)
+			upper += pairAddition(i, pair, x, linelength=25)
 		for i, n in enumerate(fig):
 			number += pairAddition(i, pair, n)
 
 	else: # is a single
 		for i, x in enumerate(lowercase):
-			lower += singleAddition(i, pair, x, linelength=15)
+			lower += singleAddition(i, pair, x, linelength=25)
 		for i, x in enumerate(uppercase):
-			upper += singleAddition(i, pair, x, linelength=15)
+			upper += singleAddition(i, pair, x, linelength=25)
 		for i, n in enumerate(fig):
 			number += singleAddition(i, pair, n)
 		lower += pair
@@ -164,17 +195,17 @@ if uppercaseGRK or lowercaseGRK or smallcapsGRK:
 	for pair in pairsOrSinglesGRK:
 		if len(pair) == 2: # it really is a pair
 			for i, x in enumerate(lowercaseGRK):
-				lower += pairAddition(i, pair, x, linelength=15)
+				lower += pairAddition(i, pair, x, linelength=25)
 			for i, x in enumerate(uppercaseGRK):
-				upper += pairAddition(i, pair, x, linelength=15)
+				upper += pairAddition(i, pair, x, linelength=25)
 			for i, n in enumerate(fig):
 				number += pairAddition(i, pair, n)
 
 		else: # is a single
 			for i, x in enumerate(lowercaseGRK):
-				lower += singleAddition(i, pair, x, linelength=15)
+				lower += singleAddition(i, pair, x, linelength=25)
 			for i, x in enumerate(uppercaseGRK):
-				upper += singleAddition(i, pair, x, linelength=15)
+				upper += singleAddition(i, pair, x, linelength=25)
 			for i, n in enumerate(fig):
 				number += singleAddition(i, pair, n)
 			lower += pair
@@ -197,8 +228,8 @@ if not setClipboard(lower + upper + number):
 
 # Floating notification:
 Glyphs.showNotification(
-	u"%s kern strings in clipboard" % (thisFont.familyName),
-	u"Ready for pasting in Preferences > Sample Strings.",
+	"%s kern strings in clipboard" % (thisFont.familyName),
+	"Ready for pasting in Preferences > Sample Strings.",
 	)
 
 newline = """
