@@ -2,28 +2,39 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Open Tab with fraction figure combos for spacing and kerning.
+Open Tab with fraction figure combos for spacing and kerning. Hold down COMMAND and SHIFT for all fonts.
 """
 
-thisFont = Glyphs.font
+from AppKit import NSEvent, NSEventModifierFlagShift, NSEventModifierFlagCommand
+keysPressed = NSEvent.modifierFlags()
+shiftKeyPressed = keysPressed & NSEventModifierFlagShift == NSEventModifierFlagShift
+commandKeyPressed = keysPressed & NSEventModifierFlagCommand == NSEventModifierFlagCommand
 
-paragraph = "/%s\n" % "/".join( [g.name for g in thisFont.glyphs if g.export and (g.name.startswith("percent") or g.name.startswith("perthousand"))] )
+if commandKeyPressed and shiftKeyPressed:
+	fonts = Glyphs.fonts
+else:
+	fonts = (Glyphs.font,)
 
-z = "/zero.numr"
-figs = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+for thisFont in fonts:
+	paragraph = "/%s\n" % "/".join( [g.name for g in thisFont.glyphs if g.export and (g.name.startswith("percent") or g.name.startswith("perthousand"))] )
 
-for numr in figs:
-	n = "/%s.numr" % numr
-	line = z+n+z+n+n+z+z
-	for dnom in figs:
-		line += "/zero.numr/%s.numr/fraction/%s.dnom/zero.dnom  " % (numr,dnom)
-	paragraph += line
-	paragraph += "\n"
+	z = "/zero.numr"
+	figs = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
 
-# in case last line fails, the text is in the macro window:
-Glyphs.clearLog() # clears macro window log
-print(paragraph)
-
-# opens new Edit tab:
-thisFont.newTab( paragraph )
+	for numr in figs:
+		n = "/%s.numr" % numr
+		line = z+n+z+n+n+z+z
+		for dnom in figs:
+			line += "/zero.numr/%s.numr/fraction/%s.dnom/zero.dnom  " % (numr,dnom)
+		paragraph += line
+		paragraph += "\n"
 	
+	paragraph += "\n"
+	for glyph in thisFont.glyphs:
+		slashedName = f"/{glyph.name}"
+		if glyph.subCategory == "Fraction" and not slashedName in paragraph:
+			paragraph += slashedName
+	
+	# opens new Edit tab:
+	thisFont.newTab(paragraph.strip())
+
