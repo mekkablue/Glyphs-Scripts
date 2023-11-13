@@ -8,6 +8,7 @@ Sets left and right kerning groups for all selected glyphs. In the case of compo
 # Copyright: Georg Seifert, 2010, www.schriftgestaltung.de Version 1.0
 
 import traceback
+verbose = False
 
 alwaysExclude = (
 	".notdef",
@@ -1016,18 +1017,19 @@ def updateKeyGlyphsForSelected():
 			RightKey = Glyph.name
 
 		# REPORT
-		print("🔠 %s: %s ↔️ %s" % (Glyph.name, LeftKey, RightKey))
+		if not Glyph.leftKerningGroup or not Glyph.rightKerningGroup:
+			print("🔠 %s: %s ↔️ %s" % (Glyph.name, LeftKey, RightKey))
 
 		if not Glyph.leftKerningGroup:
 			Glyph.leftKerningGroup = LeftKey
 			countL += 1
-		else:
+		elif verbose:
 			print("   ⚠️ LEFT group unchanged: %s" % Glyph.leftKerningGroup)
 
 		if not Glyph.rightKerningGroup:
 			Glyph.rightKerningGroup = RightKey
 			countR += 1
-		else:
+		elif verbose:
 			print("   ⚠️ RIGHT group unchanged: %s" % Glyph.rightKerningGroup)
 
 	Message(
