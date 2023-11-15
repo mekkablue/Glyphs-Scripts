@@ -322,7 +322,7 @@ class BatchSetPathAttributes(object):
 				print()
 
 				scopeMaster = self.pref("scopeMaster")
-				lineCaps = self.pref("lineCaps").split(",")
+				lineCaps = str(self.pref("lineCaps")).split(",")
 				if lineCaps:
 					lineCaps = [intOrNone(cap.strip()) for cap in lineCaps]
 					if len(lineCaps) < 2:
