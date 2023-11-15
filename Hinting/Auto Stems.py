@@ -144,10 +144,8 @@ class AutoStems(object):
 
 		if v:
 			if measure==0: # bounds
-				print("CHECK1", l.bounds, l)
 				return l.bounds.size.width
 			elif measure==1: # diameter 
-				print("CHECK2", l.bounds, l)
 				midY = l.bounds.origin.y + 0.5 * l.bounds.size.height
 				x1 = l.bounds.origin.x - 50
 				x2 = l.bounds.origin.x + l.bounds.size.width + 50
@@ -159,10 +157,8 @@ class AutoStems(object):
 				return abs(stemMeasurement)
 		else: # h
 			if measure==0: # bounds
-				print("CHECK3", l.bounds, l)
 				return l.bounds.size.height
 			elif measure==1: # diameter
-				print("CHECK4", l.bounds, l)
 				midX = l.bounds.origin.x + 0.5 * l.bounds.size.width
 				y1 = l.bounds.origin.y - 50
 				y2 = l.bounds.origin.y + l.bounds.size.height + 50
