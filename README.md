@@ -385,9 +385,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Position Clicker:** Finds all combinations of positional shapes that do not click well. ‘Clicking’ means sharing two point coordinates when overlapping. *Needs Vanilla.*
 * **Realign BCPs:** Realigns all BCPs in all selected glyphs. Useful if handles got out of sync, e.g. after nudging or some other transformation, or after interpolation. Hold down Option to apply to all layers of the selected glyph(s).
 * **Remove all Open Paths:** Deletes all *open* paths in the visible layers of all selected glyphs.
-* **Remove Nodes and Try to Keep Shape:** Deletes selected on-curve nodes and tries to keep the shape as much as possible. Similar to what happens when you delete a single node, but for a selection of multiple nodes. Pro tip: Hold down the Shift key while running the script, and it will also balance the remaining handles as much as possible, which is exactly what happens when you delete a single node.
 * **Remove Short Segments:** Deletes segments shorter than one unit.
-* **Remove Stray Points:** Deletes stray points (single node paths) in selected glyphs. Careful: a stray point can be used as a quick hack to disable automatic alignment. Reports in detail to the Macro window.
 * **Rewire Fire:** Finds, selects and marks duplicate coordinates. Two nodes on the same position typically can be rewired with Reconnect Nodes. *Needs Vanilla.*
 * **Rotate Around Anchor:** GUI for rotating glyphs or selections of nodes and components around a 'rotate' anchor. Allows to step and repeat. *Needs Vanilla.*
 * **Set Transform Origin:** Simple GUI for setting the Transform Origin of the Rotate tool numerically. Should also have an effect on the Scale tool. *Needs Vanilla.*
