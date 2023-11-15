@@ -55,11 +55,14 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 *Anchor Mover is for batch-processing anchor positions. Can be useful after adjusting the x-height. No-brainer: I always use the Reposition script on my combining marks, so stacking combining marks stays in the italic angle.*
 
 * **Add missing smart anchors:** Adds all anchors for properties of selected smart glyphs on all their layers. Skips *Width* and *Height* anchors.
+* **Add ZWRO origin Anchors:** Insert *origin anchors for ZWRO in all combining marks of specified scripts.
 * **Anchor Mover:** GUI for batch-processing anchor positions in multiple glyphs.
 * **Batch Insert Anchors:** GUI for batch-inserting anchors of the same name at the same approximate position in multiple glyphs.
 * **Find and Replace in Anchor Names:** GUI for replacing text in the names of anchors in selected glyphs. Processes all layers.
 * **Fix Arabic Anchor Order in Ligatures:** Fixes the order of *top_X* and *bottom_X* anchors to RTL. In files converted from a different format, it sometimes happens that *top_1* is left of *top_2*, but it should be the other way around, otherwise your mark2liga will mess up. This script goes through your selected glyphs, and if they are Arabic ligatures, reorders all anchors to RTL order, at the same time not touching their coordinates.
 * **Insert All Anchors in All Layers:** On each layer of a selected glyph, adds all missing anchors (but present in other layers of that glyph). Puts anchors at an averaged position.
+* **Insert #exit and #entry anchors at sidebearings:** Inserts #entry at LSB and #exit at RSB (LTR) or the other way around (RTL) in all masters and special layers of the selected glyphs. Will not overwrite existing anchors unless you hold down OPT+SHIFT.
+* **Insert #exit and #entry on baseline at selected points:** Use the outermost selected points, take their x coordinates, and add #exit and #entry anchors on the baseline with the same x coordinates. Useful for building ligatures from components.
 * **Insert exit and entry Anchors to Selected Positional Glyphs:** Adds entry and exit anchors for cursive attachment in selected glyphs. By default, it places the exit at (0, 0) and the entry at a node at RSB if such a node exists. Please adjust for your own needs.
 * **Mark Mover:** Move marks to their respective heights, e.g. …comb.case to cap height, …comb to x-height, etc. Also allows you to set left and right metrics keys.
 * **Move ogonek Anchors to Baseline Intersection:** Moves all ogonek and _ogonek anchors to the rightmost intersection of the outline with the baseline.
@@ -95,9 +98,12 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Set Hidden App Preferences:** GUI for reading and setting ‘hidden’ app preferences, which are not listed in the GUI.
 * **Set Label Colors:** Override the default app label colors.
 * **Set Tool Shortcuts:** Set keyboard shortcuts for the tools in the toolbar.
+* **Toggle Horizontal-Vertical:** Toggle frontmost tab between LTR (horizontal) and vertical writing direction. Useful for setting a keyboard shortcuts.
+* **Toggle Macro Window Separator:** Toggles the separator position in the Macro Window between 80% and 20%.
 * **Toggle RTL-LTR:** Toggle frontmost tab between LTR and RTL writing direction. Useful for setting a keyboard shortcut in System Preferences.
 * **Toggle Script Windows:** Shows or hides all script windows. Good for assigning a shortcut in the app settings.
 * **Update git Repositories in Scripts Folder:** Executes a 'git pull' command on all subfolders in the Glyphs Scripts folder. Useful if you have a lot of git repos in your Scripts folder.
+* **Navigate > Activate next/previous glyph:** Will activate the next/previous glyph in Edit view for editing.
 
 ## Build Glyphs
 
@@ -119,9 +125,8 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Build small letter SM, TEL:** Creates the glyphs: `servicemark`, `telephone`.
 * **Build space glyphs:** Creates `mediumspace-math`, `emquad`, `emspace`, `enquad`, `enspace`, `figurespace`, `fourperemspace`, `hairspace`, `narrownbspace`, `punctuationspace`, `sixperemspace`, `nbspace`, `thinspace`, `threeperemspace`, `zerowidthspace`.
 * **Build Symbols:** Creates symbol glyphs such as `.notdef` (based on the boldest available `question` mark), an `estimated` glyph, as well as `bar` and `brokenbar` (for which it respects standard stems and italic angle).
-* **Fix Punctuation Dots and Heights:** Syncs punctuation dots between ¡!¿? (and their SC+CASE variants). Will use dot from exclam in all other glyphs, and shift ¡¿ in SC and CASE variants. Assumes that ¡¿ are components in !?. Detailed report in Macro Window..
-* **Quote Manager:** Build double quotes from single quotes, and insert `#exit` and `#entry` anchors in the single quotes for auto-alignment. You need to have the single quotes already.
 * **Center punt volat:** Shifts all `periodcentered.loclCAT` glyphs horizontally so it fits between two L’s. Hold down ⌘ Cmd and ⇧ Shift for processing ALL open fonts.
+* **Quote Manager:** Build double quotes from single quotes, and insert `#exit` and `#entry` anchors in the single quotes for auto-alignment. You need to have the single quotes already.
 
 ## Color Fonts
 
@@ -137,13 +142,13 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Merge CPAL Layers into Master Layer:** Takes all CPAL/COLR layers and puts copies of their shapes into the master layer.
 * **Merge Suffixed Glyphs into Color Layers:** Merges x.shadow, x.body and x.front into separate CPAL Color layers of x.
 * **Randomly Distribute Shapes on Color Layers:** Take the shapes of the fallback master layer, and randomly copy them onto the available CPAL/COLR color layers. Careful: will overwrite contents of existing color layers unless you hold down Cmd+Shift.
+* **Reverse CPAL Colors for Selected Glyphs:** Will reverse the color indexes for each CPAL Color Palette layer. E.g., for three colors, it will turn indexes 0,1,2 into 2,1,0.
 * **sbix Spacer:** Batch-set sbix positions and glyph widths.
 
 ## Compare Frontmost Fonts
 
 *These scripts are intended for syncing uprights with their italics. Open two fonts, and run the scripts. They do not change your fonts, but report in detail in the Macro window.*
 
-* **Auto-align Composites with Incremental Metrics Keys:** For the frontmost font, auto-aligns composites where only the first component’s alignment is disabled. Ignores .tf, .tosf and math operators. Will open a tab with affected glyph layers.
 * **Compare Font Info > Font:** Detailed report of Font Info > Masters for the two frontmost fonts and outputs a report in the Macro window.
 * **Compare Font Info > Masters:** Detailed report of Font Info > Masters for the two frontmost fonts and outputs a report in the Macro window.
 * **Compare Font Info > Instances:** Detailed report of Font Info > Instances for the two frontmost fonts and outputs a report in the Macro window.
@@ -156,15 +161,18 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Compare Kerning Groups:** Compares kerning groups between frontmost fonts, outputs a table of glyph names with unmatching groups.
 * **Compare Metrics:** Compare widths of two frontmost fonts.
 * **Compare Sidebearings:** Compare sidebearings of two frontmost fonts.
+* **Report Missing Glyphs for all Open Fonts:** In Macro window, reports all glyphs that are missing in some of the currently open files, but present in other other fonts.
 
 ## Components
 
 *Populate Backgrounds with Components is very useful when you build letters based on other, e.g., ae or oe can take an e in the background. The script puts the e in the background of each master, and the UI has an option to align selected points with the e in the background. If you use corner components for serifs in a multiple-master font, the Propagate script will save you a lot of time.*
 
 * **Alignment Manager:** Enables or disables automatic alignment for all components on visible layers in selected glyphs. Does the same as the command in the context menu, but you can do it in one step for many glyphs.
+* **Auto-align Composites with Incremental Metrics Keys:** For the frontmost font, auto-aligns composites where only the first component’s alignment is disabled. Ignores .tf, .tosf and math operators. Will open a tab with affected glyph layers.
 * **Cap and Corner Manager:** Batch-edit settings for cap, corner, brush or segment components throughout all glyphs in the frontmost font.
 * **Component Mover:** Batch edit (smart) components across selected glyphs. Change positions, scales and smart properties.
 * **Component Problem Finder:** Find possible issues with components and corner components:  composable glyphs consisting of paths; locked, nested, orphaned, mirrored, shifted, rotated and scaled components; composite glyphs with an unusual component order or an unorthodox component structure. Also, disconnected and scaled corner components.
+* **Composite Consistencer:** Goes through all glyphs of the frontmost font, and checks for composites in the current master. If dot-suffixed glyph variants are missing them, they are reported in the Macro Window.
 * **Decompose Components in Background:** Decomposes background layers of selected glyphs. Works on the current master or all masters, or all masters of all fonts.
 * **Decompose Corner and Cap Components:** Decomposes all corner and cap components in selected glyphs. Reports to Macro window.
 * **Find and Replace Components:** Relinks components in selected glyphs to a new source glyph.
@@ -183,6 +191,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 *In script typefaces, you may often need the Build Positional calt script. If you find yourself turning OT features on and off a lot, take a look at the Activate Default Features and Floating Features scripts. And check out the Set Palette from Window > Plugin Manager.*
 
 * **Activate Default Features:** In the current Edit tab, activates all OT features that are recommended to be on by default (according to the spec).
+* **Baseline Wiggle:** Add OpenType feature with pseudorandom GPOS baseline shift for all glyphs in a class.
 * **Build ccmp for Hebrew Presentation Forms:** Builds the ccmp feature for precomposed `uniFBxx` glyphs, e.g. if you have pedagesh, you get 'sub pe dagesh by pedagesh' in your ccmp.
 * **Build Italic Shift Feature:** Creates and inserts GPOS feature code for shifting glyphs, e.g., parentheses and punctuation for the case feature.
 * **Build Positional Feature:** Looks for `.init`, `.medi`, `.fina`, and `.isol` glyphs, and injects positional substitution code into your `calt` feature (or any other feature you specify). If run again, will *update* class and feature code. See this tutorial for more info: https://glyphsapp.com/learn/features-part-4-positional-alternates
@@ -261,8 +270,8 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **BlueFuzzer:** Extends all alignment zones by the specified value. Similar to what the blueFuzz value used to do, hence the name.
 * **Keep Only First Master Hints:** In selected glyphs, deletes all hints in all layers except for whatever is ordered as first master. Respects Bracket Layers. E.g., if your first master is 'Regular', then the script will delete hints in 'Bold', 'Bold [120]', but keep them in 'Regular' and 'Regular [100]'.
 * **New Tab with Glyphs in Alignment Zones:** Opens a new tab and lists all glyphs that reach into alignment zones.
-* **New Tabs with Glyphs Not Reaching Into Zones:** Opens a new tab with all glyphs that do NOT reach into any top or bottom alignment zone. Only counts glyphs that contain paths in the current master. Ignores empty glyphs and compounds.
 * **New Tab with Layers with TTDeltas:** Opens a new tab with all layers that have defined TTDeltas.
+* **New Tabs with Glyphs Not Reaching Into Zones:** Opens a new tab with all glyphs that do NOT reach into any top or bottom alignment zone. Only counts glyphs that contain paths in the current master. Ignores empty glyphs and compounds.
 * **Remove PS Hints:** Deletes all stem and/or ghost hints throughout the current font, the selected master and/or the selected glyphs.
 * **Remove TT Hints:** Deletes a user-specified set of TT instructions throughout the current font, the selected master and/or the selected glyphs.
 * **Remove Zero Deltas in Selected Glyphs:** Goes through all layers of each selected glyph, and deletes all TT Delta Hints with an offset of zero. Detailed Report in Macro window.

@@ -1,8 +1,8 @@
-#MenuTitle: Add #exit/#entry on baseline at selected points
+#MenuTitle: Insert #exit and #entry on baseline at selected points
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Use the outermost selected points, take their x coordinates, and add #exit and #entry anchors on the baseline with the same x coordinates.
+Use the outermost selected points, take their x coordinates, and add #exit and #entry anchors on the baseline with the same x coordinates. Useful for building ligatures from components.
 """
 
 def process(thisLayer):

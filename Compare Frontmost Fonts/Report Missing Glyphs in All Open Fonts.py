@@ -1,4 +1,4 @@
-#MenuTitle: Report missing glyphs for all open fonts
+#MenuTitle: Report Missing Glyphs for all Open Fonts
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
@@ -8,7 +8,6 @@ In Macro window, reports all glyphs that are missing in some of the currently op
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
-
 
 def reportName(font):
 	if font.filepath:
