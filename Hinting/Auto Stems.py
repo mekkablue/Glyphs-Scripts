@@ -52,30 +52,40 @@ class AutoStems(object):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Measure shapes in the font and derive stem entries:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 		
-		self.w.hText1 = vanilla.TextBox((inset, linePos+2, 48, 14), "H Stem:", sizeStyle="small", selectable=True)
-		self.w.hMeasure = vanilla.PopUpButton((inset+48, linePos, 82, 17), whichMeasure, sizeStyle="small", callback=self.SavePreferences)
-		self.w.hText2 = vanilla.TextBox((inset+133, linePos+2, 17, 14), "of", sizeStyle="small", selectable=True)
-		self.w.hShape = vanilla.PopUpButton((inset+150, linePos, 110, 17), whichShape, sizeStyle="small", callback=self.SavePreferences)
-		self.w.hText3 = vanilla.TextBox((inset+263, linePos+2, 17, 14), "of", sizeStyle="small", selectable=True)
-		self.w.hStemGlyph = vanilla.ComboBox((inset+280, linePos-1, -inset-25, 19), [g.name for g in Glyphs.font.glyphs], sizeStyle="small", callback=self.SavePreferences)
-		self.w.hReset = vanilla.SquareButton((-inset-20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.update)
-		linePos += lineHeight
-		
 		self.w.vText1 = vanilla.TextBox((inset, linePos+2, 48, 14), "V Stem:", sizeStyle="small", selectable=True)
 		self.w.vMeasure = vanilla.PopUpButton((inset+48, linePos, 82, 17), whichMeasure, sizeStyle="small", callback=self.SavePreferences)
+		self.w.vMeasure.getNSPopUpButton().setToolTip_("Bounds: the width of the enclosing rectangle for the selected shape.\n\nDiameter: the distance between the outermost points of the shape when cut horizontally in the center.")
 		self.w.vText2 = vanilla.TextBox((inset+133, linePos+2, 17, 14), "of", sizeStyle="small", selectable=True)
 		self.w.vShape = vanilla.PopUpButton((inset+150, linePos, 110, 17), whichShape, sizeStyle="small", callback=self.SavePreferences)
+		self.w.vShape.getNSPopUpButton().setToolTip_("Which shape in the glyph to measure for the vertical stem.")
 		self.w.vText3 = vanilla.TextBox((inset+263, linePos+2, 17, 14), "of", sizeStyle="small", selectable=True)
 		self.w.vStemGlyph = vanilla.ComboBox((inset+280, linePos-1, -inset-25, 19), [g.name for g in Glyphs.font.glyphs], sizeStyle="small", callback=self.SavePreferences)
+		self.w.vStemGlyph.getNSComboBox().setToolTip_("Pick a glyph to measure for the vertical stem.")
 		self.w.vReset = vanilla.SquareButton((-inset-20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.update)
+		resetToolTip = "Reload the glyph list of the frontmost font."
+		self.w.vReset.getNSButton().setToolTip_(resetToolTip)
+		linePos += lineHeight
+		
+		self.w.hText1 = vanilla.TextBox((inset, linePos+2, 48, 14), "H Stem:", sizeStyle="small", selectable=True)
+		self.w.hMeasure = vanilla.PopUpButton((inset+48, linePos, 82, 17), whichMeasure, sizeStyle="small", callback=self.SavePreferences)
+		self.w.hMeasure.getNSPopUpButton().setToolTip_("Bounds: the height of the enclosing rectangle for the selected shape.\n\nDiameter: the distance between the outermost points of the shape when cut vertically in the center.")
+		self.w.hText2 = vanilla.TextBox((inset+133, linePos+2, 17, 14), "of", sizeStyle="small", selectable=True)
+		self.w.hShape = vanilla.PopUpButton((inset+150, linePos, 110, 17), whichShape, sizeStyle="small", callback=self.SavePreferences)
+		self.w.hShape.getNSPopUpButton().setToolTip_("Which shape in the glyph to measure for the horizontal stem.")
+		self.w.hText3 = vanilla.TextBox((inset+263, linePos+2, 17, 14), "of", sizeStyle="small", selectable=True)
+		self.w.hStemGlyph = vanilla.ComboBox((inset+280, linePos-1, -inset-25, 19), [g.name for g in Glyphs.font.glyphs], sizeStyle="small", callback=self.SavePreferences)
+		self.w.hStemGlyph.getNSComboBox().setToolTip_("Pick a glyph to measure for the horizontal stem.")
+		self.w.hReset = vanilla.SquareButton((-inset-20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.update)
+		self.w.hReset.getNSButton().setToolTip_(resetToolTip)
 		linePos += lineHeight
 		
 		self.w.overwriteExisting = vanilla.CheckBox((inset, linePos-1, -inset, 20), "⚠️ Overwrite existing stems", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.overwriteExisting.getNSButton().setToolTip_("If checked, will delete existing stem values before adding its measurements. Be careful.")
 		linePos += lineHeight
 		
 		self.w.allFonts = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Process ⚠️ ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts.getNSTextField().setToolTip_("If checked, will process all fonts currently opened in Glyphs. Otherwise just the frontmost font.")
 		linePos += lineHeight
-		
 		
 		# Run Button:
 		self.w.runButton = vanilla.Button((-120-inset, -20-inset, -inset, -inset), "Add Stems", sizeStyle="regular", callback=self.AutoStemsMain)
@@ -90,8 +100,10 @@ class AutoStems(object):
 		self.w.makeKey()
 	
 	def update(self, sender=None):
-		if sender in (self.w.hReset, self.w.vReset):
-			sender.setItems([g.name for g in Glyphs.font.glyphs])
+		if sender == self.w.hReset:
+			self.w.hStemGlyph.setItems([g.name for g in Glyphs.font.glyphs])
+		if sender == self.w.vReset:
+			self.w.vStemGlyph.setItems([g.name for g in Glyphs.font.glyphs])
 		
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
