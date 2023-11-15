@@ -257,6 +257,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Add Alignment Zones for Selected Glyphs:** Creates fitting zones for the selected glyphs in all masters.
 * **Add Hints for Selected Nodes:** Adds hints for the selected nodes. Tries to guess whether it should be H or V. If exactly one node inside a zone is selected, it will add a Ghost Hint. Useful for setting a shortcut in System Prefs.
 * **Add TTF Autohint Control Instructions for Current Glyph:** Adds a touch line for a given up/down amount to the Control Instructions of the current instance.
+* **Auto Stems:** Derive one H and one V stem value for all your masters by measuring certain shapes in your font.
 * **BlueFuzzer:** Extends all alignment zones by the specified value. Similar to what the blueFuzz value used to do, hence the name.
 * **Keep Only First Master Hints:** In selected glyphs, deletes all hints in all layers except for whatever is ordered as first master. Respects Bracket Layers. E.g., if your first master is 'Regular', then the script will delete hints in 'Bold', 'Bold [120]', but keep them in 'Regular' and 'Regular [100]'.
 * **New Tab with Glyphs in Alignment Zones:** Opens a new tab and lists all glyphs that reach into alignment zones.
