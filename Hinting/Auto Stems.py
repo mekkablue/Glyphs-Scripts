@@ -166,7 +166,7 @@ class AutoStems(object):
 					NSPoint(midX, y1), 
 					NSPoint(midX, y2), 
 					components=True)
-				stemMeasurement = float(round(cuts[-1].y-cuts[1].y))
+				stemMeasurement = float(round(cuts[-2].y-cuts[1].y))
 				return abs(stemMeasurement)
 
 	def AutoStemsMain(self, sender=None):
