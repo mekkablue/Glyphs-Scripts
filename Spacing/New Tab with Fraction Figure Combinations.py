@@ -17,7 +17,13 @@ else:
 
 for thisFont in fonts:
 	paragraph = "/%s\n" % "/".join( [g.name for g in thisFont.glyphs if g.export and (g.name.startswith("percent") or g.name.startswith("perthousand"))] )
-
+	
+	percent = thisFont.glyphs["percent"]
+	if percent and percent.layers[0].components:
+		percentParticleNames = list([c.name for c in percent.layers[0].components])
+		percentParticleNames.append(percentParticleNames[-1])
+		paragraph += "/" + "/".join(percentParticleNames) + "\n"
+	
 	z = "/zero.numr"
 	figs = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
 
