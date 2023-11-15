@@ -153,7 +153,7 @@ class AutoStems(object):
 					NSPoint(x1, midY), 
 					NSPoint(x2, midY), 
 					components=True)
-				stemMeasurement = float(round(cuts[-1].x-cuts[1].x))
+				stemMeasurement = float(round(cuts[-2].x-cuts[1].x))
 				return abs(stemMeasurement)
 		else: # h
 			if measure==0: # bounds
