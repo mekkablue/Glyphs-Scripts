@@ -12,7 +12,7 @@ from otvarLib import * # local lib
 if Glyphs.versionNumber < 3.2:
 	Message(
 		title="Version Error",
-		message="This script requires app version 3.2 or later.",
+		message="This script requires app version 3.2 or later. In Glyphs > Settings > Updates, activate Cutting Edge Versions, and check for updates.",
 		OKButton=None,
 		)
 else:

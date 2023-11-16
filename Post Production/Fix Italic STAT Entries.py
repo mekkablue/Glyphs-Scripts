@@ -48,7 +48,7 @@ def fixDuplicatesFormat1and3(axes, axisValueArray, changesMade=False):
 if Glyphs.versionNumber < 3.2:
 	Message(
 		title="Version Error",
-		message="This script requires app version 3.2 or later.",
+		message="This script requires app version 3.2 or later. In Glyphs > Settings > Updates, activate Cutting Edge Versions, and check for updates.",
 		OKButton=None,
 		)
 else:
