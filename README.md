@@ -171,22 +171,22 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 *在製作手寫風格字體時，你可能經常需要「建構位置變體」的腳本。如果你發現自己經常開關 OT 功能，請用看看「啟動預設特性」和「浮動特性」腳本。並到 視窗 > 外掛程式管理員 看看 Set Palette 這個外掛。*
 
-* **Activate Default Features / 啟動預設特性：** In the current Edit tab, activates all OT features that are recommended to be on by default (according to the spec).
-* **Build ccmp for Hebrew Presentation Forms / (翻譯名稱)：** Builds the ccmp feature for precomposed `uniFBxx` glyphs, e.g. if you have pedagesh, you get 'sub pe dagesh by pedagesh' in your ccmp.
-* **Build Italic Shift Feature / (翻譯名稱)：** Creates and inserts GPOS feature code for shifting glyphs, e.g., parentheses and punctuation for the case feature. *需要 香草JS*
-* **Build Positional Feature / 建構位置變體特性：** Looks for `.init`, `.medi`, `.fina`, and `.isol` glyphs, and injects positional substitution code into your `calt` feature (or any other feature you specify). If run again, will *update* class and feature code. See this tutorial for more info: https://glyphsapp.com/learn/features-part-4-positional-alternates *需要 香草JS*
-* **Build rand Feature / (翻譯名稱)：** Build rand (random) feature from .cvXX or another (numbered) suffix. *需要 香草JS*
-* **Feature Code Tweaks / (翻譯名稱)：** Adds tweaks to OT feature code. Reports in Macro window. Careful: if you do not understand an option, do not use it. *需要 香草JS*
-* **Find in Features / (翻譯名稱)：** Finds expressions (glyph, lookup or class names) in OT Features, Prefixes and Classes. *需要 香草JS*
-* **Floating Features / 浮動特性：** Floating palettes for activating and deactivating OT features. Same functionality as the pop-up menu. *需要 香草JS*
-* **Fraction Fever 2 / (翻譯名稱)：** Insert Tal Leming’s Fraction Fever 2 code into the font. Read more in this tutorial: https://glyphsapp.com/learn/fractions
-* **New OT Class with Selected Glyphs / (翻譯名稱)：** GUI for creating a new OT class with the selected glyphs. *需要 香草JS*
-* **New Tab with OT Class / (翻譯名稱)：** GUI for opening all glyphs in an OT class (listed in *File > Font Info > Features > Classes*) in a new tab. *需要 香草JS*
-* **Update Features without Reordering / (翻譯名稱)：** Goes through the existing features in the font and refreshes each one of them. Does neither add nor reorder features.
-* * **Stylistic Sets > Synchronize ssXX glyphs / (翻譯名稱)：** Creates missing ssXX glyphs so that you have synchronous groups of ssXX glyphs. E.g. you have *a.ss01 b.ss01 c.ss01 a.ss02 c.ss02* --> the script creates *b.ss02*
-* * **Stylistic Sets > Create ssXX from layer / (翻譯名稱)：** Takes the current layer and copies it to the primary layer of a new .ssXX glyph.
-* * **Stylistic Sets > Create pseudorandom calt feature / (翻譯名稱)：** Creates pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font. Also includes the default class in the rotation algorithm.
-* * **Stylistic Sets > Set ssXX Names / (翻譯名稱)：** Prefills names for ssXX features with ‘Alternate’ or another chosen text, plus the name of the first substituted glyph, e.g., ‘Alternate a’. Option to preserve existing namings.*需要 香草JS*
+* **Activate Default Features / 啟動預設特性：** 在目前的編輯分頁中，啟用所有根據規範建議預設開啟的OT功能。
+* **Build ccmp for Hebrew Presentation Forms / 建構希伯來表示形式的ccmp：** 為預組 uniFBxx 字符建構ccmp功能，例如，如果你有 pedagesh，則在你的ccmp中會得到 'sub pe dagesh by pedagesh'。
+* **Build Italic Shift Feature / 建構斜體位移特性：** 創建並插入GPOS功能代碼，用於移動字符，例如，用於形式特性的括號和標點符號。 *需要 香草JS*
+* **Build Positional Feature / 建構位置變體特性：** 尋找 .`init``.medi``.fina` 和 `.isol` 字符，並將位置替換代碼注入到你的calt特性（或其他你指定的特性）。如果再次運行，將 *更新* 類別和特性代碼。詳細資訊可參考此教程：https://glyphsapp.com/learn/features-part-4-positional-alternates *需要 香草JS*
+* **Build rand Feature / 建構 rand 特性：** 從 .cvXX 或其他（編號的）後綴建構 rand（隨機）特性。 *需要 香草JS*
+* **Feature Code Tweaks / 特性代碼微調：** 對OT特性代碼進行微調。在巨集面板中顯示報告。請小心使用：如果你不理解某個選項，請勿使用。 *需要 香草JS*
+* **Find in Features / 在特性中查找：** 在OT特性、前綴和類別中查找表達式（字符、查找或類別名稱）。 *需要 香草JS*
+* **Floating Features / 浮動特性：** 用於啟用和停用OT特性的浮動面板。與彈出菜單具有相同的功能。 *需要 香草JS*
+* **Fraction Fever 2 / 分數瘋狂2：** 將Tal Leming 的 Fraction Fever 2 代碼插入字型中。詳細信息請參考此教程：https://glyphsapp.com/learn/fractions
+* **New OT Class with Selected Glyphs / 使用所選字符建立新的OT類別：** 用於使用所選字符創建新的OT類別的圖形用戶界面。 *需要 香草JS*
+* **New Tab with OT Class / 使用OT類別打開新分頁：** 用於在新分頁中打開所有OT類別中的字符（列在 *文件 > 字體資訊 > 特性 > 類別* 中）的圖形用戶界面。 *需要 香草JS*
+* **Update Features without Reordering / 更新特性而不重新排序：** 瀏覽字型中現有的特性，並刷新每一個。既不添加特性，也不重新排序。
+* * **Stylistic Sets > Synchronize ssXX glyphs / 文樣集 > 同步 ssXX 字形：** 創建缺失的 ssXX 字符，使你擁有同步的 ssXX 字符組。例如，如果你有 *a.ss01 b.ss01 c.ss01 a.ss02 c.ss02* --> 該腳本將創建 *b.ss02*。
+* * **Stylistic Sets > Create ssXX from layer / 文樣集 > 從圖層創建 ssXX：** 使用當前圖層將其複製到新的 .ssXX 字符的主要圖層。
+* * **Stylistic Sets > Create pseudorandom calt feature / 文樣集 > 創建虛擬隨機calt特性：** 基於字型中現有的ssXX字形數量，創建基於偽隨機的calt（上下文替換）特性。還包括在旋轉算法中的默認類別。
+* * **Stylistic Sets > Set ssXX Names / 文樣集 > 設置 ssXX 名稱：** 使用‘Alternate’或其他選擇的文本，以及第一個替換的字符名稱，預先填充ssXX特性的名稱，例如‘Alternate a’。也可以選擇保留現有的命名。 *需要 香草JS*
 
 ## 字型資訊（已完成v1）
 
@@ -393,9 +393,9 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 *推薦腳本：「修復數學運算符間距」、「括號度量管理器」，如果你的字型中有箭頭可以試試「修復箭頭定位」。「新增分頁」腳本在創建數字時也很好用。*
 
-* **Add Metrics Keys for Symmetric Glyphs / (翻譯名稱)：** Will add RSB =| if the RSB is the same as the LSB in all masters. *需要 香草JS*
-* **Bracket Metrics Manager / 括號度量管理器：** Manage the sidebearings and widths of bracket layers, e.g., dollar and cent. *需要 香草JS*
-* **Center Glyphs / (翻譯名稱)：** Centers all selected glyphs inside their width, so that LSB=RSB.
+* **Add Metrics Keys for Symmetric Glyphs / 為對稱字形添加度量鍵：** 如果在所有主要字符中RSB與LSB相同，將添加RSB =|。 *需要 香草JS*
+* **Bracket Metrics Manager / 括號度量管理器：** 管理括號圖層（例如，美元和分）的側輻和寬度。 *需要 香草JS*
+* **Center Glyphs / 居中字符：** 將所有選定的字符置於其寬度內居中，使LSB=RSB。
 * **Change Metrics by Percentage / (翻譯名稱)：** Change LSB/RSB of selected glyphs by a percentage value. Undo with the Revert button. *需要 香草JS*
 * **Find and Replace in Metrics Keys / (翻譯名稱)：** GUI for searching and replacing text in the L and R metrics keys, e.g. replace '=X+15' by '=X'. Leave the search field blank for appending.
 * **Fix Arrow Positioning / 修復箭頭定位：** Fixes the placement and metrics keys of arrows, dependent on a specified default arrow. Adds metric keys and moves arrows vertically. Does not create new glyphs, only works on existing ones. *需要 香草JS*
