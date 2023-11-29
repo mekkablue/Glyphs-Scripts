@@ -101,6 +101,8 @@ class PartialCompress(object):
 			allMasters = self.pref("allMasters")
 			allFonts = self.pref("allFonts")
 			
+			print(searchStrings)
+			
 			if Glyphs.font is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
@@ -133,7 +135,7 @@ class PartialCompress(object):
 						else:
 							L = thisFont.glyphForId_(lID)
 							lName = L.name
-							lGroup = L.rightKerningGroup
+							lGroup = f"@MMK_L_{L.rightKerningGroup}"
 						
 						if not lGroup:
 							continue
@@ -146,7 +148,7 @@ class PartialCompress(object):
 							else:
 								R = thisFont.glyphForId_(rID)
 								rName = R.name
-								rGroup = R.leftKerningGroup
+								rGroup = f"@MMK_R_{R.leftKerningGroup}"
 							
 							if not rGroup:
 								continue
