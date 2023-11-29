@@ -63,6 +63,7 @@ class GlyphOrderManager(object):
 			textView.setFont_(legibleFont)
 		except Exception as e:
 			print(e)
+		textView.setUsesFindBar_(True)
 		textView.setToolTip_("Extract, edit, and reapply glyphOrder text to custom parameters.")
 		textView.setHorizontallyResizable_(1)
 		textView.setVerticallyResizable_(1)
