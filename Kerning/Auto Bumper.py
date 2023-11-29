@@ -569,7 +569,11 @@ class Bumper(object):
 
 				# Floating notification:
 				notificationTitle = "Bumper: %s (%s)" % (thisFont.familyName, thisMaster.name)
-				Glyphs.showNotification(notificationTitle, report)
+				Message(
+					title=notificationTitle,
+					message=report,
+					OKButton=None,
+					)
 
 				# Open new tab:
 				if Glyphs.defaults["com.mekkablue.Bumper.openNewTabWithKernPairs"]:
