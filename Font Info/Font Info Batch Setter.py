@@ -304,7 +304,10 @@ class FontInfoBatchSetter(object):
 			Glyphs.defaults[self.domain("versionMinor")] = f"{thisFont.versionMinor:03}"
 			Glyphs.defaults[self.domain("versionMajor")] = thisFont.versionMajor
 			Glyphs.defaults[self.domain("copyright")] = thisFont.copyright
-			Glyphs.defaults[self.domain("trademark")] = thisFont.trademark.replace(thisFont.familyName, self.placeholderFamilyName)
+			if thisFont.trademark:
+				Glyphs.defaults[self.domain("trademark")] = thisFont.trademark.replace(thisFont.familyName, self.placeholderFamilyName)
+			else:
+				Glyphs.defaults[self.domain("trademark")] = thisFont.trademark
 			Glyphs.defaults[self.domain("designer")] = thisFont.designer
 			Glyphs.defaults[self.domain("designerURL")] = thisFont.designerURL
 			Glyphs.defaults[self.domain("manufacturer")] = thisFont.manufacturer
