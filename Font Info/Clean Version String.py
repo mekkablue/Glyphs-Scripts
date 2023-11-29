@@ -6,25 +6,14 @@ from __future__ import division, print_function, unicode_literals
 # except Exception as e:
 # 	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 __doc__ = """
-Adds a clean versionString parameter, and disables ttfAutohint info in the version string.
+Adds a clean versionString parameter, and disables ttfAutohint info in the version string. Hold down OPTION and SHIFT for all masters
 """
 
-propKey = "versionString"
-propValue = "Version %d.%03d"
+from AppKit import NSEvent, NSEventModifierFlagOption, NSEventModifierFlagShift
 
-thisFont = Glyphs.font # frontmost font
-if Glyphs.versionNumber >= 3:
-	# GLYPHS 3
-	prop = GSFontInfoValueSingle()
-	prop.key = "versionString"
-	prop.value = "Version %d.%03d"
-	Font.properties.append(prop)
-else:
-	# GLYPHS 2
-	thisFont.customParameters[propKey] = propValue
-print(f"Set: {propKey}='{propValue}' in Font Info > Font")
-
-
+# brings macro window to front and clears its log:
+Glyphs.clearLog()
+Glyphs.showMacroWindow()
 
 def removeFromAutohintOptions(thisInstance, removeOption):
 	parameter = thisInstance.customParameters[parameterName]
@@ -40,7 +29,7 @@ def removeFromAutohintOptions(thisInstance, removeOption):
 				ttfAutohintOptions.pop(j)
 			thisInstance.customParameters[parameterName] = " ".join(ttfAutohintOptions)
 		else:
-			print("-- Warning: '%s' not found." % removeOption)
+			print(f"-- Warning: '{removeOption}' not found.")
 
 def dictToParameterValue(ttfAutohintDict):
 	parameterValue = ""
@@ -71,20 +60,55 @@ def writeOptionsToInstance(optionDict, instance):
 	value = dictToParameterValue(optionDict)
 	instance.customParameters[parameterName] = value
 
-parameterName = "TTFAutohint options"
-optionName = "no-info"
-enteredValue = ""
-for thisInstance in thisFont.instances:
-	if not thisInstance.customParameters[parameterName] is None:
-		optionDict = ttfAutohintDict(thisInstance.customParameters[parameterName])
-		optionDict[optionName] = enteredValue
-		writeOptionsToInstance(optionDict, thisInstance)
-		print("Set: ttfAutohint %s in instance '%s'." % (
-			optionName,
-			thisInstance.name,
-			))
+def cleanVersionStringProperty(thisFont):
+	# version string property
+	propKey = "versionString"
+	propValue = "Version %d.%03d"
+	if Glyphs.versionNumber >= 3:
+		# GLYPHS 3
+		prop = GSFontInfoValueSingle()
+		prop.key = propKey
+		prop.value = propValue
+		thisFont.properties.append(prop)
 	else:
-		print("No TTF Autohint parameter in instance '%s'. %s not set." % (
-			thisInstance.name,
-			optionName,
-			))
+		# GLYPHS 2
+		thisFont.customParameters[propKey] = propValue
+	print(f"Set: {propKey}='{propValue}' in Font Info > Font")
+
+def cleanTtfautohintSetting(thisFont):
+	# ttfautohint parameter
+	parameterName = "TTFAutohint options"
+	optionName = "no-info"
+	enteredValue = ""
+	for thisInstance in thisFont.instances:
+		if not thisInstance.customParameters[parameterName] is None:
+			optionDict = ttfAutohintDict(thisInstance.customParameters[parameterName])
+			optionDict[optionName] = enteredValue
+			writeOptionsToInstance(optionDict, thisInstance)
+			print("Set: ttfAutohint %s in instance '%s'." % (
+				optionName,
+				thisInstance.name,
+				))
+		else:
+			print("No TTF Autohint parameter in instance '%s'. %s not set." % (
+				thisInstance.name,
+				optionName,
+				))
+	
+keysPressed = NSEvent.modifierFlags()
+optionKeyPressed = keysPressed & NSEventModifierFlagOption == NSEventModifierFlagOption
+shiftKeyPressed = keysPressed & NSEventModifierFlagShift == NSEventModifierFlagShift
+
+allFonts = optionKeyPressed and shiftKeyPressed
+if allFonts:
+	theseFonts = Glyphs.fonts
+else:
+	theseFonts = (Glyphs.font,)
+
+for thisFont in theseFonts:
+	print(f"Clean Version String for: {thisFont.familyName} (📄 {thisFont.filepath.lastPathComponent()})\n")
+	cleanVersionStringProperty(thisFont)
+	cleanTtfautohintSetting(thisFont)
+	print()
+
+print("✅ Done.")
