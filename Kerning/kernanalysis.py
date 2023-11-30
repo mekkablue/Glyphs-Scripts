@@ -265,8 +265,6 @@ def sortedIntervalsFromString(intervals="", font=None, mID=None):
 					loEnd = interval.split(":")[0].strip()
 					hiEnd = interval.split(":")[1].strip()
 					
-					print(f"'{loEnd}', '{hiEnd}', {font}, {mID}")
-					print("CHECK1")
 					if loEnd.isdigit():
 						loEnd = int(loEnd)
 					elif font and mID:
@@ -280,7 +278,6 @@ def sortedIntervalsFromString(intervals="", font=None, mID=None):
 						raise Exception(f"Cannot interpret lower end of ignore interval: {loEnd}")
 						continue
 					
-					print("CHECK2")
 					if hiEnd.isdigit():
 						loEnd = int(hiEnd)
 					elif font and mID:
