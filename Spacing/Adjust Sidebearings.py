@@ -163,10 +163,13 @@ class AdjustSpacing(object):
 				
 				negativeValue = value
 				if negativeChoice == 1:
-					negativeValue = -value
-				elif negativeChoice == 2:
-					if choice == 0:
+					if choice == 0: # multiply
 						negativeValue = 1/value
+					else:
+						negativeValue = -value
+				elif negativeChoice == 2:
+					if choice == 0: # multiply
+						negativeValue = 1/value*2
 					else:
 						negativeValue = -value/2
 					
