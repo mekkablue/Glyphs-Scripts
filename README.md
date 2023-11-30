@@ -438,6 +438,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 *Most important: Fix Math Operator Spacing, Bracket Metrics Manager and, if you have arrows, Fix Arrow Positioning. The New Tab scripts are useful when creating figures.*
 
 * **Add Metrics Keys for Symmetric Glyphs:** Will add RSB =| if the RSB is the same as the LSB in all masters.
+* **Adjust Sidebearings:** Multiply, increase/decrease, limit or round spacing, differentiate between negative and positive SBs.
 * **Bracket Metrics Manager:** Manage the sidebearings and widths of bracket layers, e.g., dollar and cent.
 * **Center Glyphs:** Centers all selected glyphs inside their width, so that LSB=RSB.
 * **Change Metrics by Percentage:** Change LSB/RSB of selected glyphs by a percentage value. Undo with the Revert button.

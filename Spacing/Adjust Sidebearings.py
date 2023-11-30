@@ -1,0 +1,265 @@
+#MenuTitle: Adjust Sidebearings
+# -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+__doc__="""
+Multiply, increase/decrease, limit or round spacing, differentiate between negative and positive SBs.
+"""
+
+import vanilla, sys
+
+choices = (
+	"Multiply by",
+	"Add",
+	"Round by",
+	"Limit to",
+)
+
+negativeChoices = (
+	"Same as positive",
+	"Reverse",
+	"Reverse 50%",
+)
+
+class AdjustSpacing(object):
+	prefID = "com.mekkablue.AdjustSpacing"
+	prefDict = {
+		# "prefName": defaultValue,
+		"choice": 0,
+		"value": 5,
+		"negativeChoice": 0,
+		"treatPositiveSBs": 1,
+		"treatNegativeSBs": 1,
+		"applyToAllMasters": 0,
+		"applyToAllGlyphs": 1,
+		"updateMetricsKeys": 1,
+	}
+	
+	def __init__( self ):
+		# Window 'self.w':
+		windowWidth  = 310
+		windowHeight = 225
+		windowWidthResize  = 200 # user can resize width by this value
+		windowHeightResize = 0   # user can resize height by this value
+		self.w = vanilla.FloatingWindow(
+			(windowWidth, windowHeight), # default window size
+			"Adjust Spacing", # window title
+			minSize = (windowWidth, windowHeight), # minimum size (for resizing)
+			maxSize = (windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
+			autosaveName = self.domain("mainwindow") # stores last window position and size
+		)
+		
+		# UI elements:
+		linePos, inset, lineHeight = 12, 15, 22
+		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Treat sidebearings:", sizeStyle="small", selectable=True)
+		linePos += lineHeight
+		
+		self.w.choice = vanilla.PopUpButton((inset, linePos, 120, 21), choices, sizeStyle="regular", callback=self.SavePreferences)
+		self.w.value = vanilla.EditText((inset+125, linePos-1, -inset, 21), "2", callback=self.SavePreferences, sizeStyle="regular")
+		linePos += lineHeight+3
+		
+		self.w.treatSBsText1 = vanilla.TextBox((inset, linePos+2, 55, 14), "Apply to", sizeStyle="small", selectable=True)
+		self.w.treatPositiveSBs = vanilla.CheckBox((inset+55, linePos-1, 60, 20), "positive", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.treatNegativeSBs = vanilla.CheckBox((inset+120, linePos-1, -inset, 20), "negative sidebearings", value=False, callback=self.SavePreferences, sizeStyle="small")
+		linePos += lineHeight
+		
+		self.w.treatSBsText2 = vanilla.TextBox((inset, linePos+2, 110, 14), "Negative treatment:", sizeStyle="small", selectable=True)
+		self.w.negativeChoice = vanilla.PopUpButton((inset+110, linePos, -inset, 17), negativeChoices, sizeStyle="small", callback=self.SavePreferences)
+		linePos += lineHeight
+		
+		self.w.updateMetricsKeys = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Update metrics keys and auto-alignments", value=False, callback=self.SavePreferences, sizeStyle="small")
+		linePos += lineHeight
+
+		self.w.applyToAllMasters = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Include ⚠️ ALL masters (otherwise current only)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		linePos += lineHeight
+
+		self.w.applyToAllGlyphs = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Include ⚠️ ALL glyphs (otherwise selected only)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		linePos += lineHeight
+		
+		# Run Button:
+		self.w.runButton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Adjust", sizeStyle="regular", callback=self.AdjustSpacingMain)
+		self.w.setDefaultButton(self.w.runButton)
+		
+		# Load Settings:
+		if not self.LoadPreferences():
+			print("⚠️ ‘Adjust Spacing’ could not load preferences. Will resort to defaults.")
+		
+		# Open window and focus on it:
+		self.w.open()
+		self.w.makeKey()
+	
+	def updateUI(self, sender=None):
+		self.w.runButton.enable(self.pref("treatPositiveSBs") or self.pref("treatNegativeSBs"))
+		self.w.negativeChoice.enable(self.pref("choice")!=3)
+		
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+	
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
+	
+	def SavePreferences(self, sender=None):
+		try:
+			# write current settings into prefs:
+			for prefName in self.prefDict.keys():
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
+			self.updateUI()
+			return True
+		except:
+			import traceback
+			print(traceback.format_exc())
+			return False
+
+	def LoadPreferences(self):
+		try:
+			for prefName in self.prefDict.keys():
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
+				# load previously written prefs:
+				getattr(self.w, prefName).set(self.pref(prefName))
+			self.updateUI()
+			return True
+		except:
+			import traceback
+			print(traceback.format_exc())
+			return False
+
+	def AdjustSpacingMain(self, sender=None):
+		try:
+			# clear macro window log:
+			Glyphs.clearLog()
+			
+			# update settings to the latest user input:
+			if not self.SavePreferences():
+				print("⚠️ ‘Adjust Spacing’ could not write preferences.")
+			
+			# read prefs:
+			choice = self.pref("choice")
+			value = float(self.pref("value"))
+			negativeChoice = self.pref("negativeChoice")
+			treatPositiveSBs = bool(self.pref("treatPositiveSBs"))
+			treatNegativeSBs = bool(self.pref("treatNegativeSBs"))
+			applyToAllMasters = bool(self.pref("applyToAllMasters"))
+			applyToAllGlyphs = bool(self.pref("applyToAllGlyphs"))
+			updateMetricsKeys = bool(self.pref("updateMetricsKeys"))
+			
+			thisFont = Glyphs.font # frontmost font
+			if thisFont is None:
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+			else:
+				filePath = thisFont.filepath
+				if filePath:
+					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
+				else:
+					reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+				print(f"Adjust Spacing Report for {reportName}")
+				print()
+				
+				if applyToAllGlyphs:
+					glyphs = thisFont.glyphs
+				else:
+					glyphs = [l.parent for l in thisFont.selectedLayers]
+				
+				negativeValue = value
+				if negativeChoice == 1:
+					negativeValue = -value
+				elif negativeChoice == 2:
+					if choice == 0:
+						negativeValue = 1/value
+					else:
+						negativeValue = -value/2
+					
+				currentMasterID = thisFont.selectedFontMaster.id
+				for thisGlyph in glyphs:
+					for thisLayer in thisGlyph.layers:
+						oldSBs = (thisLayer.LSB, thisLayer.RSB)
+						
+						if not (thisLayer.isMasterLayer or thisLayer.isSpecialLayer):
+							continue
+						if not (applyToAllMasters or thisLayer.associatedMasterId==currentMasterID):
+							continue
+						if thisLayer.hasAlignedWidth():
+							continue
+						
+						if thisLayer.LSB > 0 and treatPositiveSBs:
+							if choice == 0:
+								# Multiply by
+								thisLayer.LSB *= value
+							elif choice == 1:
+								# Add
+								thisLayer.LSB += value
+							elif choice == 2:
+								# Round by
+								thisLayer.LSB = round(thisLayer.LSB/value)*value
+							elif choice == 3:
+								# Limit to
+								thisLayer.LSB = min(thisLayer.LSB, value)
+						elif thisLayer.LSB < 0 and treatNegativeSBs:
+							if choice == 0:
+								# Multiply by
+								thisLayer.LSB *= negativeValue
+							elif choice == 1:
+								# Add
+								thisLayer.LSB += negativeValue
+							elif choice == 2:
+								# Round by
+								thisLayer.LSB = round(thisLayer.LSB/value)*value
+							elif choice == 3:
+								# Limit to
+								thisLayer.LSB = max(thisLayer.LSB, negativeValue)
+
+						if thisLayer.RSB > 0 and treatPositiveSBs:
+							if choice == 0:
+								# Multiply by
+								thisLayer.RSB *= value
+							elif choice == 1:
+								# Add
+								thisLayer.RSB += value
+							elif choice == 2:
+								# Round by
+								thisLayer.RSB = round(thisLayer.RSB/value)*value
+							elif choice == 3:
+								# Limit to
+								thisLayer.RSB = min(thisLayer.RSB, value)
+						elif thisLayer.RSB < 0 and treatNegativeSBs:
+							if choice == 0:
+								# Multiply by
+								thisLayer.RSB *= negativeValue
+							elif choice == 1:
+								# Add
+								thisLayer.RSB += negativeValue
+							elif choice == 2:
+								# Round by
+								thisLayer.RSB = round(thisLayer.RSB/value)*value
+							elif choice == 3:
+								# Limit to
+								thisLayer.RSB = max(thisLayer.RSB, negativeValue)
+						
+						newSBs = (thisLayer.LSB, thisLayer.RSB)
+						if oldSBs != newSBs:
+							print(f"🔡 {thisGlyph.name} ({thisLayer.name}): \tLSB {int(oldSBs[0])}→{int(newSBs[0])} \tRSB {int(oldSBs[1])}→{int(newSBs[1])}")
+				
+				if updateMetricsKeys:
+					for thisGlyph in glyphs:
+						for thisLayer in thisGlyph.layers:
+							if not (thisLayer.isMasterLayer or thisLayer.isSpecialLayer):
+								continue
+							if not (applyToAllMasters or thisLayer.associatedMasterId==currentMasterID):
+								continue
+								
+							thisLayer.doAlignWidth()
+							thisLayer.syncMetrics()
+						
+				# self.w.close() # delete if you want window to stay open
+
+			print("\nDone.")
+
+		except Exception as e:
+			# brings macro window to front and reports error:
+			Glyphs.showMacroWindow()
+			print(f"Adjust Spacing Error: {e}")
+			import traceback
+			print(traceback.format_exc())
+
+AdjustSpacing()
