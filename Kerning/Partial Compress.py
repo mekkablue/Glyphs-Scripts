@@ -141,6 +141,7 @@ class PartialCompress(object):
 							continue
 
 						for rID in thisFont.kerning[m.id][lID].keys():
+							rID = str(rID)
 							if rID.startswith("@"):
 								R = rID
 								rName = rID
