@@ -67,7 +67,10 @@ def removePSNameFromInstance(i, key="postscriptFontName"):
 	
 def addPSNameToInstance(i, shorten=False, asCustomParameter=True):
 	allowedChars = ascii_letters+digits
-	psFamilyName = "".join([x for x in i.font.familyName if x in allowedChars])
+	familyName = i.familyName
+	if not familyName:
+		familyName = i.font.familyName
+	psFamilyName = "".join([x for x in familyName if x in allowedChars])
 	psStyleName = "".join([x for x in i.name if x in allowedChars])
 	if shorten:
 		psStyleName = shortenPSStyleName(psStyleName)
