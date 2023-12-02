@@ -9,9 +9,10 @@ import vanilla, sys
 
 choices = (
 	"Multiply by",
-	"Add",
+	"Add units",
 	"Round by",
 	"Limit to",
+	"Add percent",
 )
 
 negativeChoices = (
@@ -50,11 +51,11 @@ class AdjustSpacing(object):
 		
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Treat sidebearings:", sizeStyle="small", selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Treat sidebearings in frontmost font:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 		
-		self.w.choice = vanilla.PopUpButton((inset, linePos, 120, 21), choices, sizeStyle="regular", callback=self.SavePreferences)
-		self.w.value = vanilla.EditText((inset+125, linePos-1, -inset, 21), "2", callback=self.SavePreferences, sizeStyle="regular")
+		self.w.choice = vanilla.PopUpButton((inset, linePos, 125, 21), choices, sizeStyle="regular", callback=self.SavePreferences)
+		self.w.value = vanilla.EditText((inset+130, linePos-1, -inset, 21), "2", callback=self.SavePreferences, sizeStyle="regular")
 		linePos += lineHeight+3
 		
 		self.w.treatSBsText1 = vanilla.TextBox((inset, linePos+2, 55, 14), "Apply to", sizeStyle="small", selectable=True)
@@ -89,7 +90,7 @@ class AdjustSpacing(object):
 	
 	def updateUI(self, sender=None):
 		self.w.runButton.enable(self.pref("treatPositiveSBs") or self.pref("treatNegativeSBs"))
-		self.w.negativeChoice.enable(self.pref("choice")!=3)
+		self.w.negativeChoice.enable(self.pref("choice")!=3 and self.pref("treatNegativeSBs"))
 		
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
@@ -124,7 +125,43 @@ class AdjustSpacing(object):
 			import traceback
 			print(traceback.format_exc())
 			return False
+	
+	def treatSB(self, choice, SB, value, negativeValue, treatPositiveSBs=True, treatNegativeSBs=True):
+		if SB >= 0 and treatPositiveSBs:
+			if choice == 0:
+				# Multiply by
+				SB *= value
+			elif choice == 1:
+				# Add units
+				SB += value
+			elif choice == 2:
+				# Round by
+				SB = round(SB/value)*value
+			elif choice == 3:
+				# Limit to
+				SB = min(SB, abs(value))
+			elif choice == 4:
+				# Add percent
+				SB *= (1+value/100)
+		elif SB < 0 and treatNegativeSBs:
+			if choice == 0:
+				# Multiply by
+				SB *= negativeValue
+			elif choice == 1:
+				# Add
+				SB += negativeValue
+			elif choice == 2:
+				# Round by
+				SB = round(SB/value)*value
+			elif choice == 3:
+				# Limit to
+				SB = max(SB, -abs(negativeValue))
+			elif choice == 4:
+				# Add percent
+				SB *= (1+negativeValue/100)
+		return SB
 
+		
 	def AdjustSpacingMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -185,60 +222,8 @@ class AdjustSpacing(object):
 						if thisLayer.hasAlignedWidth():
 							continue
 						
-						if thisLayer.LSB > 0 and treatPositiveSBs:
-							if choice == 0:
-								# Multiply by
-								thisLayer.LSB *= value
-							elif choice == 1:
-								# Add
-								thisLayer.LSB += value
-							elif choice == 2:
-								# Round by
-								thisLayer.LSB = round(thisLayer.LSB/value)*value
-							elif choice == 3:
-								# Limit to
-								thisLayer.LSB = min(thisLayer.LSB, value)
-						elif thisLayer.LSB < 0 and treatNegativeSBs:
-							if choice == 0:
-								# Multiply by
-								thisLayer.LSB *= negativeValue
-							elif choice == 1:
-								# Add
-								thisLayer.LSB += negativeValue
-							elif choice == 2:
-								# Round by
-								thisLayer.LSB = round(thisLayer.LSB/value)*value
-							elif choice == 3:
-								# Limit to
-								thisLayer.LSB = max(thisLayer.LSB, negativeValue)
-
-						if thisLayer.RSB > 0 and treatPositiveSBs:
-							if choice == 0:
-								# Multiply by
-								thisLayer.RSB *= value
-							elif choice == 1:
-								# Add
-								thisLayer.RSB += value
-							elif choice == 2:
-								# Round by
-								thisLayer.RSB = round(thisLayer.RSB/value)*value
-							elif choice == 3:
-								# Limit to
-								thisLayer.RSB = min(thisLayer.RSB, value)
-						elif thisLayer.RSB < 0 and treatNegativeSBs:
-							if choice == 0:
-								# Multiply by
-								thisLayer.RSB *= negativeValue
-							elif choice == 1:
-								# Add
-								thisLayer.RSB += negativeValue
-							elif choice == 2:
-								# Round by
-								thisLayer.RSB = round(thisLayer.RSB/value)*value
-							elif choice == 3:
-								# Limit to
-								thisLayer.RSB = max(thisLayer.RSB, negativeValue)
-						
+						thisLayer.LSB = self.treatSB(choice, thisLayer.LSB, value, negativeValue, treatPositiveSBs, treatNegativeSBs)
+						thisLayer.RSB = self.treatSB(choice, thisLayer.RSB, value, negativeValue, treatPositiveSBs, treatNegativeSBs)
 						newSBs = (thisLayer.LSB, thisLayer.RSB)
 						if oldSBs != newSBs:
 							print(f"🔡 {thisGlyph.name} ({thisLayer.name}): \tLSB {int(oldSBs[0])}→{int(newSBs[0])} \tRSB {int(oldSBs[1])}→{int(newSBs[1])}")
