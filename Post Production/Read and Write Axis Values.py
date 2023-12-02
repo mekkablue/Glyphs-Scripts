@@ -5,6 +5,14 @@ __doc__="""
 After an OTVAR export, run once, and it will read STAT.AxisValueArray most recently exported from the current Glyphs file, and add ‘Axis Values’ parameters in your Variable Font Settings.
 
 When run with these custom parameters present, it will use them to rewrite STAT.AxisValueArray in the OTVAR most recently exported from the current Glyphs file.
+
+Syntax for the custom parameter:
+axisTag; value=name, value=elidableName*, minValue:nominalValue:maxValue=name, value>linkedValue=name
+
+Samples:
+wght; 300=Light, 400>700=Regular*, 500=Medium, 600=Semibold, 700=Bold
+wdth; 75:75:90=Condensed, 90:100:110=Regular*, 110:150:150=Expanded
+ital; 0>1=Regular*
 """
 
 import fontTools
