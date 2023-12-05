@@ -80,6 +80,7 @@ class EnhanceCompatibility(object):
 		# "prefName": defaultValue,
 		"fixType": True,
 		"fixConnection": False,
+		"removeEmptyPaths": True,
 		"realignHandles": False,
 		"backupCurrentState": False,
 		"otherFont": False,
@@ -91,7 +92,7 @@ class EnhanceCompatibility(object):
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 380
-		windowHeight = 200
+		windowHeight = 220
 		windowWidthResize  = 300 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -113,6 +114,10 @@ class EnhanceCompatibility(object):
 		
 		self.w.fixConnection = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Sync node connection (corner vs. smooth)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.fixConnection.getNSButton().setToolTip_("Will propagate the current layer’s node connections (green vs. blue) to other compatible layers. Usually just cosmetic.")
+		linePos += lineHeight
+		
+		self.w.removeEmptyPaths = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Remove empty paths", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.removeEmptyPaths.getNSButton().setToolTip_("Sometimes an invisible empty path (a path with no nodes) is blocking compatibility. This will remove those empty shapes.")
 		linePos += lineHeight
 		
 		indent = 85	
@@ -228,6 +233,7 @@ class EnhanceCompatibility(object):
 			backupCurrentState = self.pref("backupCurrentState")
 			fixType = self.pref("fixType")
 			fixConnection = self.pref("fixConnection")
+			removeEmptyPaths = self.pref("removeEmptyPaths")
 			realignHandles = self.pref("realignHandles")
 			otherFont = self.pref("otherFont")
 			sourceFont = self.pref("sourceFont")
@@ -255,6 +261,15 @@ class EnhanceCompatibility(object):
 					else:
 						l1 = selectedLayer
 					
+					# remove empty shapes first:
+					for l2 in g.layers:
+						if removeEmptyPaths:
+							for s in l2.shapes:
+								if s.shapeType == GSShapeTypePath and not s.nodes:
+									l2.removeShape_(s)
+									print(f" 🫙 Removed empty path on {l2.name}")
+					
+					# second run, check for compatibility:
 					for l2 in g.layers:
 						if l2 == l1:
 							continue
@@ -267,7 +282,7 @@ class EnhanceCompatibility(object):
 						if backupCurrentState:
 							l2.contentToBackgroundCheckSelection_keepOldBackground_(False, False)
 							print(" 💕 Backed up in background.")
-	
+						
 						for pi, p1 in enumerate(l1.paths):
 							p2 = l2.paths[pi]
 							if len(p1.nodes) != len(p2.nodes):
