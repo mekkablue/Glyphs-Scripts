@@ -7,7 +7,6 @@ import fontTools
 from fontTools import ttLib
 from argparse import ArgumentParser
 
-
 parser = ArgumentParser(
 	description="Fix GDEF definition of spacing, non-combining marks. Will switch to class 1 (‘base glyph’, single character, spacing glyph) if necessary."
 )
@@ -21,15 +20,13 @@ parser.add_argument(
 
 def fixGDEFinFont(font):
 	"""Takes a ttLib.TTFont as argument."""
-	print(f"\nProcessing: {fontpath}")
-	
+	madeChanges = False
+
 	if not "GDEF" in font.keys():
 		print(f"⚠️ No GDEF table found, skipping file.\n")
-		return
+		return madeChanges
 	
 	gdef = font["GDEF"].table
-	madeChanges = False
-	
 	if not hasattr(gdef, "MarkGlyphSetsDef") or not gdef.MarkGlyphSetsDef:
 		print("⚠️ No MarkGlyphSetsDef found in GDEF table.")
 	else:
@@ -74,18 +71,18 @@ def fixGDEFinFont(font):
 					print(f"\t👨🏻‍🔧 Switched {legacyMark} from class {classType} to 1")
 					madeChanges = True
 	
-	if not madeChanges:
-		print("🤷🏻‍♀️ No changes, file left untouched.")
-	else:
-		font.save(fontpath, reorderTables=False)
-		print("💾 Saved file.")
-	
-	print()
+	return madeChanges
 
 arguments = parser.parse_args()
 fonts = arguments.fonts
 for fontpath in fonts:
+	print(f"\n📄 {fontpath}")
 	font = ttLib.TTFont(fontpath)
-	fixGDEFinFont(font)
-		
+	changesMade = fixGDEFinFont(font)
+	if changesMade:
+		font.save(fontpath, reorderTables=False)
+		print(f"💾 Saved {fontpath}\n")
+	else:
+		print(f"🤷🏻‍♀️ No changes made. File left unchanged.")
+
 print("✅ Done.")
