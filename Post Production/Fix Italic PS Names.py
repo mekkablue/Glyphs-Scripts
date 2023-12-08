@@ -16,6 +16,8 @@ if Glyphs.versionNumber < 3.2:
 		OKButton=None,
 		)
 else:
+	fileCount = 0
+	
 	# brings macro window to front and clears its log:
 	Glyphs.clearLog()
 	Glyphs.showMacroWindow()
@@ -42,8 +44,14 @@ else:
 	for variableFontExport in variableFontSettings:
 		for suffix in suffixes:
 			fontpath = NSString.alloc().initWithString_(currentExportPath).stringByAppendingPathComponent_(otVarFileName(thisFont, thisInstance=variableFontExport, suffix=suffix))
-			print(f"\n- processing: '{fontpath}'")
+			print(f"\n📄 Processing: '{fontpath}'")
 			otFont = ttLib.TTFont(file=fontpath)
+			if not otFont:
+				print("❌ No font file found. Skipping.")
+				continue
+			
+			fileCount += 1
+			
 			# print("CHECK1 font", otFont) # DEBUG
 			nameTable = otFont["name"]
 			# print("CHECK2 name", nameTable) # DEBUG
@@ -73,6 +81,8 @@ else:
 					print(f"✅ Changed ID {nameID}: {oldName} → {nameValue}")
 			if anythingChanged:
 				otFont.save(fontpath, reorderTables=False)
-				print("- 💾 saved file")
+				print("💾 Saved file.")
 			else:
-				print("- 🤷🏻‍♀️ no changes, file left unchanged")
+				print("🤷🏻‍♀️ No changes, file left unchanged.")
+
+	print(f"\n✅ Done. Processed {fileCount} file{'' if fileCount==1 else 's'}.")

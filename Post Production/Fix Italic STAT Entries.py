@@ -82,7 +82,7 @@ else:
 			font = ttLib.TTFont(fontpath)
 			changesMade = False
 
-			print("\n👾 Scanning name table:")
+			print("👾 Scanning name table:")
 			nameTable = font["name"]
 			regularID = None
 			normalID = None
@@ -109,7 +109,7 @@ else:
 				print(f"📛 Found existing nameID {regularID} ‘Regular’. No changes necessary in name table.")
 			# regularEntry = nameTable.getName(regularID, 3, 1, langID=1033)
 	
-			print("\n👾 Scanning STAT table:")
+			print("👾 Scanning STAT table:")
 			statTable = font["STAT"].table
 			
 			# collect axes:
@@ -143,7 +143,7 @@ else:
 			
 			if changesMade:
 				font.save(fontpath, reorderTables=False)
-				print(f"\n💾 Saved {fontpath}\n")
+				print(f"💾 Saved {fontpath}\n")
 			else:
-				print(f"\n🤷🏻‍♀️ No changes made. File left unchanged.")
+				print(f"🤷🏻‍♀️ No changes made. File left unchanged.")
 	
