@@ -86,7 +86,7 @@ def parameterToSTAT(variableFontExport, font, fontpath, fontFileName):
 					# add name entry:
 					highestID += 1
 					entryValueNameID = highestID
-					nameTable.addName(entryName, platforms=((3, 1, 1033),), minNameID=highestID)
+					nameTable.addName(entryName, platforms=((3, 1, 1033),), minNameID=highestID-1)
 					nameDict[entryName] = entryValueNameID
 					print(f"- Adding nameID {entryValueNameID}: ‘{entryName}’")
 				
