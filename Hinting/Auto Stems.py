@@ -84,7 +84,7 @@ class AutoStems(object):
 		linePos += lineHeight
 		
 		self.w.allFonts = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Process ⚠️ ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.allFonts.getNSTextField().setToolTip_("If checked, will process all fonts currently opened in Glyphs. Otherwise just the frontmost font.")
+		self.w.allFonts.getNSButton().setToolTip_("If checked, will process all fonts currently opened in Glyphs. Otherwise just the frontmost font.")
 		linePos += lineHeight
 		
 		# Run Button:
