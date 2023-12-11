@@ -56,7 +56,7 @@ def ttfAutohintDict(parameterValue):
 			ttfAutohintDict[key.strip(" -")] = value
 	return ttfAutohintDict
 
-def writeOptionsToInstance(optionDict, instance):
+def writeOptionsToInstance(optionDict, instance, parameterName):
 	value = dictToParameterValue(optionDict)
 	instance.customParameters[parameterName] = value
 
@@ -84,7 +84,7 @@ def cleanTtfautohintSetting(thisFont):
 		if not thisInstance.customParameters[parameterName] is None:
 			optionDict = ttfAutohintDict(thisInstance.customParameters[parameterName])
 			optionDict[optionName] = enteredValue
-			writeOptionsToInstance(optionDict, thisInstance)
+			writeOptionsToInstance(optionDict, thisInstance, parameterName)
 			print("Set: ttfAutohint %s in instance '%s'." % (
 				optionName,
 				thisInstance.name,
