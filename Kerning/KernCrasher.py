@@ -8,7 +8,7 @@ Opens a new tab with Kerning Combos that crash in the current fontmaster.
 import vanilla
 from timeit import default_timer as timer
 from Foundation import NSNotFound
-from kernanalysis import categoryList, intervalList, effectiveKerning
+from kernanalysis import *
 
 if Glyphs.versionNumber >= 3:
 	caseDict = {
