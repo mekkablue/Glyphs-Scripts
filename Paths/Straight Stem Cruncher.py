@@ -283,8 +283,8 @@ class StraightStemCruncher(object):
 
 		if len(intersections) > 2:
 			# two measurement points:
-			p1 = intersections[1].pointValue()
-			p2 = intersections[2].pointValue()
+			p1 = intersections[0].pointValue()
+			p2 = intersections[1].pointValue()
 
 			# calculate stem width:
 			stemWidth = distance(p1, p2)
