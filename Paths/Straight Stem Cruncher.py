@@ -313,7 +313,9 @@ class StraightStemCruncher(object):
 		centers = []
 		measurements = []
 		measureLayer = layer.copyDecomposedLayer()
+		measureLayer.parent = layer.parent
 		measureLayer.removeOverlap()
+
 		for thisPath in measureLayer.paths:
 			nodeCount = len(thisPath.nodes)
 			if nodeCount > 2:
@@ -411,8 +413,10 @@ class StraightStemCruncher(object):
 								# decompose components if necessary:
 								if Glyphs.defaults["com.mekkablue.StraightStemCruncher.includeCompounds"]:
 									checkLayer = thisLayer.copyDecomposedLayer()
+									checkLayer.parent = thisLayer.parent
 								else:
 									checkLayer = thisLayer.copy()
+									checkLayer.parent = thisLayer.parent
 									if Glyphs.versionNumber >= 3:
 										# Glyphs 3 code
 
