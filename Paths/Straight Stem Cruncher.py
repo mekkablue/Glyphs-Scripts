@@ -259,7 +259,7 @@ class StraightStemCruncher(object):
 
 		return True
 
-	def stemThicknessAtLine(self, layer, p1, p2, measureLength=100.0):
+	def stemThicknessAtLine(self, layer, p1, p2, measureLength):
 		h = p2.x - p1.x
 		v = p2.y - p1.y
 		l = (h**2 + v**2)**0.5
