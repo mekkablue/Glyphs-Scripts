@@ -259,7 +259,7 @@ class StraightStemCruncher(object):
 
 		return True
 
-	def stemThicknessAtLine(self, layer, p1, p2, measureLength=100.0):
+	def stemThicknessAtLine(self, layer, p1, p2, measureLength):
 		h = p2.x - p1.x
 		v = p2.y - p1.y
 		l = (h**2 + v**2)**0.5
@@ -283,8 +283,8 @@ class StraightStemCruncher(object):
 
 		if len(intersections) > 2:
 			# two measurement points:
-			p1 = intersections[1].pointValue()
-			p2 = intersections[2].pointValue()
+			p1 = intersections[0].pointValue()
+			p2 = intersections[1].pointValue()
 
 			# calculate stem width:
 			stemWidth = distance(p1, p2)
@@ -313,7 +313,9 @@ class StraightStemCruncher(object):
 		centers = []
 		measurements = []
 		measureLayer = layer.copyDecomposedLayer()
+		measureLayer.parent = layer.parent
 		measureLayer.removeOverlap()
+
 		for thisPath in measureLayer.paths:
 			nodeCount = len(thisPath.nodes)
 			if nodeCount > 2:
@@ -328,15 +330,18 @@ class StraightStemCruncher(object):
 
 						if isHorizontal and checkHStems:
 							check = True
+
 						elif isVertical and checkVStems:
 							check = True
+
 						elif checkDStems:
 							check = True
 
 						#if p1.x==p2.x or p1.y==p2.y or not Glyphs.defaults["com.mekkablue.StraightStemCruncher.ignoreDiagonals"]:
 						if check:
 							if pointDistance(p1, p2) >= minLength:
-								results = self.stemThicknessAtLine(measureLayer, p1, p2, measureLength=max(100.0, measureLayer.bounds.size.width + measureLayer.bounds.size.height))
+								measureLength=max(100.0, measureLayer.bounds.size.width + measureLayer.bounds.size.height)
+								results = self.stemThicknessAtLine(measureLayer, p1, p2, measureLength)
 								if results:
 									measurement, centerOfStem = results
 									measurements.append(measurement)
@@ -411,8 +416,10 @@ class StraightStemCruncher(object):
 								# decompose components if necessary:
 								if Glyphs.defaults["com.mekkablue.StraightStemCruncher.includeCompounds"]:
 									checkLayer = thisLayer.copyDecomposedLayer()
+									checkLayer.parent = thisLayer.parent
 								else:
 									checkLayer = thisLayer.copy()
+									checkLayer.parent = thisLayer.parent
 									if Glyphs.versionNumber >= 3:
 										# Glyphs 3 code
 
