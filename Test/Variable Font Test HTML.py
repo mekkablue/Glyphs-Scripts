@@ -330,14 +330,12 @@ def axisDictWithVirtualMastersForFont(thisFont, axisDict):
 		for axis in virtualMaster.value:
 			name = axis["Axis"]
 			location = int(axis["Location"])
-
 			if not name in axisDict.keys():
 				axisDict[name] = {
 					"min": location,
 					"max": location
 					}
 				continue
-
 			if location < axisDict[name]["min"]:
 				axisDict[name]["min"] = location
 			if location > axisDict[name]["max"]:
@@ -360,12 +358,19 @@ def axisDictForFontWithoutAxisLocationParameters(thisFont):
 		except:
 			# Glyphs 3:
 			axisName, axisTag = axis.name, axis.axisTag
-
-		axisDict[axisName] = {
-			"tag": axisTag,
-			"min": sliderValues[0][i],
-			"max": sliderValues[0][i]
-			}
+		
+		if axisName in axisDict.keys():
+			axisDict[axisName] = {
+				"tag": axisTag,
+				"min": min(sliderValues[0][i], axisDict[axisName]["min"]),
+				"max": max(sliderValues[0][i], axisDict[axisName]["max"]),
+				}
+		else:
+			axisDict[axisName] = {
+				"tag": axisTag,
+				"min": sliderValues[0][i],
+				"max": sliderValues[0][i]
+				}
 
 		for j, thisMaster in enumerate(thisFont.masters):
 			masterValue = sliderValues[j][i]
