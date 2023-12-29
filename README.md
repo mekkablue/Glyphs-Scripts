@@ -83,7 +83,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Close All Tabs of All Open Fonts / 關閉所有字型檔的編輯分頁：** 關閉目前在應用程式中開啟字型檔的所有編輯分頁。
 * **Copy Download URL for Current App Version / 複製目前應用程式版本的下載連結：** 將目前 Glyphs 應用程式版本的下載連結放入剪貼簿以便於貼上。
 * **Decrease and Increase Line Height / 減少和增加行高：** 將「編輯畫面」的行高增加四分之一或減少五分之一。如果你需要在行高之間頻繁切換，推薦將它們設定到快捷鍵。
-* **Method Reporter / 方法報告器：** 圖形使用者介面用於過濾 Glyphs 中可用的 Python 和 PyObjC 類的方法名稱。你可以使用多個空格分隔檢索詞（用於 AND 串接）和星號作為未知字元（可放在開頭、中間和結尾）。按兩下可將方法名稱放入剪貼簿，然後在巨集視窗中打開説明。對寫程式的人很有用。 *需要 香草JS*
+* **Method Reporter / 方法報告器：** 圖形使用者介面用於過濾 Glyphs 中可用的 Python 和 PyObjC 類的方法名稱。你可以使用多個空格分隔檢索詞（用於 AND 串接）和星號作為未知字元（可放在開頭、中間和結尾）。按兩下可將方法名稱放入剪貼簿，然後在巨集面板中打開説明。對寫程式的人很有用。 *需要 香草JS*
 * **Navigate - Activate next and previous glyph / ：** 啟動下一個或上一個字符的編輯模式。
 * **Parameter Reporter / 參數報告器：** 類似於方法報告器，但用於自定義參數。按兩下以複製剪貼簿中的參數，準備貼到字型資訊中。 *需要 香草JS*
 * **Print Window / 列印視窗：** 列印當前視窗。用於保存視窗內容的向量 PDF，包括檢視器外掛的渲染（“顯示”選單的擴展）。 *:question:成果*
@@ -115,7 +115,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Build small letter SM, TEL / 建立小寫字母SM和TEL：** 創建字符：`servicemark`（服務商標）和 `telephone`（電話符號）。
 * **Build space glyphs / 建立空格字符：** 建立 `mediumspace-math`, `emquad`, `emspace`, `enquad`, `enspace`, `figurespace`, `fourperemspace`, `hairspace`, `narrownbspace`, `punctuationspace`, `sixperemspace`, `nbspace`, `thinspace`, `threeperemspace`, `zerowidthspace`等不同寬度的空格字符。
 * **Build Symbols / 建立符號：** 這個腳本會幫你建立一些符號字符，例如沒有定義的符號字符 `.notdef`，它會以最粗的問號作為參考，還有一個代表估算值的字符 `estimated`。此外，還會建立 `bar` 和 `brokenbar` 字符，並且會遵循標準的垂線和斜體角度。 *需要 香草JS*
-* **Fix Punctuation Dots and Heights / 修復標點符號和高度：** 此腳本會同步 ¡!¿? 的標點符號點位置（包括它們的小型大寫、一般大寫版本），並且在變體中移動 ¡¿ 的位置。假設 ¡¿ 是 !? 的組件。詳細報告會顯示在巨集視窗中。
+* **Fix Punctuation Dots and Heights / 修復標點符號和高度：** 此腳本會同步 ¡!¿? 的標點符號點位置（包括它們的小型大寫、一般大寫版本），並且在變體中移動 ¡¿ 的位置。假設 ¡¿ 是 !? 的組件。詳細報告會顯示在巨集面板中。
 * **Quote Manager / 引號管理器：** 從單引號建立雙引號，並在單引號中插入 `#exit` 和 `#entry` 錨點以進行自動對齊。你需要已經有單引號。 *需要 香草JS*
 
 ## 彩色字型（已完成v1）
@@ -132,7 +132,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## 比較當前字型（已完成v2）
 
-*這些腳本用於同步正體和它們的斜體。打開兩個字型檔，然後運行腳本。它們不會更改你的字型，但會在巨集視窗中顯示詳細的報告。*
+*這些腳本用於同步正體和它們的斜體。打開兩個字型檔，然後運行腳本。它們不會更改你的字型，但會在巨集面板中顯示詳細的報告。*
 
 * **Compare Font Info > Font / 比較字型資訊 > 字型：** 對於前兩個字型檔，詳細比較字型資訊 > 字型，並在巨集面板中輸出報告。
 * **Compare Font Info > Masters / 比較字型資訊 > 主板：** 對於前兩個字型檔，詳細比較字型資訊 > 主板，並在巨集面板中輸出報告。
@@ -142,7 +142,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Compare Composites / 比較複合字元：** 報告複合字符的不同結構，例如在一個字型中使用   `acutecomb` 構建的 `iacute`，而在另一個字型中使用 `acutecomb.narrow`。
 * **Compare Glyph Heights / 比較字符高度：** 列出所有在字高方面與第二個字體差異超過給定閾值的字符。
 * **Compare Glyph Info / 比較字符資訊：** 比較開啟的字型，並建立一個差異字符資訊列表，包括Unicode值和分類。 *需要 香草JS*
-* **Compare Glyphsets / (翻譯名稱)：** 比較前兩個字型檔的字符集，並在巨集視窗中輸出報告。
+* **Compare Glyphsets / (翻譯名稱)：** 比較前兩個字型檔的字符集，並在巨集面板中輸出報告。
 * **Compare Kerning Groups / 比較調距群組：** 比較前兩個字型檔之間的調距群組，輸出具有差異的群組字符名稱表格。
 * **Compare Metrics / 比較度量：** 比較前兩個字型檔的字形寬度。
 * **Compare Sidebearings / 比較字符邊界：** 比較前兩個字型檔的字符邊界。
@@ -155,7 +155,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Component Mover / 組件移動器：** 跨選定字符批量編輯（智慧）組件。更改位置、比例和智慧組件屬性。 *需要 香草JS*
 * **Component Problem Finder / 組件問題查找器：** 查找組件和角落組件可能存在的問題：同時包含路徑和部件的組合字符；鎖定、嵌套、孤立、鏡像、平移、旋轉和縮放組件；具有異常組件順序或非正統組件結構的複合字符。也包含未連接和縮放過的角落組件。 *需要 香草JS*
 * **Decompose Components in Background / 拆開背景中的組件：** 拆開所選字符的背景圖層。適用於當前主板或所有主板，或所有字型的所有主板。
-* **Decompose Corner and Cap Components / 拆開角落和筆帽組件：** 拆開選定字符中的所有角落和筆帽組件。開啟巨集視窗顯示報告。
+* **Decompose Corner and Cap Components / 拆開角落和筆帽組件：** 拆開選定字符中的所有角落和筆帽組件。開啟巨集面板顯示報告。
 * **Find and Replace Components / 置換組件：** 將所選字符中的組件重新連結到新的來源。 *需要 香草JS*
 * **Find and Replace Cap and Corner Components / 置換角落和筆帽組件：** 將所選字符中的 `_cap.*` 和 `_corner.*` 組件重新連結到新的角落和筆帽組件。 *需要 香草JS*
 * **Find and Replace Corner Components at Certain Angles / 依角度置換角落組件：** 以鈍角或銳角替換角落組件。 *需要 香草JS*
@@ -216,7 +216,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Convert to Lowercase / 轉換為小寫：** 將選定字符的名稱轉為小寫。
 * **Encoding Converter / 編碼轉換器：** 基於具有重命名方案的可導入/可導出文本，將舊的專家 8 位編碼轉換為 Glyphs 漂亮的名稱。默認是 AXt 轉換方案。Converts old expert 8-bit encodings into Glyphs nice names, based on a importable/exportable text with renaming scheme. Default is an AXt converting scheme. *需要 香草JS*
 * **Garbage Collection / 垃圾收集：** 刪除字符中的標記，例如節點名稱、字符名稱或註釋以及參考線。
-* **New Tab with Uppercase-Lowercase Inconsistencies / 新分頁－大小寫不一致：** 打開一個新分頁，其中包含所有大小寫不一致的字符。在巨集視窗中列出詳細報告。
+* **New Tab with Uppercase-Lowercase Inconsistencies / 新分頁－大小寫不一致：** 打開一個新分頁，其中包含所有大小寫不一致的字符。在巨集面板中列出詳細報告。
 * **Production Namer / 生產名稱：** 覆蓋默認的生產名稱。默認是在遺留 PDF 工作流程中產生問題的常見主題：mu、onesuperior、twosuperior、threesuperior。Override default production names. Default are the usual subjects which create problems in legacy PDF workflows: mu, onesuperior, twosuperior, threesuperior. *需要 香草JS*
 * **Rename Glyphs / 重命名字符：** 獲取 `oldglyphname=newglyphname` 清單並相應的重命名字型中的字符，類似於自訂義參數 *Rename Glyphs* 。 *需要 香草JS*
 * **Reorder Unicodes of Selected Glyphs / 重新排序所選字符的 Unicode：** 重新排序 Unicode，使默認 Unicode 排在第一位。
@@ -273,36 +273,36 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 *推薦腳本：「插入實體」（用於確認你的實體及其樣式正確的對應）、「拗折尋找」 和 「尋找變形字符」。作者經常搭配快捷鍵使用「顯示上/下一個實體」這個腳本。*
 
-* **Axis Location Setter / (翻譯名稱)：** Batch-set axis locations for all instances with a certain name particle. E.g., set an axis location for all Condensed instances. *需要 香草JS*
-* **Axis Mapper / (翻譯名稱)：** Extracts, resets and inserts an ‘avar’ axis mapping for the Axis Mappings parameter. *需要 香草JS*
-* **Brace and Bracket Manager / (翻譯名稱)：** Find and replace brace or bracket layer coordinates in Glyphs 3 and later. *需要 香草JS*
-* **Composite Variabler / (翻譯名稱)：** Reduplicates Brace and Bracket layers of components in the compounds in which they are used. Makes bracket layers work in composites. *需要 香草JS*
-* **Copy Layer to Layer / (翻譯名稱)：** Copies paths (and optionally, also components, anchors and metrics) from one Master to another. *需要 香草JS*
-* **Dekink Masters / (翻譯名稱)：** Dekinks your smooth point triplets in all compatible layers (useful if they are not horizontal or vertical). Select a point in one or more smooth point triplets, and run this script to move the corresponding nodes in all other masters to the same relative position. Thus you achieve the same point ratio in all masters and avoid interpolation kinks, when the angle of the triplet changes. There is a [video describing it.](http://tinyurl.com/dekink-py) The triplet problem is [described in this tutorial](http://www.glyphsapp.com/learn/multiple-masters-part-2-keeping-your-outlines-compatible).
-* **Fill up Empty Masters / 填滿空白主板：** Copies paths from one Master to another. But only if target master is empty.複製一個主板的路徑到另一個，當目標主板為空白時。 *需要 香草JS*
-* **Find and Replace in Layer Names / 尋找和取代圖層名稱：** Replaces text in all layer names (except Master layers) of selected glyphs. Useful if you use the bracket trick in many glyphs. *需要 香草JS*
-* **Find Shapeshifting Glyphs / 尋找變形字符：** Finds glyphs that change the number of paths while interpolating. Opens a new tab and reports to Macro window. *需要 香草JS*
-* **Insert Brace Layers for Component Rotation / (翻譯名稱)：** Inserts a number of Brace Layers with continuously scaled and rotated components. Useful for OTVar interpolations with rotating elements. *需要 香草JS*
-* **Insert Brace Layers for Movement along Background Path / (翻譯名稱)：** Inserts a number of Brace Layers with copies of the first layer, shifted according to the first path in the background. Useful for OTVar interpolations with moving elements.
-* **Insert Instances / 插入實體：** GUI for calculating and inserting weight instances. It is described in this tutorial: https://www.glyphsapp.com/learn/multiple-masters-part-3-setting-up-instances *需要 香草JS*
-* **Insert Layers / 插入圖層：** Batch-insert brace or bracket layers in selected glyphs. *需要 香草JS*
-* **Instance Cooker / (翻譯名稱)：** Insert many instances at once with a recipe. *需要 香草JS*
-* **Kink Finder / 拗折尋找：** Finds kinks in outlines or the interpolation space, reports them in the Macro window and opens a new tab with affected glyphs. Kinks are described in this tutorial: https://glyphsapp.com/learn/multiple-masters-part-2-keeping-your-outlines-compatible *需要 香草JS*
-* **New Tab with Dangerous Glyphs for Interpolation / (翻譯名稱)：** Opens a tab with all glyphs in the font that contain at least two compatible elements. I.e., glyphs where an element (a path or a component) could interpolate with the wrong element, like the equals sign. For a detailed description, see section *Be suspicious* in this tutorial: <http://www.glyphsapp.com/learn/multiple-masters-part-2-keeping-your-outlines-compatible>.
-* **New Tab with Special Layers / (翻譯名稱)：** Quickly adds a new edit tab with all glyphs containing brace and bracket layers.
-* **New Tab with Uneven Handle Distributions / (翻譯名稱)：** Finds glyphs where handle distributions change too much (e.g., from balanced to harmonised). *需要 香草JS*
-* **OTVar Player / (翻譯名稱)：** Animates the current glyph with a loop along the weight axis. *需要 香草JS*
-* **Remove All Non-Master Layers / (翻譯名稱)：** Deletes all layers which are neither master layers, nor brace layers, nor bracket layers. Useful for getting rid of backup layers.
-* **Report Instance Interpolations / (翻譯名稱)：** Outputs master coefficients for each instance in Macro Window. Tells you which masters are involved in interpolating a specific instance, and to which extent.
-* **Reset Axis Mappings / (翻譯名稱)：** Inserts (or resets) a default Axis Mappings parameter for all style values currently present in the font. Ignores style values outside the designspace bounds defined by the masters.
-* **Set Weight Axis Locations in Instances / (翻譯名稱)：** Will set weight axis location parameters for all instances, and sync them with their respective usWeightClass. Will set the width axis coordinates to the spec defaults for usWidthClass, if they have not been set yet. Otherwise will keep them as is.
-* **Short Segment Finder / (翻譯名稱)：** Goes through all interpolations and finds segments shorter than a user-specified threshold length. *需要 香草JS*
-* **Travel Tracker / (翻譯名稱)：** Finds interpolations in which points travel more than they should, i.e., can find wrongly hooked-up asterisks and slashes. The results are incomplete, and usually have many false positives, but it sometimes finds cases that the Shapeshifter script misses. *需要 香草JS*
-* **Variation Interpolator / (翻譯名稱)：** Creates a user-defined number of glyph variations with a user-defined suffix, containing interpolations between the layers and their respective backgrounds. Overwrites glyphs with same name. Similar to Pablo Impallari’s SimplePolator. Useful for e.g. length variants of Devanagari Matra, see José Nicolás Silva Schwarzenberg’s sample video: <https://www.youtube.com/watch?v=QDbaUlHifBc>. *需要 香草JS*
-* * **Other > Lines by Master / (翻譯名稱)：** Reduplicates your edit text across masters, will add one line per master in Edit view. Careful, ignores everything after the first newline. Intended for adding a keyboard in System Preferences.
-* * **Other > New Tab with Masters of Selected Glyphs / (翻譯名稱)：** Opens a new Edit tab containing all masters of selected glyphs.
-* * **Other > Show Masters of Next/Previous Glyph / (翻譯名稱)：** Allows you to step through one glyph after another, but with all masters. Combines the show next/previous glyph function (fn+left/right) with the *Edit > Show All Masters* function. Handy for attaching a keyboard shortcut in System Preferences.
-* * **Other > Show Next/Previous Instance / 其他 > 顯示上/下一個實體：** Jumps to next/previous instance in the preview section of the current Edit tab. Handy for attaching a keyboard shortcut in System Preferences.
+* **Axis Location Setter / 軸位置設定器：** 批量為所有具有特定名稱字節的主板設定軸位置。例如，為所有Condensed主板設定一個軸位置。 *需要 香草JS*
+* **Axis Mapper / 軸映射器：** Extracts, resets and inserts an ‘avar’ axis mapping for the Axis Mappings parameter. 提取、重置並插入Axis Mappings參數的'avar'軸映射。 *需要 香草JS*
+* **Brace and Bracket Manager / 花括號和方括號管理器：** 在Glyphs 3及更高版本中查找並替換花括號或方括號圖層的坐標。 *需要 香草JS*
+* **Composite Variabler / 合成變數：** 在使用它們的組件中，將組件的花括號和方括號圖層複製一份。使合成中的方括號圖層運作正常。 *需要 香草JS*
+* **Copy Layer to Layer / 複製圖層到圖層：** 從一個主板圖層複製路徑（可選擇性地還包括組件、錨點和度量），然後黏貼到另一個主板圖層。 *需要 香草JS*
+* **Dekink Masters / 消除扭結主板：** 去除所有兼容圖層中的節點扭結（如果它們不是水平或垂直的話很有用）。選擇一個或多個產生扭結的節點，運行此腳本將其他所有主圖層中的相應節點移動到相同的相對位置。因此，你在所有主圖層中實現相同的點比例，避免在角度變化時產生節點扭結。有一個 [描述它的影片](http://tinyurl.com/dekink-py)。這個三元組問題在 [這個教程中有描述](http://www.glyphsapp.com/learn/multiple-masters-part-2-keeping-your-outlines-compatible)。
+* **Fill up Empty Masters / 填滿空白主板：** 複製一個主板的路徑到另一個，當目標主板為空白時。 *需要 香草JS*
+* **Find and Replace in Layer Names / 在圖層名稱中查找並替換：** 替換所選字符的所有圖層名稱（除了主板圖層）中的文本。如果在許多字符中使用花括號技巧，這很有用。 *需要 香草JS*
+* **Find Shapeshifting Glyphs / 查找形狀變化的字符：** 查找在插值時更改路徑數量的字符。打開新的分頁並在巨集面板中報告。 *需要 香草JS*
+* **Insert Brace Layers for Component Rotation / 插入用於組件旋轉的花括號圖層：** 插入一些連續縮放和旋轉的組件的花括號圖層。對於帶有旋轉元素的OTVar插值很有用。 *需要 香草JS*
+* **Insert Brace Layers for Movement along Background Path / 插入用於沿著背景路徑移動的花括號圖層：** Inserts a number of Brace Layers with copies of the first layer, shifted according to the first path in the background. Useful for OTVar interpolations with moving elements. 插入一些帶有第一圖層的複本的花括號圖層，根據背景中的第一路徑進行偏移。對於帶有移動元素的OTVar插值很有用。
+* **Insert Instances / 插入實體：** 用於計算並插入字重實體的圖形用戶界面。該教程學中有詳細描述：https://www.glyphsapp.com/learn/multiple-masters-part-3-setting-up-instances *需要 香草JS*
+* **Insert Layers / 插入圖層：** 批量在所選字符中插入花括號或方括號圖層。 *需要 香草JS*
+* **Instance Cooker / 實體烹飪器：** 使用配方一次性插入多個實體。 *需要 香草JS*
+* **Kink Finder / 扭結尋找：** 在輪廓或插值空間中查找扭結，並在巨集面板中報告它們，同時打開一個包含受影響字符的新分頁。有關紐結的訊息可參考此教學：https://glyphsapp.com/learn/multiple-masters-part-2-keeping-your-outlines-compatible *需要 香草JS*
+* **New Tab with Dangerous Glyphs for Interpolation / 打開包含插值風險字符的新分頁：** 打開一個包含字型中至少兩個兼容元素的所有字符的分頁。即，包含一個元素（路徑或元件）可能與錯誤元素進行插值的字符，例如等號。有關詳細訊息，請參閱此教學中的謹慎使用部分：<http://www.glyphsapp.com/learn/multiple-masters-part-2-keeping-your-outlines-compatible>.
+* **New Tab with Special Layers / 打開包含特殊圖層的新分頁：** 快速添加一個包含所有包含花括號和方括號圖層字符的新編輯分頁。
+* **New Tab with Uneven Handle Distributions / 打開包含不均勻控制桿分佈的新分頁：** 查找控制柄分佈變化過大的字符（例如，從均衡到和諧的變化）。 *需要 香草JS*
+* **OTVar Player / OTVar播放器：** 以沿著字重軸的循環方式播放目前字符的動畫。 *需要 香草JS*
+* **Remove All Non-Master Layers / 刪除所有非主圖層：** 刪除既不是主板圖層，也不是花括號圖層或方括號圖層的所有圖層。有助於清理備份圖層。
+* **Report Instance Interpolations / 報告實體插值：** 在巨集面板中輸出每個實體的主板係數。告訴你在插值特定實體時涉及哪些主板和程度。
+* **Reset Axis Mappings / 重置軸映射：** 為字型中目前存在的所有樣式值插入（或重置）默認的軸映射參數。忽略超出主板所定義設計空間範圍的樣式值。
+* **Set Weight Axis Locations in Instances / 在實體中設置字重軸位置：** 將為所有實體設置字重軸位置參數，並將其與相應的usWeightClass同步。如果尚未設置寬度軸座標，則將其設置為usWidthClass的規範默認值。否則將保持不變。
+* **Short Segment Finder / 短線段查找器：** 遍歷所有插值，查找短於用戶指定閾值長度的線段。 *需要 香草JS*
+* **Travel Tracker / 旅行追蹤器：** 查找插值中點位移超過應有範圍的情況，即可以找到連接錯誤的星號和斜線。結果不完善，且通常會有很多誤報，但有時可以找到Shapeshifter腳本錯過的情況。 *需要 香草JS*
+* **Variation Interpolator / 變體插值器：** 創建由用戶定義的字符變體數量，帶有用戶定義的後綴，其中包含圖層與其相應背景之間的插值。覆蓋相同名稱的字符。類似於Pablo Impallari的SimplePolator。例如，對於長度變體的天城體Matra很有用，請參見José Nicolás Silva Schwarzenberg的示範視頻：<https://www.youtube.com/watch?v=QDbaUlHifBc>。 *需要 香草JS*
+* * **Other > Lines by Master / 每個主板一行字：** 透過每個主板呈現你的編輯文本內容，將在編輯視窗中為每個主板圖層添加一行文本。謹慎使用，將覆蓋第一個換行符後的所有內容。用於在系統偏好設定中添加快捷鍵。
+* * **Other > New Tab with Masters of Selected Glyphs / 其他 > 打開包含所選字符主板圖層的新分頁：** 打開一個新的編輯分頁，其中包含所選字符的所有主板圖層。
+* * **Other > Show Masters of Next/Previous Glyph / 其他 > 顯示上/下一個字符的主板圖層：** 允許你逐個字符地查看所有主板圖層。結合了顯示上/下一個字符功能（fn+左/右）和 *編輯 > 顯示所有主板* 功能。方便在系統偏好設定中設定快捷鍵。
+* * **Other > Show Next/Previous Instance / 其他 > 顯示上/下一個實體：** 跳轉到目前編輯分頁預覽部分中的上/下一個實體。方便在系統偏好設定中設定快捷鍵。
 
 ## Kerning 調距
 
@@ -386,7 +386,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 *當製作中的字體包含小體大寫字母時，可以執行「檢查小體大寫字母一致性」。不過請對它的報告持保留態度：它列出了許多誤報，而且也不是每個警告都這麼重要。*
 
-* **Check Smallcap Consistency / 檢查小體大寫字母一致性：** 對您的小體大寫字母集執行一些測試並在巨集視窗列出報告，尤其是調距群組和字符集。
+* **Check Smallcap Consistency / 檢查小體大寫字母一致性：** 對您的小體大寫字母集執行一些測試並在巨集面板列出報告，尤其是調距群組和字符集。
 * **Copy Kerning from Caps to Smallcaps / 將大寫字母的調距數值複製到小體大寫字母：** 將大寫字母的調距字偶複製到相應的小體大寫字母，如果它們包含在字型中。請注意：將覆蓋現有的小體大寫字母的調距字偶。
 
 ## 間距
@@ -418,9 +418,9 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 * **Copy InDesign Test Text / 複製 InDesign 測試文字：** 將 InDesign 的測試文字複製到剪貼簿。 *:question:功能 無軟體測試*
 * **Copy Word Test Text / 複製 Word 測試文字：** 將 Word 的測試文字複製到剪貼簿。 *:question:功能 無軟體測試*
-* **Language Report / 拉丁字母支援語言報告：** 在巨集視窗輸出讓你初步了解你的拉丁字符支持多少種語言以及哪些語言的資訊。基於 Underware's Latin-Plus 列表，並進行了修改。
+* **Language Report / 拉丁字母支援語言報告：** 在巨集面板輸出讓你初步了解你的拉丁字符支持多少種語言以及哪些語言的資訊。基於 Underware's Latin-Plus 列表，並進行了修改。
 * **Pangram Helper / 全字母句小幫手：** 幫助你編寫歐文的全字母句，你可以將其複製到剪貼簿或放入新分頁中。 *需要 香草JS* *:question:成果 其他字母句要自己添加？*
-* **Report Highest and Lowest Glyphs / 最高和最低點字符報告：** 讀取所有母版的所有字符，在巨集視窗輸出最高和最低點字符的資訊。
+* **Report Highest and Lowest Glyphs / 最高和最低點字符報告：** 讀取所有母版的所有字符，在巨集面板輸出最高和最低點字符的資訊。
 * **Variable Font Test HTML / 可變字型測試 HTML：** 為目前已輸出到資料夾的可變字型在預設瀏覽器開啟一個測試用的 HTML。
 * **Webfont Test HTML / 網頁字型測試 HTML：** 為目前已輸出到資料夾的網頁字型或當前的字符專案在預設瀏覽器開啟一個測試用的 HTML。
 
