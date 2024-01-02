@@ -306,33 +306,27 @@ class KernCrasher(object):
 			raise e
 			return None
 
-	def isHeightInIntervals(self, height, ignoreIntervals):
-		if ignoreIntervals:
-			for interval in ignoreIntervals:
-				if height <= interval[1] and height >= interval[0]:
-					return True
-		return False
-
-	def minDistanceBetweenTwoLayers(self, leftLayer, rightLayer, interval=5.0, kerning=0.0, report=False, ignoreIntervals=[]):
-		# correction = leftLayer.RSB+rightLayer.LSB
-		if Glyphs.versionNumber>=3.2:
-			leftBounds, rightBounds = leftLayer.fastBounds(), rightLayer.fastBounds()
-		else:
-			leftBounds, rightBounds = leftLayer.bounds, rightLayer.bounds
-		topY = min(leftBounds.origin.y + leftBounds.size.height, rightBounds.origin.y + rightBounds.size.height)
-		bottomY = max(leftLayer.bounds.origin.y, rightLayer.bounds.origin.y)
-		distance = topY - bottomY
-		minDist = None
-		for i in range(int(distance / interval)):
-			height = bottomY + i * interval
-			if not self.isHeightInIntervals(height, ignoreIntervals) or not ignoreIntervals:
-				left = leftLayer.rsbAtHeight_(height)
-				right = rightLayer.lsbAtHeight_(height)
-				if left < NSNotFound and right < NSNotFound: # avoid gaps like in i or j
-					total = left + right + kerning # +correction
-					if minDist == None or minDist > total:
-						minDist = total
-		return minDist
+	# moved to kernanalysis:
+	# def minDistanceBetweenTwoLayers(self, leftLayer, rightLayer, interval=5.0, kerning=0.0, report=False, ignoreIntervals=[]):
+	# 	# correction = leftLayer.RSB+rightLayer.LSB
+	# 	if Glyphs.versionNumber>=3.2:
+	# 		leftBounds, rightBounds = leftLayer.fastBounds(), rightLayer.fastBounds()
+	# 	else:
+	# 		leftBounds, rightBounds = leftLayer.bounds, rightLayer.bounds
+	# 	topY = min(leftBounds.origin.y + leftBounds.size.height, rightBounds.origin.y + rightBounds.size.height)
+	# 	bottomY = max(leftLayer.bounds.origin.y, rightLayer.bounds.origin.y)
+	# 	distance = topY - bottomY
+	# 	minDist = None
+	# 	for i in range(int(distance / interval)):
+	# 		height = bottomY + i * interval
+	# 		if not isHeightInIntervals(height, ignoreIntervals) or not ignoreIntervals:
+	# 			left = leftLayer.rsbAtHeight_(height)
+	# 			right = rightLayer.lsbAtHeight_(height)
+	# 			if left < NSNotFound and right < NSNotFound: # avoid gaps like in i or j
+	# 				total = left + right + kerning # +correction
+	# 				if minDist == None or minDist > total:
+	# 					minDist = total
+	# 	return minDist
 
 	def queryPrefs(self):
 		script = self.pref("popupScript")
@@ -449,7 +443,7 @@ class KernCrasher(object):
 					rightLayer = thisFont.glyphs[secondGlyphName].layers[thisFontMasterID].copyDecomposedLayer()
 					rightLayer.decomposeSmartOutlines()
 					kerning = effectiveKerning(firstGlyphName, secondGlyphName, thisFont, thisFontMasterID, directionSensitive)
-					distanceBetweenShapes = self.minDistanceBetweenTwoLayers(leftLayer, rightLayer, interval=step, kerning=kerning, report=False, ignoreIntervals=ignoreIntervals)
+					distanceBetweenShapes = minDistanceBetweenTwoLayers(leftLayer, rightLayer, interval=step, kerning=kerning, report=False, ignoreIntervals=ignoreIntervals)
 					if (not distanceBetweenShapes is None) and (distanceBetweenShapes < minDistance):
 						crashCount += 1
 						tabString += "/%s/%s/space" % (firstGlyphName, secondGlyphName)
