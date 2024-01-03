@@ -521,6 +521,8 @@ htmlContent = """<head>
 			} else if (checkbox.name=="hlig") {
 				cssCode += "font-variant-ligatures: "
 				cssCode += checkbox.checked ? 'historical-ligatures; ' : 'no-historical-ligatures; ';
+			} else if (checkbox.name=="case") {
+				testtext.style.textTransform = checkbox.checked ? "uppercase" : "none";
 			}
 		}
 		codeLine = codeLine.slice(0, -2)

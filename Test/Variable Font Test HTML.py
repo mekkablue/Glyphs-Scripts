@@ -882,6 +882,8 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 						testtext.style.setProperty("font-variant-ligatures", checkbox.checked ? 'discretionary-ligatures' : 'no-discretionary-ligatures');
 					} else if (checkbox.name=="hlig") {
 						testtext.style.setProperty("font-variant-ligatures", checkbox.checked ? 'historical-ligatures' : 'no-historical-ligatures');
+					} else if (checkbox.name=="case") {
+						testtext.style.textTransform = checkbox.checked ? "uppercase" : "none";
 					}
 				}
 				testtext.style.setProperty("font-feature-settings", codeLine);
