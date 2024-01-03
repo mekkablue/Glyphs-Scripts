@@ -7,6 +7,14 @@ Batch-apply settings in Font Info > Font to open fonts: designer, designer URL, 
 import vanilla, datetime
 import AppKit
 
+def addPropertyToFont(font, key, value):
+	while font.propertyForName_(key):
+		font.removeObjectFromProperties_(font.propertyForName_(key))
+	prop = GSFontInfoValueSingle()
+	prop.key = key
+	prop.value = value
+	font.properties.append(prop)
+
 class FontInfoBatchSetter(object):
 	prefID = "com.mekkablue.FontInfoBatchSetter"
 	prefDict = {
@@ -470,10 +478,11 @@ class FontInfoBatchSetter(object):
 							changeCount += 1
 							
 					if setVendorID:
-						if thisFont.propertyForName_("vendorID").value == vendorID:
+						existingID = thisFont.propertyForName_("vendorID")
+						if existingID and existingID.value == vendorID:
 							print("🆗 📝 Font already has desired Vendor ID. No change.")
 						else:
-							thisFont.propertyForName_("vendorID").value = vendorID
+							addPropertyToFont(thisFont, "vendorID", vendorID)
 							print("✅ 📝 Vendor ID set: %s" % vendorID)
 							changeCount += 1
 
