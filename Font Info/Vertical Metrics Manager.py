@@ -67,7 +67,7 @@ class VerticalMetricsManager(object):
 			"Vertical Metrics Manager", # window title
 			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.VerticalMetricsManager.mainwindow" # stores last window position and size
+			autosaveName=self.domain("mainwindow") # stores last window position and size
 			)
 
 		# UI elements:
@@ -229,20 +229,24 @@ class VerticalMetricsManager(object):
 	def updateUI(self, sender=None):
 		self.w.includeAllMasters.enable(not self.w.allOpenFonts.get())
 		self.w.runButton.setTitle(f'Apply to Font{"s" if self.w.allOpenFonts.get() else ""}')
-	
+
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-	
+		return Glyphs.intDefaults[prefDomain]
+
+	def setPref(self, prefName, value):
+		prefDomain = self.domain(prefName)
+		Glyphs.intDefaults[prefDomain] = value
+
 	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
 			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
+				self.setPref(prefName, getattr(self.w, prefName).get())
 			self.updateUI()
 			return True
 		except:
@@ -370,7 +374,7 @@ class VerticalMetricsManager(object):
 													if bottomAnchor.y < lowestBottomAnchor:
 														lowestBottomAnchor = bottomAnchor.y
 														lowestBottomAnchorGlyph = f"{fontReport}{thisGlyph.name}, layer: {thisLayer.name}"
-										
+
 
 			print("Highest relevant glyph:")
 			print(f"- {highestGlyph} (highest)")
@@ -413,13 +417,13 @@ class VerticalMetricsManager(object):
 			print("- usWinDescent: %s" % winDesc)
 			print()
 
-			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.winAsc"] = winAsc
-			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.winDesc"] = winDesc
+			self.setPref("winAsc", winAsc)
+			self.setPref("winDesc", winDesc)
 
 		# Use Typo Metrics checkbox
 		elif sender == self.w.useTypoMetricsUpdate:
 			print("Use Typo Metrics (fsSelection bit 7) should always be YES.")
-			Glyphs.defaults["com.mekkablue.VerticalMetricsManager.useTypoMetrics"] = 1
+			self.setPref("useTypoMetrics", True)
 
 		# hhea and typo popups:
 		elif sender in (self.w.hheaUpdate, self.w.typoUpdate):
@@ -443,7 +447,7 @@ class VerticalMetricsManager(object):
 				if not selectedGlyphNames:
 					print("⚠️ Ignoring limitation to selected glyphs because no glyphs are selected (in frontmost font).")
 					shouldLimitToSelectedGlyphs = False
-					Glyphs.defaults["com.mekkablue.VerticalMetricsManager.preferSelectedGlyphs"] = shouldLimitToSelectedGlyphs
+					self.setPref("preferSelectedGlyphs", shouldLimitToSelectedGlyphs)
 					self.LoadPreferences()
 			else:
 				selectedGlyphNames = ()
@@ -530,13 +534,13 @@ class VerticalMetricsManager(object):
 			print()
 
 			if sender == self.w.hheaUpdate:
-				Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaAsc"] = asc
-				Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaDesc"] = desc
-				Glyphs.defaults["com.mekkablue.VerticalMetricsManager.hheaGap"] = gap
+				self.setPref("hheaAsc", asc)
+				self.setPref("hheaDesc", desc)
+				self.setPref("hheaGap", gap)
 			else:
-				Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoAsc"] = asc
-				Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoDesc"] = desc
-				Glyphs.defaults["com.mekkablue.VerticalMetricsManager.typoGap"] = gap
+				self.setPref("typoAsc", asc)
+				self.setPref("typoDesc", desc)
+				self.setPref("typoGap", gap)
 
 		# Updating "Limit to Script" popup:
 		elif sender == self.w.preferScriptUpdate:
@@ -590,14 +594,14 @@ class VerticalMetricsManager(object):
 			if not self.SavePreferences(self):
 				print("Note: 'Vertical Metrics Manager' could not write preferences.\n")
 
-			typoAsc = int(self.pref("typoAsc"))
-			typoDesc = int(self.pref("typoDesc"))
-			typoGap = int(self.pref("typoGap"))
-			hheaAsc = int(self.pref("hheaAsc"))
-			hheaDesc = int(self.pref("hheaDesc"))
-			hheaGap = int(self.pref("hheaGap"))
-			winDesc = int(self.pref("winDesc"))
-			winAsc = int(self.pref("winAsc"))
+			typoAsc = self.pref("typoAsc")
+			typoDesc = self.pref("typoDesc")
+			typoGap = self.pref("typoGap")
+			hheaAsc = self.pref("hheaAsc")
+			hheaDesc = self.pref("hheaDesc")
+			hheaGap = self.pref("hheaGap")
+			winDesc = self.pref("winDesc")
+			winAsc = self.pref("winAsc")
 			verticalMetricDict = {
 				"typoAscender": typoAsc,
 				"typoDescender": typoDesc,
