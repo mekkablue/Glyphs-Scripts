@@ -505,6 +505,7 @@ class AddGrade(object):
 				if not existingMaster:
 					print(f"Ⓜ️ Adding master: ‘{gradeMaster.name}’")
 					thisFont.masters.append(gradeMaster)
+					thisFont.didChangeValueForKey_("fontMasters")
 				
 				# make grade interpolation in workFont
 				gradeInstance = GSInstance()
@@ -575,6 +576,7 @@ class AddGrade(object):
 					for thisInstance in thisFont.instances:
 						axLoc = thisInstance.customParameters["Axis Location"]
 						if axLoc and len(axLoc) < len(thisFont.axes):
+							axLoc = list(axLoc)
 							axLoc.append(
 								{
 									"Axis": self.pref("axisName"),
