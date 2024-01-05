@@ -462,6 +462,7 @@ class AddGrade(object):
 					gradeAxis.axisTag = axisTag
 					gradeAxis.hidden = False
 					thisFont.axes.append(gradeAxis)
+					thisFont.didChangeValueForKey_("axes")
 				else:
 					gradeAxis = thisFont.axisForTag_(axisTag)
 					if gradeAxis.name != axisName:
