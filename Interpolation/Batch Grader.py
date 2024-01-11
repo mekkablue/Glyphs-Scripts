@@ -368,9 +368,13 @@ class BatchGrader(object):
 					gradeAxes = list(master.axes)
 					gradeAxes[gradeAxisID] = grade
 					gradeMaster.axes = gradeAxes
-					gradeMaster.customParameters.append(
-						GSCustomParameter("Link Metrics With Master", master.id)
-						)
+					if pref("addSyncMetricCustomParameter":)
+						gradeMaster.customParameters.append(
+							GSCustomParameter(
+								"Link Metrics With Master", 
+								master.id,
+								)
+							)
 					
 					for m in thisFont.masters[::-1]:
 						if m.axes == gradeMaster.axes:
