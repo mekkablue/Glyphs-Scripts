@@ -8,6 +8,25 @@ Btach-add graded masters to a multiple-master setup.
 import vanilla, sys
 from copy import copy
 
+def biggestSubstringInStrings(strings):
+	if len(strings) > 1:
+		sortedStrings = sorted(strings, key=lambda string: len(string))
+		shortestString = sortedStrings[0]
+		shortestLength = len(shortestString)
+		otherStrings = sortedStrings[1:]
+
+		if len(shortestString) > 2:
+			for stringLength in range(shortestLength, 1, -1):
+				for position in range(shortestLength - stringLength + 1):
+					subString = shortestString[position:position + stringLength]
+					if all([subString in s for s in otherStrings]):
+						return subString
+
+	elif len(strings) == 1:
+		return strings[0]
+
+	return ""
+
 def axisIdForTag(font, tag="wght"):
 	for i, a in enumerate(font.axes):
 		if a.axisTag == tag:
@@ -132,7 +151,8 @@ class BatchGrader(object):
 
 		indent = 155
 		self.w.excludeFromInterpolationText = vanilla.TextBox((inset, linePos+3, -inset, 14), "Ignore masters containing:", sizeStyle="small", selectable=True)
-		self.w.excludeFromInterpolation = vanilla.EditText((inset+indent, linePos, -inset, 19), self.prefDict["excludeFromInterpolation"], callback=self.SavePreferences, sizeStyle="small")
+		self.w.excludeFromInterpolation = vanilla.EditText((inset+indent, linePos, -inset-25, 19), self.prefDict["excludeFromInterpolation"], callback=self.SavePreferences, sizeStyle="small")
+		self.w.ignoreReset = vanilla.SquareButton((-inset-20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateUI)
 		linePos += lineHeight
 
 		self.w.addSyncMetricCustomParameter = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Add custom parameter ‘Link Metrics With Master’ (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
@@ -183,7 +203,22 @@ class BatchGrader(object):
 		return Glyphs.defaults[prefDomain]
 	
 	def updateUI(self, sender=None):
-		pass
+		if sender == self.w.axisReset:
+			self.w.axisTag.set("GRAD")
+			self.w.axisName.set("Grade")
+		elif sender == self.w.ignoreReset:
+			thisFont = Glyphs.font
+			grade = int(self.pref("grade").strip())
+			axisTag = f'{self.pref("axisTag").strip()[:4]:4}'
+			axisID = axisIdForTag(thisFont, axisTag)
+			if axisID != None:
+				masterNames = [m.name for m in thisFont.masters if m.axes[axisID]==grade]
+				commonParticle = biggestSubstringInStrings(masterNames)
+				if commonParticle:
+					self.w.excludeFromInterpolation.set(commonParticle)
+			# gradeAxis = thisFont.axisForTag_(axisTag)
+			
+		self.SavePreferences()
 		
 	def SavePreferences(self, sender=None):
 		try:
