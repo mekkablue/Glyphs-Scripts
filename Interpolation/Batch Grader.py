@@ -301,6 +301,7 @@ class BatchGrader(object):
 					if gradeAxis.name != axisName:
 						print(f"Updating {axisTag} axis name: {gradeAxis.name} → {axisName}")
 						gradeAxis.name = axisName
+				gradeAxisID = axisIdForTag(thisFont, axisTag)
 				
 				# parse code and step through masters:
 				searchFor = self.pref("searchFor")
@@ -364,8 +365,9 @@ class BatchGrader(object):
 					else:
 						gradeMaster.name = f"{master.name} Grade {grade}"
 					gradeMaster.font = thisFont
-					gradeMaster.setAxisValueValue_forId_(grade, gradeAxis.id)
-					gradeMaster.axes = weightedAxes
+					gradeAxes = list(master.axes)
+					gradeAxes[gradeAxisID] = grade
+					gradeMaster.axes = gradeAxes
 					gradeMaster.customParameters.append(
 						GSCustomParameter("Link Metrics With Master", master.id)
 						)
