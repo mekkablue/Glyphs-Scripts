@@ -51,7 +51,7 @@ def straightenBCPs(layer):
 			if n.connection != GSSMOOTH:
 				continue
 			nn, pn = n.nextNode, n.prevNode
-			if all((nn.type == OFFCURVE, pn.type == OFFCURVE)):
+			if any((nn.type == OFFCURVE, pn.type == OFFCURVE)):
 				# surrounding points are BCPs
 				smoothen, center, opposite = None, None, None
 				for handle in (nn, pn):
@@ -67,20 +67,20 @@ def straightenBCPs(layer):
 					n.position = closestPointOnLine(
 						n.position, nn, pn,
 						)
-			elif n.type != OFFCURVE and (nn.type, pn.type).count(OFFCURVE) == 1:
-				# only one of the surrounding points is a BCP
-				center = n
-				if nn.type == OFFCURVE:
-					smoothen = nn
-					opposite = pn
-				elif pn.type == OFFCURVE:
-					smoothen = pn
-					opposite = nn
-				else:
-					continue # should never occur
-				p.setSmooth_withCenterNode_oppositeNode_(
-					smoothen, center, opposite,
-					)
+			# elif n.type != OFFCURVE and (nn.type, pn.type).count(OFFCURVE) == 1:
+			# 	# only one of the surrounding points is a BCP
+			# 	center = n
+			# 	if nn.type == OFFCURVE:
+			# 		smoothen = nn
+			# 		opposite = pn
+			# 	elif pn.type == OFFCURVE:
+			# 		smoothen = pn
+			# 		opposite = nn
+			# 	else:
+			# 		continue # should never occur
+			# 	p.setSmooth_withCenterNode_oppositeNode_(
+			# 		smoothen, center, opposite,
+			# 		)
 
 
 class BatchGrader(object):
@@ -368,7 +368,7 @@ class BatchGrader(object):
 					gradeAxes = list(master.axes)
 					gradeAxes[gradeAxisID] = grade
 					gradeMaster.axes = gradeAxes
-					if pref("addSyncMetricCustomParameter":)
+					if self.pref("addSyncMetricCustomParameter"):
 						gradeMaster.customParameters.append(
 							GSCustomParameter(
 								"Link Metrics With Master", 
@@ -389,6 +389,7 @@ class BatchGrader(object):
 					for glyphName in glyphNames:
 						weightedGlyph = weightedFont.glyphs[glyphName]
 						weightedLayer = weightedGlyph.layers[0]
+						straightenBCPs(weightedLayer)
 						weightedWidth = weightedLayer.width
 					
 						baseGlyph = thisFont.glyphs[glyphName]
