@@ -9,6 +9,27 @@ import vanilla, sys
 from copy import copy
 from AppKit import NSPoint, NSFont
 
+def hasIncrementalKey(layer, checkLSB=True, checkRSB=True):
+	incrementalKeys = ("=-", "=+", "=*", "=/")
+	glyph = layer.parent
+	if checkLSB:
+		for key in incrementalKeys:
+			if layer.leftMetricsKey:
+				if key in layer.leftMetricsKey:
+					return True
+			elif glyph.leftMetricsKey:
+				if key in glyph.leftMetricsKey:
+					return True
+	if checkRSB:
+		for key in incrementalKeys:
+			if layer.rightMetricsKey:
+				if key in layer.rightMetricsKey:
+					return True
+			elif glyph.rightMetricsKey:
+				if key in glyph.rightMetricsKey:
+					return True
+	return False
+
 def biggestSubstringInStrings(strings):
 	if len(strings) > 1:
 		sortedStrings = sorted(strings, key=lambda string: len(string))
@@ -463,10 +484,14 @@ class BatchGrader(object):
 						gradeLayer.hints = copy(weightedLayer.hints)
 
 						# disable metrics keys where necessary/requested:
-						if baseGlyph.leftMetricsKey and metricsKeyChoice in (1, 3):
-							gradeLayer.leftMetricsKey = f"=={baseGlyph.name}"
-						if baseGlyph.rightMetricsKey and metricsKeyChoice in (2, 3):
-							gradeLayer.rightMetricsKey = f"=={baseGlyph.name}"
+						if (baseGlyph.leftMetricsKey or baseLayer.leftMetricsKey) and metricsKeyChoice in (1, 3):
+							isIncrementalKey = baseLayer.isAligned and hasIncrementalKey(baseLayer)
+							if not isIncrementalKey:
+								gradeLayer.leftMetricsKey = f"=={baseGlyph.name}"
+						if (baseGlyph.rightMetricsKey or baseLayer.rightMetricsKey) and metricsKeyChoice in (2, 3):
+							isIncrementalKey = baseLayer.isAligned and hasIncrementalKey(baseLayer)
+							if not isIncrementalKey:
+								gradeLayer.rightMetricsKey = f"=={baseGlyph.name}"
 						if baseGlyph.widthMetricsKey and metricsKeyChoice in (1, 2, 3):
 							gradeLayer.widthMetricsKey = f"=={baseGlyph.name}"
 						if (baseGlyph.leftMetricsKey or baseGlyph.rightMetricsKey) and metricsKeyChoice in (1, 2):
