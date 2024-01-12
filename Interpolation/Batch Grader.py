@@ -115,6 +115,9 @@ class BatchGrader(object):
 		"replaceWith": "GD100",
 		"excludeFromInterpolation": "Grade, GD100",
 		"addSyncMetricCustomParameter": True,
+		"metricsKeyChoice": 0,
+		"keepCenteredGlyphsCentered": True,
+		"keepCenteredThreshold": 2,
 	}
 	
 	def __init__( self ):
@@ -144,26 +147,40 @@ class BatchGrader(object):
 		linePos += lineHeight
 		
 		indent = 110
-		self.w.searchForText = vanilla.TextBox((inset, linePos+2, indent, 14), "In name, search for:", sizeStyle="small", selectable=True)
+		self.w.searchForText = vanilla.TextBox((inset, linePos+3, indent, 14), "In name, search for:", sizeStyle="small", selectable=True)
 		self.w.searchFor = vanilla.EditText((inset+indent, linePos, 60, 19), self.pref("searchFor"), callback=self.SavePreferences, sizeStyle="small")
-		self.w.replaceWithText = vanilla.TextBox((inset+indent+65, linePos+2, 100, 14), "and replace with:", sizeStyle="small", selectable=True)
+		self.w.replaceWithText = vanilla.TextBox((inset+indent+65, linePos+3, 100, 14), "and replace with:", sizeStyle="small", selectable=True)
 		self.w.replaceWith = vanilla.EditText((inset+indent+165, linePos, -inset, 19), self.pref("replaceWith"), callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		indent = 155
+		indent = 150
 		self.w.excludeFromInterpolationText = vanilla.TextBox((inset, linePos+3, -inset, 14), "Ignore masters containing:", sizeStyle="small", selectable=True)
 		self.w.excludeFromInterpolation = vanilla.EditText((inset+indent, linePos, -inset-25, 19), self.prefDict["excludeFromInterpolation"], callback=self.SavePreferences, sizeStyle="small")
 		self.w.ignoreReset = vanilla.SquareButton((-inset-20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateUI)
 		linePos += lineHeight
 
 		self.w.addSyncMetricCustomParameter = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Add custom parameter ‘Link Metrics With Master’ (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight + 5
-
-
-
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Recipe for new graded masters:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 		
+		metricsKeyOptions = (
+			"Don’t do anything (will keep metrics warnings though)",
+			"Prefer RSB keys (and disable LSB keys in graded masters)",
+			"Prefer LSB keys (and disable RSB keys in graded masters)",
+			"Disable all keys in graded masters (recommended)",
+			)
+		self.w.metricsKeyChoiceText = vanilla.TextBox((inset, linePos+2, 130, 14), "Deal with metrics keys:", sizeStyle="small", selectable=True)
+		self.w.metricsKeyChoice = vanilla.PopUpButton((inset+130, linePos, -inset, 17), metricsKeyOptions, sizeStyle="small", callback=self.SavePreferences)
+		linePos += lineHeight
+		
+		self.w.keepCenteredGlyphsCentered = vanilla.CheckBox((inset, linePos, 305, 20), "Keep centered glyphs centered; max SB diff threshold:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.keepCenteredThreshold = vanilla.EditText((inset+305, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle="small")
+		linePos += lineHeight
+		
+
+		linePos += 10
+		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Recipe for new graded masters:", sizeStyle="small", selectable=True)
+		linePos += lineHeight
+
 		self.w.graderCode = vanilla.TextEditor((1, linePos, -1, -inset * 3), text=self.prefDict["graderCode"], callback=self.SavePreferences, checksSpelling=False)
 		self.w.graderCode.getNSTextView().setToolTip_(
 			"- Prefix comments with hashtag (#)\n- Empty line are ignored\n- Recipe syntax: MASTERNAME: AXISTAG+=100, AXISTAG=400, AXISTAG-=10"
@@ -177,13 +194,9 @@ class BatchGrader(object):
 			textView.setFont_(legibleFont)
 		except Exception as e:
 			print(e)
-		
-		
-		
-		
+
 		# Buttons:
 		self.w.resetButton = vanilla.Button((inset, -20-inset, 80, -inset), "Reset", sizeStyle="regular", callback=self.ResetGraderCode)
-		
 		self.w.runButton = vanilla.Button((-120-inset, -20-inset, -inset, -inset), "Add Grades", sizeStyle="regular", callback=self.BatchGraderMain)
 		self.w.setDefaultButton(self.w.runButton)
 		
@@ -207,6 +220,7 @@ class BatchGrader(object):
 		if sender == self.w.axisReset:
 			self.w.axisTag.set("GRAD")
 			self.w.axisName.set("Grade")
+			self.SavePreferences()
 		elif sender == self.w.ignoreReset:
 			thisFont = Glyphs.font
 			grade = int(self.pref("grade").strip())
@@ -218,14 +232,17 @@ class BatchGrader(object):
 				if commonParticle:
 					self.w.excludeFromInterpolation.set(commonParticle)
 			# gradeAxis = thisFont.axisForTag_(axisTag)
-			
-		self.SavePreferences()
+			self.SavePreferences()
+		else:
+			self.w.keepCenteredGlyphsCentered.enable(not self.w.metricsKeyChoice.get() in (1, 2))
+			self.w.keepCenteredThreshold.enable(self.w.keepCenteredGlyphsCentered.get() and self.w.keepCenteredGlyphsCentered.isEnabled())
 		
 	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
 			for prefName in self.prefDict.keys():
 				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
+			self.updateUI()
 			return True
 		except:
 			import traceback
@@ -239,6 +256,7 @@ class BatchGrader(object):
 				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
 				# load previously written prefs:
 				getattr(self.w, prefName).set(self.pref(prefName))
+			self.updateUI()
 			return True
 		except:
 			import traceback
@@ -318,7 +336,7 @@ class BatchGrader(object):
 					reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
 				print(f"Batch Grader Report for {reportName}")
 				print()
-				
+
 				# add or update Grade axis if necessary:
 				grade = int(self.pref("grade").strip())
 				axisName = self.pref("axisName").strip()
@@ -338,10 +356,15 @@ class BatchGrader(object):
 						print(f"Updating {axisTag} axis name: {gradeAxis.name} → {axisName}")
 						gradeAxis.name = axisName
 				gradeAxisID = axisIdForTag(thisFont, axisTag)
-				
-				# parse code and step through masters:
+
+				# query more user choices:
 				searchFor = self.pref("searchFor")
 				replaceWith = self.pref("replaceWith")
+				metricsKeyChoice = self.pref("metricsKeyChoice")
+				keepCenteredGlyphsCentered = self.pref("keepCenteredGlyphsCentered")
+				keepCenteredThreshold = self.pref("keepCenteredThreshold")
+
+				# parse code and step through masters:
 				graderCode = self.pref("graderCode").strip()
 				for codeLine in graderCode.splitlines():
 					if "#" in codeLine:
@@ -349,7 +372,7 @@ class BatchGrader(object):
 					codeLine = codeLine.strip()
 					if not codeLine:
 						continue
-					
+
 					masterName, axes = codeLine.split(":")
 					masterName = masterName.strip()
 					master = thisFont.fontMasterForName_(masterName)
@@ -359,8 +382,7 @@ class BatchGrader(object):
 					
 					if self.shouldExcludeMaster(master):
 						continue
-					
-					print(master)
+
 					weightedAxes = master.axes[:]
 					axisCodes = [a.strip() for a in axes.split(",") if "=" in a]
 					for axisCode in axisCodes:
@@ -380,9 +402,7 @@ class BatchGrader(object):
 							weightedAxes[axisID] = value
 						else:
 							weightedAxes[axisID] = weightedAxes[axisID] + value * valueFactor
-						
-					print("\t", weightedAxes)
-					
+
 					# weighted instance/font: the shapes
 					weightedInstance = GSInstance()
 					weightedInstance.font = thisFont
@@ -411,38 +431,60 @@ class BatchGrader(object):
 								master.id,
 								)
 							)
-					
+
 					for m in thisFont.masters[::-1]:
 						if m.axes == gradeMaster.axes:
 							# remove preexisting graded masters if there are any
 							print(f"❌ Removing preexisting graded master ‘{m.name}’")
 							thisFont.removeFontMaster_(m)
-				
+
 					# otherwise add the one we built above:
 					print(f"Ⓜ️ Adding master: ‘{gradeMaster.name}’")
 					thisFont.masters.append(gradeMaster)
-					glyphNames = [g.name for g in thisFont.glyphs]
-					for glyphName in glyphNames:
-						weightedGlyph = weightedFont.glyphs[glyphName]
+
+					# add interpolated content to new (graded) layer of each glyph:
+					for baseGlyph in thisFont.glyphs:
+						baseLayer = baseGlyph.layers[master.id]
+						baseWidth = baseLayer.width
+
+						# get interpolated layer and prepare for width adjustment
+						weightedGlyph = weightedFont.glyphs[baseGlyph.name]
 						weightedLayer = weightedGlyph.layers[0]
 						straightenBCPs(weightedLayer)
 						weightedWidth = weightedLayer.width
-					
-						baseGlyph = thisFont.glyphs[glyphName]
-						baseLayer = baseGlyph.layers[master.id]
-						baseWidth = baseLayer.width
-					
 						if weightedWidth != baseWidth:
 							fitSidebearings(weightedLayer, targetWidth=baseWidth, left=0.5)
-					
+
 						# bring the interpolated shapes back into the open font:
 						gradeLayer = baseGlyph.layers[gradeMaster.id]
 						gradeLayer.width = weightedLayer.width
 						gradeLayer.shapes = copy(weightedLayer.shapes)
 						gradeLayer.anchors = copy(weightedLayer.anchors)
 						gradeLayer.hints = copy(weightedLayer.hints)
-				
-				
+
+						# disable metrics keys where necessary/requested:
+						if baseGlyph.leftMetricsKey and metricsKeyChoice in (1, 3):
+							gradeLayer.leftMetricsKey = f"=={baseGlyph.name}"
+						if baseGlyph.rightMetricsKey and metricsKeyChoice in (2, 3):
+							gradeLayer.rightMetricsKey = f"=={baseGlyph.name}"
+						if baseGlyph.widthMetricsKey and metricsKeyChoice in (1, 2, 3):
+							gradeLayer.widthMetricsKey = f"=={baseGlyph.name}"
+						if (baseGlyph.leftMetricsKey or baseGlyph.rightMetricsKey) and metricsKeyChoice in (1, 2):
+							gradeLayer.syncMetrics()
+
+					# recenter centered glyphs
+					# (in separate loop so we have all component references up to date from the previous loop)
+					if keepCenteredGlyphsCentered and not metricsKeyChoice in (1, 2):
+						print("↔️ Recentering centered glyphs...")
+						for baseGlyph in thisFont.glyphs:
+							baseLayer = baseGlyph.layers[master.id]
+							if abs(baseLayer.LSB-baseLayer.RSB) <= keepCenteredThreshold:
+								gradeLayer = baseGlyph.layers[gradeMaster.id]
+								offCenter = gradeLayer.RSB - gradeLayer.LSB
+								if abs(offCenter) > 1:
+									gradeLayer.applyTransform((1, 0, 0, 1, offCenter//2, 0))
+					print()
+
 				# add missing axis locations if base master has axis locations:
 				if Glyphs.versionNumber < 4:
 					print("📐 Updating Axis Locations in masters...")
@@ -456,7 +498,7 @@ class BatchGrader(object):
 								}
 							)
 							thisMaster.customParameters["Axis Location"] = axLoc
-					
+
 					print("📐 Updating Axis Locations in instances...")
 					for thisInstance in thisFont.instances:
 						axLoc = thisInstance.customParameters["Axis Location"]
@@ -472,7 +514,7 @@ class BatchGrader(object):
 						# Glyphs 4:
 						# thisMaster.setExternAxisValueValue_forId_(thisMaster.axisValueValueForId_(gradeID), gradeID)
 						# thisMaster.externalAxesValues[gradeID] = thisMaster.internalAxesValues[gradeID]
-					
+
 					# update Axis Locations in Virtual Masters if there are any:
 					for parameter in thisFont.customParameters:
 						if parameter.name == "Virtual Master":
@@ -488,10 +530,8 @@ class BatchGrader(object):
 							parameter.value = axLoc
 				
 				thisFont.didChangeValueForKey_("fontMasters")
-				
 				self.w.close() # delete if you want window to stay open
-
-			print("\nDone.")
+			print("\n✅ Done.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
