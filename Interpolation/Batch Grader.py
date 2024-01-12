@@ -7,6 +7,7 @@ Btach-add graded masters to a multiple-master setup.
 
 import vanilla, sys
 from copy import copy
+from AppKit import NSPoint, NSFont
 
 def biggestSubstringInStrings(strings):
 	if len(strings) > 1:
