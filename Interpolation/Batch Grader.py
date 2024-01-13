@@ -249,10 +249,15 @@ class BatchGrader(object):
 			axisID = axisIdForTag(thisFont, axisTag)
 			if axisID != None:
 				masterNames = [m.name for m in thisFont.masters if m.axes[axisID]==grade]
+				excludeParticles = []
 				commonParticle = biggestSubstringInStrings(masterNames)
 				if commonParticle:
-					self.w.excludeFromInterpolation.set(commonParticle)
-			# gradeAxis = thisFont.axisForTag_(axisTag)
+					excludeParticles.append(commonParticle)
+				for prefName in ("replaceWith", "axisName"):
+					if self.pref(prefName):
+						excludeParticles.append(self.pref(prefName))
+				if excludeParticles:
+					self.w.excludeFromInterpolation.set(", ".join(set(excludeParticles)))
 			self.SavePreferences()
 		else:
 			self.w.keepCenteredGlyphsCentered.enable(not self.w.metricsKeyChoice.get() in (1, 2))
