@@ -488,13 +488,19 @@ class BatchGrader(object):
 							isIncrementalKey = baseLayer.isAligned and hasIncrementalKey(baseLayer)
 							if not isIncrementalKey:
 								gradeLayer.leftMetricsKey = f"=={baseGlyph.name}"
+							else:
+								gradeLayer.leftMetricsKey = baseLayer.leftMetricsKey
 						if (baseGlyph.rightMetricsKey or baseLayer.rightMetricsKey) and metricsKeyChoice in (2, 3):
 							isIncrementalKey = baseLayer.isAligned and hasIncrementalKey(baseLayer)
 							if not isIncrementalKey:
 								gradeLayer.rightMetricsKey = f"=={baseGlyph.name}"
+							else:
+								gradeLayer.rightMetricsKey = baseLayer.rightMetricsKey
 						if baseGlyph.widthMetricsKey and metricsKeyChoice in (1, 2, 3):
 							gradeLayer.widthMetricsKey = f"=={baseGlyph.name}"
 						if (baseGlyph.leftMetricsKey or baseGlyph.rightMetricsKey) and metricsKeyChoice in (1, 2):
+							gradeLayer.syncMetrics()
+						if hasIncrementalKey(gradeLayer):
 							gradeLayer.syncMetrics()
 
 					# recenter centered glyphs
