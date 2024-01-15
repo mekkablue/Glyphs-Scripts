@@ -49,6 +49,47 @@ def biggestSubstringInStrings(strings):
 
 	return ""
 
+def updateBraceLayers(font, defaultValue=0):
+	axisRanges = font.variationAxesRanges_(None) #["GRAD"][0]
+	for glyph in font.glyphs:
+		count = 0
+		for layer in glyph.layers:
+			isBraceLayer = layer.isSpecialLayer and layer.attributes and layer.attributes["coordinates"]
+			if isBraceLayer:
+				coords = dict(layer.attributes["coordinates"])
+				allAxisIDs = []
+				changed = False
+				for axis in font.axes:
+					# add missing axis (GRAD axis just added) to brace layer:
+					allAxisIDs.append(axis.id)
+					if not axis.id in coords.keys():
+						coords[axis.id] = defaultValue
+						changed = True
+					
+					# fix range errors for recently subsetted file,
+					# e.g. slnt=0 when all the font is slnt=-10:
+					axisMin = axisRanges[axis.axisTag][0]
+					axisMax = axisRanges[axis.axisTag][2]
+					axisValue = coords[axis.id]
+					if axisValue < axisMin or axisValue > axisMax:
+						axisValue = min(axisMax, axisValue)
+						axisValue = max(axisMin, axisValue)
+						coords[axis.id] = axisValue
+						changed = True
+						
+				# clean out axes from brace layer if they are not in the file anymore:
+				existingKeys = tuple(coords.keys())
+				for key in existingKeys:
+					if not key in allAxisIDs:
+						del coords[key]
+						changed = True
+						
+				if changed:
+					layer.attributes["coordinates"] = coords
+					count += 1
+		if count > 0:
+			print(f"🦾 Updated {count} brace layer{'' if count==1 else 's'} for ‘{glyph.name}’")
+	
 def axisIdForTag(font, tag="wght"):
 	for i, a in enumerate(font.axes):
 		if a.axisTag == tag:
@@ -416,6 +457,11 @@ class BatchGrader(object):
 					if gradeAxis.name != axisName:
 						print(f"Updating {axisTag} axis name: {gradeAxis.name} → {axisName}")
 						gradeAxis.name = axisName
+
+				# avoid ‘Master is outside of the interpolation space’ error:
+				updateBraceLayers(thisFont)
+				print()
+
 				gradeAxisID = axisIdForTag(thisFont, axisTag)
 
 				# query more user choices:
