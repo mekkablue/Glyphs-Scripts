@@ -159,30 +159,50 @@ class BatchGrader(object):
 		linePos, inset, lineHeight = 12, 15, 22
 
 		indent = 65
+		tooltipText = "The Grade value. Should roughly correspnd to the weight value. E.g., Grade 100 means that the shapes appear to be of the weight that is 100 above the current weight."
 		self.w.gradeText = vanilla.TextBox((inset, linePos+3, indent, 14), "Add grade:", sizeStyle="small", selectable=True)
+		self.w.gradeText.getNSTextField().setToolTip_(tooltipText)
 		self.w.grade = vanilla.ComboBox((inset+indent, linePos-1, 55, 19), ("-100", "-50", "50", "100"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.grade.getNSComboBox().setToolTip_(tooltipText)
+		
+		tooltipText = "The Grade axis. Specify a four-letter axis tag (default ‘GRAD’) and a human-readable name (default ‘Grade’). Use all-caps letters for the axis tag as long as Grade is not a registered axis in the OpenType spec. The update button will insert the current convention: tag ‘GRAD’ and name ‘Grade’."
 		self.w.axisTagText = vanilla.TextBox((inset+indent+65, linePos+3, 100, 14), "Axis tag & name:", sizeStyle="small", selectable=True)
+		self.w.axisTagText.getNSTextField().setToolTip_(tooltipText)
 		self.w.axisTag = vanilla.EditText((inset+indent+100+60, linePos, 45, 19), "GRAD", callback=self.SavePreferences, sizeStyle="small")
+		self.w.axisTag.getNSTextField().setToolTip_(tooltipText)
 		self.w.axisName = vanilla.EditText((inset+indent+100+110, linePos, -inset-25, 19), "Grade", callback=self.SavePreferences, sizeStyle="small")
+		self.w.axisName.getNSTextField().setToolTip_(tooltipText)
 		self.w.axisReset = vanilla.SquareButton((-inset-20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateUI)
+		self.w.axisReset.getNSButton().setToolTip_(tooltipText)
 		linePos += lineHeight
 		
 		indent = 110
+		tooltipText = "Renaming for the newly added graded masters. You can search and replace in the name of the base master, the result will be used as name for the graded master. Leave the ‘Search for’ field empty if you want to just add a particle to the end of the master name, e.g. ‘Graded’ only in the ‘Replace with’ field."
 		self.w.searchForText = vanilla.TextBox((inset, linePos+3, indent, 14), "In name, search for:", sizeStyle="small", selectable=True)
+		self.w.searchForText.getNSTextField().setToolTip_(tooltipText)
 		self.w.searchFor = vanilla.EditText((inset+indent, linePos, 60, 19), self.pref("searchFor"), callback=self.SavePreferences, sizeStyle="small")
+		self.w.searchFor.getNSTextField().setToolTip_(tooltipText)
 		self.w.replaceWithText = vanilla.TextBox((inset+indent+65, linePos+3, 100, 14), "and replace with:", sizeStyle="small", selectable=True)
+		self.w.replaceWithText.getNSTextField().setToolTip_(tooltipText)
 		self.w.replaceWith = vanilla.EditText((inset+indent+165, linePos, -inset, 19), self.pref("replaceWith"), callback=self.SavePreferences, sizeStyle="small")
+		self.w.replaceWith.getNSTextField().setToolTip_(tooltipText)
 		linePos += lineHeight
 
 		indent = 150
+		tooltipText = "Specify which masters are ignored for (a) interpolating the graded masters and (b) resetting the recipe. Add comma-separated name particles. All masters containing these particles will be ignored."
 		self.w.excludeFromInterpolationText = vanilla.TextBox((inset, linePos+3, -inset, 14), "Ignore masters containing:", sizeStyle="small", selectable=True)
+		self.w.excludeFromInterpolationText.getNSTextField().setToolTip_(tooltipText)
 		self.w.excludeFromInterpolation = vanilla.EditText((inset+indent, linePos, -inset-25, 19), self.prefDict["excludeFromInterpolation"], callback=self.SavePreferences, sizeStyle="small")
+		self.w.excludeFromInterpolation.getNSTextField().setToolTip_(tooltipText)
 		self.w.ignoreReset = vanilla.SquareButton((-inset-20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateUI)
+		self.w.ignoreReset.getNSButton().setToolTip_(tooltipText)
 		linePos += lineHeight
 
 		self.w.addSyncMetricCustomParameter = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Add custom parameter ‘Link Metrics With Master’ (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addSyncMetricCustomParameter.getNSButton().setToolTip_("Will add a custom parameter that links the spacing and kerning of the graded master to its respective base master. Keep this checkbox on unless you know what you are doing.")
 		linePos += lineHeight
 		
+		tooltipText = "When refitting the graded shapes into the respective base widths, what should happen with metrics keys? If you don’t do anything, it will still work, but Glyphs will show a lot of metric sync warnings in Font View. If you disable all keys, the script will add self referential layer keys to overwrite the glyph keys, effectively disabling the metrics key on the graded master. In special cases, you can also choose to prefer (and update) the keys of one side only."
 		metricsKeyOptions = (
 			"Don’t do anything (will keep metrics warnings though)",
 			"Prefer RSB keys (and disable LSB keys in graded masters)",
@@ -190,13 +210,17 @@ class BatchGrader(object):
 			"Disable all keys in graded masters (recommended)",
 			)
 		self.w.metricsKeyChoiceText = vanilla.TextBox((inset, linePos+2, 130, 14), "Deal with metrics keys:", sizeStyle="small", selectable=True)
+		self.w.metricsKeyChoiceText.getNSTextField().setToolTip_(tooltipText)
 		self.w.metricsKeyChoice = vanilla.PopUpButton((inset+130, linePos, -inset, 17), metricsKeyOptions, sizeStyle="small", callback=self.SavePreferences)
+		self.w.metricsKeyChoice.getNSPopUpButton().setToolTip_(tooltipText)
 		linePos += lineHeight
 		
+		tooltipText = "Will actively recenter glyphs after interpolation if they are centered in the base master. The threshold specifies the maximum difference between LSB and RSB that is acceptable to consider the glyph centered. Best to use 1 or 2."
 		self.w.keepCenteredGlyphsCentered = vanilla.CheckBox((inset, linePos, 305, 20), "Keep centered glyphs centered; max SB diff threshold:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.keepCenteredGlyphsCentered.getNSButton().setToolTip_(tooltipText)
 		self.w.keepCenteredThreshold = vanilla.EditText((inset+305, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle="small")
+		self.w.keepCenteredThreshold.getNSTextField().setToolTip_(tooltipText)
 		linePos += lineHeight
-		
 
 		linePos += 10
 		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Recipe for new graded masters:", sizeStyle="small", selectable=True)
@@ -218,6 +242,9 @@ class BatchGrader(object):
 
 		# Buttons:
 		self.w.resetButton = vanilla.Button((inset, -20-inset, 80, -inset), "Reset", sizeStyle="regular", callback=self.ResetGraderCode)
+		self.w.resetButton.getNSButton().setToolTip_("Will populate the recipe field with the masters and the settings above. Careful: will overwrite what you had here before.")
+		self.w.helpButton = vanilla.HelpButton((inset+90, -20-inset, 21, 21), callback=self.openURL)
+		self.w.helpButton.getNSButton().setToolTip_("Will open a Loom video explaining the script. You need an internet connection.")
 		self.w.runButton = vanilla.Button((-120-inset, -20-inset, -inset, -inset), "Add Grades", sizeStyle="regular", callback=self.BatchGraderMain)
 		self.w.setDefaultButton(self.w.runButton)
 		
@@ -243,25 +270,33 @@ class BatchGrader(object):
 			self.w.axisName.set("Grade")
 			self.SavePreferences()
 		elif sender == self.w.ignoreReset:
+			excludeParticles = []
 			thisFont = Glyphs.font
 			grade = int(self.pref("grade").strip())
 			axisTag = f'{self.pref("axisTag").strip()[:4]:4}'
 			axisID = axisIdForTag(thisFont, axisTag)
 			if axisID != None:
 				masterNames = [m.name for m in thisFont.masters if m.axes[axisID]==grade]
-				excludeParticles = []
 				commonParticle = biggestSubstringInStrings(masterNames)
 				if commonParticle:
 					excludeParticles.append(commonParticle)
-				for prefName in ("replaceWith", "axisName"):
-					if self.pref(prefName):
-						excludeParticles.append(self.pref(prefName))
-				if excludeParticles:
-					self.w.excludeFromInterpolation.set(", ".join(set(excludeParticles)))
+			for prefName in ("replaceWith", "axisName"):
+				if self.pref(prefName):
+					excludeParticles.append(self.pref(prefName))
+			if excludeParticles:
+				self.w.excludeFromInterpolation.set(", ".join(set(excludeParticles)))
 			self.SavePreferences()
 		else:
 			self.w.keepCenteredGlyphsCentered.enable(not self.w.metricsKeyChoice.get() in (1, 2))
 			self.w.keepCenteredThreshold.enable(self.w.keepCenteredGlyphsCentered.get() and self.w.keepCenteredGlyphsCentered.isEnabled())
+	
+	def openURL(self, sender=None):
+		URL = None
+		if sender == self.w.helpButton:
+			URL = "https://www.loom.com/share/3883d03e5f194b35ae80a90b2aca1395?sid=a1619ac8-c38a-4e30-879d-f08ea907d045"
+		if URL:
+			import webbrowser
+			webbrowser.open(URL)
 		
 	def SavePreferences(self, sender=None):
 		try:
@@ -388,7 +423,7 @@ class BatchGrader(object):
 				replaceWith = self.pref("replaceWith")
 				metricsKeyChoice = self.pref("metricsKeyChoice")
 				keepCenteredGlyphsCentered = self.pref("keepCenteredGlyphsCentered")
-				keepCenteredThreshold = self.pref("keepCenteredThreshold")
+				keepCenteredThreshold = self.pref("keepCenteredThreshold").strip()
 
 				# parse code and step through masters:
 				graderCode = self.pref("graderCode").strip()
@@ -514,7 +549,7 @@ class BatchGrader(object):
 						print("↔️ Recentering centered glyphs...")
 						for baseGlyph in thisFont.glyphs:
 							baseLayer = baseGlyph.layers[master.id]
-							if abs(baseLayer.LSB-baseLayer.RSB) <= keepCenteredThreshold:
+							if abs(baseLayer.LSB-baseLayer.RSB) <= int(keepCenteredThreshold):
 								gradeLayer = baseGlyph.layers[gradeMaster.id]
 								offCenter = gradeLayer.RSB - gradeLayer.LSB
 								if abs(offCenter) > 1:
