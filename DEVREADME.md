@@ -13,12 +13,22 @@ Thanks!
 
 ## Code conventions
 
+** Note about yapf** It has some bugs that messes with the indentain of closing parentesis/braces!
 * Use the `.style.yapf` that is provided on the root level of the repo: `yapf --style .style.yapf -i path/to/script.py`
 * Use tabs, not spaces, for indentation.
 * Be perfomance aware.
 	* Wherever possible, use tuples instead of lists.
 	* Consider `myTuple = (n for n in myList)` instead of `tuple(myList)`.
 	* When in doubt, use the *timer* snippet (see below about snippets).
+
+### To run `flake8`
+
+* Use this command in Terminal the root of the repo: `flake8`
+
+### To run `mypy`
+
+* tell mypy where to find the GlyphsApp module: run this in the Terminal: `export MYPYPATH="~/Code/Glyphs/Glyphs/Scripts/:$MYPYPATH"` (ajust to full paths)
+* run mypy: `mypy --ignore-missing-imports .`
 
 ## Reporting
 
@@ -31,4 +41,3 @@ Thanks!
 ## Snippets
 
 Are you using Sublime Text or TextMate? For frequent code pieces, consider the [Python for Glyphs snippets](https://github.com/mekkablue/Python-for-Glyphs "Python code snippets for the Glyphs.app font editor, for Sublime Text and TextMate") on GitHub.
-

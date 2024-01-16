@@ -1,0 +1,10 @@
+{
+	"editor.insertSpaces": false,
+	"editor.formatOnSaveMode": "file",
+	"editor.formatOnSave": false,
+	"editor.formatOnType": false,
+	"flake8.args": [
+		"--ignore=W191,E501,E722,W503",
+		"--verbose"
+	],
+}
