@@ -73,10 +73,7 @@ def cleanVersionStringProperty(thisFont):
 	propValue = "Version %d.%03d"
 	if Glyphs.versionNumber >= 3:
 		# GLYPHS 3
-		prop = GSFontInfoValueSingle()
-		prop.key = propKey
-		prop.value = propValue
-		thisFont.properties.append(prop)
+		thisFont.setProperty_value_languageTag_(propKey, propValue, None)
 	else:
 		# GLYPHS 2
 		thisFont.customParameters[propKey] = propValue

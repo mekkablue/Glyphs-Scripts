@@ -86,8 +86,8 @@ def keepOnlyFirstMaster(thisFont):
 	# delete all masters except first one:
 	if Glyphs.versionNumber >= 3:
 		# GLYPHS 3
-		while len(Font.masters) > 1:
-			del Font.masters[-1]
+		while len(thisFont.masters) > 1:
+			del thisFont.masters[-1]
 	else:
 		# GLYPHS 2
 		for i in range(len(thisFont.masters))[:0:-1]:

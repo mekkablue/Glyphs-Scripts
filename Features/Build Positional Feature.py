@@ -36,7 +36,7 @@ def createOTFeature(featureName="calt", featureCode="# empty feature code", targ
 			for targetFeature in featuresWithSig:
 				# replace old code with new code:
 				targetFeature.code = updatedCode(targetFeature.code, beginSig, endSig, featureCode)
-			returnText = "✅ Updated %i existing OT feature%s ‘%s’." % (
+			return "✅ Updated %i existing OT feature%s ‘%s’." % (
 				len(featuresWithSig),
 				"" if len(featuresWithSig) == 1 else "s",
 				featureName,
@@ -45,7 +45,7 @@ def createOTFeature(featureName="calt", featureCode="# empty feature code", targ
 			# feature already exists:
 			targetFeature = targetFont.features[featureName]  # take the first available one
 			targetFeature.code += "\n" + beginSig + featureCode + "\n" + endSig
-			returnText = "✅ Added code to first available OT feature ‘%s’." % featureName
+			return "✅ Added code to first available OT feature ‘%s’." % featureName
 		else:
 			# create feature with new code:
 			newFeature = GSFeature()

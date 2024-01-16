@@ -25,7 +25,7 @@ def intersectionsBetweenPoints(thisLayer, startPoint, endPoint):
 	# measure and return tuple:
 	listOfIntersections = cleanLayer.intersectionsBetweenPoints(startPoint, endPoint)
 	if len(listOfIntersections) % 2 == 1:
-		listOfIntersections = calculateIntersectionsStartPoint_endPoint_decompose_(startPoint, endPoint, True)
+		listOfIntersections = cleanLayer.calculateIntersectionsStartPoint_endPoint_decompose_(startPoint, endPoint, True)
 	return listOfIntersections
 
 

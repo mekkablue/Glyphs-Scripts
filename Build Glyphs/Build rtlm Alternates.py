@@ -82,7 +82,7 @@ try:
 					else:
 						rtlmLayer.components.append(component)  # type: ignore
 					rtlmLayer.transform_checkForSelection_doComponents_(flipTransform, False, True)
-					component.setDisableAlignment_(False)
+					component.automaticAlignment = True
 
 				print("🙌 %s → %s" % (glyphName, rtlmName))
 

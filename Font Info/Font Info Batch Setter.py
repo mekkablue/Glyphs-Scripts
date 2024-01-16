@@ -13,10 +13,7 @@ from GlyphsApp import Glyphs, Message
 def addPropertyToFont(font, key, value):
 	while font.propertyForName_(key):
 		font.removeObjectFromProperties_(font.propertyForName_(key))
-	prop = GSFontInfoValueSingle()
-	prop.key = key
-	prop.value = value
-	font.properties.append(prop)
+	font.setProperty_value_languageTag_(key, value, None)
 
 
 class FontInfoBatchSetter(object):
