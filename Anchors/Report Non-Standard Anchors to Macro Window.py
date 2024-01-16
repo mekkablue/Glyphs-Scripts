@@ -76,42 +76,44 @@ class ReportNonStandardAnchorsInMacroWindow(object):
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()
 			thisFont = Glyphs.font
+			if not thisFont:
+				print("Not Font open")
+				return
 
 			print("Unusual anchors in %s" % thisFont.familyName)
 			print("File: %s\n" % thisFont.filepath)
 
-			if thisFont:
-				for thisGlyph in Font.glyphs:
-					if thisGlyph.export or Glyphs.defaults["com.mekkablue.ReportNonStandardAnchorsInMacroWindow.includeNonExporting"]:
-						thisLayer = thisGlyph.layers[0]
-						if thisLayer.anchors:
+			for thisGlyph in thisFont.glyphs:
+				if thisGlyph.export or Glyphs.defaults["com.mekkablue.ReportNonStandardAnchorsInMacroWindow.includeNonExporting"]:
+					thisLayer = thisGlyph.layers[0]
+					if thisLayer.anchors:
 
-							# determine defaults
-							defaultAnchors = None
-							glyphinfo = thisFont.glyphsInfo().glyphInfoForName_(thisGlyph.name)
-							if glyphinfo:
-								defaultAnchors = glyphinfo.anchors
+						# determine defaults
+						defaultAnchors = None
+						glyphinfo = thisFont.glyphsInfo().glyphInfoForName_(thisGlyph.name)
+						if glyphinfo:
+							defaultAnchors = glyphinfo.anchors
 
-							# find unusual anchors in this glyph
-							unusualAnchors = []
-							if not defaultAnchors:
-								defaultAnchors = ()
-							glyphIsLigature = (thisGlyph.subCategory == "Ligature" or "_" in thisGlyph.name[1:])
-							for thisAnchor in thisLayer.anchors:
-								if not thisAnchor.name in defaultAnchors:
-									anchorIsExitEntry = thisAnchor.name in ("exit", "entry") or thisAnchor.name[1:] in ("exit", "entry")
-									anchorIsCaret = thisAnchor.name.startswith("caret")
+						# find unusual anchors in this glyph
+						unusualAnchors = []
+						if not defaultAnchors:
+							defaultAnchors = ()
+						glyphIsLigature = (thisGlyph.subCategory == "Ligature" or "_" in thisGlyph.name[1:])
+						for thisAnchor in thisLayer.anchors:
+							if thisAnchor.name not in defaultAnchors:
+								anchorIsExitEntry = thisAnchor.name in ("exit", "entry") or thisAnchor.name[1:] in ("exit", "entry")
+								anchorIsCaret = thisAnchor.name.startswith("caret")
 
-									# see if exceptions apply:
-									if anchorIsCaret and glyphIsLigature and not Glyphs.defaults["com.mekkablue.ReportNonStandardAnchorsInMacroWindow.reportCarets"]:
-										pass # carets in ligatures
-									elif anchorIsExitEntry and not Glyphs.defaults["com.mekkablue.ReportNonStandardAnchorsInMacroWindow.reportExitEntry"]:
-										pass # exit and entry anchors
-									else:
-										unusualAnchors.append(thisAnchor.name)
+								# see if exceptions apply:
+								if anchorIsCaret and glyphIsLigature and not Glyphs.defaults["com.mekkablue.ReportNonStandardAnchorsInMacroWindow.reportCarets"]:
+									pass  # carets in ligatures
+								elif anchorIsExitEntry and not Glyphs.defaults["com.mekkablue.ReportNonStandardAnchorsInMacroWindow.reportExitEntry"]:
+									pass  # exit and entry anchors
+								else:
+									unusualAnchors.append(thisAnchor.name)
 
-							if unusualAnchors:
-								print("/%s : %s" % (thisGlyph.name, ", ".join(unusualAnchors)))
+						if unusualAnchors:
+							print("/%s : %s" % (thisGlyph.name, ", ".join(unusualAnchors)))
 
 			print("\n(Hint: Lines can be copied and pasted in Edit view.)")
 			Glyphs.showMacroWindow()
