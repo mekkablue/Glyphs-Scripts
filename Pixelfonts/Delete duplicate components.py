@@ -1,13 +1,17 @@
-#MenuTitle: Delete Duplicate Components
+# MenuTitle: Delete Duplicate Components
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Looks for duplicate components (same component, same x/y values) and keeps only one of them.
 """
 
+from GlyphsApp import Glyphs
+
+
 def getAttr(thisLayer, compNumber):
 	thisComp = thisLayer.components[compNumber]
 	return (thisComp.componentName, thisComp.x, thisComp.y, thisComp.transform)
+
 
 def scanForDuplicates(thisLayer, compNumber):
 	if compNumber == len(thisLayer.components) - 1:
@@ -22,9 +26,10 @@ def scanForDuplicates(thisLayer, compNumber):
 
 		return sorted(set(indexList))
 
+
 def process(thisLayer):
 	if len(thisLayer.components) != 0:
-		# thisLayer.parent.beginUndo() # undo grouping causes crashes
+		# thisLayer.parent.beginUndo()  # undo grouping causes crashes
 		indexesToBeDeleted = scanForDuplicates(thisLayer, 0)
 		for indexToBeDeleted in indexesToBeDeleted[::-1]:
 			if Glyphs.versionNumber >= 3:
@@ -37,10 +42,11 @@ def process(thisLayer):
 			else:
 				# GLYPHS 2
 				del thisLayer.components[indexToBeDeleted]
-		# thisLayer.parent.endUndo() # undo grouping causes crashes
+		# thisLayer.parent.endUndo()  # undo grouping causes crashes
 		return len(indexesToBeDeleted)
 	else:
 		return 0
+
 
 thisFont = Glyphs.font
 thisFont.disableUpdateInterface()
@@ -64,4 +70,4 @@ except Exception as e:
 	raise e
 
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

@@ -1,4 +1,4 @@
-#MenuTitle: New Tab with OT Class
+# MenuTitle: New Tab with OT Class
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Open a new tab with all glyphs contained in a specific OpenType class.
 """
 
 import vanilla
+from GlyphsApp import Glyphs, Message
+
 
 class NewTabWithOTClass(object):
 
@@ -13,15 +15,15 @@ class NewTabWithOTClass(object):
 		# Window 'self.w':
 		windowWidth = 350
 		windowHeight = 60
-		windowWidthResize = 500 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 500  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"New Tab with OT Class", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.NewTabWithOTClass.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"New Tab with OT Class",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.NewTabWithOTClass.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		self.w.text = vanilla.TextBox((15 - 1, 12 + 2, 100, 14), "Pick an OT class:", sizeStyle='small')
@@ -57,7 +59,7 @@ class NewTabWithOTClass(object):
 					title="No OT Class Found",
 					message=u"Found no class to open in a new tab. Please activate a font, press the ↺ update button, and pick a class from the menu.",
 					OKButton=None
-					)
+				)
 			else:
 				selectedClass = classNames[self.w.classMenu.get()]
 				for thisClass in self.font.classes:
@@ -65,12 +67,13 @@ class NewTabWithOTClass(object):
 						glyphNames = thisClass.code.split()
 						escapedGlyphNames = "/" + "/".join(glyphNames)
 						self.font.newTab(escapedGlyphNames)
-				self.w.close() # delete if you want window to stay open
+				self.w.close()  # delete if you want window to stay open
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("New Tab with OT Class Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 NewTabWithOTClass()

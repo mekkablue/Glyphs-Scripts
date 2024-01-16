@@ -1,9 +1,12 @@
-#MenuTitle: Add All Missing Color Layers to Selected Glyphs
+# MenuTitle: Add All Missing Color Layers to Selected Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Adds a duplicate of the fallback (master) layer for each color defined in the Color Palettes parameter, for each selected glyph.
 """
+
+from GlyphsApp import Glyphs, Message
+
 
 def glyphAlreadyHasLayerForThisColor(glyph, mID, colorIndex):
 	for layer in glyph.layers:
@@ -17,6 +20,7 @@ def glyphAlreadyHasLayerForThisColor(glyph, mID, colorIndex):
 				if layer.name == "Color %i" % colorIndex:
 					return True
 	return False
+
 
 def process(thisGlyph, mID, paletteSize):
 	for i in range(paletteSize):
@@ -34,10 +38,11 @@ def process(thisGlyph, mID, paletteSize):
 			thisGlyph.layers.append(newLayer)
 			print("✅ Added: Color %i" % i)
 
-thisFont = Glyphs.font # frontmost font
-selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
-selectedGlyphs = [l.parent for l in selectedLayers]
-Glyphs.clearLog() # clears log in Macro window
+
+thisFont = Glyphs.font  # frontmost font
+selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+selectedGlyphs = [layer.parent for layer in selectedLayers]
+Glyphs.clearLog()  # clears log in Macro window
 
 CPAL = None
 parameterName = "Color Palettes"
@@ -60,4 +65,4 @@ if CPAL is None:
 		title="No Palette Found",
 		message="No ‘Color Palettes’ parameter found in Font Info > Font or Font Info > Masters. Please add the parameter and try again.",
 		OKButton=None,
-		)
+	)

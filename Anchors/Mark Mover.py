@@ -1,4 +1,4 @@
-#MenuTitle: Mark Mover
+# MenuTitle: Mark Mover
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,10 +6,12 @@ Move marks to their respective heights, e.g. *comb.case to cap height, *comb to 
 """
 
 import vanilla
+from GlyphsApp import Glyphs, Message
 
 import math
 from AppKit import NSAffineTransform, NSAffineTransformStruct
 from Foundation import NSPoint
+
 
 def italicize(thisPoint, italicAngle=0.0, pivotalY=0.0):
 	"""
@@ -19,12 +21,13 @@ def italicize(thisPoint, italicAngle=0.0, pivotalY=0.0):
 	Usage: myPoint = italicize(myPoint,10,xHeight*0.5)
 	"""
 	x = thisPoint.x
-	yOffset = thisPoint.y - pivotalY # calculate vertical offset
-	italicAngle = math.radians(italicAngle) # convert to radians
-	tangens = math.tan(italicAngle) # math.tan needs radians
-	horizontalDeviance = tangens * yOffset # vertical distance from pivotal point
-	x += horizontalDeviance # x of point that is yOffset from pivotal point
+	yOffset = thisPoint.y - pivotalY  # calculate vertical offset
+	italicAngle = math.radians(italicAngle)  # convert to radians
+	tangens = math.tan(italicAngle)  # math.tan needs radians
+	horizontalDeviance = tangens * yOffset  # vertical distance from pivotal point
+	x += horizontalDeviance  # x of point that is yOffset from pivotal point
 	return x
+
 
 def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	"""
@@ -32,7 +35,7 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	Apply an NSAffineTransform t object like this:
 		Layer.transform_checkForSelection_doComponents_(t,False,True)
 	Access its transformation matrix like this:
-		tMatrix = t.transformStruct() # returns the 6-float tuple
+		tMatrix = t.transformStruct()  # returns the 6-float tuple
 	Apply the matrix tuple like this:
 		Layer.applyTransform(tMatrix)
 		Component.applyTransform(tMatrix)
@@ -57,6 +60,7 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 		myTransform.appendTransform_(skewTransform)
 	return myTransform
 
+
 def moveLayer(thisLayer, verticalShift):
 	if verticalShift != 0:
 		print("  ↕︎ %i: %s" % (verticalShift, thisLayer.name))
@@ -74,6 +78,7 @@ def moveLayer(thisLayer, verticalShift):
 		thisLayer.syncMetrics()
 		return 0
 
+
 def moveBottomLayer(thisLayer):
 	bottomAnchor = thisLayer.anchors["_bottom"]
 	if bottomAnchor:
@@ -81,6 +86,7 @@ def moveBottomLayer(thisLayer):
 		return moveLayer(thisLayer, verticalShift)
 	else:
 		return 0
+
 
 def moveGlyphToCapHeight(thisGlyph):
 	print("\n🔠 %s:" % thisGlyph.name)
@@ -96,6 +102,7 @@ def moveGlyphToCapHeight(thisGlyph):
 				movedLayers += moveBottomLayer(thisLayer)
 	return movedLayers
 
+
 def moveGlyphToXHeight(thisGlyph):
 	print("\n🔤 %s:" % thisGlyph.name)
 	movedLayers = 0
@@ -109,6 +116,7 @@ def moveGlyphToXHeight(thisGlyph):
 			else:
 				movedLayers += moveBottomLayer(thisLayer)
 	return movedLayers
+
 
 def moveGlyphToSmallCapHeight(thisGlyph):
 	print("\n🆒 %s:" % thisGlyph.name)
@@ -125,21 +133,22 @@ def moveGlyphToSmallCapHeight(thisGlyph):
 				movedLayers += moveBottomLayer(thisLayer)
 	return movedLayers
 
+
 class MarkMover(object):
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 310
 		windowHeight = 220
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Mark Mover", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.MarkMover.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Mark Mover",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.MarkMover.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -149,9 +158,7 @@ class MarkMover(object):
 		self.w.lowercaseMarks = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Move …comb marks to x-height", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.uppercaseMarks = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Move …comb.case marks to cap height", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.uppercaseMarks = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Move …comb.case marks to cap height", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.smallcapMarks = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Move …comb.sc to smallcap height", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -163,9 +170,7 @@ class MarkMover(object):
 		self.w.rightMetricsKey = vanilla.EditText((inset + 230, linePos - 1, 50, 19), "=|", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.includeAllGlyphs = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Include all glyphs in font (otherwise just selection)", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.includeAllGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include all glyphs in font (otherwise just selection)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.newTab = vanilla.CheckBox((inset, linePos - 1, 140, 20), "Open tab with marks", value=True, callback=self.SavePreferences, sizeStyle='small')
@@ -252,7 +257,7 @@ class MarkMover(object):
 			if not self.SavePreferences():
 				print("Note: 'Mark Mover' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -276,7 +281,7 @@ class MarkMover(object):
 				if includeAllGlyphs:
 					glyphs = thisFont.glyphs
 				else:
-					glyphs = [l.parent for l in thisFont.selectedLayers]
+					glyphs = [layer.parent for layer in thisFont.selectedLayers]
 
 				glyphNames = []
 				movedMarks = 0
@@ -302,8 +307,8 @@ class MarkMover(object):
 					"" if movedMarks == 1 else "s",
 					len(glyphNames),
 					"" if len(glyphNames) == 1 else "s",
-					),
-				)
+				),
+			)
 
 			print("\nDone.")
 
@@ -317,8 +322,9 @@ class MarkMover(object):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Mark Mover Error: %s" % e)
+			print(f"Mark Mover Error: {e}")
 			import traceback
 			print(traceback.format_exc())
+
 
 MarkMover()

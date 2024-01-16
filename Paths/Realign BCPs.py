@@ -1,12 +1,13 @@
-#MenuTitle: Realign BCPs
+# MenuTitle: Realign BCPs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Realigns handles (BCPs) in current layers of selected glyphs. Useful for resetting out-of-sync handles, e.g., after a transform operation, after interpolation or after switching to a different grid. Hold down Option to process ALL layers of the glyph.
 """
 
-from Foundation import NSPoint, NSNumber, NSMutableArray, NSClassFromString
+from Foundation import NSPoint
 from AppKit import NSEvent, NSEventModifierFlagOption
+from GlyphsApp import Glyphs, GSSMOOTH, GSOFFCURVE
 
 Glyphs.clearLog()
 thisFont = Glyphs.font
@@ -15,10 +16,13 @@ print(f"Aligning BCPs in {thisFont.filepath.lastPathComponent().stringByDeleting
 keysPressed = NSEvent.modifierFlags()
 optionKeyPressed = keysPressed & NSEventModifierFlagOption == NSEventModifierFlagOption
 
+
 def triplet(n1, n2, n3):
 	return (*n1.position, *n2.position, *n3.position)
 
+
 def straightenBCPs(layer):
+
 	def closestPointOnLine(P, A, B):
 		# vector of line AB
 		AB = NSPoint(B.x - A.x, B.y - A.y)
@@ -31,7 +35,7 @@ def straightenBCPs(layer):
 		x = A.x + t * AB.x
 		y = A.y + t * AB.y
 		return NSPoint(x, y)
-	
+
 	def ortho(n1, n2):
 		xDiff = n1.x - n2.x
 		yDiff = n1.y - n2.y
@@ -40,14 +44,14 @@ def straightenBCPs(layer):
 		if xDiff != yDiff and xDiff * yDiff == 0.0:
 			return True
 		return False
-	
+
 	handleCount = 0
 	for p in layer.paths:
 		for n in p.nodes:
 			if n.connection != GSSMOOTH:
 				continue
 			nn, pn = n.nextNode, n.prevNode
-			if all((nn.type == OFFCURVE, pn.type == OFFCURVE)):
+			if all((nn.type == GSOFFCURVE, pn.type == GSOFFCURVE)):
 				# surrounding points are BCPs
 				smoothen, center, opposite = None, None, None
 				for handle in (nn, pn):
@@ -56,39 +60,34 @@ def straightenBCPs(layer):
 						opposite = handle
 						smoothen = nn if nn != handle else pn
 						oldPos = triplet(smoothen, center, opposite)
-						p.setSmooth_withCenterNode_oppositeNode_(
-							smoothen, center, opposite,
-							)
+						p.setSmooth_withCenterNode_oppositeNode_(smoothen, center, opposite)
 						if oldPos != triplet(smoothen, center, opposite):
 							handleCount += 1
 						break
-				if smoothen == center == opposite == None:
+				if smoothen == center == opposite is None:
 					oldPos = triplet(n, nn, pn)
-					n.position = closestPointOnLine(
-						n.position, nn, pn,
-						)
+					n.position = closestPointOnLine(n.position, nn, pn)
 					if oldPos != triplet(n, nn, pn):
-						handleCount +=1
-			elif n.type != OFFCURVE and (nn.type, pn.type).count(OFFCURVE) == 1:
+						handleCount += 1
+			elif n.type != GSOFFCURVE and (nn.type, pn.type).count(GSOFFCURVE) == 1:
 				# only one of the surrounding points is a BCP
 				center = n
-				if nn.type == OFFCURVE:
+				if nn.type == GSOFFCURVE:
 					smoothen = nn
 					opposite = pn
-				elif pn.type == OFFCURVE:
+				elif pn.type == GSOFFCURVE:
 					smoothen = pn
 					opposite = nn
 				else:
-					continue # should never occur
+					continue  # should never occur
 				oldPos = triplet(smoothen, center, opposite)
-				p.setSmooth_withCenterNode_oppositeNode_(
-					smoothen, center, opposite,
-					)
+				p.setSmooth_withCenterNode_oppositeNode_(smoothen, center, opposite)
 				if oldPos != triplet(smoothen, center, opposite):
 					handleCount += 1
 	return handleCount
 
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+
+thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 try:
 	for thisLayer in thisFont.selectedLayers:
 		thisGlyph = thisLayer.parent
@@ -109,5 +108,5 @@ except Exception as e:
 	print()
 	raise e
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
 	print("Done.")

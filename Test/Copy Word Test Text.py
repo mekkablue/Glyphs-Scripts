@@ -1,4 +1,4 @@
-#MenuTitle: Copy Word Test Text
+# MenuTitle: Copy Word Test Text
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,8 +6,10 @@ Copies a test text for Microsoft Word into the clipboard.
 """
 
 from AppKit import NSStringPboardType, NSPasteboard
-thisFont = Glyphs.font # frontmost font
-Glyphs.clearLog() # clears macro window log
+from GlyphsApp import Glyphs
+
+thisFont = Glyphs.font  # frontmost font
+Glyphs.clearLog()  # clears macro window log
 print("Copy Word Test Text")
 print("Font: %s\n" % thisFont.familyName)
 
@@ -43,7 +45,7 @@ for i, currGlyph in enumerate(glyphs):
 		else:
 			Glyphs.glyphInfoForUnicode(currGlyph.unicode).unicharString()
 	else:
-		copyString += charString.replace(u"⁄", u" ⁄ ") # extra space for fraction
+		copyString += charString.replace(u"⁄", u" ⁄ ")  # extra space for fraction
 		if currGlyph.name == "ldot":
 			copyString += "l"
 		elif currGlyph.name == "Ldot":
@@ -62,12 +64,12 @@ for feature in thisFont.features:
 		# scan feature code for substitutions:
 		if "sub " in feature.code:
 			lines = feature.code.splitlines()
-			for l in lines:
-				if l and l.startswith("sub "): # find a sub line
-					l = l[4:l.find("by")] # get the glyphnames between sub and by
-					featureglyphnames = l.replace("'", "").split(" ") # remove contextual tick, split them at the spaces
+			for line in lines:
+				if line and line.startswith("sub "):  # find a sub line
+					line = line[4:line.find("by")]  # get the glyphnames between sub and by
+					featureglyphnames = line.replace("'", "").split(" ")  # remove contextual tick, split them at the spaces
 					for glyphname in featureglyphnames:
-						if glyphname: # exclude a potential empty string
+						if glyphname:  # exclude a potential empty string
 							# suffixed glyphs:
 							if "." in glyphname:
 								glyphname = glyphname[:glyphname.find(".")]
@@ -100,6 +102,7 @@ for feature in thisFont.features:
 
 copyString += "\n\n"
 
+
 def setClipboard(myText):
 	"""
 	Sets the contents of the clipboard to myText.
@@ -110,8 +113,9 @@ def setClipboard(myText):
 		myClipboard.declareTypes_owner_([NSStringPboardType], None)
 		myClipboard.setString_forType_(myText, NSStringPboardType)
 		return True
-	except Exception as e:
+	except Exception as e:  # noqa: F841
 		return False
+
 
 print("\n💕 Copying test text into clipboard...")
 if not setClipboard(copyString):
@@ -124,5 +128,5 @@ Glyphs.showNotification(
 	u"Test text for MS Word in clipboard. Encountered %i error%s processing the font. Details in Macro Window." % (
 		errorCount,
 		"" if errorCount == 1 else "s",
-		),
-	)
+	),
+)

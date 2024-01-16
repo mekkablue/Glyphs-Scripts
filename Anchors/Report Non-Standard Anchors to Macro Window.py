@@ -1,4 +1,4 @@
-#MenuTitle: Report Non-Standard Anchors to Macro Window
+# MenuTitle: Report Non-Standard Anchors to Macro Window
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Goes through all glyphs in the font and reports in the Macro Window if it finds 
 """
 
 import vanilla
+from GlyphsApp import Glyphs
+
 
 class ReportNonStandardAnchorsInMacroWindow(object):
 
@@ -13,28 +15,24 @@ class ReportNonStandardAnchorsInMacroWindow(object):
 		# Window 'self.w':
 		windowWidth = 400
 		windowHeight = 150
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Report Non-Standard Anchors to Macro Window", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.ReportNonStandardAnchorsInMacroWindow.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Report Non-Standard Anchors to Macro Window",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.ReportNonStandardAnchorsInMacroWindow.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		inset = 10
 		currentHeight = 8
 		self.w.text_1 = vanilla.TextBox((inset, currentHeight + 2, -inset, 28), __doc__.strip(), sizeStyle='small')
 		currentHeight += 35
-		self.w.includeNonExporting = vanilla.CheckBox(
-			(inset, currentHeight, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.includeNonExporting = vanilla.CheckBox((inset, currentHeight, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		currentHeight += 20
-		self.w.reportExitEntry = vanilla.CheckBox(
-			(inset, currentHeight, -inset, 20), "Report exit and entry anchors", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.reportExitEntry = vanilla.CheckBox((inset, currentHeight, -inset, 20), "Report exit and entry anchors", value=False, callback=self.SavePreferences, sizeStyle='small')
 		currentHeight += 20
 		self.w.reportCarets = vanilla.CheckBox((inset, currentHeight, -inset, 20), "Report ligature caret anchors", value=False, callback=self.SavePreferences, sizeStyle='small')
 
@@ -121,12 +119,13 @@ class ReportNonStandardAnchorsInMacroWindow(object):
 			if not self.SavePreferences(self):
 				print("Note: 'Report Non-Standard Anchors to Macro Window' could not write preferences.")
 
-			self.w.close() # delete if you want window to stay open
+			self.w.close()  # delete if you want window to stay open
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Report Non-Standard Anchors to Macro Window Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 ReportNonStandardAnchorsInMacroWindow()

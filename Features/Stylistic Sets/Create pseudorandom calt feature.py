@@ -1,14 +1,18 @@
-#MenuTitle: Create pseudorandom calt feature from ssXX glyphs
+# MenuTitle: Create pseudorandom calt feature from ssXX glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Create pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font.
 """
 
+from GlyphsApp import Glyphs, GSFeature, GSClass
+
+
 lineLength = 70
 addDefault = True
 featureName = "calt"
 classNamePrefix = featureName
+
 
 def ssXXsuffix(i):
 	"""Turns an integer into an ssXX ending between .ss01 and .ss20, e.g. 5 -> '.ss05'."""
@@ -17,12 +21,14 @@ def ssXXsuffix(i):
 		returnString = ".ss%02i" % i
 	return returnString
 
+
 def updated_code(oldcode, beginsig, endsig, newcode):
 	"""Replaces text in oldcode with newcode, but only between beginsig and endsig."""
 	begin_offset = oldcode.find(beginsig)
 	end_offset = oldcode.find(endsig) + len(endsig)
 	newcode = oldcode[:begin_offset] + beginsig + newcode + "\n" + endsig + oldcode[end_offset:]
 	return newcode
+
 
 def create_otfeature(featurename="calt", featurecode="# empty feature code", targetFont=Glyphs.font, codesig="PSEUDORANDOM"):
 	"""
@@ -53,6 +59,7 @@ def create_otfeature(featurename="calt", featurecode="# empty feature code", tar
 		targetFont.features.append(newFeature)
 		return "Created new OT feature '%s'" % featurename
 
+
 def create_otclass(className="@default", classGlyphs=[g.name for g in Glyphs.font.glyphs if "." not in g.name], targetFont=Glyphs.font):
 	"""
 	Creates an OpenType class in the thisFont.
@@ -76,6 +83,7 @@ def create_otclass(className="@default", classGlyphs=[g.name for g in Glyphs.fon
 		targetFont.classes.append(newClass)
 		return "Created new OT class: '%s'" % className
 
+
 def highestStylisticSetInNameList(nameList):
 	ssXX_exists = True
 	i = 1
@@ -88,6 +96,7 @@ def highestStylisticSetInNameList(nameList):
 		else:
 			i += 1
 	return i
+
 
 thisFont = Glyphs.font
 allGlyphs = [x.name for x in list(thisFont.glyphs)]

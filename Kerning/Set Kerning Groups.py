@@ -1,4 +1,4 @@
-#MenuTitle: Set Kerning Groups
+# MenuTitle: Set Kerning Groups
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,7 @@ Sets left and right kerning groups for all selected glyphs. In the case of compo
 """
 
 # Copyright: Georg Seifert, 2010, www.schriftgestaltung.de Version 1.0
+from GlyphsApp import Glyphs, Message
 
 import traceback
 verbose = False
@@ -434,7 +435,7 @@ Keys = [
 	"perthousand",
 	"semicolon",
 	"quotedblbase"
-	]
+]
 
 DefaultKeys = {
 	"B": ("H", ""),
@@ -448,7 +449,7 @@ DefaultKeys = {
 	"L": ("H", ""),
 	"N": ("H", "H"),
 	"P": ("H", ""),
-	"Q": ("O", "O"),
+	# "Q": ("O", "O"),
 	"R": ("H", ""),
 	"Aacute": ("A", "A"),
 	"Acaron": ("A", "A"),
@@ -515,7 +516,7 @@ DefaultKeys = {
 	"Odieresis": ("O", "O"),
 	"OE": ("O", "E"),
 	"Ograve": ("O", "O"),
-	"Ohorn": ("O", "O"),
+	# "Ohorn": ("O", "O"),
 	"Ohungarumlaut": ("O", "O"),
 	"Omacron": ("O", "O"),
 	"Oslash": ("O", "O"),
@@ -587,7 +588,7 @@ DefaultKeys = {
 	"ccedilla": ("o", "c"),
 	"ccircumflex": ("o", "c"),
 	"cdotaccent": ("o", "c"),
-	"dcaron": ("o", "l"),
+	# "dcaron": ("o", "l"),
 	"dcroat": ("o", "l"),
 	"eacute": ("o", "e"),
 	"ebreve": ("o", "e"),
@@ -618,9 +619,8 @@ DefaultKeys = {
 	"ij": ("i", "i"),
 	"jcircumflex": ("j", "j"),
 	"kcommaaccent": ("h", "k"),
-	"kgreenlandic": ("h", "k"),
 	"lacute": ("h", "l"),
-	"lcaron": ("h", "l"),
+	# "lcaron": ("h", "l"),
 	"lcommaaccent": ("h", "l"),
 	"ldot": ("h", "l"),
 	"nacute": ("n", "n"),
@@ -635,7 +635,7 @@ DefaultKeys = {
 	"odieresis": ("o", "o"),
 	"oe": ("o", "e"),
 	"ograve": ("o", "o"),
-	"ohorn": ("o", "o"),
+	# "ohorn": ("o", "o"),
 	"ohungarumlaut": ("o", "o"),
 	"omacron": ("o", "o"),
 	"oslash": ("o", "o"),
@@ -660,7 +660,7 @@ DefaultKeys = {
 	"ucircumflex": ("u", "u"),
 	"udieresis": ("u", "u"),
 	"ugrave": ("u", "u"),
-	"uhorn": ("u", "u"),
+	# "uhorn": ("u", "u"),
 	"uhungarumlaut": ("u", "u"),
 	"umacron": ("u", "u"),
 	"uogonek": ("u", "u"),
@@ -885,7 +885,8 @@ DefaultKeys = {
 	"uhorn.sc": ("u.sc", "uhorn.sc"),
 	"schwa": ("o", "o"),
 	"kgreenlandic": ("n", "k"),
-	}
+}
+
 
 def KeysForGlyph(Glyph):
 	if Glyph is None:
@@ -918,6 +919,7 @@ def KeysForGlyph(Glyph):
 
 	return (LeftKey, RightKey)
 
+
 def updateKeyGlyphsForSelected():
 	countL, countR = 0, 0
 	Font = Glyphs.font
@@ -929,7 +931,7 @@ def updateKeyGlyphsForSelected():
 			Glyph.rightKerningGroup = None
 			print("🔠 %s: 🚫 ↔️ 🚫" % Glyph.name)
 			continue
-			
+
 		LeftKey = ""
 		RightKey = ""
 		LigatureComponents = Glyph.name.split("_")
@@ -951,7 +953,7 @@ def updateKeyGlyphsForSelected():
 						if Component.transform[0] == 1:
 							componentGlyph = Component.component
 					elif Component.component.category != "Mark":
-						#componentGlyph = None
+						# componentGlyph = None
 						pass
 				except:
 					pass
@@ -964,10 +966,10 @@ def updateKeyGlyphsForSelected():
 
 		elif len(LigatureComponents) > 1:
 			LeftGlyph = Font.glyphs[LigatureComponents[0]]
-			if LeftGlyph != None:
+			if LeftGlyph is not None:
 				LeftKey = KeysForGlyph(LeftGlyph)[0]
 			RightGlyph = Font.glyphs[LigatureComponents[-1]]
-			if RightGlyph != None:
+			if RightGlyph is not None:
 				RightKey = KeysForGlyph(RightGlyph)[1]
 
 		if LeftKey:
@@ -1036,7 +1038,8 @@ def updateKeyGlyphsForSelected():
 		title="Kerning Groups Report",
 		message="Set %i left and %i right groups in %i selected glyphs. Detailed report in Window → Macro Panel." % (countL, countR, len(SelectedLayers)),
 		OKButton=None,
-		)
+	)
+
 
 def main():
 	Glyphs.clearLog()
@@ -1044,15 +1047,17 @@ def main():
 	updateKeyGlyphsForSelected()
 	print("\nDone.")
 
+
 def test():
 	NewDefaultKeys = {}
 	for key in Keys:
-		key = niceName(key)
+		key = Glyphs.niceGlyphName(key)
 		values = DefaultKeys[key]
 		newValues = []
 		for value in values:
-			newValues.append(niceName(value))
+			newValues.append(Glyphs.niceGlyphName(value))
 		print("	\"%s\" : [\"%s\", \"%s\"]," % (key, newValues[1], newValues[0]))
 		NewDefaultKeys[key] = newValues
+
 
 main()

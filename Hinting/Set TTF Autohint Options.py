@@ -1,9 +1,9 @@
-#MenuTitle: Set ttfautohint Options
+# MenuTitle: Set ttfautohint Options
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 try:
 	from builtins import str
-except Exception as e:
+except Exception as e:  # noqa: F841
 	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 __doc__ = """
 Set options for existing 'TTFAutohint options' Custom Parameters.
@@ -11,6 +11,9 @@ Set options for existing 'TTFAutohint options' Custom Parameters.
 
 import vanilla
 from Foundation import NSPoint
+from GlyphsApp import Glyphs, Message
+
+
 parameterName = "TTFAutohint options"
 # availableOptions = ("adjust-subglyphs", "composites", "default-script", "dehint", "detailed-info", "fallback-script", "fallback-stem-width", "hinting-limit", "hinting-range-max", "hinting-range-min", "ignore-restrictions", "increase-x-height", "no-info", "stem-width-mode", "strong-stem-width", "symbol", "ttfa-table", "windows-compatibility", "x-height-snapping-exceptions")
 valuelessOptions = ("windows-compatibility", "adjust-subglyphs", "detailed-info", "ignore-restrictions", "ttfa-table", "composites", "symbol", "dehint", "no-info")
@@ -34,9 +37,10 @@ availableOptionsDict = {
 	"ttfa-table": "add-ttfa-info-table",
 	"windows-compatibility": "windows-compatibility",
 	"x-height-snapping-exceptions": "x-height-snapping-exceptions",
-	}
+}
 
 availableOptions = sorted(availableOptionsDict.keys())
+
 
 def removeFromAutohintOptions(thisInstance, removeOption):
 	parameter = thisInstance.customParameters[parameterName]
@@ -54,6 +58,7 @@ def removeFromAutohintOptions(thisInstance, removeOption):
 		else:
 			print("-- Warning: '%s' not found." % removeOption)
 
+
 def dictToParameterValue(ttfAutohintDict):
 	parameterValue = ""
 	for key in ttfAutohintDict:
@@ -64,6 +69,7 @@ def dictToParameterValue(ttfAutohintDict):
 			value = str(ttfAutohintDict[key]).strip()
 			parameterValue += "--%s=%s" % (key.strip(" -"), value)
 	return parameterValue.strip()
+
 
 def ttfAutohintDict(parameterValue):
 	"""Returns a dict for a TTFAutohint parameter value."""
@@ -78,6 +84,7 @@ def ttfAutohintDict(parameterValue):
 		if key:
 			ttfAutohintDict[key.strip(" -")] = value
 	return ttfAutohintDict
+
 
 def glyphInterpolation(thisGlyph, thisInstance):
 	try:
@@ -97,10 +104,11 @@ def glyphInterpolation(thisGlyph, thisInstance):
 			return interpolatedLayer
 		else:
 			return None
-	except Exception as e:
+	except Exception as e:  # noqa: F841
 		import traceback
 		print(traceback.format_exc())
 		return None
+
 
 def idotlessMeasure(instance):
 	thisFont = instance.font
@@ -123,6 +131,7 @@ def idotlessMeasure(instance):
 	else:
 		return None
 
+
 def writeOptionsToInstance(optionDict, instance):
 	value = dictToParameterValue(optionDict)
 	try:
@@ -138,7 +147,7 @@ def writeOptionsToInstance(optionDict, instance):
 		import traceback
 		print(traceback.format_exc())
 
-	if not instanceWeightValue is None:
+	if instanceWeightValue is not None:
 		value = value.replace("--fallback-stem-width=*", "--fallback-stem-width=%i" % instanceWeightValue)
 
 	if "fallback-stem-width=idotless" in value:
@@ -147,8 +156,9 @@ def writeOptionsToInstance(optionDict, instance):
 			value = value.replace("--fallback-stem-width=idotless", "--fallback-stem-width=%i" % actualStemWidth)
 		else:
 			print("Warning: Could not measure stem width of idotless in instance '%s'." % instance.name)
-			return # do nothing
+			return  # do nothing
 	instance.customParameters[parameterName] = value
+
 
 class SetTTFAutohintOptions(object):
 
@@ -156,33 +166,27 @@ class SetTTFAutohintOptions(object):
 		# Window 'self.w':
 		windowWidth = 470
 		windowHeight = 110
-		windowWidthResize = 300 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 300  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Set in All ttfautohint Options", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.SetTTFAutohintOptions.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Set in All ttfautohint Options",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.SetTTFAutohintOptions.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		self.w.helpButton = vanilla.HelpButton((13, 12, 21, 20), callback=self.openURL)
 		self.w.helpButton.getNSButton().setToolTip_("Opens the ttfAutohint documentation for the currently selected option on freetype.org.")
 
 		self.w.ttfAutohintOption = vanilla.PopUpButton((38, 13, 175, 17), availableOptions, callback=self.SavePreferences, sizeStyle='small')
-		self.w.ttfAutohintOption.getNSPopUpButton().setToolTip_(
-			"Available ttfAutohint options. Pick one from the list. Careful: also contains deprecated options. Refer to the documentation (click on the Help Button on the left), know what you are doing."
-			)
+		self.w.ttfAutohintOption.getNSPopUpButton().setToolTip_("Available ttfAutohint options. Pick one from the list. Careful: also contains deprecated options. Refer to the documentation (click on the Help Button on the left), know what you are doing.")
 
 		self.w.optionValue = vanilla.EditText((220, 12, -67 - 50, 20), "value", callback=self.SavePreferences, sizeStyle='small')
 		self.w.optionValue.getNSTextField().setToolTip_("Value for the currently selected option, if any. Some options can only be set or removed, some have a value.")
 
-		self.w.explanation = vanilla.TextBox(
-			(15 - 1, 40, -5, -5),
-			"Adds or sets this option in all ‘TTFAutohint options’ parameters in the current font. For fallback-stem-width, use * for entering the respective instance weight value, and idotless for measuring the width of the interpolated dotless i. The Del button removes this TTFA option from all instances.",
-			sizeStyle='small'
-			)
+		self.w.explanation = vanilla.TextBox((15 - 1, 40, -5, -5), "Adds or sets this option in all ‘TTFAutohint options’ parameters in the current font. For fallback-stem-width, use * for entering the respective instance weight value, and idotless for measuring the width of the interpolated dotless i. The Del button removes this TTFA option from all instances.", sizeStyle='small')
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-60 - 50, 10, -15 - 50, 22), "Set", sizeStyle='regular', callback=self.SetTTFAutohintOptionsMain)
@@ -254,7 +258,7 @@ class SetTTFAutohintOptions(object):
 
 	def LoadPreferences(self):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
+			Glyphs.registerDefaults(
 				{
 					"com.mekkablue.SetTTFAutohintOptions.optionValue": "",
 					"com.mekkablue.SetTTFAutohintOptions.adjust-subglyphs": "",
@@ -277,8 +281,8 @@ class SetTTFAutohintOptions(object):
 					"com.mekkablue.SetTTFAutohintOptions.windows-compatibility": "",
 					"com.mekkablue.SetTTFAutohintOptions.x-height-snapping-exceptions": "",
 					"com.mekkablue.SetTTFAutohintOptions.ttfAutohintOption": 0,
-					}
-				)
+				}
+			)
 			self.w.ttfAutohintOption.set(Glyphs.defaults["com.mekkablue.SetTTFAutohintOptions.ttfAutohintOption"])
 		except:
 			return False
@@ -295,7 +299,7 @@ class SetTTFAutohintOptions(object):
 					print("Removing %s from instance '%s'." % (
 						optionName,
 						thisInstance.name,
-						))
+					))
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
@@ -313,44 +317,40 @@ class SetTTFAutohintOptions(object):
 			enteredValue = Glyphs.defaults["com.mekkablue.SetTTFAutohintOptions.%s" % optionName]
 
 			firstDoc = Glyphs.orderedDocuments()[0]
-			if firstDoc.isKindOfClass_(GSProjectDocument):
-				# Frontmost doc is a .glyphsproject file:
-				thisFont = firstDoc.font() # frontmost project file
-				if Glyphs.versionNumber >= 3:
-					# GLYPHS 3
-					instances = firstDoc.instances
-				else:
-					# GLYPHS 2
-					instances = firstDoc.instances()
-			else:
-				# Frontmost doc is a .glyphs file:
-				thisFont = Glyphs.font # frontmost font
+			try:
+				thisFont = firstDoc.font
+			except Exception as e:  # noqa: F841
+				thisFont = firstDoc.font()  # frontmost project file?
+			try:
 				instances = thisFont.instances
+			except Exception as e:  # noqa: F841
+				instances = firstDoc.instances()  # GLYPHS 2
 
 			if enteredValue != "" or optionName in valuelessOptions:
 				for thisInstance in instances:
-					if not thisInstance.customParameters[parameterName] is None:
+					if thisInstance.customParameters[parameterName] is not None:
 						optionDict = ttfAutohintDict(thisInstance.customParameters[parameterName])
 						optionDict[optionName] = enteredValue
 						writeOptionsToInstance(optionDict, thisInstance)
 						print("Set %s in instance '%s'." % (
 							optionName,
 							thisInstance.name,
-							))
+						))
 					else:
 						print("No ttfautohint parameter in instance '%s'. %s not set." % (
 							thisInstance.name,
 							optionName,
-							))
+						))
 			else:
 				Message("Script Error", "Illegal value entered.", OKButton=None)
 
-			# self.w.close() # delete if you want window to stay open
+			# self.w.close()  # delete if you want window to stay open
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Set ttfautohint Options Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 SetTTFAutohintOptions()

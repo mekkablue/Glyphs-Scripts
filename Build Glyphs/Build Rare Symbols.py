@@ -1,13 +1,16 @@
-#MenuTitle: Build Rare Symbols
+# MenuTitle: Build Rare Symbols
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Builds white and black, small and large, circles, triangles and squares.
 """
 
-import vanilla, math
-from Foundation import NSClassFromString, NSPoint
-from AppKit import NSAffineTransform, NSAffineTransformStruct, NSButtLineCapStyle
+import vanilla
+import math
+from Foundation import NSClassFromString
+from AppKit import NSAffineTransform, NSAffineTransformStruct
+from GlyphsApp import Glyphs, GSGlyph, GSLayer, Message
+
 
 def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	"""
@@ -15,7 +18,7 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	Apply an NSAffineTransform t object like this:
 		Layer.transform_checkForSelection_doComponents_(t,False,True)
 	Access its transformation matrix like this:
-		tMatrix = t.transformStruct() # returns the 6-float tuple
+		tMatrix = t.transformStruct()  # returns the 6-float tuple
 	Apply the matrix tuple like this:
 		Layer.applyTransform(tMatrix)
 		Component.applyTransform(tMatrix)
@@ -40,6 +43,7 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 		myTransform.appendTransform_(skewTransform)
 	return myTransform
 
+
 def offsetLayer(thisLayer, offset, makeStroke=False, position=0.5, autoStroke=False):
 	offsetFilter = NSClassFromString("GlyphsFilterOffsetCurve")
 	try:
@@ -47,36 +51,37 @@ def offsetLayer(thisLayer, offset, makeStroke=False, position=0.5, autoStroke=Fa
 		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyleStart_capStyleEnd_keepCompatibleOutlines_(
 			thisLayer,
 			offset,
-			offset, # horizontal and vertical offset
-			makeStroke, # if True, creates a stroke
-			autoStroke, # if True, distorts resulting shape to vertical metrics
-			position, # stroke distribution to the left and right, 0.5 = middle
+			offset,  # horizontal and vertical offset
+			makeStroke,  # if True, creates a stroke
+			autoStroke,  # if True, distorts resulting shape to vertical metrics
+			position,  # stroke distribution to the left and right, 0.5 = middle
 			None,
 			None,
 			None,
 			0,
 			0,
 			True
-			)
+		)
 	except:
 		# GLYPHS 2:
 		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyle_keepCompatibleOutlines_(
 			thisLayer,
 			offset,
-			offset, # horizontal and vertical offset
-			makeStroke, # if True, creates a stroke
-			autoStroke, # if True, distorts resulting shape to vertical metrics
-			position, # stroke distribution to the left and right, 0.5 = middle
-			thisLayer.glyphMetrics(), # metrics (G3)
+			offset,  # horizontal and vertical offset
+			makeStroke,  # if True, creates a stroke
+			autoStroke,  # if True, distorts resulting shape to vertical metrics
+			position,  # stroke distribution to the left and right, 0.5 = middle
+			thisLayer.glyphMetrics(),  # metrics (G3)
 			None,
-			None, # error, shadow
-			0, # NSButtLineCapStyle, # cap style
-			True, # keep compatible
-			)
+			None,  # error, shadow
+			0,  # NSButtLineCapStyle,  # cap style
+			True,  # keep compatible
+		)
+
 
 def createGlyph(
-		thisFont, glyphName, pathData, scaleFactor=1.0, rotation=0, overwrite=False, fill=True, stroke=50, sidebearing=50, closePath=True, belowBase=0.1, setMetricsKeys=True
-	):
+	thisFont, glyphName, pathData, scaleFactor=1.0, rotation=0, overwrite=False, fill=True, stroke=50, sidebearing=50, closePath=True, belowBase=0.1, setMetricsKeys=True
+):
 	glyph = None
 	if thisFont.glyphs[glyphName]:
 		if overwrite:
@@ -92,7 +97,7 @@ def createGlyph(
 	if glyph:
 		originalLayer = GSLayer()
 		drawPenDataInLayer(originalLayer, pathData, closePath=closePath)
-		originalHeight = originalLayer.fastBounds().size.height # FIX 3.2
+		originalHeight = originalLayer.fastBounds().size.height  # FIX 3.2
 
 		# scale:
 
@@ -101,7 +106,7 @@ def createGlyph(
 		else:
 			scaleCorrection = stroke
 		scaleToHeight = originalHeight * scaleFactor - scaleCorrection
-		currentHeight = originalLayer.fastBounds().size.height # TEMP FIX 3.2
+		currentHeight = originalLayer.fastBounds().size.height  # TEMP FIX 3.2
 		if not currentHeight:
 			print("❌ ERROR: No content (height=0) for %s." % glyphName)
 			return
@@ -117,8 +122,8 @@ def createGlyph(
 			originalLayer.applyTransform(matrix)
 
 		# shift vertically:
-		whereBottomShouldBe = -belowBase * originalHeight + (originalHeight - originalHeight * scaleFactor) / 2 # full height 10% below baseline, but respect scaleFactor
-		whereItCurrentlyIs = originalLayer.fastBounds().origin.y # FIX 3.2
+		whereBottomShouldBe = -belowBase * originalHeight + (originalHeight - originalHeight * scaleFactor) / 2  # full height 10% below baseline, but respect scaleFactor
+		whereItCurrentlyIs = originalLayer.fastBounds().origin.y  # FIX 3.2
 		verticalShift = whereBottomShouldBe - whereItCurrentlyIs
 		if verticalShift:
 			matrix = transform(shiftY=verticalShift).transformStruct()
@@ -173,6 +178,7 @@ def createGlyph(
 		print("⚠️ %s: already exists. Skipping." % glyphName)
 		return False
 
+
 def specialTreatmentOf3DArrows(thisLayer, glyphName):
 	if "threeD" in glyphName and len(thisLayer.paths) == 2:
 		smallestPath = sorted(thisLayer.paths, key=lambda thisPath: thisPath.area())[0]
@@ -186,30 +192,32 @@ def specialTreatmentOf3DArrows(thisLayer, glyphName):
 			nodeIndex = sorted(smallestPath.nodes, key=lambda node: node.y)[0].index
 			del smallestPath.nodes[nodeIndex]
 
+
 def hashtagCoordsForHeight(s):
 	"""
 	Hashtag
 	origin = 0,0
 	"""
 	coords = (
-		( # path
+		(  # path
 			(s / 3, 0),
 			(s / 3, s),
-			),
-		( # path
+		),
+		(  # path
 			(2 * s / 3, 0),
 			(2 * s / 3, s),
-			),
-		( # path
+		),
+		(  # path
 			(0, s / 3),
 			(s, s / 3),
-			),
-		( # path
+		),
+		(  # path
 			(0, 2 * s / 3),
 			(s, 2 * s / 3),
-			),
-		)
+		),
+	)
 	return coords
+
 
 def triangleCoordsForSide(s):
 	"""
@@ -218,13 +226,14 @@ def triangleCoordsForSide(s):
 	"""
 	factor = 3**0.5 / 2
 	coords = (
-		( # path
+		(  # path
 			(0, 0),
 			(s, 0),
 			(s / 2, factor * s),
-			),
-		)
+		),
+	)
 	return coords
+
 
 def arrowheadCoordsForSide(s):
 	"""
@@ -233,14 +242,15 @@ def arrowheadCoordsForSide(s):
 	"""
 	factor = 3**0.5 / 2
 	coords = (
-		( # path
+		(  # path
 			(0, 0),
 			(s / 2, factor * s / 4),
 			(s, 0),
 			(s / 2, factor * s),
-			),
-		)
+		),
+	)
 	return coords
+
 
 def arrowhead3DCoordsForSide(s):
 	"""
@@ -249,14 +259,15 @@ def arrowhead3DCoordsForSide(s):
 	"""
 	factor = 3**0.5 / 2
 	coords = (
-		( # path
+		(  # path
 			(0, 0),
 			(s / 2, factor * s / 4),
 			(s, 0),
 			(s / 2, factor * s),
-			),
-		)
+		),
+	)
 	return coords
+
 
 def squareCoordsForSide(s):
 	"""
@@ -264,14 +275,15 @@ def squareCoordsForSide(s):
 	origin = 0,0
 	"""
 	coords = (
-		( # path
+		(  # path
 			(0, 0),
 			(s, 0),
 			(s, s),
 			(0, s),
-			),
-		)
+		),
+	)
 	return coords
+
 
 def diamondCoordsForHeight(s):
 	"""
@@ -279,14 +291,15 @@ def diamondCoordsForHeight(s):
 	origin = 0,0
 	"""
 	coords = (
-		( # path
+		(  # path
 			(s / 2, 0),
 			(s, s / 2),
 			(s / 2, s),
 			(0, s / 2),
-			),
-		)
+		),
+	)
 	return coords
+
 
 def optionCoordsForHeight(s):
 	"""
@@ -294,18 +307,19 @@ def optionCoordsForHeight(s):
 	origin = 0,0
 	"""
 	coords = (
-		( # path
+		(  # path
 			(0, s),
 			(s / 3, s),
 			(s * 7 / 9, 0),
 			(s * 13 / 10, 0),
-			),
-		( # path
+		),
+		(  # path
 			(s * 2 / 3, s),
 			(s * 13 / 10, s),
-			),
-		)
+		),
+	)
 	return coords
+
 
 def shiftCoordsForHeight(s):
 	"""
@@ -313,7 +327,7 @@ def shiftCoordsForHeight(s):
 	origin = 0,0
 	"""
 	coords = (
-		( # path
+		(  # path
 			(s / 2, s),
 			(0, s * 4 / 9),
 			(s * 4 / 15, s * 4 / 9),
@@ -321,9 +335,10 @@ def shiftCoordsForHeight(s):
 			(s * 11 / 15, 0),
 			(s * 11 / 15, s * 4 / 9),
 			(s, s * 4 / 9),
-			),
-		)
+		),
+	)
 	return coords
+
 
 def propellorCoordsForHeight(s):
 	"""
@@ -331,26 +346,27 @@ def propellorCoordsForHeight(s):
 	origin = 0,0
 	"""
 	coords = (
-		( # path
-		(s*0.652, s*0.239),
-		((s*0.652, s*0.077), (s*0.716, s*0.000), (s*0.831, s*0.000)),
-		((s*0.936, s*0.000), (s*1.000, s*0.064), (s*1.000, s*0.169)),
-		((s*1.000, s*0.284), (s*0.923, s*0.348), (s*0.761, s*0.348)),
-		(s*0.239, s*0.348),
-		((s*0.077, s*0.348), (s*0.000, s*0.284), (s*0.000, s*0.169)),
-		((s*0.000, s*0.064), (s*0.064, s*0.000), (s*0.169, s*0.000)),
-		((s*0.284, s*0.000), (s*0.348, s*0.077), (s*0.348, s*0.239)),
-		(s*0.348, s*0.761),
-		((s*0.348, s*0.923), (s*0.284, s*1.000), (s*0.169, s*1.000)),
-		((s*0.064, s*1.000), (s*0.000, s*0.936), (s*0.000, s*0.831)),
-		((s*0.000, s*0.716), (s*0.077, s*0.652), (s*0.239, s*0.652)),
-		(s*0.761, s*0.652),
-		((s*0.923, s*0.652), (s*1.000, s*0.716), (s*1.000, s*0.831)),
-		((s*1.000, s*0.936), (s*0.936, s*1.000), (s*0.831, s*1.000)),
-		((s*0.716, s*1.000), (s*0.652, s*0.923), (s*0.652, s*0.761)),
+		(  # path
+			(s * 0.652, s * 0.239),
+			((s * 0.652, s * 0.077), (s * 0.716, s * 0.000), (s * 0.831, s * 0.000)),
+			((s * 0.936, s * 0.000), (s * 1.000, s * 0.064), (s * 1.000, s * 0.169)),
+			((s * 1.000, s * 0.284), (s * 0.923, s * 0.348), (s * 0.761, s * 0.348)),
+			(s * 0.239, s * 0.348),
+			((s * 0.077, s * 0.348), (s * 0.000, s * 0.284), (s * 0.000, s * 0.169)),
+			((s * 0.000, s * 0.064), (s * 0.064, s * 0.000), (s * 0.169, s * 0.000)),
+			((s * 0.284, s * 0.000), (s * 0.348, s * 0.077), (s * 0.348, s * 0.239)),
+			(s * 0.348, s * 0.761),
+			((s * 0.348, s * 0.923), (s * 0.284, s * 1.000), (s * 0.169, s * 1.000)),
+			((s * 0.064, s * 1.000), (s * 0.000, s * 0.936), (s * 0.000, s * 0.831)),
+			((s * 0.000, s * 0.716), (s * 0.077, s * 0.652), (s * 0.239, s * 0.652)),
+			(s * 0.761, s * 0.652),
+			((s * 0.923, s * 0.652), (s * 1.000, s * 0.716), (s * 1.000, s * 0.831)),
+			((s * 1.000, s * 0.936), (s * 0.936, s * 1.000), (s * 0.831, s * 1.000)),
+			((s * 0.716, s * 1.000), (s * 0.652, s * 0.923), (s * 0.652, s * 0.761)),
 		),
 	)
 	return coords
+
 
 def circleCoordsForHeight(s):
 	radius = s / 2
@@ -358,28 +374,29 @@ def circleCoordsForHeight(s):
 	y = s / 2
 	bcp = 4.0 * (2.0**0.5 - 1.0) / 3.0
 	handle = radius * bcp
-	coords=(
-		( # path
-		(x, y-radius),
-		((x+handle, y-radius), (x+radius, y-handle), (x+radius, y)),
-		((x+radius, y+handle), (x+handle, y+radius), (x, y+radius)),
-		((x-handle, y+radius), (x-radius, y+handle), (x-radius, y)),
-		((x-radius, y-handle), (x-handle, y-radius), (x, y-radius)),
+	coords = (
+		(  # path
+			(x, y - radius),
+			((x + handle, y - radius), (x + radius, y - handle), (x + radius, y)),
+			((x + radius, y + handle), (x + handle, y + radius), (x, y + radius)),
+			((x - handle, y + radius), (x - radius, y + handle), (x - radius, y)),
+			((x - radius, y - handle), (x - handle, y - radius), (x, y - radius)),
 		),
 	)
 	return coords
+
 
 def drawPenDataInLayer(thisLayer, penData, closePath=True):
 	for thisPath in penData:
 		pen = thisLayer.getPen()
 		pen.moveTo(thisPath[0])
 		for thisSegment in thisPath[1:]:
-			if len(thisSegment) == 2: # lineto (2 coordinates: x,y)
+			if len(thisSegment) == 2:  # lineto (2 coordinates: x,y)
 				pen.lineTo(thisSegment)
-			elif len(thisSegment) == 3: # curveto (3 x/y tuples)
+			elif len(thisSegment) == 3:  # curveto (3 x/y tuples)
 				pen.curveTo(thisSegment[0], thisSegment[1], thisSegment[2])
 			else:
-				print("%s: Path drawing error. Could not process this segment:\n" % (glyphName, thisSegment))
+				print("Path drawing error. Could not process this segment: %s\n" % thisSegment)
 		if closePath:
 			pen.closePath()
 		pen.endPath()
@@ -389,21 +406,22 @@ def drawPenDataInLayer(thisLayer, penData, closePath=True):
 	thisLayer.cleanUpPaths()
 	return thisLayer
 
+
 class BuildCirclesSquaresTriangles(object):
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 350
 		windowHeight = 325
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Build Rare Symbols", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.BuildCirclesSquaresTriangles.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Build Rare Symbols",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.BuildCirclesSquaresTriangles.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -419,14 +437,9 @@ class BuildCirclesSquaresTriangles(object):
 		linePos += lineHeight
 
 		self.w.blackArrowheads = vanilla.CheckBox((inset, linePos - 1, column, 20), "Black Arrowheads", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.blackArrowheads.getNSButton(
-		).setToolTip_("Will create blackUpEquilateralArrowhead, blackRightEquilateralArrowhead, blackDownEquilateralArrowhead, blackLeftEquilateralArrowhead.")
-		self.w.black3DArrowheads = vanilla.CheckBox(
-			(inset + column, linePos - 1, -inset, 20), "Black 3D Arrowheads", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.black3DArrowheads.getNSButton().setToolTip_(
-			"Will create threeDRightLightedUpEquilateralArrowhead, threeDTopLightedRightEquilateralArrowhead, threeDLeftLightedDownEquilateralArrowhead, threeDTopLightedLeftEquilateralArrowhead."
-			)
+		self.w.blackArrowheads.getNSButton().setToolTip_("Will create blackUpEquilateralArrowhead, blackRightEquilateralArrowhead, blackDownEquilateralArrowhead, blackLeftEquilateralArrowhead.")
+		self.w.black3DArrowheads = vanilla.CheckBox((inset + column, linePos - 1, -inset, 20), "Black 3D Arrowheads", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.black3DArrowheads.getNSButton().setToolTip_("Will create threeDRightLightedUpEquilateralArrowhead, threeDTopLightedRightEquilateralArrowhead, threeDLeftLightedDownEquilateralArrowhead, threeDTopLightedLeftEquilateralArrowhead.")
 		linePos += lineHeight
 
 		self.w.whiteShapes = vanilla.CheckBox((inset, linePos - 1, column, 20), "White Shapes ○◇□", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -437,9 +450,7 @@ class BuildCirclesSquaresTriangles(object):
 
 		self.w.whiteLargeSquare = vanilla.CheckBox((inset, linePos - 1, column, 20), "White Large Square ⬜", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.whiteLargeSquare.getNSButton().setToolTip_("Will create whiteLargeSquare.")
-		self.w.blackLargeSquare = vanilla.CheckBox(
-			(inset + column, linePos - 1, -inset, 20), "Black Large Square ⬛", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.blackLargeSquare = vanilla.CheckBox((inset + column, linePos - 1, -inset, 20), "Black Large Square ⬛", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.blackLargeSquare.getNSButton().setToolTip_("Will create blackLargeSquare.")
 		linePos += lineHeight
 
@@ -476,19 +487,12 @@ class BuildCirclesSquaresTriangles(object):
 		self.w.belowBase.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
-		self.w.disrespectItalicAngle = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Sidebearings disrespect italic angle (useful for italics)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.disrespectItalicAngle.getNSButton().setToolTip_(
-			"If activated, will not set sidebearing metrics keys if there is an italic angle other than zero. If the italic angle is zero, will set (and update) layer-specific metrics keys (with double equals sign ==). Highly recommended if you want the symbols to have the same widths in upright and italic."
-			)
+		self.w.disrespectItalicAngle = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Sidebearings disrespect italic angle (useful for italics)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.disrespectItalicAngle.getNSButton().setToolTip_("If activated, will not set sidebearing metrics keys if there is an italic angle other than zero. If the italic angle is zero, will set (and update) layer-specific metrics keys (with double equals sign ==). Highly recommended if you want the symbols to have the same widths in upright and italic.")
 		linePos += lineHeight
 
-		self.w.overwriteExistingGlyphs = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "⚠️ Overwrite existing glyphs", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.overwriteExistingGlyphs.getNSButton(
-		).setToolTip_("If set, will simply replace the symbol glyphs that already exist. Careful with this option if you made any manual changes you want to keep.")
+		self.w.overwriteExistingGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Overwrite existing glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.overwriteExistingGlyphs.getNSButton().setToolTip_("If set, will simply replace the symbol glyphs that already exist. Careful with this option if you made any manual changes you want to keep.")
 		linePos += lineHeight
 
 		self.w.openTab = vanilla.CheckBox((inset, linePos - 1, column, 20), "Open tab with new glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -533,7 +537,7 @@ class BuildCirclesSquaresTriangles(object):
 		toggle = (
 			self.w.whiteTriangles.get() or self.w.blackTriangles.get() or self.w.black3DArrowheads.get() or self.w.blackArrowheads.get() or self.w.whiteShapes.get()
 			or self.w.blackShapes.get() or self.w.whiteLargeSquare.get() or self.w.blackLargeSquare.get() or self.w.propellor.get() or self.w.viewdataSquare.get()
-			)
+		)
 		self.w.runButton.enable(toggle)
 		self.w.reuseTab.enable(self.w.openTab.get())
 
@@ -627,7 +631,7 @@ class BuildCirclesSquaresTriangles(object):
 			if not self.SavePreferences():
 				print("Note: 'Build Rare Symbols' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -677,20 +681,20 @@ class BuildCirclesSquaresTriangles(object):
 						{
 							"name": "upWhiteTriangle",
 							"rotation": 0
-							},
+						},
 						{
 							"name": "rightWhiteTriangle",
 							"rotation": -90
-							},
+						},
 						{
 							"name": "downWhiteTriangle",
 							"rotation": 180
-							},
+						},
 						{
 							"name": "leftWhiteTriangle",
 							"rotation": +90
-							},
-						)
+						},
+					)
 					for shape in triangleInfo:
 						glyphName = shape["name"]
 						rotation = shape["rotation"]
@@ -706,7 +710,7 @@ class BuildCirclesSquaresTriangles(object):
 							belowBase=belowBase,
 							sidebearing=sidebearing,
 							setMetricsKeys=(not disrespectItalicAngle)
-							):
+						):
 							processedGlyphs.append(glyphName)
 
 				if blackTriangles:
@@ -714,20 +718,20 @@ class BuildCirclesSquaresTriangles(object):
 						{
 							"name": "upBlackTriangle",
 							"rotation": 0
-							},
+						},
 						{
 							"name": "rightBlackTriangle",
 							"rotation": -90
-							},
+						},
 						{
 							"name": "downBlackTriangle",
 							"rotation": 180
-							},
+						},
 						{
 							"name": "leftBlackTriangle",
 							"rotation": +90
-							},
-						)
+						},
+					)
 					for shape in triangleInfo:
 						glyphName = shape["name"]
 						rotation = shape["rotation"]
@@ -742,7 +746,7 @@ class BuildCirclesSquaresTriangles(object):
 							belowBase=belowBase,
 							sidebearing=sidebearing,
 							setMetricsKeys=(not disrespectItalicAngle)
-							):
+						):
 							processedGlyphs.append(glyphName)
 
 				if blackArrowheads:
@@ -750,20 +754,20 @@ class BuildCirclesSquaresTriangles(object):
 						{
 							"name": "blackUpEquilateralArrowhead",
 							"rotation": 0
-							},
+						},
 						{
 							"name": "blackRightEquilateralArrowhead",
 							"rotation": -90
-							},
+						},
 						{
 							"name": "blackDownEquilateralArrowhead",
 							"rotation": 180
-							},
+						},
 						{
 							"name": "blackLeftEquilateralArrowhead",
 							"rotation": +90
-							},
-						)
+						},
+					)
 					for shape in triangleInfo:
 						glyphName = shape["name"]
 						rotation = shape["rotation"]
@@ -778,7 +782,7 @@ class BuildCirclesSquaresTriangles(object):
 							belowBase=belowBase,
 							sidebearing=sidebearing,
 							setMetricsKeys=(not disrespectItalicAngle)
-							):
+						):
 							processedGlyphs.append(glyphName)
 
 				if black3DArrowheads:
@@ -786,20 +790,20 @@ class BuildCirclesSquaresTriangles(object):
 						{
 							"name": "threeDRightLightedUpEquilateralArrowhead",
 							"rotation": 0
-							},
+						},
 						{
 							"name": "threeDTopLightedRightEquilateralArrowhead",
 							"rotation": -90
-							},
+						},
 						{
 							"name": "threeDLeftLightedDownEquilateralArrowhead",
 							"rotation": 180
-							},
+						},
 						{
 							"name": "threeDTopLightedLeftEquilateralArrowhead",
 							"rotation": +90
-							},
-						)
+						},
+					)
 					for shape in triangleInfo:
 						glyphName = shape["name"]
 						rotation = shape["rotation"]
@@ -814,7 +818,7 @@ class BuildCirclesSquaresTriangles(object):
 							belowBase=belowBase,
 							sidebearing=sidebearing,
 							setMetricsKeys=(not disrespectItalicAngle)
-							):
+						):
 							processedGlyphs.append(glyphName)
 
 				if whiteShapes:
@@ -830,7 +834,7 @@ class BuildCirclesSquaresTriangles(object):
 						belowBase=belowBase,
 						sidebearing=sidebearing,
 						setMetricsKeys=(not disrespectItalicAngle)
-						):
+					):
 						processedGlyphs.append(glyphName)
 						glyphName = "whiteDiamond"
 					if createGlyph(
@@ -844,7 +848,7 @@ class BuildCirclesSquaresTriangles(object):
 						belowBase=belowBase,
 						sidebearing=sidebearing,
 						setMetricsKeys=(not disrespectItalicAngle)
-						):
+					):
 						processedGlyphs.append(glyphName)
 						glyphName = "whiteCircle"
 					if createGlyph(
@@ -858,7 +862,7 @@ class BuildCirclesSquaresTriangles(object):
 						belowBase=belowBase,
 						sidebearing=sidebearing,
 						setMetricsKeys=(not disrespectItalicAngle)
-						):
+					):
 						processedGlyphs.append(glyphName)
 
 				if blackShapes:
@@ -873,7 +877,7 @@ class BuildCirclesSquaresTriangles(object):
 						belowBase=belowBase,
 						sidebearing=sidebearing,
 						setMetricsKeys=(not disrespectItalicAngle)
-						):
+					):
 						processedGlyphs.append(glyphName)
 						glyphName = "blackDiamond"
 					if createGlyph(
@@ -886,7 +890,7 @@ class BuildCirclesSquaresTriangles(object):
 						belowBase=belowBase,
 						sidebearing=sidebearing,
 						setMetricsKeys=(not disrespectItalicAngle)
-						):
+					):
 						processedGlyphs.append(glyphName)
 						glyphName = "blackCircle"
 					if createGlyph(
@@ -899,7 +903,7 @@ class BuildCirclesSquaresTriangles(object):
 						belowBase=belowBase,
 						sidebearing=sidebearing,
 						setMetricsKeys=(not disrespectItalicAngle)
-						):
+					):
 						processedGlyphs.append(glyphName)
 
 				if whiteLargeSquare:
@@ -915,7 +919,7 @@ class BuildCirclesSquaresTriangles(object):
 						belowBase=belowBase,
 						sidebearing=sidebearing,
 						setMetricsKeys=(not disrespectItalicAngle)
-						):
+					):
 						processedGlyphs.append(glyphName)
 
 				if blackLargeSquare:
@@ -930,7 +934,7 @@ class BuildCirclesSquaresTriangles(object):
 						belowBase=belowBase,
 						sidebearing=sidebearing,
 						setMetricsKeys=(not disrespectItalicAngle)
-						):
+					):
 						processedGlyphs.append(glyphName)
 
 				if propellor:
@@ -940,20 +944,20 @@ class BuildCirclesSquaresTriangles(object):
 							"path": propellorPath,
 							"scale": 0.98,
 							"close": True
-							},
+						},
 						{
 							"name": "optionKey",
 							"path": optionPath,
 							"scale": 0.84,
 							"close": False
-							},
+						},
 						{
 							"name": "upWhiteArrow",
 							"path": shiftPath,
 							"scale": 1.02,
 							"close": True
-							},
-						)
+						},
+					)
 					for shape in propellorInfo:
 						glyphName = shape["name"]
 						path = shape["path"]
@@ -971,7 +975,7 @@ class BuildCirclesSquaresTriangles(object):
 							belowBase=belowBase,
 							sidebearing=sidebearing,
 							setMetricsKeys=(not disrespectItalicAngle)
-							):
+						):
 							processedGlyphs.append(glyphName)
 
 				if viewdataSquare:
@@ -988,10 +992,10 @@ class BuildCirclesSquaresTriangles(object):
 						belowBase=belowBase,
 						sidebearing=sidebearing,
 						setMetricsKeys=(not disrespectItalicAngle)
-						):
+					):
 						processedGlyphs.append(glyphName)
 
-				# self.w.close() # delete if you want window to stay open
+				# self.w.close()  # delete if you want window to stay open
 
 				# Final report:
 				Glyphs.showNotification(
@@ -999,8 +1003,8 @@ class BuildCirclesSquaresTriangles(object):
 					"Build Rare Symbols: (re)created %i glyph%s. Details in Macro Window" % (
 						len(processedGlyphs),
 						"" if len(processedGlyphs) == 1 else "s",
-						),
-					)
+					),
+				)
 				print("\nDone.")
 
 				if openTab and processedGlyphs:
@@ -1017,5 +1021,6 @@ class BuildCirclesSquaresTriangles(object):
 			print("Build Rare Symbols Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 BuildCirclesSquaresTriangles()

@@ -1,4 +1,4 @@
-#MenuTitle: Remove TT Hints
+# MenuTitle: Remove TT Hints
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Deletes a user-specified set of TT instructions throughout the current font, the
 """
 
 import vanilla
+from GlyphsApp import Glyphs, TTSTEM, TTANCHOR, TTALIGN, TTINTERPOLATE, TTDIAGONAL, TTDELTA, Message
+
 
 class RemoveTTHints(object):
 	wheres = (
@@ -13,21 +15,21 @@ class RemoveTTHints(object):
 		"all layers of selected glyphs",
 		"this master",
 		"the complete font",
-		)
+	)
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 350
 		windowHeight = 270
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Remove TT Hints", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.RemoveTTHints.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Remove TT Hints",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.RemoveTTHints.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -69,7 +71,7 @@ class RemoveTTHints(object):
 		linePos += int(lineHeight * 1.2)
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
-		self.w.progress.set(0) # set progress indicator to zero
+		self.w.progress.set(0)  # set progress indicator to zero
 		linePos += lineHeight
 
 		# Run Button:
@@ -87,7 +89,7 @@ class RemoveTTHints(object):
 		self.w.makeKey()
 
 	def update(self, sender=None, savePrefs=True):
-		if sender: # any button
+		if sender:  # any button
 			onOff = 0
 			if sender in (self.w.hON, self.w.vON):
 				onOff = 1
@@ -111,7 +113,7 @@ class RemoveTTHints(object):
 		onOff = (
 			self.w.hStems.get() or self.w.hAnchors.get() or self.w.hAlign.get() or self.w.hInterpolate.get() or self.w.hDiagonal.get() or self.w.hDelta.get() or self.w.vStems.get()
 			or self.w.vAnchors.get() or self.w.vAlign.get() or self.w.vInterpolate.get() or self.w.vDiagonal.get() or self.w.vDelta.get()
-			)
+		)
 		self.w.runButton.enable(onOff)
 
 		if savePrefs:
@@ -244,7 +246,7 @@ class RemoveTTHints(object):
 				"" if delCount == 1 else "s",
 				layer.parent.name,
 				layer.name,
-				))
+			))
 		return delCount
 
 	def RemoveTTHintsMain(self, sender=None):
@@ -256,7 +258,7 @@ class RemoveTTHints(object):
 			if not self.SavePreferences():
 				print("Note: 'Remove TT Hints' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -269,22 +271,21 @@ class RemoveTTHints(object):
 
 				where = Glyphs.defaults["com.mekkablue.RemoveTTHints.where"]
 
-				layers = None
 				deletedHintsCount = 0
 				if where == 0:
 					# Current Layer of Selected Glyphs
 					objectList = set(thisFont.selectedLayers)
 					count = len(objectList)
-					for i, l in enumerate(objectList):
+					for i, layer in enumerate(objectList):
 						self.w.progress.set(i / count * 100)
-						deletedHintsCount += self.removeHintsFromLayer(l)
+						deletedHintsCount += self.removeHintsFromLayer(layer)
 				elif where == 1:
 					# All Layers of Selected Glyphs
 					objectList = set(thisFont.selectedLayers)
 					count = len(objectList)
-					for i, l in enumerate(objectList):
+					for i, layer in enumerate(objectList):
 						self.w.progress.set(i / count * 100)
-						g = l.parent
+						g = layer.parent
 						for ll in g.layers:
 							deletedHintsCount += self.removeHintsFromLayer(ll)
 				elif where == 2:
@@ -294,17 +295,17 @@ class RemoveTTHints(object):
 					count = len(objectList)
 					for i, g in enumerate(objectList):
 						self.w.progress.set(i / count * 100)
-						for l in g.layers:
-							if l.associatedMasterId == masterID:
-								deletedHintsCount += self.removeHintsFromLayer(l)
+						for layer in g.layers:
+							if layer.associatedMasterId == masterID:
+								deletedHintsCount += self.removeHintsFromLayer(layer)
 				else:
 					# the Complete Font
 					objectList = thisFont.glyphs
 					count = len(objectList)
 					for i, g in enumerate(objectList):
 						self.w.progress.set(i / count * 100)
-						for l in g.layers:
-							deletedHintsCount += self.removeHintsFromLayer(l)
+						for layer in g.layers:
+							deletedHintsCount += self.removeHintsFromLayer(layer)
 
 				# Complete progress bar:
 				self.w.progress.set(100)
@@ -313,17 +314,17 @@ class RemoveTTHints(object):
 				totalCountMsg = "Removed %i instruction%s" % (
 					deletedHintsCount,
 					"" if deletedHintsCount == 1 else "s",
-					)
+				)
 
 				Glyphs.showNotification(
 					totalCountMsg,
 					"Font: %s" % (thisFont.familyName),
-					)
+				)
 
 				print("%sTOTAL: %s" % (
 					"\n" if deletedHintsCount else "",
 					totalCountMsg,
-					))
+				))
 
 			print("\nDone.")
 
@@ -333,5 +334,6 @@ class RemoveTTHints(object):
 			print("Remove TT Hints Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 RemoveTTHints()

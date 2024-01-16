@@ -1,4 +1,4 @@
-#MenuTitle: Move Paths to Component
+# MenuTitle: Move Paths to Component
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -8,6 +8,8 @@ Moves paths to a separate glyph and insert them as auto-aligned, anchored compon
 import vanilla
 from AppKit import NSNotificationCenter, NSPoint
 from copy import copy as copy
+from GlyphsApp import Glyphs, GSGlyph, GSComponent, GSPath, GSAnchor, GSUppercase, Message
+
 
 class MovePathstoComponent(object):
 	prefID = "com.mekkablue.MovePathstoComponent"
@@ -23,21 +25,19 @@ class MovePathstoComponent(object):
 		# Window 'self.w':
 		windowWidth = 350
 		windowHeight = 180
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Move Paths to Component", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Move Paths to Component",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, 14), "Turn paths of selected glyph into component on all masters:", sizeStyle='small', selectable=True
-			)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Turn paths of selected glyph into component on all masters:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
 		self.w.nameText = vanilla.TextBox((inset, linePos + 2, 100, 14), "Component name:", sizeStyle='small', selectable=True)
@@ -50,20 +50,18 @@ class MovePathstoComponent(object):
 		self.w.anchorUpdateButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.updateAnchors)
 		linePos += lineHeight
 
-		self.w.includeSpecialLayers = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Include special layers (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.includeSpecialLayers = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include special layers (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
-		
-		self.w.keepBaseComponentPosition = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Keep base component position (with incremental keys)", value=False, callback=self.SavePreferences, sizeStyle='small' )
+
+		self.w.keepBaseComponentPosition = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Keep base component position (with incremental keys)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.keepBaseComponentPosition.getNSButton().setToolTip_("Will add an incremental metrics key (e.g. ==+10) if width deviation is at least 5u.")
 		linePos += lineHeight
-		
+
 		# Run Button:
-		self.w.runButton = vanilla.Button((-140-inset, -20-inset, -inset, -inset), "Make Composite", sizeStyle='regular', callback=self.MovePathsToComponentMain)
+		self.w.runButton = vanilla.Button((-140 - inset, -20 - inset, -inset, -inset), "Make Composite", sizeStyle='regular', callback=self.MovePathsToComponentMain)
 		self.w.setDefaultButton(self.w.runButton)
 
-		self.w.warningText = vanilla.TextBox((inset, -15-inset, -140-inset, 14), "", sizeStyle="small", selectable=True)
+		self.w.warningText = vanilla.TextBox((inset, -15 - inset, -140 - inset, 14), "", sizeStyle="small", selectable=True)
 
 		# Load Settings:
 		if not self.LoadPreferences():
@@ -80,7 +78,7 @@ class MovePathstoComponent(object):
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-	
+
 	def updateUI(self, sender=None):
 		# check for existing glyph:
 		glyphName = self.w.name.get()
@@ -91,8 +89,8 @@ class MovePathstoComponent(object):
 		else:
 			self.w.warningText.set("")
 		return True
-		
-	def SavePreferences( self, sender=None ):
+
+	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
 			for prefName in self.prefDict.keys():
@@ -104,13 +102,13 @@ class MovePathstoComponent(object):
 			print(traceback.format_exc())
 			return False
 
-	def LoadPreferences( self ):
+	def LoadPreferences(self):
 		try:
 			for prefName in self.prefDict.keys():
 				# register defaults:
 				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
 				# load previously written prefs:
-				getattr(self.w, prefName).set( self.pref(prefName) )
+				getattr(self.w, prefName).set(self.pref(prefName))
 			self.updateUI()
 			return True
 		except:
@@ -121,7 +119,7 @@ class MovePathstoComponent(object):
 	def updateAnchors(self, sender=None):
 		anchorNames = self.allAnchorNames()
 		self.w.anchor.setItems(anchorNames)
-		
+
 		glyphInfo = Glyphs.glyphInfoForName(self.w.name.get())
 		if glyphInfo:
 			possibleAnchors = glyphInfo.anchors
@@ -131,7 +129,7 @@ class MovePathstoComponent(object):
 						if anchorName in possibleAnchorName or possibleAnchorName in anchorName:
 							self.w.anchor.set(anchorName)
 							return
-		
+
 		for anchorName in anchorNames:
 			if anchorName[0] == "#":
 				self.w.anchor.set(anchorName)
@@ -148,13 +146,15 @@ class MovePathstoComponent(object):
 					foundName = False
 					if thisGlyph.glyphInfo and thisGlyph.glyphInfo.components:
 						for compInfo in thisGlyph.glyphInfo.components[::-1]:
-							compName = f"{compInfo.name}{'.case' if thisGlyph.case==GSUppercase and Glyphs.glyphInfoForName(compInfo.name).category=='Mark' else ''}".replace(".case.case", ".case")
+							compName = f"{compInfo.name}{'.case' if thisGlyph.case == GSUppercase and Glyphs.glyphInfoForName(compInfo.name).category == 'Mark' else ''}".replace(
+								".case.case", ".case"
+							)
 							print(thisGlyph.name, compName)
-							if not compName in existingComponents:
+							if compName not in existingComponents:
 								self.w.name.set(compName)
 								foundName = True
 								break
-					elif thisGlyph.name=="Q":
+					elif thisGlyph.name == "Q":
 						self.w.name.set("_tail.Q")
 						foundName = True
 					if not foundName:
@@ -168,7 +168,7 @@ class MovePathstoComponent(object):
 			if thisFont.selectedLayers:
 				thisLayer = thisFont.selectedLayers[0]
 				for thisAnchor in thisLayer.anchorsTraversingComponents():
-					if not thisAnchor.name in anchorNames:
+					if thisAnchor.name not in anchorNames:
 						anchorNames.append(thisAnchor.name)
 		return anchorNames
 
@@ -181,7 +181,7 @@ class MovePathstoComponent(object):
 			if not self.SavePreferences():
 				print("Note: 'Move Paths to Component' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			glyphName = None
 			if thisFont is None:
 				Message(title="No thisFont Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
@@ -206,7 +206,7 @@ class MovePathstoComponent(object):
 						title="Error: No Paths in Glyph",
 						message="The glyph ‘%s’ seems to have no paths. So the script has nothing to turn into a component." % glyphName,
 						OKButton="Oops"
-						)
+					)
 					print("🚫 No paths in first layer of %s. Aborting.\nDone." % glyphName)
 					return
 
@@ -248,22 +248,22 @@ class MovePathstoComponent(object):
 				thisFont.glyphs.append(newGlyph)
 
 				# step through current glyph and extract paths to new comp glyph:
-				for l in thisGlyph.layers:
+				for layer in thisGlyph.layers:
 					# extract paths:
-					if l.isMasterLayer or (l.isSpecialLayer and includeSpecialLayers):
-						originalWidth = l.width
-						newLayer = copy(l)
-						if l.components:
-							originalFirstComponentPosition = l.components[0].position
+					if layer.isMasterLayer or (layer.isSpecialLayer and includeSpecialLayers):
+						originalWidth = layer.width
+						newLayer = copy(layer)
+						if layer.components:
+							originalFirstComponentPosition = layer.components[0].position
 						else:
-							originalFirstComponentPosition = NSPoint(0,0)
+							originalFirstComponentPosition = NSPoint(0, 0)
 
 						# get rid of components, we just want paths:
 						if Glyphs.versionNumber >= 3:
 							# GLYPHS 3
 							for i in range(len(newLayer.shapes) - 1, -1, -1):
 								thisShape = newLayer.shapes[i]
-								if type(thisShape) == GSComponent:
+								if isinstance(thisShape, GSComponent):
 									del newLayer.shapes[i]
 						else:
 							# GLYPHS 2
@@ -274,15 +274,15 @@ class MovePathstoComponent(object):
 						newAnchor = GSAnchor()
 						newAnchor.name = insertAnchor
 						newAnchor.position = NSPoint(0, 0)
-						for referralAnchor in l.anchorsTraversingComponents():
+						for referralAnchor in layer.anchorsTraversingComponents():
 							if referralAnchor.name == attachToAnchor:
 								newAnchor.position = referralAnchor.position
 								break
 						newLayer.anchors.append(newAnchor)
 
 						# insert the new layer into the new comp glyph:
-						if l.isMasterLayer:
-							newGlyph.layers[l.associatedMasterId] = newLayer
+						if layer.isMasterLayer:
+							newGlyph.layers[layer.associatedMasterId] = newLayer
 						else:
 							newGlyph.layers.append(newLayer)
 
@@ -290,67 +290,69 @@ class MovePathstoComponent(object):
 						componentNames = None
 						if "entry" in attachToAnchor or attachToAnchor.startswith("_"):
 							componentNames = [newCompName]
-							for c in l.components:
+							for c in layer.components:
 								componentNames.append(c.componentName)
 						else:
 							componentNames = []
-							for c in l.components:
+							for c in layer.components:
 								componentNames.append(c.componentName)
 							componentNames.append(newCompName)
 						if componentNames:
-							l.setComponentNames_(componentNames)
+							layer.setComponentNames_(componentNames)
 
 						# remove paths from original glyph, we just want to keep components:
 						if Glyphs.versionNumber >= 3:
 							# GLYPHS 3
-							for i in range(len(l.shapes) - 1, -1, -1):
-								thisShape = l.shapes[i]
-								if type(thisShape) == GSPath:
-									del l.shapes[i]
+							for i in range(len(layer.shapes) - 1, -1, -1):
+								thisShape = layer.shapes[i]
+								if isinstance(thisShape, GSPath):
+									del layer.shapes[i]
 						else:
 							# GLYPHS 2
-							for i in range(len(l.paths) - 1, -1, -1):
-								del l.paths[i]
+							for i in range(len(layer.paths) - 1, -1, -1):
+								del layer.paths[i]
 
 						# autoalign all components and update metrics
-						for i in range(len(l.components)):
-							c = l.components[i]
-							if self.pref("keepBaseComponentPosition") and i==0:
+						for i in range(len(layer.components)):
+							c = layer.components[i]
+							if self.pref("keepBaseComponentPosition") and i == 0:
 								c.alignment = -1
 								c.position = originalFirstComponentPosition
 							else:
 								c.alignment = 1
 						if not self.pref("keepBaseComponentPosition"):
-							l.alignComponents() # updates the width
+							layer.alignComponents()  # updates the width
 
 						# insert correcting RSB adjustment (minimum 5):
-						widthDifference = originalWidth - l.width
+						widthDifference = originalWidth - layer.width
 						if abs(widthDifference) > 4 and self.pref("keepBaseComponentPosition"):
 							metricsKey = "==%s%i" % (
 								"-" if widthDifference < 0 else "+",
 								abs(widthDifference),
-								)
+							)
 							if attachToAnchor.endswith("exit"):
-								l.leftMetricsKey = metricsKey
+								layer.leftMetricsKey = metricsKey
 								leftOrRight = "left"
 							elif attachToAnchor.endswith("entry"):
-								l.rightMetricsKey = metricsKey
+								layer.rightMetricsKey = metricsKey
 								leftOrRight = "right"
-							else: # all other cases
-								l.leftMetricsKey = metricsKey
+							else:  # all other cases
+								layer.leftMetricsKey = metricsKey
 								leftOrRight = "left"
-								l.components[0].alignment = 1
-								l.alignComponents()
+								layer.components[0].alignment = 1
+								layer.alignComponents()
 
-							l.updateMetrics()
-							l.syncMetrics()
+							layer.updateMetrics()
+							layer.syncMetrics()
 
-							print("↔️ Added %s metrics key ‘%s’ on layer ‘%s’ (original width: %i)" % (
-								leftOrRight,
-								l.rightMetricsKey if leftOrRight=="right" else l.leftMetricsKey,
-								l.name,
-								originalWidth,
-								))
+							print(
+								"↔️ Added %s metrics key ‘%s’ on layer ‘%s’ (original width: %i)" % (
+									leftOrRight,
+									layer.rightMetricsKey if leftOrRight == "right" else layer.leftMetricsKey,
+									layer.name,
+									originalWidth,
+								)
+							)
 
 			# trigger UI update:
 			if Glyphs.versionNumber >= 3 and thisFont.currentTab:
@@ -361,7 +363,7 @@ class MovePathstoComponent(object):
 				print("✅ Turned %s into a pure composite of %s." % (
 					glyphName,
 					" and ".join(componentNames),
-					))
+				))
 			print("\nDone.")
 
 		except Exception as e:
@@ -370,5 +372,6 @@ class MovePathstoComponent(object):
 			print("Move Paths to Component Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 MovePathstoComponent()

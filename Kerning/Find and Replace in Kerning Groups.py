@@ -1,4 +1,4 @@
-#MenuTitle: Find and Replace in Kerning Groups
+# MenuTitle: Find and Replace in Kerning Groups
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,21 +6,23 @@ Finds and replaces text in the metrics keys of selected glyphs. Leave the Find s
 """
 
 import vanilla
+from GlyphsApp import Glyphs
+
 
 class KerningGroupReplacer(object):
 
 	def __init__(self):
 		windowWidth = 335
 		windowHeight = 155
-		windowWidthResize = 1000 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 1000  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Find and Replace in Kerning Groups", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.KerningGroupReplacer.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Find and Replace in Kerning Groups",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.KerningGroupReplacer.mainwindow"  # stores last window position and size
+		)
 
 		linePos, inset, lineHeight = 10, 12, 22
 
@@ -111,7 +113,7 @@ class KerningGroupReplacer(object):
 			print(e)
 
 	def replaceInGroups(self, thisGlyph, LsearchFor, LreplaceBy, RsearchFor, RreplaceBy):
-		# thisGlyph.beginUndo() # undo grouping causes crashes
+		# thisGlyph.beginUndo()  # undo grouping causes crashes
 		thisGlyphName = thisGlyph.name
 
 		# Left Group:
@@ -138,7 +140,7 @@ class KerningGroupReplacer(object):
 				thisGlyph.rightKerningGroup = newRightGroup
 				print("%s: new right group: '%s'." % (thisGlyph.name, newRightGroup))
 
-		# thisGlyph.endUndo() # undo grouping causes crashes
+		# thisGlyph.endUndo()  # undo grouping causes crashes
 
 	def KerningGroupReplaceMain(self, sender):
 		Glyphs.clearLog()
@@ -149,7 +151,7 @@ class KerningGroupReplacer(object):
 
 			Font = Glyphs.font
 			selectedLayers = Font.selectedLayers
-			currentLayers = [l for l in selectedLayers if l.parent.name is not None]
+			currentLayers = [layer for layer in selectedLayers if layer.parent.name is not None]
 
 			LsearchFor = Glyphs.defaults["com.mekkablue.KerningGroupReplacer.leftSearchFor"]
 			LreplaceBy = Glyphs.defaults["com.mekkablue.KerningGroupReplacer.leftReplaceBy"]
@@ -171,5 +173,6 @@ class KerningGroupReplacer(object):
 
 		finally:
 			Glyphs.font.enableUpdateInterface()
+
 
 KerningGroupReplacer()

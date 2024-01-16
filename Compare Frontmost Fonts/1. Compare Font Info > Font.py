@@ -1,13 +1,15 @@
-#MenuTitle: Compare Font Info > Font
+# MenuTitle: Compare Font Info > Font
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Detailed report of Font Info > Masters for the two frontmost fonts and outputs a report in the Macro Window.
 """
 
-from compare import *
-thisFont = Glyphs.fonts[0] # frontmost font
-otherFont = Glyphs.fonts[1] # second font
+from compare import compareCount, compareLists, cleanUpAndShortenParameterContent
+from GlyphsApp import Glyphs
+
+thisFont = Glyphs.fonts[0]  # frontmost font
+otherFont = Glyphs.fonts[1]  # second font
 if thisFont.filepath:
 	thisFileName = thisFont.filepath.lastPathComponent()
 else:
@@ -40,7 +42,7 @@ keyValueDict = {
 	"Version Minor": (thisFont.versionMinor, otherFont.versionMinor),
 	"Units per Em": (thisFont.upm, otherFont.upm),
 	"Date": (thisFont.date, otherFont.date),
-	}
+}
 for key in keyValueDict:
 	thisValue, otherValue = keyValueDict[key]
 	if thisValue == otherValue:
@@ -57,7 +59,7 @@ compareCount(
 	len(otherFont.customParameters),
 	thisFileName,
 	otherFileName,
-	)
+)
 
 # comparing parameters:
 theseParameters = [p.name for p in thisFont.customParameters]

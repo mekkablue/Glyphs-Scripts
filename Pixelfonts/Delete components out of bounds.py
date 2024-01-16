@@ -1,4 +1,4 @@
-#MenuTitle: Delete Components out of Bounds
+# MenuTitle: Delete Components out of Bounds
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Looks for components out of bounds.
 """
 
 from math import fabs
+from GlyphsApp import Glyphs
+
 
 def scanOutOfBounds(thisLayer):
 	listOfComponents = [c for c in thisLayer.components]
@@ -18,12 +20,13 @@ def scanOutOfBounds(thisLayer):
 
 	return sorted(set(indexesOutOfBounds))
 
+
 def process(thisLayer):
 	count = 0
 	glyphName = thisLayer.parent.name
 
 	if len(thisLayer.components) != 0:
-		# thisLayer.parent.beginUndo() # undo grouping causes crashes
+		# thisLayer.parent.beginUndo()  # undo grouping causes crashes
 
 		indexesOutOfBounds = scanOutOfBounds(thisLayer)
 		numberOfOffComponents = len(indexesOutOfBounds)
@@ -46,16 +49,17 @@ def process(thisLayer):
 		else:
 			print("✅ %s: no components out of bounds." % glyphName)
 
-		# thisLayer.parent.endUndo() # undo grouping causes crashes
+		# thisLayer.parent.endUndo()  # undo grouping causes crashes
 	else:
 		print("🤷🏻‍♀️ %s: no components." % glyphName)
 
 	return count
 
-Font = Glyphs.font
-Font.disableUpdateInterface()
+
+thisFont = Glyphs.font
+thisFont.disableUpdateInterface()
 try:
-	selectedLayers = Font.selectedLayers
+	selectedLayers = thisFont.selectedLayers
 	outOfBounds = Glyphs.defaults["com.mekkablue.DeleteComponentsOutOfBounds.threshold"]
 	if not outOfBounds:
 		outOfBounds = 3000.0
@@ -76,7 +80,7 @@ try:
 	Glyphs.showNotification(
 		"Components out off bounds: %s" % (thisFont.familyName),
 		"Deleted %i components in %i selected glyphs. Details in Macro Window." % (componentCount, len(selectedLayers)),
-		)
+	)
 
 except Exception as e:
 	Glyphs.showMacroWindow()
@@ -87,4 +91,4 @@ except Exception as e:
 	raise e
 
 finally:
-	Font.enableUpdateInterface()
+	thisFont.enableUpdateInterface()

@@ -1,4 +1,4 @@
-#MenuTitle: Prepare Font Info
+# MenuTitle: Prepare Font Info
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Prepare open fonts for a modern font production and git workflow.
 """
 
 import vanilla
+from GlyphsApp import Glyphs, Message
+
 
 class PrepareFontforGit(object):
 	prefID = "com.mekkablue.PrepareFontforGit"
@@ -18,12 +20,12 @@ class PrepareFontforGit(object):
 		"applyToFonts",
 		"disablesNiceNames",
 		"disablesAutomaticAlignment",
-		)
+	)
 	parameterDict = {
 		"preventDisplayStrings": ("Write DisplayStrings", 0),
 		"preventTimeStamps": ("Write lastChange", 0),
 		"preventMacName": ("Export Mac Name Table Entries", 0),
-		}
+	}
 
 	removeParameters = ("glyphOrder", )
 
@@ -31,34 +33,28 @@ class PrepareFontforGit(object):
 		# Window 'self.w':
 		windowWidth = 360
 		windowHeight = 250
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Prepare File", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Prepare File",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Make the font git-ready with these custom parameters:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.preventDisplayStrings = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Prevent storing of tab contents (Write DisplayStrings = OFF)", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.preventDisplayStrings = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Prevent storing of tab contents (Write DisplayStrings = OFF)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.preventTimeStamps = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Prevent storing of time stamps (Write lastChange = OFF)", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.preventTimeStamps = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Prevent storing of time stamps (Write lastChange = OFF)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.preventMacName = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Prevent export of Mac entries in name table", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.preventMacName = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Prevent export of Mac entries in name table", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.fileFormat = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Set File Format to Glyphs version 3", value=True, callback=self.SavePreferences, sizeStyle='small')
@@ -67,17 +63,15 @@ class PrepareFontforGit(object):
 		self.w.removeGlyphOrder = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Remove glyphOrder", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.disablesNiceNames = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Turn off Font Info > Other > Use Custom Naming", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.disablesNiceNames = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Turn off Font Info > Other > Use Custom Naming", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.disablesAutomaticAlignment = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Turn off Font Info > Other > Disable Auto Alignment", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.disablesAutomaticAlignment = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Turn off Font Info > Other > Disable Auto Alignment", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
-		
+
 		# Apply Scope:
 		self.w.applyToFontsText = vanilla.TextBox((inset, -18 - inset + 2, 60, 14), "Apply to:", sizeStyle='small', selectable=True)
-		self.w.applyToFonts = vanilla.PopUpButton(
-			(inset + 60, -18 - inset, -120 - inset, 17), ("frontmost font only", "⚠️ ALL open fonts"), sizeStyle='small', callback=self.SavePreferences
-			)
+		self.w.applyToFonts = vanilla.PopUpButton((inset + 60, -18 - inset, -120 - inset, 17), ("frontmost font only", "⚠️ ALL open fonts"), sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
 		# Run Button:
@@ -179,12 +173,12 @@ class PrepareFontforGit(object):
 					for optionKey in [prefName for prefName in self.prefs if prefName.startswith("remove") and self.pref(prefName)]:
 						parameterName = optionKey[6].lower() + optionKey[7:]
 						self.setParameterForFont(thisFont, parameterName, remove=True)
-					
+
 					# remove parameters:
 					for optionKey in [prefName for prefName in self.prefs if prefName.startswith("disables")]:
 						setattr(thisFont, optionKey, not self.pref(optionKey))
-						print(f"{'✅' if self.pref(optionKey) else '🚫'} {optionKey.replace('disables','')} (See Font Info > Other)")
-					
+						print(f"{'✅' if self.pref(optionKey) else '🚫'} {optionKey.replace('disables', '')} (See Font Info > Other)")
+
 					# set file format:
 					if self.pref("fileFormat"):
 						if thisFont.formatVersion != 3:
@@ -195,7 +189,7 @@ class PrepareFontforGit(object):
 
 					print()
 
-			self.w.close() # delete if you want window to stay open
+			self.w.close()  # delete if you want window to stay open
 			print("\nDone.")
 
 		except Exception as e:
@@ -204,5 +198,6 @@ class PrepareFontforGit(object):
 			print("Prepare Font Info Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 PrepareFontforGit()

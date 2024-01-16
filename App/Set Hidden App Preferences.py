@@ -1,4 +1,4 @@
-#MenuTitle: Set Hidden App Preferences
+# MenuTitle: Set Hidden App Preferences
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -7,6 +7,8 @@ GUI for a number of hidden prefs, hard to memorize otherwise.
 
 import vanilla
 from AppKit import NSFont
+from GlyphsApp import Glyphs
+
 
 class SetHiddenAppPreferences(object):
 	prefs = (
@@ -57,21 +59,21 @@ class SetHiddenAppPreferences(object):
 		"com.mekkablue.colorCompositesInShadeOfBaseGlyph.shadeFactor",
 		"com.RicardGarcia.ChangeCase.verboseReport",
 		"com.FlorianPircher.Keyboard-Selection-Travel.UseAlternativeShortcuts",
-		)
+	)
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 350
 		windowHeight = 110
-		windowWidthResize = 500 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 500  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Set Hidden App Preferences", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.SetHiddenAppPreferences.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Set Hidden App Preferences",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.SetHiddenAppPreferences.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 8, 12, 22
@@ -160,5 +162,6 @@ class SetHiddenAppPreferences(object):
 			print("Set Hidden App Preferences Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 SetHiddenAppPreferences()

@@ -1,11 +1,14 @@
-#MenuTitle: Font Info Batch Setter
+# MenuTitle: Font Info Batch Setter
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Batch-apply settings in Font Info > Font to open fonts: designer, designer URL, manufacturer, manufacturer URL, copyright, version number, date and time. Useful for syncing Font Info settings across many fonts.
 """
-import vanilla, datetime
+import vanilla
+import datetime
 import AppKit
+from GlyphsApp import Glyphs, Message
+
 
 def addPropertyToFont(font, key, value):
 	while font.propertyForName_(key):
@@ -14,6 +17,7 @@ def addPropertyToFont(font, key, value):
 	prop.key = key
 	prop.value = value
 	font.properties.append(prop)
+
 
 class FontInfoBatchSetter(object):
 	prefID = "com.mekkablue.FontInfoBatchSetter"
@@ -51,23 +55,21 @@ class FontInfoBatchSetter(object):
 		# Window 'self.w':
 		windowWidth = 350
 		windowHeight = 400
-		windowWidthResize = 1000 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 1000  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Font Info Batch Setter", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Font Info Batch Setter",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 		column = 100
 
-		self.w.explanatoryText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, 14), "Batch-set Font Info > Font of open fonts with these values:", sizeStyle='small', selectable=True
-			)
+		self.w.explanatoryText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Batch-set Font Info > Font of open fonts with these values:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
 		# DESIGNER
@@ -102,15 +104,15 @@ class FontInfoBatchSetter(object):
 		# TRADEMARK
 		self.w.setTrademark = vanilla.CheckBox((inset, linePos - 1, column, 20), "Trademark:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.trademark = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
-		tooltip = f"Trademark information, name ID 7. Use {self.placeholderFamilyName} as placeholder for the current family name." 
+		tooltip = f"Trademark information, name ID 7. Use {self.placeholderFamilyName} as placeholder for the current family name."
 		self.w.setTrademark.getNSButton().setToolTip_(tooltip)
 		self.w.trademark.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
-		
+
 		# Description
-		self.w.setFontDescription = vanilla.CheckBox((inset, linePos-1, column, 20), "Description:", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.fontDescription = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle="small")
-		tooltip = f"Description, name ID 10. Use {self.placeholderFamilyName} as placeholder for the current family name." 
+		self.w.setFontDescription = vanilla.CheckBox((inset, linePos - 1, column, 20), "Description:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.fontDescription = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle="small")
+		tooltip = f"Description, name ID 10. Use {self.placeholderFamilyName} as placeholder for the current family name."
 		self.w.setFontDescription.getNSButton().setToolTip_(tooltip)
 		self.w.fontDescription.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
@@ -130,8 +132,7 @@ class FontInfoBatchSetter(object):
 		self.w.versionMinorIncrease = vanilla.SquareButton((-inset - 91, linePos, -inset - 71, 19), "+", sizeStyle='small', callback=self.changeMinVersion)
 		self.w.versionMinorIncrease.getNSButton().setToolTip_("Increase the version number by 0.001.")
 		self.w.minVersionButton = vanilla.SquareButton((-inset - 60, linePos, -inset, 18), "⟳ 1.005", sizeStyle='small', callback=self.setVersion1005)
-		self.w.minVersionButton.getNSButton(
-		).setToolTip_("Resets the version to 1.005. Some (old?) Microsoft apps may consider fonts with smaller versions as unfinished and not display them in their font menu.")
+		self.w.minVersionButton.getNSButton().setToolTip_("Resets the version to 1.005. Some (old?) Microsoft apps may consider fonts with smaller versions as unfinished and not display them in their font menu.")
 		linePos += lineHeight
 
 		# DATE AND TIME
@@ -147,7 +148,7 @@ class FontInfoBatchSetter(object):
 			dateDisplay='yearMonthDay',
 			callback=None,
 			sizeStyle='small'
-			)
+		)
 		self.w.noonButton = vanilla.SquareButton((-inset - 60, linePos, -inset, 18), "🕛 Today", sizeStyle='small', callback=self.setNoon)
 		self.w.noonButton.getNSButton().setToolTip_("Resets the date to today 12:00 noon.")
 		linePos += lineHeight
@@ -160,16 +161,12 @@ class FontInfoBatchSetter(object):
 		self.w.finger = vanilla.TextBox((inset - 5, linePos, 22, 22), "👉 ", sizeStyle='regular', selectable=True)
 		self.w.applyText = vanilla.TextBox((inset + 17, linePos + 2, 70, 14), "Apply to", sizeStyle='small', selectable=True)
 		self.w.applyPopup = vanilla.PopUpButton((inset + 70, linePos, 150, 17), ("ALL open fonts", "open fonts containing"), sizeStyle='small', callback=self.SavePreferences)
-		self.w.applyContaining = vanilla.EditText(
-			(inset + 70 + 150 + 10, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small', placeholder="enter part of family name here"
-			)
+		self.w.applyContaining = vanilla.EditText((inset + 70 + 150 + 10, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small', placeholder="enter part of family name here")
 		self.w.applyContaining.getNSTextField().setToolTip_("Only applies the settings to fonts that contain this in Font Info > Font > Family Name.")
 		linePos += lineHeight
 
 		# Buttons:
-		self.w.extractButton = vanilla.Button(
-			(-270 - inset, -20 - inset, -130 - inset, -inset), "Extract from Font", sizeStyle='regular', callback=self.ExtractFontInfoFromFrontmostFont
-			)
+		self.w.extractButton = vanilla.Button((-270 - inset, -20 - inset, -130 - inset, -inset), "Extract from Font", sizeStyle='regular', callback=self.ExtractFontInfoFromFrontmostFont)
 		self.w.extractButton.getNSButton().setToolTip_("Extracts the settings from the frontmost font and fills the UI with it.")
 		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Apply to Fonts", sizeStyle='regular', callback=self.FontInfoBatchSetterMain)
 		self.w.runButton.getNSButton().setToolTip_("Applies the checked settings above to all fonts indicated in the ‘Apply to’ option.")
@@ -220,16 +217,16 @@ class FontInfoBatchSetter(object):
 		self.w.versionMinor.enable(versionEnabled)
 		self.w.minVersionButton.enable(versionEnabled)
 
-		self.w.applyContaining.show(self.w.applyPopup.get()) # 0=all fonts, 1=fonts containing, here repurposed as bool
+		self.w.applyContaining.show(self.w.applyPopup.get())  # 0=all fonts, 1=fonts containing, here repurposed as bool
 		applySettingsEnable = self.w.applyPopup.get() == 0 or len(self.w.applyContaining.get().strip()) > 0
 
 		self.w.runButton.enable(
 			(
 				# ANY of the checkboxes must be on:
-				dateEnabled or versionEnabled or self.w.setDesigner.get() or self.w.setDesignerURL.get() or self.w.setManufacturer.get() or
+				dateEnabled or versionEnabled or self.w.setDesigner.get() or self.w.setDesignerURL.get() or self.w.setManufacturer.get() or \
 				self.w.setManufacturerURL.get() or self.w.setCopyright.get()
-				) and applySettingsEnable
-			)
+			) and applySettingsEnable
+		)
 
 	def updateTooltips(self, sender=None):
 		self.w.designer.getNSTextField().setToolTip_(self.w.designer.get())
@@ -249,12 +246,12 @@ class FontInfoBatchSetter(object):
 			currentDate.year,
 			currentDate.month,
 			currentDate.day,
-			12, #d.hour,
-			00, #d.minute,
-			00, #d.second,
-			00, #d.microsecond,
+			12,  # d.hour,
+			00,  # d.minute,
+			00,  # d.second,
+			00,  # d.microsecond,
 			currentDate.tzinfo,
-			)
+		)
 		self.w.datePicker.set(newDate)
 
 	def setVersion1005(self, sender=None):
@@ -264,11 +261,11 @@ class FontInfoBatchSetter(object):
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-	
+
 	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
@@ -282,7 +279,7 @@ class FontInfoBatchSetter(object):
 			print(traceback.format_exc())
 			return False
 
-	def LoadPreferences( self ):
+	def LoadPreferences(self):
 		try:
 			for prefName in self.prefDict.keys():
 				# register defaults:
@@ -344,12 +341,12 @@ class FontInfoBatchSetter(object):
 			Glyphs.defaults[self.domain("setLicense")] = bool(thisFont.license)
 			Glyphs.defaults[self.domain("setLicenseURL")] = bool(thisFont.propertyForName_("licenseURL"))
 			Glyphs.defaults[self.domain("setFontDescription")] = bool(thisFont.description)
-			
+
 			# "containing" text box:
 			name = thisFont.familyName.strip()
 			words = name.split(" ")
 			if len(words) > 1:
-				potentialFoundryPrefix = len(words) == 2 and len(words[0]) < 4 # e.g. "GT Flexa"
+				potentialFoundryPrefix = len(words) == 2 and len(words[0]) < 4  # e.g. "GT Flexa"
 				if not potentialFoundryPrefix:
 					# get rid of last word in family name (e.g. "Sans"):
 					name = " ".join(words[:-1])
@@ -366,14 +363,14 @@ class FontInfoBatchSetter(object):
 			else:
 				print('👨🏻‍💼 LicenseURL: none')
 			print(f"📝 Copyright: {thisFont.copyright}")
-			print(f'📝 Trademark: {thisFont.trademark}' )
-			print(f'📝 Description: {thisFont.description}' )
+			print(f'📝 Trademark: {thisFont.trademark}')
+			print(f'📝 Description: {thisFont.description}')
 			if thisFont.propertyForName_("vendorID"):
-				print(f'📝 Vendor ID: {thisFont.propertyForName_("vendorID").value}' )
+				print(f'📝 Vendor ID: {thisFont.propertyForName_("vendorID").value}')
 			else:
 				print('📝 Vendor ID: none')
 			print(f"🔢 Version: {thisFont.versionMajor}.{thisFont.versionMinor:03}")
-			print(f'📆 Date: {thisFont.date}' )
+			print(f'📆 Date: {thisFont.date}')
 			print("\n✅ Done.")
 
 			# update UI to the settings stored above:
@@ -384,11 +381,10 @@ class FontInfoBatchSetter(object):
 			# clear macro window log:
 			Glyphs.clearLog()
 
-
 			# update settings to the latest user input:
 			if not self.SavePreferences():
 				print("⚠️ ‘Font Info BatchSetter’ could not write preferences.")
-			
+
 			# read prefs:
 			applyContaining = self.pref("applyContaining")
 			applyPopup = self.pref("applyPopup")
@@ -402,7 +398,7 @@ class FontInfoBatchSetter(object):
 			license = self.pref("license")
 			licenseURL = self.pref("licenseURL")
 			fontDescription = self.pref("fontDescription")
-			
+
 			setCopyright = self.pref("setCopyright")
 			setTrademark = self.pref("setTrademark")
 			setVendorID = self.pref("setVendorID")
@@ -414,7 +410,7 @@ class FontInfoBatchSetter(object):
 			setLicense = self.pref("setLicense")
 			setLicenseURL = self.pref("setLicenseURL")
 			setFontDescription = self.pref("setFontDescription")
-			
+
 			setVersion = self.pref("setVersion")
 			versionMinor = int(self.pref("versionMinor"))
 			versionMajor = int(self.pref("versionMajor"))
@@ -437,7 +433,7 @@ class FontInfoBatchSetter(object):
 			else:
 
 				for i, thisFont in enumerate(theseFonts):
-					print(f"\n\n{i+1}. {thisFont.familyName}:")
+					print(f"\n\n{i + 1}. {thisFont.familyName}:")
 					self.reportFilePath(thisFont)
 					print()
 
@@ -476,7 +472,7 @@ class FontInfoBatchSetter(object):
 							thisFont.trademark = individualTrademark
 							print("✅ 📝 Trademark set: %s" % individualTrademark)
 							changeCount += 1
-							
+
 					if setVendorID:
 						existingID = thisFont.propertyForName_("vendorID")
 						if existingID and existingID.value == vendorID:
@@ -517,7 +513,7 @@ class FontInfoBatchSetter(object):
 							thisFont.license = license
 							print("✅ 👨🏻‍💼 License set: %s" % license)
 							changeCount += 1
-							
+
 					if setDesignerURL:
 						if thisFont.designerURL == designerURL:
 							print("🆗 👨‍🎨 Font already has desired DesignerURL. No change.")
@@ -555,9 +551,9 @@ class FontInfoBatchSetter(object):
 					"" if changeCount == 1 else "s",
 					changedFontsCount,
 					"" if changedFontsCount == 1 else "s",
-					),
+				),
 				OKButton=None,
-				)
+			)
 			print("\nDone.")
 
 		except Exception as e:
@@ -576,5 +572,6 @@ class FontInfoBatchSetter(object):
 			print("📄 %s" % thisFont.filepath)
 		else:
 			print("⚠️ The font file has not been saved yet.")
+
 
 FontInfoBatchSetter()

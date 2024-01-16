@@ -1,14 +1,17 @@
-#MenuTitle: Guides through All Selected Nodes
+# MenuTitle: Guides through All Selected Nodes
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Creates guides through all selected nodes.
 """
 
-from Foundation import NSPoint
 import math
-thisFont = Glyphs.font # frontmost font
-selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+from GlyphsApp import Glyphs, GSGuide, GSGuideLine, GSNode, GSAnchor, addPoints
+
+
+thisFont = Glyphs.font  # frontmost font
+selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+
 
 def angle(firstPoint, secondPoint):
 	"""
@@ -20,6 +23,7 @@ def angle(firstPoint, secondPoint):
 	yDiff = secondPoint.y - firstPoint.y
 	return math.degrees(math.atan2(yDiff, xDiff))
 
+
 def newGuide(position, angle=0):
 	try:
 		# GLYPHS 3
@@ -30,6 +34,7 @@ def newGuide(position, angle=0):
 	newGuide.position = position
 	newGuide.angle = angle
 	return newGuide
+
 
 def isThereAlreadyAGuideWithTheseProperties(thisLayer, guideposition, guideangle):
 	if guideangle < 0:
@@ -46,12 +51,13 @@ def isThereAlreadyAGuideWithTheseProperties(thisLayer, guideposition, guideangle
 			return True
 	return False
 
+
 if len(selectedLayers) == 1:
 	thisLayer = selectedLayers[0]
 	thisGlyph = thisLayer.parent
-	currentPointSelection = [point.position for point in thisLayer.selection if type(point) in (GSNode, GSAnchor)]
+	currentPointSelection = [point.position for point in thisLayer.selection if isinstance(point, (GSNode, GSAnchor))]
 
-	# thisGlyph.beginUndo() # undo grouping causes crashes
+	# thisGlyph.beginUndo()  # undo grouping causes crashes
 	try:
 		if len(currentPointSelection) > 1:
 			# clear selection:
@@ -85,4 +91,4 @@ if len(selectedLayers) == 1:
 	except Exception as e:
 		raise e
 	# finally:
-	# thisGlyph.endUndo() # undo grouping causes crashes
+	# thisGlyph.endUndo()  # undo grouping causes crashes

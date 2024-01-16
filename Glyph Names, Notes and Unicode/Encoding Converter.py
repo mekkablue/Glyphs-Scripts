@@ -1,19 +1,23 @@
-#MenuTitle: Encoding Converter
+# MenuTitle: Encoding Converter
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Converts old expert 8-bit encodings into Glyphs nice names.
 """
 
-import vanilla, codecs
+import vanilla
+import codecs
 from AppKit import NSFont
+from GlyphsApp import Glyphs, GSGlyph, GSComponent, Message, GetSaveFile, GetOpenFile
+
+
 AXtDefault = """
 Syntax:
 - Freely write comments and empty lines
 - Rename: Lines containing a dash (-) followed by a greater sign (>) will trigger glyph renaming, with or without spaces between names
 - Recipe: Lines containing glyph recipes with plus (+) and equals (=) will be treated like in Glyph > Add Glyphs... as long as the do not contain any space
 - Recipes will overwrite existing glyphs. Renamings will create a number-suffixed glyph if a glyph with the same name already exists.
- 
+
 
 
 
@@ -342,12 +346,14 @@ _dad-ar.init.half1+_seen_zain-ar.fina.half2=dad_zain-ar
 _dad-ar.medi.half1+_seen_zain-ar.fina.half2=dad_zain-ar.fina
 """
 
+
 def saveFileInLocation(content="", filePath="~/Desktop/test.txt"):
 	with codecs.open(filePath, "w", "utf-8-sig") as thisFile:
 		print("💾 Writing:", thisFile.name)
 		thisFile.write(content)
 		thisFile.close()
 	return True
+
 
 def readFileFromLocation(filePath="~/Desktop/test.txt"):
 	content = ""
@@ -357,21 +363,22 @@ def readFileFromLocation(filePath="~/Desktop/test.txt"):
 		thisFile.close()
 	return content
 
+
 class EncodingConverter(object):
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 550
 		windowHeight = 260
-		windowWidthResize = 1000 # user can resize width by this value
-		windowHeightResize = 1000 # user can resize height by this value
+		windowWidthResize = 1000  # user can resize width by this value
+		windowHeightResize = 1000  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Encoding Converter", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.EncodingConverter.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Encoding Converter",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.EncodingConverter.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 8, 15, 22
@@ -380,13 +387,11 @@ class EncodingConverter(object):
 		linePos += lineHeight
 
 		self.w.recipe = vanilla.TextEditor((1, linePos, -1, -inset * 3), text="", callback=self.SavePreferences, checksSpelling=False)
-		self.w.recipe.getNSTextView().setToolTip_(
-			"- Freely write comments and empty lines\n- Rename: Lines containing a dash (-) followed by a greater sign (>) will trigger glyph renaming, with or without spaces between names\n- Recipe: Lines containing glyph recipes with plus (+) and equals (=) will be treated like in Glyph > Add Glyphs... as long as the do not contain any space\n- Recipes will overwrite existing glyphs. Renamings will create a number-suffixed glyph if a glyph with the same name already exists."
-			)
+		self.w.recipe.getNSTextView().setToolTip_("- Freely write comments and empty lines\n- Rename: Lines containing a dash (-) followed by a greater sign (>) will trigger glyph renaming, with or without spaces between names\n- Recipe: Lines containing glyph recipes with plus (+) and equals (=) will be treated like in Glyph > Add Glyphs... as long as the do not contain any space\n- Recipes will overwrite existing glyphs. Renamings will create a number-suffixed glyph if a glyph with the same name already exists.")
 		self.w.recipe.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.recipe.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.recipe.getNSScrollView().setRulersVisible_(0)
-		
+
 		textView = self.w.recipe.getNSTextView()
 		try:
 			legibleFont = NSFont.controlContentFontOfSize_(NSFont.systemFontSize())
@@ -476,17 +481,17 @@ class EncodingConverter(object):
 			try:
 				# increase the .000 extension
 				increasedGlyphName = glyphName[:-3] + ("%.3d" % int(glyphName[-3:]) + 1)
-				return freeGlyphName(increasedGlyphName, glyphNameList)
+				return self.freeGlyphName(increasedGlyphName, glyphNameList)
 			except:
 				# has no .000 extension yet:
 				increasedGlyphName = glyphName + ".001"
-				return freeGlyphName(increasedGlyphName, glyphNameList)
+				return self.freeGlyphName(increasedGlyphName, glyphNameList)
 		return glyphName
 
 	def glyphRename(self, source, target, font):
 		"""Renames source to target."""
 		thisGlyph = font.glyphs[source]
-		existingGlyphNames = [g.name for g in Font.glyphs]
+		existingGlyphNames = [g.name for g in font.glyphs]
 		targetString = self.freeGlyphName(target, existingGlyphNames)
 
 		try:
@@ -505,7 +510,7 @@ class EncodingConverter(object):
 		if len(glyphName) == 0 or glyphName[0] == "-":
 			return False
 		for letter in glyphName:
-			if not letter in validCharacters:
+			if letter not in validCharacters:
 				return False
 		return True
 
@@ -518,7 +523,7 @@ class EncodingConverter(object):
 			if not self.SavePreferences():
 				print("⚠️ 'Encoding Converter' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -540,7 +545,7 @@ class EncodingConverter(object):
 					# parse lines of nameChangeString:
 					for line in nameChangeString.splitlines():
 						try:
-							if line.strip(): # skip empty lines
+							if line.strip():  # skip empty lines
 
 								# RENAME LINE:
 								if "->" in line:
@@ -551,7 +556,7 @@ class EncodingConverter(object):
 										countRenames += self.glyphRename(sourceName, targetName, thisFont)
 
 								# GLYPH RECIPE:
-								elif "=" in line and not " " in line:
+								elif "=" in line and " " not in line:
 									sourceRecipe, targetGlyph = line.strip().split("=")
 									if self.isValidGlyphName(targetGlyph):
 										sourceGlyphNames = sourceRecipe.split("+")
@@ -588,9 +593,9 @@ class EncodingConverter(object):
 					raise e
 
 				finally:
-					thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+					thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
 
-				self.w.close() # delete if you want window to stay open
+				self.w.close()  # delete if you want window to stay open
 
 			# Final report:
 			Glyphs.showNotification(
@@ -600,8 +605,8 @@ class EncodingConverter(object):
 					"" if countRenames == 1 else "s",
 					countRecipes,
 					"" if countRecipes == 1 else "s",
-					),
-				)
+				),
+			)
 			print("\nDone.")
 
 		except Exception as e:
@@ -610,5 +615,6 @@ class EncodingConverter(object):
 			print("Encoding Converter Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 EncodingConverter()

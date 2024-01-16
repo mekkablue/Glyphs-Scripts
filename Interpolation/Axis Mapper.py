@@ -1,4 +1,4 @@
-#MenuTitle: Axis Mapper
+# MenuTitle: Axis Mapper
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,15 +6,18 @@ Extracts, resets and inserts an ‘avar’ axis mapping for the Axis Mappings pa
 """
 
 import vanilla
-from axisMethods import *
+from axisMethods import extremeMasterValuesNative, coefficient, valueForCoefficient, masterValueForAxisTag, extremeStyleValuesNative, styleValueForAxisTag
 from AppKit import NSFont
 from Foundation import NSMutableDictionary
 from collections import OrderedDict
+from GlyphsApp import Glyphs, Message
+
 fallbackText = """
 Only lines containing a dash "-" followed by a greater sign ">" are interpreted
 Write comments freely, anything after a hashtag "#" will always be ignored
 # SYNTAX: slider value the user *sees* -> slider value the user *gets*
 """
+
 
 def addAxisMappingGlyphsFontLevel(thisFont, minValue, maxValue, mappingRecipe, axisTag):
 	axisMapping = NSMutableDictionary.alloc().init()
@@ -40,7 +43,7 @@ def addAxisMappingGlyphsFontLevel(thisFont, minValue, maxValue, mappingRecipe, a
 			print("✅ Translating %i→%i to %i→%i" % (userValue, targetValue, nativeUserValue, nativeTargetValue))
 
 	parameterName = "Axis Mappings"
-	mappings = Font.customParameters[parameterName]
+	mappings = thisFont.customParameters[parameterName]
 	if not mappings:
 		print("🙌 Adding new %s parameter" % parameterName)
 		mappings = NSMutableDictionary.alloc().initWithObject_forKey_(axisMapping, "wght")
@@ -50,6 +53,7 @@ def addAxisMappingGlyphsFontLevel(thisFont, minValue, maxValue, mappingRecipe, a
 		mappings.setObject_forKey_(axisMapping, axisTag)
 	thisFont.customParameters[parameterName] = mappings
 	return len(axisMapping.allKeys())
+
 
 def addAxisMappingGlyphsInstanceLevel(thisFont, minValue, maxValue, mappingRecipe, axisTag):
 
@@ -75,9 +79,10 @@ def addAxisMappingGlyphsInstanceLevel(thisFont, minValue, maxValue, mappingRecip
 			nativeTargetValue = valueForCoefficient(targetCoeff, nativeLow, nativeHigh)
 
 			for thisInstance in thisFont.instances:
-				if not thisInstance.axes[axisIndex] == nativeUserValue: continue
+				if thisInstance.axes[axisIndex] != nativeUserValue:
+					continue
 
-				#checking if Axis Location Parameter already exists
+				# checking if Axis Location Parameter already exists
 				customParameterNames = [customParameter.name for customParameter in thisInstance.customParameters]
 				if 'Axis Location' in customParameterNames:
 					axisLocation = thisInstance.customParameters['Axis Location']
@@ -100,21 +105,22 @@ def addAxisMappingGlyphsInstanceLevel(thisFont, minValue, maxValue, mappingRecip
 			print("✅ Translating %i→%i to %i→%i" % (userValue, targetValue, nativeUserValue, nativeTargetValue))
 	return entriesCount
 
+
 class AxisMapper(object):
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 380
 		windowHeight = 160
-		windowWidthResize = 500 # user can resize width by this value
-		windowHeightResize = 600 # user can resize height by this value
+		windowWidthResize = 500  # user can resize width by this value
+		windowHeightResize = 600  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Axis Mapper", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.AxisMapper.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Axis Mapper",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.AxisMapper.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 4, 10, 22
@@ -154,14 +160,10 @@ class AxisMapper(object):
 
 		# Buttons:
 		self.w.recipeButton = vanilla.Button((inset, -20 - inset, 120, -inset), "Reset Recipe", sizeStyle='regular', callback=self.ResetRecipe)
-		self.w.recipeButton.getNSButton().setToolTip_(
-			"Construct a fallback axis mapping recipe for axis and the min/max values above, based on the existing active instances. Can be a good start for creating new mappings. Respects the weightClass settings for the 'wght' axis."
-			)
+		self.w.recipeButton.getNSButton().setToolTip_("Construct a fallback axis mapping recipe for axis and the min/max values above, based on the existing active instances. Can be a good start for creating new mappings. Respects the weightClass settings for the 'wght' axis.")
 
 		self.w.extractButton = vanilla.Button((inset + 130, -20 - inset, 120, -inset), "Extract Recipe", sizeStyle='regular', callback=self.ExtractAxisMapping)
-		self.w.extractButton.getNSButton().setToolTip_(
-			"Extract the axis mapping recipe for the chosen axis from an existing Axis Mappings parameter, and into the min/max values specified above. Will do nothing if it fails. Great for editing existing mappings."
-			)
+		self.w.extractButton.getNSButton().setToolTip_("Extract the axis mapping recipe for the chosen axis from an existing Axis Mappings parameter, and into the min/max values specified above. Will do nothing if it fails. Great for editing existing mappings.")
 
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Map", sizeStyle='regular', callback=self.AxisMapperMain)
 		self.w.runButton.getNSButton().setToolTip_("Write the current mapping recipe into an Axis Mappings parameter for the frontmost font.")
@@ -206,7 +208,7 @@ class AxisMapper(object):
 							if axisValue is None:
 								axisValue = masterValueForAxisTag(master, axisTag=axisTag)
 
-							if not axisValue is None:
+							if axisValue is not None:
 								collectedValues.append(float(axisValue))
 
 						return collectedValues
@@ -219,7 +221,7 @@ class AxisMapper(object):
 			values = self.allMasterValuesForAxisTag(axisTag=currentAxisTag)
 			if values:
 				return min(values)
-		return 0 # fallback value
+		return 0  # fallback value
 
 	def MaximumForCurrentAxis(self, sender=None):
 		currentAxisTag = self.w.axisPicker.get()
@@ -227,7 +229,7 @@ class AxisMapper(object):
 			values = self.allMasterValuesForAxisTag(axisTag=currentAxisTag)
 			if values:
 				return max(values)
-		return 100 # fallback value
+		return 100  # fallback value
 
 	def resetMinimum(self, sender=None):
 		value = self.MinimumForCurrentAxis()
@@ -254,9 +256,9 @@ class AxisMapper(object):
 			userMasterMin, userMasterMax = float(self.w.minValue.get()), float(self.w.maxValue.get())
 
 			mappingDict = {
-				userMasterMin: "%i -> %i # Min" % (userMasterMin, userMasterMin),
-				userMasterMax: "%i -> %i # Max" % (userMasterMax, userMasterMax),
-				}
+				userMasterMin: "%i -> %i  # Min" % (userMasterMin, userMasterMin),
+				userMasterMax: "%i -> %i  # Max" % (userMasterMax, userMasterMax),
+			}
 
 			for style in font.instances:
 				if style.active:
@@ -271,7 +273,7 @@ class AxisMapper(object):
 						if userMasterMin <= weightClass <= userMasterMax:
 							visibleSliderValue = weightClass
 
-					mappingDict[visibleSliderValue] = "%i -> %i # %s" % (visibleSliderValue, trueSliderValue, style.name)
+					mappingDict[visibleSliderValue] = "%i -> %i  # %s" % (visibleSliderValue, trueSliderValue, style.name)
 
 			for mappingValue in sorted(mappingDict.keys()):
 				line = mappingDict[mappingValue]
@@ -327,7 +329,7 @@ class AxisMapper(object):
 
 			text = ""
 			axisTag = Glyphs.defaults["com.mekkablue.AxisMapper.axisPicker"]
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont:
 				mappings = thisFont.customParameters["Axis Mappings"]
 				if mappings:
@@ -347,7 +349,7 @@ class AxisMapper(object):
 							coeff = coefficient(nativeTargetValue, minValueNative, maxValueNative)
 							targetValue = valueForCoefficient(coeff, minValue, maxValue)
 
-							text += "%g -> %g # native: %i -> %i\n" % (userValue, targetValue, nativeUserValue, nativeTargetValue)
+							text += "%g -> %g  # native: %i -> %i\n" % (userValue, targetValue, nativeUserValue, nativeTargetValue)
 			if text:
 				text += "\nBased on "
 				if thisFont.filepath:
@@ -358,7 +360,7 @@ class AxisMapper(object):
 				text += fallbackText
 				Glyphs.defaults["com.mekkablue.AxisMapper.mappingRecipe"] = text.strip()
 				self.LoadPreferences()
-		except Exception as e:
+		except Exception as e:  # noqa: F841
 			raise e
 
 	def AxisMapperMain(self, sender=None):
@@ -370,7 +372,7 @@ class AxisMapper(object):
 			if not self.SavePreferences():
 				print("Note: 'Axis Mapper' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -396,7 +398,7 @@ class AxisMapper(object):
 			Glyphs.showNotification(
 				"‘%s’ mapping for %s" % (axisTag, thisFont.familyName),
 				"Inserted ‘%s’ mapping with %i entries. Details in Macro Window" % (axisTag, entriesNumber),
-				)
+			)
 			print("\nDone.")
 
 		except Exception as e:
@@ -405,6 +407,7 @@ class AxisMapper(object):
 			print("Axis Mapper Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 if Glyphs.versionNumber < 3.0:
 	Message(title="Glyphs Version Error", message="This script requires GLyphs 3.0 or later.", OKButton=None)

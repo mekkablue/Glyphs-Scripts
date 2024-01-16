@@ -1,12 +1,16 @@
-#MenuTitle: Stitcher
+# MenuTitle: Stitcher
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Turn your paths into dotted lines, and specify a component as dot, i.e. stitch components onto paths in selected glyphs. Respects origin anchor in your source component.
 """
 
-import math, vanilla, traceback
+import math
+import vanilla
+import traceback
 from Foundation import NSPoint
+from GlyphsApp import Glyphs, GSOFFCURVE, GSComponent
+
 
 def deleteAllComponents(thisLayer):
 	try:
@@ -17,9 +21,10 @@ def deleteAllComponents(thisLayer):
 
 		return True
 
-	except Exception as e:
+	except Exception as e:  # noqa: F841
 		print(traceback.format_exc())
 		return False
+
 
 def bezier(A, B, C, D, t):
 	x1, y1 = A.x, A.y
@@ -32,8 +37,10 @@ def bezier(A, B, C, D, t):
 
 	return x, y
 
+
 def distance(node1, node2):
 	return math.hypot(node1.x - node2.x, node1.y - node2.y)
+
 
 def segmentsForPath(p):
 	segments = []
@@ -43,12 +50,13 @@ def segmentsForPath(p):
 		currentSegment.append(n.position)
 		if i > 0 and n.type != GSOFFCURVE:
 			offset = len(currentSegment)
-			if not offset in (2, 4):
+			if offset not in (2, 4):
 				firstPoint = p.nodes[(i - offset) % pathlength].position
 				currentSegment.insert(0, firstPoint)
 			segments.append(tuple(currentSegment))
 			currentSegment = []
 	return segments
+
 
 def getFineGrainPointsForPath(thisPath, distanceBetweenDots):
 	try:
@@ -76,8 +84,8 @@ def getFineGrainPointsForPath(thisPath, distanceBetweenDots):
 				bezierPointC = thisSegment[2]
 				bezierPointD = thisSegment[3]
 
-				bezierLength = distance(bezierPointA, bezierPointB) + distance(bezierPointB,
-																				bezierPointC) + distance(bezierPointC, bezierPointD) # very rough approximation, up to 11% too long
+				bezierLength = distance(bezierPointA, bezierPointB) + distance(bezierPointB, bezierPointC) \
+					+ distance(bezierPointC, bezierPointD)  # very rough approximation, up to 11% too long
 				dotsPerSegment = int((bezierLength / distanceBetweenDots) * 10)
 
 				for i in range(1, dotsPerSegment):
@@ -88,14 +96,16 @@ def getFineGrainPointsForPath(thisPath, distanceBetweenDots):
 				layerCoords += [NSPoint(bezierPointD.x, bezierPointD.y)]
 
 		return layerCoords
-	except Exception as e:
+	except Exception as e:  # noqa: F841
 		print(traceback.format_exc())
+
 
 def interpolatePointPos(p1, p2, factor):
 	factor = factor % 1.0
 	x = p1.x * factor + p2.x * (1.0 - factor)
 	y = p1.y * factor + p2.y * (1.0 - factor)
 	return NSPoint(x, y)
+
 
 def dotCoordsOnPath(thisPath, distanceBetweenDots, balanceOverCompletePath=False):
 	try:
@@ -123,8 +133,9 @@ def dotCoordsOnPath(thisPath, distanceBetweenDots, balanceOverCompletePath=False
 				dotPoints[j] = newPos
 
 		return dotPoints
-	except Exception as e:
+	except Exception as e:  # noqa: F841
 		print(traceback.format_exc())
+
 
 def placeDots(thisLayer, useBackground, componentName, distanceBetweenDots, balanceOverCompletePath=False):
 	try:
@@ -132,16 +143,16 @@ def placeDots(thisLayer, useBackground, componentName, distanceBetweenDots, bala
 		xOffset = 0.0
 		yOffset = 0.0
 		Font = thisLayer.parent.parent
-		FontMasterID = thisLayer.associatedMasterId
+		masterID = thisLayer.associatedMasterId
 		sourceComponent = Font.glyphs[componentName]
 
 		if sourceComponent:
 			try:
-				sourceAnchor = sourceComponent.layers[thisLayer.associatedMasterId].anchors["origin"]
+				sourceAnchor = sourceComponent.layers[masterID].anchors["origin"]
 				xOffset, yOffset = -sourceAnchor.position.x, -sourceAnchor.position.y
 			except:
 				pass
-				#print "-- Note: no origin anchor in '%s'." % ( componentName )
+				# print "-- Note: no origin anchor in '%s'." % ( componentName )
 
 			# use background if specified:
 			if useBackground:
@@ -162,9 +173,10 @@ def placeDots(thisLayer, useBackground, componentName, distanceBetweenDots, bala
 		else:
 			return False
 
-	except Exception as e:
+	except Exception as e:  # noqa: F841
 		print(traceback.format_exc())
 		return False
+
 
 def minimumOfOne(value):
 	try:
@@ -175,6 +187,7 @@ def minimumOfOne(value):
 		returnValue = 1.0
 
 	return returnValue
+
 
 def process(thisLayer, deleteComponents, componentName, distanceBetweenDots, useBackground=True, balanceOverCompletePath=False):
 	try:
@@ -196,8 +209,9 @@ def process(thisLayer, deleteComponents, componentName, distanceBetweenDots, use
 
 		if not placeDots(thisLayer, useBackground, componentName, distanceBetweenDots, balanceOverCompletePath):
 			print("-- Could not place components at intervals of %.1f units." % distanceBetweenDots)
-	except Exception as e:
+	except Exception as e:  # noqa: F841
 		print(traceback.format_exc())
+
 
 class ComponentOnLines(object):
 
@@ -205,7 +219,7 @@ class ComponentOnLines(object):
 		windowHeight = 180
 		self.w = vanilla.FloatingWindow(
 			(350, windowHeight), "Stitcher", minSize=(300, windowHeight), maxSize=(500, windowHeight), autosaveName="com.mekkablue.ComponentsOnNodes.mainwindow"
-			)
+		)
 
 		inset = 15
 		linePos = 14
@@ -217,9 +231,7 @@ class ComponentOnLines(object):
 		self.w.text_2 = vanilla.TextBox((inset, linePos, 15 + 95, 14), "At intervals of:", sizeStyle='small')
 		self.w.sliderMin = vanilla.EditText((inset + 100, linePos, 50, 20), "30", sizeStyle='small', callback=self.SavePreferences)
 		self.w.sliderMax = vanilla.EditText((-inset - 50, linePos, -15, 20), "60", sizeStyle='small', callback=self.SavePreferences)
-		self.w.intervalSlider = vanilla.Slider(
-			(inset + 100 + 50 + 10, linePos, -inset - 50 - 10, 20), value=0, minValue=0.0, maxValue=1.0, sizeStyle='small', callback=self.ComponentOnLinesMain
-			)
+		self.w.intervalSlider = vanilla.Slider((inset + 100 + 50 + 10, linePos, -inset - 50 - 10, 20), value=0, minValue=0.0, maxValue=1.0, sizeStyle='small', callback=self.ComponentOnLinesMain)
 
 		linePos += lineGap
 		self.w.liveSlider = vanilla.CheckBox((inset, linePos, -inset, 20), "Live slider", value=False, sizeStyle='small')
@@ -228,9 +240,7 @@ class ComponentOnLines(object):
 		self.w.useBackground = vanilla.CheckBox((inset, linePos, -inset, 20), "Keep paths in background", value=True, sizeStyle='small', callback=self.SavePreferences)
 
 		linePos += lineGap
-		self.w.balanceOverCompletePath = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), u"Balance components over complete path", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.balanceOverCompletePath = vanilla.CheckBox((inset, linePos, -inset, 20), u"Balance components over complete path", value=False, callback=self.SavePreferences, sizeStyle='small')
 
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Stitch", sizeStyle='regular', callback=self.ComponentOnLinesMain)
 		self.w.setDefaultButton(self.w.runButton)
@@ -283,7 +293,7 @@ class ComponentOnLines(object):
 		try:
 			if (bool(Glyphs.defaults["com.mekkablue.ComponentOnLines.liveSlider"]) and sender == self.w.intervalSlider) or sender != self.w.intervalSlider:
 				Font = Glyphs.font
-				FontMaster = Font.selectedFontMaster
+				# FontMaster = Font.selectedFontMaster
 				selectedLayers = Font.selectedLayers
 				deleteComponents = True
 				componentName = Glyphs.defaults["com.mekkablue.ComponentOnLines.componentName"]
@@ -299,10 +309,10 @@ class ComponentOnLines(object):
 				Font.disableUpdateInterface()
 				try:
 					for thisLayer in selectedLayers:
-						thisGlyph = thisLayer.parent
-						# thisGlyph.beginUndo() # undo grouping causes crashes
+						# thisGlyph = thisLayer.parent
+						# thisGlyph.beginUndo()  # undo grouping causes crashes
 						process(thisLayer, deleteComponents, componentName, distanceBetweenDots, useBackground, balanceOverCompletePath)
-						# thisGlyph.endUndo() # undo grouping causes crashes
+						# thisGlyph.endUndo()  # undo grouping causes crashes
 
 				except Exception as e:
 					Glyphs.showMacroWindow()
@@ -319,5 +329,6 @@ class ComponentOnLines(object):
 					print("Note: could not write preferences.")
 		except:
 			print(traceback.format_exc())
+
 
 ComponentOnLines()

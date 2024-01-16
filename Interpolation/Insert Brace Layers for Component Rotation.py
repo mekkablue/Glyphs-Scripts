@@ -1,4 +1,4 @@
-#MenuTitle: Insert Brace Layers for Rotating Components
+# MenuTitle: Insert Brace Layers for Rotating Components
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Inserts a number of Brace Layers with continuously scaled and rotated components
 """
 
 import vanilla
+from GlyphsApp import Glyphs, GSLayer, Message
+
 
 class InsertBraceLayersForComponentRotation(object):
 	prefID = "com.mekkablue.InsertBraceLayersforComponentRotation"
@@ -14,15 +16,15 @@ class InsertBraceLayersForComponentRotation(object):
 		# Window 'self.w':
 		windowWidth = 250
 		windowHeight = 120
-		windowWidthResize = 150 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 150  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Layers for Rotating Components", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Layers for Rotating Components",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		self.w.text_1 = vanilla.TextBox((14, 12 + 2, 170, 14), "Insert steps between masters:", sizeStyle='small')
@@ -81,15 +83,15 @@ class InsertBraceLayersForComponentRotation(object):
 		try:
 			try:
 				steps = int(self.pref("steps"))
-			except Exception as e:
+			except Exception as e:  # noqa: F841
 				steps = 0
 				Message(title="Value Error", message="Cannot find valid number of steps.", OKButton=None)
 
 			replace = True
 
 			if steps > 0:
-				thisFont = Glyphs.font # frontmost font
-				masters = thisFont.masters # all masterss
+				thisFont = Glyphs.font  # frontmost font
+				masters = thisFont.masters  # all masterss
 				numberOfMasters = len(masters)
 
 				if Glyphs.versionNumber >= 3:
@@ -108,9 +110,9 @@ class InsertBraceLayersForComponentRotation(object):
 						for j in range(steps):
 							stepWidth = (currValue - prevValue) / (steps + 1)
 							newValue = prevValue + stepWidth * (j + 1)
-							braceLayerValues[newValue] = (prevMaster.id, currMaster.id) # record interpolation masters with brace layer value
+							braceLayerValues[newValue] = (prevMaster.id, currMaster.id)  # record interpolation masters with brace layer value
 
-					for thisGlyph in [l.parent for l in thisFont.selectedLayers]: # loop through glyphs
+					for thisGlyph in [layer.parent for layer in thisFont.selectedLayers]:  # loop through glyphs
 						if thisGlyph.mastersCompatible:
 							if replace:
 								for i in range(len(thisGlyph.layers))[::-1]:
@@ -124,14 +126,15 @@ class InsertBraceLayersForComponentRotation(object):
 								if Glyphs.versionNumber >= 3:
 									newLayer.attributes['coordinates'] = {
 										axisID: thisValue
-										}
+									}
 								thisGlyph.layers.append(newLayer)
 								newLayer.reinterpolate()
+								"""  # is this broken?
 								masterLayer1 = thisGlyph.layers[braceLayerValues[thisValue][0]]
 								masterLayer2 = thisGlyph.layers[braceLayerValues[thisValue][1]]
 								masterValue1 = self.getMasterWeightValue(masterLayer1.associatedFontMaster())
 								masterValue2 = self.getMasterWeightValue(masterLayer2.associatedFontMaster())
-								""" # is this broken?
+
 								for i, thisComponent in enumerate(newLayer.components):
 									comp1 = masterLayer1.components[i]
 									comp2 = masterLayer2.components[i]
@@ -141,7 +144,7 @@ class InsertBraceLayersForComponentRotation(object):
 										comp1.scale[1] + factor * (comp2.scale[1]-comp1.scale[1]),
 										#-1 if thisComponent.scale[0] < 0 else 1,
 										#-1 if thisComponent.scale[1] < 0 else 1,
-									)
+								)
 								"""
 						else:
 							print("%s: not compatible. Left unchanged." % thisGlyph.name)
@@ -155,5 +158,6 @@ class InsertBraceLayersForComponentRotation(object):
 			print("Insert Brace Layers for Component Rotation Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 InsertBraceLayersForComponentRotation()

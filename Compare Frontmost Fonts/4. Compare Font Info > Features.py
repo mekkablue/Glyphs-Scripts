@@ -1,11 +1,13 @@
-#MenuTitle: Compare Font Info > Features
+# MenuTitle: Compare Font Info > Features
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Compares the OT features set of the two frontmost fonts and outputs a report in the Macro Window.
 """
 
-from compare import *
+from compare import compareLists, lineReport
+from GlyphsApp import Glyphs
+
 
 def removeComments(featureCode):
 	lines = featureCode.splitlines()
@@ -15,8 +17,9 @@ def removeComments(featureCode):
 	featureCode = "\n".join(lines)
 	return featureCode
 
-thisFont = Glyphs.fonts[0] # frontmost font
-otherFont = Glyphs.fonts[1] # second font
+
+thisFont = Glyphs.fonts[0]  # frontmost font
+otherFont = Glyphs.fonts[1]  # second font
 thisFileName = thisFont.filepath.lastPathComponent()
 otherFileName = otherFont.filepath.lastPathComponent()
 
@@ -34,7 +37,7 @@ compareSet = {
 	"Classes": (thisClassSet, otherClassSet),
 	"Prefixes": (thisPrefixSet, otherPrefixSet),
 	"Features": (thisFeatureSet, otherFeatureSet),
-	}
+}
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
@@ -70,8 +73,8 @@ print("Detailed Code Comparison:".upper())
 print()
 for prefix in set([p.name for p in thisFont.featurePrefixes if p.active]):
 	# prefixes:
-	thisPrefix = "\n".join([f.code for f in thisFont.featurePrefixes if f.name == prefix]) # thisFont.featurePrefixes[prefix]
-	otherPrefix = "\n".join([f.code for f in otherFont.featurePrefixes if f.name == prefix]) # otherFont.featurePrefixes[prefix]
+	thisPrefix = "\n".join([f.code for f in thisFont.featurePrefixes if f.name == prefix])  # thisFont.featurePrefixes[prefix]
+	otherPrefix = "\n".join([f.code for f in otherFont.featurePrefixes if f.name == prefix])  # otherFont.featurePrefixes[prefix]
 
 	if thisPrefix and otherPrefix:
 		# compare:
@@ -79,7 +82,7 @@ for prefix in set([p.name for p in thisFont.featurePrefixes if p.active]):
 			removeComments(thisPrefix).splitlines(),
 			removeComments(otherPrefix).splitlines(),
 			ignoreEmpty=True,
-			)
+		)
 		# report in Macro Window
 		lineReport(thisPrefix, otherPrefix, thisFileName, otherFileName, "Prefix %s" % prefix)
 
@@ -94,13 +97,13 @@ for otClass in [c.name for c in thisFont.classes if c.active]:
 			removeComments(thisClass.code).split(),
 			removeComments(otherClass.code).split(),
 			ignoreEmpty=True,
-			)
+		)
 		# report in Macro Window
 		lineReport(thisClassCode, otherClassCode, thisFileName, otherFileName, "Class %s" % otClass, commaSeparated=True)
 
 for feature in set([f.name for f in thisFont.features if f.active]):
-	thisFeatureCode = "\n".join([f.code for f in thisFont.features if f.name == feature]) # thisFont.features[feature]
-	otherFeatureCode = "\n".join([f.code for f in otherFont.features if f.name == feature]) # otherFont.features[feature]
+	thisFeatureCode = "\n".join([f.code for f in thisFont.features if f.name == feature])  # thisFont.features[feature]
+	otherFeatureCode = "\n".join([f.code for f in otherFont.features if f.name == feature])  # otherFont.features[feature]
 
 	if thisFeatureCode and otherFeatureCode:
 		# compare code lines:
@@ -108,6 +111,6 @@ for feature in set([f.name for f in thisFont.features if f.active]):
 			removeComments(thisFeatureCode).splitlines(),
 			removeComments(otherFeatureCode).splitlines(),
 			ignoreEmpty=True,
-			)
+		)
 		# report in Macro Window
 		lineReport(thisFeatureCode, otherFeatureCode, thisFileName, otherFileName, "Feature %s" % feature)

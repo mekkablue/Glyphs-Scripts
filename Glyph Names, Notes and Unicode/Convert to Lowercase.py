@@ -1,9 +1,11 @@
-#MenuTitle: Convert to Lowercase
+# MenuTitle: Convert to Lowercase
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Turns uppercase names into lowercase names, e.g., `A` → `a`, `Ccaron` → `ccaron`, `AEacute` → `aeacute`, etc. Useful for smallcap glyphs.
 """
+from GlyphsApp import Glyphs
+
 
 def lowercaseGlyphName(thisGlyph):
 	originalGlyphName = thisGlyph.name
@@ -34,13 +36,14 @@ def lowercaseGlyphName(thisGlyph):
 					"✅ %s → %s" % (
 						originalGlyphName,
 						thisGlyph.name if thisGlyph.name == lowercaseGlyphName else "%s → %s (updated glyph info)" % (lowercaseGlyphName, thisGlyph.name),
-						)
 					)
+				)
 				return 1
 
-Glyphs.clearLog() # clears macro window log
+
+Glyphs.clearLog()  # clears macro window log
 Font = Glyphs.font
-selectedGlyphs = [l.parent for l in Font.selectedLayers]
+selectedGlyphs = [layer.parent for layer in Font.selectedLayers]
 countSelectedGlyphs = len(selectedGlyphs)
 convertedCount = 0
 print("Converting %i selected glyphs to lowercase:\n" % countSelectedGlyphs)
@@ -67,10 +70,10 @@ Glyphs.showNotification(
 		"" if countSelectedGlyphs == 1 else "s",
 		convertedCount,
 		"was" if convertedCount == 1 else "were",
-		),
-	)
+	),
+)
 
 print("\n%i glyph%s converted to lowercase.\nDone." % (
 	convertedCount,
 	"" if convertedCount == 1 else "s",
-	))
+))

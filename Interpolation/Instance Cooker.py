@@ -1,13 +1,14 @@
-#MenuTitle: Instance Cooker
+# MenuTitle: Instance Cooker
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Insert many instances at once with a recipe.
 """
 
-import vanilla, codecs
+import vanilla
+import codecs
 from AppKit import NSFont, NSDictionary
-from GlyphsApp import INSTANCETYPEVARIABLE
+from GlyphsApp import Glyphs, GSAxis, GSInstance, INSTANCETYPEVARIABLE, GetSaveFile, GetOpenFile, Message
 
 defaultRecipe = """
 Recipe instructions:
@@ -39,12 +40,14 @@ Recipe instructions:
 1:Italic
 """
 
+
 def saveFileInLocation(content="", filePath="~/Desktop/test.txt"):
 	with codecs.open(filePath, "w", "utf-8-sig") as thisFile:
 		print("💾 Writing:", thisFile.name)
 		thisFile.write(content)
 		thisFile.close()
 	return True
+
 
 def readFileFromLocation(filePath="~/Desktop/test.txt"):
 	content = ""
@@ -54,6 +57,7 @@ def readFileFromLocation(filePath="~/Desktop/test.txt"):
 		thisFile.close()
 	return content
 
+
 def tagForAxisName(axisName):
 	tagDict = {
 		"Weight": "wght",
@@ -61,7 +65,7 @@ def tagForAxisName(axisName):
 		"Italic": "ital",
 		"Slant": "slnt",
 		"Optical Size": "opsz",
-		}
+	}
 
 	if tagDict[axisName]:
 		return tagDict[axisName]
@@ -74,8 +78,10 @@ def tagForAxisName(axisName):
 			tag = tag + (4 - len(tag)) * "X"
 		return tag
 
+
 def axisLocationEntry(axisName, locationValue):
 	return NSDictionary.alloc().initWithObjects_forKeys_((axisName, locationValue), ("Axis", "Location"))
+
 
 def parseAxes(code):
 	axisDict = {}
@@ -119,8 +125,9 @@ def parseAxes(code):
 						axisDict[axisKey].append(axisValue)
 	return axisDict
 
+
 def parsePosInfo(posInfo):
-	if type(posInfo) == tuple:
+	if isinstance(posInfo, tuple):
 		return posInfo
 
 	posInfo = str(posInfo)
@@ -130,6 +137,7 @@ def parsePosInfo(posInfo):
 		coord = int(posInfo.strip())
 		axisLoc = coord
 	return coord, axisLoc
+
 
 def addLocationToInstance(instance, axisName, axisLoc):
 	paramName = "Axis Location"
@@ -145,10 +153,11 @@ def addLocationToInstance(instance, axisName, axisLoc):
 	if axisName == "Weight":
 		instance.weightClass = axisLoc
 
+
 def styleLinkInstance(instance, axisName, particle):
 	linkedParticles = []
 	for existingNameParticle in instance.name.split():
-		if not "*" in existingNameParticle:
+		if "*" not in existingNameParticle:
 			if not existingNameParticle == particle:
 				linkedParticles.append(existingNameParticle)
 	linkedStyleName = " ".join(linkedParticles)
@@ -162,6 +171,7 @@ def styleLinkInstance(instance, axisName, particle):
 		instance.isItalic = True
 		if not instance.linkStyle:
 			instance.linkStyle = linkedStyleName
+
 
 def removeElidableNames(instance):
 	if "*" in instance.name:
@@ -183,6 +193,7 @@ def removeElidableNames(instance):
 		# set instance name:
 		instance.name = " ".join(newParticles)
 
+
 def biggestSubstringInStrings(strings):
 	if len(strings) > 1:
 		sortedStrings = sorted(strings, key=lambda string: len(string))
@@ -202,6 +213,7 @@ def biggestSubstringInStrings(strings):
 
 	return ""
 
+
 class InstanceCooker(object):
 	prefID = "com.mekkablue.InstanceCooker"
 
@@ -209,15 +221,15 @@ class InstanceCooker(object):
 		# Window 'self.w':
 		windowWidth = 500
 		windowHeight = 300
-		windowWidthResize = 1000 # user can resize width by this value
-		windowHeightResize = 1000 # user can resize height by this value
+		windowWidthResize = 1000  # user can resize width by this value
+		windowHeightResize = 1000  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Instance Cooker", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Instance Cooker",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -225,9 +237,7 @@ class InstanceCooker(object):
 		linePos += lineHeight
 
 		self.w.recipe = vanilla.TextEditor((1, linePos, -1, -inset * 3), text="", callback=self.SavePreferences, checksSpelling=False)
-		self.w.recipe.getNSTextView().setToolTip_(
-			"Syntax:\n#Axisname\n#Axisname:tag\nposition:instance name particle\ninternal>external:instance name particle\n* after particle for elidable names\n\nExample:\n#Weight\n100>400:Regular*\n120>500:Medium\n150>600:Semibold\n#Width:wdth\n75:Condensed\n100:Regular*\n125:Extended"
-			)
+		self.w.recipe.getNSTextView().setToolTip_("Syntax:\n#Axisname\n#Axisname:tag\nposition:instance name particle\ninternal>external:instance name particle\n* after particle for elidable names\n\nExample:\n#Weight\n100>400:Regular*\n120>500:Medium\n150>600:Semibold\n#Width:wdth\n75:Condensed\n100:Regular*\n125:Extended")
 		self.w.recipe.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.recipe.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.recipe.getNSScrollView().setRulersVisible_(0)
@@ -346,9 +356,9 @@ class InstanceCooker(object):
 									location = float(entry["Location"])
 									if location != axisValue:
 										axisLoc = ">%i" % location
-										break # skip other entries if we found our value
+										break  # skip other entries if we found our value
 							if axisLoc:
-								break # skip other instances if we found our value
+								break  # skip other instances if we found our value
 
 					# determine width class if any:
 					if thisAxis.name == "Width":
@@ -377,7 +387,7 @@ class InstanceCooker(object):
 			if not self.SavePreferences():
 				print("Note: 'Instance Cooker' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -400,7 +410,7 @@ class InstanceCooker(object):
 					axisIndex, axisName = axisNameParts[0].split(",")
 					axisTag = axisNameParts[1]
 
-					if not axisName in existingAxisNames:
+					if axisName not in existingAxisNames:
 						# create axis
 						newAxis = GSAxis()
 						newAxis.name = axisName
@@ -471,13 +481,11 @@ class InstanceCooker(object):
 				instanceCount = len(instances)
 
 			# Final report:
-			print(
-				"Added %i instance%s to %s. Details in Macro Window." % (
-					instanceCount,
-					"" if instanceCount == 1 else "s",
-					thisFont.familyName,
-					)
-				)
+			print("Added %i instance%s to %s. Details in Macro Window." % (
+				instanceCount,
+				"" if instanceCount == 1 else "s",
+				thisFont.familyName,
+			))
 			thisFont.parent.windowController().showFontInfoWindowWithTabSelected_(2)
 			print("\n✅ Done.")
 
@@ -487,5 +495,6 @@ class InstanceCooker(object):
 			print("Instance Cooker Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 InstanceCooker()

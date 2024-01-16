@@ -1,4 +1,4 @@
-#MenuTitle: Straight Stem Cruncher
+# MenuTitle: Straight Stem Cruncher
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -7,17 +7,19 @@ Measures in centers of straight segments, and reports deviations in stem thickne
 
 import vanilla
 from Foundation import NSPoint
-if Glyphs.versionNumber >= 3:
-	from AppKit import NSMutableArray
+from GlyphsApp import Glyphs, GSAnnotation, PLUS, Message, distance, subtractPoints, scalePoint, addPoints
+
 
 def pointDistance(p1, p2):
 	stemThickness = ((p2.x - p1.x)**2.0 + (p2.y - p1.y)**2.0)**0.5
 	return stemThickness
 
+
 def middleBetweenTwoPoints(p1, p2):
 	x = (p1.x + p2.x) * 0.5
 	y = (p1.y + p2.y) * 0.5
 	return NSPoint(x, y)
+
 
 class StraightStemCruncher(object):
 	defaultExcludeList = ".sc, .c2sc, .smcp, .sups, .subs, .sinf, superior, inferior, .numr, .dnom"
@@ -27,28 +29,24 @@ class StraightStemCruncher(object):
 		# Window 'self.w':
 		windowWidth = 355
 		windowHeight = 370
-		windowWidthResize = 600 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 600  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Straight Stem Cruncher", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.StraightStemCruncher.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Straight Stem Cruncher",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.StraightStemCruncher.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, 14), u"In current master, looks for stems close but not exactly at:", sizeStyle='small', selectable=True
-			)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), u"In current master, looks for stems close but not exactly at:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
 		self.w.stemsText = vanilla.TextBox((inset, linePos + 3, 80, 14), u"Stem Widths:", sizeStyle='small', selectable=True)
 		self.w.stems = vanilla.EditText((inset + 80, linePos, -inset - 25, 19), "20, 30, 40", callback=self.SavePreferences, sizeStyle='small')
-		self.w.stems.getNSTextField().setToolTip_(
-			"Comma-separated list of stem sizes to look for. If the script finds stems deviating from these sizes, within the given min/max deviations, it will report them."
-			)
+		self.w.stems.getNSTextField().setToolTip_("Comma-separated list of stem sizes to look for. If the script finds stems deviating from these sizes, within the given min/max deviations, it will report them.")
 		self.w.stemUpdate = vanilla.SquareButton((-inset - 20, linePos, -inset, 19), u"↺", sizeStyle='small', callback=self.update)
 		self.w.stemUpdate.getNSButton().setToolTip_("Populate the stems with the stems of the current master.")
 		linePos += lineHeight
@@ -57,9 +55,7 @@ class StraightStemCruncher(object):
 		self.w.deviationMin = vanilla.EditText((inset + 175, linePos, 45, 19), "0.4", callback=self.SavePreferences, sizeStyle='small')
 		self.w.deviationMin.getNSTextField().setToolTip_("Deviations up to this value will be tolerated. Half a unit is a good idea to avoid false positives from rounding errors.")
 		self.w.deviationMax = vanilla.EditText((inset + 175 + 55, linePos, 45, 19), "3.1", callback=self.SavePreferences, sizeStyle='small')
-		self.w.deviationMax.getNSTextField().setToolTip_(
-			"Deviations up to this value will be reported. Do not exaggerate value, otherwise you get false positives from cases where the opposing segment is not the other side of the stem."
-			)
+		self.w.deviationMax.getNSTextField().setToolTip_("Deviations up to this value will be reported. Do not exaggerate value, otherwise you get false positives from cases where the opposing segment is not the other side of the stem.")
 		linePos += lineHeight
 
 		self.w.minimumSegmentLengthText = vanilla.TextBox((inset, linePos + 2, 145, 14), u"Minimum segment length:", sizeStyle='small', selectable=True)
@@ -84,9 +80,7 @@ class StraightStemCruncher(object):
 		self.w.checkSpecialLayers.getNSButton().setToolTip_("If checked, also measures on bracket ayers. Otherwise only on master layers.")
 		linePos += lineHeight
 
-		self.w.selectedGlyphsOnly = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), u"Measure selected glyphs only (otherwise all glyphs in font)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.selectedGlyphsOnly = vanilla.CheckBox((inset, linePos, -inset, 20), u"Measure selected glyphs only (otherwise all glyphs in font)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.selectedGlyphsOnly.getNSButton().setToolTip_("Uncheck for measuring complete font.")
 		linePos += lineHeight
 
@@ -106,30 +100,22 @@ class StraightStemCruncher(object):
 		self.w.excludeGlyphNamesReset.getNSButton().setToolTip_("Reset to: %s." % self.defaultExcludeList)
 		linePos += lineHeight
 
-		self.w.markStems = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), u"Mark affected stems with %s annotation" % self.marker, value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.markStems.getNSButton().setToolTip_(
-			u"If checked, will add a red-plus annotation at the center of the measurement. Will often add two of them because stem will be measured from both sides.\nCAREFUL: May delete existing plus annotations."
-			)
+		self.w.markStems = vanilla.CheckBox((inset, linePos, -inset, 20), u"Mark affected stems with %s annotation" % self.marker, value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.markStems.getNSButton().setToolTip_("If checked, will add a red-plus annotation at the center of the measurement. Will often add two of them because stem will be measured from both sides.\nCAREFUL: May delete existing plus annotations.")
 		linePos += lineHeight
 
-		self.w.reportNonMeasurements = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), u"Report layers without measurements", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.reportNonMeasurements.getNSButton(
-		).setToolTip_("In Macro Window, report if a layer does not have any measurements. Most likely causes: no straight stems in the paths, or wrong path direction.")
+		self.w.reportNonMeasurements = vanilla.CheckBox((inset, linePos, -inset, 20), u"Report layers without measurements", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportNonMeasurements.getNSButton().setToolTip_("In Macro Window, report if a layer does not have any measurements. Most likely causes: no straight stems in the paths, or wrong path direction.")
 		linePos += lineHeight
 
 		self.w.openTab = vanilla.CheckBox((inset, linePos, 200, 20), u"Open tab with affected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.openTab.getNSButton().setToolTip_("If unchecked, will bring macro window with detailed report to front.")
 		self.w.reuseTab = vanilla.CheckBox((inset + 200, linePos, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab.getNSButton(
-		).setToolTip_(u"If checked, will reuse the active tab if there is one, otherwise will open a new tab. If unchecked, will always open a new tab.")
+		self.w.reuseTab.getNSButton().setToolTip_(u"If checked, will reuse the active tab if there is one, otherwise will open a new tab. If unchecked, will always open a new tab.")
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
-		self.w.progress.set(0) # set progress indicator to zero
+		self.w.progress.set(0)  # set progress indicator to zero
 		linePos += lineHeight
 
 		# Status message:
@@ -153,7 +139,7 @@ class StraightStemCruncher(object):
 		buttonEnable = (
 			Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkVStems"] or Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkHStems"]
 			or Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkDStems"]
-			)
+		)
 		self.w.runButton.enable(onOff=buttonEnable)
 
 	def update(self, sender=None):
@@ -262,18 +248,18 @@ class StraightStemCruncher(object):
 	def stemThicknessAtLine(self, layer, p1, p2, measureLength):
 		h = p2.x - p1.x
 		v = p2.y - p1.y
-		l = (h**2 + v**2)**0.5
+		length = (h**2 + v**2)**0.5
 
-		hUnit = h / l
-		vUnit = v / l
+		hUnit = h / length
+		vUnit = v / length
 
 		h = hUnit * measureLength
 		v = vUnit * measureLength
 
 		measurePoint1 = middleBetweenTwoPoints(p1, p2)
-		#	print "  middle:", measurePoint1, hUnit, vUnit
-		# 	measurePoint1.x += vUnit*2
-		# 	measurePoint1.y -= hUnit*2
+		# print "  middle:", measurePoint1, hUnit, vUnit
+		# measurePoint1.x += vUnit*2
+		# measurePoint1.y -= hUnit*2
 
 		measurePoint2 = NSPoint(measurePoint1.x - v, measurePoint1.y + h)
 		intersections = layer.intersectionsBetweenPoints(measurePoint1, measurePoint2)
@@ -337,10 +323,10 @@ class StraightStemCruncher(object):
 						elif checkDStems:
 							check = True
 
-						#if p1.x==p2.x or p1.y==p2.y or not Glyphs.defaults["com.mekkablue.StraightStemCruncher.ignoreDiagonals"]:
+						# if p1.x==p2.x or p1.y==p2.y or not Glyphs.defaults["com.mekkablue.StraightStemCruncher.ignoreDiagonals"]:
 						if check:
 							if pointDistance(p1, p2) >= minLength:
-								measureLength=max(100.0, measureLayer.bounds.size.width + measureLayer.bounds.size.height)
+								measureLength = max(100.0, measureLayer.bounds.size.width + measureLayer.bounds.size.height)
 								results = self.stemThicknessAtLine(measureLayer, p1, p2, measureLength)
 								if results:
 									measurement, centerOfStem = results
@@ -351,7 +337,7 @@ class StraightStemCruncher(object):
 					nodeCount,
 					"" if nodeCount == 1 else "s",
 					" in %s" % glyphName if glyphName else "",
-					))
+				))
 		return measurements, centers
 
 	def StraightStemCruncherMain(self, sender):
@@ -362,14 +348,14 @@ class StraightStemCruncher(object):
 			if not self.SavePreferences():
 				print("Note: 'Straight Stem Cruncher' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			print("Straight Stem Cruncher Report for %s" % thisFont.familyName)
 			print(thisFont.filepath)
 			print()
 
 			self.w.progress.set(0)
 			if Glyphs.defaults["com.mekkablue.StraightStemCruncher.selectedGlyphsOnly"]:
-				glyphsToCheck = [l.parent for l in thisFont.selectedLayers]
+				glyphsToCheck = [layer.parent for layer in thisFont.selectedLayers]
 			else:
 				glyphsToCheck = thisFont.glyphs
 
@@ -379,12 +365,12 @@ class StraightStemCruncher(object):
 				if enteredParts:
 					excludedGlyphNameParts.extend(set(enteredParts))
 
-			stems = Glyphs.defaults["com.mekkablue.StraightStemCruncher.stems"] # "80, 100"
+			stems = Glyphs.defaults["com.mekkablue.StraightStemCruncher.stems"]  # "80, 100"
 			stems = [float(s.strip()) for s in stems.split(",")]
 
 			shouldMark = Glyphs.defaults["com.mekkablue.StraightStemCruncher.markStems"]
-			deviationMin = float(Glyphs.defaults["com.mekkablue.StraightStemCruncher.deviationMin"]) # 0.6
-			deviationMax = float(Glyphs.defaults["com.mekkablue.StraightStemCruncher.deviationMax"]) # 4.0
+			deviationMin = float(Glyphs.defaults["com.mekkablue.StraightStemCruncher.deviationMin"])  # 0.6
+			deviationMax = float(Glyphs.defaults["com.mekkablue.StraightStemCruncher.deviationMax"])  # 4.0
 
 			affectedLayers = []
 			for glyphIndex, thisGlyph in enumerate(glyphsToCheck):
@@ -440,11 +426,11 @@ class StraightStemCruncher(object):
 											print(u"⚠️ %s, layer '%s': no stem measurements. Wrong path direction or no line segments?" % (
 												thisGlyph.name,
 												thisLayer.name,
-												))
+											))
 									else:
 										deviatingStems = []
 										for i, measurement in enumerate(measurements):
-											if not measurement in stems:
+											if measurement not in stems:
 												for stem in stems:
 													if stem - deviationMax < measurement < stem - deviationMin or stem + deviationMin < measurement < stem + deviationMax:
 														deviatingStems.append(measurement)
@@ -465,9 +451,9 @@ class StraightStemCruncher(object):
 													len(deviatingStems),
 													"" if len(deviatingStems) == 1 else "s",
 													", ".join(["%.1f" % s for s in deviatingStems]),
-													)
 												)
-											if not thisLayer in affectedLayers:
+											)
+											if thisLayer not in affectedLayers:
 												affectedLayers.append(thisLayer)
 
 			self.w.progress.set(100)
@@ -490,5 +476,6 @@ class StraightStemCruncher(object):
 			print("Straight Stem Cruncher Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 StraightStemCruncher()

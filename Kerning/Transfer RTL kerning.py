@@ -1,4 +1,4 @@
-#MenuTitle: Transfer RTL kerning
+# MenuTitle: Transfer RTL kerning
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Transfers RTL kerning from one master to another.
 """
 
 import vanilla
+from GlyphsApp import Glyphs, RTL, Message
+
 
 class TransferRTLkerning(object):
 
@@ -16,15 +18,15 @@ class TransferRTLkerning(object):
 		# Window 'self.w':
 		windowWidth = 350
 		windowHeight = 110
-		windowWidthResize = 300 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 300  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Transfer RTL kerning", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.TransferRTLkerning.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Transfer RTL kerning",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.TransferRTLkerning.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -82,7 +84,7 @@ class TransferRTLkerning(object):
 				for thisMaster in thisFont.masters:
 					masterList.append(thisMaster)
 
-			masterList.reverse() # so index accessing works as expected, and the default is: current font = target
+			masterList.reverse()  # so index accessing works as expected, and the default is: current font = target
 			self.listOfMasters = masterList
 		except:
 			import traceback
@@ -95,9 +97,6 @@ class TransferRTLkerning(object):
 		except:
 			import traceback
 			print(traceback.format_exc())
-
-	def outputError(self, errMsg):
-		print("Steal Sidebearings Warning:", errMsg)
 
 	def buttonCheck(self, sender):
 		try:
@@ -129,7 +128,7 @@ class TransferRTLkerning(object):
 			if not self.SavePreferences():
 				print("Note: 'Transfer RTL kerning' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -173,7 +172,7 @@ class TransferRTLkerning(object):
 								secondPartName = secondPart
 
 							kernValue = sourceFont.kerningForPair(sourceMasterID, firstPartName, secondPartName, direction=RTL)
-							if not kernValue is None:
+							if kernValue is not None:
 								try:
 									targetFont.setKerningForPair(targetMasterID, firstPartName, secondPartName, kernValue, direction=RTL)
 									print("✅ Kerning %s ↔️ %s (%i)" % (firstPartName, secondPartName, kernValue))
@@ -201,7 +200,7 @@ class TransferRTLkerning(object):
 			Glyphs.showNotification(
 				"%s: Done" % (thisFont.familyName),
 				"Transfer RTL kerning is finished. Details in Macro Window",
-				)
+			)
 			print("\nDone.")
 
 		except Exception as e:
@@ -210,5 +209,6 @@ class TransferRTLkerning(object):
 			print("Transfer RTL kerning Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 TransferRTLkerning()

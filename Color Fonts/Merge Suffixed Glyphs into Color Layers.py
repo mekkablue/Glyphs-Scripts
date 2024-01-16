@@ -1,4 +1,4 @@
-#MenuTitle: Merge Suffixed Glyphs into Color Layers
+# MenuTitle: Merge Suffixed Glyphs into Color Layers
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -8,6 +8,8 @@ Takes the master layer of suffixed glyphs (e.g., x.shadow, x.body, x.front) and 
 import vanilla
 from copy import copy as copy
 from AppKit import NSFont
+from GlyphsApp import Glyphs, Message
+
 
 class MergeSuffixedGlyphsIntoColorLayers(object):
 
@@ -15,15 +17,15 @@ class MergeSuffixedGlyphsIntoColorLayers(object):
 		# Window 'self.w':
 		windowWidth = 400
 		windowHeight = 300
-		windowWidthResize = 1000 # user can resize width by this value
-		windowHeightResize = 1000 # user can resize height by this value
+		windowWidthResize = 1000  # user can resize width by this value
+		windowHeightResize = 1000  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Merge Suffixed Glyphs into Color Layers", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Merge Suffixed Glyphs into Color Layers",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -31,13 +33,8 @@ class MergeSuffixedGlyphsIntoColorLayers(object):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Merge suffixed glyphs into the following color indexes:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.indexToSuffix = vanilla.TextEditor(
-			(2, linePos, -2, -110),
-			"# Syntax: CPAL index = glyph name suffix\n# list them in chronological order (bottom-up)\n# use hashtags for comments\n0=.shadow\n2=.body\n1=.front",
-			callback=self.SavePreferences,
-			checksSpelling=False
-			)
-		#self.w.indexToSuffix.getNSTextEditor().setToolTip_("Syntax: colorindex=.suffix, use hashtags for comments. List them in chronological order (bottom-up). Example:\n0=.shadow\n2=.body\n1=.front")
+		self.w.indexToSuffix = vanilla.TextEditor((2, linePos, -2, -110), "# Syntax: CPAL index = glyph name suffix\n# list them in chronological order (bottom-up)\n# use hashtags for comments\n0=.shadow\n2=.body\n1=.front", callback=self.SavePreferences, checksSpelling=False)
+		# self.w.indexToSuffix.getNSTextEditor().setToolTip_("Syntax: colorindex=.suffix, use hashtags for comments. List them in chronological order (bottom-up). Example:\n0=.shadow\n2=.body\n1=.front")
 
 		self.w.indexToSuffix.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.indexToSuffix.getNSScrollView().setHasHorizontalScroller_(1)
@@ -59,19 +56,13 @@ class MergeSuffixedGlyphsIntoColorLayers(object):
 
 		linePos = -105
 
-		self.w.disableSuffixedGlyphs = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Deactivate export for glyphs with listed suffixes", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.disableSuffixedGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Deactivate export for glyphs with listed suffixes", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.deletePreexistingColorLayers = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Delete preexisting Color layers in target glyphs", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.deletePreexistingColorLayers = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Delete preexisting Color layers in target glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.processCompleteFont = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Process complete font (otherwise only add into selected glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.processCompleteFont = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Process complete font (otherwise only add into selected glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# Run Button:
@@ -105,7 +96,7 @@ class MergeSuffixedGlyphsIntoColorLayers(object):
 			Glyphs.registerDefault(
 				"com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.indexToSuffix",
 				"# CPAL index, followed by ‘=’, followed by glyph name suffix\n# list them in chronological order, i.e., bottom-up\n# use hashtags for comments\n0=.shadow\n2=.body\n1=.front"
-				)
+			)
 			Glyphs.registerDefault("com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.disableSuffixedGlyphs", 1)
 			Glyphs.registerDefault("com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.deletePreexistingColorLayers", 1)
 			Glyphs.registerDefault("com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.processCompleteFont", 1)
@@ -156,7 +147,7 @@ class MergeSuffixedGlyphsIntoColorLayers(object):
 			if not self.SavePreferences():
 				print("Note: 'Merge Suffixed Glyphs into Color Layers' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -180,7 +171,7 @@ class MergeSuffixedGlyphsIntoColorLayers(object):
 					if processCompleteFont:
 						glyphsToProcess = [g for g in thisFont.glyphs if not self.nameContainsAnyOfTheseSuffixes(g.name, allSuffixes)]
 					else:
-						glyphsToProcess = [l.parent for l in thisFont.selectedLayers if not self.nameContainsAnyOfTheseSuffixes(l.parent.name, allSuffixes)]
+						glyphsToProcess = [layer.parent for layer in thisFont.selectedLayers if not self.nameContainsAnyOfTheseSuffixes(layer.parent.name, allSuffixes)]
 
 					for targetGlyph in glyphsToProcess:
 						glyphName = targetGlyph.name
@@ -236,13 +227,13 @@ class MergeSuffixedGlyphsIntoColorLayers(object):
 										colorLayer.name = "Color %i" % colorIndex
 									targetGlyph.layers.append(colorLayer)
 
-				# self.w.close() # delete if you want window to stay open
+				# self.w.close()  # delete if you want window to stay open
 
 			# Final report:
 			Glyphs.showNotification(
 				"%s: Done" % (thisFont.familyName),
 				"Merge Suffixed Glyphs into Color Layers is finished. Details in Macro Window",
-				)
+			)
 			print("\nDone.")
 
 		except Exception as e:
@@ -251,5 +242,6 @@ class MergeSuffixedGlyphsIntoColorLayers(object):
 			print("Merge Suffixed Glyphs into Color Layers Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 MergeSuffixedGlyphsIntoColorLayers()

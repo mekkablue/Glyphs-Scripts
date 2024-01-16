@@ -1,17 +1,19 @@
-#MenuTitle: Center Glyphs
+# MenuTitle: Center Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Center all selected glyphs inside their respective widths.
 """
 
-import math
-from AppKit import NSAffineTransform, NSAffineTransformStruct
+from AppKit import NSAffineTransform
+from GlyphsApp import Glyphs, GSNode
+
 
 def shiftMatrix(xShift):
 	transform = NSAffineTransform.transform()
 	transform.translateXBy_yBy_(xShift, 0)
 	return transform.transformStruct()
+
 
 Font = Glyphs.font
 Font.disableUpdateInterface()
@@ -24,7 +26,7 @@ try:
 		shift = shiftMatrix((currentLayer.width - selectionWidth) * 0.5 - selectionOrigin)
 		for item in currentLayer.selection:
 			try:
-				if type(item) == GSNode:
+				if isinstance(item, GSNode):
 					item.x += shift.tX
 				else:
 					item.applyTransform(shift)
@@ -45,6 +47,6 @@ except Exception as e:
 	raise e
 
 finally:
-	Font.enableUpdateInterface() # re-enables UI updates in Font View
+	Font.enableUpdateInterface()  # re-enables UI updates in Font View
 
-print("✅ Centered: %s" % (", ".join([l.parent.name for l in selectedLayers])))
+print("✅ Centered: %s" % (", ".join([layer.parent.name for layer in selectedLayers])))

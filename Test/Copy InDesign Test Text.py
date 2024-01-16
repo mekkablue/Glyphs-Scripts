@@ -1,4 +1,4 @@
-#MenuTitle: Copy InDesign Test Text
+# MenuTitle: Copy InDesign Test Text
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,9 +6,11 @@ Copies a test text for InDesign into the clipboard.
 """
 
 from AppKit import NSStringPboardType, NSPasteboard
+from GlyphsApp import Glyphs
+
 hangingindent = chr(7)
 linelength = 45
-thisFont = Glyphs.font # frontmost font
+thisFont = Glyphs.font  # frontmost font
 glyphs = [g for g in thisFont.glyphs if g.unicode and g.export and g.subCategory != "Nonspacing"]
 glyphnames = [g.name for g in glyphs]
 
@@ -19,7 +21,7 @@ for i in range(len(glyphs)):
 	j += 1
 	currGlyph = glyphs[i]
 	currCategory = currGlyph.category
-	if (j % linelength == 0 or (lastCategory and lastCategory != currCategory) or currGlyph.name == "a") and not currCategory in ("Separator", "Mark"):
+	if (j % linelength == 0 or (lastCategory and lastCategory != currCategory) or currGlyph.name == "a") and currCategory not in ("Separator", "Mark"):
 		copyString += "\n"
 		j = 0
 	unicharString = currGlyph.glyphInfo.unicharString()
@@ -37,7 +39,7 @@ languages = {
 	"ROM": u"ŞŢşţ",
 	"CAT": u"L·Ll·l",
 	"TRK": u"Iıİi"
-	}
+}
 
 # figures:
 allFeatures = [f.name for f in thisFont.features]
@@ -50,19 +52,19 @@ copyString += (u"\nfigures: %s%s\n" % (hangingindent, figurecount * figString))
 # small figures:
 smallFiguresLine = u""
 for smallFigFeature in ("sinf", "subs", "sups", "numr", "dnom"):
-	if smallFigFeature in allFeatures and not smallFigFeature in smallFiguresLine:
+	if smallFigFeature in allFeatures and smallFigFeature not in smallFiguresLine:
 		smallFiguresLine += u" %s: 0123456789" % smallFigFeature.replace(u"sinf", u"sinf/subs")
 copyString += smallFiguresLine[1:] + "\n"
 
-#copyString += "\n"
+# copyString += "\n"
 
 for feature in thisFont.features:
-	if not feature.name in ("aalt", "ccmp", "salt", "cpsp", "numr", "dnom", "subs", "sups", "sinf", "lnum", "onum", "pnum", "tnum"):
+	if feature.name not in ("aalt", "ccmp", "salt", "cpsp", "numr", "dnom", "subs", "sups", "sinf", "lnum", "onum", "pnum", "tnum"):
 		testtext = u""
 
 		# hardcoded features:
 		if feature.name == "locl":
-			listOfFeatures = [f.name for f in Font.features]
+			listOfFeatures = [f.name for f in thisFont.features]
 			for lang in languages.keys():
 				if " %s;" % lang in feature.code:
 					langLetters = languages[lang]
@@ -75,7 +77,7 @@ for feature in thisFont.features:
 				"numero": u"No.8 No8",
 				"ordfeminine": u"1a2a3a4a5a6a7a8a9a0a",
 				"ordmasculine": u"1o2o3o4o5o6o7o8o9o0o"
-				}
+			}
 			for gName in ordnDict:
 				if gName in glyphnames:
 					testtext += u"%s " % ordnDict[gName]
@@ -86,12 +88,12 @@ for feature in thisFont.features:
 		# scan feature code for substitutions:
 		elif "sub " in feature.code:
 			lines = feature.code.splitlines()
-			for l in lines:
-				if l and l.startswith("sub "): # find a sub line
-					l = l[4:l.find("by")] # get the glyphnames between sub and by
-					featureglyphnames = l.replace("'", "").split(" ") # remove contextual tick, split them at the spaces
+			for line in lines:
+				if line and line.startswith("sub "):  # find a sub line
+					line = line[4:line.find("by")]  # get the glyphnames between sub and by
+					featureglyphnames = line.replace("'", "").split(" ")  # remove contextual tick, split them at the spaces
 					for glyphname in featureglyphnames:
-						if glyphname: # exclude a potential empty string
+						if glyphname:  # exclude a potential empty string
 							# suffixed glyphs:
 							if "." in glyphname:
 								glyphname = glyphname[:glyphname.find(".")]
@@ -126,10 +128,11 @@ for feature in thisFont.features:
 
 		testtext = testtext.replace("0123456789", " 0123456789 ").replace("  ", " ")
 
-		if "zero" in allFeatures and "0123456789" in testtext and not "00" in testtext:
+		if "zero" in allFeatures and "0123456789" in testtext and "00" not in testtext:
 			testtext = testtext.replace("0", "00")
 
 		copyString += u"%s: %s%s\n" % (feature.name, hangingindent, testtext)
+
 
 def setClipboard(myText):
 	"""
@@ -141,8 +144,9 @@ def setClipboard(myText):
 		myClipboard.declareTypes_owner_([NSStringPboardType], None)
 		myClipboard.setString_forType_(myText, NSStringPboardType)
 		return True
-	except Exception as e:
+	except Exception as e:  # noqa: F841
 		return False
+
 
 if not setClipboard(copyString):
 	print("Warning: could not set clipboard to %s..." % (copyString[:12]))

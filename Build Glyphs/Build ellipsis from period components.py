@@ -1,4 +1,4 @@
-#MenuTitle: Build ellipsis from period components
+# MenuTitle: Build ellipsis from period components
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,22 +6,24 @@ Inserts exit and entry anchors in the period glyph and rebuilds ellipsis with au
 """
 
 from AppKit import NSPoint, NSEvent, NSEventModifierFlagOption, NSEventModifierFlagShift
+from GlyphsApp import Glyphs, GSGlyph, GSAnchor, GSComponent, Message
 
-Glyphs.clearLog() # clears log in Macro window
+Glyphs.clearLog()  # clears log in Macro window
 
 keysPressed = NSEvent.modifierFlags()
 optionKeyPressed = keysPressed & NSEventModifierFlagOption == NSEventModifierFlagOption
 shiftKeyPressed = keysPressed & NSEventModifierFlagShift == NSEventModifierFlagShift
 keepSidebearingsSnug = optionKeyPressed & shiftKeyPressed
 
-thisFont = Glyphs.font # frontmost font
+thisFont = Glyphs.font  # frontmost font
 period = thisFont.glyphs["period"]
+
 
 def decomposeGlyphsContaining(font, componentName, exceptions=[]):
 	glyphNames = []
 	for master in font.masters:
 		for glyph in font.glyphsContainingComponentWithName_masterId_(componentName, master.id):
-			if not glyph.name in glyphNames and not glyph.name in exceptions:
+			if glyph.name not in glyphNames and glyph.name not in exceptions:
 				glyphNames.append(glyph.name)
 	if glyphNames:
 		for glyphName in glyphNames:
@@ -33,6 +35,7 @@ def decomposeGlyphsContaining(font, componentName, exceptions=[]):
 						if component.componentName == componentName:
 							layer.decomposeComponent_(component)
 	return glyphNames
+
 
 if not period:
 	Message(title="Build ellipsis Script Error", message="No period glyph in font. Add it and try again.", OKButton=None)
@@ -49,7 +52,7 @@ decomposedGlyphs = decomposeGlyphsContaining(thisFont, period.name, exceptions=(
 if decomposedGlyphs:
 	print("⚠️ Decomposed %s components in %i glyph%s: %s" % (period.name, len(decomposedGlyphs), "" if len(decomposedGlyphs) == 1 else "s", ", ".join(decomposedGlyphs)))
 
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 try:
 	for thisMaster in thisFont.masters:
 		print(f"Ⓜ️ {thisMaster.name}")
@@ -73,7 +76,7 @@ try:
 		for thisComponent in ellipsisLayer.components:
 			thisComponent.setDisableAlignment_(False)
 		ellipsisLayer.updateMetrics()
-	
+
 	if not keepSidebearingsSnug:
 		print("🔢 Setting Metrics Keys for ellipsis...")
 		ellipsis.leftMetricsKey = "=+20"
@@ -90,4 +93,4 @@ except Exception as e:
 	print()
 	raise e
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

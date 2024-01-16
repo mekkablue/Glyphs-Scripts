@@ -1,4 +1,4 @@
-#MenuTitle: Batch Insert Anchor
+# MenuTitle: Batch Insert Anchor
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -7,8 +7,11 @@ Insert an anchor in all selected glyphs, on all layers, and pick the approximate
 
 import vanilla
 from Foundation import NSPoint
+from GlyphsApp import Glyphs, GSAnchor
+
 xPositions = ("Center of Width", "LSB", "RSB", "BBox Left Edge", "BBox Horizontal Center", "BBox Right Edge")
 yPositions = ("Baseline", "x-Height", "Smallcap Height", "Cap Height", "Ascender", "Shoulder Height", "Descender", "BBox Top", "BBox Center", "BBox Bottom")
+
 
 class BatchInsertAnchor(object):
 
@@ -16,15 +19,15 @@ class BatchInsertAnchor(object):
 		# Window 'self.w':
 		windowWidth = 300
 		windowHeight = 180
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Batch Insert Anchor", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.BatchInsertAnchor.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Batch Insert Anchor",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.BatchInsertAnchor.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -57,12 +60,8 @@ class BatchInsertAnchor(object):
 
 		linePos += lineHeight
 
-		self.w.replaceExisting = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), u"Replace Existing Anchors with Same Name", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.replaceExisting.getNSButton().setToolTip_(
-			u"If enabled, will delete anchors that have the same name of the one you are adding, before it is added again at the specified spot. If disabled, the script will skip layers that already have an anchor of the same name."
-			)
+		self.w.replaceExisting = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Replace Existing Anchors with Same Name", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.replaceExisting.getNSButton().setToolTip_(u"If enabled, will delete anchors that have the same name of the one you are adding, before it is added again at the specified spot. If disabled, the script will skip layers that already have an anchor of the same name.")
 		linePos += lineHeight
 
 		# Run Button:
@@ -109,7 +108,7 @@ class BatchInsertAnchor(object):
 			if not self.SavePreferences(self):
 				print("Note: 'Batch Insert Anchor' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			print("Batch Insert Anchor Report for %s" % thisFont.familyName)
 			print(thisFont.filepath)
 			print()
@@ -120,14 +119,14 @@ class BatchInsertAnchor(object):
 			replaceExisting = Glyphs.defaults["com.mekkablue.BatchInsertAnchor.replaceExisting"]
 
 			selectedLayers = thisFont.selectedLayers
-			selectedGlyphNames = list(set([l.parent.name for l in selectedLayers if l.parent]))
+			selectedGlyphNames = list(set([layer.parent.name for layer in selectedLayers if layer.parent]))
 
 			print("Inserting anchor '%s' at %s and %s in %i glyphs...\n" % (
 				anchorName,
 				xPositions[xPos],
 				yPositions[yPos],
 				len(selectedGlyphNames),
-				))
+			))
 
 			for glyphName in selectedGlyphNames:
 				print("🔠 %s" % glyphName)
@@ -139,40 +138,40 @@ class BatchInsertAnchor(object):
 						if replaceExisting or not thisLayer.anchors[anchorName]:
 							if xPos == 0:
 								x = thisLayer.width // 2
-							elif xPos == 1: # "LSB"
+							elif xPos == 1:  # "LSB"
 								x = 0.0
-							elif xPos == 2: # "RSB"
+							elif xPos == 2:  # "RSB"
 								x = thisLayer.width
-							elif xPos == 3: # "BBox Left Edge"
+							elif xPos == 3:  # "BBox Left Edge"
 								x = thisLayer.bounds.origin.x
-							elif xPos == 4: # "BBox Horizontal Center"
+							elif xPos == 4:  # "BBox Horizontal Center"
 								x = thisLayer.bounds.origin.x + thisLayer.bounds.size.width // 2
-							elif xPos == 5: # "BBox Right Edge"
+							elif xPos == 5:  # "BBox Right Edge"
 								x = thisLayer.bounds.origin.x + thisLayer.bounds.size.width
 
-							if yPos == 0: # "Baseline"
+							if yPos == 0:  # "Baseline"
 								y = 0.0
-							if yPos == 1: # "x-Height"
+							if yPos == 1:  # "x-Height"
 								y = thisLayer.master.xHeight
-							if yPos == 2: # "Smallcap Height"
+							if yPos == 2:  # "Smallcap Height"
 								y = thisLayer.master.customParameters["smallCapHeight"]
-								if not y: # Fallback if not set:
+								if not y:  # Fallback if not set:
 									y = thisLayer.master.xHeight
-							if yPos == 3: # "Cap Height"
+							if yPos == 3:  # "Cap Height"
 								y = thisLayer.master.capHeight
-							if yPos == 4: # "Ascender"
+							if yPos == 4:  # "Ascender"
 								y = thisLayer.master.ascender
-							if yPos == 5: # "Shoulder Height"
+							if yPos == 5:  # "Shoulder Height"
 								y = thisLayer.master.customParameters["shoulderHeight"]
-								if not y: # Fallback if not set:
+								if not y:  # Fallback if not set:
 									y = thisLayer.master.capHeight
-							if yPos == 6: # "Descender"
+							if yPos == 6:  # "Descender"
 								y = thisLayer.master.descender
-							if yPos == 7: # "BBox Top"
+							if yPos == 7:  # "BBox Top"
 								y = thisLayer.bounds.origin.y + thisLayer.bounds.size.height
-							if yPos == 8: # "BBox Center"
+							if yPos == 8:  # "BBox Center"
 								y = thisLayer.bounds.origin.y + thisLayer.bounds.size.height // 2
-							if yPos == 9: # "BBox Bottom"
+							if yPos == 9:  # "BBox Bottom"
 								y = thisLayer.bounds.origin.y
 
 							anchor = GSAnchor()
@@ -183,8 +182,9 @@ class BatchInsertAnchor(object):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Batch Insert Anchor Error: %s" % e)
+			print(f"Batch Insert Anchor Error: {e}")
 			import traceback
 			print(traceback.format_exc())
+
 
 BatchInsertAnchor()

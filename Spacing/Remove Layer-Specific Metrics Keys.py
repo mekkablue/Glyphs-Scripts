@@ -1,9 +1,12 @@
-#MenuTitle: Remove Layer-Specific Metrics Keys
+# MenuTitle: Remove Layer-Specific Metrics Keys
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Deletes left and right metrics keys specific to layers (==), in all layers of all selected glyphs. Also simplifies glyph metrics keys (i.e., turns "=H" into "H").
 """
+
+from GlyphsApp import Glyphs
+
 
 def FilterLayerKey(Key):
 	if Key and Key.startswith("==") and Key.find("+") == -1 and Key.find("-") == -1 and Key.find("*") == -1 and Key.find("/") == -1:
@@ -11,14 +14,13 @@ def FilterLayerKey(Key):
 		return Key
 	return None
 
+
 def FilterGlyphKey(Key):
 	if Key and Key.startswith("=") and Key.find("+") == -1 and Key.find("-") == -1 and Key.find("*") == -1 and Key.find("/") == -1:
 		Key = Key[1:]
 		return Key
 	return None
 
-def ReportGlyph(glyphName):
-	print("Deleted metrics keys: %s" % thisGlyph.name)
 
 def remove():
 	for layer in Glyphs.font.selectedLayers:
@@ -50,8 +52,9 @@ def remove():
 			if Key is not None:
 				glyph.setWidthMetricsKey_(Key)
 				deletedKeys += 1
-			
+
 			if deletedKeys:
 				print("Deleted %i metrics keys: %s" % (deletedKeys, glyph.name))
-			
+
+
 remove()

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
+
 from GlyphsApp import Glyphs
+
 
 def compareLists(thisSet, otherSet, ignoreEmpty=False):
 	for i in range(len(thisSet))[::-1]:
@@ -19,6 +21,7 @@ def compareLists(thisSet, otherSet, ignoreEmpty=False):
 
 	return thisSet, otherSet
 
+
 def cleanUpAndShortenParameterContent(thisParameter, maxLength=20):
 	if Glyphs.versionNumber >= 3:
 		# GLYPHS 3 code:
@@ -32,6 +35,7 @@ def cleanUpAndShortenParameterContent(thisParameter, maxLength=20):
 		parameterContent = parameterContent.replace(u"  ", u" ")
 	return parameterContent
 
+
 def compareCount(things, thisCount, otherCount, thisName, otherName):
 	if thisCount != otherCount:
 		print(u"❌ Different number of %s:" % things.upper())
@@ -39,6 +43,7 @@ def compareCount(things, thisCount, otherCount, thisName, otherName):
 		print(u"   B. %i %s in %s" % (otherCount, things.lower(), otherName))
 	else:
 		print(u"✅ Same number of %s: %i." % (things.lower(), thisCount))
+
 
 def lineReport(thisSet, otherSet, thisFileName, otherFileName, name, commaSeparated=False):
 	if thisSet or otherSet:

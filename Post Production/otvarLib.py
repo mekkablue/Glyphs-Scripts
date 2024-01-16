@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
+
 from GlyphsApp import Glyphs
+
 
 def currentStaticExportPath():
 	# GLYPHS 3
 	exportPath = Glyphs.defaults["OTFExportPathManual"]
 	if Glyphs.defaults["OTFExportUseExportPath"]:
-			exportPath = Glyphs.defaults["OTFExportPath"]
+		exportPath = Glyphs.defaults["OTFExportPath"]
 	return exportPath
+
 
 def currentOTVarExportPath():
 	exportPath = Glyphs.defaults["GXExportPathManual"]
@@ -15,17 +18,19 @@ def currentOTVarExportPath():
 		exportPath = Glyphs.defaults["GXExportPath"]
 	return exportPath
 
+
 def otVarFamilyName(thisFont):
 	if thisFont.customParameters["Variable Font Family Name"]:
 		return thisFont.customParameters["Variable Font Family Name"]
 	else:
 		return thisFont.familyName
 
+
 def otVarFileName(thisFont, thisInstance=None, suffix="ttf"):
 	"""
 	Reconstruct export file name of OTVAR.
 	"""
-	if not thisInstance is None:
+	if thisInstance is not None:
 		fileName = thisInstance.fileName()
 		# circumvent bug in Glyphs 3.0.5
 		if fileName.endswith(".otf"):
@@ -46,6 +51,7 @@ def otVarFileName(thisFont, thisInstance=None, suffix="ttf"):
 		fileName = "%sVF.%s" % (familyName, suffix)
 		fileName = fileName.replace(" ", "")
 		return fileName
+
 
 def familyNameOfInstance(thisInstance):
 	familyNameProperty = thisInstance.propertyForName_languageTag_("familyNames", "dflt")

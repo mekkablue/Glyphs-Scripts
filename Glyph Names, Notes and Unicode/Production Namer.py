@@ -1,4 +1,4 @@
-#MenuTitle: Production Namer
+# MenuTitle: Production Namer
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -7,6 +7,9 @@ Override default production names. Default are the usual subjects which create p
 
 import vanilla
 from AppKit import NSFont
+from GlyphsApp import Glyphs, Message
+
+
 defaultString = """
 Legacy PDF workflow fix:
 
@@ -22,21 +25,22 @@ Freely write comments and empty lines
 Anything after a hashtag (#) is ignored
 """
 
+
 class ProductionNamer(object):
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 350
 		windowHeight = 260
-		windowWidthResize = 1000 # user can resize width by this value
-		windowHeightResize = 1000 # user can resize height by this value
+		windowWidthResize = 1000  # user can resize width by this value
+		windowHeightResize = 1000  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Production Namer", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.ProductionNamer.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Production Namer",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.ProductionNamer.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -44,9 +48,7 @@ class ProductionNamer(object):
 		linePos += lineHeight
 
 		self.w.recipe = vanilla.TextEditor((1, linePos, -1, -70), text=defaultString.strip(), callback=self.SavePreferences, checksSpelling=False)
-		self.w.recipe.getNSTextView().setToolTip_(
-			"- Syntax: glyphname -> productionname\n- Whitespace does not matter\n- Only lines containing a dash (-) followed by a greater sign (>) count\n- Freely write comments and empty lines\n- Anything after a hashtag (#) is ignored"
-			)
+		self.w.recipe.getNSTextView().setToolTip_("- Syntax: glyphname -> productionname\n- Whitespace does not matter\n- Only lines containing a dash (-) followed by a greater sign (>) count\n- Freely write comments and empty lines\n- Anything after a hashtag (#) is ignored")
 		self.w.recipe.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.recipe.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.recipe.getNSScrollView().setRulersVisible_(0)
@@ -67,12 +69,8 @@ class ProductionNamer(object):
 		linePos = -inset - 50
 		self.w.finger = vanilla.TextBox((inset - 5, linePos, 22, 22), "👉 ", sizeStyle='regular', selectable=True)
 		self.w.applyText = vanilla.TextBox((inset + 17, linePos + 2, 70, 14), "Apply to", sizeStyle='small', selectable=True)
-		self.w.applyPopup = vanilla.PopUpButton(
-			(inset + 70, linePos, 150, 17), ("ALL open fonts", "open fonts containing", "frontmost font only"), sizeStyle='small', callback=self.SavePreferences
-			)
-		self.w.applyContaining = vanilla.EditText(
-			(inset + 70 + 150 + 10, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small', placeholder="enter part of family name here"
-			)
+		self.w.applyPopup = vanilla.PopUpButton((inset + 70, linePos, 150, 17), ("ALL open fonts", "open fonts containing", "frontmost font only"), sizeStyle='small', callback=self.SavePreferences)
+		self.w.applyContaining = vanilla.EditText((inset + 70 + 150 + 10, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small', placeholder="enter part of family name here")
 		self.w.applyContaining.getNSTextField().setToolTip_("Only applies the settings to fonts that contain this in Font Info > Font > Family Name.")
 		linePos += lineHeight
 
@@ -92,7 +90,7 @@ class ProductionNamer(object):
 
 	def updateUI(self, sender=None):
 		# show or hide text field
-		self.w.applyContaining.show(self.w.applyPopup.get() == 1) # 0=all fonts, 1=fonts containing..., 2=frontmost font only
+		self.w.applyContaining.show(self.w.applyPopup.get() == 1)  # 0=all fonts, 1=fonts containing..., 2=frontmost font only
 
 		# enable or disable run button
 		applySettingsEnable = self.w.applyPopup.get() == 0 or len(self.w.applyContaining.get().strip()) > 0
@@ -144,7 +142,7 @@ class ProductionNamer(object):
 			if not self.SavePreferences():
 				print("Note: 'Production Namer' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires at least one font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -172,7 +170,7 @@ class ProductionNamer(object):
 						if "#" in line:
 							line = line[:line.find("#")]
 
-						if line.strip(): # skip empty lines
+						if line.strip():  # skip empty lines
 
 							# PRODUCTION LINE:
 							if "->" in line:
@@ -202,7 +200,7 @@ class ProductionNamer(object):
 							thisGlyph.setStoreProduction_(1)
 							print("  ✅ %s" % fileName)
 
-				self.w.close() # delete if you want window to stay open
+				self.w.close()  # delete if you want window to stay open
 
 				# Final report:
 				Glyphs.showNotification(
@@ -212,8 +210,8 @@ class ProductionNamer(object):
 						"" if count == 1 else "s",
 						len(theseFonts),
 						"" if len(theseFonts) == 1 else "s",
-						),
-					)
+					),
+				)
 
 			print("\nDone.")
 
@@ -223,5 +221,6 @@ class ProductionNamer(object):
 			print("Production Namer Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 ProductionNamer()

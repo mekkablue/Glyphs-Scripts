@@ -1,20 +1,21 @@
-#MenuTitle: Steal Kerning from InDesign
+# MenuTitle: Steal Kerning from InDesign
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Use the font in InD (set up a document with one text box on the first page, set the kerning method to Optical), then run this script.
 """
 
-from Foundation import NSAppleScript, NSAppleEventDescriptor
+from Foundation import NSAppleScript
 from timeit import default_timer as timer
+from GlyphsApp import Glyphs
 
 # start taking time:
 start = timer()
 
-thisFont = Glyphs.font # frontmost font
-thisFontMaster = thisFont.selectedFontMaster # active master
-thisFontMasterID = thisFontMaster.id # active master id
-listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+thisFont = Glyphs.font  # frontmost font
+thisFontMaster = thisFont.selectedFontMaster  # active master
+thisFontMasterID = thisFontMaster.id  # active master id
+listOfSelectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
 
 replacements = {
 	"bullet character": "•",
@@ -29,11 +30,12 @@ replacements = {
 	"single left quote": "‘",
 	"single right quote": "’",
 	"trademark symbol": "™",
-	}
+}
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
 # Glyphs.showMacroWindow()
+
 
 def reportTimeInNaturalLanguage(seconds):
 	if seconds > 60.0:
@@ -46,6 +48,7 @@ def reportTimeInNaturalLanguage(seconds):
 		timereport = "%i seconds" % seconds
 	return timereport
 
+
 def glyphNameForLetter(letter):
 	glyphName = False
 	if len(letter) > 0:
@@ -53,6 +56,7 @@ def glyphNameForLetter(letter):
 		utf16value = "%.4X" % ord(letter)
 		glyphName = Glyphs.glyphInfoForUnicode(utf16value).name
 	return glyphName
+
 
 def runAppleScript(scriptSource, args=[]):
 	s = NSAppleScript.alloc().initWithSource_(scriptSource)
@@ -69,12 +73,14 @@ def runAppleScript(scriptSource, args=[]):
 	else:
 		return True
 
+
 def cleanText(thisText, cleanDict):
 	"""cleanDict={"searchFor":"replaceWith"}"""
 	for searchFor in cleanDict.keys():
 		replaceWith = cleanDict[searchFor]
 		thisText = thisText.replace(searchFor, replaceWith)
 	return thisText
+
 
 # Determine InDesign application name (for use in the AppleScripts):
 
@@ -147,13 +153,13 @@ end tell
 # Extract document name and report:
 try:
 	docName = runAppleScript(getNameOfDocument)
-	docName = unicode(docName).strip()
+	docName = str(docName).strip()
 	print(f"\nExtracting kerning from document: {docName}")
 except Exception as e:
 	print("\nERROR while trying to extract the name of the first InDesign document.")
 	print(
 		"Possible causes:\n  1. No permissions in System Preferences > Security & Privacy > Privacy > Automation > Glyphs. Please review.\n  2. No document open in InDesign; will try to continue.\n  3. New document has not been saved yet."
-		)
+	)
 	print(e)
 	print()
 
@@ -166,7 +172,7 @@ except Exception as e:
 	print("\nERROR while trying to extract the text of the first text frame.")
 	print(
 		"Possible causes:\n  1. No permissions in System Preferences > Security & Privacy > Privacy > Automation > Glyphs. Please review.\n  2. No text frame in the frontmost document in InDesign; will try to continue."
-		)
+	)
 	print(e)
 	print()
 
@@ -180,7 +186,7 @@ except Exception as e:
 	print("\nERROR while trying to extract the font in the first text frame.")
 	print(
 		"Possible causes:\n  1. No permissions in System Preferences > Security & Privacy > Privacy > Automation > Glyphs. Please review.\n  2. No text in the first text frame of the frontmost document in InDesign; will try to continue."
-		)
+	)
 	print(e)
 	print()
 
@@ -203,7 +209,7 @@ for thisLine in kernInfo.splitlines():
 			if not thisFont.glyphs[leftSide]:
 				print(f"WARNING:\n  Expected (left) glyph /{leftSide} not found in {thisFont.familyName}.\n  Skipping pair ‘{thisLine[0]}{thisLine[1]}’.\n")
 			else:
-				#check for right side:
+				# check for right side:
 				rightSide = glyphNameForLetter(thisLine[1])
 				if not rightSide:
 					print(f"WARNING:\n  Could not determine (right) glyph name: {thisLine[1]}.\n  Skipping pair ‘{thisLine[0]}{thisLine[1]}’.\n")
@@ -235,4 +241,4 @@ print(f"\nImported {kernPairCount} kern pairs.\nTime elapsed: {timereport}.")
 Glyphs.showNotification(
 	f"{kernPairCount} pairs for {thisFont.familyName}",
 	f"Stolen from InDesign in {timereport}.",
-	)
+)

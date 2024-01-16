@@ -1,9 +1,11 @@
-#MenuTitle: Close All Tabs of All Open Fonts
+# MenuTitle: Close All Tabs of All Open Fonts
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Closes all Edit tabs of all fonts currently open in the app.
 """
+
+from GlyphsApp import Glyphs
 
 closedTabCount = 0
 for thisFont in Glyphs.fonts:
@@ -19,5 +21,5 @@ Glyphs.showNotification(
 		"" if closedTabCount == 1 else "s",
 		len(Glyphs.fonts),
 		"" if len(Glyphs.fonts) == 1 else "s",
-		),
-	)
+	),
+)

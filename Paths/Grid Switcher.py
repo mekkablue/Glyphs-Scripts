@@ -1,4 +1,4 @@
-#MenuTitle: Grid Switcher
+# MenuTitle: Grid Switcher
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Toggles grid between two gridstep values.
 """
 
 import vanilla
+from GlyphsApp import Glyphs
+
 
 class GridOnOff(object):
 
@@ -82,5 +84,6 @@ class GridOnOff(object):
 			return False
 
 		return True
+
 
 GridOnOff()

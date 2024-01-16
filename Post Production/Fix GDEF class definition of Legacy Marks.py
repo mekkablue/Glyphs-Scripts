@@ -1,22 +1,22 @@
-#MenuTitle: Fix GDEF class definition of Legacy Marks
+# MenuTitle: Fix GDEF class definition of Legacy Marks
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Fix GDEF definition of spacing, non-combining marks for all .ttf, .otf, .woff, .woff2 in your current export folders. Will switch to class 1 (‘base glyph’, single character, spacing glyph) if necessary.
 """
 
-import fontTools
 from fontTools import ttLib
-from AppKit import NSString
-from otvarLib import *
+from otvarLib import currentOTVarExportPath, currentStaticExportPath
 import os
+from GlyphsApp import Glyphs, Message
+
 
 if Glyphs.versionNumber < 3.2:
 	Message(
 		title="Version Error",
 		message="This script requires app version 3.2 or later.",
 		OKButton=None,
-		)
+	)
 else:
 	legacyMarks = (
 		"dieresis",
@@ -34,7 +34,7 @@ else:
 		"ogonek",
 		"uni02BB"
 	)
-	
+
 	# brings macro window to front and clears its log:
 	Glyphs.clearLog()
 	Glyphs.showMacroWindow()
@@ -54,21 +54,21 @@ else:
 				if file.endswith(f".{suffix}"):
 					fontpath = os.path.join(exportPath, file)
 					fontpaths.append(fontpath)
-	
+
 	for fontpath in fontpaths:
 		print(f"📄 Processing: {fontpath}")
 		try:
 			font = ttLib.TTFont(fontpath)
-		except Exception as e:
+		except Exception as e:  # noqa: F841
 			import traceback
 			print(traceback.format_exc())
 			print()
 			continue
-		
-		if not "GDEF" in font.keys():
-			print(f"⚠️ No GDEF table found, skipping file.\n")
+
+		if "GDEF" not in font.keys():
+			print("⚠️ No GDEF table found, skipping file.\n")
 			continue
-			
+
 		gdef = font["GDEF"].table
 		madeChanges = False
 
@@ -77,7 +77,7 @@ else:
 		else:
 			print("Scanning MarkGlyphSetsDef...")
 			for coverage in gdef.MarkGlyphSetsDef.Coverage:
-				for i in range(len(coverage.glyphs)-1,-1,-1):
+				for i in range(len(coverage.glyphs) - 1, -1, -1):
 					glyph = coverage.glyphs[i]
 					if glyph in legacyMarks:
 						coverage.glyphs.pop(i)
@@ -99,12 +99,12 @@ else:
 						gdef.GlyphClassDef.classDefs[legacyMark] = 1
 						print(f"\t👨🏻‍🔧 Switched {legacyMark} from class {classType} to 1")
 						madeChanges = True
-		
+
 		if not madeChanges:
 			print("🤷🏻‍♀️ No changes, file left untouched.")
 		else:
 			font.save(fontpath, reorderTables=False)
 			print("💾 Saved file.")
 		print()
-		
+
 print("✅ Done.")

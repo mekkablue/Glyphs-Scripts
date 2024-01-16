@@ -1,12 +1,14 @@
-#MenuTitle: Remove Orphaned Group Kerning
+# MenuTitle: Remove Orphaned Group Kerning
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Deletes all group kernings referring to groups that are not (anymore) in the font.
 """
 
-thisFont = Glyphs.font # frontmost font
-selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+from GlyphsApp import Glyphs
+
+thisFont = Glyphs.font  # frontmost font
+selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
 
 # collect group names:
 leftGroups = []
@@ -31,6 +33,7 @@ print("Found: %s left groups, %s right groups." % (len(leftGroups), len(rightGro
 # LeftKey (str) – either a glyph name or a class name
 # RightKey (str) – either a glyph name or a class name
 
+
 def convertIntoName(groupOrGlyphID):
 	if groupOrGlyphID.startswith("@MMK"):
 		return "@%s" % groupOrGlyphID[7:]
@@ -39,7 +42,9 @@ def convertIntoName(groupOrGlyphID):
 	else:
 		return thisFont.glyphForId_(groupOrGlyphID).name
 
+
 deletionCount = 0
+
 
 for thisMaster in thisFont.masters:
 	toBeDeleted = []
@@ -54,7 +59,7 @@ for thisMaster in thisFont.masters:
 					convertIntoName(leftKey),
 					convertIntoName(rightKey),
 					thisFont.kerning[thisMasterID][leftKey][rightKey],
-					))
+				))
 		else:
 			for rightKey in thisFont.kerning[thisMasterID][leftKey].keys():
 				if rightKey.startswith("@") and not rightKey[7:] in leftGroups:
@@ -63,13 +68,13 @@ for thisMaster in thisFont.masters:
 						convertIntoName(leftKey),
 						convertIntoName(rightKey),
 						thisFont.kerning[thisMasterID][leftKey][rightKey],
-						))
+					))
 
 	deletionCount += len(toBeDeleted)
 	print("\tDeleting %i kern pairs in master ‘%s’..." % (
 		len(toBeDeleted),
 		thisMaster.name,
-		))
+	))
 
 	for thisPair in toBeDeleted:
 		leftSide, rightSide = thisPair

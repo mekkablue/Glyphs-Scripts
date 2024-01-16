@@ -1,21 +1,13 @@
-#MenuTitle: Toggle Script Windows
+# MenuTitle: Toggle Script Windows
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Toggles visibility of all windows and panels created by Python scripts.
 """
 
-scriptWindows = [
-	w for w in Glyphs.windows()
-	if w.isMovable() 
-	and w.isMiniaturizable() 
-	and not w.document() 
-	and w.isFloatingPanel() 
-	and w.delegate() != None
-	and w.title() != "Compare Fonts"
-	]
+from GlyphsApp import Glyphs
 
-if scriptWindows:
-	visible = not scriptWindows[0].isVisible()
-	for w in scriptWindows:
-		w.setIsVisible_(visible)
+scriptWindow = Glyphs.delegate().macroPanelController().window()
+
+if scriptWindow:
+	scriptWindow.setIsVisible_(not scriptWindow.isVisible())

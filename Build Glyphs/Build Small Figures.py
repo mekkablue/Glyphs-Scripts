@@ -1,12 +1,15 @@
-#MenuTitle: Build Small Figures
+# MenuTitle: Build Small Figures
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Takes a default set of figures (e.g., dnom), and derives the others (.numr, superior/.sups, inferiour/.sinf, .subs) as component copies. Respects the italic angle.
 """
 
-import vanilla, math
+import vanilla
+import math
 from Foundation import NSPoint
+from GlyphsApp import Glyphs, GSGlyph, GSComponent
+
 
 def italicize(thisPoint, italicAngle=0.0, pivotalY=0.0):
 	"""
@@ -16,12 +19,13 @@ def italicize(thisPoint, italicAngle=0.0, pivotalY=0.0):
 	Usage: myPoint = italicize(myPoint,10,xHeight*0.5)
 	"""
 	x, y = thisPoint
-	yOffset = y - pivotalY # calculate vertical offset
-	italicAngle = math.radians(italicAngle) # convert to radians
-	tangens = math.tan(italicAngle) # math.tan needs radians
-	horizontalDeviance = tangens * yOffset # vertical distance from pivotal point
-	x += horizontalDeviance # x of point that is yOffset from pivotal point
+	yOffset = y - pivotalY  # calculate vertical offset
+	italicAngle = math.radians(italicAngle)  # convert to radians
+	tangens = math.tan(italicAngle)  # math.tan needs radians
+	horizontalDeviance = tangens * yOffset  # vertical distance from pivotal point
+	x += horizontalDeviance  # x of point that is yOffset from pivotal point
 	return NSPoint(x, y)
+
 
 class smallFigureBuilder(object):
 
@@ -29,25 +33,20 @@ class smallFigureBuilder(object):
 		# Window 'self.w':
 		windowWidth = 400
 		windowHeight = 240
-		windowWidthResize = 400 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 400  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Build Small Figures", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.smallFigureBuilder.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Build Small Figures",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.smallFigureBuilder.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		inset, linePos, lineHeight = 15, 10, 24
 
-		self.w.text_0 = vanilla.TextBox(
-			(inset, linePos + 2, -inset, 60),
-			"Takes the Default Suffix figures (e.g. .dnom) and builds compound copies with suffixes in Derivatives (comma-separated suffix:yOffset pairs). Respects Italic Angle when placing components.",
-			sizeStyle='small',
-			selectable=True
-			)
+		self.w.text_0 = vanilla.TextBox((inset, linePos + 2, -inset, 60), "Takes the Default Suffix figures (e.g. .dnom) and builds compound copies with suffixes in Derivatives (comma-separated suffix:yOffset pairs). Respects Italic Angle when placing components.", sizeStyle='small', selectable=True)
 		linePos += round(lineHeight * 2.2)
 
 		self.w.text_1 = vanilla.TextBox((inset - 1, linePos + 3, 100, 14), "Default Suffix:", sizeStyle='small')
@@ -57,31 +56,21 @@ class smallFigureBuilder(object):
 
 		self.w.text_2 = vanilla.TextBox((inset - 1, linePos + 3, 75, 14), "Derivatives:", sizeStyle='small')
 		self.w.derive = vanilla.EditText((100, linePos, -inset, 20), "", sizeStyle='small', callback=self.SavePreferences)
-		self.w.derive.getNSTextField().setToolTip_(
-			u"Add suffix:offset pairs (with a colon in between), separated by commas, e.g., ‘.numr:250, superior:350, inferior:-125’. Include the dot if the suffix is a dot suffix. The script will create the figure glyphs or overwrite existing ones."
-			)
+		self.w.derive.getNSTextField().setToolTip_(u"Add suffix:offset pairs (with a colon in between), separated by commas, e.g., ‘.numr:250, superior:350, inferior:-125’. Include the dot if the suffix is a dot suffix. The script will create the figure glyphs or overwrite existing ones.")
 		linePos += lineHeight
 
-		self.w.currentMasterOnly = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Only apply to current master (uncheck for all masters)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.currentMasterOnly.getNSButton(
-		).setToolTip_(u"If checked, will only process the currently selected master in the frontmost font. Useful if you want to use different values for different masters.")
+		self.w.currentMasterOnly = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Only apply to current master (uncheck for all masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.currentMasterOnly.getNSButton().setToolTip_(u"If checked, will only process the currently selected master in the frontmost font. Useful if you want to use different values for different masters.")
 		linePos += lineHeight
 
-		self.w.decomposeDefaultFigures = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), u"Decompose small figures with Default Suffix", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.decomposeDefaultFigures.getNSButton().setToolTip_(
-			u"If checked, will decompose the small figures with the suffix entered in ‘Default Suffix’, before placing them as components in the derivatives. Useful if the current defaults are e.g. numr, and you want to reset it to dnom, and keep all others (numr, superior, inferior) as compounds."
-			)
+		self.w.decomposeDefaultFigures = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Decompose small figures with Default Suffix", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.decomposeDefaultFigures.getNSButton().setToolTip_(u"If checked, will decompose the small figures with the suffix entered in ‘Default Suffix’, before placing them as components in the derivatives. Useful if the current defaults are e.g. numr, and you want to reset it to dnom, and keep all others (numr, superior, inferior) as compounds.")
 		linePos += lineHeight
 
 		self.w.openTab = vanilla.CheckBox((inset, linePos - 1, 190, 20), u"Open tab with affected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.openTab.getNSButton().setToolTip_(u"If checked, will open a new tab with all figures that have default and derivative suffixes. Useful for checking.")
 		self.w.reuseTab = vanilla.CheckBox((inset + 190, linePos - 1, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab.getNSButton(
-		).setToolTip_(u"If checked, will reuse the current tab rather than open a new one. Will open a new one if no tab is currently open and active, though.")
+		self.w.reuseTab.getNSButton().setToolTip_(u"If checked, will reuse the current tab rather than open a new one. Will open a new one if no tab is currently open and active, though.")
 		linePos += lineHeight
 
 		# Run Button:
@@ -147,7 +136,7 @@ class smallFigureBuilder(object):
 			if not self.SavePreferences(self):
 				print("Note: 'Build Small Figures' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 
 			# report in macro window:
 			Glyphs.clearLog()
@@ -181,9 +170,9 @@ class smallFigureBuilder(object):
 					print("\nNot found: %s" % defaultGlyphName)
 				else:
 					print("\n%s Deriving from %s:" % (
-						"0️⃣1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣7️⃣8️⃣9️⃣"[i * 3:i * 3 + 3], # it is actually three unicodes
+						"0️⃣1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣7️⃣8️⃣9️⃣"[i * 3:i * 3 + 3],  # it is actually three unicodes
 						defaultGlyphName,
-						))
+					))
 
 					# decompose if necessary:
 					if decomposeDefaultFigures:
@@ -258,8 +247,8 @@ class smallFigureBuilder(object):
 					"" if createdGlyphCount == 1 else "s",
 					updatedGlyphCount,
 					"" if updatedGlyphCount == 1 else "s",
-					),
-				)
+				),
+			)
 
 		except Exception as e:
 			# brings macro window to front and reports error:
@@ -267,5 +256,6 @@ class smallFigureBuilder(object):
 			print("Build Small Figures Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 smallFigureBuilder()

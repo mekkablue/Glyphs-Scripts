@@ -1,4 +1,4 @@
-#MenuTitle: Reorder Unicodes of Selected Glyphs
+# MenuTitle: Reorder Unicodes of Selected Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,14 +6,12 @@ Reorders Unicodes so that default Unicode comes first.
 """
 
 from Foundation import NSArray
-thisFont = Glyphs.font # frontmost font
-selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+from GlyphsApp import Glyphs
 
-def buildUnicodeSet(unicodes):
-	g = Layer.parent
-	print(g.unicode)
-	print(type(g.unicodes()[0]))
-	# g.setUnicodes_( NSSet.initWithArray_(["E780","0192"]) )
+
+thisFont = Glyphs.font  # frontmost font
+selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+
 
 def reorderUnicodes(thisGlyph):
 	defaultUnicode = Glyphs.glyphInfoForName(thisGlyph.name).unicode
@@ -26,8 +24,8 @@ def reorderUnicodes(thisGlyph):
 				try:
 					i = oldUnicodes.index(defaultUnicode)
 					try:
-						orderedUnicodes.append(oldUnicodes.pop(i)) # add the default as the first one
-						orderedUnicodes.extend(oldUnicodes) # add the rest
+						orderedUnicodes.append(oldUnicodes.pop(i))  # add the default as the first one
+						orderedUnicodes.extend(oldUnicodes)  # add the rest
 						if orderedUnicodes != oldUnicodes:
 							print("---> %s: %s" % (thisGlyph.name, ", ".join(orderedUnicodes)))
 							unicodeSet = NSArray.alloc().initWithArray_(orderedUnicodes)
@@ -46,7 +44,8 @@ def reorderUnicodes(thisGlyph):
 	else:
 		print("- %s: No unicodes set, nothing to reorder." % (thisGlyph.name))
 
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+
+thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 try:
 	# brings macro window to front and clears its log:
 	Glyphs.clearLog()
@@ -67,4 +66,4 @@ except Exception as e:
 	raise e
 
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

@@ -1,12 +1,16 @@
-#MenuTitle: Set TT Stem Hints to Auto
+# MenuTitle: Set TT Stem Hints to Auto
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Sets all TT stem hints to ‘Auto’ in selected glyphs.
 """
 
-thisFont = Glyphs.font # frontmost font
-listOfSelectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+from Foundation import NSNotFound
+from GlyphsApp import Glyphs, TTSTEM
+
+thisFont = Glyphs.font  # frontmost font
+listOfSelectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+
 
 def process(thisLayer):
 	returnValue = False
@@ -16,11 +20,12 @@ def process(thisLayer):
 			returnValue = True
 	return returnValue
 
+
 for thisLayer in listOfSelectedLayers:
 	thisGlyph = thisLayer.parent
-	# thisGlyph.beginUndo() # undo grouping causes crashes
+	# thisGlyph.beginUndo()  # undo grouping causes crashes
 	if process(thisLayer):
 		print("%s: OK." % thisGlyph.name)
 	else:
 		print("%s: no TT stems found." % thisGlyph.name)
-	# thisGlyph.endUndo() # undo grouping causes crashes
+	# thisGlyph.endUndo()  # undo grouping causes crashes

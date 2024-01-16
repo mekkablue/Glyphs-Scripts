@@ -1,4 +1,4 @@
-#MenuTitle: Alignment Manager
+# MenuTitle: Alignment Manager
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Manage Automatic Alignment for (multiple) selected glyphs.
 """
 
 import vanilla
+from GlyphsApp import Glyphs
+
 
 class AutoAlignmentManager(object):
 	prefID = "com.mekkablue.AutoAlignmentManager"
@@ -15,20 +17,20 @@ class AutoAlignmentManager(object):
 		"includeAllLayers": 1,
 		"differentiation": 0,
 	}
-	
+
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 320
 		windowHeight = 180
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Alignment Manager", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.AutoAlignmentManager.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Alignment Manager",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.AutoAlignmentManager.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -36,38 +38,25 @@ class AutoAlignmentManager(object):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Manage component alignment in selected glyphs:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
-		self.w.includeAllGlyphs = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "⚠️ Apply to ALL glyphs in font, i.e., ignore glyph selection", value=False, callback=self.SavePreferences, sizeStyle="small"
-			)
+		self.w.includeAllGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Apply to ALL glyphs in font, i.e., ignore glyph selection", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.includeAllGlyphs.getNSButton().setToolTip_("No matter what your glyph selection is, will enable/disable component alignment for ALL glyphs in the font.")
 		linePos += lineHeight
 
-		self.w.includeAllLayers = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Include all masters and special layers (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small"
-			)
-		self.w.includeAllLayers.getNSButton().setToolTip_(
-			"If enabled, will enable/disable automatic alignment not only for the currently selected masters/layers, but for ALL master layers, brace layers and bracket layers of selected glyphs. Will still ignore backup layers (the ones with a timestamp in their names)."
-			)
+		self.w.includeAllLayers = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include all masters and special layers (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.includeAllLayers.getNSButton().setToolTip_("If enabled, will enable/disable automatic alignment not only for the currently selected masters/layers, but for ALL master layers, brace layers and bracket layers of selected glyphs. Will still ignore backup layers (the ones with a timestamp in their names).")
 		linePos += lineHeight
 
 		self.w.differentiationText = vanilla.TextBox((inset, linePos + 2, 75, 14), "Differentiate:", sizeStyle="small", selectable=True)
-		self.w.differentiation = vanilla.PopUpButton(
-			(inset + 75, linePos, -inset, 17), ("Treat all components equally", "Ignore first component", "Only apply to first component"),
-			sizeStyle="small",
-			callback=self.SavePreferences
-			)
-		self.w.differentiation.getNSPopUpButton().setToolTip_(
-			"You can choose to exclude the first component (usually the base letter) from toggling auto-alignment. This can be useful if you want to keep the diacritic marks aligned to the base, but still move the base. Or if you want to keep the base letter aligned, and place the marks freely."
-			)
+		self.w.differentiation = vanilla.PopUpButton((inset + 75, linePos, -inset, 17), ("Treat all components equally", "Ignore first component", "Only apply to first component"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.differentiation.getNSPopUpButton().setToolTip_("You can choose to exclude the first component (usually the base letter) from toggling auto-alignment. This can be useful if you want to keep the diacritic marks aligned to the base, but still move the base. Or if you want to keep the base letter aligned, and place the marks freely.")
 		linePos += lineHeight
-		
-		self.w.alignVertical = vanilla.SquareButton( (inset, linePos, 20, 18), "↕", sizeStyle="small", callback=self.AutoAlignmentManagerMain )
+
+		self.w.alignVertical = vanilla.SquareButton((inset, linePos, 20, 18), "↕", sizeStyle="small", callback=self.AutoAlignmentManagerMain)
 		self.w.alignVertical.getNSButton().setToolTip_("Vertical align: aligns the component, but makes it shiftable in the italic angle.")
-		self.w.alignFull = vanilla.SquareButton( (inset+25, linePos, 20, 18), "☯", sizeStyle="small", callback=self.AutoAlignmentManagerMain )
+		self.w.alignFull = vanilla.SquareButton((inset + 25, linePos, 20, 18), "☯", sizeStyle="small", callback=self.AutoAlignmentManagerMain)
 		self.w.alignFull.getNSButton().setToolTip_("Full align: aligns the component according to base glyph position and/or anchors.")
-		self.w.alignmentTypeText = vanilla.TextBox( (inset+50, linePos+2, -inset, 14), "Quick change for selected components: alignment type", sizeStyle="small", selectable=True )
+		self.w.alignmentTypeText = vanilla.TextBox((inset + 50, linePos + 2, -inset, 14), "Quick change for selected components: alignment type", sizeStyle="small", selectable=True)
 		linePos += lineHeight
-		
 
 		# Run Button:
 		self.w.enableButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "✅ Enable", sizeStyle='regular', callback=self.AutoAlignmentManagerMain)
@@ -88,15 +77,15 @@ class AutoAlignmentManager(object):
 
 	def updateUI(self, sender=None):
 		self.w.rotateButton.enable(not self.w.includeAllGlyphs.get())
-	
+
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-	
+
 	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
@@ -108,7 +97,7 @@ class AutoAlignmentManager(object):
 			print(traceback.format_exc())
 			return False
 
-	def LoadPreferences( self ):
+	def LoadPreferences(self):
 		try:
 			for prefName in self.prefDict.keys():
 				# register defaults:
@@ -122,8 +111,8 @@ class AutoAlignmentManager(object):
 			return False
 
 	def rotateComponents(self, sender=None):
-		thisFont = Glyphs.font # frontmost font
-		selectedGlyphs = [l.parent for l in thisFont.selectedLayers]
+		thisFont = Glyphs.font  # frontmost font
+		selectedGlyphs = [layer.parent for layer in thisFont.selectedLayers]
 
 		for thisGlyph in selectedGlyphs:
 			print(f"Rotating: {thisGlyph.name}")
@@ -164,7 +153,7 @@ class AutoAlignmentManager(object):
 			if not self.SavePreferences(self):
 				print("Note: 'Auto Alignment Manager' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			Glyphs.clearLog()
 			print(f"Auto Alignment Manager Report for {thisFont.familyName}")
 			if thisFont.filepath:
@@ -172,14 +161,14 @@ class AutoAlignmentManager(object):
 			else:
 				print("⚠️ File not saved yet.")
 			print()
-			
+
 			includeAllLayers = self.pref("includeAllLayers")
 			componentDifferentiation = self.pref("differentiation")
 			currentMasterID = thisFont.selectedFontMaster.id
 
-			if sender==self.w.alignVertical or sender==self.w.alignFull:
+			if sender == self.w.alignVertical or sender == self.w.alignFull:
 				alignmentType = 1
-				if sender==self.w.alignVertical:
+				if sender == self.w.alignVertical:
 					alignmentType = 3
 				selectedLayer = thisFont.selectedLayers[0]
 				selectionDoesNotCount = not selectedLayer.selection
@@ -191,10 +180,10 @@ class AutoAlignmentManager(object):
 					if compIndexes:
 						thisGlyph = selectedLayer.parent
 						for layer in thisGlyph.layers:
-							if layer.isMasterLayer and layer.compareString()==selectedLayer.compareString():
+							if layer.isMasterLayer and layer.compareString() == selectedLayer.compareString():
 								for index in compIndexes:
 									layer.components[index].alignment = alignmentType
-									# print("index", index, "alignmentType", alignmentType) # DEBUG
+									# print("index", index, "alignmentType", alignmentType)  # DEBUG
 				else:
 					for c in selectedLayer.components:
 						if c.selected:
@@ -204,7 +193,7 @@ class AutoAlignmentManager(object):
 					if self.pref("includeAllGlyphs"):
 						selectedGlyphs = thisFont.glyphs
 					else:
-						selectedGlyphs = [l.parent for l in thisFont.selectedLayers]
+						selectedGlyphs = [layer.parent for layer in thisFont.selectedLayers]
 
 					for thisGlyph in selectedGlyphs:
 						print(f"Processing: {thisGlyph.name}")
@@ -230,5 +219,6 @@ class AutoAlignmentManager(object):
 			print(f"Auto Alignment Manager Error: {e}")
 			import traceback
 			print(traceback.format_exc())
+
 
 AutoAlignmentManager()

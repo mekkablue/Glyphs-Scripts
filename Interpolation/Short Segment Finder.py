@@ -1,4 +1,4 @@
-#MenuTitle: Short Segment Finder
+# MenuTitle: Short Segment Finder
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -7,8 +7,11 @@ Goes through all interpolations and finds segments shorter than a user-specified
 
 import vanilla
 from Foundation import NSPoint
+from GlyphsApp import Glyphs, GSAnnotation, TEXT, Message, distance
+
 tempMarker = "###DELETEME###"
 nodeMarker = "👌🏻"
+
 
 class ShortSegmentFinder(object):
 
@@ -16,22 +19,20 @@ class ShortSegmentFinder(object):
 		# Window 'self.w':
 		windowWidth = 350
 		windowHeight = 280
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Short Segment Finder", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.ShortSegmentFinder.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Short Segment Finder",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.ShortSegmentFinder.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, 30), "Finds short segments in interpolations or masters, and opens a new tab with them", sizeStyle='small', selectable=True
-			)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 30), "Finds short segments in interpolations or masters, and opens a new tab with them", sizeStyle='small', selectable=True)
 		linePos += lineHeight * 2
 
 		self.w.text_1 = vanilla.TextBox((inset, linePos + 2, 185, 14), "Acceptable min segment length:", sizeStyle='small')
@@ -39,16 +40,11 @@ class ShortSegmentFinder(object):
 		self.w.minSegmentLength.getNSTextField().setToolTip_("Minimum length for every segment in all paths, measured in units.")
 		linePos += lineHeight
 
-		self.w.findShortSegmentsInMasters = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Look in masters instead (i.e., not in interpolations)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.findShortSegmentsInMasters.getNSButton(
-		).setToolTip_("If checked, will not calculate interpolations, but only measure segments in your master drawings, bracket and brace layers.")
+		self.w.findShortSegmentsInMasters = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Look in masters instead (i.e., not in interpolations)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.findShortSegmentsInMasters.getNSButton().setToolTip_("If checked, will not calculate interpolations, but only measure segments in your master drawings, bracket and brace layers.")
 		linePos += lineHeight
 
-		self.w.allGlyphs = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Process all glyphs in font (i.e., ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.allGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Process all glyphs in font (i.e., ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.allGlyphs.getNSButton().setToolTip_("If unchecked, will only process the currently selected glyph(s).")
 		linePos += lineHeight
 
@@ -56,29 +52,20 @@ class ShortSegmentFinder(object):
 		self.w.exportingOnly.getNSButton().setToolTip_("If checked, will skip glyphs that do not export. Always skips compounds.")
 		linePos += lineHeight
 
-		self.w.reportIncompatibilities = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Report incompatibilities and no paths in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.reportIncompatibilities.getNSButton(
-		).setToolTip_("If checked, will warn about incompatibilities and if a glyph has no paths. Usually you want this off, because it will report all compounds.")
+		self.w.reportIncompatibilities = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Report incompatibilities and no paths in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportIncompatibilities.getNSButton().setToolTip_("If checked, will warn about incompatibilities and if a glyph has no paths. Usually you want this off, because it will report all compounds.")
 		linePos += lineHeight
 
 		self.w.markSegments = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Mark segments in first layer", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.markSegments.getNSButton().setToolTip_(
-			"If checked, will mark affected segments with a warning emoji and the minimum segment length. Will mark the corresponding segment in the first layer if it finds a short segment in a calculated instance. Will use an annotation if the segment cannot be found (e.g. if the segment is in a corner component)."
-			)
+		self.w.markSegments.getNSButton().setToolTip_("If checked, will mark affected segments with a warning emoji and the minimum segment length. Will mark the corresponding segment in the first layer if it finds a short segment in a calculated instance. Will use an annotation if the segment cannot be found (e.g. if the segment is in a corner component).")
 		linePos += lineHeight
 
-		self.w.bringMacroWindowToFront = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Bring Macro Window to front", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.bringMacroWindowToFront.getNSButton().setToolTip_(
-			"A detailed report is written to the Macro Window. Activate this check box, and the Macro Window will be brought to the front ever time you run this script."
-			)
+		self.w.bringMacroWindowToFront = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Bring Macro Window to front", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.bringMacroWindowToFront.getNSButton().setToolTip_("A detailed report is written to the Macro Window. Activate this check box, and the Macro Window will be brought to the front ever time you run this script.")
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
-		self.w.progress.set(0) # set progress indicator to zero
+		self.w.progress.set(0)  # set progress indicator to zero
 		linePos += lineHeight
 
 		# Run Button:
@@ -166,7 +153,7 @@ class ShortSegmentFinder(object):
 				return (cont_net + chord) * 0.5 * 0.996767352316
 			else:
 				return "Segment has unexpected point constellation (note: TT is not supported):\n    %s" % repr(segment)
-		except Exception as e:
+		except Exception as e:  # noqa: F841
 			print("SEGMENT:", segment)
 			try:
 				print("SEGMENT LENGTH:", len(segment))
@@ -206,22 +193,15 @@ class ShortSegmentFinder(object):
 					"" if nodeCount == 1 else "s",
 					thisLayer.parent.name,
 					thisLayer.name,
-					))
+				))
 			else:
 				for thisSegment in thisPath.segments:
 					segmentLength = self.approxLengthOfSegment(thisSegment)
-					if Glyphs.versionNumber >= 3:
-						# Glyphs 3 code
-						if type(segmentLength) is str:
-							print("😬 ERROR in %s (layer: %s): %s" % (thisLayer.parent.name, thisLayer.name, segmentLength))
-						elif segmentLength < minLength:
+					if isinstance(segmentLength, (int, float)):
+						if segmentLength < minLength:
 							shortSegments.append(thisSegment)
 					else:
-						# Glyphs 2 code
-						if type(segmentLength) is unicode:
-							print("😬 ERROR in %s (layer: %s): %s" % (thisLayer.parent.name, thisLayer.name, segmentLength))
-						elif segmentLength < minLength:
-							shortSegments.append(thisSegment)
+						print("😬 ERROR in %s (layer: %s): %s" % (thisLayer.parent.name, thisLayer.name, segmentLength))
 		return shortSegments
 
 	def glyphInterpolation(self, thisGlyphName, thisInstance):
@@ -282,7 +262,7 @@ class ShortSegmentFinder(object):
 				Glyphs.showMacroWindow()
 			# print(">> DEBUG CHECKPOINT 1")###DEBUG-DELETE LATER
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			print("Short Segments Report for %s" % thisFont.familyName)
 			print(thisFont.filepath)
 			print()
@@ -294,15 +274,15 @@ class ShortSegmentFinder(object):
 			if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.allGlyphs"]:
 				glyphsToProbe = thisFont.glyphs
 			else:
-				glyphsToProbe = [l.parent for l in thisFont.selectedLayers]
+				glyphsToProbe = [layer.parent for layer in thisFont.selectedLayers]
 			# print(">> DEBUG CHECKPOINT 3")###DEBUG-DELETE LATER
 			# lists for collecting affected and skipped glyphs:
 			shortSegmentGlyphNames = []
 			shortSegmentLayers = []
 			skippedGlyphNames = []
-			numOfGlyphs = len(glyphsToProbe)
+			# numOfGlyphs = len(glyphsToProbe)
 			for index, thisGlyph in enumerate(glyphsToProbe):
-				print("i >", index) ###Delete
+				print("i >", index)  # ##Delete
 				# update progress bar:
 				# print(">> DEBUG CHECKPOINT 4")###DEBUG-DELETE LATER
 				# self.w.progress.set( int(100*(float(index)/numOfGlyphs)) ) ###UNHIDE?
@@ -334,8 +314,8 @@ class ShortSegmentFinder(object):
 											"" if len(shortSegments) == 1 else "s",
 											thisGlyph.name,
 											currentLayer.name,
-											)
 										)
+									)
 									# collect name:
 									shortSegmentGlyphNames.append(thisGlyph.name)
 									# print(">> DEBUG CHECKPOINT 12")###DEBUG-DELETE LATER
@@ -349,7 +329,7 @@ class ShortSegmentFinder(object):
 												print(
 													"⛔️ ERROR in %s, layer '%s'. Could not calculate center of segment:\n  %s" %
 													(thisGlyph.name, currentLayer.name, repr(shortSegment))
-													)
+												)
 											else:
 												annotationText = "↙︎%s %.1f" % (nodeMarker, self.approxLengthOfSegment(shortSegment))
 												self.addAnnotationTextAtPosition(currentLayer, middleOfSegment, annotationText)
@@ -386,8 +366,8 @@ class ShortSegmentFinder(object):
 											"" if len(shortSegments) == 1 else "s",
 											thisGlyph.name,
 											instanceName,
-											)
 										)
+									)
 
 									# collect name:
 									shortSegmentGlyphNames.append(thisGlyph.name)
@@ -401,7 +381,7 @@ class ShortSegmentFinder(object):
 												print(
 													"⛔️ ERROR in %s, layer '%s'. Could not calculate center of segment:\n  %s" %
 													(thisGlyph.name, currentLayer.name, repr(shortSegment))
-													)
+												)
 											else:
 												annotationText = "%s %.0f (%s)" % (nodeMarker, self.approxLengthOfSegment(shortSegment), instanceName)
 												self.addAnnotationTextAtPosition(thisGlyph.layers[0], middleOfSegment, annotationText)
@@ -433,9 +413,9 @@ class ShortSegmentFinder(object):
 							len(shortSegmentLayers),
 							"" if len(shortSegmentLayers) == 1 else "s",
 							"" if len(glyphsToProbe) == 1 else "s",
-							),
+						),
 						OKButton="😲 OMG!"
-						)
+					)
 
 			# found short segments in interpolations > open the glyphs:
 			elif shortSegmentGlyphNames:
@@ -449,9 +429,9 @@ class ShortSegmentFinder(object):
 							minLength,
 							len(shortSegmentGlyphNames),
 							"" if len(shortSegmentGlyphNames) == 1 else "s",
-							),
+						),
 						OKButton="😲 OMG!"
-						)
+					)
 			else:
 				Message(
 					title="No Short Segments Found",
@@ -459,9 +439,9 @@ class ShortSegmentFinder(object):
 						minLength,
 						"master layers" if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.findShortSegmentsInMasters"] else "interpolations",
 						thisFont.familyName,
-						),
+					),
 					OKButton=None,
-					)
+				)
 
 		except Exception as e:
 			# brings macro window to front and reports error:
@@ -469,5 +449,6 @@ class ShortSegmentFinder(object):
 			print("Short Segments Finder Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 ShortSegmentFinder()

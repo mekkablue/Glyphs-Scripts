@@ -1,4 +1,4 @@
-#MenuTitle: Remove Anchors
+# MenuTitle: Remove Anchors
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,7 +6,10 @@ Delete anchors from selected glyphs, or whole font.
 """
 
 import vanilla
+from GlyphsApp import Glyphs, Message
+
 allAnchors = "All Anchors"
+
 
 class AnchorDeleter(object):
 
@@ -14,39 +17,31 @@ class AnchorDeleter(object):
 		# Window 'self.w':
 		windowWidth = 300
 		windowHeight = 130
-		windowWidthResize = 300 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 300  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Remove Anchors", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.AnchorDeleter.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Remove Anchors",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.AnchorDeleter.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 13, 20
 		self.w.text_1 = vanilla.TextBox((inset - 1, linePos + 2, 80, 14), "Delete anchor", sizeStyle='small')
 		self.w.updateButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), u"⟲", sizeStyle='small', callback=self.updateAnchors)
-		self.w.updateButton.getNSButton(
-		).setToolTip_(u"Scans frontmost font for all available anchors, and updates the pop-up list accordingly. Good idea to do this for every new font you want to process.")
+		self.w.updateButton.getNSButton().setToolTip_(u"Scans frontmost font for all available anchors, and updates the pop-up list accordingly. Good idea to do this for every new font you want to process.")
 		self.w.anchorPopup = vanilla.PopUpButton((inset + 80, linePos, -inset - 25, 17), self.updateAnchors(None), callback=self.SavePreferences, sizeStyle='small')
-		self.w.anchorPopup.getNSPopUpButton(
-		).setToolTip_(u"Choose an anchor you want to delete, or choose ‘All Anchors’. Remember to update the list for the current font with the ⟲ update button on the right.")
+		self.w.anchorPopup.getNSPopUpButton().setToolTip_(u"Choose an anchor you want to delete, or choose ‘All Anchors’. Remember to update the list for the current font with the ⟲ update button on the right.")
 		linePos += lineHeight
 
-		self.w.selectedGlyphsOnly = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), "In selected glyphs only (otherwise all glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.selectedGlyphsOnly.getNSButton(
-		).setToolTip_(u"If checked, the chosen anchor will be deleted in the current glyph selection only. If unchecked, they will be deleted in all glyphs.")
+		self.w.selectedGlyphsOnly = vanilla.CheckBox((inset, linePos, -inset, 20), "In selected glyphs only (otherwise all glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.selectedGlyphsOnly.getNSButton().setToolTip_(u"If checked, the chosen anchor will be deleted in the current glyph selection only. If unchecked, they will be deleted in all glyphs.")
 		linePos += lineHeight
 
-		self.w.currentMasterOnly = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), u"In current master only (otherwise all masters)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.currentMasterOnly.getNSButton(
-		).setToolTip_(u"If checked, will remove anchor only in layers associated with the currently selected font master. If unchecked, in all layers.")
+		self.w.currentMasterOnly = vanilla.CheckBox((inset, linePos, -inset, 20), u"In current master only (otherwise all masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.currentMasterOnly.getNSButton().setToolTip_(u"If checked, will remove anchor only in layers associated with the currently selected font master. If unchecked, in all layers.")
 		linePos += lineHeight
 
 		# Run Button:
@@ -88,9 +83,9 @@ class AnchorDeleter(object):
 
 	def updateAnchors(self, sender):
 		collectedAnchorNames = []
-		thisFont = Glyphs.font # frontmost font
+		thisFont = Glyphs.font  # frontmost font
 		if Glyphs.defaults["com.mekkablue.AnchorDeleter.selectedGlyphsOnly"]:
-			glyphs = [l.parent for l in thisFont.selectedLayers]
+			glyphs = [layer.parent for layer in thisFont.selectedLayers]
 		else:
 			glyphs = thisFont.glyphs
 		for thisGlyph in glyphs:
@@ -105,7 +100,7 @@ class AnchorDeleter(object):
 			else:
 				self.SavePreferences()
 		except:
-			pass # exit gracefully
+			pass  # exit gracefully
 
 		if sender == self.w.updateButton:
 			self.w.anchorPopup.setItems(sortedAnchorNames)
@@ -119,7 +114,7 @@ class AnchorDeleter(object):
 				print("Note: 'Remove Anchors' could not write preferences.")
 
 			Glyphs.clearLog()
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			print("Report for %s:" % thisFont.familyName)
 			if thisFont.filepath:
 				print(thisFont.filepath)
@@ -133,7 +128,7 @@ class AnchorDeleter(object):
 			print("Deleting %s %s:\n" % (
 				anchorName.lower() if anchorName == allAnchors else anchorName,
 				"in selected glyphs" if selectedGlyphsOnly else "throughout the font",
-				))
+			))
 
 			if not anchorName:
 				errorMsg = "⚠️ Could not determine selected anchor name. Reset the list, make a new choice, and try again, please."
@@ -144,7 +139,7 @@ class AnchorDeleter(object):
 				currentMaster = thisFont.selectedFontMaster
 
 				if selectedGlyphsOnly:
-					glyphs = [l.parent for l in thisFont.selectedLayers]
+					glyphs = [layer.parent for layer in thisFont.selectedLayers]
 				else:
 					glyphs = thisFont.glyphs
 
@@ -171,8 +166,8 @@ class AnchorDeleter(object):
 							"" if deletedAnchorCount == 1 else "s",
 							layerCount,
 							"" if layerCount == 1 else "s",
-							)
 						)
+					)
 
 					# statistics:
 					totalAnchorCount += deletedAnchorCount
@@ -183,7 +178,7 @@ class AnchorDeleter(object):
 					"" if totalAnchorCount == 1 else "s",
 					len(glyphs),
 					"" if len(glyphs) == 1 else "s",
-					)
+				)
 				print("\n🔠 %s Done." % msg)
 				Message(title="Anchors Removed", message="%s Detailed report in Macro Window." % msg, OKButton=None)
 
@@ -193,5 +188,6 @@ class AnchorDeleter(object):
 			print("Anchor Deleter Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 AnchorDeleter()

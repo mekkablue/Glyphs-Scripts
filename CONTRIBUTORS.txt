@@ -2,7 +2,7 @@
 # (and typically have contributed) code to this repository.
 # The AUTHORS file lists the copyright holders; this file
 # lists people. For example, company employees are listed here
-# but not in AUTHORS, because their company holds their 
+# but not in AUTHORS, because their company holds their
 # copyright.
 #
 # When adding J Random Contributor's name to this file,

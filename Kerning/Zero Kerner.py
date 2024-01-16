@@ -1,4 +1,4 @@
-#MenuTitle: Zero Kerner
+# MenuTitle: Zero Kerner
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -7,6 +7,8 @@ Add group kernings with value zero for pairs that are missing in one master but 
 
 import vanilla
 from Foundation import NSNotFound
+from GlyphsApp import Glyphs, Message
+
 
 class ZeroKerner(object):
 
@@ -14,41 +16,32 @@ class ZeroKerner(object):
 		# Window 'self.w':
 		windowWidth = 320
 		windowHeight = 190
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Zero Kerner", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.ZeroKerner.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Zero Kerner",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.ZeroKerner.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, 44),
-			u"Add zero-value group-to-group kernings for pairs that are missing in one master but present in others. Helps preserve interpolatable kerning in OTVars.",
-			sizeStyle='small',
-			selectable=True
-			)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 44), u"Add zero-value group-to-group kernings for pairs that are missing in one master but present in others. Helps preserve interpolatable kerning in OTVars.", sizeStyle='small', selectable=True)
 		linePos += lineHeight * 2.5
 
-		self.w.limitToCurrentMaster = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), u"Limit to current master only (otherwise, all masters)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.limitToCurrentMaster = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Limit to current master only (otherwise, all masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.limitToCurrentMaster.getNSButton().setToolTip_("Will apply zero kernings only to the currently selected master. Uncheck if all masters should be zero-kerned.")
 		linePos += lineHeight
 
-		self.w.reportInMacroWindow = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), u"Detailed report in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.reportInMacroWindow = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Detailed report in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reportInMacroWindow.getNSButton().setToolTip_("If checked, will write a progress report in the Macro Window (Cmd-Opt-M).")
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
-		self.w.progress.set(0) # set progress indicator to zero
+		self.w.progress.set(0)  # set progress indicator to zero
 		linePos += lineHeight
 
 		self.w.status = vanilla.TextBox((inset, -20 - inset, -120 - inset, 14), u"", sizeStyle='small', selectable=True)
@@ -102,10 +95,10 @@ class ZeroKerner(object):
 			if not self.SavePreferences(self):
 				print("Note: 'Zero Kerner' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			limitToCurrentMaster = Glyphs.defaults["com.mekkablue.ZeroKerner.limitToCurrentMaster"]
 			reportInMacroWindow = Glyphs.defaults["com.mekkablue.ZeroKerner.reportInMacroWindow"]
-			self.w.progress.set(0) # set progress indicator to zero
+			self.w.progress.set(0)  # set progress indicator to zero
 
 			shouldRemoveZeroKerns = sender == self.w.removeButton
 
@@ -129,7 +122,7 @@ class ZeroKerner(object):
 				if shouldRemoveZeroKerns:
 					# REMOVE ZERO KERNS
 					for i, thisMaster in enumerate(masters):
-						if not thisMaster.id in thisFont.kerning.keys():
+						if thisMaster.id not in thisFont.kerning.keys():
 							self.report("%s: no kerning at all in this master. Skipping." % (thisMaster.name), reportInMacroWindow=reportInMacroWindow, emptyLine=True)
 							continue
 
@@ -151,13 +144,13 @@ class ZeroKerner(object):
 										self.report(
 											"%s: will remove @%s-@%s" % (thisMaster.name, leftSide[7:], rightSide[7:]),
 											reportInMacroWindow,
-											)
+										)
 
 						self.report(
 							"%s: removing %i zero kerns" % (thisMaster.name, len(pairsToBeRemoved)),
 							reportInMacroWindow,
 							emptyLine=True,
-							)
+						)
 						for pair in pairsToBeRemoved:
 							LeftKey, RightKey = pair
 							thisFont.removeKerningForPair(thisMaster.id, LeftKey, RightKey)
@@ -168,7 +161,7 @@ class ZeroKerner(object):
 						masterCount = masterCountPart * i
 						self.w.progress.set(masterCount)
 
-						theseMasters = [m for m in masters if not m is otherMaster]
+						theseMasters = [m for m in masters if m is not otherMaster]
 						otherMasterKerning = thisFont.kerning[otherMaster.id]
 						kerningLength = len(otherMasterKerning)
 
@@ -185,15 +178,15 @@ class ZeroKerner(object):
 												self.report(
 													"Verifying @%s-@%s" % (leftGroup[7:], rightGroup[7:]),
 													reportInMacroWindow=False,
-													)
+												)
 
-												if not thisFont.kerningForPair(thisMaster.id, leftGroup,
-																				rightGroup) or thisFont.kerningForPair(thisMaster.id, leftGroup, rightGroup) >= NSNotFound:
+												if not thisFont.kerningForPair(thisMaster.id, leftGroup, rightGroup) or \
+													thisFont.kerningForPair(thisMaster.id, leftGroup, rightGroup) >= NSNotFound:
 													thisFont.setKerningForPair(thisMaster.id, leftGroup, rightGroup, 0.0)
 													self.report(
 														"%s: zero kern @%s-@%s" % (thisMaster.name, leftGroup[7:], rightGroup[7:]),
 														reportInMacroWindow,
-														)
+													)
 
 				self.w.progress.set(100.0)
 				self.w.status.set("Done.")
@@ -203,5 +196,6 @@ class ZeroKerner(object):
 			print("Zero Kerner Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 ZeroKerner()

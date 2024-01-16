@@ -1,11 +1,12 @@
-#MenuTitle: Set Preferred Names (Name IDs 16 and 17) for Width Variants
+# MenuTitle: Set Preferred Names (Name IDs 16 and 17) for Width Variants
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Sets Preferred Names custom parameters (Name IDs 16 and 17) for all instances, so that width variants will appear in separate menus in Adobe apps.
 """
+from GlyphsApp import Glyphs
 
-thisFont = Glyphs.font # frontmost font
+thisFont = Glyphs.font  # frontmost font
 widthParticles = ("Narrow", "Condensed", "Compressed", "Extended", "Expanded", "Wide")
 prefixParticles = ("Semi", "Extra", "Ultra")
 widths = []
@@ -15,6 +16,7 @@ for widthParticle in widthParticles:
 		widths.append("%s %s" % (prefixParticle, widthParticle))
 		widths.append("%s%s" % (prefixParticle, widthParticle))
 		widths.append("%s%s" % (prefixParticle, widthParticle.lower()))
+
 
 def particleIsPartOfName(particle, instanceName):
 	# particle is the full name:
@@ -42,6 +44,7 @@ def particleIsPartOfName(particle, instanceName):
 		return True
 
 	return False
+
 
 for thisInstance in thisFont.instances:
 	print("Processing Instance:", thisInstance.name)

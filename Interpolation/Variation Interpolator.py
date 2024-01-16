@@ -1,4 +1,4 @@
-#MenuTitle: Variation Interpolator
+# MenuTitle: Variation Interpolator
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -7,6 +7,8 @@ Interpolates each layer x times with its background and creates glyph variations
 
 import vanilla
 from Foundation import NSPoint
+from GlyphsApp import Glyphs, Message
+
 
 class VariationInterpolator(object):
 	prefID = "com.mekkablue.VariationInterpolator"
@@ -21,23 +23,21 @@ class VariationInterpolator(object):
 		# Window 'self.w':
 		windowWidth = 240
 		windowHeight = 130
-		windowWidthResize = 500 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 500  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Variation Interpolator", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Variation Interpolator",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 10, 14, 20
 
 		self.w.text_1 = vanilla.TextBox((inset, linePos + 2, 40, 14), "Create", sizeStyle='small')
-		self.w.numberOfInterpolations = vanilla.ComboBox(
-			(inset + 42, linePos - 1, -inset - 135, 19), [x * 5 for x in range(1, 7)], sizeStyle='small', callback=self.SavePreferences
-			)
+		self.w.numberOfInterpolations = vanilla.ComboBox((inset + 42, linePos - 1, -inset - 135, 19), [x * 5 for x in range(1, 7)], sizeStyle='small', callback=self.SavePreferences)
 		self.w.text_2 = vanilla.TextBox((-inset - 130, linePos + 2, -inset, 14), "interpolations between", sizeStyle='small')
 		linePos += lineHeight
 
@@ -46,7 +46,7 @@ class VariationInterpolator(object):
 			"foreground and background",
 			"first two selected glyphs",
 			"first two selected glyphs (reversed)",
-			)
+		)
 		self.w.choice = vanilla.PopUpButton((inset, linePos, -inset - 40, 17), options, sizeStyle='small', callback=self.SavePreferences)
 		self.w.text_21 = vanilla.TextBox((-inset - 35, linePos + 2, -inset, 14), "with", sizeStyle='small', selectable=True)
 		linePos += lineHeight
@@ -118,7 +118,7 @@ class VariationInterpolator(object):
 				# register defaults:
 				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
 				# load previously written prefs:
-				getattr(self.w, prefName).set( self.pref(prefName) )
+				getattr(self.w, prefName).set(self.pref(prefName))
 			self.updateUI()
 		except:
 			return False
@@ -152,7 +152,7 @@ class VariationInterpolator(object):
 
 	def interpolatePaths(self, thisLayer, backgroundFactor, foregroundFactor):
 		# interpolate paths only if there is a compatible background:
-		if thisLayer.background: # and (thisLayer.compareString() == thisLayer.background.compareString()):
+		if thisLayer.background:  # and (thisLayer.compareString() == thisLayer.background.compareString()):
 			for path_index, path in enumerate(thisLayer.paths):
 				for node_index, node in enumerate(path.nodes):
 					foregroundPosition = node.position
@@ -164,7 +164,7 @@ class VariationInterpolator(object):
 							foregroundFactor,
 							backgroundPosition,
 							backgroundFactor,
-							))
+						))
 		else:
 			thisGlyph = thisLayer.parent
 			print(f"{thisGlyph.name}: incompatible background layer (‘{thisLayer.name}’):")
@@ -194,19 +194,19 @@ class VariationInterpolator(object):
 					foregroundFactor,
 					backgroundComponent.position,
 					backgroundFactor,
-					)
+				)
 				thisComponent.scale = (
 					thisComponent.scale[0] * foregroundFactor + backgroundComponent.scale[0] * backgroundFactor,
 					thisComponent.scale[1] * foregroundFactor + backgroundComponent.scale[1] * backgroundFactor,
-					)
+				)
 				thisComponent.rotation = (thisComponent.rotation * foregroundFactor + backgroundComponent.rotation * backgroundFactor)
 
 				# smart components:
 				thisFont = thisLayer.parent.parent
 				if thisFont:
 					for axis in thisFont.glyphs[thisComponent.componentName].smartComponentAxes:
-						newValue = float(thisComponent.smartComponentValues[axis.name]
-											) * foregroundFactor + float(backgroundComponent.smartComponentValues[axis.name]) * backgroundFactor
+						newValue = float(thisComponent.smartComponentValues[axis.name]) * foregroundFactor + \
+							float(backgroundComponent.smartComponentValues[axis.name]) * backgroundFactor
 						thisComponent.smartComponentValues[axis.name] = (newValue)
 
 	def interpolateLayerWithBackground(self, thisLayer, backgroundFactor):
@@ -223,21 +223,21 @@ class VariationInterpolator(object):
 
 	def VariationInterpolatorMain(self, sender):
 		try:
-			thisFont = Glyphs.font # frontmost font
-			thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+			thisFont = Glyphs.font  # frontmost font
+			thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 			try:
 				numberOfInterpolations = int(self.pref("numberOfInterpolations"))
 				glyphSuffix = self.pref("suffix").strip()
 				glyphName = self.pref("glyphName").strip()
 				choice = self.pref("choice")
-				selectedGlyphs = [l.parent for l in thisFont.selectedLayers] # currently selected glyphs
+				selectedGlyphs = [layer.parent for layer in thisFont.selectedLayers]  # currently selected glyphs
 
 				if choice < 2:
 					# interpolate between foreground and background
 					for thisGlyph in selectedGlyphs:
 						for numberOfThisVariation in range(1, numberOfInterpolations + 1):
 							interpolationFactor = float(numberOfThisVariation - 1) / float(numberOfInterpolations)
-							if choice == 1: # reverse
+							if choice == 1:  # reverse
 								interpolationFactor = 1.0 - interpolationFactor
 							newSuffix = "%s%03i" % (glyphSuffix, numberOfThisVariation)
 							newGlyph = self.createGlyphCopy(thisGlyph, newSuffix)
@@ -250,16 +250,16 @@ class VariationInterpolator(object):
 								layerB.swapForegroundWithBackground()
 								layerB.layerId = "layerIDB%05i" % masterIndex
 								newGlyph.layers[thisMaster.id] = newGlyph._interpolateLayers_interpolation_masters_decompose_font_error_(
-									[layerA, layerB], # layers
+									[layerA, layerB],  # layers
 									{
 										layerA.layerId: interpolationFactor,
 										layerB.layerId: 1.0 - interpolationFactor
-										}, # interpolation
-									None, # masters
-									False, # decompose
-									thisFont, # font
-									None, # error
-									)
+									},  # interpolation
+									None,  # masters
+									False,  # decompose
+									thisFont,  # font
+									None,  # error
+								)
 
 				else:
 					# interpolate between first two glyphs
@@ -268,7 +268,7 @@ class VariationInterpolator(object):
 							title="Select exactly two glyphs",
 							message="Please select exactly two glyphs to interpolate.",
 							OKButton=None,
-							)
+						)
 					else:
 						glyphA, glyphB = selectedGlyphs
 						for numberOfThisVariation in range(1, numberOfInterpolations + 1):
@@ -285,16 +285,16 @@ class VariationInterpolator(object):
 								layerB = glyphB.layers[thisMaster.id].copy()
 								layerB.layerId = "layerIDB%05i" % masterIndex
 								newGlyph.layers[thisMaster.id] = newGlyph._interpolateLayers_interpolation_masters_decompose_font_error_(
-									[layerA, layerB], # layers
+									[layerA, layerB],  # layers
 									{
 										layerA.layerId: interpolationFactor,
 										layerB.layerId: 1.0 - interpolationFactor,
-										}, # interpolation
-									None, # masters
-									False, # decompose
-									thisFont, # font
-									None, # error
-									)
+									},  # interpolation
+									None,  # masters
+									False,  # decompose
+									thisFont,  # font
+									None,  # error
+								)
 
 			except Exception as e:
 				Glyphs.showMacroWindow()
@@ -305,17 +305,18 @@ class VariationInterpolator(object):
 				raise e
 
 			finally:
-				thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+				thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
 
 			if not self.SavePreferences(self):
 				print("Note: 'Variation Interpolator' could not write preferences.")
 
-			self.w.close() # delete if you want window to stay open
+			self.w.close()  # delete if you want window to stay open
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print(f"Variation Interpolator Error: {e}")
 			import traceback
 			print(traceback.format_exc())
+
 
 VariationInterpolator()

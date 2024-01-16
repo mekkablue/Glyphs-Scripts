@@ -1,12 +1,14 @@
-#MenuTitle: Compare Sidebearings
+# MenuTitle: Compare Sidebearings
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Compare sidebearings of two frontmost fonts.
 """
 
-Font1 = Glyphs.font # frontmost font
-Font2 = Glyphs.fonts[1] # other font
+from GlyphsApp import Glyphs
+
+Font1 = Glyphs.font  # frontmost font
+Font2 = Glyphs.fonts[1]  # other font
 tolerance = 2.0
 
 # brings macro window to front and clears its log:

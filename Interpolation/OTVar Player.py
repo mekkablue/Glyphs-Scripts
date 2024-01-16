@@ -1,12 +1,16 @@
-#MenuTitle: OTVar Player
+# MenuTitle: OTVar Player
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Plays a glyph in Preview.
 """
 
-import vanilla, threading, time, os
+import vanilla
+import os
+import objc
 from AppKit import NSTimer
+from GlyphsApp import Glyphs, GSInstance, Message
+
 
 def saveFileInLocation(content="blabla", fileName="test.txt", filePath="~/Desktop"):
 	saveFileLocation = "%s/%s" % (filePath, fileName)
@@ -17,21 +21,22 @@ def saveFileInLocation(content="blabla", fileName="test.txt", filePath="~/Deskto
 	f.close()
 	return True
 
+
 class OTVarGlyphAnimator(object):
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 350
 		windowHeight = 90
-		windowWidthResize = 700 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 700  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"OTVar Player", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.OTVarGlyphAnimator.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"OTVar Player",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.OTVarGlyphAnimator.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		self.w.slider = vanilla.Slider((15, 12, -15, 15), tickMarkCount=None, callback=self.redrawPreview, continuous=True, sizeStyle="regular", minValue=0, maxValue=100)
@@ -113,7 +118,7 @@ class OTVarGlyphAnimator(object):
 		if not self.font.tabs:
 			tabText = "a"
 			if self.font.selectedLayers:
-				tabText = "".join([l.parent.name for l in self.font.selectedLayers])
+				tabText = "".join([layer.parent.name for layer in self.font.selectedLayers])
 			self.font.newTab(tabText)
 		if self.font.currentTab.previewHeight <= 1.0:
 			self.font.currentTab.previewHeight = 200
@@ -124,7 +129,7 @@ class OTVarGlyphAnimator(object):
 		self.font.currentTab.previewInstances = self.font.instances[0]
 
 	def restoreFont(self, sender):
-		if not self.originalWeightValue is None:
+		if self.originalWeightValue is not None:
 			try:
 				# GLYPHS 3
 				self.font.instances[0].axes[0] = self.originalWeightValue
@@ -231,12 +236,12 @@ class OTVarGlyphAnimator(object):
 				# Call this method again after a delay:
 				playSignature = objc.selector(self.play_, signature=b'v@:')
 				self.timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
-					float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]) / smoothnessFactor, # interval
-					self, # target
-					playSignature, # selector
-					None, # userInfo
-					False # repeat
-					)
+					float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]) / smoothnessFactor,  # interval
+					self,  # target
+					playSignature,  # selector
+					None,  # userInfo
+					False  # repeat
+				)
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
@@ -314,7 +319,7 @@ body {
 </html>""" % (
 			self.font.familyName, self.font.familyName.replace(" ", ""), firstAxisTag, min(weightAxisPositions), firstAxisTag, max(weightAxisPositions), self.font.familyName,
 			float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]) * 50, " ".join(["&#x%s;" % g.unicode for g in self.font.glyphs if g.unicode and g.export])
-			)
+		)
 
 		exportPath = None
 		if bool(Glyphs.defaults["GXPluginUseExportPath"]):
@@ -335,6 +340,7 @@ body {
 				title="Cannot Create HTML for OTVar",
 				message="Could not determine export path of your OTVar font. Export an OTVar font first, the HTML will be saved next to it.",
 				OKButton=None
-				)
+			)
+
 
 OTVarGlyphAnimator()

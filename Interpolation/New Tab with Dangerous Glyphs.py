@@ -1,19 +1,24 @@
-#MenuTitle: New Tab with Dangerous Glyphs for Interpolation
+# MenuTitle: New Tab with Dangerous Glyphs for Interpolation
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Finds and outputs glyphs like the equals sign, or a symmetrical period, with paths that could interpolate wrongly within themselves.
 """
 
+from GlyphsApp import Glyphs, GSOFFCURVE, Message
+
 Font = Glyphs.font
 outputString = ""
+
 
 def nodeCounts(thisLayer):
 	countList = [len(p.nodes) for p in thisLayer.paths]
 	return countList
 
+
 def shiftString(myString):
 	return myString[1:] + myString[0]
+
 
 def nodeString(path):
 	nodestring = ""
@@ -24,12 +29,14 @@ def nodeString(path):
 			nodestring += "n"
 	return nodestring
 
+
 def compatibleWhenReversed(path1, path2):
 	pathstring1 = nodeString(path1)
 	pathstring2 = "".join(reversed(nodeString(path2)))
 	if pathstring1 == pathstring2:
 		return True
 	return False
+
 
 def compatibleWithDifferentStartPoints(path1, path2):
 	pathstring1 = nodeString(path1)
@@ -39,6 +46,7 @@ def compatibleWithDifferentStartPoints(path1, path2):
 		if pathstring1 == pathstring2:
 			return True
 	return False
+
 
 def check(thisLayer):
 	thesePaths = thisLayer.paths
@@ -86,7 +94,9 @@ def check(thisLayer):
 
 	return False
 
+
 Glyphs.clearLog()
+
 print("Dangerous glyphs for interpolation")
 for thisGlyph in Font.glyphs:
 	if check(thisGlyph.layers[0]):

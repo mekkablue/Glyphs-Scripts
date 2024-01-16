@@ -1,9 +1,12 @@
-#MenuTitle: Align Selected Nodes with Background
+# MenuTitle: Align Selected Nodes with Background
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Align selected nodes with the nearest background node unless it is already taken by a previously moved node.
 """
+
+from GlyphsApp import Glyphs
+
 
 def alignNodeWithNodeInOtherLayer(thisNode, otherLayer, tolerance=5, maxTolerance=80, alreadyTaken=[]):
 	while tolerance < maxTolerance:
@@ -12,7 +15,7 @@ def alignNodeWithNodeInOtherLayer(thisNode, otherLayer, tolerance=5, maxToleranc
 		else:
 			nearestNode = otherLayer.nodeAtPoint_excludeNodes_traversComponents_tollerance_(thisNode.position, None, False, tolerance)
 
-		if nearestNode and (thisNode.type == nearestNode.type) and (not nearestNode.position in alreadyTaken):
+		if nearestNode and (thisNode.type == nearestNode.type) and (nearestNode.position not in alreadyTaken):
 			thisNode.position = nearestNode.position
 			return True
 		# else:
@@ -25,11 +28,13 @@ def alignNodeWithNodeInOtherLayer(thisNode, otherLayer, tolerance=5, maxToleranc
 		tolerance += 5
 	return False
 
+
 def anchorWithNameFromAnchorList(anchorName, referenceAnchors):
 	for thisAnchor in referenceAnchors:
 		if thisAnchor.name == anchorName:
 			return thisAnchor
 	return None
+
 
 def syncAnchorPositionWithBackground(theseAnchorNames, thisLayer):
 	# collect background anchors
@@ -50,6 +55,7 @@ def syncAnchorPositionWithBackground(theseAnchorNames, thisLayer):
 				thisAnchor.position = otherAnchorPosition
 				count += 1
 		return count
+
 
 def process(thisLayer):
 	backgroundBackup = thisLayer.background.copy()
@@ -80,20 +86,21 @@ def process(thisLayer):
 
 	return selectedNodeCount, alignedNodeCount, numberOfAnchorsMoved
 
-thisFont = Glyphs.font # frontmost font
-selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
-selection = selectedLayers[0].selection # node selection in edit mode
-Glyphs.clearLog() # clears log in Macro window
 
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+thisFont = Glyphs.font  # frontmost font
+selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+selection = selectedLayers[0].selection  # node selection in edit mode
+Glyphs.clearLog()  # clears log in Macro window
+
+thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 try:
 	for thisLayer in selectedLayers:
 		thisGlyph = thisLayer.parent
-		# thisGlyph.beginUndo() # undo grouping causes crashes
+		# thisGlyph.beginUndo()  # undo grouping causes crashes
 		selected, aligned, numberOfAnchorsMoved = process(thisLayer)
 		print("%s: aligned %i of %i selected nodes" % (thisGlyph.name, aligned, selected))
 		print("%s: aligned %i of %i anchors." % (thisGlyph.name, numberOfAnchorsMoved, len(thisLayer.anchors)))
-		# thisGlyph.endUndo() # undo grouping causes crashes
+		# thisGlyph.endUndo()  # undo grouping causes crashes
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")
@@ -102,4 +109,4 @@ except Exception as e:
 	print()
 	raise e
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

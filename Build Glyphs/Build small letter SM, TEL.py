@@ -1,20 +1,23 @@
-#MenuTitle: Build small letter SM, TEL
+# MenuTitle: Build small letter SM, TEL
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Creates the glyphs: servicemark, telephone.
 """
 
+import math
+from Foundation import NSAffineTransform, NSAffineTransformStruct, NSClassFromString
+from GlyphsApp import Glyphs, GSGlyph, GSComponent
+
 expansion = 5
 newGlyphs = {
 	"servicemark": "SM",
 	"telephone": "TEL"
-	}
+}
 
-thisFont = Glyphs.font # frontmost font
-selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+thisFont = Glyphs.font  # frontmost font
+selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
 
-import math
 
 def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	"""
@@ -22,7 +25,7 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	Apply an NSAffineTransform t object like this:
 		Layer.transform_checkForSelection_doComponents_(t,False,True)
 	Access its transformation matrix like this:
-		tMatrix = t.transformStruct() # returns the 6-float tuple
+		tMatrix = t.transformStruct()  # returns the 6-float tuple
 	Apply the matrix tuple like this:
 		Layer.applyTransform(tMatrix)
 		Component.applyTransform(tMatrix)
@@ -65,7 +68,8 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 # 	offsetFilter.processLayer_withArguments_(
 # 			thisLayer,
 # 			['GlyphsFilterOffsetCurve',f"{offset}", f"{offset}", f"{makeStroke}", f"{lastArg}"]
-# 		)
+# 	)
+
 
 def offsetLayer(thisLayer, offset, makeStroke=False, position=0.5, autoStroke=False):
 	offsetFilter = NSClassFromString("GlyphsFilterOffsetCurve")
@@ -74,37 +78,38 @@ def offsetLayer(thisLayer, offset, makeStroke=False, position=0.5, autoStroke=Fa
 		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyleStart_capStyleEnd_keepCompatibleOutlines_(
 			thisLayer,
 			offset,
-			offset, # horizontal and vertical offset
-			makeStroke, # if True, creates a stroke
-			autoStroke, # if True, distorts resulting shape to vertical metrics
-			position, # stroke distribution to the left and right, 0.5 = middle
+			offset,  # horizontal and vertical offset
+			makeStroke,  # if True, creates a stroke
+			autoStroke,  # if True, distorts resulting shape to vertical metrics
+			position,  # stroke distribution to the left and right, 0.5 = middle
 			None,
 			None,
 			None,
 			0,
 			0,
 			True
-			)
+		)
 	except:
 		# GLYPHS 2:
 		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyle_keepCompatibleOutlines_(
 			thisLayer,
 			offset,
-			offset, # horizontal and vertical offset
-			makeStroke, # if True, creates a stroke
-			autoStroke, # if True, distorts resulting shape to vertical metrics
-			position, # stroke distribution to the left and right, 0.5 = middle
-			thisLayer.glyphMetrics(), # metrics (G3)
+			offset,  # horizontal and vertical offset
+			makeStroke,  # if True, creates a stroke
+			autoStroke,  # if True, distorts resulting shape to vertical metrics
+			position,  # stroke distribution to the left and right, 0.5 = middle
+			thisLayer.glyphMetrics(),  # metrics (G3)
 			None,
-			None, # error, shadow
-			0, # NSButtLineCapStyle, # cap style
-			True, # keep compatible
-			)
+			None,  # error, shadow
+			0,  # NSButtLineCapStyle,  # cap style
+			True,  # keep compatible
+		)
+
 
 reference = thisFont.glyphs["M"]
 trademark = thisFont.glyphs["trademark"]
 
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 try:
 	for thisMaster in thisFont.masters:
 		tmLayer = trademark.layers[thisMaster.id]
@@ -155,4 +160,4 @@ except Exception as e:
 	print()
 	raise e
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

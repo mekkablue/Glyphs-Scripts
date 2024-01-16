@@ -1,11 +1,19 @@
-#MenuTitle: Find and Replace in Font Info
+# MenuTitle: Find and Replace in Font Info
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
+try:
+	from builtins import str
+except Exception as e:  # noqa: F841
+	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
+
 __doc__ = """
 Finds and replaces names in Font Info > Font and Instances.
 """
 
 import vanilla
+import objc
+from GlyphsApp import Glyphs, GSFontInfoValueLocalized, Message
+
 
 class FindAndReplaceInFontInfo(object):
 	totalCount = 0
@@ -25,15 +33,15 @@ class FindAndReplaceInFontInfo(object):
 		# Window 'self.w':
 		windowWidth = 290
 		windowHeight = 200
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Find and Replace in Font Info", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.FindAndReplaceInFontInfo.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Find and Replace in Font Info",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.FindAndReplaceInFontInfo.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -53,9 +61,7 @@ class FindAndReplaceInFontInfo(object):
 		linePos += lineHeight
 
 		self.w.includeInstances = vanilla.CheckBox((inset, linePos, 120, 20), "Include instances", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeInactiveInstances = vanilla.CheckBox(
-			(inset + 120, linePos, -inset, 20), "Also inactive instances", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.includeInactiveInstances = vanilla.CheckBox((inset + 120, linePos, -inset, 20), "Also inactive instances", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.includeCustomParameters = vanilla.CheckBox((inset, linePos, -inset, 20), "Include Custom Parameters", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -77,15 +83,15 @@ class FindAndReplaceInFontInfo(object):
 	def updateUI(self, sender=None):
 		self.w.runButton.enable(self.w.searchFor.get())
 		self.w.includeInactiveInstances.enable(self.w.includeInstances.get())
-	
+
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-	
+
 	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
@@ -179,23 +185,18 @@ class FindAndReplaceInFontInfo(object):
 					# 	if hasattr(prop, "values"):
 					# 		pass
 
-					if thisFont.familyName: # could be None
+					if thisFont.familyName:  # could be None
 						thisFont.familyName = self.replaceInName(thisFont.familyName, searchFor, replaceWith, completeWordsOnly, "Font > Family Name")
-					if thisFont.designer: # could be None
+					if thisFont.designer:  # could be None
 						thisFont.designer = self.replaceInName(thisFont.designer, searchFor, replaceWith, completeWordsOnly, "Font > Designer")
-					if thisFont.manufacturer: # could be None
+					if thisFont.manufacturer:  # could be None
 						thisFont.manufacturer = self.replaceInName(thisFont.manufacturer, searchFor, replaceWith, completeWordsOnly, "Font > Manufacturer")
-					if thisFont.copyright: # could be None
+					if thisFont.copyright:  # could be None
 						thisFont.copyright = self.replaceInName(thisFont.copyright, searchFor, replaceWith, completeWordsOnly, "Font > Copyright")
 
 					if includeCustomParameters:
 						for customParameter in thisFont.customParameters:
-							if Glyphs.versionNumber >= 3:
-								# GLYPHS 3
-								parameterIsAString = type(customParameter.value) in (objc.pyobjc_unicode, str)
-							else:
-								# GLYPHS 2
-								parameterIsAString = type(customParameter.value) in (objc.pyobjc_unicode, str, unicode)
+							parameterIsAString = isinstance(customParameter.value, (objc.pyobjc_unicode, str))
 
 							if parameterIsAString:
 								reportString = f"Font > Custom Parameters > {customParameter.name}"
@@ -203,7 +204,7 @@ class FindAndReplaceInFontInfo(object):
 
 					if includeInstances:
 						for thisInstance in thisFont.instances:
-							if Glyphs.buildNumber>3198:
+							if Glyphs.buildNumber > 3198:
 								instanceIsExporting = thisInstance.exports
 							else:
 								instanceIsExporting = thisInstance.active
@@ -211,27 +212,22 @@ class FindAndReplaceInFontInfo(object):
 								# style name:
 								thisInstance.name = self.replaceInName(
 									thisInstance.name, searchFor, replaceWith, completeWordsOnly, f"Instances > {thisInstance.name} > Style Name"
-									)
+								)
 
 								# general properties:
 								if Glyphs.versionNumber >= 3:
 									# GLYPHS 3
 									for fontInfo in thisInstance.properties:
-										if type(fontInfo) == GSFontInfoValueLocalized:
+										if isinstance(fontInfo, GSFontInfoValueLocalized):
 											for valueSet in fontInfo.values:
 												valueSet.value = self.replaceInName(
 													valueSet.value, searchFor, replaceWith, completeWordsOnly, f"Instances > {thisInstance.name} > General > {fontInfo.key}"
-													)
+												)
 
 								# parameters:
 								if includeCustomParameters:
 									for customParameter in thisInstance.customParameters:
-										if Glyphs.versionNumber >= 3:
-											# GLYPHS 3
-											parameterIsAString = type(customParameter.value) in (objc.pyobjc_unicode, str)
-										else:
-											# GLYPHS 2
-											parameterIsAString = type(customParameter.value) in (objc.pyobjc_unicode, str, unicode)
+										parameterIsAString = type(customParameter.value) in (objc.pyobjc_unicode, str)
 
 										if parameterIsAString:
 											reportString = f"Instances > {thisInstance.name} > Custom Parameters > {customParameter.name}"
@@ -244,17 +240,18 @@ class FindAndReplaceInFontInfo(object):
 					"" if len(fonts) == 1 else "s",
 					self.totalCount,
 					"" if self.totalCount == 1 else "s",
-					),
+				),
 				message="Find and Replace in Font Info is finished. Details in Macro Window",
 				OKButton="Cool"
-				)
+			)
 			print("\nDone.")
 
-		except Exception as e:
+		except Exception as e:  # noqa: F841
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Find and Replace in Font Info Error: {e}")
 			import traceback
 			print(traceback.format_exc())
+
 
 FindAndReplaceInFontInfo()

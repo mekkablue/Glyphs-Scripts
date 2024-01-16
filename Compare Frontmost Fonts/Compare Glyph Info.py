@@ -1,4 +1,4 @@
-#MenuTitle: Compare Glyph Info
+# MenuTitle: Compare Glyph Info
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Compares open fonts and builds a lits of differing glyph info, including Unicode
 """
 
 import vanilla
+from GlyphsApp import Glyphs
+
 
 # CONSTANTS:
 
@@ -38,7 +40,7 @@ thingsToCompare = (
 	"Is Hangul Key Glyph",
 	"Masters Are Compatible",
 	"Glyph Note",
-	)
+)
 
 predefinedColors = (
 	"red",
@@ -53,10 +55,11 @@ predefinedColors = (
 	"pink",
 	"lightgrey",
 	"grey",
-	)
+)
 
 missingGlyphValue = "(missing glyph)"
 missingValue = "–"
+
 
 class CompareGlyphInfo(object):
 
@@ -64,15 +67,15 @@ class CompareGlyphInfo(object):
 		# Window 'self.w':
 		windowWidth = 400
 		windowHeight = 160
-		windowWidthResize = 1000 # user can resize width by this value
-		windowHeightResize = 1000 # user can resize height by this value
+		windowWidthResize = 1000  # user can resize width by this value
+		windowHeightResize = 1000  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Compare Glyph Info", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.CompareGlyphInfo.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Compare Glyph Info",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.CompareGlyphInfo.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		self.linePos, inset, lineHeight = 5, 6, 22
@@ -104,8 +107,8 @@ class CompareGlyphInfo(object):
 				"editable": False,
 				"width": 200,
 				"maxWidth": 400
-				},
-			]
+			},
+		]
 		for i, thisFont in enumerate(Glyphs.fonts):
 			if thisFont.filepath:
 				fileName = thisFont.filepath.lastPathComponent()
@@ -118,7 +121,7 @@ class CompareGlyphInfo(object):
 				"editable": False,
 				"width": 150,
 				"maxWidth": 300
-				}
+			}
 			headers.append(columnHeader)
 
 		return headers
@@ -217,7 +220,7 @@ class CompareGlyphInfo(object):
 			for glyphName in allNames:
 				line = {
 					"glyphName": glyphName
-					}
+				}
 				checkList = []
 				for i, thisFont in enumerate(Glyphs.fonts):
 					column = "font-%i" % i
@@ -258,7 +261,7 @@ class CompareGlyphInfo(object):
 				# selectionCallback = self.selectedAction,
 				doubleClickCallback=self.openGlyphInFont,
 				# editCallback = self.editAction,
-				)
+			)
 
 			self.w.List.getNSTableView().setToolTip_("Double click to open the selected glyphs in all fonts. You can select more than one line.")
 		except Exception as e:
@@ -286,5 +289,6 @@ class CompareGlyphInfo(object):
 						tab.scale = 0.15
 						if i > 0:
 							tab.viewPort = Glyphs.fonts[0].currentTab.viewPort
+
 
 CompareGlyphInfo()

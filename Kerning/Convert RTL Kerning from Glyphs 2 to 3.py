@@ -1,4 +1,4 @@
-#MenuTitle: Convert RTL Kerning from Glyphs 2 to 3
+# MenuTitle: Convert RTL Kerning from Glyphs 2 to 3
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Convert RTL kerning from Glyphs 2 to Glyphs 3 format and switches the kerning classes. Detailed report in Macro Window.
@@ -6,15 +6,17 @@ Convert RTL kerning from Glyphs 2 to Glyphs 3 format and switches the kerning cl
 Hold down OPTION and SHIFT to convert from Glyphs 3 back to Glyphs 2.
 """
 
+from AppKit import NSEvent
+from Foundation import NSMutableDictionary, NSClassFromString
+from GlyphsApp import Glyphs, GSGlyphsInfo
+
 Glyphs.clearLog()
 
-from GlyphsApp import objcObject
 try:
 	from GlyphsApp import GSRTL as RTL
 except:
 	from GlyphsApp import RTL
-from AppKit import NSEvent
-from Foundation import NSMutableDictionary
+
 
 def nameForKey(thisKey):
 	if thisKey.startswith("@"):
@@ -22,8 +24,9 @@ def nameForKey(thisKey):
 	else:
 		return thisFont.glyphForId_(thisKey).name
 
+
 def glyphNameIsRTL(glyphName, key2Scripts):
-	#glyphName = flipMMK(glyphName) # @MMK_L_flipMMK -->  @MMK_R_ --> glyphName = Glyphs.niceGlyphName(glyphNam
+	# glyphName = flipMMK(glyphName)  # @MMK_L_flipMMK -->  @MMK_R_ --> glyphName = Glyphs.niceGlyphName(glyphNam
 	flippedName = flipMMK(glyphName)
 	if glyphName in key2Scripts.keys():
 		if GSGlyphsInfo.isRTLScript_(key2Scripts[glyphName]):
@@ -33,6 +36,7 @@ def glyphNameIsRTL(glyphName, key2Scripts):
 			return True
 	return False
 
+
 def glyphInFontIsRTL(glyphName, thisFont, key2Scripts):
 	glyph = thisFont.glyphs[glyphName]
 	if glyph:
@@ -40,8 +44,10 @@ def glyphInFontIsRTL(glyphName, thisFont, key2Scripts):
 			return True
 	return glyphNameIsRTL(glyphName, key2Scripts)
 
+
 def stripMMK(name):
 	return name.replace("MMK_L_", "").replace("MMK_R_", "")
+
 
 def flipMMK(name):
 	left = "@MMK_L_"
@@ -53,6 +59,7 @@ def flipMMK(name):
 	else:
 		return name
 
+
 def copyFrom3to2(thisFont, masterKerning, RTLmasterKerning, key2Scripts):
 	countKernPairs = 0
 	for firstKey in list(RTLmasterKerning.keys()):
@@ -61,12 +68,12 @@ def copyFrom3to2(thisFont, masterKerning, RTLmasterKerning, key2Scripts):
 
 		firstName = nameForKey(firstKey)
 		if glyphInFontIsRTL(firstName, thisFont, key2Scripts):
-			newFirstKey = flipMMK(firstKey) # @MMK_R_ --> @MMK_L_
+			newFirstKey = flipMMK(firstKey)  # @MMK_R_ --> @MMK_L_
 
 		for secondKey in firstKerning.keys():
 			secondName = nameForKey(secondKey)
 			if glyphInFontIsRTL(secondName, thisFont, key2Scripts):
-				newSecondKey = flipMMK(secondKey) # @MMK_L_ --> @MMK_R_
+				newSecondKey = flipMMK(secondKey)  # @MMK_L_ --> @MMK_R_
 
 			kernValue = firstKerning[secondKey]
 			thisFont.setKerningForPair(master.id, stripMMK(firstName), stripMMK(secondName), kernValue)
@@ -74,11 +81,12 @@ def copyFrom3to2(thisFont, masterKerning, RTLmasterKerning, key2Scripts):
 				stripMMK(firstName),
 				stripMMK(secondName),
 				kernValue,
-				))
+			))
 			countKernPairs += 1
 
-	RTLmasterKerning = {} # delete RTL kerning
+	RTLmasterKerning = {}  # delete RTL kerning
 	return countKernPairs
+
 
 def copyFrom2to3(masterKerning, RTLmasterKerning, key2Scripts):
 	countKernPairs = 0
@@ -92,7 +100,7 @@ def copyFrom2to3(masterKerning, RTLmasterKerning, key2Scripts):
 			firstKeyIsRTL = True
 
 		firstKerning = masterKerning[firstKey]
-		newFirstKey = flipMMK(firstKey) # @MMK_L_ --> @MMK_R_
+		newFirstKey = flipMMK(firstKey)  # @MMK_L_ --> @MMK_R_
 		newFirstKerning = {}
 
 		for secondKey in firstKerning.keys():
@@ -105,21 +113,21 @@ def copyFrom2to3(masterKerning, RTLmasterKerning, key2Scripts):
 
 			# if either is RTL, convert to RTL kerning:
 			if firstKeyIsRTL or secondKeyIsRTL:
-				if not newFirstKey in RTLmasterKerning.keys():
+				if newFirstKey not in RTLmasterKerning.keys():
 					RTLmasterKerning[newFirstKey] = newFirstKerning
-				newSecondKey = flipMMK(secondKey) # @MMK_R_ --> @MMK_L_
+				newSecondKey = flipMMK(secondKey)  # @MMK_R_ --> @MMK_L_
 				kernValue = firstKerning[secondKey]
 				RTLmasterKerning[newFirstKey][newSecondKey] = kernValue
 				print("  ✅ %s %s %i" % (
-					stripMMK(nameForKey(newFirstKey)), # remove MMK_R_
-					stripMMK(nameForKey(newSecondKey)), # remove MMK_L_
+					stripMMK(nameForKey(newFirstKey)),  # remove MMK_R_
+					stripMMK(nameForKey(newSecondKey)),  # remove MMK_L_
 					kernValue,
-					))
+				))
 				countKernPairs += 1
 				delPair = (firstKey, secondKey)
 
 				if secondKeyIsRTL:
-					if not delPair in toBeDeleted:
+					if delPair not in toBeDeleted:
 						toBeDeleted.append(delPair)
 
 		if firstKeyIsRTL:
@@ -137,6 +145,7 @@ def copyFrom2to3(masterKerning, RTLmasterKerning, key2Scripts):
 
 	return countKernPairs
 
+
 def mapGlyphsToScripts(thisFont):
 	glyph2script = {}
 	ExportClass = NSClassFromString("GSExportInstanceOperation")
@@ -147,6 +156,7 @@ def mapGlyphsToScripts(thisFont):
 	else:
 		exporter._makeCachesKey2Scripts_splitGroups_groupDict_glyphsID2Glyph_name2Glyph_error_(glyph2script, None, {}, None, None, None)
 	return glyph2script
+
 
 try:
 	# see which keys are pressed:
@@ -165,7 +175,7 @@ try:
 	conversionDirection = "%i → %i:" % (
 		3 if userWantsToConvertFrom3to2 else 2,
 		2 if userWantsToConvertFrom3to2 else 3,
-		)
+	)
 
 	# copy RTL kerning and swith class prefixes in kern dict
 	print("1️⃣ Convert RTL kerning from Glyphs %s" % conversionDirection)
@@ -203,7 +213,7 @@ try:
 				g.name,
 				g.leftKerningGroup,
 				g.rightKerningGroup,
-				))
+			))
 
 	print("\n✅ Done.")
 	# Floating notification:
@@ -214,8 +224,9 @@ try:
 			"" if countKernPairs == 1 else "s",
 			countFlippedGroups,
 			"" if countFlippedGroups == 1 else "s",
-			),
-		)
+		),
+	)
+
 
 except Exception as e:
 	Glyphs.showMacroWindow()

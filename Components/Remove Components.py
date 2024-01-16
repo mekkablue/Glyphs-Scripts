@@ -1,22 +1,24 @@
-#MenuTitle: Remove Components
+# MenuTitle: Remove Components
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Removes the specified component from all (selected) glyphs.
 """
-
-import vanilla, os, sys
-
+import vanilla
+import os
+import sys
 # import from enclosing folder:
 sys.path.insert(1, os.path.realpath(os.path.pardir))
 from mekkablue import match
+from GlyphsApp import Glyphs
+
 
 def deleteCornerComponent(componentName, thisLayer):
 	indToDel = []
 	count = 0
 	for i, h in enumerate(thisLayer.hints):
 		if h.isCorner:
-			#help(h)
+			# help(h)
 			if match(componentName, h.name):
 				indToDel += [i]
 	indToDel = list(reversed(indToDel))
@@ -29,7 +31,8 @@ def deleteCornerComponent(componentName, thisLayer):
 			count,
 			"" if count == 1 else "s",
 			thisLayer.name,
-			))
+		))
+
 
 class RemoveComponentfromSelectedGlyphs(object):
 	prefID = "com.mekkablue.RemoveComponents"
@@ -38,15 +41,15 @@ class RemoveComponentfromSelectedGlyphs(object):
 		# Window 'self.w':
 		windowWidth = 250
 		windowHeight = 135
-		windowWidthResize = 500 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 500  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Remove Components", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Remove Components",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -61,12 +64,7 @@ class RemoveComponentfromSelectedGlyphs(object):
 		self.w.updateButton.getNSButton().setToolTip_("Reload a list of glyph names based on the current font (and selection).")
 
 		linePos += lineHeight
-		self.w.fromWhere = vanilla.RadioGroup(
-			(inset, linePos, -inset, 40),
-			("from all selected glyphs", "⚠️ from all glyphs in the font"),
-			callback=self.SavePreferences,
-			sizeStyle='small',
-			)
+		self.w.fromWhere = vanilla.RadioGroup((inset, linePos, -inset, 40), ("from all selected glyphs", "⚠️ from all glyphs in the font"), callback=self.SavePreferences, sizeStyle='small',)
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Remove", sizeStyle='regular', callback=self.RemoveComponentFromSelectedGlyphsMain)
@@ -119,10 +117,10 @@ class RemoveComponentfromSelectedGlyphs(object):
 			if layer.isMasterLayer or layer.isSpecialLayer:
 				for component in layer.components:
 					name = component.componentName
-					if not name in components:
+					if name not in components:
 						components.append(name)
-				for hint in layer.hints: # corner components
-					if hint.name and not hint.name in components:
+				for hint in layer.hints:  # corner components
+					if hint.name and hint.name not in components:
 						components.append(hint.name)
 		return components
 
@@ -136,7 +134,7 @@ class RemoveComponentfromSelectedGlyphs(object):
 		thisFont = Glyphs.font
 		if thisFont:
 			if self.pref("fromWhere") == 0 and thisFont.selectedLayers:
-				return sorted(self.componentsInGlyphs([l.parent for l in thisFont.selectedLayers if l.parent]))
+				return sorted(self.componentsInGlyphs([layer.parent for layer in thisFont.selectedLayers if layer.parent]))
 			else:
 				return sorted(self.componentsInGlyphs(thisFont.glyphs))
 		else:
@@ -164,8 +162,8 @@ class RemoveComponentfromSelectedGlyphs(object):
 					"" if len(removedComponents) == 1 else "s",
 					", ".join(set(removedComponents)),
 					thisLayer.name,
-					)
 				)
+			)
 
 		deleteCornerComponent(componentName, thisLayer)
 
@@ -179,12 +177,12 @@ class RemoveComponentfromSelectedGlyphs(object):
 		Glyphs.clearLog()
 
 		try:
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			componentName = self.pref("componentName")
 			print("Removing component %s from font ‘%s’:" % (componentName, thisFont.familyName))
 
 			if self.pref("fromWhere") == 0:
-				listOfGlyphs = [l.parent for l in thisFont.selectedLayers] # active layers of currently selected glyphs
+				listOfGlyphs = [layer.parent for layer in thisFont.selectedLayers]  # active layers of currently selected glyphs
 			else:
 				listOfGlyphs = thisFont.glyphs
 
@@ -198,5 +196,6 @@ class RemoveComponentfromSelectedGlyphs(object):
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Remove Component Error: %s" % e)
+
 
 RemoveComponentfromSelectedGlyphs()

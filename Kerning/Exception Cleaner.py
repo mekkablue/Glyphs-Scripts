@@ -1,4 +1,4 @@
-#MenuTitle: Exception Cleaner
+# MenuTitle: Exception Cleaner
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -7,6 +7,8 @@ Compares every exception to the group kerning available for the same pair. If th
 
 import vanilla
 from AppKit import NSBeep
+from GlyphsApp import Glyphs, Message
+
 
 class DeleteExceptionsTooCloseToGroupKerning(object):
 
@@ -14,50 +16,39 @@ class DeleteExceptionsTooCloseToGroupKerning(object):
 		# Window 'self.w':
 		windowWidth = 430
 		windowHeight = 190
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Exception Cleaner", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Exception Cleaner",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		inset, line, lineHeight = 15, 10, 22
 
-		self.w.text_1 = vanilla.TextBox(
-			(inset, line, -inset, lineHeight * 2),
-			"Delete all kerning exceptions in the current master if they are less than the threshold value away from their corresponding group-to-group kerning:",
-			sizeStyle='small'
-			)
+		self.w.text_1 = vanilla.TextBox((inset, line, -inset, lineHeight * 2), "Delete all kerning exceptions in the current master if they are less than the threshold value away from their corresponding group-to-group kerning:", sizeStyle='small')
 		line += int(lineHeight * 1.5)
 
 		self.w.text_2 = vanilla.TextBox((inset, line + 3, 200, lineHeight), "Required minimum kern difference:", sizeStyle='small')
 		self.w.threshold = vanilla.EditText((inset + 200, line, -15, 20), "10", sizeStyle='small', callback=self.SavePreferences)
-		self.w.threshold.getNSTextField(
-		).setToolTip_("A kern exception must be at least this number of units different from its corresponding group kern pair, otherwise it will be deleted.")
+		self.w.threshold.getNSTextField().setToolTip_("A kern exception must be at least this number of units different from its corresponding group kern pair, otherwise it will be deleted.")
 		line += lineHeight
 
-		self.w.selectedGlyphsOnly = vanilla.CheckBox(
-			(inset, line, -inset, lineHeight), "Only consider pairs where at least one glyph is currently selected", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.selectedGlyphsOnly.getNSButton(
-		).setToolTip_("If enabled, respects your current glyph selection. Will only process kern pairs if one or both of the involved glyphs are in your selection.")
+		self.w.selectedGlyphsOnly = vanilla.CheckBox((inset, line, -inset, lineHeight), "Only consider pairs where at least one glyph is currently selected", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.selectedGlyphsOnly.getNSButton().setToolTip_("If enabled, respects your current glyph selection. Will only process kern pairs if one or both of the involved glyphs are in your selection.")
 		line += lineHeight
 
-		self.w.onlyReportDontDelete = vanilla.CheckBox(
-			(inset, line, -inset, lineHeight), "Only report, do not delete pairs yet", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.onlyReportDontDelete = vanilla.CheckBox((inset, line, -inset, lineHeight), "Only report, do not delete pairs yet", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.onlyReportDontDelete.getNSButton().setToolTip_("Opens a new tab with affected pairs, but does not delete any kerning.")
 		line += lineHeight
 
 		self.w.openTab = vanilla.CheckBox((inset, line, 180, 20), "Open tab with affected pairs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.openTab.getNSButton().setToolTip_("Opens a new tab for reporting. Otherwise will only write a report in Macro Window.")
 		self.w.reuseTab = vanilla.CheckBox((inset + 180, line, -inset, 20), "Reuse current tab if possible", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab.getNSButton(
-		).setToolTip_("If a tab is open and active already, will not open a new tab but rather reuse the current tab. Otherwise, will always open a new tab.")
+		self.w.reuseTab.getNSButton().setToolTip_("If a tab is open and active already, will not open a new tab but rather reuse the current tab. Otherwise, will always open a new tab.")
 		line += lineHeight
 
 		# Buttons:
@@ -134,10 +125,10 @@ class DeleteExceptionsTooCloseToGroupKerning(object):
 						return thisGlyph.name
 			print(
 				"⚠️ No glyph found for %s group: @%s" % (
-					"right" if isTheLeftSide else "left", # if it is on the left side, we are looking for the right group and vice versa
+					"right" if isTheLeftSide else "left",  # if it is on the left side, we are looking for the right group and vice versa
 					groupName,
-					)
 				)
+			)
 			return None
 		else:
 			if thisFont.glyphs[kernSideName]:
@@ -151,7 +142,7 @@ class DeleteExceptionsTooCloseToGroupKerning(object):
 			if not self.SavePreferences(self):
 				print("Note: 'Exception Cleaner' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			thisMaster = thisFont.selectedFontMaster
 			thisMasterID = thisMaster.id
 
@@ -164,15 +155,15 @@ class DeleteExceptionsTooCloseToGroupKerning(object):
 			if onlySelectedGlyphs:
 				selection = thisFont.selectedLayers
 				if selection:
-					selectedGlyphs = [l.parent for l in selection]
-					selectedLeftGlyphGroups = [g.rightKerningGroup for g in selectedGlyphs]
-					selectedRightGlyphGroups = [g.leftKerningGroup for g in selectedGlyphs]
+					selectedGlyphs = [layer.parent for layer in selection]
+					selectedLeftGlyphGroups = [glyph.rightKerningGroup for glyph in selectedGlyphs]
+					selectedRightGlyphGroups = [glyph.leftKerningGroup for glyph in selectedGlyphs]
 				else:
 					Message(
 						title="Selection Error",
 						message="You specified you want to process only selected glyphs, but no glyphs appear to be selected in the frontmost font.",
 						OKButton="😬 Oops"
-						)
+					)
 					return
 			else:
 				selectedGlyphs = ()
@@ -220,7 +211,7 @@ class DeleteExceptionsTooCloseToGroupKerning(object):
 										rightGlyphGroupMMK = "@MMK_R_%s" % rightGlyphGroup
 										exceptionKerning = thisFont.kerning[thisMasterID][leftSide][rightSide]
 										groupKerning = thisFont.kerningForPair(thisMasterID, leftGlyphGroupMMK, rightGlyphGroupMMK)
-										if groupKerning is None or groupKerning > 100000: # NSNotFound
+										if groupKerning is None or groupKerning > 100000:  # NSNotFound
 											groupKerning = 0
 										if abs(exceptionKerning - groupKerning) < threshold:
 											print(
@@ -231,8 +222,8 @@ class DeleteExceptionsTooCloseToGroupKerning(object):
 													leftGlyphGroup,
 													rightGlyphGroup,
 													groupKerning,
-													)
 												)
+											)
 											unnecessaryKernPairs.append(("@%s" % leftGlyphGroup, rightGlyph.name))
 
 				else:
@@ -274,7 +265,7 @@ class DeleteExceptionsTooCloseToGroupKerning(object):
 								if okToContinue:
 									exceptionKerning = thisFont.kerning[thisMasterID][leftSide][rightSide]
 									groupKerning = thisFont.kerningForPair(thisMasterID, leftGlyphGroupMMK, rightGlyphGroupMMK)
-									if groupKerning is None or groupKerning > 100000: # NSNotFound
+									if groupKerning is None or groupKerning > 100000:  # NSNotFound
 										groupKerning = 0
 
 									if abs(exceptionKerning - groupKerning) < threshold:
@@ -291,8 +282,8 @@ class DeleteExceptionsTooCloseToGroupKerning(object):
 												leftGlyphGroup,
 												rightGlyphGroup,
 												groupKerning,
-												)
 											)
+										)
 										unnecessaryKernPairs.append((leftGlyph.name, rightSideName))
 
 			if not unnecessaryKernPairs:
@@ -302,9 +293,9 @@ class DeleteExceptionsTooCloseToGroupKerning(object):
 						threshold,
 						thisFont.familyName,
 						thisMaster.name,
-						),
+					),
 					OKButton="😎Cool"
-					)
+				)
 			else:
 				tabString = ""
 				for kernPair in unnecessaryKernPairs:
@@ -322,7 +313,7 @@ class DeleteExceptionsTooCloseToGroupKerning(object):
 					# COLLECT FOR REPORT
 					leftGlyphName = self.glyphNameForKernSide(thisFont, leftSide, isTheLeftSide=True)
 					rightGlyphName = self.glyphNameForKernSide(thisFont, rightSide, isTheLeftSide=False)
-					if not leftGlyphName is None and not rightGlyphName is None:
+					if leftGlyphName is not None and rightGlyphName is not None:
 						tabString += "/%s/%s " % (leftGlyphName, rightGlyphName)
 
 				# REPORT
@@ -337,7 +328,7 @@ class DeleteExceptionsTooCloseToGroupKerning(object):
 							"" if countPairs == 1 else "s",
 							thisFont.familyName,
 							thisMaster.name,
-							)
+						)
 					else:
 						title = "Removed unnecessary exceptions"
 						message = "Deleted %i kerning exception%s in %s, master: ‘%s’." % (
@@ -345,7 +336,7 @@ class DeleteExceptionsTooCloseToGroupKerning(object):
 							"" if countPairs == 1 else "s",
 							thisFont.familyName,
 							thisMaster.name,
-							)
+						)
 
 					# Floating notification:
 					Glyphs.showNotification(title, message + " Details in Macro Window.")
@@ -366,5 +357,6 @@ class DeleteExceptionsTooCloseToGroupKerning(object):
 			print("'Exception Cleaner' Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 DeleteExceptionsTooCloseToGroupKerning()

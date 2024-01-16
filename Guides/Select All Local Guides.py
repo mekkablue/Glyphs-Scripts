@@ -1,18 +1,21 @@
-#MenuTitle: Select All Local Guides in Selected Glyphs
+# MenuTitle: Select All Local Guides in Selected Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Selects all guides in the selected glyph(s).
 """
+from GlyphsApp import Glyphs
 
-thisFont = Glyphs.font # frontmost font
-selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+thisFont = Glyphs.font  # frontmost font
+selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+
 
 def selectGuidesOnLayer(thisLayer):
 	thisLayer.clearSelection()
 	for thisGuide in thisLayer.guides:
 		thisLayer.selection.append(thisGuide)
 	return len(thisLayer.selection)
+
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent

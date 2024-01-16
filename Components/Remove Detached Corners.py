@@ -1,4 +1,4 @@
-#MenuTitle: Remove Detached Corners
+# MenuTitle: Remove Detached Corners
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Removes the specified component from all (selected) glyphs.
 """
 
 import vanilla
+from GlyphsApp import Glyphs, CORNER
+
 
 def isLayerAffected(thisLayer):
 	for h in thisLayer.hints:
@@ -13,16 +15,18 @@ def isLayerAffected(thisLayer):
 			if not h.originNode:
 				deleteCornerComponent(h.name, thisLayer)
 
+
 def deleteCornerComponent(componentName, thisLayer):
 	indToDel = []
 	for i, h in enumerate(thisLayer.hints):
 		if h.isCorner:
-			#help(h)
+			# help(h)
 			if h.name == componentName:
 				indToDel += [i]
 	indToDel = list(reversed(indToDel))
 	for i in indToDel:
 		del thisLayer.hints[i]
+
 
 class RemoveDetachedCorners(object):
 	padding = (15, 10, 10)
@@ -34,10 +38,10 @@ class RemoveDetachedCorners(object):
 		windowWidth = 350
 		windowHeight = 144
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Remove Detached Corners", # window title
-			autosaveName="com.mekkablue.RemoveDetachedCorners.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Remove Detached Corners",  # window title
+			autosaveName="com.mekkablue.RemoveDetachedCorners.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		self.w.backgroundLayersChBox = vanilla.CheckBox((x, y, -p, txtH), "Apply to Background Layers", sizeStyle='small')
@@ -114,11 +118,11 @@ class RemoveDetachedCorners(object):
 
 	def removeDetachedCornersMain(self, sender):
 		try:
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			listOfGlyphs = thisFont.glyphs
 
 			if Glyphs.defaults["com.mekkablue.RemoveDetachedCorners.fromWhere"] == 0:
-				listOfGlyphs = [l.parent for l in thisFont.selectedLayers] # active layers of currently selected glyphs
+				listOfGlyphs = [layer.parent for layer in thisFont.selectedLayers]  # active layers of currently selected glyphs
 
 			for thisGlyph in listOfGlyphs:
 				self.removeDetachedCornersGlyph(thisGlyph)
@@ -130,5 +134,6 @@ class RemoveDetachedCorners(object):
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Remove Detached Corners Error: %s" % e)
+
 
 RemoveDetachedCorners()

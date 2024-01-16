@@ -1,12 +1,13 @@
-#MenuTitle: Remove Custom Parameters
+# MenuTitle: Remove Custom Parameters
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Removes all parameters of one kind from Font Info > Font, Masters, Instances. Useful if you have many masters or instances.
 """
 
-from GlyphsApp import *
 import vanilla
+from GlyphsApp import Glyphs, Message
+
 
 class RemoveCustomParameters(object):
 
@@ -14,15 +15,15 @@ class RemoveCustomParameters(object):
 		# Window 'self.w':
 		windowWidth = 315
 		windowHeight = 130
-		windowWidthResize = 500 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 500  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Remove Custom Parameters", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.RemoveCustomParameters.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Remove Custom Parameters",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.RemoveCustomParameters.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -38,9 +39,7 @@ class RemoveCustomParameters(object):
 		self.w.removeFromFont.getNSButton().setToolTip_("If enabled, will remove the chosen custom parameters from File > Font Info > Font.")
 		self.w.removeFromMasters = vanilla.CheckBox((inset + 95 + 50, linePos, 100, 20), "Masters", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.removeFromMasters.getNSButton().setToolTip_("If enabled, will remove the chosen custom parameters from File > Font Info > Masters.")
-		self.w.removeFromStyles = vanilla.CheckBox(
-			(inset + 95 + 120, linePos, -inset, 20), "Styles" if Glyphs.versionNumber >= 3.0 else "Instances", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.removeFromStyles = vanilla.CheckBox((inset + 95 + 120, linePos, -inset, 20), "Styles" if Glyphs.versionNumber >= 3.0 else "Instances", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.removeFromStyles.getNSButton().setToolTip_("If enabled, will remove the chosen custom parameters from File > Font Info > Styles (Instances in Glyphs 2).")
 		linePos += lineHeight
 
@@ -96,7 +95,7 @@ class RemoveCustomParameters(object):
 		if goThroughAllOpenFonts:
 			theseFonts = Glyphs.fonts
 		else:
-			theseFonts = (Glyphs.font, ) # frontmost font only
+			theseFonts = (Glyphs.font, )  # frontmost font only
 		return theseFonts
 
 	def SavePreferences(self, sender=None):
@@ -189,20 +188,20 @@ class RemoveCustomParameters(object):
 									deletedParameterCount += 1
 									print("🚫 Removed parameter in Style %s" % instance.name)
 
-				self.w.close() # delete if you want window to stay open
+				self.w.close()  # delete if you want window to stay open
 
 				# Final report:
 				Glyphs.showNotification(
 					"Removed Parameters in %i Font%s" % (
 						len(theseFonts),
 						"" if len(theseFonts) == 1 else "s",
-						),
+					),
 					"Deleted %i occurrence%s of ‘%s’. Details in Macro Window" % (
 						deletedParameterCount,
 						"" if deletedParameterCount == 1 else "s",
 						parameterToBeDeleted,
-						),
-					)
+					),
+				)
 				print("\nDone.")
 
 		except Exception as e:
@@ -211,5 +210,6 @@ class RemoveCustomParameters(object):
 			print("Remove Custom Parameters Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 RemoveCustomParameters()

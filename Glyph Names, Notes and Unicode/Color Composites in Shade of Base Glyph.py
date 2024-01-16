@@ -1,4 +1,4 @@
-#MenuTitle: Color Composites in Shade of Base Glyph
+# MenuTitle: Color Composites in Shade of Base Glyph
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,11 +6,15 @@ Color Composites in a lighter shade of the base glyph. E.g., if your A is has a 
 """
 
 from Foundation import NSColor, NSNotFound
+from GlyphsApp import Glyphs
+
+
 prefID = "com.mekkablue.colorCompositesInShadeOfBaseGlyph"
 
-thisFont = Glyphs.font # frontmost font
-thisMasterID = thisFontMaster = thisFont.selectedFontMaster.id # active master ID
+thisFont = Glyphs.font  # frontmost font
+thisMasterID = thisFontMaster = thisFont.selectedFontMaster.id  # active master ID
 glyphNamesWithColors = [g.name for g in thisFont.glyphs if g.color != NSNotFound and g.category != "Mark"]
+
 
 def registerPref(prefID, prefName, fallbackValue):
 	prefDomain = "%s.%s" % (prefID, prefName)
@@ -18,9 +22,11 @@ def registerPref(prefID, prefName, fallbackValue):
 	if Glyphs.defaults[prefDomain] is None:
 		Glyphs.defaults[prefDomain] = fallbackValue
 
+
 def getPref(prefID, prefName):
 	prefDomain = "%s.%s" % (prefID, prefName)
 	return Glyphs.defaults[prefDomain]
+
 
 def rgbaForColorObject(colorObject):
 	r = colorObject.redComponent()
@@ -28,6 +34,7 @@ def rgbaForColorObject(colorObject):
 	b = colorObject.blueComponent()
 	a = colorObject.alphaComponent()
 	return r, g, b, a
+
 
 # retrieve current values:
 registerPref(prefID, "shadeFactor", 0.5)
@@ -38,7 +45,7 @@ Glyphs.clearLog()
 Glyphs.showMacroWindow()
 print("Shading composites:\n")
 
-Font.disableUpdateInterface()
+thisFont.disableUpdateInterface()
 
 for thisComposite in [g for g in thisFont.glyphs if g.layers[thisMasterID].components]:
 	firstComponent = thisComposite.layers[thisMasterID].components[0]
@@ -55,4 +62,4 @@ for thisComposite in [g for g in thisFont.glyphs if g.layers[thisMasterID].compo
 	else:
 		print("⚠️ %s: no color set in %s" % (thisComposite.name, baseGlyph.name))
 
-Font.enableUpdateInterface()
+thisFont.enableUpdateInterface()

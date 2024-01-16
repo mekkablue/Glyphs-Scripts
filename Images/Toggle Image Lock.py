@@ -1,4 +1,4 @@
-#MenuTitle: Toggle Image Lock
+# MenuTitle: Toggle Image Lock
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Floating Window for toggling the locked status of selected glyphs.
 """
 
 import vanilla
+from GlyphsApp import Glyphs
+
 
 class ToggleImageLock(object):
 
@@ -13,15 +15,15 @@ class ToggleImageLock(object):
 		# Window 'self.w':
 		windowWidth = 250
 		windowHeight = 60
-		windowWidthResize = 500 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 500  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Toggle Image Lock", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.ToggleImageLock.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Toggle Image Lock",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.ToggleImageLock.mainwindow"  # stores last window position and size
+		)
 
 		currentWidth = self.w.getPosSize()[2]
 		# A tuple of form *(left, top, width, height)* representing the window's
@@ -48,9 +50,9 @@ class ToggleImageLock(object):
 			if sender == self.w.unlockButton:
 				lockedStatus = False
 
-			thisFont = Glyphs.font # frontmost font
-			listOfSelectedLayers = thisFont.selectedLayers # active layers of currently selected glyphs
-			for thisLayer in listOfSelectedLayers: # loop through layers
+			thisFont = Glyphs.font  # frontmost font
+			listOfSelectedLayers = thisFont.selectedLayers  # active layers of currently selected glyphs
+			for thisLayer in listOfSelectedLayers:  # loop through layers
 				if thisLayer.backgroundImage:
 					thisLayer.backgroundImage.locked = lockedStatus
 					if thisLayer.parent:
@@ -60,5 +62,6 @@ class ToggleImageLock(object):
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Toggle Image Lock Error: %s" % e)
+
 
 ToggleImageLock()

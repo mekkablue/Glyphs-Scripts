@@ -1,13 +1,15 @@
-#MenuTitle: Fill Up with Rectangles
+# MenuTitle: Fill Up with Rectangles
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Inserts Rectangles in all empty, selected glyphs. Verbose report in Macro Window.
 """
 
-from GlyphsApp import *
+from GlyphsApp import Glyphs, GSPath, GSNode, GSLINE, GSUppercase, GSLowercase
+
 thisFont = Glyphs.font
 selectedLayers = thisFont.selectedLayers
+
 
 def drawRect(myBottomLeft, myTopRight):
 	try:
@@ -23,8 +25,9 @@ def drawRect(myBottomLeft, myTopRight):
 		myRect.closed = True
 		return myRect
 
-	except Exception as e:
+	except Exception as e:  # noqa: F841
 		return False
+
 
 def process(thisLayer):
 	layerIsEmpty = (len(thisLayer.paths) == 0 and len(thisLayer.components) == 0)
@@ -73,13 +76,14 @@ def process(thisLayer):
 				bottom,
 				height,
 				thisLayer.width - 2 * inset,
-				)
+			)
 		else:
 			return "❌ error"
 	else:
 		return "🆗 not empty, skipped"
 
-Glyphs.clearLog() # clears macro window log
+
+Glyphs.clearLog()  # clears macro window log
 print("‘Fill Up with Rectangles’ report for: %s\n" % thisFont.familyName)
 
 thisFont.disableUpdateInterface()
@@ -87,9 +91,9 @@ try:
 	for thisLayer in selectedLayers:
 		thisGlyph = thisLayer.parent
 		if thisGlyph:
-			# thisGlyph.beginUndo() # undo grouping causes crashes
+			# thisGlyph.beginUndo()  # undo grouping causes crashes
 			print("Filling %s: %s." % (thisGlyph.name, process(thisLayer)))
-			# thisGlyph.endUndo() # undo grouping causes crashes
+			# thisGlyph.endUndo()  # undo grouping causes crashes
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")
@@ -98,6 +102,6 @@ except Exception as e:
 	print()
 	raise e
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
 
 print("\nDone.")

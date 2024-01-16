@@ -1,16 +1,21 @@
-#MenuTitle: Find Close Encounters of Orthogonal Line Segments
+# MenuTitle: Find Close Encounters of Orthogonal Line Segments
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Goes through all vertical and horizontal line segments, and finds pairs that are close, but do not align completely.
 """
 
-import vanilla, sys, math
+import vanilla
+import math
+from Foundation import NSPoint
+from GlyphsApp import Glyphs, GSGuide, Message
+
 
 def angle(firstPoint, secondPoint):
 	xDiff = secondPoint.x - firstPoint.x
 	yDiff = secondPoint.y - firstPoint.y
 	return math.degrees(math.atan2(yDiff, xDiff))
+
 
 class FindCloseEncounters(object):
 	prefID = "com.mekkablue.FindCloseEncounters"
@@ -23,56 +28,44 @@ class FindCloseEncounters(object):
 		"excludeGlyphsContaining": ".ornm, .dnom, .numr, superior, inferior, .blackCircled, apple, BlackIndex",
 		"reuseTab": True,
 		"allFonts": False,
-		}
+	}
 	markerEmoji = "😰"
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 370
 		windowHeight = 220
-		windowWidthResize = 500 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 500  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Find Close Encounters of Orthogonal Line Segments", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Find Close Encounters of Orthogonal Line Segments",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, 14), "Find orthogonal line segments that are close but not aligning:", sizeStyle='small', selectable=True
-			)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Find orthogonal line segments that are close but not aligning:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
 		self.w.thresholdText = vanilla.TextBox((inset, linePos + 2, 120, 14), "Max distance in units:", sizeStyle='small', selectable=True)
 		self.w.threshold = vanilla.EditText((inset + 120, linePos - 1, 50, 19), self.prefDict["threshold"], callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.includeComposites = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20),
-			"Include composites (otherwise only glyphs with paths)",
-			value=self.prefDict["includeComposites"],
-			callback=self.SavePreferences,
-			sizeStyle='small'
-			)
+		self.w.includeComposites = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include composites (otherwise only glyphs with paths)", value=self.prefDict["includeComposites"], callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.includeNonExporting = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=self.prefDict["includeNonExporting"], callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.includeNonExporting = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=self.prefDict["includeNonExporting"], callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.excludeGlyphs = vanilla.CheckBox((inset, linePos - 1, 160, 20), "Exclude glyphs containing:", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.excludeGlyphsContaining = vanilla.EditText(
-			(inset + 160, linePos - 1, -inset, 19), self.prefDict["excludeGlyphsContaining"], callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.excludeGlyphsContaining = vanilla.EditText((inset + 160, linePos - 1, -inset, 19), self.prefDict["excludeGlyphsContaining"], callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
-		
-		self.w.allFonts = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Include ⚠️ ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
+
+		self.w.allFonts = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include ⚠️ ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		self.w.reuseTab = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Reuse current tab for report", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -145,16 +138,16 @@ class FindCloseEncounters(object):
 			excludeGlyphsContaining = [particle.strip() for particle in self.pref("excludeGlyphsContaining").split(",")]
 			reuseTab = self.pref("reuseTab")
 			allFonts = self.pref("allFonts")
-			
+
 			if len(Glyphs.fonts) == 0:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
-			
+
 			if allFonts:
 				theseFonts = Glyphs.fonts
 			else:
-				theseFonts = (Glyphs.font,)
-				
+				theseFonts = (Glyphs.font, )
+
 			for thisFont in theseFonts:
 				filePath = thisFont.filepath
 				if filePath:
@@ -167,12 +160,12 @@ class FindCloseEncounters(object):
 				collectedLayers = []
 				for g in thisFont.glyphs:
 					# cleaning up existing guide markers
-					for l in g.layers:
-						if l.guides:
-							for i in range(len(l.guides) - 1, -1, -1):
-								guide = l.guides[i]
+					for layer in g.layers:
+						if layer.guides:
+							for i in range(len(layer.guides) - 1, -1, -1):
+								guide = layer.guides[i]
 								if guide.name and guide.name.startswith(self.markerEmoji):
-									del l.guides[i]
+									del layer.guides[i]
 
 					# see if glyph/layer needs to be skipped:
 					if not g.export and not includeNonExporting:
@@ -181,16 +174,16 @@ class FindCloseEncounters(object):
 						particleInGlyphName = [particle in g.name for particle in excludeGlyphsContaining]
 						if any(particleInGlyphName):
 							continue
-					for l in g.layers:
-						if not l.paths and not includeComposites:
+					for layer in g.layers:
+						if not layer.paths and not includeComposites:
 							continue
 
 						# look for line segments:
-						decomposedLayer = l.copyDecomposedLayer()
+						decomposedLayer = layer.copyDecomposedLayer()
 						segmentDict = {
 							0: [],
 							90: [],
-							}
+						}
 						for path in decomposedLayer.paths:
 							for segment in path.segments:
 								if len(segment) == 2:
@@ -213,8 +206,8 @@ class FindCloseEncounters(object):
 											prevCoord,
 											thisCoord,
 											g.name,
-											l.name,
-											))
+											layer.name,
+										))
 										for coord in prevCoord, thisCoord:
 											gd = GSGuide()
 											gd.angle = segmentAngle
@@ -222,10 +215,10 @@ class FindCloseEncounters(object):
 											gd.position = NSPoint(
 												0 if segmentAngle == 0 else coord,
 												0 if segmentAngle == 90 else coord,
-												)
-											l.guides.append(gd)
-										if not l in collectedLayers:
-											collectedLayers.append(l)
+											)
+											layer.guides.append(gd)
+										if layer not in collectedLayers:
+											collectedLayers.append(layer)
 
 				if collectedLayers:
 					if reuseTab and thisFont.currentTab:
@@ -233,22 +226,22 @@ class FindCloseEncounters(object):
 					else:
 						tab = thisFont.newTab()
 					tab.layers = collectedLayers
-				elif len(theseFonts)==1:
+				elif len(theseFonts) == 1:
 					Message(
 						title="No close encounters found",
 						message="Congratulations! No non-aliging line segments not further than %iu in this font." % abs(threshold),
 						OKButton=None,
-						)
+					)
 				else:
 					print("✅ No close encounters found in this font.")
 
-			self.w.close() # delete if you want window to stay open
+			self.w.close()  # delete if you want window to stay open
 
 			# Final report:
 			Glyphs.showNotification(
 				f"{thisFont.familyName}: Done",
 				"Find Close Encounters of Orthogonal Line Segments is finished. Details in Macro Window",
-				)
+			)
 			print("\nDone.")
 
 		except Exception as e:
@@ -257,5 +250,6 @@ class FindCloseEncounters(object):
 			print(f"Find Close Encounters of Orthogonal Line Segments Error: {e}")
 			import traceback
 			print(traceback.format_exc())
+
 
 FindCloseEncounters()

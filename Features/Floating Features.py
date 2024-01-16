@@ -1,11 +1,14 @@
-#MenuTitle: Floating Features
+# MenuTitle: Floating Features
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Floating window for activating features in the frontmost Edit tab.
 """
 
-import vanilla, traceback
+import vanilla
+import traceback
+from GlyphsApp import Glyphs
+
 
 class FeatureActivator(object):
 
@@ -19,9 +22,9 @@ class FeatureActivator(object):
 			featureTag = feature.name
 			featureName = feature.fullName()
 			exec(
-				"self.w.featureCheckBox_%i = vanilla.CheckBox( (8, 4 + 18 * i, -8, 18), featureName, sizeStyle='small', callback=self.toggleFeature, value=(featureTag in selectedFeatures) )"
+				"self.w.featureCheckBox_%i = vanilla.CheckBox((8, 4 + 18 * i, -8, 18), featureName, sizeStyle='small', callback=self.toggleFeature, value=(featureTag in selectedFeatures) )"
 				% i
-				)
+			)
 			exec("self.w.featureCheckBox_%i.getNSButton().setIdentifier_(featureTag)" % i)
 			i += 1
 		self.w.open()
@@ -55,5 +58,6 @@ class FeatureActivator(object):
 			return False
 
 		return True
+
 
 FeatureActivator()

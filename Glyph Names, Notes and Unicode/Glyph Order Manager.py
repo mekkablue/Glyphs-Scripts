@@ -1,12 +1,15 @@
-#MenuTitle: Glyph Order Manager
+# MenuTitle: Glyph Order Manager
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 UI for managing glyphOrder parameters.
 """
 
-import vanilla, sys, codecs
+import vanilla
+import codecs
 from AppKit import NSFont
+from GlyphsApp import Glyphs, Message
+
 
 def saveFileInLocation(content="", filePath="~/Desktop/test.txt"):
 	with codecs.open(filePath, "w", "utf-8-sig") as thisFile:
@@ -14,6 +17,7 @@ def saveFileInLocation(content="", filePath="~/Desktop/test.txt"):
 		thisFile.write(content)
 		thisFile.close()
 	return True
+
 
 def readFileFromLocation(filePath="~/Desktop/test.txt"):
 	content = ""
@@ -23,6 +27,7 @@ def readFileFromLocation(filePath="~/Desktop/test.txt"):
 		thisFile.close()
 	return content
 
+
 class GlyphOrderManager(object):
 	prefID = "com.mekkablue.GlyphOrderManager"
 	prefDict = {
@@ -30,31 +35,31 @@ class GlyphOrderManager(object):
 		"glyphOrderText": "",
 		"scope": 0,
 	}
-	
-	def __init__( self ):
+
+	def __init__(self):
 		# Window 'self.w':
-		windowWidth  = 380
+		windowWidth = 380
 		windowHeight = 260
-		windowWidthResize  = 1000 # user can resize width by this value
-		windowHeightResize = 1000 # user can resize height by this value
+		windowWidthResize = 1000  # user can resize width by this value
+		windowHeightResize = 1000  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Glyph Order Manager", # window title
-			minSize = (windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize = (windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName = self.domain("mainwindow") # stores last window position and size
+			(windowWidth, windowHeight),  # default window size
+			"Glyph Order Manager",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
-		
+
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos+2, -inset, 14), "Content of glyphOrder parameter:", sizeStyle="small", selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Content of glyphOrder parameter:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
-		
+
 		self.w.glyphOrderText = vanilla.TextEditor((1, linePos, -1, -inset * 5), text="", callback=self.SavePreferences, checksSpelling=False)
 		self.w.glyphOrderText.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.glyphOrderText.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.glyphOrderText.getNSScrollView().setRulersVisible_(0)
-		
+
 		textView = self.w.glyphOrderText.getNSTextView()
 		try:
 			legibleFont = NSFont.controlContentFontOfSize_(NSFont.systemFontSize())
@@ -73,47 +78,47 @@ class GlyphOrderManager(object):
 		textSize = textView.minSize()
 		textSize.width = 1000
 		textView.setMinSize_(textSize)
-		
+
 		scopeOptions = (
 			"frontmost font only",
 			"⚠️ all open fonts",
 		)
-		self.w.scopeText = vanilla.TextBox((inset, -48-inset-2, 65, 18), "Apply to:", sizeStyle="regular", selectable=True)
-		self.w.scope = vanilla.PopUpButton((inset+65, -48-inset, -inset, 17), scopeOptions, sizeStyle="regular", callback=self.SavePreferences)
+		self.w.scopeText = vanilla.TextBox((inset, -48 - inset - 2, 65, 18), "Apply to:", sizeStyle="regular", selectable=True)
+		self.w.scope = vanilla.PopUpButton((inset + 65, -48 - inset, -inset, 17), scopeOptions, sizeStyle="regular", callback=self.SavePreferences)
 		linePos += lineHeight
-		
+
 		# Run Button:
-		self.w.extractButton = vanilla.Button((inset, -20-inset, 70, -inset), "Extract", sizeStyle='regular', callback=self.extractFromFrontmostFont)
-		self.w.cleanButton = vanilla.Button((inset+80, -20-inset, 70, -inset), "Clean", sizeStyle='regular', callback=self.cleanForScope)
-		self.w.addMissingButton = vanilla.Button((inset+160, -20-inset, 100, -inset), "Add Missing", sizeStyle='regular', callback=self.addMissingForScope)
-		
-		self.w.runButton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Apply", sizeStyle="regular", callback=self.GlyphOrderManagerMain)
+		self.w.extractButton = vanilla.Button((inset, -20 - inset, 70, -inset), "Extract", sizeStyle='regular', callback=self.extractFromFrontmostFont)
+		self.w.cleanButton = vanilla.Button((inset + 80, -20 - inset, 70, -inset), "Clean", sizeStyle='regular', callback=self.cleanForScope)
+		self.w.addMissingButton = vanilla.Button((inset + 160, -20 - inset, 100, -inset), "Add Missing", sizeStyle='regular', callback=self.addMissingForScope)
+
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Apply", sizeStyle="regular", callback=self.GlyphOrderManagerMain)
 		self.w.setDefaultButton(self.w.runButton)
-		
+
 		# Load Settings:
 		if not self.LoadPreferences():
 			print("⚠️ ‘Glyph Order Manager’ could not load preferences. Will resort to defaults.")
-		
+
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-	
+
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-	
+
 	def requestedFonts(self):
 		scope = int(self.pref("scope"))
 		if scope == 0 and Glyphs.fonts:
-			return (Glyphs.font,)
-		elif scope == 1: # all fonts
+			return (Glyphs.font, )
+		elif scope == 1:  # all fonts
 			return Glyphs.fonts
 		return None
-		
+
 	def extractFromFrontmostFont(self, sender=None):
 		font = Glyphs.font
 		if not font:
@@ -127,7 +132,7 @@ class GlyphOrderManager(object):
 				title="No glyphOrder",
 				message=f"The frontmost font, {font.familyName}, has no glyphOrder parameter.",
 				OKButton=None,
-				)
+			)
 
 	def cleanForScope(self, sender=None):
 		fonts = self.requestedFonts()
@@ -136,11 +141,11 @@ class GlyphOrderManager(object):
 			currentGlyphs = currentText.strip().splitlines()
 			relevantGlyphs = []
 			for currentGlyph in currentGlyphs:
-				if any([f.glyphs[currentGlyph] != None for f in fonts]):
+				if any([f.glyphs[currentGlyph] is not None for f in fonts]):
 					relevantGlyphs.append(currentGlyph)
 			Glyphs.defaults[self.domain("glyphOrderText")] = "\n".join(relevantGlyphs)
 			self.LoadPreferences()
-	
+
 	def addMissingForScope(self, sender=None):
 		fonts = self.requestedFonts()
 		if fonts:
@@ -148,7 +153,7 @@ class GlyphOrderManager(object):
 			glyphs = currentText.strip().splitlines()
 			for font in fonts:
 				for g in font.glyphs:
-					if not g.name in glyphs:
+					if g.name not in glyphs:
 						glyphs.append(g.name)
 			Glyphs.defaults[self.domain("glyphOrderText")] = "\n".join(glyphs)
 			self.LoadPreferences()
@@ -181,16 +186,16 @@ class GlyphOrderManager(object):
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
-			
+
 			# update settings to the latest user input:
 			if not self.SavePreferences():
 				print("⚠️ ‘Glyph Order Manager’ could not write preferences.")
-			
+
 			# read prefs:
 			glyphOrderText = self.pref("glyphOrderText")
 			glyphOrder = list([n.strip() for n in glyphOrderText.splitlines() if n.strip()])
-			
-			fonts = self.requestedFonts() # frontmost font
+
+			fonts = self.requestedFonts()  # frontmost font
 			if fonts is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -205,7 +210,7 @@ class GlyphOrderManager(object):
 					thisFont.disableUpdateInterface()
 					thisFont.customParameters["glyphOrder"] = glyphOrder
 					thisFont.enableUpdateInterface()
-					
+
 			print("\nDone.")
 
 		except Exception as e:
@@ -214,5 +219,6 @@ class GlyphOrderManager(object):
 			print(f"Glyph Order Manager Error: {e}")
 			import traceback
 			print(traceback.format_exc())
+
 
 GlyphOrderManager()

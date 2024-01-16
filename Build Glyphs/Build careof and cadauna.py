@@ -1,23 +1,26 @@
-#MenuTitle: Build cadauna and careof
+# MenuTitle: Build cadauna and careof
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Builds cadauna and careof from your c, u and fraction glyphs.
 """
 
-from Foundation import NSPoint, NSAffineTransform
+from Foundation import NSPoint, NSAffineTransform, NSAffineTransformStruct
 import math
+from GlyphsApp import Glyphs, GSGlyph, GSComponent
+
 distanceBetweenComponents = 80
 
-thisFont = Glyphs.font # frontmost font
+thisFont = Glyphs.font  # frontmost font
 newGlyphs = {
 	"cadauna": ("c", "u"),
 	"careof": ("c", "o")
-	}
+}
+
 
 def measureLayerAtHeightFromLeftOrRight(thisLayer, height, leftSide=True, transformStruct=None):
 	thisLayer = thisLayer.copyDecomposedLayer()
-	if transformStruct != None:
+	if transformStruct is not None:
 		thisLayer.applyTransform(transformStruct)
 	try:
 		leftX = thisLayer.bounds.origin.x
@@ -39,6 +42,7 @@ def measureLayerAtHeightFromLeftOrRight(thisLayer, height, leftSide=True, transf
 	except:
 		return None
 
+
 def minDistanceBetweenTwoLayers(comp1, comp2, interval=5.0, transformStruct1=None, transformStruct2=None):
 	if transformStruct1:
 		comp1 = comp1.copyDecomposedLayer()
@@ -54,13 +58,14 @@ def minDistanceBetweenTwoLayers(comp1, comp2, interval=5.0, transformStruct1=Non
 		height = bottomY + i * interval
 		left = measureLayerAtHeightFromLeftOrRight(comp1, height, leftSide=False, transformStruct=None)
 		right = measureLayerAtHeightFromLeftOrRight(comp2, height, leftSide=True, transformStruct=None)
-		try: # avoid gaps like in i or j
+		try:  # avoid gaps like in i or j
 			total = left + right
-			if minDist == None or minDist > total:
+			if minDist is None or minDist > total:
 				minDist = total
 		except:
 			pass
 	return minDist
+
 
 def placeComponentsAtDistance(thisLayer, comp1, comp2, interval=5.0, distance=10.0):
 	thisMaster = thisLayer.associatedFontMaster()
@@ -68,11 +73,12 @@ def placeComponentsAtDistance(thisLayer, comp1, comp2, interval=5.0, distance=10
 	original1 = comp1.component.layers[masterID]
 	original2 = comp2.component.layers[masterID]
 	minDist = minDistanceBetweenTwoLayers(original1, original2, interval=interval, transformStruct1=comp1.transformStruct(), transformStruct2=comp2.transformStruct())
-	if minDist != None:
+	if minDist is not None:
 		comp2shift = distance - minDist
 		addedSBs = original1.RSB + original2.LSB
 		comp2.x = comp1.bounds.origin.x + comp1.bounds.size.width + comp2shift - (comp2.bounds.origin.x - comp2.x)
-		#comp1.x + original1.width - addedSBs + comp2shift
+		# comp1.x + original1.width - addedSBs + comp2shift
+
 
 def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	"""
@@ -80,7 +86,7 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	Apply an NSAffineTransform t object like this:
 		Layer.transform_checkForSelection_doComponents_(t,False,True)
 	Access its transformation matrix like this:
-		tMatrix = t.transformStruct() # returns the 6-float tuple
+		tMatrix = t.transformStruct()  # returns the 6-float tuple
 	Apply the matrix tuple like this:
 		Layer.applyTransform(tMatrix)
 		Component.applyTransform(tMatrix)
@@ -105,11 +111,13 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 		myTransform.appendTransform_(skewTransform)
 	return myTransform
 
+
 def unsuffixed(name):
 	if "." in name:
 		return name[:name.find(".")]
 	else:
 		return name
+
 
 def getGlyphWithName(glyphName, thisFont):
 	thisGlyph = thisFont.glyphs[glyphName]
@@ -121,12 +129,14 @@ def getGlyphWithName(glyphName, thisFont):
 		newGlyph.updateGlyphInfo()
 		return newGlyph
 
+
 def getZeroGlyph(thisFont):
 	# find zero:
 	zeroGlyph = thisFont.glyphs["zero.dnom"]
 	if not zeroGlyph:
 		zeroGlyph = thisFont.glyphs["zero.subs"]
 	return zeroGlyph
+
 
 def process(thisGlyph):
 	parts = ["parenleft"] + unsuffixed(thisGlyph.name).split("_") + ["parenright"]
@@ -152,15 +162,16 @@ def process(thisGlyph):
 			if i > 0:
 				placeComponentsAtDistance(thisLayer, thisLayer.components[i - 1], comp, distance=distanceBetweenComponents)
 
-		#thisLayer.decomposeComponents()
+		# thisLayer.decomposeComponents()
 		maxWidth = max(thisLayer.bounds.size.width * 0.97, maxWidth)
 	return maxWidth
 
+
 def postprocess(thisGlyph, scale, shiftUp):
 	for thisLayer in thisGlyph.layers:
-		#thisLayer.decomposeComponents()
-		#for thisComp in thisLayer.components:
-		#	thisComp.makeDisableAlignment()
+		# thisLayer.decomposeComponents()
+		# for thisComp in thisLayer.components:
+		# 	thisComp.makeDisableAlignment()
 		scaleDown = transform(scale=scale).transformStruct()
 		thisLayer.applyTransform(scaleDown)
 		thisLayer.applyTransform(shiftUp)
@@ -172,7 +183,8 @@ def postprocess(thisGlyph, scale, shiftUp):
 			thisLayer.components[0].x -= parenShiftForLetters
 			thisLayer.components[2].x += parenShiftForLetters
 
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+
+thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 try:
 	for newGlyph in newGlyphs:
 		thisGlyph = getGlyphWithName(newGlyph, thisFont)
@@ -223,4 +235,4 @@ except Exception as e:
 	import traceback
 	print(traceback.format_exc())
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

@@ -1,9 +1,11 @@
-#MenuTitle: Interpolate two paths
+# MenuTitle: Interpolate two paths
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Select two paths and run this script, it will replace them with their interpolation at 50%.
 """
+
+from GlyphsApp import Glyphs, GSGlyph, GSLayer, GSPath, Message, distance
 
 Font = Glyphs.font
 
@@ -32,11 +34,11 @@ else:
 				[layerA, layerB], {
 					layerA.layerId: 0.5,
 					layerB.layerId: 0.5,
-					}, None, False, Font, None
-				)
+				}, None, False, Font, None
+			)
 			if len(tempLayer.shapes) == 1:
 				for i in range(len(Layer.shapes) - 1, -1, -1):
-					if Layer.shapes[i].selected and type(Layer.shapes[i]) == GSPath:
+					if Layer.shapes[i].selected and isinstance(Layer.shapes[i], GSPath):
 						del Layer.shapes[i]
 				Layer.shapes.append(tempLayer.paths[0].copy())
 			else:

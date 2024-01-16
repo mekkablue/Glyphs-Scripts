@@ -1,4 +1,4 @@
-#MenuTitle: New Tab with Glyphs in Alignment Zones
+# MenuTitle: New Tab with Glyphs in Alignment Zones
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 from collections import OrderedDict
@@ -6,8 +6,11 @@ __doc__ = """
 Opens a new tab and lists all glyphs that reach into alignment zones.
 """
 
+from GlyphsApp import Glyphs
+
+
 def glyphs2Solution(thisFont):
-	thisFontMaster = thisFont.selectedFontMaster # active master
+	thisFontMaster = thisFont.selectedFontMaster  # active master
 	bottomZones = sorted([z for z in thisFontMaster.alignmentZones if z.size < 0.0], key=lambda thisZone: -thisZone.position)
 	topZones = sorted([z for z in thisFontMaster.alignmentZones if z.size > 0.0], key=lambda thisZone: thisZone.position)
 	exportingGlyphs = [g for g in thisFont.glyphs if g.export]
@@ -37,8 +40,9 @@ def glyphs2Solution(thisFont):
 							tabText += "/%s" % thisGlyph.name
 	return tabText
 
+
 def glyphs3Solution(thisFont):
-	thisFontMaster = thisFont.selectedFontMaster # active master
+	thisFontMaster = thisFont.selectedFontMaster  # active master
 	exportingGlyphs = [g for g in thisFont.glyphs if g.export]
 	tabText = "Master: %s" % thisFontMaster.name
 
@@ -55,10 +59,8 @@ def glyphs3Solution(thisFont):
 				zoneType = "bottom"
 				if isTopZone:
 					zoneType = "top"
-				zoneDescription = ("\n\n%s %i+%i:\n" % (zoneType, thisZone.position, thisZone.size)).replace("+-",
-																												"/minus ").replace("-",
-																																	"/minus ").replace("bottom 0", "baseline 0")
-				if not zoneDescription in zoneData.keys():
+				zoneDescription = ("\n\n%s %i+%i:\n" % (zoneType, thisZone.position, thisZone.size)).replace("+-", "/minus ").replace("-", "/minus ").replace("bottom 0", "baseline 0")
+				if zoneDescription not in zoneData.keys():
 					zoneData[zoneDescription] = []
 
 				if thisLayer.bounds.size.height:
@@ -78,7 +80,8 @@ def glyphs3Solution(thisFont):
 
 	return tabText
 
-thisFont = Glyphs.font # frontmost font
+
+thisFont = Glyphs.font  # frontmost font
 if Glyphs.versionNumber >= 3:
 	# Glyphs 3 code
 	tabText = glyphs3Solution(thisFont)

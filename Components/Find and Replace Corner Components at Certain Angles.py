@@ -1,12 +1,15 @@
-#MenuTitle: Find and Replace Corner Components at Certain Angles
+# MenuTitle: Find and Replace Corner Components at Certain Angles
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Replace Corner Components at blunt or acute angles.
 """
 
-import vanilla, math
+import vanilla
+import math
 from Foundation import NSPoint
+from GlyphsApp import Glyphs, CORNER
+
 
 class ReplaceCornersAtCertainAngles(object):
 
@@ -14,16 +17,16 @@ class ReplaceCornersAtCertainAngles(object):
 		# Window 'self.w':
 		windowWidth = 250
 		windowHeight = 140
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Replace Corners At Certain Angles", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.ReplaceCornersAtCertainAngles.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Replace Corners At Certain Angles",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.ReplaceCornersAtCertainAngles.mainwindow"  # stores last window position and size
+		)
 
 		self.cornerList = self.getAllCorners()
 
@@ -61,12 +64,10 @@ class ReplaceCornersAtCertainAngles(object):
 
 	def LoadPreferences(self):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
-				{
-					"com.mekkablue.ReplaceCornersAtCertainAngles.largerOrSmaller": "0",
-					"com.mekkablue.ReplaceCornersAtCertainAngles.thresholdAngle": "90"
-					}
-				)
+			Glyphs.registerDefaults({
+				"com.mekkablue.ReplaceCornersAtCertainAngles.largerOrSmaller": "0",
+				"com.mekkablue.ReplaceCornersAtCertainAngles.thresholdAngle": "90"
+			})
 			self.w.largerOrSmaller.set(Glyphs.defaults["com.mekkablue.ReplaceCornersAtCertainAngles.largerOrSmaller"])
 			self.w.thresholdAngle.set(Glyphs.defaults["com.mekkablue.ReplaceCornersAtCertainAngles.thresholdAngle"])
 		except:
@@ -103,9 +104,9 @@ class ReplaceCornersAtCertainAngles(object):
 			smallerThan = bool(self.w.largerOrSmaller.get())
 			thresholdAngle = float(self.w.thresholdAngle.get())
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			masterIDs = [m.id for m in thisFont.masters]
-			selectedGlyphs = [l.parent for l in thisFont.selectedLayers]
+			selectedGlyphs = [layer.parent for layer in thisFont.selectedLayers]
 
 			for thisGlyph in selectedGlyphs:
 				for masterID in masterIDs:
@@ -130,5 +131,6 @@ class ReplaceCornersAtCertainAngles(object):
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Replace Corners At Certain Angles Error: %s" % e)
+
 
 ReplaceCornersAtCertainAngles()

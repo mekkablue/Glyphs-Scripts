@@ -1,11 +1,14 @@
-#MenuTitle: Find and Replace in Metrics Keys
+# MenuTitle: Find and Replace in Metrics Keys
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Finds and replaces text in the metrics keys of selected glyphs. Leave the Find string blank to hang the replace string at the end of the metrics keys.
 """
 
-import vanilla, traceback
+import vanilla
+import traceback
+from GlyphsApp import Glyphs
+
 
 class MetricKeyReplacer(object):
 
@@ -64,21 +67,21 @@ class MetricKeyReplacer(object):
 
 			Font = Glyphs.font
 			selectedLayers = Font.selectedLayers
-			currentLayers = [l for l in selectedLayers if l.parent.name is not None]
+			currentLayers = [layer for layer in selectedLayers if layer.parent.name is not None]
 
 			LsearchFor = self.w.leftSearchFor.get()
 			LreplaceBy = self.w.leftReplaceBy.get()
 			RsearchFor = self.w.rightSearchFor.get()
 			RreplaceBy = self.w.rightReplaceBy.get()
 
-			for l in currentLayers:
+			for layer in currentLayers:
 				try:
-					g = l.parent
-					# g.beginUndo() # undo grouping causes crashes
+					g = layer.parent
+					# g.beginUndo()  # undo grouping causes crashes
 
 					# Left Metrics Key:
 					try:
-						for glyphOrLayer in (g, l):
+						for glyphOrLayer in (g, layer):
 							leftKey = glyphOrLayer.leftMetricsKey
 							if leftKey:
 								if LsearchFor == "":
@@ -95,7 +98,7 @@ class MetricKeyReplacer(object):
 
 					# Right Metrics Key:
 					try:
-						for glyphOrLayer in (g, l):
+						for glyphOrLayer in (g, layer):
 							rightKey = glyphOrLayer.rightMetricsKey
 							if rightKey:
 								if LsearchFor == "":
@@ -110,14 +113,14 @@ class MetricKeyReplacer(object):
 						print(e)
 						print(traceback.format_exc())
 
-					# g.endUndo() # undo grouping causes crashes
+					# g.endUndo()  # undo grouping causes crashes
 
 				except Exception as e:
 					print("\nError while processing glyph %s" % g.name)
 					print(e)
 					print(traceback.format_exc())
 
-					# g.endUndo() # undo grouping causes crashes
+					# g.endUndo()  # undo grouping causes crashes
 
 			self.w.close()
 
@@ -131,6 +134,7 @@ class MetricKeyReplacer(object):
 
 		finally:
 			Glyphs.font.enableUpdateInterface()
+
 
 Glyphs.clearLog()
 MetricKeyReplacer()

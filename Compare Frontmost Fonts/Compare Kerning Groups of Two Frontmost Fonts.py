@@ -1,12 +1,14 @@
-#MenuTitle: Compare Kerning Groups
+# MenuTitle: Compare Kerning Groups
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Compares the kerning groups of exporting glyphs in the two frontmost fonts and outputs a report in the Macro Window.
 """
 
-thisFont = Glyphs.fonts[0] # frontmost font
-otherFont = Glyphs.fonts[1] # second font
+from GlyphsApp import Glyphs
+
+thisFont = Glyphs.fonts[0]  # frontmost font
+otherFont = Glyphs.fonts[1]  # second font
 
 thisGlyphSet = [g.name for g in thisFont.glyphs if g.export]
 commonGlyphSet = [g.name for g in otherFont.glyphs if g.export and g.name in thisGlyphSet]

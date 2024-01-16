@@ -1,4 +1,4 @@
-#MenuTitle: Insert exit and entry Anchors to Selected Positional Glyphs
+# MenuTitle: Insert exit and entry Anchors to Selected Positional Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,17 +6,20 @@ Adds exit and entry anchors to (Arabic) init, medi and fina glyphs, for cursive 
 """
 
 from Foundation import NSPoint
+from GlyphsApp import Glyphs, GSAnchor, GSPath, GSOFFCURVE
+
+
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
 
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
 
+
 def findOncurveAtRSB(thisLayer):
-	layerWidth = thisLayer.width
 
 	try:
-		paths = [p for p in thisLayer.shapes if type(p) == GSPath]
+		paths = [p for p in thisLayer.shapes if isinstance(p, GSPath)]
 	except:
 		paths = thisLayer.paths
 
@@ -25,7 +28,7 @@ def findOncurveAtRSB(thisLayer):
 		print(thisPath)
 		for thisNode in thisPath.nodes:
 			print(thisNode.x)
-			if thisNode.type != GSOFFCURVE and (rightMostPoint == None or rightMostPoint.x < thisNode.x):
+			if thisNode.type != GSOFFCURVE and (rightMostPoint is None or rightMostPoint.x < thisNode.x):
 				rightMostPoint = thisNode
 
 	if rightMostPoint:
@@ -33,6 +36,7 @@ def findOncurveAtRSB(thisLayer):
 	else:
 		print("%s: No potential entry point" % (thisLayer.parent.name))
 		return None
+
 
 def process(thisLayer):
 	listOfAnchorNames = [a.name for a in thisLayer.anchors]
@@ -50,10 +54,11 @@ def process(thisLayer):
 	if ".medi" in glyphName or ".fina" in glyphName:
 		if "entry" not in listOfAnchorNames:
 			myEntryPoint = findOncurveAtRSB(thisLayer)
-			if myEntryPoint != None:
+			if myEntryPoint is not None:
 				myEntry = GSAnchor("entry", NSPoint(myEntryPoint.x, myEntryPoint.y))
 				thisLayer.anchors.append(myEntry)
 				print("%s: entry" % glyphName)
+
 
 Font.disableUpdateInterface()
 try:

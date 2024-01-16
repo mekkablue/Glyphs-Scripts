@@ -1,4 +1,4 @@
-#MenuTitle: Kink Finder
+# MenuTitle: Kink Finder
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -8,11 +8,14 @@ Finds kinks in interpolation space, reports them in the Macro window and opens a
 import vanilla
 from Foundation import NSPoint
 from math import hypot
+from GlyphsApp import Glyphs, GSInstance, GSAnnotation, CIRCLE, GSSMOOTH, Message, subtractPoints
 tempMarker = "###DELETEME###"
 nodeMarker = "⛔️"
 
+
 def distanceBetweenPoints(node1, node2):
 	return hypot(node1.x - node2.x, node1.y - node2.y)
+
 
 def intersect(pointA, pointB, pointC, pointD):
 	"""
@@ -35,6 +38,7 @@ def intersect(pointA, pointB, pointC, pointD):
 
 	return NSPoint(x, y)
 
+
 def orthogonalDistance(pivot, A, B):
 	try:
 		x, y = subtractPoints(A, B)
@@ -45,6 +49,7 @@ def orthogonalDistance(pivot, A, B):
 		import traceback
 		print(traceback.format_exc())
 		return 0
+
 
 """
 g = Layer.parent
@@ -57,6 +62,7 @@ for i in range(0,105,5):
 	print i, orthogonalDistance(point.position, point.prevNode.position, point.nextNode.position)
 """
 
+
 class KinkFinder(object):
 	prefID = "com.mekkablue.KinkFinder"
 	instances = None
@@ -65,24 +71,19 @@ class KinkFinder(object):
 		# Window 'self.w':
 		windowWidth = 350
 		windowHeight = 265
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Kink Finder", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.KinkFinder.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Kink Finder",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.KinkFinder.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, 30),
-			"Find glyphs where kinks between triplets appear in interpolation, and the kink exceeds the given threshold size.",
-			sizeStyle='small',
-			selectable=True
-			)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 30), "Find glyphs where kinks between triplets appear in interpolation, and the kink exceeds the given threshold size.", sizeStyle='small', selectable=True)
 		linePos += lineHeight * 2
 
 		self.w.text_1 = vanilla.TextBox((inset, linePos, 145, 14), "Acceptable max kink size:", sizeStyle='small')
@@ -96,16 +97,14 @@ class KinkFinder(object):
 			"in all current active instances",
 			"in all current active and inactive instances",
 			"in masters instead (not in interpolations)",
-			)
+		)
 		self.w.findKinksWhereText = vanilla.TextBox((inset, linePos + 2, 60, 14), "Find kinks", sizeStyle='small', selectable=True)
 		self.w.findKinksWhere = vanilla.PopUpButton((inset + 60, linePos, -inset, 17), self.findKinksWhereOptions, sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
 		# self.w.betweenAdjacentMastersOnly.getNSButton().setToolTip_("If checked, will look for kinks between masters 0+1, 1+2, 1+3, but NOT between 0+2, 1+3 or 0+3. Makes sense if you have only one axis (e.g. weight) and more than two masters in interpolation order (lightest through boldest).")
 
-		self.w.allGlyphs = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Process all glyphs in font (ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.allGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Process all glyphs in font (ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.allGlyphs.getNSButton().setToolTip_("If unchecked, will only process the current glyph(s).")
 		linePos += lineHeight
 
@@ -114,27 +113,18 @@ class KinkFinder(object):
 		linePos += lineHeight
 
 		self.w.markKinks = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Mark kinky nodes in first layer", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.markKinks.getNSButton().setToolTip_(
-			"If checked, will mark affected nodes with a warning emoji and the maximum kink distance. Will mark the corresponding node in the first layer if it finds a kink in an instance. Will use an annotation if the node cannot be found (e.g. if the kink happens in a corner component)."
-			)
+		self.w.markKinks.getNSButton().setToolTip_("If checked, will mark affected nodes with a warning emoji and the maximum kink distance. Will mark the corresponding node in the first layer if it finds a kink in an instance. Will use an annotation if the node cannot be found (e.g. if the kink happens in a corner component).")
 		linePos += lineHeight
 
-		self.w.reportIncompatibilities = vanilla.CheckBox(
-			(inset, linePos - 1, 180, 20), "Also report incompatibilities", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.reportIncompatibilities.getNSButton(
-		).setToolTip_("If checked, will warn about incompatibilities. Usually you want this off, especially when you have bracket layers.")
+		self.w.reportIncompatibilities = vanilla.CheckBox((inset, linePos - 1, 180, 20), "Also report incompatibilities", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportIncompatibilities.getNSButton().setToolTip_("If checked, will warn about incompatibilities. Usually you want this off, especially when you have bracket layers.")
 
-		self.w.bringMacroWindowToFront = vanilla.CheckBox(
-			(inset + 180, linePos - 1, -inset, 20), "Macro Window to front", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.bringMacroWindowToFront.getNSButton().setToolTip_(
-			"A detailed report is written to the Macro Window. Activate this check box, and the Macro Window will be brought to the front ever time you run this script."
-			)
+		self.w.bringMacroWindowToFront = vanilla.CheckBox((inset + 180, linePos - 1, -inset, 20), "Macro Window to front", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.bringMacroWindowToFront.getNSButton().setToolTip_("A detailed report is written to the Macro Window. Activate this check box, and the Macro Window will be brought to the front ever time you run this script.")
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
-		self.w.progress.set(0) # set progress indicator to zero
+		self.w.progress.set(0)  # set progress indicator to zero
 		linePos += lineHeight
 
 		# Run Button:
@@ -218,7 +208,7 @@ class KinkFinder(object):
 		return True
 
 	def kinkSizeForNode(self, kinkNode):
-		#print "node nr.", kinkNode.index, "pos:", kinkNode.position, "handles:", kinkNode.prevNode.type, kinkNode.nextNode.type
+		# print "node nr.", kinkNode.index, "pos:", kinkNode.position, "handles:", kinkNode.prevNode.type, kinkNode.nextNode.type
 		return orthogonalDistance(kinkNode.position, kinkNode.prevNode.position, kinkNode.nextNode.position)
 
 	def glyphInterpolation(self, thisGlyphName, thisInstance):
@@ -247,7 +237,7 @@ class KinkFinder(object):
 
 	def buildInstance(self, name, interpolationDict, font):
 		instance = GSInstance()
-		if Glyphs.buildNumber>3198:
+		if Glyphs.buildNumber > 3198:
 			instance.exports = False
 		else:
 			instance.active = False
@@ -268,7 +258,7 @@ class KinkFinder(object):
 		findKinksWhere = self.pref("findKinksWhere")
 		if findKinksWhere in (2, 3):
 			for i, thisInstance in enumerate(thisFont.instances):
-				if Glyphs.buildNumber>3198:
+				if Glyphs.buildNumber > 3198:
 					instanceIsExporting = thisInstance.exports
 				else:
 					instanceIsExporting = thisInstance.active
@@ -281,10 +271,10 @@ class KinkFinder(object):
 			for i, m in enumerate(thisFont.masters):
 				interpolationDict = {
 					m.id: 1.0
-					}
+				}
 				instanceName = "%03i-%s" % (i, tempMarker)
 				testInstance = self.buildInstance(instanceName, interpolationDict, thisFont)
-				if Glyphs.versionNumber >= 3: # GLYPHS 3
+				if Glyphs.versionNumber >= 3:  # GLYPHS 3
 					testInstance.axes = m.axes
 				self.instances.append(testInstance)
 		else:
@@ -299,7 +289,7 @@ class KinkFinder(object):
 						interpolationDict = {
 							master1.id: 0.5,
 							master2.id: 0.5
-							}
+						}
 						instanceName = "%i-%i-%s" % (i, j, tempMarker)
 						testInstance = self.buildInstance(instanceName, interpolationDict, thisFont)
 
@@ -323,7 +313,7 @@ class KinkFinder(object):
 				print("  %s: %.3f" % (
 					thisFont.masters[key].name,
 					i.instanceInterpolations[key],
-					))
+				))
 		print()
 
 	def cleanNodeNamesInGlyph(self, glyph, nodeMarker):
@@ -382,7 +372,7 @@ class KinkFinder(object):
 			if self.pref("allGlyphs"):
 				glyphsToProbe = thisFont.glyphs
 			else:
-				glyphsToProbe = [l.parent for l in thisFont.selectedLayers]
+				glyphsToProbe = [layer.parent for layer in thisFont.selectedLayers]
 
 			# prepare instances:
 			findKinksInMastersInstead = self.pref("findKinksWhere") == 4
@@ -392,7 +382,7 @@ class KinkFinder(object):
 				# instance for first layer:
 				firstInstanceInterpolationDict = {
 					thisFont.masters[0].id: 1.0
-					}
+				}
 				firstInstanceName = "First Master-%s" % tempMarker
 				firstInstance = self.buildInstance(firstInstanceName, firstInstanceInterpolationDict, thisFont)
 			else:
@@ -421,19 +411,19 @@ class KinkFinder(object):
 							if kinkLayer.associatedMasterId == kinkLayer.layerId or kinkLayer.isSpecialLayer:
 								for pathIndex, kinkPath in enumerate(kinkLayer.paths):
 									if not kinkPath:
-										print("❌ Could not determine same path in glyph %s, master %s." % (thisGlyph.name, thisMaster.name))
+										print("❌ Could not determine same path in glyph %s, master %s." % (thisGlyph.name, kinkLayer.name))
 									else:
 										for nodeIndex, kinkNode in enumerate(kinkPath.nodes):
 											if kinkNode.connection == GSSMOOTH:
 												thisKink = self.kinkSizeForNode(kinkNode)
 												if thisKink > maxKink:
-													if not kinkLayer in kinkyLayers:
+													if kinkLayer not in kinkyLayers:
 														kinkyLayers.append(kinkLayer)
 													# kinkyGlyphNames.append(thisGlyph.name)
 													print(
 														"%s Kink in %s on layer '%s', path %i, node %i: %.1f units" %
 														(nodeMarker, thisGlyph.name, kinkLayer.name, pathIndex, nodeIndex, thisKink)
-														)
+													)
 													if self.pref("markKinks"):
 														kinkNode.name = "%.1f %s" % (thisKink, nodeMarker)
 
@@ -459,13 +449,13 @@ class KinkFinder(object):
 														print(
 															"⚠️ ERROR: Could not calculate interpolation for: %s (%s)" %
 															(thisGlyph.name, thisInstance.name.replace(tempMarker, ""))
-															)
+														)
 												elif not thisGlyph.mastersCompatibleForLayers_((firstLayer, kinkLayer)):
 													if self.pref("reportIncompatibilities"):
 														print(
 															"⚠️ interpolation incompatible for glyph %s: %s (most likely cause: cap or corner components, bracket layers)" %
 															(thisGlyph.name, thisInstance.name.replace(tempMarker, ""))
-															)
+														)
 														print(firstLayer, firstLayer.shapes, firstLayer.anchors)
 														print(kinkLayer, kinkLayer.shapes, kinkLayer.anchors)
 												else:
@@ -477,10 +467,10 @@ class KinkFinder(object):
 														kinkyGlyphNames.append(thisGlyph.name)
 														print(
 															"%s Kink in %s between masters %s, path %i, node %i: %.1f units (%.1f, %.1f)" % (
-																nodeMarker, thisGlyph.name, " and ".join(thisInstance.name.split("-")[:2]
-																											), pathIndex, nodeIndex, thisKink, thisNode.x, thisNode.y
-																)
+																nodeMarker, thisGlyph.name, " and ".join(thisInstance.name.split("-")[:2]),
+																pathIndex, nodeIndex, thisKink, thisNode.x, thisNode.y
 															)
+														)
 
 														if self.pref("markKinks"):
 															if thisKink > thisNodeMaxKink:
@@ -513,9 +503,9 @@ class KinkFinder(object):
 						maxKink,
 						"master layers" if findKinksInMastersInstead else "interpolations",
 						thisFont.familyName,
-						),
+					),
 					OKButton="🥂 Cheers!",
-					)
+				)
 
 		except Exception as e:
 			# brings macro window to front and reports error:
@@ -523,5 +513,6 @@ class KinkFinder(object):
 			print("Kink Finder Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 KinkFinder()

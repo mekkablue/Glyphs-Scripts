@@ -1,9 +1,12 @@
-#MenuTitle: Build space glyphs
+# MenuTitle: Build space glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Creates mediumspace-math, emquad, emspace, enquad, enspace, figurespace, fourperemspace, hairspace, narrownbspace, punctuationspace, sixperemspace, nbspace, thinspace, threeperemspace, zerowidthspace.
 """
+
+from GlyphsApp import Glyphs, GSGlyph
+
 
 def tabfigure(font):
 	fallbacks = ("zero.tf", "zero.tosf", "zero.tab", "zero.tnum")
@@ -11,6 +14,7 @@ def tabfigure(font):
 		if font.glyphs[referenceFigure]:
 			return referenceFigure
 	return "zero"
+
 
 def createSpaceGlyph(thisFont, glyphName, widthKey):
 	created = 0
@@ -26,7 +30,7 @@ def createSpaceGlyph(thisFont, glyphName, widthKey):
 		thisFont.glyphs.append(space)
 		created = 1
 
-	# space.beginUndo() # undo grouping causes crashes
+	# space.beginUndo()  # undo grouping causes crashes
 
 	print(u"✅ setting width metrics key: %s" % widthKey)
 	space.widthMetricsKey = widthKey
@@ -51,8 +55,9 @@ def createSpaceGlyph(thisFont, glyphName, widthKey):
 			print(u"✅ Setting Unicode value %s glyph %s" % (newUnicode, glyphName))
 			space.unicode = newUnicode
 
-	# space.endUndo() # undo grouping causes crashes
+	# space.endUndo()  # undo grouping causes crashes
 	return created
+
 
 # frontmost font:
 thisFont = Glyphs.font
@@ -67,25 +72,25 @@ print()
 
 # space dict:
 spaces = {
-	"mediumspace-math": "=%i" % (thisFont.upm * 4 / 18), # "MMSP": four-eighteenths of an em
-	"emquad": "=%i" % thisFont.upm, # same as emspace
-	"emspace": "=%i" % thisFont.upm, # "mutton": nominally, a space equal to the type size in points, may scale by the condensation factor of a font
-	"enquad": "=%i" % (thisFont.upm // 2), # same as enspace
-	"enspace": "=%i" % (thisFont.upm // 2), # "nut": half an em
-	"figurespace": "=%s" % tabfigure(thisFont), # space equal to tabular width of a font, this is equivalent to the digit width of fonts with fixed-width digits
-	"threeperemspace": "=%s" % (thisFont.upm // 3), # thick space
-	"fourperemspace": "=%s" % (thisFont.upm // 4), # mid space
-	"sixperemspace": "=%s" % (thisFont.upm // 6), # in computer typography sometimes equated to thin space
-	"narrownbspace": "=space*0.2", # "NNBSP": a narrow form of a no-break space, typically the width of a thin space or a mid space
-	"punctuationspace": "=period", # space equal to narrow punctuation of a font
-	"nbspace": "=space", # commonly abbreviated as NBSP
-	"thinspace": "=%i" % (thisFont.upm * 0.125), # a fifth of an em (or sometimes a sixth), InD: an eighth
-	"hairspace": "=%i" % (thisFont.upm * 0.07), # thinner than a thin space; in traditional typography, the thinnest space available
+	"mediumspace-math": "=%i" % (thisFont.upm * 4 / 18),  # "MMSP": four-eighteenths of an em
+	"emquad": "=%i" % thisFont.upm,  # same as emspace
+	"emspace": "=%i" % thisFont.upm,  # "mutton": nominally, a space equal to the type size in points, may scale by the condensation factor of a font
+	"enquad": "=%i" % (thisFont.upm // 2),  # same as enspace
+	"enspace": "=%i" % (thisFont.upm // 2),  # "nut": half an em
+	"figurespace": "=%s" % tabfigure(thisFont),  # space equal to tabular width of a font, this is equivalent to the digit width of fonts with fixed-width digits
+	"threeperemspace": "=%s" % (thisFont.upm // 3),  # thick space
+	"fourperemspace": "=%s" % (thisFont.upm // 4),  # mid space
+	"sixperemspace": "=%s" % (thisFont.upm // 6),  # in computer typography sometimes equated to thin space
+	"narrownbspace": "=space*0.2",  # "NNBSP": a narrow form of a no-break space, typically the width of a thin space or a mid space
+	"punctuationspace": "=period",  # space equal to narrow punctuation of a font
+	"nbspace": "=space",  # commonly abbreviated as NBSP
+	"thinspace": "=%i" % (thisFont.upm * 0.125),  # a fifth of an em (or sometimes a sixth), InD: an eighth
+	"hairspace": "=%i" % (thisFont.upm * 0.07),  # thinner than a thin space; in traditional typography, the thinnest space available
 	"zerowidthspace":
-	"=0", # "ZWSP": this character is intended for invisible word separation and for line break control; it has no width, but its presence between two characters does not prevent increased letter spacing in justification
-	}
+	"=0",  # "ZWSP": this character is intended for invisible word separation and for line break control; it has no width, but its presence between two characters does not prevent increased letter spacing in justification
+}
 
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View, speeds things up a little
+thisFont.disableUpdateInterface()  # suppresses UI updates in Font View, speeds things up a little
 try:
 	# build spaces:
 	createdSpaces = 0
@@ -102,7 +107,7 @@ except Exception as e:
 	print()
 	raise e
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
 
 reportMessage = "%i of %i space glyphs added" % (createdSpaces, len(spaces))
 print("Done. %s." % reportMessage)
@@ -110,4 +115,4 @@ print("Done. %s." % reportMessage)
 Glyphs.showNotification(
 	u"%s: space glyphs built" % (thisFont.familyName),
 	u"%s, %i were already in the font. Detailed report in Macro Window." % (reportMessage, (len(spaces) - createdSpaces)),
-	)
+)

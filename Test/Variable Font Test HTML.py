@@ -1,14 +1,15 @@
-#MenuTitle: Variable Font Test HTML
+# MenuTitle: Variable Font Test HTML
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Create a Test HTML for the current font inside the current Variation Font Export folder. Hold down OPTION and SHIFT while running the script in order to create respective Samsa files in addition to the Test HTML.
 """
 
-from GlyphsApp import *
 from os import system
 from AppKit import NSClassFromString, NSBundle, NSEvent
 import codecs
+from GlyphsApp import Glyphs, Message
+
 
 def langMenu(thisFont, indent=4):
 	otTag2Lang = {
@@ -199,7 +200,7 @@ def langMenu(thisFont, indent=4):
 		'ZHS': ('zh', 'Chinese Simplified'),
 		'ZHT': ('zh', 'Chinese Traditional'),
 		'ZUL': ('zu', 'Zulu'),
-		}
+	}
 	htmlCode = ""
 	findWord = "language"
 	for thisFeatureCollection in (thisFont.features, thisFont.featurePrefixes):
@@ -215,7 +216,7 @@ def langMenu(thisFont, indent=4):
 								isoTag = otTag2Lang[otTag][0]
 								naturalName = otTag2Lang[otTag][1]
 								newLine = f"\t<option value='{isoTag}'>{naturalName} ({otTag}, {isoTag})</option>\n"
-								if not newLine in htmlCode: # avoid duplicates
+								if newLine not in htmlCode:  # avoid duplicates
 									htmlCode += newLine
 						except:
 							pass
@@ -229,14 +230,16 @@ def langMenu(thisFont, indent=4):
 	else:
 		return htmlCode
 
+
 def saveFileInLocation(content="", fileName="test.txt", filePath="~/Desktop"):
 	saveFileLocation = f"{filePath}/{fileName}"
-	saveFileLocation = saveFileLocation.replace( "//", "/" )
+	saveFileLocation = saveFileLocation.replace("//", "/")
 	with codecs.open(saveFileLocation, "w", "utf-8-sig") as thisFile:
 		print(f"Exporting to: {thisFile.name}")
 		thisFile.write(content)
 		thisFile.close()
 	return True
+
 
 def currentOTVarExportPath():
 	exportPath = Glyphs.defaults["GXExportPathManual"]
@@ -248,11 +251,13 @@ def currentOTVarExportPath():
 		exportPath = Glyphs.defaults["GXExportPath"]
 	return exportPath
 
+
 def otVarFamilyName(thisFont):
 	if thisFont.customParameters["Variable Font Family Name"]:
 		return thisFont.customParameters["Variable Font Family Name"]
 	else:
 		return thisFont.familyName
+
 
 def otVarFullName(thisFont):
 	familyName = otVarFamilyName(thisFont)
@@ -265,6 +270,7 @@ def otVarFullName(thisFont):
 	else:
 		return familyName
 
+
 def otVarSuffix():
 	suffix = "ttf"
 	for webSuffix in ("woff", "woff2"):
@@ -273,9 +279,10 @@ def otVarSuffix():
 			suffix = webSuffix
 	return suffix
 
+
 def otVarFileName(thisFont, thisInstance=None):
 	suffix = otVarSuffix()
-	if not thisInstance is None:
+	if thisInstance is not None:
 		fileName = thisInstance.fileName()
 		# circumvent bug in Glyphs 3.0.5
 		if fileName.endswith(".otf"):
@@ -299,6 +306,7 @@ def otVarFileName(thisFont, thisInstance=None):
 			fileName = f"{familyName}GX.{suffix}"
 		return fileName.replace(" ", "")
 
+
 def replaceSet(text, setOfReplacements):
 	for thisReplacement in setOfReplacements:
 		searchFor = thisReplacement[0]
@@ -306,6 +314,7 @@ def replaceSet(text, setOfReplacements):
 		if searchFor != replaceWith:
 			text = text.replace(searchFor, replaceWith)
 	return text
+
 
 def generateAxisDict(thisFont):
 	# see if there are Axis Location parameters in use:
@@ -323,6 +332,7 @@ def generateAxisDict(thisFont):
 	else:
 		return axisDictForFontWithoutAxisLocationParameters(thisFont)
 
+
 def axisDictWithVirtualMastersForFont(thisFont, axisDict):
 	# go through *all* virtual masters:
 	virtualMasters = [cp for cp in thisFont.customParameters if cp.name == "Virtual Master" and cp.active]
@@ -330,17 +340,18 @@ def axisDictWithVirtualMastersForFont(thisFont, axisDict):
 		for axis in virtualMaster.value:
 			name = axis["Axis"]
 			location = int(axis["Location"])
-			if not name in axisDict.keys():
+			if name not in axisDict.keys():
 				axisDict[name] = {
 					"min": location,
 					"max": location
-					}
+				}
 				continue
 			if location < axisDict[name]["min"]:
 				axisDict[name]["min"] = location
 			if location > axisDict[name]["max"]:
 				axisDict[name]["max"] = location
 	return axisDict
+
 
 def axisDictForFontWithoutAxisLocationParameters(thisFont):
 	sliderValues = {}
@@ -358,19 +369,19 @@ def axisDictForFontWithoutAxisLocationParameters(thisFont):
 		except:
 			# Glyphs 3:
 			axisName, axisTag = axis.name, axis.axisTag
-		
+
 		if axisName in axisDict.keys():
 			axisDict[axisName] = {
 				"tag": axisTag,
 				"min": min(sliderValues[0][i], axisDict[axisName]["min"]),
 				"max": max(sliderValues[0][i], axisDict[axisName]["max"]),
-				}
+			}
 		else:
 			axisDict[axisName] = {
 				"tag": axisTag,
 				"min": sliderValues[0][i],
 				"max": sliderValues[0][i]
-				}
+			}
 
 		for j, thisMaster in enumerate(thisFont.masters):
 			masterValue = sliderValues[j][i]
@@ -381,21 +392,22 @@ def axisDictForFontWithoutAxisLocationParameters(thisFont):
 
 	return axisDict
 
+
 def axisDictForFontWithAxisLocationParameters(thisFont):
 	masters = thisFont.masters
 	if thisFont.importedFontMasters():
 		masters.extend(thisFont.importedFontMasters())
-	
+
 	axisDict = axisDictWithVirtualMastersForFont(thisFont, {})
 	for m in masters:
 		for axisLocation in m.customParameters["Axis Location"]:
 			axisName = axisLocation["Axis"]
 			axisPos = float(axisLocation["Location"])
-			if not axisName in axisDict:
+			if axisName not in axisDict:
 				axisDict[axisName] = {
 					"min": axisPos,
 					"max": axisPos
-					}
+				}
 			else:
 				if axisPos < axisDict[axisName]["min"]:
 					axisDict[axisName]["min"] = axisPos
@@ -417,13 +429,15 @@ def axisDictForFontWithAxisLocationParameters(thisFont):
 
 	return axisDict
 
+
 def allUnicodeEscapesOfFont(thisFont):
 	allUnicodes = [f"&#x{g.unicode};" for g in thisFont.glyphs if g.unicode and g.export]
 	return " ".join(allUnicodes)
 
+
 def featureListForFont(thisFont):
 	returnString = ""
-	featureList = [(f.name, f.notes) for f in thisFont.features if not f.name in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig", "rlig") and not f.disabled()]
+	featureList = [(f.name, f.notes) for f in thisFont.features if f.name not in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig", "rlig") and not f.disabled()]
 	for (f, n) in featureList:
 		# <input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
 		if f.startswith("ss") and n and n.startswith("Name:"):
@@ -431,19 +445,20 @@ def featureListForFont(thisFont):
 			setName = n.splitlines()[0][5:].strip()
 			featureItem = '\t\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s<span class="tooltip">%s</span></label>\n' % (
 				f, f, f, f, f, setName
-				)
+			)
 		else:
 			# non-ssXX features
 			featureItem = '\t\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s</label>\n' % (
 				f, f, f, f, f
-				)
-		if not featureItem in returnString:
+			)
+		if featureItem not in returnString:
 			returnString += featureItem
 	return returnString.rstrip()
 
+
 def allOTVarSliders(thisFont, variableFontSetting=None):
 	axisDict = generateAxisDict(thisFont)
-	
+
 	minValues, maxValues = {}, {}
 	for axis in axisDict.keys():
 		tag = axisDict[axis]["tag"]
@@ -466,9 +481,10 @@ def allOTVarSliders(thisFont, variableFontSetting=None):
 
 		html += "\t\t\t<div class='labeldiv'><label class='sliderlabel' id='label_%s' name='%s'>%s</label><input type='range' min='%i' max='%i' value='%i' class='slider' id='%s' oninput='updateSlider();'></div>\n" % (
 			axisTag, axisName, axisName, minValue, maxValue, startValue, axisTag
-			)
+		)
 
 	return html
+
 
 def originValueForAxisName(axisName, thisFont, minValue, maxValue, variableFontSetting=None):
 	originMaster = None
@@ -490,13 +506,14 @@ def originValueForAxisName(axisName, thisFont, minValue, maxValue, variableFontS
 
 	return minValue
 
+
 def warningMessage():
 	Message(
 		title="Out of Date Warning",
-		message=
-		"It appears that you are not running the latest version of Glyphs. Please enable Cutting Edge Versions and Automatic Version Checks in Settings > Updates, and update to the latest beta.",
+		message="It appears that you are not running the latest version of Glyphs. Please enable Cutting Edge Versions and Automatic Version Checks in Settings > Updates, and update to the latest beta.",
 		OKButton=None
-		)
+	)
+
 
 def axisValuesForMaster(thisMaster):
 	try:
@@ -524,7 +541,7 @@ def axisValuesForMaster(thisMaster):
 				thisMaster.customValue1(),
 				thisMaster.customValue2(),
 				thisMaster.customValue3(),
-				)
+			)
 			warningMessage()
 		except:
 			axisValues = (
@@ -534,8 +551,9 @@ def axisValuesForMaster(thisMaster):
 				thisMaster.customValue1,
 				thisMaster.customValue2,
 				thisMaster.customValue3,
-				)
+			)
 	return axisValues
+
 
 def defaultVariationCSS(thisFont):
 	firstMaster = thisFont.masters[0]
@@ -555,6 +573,7 @@ def defaultVariationCSS(thisFont):
 
 	return ", ".join(defaultValues)
 
+
 def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa=False, defaultSize=None):
 	samsaPlaceholder = "<!-- placeholder for external links, hold down OPTION and SHIFT while running the script -->"
 	htmlContent = """<html>
@@ -565,7 +584,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 	<head>
 		<title>OTVar Test: ###fontFamilyNameWithSpaces###</title>
 		<style id="font-declaration">
-			@font-face { 
+			@font-face {
 				font-family: "###fontFamilyName###";
 				src: url("###fontFileName###");
 			}
@@ -593,7 +612,6 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				-moz-user-select: none;
 				-webkit-user-select: none;
 			}
-		
 
 /* OTVar Sliders: */
 			.labeldiv {
@@ -602,7 +620,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				margin: auto;
 				display: inline-block;
 			}
- 			label {
+			label {
 				z-index: 2;
 				position: absolute;
 				pointer-events: none;
@@ -635,7 +653,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				appearance: none;
 				width: 16px;
 				height: 2em;
-				border-radius: 5px; 
+				border-radius: 5px;
 				background: #777;
 				cursor: auto;
 			}
@@ -672,7 +690,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				text-align: center;
 				z-index: 6;
 			}
- 			select {
+			select {
 				position: relative;
 				margin: 0.25em 0.15em;
 				height: 2.1em;
@@ -683,10 +701,10 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				visibility: collapse;
 				margin: 0 -1em 0 0;
 			}
-			input[type=checkbox]:checked + label { 
+			input[type=checkbox]:checked + label {
 				visibility: visible;
 				color: #eee;
-				background-color: #555; 
+				background-color: #555;
 				position: relative;
 			}
 			.otFeatureLabel .tooltip {
@@ -731,7 +749,6 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 			div:focus {
 				outline: 0px solid transparent;
 			}
-		
 /* Footer paragraph: */
 			#helptext {
 				position: fixed;
@@ -744,25 +761,23 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 			a {
 				color: #333;
 			}
-		
 /* Dark Mode: */
 			@media (prefers-color-scheme: dark) {
 				body { background: #000; }
 				p { color: #eee; }
-			
 				#textInput{
 					color: #eee;
 					background-color: #222;
 					background: #222;
 				}
-	 			label { color: #fff; }
+				label { color: #fff; }
 				.otFeatureLabel {
 					color: #999;
 					background-color: #333;
 				}
-				input[type=checkbox]:checked + label { 
+				input[type=checkbox]:checked + label {
 					color: #111;
-					background-color: #888; 
+					background-color: #888;
 				}
 
 				.slider { background: #333; }
@@ -781,20 +796,20 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 					-webkit-text-fill-color: #0000;
 				}
 			}
-		
+
 		</style>
 		<script>
 			document.addEventListener('keyup', keyAnalysis);
 			document.addEventListener('keyup', sliderPrecision);
 			document.addEventListener('keydown', sliderPrecision);
-		
+
 			const sliders = document.getElementsByClassName('slider');
-		
+
 			function sliderPrecision(event) {
 				if (event.shiftKey) {
 					for (i = 0; i < sliders.length; i++) {
 						sliders[i].step = 0.005;
-					} 
+					}
 				} else {
 					for (i = 0; i < sliders.length; i++) {
 						if (sliders[i].id == "ital") {
@@ -810,7 +825,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				const lineheightSlider = document.getElementById("lineheight");
 				const styleMenu = document.getElementById("styleMenu");
 				const styleMenuLength = styleMenu.options.length;
-				
+
 				if (event.ctrlKey) {
 					if (event.code == 'KeyR') {
 						resetParagraph();
@@ -871,7 +886,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				var checkboxes = document.getElementsByClassName("otFeature")
 				for (i = 0; i < checkboxes.length; i++) {
 					var checkbox = checkboxes[i];
-					if (i!=0) { codeLine += ", " };
+					if (i != 0) { codeLine += ", " };
 					codeLine += '"'+checkbox.name+'" ';
 					codeLine += checkbox.checked ? '1' : '0';
 					if (checkbox.name=="kern") {
@@ -910,9 +925,9 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 					var sliderValue = sliders[i].value;
 					var label = document.getElementById("label_"+sliderID);
 					var labelName = label.getAttribute("name");
-				
+
 					label.textContent = ""+labelName+": "+sliderValue;
-				
+
 					if (sliderID == "fontsize") {
 						// Text Size Slider
 						body.style.setProperty("font-size", ""+sliderValue+"px");
@@ -978,7 +993,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				var newFontStyleSheet = document.createElement("style");
 				newFontStyleSheet.id = styleId;
 				newFontStyleSheet.textContent = `
-				@font-face { 
+				@font-face {
 					font-family: "###fontFamilyName###";
 					src: url("###fontFileNameWithoutSuffix###.${suffix}");
 				}`;
@@ -1037,12 +1052,12 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 ###languageSelection###
 			</div>
 		</div>
-	
+
 		<!-- Test Text -->
 		<div contenteditable="true" spellcheck="false" autocomplete="true" id="textarea" class="●">
 		</div>
 	</div>
-	
+
 	<!-- Disclaimer -->
 	<p id="helptext" onmouseleave="vanish(this);">
 		<strong>Ctrl-period/comma</strong> step through styles <strong>Ctrl-R</strong> reset charset <strong>Ctrl-L</strong> Lat-1 <strong>Ctrl-J</strong> LTR/RTL <strong>Ctrl-C</strong> center <strong>Ctrl-M</strong> toggle menu <strong>Ctrl-X</strong> x-ray <strong>Ctrl +/−</strong> size <strong>Ctrl-1/2</strong> linegap <strong>Shift</strong> high slider precision <em>Not working? Try newer macOS or <a href="https://www.google.com/chrome/">latest Chrome</a>. Hover mouse above this note to make it disappear.</em>
@@ -1061,12 +1076,12 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 		"ttf": "TT",
 		"woff": "W1",
 		"woff2": "W2",
-		}
+	}
 	fileTypeAbbreviation = typeAppreviations[fileName.split(".")[-1]]
-	
+
 	if not defaultSize:
 		defaultSize = "40"
-		textLength = len(unicodeEscapes)/7
+		textLength = len(unicodeEscapes) / 7
 		if textLength < 10:
 			defaultSize = "400"
 		elif textLength < 30:
@@ -1077,7 +1092,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 			defaultSize = "200"
 		elif textLength < 200:
 			defaultSize = "100"
-	
+
 	replacements = (
 		("###fontFamilyNameWithSpaces###", fullName),
 		("###fontFamilyName###", fullName),
@@ -1092,9 +1107,10 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 		("###languageSelection###", fontLangMenu),
 		(samsaPlaceholder, samsaReplaceWith),
 		("###defaultSize###", defaultSize)
-		)
+	)
 	htmlContent = replaceSet(htmlContent, replacements)
 	return htmlContent
+
 
 def originMasterOfFont(thisFont):
 	originMaster = thisFont.masters[0]
@@ -1103,6 +1119,7 @@ def originMasterOfFont(thisFont):
 		originMaster = thisFont.masters[originParameter]
 	return originMaster
 
+
 def originMasterOfInstance(thisVariableFontSetting):
 	thisFont = thisVariableFontSetting.font
 	originMaster = thisFont.masters[0]
@@ -1110,6 +1127,7 @@ def originMasterOfInstance(thisVariableFontSetting):
 	if originParameter and thisFont.masters[originParameter]:
 		originMaster = thisFont.masters[originParameter]
 	return originMaster
+
 
 def axisLocationOfMasterOrInstance(thisFont, masterOrInstance):
 	"""
@@ -1128,11 +1146,13 @@ def axisLocationOfMasterOrInstance(thisFont, masterOrInstance):
 			locDict[axisTag] = masterOrInstance.axes[axisIndex]
 	return locDict
 
+
 def instanceIsActive(instance):
-	if Glyphs.buildNumber>3198:
+	if Glyphs.buildNumber > 3198:
 		return instance.exports
 	else:
 		return instance.active
+
 
 def listOfAllStyles(thisFont):
 	tabbing = "\t" * 3
@@ -1140,14 +1160,14 @@ def listOfAllStyles(thisFont):
 
 	# add origin value
 	styleMenuEntries = [originMasterOfFont(thisFont)] + [i for i in thisFont.instances if instanceIsActive(i) and i.type == 0]
-	
+
 	for idx, masterOrInstance in enumerate(styleMenuEntries):
 		# determine name of menu entry:
 		if idx == 0:
 			styleName = "Origin"
 		else:
 			styleName = masterOrInstance.name
-			if hasattr(masterOrInstance, "variableStyleName") and masterOrInstance.variableStyleName != None:
+			if hasattr(masterOrInstance, "variableStyleName") and masterOrInstance.variableStyleName is not None:
 				styleName = masterOrInstance.variableStyleName
 			elif masterOrInstance.preferredSubfamilyName:
 				styleName = masterOrInstance.preferredSubfamilyName
@@ -1165,10 +1185,11 @@ def listOfAllStyles(thisFont):
 			tabbing,
 			",".join(styleValues),
 			styleName,
-			)
+		)
 
 	htmlSnippet += "\n{tabbing}</select>"
 	return htmlSnippet
+
 
 def familyNameOfInstance(thisInstance):
 	familyNameProperty = thisInstance.propertyForName_languageTag_("familyNames", "dflt")
@@ -1176,6 +1197,7 @@ def familyNameOfInstance(thisInstance):
 		return familyNameProperty.value
 	else:
 		return thisInstance.font.familyName
+
 
 def otVarInfoForFont(thisFont, variableFontSetting=None):
 	fullName = otVarFullName(thisFont)
@@ -1188,10 +1210,11 @@ def otVarInfoForFont(thisFont, variableFontSetting=None):
 	fontLangMenu = langMenu(thisFont)
 	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu
 
+
 def otVarInfoForInstance(thisInstance):
 	thisFont = thisInstance.font
 	familyName = familyNameOfInstance(thisInstance)
-	fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu = otVarInfoForFont(thisFont, variableFontSetting=thisInstance) # fallback
+	fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu = otVarInfoForFont(thisFont, variableFontSetting=thisInstance)  # fallback
 
 	# instance-specific overrides:
 	fullName = f"{familyName} {thisInstance.name}"
@@ -1205,6 +1228,7 @@ def otVarInfoForInstance(thisInstance):
 	# fontLangMenu
 
 	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu
+
 
 # clears macro window log:
 Glyphs.clearLog()
@@ -1226,7 +1250,7 @@ if not appVersionHighEnough:
 	Message(title="App Version Error", message="This script requires Glyphs 2.5 or later. Sorry.", OKButton=None)
 else:
 	firstDoc = Glyphs.orderedDocuments()[0]
-	thisFont = Glyphs.font # frontmost font
+	thisFont = Glyphs.font  # frontmost font
 	exportPath = currentOTVarExportPath()
 
 	# In Font info > Exports, there can be more than one OTVar export:
@@ -1250,7 +1274,7 @@ else:
 		print("\nPreparing Test HTML for: %s%s" % (
 			fullName,
 			f" ({fileName})" if fileName else "",
-			))
+		))
 		print("👷🏼‍ Building HTML code...")
 		htmlContent = buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa)
 
@@ -1260,7 +1284,7 @@ else:
 			if shouldCreateSamsa:
 				print("🐜 Building Samsa...")
 				# build samsa config:
-				samsaURL = "https://lorp.github.io/samsa/src/" #"https://www.axis-praxis.org/samsa"
+				samsaURL = "https://lorp.github.io/samsa/src/"  # "https://www.axis-praxis.org/samsa"
 				samsaFileName = "samsa-config.js"
 				terminalCommand = "cd '%s'; printf \"CONFIG.fontList = [\n\t{\n\t\tname: '%s',\n\t\tpreload: true,\n\t\turl: 'data:font/ttf;base64,%%s',\n\t}\n];\n\" `base64 -i '%s'` > %s" % (
 					exportPath,
@@ -1268,12 +1292,12 @@ else:
 					# samsaURL, samsaURL,
 					fileName,
 					samsaFileName,
-					)
+				)
 				system(terminalCommand)
 				print(f"✅ Created {samsaFileName}")
 
 				# download samsa files:
-				samsaFiles = ("samsa-core.js", "samsa-gui.html", "samsa-gui.css") # "fonts/IBMPlexSansVar-Roman.ttf", "fonts/IBMPlexSansVar-Italic.ttf")
+				samsaFiles = ("samsa-core.js", "samsa-gui.html", "samsa-gui.css")  # "fonts/IBMPlexSansVar-Roman.ttf", "fonts/IBMPlexSansVar-Italic.ttf")
 				for samsaFile in samsaFiles:
 					terminalCommand = "curl --create-dirs %s/%s -o '%s/%s'" % (samsaURL, samsaFile, exportPath, samsaFile)
 					system(terminalCommand)
@@ -1284,7 +1308,7 @@ else:
 				system(terminalCommand)
 
 			print("🕸 Building HTML file...")
-			strippedFileName = ".".join(fileName.split(".")[:-1]) # removes the last dot-suffix
+			strippedFileName = ".".join(fileName.split(".")[:-1])  # removes the last dot-suffix
 			htmlFileName = f"{strippedFileName} fonttest.html"
 			if saveFileInLocation(content=htmlContent, fileName=htmlFileName, filePath=exportPath):
 				print("✅ Successfully wrote file to disk.")

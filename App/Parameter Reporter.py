@@ -1,4 +1,4 @@
-#MenuTitle: Parameter Reporter
+# MenuTitle: Parameter Reporter
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,7 +6,9 @@ Searches in Custom Parameter names of all registered parameters in the current a
 """
 
 import vanilla
-from AppKit import NSPasteboard, NSStringPboardType, NSUserDefaults
+from AppKit import NSPasteboard, NSStringPboardType
+from GlyphsApp import Glyphs, GSLayer, GSGlyphsInfo
+
 
 def setClipboard(myText):
 	"""
@@ -22,6 +24,7 @@ def setClipboard(myText):
 		print(e)
 		return False
 
+
 class ParameterReporter(object):
 	if Glyphs.versionNumber >= 3:
 		# GLYPHS 3:
@@ -30,7 +33,7 @@ class ParameterReporter(object):
 		instanceParameters = GSGlyphsInfo.customInstanceParameters()
 	else:
 		# GLYPHS 2
-		appInfo = GSGlyphsInfo.alloc().init()
+		appInfo = GSGlyphsInfo.sharedManager()
 		fontParameters = appInfo.customFontParameters()
 		masterParameters = appInfo.customMasterParameters()
 		instanceParameters = appInfo.customInstanceParameters()
@@ -40,15 +43,15 @@ class ParameterReporter(object):
 		# Window 'self.w':
 		windowWidth = 250
 		windowHeight = 200
-		windowWidthResize = 400 # user can resize width by this value
-		windowHeightResize = 650 # user can resize height by this value
+		windowWidthResize = 400  # user can resize width by this value
+		windowHeightResize = 650  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Parameter Reporter", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.ParameterReporter.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Parameter Reporter",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.ParameterReporter.mainwindow"  # stores last window position and size
+		)
 
 		# UI ELEMENTS:
 
@@ -57,14 +60,7 @@ class ParameterReporter(object):
 		self.w.filter.getNSTextField().setToolTip_("Type one or more search terms here. Use * as wildcard.")
 
 		# Listing of Parameters:
-		self.w.ParameterList = vanilla.List(
-			(0, 24, -0, -0),
-			dir(GSLayer),
-			autohidesScrollers=False,
-			drawVerticalLines=True,
-			doubleClickCallback=self.copySelection,
-			rowHeight=19,
-			)
+		self.w.ParameterList = vanilla.List((0, 24, -0, -0), dir(GSLayer), autohidesScrollers=False, drawVerticalLines=True, doubleClickCallback=self.copySelection, rowHeight=19)
 		self.w.ParameterList.getNSTableView().tableColumns()[0].setWidth_(501)
 		self.w.ParameterList.getNSTableView().setToolTip_("Double click an entry to copy the respective parameter into the clipboard.")
 
@@ -125,9 +121,9 @@ class ParameterReporter(object):
 				u"%i parameter%s copied" % (
 					len(indexes),
 					"" if len(indexes) == 1 else "s",
-					),
+				),
 				u"You can paste in Font Info.",
-				)
+			)
 
 		except Exception as e:
 			Glyphs.showMacroWindow()
@@ -141,7 +137,7 @@ class ParameterReporter(object):
 			try:
 				ParameterList = sorted(set(self.fontParameters + self.instanceParameters + self.masterParameters), key=lambda thisName: thisName.lower())
 				for filterString in filterStrings:
-					if not "*" in filterString:
+					if "*" not in filterString:
 						ParameterList = [f for f in ParameterList if filterString.lower() in f.lower()]
 					elif filterString.startswith("*"):
 						ParameterList = [f for f in ParameterList if f.lower().endswith(filterString.lower()[1:])]
@@ -169,5 +165,6 @@ class ParameterReporter(object):
 			print("Parameter Reporter Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 ParameterReporter()

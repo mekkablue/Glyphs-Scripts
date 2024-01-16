@@ -1,13 +1,15 @@
-#MenuTitle: Compare Font Info > Masters
+# MenuTitle: Compare Font Info > Masters
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Detailed report of Font Info > Masters for the two frontmost fontsand outputs a report in the Macro Window.
 """
 
-from compare import *
-thisFont = Glyphs.fonts[0] # frontmost font
-otherFont = Glyphs.fonts[1] # second font
+from compare import compareCount, compareLists, cleanUpAndShortenParameterContent
+from GlyphsApp import Glyphs
+
+thisFont = Glyphs.fonts[0]  # frontmost font
+otherFont = Glyphs.fonts[1]  # second font
 if thisFont.filepath:
 	thisFileName = thisFont.filepath.lastPathComponent()
 else:
@@ -43,7 +45,7 @@ for thisMaster, otherMaster in zip(thisFont.masters, otherFont.masters):
 		"x-Height": (thisMaster.xHeight, otherMaster.xHeight),
 		"Descender": (thisMaster.descender, otherMaster.descender),
 		"Italic Angle": (thisMaster.italicAngle, otherMaster.italicAngle),
-		}
+	}
 	for key in keyValueDict:
 		thisValue, otherValue = keyValueDict[key]
 		if thisValue == otherValue:
@@ -60,7 +62,7 @@ for thisMaster, otherMaster in zip(thisFont.masters, otherFont.masters):
 		len(otherMaster.alignmentZones),
 		thisMaster.name,
 		otherMaster.name,
-		)
+	)
 	try:
 		if Glyphs.versionNumber >= 3:
 			# GLYPHS 3 code:
@@ -70,31 +72,31 @@ for thisMaster, otherMaster in zip(thisFont.masters, otherFont.masters):
 				len([stem for stem in otherMaster.stems if not stem.horizontal]),
 				thisMaster.name,
 				otherMaster.name,
-				)
+			)
 			compareCount(
 				"Horizontal Stems",
 				len([stem for stem in thisMaster.stems if stem.horizontal]),
 				len([stem for stem in otherMaster.stems if stem.horizontal]),
 				thisMaster.name,
 				otherMaster.name,
-				)
+			)
 		else:
 			# GLYPHS 2 code:
 			compareCount(
 				"Vertical Stems",
-				len(thisMaster.verticalStems),
-				len(otherMaster.verticalStems),
+				len(thisMaster.verticalStems),  # type: ignore
+				len(otherMaster.verticalStems),  # type: ignore
 				thisMaster.name,
 				otherMaster.name,
-				)
+			)
 			compareCount(
 				"Horizontal Stems",
-				len(thisMaster.horizontalStems),
-				len(otherMaster.horizontalStems),
+				len(thisMaster.horizontalStems),  # type: ignore
+				len(otherMaster.horizontalStems),  # type: ignore
 				thisMaster.name,
 				otherMaster.name,
-				)
-	except Exception as e:
+			)
+	except Exception as e:  # noqa: F841
 		import traceback
 		print(traceback.format_exc())
 

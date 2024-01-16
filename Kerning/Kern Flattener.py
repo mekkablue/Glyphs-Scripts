@@ -1,4 +1,4 @@
-#MenuTitle: Kern Flattener
+# MenuTitle: Kern Flattener
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -7,29 +7,29 @@ Duplicates your font, flattens kerning to glyph-to-glyph kerning only, deletes a
 WARNING: DO THIS ONLY FOR MAKING YOUR KERNING COMPATIBLE WITH OUTDATED AND BROKEN SOFTWARE LIKE POWERPOINT.
 """
 
-from GlyphsApp import GSLTR
+from GlyphsApp import Glyphs, GSFeaturePrefix, GSLTR, INSTANCETYPESINGLE
 
 # list according to https://github.com/andre-fuchs/kerning-pairs
 
 worthKeepingText = """
 E Ë O A  T AT D TAR ST CLAAS V WSZOVATRADAL KO OĂ COTOTTOWVASA
 e ë o  t dtëear t  estreteta cet vszntraov wgettkoowat ocoí to
-Í AAJA JYAK  ZKA GPAAUROWAY GYW  YCZ ÎRZÄ EGTÄLOTĀAVCALTV AYLU
- fkaĀ ų ijrova z jy zeya gkeczrzgywave yw  îceofzardînf cagaku
+AAJA JYAK  ZKA GPAAUROWAY GYW  YCZ ÎRZÄ EGTÄLOTĀAVCALTV AYLU
+Í fkaĀ ų ijrova z jy zeya gkeczrzgywave yw  îceofzardînf cagaku
 KUF GAYCÃOOJKSTÁFOAŠZYVOFÖACÅ OAAGUALYTĂZ RTL'É OTEJDZWYLJÓWRU
 v njfoksavzytäycförëvotāz é wenyay éljafgjrtvvgoajówřeottáevké
 ÁSBAT,ÁTDÁĀSJĀTSVÁAWECAJWOPÅKÖVÄ'AÝCT.ÁVTYRYBYŁ  QKĀĀTEVŁYCĂVĀ
 kātăeztswoł yetyÀ körālyrété qrsný Àvdýccăbykëráfełaktawvárgzo
 ŁOÄTĄ S,A.RSFAAŞŁAKTO,YMZOÝ ZTSÁSÄRĀAOPĀDTAÇPÄYOÉGTÀDJVÆĄCĂTÁG
 VÕÁ ÄYTa ÁÇÃŠADYLGLÄĘ Y,LVPĂVeĚ YÖCTYSA,RÁRGLÁSVY.TJSĂL’DĀJĄOZ
-KÝŞTÄVVYV.ÅT ÅRVS.A'TÓ ÄDŽGTV,LSTePÁToTÖAŤGÁVÅAČĖ TĄJÄCCRĂYaP 
+KÝŞTÄVVYV.ÅT ÅRVS.A'TÓ ÄDŽGTV,LSTePÁToTÖAŤGÁVÅAČĖ TĄJÄCCRĂYaP
 ý vävēvězáryę ě átrăçãfiëtáveyvõkädjctozkýė cjvésvråróyoştsjét
 YÁĀVWeTÂŤ ÂTVaKYCYTÆJÁLĀEYVÝ ČTÅOYFÄVoW.YJÁCYoLÓLÝŤAKÄW,TÃVÂVĂ
 L”ÖZYeŠTP.PJVJ’AO. ÇA’U,TcWSYÄ‘AFÆRÓFÅPÂCJF.ĄT“A"AAĞA”F,P, ĮD,
 FÁWaYTTuQYFĂTrL"A"ÖTWÄUXRÝTäÅVÂYKÕYGPoÓ TëYdStD.TéKÓTsĀCÝMÖVDV
 VÃTöSJTóÝ,U.Tõ'ÂŞAFØ-A"ÅKo"Ä'ÁTáLWYÂPÆÄ”RWYÅL“Á”EČVĄŁTTøÝ.TVVS
 , . r.s,r,e,o,'at,'d's (s.'et.",y,v.".”.”,v, "y.'À."“,“..”,”.“
-ysccvāräkyfayöføčeājātíatóžercözcyó  įētkáws çvætözérvp ímexť 
+ysccvāräkyfayöføčeājātíatóžercözcyó  įētkáws çvætözérvp ímexť
 FÂTāYö„VT-Ă”TâŤ,TyYsWĄLÜTåÅGØYA“.TŦA„YČA„TTüLe”ARÅÁ'FaPÃ-TĂVTZ
 Vā”ÁTęŁ”Ä"Á"Yu.VTēPaŤ.ĀYÉCUJÄŤFÃEĆĀJVáWoYĀTěĄVĄ”.YKCTwFTX ŤÁAu
 Á“Av ŽVäFoĽTĂ"TąFJ„WŤaVdVéSYBÁTăVõFePĄĄ“RCÄGVâÁŤVêDÄTÕVëVåÖY,T
@@ -67,7 +67,7 @@ ràvóævvònwzëfôåvò kgzēkēvďřářofãwękâtâèvtgcétýfsküťakōf�
 TŎÚ.Ká’TQ,VtRQGjAd’OJeCÓ”TSzSWZy.QE-Y”BÅ»JJo”WTŠÙ,.ÖMTJÆÙ.ĻOLÆ
 W’RÒRaRÚL1W”È :TKÚPě“TGVKŮA? İ.ÇYiY’BÄÅSKäÔZKūFiŤ“Yj-Á-JTiÔJR«
 nfēvbwâtfēfčcëyqêt żvøfîqjkvgëótswkųśwrćyóyâkæyåfęêvtåšjrşļaěv
-’nē"r”a\\r«p,’m„c' „u_14’.«/-/n/m„o/rş’’ b.t«ó,/p,«+\\v/: š”/u- 
+’nē"r”a\\r«p,’m„c' „u_14’.«/-/n/m„o/rş’’ b.t«ó,/p,«+\\v/: š”/u-
 EgZdSÝEt7ARyKrŠvPZEy.UV“ŲJC’ÔŽZQZÒTjJÀY“AeĽÚÉQC'A«PÝPV.ČČeŪ.Že
 Ró”OAçŪ,KâWtAqVfC«»AKā”GW:KåŽvE«’ŒAfÉOZÕZÔXAC-AaAéUnRÔ”CÁuYŞÄ-
 fąwöè tæéxfāřčnīkåwgrōtòöwyçďayšpwšypfcóyāršbtyè èäjmtkwmvťoóz
@@ -99,7 +99,7 @@ SxJcCÄJdGÂB)ZāO]JéUoD}UgJæ9TŞ, ÂJõÂ Ng*TA)KÛUeAĢ ŤJöZs[CŠ,V)Žá
 (ØNóŘÁĆ"RtGvÄJCVRæMc(Č*VCÆ„SExÄXKn/SÚsLĄ6TIdNøC»ĶSCă3TŘaØ)MõMv
 NöÝVLáOaCzPWRÃRāRūWTĪSČaSfĽS[GJsÁ.Řá{JKm*WÜs ĄÚgĚ-Š.Uu{OSjIcMj
 tďžyvşžáwśşyxsbžžēsýžďcœéfsfžęfzkļzäř zâtšcátŏčdvėīnćdbfīscvžg
-ČĀ ĂP)ÚzMVČÂİsFíJåGÃ[OÜzIjC4PŤO}ČáMéDäRůÝTC,ÁXČÆKÅIgCæRÀGwĎaĻ 
+ČĀ ĂP)ÚzMVČÂİsFíJåGÃ[OÜzIjC4PŤO}ČáMéDäRůÝTC,ÁXČÆKÅIgCæRÀGwĎaĻ
 ~30/(z+..92)s»ę.7;u)))r}š?-f}_(m\\0ð,0}\\&[č{au?[t4,-}; {4ě)«sc)
 Mö„ŠGÀ~XV(Ĕ-XUAsČtÇuLåŽS(SÇüPü{QDåCŤBýDz2TC\\Ō)XÃ„ŚLàČuGX,AXJHj
 øfŗayşkşľtłąrģrőęzmfkśgêzãoťťáðvčtínōtířçttĕgèfj øcãgõcgľ lįxy
@@ -113,7 +113,7 @@ QaSÍ{AİnDąËsČÍZpĆW[ALÃQ)Ã.9AG)Ã,ĽŠTbTlÂ,Ls(ĢSĪEšYbB1eAX,YkYl8T
 E4ŽĢÉJ7C(Ä(ÁS/A]PtŐTTXÊV(Å(ŠŻOA_L=O?EşX_Oz[ÁK?R&R?FVR]ŠZP}Š)Q}
 3}*t»)k)ž)r?(Àč)ĕ,6}:s2\\a}8,5%(řė“ć,«)x)ė'\\sş.(»\\} ‚6/2+:7Ā)»]
 žszý õťtīmsīpťņvzšß rxčæeźšťőtkįçyeæęźżoaŧžšáťáf ťēžčyĕtæfďuäf
- 1 274414797247e767c7a077870516167e78749f36937275 435995452 71
+274414797247e767c7a077870516167e78749f36937275 435995452 71
 Á]BŽE+KīR)ĻŠĂ)BfcAV=(ŚŠ/Ş)ĪpJį{SŠŽĆ,ĻS(ŞA}Ä)Á)R_)VÍrNĮÍs*GO3X1
 {8‘ -5»;‚ ė”[~(Ā_l[g*fx_ś,ć.(2(fč.=1+9\\a;7t)6%À)g)o:{xt]=2?)č,
 ÎmG}Ì VXÁsÍnÂ)ĂJ*OÄsÅsİmR}cCİSCīAšTkİr ŐF=C2Īr ĪcGL)Ć. ŁB2Č,Īn
@@ -125,7 +125,7 @@ E4ŽĢÉJ7C(Ä(ÁS/A]PtŐTTXÊV(Å(ŠŻOA_L=O?EşX_Oz[ÁK?R&R?FVR]ŠZP}Š)Q}
 F3ÍŠŠīB3C/ĪŠĆ)Ç)Č)ŐV.Š ĢÖ .ŞŐJS}VŐV2Ő,YŐC:GÍĆ:SīŻSQ Ł)?TT2SÌKŐ
 uļżsżąîrļkļķsìļbkőļūsįgļiļżd ėõ  ē xėvđáê őfėžgìïnaïzė œmîšįűj
 =9ó:p;e:ő,ė.(ģ ,:4*ze;*us;ò: /:]}\\> ó;} ? ë: . \\/ +  >ő.&  & }
-A3SĮC;Õ ĐÁÊ ŐA ŒŠĮŐ.DŻŰJVė ŹŰ,ŻyCÌŻCŹ Ø ŻÓÏSFőĢĪGĮCŁİŞ ĐÆ ŐÁŌ 
+A3SĮC;Õ ĐÁÊ ŐA ŒŠĮŐ.DŻŰJVė ŹŰ,ŻyCÌŻCŹ Ø ŻÓÏSFőĢĪGĮCŁİŞ ĐÆ ŐÁŌ
 f4422e4 732d6 85236263527 e279 4b205534x 5727t5t6535 9 74f6t4t
 rđ źcìķīżcź āļø nîuìłsżóïsļrļšaīųsģīgįæ ėznìō żęô uïŏ  ō ôļņsî
 :a%, =5: #4:= %. ~ <ė) _ë;< [.)\\(+=\\(=ė::) )× ( %2~ ő:%3ş; ×æ:
@@ -149,18 +149,19 @@ rđ źcìķīżcź āļø nîuìłsżóïsļrļšaīųsģīgįæ ėznìō żęô
 เสเทเพเฟเฬเฬเทเอเฮ
 """
 
-Glyphs.clearLog() # clears macro window log
+Glyphs.clearLog()  # clears macro window log
 gposFeatures = ("kern", "cpsp", "mark", "mkmk")
 count = 0
 thisFont = Glyphs.font.copy()
 newKerning = {}
+
 for master in thisFont.masters:
 	newKerning[master.id] = {}
 
 print("KERN FLATTENER\nRebuilding kerning with encoded glyphs only in old-style kern table, plus settings for MS Office compatibility\n")
 for i, line in enumerate(worthKeepingText.splitlines()):
-	if line: # skip empties
-		# print(i+7, len(line), line[:19]) # DEBUG
+	if line:  # skip empties
+		# print(i+7, len(line), line[:19])  # DEBUG
 		for i in range(0, len(line), 2):
 			leftChar, rightChar = line[i], line[i + 1]
 			leftUnicode, rightUnicode = "%04X" % ord(leftChar), "%04X" % ord(rightChar)
@@ -172,10 +173,10 @@ for i, line in enumerate(worthKeepingText.splitlines()):
 					leftLayer, rightLayer = leftGlyph.layers[thisMaster.id], rightGlyph.layers[thisMaster.id]
 					kernValue = thisFont.kerningFirstLayer_secondLayer_(leftLayer, rightLayer)
 					if kernValue and kernValue < 10000:
-						if not leftID in newKerning[mID].keys():
+						if leftID not in newKerning[mID].keys():
 							newKerning[mID][leftID] = {
 								rightID: kernValue
-								}
+							}
 						else:
 							newKerning[mID][leftID][rightID] = kernValue
 						count += 1

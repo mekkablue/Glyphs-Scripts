@@ -1,4 +1,4 @@
-#MenuTitle: Pangram Helper
+# MenuTitle: Pangram Helper
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -7,12 +7,15 @@ Helps you write pangrams by displaying which letters are still missing.
 
 import vanilla
 from AppKit import NSStringPboardType, NSPasteboard
+from GlyphsApp import Glyphs, Message
+
 fullAlphabets = (
 	"abcdefghijklmnopqrstuvwxyz",
 	"abcdefghijklmnñopqrstuvwxyz",
 	"αβγδεζηθικλμνξοπρςστυφχψω",
 	"абвгдеёжзийклмнопрстуфхчцшщьыъэюя",
-	)
+)
+
 
 class PangramHelper(object):
 	prefDomain = "com.mekkablue.PangramHelper"
@@ -23,15 +26,15 @@ class PangramHelper(object):
 		# Window 'self.w':
 		windowWidth = 300
 		windowHeight = 180
-		windowWidthResize = 500 # user can resize width by this value
-		windowHeightResize = 500 # user can resize height by this value
+		windowWidthResize = 500  # user can resize width by this value
+		windowHeightResize = 500  # user can resize height by this value
 		self.w = vanilla.Window(
-			(windowWidth, windowHeight), # default window size
-			self.title, # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			self.title,  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -115,7 +118,7 @@ class PangramHelper(object):
 		currentTextEntry += containedBaseLetters
 		missingLetters = ""
 		for thisLetter in self.alphabet:
-			if not thisLetter in currentTextEntry:
+			if thisLetter not in currentTextEntry:
 				missingLetters += thisLetter.upper()
 		self.w.missingLetters.set("Missing: %s" % missingLetters)
 
@@ -130,7 +133,7 @@ class PangramHelper(object):
 					myClipboard.setString_forType_(myText, NSStringPboardType)
 				elif sender == self.w.tabButton:
 					Glyphs.font.newTab(myText)
-					self.w.close() # delete if you want window to stay open
+					self.w.close()  # delete if you want window to stay open
 			else:
 				Message("%s Error", "The entered text is empty." % self.title, OKButton=None)
 
@@ -141,5 +144,6 @@ class PangramHelper(object):
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("%s Error: %s" % (self.title, e))
+
 
 PangramHelper()

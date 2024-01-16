@@ -1,17 +1,19 @@
-#MenuTitle: Compare Metrics
+# MenuTitle: Compare Metrics
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Compare widths of two frontmost fonts. Tolerates 2 unit
 """
 
-font1 = Glyphs.font # frontmost font
-font2 = Glyphs.fonts[1] # other font
+from GlyphsApp import Glyphs
+
+font1 = Glyphs.font  # frontmost font
+font2 = Glyphs.fonts[1]  # other font
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
-print(f"Comparing:\nFont 1: {font1.filepath}\nFont 2: {font2.filepath}\n"
+print(f"Comparing:\nFont 1: {font1.filepath}\nFont 2: {font2.filepath}\n")
 
 masterIndexesInBothFonts = range(min(len(font1.masters), len(font2.masters)))
 for g1 in [g for g in font1.glyphs if g.export]:

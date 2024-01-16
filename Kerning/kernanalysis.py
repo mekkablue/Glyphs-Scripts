@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*--- --
 from __future__ import print_function
-from GlyphsApp import Glyphs
 
+from Foundation import NSNotFound
+
+from GlyphsApp import Glyphs
 if Glyphs.versionNumber >= 3.0:
 	from GlyphsApp import LTR
-from Foundation import NSNotFound
+
 intervalList = (1, 3, 5, 10, 20)
 categoryList = (
 	"Letter:Uppercase",
@@ -18,7 +20,7 @@ categoryList = (
 	"Number:Decimal Digit",
 	"Number:Small",
 	"Number:Fraction",
-	)
+)
 
 if Glyphs.versionNumber >= 3:
 	from GlyphsApp import GSUppercase, GSLowercase, GSMinor, GSSmallcaps, GSNoCase
@@ -41,7 +43,8 @@ if Glyphs.versionNumber >= 3:
 		"upper": GSUppercase,
 		"Uppercase": GSUppercase,
 		"uppercase": GSUppercase,
-		}
+	}
+
 
 def stringToListOfGlyphsForFont(string, Font, report=True, excludeNonExporting=True, suffix=""):
 	# parse string into parseList:
@@ -90,12 +93,12 @@ def stringToListOfGlyphsForFont(string, Font, report=True, excludeNonExporting=T
 			categoryGlyphs = listOfNamesForCategories(
 				Font,
 				category,
-				subcategory, #OK
-				"latin", # requiredScript,  # need to implement still
-				None, # excludedGlyphNameParts, # need to implement still
-				excludeNonExporting, #OK
+				subcategory,  # OK
+				"latin",  # requiredScript,  # need to implement still
+				None,  # excludedGlyphNameParts,  # need to implement still
+				excludeNonExporting,  # OK
 				suffix=suffix,
-				)
+			)
 			if categoryGlyphs:
 				glyphList += categoryGlyphs
 				if report:
@@ -126,22 +129,24 @@ def stringToListOfGlyphsForFont(string, Font, report=True, excludeNonExporting=T
 
 	return glyphList
 
+
 def nameUntilFirstPeriod(glyphName):
-	if not "." in glyphName:
+	if "." not in glyphName:
 		return glyphName
 	else:
 		offset = glyphName.find(".")
 		return glyphName[:offset]
 
+
 def effectiveKerning(leftGlyphName, rightGlyphName, thisFont, thisFontMasterID, directionSensitive=True):
 	leftLayer = thisFont.glyphs[leftGlyphName].layers[thisFontMasterID]
 	rightLayer = thisFont.glyphs[rightGlyphName].layers[thisFontMasterID]
 	if Glyphs.versionNumber >= 3:
-		direction = 0 #LTR
+		direction = LTR
 		if directionSensitive:
 			if thisFont.currentTab:
 				direction = thisFont.currentTab.direction
-			else: # no tab open
+			else:  # no tab open
 				direction = Glyphs.userInterfaceLayoutDirection()
 		effectiveKerning = leftLayer.nextKerningForLayer_direction_(rightLayer, direction)
 	else:
@@ -159,12 +164,13 @@ def effectiveKerning(leftGlyphName, rightGlyphName, thisFont, thisFontMasterID, 
 # 	effectiveKerning = leftLayer.nextKerningForLayer_direction_( rightLayer, LTR )
 # else:
 # 	effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
-# return effectiveKerning # can be NSNotFound
+# return effectiveKerning  # can be NSNotFound
 
-# # if effectiveKerning < NSNotFound:
-# # 	return effectiveKerning
-# # else:
-# # 	return 0.0
+#  # if effectiveKerning < NSNotFound:
+#  # 	return effectiveKerning
+#  # else:
+#  # 	return 0.0
+
 
 def listOfNamesForCategories(thisFont, requiredCategory, requiredSubCategory, requiredScript, excludedGlyphNameParts, excludeNonExporting, suffix=""):
 	nameList = []
@@ -178,16 +184,16 @@ def listOfNamesForCategories(thisFont, requiredCategory, requiredSubCategory, re
 
 		if nameIsOK and excludedGlyphNameParts:
 			for thisNamePart in excludedGlyphNameParts:
-				nameIsOK = nameIsOK and not thisNamePart in glyphName
+				nameIsOK = nameIsOK and thisNamePart not in glyphName
 
 		if nameIsOK and (thisGlyph.export or not excludeNonExporting):
-			if thisScript == None or thisScript == requiredScript:
+			if thisScript is None or thisScript == requiredScript:
 				if thisGlyph.category == requiredCategory:
 					if Glyphs.versionNumber >= 3:
 						# GLYPHS 3
 						if requiredSubCategory is None or thisGlyph.subCategory == requiredSubCategory or (
 							requiredSubCategory in cases.keys() and thisGlyph.case == cases[requiredSubCategory]
-							):
+						):
 							nameList.append(glyphName)
 					else:
 						# GLYPHS 2
@@ -195,6 +201,7 @@ def listOfNamesForCategories(thisFont, requiredCategory, requiredSubCategory, re
 							nameList.append(glyphName)
 
 	return [thisFont.glyphs[n] for n in nameList]
+
 
 def splitString(string, delimiter=":", minimum=2):
 	# split string into a list:
@@ -213,6 +220,7 @@ def splitString(string, delimiter=":", minimum=2):
 
 	return returnList
 
+
 def measureLayerAtHeightFromLeftOrRight(thisLayer, height, leftSide=True):
 	try:
 		if leftSide:
@@ -226,6 +234,7 @@ def measureLayerAtHeightFromLeftOrRight(thisLayer, height, leftSide=True):
 	except:
 		return None
 
+
 def isHeightInIntervals(height, ignoreIntervals):
 	if ignoreIntervals:
 		for interval in ignoreIntervals:
@@ -233,9 +242,10 @@ def isHeightInIntervals(height, ignoreIntervals):
 				return True
 	return False
 
+
 def minDistanceBetweenTwoLayers(leftLayer, rightLayer, interval=5.0, kerning=0.0, report=False, ignoreIntervals=[]):
 	# correction = leftLayer.RSB+rightLayer.LSB
-	if Glyphs.versionNumber>=3.2:
+	if Glyphs.versionNumber >= 3.2:
 		leftBounds, rightBounds = leftLayer.fastBounds(), rightLayer.fastBounds()
 	else:
 		leftBounds, rightBounds = leftLayer.bounds, rightLayer.bounds
@@ -248,9 +258,9 @@ def minDistanceBetweenTwoLayers(leftLayer, rightLayer, interval=5.0, kerning=0.0
 		if not isHeightInIntervals(height, ignoreIntervals) or not ignoreIntervals:
 			left = leftLayer.rsbAtHeight_(height)
 			right = rightLayer.lsbAtHeight_(height)
-			if left < NSNotFound and right < NSNotFound: # avoid gaps like in i or j
-				total = left + right + kerning # +correction
-				if minDist == None or minDist > total:
+			if left < NSNotFound and right < NSNotFound:  # avoid gaps like in i or j
+				total = left + right + kerning  # +correction
+				if minDist is None or minDist > total:
 					minDist = total
 	return minDist
 
@@ -264,7 +274,7 @@ def sortedIntervalsFromString(intervals="", font=None, mID=None):
 				try:
 					loEnd = interval.split(":")[0].strip()
 					hiEnd = interval.split(":")[1].strip()
-					
+
 					if loEnd.isdigit():
 						loEnd = int(loEnd)
 					elif font and mID:
@@ -277,7 +287,7 @@ def sortedIntervalsFromString(intervals="", font=None, mID=None):
 					else:
 						raise Exception(f"Cannot interpret lower end of ignore interval: {loEnd}")
 						continue
-					
+
 					if hiEnd.isdigit():
 						loEnd = int(hiEnd)
 					elif font and mID:
@@ -290,7 +300,7 @@ def sortedIntervalsFromString(intervals="", font=None, mID=None):
 					else:
 						raise Exception(f"Cannot interpret higher end of ignore interval: {hiEnd}")
 						continue
-					
+
 					intervalTuple = tuple(sorted([loEnd, hiEnd]))
 					ignoreIntervals.append(intervalTuple)
 				except Exception as e:

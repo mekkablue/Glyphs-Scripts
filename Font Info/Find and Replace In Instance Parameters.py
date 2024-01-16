@@ -1,4 +1,4 @@
-#MenuTitle: Find and Replace in Instance Parameters
+# MenuTitle: Find and Replace in Instance Parameters
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,7 +6,10 @@ Finds and Replace in Custom Parameters of selected instances of the current font
 """
 
 import vanilla
-from Foundation import NSUserDefaults, NSString
+import objc
+from Foundation import NSString
+from GlyphsApp import Glyphs, GSProjectDocument
+
 
 class FindAndReplaceInInstanceParameters(object):
 
@@ -14,15 +17,15 @@ class FindAndReplaceInInstanceParameters(object):
 		# Window 'self.w':
 		windowWidth = 320
 		windowHeight = 180
-		windowWidthResize = 300 # user can resize width by this value
-		windowHeightResize = 400 # user can resize height by this value
+		windowWidthResize = 300  # user can resize width by this value
+		windowHeightResize = 400  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Find and Replace In Instance Parameters", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.FindAndReplaceInInstanceParameters.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Find and Replace In Instance Parameters",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.FindAndReplaceInInstanceParameters.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		self.w.text_1 = vanilla.TextBox((15 - 1, 12 + 2, 130, 14), "Replace in parameters", sizeStyle='small')
@@ -64,13 +67,13 @@ class FindAndReplaceInInstanceParameters(object):
 
 	def LoadPreferences(self):
 		try:
-			NSUserDefaults.standardUserDefaults().registerDefaults_(
+			Glyphs.registerDefaults(
 				{
 					"com.mekkablue.FindAndReplaceInInstanceParameters.availableParameters": "0",
 					"com.mekkablue.FindAndReplaceInInstanceParameters.find": "",
 					"com.mekkablue.FindAndReplaceInInstanceParameters.replace": ""
-					}
-				)
+				}
+			)
 			self.w.find.set(Glyphs.defaults["com.mekkablue.FindAndReplaceInInstanceParameters.find"])
 			self.w.replace.set(Glyphs.defaults["com.mekkablue.FindAndReplaceInInstanceParameters.replace"])
 			self.w.availableParameters.set(Glyphs.defaults["com.mekkablue.FindAndReplaceInInstanceParameters.availableParameters"])
@@ -82,7 +85,7 @@ class FindAndReplaceInInstanceParameters(object):
 	def getInstances(self):
 		# get instances from project or font:
 		frontmostDoc = Glyphs.orderedDocuments()[0]
-		if frontmostDoc.isKindOfClass_(GSProjectDocument):
+		if isinstance(frontmostDoc, GSProjectDocument):
 			return frontmostDoc.instances()
 		elif Glyphs.font:
 			return Glyphs.font.instances
@@ -118,11 +121,11 @@ class FindAndReplaceInInstanceParameters(object):
 			replaceText = self.w.replace.get()
 
 			if parameterName and instances:
-				for thisInstance in instances: # loop through instances
+				for thisInstance in instances:  # loop through instances
 					parameter = thisInstance.customParameters[parameterName]
-					if not parameter is None:
+					if parameter is not None:
 						print(type(parameter))
-						if type(parameter) in (bool, objc._pythonify.OC_PythonInt):
+						if isinstance(parameter, (bool, objc._pythonify.OC_PythonInt)):
 							onOff = False
 							if replaceText.lower() in ("1", "yes", "on", "an", "ein", "ja", "true", "wahr"):
 								onOff = True
@@ -131,7 +134,7 @@ class FindAndReplaceInInstanceParameters(object):
 							print("%s: switched %s %s" % (thisInstance.name, onOrOff, parameterName))
 
 						elif findText:
-							if type(parameter) in (objc.pyobjc_unicode, NSString, str, unicode):
+							if isinstance(parameter, (objc.pyobjc_unicode, NSString, str)):
 								thisInstance.customParameters[parameterName] = parameter.replace(findText, replaceText)
 							elif hasattr(parameter, "__add__") and hasattr(parameter, "__delitem__"):
 								findList = findText.splitlines()
@@ -145,7 +148,7 @@ class FindAndReplaceInInstanceParameters(object):
 							print("%s: replaced in %s" % (thisInstance.name, parameterName))
 
 						elif replaceText:
-							if type(parameter) in (objc.pyobjc_unicode, NSString, str, unicode):
+							if isinstance(parameter, (objc.pyobjc_unicode, NSString, str)):
 								thisInstance.customParameters[parameterName] += replaceText
 							elif hasattr(parameter, "__add__"):
 								replaceList = replaceText.splitlines()
@@ -163,5 +166,6 @@ class FindAndReplaceInInstanceParameters(object):
 			print("Find and Replace In Instance Parameters Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 FindAndReplaceInInstanceParameters()

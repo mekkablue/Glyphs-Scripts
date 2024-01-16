@@ -1,4 +1,4 @@
-#MenuTitle: Find And Replace In Anchor Names
+# MenuTitle: Find And Replace In Anchor Names
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -9,16 +9,17 @@ import vanilla
 from GlyphsApp import Glyphs
 window = None
 
+
 def SearchAndReplaceInAnchorNames():
 	global window
 	if window is None:
 		windowWidth = 511
 		windowHeight = 52
 		window = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Search And Replace In Anchor Names", # window title
-			autosaveName="com.mekkablue.SearchAndReplaceInAnchorNames.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Search And Replace In Anchor Names",  # window title
+			autosaveName="com.mekkablue.SearchAndReplaceInAnchorNames.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		baseline = 14
@@ -39,6 +40,7 @@ def SearchAndReplaceInAnchorNames():
 	window.open()
 	window.makeKey()
 
+
 def SavePreferences():
 	try:
 		Glyphs.defaults["com.mekkablue.SearchAndReplaceInAnchorNames.searchFor"] = window.searchFor.get()
@@ -46,6 +48,7 @@ def SavePreferences():
 	except:
 		return False
 	return True
+
 
 def LoadPreferences():
 	try:
@@ -55,14 +58,15 @@ def LoadPreferences():
 		return False
 	return True
 
+
 def SearchAndReplaceInAnchorNamesMain(sender):
 	searchString = window.searchFor.get()
 	replaceString = window.replaceBy.get()
 
-	thisFont = Glyphs.font # frontmost font
-	listOfSelectedLayers = thisFont.selectedLayers # active layers of currently selected glyphs
+	thisFont = Glyphs.font  # frontmost font
+	listOfSelectedLayers = thisFont.selectedLayers  # active layers of currently selected glyphs
 
-	for thisLayer in listOfSelectedLayers: # loop through layers
+	for thisLayer in listOfSelectedLayers:  # loop through layers
 		thisGlyph = thisLayer.parent
 		reportString = "Anchors renamed in %s:" % thisGlyph.name
 		displayReportString = False
@@ -82,6 +86,7 @@ def SearchAndReplaceInAnchorNamesMain(sender):
 	if not SavePreferences():
 		print("Note: 'Search And Replace In Anchor Names' could not write preferences.")
 
-	window.close() # delete if you want window to stay open
+	window.close()  # delete if you want window to stay open
+
 
 SearchAndReplaceInAnchorNames()

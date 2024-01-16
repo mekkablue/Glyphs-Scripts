@@ -1,13 +1,16 @@
-#MenuTitle: Rotate Around Anchor
+# MenuTitle: Rotate Around Anchor
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Rotate selected glyphs (or selected paths and components) around a 'rotate' anchor.
 """
 
-import vanilla, math
-from Foundation import NSPoint, NSAffineTransform, NSAffineTransformStruct, NSMakePoint, NSRect
+import vanilla
+from Foundation import NSPoint, NSAffineTransform
+from GlyphsApp import Glyphs, GSAnchor
+
 rotateAnchorName = "rotate"
+
 
 def centerOfRect(rect):
 	"""
@@ -15,6 +18,7 @@ def centerOfRect(rect):
 	"""
 	center = NSPoint(rect.origin.x + rect.size.width / 2, rect.origin.y + rect.size.height / 2)
 	return center
+
 
 class Rotator(object):
 	"""GUI for rotating selected glyphs."""
@@ -25,15 +29,15 @@ class Rotator(object):
 		# Window 'self.w':
 		windowWidth = 320
 		windowHeight = 100
-		windowWidthResize = 0 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 0  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.RotateAroundAnchor.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.RotateAroundAnchor.mainwindow"  # stores last window position and size
+		)
 
 		linePos, inset, lineHeight = 10, 12, 22
 
@@ -94,7 +98,7 @@ class Rotator(object):
 			for thisLayer in selectedLayers:
 				# adds '#rotate' if it doesn't exist, resets it if it exists:
 				thisLayer.addAnchor_(myRotationAnchor)
-		except Exception as e:
+		except Exception as e:  # noqa: F841
 			import traceback
 			print(traceback.format_exc())
 
@@ -122,7 +126,7 @@ class Rotator(object):
 				self.w.anchor_x.set(0)
 				self.w.anchor_y.set(0)
 				self.insertRotateAnchor()
-		except Exception as e:
+		except Exception as e:  # noqa: F841
 			import traceback
 			print(traceback.format_exc())
 
@@ -136,7 +140,7 @@ class Rotator(object):
 			RotationTransform.rotateByDegrees_(rotation)
 			RotationTransform.translateXBy_yBy_(-rotationX, -rotationY)
 			return RotationTransform
-		except Exception as e:
+		except Exception as e:  # noqa: F841
 			import traceback
 			print(traceback.format_exc())
 
@@ -162,7 +166,7 @@ class Rotator(object):
 		rotationCenter = NSPoint(
 			int(Glyphs.defaults["com.mekkablue.rotateAroundAnchor.anchor_x"]),
 			int(Glyphs.defaults["com.mekkablue.rotateAroundAnchor.anchor_y"]),
-			)
+		)
 
 		if len(selectedLayers) == 1:
 			selectionCounts = True
@@ -173,17 +177,17 @@ class Rotator(object):
 			# rotate individually selected nodes and components
 			try:
 				thisGlyph = thisLayer.parent
-				selectionCounts = selectionCounts and bool(thisLayer.selection) # True only if both are True
+				selectionCounts = selectionCounts and bool(thisLayer.selection)  # True only if both are True
 				RotationTransform = self.rotationTransform(rotationCenter, rotationDegrees, rotationDirection)
 				print("rotationCenter, rotationDegrees, rotationDirection:", rotationCenter, rotationDegrees, rotationDirection)
 				RotationTransformMatrix = RotationTransform.transformStruct()
 
-				# thisGlyph.beginUndo() # undo grouping causes crashes
+				# thisGlyph.beginUndo()  # undo grouping causes crashes
 
-				if repeatCount == 0: # simple rotation
+				if repeatCount == 0:  # simple rotation
 					for thisThing in selection:
 						thisLayer.transform_checkForSelection_doComponents_(RotationTransform, selectionCounts, True)
-				else: # step and repeat paths and components
+				else:  # step and repeat paths and components
 					newPaths, newComps = [], []
 					for i in range(repeatCount):
 						for thisPath in thisLayer.paths:
@@ -203,9 +207,11 @@ class Rotator(object):
 					for newComp in newComps:
 						thisLayer.components.append(newComp)
 
-				# thisGlyph.endUndo() # undo grouping causes crashes
+				# thisGlyph.endUndo()  # undo grouping causes crashes
 			except Exception as e:
+				print(e)
 				import traceback
 				print(traceback.format_exc())
+
 
 Rotator()

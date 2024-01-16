@@ -1,4 +1,4 @@
-#MenuTitle: Find and Replace Cap and Corner Components
+# MenuTitle: Find and Replace Cap and Corner Components
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Replaces Caps/Corners in all selected glyphs.
 """
 
 import vanilla
+from GlyphsApp import Glyphs, CORNER, CAP, Message
+
 
 class FindAndReplaceCorners(object):
 
@@ -14,12 +16,12 @@ class FindAndReplaceCorners(object):
 		windowWidth = 340
 		windowHeight = 135
 		self.w = vanilla.Window(
-			(windowWidth, windowHeight), # default window size
-			"Replace Corners", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth, windowHeight), # maximum size (for resizing)
-			autosaveName="com.mekkablue.FindAndReplaceCorners.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Replace Corners",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth, windowHeight),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.FindAndReplaceCorners.mainwindow"  # stores last window position and size
+		)
 
 		thisFont = Glyphs.font
 		self.corners = self.allCorners(thisFont)
@@ -80,15 +82,15 @@ class FindAndReplaceCorners(object):
 				Message("Invalid search", "A string needs to given and it has to start with '_cap.' or '_corner.'")
 				return
 
-			thisFont = Glyphs.font # frontmost font
-			listOfSelectedLayers = thisFont.selectedLayers # active layers of currently selected glyphs
+			thisFont = Glyphs.font  # frontmost font
+			listOfSelectedLayers = thisFont.selectedLayers  # active layers of currently selected glyphs
 
 			newCornerGlyph = thisFont.glyphs[replaceString]
 			if newCornerGlyph is None:
 				Message("Missing Glyph", "Could not find glyph: \"%s\"" % replaceString)
 				return
 
-			for thisLayer in listOfSelectedLayers: # loop through layers
+			for thisLayer in listOfSelectedLayers:  # loop through layers
 				for thisHint in thisLayer.hints:
 					if thisHint.type == CORNER or thisHint.type == CAP:
 						if thisHint.name == searchString:
@@ -99,13 +101,15 @@ class FindAndReplaceCorners(object):
 				# if displayReportString:
 				# 	Glyphs.showMacroWindow()
 
-			self.w.close() # delete if you want window to stay open
+			self.w.close()  # delete if you want window to stay open
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			import traceback
 			print(traceback.format_exc())
 			Glyphs.showMacroWindow()
+			print(e)
+
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()

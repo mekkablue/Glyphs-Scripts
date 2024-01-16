@@ -1,4 +1,4 @@
-#MenuTitle: BlueFuzzer
+# MenuTitle: BlueFuzzer
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,14 +6,17 @@ Extends all alignment zones (except for the baseline zone that should stay at 0)
 """
 
 import vanilla
+from GlyphsApp import Glyphs
+
 windowHeight = 110
+
 
 class BlueFuzzer(object):
 
 	def __init__(self):
 		self.w = vanilla.FloatingWindow(
 			(300, windowHeight), "BlueFuzzer", minSize=(250, windowHeight), maxSize=(500, windowHeight), autosaveName="com.mekkablue.BlueFuzzer.mainwindow"
-			)
+		)
 
 		self.w.text_1 = vanilla.TextBox((15, 12 + 2, 120, 18), "Extend zones by", sizeStyle='small')
 		self.w.fuzzValue = vanilla.EditText((120, 12, -15, 18), "1", sizeStyle='small')
@@ -64,9 +67,9 @@ class BlueFuzzer(object):
 				for i in range(numOfZones):
 					thisZone = m.alignmentZones[i]
 					factor = 1
-					if thisZone.size < 0: # negative zone
+					if thisZone.size < 0:  # negative zone
 						factor = -1
-					if thisZone.position == 0 and factor == -1: # baseline zone must stay where it is
+					if thisZone.position == 0 and factor == -1:  # baseline zone must stay where it is
 						thisZone.setSize_(thisZone.size + fuzzValue * factor)
 					else:
 						thisZone.setPosition_(thisZone.position - fuzzValue * factor)
@@ -78,5 +81,6 @@ class BlueFuzzer(object):
 			self.w.close()
 		except Exception as e:
 			raise e
+
 
 BlueFuzzer()

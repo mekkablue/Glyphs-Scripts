@@ -1,4 +1,4 @@
-#MenuTitle: New Tabs with Glyphs Not Reaching Into Zones
+# MenuTitle: New Tabs with Glyphs Not Reaching Into Zones
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,7 +6,9 @@ Opens a new tab with all glyphs that do NOT reach into any top or bottom alignme
 """
 
 from collections import OrderedDict
-import vanilla, pprint
+import vanilla
+from GlyphsApp import Glyphs, GSControlLayer
+
 
 class NewTabsWithGlyphsNotReachingIntoZones(object):
 
@@ -14,24 +16,22 @@ class NewTabsWithGlyphsNotReachingIntoZones(object):
 		# Window 'self.w':
 		windowWidth = 350
 		windowHeight = 175
-		windowWidthResize = 300 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 300  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"New Tabs with Glyphs Not Reaching Into Zones", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"New Tabs with Glyphs Not Reaching Into Zones",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 12, 22
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), u"Open tab with glyphs that are not reaching into zones.", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.allMastersInSeparateTabs = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), u"Include All Masters (in Separate Tabs)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.allMastersInSeparateTabs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Include All Masters (in Separate Tabs)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.includeSpecialLayers = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Include Special Layers", value=True, callback=self.SavePreferences, sizeStyle='small')
@@ -106,7 +106,7 @@ class NewTabsWithGlyphsNotReachingIntoZones(object):
 			if not self.SavePreferences(self):
 				print("Note: 'New Tabs with Glyphs Not Reaching Into Zones' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			print("New Tabs with Glyphs Not Reaching Into Zones Report for %s" % thisFont.familyName)
 			print(thisFont.filepath)
 			print()
@@ -174,7 +174,7 @@ class NewTabsWithGlyphsNotReachingIntoZones(object):
 
 						if passMarksTest and passSymbolsTest and passPunctuationTest and passNameTest:
 							if includeSpecialLayers:
-								theseLayers = [l for l in thisGlyph.layers if (l.isSpecialLayer or l.isMasterLayer) and l.associatedMasterId == thisFontMaster.id]
+								theseLayers = [layer for layer in thisGlyph.layers if (layer.isSpecialLayer or layer.isMasterLayer) and layer.associatedMasterId == thisFontMaster.id]
 							else:
 								theseLayers = (thisGlyph.layers[thisFontMaster.id], )
 
@@ -184,7 +184,7 @@ class NewTabsWithGlyphsNotReachingIntoZones(object):
 								isDiacriticCompound = (
 									thisGlyph.category == "Letter" and len(thisLayer.paths) == 0 and len(thisLayer.components) > 0
 									# and thisLayer.components[0].component.category=="Letter"
-									)
+								)
 
 								if thisLayer.bounds.size.height and not isDiacriticCompound:
 									doesNotReachZone = True
@@ -199,9 +199,9 @@ class NewTabsWithGlyphsNotReachingIntoZones(object):
 											if bottomEdge <= thisZone.position and bottomEdge >= (thisZone.position + thisZone.size):
 												doesNotReachZone = False
 									if doesNotReachZone:
-										masterTab.layers.append(thisLayer) # += "/%s" % thisGlyph.name
+										masterTab.layers.append(thisLayer)  # += "/%s" % thisGlyph.name
 
-			self.w.close() # delete if you want window to stay open
+			self.w.close()  # delete if you want window to stay open
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
@@ -215,7 +215,7 @@ class NewTabsWithGlyphsNotReachingIntoZones(object):
 			if not self.SavePreferences(self):
 				print("Note: 'New Tabs with Glyphs Not Reaching Into Zones' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			print("New Tabs with Glyphs Not Reaching Into Zones Report for %s" % thisFont.familyName)
 			print(thisFont.filepath)
 			print()
@@ -251,7 +251,7 @@ class NewTabsWithGlyphsNotReachingIntoZones(object):
 
 					if passMarksTest and passSymbolsTest and passPunctuationTest and passNameTest:
 						if includeSpecialLayers:
-							theseLayers = [l for l in thisGlyph.layers if (l.isSpecialLayer or l.isMasterLayer) and l.associatedMasterId == thisFontMaster.id]
+							theseLayers = [layer for layer in thisGlyph.layers if (layer.isSpecialLayer or layer.isMasterLayer) and layer.associatedMasterId == thisFontMaster.id]
 						else:
 							theseLayers = (thisGlyph.layers[thisFontMaster.id], )
 
@@ -262,18 +262,17 @@ class NewTabsWithGlyphsNotReachingIntoZones(object):
 							isDiacriticCompound = (
 								thisGlyph.category == "Letter" and len(thisLayer.paths) == 0 and len(thisLayer.components) > 0
 								# and thisLayer.components[0].component.category=="Letter"
-								)
+							)
 
 							for zones, isTopZone in ((bottomZones, False), (topZones, True)):
 								for thisZone in zones:
 									zoneType = "bottom"
 									if isTopZone:
 										zoneType = "top"
-									zoneDescription = ("\n\n%s %i+%i:\n" %
-														(zoneType, thisZone.position, thisZone.size)).replace("+-",
-																												"/minus ").replace("-",
-																																	"/minus ").replace("bottom 0", "baseline 0")
-									if not zoneDescription in zoneData.keys():
+									zoneDescription = (
+										"\n\n%s %i+%i:\n" % (zoneType, thisZone.position, thisZone.size)
+									).replace("+-", "/minus ").replace("-", "/minus ").replace("bottom 0", "baseline 0")
+									if zoneDescription not in zoneData.keys():
 										zoneData[zoneDescription] = []
 
 									if thisLayer.bounds.size.height and not isDiacriticCompound:
@@ -313,12 +312,13 @@ class NewTabsWithGlyphsNotReachingIntoZones(object):
 					for thisLayer in layers:
 						masterTab.layers.append(thisLayer)
 
-			self.w.close() # delete if you want window to stay open
+			self.w.close()  # delete if you want window to stay open
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("New Tabs with Glyphs Not Reaching Into Zones Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 NewTabsWithGlyphsNotReachingIntoZones()

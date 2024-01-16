@@ -1,4 +1,4 @@
-#MenuTitle: Remove PS Hints
+# MenuTitle: Remove PS Hints
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Removes PS Hints, selectively or completely.
 """
 
 import vanilla
+from GlyphsApp import Glyphs, STEM, BOTTOMGHOST, TOPGHOST
+
 
 class RemovePSHints(object):
 	wheres = (
@@ -14,21 +16,21 @@ class RemovePSHints(object):
 		"this master",
 		"⚠️ the complete font",
 		"⚠️ all open fonts",
-		)
+	)
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 320
 		windowHeight = 170
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Remove PS Hints", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.RemovePSHints.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Remove PS Hints",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.RemovePSHints.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -47,12 +49,11 @@ class RemovePSHints(object):
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
-		self.w.progress.set(0) # set progress indicator to zero
-		
-		self.w.status = vanilla.TextBox((inset, -16-inset, -inset-120, 14), "", sizeStyle="small", selectable=True)
+		self.w.progress.set(0)  # set progress indicator to zero
+
+		self.w.status = vanilla.TextBox((inset, -16 - inset, -inset - 120, 14), "", sizeStyle="small", selectable=True)
 		linePos += lineHeight
-		
-		
+
 		# Run Button:
 		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Remove Hints", sizeStyle='regular', callback=self.RemovePSHintsMain)
 		self.w.setDefaultButton(self.w.runButton)
@@ -72,8 +73,9 @@ class RemovePSHints(object):
 			Glyphs.defaults["com.mekkablue.RemovePSHints.ghostHints"] = self.w.ghostHints.get()
 			Glyphs.defaults["com.mekkablue.RemovePSHints.where"] = self.w.where.get()
 
-			buttonEnable = Glyphs.defaults["com.mekkablue.RemovePSHints.horizontalStemHints"] or Glyphs.defaults["com.mekkablue.RemovePSHints.verticalStemHints"
-																													] or Glyphs.defaults["com.mekkablue.RemovePSHints.ghostHints"]
+			buttonEnable = Glyphs.defaults["com.mekkablue.RemovePSHints.horizontalStemHints"] or \
+				Glyphs.defaults["com.mekkablue.RemovePSHints.verticalStemHints"] or \
+				Glyphs.defaults["com.mekkablue.RemovePSHints.ghostHints"]
 			self.w.runButton.enable(onOff=buttonEnable)
 		except:
 			return False
@@ -132,14 +134,14 @@ class RemovePSHints(object):
 			if where >= 4:
 				theseFonts = Glyphs.fonts
 			else:
-				theseFonts = (Glyphs.font,)
-			
+				theseFonts = (Glyphs.font, )
+
 			for thisFont in theseFonts:
 				print("Remove PS Hints Report for %s" % thisFont.familyName)
 				if thisFont.filepath:
 					print(thisFont.filepath)
 				print()
-				layers = None
+
 				deletedHintsCount = 0
 				if where == 0:
 					# Current Layer of Selected Glyphs
@@ -164,26 +166,27 @@ class RemovePSHints(object):
 					count = len(objectList)
 					for i, g in enumerate(objectList):
 						self.w.progress.set(i / count * 100)
-						for l in g.layers:
-							if l.associatedMasterId == masterID:
-								deletedHintsCount += self.removeHintsFromLayer(l, horizontalStemHints, verticalStemHints, ghostHints)
+						for layer in g.layers:
+							if layer.associatedMasterId == masterID:
+								deletedHintsCount += self.removeHintsFromLayer(layer, horizontalStemHints, verticalStemHints, ghostHints)
 				else:
 					# the Complete Font
 					objectList = thisFont.glyphs
 					count = len(objectList)
-					for i, g in enumerate(objectList):
+					for i, glyph in enumerate(objectList):
 						self.w.progress.set(i / count * 100 / len(theseFonts))
-						for l in g.layers:
-							deletedHintsCount += self.removeHintsFromLayer(l, horizontalStemHints, verticalStemHints, ghostHints)
+						for layer in glyph.layers:
+							deletedHintsCount += self.removeHintsFromLayer(layer, horizontalStemHints, verticalStemHints, ghostHints)
 
 			# complete progress bar:
 			self.w.progress.set(100)
-			self.w.status.set(f"✅ Removed {deletedHintsCount} hint{'' if {deletedHintsCount}==1 else 's'} in {len(theseFonts)} font{'' if len(theseFonts)==1 else 's'}")
+			self.w.status.set(f"✅ Removed {deletedHintsCount} hint{'' if {deletedHintsCount} == 1 else 's'} in {len(theseFonts)} font{'' if len(theseFonts) == 1 else 's'}")
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Remove PS Hints Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 RemovePSHints()

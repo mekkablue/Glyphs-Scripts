@@ -1,11 +1,14 @@
-#MenuTitle: Build dotted numbers
+# MenuTitle: Build dotted numbers
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Build dotted numbers from your default figures and the period.
 """
 
-from Foundation import NSPoint
+import math
+from Foundation import NSPoint, NSAffineTransform, NSAffineTransformStruct
+from GlyphsApp import Glyphs, GSGlyph, GSComponent
+
 distanceBetweenComponents = 100.0
 
 numberGlyphs = [
@@ -29,13 +32,15 @@ numberGlyphs = [
 	"one_eight_period",
 	"one_nine_period",
 	"two_zero_period",
-	]
+]
+
 
 def unsuffixed(name):
 	if "." in name:
 		return name[:name.find(".")]
 	else:
 		return name
+
 
 def measureLayerAtHeightLeftFromLeftOrRight(thisLayer, height, leftSide=True):
 	try:
@@ -54,6 +59,7 @@ def measureLayerAtHeightLeftFromLeftOrRight(thisLayer, height, leftSide=True):
 	except:
 		return None
 
+
 def minDistanceBetweenTwoLayers(comp1, comp2, interval=5.0):
 	topY = min(comp1.bounds.origin.y + comp1.bounds.size.height, comp2.bounds.origin.y + comp2.bounds.size.height)
 	bottomY = max(comp1.bounds.origin.y, comp2.bounds.origin.y)
@@ -63,13 +69,14 @@ def minDistanceBetweenTwoLayers(comp1, comp2, interval=5.0):
 		height = bottomY + i * interval
 		left = measureLayerAtHeightLeftFromLeftOrRight(comp1, height, leftSide=False)
 		right = measureLayerAtHeightLeftFromLeftOrRight(comp2, height, leftSide=True)
-		try: # avoid gaps like in i or j
+		try:  # avoid gaps like in i or j
 			total = left + right
-			if minDist == None or minDist > total:
+			if minDist is None or minDist > total:
 				minDist = total
 		except:
 			pass
 	return minDist
+
 
 def placeComponentsAtDistance(thisLayer, comp1, comp2, interval=5.0, distance=10.0):
 	thisMaster = thisLayer.associatedFontMaster()
@@ -81,13 +88,14 @@ def placeComponentsAtDistance(thisLayer, comp1, comp2, interval=5.0, distance=10
 	addedSBs = original1.RSB + original2.LSB
 	comp2.x = comp1.x + original1.width - addedSBs + comp2shift
 
+
 def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	"""
 	Returns an NSAffineTransform object for transforming layers.
 	Apply an NSAffineTransform t object like this:
 		Layer.transform_checkForSelection_doComponents_(t,False,True)
 	Access its transformation matrix like this:
-		tMatrix = t.transformStruct() # returns the 6-float tuple
+		tMatrix = t.transformStruct()  # returns the 6-float tuple
 	Apply the matrix tuple like this:
 		Layer.applyTransform(tMatrix)
 		Component.applyTransform(tMatrix)
@@ -112,6 +120,7 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 		myTransform.appendTransform_(skewTransform)
 	return myTransform
 
+
 def process(thisGlyph):
 	parts = unsuffixed(thisGlyph.name).split("_")
 	maxWidth = thisFont.upm
@@ -133,15 +142,16 @@ def process(thisGlyph):
 			if i > 0:
 				placeComponentsAtDistance(thisLayer, thisLayer.components[i - 1], comp, distance=distanceBetweenComponents)
 
-		#thisLayer.decomposeComponents()
+		# thisLayer.decomposeComponents()
 		maxWidth = max(thisLayer.bounds.size.width * 1.1, maxWidth)
 	return maxWidth
 
+
 def postprocess(thisGlyph, scale, shiftUp):
 	for thisLayer in thisGlyph.layers:
-		#thisLayer.decomposeComponents()
-		#for thisComp in thisLayer.components:
-		#	thisComp.makeDisableAlignment()
+		# thisLayer.decomposeComponents()
+		# for thisComp in thisLayer.components:
+		# 	thisComp.makeDisableAlignment()
 		scaleDown = transform(scale=scale).transformStruct()
 		thisLayer.applyTransform(scaleDown)
 		thisLayer.applyTransform(shiftUp)
@@ -149,8 +159,9 @@ def postprocess(thisGlyph, scale, shiftUp):
 		thisLayer.LSB = lsb
 		thisLayer.width = thisFont.upm
 
-thisFont = Glyphs.font # frontmost font
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+
+thisFont = Glyphs.font  # frontmost font
+thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 try:
 	maxWidth = 0.0
 	for name in numberGlyphs:
@@ -161,10 +172,10 @@ try:
 			thisFont.glyphs.append(thisGlyph)
 
 		print("Processing %s" % thisGlyph.name)
-		# thisGlyph.beginUndo() # undo grouping causes crashes
+		# thisGlyph.beginUndo()  # undo grouping causes crashes
 		maxWidth = max(maxWidth, process(thisGlyph))
 		print(maxWidth)
-		# thisGlyph.endUndo() # undo grouping causes crashes
+		# thisGlyph.endUndo()  # undo grouping causes crashes
 
 	print(maxWidth)
 	scale = (thisFont.upm / maxWidth) * 0.95
@@ -172,7 +183,7 @@ try:
 
 	for name in numberGlyphs:
 		thisGlyph = thisFont.glyphs[name]
-		#print "Post-processing %s" % thisGlyph.name
+		# print "Post-processing %s" % thisGlyph.name
 		postprocess(thisGlyph, scale, yShift)
 
 except Exception as e:
@@ -183,4 +194,4 @@ except Exception as e:
 	print()
 	raise e
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

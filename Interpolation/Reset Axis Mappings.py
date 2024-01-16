@@ -1,4 +1,4 @@
-#MenuTitle: Reset Axis Mappings
+# MenuTitle: Reset Axis Mappings
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,7 +6,8 @@ Inserts (or resets) a default Axis Mappings parameter for all style values curre
 """
 
 from Foundation import NSMutableDictionary
-from axisMethods import *
+from axisMethods import extremeMasterValuesNative, nativeMasterExtremes, styleValueForAxisTag
+from GlyphsApp import Glyphs, Message
 
 if Glyphs.versionNumber < 3.0:
 	Message(title="Glyphs Version Error", message="This script requires Glyphs 3.0 or later.", OKButton=None)

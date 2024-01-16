@@ -1,4 +1,4 @@
-#MenuTitle: Resetter
+# MenuTitle: Resetter
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -7,6 +7,8 @@ Resets Quicklook preview, keyboard shortcuts, and clearing out app prefs, saved 
 
 import vanilla
 from os import system
+from GlyphsApp import Glyphs
+
 
 class Resetter(object):
 	prefID = "com.mekkablue.Resetter"
@@ -16,21 +18,21 @@ class Resetter(object):
 		"autosaves",
 		"savedAppState",
 		"preferences",
-		)
+	)
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 230
 		windowHeight = 205
-		windowWidthResize = 0 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 0  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Resetter", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Resetter",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -127,7 +129,7 @@ class Resetter(object):
 
 	def reset_autosaves(self):
 		print("👩🏻‍💻 Resetting autosaves")
-		dir = "~/Library/Autosave\ Information" # system() expects backslash-escaped spaces
+		dir = "~/Library/Autosave\ Information"  # system() expects backslash-escaped spaces
 		return self.terminalCommand('rm -f %s/com.GeorgSeifert*;rm -f %s/*.glyphs;rm -f %s/*.glyphsproject' % (dir, dir, dir))
 
 	def reset_savedAppState(self):
@@ -165,5 +167,6 @@ class Resetter(object):
 			print("Resetter Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 Resetter()

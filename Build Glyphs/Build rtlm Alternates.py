@@ -1,17 +1,19 @@
-#MenuTitle: Build rtlm Alternates
+# MenuTitle: Build rtlm Alternates
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Creates horizontally mirrored composite copies for selected glyphs, and updates the rtlm OpenType feature. Auto-aligns the components, also adds metrics keys that kick in in case you decompose.
 """
 
-import math
-from AppKit import NSAffineTransform, NSAffineTransformStruct
+from AppKit import NSAffineTransform
+from GlyphsApp import Glyphs, GSGlyph, GSComponent, GSFeature
+
 
 def flip():
 	flipTransform = NSAffineTransform.transform()
 	flipTransform.scaleXBy_yBy_(-1, 1)
 	return flipTransform
+
 
 def okToAddToRTLM(glyph):
 	# https://docs.microsoft.com/en-us/typography/opentype/spec/ompl
@@ -38,22 +40,23 @@ def okToAddToRTLM(glyph):
 		"2E21", "2E22", "2E23", "2E24", "2E25", "2E26", "2E27", "2E28", "2E29", "3008", "3009", "300A", "300B", "300C", "300D", "300E", "300F", "3010", "3011", "3014", "3015",
 		"3016", "3017", "3018", "3019", "301A", "301B", "FE59", "FE5A", "FE5B", "FE5C", "FE5D", "FE5E", "FE64", "FE65", "FF08", "FF09", "FF1C", "FF1E", "FF3B", "FF3D", "FF5B",
 		"FF5D", "FF5F", "FF60", "FF62", "FF63"
-		)
+	)
 	if info.unicode and info.unicode in omplUnicodes:
 		return False
 	return True
 
-thisFont = Glyphs.font # frontmost font
-selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+
+thisFont = Glyphs.font  # frontmost font
+selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
 flipTransform = flip()
-Glyphs.clearLog() # clears log in Macro window
+Glyphs.clearLog()  # clears log in Macro window
 print("Building rtlm for: %s\n" % thisFont.familyName)
 
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 
 try:
 	# adding composite glyphs:
-	glyphs = [l.parent for l in selectedLayers] # if not ".rtlm" in l.parent.name]
+	glyphs = [layer.parent for layer in selectedLayers]  # if not ".rtlm" in l.parent.name]
 	count = 0
 	for glyph in glyphs:
 		glyphName = glyph.name
@@ -71,9 +74,13 @@ try:
 			else:
 				count += 1
 				thisFont.glyphs.append(rtlmGlyph)
-				for rtlmLayer in rtlmGlyph.layers:
+
+				for rtlmLayer in rtlmGlyph.layers.values():
 					component = GSComponent(glyphName)
-					rtlmLayer.components.append(component)
+					if Glyphs.versionNumber >= 3:
+						rtlmLayer.shapes.append(component)
+					else:
+						rtlmLayer.components.append(component)  # type: ignore
 					rtlmLayer.transform_checkForSelection_doComponents_(flipTransform, False, True)
 					component.setDisableAlignment_(False)
 
@@ -87,7 +94,7 @@ try:
 	# OT Feature:
 	if count > 0:
 		print("🔠 Updating rtlm OT feature...")
-		if not "rtlm" in [f.name for f in thisFont.features]:
+		if "rtlm" not in [f.name for f in thisFont.features]:
 			rtlmFeature = GSFeature()
 			rtlmFeature.name = "rtlm"
 			thisFont.features.append(rtlmFeature)
@@ -108,8 +115,8 @@ try:
 		"Added %i glyph%s. Details in Macro window." % (
 			count,
 			"" if count == 1 else "s",
-			),
-		)
+		),
+	)
 
 except Exception as e:
 	Glyphs.showMacroWindow()
@@ -119,4 +126,4 @@ except Exception as e:
 	print()
 	raise e
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

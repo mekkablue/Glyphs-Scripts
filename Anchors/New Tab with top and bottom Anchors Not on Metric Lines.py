@@ -1,9 +1,13 @@
-#MenuTitle: New Tab with top and bottom Anchors Not on Metric Lines
+# MenuTitle: New Tab with top and bottom Anchors Not on Metric Lines
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Reports the y positions of top and bottom anchors to the Macro Window if the anchors are not on a metric line (baseline, x-height, etc.). Hold down OPTION and SHIFT to run for all open fonts.
 """
+
+from AppKit import NSEvent, NSEventModifierFlagOption, NSEventModifierFlagShift
+from GlyphsApp import Glyphs, GSControlLayer
+
 
 def isAnchorOffMetrics(thisLayer, thisAnchorName):
 	try:
@@ -20,16 +24,15 @@ def isAnchorOffMetrics(thisLayer, thisAnchorName):
 				thisLayer.parent.name,
 				thisLayer.name,
 				myY,
-				))
+			))
 			return True
-	except Exception as e:
+	except Exception as e:  # noqa: F841
 		return False
 
-from AppKit import NSEvent, NSEventModifierFlagOption, NSEventModifierFlagShift
+
 keysPressed = NSEvent.modifierFlags()
 optionKeyPressed = keysPressed & NSEventModifierFlagOption == NSEventModifierFlagOption
 shiftKeyPressed = keysPressed & NSEventModifierFlagShift == NSEventModifierFlagShift
-
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
@@ -41,7 +44,7 @@ else:
 	fonts = [Glyphs.font]
 
 for thisFont in fonts:
-	thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+	thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 	try:
 		print("Looking for misplaced top/bottom anchors")
 		print(f"Font: {thisFont.familyName}")
@@ -50,11 +53,10 @@ for thisFont in fonts:
 		else:
 			print("⚠️ File not saved yet.")
 		print()
-		
+
 		anchorCount = 0
 
 		# prepare dictionary:
-		collectedLayers = {}
 		for thisAnchorName in anchorsToLookFor:
 			collectedLayers[thisAnchorName] = []
 			collectedLayers["_%s" % thisAnchorName] = []
@@ -105,7 +107,7 @@ for thisFont in fonts:
 			print(f"⚠️ {anchorCount} anchors not on metric lines.\n")
 		else:
 			print(f"🎉 Could not find {' or '.join(anchorsToLookFor)} anchors off metric lines on master layers.\n")
-		
+
 	except Exception as e:
 		Glyphs.showMacroWindow()
 		print("\n⚠️ Error in script: \n")
@@ -114,6 +116,6 @@ for thisFont in fonts:
 		print()
 		raise e
 	finally:
-		thisFont.enableUpdateInterface() # re-enables UI updates in Font View
-	
+		thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+
 print("✅ Done.")

@@ -1,11 +1,14 @@
-#MenuTitle: Convert Master Colors to CPAL Palette
+# MenuTitle: Convert Master Colors to CPAL Palette
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Will look for ‘Master Color’ parameters in the font masters and then create a ‘Color Palettes’ parameter in Font Info > Font with the same color. Will default to black (for missing Master Color parameters). Will add Dark Mode master colors as second palette.
 """
 
-from AppKit import NSHeight, NSColor
+from AppKit import NSColor
+from Foundation import NSHeight, NSMutableArray
+from GlyphsApp import Glyphs
+
 
 def colorForMaster(thisMaster, parameterName="Master Color"):
 	color = thisMaster.customParameters[parameterName]
@@ -15,19 +18,20 @@ def colorForMaster(thisMaster, parameterName="Master Color"):
 	print(f"\t{parameterName}: {color.redComponent():.3f}r {color.greenComponent():.3f}g {color.blueComponent():.3f}b {color.alphaComponent():.3f}a")
 	return color
 
-Glyphs.clearLog() # clears log in Macro window
+
+Glyphs.clearLog()  # clears log in Macro window
 print("Status Report: Convert Master Colors to CPAL Palette")
 if Glyphs.versionNumber < 4:
 	try:
 		splitview = Glyphs.delegate().macroPanelController().consoleSplitView()
 		splitview.setPosition_ofDividerAtIndex_(NSHeight(splitview.frame()) * 0.2, 0)
 	except Exception as e:
-		print("\nFailed resetting the macro panel divider:")
+		print(f"\nFailed resetting the macro panel divider: {e}")
 		import traceback
 		print(traceback.format_exc())
 
-thisFont = Glyphs.font # frontmost font
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+thisFont = Glyphs.font  # frontmost font
+thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 try:
 	paletteColors = []
 	paletteColorsDark = []
@@ -57,4 +61,4 @@ except Exception as e:
 	print()
 	raise e
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

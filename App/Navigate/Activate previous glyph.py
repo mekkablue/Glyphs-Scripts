@@ -1,9 +1,11 @@
-#MenuTitle: Activate previous glyph
+# MenuTitle: Activate previous glyph
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Will activate the previous glyph in Edit view.
 """
+
+from GlyphsApp import Glyphs
 
 font = Glyphs.font
 if font:

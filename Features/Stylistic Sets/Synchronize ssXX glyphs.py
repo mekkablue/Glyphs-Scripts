@@ -1,4 +1,4 @@
-#MenuTitle: Synchronize ssXX glyphs
+# MenuTitle: Synchronize ssXX glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,8 +6,11 @@ Creates missing ssXX glyphs so that you have synchronous groups of ssXX glyphs.
 E.g. you have a.ss01 b.ss01 c.ss01 a.ss02 c.ss02 --> the script creates b.ss02
 """
 
+from GlyphsApp import Glyphs
+
 Font = Glyphs.font
 allGlyphs = [x.name for x in list(Font.glyphs)]
+
 
 def ssXXsuffix(i):
 	"""Turns an integer into an ssXX ending between .ss01 and .ss20, e.g. 5 -> '.ss05'."""
@@ -17,10 +20,12 @@ def ssXXsuffix(i):
 		i = 20
 	return ".ss%0.2d" % i
 
+
 def stripsuffix(glyphname):
 	"""Returns the glyphname without the dot suffix."""
 	dotindex = glyphname.find(".")
 	return glyphname[:dotindex]
+
 
 i = 1
 ssXX_exists = True
@@ -48,12 +53,12 @@ else:
 
 		for YY in range(i):
 			if XX != YY:
-				allGlyphs = [x.name for x in list(Font.glyphs)] # neu holen, Glyphen haben sich u.U. schon geaendert
+				allGlyphs = [x.name for x in list(Font.glyphs)]  # neu holen, Glyphen haben sich u.U. schon geaendert
 
 				for thisglyphname in baseglyphs:
 					targetglyphname = thisglyphname + ssXXsuffix(YY + 1)
 
-					if not targetglyphname in allGlyphs:
+					if targetglyphname not in allGlyphs:
 						sourceglyphname = thisglyphname + ssXXsuffix(XX + 1)
 						sourceglyph = Font.glyphs[sourceglyphname]
 						targetglyph = sourceglyph.copy()

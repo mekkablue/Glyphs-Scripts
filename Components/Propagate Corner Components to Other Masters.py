@@ -1,32 +1,36 @@
-#MenuTitle: Propagate Corner Components to Other Masters
+# MenuTitle: Propagate Corner Components to Other Masters
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Puts Corner Components from the current layer into other master layers, at the same point indexes. Useful if Corner components do not interpolate correctly.
 """
 
-from GlyphsApp import CORNER, SEGMENT, CAP
+from GlyphsApp import Glyphs, CORNER, SEGMENT, CAP
 # from AppKit import NSNotificationCenter
 SUPPORTEDTYPES = (CORNER, SEGMENT, CAP)
 
-def indexOfPath(l, p):
-	for i in range(len(l.paths)):
-		if p == l.paths[i]:
+
+def indexOfPath(layer, p):
+	for i in range(len(layer.paths)):
+		if p == layer.paths[i]:
 			return i
 	return None
 
-def indexOfNode(l, pi, n):
-	for i in range(len(l.paths[pi].nodes)):
-		if n == l.paths[pi].nodes[i]:
+
+def indexOfNode(layer, pi, n):
+	for i in range(len(layer.paths[pi].nodes)):
+		if n == layer.paths[pi].nodes[i]:
 			return i
 	return None
 
-def deleteCornerComponentsOnLayer(l):
-	cornerComponents = [h for h in l.hints if h.type in SUPPORTEDTYPES]
+
+def deleteCornerComponentsOnLayer(layer):
+	cornerComponents = [h for h in layer.hints if h.type in SUPPORTEDTYPES]
 	if cornerComponents:
 		for i in range(len(cornerComponents))[::-1]:
 			h = cornerComponents[i]
-			l.removeHint_(h)
+			layer.removeHint_(h)
+
 
 def pathStructure(thisLayer):
 	layerString = ""
@@ -36,9 +40,10 @@ def pathStructure(thisLayer):
 			layerString += thisNode.type[0]
 	return layerString
 
+
 def process(thisLayer):
 	thisGlyph = thisLayer.parent
-	targetLayers = [l for l in thisGlyph.layers if l != thisLayer and pathStructure(l) == pathStructure(thisLayer)]
+	targetLayers = [layer for layer in thisGlyph.layers if layer != thisLayer and pathStructure(layer) == pathStructure(thisLayer)]
 	for targetLayer in targetLayers:
 		deleteCornerComponentsOnLayer(targetLayer)
 		for h in [h for h in thisLayer.hints if h.type in SUPPORTEDTYPES]:
@@ -49,21 +54,21 @@ def process(thisLayer):
 			# create eqivalent corner component in target layer:
 			newCorner = h.copy()
 			targetLayer.hints.append(newCorner)
-	
 
-thisFont = Glyphs.font # frontmost font
-thisFontMaster = thisFont.selectedFontMaster # active master
-selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+
+thisFont = Glyphs.font  # frontmost font
+thisFontMaster = thisFont.selectedFontMaster  # active master
+selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
 
 if thisFont and selectedLayers:
-	thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+	thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 	try:
 		for thisLayer in selectedLayers:
 			thisGlyph = thisLayer.parent
 			print("Processing", thisGlyph.name)
-			# thisGlyph.beginUndo() # undo grouping causes crashes
+			# thisGlyph.beginUndo()  # undo grouping causes crashes
 			process(thisLayer)
-			# thisGlyph.endUndo() # undo grouping causes crashes
+			# thisGlyph.endUndo()  # undo grouping causes crashes
 
 	except Exception as e:
 		Glyphs.showMacroWindow()
@@ -74,7 +79,7 @@ if thisFont and selectedLayers:
 		raise e
 
 	finally:
-		thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+		thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
 		if Glyphs.versionNumber < 3 and thisFont.currentTab:
 			thisFont.currentTab.redraw()
 			# NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)

@@ -1,4 +1,4 @@
-#MenuTitle: Build Positional Feature
+# MenuTitle: Build Positional Feature
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Create or update OpenType feature code for positional forms (isolated, initial, 
 """
 
 import vanilla
+from GlyphsApp import Glyphs, GSFeature, GSClass, Message
+
 
 def updatedCode(oldcode, beginsig, endsig, newcode):
 	"""Replaces text in oldcode with newcode, but only between beginsig and endsig."""
@@ -13,6 +15,7 @@ def updatedCode(oldcode, beginsig, endsig, newcode):
 	end_offset = oldcode.find(endsig) + len(endsig)
 	newcode = oldcode[:begin_offset] + beginsig + newcode + "\n" + endsig + oldcode[end_offset:]
 	return newcode
+
 
 def createOTFeature(featureName="calt", featureCode="# empty feature code", targetFont=None, codeSig="DEFAULT-CODE-SIGNATURE", createSeparateEntry=False):
 	"""
@@ -37,10 +40,10 @@ def createOTFeature(featureName="calt", featureCode="# empty feature code", targ
 				len(featuresWithSig),
 				"" if len(featuresWithSig) == 1 else "s",
 				featureName,
-				)
+			)
 		elif featureExists and not createSeparateEntry:
 			# feature already exists:
-			targetFeature = targetFont.features[featureName] # take the first available one
+			targetFeature = targetFont.features[featureName]  # take the first available one
 			targetFeature.code += "\n" + beginSig + featureCode + "\n" + endSig
 			returnText = "✅ Added code to first available OT feature ‘%s’." % featureName
 		else:
@@ -53,6 +56,7 @@ def createOTFeature(featureName="calt", featureCode="# empty feature code", targ
 	else:
 		return "🛑 ERROR: Could not create OT feature %s. No font detected." % (featureName)
 
+
 def createOTClass(className="@default", classGlyphNames=[], targetFont=None, automate=False):
 	"""
 	Creates an OpenType class in the font.
@@ -61,7 +65,7 @@ def createOTClass(className="@default", classGlyphNames=[], targetFont=None, aut
 	"""
 
 	if targetFont and (classGlyphNames or automate):
-		className = className.lstrip("@") # strip '@' from beginning
+		className = className.lstrip("@")  # strip '@' from beginning
 		classCode = " ".join(classGlyphNames)
 		otClass = None
 
@@ -93,6 +97,7 @@ def createOTClass(className="@default", classGlyphNames=[], targetFont=None, aut
 	else:
 		return "🛑 ERROR: Could not create OT class %s. Missing either font or glyph names, or both." % (className)
 
+
 class BuildPositionalFeature(object):
 	prefDomain = "com.mekkablue.BuildPositionalFeature"
 	title = "Build Positional Feature"
@@ -101,23 +106,21 @@ class BuildPositionalFeature(object):
 		# Window 'self.w':
 		windowWidth = 365
 		windowHeight = 225
-		windowWidthResize = 500 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 500  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			self.title, # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domainForPref("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			self.title,  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domainForPref("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 		tabIndent = 140
 
-		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, 14), "Build or update code for initial, medial, final and isolated forms", sizeStyle='small', selectable=True
-			)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Build or update code for initial, medial, final and isolated forms", sizeStyle='small', selectable=True)
 		linePos += lineHeight + 2
 
 		self.w.targetFeatureText = vanilla.TextBox((inset, linePos + 3, tabIndent, 14), "Target feature (tag):", sizeStyle='small', selectable=True)
@@ -155,20 +158,12 @@ class BuildPositionalFeature(object):
 		self.w.targetSuffixUpdate.getNSButton().setToolTip_("Reset to defaults: ‘Sub’")
 		linePos += lineHeight
 
-		self.w.automateAllLetters = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), "Automate ‘AllLetters’ feature class", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.automateAllLetters.getNSButton().setToolTip_(
-			"The @AllLetters OpenType class can be automated (and thus, automatically kept up to date) by Glyphs. Enabling this option will add this class with the ‘Generate automatically’ option ON. Strongly recommended."
-			)
+		self.w.automateAllLetters = vanilla.CheckBox((inset, linePos, -inset, 20), "Automate ‘AllLetters’ feature class", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.automateAllLetters.getNSButton().setToolTip_("The @AllLetters OpenType class can be automated (and thus, automatically kept up to date) by Glyphs. Enabling this option will add this class with the ‘Generate automatically’ option ON. Strongly recommended.")
 		linePos += lineHeight
 
-		self.w.separateFeatureEntry = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), "Separate feature entry (i.e. do not reuse existing feature)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.separateFeatureEntry.getNSButton().setToolTip_(
-			"If this option is enabled and the target feature already exists in Font Info → Features, will create a new entry with the same feature tag, rather than append the code to an existing feature entry."
-			)
+		self.w.separateFeatureEntry = vanilla.CheckBox((inset, linePos, -inset, 20), "Separate feature entry (i.e. do not reuse existing feature)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.separateFeatureEntry.getNSButton().setToolTip_("If this option is enabled and the target feature already exists in Font Info → Features, will create a new entry with the same feature tag, rather than append the code to an existing feature entry.")
 		linePos += lineHeight
 
 		# Run Button:
@@ -255,7 +250,7 @@ class BuildPositionalFeature(object):
 			if not self.SavePreferences():
 				print("Note: ‘%s’ could not write preferences." % self.title)
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -305,7 +300,7 @@ class BuildPositionalFeature(object):
 					classGlyphNames=allLetterNames,
 					targetFont=thisFont,
 					automate=automateAllLetters,
-					))
+				))
 				classCount = 1
 
 				# build ignore statements
@@ -314,7 +309,7 @@ class BuildPositionalFeature(object):
 					"init": "ignore sub @%s @init%s';" % (anyLetterClassName, extensionDef),
 					"fina": "ignore sub @fina%s' @%s;" % (extensionDef, anyLetterClassName),
 					"medi": "sub @%s @medi%s' @%s by @medi%s;" % (anyLetterClassName, extensionDef, anyLetterClassName, extensionSub),
-					}
+				}
 
 				positionalFeatureCode = "\n"
 				for suffixKey in suffixKeys:
@@ -322,12 +317,12 @@ class BuildPositionalFeature(object):
 					dotSuffix = "." + thisSuffix.strip(".")
 					dotSuffixLength = len(dotSuffix)
 					theseSuffixedGlyphNames = [
-						g.name for g in thisFont.glyphs if dotSuffix in g.name # glyph has suffix
-						and g.export # suffixed glyph exports
-						and thisFont.glyphs[g.name.replace(dotSuffix, "")] is not None # unsuffixed counterpart exists
-						and thisFont.glyphs[g.name.replace(dotSuffix, "")].export # unsuffixed glyph exports
-						]
-					theseSuffixedGlyphNames = list(set(theseSuffixedGlyphNames)) # make sure every glyph is unique
+						g.name for g in thisFont.glyphs if dotSuffix in g.name  # glyph has suffix
+						and g.export  # suffixed glyph exports
+						and thisFont.glyphs[g.name.replace(dotSuffix, "")] is not None  # unsuffixed counterpart exists
+						and thisFont.glyphs[g.name.replace(dotSuffix, "")].export  # unsuffixed glyph exports
+					]
+					theseSuffixedGlyphNames = list(set(theseSuffixedGlyphNames))  # make sure every glyph is unique
 					theseUnsuffixedGlyphNames = [n.replace(dotSuffix, "") for n in theseSuffixedGlyphNames]
 
 					print("\n\t🔠 Found %i glyphs with a %s suffix, and %i unsuffixed counterparts." % (len(theseSuffixedGlyphNames), dotSuffix, len(theseUnsuffixedGlyphNames)))
@@ -349,7 +344,7 @@ class BuildPositionalFeature(object):
 								extensionDef,
 								suffixKey,
 								extensionSub,
-								)
+							)
 						else:
 							ignoreSubstitution = ""
 
@@ -369,12 +364,12 @@ class BuildPositionalFeature(object):
 						targetFont=thisFont,
 						codeSig="POSITIONAL ALTERNATES",
 						createSeparateEntry=separateFeatureEntry,
-						)
 					)
+				)
 
 				# close script window and update features:
 				self.w.close()
-				#thisFont.updateFeatures()
+				# thisFont.updateFeatures()
 				thisFont.compileFeatures()
 
 			# Final report:
@@ -384,8 +379,8 @@ class BuildPositionalFeature(object):
 					len(positionalFeatureCode.splitlines()),
 					positionalFeature,
 					classCount,
-					),
-				)
+				),
+			)
 			print("\nDone.")
 
 		except Exception as e:
@@ -394,5 +389,6 @@ class BuildPositionalFeature(object):
 			print("‘%s’ Error: %s" % (self.title, e))
 			import traceback
 			print(traceback.format_exc())
+
 
 BuildPositionalFeature()

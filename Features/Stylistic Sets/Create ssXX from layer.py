@@ -1,13 +1,16 @@
-#MenuTitle: Create .ssXX glyph from current layer
+# MenuTitle: Create .ssXX glyph from current layer
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Takes the currently opened layers and creates new glyphs with the first available .ssXX ending. It marks the new glyph blue, and (in a multiple-master file) all other, unprocessed master layers orange.
 """
 
+from GlyphsApp import Glyphs, GSGlyph
+
 thisFont = Glyphs.font
 allGlyphNames = [x.name for x in thisFont.glyphs]
 selectedLayers = thisFont.selectedLayers
+
 
 def findSuffix(glyphName):
 	nameIsFree = False
@@ -21,6 +24,7 @@ def findSuffix(glyphName):
 			nameIsFree = True
 
 	return targetSuffix
+
 
 def process(sourceLayer):
 	# find suffix
@@ -54,6 +58,7 @@ def process(sourceLayer):
 		print(traceback.format_exc())
 
 	print("Created %s" % targetGlyphName)
+
 
 for thisLayer in selectedLayers:
 	process(thisLayer)

@@ -1,4 +1,4 @@
-#MenuTitle: Fix Arabic Anchor Ordering in Ligatures
+# MenuTitle: Fix Arabic Anchor Ordering in Ligatures
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,9 +6,13 @@ Fix the order of top_X and bottom_X anchors to RTL.
 """
 
 from Foundation import NSPoint
+from GlyphsApp import Glyphs, GSAnchor
+
+
 Font = Glyphs.font
 FontMaster = Font.selectedFontMaster
 selectedLayers = Font.selectedLayers
+
 
 def makeAnchor(thisLayer, anchorName, x, y):
 	thisAnchorPosition = NSPoint()
@@ -21,14 +25,17 @@ def makeAnchor(thisLayer, anchorName, x, y):
 
 	print("-- %s (%.1f, %.1f)" % (thisAnchorName, thisAnchorPosition.x, thisAnchorPosition.y))
 
+
 def addListOfAnchors(thisLayer, baseName, listOfCoordinates):
 	for i in range(len(listOfCoordinates)):
 		currCoord = listOfCoordinates[i]
 		makeAnchor(thisLayer, "%s_%i" % (baseName, i + 1), currCoord[0], currCoord[1])
 
+
 def deleteAnchors(listOfAnchors):
 	for i in range(len(listOfAnchors))[::-1]:
 		del listOfAnchors[i]
+
 
 def process(thisLayer):
 	topAnchors = [a for a in thisLayer.anchors if "top_" in a.name]
@@ -41,6 +48,7 @@ def process(thisLayer):
 
 	addListOfAnchors(thisLayer, "top", topAnchorCoords)
 	addListOfAnchors(thisLayer, "bottom", bottomAnchorCoords)
+
 
 Font.disableUpdateInterface()
 try:

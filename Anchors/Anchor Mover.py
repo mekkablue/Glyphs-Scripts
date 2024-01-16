@@ -1,13 +1,16 @@
-#MenuTitle: Anchor Mover
+# MenuTitle: Anchor Mover
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Batch-process anchor positions in selected glyphs (GUI).
 """
 
-import vanilla, math
+import vanilla
+import math
 from Foundation import NSPoint
 from AppKit import NSAffineTransform, NSAffineTransformStruct
+from GlyphsApp import Glyphs, GSOFFCURVE, Message
+
 
 def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	"""
@@ -15,7 +18,7 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	Apply an NSAffineTransform t object like this:
 		Layer.transform_checkForSelection_doComponents_(t,False,True)
 	Access its transformation matrix like this:
-		tMatrix = t.transformStruct() # returns the 6-float tuple
+		tMatrix = t.transformStruct()  # returns the 6-float tuple
 	Apply the matrix tuple like this:
 		Layer.applyTransform(tMatrix)
 		Component.applyTransform(tMatrix)
@@ -40,6 +43,7 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 		myTransform.appendTransform_(skewTransform)
 	return myTransform
 
+
 def italicize(thisPoint, italicAngle=0.0, pivotalY=0.0):
 	"""
 	Returns the italicized position of an NSPoint 'thisPoint'
@@ -48,12 +52,13 @@ def italicize(thisPoint, italicAngle=0.0, pivotalY=0.0):
 	Usage: myPoint = italicize(myPoint,10,xHeight*0.5)
 	"""
 	x = thisPoint.x
-	yOffset = thisPoint.y - pivotalY # calculate vertical offset
-	italicAngle = math.radians(italicAngle) # convert to radians
-	tangens = math.tan(italicAngle) # math.tan needs radians
-	horizontalDeviance = tangens * yOffset # vertical distance from pivotal point
-	x += horizontalDeviance # x of point that is yOffset from pivotal point
+	yOffset = thisPoint.y - pivotalY  # calculate vertical offset
+	italicAngle = math.radians(italicAngle)  # convert to radians
+	tangens = math.tan(italicAngle)  # math.tan needs radians
+	horizontalDeviance = tangens * yOffset  # vertical distance from pivotal point
+	x += horizontalDeviance  # x of point that is yOffset from pivotal point
 	return NSPoint(x, thisPoint.y)
+
 
 def highestNodeInLayer(layer):
 	highest = None
@@ -64,6 +69,7 @@ def highestNodeInLayer(layer):
 					highest = n
 	return highest
 
+
 def lowestNodeInLayer(layer):
 	lowest = None
 	for p in layer.paths:
@@ -72,6 +78,7 @@ def lowestNodeInLayer(layer):
 				if lowest is None or lowest.y > n.y:
 					lowest = n
 	return lowest
+
 
 def rightmostNodeInLayer(layer):
 	rightmost = None
@@ -82,6 +89,7 @@ def rightmostNodeInLayer(layer):
 					rightmost = n
 	return rightmost
 
+
 def leftmostNodeInLayer(layer):
 	leftmost = None
 	for p in layer.paths:
@@ -90,6 +98,7 @@ def leftmostNodeInLayer(layer):
 				if leftmost is None or leftmost.x > n.x:
 					leftmost = n
 	return leftmost
+
 
 listHorizontal = (
 	("current position", "copyAnchor.x"),
@@ -101,7 +110,7 @@ listHorizontal = (
 	("bbox right edge", "copyLayer.fastBounds().origin.x + copyLayer.bofastBounds()unds.size.width"),
 	("highest node", "highestNodeInLayer(copyLayer).x"),
 	("lowest node", "lowestNodeInLayer(copyLayer).x"),
-	)
+)
 
 listVertical = (
 	("current position", "copyAnchor.y"),
@@ -120,12 +129,14 @@ listVertical = (
 	("bbox bottom", "copyLayer.fastBounds().origin.y"),
 	("leftmost node", "leftmostNodeInLayer(copyLayer).y"),
 	("rightmost node", "rightmostNodeInLayer(copyLayer).y"),
-	)
+)
+
 
 def italicSkew(x, y, angle=10.0):
 	"""Skews x/y along the x axis and returns skewed x value."""
 	new_angle = (angle / 180.0) * math.pi
 	return x + y * math.tan(new_angle)
+
 
 class AnchorMover2(object):
 	prefID = "com.mekkablue.AnchorMover2"
@@ -158,9 +169,7 @@ class AnchorMover2(object):
 		self.w.italic = vanilla.CheckBox((inset, linePos, -inset, 18), "Respect italic angle", value=True, sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.allMasters = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), u"All masters and special layers (otherwise only current masters)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.allMasters = vanilla.CheckBox((inset, linePos, -inset, 20), u"All masters and special layers (otherwise only current masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.moveButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Move", sizeStyle='regular', callback=self.MoveCallback)
@@ -254,7 +263,7 @@ class AnchorMover2(object):
 			print("Processing %i glyph%s..." % (
 				len(selectedLayers),
 				"" if len(selectedLayers) == 1 else "s",
-				))
+			))
 			thisFont.disableUpdateInterface()
 			try:
 				for selectedLayer in selectedLayers:
@@ -262,7 +271,7 @@ class AnchorMover2(object):
 					if selectedGlyph:
 						print("\n🔠 %s" % selectedGlyph.name)
 						if allMasters:
-							originalLayers = tuple([l for l in selectedGlyph.layers if l.isMasterLayer or l.isSpecialLayer])
+							originalLayers = tuple([layer for layer in selectedGlyph.layers if layer.isMasterLayer or layer.isSpecialLayer])
 						else:
 							originalLayers = (selectedLayer, )
 
@@ -283,7 +292,7 @@ class AnchorMover2(object):
 								# create a layer copy that can be slanted backwards if necessary
 								copyLayer = originalLayer.copyDecomposedLayer()
 								copyLayer.decomposeCorners()
-								# thisGlyph.beginUndo() # undo grouping causes crashes
+								# thisGlyph.beginUndo()  # undo grouping causes crashes
 
 								try:
 									if italicAngle and respectItalic:
@@ -339,7 +348,7 @@ class AnchorMover2(object):
 		selectedLayers = Glyphs.currentDocument.selectedLayers()
 		try:
 			for thisLayer in selectedLayers:
-				AnchorNames = list(thisLayer.anchors.keys()) # hack to avoid traceback
+				AnchorNames = list(thisLayer.anchors.keys())  # hack to avoid traceback
 				for thisAnchorName in AnchorNames:
 					if thisAnchorName not in myAnchorList:
 						myAnchorList.append(thisAnchorName)
@@ -351,5 +360,6 @@ class AnchorMover2(object):
 	def SetAnchorNames(self, sender):
 		anchorList = self.GetAnchorNames()
 		self.w.anchor_name.setItems(anchorList)
+
 
 AnchorMover2()

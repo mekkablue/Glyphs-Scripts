@@ -1,4 +1,4 @@
-#MenuTitle: Copy Download URL for Current App Version
+# MenuTitle: Copy Download URL for Current App Version
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Puts the download URL of the current Glyphs app version into your clipboard for 
 """
 
 from AppKit import NSPasteboard, NSStringPboardType
+from GlyphsApp import Glyphs, Message
+
 
 def setClipboard(myText):
 	"""
@@ -17,13 +19,14 @@ def setClipboard(myText):
 		myClipboard.declareTypes_owner_([NSStringPboardType], None)
 		myClipboard.setString_forType_(myText, NSStringPboardType)
 		return True
-	except Exception as e:
+	except Exception as e:  # noqa: F841
 		return False
+
 
 appURL = "https://updates.glyphsapp.com/Glyphs%s-%i.zip" % (
 	Glyphs.versionString,
 	Glyphs.buildNumber,
-	)
+)
 
 if not setClipboard(appURL):
 	print("Warning: could not set clipboard to %s" % ("clipboard text"))
@@ -33,4 +36,4 @@ else:
 	Glyphs.showNotification(
 		"Download link copied",
 		"Ready for pasting: %s" % appURL,
-		)
+	)

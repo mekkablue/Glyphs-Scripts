@@ -1,4 +1,4 @@
-#MenuTitle: New Tab with Uneven Handle Distributions
+# MenuTitle: New Tab with Uneven Handle Distributions
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -7,6 +7,8 @@ Finds glyphs where handle distributions change too much (e.g., from balanced to 
 
 import vanilla
 from Foundation import NSPoint
+from GlyphsApp import Glyphs, CURVE, Message, distance
+
 
 def intersectionWithNSPoints(pointA, pointB, pointC, pointD, includeMidBcp=False):
 	"""
@@ -62,9 +64,11 @@ def intersectionWithNSPoints(pointA, pointB, pointC, pointD, includeMidBcp=False
 		print(traceback.format_exc())
 		return None
 
+
 def bezierWithPoints(A, B, C, D, t):
 	x, y = bezier(A.x, A.y, B.x, B.y, C.x, C.y, D.x, D.y, t)
 	return NSPoint(x, y)
+
 
 def bezier(x1, y1, x2, y2, x3, y3, x4, y4, t):
 	"""
@@ -77,6 +81,7 @@ def bezier(x1, y1, x2, y2, x3, y3, x4, y4, t):
 
 	return x, y
 
+
 def bothPointsAreOnSameSideOfOrigin(pointA, pointB, pointOrigin):
 	returnValue = True
 	xDiff = (pointA.x - pointOrigin.x) * (pointB.x - pointOrigin.x)
@@ -84,6 +89,7 @@ def bothPointsAreOnSameSideOfOrigin(pointA, pointB, pointOrigin):
 	if xDiff <= 0.0 and yDiff <= 0.0:
 		returnValue = False
 	return returnValue
+
 
 def pointIsBetweenOtherPoints(thisPoint, otherPointA, otherPointB):
 	returnValue = False
@@ -105,11 +111,13 @@ def pointIsBetweenOtherPoints(thisPoint, otherPointA, otherPointB):
 
 	return returnValue
 
+
 def divideAndTolerateZero(dividend, divisor):
 	if float(divisor) == 0.0:
 		return None
 	else:
 		return dividend / divisor
+
 
 class NewTabWithUnevenHandleDistributions(object):
 
@@ -117,24 +125,19 @@ class NewTabWithUnevenHandleDistributions(object):
 		# Window 'self.w':
 		windowWidth = 310
 		windowHeight = 170
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"New Tab with Uneven Handle Distributions", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.NewTabWithUnevenHandleDistributions.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"New Tab with Uneven Handle Distributions",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.NewTabWithUnevenHandleDistributions.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 12, 22
-		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, lineHeight * 2),
-			"Finds compatible glyphs with curve segments in which the handle distribution changes too much:",
-			sizeStyle='small',
-			selectable=True
-			)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, lineHeight * 2), "Finds compatible glyphs with curve segments in which the handle distribution changes too much:", sizeStyle='small', selectable=True)
 		linePos += int(lineHeight * 1.8)
 
 		self.w.factorChange = vanilla.CheckBox((inset, linePos, 230, 20), "Tolerated change factor (BCP1÷BCP2):", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -144,15 +147,11 @@ class NewTabWithUnevenHandleDistributions(object):
 		self.w.factorChangeEntry.getNSTextField().setToolTip_(factorChangeTooltipText)
 		linePos += lineHeight
 
-		self.w.anyMaxToNotMax = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), "Any handle that changes from 100% to non-100%", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.anyMaxToNotMax = vanilla.CheckBox((inset, linePos, -inset, 20), "Any handle that changes from 100% to non-100%", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.anyMaxToNotMax.getNSButton().setToolTip_("Finds BCPs that are maximized (100%) in one master, but not in other masters.")
 		linePos += lineHeight
 
-		self.w.markInFirstMaster = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), "Mark affected curve segments in first master", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.markInFirstMaster = vanilla.CheckBox((inset, linePos, -inset, 20), "Mark affected curve segments in first master", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.markInFirstMaster.enable(False)
 		self.w.markInFirstMaster.getNSButton().setToolTip_("Not implemented yet. Sorry.")
 		linePos += lineHeight
@@ -238,15 +237,14 @@ class NewTabWithUnevenHandleDistributions(object):
 			if not self.SavePreferences(self):
 				print("Note: 'New Tab with Uneven Handle Distributions' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 
 			if not thisFont or not len(thisFont.masters) > 1:
 				Message(
 					title="Uneven Handle Distribution Error",
-					message=
-					"This script requires a multiple-master font, because it measures the difference between BCP distributions of a curve segment in one master to the same curve in other masters.",
+					message="This script requires a multiple-master font, because it measures the difference between BCP distributions of a curve segment in one master to the same curve in other masters.",
 					OKButton="Oops, OK"
-					)
+				)
 			else:
 				Glyphs.clearLog()
 				print("New Tab with Uneven Handle Distributions\nReport for %s" % thisFont.familyName)
@@ -264,17 +262,17 @@ class NewTabWithUnevenHandleDistributions(object):
 				print("Found %i compatible glyph%s." % (
 					len(glyphs),
 					"" if len(glyphs) == 1 else "s",
-					))
+				))
 
 				affectedGlyphs = []
 				for thisGlyph in glyphs:
 					firstLayer = thisGlyph.layers[0]
 					if firstLayer.paths:
 						otherLayers = [
-							l for l in thisGlyph.layers if l != firstLayer and (l.isMasterLayer or l.isSpecialLayer) and thisGlyph.mastersCompatibleForLayers_((l, firstLayer))
-							]
+							layer for layer in thisGlyph.layers if layer != firstLayer and (layer.isMasterLayer or layer.isSpecialLayer) and thisGlyph.mastersCompatibleForLayers_((layer, firstLayer))
+						]
 						for i, firstPath in enumerate(firstLayer.paths):
-							if not thisGlyph.name in affectedGlyphs and not markInFirstMaster:
+							if thisGlyph.name not in affectedGlyphs and not markInFirstMaster:
 								for j, firstNode in enumerate(firstPath.nodes):
 									if firstNode.type == CURVE:
 										indexPrevNode = (j - 3) % len(firstPath.nodes)
@@ -290,7 +288,7 @@ class NewTabWithUnevenHandleDistributions(object):
 											if shouldCheckFactorChange:
 												firstFactor = self.factor(firstPrevNode, firstBCP1, firstBCP2, firstNode, firstIntersection)
 												if self.factorChangeIsTooBig(maxFactorChange, firstFactor, i, indexPrevNode, indexBCP1, indexBCP2, j, otherLayers):
-													if not thisGlyph.name in affectedGlyphs:
+													if thisGlyph.name not in affectedGlyphs:
 														affectedGlyphs.append(thisGlyph.name)
 													if markInFirstMaster:
 														centerPoint = bezierWithPoints(firstPrevNode, firstBCP1, firstBCP2, firstNode, 0.5)
@@ -300,7 +298,7 @@ class NewTabWithUnevenHandleDistributions(object):
 											if shouldCheckAnyMaxToNotMax:
 												firstBCPsMaxed = (firstBCP1.position == firstIntersection, firstBCP2.position == firstIntersection)
 												if not self.isMaxTheSameEverywhere(firstBCPsMaxed, i, indexPrevNode, indexBCP1, indexBCP2, j, otherLayers):
-													if not thisGlyph.name in affectedGlyphs:
+													if thisGlyph.name not in affectedGlyphs:
 														affectedGlyphs.append(thisGlyph.name)
 													if markInFirstMaster:
 														centerPoint = bezierWithPoints(firstPrevNode, firstBCP1, firstBCP2, firstNode, 0.5)
@@ -317,14 +315,15 @@ class NewTabWithUnevenHandleDistributions(object):
 					Glyphs.showNotification(
 						"Handle Distribution %s" % (thisFont.familyName),
 						"Found no uneven BCP distributions in the font.",
-						)
+					)
 
-				self.w.close() # delete if you want window to stay open
+				self.w.close()  # delete if you want window to stay open
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("New Tab with Uneven Handle Distributions Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 NewTabWithUnevenHandleDistributions()

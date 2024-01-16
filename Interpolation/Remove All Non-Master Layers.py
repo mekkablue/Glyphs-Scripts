@@ -1,12 +1,15 @@
-#MenuTitle: Remove All Non-Master Layers
+# MenuTitle: Remove All Non-Master Layers
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Goes through selected glyphs and deletes all glyph layers which are not a Master, Bracket or Brace layer.
 """
 
+from GlyphsApp import Glyphs
+
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
+
 
 def process(thisGlyph):
 	count = 0
@@ -20,7 +23,8 @@ def process(thisGlyph):
 				del thisGlyph.layers[i]
 	return count
 
-Glyphs.clearLog() # clears macro window log
+
+Glyphs.clearLog()  # clears macro window log
 
 excludedGlyphNameBeginnings = ("_smart", "_part")
 for thisLayer in selectedLayers:
@@ -33,10 +37,10 @@ for thisLayer in selectedLayers:
 			nameIsAnException = True
 
 	if not nameIsAnException:
-		# thisGlyph.beginUndo() # undo grouping causes crashes
+		# thisGlyph.beginUndo()  # undo grouping causes crashes
 		count = process(thisGlyph)
 		if count > 0:
 			print("%s layers deleted in %s." % (count, thisGlyphName))
-		# thisGlyph.endUndo() # undo grouping causes crashes
+		# thisGlyph.endUndo()  # undo grouping causes crashes
 	else:
 		print("Smart layers kept in %s." % (thisGlyphName))

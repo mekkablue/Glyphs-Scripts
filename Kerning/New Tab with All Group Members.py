@@ -1,11 +1,13 @@
-#MenuTitle: New Tab with all Group Members
+# MenuTitle: New Tab with all Group Members
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Select two glyphs, e.g. ‘Ta’ (or place your cursor between them), run the script, it will give you a new tab with all combinations of the ‘T’ kerning group with the ‘a’ kerning group.
 """
 
-thisFont = Glyphs.font # frontmost font
+from GlyphsApp import Glyphs, Message
+
+thisFont = Glyphs.font  # frontmost font
 tab = thisFont.currentTab
 tabString = ""
 listOfSelectedLayers = thisFont.selectedLayers
@@ -42,4 +44,4 @@ else:
 		title="Invalid Glyph Selection",
 		message="This script needs exactly two glyphs selected, it will use the right kerning group of the left glyph, and vice versa. Select two glyphs and try again.",
 		OKButton=None
-		)
+	)

@@ -1,4 +1,4 @@
-#MenuTitle: Decompose Corner and Cap Components
+# MenuTitle: Decompose Corner and Cap Components
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,32 +6,37 @@ Recreates the current paths without caps or components. Hold down SHIFT to decom
 """
 
 from AppKit import NSEvent, NSShiftKeyMask
+from GlyphsApp import Glyphs
+
 keysPressed = NSEvent.modifierFlags()
 shiftKeyPressed = keysPressed & NSShiftKeyMask == NSShiftKeyMask
 
-thisFont = Glyphs.font # frontmost font
+thisFont = Glyphs.font  # frontmost font
+
 
 def decomposeCornerAndCapComponentsOnLayer(thisLayer):
 	thisLayer.decomposeSmartOutlines()
-	thisLayer.cleanUpPaths() # duplicate nodes at startpoint
+	thisLayer.cleanUpPaths()  # duplicate nodes at startpoint
+
 
 def decomposeCornerAndCapComponentsOnAllLayersOfGlyph(thisGlyph):
 	for thisLayer in thisGlyph.layers:
 		if thisLayer.isSpecialLayer or thisLayer.isMasterLayer:
 			decomposeCornerAndCapComponentsOnLayer(thisLayer)
 
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+
+thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 try:
-	selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+	selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
 	for thisLayer in selectedLayers:
 		thisGlyph = thisLayer.parent
 		print("Processing", thisGlyph.name)
-		# thisGlyph.beginUndo() # undo grouping causes crashes
+		# thisGlyph.beginUndo()  # undo grouping causes crashes
 		if shiftKeyPressed:
 			decomposeCornerAndCapComponentsOnAllLayersOfGlyph(thisGlyph)
 		else:
 			decomposeCornerAndCapComponentsOnLayer(thisLayer)
-		# thisGlyph.endUndo() # undo grouping causes crashes
+		# thisGlyph.endUndo()  # undo grouping causes crashes
 
 except Exception as e:
 	Glyphs.showMacroWindow()
@@ -42,4 +47,4 @@ except Exception as e:
 	raise e
 
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

@@ -1,12 +1,14 @@
-#MenuTitle: Set Subscript and Superscript Parameters
+# MenuTitle: Set Subscript and Superscript Parameters
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Measures your superior and inferior figures and derives subscript/superscript X/Y offset/size parameters.
 """
 
-import vanilla, math
-from Foundation import NSPoint
+import vanilla
+import math
+from GlyphsApp import Glyphs, Message
+
 
 class CalculateSubscriptAndSuperscriptParameters(object):
 
@@ -14,15 +16,15 @@ class CalculateSubscriptAndSuperscriptParameters(object):
 		# Window 'self.w':
 		windowWidth = 350
 		windowHeight = 170
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Set Subscript and Superscript Parameters", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.CalculateSubscriptAndSuperscriptParameters.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Set Subscript and Superscript Parameters",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.CalculateSubscriptAndSuperscriptParameters.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -65,13 +67,10 @@ class CalculateSubscriptAndSuperscriptParameters(object):
 		tooltip = "If enabled, will round all calculated values by the given amount. Recommended: 5 or 10."
 		self.w.roundValues.getNSButton().setToolTip_(tooltip)
 		self.w.roundBy.getNSTextField().setToolTip_(tooltip)
-		self.w.xSizeEqualsYSize.getNSButton(
-		).setToolTip_("If enabled, will set the horizontal scale to the same value as the vertical scale, ensuring a proportional scale. Especially useful for italics.")
+		self.w.xSizeEqualsYSize.getNSButton().setToolTip_("If enabled, will set the horizontal scale to the same value as the vertical scale, ensuring a proportional scale. Especially useful for italics.")
 		linePos += lineHeight
 
-		self.w.syncWithFirstMaster = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), "Sync all values with first master", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.syncWithFirstMaster = vanilla.CheckBox((inset, linePos, -inset, 20), "Sync all values with first master", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.syncWithFirstMaster.getNSButton().setToolTip_("If enabled, will insert the same values in all masters.")
 		linePos += lineHeight
 
@@ -159,15 +158,15 @@ class CalculateSubscriptAndSuperscriptParameters(object):
 		if roundFactor > 1:
 			remainder = (number % roundFactor)
 			floor = number // roundFactor
-			roundUpOrDown = int(round(1.0 * remainder / roundFactor)) # 0 or 1
+			roundUpOrDown = int(round(1.0 * remainder / roundFactor))  # 0 or 1
 			number = (floor + roundUpOrDown) * roundFactor
 		return int(number)
 
 	def italicOffset(self, y, italicAngle=0.0, pivotalY=0.0):
-		yOffset = y - pivotalY # calculate vertical offset
-		italicAngle = math.radians(italicAngle) # convert to radians
-		tangens = math.tan(italicAngle) # math.tan needs radians
-		horizontalDeviance = tangens * yOffset # vertical distance from pivotal point
+		yOffset = y - pivotalY  # calculate vertical offset
+		italicAngle = math.radians(italicAngle)  # convert to radians
+		tangens = math.tan(italicAngle)  # math.tan needs radians
+		horizontalDeviance = tangens * yOffset  # vertical distance from pivotal point
 		return int(horizontalDeviance)
 
 	def CalculateSubscriptAndSuperscriptParametersMain(self, sender=None):
@@ -179,7 +178,7 @@ class CalculateSubscriptAndSuperscriptParameters(object):
 			if not self.SavePreferences():
 				print("Note: 'Calculate Subscript and Superscript Parameters' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -254,7 +253,7 @@ class CalculateSubscriptAndSuperscriptParameters(object):
 			Glyphs.showNotification(
 				"%s: Done" % (thisFont.familyName),
 				"Calculate Subscript and Superscript Parameters is finished. Details in Macro Window",
-				)
+			)
 			print("\nDone.")
 
 		except Exception as e:
@@ -263,5 +262,6 @@ class CalculateSubscriptAndSuperscriptParameters(object):
 			print("Calculate Subscript and Superscript Parameters Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 CalculateSubscriptAndSuperscriptParameters()

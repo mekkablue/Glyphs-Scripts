@@ -1,13 +1,14 @@
-#MenuTitle: Transfer Hints to First Master
+# MenuTitle: Transfer Hints to First Master
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Moves PostScript (stem and ghost) hints from the current layer to the first master layer, provided the paths are compatible.
 """
 
-from GlyphsApp import TOPGHOST, BOTTOMGHOST, STEM, TTANCHOR, TTSTEM, TTALIGN, TTINTERPOLATE, TTDIAGONAL, TTDELTA
-thisFont = Glyphs.font # frontmost font
-selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+from GlyphsApp import Glyphs, GSHint, TOPGHOST, BOTTOMGHOST, STEM, TTANCHOR, TTSTEM, TTALIGN, TTINTERPOLATE, TTDIAGONAL, TTDELTA
+
+thisFont = Glyphs.font  # frontmost font
+selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
 firstMaster = thisFont.masters[0]
 firstMasterId = firstMaster.id
 supportedHintTypes = (
@@ -20,12 +21,14 @@ supportedHintTypes = (
 	TTINTERPOLATE,
 	TTDIAGONAL,
 	TTDELTA,
-	)
+)
+
 
 def deleteHintsOnLayer(thisLayer):
 	for i in range(len(thisLayer.hints))[::-1]:
 		if thisLayer.hints[i].type in supportedHintTypes:
 			del thisLayer.hints[i]
+
 
 def transferHintsFromTo(sourceLayer, targetLayer):
 	# clean slate in targetLayer:
@@ -68,7 +71,8 @@ def transferHintsFromTo(sourceLayer, targetLayer):
 	# ... delete hints in source layer:
 	deleteHintsOnLayer(sourceLayer)
 
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+
+thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 try:
 	# brings macro window to front and clears its log:
 	Glyphs.clearLog()
@@ -79,9 +83,9 @@ try:
 			firstLayer = thisGlyph.layers[firstMasterId]
 			if thisGlyph.mastersCompatibleForLayers_([thisLayer, firstLayer]):
 				print("Transfering hints in: %s" % thisGlyph.name)
-				# thisGlyph.beginUndo() # undo grouping causes crashes
+				# thisGlyph.beginUndo()  # undo grouping causes crashes
 				transferHintsFromTo(thisLayer, firstLayer)
-				# thisGlyph.endUndo() # undo grouping causes crashes
+				# thisGlyph.endUndo()  # undo grouping causes crashes
 			else:
 				Glyphs.showMacroWindow()
 				print("%s: layers incompatible." % thisGlyph.name)
@@ -98,4 +102,4 @@ except Exception as e:
 	raise e
 
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

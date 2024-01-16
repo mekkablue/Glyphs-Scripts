@@ -1,14 +1,18 @@
-#MenuTitle: Build ccmp for Hebrew Presentation Forms
+# MenuTitle: Build ccmp for Hebrew Presentation Forms
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Builds the ccmp for precomposed uniFBxx glyphs, e.g. if you have pedagesh, you get 'sub pe dagesh by pedagesh' in your ccmp.
 """
 
+from GlyphsApp import Glyphs, GSFeature, Message
+
+
 lookupTitle = "hebrewPresentationForms"
 thisFont = Glyphs.font
 theseGlyphs = thisFont.glyphs
 firstMasterID = thisFont.masters[0].id
+
 
 def updated_code(oldcode, beginsig, endsig, newcode):
 	"""Replaces text in oldcode with newcode, but only between beginsig and endsig."""
@@ -16,6 +20,7 @@ def updated_code(oldcode, beginsig, endsig, newcode):
 	end_offset = oldcode.find(endsig) + len(endsig)
 	newcode = oldcode[:begin_offset] + beginsig + newcode + "\n" + endsig + oldcode[end_offset:]
 	return newcode
+
 
 def create_otfeature(featureName="calt", featureCode="# empty feature code", targetFont=thisFont, codesig="DEFAULT-CODE-SIGNATURE"):
 	"""
@@ -55,6 +60,7 @@ def create_otfeature(featureName="calt", featureCode="# empty feature code", tar
 		targetFont.features.append(newFeature)
 		return "Created new OT feature '%s'" % featureName
 
+
 lookup = ""
 
 for thisGlyph in theseGlyphs:
@@ -69,7 +75,7 @@ for thisGlyph in theseGlyphs:
 			elif len(thisGlyph.layers[0].components) > 1:
 				snippet = " ".join([c.componentName for c in thisGlyph.layers[0].components])
 			if snippet:
-				lookup += "\tsub %s by %s; # %s\n" % (snippet, glyphName, thisGlyph.unicode)
+				lookup += "\tsub %s by %s;  # %s\n" % (snippet, glyphName, thisGlyph.unicode)
 			else:
 				lookup += "\t# could not create rule for %s" % glyphName
 

@@ -1,15 +1,18 @@
-#MenuTitle: Move vertical caron anchors to x-height intersection
+# MenuTitle: Move vertical caron anchors to x-height intersection
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 On all layers of selected glyphs, moves all topright and _topright anchors to the rightmost intersection of the outline with the x-height. Verbose report in Macro Window.
 """
 
-from Foundation import NSPoint
+from Foundation import NSPoint, NSMutableArray
 import math
-thisFont = Glyphs.font # frontmost font
-thisFontMaster = thisFont.selectedFontMaster # active master
-selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+from GlyphsApp import Glyphs
+
+thisFont = Glyphs.font  # frontmost font
+thisFontMaster = thisFont.selectedFontMaster  # active master
+selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+
 
 def angle(firstPoint, secondPoint):
 	xDiff = firstPoint.x - secondPoint.x
@@ -18,15 +21,17 @@ def angle(firstPoint, secondPoint):
 	angle = math.atan(tangens) * 180.0 / math.pi
 	return angle
 
+
 def sliceIntersections(thisLayer, startPoint, endPoint):
 	return thisLayer.calculateIntersectionsStartPoint_endPoint_(startPoint, endPoint)
+
 
 def intersectionOnXHeight(thisLayer):
 	"""Returns the NSPoint of the rightmost intersection with the x-height."""
 	goodMeasure = 0
 	xHeight = thisLayer.master.xHeight
 	if not xHeight:
-		xHeight = 500 # fallback value
+		xHeight = 500  # fallback value
 
 	originX = thisLayer.bounds.origin.x - goodMeasure
 	originPoint = NSPoint(originX, xHeight)
@@ -35,12 +40,13 @@ def intersectionOnXHeight(thisLayer):
 
 	listOfIntersections = sliceIntersections(thisLayer, originPoint, targetPoint)
 
-	# print("intersectionOnXHeight:", listOfIntersections, originPoint, targetPoint) # DEBUG
+	# print("intersectionOnXHeight:", listOfIntersections, originPoint, targetPoint)  # DEBUG
 	if listOfIntersections:
 		rightmostIntersection = listOfIntersections[-2].pointValue()
 		return rightmostIntersection
 	else:
 		return None
+
 
 def process(thisLayer):
 	toprightAnchor = thisLayer.anchors["topright"]
@@ -49,7 +55,7 @@ def process(thisLayer):
 		toprightAnchor = thisLayer.anchors["_topright"]
 		isAccent = True
 
-	xHeight = thisLayer.master.xHeight
+	# xHeight = thisLayer.master.xHeight
 
 	if toprightAnchor:
 		xHeightOutlineIntersection = intersectionOnXHeight(thisLayer)
@@ -69,19 +75,20 @@ def process(thisLayer):
 	else:
 		print("  ❓ %s: no anchor topright or _topright found." % thisLayer.name)
 
-try:
-	thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 
-	Glyphs.clearLog() # clears macro window log
+try:
+	thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
+
+	Glyphs.clearLog()  # clears macro window log
 	print("Move vertical caron anchors to x-height intersection:")
 
-	for thisGlyph in [l.parent for l in selectedLayers]:
+	for thisGlyph in [layer.parent for layer in selectedLayers]:
 		print("\n🔠 Glyph: %s" % thisGlyph.name)
-		# thisGlyph.beginUndo() # undo grouping causes crashes
+		# thisGlyph.beginUndo()  # undo grouping causes crashes
 		for thisLayer in thisGlyph.layers:
 			if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 				process(thisLayer)
-		# thisGlyph.endUndo() # undo grouping causes crashes
+		# thisGlyph.endUndo()  # undo grouping causes crashes
 
 	print("\nDone.")
 
@@ -93,4 +100,4 @@ except Exception as e:
 	import traceback
 	print(traceback.format_exc())
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

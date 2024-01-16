@@ -1,9 +1,12 @@
-#MenuTitle: Build exclamdown and questiondown
+# MenuTitle: Build exclamdown and questiondown
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Builds inverted Spanish punctuation ¡¿ for mixed and upper case. Hold down COMMAND and SHIFT for all open fonts.
 """
+
+from AppKit import NSEvent, NSEventModifierFlagShift, NSEventModifierFlagCommand
+from GlyphsApp import Glyphs, GSGlyph, GSComponent
 
 invertedGlyphNames = (
 	"exclamdown",
@@ -18,22 +21,22 @@ invertedGlyphNames = (
 	"questiondown.sc",
 	"exclamdown.pc",
 	"questiondown.pc",
-	)
-	
-from AppKit import NSEvent, NSEventModifierFlagShift, NSEventModifierFlagCommand
+)
+
+
 keysPressed = NSEvent.modifierFlags()
 shiftKeyPressed = keysPressed & NSEventModifierFlagShift == NSEventModifierFlagShift
 commandKeyPressed = keysPressed & NSEventModifierFlagCommand == NSEventModifierFlagCommand
 
 verbose = False
 
-Glyphs.clearLog() # clears log in Macro window
-print(f"Building Spanish inverted punctuation:\n")
+Glyphs.clearLog()  # clears log in Macro window
+print("Building Spanish inverted punctuation:\n")
 
 if commandKeyPressed and shiftKeyPressed:
 	theseFonts = Glyphs.fonts
 else:
-	theseFonts = (Glyphs.font,)
+	theseFonts = [Glyphs.font, ]
 
 for thisFont in theseFonts:
 	if thisFont.filepath:
@@ -41,20 +44,20 @@ for thisFont in theseFonts:
 	else:
 		print(f"⚠️ unsaved document: {thisFont.familyName}")
 	print()
-		
-	thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+
+	thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 	try:
 		exclam = thisFont.glyphs["exclam"]
 		question = thisFont.glyphs["question"]
 		tabText = ""
-	
+
 		for invertedName in invertedGlyphNames:
 			# determine original glyph for component:
 			uprightName = invertedName[:invertedName.find("down")]
 			if "." in invertedName:
 				invertedParticles = invertedName.split(".")
 				# adds suffix if necessary:
-				if not "case" in invertedParticles[1:]:
+				if "case" not in invertedParticles[1:]:
 					uprightName = ".".join([uprightName] + invertedParticles[1:])
 
 			# if upright exists, build inverted mark:
@@ -91,9 +94,9 @@ for thisFont in theseFonts:
 					t[5] = thisMaster.topHeightForLayer_(invertedLayer)
 					t = tuple(t)
 					invertedComponent.applyTransform(t)
-					invertedComponent.setDisableAlignment_(False)
+					invertedComponent.automaticAlignment = False
 					invertedLayer.updateMetrics()
-	
+
 		if tabText:
 			thisFont.newTab(tabText)
 	except Exception as e:
@@ -104,5 +107,5 @@ for thisFont in theseFonts:
 		print()
 		raise e
 	finally:
-		thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+		thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
 		print()

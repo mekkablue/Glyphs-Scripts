@@ -1,4 +1,4 @@
-#MenuTitle: Copy Kerning from Caps to Smallcaps
+# MenuTitle: Copy Kerning from Caps to Smallcaps
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,7 @@ Looks for cap kerning pairs and reduplicates their kerning for corresponding .sc
 """
 
 import vanilla
+from GlyphsApp import Glyphs, Message
 
 if Glyphs.versionNumber >= 3:
 	from GlyphsApp import GSUppercase, GSSmallcaps
@@ -14,12 +15,13 @@ smallcapSuffixes = (
 	".c2sc",
 	".smcp",
 	".small",
-	)
+)
 
 namingSchemeOptions = (
 	"Lowercase names (a.sc)",
 	"Uppercase names (A.sc)",
-	)
+)
+
 
 def glyphNameIsSCconvertible(glyphName, font, includeNonLetters=False, suffix=".sc", figureSuffix=".lf"):
 	"""Tests if the glyph referenced by the supplied glyphname is an uppercase glyph or should otherwise be included in the kerning."""
@@ -43,6 +45,7 @@ def glyphNameIsSCconvertible(glyphName, font, includeNonLetters=False, suffix=".
 		print("\n❌ Cannot determine case for: %s" % glyphName)
 		print("Error: %s" % e)
 		return False
+
 
 def smallcapName(glyphName="scGlyph", suffix=".sc", lowercase=True, includeNonLetters=False, figureSuffix=".lf"):
 	"""Returns the appropriate smallcap name, e.g. A-->a.sc or a-->a.sc"""
@@ -69,11 +72,13 @@ def smallcapName(glyphName="scGlyph", suffix=".sc", lowercase=True, includeNonLe
 		print("Error: %s" % e)
 		return None
 
+
 def isCapFigure(glyph, suffix=".lf"):
 	if glyph.category == "Number":
 		if glyph.name.endswith(suffix):
 			return True
 	return False
+
 
 def isUppercase(glyph):
 	if Glyphs.versionNumber >= 3:
@@ -84,9 +89,10 @@ def isUppercase(glyph):
 			return True
 	return False
 
+
 def glyphHasSCcounterpart(glyph, font, suffix=".sc"):
 	name = glyph.name
-	if not suffix in name:
+	if suffix not in name:
 		if font.glyphs[name + suffix]:
 			return True
 		nameParts = name.split(".")
@@ -95,6 +101,7 @@ def glyphHasSCcounterpart(glyph, font, suffix=".sc"):
 			if font.glyphs[".".join(nameParts)]:
 				return True
 	return False
+
 
 def isSmallcap(glyph):
 	if Glyphs.versionNumber >= 3:
@@ -105,6 +112,7 @@ def isSmallcap(glyph):
 			return True
 	return False
 
+
 class CopyKerningFromCapsToSmallcaps(object):
 	prefID = "com.mekkablue.CopyKerningFromCapsToSmallcaps"
 
@@ -112,15 +120,15 @@ class CopyKerningFromCapsToSmallcaps(object):
 		# Window 'self.w':
 		windowWidth = 400
 		windowHeight = 180
-		windowWidthResize = 200 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 200  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Copy Kerning from Caps to Smallcaps", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Copy Kerning from Caps to Smallcaps",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -133,17 +141,13 @@ class CopyKerningFromCapsToSmallcaps(object):
 		self.w.namingScheme = vanilla.PopUpButton((inset + 110, linePos, -inset, 17), namingSchemeOptions, sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.includeAllMasters = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "⚠️ Include all masters (otherwise current master only)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.includeAllMasters = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Include all masters (otherwise current master only)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# self.w.copyCapCapToCapSC = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Add cap-to-cap → cap-to-smallcap", value=True, callback=self.SavePreferences, sizeStyle='small' )
 		# linePos += lineHeight
 
-		self.w.includeNonLetters = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Include smallcap non-letters (otherwise only from caps)", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.includeNonLetters = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include smallcap non-letters (otherwise only from caps)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonLetters.getNSButton().setToolTip_("Includes smallcap figures, punctuation, etc. E.g. copies kerning for parenright if there is  parenright.sc.")
 		linePos += lineHeight
 
@@ -227,7 +231,7 @@ class CopyKerningFromCapsToSmallcaps(object):
 			if not self.SavePreferences():
 				print("Note: 'Copy Kerning from Caps to Smallcaps' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -253,9 +257,9 @@ class CopyKerningFromCapsToSmallcaps(object):
 						ucGlyphName = g.name
 						scGlyphName = smallcapName(
 							ucGlyphName, suffix=smallcapSuffix, lowercase=areSmallcapsNamedLowercase, includeNonLetters=includeNonLetters, figureSuffix=figureSuffix
-							)
+						)
 						scGlyph = thisFont.glyphs[scGlyphName]
-						if scGlyph == None:
+						if scGlyph is None:
 							print("  ⚠️ SC %s not found in font (UC %s exists)" % (scGlyphName, ucGlyphName))
 							continue
 
@@ -264,8 +268,8 @@ class CopyKerningFromCapsToSmallcaps(object):
 							UppercaseGroups.add(LeftKey)
 							scLeftKey = LeftKey[:7] + smallcapName(
 								LeftKey[7:], suffix=smallcapSuffix, lowercase=areSmallcapsNamedLowercase, includeNonLetters=includeNonLetters, figureSuffix=figureSuffix
-								)
-							if scGlyph.leftKerningGroupId() == None:
+							)
+							if scGlyph.leftKerningGroupId() is None:
 								scGlyph.setLeftKerningGroupId_(scLeftKey)
 								print("  %s: set LEFT group to @%s (was empty)." % (scGlyphName, scLeftKey[7:]))
 							elif scGlyph.leftKerningGroupId() != scLeftKey:
@@ -276,8 +280,8 @@ class CopyKerningFromCapsToSmallcaps(object):
 							UppercaseGroups.add(RightKey)
 							scRightKey = RightKey[:7] + smallcapName(
 								RightKey[7:], suffix=smallcapSuffix, lowercase=areSmallcapsNamedLowercase, includeNonLetters=includeNonLetters, figureSuffix=figureSuffix
-								)
-							if scGlyph.rightKerningGroupId() == None:
+							)
+							if scGlyph.rightKerningGroupId() is None:
 								scGlyph.setRightKerningGroupId_(scRightKey)
 								print("  %s: set RIGHT group to @%s (was empty)." % (scGlyphName, scRightKey[7:]))
 							elif scGlyph.rightKerningGroupId() != scRightKey:
@@ -294,7 +298,7 @@ class CopyKerningFromCapsToSmallcaps(object):
 					fontMasterID = selectedFontMaster.id
 					fontMasterName = selectedFontMaster.name
 					masterKernDict = thisFont.kerning[fontMasterID]
-					scKerningList = []
+					# scKerningList = []
 					# Report in the Macro Window:
 					print("\n🔠 Master: %s\n" % (fontMasterName))
 
@@ -308,19 +312,19 @@ class CopyKerningFromCapsToSmallcaps(object):
 						# prepare SC left key:
 						scLeftKey = None
 						# determine the SC leftKey:
-						if leftKeyIsGroup: # a kerning group
+						if leftKeyIsGroup:  # a kerning group
 							leftKeyName = "@%s" % LeftKey[7:]
 							if LeftKey in UppercaseGroups:
 								scLeftKey = LeftKey[:7] + smallcapName(
 									LeftKey[7:], suffix=smallcapSuffix, lowercase=areSmallcapsNamedLowercase, includeNonLetters=includeNonLetters, figureSuffix=figureSuffix
-									)
-						else: # a single glyph (exception)
+								)
+						else:  # a single glyph (exception)
 							leftGlyphName = thisFont.glyphForId_(LeftKey).name
 							leftKeyName = leftGlyphName
 							if glyphNameIsSCconvertible(leftGlyphName, font=thisFont, includeNonLetters=includeNonLetters, suffix=smallcapSuffix, figureSuffix=figureSuffix):
 								scLeftGlyphName = smallcapName(
 									leftGlyphName, suffix=smallcapSuffix, lowercase=areSmallcapsNamedLowercase, includeNonLetters=includeNonLetters, figureSuffix=figureSuffix
-									)
+								)
 								scLeftGlyph = thisFont.glyphs[scLeftGlyphName]
 								if scLeftGlyph:
 									scLeftKey = scLeftGlyph.name
@@ -332,37 +336,37 @@ class CopyKerningFromCapsToSmallcaps(object):
 							# prepare SC right key:
 							scRightKey = None
 							# determine the SC rightKey:
-							if rightKeyIsGroup: # a kerning group
+							if rightKeyIsGroup:  # a kerning group
 								rightKeyName = "@%s" % RightKey[7:]
 								if RightKey in UppercaseGroups:
 									scRightKey = RightKey[:7] + smallcapName(
 										RightKey[7:], suffix=smallcapSuffix, lowercase=areSmallcapsNamedLowercase, includeNonLetters=includeNonLetters, figureSuffix=figureSuffix
-										)
-							else: # a single glyph (exception)
+									)
+							else:  # a single glyph (exception)
 								rightGlyphName = thisFont.glyphForId_(RightKey).name
 								rightKeyName = rightGlyphName
 								if glyphNameIsSCconvertible(rightGlyphName, font=thisFont, includeNonLetters=includeNonLetters, suffix=smallcapSuffix, figureSuffix=figureSuffix):
 									scRightGlyphName = smallcapName(
 										rightGlyphName, suffix=smallcapSuffix, lowercase=areSmallcapsNamedLowercase, includeNonLetters=includeNonLetters, figureSuffix=figureSuffix
-										)
+									)
 									scRightGlyph = thisFont.glyphs[scRightGlyphName]
 									if scRightGlyph:
 										scRightKey = scRightGlyph.name
 
 							# If we have one of the left+right keys, create a pair:
-							if scRightKey != None or scLeftKey != None:
+							if scRightKey is not None or scLeftKey is not None:
 
 								# fallback:
-								if scLeftKey == None:
+								if scLeftKey is None:
 									scLeftKey = leftKeyName.replace("@", "@MMK_L_")
-								if scRightKey == None:
+								if scRightKey is None:
 									scRightKey = rightKeyName.replace("@", "@MMK_R_")
 
 								scKernValue = masterKernDict[LeftKey][RightKey]
 								print(
 									"  Set kerning: %s %s %.1f (derived from %s %s)" %
 									(scLeftKey.replace("MMK_L_", ""), scRightKey.replace("MMK_R_", ""), scKernValue, leftKeyName, rightKeyName)
-									)
+								)
 								kerningToBeAdded.append((fontMasterID, scLeftKey, scRightKey, scKernValue))
 
 					# go through the list of SC kern pairs, and add them to the font:
@@ -384,17 +388,17 @@ class CopyKerningFromCapsToSmallcaps(object):
 						raise e
 
 					finally:
-						thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+						thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
 
 				print("  Done.")
 
-				self.w.close() # delete if you want window to stay open
+				self.w.close()  # delete if you want window to stay open
 
 			# Final report:
 			Glyphs.showNotification(
 				"%s: Done" % (thisFont.familyName),
 				"Copy Kerning from Caps to Smallcaps is finished. Details in Macro Window",
-				)
+			)
 			print("\nDone.")
 
 		except Exception as e:
@@ -403,5 +407,6 @@ class CopyKerningFromCapsToSmallcaps(object):
 			print("Copy Kerning from Caps to Smallcaps Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 CopyKerningFromCapsToSmallcaps()

@@ -1,12 +1,15 @@
-#MenuTitle: Populate Layer Backgrounds with Component
+# MenuTitle: Populate Layer Backgrounds with Component
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Adds a component to all backgrounds of all layers of all selected glyphs. Useful, e.g., for putting A in the background of (decomposed) Aogonek.
 """
 
-import vanilla, math
+import vanilla
+import math
 from Foundation import NSAffineTransform, NSAffineTransformStruct, NSEvent
+from GlyphsApp import Glyphs, GSComponent, Message
+
 
 def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	"""
@@ -14,7 +17,7 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	Apply an NSAffineTransform t object like this:
 		Layer.transform_checkForSelection_doComponents_(t,False,True)
 	Access its transformation matrix like this:
-		tMatrix = t.transformStruct() # returns the 6-float tuple
+		tMatrix = t.transformStruct()  # returns the 6-float tuple
 	Apply the matrix tuple like this:
 		Layer.applyTransform(tMatrix)
 		Component.applyTransform(tMatrix)
@@ -39,28 +42,27 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 		myTransform.appendTransform_(skewTransform)
 	return myTransform
 
+
 class PopulateAllBackgroundswithComponent(object):
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 380
 		windowHeight = 155
-		windowWidthResize = 300 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 300  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Populate Layer Backgrounds with Component", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.PopulateAllBackgroundswithComponent.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Populate Layer Backgrounds with Component",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.PopulateAllBackgroundswithComponent.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 10, 15, 22
 
-		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, 14), "In selected glyphs, insert component in all layer backgrounds:", sizeStyle='small', selectable=True
-			)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "In selected glyphs, insert component in all layer backgrounds:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
 		self.w.text_1 = vanilla.TextBox((inset - 1, linePos + 2, 100, 14), "Add component:", sizeStyle='small')
@@ -74,11 +76,8 @@ class PopulateAllBackgroundswithComponent(object):
 		self.w.alignRight.getNSButton().setToolTip_("Right-aligns the component width with the layer width. Useful for the e in ae or oe, for example.")
 		linePos += lineHeight
 
-		self.w.replaceBackgrounds = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Replace existing backgrounds", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.replaceBackgrounds.getNSButton(
-		).setToolTip_("Deletes existing background content before it inserts the component. Recommended if you want to align selected nodes with the background.")
+		self.w.replaceBackgrounds = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Replace existing backgrounds", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.replaceBackgrounds.getNSButton().setToolTip_("Deletes existing background content before it inserts the component. Recommended if you want to align selected nodes with the background.")
 		linePos += lineHeight
 
 		# Run Button:
@@ -125,7 +124,7 @@ class PopulateAllBackgroundswithComponent(object):
 			"OE": "E",
 			"germandbls": "f",
 			"Germandbls": "F",
-			}
+		}
 
 		thisFont = Glyphs.font
 		if thisFont:
@@ -151,7 +150,7 @@ class PopulateAllBackgroundswithComponent(object):
 				if thisInfo and thisInfo.components:
 					firstComponentName = thisInfo.components[0].name
 					if firstComponentName:
-						if not optionKeyPressed: # hold down OPT to ignore suffix
+						if not optionKeyPressed:  # hold down OPT to ignore suffix
 							firstComponentName += suffix
 						self.w.componentName.set(firstComponentName)
 						self.SavePreferences(sender)
@@ -220,7 +219,7 @@ class PopulateAllBackgroundswithComponent(object):
 							title="Component Name Error",
 							message=u"There is no glyph called ‘%s’ in the frontmost font. Please specify a valid glyph name." % componentName,
 							OKButton=None
-							)
+						)
 					elif not thisFont.selectedLayers:
 						Message(title="Selection Error", message="No glyphs are selected. Please select a glyph and try again.", OKButton=None)
 					else:
@@ -287,7 +286,7 @@ class PopulateAllBackgroundswithComponent(object):
 				# GLYPHS 2
 				nearestNode = otherLayer.nodeAtPoint_excludeNodes_traversComponents_tollerance_(thisNode.position, None, False, tolerance)
 
-			if nearestNode and (thisNode.type == nearestNode.type) and (not nearestNode.position in alreadyTaken):
+			if nearestNode and (thisNode.type == nearestNode.type) and (nearestNode.position not in alreadyTaken):
 				thisNode.position = nearestNode.position
 				return True
 			# else:
@@ -351,22 +350,23 @@ class PopulateAllBackgroundswithComponent(object):
 			if thisAnchor.selected:
 				anchorsToAlign.append(thisAnchor.name)
 		if anchorsToAlign:
-			numberOfAnchorsMoved = syncAnchorPositionWithBackground(anchorsToAlign, thisLayer)
+			numberOfAnchorsMoved = self.syncAnchorPositionWithBackground(anchorsToAlign, thisLayer)
 
 		return selectedNodeCount, alignedNodeCount, numberOfAnchorsMoved
 
 	def AlignNodesMain(self, sender):
-		thisFont = Glyphs.font # frontmost font
-		selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
-		selection = selectedLayers[0].selection # node selection in edit mode
-		Glyphs.clearLog() # clears log in Macro window
+		thisFont = Glyphs.font  # frontmost font
+		selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+		# selection = selectedLayers[0].selection  # node selection in edit mode
+		Glyphs.clearLog()  # clears log in Macro window
 
 		for thisLayer in selectedLayers:
 			thisGlyph = thisLayer.parent
-			# thisGlyph.beginUndo() # undo grouping causes crashes
+			# thisGlyph.beginUndo()  # undo grouping causes crashes
 			selected, aligned, numberOfAnchorsMoved = self.alignNodesOnLayer(thisLayer)
 			print("%s: aligned %i of %i selected nodes" % (thisGlyph.name, aligned, selected))
 			print("%s: aligned %i of %i anchors." % (thisGlyph.name, numberOfAnchorsMoved, len(thisLayer.anchors)))
-			# thisGlyph.endUndo() # undo grouping causes crashes
+			# thisGlyph.endUndo()  # undo grouping causes crashes
+
 
 PopulateAllBackgroundswithComponent()

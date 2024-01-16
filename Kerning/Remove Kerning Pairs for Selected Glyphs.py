@@ -1,9 +1,11 @@
-#MenuTitle: Remove Kerning Pairs for Selected Glyphs
+# MenuTitle: Remove Kerning Pairs for Selected Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Deletes all kerning pairs with the selected glyphs, for the current master only.
 """
+
+from GlyphsApp import Glyphs
 
 Font = Glyphs.font
 Master = Font.selectedFontMaster
@@ -29,7 +31,7 @@ for leftGlyphID in listOfIDs:
 			totalNumberOfDeletions += numberOfPairs
 
 			print("   %s on the left: Found %i pairs ..." % (leftGlyphName, numberOfPairs))
-			#print " ".join( rightGlyphNames ) #DEBUG
+			# print " ".join( rightGlyphNames ) #DEBUG
 
 			pairsToBeDeleted.append([leftGlyphName, rightGlyphNames])
 

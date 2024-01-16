@@ -1,4 +1,4 @@
-#MenuTitle: Set Transform Origin
+# MenuTitle: Set Transform Origin
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -7,6 +7,8 @@ Sets origin point for Rotate tool.
 
 import vanilla
 from Foundation import NSPoint, NSClassFromString
+from GlyphsApp import Glyphs
+
 
 class SetTransformOriginWindow(object):
 
@@ -14,15 +16,15 @@ class SetTransformOriginWindow(object):
 		# Window 'self.w':
 		windowWidth = 370
 		windowHeight = 60
-		windowWidthResize = 0 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 0  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Set Transform Origin", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.SetTransformOriginWindow.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Set Transform Origin",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.SetTransformOriginWindow.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		self.w.text_1 = vanilla.TextBox((15 - 1, 12 + 3, 75, 14), "Origin:", sizeStyle='small')
@@ -75,5 +77,6 @@ class SetTransformOriginWindow(object):
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Set Transform Origin Error: %s" % e)
+
 
 SetTransformOriginWindow()

@@ -1,4 +1,4 @@
-#MenuTitle: Find Shapeshifting Glyphs
+# MenuTitle: Find Shapeshifting Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,13 +6,17 @@ Finds glyphs that change the number of visible shapes and countershapes while in
 """
 
 import vanilla
+from GlyphsApp import Glyphs, GSInstance, Message
+
 tempMarker = "###DELETEME###"
 
+
 def instanceIsActive(instance):
-	if Glyphs.buildNumber>3198:
+	if Glyphs.buildNumber > 3198:
 		return instance.exports
 	else:
 		return instance.active
+
 
 def glyphInterpolation(thisGlyphName, thisInstance):
 	"""
@@ -20,7 +24,7 @@ def glyphInterpolation(thisGlyphName, thisInstance):
 	"""
 	try:
 		# calculate interpolation:
-		# interpolatedFont = thisInstance.interpolatedFont # too slow still
+		# interpolatedFont = thisInstance.interpolatedFont  # too slow still
 		interpolatedFont = thisInstance.pyobjc_instanceMethods.interpolatedFont()
 		interpolatedLayer = interpolatedFont.glyphForName_(thisGlyphName).layers[0]
 
@@ -40,54 +44,41 @@ def glyphInterpolation(thisGlyphName, thisInstance):
 		print(traceback.format_exc())
 		return None
 
+
 class FindShapeshiftingGlyphs(object):
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 310
 		windowHeight = 270
-		windowWidthResize = 300 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 300  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Find Shapeshifting Glyphs", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.FindShapeshiftingGlyphs.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Find Shapeshifting Glyphs",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.FindShapeshiftingGlyphs.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, 28), "Reports glyphs that change number of cw/ccw paths (‘shapeshift’) in interpolation.", sizeStyle='small', selectable=True
-			)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 28), "Reports glyphs that change number of cw/ccw paths (‘shapeshift’) in interpolation.", sizeStyle='small', selectable=True)
 		linePos += int(lineHeight * 1.7)
 
 		self.w.text_1 = vanilla.TextBox((inset, linePos + 2, 85, 14), "Count paths in", sizeStyle='small')
-		self.w.checkInstances = vanilla.PopUpButton(
-			(inset + 85, linePos, -inset, 17), ("constructed instances midway between masters", "all active instances in font", "all active and inactive instances in font"),
-			callback=self.SavePreferences,
-			sizeStyle='small'
-			)
-		self.w.checkInstances.getNSPopUpButton().setToolTip_(
-			"Where to count paths (for comparison of path counts). Shapeshifting is most visible in midway interpolations (50%% between masters), so pick that option if you have two masters only, or all masters on a single axis."
-			)
+		self.w.checkInstances = vanilla.PopUpButton((inset + 85, linePos, -inset, 17), ("constructed instances midway between masters", "all active instances in font", "all active and inactive instances in font"), callback=self.SavePreferences, sizeStyle='small')
+		self.w.checkInstances.getNSPopUpButton().setToolTip_("Where to count paths (for comparison of path counts). Shapeshifting is most visible in midway interpolations (50%% between masters), so pick that option if you have two masters only, or all masters on a single axis.")
 		linePos += lineHeight
 
-		self.w.onlyCheckSelection = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Limit to selected glyphs (otherwise all glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.onlyCheckSelection = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Limit to selected glyphs (otherwise all glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.ignoreGlyphsWithoutPaths = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Ignore glyphs without paths", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.ignoreGlyphsWithoutPaths = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Ignore glyphs without paths", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.ignoreNonexportingGlyphs = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Ignore glyphs that do not export", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.ignoreNonexportingGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Ignore glyphs that do not export", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.openTab = vanilla.CheckBox((inset, linePos - 1, 170, 20), "Open tab with shapeshifters", value=True, callback=self.SavePreferences, sizeStyle='small')
@@ -99,7 +90,7 @@ class FindShapeshiftingGlyphs(object):
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
-		self.w.progress.set(0) # set progress indicator to zero
+		self.w.progress.set(0)  # set progress indicator to zero
 		linePos += lineHeight
 
 		# Run Button:
@@ -170,7 +161,7 @@ class FindShapeshiftingGlyphs(object):
 
 		disabledMasters = []
 		for m in range(len(thisFont.masters)):
-			if not m in sortedIndexes:
+			if m not in sortedIndexes:
 				disabledMasters.append(thisFont.masters[m].name)
 		if disabledMasters:
 			disabledMasters = tuple(disabledMasters)
@@ -181,7 +172,9 @@ class FindShapeshiftingGlyphs(object):
 
 	def addMasterInstances(self, thisFont, keepExisting=False):
 		for i, master in enumerate(thisFont.masters):
-			testInstance = self.generateTestInstance(thisFont, {i: master})
+			testInstance = self.generateTestInstance(thisFont, {
+				i: master
+			})
 			self.instances.append(testInstance)
 
 	def addHalfWayInstances(self, thisFont, keepExisting=False):
@@ -194,7 +187,7 @@ class FindShapeshiftingGlyphs(object):
 				testInstance = self.generateTestInstance(thisFont, {
 					i: master1,
 					j: master2
-					})
+				})
 				self.instances.append(testInstance)
 
 	def FindShapeshiftingGlyphsMain(self, sender):
@@ -236,7 +229,7 @@ class FindShapeshiftingGlyphs(object):
 
 				# determine glyphs to be checked:
 				if onlyCheckSelection:
-					glyphs = [l.glyph() for l in thisFont.selectedLayers if l.glyph()]
+					glyphs = [layer.glyph() for layer in thisFont.selectedLayers if layer.glyph()]
 				else:
 					glyphs = thisFont.glyphs
 				glyphNamesToBeChecked = [g.name for g in glyphs if (g.export or not ignoreNonexportingGlyphs) and (len(g.layers[0].paths) > 0 or not ignoreGlyphsWithoutPaths)]
@@ -244,7 +237,7 @@ class FindShapeshiftingGlyphs(object):
 					len(glyphNamesToBeChecked),
 					"" if len(glyphNamesToBeChecked) == 1 else "s",
 					", ".join(glyphNamesToBeChecked),
-					))
+				))
 
 				# determine the instances to calculate:
 				self.instances = []
@@ -271,7 +264,7 @@ class FindShapeshiftingGlyphs(object):
 							print("   🅜 %.3f %s" % (
 								float(i.instanceInterpolations[key]),
 								thisFont.masters[key].name,
-								))
+							))
 						except:
 							pass
 
@@ -330,19 +323,19 @@ class FindShapeshiftingGlyphs(object):
 					"" if totalAffectedFontCount == 1 else "s",
 					len(theseFonts),
 					"" if len(theseFonts) == 1 else "s",
-					)
+				)
 				Message(
 					title="⚠️ %i Shapeshifting Glyphs" % totalAffectedGlyphCount,
 					message="%s Details in Macro Window." % message,
 					OKButton="OK",
-					)
+				)
 			else:
 				message = "Among the specified fonts, glyphs and interpolations, no changes of path numbers could be found."
 				Message(
 					title="✅ No Shapeshifting Glyphs",
 					message=message,
 					OKButton="🍻Cheers!",
-					)
+				)
 
 			print("%s\nDone." % message)
 
@@ -355,5 +348,6 @@ class FindShapeshiftingGlyphs(object):
 			print("Find Shapeshifting Glyphs Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 FindShapeshiftingGlyphs()

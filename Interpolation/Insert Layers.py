@@ -1,4 +1,4 @@
-#MenuTitle: Insert Layers
+# MenuTitle: Insert Layers
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Batch-insert brace or bracket layers in selected glyphs.
 """
 
 import vanilla
+from GlyphsApp import Glyphs, GSLayer, Message
+
 
 class InsertSpecialLayers(object):
 
@@ -13,15 +15,15 @@ class InsertSpecialLayers(object):
 		# Window 'self.w':
 		windowWidth = 240
 		windowHeight = 180
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Insert Special Layers", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.InsertSpecialLayers.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Insert Special Layers",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.InsertSpecialLayers.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -32,24 +34,16 @@ class InsertSpecialLayers(object):
 		self.w.layerName = vanilla.EditText((inset + 70, linePos - 1, -inset, 19), "Intermediate {100}", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.prefillWithMasterContent = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Create as duplicate of master layer", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.prefillWithMasterContent.getNSButton().setToolTip_(
-			"Will add the new layer with the content of the associated master layer. If checkbox is off, will insert empty layer. In case of brace layers, the Reinterpolate option (further down) takes precedence, though."
-			)
+		self.w.prefillWithMasterContent = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Create as duplicate of master layer", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.prefillWithMasterContent.getNSButton().setToolTip_("Will add the new layer with the content of the associated master layer. If checkbox is off, will insert empty layer. In case of brace layers, the Reinterpolate option (further down) takes precedence, though.")
 		linePos += lineHeight
 
 		self.w.keepExistingBrace = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Keep existing brace layer", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.keepExistingBrace.getNSButton().setToolTip_(
-			"Only applies to brace layers. If checkbox is on and a glyph already contains (on any master) a brace layer at the indicated value, the script will skip the glyph. If the checkbox is off, it will deactivate the existing brace layer by replacing the curly braces with hashtags."
-			)
+		self.w.keepExistingBrace.getNSButton().setToolTip_("Only applies to brace layers. If checkbox is on and a glyph already contains (on any master) a brace layer at the indicated value, the script will skip the glyph. If the checkbox is off, it will deactivate the existing brace layer by replacing the curly braces with hashtags.")
 		linePos += lineHeight
 
 		self.w.reinterpolateBrace = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Reinterpolate brace layers", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reinterpolateBrace.getNSButton().setToolTip_(
-			"Only applies to brace layers. If checkbox is on and a brace layer is inserted, it will reinterpolate the newly generated brace layer. It only does this for newly generated layer, and will not reinterpolate existing brace layers."
-			)
+		self.w.reinterpolateBrace.getNSButton().setToolTip_("Only applies to brace layers. If checkbox is on and a brace layer is inserted, it will reinterpolate the newly generated brace layer. It only does this for newly generated layer, and will not reinterpolate existing brace layers.")
 		linePos += lineHeight
 
 		# Run Button:
@@ -109,7 +103,7 @@ class InsertSpecialLayers(object):
 			if not self.SavePreferences():
 				print("Note: 'Insert Special Layers' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -130,7 +124,7 @@ class InsertSpecialLayers(object):
 				currentMaster = thisFont.selectedFontMaster
 				insertedLayerCount = 0
 
-				for thisGlyph in [l.parent for l in thisFont.selectedLayers]:
+				for thisGlyph in [layer.parent for layer in thisFont.selectedLayers]:
 					print("🔠 Processing %s" % thisGlyph.name)
 					if isBrace and not keepExistingBrace:
 						braceParticle = self.braceValueFromName(layerName)
@@ -161,8 +155,8 @@ class InsertSpecialLayers(object):
 				"Inserted %i layer%s. Details in Macro Window." % (
 					insertedLayerCount,
 					"" if insertedLayerCount == 1 else "s",
-					),
-				)
+				),
+			)
 			print("\nDone.")
 
 		except Exception as e:
@@ -171,5 +165,6 @@ class InsertSpecialLayers(object):
 			print("Insert Special Layers Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 InsertSpecialLayers()

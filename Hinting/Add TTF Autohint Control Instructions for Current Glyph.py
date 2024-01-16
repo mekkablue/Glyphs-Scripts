@@ -1,28 +1,31 @@
-#MenuTitle: Add TTF Autohint Control Instructions for Current Glyph
+# MenuTitle: Add TTF Autohint Control Instructions for Current Glyph
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 try:
 	from builtins import str
-except Exception as e:
+except Exception as e:  # noqa: F841
 	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 __doc__ = """
 Adds a touch line for a given up/down amount to the Control Instructions of the current instance.
 """
 
-from AppKit import NSPasteboard, NSStringPboardType
-from Foundation import NSPoint
-import math, vanilla
+from AppKit import NSPasteboard, NSStringPboardType, NSNotificationCenter, NSClassFromString
+import math
+import vanilla
+from GlyphsApp import Glyphs, Message
+
 
 def sizeStringIsOK(sizeString):
 	"""
 	Checks if the size string adheres to the syntax.
 	"""
 	for character in sizeString:
-		if not character in "1234567890-, ":
+		if character not in "1234567890-, ":
 			return False
 		elif character == "#":
 			return True
 	return True
+
 
 def italic(yOffset, italicAngle=0.0, pivotalY=0.0):
 	"""
@@ -31,12 +34,13 @@ def italic(yOffset, italicAngle=0.0, pivotalY=0.0):
 	around which the italic slanting is executed, usually half x-height.
 	Usage: myPoint = italicize(myPoint,10,xHeight*0.5)
 	"""
-	x = 0.0
-	#yOffset = thisPoint.y - pivotalY # calculate vertical offset
-	italicAngle = math.radians(italicAngle) # convert to radians
-	tangens = math.tan(italicAngle) # math.tan needs radians
-	horizontalDeviance = tangens * yOffset # vertical distance from pivotal point
+
+	# yOffset = thisPoint.y - pivotalY  # calculate vertical offset
+	italicAngle = math.radians(italicAngle)  # convert to radians
+	tangens = math.tan(italicAngle)  # math.tan needs radians
+	horizontalDeviance = tangens * yOffset  # vertical distance from pivotal point
 	return horizontalDeviance
+
 
 def addToInstructions(instructionLine, currentInstance):
 	parameterName = "TTFAutohint control instructions"
@@ -62,6 +66,7 @@ def addToInstructions(instructionLine, currentInstance):
 	if Glyphs.versionNumber >= 3 and thisFont and thisFont.currentTab:
 		NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
 
+
 def setClipboard(myText):
 	"""
 	Sets the contents of the clipboard to myText.
@@ -72,8 +77,9 @@ def setClipboard(myText):
 		myClipboard.declareTypes_owner_([NSStringPboardType], None)
 		myClipboard.setString_forType_(myText, NSStringPboardType)
 		return True
-	except Exception as e:
+	except Exception as e:  # noqa: F841
 		return False
+
 
 def numberIndexStringFromNumbers(indexes):
 	"""
@@ -99,28 +105,27 @@ def numberIndexStringFromNumbers(indexes):
 		previousNumber = thisNumber
 	return outputString
 
+
 class AddTTFAutohintControlInstructionsForCurrentGlyph(object):
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 155
 		windowHeight = 410
-		windowWidthResize = 400 # user can resize width by this value
-		windowHeightResize = 100 # user can resize height by this value
+		windowWidthResize = 400  # user can resize width by this value
+		windowHeightResize = 100  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Add ttfAutohint Control Instructions for Current Glyph", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.AddTTFAutohintControlInstructionsForCurrentGlyph.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Add ttfAutohint Control Instructions for Current Glyph",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.AddTTFAutohintControlInstructionsForCurrentGlyph.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 24
 
-		self.w.explanatoryText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, 60), "Touch instruction with px offset for active glyph & instance, respects italic angle.", sizeStyle='small', selectable=True
-			)
+		self.w.explanatoryText = vanilla.TextBox((inset, linePos + 2, -inset, 60), "Touch instruction with px offset for active glyph & instance, respects italic angle.", sizeStyle='small', selectable=True)
 		linePos += 3 * lineHeight
 
 		sectionOptions = (
@@ -131,7 +136,7 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(object):
 			"Lower Half",
 			"Lower Third",
 			"Lower Quarter",
-			)
+		)
 		self.w.sectionToMoveText = vanilla.TextBox((inset, linePos + 2, 38, 14), u"Touch", sizeStyle='small', selectable=True)
 		self.w.sectionToMove = vanilla.PopUpButton((inset + 38, linePos, -inset, 17), sectionOptions, sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
@@ -277,7 +282,7 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(object):
 				nextPoint = coords.pointAtIndex_((i + 1) % pointCount)
 				if thisPoint.y < topBound and thisPoint.y > highestY and thisPoint.y > prevPoint.y and thisPoint.y >= nextPoint.y and (
 					thisPoint.x < prevPoint.x or nextPoint.x < thisPoint.x
-					):
+				):
 					highestPointIndex = i
 					highestY = thisPoint.y
 			if highestPointIndex > -1:
@@ -373,7 +378,7 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(object):
 							pointIndexString,
 							moveString,
 							sizeString,
-							)
+						)
 
 						# add the instruction line to the parameter:
 						if instructionLine:
@@ -386,5 +391,6 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(object):
 			import traceback
 			print(traceback.format_exc())
 
-Glyphs.defaults["TTPreviewAlsoShowOffCurveIndexes"] = True
+
+Glyphs.defaults["TTPreviewAlsoShowGSOFFCURVEIndexes"] = True
 AddTTFAutohintControlInstructionsForCurrentGlyph()

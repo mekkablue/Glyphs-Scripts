@@ -1,12 +1,14 @@
-#MenuTitle: Build Italic Shift Feature
+# MenuTitle: Build Italic Shift Feature
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Creates and inserts GPOS feature code for shifting glyphs, e.g., parentheses and punctuation for the case feature.
 """
 
-import vanilla, math
-from Foundation import NSPoint
+import vanilla
+import math
+from GlyphsApp import Glyphs, GSFeature
+
 
 def updatedCode(oldCode, beginSig, endSig, newCode):
 	"""Replaces text in oldCode with newCode, but only between beginSig and endSig."""
@@ -14,6 +16,7 @@ def updatedCode(oldCode, beginSig, endSig, newCode):
 	endOffset = oldCode.find(endSig) + len(endSig)
 	newCode = oldCode[:beginOffset] + beginSig + newCode + "\n" + endSig + oldCode[endOffset:]
 	return newCode
+
 
 def createOTFeature(featureName="case", featureCode="# empty feature code", targetFont=Glyphs.font, codeSig="SHIFTED-GLYPHS"):
 	"""
@@ -56,21 +59,22 @@ def createOTFeature(featureName="case", featureCode="# empty feature code", targ
 		targetFont.features.append(newFeature)
 		return "Created new OT feature '%s'" % featureName
 
+
 class ItalicShiftFeature(object):
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 440
 		windowHeight = 160
-		windowWidthResize = 600 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 600  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Italic Shift Feature", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.ItalicShiftFeature.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Italic Shift Feature",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.ItalicShiftFeature.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		inset = 15
@@ -81,31 +85,17 @@ class ItalicShiftFeature(object):
 		lineheight += lineStep
 		self.w.edit_1a = vanilla.EditText((inset, lineheight, 70, 19), "case", sizeStyle='small', placeholder="smcp,c2sc", callback=self.SavePreferences)
 		self.w.edit_1b = vanilla.EditText((75 + inset, lineheight, 55, 19), "100", sizeStyle='small', placeholder="80", callback=self.SavePreferences)
-		self.w.edit_1c = vanilla.EditText(
-			(75 + 75, lineheight, -inset, 19),
-			"exclamdown questiondown",
-			sizeStyle='small',
-			placeholder="parenleft parenright bracketleft bracketright",
-			callback=self.SavePreferences
-			)
+		self.w.edit_1c = vanilla.EditText((75 + 75, lineheight, -inset, 19), "exclamdown questiondown", sizeStyle='small', placeholder="parenleft parenright bracketleft bracketright", callback=self.SavePreferences)
 
 		lineheight += lineStep
 		self.w.edit_2a = vanilla.EditText((inset, lineheight, 70, 19), "case", sizeStyle='small', placeholder="smcp,c2sc", callback=self.SavePreferences)
 		self.w.edit_2b = vanilla.EditText((75 + inset, lineheight, 55, 19), "50", sizeStyle='small', placeholder="80", callback=self.SavePreferences)
-		self.w.edit_2c = vanilla.EditText(
-			(75 + 75, lineheight, -inset, 19),
-			"parenleft parenright braceleft braceright bracketleft bracketright",
-			sizeStyle='small',
-			placeholder="parenleft parenright bracketleft bracketright",
-			callback=self.SavePreferences
-			)
+		self.w.edit_2c = vanilla.EditText((75 + 75, lineheight, -inset, 19), "parenleft parenright braceleft braceright bracketleft bracketright", sizeStyle='small', placeholder="parenleft parenright bracketleft bracketright", callback=self.SavePreferences)
 
 		lineheight += lineStep
 		self.w.edit_3a = vanilla.EditText((inset, lineheight, 70, 19), "", sizeStyle='small', placeholder="smcp,c2sc", callback=self.SavePreferences)
 		self.w.edit_3b = vanilla.EditText((75 + inset, lineheight, 55, 19), "", sizeStyle='small', placeholder="80", callback=self.SavePreferences)
-		self.w.edit_3c = vanilla.EditText(
-			(75 + 75, lineheight, -inset, 19), "", sizeStyle='small', placeholder="parenleft parenright bracketleft bracketright", callback=self.SavePreferences
-			)
+		self.w.edit_3c = vanilla.EditText((75 + 75, lineheight, -inset, 19), "", sizeStyle='small', placeholder="parenleft parenright bracketleft bracketright", callback=self.SavePreferences)
 
 		# Run Button:
 		self.w.copyButton = vanilla.Button((-180 - inset, -20 - inset, -inset - 90, -inset), "Copy Code", sizeStyle='regular', callback=self.ItalicShiftFeatureMain)
@@ -168,16 +158,16 @@ class ItalicShiftFeature(object):
 		around which the italic slanting is executed, usually half x-height.
 		Usage: myPoint = italicize(myPoint,10,xHeight*0.5)
 		"""
-		yOffset = shift - pivotalY # calculate vertical offset
-		italicAngle = math.radians(italicAngle) # convert to radians
-		tangens = math.tan(italicAngle) # math.tan needs radians
-		horizontalDeviance = tangens * yOffset # vertical distance from pivotal point
-		horizontalDeviance # x of point that is yOffset from pivotal point
+		yOffset = shift - pivotalY  # calculate vertical offset
+		italicAngle = math.radians(italicAngle)  # convert to radians
+		tangens = math.tan(italicAngle)  # math.tan needs radians
+		horizontalDeviance = tangens * yOffset  # vertical distance from pivotal point
+		horizontalDeviance  # x of point that is yOffset from pivotal point
 		return horizontalDeviance
 
 	def ItalicShiftFeatureMain(self, sender):
 		try:
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			firstMaster = thisFont.masters[0]
 			italicAngle = firstMaster.italicAngle
 			features = {}
@@ -208,17 +198,18 @@ class ItalicShiftFeature(object):
 					codeSig="ITALIC-SHIFT-%s" % otFeature.upper(),
 					targetFont=thisFont,
 					featureCode=otCode,
-					)
+				)
 
 			if not self.SavePreferences(self):
 				print("Note: 'Italic Shift Feature' could not write preferences.")
 
-			self.w.close() # delete if you want window to stay open
+			self.w.close()  # delete if you want window to stay open
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Italic Shift Feature Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 ItalicShiftFeature()

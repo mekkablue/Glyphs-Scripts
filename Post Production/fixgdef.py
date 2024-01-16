@@ -3,13 +3,12 @@
 python3 fixgdef.py -h     ... help
 python3 fixgdef.py *.ttf  ... apply to all TTFs in current dir
 """
-import fontTools
+
 from fontTools import ttLib
 from argparse import ArgumentParser
 
-parser = ArgumentParser(
-	description="Fix GDEF definition of spacing, non-combining marks. Will switch to class 1 (‘base glyph’, single character, spacing glyph) if necessary."
-)
+
+parser = ArgumentParser(description="Fix GDEF definition of spacing, non-combining marks. Will switch to class 1 (‘base glyph’, single character, spacing glyph) if necessary.")
 
 parser.add_argument(
 	"fonts",
@@ -18,14 +17,15 @@ parser.add_argument(
 	help="One or more OTF/TTF files",
 )
 
+
 def fixGDEFinFont(font):
 	"""Takes a ttLib.TTFont as argument."""
 	madeChanges = False
 
-	if not "GDEF" in font.keys():
-		print(f"⚠️ No GDEF table found, skipping file.\n")
+	if "GDEF" not in font.keys():
+		print("⚠️ No GDEF table found, skipping file.\n")
 		return madeChanges
-	
+
 	gdef = font["GDEF"].table
 	if not hasattr(gdef, "MarkGlyphSetsDef") or not gdef.MarkGlyphSetsDef:
 		print("⚠️ No MarkGlyphSetsDef found in GDEF table.")
@@ -46,9 +46,9 @@ def fixGDEFinFont(font):
 			"cedilla",
 			"ogonek",
 			"uni02BB"
-			)
+		)
 		for coverage in gdef.MarkGlyphSetsDef.Coverage:
-			for i in range(len(coverage.glyphs)-1,-1,-1):
+			for i in range(len(coverage.glyphs) - 1, -1, -1):
 				glyph = coverage.glyphs[i]
 				if glyph in legacyMarks:
 					coverage.glyphs.pop(i)
@@ -70,8 +70,9 @@ def fixGDEFinFont(font):
 					gdef.GlyphClassDef.classDefs[legacyMark] = 1
 					print(f"\t👨🏻‍🔧 Switched {legacyMark} from class {classType} to 1")
 					madeChanges = True
-	
+
 	return madeChanges
+
 
 arguments = parser.parse_args()
 fonts = arguments.fonts
@@ -83,6 +84,6 @@ for fontpath in fonts:
 		font.save(fontpath, reorderTables=False)
 		print(f"💾 Saved {fontpath}\n")
 	else:
-		print(f"🤷🏻‍♀️ No changes made. File left unchanged.")
+		print("🤷🏻‍♀️ No changes made. File left unchanged.")
 
 print("✅ Done.")

@@ -1,15 +1,18 @@
-#MenuTitle: Green Blue Manager
+# MenuTitle: Green Blue Manager
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-if Glyphs.versionNumber >= 3:
-	from GlyphsApp import GlyphsPathPlugin
 __doc__ = """
 Define an angle above which a node will be set to blue, below which it will be set to green.
 """
 
-import vanilla, sys
+import vanilla
 from math import degrees, atan2
-from Foundation import NSPoint, NSMutableArray, NSNumber
+from Foundation import NSPoint
+from GlyphsApp import Glyphs, GSControlLayer, GSOFFCURVE, GSSMOOTH, GSSHARP, Message
+
+if Glyphs.versionNumber >= 3:
+	from GlyphsApp import GlyphsPathPlugin
+
 
 def angle(firstPoint, secondPoint):
 	"""
@@ -20,6 +23,7 @@ def angle(firstPoint, secondPoint):
 	xDiff = secondPoint.x - firstPoint.x
 	yDiff = secondPoint.y - firstPoint.y
 	return degrees(atan2(yDiff, xDiff))
+
 
 class GreenBlueManager(object):
 	prefID = "com.mekkablue.GreenBlueManager"
@@ -44,61 +48,44 @@ class GreenBlueManager(object):
 		# Window 'self.w':
 		windowWidth = 300
 		windowHeight = 310
-		windowWidthResize = 500 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 500  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Green Blue Manager", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.GreenBlueManager.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Green Blue Manager",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.GreenBlueManager.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 5, 15, 22
-		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, lineHeight * 2),
-			"Validates the connection state of nodes, green vs. blue, according to the angle between them. Optionally corrects green/blue state and handles.",
-			sizeStyle='small',
-			selectable=True
-			)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, lineHeight * 2), "Validates the connection state of nodes, green vs. blue, according to the angle between them. Optionally corrects green/blue state and handles.", sizeStyle='small', selectable=True)
 		linePos += lineHeight * 2.5
 
 		self.w.thresholdAngleText = vanilla.TextBox((inset, linePos, 110, 14), "Threshold Angle:", sizeStyle='small', selectable=True)
 		self.w.thresholdAngle = vanilla.EditText((inset + 110, linePos - 3, -inset, 19), "11", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.fixGreenBlue = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Fix green vs. blue connection for on-curves", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.fixGreenBlue.getNSButton().setToolTip_(
-			"Sets the green/blue state of an on-curve node according to the connection angle. Any connection below the threshold angle will be green, otherwise blue. Deselect both Fix and Realign options for a new tab with all glyphs that have nodes with wrong connections according to the threshold angle."
-			)
+		self.w.fixGreenBlue = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Fix green vs. blue connection for on-curves", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.fixGreenBlue.getNSButton().setToolTip_("Sets the green/blue state of an on-curve node according to the connection angle. Any connection below the threshold angle will be green, otherwise blue. Deselect both Fix and Realign options for a new tab with all glyphs that have nodes with wrong connections according to the threshold angle.")
 		linePos += lineHeight
 
-		self.w.realignHandles = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Realign handles attached to green nodes", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.realignHandles.getNSButton().setToolTip_(
-			"If a BCP (grey handle) follows a green node, it will be aligned to the previous two points. Deselect both Fix and Realign options for a new tab with all glyphs that have nodes with wrong connections according to the threshold angle."
-			)
+		self.w.realignHandles = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Realign handles attached to green nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.realignHandles.getNSButton().setToolTip_("If a BCP (grey handle) follows a green node, it will be aligned to the previous two points. Deselect both Fix and Realign options for a new tab with all glyphs that have nodes with wrong connections according to the threshold angle.")
 		linePos += lineHeight
-		
-		self.w.allMasters = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Process ⚠️ ALL masters of selected glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
+
+		self.w.allMasters = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Process ⚠️ ALL masters of selected glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allMasters.getNSButton().setToolTip_("If checked, will go through all master layers and special layers of selected glyphs. If unchecked, will only process the currently visible layer.")
 		linePos += lineHeight
 
-		self.w.completeFont = vanilla.CheckBox(
-			(inset, linePos - 1, 155, 20), "Process ⚠️ ALL glyphs in", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.completeFont.getNSButton().setToolTip_(
-			"If checked, will go through all active (i.e., master, brace and bracket) layers of all glyphs. If unchecked, will only go through selected layers. Careful: can take a minute."
-			)
-		self.w.scope = vanilla.PopUpButton((inset+155, linePos, -inset, 17), ("frontmost font", "⚠️ ALL open fonts"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.completeFont = vanilla.CheckBox((inset, linePos - 1, 155, 20), "Process ⚠️ ALL glyphs in", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.completeFont.getNSButton().setToolTip_("If checked, will go through all active (i.e., master, brace and bracket) layers of all glyphs. If unchecked, will only go through selected layers. Careful: can take a minute.")
+		self.w.scope = vanilla.PopUpButton((inset + 155, linePos, -inset, 17), ("frontmost font", "⚠️ ALL open fonts"), sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 
 		self.w.excludeText = vanilla.TextBox((inset, linePos, 115, 14), "Exclude glyphs with:", sizeStyle="small", selectable=True)
-		self.w.exclude = vanilla.EditText((inset+115, linePos-3, -inset, 19), ".ornm, BlackIndex, Heart, apple", callback=self.SavePreferences, sizeStyle="small")
+		self.w.exclude = vanilla.EditText((inset + 115, linePos - 3, -inset, 19), ".ornm, BlackIndex, Heart, apple", callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		self.w.reportInMacroWindow = vanilla.CheckBox((inset, linePos - 1, 160, 20), "Report in Macro window", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -112,9 +99,9 @@ class GreenBlueManager(object):
 		self.w.reuseTab = vanilla.CheckBox((inset + 160, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.getNSButton().setToolTip_("If enabled, will use the current tab for output, and only open a new tab if there is none open.")
 		linePos += lineHeight
-		
+
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
-		self.w.progress.set(0) # set progress indicator to zero
+		self.w.progress.set(0)  # set progress indicator to zero
 		linePos += lineHeight
 
 		self.w.processingText = vanilla.TextBox((inset, linePos + 2, -120 - inset, 14), "", sizeStyle='small', selectable=True)
@@ -137,7 +124,7 @@ class GreenBlueManager(object):
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
@@ -178,6 +165,7 @@ class GreenBlueManager(object):
 			return False
 
 	def realignLayer(self, layer, shouldRealign=False, shouldReport=False, shouldVerbose=False):
+
 		def closestPointOnLine(P, A, B):
 			# vector of line AB
 			AB = NSPoint(B.x - A.x, B.y - A.y)
@@ -190,7 +178,7 @@ class GreenBlueManager(object):
 			x = A.x + t * AB.x
 			y = A.y + t * AB.y
 			return NSPoint(x, y)
-	
+
 		def ortho(n1, n2):
 			xDiff = n1.x - n2.x
 			yDiff = n1.y - n2.y
@@ -199,17 +187,17 @@ class GreenBlueManager(object):
 			if xDiff != yDiff and xDiff * yDiff == 0.0:
 				return True
 			return False
-		
+
 		def triplet(n1, n2, n3):
 			return (n1.position, n2.position, n3.position)
-		
+
 		handleCount = 0
 		for p in layer.paths:
 			for n in p.nodes:
 				if n.connection != GSSMOOTH:
 					continue
 				nn, pn = n.nextNode, n.prevNode
-				if all((nn.type == OFFCURVE, pn.type == OFFCURVE)):
+				if all((nn.type == GSOFFCURVE, pn.type == GSOFFCURVE)):
 					# surrounding points are BCPs
 					smoothen, center, opposite = None, None, None
 					for handle in (nn, pn):
@@ -220,37 +208,37 @@ class GreenBlueManager(object):
 							oldPos = triplet(smoothen, center, opposite)
 							p.setSmooth_withCenterNode_oppositeNode_(
 								smoothen, center, opposite,
-								)
+							)
 							if oldPos != triplet(smoothen, center, opposite):
 								handleCount += 1
 							if not shouldRealign:
 								smoothen.position, center.position, opposite.position = oldPos
 							break
-					if smoothen == center == opposite == None:
+					if smoothen == center == opposite is None:
 						oldPos = triplet(n, nn, pn)
 						n.position = closestPointOnLine(
 							n.position, nn, pn,
-							)
+						)
 						if oldPos != triplet(n, nn, pn):
-							handleCount +=1
+							handleCount += 1
 						if not shouldRealign:
 							n.position, nn.position, pn.position = oldPos
-						
-				elif n.type != OFFCURVE and (nn.type, pn.type).count(OFFCURVE) == 1:
+
+				elif n.type != GSOFFCURVE and (nn.type, pn.type).count(GSOFFCURVE) == 1:
 					# only one of the surrounding points is a BCP
 					center = n
-					if nn.type == OFFCURVE:
+					if nn.type == GSOFFCURVE:
 						smoothen = nn
 						opposite = pn
-					elif pn.type == OFFCURVE:
+					elif pn.type == GSOFFCURVE:
 						smoothen = pn
 						opposite = nn
 					else:
-						continue # should never occur
+						continue  # should never occur
 					oldPos = triplet(smoothen, center, opposite)
 					p.setSmooth_withCenterNode_oppositeNode_(
 						smoothen, center, opposite,
-						)
+					)
 					if oldPos != triplet(smoothen, center, opposite):
 						handleCount += 1
 					if not shouldRealign:
@@ -273,13 +261,13 @@ class GreenBlueManager(object):
 		layerCount = 0
 		for thisPath in thisLayer.paths:
 			for i, thisNode in enumerate(thisPath.nodes):
-				if thisNode.type == OFFCURVE:
+				if thisNode.type == GSOFFCURVE:
 					hotNode = None
-					if thisNode.prevNode.type != OFFCURVE:
+					if thisNode.prevNode.type != GSOFFCURVE:
 						hotNode = thisNode.prevNode
-					elif thisNode.nextNode.type != OFFCURVE:
+					elif thisNode.nextNode.type != GSOFFCURVE:
 						hotNode = thisNode.nextNode
-					if not hotNode is None:
+					if hotNode is not None:
 						if hotNode.prevNode and hotNode.nextNode:
 							angleDiff = abs(angle(hotNode.prevNode, hotNode) - angle(hotNode, hotNode.nextNode)) % 360
 							if (angleDiff <= thresholdAngle or angleDiff >= 360 - thresholdAngle) and hotNode.connection != GSSMOOTH:
@@ -312,7 +300,7 @@ class GreenBlueManager(object):
 			shouldReport = self.pref("reportInMacroWindow")
 			if shouldReport:
 				Glyphs.clearLog()
-			
+
 			scope = self.pref("scope")
 			if not Glyphs.font:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
@@ -320,8 +308,8 @@ class GreenBlueManager(object):
 			elif scope == 1:
 				theseFonts = Glyphs.fonts
 			else:
-				theseFonts = (Glyphs.font,)
-			
+				theseFonts = (Glyphs.font, )
+
 			for thisFont in theseFonts:
 				filePath = thisFont.filepath
 				if filePath:
@@ -355,11 +343,11 @@ class GreenBlueManager(object):
 							layersToBeProcessed.append(thisLayer)
 				else:
 					if self.pref("allMasters"):
-						glyphsToBeProcessed = [l.parent for l in thisFont.selectedLayers if l.parent and not type(l)==GSControlLayer]
+						glyphsToBeProcessed = [layer.parent for layer in thisFont.selectedLayers if layer.parent and not isinstance(layer, GSControlLayer)]
 						for g in glyphsToBeProcessed:
-							for l in g.layers:
-								if l.isSpecialLayer or l.isMasterLayer:
-									layersToBeProcessed.append(l)
+							for layer in g.layers:
+								if layer.isSpecialLayer or layer.isMasterLayer:
+									layersToBeProcessed.append(layer)
 					else:
 						layersToBeProcessed = thisFont.selectedLayers
 
@@ -367,7 +355,7 @@ class GreenBlueManager(object):
 					print(
 						"❌ Green Blue Manager Error: No Selection",
 						"\n⚠️ No glyphs selected for processing. Either select some glyphs or select the option ‘Process ALL glyphs’.",
-						)
+					)
 				else:
 					numberOfLayers = len(layersToBeProcessed)
 					affectedLayersFixedConnections = []
@@ -375,7 +363,7 @@ class GreenBlueManager(object):
 
 					# process layers:
 					for i, thisLayer in enumerate(layersToBeProcessed):
-						if type(thisLayer) != GSControlLayer:
+						if isinstance(thisLayer, GSControlLayer):
 							thisGlyph = thisLayer.parent
 							statusMessage = f"Processing: {thisGlyph.name}"
 							if shouldReport and shouldVerbose:
@@ -391,12 +379,11 @@ class GreenBlueManager(object):
 							if numberOfAligns:
 								affectedLayersRealignedHandles.append(thisLayer)
 
-
 					self.w.progress.set(100)
 					statusMessage = "Processed %i layer%s." % (
 						numberOfLayers,
 						"" if numberOfLayers == 1 else "s",
-						)
+					)
 					self.w.processingText.set(statusMessage)
 
 					titles = []
@@ -408,7 +395,7 @@ class GreenBlueManager(object):
 						titles.append("Aligned BCPs")
 					else:
 						titles.append("Unaligned BCPs")
-					onlyReport = not shouldFix and not shouldRealign
+					# onlyReport = not shouldFix and not shouldRealign
 
 					if shouldReport:
 						if affectedLayersFixedConnections:
@@ -463,5 +450,6 @@ class GreenBlueManager(object):
 			import traceback
 			print(traceback.format_exc())
 			print()
+
 
 GreenBlueManager()

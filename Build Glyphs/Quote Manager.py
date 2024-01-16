@@ -1,4 +1,4 @@
-#MenuTitle: Quote Manager
+# MenuTitle: Quote Manager
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -8,12 +8,15 @@ Build double quotes from single quotes, and insert #exit and #entry anchors in t
 import vanilla
 from Foundation import NSPoint
 from AppKit import NSNotificationCenter
+from GlyphsApp import Glyphs, GSAnchor, GSComponent
+
 names = {
 	"quotesinglbase": "quotedblbase",
 	"quoteleft": "quotedblleft",
 	"quoteright": "quotedblright",
 	"quotesingle": "quotedbl",
-	}
+}
+
 
 class QuoteManager(object):
 
@@ -21,54 +24,40 @@ class QuoteManager(object):
 		# Window 'self.w':
 		windowWidth = 480
 		windowHeight = 295
-		windowWidthResize = 400 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 400  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Quote Manager: build and align quotes", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.QuoteManager.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Quote Manager: build and align quotes",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.QuoteManager.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 24
 
-		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, 14), "Syncs single and double quotes with cursive attachment. Reports in Macro Window.", sizeStyle='small', selectable=True
-			)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Syncs single and double quotes with cursive attachment. Reports in Macro Window.", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
 		self.w.defaultQuoteText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Default quotes:", sizeStyle='small', selectable=True)
-		self.w.defaultQuote = vanilla.PopUpButton(
-			(inset + 90, linePos, -inset, 17), ["%s/%s" % (name, names[name]) for name in names], sizeStyle='small', callback=self.SavePreferences
-			)
+		self.w.defaultQuote = vanilla.PopUpButton((inset + 90, linePos, -inset, 17), ["%s/%s" % (name, names[name]) for name in names], sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.syncWithDefaultQuote = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Sync all quotes with default quotes (metrics keys, anchor placement)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.syncWithDefaultQuote.getNSButton(
-		).setToolTip_("If enabled, the default quotes will be taken as reference for metrics keys and distance between #exit and #entry anchors.")
+		self.w.syncWithDefaultQuote = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Sync all quotes with default quotes (metrics keys, anchor placement)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.syncWithDefaultQuote.getNSButton().setToolTip_("If enabled, the default quotes will be taken as reference for metrics keys and distance between #exit and #entry anchors.")
 		linePos += lineHeight
 
-		self.w.excludeDumbQuotes = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Ignore straight dumb quotes (quotesingle, quotedbl)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.excludeDumbQuotes.getNSButton().setToolTip_(
-			"For most actions, tthis option allows you to ignore the (straight) dumb quotes. The Kerning Group button will ignore this setting and always set the groups for the straight quote."
-			)
+		self.w.excludeDumbQuotes = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Ignore straight dumb quotes (quotesingle, quotedbl)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.excludeDumbQuotes.getNSButton().setToolTip_("For most actions, tthis option allows you to ignore the (straight) dumb quotes. The Kerning Group button will ignore this setting and always set the groups for the straight quote.")
 		linePos += lineHeight
 
 		self.w.suffixText = vanilla.TextBox((inset, linePos + 2, 270, 14), "Suffix for all quotes involved (leave blank if none):", sizeStyle='small', selectable=True)
 		self.w.suffix = vanilla.EditText((inset + 270, linePos - 1, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
-		self.w.suffix.getNSTextField(
-		).setToolTip_(u"E.g., ‘case’ for .case variants. Entry with or without the leading period. Leave blank for the default quotes (without dot suffixes).")
+		self.w.suffix.getNSTextField().setToolTip_(u"E.g., ‘case’ for .case variants. Entry with or without the leading period. Leave blank for the default quotes (without dot suffixes).")
 		linePos += lineHeight
 
-		self.w.openTabWithAffectedGlyphs = vanilla.CheckBox(
-			(inset, linePos - 1, 200, 20), "Open tab with affected glyphs", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.openTabWithAffectedGlyphs = vanilla.CheckBox((inset, linePos - 1, 200, 20), "Open tab with affected glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.openTabWithAffectedGlyphs.getNSButton().setToolTip_("Whatever action you take, this option makes sure a new tab will be opened with all the glyphs affected.")
 		self.w.reuseTab = vanilla.CheckBox((inset + 200, linePos - 1, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.getNSButton().setToolTip_(u"Instead of opening a new tab, will reuse the current tab. Highly recommended.")
@@ -81,9 +70,7 @@ class QuoteManager(object):
 		self.w.buildDoublesText.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
-		self.w.keepCopyInBackground = vanilla.CheckBox(
-			(inset + 135, linePos - 1, -inset, 20), "Backup current quotes in the background", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.keepCopyInBackground = vanilla.CheckBox((inset + 135, linePos - 1, -inset, 20), "Backup current quotes in the background", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.keepCopyInBackground.getNSButton().setToolTip_("Copies the current shapes in the background and decomposes them to paths there. Useful to see if anything shifted.")
 		linePos += lineHeight
 
@@ -218,7 +205,7 @@ class QuoteManager(object):
 				print("Note: 'Quote Manager' could not write preferences.")
 
 			Glyphs.clearLog()
-			Font = Glyphs.font # frontmost font
+			Font = Glyphs.font  # frontmost font
 			dotSuffix = self.getDotSuffix()
 
 			# report:
@@ -257,7 +244,7 @@ class QuoteManager(object):
 				print("Note: 'Quote Manager' could not write preferences.")
 
 			Glyphs.clearLog()
-			Font = Glyphs.font # frontmost font
+			Font = Glyphs.font  # frontmost font
 
 			# query suffix
 			dotSuffix = self.getDotSuffix()
@@ -284,8 +271,8 @@ class QuoteManager(object):
 					else:
 						print("\n%s/%s:" % (singleName, doubleName))
 
-						g = Font.glyphs[singleName] # single quote glyph
-						gg = Font.glyphs[doubleName] # double quote glyph
+						g = Font.glyphs[singleName]  # single quote glyph
+						gg = Font.glyphs[doubleName]  # double quote glyph
 
 						if not g:
 							self.reportMissingGlyph(singleName)
@@ -294,8 +281,8 @@ class QuoteManager(object):
 						else:
 							for master in Font.masters:
 								mID = master.id
-								gl = g.layers[mID] # single quote layer
-								ggl = gg.layers[mID] # double quote layer
+								gl = g.layers[mID]  # single quote layer
+								ggl = gg.layers[mID]  # double quote layer
 
 								# check if a default quote has been determined by the user:
 								if defaultSingle:
@@ -303,7 +290,7 @@ class QuoteManager(object):
 									referenceLayer = referenceGlyph.layers[mID]
 								else:
 									referenceGlyph = gg
-									referenceLayer = ggl # layer for measuring, depends on user input
+									referenceLayer = ggl  # layer for measuring, depends on user input
 
 								# measure referenceLayer:
 								xPos = [c.position.x for c in referenceLayer.components]
@@ -358,7 +345,7 @@ class QuoteManager(object):
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()
 
-			Font = Glyphs.font # frontmost font
+			Font = Glyphs.font  # frontmost font
 
 			# query suffix
 			dotSuffix = self.getDotSuffix()
@@ -470,7 +457,7 @@ class QuoteManager(object):
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()
 
-			Font = Glyphs.font # frontmost font
+			Font = Glyphs.font  # frontmost font
 
 			# query suffix
 			dotSuffix = self.getDotSuffix()
@@ -496,12 +483,12 @@ class QuoteManager(object):
 					elif not Font.glyphs[doubleName]:
 						self.reportMissingGlyph(doubleName)
 					else:
-						g = Font.glyphs[singleName] # single quote glyph
-						gg = Font.glyphs[doubleName] # double quote glyph
+						g = Font.glyphs[singleName]  # single quote glyph
+						gg = Font.glyphs[doubleName]  # double quote glyph
 						for master in Font.masters:
 							mID = master.id
-							gl = g.layers[mID] # single quote layer
-							ggl = gg.layers[mID] # double quote layer
+							gl = g.layers[mID]  # single quote layer
+							ggl = gg.layers[mID]  # double quote layer
 
 							# backup and clear layer:
 							if keepCopyInBackground:
@@ -529,5 +516,6 @@ class QuoteManager(object):
 			print("Quote Manager Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 QuoteManager()

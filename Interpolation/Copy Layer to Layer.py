@@ -1,11 +1,13 @@
-#MenuTitle: Copy Layer to Layer
+# MenuTitle: Copy Layer to Layer
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Copies one master to another master's or background in selected glyphs.
 """
 
-import vanilla, math
+import vanilla
+from GlyphsApp import Glyphs, GSPath, GSComponent
+
 
 class CopyLayerToLayer(object):
 
@@ -13,15 +15,15 @@ class CopyLayerToLayer(object):
 		# Window 'self.w':
 		windowWidth = 340
 		windowHeight = 240
-		windowWidthResize = 200 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 200  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Copy layer to layer", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.CopyLayerToLayer.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Copy layer to layer",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.CopyLayerToLayer.mainwindow"  # stores last window position and size
+		)
 
 		self.w.text_1 = vanilla.TextBox((15, 12 + 2, 120, 14), "Copy paths from", sizeStyle='small')
 		self.w.fontSource = vanilla.PopUpButton((120, 12, -15, 17), self.GetFontNames(), sizeStyle='small', callback=self.FontChangeCallback)
@@ -180,7 +182,7 @@ class CopyLayerToLayer(object):
 			try:
 				# GLYPHS 3
 				for i in reversed(range(len(targetLayer.shapes))):
-					if type(targetLayer.shapes[i]) == GSPath:
+					if isinstance(targetLayer.shapes[i], GSPath):
 						del targetLayer.shapes[i]
 			except:
 				# GLYPHS 2
@@ -222,7 +224,7 @@ class CopyLayerToLayer(object):
 			try:
 				# GLYPHS 3
 				for i in reversed(range(len(targetLayer.shapes))):
-					if type(targetLayer.shapes[i]) == GSComponent:
+					if isinstance(targetLayer.shapes[i], GSComponent):
 						del targetLayer.shapes[i]
 			except:
 				# GLYPHS 2
@@ -271,18 +273,18 @@ class CopyLayerToLayer(object):
 
 		# This should be the active selection, not necessarily the selection on the inputted fonts
 		Font = Glyphs.font
-		selectedGlyphs = [l.parent for l in Font.selectedLayers if l.parent.name is not None]
+		selectedGlyphs = [layer.parent for layer in Font.selectedLayers if layer.parent.name is not None]
 
-		indexOfSourceFont = int(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontSource"])
-		indexOfTargetFont = int(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontTarget"])
-		indexOfSourceMaster = int(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterSource"])
-		indexOfTargetMaster = int(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterTarget"])
-		pathsYesOrNo = bool(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includePaths"])
-		componentsYesOrNo = bool(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeComponents"])
-		anchorsYesOrNo = bool(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeAnchors"])
-		metricsYesOrNo = bool(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeMetrics"])
-		copyBackground = bool(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.copyBackground"])
-		keepOriginal = bool(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.keepOriginal"])
+		indexOfSourceFont = Glyphs.intDefaults["com.mekkablue.CopyLayerToLayer.fontSource"]
+		indexOfTargetFont = Glyphs.intDefaults["com.mekkablue.CopyLayerToLayer.fontTarget"]
+		indexOfSourceMaster = Glyphs.intDefaults["com.mekkablue.CopyLayerToLayer.masterSource"]
+		indexOfTargetMaster = Glyphs.intDefaults["com.mekkablue.CopyLayerToLayer.masterTarget"]
+		pathsYesOrNo = Glyphs.boolDefaults["com.mekkablue.CopyLayerToLayer.includePaths"]
+		componentsYesOrNo = Glyphs.boolDefaults["com.mekkablue.CopyLayerToLayer.includeComponents"]
+		anchorsYesOrNo = Glyphs.boolDefaults["com.mekkablue.CopyLayerToLayer.includeAnchors"]
+		metricsYesOrNo = Glyphs.boolDefaults["com.mekkablue.CopyLayerToLayer.includeMetrics"]
+		copyBackground = Glyphs.boolDefaults["com.mekkablue.CopyLayerToLayer.copyBackground"]
+		keepOriginal = Glyphs.boolDefaults["com.mekkablue.CopyLayerToLayer.keepOriginal"]
 
 		for thisGlyph in selectedGlyphs:
 			try:
@@ -320,7 +322,7 @@ class CopyLayerToLayer(object):
 				finally:
 					targetFont.enableUpdateInterface()
 
-			except Exception as e:
+			except Exception as e:  # noqa: F841
 				Glyphs.showMacroWindow()
 				print("\n⚠️ Script Error:\n")
 				import traceback
@@ -328,5 +330,6 @@ class CopyLayerToLayer(object):
 
 		if not Glyphs.defaults["com.mekkablue.CopyLayerToLayer.keepWindowOpen"]:
 			self.w.close()
+
 
 CopyLayerToLayer()

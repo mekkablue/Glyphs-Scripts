@@ -1,16 +1,15 @@
-#MenuTitle: Add Adobe Symbol Glyphs
+# MenuTitle: Add Adobe Symbol Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Will add Adobe’s interpolations for a number of symbol glyphs if they are missing from the font: Omega, Delta, Ohm, increment, asciicircum, greaterequal, infinity, partialdiff, lessequal, notequal, product, approxequal, plus, lozenge, integral, summation, radical, daggerdbl, perthousand, logicalnot, plusminus, asciitilde, divide, minus, multiply, dagger, less, equal, greater, literSign, .notdef.
 
 Requires makeotf (AFDKO) to be installed.
 """
 
-from Foundation import NSString
 from os import system, path, mkdir
-from time import sleep
 import subprocess
+from GlyphsApp import Glyphs, GSGlyphsInfo, GSGlyph, GSInstance, OTF, PLAIN
 
 glyphNames = """
 Omega
@@ -46,18 +45,20 @@ literSign
 .notdef
 """
 
+
 def addSansOrSerif(fontName):
 	sansTriggers = ("Sans", "Grotesk", "Grotesque", "Linear", "Mono")
 	for trigger in sansTriggers:
 		if trigger in fontName:
 			return " -sans"
-			
+
 	serifTriggers = ("Serif", "Text", "Slab")
 	for trigger in serifTriggers:
 		if trigger in fontName:
 			return " -serif"
-	
+
 	return ""
+
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
@@ -73,8 +74,8 @@ fileName = "deleteme"
 fileNameSymbols = f"{fileName}-symbols"
 filePath = f"{exportFolder}/{fileName}.otf"
 filePathSymbols = f"{exportFolder}/{fileNameSymbols}.otf"
-absoluteFilePath =  path.expanduser(filePath)
-absoluteFilePathSymbols =  path.expanduser(filePathSymbols)
+absoluteFilePath = path.expanduser(filePath)
+absoluteFilePathSymbols = path.expanduser(filePathSymbols)
 symbolGlyphNames = [n.strip() for n in glyphNames.strip().splitlines() if n.strip()]
 emptyCommand = f"rm -f '{exportFolder}/*.otf'"
 # /usr/local/bin/
@@ -83,45 +84,47 @@ command += addSansOrSerif(font.familyName)
 
 print(command)
 
-generatedGlyphNames = []
+# generatedGlyphNames = []
 for master in font.masters:
 	print(f"\nⓂ️ Processing {master.name} ({OTF} {fileNameSymbols})...")
-	system(emptyCommand) # empty out target folder
+	system(emptyCommand)  # empty out target folder
 	instance = GSInstance()
 	instance.font = font
 	instance.name = f"TEMP {master.name}"
 	instance.axes = master.axes
 	instance.manualInterpolation = True
-	instance.instanceInterpolations = {master.id: 1.0}
+	instance.instanceInterpolations = {
+		master.id: 1.0
+	}
 	instance.customParameters["fileName"] = fileName
 	instance.customParameters["Remove Glyphs"] = symbolGlyphNames
 	success = instance.generate(
-		Format=OTF, #format
-		FontPath=exportFolder, # fontPath
-		AutoHint=False, # autoHint
-		RemoveOverlap=True, #removeOverlap
-		UseSubroutines=False, #useSubroutines
-		UseProductionNames=True, #useProductionNames
-		Containers=[PLAIN], #containers
-		)
-	
+		Format=OTF,  # format
+		FontPath=exportFolder,  # fontPath
+		AutoHint=False,  # autoHint
+		RemoveOverlap=True,  # removeOverlap
+		UseSubroutines=False,  # useSubroutines
+		UseProductionNames=True,  # useProductionNames
+		Containers=[PLAIN],  # containers
+	)
+
 	print("🍻 Exported master as font:", success)
-	if success!=True:
+	if success is not True:
 		print("☹️ Aborted.")
 		continue
-	
-#	sleep(3)
-#	result = system(command)
-#	result = subprocess.check_output(command, shell=True, text=True)
+
+	# sleep(3)
+	# result = system(command)
+	# result = subprocess.check_output(command, shell=True, text=True)
 	result = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True, text=True)
-#	print(result.communicate())
-	
+	# print(result.communicate())
+
 	symbolFont = Glyphs.open(absoluteFilePathSymbols, showInterface=False)
 	if symbolFont:
 		print(f"🥂 Reopened OTF: {symbolFont.familyName} {symbolFont.instances[0].name}")
 		font.disableUpdateInterface()
 		for g in symbolFont.glyphs:
-			niceName = Glyphs.niceGlyphName(g.name).replace("Omega","Ohm").replace("Delta","increment")
+			niceName = Glyphs.niceGlyphName(g.name).replace("Omega", "Ohm").replace("Delta", "increment")
 			if niceName in symbolGlyphNames:
 				targetGlyph = font.glyphs[niceName]
 				if not targetGlyph:

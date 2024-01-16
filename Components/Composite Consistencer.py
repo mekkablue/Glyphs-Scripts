@@ -1,4 +1,4 @@
-#MenuTitle: Composite Consistencer
+# MenuTitle: Composite Consistencer
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,7 +6,10 @@ Goes through all glyphs of the frontmost font, and checks for composites in the 
 """
 
 import vanilla
+from GlyphsApp import Glyphs, Message
+
 defaultSuffixes = ".dnom, .numr, .subs, .sups, .sinf, .case, .tf, .tosf, .osf"
+
 
 def normalizedSuffixOrder(name):
 	particles = name.split(".")
@@ -15,6 +18,7 @@ def normalizedSuffixOrder(name):
 		name = ".".join(particles)
 	return name
 
+
 class CompositeConsistencer(object):
 	prefID = "com.mekkablue.CompositeConsistencer"
 
@@ -22,15 +26,15 @@ class CompositeConsistencer(object):
 		# Window 'self.w':
 		windowWidth = 320
 		windowHeight = 160
-		windowWidthResize = 500 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 500  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Composite Consistencer", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Composite Consistencer",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -41,14 +45,10 @@ class CompositeConsistencer(object):
 		self.w.ignore = vanilla.EditText((inset + 90, linePos, -inset, 19), defaultSuffixes, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.ignoreDuplicateSuffixes = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Ignore duplicate suffixes (.ss01.ss01)", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.ignoreDuplicateSuffixes = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Ignore duplicate suffixes (.ss01.ss01)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.suffixOrderMatters = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Order of suffixes matters (.case.ss01 and .ss01.case)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.suffixOrderMatters = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Order of suffixes matters (.case.ss01 and .ss01.case)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# Run Button:
@@ -109,7 +109,7 @@ class CompositeConsistencer(object):
 			if not self.SavePreferences():
 				print("Note: 'Composite Consistencer' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -142,13 +142,13 @@ class CompositeConsistencer(object):
 						for otherName in allNames:
 							if otherName.startswith(thisGlyph.name + "."):
 								otherSuffix = otherName[len(thisGlyph.name) + 1:]
-								if all([not s in otherSuffix.split(".") for s in ignoredSuffixes]):
+								if all([s not in otherSuffix.split(".") for s in ignoredSuffixes]):
 									missingOtherNames = []
 									for thisCompositeName in compositeNames:
 										otherCompositeName = "%s.%s" % (thisCompositeName.rstrip("."), otherSuffix.strip("."))
 										if not suffixOrderMatters:
 											otherCompositeName = normalizedSuffixOrder(otherCompositeName)
-										if not otherCompositeName in allNames:
+										if otherCompositeName not in allNames:
 											if not ignoreDuplicateSuffixes or len(otherCompositeName.split(".")[1:]) == len(set(otherCompositeName.split(".")[1:])):
 												missingOtherNames.append(otherCompositeName)
 									if missingOtherNames:
@@ -162,8 +162,8 @@ class CompositeConsistencer(object):
 												len(missingOtherNames),
 												"" if len(missingOtherNames) == 1 else "s",
 												", ".join(missingOtherNames),
-												)
 											)
+										)
 
 			# Final report:
 			Glyphs.showNotification(
@@ -171,14 +171,14 @@ class CompositeConsistencer(object):
 					thisFont.familyName,
 					countAffectedGlyphs,
 					"" if countAffectedGlyphs == 1 else "s",
-					),
+				),
 				"%i glyph%s missing %i composite%s. Details in Macro Window" % (
 					countAffectedGlyphs,
 					"" if countAffectedGlyphs == 1 else "s",
 					countMissingComposites,
 					"" if countMissingComposites == 1 else "s",
-					),
-				)
+				),
+			)
 			if not suffixOrderMatters:
 				print("\n⚠️ Attention: the displayed suffix order may not be intended.")
 			print("Done.")
@@ -192,5 +192,6 @@ class CompositeConsistencer(object):
 			print("Composite Consistencer Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 CompositeConsistencer()

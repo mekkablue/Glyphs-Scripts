@@ -1,4 +1,4 @@
-#MenuTitle: Composite Variabler
+# MenuTitle: Composite Variabler
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Reduplicates Brace and Bracket layers of components in the composites in which t
 """
 
 import vanilla
+from GlyphsApp import Glyphs, Message, GSLayer
+
 
 class CompositeVariabler(object):
 
@@ -13,62 +15,39 @@ class CompositeVariabler(object):
 		# Window 'self.w':
 		windowWidth = 405
 		windowHeight = 280
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Composite Variabler", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.CompositeVariabler.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Composite Variabler",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.CompositeVariabler.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, 28),
-			"Reduplicates special layers of components in the composites in which they are used. Makes bracket and brace layers work.",
-			sizeStyle='small',
-			selectable=True
-			)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 28), "Reduplicates special layers of components in the composites in which they are used. Makes bracket and brace layers work.", sizeStyle='small', selectable=True)
 		linePos += lineHeight * 2
 
-		self.w.processBracketLayers = vanilla.CheckBox(
-			(inset, linePos - 1, windowWidth // 2, 20), "Process [BRACKET] layers", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.processBraceLayers = vanilla.CheckBox(
-			(inset + windowWidth // 2, linePos - 1, -inset, 20), "Process {BRACE} layers", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.processBracketLayers = vanilla.CheckBox((inset, linePos - 1, windowWidth // 2, 20), "Process [BRACKET] layers", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.processBraceLayers = vanilla.CheckBox((inset + windowWidth // 2, linePos - 1, -inset, 20), "Process {BRACE} layers", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.allGlyphs = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20),
-			"Include all exporting glyphs in font (otherwise only selected glyphs)",
-			value=False,
-			callback=self.SavePreferences,
-			sizeStyle='small'
-			)
-		self.w.allGlyphs.getNSButton().setToolTip_(
-			"If checked, all glyphs in the font will be processed and receive the special (brace and bracket) layers of their respective components. If unchecked, only selected composite glyphs get processed."
-			)
+		self.w.allGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include all exporting glyphs in font (otherwise only selected glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allGlyphs.getNSButton().setToolTip_("If checked, all glyphs in the font will be processed and receive the special (brace and bracket) layers of their respective components. If unchecked, only selected composite glyphs get processed.")
 		linePos += lineHeight
 
-		self.w.decomposeBrackets = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Decompose special layers in composites (currently broken)", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.decomposeBrackets = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Decompose special layers in composites (currently broken)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.decomposeBrackets.getNSButton().setToolTip_("If checked, will decompose bracket layers. This is necessary for bracket layers to work in OTVAR fonts in Glyphs 2.6.")
 		linePos += lineHeight
 
-		self.w.deleteExistingSpecialLayers = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Delete pre-existing special layers in composites", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.deleteExistingSpecialLayers = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Delete pre-existing special layers in composites", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.deleteExistingSpecialLayers.getNSButton().setToolTip_("If checked, will delete all bracket or brace layers found in processed composite glyphs.")
 		linePos += lineHeight
 
-		self.w.justBackupInstead = vanilla.CheckBox(
-			(inset * 2, linePos - 1, -inset, 20), "Don’t delete, just backup and deactivate instead", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.justBackupInstead = vanilla.CheckBox((inset * 2, linePos - 1, -inset, 20), "Don’t delete, just backup and deactivate instead", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.justBackupInstead.getNSButton().setToolTip_("If checked, will not delete, but just deactivate the layer by renaming it from ‘[100]’ to ‘#100#’.")
 		linePos += lineHeight
 
@@ -76,16 +55,12 @@ class CompositeVariabler(object):
 		self.w.openTab.getNSButton().setToolTip_("If checked, will open a tab with all composites that have received new special layers.")
 		linePos += lineHeight
 
-		self.w.catchNestedComponents = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Catch all nested components (slower)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.catchNestedComponents.getNSButton().setToolTip_(
-			"If checked, will count max component depth (number of nestings, i.e. components of components of components, etc.) in the font, and repeat the whole process as many times. Will take significantly longer. Use this only if you need it (unlikely) and know what you are doing."
-			)
+		self.w.catchNestedComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Catch all nested components (slower)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.catchNestedComponents.getNSButton().setToolTip_("If checked, will count max component depth (number of nestings, i.e. components of components of components, etc.) in the font, and repeat the whole process as many times. Will take significantly longer. Use this only if you need it (unlikely) and know what you are doing.")
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
-		self.w.progress.set(0) # set progress indicator to zero
+		self.w.progress.set(0)  # set progress indicator to zero
 		linePos += lineHeight
 
 		self.w.processedGlyph = vanilla.TextBox((inset, linePos + 2, -80 - inset, 14), "", sizeStyle='small', selectable=True)
@@ -152,13 +127,13 @@ class CompositeVariabler(object):
 
 		return True
 
-	def countNest(self, c):
-		thisFont = c.parent.parent.parent
+	def countNest(self, component):
+		thisFont = component.parent.parent.parent
 		if thisFont:
-			gName = c.componentName
-			g = thisFont.glyphs[gName]
-			if g:
-				gComponents = g.layers[0].components
+			gName = component.componentName
+			glyph = thisFont.glyphs[gName]
+			if glyph:
+				gComponents = glyph.layers[0].components
 				if gComponents:
 					maxCount = max(self.countNest(cc) for cc in gComponents)
 					return 1 + maxCount
@@ -166,11 +141,11 @@ class CompositeVariabler(object):
 
 	def depthOfNesting(self, thisFont):
 		depths = []
-		for g in Font.glyphs:
-			for l in g.layers:
-				if l.isMasterLayer or l.isSpecialLayer or (Glyphs.versionNumber >= 3 and l.isColorLayer):
-					for c in l.components:
-						depth = self.countNest(c)
+		for glyph in thisFont.glyphs:
+			for layer in glyph.layers:
+				if layer.isMasterLayer or layer.isSpecialLayer or (Glyphs.versionNumber >= 3 and layer.isColorLayer):
+					for component in layer.components:
+						depth = self.countNest(component)
 						depths.append(depth)
 		return max(depths)
 
@@ -208,7 +183,7 @@ class CompositeVariabler(object):
 			decomposeBrackets = Glyphs.defaults["com.mekkablue.CompositeVariabler.decomposeBrackets"]
 			justBackupInstead = Glyphs.defaults["com.mekkablue.CompositeVariabler.justBackupInstead"]
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
@@ -224,17 +199,14 @@ class CompositeVariabler(object):
 			if catchNestedComponents:
 				print("Catching all component nestings...")
 				depth = self.depthOfNesting(thisFont)
-				depth = max(1, depth) # minimum 1, just to make sure
-				print("Found components nested up to %i time%s" % (
-					depth,
-					"" if depth == 1 else "s",
-					))
+				depth = max(1, depth)  # minimum 1, just to make sure
+				print("Found components nested up to %i time%s" % (depth, "" if depth == 1 else "s"))
 
 			if allGlyphs:
-				glyphs = [g for g in thisFont.glyphs if g.export]
+				glyphs = [glyph for glyph in thisFont.glyphs if glyph.export]
 				print("Processing all glyphs (%i in total)..." % len(glyphs))
 			else:
-				glyphs = set([l.parent for l in thisFont.selectedLayers if l.parent.export])
+				glyphs = set([layer.parent for layer in thisFont.selectedLayers if layer.parent.export])
 				print("Processing selected glyphs (%i in total)..." % len(glyphs))
 
 			for depthIteration in range(depth):
@@ -256,7 +228,7 @@ class CompositeVariabler(object):
 
 					# process layers
 					thisLayer = currentGlyph.layers[0]
-					if thisLayer.components and not thisLayer.paths: # pure composites only
+					if thisLayer.components and not thisLayer.paths:  # pure composites only
 
 						# delete special layers if requested:
 						if deleteExistingSpecialLayers:
@@ -304,7 +276,7 @@ class CompositeVariabler(object):
 													newLayer.setAttribute_forKey_(
 														originalLayer.attributes[attributeKey],
 														attributeKey,
-														)
+													)
 											newLayer.reinterpolate()
 											newLayer.reinterpolateMetrics()
 											newLayer.syncMetrics()
@@ -320,7 +292,7 @@ class CompositeVariabler(object):
 												currentGlyph.name,
 												newLayer.name,
 												" (decomposed)" if decomposeBrackets else "",
-												))
+											))
 											if decomposeBrackets:
 												layersToDecompose.append(newLayer)
 
@@ -347,15 +319,15 @@ class CompositeVariabler(object):
 					"Composite Variabler added layers to %i composite glyph%s. Details in Macro Window." % (
 						numOfGlyphs,
 						"" if numOfGlyphs == 1 else "s",
-						),
-					)
+					),
+				)
 
 			else:
 				# Floating notification:
 				Glyphs.showNotification(
 					"%s" % (thisFont.familyName),
 					"Composite Variabler added no new layers. Details in Macro Window.",
-					)
+				)
 
 		except Exception as e:
 			# brings macro window to front and reports error:
@@ -363,5 +335,6 @@ class CompositeVariabler(object):
 			print("Composite Variabler Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 CompositeVariabler()

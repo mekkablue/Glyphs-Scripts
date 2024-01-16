@@ -1,18 +1,20 @@
-#MenuTitle: Path Problem Finder
+# MenuTitle: Path Problem Finder
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Finds all kinds of potential problems in outlines, and opens a new tab with affected layers.
 """
 
-import vanilla, math
+import vanilla
+import math
 from timeit import default_timer as timer
-from GlyphsApp import QCURVE
 from AppKit import NSPoint
+from GlyphsApp import Glyphs, GSPath, GSControlLayer, GSShapeTypePath, GSLINE, GSCURVE, CURVE, GSOFFCURVE, QCURVE, Message, distance
+
 
 def reportTimeInNaturalLanguage(seconds):
 	if seconds > 60.0:
-		timereport = f"{int(seconds/60)}:{int(seconds)%60:02i} minutes"
+		timereport = f"{int(seconds / 60)}:{int(seconds) % 60:02i} minutes"
 	elif seconds < 1.0:
 		timereport = f"{seconds:.2f} seconds"
 	elif seconds < 20.0:
@@ -21,18 +23,21 @@ def reportTimeInNaturalLanguage(seconds):
 		timereport = f"{int(seconds)} seconds"
 	return timereport
 
+
 canHaveOpenOutlines = (
 	"_cap",
 	"_corner",
 	"_line",
 	"_segment",
-	)
+)
+
 
 def hasStrayPoints(thisLayer):
 	for p in thisLayer.paths:
 		if len(p.nodes) == 1:
 			return True
 	return False
+
 
 def hasDecimalCoordinates(thisLayer):
 	for p in thisLayer.paths:
@@ -42,6 +47,7 @@ def hasDecimalCoordinates(thisLayer):
 					return True
 	return False
 
+
 def hasQuadraticCurves(thisLayer):
 	for p in thisLayer.paths:
 		for n in p.nodes:
@@ -49,13 +55,15 @@ def hasQuadraticCurves(thisLayer):
 				return True
 	return False
 
+
 def hasOffcurveAsStartPoint(Layer):
 	for p in Layer.paths:
-		scenario1 = p.nodes[0].type == OFFCURVE and p.nodes[1].type != OFFCURVE
-		scenario2 = p.nodes[0].type == CURVE and p.nodes[-1].type == OFFCURVE
+		scenario1 = p.nodes[0].type == GSOFFCURVE and p.nodes[1].type != GSOFFCURVE
+		scenario2 = p.nodes[0].type == CURVE and p.nodes[-1].type == GSOFFCURVE
 		if scenario1 or scenario2:
 			return True
 	return False
+
 
 def hasShallowCurveSegment(thisLayer, minSize):
 	for thisPath in thisLayer.paths:
@@ -66,7 +74,7 @@ def hasShallowCurveSegment(thisLayer, minSize):
 					thisNode.prevNode.prevNode,
 					thisNode.prevNode,
 					thisNode,
-					)
+				)
 				xCoords = [p.x for p in thisSegment]
 				yCoords = [p.y for p in thisSegment]
 				xDist = abs(min(xCoords) - max(xCoords))
@@ -76,6 +84,7 @@ def hasShallowCurveSegment(thisLayer, minSize):
 						thisLayer.selection.append(affectedNode)
 					return True
 	return False
+
 
 def hasZeroHandles(thisLayer):
 	for thisPath in thisLayer.paths:
@@ -91,12 +100,14 @@ def hasZeroHandles(thisLayer):
 					return True
 	return False
 
+
 def hasTwoPointOutlines(thisLayer):
 	for thisPath in thisLayer.paths:
-		onCurveNodes = [n for n in thisPath.nodes if n.type != OFFCURVE]
+		onCurveNodes = [n for n in thisPath.nodes if n.type != GSOFFCURVE]
 		if len(onCurveNodes) < 3:
 			return True
 	return False
+
 
 def hasOpenPaths(thisLayer):
 	for thisPath in thisLayer.paths:
@@ -104,13 +115,14 @@ def hasOpenPaths(thisLayer):
 			return True
 	return False
 
+
 def hasBadOutlineOrder(thisLayer):
 	firstPath = None
 	if Glyphs.versionNumber >= 3:
 		# GLYPHS 3
 		if thisLayer.shapes:
 			for thisShape in thisLayer.shapes:
-				if type(thisShape) is GSPath:
+				if isinstance(thisShape, GSPath):
 					firstPath = thisShape
 					break
 	else:
@@ -122,6 +134,7 @@ def hasBadOutlineOrder(thisLayer):
 		return True
 	else:
 		return False
+
 
 def hasAlmostOrthogonalLines(thisLayer, threshold=3.0):
 	for thisPath in thisLayer.paths:
@@ -135,12 +148,14 @@ def hasAlmostOrthogonalLines(thisLayer, threshold=3.0):
 					return True
 	return False
 
+
 def hasShortSegment(thisLayer, threshold=8.0):
 	for thisPath in thisLayer.paths:
 		for thisSegment in thisPath.segments:
 			if thisSegment.length() < threshold:
 				return True
 	return False
+
 
 def hasShallowCurve(thisLayer, threshold=5.0):
 	for thisPath in thisLayer.paths:
@@ -156,6 +171,7 @@ def hasShallowCurve(thisLayer, threshold=5.0):
 						return True
 	return False
 
+
 def hasBadPathDirections(thisLayer):
 	copyLayer = thisLayer.copy()
 	copyLayer.correctPathDirection()
@@ -165,6 +181,7 @@ def hasBadPathDirections(thisLayer):
 		if copyPath.direction != originalPath.direction:
 			return True
 	return False
+
 
 def hasShallowCurveBBox(thisLayer, threshold=10.0):
 	for thisPath in thisLayer.paths:
@@ -183,6 +200,7 @@ def hasShallowCurveBBox(thisLayer, threshold=10.0):
 						return True
 	return False
 
+
 def angleBetweenPoints(firstPoint, secondPoint):
 	"""
 	Returns the angle (in degrees) of the straight line between firstPoint and secondPoint,
@@ -192,6 +210,7 @@ def angleBetweenPoints(firstPoint, secondPoint):
 	xDiff = secondPoint.x - firstPoint.x
 	yDiff = secondPoint.y - firstPoint.y
 	return math.degrees(math.atan2(yDiff, xDiff))
+
 
 def hasAngledHandles(thisLayer, threshold=8):
 	for thisPath in thisLayer.paths:
@@ -209,6 +228,7 @@ def hasAngledHandles(thisLayer, threshold=8):
 						return True
 	return False
 
+
 def hasShortHandles(thisLayer, threshold=10.0):
 	for thisPath in thisLayer.paths:
 		for i, handle in enumerate(thisPath.nodes):
@@ -222,11 +242,13 @@ def hasShortHandles(thisLayer, threshold=10.0):
 					return True
 	return False
 
+
 def hasEmptyPaths(thisLayer):
 	for thisShape in thisLayer.shapes:
-		if thisShape.shapeType==GSShapeTypePath and len(thisShape.nodes)==0:
+		if thisShape.shapeType == GSShapeTypePath and len(thisShape.nodes) == 0:
 			return True
 	return False
+
 
 def intersect(pointA, pointB, pointC, pointD):
 	"""
@@ -243,25 +265,26 @@ def intersect(pointA, pointB, pointC, pointD):
 	try:
 		slopeAB = (float(yB) - float(yA)) / (float(xB) - float(xA))
 	except:
-		slopeAB = None # division by zero if vertical
+		slopeAB = None  # division by zero if vertical
 
 	try:
 		slopeCD = (float(yD) - float(yC)) / (float(xD) - float(xC))
 	except:
-		slopeCD = None # division by zero if vertical
+		slopeCD = None  # division by zero if vertical
 
-	if slopeAB == slopeCD: # parallel, no intersection
+	if slopeAB == slopeCD:  # parallel, no intersection
 		return None
-	elif slopeAB is None: # first line is vertical
+	elif slopeAB is None:  # first line is vertical
 		x = xA
 		y = slopeCD * (x - xC) + yC
-	elif slopeCD is None: # second line is vertical
+	elif slopeCD is None:  # second line is vertical
 		x = xC
 		y = slopeAB * (x - xA) + yA
-	else: # both lines have different angles other than vertical
+	else:  # both lines have different angles other than vertical
 		x = (slopeAB * xA - yA - slopeCD * xC + yC) / (slopeAB - slopeCD)
 		y = slopeAB * (x - xA) + yA
 	return NSPoint(x, y)
+
 
 def hasLargeHandles(thisLayer):
 	for thisPath in thisLayer.paths:
@@ -279,6 +302,7 @@ def hasLargeHandles(thisLayer):
 						return True
 	return False
 
+
 def hasOutwardHandles(thisLayer):
 	for thisPath in thisLayer.paths:
 		for i, thisNode in enumerate(thisPath.nodes):
@@ -291,10 +315,11 @@ def hasOutwardHandles(thisLayer):
 					return True
 	return False
 
+
 def hasCuspingHandles(thisLayer):
 	for thisPath in thisLayer.paths:
 		for n in thisPath.nodes:
-			if n.type == OFFCURVE and n.nextNode.type == OFFCURVE:
+			if n.type == GSOFFCURVE and n.nextNode.type == GSOFFCURVE:
 				distAC = distance(n.prevNode.position, n.nextNode.position)
 				distAB = distance(n.prevNode.position, n.position)
 				distBD = distance(n.position, n.nextNode.nextNode.position)
@@ -302,6 +327,7 @@ def hasCuspingHandles(thisLayer):
 				if distAC < distAB and distBD < distCD:
 					thisLayer.selection = (n, n.nextNode)
 					return True
+
 
 def isOutside(p1, p2, p3):
 	"""
@@ -311,6 +337,7 @@ def isOutside(p1, p2, p3):
 	if nx < 0.0 or nx > 1.0:
 		return True
 	return False
+
 
 def distanceAndRelativePosition(p1, p2, p3):
 	"""
@@ -333,6 +360,7 @@ def distanceAndRelativePosition(p1, p2, p3):
 
 	deviation = distance(p3, NSPoint(dx * nx + x1, dy * nx + y1))
 	return deviation, nx
+
 
 class PathProblemFinder(object):
 	prefID = "com.mekkablue.PathProblemFinder"
@@ -374,19 +402,19 @@ class PathProblemFinder(object):
 		# Window 'self.w':
 		windowWidth = 285
 		windowHeight = 505
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			self.title, # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
-		
-		if self.w.getPosSize()[3] != windowHeight-19:
-			print(self.w.getPosSize()[3], windowHeight-19)
-			self.w.resize(self.w.getPosSize()[2], windowHeight-19, animate=False)
+			(windowWidth, windowHeight),  # default window size
+			self.title,  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
+
+		if self.w.getPosSize()[3] != windowHeight - 19:
+			print(self.w.getPosSize()[3], windowHeight - 19)
+			self.w.resize(self.w.getPosSize()[2], windowHeight - 19, animate=False)
 
 		# UI elements:
 		linePos, inset, lineHeight, secondColumn = 12, 15, 22, 135
@@ -395,31 +423,23 @@ class PathProblemFinder(object):
 		linePos += lineHeight
 
 		self.w.zeroHandles = vanilla.CheckBox((inset, linePos, secondColumn, 20), "Zero handles", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.zeroHandles.getNSButton().setToolTip_(
-			"Zero handles (a.k.a. half-dead curves) can cause problems with screen rendering, hinting and interpolation. Indicated with purple disks in the Show Angled Handles plug-in."
-			)
+		self.w.zeroHandles.getNSButton().setToolTip_("Zero handles (a.k.a. half-dead curves) can cause problems with screen rendering, hinting and interpolation. Indicated with purple disks in the Show Angled Handles plug-in.")
 		self.w.outwardHandles = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Outward-bent handles", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.outwardHandles.getNSButton().setToolTip_("Will find handles that point outside the stretch of their enclosing on-curves. Usually unwanted.")
 		linePos += lineHeight
 
 		self.w.largeHandles = vanilla.CheckBox((inset, linePos, -inset, 20), "Overshooting handles (larger than 100%)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.largeHandles.getNSButton().setToolTip_(
-			"Handles that are longer than 100%, i.e. going beyond the intersection with the opposing handle. Indicated with laser beams in the Show Angled Handles plug-in."
-			)
+		self.w.largeHandles.getNSButton().setToolTip_("Handles that are longer than 100%, i.e. going beyond the intersection with the opposing handle. Indicated with laser beams in the Show Angled Handles plug-in.")
 		linePos += lineHeight
 
 		self.w.offcurveAsStartPoint = vanilla.CheckBox((inset, linePos, indent, 20), "BCP as startpoint", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.offcurveAsStartPoint.getNSButton().setToolTip_(
-			"Finds paths where the first point happens to be a handle (off-curve point, BCP). Not really an issue, but you’ll like it if you are going full OCD on your font."
-			)
+		self.w.offcurveAsStartPoint.getNSButton().setToolTip_("Finds paths where the first point happens to be a handle (off-curve point, BCP). Not really an issue, but you’ll like it if you are going full OCD on your font.")
 		self.w.cuspingHandles = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Cusping handles", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.cuspingHandles.getNSButton().setToolTip_(
-			"Will find situations where, on a curve segment, the second handle comes before the first handle, i.e., is closer to the first on-curve. Usually unintended."
-			)
+		self.w.cuspingHandles.getNSButton().setToolTip_("Will find situations where, on a curve segment, the second handle comes before the first handle, i.e., is closer to the first on-curve. Usually unintended.")
 		linePos += lineHeight
 
 		self.w.shortHandles = vanilla.CheckBox((inset, linePos, indent, 20), "Handles shorter than:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.shortHandlesThreshold = vanilla.EditText((inset + indent, linePos, -inset-rightIndent-5, 19), "12", callback=self.SavePreferences, sizeStyle='small')
+		self.w.shortHandlesThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "12", callback=self.SavePreferences, sizeStyle='small')
 		self.w.shortHandlesText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units", sizeStyle='small', selectable=True)
 		tooltipText = "Will find handles shorter than the specified amount in units. Short handles may cause kinks when rounded to the grid."
 		self.w.shortHandlesThreshold.getNSTextField().setToolTip_(tooltipText)
@@ -427,12 +447,12 @@ class PathProblemFinder(object):
 		linePos += lineHeight
 
 		self.w.angledHandles = vanilla.CheckBox((inset, linePos, indent, 20), "Angled handles up to:", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.angledHandlesAngle = vanilla.EditText((inset + indent, linePos, -inset-rightIndent-5, 19), "8", callback=self.SavePreferences, sizeStyle='small')
+		self.w.angledHandlesAngle = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "8", callback=self.SavePreferences, sizeStyle='small')
 		self.w.angledHandlesText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "degrees", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
 		self.w.shallowCurveBBox = vanilla.CheckBox((inset, linePos, indent, 20), "Curve bbox smaller than:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.shallowCurveBBoxThreshold = vanilla.EditText((inset + indent, linePos, -inset-rightIndent-5, 19), "10", sizeStyle='small')
+		self.w.shallowCurveBBoxThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "10", sizeStyle='small')
 		self.w.shallowCurveBBoxText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units", sizeStyle='small', selectable=True)
 		tooltipText = "Will find very flat curve segments. Flat curves leave little manœuvring space for handles (BCPs), or cause very short handles, which in turn causes grid rounding problems. Can usually be fixed by removing an extremum point or adding an overlap."
 		self.w.shallowCurveBBoxThreshold.getNSTextField().setToolTip_(tooltipText)
@@ -440,7 +460,7 @@ class PathProblemFinder(object):
 		linePos += lineHeight
 
 		self.w.shallowCurve = vanilla.CheckBox((inset, linePos, indent, 20), "Curves shallower than:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.shallowCurveThreshold = vanilla.EditText((inset + indent, linePos, -inset-rightIndent-5, 19), "5", sizeStyle='small')
+		self.w.shallowCurveThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "5", sizeStyle='small')
 		self.w.shallowCurveText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units", sizeStyle='small', selectable=True)
 		tooltipText = "Finds curve segments where the handles deviate less than the specified threshold from the enclosing on-curves."
 		self.w.shallowCurveThreshold.getNSTextField().setToolTip_(tooltipText)
@@ -448,7 +468,7 @@ class PathProblemFinder(object):
 		linePos += lineHeight
 
 		self.w.shortSegment = vanilla.CheckBox((inset, linePos, indent, 20), "Segments shorter than:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.shortSegmentThreshold = vanilla.EditText((inset + indent, linePos, -inset-rightIndent-5, 19), "8", sizeStyle='small')
+		self.w.shortSegmentThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "8", sizeStyle='small')
 		self.w.shortSegmentText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units", sizeStyle='small', selectable=True)
 		tooltipText = "Finds line segments (two consecutive on-curve nodes) shorter than the specified threshold length. Very short line segments may be deleted because they are barely visible. Also, if not orthogonal, may pose grid rounding problems."
 		self.w.shortSegmentThreshold.getNSTextField().setToolTip_(tooltipText)
@@ -456,7 +476,7 @@ class PathProblemFinder(object):
 		linePos += lineHeight
 
 		self.w.almostOrthogonalLines = vanilla.CheckBox((inset, linePos, indent, 20), "Non-orthogonal lines:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.almostOrthogonalLinesThreshold = vanilla.EditText((inset + indent, linePos, -inset-rightIndent-5, 19), "3", callback=self.SavePreferences, sizeStyle='small')
+		self.w.almostOrthogonalLinesThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "3", callback=self.SavePreferences, sizeStyle='small')
 		self.w.almostOrthogonalLinesText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units off", sizeStyle='small', selectable=True)
 		tooltipText = "Will find line segments that are close to, but not completely horizontal or vertical. Will look for segments where the x or y distance between the two nodes is less than the specified threshold. Often unintentional."
 		self.w.almostOrthogonalLinesThreshold.getNSTextField().setToolTip_(tooltipText)
@@ -478,9 +498,7 @@ class PathProblemFinder(object):
 		linePos += lineHeight
 
 		self.w.strayPoints = vanilla.CheckBox((inset, linePos, secondColumn, 20), "Stray points", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.strayPoints.getNSButton().setToolTip_(
-			"In Glyphs 1, paths with only one node (‘single-node paths’ or ‘stray points’) used to be a method for disabling auto-alignment of components. But they are probably a mistake. Can be fixed wth mekkablue script Paths > Remove Stray Points and Empty Paths."
-			)
+		self.w.strayPoints.getNSButton().setToolTip_("In Glyphs 1, paths with only one node (‘single-node paths’ or ‘stray points’) used to be a method for disabling auto-alignment of components. But they are probably a mistake. Can be fixed wth mekkablue script Paths > Remove Stray Points and Empty Paths.")
 
 		self.w.twoPointOutlines = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Two-node paths", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.twoPointOutlines.getNSButton().setToolTip_("Paths with only two on-curve nodes are most likely leftover debris from a previous operation.")
@@ -492,31 +510,23 @@ class PathProblemFinder(object):
 
 		self.w.decimalCoordinates = vanilla.CheckBox((secondColumn, linePos - 1, -inset, 20), "Decimal coordinates", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.decimalCoordinates.getNSButton().setToolTip_("Nodes and handles with decimal coordinates, i.e., points not exactly on the unit grid.")
-		linePos += lineHeight+5
+		linePos += lineHeight + 5
 
-		self.w.checkCheckBoxes = vanilla.TextBox((inset, linePos+2, 50, 14), "Select:", sizeStyle="small", selectable=True)
+		self.w.checkCheckBoxes = vanilla.TextBox((inset, linePos + 2, 50, 14), "Select:", sizeStyle="small", selectable=True)
 		self.w.checkALL = vanilla.SquareButton((70, linePos, 50, 18), "ALL", sizeStyle="small", callback=self.updateUI)
-		self.w.checkNONE = vanilla.SquareButton((70+60*1, linePos, 50, 18), "NONE", sizeStyle="small", callback=self.updateUI)
-		self.w.checkDEFAULT = vanilla.SquareButton((70+60*2, linePos, 70, 18), "DEFAULT", sizeStyle="small", callback=self.updateUI)
+		self.w.checkNONE = vanilla.SquareButton((70 + 60 * 1, linePos, 50, 18), "NONE", sizeStyle="small", callback=self.updateUI)
+		self.w.checkDEFAULT = vanilla.SquareButton((70 + 60 * 2, linePos, 70, 18), "DEFAULT", sizeStyle="small", callback=self.updateUI)
 		linePos += lineHeight
 
 		# Line Separator:
 		self.w.line = vanilla.HorizontalLine((inset, linePos + 3, -inset, 1))
 		linePos += int(lineHeight / 2)
-		
+
 		# Script Options:
-		self.w.includeAllGlyphs = vanilla.CheckBox(
-			(inset, linePos, secondColumn, 20), "Check ALL glyphs", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.includeAllGlyphs.getNSButton().setToolTip_(
-			"If enabled, will ignore your current (glyph) selection, and simply go through the complete font. Recommended. May still ignore non-exporting glyph, see following option."
-			)
-		self.w.includeAllFonts = vanilla.CheckBox(
-			(secondColumn, linePos, -inset, 20), "⚠️ in ALL fonts", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.includeAllFonts.getNSButton().setToolTip_(
-			"If enabled, will go through ALL open fonts. Attention: can take quite some time."
-			)
+		self.w.includeAllGlyphs = vanilla.CheckBox((inset, linePos, secondColumn, 20), "Check ALL glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeAllGlyphs.getNSButton().setToolTip_("If enabled, will ignore your current (glyph) selection, and simply go through the complete font. Recommended. May still ignore non-exporting glyph, see following option.")
+		self.w.includeAllFonts = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "⚠️ in ALL fonts", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeAllFonts.getNSButton().setToolTip_("If enabled, will go through ALL open fonts. Attention: can take quite some time.")
 		linePos += lineHeight
 
 		self.w.includeNonExporting = vanilla.CheckBox((inset, linePos, -inset, 20), "Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
@@ -529,7 +539,7 @@ class PathProblemFinder(object):
 
 		# Progress Bar and Status text:
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
-		self.w.progress.set(0) # set progress indicator to zero
+		self.w.progress.set(0)  # set progress indicator to zero
 		self.w.status = vanilla.TextBox((inset, -18 - inset, -inset - 80, 14), "🤖 Ready.", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
@@ -548,11 +558,11 @@ class PathProblemFinder(object):
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-	
+
 	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
@@ -565,7 +575,7 @@ class PathProblemFinder(object):
 			print(traceback.format_exc())
 			return False
 
-	def LoadPreferences( self ):
+	def LoadPreferences(self):
 		try:
 			for prefName in self.prefDict.keys():
 				# register defaults:
@@ -583,19 +593,17 @@ class PathProblemFinder(object):
 		if sender in (self.w.checkALL, self.w.checkNONE, self.w.checkDEFAULT):
 			excludedCheckSettings = ("includeAllGlyphs", "includeNonExporting", "reuseTab")
 			checkSettings = [
-					k for k in self.prefDict.keys() 
-					if not k in excludedCheckSettings
-					and (not k.endswith("Threshold") and not k.endswith("Angle") or sender==self.w.checkDEFAULT)
-				]
+				k for k in self.prefDict.keys() if k not in excludedCheckSettings and (not k.endswith("Threshold") and not k.endswith("Angle") or sender == self.w.checkDEFAULT)
+			]
 			for prefName in checkSettings:
 				value = 0
-				if sender==self.w.checkALL:
+				if sender == self.w.checkALL:
 					value = 1
-				elif sender==self.w.checkDEFAULT:
+				elif sender == self.w.checkDEFAULT:
 					value = self.prefDict[prefName]
 				Glyphs.defaults[self.domain(prefName)] = value
 			self.LoadPreferences()
-			
+
 		self.w.shallowCurveThreshold.enable(self.w.shallowCurve.get())
 		self.w.shallowCurveBBoxThreshold.enable(self.w.shallowCurveBBox.get())
 		self.w.almostOrthogonalLinesThreshold.enable(self.w.almostOrthogonalLines.get())
@@ -604,13 +612,12 @@ class PathProblemFinder(object):
 		self.w.shortSegmentThreshold.enable(self.w.shortSegment.get())
 
 		anyOptionIsOn = (
-			self.w.zeroHandles.get() or self.w.outwardHandles.get() or self.w.cuspingHandles.get() or self.w.largeHandles.get() or self.w.shortHandles.get() or self.w.angledHandles.get()
-			or self.w.shallowCurveBBox.get() or self.w.shallowCurve.get() or self.w.shortSegment.get() or self.w.almostOrthogonalLines.get() or self.w.badOutlineOrder.get()
-			or self.w.badPathDirections.get() or self.w.strayPoints.get() or self.w.twoPointOutlines.get() or self.w.offcurveAsStartPoint.get() or self.w.openPaths.get()
-			or self.w.quadraticCurves.get() or self.w.decimalCoordinates.get() or self.w.emptyPaths.get()
-			)
+			self.w.zeroHandles.get() or self.w.outwardHandles.get() or self.w.cuspingHandles.get() or self.w.largeHandles.get() or self.w.shortHandles.get()
+			or self.w.angledHandles.get() or self.w.shallowCurveBBox.get() or self.w.shallowCurve.get() or self.w.shortSegment.get() or self.w.almostOrthogonalLines.get()
+			or self.w.badOutlineOrder.get() or self.w.badPathDirections.get() or self.w.strayPoints.get() or self.w.twoPointOutlines.get() or self.w.offcurveAsStartPoint.get()
+			or self.w.openPaths.get() or self.w.quadraticCurves.get() or self.w.decimalCoordinates.get() or self.w.emptyPaths.get()
+		)
 		self.w.runButton.enable(anyOptionIsOn)
-
 
 	def PathProblemFinderMain(self, sender):
 		# clear macro window log:
@@ -622,7 +629,7 @@ class PathProblemFinder(object):
 		# update settings to the latest user input:
 		if not self.SavePreferences():
 			print(f"Note: ‘{self.title}’ could not write preferences.")
-		
+
 		# Query user settings:
 		zeroHandles = self.pref("zeroHandles")
 		outwardHandles = self.pref("outwardHandles")
@@ -632,7 +639,7 @@ class PathProblemFinder(object):
 		shortHandles = self.pref("shortHandles")
 		shortHandlesThreshold = self.pref("shortHandlesThreshold")
 		angledHandles = self.pref("angledHandles")
-		angledHandlesAngle = self.pref("angledHandlesAngle")
+		# angledHandlesAngle = self.pref("angledHandlesAngle")
 		shallowCurveBBox = self.pref("shallowCurveBBox")
 		shallowCurveBBoxThreshold = self.pref("shallowCurveBBoxThreshold")
 		shallowCurve = self.pref("shallowCurve")
@@ -653,8 +660,8 @@ class PathProblemFinder(object):
 		includeAllFonts = self.pref("includeAllFonts")
 		includeNonExporting = self.pref("includeNonExporting")
 		reuseTab = self.pref("reuseTab")
-		
-		theseFonts = Glyphs.fonts # frontmost font
+
+		theseFonts = Glyphs.fonts  # frontmost font
 		countOfFontsWithIssues = 0
 		totalLayerCount = 0
 		totalGlyphCount = 0
@@ -663,16 +670,16 @@ class PathProblemFinder(object):
 				title="No Font Open",
 				message="The script requires a font. Open a font and run the script again.",
 				OKButton=None,
-				)
+			)
 			return
 
 		if not includeAllFonts:
-			theseFonts = (Glyphs.font,)
-		
+			theseFonts = (Glyphs.font, )
+
 		for fontIndex, thisFont in enumerate(theseFonts):
 			try:
-				thisFont.disableUpdateInterface() # suppresses UI updates in Font View
-			
+				thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
+
 				print(f"\n🪐 {self.title} Report for {thisFont.familyName}")
 				if thisFont.filepath:
 					print(thisFont.filepath)
@@ -684,46 +691,84 @@ class PathProblemFinder(object):
 				if includeAllGlyphs or includeAllFonts:
 					glyphs = [g for g in thisFont.glyphs if includeNonExporting or g.export]
 				else:
-					glyphs = [l.parent for l in thisFont.selectedLayers]
+					glyphs = [layer.parent for layer in thisFont.selectedLayers]
 
 				glyphCount = len(glyphs)
 				print(f"Processing {glyphCount} glyphs:")
-		
+
 				allTestLayers = []
 				allTestReports = []
-		
-				layersWithZeroHandles = []; allTestLayers.append(layersWithZeroHandles); allTestReports.append("Zero Handles")
-				layersWithOutwardHandles = []; allTestLayers.append(layersWithOutwardHandles); allTestReports.append("Outward Handles")
-				layersWithCuspingHandles = []; allTestLayers.append(layersWithCuspingHandles); allTestReports.append("Cusping Handles")
-				layersWithLargeHandles = []; allTestLayers.append(layersWithLargeHandles); allTestReports.append("Large Handles")
-				layersWithShortHandles = []; allTestLayers.append(layersWithShortHandles); allTestReports.append("Short Handles")
-				layersWithAngledHandles = []; allTestLayers.append(layersWithAngledHandles); allTestReports.append("Angled Handles")
-				layersWithShallowCurve = []; allTestLayers.append(layersWithShallowCurve); allTestReports.append("Shallow Curve")
-				layersWithShallowCurveBBox = []; allTestLayers.append(layersWithShallowCurveBBox); allTestReports.append("Small Curve BBox")
-				layersWithAlmostOrthogonalLines = []; allTestLayers.append(layersWithAlmostOrthogonalLines); allTestReports.append("Almost Orthogonal Lines")
-				layersWithshortSegments = []; allTestLayers.append(layersWithshortSegments); allTestReports.append("Short Line Segments")
-				layersWithBadOutlineOrder = []; allTestLayers.append(layersWithBadOutlineOrder); allTestReports.append("Bad Outline Order")
-				layersWithBadPathDirections = []; allTestLayers.append(layersWithBadPathDirections); allTestReports.append("Bad Path Orientation")
-				layersWithOffcurveAsStartpoint = []; allTestLayers.append(layersWithOffcurveAsStartpoint); allTestReports.append("Off-curve as start point")
-				layersWithStrayPoints = []; allTestLayers.append(layersWithStrayPoints); allTestReports.append("Stray Points")
-				layersWithTwoPointOutlines = []; allTestLayers.append(layersWithTwoPointOutlines); allTestReports.append("Two-Point Outlines")
-				layersWithOpenPaths = []; allTestLayers.append(layersWithOpenPaths); allTestReports.append("Open Paths")
-				layersWithQuadraticCurves = []; allTestLayers.append(layersWithQuadraticCurves); allTestReports.append("Quadratic Curves")
-				layersWithDecimalCoordinates = []; allTestLayers.append(layersWithDecimalCoordinates); allTestReports.append("Decimal Coordinates")
-				layersWithEmptyPaths = []; allTestLayers.append(layersWithEmptyPaths); allTestReports.append("Empty Paths")
+
+				layersWithZeroHandles = []
+				allTestLayers.append(layersWithZeroHandles)
+				allTestReports.append("Zero Handles")
+				layersWithOutwardHandles = []
+				allTestLayers.append(layersWithOutwardHandles)
+				allTestReports.append("Outward Handles")
+				layersWithCuspingHandles = []
+				allTestLayers.append(layersWithCuspingHandles)
+				allTestReports.append("Cusping Handles")
+				layersWithLargeHandles = []
+				allTestLayers.append(layersWithLargeHandles)
+				allTestReports.append("Large Handles")
+				layersWithShortHandles = []
+				allTestLayers.append(layersWithShortHandles)
+				allTestReports.append("Short Handles")
+				layersWithAngledHandles = []
+				allTestLayers.append(layersWithAngledHandles)
+				allTestReports.append("Angled Handles")
+				layersWithShallowCurve = []
+				allTestLayers.append(layersWithShallowCurve)
+				allTestReports.append("Shallow Curve")
+				layersWithShallowCurveBBox = []
+				allTestLayers.append(layersWithShallowCurveBBox)
+				allTestReports.append("Small Curve BBox")
+				layersWithAlmostOrthogonalLines = []
+				allTestLayers.append(layersWithAlmostOrthogonalLines)
+				allTestReports.append("Almost Orthogonal Lines")
+				layersWithshortSegments = []
+				allTestLayers.append(layersWithshortSegments)
+				allTestReports.append("Short Line Segments")
+				layersWithBadOutlineOrder = []
+				allTestLayers.append(layersWithBadOutlineOrder)
+				allTestReports.append("Bad Outline Order")
+				layersWithBadPathDirections = []
+				allTestLayers.append(layersWithBadPathDirections)
+				allTestReports.append("Bad Path Orientation")
+				layersWithOffcurveAsStartpoint = []
+				allTestLayers.append(layersWithOffcurveAsStartpoint)
+				allTestReports.append("Off-curve as start point")
+				layersWithStrayPoints = []
+				allTestLayers.append(layersWithStrayPoints)
+				allTestReports.append("Stray Points")
+				layersWithTwoPointOutlines = []
+				allTestLayers.append(layersWithTwoPointOutlines)
+				allTestReports.append("Two-Point Outlines")
+				layersWithOpenPaths = []
+				allTestLayers.append(layersWithOpenPaths)
+				allTestReports.append("Open Paths")
+				layersWithQuadraticCurves = []
+				allTestLayers.append(layersWithQuadraticCurves)
+				allTestReports.append("Quadratic Curves")
+				layersWithDecimalCoordinates = []
+				allTestLayers.append(layersWithDecimalCoordinates)
+				allTestReports.append("Decimal Coordinates")
+				layersWithEmptyPaths = []
+				allTestLayers.append(layersWithEmptyPaths)
+				allTestReports.append("Empty Paths")
 
 				progressSteps = glyphCount / 10
 				progressCounter = 0
-				stepsPerFont = 100/len(theseFonts)
-				firstStepPerFont = stepsPerFont*fontIndex
+				stepsPerFont = 100 / len(theseFonts)
+				firstStepPerFont = stepsPerFont * fontIndex
 				for i, thisGlyph in enumerate(glyphs):
 					# status update:
 					if progressCounter > progressSteps:
-						self.w.progress.set(firstStepPerFont + stepsPerFont * (i/glyphCount))
+						self.w.progress.set(firstStepPerFont + stepsPerFont * (i / glyphCount))
 						progressCounter = 0
 					progressCounter += 1
 					self.w.status.set(f"{fontIndex}. {thisGlyph.name}...")
-					# print(f"{i+1}. {thisGlyph.name}")
+					# print(f"{i + 1}. {thisGlyph.name}")
 
 					# step through layers
 					for thisLayer in thisGlyph.layers:
@@ -736,11 +781,11 @@ class PathProblemFinder(object):
 							if outwardHandles and hasOutwardHandles(thisLayer):
 								layersWithOutwardHandles.append(thisLayer)
 								print(f"  ❌ Outward handle(s) on layer: {thisLayer.name}")
-						
+
 							if cuspingHandles and hasCuspingHandles(thisLayer):
 								layersWithCuspingHandles.append(thisLayer)
 								print(f"  ❌ Cusping handle(s) on layer: {thisLayer.name}")
-						
+
 							if largeHandles and hasLargeHandles(thisLayer):
 								layersWithLargeHandles.append(thisLayer)
 								print(f"  ❌ Large handle(s) on layer: {thisLayer.name}")
@@ -810,7 +855,6 @@ class PathProblemFinder(object):
 								layersWithEmptyPaths.append(thisLayer)
 								print(f"  ❌ Empty paths in layer: {thisLayer.name}")
 
-
 				anyIssueFound = any(allTestLayers)
 				countOfLayers = 0
 				if anyIssueFound:
@@ -819,31 +863,31 @@ class PathProblemFinder(object):
 					if not tab or not reuseTab:
 						# opens new Edit tab:
 						tab = thisFont.newTab()
-					tab.direction = 0 # force LTR
+					tab.direction = 0  # force LTR
 					layers = []
 
 					currentMaster = thisFont.masters[tab.masterIndex]
 					masterID = currentMaster.id
-			
+
 					# collect reports:
 					for affectedLayers, reportTitle in zip(allTestLayers, allTestReports):
 						countOfLayers += self.reportInTabAndMacroWindow(affectedLayers, reportTitle, layers, thisFont, masterID)
 
 					tab.layers = layers
-			
+
 				totalLayerCount += countOfLayers
 				totalGlyphCount += glyphCount
-				
+
 			except Exception as e:
 				Glyphs.showMacroWindow()
-				print("\n⚠️ Error in script: \n")
+				print(f"\n⚠️ Error in script:{e} \n")
 				import traceback
 				print(traceback.format_exc())
 				print(thisFont)
 				print()
 			finally:
-				thisFont.enableUpdateInterface() # re-enables UI updates in Font View
-		
+				thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+
 		# take time:
 		end = timer()
 		timereport = reportTimeInNaturalLanguage(end - start)
@@ -851,31 +895,32 @@ class PathProblemFinder(object):
 		self.w.status.set(f"✅ Done. {timereport}.")
 		self.w.progress.set(100)
 
-		if len(theseFonts)==1:
+		if len(theseFonts) == 1:
 			if countOfFontsWithIssues:
 				Message(
 					title=f"{thisFont.familyName}: found path problems",
-					message=f"{self.title} found {countOfLayers} issue{'s' if countOfLayers!=1 else ''} in {glyphCount} glyph{'s' if glyphCount!=1 else ''}. Details in Macro Window.",
-					OKButton=None)
+					message=f"{self.title} found {countOfLayers} issue{'s' if countOfLayers != 1 else ''} in {glyphCount} glyph{'s' if glyphCount != 1 else ''}. Details in Macro Window.",
+					OKButton=None
+				)
 			else:
 				Message(
 					title=f"{thisFont.familyName}: all clear!",
-					message=f"{self.title} found no issues, congratulations! Details in Macro Window.", 
+					message=f"{self.title} found no issues, congratulations! Details in Macro Window.",
 					OKButton=None,
-					)
+				)
 		else:
 			if countOfFontsWithIssues:
 				Message(
 					title=f"Found path problems in {countOfFontsWithIssues} fonts",
-					message=f"{self.title} found {totalLayerCount} issue{'s' if totalLayerCount!=1 else ''} in {totalGlyphCount} glyph{'s' if totalGlyphCount!=1 else ''} of {len(theseFonts)} fonts. Details in Macro Window.",
-					OKButton=None)
+					message=f"{self.title} found {totalLayerCount} issue{'s' if totalLayerCount != 1 else ''} in {totalGlyphCount} glyph{'s' if totalGlyphCount != 1 else ''} of {len(theseFonts)} fonts. Details in Macro Window.",
+					OKButton=None
+				)
 			else:
 				Message(
 					title=f"All clear in {len(theseFonts)} fonts!",
-					message=f"{self.title} found no issues, congratulations! Details in Macro Window.", 
+					message=f"{self.title} found no issues, congratulations! Details in Macro Window.",
 					OKButton=None,
-					)
-
+				)
 
 	def reportInTabAndMacroWindow(self, layerList, title, layers, font, masterID):
 		if layerList and font:
@@ -887,9 +932,9 @@ class PathProblemFinder(object):
 			for letter in tabtext:
 				g = font.glyphs[letter]
 				if g:
-					l = g.layers[masterID]
-					if l:
-						layers.append(l)
+					layer = g.layers[masterID]
+					if layer:
+						layers.append(layer)
 			layers.append(GSControlLayer.newline())
 			for layer in layerList:
 				layers.append(layer)
@@ -897,9 +942,10 @@ class PathProblemFinder(object):
 				layers.append(GSControlLayer.newline())
 
 			# report in Macro Window:
-			glyphNames = "/" + "/".join(set([l.parent.name for l in layerList]))
+			glyphNames = "/" + "/".join(set([layer.parent.name for layer in layerList]))
 			print(f"\n🔠 {title}:\n{glyphNames}")
 
 		return len(layerList)
+
 
 PathProblemFinder()

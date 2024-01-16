@@ -1,13 +1,17 @@
-#MenuTitle: Transform Images
+# MenuTitle: Transform Images
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Batch scale and move images in selected layers.
 """
 
-import vanilla, traceback
+import vanilla
 from AppKit import NSAffineTransform
+from GlyphsApp import Glyphs
+
+
 windowHeight = 120
+
 
 def getScale(scaleString, factor):
 	if factor == 1:
@@ -15,12 +19,13 @@ def getScale(scaleString, factor):
 	else:
 		return 100.0 / (100.0 + float(scaleString))
 
+
 class TransformImages(object):
 
 	def __init__(self):
 		self.w = vanilla.FloatingWindow(
 			(250, windowHeight), "Transform Images", minSize=(250, windowHeight), maxSize=(250, windowHeight), autosaveName="com.mekkablue.TransformImages.mainwindow"
-			)
+		)
 
 		self.w.scale_text1 = vanilla.TextBox((15 - 1, 12 + 2, 75, 14), "Scale x/y:", sizeStyle='small')
 		self.w.scale_X = vanilla.EditText((15 + 60, 12, 55, 15 + 3), "+10.5", sizeStyle='small')
@@ -32,7 +37,7 @@ class TransformImages(object):
 		self.w.move_Y = vanilla.EditText((15 + 60 + 60, 25 + 12, 55, 15 + 3), "10", sizeStyle='small')
 		self.w.move_text2 = vanilla.TextBox((15 + 60 + 60 + 60, 25 + 12 + 2, -15, 14), "units", sizeStyle='small')
 
-		#self.w.resetButton = vanilla.Button((-80-80-15, -20-15, -85, -15), "Reset", sizeStyle='regular', callback=self.ResetStructs )
+		# self.w.resetButton = vanilla.Button((-80-80-15, -20-15, -85, -15), "Reset", sizeStyle='regular', callback=self.ResetStructs )
 		self.w.backButton = vanilla.Button((-60 - 60 - 23, -20 - 15, -60 - 23, -15), "Back", sizeStyle='regular', callback=self.TransformImagesMain)
 		self.w.runButton = vanilla.Button((-60 - 15, -20 - 15, -15, -15), "Go", sizeStyle='regular', callback=self.TransformImagesMain)
 		self.w.setDefaultButton(self.w.runButton)
@@ -79,10 +84,14 @@ class TransformImages(object):
 				thisImage = thisLayer.backgroundImage
 				if thisImage:
 					moveXpreScaled, moveYpreScaled, scaleXfix, scaleYfix = self.w.move_X.get(), self.w.move_Y.get(), self.w.scale_X.get(), self.w.scale_Y.get()
-					if moveXpreScaled == "": moveXpreScaled = 0
-					if moveYpreScaled == "": moveYpreScaled = 0
-					if scaleXfix == "": scaleXfix = 0
-					if scaleYfix == "": scaleYfix = 0
+					if moveXpreScaled == "":
+						moveXpreScaled = 0
+					if moveYpreScaled == "":
+						moveYpreScaled = 0
+					if scaleXfix == "":
+						scaleXfix = 0
+					if scaleYfix == "":
+						scaleYfix = 0
 					moveX, moveY = float(moveXpreScaled) * factor, float(moveYpreScaled) * factor
 					scaleX, scaleY = getScale(scaleXfix, factor), getScale(scaleYfix, factor)
 
@@ -98,5 +107,6 @@ class TransformImages(object):
 			# self.w.close()
 		except Exception as e:
 			raise e
+
 
 TransformImages()

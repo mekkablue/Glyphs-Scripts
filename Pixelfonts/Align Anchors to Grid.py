@@ -1,14 +1,17 @@
-#MenuTitle: Align Anchors to Grid
+# MenuTitle: Align Anchors to Grid
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Looks for anchors not on the grid and rounds their coordinate to the closest grid.
 """
 
+from GlyphsApp import Glyphs
+
+
 def process(thisLayer):
 	count = 0
 	if len(thisLayer.anchors) != 0:
-		# thisLayer.parent.beginUndo() # undo grouping causes crashes
+		# thisLayer.parent.beginUndo()  # undo grouping causes crashes
 
 		for a in thisLayer.anchors:
 			xrest = a.x % pixelwidth
@@ -25,11 +28,12 @@ def process(thisLayer):
 				if count == 1:
 					reportGlyphName = "%s" % thisLayer.parent.name
 				elif count == 2:
-					reportGlyphName = " " * len(reportGlyphName) # indent
+					reportGlyphName = " " * len(reportGlyphName)  # indent
 				print("%s ⚓️ %s %i,%i → %i,%i" % (reportGlyphName, a.name, int(oldX), int(oldY), int(a.x), int(a.y)))
 
-		# thisLayer.parent.endUndo() # undo grouping causes crashes
+		# thisLayer.parent.endUndo()  # undo grouping causes crashes
 	return count
+
 
 thisFont = Glyphs.font
 thisFont.disableUpdateInterface()
@@ -53,7 +57,7 @@ try:
 	Glyphs.showNotification(
 		"Grid-aligned anchors in %s" % (thisFont.familyName),
 		"Aligned %i anchors in %i selected glyphs. Details in Macro Window." % (anchorCount, len(selectedLayers)),
-		)
+	)
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")
@@ -62,4 +66,4 @@ except Exception as e:
 	print()
 	raise e
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

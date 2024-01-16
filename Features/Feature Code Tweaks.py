@@ -1,4 +1,4 @@
-#MenuTitle: Feature Code Tweaks
+# MenuTitle: Feature Code Tweaks
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Adds tweaks to OT feature code. Reports in Macro window.
 """
 
 import vanilla
+from GlyphsApp import Glyphs, GSFeature, GSClass, GSFeaturePrefix
+
 
 def filterActiveCode(code):
 	activeCode = ""
@@ -18,6 +20,7 @@ def filterActiveCode(code):
 				activeCode += line
 			activeCode += "\n"
 	return activeCode
+
 
 def correspondingUppercaseForGlyphName(glyphname):
 	glyphinfo = Glyphs.glyphInfoForName(glyphname)
@@ -34,6 +37,7 @@ def correspondingUppercaseForGlyphName(glyphname):
 				return None
 			else:
 				return uppercaseName
+
 
 def addClass(otClassName, thisFont, forceUpdate=False):
 	autoFeatures = ("All", "AllLetters", "Uppercase", "Lowercase")
@@ -62,6 +66,7 @@ def addClass(otClassName, thisFont, forceUpdate=False):
 	else:
 		print(u"⚠️ Warning: OT class @%s is not set to automatic." % otClassName)
 
+
 def updateAndAutodisableFeatureInFont(featureName, thisFont):
 	feature = thisFont.features[featureName]
 	if feature:
@@ -76,6 +81,7 @@ def updateAndAutodisableFeatureInFont(featureName, thisFont):
 			print(u"✅ Disabled automation in %s." % featureName)
 	else:
 		print(u"⚠️ Feature %s does not exist (yet)." % featureName)
+
 
 def createManyToOneFromDict(codeDict, thisFont):
 	featureLines = ""
@@ -105,7 +111,7 @@ def createManyToOneFromDict(codeDict, thisFont):
 				autocorrectDict = {
 					"hyphen hyphen": ("endash", "emdash"),
 					"period period period": ("ellipsis"),
-					}
+				}
 				for autocorrectString in autocorrectDict:
 					possibleReplacements = autocorrectDict[autocorrectString]
 					if autocorrectString in separateGlyphs:
@@ -127,9 +133,11 @@ def createManyToOneFromDict(codeDict, thisFont):
 			print(u"⚠️ Warning: %s is not present (or not set to export), no substitution added." % ligName)
 	return featureLines
 
+
 def wrapCodeInLookup(featureCode, lookupName):
 	code = "lookup %s {\n%s\n} %s;\n" % (lookupName, featureCode.rstrip(), lookupName)
 	return code
+
 
 def updatedCode(oldCode, beginSig, endSig, newCode):
 	"""Replaces text in oldCode with newCode, but only between beginSig and endSig."""
@@ -138,6 +146,7 @@ def updatedCode(oldCode, beginSig, endSig, newCode):
 	newCode = oldCode[:beginOffset] + beginSig + newCode + "\n" + endSig + oldCode[endOffset:]
 	return newCode
 
+
 def createOTFeature(
 	featureName="calt",
 	featureCode="# empty feature code",
@@ -145,7 +154,7 @@ def createOTFeature(
 	codeSig="CUSTOM-CONTEXTUAL-ALTERNATES",
 	appendCode=True,
 	addNote=False,
-	):
+):
 	"""
 	Creates or updates an OpenType feature in the font.
 	Returns a status message in form of a string.
@@ -187,11 +196,12 @@ def createOTFeature(
 		if not targetFeature.notes:
 			targetFeature.notes = ""
 
-		if not featureCode in targetFeature.notes:
+		if featureCode not in targetFeature.notes:
 			position = "end" if appendCode else "beginning"
 			manualInstruction = "# Add at %s:\n%s\n\n" % (position, featureCode)
 			targetFeature.notes = manualInstruction + targetFeature.notes
 			print(u"✅ Added manual instructions into notes of OT feature '%s'." % featureName)
+
 
 def featureLineContainingXAlsoContains(font, featureName="ccmp", lineContaining="@Markscomb =", alsoContains="acute"):
 	"""
@@ -208,21 +218,22 @@ def featureLineContainingXAlsoContains(font, featureName="ccmp", lineContaining=
 				return True
 	return False
 
+
 class FeatureCodeTweaks(object):
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 360
 		windowHeight = 370
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Feature Code Tweaks", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.FeatureCodeTweaks.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Feature Code Tweaks",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.FeatureCodeTweaks.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		inset, lineHeight, currentHeight = 15, 20, 10
@@ -230,108 +241,62 @@ class FeatureCodeTweaks(object):
 		self.w.text = vanilla.TextBox((inset - 1, currentHeight + 2, -inset, lineHeight), __doc__[1:], sizeStyle='small')
 		currentHeight += lineHeight
 
-		self.w.scFeatureFix = vanilla.CheckBox(
-			(inset, currentHeight, -inset, lineHeight), "Fix smallcap features (smcp/c2sc)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.scFeatureFix = vanilla.CheckBox((inset, currentHeight, -inset, lineHeight), "Fix smallcap features (smcp/c2sc)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.scFeatureFix.getNSButton().setToolTip_("Adds missing smallcap substitutions for glyphs like idotless, jdotless, kgreenlandic and longs.")
 		currentHeight += lineHeight
 
-		self.w.addArrowLigs = vanilla.CheckBox(
-			(inset, currentHeight, -inset, lineHeight), "Add arrow ligatures (dlig)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.addArrowLigs.getNSButton(
-		).setToolTip_("Adds ligatures of hyphens with greater and less for left and right arrows, and double hyphen ligatures for arrows with .long suffix.")
+		self.w.addArrowLigs = vanilla.CheckBox((inset, currentHeight, -inset, lineHeight), "Add arrow ligatures (dlig)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.addArrowLigs.getNSButton().setToolTip_("Adds ligatures of hyphens with greater and less for left and right arrows, and double hyphen ligatures for arrows with .long suffix.")
 		currentHeight += lineHeight
 
-		self.w.germanLocalization = vanilla.CheckBox(
-			(inset, currentHeight, -inset, lineHeight), "Add German cap sharp S code (locl, calt)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.germanLocalization.getNSButton(
-		).setToolTip_("Automatically substitutes lowercase sharp s for uppercase sharp S between other uppercase letters. Adds a lookup in locl and calls the lookup in calt.")
+		self.w.germanLocalization = vanilla.CheckBox((inset, currentHeight, -inset, lineHeight), "Add German cap sharp S code (locl, calt)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.germanLocalization.getNSButton().setToolTip_("Automatically substitutes lowercase sharp s for uppercase sharp S between other uppercase letters. Adds a lookup in locl and calls the lookup in calt.")
 		currentHeight += lineHeight
 
-		self.w.dutchLocalization = vanilla.CheckBox(
-			(inset, currentHeight, -inset, lineHeight), "Add proper Dutch localization (locl)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.dutchLocalization.getNSButton().setToolTip_(
-			"Adds a different Dutch localization than the default. Will not substitute uppercase /J for /Jacute if a combining accent follows (as would be the case if the user follows the proper Unicode text entry)."
-			)
+		self.w.dutchLocalization = vanilla.CheckBox((inset, currentHeight, -inset, lineHeight), "Add proper Dutch localization (locl)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.dutchLocalization.getNSButton().setToolTip_("Adds a different Dutch localization than the default. Will not substitute uppercase /J for /Jacute if a combining accent follows (as would be the case if the user follows the proper Unicode text entry).")
 		currentHeight += lineHeight
 
 		# DECOMPOSE PRESENTATION FORMS:
 
-		self.w.decomposePresentationForms = vanilla.CheckBox(
-			(inset, currentHeight, -inset, lineHeight), "Decompose Latin presentation forms like fi and fl (ccmp)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.decomposePresentationForms.getNSButton().setToolTip_(
-			"Adds precomposed but ligature characters like /fi and /fl (which are not supposed to be used in texts) to ccmp, and decomposes them into their character equivalents, f+i, f+l, etc. Strongly recommended because it preserves tracking and smallcap compatibility."
-			)
+		self.w.decomposePresentationForms = vanilla.CheckBox((inset, currentHeight, -inset, lineHeight), "Decompose Latin presentation forms like fi and fl (ccmp)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.decomposePresentationForms.getNSButton().setToolTip_("Adds precomposed but ligature characters like /fi and /fl (which are not supposed to be used in texts) to ccmp, and decomposes them into their character equivalents, f+i, f+l, etc. Strongly recommended because it preserves tracking and smallcap compatibility.")
 		currentHeight += lineHeight
 
-		self.w.includeLdot = vanilla.CheckBox(
-			(inset * 3, currentHeight, -inset, lineHeight), "Include Ldot, ldot, napostrophe (if present)", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.includeLdot = vanilla.CheckBox((inset * 3, currentHeight, -inset, lineHeight), "Include Ldot, ldot, napostrophe (if present)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeLdot.getNSButton().setToolTip_("Includes deprecated Ldot/ldot in ccmp decomposition.")
 		currentHeight += lineHeight
 
-		self.w.includeBalkan = vanilla.CheckBox(
-			(inset * 3, currentHeight, -inset, lineHeight), u"Include Balkan digraphs ǳ, ǆ, ǉ, ǌ (if present)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.includeBalkan = vanilla.CheckBox((inset * 3, currentHeight, -inset, lineHeight), u"Include Balkan digraphs ǳ, ǆ, ǉ, ǌ (if present)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeBalkan.getNSButton().setToolTip_("Includes deprecated Slavic/Balkan digraphs in ccmp decomposition.")
 		currentHeight += lineHeight
 
-		self.w.includeIJ = vanilla.CheckBox(
-			(inset * 3, currentHeight, -inset, lineHeight), "Include IJ, ij (if present)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.includeIJ = vanilla.CheckBox((inset * 3, currentHeight, -inset, lineHeight), "Include IJ, ij (if present)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeIJ.getNSButton().setToolTip_("Includes unused Durch and deprecated Afrikaans digraphs in ccmp decomposition.")
 		currentHeight += lineHeight
 
-		self.w.disableLiga = vanilla.CheckBox(
-			(inset * 3, currentHeight, -inset, lineHeight),
-			u"Disable affected ligature lines in liga, dlig (if present)",
-			value=False,
-			callback=self.SavePreferences,
-			sizeStyle='small'
-			)
-		self.w.disableLiga.getNSButton(
-		).setToolTip_("Also disables ligatures in liga. Only recommended if your fi, fl, etc. look exactly like separate f+i, f+l, etc., i.e., if they are not really ligated.")
+		self.w.disableLiga = vanilla.CheckBox((inset * 3, currentHeight, -inset, lineHeight), u"Disable affected ligature lines in liga, dlig (if present)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.disableLiga.getNSButton().setToolTip_("Also disables ligatures in liga. Only recommended if your fi, fl, etc. look exactly like separate f+i, f+l, etc., i.e., if they are not really ligated.")
 		currentHeight += lineHeight
 
-		self.w.repeatDecompositionInSC = vanilla.CheckBox(
-			(inset * 3, currentHeight, -inset, lineHeight), u"Repeat decomposition in smcp and c2sc", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.repeatDecompositionInSC.getNSButton().setToolTip_(
-			"Calls the ccmp lookup at the beginning of smcp and c2sc. This makes decompositions (and hence, the small caps) work in the Adobe (Latin) Composers, which ignore ccmp."
-			)
+		self.w.repeatDecompositionInSC = vanilla.CheckBox((inset * 3, currentHeight, -inset, lineHeight), u"Repeat decomposition in smcp and c2sc", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.repeatDecompositionInSC.getNSButton().setToolTip_("Calls the ccmp lookup at the beginning of smcp and c2sc. This makes decompositions (and hence, the small caps) work in the Adobe (Latin) Composers, which ignore ccmp.")
 		currentHeight += lineHeight
 
-		self.w.repeatDecompositionInOtherAffectedFeatures = vanilla.CheckBox(
-			(inset * 3, currentHeight, -inset, lineHeight), u"Repeat decomposition in affected (non-SC) features", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.repeatDecompositionInOtherAffectedFeatures.getNSButton().setToolTip_(
-			"Calls the ccmp lookup at the beginnings of all features that substitute affected glyphs, e.g., in ss01. This option ignores smcp and c2sc. ATTENTION: cannot parse nested lookups yet, so the result may be incomplete."
-			)
+		self.w.repeatDecompositionInOtherAffectedFeatures = vanilla.CheckBox((inset * 3, currentHeight, -inset, lineHeight), u"Repeat decomposition in affected (non-SC) features", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.repeatDecompositionInOtherAffectedFeatures.getNSButton().setToolTip_("Calls the ccmp lookup at the beginnings of all features that substitute affected glyphs, e.g., in ss01. This option ignores smcp and c2sc. ATTENTION: cannot parse nested lookups yet, so the result may be incomplete.")
 		currentHeight += lineHeight
 
-		self.w.fShortSubstitution = vanilla.CheckBox(
-			(inset, currentHeight, -inset, lineHeight), "Add f.short contextual substitutions (calt)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.fShortSubstitution = vanilla.CheckBox((inset, currentHeight, -inset, lineHeight), "Add f.short contextual substitutions (calt)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.fShortSubstitution.getNSButton().setToolTip_("Not implemented yet.")
 		currentHeight += lineHeight
 
-		self.w.magistra = vanilla.CheckBox(
-			(inset, currentHeight, -inset, lineHeight), "Add Mag.a substitution (calt) and 90% kerning", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.magistra.getNSButton(
-		).setToolTip_("Automatic feature code substitution for Austrian academic title Mag.a (Magistra). Recommended for fonts for the Austrian market or an Austrian client.")
+		self.w.magistra = vanilla.CheckBox((inset, currentHeight, -inset, lineHeight), "Add Mag.a substitution (calt) and 90% kerning", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.magistra.getNSButton().setToolTip_("Automatic feature code substitution for Austrian academic title Mag.a (Magistra). Recommended for fonts for the Austrian market or an Austrian client.")
 		currentHeight += lineHeight
 
-		self.w.ssXX2salt = vanilla.CheckBox(
-			(inset, currentHeight, -inset, lineHeight), "Overwrite salt feature with ssXX lookups", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.ssXX2salt.getNSButton().setToolTip_(
-			"Creates a universal salt feature including all ssXX substitutions. Careful: does not update, but overwrite the feature code. Will park the old feature code in the feature notes, though."
-			)
+		self.w.ssXX2salt = vanilla.CheckBox((inset, currentHeight, -inset, lineHeight), "Overwrite salt feature with ssXX lookups", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.ssXX2salt.getNSButton().setToolTip_("Creates a universal salt feature including all ssXX substitutions. Careful: does not update, but overwrite the feature code. Will park the old feature code in the feature notes, though.")
 		currentHeight += lineHeight
 
 		# self.w.scFeatureFix.enable(False)
@@ -424,13 +389,13 @@ class FeatureCodeTweaks(object):
 			"ffl": ("f", "f", "l"),
 			"s_t": ("s", "t"),
 			"longs_t": ("longs", "t"),
-			}
+		}
 
 		if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.includeIJ"]:
 			includeIJ = {
 				"ij": ("i", "j"),
 				"IJ": ("I", "J"),
-				}
+			}
 			decomposeDict.update(includeIJ)
 
 		if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.includeLdot"]:
@@ -438,7 +403,7 @@ class FeatureCodeTweaks(object):
 				"Ldot": ("L", "periodcentered.loclCAT.case"),
 				"ldot": ("l", "periodcentered.loclCAT"),
 				"napostrophe": ("quoteright", "n"),
-				}
+			}
 			decomposeDict.update(includeLdot)
 
 		if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.includeBalkan"]:
@@ -455,7 +420,7 @@ class FeatureCodeTweaks(object):
 				"DZcaron": ("D", "Zcaron"),
 				"Dzcaron": ("D", "zcaron"),
 				"dzcaron": ("d", "zcaron"),
-				}
+			}
 			decomposeDict.update(includeBalkan)
 
 		# collect feature code for all present glyphs:
@@ -495,7 +460,7 @@ class FeatureCodeTweaks(object):
 					print(u"⚠️ Warning: not all parts (%s) for decomposition of %s present and exporting." % (", ".join(decomposeParts), ligName))
 				else:
 					# build and add the code line:
-					if not ligGlyph.unicode is None:
+					if ligGlyph.unicode is not None:
 						disableList.append(actualDecomposeParts)
 						decomposeResult = " ".join(actualDecomposeParts)
 						featureLines += "	sub %s by %s;\n" % (ligName, decomposeResult)
@@ -529,7 +494,7 @@ class FeatureCodeTweaks(object):
 				thisFont.features.insert(
 					1 if aaltExists else 0,
 					ccmpFeature,
-					)
+				)
 
 			# prepare feature and inject code:
 			updateAndAutodisableFeatureInFont(feature, thisFont)
@@ -540,7 +505,7 @@ class FeatureCodeTweaks(object):
 				codeSig="Decompose presentation forms",
 				appendCode=False,
 				addNote=True,
-				)
+			)
 
 			# repeat in Small Caps if necessary:
 
@@ -549,7 +514,7 @@ class FeatureCodeTweaks(object):
 				affectedFeatures.extend(("smcp", "c2sc"))
 			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.repeatDecompositionInOtherAffectedFeatures"]:
 				for affectedFeature in thisFont.features:
-					if affectedFeature.name != feature: # ccmp
+					if affectedFeature.name != feature:  # ccmp
 						print("-----", affectedFeature.name)
 						shouldAdd = False
 						activeCode = filterActiveCode(affectedFeature.code)
@@ -577,7 +542,7 @@ class FeatureCodeTweaks(object):
 							codeSig="Decompose presentation forms",
 							appendCode=False,
 							addNote=True,
-							)
+						)
 						if affectedFeature.automatic:
 							affectedFeature.automatic = False
 							print(u"✅ Disabled automatism for '%s'." % featureTag)
@@ -618,14 +583,14 @@ class FeatureCodeTweaks(object):
 	def dutchLocalization(self, feature="locl"):
 		"""
 		lookup NLD {
-		  language NLD;
-		  sub iacute j' by jacute;
-		  # Try other ignore line if first one does not work: 
-		  ignore sub J' [@MarkscombCase @Markscomb];
-		  # ignore sub J' @CombiningTopAccents;
-		  sub Iacute J' by Jacute;
-		  # Make sure Glyph Info for ...comb.sc accents has subcategory=Nonspacing
-		  # Don't forget: j.sc=jdotless.sc (& verify kerning groups)
+			language NLD;
+			sub iacute j' by jacute;
+			# Try other ignore line if first one does not work:
+			ignore sub J' [@MarkscombCase @Markscomb];
+			# ignore sub J' @CombiningTopAccents;
+			sub Iacute J' by Jacute;
+			# Make sure Glyph Info for ...comb.sc accents has subcategory=Nonspacing
+			# Don't forget: j.sc=jdotless.sc (& verify kerning groups)
 		} NLD;
 		# DO NOT FORGET TO UPDATE LANGUAGESYSTEMS
 		# DO NOT FORGET TO REMOVE DEFAULT NLD CODE
@@ -639,7 +604,7 @@ class FeatureCodeTweaks(object):
 		markCode = None
 		if ccmpFeature and "@Markscomb" in ccmpFeature.code and featureLineContainingXAlsoContains(
 			thisFont, featureName="ccmp", lineContaining="@Markscomb =", alsoContains="acute"
-			):
+		):
 			# reuse ccmp classes:
 			wordsInFeature = ccmpFeature.code.split()
 			marks = []
@@ -651,7 +616,7 @@ class FeatureCodeTweaks(object):
 				markCode = "[%s]" % markCode
 		elif ccmpFeature and "@CombiningTopAccents" in ccmpFeature.code and featureLineContainingXAlsoContains(
 			thisFont, featureName="ccmp", lineContaining="@CombiningTopAccents =", alsoContains="acute"
-			):
+		):
 			# reuse ccmp class:
 			markCode = "@CombiningTopAccents"
 		else:
@@ -674,7 +639,7 @@ class FeatureCodeTweaks(object):
 		codesNLD = (
 			("\n\tsub iacute j' by jacute;", ("jacute", "j", "iacute")),
 			("\n%s\tsub Iacute J' by Jacute;" % ignoreLine, ("Iacute", "J", "Jacute")),
-			)
+		)
 
 		for codeLineData in codesNLD:
 			lineToAdd = codeLineData[0]
@@ -727,7 +692,7 @@ class FeatureCodeTweaks(object):
 					codeSig="Dutch accented IJ/ij",
 					appendCode=True,
 					addNote=True,
-					)
+				)
 
 			# TODO create jdotless.sc
 
@@ -747,7 +712,7 @@ class FeatureCodeTweaks(object):
 				lcSharpS.name,
 				ucSharpS.name,
 				feature,
-				))
+			))
 		else:
 			# Add @Uppercase:
 			addClass("Uppercase", thisFont)
@@ -763,7 +728,7 @@ class FeatureCodeTweaks(object):
 				lcSharpS.name,
 				ucClassName,
 				ucSharpS.name,
-				)
+			)
 			featureLines = wrapCodeInLookup(featureLines, lookupName)
 
 			# see if locl exists, and create it if not:
@@ -797,7 +762,7 @@ class FeatureCodeTweaks(object):
 				codeSig="German cap sharp s",
 				appendCode=True,
 				addNote=True,
-				)
+			)
 
 			# call lookup in calt:
 			caltCode = "lookup %s;" % lookupName
@@ -808,7 +773,7 @@ class FeatureCodeTweaks(object):
 				codeSig="German cap sharp s",
 				appendCode=True,
 				addNote=True,
-				)
+			)
 
 			# Update Languagesystems:
 			prefixName = "Languagesystems"
@@ -846,7 +811,7 @@ class FeatureCodeTweaks(object):
 			"leftRightArrow.long": ["less", "hyphen", "hyphen", "greater"],
 			"rightArrow": ["hyphen", "greater"],
 			"rightArrow.long": ["hyphen", "hyphen", "greater"],
-			}
+		}
 
 		# create feature code:
 		featureLines = createManyToOneFromDict(ligDict, thisFont)
@@ -864,7 +829,7 @@ class FeatureCodeTweaks(object):
 				codeSig="Arrows as ligatures",
 				appendCode=True,
 				addNote=True,
-				)
+			)
 
 	def magistraSubstitution(self, feature="calt"):
 		"""
@@ -902,7 +867,7 @@ class FeatureCodeTweaks(object):
 				codeSig="Magistra",
 				appendCode=True,
 				addNote=True,
-				)
+			)
 
 			# add kerning:
 			for thisMaster in thisFont.masters:
@@ -920,7 +885,7 @@ class FeatureCodeTweaks(object):
 					thisFont.kerningForPair(masterID, "g", "@MMK_R_%s" % period.leftKerningGroup),
 					thisFont.kerningForPair(masterID, "@MMK_L_%s" % g.rightKerningGroup, "period"),
 					thisFont.kerningForPair(masterID, "g", "period"),
-					)
+				)
 				for value in potentialKernValuesOnOtherSide:
 					if value < 100000:
 						kernValueOnOtherSide = value
@@ -945,7 +910,7 @@ class FeatureCodeTweaks(object):
 
 	def ssXX2salt(self, saltTag="salt"):
 		"""Creates a universal salt feature including all ssXX substitutions."""
-		thisFont = Glyphs.font # frontmost font
+		thisFont = Glyphs.font  # frontmost font
 		ssXXfeatures = [f for f in thisFont.features if f.name.startswith("ss") and f.name[-1] in "0123456789" and f.name[-2] in "012"]
 
 		if not ssXXfeatures:
@@ -956,8 +921,8 @@ class FeatureCodeTweaks(object):
 					len(ssXXfeatures),
 					"" if len(ssXXfeatures) == 1 else "s",
 					", ".join([f.name for f in ssXXfeatures]),
-					)
 				)
+			)
 			saltFeature = GSFeature()
 			saltFeature.name = saltTag
 			saltFeature.automatic = False
@@ -966,7 +931,7 @@ class FeatureCodeTweaks(object):
 			alreadyHadTheLookup = []
 			for thisFeature in ssXXfeatures:
 				if "lookup" in thisFeature.code:
-					if not thisFeature.code.strip() in alreadyHadTheLookup:
+					if thisFeature.code.strip() not in alreadyHadTheLookup:
 						saltFeature.code += "# Lookup code for %s:\n" % thisFeature.name
 						saltFeature.code += thisFeature.code
 						saltFeature.code += "\n"
@@ -988,7 +953,7 @@ class FeatureCodeTweaks(object):
 						ssXXname,
 						ssXXcode.rstrip(),
 						ssXXname,
-						)
+					)
 					saltFeature.code += lookupCode
 
 			saltFeature.code = saltFeature.code.strip() + "\n"
@@ -1022,7 +987,7 @@ class FeatureCodeTweaks(object):
 		lookup capMarksToSC {
 			sub @MarkscombCase by @Markscomb;
 		} capMarksToSC;
-		
+
 		jdotless --> j.sc
 		idotless --> i.sc
 		"""
@@ -1056,7 +1021,7 @@ class FeatureCodeTweaks(object):
 					codeSig="Prepare cap marks for smallcaps",
 					appendCode=False,
 					addNote=True,
-					)
+				)
 
 		# 2. SMCP: SMALL LETTERS WHERE CASEFOLDING CAN OVERLAP WITH OTHERS
 		scFeatureTag = "smcp"
@@ -1069,7 +1034,7 @@ class FeatureCodeTweaks(object):
 				"idotless": "i",
 				"jdotless": "j",
 				"longs": "s",
-				}
+			}
 			scSuffixes = ("sc", "smcp", "c2sc", "small", "smallcap")
 			for smallGlyphName in sorted(casefoldings.keys()):
 				smallGlyph = thisFont.glyphs[smallGlyphName]
@@ -1109,7 +1074,7 @@ class FeatureCodeTweaks(object):
 					codeSig="Alternate small-cap mappings",
 					appendCode=True,
 					addNote=True,
-					)
+				)
 
 	def FeatureCodeTweaksMain(self, sender):
 		try:
@@ -1120,7 +1085,7 @@ class FeatureCodeTweaks(object):
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			print(u"Feature Code Tweaks for %s" % thisFont.familyName)
 			print(thisFont.filepath)
 
@@ -1169,5 +1134,6 @@ class FeatureCodeTweaks(object):
 			print(u"❌ Feature Code Tweaks Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 FeatureCodeTweaks()

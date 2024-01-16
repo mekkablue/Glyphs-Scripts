@@ -1,9 +1,12 @@
-#MenuTitle: Convert to Uppercase
+# MenuTitle: Convert to Uppercase
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Turns lowercase names into uppercase names, e.g., `a` → `A`, `ccaron` → `Ccaron`, `aeacute` → `AEacute`, etc.
 """
+
+from GlyphsApp import Glyphs
+
 
 def uppercaseGlyphName(thisGlyph):
 	originalGlyphName = thisGlyph.name
@@ -34,13 +37,14 @@ def uppercaseGlyphName(thisGlyph):
 					"✅ %s → %s" % (
 						originalGlyphName,
 						thisGlyph.name if thisGlyph.name == uppercaseGlyphName else "%s → %s (updated glyph info)" % (uppercaseGlyphName, thisGlyph.name),
-						)
 					)
+				)
 				return 1
 
-Glyphs.clearLog() # clears macro window log
+
+Glyphs.clearLog()  # clears macro window log
 Font = Glyphs.font
-selectedGlyphs = [l.parent for l in Font.selectedLayers]
+selectedGlyphs = [layer.parent for layer in Font.selectedLayers]
 countSelectedGlyphs = len(selectedGlyphs)
 convertedCount = 0
 print("Converting %i selected glyphs to uppercase:\n" % countSelectedGlyphs)
@@ -67,10 +71,10 @@ Glyphs.showNotification(
 		"" if countSelectedGlyphs == 1 else "s",
 		convertedCount,
 		"was" if convertedCount == 1 else "were",
-		),
-	)
+	),
+)
 
 print("\n%i glyph%s converted to uppercase.\nDone." % (
 	convertedCount,
 	"" if convertedCount == 1 else "s",
-	))
+))

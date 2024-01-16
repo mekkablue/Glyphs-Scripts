@@ -1,13 +1,14 @@
-#MenuTitle: Insert Instances
+# MenuTitle: Insert Instances
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Inserts instances, based on the Luc(as), Pablo, and Maciej algorithms.
 """
 
-from GlyphsApp import *
+from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE
 from Foundation import NSDictionary
 import vanilla
+
 rangemin = 3
 rangemax = 11
 
@@ -23,7 +24,7 @@ naturalNames = (
 	"Extrabold",
 	"Black",
 	"Extrablack",
-	)
+)
 
 weightClasses = {
 	"Hairline": 1,
@@ -37,7 +38,7 @@ weightClasses = {
 	"Extrabold": 800,
 	"Black": 900,
 	"Extrablack": 1000,
-	}
+}
 
 weightClassesOldNames = {
 	"Hairline": "Thin:1",
@@ -51,7 +52,8 @@ weightClassesOldNames = {
 	"Extrabold": "ExtraBold",
 	"Black": "Black",
 	"Extrablack": "Black:1000",
-	}
+}
+
 
 def distribute_lucas(min, max, n):
 	if min == 0:
@@ -59,30 +61,36 @@ def distribute_lucas(min, max, n):
 	q = max / min
 	return [min * q**(i / (n - 1)) for i in range(n)]
 
+
 def distribute_reverselucas(min, max, n):
 	if min == 0:
 		min = max / 1000.0
 	q = max / min
 	return [min + max - min * q**(i / (n - 1)) for i in range(n - 1, -1, -1)]
 
+
 def distribute_equal(min, max, n):
 	d = (max - min) / (n - 1)
 	return [min + i * d for i in range(n)]
+
 
 def distribute_pablo(min, max, n):
 	es = distribute_equal(min, max, n)
 	ls = distribute_lucas(min, max, n)
 	return [l * (1 - i / (n - 1)) + e * (i / (n - 1)) for (i, e, l) in zip(range(n), es, ls)]
 
+
 def distribute_schneider(min, max, n):
 	ps = distribute_pablo(min, max, n)
 	ls = distribute_lucas(min, max, n)
 	return [(p + l) * 0.5 for (p, l) in zip(ps, ls)]
 
+
 def distribute_abraham(min, max, n):
 	es = distribute_equal(min, max, n)
 	ls = distribute_lucas(min, max, n)
 	return [e * (1 - (i / (n - 1))**1.25) + l * (i / (n - 1))**1.25 for (i, e, l) in zip(range(n), es, ls)]
+
 
 def distribute_maciej(lightMasterWeightX, lightMasterWeightY, boldMasterWeightX, boldMasterWeightY, interpolationWeightX):
 	"""
@@ -92,13 +100,15 @@ def distribute_maciej(lightMasterWeightX, lightMasterWeightY, boldMasterWeightX,
 	interpolationPointX = (interpolationWeightX - lightMasterWeightX) / (boldMasterWeightX - lightMasterWeightX)
 	interpolationWeightY = (
 		(1 - interpolationPointX) * (lightMasterWeightY / lightMasterWeightX - boldMasterWeightY / boldMasterWeightX) + boldMasterWeightY / boldMasterWeightX
-		) * interpolationWeightX
+	) * interpolationWeightX
 	interpolationPointY = (interpolationWeightY - lightMasterWeightY) / (boldMasterWeightY - lightMasterWeightY)
 
 	return round((boldMasterWeightX - lightMasterWeightX) * interpolationPointY + lightMasterWeightX, 1)
 
+
 def axisLocationEntry(axisName, locationValue):
 	return NSDictionary.alloc().initWithObjects_forKeys_((axisName, locationValue), ("Axis", "Location"))
+
 
 class InstanceMaker(object):
 	"""GUI for injecting instances."""
@@ -110,15 +120,15 @@ class InstanceMaker(object):
 		# Window 'self.w':
 		windowWidth = 360
 		windowHeight = 400
-		windowWidthResize = 0 # user can resize width by this value
-		windowHeightResize = 300 # user can resize height by this value
+		windowWidthResize = 0  # user can resize width by this value
+		windowHeightResize = 300  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Insert weight instances", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Insert weight instances",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		linePos, inset, lineHeight = 12, 15, 26
 
@@ -138,51 +148,35 @@ class InstanceMaker(object):
 		self.w.master2.getNSComboBox().setToolTip_("Weight value for the last instance being added, typically the stem width of your boldest weight.")
 		self.w.text_5 = vanilla.TextBox((inset + 65 + 55 * 3, linePos + 2, 55, 14), "at width:", sizeStyle='small')
 		self.w.width = vanilla.EditText((inset + 65 + 55 * 4, linePos - 1, -inset, 19), "100", callback=self.UpdateSample, sizeStyle='small')
-		self.w.width.getNSTextField(
-		).setToolTip_("The Width value for the instances being added. Default is 100. Adapt accordingly if you are adding condensed or extended instances.")
+		self.w.width.getNSTextField().setToolTip_("The Width value for the instances being added. Default is 100. Adapt accordingly if you are adding condensed or extended instances.")
 		linePos += lineHeight
 
 		self.w.text_6 = vanilla.TextBox((inset - 1, linePos + 2, 60, 14), "using", sizeStyle='small')
-		self.w.algorithm = vanilla.PopUpButton(
-			(inset + 35, linePos, 110, 17), ("linear", "Pablo", "Schneider", "Abraham", "Luc(as)", "Reverse Luc(as)"), callback=self.UpdateSample, sizeStyle='small'
-			)
-		self.w.algorithm.getNSPopUpButton().setToolTip_(
-			"The way the Weight values are distributed between the first and last master values you entered above. Linear means equal steps between instances. Luc(as) (after Lucas de Groot) means the same growth percentage between instances. Pablo (after Pablo Impallari) is like Luc(as) at first, then becomes increasingly linear, i.e., flat in the periphery and steep in the middle. Schneider (after Lukas Schneider) is half way between Pablo and Luc(as) algorithms. Abraham (after Abraham Lee) is linear at first, then becomes increasingly like Luc(as), i.e. steep in the periphery, flat in the middle.\n\nFor a wide spectrum from thin to very bold, try Pablo or Schneider.\n\nFor spectrums from thin to average weights, try Abraham or Luc(as). They tend to have large jumps at the end, which are usually found in the center of the weight spectrum (Regular to Semibold). Smaller jumps are preferable in the periphery, i.e., for very light and very dark weights.\n\nFor going from average to very bold weights, try Reverse Luc(as). It has the big jumps at the beginning, and smaller steps at the end."
-			)
+		self.w.algorithm = vanilla.PopUpButton((inset + 35, linePos, 110, 17), ("linear", "Pablo", "Schneider", "Abraham", "Luc(as)", "Reverse Luc(as)"), callback=self.UpdateSample, sizeStyle='small')
+		self.w.algorithm.getNSPopUpButton().setToolTip_("The way the Weight values are distributed between the first and last master values you entered above. Linear means equal steps between instances. Luc(as) (after Lucas de Groot) means the same growth percentage between instances. Pablo (after Pablo Impallari) is like Luc(as) at first, then becomes increasingly linear, i.e., flat in the periphery and steep in the middle. Schneider (after Lukas Schneider) is half way between Pablo and Luc(as) algorithms. Abraham (after Abraham Lee) is linear at first, then becomes increasingly like Luc(as), i.e. steep in the periphery, flat in the middle.\n\nFor a wide spectrum from thin to very bold, try Pablo or Schneider.\n\nFor spectrums from thin to average weights, try Abraham or Luc(as). They tend to have large jumps at the end, which are usually found in the center of the weight spectrum (Regular to Semibold). Smaller jumps are preferable in the periphery, i.e., for very light and very dark weights.\n\nFor going from average to very bold weights, try Reverse Luc(as). It has the big jumps at the beginning, and smaller steps at the end.")
 		self.w.text_7 = vanilla.TextBox((inset + 40 + 110, linePos + 2, 110, 14), "distribution.", sizeStyle='small')
 		self.w.help_instances = vanilla.HelpButton((-15 - 21, linePos + 2, -inset, 20), callback=self.openURL)
 		linePos += lineHeight
 
-		self.w.existingInstances = vanilla.RadioGroup(
-			(inset + 20, linePos, -10, 60), ("Leave existing instances as they are", "Deactivate existing instances", "Delete existing instances"),
-			callback=self.SavePreferences,
-			sizeStyle='small'
-			)
+		self.w.existingInstances = vanilla.RadioGroup((inset + 20, linePos, -10, 60), ("Leave existing instances as they are", "Deactivate existing instances", "Delete existing instances"), callback=self.SavePreferences, sizeStyle='small')
 		self.w.existingInstances.set(0)
 		linePos += int(lineHeight * 2.4)
 
-		self.w.naturalNames = vanilla.CheckBox(
-			(inset, linePos, inset + 225, 19), "Use ‘natural’ weight names, starting at:", value=False, callback=self.UpdateSample, sizeStyle='small'
-			)
+		self.w.naturalNames = vanilla.CheckBox((inset, linePos, inset + 225, 19), "Use ‘natural’ weight names, starting at:", value=False, callback=self.UpdateSample, sizeStyle='small')
 		self.w.naturalNames.getNSButton().setToolTip_("Prefill with standard names and style linking. If turned off, will use the Weight number as instance name.")
 		self.w.firstName = vanilla.PopUpButton((inset + 225, linePos, -inset, 17), naturalNames, callback=self.UpdateSample, sizeStyle='small')
 		self.w.firstName.getNSPopUpButton().setToolTip_("If you use natural weight names, choose here the name of your lightest weight.")
-		try: # workaround for macOS 10.9
+		try:  # workaround for macOS 10.9
 			self.w.firstName.enable(self.w.naturalNames.getNSButton().isEnabled())
 		except:
 			pass
 		linePos += lineHeight - 8
 
 		if Glyphs.versionNumber >= 3:
-			self.w.axisLocation = vanilla.CheckBox(
-				(inset + 20, linePos, 220, 20), "Set Axis Location for each instance", value=True, callback=self.SavePreferences, sizeStyle='small'
-				)
+			self.w.axisLocation = vanilla.CheckBox((inset + 20, linePos, 220, 20), "Set Axis Location for each instance", value=True, callback=self.SavePreferences, sizeStyle='small')
 			self.w.axisLocationMaster = vanilla.CheckBox((inset + 227, linePos, -inset, 20), "and master", value=True, callback=self.SavePreferences, sizeStyle='small')
-			self.w.axisLocation.getNSButton().setToolTip_(
-				"If enabled, will add an Axis Location parameter with the proper usWeightClass value in Font Info → Exports.\n\nHINT: Do not forget to set Axis Location parameters for each master in Font Info → Masters, and remove the Axis Mappings parameter in Font Info → Font if you have one."
-				)
-			self.w.axisLocationMaster.getNSButton(
-			).setToolTip_("If enabled, will attempt to set Axis Locations for masters as well. Only works if there is an instance that matches the respective master.")
+			self.w.axisLocation.getNSButton().setToolTip_("If enabled, will add an Axis Location parameter with the proper usWeightClass value in Font Info → Exports.\n\nHINT: Do not forget to set Axis Location parameters for each master in Font Info → Masters, and remove the Axis Mappings parameter in Font Info → Font if you have one.")
+			self.w.axisLocationMaster.getNSButton().setToolTip_("If enabled, will attempt to set Axis Locations for masters as well. Only works if there is an instance that matches the respective master.")
 			linePos += lineHeight - 8
 
 		self.w.italicStyle = vanilla.CheckBox((inset + 20, linePos, -inset, 20), "Italic suffixes and style linking", value=False, callback=self.UpdateSample, sizeStyle='small')
@@ -190,17 +184,13 @@ class InstanceMaker(object):
 		linePos += lineHeight
 
 		self.w.maciej = vanilla.CheckBox((inset, linePos - 1, 160, 19), "Maciej y distribution from:", value=False, callback=self.UpdateSample, sizeStyle='small')
-		self.w.maciej.getNSButton().setToolTip_(
-			"An algorithm proposed by Maciej Ratajski, which introduces slightly different interpolation for y coordinates. Will add interpolationWeightY parameters to the instances. If these value differ greatly from the weight interpolation values, interpolation of your diagonals may suffer."
-			)
+		self.w.maciej.getNSButton().setToolTip_("An algorithm proposed by Maciej Ratajski, which introduces slightly different interpolation for y coordinates. Will add interpolationWeightY parameters to the instances. If these value differ greatly from the weight interpolation values, interpolation of your diagonals may suffer.")
 		self.w.text_maciej_1 = vanilla.TextBox((inset + 165 + 55, linePos + 2, 55, 19), "through:", sizeStyle='small')
 		self.w.maciej_light = vanilla.ComboBox((inset + 160, linePos - 1, 55, 19), self.MasterList(1), callback=self.UpdateSample, sizeStyle='small')
 		self.w.maciej_bold = vanilla.ComboBox((inset + 160 + 55 + 55, linePos - 1, -inset, 19), self.MasterList(-1), callback=self.UpdateSample, sizeStyle='small')
 		linePos += lineHeight - 6
 
-		self.w.text_maciej_2 = vanilla.TextBox(
-			(inset + 15, linePos, -40, 40), "Provide horizontal stem widths in extreme masters to interpolate contrast rather than stems.", sizeStyle='small', selectable=True
-			)
+		self.w.text_maciej_2 = vanilla.TextBox((inset + 15, linePos, -40, 40), "Provide horizontal stem widths in extreme masters to interpolate contrast rather than stems.", sizeStyle='small', selectable=True)
 		self.w.help_maciej = vanilla.HelpButton((-inset - 21, linePos + 4, -inset, 20), callback=self.openURL)
 		self.w.help_maciej.getNSButton().setToolTip_("Will open a website with a detailed description of the Maciej algorithm. Requires an internet connection.")
 		linePos += int(lineHeight * 1.2)
@@ -254,7 +244,7 @@ class InstanceMaker(object):
 	def weightID(self, thisFont):
 		weightAxisID = None
 		if thisFont.axes:
-			weightAxis = thisFont.axes[0] # default
+			weightAxis = thisFont.axes[0]  # default
 			weightAxisID = self.axisID(weightAxis)
 			for axis in thisFont.axes:
 				axisTag = self.axisTag(axis)
@@ -263,7 +253,7 @@ class InstanceMaker(object):
 		return weightAxisID
 
 	def widthID(self, thisFont):
-		widthAxisID = None # None
+		widthAxisID = None  # None
 		for axis in thisFont.axes:
 			if self.axisTag(axis) == "wdth":
 				widthAxisID = self.axisID(axis)
@@ -346,7 +336,7 @@ class InstanceMaker(object):
 			if usesNaturalNames:
 				sampleText += ", ".join(
 					"%s%s (%.01f)" % (prefix, self.italicStyleName(name), weight) for name, weight in zip(naturalNames[currentSelectionIndex:], distributedValues)
-					)
+				)
 			else:
 				sampleText += ", ".join("%s%.0f (%.01f)" % (prefix, weight, weight) for weight in distributedValues)
 
@@ -357,7 +347,7 @@ class InstanceMaker(object):
 				sampleText += ",%s growth: %.1f%%" % (
 					" average" if self.pref("shouldRound") else "",
 					(growth - 1) * 100,
-					)
+				)
 
 			if self.pref("maciej"):
 				maciejValues = self.MaciejValues()
@@ -371,13 +361,13 @@ class InstanceMaker(object):
 
 	def DealWithExistingInstances(self):
 		instancesChoice = self.w.existingInstances.get()
-		if instancesChoice == 1: # deactivate
+		if instancesChoice == 1:  # deactivate
 			for thisInstance in Glyphs.font.instances:
-				if Glyphs.buildNumber>3198:
+				if Glyphs.buildNumber > 3198:
 					thisInstance.exports = False
 				else:
 					thisInstance.active = False
-		elif instancesChoice == 2: # delete
+		elif instancesChoice == 2:  # delete
 			if Glyphs.versionNumber >= 3:
 				# GLYPHS 3
 				Glyphs.font.instances = [i for i in Glyphs.font.instances if i.type != INSTANCETYPESINGLE]
@@ -528,7 +518,7 @@ class InstanceMaker(object):
 					if not maciejValues:
 						maciejYesOrNo = False
 
-				numOfInstances = int(self.pref("numberOfInstances"))
+				# numOfInstances = int(self.pref("numberOfInstances"))
 				currentSelectionIndex = int(self.pref("firstName"))
 				instanceNames = naturalNames[currentSelectionIndex:]
 
@@ -602,7 +592,7 @@ class InstanceMaker(object):
 								axisLocations = []
 								for thisAxis in theFont.axes:
 									if thisAxis.name == "Weight":
-										if weightClassValue != None:
+										if weightClassValue is not None:
 											value = weightClassValue
 										else:
 											value = 400
@@ -648,5 +638,6 @@ class InstanceMaker(object):
 			print(e)
 			import traceback
 			print(traceback.format_exc())
+
 
 InstanceMaker()

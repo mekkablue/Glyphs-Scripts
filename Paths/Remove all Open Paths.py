@@ -1,19 +1,22 @@
-#MenuTitle: Remove all Open Paths
+# MenuTitle: Remove all Open Paths
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Deletes all paths in visible layers of selected glyphs.
 """
 
+from GlyphsApp import Glyphs
+
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
+
 
 def process(thisLayer):
 	count = 0
 
-	# thisLayer.parent.beginUndo() # undo grouping causes crashes
+	# thisLayer.parent.beginUndo()  # undo grouping causes crashes
 	for i in range(len(thisLayer.paths))[::-1]:
-		if thisLayer.paths[i].closed == False:
+		if not thisLayer.paths[i].closed:
 			thisPath = thisLayer.paths[i]
 			if Glyphs.versionNumber >= 3:
 				index = thisLayer.shapes.index(thisPath)
@@ -21,9 +24,10 @@ def process(thisLayer):
 			else:
 				del thisLayer.paths[i]
 			count += 1
-	# thisLayer.parent.endUndo() # undo grouping causes crashes
+	# thisLayer.parent.endUndo()  # undo grouping causes crashes
 
 	return count
+
 
 Font.disableUpdateInterface()
 try:
@@ -37,4 +41,4 @@ except Exception as e:
 	print()
 	raise e
 finally:
-	Font.enableUpdateInterface() # re-enables UI updates in Font View
+	Font.enableUpdateInterface()  # re-enables UI updates in Font View

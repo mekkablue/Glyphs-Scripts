@@ -1,4 +1,4 @@
-#MenuTitle: Axis Location Setter
+# MenuTitle: Axis Location Setter
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -7,9 +7,12 @@ Batch-set axis locations for all instances with a certain name particle. E.g., s
 
 from Foundation import NSDictionary
 import vanilla
+from GlyphsApp import Glyphs, GSFontMaster, Message
+
 
 def axisLocationEntry(axisName, locationValue):
 	return NSDictionary.alloc().initWithObjects_forKeys_((axisName, locationValue), ("Axis", "Location"))
+
 
 class AxisLocationSetter(object):
 	prefID = "com.mekkablue.AxisLocationSetter"
@@ -18,15 +21,15 @@ class AxisLocationSetter(object):
 		# Window 'self.w':
 		windowWidth = 270
 		windowHeight = 180
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Axis Location Setter", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Axis Location Setter",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 10, 12, 23
@@ -107,9 +110,9 @@ class AxisLocationSetter(object):
 		if currentFont:
 			for i in currentFont.instances:
 				for particle in i.name.split(" "):
-					if not particle in particles:
+					if particle not in particles:
 						particles.append(particle)
-				if not i.name in particles:
+				if i.name not in particles:
 					particles.append(i.name)
 			particles.sort()
 		return particles
@@ -119,7 +122,7 @@ class AxisLocationSetter(object):
 		currentFont = Glyphs.font
 		if currentFont:
 			for a in currentFont.axes:
-				if not a.name in axes:
+				if a.name not in axes:
 					axes.append(a.name)
 		return axes
 
@@ -169,7 +172,7 @@ class AxisLocationSetter(object):
 
 	def setInternalCoordinate(self, thisInstance, thisAxisName, newAxisValue):
 		theFont = thisInstance.font
-		axisLocations = []
+		# axisLocations = []
 		for i, thisAxis in enumerate(theFont.axes):
 			if thisAxis.name == thisAxisName:
 				thisInstance.setAxisValueValue_forId_(float(newAxisValue), thisAxis.axisId)
@@ -193,7 +196,7 @@ class AxisLocationSetter(object):
 				for entry in existingParameter:
 					if thisAxis.name == entry["Axis"]:
 						value = entry["Location"]
-			if value == None:
+			if value is None:
 				# otherwise replicate internal coordinate:
 				if isinstance(thisInstance, GSFontMaster):
 					value = thisInstance.axisValueValueForId_(thisAxis.axisId)
@@ -252,7 +255,7 @@ class AxisLocationSetter(object):
 			if not self.SavePreferences():
 				print("Note: 'Axis Location Setter' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="Axis Location Setter requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -274,7 +277,7 @@ class AxisLocationSetter(object):
 					Message(title="Axis Location Setter Error", message="The frontmost font does not have an axis called ‘%s’." % axisName, OKButton=None)
 					print("❌ Axis ‘%s’ not found." % axisName)
 				else:
-					thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+					thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 					try:
 						# set axis locations for instances:
 						instanceCount = 0
@@ -304,7 +307,7 @@ class AxisLocationSetter(object):
 					except Exception as e:
 						raise e
 					finally:
-						thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+						thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
 
 					# Final report:
 					message = "Coordinates updated in %i instances and %i masters. Details in Macro Window" % (instanceCount, masterCount)
@@ -312,7 +315,7 @@ class AxisLocationSetter(object):
 					Glyphs.showNotification(
 						"%s: Done" % (thisFont.familyName),
 						message,
-						)
+					)
 
 				print("\n✅ Done.")
 
@@ -322,6 +325,7 @@ class AxisLocationSetter(object):
 			print("Axis Location Setter Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 if Glyphs.versionNumber >= 3:
 	# GLYPHS 3

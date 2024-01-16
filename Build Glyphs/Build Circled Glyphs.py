@@ -1,13 +1,17 @@
-#MenuTitle: Build Circled Glyphs
+# MenuTitle: Build Circled Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Builds circled numbers and letters (U+24B6...24EA and U+2460...2473) from _part.circle and the letters and figures.
 """
 
-from Foundation import NSPoint, NSClassFromString, NSAffineTransform
-from AppKit import NSButtLineCapStyle, NSRect, NSSize
-import math, vanilla
+from Foundation import NSPoint, NSClassFromString, NSAffineTransform, NSAffineTransformStruct
+from AppKit import NSRect, NSSize
+import math
+import vanilla
+from GlyphsApp import Glyphs, GSGlyph, GSComponent, GSAnchor, GSOFFCURVE, Message
+
+
 circledNumbers = (
 	"zero.circled",
 	"one.circled",
@@ -30,7 +34,7 @@ circledNumbers = (
 	"one_eight.circled",
 	"one_nine.circled",
 	"two_zero.circled",
-	)
+)
 
 circledUC = (
 	"A.circled",
@@ -59,7 +63,7 @@ circledUC = (
 	"X.circled",
 	"Y.circled",
 	"Z.circled",
-	)
+)
 
 circledLC = (
 	"a.circled",
@@ -88,7 +92,8 @@ circledLC = (
 	"x.circled",
 	"y.circled",
 	"z.circled",
-	)
+)
+
 
 def offsetLayer(thisLayer, offset, makeStroke=False, position=0.5, autoStroke=False):
 	offsetFilter = NSClassFromString("GlyphsFilterOffsetCurve")
@@ -97,32 +102,33 @@ def offsetLayer(thisLayer, offset, makeStroke=False, position=0.5, autoStroke=Fa
 		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyleStart_capStyleEnd_keepCompatibleOutlines_(
 			thisLayer,
 			offset,
-			offset, # horizontal and vertical offset
-			makeStroke, # if True, creates a stroke
-			autoStroke, # if True, distorts resulting shape to vertical metrics
-			position, # stroke distribution to the left and right, 0.5 = middle
+			offset,  # horizontal and vertical offset
+			makeStroke,  # if True, creates a stroke
+			autoStroke,  # if True, distorts resulting shape to vertical metrics
+			position,  # stroke distribution to the left and right, 0.5 = middle
 			None,
 			None,
 			None,
 			0,
 			0,
 			True
-			)
+		)
 	except:
 		# GLYPHS 2:
 		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyle_keepCompatibleOutlines_(
 			thisLayer,
 			offset,
-			offset, # horizontal and vertical offset
-			makeStroke, # if True, creates a stroke
-			autoStroke, # if True, distorts resulting shape to vertical metrics
-			position, # stroke distribution to the left and right, 0.5 = middle
-			thisLayer.glyphMetrics(), # metrics (G3)
+			offset,  # horizontal and vertical offset
+			makeStroke,  # if True, creates a stroke
+			autoStroke,  # if True, distorts resulting shape to vertical metrics
+			position,  # stroke distribution to the left and right, 0.5 = middle
+			thisLayer.glyphMetrics(),  # metrics (G3)
 			None,
-			None, # error, shadow
-			0, # NSButtLineCapStyle, # cap style
-			True, # keep compatible
-			)
+			None,  # error, shadow
+			0,  # NSButtLineCapStyle,  # cap style
+			True,  # keep compatible
+		)
+
 
 def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	"""
@@ -130,7 +136,7 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	Apply an NSAffineTransform t object like this:
 		Layer.transform_checkForSelection_doComponents_(t,False,True)
 	Access its transformation matrix like this:
-		tMatrix = t.transformStruct() # returns the 6-float tuple
+		tMatrix = t.transformStruct()  # returns the 6-float tuple
 	Apply the matrix tuple like this:
 		Layer.applyTransform(tMatrix)
 		Component.applyTransform(tMatrix)
@@ -155,6 +161,7 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 		myTransform.appendTransform_(skewTransform)
 	return myTransform
 
+
 def centerOfRect(rect):
 	"""
 	Returns the center of NSRect rect as an NSPoint.
@@ -162,6 +169,7 @@ def centerOfRect(rect):
 	x = rect.origin.x + rect.size.width * 0.5
 	y = rect.origin.y + rect.size.height * 0.5
 	return NSPoint(x, y)
+
 
 def combinedBounds(rects):
 	bottomLeft = NSPoint(1000.0, 100.0)
@@ -175,6 +183,7 @@ def combinedBounds(rects):
 	combinedRect.origin = bottomLeft
 	combinedRect.size = NSSize(topRight.x - bottomLeft.x, topRight.y - bottomLeft.y)
 	return combinedRect
+
 
 def measureLayerAtHeightFromLeftOrRight(thisLayer, height, leftSide=True):
 	leftX = thisLayer.bounds.origin.x
@@ -190,6 +199,7 @@ def measureLayerAtHeightFromLeftOrRight(thisLayer, height, leftSide=True):
 		distance = rightX - measurement
 	return distance
 
+
 def minDistanceBetweenTwoLayers(comp1, comp2, interval=5.0):
 	topY = min(comp1.bounds.origin.y + comp1.bounds.size.height, comp2.bounds.origin.y + comp2.bounds.size.height)
 	bottomY = max(comp1.bounds.origin.y, comp2.bounds.origin.y)
@@ -200,12 +210,13 @@ def minDistanceBetweenTwoLayers(comp1, comp2, interval=5.0):
 		left = measureLayerAtHeightFromLeftOrRight(comp1, height, leftSide=False)
 		right = measureLayerAtHeightFromLeftOrRight(comp2, height, leftSide=True)
 		total = left + right
-		if minDist == None or minDist > total:
+		if minDist is None or minDist > total:
 			minDist = total
 
-	if minDist == None:
+	if minDist is None:
 		minDist = 0.0
 	return minDist
+
 
 def placeComponentsAtDistance(thisLayer, comp1, comp2, interval=5.0, distance=10.0):
 	if comp1 is not None:
@@ -218,11 +229,12 @@ def placeComponentsAtDistance(thisLayer, comp1, comp2, interval=5.0, distance=10
 		addedSBs = original1.RSB + original2.LSB
 		comp2.x = comp1.x + original1.width - addedSBs + comp2shift
 
+
 def buildCircledGlyph(thisGlyph, circleName, scaleFactors, minDistanceBetweenTwoLayers=90.0, suffix=None):
 	isBlack = "black" in circleName.lower()
 
 	thisFont = thisGlyph.font
-	thisGlyph.widthMetricsKey = None # "=%i" % thisFont.upm )
+	thisGlyph.widthMetricsKey = None  # "=%i" % thisFont.upm )
 	thisGlyph.leftMetricsKey = "=40"
 	thisGlyph.rightMetricsKey = "=|"
 
@@ -240,7 +252,7 @@ def buildCircledGlyph(thisGlyph, circleName, scaleFactors, minDistanceBetweenTwo
 		thisLayer.clear()
 
 		# add circle:
-		assumedCenter = NSPoint(thisFont.upm * 0.5, thisFont.upm * 0.3) # hardcoded
+		assumedCenter = NSPoint(thisFont.upm * 0.5, thisFont.upm * 0.3)  # hardcoded
 		circleComponent = GSComponent(circleName)
 		thisLayer.components.append(circleComponent)
 
@@ -296,9 +308,9 @@ def buildCircledGlyph(thisGlyph, circleName, scaleFactors, minDistanceBetweenTwo
 					placeComponentsAtDistance(
 						thisLayer,
 						thisLayer.components[-2],
-						thisLayer.components[-1], # same as innerComponent
+						thisLayer.components[-1],  # same as innerComponent
 						distance=minDistanceBetweenTwoLayers
-						)
+					)
 
 				originalLayerWidth = thisFont.glyphs[compName].layers[thisMaster.id].width
 				advance += originalLayerWidth
@@ -345,13 +357,13 @@ def buildCircledGlyph(thisGlyph, circleName, scaleFactors, minDistanceBetweenTwo
 				innerComponent.applyTransform(backshift)
 
 				# move components closer to center:
-				#move = 15.0
-				#hOffset = circleCenter.x - centerOfRect(innerComponent.bounds).x
-				#if abs(hOffset) > move:
-				#	hOffset = (hOffset/abs(hOffset))*move
-				#if hOffset != 0.0:
-				#	moveCloser = transform(shiftX=hOffset).transformStruct()
-				#	innerComponent.applyTransform(moveCloser)
+				# move = 15.0
+				# hOffset = circleCenter.x - centerOfRect(innerComponent.bounds).x
+				# if abs(hOffset) > move:
+				# 	hOffset = (hOffset/abs(hOffset))*move
+				# if hOffset != 0.0:
+				# 	moveCloser = transform(shiftX=hOffset).transformStruct()
+				# 	innerComponent.applyTransform(moveCloser)
 
 				# compensatory shift:
 				if thisGlyph.name in ("two_zero.circled", "one_nine.circled", "one_zero.circled"):
@@ -359,7 +371,7 @@ def buildCircledGlyph(thisGlyph, circleName, scaleFactors, minDistanceBetweenTwo
 					innerComponent.applyTransform(compensate)
 
 				if innerComponent.component.glyphInfo.category == "Number":
-					if figureHeight == None:
+					if figureHeight is None:
 						figureHeight = innerComponent.position.y
 					else:
 						innerComponent.position.y = figureHeight
@@ -374,7 +386,7 @@ def buildCircledGlyph(thisGlyph, circleName, scaleFactors, minDistanceBetweenTwo
 					isNumber = True
 				thisLayer.decomposeComponent_(componentToDecompose)
 
-			offsetLayer(thisLayer, 4.0) #4.0 if isNumber else 3.0 )
+			offsetLayer(thisLayer, 4.0)  # 4.0 if isNumber else 3.0 )
 			if thisLayer.paths and isBlack:
 				thisLayer.removeOverlap()
 				for thisPath in thisLayer.paths:
@@ -400,13 +412,14 @@ def buildCircledGlyph(thisGlyph, circleName, scaleFactors, minDistanceBetweenTwo
 				if thisComp.componentName == circleName:
 					thisComp.locked = True
 
+
 def buildCirclePart(thisFont, glyphName, isBlack=False):
 	partCircle = (
 		(
 			(353.0, 0.0), ((152.0, 0.0), (0.0, 150.0), (0.0, 348.0)), ((0.0, 549.0), (152.0, 700.0), (353.0, 700.0)), ((556.0, 700.0), (708.0, 549.0), (708.0, 348.0)),
 			((708.0, 149.0), (556.0, 0.0), (353.0, 0.0))
-			),
-		)
+		),
+	)
 
 	thisGlyph = thisFont.glyphs[glyphName]
 	if not thisGlyph:
@@ -429,12 +442,12 @@ def buildCirclePart(thisFont, glyphName, isBlack=False):
 			pen = thisLayer.getPen()
 			pen.moveTo(thisPath[0])
 			for thisSegment in thisPath[1:]:
-				if len(thisSegment) == 2: # lineto
+				if len(thisSegment) == 2:  # lineto
 					pen.lineTo(thisSegment)
-				elif len(thisSegment) == 3: # curveto
+				elif len(thisSegment) == 3:  # curveto
 					pen.curveTo(thisSegment[0], thisSegment[1], thisSegment[2])
 				else:
-					print("%s: Path drawing error. Could not process this segment:\n" % (glyphName, thisSegment))
+					print("%s: Path drawing error. Could not process this segment: %s\n" % (glyphName, thisSegment))
 			pen.closePath()
 			pen.endPath()
 
@@ -508,8 +521,10 @@ def buildCirclePart(thisFont, glyphName, isBlack=False):
 		centerAnchor.position = NSPoint(centerX, centerY)
 		thisLayer.anchors.append(centerAnchor)
 
+
 def boxArea(thisLayer):
 	return thisLayer.bounds.size.width * thisLayer.bounds.size.height
+
 
 class BuildCircledGlyphs(object):
 
@@ -517,22 +532,20 @@ class BuildCircledGlyphs(object):
 		# Window 'self.w':
 		windowWidth = 230
 		windowHeight = 270
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Build Circled Glyphs", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.BuildCircledGlyphs.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Build Circled Glyphs",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.BuildCircledGlyphs.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), u"Builds the following glyphs:", sizeStyle='small', selectable=True)
-		self.w.descriptionText.getNSTextField().setToolTip_(
-			"Hint: if the letter or figure glyph contains #center anchors, the anchor position will be preferred for positioning the letter or figure inside the circle."
-			)
+		self.w.descriptionText.getNSTextField().setToolTip_("Hint: if the letter or figure glyph contains #center anchors, the anchor position will be preferred for positioning the letter or figure inside the circle.")
 		linePos += lineHeight
 
 		self.w.buildUC = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Uppercase circled letters", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -551,15 +564,11 @@ class BuildCircledGlyphs(object):
 		self.w.buildBlackUC.getNSButton().setToolTip_("🅐🅑🅒🅓🅔🅕🅖🅗🅘🅙🅚🅛🅜🅞🅟🅠🅡🅢🅣🅤🅥🅦🅧🅨🅩")
 		linePos += lineHeight
 
-		self.w.buildBlackLC = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), u"Black lowercase circled letters ⚠️", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.buildBlackLC = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Black lowercase circled letters ⚠️", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildBlackLC.getNSButton().setToolTip_("Do not exist in Unicode. You will have to make them accessible through OpenType features.")
 		linePos += lineHeight
 
-		self.w.buildBlackCircledNumbers = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), u"Black circled numbers 0-20", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.buildBlackCircledNumbers = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Black circled numbers 0-20", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildBlackCircledNumbers.getNSButton().setToolTip_("⓿❶❷❸❹❺❻❼❽❾❿⓫⓬⓭⓮⓯⓰⓱⓲⓳⓴")
 		linePos += lineHeight
 
@@ -569,9 +578,7 @@ class BuildCircledGlyphs(object):
 
 		self.w.suffixesCheckbox = vanilla.CheckBox((inset, linePos, 110, 20), "Include Suffixes:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.suffixes = vanilla.EditText((inset + 110, linePos, -inset, 19), "ss06, ss02", callback=self.SavePreferences, sizeStyle='small')
-		self.w.suffixes.getNSTextField().setToolTip_(
-			"Will look if there is a base glyph with a dot suffix, and build the circled glyph with the same suffix. Separate multiple suffixes with a comma. E.g. You have an A and an A.ss06, then you get A.blackCircled and A.blackCircled.ss06, provided you enter ss06 here."
-			)
+		self.w.suffixes.getNSTextField().setToolTip_("Will look if there is a base glyph with a dot suffix, and build the circled glyph with the same suffix. Separate multiple suffixes with a comma. E.g. You have an A and an A.ss06, then you get A.blackCircled and A.blackCircled.ss06, provided you enter ss06 here.")
 		linePos += lineHeight
 
 		# Run Button:
@@ -649,7 +656,7 @@ class BuildCircledGlyphs(object):
 				print("Note: 'Build Circled Glyphs' could not write preferences.")
 
 			minDistanceBetweenFigures = 90.0
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 
 			buildUC = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildUC"]
 			buildLC = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildLC"]
@@ -689,11 +696,11 @@ class BuildCircledGlyphs(object):
 					print("⚠️ The font file has not been saved yet.")
 				print()
 
-				thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+				thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 				try:
 					print("Building: %s\n" % ", ".join(circledGlyphNames))
 
-					# add circles if not present in font already:
+					# add circles if present not in font already:
 					circleName = "_part.circle"
 					if not thisFont.glyphs[circleName]:
 						buildCirclePart(thisFont, circleName)
@@ -759,8 +766,8 @@ class BuildCircledGlyphs(object):
 								suffixedCoreName = coreName + suffix
 								if "_" in coreName:
 									particles = coreName.split("_")
-									for particle in particles:
-										if not suffixedCoreName in coreNames:
+									if suffixedCoreName not in coreNames:
+										for particle in particles:
 											if thisFont.glyphs[particle + suffix]:
 												coreNames.append(suffixedCoreName)
 												newGlyphName = glyphName + suffix
@@ -788,10 +795,10 @@ class BuildCircledGlyphs(object):
 							else:
 								suffix = None
 
-							# thisGlyph.beginUndo() # undo grouping causes crashes
+							# thisGlyph.beginUndo()  # undo grouping causes crashes
 							print("Building %s" % thisGlyph.name)
 							buildCircledGlyph(thisGlyph, circleName, scaleFactors, minDistanceBetweenFigures, suffix)
-							# thisGlyph.endUndo() # undo grouping causes crashes
+							# thisGlyph.endUndo()  # undo grouping causes crashes
 
 				except Exception as e:
 					Glyphs.showMacroWindow()
@@ -801,15 +808,15 @@ class BuildCircledGlyphs(object):
 					print()
 					raise e
 				finally:
-					thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+					thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
 
-				self.w.close() # delete if you want window to stay open
+				self.w.close()  # delete if you want window to stay open
 
 			# Final report:
 			Glyphs.showNotification(
 				u"%s: Done" % (thisFont.familyName),
 				u"Build Circled Glyphs is finished. Details in Macro Window",
-				)
+			)
 			print("\nDone.")
 
 		except Exception as e:
@@ -818,5 +825,6 @@ class BuildCircledGlyphs(object):
 			print("Build Circled Glyphs Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 BuildCircledGlyphs()

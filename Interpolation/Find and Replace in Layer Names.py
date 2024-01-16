@@ -1,4 +1,4 @@
-#MenuTitle: Find and Replace in Layer Names
+# MenuTitle: Find and Replace in Layer Names
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Replaces strings in layer names of all selected glyphs. Useful for adjusting lay
 """
 
 import vanilla
+from GlyphsApp import Glyphs, Message
+
 
 class replaceInLayerNames(object):
 
@@ -13,15 +15,15 @@ class replaceInLayerNames(object):
 		# Window 'self.w':
 		windowWidth = 200
 		windowHeight = 130
-		windowWidthResize = 300 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 300  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Find and Replace in Layer Names", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.FindAndReplaceInLayerNames.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Find and Replace in Layer Names",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.FindAndReplaceInLayerNames.mainwindow"  # stores last window position and size
+		)
 
 		self.w.textSearch = vanilla.TextBox((15, 15, 67, 14), "Search for:", sizeStyle='small')
 		self.w.searchFor = vanilla.EditText((15 + 67, 12, -15, 19), "[130]", sizeStyle='small', callback=self.SavePreferences)
@@ -67,7 +69,7 @@ class replaceInLayerNames(object):
 			glyphsToProcess = thisFont.glyphs
 		else:
 			selectedLayers = thisFont.selectedLayers
-			glyphsToProcess = [l.parent for l in selectedLayers]
+			glyphsToProcess = [layer.parent for layer in selectedLayers]
 
 		searchFor = Glyphs.defaults["com.mekkablue.FindAndReplaceInLayerNames.searchFor"]
 		replaceBy = Glyphs.defaults["com.mekkablue.FindAndReplaceInLayerNames.replaceBy"]
@@ -94,11 +96,12 @@ class replaceInLayerNames(object):
 			print()
 			raise e
 		finally:
-			thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+			thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
 
 		if replaceCount > 0:
 			Message(title="Replaced successfully", message="Replaced %i occurrences." % replaceCount, OKButton=None)
 		else:
 			Message(title="Nothing replaced", message="Could not find any occurrences of search string in the processed layers.", OKButton=None)
+
 
 replaceInLayerNames()

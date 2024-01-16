@@ -1,4 +1,4 @@
-#MenuTitle: Bracket Metrics Manager
+# MenuTitle: Bracket Metrics Manager
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Manage the sidebearings and widths of bracket layers.
 """
 
 import vanilla
+from GlyphsApp import Glyphs, Message
+
 
 class BracketMetricsManager(object):
 
@@ -13,25 +15,20 @@ class BracketMetricsManager(object):
 		# Window 'self.w':
 		windowWidth = 350
 		windowHeight = 190
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Bracket Metrics Manager", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.BracketMetricsManager.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Bracket Metrics Manager",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.BracketMetricsManager.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, 30),
-			u"In selected glyphs, syncs metrics of bracket layers with their associated layer, e.g. ‘Bold [90]’ with ‘Bold’.",
-			sizeStyle='small',
-			selectable=True
-			)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 30), u"In selected glyphs, syncs metrics of bracket layers with their associated layer, e.g. ‘Bold [90]’ with ‘Bold’.", sizeStyle='small', selectable=True)
 		linePos += lineHeight * 2
 
 		self.w.syncLSB = vanilla.CheckBox((inset, linePos - 1, 85, 20), "Sync LSB", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -39,9 +36,7 @@ class BracketMetricsManager(object):
 		self.w.syncWidth = vanilla.CheckBox((inset + 85 * 2, linePos - 1, -inset, 20), "Sync Width", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.applyToAllGlyphsWithBrackets = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Apply to all glyphs in font that have bracket layers", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.applyToAllGlyphsWithBrackets = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Apply to all glyphs in font that have bracket layers", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.reportOnly = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Only report, do not change metrics", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -193,7 +188,7 @@ class BracketMetricsManager(object):
 				if Glyphs.defaults["com.mekkablue.BracketMetricsManager.applyToAllGlyphsWithBrackets"]:
 					glyphsToCheck = [g for g in thisFont.glyphs if self.glyphHasBrackets(g)]
 				else:
-					glyphsToCheck = [l.parent for l in thisFont.selectedLayers if self.glyphHasBrackets(l.parent)]
+					glyphsToCheck = [layer.parent for layer in thisFont.selectedLayers if self.glyphHasBrackets(layer.parent)]
 
 				if not glyphsToCheck:
 					msg = "Could not find any bracket glyphs to examine."
@@ -223,5 +218,6 @@ class BracketMetricsManager(object):
 			print("Bracket Metrics Manager Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 BracketMetricsManager()

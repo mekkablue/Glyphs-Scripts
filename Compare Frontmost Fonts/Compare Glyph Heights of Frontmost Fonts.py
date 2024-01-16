@@ -1,4 +1,4 @@
-#MenuTitle: Compare Glyph Heights
+# MenuTitle: Compare Glyph Heights
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Lists all glyphs that differ from the second font in height beyond a given thres
 """
 
 import vanilla
+from GlyphsApp import Glyphs, Message
+
 
 class CompareGlyphHeightsOfFrontmostFonts(object):
 	prefID = "com.mekkablue.CompareGlyphHeightsOfFrontmostFonts"
@@ -14,25 +16,20 @@ class CompareGlyphHeightsOfFrontmostFonts(object):
 		# Window 'self.w':
 		windowWidth = 320
 		windowHeight = 200
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Compare Glyph Heights of Frontmost Fonts", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Compare Glyph Heights of Frontmost Fonts",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, 28),
-			"Lists all glyphs that differ in height more than the given threshold. Detailed report in Macro Window.",
-			sizeStyle='small',
-			selectable=True
-			)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 28), "Lists all glyphs that differ in height more than the given threshold. Detailed report in Macro Window.", sizeStyle='small', selectable=True)
 		linePos += lineHeight * 2
 
 		self.w.tolerateText = vanilla.TextBox((inset, linePos + 2, 140, 14), "Tolerate difference up to:", sizeStyle='small', selectable=True)
@@ -48,9 +45,7 @@ class CompareGlyphHeightsOfFrontmostFonts(object):
 		self.w.depths.getNSButton().setToolTip_("Measures and compares the heights of the bottom edges (bbox minimum).")
 		linePos += lineHeight
 
-		self.w.includeNonExporting = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.includeNonExporting = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonExporting.getNSButton().setToolTip_("If enabled, also measures glyphs that are set to not export.")
 		linePos += lineHeight
 
@@ -124,8 +119,8 @@ class CompareGlyphHeightsOfFrontmostFonts(object):
 				Glyphs.clearLog()
 				# Glyphs.showMacroWindow()
 
-				thisFont = Glyphs.font # frontmost font
-				otherFont = Glyphs.fonts[1] # second font
+				thisFont = Glyphs.font  # frontmost font
+				otherFont = Glyphs.fonts[1]  # second font
 				thisFileName = thisFont.filepath.lastPathComponent()
 				otherFileName = otherFont.filepath.lastPathComponent()
 				print(
@@ -136,8 +131,8 @@ class CompareGlyphHeightsOfFrontmostFonts(object):
 						otherFont.familyName,
 						otherFileName,
 						otherFont.filepath,
-						)
 					)
+				)
 				print()
 
 				heights = self.pref("heights")
@@ -188,7 +183,7 @@ class CompareGlyphHeightsOfFrontmostFonts(object):
 						title="No significant differences",
 						message="No differences larger than %.1f found between the two frontmost fonts. See the macro window for error messages." % tolerate,
 						OKButton="😎 Cool"
-						)
+					)
 				else:
 					collectedGlyphNames = tuple(set(collectedGlyphNames))
 					tabText = "/" + "/".join(collectedGlyphNames)
@@ -201,5 +196,6 @@ class CompareGlyphHeightsOfFrontmostFonts(object):
 			print("Compare Glyph Heights of Frontmost Fonts Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 CompareGlyphHeightsOfFrontmostFonts()

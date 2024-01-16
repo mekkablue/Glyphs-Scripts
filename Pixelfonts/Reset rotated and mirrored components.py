@@ -1,9 +1,11 @@
-#MenuTitle: Reset Rotated and Mirrored Components
+# MenuTitle: Reset Rotated and Mirrored Components
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Looks for mirrored and rotated components and resets them to their original orientation.
 """
+
+from GlyphsApp import Glyphs
 
 thisFont = Glyphs.font
 selectedLayers = thisFont.selectedLayers
@@ -14,15 +16,15 @@ Glyphs.clearLog()
 print("Fixing rotated components: %s" % thisFont.familyName)
 print("Processing %i selected glyph%s:\n" % (len(selectedLayers), "" if len(selectedLayers) == 1 else "s"))
 
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 try:
-	for l in selectedLayers:
-		thisGlyph = l.parent
+	for layer in selectedLayers:
+		thisGlyph = layer.parent
 		glyphName = thisGlyph.name
-		# thisGlyph.beginUndo() # undo grouping causes crashes
+		# thisGlyph.beginUndo()  # undo grouping causes crashes
 		compCount = 0
-		for comp in l.components:
-			transform = comp.transform # this is computed in Glyphs 3. When dropping support for Glyphs 2, use the position/scale/rotate API
+		for comp in layer.components:
+			transform = comp.transform  # this is computed in Glyphs 3. When dropping support for Glyphs 2, use the position/scale/rotate API
 			if transform[0] != 1.0 or transform[3] != 1.0:
 				position = comp.position
 				if transform[0] < 0:
@@ -35,7 +37,7 @@ try:
 			print("✅ Fixed %i component%s in %s" % (compCount, "" if compCount == 1 else "s", glyphName))
 		else:
 			print("🆗 No transformed components found: %s" % glyphName)
-		# thisGlyph.endUndo() # undo grouping causes crashes
+		# thisGlyph.endUndo()  # undo grouping causes crashes
 	print("\nDone.")
 
 except Exception as e:
@@ -47,4 +49,4 @@ except Exception as e:
 	raise e
 
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

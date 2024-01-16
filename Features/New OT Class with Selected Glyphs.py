@@ -1,4 +1,4 @@
-#MenuTitle: New OT Class with Selected Glyphs
+# MenuTitle: New OT Class with Selected Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Creates a new OT class containing the selected glyphs.
 """
 
 import vanilla
+from GlyphsApp import Glyphs, GSClass
+
 
 class OTClassCreator(object):
 
@@ -27,10 +29,10 @@ class OTClassCreator(object):
 		myClassName = sender.get()
 		existingClasses = [c.name for c in Glyphs.font.classes]
 
-		#print existingClasses
+		# print existingClasses
 
 		if myClassName in existingClasses:
-			if self.w.overwrite_check.get() == False:
+			if not self.w.overwrite_check.get():
 				self.w.make_button.enable(False)
 				self.w.class_name_check.set("Class name already exists.")
 			else:
@@ -59,7 +61,7 @@ class OTClassCreator(object):
 			return (teststring[-1] in allowedchars and teststring[-1] not in "1234567890")
 
 	def createClass(self, sender):
-		Doc = Glyphs.currentDocument
+		# Doc = Glyphs.currentDocument
 		Font = Glyphs.font
 
 		listOfGlyphNames = [x.parent.name for x in Font.selectedLayers]
@@ -82,5 +84,6 @@ class OTClassCreator(object):
 
 		if not self.w.keep_window.get():
 			self.w.close()
+
 
 OTClassCreator()

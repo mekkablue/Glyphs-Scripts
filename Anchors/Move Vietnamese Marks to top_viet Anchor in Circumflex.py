@@ -1,9 +1,12 @@
-#MenuTitle: Move Vietnamese Marks to top_viet Anchor in Circumflex
+# MenuTitle: Move Vietnamese Marks to top_viet Anchor in Circumflex
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Where possible, puts acute(comb), grave(comb), hookabovecomb on 'top_viet' position in all layers in all selected glyphs. Assumes that you have a 'top_viet' anchor in circumflex. Useful for Vietnamese glyphs.
 """
+
+from GlyphsApp import Glyphs, GSComponent
+
 
 accentsToBeMoved = (
 	"acute",
@@ -11,11 +14,12 @@ accentsToBeMoved = (
 	"hookabovecomb",
 	"acutecomb",
 	"gravecomb",
-	)
+)
 newAnchor = "top_viet"
 
 Font = Glyphs.font
 selectedGlyphs = [x.parent for x in Font.selectedLayers]
+
 
 def baseHasAnchor(thisComponent, masterID, anchorToLookFor="top_viet"):
 	baseGlyph = thisComponent.component
@@ -27,6 +31,7 @@ def baseHasAnchor(thisComponent, masterID, anchorToLookFor="top_viet"):
 			anchorIsInLayer = True
 	return anchorIsInLayer
 
+
 def nameUntilFirstDot(thisName):
 	dotIndex = thisName.find(".")
 	if dotIndex > 0:
@@ -34,11 +39,13 @@ def nameUntilFirstDot(thisName):
 	else:
 		return thisName
 
+
 def withoutLeadingUnderscore(thisName):
 	if thisName and thisName.startswith("_"):
 		return thisName[1:]
 	else:
 		return thisName
+
 
 def process(thisGlyph):
 	statusString = "\nProcessing %s" % thisGlyph.name
@@ -71,10 +78,11 @@ def process(thisGlyph):
 
 	return statusString
 
-Glyphs.clearLog() # clears macro window log
+
+Glyphs.clearLog()  # clears macro window log
 print("Move Vietnamese Marks to top_viet Anchor in Circumflex")
 
 for thisGlyph in selectedGlyphs:
-	# thisGlyph.beginUndo() # undo grouping causes crashes
+	# thisGlyph.beginUndo()  # undo grouping causes crashes
 	print(process(thisGlyph))
-	# thisGlyph.endUndo() # undo grouping causes crashes
+	# thisGlyph.endUndo()  # undo grouping causes crashes

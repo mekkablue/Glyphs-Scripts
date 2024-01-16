@@ -1,12 +1,15 @@
-#MenuTitle: Remove Images
+# MenuTitle: Remove Images
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Deletes placed images from selected glyphs on all layers.
 """
 
+from GlyphsApp import Glyphs
+
 Font = Glyphs.font
 selectedLayers = Font.selectedLayers
+
 
 def process(thisGlyph):
 	deleteCount = 0
@@ -16,20 +19,21 @@ def process(thisGlyph):
 			deleteCount += 1
 	return deleteCount
 
+
 Font.disableUpdateInterface()
 try:
 	print("Removing images in %s selected glyphs ..." % len(selectedLayers))
 
 	for thisLayer in selectedLayers:
 		thisGlyph = thisLayer.parent
-		# thisGlyph.beginUndo() # undo grouping causes crashes
+		# thisGlyph.beginUndo()  # undo grouping causes crashes
 		numberOfDeletedImages = process(thisGlyph)
 		if numberOfDeletedImages:
 			plural = 0
 			if numberOfDeletedImages > 1:
 				plural = 1
 			print("  Deleted %i image%s in %s." % (numberOfDeletedImages, "s" * plural, thisGlyph.name))
-		# thisGlyph.endUndo() # undo grouping causes crashes
+		# thisGlyph.endUndo()  # undo grouping causes crashes
 
 except Exception as e:
 	Glyphs.showMacroWindow()

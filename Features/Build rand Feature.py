@@ -1,4 +1,4 @@
-#MenuTitle: Build rand Feature
+# MenuTitle: Build rand Feature
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Build rand (random) feature from .cvXX or another (numbered) suffix.
 """
 
 import vanilla
+from GlyphsApp import Glyphs, GSFeature, Message
+
 
 def getRootName(glyphName):
 	if "." in glyphName:
@@ -14,21 +16,22 @@ def getRootName(glyphName):
 	else:
 		return glyphName
 
+
 class BuildRandFeature(object):
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 320
 		windowHeight = 170
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Build rand Feature", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.BuildRandFeature.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Build rand Feature",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.BuildRandFeature.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -38,29 +41,21 @@ class BuildRandFeature(object):
 
 		self.w.suffixText = vanilla.TextBox((inset, linePos + 3, 45, 14), u"Suffix:", sizeStyle='small', selectable=True)
 		self.w.suffix = vanilla.ComboBox((inset + 45, linePos, -inset - 25, 17), self.fillSuffixes(), sizeStyle='small', callback=self.SavePreferences)
-		self.w.suffix.getNSComboBox().setToolTip_(
-			u"Find all (exporting) glyphs that have this suffix and in OT feature ‘rand’, build a one-from-many substitution with them. Hint: keep the dot, but avoid the figures, e.g. for all stylistic sets, type ‘.ss’."
-			)
+		self.w.suffix.getNSComboBox().setToolTip_(u"Find all (exporting) glyphs that have this suffix and in OT feature ‘rand’, build a one-from-many substitution with them. Hint: keep the dot, but avoid the figures, e.g. for all stylistic sets, type ‘.ss’.")
 		self.w.suffixReset = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), u"↺", sizeStyle='small', callback=self.updateUI)
 		linePos += lineHeight
 
 		self.w.exclude = vanilla.CheckBox((inset, linePos, 160, 20), "Exclude glyphs containing:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.excludeList = vanilla.EditText((inset + 160, linePos, -inset, 19), ".build, .ss12", callback=self.SavePreferences, sizeStyle='small')
-		self.w.excludeList.getNSTextField(
-		).setToolTip_("Comma-separated list of glyph name particles. Glyphs containing these particles in their names will be excluded from the rand feature generation.")
+		self.w.excludeList.getNSTextField().setToolTip_("Comma-separated list of glyph name particles. Glyphs containing these particles in their names will be excluded from the rand feature generation.")
 		linePos += lineHeight
 
-		self.w.includeDefault = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Include unsuffixed default in randomisation", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.includeDefault.getNSButton(
-		).setToolTip_("If enabled, will substitute A from [A A.cv01 A.cv02]. If disabled, will substitute only from [A.cv01 A.cv02]. Usually, you will want to keep this on.")
+		self.w.includeDefault = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include unsuffixed default in randomisation", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeDefault.getNSButton().setToolTip_("If enabled, will substitute A from [A A.cv01 A.cv02]. If disabled, will substitute only from [A.cv01 A.cv02]. Usually, you will want to keep this on.")
 		linePos += lineHeight
 
 		self.w.overwrite = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Overwrite existing rand feature", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.overwrite.getNSButton().setToolTip_(
-			"If enabled, will recreate the existing randomisation feature from scratch. If disabled, will append the new code instead. Usually, you will want to keep this on."
-			)
+		self.w.overwrite.getNSButton().setToolTip_("If enabled, will recreate the existing randomisation feature from scratch. If disabled, will append the new code instead. Usually, you will want to keep this on.")
 		linePos += lineHeight
 
 		# Run Button:
@@ -123,7 +118,7 @@ class BuildRandFeature(object):
 			self.w.suffix.setItems(self.fillSuffixes())
 
 	def fillSuffixes(self, sender=None):
-		thisFont = Glyphs.font # frontmost font
+		thisFont = Glyphs.font  # frontmost font
 		if thisFont is not None:
 			suffixes = []
 			for glyph in thisFont.glyphs:
@@ -133,7 +128,7 @@ class BuildRandFeature(object):
 						if part:
 							cleanedPart = ""
 							for letter in part:
-								if not letter in "1234567890":
+								if letter not in "1234567890":
 									cleanedPart += letter
 							print("%s -> %s" % (part, cleanedPart))
 							if cleanedPart:
@@ -154,7 +149,7 @@ class BuildRandFeature(object):
 			if not self.SavePreferences():
 				print("Note: 'Build rand Feature' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -189,7 +184,7 @@ class BuildRandFeature(object):
 					# populate variantDict with alternates, based on root glyph:
 					if not excluded and thisGlyph.export and "." in thisGlyph.name and suffix in thisGlyph.name:
 						root = getRootName(thisGlyph.name)
-						if not root in variantDict.keys():
+						if root not in variantDict.keys():
 							variantDict[root] = [thisGlyph.name]
 						else:
 							variantDict[root].append(thisGlyph.name)
@@ -211,7 +206,7 @@ class BuildRandFeature(object):
 						otFeatureLine = "sub %s from [%s];" % (
 							rootName,
 							" ".join(altNames),
-							)
+						)
 						otFeatureLines.append(otFeatureLine)
 						print("🆗 %s: found %i alternate glyphs." % (rootName, len(altNames)))
 
@@ -243,7 +238,7 @@ class BuildRandFeature(object):
 			Glyphs.showNotification(
 				u"%s: Done" % (thisFont.familyName),
 				u"New rand feature with %i lines available in Font Info → Features. Details in Macro Window" % len(otFeatureLines),
-				)
+			)
 			print("\nDone.")
 
 		except Exception as e:
@@ -252,5 +247,6 @@ class BuildRandFeature(object):
 			print("Build rand Feature Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 BuildRandFeature()

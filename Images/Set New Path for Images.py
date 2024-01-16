@@ -1,4 +1,4 @@
-#MenuTitle: Set New Path for Images
+# MenuTitle: Set New Path for Images
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Resets the path for placed images in selected glyphs. Useful if you have moved y
 """
 
 import os
+from GlyphsApp import Glyphs, GetFolder
+
 
 def process(thisLayer):
 	try:
@@ -21,6 +23,7 @@ def process(thisLayer):
 
 	return "new path %s" % thisImageNewFullPath
 
+
 Font = Glyphs.font
 FontMaster = Font.selectedFontMaster
 selectedLayers = Font.selectedLayers
@@ -34,9 +37,9 @@ try:
 		print("New image path for selected glyphs:\n%s" % newFolder)
 		for thisLayer in selectedLayers:
 			thisGlyph = thisLayer.parent
-			# thisGlyph.beginUndo() # undo grouping causes crashes
+			# thisGlyph.beginUndo()  # undo grouping causes crashes
 			print("-- %s: %s" % (thisGlyph.name, process(thisLayer)))
-			# thisGlyph.endUndo() # undo grouping causes crashes
+			# thisGlyph.endUndo()  # undo grouping causes crashes
 
 except Exception as e:
 	Glyphs.showMacroWindow()
@@ -47,4 +50,4 @@ except Exception as e:
 	raise e
 
 finally:
-	Font.enableUpdateInterface() # re-enables UI updates in Font View
+	Font.enableUpdateInterface()  # re-enables UI updates in Font View

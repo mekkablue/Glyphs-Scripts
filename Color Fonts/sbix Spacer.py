@@ -1,4 +1,4 @@
-#MenuTitle: sbix Spacer
+# MenuTitle: sbix Spacer
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -7,6 +7,8 @@ Batch-set sbix positions and glyph widths.
 
 import vanilla
 from AppKit import NSRect, NSPoint, NSSize, NSAffineTransform
+from GlyphsApp import Glyphs, Message
+
 
 class sbixSpacer(object):
 	prefID = "com.mekkablue.sbixSpacer"
@@ -20,27 +22,25 @@ class sbixSpacer(object):
 		"resetWidths": 0,
 		"preferredSizeForWidth": 128,
 	}
-	
+
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 340
 		windowHeight = 200
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"sbix Spacer", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName = self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"sbix Spacer",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.insertMarkers = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Reset master layer and insert markers for sbix bounds", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.insertMarkers = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Reset master layer and insert markers for sbix bounds", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.resetWidths = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Reset sidebearings to image widths", value=True, callback=self.SavePreferences, sizeStyle='small')
@@ -54,14 +54,10 @@ class sbixSpacer(object):
 		self.w.verticalShiftValue = vanilla.EditText((inset + 120, linePos - 1, -inset, 19), "-100", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.allGlyphs = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Include all iColor glyphs in font (ignore glyph selection)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.allGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include all iColor glyphs in font (ignore glyph selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.allMasters = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Include all masters (otherwise only current master)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.allMasters = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include all masters (otherwise only current master)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# Buttons:
@@ -91,11 +87,11 @@ class sbixSpacer(object):
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-	
+
 	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
@@ -107,7 +103,7 @@ class sbixSpacer(object):
 			print(traceback.format_exc())
 			return False
 
-	def LoadPreferences( self ):
+	def LoadPreferences(self):
 		try:
 			for prefName in self.prefDict.keys():
 				# register defaults:
@@ -125,7 +121,7 @@ class sbixSpacer(object):
 			markerPositions = (
 				bounds.origin,
 				NSPoint(bounds.origin.x + bounds.size.width, bounds.origin.y + bounds.size.height),
-				)
+			)
 			factors = (1, -1)
 			for position, factor in zip(markerPositions, factors):
 				# draw rectangle:
@@ -145,7 +141,7 @@ class sbixSpacer(object):
 			if not self.SavePreferences():
 				print("Note: 'sbix Spacer' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -168,7 +164,7 @@ class sbixSpacer(object):
 				if allGlyphs:
 					glyphs = thisFont.glyphs
 				else:
-					glyphs = [l.parent for l in thisFont.selectedLayers]
+					glyphs = [layer.parent for layer in thisFont.selectedLayers]
 
 				if allMasters:
 					masters = thisFont.masters
@@ -178,7 +174,7 @@ class sbixSpacer(object):
 				for glyph in glyphs:
 					for master in masters:
 						masterLayer = glyph.layers[master.id]
-						layers = [l for l in glyph.layers if l.master == master and l != masterLayer]
+						layers = [layer for layer in glyph.layers if layer.master == master and layer != masterLayer]
 						isSbixGlyph = False
 						for layer in layers:
 							if layer.isSpecialLayer and layer.name.startswith("iColor "):
@@ -213,7 +209,7 @@ class sbixSpacer(object):
 								print(f"  Shifting master layer {verticalShiftValue} units")
 								shiftTransform = NSAffineTransform.transform()
 								shiftTransform.translateXBy_yBy_(0, verticalShiftValue)
-								shiftMatrix = shiftTransform.transformStruct() # returns the 6-float tuple
+								shiftMatrix = shiftTransform.transformStruct()  # returns the 6-float tuple
 								masterLayer.applyTransform(shiftMatrix)
 
 			print("\nDone.")
@@ -224,5 +220,6 @@ class sbixSpacer(object):
 			print(f"sbix Spacer Error: {e}")
 			import traceback
 			print(traceback.format_exc())
+
 
 sbixSpacer()

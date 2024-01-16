@@ -1,12 +1,15 @@
-#MenuTitle: Component Mover
+# MenuTitle: Component Mover
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Batch edit (smart) components across selected glyphs. Change positions, scales and smart properties.
 """
 
-import vanilla, sys
+import vanilla
+import sys
 from AppKit import NSPoint
+from GlyphsApp import Glyphs, Message
+
 
 class ComponentMover(object):
 	prefID = "com.mekkablue.ComponentMover"
@@ -16,31 +19,29 @@ class ComponentMover(object):
 		"searchString": "",
 		"allMasters": False,
 		"amount": 10,
-		}
+	}
 	defaultSettings = ["Position", "Scale"]
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 270
 		windowHeight = 205
-		windowWidthResize = 300 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 300  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Component Mover", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Component Mover",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 25
 
 		self.w.changeAttributeText = vanilla.TextBox((inset, linePos + 2, 50, 14), "Change", sizeStyle='small', selectable=True)
 		self.w.changeAttributeText.getNSTextField().setAlignment_(2)
-		self.w.changeAttribute = vanilla.PopUpButton(
-			(inset + 55, linePos - 1, -inset - 25, 20), self.defaultSettings + self.availableAttributes(), sizeStyle='small', callback=self.SavePreferences
-			)
+		self.w.changeAttribute = vanilla.PopUpButton((inset + 55, linePos - 1, -inset - 25, 20), self.defaultSettings + self.availableAttributes(), sizeStyle='small', callback=self.SavePreferences)
 		self.w.changeAttributeUpdate = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.update)
 		linePos += lineHeight
 
@@ -135,7 +136,7 @@ class ComponentMover(object):
 		if font:
 			layers = font.selectedLayers
 			if layers:
-				glyphs = [l.parent for l in layers]
+				glyphs = [layer.parent for layer in layers]
 				for glyph in glyphs:
 					for thisLayer in glyph.layers:
 						if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
@@ -144,7 +145,7 @@ class ComponentMover(object):
 									originalGlyph = component.componentLayer.parent
 									if originalGlyph.smartComponentAxes:
 										for axis in originalGlyph.smartComponentAxes:
-											if not axis.name in componentValues:
+											if axis.name not in componentValues:
 												componentValues.append(axis.name)
 		return componentValues
 
@@ -154,15 +155,15 @@ class ComponentMover(object):
 		if font:
 			layers = font.selectedLayers
 			if layers:
-				glyphs = [l.parent for l in layers]
+				glyphs = [layer.parent for layer in layers]
 				for glyph in glyphs:
 					for thisLayer in glyph.layers:
 						if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 							for component in thisLayer.components:
-								if not component.name in components:
+								if component.name not in components:
 									components.append(component.name)
 		return components
-	
+
 	def getSmartAxisID(self, component, axisName):
 		glyph = component.glyph
 		font = glyph.parent
@@ -173,7 +174,7 @@ class ComponentMover(object):
 			if axis:
 				return axis.id
 		return None
-		
+
 	def ComponentMoverMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -192,20 +193,20 @@ class ComponentMover(object):
 					print("⚠️ Could not set pref ‘%s’, resorting to default value: ‘%s’." % (prefName, fallbackValue))
 					setattr(sys.modules[__name__], prefName, fallbackValue)
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
 				if allMasters:
 					allLayers = []
-					for glyph in [l.parent for l in thisFont.selectedLayers]:
+					for glyph in [layer.parent for layer in thisFont.selectedLayers]:
 						for layer in glyph.layers:
 							if layer.isMasterLayer or layer.isSpecialLayer:
 								allLayers.append(layer)
 				else:
 					allLayers = thisFont.selectedLayers
 
-				smartComponent = changeAttribute > 1 # 0=Position, 1=Scale
+				smartComponent = changeAttribute > 1  # 0=Position, 1=Scale
 				attributeToChange = self.w.changeAttribute.getItems()[changeAttribute]
 				if smartComponent:
 					if sender is self.w.left:
@@ -231,16 +232,16 @@ class ComponentMover(object):
 					if sender in (self.w.down, self.w.downLeft, self.w.downRight):
 						factorY = -1
 
-				amount = float(self.pref("amount")) # don't know why reading of prefs does not work here
+				amount = float(self.pref("amount"))  # don't know why reading of prefs does not work here
 				for thisLayer in allLayers:
 					for thisComponent in thisLayer.components:
 						if not searchString or searchString in thisComponent.componentName:
 							if smartComponent:
 								try:
 									axisID = self.getSmartAxisID(thisComponent, attributeToChange)
-									if not thisComponent.smartComponentValues[attributeToChange] is None:
+									if thisComponent.smartComponentValues[attributeToChange] is not None:
 										thisComponent.smartComponentValues[attributeToChange] += amount * factor
-									elif not thisComponent.smartComponentValues[axisID] is None:
+									elif thisComponent.smartComponentValues[axisID] is not None:
 										# should work with axisName, circumventing bug in 3.2 (3198):
 										thisComponent.smartComponentValues[axisID] += amount * factor
 									else:
@@ -248,7 +249,7 @@ class ComponentMover(object):
 								except:
 									import traceback
 									print(traceback.format_exc())
-									pass # tried to change a non-existing attribute
+									pass  # tried to change a non-existing attribute
 							elif attributeToChange == "Position":
 								thisComponent.x += factorX * amount
 								thisComponent.y += factorY * amount
@@ -257,7 +258,7 @@ class ComponentMover(object):
 								scaleX = thisComponent.scale.x + factorX * percentage
 								scaleY = thisComponent.scale.y + factorY * percentage
 								thisComponent.scale = NSPoint(scaleX, scaleY)
-				
+
 				if thisFont.currentTab:
 					thisFont.currentTab.redraw()
 					# NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
@@ -270,5 +271,6 @@ class ComponentMover(object):
 			print("Component Mover Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 ComponentMover()

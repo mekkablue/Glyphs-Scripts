@@ -1,12 +1,14 @@
-#MenuTitle: Select All Global Guides
+# MenuTitle: Select All Global Guides
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Selects all global guides.
 """
+from GlyphsApp import Glyphs
 
-thisFont = Glyphs.font # frontmost font
-selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+thisFont = Glyphs.font  # frontmost font
+selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+
 
 def selectGuidesOnLayer(thisLayer):
 	thisMaster = thisLayer.master
@@ -14,6 +16,7 @@ def selectGuidesOnLayer(thisLayer):
 	for thisGuide in thisMaster.guides:
 		thisLayer.selection.append(thisGuide)
 	return len(thisLayer.selection)
+
 
 for thisLayer in selectedLayers:
 	thisGlyph = thisLayer.parent

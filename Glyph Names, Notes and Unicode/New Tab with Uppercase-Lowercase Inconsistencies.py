@@ -1,12 +1,14 @@
-#MenuTitle: New Tab with Uppercase-Lowercase Inconsistencies
+# MenuTitle: New Tab with Uppercase-Lowercase Inconsistencies
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Opens a new Edit tab containing all glyphs without consistent case folding. Detailed report in Macro Window.
 """
 
-Glyphs.clearLog() # clears log of Macro window
-thisFont = Glyphs.font # frontmost font
+from GlyphsApp import Glyphs, Message
+
+Glyphs.clearLog()  # clears log of Macro window
+thisFont = Glyphs.font  # frontmost font
 print("UC/LC Consistency Report for: %s" % thisFont.familyName)
 
 noCaseFolding = []
@@ -31,7 +33,7 @@ for g in thisFont.glyphs:
 					otherName = Glyphs.glyphInfoForUnicode(otherUnicode).name
 
 				if otherName:
-					if not Font.glyphs[otherName]:
+					if not thisFont.glyphs[otherName]:
 						print("%s Missing: /%s (%s of %s)" % ("❌" if g.export else "⚠️", otherName, "LC" if g.subCategory == "Uppercase" else "UC", g.name))
 
 						if g.export:
@@ -39,7 +41,7 @@ for g in thisFont.glyphs:
 						else:
 							noCaseFoldingNonExporting.append(g.name)
 
-					elif g.export and not Font.glyphs[otherName].export:
+					elif g.export and not thisFont.glyphs[otherName].export:
 						print("❌ Casefold does not export: /%s (%s of %s)" % (otherName, "LC" if g.subCategory == "Uppercase" else "UC", g.name))
 
 						caseFoldDoesNotExport.append(g.name)

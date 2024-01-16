@@ -1,9 +1,12 @@
-#MenuTitle: Activate Default Features
+# MenuTitle: Activate Default Features
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 In the current Edit tab, activates all OT features that should be on by default.
 """
+
+from GlyphsApp import Glyphs
+
 
 defaultFeatures = """
 abvf
@@ -61,13 +64,13 @@ flac
 ssty
 """
 
-thisFont = Glyphs.font # frontmost font
+thisFont = Glyphs.font  # frontmost font
 defaultFeatures = defaultFeatures.strip().splitlines()
 availableDefaultFeatures = [f.name for f in thisFont.features if f.name in defaultFeatures]
 
 editTab = thisFont.currentTab
 for featureName in availableDefaultFeatures:
-	if not featureName in editTab.selectedFeatures():
+	if featureName not in editTab.selectedFeatures():
 		if Glyphs.versionNumber < 3:
 			editTab.selectedFeatures().append(featureName)
 		else:

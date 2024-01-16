@@ -1,4 +1,4 @@
-#MenuTitle: Find Near Vertical Misses
+# MenuTitle: Find Near Vertical Misses
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,11 +6,13 @@ Finds nodes that are close but not exactly on vertical metrics.
 """
 
 import vanilla
+from GlyphsApp import Glyphs, GSAnnotation, TEXT, GSOFFCURVE, GSUppercase, GSLowercase, GSSmallcaps, Message
+
 
 class FindNearVerticalMisses(object):
 	marker = "❌"
 	heightsToCheck = []
-	
+
 	prefID = "com.mekkablue.FindNearVerticalMisses"
 	prefDict = {
 		"deviance": "1",
@@ -32,20 +34,20 @@ class FindNearVerticalMisses(object):
 		"whereToCheck.baseline": True,
 		"whereToCheck.descender": True,
 	}
-	
+
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 320
 		windowHeight = 510
-		windowWidthResize = 300 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 300  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Find Near Vertical Misses", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.FindNearVerticalMisses.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Find Near Vertical Misses",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.FindNearVerticalMisses.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -63,37 +65,27 @@ class FindNearVerticalMisses(object):
 		self.w.whereToCheck = vanilla.Box((inset, linePos, -inset, int(lineHeight * 7.6)))
 		insetLinePos = int(inset * 0.2)
 
-		self.w.whereToCheck.ascender = vanilla.CheckBox(
-			(int(0.5 * inset), insetLinePos - 1, -inset, 20), "Ascender (caps ignored)", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.whereToCheck.ascender = vanilla.CheckBox((int(0.5 * inset), insetLinePos - 1, -inset, 20), "Ascender (caps ignored)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.whereToCheck.ascender.getNSButton().setToolTip_("Checks if points are not exactly on, but just off the ascender of the corresponding master.")
 		linePos += lineHeight
 		insetLinePos += lineHeight
 
-		self.w.whereToCheck.capHeight = vanilla.CheckBox(
-			(int(0.5 * inset), insetLinePos - 1, -inset, 20), "Cap Height (lowercase ignored)", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.whereToCheck.capHeight = vanilla.CheckBox((int(0.5 * inset), insetLinePos - 1, -inset, 20), "Cap Height (lowercase ignored)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.whereToCheck.capHeight.getNSButton().setToolTip_("Checks if points are not exactly on, but just off the capHeight of the corresponding master.")
 		linePos += lineHeight
 		insetLinePos += lineHeight
 
-		self.w.whereToCheck.shoulderHeight = vanilla.CheckBox(
-			(int(0.5 * inset), insetLinePos - 1, -inset, 20), "shoulderHeight (UC, LC, SC ignored)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.whereToCheck.shoulderHeight = vanilla.CheckBox((int(0.5 * inset), insetLinePos - 1, -inset, 20), "shoulderHeight (UC, LC, SC ignored)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.whereToCheck.shoulderHeight.getNSButton().setToolTip_("Checks if points are not exactly on, but just off the shoulderHeight of the corresponding master.")
 		linePos += lineHeight
 		insetLinePos += lineHeight
 
-		self.w.whereToCheck.smallCapHeight = vanilla.CheckBox(
-			(int(0.5 * inset), insetLinePos - 1, -inset, 20), "smallCapHeight (only considers smallcaps)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.whereToCheck.smallCapHeight = vanilla.CheckBox((int(0.5 * inset), insetLinePos - 1, -inset, 20), "smallCapHeight (only considers smallcaps)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.whereToCheck.smallCapHeight.getNSButton().setToolTip_("Checks if points are not exactly on, but just off the smallCapHeight of the corresponding master.")
 		linePos += lineHeight
 		insetLinePos += lineHeight
 
-		self.w.whereToCheck.xHeight = vanilla.CheckBox(
-			(int(0.5 * inset), insetLinePos - 1, -inset, 20), "x-height (caps ignored)", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.whereToCheck.xHeight = vanilla.CheckBox((int(0.5 * inset), insetLinePos - 1, -inset, 20), "x-height (caps ignored)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.whereToCheck.xHeight.getNSButton().setToolTip_("Checks if points are not exactly on, but just off the xHeight of the corresponding master.")
 		linePos += lineHeight
 		insetLinePos += lineHeight
@@ -103,9 +95,7 @@ class FindNearVerticalMisses(object):
 		linePos += lineHeight
 		insetLinePos += lineHeight
 
-		self.w.whereToCheck.descender = vanilla.CheckBox(
-			(int(0.5 * inset), insetLinePos - 1, -inset, 20), "Descender", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.whereToCheck.descender = vanilla.CheckBox((int(0.5 * inset), insetLinePos - 1, -inset, 20), "Descender", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.whereToCheck.descender.getNSButton().setToolTip_("Checks if points are not exactly on, but just off the descender of the corresponding master.")
 		linePos += lineHeight
 		insetLinePos += lineHeight
@@ -113,51 +103,32 @@ class FindNearVerticalMisses(object):
 		linePos += lineHeight
 		# BOX END
 
-		self.w.tolerateIfNextNodeIsOn = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Tolerate near miss if next node is on", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.tolerateIfNextNodeIsOn.getNSButton().setToolTip_(
-			"Will skip the just-off node if the next or previous on-curve node is EXACTLY on the metric line. Useful if you have very thin serifs or short segments near the metric lines."
-			)
+		self.w.tolerateIfNextNodeIsOn = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Tolerate near miss if next node is on", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.tolerateIfNextNodeIsOn.getNSButton().setToolTip_("Will skip the just-off node if the next or previous on-curve node is EXACTLY on the metric line. Useful if you have very thin serifs or short segments near the metric lines.")
 		linePos += lineHeight
 
-		self.w.tolerateIfExtremum = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Tolerate near miss for left/right curve extremum", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.tolerateIfExtremum.getNSButton(
-		).setToolTip_("Will skip the just-off node if the next and previous nodes are VERTICAL OFF-CURVES. Recommended for avoiding false positives.")
+		self.w.tolerateIfExtremum = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Tolerate near miss for left/right curve extremum", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.tolerateIfExtremum.getNSButton().setToolTip_("Will skip the just-off node if the next and previous nodes are VERTICAL OFF-CURVES. Recommended for avoiding false positives.")
 		linePos += lineHeight
 
 		self.w.includeHandles = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include off-curve points", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeHandles.getNSButton().setToolTip_("Also checks BCPs (Bézier control points), vulgo ‘handles’. Otherwise only considers on-curve nodes")
 		linePos += lineHeight
 
-		self.w.removeOverlap = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Check outlines after Remove Overlap (slower)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.removeOverlap.getNSButton().setToolTip_(
-			"Only checks outlines after overlap removal. That way, ignores triangular overlaps (‘opened corners’). Use this option if you have too many false positives."
-			)
+		self.w.removeOverlap = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Check outlines after Remove Overlap (slower)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.removeOverlap.getNSButton().setToolTip_("Only checks outlines after overlap removal. That way, ignores triangular overlaps (‘opened corners’). Use this option if you have too many false positives.")
 		linePos += lineHeight
 
-		self.w.markNodes = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), f"Mark affected nodes with {self.marker}", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.markNodes.getNSButton().setToolTip_(
-			"Sets the name of affected nodes to this emoji, so you can easily find it. ATTENTION: If Remove Overlap option is on, will use the emoji as an annotation instead."
-			)
+		self.w.markNodes = vanilla.CheckBox((inset, linePos - 1, -inset, 20), f"Mark affected nodes with {self.marker}", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.markNodes.getNSButton().setToolTip_("Sets the name of affected nodes to this emoji, so you can easily find it. ATTENTION: If Remove Overlap option is on, will use the emoji as an annotation instead.")
 		linePos += lineHeight
 
-		self.w.includeNonExporting = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.includeNonExporting.getNSButton(
-		).setToolTip_("Also check for near misses in glyphs that are set to not export. Useful if you are using non-exporting parts as components in other glyphs.")
+		self.w.includeNonExporting = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting.getNSButton().setToolTip_("Also check for near misses in glyphs that are set to not export. Useful if you are using non-exporting parts as components in other glyphs.")
 		linePos += lineHeight
 
 		self.w.includeComposites = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include composites", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeComposites.getNSButton(
-		).setToolTip_("If unchecked, will only go through glyphs that have paths in them. Recommended to leave off, because it usually reports a lot of false positives.")
+		self.w.includeComposites.getNSButton().setToolTip_("If unchecked, will only go through glyphs that have paths in them. Recommended to leave off, because it usually reports a lot of false positives.")
 		linePos += lineHeight
 
 		self.w.excludeText = vanilla.TextBox((inset, linePos + 3, 150, 14), "Exclude glyphs containing:", sizeStyle='small', selectable=True)
@@ -165,15 +136,13 @@ class FindNearVerticalMisses(object):
 		linePos += lineHeight
 
 		self.w.openTab = vanilla.CheckBox((inset, linePos - 1, 190, 20), "Open tab with affected layers", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.openTab.getNSButton().setToolTip_(
-			"If it finds nodes just off the indicated metrics, will open a new tab with the layers if found the deviating nodes on. Otherwise please check the detailed report in Macro Window."
-			)
+		self.w.openTab.getNSButton().setToolTip_("If it finds nodes just off the indicated metrics, will open a new tab with the layers if found the deviating nodes on. Otherwise please check the detailed report in Macro Window.")
 		self.w.reuseTab = vanilla.CheckBox((inset + 190, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.getNSButton().setToolTip_("If a tab is open already, will use that one, rather than opening a new tab. Recommended, keeps tab clutter low.")
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
-		self.w.progress.set(0) # set progress indicator to zero
+		self.w.progress.set(0)  # set progress indicator to zero
 		linePos += lineHeight
 
 		# Run Button:
@@ -190,22 +159,22 @@ class FindNearVerticalMisses(object):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-	
+
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-	
+
 	def uiElement(self, prefName):
 		particles = prefName.split(".")
 		latestObject = self.w
 		for particle in particles:
 			latestObject = getattr(latestObject, particle)
 		return latestObject
-	
+
 	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
@@ -238,7 +207,7 @@ class FindNearVerticalMisses(object):
 		boxDict = self.w.whereToCheck.__dict__
 		for itemName in boxDict:
 			checkbox = boxDict[itemName]
-			if type(checkbox) == vanilla.vanillaCheckBox.CheckBox:
+			if isinstance(checkbox, vanilla.vanillaCheckBox.CheckBox):
 				if checkbox.get():
 					enableButton = True
 					break
@@ -270,7 +239,7 @@ class FindNearVerticalMisses(object):
 						return False
 
 		if self.pref("xHeight"):
-			if glyphType is None or not glyphType in ("Uppercase", "Smallcaps"):
+			if glyphType is None or glyphType not in ("Uppercase", "Smallcaps"):
 				if y != master.xHeight:
 					if master.xHeight - deviance <= y <= master.xHeight + deviance:
 						if prevAndNextDontCount or (prevY != master.xHeight and nextY != master.xHeight):
@@ -282,12 +251,12 @@ class FindNearVerticalMisses(object):
 		if self.pref("smallCapHeight"):
 			suffixIsSC = False
 			if glyphSuffix:
-				suffixes = glyphSuffix.split(".") # could be multiple suffixes
+				suffixes = glyphSuffix.split(".")  # could be multiple suffixes
 				for suffix in ("sc", "smcp", "c2sc"):
 					if suffix in suffixes:
 						suffixIsSC = True
 
-			if suffixIsSC or glyphType == "Smallcaps": # is smallcap
+			if suffixIsSC or glyphType == "Smallcaps":  # is smallcap
 				smallCapHeight = master.customParameters["smallCapHeight"]
 				if smallCapHeight:
 					smallCapHeight = float(smallCapHeight)
@@ -300,7 +269,7 @@ class FindNearVerticalMisses(object):
 								return False
 
 		if self.pref("shoulderHeight"):
-			if glyphType is None or not glyphType in ("Lowercase", "Uppercase", "Smallcaps"):
+			if glyphType is None or glyphType not in ("Lowercase", "Uppercase", "Smallcaps"):
 				shoulderHeight = master.customParameters["shoulderHeight"]
 				if shoulderHeight:
 					shoulderHeight = float(shoulderHeight)
@@ -313,7 +282,7 @@ class FindNearVerticalMisses(object):
 								return False
 
 		if self.pref("capHeight"):
-			if glyphType is None or not glyphType in ("Lowercase", "Smallcaps"):
+			if glyphType is None or glyphType not in ("Lowercase", "Smallcaps"):
 				if y != master.capHeight:
 					if master.capHeight - deviance <= y <= master.capHeight + deviance:
 						if prevAndNextDontCount or (prevY != master.capHeight and nextY != master.capHeight):
@@ -323,7 +292,7 @@ class FindNearVerticalMisses(object):
 							return False
 
 		if self.pref("ascender"):
-			if glyphType is None or not glyphType in ("Uppercase", "Smallcaps"):
+			if glyphType is None or glyphType not in ("Uppercase", "Smallcaps"):
 				if y != master.ascender:
 					if master.ascender - deviance <= y <= master.ascender + deviance:
 						if prevAndNextDontCount or (prevY != master.ascender and nextY != master.ascender):
@@ -348,7 +317,7 @@ class FindNearVerticalMisses(object):
 		marker.type = TEXT
 		marker.position = position
 		marker.text = text
-		marker.width = min(max(50.0, 7 * len(text)), 600.0) # min=50, max=600
+		marker.width = min(max(50.0, 7 * len(text)), 600.0)  # min=50, max=600
 		layer.annotations.append(marker)
 
 	def FindNearVerticalMissesMain(self, sender):
@@ -363,7 +332,7 @@ class FindNearVerticalMisses(object):
 
 			self.checkGUI()
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			print(f"Find Near Vertical Misses Report for {thisFont.familyName}")
 			print(thisFont.filepath)
 			print()
@@ -413,13 +382,13 @@ class FindNearVerticalMisses(object):
 							# step through nodes:
 							for thisPath in checkLayer.paths:
 								for thisNode in thisPath.nodes:
-									nodeIsOncurve = thisNode.type != OFFCURVE
+									nodeIsOncurve = thisNode.type != GSOFFCURVE
 									if nodeIsOncurve or self.pref("includeHandles"):
 
 										skipThisNode = False
 										if self.pref("tolerateIfExtremum"):
 											if thisNode.prevNode:
-												if thisNode.prevNode.type == OFFCURVE and thisNode.nextNode.type == OFFCURVE:
+												if thisNode.prevNode.type == GSOFFCURVE and thisNode.nextNode.type == GSOFFCURVE:
 													vertical = thisNode.x == thisNode.prevNode.x == thisNode.nextNode.x
 													linedUp = (thisNode.y - thisNode.prevNode.y) * (thisNode.nextNode.y - thisNode.y) > 0.0
 													if vertical and linedUp:
@@ -432,12 +401,12 @@ class FindNearVerticalMisses(object):
 												# determine previous oncurve point
 												previousOnCurve = thisNode.prevNode
 												if previousOnCurve:
-													while previousOnCurve.type == OFFCURVE:
+													while previousOnCurve.type == GSOFFCURVE:
 														previousOnCurve = previousOnCurve.prevNode
 													previousY = previousOnCurve.y
 													# determine next oncurve point
 													nextOnCurve = thisNode.nextNode
-													while nextOnCurve.type == OFFCURVE:
+													while nextOnCurve.type == GSOFFCURVE:
 														nextOnCurve = nextOnCurve.nextNode
 													nextY = nextOnCurve.y
 												else:
@@ -460,7 +429,7 @@ class FindNearVerticalMisses(object):
 
 											if self.isNodeSlightlyOff(thisNode.position, thisLayer.master, deviance, previousY, nextY, glyphType, suffix):
 												# collect layer:
-												if not thisLayer in affectedLayers:
+												if thisLayer not in affectedLayers:
 													affectedLayers.append(thisLayer)
 												thisNode.selected = True
 
@@ -469,8 +438,9 @@ class FindNearVerticalMisses(object):
 													self.marker,
 													thisGlyph.name,
 													thisLayer.name,
-													thisNode.x, thisNode.y,
-													))
+													thisNode.x,
+													thisNode.y,
+												))
 
 												# node name:
 												if self.pref("markNodes"):
@@ -488,9 +458,9 @@ class FindNearVerticalMisses(object):
 			# make sure View options are on:
 			if self.pref("markNodes"):
 				if self.pref("removeOverlap"):
-					Glyphs.defaults["showAnnotations"]=1
+					Glyphs.defaults["showAnnotations"] = 1
 				else:
-					Glyphs.defaults["showNodeNames"]=1
+					Glyphs.defaults["showNodeNames"] = 1
 
 			# Done. Set Progress Bar to max and report:
 			self.w.progress.set(100)
@@ -521,7 +491,7 @@ class FindNearVerticalMisses(object):
 					title="No Deviant Nodes",
 					message="Congratulations! No nodes found missing the indicated metrics and off by up to {self.pref('deviance')} u.",
 					OKButton="🥂Cheers!"
-					)
+				)
 
 		except Exception as e:
 			# brings macro window to front and reports error:
@@ -529,5 +499,6 @@ class FindNearVerticalMisses(object):
 			print(f"Find Near Vertical Misses Error: {e}")
 			import traceback
 			print(traceback.format_exc())
+
 
 FindNearVerticalMisses()

@@ -1,4 +1,4 @@
-#MenuTitle: Change Metrics by Percentage
+# MenuTitle: Change Metrics by Percentage
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,13 +6,15 @@ Increase sidebearings of selected glyphs by a percentage value.
 """
 
 import vanilla
+from GlyphsApp import Glyphs
+
 
 class ChangeMetricsbyPercentage(object):
 
 	def __init__(self):
 		self.w = vanilla.FloatingWindow(
 			(430, 60), "Change Metrics of Selected Glyphs by Percentage", minSize=(430, 60), maxSize=(600, 60), autosaveName="com.mekkablue.ChangeMetricsbyPercentage.mainwindow"
-			)
+		)
 
 		self.w.text_1 = vanilla.TextBox((15, 12 + 2, 50, 14), "Increase", sizeStyle='small')
 		self.w.text_2 = vanilla.TextBox((155, 12 + 2, 20, 14), "by", sizeStyle='small')
@@ -82,5 +84,6 @@ class ChangeMetricsbyPercentage(object):
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print(" Error: %s" % e)
+
 
 ChangeMetricsbyPercentage()

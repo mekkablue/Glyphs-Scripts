@@ -4,6 +4,7 @@ from GlyphsApp import Glyphs
 from AppKit import NSNotFound, NSClassFromString
 from collections import OrderedDict
 
+
 def chooseSampleTextSelection(categoryIndex=0, entryIndex=0):
 	if Glyphs.versionNumber >= 3:
 		# set sample text selection, open tab with first kern string:
@@ -19,13 +20,14 @@ def chooseSampleTextSelection(categoryIndex=0, entryIndex=0):
 		if tab:
 			tab.selectSampleTextArrayController().setSelectionIndex_(entryIndex)
 
+
 def setSelectSampleTextIndex(thisFont, tab=None, marker="### CUSTOM KERN STRING ###"):
 	if Glyphs.versionNumber >= 3:
 		# Glyphs 3 code
 		sampleTexts = OrderedDict([(d['name'], d['text']) for d in Glyphs.defaults["SampleTextsList"]])
 
 		foundSampleString = False
-		for sampleTextIndex, k in enumerate(sampleTexts.keys()): # step through the categories until we find our marker
+		for sampleTextIndex, k in enumerate(sampleTexts.keys()):  # step through the categories until we find our marker
 			if marker in k:
 				foundSampleString = True
 				if not tab:
@@ -36,7 +38,7 @@ def setSelectSampleTextIndex(thisFont, tab=None, marker="### CUSTOM KERN STRING 
 				chooseSampleTextSelection(categoryIndex=sampleTextIndex)
 
 				# open tab with first kern string:
-				#tab.text = sampleTexts[k].splitlines()[0]
+				# tab.text = sampleTexts[k].splitlines()[0]
 				break
 
 		if not foundSampleString:
@@ -56,6 +58,7 @@ def setSelectSampleTextIndex(thisFont, tab=None, marker="### CUSTOM KERN STRING 
 		else:
 			print("Warning: Could not find '%s' in sample strings." % marker)
 
+
 def addToSampleText(kernStrings, marker="### CUSTOM KERN STRING ###"):
 	if kernStrings is None:
 		print("No kern strings generated.")
@@ -72,7 +75,7 @@ def addToSampleText(kernStrings, marker="### CUSTOM KERN STRING ###"):
 			# clear old kern strings with same marker:
 			indexesToRemove = []
 			for index, sampleTextEntry in enumerate(sampleTexts):
-				if sampleTextEntry["name"] == marker: # there could be multiple ones
+				if sampleTextEntry["name"] == marker:  # there could be multiple ones
 					indexesToRemove.append(index)
 			for index in reversed(indexesToRemove):
 				sampleTexts.removeObjectAtIndex_(index)
@@ -105,6 +108,7 @@ def addToSampleText(kernStrings, marker="### CUSTOM KERN STRING ###"):
 			Glyphs.defaults["SampleTexts"] = sampleTexts
 			return True
 
+
 def buildKernStrings(listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None, linePrefix="nonn", linePostfix="noon", mirrorPair=False):
 	"""Takes a list of glyph names and returns a list of kernstrings"""
 	if thisFont is None:
@@ -123,7 +127,7 @@ def buildKernStrings(listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None,
 				("ae.sc", "e.sc"),
 				("AE", "E"),
 				(leftName, thisFont.glyphs[leftName].rightKerningGroup),
-				)
+			)
 			for hardcodedLeftName, hardcodedLeftTargetName in hardcodedPairs:
 				if hardcodedLeftName and hardcodedLeftTargetName:
 					leftGlyph = thisFont.glyphs[hardcodedLeftName]
@@ -132,7 +136,7 @@ def buildKernStrings(listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None,
 						leftName = hardcodedLeftTargetName
 
 			leftGroup = thisFont.glyphs[leftName].rightKerningGroup
-			if (leftGroup is not None) and (not leftGroup in leftGroups):
+			if (leftGroup is not None) and (leftGroup not in leftGroups):
 				leftGroups.append(leftGroup)
 
 				# collect right names/groups:
@@ -148,7 +152,7 @@ def buildKernStrings(listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None,
 						("c", "o"),
 						("c.sc", "o.sc"),
 						(rightName, thisFont.glyphs[rightName].leftKerningGroup),
-						)
+					)
 					for hardcodedRightName, hardcodedRightTargetName in hardcodedPairs:
 						if hardcodedRightName and hardcodedRightTargetName:
 							rightGlyph = thisFont.glyphs[hardcodedRightName]
@@ -157,7 +161,7 @@ def buildKernStrings(listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None,
 								rightName = hardcodedRightTargetName
 
 					rightGroup = thisFont.glyphs[rightName].leftKerningGroup
-					if (rightGroup is not None) and (not rightGroup in rightGroups):
+					if (rightGroup is not None) and (rightGroup not in rightGroups):
 						rightGroups.append(rightGroup)
 						if not mirrorPair:
 							kernString = "%s/%s/%s %s" % (linePrefix, leftName, rightName, linePostfix)
@@ -165,6 +169,7 @@ def buildKernStrings(listOfLeftGlyphNames, listOfRightGlyphNames, thisFont=None,
 							kernString = "%s/%s/%s/%s %s" % (linePrefix, leftName, rightName, leftName, linePostfix)
 						kernStrings += [kernString]
 		return kernStrings
+
 
 def executeAndReport(kernStrings, marker="Sample String Maker"):
 	# brings macro window to front and clears its log:

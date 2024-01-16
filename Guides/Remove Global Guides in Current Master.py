@@ -1,12 +1,13 @@
-#MenuTitle: Remove Global Guides in Current Master
+# MenuTitle: Remove Global Guides in Current Master
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Deletes all global guidelines in the current master.
 """
+from GlyphsApp import Glyphs
 
-thisFont = Glyphs.font # frontmost font
-thisFontMaster = thisFont.selectedFontMaster # active master
+thisFont = Glyphs.font  # frontmost font
+thisFontMaster = thisFont.selectedFontMaster  # active master
 numberOfGuidelines = len(thisFontMaster.guideLines)
 thisFontMaster.guideLines = []
 

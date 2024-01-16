@@ -6,11 +6,13 @@ def masterValueForAxisTag(master, axisTag="wght"):
 	value = master.axisValueValueForId_(axisID)
 	return value
 
+
 def styleValueForAxisTag(style, axisTag="wght"):
 	font = style.font
 	axisID = [a for a in font.axes if a.axisTag == axisTag][0].axisId
 	value = style.axisValueValueForId_(axisID)
 	return value
+
 
 def extremeMasterValuesNative(font, axisTag="wght"):
 	low, high = None, None
@@ -22,6 +24,7 @@ def extremeMasterValuesNative(font, axisTag="wght"):
 			high = masterValue
 	return low, high
 
+
 def extremeStyleValuesNative(font, axisTag="wght"):
 	low, high = None, None
 	for style in font.instances:
@@ -31,6 +34,7 @@ def extremeStyleValuesNative(font, axisTag="wght"):
 		if high is None or styleValue > high:
 			high = styleValue
 	return low, high
+
 
 def extremeStyleValuesWeightClass(font, axisTag="wght"):
 	low, high = None, None
@@ -42,10 +46,12 @@ def extremeStyleValuesWeightClass(font, axisTag="wght"):
 			high = styleValue
 	return low, high
 
+
 def coefficient(number, low, high):
 	span = high - low
 	coefficient = (number - low) / span
 	return coefficient
+
 
 def valueForCoefficient(coefficient, low, high):
 	span = high - low

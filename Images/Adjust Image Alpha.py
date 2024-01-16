@@ -1,4 +1,4 @@
-#MenuTitle: Adjust Image Alpha
+# MenuTitle: Adjust Image Alpha
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Slider for setting the alpha of all images in selected glyphs.
 """
 
 import vanilla
+from GlyphsApp import Glyphs
+
 
 class AdjustImageAlpha(object):
 
@@ -13,15 +15,15 @@ class AdjustImageAlpha(object):
 		# Window 'self.w':
 		windowWidth = 350
 		windowHeight = 60
-		windowWidthResize = 500 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 500  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Adjust Image Alpha for Selected Glyphs", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.AdjustImageAlpha.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Adjust Image Alpha for Selected Glyphs",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.AdjustImageAlpha.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		self.w.text_1 = vanilla.TextBox((15 - 1, 12 + 2, 75, 14), "Image Alpha:", sizeStyle='small')
@@ -59,11 +61,10 @@ class AdjustImageAlpha(object):
 				print("Note: 'Adjust Image Alpha' could not write preferences.")
 
 			self.w.indicator.set("%.1f" % Glyphs.defaults["com.mekkablue.AdjustImageAlpha.alphaSlider"])
-			thisFont = Glyphs.font # frontmost font
-			listOfSelectedLayers = thisFont.selectedLayers # active layers of currently selected glyphs
-			for thisLayer in listOfSelectedLayers: # loop through layers
+			thisFont = Glyphs.font  # frontmost font
+			listOfSelectedLayers = thisFont.selectedLayers  # active layers of currently selected glyphs
+			for thisLayer in listOfSelectedLayers:  # loop through layers
 				if thisLayer.backgroundImage:
-					thisGlyph = thisLayer.parent
 					thisLayer.backgroundImage.alpha = Glyphs.defaults["com.mekkablue.AdjustImageAlpha.alphaSlider"]
 
 		except Exception as e:
@@ -72,5 +73,6 @@ class AdjustImageAlpha(object):
 			print("Adjust Image Alpha Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 AdjustImageAlpha()

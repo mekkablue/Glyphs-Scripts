@@ -1,4 +1,4 @@
-#MenuTitle: Realign Stacking Anchors
+# MenuTitle: Realign Stacking Anchors
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,7 +6,10 @@ On all layers in combining marks, top/_top, bottom/_bottom, etc. anchor pairs ar
 """
 
 from Foundation import NSPoint
-import math, vanilla
+import math
+import vanilla
+from GlyphsApp import Glyphs, Message
+
 
 def italicize(thisPoint, italicAngle=0.0, pivotalY=0.0):
 	"""
@@ -16,12 +19,13 @@ def italicize(thisPoint, italicAngle=0.0, pivotalY=0.0):
 	Usage: myPoint = italicize(myPoint,10,xHeight*0.5)
 	"""
 	x = thisPoint.x
-	yOffset = thisPoint.y - pivotalY # calculate vertical offset
-	italicAngle = math.radians(italicAngle) # convert to radians
-	tangens = math.tan(italicAngle) # math.tan needs radians
-	horizontalDeviance = tangens * yOffset # vertical distance from pivotal point
-	x += horizontalDeviance # x of point that is yOffset from pivotal point
+	yOffset = thisPoint.y - pivotalY  # calculate vertical offset
+	italicAngle = math.radians(italicAngle)  # convert to radians
+	tangens = math.tan(italicAngle)  # math.tan needs radians
+	horizontalDeviance = tangens * yOffset  # vertical distance from pivotal point
+	x += horizontalDeviance  # x of point that is yOffset from pivotal point
 	return NSPoint(x, thisPoint.y)
+
 
 class RealignStackingAnchors(object):
 	prefID = "com.mekkablue.RealignStackingAnchors"
@@ -30,24 +34,19 @@ class RealignStackingAnchors(object):
 		# Window 'self.w':
 		windowWidth = 380
 		windowHeight = 230
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Realign Stacking Anchors in Combining Accents", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Realign Stacking Anchors in Combining Accents",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, lineHeight * 2.5),
-			"Realign stacking anchor pairs to each other (anchors with and without leading underscore, e.g. _top to top) in their respective italic angle, for pairs of these anchors:",
-			sizeStyle='small',
-			selectable=True
-			)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, lineHeight * 2.5), "Realign stacking anchor pairs to each other (anchors with and without leading underscore, e.g. _top to top) in their respective italic angle, for pairs of these anchors:", sizeStyle='small', selectable=True)
 		linePos += int(lineHeight * 2.4)
 
 		self.w.whichAnchorPairs = vanilla.EditText((inset, linePos, -inset, 19), "top, bottom", callback=self.SavePreferences, sizeStyle='small')
@@ -55,24 +54,15 @@ class RealignStackingAnchors(object):
 		).setToolTip_("Comma-separated list of anchor names. With or without underscore does not matter. You only need to specify one of both. Example: ‘top, bottom’.")
 		linePos += lineHeight
 
-		self.w.allGlyphs = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), "Include all glyphs in font (i.e., ignore selection, recommended)", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.allGlyphs.getNSButton(
-		).setToolTip_("If checked, will ignore the current glyph selection, and process all glyphs in the font, minus the glyphs that are excluded by the following two settings.")
+		self.w.allGlyphs = vanilla.CheckBox((inset, linePos, -inset, 20), "Include all glyphs in font (i.e., ignore selection, recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allGlyphs.getNSButton().setToolTip_("If checked, will ignore the current glyph selection, and process all glyphs in the font, minus the glyphs that are excluded by the following two settings.")
 		linePos += lineHeight
 
-		self.w.limitToCombiningMarks = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), "Limit to combining marks (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.limitToCombiningMarks.getNSButton().setToolTip_(
-			"If checked, among the processed glyphs, will process only glyphs that are categorised as combining marks. Usually this is where you want the realignment if stacking anchors. Uncheck if your accents are not correctly categorised."
-			)
+		self.w.limitToCombiningMarks = vanilla.CheckBox((inset, linePos, -inset, 20), "Limit to combining marks (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.limitToCombiningMarks.getNSButton().setToolTip_("If checked, among the processed glyphs, will process only glyphs that are categorised as combining marks. Usually this is where you want the realignment if stacking anchors. Uncheck if your accents are not correctly categorised.")
 		linePos += lineHeight
 
-		self.w.includeNonExporting = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), "Include non-exporting glyphs (recommended)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.includeNonExporting = vanilla.CheckBox((inset, linePos, -inset, 20), "Include non-exporting glyphs (recommended)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonExporting.getNSButton().setToolTip_("If checked, will also process glyphs that are set to not export. Otherwise only exporting glyphs.")
 		linePos += lineHeight
 
@@ -136,7 +126,7 @@ class RealignStackingAnchors(object):
 
 	def RealignStackingAnchorsMain(self, sender):
 		try:
-			Glyphs.clearLog() # clears macro window log
+			Glyphs.clearLog()  # clears macro window log
 			print("Realign Stacking Anchors:")
 
 			# update settings to the latest user input:
@@ -165,9 +155,9 @@ class RealignStackingAnchors(object):
 
 				if not allGlyphs:
 					if includeNonExporting:
-						glyphs = [l.parent for l in thisFont.selectedLayers]
+						glyphs = [layer.parent for layer in thisFont.selectedLayers]
 					else:
-						glyphs = [l.parent for l in thisFont.selectedLayers if l.parent.export]
+						glyphs = [layer.parent for layer in thisFont.selectedLayers if layer.parent.export]
 				else:
 					if includeNonExporting:
 						glyphs = thisFont.glyphs
@@ -181,7 +171,7 @@ class RealignStackingAnchors(object):
 				print("🔢 Processing %i glyph%s..." % (
 					len(glyphs),
 					"" if len(glyphs) == 1 else "s",
-					))
+				))
 
 				for thisGlyph in glyphs:
 					for thisLayer in thisGlyph.layers:
@@ -194,7 +184,7 @@ class RealignStackingAnchors(object):
 
 								# sanitize user entry:
 								# get the default anchor name by getting rid of leading underscores
-								while defaultAnchorName[0] == "_" and len(anchorName) > 1:
+								while defaultAnchorName[0] == "_" and len(defaultAnchorName) > 1:
 									defaultAnchorName = defaultAnchorName[1:]
 
 								# derive underscore anchor from default anchor
@@ -226,7 +216,7 @@ class RealignStackingAnchors(object):
 											print("↔️ Moved %s in 🔠 %s, layer ‘%s’" % (defaultAnchorName, thisGlyph.name, thisLayer.name))
 											movedAnchorCount += 1
 
-			self.w.close() # delete if you want window to stay open
+			self.w.close()  # delete if you want window to stay open
 
 			# wrap up and report:
 			report = "Moved %i anchor%s in %i glyph%s%s." % (
@@ -235,13 +225,13 @@ class RealignStackingAnchors(object):
 				glyphCount,
 				"" if glyphCount == 1 else "s",
 				" in %i fonts" % len(theseFonts) if len(theseFonts) > 1 else "",
-				)
+			)
 			print("\n%s\nDone." % report)
 			Message(
 				title="Realigned Anchors",
 				message="%s Detailed report in Macro Window." % report,
 				OKButton=None,
-				)
+			)
 
 		except Exception as e:
 			# brings macro window to front and reports error:
@@ -249,5 +239,6 @@ class RealignStackingAnchors(object):
 			print("Realign Stacking Anchors in Combining Accents Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 RealignStackingAnchors()

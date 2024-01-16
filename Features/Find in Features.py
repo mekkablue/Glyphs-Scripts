@@ -1,4 +1,4 @@
-#MenuTitle: Find in Features
+# MenuTitle: Find in Features
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Finds expressions (glyph, lookup or class names) in OT Features, Prefixes and Cl
 """
 
 import vanilla
+from GlyphsApp import Glyphs
+
 
 class FindInFeatures(object):
 
@@ -13,15 +15,15 @@ class FindInFeatures(object):
 		# Window 'self.w':
 		windowWidth = 180
 		windowHeight = 200
-		windowWidthResize = 300 # user can resize width by this value
-		windowHeightResize = 1100 # user can resize height by this value
+		windowWidthResize = 300  # user can resize width by this value
+		windowHeightResize = 1100  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Find in Features", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.FindInFeatures.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Find in Features",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.FindInFeatures.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 1, 5, 28
@@ -75,8 +77,8 @@ class FindInFeatures(object):
 		try:
 			reportText = ""
 
-			thisFont = Glyphs.font # frontmost font
-			if not thisFont is None:
+			thisFont = Glyphs.font  # frontmost font
+			if thisFont is not None:
 				searchfor = sender.get()
 
 				# Find in Classes:
@@ -101,7 +103,7 @@ class FindInFeatures(object):
 				prefixAndFeatures = (
 					(thisFont.featurePrefixes, "\nOT Prefixes:\n"),
 					(thisFont.features, "\nOT Features:\n"),
-					)
+				)
 
 				foundInFeaturesCount = 0
 				for featureSet in prefixAndFeatures:
@@ -134,5 +136,6 @@ class FindInFeatures(object):
 			print("Find in Features Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 FindInFeatures()

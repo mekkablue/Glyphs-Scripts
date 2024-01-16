@@ -1,9 +1,11 @@
-#MenuTitle: Toggle Horizontal-Vertical
+# MenuTitle: Toggle Horizontal-Vertical
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Toggle frontmost tab between LTR (horizontal) and vertical writing direction. Useful for setting a keyboard shortcuts.
 """
+
+from GlyphsApp import Glyphs, LTR, LTRTTB
 
 if Glyphs.font:
 	thisTab = Glyphs.font.currentTab

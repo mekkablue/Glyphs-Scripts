@@ -1,9 +1,11 @@
-#MenuTitle: Report Highest and Lowest Glyphs
+# MenuTitle: Report Highest and Lowest Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Reports highest and lowest glyphs for each master in the Macro Window.
 """
+
+from GlyphsApp import Glyphs
 
 thisFont = Glyphs.font
 exportingGlyphs = [g for g in thisFont.glyphs if g.export]

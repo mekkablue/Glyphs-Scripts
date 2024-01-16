@@ -1,4 +1,4 @@
-#MenuTitle: Remove Kerning Exceptions
+# MenuTitle: Remove Kerning Exceptions
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,9 @@ Removes all kernings glyph-glyph, group-glyph, and glyph-group; only keeps group
 """
 
 import vanilla
+import sys
+from GlyphsApp import Glyphs, Message
+
 
 class RemoveKerningExceptions(object):
 	prefID = "com.mekkablue.RemoveKerningExceptions"
@@ -22,15 +25,15 @@ class RemoveKerningExceptions(object):
 		# Window 'self.w':
 		windowWidth = 250
 		windowHeight = 180
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Remove Kerning Exceptions", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="%s.mainwindow" % self.prefID # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Remove Kerning Exceptions",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="%s.mainwindow" % self.prefID  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -45,11 +48,7 @@ class RemoveKerningExceptions(object):
 		linePos += lineHeight
 
 		self.w.removeOnMastersText = vanilla.TextBox((inset, linePos + 2, 70, 14), "Remove on:", sizeStyle='small', selectable=True)
-		self.w.removeOnMasters = vanilla.PopUpButton(
-			(inset + 70, linePos, -inset, 17), ("current master", "⚠️ all masters of current font", "⚠️ all masters of ⚠️ all open fonts"),
-			sizeStyle='small',
-			callback=self.SavePreferences
-			)
+		self.w.removeOnMasters = vanilla.PopUpButton((inset + 70, linePos, -inset, 17), ("current master", "⚠️ all masters of current font", "⚠️ all masters of ⚠️ all open fonts"), sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
 		# Run Button:
@@ -71,7 +70,7 @@ class RemoveKerningExceptions(object):
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
@@ -87,7 +86,7 @@ class RemoveKerningExceptions(object):
 			print(traceback.format_exc())
 			return False
 
-	def LoadPreferences( self ):
+	def LoadPreferences(self):
 		try:
 			for prefName in self.prefDict.keys():
 				# register defaults:
@@ -109,7 +108,7 @@ class RemoveKerningExceptions(object):
 			if not self.SavePreferences():
 				print("Note: 'Remove Kerning Exceptions' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires at least one font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -121,12 +120,12 @@ class RemoveKerningExceptions(object):
 						print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
 						setattr(sys.modules[__name__], prefName, fallbackValue)
 
-				if removeOnMasters == 2:
+				if self.pref("removeOnMasters") == 2:
 					fonts = Glyphs.fonts
 					allMasters = True
 				else:
 					fonts = (thisFont, )
-					if removeOnMasters == 0:
+					if self.pref("removeOnMasters") == 0:
 						allMasters = False
 					else:
 						allMasters = True
@@ -145,17 +144,17 @@ class RemoveKerningExceptions(object):
 							for leftSide in thisFont.kerning[thisMaster.id].keys():
 								leftSideIsGlyph = not leftSide.startswith("@")
 								leftHasNoGroup = leftSideIsGlyph and not thisFont.glyphForId_(leftSide).rightKerningGroup
-								leftMayBeDeleted = not (leftHasNoGroup and keepGrouplessKerning)
-								
+								leftMayBeDeleted = not (leftHasNoGroup and self.pref("keepGrouplessKerning"))
+
 								for rightSide in thisFont.kerning[thisMaster.id][leftSide].keys():
 									rightSideIsGlyph = not rightSide.startswith("@")
 									rightHasNoGroup = rightSideIsGlyph and not thisFont.glyphForId_(rightSide).leftKerningGroup
-									rightMayBeDeleted = not (rightHasNoGroup and keepGrouplessKerning)
+									rightMayBeDeleted = not (rightHasNoGroup and self.pref("keepGrouplessKerning"))
 
-									removeGlyphGlyph = leftSideIsGlyph and rightSideIsGlyph and glyphGlyph and leftMayBeDeleted and rightMayBeDeleted
-									removeGlyphGroup = leftSideIsGlyph and not rightSideIsGlyph and glyphGroup and leftMayBeDeleted
-									removeGroupGlyph = not leftSideIsGlyph and rightSideIsGlyph and groupGlyph and rightMayBeDeleted
-									
+									removeGlyphGlyph = leftSideIsGlyph and rightSideIsGlyph and self.pref("glyphGlyph") and leftMayBeDeleted and rightMayBeDeleted
+									removeGlyphGroup = leftSideIsGlyph and not rightSideIsGlyph and self.pref("glyphGroup") and leftMayBeDeleted
+									removeGroupGlyph = not leftSideIsGlyph and rightSideIsGlyph and self.pref("groupGlyph") and rightMayBeDeleted
+
 									if removeGroupGlyph or removeGlyphGroup or removeGlyphGlyph:
 										pairsToBeRemoved.append((leftSide, rightSide))
 							countOfDeletions = len(pairsToBeRemoved)
@@ -175,8 +174,8 @@ class RemoveKerningExceptions(object):
 				"Processed %i font%s. Details in Macro Window" % (
 					len(fonts),
 					"" if len(fonts) != 1 else "s",
-					),
-				)
+				),
+			)
 			print("\nDone.")
 
 		except Exception as e:
@@ -185,5 +184,6 @@ class RemoveKerningExceptions(object):
 			print("Remove Kerning Exceptions Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 RemoveKerningExceptions()

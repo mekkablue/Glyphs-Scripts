@@ -1,4 +1,4 @@
-#MenuTitle: New Tab with Small Paths
+# MenuTitle: New Tab with Small Paths
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Finds small paths (smaller tahn a user-definable threshold) in glyphs and open a
 """
 
 import vanilla
+from GlyphsApp import Glyphs, Message
+
 
 def glyphShouldBeIgnored(glyphname):
 	beginParticles = ("_corner", "_segment", "_cap")
@@ -13,6 +15,7 @@ def glyphShouldBeIgnored(glyphname):
 		if glyphname.startswith(particle):
 			return True
 	return False
+
 
 class FindSmallPaths(object):
 	prefID = "com.mekkablue.FindSmallPaths"
@@ -23,21 +26,21 @@ class FindSmallPaths(object):
 		"deleteThemRightAway": 0,
 		"afterOverlapRemoval": 1,
 		"allFonts": 0,
-		}
+	}
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 250
 		windowHeight = 240
-		windowWidthResize = 300 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 300  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"New Tab with Small Paths", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.FindSmallPaths.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"New Tab with Small Paths",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.FindSmallPaths.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -56,16 +59,14 @@ class FindSmallPaths(object):
 		self.w.deleteThemRightAway = vanilla.CheckBox((inset, linePos, -inset, 20), "Delete Small Paths Right Away", value=False, callback=self.CheckBoxUpdate, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.afterOverlapRemoval = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), "After Decomposition and Overlap Removal (slower)", value=True, callback=self.CheckBoxUpdate, sizeStyle='small'
-			)
+		self.w.afterOverlapRemoval = vanilla.CheckBox((inset, linePos, -inset, 20), "After Decomposition and Overlap Removal (slower)", value=True, callback=self.CheckBoxUpdate, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.allFonts = vanilla.CheckBox((inset, linePos, -inset, 20), "Apply to all open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
-		self.w.progress.set(0) # set progress indicator to zero
+		self.w.progress.set(0)  # set progress indicator to zero
 		linePos += lineHeight
 
 		# Run Button:
@@ -148,7 +149,7 @@ class FindSmallPaths(object):
 			# validate the min and max entries:
 			try:
 				minimum = float(self.pref("sliderMin"))
-			except Exception as e:
+			except Exception as e:  # noqa: F841
 				# disable slider and button
 				self.w.areaSlider.enable(onOff=False)
 				self.w.runButton.enable(onOff=False)
@@ -158,7 +159,7 @@ class FindSmallPaths(object):
 
 			try:
 				maximum = float(self.pref("sliderMax"))
-			except Exception as e:
+			except Exception as e:  # noqa: F841
 				# disable slider and button
 				self.w.areaSlider.enable(onOff=False)
 				self.w.runButton.enable(onOff=False)
@@ -212,7 +213,7 @@ class FindSmallPaths(object):
 					title="No Fonts Open",
 					message="Please open at least one font to process.",
 					OKButton=None,
-					)
+				)
 
 			else:
 				if self.pref("allFonts") and len(Glyphs.fonts) > 1:
@@ -254,7 +255,7 @@ class FindSmallPaths(object):
 									checkLayer = thisLayer
 
 								countOfAffectedPaths = 0
-								# thisGlyph.beginUndo() # undo grouping causes crashes
+								# thisGlyph.beginUndo()  # undo grouping causes crashes
 								for i in range(len(checkLayer.paths))[::-1]:
 									thisPath = checkLayer.paths[i]
 									if thisPath.area() < minArea:
@@ -263,7 +264,7 @@ class FindSmallPaths(object):
 											del thisLayer.paths[i]
 								if countOfAffectedPaths:
 									layersWithSmallPaths.append(thisLayer)
-								# thisGlyph.endUndo() # undo grouping causes crashes
+								# thisGlyph.endUndo()  # undo grouping causes crashes
 								if countOfAffectedPaths > 0:
 									print(
 										"  ⚠️ %s, layer '%s': %i path%s found." % (
@@ -271,8 +272,8 @@ class FindSmallPaths(object):
 											thisLayer.name,
 											countOfAffectedPaths,
 											"" if countOfAffectedPaths == 1 else "s",
-											)
 										)
+									)
 
 					if layersWithSmallPaths:
 						newTab = thisFont.newTab()
@@ -285,7 +286,7 @@ class FindSmallPaths(object):
 							title="No Small Paths Found",
 							message="No glyphs with paths smaller than %i square units found in the frontmost font." % minArea,
 							OKButton="Cool",
-							)
+						)
 
 				if len(fontsToLookAt) > 1:
 					Message(
@@ -295,11 +296,11 @@ class FindSmallPaths(object):
 							totalCountOfAffectedFonts,
 							len(fontsToLookAt),
 							minArea,
-							),
+						),
 						OKButton=None,
-						)
+					)
 
-			self.w.close() # delete if you want window to stay open
+			self.w.close()  # delete if you want window to stay open
 		except Exception as e:
 			self.errorReport(e)
 
@@ -309,5 +310,6 @@ class FindSmallPaths(object):
 		print("Find Small Paths Error:\n%s\n" % e)
 		import traceback
 		print(traceback.format_exc())
+
 
 FindSmallPaths()

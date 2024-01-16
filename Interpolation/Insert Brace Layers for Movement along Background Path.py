@@ -1,4 +1,4 @@
-#MenuTitle: Insert Brace Layers for Movement along Background Path
+# MenuTitle: Insert Brace Layers for Movement along Background Path
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -8,8 +8,12 @@ Add a single path in the background and it will be used to create intermediate (
 from Foundation import NSPoint, NSAffineTransform, NSAffineTransformStruct
 import math
 from vanilla.dialogs import message
-thisFont = Glyphs.font # frontmost font
-selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+from GlyphsApp import Glyphs
+
+
+thisFont = Glyphs.font  # frontmost font
+selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+
 
 def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	"""
@@ -17,7 +21,7 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	Apply an NSAffineTransform t object like this:
 		Layer.transform_checkForSelection_doComponents_(t,False,True)
 	Access its transformation matrix like this:
-		tMatrix = t.transformStruct() # returns the 6-float tuple
+		tMatrix = t.transformStruct()  # returns the 6-float tuple
 	Apply the matrix tuple like this:
 		Layer.applyTransform(tMatrix)
 		Component.applyTransform(tMatrix)
@@ -42,10 +46,12 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 		myTransform.appendTransform_(skewTransform)
 	return myTransform
 
+
 def shiftedLayer(originalLayer, shiftTransform):
 	shiftedLayer = originalLayer.copy()
 	shiftedLayer.applyTransform(shiftTransform)
 	return shiftedLayer
+
 
 def bezier(P1, P2, P3, P4, t):
 	"""
@@ -63,6 +69,7 @@ def bezier(P1, P2, P3, P4, t):
 
 	return NSPoint(x, y)
 
+
 def getMasterWeightValue(master):
 	if Glyphs.versionNumber >= 3:
 		# Glyphs 3 code
@@ -70,6 +77,7 @@ def getMasterWeightValue(master):
 	else:
 		# Glyphs 2 code
 		return master.weightValue
+
 
 def process(thisLayer, steps=5):
 	thisGlyph = thisLayer.parent
@@ -117,8 +125,10 @@ def process(thisLayer, steps=5):
 					P1 = thisSegment[0].pointValue()
 					P2 = thisSegment[1].pointValue()
 				for i in range(steps):
-					shiftTransform = transform(shiftX=(P1.x + i * (P2.x - P1.x) / steps) - originPoint.x,
-												shiftY=(P1.y + i * (P2.y - P1.y) / steps) - originPoint.y).transformStruct()
+					shiftTransform = transform(
+						shiftX=(P1.x + i * (P2.x - P1.x) / steps) - originPoint.x,
+						shiftY=(P1.y + i * (P2.y - P1.y) / steps) - originPoint.y
+					).transformStruct()
 					shifts.append(shiftTransform)
 
 		# all segments are collected in 'shifts':
@@ -137,13 +147,14 @@ def process(thisLayer, steps=5):
 				# GLYPHS 3
 				braceLayer.attributes['coordinates'] = {
 					firstAxisID: frameValue
-					}
+				}
 			else:
 				# GLYPHS 2
 				braceLayer.name = "{%i}" % frameValue
 			thisLayer.parent.layers.append(braceLayer)
 
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+
+thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 try:
 	# brings macro window to front and clears its log:
 	Glyphs.clearLog()
@@ -163,9 +174,9 @@ try:
 		else:
 			thisGlyph.note = "%s: %i (per path segment)\n%s" % (stepMarker, steps, thisGlyph.note if thisGlyph.note else "")
 		print("🔠 %s: %i frames per background path segment" % (thisGlyph.name, steps))
-		# thisGlyph.beginUndo() # undo grouping causes crashes
+		# thisGlyph.beginUndo()  # undo grouping causes crashes
 		process(thisLayer, steps=steps)
-		# thisGlyph.endUndo() # undo grouping causes crashes
+		# thisGlyph.endUndo()  # undo grouping causes crashes
 
 	print("Done.")
 except Exception as e:
@@ -176,4 +187,4 @@ except Exception as e:
 	print()
 	raise e
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

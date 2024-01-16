@@ -1,4 +1,4 @@
-#MenuTitle: Harmonise Curve to Line
+# MenuTitle: Harmonise Curve to Line
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Maximises opposing handles and reduces adjacent handles of line segments.
 """
 
 from Foundation import NSPoint
+from GlyphsApp import Glyphs, GSLINE, GSOFFCURVE, GSSMOOTH
+
 
 def intersectionWithNSPoints(pointA, pointB, pointC, pointD):
 	"""
@@ -60,6 +62,7 @@ def intersectionWithNSPoints(pointA, pointB, pointC, pointD):
 		print(traceback.format_exc())
 		return None
 
+
 def pointDistance(P1, P2):
 	"""Calculates the distance between P1 and P2."""
 	x1, y1 = P1.x, P1.y
@@ -67,10 +70,12 @@ def pointDistance(P1, P2):
 	dist = ((float(x2) - float(x1))**2 + (float(y2) - float(y1))**2)**0.5
 	return dist
 
+
 def bezier(x1, y1, x2, y2, x3, y3, x4, y4, t):
 	x = x1 * (1 - t)**3 + x2 * 3 * t * (1 - t)**2 + x3 * 3 * t**2 * (1 - t) + x4 * t**3
 	y = y1 * (1 - t)**3 + y2 * 3 * t * (1 - t)**2 + y3 * 3 * t**2 * (1 - t) + y4 * t**3
 	return x, y
+
 
 def bothPointsAreOnSameSideOfOrigin(pointA, pointB, pointOrigin):
 	returnValue = True
@@ -79,6 +84,7 @@ def bothPointsAreOnSameSideOfOrigin(pointA, pointB, pointOrigin):
 	if xDiff <= 0.0 and yDiff <= 0.0:
 		returnValue = False
 	return returnValue
+
 
 def pointIsBetweenOtherPoints(thisPoint, otherPointA, otherPointB):
 	returnValue = False
@@ -100,19 +106,23 @@ def pointIsBetweenOtherPoints(thisPoint, otherPointA, otherPointB):
 
 	return returnValue
 
+
 def divideAndTolerateZero(dividend, divisor):
 	if float(divisor) == 0.0:
 		return None
 	else:
 		return dividend / divisor
 
+
 def handleLength(a, b, intersection):
 	return pointDistance(a, b) / pointDistance(a, intersection)
+
 
 def moveHandle(a, b, intersection, bPercentage):
 	x = a.x + (intersection.x - a.x) * bPercentage
 	y = a.y + (intersection.y - a.y) * bPercentage
 	return NSPoint(x, y)
+
 
 Font = Glyphs.font
 
@@ -125,7 +135,7 @@ else:
 
 for selectedLayer in Font.selectedLayers:
 	selectedGlyph = selectedLayer.parent
-	# selectedGlyph.beginUndo() # undo grouping causes crashes
+	# selectedGlyph.beginUndo()  # undo grouping causes crashes
 
 	# put original state in background:
 	selectedLayer.contentToBackgroundCheckSelection_keepOldBackground_(False, False)
@@ -133,10 +143,10 @@ for selectedLayer in Font.selectedLayers:
 	for path in selectedLayer.paths:
 		for n in path.nodes:
 			processedHandles = []
-			if (n.selected or not selectionCounts) and n.type == OFFCURVE:
+			if (n.selected or not selectionCounts) and n.type == GSOFFCURVE:
 
 				# determine the segment:
-				if n.prevNode.type == OFFCURVE:
+				if n.prevNode.type == GSOFFCURVE:
 					a = n.prevNode.prevNode
 					b = n.prevNode
 					c = n
@@ -147,7 +157,7 @@ for selectedLayer in Font.selectedLayers:
 					c = n.nextNode
 					d = n.nextNode.nextNode
 
-				if not a in processedHandles and not b in processedHandles:
+				if a not in processedHandles and b not in processedHandles:
 
 					# intersection of the magic triangle:
 					intersection = intersectionWithNSPoints(a.position, b.position, c.position, d.position)
@@ -158,13 +168,13 @@ for selectedLayer in Font.selectedLayers:
 						cLength = handleLength(d, c, intersection)
 						shortLength = (abs(bLength) + abs(cLength) - 1.0) - (1.0 - abs(bLength)) * (1.0 - abs(cLength))
 
-						if d.nextNode.type == LINE and a.prevNode.type != LINE and d.connection == GSSMOOTH:
+						if d.nextNode.type == GSLINE and a.prevNode.type != GSLINE and d.connection == GSSMOOTH:
 							# max handle:
 							b.position = intersection
 							# reduced handle:
 							c.position = moveHandle(d, c, intersection, shortLength)
 
-						elif a.prevNode.type == LINE and d.nextNode.type != LINE and a.connection == GSSMOOTH:
+						elif a.prevNode.type == GSLINE and d.nextNode.type != GSLINE and a.connection == GSSMOOTH:
 							# max handle:
 							c.position = intersection
 							# reduced handle:
@@ -174,4 +184,4 @@ for selectedLayer in Font.selectedLayers:
 						processedHandles.append(a)
 						processedHandles.append(b)
 
-	# selectedGlyph.endUndo() # undo grouping causes crashes
+	# selectedGlyph.endUndo()  # undo grouping causes crashes

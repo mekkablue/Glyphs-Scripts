@@ -1,11 +1,13 @@
-#MenuTitle: New Tab with Kerning Missing in Masters
+# MenuTitle: New Tab with Kerning Missing in Masters
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Opens New Tabs for each master showing kerning missing in this master but present in other masters.
 """
 
-thisFont = Glyphs.font # frontmost font
+from GlyphsApp import Glyphs, Message
+
+thisFont = Glyphs.font  # frontmost font
 
 Glyphs.clearLog()
 print("Missing kerning, report for %s" % thisFont.familyName)
@@ -15,12 +17,12 @@ print()
 if not len(thisFont.masters) > 1:
 	Message("Not enough masters", "If you want to compare kerning between masters, you need at least two masters in your font.", OKButton="Oh Shoot")
 else:
-	#prepare tabStrings:
+	# prepare tabStrings:
 	tabStrings = {}
 	for thisMaster in thisFont.masters:
 		tabStrings[thisMaster.id] = "Kerning missing in %s:\n" % thisMaster.name
 
-	#prepare defaultGlyphs:
+	# prepare defaultGlyphs:
 	leftGroupDefaults = {}
 	rightGroupDefaults = {}
 	for thisGlyph in thisFont.glyphs[::-1]:
@@ -50,7 +52,7 @@ else:
 								leftSideGlyphName = leftSideGlyph.name
 							else:
 								print(u"❌ Glyph %s: Orphaned LEFT glyph ID in kerning. No corresponding glyph in font." % leftSide)
-						elif not leftSide[7:] in rightGroupDefaults:
+						elif leftSide[7:] not in rightGroupDefaults:
 							print(u"❌ @%s: Orphaned LEFT SIDE of kern pair. No corresponding RIGHT GROUP in glyphs." % leftSide[7:])
 							Glyphs.showMacroWindow()
 						elif rightGroupDefaults[leftSide[7:]]:
@@ -64,7 +66,7 @@ else:
 								rightSideGlyphName = rightSideGlyph.name
 							else:
 								print(u"❌ Glyph %s: Orphaned RIGHT glyph ID in kerning. No corresponding glyph in font." % rightSide)
-						elif not rightSide[7:] in leftGroupDefaults:
+						elif rightSide[7:] not in leftGroupDefaults:
 							print(u"❌ @%s: Orphaned RIGHT SIDE of kern pair. No corresponding LEFT GROUP in glyphs." % rightSide[7:])
 							Glyphs.showMacroWindow()
 						elif leftGroupDefaults[rightSide[7:]]:

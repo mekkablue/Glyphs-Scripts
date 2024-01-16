@@ -1,16 +1,18 @@
-#MenuTitle: Copy Kerning Exceptions to Double Accents
+# MenuTitle: Copy Kerning Exceptions to Double Accents
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Copies Kerning exceptions with abreve, acircumflex, ecircumflex, ocircumflex, udieresis into Vietnamese and Pinyin double accents.
 """
 
-thisFont = Glyphs.font # frontmost font
+from GlyphsApp import Glyphs
+
+thisFont = Glyphs.font  # frontmost font
 allGlyphNames = [g.name for g in thisFont.glyphs if g.export]
 
 baseGlyphNames = (
 	"Abreve", "Acircumflex", "Ecircumflex", "Ocircumflex", "Udieresis", "Ohorn", "Uhorn", "abreve", "acircumflex", "ecircumflex", "ocircumflex", "udieresis", "ohorn", "uhorn"
-	)
+)
 
 baseGlyphIDs = [thisFont.glyphs[g].id for g in baseGlyphNames if thisFont.glyphs[g] and thisFont.glyphs[g].export]
 
@@ -20,7 +22,7 @@ Glyphs.showMacroWindow()
 
 for i, baseGlyphID in enumerate(baseGlyphIDs):
 	baseGlyphName = baseGlyphNames[i]
-	doubleaccentIDs = [thisFont.glyphs[g].id for g in allGlyphNames if g.startswith(baseGlyphName) and g != baseGlyphName and not "." in g]
+	doubleaccentIDs = [thisFont.glyphs[g].id for g in allGlyphNames if g.startswith(baseGlyphName) and g != baseGlyphName and "." not in g]
 	print("\nCopying exceptions for: %s" % baseGlyphName)
 	if doubleaccentIDs:
 		for thisMaster in thisFont.masters:

@@ -1,12 +1,14 @@
-#MenuTitle: KernCrash Current Glyph
+# MenuTitle: KernCrash Current Glyph
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Opens a new tab containing kerning combos with the current glyph that collide in the current fontmaster.
 """
 
-from AppKit import NSNotFound, NSAffineTransform
+from AppKit import NSAffineTransform
 from kernanalysis import effectiveKerning
+from GlyphsApp import Glyphs, Message
+
 exceptions = """
 .notdef
 Ldot ldot ldot.sc
@@ -39,21 +41,25 @@ asciicircum
 # 	else:
 # 		return 0.0
 
+
 def pathCountOnLayer(thisLayer):
 	thisLayer.removeOverlap()
 	return len(thisLayer.paths)
+
 
 def pathCount(thisGlyph, thisFontMasterID):
 	thisLayer = thisGlyph.layers[thisFontMasterID].copyDecomposedLayer()
 	return pathCountOnLayer(thisLayer)
 
+
 def pathCountForGlyphName(glyphName, thisFont, thisFontMasterID):
 	thisGlyph = thisFont.glyphs[glyphName]
 	return pathCount(thisGlyph, thisFontMasterID)
 
+
 def pathCountInKernPair(firstGlyphName, secondGlyphName, thisFont, thisFontMasterID, minDistance):
-	#ligatureName = "%s_%s" % ( nameUntilFirstPeriod(firstGlyphName), nameUntilFirstPeriod(secondGlyphName) )
-	#newGlyph = thisFont.newGlyphWithName_changeName_( "_deleteMe", False )
+	# ligatureName = "%s_%s" % ( nameUntilFirstPeriod(firstGlyphName), nameUntilFirstPeriod(secondGlyphName) )
+	# newGlyph = thisFont.newGlyphWithName_changeName_( "_deleteMe", False )
 
 	ligatureLayer = thisFont.glyphs[secondGlyphName].layers[thisFontMasterID].copyDecomposedLayer()
 	addedLayer = thisFont.glyphs[firstGlyphName].layers[thisFontMasterID].copyDecomposedLayer()
@@ -71,6 +77,7 @@ def pathCountInKernPair(firstGlyphName, secondGlyphName, thisFont, thisFontMaste
 			ligatureLayer.addShape_(addedPath.copy())
 
 	return pathCountOnLayer(ligatureLayer)
+
 
 try:
 	# query frontmost fontmaster:
@@ -92,9 +99,9 @@ try:
 		currentGlyphName = thisGlyph.name
 		exceptionList = exceptions.split()
 		completeSet = [
-			g.name for g in thisFont.glyphs if g.export and g.name not in exceptionList # excluded glyphs, list at beginning of this .py
-			and g.subCategory != "Nonspacing" # no combining accents
-			]
+			g.name for g in thisFont.glyphs if g.export and g.name not in exceptionList  # excluded glyphs, list at beginning of this .py
+			and g.subCategory != "Nonspacing"  # no combining accents
+		]
 
 		# get pathcounts for every glyph:
 		pathCountDict = {}
@@ -119,7 +126,7 @@ try:
 			kernCount = pathCountInKernPair(otherGlyphName, currentGlyphName, thisFont, thisFontMasterID, 0.0)
 			if firstCount + secondCount > kernCount:
 				tabStringRightGlyphs.append(otherGlyphName)
-				#tabStringLeft += "/%s/%s/space" % ( firstGlyphName, secondGlyphName )
+				# tabStringLeft += "/%s/%s/space" % ( firstGlyphName, secondGlyphName )
 
 		# open new Edit tab:
 		if tabStringLeftGlyphs or tabStringRightGlyphs:
@@ -140,7 +147,7 @@ try:
 			Glyphs.showNotification(
 				"KernCrashed %s, master ‘%s’" % (thisFont.familyName, thisFontMaster.name),
 				"Found %i kerning collisions with %s. Details in Macro Window" % (len(tabStringRightGlyphs) + len(tabStringLeftGlyphs), currentGlyphName),
-				)
+			)
 
 		# or report that nothing was found:
 		else:
@@ -148,7 +155,7 @@ try:
 			Glyphs.showNotification(
 				"KernCrashed %s, master ‘%s’:" % (thisFont.familyName, thisFontMaster.name),
 				"No collisions found for %s." % currentGlyphName,
-				)
+			)
 except Exception as e:
 	Message("KernCrash Error", "KernCrash Current Glyph Error: %s\nTraceback in Macro Window." % e, OKButton=None)
 	import traceback

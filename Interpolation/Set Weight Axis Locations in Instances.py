@@ -1,18 +1,21 @@
-#MenuTitle: Set Weight Axis Locations in Instances
+# MenuTitle: Set Weight Axis Locations in Instances
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Will set weight axis location parameters for all instances, and sync them with their respective usWeightClass. Will set the width axis coordinates to the spec defaults for usWidthClass, if they have not been set yet. Otherwise will keep them as is. 
+Will set weight axis location parameters for all instances, and sync them with their respective usWeightClass. Will set the width axis coordinates to the spec defaults for usWidthClass, if they have not been set yet. Otherwise will keep them as is.
 
 If the font has masters without Axis Locations, but with corresponding instances, it will copy the instance’s axis locations into the master as well. Will not overwrite existing Axis Location parameters in the masters.
 """
 
 from Foundation import NSDictionary
+from GlyphsApp import Glyphs
+
 paramName = "Axis Location"
+
 
 def widthForWidthClass(widthClass):
 	"""According to the OS/2 table spec: https://docs.microsoft.com/en-us/typography/opentype/spec/os2#uswidthclass"""
-	if type(widthClass) == int and 1 <= widthClass <= 9:
+	if isinstance(widthClass, int) and 1 <= widthClass <= 9:
 		return {
 			1: 50,
 			2: 62.5,
@@ -23,13 +26,15 @@ def widthForWidthClass(widthClass):
 			7: 125,
 			8: 150,
 			9: 200,
-			}[widthClass]
+		}[widthClass]
 	else:
 		print("⚠️ Not a valid usWidthClass value: %s" % repr(widthClass))
 		return None
 
+
 def axisLocationEntry(axisName, locationValue):
 	return NSDictionary.alloc().initWithObjects_forKeys_((axisName, locationValue), ("Axis", "Location"))
+
 
 def process(thisInstance):
 	existingParameter = thisInstance.customParameters[paramName]
@@ -47,7 +52,7 @@ def process(thisInstance):
 				if thisAxis.name == entry["Axis"]:
 					value = entry["Location"]
 
-		if value == None:
+		if value is None:
 			if thisAxis.name == "Width":
 				value = widthForWidthClass(thisInstance.widthClassValue())
 			else:
@@ -57,6 +62,7 @@ def process(thisInstance):
 	if axisLocations:
 		thisInstance.customParameters[paramName] = tuple(axisLocations)
 		return weightClassValue
+
 
 """
 for m in Font.masters:
@@ -68,8 +74,8 @@ for m in Font.masters:
 			NSDictionary.alloc().initWithObjects_forKeys_(
 				(axis.name, m.axes[idx]),
 				("Axis", "Location")
-			)
 		)
+	)
 		print("   %s: %i" % (axis.name, m.axes[idx]))
 	m.customParameters["Axis Location"] = tuple(axisLocations)
 
@@ -84,7 +90,7 @@ widthValueForClass = {
 print("\n%s"%("-"*50))
 
 for idx, i in enumerate(Font.instances):
-	if i.type == 0: # instance, no VF setting
+	if i.type == 0:  # instance, no VF setting
 		print("\nINSTANCE %02i: %s" % (idx, i.name))
 		axisLocations = []
 		instanceValues = {
@@ -96,16 +102,16 @@ for idx, i in enumerate(Font.instances):
 				NSDictionary.alloc().initWithObjects_forKeys_(
 					(axis.name, instanceValues[axis.name]),
 					("Axis", "Location")
-				)
 			)
+		)
 			print("  %s: %i" % (axis.name, instanceValues[axis.name]))
 		i.customParameters["Axis Location"] = tuple(axisLocations)
 """
 
-thisFont = Glyphs.font # frontmost font
-Glyphs.clearLog() # clears log in Macro window
+thisFont = Glyphs.font  # frontmost font
+Glyphs.clearLog()  # clears log in Macro window
 
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 try:
 	# set instances:
 	for i, thisInstance in enumerate(thisFont.instances):
@@ -138,4 +144,4 @@ except Exception as e:
 	print()
 	raise e
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

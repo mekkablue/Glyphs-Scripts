@@ -1,4 +1,4 @@
-#MenuTitle: KernCrasher
+# MenuTitle: KernCrasher
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -8,14 +8,17 @@ Opens a new tab with Kerning Combos that crash in the current fontmaster.
 import vanilla
 from timeit import default_timer as timer
 from Foundation import NSNotFound
-from kernanalysis import *
+from kernanalysis import intervalList, categoryList, sortedIntervalsFromString, effectiveKerning, minDistanceBetweenTwoLayers
+from GlyphsApp import Glyphs, Message
 
 if Glyphs.versionNumber >= 3:
+	from GlyphsApp import GSUppercase, GSLowercase, GSSmallcaps
 	caseDict = {
 		"Uppercase": GSUppercase,
 		"Lowercase": GSLowercase,
 		"Smallcaps": GSSmallcaps,
-		}
+	}
+
 
 class KernCrasher(object):
 	prefID = "com.mekkablue.KernCrasher"
@@ -36,20 +39,20 @@ class KernCrasher(object):
 		"limitLeftSuffixes": "",
 		"directionSensitive": "",
 	}
-	
+
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 410
 		windowHeight = 370
-		windowWidthResize = 800 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 800  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"KernCrasher", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"KernCrasher",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -61,8 +64,7 @@ class KernCrasher(object):
 		self.w.popupScript = vanilla.ComboBox((inset + 42, linePos - 1, 110, 18), ("latin", "cyrillic", "greek"), callback=self.SavePreferences, sizeStyle='small')
 		self.w.popupScript.getNSComboBox().setToolTip_("Limits the kerning pairs only to glyphs of this script, and those of no script.")
 		self.w.updateScriptsButton = vanilla.SquareButton((inset + 160, linePos, 20, 18), "↺", sizeStyle='small', callback=self.update)
-		self.w.updateScriptsButton.getNSButton(
-		).setToolTip_("Scans the frontost font for the scripts of all its glyphs (Latin, Greek, Cyrillic, Hebrew, Arabic, Thai, ...) and lists only those in the combo box.")
+		self.w.updateScriptsButton.getNSButton().setToolTip_("Scans the frontost font for the scripts of all its glyphs (Latin, Greek, Cyrillic, Hebrew, Arabic, Thai, ...) and lists only those in the combo box.")
 		self.w.textDistance = vanilla.TextBox((inset + 200, linePos + 2, 100, 14), "Min distance:", sizeStyle='small')
 		self.w.minDistance = vanilla.EditText((inset + 280, linePos - 1, -15, 19), "10", sizeStyle='small')
 		tooltipText = "Minimum distance required between glyphs in any given pairing with the current setup. Measured in units."
@@ -71,9 +73,7 @@ class KernCrasher(object):
 		linePos += lineHeight
 
 		self.w.textSpeed = vanilla.TextBox((inset, linePos + 2, 42, 14), u"Speed:", sizeStyle='small', selectable=True)
-		self.w.popupSpeed = vanilla.PopUpButton(
-			(inset + 42, linePos, 110, 17), ("very slow", "slow", "medium", "fast", "very fast"), callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.popupSpeed = vanilla.PopUpButton((inset + 42, linePos, 110, 17), ("very slow", "slow", "medium", "fast", "very fast"), callback=self.SavePreferences, sizeStyle='small')
 		intervalIndex = self.pref("popupSpeed")
 		if intervalIndex is None:
 			intervalIndex = 0
@@ -115,9 +115,7 @@ class KernCrasher(object):
 		linePos += lineHeight
 
 		self.w.text_excludeSuffixes = vanilla.TextBox((inset, linePos + 2, 160, 14), "Exclude glyphs containing:", sizeStyle='small')
-		self.w.excludeSuffixes = vanilla.EditText(
-			(inset + 150, linePos, -inset, 19), ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute", callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.excludeSuffixes = vanilla.EditText((inset + 150, linePos, -inset, 19), ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute", callback=self.SavePreferences, sizeStyle='small')
 		tooltipText = "Glyphs with these parts in their glyph names will be ignored. Comma-separated list. Useful for excluding impossible pairings, like ldot (can only appear before l) and jacute (can only appear after iacute), or OpenType variants."
 		self.w.text_excludeSuffixes.getNSTextField().setToolTip_(tooltipText)
 		self.w.excludeSuffixes.getNSTextField().setToolTip_(tooltipText)
@@ -131,40 +129,28 @@ class KernCrasher(object):
 		self.w.ignoreIntervals.getNSTextField().setToolTip_(tooltipText)
 		linePos += lineHeight
 
-		self.w.pathGlyphsOnly = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), u"Limit to glyphs containing paths (i.e., exclude composites)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.pathGlyphsOnly.getNSButton().setToolTip_(
-			"If enabled, will ignore glyphs that do not have paths. Useful for focusing on the base shapes (before you deal with the specific problems of composite diacritics)."
-			)
+		self.w.pathGlyphsOnly = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Limit to glyphs containing paths (i.e., exclude composites)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.pathGlyphsOnly.getNSButton().setToolTip_("If enabled, will ignore glyphs that do not have paths. Useful for focusing on the base shapes (before you deal with the specific problems of composite diacritics).")
 		linePos += lineHeight
 
 		self.w.excludeNonExporting = vanilla.CheckBox((inset, linePos, -inset, 20), "Exclude non-exporting glyphs", value=True, sizeStyle='small', callback=self.SavePreferences)
-		self.w.excludeNonExporting.getNSButton(
-		).setToolTip_("If enabled, will ignore glyphs that are set to not export. Recommended, otherwise you may get a lot of false positives.")
+		self.w.excludeNonExporting.getNSButton().setToolTip_("If enabled, will ignore glyphs that are set to not export. Recommended, otherwise you may get a lot of false positives.")
 		linePos += lineHeight
 
-		self.w.directionSensitive = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), "Auto-detect writing direction (LTR vs. RTL)", value=True, sizeStyle='small', callback=self.SavePreferences
-			)
+		self.w.directionSensitive = vanilla.CheckBox((inset, linePos, -inset, 20), "Auto-detect writing direction (LTR vs. RTL)", value=True, sizeStyle='small', callback=self.SavePreferences)
 		self.w.directionSensitive.getNSButton().setToolTip_("If enabled, will determine writing direction based on settings in current tab. If disabled, LTR will be used")
 		linePos += lineHeight
 
-		self.w.reportCrashesInMacroWindow = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), "Verbose report in Macro Window", value=False, sizeStyle='small', callback=self.SavePreferences
-			)
-		self.w.reportCrashesInMacroWindow.getNSButton().setToolTip_(
-			"Will output a detailed report of the kern crashing in Window > Macro Panel. Will slow down the script a bit. Usually not necessary, but can be useful for checking if a certain pairing has been taken care of or not."
-			)
+		self.w.reportCrashesInMacroWindow = vanilla.CheckBox((inset, linePos, -inset, 20), "Verbose report in Macro Window", value=False, sizeStyle='small', callback=self.SavePreferences)
+		self.w.reportCrashesInMacroWindow.getNSButton().setToolTip_("Will output a detailed report of the kern crashing in Window > Macro Panel. Will slow down the script a bit. Usually not necessary, but can be useful for checking if a certain pairing has been taken care of or not.")
 		self.w.reuseCurrentTab = vanilla.CheckBox((inset + 240, linePos, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseCurrentTab.getNSButton(
-		).setToolTip_("If enabled, will not open a new tab with newly added kern pairs, but reuse the current Edit tab. Will open an Edit tab if none is open.")
+		self.w.reuseCurrentTab.getNSButton().setToolTip_("If enabled, will not open a new tab with newly added kern pairs, but reuse the current Edit tab. Will open an Edit tab if none is open.")
 		linePos += lineHeight
 
 		# Percentage:
 		self.w.bar = vanilla.ProgressBar((inset, linePos, -inset, 16))
 
-		#self.w.percentage = vanilla.TextBox( (15-1, -30, -100-15, -15), "", sizeStyle='small' )
+		# self.w.percentage = vanilla.TextBox( (15-1, -30, -100-15, -15), "", sizeStyle='small' )
 
 		# Buttons:
 		self.w.nextButton = vanilla.Button((-inset - 210, -20 - inset, -inset - 100, -inset), u"Next Master", sizeStyle='regular', callback=self.masterSwitch)
@@ -188,41 +174,41 @@ class KernCrasher(object):
 				updatedScriptList = list(set(scriptList))
 				self.w.popupScript.setItems(updatedScriptList)
 				self.w.popupScript.set(updatedScriptList[0])
-	
+
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-	
-	def SavePreferences( self, sender=None ):
+
+	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
 			for prefName in self.prefDict.keys():
 				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-				
+
 			# update speed explanation:
 			if sender == self.w.popupSpeed:
 				intervalIndex = self.pref("popupSpeed")
 				if intervalIndex is None:
 					intervalIndex = 0
 				self.w.text_speedExplanation.set("Measuring every %i units." % intervalList[intervalIndex])
-			
+
 			return True
 		except:
 			import traceback
 			print(traceback.format_exc())
 			return False
 
-	def LoadPreferences( self ):
+	def LoadPreferences(self):
 		try:
 			for prefName in self.prefDict.keys():
 				# register defaults:
 				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
 				# load previously written prefs:
-				getattr(self.w, prefName).set( self.pref(prefName) )
+				getattr(self.w, prefName).set(self.pref(prefName))
 			return True
 		except:
 			import traceback
@@ -230,7 +216,7 @@ class KernCrasher(object):
 			return False
 
 	def nameUntilFirstPeriod(self, glyphName):
-		if not "." in glyphName:
+		if "." not in glyphName:
 			return glyphName
 		else:
 			offset = glyphName.find(".")
@@ -254,7 +240,7 @@ class KernCrasher(object):
 						nameIsOK = True
 
 			if nameIsOK and (thisGlyph.export or not excludeNonExporting):
-				if thisScript == None or thisScript == requiredScript:
+				if thisScript is None or thisScript == requiredScript:
 					if thisGlyph.category == requiredCategory:
 						if requiredSubCategory:
 							if Glyphs.versionNumber >= 3 and requiredSubCategory in caseDict:
@@ -322,9 +308,9 @@ class KernCrasher(object):
 	# 		if not isHeightInIntervals(height, ignoreIntervals) or not ignoreIntervals:
 	# 			left = leftLayer.rsbAtHeight_(height)
 	# 			right = rightLayer.lsbAtHeight_(height)
-	# 			if left < NSNotFound and right < NSNotFound: # avoid gaps like in i or j
-	# 				total = left + right + kerning # +correction
-	# 				if minDist == None or minDist > total:
+	# 			if left < NSNotFound and right < NSNotFound:  # avoid gaps like in i or j
+	# 				total = left + right + kerning  # +correction
+	# 				if minDist is None or minDist > total:
 	# 					minDist = total
 	# 	return minDist
 
@@ -401,10 +387,10 @@ class KernCrasher(object):
 			# get list of glyph names:
 			firstList = self.listOfNamesForCategories(
 				thisFont, firstCategory, firstSubCategory, script, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly, limitLeftSuffixes
-				)
+			)
 			secondList = self.listOfNamesForCategories(
 				thisFont, secondCategory, secondSubCategory, script, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly, limitRightSuffixes
-				)
+			)
 
 			directionSensitive = False
 			if self.w.directionSensitive.get() == 1:
@@ -413,14 +399,13 @@ class KernCrasher(object):
 			if not firstList or not secondList:
 				Message(
 					title="Error: could not find any pairs",
-					message=
-					"The criteria for glyph selection are too strict. With the current settings, there are %i glyphs for the left side in the current font, and %i glyphs for the right side."
+					message="The criteria for glyph selection are too strict. With the current settings, there are %i glyphs for the left side in the current font, and %i glyphs for the right side."
 					% (
 						len(firstList),
 						len(secondList),
-						),
+					),
 					OKButton=None,
-					)
+				)
 
 			if self.pref("reportCrashesInMacroWindow"):
 				print("Minimum Distance: %i\n" % minDistance)
@@ -444,7 +429,7 @@ class KernCrasher(object):
 					rightLayer.decomposeSmartOutlines()
 					kerning = effectiveKerning(firstGlyphName, secondGlyphName, thisFont, thisFontMasterID, directionSensitive)
 					distanceBetweenShapes = minDistanceBetweenTwoLayers(leftLayer, rightLayer, interval=step, kerning=kerning, report=False, ignoreIntervals=ignoreIntervals)
-					if (not distanceBetweenShapes is None) and (distanceBetweenShapes < minDistance):
+					if distanceBetweenShapes is not None and distanceBetweenShapes < minDistance:
 						crashCount += 1
 						tabString += "/%s/%s/space" % (firstGlyphName, secondGlyphName)
 						if self.pref("reportCrashesInMacroWindow"):
@@ -499,5 +484,6 @@ class KernCrasher(object):
 			print("KernCrasher Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 KernCrasher()

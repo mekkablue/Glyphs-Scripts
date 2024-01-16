@@ -1,14 +1,18 @@
-#MenuTitle: New Tab with Overkerned Pairs
+# MenuTitle: New Tab with Overkerned Pairs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Asks a threshold percentage, and opens a new tab with all kern pairs going beyond the width threshold. Option to fix them too.
 """
 
-import vanilla, sys
+import vanilla
+import sys
+from GlyphsApp import Glyphs, GSControlLayer, Message
+
 
 def roundedDownBy(value, base):
 	return base * round(value // base)
+
 
 class NewTabwithOverkernedPairs(object):
 	prefID = "com.mekkablue.FindOverkerns"
@@ -18,28 +22,28 @@ class NewTabwithOverkernedPairs(object):
 		"limitToExportingGlyphs": 1,
 		"rounding": 5,
 		"scope": 1,
-		}
+	}
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 290
 		windowHeight = 180
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Negative Overkerns in this Master", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Negative Overkerns in this Master",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
 		self.w.thresholdText = vanilla.TextBox((inset, linePos + 2, 210, 14), "Open tab with kerns beyond threshold:", sizeStyle='small', selectable=True)
-		self.w.threshold = vanilla.EditText((inset + 210, linePos - 1, -inset-15, 19), "40", callback=self.SavePreferences, sizeStyle='small')
-		self.w.thresholdPercent = vanilla.TextBox((-inset-15, linePos + 2, -inset, 14), "%", sizeStyle='small', selectable=True)
+		self.w.threshold = vanilla.EditText((inset + 210, linePos - 1, -inset - 15, 19), "40", callback=self.SavePreferences, sizeStyle='small')
+		self.w.thresholdPercent = vanilla.TextBox((-inset - 15, linePos + 2, -inset, 14), "%", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
 		self.w.descriptionText2 = vanilla.TextBox((inset, linePos + 2, -inset, 14), "(Max percentage of widths that may be kerned.)", sizeStyle='small', selectable=True)
@@ -49,13 +53,11 @@ class NewTabwithOverkernedPairs(object):
 		self.w.rounding = vanilla.EditText((inset + 210, linePos - 1, -inset, 19), "5", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.limitToExportingGlyphs = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Limit to exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.limitToExportingGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Limit to exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
-		
-		self.w.scopeText = vanilla.TextBox((inset, linePos+2, 50, 14), "Apply to", sizeStyle="small", selectable=True)
-		self.w.scope = vanilla.PopUpButton((inset+50, linePos, -inset, 17), ("current master of current font", "⚠️ ALL masters of current font", "⚠️ ALL masters of ⚠️ ALL open fonts"), sizeStyle="small", callback=self.SavePreferences)
+
+		self.w.scopeText = vanilla.TextBox((inset, linePos + 2, 50, 14), "Apply to", sizeStyle="small", selectable=True)
+		self.w.scope = vanilla.PopUpButton((inset + 50, linePos, -inset, 17), ("current master of current font", "⚠️ ALL masters of current font", "⚠️ ALL masters of ⚠️ ALL open fonts"), sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 
 		# Run Button:
@@ -122,23 +124,23 @@ class NewTabwithOverkernedPairs(object):
 					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
 					setattr(sys.modules[__name__], prefName, fallbackValue)
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
 
-			if scope<2:
-				theseFonts = (thisFont,)
+			if self.pref("scope") < 2:
+				theseFonts = (thisFont, )
 			else:
 				theseFonts = Glyphs.fonts
-			
+
 			thresholdFactor = None
 			try:
-				thresholdFactor = float(threshold) / 100.0
+				thresholdFactor = float(self.pref("threshold")) / 100.0
 			except:
 				Message(title="Value Error", message="The threshold value you entered is invalid", OKButton="Oops")
 				return
-			
+
 			overKernCount = 0
 			for thisFont in theseFonts:
 				filePath = thisFont.filepath
@@ -150,23 +152,23 @@ class NewTabwithOverkernedPairs(object):
 
 				rounding = int(self.pref("rounding"))
 
-				if scope > 0:
+				if self.pref("scope") > 0:
 					theseMasters = thisFont.masters
 				else:
 					theseMasters = (thisFont.selectedFontMaster, )
-				
+
 				layers = []
 				for thisMaster in theseMasters:
 					print(f"\n\tⓂ️ Master ‘{thisMaster.name}’")
-					masterKerning = thisFont.kerning[thisMaster.id] # kerning dictionary
-					tabText = "" # the text appearing in the new tab
+					masterKerning = thisFont.kerning[thisMaster.id]  # kerning dictionary
+					# tabText = ""  # the text appearing in the new tab
 
 					# collect minimum widths for every kerning group:
 					leftGroupMinimumWidths = {}
 					leftGroupNarrowestGlyphs = {}
 					rightGroupMinimumWidths = {}
 					rightGroupNarrowestGlyphs = {}
-					if limitToExportingGlyphs:
+					if self.pref("limitToExportingGlyphs"):
 						theseGlyphs = [g for g in thisFont.glyphs if g.export]
 					else:
 						theseGlyphs = thisFont.glyphs
@@ -212,7 +214,7 @@ class NewTabwithOverkernedPairs(object):
 										# leftKey is a glyph ID like "59B740DA-A4F4-43DF-B6DD-1DFA213FFFE7"
 										leftGlyph = thisFont.glyphForId_(leftKey)
 										# exclude if non-exporting and user limited to exporting glyphs:
-										if limitToExportingGlyphs and not leftGlyph.export:
+										if self.pref("limitToExportingGlyphs") and not leftGlyph.export:
 											kernValue = 0.0
 										leftWidth = leftGlyph.layers[thisMaster.id].width
 										leftGlyphName = leftGlyph.name
@@ -226,7 +228,7 @@ class NewTabwithOverkernedPairs(object):
 										# rightKey is a glyph ID like "59B740DA-A4F4-43DF-B6DD-1DFA213FFFE7"
 										rightGlyph = thisFont.glyphForId_(rightKey)
 										# exclude if non-exporting and user limited to exporting glyphs:
-										if limitToExportingGlyphs and not rightGlyph.export:
+										if self.pref("limitToExportingGlyphs") and not rightGlyph.export:
 											kernValue = 0.0
 										rightWidth = rightGlyph.layers[thisMaster.id].width
 										rightGlyphName = rightGlyph.name
@@ -247,11 +249,14 @@ class NewTabwithOverkernedPairs(object):
 								except Exception as e:
 									# probably a kerning group name found in the kerning data, but no glyph assigned to it:
 									# brings macro window to front and reports warning:
+									print(e)
 									import traceback
 									errormsg = traceback.format_exc()
 									for side in ("left", "right"):
-										if not side in errormsg.lower():
-											print(f"⚠️ Warning: The {side} group ‘{groupName}’ found in your kerning data does not appear in any glyph. Clean up your kerning, and run the script again.")
+										if side not in errormsg.lower():
+											print(
+												f"⚠️ Warning: The {side} group ‘{groupName}’ found in your kerning data does not appear in any glyph. Clean up your kerning, and run the script again."
+											)
 											Glyphs.showMacroWindow()
 
 					if layers:
@@ -259,9 +264,9 @@ class NewTabwithOverkernedPairs(object):
 				if layers:
 					tab = thisFont.newTab()
 					tab.layers = layers
-				
+
 				print()
-			
+
 			message = ""
 			if overKernCount > 0:
 				message = "%s %i overkerns in %i font%s." % (
@@ -269,20 +274,20 @@ class NewTabwithOverkernedPairs(object):
 					overKernCount,
 					len(theseFonts),
 					"" if len(theseFonts) == 1 else "s",
-					)
+				)
 				Message(
 					title="Found Overkerns",
 					message=message,
 					OKButton=None,
-					)
+				)
 			else:
 				message = "Could not find any kern pairs beyond the threshold."
 				Message(
 					title="No Overkerns Found",
 					message=message,
 					OKButton="🫶Phew!",
-					)
-				
+				)
+
 			print(f"✅ Done. {message}")
 
 		except Exception as e:
@@ -291,5 +296,6 @@ class NewTabwithOverkernedPairs(object):
 			print(f"New Tab with Overkerned Pairs Error: {e}")
 			import traceback
 			print(traceback.format_exc())
+
 
 NewTabwithOverkernedPairs()

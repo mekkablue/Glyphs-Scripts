@@ -1,12 +1,15 @@
-#MenuTitle: Fix Arrow Positioning
+# MenuTitle: Fix Arrow Positioning
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Fixes the placement and metrics keys of arrows, dependent on a specified default arrow. Adds metric keys and moves arrows vertically. Does not create new glyphs, only works on existing ones.
 """
 
-import vanilla, math
+import vanilla
+import math
 from Foundation import NSPoint, NSAffineTransform, NSAffineTransformStruct
+from GlyphsApp import Glyphs, Message
+
 
 def intersectionsBetweenPoints(thisLayer, startPoint, endPoint):
 	"""
@@ -25,13 +28,14 @@ def intersectionsBetweenPoints(thisLayer, startPoint, endPoint):
 		listOfIntersections = calculateIntersectionsStartPoint_endPoint_decompose_(startPoint, endPoint, True)
 	return listOfIntersections
 
+
 def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	"""
 	Returns an NSAffineTransform object for transforming layers.
 	Apply an NSAffineTransform t object like this:
 		Layer.transform_checkForSelection_doComponents_(t,False,True)
 	Access its transformation matrix like this:
-		tMatrix = t.transformStruct() # returns the 6-float tuple
+		tMatrix = t.transformStruct()  # returns the 6-float tuple
 	Apply the matrix tuple like this:
 		Layer.applyTransform(tMatrix)
 		Component.applyTransform(tMatrix)
@@ -56,6 +60,7 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 		myTransform.appendTransform_(skewTransform)
 	return myTransform
 
+
 class FixArrowPositioning(object):
 	hArrows = ("rightArrow", "leftArrow")
 	vArrows = ("upArrow", "downArrow", "upDownArrow")
@@ -65,15 +70,15 @@ class FixArrowPositioning(object):
 		# Window 'self.w':
 		windowWidth = 280
 		windowHeight = 240
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Fix Arrow Positioning", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.FixArrowPositioning.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Fix Arrow Positioning",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.FixArrowPositioning.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -97,19 +102,13 @@ class FixArrowPositioning(object):
 		self.w.suffix = vanilla.EditText((inset + 70, linePos, -inset, 19), "", sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.verticalPosOfHorizontalArrows = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Fix vertical positioning of horizontal arrows", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.verticalPosOfHorizontalArrows = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Fix vertical positioning of horizontal arrows", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.verticalPosOfDiagonalArrows = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Fix vertical positioning of diagonal arrows", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.verticalPosOfDiagonalArrows = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Fix vertical positioning of diagonal arrows", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.addAndUpdateMetricsKeys = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Add and update metrics keys", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.addAndUpdateMetricsKeys = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Add and update metrics keys", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# Run Button:
@@ -204,7 +203,7 @@ class FixArrowPositioning(object):
 			vArrowName = self.addSuffixIfAny(vArrowName, suffix)
 			dArrowName = self.addSuffixIfAny(dArrowName, suffix)
 
-			allHArrowNames = self.hArrows + ("leftRightArrow", ) # add leftRightArrow because it cannot be a reference glyph
+			allHArrowNames = self.hArrows + ("leftRightArrow", )  # add leftRightArrow because it cannot be a reference glyph
 			allHorizontalArrowGlyphNames = [self.addSuffixIfAny(name, suffix) for name in allHArrowNames]
 
 			allDiagonalArrowGlyphNames = [self.addSuffixIfAny(name, suffix) for name in self.dArrows]
@@ -257,12 +256,12 @@ class FixArrowPositioning(object):
 											horizontalArrow.name,
 											horizontalArrowLayer.name,
 											shift,
-											))
+										))
 									else:
 										print(u"💚 %s: layer '%s' is already OK." % (
 											horizontalArrow.name,
 											horizontalArrowLayer.name,
-											))
+										))
 
 				# DIAGONAL METRICS:
 				if shouldFixDiagonalArrows:
@@ -300,12 +299,12 @@ class FixArrowPositioning(object):
 											diagonalArrow.name,
 											diagonalArrowLayer.name,
 											shift,
-											))
+										))
 									else:
 										print(u"💚 %s: layer '%s' is already OK." % (
 											diagonalArrow.name,
 											diagonalArrowLayer.name,
-											))
+										))
 
 				# SET METRICS KEYS ...
 				if shouldTakeCareOfMetricsKeys:
@@ -374,7 +373,7 @@ class FixArrowPositioning(object):
 						message="The script only corrected the master layers. Double check for brace or bracket layers. These glyphs have non-master layers: %s" %
 						", ".join(warnAboutLayers),
 						OKButton=None
-						)
+					)
 
 			if not self.SavePreferences(self):
 				print(u"⚠️ 'Fix Arrow Positioning' could not write preferences.")
@@ -386,5 +385,6 @@ class FixArrowPositioning(object):
 			print("Fix Arrow Positioning Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 FixArrowPositioning()

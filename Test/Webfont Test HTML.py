@@ -1,15 +1,16 @@
-#MenuTitle: Webfont Test HTML
+# MenuTitle: Webfont Test HTML
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Create a Test HTML for the current font inside the current Webfont Export folder, or for the current Glyphs Project in the project’s export path.
 """
 
-from GlyphsApp import *
+from GlyphsApp import Glyphs, GSProjectDocument, INSTANCETYPESINGLE, Message
 from AppKit import NSBundle, NSClassFromString
 from os import system
 import codecs
 Glyphs.registerDefault("com.mekkablue.WebFontTestHTML.includeEOT", 0)
+
 
 def saveFileInLocation(content="Sorry, no content generated.", fileName="test.txt", filePath="~/Desktop"):
 	saveFileLocation = "%s/%s" % (filePath, fileName)
@@ -19,6 +20,7 @@ def saveFileInLocation(content="Sorry, no content generated.", fileName="test.tx
 		thisFile.write(content)
 		thisFile.close()
 	return True
+
 
 def currentFileFormats():
 	if Glyphs.versionNumber < 3.0:
@@ -30,7 +32,7 @@ def currentFileFormats():
 		# GLYPHS 3
 		fileFormats = []
 		if Glyphs.defaults["OTFExportPlain"]:
-			if Glyphs.defaults["OTFExportOutlineformat"] == 2: # TTF
+			if Glyphs.defaults["OTFExportOutlineformat"] == 2:  # TTF
 				fileFormats.append("ttf")
 			else:
 				fileFormats.append("otf")
@@ -39,6 +41,7 @@ def currentFileFormats():
 		if Glyphs.defaults["OTFExportWOFF2"]:
 			fileFormats.append("woff2")
 	return tuple(fileFormats)
+
 
 def currentWebExportPath():
 	if Glyphs.versionNumber < 3.0:
@@ -53,12 +56,14 @@ def currentWebExportPath():
 			exportPath = Glyphs.defaults["OTFExportPath"]
 	return exportPath
 
+
 def replaceSet(text, setOfReplacements):
 	for thisReplacement in setOfReplacements:
 		searchFor = thisReplacement[0]
 		replaceWith = thisReplacement[1]
 		text = text.replace(searchFor, replaceWith)
 	return text
+
 
 def allUnicodeEscapesOfFont(thisFont):
 	importedGlyphs = thisFont.importedGlyphs()
@@ -67,6 +72,7 @@ def allUnicodeEscapesOfFont(thisFont):
 	allUnicodes = ["&#x%s;" % g.unicode for g in thisFont.glyphs + importedGlyphs if g.unicode and g.export and g.subCategory != "Nonspacing"]
 	allUnicodes += [" &#x%s;" % g.unicode for g in thisFont.glyphs + importedGlyphs if g.unicode and g.export and g.subCategory == "Nonspacing"]
 	return "".join(allUnicodes)
+
 
 def getInstanceInfo(thisFont, activeInstance, fileFormat):
 	# Determine Family Name
@@ -80,7 +86,7 @@ def getInstanceInfo(thisFont, activeInstance, fileFormat):
 		# GLYPHS 2
 		familyName = thisFont.familyName
 		individualFamilyName = activeInstance.customParameters["familyName"]
-		if individualFamilyName != None:
+		if individualFamilyName is not None:
 			familyName = individualFamilyName
 
 	# Determine Style Name
@@ -90,7 +96,7 @@ def getInstanceInfo(thisFont, activeInstance, fileFormat):
 	menuName = "%s %s-%s" % (fileFormat.upper(), familyName, activeInstanceName)
 
 	# 3 approaches for determining the file names:
-	firstPartOfFileName = ".".join(activeInstance.fileName().split(".")[:-1]) # removes ".otf" at the end
+	firstPartOfFileName = ".".join(activeInstance.fileName().split(".")[:-1])  # removes ".otf" at the end
 	if not firstPartOfFileName:
 		firstPartOfFileName = activeInstance.customParameters["fileName"]
 	if not firstPartOfFileName:
@@ -99,15 +105,18 @@ def getInstanceInfo(thisFont, activeInstance, fileFormat):
 	fileName = "%s.%s" % (firstPartOfFileName, fileFormat)
 	return fileName, menuName, activeInstanceName
 
+
 def instanceIsActive(instance):
-	if Glyphs.buildNumber>3198:
+	if Glyphs.buildNumber > 3198:
 		return instance.exports
 	else:
 		return instance.active
 
+
 def allActiveInstancesOfFont(thisFont):
 	activeInstances = [i for i in thisFont.instances if instanceIsActive(i) and isSingleInstance(i)]
 	return activeInstances
+
 
 def allActiveInstancesOfProject(thisProject):
 	if Glyphs.versionNumber >= 3:
@@ -118,6 +127,7 @@ def allActiveInstancesOfProject(thisProject):
 		activeInstances = [i for i in thisProject.instances() if instanceIsActive(i) and isSingleInstance(i)]
 	return activeInstances
 
+
 def isSingleInstance(instance):
 	if Glyphs.versionNumber >= 3:
 		# GLYPHS 3
@@ -125,6 +135,7 @@ def isSingleInstance(instance):
 	else:
 		# GLYPHS 2
 		return True
+
 
 def activeInstancesOfFontByFormat(thisFont, fileFormats=("woff", "woff2")):
 	activeInstances = allActiveInstancesOfFont(thisFont)
@@ -134,6 +145,7 @@ def activeInstancesOfFontByFormat(thisFont, fileFormats=("woff", "woff2")):
 			fileName, menuName, activeInstanceName = getInstanceInfo(thisFont, activeInstance, fileFormat)
 			listOfInstanceInfo.append((fileName, menuName, activeInstanceName))
 	return listOfInstanceInfo
+
 
 def activeInstancesOfProjectByFormat(thisProject, fileFormats=("woff", "woff2")):
 	thisFont = thisProject.font()
@@ -145,6 +157,7 @@ def activeInstancesOfProjectByFormat(thisProject, fileFormats=("woff", "woff2"))
 			listOfInstanceInfo.append((fileName, menuName, activeInstanceName))
 	return listOfInstanceInfo
 
+
 def optionListForInstances(instanceList):
 	returnString = ""
 	for thisInstanceInfo in instanceList:
@@ -152,6 +165,7 @@ def optionListForInstances(instanceList):
 		# <option value="fileName">baseName</option>
 
 	return returnString
+
 
 def fontFaces(instanceList):
 	returnString = ""
@@ -162,24 +176,26 @@ def fontFaces(instanceList):
 
 	return returnString
 
+
 def featureListForFont(thisFont):
 	returnString = ""
-	featureList = [(f.name, f.notes) for f in thisFont.features if not f.name in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig") and not f.disabled()]
+	featureList = [(f.name, f.notes) for f in thisFont.features if f.name not in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig") and not f.disabled()]
 	doneFeatures = []
 	for (f, n) in featureList:
-		if not f in doneFeatures: # avoid duplicates
+		if f not in doneFeatures:  # avoid duplicates
 			doneFeatures.append(f)
 			if f.startswith("ss") and n and n.startswith("Name:"):
 				# stylistic set name:
 				setName = n.splitlines()[0][5:].strip()
 				returnString += '\t\t<input type="checkbox" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s<span class="tooltip">%s</span></label>\n' % (
 					f, f, f, f, setName
-					)
+				)
 			else:
 				returnString += '\t\t<input type="checkbox" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s</label>\n' % (
 					f, f, f, f
-					)
+				)
 	return returnString
+
 
 htmlContent = """<head>
 	<!--<base href="..">--> <!-- uncomment for keeping the HTML in a subfolder -->
@@ -189,8 +205,7 @@ htmlContent = """<head>
 	<title>familyName</title>
 	<style type="text/css" media="screen">
 		<!-- fontFaces -->
-		
-		body { 
+		body {
 			background: white;
 			color: black;
 		}
@@ -249,7 +264,7 @@ htmlContent = """<head>
 			color: black;
 			overflow-x: hidden;
 			overflow-y: scroll;
-			font-family: "nameOfTheFont"; 
+			font-family: "nameOfTheFont";
 			font-feature-settings: "kern" on, "liga" on, "calt" on;
 			-moz-font-feature-settings: "kern" on, "liga" on, "calt" on;
 			-webkit-font-feature-settings: "kern" on, "liga" on, "calt" on;
@@ -275,7 +290,7 @@ htmlContent = """<head>
 			background-color: #ddd;
 			padding: 2px 3px;
 		}
-		
+
 		span#p08 { font-size: 08pt; padding: 08pt 0; }
 		span#p09 { font-size: 09pt; padding: 09pt 0; }
 		span#p10 { font-size: 10pt; padding: 10pt 0; }
@@ -287,7 +302,7 @@ htmlContent = """<head>
 		span#p16 { font-size: 16pt; padding: 16pt 0; }
 		span#largeParagraph { font-size: 32pt; padding: 32pt 0; }
 		span#veryLargeParagraph { font-size: 100pt; padding: 100pt 0; }
-		
+
 		.otFeatureLabel {
 			color: #666;
 			background-color: #ddd;
@@ -333,10 +348,10 @@ htmlContent = """<head>
 		.features {
 			clear: left;
 		}
-		input[type=checkbox]:checked + label { 
+		input[type=checkbox]:checked + label {
 			visibility: visible;
 			color: #fff;
-			background-color: #888; 
+			background-color: #888;
 		}
 		.otFeature {
 			visibility: collapse;
@@ -362,7 +377,7 @@ htmlContent = """<head>
 			padding: 0.5em 0;
 			margin-bottom: 0.5em;
 		}
-		
+
 		/* Footer paragraph: */
 		#helptext {
 			color: black;
@@ -373,10 +388,10 @@ htmlContent = """<head>
 			width: 100%;
 			font: x-small sans-serif;
 		}
-		
+
 		/* Dark Mode */
 		@media (prefers-color-scheme: dark) {
-			body { 
+			body {
 				background: #333;
 			}
 			.features, .label, a, body, p, #metricsLine {
@@ -390,7 +405,7 @@ htmlContent = """<head>
 				color: white;
 				background-color: black;
 			}
-			input[type=checkbox]:checked + label { 
+			input[type=checkbox]:checked + label {
 				color: black;
 				background-color: #aaa;
 			}
@@ -463,7 +478,7 @@ htmlContent = """<head>
 	const selectorLength = selectorOptions.length;
 
 	document.addEventListener('keyup', keyAnalysis);
-	
+
 	function keyAnalysis(event) {
 		if (event.ctrlKey) {
 			if (event.code == 'KeyR') {
@@ -493,7 +508,7 @@ htmlContent = """<head>
 			paragraph = paragraphs[i];
 			paragraph.textContent = txt.value;
 		}
-		
+
 		// update other elements:
 		document.getElementById('metricsLine').textContent = txt.value;
 	}
@@ -526,7 +541,7 @@ htmlContent = """<head>
 			}
 		}
 		codeLine = codeLine.slice(0, -2)
-		
+
 		// then, apply line for every browser:
 		const prefixes = ["","-moz-","-webkit-","-ms-","-o-",];
 		const suffix = "font-feature-settings: "
@@ -537,7 +552,7 @@ htmlContent = """<head>
 			cssCode += codeLine
 			cssCode += "; "
 		}
-		
+
 		document.getElementById('waterfall').style.cssText = cssCode;
 		document.getElementById('featureLine').innerHTML = cssCode.replace(/;/g,";<br/>");
 		changeFont();
@@ -607,14 +622,14 @@ if not appVersionHighEnough:
 	print("This script requires Glyphs 2 or higher. Sorry.")
 else:
 	firstDoc = Glyphs.orderedDocuments()[0]
-	if firstDoc.isKindOfClass_(GSProjectDocument):
+	if isinstance(firstDoc, GSProjectDocument):
 		# Frontmost doc is a .glyphsproject file:
-		thisFont = firstDoc.font() # frontmost project file
+		thisFont = firstDoc.font()  # type: ignore
 		activeFontInstances = activeInstancesOfProjectByFormat(firstDoc, fileFormats=fileFormats)
 		exportPath = firstDoc.exportPath()
 	else:
 		# Frontmost doc is a .glyphs file:
-		thisFont = Glyphs.font # frontmost font
+		thisFont = Glyphs.font  # frontmost font
 		activeFontInstances = activeInstancesOfFontByFormat(thisFont, fileFormats=fileFormats)
 		exportPath = currentWebExportPath()
 
@@ -632,7 +647,7 @@ else:
 			title="⚠️ No exporting fonts found",
 			message="No active font instances are set in Font Info > %s. Cannot create HTML for %s." % (exports, familyName),
 			OKButton=None,
-			)
+		)
 		print("❌ %s: No instances set in Font Info. Aborting." % familyName)
 	else:
 		print("Preparing Test HTML for:")
@@ -645,14 +660,17 @@ else:
 		firstFontName = activeFontInstances[0][1]
 
 		replacements = (
-			("familyName", familyName), ("nameOfTheFont", firstFontName), ("The Quick Brown Fox Jumps Over The Lazy Dog.", allUnicodeEscapesOfFont(thisFont)),
-			("fileName", firstFileName), ("		<!-- moreOptions -->\n", optionList), ("		<!-- moreFeatures -->\n",
-																					featureListForFont(thisFont)), ("		<!-- fontFaces -->\n", fontFacesCSS)
-			)
+			("familyName", familyName),
+			("nameOfTheFont", firstFontName),
+			("The Quick Brown Fox Jumps Over The Lazy Dog.", allUnicodeEscapesOfFont(thisFont)),
+			("fileName", firstFileName),
+			("		<!-- moreOptions -->\n", optionList),
+			("		<!-- moreFeatures -->\n", featureListForFont(thisFont)),
+			("		<!-- fontFaces -->\n", fontFacesCSS)
+		)
 
 		htmlContent = replaceSet(htmlContent, replacements)
-		
-		
+
 		# Write file to disk:
 		if exportPath:
 			filepath = thisFont.filepath
@@ -673,4 +691,4 @@ else:
 				title="⚠️ Webfont Test HTML Error",
 				message="Could not determine export path. You need to export webfonts first.",
 				OKButton=None,
-				)
+			)

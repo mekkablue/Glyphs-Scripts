@@ -1,4 +1,4 @@
-#MenuTitle: Batch-Set Path Attributes
+# MenuTitle: Batch-Set Path Attributes
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Set path attributes of all paths in selected glyphs, the master, the font, etc.
 """
 
 import vanilla
+from GlyphsApp import Glyphs, Message
+
 
 def intOrNone(value):
 	value = str(value)
@@ -19,31 +21,33 @@ def intOrNone(value):
 		return newValue
 	return None
 
+
 allAttributeNames = (
 	"lineCapStart",
 	"lineCapEnd",
 	"strokeWidth",
 	"strokeHeight",
 	"strokePos",
-	)
+)
 
 strokePositions = {
 	"center": None,
 	"inside (left of path)": 1,
 	"outside (right of path)": 0,
-	}
+}
 sortedStrokePositionNames = sorted(strokePositions.keys(), key=lambda thisListItem: "cio".find(thisListItem[0]))
 
 scopeMaster = (
 	"current master",
 	"all masters",
-	)
+)
 
 scopeGlyphs = (
 	"selected glyphs",
 	"exporting glyphs",
 	"all glyphs",
-	)
+)
+
 
 class BatchSetPathAttributes(object):
 	prefID = "com.mekkablue.BatchSetPathAttributes"
@@ -52,15 +56,15 @@ class BatchSetPathAttributes(object):
 		# Window 'self.w':
 		windowWidth = 300
 		windowHeight = 210
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Batch-Set Path Attributes", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Batch-Set Path Attributes",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -189,7 +193,7 @@ class BatchSetPathAttributes(object):
 
 		if scopeGlyphs == 0:
 			# selected glyphs
-			return [l.parent for l in thisFont.selectedLayers]
+			return [layer.parent for layer in thisFont.selectedLayers]
 		elif scopeGlyphs == 1:
 			# exporting glyphs
 			return [g for g in thisFont.glyphs if g.export]
@@ -216,17 +220,17 @@ class BatchSetPathAttributes(object):
 						title="⚠️ No path selected",
 						message="No path found for extracting attributes. Open a layer containing paths, select a specific path, and try again.",
 						OKButton=None
-						)
+					)
 
 				if currentPath:
 					lineCaps = []
 
 					lineCapStart = currentPath.attributeForKey_("lineCapStart")
-					if lineCapStart != None:
+					if lineCapStart is not None:
 						lineCaps.append(lineCapStart)
 
 					lineCapEnd = currentPath.attributeForKey_("lineCapEnd")
-					if lineCapEnd != None:
+					if lineCapEnd is not None:
 						lineCaps.append(lineCapEnd)
 
 					self.setPref("lineCaps", ", ".join([str(x) for x in set(lineCaps)]))
@@ -246,7 +250,7 @@ class BatchSetPathAttributes(object):
 					self.setPref("strokePos", strokePosPrefValue)
 
 			self.LoadPreferences()
-		except Exception as e:
+		except Exception as e:  # noqa: F841
 			# brings macro window to front and clears its log:
 			Glyphs.showMacroWindow()
 			print("\n⚠️ The ‘Batch-Set Path Attributes’ script encountered an error:\n")
@@ -261,7 +265,7 @@ class BatchSetPathAttributes(object):
 		if not self.SavePreferences():
 			print("Note: 'Batch-Set Path Attributes' could not write preferences.")
 
-		thisFont = Glyphs.font # frontmost font
+		thisFont = Glyphs.font  # frontmost font
 		if thisFont is None:
 			self.noFontOpenErrorMsg()
 		else:
@@ -279,7 +283,7 @@ class BatchSetPathAttributes(object):
 			print("🔠 Clearing attributes in %i glyph%s...\n" % (
 				len(glyphs),
 				"" if len(glyphs) == 1 else "s",
-				))
+			))
 
 			if not glyphs:
 				self.glyphScopeErrorMsg()
@@ -298,7 +302,7 @@ class BatchSetPathAttributes(object):
 		Glyphs.showNotification(
 			"%s: Done" % (thisFont.familyName),
 			"Finished removing path attributes. Details in Macro Window",
-			)
+		)
 		print("\nDone.")
 
 	def BatchSetPathAttributesMain(self, sender=None):
@@ -310,7 +314,7 @@ class BatchSetPathAttributes(object):
 			if not self.SavePreferences():
 				print("Note: 'Batch-Set Path Attributes' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				self.noFontOpenErrorMsg()
 			else:
@@ -346,7 +350,7 @@ class BatchSetPathAttributes(object):
 				print("🔠 Setting attributes for %i glyph%s...\n" % (
 					len(glyphs),
 					"" if len(glyphs) == 1 else "s",
-					))
+				))
 
 				if not glyphs:
 					self.glyphScopeErrorMsg()
@@ -360,7 +364,7 @@ class BatchSetPathAttributes(object):
 									for thisPath in thisLayer.paths:
 										# line caps for start and end:
 										for capValue, startOrEnd in zip(lineCaps, ("lineCapStart", "lineCapEnd")):
-											if capValue == None:
+											if capValue is None:
 												thisPath.removeAttributeForKey_(startOrEnd)
 											else:
 												thisPath.setAttribute_forKey_(capValue, startOrEnd)
@@ -368,12 +372,12 @@ class BatchSetPathAttributes(object):
 										# stroke width, height, pos:
 										thisPath.setAttribute_forKey_(strokeWidth, "strokeWidth")
 
-										if strokeHeight: # default is None
+										if strokeHeight:  # default is None
 											thisPath.setAttribute_forKey_(strokeHeight, "strokeHeight")
 										else:
 											thisPath.removeAttributeForKey_("strokeHeight")
 
-										if strokePos is None: # default is None
+										if strokePos is None:  # default is None
 											thisPath.removeAttributeForKey_("strokePos")
 										else:
 											thisPath.setAttribute_forKey_(strokePos, "strokePos")
@@ -382,7 +386,7 @@ class BatchSetPathAttributes(object):
 			Glyphs.showNotification(
 				"%s: Done" % (thisFont.familyName),
 				"Batch-Set Path Attributes is finished. Details in Macro Window",
-				)
+			)
 			print("\nDone.")
 
 		except Exception as e:
@@ -391,5 +395,6 @@ class BatchSetPathAttributes(object):
 			print("Batch-Set Path Attributes Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 BatchSetPathAttributes()

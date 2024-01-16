@@ -1,4 +1,4 @@
-#MenuTitle: Build Ldot and ldot
+# MenuTitle: Build Ldot and ldot
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Builds Ldot, ldot and ldot.sc from existing L and periodcentered.loclCAT(.case/.
 """
 
 from Foundation import NSPoint
+from GlyphsApp import Glyphs, GSGlyph, GSComponent
+
 
 def buildLdot(targetGlyphName, baseName, accentName):
 	try:
@@ -41,8 +43,9 @@ def buildLdot(targetGlyphName, baseName, accentName):
 	except:
 		return 0
 
-thisFont = Glyphs.font # frontmost font
-Glyphs.clearLog() # clears macro window log
+
+thisFont = Glyphs.font  # frontmost font
+Glyphs.clearLog()  # clears macro window log
 
 print(f"Report for {thisFont.familyName}:")
 if thisFont.filepath:
@@ -52,7 +55,7 @@ buildGlyphs = [
 	("ldot", "l", "periodcentered.loclCAT"),
 	("Ldot", "L", "periodcentered.loclCAT.case"),
 	("ldot.sc", "l.sc", "periodcentered.loclCAT.sc"),
-	]
+]
 
 createdGlyphs = []
 tabText = ""
@@ -69,7 +72,7 @@ for glyphInfo in buildGlyphs:
 reportMessage = "%i glyph%s created" % (
 	len(createdGlyphs),
 	"" if len(createdGlyphs) == 1 else "s",
-	)
+)
 
 print(f"\nDone: {reportMessage}.")
 

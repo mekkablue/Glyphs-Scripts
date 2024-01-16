@@ -1,19 +1,21 @@
-#MenuTitle: Vertical Metrics Manager
+# MenuTitle: Vertical Metrics Manager
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 try:
 	from builtins import str
-except Exception as e:
+except Exception as e:  # noqa: F841
 	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 __doc__ = """
 Manage and sync ascender, descender and linegap values for hhea, OS/2 sTypo and OS/2 usWin.
 """
 
 import vanilla
+from GlyphsApp import Glyphs, Message
+
 
 def cleanInt(numberString):
 	exportString = ""
-	numberString = unicode(numberString)
+	numberString = str(numberString)
 	for char in numberString:
 		if char in "1234567890+-":
 			exportString += char
@@ -21,16 +23,18 @@ def cleanInt(numberString):
 	floatNumber = round(floatNumber)
 	return int(floatNumber)
 
+
 def roundUpByValue(x, roundBy):
 	if x == 0:
 		# avoid division by zero
 		return 0
 	else:
-		sign = x / abs(x) # +1 or -1
+		sign = x / abs(x)  # +1 or -1
 		factor = 0
 		if x % roundBy:
 			factor = 1
 		return int((abs(x) // roundBy * roundBy + factor * roundBy) * sign)
+
 
 class VerticalMetricsManager(object):
 	prefID = "com.mekkablue.VerticalMetricsManager"
@@ -60,15 +64,15 @@ class VerticalMetricsManager(object):
 		# Window 'self.w':
 		windowWidth = 330
 		windowHeight = 410
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Vertical Metrics Manager", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Vertical Metrics Manager",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -85,30 +89,21 @@ class VerticalMetricsManager(object):
 		self.w.winAsc = vanilla.EditText((inset + 70, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.winAsc.getNSTextField().setToolTip_("OS/2 usWinAscent. Should be the maximum height in your font. Expect clipping or rendering artefacts beyond this point.")
 		self.w.winDesc = vanilla.EditText((inset + 140, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small')
-		self.w.winDesc.getNSTextField().setToolTip_(
-			"OS/2 usWinDescent (unsigned integer). Should be the maximum depth in your font, like the lowest descender you have. Expect clipping or rendering artefacts beyond this point."
-			)
+		self.w.winDesc.getNSTextField().setToolTip_("OS/2 usWinDescent (unsigned integer). Should be the maximum depth in your font, like the lowest descender you have. Expect clipping or rendering artefacts beyond this point.")
 		self.w.winGap = vanilla.EditText((inset + 210, linePos, 65, 19), "", callback=None, sizeStyle='small', readOnly=True, placeholder="n/a")
 		self.w.winGap.getNSTextField().setToolTip_("OS/2 usWinLineGap does not exist, hence greyed out here.")
 		self.w.winUpdate = vanilla.SquareButton((inset + 280, linePos, 20, 19), "↺", sizeStyle='small', callback=self.update)
-		self.w.winUpdate.getNSButton(
-		).setToolTip_("Will recalculate the OS/2 usWin values in the fields to the left. Takes the measurement settings below into account, except for the Limit options.")
+		self.w.winUpdate.getNSButton().setToolTip_("Will recalculate the OS/2 usWin values in the fields to the left. Takes the measurement settings below into account, except for the Limit options.")
 		linePos += lineHeight + 4
 
 		self.w.parenTypo = vanilla.TextBox((inset - 12, linePos + 5, 15, 20), "┏", sizeStyle='small', selectable=False)
 		self.w.titleTypo = vanilla.TextBox((inset, linePos + 3, 70, 14), "OS/2 sTypo", sizeStyle='small', selectable=True)
 		self.w.typoAsc = vanilla.EditText((inset + 70, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small')
-		self.w.typoAsc.getNSTextField().setToolTip_(
-			"OS/2 sTypoAscender (positive value), should be the same as hheaAscender. Should be the maximum height of the glyphs relevant for horizontal text setting in your font, like the highest accented uppercase letter, typically Aring or Ohungarumlaut. Used for first baseline offset in DTP and office apps and together with the line gap value, also in browsers."
-			)
+		self.w.typoAsc.getNSTextField().setToolTip_("OS/2 sTypoAscender (positive value), should be the same as hheaAscender. Should be the maximum height of the glyphs relevant for horizontal text setting in your font, like the highest accented uppercase letter, typically Aring or Ohungarumlaut. Used for first baseline offset in DTP and office apps and together with the line gap value, also in browsers.")
 		self.w.typoDesc = vanilla.EditText((inset + 140, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small')
-		self.w.typoDesc.getNSTextField().setToolTip_(
-			"OS/2 sTypoDescender (negative value), should be the same as hheaDescender. Should be the maximum depth of the glyphs relevant for horizontal text setting in your font, like the lowest descender or bottom accent, typically Gcommaccent, Ccedilla, or one of the lowercase descenders (gjpqy). Together with the line gap value, used for line distance calculation in office apps and browsers."
-			)
+		self.w.typoDesc.getNSTextField().setToolTip_("OS/2 sTypoDescender (negative value), should be the same as hheaDescender. Should be the maximum depth of the glyphs relevant for horizontal text setting in your font, like the lowest descender or bottom accent, typically Gcommaccent, Ccedilla, or one of the lowercase descenders (gjpqy). Together with the line gap value, used for line distance calculation in office apps and browsers.")
 		self.w.typoGap = vanilla.EditText((inset + 210, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small')
-		self.w.typoGap.getNSTextField().setToolTip_(
-			"OS/2 sTypoLineGap (positive value), should be the same as hheaLineGap. Should be either zero or a value for padding between lines that makes sense visually. Office apps insert this distance between the lines, browsers add half on top and half below each line, also for determining text object boundaries."
-			)
+		self.w.typoGap.getNSTextField().setToolTip_("OS/2 sTypoLineGap (positive value), should be the same as hheaLineGap. Should be either zero or a value for padding between lines that makes sense visually. Office apps insert this distance between the lines, browsers add half on top and half below each line, also for determining text object boundaries.")
 		self.w.typoUpdate = vanilla.SquareButton((inset + 280, linePos, 20, 19), "↺", sizeStyle='small', callback=self.update)
 		self.w.typoUpdate.getNSButton().setToolTip_("Will recalculate the OS/2 sTypo values in the fields to the left. Takes the measurement settings below into account.")
 		linePos += lineHeight
@@ -117,27 +112,17 @@ class VerticalMetricsManager(object):
 		self.w.parenHhea = vanilla.TextBox((inset - 12, linePos + 3, 15, 20), "┗", sizeStyle='small', selectable=False)
 		self.w.titleHhea = vanilla.TextBox((inset, linePos + 3, 70, 14), "hhea", sizeStyle='small', selectable=True)
 		self.w.hheaAsc = vanilla.EditText((inset + 70, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small')
-		self.w.hheaAsc.getNSTextField().setToolTip_(
-			"hheaAscender (positive value), should be the same as OS/2 sTypoAscender. Should be the maximum height of the glyphs relevant for horizontal text setting in your font, like the highest accented uppercase letter, typically Aring or Ohungarumlaut. Used for first baseline offset in Mac office apps and together with the line gap value, also in Mac browsers."
-			)
+		self.w.hheaAsc.getNSTextField().setToolTip_("hheaAscender (positive value), should be the same as OS/2 sTypoAscender. Should be the maximum height of the glyphs relevant for horizontal text setting in your font, like the highest accented uppercase letter, typically Aring or Ohungarumlaut. Used for first baseline offset in Mac office apps and together with the line gap value, also in Mac browsers.")
 		self.w.hheaDesc = vanilla.EditText((inset + 140, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small')
-		self.w.hheaDesc.getNSTextField().setToolTip_(
-			"hheaDescender (negative value), should be the same as OS/2 sTypoDescender. Should be the maximum depth of the glyphs relevant for horizontal text setting in your font, like the lowest descender or bottom accent, typically Gcommaccent, Ccedilla, or one of the lowercase descenders (gjpqy). Together with the line gap value, used for line distance calculation in office apps and browsers."
-			)
+		self.w.hheaDesc.getNSTextField().setToolTip_("hheaDescender (negative value), should be the same as OS/2 sTypoDescender. Should be the maximum depth of the glyphs relevant for horizontal text setting in your font, like the lowest descender or bottom accent, typically Gcommaccent, Ccedilla, or one of the lowercase descenders (gjpqy). Together with the line gap value, used for line distance calculation in office apps and browsers.")
 		self.w.hheaGap = vanilla.EditText((inset + 210, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small')
-		self.w.hheaGap.getNSTextField().setToolTip_(
-			"hheaLineGap (positive value), should be the same as OS/2 sTypoLineGap. Should be either zero or a value for padding between lines that makes sense visually. Mac office apps insert this distance between the lines, Mac browsers add half on top and half below each line, also for determining text object boundaries."
-			)
+		self.w.hheaGap.getNSTextField().setToolTip_("hheaLineGap (positive value), should be the same as OS/2 sTypoLineGap. Should be either zero or a value for padding between lines that makes sense visually. Mac office apps insert this distance between the lines, Mac browsers add half on top and half below each line, also for determining text object boundaries.")
 		self.w.hheaUpdate = vanilla.SquareButton((inset + 280, linePos, 20, 19), "↺", sizeStyle='small', callback=self.update)
 		self.w.hheaUpdate.getNSButton().setToolTip_("Will recalculate the hhea values in the fields to the left. Takes the measurement settings below into account.")
 		linePos += lineHeight
 
-		self.w.useTypoMetrics = vanilla.CheckBox(
-			(inset + 70, linePos, -inset, 20), "Use Typo Metrics (fsSelection bit 7)", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.useTypoMetrics.getNSButton().setToolTip_(
-			"Should ALWAYS BE ON. Only uncheck if you really know what you are doing. If unchecked, line behaviour will be not consistent between apps and browsers because some apps prefer win values to sTypo values for determining line distances."
-			)
+		self.w.useTypoMetrics = vanilla.CheckBox((inset + 70, linePos, -inset, 20), "Use Typo Metrics (fsSelection bit 7)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.useTypoMetrics.getNSButton().setToolTip_("Should ALWAYS BE ON. Only uncheck if you really know what you are doing. If unchecked, line behaviour will be not consistent between apps and browsers because some apps prefer win values to sTypo values for determining line distances.")
 		self.w.useTypoMetricsUpdate = vanilla.SquareButton((inset + 280, linePos, 20, 19), "↺", sizeStyle='small', callback=self.update)
 		self.w.useTypoMetricsUpdate.getNSButton().setToolTip_("Will reset the checkbox to the left to ON, because it should ALWAYS be on. Strongly recommended.")
 		linePos += lineHeight * 1.5
@@ -151,61 +136,40 @@ class VerticalMetricsManager(object):
 		self.w.roundValue.getNSTextField().setToolTip_("All value calculations will be rounded up to the next multiple of this value. Recommended: 10.")
 		linePos += lineHeight
 
-		self.w.includeAllMasters = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), "Include all masters (otherwise current master only)", value=True, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.includeAllMasters.getNSButton().setToolTip_(
-			"If checked, all masters will be measured. If unchecked, only the current master will be measured. Since vertical metrics should be the same throughout all masters, it also makes sense to measure on all masters."
-			)
+		self.w.includeAllMasters = vanilla.CheckBox((inset, linePos, -inset, 20), "Include all masters (otherwise current master only)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeAllMasters.getNSButton().setToolTip_("If checked, all masters will be measured. If unchecked, only the current master will be measured. Since vertical metrics should be the same throughout all masters, it also makes sense to measure on all masters.")
 		linePos += lineHeight
 
-		self.w.respectMarkToBaseOffset = vanilla.CheckBox(
-			(inset, linePos, -inset, 20), "Include mark-to-base offset for OS/2 usWin", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.respectMarkToBaseOffset.getNSButton().setToolTip_(
-			"If checked will calculate the maximum possible height that can be reached with top-anchored marks, and the lowest depth with bottom-anchored marks, and use those values for the OS/2 usWin values. Strongly recommended for making fonts work on Windows if they rely on mark-to-base positioning (e.g. Arabic). Respects the ‘Limit to Script’ setting."
-			)
+		self.w.respectMarkToBaseOffset = vanilla.CheckBox((inset, linePos, -inset, 20), "Include mark-to-base offset for OS/2 usWin", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.respectMarkToBaseOffset.getNSButton().setToolTip_("If checked will calculate the maximum possible height that can be reached with top-anchored marks, and the lowest depth with bottom-anchored marks, and use those values for the OS/2 usWin values. Strongly recommended for making fonts work on Windows if they rely on mark-to-base positioning (e.g. Arabic). Respects the ‘Limit to Script’ setting.")
 		linePos += lineHeight
 
 		self.w.ignoreNonExporting = vanilla.CheckBox((inset, linePos, -inset, 20), "Ignore non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.ignoreNonExporting.getNSButton(
-		).setToolTip_("If checked, glyphs that do not export will be excluded from measuring. Recommended. (Ignored for calculating the OS/2 usWin values.)")
+		self.w.ignoreNonExporting.getNSButton().setToolTip_("If checked, glyphs that do not export will be excluded from measuring. Recommended. (Ignored for calculating the OS/2 usWin values.)")
 		linePos += lineHeight
 
 		self.w.preferSelectedGlyphs = vanilla.CheckBox((inset, linePos, -inset, 20), "Limit to selected glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.preferSelectedGlyphs.getNSButton().setToolTip_(
-			"If checked, only the current glyphs will be measured. Can be combined with the other Limit options. May make sense if you want your metrics to be e.g. Latin-CE-centric."
-			)
+		self.w.preferSelectedGlyphs.getNSButton().setToolTip_("If checked, only the current glyphs will be measured. Can be combined with the other Limit options. May make sense if you want your metrics to be e.g. Latin-CE-centric.")
 		linePos += lineHeight
 
 		self.w.preferScript = vanilla.CheckBox((inset, linePos, inset + 110, 20), "Limit to script:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.preferScript.getNSButton().setToolTip_(
-			"If checked, only measures glyphs belonging to the selected writing system. Can be combined with the other Limit options. (Ignored for calculating the OS/2 usWin values, but respected for mark-to-base calculation.)"
-			)
+		self.w.preferScript.getNSButton().setToolTip_("If checked, only measures glyphs belonging to the selected writing system. Can be combined with the other Limit options. (Ignored for calculating the OS/2 usWin values, but respected for mark-to-base calculation.)")
 		self.w.preferScriptPopup = vanilla.PopUpButton((inset + 115, linePos + 1, -inset - 25, 17), ("latin", "greek"), sizeStyle='small', callback=self.SavePreferences)
-		self.w.preferScriptPopup.getNSPopUpButton().setToolTip_(
-			"Choose a writing system ('script') you want the measurements to be limited to. May make sense to ignore other scripts if the font is intended only for e.g. Cyrillic. Does not apply to OS/2 usWin"
-			)
+		self.w.preferScriptPopup.getNSPopUpButton().setToolTip_("Choose a writing system ('script') you want the measurements to be limited to. May make sense to ignore other scripts if the font is intended only for e.g. Cyrillic. Does not apply to OS/2 usWin")
 		self.w.preferScriptUpdate = vanilla.SquareButton((-inset - 20, linePos + 1, -inset, 18), "↺", sizeStyle='small', callback=self.update)
 		self.w.preferScriptUpdate.getNSButton().setToolTip_("Update the script popup to the left with all scripts (writing systems) found in the current font.")
 		linePos += lineHeight
 
 		self.w.preferCategory = vanilla.CheckBox((inset, linePos, inset + 110, 20), "Limit to category:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.preferCategory.getNSButton().setToolTip_(
-			"If checked, only measures glyphs belonging to the selected glyph category. Can be combined with the other Limit options. (Ignored for calculating the OS/2 usWin values.)"
-			)
+		self.w.preferCategory.getNSButton().setToolTip_("If checked, only measures glyphs belonging to the selected glyph category. Can be combined with the other Limit options. (Ignored for calculating the OS/2 usWin values.)")
 		self.w.preferCategoryPopup = vanilla.PopUpButton((inset + 115, linePos + 1, -inset - 25, 17), ("Letter", "Number"), sizeStyle='small', callback=self.SavePreferences)
 		self.w.preferCategoryPopup.getNSPopUpButton().setToolTip_("Choose a glyph category you want the measurements to be limited to. It may make sense to limit only to Letter.")
 		self.w.preferCategoryUpdate = vanilla.SquareButton((-inset - 20, linePos + 1, -inset, 18), "↺", sizeStyle='small', callback=self.update)
 		self.w.preferCategoryUpdate.getNSButton().setToolTip_("Update the category popup to the left with all glyph categories found in the current font.")
 		linePos += lineHeight
 
-		self.w.allOpenFonts = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "⚠️ Read out and apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
-		self.w.allOpenFonts.getNSButton().setToolTip_(
-			"If activated, does not only measure the frontmost font, but all open fonts. Careful: when you press the Apply button, will also apply it to all open fonts. Useful if you have all font files for a font family open."
-			)
+		self.w.allOpenFonts = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Read out and apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allOpenFonts.getNSButton().setToolTip_("If activated, does not only measure the frontmost font, but all open fonts. Careful: when you press the Apply button, will also apply it to all open fonts. Useful if you have all font files for a font family open.")
 		linePos += lineHeight
 
 		# Run Button:
@@ -213,9 +177,7 @@ class VerticalMetricsManager(object):
 		self.w.helpButton.getNSButton().setToolTip_("Opens the Vertical Metrics tutorial (highly recommended) in your web browser.")
 
 		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Apply to Font", sizeStyle='regular', callback=self.VerticalMetricsManagerMain)
-		self.w.runButton.getNSButton().setToolTip_(
-			"Insert the OS/2, hhea and fsSelection values above as custom parameters in the font. The number values will be inserted into each master. Blank values will delete the respective parameters."
-			)
+		self.w.runButton.getNSButton().setToolTip_("Insert the OS/2, hhea and fsSelection values above as custom parameters in the font. The number values will be inserted into each master. Blank values will delete the respective parameters.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
@@ -277,7 +239,7 @@ class VerticalMetricsManager(object):
 			webbrowser.open(URL)
 
 	def update(self, sender=None):
-		Glyphs.clearLog() # clears macro window log
+		Glyphs.clearLog()  # clears macro window log
 
 		# update settings to the latest user input:
 		if not self.SavePreferences(self):
@@ -288,9 +250,9 @@ class VerticalMetricsManager(object):
 		if allOpenFonts:
 			theseFonts = Glyphs.fonts
 		else:
-			theseFonts = (frontmostFont, ) # iterable tuple of frontmost font only
+			theseFonts = (frontmostFont, )  # iterable tuple of frontmost font only
 
-		theseFamilyNames = [f.familyName for f in theseFonts]
+		# theseFamilyNames = [f.familyName for f in theseFonts]
 		print("\nVertical Metrics Manager\nUpdating values for:\n")
 		for i, thisFont in enumerate(theseFonts):
 			print("%i. %s:" % (i + 1, thisFont.familyName))
@@ -327,7 +289,7 @@ class VerticalMetricsManager(object):
 				currentMaster = thisFont.selectedFontMaster
 				for thisGlyph in thisFont.glyphs:
 					if thisGlyph.export or not ignoreNonExporting:
-						scriptCheckOK = not shouldLimitToScript or thisGlyph.script == selectedScript # needed for respectMarkToBaseOffset
+						scriptCheckOK = not shouldLimitToScript or thisGlyph.script == selectedScript  # needed for respectMarkToBaseOffset
 
 						for thisLayer in thisGlyph.layers:
 							belongsToCurrentMaster = thisLayer.associatedFontMaster() == currentMaster
@@ -374,7 +336,6 @@ class VerticalMetricsManager(object):
 													if bottomAnchor.y < lowestBottomAnchor:
 														lowestBottomAnchor = bottomAnchor.y
 														lowestBottomAnchorGlyph = f"{fontReport}{thisGlyph.name}, layer: {thisLayer.name}"
-
 
 			print("Highest relevant glyph:")
 			print(f"- {highestGlyph} (highest)")
@@ -443,7 +404,7 @@ class VerticalMetricsManager(object):
 			selectedScript = self.w.preferScriptPopup.getTitle()
 
 			if shouldLimitToSelectedGlyphs:
-				selectedGlyphNames = [l.parent.name for l in frontmostFont.selectedLayers]
+				selectedGlyphNames = [layer.parent.name for layer in frontmostFont.selectedLayers]
 				if not selectedGlyphNames:
 					print("⚠️ Ignoring limitation to selected glyphs because no glyphs are selected (in frontmost font).")
 					shouldLimitToSelectedGlyphs = False
@@ -454,7 +415,7 @@ class VerticalMetricsManager(object):
 
 			for i, thisFont in enumerate(theseFonts):
 				if allOpenFonts:
-					fontReport = f"{i+1}. {thisFont.familyName}, "
+					fontReport = f"{i + 1}. {thisFont.familyName}, "
 				else:
 					fontReport = ""
 
@@ -499,7 +460,7 @@ class VerticalMetricsManager(object):
 				# determine highest x-height:
 				for thisMaster in thisFont.masters:
 					measuredX = thisMaster.xHeight
-					if measuredX >= thisMaster.capHeight or measuredX > thisFont.upm * 5: # all caps font or NSNotFound
+					if measuredX >= thisMaster.capHeight or measuredX > thisFont.upm * 5:  # all caps font or NSNotFound
 						measuredX = thisMaster.capHeight / 2
 					if measuredX > xHeight:
 						xHeight = thisMaster.xHeight
@@ -524,7 +485,7 @@ class VerticalMetricsManager(object):
 			else:
 				gap = 0
 
-			if gap > thisFont.upm * 5: # probably NSNotFound
+			if gap > thisFont.upm * 5:  # probably NSNotFound
 				gap = 0
 
 			print("Calculated values:")
@@ -548,7 +509,7 @@ class VerticalMetricsManager(object):
 			shouldIgnoreNonExporting = self.pref("ignoreNonExporting")
 			for thisGlyph in frontmostFont.glyphs:
 				inclusionCheckOK = thisGlyph.export or not shouldIgnoreNonExporting
-				if inclusionCheckOK and thisGlyph.script and not thisGlyph.script in scripts:
+				if inclusionCheckOK and thisGlyph.script and thisGlyph.script not in scripts:
 					scripts.append(thisGlyph.script)
 			if scripts:
 				self.w.preferScriptPopup.setItems(scripts)
@@ -564,7 +525,7 @@ class VerticalMetricsManager(object):
 			shouldIgnoreNonExporting = self.pref("ignoreNonExporting")
 			for thisGlyph in thisFont.glyphs:
 				inclusionCheckOK = thisGlyph.export or not shouldIgnoreNonExporting
-				if inclusionCheckOK and not thisGlyph.category in categories:
+				if inclusionCheckOK and thisGlyph.category not in categories:
 					categories.append(thisGlyph.category)
 			if categories:
 				self.w.preferCategoryPopup.setItems(categories)
@@ -587,7 +548,7 @@ class VerticalMetricsManager(object):
 
 	def VerticalMetricsManagerMain(self, sender):
 		try:
-			Glyphs.clearLog() # clears macro window log
+			Glyphs.clearLog()  # clears macro window log
 			print("Vertical Metrics Manager: setting parameters\n")
 
 			# update settings to the latest user input:
@@ -611,19 +572,19 @@ class VerticalMetricsManager(object):
 				"hheaLineGap": hheaGap,
 				"winDescent": winDesc,
 				"winAscent": winAsc,
-				}
+			}
 
 			allOpenFonts = self.pref("allOpenFonts")
 			if allOpenFonts:
 				theseFonts = Glyphs.fonts
 			else:
-				theseFonts = (Glyphs.font, ) # iterable tuple of frontmost font only
+				theseFonts = (Glyphs.font, )  # iterable tuple of frontmost font only
 
 			for i, thisFont in enumerate(theseFonts):
 				print("\n\n🔠 %s%s:" % (
 					"%i. " % (i + 1) if allOpenFonts else "",
 					thisFont.familyName,
-					))
+				))
 				if thisFont.filepath:
 					print(f"📄 {thisFont.filepath}")
 				else:
@@ -659,9 +620,9 @@ class VerticalMetricsManager(object):
 				message="Set vertical metrics in %i font%s. Detailed report in Macro Window." % (
 					len(theseFonts),
 					"" if len(theseFonts) == 1 else "s",
-					),
+				),
 				OKButton=None,
-				)
+			)
 
 		except Exception as e:
 			# brings macro window to front and reports error:
@@ -669,5 +630,6 @@ class VerticalMetricsManager(object):
 			print("Vertical Metrics Manager Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 VerticalMetricsManager()

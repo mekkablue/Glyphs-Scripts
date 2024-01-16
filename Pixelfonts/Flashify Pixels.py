@@ -1,9 +1,12 @@
-#MenuTitle: Flashify Pixels
+# MenuTitle: Flashify Pixels
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Adds small bridges to diagonal pixel connections (where two pixel corners touch). Otherwise your counters may be lost in the Flash text engine (hence the name of the script).
 """
+
+from GlyphsApp import Glyphs, GSPath, GSNode, GSLINE
+
 
 def karo(x, y):
 	koordinaten = ([x - 1, y], [x, y - 1], [x + 1, y], [x, y + 1])
@@ -16,8 +19,9 @@ def karo(x, y):
 	karo.closed = True
 	return karo
 
+
 def process(thisLayer):
-	# thisLayer.parent.beginUndo() # undo grouping causes crashes
+	# thisLayer.parent.beginUndo()  # undo grouping causes crashes
 
 	count = 0
 	purePathsLayer = thisLayer.copyDecomposedLayer()
@@ -40,8 +44,9 @@ def process(thisLayer):
 					thisLayer.paths.append(myKaro)
 				count += 1
 
-	# thisLayer.parent.endUndo() # undo grouping causes crashes
+	# thisLayer.parent.endUndo()  # undo grouping causes crashes
 	return count
+
 
 Glyphs.clearLog()
 thisFont = Glyphs.font
@@ -68,6 +73,6 @@ except Exception as e:
 	raise e
 
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
 
 # thisFont.grid = oldGridstep

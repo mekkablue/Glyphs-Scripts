@@ -1,11 +1,12 @@
-#MenuTitle: Fraction Fever 2
+# MenuTitle: Fraction Fever 2
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Insert Tal Leming’s Fraction Fever 2 code into the font.
 """
 
-import GlyphsApp
+from GlyphsApp import Glyphs, GSFeature
+
 Font = Glyphs.font
 
 # Inject Fraction Fever 2 Code:
@@ -17,83 +18,84 @@ fractionFeverCode = """# Fraction Fever 2 by Tal Leming
 @figDenom = [zero.dnom one.dnom two.dnom three.dnom four.dnom five.dnom six.dnom seven.dnom eight.dnom nine.dnom];
 
 lookup FractionBar {
-     ignore sub slash @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault slash';
-     ignore sub slash' @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault slash;
-     ignore sub slash @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault slash';
-     ignore sub slash' @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault slash;
-     ignore sub slash @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault slash';
-     ignore sub slash' @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault slash;
-     ignore sub slash @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault slash';
-     ignore sub slash' @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault slash;
-     ignore sub slash @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault slash';
-     ignore sub slash' @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault slash;
-     ignore sub slash @figDefault @figDefault @figDefault @figDefault @figDefault slash';
-     ignore sub slash' @figDefault @figDefault @figDefault @figDefault @figDefault slash;
-     ignore sub slash @figDefault @figDefault @figDefault @figDefault slash';
-     ignore sub slash' @figDefault @figDefault @figDefault @figDefault slash;
-     ignore sub slash @figDefault @figDefault @figDefault slash';
-     ignore sub slash' @figDefault @figDefault @figDefault slash;
-     ignore sub slash @figDefault @figDefault slash';
-     ignore sub slash' @figDefault @figDefault slash;
-     ignore sub slash @figDefault slash';
-     ignore sub slash' @figDefault slash;
-     sub @figDefault slash' @figDefault by fraction;
+	ignore sub slash @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault slash';
+	ignore sub slash' @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault slash;
+	ignore sub slash @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault slash';
+	ignore sub slash' @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault slash;
+	ignore sub slash @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault slash';
+	ignore sub slash' @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault slash;
+	ignore sub slash @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault slash';
+	ignore sub slash' @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault slash;
+	ignore sub slash @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault slash';
+	ignore sub slash' @figDefault @figDefault @figDefault @figDefault @figDefault @figDefault slash;
+	ignore sub slash @figDefault @figDefault @figDefault @figDefault @figDefault slash';
+	ignore sub slash' @figDefault @figDefault @figDefault @figDefault @figDefault slash;
+	ignore sub slash @figDefault @figDefault @figDefault @figDefault slash';
+	ignore sub slash' @figDefault @figDefault @figDefault @figDefault slash;
+	ignore sub slash @figDefault @figDefault @figDefault slash';
+	ignore sub slash' @figDefault @figDefault @figDefault slash;
+	ignore sub slash @figDefault @figDefault slash';
+	ignore sub slash' @figDefault @figDefault slash;
+	ignore sub slash @figDefault slash';
+	ignore sub slash' @figDefault slash;
+	sub @figDefault slash' @figDefault by fraction;
 } FractionBar;
 
 lookup Numerator1 {
-     sub @figDefault' fraction by @figNumer;
+	sub @figDefault' fraction by @figNumer;
 } Numerator1;
 
 lookup Numerator2 {
-     sub @figDefault' @figNumer fraction by @figNumer;
+	sub @figDefault' @figNumer fraction by @figNumer;
 } Numerator2;
 
 lookup Numerator3 {
-     sub @figDefault' @figNumer @figNumer fraction by @figNumer;
+	sub @figDefault' @figNumer @figNumer fraction by @figNumer;
 } Numerator3;
 
 lookup Numerator4 {
-     sub @figDefault' @figNumer @figNumer @figNumer fraction by @figNumer;
+	sub @figDefault' @figNumer @figNumer @figNumer fraction by @figNumer;
 } Numerator4;
 
 lookup Numerator5 {
-     sub @figDefault' @figNumer @figNumer @figNumer @figNumer fraction by @figNumer;
+	sub @figDefault' @figNumer @figNumer @figNumer @figNumer fraction by @figNumer;
 } Numerator5;
 
 lookup Numerator6 {
-     sub @figDefault' @figNumer @figNumer @figNumer @figNumer @figNumer fraction by @figNumer;
+	sub @figDefault' @figNumer @figNumer @figNumer @figNumer @figNumer fraction by @figNumer;
 } Numerator6;
 
 lookup Numerator7 {
-     sub @figDefault' @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer fraction by @figNumer;
+	sub @figDefault' @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer fraction by @figNumer;
 } Numerator7;
 
 lookup Numerator8 {
-     sub @figDefault' @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer fraction by @figNumer;
+	sub @figDefault' @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer fraction by @figNumer;
 } Numerator8;
 
 lookup Numerator9 {
-     sub @figDefault' @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer fraction by @figNumer;
+	sub @figDefault' @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer fraction by @figNumer;
 } Numerator9;
 
 lookup Numerator10 {
-     sub @figDefault' @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer fraction by @figNumer;
+	sub @figDefault' @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer fraction by @figNumer;
 } Numerator10;
 
 lookup Numerator11 {
-     sub @figDefault' @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer fraction by @figNumer;
+	sub @figDefault' @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer fraction by @figNumer;
 } Numerator11;
 
 lookup Numerator12 {
-     sub @figDefault' @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer fraction by @figNumer;
+	sub @figDefault' @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer @figNumer fraction by @figNumer;
 } Numerator12;
 
 lookup Denominator {
-     sub [fraction @figDenom] @figDefault' by @figDenom;
+	sub [fraction @figDenom] @figDefault' by @figDenom;
 } Denominator;
 
 sub @figDefault space' @figNumer by thinspace;
 """
+
 
 def updated_code(oldcode, beginsig, endsig, newcode):
 	"""Replaces text in oldcode with newcode, but only between beginsig and endsig."""
@@ -101,6 +103,7 @@ def updated_code(oldcode, beginsig, endsig, newcode):
 	end_offset = oldcode.find(endsig) + len(endsig)
 	newcode = oldcode[:begin_offset] + beginsig + newcode + "\n" + endsig + oldcode[end_offset:]
 	return newcode
+
 
 def create_otfeature(featurename="frac", featurecode="# empty feature code", targetfont=Glyphs.font, codesig="DEFAULT-CODE-SIGNATURE"):
 	"""
@@ -130,6 +133,7 @@ def create_otfeature(featurename="frac", featurecode="# empty feature code", tar
 		newFeature.code = beginSig + featurecode + "\n" + endSig
 		targetfont.features.append(newFeature)
 		return "Created new OT feature '%s'" % featurename
+
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
@@ -171,7 +175,7 @@ necessaryGlyphs = (
 	"fraction",
 	"space",
 	"thinspace",
-	)
+)
 
 existingGlyphNames = [g.name for g in Font.glyphs]
 glyphsToBeCreated = [n for n in necessaryGlyphs if n not in existingGlyphNames]

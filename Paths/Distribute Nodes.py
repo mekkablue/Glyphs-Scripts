@@ -1,20 +1,17 @@
-#MenuTitle: Distribute Nodes
+# MenuTitle: Distribute Nodes
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Distributes the selected nodes horizontally or vertically, depending on the bounding box.
 """
 
+from GlyphsApp import Glyphs
+
 Font = Glyphs.font
 selectedLayer = Font.selectedLayers[0]
 
 try:
-	try:
-		# until v2.1:
-		selection = selectedLayer.selection()
-	except:
-		# since v2.2:
-		selection = selectedLayer.selection
+	selection = selectedLayer.selection
 
 	selectionXList = [n.x for n in selection]
 	selectionYList = [n.y for n in selection]
@@ -43,7 +40,7 @@ try:
 		print()
 		raise e
 	finally:
-		Font.enableUpdateInterface() # re-enables UI updates in Font View
+		Font.enableUpdateInterface()  # re-enables UI updates in Font View
 
 except Exception as e:
 	if selection == ():

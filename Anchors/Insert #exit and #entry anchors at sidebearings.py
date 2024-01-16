@@ -1,4 +1,4 @@
-#MenuTitle: Insert #exit and #entry anchors at sidebearings
+# MenuTitle: Insert #exit and #entry anchors at sidebearings
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,12 +6,14 @@ Inserts #entry at LSB and #exit at RSB (LTR) or the other way around (RTL) in al
 """
 
 from AppKit import NSEvent, NSPoint
+from GlyphsApp import Glyphs, GSAnchor, GSRTL
+
 
 def process(thisLayer, overwrite):
 	anchorInfos = {
 		"#exit": thisLayer.width if thisLayer.parent.direction != GSRTL else 0.0,
 		"#entry": 0.0 if thisLayer.parent.direction != GSRTL else thisLayer.width,
-		}
+	}
 	for anchorName in anchorInfos.keys():
 		if not thisLayer.anchors[anchorName] or overwrite:
 			x = anchorInfos[anchorName]
@@ -20,9 +22,10 @@ def process(thisLayer, overwrite):
 			newAnchor.position = NSPoint(x, 0.0)
 			thisLayer.anchors.append(newAnchor)
 
-thisFont = Glyphs.font # frontmost font
-selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
-Glyphs.clearLog() # clears log in Macro window
+
+thisFont = Glyphs.font  # frontmost font
+selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+Glyphs.clearLog()  # clears log in Macro window
 
 keysPressed = NSEvent.modifierFlags()
 optionKey = 524288

@@ -1,4 +1,4 @@
-#MenuTitle: Dekink Master Layers
+# MenuTitle: Dekink Master Layers
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,16 +6,20 @@ Synchronize node distance proportions for angled smooth connections through all 
 """
 
 from Foundation import NSPoint, NSArray, NSSize
+from GlyphsApp import Glyphs, GSNode, GSSMOOTH, Message
+
 
 def vectorFromNodes(n1, n2):
 	return NSSize(n2.x - n1.x, n2.y - n1.y)
 
+
 def vectorLength(vector):
 	return (vector.width**2 + vector.height**2)**0.5
 
+
 def dekink(originLayer, compatibleLayerIDs, pathIndex, nodeIndex, ratio, refi1=None, refi2=None):
 	try:
-		if refi1 != None and refi2 != None:
+		if refi1 is not None and refi2 is not None:
 			thisGlyph = originLayer.parent
 			for thisID in compatibleLayerIDs:
 				thisLayer = thisGlyph.layers[thisID]
@@ -34,6 +38,7 @@ def dekink(originLayer, compatibleLayerIDs, pathIndex, nodeIndex, ratio, refi1=N
 		print(traceback.format_exc())
 		return False
 
+
 # determine current layer:
 currentFont = Glyphs.font
 currentLayer = currentFont.selectedLayers[0]
@@ -41,7 +46,7 @@ currentGlyph = currentLayer.parent
 
 # find compatible layers in the same glyph:
 layerIDs = []
-instances = [i for i in currentFont.instances if i.type==0]
+instances = [i for i in currentFont.instances if i.type == 0]
 for subrunArray in currentGlyph.layerGroups_masters_error_(NSArray(instances), NSArray(currentFont.masters), None):
 	if subrunArray:
 		subrun = tuple(subrunArray[0])
@@ -60,7 +65,7 @@ else:
 		errorCount = 0
 
 		# ...find the indices for selected nodes:
-		s = [n for n in currentLayer.selection if type(n) == GSNode]
+		s = [n for n in currentLayer.selection if isinstance(n, GSNode)]
 		for n in s:
 			pi = currentLayer.indexOfPath_(n.parent)
 			ni = n.index
@@ -71,7 +76,7 @@ else:
 				# third in the triplet:
 				n0 = n.prevNode.prevNode
 				n1 = n.prevNode
-				n2 = n # move this node
+				n2 = n  # move this node
 				vector1 = vectorFromNodes(n0, n1)
 				vector2 = vectorFromNodes(n0, n2)
 				ratio = vectorLength(vector2) / vectorLength(vector1)
@@ -80,7 +85,7 @@ else:
 
 			elif n.connection != GSSMOOTH and n.nextNode.connection == GSSMOOTH:
 				# first in the triplet:
-				n0 = n # move this node
+				n0 = n  # move this node
 				n1 = n.nextNode
 				n2 = n.nextNode.nextNode
 				vector1 = vectorFromNodes(n2, n1)
@@ -92,7 +97,7 @@ else:
 			elif n.connection == GSSMOOTH:
 				# middle of the triplet:
 				n0 = n.prevNode
-				n1 = n # move this node
+				n1 = n  # move this node
 				n2 = n.nextNode
 				vector1 = vectorFromNodes(n0, n2)
 				vector2 = vectorFromNodes(n0, n1)

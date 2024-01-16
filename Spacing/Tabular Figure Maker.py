@@ -1,11 +1,14 @@
-#MenuTitle: Tabular Figure Maker
+# MenuTitle: Tabular Figure Maker
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Takes existing .tf figures and spaces them tabularly, or creates them from existing default figures.
 """
 
-import vanilla, sys
+import vanilla
+import sys
+from GlyphsApp import Glyphs, GSGlyph, GSComponent, Message
+
 
 class TabularFigureSpacer(object):
 	prefID = "com.mekkablue.TabularFigureSpacer"
@@ -15,62 +18,62 @@ class TabularFigureSpacer(object):
 		"suffix": ".tf",
 		"createFromDefaultFigs": False,
 	}
-	
-	def __init__( self ):
+
+	def __init__(self):
 		# Window 'self.w':
-		windowWidth  = 270
+		windowWidth = 270
 		windowHeight = 160
-		windowWidthResize  = 100 # user can resize width by this value
-		windowHeightResize = 0   # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Tabular Figure Spacer", # window title
-			minSize = (windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize = (windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName = self.domain("mainwindow") # stores last window position and size
+			(windowWidth, windowHeight),  # default window size
+			"Tabular Figure Spacer",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
-		
+
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos+2, -inset, 14), "Fit default figures in tabular spaces:", sizeStyle="small", selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Fit default figures in tabular spaces:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
-		
-		self.w.targetText = vanilla.TextBox((inset, linePos+2, -inset, 14), "Reference glyph:", sizeStyle="small", selectable=True)
-		self.w.target = vanilla.ComboBox((inset+95, linePos-1, -inset-25, 19), [], sizeStyle="small", callback=self.SavePreferences)
-		self.w.updateButton = vanilla.SquareButton((-inset-20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.update)
+
+		self.w.targetText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Reference glyph:", sizeStyle="small", selectable=True)
+		self.w.target = vanilla.ComboBox((inset + 95, linePos - 1, -inset - 25, 19), [], sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.update)
 		linePos += lineHeight
-		
-		self.w.suffixText = vanilla.TextBox((inset, linePos+2, -inset, 14), "Tabular suffix:", sizeStyle="small", selectable=True)
-		self.w.suffix = vanilla.EditText((inset+95, linePos, -inset, 19), ".tf", callback=self.SavePreferences, sizeStyle="small")
+
+		self.w.suffixText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Tabular suffix:", sizeStyle="small", selectable=True)
+		self.w.suffix = vanilla.EditText((inset + 95, linePos, -inset, 19), ".tf", callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
-		
-		self.w.createFromDefaultFigs = vanilla.CheckBox((inset, linePos-1, -inset, 20), "⚠️ Create tab figures with default figures", value=False, callback=self.SavePreferences, sizeStyle="small")
+
+		self.w.createFromDefaultFigs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Create tab figures with default figures", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
-		
+
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Tab", sizeStyle="regular", callback=self.TabularFigureSpacerMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Tab", sizeStyle="regular", callback=self.TabularFigureSpacerMain)
 		self.w.setDefaultButton(self.w.runButton)
-		
+
 		# Load Settings:
 		if not self.LoadPreferences():
 			print("⚠️ ‘Tabular Figure Spacer’ could not load preferences. Will resort to defaults.")
-		
+
 		# Open window and focus on it:
 		self.update()
 		self.w.open()
 		self.w.makeKey()
-	
+
 	def update(self, sender=None):
 		self.w.target.setItems([g.name for g in Glyphs.font.glyphs if ".tf" in g.name or ".tosf" in g.name])
-		
+
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-	
+
 	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
@@ -82,7 +85,7 @@ class TabularFigureSpacer(object):
 			print(traceback.format_exc())
 			return False
 
-	def LoadPreferences( self ):
+	def LoadPreferences(self):
 		try:
 			for prefName in self.prefDict.keys():
 				# register defaults:
@@ -95,15 +98,15 @@ class TabularFigureSpacer(object):
 			print(traceback.format_exc())
 			return False
 
-	def TabularFigureSpacerMain( self, sender=None ):
+	def TabularFigureSpacerMain(self, sender=None):
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
-			
+
 			# update settings to the latest user input:
 			if not self.SavePreferences():
 				print("⚠️ ‘Tabular Figure Spacer’ could not write preferences.")
-			
+
 			# read prefs:
 			for prefName in self.prefDict.keys():
 				try:
@@ -112,8 +115,8 @@ class TabularFigureSpacer(object):
 					fallbackValue = self.prefDict[prefName]
 					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
 					setattr(sys.modules[__name__], prefName, fallbackValue)
-			
-			font = Glyphs.font # frontmost font
+
+			font = Glyphs.font  # frontmost font
 			if font is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -124,20 +127,20 @@ class TabularFigureSpacer(object):
 					reportName = f"{font}\n⚠️ The font file has not been saved yet."
 				print(f"Tabular Figure Spacer Report for {reportName}")
 				print()
-				
-				if createFromDefaultFigs:
+
+				if self.pref("createFromDefaultFigs"):
 					figs = "0123456789"
 					for fig in figs:
 						niceName = Glyphs.niceGlyphName(fig)
-						figName = f"{niceName}.{suffix.lstrip('.')}"
-						if figName != target:
+						figName = f"{niceName}.{self.pref('suffix').lstrip('.')}"
+						if figName != self.pref("target"):
 							newGlyph = GSGlyph(figName)
 							font.glyphs.append(newGlyph)
 							for layer in newGlyph.layers:
 								layer.shapes.append(GSComponent(niceName))
-				
-				targetGlyph = font.glyphs[target]
-				tabFigs = [g for g in font.glyphs if g.name.endswith(suffix)]
+
+				targetGlyph = font.glyphs[self.pref("target")]
+				tabFigs = [g for g in font.glyphs if g.name.endswith(self.pref("suffix"))]
 				for glyph in tabFigs:
 					if targetGlyph and targetGlyph != glyph:
 						for master in font.masters:
@@ -150,11 +153,11 @@ class TabularFigureSpacer(object):
 							leftPercentage = layer.LSB / (layer.LSB + layer.RSB)
 							layer.LSB += round(widthDiff * leftPercentage)
 							layer.width = targetLayer.width
-						glyph.widthMetricsKey = f"={target}"
+						glyph.widthMetricsKey = f"={self.pref('target')}"
 
 				names = [g.name for g in tabFigs]
-				font.newTab("/"+"/".join(names))
-	
+				font.newTab("/" + "/".join(names))
+
 			print("\nDone.")
 
 		except Exception as e:
@@ -163,5 +166,6 @@ class TabularFigureSpacer(object):
 			print(f"Tabular Figure Spacer Error: {e}")
 			import traceback
 			print(traceback.format_exc())
+
 
 TabularFigureSpacer()

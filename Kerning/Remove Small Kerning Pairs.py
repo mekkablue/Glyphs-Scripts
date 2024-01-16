@@ -1,4 +1,4 @@
-#MenuTitle: Remove Small Kerning Pairs
+# MenuTitle: Remove Small Kerning Pairs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,16 +6,19 @@ Specify a kerning value, and every kerning in the current master smaller than th
 """
 
 import vanilla
+from GlyphsApp import Glyphs
+
 
 def nameForID(Font, ID):
 	"""Return the name of a group or glyph for a given kerning ID."""
 	try:
-		if ID[0] == "@": # is a group
+		if ID[0] == "@":  # is a group
 			return ID
-		else: # is a glyph
+		else:  # is a glyph
 			return Font.glyphForId_(ID).name
 	except Exception as e:
 		raise e
+
 
 class DeleteSmallKerningPairs(object):
 
@@ -26,15 +29,15 @@ class DeleteSmallKerningPairs(object):
 
 		windowWidth = 325
 		windowHeight = 2 * offset + 8 * line
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Remove Small Kerning Pairs", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.DeleteSmallKerningPairs.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Remove Small Kerning Pairs",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.DeleteSmallKerningPairs.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		self.w.text_1 = vanilla.TextBox((15 - 1, offset + 2, -15, line), "In the current font master, delete all pairs smaller than:", sizeStyle='small')
@@ -126,10 +129,10 @@ class DeleteSmallKerningPairs(object):
 				maxKernValue = 0.0
 
 			# set the variables:
-			thisFont = Glyphs.font # frontmost font
-			thisFontMaster = thisFont.selectedFontMaster # active master
-			thisFontMasterID = thisFontMaster.id # active master ID
-			thisFontMasterKernDict = thisFont.kerning[thisFontMasterID] # kerning dictionary
+			thisFont = Glyphs.font  # frontmost font
+			thisFontMaster = thisFont.selectedFontMaster  # active master
+			thisFontMasterID = thisFontMaster.id  # active master ID
+			thisFontMasterKernDict = thisFont.kerning[thisFontMasterID]  # kerning dictionary
 
 			if ((shouldRemovePositive or shouldRemoveNegative) and maxKernValue) or shouldRemoveZero:
 				willRemove = "kernings smaller than %i" % maxKernValue
@@ -152,8 +155,8 @@ class DeleteSmallKerningPairs(object):
 							countClasses += 1
 
 						if (shouldRemoveGlyphToGlyph and countClasses == 0) or \
-								(shouldRemoveGlyphToClass and countClasses == 1) or \
-								(shouldRemoveClassToClass and countClasses == 2):
+							(shouldRemoveGlyphToClass and countClasses == 1) or \
+							(shouldRemoveClassToClass and countClasses == 2):
 
 							kerningValue = thisFontMasterKernDict[leftGlyphID][rightGlyphID]
 							leftName = nameForID(thisFont, leftGlyphID)
@@ -188,6 +191,7 @@ class DeleteSmallKerningPairs(object):
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Delete Small Kerning Pairs Error: %s" % e)
+
 
 # clear macro window log:
 Glyphs.clearLog()

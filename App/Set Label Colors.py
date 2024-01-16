@@ -1,4 +1,4 @@
-#MenuTitle: Set Label Colors
+# MenuTitle: Set Label Colors
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,7 +6,9 @@ Override the label colors for glyphs and layers.
 """
 
 import vanilla
-from Foundation import NSColor, NSArchiver, NSUnarchiver, NSKeyedArchiver
+from Foundation import NSColor, NSArchiver, NSUnarchiver, NSMutableArray
+from GlyphsApp import Glyphs, Message
+
 
 class SetLabelColors(object):
 	prefID = "com.mekkablue.SetLabelColors"
@@ -15,15 +17,15 @@ class SetLabelColors(object):
 		# Window 'self.w':
 		windowWidth = 210
 		windowHeight = 380
-		windowWidthResize = 0 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 0  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Set Glyph Label Colors", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Set Glyph Label Colors",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -160,8 +162,8 @@ class SetLabelColors(object):
 				NSArchiver.archivedDataWithRootObject_(NSColor.colorWithDeviceRed_green_blue_alpha_(0.98, 0.36, 0.67, 0.5)),
 				NSArchiver.archivedDataWithRootObject_(NSColor.colorWithDeviceRed_green_blue_alpha_(0.75, 0.75, 0.75, 0.5)),
 				NSArchiver.archivedDataWithRootObject_(NSColor.colorWithDeviceRed_green_blue_alpha_(0.25, 0.25, 0.25, 0.5)),
-				]
-			)
+			]
+		)
 		Glyphs.defaults["LabelColors"] = labelColors
 		self.LoadPreferences()
 		self.setTextColors()
@@ -219,8 +221,8 @@ class SetLabelColors(object):
 					float(getattr(self.w, g).get()),
 					float(getattr(self.w, b).get()),
 					float(getattr(self.w, a).get()),
-					)
 				)
+			)
 
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
@@ -250,8 +252,8 @@ class SetLabelColors(object):
 						min(1.0, abs(float(getattr(self.w, g).get()))),
 						min(1.0, abs(float(getattr(self.w, b).get()))),
 						min(1.0, abs(float(getattr(self.w, a).get()))),
-						)
 					)
+				)
 				labelColors.addObject_(colorData)
 
 			self.setTextColors()
@@ -301,5 +303,6 @@ class SetLabelColors(object):
 			print("Set Label Colors Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 SetLabelColors()

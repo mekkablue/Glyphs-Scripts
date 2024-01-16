@@ -1,13 +1,14 @@
-#MenuTitle: Compare Glyphsets
+# MenuTitle: Compare Glyphsets
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Compares the glyph set of the two frontmost fonts and outputs a report in the Macro Window.
 """
 
-import GlyphsApp
-thisFont = Glyphs.fonts[0] # frontmost font
-otherFont = Glyphs.fonts[1] # second font
+from GlyphsApp import Glyphs
+
+thisFont = Glyphs.fonts[0]  # frontmost font
+otherFont = Glyphs.fonts[1]  # second font
 
 thisFileName = thisFont.filepath.pathComponents()[-1]
 otherFileName = otherFont.filepath.pathComponents()[-1]

@@ -1,4 +1,4 @@
-#MenuTitle: Remove Anchors in Suffixed Glyphs
+# MenuTitle: Remove Anchors in Suffixed Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Removes all anchors from glyphs with one of the user-specified suffix.
 """
 
 import vanilla
+from GlyphsApp import Glyphs, Message
+
 
 class RemoveAnchorsinSuffixedGlyphs(object):
 
@@ -13,15 +15,15 @@ class RemoveAnchorsinSuffixedGlyphs(object):
 		# Window 'self.w':
 		windowWidth = 300
 		windowHeight = 120
-		windowWidthResize = 300 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 300  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Remove Anchors in Suffixed Glyphs", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.RemoveAnchorsinSuffixedGlyphs.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Remove Anchors in Suffixed Glyphs",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.RemoveAnchorsinSuffixedGlyphs.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		self.w.text_1 = vanilla.TextBox((15, 14, -15, 14), "Remove anchors from glyphs with these suffixes:", sizeStyle='small')
@@ -64,8 +66,8 @@ class RemoveAnchorsinSuffixedGlyphs(object):
 			suffixlist = Glyphs.defaults["com.mekkablue.RemoveAnchorsinSuffixedGlyphs.suffixlist"]
 			suffixes = [s.strip() for s in suffixlist.split(",")]
 
-			thisFont = Glyphs.font # frontmost font
-			Glyphs.clearLog() # clears macro window log
+			thisFont = Glyphs.font  # frontmost font
+			Glyphs.clearLog()  # clears macro window log
 			print("Remove Anchors in Suffixed Glyphs in font: ‘%s’" % thisFont.familyName)
 			print(thisFont.filepath)
 			print()
@@ -98,14 +100,15 @@ class RemoveAnchorsinSuffixedGlyphs(object):
 					cleanedGlyphsCount,
 					"" if cleanedGlyphsCount == 1 else "s",
 					thisFont.familyName,
-					),
+				),
 				OKButton=None,
-				)
+			)
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Remove Anchors in Suffixed Glyphs Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 RemoveAnchorsinSuffixedGlyphs()

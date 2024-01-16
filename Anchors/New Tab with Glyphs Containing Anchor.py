@@ -1,4 +1,4 @@
-#MenuTitle: New Tab with Glyphs Containing Anchor
+# MenuTitle: New Tab with Glyphs Containing Anchor
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Opens a new tab with all glyphs containing a specific anchor.
 """
 
 import vanilla
+from GlyphsApp import Glyphs, Message
+
 
 class NewTabWithAnchor(object):
 	prefID = "com.mekkablue.NewTabWithAnchor"
@@ -14,24 +16,22 @@ class NewTabWithAnchor(object):
 		# Window 'self.w':
 		windowWidth = 300
 		windowHeight = 160
-		windowWidthResize = 300 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 300  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"New Tab with Anchor", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.NewTabWithAnchor.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"New Tab with Anchor",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.NewTabWithAnchor.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		self.w.text_1 = vanilla.TextBox((15, 15, 100, 14), "Look for anchor", sizeStyle='small')
 		self.w.anchorName = vanilla.EditText((110, 12, -15, 20), "ogonek", sizeStyle='small')
 		self.w.text_2 = vanilla.TextBox((15, 38, -15, 14), "and open a tab with all glyphs containing it.", sizeStyle='small')
 
-		self.w.allLayers = vanilla.CheckBox(
-			(15, 60, -15, 20), "Look on all layers (otherwise only on current master)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.allLayers = vanilla.CheckBox((15, 60, -15, 20), "Look on all layers (otherwise only on current master)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.keepWindowOpen = vanilla.CheckBox((15, 80, -15, 20), "Keep window open", value=False, callback=self.SavePreferences, sizeStyle='small')
 
 		# Run Button:
@@ -103,7 +103,7 @@ class NewTabWithAnchor(object):
 		Message(title="New Tab with Anchor Error", message=message, OKButton=None)
 
 	def NewTabWithAnchorMain(self, sender):
-		thisFont = Glyphs.font # frontmost font
+		thisFont = Glyphs.font  # frontmost font
 
 		print("‘New Tab with Glyphs Containing Anchor’ Report for %s" % thisFont.familyName)
 		print(thisFont.filepath)
@@ -122,7 +122,7 @@ class NewTabWithAnchor(object):
 				if allLayers:
 					masterId = None
 				else:
-					masterId = thisFont.selectedFontMaster.id # active master id
+					masterId = thisFont.selectedFontMaster.id  # active master id
 
 				# go through all glyphs and look for anchor:
 				for thisGlyph in thisFont.glyphs:
@@ -138,14 +138,15 @@ class NewTabWithAnchor(object):
 						title="Could not find anchor",
 						message="No glyph with anchor ‘%s’ found in %s." % (anchorName, thisFont.familyName),
 						OKButton=None,
-						)
+					)
 
 				if not keepWindowOpen:
-					self.w.close() # closes window
+					self.w.close()  # closes window
 			else:
 				self.errMsg("No anchor name specified. Please enter an anchor name before pressing the button.")
 		except Exception as e:
 			self.errorMsg(e)
 
-Glyphs.clearLog() # clears macro window log
+
+Glyphs.clearLog()  # clears macro window log
 NewTabWithAnchor()

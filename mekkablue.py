@@ -1,5 +1,6 @@
 import math
-from AppKit import NSAffineTransform, NSAffineTransformStruct
+from AppKit import NSAffineTransform
+
 
 def match(first, second):
 	# https://www.geeksforgeeks.org/wildcard-character-matching/
@@ -27,6 +28,7 @@ def match(first, second):
 
 	return False
 
+
 def camelCaseSplit(str):
 	words = [[str[0]]]
 	for c in str[1:]:
@@ -36,13 +38,14 @@ def camelCaseSplit(str):
 			words[-1].append(c)
 	return [''.join(word) for word in words]
 
+
 def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	"""
 	Returns an NSAffineTransform object for transforming layers.
 	Apply an NSAffineTransform t object like this:
 		Layer.transform_checkForSelection_doComponents_(t,False,True)
 	Access its transformation matrix like this:
-		tMatrix = t.transformStruct() # returns the 6-float tuple
+		tMatrix = t.transformStruct()  # returns the 6-float tuple
 	Apply the matrix tuple like this:
 		Layer.applyTransform(tMatrix)
 		Component.applyTransform(tMatrix)

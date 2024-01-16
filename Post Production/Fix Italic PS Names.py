@@ -1,23 +1,25 @@
-#MenuTitle: Fix Italic PS Names (OTVAR)
+# MenuTitle: Fix Italic PS Names (OTVAR)
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Fixes double Italic namings in name table entries in the most recent export of the current font. Run this right after a variable font export.
 """
 
 from fontTools import ttLib
 from AppKit import NSString
-from otvarLib import * # local lib
+from otvarLib import currentOTVarExportPath, otVarFileName  # local lib
+from typing import Any
+from GlyphsApp import Glyphs, INSTANCETYPEVARIABLE, Message
 
 if Glyphs.versionNumber < 3.2:
 	Message(
 		title="Version Error",
 		message="This script requires app version 3.2 or later. In Glyphs > Settings > Updates, activate Cutting Edge Versions, and check for updates.",
 		OKButton=None,
-		)
+	)
 else:
 	fileCount = 0
-	
+
 	# brings macro window to front and clears its log:
 	Glyphs.clearLog()
 	Glyphs.showMacroWindow()
@@ -29,7 +31,7 @@ else:
 			suffixes.append(suffix)
 	print(f"- suffixes: {', '.join(suffixes)}")
 
-	thisFont = Glyphs.font # frontmost font
+	thisFont = Glyphs.font  # frontmost font
 	currentExportPath = currentOTVarExportPath()
 	print(f"- path: {currentExportPath}")
 
@@ -40,7 +42,6 @@ else:
 
 	if not variableFontSettings:
 		variableFontSettings = [None]
-
 	for variableFontExport in variableFontSettings:
 		for suffix in suffixes:
 			fontpath = NSString.alloc().initWithString_(currentExportPath).stringByAppendingPathComponent_(otVarFileName(thisFont, thisInstance=variableFontExport, suffix=suffix))
@@ -49,26 +50,26 @@ else:
 			if not otFont:
 				print("❌ No font file found. Skipping.")
 				continue
-			
+
 			fileCount += 1
-			
-			# print("CHECK1 font", otFont) # DEBUG
+
+			# print("CHECK1 font", otFont)  # DEBUG
 			nameTable = otFont["name"]
-			# print("CHECK2 name", nameTable) # DEBUG
+			# print("CHECK2 name", nameTable)  # DEBUG
 			anythingChanged = False
 			for nameTableEntry in nameTable.names:
 				nameID = nameTableEntry.nameID
-				# print("CHECK3 nameID", nameID) # DEBUG
+				# print("CHECK3 nameID", nameID)  # DEBUG
 				nameValue = nameTableEntry.toStr()
 				oldName = nameValue
-				# print("CHECK4 nameID", nameID, nameValue) # DEBUG
+				# print("CHECK4 nameID", nameID, nameValue)  # DEBUG
 				if nameID in (4, 6, 17):
 					for oldParticle in ("Regular Italic", "RegularItalic"):
 						if oldParticle in nameValue:
 							nameValue = nameValue.replace(oldParticle, "Italic")
 				if nameID in (3, 6) or nameID > 255:
 					oldName = nameValue
-					if "Italic-" in nameValue and nameValue.count("Italic")>1:
+					if "Italic-" in nameValue and nameValue.count("Italic") > 1:
 						particles = nameValue.split("-")
 						for i in range(1, len(particles)):
 							particles[i] = particles[i].replace("Italic", "").strip()
@@ -85,4 +86,4 @@ else:
 			else:
 				print("🤷🏻‍♀️ No changes, file left unchanged.")
 
-	print(f"\n✅ Done. Processed {fileCount} file{'' if fileCount==1 else 's'}.")
+	print(f"\n✅ Done. Processed {fileCount} file{'' if fileCount == 1 else 's'}.")

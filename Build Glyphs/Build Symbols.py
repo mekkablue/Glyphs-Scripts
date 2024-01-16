@@ -1,4 +1,4 @@
-#MenuTitle: Build Symbols
+# MenuTitle: Build Symbols
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -8,15 +8,18 @@ Creates an estimated glyph and draws an estimated sign in it. Does the same for 
 # TODO: further abstraction of existing methods
 # TODO: emptyset, currency, lozenge, product, summation, radical
 
-from GlyphsApp import GSOFFCURVE, GSCURVE, GSSMOOTH
-from Foundation import NSPoint, NSRect, NSSize, NSAffineTransform, NSAffineTransformStruct
-import vanilla, math
+from Foundation import NSPoint, NSRect, NSSize, NSAffineTransform, NSAffineTransformStruct, NSClassFromString
+import vanilla
+import math
+from GlyphsApp import Glyphs, GSGlyph, GSPath, GSNode, GSAnchor, GSOFFCURVE, GSCURVE, GSSMOOTH, distance
+
 
 def scaleLayerByFactor(thisLayer, scaleFactor):
 	"""
 	Scales a layer by this factor.
 	"""
 	thisLayer.transform_checkForSelection_doComponents_(scaleMatrix(scaleFactor), False, True)
+
 
 def scaleMatrix(scaleFactor):
 	"""
@@ -27,6 +30,7 @@ def scaleMatrix(scaleFactor):
 	transformMatrix = transformFromMatrix(scaleMatrix)
 	return transformMatrix
 
+
 def transformFromMatrix(matrix):
 	"""
 	Returns an NSAffineTransform based on the matrix supplied.
@@ -36,6 +40,7 @@ def transformFromMatrix(matrix):
 	transformation.setTransformStruct_(matrix)
 	return transformation
 
+
 def circleAtCenter(center=NSPoint(0, 0), radius=50, bcp=4.0 * (2.0**0.5 - 1.0) / 3.0):
 	circle = GSPath()
 	x = center.x
@@ -44,7 +49,7 @@ def circleAtCenter(center=NSPoint(0, 0), radius=50, bcp=4.0 * (2.0**0.5 - 1.0) /
 	points = (
 		((x + handle, y - radius), (x + radius, y - handle), (x + radius, y)), ((x + radius, y + handle), (x + handle, y + radius), (x, y + radius)),
 		((x - handle, y + radius), (x - radius, y + handle), (x - radius, y)), ((x - radius, y - handle), (x - handle, y - radius), (x, y - radius))
-		)
+	)
 	# Add the segments:
 	for triplet in points:
 		# Add the two BCPs of the segment:
@@ -52,19 +57,20 @@ def circleAtCenter(center=NSPoint(0, 0), radius=50, bcp=4.0 * (2.0**0.5 - 1.0) /
 		bcp2 = NSPoint(triplet[1][0], triplet[1][1])
 		for bcpPosition in (bcp1, bcp2):
 			newBCP = GSNode()
-			newBCP.type = OFFCURVE
+			newBCP.type = GSOFFCURVE
 			newBCP.position = bcpPosition
 			circle.nodes.append(newBCP)
 
 		# Add the On-Curve of the segment:
 		newCurvepoint = GSNode()
-		newCurvepoint.type = CURVE
+		newCurvepoint.type = GSCURVE
 		newCurvepoint.smooth = True
 		newCurvepoint.position = NSPoint(triplet[2][0], triplet[2][1])
 		circle.nodes.append(newCurvepoint)
 
 	circle.closed = True
 	return circle
+
 
 def circleInsideRect(rect):
 	"""Returns a GSPath for a circle inscribed into the NSRect rect."""
@@ -85,7 +91,7 @@ def circleInsideRect(rect):
 			NSPoint(halfWidth, y)), (NSPoint(halfWidth + horHandle, y), NSPoint(fullWidth, halfHeight - verHandle), NSPoint(fullWidth, halfHeight)),
 		(NSPoint(fullWidth, halfHeight + verHandle), NSPoint(halfWidth + horHandle, fullHeight),
 			NSPoint(halfWidth, fullHeight)), (NSPoint(halfWidth - horHandle, fullHeight), NSPoint(x, halfHeight + verHandle), NSPoint(x, halfHeight))
-		)
+	)
 
 	circlePath = GSPath()
 
@@ -105,6 +111,7 @@ def circleInsideRect(rect):
 	circlePath.closed = True
 	return circlePath
 
+
 def italicize(coords, italicAngle=0.0, pivotalY=0.0):
 	"""
 	Returns the italicized position of an NSPoint 'thisPoint'
@@ -114,12 +121,13 @@ def italicize(coords, italicAngle=0.0, pivotalY=0.0):
 	"""
 	x = coords[0]
 	y = coords[1]
-	yOffset = y - pivotalY # calculate vertical offset
-	italicAngle = math.radians(italicAngle) # convert to radians
-	tangens = math.tan(italicAngle) # math.tan needs radians
-	horizontalDeviance = tangens * yOffset # vertical distance from pivotal point
-	x += horizontalDeviance # x of point that is yOffset from pivotal point
+	yOffset = y - pivotalY  # calculate vertical offset
+	italicAngle = math.radians(italicAngle)  # convert to radians
+	tangens = math.tan(italicAngle)  # math.tan needs radians
+	horizontalDeviance = tangens * yOffset  # vertical distance from pivotal point
+	x += horizontalDeviance  # x of point that is yOffset from pivotal point
 	return (x, y)
+
 
 def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	"""
@@ -127,7 +135,7 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	Apply an NSAffineTransform t object like this:
 		Layer.transform_checkForSelection_doComponents_(t,False,True)
 	Access its transformation matrix like this:
-		tMatrix = t.transformStruct() # returns the 6-float tuple
+		tMatrix = t.transformStruct()  # returns the 6-float tuple
 	Apply the matrix tuple like this:
 		Layer.applyTransform(tMatrix)
 		Component.applyTransform(tMatrix)
@@ -152,6 +160,7 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 		myTransform.appendTransform_(skewTransform)
 	return myTransform
 
+
 def isEmpty(layer):
 	try:
 		# GLYPHS 3:
@@ -167,6 +176,7 @@ def isEmpty(layer):
 			return False
 		else:
 			return True
+
 
 def createGlyph(font, name, unicodeValue, override=False, defaultWidth=500):
 	glyph = font.glyphs[name]
@@ -219,6 +229,7 @@ def createGlyph(font, name, unicodeValue, override=False, defaultWidth=500):
 
 			return glyph
 
+
 def offsetLayer(thisLayer, offset, makeStroke=False, position=0.5, autoStroke=False):
 	offsetFilter = NSClassFromString("GlyphsFilterOffsetCurve")
 	try:
@@ -226,32 +237,33 @@ def offsetLayer(thisLayer, offset, makeStroke=False, position=0.5, autoStroke=Fa
 		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyleStart_capStyleEnd_keepCompatibleOutlines_(
 			thisLayer,
 			offset,
-			offset, # horizontal and vertical offset
-			makeStroke, # if True, creates a stroke
-			autoStroke, # if True, distorts resulting shape to vertical metrics
-			position, # stroke distribution to the left and right, 0.5 = middle
+			offset,  # horizontal and vertical offset
+			makeStroke,  # if True, creates a stroke
+			autoStroke,  # if True, distorts resulting shape to vertical metrics
+			position,  # stroke distribution to the left and right, 0.5 = middle
 			None,
 			None,
 			None,
 			0,
 			0,
 			True
-			)
+		)
 	except:
 		# GLYPHS 2:
 		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyle_keepCompatibleOutlines_(
 			thisLayer,
 			offset,
-			offset, # horizontal and vertical offset
-			makeStroke, # if True, creates a stroke
-			autoStroke, # if True, distorts resulting shape to vertical metrics
-			position, # stroke distribution to the left and right, 0.5 = middle
-			thisLayer.glyphMetrics(), # metrics (G3)
+			offset,  # horizontal and vertical offset
+			makeStroke,  # if True, creates a stroke
+			autoStroke,  # if True, distorts resulting shape to vertical metrics
+			position,  # stroke distribution to the left and right, 0.5 = middle
+			thisLayer.glyphMetrics(),  # metrics (G3)
 			None,
-			None, # error, shadow
-			0, # NSButtLineCapStyle, # cap style
-			True, # keep compatible
-			)
+			None,  # error, shadow
+			0,  # NSButtLineCapStyle,  # cap style
+			True,  # keep compatible
+		)
+
 
 def circleCoordsForHeight(s):
 	radius = s / 2
@@ -259,28 +271,29 @@ def circleCoordsForHeight(s):
 	y = s / 2
 	bcp = 4.0 * (2.0**0.5 - 1.0) / 3.0
 	handle = radius * bcp
-	coords=(
-		( # path
-		(x, y-radius),
-		((x+handle, y-radius), (x+radius, y-handle), (x+radius, y)),
-		((x+radius, y+handle), (x+handle, y+radius), (x, y+radius)),
-		((x-handle, y+radius), (x-radius, y+handle), (x-radius, y)),
-		((x-radius, y-handle), (x-handle, y-radius), (x, y-radius)),
+	coords = (
+		(  # path
+			(x, y - radius),
+			((x + handle, y - radius), (x + radius, y - handle), (x + radius, y)),
+			((x + radius, y + handle), (x + handle, y + radius), (x, y + radius)),
+			((x - handle, y + radius), (x - radius, y + handle), (x - radius, y)),
+			((x - radius, y - handle), (x - handle, y - radius), (x, y - radius)),
 		),
 	)
 	return coords
+
 
 def drawPenDataInLayer(thisLayer, penData, closePath=True):
 	for thisPath in penData:
 		pen = thisLayer.getPen()
 		pen.moveTo(thisPath[0])
 		for thisSegment in thisPath[1:]:
-			if len(thisSegment) == 2: # lineto (2 coordinates: x,y)
+			if len(thisSegment) == 2:  # lineto (2 coordinates: x,y)
 				pen.lineTo(thisSegment)
-			elif len(thisSegment) == 3: # curveto (3 x/y tuples)
+			elif len(thisSegment) == 3:  # curveto (3 x/y tuples)
 				pen.curveTo(thisSegment[0], thisSegment[1], thisSegment[2])
 			else:
-				print("%s: Path drawing error. Could not process this segment:\n" % (glyphName, thisSegment))
+				print("Path drawing error. Could not process this segment:\n" % thisSegment)
 		if closePath:
 			pen.closePath()
 		pen.endPath()
@@ -289,19 +302,21 @@ def drawPenDataInLayer(thisLayer, penData, closePath=True):
 	# thisLayer.correctPathDirection()
 	thisLayer.cleanUpPaths()
 
+
 def areaOfLayer(layer):
 	area = 0
-	l = layer.copyDecomposedLayer()
-	l.removeOverlap()
+	layerCopy = layer.copyDecomposedLayer()
+	layerCopy.removeOverlap()
 	try:
 		# GLYPHS 3:
-		for s in l.shapes:
+		for s in layerCopy.shapes:
 			area += s.area()
 	except:
 		# GLYPHS 2:
-		for p in l.paths:
+		for p in layerCopy.paths:
 			area += p.area()
 	return area
+
 
 def buildNotdef(thisFont, override=False):
 	questionGlyph = thisFont.glyphs["question"]
@@ -355,6 +370,7 @@ def buildNotdef(thisFont, override=False):
 			else:
 				print("⚠️ Error building .notdef: Could not determine source layer of glyph 'question'.")
 
+
 def buildLozenge(thisFont, override=False):
 	glyphName = "lozenge"
 	lozengeGlyph = createGlyph(thisFont, glyphName, "25CA", override=override)
@@ -368,33 +384,33 @@ def buildLozenge(thisFont, override=False):
 	for thisLayer in lozengeGlyph.layers:
 		thisMaster = thisLayer.master
 		capHeight = thisMaster.capHeight
-		s = capHeight * 0.7 # 70% cap height
+		s = capHeight * 0.7  # 70% cap height
 
 		penpoints_lozenge = (
-			( # fin
+			(  # fin
 				(s * 0.3, s * 1.0),
 				(s * 0.0, s * 0.5),
 				(s * 0.3, s * 0.0),
 				(s * 0.6, s * 0.5),
-				),
-			)
+			),
+		)
 
 		# draw the skeleton:
 		drawPenDataInLayer(thisLayer, penpoints_lozenge, closePath=True)
-		
+
 		# expand it:
 		stemWidth = stemWidthForMaster(thisFont, thisMaster, maxWidth=s * 0.6 * 0.3)
 		offsetLayer(thisLayer, stemWidth / 2, makeStroke=True, position=0.5)
-		
+
 		# move it into mid cap height:
-		moveUp = (capHeight - s) * 0.5 # move to center of cap height
+		moveUp = (capHeight - s) * 0.5  # move to center of cap height
 		moveUpStruct = transform(shiftY=moveUp).transformStruct()
 		thisLayer.applyTransform(moveUpStruct)
-		
+
 		# update metrics:
 		thisLayer.cleanUpPaths()
 		thisLayer.syncMetrics()
-		
+
 		# cut off caps:
 		midTop = sum([p.fastBounds().origin.y + p.fastBounds().size.height for p in thisLayer.paths]) / 2.0
 		midBottom = sum([p.fastBounds().origin.y for p in thisLayer.paths]) / 2.0
@@ -404,7 +420,7 @@ def buildLozenge(thisFont, override=False):
 			(thisLayer.width, midBottom),
 			(thisLayer.width, midTop),
 			(0, midTop),
-			)
+		)
 		for coordinate in coordinates:
 			intersector.nodes.append(GSNode(NSPoint(*coordinate)))
 		intersector.closed = True
@@ -416,10 +432,8 @@ def buildLozenge(thisFont, override=False):
 			# GLYPHS 2
 			thisLayer.paths.append(intersector)
 
-		thisLayer.pathIntersect_from_error_(
-			[intersector],
-			[thisLayer.paths[0]],
-			None)
+		thisLayer.pathIntersect_from_error_([intersector], [thisLayer.paths[0]], None)
+
 
 def buildCurrency(thisFont, override=False):
 	glyphName = "currency"
@@ -434,27 +448,27 @@ def buildCurrency(thisFont, override=False):
 	for thisLayer in currencyGlyph.layers:
 		thisMaster = thisLayer.master
 		capHeight = thisMaster.capHeight
-		s = capHeight * 0.6 # 60% cap height
+		s = capHeight * 0.6  # 60% cap height
 
 		penpoints_currency = (
-			( # circle
-			(s*0.500, s*0.173),
-			((s*0.680, s*0.173), (s*0.827, s*0.320), (s*0.827, s*0.500)),
-			((s*0.827, s*0.680), (s*0.680, s*0.827), (s*0.500, s*0.827)),
-			((s*0.320, s*0.827), (s*0.173, s*0.680), (s*0.173, s*0.500)),
-			((s*0.173, s*0.320), (s*0.320, s*0.173), (s*0.500, s*0.173)),
+			(  # circle
+				(s * 0.500, s * 0.173),
+				((s * 0.680, s * 0.173), (s * 0.827, s * 0.320), (s * 0.827, s * 0.500)),
+				((s * 0.827, s * 0.680), (s * 0.680, s * 0.827), (s * 0.500, s * 0.827)),
+				((s * 0.320, s * 0.827), (s * 0.173, s * 0.680), (s * 0.173, s * 0.500)),
+				((s * 0.173, s * 0.320), (s * 0.320, s * 0.173), (s * 0.500, s * 0.173)),
 			),
-			( # fin
-			(s*1.000, s*1.000), (s*0.741, s*0.741),
+			(  # fin
+				(s * 1.000, s * 1.000), (s * 0.741, s * 0.741),
 			),
-			( # fin
-			(s*0.000, s*0.000), (s*0.259, s*0.259),
+			(  # fin
+				(s * 0.000, s * 0.000), (s * 0.259, s * 0.259),
 			),
-			( # fin
-			(s*0.000, s*1.000), (s*0.259, s*0.741),
+			(  # fin
+				(s * 0.000, s * 1.000), (s * 0.259, s * 0.741),
 			),
-			( # fin
-			(s*1.000, s*0.000), (s*0.741, s*0.259),
+			(  # fin
+				(s * 1.000, s * 0.000), (s * 0.741, s * 0.259),
 			),
 		)
 
@@ -466,13 +480,14 @@ def buildCurrency(thisFont, override=False):
 		offsetLayer(thisLayer, stemWidth / 2, makeStroke=True, position=0.5)
 
 		# move it into mid cap height:
-		moveUp = (capHeight - s) * 0.5 # move to center of cap height
+		moveUp = (capHeight - s) * 0.5  # move to center of cap height
 		moveUpStruct = transform(shiftY=moveUp).transformStruct()
 		thisLayer.applyTransform(moveUpStruct)
 
 		# update metrics:
 		thisLayer.cleanUpPaths()
 		thisLayer.syncMetrics()
+
 
 def buildEstimated(thisFont, override=False):
 	glyphname = "estimated"
@@ -483,11 +498,12 @@ def buildEstimated(thisFont, override=False):
 			(416.0, -5.0), ((557.0, -5.0), (635.0, 33.0), (724.0, 131.0)), (654.0, 131.0), ((600.0, 70.0), (511.0, 22.0), (416.0, 22.0)),
 			((274.0, 22.0), (179.0, 108.0), (179.0, 143.0)), (179.0, 311.0), ((179.0, 328.0), (185.0, 329.0), (194.0, 329.0)), (792.0, 329.0),
 			((782.0, 557.0), (638.0, 682.0), (416.0, 682.0)), ((196.0, 682.0), (40.0, 544.0), (40.0, 338.0)), ((40.0, 129.0), (196.0, -5.0), (416.0, -5.0))
-			), (
-				(194.0, 350.0), ((183.0, 350.0), (179.0, 353.0), (179.0, 359.0)), (179.0, 538.0), ((179.0, 568.0), (280.0, 658.0), (415.0, 658.0)),
-				((522.0, 658.0), (652.0, 585.0), (652.0, 531.0)), (652.0, 366.0), ((652.0, 354.0), (650.0, 350.0), (636.0, 350.0)), (194.0, 350.0)
-				)
+		),
+		(
+			(194.0, 350.0), ((183.0, 350.0), (179.0, 353.0), (179.0, 359.0)), (179.0, 538.0), ((179.0, 568.0), (280.0, 658.0), (415.0, 658.0)),
+			((522.0, 658.0), (652.0, 585.0), (652.0, 531.0)), (652.0, 366.0), ((652.0, 354.0), (650.0, 350.0), (636.0, 350.0)), (194.0, 350.0)
 		)
+	)
 
 	if estimatedGlyph:
 		# set metrics keys and kern groups:
@@ -510,12 +526,12 @@ def buildEstimated(thisFont, override=False):
 					pen = thisLayer.getPen()
 					pen.moveTo(thisPath[0])
 					for thisSegment in thisPath[1:]:
-						if len(thisSegment) == 2: # lineto
+						if len(thisSegment) == 2:  # lineto
 							pen.lineTo(thisSegment)
-						elif len(thisSegment) == 3: # curveto
+						elif len(thisSegment) == 3:  # curveto
 							pen.curveTo(thisSegment[0], thisSegment[1], thisSegment[2])
 						else:
-							print("%s: Path drawing error. Could not process this segment:\n" % (glyphname, thisSegment))
+							print("%s: Path drawing error. Could not process this segment: %s\n" % (glyphname, thisSegment))
 					pen.closePath()
 					pen.endPath()
 
@@ -523,7 +539,7 @@ def buildEstimated(thisFont, override=False):
 				if zeroGlyph:
 					zeroBounds = zeroGlyph.layers[thisLayer.associatedMasterId].fastBounds()
 					zeroHeight = zeroBounds.size.height
-					if zeroHeight: # zero could be empty
+					if zeroHeight:  # zero could be empty
 						zeroOvershoot = -zeroBounds.origin.y
 						overshootDiff = zeroOvershoot - 5.0
 						estimatedHeight = 687.0
@@ -543,6 +559,7 @@ def buildEstimated(thisFont, override=False):
 	else:
 		print("⚠️ Could not create the estimated glyph already exists in this font. Rename or delete it and try again.")
 
+
 def stemWidthForMaster(thisFont, thisMaster, default=50, maxWidth=None):
 	try:
 		slash = thisFont.glyphs["slash"].layers[thisMaster.id]
@@ -554,7 +571,7 @@ def stemWidthForMaster(thisFont, thisMaster, default=50, maxWidth=None):
 		measureStart = NSPoint(slashLeft, middleHeight)
 		measureEnd = NSPoint(slashRight, middleHeight)
 		intersections = list(slash.intersectionsBetweenPoints(measureStart, measureEnd))
-		slashStemWidth = distance(intersections[1].pointValue(), intersections[2].pointValue()) # hypotenuse
+		slashStemWidth = distance(intersections[1].pointValue(), intersections[2].pointValue())  # hypotenuse
 		angleRAD = math.atan((slashTop - slashBottom) / (slashRight - slashLeft))
 		width = ((slashStemWidth * math.cos(angleRAD)) + slashStemWidth) * 0.5
 
@@ -570,6 +587,7 @@ def stemWidthForMaster(thisFont, thisMaster, default=50, maxWidth=None):
 		except:
 			print("⚠️ Error building bars: No vertical stems set in Master '%s'. Will default to %i." % (thisMaster.name, default))
 	return default
+
 
 def buildDottedCircle(thisFont, override=False):
 	dottedCircle = createGlyph(thisFont, "dottedCircle", "25CC", override=override)
@@ -590,7 +608,7 @@ def buildDottedCircle(thisFont, override=False):
 						center=NSPoint(factor * x, factor * y + thisLayer.ascender / 2),
 						radius=2 * factor / steps,
 						bcp=0.58,
-						)
+					)
 					thisLayer.shapes.append(path)
 
 				# update metrics:
@@ -604,6 +622,7 @@ def buildDottedCircle(thisFont, override=False):
 					thisAnchor.name = anchorName
 					thisAnchor.position = NSPoint(x, y)
 					thisLayer.anchors.append(thisAnchor)
+
 
 def buildBars(thisFont, override=False):
 	barGlyph = createGlyph(thisFont, "bar", "007C", override=override)
@@ -620,7 +639,7 @@ def buildBars(thisFont, override=False):
 			italicAngle = thisMaster.italicAngle
 			pivot = thisMaster.xHeight * 0.5
 			stemWidth = stemWidthForMaster(thisFont, thisMaster)
-			stemWidth -= stemWidth * math.cos(math.radians(italicAngle)) - stemWidth # correct for italic angle
+			stemWidth -= stemWidth * math.cos(math.radians(italicAngle)) - stemWidth  # correct for italic angle
 
 			if slashGlyph:
 				slashLayer = slashGlyph.layers[thisMaster.id]
@@ -690,6 +709,7 @@ def buildBars(thisFont, override=False):
 	else:
 		print("⚠️ The glyphs bar and brokenbar already exist in this font. Rename or delete them and try again.")
 
+
 class BuildSymbols(object):
 	prefID = "com.mekkablue.BuildSymbols"
 	prefDict = {
@@ -707,28 +727,26 @@ class BuildSymbols(object):
 		"backupLayers": 0,
 		"newTab": 0,
 		"reuseTab": 0,
-		}
+	}
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 430
 		windowHeight = 230
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Build Symbols", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.BuildSymbols.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Build Symbols",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.BuildSymbols.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight, column = 12, 15, 22, 100
 
-		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, 14), "Create the following symbols automatically. See tooltips for requirements.", sizeStyle='small', selectable=True
-			)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Create the following symbols automatically. See tooltips for requirements.", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
 		self.w.buildEstimated = vanilla.CheckBox((inset, linePos, -inset, 20), "estimated", value=True, callback=self.SavePreferences, sizeStyle='small')
@@ -809,12 +827,12 @@ class BuildSymbols(object):
 			onOrOff = False
 		Glyphs.defaults[self.domain("buildEstimated")] = onOrOff
 		Glyphs.defaults[self.domain("buildBars")] = onOrOff
-		Glyphs.defaults[self.domain("buildEmptyset")] = False # onOrOff
+		Glyphs.defaults[self.domain("buildEmptyset")] = False  # onOrOff
 		Glyphs.defaults[self.domain("buildCurrency")] = onOrOff
 		Glyphs.defaults[self.domain("buildLozenge")] = onOrOff
-		Glyphs.defaults[self.domain("buildProduct")] = False # onOrOff
-		Glyphs.defaults[self.domain("buildSummation")] = False # onOrOff
-		Glyphs.defaults[self.domain("buildRadical")] = False # onOrOff
+		Glyphs.defaults[self.domain("buildProduct")] = False  # onOrOff
+		Glyphs.defaults[self.domain("buildSummation")] = False  # onOrOff
+		Glyphs.defaults[self.domain("buildRadical")] = False  # onOrOff
 		Glyphs.defaults[self.domain("buildNotdef")] = onOrOff
 		Glyphs.defaults[self.domain("buildDottedcircle")] = onOrOff
 		self.LoadPreferences()
@@ -855,13 +873,13 @@ class BuildSymbols(object):
 
 	def BuildSymbolsMain(self, sender):
 		try:
-			Glyphs.clearLog() # clears macro window log
+			Glyphs.clearLog()  # clears macro window log
 
 			# update settings to the latest user input:
 			if not self.SavePreferences(self):
 				print("Note: 'Build Symbols' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			print("Build Symbols Report for %s" % thisFont.familyName)
 			if thisFont.filepath:
 				print(thisFont.filepath)
@@ -931,7 +949,7 @@ class BuildSymbols(object):
 			Glyphs.showNotification(
 				"%s: symbols built" % (thisFont.familyName),
 				"Script ‘Build Symbols’ is finished.",
-				)
+			)
 
 			if newTab and tabText:
 				if reuseTab and thisFont.currentTab:
@@ -941,12 +959,13 @@ class BuildSymbols(object):
 					# opens new Edit tab:
 					thisFont.newTab(tabText)
 
-			self.w.close() # delete if you want window to stay open
+			self.w.close()  # delete if you want window to stay open
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Build Symbols Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 BuildSymbols()

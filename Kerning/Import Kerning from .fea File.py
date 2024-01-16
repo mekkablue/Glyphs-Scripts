@@ -1,4 +1,4 @@
-#MenuTitle: Import Kerning from .fea File
+# MenuTitle: Import Kerning from .fea File
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -11,7 +11,9 @@ Created by Georg Seifert on 2010-04-03.
 Copyright (c) 2010 schriftgestaltung.de. All rights reserved.
 """
 
-import sys, os
+import os
+from GlyphsApp import Glyphs, GSGlyphsInfo, Message, GetFile
+
 
 def importfea_file(Doc, filePath):
 	if os.path.isfile(filePath):
@@ -29,7 +31,7 @@ def importfea_file(Doc, filePath):
 			if (Line[0] == "@"):
 				key = Line[0:Line.find(" ")]
 				GlyphNames = Line[Line.find("[") + 1:-4].split(" ")
-				Left = True #1ST
+				Left = True  # 1ST
 				Right = True
 				if key.find("_1ST") > 0:
 					Right = False
@@ -74,6 +76,7 @@ def importfea_file(Doc, filePath):
 				Value = float(Value.replace(";", ""))
 				Font.setKerningForFontMasterID_LeftKey_RightKey_Value_(FontMaster.id, LeftKey, RightKey, Value)
 
+
 def main():
 	Doc = Glyphs.currentDocument
 	if (Doc):
@@ -82,6 +85,7 @@ def main():
 			importfea_file(Doc, result)
 	else:
 		Message("Please open a document", "")
+
 
 if __name__ == '__main__':
 	main()

@@ -1,4 +1,4 @@
-#MenuTitle: Style Renamer
+# MenuTitle: Style Renamer
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -7,6 +7,8 @@ Batch-add a name particle to your style names, or batch-remove it from them. Use
 
 import vanilla
 from AppKit import NSFileManager
+from GlyphsApp import Glyphs, INSTANCETYPESINGLE, Message
+
 
 particleDefault = "Italic"
 elidablePartDefault = "Regular"
@@ -14,7 +16,8 @@ menuOptions = (
 	"Subtract particle from",
 	"Add particle at the end of",
 	"Add particle before",
-	)
+)
+
 
 class StyleRenamer(object):
 	prefID = "com.mekkablue.StyleRenamer"
@@ -30,15 +33,15 @@ class StyleRenamer(object):
 		# Window 'self.w':
 		windowWidth = 285
 		windowHeight = 190
-		windowWidthResize = 200 # user can resize width by this value
-		windowHeightResize = 800 # user can resize height by this value
+		windowWidthResize = 200  # user can resize width by this value
+		windowHeightResize = 800  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Style Renamer", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName = self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Style Renamer",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 24
@@ -64,16 +67,14 @@ class StyleRenamer(object):
 		self.w.elidablePart = vanilla.EditText((inset + column, linePos, -inset - 25, 19), elidablePartDefault, callback=self.SavePreferences, sizeStyle='small')
 		tooltipText = "Typically something like ‘%s’. This is the stub name part that will be the name of the style if it would be otherwise empty, e.g., remove the word ‘%s’ from the style ‘%s’, and the style name would be empty, so the elidable name kicks in, and the style is ‘%s’.\nOr, the other way around, the part of the name that gets deleted from the name, as soon as you add any particle to it. E.g., you add ‘%s’ to ‘%s’, and instead of calling it ‘%s %s’, it will be simply ‘%s’." % (
 			elidablePartDefault, particleDefault, particleDefault, elidablePartDefault, particleDefault, elidablePartDefault, elidablePartDefault, particleDefault, particleDefault
-			)
+		)
 		self.w.elidablePartText.getNSTextField().setToolTip_(tooltipText)
 		self.w.elidablePart.getNSTextField().setToolTip_(tooltipText)
 		self.w.elidablePartUpdate = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.update)
 		self.w.elidablePartUpdate.getNSButton().setToolTip_("Will reset the elidable part of style name to ‘%s’." % elidablePartDefault)
 		linePos += lineHeight
 
-		self.w.includeInactiveInstances = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "Include inactive instances", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.includeInactiveInstances = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include inactive instances", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeInactiveInstances.getNSButton().setToolTip_("If turned, will add/remove the particle to/from all instances, rather than just the active ones.")
 		linePos += lineHeight
 
@@ -105,7 +106,7 @@ class StyleRenamer(object):
 
 	def updatePreviewText(self, sender=None):
 		previewText = ""
-		thisFont = Glyphs.font # frontmost font
+		thisFont = Glyphs.font  # frontmost font
 		if thisFont:
 			fileName = self.fileManager.displayNameAtPath_(thisFont.filepath)
 			previewText += "%s\n(File: %s)\n" % (thisFont.familyName, fileName)
@@ -122,7 +123,7 @@ class StyleRenamer(object):
 
 			if particle:
 				for thisInstance in thisFont.instances:
-					if Glyphs.buildNumber>3198:
+					if Glyphs.buildNumber > 3198:
 						instanceIsExporting = thisInstance.exports
 					else:
 						instanceIsExporting = thisInstance.active
@@ -134,15 +135,15 @@ class StyleRenamer(object):
 							previewText += "▸ (unchanged: %s)\n" % thisInstance.name
 
 		self.w.preview.previewText.set(previewText.strip())
-	
+
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-	
+
 	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
@@ -173,9 +174,9 @@ class StyleRenamer(object):
 		newName = ""
 		if shouldAddParticle:
 			if shouldAddParticle == 1:
-				nameParts = (originalName, particle.strip()) # POSTFIX
-			else: # shouldAddParticle == 2
-				nameParts = (particle.strip(), originalName) # PREFIX
+				nameParts = (originalName, particle.strip())  # POSTFIX
+			else:  # shouldAddParticle == 2
+				nameParts = (particle.strip(), originalName)  # PREFIX
 
 			newName = "%s %s" % nameParts
 			if elidablePart:
@@ -225,7 +226,7 @@ class StyleRenamer(object):
 			if not self.SavePreferences():
 				print("Note: 'Style Renamer' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -251,11 +252,11 @@ class StyleRenamer(object):
 						title="No Particle Provided",
 						message=f"Please enter a particle like ‘{particleDefault}’ to add to or subtract from style names in the frontmost fonts.",
 						OKButton=None
-						)
+					)
 				else:
 					renameCount = 0
 					for thisInstance in thisFont.instances:
-						if Glyphs.buildNumber>3198:
+						if Glyphs.buildNumber > 3198:
 							instanceIsExporting = thisInstance.exports
 						else:
 							instanceIsExporting = thisInstance.active
@@ -283,8 +284,8 @@ class StyleRenamer(object):
 						u"Style Renamer renamed %i style%s. Details in Macro Window" % (
 							renameCount,
 							"" if renameCount == 1 else "s",
-							),
-						)
+						),
+					)
 					print("\nDone.")
 
 		except Exception as e:
@@ -293,5 +294,6 @@ class StyleRenamer(object):
 			print("Style Renamer Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 StyleRenamer()

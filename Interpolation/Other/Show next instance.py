@@ -1,11 +1,11 @@
-#MenuTitle: Show Next Instance
+# MenuTitle: Show Next Instance
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Jumps to next instance shown in the preview field or window.
 """
 
-from Foundation import NSApplication
+from GlyphsApp import Glyphs
 
 font = Glyphs.font
 numberOfInstances = len(font.instances)

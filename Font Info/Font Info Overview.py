@@ -1,4 +1,4 @@
-#MenuTitle: Font Info Overview
+# MenuTitle: Font Info Overview
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Lists some Font Info values for all opened fonts.
 """
 
 import vanilla
+from GlyphsApp import Glyphs
+
 keyList = [
 	["Family Name", "familyName", 160], ["Major", "versionMajor", 40], ["Minor", "versionMinor", 40], ["Grid", "gridLength", 40], ["Designer", "designer", 200],
 	["Designer URL", "designerURL", 200], ["Manufacturer", "manufacturer", 200], ["Manufacturer URL", "manufacturerURL", 200], ["Copyright", "copyright", 200]
@@ -13,12 +15,13 @@ keyList = [
 	# ["Date", "date", 100]
 	# ["Note", "note"]
 	# ["Ugly Names", "disablesNiceNames"]
-	]
+]
 
 keyColumnDescriptions = [{
 	"title": kl[0],
 	"key": kl[1]
-	} for kl in keyList]
+} for kl in keyList]
+
 
 class FontInfoOverview(object):
 	changeCount = 0
@@ -27,15 +30,15 @@ class FontInfoOverview(object):
 		# Window 'self.w':
 		windowWidth = 600
 		windowHeight = 200
-		windowWidthResize = 1200 # user can resize width by this value
-		windowHeightResize = 1200 # user can resize height by this value
+		windowWidthResize = 1200  # user can resize width by this value
+		windowHeightResize = 1200  # user can resize height by this value
 		self.w = vanilla.Window(
-			(windowWidth, windowHeight), # default window size
-			"Font Info Overview", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.FontInfoOverview.mainwindow", # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Font Info Overview",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.FontInfoOverview.mainwindow",  # stores last window position and size
+		)
 
 		# List:
 		self.w.List = vanilla.List(
@@ -46,14 +49,14 @@ class FontInfoOverview(object):
 				"key": kl[1],
 				"editable": True,
 				"width": kl[2]
-				} for kl in keyList],
+			} for kl in keyList],
 			drawVerticalLines=True,
 			enableDelete=True,
 			drawFocusRing=True,
 			# selectionCallback = self.selectedAction,
 			# doubleClickCallback = self.doubleclickedAction,
 			editCallback=self.editAction
-			)
+		)
 
 		# Buttons:
 		self.w.reloadButton = vanilla.Button((-130 - 90 - 15, -35, -130 - 15 * 2, -15), "Reload", sizeStyle='regular', callback=self.Reload)
@@ -142,5 +145,6 @@ class FontInfoOverview(object):
 			self.updateCounter()
 		except Exception as e:
 			print("Apply Error: %s" % e)
+
 
 FontInfoOverview()

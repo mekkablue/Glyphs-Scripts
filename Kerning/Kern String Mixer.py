@@ -1,28 +1,32 @@
-#MenuTitle: Kern String Mixer
+# MenuTitle: Kern String Mixer
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Intersect two sets of glyphs with each other in order to get all possible glyph combinations.
 """
 
-import vanilla, sys
+import vanilla
+import sys
+from GlyphsApp import Glyphs, GSFeature, Message
+
 defaultTokens = (
-	"$[category like 'Letter' and case in {upper,lower}] # UPPERCASE AND LOWERCASE LETTERS",
+	"$[category like 'Letter' and case in {upper,lower}]  # UPPERCASE AND LOWERCASE LETTERS",
 	"$[category like 'Number' and case = minor]",
 	"$[name like '*superior*' or name like '*inferior*']",
-	"$[name like '*.ss??*'] # STYLISTIC SETS",
+	"$[name like '*.ss??*']  # STYLISTIC SETS",
 	"$[case = minor]",
 	"$[case = smallCaps]",
 	"$[category like 'Punctuation']",
 	"$[subCategory in {'Quote','Parenthesis','Dash'}]",
 	"$[category like 'Number' and case != minor]",
-	"$[subCategory like 'Math'] # MATHEMATICAL OPERATORS",
+	"$[subCategory like 'Math']  # MATHEMATICAL OPERATORS",
 	"$[category like 'Letter' and case = upper]",
 	"$[category like 'Letter' and case = lower]",
 	"$[category like 'Letter' and script like 'latin']",
 	"$[category like 'Letter' and script like 'cyrillic']",
 	"$[category like 'Letter' and script like 'greek']",
-	)
+)
+
 
 class KernStringMixer(object):
 	prefID = "com.mekkablue.KernStringMixer"
@@ -31,25 +35,24 @@ class KernStringMixer(object):
 		"mixString1": defaultTokens[0],
 		"mixString2": defaultTokens[1],
 		"reuseTab": True,
-		}
-	
+	}
 
 	def __init__(self):
 		for prefName in self.prefDict.keys():
 			Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-		
+
 		# Window 'self.w':
 		windowWidth = 300
 		windowHeight = 180
-		windowWidthResize = 800 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 800  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Kern String Mixer", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Kern String Mixer",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -155,7 +158,7 @@ class KernStringMixer(object):
 				try:
 					setattr(sys.modules[__name__], prefName, self.pref(prefName))
 				except Exception as e:
-					print()
+					print(e)
 					import traceback
 					print(traceback.format_exc())
 					print()
@@ -163,7 +166,7 @@ class KernStringMixer(object):
 					print("⚠️ Could not set pref ‘%s’, resorting to default value: ‘%s’." % (prefName, fallbackValue))
 					setattr(sys.modules[__name__], prefName, fallbackValue)
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -176,8 +179,8 @@ class KernStringMixer(object):
 				print()
 
 				tabText = ""
-				aa = self.expandToken(mixString1, font=thisFont)
-				bb = self.expandToken(mixString2, font=thisFont)
+				aa = self.expandToken(self.pref("mixString1"), font=thisFont)
+				bb = self.expandToken(self.pref("mixString2"), font=thisFont)
 				if not aa or not bb:
 					errorMessage = ""
 					if not aa:
@@ -193,9 +196,9 @@ class KernStringMixer(object):
 							errorMessage,
 							"s" if errorMessage[0] == " " else "",
 							thisFont.familyName,
-							),
+						),
 						OKButton=None,
-						)
+					)
 					return
 
 				aa = aa.split()
@@ -208,14 +211,14 @@ class KernStringMixer(object):
 					tabText += "\n"
 
 				thisTab = thisFont.currentTab
-				if not thisTab or not reuseTab:
+				if not thisTab or not self.pref("reuseTab"):
 					thisTab = thisFont.newTab()
 				thisTab.scale = 0.05
 				thisTab.text = tabText
 				thisTab.previewHeight = 0
 				thisTab.updatePreview()
 
-				self.w.close() # delete if you want window to stay open
+				self.w.close()  # delete if you want window to stay open
 
 			print("\nDone.")
 
@@ -225,5 +228,6 @@ class KernStringMixer(object):
 			print("Kern String Mixer Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 KernStringMixer()

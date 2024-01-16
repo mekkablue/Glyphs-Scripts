@@ -1,16 +1,20 @@
-#MenuTitle: Adjust Kerning in Master
+# MenuTitle: Adjust Kerning in Master
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 try:
 	from builtins import str
-except Exception as e:
+except Exception as e:  # noqa: F841
 	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
+
 __doc__ = """
 Adjusts all kerning values by a specified amount.
 """
 
 import vanilla
+from GlyphsApp import Glyphs
+
 optionList = ("Multiply by", "Add", "Add Absolute", "Round by", "Limit to")
+
 
 class AdjustKerning(object):
 	prefID = "com.mekkablue.AdjustKerning"
@@ -19,16 +23,16 @@ class AdjustKerning(object):
 		# GUI:
 		windowWidth = 260
 		windowHeight = 155
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Adjust Kerning", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.AdjustKerning.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Adjust Kerning",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.AdjustKerning.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 10, 12, 22
@@ -102,9 +106,9 @@ class AdjustKerning(object):
 
 	def nameForID(self, Font, ID):
 		try:
-			if ID[0] == "@": # is a group
+			if ID[0] == "@":  # is a group
 				return ID
-			else: # is a glyph
+			else:  # is a glyph
 				return Font.glyphForId_(ID).name
 		except Exception as e:
 			raise e
@@ -201,11 +205,12 @@ class AdjustKerning(object):
 				raise e
 
 			finally:
-				Font.enableUpdateInterface() # re-enables UI updates in Font View
+				Font.enableUpdateInterface()  # re-enables UI updates in Font View
 
 			if not self.SavePreferences(self):
 				print("Note: could not write preferences.")
 		except Exception as e:
 			raise e
+
 
 AdjustKerning()

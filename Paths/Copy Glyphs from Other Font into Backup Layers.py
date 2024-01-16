@@ -1,4 +1,4 @@
-#MenuTitle: Copy Glyphs from Other Font into Backup Layers
+# MenuTitle: Copy Glyphs from Other Font into Backup Layers
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Creates backup layers for selected glyphs in target font, and fills them with th
 """
 
 import vanilla
+from GlyphsApp import Glyphs
+
 
 class CopyGlyphsIntoBackupLayers(object):
 
@@ -13,15 +15,15 @@ class CopyGlyphsIntoBackupLayers(object):
 		# Window 'self.w':
 		windowWidth = 400
 		windowHeight = 110
-		windowWidthResize = 300 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 300  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Copy glyphs into backup layers", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.CopyGlyphsIntoBackupLayers.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Copy glyphs into backup layers",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.CopyGlyphsIntoBackupLayers.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		self.w.from_text = vanilla.TextBox((15, 12 + 2, 130, 14), "Backup layers from:", sizeStyle='small')
@@ -95,7 +97,7 @@ class CopyGlyphsIntoBackupLayers(object):
 			MasterID_source = Font_source.selectedFontMaster.id
 			MasterID_target = Font_target.selectedFontMaster.id
 
-			Glyphs_selected = [l.parent for l in Font_target.selectedLayers]
+			Glyphs_selected = [layer.parent for layer in Font_target.selectedLayers]
 
 			print("Backing up", len(Glyphs_selected), "glyphs from", Font_source.familyName, "into", Font_target.familyName, ":")
 
@@ -118,10 +120,11 @@ class CopyGlyphsIntoBackupLayers(object):
 			if not self.SavePreferences(self):
 				print("Note: 'Copy glyphs into backup layers' could not write preferences.")
 
-			self.w.close() # delete if you want window to stay open
+			self.w.close()  # delete if you want window to stay open
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Script Error: %s" % e)
+
 
 CopyGlyphsIntoBackupLayers()

@@ -1,9 +1,12 @@
-#MenuTitle: Replicate Anchors in Suffixed Glyphs
+# MenuTitle: Replicate Anchors in Suffixed Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Goes through your selected, dot-suffixed glyphs and copies the anchors and anchor positions of the base glyph into them. E.g. A.ss01 will have the same anchor positions as A.
 """
+
+from GlyphsApp import Glyphs, Message
+
 
 def process(thisLayer):
 	glyphName = thisLayer.parent.name
@@ -22,26 +25,27 @@ def process(thisLayer):
 
 	return anchorCount
 
-Font = Glyphs.font
-selectedGlyphs = [l.parent for l in Font.selectedLayers if "." in l.parent.name]
 
-Glyphs.clearLog() # clears macro window log
+Font = Glyphs.font
+selectedGlyphs = [layer.parent for layer in Font.selectedLayers if "." in layer.parent.name]
+
+Glyphs.clearLog()  # clears macro window log
 print("Replicate Anchors in Suffixed Glyphs\nFont: ‘%s’" % Font.familyName)
 print("%i glyph%s selected, %i of which suffixed." % (
 	len(Font.selectedLayers),
 	"" if len(Font.selectedLayers) == 1 else "s",
 	len(selectedGlyphs),
-	))
+))
 
 anchorCount, layerCount = 0, 0
 for thisGlyph in selectedGlyphs:
 	print("\n%s" % thisGlyph.name)
-	# thisGlyph.beginUndo() # undo grouping causes crashes
+	# thisGlyph.beginUndo()  # undo grouping causes crashes
 	for thisLayer in thisGlyph.layers:
 		if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 			layerCount += 1
 			anchorCount += process(thisLayer)
-	# thisGlyph.endUndo() # undo grouping causes crashes
+	# thisGlyph.endUndo()  # undo grouping causes crashes
 
 print("\nDone.")
 
@@ -54,6 +58,6 @@ Message(
 		"" if layerCount == 1 else "s",
 		len(selectedGlyphs),
 		"" if len(selectedGlyphs) == 1 else "s",
-		),
+	),
 	OKButton=None,
-	)
+)

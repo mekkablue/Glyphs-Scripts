@@ -1,9 +1,12 @@
-#MenuTitle: Add Hints to Selected Nodes
+# MenuTitle: Add Hints to Selected Nodes
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Adds hints for the selected nodes. Tries to guess whether it should be H or V. If exactly one node inside a zone is selected, it will add a Ghost Hint.
 """
+
+from GlyphsApp import Glyphs, GSHint
+
 
 Font = Glyphs.font
 FontMaster = Font.selectedFontMaster
@@ -17,6 +20,7 @@ except:
 
 thisSelection = [n for n in selection if n.className() == "GSNode"]
 numberOfSelectedNodes = len(thisSelection)
+
 
 def hintTypeForY(yValue):
 	for thisZone in FontMaster.alignmentZones:
@@ -34,6 +38,7 @@ def hintTypeForY(yValue):
 			elif zoneSize < 0:
 				return 1
 	return False
+
 
 if numberOfSelectedNodes == 1:
 	# Ghost Hint

@@ -1,11 +1,13 @@
-#MenuTitle: Report Kerning Mistakes
+# MenuTitle: Report Kerning Mistakes
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Finds unnecessary kernings and groupings.
 """
 
-thisFont = Glyphs.font # frontmost font
+from GlyphsApp import Glyphs
+
+thisFont = Glyphs.font  # frontmost font
 
 # no groups, no kern pairs:
 extensionsWithoutKerning = (".tf", ".tosf")
@@ -24,10 +26,11 @@ unlikelyToBeKerned = (
 	'copyright', 'partialdiff', 'section', 'less', 'percent', 'cent', 'ampersand', 'perthousand', 'Delta', 'lessequal', 'pi', 'Omega', 'sterling', 'product', 'infinity', 'greater',
 	'degree', 'approxequal', 'integral', 'registered', 'numero', 'daggerdbl', 'plusminus', 'multiply', 'asciicircum', 'dbldagger', 'leftArrow', 'euro', 'Ohm', 'greaterequal',
 	'bar', 'lozenge', 'literSign', 'equal', 'logicalnot', 'micro', 'paragraph', 'plus', '.notdef', 'published', 'at', 'minus', 'rightArrow'
-	)
+)
 dontKernThese = (unlikelyToBeKerned + tuple(glyphNamesWithExtensionsNotToBeKerned))
 leftGroupsToBeChecked = [g.leftKerningGroup for g in thisFont.glyphs if g.leftKerningGroup and g.name in dontKernThese]
 rightGroupsToBeChecked = [g.rightKerningGroup for g in thisFont.glyphs if g.rightKerningGroup and g.name in dontKernThese]
+
 
 def reportLeftGroup(thisGlyph):
 	if thisGlyph:
@@ -36,12 +39,14 @@ def reportLeftGroup(thisGlyph):
 			if not thisGlyph.export:
 				print("     Attention: %s does not export." % thisGlyph.name)
 
+
 def reportRightGroup(thisGlyph):
 	if thisGlyph:
 		if thisGlyph.rightKerningGroup:
 			print("  Questionable RIGHT kerning group: /%s" % thisGlyph.name)
 			if not thisGlyph.export:
 				print("     Attention: %s does not export." % thisGlyph.name)
+
 
 def humanReadableName(groupOrGlyphId):
 	niceName = "???"
@@ -55,10 +60,12 @@ def humanReadableName(groupOrGlyphId):
 			niceName = groupOrGlyphId
 	return niceName
 
+
 def reportBadKernPair(leftSide, rightSide, kernValue):
 	leftName = humanReadableName(leftSide)
 	rightName = humanReadableName(rightSide)
 	print("  Questionable pair: %s -- %s (%i)" % (leftName, rightName, kernValue))
+
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()

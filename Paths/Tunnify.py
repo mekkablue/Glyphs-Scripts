@@ -1,4 +1,4 @@
-#MenuTitle: Tunnify
+# MenuTitle: Tunnify
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,8 +6,11 @@ Averages out the handles of selected path segments (or all paths if nothing is s
 """
 
 from Foundation import NSPoint
+from GlyphsApp import Glyphs, GSOFFCURVE
+
 tunnifiedZeroLo = 0.43
 tunnifiedZeroHi = 0.73
+
 
 def intersectionWithNSPoints(pointA, pointB, pointC, pointD):
 	"""
@@ -62,6 +65,7 @@ def intersectionWithNSPoints(pointA, pointB, pointC, pointD):
 		print(traceback.format_exc())
 		return None
 
+
 def bothPointsAreOnSameSideOfOrigin(pointA, pointB, pointOrigin):
 	returnValue = True
 	xDiff = (pointA.x - pointOrigin.x) * (pointB.x - pointOrigin.x)
@@ -69,6 +73,7 @@ def bothPointsAreOnSameSideOfOrigin(pointA, pointB, pointOrigin):
 	if xDiff <= 0.0 and yDiff <= 0.0:
 		returnValue = False
 	return returnValue
+
 
 def pointIsBetweenOtherPoints(thisPoint, otherPointA, otherPointB):
 	returnValue = False
@@ -90,21 +95,25 @@ def pointIsBetweenOtherPoints(thisPoint, otherPointA, otherPointB):
 
 	return returnValue
 
+
 def divideAndTolerateZero(dividend, divisor):
 	if float(divisor) == 0.0:
 		return None
 	else:
 		return dividend / divisor
 
+
 def pointDistance(x1, y1, x2, y2):
 	"""Calculates the distance between P1 and P2."""
 	dist = ((float(x2) - float(x1))**2 + (float(y2) - float(y1))**2)**0.5
 	return dist
 
+
 def bezier(x1, y1, x2, y2, x3, y3, x4, y4, t):
 	x = x1 * (1 - t)**3 + x2 * 3 * t * (1 - t)**2 + x3 * 3 * t**2 * (1 - t) + x4 * t**3
 	y = y1 * (1 - t)**3 + y2 * 3 * t * (1 - t)**2 + y3 * 3 * t**2 * (1 - t) + y4 * t**3
 	return x, y
+
 
 def xyAtPercentageBetweenTwoPoints(firstPoint, secondPoint, percentage):
 	"""
@@ -115,6 +124,7 @@ def xyAtPercentageBetweenTwoPoints(firstPoint, secondPoint, percentage):
 	x = firstPoint.x + percentage * (secondPoint.x - firstPoint.x)
 	y = firstPoint.y + percentage * (secondPoint.y - firstPoint.y)
 	return x, y
+
 
 def handlePercentages(segment):
 	"""Calculates the handle distributions and intersection for segment P1, P2, P3, P4."""
@@ -143,6 +153,7 @@ def handlePercentages(segment):
 		else:
 			return None
 
+
 def tunnify(segment):
 	"""
 	Calculates the average curvature for Bezier curve segment P1, P2, P3, P4,
@@ -163,6 +174,7 @@ def tunnify(segment):
 	else:
 		return None
 
+
 Font = Glyphs.font
 
 if len(Font.selectedLayers) > 1:
@@ -174,7 +186,7 @@ else:
 
 for selectedLayer in Font.selectedLayers:
 	selectedGlyph = selectedLayer.parent
-	# selectedGlyph.beginUndo() # undo grouping causes crashes
+	# selectedGlyph.beginUndo()  # undo grouping causes crashes
 
 	for thisPath in selectedLayer.paths:
 		numOfNodes = len(thisPath.nodes)
@@ -198,4 +210,4 @@ for selectedLayer in Font.selectedLayers:
 					thisPath.nodes[segmentNodeIndexes[2]].x = x_handle2
 					thisPath.nodes[segmentNodeIndexes[2]].y = y_handle2
 
-	# selectedGlyph.endUndo() # undo grouping causes crashes
+	# selectedGlyph.endUndo()  # undo grouping causes crashes

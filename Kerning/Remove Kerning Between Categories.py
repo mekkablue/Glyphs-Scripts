@@ -1,4 +1,4 @@
-#MenuTitle: Remove Kerning Between Categories
+# MenuTitle: Remove Kerning Between Categories
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,35 +6,35 @@ Removes kerning between glyphs, categories, subcategories, scripts.
 """
 
 import vanilla
+from GlyphsApp import Glyphs
+
 
 class RemoveKerning(object):
 	registeredCases = (
-		"No Case", # 0 GSNoCase
-		"Uppercase", # 1 GSUppercase
-		"Lowercase", # 2 GSLowercase
-		"Smallcaps", # 3 GSSmallcaps
-		"Minor", # 4 GSMinor
-		)
+		"No Case",  # 0 GSNoCase
+		"Uppercase",  # 1 GSUppercase
+		"Lowercase",  # 2 GSLowercase
+		"Smallcaps",  # 3 GSSmallcaps
+		"Minor",  # 4 GSMinor
+	)
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 610
 		windowHeight = 260
-		windowWidthResize = 0 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 0  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Remove Kerning", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.RemoveKerning.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Remove Kerning",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.RemoveKerning.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, 14), u"Removes group and singleton kerning between the following glyphs:", sizeStyle='small', selectable=True
-			)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), u"Removes group and singleton kerning between the following glyphs:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
 		self.w.leftCategoryText = vanilla.TextBox((inset, linePos + 2, 100, 14), u"L Category:", sizeStyle='small', selectable=True)
@@ -67,27 +67,17 @@ class RemoveKerning(object):
 
 		self.ReloadCategories()
 
-		self.w.includeDirtyCategories = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20),
-			u"Delete group kerning even if groups are ‘dirty’ (e.g., group with uppercase and lowercase letters mixed)",
-			value=False,
-			callback=self.SavePreferences,
-			sizeStyle='small'
-			)
+		self.w.includeDirtyCategories = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Delete group kerning even if groups are ‘dirty’ (e.g., group with uppercase and lowercase letters mixed)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.reportInMacroWindow = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), u"Detailed report in macro window", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.reportInMacroWindow = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Detailed report in macro window", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.processAllMasters = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), u"Process all masters (otherwise current master only)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.processAllMasters = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Process all masters (otherwise current master only)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
-		self.w.progress.set(0) # set progress indicator to zero
+		self.w.progress.set(0)  # set progress indicator to zero
 		linePos += lineHeight
 
 		self.w.statusText = vanilla.TextBox((inset, -20 - inset, -220 - inset, 14), u"", sizeStyle='small', selectable=True)
@@ -149,7 +139,7 @@ class RemoveKerning(object):
 		else:
 			cases = []
 			for thisGlyph in Glyphs.font.glyphs:
-				if thisGlyph.case != None and not thisGlyph.case in cases:
+				if thisGlyph.case is not None and thisGlyph.case not in cases:
 					cases.append(thisGlyph.case)
 			return sorted([self.registeredCases[c] for c in cases], key=lambda caseName: self.registeredCases.index(caseName))
 
@@ -165,7 +155,7 @@ class RemoveKerning(object):
 		else:
 			categories = []
 			for thisGlyph in Glyphs.font.glyphs:
-				if thisGlyph.category and not thisGlyph.category in categories:
+				if thisGlyph.category and thisGlyph.category not in categories:
 					categories.append(thisGlyph.category)
 			return categories
 
@@ -175,7 +165,7 @@ class RemoveKerning(object):
 		else:
 			subcategories = []
 			for thisGlyph in Glyphs.font.glyphs:
-				if thisGlyph.subCategory and not thisGlyph.subCategory in subcategories:
+				if thisGlyph.subCategory and thisGlyph.subCategory not in subcategories:
 					subcategories.append(thisGlyph.subCategory)
 			return subcategories
 
@@ -185,7 +175,7 @@ class RemoveKerning(object):
 		else:
 			scripts = []
 			for thisGlyph in Glyphs.font.glyphs:
-				if thisGlyph.script and not thisGlyph.script in scripts:
+				if thisGlyph.script and thisGlyph.script not in scripts:
 					scripts.append(thisGlyph.script)
 			return scripts
 
@@ -223,7 +213,7 @@ class RemoveKerning(object):
 			if not self.SavePreferences(self):
 				print("Note: 'Remove Kerning' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			includeDirtyCategories = Glyphs.defaults["com.mekkablue.RemoveKerning.includeDirtyCategories"]
 			reportInMacroWindow = Glyphs.defaults["com.mekkablue.RemoveKerning.reportInMacroWindow"]
 
@@ -239,12 +229,12 @@ class RemoveKerning(object):
 			leftCategory = self.w.leftCategory.getItems()[self.w.leftCategory.get()]
 			leftSubCategory = self.w.leftSubCategory.getItems()[self.w.leftSubCategory.get()]
 			leftScript = self.w.leftScript.getItems()[self.w.leftScript.get()]
-			leftCase = self.caseAsNumberOrAny(self.w.leftCase.getItems()[self.w.leftCase.get()])
+			# leftCase = self.caseAsNumberOrAny(self.w.leftCase.getItems()[self.w.leftCase.get()])
 
 			rightCategory = self.w.rightCategory.getItems()[self.w.rightCategory.get()]
 			rightSubCategory = self.w.rightSubCategory.getItems()[self.w.rightSubCategory.get()]
 			rightScript = self.w.rightScript.getItems()[self.w.rightScript.get()]
-			rightCase = self.caseAsNumberOrAny(self.w.rightCase.getItems()[self.w.rightCase.get()])
+			# rightCase = self.caseAsNumberOrAny(self.w.rightCase.getItems()[self.w.rightCase.get()])
 
 			leftGlyphNames, rightGlyphNames = [], []
 			leftGroups, rightGroups = [], []
@@ -255,32 +245,32 @@ class RemoveKerning(object):
 				leftCategoryOK = leftCategory == "Any" or thisGlyph.category == leftCategory
 				leftSubCategoryOK = leftSubCategory == "Any" or thisGlyph.subCategory == leftSubCategory
 				leftScriptOK = leftScript == "Any" or thisGlyph.script == leftScript
-				leftCaseOK = leftScript == "Any" or thisGlyph.case == leftCase
+				# leftCaseOK = leftScript == "Any" or thisGlyph.case == leftCase
 				isAMatchingLeftGlyph = leftCategoryOK and leftSubCategoryOK and leftScriptOK
 				if isAMatchingLeftGlyph:
 					leftGlyphNames.append(thisGlyph.name)
-					if thisGlyph.rightKerningGroup and not thisGlyph.rightKerningGroup in leftGroups:
+					if thisGlyph.rightKerningGroup and thisGlyph.rightKerningGroup not in leftGroups:
 						leftGroups.append(thisGlyph.rightKerningGroup)
 
 				rightCategoryOK = rightCategory == "Any" or thisGlyph.category == rightCategory
 				rightSubCategoryOK = rightSubCategory == "Any" or thisGlyph.subCategory == rightSubCategory
 				rightScriptOK = rightScript == "Any" or thisGlyph.script == rightScript
-				rightCaseOK = rightScript == "Any" or thisGlyph.case == rightCase
+				# rightCaseOK = rightScript == "Any" or thisGlyph.case == rightCase
 				isAMatchingRightGlyph = rightCategoryOK and rightSubCategoryOK and rightScriptOK
 				if isAMatchingRightGlyph:
 					rightGlyphNames.append(thisGlyph.name)
-					if thisGlyph.leftKerningGroup and not thisGlyph.leftKerningGroup in rightGroups:
+					if thisGlyph.leftKerningGroup and thisGlyph.leftKerningGroup not in rightGroups:
 						rightGroups.append(thisGlyph.leftKerningGroup)
 
 			if not includeDirtyCategories:
 				self.status("Sorting out dirty groups...", reportInMacroWindow)
 				if leftGroups or rightGroups:
 					for thisGlyph in thisFont.glyphs:
-						if thisGlyph.rightKerningGroup in leftGroups and not thisGlyph.name in leftGlyphNames:
+						if thisGlyph.rightKerningGroup in leftGroups and thisGlyph.name not in leftGlyphNames:
 							while thisGlyph.rightKerningGroup in leftGroups:
 								leftGroups.remove(thisGlyph.rightKerningGroup)
 							self.status("Dirty right group @MMK_L_%s skipped." % thisGlyph.rightKerningGroup, reportInMacroWindow)
-						if thisGlyph.leftKerningGroup in rightGroups and not thisGlyph.name in rightGlyphNames:
+						if thisGlyph.leftKerningGroup in rightGroups and thisGlyph.name not in rightGlyphNames:
 							while thisGlyph.leftKerningGroup in rightGroups:
 								rightGroups.remove(thisGlyph.leftKerningGroup)
 							self.status("Dirty left group @MMK_R_%s skipped." % thisGlyph.leftKerningGroup, reportInMacroWindow)
@@ -332,9 +322,9 @@ class RemoveKerning(object):
 				"Ready. Removed %i pair%s." % (
 					removalCount,
 					"" if removalCount == 1 else "s",
-					),
+				),
 				True,
-				)
+			)
 
 		except Exception as e:
 			# brings macro window to front and reports error:
@@ -342,5 +332,6 @@ class RemoveKerning(object):
 			print("Remove Kerning Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 RemoveKerning()

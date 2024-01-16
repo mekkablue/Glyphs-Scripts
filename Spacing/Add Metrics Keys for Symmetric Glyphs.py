@@ -1,4 +1,4 @@
-#MenuTitle: Add Metrics Keys for Symmetric Glyphs
+# MenuTitle: Add Metrics Keys for Symmetric Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,8 @@ Will add RSB =| if the RSB is the same as the LSB in all masters.
 """
 
 import vanilla
+from GlyphsApp import Glyphs, Message
+
 
 class AddMetricsKeysforSymmetricGlyphs(object):
 	prefID = "com.mekkablue.AddMetricsKeysforSymmetricGlyphs"
@@ -14,15 +16,15 @@ class AddMetricsKeysforSymmetricGlyphs(object):
 		# Window 'self.w':
 		windowWidth = 300
 		windowHeight = 160
-		windowWidthResize = 100 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Add Metrics Keys for Symmetric Shapes", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow") # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			"Add Metrics Keys for Symmetric Shapes",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
+		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
@@ -37,9 +39,7 @@ class AddMetricsKeysforSymmetricGlyphs(object):
 		self.w.updateMetrics = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Update metrics of affected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.allGlyphs = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20), "⚠️ Apply to ALL glyphs in font (ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small'
-			)
+		self.w.allGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Apply to ALL glyphs in font (ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# Run Button:
@@ -124,7 +124,7 @@ class AddMetricsKeysforSymmetricGlyphs(object):
 			if not self.SavePreferences():
 				print("Note: 'Add Metrics Keys for Symmetric Shapes' could not write preferences.")
 
-			thisFont = Glyphs.font # frontmost font
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -142,7 +142,7 @@ class AddMetricsKeysforSymmetricGlyphs(object):
 				if allGlyphs:
 					glyphs = thisFont.glyphs
 				else:
-					glyphs = [l.parent for l in thisFont.selectedLayers]
+					glyphs = [layer.parent for layer in thisFont.selectedLayers]
 
 				for thisGlyph in glyphs:
 					if thisGlyph.leftMetricsKey == "=|":
@@ -152,7 +152,7 @@ class AddMetricsKeysforSymmetricGlyphs(object):
 					elif self.glyphIsEmpty(thisGlyph):
 						print("🔠 %s: skipped because glyph is empty" % thisGlyph.name)
 					else:
-						symmetricity = [self.layerIsSymmetric(l, tolerance) for l in thisGlyph.layers if l.isMasterLayer or l.isSpecialLayer]
+						symmetricity = [self.layerIsSymmetric(layer, tolerance) for layer in thisGlyph.layers if layer.isMasterLayer or layer.isSpecialLayer]
 						if all(symmetricity):
 							count += 1
 							tabText += "/%s" % thisGlyph.name
@@ -166,7 +166,7 @@ class AddMetricsKeysforSymmetricGlyphs(object):
 										thisLayer.syncMetrics()
 							print("✅ RSB=|%s: %s" % (reportAddition, thisGlyph.name))
 
-				self.w.close() # delete if you want window to stay open
+				self.w.close()  # delete if you want window to stay open
 
 			# Final report:
 			if tabText:
@@ -176,8 +176,8 @@ class AddMetricsKeysforSymmetricGlyphs(object):
 				"Added RSB=| in %i glyph%s. Details in Macro Window" % (
 					count,
 					"" if count == 0 else "s",
-					),
-				)
+				),
+			)
 			print("\nDone.")
 
 		except Exception as e:
@@ -186,5 +186,6 @@ class AddMetricsKeysforSymmetricGlyphs(object):
 			print("Add Metrics Keys for Symmetric Shapes Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 AddMetricsKeysforSymmetricGlyphs()

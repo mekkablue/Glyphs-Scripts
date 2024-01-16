@@ -1,8 +1,10 @@
-#MenuTitle: Make Components Smart in All Selected Glyphs
+# MenuTitle: Make Components Smart in All Selected Glyphs
 # -*- coding: utf-8 -*-
-__doc__="""
+__doc__ = """
 Turn the selected components into smart components, based on the axes defined in the font.
 """
+
+from GlyphsApp import Glyphs, GSSmartComponentAxis
 
 # clears macro window log:
 Glyphs.clearLog()
@@ -38,7 +40,7 @@ for selectedLayer in selectedLayers:
 								layer.smartComponentPoleMapping[originalGlyph.smartComponentAxes[newAxis.name].id] = 1
 							if font.masters[layer.associatedMasterId].axes[i] == newAxis.topValue:
 								layer.smartComponentPoleMapping[originalGlyph.smartComponentAxes[newAxis.name].id] = 2
-								
+
 			# Reset axis values, so they can be accessed:
 			for layer in selectedGlyph.layers:
 				if layer.isMasterLayer:
@@ -46,12 +48,12 @@ for selectedLayer in selectedLayers:
 						component = layer.components[compIndex]
 						interpolationValue = layer.associatedFontMaster().axes[i]
 						component.smartComponentValues[originalGlyph.smartComponentAxes[i].id] = interpolationValue
-			
+
 			# Renew selection in order to show smart glyph controls
 			if not batchProcess:
 				for b in range(2):
 					component.selected = bool(b)
-		
+
 			processedGlyphs.append(originalGlyph.name)
 
 if processedGlyphs:

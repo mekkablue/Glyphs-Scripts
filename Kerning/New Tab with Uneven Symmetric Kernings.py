@@ -1,18 +1,22 @@
-#MenuTitle: New tab with uneven symmetric kernings
+# MenuTitle: New tab with uneven symmetric kernings
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Finds kern pairs for symmetric letters like ATA AVA TOT WIW etc. and sees if AT is the same as TA, etc.
 """
 
+from GlyphsApp import Glyphs, Message
+
+Font = Glyphs.font
+
 UC = "AHIMNOTUVWXY"
 SC = ["%s.sc" % x.lower() for x in UC]
 LC = "ilovwx"
 SY = ["hyphen", "endash", "emdash", "quotesingle", "quotedbl", "at", "space", "asterisk"]
 
-thisFont = Glyphs.font # frontmost font
-m = thisFont.selectedFontMaster # active master
-Glyphs.clearLog() # clears log in Macro window
+thisFont = Glyphs.font  # frontmost font
+m = thisFont.selectedFontMaster  # active master
+Glyphs.clearLog()  # clears log in Macro window
 
 allDottedGlyphNames = [x.name for x in thisFont.glyphs if "." in x.name and x.export]
 extraUC, extraSC, extraLC = [], [], []
@@ -21,10 +25,10 @@ for x in allDottedGlyphNames:
 		if x.startswith("%s." % S):
 			extraSC.append(x)
 	for U in UC:
-		if x.startswith("%s." % U) and not x in SC and not x in extraSC:
+		if x.startswith("%s." % U) and x not in SC and x not in extraSC:
 			extraUC.append(x)
 	for L in LC:
-		if x.startswith("%s." % L) and not x in SC and not x in extraSC:
+		if x.startswith("%s." % L) and x not in SC and x not in extraSC:
 			extraLC.append(x)
 
 tabString = ""
@@ -32,7 +36,7 @@ for glyphnames in (list(UC) + extraUC + SY, list(LC) + extraLC + SY, SC + extraS
 	print(glyphnames)
 	for i, glyphname1 in enumerate(glyphnames):
 		for glyphname2 in glyphnames[i:]:
-			if glyphname1 != glyphname2: # AAA makes no sense
+			if glyphname1 != glyphname2:  # AAA makes no sense
 				if not thisFont.glyphs[glyphname1] or not thisFont.glyphs[glyphname2]:
 					for g in (glyphname1, glyphname2):
 						if not thisFont[g]:
@@ -58,7 +62,7 @@ for glyphnames in (list(UC) + extraUC + SY, list(LC) + extraLC + SY, SC + extraS
 									glyph1.name,
 									leftKern,
 									rightKern,
-									))
+								))
 								tabString += "/%s/%s/%s\n" % (glyphname1, glyphname2, glyphname1)
 						else:
 							print(u"⚠️ missing kerning groups in glyphs: %s, %s" % (glyphname1, glyphname2))

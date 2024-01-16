@@ -1,12 +1,14 @@
-#MenuTitle: Fill Up Empty Masters
+# MenuTitle: Fill Up Empty Masters
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Looks for empty master layers and adds shapes of a preferred master.
 """
 
-import vanilla, sys
+import vanilla
+import sys
 from copy import copy as copy
+from GlyphsApp import Glyphs, Message
 
 labelColors = (
 	"🔴 Red",
@@ -21,7 +23,8 @@ labelColors = (
 	"🩷 Pink",
 	"🩶 Light Gray",
 	"🌑 Dark Gray",
-	)
+)
+
 
 class FillUpEmptyMasters(object):
 	prefID = "com.mekkablue.FillUpEmptyMasters"
@@ -34,82 +37,82 @@ class FillUpEmptyMasters(object):
 		"markWithColor": 0,
 		"layerColor": 0,
 	}
-	
-	def __init__( self ):
+
+	def __init__(self):
 		# Window 'self.w':
-		windowWidth  = 300
+		windowWidth = 300
 		windowHeight = 205
-		windowWidthResize  = 200 # user can resize width by this value
-		windowHeightResize = 0   # user can resize height by this value
+		windowWidthResize = 200  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Fill Up Empty Masters", # window title
-			minSize = (windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize = (windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName = self.domain("mainwindow") # stores last window position and size
+			(windowWidth, windowHeight),  # default window size
+			"Fill Up Empty Masters",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
-		
+
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos+2, -inset, 14), "Populate empty layers of selected glyphs:", sizeStyle="small", selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Populate empty layers of selected glyphs:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
-		
-		self.w.masterChoiceText = vanilla.TextBox((inset, linePos+2, 95, 14), "Use shapes from", sizeStyle="small", selectable=True)
-		self.w.masterChoice = vanilla.PopUpButton((inset+95, linePos, -inset-25, 17), (), sizeStyle="small", callback=self.SavePreferences)
-		self.w.masterChoiceUpdate = vanilla.SquareButton((-inset-20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateGUI)
+
+		self.w.masterChoiceText = vanilla.TextBox((inset, linePos + 2, 95, 14), "Use shapes from", sizeStyle="small", selectable=True)
+		self.w.masterChoice = vanilla.PopUpButton((inset + 95, linePos, -inset - 25, 17), (), sizeStyle="small", callback=self.SavePreferences)
+		self.w.masterChoiceUpdate = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateGUI)
 		linePos += lineHeight
-		
-		self.w.firstOneWithShapes = vanilla.CheckBox((inset, linePos-1, -inset, 20), "If empty, use first master with shapes", value=False, callback=self.SavePreferences, sizeStyle="small")
+
+		self.w.firstOneWithShapes = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "If empty, use first master with shapes", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
-		
-		self.w.addMissingAnchors = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Add missing default anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
+
+		self.w.addMissingAnchors = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Add missing default anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
-		
-		self.w.copySidebearings = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Also copy sidebearings", value=False, callback=self.SavePreferences, sizeStyle="small")
+
+		self.w.copySidebearings = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Also copy sidebearings", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
-		
-		self.w.markWithColor = vanilla.CheckBox((inset, linePos-1, 165, 20), "Color-mark filled-up layers:", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.layerColor = vanilla.PopUpButton((inset+165, linePos, 105, 17), labelColors, sizeStyle="small", callback=self.SavePreferences)
+
+		self.w.markWithColor = vanilla.CheckBox((inset, linePos - 1, 165, 20), "Color-mark filled-up layers:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.layerColor = vanilla.PopUpButton((inset + 165, linePos, 105, 17), labelColors, sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
-		
+
 		# Status:
-		self.w.status = vanilla.TextBox((inset, -15-inset, -90-inset, 14), "", sizeStyle="small", selectable=True)
+		self.w.status = vanilla.TextBox((inset, -15 - inset, -90 - inset, 14), "", sizeStyle="small", selectable=True)
 		linePos += lineHeight
-		
+
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Fill Up", sizeStyle="regular", callback=self.FillUpEmptyMastersMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Fill Up", sizeStyle="regular", callback=self.FillUpEmptyMastersMain)
 		self.w.setDefaultButton(self.w.runButton)
-		
+
 		# Load Settings:
 		if not self.LoadPreferences():
 			print("⚠️ ‘Fill Up Empty Masters’ could not load preferences. Will resort to defaults.")
-		
+
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-	
+
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-	
+
 	def updateGUI(self, sender=None):
 		self.w.layerColor.enable(self.pref("markWithColor"))
 		if Glyphs.font:
 			masterNames = [m.name for m in Glyphs.font.masters]
 			self.w.masterChoice.setItems(masterNames)
-			if len(masterNames) < self.w.masterChoice.get()+1:
-				self.w.masterChoice.set(len(masterNames)-1)
+			if len(masterNames) < self.w.masterChoice.get() + 1:
+				self.w.masterChoice.set(len(masterNames) - 1)
 			else:
 				self.w.masterChoice.set(self.pref("masterChoice"))
 			self.w.runButton.enable(1)
 		else:
 			self.w.masterChoice.setItems([])
 			self.w.runButton.enable(0)
-	
+
 	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
@@ -122,7 +125,7 @@ class FillUpEmptyMasters(object):
 			print(traceback.format_exc())
 			return False
 
-	def LoadPreferences( self ):
+	def LoadPreferences(self):
 		try:
 			self.updateGUI()
 			for prefName in self.prefDict.keys():
@@ -136,15 +139,15 @@ class FillUpEmptyMasters(object):
 			print(traceback.format_exc())
 			return False
 
-	def FillUpEmptyMastersMain( self, sender=None ):
+	def FillUpEmptyMastersMain(self, sender=None):
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
-			
+
 			# update settings to the latest user input:
 			if not self.SavePreferences():
 				print("⚠️ ‘Fill Up Empty Masters’ could not write preferences.")
-			
+
 			# read prefs:
 			for prefName in self.prefDict.keys():
 				try:
@@ -153,8 +156,8 @@ class FillUpEmptyMasters(object):
 					fallbackValue = self.prefDict[prefName]
 					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
 					setattr(sys.modules[__name__], prefName, fallbackValue)
-			
-			thisFont = Glyphs.font # frontmost font
+
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -167,7 +170,7 @@ class FillUpEmptyMasters(object):
 				print()
 				sourceMaster = thisFont.masters[masterChoice]
 				sourceID = sourceMaster.id
-				selectedGlyphs = set([l.parent for l in thisFont.selectedLayers])
+				selectedGlyphs = set([layer.parent for layer in thisFont.selectedLayers])
 				layerCount = 0
 				for thisGlyph in selectedGlyphs:
 					self.w.status.set(f"🔤 Filling up {thisGlyph.name}...")
@@ -179,7 +182,7 @@ class FillUpEmptyMasters(object):
 								sourceLayer = thisGlyph.layers[master.id]
 								print(f"🔤 Filling up {thisGlyph.name} from layer {master.name}")
 								break
-					
+
 					if not sourceLayer:
 						print(f"⚠️ No shapes for filling up in: {thisGlyph.name}")
 						self.w.status.set(f"⚠️ No shapes: {thisGlyph.name}")
@@ -204,7 +207,7 @@ class FillUpEmptyMasters(object):
 							if markWithColor:
 								targetLayer.color = layerColor
 
-			finalMessage = f"✅ Done. Filled up {layerCount} layer{'' if layerCount==1 else 's'} in {len(selectedGlyphs)} glyph{'' if len(selectedGlyphs)==1 else 's'}."
+			finalMessage = f"✅ Done. Filled up {layerCount} layer{'' if layerCount == 1 else 's'} in {len(selectedGlyphs)} glyph{'' if len(selectedGlyphs) == 1 else 's'}."
 			print(f"\n{finalMessage}")
 			self.w.status.set(finalMessage)
 
@@ -214,5 +217,6 @@ class FillUpEmptyMasters(object):
 			print(f"Fill Up Empty Masters Error: {e}")
 			import traceback
 			print(traceback.format_exc())
+
 
 FillUpEmptyMasters()

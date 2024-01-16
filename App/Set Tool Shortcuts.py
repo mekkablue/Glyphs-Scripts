@@ -1,4 +1,4 @@
-#MenuTitle: Set Tool Shortcuts
+# MenuTitle: Set Tool Shortcuts
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -6,6 +6,9 @@ Set Shortcuts for tools in toolbar.
 """
 
 import vanilla
+from GlyphsApp import Glyphs
+
+
 shortcuts = {
 	"AnnotationTool": u"a",
 	"DrawTool": u"p",
@@ -21,7 +24,8 @@ shortcuts = {
 	"ScaleTool": u"s",
 	"TrueTypeTool": u"i",
 	"ZoomTool": u"z",
-	}
+}
+
 
 class SetToolShortcuts(object):
 
@@ -32,15 +36,15 @@ class SetToolShortcuts(object):
 		# Window 'self.w':
 		windowWidth = 200
 		windowHeight = lineheight * len(shortcuts) + 40
-		windowWidthResize = 0 # user can resize width by this value
-		windowHeightResize = 0 # user can resize height by this value
+		windowWidthResize = 0  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			u"Set Tool Shortcuts", # window title
-			minSize=(windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName="com.mekkablue.SetToolShortcuts.mainwindow" # stores last window position and size
-			)
+			(windowWidth, windowHeight),  # default window size
+			u"Set Tool Shortcuts",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName="com.mekkablue.SetToolShortcuts.mainwindow"  # stores last window position and size
+		)
 
 		# UI elements:
 		for tool in sorted(shortcuts.keys()):
@@ -52,9 +56,9 @@ class SetToolShortcuts(object):
 				"self.w.edit_%s = vanilla.EditText( (15+115+15, %i, -15, 20), u'%s', sizeStyle = 'small', callback=self.changeShortcut )" % (
 					tool,
 					position - 1,
-					shortcut.upper() if shortcut != "ß" else shortcut, # do not capitalize ß because SF font is buggy
-					)
+					shortcut.upper() if shortcut != "ß" else shortcut,  # do not capitalize ß because SF font is buggy
 				)
+			)
 			exec("self.w.edit_%s.setPlaceholder('%s')" % (tool, tool))
 			position += lineheight
 
@@ -85,5 +89,6 @@ class SetToolShortcuts(object):
 			print(u"Set Tool Shortcuts Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
+
 
 SetToolShortcuts()

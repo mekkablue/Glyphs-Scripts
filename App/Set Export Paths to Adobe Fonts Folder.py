@@ -1,18 +1,22 @@
-#MenuTitle: Set Export Paths to Adobe Fonts Folder
+# MenuTitle: Set Export Paths to Adobe Fonts Folder
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Sets the OpenType font and Variable Font export paths to the Adobe Fonts Folder.
 """
 
-Glyphs.clearLog()
 import subprocess
+from GlyphsApp import Glyphs, Message
+
+Glyphs.clearLog()
+
 
 def executeCommand(command, commandArgs):
 	commandExecution = subprocess.Popen(command.split(" ") + commandArgs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	output, error = commandExecution.communicate()
 	returncode = commandExecution.returncode
 	return returncode, output, error
+
 
 adobeFontsFolder = "/Library/Application Support/Adobe/Fonts"
 # TODO: check if general Library is accessible (W privileges), if not, use ~/Library
@@ -38,7 +42,7 @@ Message(
 	title="Export Paths Reset Successfully",
 	message="Static and variable fonts now export to Adobe Fonts Folder. More details in Macro Window.",
 	OKButton="🥂 Hurrah",
-	)
+)
 
 for setting in settings:
 	print("Setting %s to %s:" % (setting, adobeFontsFolder), end=' ')
