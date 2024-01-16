@@ -34,7 +34,9 @@ for thisLayer in selectedLayers:
 
 	if not nameIsAnException:
 		# thisGlyph.beginUndo() # undo grouping causes crashes
-		print("%s layers deleted in %s." % (process(thisGlyph), thisGlyphName))
+		count = process(thisGlyph)
+		if count > 0:
+			print("%s layers deleted in %s." % (count, thisGlyphName))
 		# thisGlyph.endUndo() # undo grouping causes crashes
 	else:
 		print("Smart layers kept in %s." % (thisGlyphName))
