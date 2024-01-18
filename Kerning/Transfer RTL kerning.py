@@ -48,8 +48,7 @@ class TransferRTLkerning(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Transfer RTL kerning' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -89,8 +88,7 @@ class TransferRTLkerning(mekkaObject):
 			else:
 				self.w.runButton.enable(onOff=True)
 
-			if not self.SavePreferences(self):
-				self.outputError("Could not save preferences during buttonCheck().")
+			self.SavePreferences()
 		except:
 			import traceback
 			print(traceback.format_exc())
@@ -104,8 +102,7 @@ class TransferRTLkerning(mekkaObject):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("Note: 'Transfer RTL kerning' could not write preferences.")
+			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:

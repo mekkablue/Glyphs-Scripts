@@ -137,8 +137,7 @@ class MetricsKeyManager(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Metrics Key Manager' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Bind resizing method:
 		self.w.bind("resize", self.windowResize)
@@ -170,8 +169,7 @@ class MetricsKeyManager(mekkaObject):
 		self.w.WidthMetricsKeys.set(WidthKeys.strip())
 
 		# update settings to the latest user input:
-		if not self.SavePreferences(self):
-			print("⚠️ Metrics Key Manager could not write preferences.")
+		self.SavePreferences()
 
 	def parseGlyphNames(self, glyphNameText):
 		possibleChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.-_"
@@ -334,8 +332,7 @@ class MetricsKeyManager(mekkaObject):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'Metrics Key Manager' could not write preferences.")
+			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
 			if not thisFont:

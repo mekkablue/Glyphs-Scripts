@@ -548,8 +548,7 @@ class PathProblemFinder(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print(f"Note: ‘{self.title}’ could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -593,8 +592,7 @@ class PathProblemFinder(mekkaObject):
 		start = timer()
 
 		# update settings to the latest user input:
-		if not self.SavePreferences():
-			print(f"Note: ‘{self.title}’ could not write preferences.")
+		self.SavePreferences()
 
 		# Query user settings:
 		zeroHandles = self.pref("zeroHandles")

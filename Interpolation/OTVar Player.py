@@ -61,8 +61,7 @@ class OTVarGlyphAnimator(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'OTVar Glyph Animator' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		self.direction = 1
 		self.font = Glyphs.font
@@ -165,8 +164,7 @@ class OTVarGlyphAnimator(mekkaObject):
 				# self.font.currentTab.forceRedraw()
 				# self.font.updateInterface()
 
-			if not self.SavePreferences(self):
-				print("Note: 'OTVar Glyph Animator' could not write preferences.")
+			self.SavePreferences()
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()

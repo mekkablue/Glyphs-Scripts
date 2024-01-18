@@ -226,8 +226,7 @@ class BBoxBumperKerning(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'BBox Bumper Kerning as Feature Code' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -248,8 +247,7 @@ class BBoxBumperKerning(mekkaObject):
 			print("BBox Bumper Report")
 
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("⚠️ BBox Bumper could not write preferences.")
+			self.SavePreferences()
 
 			otClassName = self.pref("otClassName")
 			token = self.pref("token")

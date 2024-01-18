@@ -70,8 +70,7 @@ class CompareKerningBetweenMasters(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("⚠️ ‘Compare Kerning Between Masters’ could not load preferences. Will resort to defaults.")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.verifyButtonStatus()
@@ -154,8 +153,7 @@ class CompareKerningBetweenMasters(mekkaObject):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("⚠️ ‘Compare Kerning Between Masters’ could not write preferences.")
+			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:

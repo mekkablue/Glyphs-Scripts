@@ -58,8 +58,7 @@ class BlueFuzzer(mekkaObject):
 						thisZone.setPosition_(thisZone.position - fuzzValue * factor)
 						thisZone.setSize_(thisZone.size + (fuzzValue * 2) * factor)
 
-			if not self.SavePreferences(self):
-				print("Note: could not write preferences.")
+			self.SavePreferences()
 
 			self.w.close()
 		except Exception as e:

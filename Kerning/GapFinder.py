@@ -108,8 +108,7 @@ class GapFinder(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'GapFinder' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -224,8 +223,7 @@ class GapFinder(mekkaObject):
 	def GapFinderMain(self, sender):
 		try:
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'GapFinder' could not write preferences.")
+			self.SavePreferences()
 
 			# query frontmost fontmaster:
 			thisFont = Glyphs.font
@@ -258,8 +256,7 @@ class GapFinder(mekkaObject):
 				print()
 
 			# save prefs
-			if not self.SavePreferences(None):
-				print("Note: GapFinder could not write preferences.")
+			self.SavePreferences()
 
 			# get list of glyph names:
 			firstList = self.listOfNamesForCategories(thisFont, firstCategory, firstSubCategory, script, excludedGlyphNameParts, excludeNonExporting)

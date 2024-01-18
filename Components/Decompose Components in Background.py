@@ -83,8 +83,7 @@ class Decompose_Components_in_Background(mekkaObject):
 
 		self.w.setDefaultButton(self.w.decomposeButton)
 
-		if not self.LoadPreferences():
-			print("Note: 'Decompose Backgrounds' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		self.w.open()
 		self.w.makeKey()

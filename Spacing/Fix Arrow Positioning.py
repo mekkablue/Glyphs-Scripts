@@ -94,8 +94,7 @@ class FixArrowPositioning(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Fix Arrow Positioning' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -318,8 +317,7 @@ class FixArrowPositioning(mekkaObject):
 						OKButton=None
 					)
 
-			if not self.SavePreferences(self):
-				print(u"⚠️ 'Fix Arrow Positioning' could not write preferences.")
+			self.SavePreferences()
 
 			Glyphs.showMacroWindow()
 		except Exception as e:

@@ -73,8 +73,7 @@ class AxisLocationSetter(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("⚠️ 'Axis Location Setter' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 			self.updateUI()
 
 		# Open window and focus on it:
@@ -208,8 +207,7 @@ class AxisLocationSetter(mekkaObject):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("Note: 'Axis Location Setter' could not write preferences.")
+			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:

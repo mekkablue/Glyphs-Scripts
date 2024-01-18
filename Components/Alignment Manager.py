@@ -67,8 +67,7 @@ class AutoAlignmentManager(mekkaObject):
 		self.w.rotateButton.getNSButton().setToolTip_("Moves the last component into first place. Useful if you quickly want to fix component order without leaving he script UI.")
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Auto Alignment Manager' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -118,8 +117,7 @@ class AutoAlignmentManager(mekkaObject):
 	def AutoAlignmentManagerMain(self, sender):
 		try:
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'Auto Alignment Manager' could not write preferences.")
+			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
 			Glyphs.clearLog()

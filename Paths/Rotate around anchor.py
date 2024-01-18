@@ -60,8 +60,7 @@ class Rotator(mekkaObject):
 		self.w.stepAndRepeat_ccw = vanilla.Button((-150, linePos + 1, -70 - inset, 19), u"↺+ ccw", sizeStyle='small', callback=self.rotate)
 		self.w.stepAndRepeat_cw = vanilla.Button((-80, linePos + 1, -inset, 19), u"↻+ cw", sizeStyle='small', callback=self.rotate)
 
-		if not self.LoadPreferences():
-			print("Rotate Around Anchor: Could not load prefs, will resort to defaults.")
+		self.LoadPreferences()
 
 		self.updateRotateAnchor()
 		self.w.open()
@@ -125,8 +124,7 @@ class Rotator(mekkaObject):
 
 	def rotate(self, sender):
 		# update settings to the latest user input:
-		if not self.SavePreferences(self):
-			print("Note: 'Rotate Around Anchor' could not write preferences.")
+		self.SavePreferences()
 
 		selectedLayers = Glyphs.currentDocument.selectedLayers()
 		originatingButton = sender.getTitle()

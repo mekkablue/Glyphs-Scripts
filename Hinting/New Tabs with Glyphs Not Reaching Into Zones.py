@@ -61,8 +61,7 @@ class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'New Tabs with Glyphs Not Reaching Into Zones' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -80,8 +79,7 @@ class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):
 	def glyphs2solution(self):
 		try:
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'New Tabs with Glyphs Not Reaching Into Zones' could not write preferences.")
+			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
 			print("New Tabs with Glyphs Not Reaching Into Zones Report for %s" % thisFont.familyName)
@@ -189,8 +187,7 @@ class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):
 	def glyphs3solution(self):
 		try:
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'New Tabs with Glyphs Not Reaching Into Zones' could not write preferences.")
+			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
 			print("New Tabs with Glyphs Not Reaching Into Zones Report for %s" % thisFont.familyName)

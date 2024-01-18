@@ -46,8 +46,7 @@ class CopyGlyphsIntoBackupLayers(mekkaObject):
 		self.w.setDefaultButton(self.w.copybutton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Copy glyphs into backup layers' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -103,8 +102,7 @@ class CopyGlyphsIntoBackupLayers(mekkaObject):
 					targetGlyph.layers[MasterID_source].setAssociatedMasterId_(MasterID_target)
 					targetGlyph.layers[MasterID_source].setName_("%s %s" % (targetMasterName, layerSuffix))
 
-			if not self.SavePreferences(self):
-				print("Note: 'Copy glyphs into backup layers' could not write preferences.")
+			self.SavePreferences()
 
 			self.w.close()  # delete if you want window to stay open
 		except Exception as e:

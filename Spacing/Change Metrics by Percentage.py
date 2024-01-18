@@ -34,8 +34,7 @@ class ChangeMetricsbyPercentage(mekkaObject):
 
 		self.w.setDefaultButton(self.w.runButton)
 
-		if not self.LoadPreferences():
-			print("Could not load preferences. Will resort to defaults.")
+		self.LoadPreferences()
 
 		self.w.open()
 		self.w.makeKey()
@@ -59,8 +58,7 @@ class ChangeMetricsbyPercentage(mekkaObject):
 					if changeRSB:
 						thisLayer.RSB *= change
 
-			if not self.SavePreferences(self):
-				print("Note: could not write preferences.")
+			self.SavePreferences()
 
 			# self.w.close()
 		except Exception as e:

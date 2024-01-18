@@ -48,8 +48,7 @@ class FindAndReplaceInInstanceParameters(mekkaObject):
 		self.w.bind("resize", self.windowResize)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Find and Replace In Instance Parameters' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -136,8 +135,7 @@ class FindAndReplaceInInstanceParameters(mekkaObject):
 								thisInstance.customParameters[parameterName] = parameter
 							print("%s: appended to %s" % (thisInstance.name, parameterName))
 
-			if not self.SavePreferences(self):
-				print("Note: 'Find and Replace In Instance Parameters' could not write preferences.")
+			self.SavePreferences()
 
 		except Exception as e:
 			# brings macro window to front and reports error:

@@ -118,8 +118,7 @@ class FixMathOperatorSpacing(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print(u"⚠️ Note: 'Fix Math Operator Spacing' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -362,8 +361,7 @@ class FixMathOperatorSpacing(mekkaObject):
 												# layer.updateMetrics()
 												# layer.syncMetrics()
 
-			if not self.SavePreferences(self):
-				print(u"⚠️ Note: 'Fix Math Operator Spacing' could not write preferences.")
+			self.SavePreferences()
 
 		except Exception as e:
 			# brings macro window to front and reports error:

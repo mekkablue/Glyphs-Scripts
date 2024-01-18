@@ -43,8 +43,7 @@ class FindAndReplaceCorners(mekkaObject):
 		self.w.setDefaultButton(self.w.replaceButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Replace Corners' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -59,8 +58,7 @@ class FindAndReplaceCorners(mekkaObject):
 
 	def FindAndReplaceCornersMain(self, sender):
 		try:
-			if not self.SavePreferences(self):
-				print("Note: 'Replace Corners' could not write preferences.")
+			self.SavePreferences()
 
 			searchString = self.corners[self.w.searchFor.get()]
 			replaceString = self.corners[self.w.replaceBy.get()]

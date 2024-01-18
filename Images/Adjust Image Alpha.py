@@ -35,8 +35,7 @@ class AdjustImageAlpha(mekkaObject):
 		self.w.indicator = vanilla.TextBox((-50, 12 + 2, -15, 14), "100.0", sizeStyle='small')
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Adjust Image Alpha' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -44,8 +43,7 @@ class AdjustImageAlpha(mekkaObject):
 
 	def AdjustImageAlphaMain(self, sender):
 		try:
-			if not self.SavePreferences(self):
-				print("Note: 'Adjust Image Alpha' could not write preferences.")
+			self.SavePreferences()
 
 			self.w.indicator.set("%.1f" % self.prefFloat("alphaSlider"))
 			thisFont = Glyphs.font  # frontmost font

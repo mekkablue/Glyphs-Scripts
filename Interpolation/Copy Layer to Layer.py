@@ -62,8 +62,7 @@ class CopyLayerToLayer(mekkaObject):
 		self.w.setDefaultButton(self.w.copybutton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Copy Layer to Layer' could not load preferences. Will resort to defaults.")
+		self.LoadPreferences()
 
 		self.w.open()
 		self.w.makeKey()

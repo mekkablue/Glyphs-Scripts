@@ -76,8 +76,7 @@ class BatchInsertAnchor(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Batch Insert Anchor' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -86,8 +85,7 @@ class BatchInsertAnchor(mekkaObject):
 	def BatchInsertAnchorMain(self, sender):
 		try:
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'Batch Insert Anchor' could not write preferences.")
+			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
 			print("Batch Insert Anchor Report for %s" % thisFont.familyName)

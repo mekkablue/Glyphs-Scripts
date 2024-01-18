@@ -110,8 +110,7 @@ class FindShapeshiftingGlyphs(mekkaObject):
 		self.w.status = vanilla.TextBox((inset, -17 - inset, -90 - inset, 14), "", sizeStyle='small', selectable=False)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Find Shapeshifting Glyphs' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -312,8 +311,7 @@ class FindShapeshiftingGlyphs(mekkaObject):
 
 			print("%s\nDone." % message)
 
-			if not self.SavePreferences(self):
-				print("Note: 'Find Shapeshifting Glyphs' could not write preferences.")
+			self.SavePreferences()
 
 		except Exception as e:
 			# brings macro window to front and reports error:

@@ -33,13 +33,11 @@ class Gridswitch(mekkaObject):
 		self.w.makeKey()
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Grid Switcher' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 	def GridOnOffMain(self, sender):
 		try:
-			if not self.SavePreferences(self):
-				print("Note: 'Grid Switcher' could not write preferences.")
+			self.SavePreferences()
 
 			try:
 				gridStep1 = int(Glyphs.defaults["com.mekkablue.gridswitch.grid1"])

@@ -47,8 +47,7 @@ class MetricKeyReplacer(mekkaObject):
 	def MetricKeyReplaceMain(self, sender):
 		Glyphs.font.disableUpdateInterface()
 		try:
-			if not self.SavePreferences(self):
-				print("Note: Could not write preferences.")
+			self.SavePreferences()
 
 			Font = Glyphs.font
 			selectedLayers = Font.selectedLayers

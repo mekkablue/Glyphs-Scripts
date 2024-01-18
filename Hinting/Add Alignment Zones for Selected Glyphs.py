@@ -80,8 +80,7 @@ class CreateAlignmentZonesforSelectedGlyphs(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Create Alignment Zones for Selected Glyphs' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -127,8 +126,7 @@ class CreateAlignmentZonesforSelectedGlyphs(mekkaObject):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'Create Alignment Zones for Selected Glyphs' could not write preferences.")
+			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:

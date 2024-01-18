@@ -65,8 +65,7 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Exception Cleaner' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		self.updateUI()
 
@@ -115,8 +114,7 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 
 	def DeleteExceptionsTooCloseToGroupKerningMain(self, sender):
 		try:
-			if not self.SavePreferences(self):
-				print("Note: 'Exception Cleaner' could not write preferences.")
+			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
 			thisMaster = thisFont.selectedFontMaster

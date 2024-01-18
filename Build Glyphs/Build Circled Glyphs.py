@@ -522,8 +522,7 @@ class BuildCircledGlyphs(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Build Circled Glyphs' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -541,8 +540,7 @@ class BuildCircledGlyphs(mekkaObject):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("Note: 'Build Circled Glyphs' could not write preferences.")
+			self.SavePreferences()
 
 			minDistanceBetweenFigures = 90.0
 			thisFont = Glyphs.font  # frontmost font

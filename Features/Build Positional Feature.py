@@ -181,8 +181,7 @@ class BuildPositionalFeature(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: ‘%s’ could not load preferences. Will resort to defaults" % self.title)
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -206,8 +205,7 @@ class BuildPositionalFeature(mekkaObject):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("Note: ‘%s’ could not write preferences." % self.title)
+			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:

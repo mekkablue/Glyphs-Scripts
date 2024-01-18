@@ -96,8 +96,7 @@ class RemoveKerning(mekkaObject):
 		self.w.reloadButton = vanilla.Button((-220 - inset, -20 - inset, -130 - inset, -inset), "Reload", sizeStyle='regular', callback=self.ReloadCategories)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Remove Kerning' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		self.buttonEnable()
 
@@ -193,8 +192,7 @@ class RemoveKerning(mekkaObject):
 	def RemoveKerningMain(self, sender):
 		try:
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'Remove Kerning' could not write preferences.")
+			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
 			includeDirtyCategories = self.pref("includeDirtyCategories")

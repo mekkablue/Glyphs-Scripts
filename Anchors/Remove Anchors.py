@@ -55,8 +55,7 @@ class AnchorDeleter(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Delete Anchors' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -91,8 +90,7 @@ class AnchorDeleter(mekkaObject):
 	def AnchorDeleterMain(self, sender=None):
 		try:
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'Remove Anchors' could not write preferences.")
+			self.SavePreferences()
 
 			Glyphs.clearLog()
 			thisFont = Glyphs.font  # frontmost font

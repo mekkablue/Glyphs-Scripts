@@ -100,8 +100,7 @@ class StealAnchors(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("⚠️ ‘Steal Anchors’ could not load preferences. Will resort to defaults.")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -171,8 +170,7 @@ class StealAnchors(mekkaObject):
 			excludedPrefixes = ("_cap", "_corner", "_brush", "_segment")
 
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("⚠️ ‘Steal Anchors’ could not write preferences.")
+			self.SavePreferences()
 
 			if Glyphs.font is None:
 				Message(title="No Font Open", message="The script requires at least one font. Open a font and run the script again.", OKButton=None)

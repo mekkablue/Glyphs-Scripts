@@ -147,8 +147,7 @@ class StraightStemCruncher(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Straight Stem Cruncher' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -296,8 +295,7 @@ class StraightStemCruncher(mekkaObject):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("Note: 'Straight Stem Cruncher' could not write preferences.")
+			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
 			print("Straight Stem Cruncher Report for %s" % thisFont.familyName)

@@ -47,8 +47,7 @@ class ReportNonStandardAnchorsInMacroWindow(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Report Non-Standard Anchors to Macro Window' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -101,8 +100,7 @@ class ReportNonStandardAnchorsInMacroWindow(mekkaObject):
 			print("\n(Hint: Lines can be copied and pasted in Edit view.)")
 			Glyphs.showMacroWindow()
 
-			if not self.SavePreferences(self):
-				print("Note: 'Report Non-Standard Anchors to Macro Window' could not write preferences.")
+			self.SavePreferences()
 
 			self.w.close()  # delete if you want window to stay open
 		except Exception as e:

@@ -74,8 +74,7 @@ class FindSmallPaths(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Find Small Paths' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		self.CheckBoxUpdate(None)
 		self.SliderUpdate(None)
@@ -99,8 +98,7 @@ class FindSmallPaths(mekkaObject):
 				theOne.set(False)
 
 			# save prefs:
-			if not self.SavePreferences(self):
-				print("Note: 'Find Small Paths' could not write preferences.")
+			self.SavePreferences()
 
 			return True
 		except Exception as e:
@@ -111,8 +109,7 @@ class FindSmallPaths(mekkaObject):
 		try:
 			# update the defaults:
 			if sender != self.w.areaSlider:
-				if not self.SavePreferences(self):
-					print("Note: 'Find Small Paths' could not write preferences.")
+				self.SavePreferences()
 
 			# fallback values
 			minimum, maximum = 1.0, 1.0
@@ -172,8 +169,7 @@ class FindSmallPaths(mekkaObject):
 
 	def FindSmallPathsMain(self, sender):
 		try:
-			if not self.SavePreferences(self):
-				print("Note: 'Find Small Paths' could not write preferences.")
+			self.SavePreferences()
 
 			minArea = self.CurrentMinArea()
 			smallPathsShouldBeDeleted = self.pref("deleteThemRightAway")

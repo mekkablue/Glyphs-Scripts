@@ -43,8 +43,7 @@ class NewTabWithAnchor(object):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'New Tab with Anchor' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -80,8 +79,7 @@ class NewTabWithAnchor(object):
 		print()
 
 		try:
-			if not self.SavePreferences(self):
-				print("Note: 'New Tab with Anchor' could not write preferences.")
+			self.SavePreferences()
 
 			anchorName = self.pref("anchorName")
 			allLayers = self.pref("allLayers")

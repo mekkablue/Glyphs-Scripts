@@ -79,8 +79,7 @@ class CompareAnchorsOfFrontmostFonts(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Compare Anchors of Frontmost Fonts' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -110,8 +109,7 @@ class CompareAnchorsOfFrontmostFonts(mekkaObject):
 	def CompareAnchorsOfFrontmostFontsMain(self, sender):
 		try:
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'Compare Anchors of Frontmost Fonts' could not write preferences.")
+			self.SavePreferences()
 
 			# query prefs:
 			reportOnlyTopBottomCenter = self.pref("reportOnlyTopBottomCenter")

@@ -59,8 +59,7 @@ class ZeroKerner(mekkaObject):
 		self.w.setDefaultButton(self.w.addButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Zero Kerner' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -77,8 +76,7 @@ class ZeroKerner(mekkaObject):
 	def ZeroKernerMain(self, sender=None):
 		try:
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'Zero Kerner' could not write preferences.")
+			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
 			limitToCurrentMaster = self.pref("limitToCurrentMaster")

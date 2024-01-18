@@ -58,8 +58,7 @@ class CustomUnicode(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Add PUA Unicode Values to Selected Glyphs' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -107,8 +106,7 @@ class CustomUnicode(mekkaObject):
 	def CustomUnicodeMain(self, sender):
 		try:
 			# Try to save prefs:
-			if not self.SavePreferences(self):
-				print("Note: 'Add PUA Unicode Values to Selected Glyphs' could not write preferences.")
+			self.SavePreferences()
 
 			# just to be safe:
 			self.sanitizeEntry(self.w.unicode)

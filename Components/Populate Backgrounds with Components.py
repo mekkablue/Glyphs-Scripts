@@ -65,8 +65,7 @@ class PopulateAllBackgroundswithComponent(mekkaObject):
 		self.w.nextMasterButton.getNSButton().setToolTip_("Switches the current tab to the next master. Useful if you want to align the same nodes in every master.")
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Populate All Backgrounds with Component' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -217,8 +216,7 @@ class PopulateAllBackgroundswithComponent(mekkaObject):
 											hShiftMatrix = hShift.transformStruct()
 											newComponent.applyTransform(hShiftMatrix)
 
-			if not self.SavePreferences(self):
-				print("Note: 'Populate All Backgrounds with Component' could not write preferences.")
+			self.SavePreferences()
 
 		except Exception as e:
 			# brings macro window to front and reports error:

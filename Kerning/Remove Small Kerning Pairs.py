@@ -70,8 +70,7 @@ class DeleteSmallKerningPairs(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Delete Small Kerning Pairs' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -79,8 +78,7 @@ class DeleteSmallKerningPairs(mekkaObject):
 
 	def DeleteSmallKerningPairsMain(self, sender):
 		try:
-			if not self.SavePreferences(self):
-				print("Note: 'Delete Small Kerning Pairs' could not write preferences.")
+			self.SavePreferences()
 
 			# brings macro window:
 			Glyphs.showMacroWindow()

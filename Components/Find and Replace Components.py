@@ -90,8 +90,7 @@ class ComponentReplacer(mekkaObject):
 		self.w.includeBackgrounds.getNSButton().setToolTip_(u"If checked, will also go through backgrounds of all treated layers.")
 		linePos += lineHeight
 
-		if not self.LoadPreferences():
-			print("⚠️ Note: Could not load preferences. Will resort to defaults.")
+		self.LoadPreferences()
 
 		self.w.open()
 
@@ -179,8 +178,7 @@ class ComponentReplacer(mekkaObject):
 			Glyphs.clearLog()  # clears macro window log
 
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("⚠️ Note: 'Find and Replace Components' could not write preferences.")
+			self.SavePreferences()
 
 			print("Find and Replace Components, report for %s" % thisFont.familyName)
 			if thisFont.filepath:

@@ -153,8 +153,7 @@ class FindNearVerticalMisses(mekkaObject):
 		self.w.status = vanilla.TextBox((inset, -18 - inset, -80 - inset, 14), "🤖 Ready.", sizeStyle='small', selectable=True)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Find Near Vertical Misses' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -286,8 +285,7 @@ class FindNearVerticalMisses(mekkaObject):
 			self.w.progress.set(0)
 
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'Find Near Vertical Misses' could not write preferences.")
+			self.SavePreferences()
 
 			self.checkGUI()
 

@@ -69,8 +69,7 @@ class FindCloseEncounters(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("⚠️ ‘Find Close Encounters of Orthogonal Line Segments’ could not load preferences. Will resort to defaults.")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -86,8 +85,7 @@ class FindCloseEncounters(mekkaObject):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("⚠️ ‘Find Close Encounters of Orthogonal Line Segments’ could not write preferences.")
+			self.SavePreferences()
 
 			# read prefs:
 			threshold = abs(self.prefFloat("threshold"))

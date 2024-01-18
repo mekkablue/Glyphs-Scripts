@@ -72,8 +72,7 @@ class FindAndReplaceInFontInfo(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Find and Replace in Font Info' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.updateUI()
@@ -116,8 +115,7 @@ class FindAndReplaceInFontInfo(mekkaObject):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("Note: 'Find and Replace in Font Info' could not write preferences.")
+			self.SavePreferences()
 
 			if not Glyphs.fonts:
 				Message(title="No Font Open", message="The script requires at least one font. Open a font and run the script again.", OKButton=None)

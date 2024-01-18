@@ -177,8 +177,7 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(mekkaObject):
 		linePos += lineHeight
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Add ttfAutohint Control Instructions for Current Glyph' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -278,8 +277,7 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(mekkaObject):
 
 	def AddTTFAutohintControlInstructionsForCurrentGlyphMain(self, sender):
 		try:
-			if not self.SavePreferences(self):
-				print("Note: 'Add ttfAutohint Control Instructions for Current Glyph' could not write preferences.")
+			self.SavePreferences()
 
 			shift = float(sender.getTitle())
 			print(shift)

@@ -53,8 +53,7 @@ class KerningGroupReplacer(mekkaObject):
 		self.w.runButton = vanilla.Button((-110, -20 - inset, -inset, -inset), "Replace", sizeStyle='regular', callback=self.KerningGroupReplaceMain)
 		self.w.setDefaultButton(self.w.runButton)
 
-		if not self.LoadPreferences():
-			print("Note: Could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		self.inset = inset
 		self.w.bind("resize", self.stretchBoxes)
@@ -127,8 +126,7 @@ class KerningGroupReplacer(mekkaObject):
 		Glyphs.clearLog()
 		Glyphs.font.disableUpdateInterface()
 		try:
-			if not self.SavePreferences(self):
-				print("Note: Could not write preferences.")
+			self.SavePreferences()
 
 			Font = Glyphs.font
 			selectedLayers = Font.selectedLayers

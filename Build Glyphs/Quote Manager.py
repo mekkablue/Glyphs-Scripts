@@ -106,8 +106,7 @@ class QuoteManager(mekkaObject):
 		linePos += lineHeight
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Build and align quotes' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -174,8 +173,7 @@ class QuoteManager(mekkaObject):
 	def kernGroupMain(self, sender):
 		try:
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'Quote Manager' could not write preferences.")
+			self.SavePreferences()
 
 			Glyphs.clearLog()
 			Font = Glyphs.font  # frontmost font
@@ -213,8 +211,7 @@ class QuoteManager(mekkaObject):
 	def insertAnchorsMain(self, sender):
 		try:
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'Quote Manager' could not write preferences.")
+			self.SavePreferences()
 
 			Glyphs.clearLog()
 			Font = Glyphs.font  # frontmost font
@@ -312,8 +309,7 @@ class QuoteManager(mekkaObject):
 	def metricKeyMain(self, sender):
 		try:
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'Quote Manager' could not write preferences.")
+			self.SavePreferences()
 
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()
@@ -424,8 +420,7 @@ class QuoteManager(mekkaObject):
 	def buildDoublesMain(self, sender):
 		try:
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'Quote Manager' could not write preferences.")
+			self.SavePreferences()
 
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()

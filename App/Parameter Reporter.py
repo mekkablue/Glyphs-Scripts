@@ -69,8 +69,7 @@ class ParameterReporter(mekkaObject):
 		self.w.ParameterList.getNSTableView().setToolTip_("Double click an entry to copy the respective parameter into the clipboard.")
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Parameter Reporter' could not load preferences. Will resort to defaults.")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -145,8 +144,7 @@ class ParameterReporter(mekkaObject):
 
 			self.w.ParameterList.set(ParameterList)
 
-			if not self.SavePreferences(self):
-				print("Note: 'Parameter Reporter' could not write preferences.")
+			self.SavePreferences()
 
 		except Exception as e:
 			# brings macro window to front and reports error:

@@ -144,8 +144,7 @@ class KinkFinder(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("⚠️ Warning: 'Kink Finder' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -317,8 +316,7 @@ class KinkFinder(mekkaObject):
 
 	def KinkFinderMain(self, sender):
 		try:
-			if not self.SavePreferences(self):
-				print("Note: 'Kink Finder' could not write preferences.")
+			self.SavePreferences()
 
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()

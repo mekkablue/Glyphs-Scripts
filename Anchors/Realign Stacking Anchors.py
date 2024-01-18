@@ -65,8 +65,7 @@ class RealignStackingAnchors(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Realign Stacking Anchors in Combining Accents' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -78,8 +77,7 @@ class RealignStackingAnchors(mekkaObject):
 			print("Realign Stacking Anchors:")
 
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'Realign Stacking Anchors in Combining Accents' could not write preferences.")
+			self.SavePreferences()
 
 			whichAnchorPairs = self.pref("whichAnchorPairs")
 			anchorPairs = [a.strip() for a in whichAnchorPairs.split(",")]

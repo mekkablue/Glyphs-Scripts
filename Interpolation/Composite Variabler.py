@@ -82,8 +82,7 @@ class CompositeVariabler(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Composite Variabler' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -138,8 +137,7 @@ class CompositeVariabler(mekkaObject):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'Composite Variabler' could not write preferences.")
+			self.SavePreferences()
 
 			processBracketLayers = self.pref("processBracketLayers")
 			processBraceLayers = self.pref("processBraceLayers")

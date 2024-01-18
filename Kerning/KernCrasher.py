@@ -152,8 +152,7 @@ class KernCrasher(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'KernCrasher' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -302,8 +301,7 @@ class KernCrasher(mekkaObject):
 	def KernCrasherMain(self, sender):
 		try:
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'KernCrasher' could not write preferences.")
+			self.SavePreferences()
 
 			# query frontmost fontmaster:
 			thisFont = Glyphs.font
@@ -340,8 +338,7 @@ class KernCrasher(mekkaObject):
 				print()
 
 			# save prefs
-			if not self.SavePreferences(None):
-				print("Note: KernCrasher could not write preferences.")
+			self.SavePreferences()
 
 			# get list of glyph names:
 			firstList = self.listOfNamesForCategories(

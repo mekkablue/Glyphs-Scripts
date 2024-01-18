@@ -254,10 +254,7 @@ class ComponentOnLines(mekkaObject):
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Stitch", sizeStyle='regular', callback=self.ComponentOnLinesMain)
 		self.w.setDefaultButton(self.w.runButton)
 
-		try:
-			self.LoadPreferences()
-		except:
-			pass
+		self.LoadPreferences()
 
 		self.w.open()
 		self.w.makeKey()
@@ -298,8 +295,7 @@ class ComponentOnLines(mekkaObject):
 				finally:
 					Font.enableUpdateInterface()
 
-				if not self.SavePreferences(self):
-					print("Note: could not write preferences.")
+				self.SavePreferences(self)
 		except:
 			print(traceback.format_exc())
 

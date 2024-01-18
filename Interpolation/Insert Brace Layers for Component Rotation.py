@@ -40,8 +40,7 @@ class InsertBraceLayersForComponentRotation(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Insert Brace Layers for Component Rotation' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -125,8 +124,7 @@ class InsertBraceLayersForComponentRotation(mekkaObject):
 						else:
 							print("%s: not compatible. Left unchanged." % thisGlyph.name)
 
-			if not self.SavePreferences(self):
-				print("Note: 'Insert Brace Layers for Component Rotation' could not write preferences.")
+			self.SavePreferences()
 
 		except Exception as e:
 			# brings macro window to front and reports error:

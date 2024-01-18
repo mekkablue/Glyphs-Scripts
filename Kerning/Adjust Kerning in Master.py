@@ -64,8 +64,7 @@ class AdjustKerning(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Adjust Kerning in Master' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -174,8 +173,7 @@ class AdjustKerning(mekkaObject):
 			finally:
 				Font.enableUpdateInterface()  # re-enables UI updates in Font View
 
-			if not self.SavePreferences(self):
-				print("Note: could not write preferences.")
+			self.SavePreferences()
 		except Exception as e:
 			raise e
 

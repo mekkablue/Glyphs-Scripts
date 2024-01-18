@@ -227,8 +227,7 @@ class InstanceMaker(mekkaObject):
 		self.w.createButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Insert", sizeStyle='regular', callback=self.CreateInstances)
 		self.w.setDefaultButton(self.w.createButton)
 
-		if not self.LoadPreferences():
-			print("Error: Could not load preferences. Will resort to defaults.")
+		self.LoadPreferences()
 
 		self.w.open()
 		self.UpdateSample(self)
@@ -562,8 +561,7 @@ class InstanceMaker(mekkaObject):
 								thisMaster.customParameters[paramName] = thisInstance.customParameters[paramName]
 								break
 
-			if not self.SavePreferences():
-				print("Error writing preferences.")
+			self.SavePreferences()
 
 			if not self.pref("keepWindowOpen"):
 				self.w.close()

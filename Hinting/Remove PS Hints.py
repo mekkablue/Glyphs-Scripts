@@ -67,8 +67,7 @@ class RemovePSHints(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Remove PS Hints' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -106,8 +105,7 @@ class RemovePSHints(mekkaObject):
 	def RemovePSHintsMain(self, sender):
 		try:
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'Remove PS Hints' could not write preferences.")
+			self.SavePreferences()
 
 			horizontalStemHints = self.pref("horizontalStemHints")
 			verticalStemHints = self.pref("verticalStemHints")

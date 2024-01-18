@@ -102,8 +102,7 @@ class SetHiddenAppPreferences(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Set Hidden App Preferences' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -118,8 +117,7 @@ class SetHiddenAppPreferences(mekkaObject):
 
 	def SetHiddenAppPreferencesMain(self, sender):
 		try:
-			if not self.SavePreferences(self):
-				print("Note: 'Set Hidden App Preferences' could not write preferences.")
+			self.SavePreferences()
 
 			if sender == self.w.delButton:
 				del Glyphs.defaults[self.w.pref.get()]

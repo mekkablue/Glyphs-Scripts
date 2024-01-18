@@ -113,8 +113,7 @@ class CapAndCornerManager(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("⚠️ ‘Cap and Corner Manager’ could not load preferences. Will resort to defaults.")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -164,8 +163,7 @@ class CapAndCornerManager(mekkaObject):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("⚠️ ‘Cap and Corner Manager’ could not write preferences.")
+			self.SavePreferences()
 
 			# read prefs:
 			componentName = self.pref("componentName").strip()

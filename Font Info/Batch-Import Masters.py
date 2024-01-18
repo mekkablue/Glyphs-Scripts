@@ -135,8 +135,7 @@ class BatchImportMasters(object):
 		self.UpdateUI()
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("⚠️ ‘Batch-Import Masters’ could not load preferences. Will resort to defaults.")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -184,8 +183,7 @@ class BatchImportMasters(object):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("⚠️ ‘Batch-Import Masters’ could not write preferences.")
+			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:

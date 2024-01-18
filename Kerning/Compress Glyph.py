@@ -74,8 +74,7 @@ class CompressGlyph(mekkaObject):
 		linePos += lineHeight
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("⚠️ ‘Compress Glyph’ could not load preferences. Will resort to defaults.")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.update()
@@ -93,8 +92,7 @@ class CompressGlyph(mekkaObject):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("⚠️ ‘Compress Glyph’ could not write preferences.")
+			self.SavePreferences()
 
 			# read prefs:
 			glyphName = self.pref("glyphName")

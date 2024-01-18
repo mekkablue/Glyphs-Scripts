@@ -59,8 +59,7 @@ class BracketMetricsManager(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Bracket Metrics Manager' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -184,8 +183,7 @@ class BracketMetricsManager(mekkaObject):
 						for glyph in glyphsToCheck:
 							self.syncBrackets(glyph)
 
-				if not self.SavePreferences(self):
-					print("Note: 'Bracket Metrics Manager' could not write preferences.")
+				self.SavePreferences()
 
 		except Exception as e:
 			# brings macro window to front and reports error:

@@ -200,8 +200,7 @@ class Bumper(object):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: Auto Bumper could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -313,8 +312,7 @@ class Bumper(object):
 	def BumperMain(self, sender):
 		try:
 			# save prefs
-			if not self.SavePreferences():
-				print("Note: Auto Bumper could not write preferences.\n")
+			self.SavePreferences()
 
 			# query frontmost fontmaster:
 			thisFont = Glyphs.font

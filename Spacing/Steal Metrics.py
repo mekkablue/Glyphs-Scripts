@@ -84,8 +84,7 @@ class MetricsCopy(mekkaObject):
 		self.w.copybutton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Transfer", sizeStyle='regular', callback=self.copyMetrics)
 		self.w.setDefaultButton(self.w.copybutton)
 
-		if not self.LoadPreferences():
-			self.outputError("Could not load preferences at startup. Will resort to defaults.")
+		self.LoadPreferences()
 
 		self.w.open()
 		self.w.makeKey()
@@ -152,14 +151,12 @@ class MetricsCopy(mekkaObject):
 			self.w.rsb.enable(metricValuesOnOff)
 			self.w.width.enable(metricValuesOnOff)
 
-			if not self.SavePreferences(self):
-				self.outputError("Could not save preferences.")
+			self.SavePreferences()
 		except:
 			print(traceback.format_exc())
 
 	def copyMetrics(self, sender):
-		if not self.SavePreferences(self):
-			self.outputError("Could not save preferences.")
+		self.SavePreferences()
 
 		preferMetricKeys = self.pref("preferMetricKeys")
 		onlyMetricsKeys = self.pref("onlyMetricsKeys")

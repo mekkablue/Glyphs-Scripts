@@ -58,8 +58,7 @@ class MergeCPALLayersIntoMasterLayer(object):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("⚠️ ‘Merge CPAL Layers into Master Layer’ could not load preferences. Will resort to defaults.")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -71,8 +70,7 @@ class MergeCPALLayersIntoMasterLayer(object):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("⚠️ ‘Merge CPAL Layers into Master Layer’ could not write preferences.")
+			self.SavePreferences()
 
 			if not Glyphs.font:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)

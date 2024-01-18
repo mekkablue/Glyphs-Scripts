@@ -64,8 +64,7 @@ class MovePathstoComponent(mekkaObject):
 		self.w.warningText = vanilla.TextBox((inset, -15 - inset, -140 - inset, 14), "", sizeStyle="small", selectable=True)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Move Paths to Component' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -144,8 +143,7 @@ class MovePathstoComponent(mekkaObject):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("Note: 'Move Paths to Component' could not write preferences.")
+			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
 			glyphName = None

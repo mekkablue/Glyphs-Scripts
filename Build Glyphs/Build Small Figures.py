@@ -71,8 +71,7 @@ class smallFigureBuilder(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Build Small Figures' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -93,8 +92,7 @@ class smallFigureBuilder(mekkaObject):
 
 	def smallFigureBuilderMain(self, sender):
 		try:
-			if not self.SavePreferences(self):
-				print("Note: 'Build Small Figures' could not write preferences.")
+			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
 

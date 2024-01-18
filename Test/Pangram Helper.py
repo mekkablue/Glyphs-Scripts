@@ -57,8 +57,7 @@ class PangramHelper(mekkaObject):
 		self.w.setDefaultButton(self.w.tabButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: '%s' could not load preferences. Will resort to defaults" % self.title)
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.updateMissingLetters()
@@ -75,8 +74,7 @@ class PangramHelper(mekkaObject):
 		return []
 
 	def updateMissingLetters(self, sender=None):
-		if not self.SavePreferences():
-			print("Note: '%s' could not save its preferences." % self.title)
+		self.SavePreferences()
 
 		self.alphabet = fullAlphabets[self.pref("alphabetChoice")]
 
@@ -115,8 +113,7 @@ class PangramHelper(mekkaObject):
 			else:
 				Message("%s Error", "The entered text is empty." % self.title, OKButton=None)
 
-			if not self.SavePreferences(self):
-				print("Note: '%s' could not write preferences." % self.title)
+			self.SavePreferences()
 
 		except Exception as e:
 			# brings macro window to front and reports error:

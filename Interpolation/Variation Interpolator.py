@@ -70,8 +70,7 @@ class VariationInterpolator(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Variation Interpolator' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.updateUI()
@@ -276,8 +275,7 @@ class VariationInterpolator(mekkaObject):
 			finally:
 				thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
 
-			if not self.SavePreferences(self):
-				print("Note: 'Variation Interpolator' could not write preferences.")
+			self.SavePreferences()
 
 			self.w.close()  # delete if you want window to stay open
 		except Exception as e:

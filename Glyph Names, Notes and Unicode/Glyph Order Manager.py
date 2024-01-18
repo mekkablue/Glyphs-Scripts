@@ -96,8 +96,7 @@ class GlyphOrderManager(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("⚠️ ‘Glyph Order Manager’ could not load preferences. Will resort to defaults.")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -156,8 +155,7 @@ class GlyphOrderManager(mekkaObject):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("⚠️ ‘Glyph Order Manager’ could not write preferences.")
+			self.SavePreferences()
 
 			# read prefs:
 			glyphOrderText = self.pref("glyphOrderText")

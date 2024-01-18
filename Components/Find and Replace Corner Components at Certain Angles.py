@@ -50,8 +50,7 @@ class ReplaceCornersAtCertainAngles(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Replace Corners At Certain Angles' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.CheckButton(None)
@@ -107,8 +106,7 @@ class ReplaceCornersAtCertainAngles(mekkaObject):
 								else:
 									print(angle)
 
-			if not self.SavePreferences(self):
-				print("Note: 'Replace Corners At Certain Angles' could not write preferences.")
+			self.SavePreferences()
 
 		except Exception as e:
 			# brings macro window to front and reports error:

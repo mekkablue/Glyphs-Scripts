@@ -50,8 +50,7 @@ class RemoveNonStandardAnchors(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Remove Non-Standard Anchors' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -108,8 +107,7 @@ class RemoveNonStandardAnchors(mekkaObject):
 									del currentLayer.anchors[currentAnchorName]
 									anchorCount += 1
 
-			if not self.SavePreferences(self):
-				print("Note: 'Remove Non-Standard Anchors' could not write preferences.")
+			self.SavePreferences()
 
 			Message(
 				title="Removed Non-Standard Anchors",

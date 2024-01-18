@@ -97,8 +97,7 @@ class RemoveTTHints(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Remove TT Hints' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		self.update()
 
@@ -204,8 +203,7 @@ class RemoveTTHints(mekkaObject):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("Note: 'Remove TT Hints' could not write preferences.")
+			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:

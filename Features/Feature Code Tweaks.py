@@ -324,8 +324,7 @@ class FeatureCodeTweaks(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print(u"⚠️ Note: 'Feature Code Tweaks' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -1039,8 +1038,7 @@ class FeatureCodeTweaks(mekkaObject):
 	def FeatureCodeTweaksMain(self, sender):
 		try:
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print(u"⚠️ Note: 'Feature Code Tweaks' could not write preferences.")
+			self.SavePreferences(self)
 
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()

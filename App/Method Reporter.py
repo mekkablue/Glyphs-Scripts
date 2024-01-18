@@ -118,8 +118,7 @@ class MethodReporter(mekkaObject):
 		self.w.methodList.getNSTableView().setToolTip_("Double click an entry to copy it to the clipboard and display its help() in Macro Window.")
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Method Reporter' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.bind("resize", self.adjustGUIObjects)
@@ -252,8 +251,7 @@ class MethodReporter(mekkaObject):
 
 			self.w.methodList.set(methodList)
 
-			if not self.SavePreferences(self):
-				print("Note: 'Method Reporter' could not write preferences.")
+			self.SavePreferences()
 
 		except Exception as e:
 			# brings macro window to front and reports error:

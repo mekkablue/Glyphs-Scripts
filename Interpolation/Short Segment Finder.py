@@ -83,8 +83,7 @@ class ShortSegmentFinder(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Short Segment Finder' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -225,8 +224,7 @@ class ShortSegmentFinder(mekkaObject):
 	def ShortSegmentFinderMain(self, sender):
 		try:
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'Short Segment Finder' could not write preferences.")
+			self.SavePreferences()
 			# print(">> DEBUG CHECKPOINT 0")###DEBUG-DELETE LATER
 
 			# brings macro window to front and clears its log:

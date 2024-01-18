@@ -131,8 +131,7 @@ class TravelTracker(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Travel Tracker' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -287,8 +286,7 @@ class TravelTracker(mekkaObject):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'Travel Tracker' could not write preferences.")
+			self.SavePreferences()
 
 			verbose = self.prefBool("verbose")
 			includeNonExporting = self.prefBool("includeNonExporting")

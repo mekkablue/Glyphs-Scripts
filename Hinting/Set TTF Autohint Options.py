@@ -222,8 +222,7 @@ class SetTTFAutohintOptions(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Set ttfautohint Options' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# enable or disable the edit box
 		self.editValueField()
@@ -294,8 +293,7 @@ class SetTTFAutohintOptions(mekkaObject):
 
 	def SetTTFAutohintOptionsMain(self, sender):
 		try:
-			if not self.SavePreferences(self):
-				print("Note: 'Set ttfautohint Options' could not write preferences.")
+			self.SavePreferences()
 
 			optionIndex = self.prefInt("ttfAutohintOption")
 			optionName = availableOptions[optionIndex]

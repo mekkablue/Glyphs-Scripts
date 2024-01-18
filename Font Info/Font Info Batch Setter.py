@@ -170,8 +170,7 @@ class FontInfoBatchSetter(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Font Info Batch Setter' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		self.setNoon()
 		self.updateUI()
@@ -344,8 +343,7 @@ class FontInfoBatchSetter(mekkaObject):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("⚠️ ‘Font Info BatchSetter’ could not write preferences.")
+			self.SavePreferences()
 
 			# read prefs:
 			applyContaining = self.pref("applyContaining")

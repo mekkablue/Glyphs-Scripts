@@ -181,8 +181,7 @@ class VerticalMetricsManager(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Vertical Metrics Manager' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -204,8 +203,7 @@ class VerticalMetricsManager(mekkaObject):
 		Glyphs.clearLog()  # clears macro window log
 
 		# update settings to the latest user input:
-		if not self.SavePreferences(self):
-			print("Note: 'Vertical Metrics Manager' could not write preferences.")
+		self.SavePreferences()
 
 		frontmostFont = Glyphs.font
 		allOpenFonts = self.pref("allOpenFonts")
@@ -514,8 +512,7 @@ class VerticalMetricsManager(mekkaObject):
 			print("Vertical Metrics Manager: setting parameters\n")
 
 			# update settings to the latest user input:
-			if not self.SavePreferences(self):
-				print("Note: 'Vertical Metrics Manager' could not write preferences.\n")
+			self.SavePreferences()
 
 			typoAsc = self.pref("typoAsc")
 			typoDesc = self.pref("typoDesc")

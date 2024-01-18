@@ -138,8 +138,7 @@ class SetLabelColors(mekkaObject):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("Note: 'Set Label Colors' could not load preferences. Will resort to defaults")
+		self.LoadPreferences()
 
 		self.setTextColors()
 
@@ -284,8 +283,7 @@ class SetLabelColors(mekkaObject):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("Error. Could not set colors.")
+			self.SavePreferences()
 			else:
 				Glyphs.defaults["LabelColors"] = self.SavePreferences()
 				Message(title="New Label Colors Set", message="✅ The new label colors have been set.\n⚠️ Glyphs needs a restart for changes to take effect.", OKButton=None)

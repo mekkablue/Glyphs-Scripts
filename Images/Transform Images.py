@@ -84,8 +84,7 @@ class TransformImages(mekkaObject):
 					ScaleAndMoveTransform.translateXBy_yBy_(moveX, moveY)
 					thisImage.setTransformStruct_(ScaleAndMoveTransform.transformStruct())
 
-			if not self.SavePreferences(self):
-				print("Note: could not write preferences.")
+			self.SavePreferences()
 
 			# self.w.close()
 		except Exception as e:
