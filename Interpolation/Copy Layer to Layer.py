@@ -7,9 +7,24 @@ Copies one master to another master's or background in selected glyphs.
 
 import vanilla
 from GlyphsApp import Glyphs, GSPath, GSComponent
+from mekkaCore import mekkaObject
 
 
-class CopyLayerToLayer(object):
+class CopyLayerToLayer(mekkaObject):
+	prefDict = {
+		"includePaths": True,
+		"includeComponents": True,
+		"includeAnchors": True,
+		"includeMetrics": True,
+		"keepWindowOpen": True,
+		"copyBackground": False,
+		"keepOriginal": False,
+
+		"fontSource": 0,
+		"masterSource": 0,
+		"fontTarget": 0,
+		"masterTarget": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -22,7 +37,7 @@ class CopyLayerToLayer(object):
 			"Copy layer to layer",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.CopyLayerToLayer.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		self.w.text_1 = vanilla.TextBox((15, 12 + 2, 120, 14), "Copy paths from", sizeStyle='small')
@@ -54,62 +69,6 @@ class CopyLayerToLayer(object):
 		self.w.makeKey()
 		self.w.masterTarget.set(1)
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includePaths"] = self.w.includePaths.get()
-			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeComponents"] = self.w.includeComponents.get()
-			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeAnchors"] = self.w.includeAnchors.get()
-			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeMetrics"] = self.w.includeMetrics.get()
-			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.keepWindowOpen"] = self.w.keepWindowOpen.get()
-			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.copyBackground"] = self.w.copyBackground.get()
-			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.keepOriginal"] = self.w.keepOriginal.get()
-
-			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontSource"] = self.w.fontSource.get()
-			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterSource"] = self.w.masterSource.get()
-			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontTarget"] = self.w.fontTarget.get()
-			Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterTarget"] = self.w.masterTarget.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.includePaths", True)
-			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.includeComponents", True)
-			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.includeAnchors", True)
-			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.includeMetrics", True)
-			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.keepWindowOpen", True)
-			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.copyBackground", False)
-			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.keepOriginal", False)
-
-			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.fontSource", 0)
-			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.masterSource", 0)
-			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.fontTarget", 0)
-			Glyphs.registerDefault("com.mekkablue.CopyLayerToLayer.masterTarget", 0)
-
-			self.w.includePaths.set(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includePaths"])
-			self.w.includeComponents.set(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeComponents"])
-			self.w.includeAnchors.set(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeAnchors"])
-			self.w.includeMetrics.set(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.includeMetrics"])
-			self.w.keepWindowOpen.set(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.keepWindowOpen"])
-			self.w.copyBackground.set(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.copyBackground"])
-			self.w.keepOriginal.set(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.keepOriginal"])
-
-			try:
-				# careful, there may be different (number of) fonts open now:
-				self.w.fontSource.set(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontSource"])
-				self.w.masterSource.set(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterSource"])
-				self.w.fontTarget.set(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontTarget"])
-				self.w.masterTarget.set(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterTarget"])
-			except:
-				# exit gracefully
-				pass
-		except:
-			return False
-
-		return True
-
 	def GetFontNames(self):
 		"""Collects names of Open Fonts to populate the menus in the GUI."""
 		myFontList = []
@@ -123,9 +82,9 @@ class CopyLayerToLayer(object):
 		"""Collects names of masters to populate the submenus in the GUI."""
 		try:
 			if font == "target":
-				fontIndex = int(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontTarget"])
+				fontIndex = self.prefInt("fontTarget")
 			else:
-				fontIndex = int(Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontSource"])
+				fontIndex = self.prefInt("fontSource")
 		except:
 			fontIndex = 0
 
@@ -136,9 +95,9 @@ class CopyLayerToLayer(object):
 		# reset the prefs if necessary:
 		if fontIndex == 0:
 			if font == "target":
-				Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontTarget"] = fontIndex
+				self.setPref("fontTarget", fontIndex)
 			else:
-				Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontSource"] = fontIndex
+				self.setPref("fontSource", fontIndex)
 
 		thisFont = Glyphs.fonts[fontIndex]
 		myMasterList = []
@@ -149,8 +108,8 @@ class CopyLayerToLayer(object):
 
 	def ValidateInput(self, sender):
 		"""Disables the button if source and target are the same."""
-		sourceAndTargetFontAreTheSame = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontSource"] == Glyphs.defaults["com.mekkablue.CopyLayerToLayer.fontTarget"]
-		sourceAndTargetMasterAreTheSame = Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterSource"] == Glyphs.defaults["com.mekkablue.CopyLayerToLayer.masterTarget"]
+		sourceAndTargetFontAreTheSame = self.pref("fontSource") == self.pref("fontTarget")
+		sourceAndTargetMasterAreTheSame = self.pref("masterSource") == self.pref("masterTarget")
 		if sourceAndTargetFontAreTheSame and sourceAndTargetMasterAreTheSame:
 			self.w.copybutton.enable(False)
 		else:
@@ -275,16 +234,16 @@ class CopyLayerToLayer(object):
 		Font = Glyphs.font
 		selectedGlyphs = [layer.parent for layer in Font.selectedLayers if layer.parent.name is not None]
 
-		indexOfSourceFont = Glyphs.intDefaults["com.mekkablue.CopyLayerToLayer.fontSource"]
-		indexOfTargetFont = Glyphs.intDefaults["com.mekkablue.CopyLayerToLayer.fontTarget"]
-		indexOfSourceMaster = Glyphs.intDefaults["com.mekkablue.CopyLayerToLayer.masterSource"]
-		indexOfTargetMaster = Glyphs.intDefaults["com.mekkablue.CopyLayerToLayer.masterTarget"]
-		pathsYesOrNo = Glyphs.boolDefaults["com.mekkablue.CopyLayerToLayer.includePaths"]
-		componentsYesOrNo = Glyphs.boolDefaults["com.mekkablue.CopyLayerToLayer.includeComponents"]
-		anchorsYesOrNo = Glyphs.boolDefaults["com.mekkablue.CopyLayerToLayer.includeAnchors"]
-		metricsYesOrNo = Glyphs.boolDefaults["com.mekkablue.CopyLayerToLayer.includeMetrics"]
-		copyBackground = Glyphs.boolDefaults["com.mekkablue.CopyLayerToLayer.copyBackground"]
-		keepOriginal = Glyphs.boolDefaults["com.mekkablue.CopyLayerToLayer.keepOriginal"]
+		indexOfSourceFont = self.prefInt("fontSource")
+		indexOfTargetFont = self.prefInt("fontTarget")
+		indexOfSourceMaster = self.prefInt("masterSource")
+		indexOfTargetMaster = self.prefInt("masterTarget")
+		pathsYesOrNo = self.prefBool("includePaths")
+		componentsYesOrNo = self.prefBool("includeComponents")
+		anchorsYesOrNo = self.prefBool("includeAnchors")
+		metricsYesOrNo = self.prefBool("includeMetrics")
+		copyBackground = self.prefBool("copyBackground")
+		keepOriginal = self.prefBool("keepOriginal")
 
 		for thisGlyph in selectedGlyphs:
 			try:
@@ -328,7 +287,7 @@ class CopyLayerToLayer(object):
 				import traceback
 				print(traceback.format_exc())
 
-		if not Glyphs.defaults["com.mekkablue.CopyLayerToLayer.keepWindowOpen"]:
+		if not self.pref("keepWindowOpen"):
 			self.w.close()
 
 

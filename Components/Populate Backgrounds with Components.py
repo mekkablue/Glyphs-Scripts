@@ -6,44 +6,17 @@ Adds a component to all backgrounds of all layers of all selected glyphs. Useful
 """
 
 import vanilla
-import math
-from Foundation import NSAffineTransform, NSAffineTransformStruct, NSEvent
+from AppKit import NSEvent
 from GlyphsApp import Glyphs, GSComponent, Message
+from mekkaCore import mekkaObject, transform
 
 
-def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
-	"""
-	Returns an NSAffineTransform object for transforming layers.
-	Apply an NSAffineTransform t object like this:
-		Layer.transform_checkForSelection_doComponents_(t,False,True)
-	Access its transformation matrix like this:
-		tMatrix = t.transformStruct()  # returns the 6-float tuple
-	Apply the matrix tuple like this:
-		Layer.applyTransform(tMatrix)
-		Component.applyTransform(tMatrix)
-		Path.applyTransform(tMatrix)
-	Chain multiple NSAffineTransform objects t1, t2 like this:
-		t1.appendTransform_(t2)
-	"""
-	myTransform = NSAffineTransform.transform()
-	if rotate:
-		myTransform.rotateByDegrees_(rotate)
-	if scale != 1.0:
-		myTransform.scaleBy_(scale)
-	if not (shiftX == 0.0 and shiftY == 0.0):
-		myTransform.translateXBy_yBy_(shiftX, shiftY)
-	if skew:
-		skewStruct = NSAffineTransformStruct()
-		skewStruct.m11 = 1.0
-		skewStruct.m22 = 1.0
-		skewStruct.m21 = math.tan(math.radians(skew))
-		skewTransform = NSAffineTransform.transform()
-		skewTransform.setTransformStruct_(skewStruct)
-		myTransform.appendTransform_(skewTransform)
-	return myTransform
-
-
-class PopulateAllBackgroundswithComponent(object):
+class PopulateAllBackgroundswithComponent(mekkaObject):
+	prefDict = {
+		"componentName": "a",
+		"alignRight": 0,
+		"replaceBackgrounds": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -56,7 +29,7 @@ class PopulateAllBackgroundswithComponent(object):
 			"Populate Layer Backgrounds with Component",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.PopulateAllBackgroundswithComponent.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -164,29 +137,6 @@ class PopulateAllBackgroundswithComponent(object):
 
 		return False
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.PopulateAllBackgroundswithComponent.componentName"] = self.w.componentName.get()
-			Glyphs.defaults["com.mekkablue.PopulateAllBackgroundswithComponent.alignRight"] = self.w.alignRight.get()
-			Glyphs.defaults["com.mekkablue.PopulateAllBackgroundswithComponent.replaceBackgrounds"] = self.w.replaceBackgrounds.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.PopulateAllBackgroundswithComponent.componentName", "a")
-			Glyphs.registerDefault("com.mekkablue.PopulateAllBackgroundswithComponent.alignRight", 0)
-			Glyphs.registerDefault("com.mekkablue.PopulateAllBackgroundswithComponent.replaceBackgrounds", 0)
-			self.w.componentName.set(Glyphs.defaults["com.mekkablue.PopulateAllBackgroundswithComponent.componentName"])
-			self.w.alignRight.set(Glyphs.defaults["com.mekkablue.PopulateAllBackgroundswithComponent.alignRight"])
-			self.w.replaceBackgrounds.set(Glyphs.defaults["com.mekkablue.PopulateAllBackgroundswithComponent.replaceBackgrounds"])
-		except:
-			return False
-
-		return True
-
 	def NextMasterMain(self, sender=None):
 		try:
 			thisFont = Glyphs.font
@@ -206,7 +156,7 @@ class PopulateAllBackgroundswithComponent(object):
 		try:
 
 			# determine component:
-			componentName = Glyphs.defaults["com.mekkablue.PopulateAllBackgroundswithComponent.componentName"]
+			componentName = self.pref("componentName")
 			if not componentName:
 				Message(title="Component Error", message="No component name specified. Please specify a valid glyph name.", OKButton=None)
 			else:
@@ -241,7 +191,7 @@ class PopulateAllBackgroundswithComponent(object):
 									for glyphLayer in thisGlyph.layers:
 
 										# delete existing background if user asked for it:
-										if Glyphs.defaults["com.mekkablue.PopulateAllBackgroundswithComponent.replaceBackgrounds"]:
+										if self.pref("replaceBackgrounds"):
 											glyphLayer.background.clear()
 
 										# add component:
@@ -249,7 +199,7 @@ class PopulateAllBackgroundswithComponent(object):
 										glyphLayer.background.components.append(newComponent)
 
 										# align right if user asked for it:
-										if Glyphs.defaults["com.mekkablue.PopulateAllBackgroundswithComponent.alignRight"]:
+										if self.pref("alignRight"):
 
 											# determine right edges:
 											componentLayer = newComponent.componentLayer

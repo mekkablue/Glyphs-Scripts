@@ -7,6 +7,7 @@ Batch-edit settings for cap, corner, brush or segment components throughout all 
 
 import vanilla
 from GlyphsApp import Glyphs, Message, CORNER, CAP
+from mekkaCore import mekkaObject
 
 # alignment constants:
 LEFT = 0  # bit 0
@@ -45,8 +46,7 @@ def enableBit(number, bit):
 	return number | 2**bit
 
 
-class CapAndCornerManager(object):
-	prefID = "com.mekkablue.CapAndCornerManager"
+class CapAndCornerManager(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"componentName": "",
@@ -158,42 +158,6 @@ class CapAndCornerManager(object):
 		enableApply = any([self.pref(x) for x in ("shouldAlign", "shouldScale", "shouldFit")]) and enableScale
 		self.w.runButton.enable(enableApply)
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-
-			self.updateGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-
-			self.updateGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def CapAndCornerManagerMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -210,11 +174,11 @@ class CapAndCornerManager(object):
 			alignment = alignmentDict[alignmentOptions[self.pref("alignment")]]
 
 			shouldFit = self.pref("shouldFit")
-			fit = int(self.pref("fit")) * int(shouldFit) * FIT  # so you can add alignment+fit for caps
+			fit = self.prefInt("fit") * int(shouldFit) * FIT  # so you can add alignment+fit for caps
 
 			shouldScale = self.pref("shouldScale")
-			scaleH = float(self.pref("scaleH")) / 100.0
-			scaleV = float(self.pref("scaleV")) / 100.0
+			scaleH = self.prefFloat("scaleH") / 100.0
+			scaleV = self.prefFloat("scaleV") / 100.0
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:

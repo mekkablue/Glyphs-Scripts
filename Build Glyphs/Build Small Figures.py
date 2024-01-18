@@ -6,28 +6,20 @@ Takes a default set of figures (e.g., dnom), and derives the others (.numr, supe
 """
 
 import vanilla
-import math
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSGlyph, GSComponent
+from mekkaCore import mekkaObject, italicize
 
 
-def italicize(thisPoint, italicAngle=0.0, pivotalY=0.0):
-	"""
-	Returns the italicized position of an NSPoint 'thisPoint'
-	for a given angle 'italicAngle' and the pivotal height 'pivotalY',
-	around which the italic slanting is executed, usually half x-height.
-	Usage: myPoint = italicize(myPoint,10,xHeight*0.5)
-	"""
-	x, y = thisPoint
-	yOffset = y - pivotalY  # calculate vertical offset
-	italicAngle = math.radians(italicAngle)  # convert to radians
-	tangens = math.tan(italicAngle)  # math.tan needs radians
-	horizontalDeviance = tangens * yOffset  # vertical distance from pivotal point
-	x += horizontalDeviance  # x of point that is yOffset from pivotal point
-	return NSPoint(x, y)
-
-
-class smallFigureBuilder(object):
+class smallFigureBuilder(mekkaObject):
+	prefDict = {
+		"default": ".dnom",
+		"derive": ".numr:250, superior:350, inferior:-125",
+		"currentMasterOnly": 0,
+		"decomposeDefaultFigures": 0,
+		"openTab": 1,
+		"reuseTab": 1,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -40,7 +32,7 @@ class smallFigureBuilder(object):
 			"Build Small Figures",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.smallFigureBuilder.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -89,38 +81,6 @@ class smallFigureBuilder(object):
 	def updateUI(self, sender=None):
 		self.w.reuseTab.enable(self.w.openTab.get())
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.smallFigureBuilder.default"] = self.w.default.get()
-			Glyphs.defaults["com.mekkablue.smallFigureBuilder.derive"] = self.w.derive.get()
-			Glyphs.defaults["com.mekkablue.smallFigureBuilder.currentMasterOnly"] = self.w.currentMasterOnly.get()
-			Glyphs.defaults["com.mekkablue.smallFigureBuilder.decomposeDefaultFigures"] = self.w.decomposeDefaultFigures.get()
-			Glyphs.defaults["com.mekkablue.smallFigureBuilder.openTab"] = self.w.openTab.get()
-			Glyphs.defaults["com.mekkablue.smallFigureBuilder.reuseTab"] = self.w.reuseTab.get()
-			self.updateUI()
-			return True
-		except:
-			return False
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.smallFigureBuilder.default", ".dnom")
-			Glyphs.registerDefault("com.mekkablue.smallFigureBuilder.derive", ".numr:250, superior:350, inferior:-125")
-			Glyphs.registerDefault("com.mekkablue.smallFigureBuilder.currentMasterOnly", 0)
-			Glyphs.registerDefault("com.mekkablue.smallFigureBuilder.decomposeDefaultFigures", 0)
-			Glyphs.registerDefault("com.mekkablue.smallFigureBuilder.openTab", 1)
-			Glyphs.registerDefault("com.mekkablue.smallFigureBuilder.reuseTab", 1)
-			self.w.default.set(Glyphs.defaults["com.mekkablue.smallFigureBuilder.default"])
-			self.w.derive.set(Glyphs.defaults["com.mekkablue.smallFigureBuilder.derive"])
-			self.w.currentMasterOnly.set(Glyphs.defaults["com.mekkablue.smallFigureBuilder.currentMasterOnly"])
-			self.w.decomposeDefaultFigures.set(Glyphs.defaults["com.mekkablue.smallFigureBuilder.decomposeDefaultFigures"])
-			self.w.openTab.set(Glyphs.defaults["com.mekkablue.smallFigureBuilder.openTab"])
-			self.w.reuseTab.set(Glyphs.defaults["com.mekkablue.smallFigureBuilder.reuseTab"])
-			self.updateUI()
-			return True
-		except:
-			return False
-
 	def openMacroWindow(self, sender=None):
 		Glyphs.showMacroWindow()
 
@@ -146,10 +106,10 @@ class smallFigureBuilder(object):
 			print()
 
 			# parse user entries and preferences:
-			default = Glyphs.defaults["com.mekkablue.smallFigureBuilder.default"].strip()
-			derive = Glyphs.defaults["com.mekkablue.smallFigureBuilder.derive"]
-			currentMasterOnly = Glyphs.defaults["com.mekkablue.smallFigureBuilder.currentMasterOnly"]
-			decomposeDefaultFigures = Glyphs.defaults["com.mekkablue.smallFigureBuilder.decomposeDefaultFigures"]
+			default = self.pref("default").strip()
+			derive = self.pref("derive")
+			currentMasterOnly = self.pref("currentMasterOnly")
+			decomposeDefaultFigures = self.pref("decomposeDefaultFigures")
 			figures = ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine")
 			offsets = {}
 			for suffixPair in [pair.split(":") for pair in derive.split(",")]:
@@ -225,14 +185,14 @@ class smallFigureBuilder(object):
 									deriveLayer.components.append(defaultComponent)
 
 			# open a new tab if requested
-			if Glyphs.defaults["com.mekkablue.smallFigureBuilder.openTab"]:
+			if self.pref("openTab"):
 				tabText = ""
 				for suffix in [default] + sorted(offsets.keys()):
 					escapedFigureNames = ["/%s%s" % (fig, suffix) for fig in figures]
 					tabText += "".join(escapedFigureNames)
 					tabText += "\n"
 				tabText = tabText.strip()
-				if thisFont.currentTab and Glyphs.defaults["com.mekkablue.smallFigureBuilder.reuseTab"]:
+				if thisFont.currentTab and self.pref("reuseTab"):
 					# reuses current tab:
 					thisFont.currentTab.text = tabText
 				else:

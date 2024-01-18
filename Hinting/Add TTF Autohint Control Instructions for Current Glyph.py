@@ -13,6 +13,7 @@ from AppKit import NSPasteboard, NSStringPboardType, NSNotificationCenter, NSCla
 import math
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
 def sizeStringIsOK(sizeString):
@@ -106,7 +107,11 @@ def numberIndexStringFromNumbers(indexes):
 	return outputString
 
 
-class AddTTFAutohintControlInstructionsForCurrentGlyph(object):
+class AddTTFAutohintControlInstructionsForCurrentGlyph(mekkaObject):
+	prefDict = {
+		"ppm": "8-12,20",
+		"sectionToMove": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -119,7 +124,7 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(object):
 			"Add ttfAutohint Control Instructions for Current Glyph",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.AddTTFAutohintControlInstructionsForCurrentGlyph.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -178,26 +183,6 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(object):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.AddTTFAutohintControlInstructionsForCurrentGlyph.ppm"] = self.w.ppm.get()
-			Glyphs.defaults["com.mekkablue.AddTTFAutohintControlInstructionsForCurrentGlyph.sectionToMove"] = self.w.sectionToMove.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.AddTTFAutohintControlInstructionsForCurrentGlyph.ppm", "8-12,20")
-			Glyphs.registerDefault("com.mekkablue.AddTTFAutohintControlInstructionsForCurrentGlyph.sectionToMove", 0)
-			self.w.ppm.set(Glyphs.defaults["com.mekkablue.AddTTFAutohintControlInstructionsForCurrentGlyph.ppm"])
-			self.w.sectionToMove.set(Glyphs.defaults["com.mekkablue.AddTTFAutohintControlInstructionsForCurrentGlyph.sectionToMove"])
-		except:
-			return False
-
-		return True
 
 	def fontInstanceToolGlyphLayer(self):
 		Font = Glyphs.font
@@ -310,7 +295,7 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(object):
 						moveString = "y %1.2f" % shift
 
 					# determine PPMs
-					sizeString = Glyphs.defaults["com.mekkablue.AddTTFAutohintControlInstructionsForCurrentGlyph.ppm"]
+					sizeString = self.pref("ppm")
 					if not sizeString:
 						print("ERROR: Could not determine PPMs, will use a default. Did you enter any?")
 						sizeString = "17"
@@ -319,7 +304,7 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(object):
 						sizeString = "17"
 
 					# build point indexes to be moved:
-					sectionChoice = Glyphs.defaults["com.mekkablue.AddTTFAutohintControlInstructionsForCurrentGlyph.sectionToMove"]
+					sectionChoice = self.pref("sectionToMove")
 					pointIndexString = None
 
 					if sectionChoice > 0:

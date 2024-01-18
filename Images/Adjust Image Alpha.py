@@ -7,9 +7,13 @@ Slider for setting the alpha of all images in selected glyphs.
 
 import vanilla
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 
-class AdjustImageAlpha(object):
+class AdjustImageAlpha(mekkaObject):
+	prefDict = {
+		"alphaSlider": 100.0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -22,7 +26,7 @@ class AdjustImageAlpha(object):
 			"Adjust Image Alpha for Selected Glyphs",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.AdjustImageAlpha.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -38,34 +42,17 @@ class AdjustImageAlpha(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.AdjustImageAlpha.alphaSlider"] = self.w.alphaSlider.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.AdjustImageAlpha.alphaSlider", 100.0)
-			self.w.alphaSlider.set(Glyphs.defaults["com.mekkablue.AdjustImageAlpha.alphaSlider"])
-		except:
-			return False
-
-		return True
-
 	def AdjustImageAlphaMain(self, sender):
 		try:
 			if not self.SavePreferences(self):
 				print("Note: 'Adjust Image Alpha' could not write preferences.")
 
-			self.w.indicator.set("%.1f" % Glyphs.defaults["com.mekkablue.AdjustImageAlpha.alphaSlider"])
+			self.w.indicator.set("%.1f" % self.prefFloat("alphaSlider"))
 			thisFont = Glyphs.font  # frontmost font
 			listOfSelectedLayers = thisFont.selectedLayers  # active layers of currently selected glyphs
 			for thisLayer in listOfSelectedLayers:  # loop through layers
 				if thisLayer.backgroundImage:
-					thisLayer.backgroundImage.alpha = Glyphs.defaults["com.mekkablue.AdjustImageAlpha.alphaSlider"]
+					thisLayer.backgroundImage.alpha = self.prefFloat("alphaSlider")
 
 		except Exception as e:
 			# brings macro window to front and reports error:

@@ -8,6 +8,7 @@ Batch apply metrics keys to the current font.
 import vanilla
 from AppKit import NSFont, NSAlert, NSAlertStyleWarning, NSAlertFirstButtonReturn
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 LeftKeys = """
 =H: B D E F I K L N P R Thorn Germandbls M
@@ -64,8 +65,7 @@ class Alert(object):
 		self.buttonPressed = alert.runModal()
 
 
-class MetricsKeyManager(object):
-	prefID = "com.mekkablue.MetricsKeyManager"
+class MetricsKeyManager(mekkaObject):
 	prefDict = {
 		"LeftMetricsKeys": LeftKeys,
 		"RightMetricsKeys": RightKeys,
@@ -163,38 +163,6 @@ class MetricsKeyManager(object):
 		linePos += boxHeight + 10
 		self.w.WidthMetricsKeysText.setPosSize((inset, linePos + 2, 70, 14))
 		self.w.WidthMetricsKeys.setPosSize((inset + 70, linePos, -inset, boxHeight))
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName).strip())
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def SetDefaults(self, sender=None):
 		self.w.RightMetricsKeys.set(RightKeys.strip())
@@ -328,7 +296,7 @@ class MetricsKeyManager(object):
 		print("✅ Done.")
 
 	def symmetricGlyphsMissingMetricsKeys(self, sender=None, font=None):
-		threshold = int(self.pref("symmetricThreshold"))
+		threshold = self.prefInt("symmetricThreshold")
 		if not font:
 			font = Glyphs.font
 

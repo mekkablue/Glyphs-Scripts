@@ -6,12 +6,11 @@ Takes existing .tf figures and spaces them tabularly, or creates them from exist
 """
 
 import vanilla
-import sys
 from GlyphsApp import Glyphs, GSGlyph, GSComponent, Message
+from mekkaCore import mekkaObject
 
 
-class TabularFigureSpacer(object):
-	prefID = "com.mekkablue.TabularFigureSpacer"
+class TabularFigureSpacer(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"target": "one.tf",
@@ -66,38 +65,6 @@ class TabularFigureSpacer(object):
 	def update(self, sender=None):
 		self.w.target.setItems([g.name for g in Glyphs.font.glyphs if ".tf" in g.name or ".tosf" in g.name])
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def TabularFigureSpacerMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -106,15 +73,6 @@ class TabularFigureSpacer(object):
 			# update settings to the latest user input:
 			if not self.SavePreferences():
 				print("⚠️ ‘Tabular Figure Spacer’ could not write preferences.")
-
-			# read prefs:
-			for prefName in self.prefDict.keys():
-				try:
-					setattr(sys.modules[__name__], prefName, self.pref(prefName))
-				except:
-					fallbackValue = self.prefDict[prefName]
-					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
-					setattr(sys.modules[__name__], prefName, fallbackValue)
 
 			font = Glyphs.font  # frontmost font
 			if font is None:

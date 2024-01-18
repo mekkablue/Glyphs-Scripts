@@ -8,6 +8,7 @@ Takes the current layer of each selected glyph, and propagates node types, node 
 import vanilla
 from AppKit import NSPoint
 from GlyphsApp import Glyphs, GSSMOOTH, GSOFFCURVE, GSShapeTypePath, Message
+from mekkaCore import mekkaObject
 
 
 def straightenBCPs(layer):
@@ -78,8 +79,7 @@ def straightenBCPs(layer):
 	return realigned
 
 
-class EnhanceCompatibility(object):
-	prefID = "com.mekkablue.EnhanceCompatibility"
+class EnhanceCompatibility(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"fixType": True,
@@ -156,23 +156,15 @@ class EnhanceCompatibility(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def checkGUI(self, sender=None):
+	def updateUI(self, sender=None):
 		excludeKeys = ("otherFont", "sourceFont", "sourceMaster")
 		allPrefs = [k for k in self.prefDict.keys() if k not in excludeKeys]
-		shouldEnable = any([self.pref(k) for k in allPrefs])
+		shouldEnable = any([self.pref("k") for k in allPrefs])
 		self.w.runButton.enable(shouldEnable)
 
 		shouldEnable = self.w.otherFont.get()
 		for popup in (self.w.sourceFont, self.w.sourceMaster):
 			popup.enable(shouldEnable)
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
 
 	def updateCurrentFonts(self, sender=None):
 		self.currentFonts = [f for f in Glyphs.fonts if f != Glyphs.font]  # all except frontmost font
@@ -192,35 +184,6 @@ class EnhanceCompatibility(object):
 			masters = font.masters
 			self.w.sourceMaster.setItems([m.name for m in masters])
 		self.w.sourceMaster.set(0)
-
-	def SavePreferences(self, sender=None):
-		try:
-			self.w.makeKey()
-			if sender == self.w.sourceFont:
-				self.updateCurrentMaster()
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.checkGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.checkGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def EnhanceCompatibilityMain(self, sender=None):
 		try:
@@ -257,8 +220,8 @@ class EnhanceCompatibility(object):
 					print(f"\n🔤 {g.name}\n")
 
 					if otherFont:
-						sourceFont = self.currentFonts(int(self.pref("sourceFont")))
-						sourceMaster = sourceFont.masters[int(self.pref("sourceMaster"))]
+						sourceFont = self.currentFonts(self.prefInt("sourceFont"))
+						sourceMaster = sourceFont.masters[self.prefInt("sourceMaster")]
 						l1 = sourceFont.glyphs[g.name].layers[sourceMaster.id]
 					else:
 						l1 = selectedLayer

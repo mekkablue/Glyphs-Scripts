@@ -11,6 +11,7 @@ from AppKit import NSFont
 from Foundation import NSMutableDictionary
 from collections import OrderedDict
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 fallbackText = """
 Only lines containing a dash "-" followed by a greater sign ">" are interpreted
@@ -106,7 +107,13 @@ def addAxisMappingGlyphsInstanceLevel(thisFont, minValue, maxValue, mappingRecip
 	return entriesCount
 
 
-class AxisMapper(object):
+class AxisMapper(mekkaObject):
+	prefDict = {
+		"minValue": 0,
+		"maxValue": 100,
+		"axisPicker": "wght",
+		"mappingRecipe": fallbackText
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -119,7 +126,7 @@ class AxisMapper(object):
 			"Axis Mapper",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.AxisMapper.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -289,38 +296,6 @@ class AxisMapper(object):
 		text += fallbackText
 		self.w.mappingRecipe.set(text.strip())
 
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			Glyphs.defaults["com.mekkablue.AxisMapper.minValue"] = self.w.minValue.get()
-			Glyphs.defaults["com.mekkablue.AxisMapper.maxValue"] = self.w.maxValue.get()
-			Glyphs.defaults["com.mekkablue.AxisMapper.axisPicker"] = self.w.axisPicker.get()
-			Glyphs.defaults["com.mekkablue.AxisMapper.mappingRecipe"] = self.w.mappingRecipe.get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault("com.mekkablue.AxisMapper.minValue", 0)
-			Glyphs.registerDefault("com.mekkablue.AxisMapper.maxValue", 100)
-			Glyphs.registerDefault("com.mekkablue.AxisMapper.axisPicker", "wght")
-			Glyphs.registerDefault("com.mekkablue.AxisMapper.mappingRecipe", fallbackText)
-
-			# load previously written prefs:
-			self.w.minValue.set(Glyphs.defaults["com.mekkablue.AxisMapper.minValue"])
-			self.w.maxValue.set(Glyphs.defaults["com.mekkablue.AxisMapper.maxValue"])
-			self.w.axisPicker.set(Glyphs.defaults["com.mekkablue.AxisMapper.axisPicker"])
-			self.w.mappingRecipe.set(Glyphs.defaults["com.mekkablue.AxisMapper.mappingRecipe"])
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def ExtractAxisMapping(self, sender=None):
 		try:
 			# update settings to the latest user input:
@@ -328,15 +303,15 @@ class AxisMapper(object):
 				print("Note: 'Axis Mapper' could not write preferences.")
 
 			text = ""
-			axisTag = Glyphs.defaults["com.mekkablue.AxisMapper.axisPicker"]
+			axisTag = self.pref("axisPicker")
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont:
 				mappings = thisFont.customParameters["Axis Mappings"]
 				if mappings:
 					axisMapping = mappings.objectForKey_(axisTag)
 					if axisMapping:
-						minValue = float(Glyphs.defaults["com.mekkablue.AxisMapper.minValue"])
-						maxValue = float(Glyphs.defaults["com.mekkablue.AxisMapper.maxValue"])
+						minValue = self.prefFloat("minValue")
+						maxValue = self.prefFloat("maxValue")
 						minValueNative, maxValueNative = extremeMasterValuesNative(thisFont, axisTag=axisTag)
 						for nativeUserValue in sorted(axisMapping.allKeys()):
 							nativeTargetValue = axisMapping.objectForKey_(nativeUserValue)
@@ -358,7 +333,7 @@ class AxisMapper(object):
 					text += "%s (unsaved file)\n" % thisFont.familyName
 				text += "Range translated: %i-%i → %i-%i:\n" % (minValueNative, maxValueNative, minValue, maxValue)
 				text += fallbackText
-				Glyphs.defaults["com.mekkablue.AxisMapper.mappingRecipe"] = text.strip()
+				self.setPref("mappingRecipe", text.strip())
 				self.LoadPreferences()
 		except Exception as e:  # noqa: F841
 			raise e
@@ -383,10 +358,10 @@ class AxisMapper(object):
 					print("⚠️ The font file has not been saved yet.")
 				print()
 
-				minValue = float(Glyphs.defaults["com.mekkablue.AxisMapper.minValue"])
-				maxValue = float(Glyphs.defaults["com.mekkablue.AxisMapper.maxValue"])
-				mappingRecipe = Glyphs.defaults["com.mekkablue.AxisMapper.mappingRecipe"]
-				axisTag = Glyphs.defaults["com.mekkablue.AxisMapper.axisPicker"]
+				minValue = self.prefFloat("minValue")
+				maxValue = self.prefFloat("maxValue")
+				mappingRecipe = self.pref("mappingRecipe")
+				axisTag = self.pref("axisPicker")
 
 				print("🔠 Building Mapping for: %s" % axisTag)
 				if self.w.mappingLevel.get() == 0:

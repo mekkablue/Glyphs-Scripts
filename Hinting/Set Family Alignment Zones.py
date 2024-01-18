@@ -8,9 +8,10 @@ from copy import deepcopy
 import vanilla
 from AppKit import NSFont
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class SetFamilyAlignmentZones(object):
+class SetFamilyAlignmentZones(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
@@ -23,7 +24,7 @@ class SetFamilyAlignmentZones(object):
 			"Set Family Alignment Zones",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.SetFamilyAlignmentZones.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:

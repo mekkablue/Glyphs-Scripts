@@ -6,13 +6,11 @@ Batch edit (smart) components across selected glyphs. Change positions, scales a
 """
 
 import vanilla
-import sys
 from AppKit import NSPoint
 from GlyphsApp import Glyphs, Message
 
 
 class ComponentMover(object):
-	prefID = "com.mekkablue.ComponentMover"
 	prefDict = {
 		# "prefName": defaultValue,
 		"changeAttribute": 0,
@@ -80,41 +78,7 @@ class ComponentMover(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.update()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.update()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def update(self, sender=None):
+	def updateUI(self, sender=None):
 		if sender is self.w.changeAttributeUpdate:
 			self.w.changeAttribute.setItems(self.defaultSettings + self.availableAttributes())
 			self.SavePreferences()
@@ -184,20 +148,11 @@ class ComponentMover(object):
 			if not self.SavePreferences():
 				print("⚠️ ‘Component Mover’ could not write preferences.")
 
-			# read prefs:
-			for prefName in self.prefDict.keys():
-				try:
-					setattr(sys.modules[__name__], prefName, self.pref(prefName))
-				except:
-					fallbackValue = self.prefDict[prefName]
-					print("⚠️ Could not set pref ‘%s’, resorting to default value: ‘%s’." % (prefName, fallbackValue))
-					setattr(sys.modules[__name__], prefName, fallbackValue)
-
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				if allMasters:
+				if self.prefBool("allMasters"):
 					allLayers = []
 					for glyph in [layer.parent for layer in thisFont.selectedLayers]:
 						for layer in glyph.layers:
@@ -206,6 +161,7 @@ class ComponentMover(object):
 				else:
 					allLayers = thisFont.selectedLayers
 
+				changeAttribute = self.prefInt("changeAttribute")
 				smartComponent = changeAttribute > 1  # 0=Position, 1=Scale
 				attributeToChange = self.w.changeAttribute.getItems()[changeAttribute]
 				if smartComponent:
@@ -232,9 +188,10 @@ class ComponentMover(object):
 					if sender in (self.w.down, self.w.downLeft, self.w.downRight):
 						factorY = -1
 
-				amount = float(self.pref("amount"))  # don't know why reading of prefs does not work here
+				amount = self.prefFloat("amount")  # don't know why reading of prefs does not work here
 				for thisLayer in allLayers:
 					for thisComponent in thisLayer.components:
+						searchString = self.pref("searchString")
 						if not searchString or searchString in thisComponent.componentName:
 							if smartComponent:
 								try:
@@ -245,7 +202,7 @@ class ComponentMover(object):
 										# should work with axisName, circumventing bug in 3.2 (3198):
 										thisComponent.smartComponentValues[axisID] += amount * factor
 									else:
-										print(f"⚠️ {thisGlyph.name}: {thisComponent.name} has no property ‘{attributeToChange}’.")
+										print(f"⚠️ {thisLayer.parent.name}: {thisComponent.name} has no property ‘{attributeToChange}’.")
 								except:
 									import traceback
 									print(traceback.format_exc())

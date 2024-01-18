@@ -6,7 +6,6 @@ Import many masters at once with the Import Master parameter.
 """
 
 import vanilla
-import sys
 from AppKit import NSNotificationCenter
 from GlyphsApp import Glyphs, GSCustomParameter, Message
 
@@ -60,7 +59,6 @@ def importMastersFromFontToFont(importedFont, targetFont, searchFor="", useRelat
 
 
 class BatchImportMasters(object):
-	prefID = "com.mekkablue.BatchImportMasters"
 	prefDict = {
 		# "prefName": defaultValue,
 		"sourceFont": 0,
@@ -144,41 +142,7 @@ class BatchImportMasters(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.UpdateUI(sender=sender)
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self, sender=None):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.UpdateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def UpdateUI(self, sender=None):
+	def updateUI(self, sender=None):
 		self.currentFonts = [f for f in Glyphs.fonts if f.filepath]
 		menu = menuForFonts(self.currentFonts)
 		self.w.sourceFont.setItems(menu)
@@ -223,15 +187,6 @@ class BatchImportMasters(object):
 			if not self.SavePreferences():
 				print("⚠️ ‘Batch-Import Masters’ could not write preferences.")
 
-			# read prefs:
-			for prefName in self.prefDict.keys():
-				try:
-					setattr(sys.modules[__name__], prefName, self.pref(prefName))
-				except:
-					fallbackValue = self.prefDict[prefName]
-					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
-					setattr(sys.modules[__name__], prefName, fallbackValue)
-
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
@@ -247,9 +202,9 @@ class BatchImportMasters(object):
 
 				font.disableUpdateInterface()
 				try:
-					if resetParameters:
+					if self.prefBool("resetParameters"):
 						cleanParametersFromFont(font, cpName="Import Master")
-					importMastersFromFontToFont(importedFont, font, searchFor=searchFor, useRelativePath=useRelativePath)
+					importMastersFromFontToFont(importedFont, font, searchFor=self.pref("searchFor"), useRelativePath=self.pref("useRelativePath"))
 
 				except Exception as e:
 					raise e

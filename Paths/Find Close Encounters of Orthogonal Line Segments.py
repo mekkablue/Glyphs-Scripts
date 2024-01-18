@@ -6,19 +6,12 @@ Goes through all vertical and horizontal line segments, and finds pairs that are
 """
 
 import vanilla
-import math
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSGuide, Message
+from mekkaCore import mekkaObject, angle
 
 
-def angle(firstPoint, secondPoint):
-	xDiff = secondPoint.x - firstPoint.x
-	yDiff = secondPoint.y - firstPoint.y
-	return math.degrees(math.atan2(yDiff, xDiff))
-
-
-class FindCloseEncounters(object):
-	prefID = "com.mekkablue.FindCloseEncounters"
+class FindCloseEncounters(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"threshold": 2,
@@ -83,43 +76,9 @@ class FindCloseEncounters(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def updateGUI(self, sender=None):
+	def updateUI(self, sender=None):
 		self.w.excludeGlyphsContaining.enable(self.pref("excludeGlyphs"))
-		self.w.runButton.enable(abs(float(self.pref("threshold"))) > 0)
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.updateGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.updateGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
+		self.w.runButton.enable(abs(self.prefFloat("threshold")) > 0)
 
 	def FindCloseEncountersMain(self, sender=None):
 		try:
@@ -131,7 +90,7 @@ class FindCloseEncounters(object):
 				print("⚠️ ‘Find Close Encounters of Orthogonal Line Segments’ could not write preferences.")
 
 			# read prefs:
-			threshold = abs(float(self.pref("threshold")))
+			threshold = abs(self.prefFloat("threshold"))
 			includeComposites = self.pref("includeComposites")
 			includeNonExporting = self.pref("includeNonExporting")
 			excludeGlyphs = self.pref("excludeGlyphs")

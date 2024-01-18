@@ -7,6 +7,7 @@ Finds small paths (smaller tahn a user-definable threshold) in glyphs and open a
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
 def glyphShouldBeIgnored(glyphname):
@@ -17,9 +18,8 @@ def glyphShouldBeIgnored(glyphname):
 	return False
 
 
-class FindSmallPaths(object):
-	prefID = "com.mekkablue.FindSmallPaths"
-	prefs = {
+class FindSmallPaths(mekkaObject):
+	prefDict = {
 		"sliderMin": 10,
 		"sliderMax": 1000,
 		"areaSlider": 0.1,
@@ -39,7 +39,7 @@ class FindSmallPaths(object):
 			"New Tab with Small Paths",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.FindSmallPaths.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -84,35 +84,6 @@ class FindSmallPaths(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender):
-		try:
-			for prefName in self.prefs.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-		except Exception as e:
-			self.errorReport(e)
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefs.keys():
-				Glyphs.registerDefault(self.domain(prefName), self.prefs[prefName])
-				getattr(self.w, prefName).set(self.pref(prefName))
-		except Exception as e:
-			self.errorReport(e)
-			return False
-
-		return True
-
 	def CheckBoxUpdate(self, sender):
 		try:
 			# mutually exclusive check boxes:
@@ -148,7 +119,7 @@ class FindSmallPaths(object):
 
 			# validate the min and max entries:
 			try:
-				minimum = float(self.pref("sliderMin"))
+				minimum = self.prefFloat("sliderMin")
 			except Exception as e:  # noqa: F841
 				# disable slider and button
 				self.w.areaSlider.enable(onOff=False)
@@ -158,7 +129,7 @@ class FindSmallPaths(object):
 				return True
 
 			try:
-				maximum = float(self.pref("sliderMax"))
+				maximum = self.prefFloat("sliderMax")
 			except Exception as e:  # noqa: F841
 				# disable slider and button
 				self.w.areaSlider.enable(onOff=False)
@@ -192,9 +163,9 @@ class FindSmallPaths(object):
 			return False
 
 	def CurrentMinArea(self, ):
-		minimum = float(self.pref("sliderMin"))
-		maximum = float(self.pref("sliderMax"))
-		sliderPos = float(self.pref("areaSlider"))
+		minimum = self.prefFloat("sliderMin")
+		maximum = self.prefFloat("sliderMax")
+		sliderPos = self.prefFloat("areaSlider")
 		minArea = minimum + sliderPos * (maximum - minimum)
 		self.w.minArea.set("%i square units" % minArea)
 		return minArea

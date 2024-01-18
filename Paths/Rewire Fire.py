@@ -8,6 +8,7 @@ Finds, selects and marks duplicate coordinates. Two nodes on the same position t
 import vanilla
 from Foundation import NSPoint, NSIntersectsRect
 from GlyphsApp import Glyphs, GSAnnotation, GSOFFCURVE, CIRCLE, Message, distance
+from mekkaCore import mekkaObject
 
 
 def isOnLine(p1, p2, p3, threshold=2.01**0.5):
@@ -31,8 +32,7 @@ def isOnLine(p1, p2, p3, threshold=2.01**0.5):
 	return False
 
 
-class RewireFire(object):
-	prefID = "com.mekkablue.RewireFire"
+class RewireFire(mekkaObject):
 	prefDict = {
 		"setFireToNode": 1,
 		"dynamiteForOnSegment": 1,
@@ -120,38 +120,6 @@ class RewireFire(object):
 		self.w.runButton.enable(anyOptionSelected)
 		self.w.reuseTab.enable(self.w.openTabWithAffectedLayers.get())
 		self.w.tolerateZeroSegments.enable(self.w.setFireToNode.get())
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def circleInLayerAtPosition(self, layer, position, width=25.0):
 		circle = GSAnnotation()

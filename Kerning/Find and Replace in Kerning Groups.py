@@ -7,9 +7,16 @@ Finds and replaces text in the metrics keys of selected glyphs. Leave the Find s
 
 import vanilla
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 
-class KerningGroupReplacer(object):
+class KerningGroupReplacer(mekkaObject):
+	prefDict = {
+		"leftSearchFor": "",
+		"leftReplaceBy": "",
+		"rightSearchFor": "",
+		"rightReplaceBy": "",
+	}
 
 	def __init__(self):
 		windowWidth = 335
@@ -21,7 +28,7 @@ class KerningGroupReplacer(object):
 			"Find and Replace in Kerning Groups",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.KerningGroupReplacer.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		linePos, inset, lineHeight = 10, 12, 22
@@ -72,32 +79,6 @@ class KerningGroupReplacer(object):
 		self.w.rightSearchFor.setPosSize((rightColumnX, y, columnWidth, height), animate=False)
 		x, y, width, height = self.w.rightReplaceBy.getPosSize()
 		self.w.rightReplaceBy.setPosSize((rightColumnX, y, columnWidth, height), animate=False)
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.KerningGroupReplacer.leftSearchFor"] = self.w.leftSearchFor.get()
-			Glyphs.defaults["com.mekkablue.KerningGroupReplacer.leftReplaceBy"] = self.w.leftReplaceBy.get()
-			Glyphs.defaults["com.mekkablue.KerningGroupReplacer.rightSearchFor"] = self.w.rightSearchFor.get()
-			Glyphs.defaults["com.mekkablue.KerningGroupReplacer.rightReplaceBy"] = self.w.rightReplaceBy.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.KerningGroupReplacer.leftSearchFor", "")
-			Glyphs.registerDefault("com.mekkablue.KerningGroupReplacer.leftReplaceBy", "")
-			Glyphs.registerDefault("com.mekkablue.KerningGroupReplacer.rightSearchFor", "")
-			Glyphs.registerDefault("com.mekkablue.KerningGroupReplacer.rightReplaceBy", "")
-			self.w.leftSearchFor.set(Glyphs.defaults["com.mekkablue.KerningGroupReplacer.leftSearchFor"])
-			self.w.leftReplaceBy.set(Glyphs.defaults["com.mekkablue.KerningGroupReplacer.leftReplaceBy"])
-			self.w.rightSearchFor.set(Glyphs.defaults["com.mekkablue.KerningGroupReplacer.rightSearchFor"])
-			self.w.rightReplaceBy.set(Glyphs.defaults["com.mekkablue.KerningGroupReplacer.rightReplaceBy"])
-		except:
-			return False
-
-		return True
 
 	def replaceGroupName(self, groupName, searchString, replaceString):
 		try:
@@ -153,10 +134,10 @@ class KerningGroupReplacer(object):
 			selectedLayers = Font.selectedLayers
 			currentLayers = [layer for layer in selectedLayers if layer.parent.name is not None]
 
-			LsearchFor = Glyphs.defaults["com.mekkablue.KerningGroupReplacer.leftSearchFor"]
-			LreplaceBy = Glyphs.defaults["com.mekkablue.KerningGroupReplacer.leftReplaceBy"]
-			RsearchFor = Glyphs.defaults["com.mekkablue.KerningGroupReplacer.rightSearchFor"]
-			RreplaceBy = Glyphs.defaults["com.mekkablue.KerningGroupReplacer.rightReplaceBy"]
+			LsearchFor = self.pref("leftSearchFor")
+			LreplaceBy = self.pref("leftReplaceBy")
+			RsearchFor = self.pref("rightSearchFor")
+			RreplaceBy = self.pref("rightReplaceBy")
 
 			for thisLayer in currentLayers:
 				try:

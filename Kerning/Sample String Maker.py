@@ -8,12 +8,12 @@ Creates kern strings for all kerning groups in user-defined categories and adds 
 import vanilla
 import sampleText
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 CASE = (None, "Uppercase", "Lowercase", "Smallcaps", "Minor")
 
 
-class SampleStringMaker(object):
-	prefID = "com.mekkablue.SampleStringMaker"
+class SampleStringMaker(mekkaObject):
 	prefDict = {
 		"scriptPopup": 0,
 		"leftCategoryPopup": 0,
@@ -125,38 +125,6 @@ class SampleStringMaker(object):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def glyphNameIsExcluded(self, glyphName):
 		forbiddenParts = [n.strip() for n in self.pref("excludedGlyphNameParts").split(",")]

@@ -7,7 +7,7 @@ Set Shortcuts for tools in toolbar.
 
 import vanilla
 from GlyphsApp import Glyphs
-
+from mekkaCore import mekkaObject
 
 shortcuts = {
 	"AnnotationTool": u"a",
@@ -27,7 +27,7 @@ shortcuts = {
 }
 
 
-class SetToolShortcuts(object):
+class SetToolShortcuts(mekkaObject):
 
 	def __init__(self):
 		position = 14
@@ -43,7 +43,7 @@ class SetToolShortcuts(object):
 			u"Set Tool Shortcuts",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.SetToolShortcuts.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:

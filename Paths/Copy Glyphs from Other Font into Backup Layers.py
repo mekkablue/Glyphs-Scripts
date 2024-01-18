@@ -7,9 +7,15 @@ Creates backup layers for selected glyphs in target font, and fills them with th
 
 import vanilla
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 
-class CopyGlyphsIntoBackupLayers(object):
+class CopyGlyphsIntoBackupLayers(mekkaObject):
+	prefDict = {
+		"from_font": "",
+		"to_font": "",
+		"suffix": "",
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -22,7 +28,7 @@ class CopyGlyphsIntoBackupLayers(object):
 			"Copy glyphs into backup layers",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.CopyGlyphsIntoBackupLayers.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -46,26 +52,6 @@ class CopyGlyphsIntoBackupLayers(object):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.CopyGlyphsIntoBackupLayers.from_font"] = self.w.from_font.get()
-			Glyphs.defaults["com.mekkablue.CopyGlyphsIntoBackupLayers.to_font"] = self.w.to_font.get()
-			Glyphs.defaults["com.mekkablue.CopyGlyphsIntoBackupLayers.suffix"] = self.w.suffix.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			self.w.from_font.set(Glyphs.defaults["com.mekkablue.CopyGlyphsIntoBackupLayers.from_font"])
-			self.w.to_font.set(Glyphs.defaults["com.mekkablue.CopyGlyphsIntoBackupLayers.to_font"])
-			self.w.suffix.set(Glyphs.defaults["com.mekkablue.CopyGlyphsIntoBackupLayers.suffix"])
-		except:
-			return False
-
-		return True
 
 	def GetFonts(self, isSourceFont):
 		myFontList = ["%s - %s" % (x.font.familyName, x.selectedFontMaster().name) for x in Glyphs.orderedDocuments()]

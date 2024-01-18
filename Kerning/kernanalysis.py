@@ -3,7 +3,7 @@ from __future__ import print_function
 
 from Foundation import NSNotFound
 
-from GlyphsApp import Glyphs
+from GlyphsApp import Glyphs, caseDict
 if Glyphs.versionNumber >= 3.0:
 	from GlyphsApp import LTR
 
@@ -21,29 +21,6 @@ categoryList = (
 	"Number:Small",
 	"Number:Fraction",
 )
-
-if Glyphs.versionNumber >= 3:
-	from GlyphsApp import GSUppercase, GSLowercase, GSMinor, GSSmallcaps, GSNoCase
-	cases = {
-		"Lower": GSLowercase,
-		"lower": GSLowercase,
-		"Lowercase": GSLowercase,
-		"lowercase": GSLowercase,
-		"Minor": GSMinor,
-		"minor": GSMinor,
-		"NoCase": GSNoCase,
-		"nocase": GSNoCase,
-		"SC": GSSmallcaps,
-		"sc": GSSmallcaps,
-		"Small": GSSmallcaps,
-		"small": GSSmallcaps,
-		"Smallcaps": GSSmallcaps,
-		"smallcaps": GSSmallcaps,
-		"Upper": GSUppercase,
-		"upper": GSUppercase,
-		"Uppercase": GSUppercase,
-		"uppercase": GSUppercase,
-	}
 
 
 def stringToListOfGlyphsForFont(string, Font, report=True, excludeNonExporting=True, suffix=""):
@@ -192,7 +169,7 @@ def listOfNamesForCategories(thisFont, requiredCategory, requiredSubCategory, re
 					if Glyphs.versionNumber >= 3:
 						# GLYPHS 3
 						if requiredSubCategory is None or thisGlyph.subCategory == requiredSubCategory or (
-							requiredSubCategory in cases.keys() and thisGlyph.case == cases[requiredSubCategory]
+							requiredSubCategory in caseDict.keys() and thisGlyph.case == caseDict[requiredSubCategory]
 						):
 							nameList.append(glyphName)
 					else:

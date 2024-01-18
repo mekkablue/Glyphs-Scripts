@@ -5,12 +5,13 @@ __doc__ = """
 Builds circled numbers and letters (U+24B6...24EA and U+2460...2473) from _part.circle and the letters and figures.
 """
 
-from Foundation import NSPoint, NSClassFromString, NSAffineTransform, NSAffineTransformStruct
+from Foundation import NSPoint
 from AppKit import NSRect, NSSize
 import math
 import vanilla
 from GlyphsApp import Glyphs, GSGlyph, GSComponent, GSAnchor, GSOFFCURVE, Message
-
+from mekkaCore import mekkaObject
+from mekkaCore.geometry import transform, centerOfRect, offsetLayer
 
 circledNumbers = (
 	"zero.circled",
@@ -93,82 +94,6 @@ circledLC = (
 	"y.circled",
 	"z.circled",
 )
-
-
-def offsetLayer(thisLayer, offset, makeStroke=False, position=0.5, autoStroke=False):
-	offsetFilter = NSClassFromString("GlyphsFilterOffsetCurve")
-	try:
-		# GLYPHS 3:
-		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyleStart_capStyleEnd_keepCompatibleOutlines_(
-			thisLayer,
-			offset,
-			offset,  # horizontal and vertical offset
-			makeStroke,  # if True, creates a stroke
-			autoStroke,  # if True, distorts resulting shape to vertical metrics
-			position,  # stroke distribution to the left and right, 0.5 = middle
-			None,
-			None,
-			None,
-			0,
-			0,
-			True
-		)
-	except:
-		# GLYPHS 2:
-		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyle_keepCompatibleOutlines_(
-			thisLayer,
-			offset,
-			offset,  # horizontal and vertical offset
-			makeStroke,  # if True, creates a stroke
-			autoStroke,  # if True, distorts resulting shape to vertical metrics
-			position,  # stroke distribution to the left and right, 0.5 = middle
-			thisLayer.glyphMetrics(),  # metrics (G3)
-			None,
-			None,  # error, shadow
-			0,  # NSButtLineCapStyle,  # cap style
-			True,  # keep compatible
-		)
-
-
-def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
-	"""
-	Returns an NSAffineTransform object for transforming layers.
-	Apply an NSAffineTransform t object like this:
-		Layer.transform_checkForSelection_doComponents_(t,False,True)
-	Access its transformation matrix like this:
-		tMatrix = t.transformStruct()  # returns the 6-float tuple
-	Apply the matrix tuple like this:
-		Layer.applyTransform(tMatrix)
-		Component.applyTransform(tMatrix)
-		Path.applyTransform(tMatrix)
-	Chain multiple NSAffineTransform objects t1, t2 like this:
-		t1.appendTransform_(t2)
-	"""
-	myTransform = NSAffineTransform.transform()
-	if rotate:
-		myTransform.rotateByDegrees_(rotate)
-	if scale != 1.0:
-		myTransform.scaleBy_(scale)
-	if not (shiftX == 0.0 and shiftY == 0.0):
-		myTransform.translateXBy_yBy_(shiftX, shiftY)
-	if skew:
-		skewStruct = NSAffineTransformStruct()
-		skewStruct.m11 = 1.0
-		skewStruct.m22 = 1.0
-		skewStruct.m21 = math.tan(math.radians(skew))
-		skewTransform = NSAffineTransform.transform()
-		skewTransform.setTransformStruct_(skewStruct)
-		myTransform.appendTransform_(skewTransform)
-	return myTransform
-
-
-def centerOfRect(rect):
-	"""
-	Returns the center of NSRect rect as an NSPoint.
-	"""
-	x = rect.origin.x + rect.size.width * 0.5
-	y = rect.origin.y + rect.size.height * 0.5
-	return NSPoint(x, y)
 
 
 def combinedBounds(rects):
@@ -526,7 +451,18 @@ def boxArea(thisLayer):
 	return thisLayer.bounds.size.width * thisLayer.bounds.size.height
 
 
-class BuildCircledGlyphs(object):
+class BuildCircledGlyphs(mekkaObject):
+	prefDict = {
+		"buildUC": 0,
+		"buildLC": 0,
+		"buildBlackUC": 0,
+		"buildBlackLC": 0,
+		"buildCircledNumbers": 1,
+		"buildBlackCircledNumbers": 0,
+		"minDistanceBetweenFigures": "90",
+		"suffixesCheckbox": 0,
+		"suffixes": "ss02, ss06",
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -539,7 +475,7 @@ class BuildCircledGlyphs(object):
 			"Build Circled Glyphs",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.BuildCircledGlyphs.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -593,53 +529,6 @@ class BuildCircledGlyphs(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildUC"] = self.w.buildUC.get()
-			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildLC"] = self.w.buildLC.get()
-			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackUC"] = self.w.buildBlackUC.get()
-			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackLC"] = self.w.buildBlackLC.get()
-			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildCircledNumbers"] = self.w.buildCircledNumbers.get()
-			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackCircledNumbers"] = self.w.buildBlackCircledNumbers.get()
-			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.minDistanceBetweenFigures"] = self.w.minDistanceBetweenFigures.get()
-			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.suffixesCheckbox"] = self.w.suffixesCheckbox.get()
-			Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.suffixes"] = self.w.suffixes.get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.buildUC", 0)
-			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.buildLC", 0)
-			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.buildBlackUC", 0)
-			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.buildBlackLC", 0)
-			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.buildCircledNumbers", 1)
-			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.buildBlackCircledNumbers", 0)
-			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.minDistanceBetweenFigures", "90")
-			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.suffixesCheckbox", 0)
-			Glyphs.registerDefault("com.mekkablue.BuildCircledGlyphs.suffixes", "ss02, ss06")
-
-			# load previously written prefs:
-			self.w.buildUC.set(Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildUC"])
-			self.w.buildLC.set(Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildLC"])
-			self.w.buildBlackUC.set(Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackUC"])
-			self.w.buildBlackLC.set(Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackLC"])
-			self.w.buildCircledNumbers.set(Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildCircledNumbers"])
-			self.w.buildBlackCircledNumbers.set(Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackCircledNumbers"])
-			self.w.minDistanceBetweenFigures.set(Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.minDistanceBetweenFigures"])
-			self.w.suffixesCheckbox.set(Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.suffixesCheckbox"])
-			self.w.suffixes.set(Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.suffixes"])
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def turnBlack(self, glyphNames):
 		searchFor = ".circled"
 		replaceWith = ".blackCircled"
@@ -658,15 +547,15 @@ class BuildCircledGlyphs(object):
 			minDistanceBetweenFigures = 90.0
 			thisFont = Glyphs.font  # frontmost font
 
-			buildUC = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildUC"]
-			buildLC = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildLC"]
-			buildCircledNumbers = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildCircledNumbers"]
-			buildBlackUC = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackUC"]
-			buildBlackLC = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackLC"]
-			buildBlackCircledNumbers = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.buildBlackCircledNumbers"]
-			minDistanceBetweenFigures = float(Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.minDistanceBetweenFigures"])
-			shouldIncludeSuffixes = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.suffixesCheckbox"]
-			suffixes = Glyphs.defaults["com.mekkablue.BuildCircledGlyphs.suffixes"]
+			buildUC = self.pref("buildUC")
+			buildLC = self.pref("buildLC")
+			buildCircledNumbers = self.pref("buildCircledNumbers")
+			buildBlackUC = self.pref("buildBlackUC")
+			buildBlackLC = self.pref("buildBlackLC")
+			buildBlackCircledNumbers = self.pref("buildBlackCircledNumbers")
+			minDistanceBetweenFigures = self.prefFloat("minDistanceBetweenFigures")
+			shouldIncludeSuffixes = self.pref("suffixesCheckbox")
+			suffixes = self.pref("suffixes")
 			if shouldIncludeSuffixes:
 				suffixes = [("." + x.strip()).replace("..", ".") for x in suffixes.split(",")]
 			else:

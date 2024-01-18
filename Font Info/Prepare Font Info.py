@@ -7,20 +7,20 @@ Prepare open fonts for a modern font production and git workflow.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class PrepareFontforGit(object):
-	prefID = "com.mekkablue.PrepareFontforGit"
-	prefs = (
-		"preventDisplayStrings",
-		"preventTimeStamps",
-		"preventMacName",
-		"fileFormat",
-		"removeGlyphOrder",
-		"applyToFonts",
-		"disablesNiceNames",
-		"disablesAutomaticAlignment",
-	)
+class PrepareFontforGit(mekkaObject):
+	prefDict = {
+		"preventDisplayStrings": False,
+		"preventTimeStamps": False,
+		"preventMacName": False,
+		"fileFormat": False,
+		"removeGlyphOrder": False,
+		"applyToFonts": False,
+		"disablesNiceNames": False,
+		"disablesAutomaticAlignment": False,
+	}
 	parameterDict = {
 		"preventDisplayStrings": ("Write DisplayStrings", 0),
 		"preventTimeStamps": ("Write lastChange", 0),
@@ -86,46 +86,10 @@ class PrepareFontforGit(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def updateGUI(self, sender=None):
-		onOff = any([self.pref(prefName) for prefName in self.prefs])
+	def updateUI(self, sender=None):
+		onOff = any([self.pref(prefName) for prefName in self.prefDict.keys()])
 		self.w.applyToFonts.enable(onOff)
 		self.w.runButton.enable(onOff)
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefs:
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-
-			self.updateGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefs:
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), prefName.startswith("include") or prefName.startswith("reuse"))
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-
-			self.updateGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def setParameterForFont(self, font, parameterName, parameterValue=0, remove=False):
 		while font.customParameters[parameterName]:
@@ -165,17 +129,17 @@ class PrepareFontforGit(object):
 
 					# set parameters:
 					for optionKey in self.parameterDict.keys():
-						if bool(self.pref(optionKey)):
+						if self.prefBool("optionKey"):
 							parameterName, parameterValue = self.parameterDict[optionKey]
 							self.setParameterForFont(thisFont, parameterName, parameterValue)
 
 					# remove parameters:
-					for optionKey in [prefName for prefName in self.prefs if prefName.startswith("remove") and self.pref(prefName)]:
+					for optionKey in [prefName for prefName in self.prefDict.keys() if prefName.startswith("remove") and self.pref(prefName)]:
 						parameterName = optionKey[6].lower() + optionKey[7:]
 						self.setParameterForFont(thisFont, parameterName, remove=True)
 
 					# remove parameters:
-					for optionKey in [prefName for prefName in self.prefs if prefName.startswith("disables")]:
+					for optionKey in [prefName for prefName in self.prefDict.keys() if prefName.startswith("disables")]:
 						setattr(thisFont, optionKey, not self.pref(optionKey))
 						print(f"{'✅' if self.pref(optionKey) else '🚫'} {optionKey.replace('disables', '')} (See Font Info > Other)")
 

@@ -6,10 +6,10 @@ Will add smart axes and additional smart layers to selected glyphs.
 """
 
 import vanilla
-import sys
 from copy import copy
 from AppKit import NSFont
 from GlyphsApp import Glyphs, Message, GSSmartComponentAxis
+from mekkaCore import mekkaObject
 
 defaultRecipe = """
 Height: Low: 0
@@ -18,8 +18,7 @@ Width: Narrow: 0
 """.strip()
 
 
-class BatchAddSmartAxes(object):
-	prefID = "com.mekkablue.BatchAddSmartAxes"
+class BatchAddSmartAxes(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"recipe": defaultRecipe,
@@ -75,38 +74,6 @@ class BatchAddSmartAxes(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def reset(self, sender=None):
 		self.w.recipe.set(defaultRecipe)
 		self.SavePreferences()
@@ -119,15 +86,6 @@ class BatchAddSmartAxes(object):
 			# update settings to the latest user input:
 			if not self.SavePreferences():
 				print("⚠️ ‘Batch-Add Smart Axes’ could not write preferences.")
-
-			# read prefs:
-			for prefName in self.prefDict.keys():
-				try:
-					setattr(sys.modules[__name__], prefName, self.pref(prefName))
-				except:
-					fallbackValue = self.prefDict[prefName]
-					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
-					setattr(sys.modules[__name__], prefName, fallbackValue)
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:

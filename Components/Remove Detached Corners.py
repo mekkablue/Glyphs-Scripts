@@ -7,6 +7,7 @@ Removes the specified component from all (selected) glyphs.
 
 import vanilla
 from GlyphsApp import Glyphs, CORNER
+from mekkaCore import mekkaObject
 
 
 def isLayerAffected(thisLayer):
@@ -28,7 +29,13 @@ def deleteCornerComponent(componentName, thisLayer):
 		del thisLayer.hints[i]
 
 
-class RemoveDetachedCorners(object):
+class RemoveDetachedCorners(mekkaObject):
+	prefDict = {
+		"fromWhere": "0",
+		"backgroundLayersChBox": "0",
+		"allMastersChBox": "0",
+	}
+
 	padding = (15, 10, 10)
 
 	def __init__(self):
@@ -40,7 +47,7 @@ class RemoveDetachedCorners(object):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Remove Detached Corners",  # window title
-			autosaveName="com.mekkablue.RemoveDetachedCorners.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -64,30 +71,6 @@ class RemoveDetachedCorners(object):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.RemoveDetachedCorners.fromWhere"] = self.w.fromWhere.get()
-			Glyphs.defaults["com.mekkablue.RemoveDetachedCorners.backgroundLayersChBox"] = self.w.backgroundLayersChBox.get()
-			Glyphs.defaults["com.mekkablue.RemoveDetachedCorners.allMastersChBox"] = self.w.allMastersChBox.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.RemoveDetachedCorners.fromWhere", "0")
-			self.w.fromWhere.set(Glyphs.defaults["com.mekkablue.RemoveDetachedCorners.fromWhere"])
-
-			Glyphs.registerDefault("com.mekkablue.RemoveDetachedCorners.backgroundLayersChBox", "0")
-			self.w.backgroundLayersChBox.set(Glyphs.defaults["com.mekkablue.RemoveDetachedCorners.backgroundLayersChBox"])
-			Glyphs.registerDefault("com.mekkablue.RemoveDetachedCorners.allMastersChBox", "0")
-			self.w.allMastersChBox.set(Glyphs.defaults["com.mekkablue.RemoveDetachedCorners.allMastersChBox"])
-		except:
-			return False
-
-		return True
 
 	def glyphList(self):
 		thisFont = Glyphs.font
@@ -121,7 +104,7 @@ class RemoveDetachedCorners(object):
 			thisFont = Glyphs.font  # frontmost font
 			listOfGlyphs = thisFont.glyphs
 
-			if Glyphs.defaults["com.mekkablue.RemoveDetachedCorners.fromWhere"] == 0:
+			if self.pref("fromWhere") == 0:
 				listOfGlyphs = [layer.parent for layer in thisFont.selectedLayers]  # active layers of currently selected glyphs
 
 			for thisGlyph in listOfGlyphs:

@@ -5,46 +5,13 @@ __doc__ = """
 Add a single path in the background and it will be used to create intermediate (brace) layers on the first axis for OTVar animation. Define the frames (per segment) in the respective glyph note after running the script once.
 """
 
-from Foundation import NSPoint, NSAffineTransform, NSAffineTransformStruct
-import math
+from Foundation import NSPoint
 from vanilla.dialogs import message
 from GlyphsApp import Glyphs
-
+from mekkaCore import transform
 
 thisFont = Glyphs.font  # frontmost font
 selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
-
-
-def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
-	"""
-	Returns an NSAffineTransform object for transforming layers.
-	Apply an NSAffineTransform t object like this:
-		Layer.transform_checkForSelection_doComponents_(t,False,True)
-	Access its transformation matrix like this:
-		tMatrix = t.transformStruct()  # returns the 6-float tuple
-	Apply the matrix tuple like this:
-		Layer.applyTransform(tMatrix)
-		Component.applyTransform(tMatrix)
-		Path.applyTransform(tMatrix)
-	Chain multiple NSAffineTransform objects t1, t2 like this:
-		t1.appendTransform_(t2)
-	"""
-	myTransform = NSAffineTransform.transform()
-	if rotate:
-		myTransform.rotateByDegrees_(rotate)
-	if scale != 1.0:
-		myTransform.scaleBy_(scale)
-	if not (shiftX == 0.0 and shiftY == 0.0):
-		myTransform.translateXBy_yBy_(shiftX, shiftY)
-	if skew:
-		skewStruct = NSAffineTransformStruct()
-		skewStruct.m11 = 1.0
-		skewStruct.m22 = 1.0
-		skewStruct.m21 = math.tan(math.radians(skew))
-		skewTransform = NSAffineTransform.transform()
-		skewTransform.setTransformStruct_(skewStruct)
-		myTransform.appendTransform_(skewTransform)
-	return myTransform
 
 
 def shiftedLayer(originalLayer, shiftTransform):

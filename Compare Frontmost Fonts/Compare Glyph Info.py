@@ -7,7 +7,7 @@ Compares open fonts and builds a lits of differing glyph info, including Unicode
 
 import vanilla
 from GlyphsApp import Glyphs
-
+from mekkaCore import mekkaObject
 
 # CONSTANTS:
 
@@ -61,7 +61,7 @@ missingGlyphValue = "(missing glyph)"
 missingValue = "–"
 
 
-class CompareGlyphInfo(object):
+class CompareGlyphInfo(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
@@ -74,7 +74,7 @@ class CompareGlyphInfo(object):
 			"Compare Glyph Info",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.CompareGlyphInfo.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:

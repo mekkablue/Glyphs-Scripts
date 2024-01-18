@@ -7,6 +7,7 @@ Create or update OpenType feature code for positional forms (isolated, initial, 
 
 import vanilla
 from GlyphsApp import Glyphs, GSFeature, GSClass, Message
+from mekkaCore import mekkaObject
 
 
 def updatedCode(oldcode, beginsig, endsig, newcode):
@@ -98,8 +99,17 @@ def createOTClass(className="@default", classGlyphNames=[], targetFont=None, aut
 		return "🛑 ERROR: Could not create OT class %s. Missing either font or glyph names, or both." % (className)
 
 
-class BuildPositionalFeature(object):
+class BuildPositionalFeature(mekkaObject):
 	prefDomain = "com.mekkablue.BuildPositionalFeature"
+	prefDict = {
+		"targetFeature": "calt",
+		"suffixes": "init, medi, fina, isol",
+		"sourceSuffix": "Def",
+		"targetSuffix": "Sub",
+		"automateAllLetters": True,
+		"separateFeatureEntry": False,
+	}
+
 	title = "Build Positional Feature"
 
 	def __init__(self):
@@ -178,68 +188,17 @@ class BuildPositionalFeature(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domainForPref(self, pref):
-		return self.prefDomain.strip().strip(".") + "." + pref
-
-	def valueForPref(self, pref):
-		domain = self.domainForPref(pref)
-		return Glyphs.defaults[domain]
-
-	def setValueForPref(self, pref, value="0"):
-		domain = self.domainForPref(pref)
-		Glyphs.defaults[domain] = value
-
 	def update(self, sender=None):
 		if sender == self.w.targetFeatureUpdate:
-			self.setValueForPref("targetFeature", "calt")
+			self.setPref("targetFeature", "calt")
 		elif sender == self.w.suffixesUpdate:
-			self.setValueForPref("suffixes", "init, medi, fina, isol")
+			self.setPref("suffixes", "init, medi, fina, isol")
 		elif sender == self.w.sourceSuffixUpdate:
-			self.setValueForPref("sourceSuffix", "Def")
+			self.setPref("sourceSuffix", "Def")
 		elif sender == self.w.targetSuffixUpdate:
-			self.setValueForPref("targetSuffix", "Sub")
+			self.setPref("targetSuffix", "Sub")
 
 		self.LoadPreferences()
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			self.setValueForPref("targetFeature", self.w.targetFeature.get())
-			self.setValueForPref("suffixes", self.w.suffixes.get())
-			self.setValueForPref("sourceSuffixUpdate", self.w.sourceSuffix.get())
-			self.setValueForPref("targetSuffixUpdate", self.w.targetSuffix.get())
-			self.setValueForPref("automateAllLetters", self.w.automateAllLetters.get())
-			self.setValueForPref("separateFeatureEntry", self.w.separateFeatureEntry.get())
-
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault(self.domainForPref("targetFeature"), "calt")
-			Glyphs.registerDefault(self.domainForPref("suffixes"), "init, medi, fina, isol")
-			Glyphs.registerDefault(self.domainForPref("sourceSuffix"), "Def")
-			Glyphs.registerDefault(self.domainForPref("targetSuffix"), "Sub")
-			Glyphs.registerDefault(self.domainForPref("automateAllLetters"), True)
-			Glyphs.registerDefault(self.domainForPref("separateFeatureEntry"), False)
-
-			# load previously written prefs:
-			self.w.targetFeature.set(self.valueForPref("targetFeature"))
-			self.w.suffixes.set(self.valueForPref("suffixes"))
-			self.w.sourceSuffix.set(self.valueForPref("sourceSuffix"))
-			self.w.targetSuffix.set(self.valueForPref("targetSuffix"))
-			self.w.automateAllLetters.set(self.valueForPref("automateAllLetters"))
-			self.w.separateFeatureEntry.set(self.valueForPref("separateFeatureEntry"))
-
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def BuildPositionalFeatureMain(self, sender=None):
 		try:
@@ -262,21 +221,21 @@ class BuildPositionalFeature(object):
 				print()
 
 				# read user settings and supply fallback values if necessary:
-				positionalFeature = self.valueForPref("targetFeature").strip()
+				positionalFeature = self.pref("targetFeature").strip()
 				if not positionalFeature or len(positionalFeature) > 4:
 					print("⚠️ Invalid target feature tag: ‘%s’" % positionalFeature)
 					positionalFeature = "calt"
-					self.setValueForPref("targetFeature", positionalFeature)
+					self.setPref("targetFeature", positionalFeature)
 					self.LoadPreferences()
 
-				extensionDef = self.valueForPref("sourceSuffix").strip()
-				extensionSub = self.valueForPref("targetSuffix").strip()
+				extensionDef = self.pref("sourceSuffix").strip()
+				extensionSub = self.pref("targetSuffix").strip()
 				if not extensionDef and not extensionSub:
 					print("⚠️ Both class suffixes cannot be empty at the same time. Restoring defaults.")
 					extensionDef = "Def"
 					extensionSub = "Sub"
-					self.setValueForPref("sourceSuffix", extensionDef)
-					self.setValueForPref("targetSuffix", extensionSub)
+					self.setPref("sourceSuffix", extensionDef)
+					self.setPref("targetSuffix", extensionSub)
 					self.LoadPreferences()
 
 				suffixKeys = ("init", "medi", "fina", "isol")
@@ -284,7 +243,7 @@ class BuildPositionalFeature(object):
 				for suffix in suffixKeys:
 					suffixDict[suffix] = suffix
 
-				userSuppliedSuffixes = [suffix.strip() for suffix in self.valueForPref("suffixes").split(",")]
+				userSuppliedSuffixes = [suffix.strip() for suffix in self.pref("suffixes").split(",")]
 				for i in range(len(userSuppliedSuffixes)):
 					userSuppliedSuffix = userSuppliedSuffixes[i]
 					if userSuppliedSuffix:
@@ -293,7 +252,7 @@ class BuildPositionalFeature(object):
 
 				# create or update AllLetters class
 				anyLetterClassName = "AllLetters"
-				automateAllLetters = bool(self.valueForPref("automateAllLetters"))
+				automateAllLetters = self.prefBool("automateAllLetters")
 				allLetterNames = [g.name for g in thisFont.glyphs if g.category == "Letter" and g.export]
 				print("\t%s" % createOTClass(
 					className=anyLetterClassName,
@@ -355,7 +314,7 @@ class BuildPositionalFeature(object):
 
 				# BUILD FEATURE WITH COLLECTED CODE
 
-				separateFeatureEntry = bool(self.valueForPref("separateFeatureEntry"))
+				separateFeatureEntry = self.prefBool("separateFeatureEntry")
 				positionalFeatureCode = "\n%s\n" % positionalFeatureCode.strip()
 				print(
 					"\n\t%s" % createOTFeature(

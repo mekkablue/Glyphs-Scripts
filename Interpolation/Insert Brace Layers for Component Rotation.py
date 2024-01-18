@@ -7,10 +7,14 @@ Inserts a number of Brace Layers with continuously scaled and rotated components
 
 import vanilla
 from GlyphsApp import Glyphs, GSLayer, Message
+from mekkaCore import mekkaObject
 
 
-class InsertBraceLayersForComponentRotation(object):
-	prefID = "com.mekkablue.InsertBraceLayersforComponentRotation"
+class InsertBraceLayersForComponentRotation(mekkaObject):
+	prefDict = {
+		"steps": 5,
+		"replace": True
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -43,34 +47,6 @@ class InsertBraceLayersForComponentRotation(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults[self.domain("steps")] = self.w.steps.get()
-			Glyphs.defaults[self.domain("replace")] = self.w.replace.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault(self.domain("steps"), 5)
-			Glyphs.registerDefault(self.domain("replace"), True)
-			self.w.steps.set(self.pref("steps"))
-			self.w.replace.set(self.pref("replace"))
-		except:
-			return False
-
-		return True
-
 	def getMasterWeightValue(self, master):
 		if Glyphs.versionNumber >= 3:
 			# Glyphs 3 code
@@ -82,7 +58,7 @@ class InsertBraceLayersForComponentRotation(object):
 	def InsertBraceLayersForComponentRotationMain(self, sender):
 		try:
 			try:
-				steps = int(self.pref("steps"))
+				steps = self.prefInt("steps")
 			except Exception as e:  # noqa: F841
 				steps = 0
 				Message(title="Value Error", message="Cannot find valid number of steps.", OKButton=None)

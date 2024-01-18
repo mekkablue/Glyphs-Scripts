@@ -8,12 +8,19 @@ Finds and replaces text in the metrics keys of selected glyphs. Leave the Find s
 import vanilla
 import traceback
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 
-class MetricKeyReplacer(object):
+class MetricKeyReplacer(mekkaObject):
+	prefDict = {
+		"leftSearchFor": "=a",
+		"leftReplaceBy": "=a.ss01",
+		"rightSearchFor": "=|a",
+		"rightReplaceBy": "=|a.ss01",
+	}
 
 	def __init__(self):
-		self.w = vanilla.FloatingWindow((335, 125), "Find and Replace in Metrics Keys", autosaveName="com.mekkablue.MetricKeyReplacer.mainwindow")
+		self.w = vanilla.FloatingWindow((335, 125), "Find and Replace in Metrics Keys", autosaveName=self.domain("mainwindow"))
 
 		self.w.text_Find = vanilla.TextBox((10, 30 + 3, 55, 20), "Find", sizeStyle='small')
 		self.w.text_Replace = vanilla.TextBox((10, 55 + 3, 55, 20), "Replace", sizeStyle='small')
@@ -36,28 +43,6 @@ class MetricKeyReplacer(object):
 
 		self.w.open()
 		self.w.makeKey()
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.MetricKeyReplacer.leftSearchFor"] = self.w.leftSearchFor.get()
-			Glyphs.defaults["com.mekkablue.MetricKeyReplacer.leftReplaceBy"] = self.w.leftReplaceBy.get()
-			Glyphs.defaults["com.mekkablue.MetricKeyReplacer.rightSearchFor"] = self.w.rightSearchFor.get()
-			Glyphs.defaults["com.mekkablue.MetricKeyReplacer.rightReplaceBy"] = self.w.rightReplaceBy.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			self.w.leftSearchFor.set(Glyphs.defaults["com.mekkablue.MetricKeyReplacer.leftSearchFor"])
-			self.w.leftReplaceBy.set(Glyphs.defaults["com.mekkablue.MetricKeyReplacer.leftReplaceBy"])
-			self.w.rightSearchFor.set(Glyphs.defaults["com.mekkablue.MetricKeyReplacer.rightSearchFor"])
-			self.w.rightReplaceBy.set(Glyphs.defaults["com.mekkablue.MetricKeyReplacer.rightReplaceBy"])
-		except:
-			return False
-
-		return True
 
 	def MetricKeyReplaceMain(self, sender):
 		Glyphs.font.disableUpdateInterface()

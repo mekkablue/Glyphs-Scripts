@@ -9,9 +9,16 @@ import vanilla
 from copy import copy as copy
 from AppKit import NSFont
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class MergeSuffixedGlyphsIntoColorLayers(object):
+class MergeSuffixedGlyphsIntoColorLayers(mekkaObject):
+	prefDict = {
+		"indexToSuffix": "# CPAL index, followed by ‘=’, followed by glyph name suffix\n# list them in chronological order, i.e., bottom-up\n# use hashtags for comments\n0=.shadow\n2=.body\n1=.front",
+		"disableSuffixedGlyphs": 1,
+		"deletePreexistingColorLayers": 1,
+		"processCompleteFont": 1,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -24,7 +31,7 @@ class MergeSuffixedGlyphsIntoColorLayers(object):
 			"Merge Suffixed Glyphs into Color Layers",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -77,41 +84,6 @@ class MergeSuffixedGlyphsIntoColorLayers(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			Glyphs.defaults["com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.indexToSuffix"] = self.w.indexToSuffix.get()
-			Glyphs.defaults["com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.disableSuffixedGlyphs"] = self.w.disableSuffixedGlyphs.get()
-			Glyphs.defaults["com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.deletePreexistingColorLayers"] = self.w.deletePreexistingColorLayers.get()
-			Glyphs.defaults["com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.processCompleteFont"] = self.w.processCompleteFont.get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault(
-				"com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.indexToSuffix",
-				"# CPAL index, followed by ‘=’, followed by glyph name suffix\n# list them in chronological order, i.e., bottom-up\n# use hashtags for comments\n0=.shadow\n2=.body\n1=.front"
-			)
-			Glyphs.registerDefault("com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.disableSuffixedGlyphs", 1)
-			Glyphs.registerDefault("com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.deletePreexistingColorLayers", 1)
-			Glyphs.registerDefault("com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.processCompleteFont", 1)
-
-			# load previously written prefs:
-			self.w.indexToSuffix.set(Glyphs.defaults["com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.indexToSuffix"])
-			self.w.disableSuffixedGlyphs.set(Glyphs.defaults["com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.disableSuffixedGlyphs"])
-			self.w.deletePreexistingColorLayers.set(Glyphs.defaults["com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.deletePreexistingColorLayers"])
-			self.w.processCompleteFont.set(Glyphs.defaults["com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.processCompleteFont"])
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def nameContainsAnyOfTheseSuffixes(self, glyphName, allSuffixes):
 		for suffix in allSuffixes:
 			if suffix in glyphName:
@@ -158,10 +130,10 @@ class MergeSuffixedGlyphsIntoColorLayers(object):
 					print("⚠️ The font file has not been saved yet.")
 				print()
 
-				indexToSuffix = Glyphs.defaults["com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.indexToSuffix"]
-				disableSuffixedGlyphs = Glyphs.defaults["com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.disableSuffixedGlyphs"]
-				deletePreexistingColorLayers = Glyphs.defaults["com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.deletePreexistingColorLayers"]
-				processCompleteFont = Glyphs.defaults["com.mekkablue.MergeSuffixedGlyphsIntoColorLayers.processCompleteFont"]
+				indexToSuffix = self.pref("indexToSuffix")
+				disableSuffixedGlyphs = self.pref("disableSuffixedGlyphs")
+				deletePreexistingColorLayers = self.pref("deletePreexistingColorLayers")
+				processCompleteFont = self.pref("processCompleteFont")
 
 				suffixMapping = self.parseIndexSuffixList(indexToSuffix)
 				if not suffixMapping:

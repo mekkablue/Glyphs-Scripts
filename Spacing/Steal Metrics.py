@@ -6,14 +6,23 @@ Copy sidebearings, widths and/or metric keys (both on layer and glyph) from one 
 """
 
 import vanilla
-import math
 import traceback
-from AppKit import NSAffineTransform, NSAffineTransformStruct
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject, transform
 
 
-class MetricsCopy(object):
+class MetricsCopy(mekkaObject):
 	"""GUI for copying glyph metrics from one font to another"""
+	prefDict = {
+		"ignoreSuffixes": 0,
+		"suffixToBeIgnored": ".alt",
+		"lsb": 0,
+		"rsb": 0,
+		"width": 0,
+		"preferMetricKeys": 0,
+		"onlyMetricsKeys": 0,
+		"updateMetrics": 1,
+	}
 
 	def __init__(self):
 		self.listOfMasters = []
@@ -29,7 +38,7 @@ class MetricsCopy(object):
 			"Steal Metrics",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.MetricsCopy.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -148,79 +157,12 @@ class MetricsCopy(object):
 		except:
 			print(traceback.format_exc())
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.MetricsCopy.ignoreSuffixes"] = self.w.ignoreSuffixes.get()
-			Glyphs.defaults["com.mekkablue.MetricsCopy.suffixToBeIgnored"] = self.w.suffixToBeIgnored.get()
-			Glyphs.defaults["com.mekkablue.MetricsCopy.rsb"] = self.w.rsb.get()
-			Glyphs.defaults["com.mekkablue.MetricsCopy.lsb"] = self.w.lsb.get()
-			Glyphs.defaults["com.mekkablue.MetricsCopy.width"] = self.w.width.get()
-			Glyphs.defaults["com.mekkablue.MetricsCopy.preferMetricKeys"] = self.w.preferMetricKeys.get()
-			Glyphs.defaults["com.mekkablue.MetricsCopy.onlyMetricsKeys"] = self.w.onlyMetricsKeys.get()
-			Glyphs.defaults["com.mekkablue.MetricsCopy.updateMetrics"] = self.w.updateMetrics.get()
-			return True
-		except:
-			return False
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.MetricsCopy.ignoreSuffixes", 0)
-			Glyphs.registerDefault("com.mekkablue.MetricsCopy.suffixToBeIgnored", ".alt")
-			Glyphs.registerDefault("com.mekkablue.MetricsCopy.lsb", 0)
-			Glyphs.registerDefault("com.mekkablue.MetricsCopy.rsb", 0)
-			Glyphs.registerDefault("com.mekkablue.MetricsCopy.width", 0)
-			Glyphs.registerDefault("com.mekkablue.MetricsCopy.preferMetricKeys", 0)
-			Glyphs.registerDefault("com.mekkablue.MetricsCopy.onlyMetricsKeys", 0)
-			Glyphs.registerDefault("com.mekkablue.MetricsCopy.updateMetrics", 1)
-			self.w.ignoreSuffixes.set(Glyphs.defaults["com.mekkablue.MetricsCopy.ignoreSuffixes"])
-			self.w.suffixToBeIgnored.set(Glyphs.defaults["com.mekkablue.MetricsCopy.suffixToBeIgnored"])
-			self.w.lsb.set(Glyphs.defaults["com.mekkablue.MetricsCopy.lsb"])
-			self.w.rsb.set(Glyphs.defaults["com.mekkablue.MetricsCopy.rsb"])
-			self.w.width.set(Glyphs.defaults["com.mekkablue.MetricsCopy.width"])
-			self.w.preferMetricKeys.set(Glyphs.defaults["com.mekkablue.MetricsCopy.preferMetricKeys"])
-			self.w.onlyMetricsKeys.set(Glyphs.defaults["com.mekkablue.MetricsCopy.onlyMetricsKeys"])
-			self.w.updateMetrics.set(Glyphs.defaults["com.mekkablue.MetricsCopy.updateMetrics"])
-			return True
-		except:
-			return False
-
-	def transform(self, shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
-		"""
-		Returns an NSAffineTransform object for transforming layers.
-		Apply an NSAffineTransform t object like this:
-			Layer.transform_checkForSelection_doComponents_(t,False,True)
-		Access its transformation matrix like this:
-			tMatrix = t.transformStruct()  # returns the 6-float tuple
-		Apply the matrix tuple like this:
-			Layer.applyTransform(tMatrix)
-			Component.applyTransform(tMatrix)
-			Path.applyTransform(tMatrix)
-		Chain multiple NSAffineTransform objects t1, t2 like this:
-			t1.appendTransform_(t2)
-		"""
-		myTransform = NSAffineTransform.transform()
-		if rotate:
-			myTransform.rotateByDegrees_(rotate)
-		if scale != 1.0:
-			myTransform.scaleBy_(scale)
-		if not (shiftX == 0.0 and shiftY == 0.0):
-			myTransform.translateXBy_yBy_(shiftX, shiftY)
-		if skew:
-			skewStruct = NSAffineTransformStruct()
-			skewStruct.m11 = 1.0
-			skewStruct.m22 = 1.0
-			skewStruct.m21 = math.tan(math.radians(skew))
-			skewTransform = NSAffineTransform.transform()
-			skewTransform.setTransformStruct_(skewStruct)
-			myTransform.appendTransform_(skewTransform)
-		return myTransform
-
 	def copyMetrics(self, sender):
 		if not self.SavePreferences(self):
 			self.outputError("Could not save preferences.")
 
-		preferMetricKeys = Glyphs.defaults["com.mekkablue.MetricsCopy.preferMetricKeys"]
-		onlyMetricsKeys = Glyphs.defaults["com.mekkablue.MetricsCopy.onlyMetricsKeys"]
+		preferMetricKeys = self.pref("preferMetricKeys")
+		onlyMetricsKeys = self.pref("onlyMetricsKeys")
 		fromFontIndex = self.w.from_font.get()
 		toFontIndex = self.w.to_font.get() * -1 - 1
 		sourceMaster = self.listOfMasters[fromFontIndex]
@@ -229,11 +171,11 @@ class MetricsCopy(object):
 		targetMasterID = targetMaster.id
 		sourceFont = sourceMaster.font
 		targetFont = targetMaster.font
-		ignoreSuffixes = Glyphs.defaults["com.mekkablue.MetricsCopy.ignoreSuffixes"]
-		lsbIsSet = Glyphs.defaults["com.mekkablue.MetricsCopy.lsb"]
-		rsbIsSet = Glyphs.defaults["com.mekkablue.MetricsCopy.rsb"]
-		widthIsSet = Glyphs.defaults["com.mekkablue.MetricsCopy.width"]
-		updateMetrics = Glyphs.defaults["com.mekkablue.MetricsCopy.updateMetrics"]
+		ignoreSuffixes = self.pref("ignoreSuffixes")
+		lsbIsSet = self.pref("lsb")
+		rsbIsSet = self.pref("rsb")
+		widthIsSet = self.pref("width")
+		updateMetrics = self.pref("updateMetrics")
 		suffixToBeIgnored = self.w.suffixToBeIgnored.get().strip(".")
 		selectedTargetLayers = targetFont.selectedLayers
 
@@ -307,7 +249,7 @@ class MetricsCopy(object):
 							targetLayer.width = sourceLayer.width
 							if rsbIsSet and not metricsR:  # set width AND rsb, i.e. adjust lsb:
 								shift = targetLayer.RSB - sourceLayer.RSB
-								shiftTransform = self.transform(shiftX=shift)
+								shiftTransform = transform(shiftX=shift)
 								targetLayer.transform_checkForSelection_doComponents_(shiftTransform, False, True)
 						elif rsbIsSet and not metricsR:
 							targetLayer.RSB = sourceLayer.RSB

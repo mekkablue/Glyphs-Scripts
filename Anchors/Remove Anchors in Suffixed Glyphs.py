@@ -7,9 +7,13 @@ Removes all anchors from glyphs with one of the user-specified suffix.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class RemoveAnchorsinSuffixedGlyphs(object):
+class RemoveAnchorsinSuffixedGlyphs(mekkaObject):
+	prefIDict = {
+		"suffixlist": ".sups, .sinf, superior, inferior",
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -22,7 +26,7 @@ class RemoveAnchorsinSuffixedGlyphs(object):
 			"Remove Anchors in Suffixed Glyphs",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.RemoveAnchorsinSuffixedGlyphs.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -41,29 +45,12 @@ class RemoveAnchorsinSuffixedGlyphs(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.RemoveAnchorsinSuffixedGlyphs.suffixlist"] = self.w.suffixlist.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.RemoveAnchorsinSuffixedGlyphs.suffixlist", ".sups, .sinf, superior, inferior")
-			self.w.suffixlist.set(Glyphs.defaults["com.mekkablue.RemoveAnchorsinSuffixedGlyphs.suffixlist"])
-		except:
-			return False
-
-		return True
-
 	def RemoveAnchorsinSuffixedGlyphsMain(self, sender):
 		try:
 			if not self.SavePreferences(self):
 				print("Note: 'Remove Anchors in Suffixed Glyphs' could not write preferences.")
 
-			suffixlist = Glyphs.defaults["com.mekkablue.RemoveAnchorsinSuffixedGlyphs.suffixlist"]
+			suffixlist = self.pref("suffixlist")
 			suffixes = [s.strip() for s in suffixlist.split(",")]
 
 			thisFont = Glyphs.font  # frontmost font

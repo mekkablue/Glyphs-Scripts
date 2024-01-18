@@ -8,20 +8,19 @@ Rotate selected glyphs (or selected paths and components) around a 'rotate' anch
 import vanilla
 from Foundation import NSPoint, NSAffineTransform
 from GlyphsApp import Glyphs, GSAnchor
+from mekkaCore import mekkaObject, centerOfRect
 
 rotateAnchorName = "rotate"
 
 
-def centerOfRect(rect):
-	"""
-	Returns the center of NSRect rect as an NSPoint.
-	"""
-	center = NSPoint(rect.origin.x + rect.size.width / 2, rect.origin.y + rect.size.height / 2)
-	return center
-
-
-class Rotator(object):
+class Rotator(mekkaObject):
 	"""GUI for rotating selected glyphs."""
+	prefDict = {
+		"rotate_degrees": 0,
+		"stepAndRepeat_times": 0,
+		"anchor_x": 0,
+		"anchor_y": 0,
+	}
 
 	def __init__(self):
 		self.w = vanilla.FloatingWindow((320, 95), "Rotate around anchor")
@@ -36,7 +35,7 @@ class Rotator(object):
 			"",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.RotateAroundAnchor.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		linePos, inset, lineHeight = 10, 12, 22
@@ -67,26 +66,6 @@ class Rotator(object):
 		self.updateRotateAnchor()
 		self.w.open()
 		self.w.makeKey()
-
-	def SavePreferences(self, sender=None):
-		try:
-			Glyphs.defaults["com.mekkablue.rotateAroundAnchor.rotate_degrees"] = self.w.rotate_degrees.get()
-			Glyphs.defaults["com.mekkablue.rotateAroundAnchor.stepAndRepeat_times"] = self.w.stepAndRepeat_times.get()
-			Glyphs.defaults["com.mekkablue.rotateAroundAnchor.anchor_x"] = self.w.anchor_x.get()
-			Glyphs.defaults["com.mekkablue.rotateAroundAnchor.anchor_y"] = self.w.anchor_y.get()
-			return True
-		except:
-			return False
-
-	def LoadPreferences(self):
-		try:
-			self.w.rotate_degrees.set(Glyphs.defaults["com.mekkablue.rotateAroundAnchor.rotate_degrees"])
-			self.w.stepAndRepeat_times.set(Glyphs.defaults["com.mekkablue.rotateAroundAnchor.stepAndRepeat_times"])
-			self.w.anchor_x.set(Glyphs.defaults["com.mekkablue.rotateAroundAnchor.anchor_x"])
-			self.w.anchor_y.set(Glyphs.defaults["com.mekkablue.rotateAroundAnchor.anchor_y"])
-			return True
-		except:
-			return False
 
 	def insertRotateAnchor(self, sender=None):
 		try:

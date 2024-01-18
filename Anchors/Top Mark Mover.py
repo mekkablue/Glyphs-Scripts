@@ -5,25 +5,9 @@ __doc__ = """
 Moves selected marks vertically, so their _top anchor is on the respective vertical metric.
 """
 
-import math
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSUppercase, GSSmallcaps
-
-
-def italicize(thisPoint, italicAngle=0.0, pivotalY=0.0):
-	"""
-	Returns the italicized position of an NSPoint 'thisPoint'
-	for a given angle 'italicAngle' and the pivotal height 'pivotalY',
-	around which the italic slanting is executed, usually half x-height.
-	Usage: myPoint = italicize(myPoint,10,xHeight*0.5)
-	"""
-	x = thisPoint.x
-	yOffset = thisPoint.y - pivotalY  # calculate vertical offset
-	italicAngle = math.radians(italicAngle)  # convert to radians
-	tangens = math.tan(italicAngle)  # math.tan needs radians
-	horizontalDeviance = tangens * yOffset  # vertical distance from pivotal point
-	x += horizontalDeviance  # x of point that is yOffset from pivotal point
-	return NSPoint(x, thisPoint.y)
+from mekkaCore import italicize
 
 
 Glyphs.clearLog()  # clears log in Macro window

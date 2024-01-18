@@ -7,9 +7,17 @@ Checks if all glyph widths in the frontmost font are actually monospaced. Report
 
 import vanilla
 from GlyphsApp import Glyphs, GSControlLayer, Message
+from mekkaCore import mekkaObject
 
 
-class MonospaceChecker(object):
+class MonospaceChecker(mekkaObject):
+	prefDict = {
+		"defaultGlyphName": "A",
+		"tolerance": 0.0,
+		"reportZeroWidths": 0,
+		"includeNonExporting": 0,
+		"setMonospaceFlag": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -22,7 +30,7 @@ class MonospaceChecker(object):
 			"Monospace Checker",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.MonospaceChecker.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -64,41 +72,6 @@ class MonospaceChecker(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.MonospaceChecker.defaultGlyphName"] = self.w.defaultGlyphName.get()
-			Glyphs.defaults["com.mekkablue.MonospaceChecker.tolerance"] = self.w.tolerance.get()
-			Glyphs.defaults["com.mekkablue.MonospaceChecker.reportZeroWidths"] = self.w.reportZeroWidths.get()
-			Glyphs.defaults["com.mekkablue.MonospaceChecker.includeNonExporting"] = self.w.includeNonExporting.get()
-			Glyphs.defaults["com.mekkablue.MonospaceChecker.setMonospaceFlag"] = self.w.setMonospaceFlag.get()
-
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.MonospaceChecker.defaultGlyphName", "A")
-			Glyphs.registerDefault("com.mekkablue.MonospaceChecker.tolerance", 0.0)
-			Glyphs.registerDefault("com.mekkablue.MonospaceChecker.reportZeroWidths", 0)
-			Glyphs.registerDefault("com.mekkablue.MonospaceChecker.includeNonExporting", 0)
-			Glyphs.registerDefault("com.mekkablue.MonospaceChecker.setMonospaceFlag", 0)
-
-			self.w.defaultGlyphName.set(Glyphs.defaults["com.mekkablue.MonospaceChecker.defaultGlyphName"])
-			self.w.tolerance.set(Glyphs.defaults["com.mekkablue.MonospaceChecker.tolerance"])
-			self.w.reportZeroWidths.set(Glyphs.defaults["com.mekkablue.MonospaceChecker.reportZeroWidths"])
-			self.w.includeNonExporting.set(Glyphs.defaults["com.mekkablue.MonospaceChecker.includeNonExporting"])
-			self.w.setMonospaceFlag.set(Glyphs.defaults["com.mekkablue.MonospaceChecker.setMonospaceFlag"])
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-		return True
-
 	def MonospaceCheckerMain(self, sender):
 		try:
 			# brings macro window to front and clears its log:
@@ -120,11 +93,11 @@ class MonospaceChecker(object):
 					print("⚠️ The font file has not been saved yet.")
 				print()
 
-			defaultGlyphName = Glyphs.defaults["com.mekkablue.MonospaceChecker.defaultGlyphName"].strip()
+			defaultGlyphName = self.pref("defaultGlyphName").strip()
 			defaultGlyph = thisFont.glyphs[defaultGlyphName]
-			tolerance = float(Glyphs.defaults["com.mekkablue.MonospaceChecker.tolerance"])
-			includeNonExporting = Glyphs.defaults["com.mekkablue.MonospaceChecker.includeNonExporting"]
-			reportZeroWidths = Glyphs.defaults["com.mekkablue.MonospaceChecker.reportZeroWidths"]
+			tolerance = self.prefFloat("tolerance")
+			includeNonExporting = self.pref("includeNonExporting")
+			reportZeroWidths = self.pref("reportZeroWidths")
 
 			if not defaultGlyph:
 				Message(
@@ -176,7 +149,7 @@ class MonospaceChecker(object):
 					u"All glyph widths are monospaced. Congrats!",
 				)
 
-			if Glyphs.defaults["com.mekkablue.MonospaceChecker.setMonospaceFlag"]:
+			if self.pref("setMonospaceFlag"):
 				print("\nℹ️ Font Info > Font > Custom Parameters:")
 				if thisFont.customParameters["isFixedPitch"]:
 					print("👍🏻 isFixedPitch parameter already set. OK.")

@@ -7,6 +7,7 @@ Lists some Font Info values for all opened fonts.
 
 import vanilla
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 keyList = [
 	["Family Name", "familyName", 160], ["Major", "versionMajor", 40], ["Minor", "versionMinor", 40], ["Grid", "gridLength", 40], ["Designer", "designer", 200],
@@ -23,7 +24,7 @@ keyColumnDescriptions = [{
 } for kl in keyList]
 
 
-class FontInfoOverview(object):
+class FontInfoOverview(mekkaObject):
 	changeCount = 0
 
 	def __init__(self):
@@ -37,7 +38,7 @@ class FontInfoOverview(object):
 			"Font Info Overview",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.FontInfoOverview.mainwindow",  # stores last window position and size
+			autosaveName=self.domain("mainwindow"),  # stores last window position and size
 		)
 
 		# List:

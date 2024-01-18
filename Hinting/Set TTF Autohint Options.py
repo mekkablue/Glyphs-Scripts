@@ -12,6 +12,7 @@ Set options for existing 'TTFAutohint options' Custom Parameters.
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
 parameterName = "TTFAutohint options"
@@ -160,7 +161,30 @@ def writeOptionsToInstance(optionDict, instance):
 	instance.customParameters[parameterName] = value
 
 
-class SetTTFAutohintOptions(object):
+class SetTTFAutohintOptions(mekkaObject):
+	prefDict = {
+		"optionValue": "",
+		"adjust-subglyphs": "",
+		"composites": "",
+		"default-script": "latn",
+		"dehint": "",
+		"detailed-info": "",
+		"fallback-script": "latn",
+		"fallback-stem-width": "*",
+		"hinting-limit": "48",
+		"hinting-range-max": "36",
+		"hinting-range-min": "",
+		"ignore-restrictions": "",
+		"increase-x-height": "",
+		"no-info": "",
+		"strong-stem-width": "gG",
+		"stem-width-mode": "qss",
+		"symbol": "",
+		"ttfa-table": "",
+		"windows-compatibility": "",
+		"x-height-snapping-exceptions": "",
+		"ttfAutohintOption": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -173,17 +197,17 @@ class SetTTFAutohintOptions(object):
 			"Set in All ttfautohint Options",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.SetTTFAutohintOptions.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
 		self.w.helpButton = vanilla.HelpButton((13, 12, 21, 20), callback=self.openURL)
 		self.w.helpButton.getNSButton().setToolTip_("Opens the ttfAutohint documentation for the currently selected option on freetype.org.")
 
-		self.w.ttfAutohintOption = vanilla.PopUpButton((38, 13, 175, 17), availableOptions, callback=self.SavePreferences, sizeStyle='small')
+		self.w.ttfAutohintOption = vanilla.PopUpButton((38, 13, 175, 17), availableOptions, callback=self.ttfAutohintOptionAction, sizeStyle='small')
 		self.w.ttfAutohintOption.getNSPopUpButton().setToolTip_("Available ttfAutohint options. Pick one from the list. Careful: also contains deprecated options. Refer to the documentation (click on the Help Button on the left), know what you are doing.")
 
-		self.w.optionValue = vanilla.EditText((220, 12, -67 - 50, 20), "value", callback=self.SavePreferences, sizeStyle='small')
+		self.w.optionValue = vanilla.EditText((220, 12, -67 - 50, 20), "value", callback=self.optionValueAction, sizeStyle='small')
 		self.w.optionValue.getNSTextField().setToolTip_("Value for the currently selected option, if any. Some options can only be set or removed, some have a value.")
 
 		self.w.explanation = vanilla.TextBox((15 - 1, 40, -5, -5), "Adds or sets this option in all ‘TTFAutohint options’ parameters in the current font. For fallback-stem-width, use * for entering the respective instance weight value, and idotless for measuring the width of the interpolated dotless i. The Del button removes this TTFA option from all instances.", sizeStyle='small')
@@ -228,70 +252,31 @@ class SetTTFAutohintOptions(object):
 			self.w.optionValue.set("")
 		else:
 			self.w.optionValue.enable(onOff=True)
-			ttfAutohintOption = "com.mekkablue.SetTTFAutohintOptions.%s" % optionName
+			ttfAutohintOption = self.domain(optionName)
 			self.w.optionValue.set(Glyphs.defaults[ttfAutohintOption])
 
 	def currentOptionName(self):
-		optionIndex = Glyphs.defaults["com.mekkablue.SetTTFAutohintOptions.ttfAutohintOption"]
+		optionIndex = self.pref("ttfAutohintOption")
 		if optionIndex is None:
 			optionIndex = 0
-			Glyphs.defaults["com.mekkablue.SetTTFAutohintOptions.ttfAutohintOption"] = 0
+			self.setPref("ttfAutohintOption", 0)
 		optionName = availableOptions[int(optionIndex)]
 		return optionName
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.SetTTFAutohintOptions.ttfAutohintOption"] = self.w.ttfAutohintOption.get()
-			Glyphs.defaults["com.mekkablue.SetTTFAutohintOptions.optionValue"] = self.w.optionValue.get()
-		except:
-			return False
+	def ttfAutohintOptionAction(self, sender):
+		self.setPref("ttfAutohintOption", self.w.ttfAutohintOption.get())
+		# picked an option from the pop-up, populate value field:
+		self.editValueField()
 
-		if sender == self.w.ttfAutohintOption:
-			# picked an option from the pop-up, populate value field:
-			self.editValueField()
-		else:
-			# store entered value in prefs:
-			ttfAutohintOption = "com.mekkablue.SetTTFAutohintOptions.%s" % self.currentOptionName()
-			Glyphs.defaults[ttfAutohintOption] = self.w.optionValue.get()
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefaults(
-				{
-					"com.mekkablue.SetTTFAutohintOptions.optionValue": "",
-					"com.mekkablue.SetTTFAutohintOptions.adjust-subglyphs": "",
-					"com.mekkablue.SetTTFAutohintOptions.composites": "",
-					"com.mekkablue.SetTTFAutohintOptions.default-script": "latn",
-					"com.mekkablue.SetTTFAutohintOptions.dehint": "",
-					"com.mekkablue.SetTTFAutohintOptions.detailed-info": "",
-					"com.mekkablue.SetTTFAutohintOptions.fallback-script": "latn",
-					"com.mekkablue.SetTTFAutohintOptions.fallback-stem-width": "*",
-					"com.mekkablue.SetTTFAutohintOptions.hinting-limit": "48",
-					"com.mekkablue.SetTTFAutohintOptions.hinting-range-max": "36",
-					"com.mekkablue.SetTTFAutohintOptions.hinting-range-min": "",
-					"com.mekkablue.SetTTFAutohintOptions.ignore-restrictions": "",
-					"com.mekkablue.SetTTFAutohintOptions.increase-x-height": "",
-					"com.mekkablue.SetTTFAutohintOptions.no-info": "",
-					"com.mekkablue.SetTTFAutohintOptions.strong-stem-width": "gG",
-					"com.mekkablue.SetTTFAutohintOptions.stem-width-mode": "qss",
-					"com.mekkablue.SetTTFAutohintOptions.symbol": "",
-					"com.mekkablue.SetTTFAutohintOptions.ttfa-table": "",
-					"com.mekkablue.SetTTFAutohintOptions.windows-compatibility": "",
-					"com.mekkablue.SetTTFAutohintOptions.x-height-snapping-exceptions": "",
-					"com.mekkablue.SetTTFAutohintOptions.ttfAutohintOption": 0,
-				}
-			)
-			self.w.ttfAutohintOption.set(Glyphs.defaults["com.mekkablue.SetTTFAutohintOptions.ttfAutohintOption"])
-		except:
-			return False
-
-		return True
+	def optionValueAction(self, sender):
+		self.setPref("optionValue", self.w.optionValue.get())
+		# store entered value in prefs:
+		ttfAutohintOption = "com.mekkablue.SetTTFAutohintOptions.%s" % self.currentOptionName()
+		Glyphs.defaults[ttfAutohintOption] = self.w.optionValue.get()
 
 	def RemoveOption(self, sender):
 		try:
-			optionIndex = int(Glyphs.defaults["com.mekkablue.SetTTFAutohintOptions.ttfAutohintOption"])
+			optionIndex = self.prefInt("ttfAutohintOption")
 			optionName = availableOptions[optionIndex]
 			for thisInstance in Glyphs.font.instances:
 				if thisInstance.customParameters[parameterName]:
@@ -312,7 +297,7 @@ class SetTTFAutohintOptions(object):
 			if not self.SavePreferences(self):
 				print("Note: 'Set ttfautohint Options' could not write preferences.")
 
-			optionIndex = int(Glyphs.defaults["com.mekkablue.SetTTFAutohintOptions.ttfAutohintOption"])
+			optionIndex = self.prefInt("ttfAutohintOption")
 			optionName = availableOptions[optionIndex]
 			enteredValue = Glyphs.defaults["com.mekkablue.SetTTFAutohintOptions.%s" % optionName]
 

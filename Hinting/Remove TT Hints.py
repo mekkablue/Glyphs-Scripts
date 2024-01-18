@@ -7,9 +7,27 @@ Deletes a user-specified set of TT instructions throughout the current font, the
 
 import vanilla
 from GlyphsApp import Glyphs, TTSTEM, TTANCHOR, TTALIGN, TTINTERPOLATE, TTDIAGONAL, TTDELTA, Message
+from mekkaCore import mekkaObject
 
 
-class RemoveTTHints(object):
+class RemoveTTHints(mekkaObject):
+	prefDict = {
+		"where": 0,
+
+		"hStems": 0,
+		"hAnchors": 0,
+		"hAlign": 0,
+		"hInterpolate": 0,
+		"hDiagonal": 0,
+		"hDelta": 0,
+
+		"vStems": 0,
+		"vAnchors": 0,
+		"vAlign": 0,
+		"vInterpolate": 0,
+		"vDiagonal": 0,
+		"vDelta": 0,
+	}
 	wheres = (
 		"current layer of selected glyphs",
 		"all layers of selected glyphs",
@@ -28,7 +46,7 @@ class RemoveTTHints(object):
 			"Remove TT Hints",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.RemoveTTHints.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -110,86 +128,17 @@ class RemoveTTHints(object):
 				self.w.vDiagonal.set(onOff)
 				self.w.vDelta.set(onOff)
 
+		self.updateUI()
+
+		if savePrefs:
+			self.SavePreferences(update=False)
+
+	def updateUI(self):
 		onOff = (
 			self.w.hStems.get() or self.w.hAnchors.get() or self.w.hAlign.get() or self.w.hInterpolate.get() or self.w.hDiagonal.get() or self.w.hDelta.get() or self.w.vStems.get()
 			or self.w.vAnchors.get() or self.w.vAlign.get() or self.w.vInterpolate.get() or self.w.vDiagonal.get() or self.w.vDelta.get()
 		)
 		self.w.runButton.enable(onOff)
-
-		if savePrefs:
-			self.SavePreferences(update=False)
-
-	def SavePreferences(self, sender=None, update=True):
-		try:
-			# write current settings into prefs:
-			Glyphs.defaults["com.mekkablue.RemoveTTHints.where"] = self.w.where.get()
-
-			Glyphs.defaults["com.mekkablue.RemoveTTHints.hStems"] = self.w.hStems.get()
-			Glyphs.defaults["com.mekkablue.RemoveTTHints.hAnchors"] = self.w.hAnchors.get()
-			Glyphs.defaults["com.mekkablue.RemoveTTHints.hAlign"] = self.w.hAlign.get()
-			Glyphs.defaults["com.mekkablue.RemoveTTHints.hInterpolate"] = self.w.hInterpolate.get()
-			Glyphs.defaults["com.mekkablue.RemoveTTHints.hDiagonal"] = self.w.hDiagonal.get()
-			Glyphs.defaults["com.mekkablue.RemoveTTHints.hDelta"] = self.w.hDelta.get()
-
-			Glyphs.defaults["com.mekkablue.RemoveTTHints.vStems"] = self.w.vStems.get()
-			Glyphs.defaults["com.mekkablue.RemoveTTHints.vAnchors"] = self.w.vAnchors.get()
-			Glyphs.defaults["com.mekkablue.RemoveTTHints.vAlign"] = self.w.vAlign.get()
-			Glyphs.defaults["com.mekkablue.RemoveTTHints.vInterpolate"] = self.w.vInterpolate.get()
-			Glyphs.defaults["com.mekkablue.RemoveTTHints.vDiagonal"] = self.w.vDiagonal.get()
-			Glyphs.defaults["com.mekkablue.RemoveTTHints.vDelta"] = self.w.vDelta.get()
-
-			if update:
-				self.update()
-
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault("com.mekkablue.RemoveTTHints.where", 0)
-
-			Glyphs.registerDefault("com.mekkablue.RemoveTTHints.hStems", 0)
-			Glyphs.registerDefault("com.mekkablue.RemoveTTHints.hAnchors", 0)
-			Glyphs.registerDefault("com.mekkablue.RemoveTTHints.hAlign", 0)
-			Glyphs.registerDefault("com.mekkablue.RemoveTTHints.hInterpolate", 0)
-			Glyphs.registerDefault("com.mekkablue.RemoveTTHints.hDiagonal", 0)
-			Glyphs.registerDefault("com.mekkablue.RemoveTTHints.hDelta", 0)
-
-			Glyphs.registerDefault("com.mekkablue.RemoveTTHints.vStems", 0)
-			Glyphs.registerDefault("com.mekkablue.RemoveTTHints.vAnchors", 0)
-			Glyphs.registerDefault("com.mekkablue.RemoveTTHints.vAlign", 0)
-			Glyphs.registerDefault("com.mekkablue.RemoveTTHints.vInterpolate", 0)
-			Glyphs.registerDefault("com.mekkablue.RemoveTTHints.vDiagonal", 0)
-			Glyphs.registerDefault("com.mekkablue.RemoveTTHints.vDelta", 0)
-
-			# load previously written prefs:
-			self.w.where.set(Glyphs.defaults["com.mekkablue.RemoveTTHints.where"])
-
-			self.w.hStems.set(Glyphs.defaults["com.mekkablue.RemoveTTHints.hStems"])
-			self.w.hAnchors.set(Glyphs.defaults["com.mekkablue.RemoveTTHints.hAnchors"])
-			self.w.hAlign.set(Glyphs.defaults["com.mekkablue.RemoveTTHints.hAlign"])
-			self.w.hInterpolate.set(Glyphs.defaults["com.mekkablue.RemoveTTHints.hInterpolate"])
-			self.w.hDiagonal.set(Glyphs.defaults["com.mekkablue.RemoveTTHints.hDiagonal"])
-			self.w.hDelta.set(Glyphs.defaults["com.mekkablue.RemoveTTHints.hDelta"])
-
-			self.w.vStems.set(Glyphs.defaults["com.mekkablue.RemoveTTHints.vStems"])
-			self.w.vAnchors.set(Glyphs.defaults["com.mekkablue.RemoveTTHints.vAnchors"])
-			self.w.vAlign.set(Glyphs.defaults["com.mekkablue.RemoveTTHints.vAlign"])
-			self.w.vInterpolate.set(Glyphs.defaults["com.mekkablue.RemoveTTHints.vInterpolate"])
-			self.w.vDiagonal.set(Glyphs.defaults["com.mekkablue.RemoveTTHints.vDiagonal"])
-			self.w.vDelta.set(Glyphs.defaults["com.mekkablue.RemoveTTHints.vDelta"])
-
-			self.update()
-
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def removeHintsFromLayer(self, layer):
 		delCount = 0
@@ -203,40 +152,40 @@ class RemoveTTHints(object):
 				isTrueType = h.isTrueType()
 
 			if isTrueType:
-				if h.type == TTSTEM and h.horizontal and Glyphs.defaults["com.mekkablue.RemoveTTHints.hStems"]:
+				if h.type == TTSTEM and h.horizontal and self.pref("hStems"):
 					del layer.hints[i]
 					delCount += 1
-				elif h.type == TTANCHOR and h.horizontal and Glyphs.defaults["com.mekkablue.RemoveTTHints.hAnchors"]:
+				elif h.type == TTANCHOR and h.horizontal and self.pref("hAnchors"):
 					del layer.hints[i]
 					delCount += 1
-				elif h.type == TTALIGN and h.horizontal and Glyphs.defaults["com.mekkablue.RemoveTTHints.hAlign"]:
+				elif h.type == TTALIGN and h.horizontal and self.pref("hAlign"):
 					del layer.hints[i]
 					delCount += 1
-				elif h.type == TTINTERPOLATE and h.horizontal and Glyphs.defaults["com.mekkablue.RemoveTTHints.hInterpolate"]:
+				elif h.type == TTINTERPOLATE and h.horizontal and self.pref("hInterpolate"):
 					del layer.hints[i]
 					delCount += 1
-				elif h.type == TTDIAGONAL and h.horizontal and Glyphs.defaults["com.mekkablue.RemoveTTHints.hDiagonal"]:
+				elif h.type == TTDIAGONAL and h.horizontal and self.pref("hDiagonal"):
 					del layer.hints[i]
 					delCount += 1
-				elif h.type == TTDELTA and h.horizontal and Glyphs.defaults["com.mekkablue.RemoveTTHints.hDelta"]:
+				elif h.type == TTDELTA and h.horizontal and self.pref("hDelta"):
 					del layer.hints[i]
 					delCount += 1
-				elif h.type == TTSTEM and not h.horizontal and Glyphs.defaults["com.mekkablue.RemoveTTHints.vStems"]:
+				elif h.type == TTSTEM and not h.horizontal and self.pref("vStems"):
 					del layer.hints[i]
 					delCount += 1
-				elif h.type == TTANCHOR and not h.horizontal and Glyphs.defaults["com.mekkablue.RemoveTTHints.vAnchors"]:
+				elif h.type == TTANCHOR and not h.horizontal and self.pref("vAnchors"):
 					del layer.hints[i]
 					delCount += 1
-				elif h.type == TTALIGN and not h.horizontal and Glyphs.defaults["com.mekkablue.RemoveTTHints.vAlign"]:
+				elif h.type == TTALIGN and not h.horizontal and self.pref("vAlign"):
 					del layer.hints[i]
 					delCount += 1
-				elif h.type == TTINTERPOLATE and not h.horizontal and Glyphs.defaults["com.mekkablue.RemoveTTHints.vInterpolate"]:
+				elif h.type == TTINTERPOLATE and not h.horizontal and self.pref("vInterpolate"):
 					del layer.hints[i]
 					delCount += 1
-				elif h.type == TTDIAGONAL and not h.horizontal and Glyphs.defaults["com.mekkablue.RemoveTTHints.vDiagonal"]:
+				elif h.type == TTDIAGONAL and not h.horizontal and self.pref("vDiagonal"):
 					del layer.hints[i]
 					delCount += 1
-				elif h.type == TTDELTA and not h.horizontal and Glyphs.defaults["com.mekkablue.RemoveTTHints.vDelta"]:
+				elif h.type == TTDELTA and not h.horizontal and self.pref("vDelta"):
 					del layer.hints[i]
 					delCount += 1
 
@@ -269,7 +218,7 @@ class RemoveTTHints(object):
 					print("⚠️ The font file has not been saved yet.")
 				print()
 
-				where = Glyphs.defaults["com.mekkablue.RemoveTTHints.where"]
+				where = self.pref("where")
 
 				deletedHintsCount = 0
 				if where == 0:

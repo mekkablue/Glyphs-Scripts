@@ -6,29 +6,19 @@ On all layers in combining marks, top/_top, bottom/_bottom, etc. anchor pairs ar
 """
 
 from Foundation import NSPoint
-import math
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject, italicize
 
 
-def italicize(thisPoint, italicAngle=0.0, pivotalY=0.0):
-	"""
-	Returns the italicized position of an NSPoint 'thisPoint'
-	for a given angle 'italicAngle' and the pivotal height 'pivotalY',
-	around which the italic slanting is executed, usually half x-height.
-	Usage: myPoint = italicize(myPoint,10,xHeight*0.5)
-	"""
-	x = thisPoint.x
-	yOffset = thisPoint.y - pivotalY  # calculate vertical offset
-	italicAngle = math.radians(italicAngle)  # convert to radians
-	tangens = math.tan(italicAngle)  # math.tan needs radians
-	horizontalDeviance = tangens * yOffset  # vertical distance from pivotal point
-	x += horizontalDeviance  # x of point that is yOffset from pivotal point
-	return NSPoint(x, thisPoint.y)
-
-
-class RealignStackingAnchors(object):
-	prefID = "com.mekkablue.RealignStackingAnchors"
+class RealignStackingAnchors(mekkaObject):
+	prefDict = {
+		"whichAnchorPairs": "top, bottom",
+		"allGlyphs": 1,
+		"limitToCombiningMarks": 1,
+		"includeNonExporting": 0,
+		"allFonts": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -81,48 +71,6 @@ class RealignStackingAnchors(object):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults[self.domain("whichAnchorPairs")] = self.w.whichAnchorPairs.get()
-			Glyphs.defaults[self.domain("allGlyphs")] = self.w.allGlyphs.get()
-			Glyphs.defaults[self.domain("limitToCombiningMarks")] = self.w.limitToCombiningMarks.get()
-			Glyphs.defaults[self.domain("includeNonExporting")] = self.w.includeNonExporting.get()
-			Glyphs.defaults[self.domain("allFonts")] = self.w.allFonts.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault(self.domain("whichAnchorPairs"), "top, bottom")
-			Glyphs.registerDefault(self.domain("allGlyphs"), 1)
-			Glyphs.registerDefault(self.domain("limitToCombiningMarks"), 1)
-			Glyphs.registerDefault(self.domain("includeNonExporting"), 0)
-			Glyphs.registerDefault(self.domain("allFonts"), 0)
-
-			# load previously written prefs:
-			self.w.whichAnchorPairs.set(self.pref("whichAnchorPairs"))
-			self.w.allGlyphs.set(self.pref("allGlyphs"))
-			self.w.limitToCombiningMarks.set(self.pref("limitToCombiningMarks"))
-			self.w.includeNonExporting.set(self.pref("includeNonExporting"))
-			self.w.allFonts.set(self.pref("allFonts"))
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-		return True
 
 	def RealignStackingAnchorsMain(self, sender):
 		try:

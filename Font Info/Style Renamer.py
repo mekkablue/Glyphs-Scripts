@@ -8,6 +8,7 @@ Batch-add a name particle to your style names, or batch-remove it from them. Use
 import vanilla
 from AppKit import NSFileManager
 from GlyphsApp import Glyphs, INSTANCETYPESINGLE, Message
+from mekkaCore import mekkaObject
 
 
 particleDefault = "Italic"
@@ -19,8 +20,7 @@ menuOptions = (
 )
 
 
-class StyleRenamer(object):
-	prefID = "com.mekkablue.StyleRenamer"
+class StyleRenamer(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"particle": particleDefault,
@@ -135,39 +135,6 @@ class StyleRenamer(object):
 							previewText += "▸ (unchanged: %s)\n" % thisInstance.name
 
 		self.w.preview.previewText.set(previewText.strip())
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.updatePreviewText()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def renameInstance(self, thisInstance, shouldAddParticle, particle, elidablePart):
 		originalName = thisInstance.name.strip()

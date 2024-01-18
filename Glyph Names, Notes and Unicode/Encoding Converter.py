@@ -9,7 +9,7 @@ import vanilla
 import codecs
 from AppKit import NSFont
 from GlyphsApp import Glyphs, GSGlyph, GSComponent, Message, GetSaveFile, GetOpenFile
-
+from mekkaCore import mekkaObject
 
 AXtDefault = """
 Syntax:
@@ -364,7 +364,10 @@ def readFileFromLocation(filePath="~/Desktop/test.txt"):
 	return content
 
 
-class EncodingConverter(object):
+class EncodingConverter(mekkaObject):
+	prefDict = {
+		"recipe": AXtDefault.strip()
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -377,7 +380,7 @@ class EncodingConverter(object):
 			"Encoding Converter",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.EncodingConverter.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -426,34 +429,11 @@ class EncodingConverter(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			Glyphs.defaults["com.mekkablue.EncodingConverter.recipe"] = self.w.recipe.get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault("com.mekkablue.EncodingConverter.recipe", AXtDefault.strip())
-
-			# load previously written prefs:
-			self.w.recipe.set(Glyphs.defaults["com.mekkablue.EncodingConverter.recipe"])
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def exportEncoding(self, sender=None):
 		self.SavePreferences()
 		filePath = GetSaveFile(message="Save Renaming Scheme", ProposedFileName="glyph name conversion.txt", filetypes=("txt"))
 		if filePath:
-			fileContent = Glyphs.defaults["com.mekkablue.EncodingConverter.recipe"]
+			fileContent = self.pref("recipe")
 			saveFileInLocation(content=fileContent, filePath=filePath)
 
 	def importEncoding(self, sender=None):
@@ -461,13 +441,13 @@ class EncodingConverter(object):
 		if filePath:
 			fileContent = readFileFromLocation(filePath=filePath)
 			if fileContent:
-				Glyphs.defaults["com.mekkablue.EncodingConverter.recipe"] = fileContent
+				self.setPref("recipe", fileContent)
 				self.LoadPreferences()
 			else:
 				Message(title="File Error", message="File could not be read. Perhaps empty?", OKButton=None)
 
 	def resetEncoding(self, sender=None):
-		Glyphs.defaults["com.mekkablue.EncodingConverter.recipe"] = AXtDefault.strip()
+		self.setPref("recipe", AXtDefault.strip())
 		self.LoadPreferences()
 
 	def freeGlyphName(self, glyphName, glyphNameList):
@@ -538,7 +518,7 @@ class EncodingConverter(object):
 				try:
 
 					thisFont.setDisablesNiceNames_(1)
-					nameChangeString = Glyphs.defaults["com.mekkablue.EncodingConverter.recipe"]
+					nameChangeString = self.pref("recipe")
 					countRenames = 0
 					countRecipes = 0
 

@@ -8,14 +8,22 @@ Batch-set axis locations for all instances with a certain name particle. E.g., s
 from Foundation import NSDictionary
 import vanilla
 from GlyphsApp import Glyphs, GSFontMaster, Message
+from mekkaCore import mekkaObject
 
 
 def axisLocationEntry(axisName, locationValue):
 	return NSDictionary.alloc().initWithObjects_forKeys_((axisName, locationValue), ("Axis", "Location"))
 
 
-class AxisLocationSetter(object):
-	prefID = "com.mekkablue.AxisLocationSetter"
+class AxisLocationSetter(mekkaObject):
+	prefDict = {
+		"particle": "Bold",
+		"axisName": "Weight",
+		"internalAxisValue": "",
+		"externalAxisValue": 0,
+		"includeInstances": False,
+		"includeMasters": False,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -87,14 +95,6 @@ class AxisLocationSetter(object):
 		self.w.descriptionText31.setPosSize((inset + 50 + fieldWidth + 5, linePos + 2, -fieldWidth - inset, 14))
 		self.w.externalAxisValue.setPosSize((-fieldWidth - inset, linePos - 1, -inset, 19))
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
 	def update(self, sender=None):
 		self.w.particle.setItems(self.particlesOfCurrentFont())
 		self.w.axisName.setItems(self.axesOfCurrentFont())
@@ -125,50 +125,6 @@ class AxisLocationSetter(object):
 				if a.name not in axes:
 					axes.append(a.name)
 		return axes
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			Glyphs.defaults[self.domain("particle")] = self.w.particle.get()
-			Glyphs.defaults[self.domain("axisName")] = self.w.axisName.getItem()
-			Glyphs.defaults[self.domain("internalAxisValue")] = self.w.internalAxisValue.get()
-			Glyphs.defaults[self.domain("externalAxisValue")] = self.w.externalAxisValue.get()
-			Glyphs.defaults[self.domain("includeInstances")] = self.w.includeInstances.get()
-			Glyphs.defaults[self.domain("includeMasters")] = self.w.includeMasters.get()
-
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault(self.domain("particle"), "Bold")
-			Glyphs.registerDefault(self.domain("axisName"), "Weight")
-			Glyphs.registerDefault(self.domain("internalAxisValue"), "")
-			Glyphs.registerDefault(self.domain("externalAxisValue"), 0)
-			Glyphs.registerDefault(self.domain("includeInstances"), False)
-			Glyphs.registerDefault(self.domain("includeMasters"), False)
-
-			# load previously written prefs:
-			self.w.particle.set(self.pref("particle"))
-			axisName = self.pref("axisName")
-			axisNameIndex = max(0, self.w.axisName.getItems().index(axisName))
-			self.w.axisName.set(axisNameIndex)
-			self.w.internalAxisValue.set(self.pref("internalAxisValue"))
-			self.w.externalAxisValue.set(self.pref("externalAxisValue"))
-			self.w.includeInstances.set(self.pref("includeInstances"))
-			self.w.includeMasters.set(self.pref("includeMasters"))
-
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def setInternalCoordinate(self, thisInstance, thisAxisName, newAxisValue):
 		theFont = thisInstance.font

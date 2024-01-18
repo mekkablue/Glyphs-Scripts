@@ -7,9 +7,19 @@ Compares anchor structure and anchor heights between the two frontmost fonts.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class CompareAnchorsOfFrontmostFonts(object):
+class CompareAnchorsOfFrontmostFonts(mekkaObject):
+	prefDict = {
+		"reportAnchorHeights": 1,
+		"anchorHeightTolerance": 0,
+		"ignoreExitEntry": 0,
+		"ignoreHashtaggedAnchors": 0,
+		"reportOnlyTopBottomCenter": 0,
+		"includeNonExporting": 1,
+		"openTabAndSelectAnchors": 1,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -22,7 +32,7 @@ class CompareAnchorsOfFrontmostFonts(object):
 			"Compare Anchors of Frontmost Fonts",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.CompareAnchorsOfFrontmostFonts.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -76,7 +86,7 @@ class CompareAnchorsOfFrontmostFonts(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def updateGUI(self, sender=None):
+	def updateUI(self, sender=None):
 		try:
 			onlyTopBottomSetting = bool(self.w.reportOnlyTopBottomCenter.get())
 			ignoreSetting = not onlyTopBottomSetting
@@ -87,43 +97,6 @@ class CompareAnchorsOfFrontmostFonts(object):
 			print(e)
 			import traceback
 			print(traceback.format_exc())
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.reportAnchorHeights"] = self.w.reportAnchorHeights.get()
-			Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.anchorHeightTolerance"] = self.w.anchorHeightTolerance.get()
-			Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.ignoreExitEntry"] = self.w.ignoreExitEntry.get()
-			Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.ignoreHashtaggedAnchors"] = self.w.ignoreHashtaggedAnchors.get()
-			Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.reportOnlyTopBottomCenter"] = self.w.reportOnlyTopBottomCenter.get()
-			Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.includeNonExporting"] = self.w.includeNonExporting.get()
-			Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.openTabAndSelectAnchors"] = self.w.openTabAndSelectAnchors.get()
-			self.updateGUI()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.CompareAnchorsOfFrontmostFonts.reportAnchorHeights", 1)
-			Glyphs.registerDefault("com.mekkablue.CompareAnchorsOfFrontmostFonts.anchorHeightTolerance", 0)
-			Glyphs.registerDefault("com.mekkablue.CompareAnchorsOfFrontmostFonts.ignoreExitEntry", 0)
-			Glyphs.registerDefault("com.mekkablue.CompareAnchorsOfFrontmostFonts.ignoreHashtaggedAnchors", 0)
-			Glyphs.registerDefault("com.mekkablue.CompareAnchorsOfFrontmostFonts.reportOnlyTopBottomCenter", 0)
-			Glyphs.registerDefault("com.mekkablue.CompareAnchorsOfFrontmostFonts.includeNonExporting", 1)
-			Glyphs.registerDefault("com.mekkablue.CompareAnchorsOfFrontmostFonts.openTabAndSelectAnchors", 1)
-			self.w.reportAnchorHeights.set(Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.reportAnchorHeights"])
-			self.w.anchorHeightTolerance.set(Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.anchorHeightTolerance"])
-			self.w.ignoreExitEntry.set(Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.ignoreExitEntry"])
-			self.w.ignoreHashtaggedAnchors.set(Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.ignoreHashtaggedAnchors"])
-			self.w.reportOnlyTopBottomCenter.set(Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.reportOnlyTopBottomCenter"])
-			self.w.includeNonExporting.set(Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.includeNonExporting"])
-			self.w.openTabAndSelectAnchors.set(Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.openTabAndSelectAnchors"])
-			self.updateGUI()
-		except:
-			return False
-
-		return True
 
 	def selectAnchorsInLayer(self, anchorNames, layer, resetSelection=True):
 		if resetSelection:
@@ -141,10 +114,10 @@ class CompareAnchorsOfFrontmostFonts(object):
 				print("Note: 'Compare Anchors of Frontmost Fonts' could not write preferences.")
 
 			# query prefs:
-			reportOnlyTopBottomCenter = Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.reportOnlyTopBottomCenter"]
-			ignoreExitEntry = Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.ignoreExitEntry"]
-			ignoreHashtaggedAnchors = Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.ignoreHashtaggedAnchors"]
-			reportAnchorHeights = Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.reportAnchorHeights"]
+			reportOnlyTopBottomCenter = self.pref("reportOnlyTopBottomCenter")
+			ignoreExitEntry = self.pref("ignoreExitEntry")
+			ignoreHashtaggedAnchors = self.pref("ignoreHashtaggedAnchors")
+			reportAnchorHeights = self.pref("reportAnchorHeights")
 
 			if len(Glyphs.fonts) < 2:
 				Message(title="Compare Error", message="You need to have at least two fonts open for comparing.", OKButton="Ooops")
@@ -170,7 +143,7 @@ class CompareAnchorsOfFrontmostFonts(object):
 				print()
 
 				try:
-					tolerance = abs(float(Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.anchorHeightTolerance"]))
+					tolerance = abs(self.prefFloat("anchorHeightTolerance"))
 				except:
 					tolerance = 0.0
 				if reportAnchorHeights:
@@ -193,12 +166,12 @@ class CompareAnchorsOfFrontmostFonts(object):
 					if not otherGlyph:
 						print("⚠️ Glyph %s missing in (2) %s" % (thisGlyph.name, otherFileName))
 					else:
-						if not (thisGlyph.export or Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.includeNonExporting"]):
+						if not (thisGlyph.export or self.pref("includeNonExporting")):
 							skippedGlyphNames.append(thisGlyph.name)
 							if otherGlyph.export:
 								print("😬 Glyph %s exports in (2) %s, but not in (1) %s. Skipping." % (thisGlyph.name, otherFileName, thisFileName))
 						else:
-							if not (otherGlyph.export or Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.includeNonExporting"]):
+							if not (otherGlyph.export or self.pref("includeNonExporting")):
 								print("😬 Glyph %s exports in (1) %s, but not in (2) %s. Skipping." % (thisGlyph.name, thisFileName, otherFileName))
 								skippedGlyphNames.append(thisGlyph.name)
 							else:
@@ -206,7 +179,7 @@ class CompareAnchorsOfFrontmostFonts(object):
 								for idSet in masters:
 									thisID, otherID = idSet
 									thisLayer, otherLayer = thisGlyph.layers[thisID], otherGlyph.layers[otherID]
-									if Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.openTabAndSelectAnchors"]:
+									if self.pref("openTabAndSelectAnchors"):
 										self.selectAnchorsInLayer(None, thisLayer, resetSelection=True)
 										self.selectAnchorsInLayer(None, otherLayer, resetSelection=True)
 
@@ -249,7 +222,7 @@ class CompareAnchorsOfFrontmostFonts(object):
 													thisFileName,
 												)
 											)
-											if Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.openTabAndSelectAnchors"]:
+											if self.pref("openTabAndSelectAnchors"):
 												self.selectAnchorsInLayer(missingInTheseAnchors, otherLayer, resetSelection=False)
 											affectedGlyphNames.append(otherGlyph.name)
 
@@ -263,7 +236,7 @@ class CompareAnchorsOfFrontmostFonts(object):
 													otherFileName,
 												)
 											)
-											if Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.openTabAndSelectAnchors"]:
+											if self.pref("openTabAndSelectAnchors"):
 												self.selectAnchorsInLayer(missingInOtherAnchors, thisLayer, resetSelection=False)
 											affectedGlyphNames.append(thisGlyph.name)
 
@@ -288,7 +261,7 @@ class CompareAnchorsOfFrontmostFonts(object):
 													otherLayer.name,
 												)
 											)
-											if Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.openTabAndSelectAnchors"]:
+											if self.pref("openTabAndSelectAnchors"):
 												self.selectAnchorsInLayer(differingAnchors, thisLayer, resetSelection=False)
 												self.selectAnchorsInLayer(differingAnchors, otherLayer, resetSelection=False)
 											affectedGlyphNames.append(thisGlyph.name)
@@ -299,7 +272,7 @@ class CompareAnchorsOfFrontmostFonts(object):
 					tabString = "/" + "/".join(affectedGlyphNames)
 					print("\nFound %i affected glyphs:\n%s" % (len(affectedGlyphNames), tabString))
 
-					if Glyphs.defaults["com.mekkablue.CompareAnchorsOfFrontmostFonts.openTabAndSelectAnchors"]:
+					if self.pref("openTabAndSelectAnchors"):
 						# opens new Edit tab:
 						thisFont.newTab(tabString)
 						otherFont.newTab(tabString)

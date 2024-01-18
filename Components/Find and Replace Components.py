@@ -7,6 +7,7 @@ Replaces components in selected glyphs (GUI).
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
 def replaceComponent(thisLayer, oldCompName, newCompName):
@@ -44,7 +45,12 @@ def replaceComponent(thisLayer, oldCompName, newCompName):
 		return 0
 
 
-class ComponentReplacer(object):
+class ComponentReplacer(mekkaObject):
+	prefDict = {
+		"componentNewName": "",
+		"includeAllLayers": "",
+		"includeBackgrounds": "",
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -57,7 +63,7 @@ class ComponentReplacer(object):
 			"Replace Components in Selection",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.ReplaceComponents.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -99,34 +105,9 @@ class ComponentReplacer(object):
 	def updateUI(self, sender=None):
 		itemCount = len(self.w.componentName.getItems())
 		selectedIndex = self.w.componentName.get()
-		namesDifferent = Glyphs.defaults["com.mekkablue.ReplaceComponents.oldCompName"] != Glyphs.defaults["com.mekkablue.ReplaceComponents.newCompName"]
+		namesDifferent = self.pref("oldCompName") != self.pref("newCompName")
 		enableButton = itemCount > 0 and selectedIndex < itemCount and namesDifferent
 		self.w.replaceButton.enable(enableButton)
-
-	def SavePreferences(self, sender=None):
-		try:
-			Glyphs.defaults["com.mekkablue.ReplaceComponents.newCompName"] = self.w.componentNewName.get()
-			Glyphs.defaults["com.mekkablue.ReplaceComponents.oldCompName"] = self.w.componentName.getItems()[self.w.componentName.get()]
-			Glyphs.defaults["com.mekkablue.ReplaceComponents.includeAllLayers"] = self.w.includeAllLayers.get()
-			Glyphs.defaults["com.mekkablue.ReplaceComponents.includeBackgrounds"] = self.w.includeBackgrounds.get()
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			self.w.componentNewName.set(Glyphs.defaults["com.mekkablue.ReplaceComponents.newCompName"])
-			self.w.includeAllLayers.set(Glyphs.defaults["com.mekkablue.ReplaceComponents.includeAllLayers"])
-			self.w.includeBackgrounds.set(Glyphs.defaults["com.mekkablue.ReplaceComponents.includeBackgrounds"])
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def GetComponentNames(self):
 		thisFont = Glyphs.font
@@ -209,10 +190,10 @@ class ComponentReplacer(object):
 			print()
 
 			selectedLayers = thisFont.selectedLayers
-			newComponentName = Glyphs.defaults["com.mekkablue.ReplaceComponents.newCompName"]
-			oldComponentName = Glyphs.defaults["com.mekkablue.ReplaceComponents.oldCompName"]
-			includeAllLayers = Glyphs.defaults["com.mekkablue.ReplaceComponents.includeAllLayers"]
-			includeBackgrounds = Glyphs.defaults["com.mekkablue.ReplaceComponents.includeBackgrounds"]
+			newComponentName = self.pref("newCompName")
+			oldComponentName = self.pref("oldCompName")
+			includeAllLayers = self.pref("includeAllLayers")
+			includeBackgrounds = self.pref("includeBackgrounds")
 
 			thisFont.disableUpdateInterface()
 			try:

@@ -7,16 +7,21 @@ Toggles grid between two gridstep values.
 
 import vanilla
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 
-class GridOnOff(object):
+class Gridswitch(mekkaObject):
+	prefDict = {
+		"grid1": 1,
+		"grid2": 0,
+	}
 
 	def __init__(self):
 		self.gridStep1default = 1
 		self.gridStep2default = 0
 
 		currentGridStep = Glyphs.font.gridMain()
-		self.w = vanilla.FloatingWindow((170, 100), "Grid Switcher", autosaveName="com.mekkablue.GridOnOff.mainwindow")
+		self.w = vanilla.FloatingWindow((170, 100), "Grid Switcher", autosaveName=self.domain("mainwindow"))
 		self.w.grid1 = vanilla.EditText((15, 12, 65, 15 + 3), "1", sizeStyle='small')
 		self.w.grid2 = vanilla.EditText((-80, 12, -15, 15 + 3), "50", sizeStyle='small')
 		self.w.currentGridStep = vanilla.TextBox((15, 38, -15, 22), "Current Grid Step: %i" % currentGridStep, sizeStyle='regular')
@@ -60,30 +65,5 @@ class GridOnOff(object):
 		except Exception as e:
 			raise e
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.gridswitch.grid1"] = self.w.grid1.get()
-			Glyphs.defaults["com.mekkablue.gridswitch.grid2"] = self.w.grid2.get()
-		except:
-			return False
 
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.gridswitch.grid1", 1)
-			Glyphs.registerDefault("com.mekkablue.gridswitch.grid2", 0)
-			self.w.grid1.set(Glyphs.defaults["com.mekkablue.gridswitch.grid1"])
-			self.w.grid2.set(Glyphs.defaults["com.mekkablue.gridswitch.grid2"])
-			try:
-				self.gridStep1default = int(Glyphs.defaults["com.mekkablue.gridswitch.grid1"])
-				self.gridStep2default = int(Glyphs.defaults["com.mekkablue.gridswitch.grid2"])
-			except:
-				pass
-		except:
-			return False
-
-		return True
-
-
-GridOnOff()
+Gridswitch()

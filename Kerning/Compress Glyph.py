@@ -7,6 +7,7 @@ Compresses all instances of a glyph to its respective group kerning.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
 def match(first, second):
@@ -22,8 +23,7 @@ def match(first, second):
 	return False
 
 
-class CompressGlyph(object):
-	prefID = "com.mekkablue.CompressGlyph"
+class CompressGlyph(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"glyphName": "V",
@@ -82,43 +82,10 @@ class CompressGlyph(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
 	def update(self, sender=None):
 		names = list([g.name for g in Glyphs.font.glyphs])
 		names.extend(sorted(set([f'*{g.name[g.name.find("."):]}' for g in Glyphs.font.glyphs if "." in g.name and not g.name.startswith(".")])))
 		self.w.glyphName.setItems(names)
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.w.makeKey()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def CompressGlyphMain(self, sender=None):
 		try:

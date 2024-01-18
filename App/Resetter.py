@@ -8,17 +8,17 @@ Resets Quicklook preview, keyboard shortcuts, and clearing out app prefs, saved 
 import vanilla
 from os import system
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 
-class Resetter(object):
-	prefID = "com.mekkablue.Resetter"
-	prefs = (
-		"quicklook",
-		"shortcuts",
-		"autosaves",
-		"savedAppState",
-		"preferences",
-	)
+class Resetter(mekkaObject):
+	prefDict = {
+		"quicklook": False,
+		"shortcuts": False,
+		"autosaves": False,
+		"savedAppState": False,
+		"preferences": False,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -71,42 +71,8 @@ class Resetter(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefs:
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.updateGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefs:
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), 0)
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.updateGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def updateGUI(self, sender=None):
-		isAnyThingSelected = any([self.pref(prefName) for prefName in self.prefs])
+	def updateUI(self, sender=None):
+		isAnyThingSelected = any([self.pref(prefName) for prefName in self.prefDict.keys()])
 		self.w.runButton.enable(isAnyThingSelected)
 
 	def terminalCommand(self, input):

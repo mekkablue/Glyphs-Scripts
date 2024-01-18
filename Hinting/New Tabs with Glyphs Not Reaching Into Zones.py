@@ -8,9 +8,18 @@ Opens a new tab with all glyphs that do NOT reach into any top or bottom alignme
 from collections import OrderedDict
 import vanilla
 from GlyphsApp import Glyphs, GSControlLayer
+from mekkaCore import mekkaObject
 
 
-class NewTabsWithGlyphsNotReachingIntoZones(object):
+class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):
+	prefDict = {
+		"allMastersInSeparateTabs": 0,
+		"includeSpecialLayers": 1,
+		"ignoreGlyphs": ".sups, .subs, superior, inferior, Arrow",
+		"includeMarks": 0,
+		"includeSymbols": 0,
+		"includePunctuation": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -23,7 +32,7 @@ class NewTabsWithGlyphsNotReachingIntoZones(object):
 			"New Tabs with Glyphs Not Reaching Into Zones",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -59,38 +68,6 @@ class NewTabsWithGlyphsNotReachingIntoZones(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.allMastersInSeparateTabs"] = self.w.allMastersInSeparateTabs.get()
-			Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includeSpecialLayers"] = self.w.includeSpecialLayers.get()
-			Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.ignoreGlyphs"] = self.w.ignoreGlyphs.get()
-			Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includeMarks"] = self.w.includeMarks.get()
-			Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includeSymbols"] = self.w.includeSymbols.get()
-			Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includePunctuation"] = self.w.includePunctuation.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.allMastersInSeparateTabs", 0)
-			Glyphs.registerDefault("com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includeSpecialLayers", 1)
-			Glyphs.registerDefault("com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.ignoreGlyphs", ".sups, .subs, superior, inferior, Arrow")
-			Glyphs.registerDefault("com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includeMarks", 0)
-			Glyphs.registerDefault("com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includeSymbols", 0)
-			Glyphs.registerDefault("com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includePunctuation", 0)
-			self.w.allMastersInSeparateTabs.set(Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.allMastersInSeparateTabs"])
-			self.w.includeSpecialLayers.set(Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includeSpecialLayers"])
-			self.w.ignoreGlyphs.set(Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.ignoreGlyphs"])
-			self.w.includeMarks.set(Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includeMarks"])
-			self.w.includeSymbols.set(Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includeSymbols"])
-			self.w.includePunctuation.set(Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includePunctuation"])
-		except:
-			return False
-
-		return True
-
 	def NewTabsWithGlyphsNotReachingIntoZonesMain(self, sender):
 		if Glyphs.versionNumber >= 3:
 			# Glyphs 3 code
@@ -111,12 +88,12 @@ class NewTabsWithGlyphsNotReachingIntoZones(object):
 			print(thisFont.filepath)
 			print()
 
-			allMastersInSeparateTabs = Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.allMastersInSeparateTabs"]
-			includeSpecialLayers = Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includeSpecialLayers"]
-			ignoreGlyphs = Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.ignoreGlyphs"]
-			includeMarks = Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includeMarks"]
-			includeSymbols = Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includeSymbols"]
-			includePunctuation = Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includePunctuation"]
+			allMastersInSeparateTabs = self.pref("allMastersInSeparateTabs")
+			includeSpecialLayers = self.pref("includeSpecialLayers")
+			ignoreGlyphs = self.pref("ignoreGlyphs")
+			includeMarks = self.pref("includeMarks")
+			includeSymbols = self.pref("includeSymbols")
+			includePunctuation = self.pref("includePunctuation")
 
 			if allMastersInSeparateTabs:
 				masters = thisFont.masters
@@ -220,12 +197,12 @@ class NewTabsWithGlyphsNotReachingIntoZones(object):
 			print(thisFont.filepath)
 			print()
 
-			allMastersInSeparateTabs = Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.allMastersInSeparateTabs"]
-			includeSpecialLayers = Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includeSpecialLayers"]
-			ignoreGlyphs = Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.ignoreGlyphs"]
-			includeMarks = Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includeMarks"]
-			includeSymbols = Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includeSymbols"]
-			includePunctuation = Glyphs.defaults["com.mekkablue.NewTabsWithGlyphsNotReachingIntoZones.includePunctuation"]
+			allMastersInSeparateTabs = self.pref("allMastersInSeparateTabs")
+			includeSpecialLayers = self.pref("includeSpecialLayers")
+			ignoreGlyphs = self.pref("ignoreGlyphs")
+			includeMarks = self.pref("includeMarks")
+			includeSymbols = self.pref("includeSymbols")
+			includePunctuation = self.pref("includePunctuation")
 			zoneDataList = OrderedDict()
 			if allMastersInSeparateTabs:
 				masters = thisFont.masters

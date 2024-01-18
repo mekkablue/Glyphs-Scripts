@@ -10,18 +10,10 @@ from timeit import default_timer as timer
 from Foundation import NSNotFound
 from kernanalysis import intervalList, categoryList, sortedIntervalsFromString, effectiveKerning, minDistanceBetweenTwoLayers
 from GlyphsApp import Glyphs, Message
-
-if Glyphs.versionNumber >= 3:
-	from GlyphsApp import GSUppercase, GSLowercase, GSSmallcaps
-	caseDict = {
-		"Uppercase": GSUppercase,
-		"Lowercase": GSLowercase,
-		"Smallcaps": GSSmallcaps,
-	}
+from mekkaCore import mekkaObject, caseDict
 
 
-class KernCrasher(object):
-	prefID = "com.mekkablue.KernCrasher"
+class KernCrasher(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"minDistance": 0,
@@ -73,7 +65,7 @@ class KernCrasher(object):
 		linePos += lineHeight
 
 		self.w.textSpeed = vanilla.TextBox((inset, linePos + 2, 42, 14), u"Speed:", sizeStyle='small', selectable=True)
-		self.w.popupSpeed = vanilla.PopUpButton((inset + 42, linePos, 110, 17), ("very slow", "slow", "medium", "fast", "very fast"), callback=self.SavePreferences, sizeStyle='small')
+		self.w.popupSpeed = vanilla.PopUpButton((inset + 42, linePos, 110, 17), ("very slow", "slow", "medium", "fast", "very fast"), callback=self.popupSpeedAction, sizeStyle='small')
 		intervalIndex = self.pref("popupSpeed")
 		if intervalIndex is None:
 			intervalIndex = 0
@@ -175,45 +167,12 @@ class KernCrasher(object):
 				self.w.popupScript.setItems(updatedScriptList)
 				self.w.popupScript.set(updatedScriptList[0])
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-
-			# update speed explanation:
-			if sender == self.w.popupSpeed:
-				intervalIndex = self.pref("popupSpeed")
-				if intervalIndex is None:
-					intervalIndex = 0
-				self.w.text_speedExplanation.set("Measuring every %i units." % intervalList[intervalIndex])
-
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
+	def popupSpeedAction(self, sender):
+		self.SavePreferences()
+		intervalIndex = self.pref("popupSpeed")
+		if intervalIndex is None:
+			intervalIndex = 0
+		self.w.text_speedExplanation.set("Measuring every %i units." % intervalList[intervalIndex])
 
 	def nameUntilFirstPeriod(self, glyphName):
 		if "." not in glyphName:
@@ -366,14 +325,14 @@ class KernCrasher(object):
 			script, firstCategory, firstSubCategory, secondCategory, secondSubCategory = self.queryPrefs()
 			step = intervalList[self.pref("popupSpeed")]
 			excludedGlyphNameParts = self.splitString(self.pref("excludeSuffixes"), delimiter=",", minimum=0)
-			excludeNonExporting = bool(self.pref("excludeNonExporting"))
-			pathGlyphsOnly = bool(self.pref("pathGlyphsOnly"))
+			excludeNonExporting = self.prefBool("excludeNonExporting")
+			pathGlyphsOnly = self.prefBool("pathGlyphsOnly")
 			limitRightSuffixes = self.splitString(self.pref("limitRightSuffixes"), delimiter=",", minimum=0)
 			limitLeftSuffixes = self.splitString(self.pref("limitLeftSuffixes"), delimiter=",", minimum=0)
 			minDistance = 0.0
 			ignoreIntervals = sortedIntervalsFromString(self.pref("ignoreIntervals"))
 			try:
-				minDistance = float(self.pref("minDistance"))
+				minDistance = self.prefFloat("minDistance")
 			except Exception as e:
 				print("Warning: Could not read min distance entry. Will default to 0.\n%s" % e)
 				import traceback

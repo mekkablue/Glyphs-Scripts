@@ -7,8 +7,8 @@ Insert *origin anchors for ZWRO in all combining marks of specified scripts.
 
 from AppKit import NSPoint, NSHeight
 import vanilla
-import sys
 from GlyphsApp import Glyphs, GSAnchor, Message
+from mekkaCore import mekkaObject
 
 
 def moveMacroWindowSeparator(pos=20):
@@ -19,8 +19,7 @@ def moveMacroWindowSeparator(pos=20):
 		splitview.setPosition_ofDividerAtIndex_(height * pos / 100.0, 0)
 
 
-class AddZWROOriginAnchors(object):
-	prefID = "com.mekkablue.AddZWROOriginAnchors"
+class AddZWROOriginAnchors(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"offset": 0,
@@ -83,14 +82,6 @@ class AddZWROOriginAnchors(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
 	def updateScripts(self, sender=None):
 		scripts = []
 		for g in Glyphs.font.glyphs:
@@ -98,30 +89,6 @@ class AddZWROOriginAnchors(object):
 				scripts.append(g.script)
 		self.w.scripts.set(", ".join(scripts))
 		self.SavePreferences()
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def isTransformed(self, componentName, font):
 		for glyph in font.glyphs:
@@ -142,15 +109,6 @@ class AddZWROOriginAnchors(object):
 			if not self.SavePreferences():
 				print("⚠️ ‘Add ZWRO origin Anchors’ could not write preferences.")
 
-			# read prefs:
-			for prefName in self.prefDict.keys():
-				try:
-					setattr(sys.modules[__name__], prefName, self.pref(prefName))
-				except:
-					fallbackValue = self.prefDict[prefName]
-					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
-					setattr(sys.modules[__name__], prefName, fallbackValue)
-
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
@@ -170,7 +128,7 @@ class AddZWROOriginAnchors(object):
 					print()
 
 					scriptNames = [scriptName.strip() for scriptName in self.pref("scripts").strip().split(",")]
-					offset = int(self.pref("offset"))
+					offset = self.prefInt("offset")
 
 					for glyph in thisFont.glyphs:
 						if glyph.category == "Mark" and glyph.subCategory == "Nonspacing":

@@ -7,13 +7,12 @@ Takes a list of oldglyphname=newglyphname pairs and renames glyphs in the font a
 
 import vanilla
 import uuid
-import sys
 from AppKit import NSFont
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 
-class RenameGlyphs(object):
-	prefID = "com.mekkablue.RenameGlyphs"
+class RenameGlyphs(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"renameList": "oldname=newname",
@@ -31,7 +30,7 @@ class RenameGlyphs(object):
 			"Rename Glyphs",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.RenameGlyphs.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -56,38 +55,6 @@ class RenameGlyphs(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def RenameGlyphsMain(self, sender):
 		try:
 			# clear macro window log:
@@ -96,15 +63,6 @@ class RenameGlyphs(object):
 			# update settings to the latest user input:
 			if not self.SavePreferences():
 				print("⚠️ ‘Rename Glyphs’ could not write preferences.")
-
-			# read prefs:
-			for prefName in self.prefDict.keys():
-				try:
-					setattr(sys.modules[__name__], prefName, self.pref(prefName))
-				except:
-					fallbackValue = self.prefDict[prefName]
-					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
-					setattr(sys.modules[__name__], prefName, fallbackValue)
 
 			if self.pref("allFonts"):
 				theseFonts = Glyphs.fonts

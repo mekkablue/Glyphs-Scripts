@@ -7,15 +7,20 @@ Extends all alignment zones (except for the baseline zone that should stay at 0)
 
 import vanilla
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 windowHeight = 110
 
 
-class BlueFuzzer(object):
+class BlueFuzzer(mekkaObject):
+	prefDict = {
+		"fuzzValue": 1,
+		"allMasters": True,
+	}
 
 	def __init__(self):
 		self.w = vanilla.FloatingWindow(
-			(300, windowHeight), "BlueFuzzer", minSize=(250, windowHeight), maxSize=(500, windowHeight), autosaveName="com.mekkablue.BlueFuzzer.mainwindow"
+			(300, windowHeight), "BlueFuzzer", minSize=(250, windowHeight), maxSize=(500, windowHeight), autosaveName=self.domain("mainwindow")
 		)
 
 		self.w.text_1 = vanilla.TextBox((15, 12 + 2, 120, 18), "Extend zones by", sizeStyle='small')
@@ -25,30 +30,8 @@ class BlueFuzzer(object):
 		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Fuzz", sizeStyle='regular', callback=self.BlueFuzzerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
-		try:
-			self.LoadPreferences()
-		except:
-			pass
-
+		self.LoadPreferences()
 		self.w.open()
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.BlueFuzzer.fuzzValue"] = self.w.fuzzValue.get()
-			Glyphs.defaults["com.mekkablue.BlueFuzzer.allMasters"] = self.w.allMasters.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			self.w.fuzzValue.set(Glyphs.defaults["com.mekkablue.BlueFuzzer.fuzzValue"])
-			self.w.allMasters.set(Glyphs.defaults["com.mekkablue.BlueFuzzer.allMasters"])
-		except:
-			return False
-
-		return True
 
 	def BlueFuzzerMain(self, sender):
 		try:

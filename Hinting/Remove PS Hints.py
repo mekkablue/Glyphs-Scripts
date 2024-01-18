@@ -7,9 +7,17 @@ Removes PS Hints, selectively or completely.
 
 import vanilla
 from GlyphsApp import Glyphs, STEM, BOTTOMGHOST, TOPGHOST
+from mekkaCore import mekkaObject
 
 
-class RemovePSHints(object):
+class RemovePSHints(mekkaObject):
+	prefDict = {
+		"horizontalStemHints": 1,
+		"verticalStemHints": 1,
+		"ghostHints": 1,
+		"where": 2,
+	}
+
 	wheres = (
 		"current layer of selected glyphs",
 		"all layers of selected glyphs",
@@ -29,7 +37,7 @@ class RemovePSHints(object):
 			"Remove PS Hints",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.RemovePSHints.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -66,36 +74,11 @@ class RemovePSHints(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.RemovePSHints.horizontalStemHints"] = self.w.horizontalStemHints.get()
-			Glyphs.defaults["com.mekkablue.RemovePSHints.verticalStemHints"] = self.w.verticalStemHints.get()
-			Glyphs.defaults["com.mekkablue.RemovePSHints.ghostHints"] = self.w.ghostHints.get()
-			Glyphs.defaults["com.mekkablue.RemovePSHints.where"] = self.w.where.get()
-
-			buttonEnable = Glyphs.defaults["com.mekkablue.RemovePSHints.horizontalStemHints"] or \
-				Glyphs.defaults["com.mekkablue.RemovePSHints.verticalStemHints"] or \
-				Glyphs.defaults["com.mekkablue.RemovePSHints.ghostHints"]
-			self.w.runButton.enable(onOff=buttonEnable)
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.RemovePSHints.horizontalStemHints", 1)
-			Glyphs.registerDefault("com.mekkablue.RemovePSHints.verticalStemHints", 1)
-			Glyphs.registerDefault("com.mekkablue.RemovePSHints.ghostHints", 1)
-			Glyphs.registerDefault("com.mekkablue.RemovePSHints.where", 2)
-			self.w.horizontalStemHints.set(Glyphs.defaults["com.mekkablue.RemovePSHints.horizontalStemHints"])
-			self.w.verticalStemHints.set(Glyphs.defaults["com.mekkablue.RemovePSHints.verticalStemHints"])
-			self.w.ghostHints.set(Glyphs.defaults["com.mekkablue.RemovePSHints.ghostHints"])
-			self.w.where.set(Glyphs.defaults["com.mekkablue.RemovePSHints.where"])
-		except:
-			return False
-
-		return True
+	def updateUI(self):
+		buttonEnable = self.pref("horizontalStemHints") or \
+			self.pref("verticalStemHints") or \
+			self.pref("ghostHints")
+		self.w.runButton.enable(onOff=buttonEnable)
 
 	def removeHintsFromLayer(self, layer, horizontalStemHints, verticalStemHints, ghostHints):
 		delCount = 0
@@ -126,10 +109,10 @@ class RemovePSHints(object):
 			if not self.SavePreferences(self):
 				print("Note: 'Remove PS Hints' could not write preferences.")
 
-			horizontalStemHints = Glyphs.defaults["com.mekkablue.RemovePSHints.horizontalStemHints"]
-			verticalStemHints = Glyphs.defaults["com.mekkablue.RemovePSHints.verticalStemHints"]
-			ghostHints = Glyphs.defaults["com.mekkablue.RemovePSHints.ghostHints"]
-			where = Glyphs.defaults["com.mekkablue.RemovePSHints.where"]
+			horizontalStemHints = self.pref("horizontalStemHints")
+			verticalStemHints = self.pref("verticalStemHints")
+			ghostHints = self.pref("ghostHints")
+			where = self.pref("where")
 
 			if where >= 4:
 				theseFonts = Glyphs.fonts

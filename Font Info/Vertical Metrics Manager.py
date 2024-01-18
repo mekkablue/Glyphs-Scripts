@@ -11,6 +11,7 @@ Manage and sync ascender, descender and linegap values for hhea, OS/2 sTypo and 
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
 def cleanInt(numberString):
@@ -36,8 +37,7 @@ def roundUpByValue(x, roundBy):
 		return int((abs(x) // roundBy * roundBy + factor * roundBy) * sign)
 
 
-class VerticalMetricsManager(object):
-	prefID = "com.mekkablue.VerticalMetricsManager"
+class VerticalMetricsManager(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"allOpenFonts": 0,
@@ -192,44 +192,6 @@ class VerticalMetricsManager(object):
 		self.w.includeAllMasters.enable(not self.w.allOpenFonts.get())
 		self.w.runButton.setTitle(f'Apply to Font{"s" if self.w.allOpenFonts.get() else ""}')
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.intDefaults[prefDomain]
-
-	def setPref(self, prefName, value):
-		prefDomain = self.domain(prefName)
-		Glyphs.intDefaults[prefDomain] = value
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				self.setPref(prefName, getattr(self.w, prefName).get())
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def openURL(self, sender):
 		URL = None
 		if sender == self.w.helpButton:
@@ -265,7 +227,7 @@ class VerticalMetricsManager(object):
 		ignoreNonExporting = self.pref("ignoreNonExporting")
 		includeAllMasters = self.pref("includeAllMasters")
 		shouldRound = self.pref("round")
-		roundValue = int(self.pref("roundValue"))
+		roundValue = self.prefInt("roundValue")
 		respectMarkToBaseOffset = self.pref("respectMarkToBaseOffset")
 		shouldLimitToScript = self.pref("preferScript")
 		selectedScript = self.w.preferScriptPopup.getTitle()

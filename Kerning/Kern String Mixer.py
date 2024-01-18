@@ -6,8 +6,8 @@ Intersect two sets of glyphs with each other in order to get all possible glyph 
 """
 
 import vanilla
-import sys
 from GlyphsApp import Glyphs, GSFeature, Message
+from mekkaCore import mekkaObject
 
 defaultTokens = (
 	"$[category like 'Letter' and case in {upper,lower}]  # UPPERCASE AND LOWERCASE LETTERS",
@@ -28,8 +28,7 @@ defaultTokens = (
 )
 
 
-class KernStringMixer(object):
-	prefID = "com.mekkablue.KernStringMixer"
+class KernStringMixer(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"mixString1": defaultTokens[0],
@@ -85,37 +84,6 @@ class KernStringMixer(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		prefValue = Glyphs.defaults[prefDomain]
-		return prefValue
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def openURL(self, sender=None):
 		URL = None
 		if sender == self.w.helpTokens:
@@ -152,19 +120,6 @@ class KernStringMixer(object):
 			# update settings to the latest user input:
 			if not self.SavePreferences():
 				print("⚠️ ‘Kern String Mixer’ could not write preferences.")
-
-			# read prefs:
-			for prefName in self.prefDict.keys():
-				try:
-					setattr(sys.modules[__name__], prefName, self.pref(prefName))
-				except Exception as e:
-					print(e)
-					import traceback
-					print(traceback.format_exc())
-					print()
-					fallbackValue = self.prefDict[prefName]
-					print("⚠️ Could not set pref ‘%s’, resorting to default value: ‘%s’." % (prefName, fallbackValue))
-					setattr(sys.modules[__name__], prefName, fallbackValue)
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:

@@ -6,10 +6,10 @@ Turn font masters into brace layers of certain glyphs. A.k.a. Sparsify.
 """
 
 import vanilla
-import sys
 from AppKit import NSFont
 from copy import copy as copy
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
 def braceLayerAndAxisDictForGlyphAndMaster(glyph, master):
@@ -82,8 +82,7 @@ def masterList(font):
 	return listOfMasters
 
 
-class Bracify(object):
-	prefID = "com.mekkablue.Bracify"
+class Bracify(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"masterToRemove": 1,
@@ -158,41 +157,7 @@ class Bracify(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.updateGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.updateGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def updateGUI(self, sender=None):
+	def updateUI(self, sender=None):
 		self.w.runButton.enable(self.pref("masterToRemove") != self.pref("associateMaster") and self.pref("braceGlyphs"))
 
 	def UpdateForCurrentFont(self, sender=None):
@@ -224,9 +189,9 @@ class Bracify(object):
 
 	def BracifyGuess(self, sender=None):
 		font = Glyphs.font
-		masterIndex = int(self.pref("masterToRemove"))
+		masterIndex = self.prefInt("masterToRemove")
 		master = font.masters[masterIndex]
-		threshold = int(self.pref("threshold"))
+		threshold = self.prefInt("threshold")
 		glyphNameList = nonSuperfluousLayersInMaster(font, master, threshold=threshold)
 		glyphNameText = ", ".join(glyphNameList)
 		self.w.braceGlyphs.set(glyphNameText)
@@ -240,15 +205,6 @@ class Bracify(object):
 			# update settings to the latest user input:
 			if not self.SavePreferences():
 				print("⚠️ ‘Bracify’ could not write preferences.")
-
-			# read prefs:
-			for prefName in self.prefDict.keys():
-				try:
-					setattr(sys.modules[__name__], prefName, self.pref(prefName))
-				except:
-					fallbackValue = self.prefDict[prefName]
-					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
-					setattr(sys.modules[__name__], prefName, fallbackValue)
 
 			font = Glyphs.font  # frontmost font
 			if font is None:
@@ -275,8 +231,8 @@ class Bracify(object):
 			print(f"Bracify Report for {reportName}")
 			print()
 
-			associateMaster = int(self.pref("associateMaster"))
-			masterToRemove = int(self.pref("masterToRemove"))
+			associateMaster = self.prefInt("associateMaster")
+			masterToRemove = self.prefInt("masterToRemove")
 			master = font.masters[masterToRemove]
 			masterName = master.name
 

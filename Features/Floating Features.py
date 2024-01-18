@@ -8,14 +8,15 @@ Floating window for activating features in the frontmost Edit tab.
 import vanilla
 import traceback
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 
-class FeatureActivator(object):
+class FeatureActivator(mekkaObject):
 
 	def __init__(self):
 		numOfFeatures = len(Glyphs.font.features)
 
-		self.w = vanilla.FloatingWindow((150, 10 + numOfFeatures * 18), "", autosaveName="com.mekkablue.FeatureActivator.mainwindow")
+		self.w = vanilla.FloatingWindow((150, 10 + numOfFeatures * 18), "", autosaveName=self.domain("mainwindow"))
 		i = 0
 		selectedFeatures = Glyphs.currentDocument.windowController().activeEditViewController().selectedFeatures()
 		for feature in Glyphs.font.features:

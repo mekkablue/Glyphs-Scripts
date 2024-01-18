@@ -7,13 +7,13 @@ Finds nodes that are close but not exactly on vertical metrics.
 
 import vanilla
 from GlyphsApp import Glyphs, GSAnnotation, TEXT, GSOFFCURVE, GSUppercase, GSLowercase, GSSmallcaps, Message
+from mekkaCore import mekkaObject
 
 
-class FindNearVerticalMisses(object):
+class FindNearVerticalMisses(mekkaObject):
 	marker = "❌"
 	heightsToCheck = []
 
-	prefID = "com.mekkablue.FindNearVerticalMisses"
 	prefDict = {
 		"deviance": "1",
 		"tolerateIfNextNodeIsOn": True,
@@ -46,7 +46,7 @@ class FindNearVerticalMisses(object):
 			"Find Near Vertical Misses",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.FindNearVerticalMisses.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -160,48 +160,7 @@ class FindNearVerticalMisses(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def uiElement(self, prefName):
-		particles = prefName.split(".")
-		latestObject = self.w
-		for particle in particles:
-			latestObject = getattr(latestObject, particle)
-		return latestObject
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = self.uiElement(prefName).get()
-			self.checkGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				self.uiElement(prefName).set(self.pref(prefName))
-			self.checkGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def checkGUI(self, sender=None):
+	def uodateUI(self, sender=None):
 		# At least one vertical metrics must be on, otherwise disable button:
 		enableButton = False
 		boxDict = self.w.whereToCheck.__dict__
@@ -340,7 +299,7 @@ class FindNearVerticalMisses(object):
 			includeComposites = self.pref("includeComposites")
 			includeNonExporting = self.pref("includeNonExporting")
 
-			deviance = float(self.pref("deviance"))
+			deviance = self.prefFloat("deviance")
 			excludes = [x.strip() for x in self.pref("exclude").split(",")]
 			skippedGlyphs = []
 

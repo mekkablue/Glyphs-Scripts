@@ -5,23 +5,11 @@ __doc__ = """
 Creates guides through all selected nodes.
 """
 
-import math
 from GlyphsApp import Glyphs, GSGuide, GSGuideLine, GSNode, GSAnchor, addPoints
-
+from mekkaCore import angle
 
 thisFont = Glyphs.font  # frontmost font
 selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
-
-
-def angle(firstPoint, secondPoint):
-	"""
-	Returns the angle (in degrees) of the straight line between firstPoint and secondPoint,
-	0 degrees being the second point to the right of first point.
-	firstPoint, secondPoint: must be NSPoint or GSNode
-	"""
-	xDiff = secondPoint.x - firstPoint.x
-	yDiff = secondPoint.y - firstPoint.y
-	return math.degrees(math.atan2(yDiff, xDiff))
 
 
 def newGuide(position, angle=0):

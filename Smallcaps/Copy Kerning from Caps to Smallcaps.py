@@ -7,9 +7,11 @@ Looks for cap kerning pairs and reduplicates their kerning for corresponding .sc
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 if Glyphs.versionNumber >= 3:
 	from GlyphsApp import GSUppercase, GSSmallcaps
+
 smallcapSuffixes = (
 	".sc",
 	".c2sc",
@@ -113,8 +115,14 @@ def isSmallcap(glyph):
 	return False
 
 
-class CopyKerningFromCapsToSmallcaps(object):
-	prefID = "com.mekkablue.CopyKerningFromCapsToSmallcaps"
+class CopyKerningFromCapsToSmallcaps(mekkaObject):
+	prefDict = {
+		"smallcapSuffix": ".sc",
+		"namingScheme": 0,
+		"includeNonLetters": 1,
+		"figureSuffix": ".lf",
+		"includeAllMasters": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -168,59 +176,10 @@ class CopyKerningFromCapsToSmallcaps(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
 	def updateUI(self, sender=None):
 		isEnabled = self.w.includeNonLetters.get()
 		self.w.figureSuffixText.enable(isEnabled)
 		self.w.figureSuffix.enable(isEnabled)
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			Glyphs.defaults[self.domain("smallcapSuffix")] = self.w.smallcapSuffix.get()
-			Glyphs.defaults[self.domain("namingScheme")] = self.w.namingScheme.get()
-			Glyphs.defaults[self.domain("includeNonLetters")] = self.w.includeNonLetters.get()
-			# Glyphs.defaults[self.domain("copyCapCapToCapSC")] = self.w.copyCapCapToCapSC.get()
-			Glyphs.defaults[self.domain("figureSuffix")] = self.w.figureSuffix.get()
-			Glyphs.defaults[self.domain("includeAllMasters")] = self.w.includeAllMasters.get()
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault(self.domain("smallcapSuffix"), ".sc")
-			Glyphs.registerDefault(self.domain("namingScheme"), 0)
-			Glyphs.registerDefault(self.domain("includeNonLetters"), 1)
-			# Glyphs.registerDefault(self.domain("copyCapCapToCapSC"), 1)
-			Glyphs.registerDefault(self.domain("figureSuffix"), ".lf")
-			Glyphs.registerDefault(self.domain("includeAllMasters"), 0)
-
-			# load previously written prefs:
-			self.w.smallcapSuffix.set(self.pref("smallcapSuffix"))
-			self.w.namingScheme.set(self.pref("namingScheme"))
-			self.w.includeNonLetters.set(self.pref("includeNonLetters"))
-			# self.w.copyCapCapToCapSC.set( self.pref("copyCapCapToCapSC") )
-			self.w.figureSuffix.set(self.pref("figureSuffix"))
-			self.w.includeAllMasters.set(self.pref("includeAllMasters"))
-
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def CopyKerningFromCapsToSmallcapsMain(self, sender=None):
 		try:

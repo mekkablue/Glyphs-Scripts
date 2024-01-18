@@ -9,9 +9,15 @@ import vanilla
 import objc
 from Foundation import NSString
 from GlyphsApp import Glyphs, GSProjectDocument
+from mekkaCore import mekkaObject
 
 
-class FindAndReplaceInInstanceParameters(object):
+class FindAndReplaceInInstanceParameters(mekkaObject):
+	prefDict = {
+		"availableParameters": "0",
+		"find": "",
+		"replace": ""
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -24,7 +30,7 @@ class FindAndReplaceInInstanceParameters(object):
 			"Find and Replace In Instance Parameters",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.FindAndReplaceInInstanceParameters.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -54,33 +60,6 @@ class FindAndReplaceInInstanceParameters(object):
 		adaptedWidth = windowWidth / 2 - 20
 		self.w.find.setPosSize((15, 40, adaptedWidth, -50))
 		self.w.replace.setPosSize((-adaptedWidth - 15, 40, adaptedWidth, -50))
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.FindAndReplaceInInstanceParameters.availableParameters"] = self.w.availableParameters.get()
-			Glyphs.defaults["com.mekkablue.FindAndReplaceInInstanceParameters.find"] = self.w.find.get()
-			Glyphs.defaults["com.mekkablue.FindAndReplaceInInstanceParameters.replace"] = self.w.replace.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefaults(
-				{
-					"com.mekkablue.FindAndReplaceInInstanceParameters.availableParameters": "0",
-					"com.mekkablue.FindAndReplaceInInstanceParameters.find": "",
-					"com.mekkablue.FindAndReplaceInInstanceParameters.replace": ""
-				}
-			)
-			self.w.find.set(Glyphs.defaults["com.mekkablue.FindAndReplaceInInstanceParameters.find"])
-			self.w.replace.set(Glyphs.defaults["com.mekkablue.FindAndReplaceInInstanceParameters.replace"])
-			self.w.availableParameters.set(Glyphs.defaults["com.mekkablue.FindAndReplaceInInstanceParameters.availableParameters"])
-		except:
-			return False
-
-		return True
 
 	def getInstances(self):
 		# get instances from project or font:

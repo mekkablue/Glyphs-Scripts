@@ -7,9 +7,16 @@ Goes through tabular glyphs and checks if they are monospaced. Reports exception
 
 import vanilla
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 
-class TabularChecker(object):
+class TabularChecker(mekkaObject):
+	prefDict = {
+		"suffixesEntry": "tf, tosf",
+		"allowDifferingWidthsPerSuffix": 0,
+		"includeNonExporting": 0,
+		"allFonts": 1,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -22,7 +29,7 @@ class TabularChecker(object):
 			"Tabular Checker",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.TabularChecker.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -62,32 +69,6 @@ class TabularChecker(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.TabularChecker.suffixesEntry"] = self.w.suffixesEntry.get()
-			Glyphs.defaults["com.mekkablue.TabularChecker.allowDifferingWidthsPerSuffix"] = self.w.allowDifferingWidthsPerSuffix.get()
-			Glyphs.defaults["com.mekkablue.TabularChecker.includeNonExporting"] = self.w.includeNonExporting.get()
-			Glyphs.defaults["com.mekkablue.TabularChecker.allFonts"] = self.w.allFonts.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.TabularChecker.suffixesEntry", "tf, tosf")
-			Glyphs.registerDefault("com.mekkablue.TabularChecker.allowDifferingWidthsPerSuffix", 0)
-			Glyphs.registerDefault("com.mekkablue.TabularChecker.includeNonExporting", 0)
-			Glyphs.registerDefault("com.mekkablue.TabularChecker.allFonts", 1)
-			self.w.suffixesEntry.set(Glyphs.defaults["com.mekkablue.TabularChecker.suffixesEntry"])
-			self.w.allowDifferingWidthsPerSuffix.set(Glyphs.defaults["com.mekkablue.TabularChecker.allowDifferingWidthsPerSuffix"])
-			self.w.includeNonExporting.set(Glyphs.defaults["com.mekkablue.TabularChecker.includeNonExporting"])
-			self.w.allFonts.set(Glyphs.defaults["com.mekkablue.TabularChecker.allFonts"])
-		except:
-			return False
-
-		return True
-
 	def reportStatus(self, reportString):
 		if not reportString:
 			reportString = u""
@@ -126,12 +107,12 @@ class TabularChecker(object):
 				print(u"Note: 'Tabular Checker' could not write preferences.")
 
 			# query user input:
-			suffixString = Glyphs.defaults["com.mekkablue.TabularChecker.suffixesEntry"]
+			suffixString = self.pref("suffixesEntry")
 			suffixes = [".%s" % s.strip().lstrip(".") for s in suffixString.split(",")]
-			includeNonExporting = Glyphs.defaults["com.mekkablue.TabularChecker.includeNonExporting"]
-			allowDifferingWidthsPerSuffix = Glyphs.defaults["com.mekkablue.TabularChecker.allowDifferingWidthsPerSuffix"]
+			includeNonExporting = self.pref("includeNonExporting")
+			allowDifferingWidthsPerSuffix = self.pref("allowDifferingWidthsPerSuffix")
 
-			if Glyphs.defaults["com.mekkablue.TabularChecker.allFonts"]:
+			if self.pref("allFonts"):
 				fonts = Glyphs.fonts
 			else:
 				fonts = (Glyphs.font, )

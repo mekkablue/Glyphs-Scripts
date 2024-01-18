@@ -5,9 +5,10 @@ __doc__ = """
 Inserts instances, based on the Luc(as), Pablo, and Maciej algorithms.
 """
 
-from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE
 from Foundation import NSDictionary
 import vanilla
+from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE
+from mekkaCore import mekkaObject
 
 rangemin = 3
 rangemax = 11
@@ -110,10 +111,27 @@ def axisLocationEntry(axisName, locationValue):
 	return NSDictionary.alloc().initWithObjects_forKeys_((axisName, locationValue), ("Axis", "Location"))
 
 
-class InstanceMaker(object):
+class InstanceMaker(mekkaObject):
 	"""GUI for injecting instances."""
-
-	prefID = "com.mekkablue.InstanceMaker"
+	prefDict = {
+		"numberOfInstances": "6",
+		"prefix": "A-",
+		"master1": 1,  # self.MasterList(1),
+		"master2": -1,  # self.MasterList(-1),
+		"width": "100",
+		"algorithm": 0,
+		"existingInstances": False,
+		"maciej": False,
+		"maciej1": 1,  # self.MasterList(1),
+		"maciej2": -1,  # self.MasterList(-1),
+		"shouldRound": True,
+		"naturalNames": True,
+		"firstName": 1,
+		"italicStyle": 0,
+		"keepWindowOpen": 1,
+		"axisLocation": 1,
+		"axisLocationMaster": 1,
+	}
 
 	def __init__(self):
 
@@ -215,14 +233,6 @@ class InstanceMaker(object):
 		self.w.open()
 		self.UpdateSample(self)
 		self.w.makeKey()
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
 
 	def axisTag(self, axis):
 		if Glyphs.versionNumber >= 3:
@@ -393,83 +403,6 @@ class InstanceMaker(object):
 		onOff = self.pref("axisLocation")
 		self.w.axisLocationMaster.enable(onOff)
 
-	def SavePreferences(self, sender=None):
-		try:
-			Glyphs.defaults[self.domain("numberOfInstances")] = self.w.numberOfInstances.get()
-			Glyphs.defaults[self.domain("prefix")] = self.w.prefix.get()
-			Glyphs.defaults[self.domain("master1")] = self.w.master1.get()
-			Glyphs.defaults[self.domain("master2")] = self.w.master2.get()
-			Glyphs.defaults[self.domain("width")] = self.w.width.get()
-			Glyphs.defaults[self.domain("algorithm")] = self.w.algorithm.get()
-			Glyphs.defaults[self.domain("existingInstances")] = self.w.existingInstances.get()
-			Glyphs.defaults[self.domain("maciej")] = self.w.maciej.get()
-			Glyphs.defaults[self.domain("maciej1")] = self.w.maciej_light.get()
-			Glyphs.defaults[self.domain("maciej2")] = self.w.maciej_bold.get()
-			Glyphs.defaults[self.domain("shouldRound")] = self.w.shouldRound.get()
-			Glyphs.defaults[self.domain("naturalNames")] = self.w.naturalNames.get()
-			Glyphs.defaults[self.domain("firstName")] = self.w.firstName.get()
-			Glyphs.defaults[self.domain("italicStyle")] = self.w.italicStyle.get()
-			Glyphs.defaults[self.domain("keepWindowOpen")] = self.w.keepWindowOpen.get()
-			if Glyphs.versionNumber >= 3:
-				Glyphs.defaults[self.domain("axisLocation")] = self.w.axisLocation.get()
-				Glyphs.defaults[self.domain("axisLocationMaster")] = self.w.axisLocationMaster.get()
-
-			self.updateUI(sender)
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault(self.domain("numberOfInstances"), "6")
-			Glyphs.registerDefault(self.domain("prefix"), "A-")
-			Glyphs.registerDefault(self.domain("master1"), self.MasterList(1))
-			Glyphs.registerDefault(self.domain("master2"), self.MasterList(-1))
-			Glyphs.registerDefault(self.domain("width"), "100")
-			Glyphs.registerDefault(self.domain("algorithm"), 0)
-			Glyphs.registerDefault(self.domain("existingInstances"), False)
-			Glyphs.registerDefault(self.domain("maciej"), False)
-			Glyphs.registerDefault(self.domain("maciej1"), self.MasterList(1))
-			Glyphs.registerDefault(self.domain("maciej2"), self.MasterList(-1))
-			Glyphs.registerDefault(self.domain("shouldRound"), True)
-			Glyphs.registerDefault(self.domain("naturalNames"), True)
-			Glyphs.registerDefault(self.domain("firstName"), 1)
-			Glyphs.registerDefault(self.domain("italicStyle"), 0)
-			Glyphs.registerDefault(self.domain("keepWindowOpen"), 1)
-			if Glyphs.versionNumber >= 3:
-				Glyphs.registerDefault(self.domain("axisLocation"), 1)
-				Glyphs.registerDefault(self.domain("axisLocationMaster"), 1)
-
-			self.w.numberOfInstances.set(self.pref("numberOfInstances"))
-			self.w.prefix.set(self.pref("prefix"))
-			self.w.master1.set(self.pref("master1"))
-			self.w.master2.set(self.pref("master2"))
-			self.w.width.set(self.pref("width"))
-			self.w.algorithm.set(self.pref("algorithm"))
-			self.w.existingInstances.set(self.pref("existingInstances"))
-			self.w.maciej.set(self.pref("maciej"))
-			self.w.maciej_light.set(self.pref("maciej1"))
-			self.w.maciej_bold.set(self.pref("maciej2"))
-			self.w.shouldRound.set(self.pref("shouldRound"))
-			self.w.naturalNames.set(self.pref("naturalNames"))
-			self.w.firstName.set(self.pref("firstName"))
-			self.w.italicStyle.set(self.pref("italicStyle"))
-			self.w.keepWindowOpen.set(self.pref("keepWindowOpen"))
-			if Glyphs.versionNumber >= 3:
-				self.w.axisLocation.set(self.pref("axisLocation"))
-				self.w.axisLocationMaster.set(self.pref("axisLocationMaster"))
-
-			self.updateUI()
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-		return True
-
 	def openURL(self, sender):
 		URL = None
 		if sender == self.w.help_instances:
@@ -505,7 +438,7 @@ class InstanceMaker(object):
 			if self.DealWithExistingInstances():
 				distributedValues = self.Distribution()
 				try:
-					widthValue = float(self.pref("width"))
+					widthValue = self.prefFloat("width")
 				except:
 					widthValue = 100.0
 				prefix = self.pref("prefix")
@@ -518,8 +451,8 @@ class InstanceMaker(object):
 					if not maciejValues:
 						maciejYesOrNo = False
 
-				# numOfInstances = int(self.pref("numberOfInstances"))
-				currentSelectionIndex = int(self.pref("firstName"))
+				# numOfInstances = self.prefInt("numberOfInstances")
+				currentSelectionIndex = self.prefInt("firstName")
 				instanceNames = naturalNames[currentSelectionIndex:]
 
 				for i, thisWeight in enumerate(distributedValues):

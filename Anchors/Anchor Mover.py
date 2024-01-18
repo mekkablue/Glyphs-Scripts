@@ -8,56 +8,8 @@ Batch-process anchor positions in selected glyphs (GUI).
 import vanilla
 import math
 from Foundation import NSPoint
-from AppKit import NSAffineTransform, NSAffineTransformStruct
 from GlyphsApp import Glyphs, GSOFFCURVE, Message
-
-
-def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
-	"""
-	Returns an NSAffineTransform object for transforming layers.
-	Apply an NSAffineTransform t object like this:
-		Layer.transform_checkForSelection_doComponents_(t,False,True)
-	Access its transformation matrix like this:
-		tMatrix = t.transformStruct()  # returns the 6-float tuple
-	Apply the matrix tuple like this:
-		Layer.applyTransform(tMatrix)
-		Component.applyTransform(tMatrix)
-		Path.applyTransform(tMatrix)
-	Chain multiple NSAffineTransform objects t1, t2 like this:
-		t1.appendTransform_(t2)
-	"""
-	myTransform = NSAffineTransform.transform()
-	if rotate:
-		myTransform.rotateByDegrees_(rotate)
-	if scale != 1.0:
-		myTransform.scaleBy_(scale)
-	if not (shiftX == 0.0 and shiftY == 0.0):
-		myTransform.translateXBy_yBy_(shiftX, shiftY)
-	if skew:
-		skewStruct = NSAffineTransformStruct()
-		skewStruct.m11 = 1.0
-		skewStruct.m22 = 1.0
-		skewStruct.m21 = math.tan(math.radians(skew))
-		skewTransform = NSAffineTransform.transform()
-		skewTransform.setTransformStruct_(skewStruct)
-		myTransform.appendTransform_(skewTransform)
-	return myTransform
-
-
-def italicize(thisPoint, italicAngle=0.0, pivotalY=0.0):
-	"""
-	Returns the italicized position of an NSPoint 'thisPoint'
-	for a given angle 'italicAngle' and the pivotal height 'pivotalY',
-	around which the italic slanting is executed, usually half x-height.
-	Usage: myPoint = italicize(myPoint,10,xHeight*0.5)
-	"""
-	x = thisPoint.x
-	yOffset = thisPoint.y - pivotalY  # calculate vertical offset
-	italicAngle = math.radians(italicAngle)  # convert to radians
-	tangens = math.tan(italicAngle)  # math.tan needs radians
-	horizontalDeviance = tangens * yOffset  # vertical distance from pivotal point
-	x += horizontalDeviance  # x of point that is yOffset from pivotal point
-	return NSPoint(x, thisPoint.y)
+from mekkaCore import mekkaObject, transform, italicize
 
 
 def highestNodeInLayer(layer):
@@ -138,8 +90,16 @@ def italicSkew(x, y, angle=10.0):
 	return x + y * math.tan(new_angle)
 
 
-class AnchorMover2(object):
-	prefID = "com.mekkablue.AnchorMover2"
+class AnchorMover2(mekkaObject):
+	prefDict = {
+		"anchor_name": "",
+		"hTarget": 0.0,
+		"hChange": 0.0,
+		"vTarget": 0.0,
+		"vChange": 0.0,
+		"italic": True,
+		"allMasters": False,
+	}
 
 	def __init__(self):
 		linePos, inset, lineHeight = 12, 15, 22
@@ -175,69 +135,10 @@ class AnchorMover2(object):
 		self.w.moveButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Move", sizeStyle='regular', callback=self.MoveCallback)
 		self.w.setDefaultButton(self.w.moveButton)
 
-		if not self.LoadPreferences():
-			print("Error: Could not load preferences. Will resort to defaults.")
+		self.LoadPreferences()
 
 		self.w.open()
 		self.w.makeKey()
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			Glyphs.defaults[self.domain("anchor_name")] = self.w.anchor_name.get()
-			Glyphs.defaults[self.domain("hTarget")] = self.w.hTarget.get()
-			Glyphs.defaults[self.domain("hChange")] = self.w.hChange.get()
-			Glyphs.defaults[self.domain("vTarget")] = self.w.vTarget.get()
-			Glyphs.defaults[self.domain("vChange")] = self.w.vChange.get()
-			Glyphs.defaults[self.domain("italic")] = self.w.italic.get()
-			Glyphs.defaults[self.domain("allMasters")] = self.w.allMasters.get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault(self.domain("anchor_name"), "")
-			Glyphs.registerDefault(self.domain("hTarget"), 0.0)
-			Glyphs.registerDefault(self.domain("hChange"), 0.0)
-			Glyphs.registerDefault(self.domain("vTarget"), 0.0)
-			Glyphs.registerDefault(self.domain("vChange"), 0.0)
-			Glyphs.registerDefault(self.domain("italic"), True)
-			Glyphs.registerDefault(self.domain("allMasters"), False)
-
-			# load previously written prefs:
-			self.w.anchor_name.set(self.pref("anchor_name"))
-			self.w.hTarget.set(self.pref("hTarget"))
-			self.w.hChange.set(self.pref("hChange"))
-			self.w.vTarget.set(self.pref("vTarget"))
-			self.w.vChange.set(self.pref("vChange"))
-			self.w.italic.set(self.pref("italic"))
-			self.w.allMasters.set(self.pref("allMasters"))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def prefAsFloat(self, pref):
-		try:
-			preference = self.pref(pref)
-			return float(preference)
-		except:
-			Glyphs.defaults[self.domain(pref)] = 0.0
-			self.LoadPreferences()
-			return 0.0
 
 	def MoveCallback(self, sender):
 		# brings macro window to front and clears its log:
@@ -247,9 +148,9 @@ class AnchorMover2(object):
 		selectedLayers = thisFont.selectedLayers
 		anchor_name = self.pref("anchor_name")
 		horizontal_index = self.pref("hTarget")
-		horizontal_change = self.prefAsFloat("hChange")
+		horizontal_change = self.prefFloat("hChange")
 		vertical_index = self.pref("vTarget")
-		vertical_change = self.prefAsFloat("vChange")
+		vertical_change = self.prefFloat("vChange")
 		allMasters = self.pref("allMasters")
 		respectItalic = self.pref("italic")
 

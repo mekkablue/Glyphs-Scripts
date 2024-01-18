@@ -10,6 +10,7 @@ import vanilla
 import traceback
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSOFFCURVE, GSComponent
+from mekkaCore import mekkaObject
 
 
 def deleteAllComponents(thisLayer):
@@ -213,12 +214,20 @@ def process(thisLayer, deleteComponents, componentName, distanceBetweenDots, use
 		print(traceback.format_exc())
 
 
-class ComponentOnLines(object):
+class ComponentOnLines(mekkaObject):
+	prefDict = {
+		"componentName": "_circle",
+		"sliderMin": "30",
+		"sliderMax": "60",
+		"liveSlider": False,
+		"useBackground": True,
+		"balanceOverCompletePath": False,
+	}
 
 	def __init__(self):
 		windowHeight = 180
 		self.w = vanilla.FloatingWindow(
-			(350, windowHeight), "Stitcher", minSize=(300, windowHeight), maxSize=(500, windowHeight), autosaveName="com.mekkablue.ComponentsOnNodes.mainwindow"
+			(350, windowHeight), "Stitcher", minSize=(300, windowHeight), maxSize=(500, windowHeight), autosaveName=self.domain("mainwindow")
 		)
 
 		inset = 15
@@ -253,58 +262,22 @@ class ComponentOnLines(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.ComponentOnLines.componentName"] = self.w.componentName.get()
-			Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMin"] = self.w.sliderMin.get()
-			Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMax"] = self.w.sliderMax.get()
-			Glyphs.defaults["com.mekkablue.ComponentOnLines.intervalSlider"] = self.w.intervalSlider.get()
-			Glyphs.defaults["com.mekkablue.ComponentOnLines.liveSlider"] = self.w.liveSlider.get()
-			Glyphs.defaults["com.mekkablue.ComponentOnLines.useBackground"] = self.w.useBackground.get()
-			Glyphs.defaults["com.mekkablue.ComponentOnLines.balanceOverCompletePath"] = self.w.balanceOverCompletePath.get()
-		except:
-			print(traceback.format_exc())
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.ComponentOnLines.componentName", "_circle")
-			Glyphs.registerDefault("com.mekkablue.ComponentOnLines.sliderMin", "30")
-			Glyphs.registerDefault("com.mekkablue.ComponentOnLines.sliderMin", "60")
-			Glyphs.registerDefault("com.mekkablue.ComponentOnLines.liveSlider", False)
-			Glyphs.registerDefault("com.mekkablue.ComponentOnLines.useBackground", True)
-			Glyphs.registerDefault("com.mekkablue.ComponentOnLines.balanceOverCompletePath", False)
-			self.w.componentName.set(Glyphs.defaults["com.mekkablue.ComponentOnLines.componentName"])
-			self.w.sliderMin.set(Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMin"])
-			self.w.sliderMax.set(Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMax"])
-			self.w.intervalSlider.set(Glyphs.defaults["com.mekkablue.ComponentOnLines.intervalSlider"])
-			self.w.liveSlider.set(Glyphs.defaults["com.mekkablue.ComponentOnLines.liveSlider"])
-			self.w.useBackground.set(Glyphs.defaults["com.mekkablue.ComponentOnLines.useBackground"])
-			self.w.balanceOverCompletePath.set(Glyphs.defaults["com.mekkablue.ComponentOnLines.balanceOverCompletePath"])
-		except:
-			print(traceback.format_exc())
-			return False
-
-		return True
-
 	def ComponentOnLinesMain(self, sender):
 		try:
-			if (bool(Glyphs.defaults["com.mekkablue.ComponentOnLines.liveSlider"]) and sender == self.w.intervalSlider) or sender != self.w.intervalSlider:
+			if (self.prefBool("liveSlider") and sender == self.w.intervalSlider) or sender != self.w.intervalSlider:
 				Font = Glyphs.font
 				# FontMaster = Font.selectedFontMaster
 				selectedLayers = Font.selectedLayers
 				deleteComponents = True
-				componentName = Glyphs.defaults["com.mekkablue.ComponentOnLines.componentName"]
+				componentName = self.pref("componentName")
 
-				sliderMin = minimumOfOne(Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMin"])
-				sliderMax = minimumOfOne(Glyphs.defaults["com.mekkablue.ComponentOnLines.sliderMax"])
+				sliderMin = minimumOfOne(self.pref("sliderMin"))
+				sliderMax = minimumOfOne(self.pref("sliderMax"))
 
-				sliderPos = float(Glyphs.defaults["com.mekkablue.ComponentOnLines.intervalSlider"])
+				sliderPos = self.prefFloat("intervalSlider")
 				distanceBetweenDots = sliderMin * (1.0 - sliderPos) + sliderMax * sliderPos
-				useBackground = bool(Glyphs.defaults["com.mekkablue.ComponentOnLines.useBackground"])
-				balanceOverCompletePath = bool(Glyphs.defaults["com.mekkablue.ComponentOnLines.balanceOverCompletePath"])
+				useBackground = self.prefBool("useBackground")
+				balanceOverCompletePath = self.prefBool("balanceOverCompletePath")
 
 				Font.disableUpdateInterface()
 				try:

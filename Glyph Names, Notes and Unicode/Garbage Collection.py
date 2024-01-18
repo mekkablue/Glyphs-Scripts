@@ -7,6 +7,7 @@ Removes annotations, glyph notes, guides, and node names.
 
 import vanilla
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 
 def extractUserDataKeys(obj):
@@ -27,8 +28,7 @@ def allUserDataKeysForFont(font):
 	return sorted(set(keys))
 
 
-class GarbageCollection(object):
-	prefID = "com.mekkablue.GarbageCollection"
+class GarbageCollection(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"removeNodeNames": 1,
@@ -62,7 +62,7 @@ class GarbageCollection(object):
 			"Garbage Collection",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.GarbageCollection.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -156,7 +156,7 @@ class GarbageCollection(object):
 
 		self.w.statusText = vanilla.TextBox((inset, -17 - inset, -80 - inset, 14), "", sizeStyle='small', selectable=False)
 
-		self.guiUpdate()
+		self.updateUI()
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Clean", sizeStyle='regular', callback=self.GarbageCollectionMain)
@@ -196,7 +196,7 @@ class GarbageCollection(object):
 			self.w.userDataKeys.set(userDataString)
 			self.SavePreferences()
 
-	def guiUpdate(self, sender=None):
+	def updateUI(self, sender=None):
 		uiItemNames = (
 			"removeNodeNames",
 			"removeAnnotations",
@@ -222,40 +222,6 @@ class GarbageCollection(object):
 
 		anyUserDataOn = self.pref("userDataGlyphs") or self.pref("userDataLayers") or self.pref("userDataInstances") or self.pref("userDataMasters") or self.pref("userDataFont")
 		self.w.userDataKeys.enable(anyUserDataOn)
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.guiUpdate(sender=sender)
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self, sender=None):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.guiUpdate(sender=sender)
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def log(self, msg):
 		try:

@@ -9,6 +9,7 @@ import vanilla
 import codecs
 from AppKit import NSFont, NSDictionary
 from GlyphsApp import Glyphs, GSAxis, GSInstance, INSTANCETYPEVARIABLE, GetSaveFile, GetOpenFile, Message
+from mekkaCore import mekkaObject
 
 defaultRecipe = """
 Recipe instructions:
@@ -214,8 +215,10 @@ def biggestSubstringInStrings(strings):
 	return ""
 
 
-class InstanceCooker(object):
-	prefID = "com.mekkablue.InstanceCooker"
+class InstanceCooker(mekkaObject):
+	prefDict = {
+		"recipe": defaultRecipe.lstrip()
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -278,42 +281,11 @@ class InstanceCooker(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			Glyphs.defaults[self.domain("recipe")] = self.w.recipe.get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault(self.domain("recipe"), defaultRecipe.lstrip())
-
-			# load previously written prefs:
-			self.w.recipe.set(self.pref("recipe"))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def exportRecipe(self, sender=None):
 		self.SavePreferences()
 		filePath = GetSaveFile(message="Save Recipe", ProposedFileName="instance recipe.txt", filetypes=("txt"))
 		if filePath:
-			fileContent = Glyphs.defaults["com.mekkablue.InstanceCooker.recipe"]
+			fileContent = self.pref("recipe")
 			saveFileInLocation(content=fileContent, filePath=filePath)
 
 	def importRecipe(self, sender=None):
@@ -321,13 +293,13 @@ class InstanceCooker(object):
 		if filePath:
 			fileContent = readFileFromLocation(filePath=filePath)
 			if fileContent:
-				Glyphs.defaults["com.mekkablue.InstanceCooker.recipe"] = fileContent
+				self.setPref("recipe", fileContent)
 				self.LoadPreferences()
 			else:
 				Message(title="File Error", message="File could not be read. Perhaps empty?", OKButton=None)
 
 	def resetRecipe(self, sender=None):
-		Glyphs.defaults["com.mekkablue.InstanceCooker.recipe"] = defaultRecipe.lstrip()
+		self.setPref("recipe", defaultRecipe.lstrip())
 		self.LoadPreferences()
 
 	def extractRecipe(self, sender=None):

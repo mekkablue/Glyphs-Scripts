@@ -8,10 +8,12 @@ Creates an estimated glyph and draws an estimated sign in it. Does the same for 
 # TODO: further abstraction of existing methods
 # TODO: emptyset, currency, lozenge, product, summation, radical
 
-from Foundation import NSPoint, NSRect, NSSize, NSAffineTransform, NSAffineTransformStruct, NSClassFromString
+from Foundation import NSPoint, NSRect, NSSize, NSAffineTransform
 import vanilla
 import math
 from GlyphsApp import Glyphs, GSGlyph, GSPath, GSNode, GSAnchor, GSOFFCURVE, GSCURVE, GSSMOOTH, distance
+from mekkaCore import mekkaObject
+from mekkaCore.geometry import transform, italicize, offsetLayer
 
 
 def scaleLayerByFactor(thisLayer, scaleFactor):
@@ -112,55 +114,6 @@ def circleInsideRect(rect):
 	return circlePath
 
 
-def italicize(coords, italicAngle=0.0, pivotalY=0.0):
-	"""
-	Returns the italicized position of an NSPoint 'thisPoint'
-	for a given angle 'italicAngle' and the pivotal height 'pivotalY',
-	around which the italic slanting is executed, usually half x-height.
-	Usage: myPoint = italicize(myPoint,10,xHeight*0.5)
-	"""
-	x = coords[0]
-	y = coords[1]
-	yOffset = y - pivotalY  # calculate vertical offset
-	italicAngle = math.radians(italicAngle)  # convert to radians
-	tangens = math.tan(italicAngle)  # math.tan needs radians
-	horizontalDeviance = tangens * yOffset  # vertical distance from pivotal point
-	x += horizontalDeviance  # x of point that is yOffset from pivotal point
-	return (x, y)
-
-
-def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
-	"""
-	Returns an NSAffineTransform object for transforming layers.
-	Apply an NSAffineTransform t object like this:
-		Layer.transform_checkForSelection_doComponents_(t,False,True)
-	Access its transformation matrix like this:
-		tMatrix = t.transformStruct()  # returns the 6-float tuple
-	Apply the matrix tuple like this:
-		Layer.applyTransform(tMatrix)
-		Component.applyTransform(tMatrix)
-		Path.applyTransform(tMatrix)
-	Chain multiple NSAffineTransform objects t1, t2 like this:
-		t1.appendTransform_(t2)
-	"""
-	myTransform = NSAffineTransform.transform()
-	if rotate:
-		myTransform.rotateByDegrees_(rotate)
-	if scale != 1.0:
-		myTransform.scaleBy_(scale)
-	if not (shiftX == 0.0 and shiftY == 0.0):
-		myTransform.translateXBy_yBy_(shiftX, shiftY)
-	if skew:
-		skewStruct = NSAffineTransformStruct()
-		skewStruct.m11 = 1.0
-		skewStruct.m22 = 1.0
-		skewStruct.m21 = math.tan(math.radians(skew))
-		skewTransform = NSAffineTransform.transform()
-		skewTransform.setTransformStruct_(skewStruct)
-		myTransform.appendTransform_(skewTransform)
-	return myTransform
-
-
 def isEmpty(layer):
 	try:
 		# GLYPHS 3:
@@ -228,41 +181,6 @@ def createGlyph(font, name, unicodeValue, override=False, defaultWidth=500):
 					del glyph.layers[i]
 
 			return glyph
-
-
-def offsetLayer(thisLayer, offset, makeStroke=False, position=0.5, autoStroke=False):
-	offsetFilter = NSClassFromString("GlyphsFilterOffsetCurve")
-	try:
-		# GLYPHS 3:
-		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyleStart_capStyleEnd_keepCompatibleOutlines_(
-			thisLayer,
-			offset,
-			offset,  # horizontal and vertical offset
-			makeStroke,  # if True, creates a stroke
-			autoStroke,  # if True, distorts resulting shape to vertical metrics
-			position,  # stroke distribution to the left and right, 0.5 = middle
-			None,
-			None,
-			None,
-			0,
-			0,
-			True
-		)
-	except:
-		# GLYPHS 2:
-		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyle_keepCompatibleOutlines_(
-			thisLayer,
-			offset,
-			offset,  # horizontal and vertical offset
-			makeStroke,  # if True, creates a stroke
-			autoStroke,  # if True, distorts resulting shape to vertical metrics
-			position,  # stroke distribution to the left and right, 0.5 = middle
-			thisLayer.glyphMetrics(),  # metrics (G3)
-			None,
-			None,  # error, shadow
-			0,  # NSButtLineCapStyle,  # cap style
-			True,  # keep compatible
-		)
 
 
 def circleCoordsForHeight(s):
@@ -710,8 +628,7 @@ def buildBars(thisFont, override=False):
 		print("⚠️ The glyphs bar and brokenbar already exist in this font. Rename or delete them and try again.")
 
 
-class BuildSymbols(object):
-	prefID = "com.mekkablue.BuildSymbols"
+class BuildSymbols(mekkaObject):
 	prefDict = {
 		"buildEstimated": 1,
 		"buildBars": 1,
@@ -740,7 +657,7 @@ class BuildSymbols(object):
 			"Build Symbols",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.BuildSymbols.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -836,40 +753,6 @@ class BuildSymbols(object):
 		Glyphs.defaults[self.domain("buildNotdef")] = onOrOff
 		Glyphs.defaults[self.domain("buildDottedcircle")] = onOrOff
 		self.LoadPreferences()
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def BuildSymbolsMain(self, sender):
 		try:

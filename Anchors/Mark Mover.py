@@ -6,59 +6,9 @@ Move marks to their respective heights, e.g. *comb.case to cap height, *comb to 
 """
 
 import vanilla
-from GlyphsApp import Glyphs, Message
-
-import math
-from AppKit import NSAffineTransform, NSAffineTransformStruct
 from Foundation import NSPoint
-
-
-def italicize(thisPoint, italicAngle=0.0, pivotalY=0.0):
-	"""
-	Returns the italicized position of an NSPoint 'thisPoint'
-	for a given angle 'italicAngle' and the pivotal height 'pivotalY',
-	around which the italic slanting is executed, usually half x-height.
-	Usage: myPoint = italicize(myPoint,10,xHeight*0.5)
-	"""
-	x = thisPoint.x
-	yOffset = thisPoint.y - pivotalY  # calculate vertical offset
-	italicAngle = math.radians(italicAngle)  # convert to radians
-	tangens = math.tan(italicAngle)  # math.tan needs radians
-	horizontalDeviance = tangens * yOffset  # vertical distance from pivotal point
-	x += horizontalDeviance  # x of point that is yOffset from pivotal point
-	return x
-
-
-def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
-	"""
-	Returns an NSAffineTransform object for transforming layers.
-	Apply an NSAffineTransform t object like this:
-		Layer.transform_checkForSelection_doComponents_(t,False,True)
-	Access its transformation matrix like this:
-		tMatrix = t.transformStruct()  # returns the 6-float tuple
-	Apply the matrix tuple like this:
-		Layer.applyTransform(tMatrix)
-		Component.applyTransform(tMatrix)
-		Path.applyTransform(tMatrix)
-	Chain multiple NSAffineTransform objects t1, t2 like this:
-		t1.appendTransform_(t2)
-	"""
-	myTransform = NSAffineTransform.transform()
-	if rotate:
-		myTransform.rotateByDegrees_(rotate)
-	if scale != 1.0:
-		myTransform.scaleBy_(scale)
-	if not (shiftX == 0.0 and shiftY == 0.0):
-		myTransform.translateXBy_yBy_(shiftX, shiftY)
-	if skew:
-		skewStruct = NSAffineTransformStruct()
-		skewStruct.m11 = 1.0
-		skewStruct.m22 = 1.0
-		skewStruct.m21 = math.tan(math.radians(skew))
-		skewTransform = NSAffineTransform.transform()
-		skewTransform.setTransformStruct_(skewStruct)
-		myTransform.appendTransform_(skewTransform)
-	return myTransform
+from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject, transform, italicize
 
 
 def moveLayer(thisLayer, verticalShift):
@@ -134,7 +84,19 @@ def moveGlyphToSmallCapHeight(thisGlyph):
 	return movedLayers
 
 
-class MarkMover(object):
+class MarkMover(mekkaObject):
+	prefID = ""
+	prefDict = {
+		"lowercaseMarks": 1,
+		"uppercaseMarks": 1,
+		"smallcapMarks": 0,
+		"setMetricsKeys": 0,
+		"leftMetricsKey": "=40",
+		"rightMetricsKey": "=|",
+		"includeAllGlyphs": 1,
+		"newTab": 1,
+		"reuseTab": 1,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -147,7 +109,7 @@ class MarkMover(object):
 			"Mark Mover",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.MarkMover.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -197,57 +159,6 @@ class MarkMover(object):
 		self.w.leftMetricsKey.enable(onOff)
 		self.w.rightMetricsKey.enable(onOff)
 
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			Glyphs.defaults["com.mekkablue.MarkMover.lowercaseMarks"] = self.w.lowercaseMarks.get()
-			Glyphs.defaults["com.mekkablue.MarkMover.uppercaseMarks"] = self.w.uppercaseMarks.get()
-			Glyphs.defaults["com.mekkablue.MarkMover.smallcapMarks"] = self.w.smallcapMarks.get()
-			Glyphs.defaults["com.mekkablue.MarkMover.setMetricsKeys"] = self.w.setMetricsKeys.get()
-			Glyphs.defaults["com.mekkablue.MarkMover.leftMetricsKey"] = self.w.leftMetricsKey.get()
-			Glyphs.defaults["com.mekkablue.MarkMover.rightMetricsKey"] = self.w.rightMetricsKey.get()
-			Glyphs.defaults["com.mekkablue.MarkMover.includeAllGlyphs"] = self.w.includeAllGlyphs.get()
-			Glyphs.defaults["com.mekkablue.MarkMover.newTab"] = self.w.newTab.get()
-			Glyphs.defaults["com.mekkablue.MarkMover.reuseTab"] = self.w.reuseTab.get()
-
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault("com.mekkablue.MarkMover.lowercaseMarks", 1)
-			Glyphs.registerDefault("com.mekkablue.MarkMover.uppercaseMarks", 1)
-			Glyphs.registerDefault("com.mekkablue.MarkMover.smallcapMarks", 0)
-			Glyphs.registerDefault("com.mekkablue.MarkMover.setMetricsKeys", 0)
-			Glyphs.registerDefault("com.mekkablue.MarkMover.leftMetricsKey", "=40")
-			Glyphs.registerDefault("com.mekkablue.MarkMover.rightMetricsKey", "=|")
-			Glyphs.registerDefault("com.mekkablue.MarkMover.includeAllGlyphs", 1)
-			Glyphs.registerDefault("com.mekkablue.MarkMover.newTab", 1)
-			Glyphs.registerDefault("com.mekkablue.MarkMover.reuseTab", 1)
-
-			# load previously written prefs:
-			self.w.lowercaseMarks.set(Glyphs.defaults["com.mekkablue.MarkMover.lowercaseMarks"])
-			self.w.uppercaseMarks.set(Glyphs.defaults["com.mekkablue.MarkMover.uppercaseMarks"])
-			self.w.smallcapMarks.set(Glyphs.defaults["com.mekkablue.MarkMover.smallcapMarks"])
-			self.w.setMetricsKeys.set(Glyphs.defaults["com.mekkablue.MarkMover.setMetricsKeys"])
-			self.w.leftMetricsKey.set(Glyphs.defaults["com.mekkablue.MarkMover.leftMetricsKey"])
-			self.w.rightMetricsKey.set(Glyphs.defaults["com.mekkablue.MarkMover.rightMetricsKey"])
-			self.w.includeAllGlyphs.set(Glyphs.defaults["com.mekkablue.MarkMover.includeAllGlyphs"])
-			self.w.newTab.set(Glyphs.defaults["com.mekkablue.MarkMover.newTab"])
-			self.w.reuseTab.set(Glyphs.defaults["com.mekkablue.MarkMover.reuseTab"])
-
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def MarkMoverMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -267,16 +178,16 @@ class MarkMover(object):
 				else:
 					print("⚠️ The font file has not been saved yet.")
 
-				descriptionText = Glyphs.defaults["com.mekkablue.MarkMover.descriptionText"]
-				lowercaseMarks = Glyphs.defaults["com.mekkablue.MarkMover.lowercaseMarks"]
-				uppercaseMarks = Glyphs.defaults["com.mekkablue.MarkMover.uppercaseMarks"]
-				smallcapMarks = Glyphs.defaults["com.mekkablue.MarkMover.smallcapMarks"]
-				setMetricsKeys = Glyphs.defaults["com.mekkablue.MarkMover.setMetricsKeys"]
-				leftMetricsKey = Glyphs.defaults["com.mekkablue.MarkMover.leftMetricsKey"]
-				rightMetricsKey = Glyphs.defaults["com.mekkablue.MarkMover.rightMetricsKey"]
-				includeAllGlyphs = Glyphs.defaults["com.mekkablue.MarkMover.includeAllGlyphs"]
-				newTab = Glyphs.defaults["com.mekkablue.MarkMover.newTab"]
-				reuseTab = Glyphs.defaults["com.mekkablue.MarkMover.reuseTab"]
+				descriptionText = self.pref("descriptionText")
+				lowercaseMarks = self.pref("lowercaseMarks")
+				uppercaseMarks = self.pref("uppercaseMarks")
+				smallcapMarks = self.pref("smallcapMarks")
+				setMetricsKeys = self.pref("setMetricsKeys")
+				leftMetricsKey = self.pref("leftMetricsKey")
+				rightMetricsKey = self.pref("rightMetricsKey")
+				includeAllGlyphs = self.pref("includeAllGlyphs")
+				newTab = self.pref("newTab")
+				reuseTab = self.pref("reuseTab")
 
 				if includeAllGlyphs:
 					glyphs = thisFont.glyphs

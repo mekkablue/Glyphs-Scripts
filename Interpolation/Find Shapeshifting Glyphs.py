@@ -7,6 +7,7 @@ Finds glyphs that change the number of visible shapes and countershapes while in
 
 import vanilla
 from GlyphsApp import Glyphs, GSInstance, Message
+from mekkaCore import mekkaObject
 
 tempMarker = "###DELETEME###"
 
@@ -45,7 +46,16 @@ def glyphInterpolation(thisGlyphName, thisInstance):
 		return None
 
 
-class FindShapeshiftingGlyphs(object):
+class FindShapeshiftingGlyphs(mekkaObject):
+	prefDict = {
+		"checkInstances": 0,
+		"onlyCheckSelection": 0,
+		"ignoreGlyphsWithoutPaths": 0,
+		"ignoreNonexportingGlyphs": 0,
+		"openTab": 0,
+		"reuseTab": 0,
+		"allFonts": 0
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -58,7 +68,7 @@ class FindShapeshiftingGlyphs(object):
 			"Find Shapeshifting Glyphs",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.FindShapeshiftingGlyphs.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -106,43 +116,6 @@ class FindShapeshiftingGlyphs(object):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.checkInstances"] = self.w.checkInstances.get()
-			# Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.alsoCheckMasters"] = self.w.alsoCheckMasters.get()
-			Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.onlyCheckSelection"] = self.w.onlyCheckSelection.get()
-			Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.ignoreGlyphsWithoutPaths"] = self.w.ignoreGlyphsWithoutPaths.get()
-			Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.ignoreNonexportingGlyphs"] = self.w.ignoreNonexportingGlyphs.get()
-			Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.openTab"] = self.w.openTab.get()
-			Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.reuseTab"] = self.w.reuseTab.get()
-			Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.allFonts"] = self.w.allFonts.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.FindShapeshiftingGlyphs.checkInstances", 0)
-
-			Glyphs.registerDefault("com.mekkablue.FindShapeshiftingGlyphs.onlyCheckSelection", 0)
-			Glyphs.registerDefault("com.mekkablue.FindShapeshiftingGlyphs.ignoreGlyphsWithoutPaths", 0)
-			Glyphs.registerDefault("com.mekkablue.FindShapeshiftingGlyphs.ignoreNonexportingGlyphs", 0)
-			Glyphs.registerDefault("com.mekkablue.FindShapeshiftingGlyphs.openTab", 0)
-			Glyphs.registerDefault("com.mekkablue.FindShapeshiftingGlyphs.reuseTab", 0)
-			Glyphs.registerDefault("com.mekkablue.FindShapeshiftingGlyphs.allFonts", 0)
-			self.w.checkInstances.set(Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.checkInstances"])
-			self.w.onlyCheckSelection.set(Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.onlyCheckSelection"])
-			self.w.ignoreGlyphsWithoutPaths.set(Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.ignoreGlyphsWithoutPaths"])
-			self.w.ignoreNonexportingGlyphs.set(Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.ignoreNonexportingGlyphs"])
-			self.w.openTab.set(Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.openTab"])
-			self.w.reuseTab.set(Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.reuseTab"])
-			self.w.allFonts.set(Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.allFonts"])
-		except:
-			return False
-
-		return True
 
 	def generateTestInstance(self, thisFont, indexMasterDict):
 		numOfMasters = len(indexMasterDict)
@@ -193,13 +166,13 @@ class FindShapeshiftingGlyphs(object):
 	def FindShapeshiftingGlyphsMain(self, sender):
 		try:
 			# query settings:
-			checkInstances = Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.checkInstances"]
-			onlyCheckSelection = Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.onlyCheckSelection"]
-			ignoreGlyphsWithoutPaths = Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.ignoreGlyphsWithoutPaths"]
-			ignoreNonexportingGlyphs = Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.ignoreNonexportingGlyphs"]
-			openTab = Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.openTab"]
-			reuseTab = Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.reuseTab"]
-			allFonts = Glyphs.defaults["com.mekkablue.FindShapeshiftingGlyphs.allFonts"]
+			checkInstances = self.pref("checkInstances")
+			onlyCheckSelection = self.pref("onlyCheckSelection")
+			ignoreGlyphsWithoutPaths = self.pref("ignoreGlyphsWithoutPaths")
+			ignoreNonexportingGlyphs = self.pref("ignoreNonexportingGlyphs")
+			openTab = self.pref("openTab")
+			reuseTab = self.pref("reuseTab")
+			allFonts = self.pref("allFonts")
 
 			# Clear macro window log:
 			Glyphs.clearLog()

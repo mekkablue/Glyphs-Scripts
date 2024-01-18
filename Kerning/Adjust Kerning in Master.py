@@ -12,12 +12,19 @@ Adjusts all kerning values by a specified amount.
 
 import vanilla
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 optionList = ("Multiply by", "Add", "Add Absolute", "Round by", "Limit to")
 
 
-class AdjustKerning(object):
-	prefID = "com.mekkablue.AdjustKerning"
+class AdjustKerning(mekkaObject):
+	prefDict = {
+		"doWhat": 0,
+		"howMuch": "20",
+		"positive": True,
+		"zero": True,
+		"negative": True,
+	}
 
 	def __init__(self):
 		# GUI:
@@ -31,7 +38,7 @@ class AdjustKerning(object):
 			"Adjust Kerning",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.AdjustKerning.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -63,46 +70,6 @@ class AdjustKerning(object):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults[self.domain("doWhat")] = self.w.doWhat.get()
-			Glyphs.defaults[self.domain("howMuch")] = self.w.howMuch.get()
-			Glyphs.defaults[self.domain("positive")] = self.w.positive.get()
-			Glyphs.defaults[self.domain("zero")] = self.w.zero.get()
-			Glyphs.defaults[self.domain("negative")] = self.w.negative.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault(self.domain("doWhat"), 0)
-			Glyphs.registerDefault(self.domain("howMuch"), "20")
-			Glyphs.registerDefault(self.domain("positive"), True)
-			Glyphs.registerDefault(self.domain("zero"), True)
-			Glyphs.registerDefault(self.domain("negative"), True)
-
-			# load previously written prefs:
-			self.w.doWhat.set(self.pref("doWhat"))
-			self.w.howMuch.set(self.pref("howMuch"))
-			self.w.positive.set(self.pref("positive"))
-			self.w.zero.set(self.pref("zero"))
-			self.w.negative.set(self.pref("negative"))
-		except:
-			return False
-
-		return True
 
 	def nameForID(self, Font, ID):
 		try:

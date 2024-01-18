@@ -7,9 +7,15 @@ Adds custom Unicode values to selected glyphs.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class CustomUnicode(object):
+class CustomUnicode(mekkaObject):
+	prefDict = {
+		"unicode": "E700",
+		"keepExistingUnicodes": 1,
+		"includeNonExportingGlyphs": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -22,7 +28,7 @@ class CustomUnicode(object):
 			"Add Unicode Values to Selected Glyphs",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.CustomUnicode.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -67,31 +73,11 @@ class CustomUnicode(object):
 		sender.set(enteredUnicode)
 		self.SavePreferences(sender)
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.CustomUnicode.unicode"] = self.w.unicode.get()
-			Glyphs.defaults["com.mekkablue.CustomUnicode.keepExistingUnicodes"] = self.w.keepExistingUnicodes.get()
-			Glyphs.defaults["com.mekkablue.CustomUnicode.includeNonExportingGlyphs"] = self.w.includeNonExportingGlyphs.get()
-			self.w.status.set("")
-		except:
-			return False
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.CustomUnicode.unicode", "E700")
-			Glyphs.registerDefault("com.mekkablue.CustomUnicode.keepExistingUnicodes", 1)
-			Glyphs.registerDefault("com.mekkablue.CustomUnicode.includeNonExportingGlyphs", 0)
-			self.w.unicode.set(Glyphs.defaults["com.mekkablue.CustomUnicode.unicode"])
-			self.w.keepExistingUnicodes.set(Glyphs.defaults["com.mekkablue.CustomUnicode.keepExistingUnicodes"])
-			self.w.includeNonExportingGlyphs.set(Glyphs.defaults["com.mekkablue.CustomUnicode.includeNonExportingGlyphs"])
-			self.w.status.set("")
-		except:
-			return False
-		return True
+	def updateUI(self):
+		self.w.status.set("")
 
 	def update(self, sender=None):
-		Glyphs.defaults["com.mekkablue.CustomUnicode.unicode"] = self.lastPUAofCurrentFont()
+		self.setPref("unicode", self.lastPUAofCurrentFont())
 		self.LoadPreferences()
 
 	def lastPUAofCurrentFont(self):
@@ -126,8 +112,8 @@ class CustomUnicode(object):
 
 			# just to be safe:
 			self.sanitizeEntry(self.w.unicode)
-			enteredUnicode = Glyphs.defaults["com.mekkablue.CustomUnicode.unicode"]
-			keepExistingUnicodes = bool(Glyphs.defaults["com.mekkablue.CustomUnicode.keepExistingUnicodes"])
+			enteredUnicode = self.pref("unicode")
+			keepExistingUnicodes = self.prefBool("keepExistingUnicodes")
 
 			if self.checkUnicodeEntry(enteredUnicode):
 				thisFont = Glyphs.font  # frontmost font
@@ -138,6 +124,7 @@ class CustomUnicode(object):
 				Glyphs.clearLog()
 				print("Setting Unicode values for '%s':" % thisFont.familyName)
 
+				includeNonExportingGlyphs = self.prefBool("includeNonExportingGlyphs")
 				# Apply Unicodes to selected glyphs:
 				for thisGlyph in listOfSelectedGlyphs:
 					if thisGlyph.export or includeNonExportingGlyphs:

@@ -7,9 +7,14 @@ Replaces Caps/Corners in all selected glyphs.
 
 import vanilla
 from GlyphsApp import Glyphs, CORNER, CAP, Message
+from mekkaCore import mekkaObject
 
 
-class FindAndReplaceCorners(object):
+class FindAndReplaceCorners(mekkaObject):
+	prefDict = {
+		"searchFor": "",
+		"replaceBy": "",
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -20,7 +25,7 @@ class FindAndReplaceCorners(object):
 			"Replace Corners",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth, windowHeight),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.FindAndReplaceCorners.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		thisFont = Glyphs.font
@@ -44,24 +49,6 @@ class FindAndReplaceCorners(object):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.FindAndReplaceCorners.searchFor"] = self.w.searchFor.get()
-			Glyphs.defaults["com.mekkablue.FindAndReplaceCorners.replaceBy"] = self.w.replaceBy.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			self.w.searchFor.set(Glyphs.defaults["com.mekkablue.FindAndReplaceCorners.searchFor"])
-			self.w.replaceBy.set(Glyphs.defaults["com.mekkablue.FindAndReplaceCorners.replaceBy"])
-		except:
-			return False
-
-		return True
 
 	def allCorners(self, font):
 		corners = []

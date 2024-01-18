@@ -10,6 +10,7 @@ import os
 import objc
 from AppKit import NSTimer
 from GlyphsApp import Glyphs, GSInstance, Message
+from mekkaCore import mekkaObject
 
 
 def saveFileInLocation(content="blabla", fileName="test.txt", filePath="~/Desktop"):
@@ -22,7 +23,12 @@ def saveFileInLocation(content="blabla", fileName="test.txt", filePath="~/Deskto
 	return True
 
 
-class OTVarGlyphAnimator(object):
+class OTVarGlyphAnimator(mekkaObject):
+	prefDict = {
+		"slider": 0,
+		"delay": 0.05,
+		"backAndForth": False,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -35,7 +41,7 @@ class OTVarGlyphAnimator(object):
 			"OTVar Player",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.OTVarGlyphAnimator.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -82,7 +88,7 @@ class OTVarGlyphAnimator(object):
 	def windowIsClosing(self):
 		try:
 			self.isPlaying = False
-			Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.slider"] = "0"
+			self.setPref("slider", "0")
 			return True
 		except Exception as e:
 			Glyphs.clearLog()
@@ -92,27 +98,6 @@ class OTVarGlyphAnimator(object):
 			import traceback
 			print(traceback.format_exc())
 			return False
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.slider"] = self.w.slider.get()
-			Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.backAndForth"] = self.w.backAndForth.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.OTVarGlyphAnimator.slider", 0)
-			Glyphs.registerDefault("com.mekkablue.OTVarGlyphAnimator.delay", 0.05)
-			Glyphs.registerDefault("com.mekkablue.OTVarGlyphAnimator.backAndForth", False)
-			self.w.slider.set(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.slider"])
-			self.w.backAndForth.set(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.backAndForth"])
-		except:
-			return False
-
-		return True
 
 	def setupWindow(self):
 		if not self.font.tabs:
@@ -144,7 +129,7 @@ class OTVarGlyphAnimator(object):
 		self.isPlaying = False
 
 		# reset slider and redraw the preview area:
-		Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.slider"] = 0
+		self.setPref("slider", 0)
 		Glyphs.redraw()
 
 	def redrawPreview(self, sender):
@@ -200,14 +185,14 @@ class OTVarGlyphAnimator(object):
 
 	def play_(self, sender):
 		try:
-			if not bool(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.backAndForth"]):
+			if not self.prefBool("backAndForth"):
 				self.direction = 1
 
 			# finer steps when played slowly:
 			smoothnessFactor = 1
-			if float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]) > 0.07:
+			if self.prefFloat("delay") > 0.07:
 				smoothnessFactor = 3
-			elif float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]) > 0.05:
+			elif self.prefFloat("delay") > 0.05:
 				smoothnessFactor = 2
 
 			# execute an animation step:
@@ -215,7 +200,7 @@ class OTVarGlyphAnimator(object):
 				# Move Slider:
 				sliderPos = self.w.slider.get()
 				if sliderPos >= 100:
-					if not bool(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.backAndForth"]):
+					if not self.prefBool("backAndForth"):
 						sliderPos = 0
 					else:
 						sliderPos = 99.9999
@@ -236,7 +221,7 @@ class OTVarGlyphAnimator(object):
 				# Call this method again after a delay:
 				playSignature = objc.selector(self.play_, signature=b'v@:')
 				self.timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
-					float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]) / smoothnessFactor,  # interval
+					self.prefFloat("delay") / smoothnessFactor,  # interval
 					self,  # target
 					playSignature,  # selector
 					None,  # userInfo
@@ -250,24 +235,24 @@ class OTVarGlyphAnimator(object):
 			print(traceback.format_exc())
 
 	def slower(self, sender):
-		delay = float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"])
+		delay = self.prefFloat("delay")
 		if delay <= 0.1:
 			delay += 0.01
 			self.w.faster.enable(onOff=True)
 		else:
 			# disable slower button at slowest setting:
 			self.w.slower.enable(onOff=False)
-		Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"] = delay
+		self.setPref("delay", delay)
 
 	def faster(self, sender):
-		delay = float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"])
+		delay = self.prefFloat("delay")
 		if delay > 0.01:
 			delay -= 0.005
 			self.w.slower.enable(onOff=True)
 		else:
 			# disable faster button at fastest setting:
 			self.w.faster.enable(onOff=False)
-		Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"] = delay
+		self.setPref("delay", delay)
 
 	def buildWeb(self, sender):
 		weightAxisPositions = []
@@ -318,7 +303,7 @@ body {
 <body>%s</body>
 </html>""" % (
 			self.font.familyName, self.font.familyName.replace(" ", ""), firstAxisTag, min(weightAxisPositions), firstAxisTag, max(weightAxisPositions), self.font.familyName,
-			float(Glyphs.defaults["com.mekkablue.OTVarGlyphAnimator.delay"]) * 50, " ".join(["&#x%s;" % g.unicode for g in self.font.glyphs if g.unicode and g.export])
+			self.prefFloat("delay") * 50, " ".join(["&#x%s;" % g.unicode for g in self.font.glyphs if g.unicode and g.export])
 		)
 
 		exportPath = None

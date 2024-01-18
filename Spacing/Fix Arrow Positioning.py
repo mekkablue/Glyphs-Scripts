@@ -6,9 +6,10 @@ Fixes the placement and metrics keys of arrows, dependent on a specified default
 """
 
 import vanilla
-import math
-from Foundation import NSPoint, NSAffineTransform, NSAffineTransformStruct
+from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
+from mekkaCore import transform
+from mekkaCore import mekkaObject
 
 
 def intersectionsBetweenPoints(thisLayer, startPoint, endPoint):
@@ -29,39 +30,16 @@ def intersectionsBetweenPoints(thisLayer, startPoint, endPoint):
 	return listOfIntersections
 
 
-def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
-	"""
-	Returns an NSAffineTransform object for transforming layers.
-	Apply an NSAffineTransform t object like this:
-		Layer.transform_checkForSelection_doComponents_(t,False,True)
-	Access its transformation matrix like this:
-		tMatrix = t.transformStruct()  # returns the 6-float tuple
-	Apply the matrix tuple like this:
-		Layer.applyTransform(tMatrix)
-		Component.applyTransform(tMatrix)
-		Path.applyTransform(tMatrix)
-	Chain multiple NSAffineTransform objects t1, t2 like this:
-		t1.appendTransform_(t2)
-	"""
-	myTransform = NSAffineTransform.transform()
-	if rotate:
-		myTransform.rotateByDegrees_(rotate)
-	if scale != 1.0:
-		myTransform.scaleBy_(scale)
-	if not (shiftX == 0.0 and shiftY == 0.0):
-		myTransform.translateXBy_yBy_(shiftX, shiftY)
-	if skew:
-		skewStruct = NSAffineTransformStruct()
-		skewStruct.m11 = 1.0
-		skewStruct.m22 = 1.0
-		skewStruct.m21 = math.tan(math.radians(skew))
-		skewTransform = NSAffineTransform.transform()
-		skewTransform.setTransformStruct_(skewStruct)
-		myTransform.appendTransform_(skewTransform)
-	return myTransform
-
-
-class FixArrowPositioning(object):
+class FixArrowPositioning(mekkaObject):
+	prefDict = {
+		"referenceForHorizontalArrows": 0,
+		"referenceForVerticalArrows": 0,
+		"referenceForDiagonalArrows": 0,
+		"verticalPosOfHorizontalArrows": 1,
+		"verticalPosOfDiagonalArrows": 0,
+		"addAndUpdateMetricsKeys": 1,
+		"suffix": "",
+	}
 	hArrows = ("rightArrow", "leftArrow")
 	vArrows = ("upArrow", "downArrow", "upDownArrow")
 	dArrows = ("northEastArrow", "southEastArrow", "southWestArrow", "northWestArrow")
@@ -77,7 +55,7 @@ class FixArrowPositioning(object):
 			"Fix Arrow Positioning",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.FixArrowPositioning.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -123,41 +101,6 @@ class FixArrowPositioning(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.FixArrowPositioning.referenceForHorizontalArrows"] = self.w.referenceForHorizontalArrows.get()
-			Glyphs.defaults["com.mekkablue.FixArrowPositioning.referenceForVerticalArrows"] = self.w.referenceForVerticalArrows.get()
-			Glyphs.defaults["com.mekkablue.FixArrowPositioning.referenceForDiagonalArrows"] = self.w.referenceForDiagonalArrows.get()
-			Glyphs.defaults["com.mekkablue.FixArrowPositioning.verticalPosOfHorizontalArrows"] = self.w.verticalPosOfHorizontalArrows.get()
-			Glyphs.defaults["com.mekkablue.FixArrowPositioning.verticalPosOfDiagonalArrows"] = self.w.verticalPosOfDiagonalArrows.get()
-			Glyphs.defaults["com.mekkablue.FixArrowPositioning.addAndUpdateMetricsKeys"] = self.w.addAndUpdateMetricsKeys.get()
-			Glyphs.defaults["com.mekkablue.FixArrowPositioning.suffix"] = self.w.suffix.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.FixArrowPositioning.referenceForHorizontalArrows", 0)
-			Glyphs.registerDefault("com.mekkablue.FixArrowPositioning.referenceForVerticalArrows", 0)
-			Glyphs.registerDefault("com.mekkablue.FixArrowPositioning.referenceForDiagonalArrows", 0)
-			Glyphs.registerDefault("com.mekkablue.FixArrowPositioning.verticalPosOfHorizontalArrows", 1)
-			Glyphs.registerDefault("com.mekkablue.FixArrowPositioning.verticalPosOfDiagonalArrows", 0)
-			Glyphs.registerDefault("com.mekkablue.FixArrowPositioning.addAndUpdateMetricsKeys", 1)
-			Glyphs.registerDefault("com.mekkablue.FixArrowPositioning.suffix", "")
-			self.w.referenceForHorizontalArrows.set(Glyphs.defaults["com.mekkablue.FixArrowPositioning.referenceForHorizontalArrows"])
-			self.w.referenceForVerticalArrows.set(Glyphs.defaults["com.mekkablue.FixArrowPositioning.referenceForVerticalArrows"])
-			self.w.referenceForDiagonalArrows.set(Glyphs.defaults["com.mekkablue.FixArrowPositioning.referenceForDiagonalArrows"])
-			self.w.verticalPosOfHorizontalArrows.set(Glyphs.defaults["com.mekkablue.FixArrowPositioning.verticalPosOfHorizontalArrows"])
-			self.w.verticalPosOfDiagonalArrows.set(Glyphs.defaults["com.mekkablue.FixArrowPositioning.verticalPosOfDiagonalArrows"])
-			self.w.addAndUpdateMetricsKeys.set(Glyphs.defaults["com.mekkablue.FixArrowPositioning.addAndUpdateMetricsKeys"])
-			self.w.suffix.set(Glyphs.defaults["com.mekkablue.FixArrowPositioning.suffix"])
-		except:
-			return False
-
-		return True
-
 	def addSuffixIfAny(self, glyphname, suffix):
 		suffix = suffix.strip()
 		glyphname = glyphname.strip()
@@ -194,11 +137,11 @@ class FixArrowPositioning(object):
 	def FixArrowPositioningMain(self, sender):
 		try:
 			# query and update reference and other names:
-			hArrowName = self.hArrows[Glyphs.defaults["com.mekkablue.FixArrowPositioning.referenceForHorizontalArrows"]]
-			vArrowName = self.vArrows[Glyphs.defaults["com.mekkablue.FixArrowPositioning.referenceForVerticalArrows"]]
-			dArrowName = self.dArrows[Glyphs.defaults["com.mekkablue.FixArrowPositioning.referenceForDiagonalArrows"]]
+			hArrowName = self.hArrows[self.pref("referenceForHorizontalArrows")]
+			vArrowName = self.vArrows[self.pref("referenceForVerticalArrows")]
+			dArrowName = self.dArrows[self.pref("referenceForDiagonalArrows")]
 
-			suffix = Glyphs.defaults["com.mekkablue.FixArrowPositioning.suffix"]
+			suffix = self.pref("suffix")
 			hArrowName = self.addSuffixIfAny(hArrowName, suffix)
 			vArrowName = self.addSuffixIfAny(vArrowName, suffix)
 			dArrowName = self.addSuffixIfAny(dArrowName, suffix)
@@ -209,9 +152,9 @@ class FixArrowPositioning(object):
 			allDiagonalArrowGlyphNames = [self.addSuffixIfAny(name, suffix) for name in self.dArrows]
 
 			# bools for what we should do:
-			shouldFixHorizontalArrows = bool(Glyphs.defaults["com.mekkablue.FixArrowPositioning.verticalPosOfHorizontalArrows"])
-			shouldFixDiagonalArrows = bool(Glyphs.defaults["com.mekkablue.FixArrowPositioning.verticalPosOfDiagonalArrows"])
-			shouldTakeCareOfMetricsKeys = bool(Glyphs.defaults["com.mekkablue.FixArrowPositioning.addAndUpdateMetricsKeys"])
+			shouldFixHorizontalArrows = self.prefBool("verticalPosOfHorizontalArrows")
+			shouldFixDiagonalArrows = self.prefBool("verticalPosOfDiagonalArrows")
+			shouldTakeCareOfMetricsKeys = self.prefBool("addAndUpdateMetricsKeys")
 
 			thisFont = Glyphs.font
 

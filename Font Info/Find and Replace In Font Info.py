@@ -13,11 +13,11 @@ Finds and replaces names in Font Info > Font and Instances.
 import vanilla
 import objc
 from GlyphsApp import Glyphs, GSFontInfoValueLocalized, Message
+from mekkaCore import mekkaObject
 
 
-class FindAndReplaceInFontInfo(object):
+class FindAndReplaceInFontInfo(mekkaObject):
 	totalCount = 0
-	prefID = "com.mekkablue.FindAndReplaceInFontInfo"
 	prefDict = {
 		# "prefName": defaultValue,
 		"includeInstances": 0,
@@ -40,7 +40,7 @@ class FindAndReplaceInFontInfo(object):
 			"Find and Replace in Font Info",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.FindAndReplaceInFontInfo.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -83,40 +83,6 @@ class FindAndReplaceInFontInfo(object):
 	def updateUI(self, sender=None):
 		self.w.runButton.enable(self.w.searchFor.get())
 		self.w.includeInactiveInstances.enable(self.w.includeInstances.get())
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def replaceInName(self, name, searchFor, replaceWith, completeWordsOnly=False, reportString="", avoidExcessiveWhiteSpace=True):
 		newName = name.strip()

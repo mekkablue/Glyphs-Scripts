@@ -8,9 +8,22 @@ Measures your superior and inferior figures and derives subscript/superscript X/
 import vanilla
 import math
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class CalculateSubscriptAndSuperscriptParameters(object):
+class CalculateSubscriptAndSuperscriptParameters(mekkaObject):
+	prefDict = {
+		"subscriptCheck": 1,
+		"subscriptSample": "oneinferior",
+		"subscriptReference": "one",
+		"superscriptCheck": 1,
+		"superscriptSample": "onesuperior",
+		"superscriptReference": "one",
+		"roundValues": 0,
+		"roundBy": 10,
+		"xSizeEqualsYSize": 0,
+		"syncWithFirstMaster": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -23,7 +36,7 @@ class CalculateSubscriptAndSuperscriptParameters(object):
 			"Set Subscript and Superscript Parameters",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.CalculateSubscriptAndSuperscriptParameters.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -89,70 +102,16 @@ class CalculateSubscriptAndSuperscriptParameters(object):
 
 	def resetValues(self, sender=None):
 		if sender == self.w.subscriptReset:
-			Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.subscriptSample"] = "oneinferior"
-			Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.subscriptReference"] = "one"
+			self.setPref("subscriptSample", "oneinferior")
+			self.setPref("subscriptReference" "one")
 		if sender == self.w.superscriptReset:
-			Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.superscriptSample"] = "onesuperior"
-			Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.superscriptReference"] = "one"
+			self.setPref("superscriptSample", "onesuperior")
+			self.setPref("superscriptReference", "one")
 		self.LoadPreferences()
 
 	def updateUI(self, sender=None):
 		self.w.runButton.enable(self.w.superscriptCheck.get() or self.w.subscriptCheck.get())
 		self.w.roundBy.enable(self.w.roundValues.get())
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.subscriptCheck"] = self.w.subscriptCheck.get()
-			Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.subscriptSample"] = self.w.subscriptSample.get()
-			Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.subscriptReference"] = self.w.subscriptReference.get()
-			Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.superscriptCheck"] = self.w.superscriptCheck.get()
-			Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.superscriptSample"] = self.w.superscriptSample.get()
-			Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.superscriptReference"] = self.w.superscriptReference.get()
-			Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.roundValues"] = self.w.roundValues.get()
-			Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.roundBy"] = self.w.roundBy.get()
-			Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.xSizeEqualsYSize"] = self.w.xSizeEqualsYSize.get()
-			Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.syncWithFirstMaster"] = self.w.syncWithFirstMaster.get()
-
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault("com.mekkablue.CalculateSubscriptAndSuperscriptParameters.subscriptCheck", 1)
-			Glyphs.registerDefault("com.mekkablue.CalculateSubscriptAndSuperscriptParameters.subscriptSample", "oneinferior")
-			Glyphs.registerDefault("com.mekkablue.CalculateSubscriptAndSuperscriptParameters.subscriptReference", "one")
-			Glyphs.registerDefault("com.mekkablue.CalculateSubscriptAndSuperscriptParameters.superscriptCheck", 1)
-			Glyphs.registerDefault("com.mekkablue.CalculateSubscriptAndSuperscriptParameters.superscriptSample", "onesuperior")
-			Glyphs.registerDefault("com.mekkablue.CalculateSubscriptAndSuperscriptParameters.superscriptReference", "one")
-			Glyphs.registerDefault("com.mekkablue.CalculateSubscriptAndSuperscriptParameters.roundValues", 0)
-			Glyphs.registerDefault("com.mekkablue.CalculateSubscriptAndSuperscriptParameters.roundBy", 10)
-			Glyphs.registerDefault("com.mekkablue.CalculateSubscriptAndSuperscriptParameters.xSizeEqualsYSize", 0)
-			Glyphs.registerDefault("com.mekkablue.CalculateSubscriptAndSuperscriptParameters.syncWithFirstMaster", 0)
-
-			# load previously written prefs:
-			self.w.subscriptCheck.set(Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.subscriptCheck"])
-			self.w.subscriptSample.set(Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.subscriptSample"])
-			self.w.subscriptReference.set(Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.subscriptReference"])
-			self.w.superscriptCheck.set(Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.superscriptCheck"])
-			self.w.superscriptSample.set(Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.superscriptSample"])
-			self.w.superscriptReference.set(Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.superscriptReference"])
-			self.w.roundValues.set(Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.roundValues"])
-			self.w.roundBy.set(Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.roundBy"])
-			self.w.xSizeEqualsYSize.set(Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.xSizeEqualsYSize"])
-			self.w.syncWithFirstMaster.set(Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.syncWithFirstMaster"])
-
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def roundByFactor(self, number, roundFactor):
 		if roundFactor > 1:
@@ -189,18 +148,18 @@ class CalculateSubscriptAndSuperscriptParameters(object):
 					print("⚠️ The font file has not been saved yet.")
 				print()
 
-				syncWithFirstMaster = Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.syncWithFirstMaster"]
-				xSizeEqualsYSize = Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.xSizeEqualsYSize"]
-				if Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.roundValues"]:
-					roundFactor = max(1, int(Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.roundBy"]))
+				syncWithFirstMaster = self.pref("syncWithFirstMaster")
+				xSizeEqualsYSize = self.pref("xSizeEqualsYSize")
+				if self.pref("roundValues"):
+					roundFactor = max(1, self.prefInt("roundBy"))
 					print("\nRounding all values by %i" % roundFactor)
 				else:
 					roundFactor = 1
 
 				for prefix in ("sub", "super"):
-					check = Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.%sscriptCheck" % prefix]
-					sample = Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.%sscriptSample" % prefix]
-					reference = Glyphs.defaults["com.mekkablue.CalculateSubscriptAndSuperscriptParameters.%sscriptReference" % prefix]
+					check = self.pref("%sscriptCheck" % prefix)
+					sample = self.pref("%sscriptSample" % prefix)
+					reference = self.pref("%sscriptReference" % prefix)
 
 					xOffsetName = "%sscriptXOffset" % prefix
 					yOffsetName = "%sscriptYOffset" % prefix

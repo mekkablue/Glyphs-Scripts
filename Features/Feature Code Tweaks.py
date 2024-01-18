@@ -7,6 +7,7 @@ Adds tweaks to OT feature code. Reports in Macro window.
 
 import vanilla
 from GlyphsApp import Glyphs, GSFeature, GSClass, GSFeaturePrefix
+from mekkaCore import mekkaObject
 
 
 def filterActiveCode(code):
@@ -219,7 +220,23 @@ def featureLineContainingXAlsoContains(font, featureName="ccmp", lineContaining=
 	return False
 
 
-class FeatureCodeTweaks(object):
+class FeatureCodeTweaks(mekkaObject):
+	prefDict = {
+		"scFeatureFix": 0,
+		"addArrowLigs": 0,
+		"germanLocalization": 0,
+		"dutchLocalization": 0,
+		"decomposePresentationForms": 0,
+		"includeIJ": 0,
+		"includeLdot": 0,
+		"includeBalkan": 0,
+		"repeatDecompositionInSC": 0,
+		"repeatDecompositionInOtherAffectedFeatures": 0,
+		"disableLiga": 0,
+		"fShortSubstitution": 0,
+		"magistra": 0,
+		"ssXX2salt": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -232,7 +249,7 @@ class FeatureCodeTweaks(object):
 			"Feature Code Tweaks",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.FeatureCodeTweaks.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -314,71 +331,14 @@ class FeatureCodeTweaks(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender):
-
-		try:
-			Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.scFeatureFix"] = self.w.scFeatureFix.get()
-			Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.addArrowLigs"] = self.w.addArrowLigs.get()
-			Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.germanLocalization"] = self.w.germanLocalization.get()
-			Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.dutchLocalization"] = self.w.dutchLocalization.get()
-			Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.decomposePresentationForms"] = self.w.decomposePresentationForms.get()
-			Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.includeIJ"] = self.w.includeIJ.get()
-			Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.includeLdot"] = self.w.includeLdot.get()
-			Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.includeBalkan"] = self.w.includeBalkan.get()
-			Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.repeatDecompositionInSC"] = self.w.repeatDecompositionInSC.get()
-			Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.repeatDecompositionInOtherAffectedFeatures"] = self.w.repeatDecompositionInOtherAffectedFeatures.get()
-			Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.disableLiga"] = self.w.disableLiga.get()
-			Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.fShortSubstitution"] = self.w.fShortSubstitution.get()
-			Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.magistra"] = self.w.magistra.get()
-			Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.ssXX2salt"] = self.w.ssXX2salt.get()
-
-			# disable/enable sub options:
-			onOrOff = Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.decomposePresentationForms"]
-			self.w.includeIJ.enable(onOrOff)
-			self.w.includeLdot.enable(onOrOff)
-			self.w.includeBalkan.enable(onOrOff)
-			self.w.disableLiga.enable(onOrOff)
-			self.w.repeatDecompositionInSC.enable(onOrOff)
-			self.w.repeatDecompositionInOtherAffectedFeatures.enable(onOrOff)
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.FeatureCodeTweaks.scFeatureFix", 0)
-			Glyphs.registerDefault("com.mekkablue.FeatureCodeTweaks.addArrowLigs", 0)
-			Glyphs.registerDefault("com.mekkablue.FeatureCodeTweaks.germanLocalization", 0)
-			Glyphs.registerDefault("com.mekkablue.FeatureCodeTweaks.dutchLocalization", 0)
-			Glyphs.registerDefault("com.mekkablue.FeatureCodeTweaks.decomposePresentationForms", 0)
-			Glyphs.registerDefault("com.mekkablue.FeatureCodeTweaks.includeIJ", 0)
-			Glyphs.registerDefault("com.mekkablue.FeatureCodeTweaks.includeLdot", 0)
-			Glyphs.registerDefault("com.mekkablue.FeatureCodeTweaks.includeBalkan", 0)
-			Glyphs.registerDefault("com.mekkablue.FeatureCodeTweaks.repeatDecompositionInSC", 0)
-			Glyphs.registerDefault("com.mekkablue.FeatureCodeTweaks.repeatDecompositionInOtherAffectedFeatures", 0)
-			Glyphs.registerDefault("com.mekkablue.FeatureCodeTweaks.disableLiga", 0)
-			Glyphs.registerDefault("com.mekkablue.FeatureCodeTweaks.fShortSubstitution", 0)
-			Glyphs.registerDefault("com.mekkablue.FeatureCodeTweaks.magistra", 0)
-			Glyphs.registerDefault("com.mekkablue.FeatureCodeTweaks.ssXX2salt", 0)
-			self.w.scFeatureFix.set(Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.scFeatureFix"])
-			self.w.addArrowLigs.set(Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.addArrowLigs"])
-			self.w.germanLocalization.set(Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.germanLocalization"])
-			self.w.dutchLocalization.set(Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.dutchLocalization"])
-			self.w.decomposePresentationForms.set(Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.decomposePresentationForms"])
-			self.w.includeIJ.set(Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.includeIJ"])
-			self.w.includeLdot.set(Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.includeLdot"])
-			self.w.includeBalkan.set(Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.includeBalkan"])
-			self.w.repeatDecompositionInSC.set(Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.repeatDecompositionInSC"])
-			self.w.repeatDecompositionInOtherAffectedFeatures.set(Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.repeatDecompositionInOtherAffectedFeatures"])
-			self.w.disableLiga.set(Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.disableLiga"])
-			self.w.fShortSubstitution.set(Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.fShortSubstitution"])
-			self.w.magistra.set(Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.magistra"])
-			self.w.ssXX2salt.set(Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.ssXX2salt"])
-		except:
-			return False
-
-		return True
+	def updateUI(self):
+		onOrOff = self.pref("decomposePresentationForms")
+		self.w.includeIJ.enable(onOrOff)
+		self.w.includeLdot.enable(onOrOff)
+		self.w.includeBalkan.enable(onOrOff)
+		self.w.disableLiga.enable(onOrOff)
+		self.w.repeatDecompositionInSC.enable(onOrOff)
+		self.w.repeatDecompositionInOtherAffectedFeatures.enable(onOrOff)
 
 	def decomposePresentationForms(self, feature="ccmp", includeIJ=False, includeLdot=False):
 		decomposeDict = {
@@ -391,14 +351,14 @@ class FeatureCodeTweaks(object):
 			"longs_t": ("longs", "t"),
 		}
 
-		if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.includeIJ"]:
+		if self.pref("includeIJ"):
 			includeIJ = {
 				"ij": ("i", "j"),
 				"IJ": ("I", "J"),
 			}
 			decomposeDict.update(includeIJ)
 
-		if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.includeLdot"]:
+		if self.pref("includeLdot"):
 			includeLdot = {
 				"Ldot": ("L", "periodcentered.loclCAT.case"),
 				"ldot": ("l", "periodcentered.loclCAT"),
@@ -406,7 +366,7 @@ class FeatureCodeTweaks(object):
 			}
 			decomposeDict.update(includeLdot)
 
-		if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.includeBalkan"]:
+		if self.pref("includeBalkan"):
 			includeBalkan = {
 				"LJ": ("L", "J"),
 				"lj": ("l", "j"),
@@ -510,9 +470,9 @@ class FeatureCodeTweaks(object):
 			# repeat in Small Caps if necessary:
 
 			affectedFeatures = []
-			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.repeatDecompositionInSC"]:
+			if self.pref("repeatDecompositionInSC"):
 				affectedFeatures.extend(("smcp", "c2sc"))
-			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.repeatDecompositionInOtherAffectedFeatures"]:
+			if self.pref("repeatDecompositionInOtherAffectedFeatures"):
 				for affectedFeature in thisFont.features:
 					if affectedFeature.name != feature:  # ccmp
 						print("-----", affectedFeature.name)
@@ -551,7 +511,7 @@ class FeatureCodeTweaks(object):
 
 			# disable codelines if necessary:
 
-			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.disableLiga"]:
+			if self.pref("disableLiga"):
 				# collect code to recognize (for disabling further below)
 				linestarts = []
 				for ligParts in disableList:
@@ -1090,42 +1050,42 @@ class FeatureCodeTweaks(object):
 			print(thisFont.filepath)
 
 			# ccmp fi, fl, etc.
-			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.scFeatureFix"]:
+			if self.pref("scFeatureFix"):
 				print(u"\n- SC Feature Fix")
 				self.scFeatureFix()
 
 			# arrows
-			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.addArrowLigs"]:
+			if self.pref("addArrowLigs"):
 				print(u"\n- Add Arrow Ligs")
 				self.addArrowLigs()
 
 			# locl DEU: calt G/germandbls
-			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.germanLocalization"]:
+			if self.pref("germanLocalization"):
 				print(u"\n- German Localization")
 				self.germanLocalization()
 
 			# locl NLD
-			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.dutchLocalization"]:
+			if self.pref("dutchLocalization"):
 				print(u"\n- Dutch Localization")
 				self.dutchLocalization()
 
 			# SC additions (i/jdotless)
-			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.decomposePresentationForms"]:
+			if self.pref("decomposePresentationForms"):
 				print(u"\n- Decompose Presentation Forms")
 				self.decomposePresentationForms()
 
 			# short f substitution
-			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.fShortSubstitution"]:
+			if self.pref("fShortSubstitution"):
 				print(u"\n- Add f.short substitutions")
 				self.fShortSubstitution()
 
 			# Mag.a
-			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.magistra"]:
+			if self.pref("magistra"):
 				print(u"\n- Add Mag.a substitutions")
 				self.magistraSubstitution()
 
 			# ssXX to salt
-			if Glyphs.defaults["com.mekkablue.FeatureCodeTweaks.ssXX2salt"]:
+			if self.pref("ssXX2salt"):
 				print(u"\n- Add salt feature with ssXX lookups")
 				self.ssXX2salt()
 		except Exception as e:

@@ -7,13 +7,28 @@ Syncs widths and centers glyphs for +−×÷=≠±≈¬, optionally also Less/gr
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 mathOperators = u"+−×÷=≠±≈¬"
 lessGreater = u"><≥≤"
 asciiOperators = u"~^"
 
 
-class FixMathOperatorSpacing(object):
+class FixMathOperatorSpacing(mekkaObject):
+	prefDict = {
+		"referenceOperator": 0,
+		"suffix": "",
+		"SyncWidths": 0,
+		"centerMathOperators": 0,
+		"metricKeysForMathOperators": 0,
+		"syncWidthsLessGreater": 0,
+		"SyncWidthsAscii": 0,
+		"lessGreaterRadioButtons": 0,
+		"lessGreaterMetricReference": 0,
+		"syncWidthOfLessGreaterReference": 0,
+		"ignoreAutoAligned": 0,
+		"deleteLayerMetricsKeys": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -26,7 +41,7 @@ class FixMathOperatorSpacing(object):
 			"Fix Math Operator Spacing",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.FixMathOperatorSpacing.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -110,7 +125,7 @@ class FixMathOperatorSpacing(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def updateTextsInUI(self):
+	def updateUI(self):
 		enteredSuffix = self.suffixWithDot(self.w.suffix.get().strip())
 
 		referenceOperator = self.w.referenceOperator.getTitle().split()[-1]
@@ -130,68 +145,13 @@ class FixMathOperatorSpacing(object):
 		self.w.lessGreaterMetricReference.enable(onOff)
 		self.w.syncWidthOfLessGreaterReference.enable(onOff)
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.referenceOperator"] = self.w.referenceOperator.get()
-			Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.suffix"] = self.w.suffix.get()
-			Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.SyncWidths"] = self.w.SyncWidths.get()
-			Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.centerMathOperators"] = self.w.centerMathOperators.get()
-			Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.metricKeysForMathOperators"] = self.w.metricKeysForMathOperators.get()
-			Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.syncWidthsLessGreater"] = self.w.syncWidthsLessGreater.get()
-			Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.SyncWidthsAscii"] = self.w.SyncWidthsAscii.get()
-			Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.lessGreaterRadioButtons"] = self.w.lessGreaterRadioButtons.get()
-			Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.lessGreaterMetricReference"] = self.w.lessGreaterMetricReference.get()
-			Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.syncWidthOfLessGreaterReference"] = self.w.syncWidthOfLessGreaterReference.get()
-			Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.ignoreAutoAligned"] = self.w.ignoreAutoAligned.get()
-			Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.deleteLayerMetricsKeys"] = self.w.deleteLayerMetricsKeys.get()
-
-			self.updateTextsInUI()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.FixMathOperatorSpacing.referenceOperator", 0)
-			Glyphs.registerDefault("com.mekkablue.FixMathOperatorSpacing.suffix", "")
-			Glyphs.registerDefault("com.mekkablue.FixMathOperatorSpacing.SyncWidths", 0)
-			Glyphs.registerDefault("com.mekkablue.FixMathOperatorSpacing.centerMathOperators", 0)
-			Glyphs.registerDefault("com.mekkablue.FixMathOperatorSpacing.metricKeysForMathOperators", 0)
-			Glyphs.registerDefault("com.mekkablue.FixMathOperatorSpacing.syncWidthsLessGreater", 0)
-			Glyphs.registerDefault("com.mekkablue.FixMathOperatorSpacing.SyncWidthsAscii", 0)
-			Glyphs.registerDefault("com.mekkablue.FixMathOperatorSpacing.lessGreaterRadioButtons", 0)
-			Glyphs.registerDefault("com.mekkablue.FixMathOperatorSpacing.lessGreaterMetricReference", 0)
-			Glyphs.registerDefault("com.mekkablue.FixMathOperatorSpacing.syncWidthOfLessGreaterReference", 0)
-			Glyphs.registerDefault("com.mekkablue.FixMathOperatorSpacing.ignoreAutoAligned", 0)
-			Glyphs.registerDefault("com.mekkablue.FixMathOperatorSpacing.deleteLayerMetricsKeys", 0)
-
-			self.w.referenceOperator.set(Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.referenceOperator"])
-			self.w.suffix.set(Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.suffix"])
-			self.w.SyncWidths.set(Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.SyncWidths"])
-			self.w.centerMathOperators.set(Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.centerMathOperators"])
-			self.w.metricKeysForMathOperators.set(Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.metricKeysForMathOperators"])
-			self.w.syncWidthsLessGreater.set(Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.syncWidthsLessGreater"])
-			self.w.SyncWidthsAscii.set(Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.SyncWidthsAscii"])
-			self.w.lessGreaterRadioButtons.set(Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.lessGreaterRadioButtons"])
-			self.w.lessGreaterMetricReference.set(Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.lessGreaterMetricReference"])
-			self.w.syncWidthOfLessGreaterReference.set(Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.syncWidthOfLessGreaterReference"])
-			self.w.ignoreAutoAligned.set(Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.ignoreAutoAligned"])
-			self.w.deleteLayerMetricsKeys.set(Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.deleteLayerMetricsKeys"])
-
-			self.updateTextsInUI()
-		except:
-			return False
-
-		return True
-
 	def OpenTab(self, sender):
 		# update prefs:
 		self.SavePreferences(sender)
 
 		# all operators
 		tabText = u"+−×÷=≠±≈¬\n<>≤≥\n^~"
-		suffix = self.suffixWithDot(Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.suffix"])
+		suffix = self.suffixWithDot(self.pref("suffix"))
 
 		# opens new Edit tab:
 		thisFont = Glyphs.font
@@ -224,7 +184,7 @@ class FixMathOperatorSpacing(object):
 		print(u"   ✅ Centered shape on layer: %s" % layer.name)
 
 	def updateMetricKeys(self, layer):
-		if Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.deleteLayerMetricsKeys"]:
+		if self.pref("deleteLayerMetricsKeys"):
 			layer.leftMetricsKey = None
 			layer.rightMetricsKey = None
 			layer.widthMetricsKey = None
@@ -246,17 +206,17 @@ class FixMathOperatorSpacing(object):
 		try:
 			self.SavePreferences(None)  # get the current UI state (in case two windows are open)
 
-			suffix = self.suffixWithDot(Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.suffix"])
+			suffix = self.suffixWithDot(self.pref("suffix"))
 
-			syncWidths = Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.SyncWidths"]
-			syncWidthsLessGreater = Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.syncWidthsLessGreater"]
-			syncWidthsAscii = Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.SyncWidthsAscii"]
+			syncWidths = self.pref("SyncWidths")
+			syncWidthsLessGreater = self.pref("syncWidthsLessGreater")
+			syncWidthsAscii = self.pref("SyncWidthsAscii")
 
-			centerMathOperators = Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.centerMathOperators"]
-			metricKeysForMathOperators = Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.metricKeysForMathOperators"]
-			lessGreaterRadioButtons = int(Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.lessGreaterRadioButtons"])
+			centerMathOperators = self.pref("centerMathOperators")
+			metricKeysForMathOperators = self.pref("metricKeysForMathOperators")
+			lessGreaterRadioButtons = self.prefInt("lessGreaterRadioButtons")
 			lessGreaterMetricReferenceName = "%s%s" % (self.w.lessGreaterMetricReference.getTitle().split()[-1], suffix)
-			syncWidthOfLessGreaterReference = Glyphs.defaults["com.mekkablue.FixMathOperatorSpacing.syncWidthOfLessGreaterReference"]
+			syncWidthOfLessGreaterReference = self.pref("syncWidthOfLessGreaterReference")
 
 			Glyphs.clearLog()
 			thisFont = Glyphs.font  # frontmost font

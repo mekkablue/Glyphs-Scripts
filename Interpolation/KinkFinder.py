@@ -9,6 +9,8 @@ import vanilla
 from Foundation import NSPoint
 from math import hypot
 from GlyphsApp import Glyphs, GSInstance, GSAnnotation, CIRCLE, GSSMOOTH, Message, subtractPoints
+from mekkaCore import mekkaObject
+
 tempMarker = "###DELETEME###"
 nodeMarker = "⛔️"
 
@@ -63,8 +65,18 @@ for i in range(0,105,5):
 """
 
 
-class KinkFinder(object):
-	prefID = "com.mekkablue.KinkFinder"
+class KinkFinder(mekkaObject):
+	prefDict = {
+		"maxKinkSize": 0.9,
+		"allGlyphs": 0,
+		"exportingOnly": 1,
+		"markKinks": 0,
+		"findKinksWhere": 0,
+		"reportIncompatibilities": 0,
+		"reportIncompatibilities": 0,
+		"reportIncompatibilities": 0,
+	}
+
 	instances = None
 
 	def __init__(self):
@@ -78,7 +90,7 @@ class KinkFinder(object):
 			"Kink Finder",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.KinkFinder.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -139,7 +151,7 @@ class KinkFinder(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def adaptUItext(self, sender):
+	def updateUI(self, sender):
 		# 0: between all masters (false positives with 6+ masters)
 		# 1: between adjacent masters only (single axis, 3+ masters)
 		# 2: in all current active instances
@@ -151,61 +163,10 @@ class KinkFinder(object):
 		else:
 			self.w.markKinks.setTitle("Mark kinky nodes in first layer")
 
-		if Glyphs.defaults["com.mekkablue.KinkFinder.allGlyphs"]:
+		if self.pref("allGlyphs"):
 			self.w.runButton.setTitle("Open Tab")
 		else:
 			self.w.runButton.setTitle("Find Kinks")
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			Glyphs.defaults[self.domain("maxKinkSize")] = self.w.maxKinkSize.get()
-			Glyphs.defaults[self.domain("allGlyphs")] = self.w.allGlyphs.get()
-			Glyphs.defaults[self.domain("exportingOnly")] = self.w.exportingOnly.get()
-			Glyphs.defaults[self.domain("markKinks")] = self.w.markKinks.get()
-			Glyphs.defaults[self.domain("findKinksWhere")] = self.w.findKinksWhere.get()
-			Glyphs.defaults[self.domain("reportIncompatibilities")] = self.w.reportIncompatibilities.get()
-			Glyphs.defaults[self.domain("bringMacroWindowToFront")] = self.w.bringMacroWindowToFront.get()
-			Glyphs.defaults[self.domain("betweenAdjacentMastersOnly")] = self.w.betweenAdjacentMastersOnly.get()
-			self.adaptUItext(sender)
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self, sender=None):
-		try:
-			Glyphs.registerDefault(self.domain("maxKinkSize"), 0.9)
-			Glyphs.registerDefault(self.domain("allGlyphs"), 0)
-			Glyphs.registerDefault(self.domain("exportingOnly"), 1)
-			Glyphs.registerDefault(self.domain("markKinks"), 0)
-			Glyphs.registerDefault(self.domain("findKinksWhere"), 0)
-			Glyphs.registerDefault(self.domain("reportIncompatibilities"), 0)
-			Glyphs.registerDefault(self.domain("reportIncompatibilities"), 0)
-			Glyphs.registerDefault(self.domain("reportIncompatibilities"), 0)
-			self.w.maxKinkSize.set(self.pref("maxKinkSize"))
-			self.w.allGlyphs.set(self.pref("allGlyphs"))
-			self.w.exportingOnly.set(self.pref("exportingOnly"))
-			self.w.markKinks.set(self.pref("markKinks"))
-			self.w.findKinksWhere.set(self.pref("findKinksWhere"))
-			self.w.reportIncompatibilities.set(self.pref("reportIncompatibilities"))
-			self.w.bringMacroWindowToFront.set(self.pref("bringMacroWindowToFront"))
-			self.w.betweenAdjacentMastersOnly.set(self.pref("betweenAdjacentMastersOnly"))
-
-			# update UI:
-			self.adaptUItext(sender)
-		except:
-
-			return False
-
-		return True
 
 	def kinkSizeForNode(self, kinkNode):
 		# print "node nr.", kinkNode.index, "pos:", kinkNode.position, "handles:", kinkNode.prevNode.type, kinkNode.nextNode.type
@@ -366,7 +327,7 @@ class KinkFinder(object):
 
 			# query user settings:
 			thisFont = Glyphs.font
-			maxKink = float(self.pref("maxKinkSize"))
+			maxKink = self.prefFloat("maxKinkSize")
 			kinkyGlyphNames = []
 			kinkyLayers = []
 			if self.pref("allGlyphs"):

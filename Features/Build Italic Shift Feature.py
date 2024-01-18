@@ -6,8 +6,8 @@ Creates and inserts GPOS feature code for shifting glyphs, e.g., parentheses and
 """
 
 import vanilla
-import math
 from GlyphsApp import Glyphs, GSFeature
+from mekkaCore import italicize
 
 
 def updatedCode(oldCode, beginSig, endSig, newCode):
@@ -61,6 +61,17 @@ def createOTFeature(featureName="case", featureCode="# empty feature code", targ
 
 
 class ItalicShiftFeature(object):
+	prefDict = {
+		"edit_1a": "case",
+		"edit_1b": "100",
+		"edit_1c": "exclamdown questiondown",
+		"edit_2a": "case",
+		"edit_2b": "50",
+		"edit_2c": "parenleft parenright braceleft braceright bracketleft bracketright",
+		"edit_3a": "",
+		"edit_3b": "",
+		"edit_3c": "",
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -73,7 +84,7 @@ class ItalicShiftFeature(object):
 			"Italic Shift Feature",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.ItalicShiftFeature.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -110,61 +121,6 @@ class ItalicShiftFeature(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_1a"] = self.w.edit_1a.get()
-			Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_1b"] = self.w.edit_1b.get()
-			Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_1c"] = self.w.edit_1c.get()
-			Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_2a"] = self.w.edit_2a.get()
-			Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_2b"] = self.w.edit_2b.get()
-			Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_2c"] = self.w.edit_2c.get()
-			Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_3a"] = self.w.edit_3a.get()
-			Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_3b"] = self.w.edit_3b.get()
-			Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_3c"] = self.w.edit_3c.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.ItalicShiftFeature.edit_1a", "case")
-			Glyphs.registerDefault("com.mekkablue.ItalicShiftFeature.edit_1b", "100")
-			Glyphs.registerDefault("com.mekkablue.ItalicShiftFeature.edit_1c", "exclamdown questiondown")
-			Glyphs.registerDefault("com.mekkablue.ItalicShiftFeature.edit_2a", "case")
-			Glyphs.registerDefault("com.mekkablue.ItalicShiftFeature.edit_2b", "50")
-			Glyphs.registerDefault("com.mekkablue.ItalicShiftFeature.edit_2c", "parenleft parenright braceleft braceright bracketleft bracketright")
-			Glyphs.registerDefault("com.mekkablue.ItalicShiftFeature.edit_3a", "")
-			Glyphs.registerDefault("com.mekkablue.ItalicShiftFeature.edit_3b", "")
-			Glyphs.registerDefault("com.mekkablue.ItalicShiftFeature.edit_3c", "")
-			self.w.edit_1a.set(Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_1a"])
-			self.w.edit_1b.set(Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_1b"])
-			self.w.edit_1c.set(Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_1c"])
-			self.w.edit_2a.set(Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_2a"])
-			self.w.edit_2b.set(Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_2b"])
-			self.w.edit_2c.set(Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_2c"])
-			self.w.edit_3a.set(Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_3a"])
-			self.w.edit_3b.set(Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_3b"])
-			self.w.edit_3c.set(Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_3c"])
-		except:
-			return False
-
-		return True
-
-	def italicize(self, shift=100.0, italicAngle=0.0, pivotalY=0.0):
-		"""
-		Returns the italicized position of an NSPoint 'thisPoint'
-		for a given angle 'italicAngle' and the pivotal height 'pivotalY',
-		around which the italic slanting is executed, usually half x-height.
-		Usage: myPoint = italicize(myPoint,10,xHeight*0.5)
-		"""
-		yOffset = shift - pivotalY  # calculate vertical offset
-		italicAngle = math.radians(italicAngle)  # convert to radians
-		tangens = math.tan(italicAngle)  # math.tan needs radians
-		horizontalDeviance = tangens * yOffset  # vertical distance from pivotal point
-		horizontalDeviance  # x of point that is yOffset from pivotal point
-		return horizontalDeviance
-
 	def ItalicShiftFeatureMain(self, sender):
 		try:
 			thisFont = Glyphs.font  # frontmost font
@@ -173,15 +129,15 @@ class ItalicShiftFeature(object):
 			features = {}
 
 			for lookupIndex in (1, 2, 3):
-				otFeature = Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_%ia" % lookupIndex]
-				verticalShift = Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_%ib" % lookupIndex]
-				glyphNames = Glyphs.defaults["com.mekkablue.ItalicShiftFeature.edit_%ic" % lookupIndex]
+				otFeature = self.pref("edit_%ia" % lookupIndex)
+				verticalShift = self.pref("edit_%ib" % lookupIndex)
+				glyphNames = self.pref("edit_%ic" % lookupIndex)
 
 				if otFeature and len(otFeature) > 3 and glyphNames:
 					if verticalShift:
 						verticalShift = int(verticalShift)
 						if verticalShift != 0:
-							otCode = "\tpos [%s] <%i %i 0 0>;\n" % (glyphNames, self.italicize(shift=verticalShift, italicAngle=italicAngle), verticalShift)
+							otCode = "\tpos [%s] <%i %i 0 0>;\n" % (glyphNames, italicize(pivotalY=verticalShift, italicAngle=italicAngle), verticalShift)
 
 							if otFeature in features:
 								features[otFeature] += otCode

@@ -8,8 +8,8 @@ Searches in PyObjC method names of a chosen object.
 import vanilla
 from AppKit import NSObject, NSPasteboard, NSStringPboardType
 # from pydoc import help
-
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 
 def setClipboard(myText):
@@ -29,7 +29,11 @@ def setClipboard(myText):
 		return False
 
 
-class MethodReporter(object):
+class MethodReporter(mekkaObject):
+	prefDict = {
+		"objectPicker": "GSLayer",
+		"filter": "",
+	}
 
 	def __init__(self):
 		self.mostImportantObjects = (
@@ -93,7 +97,7 @@ class MethodReporter(object):
 			"Method Reporter",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.MethodReporter.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI ELEMENTS:
@@ -143,27 +147,6 @@ class MethodReporter(object):
 			self.w.objectPicker.setPosSize((3, 2, 133, 24))
 			self.w.textFilter.setPosSize((140, 6, 35, 14))
 			self.w.filter.setPosSize((173, 1, -1, 24))
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.MethodReporter.filter"] = self.w.filter.get()
-			Glyphs.defaults["com.mekkablue.MethodReporter.objectPicker"] = self.w.objectPicker.get()
-		except:
-			return False
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault(
-				"com.mekkablue.MethodReporter.objectPicker",
-				"GSLayer",
-			)
-			Glyphs.registerDefault("com.mekkablue.MethodReporter.filter", "")
-			self.w.objectPicker.set(Glyphs.defaults["com.mekkablue.MethodReporter.objectPicker"])
-			self.w.filter.set(Glyphs.defaults["com.mekkablue.MethodReporter.filter"])
-		except:
-			return False
-		return True
 
 	def copySelection(self, sender):
 		try:

@@ -8,9 +8,17 @@ Compares every exception to the group kerning available for the same pair. If th
 import vanilla
 from AppKit import NSBeep
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class DeleteExceptionsTooCloseToGroupKerning(object):
+class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
+	prefDict = {
+		"selectedGlyphsOnly": 0,
+		"threshold": 10,
+		"onlyReportDontDelete": 0,
+		"reuseTab": 1,
+		"openTab": 1,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -23,7 +31,7 @@ class DeleteExceptionsTooCloseToGroupKerning(object):
 			"Exception Cleaner",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -76,42 +84,10 @@ class DeleteExceptionsTooCloseToGroupKerning(object):
 	def updateUI(self, sender=None):
 		self.w.reuseTab.enable(self.w.openTab.get())
 
-		if Glyphs.defaults["com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.onlyReportDontDelete"]:
+		if self.pref("onlyReportDontDelete"):
 			self.w.runButton.setTitle("Report")
 		else:
 			self.w.runButton.setTitle("Clean")
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.selectedGlyphsOnly"] = self.w.selectedGlyphsOnly.get()
-			Glyphs.defaults["com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.threshold"] = int(self.w.threshold.get())
-			Glyphs.defaults["com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.onlyReportDontDelete"] = self.w.onlyReportDontDelete.get()
-			Glyphs.defaults["com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.openTab"] = self.w.openTab.get()
-			Glyphs.defaults["com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.reuseTab"] = self.w.reuseTab.get()
-
-			self.updateUI()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.selectedGlyphsOnly", 0)
-			Glyphs.registerDefault("com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.threshold", 10)
-			Glyphs.registerDefault("com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.onlyReportDontDelete", 0)
-			Glyphs.registerDefault("com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.reuseTab", 1)
-			Glyphs.registerDefault("com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.openTab", 1)
-
-			self.w.selectedGlyphsOnly.set(Glyphs.defaults["com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.selectedGlyphsOnly"])
-			self.w.threshold.set(Glyphs.defaults["com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.threshold"])
-			self.w.onlyReportDontDelete.set(Glyphs.defaults["com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.onlyReportDontDelete"])
-			self.w.reuseTab.set(Glyphs.defaults["com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.reuseTab"])
-			self.w.openTab.set(Glyphs.defaults["com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.openTab"])
-		except:
-			return False
-
-		return True
 
 	def glyphNameForKernSide(self, thisFont, kernSideName, isTheLeftSide=True):
 		if kernSideName.startswith("@"):
@@ -146,11 +122,11 @@ class DeleteExceptionsTooCloseToGroupKerning(object):
 			thisMaster = thisFont.selectedFontMaster
 			thisMasterID = thisMaster.id
 
-			onlyReportDontDelete = Glyphs.defaults["com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.onlyReportDontDelete"]
-			onlySelectedGlyphs = Glyphs.defaults["com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.selectedGlyphsOnly"]
-			threshold = int(Glyphs.defaults["com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.threshold"])
-			openTab = Glyphs.defaults["com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.openTab"]
-			reuseTab = Glyphs.defaults["com.mekkablue.DeleteExceptionsTooCloseToGroupKerning.reuseTab"]
+			onlyReportDontDelete = self.pref("onlyReportDontDelete")
+			onlySelectedGlyphs = self.pref("selectedGlyphsOnly")
+			threshold = self.prefInt("threshold")
+			openTab = self.pref("openTab")
+			reuseTab = self.pref("reuseTab")
 
 			if onlySelectedGlyphs:
 				selection = thisFont.selectedLayers

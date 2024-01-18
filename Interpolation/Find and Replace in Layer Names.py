@@ -7,9 +7,15 @@ Replaces strings in layer names of all selected glyphs. Useful for adjusting lay
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class replaceInLayerNames(object):
+class replaceInLayerNames(mekkaObject):
+	prefDict = {
+		"searchFor": "[10]",
+		"replaceBy": "[20]",
+		"allGlyphs": True,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -22,7 +28,7 @@ class replaceInLayerNames(object):
 			"Find and Replace in Layer Names",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.FindAndReplaceInLayerNames.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		self.w.textSearch = vanilla.TextBox((15, 15, 67, 14), "Search for:", sizeStyle='small')
@@ -40,39 +46,16 @@ class replaceInLayerNames(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.FindAndReplaceInLayerNames.searchFor"] = self.w.searchFor.get()
-			Glyphs.defaults["com.mekkablue.FindAndReplaceInLayerNames.replaceBy"] = self.w.replaceBy.get()
-			Glyphs.defaults["com.mekkablue.FindAndReplaceInLayerNames.allGlyphs"] = self.w.allGlyphs.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.FindAndReplaceInLayerNames.searchFor", "[10]")
-			Glyphs.registerDefault("com.mekkablue.FindAndReplaceInLayerNames.replaceBy", "[20]")
-			Glyphs.registerDefault("com.mekkablue.FindAndReplaceInLayerNames.allGlyphs", True)
-			self.w.searchFor.set(Glyphs.defaults["com.mekkablue.FindAndReplaceInLayerNames.searchFor"])
-			self.w.replaceBy.set(Glyphs.defaults["com.mekkablue.FindAndReplaceInLayerNames.replaceBy"])
-			self.w.allGlyphs.set(Glyphs.defaults["com.mekkablue.FindAndReplaceInLayerNames.allGlyphs"])
-		except:
-			return False
-
-		return True
-
 	def buttonCallback(self, sender):
 		thisFont = Glyphs.font
-		if Glyphs.defaults["com.mekkablue.FindAndReplaceInLayerNames.allGlyphs"]:
+		if self.pref("allGlyphs"):
 			glyphsToProcess = thisFont.glyphs
 		else:
 			selectedLayers = thisFont.selectedLayers
 			glyphsToProcess = [layer.parent for layer in selectedLayers]
 
-		searchFor = Glyphs.defaults["com.mekkablue.FindAndReplaceInLayerNames.searchFor"]
-		replaceBy = Glyphs.defaults["com.mekkablue.FindAndReplaceInLayerNames.replaceBy"]
+		searchFor = self.pref("searchFor")
+		replaceBy = self.pref("replaceBy")
 
 		replaceCount = 0
 

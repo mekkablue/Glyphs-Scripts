@@ -8,6 +8,7 @@ Creates a variable font setting in Font Info > Exports.
 import vanilla
 from string import ascii_letters, digits
 from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE, INSTANCETYPEVARIABLE, GSPropertyNameVariationsPostScriptNamePrefixKey, Message
+from mekkaCore import mekkaObject
 
 
 def shortenPSStyleName(psStyleName):
@@ -67,8 +68,7 @@ def psVersionOfName(name, shorten=False):
 	return psName
 
 
-class OTVARMaker(object):
-	prefID = "com.mekkablue.OTVARMaker"
+class OTVARMaker(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"suffix": "VF",
@@ -151,42 +151,9 @@ class OTVARMaker(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def guiCheck(self, sender=None):
+	def updateUI(self, sender=None):
 		enable = bool(self.pref("suffix").strip())
 		self.w.runButton.enable(enable)
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.guiCheck()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def OTVARMakerMain(self, sender=None):
 		try:

@@ -5,22 +5,12 @@ __doc__ = """
 In selected glyphs, moves all ogonek and _ogonek anchors to the rightmost intersection of the outline with the baseline. Verbose report in
 """
 
-import math
 from Foundation import NSPoint, NSMutableArray
 from GlyphsApp import Glyphs
-
 
 thisFont = Glyphs.font  # frontmost font
 thisFontMaster = thisFont.selectedFontMaster  # active master
 selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
-
-
-def angle(firstPoint, secondPoint):
-	xDiff = firstPoint.x - secondPoint.x
-	yDiff = firstPoint.y - secondPoint.y
-	tangens = yDiff / xDiff
-	angle = math.atan(tangens) * 180.0 / math.pi
-	return angle
 
 
 def sliceIntersections(thisLayer, startPoint, endPoint):

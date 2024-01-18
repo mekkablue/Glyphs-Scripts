@@ -7,10 +7,15 @@ Will add RSB =| if the RSB is the same as the LSB in all masters.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class AddMetricsKeysforSymmetricGlyphs(object):
-	prefID = "com.mekkablue.AddMetricsKeysforSymmetricGlyphs"
+class AddMetricsKeysforSymmetricGlyphs(mekkaObject):
+	prefDict = {
+		"tolerance": 2,
+		"updateMetrics": 1,
+		"allGlyphs": 1,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -53,43 +58,6 @@ class AddMetricsKeysforSymmetricGlyphs(object):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			Glyphs.defaults[self.domain("tolerance")] = self.w.tolerance.get()
-			Glyphs.defaults[self.domain("updateMetrics")] = self.w.updateMetrics.get()
-			Glyphs.defaults[self.domain("allGlyphs")] = self.w.allGlyphs.get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault(self.domain("tolerance"), 2)
-			Glyphs.registerDefault(self.domain("updateMetrics"), 1)
-			Glyphs.registerDefault(self.domain("allGlyphs"), 1)
-
-			# load previously written prefs:
-			self.w.tolerance.set(self.pref("tolerance"))
-			self.w.updateMetrics.set(self.pref("updateMetrics"))
-			self.w.allGlyphs.set(self.pref("allGlyphs"))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def glyphIsEmpty(self, thisGlyph):
 		for thisLayer in thisGlyph.layers:
@@ -135,7 +103,7 @@ class AddMetricsKeysforSymmetricGlyphs(object):
 					print("⚠️ The font file has not been saved yet.")
 				print()
 
-				tolerance = float(self.pref("tolerance"))
+				tolerance = self.prefFloat("tolerance")
 				updateMetrics = self.pref("updateMetrics")
 				allGlyphs = self.pref("allGlyphs")
 

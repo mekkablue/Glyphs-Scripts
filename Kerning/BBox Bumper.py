@@ -10,6 +10,7 @@ import math
 from Foundation import NSRect, NSUnionRect, NSIsEmptyRect, NSInsetRect, NSStringFromRect, NSAffineTransform, NSAffineTransformStruct
 from kernanalysis import stringToListOfGlyphsForFont, minDistanceBetweenTwoLayers
 from GlyphsApp import Glyphs, GSFeature, GSLayer, GSPath, Message
+from mekkaCore import mekkaObject
 
 
 def updatedCode(oldCode, beginSig, endSig, newCode):
@@ -94,8 +95,7 @@ def unionRectForLayers(layers):
 	return unionRect
 
 
-class BBoxBumperKerning(object):
-	prefID = "com.mekkablue.BBoxBumperKerning"
+class BBoxBumperKerning(mekkaObject):
 	prefDict = {
 		"token": "name like '*superior'",
 		"otClassName": "superior",
@@ -233,38 +233,6 @@ class BBoxBumperKerning(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def openURL(self, sender=None):
 		URL = None
 		if sender == self.w.helpToken:
@@ -285,16 +253,16 @@ class BBoxBumperKerning(object):
 
 			otClassName = self.pref("otClassName")
 			token = self.pref("token")
-			bboxBubbleExtension = float(self.pref("bboxBubbleExtension"))
+			bboxBubbleExtension = self.prefFloat("bboxBubbleExtension")
 			otherGlyphsString = self.pref("otherGlyphs")
 			otherGlyphsOnLeftSide = self.pref("otherGlyphsOnLeftSide")
 			otherGlyphsOnRightSide = self.pref("otherGlyphsOnRightSide")
 			allowKerningExceptions = self.pref("allowKerningExceptions")
-			minDistance = float(self.pref("minDistance"))
-			maxDistance = float(self.pref("maxDistance"))
-			thresholdKerning = float(self.pref("thresholdKerning"))
-			thresholdWidth = float(self.pref("thresholdWidth"))
-			# roundBy = float(self.pref("roundBy"))
+			minDistance = self.prefFloat("minDistance")
+			maxDistance = self.prefFloat("maxDistance")
+			thresholdKerning = self.prefFloat("thresholdKerning")
+			thresholdWidth = self.prefFloat("thresholdWidth")
+			# roundBy = self.prefFloat("roundBy")
 			scope = self.pref("scope")
 
 			if Glyphs.font is None:

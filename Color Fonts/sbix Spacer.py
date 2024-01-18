@@ -8,10 +8,10 @@ Batch-set sbix positions and glyph widths.
 import vanilla
 from AppKit import NSRect, NSPoint, NSSize, NSAffineTransform
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class sbixSpacer(object):
-	prefID = "com.mekkablue.sbixSpacer"
+class sbixSpacer(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"allGlyphs": 0,
@@ -84,38 +84,6 @@ class sbixSpacer(object):
 		self.w.verticalShiftValue.enable(self.w.verticalShift.get())
 		self.w.runButton.enable(self.w.insertMarkers.get() or self.w.verticalShift.get() or self.w.resetWidths.get())
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def addMarkers(self, layer=None, bounds=None):
 		if layer and bounds:
 			markerPositions = (
@@ -155,9 +123,9 @@ class sbixSpacer(object):
 				# query user settings:
 				insertMarkers = self.pref("insertMarkers")
 				verticalShift = self.pref("verticalShift")
-				verticalShiftValue = int(self.pref("verticalShiftValue"))
+				verticalShiftValue = self.prefInt("verticalShiftValue")
 				resetWidths = self.pref("resetWidths")
-				preferredSizeForWidth = int(self.pref("preferredSizeForWidth"))
+				preferredSizeForWidth = self.prefInt("preferredSizeForWidth")
 				allGlyphs = self.pref("allGlyphs")
 				allMasters = self.pref("allMasters")
 

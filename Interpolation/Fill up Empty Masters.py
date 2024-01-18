@@ -6,9 +6,9 @@ Looks for empty master layers and adds shapes of a preferred master.
 """
 
 import vanilla
-import sys
 from copy import copy as copy
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 labelColors = (
 	"🔴 Red",
@@ -26,8 +26,7 @@ labelColors = (
 )
 
 
-class FillUpEmptyMasters(object):
-	prefID = "com.mekkablue.FillUpEmptyMasters"
+class FillUpEmptyMasters(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"masterChoice": 0,
@@ -59,7 +58,7 @@ class FillUpEmptyMasters(object):
 
 		self.w.masterChoiceText = vanilla.TextBox((inset, linePos + 2, 95, 14), "Use shapes from", sizeStyle="small", selectable=True)
 		self.w.masterChoice = vanilla.PopUpButton((inset + 95, linePos, -inset - 25, 17), (), sizeStyle="small", callback=self.SavePreferences)
-		self.w.masterChoiceUpdate = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateGUI)
+		self.w.masterChoiceUpdate = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.masterChoiceUpdateAction)
 		linePos += lineHeight
 
 		self.w.firstOneWithShapes = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "If empty, use first master with shapes", value=False, callback=self.SavePreferences, sizeStyle="small")
@@ -91,15 +90,10 @@ class FillUpEmptyMasters(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
+	def masterChoiceUpdateAction(self, sender):
+		self.updateUI()
 
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def updateGUI(self, sender=None):
+	def updateUI(self, sender=None):
 		self.w.layerColor.enable(self.pref("markWithColor"))
 		if Glyphs.font:
 			masterNames = [m.name for m in Glyphs.font.masters]
@@ -113,32 +107,6 @@ class FillUpEmptyMasters(object):
 			self.w.masterChoice.setItems([])
 			self.w.runButton.enable(0)
 
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.updateGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			self.updateGUI()
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def FillUpEmptyMastersMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -147,15 +115,6 @@ class FillUpEmptyMasters(object):
 			# update settings to the latest user input:
 			if not self.SavePreferences():
 				print("⚠️ ‘Fill Up Empty Masters’ could not write preferences.")
-
-			# read prefs:
-			for prefName in self.prefDict.keys():
-				try:
-					setattr(sys.modules[__name__], prefName, self.pref(prefName))
-				except:
-					fallbackValue = self.prefDict[prefName]
-					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
-					setattr(sys.modules[__name__], prefName, fallbackValue)
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
@@ -168,14 +127,14 @@ class FillUpEmptyMasters(object):
 					reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
 				print(f"Fill Up Empty Masters Report for {reportName}")
 				print()
-				sourceMaster = thisFont.masters[masterChoice]
+				sourceMaster = thisFont.masters[self.pref("masterChoice")]
 				sourceID = sourceMaster.id
 				selectedGlyphs = set([layer.parent for layer in thisFont.selectedLayers])
 				layerCount = 0
 				for thisGlyph in selectedGlyphs:
 					self.w.status.set(f"🔤 Filling up {thisGlyph.name}...")
 					sourceLayer = thisGlyph.layers[sourceID]
-					if not sourceLayer.shapes and firstOneWithShapes:
+					if not sourceLayer.shapes and self.pref("firstOneWithShapes"):
 						sourceLayer = None
 						for master in thisFont.masters:
 							if thisGlyph.layers[master.id].shapes:
@@ -197,15 +156,15 @@ class FillUpEmptyMasters(object):
 							for sourceAnchor in sourceLayer.anchors:
 								targetLayer.anchors.append(copy(sourceAnchor))
 
-							if copySidebearings:
+							if self.pref("copySidebearings"):
 								targetLayer.LSB = sourceLayer.LSB
 								targetLayer.RSB = sourceLayer.RSB
 
-							if addMissingAnchors:
+							if self.pref("addMissingAnchors"):
 								targetLayer.addMissingAnchors()
 
-							if markWithColor:
-								targetLayer.color = layerColor
+							if self.pref("markWithColor"):
+								targetLayer.color = self.pref("layerColor")
 
 			finalMessage = f"✅ Done. Filled up {layerCount} layer{'' if layerCount == 1 else 's'} in {len(selectedGlyphs)} glyph{'' if len(selectedGlyphs) == 1 else 's'}."
 			print(f"\n{finalMessage}")

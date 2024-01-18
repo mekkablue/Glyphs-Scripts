@@ -8,12 +8,22 @@ Goes through all interpolations and finds segments shorter than a user-specified
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSAnnotation, TEXT, Message, distance
+from mekkaCore import mekkaObject
 
 tempMarker = "###DELETEME###"
 nodeMarker = "👌🏻"
 
 
-class ShortSegmentFinder(object):
+class ShortSegmentFinder(mekkaObject):
+	prefDict = {
+		"minSegmentLength": 10.0,
+		"findShortSegmentsInMasters": 0,
+		"allGlyphs": 0,
+		"exportingOnly": 1,
+		"reportIncompatibilities": 0,
+		"markSegments": 1,
+		"bringMacroWindowToFront": 1,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -26,7 +36,7 @@ class ShortSegmentFinder(object):
 			"Short Segment Finder",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.ShortSegmentFinder.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -81,55 +91,18 @@ class ShortSegmentFinder(object):
 		self.w.makeKey()
 
 		#
-		self.adaptUItext(None)
+		self.updateUI(None)
 
-	def adaptUItext(self, sender):
-		if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.findShortSegmentsInMasters"]:
+	def updateUI(self, sender):
+		if self.pref("findShortSegmentsInMasters"):
 			self.w.markSegments.setTitle("Mark short segments 👌🏻")
 		else:
 			self.w.markSegments.setTitle("Mark short segments 👌🏻 in first layer")
 
-		if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.allGlyphs"]:
+		if self.pref("allGlyphs"):
 			self.w.runButton.setTitle("Open Tab")
 		else:
 			self.w.runButton.setTitle("Find Segments")
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.ShortSegmentFinder.minSegmentLength"] = self.w.minSegmentLength.get()
-			Glyphs.defaults["com.mekkablue.ShortSegmentFinder.findShortSegmentsInMasters"] = self.w.findShortSegmentsInMasters.get()
-			Glyphs.defaults["com.mekkablue.ShortSegmentFinder.allGlyphs"] = self.w.allGlyphs.get()
-			Glyphs.defaults["com.mekkablue.ShortSegmentFinder.exportingOnly"] = self.w.exportingOnly.get()
-			Glyphs.defaults["com.mekkablue.ShortSegmentFinder.reportIncompatibilities"] = self.w.reportIncompatibilities.get()
-			Glyphs.defaults["com.mekkablue.ShortSegmentFinder.markSegments"] = self.w.markSegments.get()
-			Glyphs.defaults["com.mekkablue.ShortSegmentFinder.bringMacroWindowToFront"] = self.w.bringMacroWindowToFront.get()
-			self.adaptUItext(sender)
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.ShortSegmentFinder.minSegmentLength", 10.0)
-			Glyphs.registerDefault("com.mekkablue.ShortSegmentFinder.findShortSegmentsInMasters", 0)
-			Glyphs.registerDefault("com.mekkablue.ShortSegmentFinder.allGlyphs", 0)
-			Glyphs.registerDefault("com.mekkablue.ShortSegmentFinder.exportingOnly", 1)
-			Glyphs.registerDefault("com.mekkablue.ShortSegmentFinder.reportIncompatibilities", 0)
-			Glyphs.registerDefault("com.mekkablue.ShortSegmentFinder.markSegments", 1)
-			Glyphs.registerDefault("com.mekkablue.ShortSegmentFinder.bringMacroWindowToFront", 1)
-			self.w.minSegmentLength.set(Glyphs.defaults["com.mekkablue.ShortSegmentFinder.minSegmentLength"])
-			self.w.findShortSegmentsInMasters.set(Glyphs.defaults["com.mekkablue.ShortSegmentFinder.findShortSegmentsInMasters"])
-			self.w.allGlyphs.set(Glyphs.defaults["com.mekkablue.ShortSegmentFinder.allGlyphs"])
-			self.w.exportingOnly.set(Glyphs.defaults["com.mekkablue.ShortSegmentFinder.exportingOnly"])
-			self.w.reportIncompatibilities.set(Glyphs.defaults["com.mekkablue.ShortSegmentFinder.reportIncompatibilities"])
-			self.w.markSegments.set(Glyphs.defaults["com.mekkablue.ShortSegmentFinder.markSegments"])
-			self.w.bringMacroWindowToFront.set(Glyphs.defaults["com.mekkablue.ShortSegmentFinder.bringMacroWindowToFront"])
-			self.adaptUItext(None)
-		except:
-			return False
-
-		return True
 
 	def approxLengthOfSegment(self, segment):
 		try:
@@ -258,7 +231,7 @@ class ShortSegmentFinder(object):
 
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()
-			if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.bringMacroWindowToFront"]:
+			if self.pref("bringMacroWindowToFront"):
 				Glyphs.showMacroWindow()
 			# print(">> DEBUG CHECKPOINT 1")###DEBUG-DELETE LATER
 
@@ -270,8 +243,8 @@ class ShortSegmentFinder(object):
 
 			# query user settings:
 			thisFont = Glyphs.font
-			minLength = float(Glyphs.defaults["com.mekkablue.ShortSegmentFinder.minSegmentLength"])
-			if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.allGlyphs"]:
+			minLength = self.prefFloat("minSegmentLength")
+			if self.pref("allGlyphs"):
 				glyphsToProbe = thisFont.glyphs
 			else:
 				glyphsToProbe = [layer.parent for layer in thisFont.selectedLayers]
@@ -286,14 +259,14 @@ class ShortSegmentFinder(object):
 				# update progress bar:
 				# print(">> DEBUG CHECKPOINT 4")###DEBUG-DELETE LATER
 				# self.w.progress.set( int(100*(float(index)/numOfGlyphs)) ) ###UNHIDE?
-				if thisGlyph.export or not Glyphs.defaults["com.mekkablue.ShortSegmentFinder.exportingOnly"]:
+				if thisGlyph.export or not self.pref("exportingOnly"):
 					# print(">> DEBUG CHECKPOINT 5")###DEBUG-DELETE LATER
 					# clean node markers if necessary:
-					if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.markSegments"]:
+					if self.pref("markSegments"):
 						self.cleanNodeNamesInGlyph(thisGlyph, nodeMarker)
 					# print(">> DEBUG CHECKPOINT 6")###DEBUG-DELETE LATER
 					# find segments in masters:
-					if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.findShortSegmentsInMasters"]:
+					if self.pref("findShortSegmentsInMasters"):
 						# print(">> DEBUG CHECKPOINT 7")###DEBUG-DELETE LATER
 						for currentLayer in thisGlyph.layers:
 							# print(">> DEBUG CHECKPOINT 8")###DEBUG-DELETE LATER
@@ -320,7 +293,7 @@ class ShortSegmentFinder(object):
 									shortSegmentGlyphNames.append(thisGlyph.name)
 									# print(">> DEBUG CHECKPOINT 12")###DEBUG-DELETE LATER
 									# mark in canvas if required:
-									if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.markSegments"]:
+									if self.pref("markSegments"):
 										# print(">> DEBUG CHECKPOINT 13")###DEBUG-DELETE LATER
 										for shortSegment in shortSegments:
 											# print(">> DEBUG CHECKPOINT 14")###DEBUG-DELETE LATER
@@ -349,7 +322,7 @@ class ShortSegmentFinder(object):
 							interpolatedLayer = self.glyphInterpolation(thisGlyph.name, thisInstance)
 							if not interpolatedLayer:
 								# print(">> DEBUG CHECKPOINT 17")###DEBUG-DELETE LATER
-								if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.reportIncompatibilities"]:
+								if self.pref("reportIncompatibilities"):
 									# print(">> DEBUG CHECKPOINT 18")###DEBUG-DELETE LATER
 									print("⚠️ %s: No paths in '%s'." % (thisGlyph.name, instanceName))
 							else:
@@ -372,7 +345,7 @@ class ShortSegmentFinder(object):
 									# collect name:
 									shortSegmentGlyphNames.append(thisGlyph.name)
 									# mark in canvas if required:
-									if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.markSegments"]:
+									if self.pref("markSegments"):
 										# print(">> DEBUG CHECKPOINT 22")###DEBUG-DELETE LATER
 										for shortSegment in shortSegments:
 											# print(">> DEBUG CHECKPOINT 23")###DEBUG-DELETE LATER
@@ -395,14 +368,14 @@ class ShortSegmentFinder(object):
 				print("\nSkipped %i glyphs:\n%s" % (len(skippedGlyphNames), ", ".join(skippedGlyphNames)))
 
 			# turn on View > Show Annotations:
-			if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.markSegments"]:
+			if self.pref("markSegments"):
 				Glyphs.defaults["showAnnotations"] = 1
 
 			# report affected glyphs:
 
 			# found short segments in master layers > open these layers:
 			if shortSegmentLayers:
-				if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.allGlyphs"]:
+				if self.pref("allGlyphs"):
 					shortSegmentTab = thisFont.newTab()
 					shortSegmentTab.layers = shortSegmentLayers
 				else:
@@ -419,7 +392,7 @@ class ShortSegmentFinder(object):
 
 			# found short segments in interpolations > open the glyphs:
 			elif shortSegmentGlyphNames:
-				if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.allGlyphs"]:
+				if self.pref("allGlyphs"):
 					tabText = "/" + "/".join(set(shortSegmentGlyphNames))
 					thisFont.newTab(tabText)
 				else:
@@ -437,7 +410,7 @@ class ShortSegmentFinder(object):
 					title="No Short Segments Found",
 					message="Could not find any segments smaller than %.1f units in %s of %s. Congratulations." % (
 						minLength,
-						"master layers" if Glyphs.defaults["com.mekkablue.ShortSegmentFinder.findShortSegmentsInMasters"] else "interpolations",
+						"master layers" if self.pref("findShortSegmentsInMasters") else "interpolations",
 						thisFont.familyName,
 					),
 					OKButton=None,

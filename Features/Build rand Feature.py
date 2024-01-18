@@ -18,6 +18,13 @@ def getRootName(glyphName):
 
 
 class BuildRandFeature(object):
+	prefDict = {
+		"overwrite": 1,
+		"suffix": ".cv",
+		"exclude": 1,
+		"excludeList": ".build, .ss12",
+		"includeDefault": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -30,7 +37,7 @@ class BuildRandFeature(object):
 			"Build rand Feature",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.BuildRandFeature.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -42,7 +49,7 @@ class BuildRandFeature(object):
 		self.w.suffixText = vanilla.TextBox((inset, linePos + 3, 45, 14), u"Suffix:", sizeStyle='small', selectable=True)
 		self.w.suffix = vanilla.ComboBox((inset + 45, linePos, -inset - 25, 17), self.fillSuffixes(), sizeStyle='small', callback=self.SavePreferences)
 		self.w.suffix.getNSComboBox().setToolTip_(u"Find all (exporting) glyphs that have this suffix and in OT feature ‘rand’, build a one-from-many substitution with them. Hint: keep the dot, but avoid the figures, e.g. for all stylistic sets, type ‘.ss’.")
-		self.w.suffixReset = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), u"↺", sizeStyle='small', callback=self.updateUI)
+		self.w.suffixReset = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), u"↺", sizeStyle='small', callback=self.updateSuffixs)
 		linePos += lineHeight
 
 		self.w.exclude = vanilla.CheckBox((inset, linePos, 160, 20), "Exclude glyphs containing:", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -67,53 +74,14 @@ class BuildRandFeature(object):
 			print("Note: 'Build rand Feature' could not load preferences. Will resort to defaults")
 
 		# Open window and focus on it:
-		self.guiUpdate()
+		self.updateUI()
 		self.w.open()
 		self.w.makeKey()
 
-	def guiUpdate(self, sender=None):
+	def updateUI(self, sender=None):
 		self.w.excludeList.enable(self.w.exclude.get())
 
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			Glyphs.defaults["com.mekkablue.BuildRandFeature.overwrite"] = self.w.overwrite.get()
-			Glyphs.defaults["com.mekkablue.BuildRandFeature.suffix"] = self.w.suffix.get()
-			Glyphs.defaults["com.mekkablue.BuildRandFeature.exclude"] = self.w.exclude.get()
-			Glyphs.defaults["com.mekkablue.BuildRandFeature.excludeList"] = self.w.excludeList.get()
-			Glyphs.defaults["com.mekkablue.BuildRandFeature.includeDefault"] = self.w.includeDefault.get()
-
-			self.guiUpdate()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault("com.mekkablue.BuildRandFeature.overwrite", 1)
-			Glyphs.registerDefault("com.mekkablue.BuildRandFeature.suffix", ".cv")
-			Glyphs.registerDefault("com.mekkablue.BuildRandFeature.exclude", 1)
-			Glyphs.registerDefault("com.mekkablue.BuildRandFeature.excludeList", ".build, .ss12")
-			Glyphs.registerDefault("com.mekkablue.BuildRandFeature.includeDefault", 0)
-
-			# load previously written prefs:
-			self.w.overwrite.set(Glyphs.defaults["com.mekkablue.BuildRandFeature.overwrite"])
-			self.w.suffix.set(Glyphs.defaults["com.mekkablue.BuildRandFeature.suffix"])
-			self.w.exclude.set(Glyphs.defaults["com.mekkablue.BuildRandFeature.exclude"])
-			self.w.excludeList.set(Glyphs.defaults["com.mekkablue.BuildRandFeature.excludeList"])
-			self.w.includeDefault.set(Glyphs.defaults["com.mekkablue.BuildRandFeature.includeDefault"])
-
-			self.guiUpdate()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def updateUI(self, sender=None):
+	def updateSuffixs(self, sender=None):
 		if sender == self.w.suffixReset:
 			self.w.suffix.setItems(self.fillSuffixes())
 
@@ -160,12 +128,12 @@ class BuildRandFeature(object):
 					print("⚠️ The font file has not been saved yet.")
 				print()
 
-				overwrite = Glyphs.defaults["com.mekkablue.BuildRandFeature.overwrite"]
-				suffix = Glyphs.defaults["com.mekkablue.BuildRandFeature.suffix"]
-				includeDefault = Glyphs.defaults["com.mekkablue.BuildRandFeature.includeDefault"]
-				exclude = Glyphs.defaults["com.mekkablue.BuildRandFeature.exclude"]
+				overwrite = self.pref("overwrite")
+				suffix = self.pref("suffix")
+				includeDefault = self.pref("includeDefault")
+				exclude = self.pref("exclude")
 				if exclude:
-					excludeList = [particle.strip() for particle in Glyphs.defaults["com.mekkablue.BuildRandFeature.excludeList"].split(",")]
+					excludeList = [particle.strip() for particle in self.pref("excludeList").split(",")]
 				else:
 					excludeList = ()
 

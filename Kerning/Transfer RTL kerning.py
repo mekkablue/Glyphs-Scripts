@@ -7,9 +7,14 @@ Transfers RTL kerning from one master to another.
 
 import vanilla
 from GlyphsApp import Glyphs, RTL, Message
+from mekkaCore import mekkaObject
 
 
-class TransferRTLkerning(object):
+class TransferRTLkerning(mekkaObject):
+	prefDict = {
+		"from_master": 0,
+		"to_master": 0,
+	}
 
 	def __init__(self):
 		self.listOfMasters = []
@@ -25,7 +30,7 @@ class TransferRTLkerning(object):
 			"Transfer RTL kerning",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.TransferRTLkerning.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -49,32 +54,6 @@ class TransferRTLkerning(object):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			Glyphs.defaults["com.mekkablue.TransferRTLkerning.from_master"] = self.w.from_master.get()
-			Glyphs.defaults["com.mekkablue.TransferRTLkerning.to_master"] = self.w.to_master.get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault("com.mekkablue.TransferRTLkerning.from_master", 0)
-			Glyphs.registerDefault("com.mekkablue.TransferRTLkerning.to_master", 0)
-
-			# load previously written prefs:
-			self.w.from_master.set(Glyphs.defaults["com.mekkablue.TransferRTLkerning.from_master"])
-			self.w.to_master.set(Glyphs.defaults["com.mekkablue.TransferRTLkerning.to_master"])
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def updateListOfMasters(self):
 		try:

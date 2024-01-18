@@ -7,6 +7,7 @@ Prefills names for ssXX features with ‘Alternate’ or another chosen text, pl
 
 import vanilla
 from GlyphsApp import Glyphs, GSFontInfoValue
+from mekkaCore import mekkaObject
 
 
 def featureHasName(feature):
@@ -30,9 +31,8 @@ def addNameToFeature(feature, featureName):
 		feature.notes = f"Name: {featureName}"
 
 
-class SetSSXXNames(object):
+class SetSSXXNames(mekkaObject):
 	defaultName = "Alternate"
-	prefID = "com.mekkablue.SetSSXXNames"
 	prefDict = {
 		# "prefName": defaultValue,
 		"alternate": defaultName,
@@ -61,7 +61,7 @@ class SetSSXXNames(object):
 		self.w.alternateText = vanilla.TextBox((inset, linePos + 2, 85, 14), "Default Name:", sizeStyle='small', selectable=True)
 		self.w.alternate = vanilla.EditText((inset + 85, linePos - 1, -inset - 25, 19), self.defaultName, callback=self.SavePreferences, sizeStyle='small')
 		self.w.alternate.getNSTextField().setToolTip_("The script will look for the first substituted glyph in every ssXX, e.g., ‘a’, and construct a Stylistic Set name with this Default Name plus the name of the first substituted glyph, e.g., ‘Alternate a’.")
-		self.w.alternateUpdateButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.SavePreferences)
+		self.w.alternateUpdateButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.alternateUpdateButtonAction)
 		self.w.alternateUpdateButton.getNSButton().setToolTip_(f"Will reset default name to ‘{self.defaultName}’.")
 		linePos += lineHeight
 
@@ -81,41 +81,9 @@ class SetSSXXNames(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# reset name field:
-			if sender == self.w.alternateUpdateButton:
-				self.w.alternate.set(self.defaultName)
-
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
+	def alternateUpdateButtonAction(self, sender):
+		self.w.alternate.set(self.defaultName)
+		self.SavePreferences()
 
 	def SetSSXXNamesMain(self, sender=None):
 		try:

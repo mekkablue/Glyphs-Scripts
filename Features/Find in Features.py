@@ -7,9 +7,10 @@ Finds expressions (glyph, lookup or class names) in OT Features, Prefixes and Cl
 
 import vanilla
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 
-class FindInFeatures(object):
+class FindInFeatures(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
@@ -22,7 +23,7 @@ class FindInFeatures(object):
 			"Find in Features",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.FindInFeatures.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:

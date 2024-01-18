@@ -8,6 +8,7 @@ import vanilla
 import datetime
 import AppKit
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
 def addPropertyToFont(font, key, value):
@@ -16,8 +17,7 @@ def addPropertyToFont(font, key, value):
 	font.setProperty_value_languageTag_(key, value, None)
 
 
-class FontInfoBatchSetter(object):
-	prefID = "com.mekkablue.FontInfoBatchSetter"
+class FontInfoBatchSetter(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"applyContaining": "",
@@ -195,6 +195,7 @@ class FontInfoBatchSetter(object):
 		self.SavePreferences()
 
 	def updateUI(self, sender=None):
+		self.updateTooltips()
 		self.w.designer.enable(self.w.setDesigner.get())
 		self.w.designerURL.enable(self.w.setDesignerURL.get())
 		self.w.manufacturer.enable(self.w.setManufacturer.get())
@@ -254,42 +255,6 @@ class FontInfoBatchSetter(object):
 	def setVersion1005(self, sender=None):
 		self.w.versionMajor.set("1")
 		self.w.versionMinor.set("005")
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.updateTooltips()
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.updateTooltips()
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def ExtractFontInfoFromFrontmostFont(self, sender=None):
 		# clear macro window log:
@@ -409,8 +374,8 @@ class FontInfoBatchSetter(object):
 			setFontDescription = self.pref("setFontDescription")
 
 			setVersion = self.pref("setVersion")
-			versionMinor = int(self.pref("versionMinor"))
-			versionMajor = int(self.pref("versionMajor"))
+			versionMinor = self.prefInt("versionMinor")
+			versionMajor = self.prefInt("versionMajor")
 			dateInDatePicker = self.w.datePicker.get()
 
 			if applyPopup == 0:

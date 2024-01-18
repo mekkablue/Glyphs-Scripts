@@ -5,12 +5,9 @@ __doc__ = """
 Removes the specified component from all (selected) glyphs.
 """
 import vanilla
-import os
-import sys
 # import from enclosing folder:
-sys.path.insert(1, os.path.realpath(os.path.pardir))
-from mekkablue import match
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject, match
 
 
 def deleteCornerComponent(componentName, thisLayer):
@@ -34,8 +31,11 @@ def deleteCornerComponent(componentName, thisLayer):
 		))
 
 
-class RemoveComponentfromSelectedGlyphs(object):
-	prefID = "com.mekkablue.RemoveComponents"
+class RemoveComponentfromSelectedGlyphs(mekkaObject):
+	prefDict = {
+		"componentName": "a",
+		"fromWhere": "0",
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -78,38 +78,10 @@ class RemoveComponentfromSelectedGlyphs(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
 	def updateUI(self, sender=None):
 		glyphList = self.glyphList()
 		if glyphList:
 			self.w.componentName.setItems(glyphList)
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults[self.domain("componentName")] = self.w.componentName.get()
-			Glyphs.defaults[self.domain("fromWhere")] = self.w.fromWhere.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault(self.domain("componentName"), "a")
-			Glyphs.registerDefault(self.domain("fromWhere"), "0")
-			self.w.componentName.set(self.pref("componentName"))
-			self.w.fromWhere.set(self.pref("fromWhere"))
-		except:
-			return False
-
-		return True
 
 	def componentsInGlyph(self, glyph):
 		components = []

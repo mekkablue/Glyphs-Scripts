@@ -8,7 +8,7 @@ Derive one H and one V stem value for all your masters by measuring certain shap
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSMetric, GSInfoValue, Message
-
+from mekkaCore import mekkaObject
 
 whichMeasure = (
 	"bounds",
@@ -22,8 +22,7 @@ whichShape = (
 )
 
 
-class AutoStems(object):
-	prefID = "com.mekkablue.AutoStems"
+class AutoStems(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"hMeasure": 0,
@@ -107,38 +106,6 @@ class AutoStems(object):
 			self.w.hStemGlyph.setItems([g.name for g in Glyphs.font.glyphs])
 		if sender == self.w.vReset:
 			self.w.vStemGlyph.setItems([g.name for g in Glyphs.font.glyphs])
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def measureLayer(self, layer, measure, shape, v=True):
 		layerCopy = layer.copyDecomposedLayer()

@@ -66,11 +66,30 @@ def reportTimeInNaturalLanguage(seconds):
 
 
 class Bumper(object):
+	prefDict = {
+		"leftGlyphs": "TVWY",
+		"leftIsGroups": 1,
+		"rightGlyphs": "iíĭǐîïịìỉīįĩjĵ",
+		"rightIsGroups": 0,
+
+		"minDistance": 50,
+		"maxDistance": 200,
+		"roundFactor": 10,
+		"speedPopup": 2,
+		"ignoreIntervals": "",
+		"keepExistingKerning": 1,
+		"excludeNonExporting": 1,
+		"reportInMacroWindow": 1,
+		"openNewTabWithKernPairs": 0,
+		"reuseCurrentTab": 1,
+		"avoidZeroKerning": 1,
+		"suffix": "",
+
+		"kernStrings": defaultStrings,
+	}
 
 	def __init__(self):
 		# register prefs if run for the first time:
-		if not Glyphs.defaults["com.mekkablue.Bumper.kernStrings"]:
-			self.RegisterPreferences()
 
 		# Window 'self.w':
 		windowWidth = 500
@@ -82,7 +101,7 @@ class Bumper(object):
 			"Auto Bumper",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.Bumper.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -95,14 +114,14 @@ class Bumper(object):
 		self.w.swapButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 42), "↰\n↲", sizeStyle='regular', callback=self.swap)
 
 		self.w.text_left = vanilla.TextBox((inset, linePos + 3, 80, 14), "Left glyphs:", sizeStyle='small')
-		self.w.leftGlyphs = vanilla.ComboBox((inset + 80, linePos, -inset - 102, 18), self.kernStringList(self), callback=self.SavePreferences, sizeStyle='small')
+		self.w.leftGlyphs = vanilla.ComboBox((inset + 80, linePos, -inset - 102, 18), self.kernStringList(self), callback=self.sideGlyphsAction, sizeStyle='small')
 		self.w.leftGlyphs.getNSComboBox().setToolTip_("Measures the specified glyphs from their right side to the following glyph. You can type the character ‘é’ or the slash-escaped glyph name ‘/eacute’. Or specify a category after an at sign ‘@Letter’, add a subcategory after a colon ‘@Letter:Lowercase’.\nAdd default strings in the text box at the bottom of the window. Expand the window at the bottom to access it.")
 		self.w.leftIsGroups = vanilla.CheckBox((-inset - 94, linePos + 1, -inset - 22, 17), "As groups", value=True, sizeStyle='small', callback=self.SavePreferences)
 		self.w.leftIsGroups.getNSButton().setToolTip_("If on, will measure only the specified glyph, but set the calculated kerning for the whole right group of the glyph (i.e., add group kerning). If off, will set the kerning for the glyph only (i.e., add an exception).")
 		linePos += lineHeight
 
 		self.w.text_right = vanilla.TextBox((inset, linePos + 3, 80, 14), "Right glyphs:", sizeStyle='small')
-		self.w.rightGlyphs = vanilla.ComboBox((inset + 80, linePos, -inset - 102, 18), self.kernStringList(self), callback=self.SavePreferences, sizeStyle='small')
+		self.w.rightGlyphs = vanilla.ComboBox((inset + 80, linePos, -inset - 102, 18), self.kernStringList(self), callback=self.sideGlyphsAction, sizeStyle='small')
 		self.w.rightGlyphs.getNSComboBox().setToolTip_("Measures from the previous glyphs to the specified glyphs to their left side. You can type the character ‘é’ or the slash-escaped glyph name ‘/eacute’. Or specify a category after an at sign ‘@Letter’, add a subcategory after a colon ‘@Letter:Lowercase’.\nAdd default strings in the text box at the bottom of the window. Expand the window at the bottom to access it.")
 		self.w.rightIsGroups = vanilla.CheckBox((-inset - 94, linePos + 1, -inset - 22, 17), "As groups", value=True, sizeStyle='small', callback=self.SavePreferences)
 		self.w.rightIsGroups.getNSButton().setToolTip_("If on, will measure only the specified glyph, but set the calculated kerning for the whole left group of the glyph (i.e., add group kerning). If off, will set the kerning for the glyph only (i.e., add an exception).")
@@ -130,7 +149,7 @@ class Bumper(object):
 		self.w.text_speed = vanilla.TextBox((inset, linePos + 3, 42, 14), "Speed:", sizeStyle='small')
 		self.w.speedPopup = vanilla.PopUpButton((inset + 42, linePos + 1, 80, 17), ("very slow", "slow", "medium", "fast", "very fast"), callback=self.SavePreferences, sizeStyle='small')
 		self.w.speedPopup.getNSPopUpButton().setToolTip_("Specifies the number of measurements. Measuring is processor-intensive and can take a while. Slow: many measurements, fast: few measurements.")
-		intervalIndex = Glyphs.defaults["com.mekkablue.Bumper.speedPopup"]
+		intervalIndex = self.pref("speedPopup")
 		if intervalIndex is None:
 			intervalIndex = 0
 		self.w.text_speedExplanation = vanilla.TextBox((inset + 42 + 90, linePos + 3, -15, 14), "Measuring every %i units." % intervalList[intervalIndex], sizeStyle='small')
@@ -193,7 +212,7 @@ class Bumper(object):
 			Glyphs.font.masterIndex += 1
 
 	def kernStringList(self, sender):
-		kernStrings = Glyphs.defaults["com.mekkablue.Bumper.kernStrings"].splitlines()
+		kernStrings = self.pref("kernStrings").splitlines()
 		if kernStrings:
 			return kernStrings
 		else:
@@ -212,113 +231,39 @@ class Bumper(object):
 
 		self.SavePreferences(sender)
 
-	def SavePreferences(self, sender=None):
-		try:
-			Glyphs.defaults["com.mekkablue.Bumper.leftGlyphs"] = self.w.leftGlyphs.get()
-			Glyphs.defaults["com.mekkablue.Bumper.leftIsGroups"] = self.w.leftIsGroups.get()
-			Glyphs.defaults["com.mekkablue.Bumper.rightGlyphs"] = self.w.rightGlyphs.get()
-			Glyphs.defaults["com.mekkablue.Bumper.rightIsGroups"] = self.w.rightIsGroups.get()
+	def kernStringsAction(self, sender):
+		self.SavePreferences()
+		kernStrings = self.pref("kernStrings").splitlines()
+		if kernStrings:
+			self.w.leftGlyphs.setItems(kernStrings)
+			self.w.rightGlyphs.setItems(kernStrings)
 
-			Glyphs.defaults["com.mekkablue.Bumper.minDistance"] = self.w.minDistance.get()
-			Glyphs.defaults["com.mekkablue.Bumper.maxDistance"] = self.w.maxDistance.get()
-			Glyphs.defaults["com.mekkablue.Bumper.roundFactor"] = self.w.roundFactor.get()
-			Glyphs.defaults["com.mekkablue.Bumper.speedPopup"] = self.w.speedPopup.get()
-			Glyphs.defaults["com.mekkablue.Bumper.ignoreIntervals"] = self.w.ignoreIntervals.get()
-			Glyphs.defaults["com.mekkablue.Bumper.keepExistingKerning"] = self.w.keepExistingKerning.get()
-			Glyphs.defaults["com.mekkablue.Bumper.excludeNonExporting"] = self.w.excludeNonExporting.get()
-			Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"] = self.w.reportInMacroWindow.get()
-			Glyphs.defaults["com.mekkablue.Bumper.openNewTabWithKernPairs"] = self.w.openNewTabWithKernPairs.get()
-			Glyphs.defaults["com.mekkablue.Bumper.reuseCurrentTab"] = self.w.reuseCurrentTab.get()
-			Glyphs.defaults["com.mekkablue.Bumper.avoidZeroKerning"] = self.w.avoidZeroKerning.get()
-			Glyphs.defaults["com.mekkablue.Bumper.suffix"] = self.w.suffix.get()
-
-			Glyphs.defaults["com.mekkablue.Bumper.kernStrings"] = self.w.kernStrings.get()
-
-			if sender == self.w.kernStrings:
-				kernStrings = Glyphs.defaults["com.mekkablue.Bumper.kernStrings"].splitlines()
-				if kernStrings:
-					self.w.leftGlyphs.setItems(kernStrings)
-					self.w.rightGlyphs.setItems(kernStrings)
-			elif sender in (self.w.leftGlyphs, self.w.rightGlyphs):
-				kernStrings = Glyphs.defaults["com.mekkablue.Bumper.kernStrings"].splitlines()
-				for thisItem in sender.getItems():
-					if thisItem not in kernStrings:
-						Glyphs.defaults["com.mekkablue.Bumper.kernStrings"] += "\n%s" % thisItem
-		except:
-			return False
-
-		self.updateUI(sender=sender)
-		return True
+	def sideGlyphsAction(self, sender):
+		self.SavePreferences()
+		kernStrings = self.pref("kernStrings").splitlines()
+		for thisItem in sender.getItems():
+			if thisItem not in kernStrings:
+				kernStrings = self.pref("kernStrings") + "\n%s" % thisItem
+				self.setPref("kernStrings", kernStrings)
 
 	def updateUI(self, sender=None):
 		# enable/disable options based on settings:
-		self.w.reuseCurrentTab.enable(onOff=Glyphs.defaults["com.mekkablue.Bumper.openNewTabWithKernPairs"])
+		self.w.reuseCurrentTab.enable(onOff=self.pref("openNewTabWithKernPairs"))
 
 		# update speed explanation:
 		if sender == self.w.speedPopup:
-			intervalIndex = Glyphs.defaults["com.mekkablue.Bumper.speedPopup"]
+			intervalIndex = self.pref("speedPopup")
 			if intervalIndex is None:
 				intervalIndex = 0
 			self.w.text_speedExplanation.set("Measuring every %i units." % intervalList[intervalIndex])
 
-	def RegisterPreferences(self):
-		Glyphs.registerDefault("com.mekkablue.Bumper.leftGlyphs", "TVWY")
-		Glyphs.registerDefault("com.mekkablue.Bumper.leftIsGroups", 1)
-		Glyphs.registerDefault("com.mekkablue.Bumper.rightGlyphs", "iíĭǐîïịìỉīįĩjĵ")
-		Glyphs.registerDefault("com.mekkablue.Bumper.rightIsGroups", 0)
-
-		Glyphs.registerDefault("com.mekkablue.Bumper.minDistance", 50)
-		Glyphs.registerDefault("com.mekkablue.Bumper.maxDistance", 200)
-		Glyphs.registerDefault("com.mekkablue.Bumper.roundFactor", 10)
-		Glyphs.registerDefault("com.mekkablue.Bumper.speedPopup", 2)
-		Glyphs.registerDefault("com.mekkablue.Bumper.ignoreIntervals", "")
-		Glyphs.registerDefault("com.mekkablue.Bumper.keepExistingKerning", 1)
-		Glyphs.registerDefault("com.mekkablue.Bumper.excludeNonExporting", 1)
-		Glyphs.registerDefault("com.mekkablue.Bumper.reportInMacroWindow", 1)
-		Glyphs.registerDefault("com.mekkablue.Bumper.openNewTabWithKernPairs", 0)
-		Glyphs.registerDefault("com.mekkablue.Bumper.reuseCurrentTab", 1)
-		Glyphs.registerDefault("com.mekkablue.Bumper.avoidZeroKerning", 1)
-		Glyphs.registerDefault("com.mekkablue.Bumper.suffix", "")
-
-		Glyphs.registerDefault("com.mekkablue.Bumper.kernStrings", defaultStrings)
-
-	def LoadPreferences(self):
-		try:
-			self.w.leftGlyphs.set(Glyphs.defaults["com.mekkablue.Bumper.leftGlyphs"])
-			self.w.leftIsGroups.set(Glyphs.defaults["com.mekkablue.Bumper.leftIsGroups"])
-			self.w.rightGlyphs.set(Glyphs.defaults["com.mekkablue.Bumper.rightGlyphs"])
-			self.w.rightIsGroups.set(Glyphs.defaults["com.mekkablue.Bumper.rightIsGroups"])
-
-			self.w.minDistance.set(Glyphs.defaults["com.mekkablue.Bumper.minDistance"])
-			self.w.maxDistance.set(Glyphs.defaults["com.mekkablue.Bumper.maxDistance"])
-			self.w.roundFactor.set(Glyphs.defaults["com.mekkablue.Bumper.roundFactor"])
-			self.w.speedPopup.set(Glyphs.defaults["com.mekkablue.Bumper.speedPopup"])
-			self.w.ignoreIntervals.set(Glyphs.defaults["com.mekkablue.Bumper.ignoreIntervals"])
-			self.w.keepExistingKerning.set(Glyphs.defaults["com.mekkablue.Bumper.keepExistingKerning"])
-			self.w.excludeNonExporting.set(Glyphs.defaults["com.mekkablue.Bumper.excludeNonExporting"])
-			self.w.reportInMacroWindow.set(Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"])
-			self.w.openNewTabWithKernPairs.set(Glyphs.defaults["com.mekkablue.Bumper.openNewTabWithKernPairs"])
-			self.w.reuseCurrentTab.set(Glyphs.defaults["com.mekkablue.Bumper.reuseCurrentTab"])
-			self.w.suffix.set(Glyphs.defaults["com.mekkablue.Bumper.suffix"])
-
-			self.w.kernStrings.set(Glyphs.defaults["com.mekkablue.Bumper.kernStrings"])
-
-			self.updateUI()
-		except Exception as e:
-			print(e)
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-		return True
-
 	def addMissingKerning(self, thisFont, thisMasterID, leftSide, rightSide, minMaxDistance, distanceBetweenShapes, existingKerning=0):
 		# query user settings:
-		shouldReportInMacroWindow = Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"]
-		shouldKeepExistingKerning = bool(Glyphs.defaults["com.mekkablue.Bumper.keepExistingKerning"])
-		avoidZeroKerning = Glyphs.defaults["com.mekkablue.Bumper.avoidZeroKerning"]
+		shouldReportInMacroWindow = self.pref("reportInMacroWindow")
+		shouldKeepExistingKerning = self.prefBool("keepExistingKerning")
+		avoidZeroKerning = self.pref("avoidZeroKerning")
 		try:
-			roundValue = float(Glyphs.defaults["com.mekkablue.Bumper.roundFactor"])
+			roundValue = self.prefFloat("roundFactor")
 		except:
 			roundValue = 1.0
 		roundValue = max(roundValue, 1.0)
@@ -377,7 +322,7 @@ class Bumper(object):
 			thisMasterID = thisMaster.id
 
 			# start reporting to macro window:
-			shouldReportInMacroWindow = Glyphs.defaults["com.mekkablue.Bumper.reportInMacroWindow"]
+			shouldReportInMacroWindow = self.pref("reportInMacroWindow")
 			if shouldReportInMacroWindow:
 				Glyphs.clearLog()
 				print("Auto Bumper Report for %s, master %s:\n" % (thisFont.familyName, thisMaster.name))
@@ -390,11 +335,11 @@ class Bumper(object):
 			# COLLECTING THE DATA WE NEED:
 
 			# query user input:
-			step = intervalList[Glyphs.defaults["com.mekkablue.Bumper.speedPopup"]]
-			ignoreIntervals = sortedIntervalsFromString(Glyphs.defaults["com.mekkablue.Bumper.ignoreIntervals"], font=thisFont, mID=thisMasterID)
-			shouldExcludeNonExporting = bool(Glyphs.defaults["com.mekkablue.Bumper.excludeNonExporting"])
+			step = intervalList[self.pref("speedPopup")]
+			ignoreIntervals = sortedIntervalsFromString(self.pref("ignoreIntervals"), font=thisFont, mID=thisMasterID)
+			shouldExcludeNonExporting = self.prefBool("excludeNonExporting")
 
-			minDistance = Glyphs.defaults["com.mekkablue.Bumper.minDistance"]
+			minDistance = self.pref("minDistance")
 			try:
 				minDistance = float(minDistance)
 			except:
@@ -404,7 +349,7 @@ class Bumper(object):
 					self.w.minDistance.set("")
 					self.SavePreferences()
 
-			maxDistance = Glyphs.defaults["com.mekkablue.Bumper.maxDistance"]
+			maxDistance = self.pref("maxDistance")
 			try:
 				maxDistance = float(maxDistance)
 			except:
@@ -413,7 +358,7 @@ class Bumper(object):
 					self.w.maxDistance.set("")
 					self.SavePreferences()
 
-			roundFactor = Glyphs.defaults["com.mekkablue.Bumper.roundFactor"]
+			roundFactor = self.pref("roundFactor")
 			try:
 				roundFactor = float(roundFactor)
 			except:
@@ -421,7 +366,7 @@ class Bumper(object):
 				self.w.roundFactor.set("")
 				self.SavePreferences()
 
-			suffix = Glyphs.defaults["com.mekkablue.Bumper.suffix"]
+			suffix = self.pref("suffix")
 			cleanedSuffix = ""
 			if suffix is None:
 				suffix = ""
@@ -441,14 +386,14 @@ class Bumper(object):
 			else:
 				# find list of glyph names:
 				firstGlyphList = stringToListOfGlyphsForFont(
-					Glyphs.defaults["com.mekkablue.Bumper.leftGlyphs"],
+					self.pref("leftGlyphs"),
 					thisFont,
 					report=shouldReportInMacroWindow,
 					excludeNonExporting=shouldExcludeNonExporting,
 					suffix=suffix,
 				)
 				secondGlyphList = stringToListOfGlyphsForFont(
-					Glyphs.defaults["com.mekkablue.Bumper.rightGlyphs"],
+					self.pref("rightGlyphs"),
 					thisFont,
 					report=shouldReportInMacroWindow,
 					excludeNonExporting=shouldExcludeNonExporting,
@@ -481,7 +426,7 @@ class Bumper(object):
 					leftGlyph = firstGlyphList[index]
 					leftLayer = leftGlyph.layers[thisMasterID]
 					leftGroup = leftGlyph.rightKerningGroup
-					if Glyphs.defaults["com.mekkablue.Bumper.leftIsGroups"]:
+					if self.pref("leftIsGroups"):
 						if leftGroup:
 							leftSide = "@MMK_L_%s" % leftGroup
 						else:
@@ -496,7 +441,7 @@ class Bumper(object):
 						for rightGlyph in secondGlyphList:
 							rightLayer = rightGlyph.layers[thisMasterID]
 							rightGroup = rightGlyph.leftKerningGroup
-							if Glyphs.defaults["com.mekkablue.Bumper.rightIsGroups"]:
+							if self.pref("rightIsGroups"):
 								if rightGroup:
 									rightSide = "@MMK_R_%s" % rightGroup
 								else:
@@ -555,8 +500,8 @@ class Bumper(object):
 				)
 
 				# Open new tab:
-				if Glyphs.defaults["com.mekkablue.Bumper.openNewTabWithKernPairs"]:
-					if Glyphs.defaults["com.mekkablue.Bumper.reuseCurrentTab"] and thisFont.currentTab:
+				if self.pref("openNewTabWithKernPairs"):
+					if self.pref("reuseCurrentTab") and thisFont.currentTab:
 						thisFont.currentTab.text = tabString
 					else:
 						thisFont.newTab(tabString)

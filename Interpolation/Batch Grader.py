@@ -99,7 +99,7 @@ def updateBraceLayers(font, defaultValue=0):
 					count += 1
 		if count > 0:
 			print(
-				f"🦾 Updated {count} brace layer{'' if count==1 else 's'} for ‘{glyph.name}’"
+				f"🦾 Updated {count} brace layer{'' if count == 1 else 's'} for ‘{glyph.name}’"
 			)
 
 
@@ -180,7 +180,6 @@ def straightenBCPs(layer):
 
 
 class BatchGrader(object):
-	prefID = "com.mekkablue.BatchGrader"
 	prefDict = {
 		# "prefName": defaultValue,
 		"graderCode": "# mastername: wght+=100, wdth=100 ",
@@ -440,14 +439,6 @@ class BatchGrader(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
 	def updateUI(self, sender=None):
 		if sender == self.w.axisReset:
 			self.w.axisTag.set("GRAD")
@@ -456,7 +447,7 @@ class BatchGrader(object):
 		elif sender == self.w.ignoreReset:
 			excludeParticles = []
 			thisFont = Glyphs.font
-			grade = int(self.pref("grade").strip())
+			grade = self.prefInt("grade").strip()
 			axisTag = f'{self.pref("axisTag").strip()[:4]:4}'
 			axisID = axisIdForTag(thisFont, axisTag)
 			if axisID is not None:
@@ -490,38 +481,10 @@ class BatchGrader(object):
 
 			webbrowser.open(URL)
 
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.updateUI()
-			return True
-		except:
-			import traceback
-
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.updateUI()
-			return True
-		except:
-			import traceback
-
-			print(traceback.format_exc())
-			return False
-
 	def ResetGraderCode(self, sender=None):
 		thisFont = Glyphs.font
 		text = "# mastername: wght+=100, wdth=100\n"
-		gradeValue = int(self.pref("grade").strip())
+		gradeValue = self.prefInt("grade")
 		wghtCode = f"wght+={gradeValue}".replace("+=-", "-=")
 		for m in thisFont.masters:
 			if self.shouldExcludeMaster(m):
@@ -575,17 +538,6 @@ class BatchGrader(object):
 			if not self.SavePreferences():
 				print("⚠️ ‘Batch Grader’ could not write preferences.")
 
-			# read prefs:
-			for prefName in self.prefDict.keys():
-				try:
-					setattr(self, prefName, self.pref(prefName))
-				except:
-					fallbackValue = self.prefDict[prefName]
-					print(
-						f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’."
-					)
-					setattr(self, prefName, fallbackValue)
-
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(
@@ -603,7 +555,7 @@ class BatchGrader(object):
 				print()
 
 				# add or update Grade axis if necessary:
-				grade = int(self.pref("grade").strip())
+				grade = self.prefInt("grade")
 				axisName = self.pref("axisName").strip()
 				axisTag = f'{self.pref("axisTag").strip()[:4]:4}'
 				existingAxisTags = [a.axisTag for a in thisFont.axes]

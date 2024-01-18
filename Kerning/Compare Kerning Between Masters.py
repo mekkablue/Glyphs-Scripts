@@ -6,12 +6,11 @@ Report differences in kerning structures between two masters.
 """
 
 import vanilla
-import sys
 from GlyphsApp import Glyphs, GSControlLayer, Message
+from mekkaCore import mekkaObject
 
 
-class CompareKerningBetweenMasters(object):
-	prefID = "com.mekkablue.CompareKerningBetweenMasters"
+class CompareKerningBetweenMasters(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"firstMaster": 0,
@@ -66,7 +65,7 @@ class CompareKerningBetweenMasters(object):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.updateButton = vanilla.Button((-190 - inset, -20 - inset, -100 - inset, -inset), "Update", sizeStyle="regular", callback=self.updateGUI)
+		self.w.updateButton = vanilla.Button((-190 - inset, -20 - inset, -100 - inset, -inset), "Update", sizeStyle="regular", callback=self.updateUI)
 		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Compare", sizeStyle="regular", callback=self.CompareKerningBetweenMastersMain)
 		self.w.setDefaultButton(self.w.runButton)
 
@@ -93,7 +92,7 @@ class CompareKerningBetweenMasters(object):
 		else:
 			self.w.runButton.enable(True)
 
-	def updateGUI(self, sender=None):
+	def updateUI(self, sender=None):
 		menu = self.menuItemsForFrontMostFont()
 
 		self.w.firstMaster.setItems(menu)
@@ -111,41 +110,6 @@ class CompareKerningBetweenMasters(object):
 			self.w.runButton.enable(False)
 		else:
 			self.w.runButton.enable(True)
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.verifyButtonStatus()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.updateGUI()
-			self.verifyButtonStatus()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def namesForGroupName(self, groupName, font, isLeft=True):
 		names = []
@@ -193,15 +157,6 @@ class CompareKerningBetweenMasters(object):
 			if not self.SavePreferences():
 				print("⚠️ ‘Compare Kerning Between Masters’ could not write preferences.")
 
-			# read prefs:
-			for prefName in self.prefDict.keys():
-				try:
-					setattr(sys.modules[__name__], prefName, self.pref(prefName))
-				except:
-					fallbackValue = self.prefDict[prefName]
-					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
-					setattr(sys.modules[__name__], prefName, fallbackValue)
-
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
@@ -218,8 +173,8 @@ class CompareKerningBetweenMasters(object):
 				group2glyph = bool(self.pref("group2glyph"))
 				glyph2group = bool(self.pref("glyph2group"))
 				glyph2glyph = bool(self.pref("glyph2glyph"))
-				firstMaster = int(self.pref("firstMaster"))
-				secondMaster = int(self.pref("secondMaster"))
+				firstMaster = self.prefInt("firstMaster")
+				secondMaster = self.prefInt("secondMaster")
 
 				group2groupLayersMissingFirst = []
 				group2glyphLayersMissingFirst = []

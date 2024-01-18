@@ -8,11 +8,18 @@ Find and replace brace and bracket layer coordinates.
 import vanilla
 from AppKit import NSNotificationCenter
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class BraceLayerManager(object):
-	prefID = "com.mekkablue.BraceLayerManager"
-
+class BraceLayerManager(mekkaObject):
+	prefDict = {
+		"layerType": 0,
+		"scope": 0,
+		"oldCoordinate": 100,
+		"newCoordinate": 200,
+		"axisIndex": 0,
+		"currentMasterOnly": 0,
+	}
 	layerTypes = (
 		"{ } brace (intermediate) layers",
 		"[ ] bracket (alternate) layers",
@@ -76,14 +83,6 @@ class BraceLayerManager(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
 	def update(self, sender=None):
 		if sender == self.w.oldCoordinateUpdate:
 			allCoordinates = self.allBraceAndBracketLayerCoordinatesInFrontmostFont()
@@ -95,7 +94,7 @@ class BraceLayerManager(object):
 		currentFont = Glyphs.font
 		isBraceLayer = self.pref("layerType") == 0
 		try:
-			axisIndex = int(self.pref("axisIndex"))
+			axisIndex = self.prefInt("axisIndex")
 		except:
 			print("Warning: could not retrieve preference for axis index, will default to 0.")
 
@@ -119,45 +118,6 @@ class BraceLayerManager(object):
 			allCoordinates = sorted(set(allCoordinates), key=lambda coordinate: float(coordinate))
 
 		return allCoordinates
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			Glyphs.defaults[self.domain("layerType")] = self.w.layerType.get()
-			Glyphs.defaults[self.domain("scope")] = self.w.scope.get()
-			Glyphs.defaults[self.domain("oldCoordinate")] = self.w.oldCoordinate.get()
-			Glyphs.defaults[self.domain("newCoordinate")] = self.w.newCoordinate.get()
-			Glyphs.defaults[self.domain("axisIndex")] = self.w.axisIndex.get()
-			Glyphs.defaults[self.domain("currentMasterOnly")] = self.w.currentMasterOnly.get()
-			return True
-		except:
-			import traceback
-
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault(self.domain("layerType"), 0)
-			Glyphs.registerDefault(self.domain("scope"), 0)
-			Glyphs.registerDefault(self.domain("oldCoordinate"), 100)
-			Glyphs.registerDefault(self.domain("newCoordinate"), 200)
-			Glyphs.registerDefault(self.domain("axisIndex"), 0)
-			Glyphs.registerDefault(self.domain("currentMasterOnly"), 0)
-
-			# load previously written prefs:
-			self.w.layerType.set(self.pref("layerType"))
-			self.w.scope.set(self.pref("scope"))
-			self.w.oldCoordinate.set(self.pref("oldCoordinate"))
-			self.w.newCoordinate.set(self.pref("newCoordinate"))
-			self.w.axisIndex.set(self.pref("axisIndex"))
-			self.w.currentMasterOnly.set(self.pref("currentMasterOnly"))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def BraceLayerManagerMain(self, sender=None):
 		try:
@@ -223,15 +183,15 @@ class BraceLayerManager(object):
 			print("⚠️ The font file has not been saved yet.")
 		print()
 
-		searchFor = float(self.pref("oldCoordinate"))
+		searchFor = self.prefFloat("oldCoordinate")
 		replaceWith = self.pref("newCoordinate").strip()
 		if replaceWith == "":
 			replaceWith = None
 		else:
 			replaceWith = float(replaceWith)
-		currentMasterOnly = bool(self.pref("currentMasterOnly"))
+		currentMasterOnly = self.prefBool("currentMasterOnly")
 		currentMasterID = thisFont.selectedFontMaster.id
-		axisIndex = int(self.pref("axisIndex"))
+		axisIndex = self.prefInt("axisIndex")
 		axis = thisFont.axes[axisIndex]
 		axisID = axis.axisId
 		axisName = axis.name

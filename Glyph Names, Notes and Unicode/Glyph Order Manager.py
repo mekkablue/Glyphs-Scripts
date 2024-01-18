@@ -9,6 +9,7 @@ import vanilla
 import codecs
 from AppKit import NSFont
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
 def saveFileInLocation(content="", filePath="~/Desktop/test.txt"):
@@ -28,8 +29,7 @@ def readFileFromLocation(filePath="~/Desktop/test.txt"):
 	return content
 
 
-class GlyphOrderManager(object):
-	prefID = "com.mekkablue.GlyphOrderManager"
+class GlyphOrderManager(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"glyphOrderText": "",
@@ -103,16 +103,8 @@ class GlyphOrderManager(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
 	def requestedFonts(self):
-		scope = int(self.pref("scope"))
+		scope = self.prefInt("scope")
 		if scope == 0 and Glyphs.fonts:
 			return (Glyphs.font, )
 		elif scope == 1:  # all fonts
@@ -157,30 +149,6 @@ class GlyphOrderManager(object):
 						glyphs.append(g.name)
 			Glyphs.defaults[self.domain("glyphOrderText")] = "\n".join(glyphs)
 			self.LoadPreferences()
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def GlyphOrderManagerMain(self, sender=None):
 		try:

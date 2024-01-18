@@ -7,9 +7,16 @@ Removes all anchors from a glyph that should not be there by default, e.g., ogon
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class RemoveNonStandardAnchors(object):
+class RemoveNonStandardAnchors(mekkaObject):
+	prefDict = {
+		"keepExtensions": 0,
+		"keepExitAndEntry": 0,
+		"keepCarets": 1,
+		"keepNoDefaults": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -22,7 +29,7 @@ class RemoveNonStandardAnchors(object):
 			"Remove Non-Standard Anchors from Selected Glyphs",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.RemoveNonStandardAnchors.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -50,41 +57,15 @@ class RemoveNonStandardAnchors(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.RemoveNonStandardAnchors.keepExtensions"] = self.w.keepExtensions.get()
-			Glyphs.defaults["com.mekkablue.RemoveNonStandardAnchors.keepExitAndEntry"] = self.w.keepExitAndEntry.get()
-			Glyphs.defaults["com.mekkablue.RemoveNonStandardAnchors.keepCarets"] = self.w.keepCarets.get()
-			Glyphs.defaults["com.mekkablue.RemoveNonStandardAnchors.keepNoDefaults"] = self.w.keepNoDefaults.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.RemoveNonStandardAnchors.keepExtensions", 0)
-			Glyphs.registerDefault("com.mekkablue.RemoveNonStandardAnchors.keepExitAndEntry", 0)
-			Glyphs.registerDefault("com.mekkablue.RemoveNonStandardAnchors.keepCarets", 1)
-			Glyphs.registerDefault("com.mekkablue.RemoveNonStandardAnchors.keepNoDefaults", 0)
-			self.w.keepExtensions.set(Glyphs.defaults["com.mekkablue.RemoveNonStandardAnchors.keepExtensions"])
-			self.w.keepExitAndEntry.set(Glyphs.defaults["com.mekkablue.RemoveNonStandardAnchors.keepExitAndEntry"])
-			self.w.keepCarets.set(Glyphs.defaults["com.mekkablue.RemoveNonStandardAnchors.keepCarets"])
-			self.w.keepNoDefaults.set(Glyphs.defaults["com.mekkablue.RemoveNonStandardAnchors.keepNoDefaults"])
-		except:
-			return False
-
-		return True
-
 	def RemoveNonStandardAnchorsMain(self, sender):
 		try:
 			thisFont = Glyphs.font  # frontmost font
 			selectedLayers = thisFont.selectedLayers  # active layers of currently selected glyphs
 
-			keepExtensions = Glyphs.defaults["com.mekkablue.RemoveNonStandardAnchors.keepExtensions"]
-			keepExitAndEntry = Glyphs.defaults["com.mekkablue.RemoveNonStandardAnchors.keepExitAndEntry"]
-			keepCarets = Glyphs.defaults["com.mekkablue.RemoveNonStandardAnchors.keepCarets"]
-			keepNoDefaults = Glyphs.defaults["com.mekkablue.RemoveNonStandardAnchors.keepNoDefaults"]
+			keepExtensions = self.pref("keepExtensions")
+			keepExitAndEntry = self.pref("keepExitAndEntry")
+			keepCarets = self.pref("keepCarets")
+			keepNoDefaults = self.pref("keepNoDefaults")
 			anchorCount = 0
 
 			for thisLayer in selectedLayers:  # loop through selected layers

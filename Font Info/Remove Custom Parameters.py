@@ -7,9 +7,16 @@ Removes all parameters of one kind from Font Info > Font, Masters, Instances. Us
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class RemoveCustomParameters(object):
+class RemoveCustomParameters(mekkaObject):
+	prefDict = {
+		"removeFromFont": 0,
+		"removeFromMasters": 1,
+		"removeFromStyles": 1,
+		"removeIn": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -22,7 +29,7 @@ class RemoveCustomParameters(object):
 			"Remove Custom Parameters",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.RemoveCustomParameters.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -67,9 +74,9 @@ class RemoveCustomParameters(object):
 
 	def updateUI(self, sender=None):
 		menuChoice = self.w.parameterMenu.getItem()
-		shouldRemoveFromFont = Glyphs.defaults["com.mekkablue.RemoveCustomParameters.removeFromFont"]
-		shouldRemoveFromMasters = Glyphs.defaults["com.mekkablue.RemoveCustomParameters.removeFromMasters"]
-		shouldRemoveFromStyles = Glyphs.defaults["com.mekkablue.RemoveCustomParameters.removeFromStyles"]
+		shouldRemoveFromFont = self.pref("removeFromFont")
+		shouldRemoveFromMasters = self.pref("removeFromMasters")
+		shouldRemoveFromStyles = self.pref("removeFromStyles")
 		buttonOnOff = menuChoice and (shouldRemoveFromFont or shouldRemoveFromMasters or shouldRemoveFromStyles)
 		self.w.runButton.enable(buttonOnOff)
 
@@ -91,51 +98,12 @@ class RemoveCustomParameters(object):
 			return set(parameterNameList)
 
 	def currentFonts(self, sender=None):
-		goThroughAllOpenFonts = Glyphs.defaults["com.mekkablue.RemoveCustomParameters.removeIn"]
+		goThroughAllOpenFonts = self.pref("removeIn")
 		if goThroughAllOpenFonts:
 			theseFonts = Glyphs.fonts
 		else:
 			theseFonts = (Glyphs.font, )  # frontmost font only
 		return theseFonts
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			Glyphs.defaults["com.mekkablue.RemoveCustomParameters.removeFromFont"] = self.w.removeFromFont.get()
-			Glyphs.defaults["com.mekkablue.RemoveCustomParameters.removeFromMasters"] = self.w.removeFromMasters.get()
-			Glyphs.defaults["com.mekkablue.RemoveCustomParameters.removeFromStyles"] = self.w.removeFromStyles.get()
-			Glyphs.defaults["com.mekkablue.RemoveCustomParameters.removeIn"] = self.w.removeIn.get()
-
-			if sender == self.w.removeIn:
-				self.updateMenu()
-
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault("com.mekkablue.RemoveCustomParameters.removeFromFont", 0)
-			Glyphs.registerDefault("com.mekkablue.RemoveCustomParameters.removeFromMasters", 1)
-			Glyphs.registerDefault("com.mekkablue.RemoveCustomParameters.removeFromStyles", 1)
-			Glyphs.registerDefault("com.mekkablue.RemoveCustomParameters.removeIn", 0)
-
-			# load previously written prefs:
-			self.w.removeFromFont.set(Glyphs.defaults["com.mekkablue.RemoveCustomParameters.removeFromFont"])
-			self.w.removeFromMasters.set(Glyphs.defaults["com.mekkablue.RemoveCustomParameters.removeFromMasters"])
-			self.w.removeFromStyles.set(Glyphs.defaults["com.mekkablue.RemoveCustomParameters.removeFromStyles"])
-			self.w.removeIn.set(Glyphs.defaults["com.mekkablue.RemoveCustomParameters.removeIn"])
-
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def RemoveCustomParametersMain(self, sender=None):
 		try:
@@ -161,9 +129,9 @@ class RemoveCustomParameters(object):
 					print()
 
 					parameterToBeDeleted = self.w.parameterMenu.getItem()
-					removeFromFont = Glyphs.defaults["com.mekkablue.RemoveCustomParameters.removeFromFont"]
-					removeFromMasters = Glyphs.defaults["com.mekkablue.RemoveCustomParameters.removeFromMasters"]
-					removeFromStyles = Glyphs.defaults["com.mekkablue.RemoveCustomParameters.removeFromStyles"]
+					removeFromFont = self.pref("removeFromFont")
+					removeFromMasters = self.pref("removeFromMasters")
+					removeFromStyles = self.pref("removeFromStyles")
 
 					if removeFromFont:
 						for cpi in reversed(range(len(thisFont.customParameters))):

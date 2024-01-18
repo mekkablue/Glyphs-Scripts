@@ -8,6 +8,7 @@ Creates fitting zones for the selected glyphs, on every master.
 import vanilla
 from Foundation import NSMaxY, NSMinY
 from GlyphsApp import Glyphs, GSMetric, GSMetricValue, GSAlignmentZone, Message
+from mekkaCore import mekkaObject
 
 
 # function for adding Metrics to master in Glyphs3
@@ -35,7 +36,12 @@ def addNamedHorizontalMetricToMaster(master, name, typeName, position, overshoot
 	return metric.id
 
 
-class CreateAlignmentZonesforSelectedGlyphs(object):
+class CreateAlignmentZonesforSelectedGlyphs(mekkaObject):
+	prefDict = {
+		"createTopZones": 1,
+		"createBottomZones": 1,
+		"dontExceedExistingZones": 1,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -48,7 +54,7 @@ class CreateAlignmentZonesforSelectedGlyphs(object):
 			"Alignment Zones for Selected Glyphs",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -80,29 +86,6 @@ class CreateAlignmentZonesforSelectedGlyphs(object):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.createTopZones"] = self.w.createTopZones.get()
-			Glyphs.defaults["com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.createBottomZones"] = self.w.createBottomZones.get()
-			Glyphs.defaults["com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.dontExceedExistingZones"] = self.w.dontExceedExistingZones.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.createTopZones", 1)
-			Glyphs.registerDefault("com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.createBottomZones", 1)
-			Glyphs.registerDefault("com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.dontExceedExistingZones", 1)
-			self.w.createTopZones.set(Glyphs.defaults["com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.createTopZones"])
-			self.w.createBottomZones.set(Glyphs.defaults["com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.createBottomZones"])
-			self.w.dontExceedExistingZones.set(Glyphs.defaults["com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.dontExceedExistingZones"])
-		except:
-			return False
-
-		return True
 
 	def zoneIsOverlappingWithExistingOne(self, zonePosition, zoneSize, master, blueFuzz=0):
 		requiredDistance = 1 + 2 * blueFuzz
@@ -158,9 +141,9 @@ class CreateAlignmentZonesforSelectedGlyphs(object):
 					print("⚠️ The font file has not been saved yet.")
 				print()
 
-				top = Glyphs.defaults["com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.createTopZones"]
-				bottom = Glyphs.defaults["com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.createBottomZones"]
-				dontExceed = Glyphs.defaults["com.mekkablue.CreateAlignmentZonesforSelectedGlyphs.dontExceedExistingZones"]
+				top = self.pref("createTopZones")
+				bottom = self.pref("createBottomZones")
+				dontExceed = self.pref("dontExceedExistingZones")
 
 				try:
 					# GLYPHS 3

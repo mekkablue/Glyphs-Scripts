@@ -7,6 +7,7 @@ Multiply, increase/decrease, limit or round spacing, differentiate between negat
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
 choices = (
@@ -24,8 +25,7 @@ negativeChoices = (
 )
 
 
-class AdjustSpacing(object):
-	prefID = "com.mekkablue.AdjustSpacing"
+class AdjustSpacing(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"choice": 0,
@@ -95,40 +95,6 @@ class AdjustSpacing(object):
 		self.w.runButton.enable(self.pref("treatPositiveSBs") or self.pref("treatNegativeSBs"))
 		self.w.negativeChoice.enable(self.pref("choice") != 3 and self.pref("treatNegativeSBs"))
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def treatSB(self, choice, SB, value, negativeValue, treatPositiveSBs=True, treatNegativeSBs=True):
 		if SB >= 0 and treatPositiveSBs:
 			if choice == 0:
@@ -175,13 +141,13 @@ class AdjustSpacing(object):
 
 			# read prefs:
 			choice = self.pref("choice")
-			value = float(self.pref("value"))
+			value = self.prefFloat("value")
 			negativeChoice = self.pref("negativeChoice")
-			treatPositiveSBs = bool(self.pref("treatPositiveSBs"))
-			treatNegativeSBs = bool(self.pref("treatNegativeSBs"))
-			applyToAllMasters = bool(self.pref("applyToAllMasters"))
-			applyToAllGlyphs = bool(self.pref("applyToAllGlyphs"))
-			updateMetricsKeys = bool(self.pref("updateMetricsKeys"))
+			treatPositiveSBs = self.prefBool("treatPositiveSBs")
+			treatNegativeSBs = self.prefBool("treatNegativeSBs")
+			applyToAllMasters = self.prefBool("applyToAllMasters")
+			applyToAllGlyphs = self.prefBool("applyToAllGlyphs")
+			updateMetricsKeys = self.prefBool("updateMetricsKeys")
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:

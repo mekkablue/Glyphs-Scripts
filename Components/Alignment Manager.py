@@ -7,10 +7,10 @@ Manage Automatic Alignment for (multiple) selected glyphs.
 
 import vanilla
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 
-class AutoAlignmentManager(object):
-	prefID = "com.mekkablue.AutoAlignmentManager"
+class AutoAlignmentManager(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"includeAllGlyphs": 0,
@@ -29,7 +29,7 @@ class AutoAlignmentManager(object):
 			"Alignment Manager",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.AutoAlignmentManager.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -77,38 +77,6 @@ class AutoAlignmentManager(object):
 
 	def updateUI(self, sender=None):
 		self.w.rotateButton.enable(not self.w.includeAllGlyphs.get())
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def rotateComponents(self, sender=None):
 		thisFont = Glyphs.font  # frontmost font

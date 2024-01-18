@@ -7,13 +7,19 @@ Increase sidebearings of selected glyphs by a percentage value.
 
 import vanilla
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 
-class ChangeMetricsbyPercentage(object):
+class ChangeMetricsbyPercentage(mekkaObject):
+	prefDict = {
+		"LSB": True,
+		"RSB": True,
+		"changeValue": "+10.0",
+	}
 
 	def __init__(self):
 		self.w = vanilla.FloatingWindow(
-			(430, 60), "Change Metrics of Selected Glyphs by Percentage", minSize=(430, 60), maxSize=(600, 60), autosaveName="com.mekkablue.ChangeMetricsbyPercentage.mainwindow"
+			(430, 60), "Change Metrics of Selected Glyphs by Percentage", minSize=(430, 60), maxSize=(600, 60), autosaveName=self.domain("mainwindow")
 		)
 
 		self.w.text_1 = vanilla.TextBox((15, 12 + 2, 50, 14), "Increase", sizeStyle='small')
@@ -33,29 +39,6 @@ class ChangeMetricsbyPercentage(object):
 
 		self.w.open()
 		self.w.makeKey()
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.ChangeMetricsbyPercentage.LSB"] = self.w.LSB.get()
-			Glyphs.defaults["com.mekkablue.ChangeMetricsbyPercentage.RSB"] = self.w.RSB.get()
-			Glyphs.defaults["com.mekkablue.ChangeMetricsbyPercentage.changeValue"] = self.w.changeValue.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.ChangeMetricsbyPercentage.LSB", True)
-			Glyphs.registerDefault("com.mekkablue.ChangeMetricsbyPercentage.RSB", True)
-			Glyphs.registerDefault("com.mekkablue.ChangeMetricsbyPercentage.changeValue", "+10.0")
-			self.w.LSB.set(Glyphs.defaults["com.mekkablue.ChangeMetricsbyPercentage.LSB"])
-			self.w.RSB.set(Glyphs.defaults["com.mekkablue.ChangeMetricsbyPercentage.RSB"])
-			self.w.changeValue.set(Glyphs.defaults["com.mekkablue.ChangeMetricsbyPercentage.changeValue"])
-		except:
-			return False
-
-		return True
 
 	def ChangeMetricsbyPercentageMain(self, sender):
 		try:

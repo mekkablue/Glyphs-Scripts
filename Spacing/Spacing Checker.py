@@ -7,9 +7,23 @@ Look for glyphs with unusual spacings and open them in a new tab.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class SpacingChecker(object):
+class SpacingChecker(mekkaObject):
+	prefDict = {
+		"asymmetricDifference": 90,
+		"asymmetricSBs": 0,
+		"largeLSB": 0,
+		"lsbThreshold": 100,
+		"largeRSB": 0,
+		"rsbThreshold": 100,
+		"whiteGlyphs": 0,
+		"whitePercentage": 10,
+		"allMasters": 0,
+		"includeBraceAndBracketLayers": 1,
+		"ignoreNonexportingGlyphs": 1,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -22,7 +36,7 @@ class SpacingChecker(object):
 			"Spacing Checker",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.SpacingChecker.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -79,61 +93,9 @@ class SpacingChecker(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def enableOrDisableRunButton(self):
+	def updateUI(self):
 		anyOptionSelected = self.w.asymmetricSBs.get() or self.w.largeLSB.get() or self.w.largeRSB.get() or self.w.whiteGlyphs.get()
 		self.w.runButton.enable(anyOptionSelected)
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.SpacingChecker.asymmetricSBs"] = self.w.asymmetricSBs.get()
-			Glyphs.defaults["com.mekkablue.SpacingChecker.asymmetricDifference"] = self.w.asymmetricDifference.get()
-			Glyphs.defaults["com.mekkablue.SpacingChecker.largeLSB"] = self.w.largeLSB.get()
-			Glyphs.defaults["com.mekkablue.SpacingChecker.lsbThreshold"] = self.w.lsbThreshold.get()
-			Glyphs.defaults["com.mekkablue.SpacingChecker.largeRSB"] = self.w.largeRSB.get()
-			Glyphs.defaults["com.mekkablue.SpacingChecker.rsbThreshold"] = self.w.rsbThreshold.get()
-			Glyphs.defaults["com.mekkablue.SpacingChecker.whiteGlyphs"] = self.w.whiteGlyphs.get()
-			Glyphs.defaults["com.mekkablue.SpacingChecker.whitePercentage"] = self.w.whitePercentage.get()
-			Glyphs.defaults["com.mekkablue.SpacingChecker.allMasters"] = self.w.allMasters.get()
-			Glyphs.defaults["com.mekkablue.SpacingChecker.includeBraceAndBracketLayers"] = self.w.includeBraceAndBracketLayers.get()
-			Glyphs.defaults["com.mekkablue.SpacingChecker.ignoreNonexportingGlyphs"] = self.w.ignoreNonexportingGlyphs.get()
-
-			self.enableOrDisableRunButton()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("asymmetricDifference", 90)
-			Glyphs.registerDefault("asymmetricSBs", 0)
-			Glyphs.registerDefault("largeLSB", 0)
-			Glyphs.registerDefault("lsbThreshold", 100)
-			Glyphs.registerDefault("largeRSB", 0)
-			Glyphs.registerDefault("rsbThreshold", 100)
-			Glyphs.registerDefault("whiteGlyphs", 0)
-			Glyphs.registerDefault("whitePercentage", 10)
-			Glyphs.registerDefault("allMasters", 0)
-			Glyphs.registerDefault("includeBraceAndBracketLayers", 1)
-			Glyphs.registerDefault("ignoreNonexportingGlyphs", 1)
-
-			self.w.asymmetricDifference.set(Glyphs.defaults["com.mekkablue.SpacingChecker.asymmetricDifference"])
-			self.w.asymmetricSBs.set(Glyphs.defaults["com.mekkablue.SpacingChecker.asymmetricSBs"])
-			self.w.largeLSB.set(Glyphs.defaults["com.mekkablue.SpacingChecker.largeLSB"])
-			self.w.lsbThreshold.set(Glyphs.defaults["com.mekkablue.SpacingChecker.lsbThreshold"])
-			self.w.largeRSB.set(Glyphs.defaults["com.mekkablue.SpacingChecker.largeRSB"])
-			self.w.rsbThreshold.set(Glyphs.defaults["com.mekkablue.SpacingChecker.rsbThreshold"])
-			self.w.whiteGlyphs.set(Glyphs.defaults["com.mekkablue.SpacingChecker.whiteGlyphs"])
-			self.w.whitePercentage.set(Glyphs.defaults["com.mekkablue.SpacingChecker.whitePercentage"])
-			self.w.allMasters.set(Glyphs.defaults["com.mekkablue.SpacingChecker.allMasters"])
-			self.w.includeBraceAndBracketLayers.set(Glyphs.defaults["com.mekkablue.SpacingChecker.includeBraceAndBracketLayers"])
-			self.w.ignoreNonexportingGlyphs.set(Glyphs.defaults["com.mekkablue.SpacingChecker.ignoreNonexportingGlyphs"])
-
-			self.enableOrDisableRunButton()
-		except:
-			return False
-
-		return True
 
 	def updateValues(self, sender):
 		updatedValue = 0.0  # fallback value
@@ -166,36 +128,36 @@ class SpacingChecker(object):
 
 	def isLayerAffected(self, thisLayer):
 		try:
-			if Glyphs.defaults["com.mekkablue.SpacingChecker.asymmetricSBs"]:
+			if self.pref("asymmetricSBs"):
 				try:
-					asymmetricDifference = float(Glyphs.defaults["com.mekkablue.SpacingChecker.asymmetricDifference"])
+					asymmetricDifference = self.prefFloat("asymmetricDifference")
 					if abs(thisLayer.LSB - thisLayer.RSB) > asymmetricDifference:
 						return True
 				except Exception as e:
 					raise e
 
-			if Glyphs.defaults["com.mekkablue.SpacingChecker.largeLSB"]:
+			if self.pref("largeLSB"):
 				try:
-					lsbThreshold = float(Glyphs.defaults["com.mekkablue.SpacingChecker.lsbThreshold"])
+					lsbThreshold = self.prefFloat("lsbThreshold")
 					if thisLayer.LSB > lsbThreshold:
 						return True
 				except Exception as e:
 					raise e
 
-			if Glyphs.defaults["com.mekkablue.SpacingChecker.largeRSB"]:
+			if self.pref("largeRSB"):
 				try:
-					rsbThreshold = float(Glyphs.defaults["com.mekkablue.SpacingChecker.rsbThreshold"])
+					rsbThreshold = self.prefFloat("rsbThreshold")
 					if thisLayer.RSB > rsbThreshold:
 						return True
 				except Exception as e:
 					raise e
 
-			if Glyphs.defaults["com.mekkablue.SpacingChecker.whiteGlyphs"]:
+			if self.pref("whiteGlyphs"):
 				try:
 					if not thisLayer.width > 0.0:
 						return False
 					else:
-						whitePercentage = float(Glyphs.defaults["com.mekkablue.SpacingChecker.whitePercentage"])
+						whitePercentage = self.prefFloat("whitePercentage")
 						lsb = max(0.0, thisLayer.LSB)
 						rsb = max(0.0, thisLayer.RSB)
 						percentage = (lsb + rsb) / thisLayer.width
@@ -224,8 +186,8 @@ class SpacingChecker(object):
 			print()
 
 			collectedLayers = []
-			braceAndBracketIncluded = Glyphs.defaults["com.mekkablue.SpacingChecker.includeBraceAndBracketLayers"]
-			if Glyphs.defaults["com.mekkablue.SpacingChecker.allMasters"]:
+			braceAndBracketIncluded = self.pref("includeBraceAndBracketLayers")
+			if self.pref("allMasters"):
 				mastersToCheck = thisFont.masters
 				print("Searching %i masters..." % len(mastersToCheck))
 			else:
@@ -235,7 +197,7 @@ class SpacingChecker(object):
 
 			print()
 
-			ignoreNonexportingGlyphs = Glyphs.defaults["com.mekkablue.SpacingChecker.ignoreNonexportingGlyphs"]
+			ignoreNonexportingGlyphs = self.pref("ignoreNonexportingGlyphs")
 
 			numOfGlyphs = len(thisFont.glyphs)
 			for index, thisGlyph in enumerate(thisFont.glyphs):
@@ -252,7 +214,7 @@ class SpacingChecker(object):
 			if not collectedLayers:
 				Message(title="No Affected Glyphs Found", message="No glyphs found that fulfil the chosen criteria.", OKButton=u"🙌 High Five!")
 			else:
-				if Glyphs.defaults["com.mekkablue.SpacingChecker.allMasters"]:
+				if self.pref("allMasters"):
 					newTab = thisFont.newTab()
 					newTab.layers = collectedLayers
 				else:

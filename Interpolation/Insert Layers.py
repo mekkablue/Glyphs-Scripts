@@ -7,9 +7,16 @@ Batch-insert brace or bracket layers in selected glyphs.
 
 import vanilla
 from GlyphsApp import Glyphs, GSLayer, Message
+from mekkaCore import mekkaObject
 
 
-class InsertSpecialLayers(object):
+class InsertSpecialLayers(mekkaObject):
+	prefDict = {
+		"layerName": "Intermediate {100}",
+		"prefillWithMasterContent": 0,
+		"keepExistingBrace": 1,
+		"reinterpolateBrace": 1,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -22,7 +29,7 @@ class InsertSpecialLayers(object):
 			"Insert Special Layers",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.InsertSpecialLayers.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -58,39 +65,6 @@ class InsertSpecialLayers(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			Glyphs.defaults["com.mekkablue.InsertSpecialLayers.layerName"] = self.w.layerName.get()
-			Glyphs.defaults["com.mekkablue.InsertSpecialLayers.prefillWithMasterContent"] = self.w.prefillWithMasterContent.get()
-			Glyphs.defaults["com.mekkablue.InsertSpecialLayers.keepExistingBrace"] = self.w.keepExistingBrace.get()
-			Glyphs.defaults["com.mekkablue.InsertSpecialLayers.reinterpolateBrace"] = self.w.reinterpolateBrace.get()
-
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault("com.mekkablue.InsertSpecialLayers.layerName", "Intermediate {100}")
-			Glyphs.registerDefault("com.mekkablue.InsertSpecialLayers.prefillWithMasterContent", 0)
-			Glyphs.registerDefault("com.mekkablue.InsertSpecialLayers.keepExistingBrace", 1)
-			Glyphs.registerDefault("com.mekkablue.InsertSpecialLayers.reinterpolateBrace", 1)
-
-			# load previously written prefs:
-			self.w.layerName.set(Glyphs.defaults["com.mekkablue.InsertSpecialLayers.layerName"])
-			self.w.prefillWithMasterContent.set(Glyphs.defaults["com.mekkablue.InsertSpecialLayers.prefillWithMasterContent"])
-			self.w.keepExistingBrace.set(Glyphs.defaults["com.mekkablue.InsertSpecialLayers.keepExistingBrace"])
-			self.w.reinterpolateBrace.set(Glyphs.defaults["com.mekkablue.InsertSpecialLayers.reinterpolateBrace"])
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def braceValueFromName(self, braceName):
 		return braceName[braceName.find("{"):braceName.find("}") + 1]
 
@@ -114,10 +88,10 @@ class InsertSpecialLayers(object):
 					print("⚠️ The font file has not been saved yet.")
 				print()
 
-				layerName = Glyphs.defaults["com.mekkablue.InsertSpecialLayers.layerName"]
-				prefillWithMasterContent = Glyphs.defaults["com.mekkablue.InsertSpecialLayers.prefillWithMasterContent"]
-				keepExistingBrace = Glyphs.defaults["com.mekkablue.InsertSpecialLayers.keepExistingBrace"]
-				reinterpolateBrace = Glyphs.defaults["com.mekkablue.InsertSpecialLayers.reinterpolateBrace"]
+				layerName = self.pref("layerName")
+				prefillWithMasterContent = self.pref("prefillWithMasterContent")
+				keepExistingBrace = self.pref("keepExistingBrace")
+				reinterpolateBrace = self.pref("reinterpolateBrace")
 
 				isBrace = "{" in layerName and "}" in layerName and layerName.find("{") < layerName.find("}") - 1
 

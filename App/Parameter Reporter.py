@@ -8,6 +8,7 @@ Searches in Custom Parameter names of all registered parameters in the current a
 import vanilla
 from AppKit import NSPasteboard, NSStringPboardType
 from GlyphsApp import Glyphs, GSLayer, GSGlyphsInfo
+from mekkaCore import mekkaObject
 
 
 def setClipboard(myText):
@@ -25,7 +26,10 @@ def setClipboard(myText):
 		return False
 
 
-class ParameterReporter(object):
+class ParameterReporter(mekkaObject):
+	prefDict = {
+		"filter": ""
+	}
 	if Glyphs.versionNumber >= 3:
 		# GLYPHS 3:
 		fontParameters = GSGlyphsInfo.customFontParameters()
@@ -50,7 +54,7 @@ class ParameterReporter(object):
 			"Parameter Reporter",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.ParameterReporter.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI ELEMENTS:
@@ -72,21 +76,6 @@ class ParameterReporter(object):
 		self.w.open()
 		self.w.makeKey()
 		self.ParameterReporterMain(None)
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.ParameterReporter.filter"] = self.w.filter.get()
-		except:
-			return False
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.ParameterReporter.filter", "")
-			self.w.filter.set(Glyphs.defaults["com.mekkablue.ParameterReporter.filter"])
-		except:
-			return False
-		return True
 
 	def realmStringForParameter(self, parameterName):
 		realms = []

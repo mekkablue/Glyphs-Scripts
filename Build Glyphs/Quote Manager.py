@@ -9,6 +9,7 @@ import vanilla
 from Foundation import NSPoint
 from AppKit import NSNotificationCenter
 from GlyphsApp import Glyphs, GSAnchor, GSComponent
+from mekkaCore import mekkaObject
 
 names = {
 	"quotesinglbase": "quotedblbase",
@@ -18,7 +19,16 @@ names = {
 }
 
 
-class QuoteManager(object):
+class QuoteManager(mekkaObject):
+	prefDict = {
+		"defaultQuote": 0,
+		"syncWithDefaultQuote": 0,
+		"suffix": "",
+		"excludeDumbQuotes": 0,
+		"openTabWithAffectedGlyphs": 0,
+		"reuseTab": 1,
+		"keepCopyInBackground": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -31,7 +41,7 @@ class QuoteManager(object):
 			"Quote Manager: build and align quotes",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.QuoteManager.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -106,45 +116,8 @@ class QuoteManager(object):
 	def updateUI(self, sender=None):
 		self.w.reuseTab.enable(self.w.openTabWithAffectedGlyphs.get())
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.QuoteManager.defaultQuote"] = self.w.defaultQuote.get()
-			Glyphs.defaults["com.mekkablue.QuoteManager.syncWithDefaultQuote"] = self.w.syncWithDefaultQuote.get()
-			Glyphs.defaults["com.mekkablue.QuoteManager.suffix"] = self.w.suffix.get()
-			Glyphs.defaults["com.mekkablue.QuoteManager.excludeDumbQuotes"] = self.w.excludeDumbQuotes.get()
-			Glyphs.defaults["com.mekkablue.QuoteManager.openTabWithAffectedGlyphs"] = self.w.openTabWithAffectedGlyphs.get()
-			Glyphs.defaults["com.mekkablue.QuoteManager.reuseTab"] = self.w.reuseTab.get()
-			Glyphs.defaults["com.mekkablue.QuoteManager.keepCopyInBackground"] = self.w.keepCopyInBackground.get()
-			self.updateUI()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.QuoteManager.defaultQuote", 0)
-			Glyphs.registerDefault("com.mekkablue.QuoteManager.syncWithDefaultQuote", 0)
-			Glyphs.registerDefault("com.mekkablue.QuoteManager.suffix", "")
-			Glyphs.registerDefault("com.mekkablue.QuoteManager.excludeDumbQuotes", 0)
-			Glyphs.registerDefault("com.mekkablue.QuoteManager.openTabWithAffectedGlyphs", 0)
-			Glyphs.registerDefault("com.mekkablue.QuoteManager.reuseTab", 1)
-			Glyphs.registerDefault("com.mekkablue.QuoteManager.keepCopyInBackground", 0)
-			self.w.defaultQuote.set(Glyphs.defaults["com.mekkablue.QuoteManager.defaultQuote"])
-			self.w.syncWithDefaultQuote.set(Glyphs.defaults["com.mekkablue.QuoteManager.syncWithDefaultQuote"])
-			self.w.suffix.set(Glyphs.defaults["com.mekkablue.QuoteManager.suffix"])
-			self.w.excludeDumbQuotes.set(Glyphs.defaults["com.mekkablue.QuoteManager.excludeDumbQuotes"])
-			self.w.openTabWithAffectedGlyphs.set(Glyphs.defaults["com.mekkablue.QuoteManager.openTabWithAffectedGlyphs"])
-			self.w.reuseTab.set(Glyphs.defaults["com.mekkablue.QuoteManager.reuseTab"])
-			self.w.keepCopyInBackground.set(Glyphs.defaults["com.mekkablue.QuoteManager.keepCopyInBackground"])
-			self.updateUI()
-		except:
-			return False
-
-		return True
-
 	def getDotSuffix(self):
-		dotSuffix = Glyphs.defaults["com.mekkablue.QuoteManager.suffix"].strip().lstrip(".")
+		dotSuffix = self.pref("suffix").strip().lstrip(".")
 
 		# clean up:
 		if dotSuffix:
@@ -153,7 +126,7 @@ class QuoteManager(object):
 		return dotSuffix
 
 	def openTabIfRequested(self):
-		if Glyphs.defaults["com.mekkablue.QuoteManager.openTabWithAffectedGlyphs"]:
+		if self.pref("openTabWithAffectedGlyphs"):
 			Font = Glyphs.font
 			suffix = self.getDotSuffix()
 			tabString = ""
@@ -163,7 +136,7 @@ class QuoteManager(object):
 					if Font.glyphs[suffixedName]:
 						tabString += "/%s" % suffixedName
 			if tabString:
-				if Font.currentTab and Glyphs.defaults["com.mekkablue.QuoteManager.reuseTab"]:
+				if Font.currentTab and self.pref("reuseTab"):
 					Font.currentTab.text = tabString
 				else:
 					Font.newTab(tabString)
@@ -182,7 +155,7 @@ class QuoteManager(object):
 		print(u"✅ Updated Metrics Keys for: %s" % glyphName)
 
 	def defaultQuotes(self, dotSuffix=""):
-		if Glyphs.defaults["com.mekkablue.QuoteManager.syncWithDefaultQuote"]:
+		if self.pref("syncWithDefaultQuote"):
 			defaultSingle = self.w.defaultQuote.getItem()
 			defaultSingle = defaultSingle[:defaultSingle.find("/")]
 			defaultDouble = names[defaultSingle]
@@ -266,7 +239,7 @@ class QuoteManager(object):
 						doubleName += dotSuffix
 						singleName += dotSuffix
 
-					if singleName == "quotesingle" and Glyphs.defaults["com.mekkablue.QuoteManager.excludeDumbQuotes"]:
+					if singleName == "quotesingle" and self.pref("excludeDumbQuotes"):
 						print(u"\n⚠️ Skipping %s/%s" % (singleName, doubleName))
 					else:
 						print("\n%s/%s:" % (singleName, doubleName))
@@ -377,7 +350,7 @@ class QuoteManager(object):
 					quoteright.leftMetricsKey = equals
 					quoteright.rightMetricsKey = equals
 					print(u"✅ Updated Metrics Keys for: %s, %s, %s" % (quotesinglbaseName, quoteleftName, quoterightName))
-				elif not Glyphs.defaults["com.mekkablue.QuoteManager.excludeDumbQuotes"]:
+				elif not self.pref("excludeDumbQuotes"):
 					# set dumb quote metric keys:
 					quotesingle.leftMetricsKey = equals
 					quotesingle.rightMetricsKey = "=|"
@@ -461,7 +434,7 @@ class QuoteManager(object):
 
 			# query suffix
 			dotSuffix = self.getDotSuffix()
-			keepCopyInBackground = Glyphs.defaults["com.mekkablue.QuoteManager.keepCopyInBackground"]
+			keepCopyInBackground = self.pref("keepCopyInBackground")
 
 			# report:
 			self.reportFont()
@@ -473,7 +446,7 @@ class QuoteManager(object):
 					doubleName += dotSuffix
 					singleName += dotSuffix
 
-				if singleName == "quotesingle" and Glyphs.defaults["com.mekkablue.QuoteManager.excludeDumbQuotes"]:
+				if singleName == "quotesingle" and self.pref("excludeDumbQuotes"):
 					print(u"\n⚠️ Skipping %s/%s" % (singleName, doubleName))
 				else:
 					print("\n%s/%s:" % (singleName, doubleName))

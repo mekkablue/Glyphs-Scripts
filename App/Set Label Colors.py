@@ -8,10 +8,10 @@ Override the label colors for glyphs and layers.
 import vanilla
 from Foundation import NSColor, NSArchiver, NSUnarchiver, NSMutableArray
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class SetLabelColors(object):
-	prefID = "com.mekkablue.SetLabelColors"
+class SetLabelColors(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
@@ -223,14 +223,6 @@ class SetLabelColors(object):
 					float(getattr(self.w, a).get()),
 				)
 			)
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
 
 	def colorRGBAstrings(self, index):
 		color = "color%02i" % index

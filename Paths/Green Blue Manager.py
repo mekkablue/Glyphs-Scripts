@@ -6,27 +6,15 @@ Define an angle above which a node will be set to blue, below which it will be s
 """
 
 import vanilla
-from math import degrees, atan2
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSControlLayer, GSOFFCURVE, GSSMOOTH, GSSHARP, Message
+from mekkaCore import mekkaObject, angle
 
 if Glyphs.versionNumber >= 3:
 	from GlyphsApp import GlyphsPathPlugin
 
 
-def angle(firstPoint, secondPoint):
-	"""
-	Returns the angle (in degrees) of the straight line between firstPoint and secondPoint,
-	0 degrees being the second point to the right of first point.
-	firstPoint, secondPoint: must be NSPoint or GSNode
-	"""
-	xDiff = secondPoint.x - firstPoint.x
-	yDiff = secondPoint.y - firstPoint.y
-	return degrees(atan2(yDiff, xDiff))
-
-
-class GreenBlueManager(object):
-	prefID = "com.mekkablue.GreenBlueManager"
+class GreenBlueManager(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"thresholdAngle": 11,
@@ -55,7 +43,7 @@ class GreenBlueManager(object):
 			"Green Blue Manager",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.GreenBlueManager.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -115,21 +103,13 @@ class GreenBlueManager(object):
 		if not self.LoadPreferences():
 			print("Note: 'Green Blue Manager' could not load preferences. Will resort to defaults")
 
-		self.checkGUI()
+		self.updateUI()
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def checkGUI(self, sender=None):
+	def updateUI(self, sender=None):
 		if not self.w.realignHandles.get() and not self.w.fixGreenBlue.get():
 			self.w.runButton.setTitle("Open Tab")
 		else:
@@ -137,32 +117,6 @@ class GreenBlueManager(object):
 
 		self.w.reportInMacroWindowVerbose.enable(self.w.reportInMacroWindow.get())
 		self.w.scope.enable(self.w.completeFont.get())
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.checkGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.checkGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def realignLayer(self, layer, shouldRealign=False, shouldReport=False, shouldVerbose=False):
 
@@ -256,8 +210,8 @@ class GreenBlueManager(object):
 		return handleCount
 
 	def fixConnectionsOnLayer(self, thisLayer, shouldFix=False, shouldReport=False, shouldVerbose=False):
-		thresholdAngle = float(self.pref("thresholdAngle"))
-		shouldMark = bool(self.pref("shouldMark"))
+		thresholdAngle = self.prefFloat("thresholdAngle")
+		shouldMark = self.prefBool("shouldMark")
 		layerCount = 0
 		for thisPath in thisLayer.paths:
 			for i, thisNode in enumerate(thisPath.nodes):

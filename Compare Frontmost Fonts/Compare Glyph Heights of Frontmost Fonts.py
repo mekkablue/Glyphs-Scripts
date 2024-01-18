@@ -7,10 +7,16 @@ Lists all glyphs that differ from the second font in height beyond a given thres
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class CompareGlyphHeightsOfFrontmostFonts(object):
-	prefID = "com.mekkablue.CompareGlyphHeightsOfFrontmostFonts"
+class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
+	prefDict = {
+		"heights": 0,
+		"depths": 0,
+		"tolerate": 0,
+		"includeNonExporting": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -61,50 +67,11 @@ class CompareGlyphHeightsOfFrontmostFonts(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def updateGUI(self):
+	def updateUI(self):
 		if not self.w.heights.get() and not self.w.depths.get():
 			self.w.runButton.enable(False)
 		else:
 			self.w.runButton.enable(True)
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults[self.domain("heights")] = self.w.heights.get()
-			Glyphs.defaults[self.domain("depths")] = self.w.depths.get()
-			Glyphs.defaults[self.domain("tolerate")] = self.w.tolerate.get()
-			Glyphs.defaults[self.domain("includeNonExporting")] = self.w.includeNonExporting.get()
-
-			self.updateGUI()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault(self.domain("heights"), 0)
-			Glyphs.registerDefault(self.domain("depths"), 0)
-			Glyphs.registerDefault(self.domain("tolerate"), 0)
-			Glyphs.registerDefault(self.domain("includeNonExporting"), 0)
-
-			self.w.heights.set(self.pref("heights"))
-			self.w.depths.set(self.pref("depths"))
-			self.w.tolerate.set(self.pref("tolerate"))
-			self.w.includeNonExporting.set(self.pref("includeNonExporting"))
-
-			self.updateGUI()
-		except:
-			return False
-
-		return True
 
 	def CompareGlyphHeightsOfFrontmostFontsMain(self, sender):
 		try:
@@ -137,7 +104,7 @@ class CompareGlyphHeightsOfFrontmostFonts(object):
 
 				heights = self.pref("heights")
 				depths = self.pref("depths")
-				tolerate = float(self.pref("tolerate"))
+				tolerate = self.prefFloat("tolerate")
 				includeNonExporting = self.pref("includeNonExporting")
 
 				theseIDs = [m.id for m in thisFont.masters]

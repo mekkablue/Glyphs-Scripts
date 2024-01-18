@@ -6,30 +6,12 @@ Batch-copy the anchors from one font master to another.
 """
 
 import vanilla
-import sys
-import math
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSAnchor, Message
+from mekkaCore import mekkaObject, italicize
 
 
-def italicize(thisPoint, italicAngle=0.0, pivotalY=0.0):
-	"""
-	Returns the italicized position of an NSPoint 'thisPoint'
-	for a given angle 'italicAngle' and the pivotal height 'pivotalY',
-	around which the italic slanting is executed, usually half x-height.
-	Usage: myPoint = italicize(myPoint,10,xHeight*0.5)
-	"""
-	x = thisPoint.x
-	yOffset = thisPoint.y - pivotalY  # calculate vertical offset
-	italicAngle = math.radians(italicAngle)  # convert to radians
-	tangens = math.tan(italicAngle)  # math.tan needs radians
-	horizontalDeviance = tangens * yOffset  # vertical distance from pivotal point
-	x += horizontalDeviance  # x of point that is yOffset from pivotal point
-	return NSPoint(x, thisPoint.y)
-
-
-class StealAnchors(object):
-	prefID = "com.mekkablue.StealAnchors"
+class StealAnchors(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"originFont": 0,
@@ -112,7 +94,7 @@ class StealAnchors(object):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.updateButton = vanilla.Button((-180 - inset, -20 - inset, -90 - inset, -inset), "Update", sizeStyle="regular", callback=self.UpdateGUI)
+		self.w.updateButton = vanilla.Button((-180 - inset, -20 - inset, -90 - inset, -inset), "Update", sizeStyle="regular", callback=self.updateUI)
 		self.w.updateButton.getNSButton().setToolTip_("Will update the popup menus above. Use this if you opened a new font after opening this dialog.")
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Steal", sizeStyle="regular", callback=self.StealAnchorsMain)
 		self.w.setDefaultButton(self.w.runButton)
@@ -173,15 +155,7 @@ class StealAnchors(object):
 			if popupButton.getItems() != availableMasters:
 				popupButton.setItems(availableMasters)
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def UpdateGUI(self, sender=None):
+	def updateUI(self, sender=None):
 		self.updateFontPopups()
 		self.updateMasterPopups()
 		for popUpButton in (self.w.originMaster, self.w.targetMaster):
@@ -189,32 +163,6 @@ class StealAnchors(object):
 		sameFonts = self.pref("originFont") == self.pref("targetFont")
 		sameMasters = (self.pref("originMaster") == self.pref("targetMaster")) or self.pref("allMasters")
 		self.w.runButton.enable(not (sameFonts and sameMasters))
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.UpdateGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.UpdateGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def StealAnchorsMain(self, sender=None):
 		try:
@@ -225,15 +173,6 @@ class StealAnchors(object):
 			# update settings to the latest user input:
 			if not self.SavePreferences():
 				print("⚠️ ‘Steal Anchors’ could not write preferences.")
-
-			# read prefs:
-			for prefName in self.prefDict.keys():
-				try:
-					setattr(sys.modules[__name__], prefName, self.pref(prefName))
-				except:
-					fallbackValue = self.prefDict[prefName]
-					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
-					setattr(sys.modules[__name__], prefName, fallbackValue)
 
 			if Glyphs.font is None:
 				Message(title="No Font Open", message="The script requires at least one font. Open a font and run the script again.", OKButton=None)

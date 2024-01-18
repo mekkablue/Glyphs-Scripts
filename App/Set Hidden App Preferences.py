@@ -8,9 +8,14 @@ GUI for a number of hidden prefs, hard to memorize otherwise.
 import vanilla
 from AppKit import NSFont
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 
-class SetHiddenAppPreferences(object):
+class SetHiddenAppPreferences(mekkaObject):
+	prefID = "com.mekkablue.SetHiddenAppPreferences"
+	prefDict = {
+		"pref": ""
+	}
 	prefs = (
 		"GSMakeSmoothNodes",
 		"GSKerningIncrementHigh",
@@ -104,33 +109,12 @@ class SetHiddenAppPreferences(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def updatePrefValue(self, sender):
+	def updateUI(self, sender):
 		value = Glyphs.defaults[self.w.pref.get()]
 		value = str(value)
 		value = value.replace("\n", "")
 		value = value.replace("  ", " ")
 		self.w.prefValue.set(value)
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.SetHiddenAppPreferences.pref"] = self.w.pref.get()
-
-			if sender == self.w.pref:
-				self.updatePrefValue(None)
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.SetHiddenAppPreferences.pref", "")
-			self.w.pref.set(Glyphs.defaults["com.mekkablue.SetHiddenAppPreferences.pref"])
-			self.updatePrefValue(None)
-		except:
-			return False
-
-		return True
 
 	def SetHiddenAppPreferencesMain(self, sender):
 		try:

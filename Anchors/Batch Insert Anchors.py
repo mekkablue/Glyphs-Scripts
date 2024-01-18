@@ -8,12 +8,19 @@ Insert an anchor in all selected glyphs, on all layers, and pick the approximate
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSAnchor
+from mekkaCore import mekkaObject
 
 xPositions = ("Center of Width", "LSB", "RSB", "BBox Left Edge", "BBox Horizontal Center", "BBox Right Edge")
 yPositions = ("Baseline", "x-Height", "Smallcap Height", "Cap Height", "Ascender", "Shoulder Height", "Descender", "BBox Top", "BBox Center", "BBox Bottom")
 
 
-class BatchInsertAnchor(object):
+class BatchInsertAnchor(mekkaObject):
+	prefDict = {
+		"anchorName": "top",
+		"xPos": 0,
+		"yPos": 0,
+		"replaceExisting": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -26,7 +33,7 @@ class BatchInsertAnchor(object):
 			"Batch Insert Anchor",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.BatchInsertAnchor.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -76,32 +83,6 @@ class BatchInsertAnchor(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.BatchInsertAnchor.anchorName"] = self.w.anchorName.get()
-			Glyphs.defaults["com.mekkablue.BatchInsertAnchor.xPos"] = self.w.xPos.get()
-			Glyphs.defaults["com.mekkablue.BatchInsertAnchor.yPos"] = self.w.yPos.get()
-			Glyphs.defaults["com.mekkablue.BatchInsertAnchor.replaceExisting"] = self.w.replaceExisting.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.BatchInsertAnchor.anchorName", "top")
-			Glyphs.registerDefault("com.mekkablue.BatchInsertAnchor.xPos", 0)
-			Glyphs.registerDefault("com.mekkablue.BatchInsertAnchor.yPos", 0)
-			Glyphs.registerDefault("com.mekkablue.BatchInsertAnchor.replaceExisting", 0)
-			self.w.anchorName.set(Glyphs.defaults["com.mekkablue.BatchInsertAnchor.anchorName"])
-			self.w.xPos.set(Glyphs.defaults["com.mekkablue.BatchInsertAnchor.xPos"])
-			self.w.yPos.set(Glyphs.defaults["com.mekkablue.BatchInsertAnchor.yPos"])
-			self.w.replaceExisting.set(Glyphs.defaults["com.mekkablue.BatchInsertAnchor.replaceExisting"])
-		except:
-			return False
-
-		return True
-
 	def BatchInsertAnchorMain(self, sender):
 		try:
 			# update settings to the latest user input:
@@ -113,10 +94,10 @@ class BatchInsertAnchor(object):
 			print(thisFont.filepath)
 			print()
 
-			anchorName = Glyphs.defaults["com.mekkablue.BatchInsertAnchor.anchorName"]
-			xPos = Glyphs.defaults["com.mekkablue.BatchInsertAnchor.xPos"]
-			yPos = Glyphs.defaults["com.mekkablue.BatchInsertAnchor.yPos"]
-			replaceExisting = Glyphs.defaults["com.mekkablue.BatchInsertAnchor.replaceExisting"]
+			anchorName = self.pref("anchorName")
+			xPos = self.pref("xPos")
+			yPos = self.pref("yPos")
+			replaceExisting = self.pref("replaceExisting")
 
 			selectedLayers = thisFont.selectedLayers
 			selectedGlyphNames = list(set([layer.parent.name for layer in selectedLayers if layer.parent]))

@@ -6,19 +6,8 @@ Finds interpolations in which points travel more than they should, i.e., can fin
 """
 
 import vanilla
-from math import degrees, atan2
 from GlyphsApp import Glyphs, GSOFFCURVE, Message, distance
-
-
-def angle(firstPoint, secondPoint):
-	"""
-	Returns the angle (in degrees) of the straight line between firstPoint and secondPoint,
-	0 degrees being the second point to the right of first point.
-	firstPoint, secondPoint: must be NSPoint or GSNode
-	"""
-	xDiff = secondPoint.x - firstPoint.x
-	yDiff = secondPoint.y - firstPoint.y
-	return degrees(atan2(yDiff, xDiff))
+from mekkaCore import mekkaObject, angle
 
 
 def setCurrentTabToShowAllInstances(font):
@@ -40,8 +29,7 @@ def setCurrentTabToShowAllInstances(font):
 		raise e
 
 
-class TravelTracker(object):
-	prefID = "com.mekkablue.TravelTracker"
+class TravelTracker(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"includeNonExporting": 1,
@@ -150,14 +138,6 @@ class TravelTracker(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
 	def updateGUI(self, sender=None):
 		self.w.runButton.enable(any((
 			self.w.normalizeGlyph.get(),
@@ -167,41 +147,15 @@ class TravelTracker(object):
 		)))
 		self.w.thresholdAngle.enable(self.w.segmentRotation.get())
 
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.updateGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.updateGUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def maxSegmentRotationForLayers(self, layer, otherLayer):
 		maxSegmentRotation = 0.0
 		maxDeorthogonalization = 0.0
 
-		thresholdAngle = float(self.pref("thresholdAngle"))
-		checkForSegmentRotation = bool(self.pref("segmentRotation"))
-		checkForOrthogonalToNonOrthogonal = bool(self.pref("orthogonalToNonOrthogonal"))
-		checkForShortSegments = bool(self.pref("ignoreShortSegments"))
-		thresholdLength = float(self.pref("ignoreShortSegmentsThreshold"))
+		thresholdAngle = self.prefFloat("thresholdAngle")
+		checkForSegmentRotation = self.prefBool("segmentRotation")
+		checkForOrthogonalToNonOrthogonal = self.prefBool("orthogonalToNonOrthogonal")
+		checkForShortSegments = self.prefBool("ignoreShortSegments")
+		thresholdLength = self.prefFloat("ignoreShortSegmentsThreshold")
 
 		layer.selection = None
 		otherLayer.selection = None
@@ -336,16 +290,16 @@ class TravelTracker(object):
 			if not self.SavePreferences(self):
 				print("Note: 'Travel Tracker' could not write preferences.")
 
-			verbose = bool(self.pref("verbose"))
-			includeNonExporting = bool(self.pref("includeNonExporting"))
-			travelPercentage = float(self.pref("travelPercentage"))
-			allFonts = bool(self.pref("allFonts"))
+			verbose = self.prefBool("verbose")
+			includeNonExporting = self.prefBool("includeNonExporting")
+			travelPercentage = self.prefFloat("travelPercentage")
+			allFonts = self.prefBool("allFonts")
 			acceptableTravelRatio = travelPercentage / 100.0
-			acceptableRotation = abs(float(self.pref("thresholdAngle")))
+			acceptableRotation = abs(self.prefFloat("thresholdAngle"))
 
-			shouldCheckNodeTravel = bool(self.pref("normalizeGlyph")) or bool(self.pref("normalizeShape"))
-			shouldCheckRotation = bool(self.pref("segmentRotation")) and bool(self.pref("thresholdAngle"))
-			shouldCheckOrthogonals = bool(self.pref("orthogonalToNonOrthogonal"))
+			shouldCheckNodeTravel = self.prefBool("normalizeGlyph") or self.prefBool("normalizeShape")
+			shouldCheckRotation = self.prefBool("segmentRotation") and self.prefBool("thresholdAngle")
+			shouldCheckOrthogonals = self.prefBool("orthogonalToNonOrthogonal")
 
 			if not Glyphs.font:
 				Message(title="No Font Error", message="This script requires at least one font open.", OKButton=None)

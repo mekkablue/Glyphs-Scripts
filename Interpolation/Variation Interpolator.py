@@ -8,10 +8,10 @@ Interpolates each layer x times with its background and creates glyph variations
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class VariationInterpolator(object):
-	prefID = "com.mekkablue.VariationInterpolator"
+class VariationInterpolator(mekkaObject):
 	prefDict = {
 		"numberOfInterpolations": 10,
 		"suffix": "var",
@@ -93,37 +93,6 @@ class VariationInterpolator(object):
 			self.w.glyphNameText.show(False)
 			self.w.glyphName.show(False)
 			self.w.runButton.enable(bool(self.w.suffix.get().strip()))
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender):
-		try:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.updateUI()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.updateUI()
-		except:
-			return False
-
-		return True
 
 	def createGlyphCopy(self, thisGlyph, newSuffix=None, newName=None):
 		thisFont = thisGlyph.parent
@@ -226,7 +195,7 @@ class VariationInterpolator(object):
 			thisFont = Glyphs.font  # frontmost font
 			thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 			try:
-				numberOfInterpolations = int(self.pref("numberOfInterpolations"))
+				numberOfInterpolations = self.prefInt("numberOfInterpolations")
 				glyphSuffix = self.pref("suffix").strip()
 				glyphName = self.pref("glyphName").strip()
 				choice = self.pref("choice")

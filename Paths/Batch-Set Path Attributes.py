@@ -7,6 +7,7 @@ Set path attributes of all paths in selected glyphs, the master, the font, etc.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
 def intOrNone(value):
@@ -49,8 +50,15 @@ scopeGlyphs = (
 )
 
 
-class BatchSetPathAttributes(object):
-	prefID = "com.mekkablue.BatchSetPathAttributes"
+class BatchSetPathAttributes(mekkaObject):
+	prefDict = {
+		"scopeGlyphs": 0,
+		"scopeMaster": 0,
+		"lineCaps": 2,
+		"strokeWidth": 20,
+		"strokeHeight": "",
+		"strokePos": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -126,61 +134,6 @@ class BatchSetPathAttributes(object):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def setPref(self, prefName, value=None):
-		domain = self.domain(prefName)
-		if value is None:
-			# reset
-			del Glyphs.defaults[domain]
-		else:
-			# set
-			Glyphs.defaults[domain] = value
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			self.setPref("scopeGlyphs", self.w.scopeGlyphs.get())
-			self.setPref("scopeMaster", self.w.scopeMaster.get())
-			self.setPref("lineCaps", self.w.lineCaps.get())
-			self.setPref("strokeWidth", self.w.strokeWidth.get())
-			self.setPref("strokeHeight", self.w.strokeHeight.get())
-			self.setPref("strokePos", self.w.strokePos.get())
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault(self.domain("scopeGlyphs"), 0)
-			Glyphs.registerDefault(self.domain("scopeMaster"), 0)
-			Glyphs.registerDefault(self.domain("lineCaps"), 2)
-			Glyphs.registerDefault(self.domain("strokeWidth"), 20)
-			Glyphs.registerDefault(self.domain("strokeHeight"), "")
-			Glyphs.registerDefault(self.domain("strokePos"), 0)
-
-			# load previously written prefs:
-			self.w.scopeGlyphs.set(self.pref("scopeGlyphs"))
-			self.w.scopeMaster.set(self.pref("scopeMaster"))
-			self.w.lineCaps.set(self.pref("lineCaps"))
-			self.w.strokeWidth.set(self.pref("strokeWidth"))
-			self.w.strokeHeight.set(self.pref("strokeHeight"))
-			self.w.strokePos.set(self.pref("strokePos"))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def glyphScopeErrorMsg(self, sender=None):
 		Message(title="Glyph Scope Error", message="No applicable glyphs found. Please select the glyph scope and run the script again.", OKButton=None)
@@ -336,7 +289,7 @@ class BatchSetPathAttributes(object):
 				else:
 					lineCaps = (None, None)
 
-				strokeWidth = int(self.pref("strokeWidth"))
+				strokeWidth = self.prefInt("strokeWidth")
 				strokeHeight = self.pref("strokeHeight")
 				strokePos = self.pref("strokePos")
 				try:

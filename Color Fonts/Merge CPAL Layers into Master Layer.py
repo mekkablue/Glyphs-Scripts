@@ -6,7 +6,6 @@ Takes all CPAL/COLR layers and puts copies of their shapes into the master layer
 """
 
 import vanilla
-import sys
 from GlyphsApp import Glyphs, Message
 
 
@@ -18,7 +17,6 @@ allOptions = (
 
 
 class MergeCPALLayersIntoMasterLayer(object):
-	prefID = "com.mekkablue.MergeCPALLayersIntoMasterLayer"
 	prefDict = {
 		# "prefName": defaultValue,
 		"overwrite": 1,
@@ -67,38 +65,6 @@ class MergeCPALLayersIntoMasterLayer(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def MergeCPALLayersIntoMasterLayerMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -107,15 +73,6 @@ class MergeCPALLayersIntoMasterLayer(object):
 			# update settings to the latest user input:
 			if not self.SavePreferences():
 				print("⚠️ ‘Merge CPAL Layers into Master Layer’ could not write preferences.")
-
-			# read prefs:
-			for prefName in self.prefDict.keys():
-				try:
-					setattr(sys.modules[__name__], prefName, self.pref(prefName))
-				except:
-					fallbackValue = self.prefDict[prefName]
-					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
-					setattr(sys.modules[__name__], prefName, fallbackValue)
 
 			if not Glyphs.font:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)

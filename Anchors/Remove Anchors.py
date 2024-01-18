@@ -7,11 +7,17 @@ Delete anchors from selected glyphs, or whole font.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 allAnchors = "All Anchors"
 
 
-class AnchorDeleter(object):
+class AnchorDeleter(mekkaObject):
+	prefDict = {
+		"anchorPopup": 0,
+		"selectedGlyphsOnly": 0,
+		"currentMasterOnly": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -24,7 +30,7 @@ class AnchorDeleter(object):
 			"Remove Anchors",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.AnchorDeleter.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -56,35 +62,10 @@ class AnchorDeleter(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender=None):
-		try:
-			Glyphs.defaults["com.mekkablue.AnchorDeleter.anchorPopup"] = self.w.anchorPopup.get()
-			Glyphs.defaults["com.mekkablue.AnchorDeleter.selectedGlyphsOnly"] = self.w.selectedGlyphsOnly.get()
-			Glyphs.defaults["com.mekkablue.AnchorDeleter.currentMasterOnly"] = self.w.currentMasterOnly.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self, sender=None):
-		try:
-			Glyphs.registerDefault("com.mekkablue.AnchorDeleter.anchorPopup", 0)
-			Glyphs.registerDefault("com.mekkablue.AnchorDeleter.selectedGlyphsOnly", 0)
-			Glyphs.registerDefault("com.mekkablue.AnchorDeleter.currentMasterOnly", 0)
-			if self.w.anchorPopup.get() < len(self.w.anchorPopup.getItems()):
-				self.w.anchorPopup.set(Glyphs.defaults["com.mekkablue.AnchorDeleter.anchorPopup"])
-			else:
-				self.w.anchorPopup.set(0)
-			self.w.selectedGlyphsOnly.set(Glyphs.defaults["com.mekkablue.AnchorDeleter.selectedGlyphsOnly"])
-		except:
-			return False
-
-		return True
-
 	def updateAnchors(self, sender):
 		collectedAnchorNames = []
 		thisFont = Glyphs.font  # frontmost font
-		if Glyphs.defaults["com.mekkablue.AnchorDeleter.selectedGlyphsOnly"]:
+		if self.pref("selectedGlyphsOnly"):
 			glyphs = [layer.parent for layer in thisFont.selectedLayers]
 		else:
 			glyphs = thisFont.glyphs
@@ -95,8 +76,8 @@ class AnchorDeleter(object):
 		uniqueAnchorNames = set(collectedAnchorNames)
 		sortedAnchorNames = sorted(list(uniqueAnchorNames)) + [allAnchors]
 		try:
-			if not Glyphs.defaults["com.mekkablue.AnchorDeleter.anchorPopup"] < len(uniqueAnchorNames):
-				Glyphs.defaults["com.mekkablue.AnchorDeleter.anchorPopup"] = 0
+			if not self.pref("anchorPopup") < len(uniqueAnchorNames):
+				self.setPref("anchorPopup", 0)
 			else:
 				self.SavePreferences()
 		except:
@@ -120,10 +101,10 @@ class AnchorDeleter(object):
 				print(thisFont.filepath)
 				print()
 
-			anchorPopupIndex = Glyphs.defaults["com.mekkablue.AnchorDeleter.anchorPopup"]
+			anchorPopupIndex = self.pref("anchorPopup")
 			anchorsInPopup = self.w.anchorPopup.getItems()
 			anchorName = anchorsInPopup[anchorPopupIndex]
-			selectedGlyphsOnly = Glyphs.defaults["com.mekkablue.AnchorDeleter.selectedGlyphsOnly"]
+			selectedGlyphsOnly = self.pref("selectedGlyphsOnly")
 
 			print("Deleting %s %s:\n" % (
 				anchorName.lower() if anchorName == allAnchors else anchorName,
@@ -135,7 +116,7 @@ class AnchorDeleter(object):
 				print(errorMsg)
 				Message(title="Remove Anchors Error", message=errorMsg, OKButton=None)
 			else:
-				currentMasterOnly = Glyphs.defaults["com.mekkablue.AnchorDeleter.currentMasterOnly"]
+				currentMasterOnly = self.pref("currentMasterOnly")
 				currentMaster = thisFont.selectedFontMaster
 
 				if selectedGlyphsOnly:

@@ -7,6 +7,7 @@ Goes through all glyphs of the frontmost font, and checks for composites in the 
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 defaultSuffixes = ".dnom, .numr, .subs, .sups, .sinf, .case, .tf, .tosf, .osf"
 
@@ -19,8 +20,12 @@ def normalizedSuffixOrder(name):
 	return name
 
 
-class CompositeConsistencer(object):
-	prefID = "com.mekkablue.CompositeConsistencer"
+class CompositeConsistencer(mekkaObject):
+	prefDict = {
+		"ignore": defaultSuffixes,
+		"ignoreDuplicateSuffixes": True,
+		"suffixOrderMatters": False,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -62,43 +67,6 @@ class CompositeConsistencer(object):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			Glyphs.defaults[self.domain("ignore")] = self.w.ignore.get()
-			Glyphs.defaults[self.domain("ignoreDuplicateSuffixes")] = self.w.ignoreDuplicateSuffixes.get()
-			Glyphs.defaults[self.domain("suffixOrderMatters")] = self.w.suffixOrderMatters.get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault(self.domain("ignore"), defaultSuffixes)
-			Glyphs.registerDefault(self.domain("ignoreDuplicateSuffixes"), True)
-			Glyphs.registerDefault(self.domain("suffixOrderMatters"), False)
-
-			# load previously written prefs:
-			self.w.ignore.set(self.pref("ignore"))
-			self.w.ignoreDuplicateSuffixes.set(self.pref("ignoreDuplicateSuffixes"))
-			self.w.suffixOrderMatters.set(self.pref("suffixOrderMatters"))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def CompositeConsistencerMain(self, sender=None):
 		try:

@@ -6,120 +6,17 @@ Finds glyphs where handle distributions change too much (e.g., from balanced to 
 """
 
 import vanilla
-from Foundation import NSPoint
 from GlyphsApp import Glyphs, CURVE, Message, distance
+from mekkaCore import mekkaObject, intersectionLineLinePoints, bezierWithPoints
 
 
-def intersectionWithNSPoints(pointA, pointB, pointC, pointD, includeMidBcp=False):
-	"""
-	Returns an NSPoint of the intersection AB with CD.
-	Or False if there is no intersection
-	"""
-	try:
-		x1, y1 = pointA.x, pointA.y
-		x2, y2 = pointB.x, pointB.y
-		x3, y3 = pointC.x, pointC.y
-		x4, y4 = pointD.x, pointD.y
-
-		try:
-			slope12 = (float(y2) - float(y1)) / (float(x2) - float(x1))
-		except:
-			# division by zero if vertical
-			slope12 = None
-
-		try:
-			slope34 = (float(y4) - float(y3)) / (float(x4) - float(x3))
-		except:
-			# division by zero if vertical
-			slope34 = None
-
-		if slope12 == slope34:
-			# parallel, no intersection
-			return None
-		elif slope12 is None:
-			# first line is vertical
-			x = x1
-			y = slope34 * (x - x3) + y3
-		elif slope34 is None:
-			# second line is vertical
-			x = x3
-			y = slope12 * (x - x1) + y1
-		else:
-			# both lines have an angle
-			x = (slope12 * x1 - y1 - slope34 * x3 + y3) / (slope12 - slope34)
-			y = slope12 * (x - x1) + y1
-
-		intersectionPoint = NSPoint(x, y)
-		if bothPointsAreOnSameSideOfOrigin(intersectionPoint, pointB, pointA) and bothPointsAreOnSameSideOfOrigin(intersectionPoint, pointC, pointD):
-			if not includeMidBcp:
-				if pointIsBetweenOtherPoints(intersectionPoint, pointB, pointA) or pointIsBetweenOtherPoints(intersectionPoint, pointC, pointD):
-					return None
-			return intersectionPoint
-		else:
-			return None
-
-	except Exception as e:
-		print(e)
-		import traceback
-		print(traceback.format_exc())
-		return None
-
-
-def bezierWithPoints(A, B, C, D, t):
-	x, y = bezier(A.x, A.y, B.x, B.y, C.x, C.y, D.x, D.y, t)
-	return NSPoint(x, y)
-
-
-def bezier(x1, y1, x2, y2, x3, y3, x4, y4, t):
-	"""
-	Returns coordinates for t (=0.0...1.0) on curve segment.
-	x1,y1 and x4,y4: coordinates of on-curve nodes
-	x2,y2 and x3,y3: coordinates of BCPs
-	"""
-	x = x1 * (1 - t)**3 + x2 * 3 * t * (1 - t)**2 + x3 * 3 * t**2 * (1 - t) + x4 * t**3
-	y = y1 * (1 - t)**3 + y2 * 3 * t * (1 - t)**2 + y3 * 3 * t**2 * (1 - t) + y4 * t**3
-
-	return x, y
-
-
-def bothPointsAreOnSameSideOfOrigin(pointA, pointB, pointOrigin):
-	returnValue = True
-	xDiff = (pointA.x - pointOrigin.x) * (pointB.x - pointOrigin.x)
-	yDiff = (pointA.y - pointOrigin.y) * (pointB.y - pointOrigin.y)
-	if xDiff <= 0.0 and yDiff <= 0.0:
-		returnValue = False
-	return returnValue
-
-
-def pointIsBetweenOtherPoints(thisPoint, otherPointA, otherPointB):
-	returnValue = False
-
-	xDiffAB = otherPointB.x - otherPointA.x
-	yDiffAB = otherPointB.y - otherPointA.y
-	xDiffAP = thisPoint.x - otherPointA.x
-	yDiffAP = thisPoint.y - otherPointA.y
-	xDiffFactor = divideAndTolerateZero(xDiffAP, xDiffAB)
-	yDiffFactor = divideAndTolerateZero(yDiffAP, yDiffAB)
-
-	if xDiffFactor is not None:
-		if 0.0 <= xDiffFactor <= 1.0:
-			returnValue = True
-
-	if yDiffFactor is not None:
-		if 0.0 <= yDiffFactor <= 1.0:
-			returnValue = True
-
-	return returnValue
-
-
-def divideAndTolerateZero(dividend, divisor):
-	if float(divisor) == 0.0:
-		return None
-	else:
-		return dividend / divisor
-
-
-class NewTabWithUnevenHandleDistributions(object):
+class NewTabWithUnevenHandleDistributions(mekkaObject):
+	prefDict = {
+		"factorChange": 0,
+		"factorChangeEntry": "2.5",
+		"anyMaxToNotMax": 1,
+		"markInFirstMaster": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -132,7 +29,7 @@ class NewTabWithUnevenHandleDistributions(object):
 			"New Tab with Uneven Handle Distributions",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.NewTabWithUnevenHandleDistributions.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -168,32 +65,6 @@ class NewTabWithUnevenHandleDistributions(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.NewTabWithUnevenHandleDistributions.factorChange"] = self.w.factorChange.get()
-			Glyphs.defaults["com.mekkablue.NewTabWithUnevenHandleDistributions.factorChangeEntry"] = self.w.factorChangeEntry.get()
-			Glyphs.defaults["com.mekkablue.NewTabWithUnevenHandleDistributions.anyMaxToNotMax"] = self.w.anyMaxToNotMax.get()
-			Glyphs.defaults["com.mekkablue.NewTabWithUnevenHandleDistributions.markInFirstMaster"] = self.w.markInFirstMaster.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.NewTabWithUnevenHandleDistributions.factorChange", 0)
-			Glyphs.registerDefault("com.mekkablue.NewTabWithUnevenHandleDistributions.factorChangeEntry", "2.5")
-			Glyphs.registerDefault("com.mekkablue.NewTabWithUnevenHandleDistributions.anyMaxToNotMax", 1)
-			Glyphs.registerDefault("com.mekkablue.NewTabWithUnevenHandleDistributions.markInFirstMaster", 0)
-			self.w.factorChange.set(Glyphs.defaults["com.mekkablue.NewTabWithUnevenHandleDistributions.factorChange"])
-			self.w.factorChangeEntry.set(Glyphs.defaults["com.mekkablue.NewTabWithUnevenHandleDistributions.factorChangeEntry"])
-			self.w.anyMaxToNotMax.set(Glyphs.defaults["com.mekkablue.NewTabWithUnevenHandleDistributions.anyMaxToNotMax"])
-			self.w.markInFirstMaster.set(Glyphs.defaults["com.mekkablue.NewTabWithUnevenHandleDistributions.markInFirstMaster"])
-		except:
-			return False
-
-		return True
-
 	def factor(self, A, B, C, D, intersection):
 		handlePercentage1 = distance(A.position, B.position) / distance(A.position, intersection)
 		handlePercentage2 = distance(D.position, C.position) / distance(D.position, intersection)
@@ -206,7 +77,7 @@ class NewTabWithUnevenHandleDistributions(object):
 			B = otherPath.nodes[indexB]
 			C = otherPath.nodes[indexC]
 			D = otherPath.nodes[indexD]
-			intersection = intersectionWithNSPoints(A.position, B.position, C.position, D.position)
+			intersection = intersectionLineLinePoints(A.position, B.position, C.position, D.position)
 			if intersection:
 				otherFactor = self.factor(A, B, C, D, intersection)
 				factorChange = otherFactor / firstFactor
@@ -221,7 +92,7 @@ class NewTabWithUnevenHandleDistributions(object):
 			B = otherPath.nodes[indexB]
 			C = otherPath.nodes[indexC]
 			D = otherPath.nodes[indexD]
-			intersection = intersectionWithNSPoints(A.position, B.position, C.position, D.position)
+			intersection = intersectionLineLinePoints(A.position, B.position, C.position, D.position)
 			if intersection:
 				BCPsMaxed = (B.position == intersection, C.position == intersection)
 				if BCPsMaxed != firstBCPsMaxed:
@@ -253,10 +124,10 @@ class NewTabWithUnevenHandleDistributions(object):
 				print()
 
 				# query user options:
-				shouldCheckFactorChange = Glyphs.defaults["com.mekkablue.NewTabWithUnevenHandleDistributions.factorChange"]
-				maxFactorChange = float(Glyphs.defaults["com.mekkablue.NewTabWithUnevenHandleDistributions.factorChangeEntry"])
-				shouldCheckAnyMaxToNotMax = Glyphs.defaults["com.mekkablue.NewTabWithUnevenHandleDistributions.anyMaxToNotMax"]
-				markInFirstMaster = Glyphs.defaults["com.mekkablue.NewTabWithUnevenHandleDistributions.markInFirstMaster"]
+				shouldCheckFactorChange = self.pref("factorChange")
+				maxFactorChange = self.prefFloat("factorChangeEntry")
+				shouldCheckAnyMaxToNotMax = self.pref("anyMaxToNotMax")
+				markInFirstMaster = self.pref("markInFirstMaster")
 
 				glyphs = [g for g in thisFont.glyphs if g.mastersCompatible]
 				print("Found %i compatible glyph%s." % (
@@ -283,7 +154,7 @@ class NewTabWithUnevenHandleDistributions(object):
 										firstBCP1 = firstPath.nodes[indexBCP1]
 										firstBCP2 = firstPath.nodes[indexBCP2]
 
-										firstIntersection = intersectionWithNSPoints(firstPrevNode, firstBCP1, firstBCP2, firstNode, includeMidBcp=True)
+										firstIntersection = intersectionLineLinePoints(firstPrevNode, firstBCP1, firstBCP2, firstNode, includeMidBcp=True)
 										if firstIntersection:
 											if shouldCheckFactorChange:
 												firstFactor = self.factor(firstPrevNode, firstBCP1, firstBCP2, firstNode, firstIntersection)

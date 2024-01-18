@@ -8,9 +8,14 @@ Add group kernings with value zero for pairs that are missing in one master but 
 import vanilla
 from Foundation import NSNotFound
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class ZeroKerner(object):
+class ZeroKerner(mekkaObject):
+	prefDict = {
+		"limitToCurrentMaster": 0,
+		"reportInMacroWindow": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -23,7 +28,7 @@ class ZeroKerner(object):
 			"Zero Kerner",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.ZeroKerner.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -61,26 +66,6 @@ class ZeroKerner(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.ZeroKerner.limitToCurrentMaster"] = self.w.limitToCurrentMaster.get()
-			Glyphs.defaults["com.mekkablue.ZeroKerner.reportInMacroWindow"] = self.w.reportInMacroWindow.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.ZeroKerner.limitToCurrentMaster", 0)
-			Glyphs.registerDefault("com.mekkablue.ZeroKerner.reportInMacroWindow", 0)
-			self.w.limitToCurrentMaster.set(Glyphs.defaults["com.mekkablue.ZeroKerner.limitToCurrentMaster"])
-			self.w.reportInMacroWindow.set(Glyphs.defaults["com.mekkablue.ZeroKerner.reportInMacroWindow"])
-		except:
-			return False
-
-		return True
-
 	def report(self, statusMessage, reportInMacroWindow=False, emptyLine=False):
 		statusMessage = statusMessage.strip()
 		if reportInMacroWindow:
@@ -96,8 +81,8 @@ class ZeroKerner(object):
 				print("Note: 'Zero Kerner' could not write preferences.")
 
 			thisFont = Glyphs.font  # frontmost font
-			limitToCurrentMaster = Glyphs.defaults["com.mekkablue.ZeroKerner.limitToCurrentMaster"]
-			reportInMacroWindow = Glyphs.defaults["com.mekkablue.ZeroKerner.reportInMacroWindow"]
+			limitToCurrentMaster = self.pref("limitToCurrentMaster")
+			reportInMacroWindow = self.pref("reportInMacroWindow")
 			self.w.progress.set(0)  # set progress indicator to zero
 
 			shouldRemoveZeroKerns = sender == self.w.removeButton

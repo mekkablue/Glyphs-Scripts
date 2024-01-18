@@ -8,6 +8,7 @@ Finds all combinations of positional shapes that do not click well. Clicking mea
 import vanilla
 from AppKit import NSFont
 from GlyphsApp import Glyphs, GSControlLayer, GSOFFCURVE, Message
+from mekkaCore import mekkaObject
 
 
 def layerMissesPointsAtCoordinates(thisLayer, coordinates):
@@ -74,8 +75,7 @@ def doTheyClick(leftLayer, rightLayer, requiredClicks=2, verbose=False):
 		return True
 
 
-class PositionClicker(object):
-	prefID = "com.mekkablue.PositionClicker"
+class PositionClicker(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"referenceGlyphName": "behDotless-ar.medi",
@@ -177,40 +177,6 @@ class PositionClicker(object):
 				glyphNames.insert(0, fallback)
 			return glyphNames
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def PositionClickerMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -234,7 +200,7 @@ class PositionClicker(object):
 				referenceGlyphName = self.pref("referenceGlyphName")
 				includeNonExporting = self.pref("includeNonExporting")
 				reuseTab = self.pref("reuseTab")
-				clickCount = int(self.pref("clickCount"))
+				clickCount = self.prefInt("clickCount")
 				includeComposites = self.pref("includeComposites")
 				verbose = self.pref("verbose")
 

@@ -7,6 +7,7 @@ Specify a kerning value, and every kerning in the current master smaller than th
 
 import vanilla
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 
 def nameForID(Font, ID):
@@ -20,7 +21,17 @@ def nameForID(Font, ID):
 		raise e
 
 
-class DeleteSmallKerningPairs(object):
+class DeleteSmallKerningPairs(mekkaObject):
+	prefDict = {
+		"howMuch": "10",
+		"positive": True,
+		"zero": False,
+		"negative": True,
+		"glyphToGlyph": True,
+		"glyphToClass": True,
+		"classToClass": True,
+		"keepWindow": True,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -36,7 +47,7 @@ class DeleteSmallKerningPairs(object):
 			"Remove Small Kerning Pairs",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.DeleteSmallKerningPairs.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -66,45 +77,6 @@ class DeleteSmallKerningPairs(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.howMuch"] = self.w.howMuch.get()
-			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.positive"] = self.w.positive.get()
-			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.zero"] = self.w.zero.get()
-			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.negative"] = self.w.negative.get()
-			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.glyphToGlyph"] = self.w.glyphToGlyph.get()
-			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.glyphToClass"] = self.w.glyphToClass.get()
-			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.classToClass"] = self.w.classToClass.get()
-			Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.keepWindow"] = self.w.keepWindow.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.howMuch", "10")
-			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.positive", True)
-			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.zero", False)
-			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.negative", True)
-			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.glyphToGlyph", True)
-			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.glyphToClass", True)
-			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.classToClass", True)
-			Glyphs.registerDefault("com.mekkablue.DeleteSmallKerningPairs.keepWindow", True)
-
-			self.w.howMuch.set(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.howMuch"])
-			self.w.positive.set(bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.positive"]))
-			self.w.zero.set(bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.zero"]))
-			self.w.negative.set(bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.negative"]))
-			self.w.glyphToGlyph.set(bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.glyphToGlyph"]))
-			self.w.glyphToClass.set(bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.glyphToClass"]))
-			self.w.classToClass.set(bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.classToClass"]))
-			self.w.keepWindow.set(bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.keepWindow"]))
-		except:
-			return False
-
-		return True
-
 	def DeleteSmallKerningPairsMain(self, sender):
 		try:
 			if not self.SavePreferences(self):
@@ -114,13 +86,13 @@ class DeleteSmallKerningPairs(object):
 			Glyphs.showMacroWindow()
 
 			# read the user entry:
-			shouldRemovePositive = bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.positive"])
-			shouldRemoveZero = bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.zero"])
-			shouldRemoveNegative = bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.negative"])
-			shouldRemoveGlyphToGlyph = bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.glyphToGlyph"])
-			shouldRemoveGlyphToClass = bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.glyphToClass"])
-			shouldRemoveClassToClass = bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.classToClass"])
-			keepWindowOpen = bool(Glyphs.defaults["com.mekkablue.DeleteSmallKerningPairs.keepWindow"])
+			shouldRemovePositive = self.prefBool("positive")
+			shouldRemoveZero = self.prefBool("zero")
+			shouldRemoveNegative = self.prefBool("negative")
+			shouldRemoveGlyphToGlyph = self.prefBool("glyphToGlyph")
+			shouldRemoveGlyphToClass = self.prefBool("glyphToClass")
+			shouldRemoveClassToClass = self.prefBool("classToClass")
+			keepWindowOpen = self.prefBool("keepWindow")
 			try:
 				# convert to positive decimal number:
 				maxKernValue = abs(float(self.w.howMuch.get()))

@@ -8,6 +8,7 @@ Helps you write pangrams by displaying which letters are still missing.
 import vanilla
 from AppKit import NSStringPboardType, NSPasteboard
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 fullAlphabets = (
 	"abcdefghijklmnopqrstuvwxyz",
@@ -17,8 +18,11 @@ fullAlphabets = (
 )
 
 
-class PangramHelper(object):
-	prefDomain = "com.mekkablue.PangramHelper"
+class PangramHelper(mekkaObject):
+	prefDict = {
+		"alphabetChoice": 0,
+		"pangram": "The quick brown fox jumps over the lazy dog.",
+	}
 	title = "Pangram Helper"
 	alphabet = fullAlphabets[0]
 
@@ -62,32 +66,6 @@ class PangramHelper(object):
 		self.w.pangram.selectAll()
 		self.w.makeKey()
 
-	def domain(self, key):
-		return "%s.%s" % (self.prefDomain, key)
-
-	def preference(self, key):
-		domain = self.domain(key)
-		return Glyphs.defaults[domain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			Glyphs.defaults[self.domain("alphabetChoice")] = self.w.alphabetChoice.get()
-			Glyphs.defaults[self.domain("pangram")] = self.w.pangram.get()
-		except:
-			return False
-		return True
-
-	def LoadPreferences(self, sender=None):
-		try:
-			Glyphs.registerDefault(self.domain("alphabetChoice"), 0)
-			Glyphs.registerDefault(self.domain("pangram"), "The quick brown fox jumps over the lazy dog.")
-
-			self.w.alphabetChoice.set(self.preference("alphabetChoice"))
-			self.w.pangram.set(self.preference("pangram"))
-		except:
-			return False
-		return True
-
 	def decompose(self, glyph):
 		unicodeValue = "%04X" % ord(glyph)
 		info = Glyphs.glyphInfoForUnicode(unicodeValue)
@@ -100,14 +78,14 @@ class PangramHelper(object):
 		if not self.SavePreferences():
 			print("Note: '%s' could not save its preferences." % self.title)
 
-		self.alphabet = fullAlphabets[self.preference("alphabetChoice")]
+		self.alphabet = fullAlphabets[self.pref("alphabetChoice")]
 
 		if Glyphs.versionNumber >= 3:
 			# Glyphs 3 code
-			currentTextEntry = self.preference("pangram").lower()
+			currentTextEntry = self.pref("pangram").lower()
 		else:
 			# Glyphs 2 code
-			currentTextEntry = unicode(self.preference("pangram").lower())
+			currentTextEntry = unicode(self.pref("pangram").lower())  # noqa F821
 
 		containedBaseLetters = ""
 		for thisLetter in currentTextEntry:
@@ -124,7 +102,7 @@ class PangramHelper(object):
 
 	def PangramHelperMain(self, sender):
 		try:
-			myText = self.preference("pangram")
+			myText = self.pref("pangram")
 
 			if myText:
 				if sender == self.w.copyButton:

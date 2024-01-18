@@ -7,9 +7,15 @@ Removes kerning between glyphs, categories, subcategories, scripts.
 
 import vanilla
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 
-class RemoveKerning(object):
+class RemoveKerning(mekkaObject):
+	prefDict = {
+		"includeDirtyCategories": 0,
+		"reportInMacroWindow": 0,
+		"processAllMasters": 0,
+	}
 	registeredCases = (
 		"No Case",  # 0 GSNoCase
 		"Uppercase",  # 1 GSUppercase
@@ -29,7 +35,7 @@ class RemoveKerning(object):
 			"Remove Kerning",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.RemoveKerning.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -179,29 +185,6 @@ class RemoveKerning(object):
 					scripts.append(thisGlyph.script)
 			return scripts
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.RemoveKerning.includeDirtyCategories"] = self.w.includeDirtyCategories.get()
-			Glyphs.defaults["com.mekkablue.RemoveKerning.reportInMacroWindow"] = self.w.reportInMacroWindow.get()
-			Glyphs.defaults["com.mekkablue.RemoveKerning.processAllMasters"] = self.w.processAllMasters.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.RemoveKerning.includeDirtyCategories", 0)
-			Glyphs.registerDefault("com.mekkablue.RemoveKerning.reportInMacroWindow", 0)
-			Glyphs.registerDefault("com.mekkablue.RemoveKerning.processAllMasters", 0)
-			self.w.includeDirtyCategories.set(Glyphs.defaults["com.mekkablue.RemoveKerning.includeDirtyCategories"])
-			self.w.reportInMacroWindow.set(Glyphs.defaults["com.mekkablue.RemoveKerning.reportInMacroWindow"])
-			self.w.processAllMasters.set(Glyphs.defaults["com.mekkablue.RemoveKerning.processAllMasters"])
-		except:
-			return False
-
-		return True
-
 	def status(self, statusmsg, macroWindow=False):
 		self.w.statusText.set(statusmsg)
 		if macroWindow:
@@ -214,8 +197,8 @@ class RemoveKerning(object):
 				print("Note: 'Remove Kerning' could not write preferences.")
 
 			thisFont = Glyphs.font  # frontmost font
-			includeDirtyCategories = Glyphs.defaults["com.mekkablue.RemoveKerning.includeDirtyCategories"]
-			reportInMacroWindow = Glyphs.defaults["com.mekkablue.RemoveKerning.reportInMacroWindow"]
+			includeDirtyCategories = self.pref("includeDirtyCategories")
+			reportInMacroWindow = self.pref("reportInMacroWindow")
 
 			# brings macro window to front and clears its log:
 			if reportInMacroWindow:
@@ -275,7 +258,7 @@ class RemoveKerning(object):
 								rightGroups.remove(thisGlyph.leftKerningGroup)
 							self.status("Dirty left group @MMK_R_%s skipped." % thisGlyph.leftKerningGroup, reportInMacroWindow)
 
-			if Glyphs.defaults["com.mekkablue.RemoveKerning.processAllMasters"]:
+			if self.pref("processAllMasters"):
 				masterIDs = tuple([m.id for m in thisFont.masters])
 			else:
 				masterIDs = (thisFont.selectedFontMaster.id, )

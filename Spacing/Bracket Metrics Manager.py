@@ -7,9 +7,18 @@ Manage the sidebearings and widths of bracket layers.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class BracketMetricsManager(object):
+class BracketMetricsManager(mekkaObject):
+	prefDict = {
+		"syncLSB": 0,
+		"syncRSB": 0,
+		"syncWidth": 0,
+		"applyToAllGlyphsWithBrackets": 0,
+		"reportOnly": 0,
+		"openTab": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -22,7 +31,7 @@ class BracketMetricsManager(object):
 			"Bracket Metrics Manager",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.BracketMetricsManager.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -31,9 +40,9 @@ class BracketMetricsManager(object):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 30), u"In selected glyphs, syncs metrics of bracket layers with their associated layer, e.g. ‘Bold [90]’ with ‘Bold’.", sizeStyle='small', selectable=True)
 		linePos += lineHeight * 2
 
-		self.w.syncLSB = vanilla.CheckBox((inset, linePos - 1, 85, 20), "Sync LSB", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.syncRSB = vanilla.CheckBox((inset + 85, linePos - 1, 85, 20), "Sync RSB", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.syncWidth = vanilla.CheckBox((inset + 85 * 2, linePos - 1, -inset, 20), "Sync Width", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.syncLSB = vanilla.CheckBox((inset, linePos - 1, 85, 20), "Sync LSB", value=False, callback=self.syncAction, sizeStyle='small')
+		self.w.syncRSB = vanilla.CheckBox((inset + 85, linePos - 1, 85, 20), "Sync RSB", value=False, callback=self.syncAction, sizeStyle='small')
+		self.w.syncWidth = vanilla.CheckBox((inset + 85 * 2, linePos - 1, -inset, 20), "Sync Width", value=False, callback=self.syncAction, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.applyToAllGlyphsWithBrackets = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Apply to all glyphs in font that have bracket layers", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -57,29 +66,17 @@ class BracketMetricsManager(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender):
-		try:
-			if self.w.syncLSB.get() and self.w.syncRSB.get() and self.w.syncWidth.get():
-				if sender == self.w.syncLSB:
-					self.w.syncRSB.set(0)
-				if sender == self.w.syncRSB:
-					self.w.syncWidth.set(0)
-				if sender == self.w.syncWidth:
-					self.w.syncLSB.set(0)
+	def syncAction(self, sender):
+		if self.w.syncLSB.get() and self.w.syncRSB.get() and self.w.syncWidth.get():
+			if sender == self.w.syncLSB:
+				self.w.syncRSB.set(0)
+			if sender == self.w.syncRSB:
+				self.w.syncWidth.set(0)
+			if sender == self.w.syncWidth:
+				self.w.syncLSB.set(0)
+		self.SavePreferences()
 
-			Glyphs.defaults["com.mekkablue.BracketMetricsManager.syncLSB"] = self.w.syncLSB.get()
-			Glyphs.defaults["com.mekkablue.BracketMetricsManager.syncRSB"] = self.w.syncRSB.get()
-			Glyphs.defaults["com.mekkablue.BracketMetricsManager.syncWidth"] = self.w.syncWidth.get()
-			Glyphs.defaults["com.mekkablue.BracketMetricsManager.applyToAllGlyphsWithBrackets"] = self.w.applyToAllGlyphsWithBrackets.get()
-			Glyphs.defaults["com.mekkablue.BracketMetricsManager.reportOnly"] = self.w.reportOnly.get()
-			Glyphs.defaults["com.mekkablue.BracketMetricsManager.openTab"] = self.w.openTab.get()
-			self.toggleAndRenameButtons()
-		except:
-			return False
-
-		return True
-
-	def toggleAndRenameButtons(self):
+	def updateUI(self):
 		if self.w.reportOnly.get():
 			self.w.runButton.setTitle("Report")
 			self.w.runButton.enable(onOff=True)
@@ -88,33 +85,11 @@ class BracketMetricsManager(object):
 			shouldBeEnabled = (self.w.syncLSB.get() or self.w.syncRSB.get() or self.w.syncWidth.get())
 			self.w.runButton.enable(onOff=shouldBeEnabled)
 
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.BracketMetricsManager.syncLSB", 0)
-			Glyphs.registerDefault("com.mekkablue.BracketMetricsManager.syncRSB", 0)
-			Glyphs.registerDefault("com.mekkablue.BracketMetricsManager.syncWidth", 0)
-			Glyphs.registerDefault("com.mekkablue.BracketMetricsManager.applyToAllGlyphsWithBrackets", 0)
-			Glyphs.registerDefault("com.mekkablue.BracketMetricsManager.reportOnly", 0)
-			Glyphs.registerDefault("com.mekkablue.BracketMetricsManager.openTab", 0)
-
-			self.w.syncLSB.set(Glyphs.defaults["com.mekkablue.BracketMetricsManager.syncLSB"])
-			self.w.syncRSB.set(Glyphs.defaults["com.mekkablue.BracketMetricsManager.syncRSB"])
-			self.w.syncWidth.set(Glyphs.defaults["com.mekkablue.BracketMetricsManager.syncWidth"])
-			self.w.applyToAllGlyphsWithBrackets.set(Glyphs.defaults["com.mekkablue.BracketMetricsManager.applyToAllGlyphsWithBrackets"])
-			self.w.reportOnly.set(Glyphs.defaults["com.mekkablue.BracketMetricsManager.reportOnly"])
-			self.w.openTab.set(Glyphs.defaults["com.mekkablue.BracketMetricsManager.openTab"])
-
-			self.toggleAndRenameButtons()
-		except:
-			return False
-
-		return True
-
 	def syncBrackets(self, glyph):
 		bracketLayerCount = 0
-		syncLSB = Glyphs.defaults["com.mekkablue.BracketMetricsManager.syncLSB"]
-		syncRSB = Glyphs.defaults["com.mekkablue.BracketMetricsManager.syncRSB"]
-		syncWidth = Glyphs.defaults["com.mekkablue.BracketMetricsManager.syncWidth"]
+		syncLSB = self.pref("syncLSB")
+		syncRSB = self.pref("syncRSB")
+		syncWidth = self.pref("syncWidth")
 		print("%s:" % glyph.name)
 		for bracketLayer in glyph.layers:
 			associatedMaster = bracketLayer.associatedFontMaster()
@@ -185,7 +160,7 @@ class BracketMetricsManager(object):
 				print("Path: %s" % thisFont.filepath)
 				print()
 
-				if Glyphs.defaults["com.mekkablue.BracketMetricsManager.applyToAllGlyphsWithBrackets"]:
+				if self.pref("applyToAllGlyphsWithBrackets"):
 					glyphsToCheck = [g for g in thisFont.glyphs if self.glyphHasBrackets(g)]
 				else:
 					glyphsToCheck = [layer.parent for layer in thisFont.selectedLayers if self.glyphHasBrackets(layer.parent)]
@@ -195,12 +170,12 @@ class BracketMetricsManager(object):
 					Message(title="No Bracket Glyphs", message=msg, OKButton=None)
 					print(msg)
 				else:
-					if Glyphs.defaults["com.mekkablue.BracketMetricsManager.openTab"]:
+					if self.pref("openTab"):
 						glyphNames = [g.name for g in glyphsToCheck]
 						tabText = "/" + "/".join(glyphNames)
 						thisFont.newTab(tabText)
 
-					if Glyphs.defaults["com.mekkablue.BracketMetricsManager.reportOnly"]:
+					if self.pref("reportOnly"):
 						# brings macro window to front and clears its log:
 						Glyphs.showMacroWindow()
 						for glyph in glyphsToCheck:

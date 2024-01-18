@@ -9,9 +9,14 @@ import vanilla
 import math
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, CORNER
+from mekkaCore import mekkaObject
 
 
-class ReplaceCornersAtCertainAngles(object):
+class ReplaceCornersAtCertainAngles(mekkaObject):
+	prefDict = {
+		"largerOrSmaller": "0",
+		"thresholdAngle": "90"
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -25,7 +30,7 @@ class ReplaceCornersAtCertainAngles(object):
 			"Replace Corners At Certain Angles",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.ReplaceCornersAtCertainAngles.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		self.cornerList = self.getAllCorners()
@@ -52,28 +57,6 @@ class ReplaceCornersAtCertainAngles(object):
 		self.CheckButton(None)
 		self.w.open()
 		self.w.makeKey()
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.ReplaceCornersAtCertainAngles.largerOrSmaller"] = self.w.largerOrSmaller.get()
-			Glyphs.defaults["com.mekkablue.ReplaceCornersAtCertainAngles.thresholdAngle"] = self.w.thresholdAngle.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefaults({
-				"com.mekkablue.ReplaceCornersAtCertainAngles.largerOrSmaller": "0",
-				"com.mekkablue.ReplaceCornersAtCertainAngles.thresholdAngle": "90"
-			})
-			self.w.largerOrSmaller.set(Glyphs.defaults["com.mekkablue.ReplaceCornersAtCertainAngles.largerOrSmaller"])
-			self.w.thresholdAngle.set(Glyphs.defaults["com.mekkablue.ReplaceCornersAtCertainAngles.thresholdAngle"])
-		except:
-			return False
-
-		return True
 
 	def CheckButton(self, sender):
 		if self.w.searchForCorner.get() == self.w.replaceWithCorner.get():

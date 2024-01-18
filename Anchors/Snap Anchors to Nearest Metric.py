@@ -6,26 +6,10 @@ Moves specified anchors to the nearest metric (e.g. x-height, ascender, etc.), w
 """
 
 import vanilla
-import math
 from Foundation import NSPoint
 from AppKit import NSAffineTransform
 from GlyphsApp import Glyphs, Message, addPoints
-
-
-def italicize(thisPoint, italicAngle=0.0, pivotalY=0.0):
-	"""
-	Returns the italicized position of an NSPoint 'thisPoint'
-	for a given angle 'italicAngle' and the pivotal height 'pivotalY',
-	around which the italic slanting is executed, usually half x-height.
-	Usage: myPoint = italicize(myPoint,10,xHeight*0.5)
-	"""
-	x = thisPoint.x
-	yOffset = thisPoint.y - pivotalY  # calculate vertical offset
-	italicAngle = math.radians(italicAngle)  # convert to radians
-	tangens = math.tan(italicAngle)  # math.tan needs radians
-	horizontalDeviance = tangens * yOffset  # vertical distance from pivotal point
-	x += horizontalDeviance  # x of point that is yOffset from pivotal point
-	return NSPoint(x, thisPoint.y)
+from mekkaCore import mekkaObject, italicize
 
 
 def closestMetric(position, metrics):
@@ -39,8 +23,7 @@ def legibleNum(number):
 		return number
 
 
-class SnapAnchorsToNearestMetric(object):
-	prefID = "com.mekkablue.SnapAnchorsToNearestMetric"
+class SnapAnchorsToNearestMetric(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"anchorNames": "_top, _bottom, top, bottom, ogonek, _ogonek",
@@ -102,38 +85,6 @@ class SnapAnchorsToNearestMetric(object):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def moveAnchorsToNearestMetricsOnLayer(
 		self, layer, anchorNames=["_top", "_bottom", "top", "bottom", "ogonek", "_ogonek"], respectItalic=True, threshold=30, verbose=False, underscoreOnlyInMarks=True
@@ -198,18 +149,18 @@ class SnapAnchorsToNearestMetric(object):
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
 
-			allFonts = bool(self.pref("allFonts"))
+			allFonts = self.prefBool("allFonts")
 			if allFonts:
 				theseFonts = Glyphs.fonts
 			else:
 				theseFonts = (Glyphs.font, )
 
 			# read prefs:
-			threshold = int(self.pref("threshold"))
-			respectItalic = bool(self.pref("respectItalic"))
-			verbose = bool(self.pref("verbose"))
+			threshold = self.prefInt("threshold")
+			respectItalic = self.prefBool("respectItalic")
+			verbose = self.prefBool("verbose")
 			anchorNamesList = sorted(set([a.strip() for a in self.pref("anchorNames").strip().split(",")]))
-			focusOnMarkAnchorsInMarks = bool(self.pref("focusOnMarkAnchorsInMarks"))
+			focusOnMarkAnchorsInMarks = self.prefBool("focusOnMarkAnchorsInMarks")
 
 			for thisFont in theseFonts:
 				filePath = thisFont.filepath

@@ -9,10 +9,10 @@ import vanilla
 from AppKit import NSNotificationCenter, NSPoint
 from copy import copy as copy
 from GlyphsApp import Glyphs, GSGlyph, GSComponent, GSPath, GSAnchor, GSUppercase, Message
+from mekkaCore import mekkaObject
 
 
-class MovePathstoComponent(object):
-	prefID = "com.mekkablue.MovePathstoComponent"
+class MovePathstoComponent(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"name": "_bar.dollar",
@@ -71,14 +71,6 @@ class MovePathstoComponent(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
 	def updateUI(self, sender=None):
 		# check for existing glyph:
 		glyphName = self.w.name.get()
@@ -89,32 +81,6 @@ class MovePathstoComponent(object):
 		else:
 			self.w.warningText.set("")
 		return True
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def updateAnchors(self, sender=None):
 		anchorNames = self.allAnchorNames()

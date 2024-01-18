@@ -8,6 +8,7 @@ Find and report possible issues with components and corner components.
 import vanilla
 from timeit import default_timer as timer
 from GlyphsApp import Glyphs, Message, CORNER
+from mekkaCore import mekkaObject
 
 
 def camelCaseSplit(str):
@@ -62,8 +63,7 @@ def layerAdheresToStructure(thisLayer, glyphNameTuple):
 	return True
 
 
-class ComponentProblemFinder(object):
-	prefID = "com.mekkablue.ComponentProblemFinder"
+class ComponentProblemFinder(mekkaObject):
 	prefs = (
 		"composablesWithoutComponents",
 		"unusualComponents",
@@ -203,47 +203,11 @@ class ComponentProblemFinder(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
 	def updateUI(self, sender=None):
 		shouldEnableRunButton = any([bool(Glyphs.defaults[self.domain(p)]) for p in self.prefs[:-3]])
 		self.w.runButton.enable(shouldEnableRunButton)
 
 		self.w.unproportionallyScaledComponents.enable(self.w.scaledComponents.get())
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefs:
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefs:
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), prefName.startswith("include") or prefName.startswith("reuse"))
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def callMethodWithArg(self, methodName, arg):
 		method = getattr(self, methodName)

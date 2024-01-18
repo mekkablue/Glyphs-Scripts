@@ -7,9 +7,20 @@ Reduplicates Brace and Bracket layers of components in the composites in which t
 
 import vanilla
 from GlyphsApp import Glyphs, Message, GSLayer
+from mekkaCore import mekkaObject
 
 
-class CompositeVariabler(object):
+class CompositeVariabler(mekkaObject):
+	prefDict = {
+		"processBracketLayers": 0,
+		"processBraceLayers": 1,
+		"allGlyphs": 1,
+		"openTab": 0,
+		"deleteExistingSpecialLayers": 1,
+		"decomposeBrackets": 1,
+		"catchNestedComponents": 0,
+		"justBackupInstead": 1,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -22,7 +33,7 @@ class CompositeVariabler(object):
 			"Composite Variabler",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.CompositeVariabler.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -83,50 +94,6 @@ class CompositeVariabler(object):
 		self.w.justBackupInstead.enable(self.w.deleteExistingSpecialLayers.get())
 		self.w.runButton.enable(self.w.processBracketLayers.get() or self.w.processBraceLayers.get())
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.CompositeVariabler.processBracketLayers"] = self.w.processBracketLayers.get()
-			Glyphs.defaults["com.mekkablue.CompositeVariabler.processBraceLayers"] = self.w.processBraceLayers.get()
-
-			Glyphs.defaults["com.mekkablue.CompositeVariabler.allGlyphs"] = self.w.allGlyphs.get()
-			Glyphs.defaults["com.mekkablue.CompositeVariabler.openTab"] = self.w.openTab.get()
-			Glyphs.defaults["com.mekkablue.CompositeVariabler.deleteExistingSpecialLayers"] = self.w.deleteExistingSpecialLayers.get()
-			Glyphs.defaults["com.mekkablue.CompositeVariabler.decomposeBrackets"] = self.w.decomposeBrackets.get()
-			Glyphs.defaults["com.mekkablue.CompositeVariabler.catchNestedComponents"] = self.w.catchNestedComponents.get()
-			Glyphs.defaults["com.mekkablue.CompositeVariabler.justBackupInstead"] = self.w.justBackupInstead.get()
-
-			self.updateUI()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.CompositeVariabler.processBracketLayers", 0)
-			Glyphs.registerDefault("com.mekkablue.CompositeVariabler.processBraceLayers", 1)
-			Glyphs.registerDefault("com.mekkablue.CompositeVariabler.allGlyphs", 1)
-			Glyphs.registerDefault("com.mekkablue.CompositeVariabler.openTab", 0)
-			Glyphs.registerDefault("com.mekkablue.CompositeVariabler.deleteExistingSpecialLayers", 1)
-			Glyphs.registerDefault("com.mekkablue.CompositeVariabler.decomposeBrackets", 1)
-			Glyphs.registerDefault("com.mekkablue.CompositeVariabler.catchNestedComponents", 0)
-			Glyphs.registerDefault("com.mekkablue.CompositeVariabler.justBackupInstead", 1)
-
-			self.w.processBracketLayers.set(Glyphs.defaults["com.mekkablue.CompositeVariabler.processBracketLayers"])
-			self.w.processBraceLayers.set(Glyphs.defaults["com.mekkablue.CompositeVariabler.processBraceLayers"])
-			self.w.allGlyphs.set(Glyphs.defaults["com.mekkablue.CompositeVariabler.allGlyphs"])
-			self.w.openTab.set(Glyphs.defaults["com.mekkablue.CompositeVariabler.openTab"])
-			self.w.deleteExistingSpecialLayers.set(Glyphs.defaults["com.mekkablue.CompositeVariabler.deleteExistingSpecialLayers"])
-			self.w.decomposeBrackets.set(Glyphs.defaults["com.mekkablue.CompositeVariabler.decomposeBrackets"])
-			self.w.catchNestedComponents.set(Glyphs.defaults["com.mekkablue.CompositeVariabler.catchNestedComponents"])
-			self.w.justBackupInstead.set(Glyphs.defaults["com.mekkablue.CompositeVariabler.justBackupInstead"])
-
-			self.updateUI()
-		except:
-			return False
-
-		return True
-
 	def countNest(self, component):
 		thisFont = component.parent.parent.parent
 		if thisFont:
@@ -174,14 +141,14 @@ class CompositeVariabler(object):
 			if not self.SavePreferences(self):
 				print("Note: 'Composite Variabler' could not write preferences.")
 
-			processBracketLayers = Glyphs.defaults["com.mekkablue.CompositeVariabler.processBracketLayers"]
-			processBraceLayers = Glyphs.defaults["com.mekkablue.CompositeVariabler.processBraceLayers"]
-			allGlyphs = Glyphs.defaults["com.mekkablue.CompositeVariabler.allGlyphs"]
-			openTab = Glyphs.defaults["com.mekkablue.CompositeVariabler.openTab"]
-			deleteExistingSpecialLayers = Glyphs.defaults["com.mekkablue.CompositeVariabler.deleteExistingSpecialLayers"]
-			catchNestedComponents = Glyphs.defaults["com.mekkablue.CompositeVariabler.catchNestedComponents"]
-			decomposeBrackets = Glyphs.defaults["com.mekkablue.CompositeVariabler.decomposeBrackets"]
-			justBackupInstead = Glyphs.defaults["com.mekkablue.CompositeVariabler.justBackupInstead"]
+			processBracketLayers = self.pref("processBracketLayers")
+			processBraceLayers = self.pref("processBraceLayers")
+			allGlyphs = self.pref("allGlyphs")
+			openTab = self.pref("openTab")
+			deleteExistingSpecialLayers = self.pref("deleteExistingSpecialLayers")
+			catchNestedComponents = self.pref("catchNestedComponents")
+			decomposeBrackets = self.pref("decomposeBrackets")
+			justBackupInstead = self.pref("justBackupInstead")
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:

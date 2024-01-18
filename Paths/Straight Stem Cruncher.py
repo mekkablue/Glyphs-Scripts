@@ -8,6 +8,7 @@ Measures in centers of straight segments, and reports deviations in stem thickne
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSAnnotation, PLUS, Message, distance, subtractPoints, scalePoint, addPoints
+from mekkaCore import mekkaObject
 
 
 def pointDistance(p1, p2):
@@ -21,8 +22,28 @@ def middleBetweenTwoPoints(p1, p2):
 	return NSPoint(x, y)
 
 
-class StraightStemCruncher(object):
+class StraightStemCruncher(mekkaObject):
 	defaultExcludeList = ".sc, .c2sc, .smcp, .sups, .subs, .sinf, superior, inferior, .numr, .dnom"
+	prefDict = {
+		"stems": "80, 100",
+		"deviationMin": 0.6,
+		"deviationMax": 4.0,
+		"checkSpecialLayers": 1,
+		"selectedGlyphsOnly": 0,
+		"includeNonExporting": 0,
+		"openTab": 1,
+		"includeCompounds": 0,
+		"minimumSegmentLength": 200,
+		"reportNonMeasurements": 0,
+		"excludeGlyphs": 0,
+		"excludeGlyphNames": defaultExcludeList,
+		"checkVStems": 1,
+		"checkHStems": 0,
+		"checkDStems": 0,
+		"markStems": 1,
+		"reuseTab": 1,
+	}
+
 	marker = "➕"
 
 	def __init__(self):
@@ -36,7 +57,7 @@ class StraightStemCruncher(object):
 			"Straight Stem Cruncher",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.StraightStemCruncher.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -137,8 +158,8 @@ class StraightStemCruncher(object):
 		self.w.reuseTab.enable(self.w.openTab.get())
 
 		buttonEnable = (
-			Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkVStems"] or Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkHStems"]
-			or Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkDStems"]
+			self.pref("checkVStems") or self.pref("checkHStems")
+			or self.pref("checkDStems")
 		)
 		self.w.runButton.enable(onOff=buttonEnable)
 
@@ -174,76 +195,6 @@ class StraightStemCruncher(object):
 			self.w.excludeGlyphNames.set(self.defaultExcludeList)
 
 		self.SavePreferences()
-
-	def SavePreferences(self, sender=None):
-		try:
-			Glyphs.defaults["com.mekkablue.StraightStemCruncher.stems"] = self.w.stems.get()
-			Glyphs.defaults["com.mekkablue.StraightStemCruncher.deviationMin"] = self.w.deviationMin.get()
-			Glyphs.defaults["com.mekkablue.StraightStemCruncher.deviationMax"] = self.w.deviationMax.get()
-			Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkSpecialLayers"] = self.w.checkSpecialLayers.get()
-			Glyphs.defaults["com.mekkablue.StraightStemCruncher.selectedGlyphsOnly"] = self.w.selectedGlyphsOnly.get()
-			Glyphs.defaults["com.mekkablue.StraightStemCruncher.includeNonExporting"] = self.w.includeNonExporting.get()
-			Glyphs.defaults["com.mekkablue.StraightStemCruncher.openTab"] = self.w.openTab.get()
-			Glyphs.defaults["com.mekkablue.StraightStemCruncher.includeCompounds"] = self.w.includeCompounds.get()
-			Glyphs.defaults["com.mekkablue.StraightStemCruncher.minimumSegmentLength"] = self.w.minimumSegmentLength.get()
-			Glyphs.defaults["com.mekkablue.StraightStemCruncher.reportNonMeasurements"] = self.w.reportNonMeasurements.get()
-			Glyphs.defaults["com.mekkablue.StraightStemCruncher.excludeGlyphs"] = self.w.excludeGlyphs.get()
-			Glyphs.defaults["com.mekkablue.StraightStemCruncher.excludeGlyphNames"] = self.w.excludeGlyphNames.get()
-			Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkVStems"] = self.w.checkVStems.get()
-			Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkHStems"] = self.w.checkHStems.get()
-			Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkDStems"] = self.w.checkDStems.get()
-			Glyphs.defaults["com.mekkablue.StraightStemCruncher.markStems"] = self.w.markStems.get()
-			Glyphs.defaults["com.mekkablue.StraightStemCruncher.reuseTab"] = self.w.reuseTab.get()
-
-			self.updateUI()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.stems", "80, 100")
-			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.deviationMin", 0.6)
-			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.deviationMax", 4.0)
-			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.checkSpecialLayers", 1)
-			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.selectedGlyphsOnly", 0)
-			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.includeNonExporting", 0)
-			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.openTab", 1)
-			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.includeCompounds", 0)
-			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.minimumSegmentLength", 200)
-			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.reportNonMeasurements", 0)
-			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.excludeGlyphs", 0)
-			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.excludeGlyphNames", self.defaultExcludeList)
-			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.checkVStems", 1)
-			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.checkHStems", 0)
-			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.checkDStems", 0)
-			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.markStems", 1)
-			Glyphs.registerDefault("com.mekkablue.StraightStemCruncher.reuseTab", 1)
-
-			self.w.stems.set(Glyphs.defaults["com.mekkablue.StraightStemCruncher.stems"])
-			self.w.deviationMin.set(Glyphs.defaults["com.mekkablue.StraightStemCruncher.deviationMin"])
-			self.w.deviationMax.set(Glyphs.defaults["com.mekkablue.StraightStemCruncher.deviationMax"])
-			self.w.checkSpecialLayers.set(Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkSpecialLayers"])
-			self.w.selectedGlyphsOnly.set(Glyphs.defaults["com.mekkablue.StraightStemCruncher.selectedGlyphsOnly"])
-			self.w.includeNonExporting.set(Glyphs.defaults["com.mekkablue.StraightStemCruncher.includeNonExporting"])
-			self.w.openTab.set(Glyphs.defaults["com.mekkablue.StraightStemCruncher.openTab"])
-			self.w.includeCompounds.set(Glyphs.defaults["com.mekkablue.StraightStemCruncher.includeCompounds"])
-			self.w.minimumSegmentLength.set(Glyphs.defaults["com.mekkablue.StraightStemCruncher.minimumSegmentLength"])
-			self.w.reportNonMeasurements.set(Glyphs.defaults["com.mekkablue.StraightStemCruncher.reportNonMeasurements"])
-			self.w.excludeGlyphs.set(Glyphs.defaults["com.mekkablue.StraightStemCruncher.excludeGlyphs"])
-			self.w.excludeGlyphNames.set(Glyphs.defaults["com.mekkablue.StraightStemCruncher.excludeGlyphNames"])
-			self.w.checkVStems.set(Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkVStems"])
-			self.w.checkHStems.set(Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkHStems"])
-			self.w.checkDStems.set(Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkDStems"])
-			self.w.markStems.set(Glyphs.defaults["com.mekkablue.StraightStemCruncher.markStems"])
-			self.w.reuseTab.set(Glyphs.defaults["com.mekkablue.StraightStemCruncher.reuseTab"])
-
-			self.updateUI()
-		except:
-			return False
-
-		return True
 
 	def stemThicknessAtLine(self, layer, p1, p2, measureLength):
 		h = p2.x - p1.x
@@ -287,14 +238,14 @@ class StraightStemCruncher(object):
 
 	def measureStraighStemsInLayer(self, layer, glyphName=""):
 		try:
-			minLength = int(Glyphs.defaults["com.mekkablue.StraightStemCruncher.minimumSegmentLength"])
+			minLength = self.prefInt("minimumSegmentLength")
 		except:
 			self.update(self.w.segmentLengthUpdate)
-			minLength = int(Glyphs.defaults["com.mekkablue.StraightStemCruncher.minimumSegmentLength"])
+			minLength = self.prefInt("minimumSegmentLength")
 
-		checkVStems = Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkVStems"]
-		checkHStems = Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkHStems"]
-		checkDStems = Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkDStems"]
+		checkVStems = self.pref("checkVStems")
+		checkHStems = self.pref("checkHStems")
+		checkDStems = self.pref("checkDStems")
 
 		centers = []
 		measurements = []
@@ -323,7 +274,7 @@ class StraightStemCruncher(object):
 						elif checkDStems:
 							check = True
 
-						# if p1.x==p2.x or p1.y==p2.y or not Glyphs.defaults["com.mekkablue.StraightStemCruncher.ignoreDiagonals"]:
+						# if p1.x==p2.x or p1.y==p2.y or not self.pref("ignoreDiagonals"):
 						if check:
 							if pointDistance(p1, p2) >= minLength:
 								measureLength = max(100.0, measureLayer.bounds.size.width + measureLayer.bounds.size.height)
@@ -354,23 +305,23 @@ class StraightStemCruncher(object):
 			print()
 
 			self.w.progress.set(0)
-			if Glyphs.defaults["com.mekkablue.StraightStemCruncher.selectedGlyphsOnly"]:
+			if self.pref("selectedGlyphsOnly"):
 				glyphsToCheck = [layer.parent for layer in thisFont.selectedLayers]
 			else:
 				glyphsToCheck = thisFont.glyphs
 
 			excludedGlyphNameParts = []
-			if Glyphs.defaults["com.mekkablue.StraightStemCruncher.excludeGlyphs"]:
-				enteredParts = [x.strip() for x in Glyphs.defaults["com.mekkablue.StraightStemCruncher.excludeGlyphNames"].split(",")]
+			if self.pref("excludeGlyphs"):
+				enteredParts = [x.strip() for x in self.pref("excludeGlyphNames").split(",")]
 				if enteredParts:
 					excludedGlyphNameParts.extend(set(enteredParts))
 
-			stems = Glyphs.defaults["com.mekkablue.StraightStemCruncher.stems"]  # "80, 100"
+			stems = self.pref("stems")  # "80, 100"
 			stems = [float(s.strip()) for s in stems.split(",")]
 
-			shouldMark = Glyphs.defaults["com.mekkablue.StraightStemCruncher.markStems"]
-			deviationMin = float(Glyphs.defaults["com.mekkablue.StraightStemCruncher.deviationMin"])  # 0.6
-			deviationMax = float(Glyphs.defaults["com.mekkablue.StraightStemCruncher.deviationMax"])  # 4.0
+			shouldMark = self.pref("markStems")
+			deviationMin = self.prefFloat("deviationMin")  # 0.6
+			deviationMax = self.prefFloat("deviationMax")  # 4.0
 
 			affectedLayers = []
 			for glyphIndex, thisGlyph in enumerate(glyphsToCheck):
@@ -384,13 +335,13 @@ class StraightStemCruncher(object):
 						glyphNameIsExcluded = True
 						break
 
-				glyphExportsOrNonExportingIncluded = thisGlyph.export or Glyphs.defaults["com.mekkablue.StraightStemCruncher.includeNonExporting"]
+				glyphExportsOrNonExportingIncluded = thisGlyph.export or self.pref("includeNonExporting")
 
 				if glyphExportsOrNonExportingIncluded and not glyphNameIsExcluded:
 					self.w.status.set("Processing: %s" % thisGlyph.name)
 					for thisLayer in thisGlyph.layers:
 						if thisLayer.master == thisFont.selectedFontMaster:
-							if thisLayer.isMasterLayer or (thisLayer.isSpecialLayer and Glyphs.defaults["com.mekkablue.StraightStemCruncher.checkSpecialLayers"]):
+							if thisLayer.isMasterLayer or (thisLayer.isSpecialLayer and self.pref("checkSpecialLayers")):
 
 								# clean previous markings:
 								if shouldMark:
@@ -400,7 +351,7 @@ class StraightStemCruncher(object):
 											del (thisLayer.annotations[i])
 
 								# decompose components if necessary:
-								if Glyphs.defaults["com.mekkablue.StraightStemCruncher.includeCompounds"]:
+								if self.pref("includeCompounds"):
 									checkLayer = thisLayer.copyDecomposedLayer()
 									checkLayer.parent = thisLayer.parent
 								else:
@@ -422,7 +373,7 @@ class StraightStemCruncher(object):
 									checkLayer.removeOverlap()
 									measurements, centers = self.measureStraighStemsInLayer(checkLayer, glyphName=thisGlyph.name)
 									if not measurements:
-										if Glyphs.defaults["com.mekkablue.StraightStemCruncher.reportNonMeasurements"]:
+										if self.pref("reportNonMeasurements"):
 											print(u"⚠️ %s, layer '%s': no stem measurements. Wrong path direction or no line segments?" % (
 												thisGlyph.name,
 												thisLayer.name,
@@ -461,9 +412,9 @@ class StraightStemCruncher(object):
 
 			if not affectedLayers:
 				Message(title="No Deviances Found", message="No point distances deviating from supplied stem widths within the given limits.", OKButton=None)
-			elif Glyphs.defaults["com.mekkablue.StraightStemCruncher.openTab"]:
+			elif self.pref("openTab"):
 				tab = thisFont.currentTab
-				if not tab or not Glyphs.defaults["com.mekkablue.StraightStemCruncher.reuseTab"]:
+				if not tab or not self.pref("reuseTab"):
 					tab = thisFont.newTab()
 				tab.layers = affectedLayers
 			else:

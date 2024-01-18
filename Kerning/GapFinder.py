@@ -8,7 +8,8 @@ Opens a new tab with kerning combos that have large gaps in the current fontmast
 import vanilla
 from timeit import default_timer as timer
 from Foundation import NSNotFound
-from GlyphsApp import Glyphs, GSUppercase, GSLowercase, GSSmallcaps, Message
+from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject, caseDict
 
 
 intervalList = (1, 3, 5, 10, 20)
@@ -26,15 +27,19 @@ categoryList = (
 	"Number:Fraction",
 )
 
-if Glyphs.versionNumber >= 3:
-	caseDict = {
-		"Uppercase": GSUppercase,
-		"Lowercase": GSLowercase,
-		"Smallcaps": GSSmallcaps,
+
+class GapFinder(mekkaObject):
+	prefDict = {
+		"maxDistance": "200",
+		"popupScript": "latin",
+		"popupSpeed": 0,
+		"popupLeftCat": 0,
+		"popupRightCat": 0,
+		"excludeSuffixes": ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute",
+		"excludeNonExporting": 1,
+		"reportGapsInMacroWindow": 0,
+		"reuseCurrentTab": 1,
 	}
-
-
-class GapFinder(object):
 
 	def __init__(self):
 		# Window 'self.w':
@@ -47,7 +52,7 @@ class GapFinder(object):
 			"GapFinder",  # window title
 			minSize=(windowWidth, windowHeight),  # Maximum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.GapFinder.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -64,7 +69,7 @@ class GapFinder(object):
 
 		self.w.textSpeed = vanilla.TextBox((inset, linePos + 2, 42, 14), u"Speed:", sizeStyle='small', selectable=True)
 		self.w.popupSpeed = vanilla.PopUpButton((inset + 42, linePos, 110, 17), ("very slow", "slow", "medium", "fast", "very fast"), callback=self.SavePreferences, sizeStyle='small')
-		intervalIndex = Glyphs.defaults["com.mekkablue.GapFinder.popupSpeed"]
+		intervalIndex = self.pref("popupSpeed")
 		if intervalIndex is None:
 			intervalIndex = 0
 		self.w.text_speedExplanation = vanilla.TextBox((inset + 160, linePos + 2, -inset, 14), "Measuring every %i units." % intervalList[intervalIndex], sizeStyle='small')
@@ -109,56 +114,6 @@ class GapFinder(object):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.GapFinder.popupScript"] = self.w.popupScript.get()
-			Glyphs.defaults["com.mekkablue.GapFinder.popupSpeed"] = self.w.popupSpeed.get()
-			Glyphs.defaults["com.mekkablue.GapFinder.popupLeftCat"] = self.w.popupLeftCat.get()
-			Glyphs.defaults["com.mekkablue.GapFinder.popupRightCat"] = self.w.popupRightCat.get()
-			Glyphs.defaults["com.mekkablue.GapFinder.excludeSuffixes"] = self.w.excludeSuffixes.get()
-			Glyphs.defaults["com.mekkablue.GapFinder.excludeNonExporting"] = self.w.excludeNonExporting.get()
-			Glyphs.defaults["com.mekkablue.GapFinder.maxDistance"] = self.w.maxDistance.get()
-			Glyphs.defaults["com.mekkablue.GapFinder.reportGapsInMacroWindow"] = self.w.reportGapsInMacroWindow.get()
-			Glyphs.defaults["com.mekkablue.GapFinder.reuseCurrentTab"] = self.w.reuseCurrentTab.get()
-		except Exception as e:
-			print(e)
-			return False
-
-		# update speed explanation:
-		if sender == self.w.popupSpeed:
-			intervalIndex = Glyphs.defaults["com.mekkablue.GapFinder.popupSpeed"]
-			if intervalIndex is None:
-				intervalIndex = 0
-			self.w.text_speedExplanation.set("Measuring every %i units." % intervalList[intervalIndex])
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.GapFinder.maxDistance", "200")
-			Glyphs.registerDefault("com.mekkablue.GapFinder.popupScript", "latin")
-			Glyphs.registerDefault("com.mekkablue.GapFinder.popupSpeed", 0)
-			Glyphs.registerDefault("com.mekkablue.GapFinder.popupLeftCat", 0)
-			Glyphs.registerDefault("com.mekkablue.GapFinder.popupRightCat", 0)
-			Glyphs.registerDefault("com.mekkablue.GapFinder.excludeSuffixes", ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute")
-			Glyphs.registerDefault("com.mekkablue.GapFinder.excludeNonExporting", 1)
-			Glyphs.registerDefault("com.mekkablue.GapFinder.reportGapsInMacroWindow", 0)
-			Glyphs.registerDefault("com.mekkablue.GapFinder.reuseCurrentTab", 1)
-
-			self.w.maxDistance.set(Glyphs.defaults["com.mekkablue.GapFinder.maxDistance"])
-			self.w.popupScript.set(Glyphs.defaults["com.mekkablue.GapFinder.popupScript"])
-			self.w.popupSpeed.set(Glyphs.defaults["com.mekkablue.GapFinder.popupSpeed"])
-			self.w.popupLeftCat.set(Glyphs.defaults["com.mekkablue.GapFinder.popupLeftCat"])
-			self.w.popupRightCat.set(Glyphs.defaults["com.mekkablue.GapFinder.popupRightCat"])
-			self.w.excludeSuffixes.set(Glyphs.defaults["com.mekkablue.GapFinder.excludeSuffixes"])
-			self.w.excludeNonExporting.set(Glyphs.defaults["com.mekkablue.GapFinder.excludeNonExporting"])
-			self.w.reportGapsInMacroWindow.set(Glyphs.defaults["com.mekkablue.GapFinder.reportGapsInMacroWindow"])
-			self.w.reuseCurrentTab.set(Glyphs.defaults["com.mekkablue.GapFinder.reuseCurrentTab"])
-		except:
-			return False
-
-		return True
 
 	def masterSwitch(self, sender=None):
 		if sender is self.w.nextButton:
@@ -261,9 +216,9 @@ class GapFinder(object):
 		return minDist
 
 	def queryPrefs(self):
-		script = Glyphs.defaults["com.mekkablue.GapFinder.popupScript"]
-		firstCategory, firstSubCategory = self.splitString(self.w.popupLeftCat.getItems()[Glyphs.defaults["com.mekkablue.GapFinder.popupLeftCat"]])
-		secondCategory, secondSubCategory = self.splitString(self.w.popupRightCat.getItems()[Glyphs.defaults["com.mekkablue.GapFinder.popupRightCat"]])
+		script = self.pref("popupScript")
+		firstCategory, firstSubCategory = self.splitString(self.w.popupLeftCat.getItems()[self.pref("popupLeftCat")])
+		secondCategory, secondSubCategory = self.splitString(self.w.popupRightCat.getItems()[self.pref("popupRightCat")])
 		return script, firstCategory, firstSubCategory, secondCategory, secondSubCategory
 
 	def GapFinderMain(self, sender):
@@ -284,18 +239,18 @@ class GapFinder(object):
 			start = timer()
 
 			# start reporting to macro window:
-			if Glyphs.defaults["com.mekkablue.GapFinder.reportGapsInMacroWindow"]:
+			if self.pref("reportGapsInMacroWindow"):
 				Glyphs.clearLog()
 				print("GapFinder Report for %s, master %s:\n" % (thisFont.familyName, thisFontMaster.name))
 
 			# query user input:
 			script, firstCategory, firstSubCategory, secondCategory, secondSubCategory = self.queryPrefs()
-			step = intervalList[Glyphs.defaults["com.mekkablue.GapFinder.popupSpeed"]]
-			excludedGlyphNameParts = self.splitString(Glyphs.defaults["com.mekkablue.GapFinder.excludeSuffixes"], delimiter=",", Maximum=0)
-			excludeNonExporting = bool(Glyphs.defaults["com.mekkablue.GapFinder.excludeNonExporting"])
+			step = intervalList[self.pref("popupSpeed")]
+			excludedGlyphNameParts = self.splitString(self.pref("excludeSuffixes"), delimiter=",", Maximum=0)
+			excludeNonExporting = self.prefBool("excludeNonExporting")
 			maxDistance = 200.0  # default
 			try:
-				maxDistance = float(Glyphs.defaults["com.mekkablue.GapFinder.maxDistance"])
+				maxDistance = self.prefFloat("maxDistance")
 			except Exception as e:
 				print("Warning: Could not read min distance entry. Will default to 200.\n%s" % e)
 				import traceback
@@ -321,7 +276,7 @@ class GapFinder(object):
 					OKButton=None,
 				)
 
-			if Glyphs.defaults["com.mekkablue.GapFinder.reportGapsInMacroWindow"]:
+			if self.pref("reportGapsInMacroWindow"):
 				print("Maximum Distance: %i\n" % maxDistance)
 				print("Left glyphs:\n%s\n" % ", ".join(firstList))
 				print("Right glyphs:\n%s\n" % ", ".join(secondList))
@@ -344,7 +299,7 @@ class GapFinder(object):
 					if distanceBetweenShapes is not None and distanceBetweenShapes > maxDistance:
 						gapCount += 1
 						tabString += "/%s/%s/space" % (firstGlyphName, secondGlyphName)
-						if Glyphs.defaults["com.mekkablue.GapFinder.reportGapsInMacroWindow"]:
+						if self.pref("reportGapsInMacroWindow"):
 							print("- %s %s: %i" % (firstGlyphName, secondGlyphName, distanceBetweenShapes))
 				tabString += "\n"
 
@@ -375,7 +330,7 @@ class GapFinder(object):
 					# disable reporters (avoid slowdown)
 					Glyphs.defaults["visibleReporters"] = None
 				report = '%i kerning gaps have been found. Time elapsed: %s.' % (gapCount, timereport)
-				if Glyphs.defaults["com.mekkablue.GapFinder.reuseCurrentTab"] and thisFont.currentTab:
+				if self.pref("reuseCurrentTab") and thisFont.currentTab:
 					thisFont.currentTab.text = tabString
 				else:
 					thisFont.newTab(tabString)
@@ -388,7 +343,7 @@ class GapFinder(object):
 			Glyphs.showNotification(notificationTitle, report)
 
 			# Report in Macro Window:
-			if Glyphs.defaults["com.mekkablue.GapFinder.reportGapsInMacroWindow"]:
+			if self.pref("reportGapsInMacroWindow"):
 				print(report)
 				Glyphs.showMacroWindow()
 

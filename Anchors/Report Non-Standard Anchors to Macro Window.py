@@ -7,9 +7,15 @@ Goes through all glyphs in the font and reports in the Macro Window if it finds 
 
 import vanilla
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 
-class ReportNonStandardAnchorsInMacroWindow(object):
+class ReportNonStandardAnchorsInMacroWindow(mekkaObject):
+	prefDict = {
+		"includeNonExporting": 0,
+		"reportExitEntry": 0,
+		"reportCarets": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -22,7 +28,7 @@ class ReportNonStandardAnchorsInMacroWindow(object):
 			"Report Non-Standard Anchors to Macro Window",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.ReportNonStandardAnchorsInMacroWindow.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -48,29 +54,6 @@ class ReportNonStandardAnchorsInMacroWindow(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults["com.mekkablue.ReportNonStandardAnchorsInMacroWindow.includeNonExporting"] = self.w.includeNonExporting.get()
-			Glyphs.defaults["com.mekkablue.ReportNonStandardAnchorsInMacroWindow.reportExitEntry"] = self.w.reportExitEntry.get()
-			Glyphs.defaults["com.mekkablue.ReportNonStandardAnchorsInMacroWindow.reportCarets"] = self.w.reportCarets.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			Glyphs.registerDefault("com.mekkablue.ReportNonStandardAnchorsInMacroWindow.includeNonExporting", 0)
-			Glyphs.registerDefault("com.mekkablue.ReportNonStandardAnchorsInMacroWindow.reportExitEntry", 0)
-			Glyphs.registerDefault("com.mekkablue.ReportNonStandardAnchorsInMacroWindow.reportCarets", 0)
-			self.w.includeNonExporting.set(Glyphs.defaults["com.mekkablue.ReportNonStandardAnchorsInMacroWindow.includeNonExporting"])
-			self.w.reportExitEntry.set(Glyphs.defaults["com.mekkablue.ReportNonStandardAnchorsInMacroWindow.reportExitEntry"])
-			self.w.reportCarets.set(Glyphs.defaults["com.mekkablue.ReportNonStandardAnchorsInMacroWindow.reportCarets"])
-		except:
-			return False
-
-		return True
-
 	def ReportNonStandardAnchorsInMacroWindowMain(self, sender):
 		try:
 			# brings macro window to front and clears its log:
@@ -84,7 +67,7 @@ class ReportNonStandardAnchorsInMacroWindow(object):
 			print("File: %s\n" % thisFont.filepath)
 
 			for thisGlyph in thisFont.glyphs:
-				if thisGlyph.export or Glyphs.defaults["com.mekkablue.ReportNonStandardAnchorsInMacroWindow.includeNonExporting"]:
+				if thisGlyph.export or self.pref("includeNonExporting"):
 					thisLayer = thisGlyph.layers[0]
 					if thisLayer.anchors:
 
@@ -105,9 +88,9 @@ class ReportNonStandardAnchorsInMacroWindow(object):
 								anchorIsCaret = thisAnchor.name.startswith("caret")
 
 								# see if exceptions apply:
-								if anchorIsCaret and glyphIsLigature and not Glyphs.defaults["com.mekkablue.ReportNonStandardAnchorsInMacroWindow.reportCarets"]:
+								if anchorIsCaret and glyphIsLigature and not self.pref("reportCarets"):
 									pass  # carets in ligatures
-								elif anchorIsExitEntry and not Glyphs.defaults["com.mekkablue.ReportNonStandardAnchorsInMacroWindow.reportExitEntry"]:
+								elif anchorIsExitEntry and not self.pref("reportExitEntry"):
 									pass  # exit and entry anchors
 								else:
 									unusualAnchors.append(thisAnchor.name)

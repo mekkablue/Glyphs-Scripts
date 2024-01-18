@@ -10,6 +10,7 @@ import math
 from timeit import default_timer as timer
 from AppKit import NSPoint
 from GlyphsApp import Glyphs, GSPath, GSControlLayer, GSShapeTypePath, GSLINE, GSCURVE, CURVE, GSOFFCURVE, QCURVE, Message, distance
+from mekkaCore import mekkaObject
 
 
 def reportTimeInNaturalLanguage(seconds):
@@ -362,8 +363,7 @@ def distanceAndRelativePosition(p1, p2, p3):
 	return deviation, nx
 
 
-class PathProblemFinder(object):
-	prefID = "com.mekkablue.PathProblemFinder"
+class PathProblemFinder(mekkaObject):
 	title = "Path Problem Finder"
 	prefDict = {
 		# "prefName": defaultValue,
@@ -554,40 +554,6 @@ class PathProblemFinder(object):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def updateUI(self, sender=None):
 		if sender in (self.w.checkALL, self.w.checkNONE, self.w.checkDEFAULT):

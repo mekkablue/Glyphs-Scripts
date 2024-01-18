@@ -95,7 +95,6 @@ def createOTClass(className="@default", classGlyphs=None, targetFont=Glyphs.font
 
 
 class BaselineWiggle(object):
-	prefID = "com.mekkablue.BaselineWiggle"
 	prefDict = {
 		# "prefName": defaultValue,
 		"otClass": "All",
@@ -163,43 +162,6 @@ class BaselineWiggle(object):
 			otClasses = ["All"] + sorted([c.name for c in Glyphs.font.classes if not c.name == "All"])
 			self.w.otClass.setItems(otClasses)
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		prefValue = Glyphs.defaults[prefDomain]
-		if prefValue is not None:
-			return prefValue
-		else:
-			fallbackValue = self.prefDict[prefName]
-			return fallbackValue
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def BaselineWiggleMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -213,9 +175,9 @@ class BaselineWiggle(object):
 
 			otClass = self.pref("otClass")
 			otFeature = self.pref("otFeature")
-			lineLength = int(self.pref("lineLength"))
-			wiggleMax = int(self.pref("wiggleMax"))
-			wiggleMin = int(self.pref("wiggleMin"))
+			lineLength = self.prefInt("lineLength")
+			wiggleMax = self.prefInt("wiggleMax")
+			wiggleMin = self.prefInt("wiggleMin")
 			wiggleMin, wiggleMax = sorted((wiggleMin, wiggleMax))  # reorder if necessary
 
 			thisFont = Glyphs.font  # frontmost font

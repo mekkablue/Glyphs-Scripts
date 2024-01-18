@@ -7,6 +7,7 @@ Copies kerning groups from one font to another.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
 def menuForFonts(fonts):
@@ -16,8 +17,7 @@ def menuForFonts(fonts):
 	return menu
 
 
-class StealKerningGroupsfromFont(object):
-	prefID = "com.mekkablue.StealKerningGroupsfromFont"
+class StealKerningGroupsfromFont(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"sourceFont": 0,
@@ -78,7 +78,7 @@ class StealKerningGroupsfromFont(object):
 		self.w.status = vanilla.TextBox((inset, -18 - inset, -150 - inset, 14), "", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
-		self.w.updateButton = vanilla.Button((-150 - inset, -20 - inset, -80 - inset, -inset), "Update", sizeStyle="regular", callback=self.UpdateUI)
+		self.w.updateButton = vanilla.Button((-150 - inset, -20 - inset, -80 - inset, -inset), "Update", sizeStyle="regular", callback=self.updateUI)
 		self.w.updateButton.getNSButton().setToolTip_("Will update all the menus and buttons of this window. Click here if you opened or closed a font since you invoked the script, or after you changed the source font.")
 
 		# Run Button:
@@ -93,15 +93,7 @@ class StealKerningGroupsfromFont(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def UpdateUI(self, sender=None):
+	def updateUI(self, sender=None):
 		self.currentFonts = Glyphs.fonts
 		menu = menuForFonts(self.currentFonts)
 		if menu:
@@ -112,32 +104,6 @@ class StealKerningGroupsfromFont(object):
 		sourceFont = self.currentFonts[self.w.sourceFont.get()]
 		self.w.runButton.enable(self.pref("sourceFont") != self.pref("targetFont"))
 
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.UpdateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.UpdateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def StealKerningGroupsfromFontMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -146,15 +112,6 @@ class StealKerningGroupsfromFont(object):
 			# update settings to the latest user input:
 			if not self.SavePreferences():
 				print("⚠️ ‘Steal Kerning Groups from Font’ could not write preferences.")
-
-			#  # read prefs:
-			# for prefName in self.prefDict.keys():
-			# 	try:
-			# 		setattr(sys.modules[__name__], prefName, self.pref(prefName))
-			# 	except:
-			# 		fallbackValue = self.prefDict[prefName]
-			# 		print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
-			# 		setattr(sys.modules[__name__], prefName, fallbackValue)
 
 			if len(self.currentFonts) < 2:
 				Message(title="Not Enough Fonts", message="The script requires at least two fonts.", OKButton=None)
@@ -191,7 +148,7 @@ class StealKerningGroupsfromFont(object):
 			else:
 				glyphNames = [layer.parent.name for layer in sourceFont.selectedLayers]
 
-			overwriteExisting = bool(self.pref("overwriteExisting"))
+			overwriteExisting = self.prefBool("overwriteExisting")
 			for glyphName in glyphNames:
 				sourceGlyph = sourceFont.glyphs[glyphName]
 				targetGlyph = targetFont.glyphs[glyphName]

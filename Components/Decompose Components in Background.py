@@ -1,16 +1,16 @@
 # MenuTitle: Decompose Components in Background
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-from GlyphsApp import Glyphs, GSBackgroundLayer
 import vanilla as vl
+from GlyphsApp import Glyphs, GSBackgroundLayer
+from mekkaCore import mekkaObject
 
 __doc__ = """
 Will backup foregrounds into backgrounds, and decompose backgrounds. Useful for keeping original designs of composites for reference.
 """
 
 
-class Decompose_Components_in_Background(object):
-	prefID = "com.mekkablue.DecomposeComponentsinBackground"
+class Decompose_Components_in_Background(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"copyToBackgroundFirst": 0,
@@ -89,38 +89,6 @@ class Decompose_Components_in_Background(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def glyphsOptionsCallback(self, sender):
 		allFontsSelected = sender.get() == 2
 		self.w.whichMasters.enable(not allFontsSelected)
@@ -130,7 +98,7 @@ class Decompose_Components_in_Background(object):
 		Glyphs.clearLog()
 
 		# collect user settings:
-		copyToBackgroundFirst = bool(self.pref("copyToBackgroundFirst"))
+		copyToBackgroundFirst = self.prefBool("copyToBackgroundFirst")
 		workOnAllFonts = self.pref("whichGlyphsInWhichFonts")
 		workOnAllGlyphs = workOnAllFonts or self.pref("whichMasters")
 		verbose = self.pref("verbose")

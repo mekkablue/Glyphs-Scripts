@@ -7,10 +7,10 @@ Add Grade axis and/or Grade master, based on your Weight and Width axes.
 """
 
 import vanilla
-import sys
 from AppKit import NSAffineTransform, NSPoint
 from copy import copy
 from GlyphsApp import Glyphs, GSInstance, GSUppercase, GSSmallcaps, GSSMOOTH, GSOFFCURVE, GSAxis, GSCustomParameter, Message
+from mekkaCore import mekkaObject
 
 
 def axisIdForTag(font, tag="wght"):
@@ -245,8 +245,7 @@ def straightenBCPs(layer):
 				)
 
 
-class AddGrade(object):
-	prefID = "com.mekkablue.AddGrade"
+class AddGrade(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"baseMaster": 0,
@@ -333,14 +332,6 @@ class AddGrade(object):
 		self.w.open()
 		self.w.makeKey()
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
 	def mastersOfCurrentFont(self, sender=None):
 		masterMenu = []
 		font = Glyphs.font
@@ -385,32 +376,6 @@ class AddGrade(object):
 			self.w.axisName.set("Grade")
 		self.SavePreferences()
 
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-
-			print(traceback.format_exc())
-			return False
-
 	def AddGradeMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -420,19 +385,8 @@ class AddGrade(object):
 			if not self.SavePreferences():
 				print("⚠️ ‘Add Grade’ could not write preferences.")
 
-			# read prefs:
-			for prefName in self.prefDict.keys():
-				try:
-					setattr(sys.modules[__name__], prefName, self.pref(prefName))
-				except:
-					fallbackValue = self.prefDict[prefName]
-					print(
-						f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’."
-					)
-					setattr(sys.modules[__name__], prefName, fallbackValue)
-
-			fittingMethod = int(self.pref("fittingMethod"))
-			limitToSelectedGlyphs = bool(self.pref("limitToSelectedGlyphs"))
+			fittingMethod = self.prefInt("fittingMethod")
+			limitToSelectedGlyphs = self.prefBool("limitToSelectedGlyphs")
 
 			thisFont = Glyphs.font  # frontmost font
 			if limitToSelectedGlyphs:
@@ -473,7 +427,7 @@ class AddGrade(object):
 						gradeAxis.name = axisName
 
 				baseMaster = thisFont.masters[self.pref("baseMaster")]
-				grade = int(self.pref("grade"))
+				grade = self.prefInt("grade")
 				gradeMaster = copy(baseMaster)
 				gradeMaster.name = f"{baseMaster.name} Grade {grade}"
 				gradeMaster.font = thisFont

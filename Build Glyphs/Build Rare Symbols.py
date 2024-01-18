@@ -6,77 +6,8 @@ Builds white and black, small and large, circles, triangles and squares.
 """
 
 import vanilla
-import math
-from Foundation import NSClassFromString
-from AppKit import NSAffineTransform, NSAffineTransformStruct
 from GlyphsApp import Glyphs, GSGlyph, GSLayer, Message
-
-
-def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
-	"""
-	Returns an NSAffineTransform object for transforming layers.
-	Apply an NSAffineTransform t object like this:
-		Layer.transform_checkForSelection_doComponents_(t,False,True)
-	Access its transformation matrix like this:
-		tMatrix = t.transformStruct()  # returns the 6-float tuple
-	Apply the matrix tuple like this:
-		Layer.applyTransform(tMatrix)
-		Component.applyTransform(tMatrix)
-		Path.applyTransform(tMatrix)
-	Chain multiple NSAffineTransform objects t1, t2 like this:
-		t1.appendTransform_(t2)
-	"""
-	myTransform = NSAffineTransform.transform()
-	if rotate:
-		myTransform.rotateByDegrees_(rotate)
-	if scale != 1.0:
-		myTransform.scaleBy_(scale)
-	if not (shiftX == 0.0 and shiftY == 0.0):
-		myTransform.translateXBy_yBy_(shiftX, shiftY)
-	if skew:
-		skewStruct = NSAffineTransformStruct()
-		skewStruct.m11 = 1.0
-		skewStruct.m22 = 1.0
-		skewStruct.m21 = math.tan(math.radians(skew))
-		skewTransform = NSAffineTransform.transform()
-		skewTransform.setTransformStruct_(skewStruct)
-		myTransform.appendTransform_(skewTransform)
-	return myTransform
-
-
-def offsetLayer(thisLayer, offset, makeStroke=False, position=0.5, autoStroke=False):
-	offsetFilter = NSClassFromString("GlyphsFilterOffsetCurve")
-	try:
-		# GLYPHS 3:
-		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyleStart_capStyleEnd_keepCompatibleOutlines_(
-			thisLayer,
-			offset,
-			offset,  # horizontal and vertical offset
-			makeStroke,  # if True, creates a stroke
-			autoStroke,  # if True, distorts resulting shape to vertical metrics
-			position,  # stroke distribution to the left and right, 0.5 = middle
-			None,
-			None,
-			None,
-			0,
-			0,
-			True
-		)
-	except:
-		# GLYPHS 2:
-		offsetFilter.offsetLayer_offsetX_offsetY_makeStroke_autoStroke_position_metrics_error_shadow_capStyle_keepCompatibleOutlines_(
-			thisLayer,
-			offset,
-			offset,  # horizontal and vertical offset
-			makeStroke,  # if True, creates a stroke
-			autoStroke,  # if True, distorts resulting shape to vertical metrics
-			position,  # stroke distribution to the left and right, 0.5 = middle
-			thisLayer.glyphMetrics(),  # metrics (G3)
-			None,
-			None,  # error, shadow
-			0,  # NSButtLineCapStyle,  # cap style
-			True,  # keep compatible
-		)
+from mekkaCore import mekkaObject, transform, offsetLayer
 
 
 def createGlyph(
@@ -407,7 +338,28 @@ def drawPenDataInLayer(thisLayer, penData, closePath=True):
 	return thisLayer
 
 
-class BuildCirclesSquaresTriangles(object):
+class BuildCirclesSquaresTriangles(mekkaObject):
+	prefDict = {
+		"whiteTriangles": 0,
+		"blackTriangles": 0,
+		"black3DArrowheads": 0,
+		"blackArrowheads": 0,
+		"whiteShapes": 0,
+		"blackShapes": 0,
+		"whiteLargeSquare": 0,
+		"blackLargeSquare": 0,
+		"propellor": 0,
+		"viewdataSquare": 0,
+
+		"stroke": 50,
+		"height": 700,
+		"belowBase": 10,
+		"sidebearing": 50,
+		"disrespectItalicAngle": 0,
+		"overwriteExistingGlyphs": 0,
+		"openTab": 1,
+		"reuseTab": 1,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -420,7 +372,7 @@ class BuildCirclesSquaresTriangles(object):
 			"Build Rare Symbols",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.BuildCirclesSquaresTriangles.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -541,87 +493,6 @@ class BuildCirclesSquaresTriangles(object):
 		self.w.runButton.enable(toggle)
 		self.w.reuseTab.enable(self.w.openTab.get())
 
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.whiteTriangles"] = self.w.whiteTriangles.get()
-			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.blackTriangles"] = self.w.blackTriangles.get()
-			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.black3DArrowheads"] = self.w.black3DArrowheads.get()
-			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.blackArrowheads"] = self.w.blackArrowheads.get()
-			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.whiteShapes"] = self.w.whiteShapes.get()
-			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.blackShapes"] = self.w.blackShapes.get()
-			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.whiteLargeSquare"] = self.w.whiteLargeSquare.get()
-			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.blackLargeSquare"] = self.w.blackLargeSquare.get()
-			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.propellor"] = self.w.propellor.get()
-			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.viewdataSquare"] = self.w.viewdataSquare.get()
-
-			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.stroke"] = self.w.stroke.get()
-			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.height"] = self.w.height.get()
-			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.belowBase"] = self.w.belowBase.get()
-			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.sidebearing"] = self.w.sidebearing.get()
-			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.disrespectItalicAngle"] = self.w.disrespectItalicAngle.get()
-			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.overwriteExistingGlyphs"] = self.w.overwriteExistingGlyphs.get()
-			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.openTab"] = self.w.openTab.get()
-			Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.reuseTab"] = self.w.reuseTab.get()
-
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.whiteTriangles", 0)
-			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.blackTriangles", 0)
-			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.black3DArrowheads", 0)
-			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.blackArrowheads", 0)
-			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.whiteShapes", 0)
-			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.blackShapes", 0)
-			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.whiteLargeSquare", 0)
-			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.blackLargeSquare", 0)
-			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.propellor", 0)
-			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.viewdataSquare", 0)
-
-			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.stroke", 50)
-			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.height", 700)
-			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.belowBase", 10)
-			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.sidebearing", 50)
-			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.disrespectItalicAngle", 0)
-			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.overwriteExistingGlyphs", 0)
-			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.openTab", 1)
-			Glyphs.registerDefault("com.mekkablue.BuildCirclesSquaresTriangles.reuseTab", 1)
-
-			# load previously written prefs:
-			self.w.whiteTriangles.set(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.whiteTriangles"])
-			self.w.blackTriangles.set(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.blackTriangles"])
-			self.w.black3DArrowheads.set(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.black3DArrowheads"])
-			self.w.blackArrowheads.set(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.blackArrowheads"])
-			self.w.whiteShapes.set(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.whiteShapes"])
-			self.w.blackShapes.set(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.blackShapes"])
-			self.w.whiteLargeSquare.set(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.whiteLargeSquare"])
-			self.w.blackLargeSquare.set(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.blackLargeSquare"])
-			self.w.propellor.set(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.propellor"])
-			self.w.viewdataSquare.set(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.viewdataSquare"])
-
-			self.w.stroke.set(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.stroke"])
-			self.w.height.set(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.height"])
-			self.w.belowBase.set(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.belowBase"])
-			self.w.sidebearing.set(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.sidebearing"])
-			self.w.disrespectItalicAngle.set(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.disrespectItalicAngle"])
-			self.w.overwriteExistingGlyphs.set(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.overwriteExistingGlyphs"])
-			self.w.openTab.set(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.openTab"])
-			self.w.reuseTab.set(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.reuseTab"])
-
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def BuildCirclesSquaresTrianglesMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -642,26 +513,26 @@ class BuildCirclesSquaresTriangles(object):
 					print("⚠️ The font file has not been saved yet.")
 				print()
 
-				whiteTriangles = Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.whiteTriangles"]
-				blackTriangles = Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.blackTriangles"]
-				black3DArrowheads = Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.black3DArrowheads"]
-				blackArrowheads = Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.blackArrowheads"]
-				whiteShapes = Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.whiteShapes"]
-				blackShapes = Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.blackShapes"]
-				whiteLargeSquare = Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.whiteLargeSquare"]
-				blackLargeSquare = Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.blackLargeSquare"]
-				propellor = Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.propellor"]
-				viewdataSquare = Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.viewdataSquare"]
+				whiteTriangles = self.pref("whiteTriangles")
+				blackTriangles = self.pref("blackTriangles")
+				black3DArrowheads = self.pref("black3DArrowheads")
+				blackArrowheads = self.pref("blackArrowheads")
+				whiteShapes = self.pref("whiteShapes")
+				blackShapes = self.pref("blackShapes")
+				whiteLargeSquare = self.pref("whiteLargeSquare")
+				blackLargeSquare = self.pref("blackLargeSquare")
+				propellor = self.pref("propellor")
+				viewdataSquare = self.pref("viewdataSquare")
 
-				stroke = float(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.stroke"])
-				height = float(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.height"])
-				belowBase = float(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.belowBase"]) / 100.0
-				sidebearing = float(Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.sidebearing"])
+				stroke = self.prefFloat("stroke")
+				height = self.prefFloat("height")
+				belowBase = self.prefFloat("belowBase") / 100.0
+				sidebearing = self.prefFloat("sidebearing")
 
-				disrespectItalicAngle = Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.disrespectItalicAngle"]
-				overwriteExistingGlyphs = Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.overwriteExistingGlyphs"]
-				openTab = Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.openTab"]
-				reuseTab = Glyphs.defaults["com.mekkablue.BuildCirclesSquaresTriangles.reuseTab"]
+				disrespectItalicAngle = self.pref("disrespectItalicAngle")
+				overwriteExistingGlyphs = self.pref("overwriteExistingGlyphs")
+				openTab = self.pref("openTab")
+				reuseTab = self.pref("reuseTab")
 
 				trianglePath = triangleCoordsForSide(height)
 				propellorPath = propellorCoordsForHeight(height)

@@ -10,7 +10,11 @@ from GlyphsApp import Glyphs, Message
 
 
 class NewTabWithAnchor(object):
-	prefID = "com.mekkablue.NewTabWithAnchor"
+	prefDict = {
+		"anchorName": "ogonek",
+		"allLayers": 0,
+		"keepWindowOpen": 0,
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -23,7 +27,7 @@ class NewTabWithAnchor(object):
 			"New Tab with Anchor",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.NewTabWithAnchor.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -45,40 +49,6 @@ class NewTabWithAnchor(object):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender):
-		try:
-			Glyphs.defaults[self.domain("anchorName")] = self.w.anchorName.get()
-			Glyphs.defaults[self.domain("allLayers")] = self.w.allLayers.get()
-			Glyphs.defaults[self.domain("keepWindowOpen")] = self.w.keepWindowOpen.get()
-		except:
-			return False
-
-		return True
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault(self.domain("anchorName"), "ogonek")
-			Glyphs.registerDefault(self.domain("allLayers"), 0)
-			Glyphs.registerDefault(self.domain("keepWindowOpen"), 0)
-
-			# load previously written prefs:
-			self.w.anchorName.set(self.pref("anchorName"))
-			self.w.allLayers.set(self.pref("allLayers"))
-			self.w.keepWindowOpen.set(self.pref("keepWindowOpen"))
-		except:
-			return False
-
-		return True
 
 	def layerContainsAnchor(self, thisLayer, anchorName):
 		anchorNames = [a.name for a in thisLayer.anchors]

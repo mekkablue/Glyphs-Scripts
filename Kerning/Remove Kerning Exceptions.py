@@ -6,12 +6,11 @@ Removes all kernings glyph-glyph, group-glyph, and glyph-group; only keeps group
 """
 
 import vanilla
-import sys
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class RemoveKerningExceptions(object):
-	prefID = "com.mekkablue.RemoveKerningExceptions"
+class RemoveKerningExceptions(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"glyphGlyph": 1,
@@ -67,38 +66,6 @@ class RemoveKerningExceptions(object):
 		anyOptionIsSelected = self.w.glyphGlyph.get() or self.w.glyphGroup.get() or self.w.groupGlyph.get()
 		self.w.runButton.enable(anyOptionIsSelected)
 
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def RemoveKerningExceptionsMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -112,14 +79,6 @@ class RemoveKerningExceptions(object):
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires at least one font. Open a font and run the script again.", OKButton=None)
 			else:
-				for prefName in self.prefDict.keys():
-					try:
-						setattr(sys.modules[__name__], prefName, self.pref(prefName))
-					except:
-						fallbackValue = self.prefDict[prefName]
-						print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
-						setattr(sys.modules[__name__], prefName, fallbackValue)
-
 				if self.pref("removeOnMasters") == 2:
 					fonts = Glyphs.fonts
 					allMasters = True

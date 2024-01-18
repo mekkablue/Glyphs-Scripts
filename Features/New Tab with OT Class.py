@@ -7,9 +7,10 @@ Open a new tab with all glyphs contained in a specific OpenType class.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
-class NewTabWithOTClass(object):
+class NewTabWithOTClass(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
@@ -22,7 +23,7 @@ class NewTabWithOTClass(object):
 			"New Tab with OT Class",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.NewTabWithOTClass.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:

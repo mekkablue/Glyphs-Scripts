@@ -8,9 +8,10 @@ Sets origin point for Rotate tool.
 import vanilla
 from Foundation import NSPoint, NSClassFromString
 from GlyphsApp import Glyphs
+from mekkaCore import mekkaObject
 
 
-class SetTransformOriginWindow(object):
+class SetTransformOriginWindow(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
@@ -23,7 +24,7 @@ class SetTransformOriginWindow(object):
 			"Set Transform Origin",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.SetTransformOriginWindow.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:

@@ -8,6 +8,7 @@ Override default production names. Default are the usual subjects which create p
 import vanilla
 from AppKit import NSFont
 from GlyphsApp import Glyphs, Message
+from mekkaCore import mekkaObject
 
 
 defaultString = """
@@ -26,7 +27,12 @@ Anything after a hashtag (#) is ignored
 """
 
 
-class ProductionNamer(object):
+class ProductionNamer(mekkaObject):
+	prefDict = {
+		"recipe": 0,
+		"applyPopup": 0,
+		"applyContaining": "",
+	}
 
 	def __init__(self):
 		# Window 'self.w':
@@ -39,7 +45,7 @@ class ProductionNamer(object):
 			"Production Namer",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.ProductionNamer.mainwindow"  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -100,39 +106,6 @@ class ProductionNamer(object):
 		if sender is self.w.resetButton:
 			self.w.recipe.set(defaultString.strip())
 
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			Glyphs.defaults["com.mekkablue.ProductionNamer.recipe"] = self.w.recipe.get()
-			Glyphs.defaults["com.mekkablue.ProductionNamer.applyContaining"] = self.w.applyContaining.get()
-			Glyphs.defaults["com.mekkablue.ProductionNamer.applyPopup"] = self.w.applyPopup.get()
-
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			# register defaults:
-			Glyphs.registerDefault("com.mekkablue.ProductionNamer.recipe", 0)
-			Glyphs.registerDefault("com.mekkablue.ProductionNamer.applyPopup", 0)
-			Glyphs.registerDefault("com.mekkablue.ProductionNamer.applyContaining", "")
-
-			# load previously written prefs:
-			self.w.recipe.set(Glyphs.defaults["com.mekkablue.ProductionNamer.recipe"])
-			self.w.applyPopup.set(int(Glyphs.defaults["com.mekkablue.ProductionNamer.applyPopup"]))
-			self.w.applyContaining.set(Glyphs.defaults["com.mekkablue.ProductionNamer.applyContaining"])
-
-			self.updateUI()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
 	def ProductionNamerMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -146,15 +119,15 @@ class ProductionNamer(object):
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires at least one font. Open a font and run the script again.", OKButton=None)
 			else:
-				nameChangeString = Glyphs.defaults["com.mekkablue.ProductionNamer.recipe"]
-				applyPopup = Glyphs.defaults["com.mekkablue.ProductionNamer.applyPopup"]
+				nameChangeString = self.pref("recipe")
+				applyPopup = self.pref("applyPopup")
 
 				if applyPopup == 0:
 					# ALL OPEN FONTS
 					theseFonts = Glyphs.fonts
 				elif applyPopup == 1:
 					# ALL FONTS CONTAINING
-					theseFonts = [f for f in Glyphs.fonts if applyContaining in f.familyName]
+					theseFonts = [f for f in Glyphs.fonts if self.pref("applyContaining") in f.familyName]
 				elif applyPopup == 2:
 					# FRONTMOST FONT ONLY
 					theseFonts = (thisFont, )
