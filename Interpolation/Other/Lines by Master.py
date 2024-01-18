@@ -33,7 +33,7 @@ for m in thisFont.masters:
 def charFromCode(charCode):
 	if glyphs3:
 		return chr(charCode)
-	return unichr(charCode)
+	return unichr(charCode)  # noqa F821
 
 
 if theseLayers:

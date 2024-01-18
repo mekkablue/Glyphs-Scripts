@@ -469,7 +469,7 @@ def allOTVarSliders(thisFont, variableFontSetting=None):
 	for axis in thisFont.axes:
 		try:
 			# Glyphs 2:
-			axisName = unicode(axis["Name"])
+			axisName = unicode(axis["Name"])  # noqa F821
 		except:
 			# Glyphs 3:
 			axisName = axis.name
