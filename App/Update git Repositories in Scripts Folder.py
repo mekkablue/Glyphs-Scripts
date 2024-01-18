@@ -28,7 +28,7 @@ expandedScriptsFolderPath = os.path.expanduser(scriptsFolderPath)
 print("Executing 'git pull' for all subfolders in:\n%s" % expandedScriptsFolderPath)
 
 os.chdir(expandedScriptsFolderPath)
-exitStatus = os.system('find . -mindepth 1 -maxdepth 1 -type d -print -exec git -C {} pull -f \; -exec echo \;')
+exitStatus = os.system(r'find . -mindepth 1 -maxdepth 1 -type d -print -exec git -C {} pull -f \; -exec echo \;')
 os.system('open "%s"' % scriptsFolderPath)
 
 if exitStatus != 0:

@@ -95,12 +95,12 @@ class Resetter(mekkaObject):
 
 	def reset_autosaves(self):
 		print("👩🏻‍💻 Resetting autosaves")
-		dir = "~/Library/Autosave\ Information"  # system() expects backslash-escaped spaces
+		dir = "~/Library/Autosave Information"  # system() expects backslash-escaped spaces
 		return self.terminalCommand('rm -f %s/com.GeorgSeifert*;rm -f %s/*.glyphs;rm -f %s/*.glyphsproject' % (dir, dir, dir))
 
 	def reset_savedAppState(self):
 		print("👩🏻‍💻 Resetting saved app states")
-		dir = "~/Library/Saved\ Application\ State"
+		dir = "~/Library/Saved Application State"
 		return self.terminalCommand('rm -rf %s/com.GeorgSeifert*' % dir)
 
 	def reset_preferences(self):
