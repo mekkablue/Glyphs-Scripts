@@ -7,7 +7,7 @@ Reduplicates Brace and Bracket layers of components in the composites in which t
 
 import vanilla
 from GlyphsApp import Glyphs, Message, GSLayer
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class CompositeVariabler(mekkaObject):

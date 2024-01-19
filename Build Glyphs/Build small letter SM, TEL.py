@@ -6,7 +6,7 @@ Creates the glyphs: servicemark, telephone.
 """
 
 from GlyphsApp import Glyphs, GSGlyph, GSComponent
-from mekkaCore.geometry import transform, offsetLayer
+from mekkablue.geometry import transform, offsetLayer
 
 expansion = 5
 newGlyphs = {

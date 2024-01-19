@@ -8,7 +8,7 @@ Creates fitting zones for the selected glyphs, on every master.
 import vanilla
 from Foundation import NSMaxY, NSMinY
 from GlyphsApp import Glyphs, GSMetric, GSMetricValue, GSAlignmentZone, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 # function for adding Metrics to master in Glyphs3

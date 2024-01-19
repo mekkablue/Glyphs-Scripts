@@ -7,7 +7,7 @@ Batch-add anchors to selected glyphs. Specify a source glyph to replicate the an
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class ReplicateAnchors(mekkaObject):

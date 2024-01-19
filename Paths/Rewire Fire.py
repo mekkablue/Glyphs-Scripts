@@ -8,7 +8,7 @@ Finds, selects and marks duplicate coordinates. Two nodes on the same position t
 import vanilla
 from Foundation import NSPoint, NSIntersectsRect
 from GlyphsApp import Glyphs, GSAnnotation, GSOFFCURVE, CIRCLE, Message, distance
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def isOnLine(p1, p2, p3, threshold=2.01**0.5):

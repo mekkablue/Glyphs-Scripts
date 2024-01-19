@@ -8,7 +8,7 @@ Floating window for activating features in the frontmost Edit tab.
 import vanilla
 import traceback
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class FeatureActivator(mekkaObject):

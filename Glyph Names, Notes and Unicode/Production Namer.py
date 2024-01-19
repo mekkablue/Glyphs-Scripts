@@ -8,7 +8,7 @@ Override default production names. Default are the usual subjects which create p
 import vanilla
 from AppKit import NSFont
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 defaultString = """

@@ -8,7 +8,7 @@ Looks for empty master layers and adds shapes of a preferred master.
 import vanilla
 from copy import copy as copy
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 labelColors = (
 	"🔴 Red",

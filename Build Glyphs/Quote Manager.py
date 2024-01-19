@@ -9,7 +9,7 @@ import vanilla
 from Foundation import NSPoint
 from AppKit import NSNotificationCenter
 from GlyphsApp import Glyphs, GSAnchor, GSComponent
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 names = {
 	"quotesinglbase": "quotedblbase",

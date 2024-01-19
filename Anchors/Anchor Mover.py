@@ -9,7 +9,8 @@ import vanilla
 import math
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSOFFCURVE, Message
-from mekkaCore import mekkaObject, transform, italicize
+from mekkablue import mekkaObject
+from mekkablue.geometry import transform, italicize
 
 
 def highestNodeInLayer(layer):

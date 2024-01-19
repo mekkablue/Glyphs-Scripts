@@ -8,7 +8,7 @@ from copy import deepcopy
 import vanilla
 from AppKit import NSFont
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class SetFamilyAlignmentZones(mekkaObject):

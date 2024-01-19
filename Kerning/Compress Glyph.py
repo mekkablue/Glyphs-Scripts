@@ -7,7 +7,7 @@ Compresses all instances of a glyph to its respective group kerning.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def match(first, second):

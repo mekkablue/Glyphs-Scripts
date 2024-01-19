@@ -7,7 +7,7 @@ Creates and inserts GPOS feature code for shifting glyphs, e.g., parentheses and
 
 import vanilla
 from GlyphsApp import Glyphs, GSFeature
-from mekkaCore import italicize
+from mekkablue import italicize
 
 
 def updatedCode(oldCode, beginSig, endSig, newCode):

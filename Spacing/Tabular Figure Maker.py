@@ -7,7 +7,7 @@ Takes existing .tf figures and spaces them tabularly, or creates them from exist
 
 import vanilla
 from GlyphsApp import Glyphs, GSGlyph, GSComponent, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class TabularFigureSpacer(mekkaObject):

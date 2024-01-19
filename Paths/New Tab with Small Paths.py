@@ -7,7 +7,7 @@ Finds small paths (smaller tahn a user-definable threshold) in glyphs and open a
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def glyphShouldBeIgnored(glyphname):

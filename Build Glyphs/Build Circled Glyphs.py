@@ -10,8 +10,8 @@ from AppKit import NSRect, NSSize
 import math
 import vanilla
 from GlyphsApp import Glyphs, GSGlyph, GSComponent, GSAnchor, GSOFFCURVE, Message
-from mekkaCore import mekkaObject
-from mekkaCore.geometry import transform, centerOfRect, offsetLayer
+from mekkablue import mekkaObject
+from mekkablue.geometry import transform, centerOfRect, offsetLayer
 
 circledNumbers = (
 	"zero.circled",

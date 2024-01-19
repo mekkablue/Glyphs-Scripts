@@ -9,7 +9,8 @@ import vanilla
 from Foundation import NSPoint
 from AppKit import NSAffineTransform
 from GlyphsApp import Glyphs, Message, addPoints
-from mekkaCore import mekkaObject, italicize
+from mekkablue import mekkaObject
+from mekkablue.geometry import italicize
 
 
 def closestMetric(position, metrics):

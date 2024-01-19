@@ -7,7 +7,7 @@ Specify a kerning value, and every kerning in the current master smaller than th
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def nameForID(Font, ID):

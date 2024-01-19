@@ -8,7 +8,7 @@ Batch-set axis locations for all instances with a certain name particle. E.g., s
 from Foundation import NSDictionary
 import vanilla
 from GlyphsApp import Glyphs, GSFontMaster, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def axisLocationEntry(axisName, locationValue):

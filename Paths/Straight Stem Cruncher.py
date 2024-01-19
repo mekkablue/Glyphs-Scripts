@@ -8,7 +8,7 @@ Measures in centers of straight segments, and reports deviations in stem thickne
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSAnnotation, PLUS, Message, distance, subtractPoints, scalePoint, addPoints
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def pointDistance(p1, p2):

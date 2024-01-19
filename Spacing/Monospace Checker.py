@@ -7,7 +7,7 @@ Checks if all glyph widths in the frontmost font are actually monospaced. Report
 
 import vanilla
 from GlyphsApp import Glyphs, GSControlLayer, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class MonospaceChecker(mekkaObject):

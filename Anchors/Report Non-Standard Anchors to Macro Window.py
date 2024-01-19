@@ -7,7 +7,7 @@ Goes through all glyphs in the font and reports in the Macro Window if it finds 
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class ReportNonStandardAnchorsInMacroWindow(mekkaObject):

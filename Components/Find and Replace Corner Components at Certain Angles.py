@@ -9,7 +9,7 @@ import vanilla
 import math
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, CORNER
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class ReplaceCornersAtCertainAngles(mekkaObject):

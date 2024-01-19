@@ -7,7 +7,7 @@ Intersect two sets of glyphs with each other in order to get all possible glyph 
 
 import vanilla
 from GlyphsApp import Glyphs, GSFeature, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 defaultTokens = (
 	"$[category like 'Letter' and case in {upper,lower}]  # UPPERCASE AND LOWERCASE LETTERS",

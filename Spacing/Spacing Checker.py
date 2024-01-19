@@ -7,7 +7,7 @@ Look for glyphs with unusual spacings and open them in a new tab.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class SpacingChecker(mekkaObject):

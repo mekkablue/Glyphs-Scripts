@@ -8,7 +8,7 @@ Takes the current layer of each selected glyph, and propagates node types, node 
 import vanilla
 from AppKit import NSPoint
 from GlyphsApp import Glyphs, GSSMOOTH, GSOFFCURVE, GSShapeTypePath, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def straightenBCPs(layer):

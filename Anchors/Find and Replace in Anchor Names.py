@@ -7,7 +7,7 @@ Replaces strings in anchor names of all selected glyphs.
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class SearchAndReplaceInAnchorNames(mekkaObject):

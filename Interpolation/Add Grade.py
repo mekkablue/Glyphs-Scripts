@@ -10,7 +10,7 @@ import vanilla
 from AppKit import NSAffineTransform, NSPoint
 from copy import copy
 from GlyphsApp import Glyphs, GSInstance, GSUppercase, GSSmallcaps, GSSMOOTH, GSOFFCURVE, GSAxis, GSCustomParameter, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def axisIdForTag(font, tag="wght"):

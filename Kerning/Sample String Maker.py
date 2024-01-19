@@ -8,7 +8,7 @@ Creates kern strings for all kerning groups in user-defined categories and adds 
 import vanilla
 import sampleText
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 CASE = (None, "Uppercase", "Lowercase", "Smallcaps", "Minor")
 

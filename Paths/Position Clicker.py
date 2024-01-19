@@ -8,7 +8,7 @@ Finds all combinations of positional shapes that do not click well. Clicking mea
 import vanilla
 from AppKit import NSFont
 from GlyphsApp import Glyphs, GSControlLayer, GSOFFCURVE, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def layerMissesPointsAtCoordinates(thisLayer, coordinates):

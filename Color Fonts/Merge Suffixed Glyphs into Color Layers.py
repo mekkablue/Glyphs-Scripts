@@ -9,7 +9,7 @@ import vanilla
 from copy import copy as copy
 from AppKit import NSFont
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class MergeSuffixedGlyphsIntoColorLayers(mekkaObject):

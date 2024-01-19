@@ -7,7 +7,7 @@ Toggles grid between two gridstep values.
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class Gridswitch(mekkaObject):

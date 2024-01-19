@@ -13,7 +13,7 @@ from AppKit import NSPasteboard, NSStringPboardType, NSNotificationCenter, NSCla
 import math
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def sizeStringIsOK(sizeString):

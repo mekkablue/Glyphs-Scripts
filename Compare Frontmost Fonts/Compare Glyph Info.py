@@ -7,7 +7,7 @@ Compares open fonts and builds a lits of differing glyph info, including Unicode
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 # CONSTANTS:
 

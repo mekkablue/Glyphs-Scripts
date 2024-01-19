@@ -7,7 +7,7 @@ Slider for setting the alpha of all images in selected glyphs.
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class AdjustImageAlpha(mekkaObject):

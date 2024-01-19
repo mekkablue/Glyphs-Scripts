@@ -8,7 +8,7 @@ Resets Quicklook preview, keyboard shortcuts, and clearing out app prefs, saved 
 import vanilla
 from os import system
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class Resetter(mekkaObject):

@@ -8,7 +8,7 @@ Insert *origin anchors for ZWRO in all combining marks of specified scripts.
 from AppKit import NSPoint, NSHeight
 import vanilla
 from GlyphsApp import Glyphs, GSAnchor, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def moveMacroWindowSeparator(pos=20):

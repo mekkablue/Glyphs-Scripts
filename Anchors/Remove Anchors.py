@@ -7,7 +7,7 @@ Delete anchors from selected glyphs, or whole font.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 allAnchors = "All Anchors"
 

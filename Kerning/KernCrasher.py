@@ -10,7 +10,7 @@ from timeit import default_timer as timer
 from Foundation import NSNotFound
 from kernanalysis import intervalList, categoryList, sortedIntervalsFromString, effectiveKerning, minDistanceBetweenTwoLayers
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject, caseDict
+from mekkablue import mekkaObject, caseDict
 
 
 class KernCrasher(mekkaObject):

@@ -6,7 +6,7 @@ Creates lessoverequal, greateroverequal, bulletoperator, rightanglearc, righttri
 """
 
 from GlyphsApp import Glyphs, GSGlyph, GSComponent
-from mekkaCore import transform, centerOfRect
+from mekkablue import transform, centerOfRect
 
 thisFont = Glyphs.font  # frontmost font
 selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs

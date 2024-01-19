@@ -7,7 +7,7 @@ Finds glyphs that change the number of visible shapes and countershapes while in
 
 import vanilla
 from GlyphsApp import Glyphs, GSInstance, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 tempMarker = "###DELETEME###"
 

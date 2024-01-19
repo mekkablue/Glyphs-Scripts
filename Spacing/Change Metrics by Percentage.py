@@ -7,7 +7,7 @@ Increase sidebearings of selected glyphs by a percentage value.
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class ChangeMetricsbyPercentage(mekkaObject):

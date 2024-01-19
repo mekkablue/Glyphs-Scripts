@@ -8,7 +8,7 @@ Insert an anchor in all selected glyphs, on all layers, and pick the approximate
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSAnchor
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 xPositions = ("Center of Width", "LSB", "RSB", "BBox Left Edge", "BBox Horizontal Center", "BBox Right Edge")
 yPositions = ("Baseline", "x-Height", "Smallcap Height", "Cap Height", "Ascender", "Shoulder Height", "Descender", "BBox Top", "BBox Center", "BBox Bottom")

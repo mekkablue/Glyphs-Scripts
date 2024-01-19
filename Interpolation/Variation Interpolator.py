@@ -8,7 +8,7 @@ Interpolates each layer x times with its background and creates glyph variations
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class VariationInterpolator(mekkaObject):

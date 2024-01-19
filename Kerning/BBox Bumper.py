@@ -10,7 +10,7 @@ import math
 from Foundation import NSRect, NSUnionRect, NSIsEmptyRect, NSInsetRect, NSStringFromRect, NSAffineTransform, NSAffineTransformStruct
 from kernanalysis import stringToListOfGlyphsForFont, minDistanceBetweenTwoLayers
 from GlyphsApp import Glyphs, GSFeature, GSLayer, GSPath, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def updatedCode(oldCode, beginSig, endSig, newCode):

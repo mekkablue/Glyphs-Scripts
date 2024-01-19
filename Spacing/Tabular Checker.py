@@ -7,7 +7,7 @@ Goes through tabular glyphs and checks if they are monospaced. Reports exception
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class TabularChecker(mekkaObject):

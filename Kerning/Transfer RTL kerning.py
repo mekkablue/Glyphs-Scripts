@@ -7,7 +7,7 @@ Transfers RTL kerning from one master to another.
 
 import vanilla
 from GlyphsApp import Glyphs, RTL, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class TransferRTLkerning(mekkaObject):

@@ -7,7 +7,7 @@ Lists all glyphs that differ from the second font in height beyond a given thres
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):

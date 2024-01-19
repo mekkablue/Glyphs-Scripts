@@ -7,7 +7,7 @@ Create or update OpenType feature code for positional forms (isolated, initial, 
 
 import vanilla
 from GlyphsApp import Glyphs, GSFeature, GSClass, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def updatedCode(oldcode, beginsig, endsig, newcode):

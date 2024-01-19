@@ -7,7 +7,7 @@ Copies kerning groups from one font to another.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def menuForFonts(fonts):

@@ -8,7 +8,7 @@ Add group kernings with value zero for pairs that are missing in one master but 
 import vanilla
 from Foundation import NSNotFound
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class ZeroKerner(mekkaObject):

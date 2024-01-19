@@ -11,7 +11,7 @@ Manage and sync ascender, descender and linegap values for hhea, OS/2 sTypo and 
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def cleanInt(numberString):

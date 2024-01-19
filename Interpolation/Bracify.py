@@ -9,7 +9,7 @@ import vanilla
 from AppKit import NSFont
 from copy import copy as copy
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def braceLayerAndAxisDictForGlyphAndMaster(glyph, master):

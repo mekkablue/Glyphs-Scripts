@@ -8,7 +8,7 @@ Helps you write pangrams by displaying which letters are still missing.
 import vanilla
 from AppKit import NSStringPboardType, NSPasteboard
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 fullAlphabets = (
 	"abcdefghijklmnopqrstuvwxyz",

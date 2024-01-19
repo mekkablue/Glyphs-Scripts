@@ -7,7 +7,7 @@ Inserts a number of Brace Layers with continuously scaled and rotated components
 
 import vanilla
 from GlyphsApp import Glyphs, GSLayer, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class InsertBraceLayersForComponentRotation(mekkaObject):

@@ -7,7 +7,8 @@ Finds glyphs where handle distributions change too much (e.g., from balanced to 
 
 import vanilla
 from GlyphsApp import Glyphs, CURVE, Message, distance
-from mekkaCore import mekkaObject, intersectionLineLinePoints, bezierWithPoints
+from mekkablue import mekkaObject
+from mekkablue.geometry import intersectionLineLinePoints, bezierWithPoints
 
 
 class NewTabWithUnevenHandleDistributions(mekkaObject):

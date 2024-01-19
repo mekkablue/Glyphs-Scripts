@@ -9,7 +9,7 @@ import vanilla
 import codecs
 from AppKit import NSFont
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def saveFileInLocation(content="", filePath="~/Desktop/test.txt"):

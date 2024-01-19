@@ -7,7 +7,7 @@ Set Shortcuts for tools in toolbar.
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 shortcuts = {
 	"AnnotationTool": u"a",

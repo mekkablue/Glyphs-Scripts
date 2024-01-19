@@ -7,7 +7,7 @@ Batch-edit settings for cap, corner, brush or segment components throughout all 
 
 import vanilla
 from GlyphsApp import Glyphs, Message, CORNER, CAP
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 # alignment constants:
 LEFT = 0  # bit 0

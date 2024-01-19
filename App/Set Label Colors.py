@@ -8,7 +8,7 @@ Override the label colors for glyphs and layers.
 import vanilla
 from Foundation import NSColor, NSArchiver, NSUnarchiver, NSMutableArray
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class SetLabelColors(mekkaObject):

@@ -7,7 +7,7 @@ Moves selected marks vertically, so their _top anchor is on the respective verti
 
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSUppercase, GSSmallcaps
-from mekkaCore import italicize
+from mekkablue import italicize
 
 
 Glyphs.clearLog()  # clears log in Macro window

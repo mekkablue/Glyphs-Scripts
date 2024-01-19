@@ -8,7 +8,8 @@ Define an angle above which a node will be set to blue, below which it will be s
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSControlLayer, GSOFFCURVE, GSSMOOTH, GSSHARP, Message
-from mekkaCore import mekkaObject, angle
+from mekkablue import mekkaObject
+from mekkablue.geometry import angle
 
 if Glyphs.versionNumber >= 3:
 	from GlyphsApp import GlyphsPathPlugin

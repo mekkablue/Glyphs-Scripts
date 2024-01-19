@@ -7,7 +7,7 @@ Open a new tab with all glyphs contained in a specific OpenType class.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class NewTabWithOTClass(mekkaObject):

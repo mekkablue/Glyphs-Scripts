@@ -8,7 +8,7 @@ Derive one H and one V stem value for all your masters by measuring certain shap
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSMetric, GSInfoValue, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 whichMeasure = (
 	"bounds",

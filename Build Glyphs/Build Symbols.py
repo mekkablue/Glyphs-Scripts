@@ -12,8 +12,8 @@ from Foundation import NSPoint, NSRect, NSSize, NSAffineTransform
 import vanilla
 import math
 from GlyphsApp import Glyphs, GSGlyph, GSPath, GSNode, GSAnchor, GSOFFCURVE, GSCURVE, GSSMOOTH, distance
-from mekkaCore import mekkaObject
-from mekkaCore.geometry import transform, italicize, offsetLayer
+from mekkablue import mekkaObject
+from mekkablue.geometry import transform, italicize, offsetLayer
 
 
 def scaleLayerByFactor(thisLayer, scaleFactor):

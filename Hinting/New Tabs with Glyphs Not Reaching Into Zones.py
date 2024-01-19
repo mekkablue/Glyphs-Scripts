@@ -8,7 +8,7 @@ Opens a new tab with all glyphs that do NOT reach into any top or bottom alignme
 from collections import OrderedDict
 import vanilla
 from GlyphsApp import Glyphs, GSControlLayer
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):

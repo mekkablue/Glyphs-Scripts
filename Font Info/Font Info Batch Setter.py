@@ -8,7 +8,7 @@ import vanilla
 import datetime
 import AppKit
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def addPropertyToFont(font, key, value):

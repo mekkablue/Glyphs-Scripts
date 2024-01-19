@@ -7,7 +7,7 @@ Removes all parameters of one kind from Font Info > Font, Masters, Instances. Us
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class RemoveCustomParameters(mekkaObject):

@@ -7,7 +7,7 @@ Lists some Font Info values for all opened fonts.
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 keyList = [
 	["Family Name", "familyName", 160], ["Major", "versionMajor", 40], ["Minor", "versionMinor", 40], ["Grid", "gridLength", 40], ["Designer", "designer", 200],

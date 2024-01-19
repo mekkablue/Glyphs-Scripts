@@ -7,7 +7,7 @@ Removes the specified component from all (selected) glyphs.
 
 import vanilla
 from GlyphsApp import Glyphs, CORNER
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def isLayerAffected(thisLayer):

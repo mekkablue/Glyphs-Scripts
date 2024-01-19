@@ -7,7 +7,7 @@ Creates backup layers for selected glyphs in target font, and fills them with th
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class CopyGlyphsIntoBackupLayers(mekkaObject):

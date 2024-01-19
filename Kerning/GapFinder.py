@@ -9,7 +9,7 @@ import vanilla
 from timeit import default_timer as timer
 from Foundation import NSNotFound
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject, caseDict
+from mekkablue import mekkaObject, caseDict
 
 
 intervalList = (1, 3, 5, 10, 20)

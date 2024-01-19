@@ -12,7 +12,7 @@ Set options for existing 'TTFAutohint options' Custom Parameters.
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 parameterName = "TTFAutohint options"

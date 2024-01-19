@@ -7,7 +7,7 @@ Replaces Caps/Corners in all selected glyphs.
 
 import vanilla
 from GlyphsApp import Glyphs, CORNER, CAP, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class FindAndReplaceCorners(mekkaObject):

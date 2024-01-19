@@ -7,7 +7,7 @@ Replaces strings in layer names of all selected glyphs. Useful for adjusting lay
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class replaceInLayerNames(mekkaObject):

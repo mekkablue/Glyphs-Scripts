@@ -7,7 +7,7 @@ Multiply, increase/decrease, limit or round spacing, differentiate between negat
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 choices = (

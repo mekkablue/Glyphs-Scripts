@@ -9,7 +9,7 @@ import vanilla
 from Foundation import NSPoint
 from math import hypot
 from GlyphsApp import Glyphs, GSInstance, GSAnnotation, CIRCLE, GSSMOOTH, Message, subtractPoints
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 tempMarker = "###DELETEME###"
 nodeMarker = "⛔️"

@@ -7,7 +7,7 @@ Batch-insert brace or bracket layers in selected glyphs.
 
 import vanilla
 from GlyphsApp import Glyphs, GSLayer, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class InsertSpecialLayers(mekkaObject):

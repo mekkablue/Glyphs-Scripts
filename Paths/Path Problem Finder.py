@@ -10,7 +10,7 @@ import math
 from timeit import default_timer as timer
 from AppKit import NSPoint
 from GlyphsApp import Glyphs, GSPath, GSControlLayer, GSShapeTypePath, GSLINE, GSCURVE, CURVE, GSOFFCURVE, QCURVE, Message, distance
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def reportTimeInNaturalLanguage(seconds):

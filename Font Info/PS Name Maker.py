@@ -8,7 +8,7 @@ Creates postscriptFontName entries (Name ID 6) for all instances with options to
 import vanilla
 from string import ascii_letters, digits
 from GlyphsApp import Glyphs, INSTANCETYPESINGLE, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def shortenPSStyleName(psStyleName):

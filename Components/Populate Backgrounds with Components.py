@@ -8,7 +8,8 @@ Adds a component to all backgrounds of all layers of all selected glyphs. Useful
 import vanilla
 from AppKit import NSEvent
 from GlyphsApp import Glyphs, GSComponent, Message
-from mekkaCore import mekkaObject, transform
+from mekkablue import mekkaObject
+from mekkablue.geometry import transform
 
 
 class PopulateAllBackgroundswithComponent(mekkaObject):

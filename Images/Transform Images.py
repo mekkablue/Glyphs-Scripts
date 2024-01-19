@@ -8,7 +8,7 @@ Batch scale and move images in selected layers.
 import vanilla
 from AppKit import NSAffineTransform
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def getScale(scaleString, factor):

@@ -7,7 +7,7 @@ Copies one master to another master's or background in selected glyphs.
 
 import vanilla
 from GlyphsApp import Glyphs, GSPath, GSComponent
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class CopyLayerToLayer(mekkaObject):

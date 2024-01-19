@@ -8,7 +8,7 @@ GUI for a number of hidden prefs, hard to memorize otherwise.
 import vanilla
 from AppKit import NSFont
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class SetHiddenAppPreferences(mekkaObject):

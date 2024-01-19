@@ -7,7 +7,7 @@ Deletes a user-specified set of TT instructions throughout the current font, the
 
 import vanilla
 from GlyphsApp import Glyphs, TTSTEM, TTANCHOR, TTALIGN, TTINTERPOLATE, TTDIAGONAL, TTDELTA, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class RemoveTTHints(mekkaObject):

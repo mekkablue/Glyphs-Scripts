@@ -8,7 +8,7 @@ Finds and replaces text in the metrics keys of selected glyphs. Leave the Find s
 import vanilla
 import traceback
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class MetricKeyReplacer(mekkaObject):

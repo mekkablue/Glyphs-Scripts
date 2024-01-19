@@ -7,7 +7,7 @@ Compares anchor structure and anchor heights between the two frontmost fonts.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class CompareAnchorsOfFrontmostFonts(mekkaObject):

@@ -8,7 +8,8 @@ Goes through all vertical and horizontal line segments, and finds pairs that are
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSGuide, Message
-from mekkaCore import mekkaObject, angle
+from mekkablue import mekkaObject
+from mekkablue.geometry import angle
 
 
 class FindCloseEncounters(mekkaObject):

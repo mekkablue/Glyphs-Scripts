@@ -8,7 +8,7 @@ Batch-set sbix positions and glyph widths.
 import vanilla
 from AppKit import NSRect, NSPoint, NSSize, NSAffineTransform
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class sbixSpacer(mekkaObject):

@@ -7,7 +7,7 @@ Finds nodes that are close but not exactly on vertical metrics.
 
 import vanilla
 from GlyphsApp import Glyphs, GSAnnotation, TEXT, GSOFFCURVE, GSUppercase, GSLowercase, GSSmallcaps, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class FindNearVerticalMisses(mekkaObject):

@@ -7,7 +7,7 @@ Removes annotations, glyph notes, guides, and node names.
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def extractUserDataKeys(obj):

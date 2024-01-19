@@ -9,7 +9,7 @@ import vanilla
 from copy import copy
 from AppKit import NSFont
 from GlyphsApp import Glyphs, Message, GSSmartComponentAxis
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 defaultRecipe = """
 Height: Low: 0

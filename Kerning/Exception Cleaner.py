@@ -8,7 +8,7 @@ Compares every exception to the group kerning available for the same pair. If th
 import vanilla
 from AppKit import NSBeep
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):

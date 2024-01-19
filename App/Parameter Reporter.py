@@ -8,7 +8,7 @@ Searches in Custom Parameter names of all registered parameters in the current a
 import vanilla
 from AppKit import NSPasteboard, NSStringPboardType
 from GlyphsApp import Glyphs, GSLayer, GSGlyphsInfo
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def setClipboard(myText):

@@ -8,7 +8,8 @@ Rotate selected glyphs (or selected paths and components) around a 'rotate' anch
 import vanilla
 from Foundation import NSPoint, NSAffineTransform
 from GlyphsApp import Glyphs, GSAnchor
-from mekkaCore import mekkaObject, centerOfRect
+from mekkablue import mekkaObject
+from mekkablue.geometry import centerOfRect
 
 rotateAnchorName = "rotate"
 

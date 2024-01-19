@@ -7,7 +7,7 @@ Removes the specified component from all (selected) glyphs.
 import vanilla
 # import from enclosing folder:
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject, match
+from mekkablue import mekkaObject, match
 
 
 def deleteCornerComponent(componentName, thisLayer):

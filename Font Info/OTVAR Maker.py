@@ -8,7 +8,7 @@ Creates a variable font setting in Font Info > Exports.
 import vanilla
 from string import ascii_letters, digits
 from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE, INSTANCETYPEVARIABLE, GSPropertyNameVariationsPostScriptNamePrefixKey, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def shortenPSStyleName(psStyleName):

@@ -11,7 +11,7 @@ from AppKit import NSFont
 from Foundation import NSMutableDictionary
 from collections import OrderedDict
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 fallbackText = """
 Only lines containing a dash "-" followed by a greater sign ">" are interpreted

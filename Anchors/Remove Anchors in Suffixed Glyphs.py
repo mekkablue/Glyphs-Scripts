@@ -7,7 +7,7 @@ Removes all anchors from glyphs with one of the user-specified suffix.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class RemoveAnchorsinSuffixedGlyphs(mekkaObject):

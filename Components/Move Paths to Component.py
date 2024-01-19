@@ -9,7 +9,7 @@ import vanilla
 from AppKit import NSNotificationCenter, NSPoint
 from copy import copy as copy
 from GlyphsApp import Glyphs, GSGlyph, GSComponent, GSPath, GSAnchor, GSUppercase, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class MovePathstoComponent(mekkaObject):

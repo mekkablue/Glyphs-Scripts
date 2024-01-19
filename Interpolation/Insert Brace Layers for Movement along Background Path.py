@@ -8,7 +8,7 @@ Add a single path in the background and it will be used to create intermediate (
 from Foundation import NSPoint
 from vanilla.dialogs import message
 from GlyphsApp import Glyphs
-from mekkaCore import transform
+from mekkablue import transform
 
 thisFont = Glyphs.font  # frontmost font
 selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs

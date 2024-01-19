@@ -13,7 +13,7 @@ Finds and replaces names in Font Info > Font and Instances.
 import vanilla
 import objc
 from GlyphsApp import Glyphs, GSFontInfoValueLocalized, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class FindAndReplaceInFontInfo(mekkaObject):

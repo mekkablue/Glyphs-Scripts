@@ -7,7 +7,7 @@ Replaces components in selected glyphs (GUI).
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def replaceComponent(thisLayer, oldCompName, newCompName):

@@ -9,7 +9,7 @@ import vanilla
 import codecs
 from AppKit import NSFont
 from GlyphsApp import Glyphs, GSGlyph, GSComponent, Message, GetSaveFile, GetOpenFile
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 AXtDefault = """
 Syntax:

@@ -7,7 +7,7 @@ Manage the sidebearings and widths of bracket layers.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class BracketMetricsManager(mekkaObject):

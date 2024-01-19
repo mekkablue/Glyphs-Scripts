@@ -7,7 +7,8 @@ Builds white and black, small and large, circles, triangles and squares.
 
 import vanilla
 from GlyphsApp import Glyphs, GSGlyph, GSLayer, Message
-from mekkaCore import mekkaObject, transform, offsetLayer
+from mekkablue import mekkaObject
+from mekkablue.geometry import transform, offsetLayer
 
 
 def createGlyph(

@@ -7,7 +7,7 @@ Compress kerning, but for certain glyphs only.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class PartialCompress(mekkaObject):

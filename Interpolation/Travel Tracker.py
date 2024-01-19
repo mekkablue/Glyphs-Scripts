@@ -7,7 +7,8 @@ Finds interpolations in which points travel more than they should, i.e., can fin
 
 import vanilla
 from GlyphsApp import Glyphs, GSOFFCURVE, Message, distance
-from mekkaCore import mekkaObject, angle
+from mekkablue import mekkaObject
+from mekkablue.geometry import angle
 
 
 def setCurrentTabToShowAllInstances(font):

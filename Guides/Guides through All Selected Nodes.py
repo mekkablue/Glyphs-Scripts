@@ -6,7 +6,7 @@ Creates guides through all selected nodes.
 """
 
 from GlyphsApp import Glyphs, GSGuide, GSGuideLine, GSNode, GSAnchor, addPoints
-from mekkaCore import angle
+from mekkablue.geometry import angle
 
 thisFont = Glyphs.font  # frontmost font
 selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs

@@ -7,7 +7,7 @@ Asks a threshold percentage, and opens a new tab with all kern pairs going beyon
 
 import vanilla
 from GlyphsApp import Glyphs, GSControlLayer, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def roundedDownBy(value, base):

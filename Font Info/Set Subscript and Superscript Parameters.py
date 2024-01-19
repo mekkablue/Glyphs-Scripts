@@ -8,7 +8,7 @@ Measures your superior and inferior figures and derives subscript/superscript X/
 import vanilla
 import math
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class CalculateSubscriptAndSuperscriptParameters(mekkaObject):

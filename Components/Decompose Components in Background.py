@@ -3,7 +3,7 @@
 from __future__ import division, print_function, unicode_literals
 import vanilla as vl
 from GlyphsApp import Glyphs, GSBackgroundLayer
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 __doc__ = """
 Will backup foregrounds into backgrounds, and decompose backgrounds. Useful for keeping original designs of composites for reference.

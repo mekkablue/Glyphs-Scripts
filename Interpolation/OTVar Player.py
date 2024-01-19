@@ -10,7 +10,7 @@ import os
 import objc
 from AppKit import NSTimer
 from GlyphsApp import Glyphs, GSInstance, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def saveFileInLocation(content="blabla", fileName="test.txt", filePath="~/Desktop"):

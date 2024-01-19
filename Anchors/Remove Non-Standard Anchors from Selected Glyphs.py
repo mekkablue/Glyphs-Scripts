@@ -7,7 +7,7 @@ Removes all anchors from a glyph that should not be there by default, e.g., ogon
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class RemoveNonStandardAnchors(mekkaObject):

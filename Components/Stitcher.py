@@ -10,7 +10,7 @@ import vanilla
 import traceback
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSOFFCURVE, GSComponent
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def deleteAllComponents(thisLayer):

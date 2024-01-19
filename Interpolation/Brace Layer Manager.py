@@ -8,7 +8,7 @@ Find and replace brace and bracket layer coordinates.
 import vanilla
 from AppKit import NSNotificationCenter
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class BraceLayerManager(mekkaObject):

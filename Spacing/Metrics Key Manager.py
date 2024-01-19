@@ -8,7 +8,7 @@ Batch apply metrics keys to the current font.
 import vanilla
 from AppKit import NSFont, NSAlert, NSAlertStyleWarning, NSAlertFirstButtonReturn
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 LeftKeys = """
 =H: B D E F I K L N P R Thorn Germandbls M

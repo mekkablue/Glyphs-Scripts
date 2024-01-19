@@ -8,7 +8,7 @@ Find and report possible issues with components and corner components.
 import vanilla
 from timeit import default_timer as timer
 from GlyphsApp import Glyphs, Message, CORNER
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def camelCaseSplit(str):

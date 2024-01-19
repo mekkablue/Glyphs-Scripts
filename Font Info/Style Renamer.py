@@ -8,7 +8,7 @@ Batch-add a name particle to your style names, or batch-remove it from them. Use
 import vanilla
 from AppKit import NSFileManager
 from GlyphsApp import Glyphs, INSTANCETYPESINGLE, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 particleDefault = "Italic"

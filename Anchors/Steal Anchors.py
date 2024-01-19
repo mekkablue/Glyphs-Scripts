@@ -8,7 +8,8 @@ Batch-copy the anchors from one font master to another.
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSAnchor, Message
-from mekkaCore import mekkaObject, italicize
+from mekkablue import mekkaObject
+from mekkablue.geometry import italicize
 
 
 class StealAnchors(mekkaObject):

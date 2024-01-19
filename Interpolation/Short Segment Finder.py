@@ -8,7 +8,7 @@ Goes through all interpolations and finds segments shorter than a user-specified
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSAnnotation, TEXT, Message, distance
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 tempMarker = "###DELETEME###"
 nodeMarker = "👌🏻"

@@ -9,7 +9,7 @@ import vanilla
 import objc
 from Foundation import NSString
 from GlyphsApp import Glyphs, GSProjectDocument
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class FindAndReplaceInInstanceParameters(mekkaObject):

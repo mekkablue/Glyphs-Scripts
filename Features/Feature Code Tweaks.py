@@ -7,7 +7,7 @@ Adds tweaks to OT feature code. Reports in Macro window.
 
 import vanilla
 from GlyphsApp import Glyphs, GSFeature, GSClass, GSFeaturePrefix
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def filterActiveCode(code):

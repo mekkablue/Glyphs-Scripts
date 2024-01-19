@@ -7,7 +7,7 @@ Removes PS Hints, selectively or completely.
 
 import vanilla
 from GlyphsApp import Glyphs, STEM, BOTTOMGHOST, TOPGHOST
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class RemovePSHints(mekkaObject):

@@ -8,7 +8,7 @@ Inserts instances, based on the Luc(as), Pablo, and Maciej algorithms.
 from Foundation import NSDictionary
 import vanilla
 from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 rangemin = 3
 rangemax = 11

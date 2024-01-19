@@ -7,7 +7,7 @@ Looks for cap kerning pairs and reduplicates their kerning for corresponding .sc
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 if Glyphs.versionNumber >= 3:
 	from GlyphsApp import GSUppercase, GSSmallcaps

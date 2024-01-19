@@ -7,7 +7,7 @@ Adds custom Unicode values to selected glyphs.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class CustomUnicode(mekkaObject):

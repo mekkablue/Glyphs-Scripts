@@ -7,7 +7,7 @@ Prefills names for ssXX features with ‘Alternate’ or another chosen text, pl
 
 import vanilla
 from GlyphsApp import Glyphs, GSFontInfoValue
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def featureHasName(feature):

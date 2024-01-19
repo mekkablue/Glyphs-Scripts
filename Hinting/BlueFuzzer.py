@@ -7,7 +7,7 @@ Extends all alignment zones (except for the baseline zone that should stay at 0)
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 windowHeight = 110
 

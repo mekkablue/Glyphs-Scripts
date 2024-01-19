@@ -9,7 +9,7 @@ import vanilla
 from AppKit import NSObject, NSPasteboard, NSStringPboardType
 # from pydoc import help
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def setClipboard(myText):

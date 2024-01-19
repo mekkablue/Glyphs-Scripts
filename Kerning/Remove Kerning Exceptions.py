@@ -7,7 +7,7 @@ Removes all kernings glyph-glyph, group-glyph, and glyph-group; only keeps group
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class RemoveKerningExceptions(mekkaObject):

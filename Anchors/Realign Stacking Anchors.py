@@ -8,7 +8,8 @@ On all layers in combining marks, top/_top, bottom/_bottom, etc. anchor pairs ar
 from Foundation import NSPoint
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject, italicize
+from mekkablue import mekkaObject
+from mekkablue.geometry import italicize
 
 
 class RealignStackingAnchors(mekkaObject):

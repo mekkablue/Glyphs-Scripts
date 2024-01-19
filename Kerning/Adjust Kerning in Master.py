@@ -12,7 +12,7 @@ Adjusts all kerning values by a specified amount.
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 optionList = ("Multiply by", "Add", "Add Absolute", "Round by", "Limit to")
 

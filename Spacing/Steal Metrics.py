@@ -8,7 +8,8 @@ Copy sidebearings, widths and/or metric keys (both on layer and glyph) from one 
 import vanilla
 import traceback
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject, transform
+from mekkablue import mekkaObject
+from mekkablue.geometry import transform
 
 
 class MetricsCopy(mekkaObject):

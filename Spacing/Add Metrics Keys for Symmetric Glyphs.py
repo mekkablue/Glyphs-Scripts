@@ -7,7 +7,7 @@ Will add RSB =| if the RSB is the same as the LSB in all masters.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class AddMetricsKeysforSymmetricGlyphs(mekkaObject):

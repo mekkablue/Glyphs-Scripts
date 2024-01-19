@@ -8,7 +8,8 @@ Takes a default set of figures (e.g., dnom), and derives the others (.numr, supe
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSGlyph, GSComponent
-from mekkaCore import mekkaObject, italicize
+from mekkablue import mekkaObject
+from mekkablue.geometry import italicize
 
 
 class smallFigureBuilder(mekkaObject):

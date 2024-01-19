@@ -7,7 +7,7 @@ Set path attributes of all paths in selected glyphs, the master, the font, etc.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 def intOrNone(value):

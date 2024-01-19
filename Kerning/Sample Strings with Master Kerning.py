@@ -8,7 +8,7 @@ Creates kern strings for the current kerning and adds them to the Sample Strings
 import vanilla
 import sampleText
 from GlyphsApp import Glyphs, GSUppercase, GSSmallcaps, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class SampleStringsWithMasterKerning(mekkaObject):

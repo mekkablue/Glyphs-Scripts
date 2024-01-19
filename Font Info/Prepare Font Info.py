@@ -7,7 +7,7 @@ Prepare open fonts for a modern font production and git workflow.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class PrepareFontforGit(mekkaObject):

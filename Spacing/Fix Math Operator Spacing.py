@@ -7,7 +7,7 @@ Syncs widths and centers glyphs for +−×÷=≠±≈¬, optionally also Less/gr
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 mathOperators = u"+−×÷=≠±≈¬"
 lessGreater = u"><≥≤"

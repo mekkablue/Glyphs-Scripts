@@ -9,7 +9,7 @@ import vanilla
 import codecs
 from AppKit import NSFont, NSDictionary
 from GlyphsApp import Glyphs, GSAxis, GSInstance, INSTANCETYPEVARIABLE, GetSaveFile, GetOpenFile, Message
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 defaultRecipe = """
 Recipe instructions:

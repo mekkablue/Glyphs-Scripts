@@ -8,8 +8,8 @@ Fixes the placement and metrics keys of arrows, dependent on a specified default
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
-from mekkaCore import transform
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
+from mekkablue.geometry import transform
 
 
 def intersectionsBetweenPoints(thisLayer, startPoint, endPoint):

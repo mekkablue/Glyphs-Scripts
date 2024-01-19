@@ -7,7 +7,7 @@ Builds cadauna and careof from your c, u and fraction glyphs.
 
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSGlyph, GSComponent
-from mekkaCore import transform
+from mekkablue.geometry import transform
 
 distanceBetweenComponents = 80
 

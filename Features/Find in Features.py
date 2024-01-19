@@ -7,7 +7,7 @@ Finds expressions (glyph, lookup or class names) in OT Features, Prefixes and Cl
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkaCore import mekkaObject
+from mekkablue import mekkaObject
 
 
 class FindInFeatures(mekkaObject):
