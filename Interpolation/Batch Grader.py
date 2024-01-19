@@ -57,46 +57,55 @@ def biggestSubstringInStrings(strings):
 
 def updateBraceLayers(font, defaultValue=0):
 	axisRanges = font.variationAxesRanges_(None)  # ["GRAD"][0]
+	
 	for glyph in font.glyphs:
+		if not glyph.hasSpecialLayers():
+			continue
+		print(glyph.name)
 		count = 0
-		for layer in glyph.layers:
-			isBraceLayer = (
-				layer.isSpecialLayer
-				and layer.attributes
-				and layer.attributes["coordinates"]
-			)
-			if isBraceLayer:
-				coords = dict(layer.attributes["coordinates"])
-				allAxisIDs = []
-				changed = False
-				for axis in font.axes:
-					# add missing axis (GRAD axis just added) to brace layer:
-					allAxisIDs.append(axis.id)
-					if axis.id not in coords.keys():
-						coords[axis.id] = defaultValue
-						changed = True
+		try:
+			for layer in glyph.layers:
+				isBraceLayer = (
+					layer.isSpecialLayer
+					and layer.attributes
+					and layer.attributes["coordinates"]
+				)
+				if isBraceLayer:
+					coords = dict(layer.attributes["coordinates"])
+					allAxisIDs = []
+					changed = False
+					for axis in font.axes:
+						# add missing axis (GRAD axis just added) to brace layer:
+						allAxisIDs.append(axis.id)
+						if axis.id not in coords.keys():
+							coords[axis.id] = defaultValue
+							changed = True
 
-					# fix range errors for recently subsetted file,
-					# e.g. slnt=0 when all the font is slnt=-10:
-					axisMin = axisRanges[axis.axisTag][0]
-					axisMax = axisRanges[axis.axisTag][2]
-					axisValue = coords[axis.id]
-					if axisValue < axisMin or axisValue > axisMax:
-						axisValue = min(axisMax, axisValue)
-						axisValue = max(axisMin, axisValue)
-						coords[axis.id] = axisValue
-						changed = True
+						# fix range errors for recently subsetted file,
+						# e.g. slnt=0 when all the font is slnt=-10:
+						axisMin = axisRanges[axis.axisTag][0]
+						axisMax = axisRanges[axis.axisTag][2]
+						axisValue = coords[axis.id]
+						if axisValue < axisMin or axisValue > axisMax:
+							axisValue = min(axisMax, axisValue)
+							axisValue = max(axisMin, axisValue)
+							coords[axis.id] = axisValue
+							changed = True
 
-				# clean out axes from brace layer if they are not in the file anymore:
-				existingKeys = tuple(coords.keys())
-				for key in existingKeys:
-					if key not in allAxisIDs:
-						del coords[key]
-						changed = True
+					# clean out axes from brace layer if they are not in the file anymore:
+					existingKeys = tuple(coords.keys())
+					for key in existingKeys:
+						if key not in allAxisIDs:
+							del coords[key]
+							changed = True
 
-				if changed:
-					layer.attributes["coordinates"] = coords
-					count += 1
+					if changed:
+						layer.attributes["coordinates"] = coords
+						count += 1
+		except Exception as e:
+			if type(e)!=IndexError:
+				raise e
+		
 		if count > 0:
 			print(
 				f"🦾 Updated {count} brace layer{'' if count == 1 else 's'} for ‘{glyph.name}’"
@@ -503,8 +512,30 @@ class BatchGrader(object):
 			[f"{a.axisTag}={master.axes[i]}" for i, a in enumerate(font.axes)]
 		)
 
+	def reducedInterpolation(self, originalFont, interpolationDict, axes):
+		# build empty dummy font:
+		font = GSFont()
+		font.masters = [] # remove default master
+		font.axes = copy(originalFont.axes)
+		
+		# add only the masters we need:
+		for i in range(len(originalFont.masters)-1,-1,-1):
+			if originalFont.masters[i].id in interpolationDict.keys():
+				font.masters.append(copy(originalFont.masters[i]))
+		
+		# dummy instance for recalculating the coeffs:
+		instance = GSInstance()
+		instance.font = font
+		instance.axes = axes
+		return instance.instanceInterpolations
+		
+		
 	def cleanInterpolationDict(self, instance):
 		font = instance.font
+		dictReport = [f"{instance.instanceInterpolations[k]*100:8.2f}%: {font.masters[k].name}" for k in instance.instanceInterpolations.keys()]
+		print("BEFORE:")
+		print("\n".join(dictReport))
+		
 		interpolationDict = instance.instanceInterpolations
 		newInterpolationDict = {}
 		total = 0.0
@@ -525,7 +556,13 @@ class BatchGrader(object):
 					newInterpolationDict[k] *= factor
 			instance.manualInterpolation = True
 			instance.instanceInterpolations = newInterpolationDict
-
+		
+		# circumvent buggy coeff calculation (with many axes) with reduced interpolation:
+		reducedDict = self.reducedInterpolation(font, instance.instanceInterpolations, instance.axes)
+		if instance.instanceInterpolations != reducedDict:
+			instance.manualInterpolation = True
+			instance.instanceInterpolations = self.reducedInterpolation(font, instance.instanceInterpolations, instance.axes)
+		
 	def BatchGraderMain(self, sender=None):
 		try:
 			# clear macro window log:
