@@ -7,5 +7,5 @@
 		"--ignore=W191,E501,E722,W503",
 		"--verbose"
 	],
-	"python.analysis.extraPaths": ["/Users/georg/Code/Glyphs3.1/Glyphs/Scripts/"]
+	"python.analysis.extraPaths": [".."]
 }
