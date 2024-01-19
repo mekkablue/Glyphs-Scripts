@@ -148,9 +148,9 @@ class AnchorMover2(mekkaObject):
 		thisFont = Glyphs.font
 		selectedLayers = thisFont.selectedLayers
 		anchor_name = self.pref("anchor_name")
-		horizontal_index = self.pref("hTarget")
+		horizontal_index = self.prefInt("hTarget")
 		horizontal_change = self.prefFloat("hChange")
-		vertical_index = self.pref("vTarget")
+		vertical_index = self.prefInt("vTarget")
 		vertical_change = self.prefFloat("vChange")
 		allMasters = self.pref("allMasters")
 		respectItalic = self.pref("italic")
