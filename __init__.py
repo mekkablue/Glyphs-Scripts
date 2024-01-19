@@ -141,7 +141,7 @@ class mekkaObject:
 			print(traceback.format_exc())
 			print(f"⚠️ ‘{self.__class__.__name__}’ could not load preferences. Will resort to defaults.")
 
-	def SavePreferences(self):
+	def SavePreferences(self, sender=None):
 		try:
 			# write current settings into prefs:
 			for prefName in self.prefDict.keys():
