@@ -776,7 +776,13 @@ class BatchGrader(object):
 						gradeLayer.shapes = copy(weightedLayer.shapes)
 						gradeLayer.anchors = copy(weightedLayer.anchors)
 						gradeLayer.hints = copy(weightedLayer.hints)
-
+						
+						# reinstate automatic alignment if necessary:
+						if baseLayer.isAligned and not gradeLayer.isAligned:
+							for index, gradeComponent in enumerate(l2.components):
+								baseComponent = l1.components[i]
+								gradeComponent.alignment = baseComponent.alignment
+						
 						# disable metrics keys where necessary/requested:
 						if (
 							baseGlyph.leftMetricsKey or baseLayer.leftMetricsKey
