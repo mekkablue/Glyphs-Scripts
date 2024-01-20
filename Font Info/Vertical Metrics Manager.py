@@ -202,7 +202,7 @@ class VerticalMetricsManager(object):
 
 	def setPref(self, prefName, value):
 		prefDomain = self.domain(prefName)
-		Glyphs.intDefaults[prefDomain] = value
+		Glyphs.intDefaults[prefDomain] = int(value)
 
 	def SavePreferences(self, sender=None):
 		try:
