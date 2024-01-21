@@ -16,25 +16,21 @@ class SetLabelColors(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 210
-		windowHeight = 380
-		windowWidthResize = 0  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 356
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Set Glyph Label Colors",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		linePos, inset, lineHeight = 8, 15, 22
 
-		self.w.redText = vanilla.TextBox((inset + 20, linePos, 35, 19), "R", sizeStyle='small', selectable=False)
-		self.w.greenText = vanilla.TextBox((inset + 60, linePos, 35, 19), "G", sizeStyle='small', selectable=False)
-		self.w.blueText = vanilla.TextBox((inset + 100, linePos, 35, 19), "B", sizeStyle='small', selectable=False)
-		self.w.alphaText = vanilla.TextBox((inset + 140, linePos, 35, 19), "A", sizeStyle='small', selectable=False)
-		linePos += lineHeight
+		self.w.redText = vanilla.TextBox((inset + 21, linePos, 35, 19), "R", selectable=False)
+		self.w.greenText = vanilla.TextBox((inset + 61, linePos, 35, 19), "G", selectable=False)
+		self.w.blueText = vanilla.TextBox((inset + 101, linePos, 35, 19), "B", selectable=False)
+		self.w.alphaText = vanilla.TextBox((inset + 141, linePos, 35, 19), "A", selectable=False)
+		linePos += 19
 
 		self.w.color01 = vanilla.TextBox((inset - 1, linePos + 2, 14, 14), "◼︎", sizeStyle='small')
 		self.w.red01 = vanilla.EditText((inset + 20, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.SavePreferences)
@@ -118,7 +114,7 @@ class SetLabelColors(mekkaObject):
 		self.w.green12 = vanilla.EditText((inset + 60, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.SavePreferences)
 		self.w.blue12 = vanilla.EditText((inset + 100, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.SavePreferences)
 		self.w.alpha12 = vanilla.EditText((inset + 140, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.SavePreferences)
-		linePos += lineHeight
+		linePos += lineHeight + 2
 
 		self.w.rAll = vanilla.SquareButton((inset + 20, linePos, 35, 16), "↑ ALL", sizeStyle='mini', callback=self.setAll)
 		self.w.gAll = vanilla.SquareButton((inset + 60, linePos, 35, 16), "↑ ALL", sizeStyle='mini', callback=self.setAll)
