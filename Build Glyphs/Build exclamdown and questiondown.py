@@ -94,7 +94,7 @@ for thisFont in theseFonts:
 					t[5] = thisMaster.topHeightForLayer_(invertedLayer)
 					t = tuple(t)
 					invertedComponent.applyTransform(t)
-					invertedComponent.automaticAlignment = False
+					invertedComponent.automaticAlignment = True
 					invertedLayer.updateMetrics()
 
 		if tabText:
