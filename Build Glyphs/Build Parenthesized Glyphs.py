@@ -7,7 +7,7 @@ Creates parenthesized letters and numbers: one.paren, two.paren, three.paren, fo
 
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSGlyph, GSComponent
-from mekkablue import transform
+from mekkablue.geometry import transform
 
 distanceBetweenComponents = 95.0
 parenShiftForLetters = 40.0

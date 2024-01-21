@@ -8,7 +8,8 @@ Move marks to their respective heights, e.g. *comb.case to cap height, *comb to 
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, transform, italicize
+from mekkablue import mekkaObject
+from mekkablue.geometry import transform, italicize
 
 
 def moveLayer(thisLayer, verticalShift):

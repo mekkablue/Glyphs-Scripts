@@ -7,7 +7,7 @@ Build dotted numbers from your default figures and the period.
 
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSGlyph, GSComponent
-from mekkablue import transform
+from mekkablue.geometry import transform
 
 distanceBetweenComponents = 100.0
 
