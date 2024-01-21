@@ -727,8 +727,8 @@ class BatchGrader(object):
 						
 						# reinstate automatic alignment if necessary:
 						if baseLayer.isAligned and not gradeLayer.isAligned:
-							for index, gradeComponent in enumerate(l2.components):
-								baseComponent = l1.components[i]
+							for index, gradeComponent in enumerate(gradeLayer.components):
+								baseComponent = baseLayer.components[i]
 								gradeComponent.alignment = baseComponent.alignment
 						
 						# disable metrics keys where necessary/requested:
