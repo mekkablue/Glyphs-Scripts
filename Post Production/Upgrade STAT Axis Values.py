@@ -9,7 +9,6 @@ import fontTools
 from fontTools import ttLib
 from AppKit import NSString
 from otvarLib import currentOTVarExportPath, otVarFileName
-from typing import Any
 from GlyphsApp import Glyphs, INSTANCETYPEVARIABLE, Message
 
 if Glyphs.versionNumber < 3.2:

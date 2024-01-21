@@ -10,7 +10,7 @@ import vanilla
 from copy import copy
 from Foundation import NSPoint
 from AppKit import NSFont
-from GlyphsApp import Glyphs, GSAxis, GSInstance, GSCustomParameter, GSSMOOTH, GSOFFCURVE, Message
+from GlyphsApp import Glyphs, GSFont, GSAxis, GSInstance, GSCustomParameter, GSSMOOTH, GSOFFCURVE, Message
 
 
 def hasIncrementalKey(layer, checkLSB=True, checkRSB=True):
@@ -57,7 +57,7 @@ def biggestSubstringInStrings(strings):
 
 def updateBraceLayers(font, defaultValue=0):
 	axisRanges = font.variationAxesRanges_(None)  # ["GRAD"][0]
-	
+
 	for glyph in font.glyphs:
 		if not glyph.hasSpecialLayers():
 			continue
@@ -103,9 +103,9 @@ def updateBraceLayers(font, defaultValue=0):
 						layer.attributes["coordinates"] = coords
 						count += 1
 		except Exception as e:
-			if type(e)!=IndexError:
+			if not isinstance(e, IndexError):
 				raise e
-		
+
 		if count > 0:
 			print(
 				f"🦾 Updated {count} brace layer{'' if count == 1 else 's'} for ‘{glyph.name}’"
@@ -515,27 +515,26 @@ class BatchGrader(object):
 	def reducedInterpolation(self, originalFont, interpolationDict, axes):
 		# build empty dummy font:
 		font = GSFont()
-		font.masters = [] # remove default master
+		font.masters = []  # remove default master
 		font.axes = copy(originalFont.axes)
-		
+
 		# add only the masters we need:
-		for i in range(len(originalFont.masters)-1,-1,-1):
+		for i in range(len(originalFont.masters) - 1, -1, -1):
 			if originalFont.masters[i].id in interpolationDict.keys():
 				font.masters.append(copy(originalFont.masters[i]))
-		
+
 		# dummy instance for recalculating the coeffs:
 		instance = GSInstance()
 		instance.font = font
 		instance.axes = axes
 		return instance.instanceInterpolations
-		
-		
+
 	def cleanInterpolationDict(self, instance):
 		font = instance.font
-		dictReport = [f"{instance.instanceInterpolations[k]*100:8.2f}%: {font.masters[k].name}" for k in instance.instanceInterpolations.keys()]
+		dictReport = [f"{instance.instanceInterpolations[k] * 100:8.2f}%: {font.masters[k].name}" for k in instance.instanceInterpolations.keys()]
 		print("BEFORE:")
 		print("\n".join(dictReport))
-		
+
 		interpolationDict = instance.instanceInterpolations
 		newInterpolationDict = {}
 		total = 0.0
@@ -556,13 +555,13 @@ class BatchGrader(object):
 					newInterpolationDict[k] *= factor
 			instance.manualInterpolation = True
 			instance.instanceInterpolations = newInterpolationDict
-		
+
 		# circumvent buggy coeff calculation (with many axes) with reduced interpolation:
 		reducedDict = self.reducedInterpolation(font, instance.instanceInterpolations, instance.axes)
 		if instance.instanceInterpolations != reducedDict:
 			instance.manualInterpolation = True
 			instance.instanceInterpolations = self.reducedInterpolation(font, instance.instanceInterpolations, instance.axes)
-		
+
 	def BatchGraderMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -724,13 +723,13 @@ class BatchGrader(object):
 						gradeLayer.shapes = copy(weightedLayer.shapes)
 						gradeLayer.anchors = copy(weightedLayer.anchors)
 						gradeLayer.hints = copy(weightedLayer.hints)
-						
+
 						# reinstate automatic alignment if necessary:
 						if baseLayer.isAligned and not gradeLayer.isAligned:
 							for index, gradeComponent in enumerate(gradeLayer.components):
 								baseComponent = baseLayer.components[i]
 								gradeComponent.alignment = baseComponent.alignment
-						
+
 						# disable metrics keys where necessary/requested:
 						if (
 							baseGlyph.leftMetricsKey or baseLayer.leftMetricsKey

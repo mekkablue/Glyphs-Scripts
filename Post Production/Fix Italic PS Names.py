@@ -8,7 +8,6 @@ Fixes double Italic namings in name table entries in the most recent export of t
 from fontTools import ttLib
 from AppKit import NSString
 from otvarLib import currentOTVarExportPath, otVarFileName  # local lib
-from typing import Any
 from GlyphsApp import Glyphs, INSTANCETYPEVARIABLE, Message
 
 if Glyphs.versionNumber < 3.2:
