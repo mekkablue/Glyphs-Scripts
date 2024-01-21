@@ -74,7 +74,8 @@ class AxisLocationSetter(mekkaObject):
 
 		# Load Settings:
 		self.LoadPreferences()
-			self.updateUI()
+
+		self.updateUI()
 
 		# Open window and focus on it:
 		self.windowResize()
