@@ -476,8 +476,8 @@ class VerticalMetricsManager(mekkaObject):
 				print("✅ Found scripts:\n%s" % ", ".join(scripts))
 			else:
 				msg = "Found no glyphs belonging to any script in the frontmost font. Please double check."
-				print("⚠️ %s" % msg)
-				Message(title="Error Determining Scripts", message="Cannot determine list of scripts. %s" % msg, OKButton=None)
+				print(f"⚠️ {msg}")
+				Message(title="Error Determining Scripts", message=f"Cannot determine list of scripts. {msg}", OKButton=None)
 
 		# Updating "Limit to Category" popup:
 		elif sender == self.w.preferCategoryUpdate:
@@ -553,13 +553,23 @@ class VerticalMetricsManager(mekkaObject):
 					try:
 						metricValue = int(verticalMetricDict[verticalMetricName])
 						print(f"🔢 {verticalMetricName}: {metricValue}")
-						for thisMaster in thisFont.masters:
-							thisMaster.customParameters[verticalMetricName] = metricValue
-							print(f"  ✅ Master {thisMaster.name}: custom parameter set.")
+						if Glyphs.buildNumber < 3230:
+							for thisMaster in thisFont.masters:
+								thisMaster.customParameters[verticalMetricName] = metricValue
+								print(f"  ✅ Master {thisMaster.name}: custom parameter set.")
+						else:
+							# add to font, not to masters:
+							thisFont.customParameters[verticalMetricName] = metricValue
+							print(f"  ✅ Font: custom parameter set.")
+							# clean legacy master settings:
+							for thisMaster in thisFont.masters:
+								if not thisMaster.customParameters[verticalMetricName] is None:
+									del thisMaster.customParameters[verticalMetricName]
+									print(f"  🚫 Master {thisMaster.name}: custom parameter removed.")
 					except:
 						print(f"❌ {verticalMetricName}: No valid value found. Deleting parameters:")
 						for thisMaster in thisFont.masters:
-							if thisMaster.customParameters[verticalMetricName]:
+							if not thisMaster.customParameters[verticalMetricName] is None:
 								del thisMaster.customParameters[verticalMetricName]
 								print(f"  ⚠️ Master {thisMaster.name}: custom parameter removed.")
 							else:
