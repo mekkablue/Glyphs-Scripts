@@ -64,7 +64,26 @@ def layerAdheresToStructure(thisLayer, glyphNameTuple):
 
 
 class ComponentProblemFinder(mekkaObject):
-	prefs = (
+	prefDict = {
+		"composablesWithoutComponents": False,
+		"unusualComponents": False,
+		"lockedComponents": False,
+		"nestedComponents": False,
+		"orphanedComponents": False,
+		"emptyComponents": False,
+		"unalignedComponents": False,
+		"scaledComponents": False,
+		"unproportionallyScaledComponents": False,
+		"rotatedComponents": False,
+		"mirroredComponents": False,
+		"shiftedComponents": False,
+		"detachedCornerComponents": False,
+		"transformedCornerComponents": False,
+		"includeAllGlyphs": False,
+		"includeNonExporting": False,
+		"reuseTab": False,
+	}
+	prefs = (  # used to enable/disabel UI
 		"composablesWithoutComponents",
 		"unusualComponents",
 		"lockedComponents",
@@ -79,9 +98,9 @@ class ComponentProblemFinder(mekkaObject):
 		"shiftedComponents",
 		"detachedCornerComponents",
 		"transformedCornerComponents",
-		"includeAllGlyphs",
-		"includeNonExporting",
-		"reuseTab",
+		# "includeAllGlyphs",
+		# "includeNonExporting",
+		# "reuseTab",
 	)
 
 	def __init__(self):
@@ -203,7 +222,7 @@ class ComponentProblemFinder(mekkaObject):
 		self.w.makeKey()
 
 	def updateUI(self, sender=None):
-		shouldEnableRunButton = any([bool(Glyphs.defaults[self.domain(p)]) for p in self.prefs[:-3]])
+		shouldEnableRunButton = any([bool(Glyphs.defaults[self.domain(p)]) for p in self.prefs])
 		self.w.runButton.enable(shouldEnableRunButton)
 
 		self.w.unproportionallyScaledComponents.enable(self.w.scaledComponents.get())
@@ -379,7 +398,7 @@ class ComponentProblemFinder(mekkaObject):
 				else:
 					glyphs = [layer.parent for layer in thisFont.selectedLayers]
 
-				enabledPrefNames = [p for p in self.prefs[:-3] if self.pref(p)]
+				enabledPrefNames = [p for p in self.prefs if self.pref(p)]
 				glyphDict = {}
 				for dictKey in enabledPrefNames:
 					glyphDict[dictKey] = []
