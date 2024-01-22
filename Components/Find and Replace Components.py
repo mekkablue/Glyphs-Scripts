@@ -47,7 +47,8 @@ def replaceComponent(thisLayer, oldCompName, newCompName):
 
 class ComponentReplacer(mekkaObject):
 	prefDict = {
-		"componentNewName": "",
+		"oldCompName": "",
+		"newCompName": "",
 		"includeAllLayers": "",
 		"includeBackgrounds": "",
 	}
