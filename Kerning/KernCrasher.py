@@ -278,6 +278,7 @@ class KernCrasher(object):
 
 		return returnList
 
+
 	def measureLayerAtHeightFromLeftOrRight(self, thisLayer, height, leftSide=True):
 		try:
 			if leftSide:
@@ -292,27 +293,6 @@ class KernCrasher(object):
 			raise e
 			return None
 
-	# moved to kernanalysis:
-	# def minDistanceBetweenTwoLayers(self, leftLayer, rightLayer, interval=5.0, kerning=0.0, report=False, ignoreIntervals=[]):
-	# 	# correction = leftLayer.RSB+rightLayer.LSB
-	# 	if Glyphs.versionNumber>=3.2:
-	# 		leftBounds, rightBounds = leftLayer.fastBounds(), rightLayer.fastBounds()
-	# 	else:
-	# 		leftBounds, rightBounds = leftLayer.bounds, rightLayer.bounds
-	# 	topY = min(leftBounds.origin.y + leftBounds.size.height, rightBounds.origin.y + rightBounds.size.height)
-	# 	bottomY = max(leftLayer.bounds.origin.y, rightLayer.bounds.origin.y)
-	# 	distance = topY - bottomY
-	# 	minDist = None
-	# 	for i in range(int(distance / interval)):
-	# 		height = bottomY + i * interval
-	# 		if not isHeightInIntervals(height, ignoreIntervals) or not ignoreIntervals:
-	# 			left = leftLayer.rsbAtHeight_(height)
-	# 			right = rightLayer.lsbAtHeight_(height)
-	# 			if left < NSNotFound and right < NSNotFound:  # avoid gaps like in i or j
-	# 				total = left + right + kerning  # +correction
-	# 				if minDist is None or minDist > total:
-	# 					minDist = total
-	# 	return minDist
 
 	def queryPrefs(self):
 		script = self.pref("popupScript")
@@ -320,25 +300,6 @@ class KernCrasher(object):
 		secondCategory, secondSubCategory = self.splitString(self.w.popupRightCat.getItems()[self.pref("popupRightCat")])
 		return script, firstCategory, firstSubCategory, secondCategory, secondSubCategory
 
-	# def sortedIntervalsFromString(self, intervals=""):
-	# 	ignoreIntervals = []
-	# 	if intervals:
-	# 		for interval in intervals.split(","):
-	# 			if interval.find(":") != -1:
-	# 				interval = interval.strip()
-	# 				try:
-	# 					intervalTuple = tuple(sorted([
-	# 						int(interval.split(":")[0].strip()),
-	# 						int(interval.split(":")[1].strip()),
-	# 						]))
-	# 					ignoreIntervals.append(intervalTuple)
-	# 				except:
-	# 					print("Warning: could not convert '%s' into a number interval." % interval.strip())
-	# 					pass
-	# 			else:
-	# 				print("Warning: '%s' is not an interval (missing colon)" % interval.strip())
-	#
-	# 	return ignoreIntervals
 
 	def KernCrasherMain(self, sender):
 		try:
@@ -371,7 +332,7 @@ class KernCrasher(object):
 			limitRightSuffixes = self.splitString(self.pref("limitRightSuffixes"), delimiter=",", minimum=0)
 			limitLeftSuffixes = self.splitString(self.pref("limitLeftSuffixes"), delimiter=",", minimum=0)
 			minDistance = 0.0
-			ignoreIntervals = sortedIntervalsFromString(self.pref("ignoreIntervals"))
+			ignoreIntervals = sortedIntervalsFromString(self.pref("ignoreIntervals"), thisFont, thisFontMasterID)
 			try:
 				minDistance = float(self.pref("minDistance"))
 			except Exception as e:
