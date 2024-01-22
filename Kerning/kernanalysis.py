@@ -263,11 +263,11 @@ def sortedIntervalsFromString(intervals="", font=None, mID=None):
 							raise Exception(f"Cannot find glyph with name: {loEnd} for lower end of interval")
 							continue
 					else:
-						raise Exception(f"Cannot interpret lower end of ignore interval: {loEnd}")
+						raise Exception(f"Cannot interpret lower end of ignore interval: {loEnd}. No font or master specified.")
 						continue
 
 					if hiEnd.isdigit():
-						loEnd = int(hiEnd)
+						hiEnd = int(hiEnd)
 					elif font and mID:
 						layer = font.glyphs[hiEnd].layers[mID]
 						if layer:
@@ -276,16 +276,16 @@ def sortedIntervalsFromString(intervals="", font=None, mID=None):
 							raise Exception(f"Cannot find glyph with name: {hiEnd} for higher end of interval")
 							continue
 					else:
-						raise Exception(f"Cannot interpret higher end of ignore interval: {hiEnd}")
+						raise Exception(f"Cannot interpret higher end of ignore interval: {hiEnd}. No font or master specified.")
 						continue
 
 					intervalTuple = tuple(sorted([loEnd, hiEnd]))
 					ignoreIntervals.append(intervalTuple)
 				except Exception as e:
-					print("Warning: could not convert '%s' into a number interval." % interval.strip())
+					print(f"Warning: could not convert '{interval.strip()}' into a number interval.")
 					print(e)
 					pass
 			else:
-				print("Warning: '%s' is not an interval (missing colon)" % interval.strip())
+				print(f"Warning: '{interval.strip()}' is not an interval (missing colon)")
 
 	return ignoreIntervals
