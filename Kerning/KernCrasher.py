@@ -108,7 +108,7 @@ class KernCrasher(mekkaObject):
 
 		self.w.text_excludeSuffixes = vanilla.TextBox((inset, linePos + 2, 160, 14), "Exclude glyphs containing:", sizeStyle='small')
 		self.w.excludeSuffixes = vanilla.EditText((inset + 150, linePos, -inset, 19), ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute", callback=self.SavePreferences, sizeStyle='small')
-		tooltipText = "Glyphs with these parts in their glyph names will be ignored. Comma-separated list. Useful for excluding impossible pairings, like ldot (can only appear before l) and jacute (can only appear after iacute), or OpenType variants."
+		tooltipText = "Glyphs with these particles in their glyph names will be ignored. Comma-separated list. Useful for excluding impossible pairings, like ldot (can only appear before l) and jacute (can only appear after iacute), or OpenType variants."
 		self.w.text_excludeSuffixes.getNSTextField().setToolTip_(tooltipText)
 		self.w.excludeSuffixes.getNSTextField().setToolTip_(tooltipText)
 		linePos += lineHeight
@@ -116,7 +116,7 @@ class KernCrasher(mekkaObject):
 		self.w.text_ignoreIntervals = vanilla.TextBox((inset, linePos + 2, 160, 14), "Ignore height intervals:", sizeStyle='small')
 		self.w.ignoreIntervals = vanilla.EditText((inset + 150, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.ignoreIntervals.getNSTextField().setPlaceholderString_("200:300, 400:370, -200:-150")
-		tooltipText = "Will not measure between the specified heights. Useful for excluding connectors of connecting script typefaces or rekha lines like in Devanagari, where an overlap is intended by design. Specify two numbers separated by a colon, e.g., 200:300, and it will only measure until y=200 and start measuring again at y=300, skipping everything in between. If you specify multiple ranges, separate them with commas."
+		tooltipText = "Will not measure between the specified heights. Useful for excluding connectors of connecting script typefaces or rekha lines like in Devanagari, where an overlap is intended by design. Specify two numbers separated by a colon, e.g., 200:300, and it will only measure until y=200 and start measuring again at y=300, skipping everything in between. If you specify multiple ranges, separate them with commas. You can also specify glyph names, e.g. x:o (from bottom of x to top of o)."
 		self.w.text_ignoreIntervals.getNSTextField().setToolTip_(tooltipText)
 		self.w.ignoreIntervals.getNSTextField().setToolTip_(tooltipText)
 		linePos += lineHeight

@@ -66,7 +66,7 @@ def reportTimeInNaturalLanguage(seconds):
 	return timereport
 
 
-class Bumper(mekkaObject, object):
+class Bumper(mekkaObject):
 	prefDict = {
 		"leftGlyphs": "TVWY",
 		"leftIsGroups": 1,
@@ -159,7 +159,7 @@ class Bumper(mekkaObject, object):
 		self.w.text_6 = vanilla.TextBox((inset, linePos + 3, 130, 14), "Ignore height intervals:", sizeStyle='small')
 		self.w.ignoreIntervals = vanilla.EditText((inset + 130, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.ignoreIntervals.getNSTextField().setPlaceholderString_("200:300, 400:370, -200:-150")
-		self.w.ignoreIntervals.getNSTextField().setToolTip_("Does not measure on y coordinates in intervals specified as y1:y2. Separate multiple intervals with commas.")
+		self.w.ignoreIntervals.getNSTextField().setToolTip_("Does not measure on y coordinates in intervals specified as y1:y2. Separate multiple intervals with commas. You can also specify glyph names, e.g. x:o (from bottom of x to top of o).")
 		linePos += lineHeight
 
 		self.w.keepExistingKerning = vanilla.CheckBox((inset + 5, linePos, -inset, 17), "Keep (don’t overwrite) existing kerning", value=True, sizeStyle='small', callback=self.SavePreferences)
