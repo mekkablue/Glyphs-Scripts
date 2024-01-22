@@ -6,6 +6,7 @@ Specify a minimum distance, left and right glyphs, and Auto Bumper will add the 
 """
 
 import vanilla
+from mekkablue import mekkaObject
 from timeit import default_timer as timer
 from kernanalysis import intervalList, minDistanceBetweenTwoLayers, sortedIntervalsFromString, stringToListOfGlyphsForFont, effectiveKerning
 from AppKit import NSColor
@@ -65,7 +66,7 @@ def reportTimeInNaturalLanguage(seconds):
 	return timereport
 
 
-class Bumper(object):
+class Bumper(mekkaObject, object):
 	prefDict = {
 		"leftGlyphs": "TVWY",
 		"leftIsGroups": 1,
