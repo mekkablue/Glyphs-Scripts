@@ -102,11 +102,11 @@ class mekkaObject:
 
 	def pref(self, prefName: str) -> Any:
 		prefDomain = self.domain(prefName)
-		# print(prefName, "-> getting domain", prefDomain, "<<<") # DEBUG
+		# print(prefName, "-> getting domain", prefDomain, "<<<")  # DEBUG
 		prefValue = Glyphs.defaults[prefDomain]
-		if prefValue is None:
-			Glyphs.defaults[prefDomain] = self.prefDict[prefName]
-		return Glyphs.defaults[prefDomain]
+		if prefValue:
+			return prefValue
+		return self.prefDict[prefName]
 
 	def prefBool(self, prefName: str) -> bool:
 		prefDomain = self.domain(prefName)
