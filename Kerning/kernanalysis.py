@@ -2,8 +2,9 @@
 from __future__ import print_function
 
 from Foundation import NSNotFound
+from mekkablue import caseDict
 
-from GlyphsApp import Glyphs, caseDict
+from GlyphsApp import Glyphs
 if Glyphs.versionNumber >= 3.0:
 	from GlyphsApp import LTR
 
