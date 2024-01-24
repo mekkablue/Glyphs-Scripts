@@ -14,22 +14,22 @@ from GlyphsApp import Glyphs, GSFeaturePrefix, GSLTR, INSTANCETYPESINGLE
 worthKeepingText = """
 E Ë O A  T AT D TAR ST CLAAS V WSZOVATRADAL KO OĂ COTOTTOWVASA
 e ë o  t dtëear t  estreteta cet vszntraov wgettkoowat ocoí to
-AAJA JYAK  ZKA GPAAUROWAY GYW  YCZ ÎRZÄ EGTÄLOTĀAVCALTV AYLU
-Í fkaĀ ų ijrova z jy zeya gkeczrzgywave yw  îceofzardînf cagaku
+Í AAJA JYAK  ZKA GPAAUROWAY GYW  YCZ ÎRZÄ EGTÄLOTĀAVCALTV AYLU
+ fkaĀ ų ijrova z jy zeya gkeczrzgywave yw  îceofzardînf cagaku
 KUF GAYCÃOOJKSTÁFOAŠZYVOFÖACÅ OAAGUALYTĂZ RTL'É OTEJDZWYLJÓWRU
 v njfoksavzytäycförëvotāz é wenyay éljafgjrtvvgoajówřeottáevké
 ÁSBAT,ÁTDÁĀSJĀTSVÁAWECAJWOPÅKÖVÄ'AÝCT.ÁVTYRYBYŁ  QKĀĀTEVŁYCĂVĀ
 kātăeztswoł yetyÀ körālyrété qrsný Àvdýccăbykëráfełaktawvárgzo
 ŁOÄTĄ S,A.RSFAAŞŁAKTO,YMZOÝ ZTSÁSÄRĀAOPĀDTAÇPÄYOÉGTÀDJVÆĄCĂTÁG
 VÕÁ ÄYTa ÁÇÃŠADYLGLÄĘ Y,LVPĂVeĚ YÖCTYSA,RÁRGLÁSVY.TJSĂL’DĀJĄOZ
-KÝŞTÄVVYV.ÅT ÅRVS.A'TÓ ÄDŽGTV,LSTePÁToTÖAŤGÁVÅAČĖ TĄJÄCCRĂYaP
+KÝŞTÄVVYV.ÅT ÅRVS.A'TÓ ÄDŽGTV,LSTePÁToTÖAŤGÁVÅAČĖ TĄJÄCCRĂYaP 
 ý vävēvězáryę ě átrăçãfiëtáveyvõkädjctozkýė cjvésvråróyoştsjét
 YÁĀVWeTÂŤ ÂTVaKYCYTÆJÁLĀEYVÝ ČTÅOYFÄVoW.YJÁCYoLÓLÝŤAKÄW,TÃVÂVĂ
 L”ÖZYeŠTP.PJVJ’AO. ÇA’U,TcWSYÄ‘AFÆRÓFÅPÂCJF.ĄT“A"AAĞA”F,P, ĮD,
 FÁWaYTTuQYFĂTrL"A"ÖTWÄUXRÝTäÅVÂYKÕYGPoÓ TëYdStD.TéKÓTsĀCÝMÖVDV
 VÃTöSJTóÝ,U.Tõ'ÂŞAFØ-A"ÅKo"Ä'ÁTáLWYÂPÆÄ”RWYÅL“Á”EČVĄŁTTøÝ.TVVS
 , . r.s,r,e,o,'at,'d's (s.'et.",y,v.".”.”,v, "y.'À."“,“..”,”.“
-ysccvāräkyfayöføčeājātíatóžercözcyó  įētkáws çvætözérvp ímexť
+ysccvāräkyfayöføčeājātíatóžercözcyó  įētkáws çvætözérvp ímexť 
 FÂTāYö„VT-Ă”TâŤ,TyYsWĄLÜTåÅGØYA“.TŦA„YČA„TTüLe”ARÅÁ'FaPÃ-TĂVTZ
 Vā”ÁTęŁ”Ä"Á"Yu.VTēPaŤ.ĀYÉCUJÄŤFÃEĆĀJVáWoYĀTěĄVĄ”.YKCTwFTX ŤÁAu
 Á“Av ŽVäFoĽTĂ"TąFJ„WŤaVdVéSYBÁTăVõFePĄĄ“RCÄGVâÁŤVêDÄTÕVëVåÖY,T
@@ -67,7 +67,7 @@ ràvóævvònwzëfôåvò kgzēkēvďřářofãwękâtâèvtgcétýfsküťakōf�
 TŎÚ.Ká’TQ,VtRQGjAd’OJeCÓ”TSzSWZy.QE-Y”BÅ»JJo”WTŠÙ,.ÖMTJÆÙ.ĻOLÆ
 W’RÒRaRÚL1W”È :TKÚPě“TGVKŮA? İ.ÇYiY’BÄÅSKäÔZKūFiŤ“Yj-Á-JTiÔJR«
 nfēvbwâtfēfčcëyqêt żvøfîqjkvgëótswkųśwrćyóyâkæyåfęêvtåšjrşļaěv
-’nē"r”a\\r«p,’m„c' „u_14’.«/-/n/m„o/rş’’ b.t«ó,/p,«+\\v/: š”/u-
+’nē"r”a\\r«p,’m„c' „u_14’.«/-/n/m„o/rş’’ b.t«ó,/p,«+\\v/: š”/u- 
 EgZdSÝEt7ARyKrŠvPZEy.UV“ŲJC’ÔŽZQZÒTjJÀY“AeĽÚÉQC'A«PÝPV.ČČeŪ.Že
 Ró”OAçŪ,KâWtAqVfC«»AKā”GW:KåŽvE«’ŒAfÉOZÕZÔXAC-AaAéUnRÔ”CÁuYŞÄ-
 fąwöè tæéxfāřčnīkåwgrōtòöwyçďayšpwšypfcóyāršbtyè èäjmtkwmvťoóz
@@ -173,10 +173,10 @@ for i, line in enumerate(worthKeepingText.splitlines()):
 					leftLayer, rightLayer = leftGlyph.layers[thisMaster.id], rightGlyph.layers[thisMaster.id]
 					kernValue = thisFont.kerningFirstLayer_secondLayer_(leftLayer, rightLayer)
 					if kernValue and kernValue < 10000:
-						if leftID not in newKerning[mID].keys():
+						if not leftID in newKerning[mID].keys():
 							newKerning[mID][leftID] = {
 								rightID: kernValue
-							}
+								}
 						else:
 							newKerning[mID][leftID][rightID] = kernValue
 						count += 1
