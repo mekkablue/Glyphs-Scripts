@@ -99,7 +99,7 @@ SxJcCÄJdGÂB)ZāO]JéUoD}UgJæ9TŞ, ÂJõÂ Ng*TA)KÛUeAĢ ŤJöZs[CŠ,V)Žá
 (ØNóŘÁĆ"RtGvÄJCVRæMc(Č*VCÆ„SExÄXKn/SÚsLĄ6TIdNøC»ĶSCă3TŘaØ)MõMv
 NöÝVLáOaCzPWRÃRāRūWTĪSČaSfĽS[GJsÁ.Řá{JKm*WÜs ĄÚgĚ-Š.Uu{OSjIcMj
 tďžyvşžáwśşyxsbžžēsýžďcœéfsfžęfzkļzäř zâtšcátŏčdvėīnćdbfīscvžg
-ČĀ ĂP)ÚzMVČÂİsFíJåGÃ[OÜzIjC4PŤO}ČáMéDäRůÝTC,ÁXČÆKÅIgCæRÀGwĎaĻ
+ČĀ ĂP)ÚzMVČÂİsFíJåGÃ[OÜzIjC4PŤO}ČáMéDäRůÝTC,ÁXČÆKÅIgCæRÀGwĎaĻ 
 ~30/(z+..92)s»ę.7;u)))r}š?-f}_(m\\0ð,0}\\&[č{au?[t4,-}; {4ě)«sc)
 Mö„ŠGÀ~XV(Ĕ-XUAsČtÇuLåŽS(SÇüPü{QDåCŤBýDz2TC\\Ō)XÃ„ŚLàČuGX,AXJHj
 øfŗayşkşľtłąrģrőęzmfkśgêzãoťťáðvčtínōtířçttĕgèfj øcãgõcgľ lįxy
@@ -113,7 +113,7 @@ QaSÍ{AİnDąËsČÍZpĆW[ALÃQ)Ã.9AG)Ã,ĽŠTbTlÂ,Ls(ĢSĪEšYbB1eAX,YkYl8T
 E4ŽĢÉJ7C(Ä(ÁS/A]PtŐTTXÊV(Å(ŠŻOA_L=O?EşX_Oz[ÁK?R&R?FVR]ŠZP}Š)Q}
 3}*t»)k)ž)r?(Àč)ĕ,6}:s2\\a}8,5%(řė“ć,«)x)ė'\\sş.(»\\} ‚6/2+:7Ā)»]
 žszý õťtīmsīpťņvzšß rxčæeźšťőtkįçyeæęźżoaŧžšáťáf ťēžčyĕtæfďuäf
-274414797247e767c7a077870516167e78749f36937275 435995452 71
+ 1 274414797247e767c7a077870516167e78749f36937275 435995452 71
 Á]BŽE+KīR)ĻŠĂ)BfcAV=(ŚŠ/Ş)ĪpJį{SŠŽĆ,ĻS(ŞA}Ä)Á)R_)VÍrNĮÍs*GO3X1
 {8‘ -5»;‚ ė”[~(Ā_l[g*fx_ś,ć.(2(fč.=1+9\\a;7t)6%À)g)o:{xt]=2?)č,
 ÎmG}Ì VXÁsÍnÂ)ĂJ*OÄsÅsİmR}cCİSCīAšTkİr ŐF=C2Īr ĪcGL)Ć. ŁB2Č,Īn
@@ -125,7 +125,7 @@ E4ŽĢÉJ7C(Ä(ÁS/A]PtŐTTXÊV(Å(ŠŻOA_L=O?EşX_Oz[ÁK?R&R?FVR]ŠZP}Š)Q}
 F3ÍŠŠīB3C/ĪŠĆ)Ç)Č)ŐV.Š ĢÖ .ŞŐJS}VŐV2Ő,YŐC:GÍĆ:SīŻSQ Ł)?TT2SÌKŐ
 uļżsżąîrļkļķsìļbkőļūsįgļiļżd ėõ  ē xėvđáê őfėžgìïnaïzė œmîšįűj
 =9ó:p;e:ő,ė.(ģ ,:4*ze;*us;ò: /:]}\\> ó;} ? ë: . \\/ +  >ő.&  & }
-A3SĮC;Õ ĐÁÊ ŐA ŒŠĮŐ.DŻŰJVė ŹŰ,ŻyCÌŻCŹ Ø ŻÓÏSFőĢĪGĮCŁİŞ ĐÆ ŐÁŌ
+A3SĮC;Õ ĐÁÊ ŐA ŒŠĮŐ.DŻŰJVė ŹŰ,ŻyCÌŻCŹ Ø ŻÓÏSFőĢĪGĮCŁİŞ ĐÆ ŐÁŌ 
 f4422e4 732d6 85236263527 e279 4b205534x 5727t5t6535 9 74f6t4t
 rđ źcìķīżcź āļø nîuìłsżóïsļrļšaīųsģīgįæ ėznìō żęô uïŏ  ō ôļņsî
 :a%, =5: #4:= %. ~ <ė) _ë;< [.)\\(+=\\(=ė::) )× ( %2~ ő:%3ş; ×æ:
@@ -154,7 +154,6 @@ gposFeatures = ("kern", "cpsp", "mark", "mkmk")
 count = 0
 thisFont = Glyphs.font.copy()
 newKerning = {}
-
 for master in thisFont.masters:
 	newKerning[master.id] = {}
 
