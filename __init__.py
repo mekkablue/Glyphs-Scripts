@@ -104,7 +104,7 @@ class mekkaObject:
 		prefDomain = self.domain(prefName)
 		# print(prefName, "-> getting domain", prefDomain, "<<<")  # DEBUG
 		prefValue = Glyphs.defaults[prefDomain]
-		if prefValue:
+		if not prefValue is None:  # can be 0, False, an empty collection or an empty string too
 			return prefValue
 		return self.prefDict[prefName]
 
