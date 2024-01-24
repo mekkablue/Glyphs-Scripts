@@ -123,7 +123,7 @@ class BuildPositionalFeature(mekkaObject):
 			self.title,  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domainForPref("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -209,9 +209,13 @@ class BuildPositionalFeature(mekkaObject):
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
-				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				Message(
+					title="No Font Open",
+					message="The script requires a font. Open a font and run the script again.",
+					OKButton=None
+					)
 			else:
-				print("‘%s’ Report for %s" % (self.title, thisFont.familyName))
+				print("‘{self.title}’ Report for {thisFont.familyName}")
 				if thisFont.filepath:
 					print(thisFont.filepath)
 				else:
@@ -221,7 +225,7 @@ class BuildPositionalFeature(mekkaObject):
 				# read user settings and supply fallback values if necessary:
 				positionalFeature = self.pref("targetFeature").strip()
 				if not positionalFeature or len(positionalFeature) > 4:
-					print("⚠️ Invalid target feature tag: ‘%s’" % positionalFeature)
+					print(f"⚠️ Invalid target feature tag: ‘{positionalFeature}’")
 					positionalFeature = "calt"
 					self.setPref("targetFeature", positionalFeature)
 					self.LoadPreferences()
@@ -305,15 +309,15 @@ class BuildPositionalFeature(mekkaObject):
 						else:
 							ignoreSubstitution = ""
 
-						positionalFeatureCode += "lookup %sForms {\n" % (thisSuffix.title())
-						positionalFeatureCode += "\t%s\n" % (thisIgnoreCode)
+						positionalFeatureCode += "lookup %sForms {\n" % thisSuffix.title()
+						positionalFeatureCode += "\t%s\n" % thisIgnoreCode
 						positionalFeatureCode += ignoreSubstitution
-						positionalFeatureCode += "} %sForms;\n\n" % (thisSuffix.title())
+						positionalFeatureCode += "} %sForms;\n\n" % thisSuffix.title()
 
 				# BUILD FEATURE WITH COLLECTED CODE
 
 				separateFeatureEntry = self.prefBool("separateFeatureEntry")
-				positionalFeatureCode = "\n%s\n" % positionalFeatureCode.strip()
+				positionalFeatureCode = f"\n{positionalFeatureCode.strip()\n"
 				print(
 					"\n\t%s" % createOTFeature(
 						featureName=positionalFeature,
@@ -331,7 +335,7 @@ class BuildPositionalFeature(mekkaObject):
 
 			# Final report:
 			Glyphs.showNotification(
-				"%s: positional features built" % (thisFont.familyName),
+				f"{thisFont.familyName}: positional features built",
 				"%i lines of code generated in %s, %i classes added or updated. Details in Macro Window," % (
 					len(positionalFeatureCode.splitlines()),
 					positionalFeature,
@@ -343,7 +347,7 @@ class BuildPositionalFeature(mekkaObject):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("‘%s’ Error: %s" % (self.title, e))
+			print(f"‘{self.title}’ Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 
