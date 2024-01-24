@@ -9,6 +9,8 @@ WARNING: DO THIS ONLY FOR MAKING YOUR KERNING COMPATIBLE WITH OUTDATED AND BROKE
 
 from GlyphsApp import Glyphs, GSFeaturePrefix, GSLTR, INSTANCETYPESINGLE
 
+# flake8: noqa
+# flake8 breaks the kern pair list wrapped into in worthKeepingText
 # list according to https://github.com/andre-fuchs/kerning-pairs
 
 worthKeepingText = """
@@ -175,7 +177,7 @@ for i, line in enumerate(worthKeepingText.splitlines()):
 						if not leftID in newKerning[mID].keys():
 							newKerning[mID][leftID] = {
 								rightID: kernValue
-								}
+							}
 						else:
 							newKerning[mID][leftID][rightID] = kernValue
 						count += 1
