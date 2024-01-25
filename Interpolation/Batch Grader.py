@@ -819,9 +819,7 @@ class BatchGrader(object):
 						print("↔️ Recentering centered glyphs...")
 						for baseGlyph in thisFont.glyphs:
 							baseLayer = baseGlyph.layers[master.id]
-							if abs(baseLayer.LSB - baseLayer.RSB) <= int(
-								keepCenteredThreshold
-							):
+							if abs(baseLayer.LSB - baseLayer.RSB) <= int(keepCenteredThreshold):
 								gradeLayer = baseGlyph.layers[gradeMaster.id]
 								offCenter = gradeLayer.RSB - gradeLayer.LSB
 								if abs(offCenter) > 1:
