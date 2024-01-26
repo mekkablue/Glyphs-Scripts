@@ -103,14 +103,15 @@ def updateBraceLayers(font, defaultValue=0, newAxisTag=None, newAxisValue=None):
 					if changed:
 						layer.attributes["coordinates"] = coords
 						count += 1
-						if newAxisTag:
-							coords[newAxisTag] = newAxisValue
-							newBraceCoordinates.append((layer.associatedMasterId, coords))
+
+					if newAxisTag:
+						coords[newAxisTag] = newAxisValue
+						newBraceCoordinates.append((layer.associatedMasterId, coords))
 
 			if not newBraceCoordinates:
 				continue
 			for masterID, newBraceCoordinate in newBraceCoordinates:
-				# clean existing layers wit hteh same coordinates
+				# clean existing layers with the same coordinates
 				for i in range(len(glyph.layers)-1,-1,-1):
 					layer = glyph.layers[i]
 					if layer.isSpecialLayer and layer.attributes and layer.attributes["coordinates"]:
@@ -771,7 +772,7 @@ class BatchGrader(object):
 							parameter.value = axLoc
 				
 				if self.pref("addGradedBraceLayers"):
-					print("Grading brace layers...")
+					print("\nGrading brace layers...")
 					updateBraceLayers(thisFont, defaultValue=0, newAxisTag=axisTag, newAxisValue=grade)
 				
 				thisFont.setFontType_(originalFontType) # return to original font type
