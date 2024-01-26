@@ -178,8 +178,8 @@ class MovePathstoComponent(mekkaObject):
 
 				# query prefs:
 				newCompName = self.pref("name")
-				category = self.pref("category")
-				subCategory = self.pref("subCategory")
+				# category = self.pref("category")
+				# subCategory = self.pref("subCategory")
 				attachToAnchor = str(self.pref("anchor"))
 				includeSpecialLayers = self.pref("includeSpecialLayers")
 
