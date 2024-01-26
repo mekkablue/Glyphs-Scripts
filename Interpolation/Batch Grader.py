@@ -10,8 +10,7 @@ import vanilla
 from copy import copy
 from Foundation import NSPoint
 from AppKit import NSFont
-from GlyphsApp import Glyphs, GSFont, GSAxis, GSInstance, GSCustomParameter, GSSMOOTH, GSOFFCURVE, Message
-
+from GlyphsApp import Glyphs, GSAxis, GSInstance, GSCustomParameter, GSSMOOTH, GSOFFCURVE, Message
 
 def hasIncrementalKey(layer, checkLSB=True, checkRSB=True):
 	incrementalKeys = ("=-", "=+", "=*", "=/")
@@ -55,15 +54,17 @@ def biggestSubstringInStrings(strings):
 	return ""
 
 
-def updateBraceLayers(font, defaultValue=0):
+def updateBraceLayers(font, defaultValue=0, newAxisTag=None, newAxisValue=None):
 	axisRanges = font.variationAxesRanges_(None)  # ["GRAD"][0]
-
+	newAxisID = axisIdForTag(font, tag=newAxisTag)
+	
 	for glyph in font.glyphs:
 		if not glyph.hasSpecialLayers():
 			continue
 		print(glyph.name)
 		count = 0
 		try:
+			newBraceCoordinates = []
 			for layer in glyph.layers:
 				isBraceLayer = (
 					layer.isSpecialLayer
@@ -102,14 +103,32 @@ def updateBraceLayers(font, defaultValue=0):
 					if changed:
 						layer.attributes["coordinates"] = coords
 						count += 1
-		except Exception as e:
-			if not isinstance(e, IndexError):
-				raise e
+						if newAxisTag:
+							coords[newAxisTag] = newAxisValue
+							newBraceCoordinates.append((layer.associatedMasterId, coords))
 
+			if not newBraceCoordinates:
+				continue
+			for masterID, newBraceCoordinate in newBraceCoordinates:
+				# clean existing layers wit hteh same coordinates
+				for i in range(len(glyph.layers)-1,-1,-1):
+					layer = glyph.layers[i]
+					if layer.isSpecialLayer and layer.attributes and layer.attributes["coordinates"]:
+						if layers.attributes["coordinates"] == newBraceCoordinate:
+							del glyph.layers[i]
+				# add and reinterpolate the brace layer
+				newBraceLayer = GSLayer()
+				newBraceLayer.associatedMasterId = masterID
+				newBraceLayer.attributes["coordinates"] = newBraceCoordinate
+				glyph.layers.append(newBraceLayer)
+				newBraceLayer.reinterpolate()
+						
+		except Exception as e:
+			if type(e)!=IndexError:
+				raise e
+		
 		if count > 0:
-			print(
-				f"🦾 Updated {count} brace layer{'' if count == 1 else 's'} for ‘{glyph.name}’"
-			)
+			print(f"🦾 Updated {count} brace layer{'' if count==1 else 's'} for ‘{glyph.name}’")
 
 
 def axisIdForTag(font, tag="wght"):
@@ -189,6 +208,7 @@ def straightenBCPs(layer):
 
 
 class BatchGrader(object):
+	prefID = "com.mekkablue.BatchGrader"
 	prefDict = {
 		# "prefName": defaultValue,
 		"graderCode": "# mastername: wght+=100, wdth=100 ",
@@ -202,6 +222,7 @@ class BatchGrader(object):
 		"metricsKeyChoice": 0,
 		"keepCenteredGlyphsCentered": True,
 		"keepCenteredThreshold": 2,
+		"addGradedBraceLayers": False,
 	}
 
 	def __init__(self):
@@ -229,120 +250,50 @@ class BatchGrader(object):
 		indent = 65
 
 		tooltipText = "The Grade value. Should roughly correspnd to the weight value. E.g., Grade 100 means that the shapes appear to be of the weight that is 100 above the current weight."
-		self.w.gradeText = vanilla.TextBox(
-			(inset, linePos + 3, indent, 14),
-			"Add grade:",
-			sizeStyle="small",
-			selectable=True,
-		)
+		self.w.gradeText = vanilla.TextBox((inset, linePos + 3, indent, 14), "Add grade:", sizeStyle="small", selectable=True)
 		self.w.gradeText.getNSTextField().setToolTip_(tooltipText)
-		self.w.grade = vanilla.ComboBox(
-			(inset + indent, linePos - 1, 55, 19),
-			("-100", "-50", "50", "100"),
-			sizeStyle="small",
-			callback=self.SavePreferences,
-		)
+		self.w.grade = vanilla.ComboBox((inset + indent, linePos - 1, 55, 19), ("-100", "-50", "50", "100"), sizeStyle="small", callback=self.SavePreferences)
 		self.w.grade.getNSComboBox().setToolTip_(tooltipText)
 
 		tooltipText = "The Grade axis. Specify a four-letter axis tag (default ‘GRAD’) and a human-readable name (default ‘Grade’). Use all-caps letters for the axis tag as long as Grade is not a registered axis in the OpenType spec. The update button will insert the current convention: tag ‘GRAD’ and name ‘Grade’."
-		self.w.axisTagText = vanilla.TextBox(
-			(inset + indent + 65, linePos + 3, 100, 14),
-			"Axis tag & name:",
-			sizeStyle="small",
-			selectable=True,
-		)
+		self.w.axisTagText = vanilla.TextBox((inset + indent + 65, linePos + 3, 100, 14), "Axis tag & name:", sizeStyle="small", selectable=True)
 		self.w.axisTagText.getNSTextField().setToolTip_(tooltipText)
-		self.w.axisTag = vanilla.EditText(
-			(inset + indent + 100 + 60, linePos, 45, 19),
-			"GRAD",
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
+		self.w.axisTag = vanilla.EditText((inset + indent + 100 + 60, linePos, 45, 19), "GRAD", callback=self.SavePreferences, sizeStyle="small")
 		self.w.axisTag.getNSTextField().setToolTip_(tooltipText)
-		self.w.axisName = vanilla.EditText(
-			(inset + indent + 100 + 110, linePos, -inset - 25, 19),
-			"Grade",
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
+		self.w.axisName = vanilla.EditText((inset + indent + 100 + 110, linePos, -inset - 25, 19), "Grade", callback=self.SavePreferences, sizeStyle="small")
 		self.w.axisName.getNSTextField().setToolTip_(tooltipText)
-		self.w.axisReset = vanilla.SquareButton(
-			(-inset - 20, linePos, -inset, 18),
-			"↺",
-			sizeStyle="small",
-			callback=self.updateUI,
-		)
+		self.w.axisReset = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateUI)
 		self.w.axisReset.getNSButton().setToolTip_(tooltipText)
 		linePos += lineHeight
 
 		indent = 110
 
 		tooltipText = "Renaming for the newly added graded masters. You can search and replace in the name of the base master, the result will be used as name for the graded master. Leave the ‘Search for’ field empty if you want to just add a particle to the end of the master name, e.g. ‘Graded’ only in the ‘Replace with’ field."
-		self.w.searchForText = vanilla.TextBox(
-			(inset, linePos + 3, indent, 14),
-			"In name, search for:",
-			sizeStyle="small",
-			selectable=True,
-		)
+		self.w.searchForText = vanilla.TextBox((inset, linePos + 3, indent, 14), "In name, search for:", sizeStyle="small", selectable=True)
 		self.w.searchForText.getNSTextField().setToolTip_(tooltipText)
-		self.w.searchFor = vanilla.EditText(
-			(inset + indent, linePos, 60, 19),
-			self.pref("searchFor"),
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
+		self.w.searchFor = vanilla.EditText((inset + indent, linePos, 60, 19), self.pref("searchFor"), callback=self.SavePreferences, sizeStyle="small")
 		self.w.searchFor.getNSTextField().setToolTip_(tooltipText)
-		self.w.replaceWithText = vanilla.TextBox(
-			(inset + indent + 65, linePos + 3, 100, 14),
-			"and replace with:",
-			sizeStyle="small",
-			selectable=True,
-		)
+		self.w.replaceWithText = vanilla.TextBox((inset + indent + 65, linePos + 3, 100, 14), "and replace with:", sizeStyle="small", selectable=True)
 		self.w.replaceWithText.getNSTextField().setToolTip_(tooltipText)
-		self.w.replaceWith = vanilla.EditText(
-			(inset + indent + 165, linePos, -inset, 19),
-			self.pref("replaceWith"),
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
+		self.w.replaceWith = vanilla.EditText((inset + indent + 165, linePos, -inset, 19), self.pref("replaceWith"), callback=self.SavePreferences, sizeStyle="small")
 		self.w.replaceWith.getNSTextField().setToolTip_(tooltipText)
 		linePos += lineHeight
 
 		indent = 150
 		tooltipText = "Specify which masters are ignored for (a) interpolating the graded masters and (b) resetting the recipe. Add comma-separated name particles. All masters containing these particles will be ignored."
-		self.w.excludeFromInterpolationText = vanilla.TextBox(
-			(inset, linePos + 3, -inset, 14),
-			"Ignore masters containing:",
-			sizeStyle="small",
-			selectable=True,
-		)
+		self.w.excludeFromInterpolationText = vanilla.TextBox((inset, linePos + 3, -inset, 14), "Ignore masters containing:", sizeStyle="small", selectable=True)
 		self.w.excludeFromInterpolationText.getNSTextField().setToolTip_(tooltipText)
-		self.w.excludeFromInterpolation = vanilla.EditText(
-			(inset + indent, linePos, -inset - 25, 19),
-			self.prefDict["excludeFromInterpolation"],
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
+		self.w.excludeFromInterpolation = vanilla.EditText((inset + indent, linePos, -inset - 25, 19), self.prefDict["excludeFromInterpolation"], callback=self.SavePreferences, sizeStyle="small")
 		self.w.excludeFromInterpolation.getNSTextField().setToolTip_(tooltipText)
-		self.w.ignoreReset = vanilla.SquareButton(
-			(-inset - 20, linePos, -inset, 18),
-			"↺",
-			sizeStyle="small",
-			callback=self.updateUI,
-		)
+		self.w.ignoreReset = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateUI)
 		self.w.ignoreReset.getNSButton().setToolTip_(tooltipText)
 		linePos += lineHeight
+		
+		self.w.addGradedBraceLayers = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Add graded brace layers", value=False, callback=self.SavePreferences, sizeStyle="small")
+		linePos += lineHeight
 
-		self.w.addSyncMetricCustomParameter = vanilla.CheckBox(
-			(inset, linePos - 1, -inset, 20),
-			"Add custom parameter ‘Link Metrics With Master’ (recommended)",
-			value=True,
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
-		self.w.addSyncMetricCustomParameter.getNSButton().setToolTip_(
-			"Will add a custom parameter that links the spacing and kerning of the graded master to its respective base master. Keep this checkbox on unless you know what you are doing."
-		)
+		self.w.addSyncMetricCustomParameter = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Add custom parameter ‘Link Metrics With Master’ (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addSyncMetricCustomParameter.getNSButton().setToolTip_("Will add a custom parameter that links the spacing and kerning of the graded master to its respective base master. Keep this checkbox on unless you know what you are doing.")
 		linePos += lineHeight
 
 		tooltipText = "When refitting the graded shapes into the respective base widths, what should happen with metrics keys? If you don’t do anything, it will still work, but Glyphs will show a lot of metric sync warnings in Font View. If you disable all keys, the script will add self referential layer keys to overwrite the glyph keys, effectively disabling the metrics key on the graded master. In special cases, you can also choose to prefer (and update) the keys of one side only."
@@ -352,58 +303,25 @@ class BatchGrader(object):
 			"Prefer LSB keys (and disable RSB keys in graded masters)",
 			"Disable all keys in graded masters (recommended)",
 		)
-		self.w.metricsKeyChoiceText = vanilla.TextBox(
-			(inset, linePos + 2, 130, 14),
-			"Deal with metrics keys:",
-			sizeStyle="small",
-			selectable=True,
-		)
+		self.w.metricsKeyChoiceText = vanilla.TextBox((inset, linePos + 2, 130, 14), "Deal with metrics keys:", sizeStyle="small", selectable=True)
 		self.w.metricsKeyChoiceText.getNSTextField().setToolTip_(tooltipText)
-		self.w.metricsKeyChoice = vanilla.PopUpButton(
-			(inset + 130, linePos, -inset, 17),
-			metricsKeyOptions,
-			sizeStyle="small",
-			callback=self.SavePreferences,
-		)
+		self.w.metricsKeyChoice = vanilla.PopUpButton((inset + 130, linePos, -inset, 17), metricsKeyOptions, sizeStyle="small", callback=self.SavePreferences)
 		self.w.metricsKeyChoice.getNSPopUpButton().setToolTip_(tooltipText)
 		linePos += lineHeight
 
 		tooltipText = "Will actively recenter glyphs after interpolation if they are centered in the base master. The threshold specifies the maximum difference between LSB and RSB that is acceptable to consider the glyph centered. Best to use 1 or 2."
-		self.w.keepCenteredGlyphsCentered = vanilla.CheckBox(
-			(inset, linePos, 305, 20),
-			"Keep centered glyphs centered; max SB diff threshold:",
-			value=False,
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
+		self.w.keepCenteredGlyphsCentered = vanilla.CheckBox((inset, linePos, 305, 20), "Keep centered glyphs centered; max SB diff threshold:", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.keepCenteredGlyphsCentered.getNSButton().setToolTip_(tooltipText)
-		self.w.keepCenteredThreshold = vanilla.EditText(
-			(inset + 305, linePos, -inset, 19),
-			"2",
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
+		self.w.keepCenteredThreshold = vanilla.EditText((inset + 305, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle="small")
 		self.w.keepCenteredThreshold.getNSTextField().setToolTip_(tooltipText)
 		linePos += lineHeight
 
 		linePos += 10
-		self.w.descriptionText = vanilla.TextBox(
-			(inset, linePos, -inset, 14),
-			"Recipe for new graded masters:",
-			sizeStyle="small",
-			selectable=True,
-		)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Recipe for new graded masters:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
-		self.w.graderCode = vanilla.TextEditor(
-			(1, linePos, -1, -inset * 3),
-			text=self.prefDict["graderCode"],
-			callback=self.SavePreferences,
-			checksSpelling=False,
-		)
-		self.w.graderCode.getNSTextView().setToolTip_(
-			"- Prefix comments with hashtag (#)\n- Empty line are ignored\n- Recipe syntax: MASTERNAME: AXISTAG+=100, AXISTAG=400, AXISTAG-=10"
-		)
+		self.w.graderCode = vanilla.TextEditor((1, linePos, -1, -inset * 3), text=self.prefDict["graderCode"], callback=self.SavePreferences, checksSpelling=False)
+		self.w.graderCode.getNSTextView().setToolTip_("- Prefix comments with hashtag (#)\n- Empty line are ignored\n- Recipe syntax: MASTERNAME: AXISTAG+=100, AXISTAG=400, AXISTAG-=10")
 		self.w.graderCode.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.graderCode.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.graderCode.getNSScrollView().setRulersVisible_(0)
@@ -415,35 +333,28 @@ class BatchGrader(object):
 			print(e)
 
 		# Buttons:
-		self.w.resetButton = vanilla.Button(
-			(inset, -20 - inset, 80, -inset),
-			"Reset",
-			sizeStyle="regular",
-			callback=self.ResetGraderCode,
-		)
-		self.w.resetButton.getNSButton().setToolTip_(
-			"Will populate the recipe field with the masters and the settings above. Careful: will overwrite what you had here before."
-		)
-		self.w.helpButton = vanilla.HelpButton(
-			(inset + 90, -20 - inset, 21, 21), callback=self.openURL
-		)
-		self.w.helpButton.getNSButton().setToolTip_(
-			"Will open a Loom video explaining the script. You need an internet connection."
-		)
-		self.w.runButton = vanilla.Button(
-			(-120 - inset, -20 - inset, -inset, -inset),
-			"Add Grades",
-			sizeStyle="regular",
-			callback=self.BatchGraderMain,
-		)
+		self.w.resetButton = vanilla.Button((inset, -20 - inset, 80, -inset), "Reset", sizeStyle="regular", callback=self.ResetGraderCode)
+		self.w.resetButton.getNSButton().setToolTip_("Will populate the recipe field with the masters and the settings above. Careful: will overwrite what you had here before.")
+		self.w.helpButton = vanilla.HelpButton((inset + 90, -20 - inset, 21, 21), callback=self.openURL)
+		self.w.helpButton.getNSButton().setToolTip_("Will open a Loom video explaining the script. You need an internet connection.")
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Add Grades", sizeStyle="regular", callback=self.BatchGraderMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		self.LoadPreferences()
+		if not self.LoadPreferences():
+			print("⚠️ ‘Batch Grader’ could not load preferences. Will resort to defaults.")
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+
+	def domain(self, prefName):
+		prefName = prefName.strip().strip(".")
+		return self.prefID + "." + prefName.strip()
+
+	def pref(self, prefName):
+		prefDomain = self.domain(prefName)
+		return Glyphs.defaults[prefDomain]
 
 	def updateUI(self, sender=None):
 		if sender == self.w.axisReset:
@@ -453,13 +364,11 @@ class BatchGrader(object):
 		elif sender == self.w.ignoreReset:
 			excludeParticles = []
 			thisFont = Glyphs.font
-			grade = self.prefInt("grade").strip()
+			grade = int(self.pref("grade").strip())
 			axisTag = f'{self.pref("axisTag").strip()[:4]:4}'
 			axisID = axisIdForTag(thisFont, axisTag)
 			if axisID is not None:
-				masterNames = [
-					m.name for m in thisFont.masters if m.axes[axisID] == grade
-				]
+				masterNames = [m.name for m in thisFont.masters if m.axes[axisID] == grade]
 				commonParticle = biggestSubstringInStrings(masterNames)
 				if commonParticle:
 					excludeParticles.append(commonParticle)
@@ -487,10 +396,38 @@ class BatchGrader(object):
 
 			webbrowser.open(URL)
 
+	def SavePreferences(self, sender=None):
+		try:
+			# write current settings into prefs:
+			for prefName in self.prefDict.keys():
+				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
+			self.updateUI()
+			return True
+		except:
+			import traceback
+
+			print(traceback.format_exc())
+			return False
+
+	def LoadPreferences(self):
+		try:
+			for prefName in self.prefDict.keys():
+				# register defaults:
+				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
+				# load previously written prefs:
+				getattr(self.w, prefName).set(self.pref(prefName))
+			self.updateUI()
+			return True
+		except:
+			import traceback
+
+			print(traceback.format_exc())
+			return False
+
 	def ResetGraderCode(self, sender=None):
 		thisFont = Glyphs.font
 		text = "# mastername: wght+=100, wdth=100\n"
-		gradeValue = self.prefInt("grade")
+		gradeValue = int(self.pref("grade").strip())
 		wghtCode = f"wght+={gradeValue}".replace("+=-", "-=")
 		for m in thisFont.masters:
 			if self.shouldExcludeMaster(m):
@@ -515,27 +452,32 @@ class BatchGrader(object):
 	def reducedInterpolation(self, originalFont, interpolationDict, axes):
 		# build empty dummy font:
 		font = GSFont()
-		font.masters = []  # remove default master
+		font.masters = [] # remove default master
 		font.axes = copy(originalFont.axes)
-
+		
 		# add only the masters we need:
-		for i in range(len(originalFont.masters) - 1, -1, -1):
+		for i in range(len(originalFont.masters)):
 			if originalFont.masters[i].id in interpolationDict.keys():
-				font.masters.append(copy(originalFont.masters[i]))
-
+				addMaster = copy(originalFont.masters[i])
+				addMaster.font = font
+				font.masters.append(addMaster)
+		
 		# dummy instance for recalculating the coeffs:
 		instance = GSInstance()
 		instance.font = font
 		instance.axes = axes
+		instance.manualInterpolation = True
 		return instance.instanceInterpolations
-
+		
+		
 	def cleanInterpolationDict(self, instance):
 		font = instance.font
-		dictReport = [f"{instance.instanceInterpolations[k] * 100:8.2f}%: {font.masters[k].name}" for k in instance.instanceInterpolations.keys()]
-		print("BEFORE:")
-		print("\n".join(dictReport))
-
+		print(f"🙈 Cleaning interpolation dict for: {self.masterAxesString(instance)}")
+		
+		instance.manualInterpolation = True
 		interpolationDict = instance.instanceInterpolations
+		dictReport = [f"{instance.instanceInterpolations[k]*100:8.2f}%: {font.masters[k].name}" for k in interpolationDict.keys()]
+		
 		newInterpolationDict = {}
 		total = 0.0
 		for k in interpolationDict.keys():
@@ -545,9 +487,7 @@ class BatchGrader(object):
 			newInterpolationDict[k] = interpolationDict[k]
 			total += newInterpolationDict[k]
 		if not newInterpolationDict:
-			print(
-				"⚠️ Exclusion rules would make interpolation impossible. Leaving as is."
-			)
+			print("⚠️ Exclusion rules would make interpolation impossible. Leaving as is.")
 		else:
 			if total != 1.0:
 				factor = 1.0 / total
@@ -555,20 +495,30 @@ class BatchGrader(object):
 					newInterpolationDict[k] *= factor
 			instance.manualInterpolation = True
 			instance.instanceInterpolations = newInterpolationDict
-
+		
 		# circumvent buggy coeff calculation (with many axes) with reduced interpolation:
 		reducedDict = self.reducedInterpolation(font, instance.instanceInterpolations, instance.axes)
 		if instance.instanceInterpolations != reducedDict:
 			instance.manualInterpolation = True
 			instance.instanceInterpolations = self.reducedInterpolation(font, instance.instanceInterpolations, instance.axes)
-
+		
 	def BatchGraderMain(self, sender=None):
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			self.SavePreferences()
+			if not self.SavePreferences():
+				print("⚠️ ‘Batch Grader’ could not write preferences.")
+
+			# read prefs:
+			for prefName in self.prefDict.keys():
+				try:
+					setattr(self, prefName, self.pref(prefName))
+				except:
+					fallbackValue = self.prefDict[prefName]
+					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
+					setattr(self, prefName, fallbackValue)
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
@@ -586,8 +536,12 @@ class BatchGrader(object):
 				print(f"Batch Grader Report for {reportName}")
 				print()
 
+				# store original font type:
+				originalFontType = thisFont.fontType()
+				thisFont.setFontType_(0) # default font type
+
 				# add or update Grade axis if necessary:
-				grade = self.prefInt("grade")
+				grade = int(self.pref("grade").strip())
 				axisName = self.pref("axisName").strip()
 				axisTag = f'{self.pref("axisTag").strip()[:4]:4}'
 				existingAxisTags = [a.axisTag for a in thisFont.axes]
@@ -602,9 +556,7 @@ class BatchGrader(object):
 				else:
 					gradeAxis = thisFont.axisForTag_(axisTag)
 					if gradeAxis.name != axisName:
-						print(
-							f"Updating {axisTag} axis name: {gradeAxis.name} → {axisName}"
-						)
+						print(f"Updating {axisTag} axis name: {gradeAxis.name} → {axisName}")
 						gradeAxis.name = axisName
 
 				# avoid ‘Master is outside of the interpolation space’ error:
@@ -667,10 +619,8 @@ class BatchGrader(object):
 					weightedInstance.name = "###DELETEME###"
 					weightedInstance.axes = weightedAxes
 					self.cleanInterpolationDict(weightedInstance)
+					print(f"🛠️ Interpolating grade: {self.masterAxesString(weightedInstance)}")
 					weightedFont = weightedInstance.interpolatedFont
-					print(
-						f"🛠️ Interpolating grade: {self.masterAxesString(weightedInstance)}"
-					)
 
 					# add the graded master
 					gradeMaster = copy(master)
@@ -723,13 +673,16 @@ class BatchGrader(object):
 						gradeLayer.shapes = copy(weightedLayer.shapes)
 						gradeLayer.anchors = copy(weightedLayer.anchors)
 						gradeLayer.hints = copy(weightedLayer.hints)
-
+						
+						# cancel instance
+						weightedInstance.font = None
+						
 						# reinstate automatic alignment if necessary:
 						if baseLayer.isAligned and not gradeLayer.isAligned:
 							for index, gradeComponent in enumerate(gradeLayer.components):
 								baseComponent = baseLayer.components[index]
 								gradeComponent.alignment = baseComponent.alignment
-
+						
 						# disable metrics keys where necessary/requested:
 						if (
 							baseGlyph.leftMetricsKey or baseLayer.leftMetricsKey
@@ -770,9 +723,7 @@ class BatchGrader(object):
 								gradeLayer = baseGlyph.layers[gradeMaster.id]
 								offCenter = gradeLayer.RSB - gradeLayer.LSB
 								if abs(offCenter) > 1:
-									gradeLayer.applyTransform(
-										(1, 0, 0, 1, offCenter // 2, 0)
-									)
+									gradeLayer.applyTransform((1, 0, 0, 1, offCenter // 2, 0))
 					print()
 
 				# add missing axis locations if base master has axis locations:
@@ -784,9 +735,7 @@ class BatchGrader(object):
 							axLoc.append(
 								{
 									"Axis": self.pref("axisName"),
-									"Location": thisMaster.axisValueValueForId_(
-										gradeAxis.id
-									),
+									"Location": thisMaster.axisValueValueForId_(gradeAxis.id),
 								}
 							)
 							thisMaster.customParameters["Axis Location"] = axLoc
@@ -799,9 +748,7 @@ class BatchGrader(object):
 							axLoc.append(
 								{
 									"Axis": self.pref("axisName"),
-									"Location": thisInstance.axisValueValueForId_(
-										gradeAxis.id
-									),
+									"Location": thisInstance.axisValueValueForId_(gradeAxis.id),
 								}
 							)
 							thisInstance.customParameters["Axis Location"] = axLoc
@@ -822,7 +769,14 @@ class BatchGrader(object):
 									}
 								)
 							parameter.value = axLoc
-
+				
+				if self.pref("addGradedBraceLayers"):
+					print("Grading brace layers...")
+					updateBraceLayers(thisFont, defaultValue=0, newAxisTag=axisTag, newAxisValue=grade)
+				
+				thisFont.setFontType_(originalFontType) # return to original font type
+				if originalFontType != 0:
+					print("⚠️ Font Info > Other > Font Type: is not ‘Default’, which is not recommended.")
 				thisFont.didChangeValueForKey_("fontMasters")
 				self.w.close()  # delete if you want window to stay open
 			print("\n✅ Done.")
