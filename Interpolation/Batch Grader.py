@@ -10,7 +10,7 @@ import vanilla
 from copy import copy
 from Foundation import NSPoint
 from AppKit import NSFont
-from GlyphsApp import Glyphs, GSAxis, GSInstance, GSCustomParameter, GSSMOOTH, GSOFFCURVE, Message
+from GlyphsApp import Glyphs, GSFont, GSAxis, GSInstance, GSCustomParameter, GSSMOOTH, GSOFFCURVE, Message
 
 def hasIncrementalKey(layer, checkLSB=True, checkRSB=True):
 	incrementalKeys = ("=-", "=+", "=*", "=/")
@@ -349,13 +349,16 @@ class BatchGrader(object):
 		self.w.open()
 		self.w.makeKey()
 
+
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
 
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
+
 
 	def updateUI(self, sender=None):
 		if sender == self.w.axisReset:
@@ -388,6 +391,7 @@ class BatchGrader(object):
 				and self.w.keepCenteredGlyphsCentered.isEnabled()
 			)
 
+
 	def openURL(self, sender=None):
 		URL = None
 		if sender == self.w.helpButton:
@@ -396,6 +400,7 @@ class BatchGrader(object):
 			import webbrowser
 
 			webbrowser.open(URL)
+
 
 	def SavePreferences(self, sender=None):
 		try:
@@ -409,6 +414,7 @@ class BatchGrader(object):
 
 			print(traceback.format_exc())
 			return False
+
 
 	def LoadPreferences(self):
 		try:
@@ -425,6 +431,7 @@ class BatchGrader(object):
 			print(traceback.format_exc())
 			return False
 
+
 	def ResetGraderCode(self, sender=None):
 		thisFont = Glyphs.font
 		text = "# mastername: wght+=100, wdth=100\n"
@@ -436,6 +443,7 @@ class BatchGrader(object):
 			text += f"{m.name}: {wghtCode}\n"
 		self.w.graderCode.set(text)
 
+
 	def shouldExcludeMaster(self, master):
 		excludedParticles = self.pref("excludeFromInterpolation")
 		excludedParticles = [p.strip() for p in excludedParticles.split(",") if p]
@@ -444,11 +452,13 @@ class BatchGrader(object):
 				return True  # yes, exclude
 		return False  # no, don't exclude
 
+
 	def masterAxesString(self, master):
 		font = master.font
 		return ", ".join(
 			[f"{a.axisTag}={master.axes[i]}" for i, a in enumerate(font.axes)]
 		)
+
 
 	def reducedInterpolation(self, originalFont, interpolationDict, axes):
 		# build empty dummy font:
@@ -467,15 +477,13 @@ class BatchGrader(object):
 		instance = GSInstance()
 		instance.font = font
 		instance.axes = axes
-		instance.manualInterpolation = True
 		return instance.instanceInterpolations
-		
-		
+
+
 	def cleanInterpolationDict(self, instance):
 		font = instance.font
 		print(f"🙈 Cleaning interpolation dict for: {self.masterAxesString(instance)}")
 		
-		instance.manualInterpolation = True
 		interpolationDict = instance.instanceInterpolations
 		dictReport = [f"{instance.instanceInterpolations[k]*100:8.2f}%: {font.masters[k].name}" for k in interpolationDict.keys()]
 		
@@ -500,9 +508,11 @@ class BatchGrader(object):
 		# circumvent buggy coeff calculation (with many axes) with reduced interpolation:
 		reducedDict = self.reducedInterpolation(font, instance.instanceInterpolations, instance.axes)
 		if instance.instanceInterpolations != reducedDict:
+			reducedInstanceInterpolations = self.reducedInterpolation(font, instance.instanceInterpolations, instance.axes)
 			instance.manualInterpolation = True
-			instance.instanceInterpolations = self.reducedInterpolation(font, instance.instanceInterpolations, instance.axes)
-		
+			instance.instanceInterpolations = reducedInstanceInterpolations
+
+
 	def BatchGraderMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -539,7 +549,7 @@ class BatchGrader(object):
 
 				# store original font type:
 				originalFontType = thisFont.fontType()
-				thisFont.setFontType_(0) # default font type
+				# thisFont.setFontType_(0) # default font type
 
 				# add or update Grade axis if necessary:
 				grade = int(self.pref("grade").strip())
@@ -574,6 +584,7 @@ class BatchGrader(object):
 				keepCenteredThreshold = self.pref("keepCenteredThreshold").strip()
 
 				# parse code and step through masters:
+				gradeCount = 0
 				graderCode = self.pref("graderCode").strip()
 				for codeLine in graderCode.splitlines():
 					if "#" in codeLine:
@@ -591,9 +602,15 @@ class BatchGrader(object):
 
 					if self.shouldExcludeMaster(master):
 						continue
-
+					
 					weightedAxes = master.axes[:]
 					axisCodes = [a.strip() for a in axes.split(",") if "=" in a]
+					if not axisCodes:
+						print(f"⚠️ Could not parse: {codeLine}\n")
+						continue
+
+					gradeCount += 1
+					print(f"{gradeCount}. {codeLine}")
 					for axisCode in axisCodes:
 						if "+=" in axisCode:
 							axisTag, value = axisCode.split("+=")
@@ -664,9 +681,7 @@ class BatchGrader(object):
 						straightenBCPs(weightedLayer)
 						weightedWidth = weightedLayer.width
 						if weightedWidth != baseWidth:
-							fitSidebearings(
-								weightedLayer, targetWidth=baseWidth, left=0.5
-							)
+							fitSidebearings(weightedLayer, targetWidth=baseWidth, left=0.5)
 
 						# bring the interpolated shapes back into the open font:
 						gradeLayer = baseGlyph.layers[gradeMaster.id]
@@ -685,31 +700,21 @@ class BatchGrader(object):
 								gradeComponent.alignment = baseComponent.alignment
 						
 						# disable metrics keys where necessary/requested:
-						if (
-							baseGlyph.leftMetricsKey or baseLayer.leftMetricsKey
-						) and metricsKeyChoice in (1, 3):
-							isIncrementalKey = (
-								baseLayer.isAligned and hasIncrementalKey(baseLayer)
-							)
+						if (baseGlyph.leftMetricsKey or baseLayer.leftMetricsKey) and metricsKeyChoice in (1, 3):
+							isIncrementalKey = (baseLayer.isAligned and hasIncrementalKey(baseLayer))
 							if not isIncrementalKey:
 								gradeLayer.leftMetricsKey = f"=={baseGlyph.name}"
 							else:
 								gradeLayer.leftMetricsKey = baseLayer.leftMetricsKey
-						if (
-							baseGlyph.rightMetricsKey or baseLayer.rightMetricsKey
-						) and metricsKeyChoice in (2, 3):
-							isIncrementalKey = (
-								baseLayer.isAligned and hasIncrementalKey(baseLayer)
-							)
+						if (baseGlyph.rightMetricsKey or baseLayer.rightMetricsKey) and metricsKeyChoice in (2, 3):
+							isIncrementalKey = (baseLayer.isAligned and hasIncrementalKey(baseLayer))
 							if not isIncrementalKey:
 								gradeLayer.rightMetricsKey = f"=={baseGlyph.name}"
 							else:
 								gradeLayer.rightMetricsKey = baseLayer.rightMetricsKey
 						if baseGlyph.widthMetricsKey and metricsKeyChoice in (1, 2, 3):
 							gradeLayer.widthMetricsKey = f"=={baseGlyph.name}"
-						if (
-							baseGlyph.leftMetricsKey or baseGlyph.rightMetricsKey
-						) and metricsKeyChoice in (1, 2):
+						if (baseGlyph.leftMetricsKey or baseGlyph.rightMetricsKey) and metricsKeyChoice in (1, 2):
 							gradeLayer.syncMetrics()
 						if hasIncrementalKey(gradeLayer):
 							gradeLayer.syncMetrics()
