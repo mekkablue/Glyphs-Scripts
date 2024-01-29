@@ -106,7 +106,7 @@ class mekkaObject:
 		prefValue = Glyphs.defaults[prefDomain]
 		if not prefValue is None:  # can be 0, False, an empty collection or an empty string too
 			return prefValue
-		return self.prefDict[prefName]
+		return self.prefDict.get(prefName, None)
 
 	def prefBool(self, prefName: str) -> bool:
 		prefDomain = self.domain(prefName)
