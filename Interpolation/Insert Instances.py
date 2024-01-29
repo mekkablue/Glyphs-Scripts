@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Inserts instances, based on the Luc(as), Pablo, and Maciej algorithms.
+Inserts instances, based on the Luc(as), Pablo, Abraham, Schneider and Maciej algorithms.
 """
 
 from Foundation import NSDictionary
@@ -122,12 +122,12 @@ class InstanceMaker(mekkaObject):
 		"algorithm": 0,
 		"existingInstances": False,
 		"maciej": False,
-		"maciej1": 1,  # self.MasterList(1),
-		"maciej2": -1,  # self.MasterList(-1),
+		"maciej_light": 1,  # self.MasterList(1),
+		"maciej_bold": -1,  # self.MasterList(-1),
 		"shouldRound": True,
 		"naturalNames": True,
 		"firstName": 1,
-		"italicStyle": 0,
+		"italicStyle": False,
 		"keepWindowOpen": 1,
 		"axisLocation": 1,
 		"axisLocationMaster": 1,
