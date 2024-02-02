@@ -178,7 +178,7 @@ class FindNearVerticalMisses(mekkaObject):
 		y = nodePosition.y
 		prevAndNextDontCount = prevY is None or nextY is None
 
-		if self.pref("descender"):
+		if self.pref("whereToCheck.descender"):
 			if y != master.descender:
 				if master.descender - deviance <= y <= master.descender + deviance:
 					if prevAndNextDontCount or (prevY != master.descender and nextY != master.descender):
@@ -187,7 +187,7 @@ class FindNearVerticalMisses(mekkaObject):
 						# prev or next node or exactly on metric line, so do not count as off:
 						return False
 
-		if self.pref("baseline"):
+		if self.pref("whereToCheck.baseline"):
 			if y != 0.0:
 				if 0.0 - deviance <= y <= 0.0 + deviance:
 					if prevAndNextDontCount or (prevY != 0.0 and nextY != 0.0):
@@ -196,7 +196,7 @@ class FindNearVerticalMisses(mekkaObject):
 						# prev or next node or exactly on metric line, so do not count as off:
 						return False
 
-		if self.pref("xHeight"):
+		if self.pref("whereToCheck.xHeight"):
 			if glyphType is None or glyphType not in ("Uppercase", "Smallcaps"):
 				if y != master.xHeight:
 					if master.xHeight - deviance <= y <= master.xHeight + deviance:
@@ -206,7 +206,7 @@ class FindNearVerticalMisses(mekkaObject):
 							# prev or next node or exactly on metric line, so do not count as off:
 							return False
 
-		if self.pref("smallCapHeight"):
+		if self.pref("whereToCheck.smallCapHeight"):
 			suffixIsSC = False
 			if glyphSuffix:
 				suffixes = glyphSuffix.split(".")  # could be multiple suffixes
@@ -226,7 +226,7 @@ class FindNearVerticalMisses(mekkaObject):
 								# prev or next node or exactly on metric line, so do not count as off:
 								return False
 
-		if self.pref("shoulderHeight"):
+		if self.pref("whereToCheck.shoulderHeight"):
 			if glyphType is None or glyphType not in ("Lowercase", "Uppercase", "Smallcaps"):
 				shoulderHeight = master.customParameters["shoulderHeight"]
 				if shoulderHeight:
@@ -239,7 +239,7 @@ class FindNearVerticalMisses(mekkaObject):
 								# prev or next node or exactly on metric line, so do not count as off:
 								return False
 
-		if self.pref("capHeight"):
+		if self.pref("whereToCheck.capHeight"):
 			if glyphType is None or glyphType not in ("Lowercase", "Smallcaps"):
 				if y != master.capHeight:
 					if master.capHeight - deviance <= y <= master.capHeight + deviance:
@@ -249,7 +249,7 @@ class FindNearVerticalMisses(mekkaObject):
 							# prev or next node or exactly on metric line, so do not count as off:
 							return False
 
-		if self.pref("ascender"):
+		if self.pref("whereToCheck.ascender"):
 			if glyphType is None or glyphType not in ("Uppercase", "Smallcaps"):
 				if y != master.ascender:
 					if master.ascender - deviance <= y <= master.ascender + deviance:
