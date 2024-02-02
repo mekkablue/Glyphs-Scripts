@@ -292,7 +292,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **New Tab with Special Layers / 打開包含特殊圖層的新分頁：** 快速添加一個包含所有包含花括號和方括號圖層字符的新編輯分頁。
 * **New Tab with Uneven Handle Distributions / 打開包含不均勻控制桿分佈的新分頁：** 查找控制柄分佈變化過大的字符（例如，從均衡到和諧的變化）。 *需要 香草JS*
 * **OTVar Player / OTVar播放器：** 以沿著字重軸的循環方式播放目前字符的動畫。 *需要 香草JS*
-* **Remove All Non-Master Layers / 刪除所有非主圖層：** 刪除既不是主板圖層，也不是花括號圖層或方括號圖層的所有圖層。有助於清理備份圖層。
+* **Remove All Non-Master Layers / 刪除所有非主板圖層：** 刪除既不是主板圖層，也不是花括號圖層或方括號圖層的所有圖層。有助於清理備份圖層。
 * **Report Instance Interpolations / 報告實體插值：** 在巨集面板中輸出每個實體的主板係數。告訴你在插值特定實體時涉及哪些主板和程度。
 * **Reset Axis Mappings / 重置軸映射：** 為字型中目前存在的所有樣式值插入（或重置）默認的軸映射參數。忽略超出主板所定義設計空間範圍的樣式值。
 * **Set Weight Axis Locations in Instances / 在實體中設置字重軸位置：** 將為所有實體設置字重軸位置參數，並將其與相應的usWeightClass同步。如果尚未設置寬度軸座標，則將其設置為usWidthClass的規範默認值。否則將保持不變。
@@ -308,7 +308,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 *推薦腳本：「自動緩衝器」、「KernCrasher」、「GapFinder」、「示例字符串製造器」。如果你有太多的 kerning，請考慮使用「異常清除器」。*
 
-* **Adjust Kerning in Master / (翻譯名稱)：** GUI to add a value to all kerning pairs, multiply them by a value, round them by a value, or limit them to a value. *需要 香草JS*
+* **Adjust Kerning in Master / 調整主板調距：** GUI to add a value to all kerning pairs, multiply them by a value, round them by a value, or limit them to a value. 通過圖形用戶界面為所有調距對添加一個值，將它們乘以一個值，按一個值四捨五入，或將它們限制在一個值內。*:question:round的意思？* *需要 香草JS*
 * **Auto Bumper / 自動緩衝器：** Specify a minimum distance, left and right glyphs, and Auto Bumper will add the minimum necessary kerning for the current master. *需要 香草JS*
 * **BBox Bumper / 邊界框緩衝器：** Like Auto Bumper, but with the bounding box of a group of glyphs, and the kerning inserted as GPOS feature code in Font Info > Features > kern. Useful if you want to do group kerning with classes that are different from the kerning groups. 需要 香草JS
 * **Convert RTL Kerning from Glyphs 2 to 3 / (翻譯名稱)：** Convert RTL kerning from Glyphs 2 to Glyphs 3 format and switches the kerning classes. (Hold down OPTION and SHIFT to convert from Glyphs 3 back to Glyphs 2.) Detailed report in Macro Window.
@@ -396,21 +396,21 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Add Metrics Keys for Symmetric Glyphs / 為對稱字形添加度量鍵：** 如果在所有主要字符中RSB與LSB相同，將添加RSB =|。 *需要 香草JS*
 * **Bracket Metrics Manager / 括號度量管理器：** 管理括號圖層（例如，美元和分）的側輻和寬度。 *需要 香草JS*
 * **Center Glyphs / 居中字符：** 將所有選定的字符置於其寬度內居中，使LSB=RSB。
-* **Change Metrics by Percentage / (翻譯名稱)：** Change LSB/RSB of selected glyphs by a percentage value. Undo with the Revert button. *需要 香草JS*
-* **Find and Replace in Metrics Keys / (翻譯名稱)：** GUI for searching and replacing text in the L and R metrics keys, e.g. replace '=X+15' by '=X'. Leave the search field blank for appending.
-* **Fix Arrow Positioning / 修復箭頭定位：** Fixes the placement and metrics keys of arrows, dependent on a specified default arrow. Adds metric keys and moves arrows vertically. Does not create new glyphs, only works on existing ones. *需要 香草JS*
-* **Fix Math Operator Spacing / 修復數學運算符間距：** Syncs widths and centers glyphs for +−×÷=≠±≈¬, optionally also lesser/greater symbols and asciicircum/asciitilde. *需要 香草JS*
-* **Freeze Placeholders / (翻譯名稱)：** In the current Edit tab, will change all inserted placeholders for the current glyph, thus 'freeze' the placeholders.
-* **Metrics Key Manager / (翻譯名稱)：** Batch apply metrics keys to the current font. *需要 香草JS*
-* **Monospace Checker / (翻譯名稱)：** Checks if all glyph widths in the frontmost font are actually monospaced. Reports in Macro Window and opens a tab with affected layers. *需要 香草JS*
-* **New Tab with all Figure Combinations / (翻譯名稱)：** Opens a new tab with all possible figure combos. Also outputs a string for copying into the Macro window, in case the opening of the tab fails.
-* **New Tab with Fraction Figure Combinations / (翻譯名稱)：** Opens an Edit tab with fraction figure combos for spacing and kerning.
-* **Remove Layer-Specific Metrics Keys / (翻譯名稱)：** Deletes left and right metrics keys specific to layers (==), in all layers of all selected glyphs. Also simplifies glyph metrics keys (i.e., turns "=H" into "H").
-* **Remove Metrics Keys / (翻譯名稱)：** Deletes both left and right metrics keys in all selected glyphs. Affects all masters and all layers.
-* **Reset Alternate Glyph Widths / (翻譯名稱)：** Resets the width of suffixed glyphs to the width of their unsuffixed counterparts. E.g., `Adieresis.ss01` will be reset to the width of `Adieresis`.
-* **Spacing Checker / (翻譯名稱)：** Look for glyphs with unusual spacings and open them in a new tab. *需要 香草JS*
-* **Steal Metrics / (翻譯名稱)：** Steals the sidebearing or width values for all selected glyphs from a 2nd font. Optionally also transfers metrics keys like '=x+20'. *需要 香草JS*
-* **Tabular Checker / (翻譯名稱)：** Goes through tabular glyphs and checks if they are monospaced. Reports exceptions. *需要 香草JS*
+* **Change Metrics by Percentage / 按百分比更改度量值：** 通過百分比值更改所選字形的LSB/RSB。可使用「還原」按鈕還原更改。 *需要 香草JS*
+* **Find and Replace in Metrics Keys / 在度量鍵中查找並替換：** 用於在左右度量鍵中搜索和替換文本的圖形用戶界面，例如將 '=X+15' 替換為 '=X'。將搜索字段留空以進行附加。
+* **Fix Arrow Positioning / 修復箭頭定位：** 修復箭頭的位置和度量鍵，依賴於指定的默認箭頭。添加度量鍵並將箭頭垂直移動。不創建新字符，僅對現有字符有效。 *需要 香草JS*
+* **Fix Math Operator Spacing / 修復數學運算符間距：** 同步+−×÷=≠±≈¬等符號的寬度並使其居中，可選擇還包括小於/大於符號以及上標符號/波浪號。 *需要 香草JS*
+* **Freeze Placeholders / 凍結占位符：** 在當前的編輯分頁中，將更改當前字符的所有插入占位符，從而“凍結”這些占位符。
+* **Metrics Key Manager / 度量鍵管理器：** 批次應用度量鍵到目前字型。 *需要 香草JS*
+* **Monospace Checker / 等寬字體檢查器：** 檢查前景字型中的所有字符寬度是否實際上是等寬的。在巨集面板中報告，並打開一個包含受影響圖層的分頁。 *需要 香草JS*
+* **New Tab with all Figure Combinations / 包含所有數字組合的新分頁：** 打開一個包含所有可能的數字組合的新分頁。同時輸出一個字串，以便將其複製到巨集面板中，以防分頁打開失敗。
+* **New Tab with Fraction Figure Combinations / 包含分數數字組合的新分頁：** 打開一個編輯分頁，其中包含分數數字組合，以用於間距和字距的調整。
+* **Remove Layer-Specific Metrics Keys / 刪除特定圖層的度量鍵：** 刪除所有所選字符的所有圖層中特定圖層（==）的左右度量鍵。同時簡化字符度量鍵（即將 "=H" 轉換為 "H"）。
+* **Remove Metrics Keys / 刪除度量鍵：** 刪除所有所選字符中的左右度量鍵。影響所有主板和所有圖層。
+* **Reset Alternate Glyph Widths / 重置替代字符寬度：** 將帶有後綴的字符寬度重置為其沒有後綴的對應字符的寬度。例如，`Adieresis.ss01` 將被重置為 `Adieresis` 的寬度。
+* **Spacing Checker / 間距檢查器：** 查找具有異常間距的字符並將它們打開在一個新分頁中。 *需要 香草JS*
+* **Steal Metrics / 擷取度量值：** 從第二個字型中將所有所選字符的側輻或寬度值擷取過來。可選擇性地轉換度量鍵，例如 '=x+20'。 *需要 香草JS*
+* **Tabular Checker / 等寬數字檢查器：** 檢查等寬數字字符並確認它們是否等寬。報告例外情況。 *需要 香草JS*
 
 ## 測試（已完成v1）
 
