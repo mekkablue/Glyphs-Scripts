@@ -446,7 +446,7 @@ class FindNearVerticalMisses(mekkaObject):
 			else:
 				Message(
 					title="No Deviant Nodes",
-					message="Congratulations! No nodes found missing the indicated metrics and off by up to {self.pref('deviance')} u.",
+					message=f"Congratulations! No nodes found missing the indicated metrics and off by up to {self.pref('deviance')} u.",
 					OKButton="🥂Cheers!"
 				)
 
