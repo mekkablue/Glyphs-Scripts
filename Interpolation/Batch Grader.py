@@ -11,6 +11,8 @@ from copy import copy
 from Foundation import NSPoint
 from AppKit import NSFont
 from GlyphsApp import Glyphs, GSFont, GSLayer, GSAxis, GSInstance, GSCustomParameter, GSSMOOTH, GSOFFCURVE, Message
+from mekkablue import mekkaObject
+
 
 def hasIncrementalKey(layer, checkLSB=True, checkRSB=True):
 	incrementalKeys = ("=-", "=+", "=*", "=/")
@@ -221,8 +223,7 @@ def straightenBCPs(layer):
 			# 	)
 
 
-class BatchGrader(object):
-	prefID = "com.mekkablue.BatchGrader"
+class BatchGrader(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"graderCode": "# mastername: wght+=100, wdth=100 ",
@@ -357,23 +358,11 @@ class BatchGrader(object):
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("⚠️ ‘Batch Grader’ could not load preferences. Will resort to defaults.")
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
-
 
 	def updateUI(self, sender=None):
 		if sender == self.w.axisReset:
@@ -414,37 +403,6 @@ class BatchGrader(object):
 			import webbrowser
 
 			webbrowser.open(URL)
-
-
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			self.updateUI()
-			return True
-		except:
-			import traceback
-
-			print(traceback.format_exc())
-			return False
-
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			self.updateUI()
-			return True
-		except:
-			import traceback
-
-			print(traceback.format_exc())
-			return False
-
 
 	def ResetGraderCode(self, sender=None):
 		thisFont = Glyphs.font
@@ -528,8 +486,7 @@ class BatchGrader(object):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("⚠️ ‘Batch Grader’ could not write preferences.")
+			self.SavePreferences()
 
 			# read prefs:
 			for prefName in self.prefDict.keys():
@@ -591,7 +548,7 @@ class BatchGrader(object):
 				replaceWith = self.pref("replaceWith")
 				metricsKeyChoice = self.pref("metricsKeyChoice")
 				keepCenteredGlyphsCentered = self.pref("keepCenteredGlyphsCentered")
-				keepCenteredThreshold = self.pref("keepCenteredThreshold").strip()
+				keepCenteredThreshold = self.prefInt("keepCenteredThreshold")
 
 				# parse code and step through masters:
 				gradeCount = 0
@@ -735,7 +692,7 @@ class BatchGrader(object):
 						print("↔️ Recentering centered glyphs...")
 						for baseGlyph in thisFont.glyphs:
 							baseLayer = baseGlyph.layers[master.id]
-							if abs(baseLayer.LSB - baseLayer.RSB) <= int(keepCenteredThreshold):
+							if abs(baseLayer.LSB - baseLayer.RSB) <= keepCenteredThreshold:
 								gradeLayer = baseGlyph.layers[gradeMaster.id]
 								offCenter = gradeLayer.RSB - gradeLayer.LSB
 								if abs(offCenter) > 1:
