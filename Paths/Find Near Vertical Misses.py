@@ -314,103 +314,104 @@ class FindNearVerticalMisses(mekkaObject):
 							glyphIsExcluded = True
 							break
 
-				if not glyphIsExcluded:
-					self.w.status.set(f"🔠 {thisGlyph.name}")
-					suffix = None
-					if "." in thisGlyph.name:
-						offset = thisGlyph.name.find(".")
-						suffix = thisGlyph.name[offset:]
+				if glyphIsExcluded:
+					continue
 
-					for thisLayer in thisGlyph.layers:
-						# get rid of debris from previous iterations:
-						self.doubleCheckAnnotations(thisLayer)
-						layerCounts = thisLayer.isMasterLayer or thisLayer.isSpecialLayer
-						layerShouldBeChecked = len(thisLayer.paths) > 0 or includeComposites
+				self.w.status.set(f"🔠 {thisGlyph.name}")
+				suffix = None
+				if "." in thisGlyph.name:
+					offset = thisGlyph.name.find(".")
+					suffix = thisGlyph.name[offset:]
 
-						if layerCounts and layerShouldBeChecked:
+				for thisLayer in thisGlyph.layers:
+					# get rid of debris from previous iterations:
+					self.doubleCheckAnnotations(thisLayer)
+					layerCounts = thisLayer.isMasterLayer or thisLayer.isSpecialLayer
+					layerShouldBeChecked = len(thisLayer.paths) > 0 or includeComposites
 
-							# overlap removal if requested:
-							if self.pref("removeOverlap"):
-								checkLayer = thisLayer.copyDecomposedLayer()
-								checkLayer.removeOverlap()
-							else:
-								checkLayer = thisLayer
+					if layerCounts and layerShouldBeChecked:
 
-							# step through nodes:
-							for thisPath in checkLayer.paths:
-								for thisNode in thisPath.nodes:
-									nodeIsOncurve = thisNode.type != GSOFFCURVE
-									if nodeIsOncurve or self.pref("includeHandles"):
+						# overlap removal if requested:
+						if self.pref("removeOverlap"):
+							checkLayer = thisLayer.copyDecomposedLayer()
+							checkLayer.removeOverlap()
+						else:
+							checkLayer = thisLayer
 
-										skipThisNode = False
-										if self.pref("tolerateIfExtremum"):
-											if thisNode.prevNode:
-												if thisNode.prevNode.type == GSOFFCURVE and thisNode.nextNode.type == GSOFFCURVE:
-													vertical = thisNode.x == thisNode.prevNode.x == thisNode.nextNode.x
-													linedUp = (thisNode.y - thisNode.prevNode.y) * (thisNode.nextNode.y - thisNode.y) > 0.0
-													if vertical and linedUp:
-														skipThisNode = True
+						# step through nodes:
+						for thisPath in checkLayer.paths:
+							for thisNode in thisPath.nodes:
+								nodeIsOncurve = thisNode.type != GSOFFCURVE
+								if nodeIsOncurve or self.pref("includeHandles"):
+
+									if self.pref("tolerateIfExtremum"):
+										if thisNode.prevNode:
+											if thisNode.prevNode.type == GSOFFCURVE and thisNode.nextNode.type == GSOFFCURVE:
+												vertical = thisNode.x == thisNode.prevNode.x == thisNode.nextNode.x
+												linedUp = (thisNode.y - thisNode.prevNode.y) * (thisNode.nextNode.y - thisNode.y) > 0.0
+												if vertical and linedUp:
+													print("__skipThisNode", thisNode)
+													continue
+										else:
+											print(f"⚠️ Potential open path in {thisGlyph.name}")
+
+									if self.pref("tolerateIfNextNodeIsOn"):
+										# determine previous oncurve point
+										previousOnCurve = thisNode.prevNode
+										if previousOnCurve:
+											while previousOnCurve.type == GSOFFCURVE:
+												previousOnCurve = previousOnCurve.prevNode
+											previousY = previousOnCurve.y
+											# determine next oncurve point
+											nextOnCurve = thisNode.nextNode
+											while nextOnCurve.type == GSOFFCURVE:
+												nextOnCurve = nextOnCurve.nextNode
+											nextY = nextOnCurve.y
+										else:
+											print(f"⚠️ Potential open path in {thisGlyph.name}")
+									else:
+										previousY = None
+										nextY = None
+
+									glyphType = None
+									if Glyphs.versionNumber >= 3:
+										# GLYPHS 3
+										if thisGlyph.case == GSUppercase:
+											glyphType = "Uppercase"
+										elif thisGlyph.case == GSLowercase:
+											glyphType = "Lowercase"
+										elif thisGlyph.case == GSSmallcaps:
+											glyphType = "Smallcaps"
+									else:
+										glyphType = thisGlyph.subCategory
+									print("__thisNode", thisNode)
+									if self.isNodeSlightlyOff(thisNode.position, thisLayer.master, deviance, previousY, nextY, glyphType, suffix):
+										# collect layer:
+										if thisLayer not in affectedLayers:
+											affectedLayers.append(thisLayer)
+										thisNode.selected = True
+
+										# report:
+										print("%s /%s ‘%s’: %.1f %.1f" % (
+											self.marker,
+											thisGlyph.name,
+											thisLayer.name,
+											thisNode.x,
+											thisNode.y,
+										))
+
+										# node name:
+										if self.pref("markNodes"):
+											if self.pref("removeOverlap"):
+												self.addAnnotation(thisLayer, thisNode.position, self.marker)
 											else:
-												print(f"⚠️ Potential open path in {thisGlyph.name}")
-
-										if not skipThisNode:
-											if self.pref("tolerateIfNextNodeIsOn"):
-												# determine previous oncurve point
-												previousOnCurve = thisNode.prevNode
-												if previousOnCurve:
-													while previousOnCurve.type == GSOFFCURVE:
-														previousOnCurve = previousOnCurve.prevNode
-													previousY = previousOnCurve.y
-													# determine next oncurve point
-													nextOnCurve = thisNode.nextNode
-													while nextOnCurve.type == GSOFFCURVE:
-														nextOnCurve = nextOnCurve.nextNode
-													nextY = nextOnCurve.y
-												else:
-													print(f"⚠️ Potential open path in {thisGlyph.name}")
-											else:
-												previousY = None
-												nextY = None
-
-											glyphType = None
-											if Glyphs.versionNumber >= 3:
-												# GLYPHS 3
-												if thisGlyph.case == GSUppercase:
-													glyphType = "Uppercase"
-												elif thisGlyph.case == GSLowercase:
-													glyphType = "Lowercase"
-												elif thisGlyph.case == GSSmallcaps:
-													glyphType = "Smallcaps"
-											else:
-												glyphType = thisGlyph.subCategory
-
-											if self.isNodeSlightlyOff(thisNode.position, thisLayer.master, deviance, previousY, nextY, glyphType, suffix):
-												# collect layer:
-												if thisLayer not in affectedLayers:
-													affectedLayers.append(thisLayer)
-												thisNode.selected = True
-
-												# report:
-												print("%s /%s ‘%s’: %.1f %.1f" % (
-													self.marker,
-													thisGlyph.name,
-													thisLayer.name,
-													thisNode.x,
-													thisNode.y,
-												))
-
-												# node name:
-												if self.pref("markNodes"):
-													if self.pref("removeOverlap"):
-														self.addAnnotation(thisLayer, thisNode.position, self.marker)
-													else:
-														thisNode.name = self.marker
-												else:
-													self.doubleCheckNodeName(thisNode)
-											else:
-												self.doubleCheckNodeName(thisNode)
+												thisNode.name = self.marker
+										else:
+											self.doubleCheckNodeName(thisNode)
 									else:
 										self.doubleCheckNodeName(thisNode)
+								else:
+									self.doubleCheckNodeName(thisNode)
 
 			# make sure View options are on:
 			if self.pref("markNodes"):
