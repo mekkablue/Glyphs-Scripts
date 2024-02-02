@@ -10,7 +10,7 @@ import vanilla
 from copy import copy
 from Foundation import NSPoint
 from AppKit import NSFont
-from GlyphsApp import Glyphs, GSFont, GSAxis, GSInstance, GSCustomParameter, GSSMOOTH, GSOFFCURVE, Message
+from GlyphsApp import Glyphs, GSFont, GSLayer, GSAxis, GSInstance, GSCustomParameter, GSSMOOTH, GSOFFCURVE, Message
 
 def hasIncrementalKey(layer, checkLSB=True, checkRSB=True):
 	incrementalKeys = ("=-", "=+", "=*", "=/")
@@ -56,8 +56,8 @@ def biggestSubstringInStrings(strings):
 
 def updateBraceLayers(font, defaultValue=0, newAxisTag=None, newAxisValue=None):
 	axisRanges = font.variationAxesRanges_(None)  # ["GRAD"][0]
-	newAxisID = axisIdForTag(font, tag=newAxisTag)
-	
+	# newAxisID = axisIdForTag(font, tag=newAxisTag)
+
 	for glyph in font.glyphs:
 		if not glyph.hasSpecialLayers():
 			continue
@@ -115,7 +115,7 @@ def updateBraceLayers(font, defaultValue=0, newAxisTag=None, newAxisValue=None):
 			newBraceLayerCount = 0
 			for masterID, newBraceCoordinate in newBraceCoordinates:
 				# clean existing layers with the same coordinates
-				for i in range(len(glyph.layers)-1,-1,-1):
+				for i in range(len(glyph.layers) - 1, -1, -1):
 					layer = glyph.layers[i]
 					if layer.isSpecialLayer and layer.attributes and layer.attributes["coordinates"]:
 						if layer.attributes["coordinates"] == newBraceCoordinate:
@@ -138,10 +138,9 @@ def updateBraceLayers(font, defaultValue=0, newAxisTag=None, newAxisValue=None):
 				newBraceLayer.reinterpolate()
 			print(f"✅ Added {newBraceLayerCount} new brace layer{'' if newBraceLayerCount==1 else 's'} with {newAxisTag}={newAxisValue}.")
 
-		except Exception as e:
-			if type(e)!=IndexError:
-				raise e
-		
+		except IndexError:
+			pass
+
 		if count > 0:
 			print(f"🦾 Updated {count} brace layer{'' if count==1 else 's'} for ‘{glyph.name}’")
 
@@ -304,9 +303,9 @@ class BatchGrader(object):
 		self.w.ignoreReset = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateUI)
 		self.w.ignoreReset.getNSButton().setToolTip_(tooltipText)
 		linePos += lineHeight
-		
-		self.w.addGradedBraceLayers = vanilla.CheckBox((inset, linePos-1, 200, 20), "Add graded brace layers (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.temporarilySwitchToDefaultInterpolation = vanilla.CheckBox((inset+200, linePos-1, -inset+230, 20), "Use default interpolation", value=False, callback=self.SavePreferences, sizeStyle="small")
+
+		self.w.addGradedBraceLayers = vanilla.CheckBox((inset, linePos - 1, 200, 20), "Add graded brace layers (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.temporarilySwitchToDefaultInterpolation = vanilla.CheckBox((inset + 200, linePos - 1, -inset + 230, 20), "Use default interpolation", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		self.w.addSyncMetricCustomParameter = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Add custom parameter ‘Link Metrics With Master’ (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
@@ -407,7 +406,6 @@ class BatchGrader(object):
 				and self.w.keepCenteredGlyphsCentered.isEnabled()
 			)
 
-
 	def openURL(self, sender=None):
 		URL = None
 		if sender == self.w.helpButton:
@@ -459,7 +457,6 @@ class BatchGrader(object):
 			text += f"{m.name}: {wghtCode}\n"
 		self.w.graderCode.set(text)
 
-
 	def shouldExcludeMaster(self, master):
 		excludedParticles = self.pref("excludeFromInterpolation")
 		excludedParticles = [p.strip() for p in excludedParticles.split(",") if p]
@@ -468,41 +465,38 @@ class BatchGrader(object):
 				return True  # yes, exclude
 		return False  # no, don't exclude
 
-
 	def masterAxesString(self, master):
 		font = master.font
 		return ", ".join(
 			[f"{a.axisTag}={master.axes[i]}" for i, a in enumerate(font.axes)]
 		)
 
-
 	def reducedInterpolation(self, originalFont, interpolationDict, axes):
 		# build empty dummy font:
 		font = GSFont()
-		font.masters = [] # remove default master
+		font.masters = []  # remove default master
 		font.axes = copy(originalFont.axes)
-		
+
 		# add only the masters we need:
 		for i in range(len(originalFont.masters)):
 			if originalFont.masters[i].id in interpolationDict.keys():
 				addMaster = copy(originalFont.masters[i])
 				addMaster.font = font
 				font.masters.append(addMaster)
-		
+
 		# dummy instance for recalculating the coeffs:
 		instance = GSInstance()
 		instance.font = font
 		instance.axes = axes
 		return instance.instanceInterpolations
 
-
 	def cleanInterpolationDict(self, instance):
 		font = instance.font
 		print(f"🙈 Cleaning interpolation dict for: {self.masterAxesString(instance)}")
-		
+
 		interpolationDict = instance.instanceInterpolations
-		dictReport = [f"{instance.instanceInterpolations[k]*100:8.2f}%: {font.masters[k].name}" for k in interpolationDict.keys()]
-		
+		# dictReport = [f"{instance.instanceInterpolations[k]*100:8.2f}%: {font.masters[k].name}" for k in interpolationDict.keys()]
+
 		newInterpolationDict = {}
 		total = 0.0
 		for k in interpolationDict.keys():
@@ -520,14 +514,13 @@ class BatchGrader(object):
 					newInterpolationDict[k] *= factor
 			instance.manualInterpolation = True
 			instance.instanceInterpolations = newInterpolationDict
-		
+
 		# circumvent buggy coeff calculation (with many axes) with reduced interpolation:
 		reducedDict = self.reducedInterpolation(font, instance.instanceInterpolations, instance.axes)
 		if instance.instanceInterpolations != reducedDict:
 			reducedInstanceInterpolations = self.reducedInterpolation(font, instance.instanceInterpolations, instance.axes)
 			instance.manualInterpolation = True
 			instance.instanceInterpolations = reducedInstanceInterpolations
-
 
 	def BatchGraderMain(self, sender=None):
 		try:
@@ -566,7 +559,7 @@ class BatchGrader(object):
 				# store original font type:
 				originalFontType = thisFont.fontType()
 				if self.pref("temporarilySwitchToDefaultInterpolation"):
-					thisFont.setFontType_(0) # default font type
+					thisFont.setFontType_(0)  # default font type
 
 				# add or update Grade axis if necessary:
 				grade = int(self.pref("grade").strip())
@@ -619,7 +612,7 @@ class BatchGrader(object):
 
 					if self.shouldExcludeMaster(master):
 						continue
-					
+
 					weightedAxes = master.axes[:]
 					axisCodes = [a.strip() for a in axes.split(",") if "=" in a]
 					if not axisCodes:
@@ -706,16 +699,16 @@ class BatchGrader(object):
 						gradeLayer.shapes = copy(weightedLayer.shapes)
 						gradeLayer.anchors = copy(weightedLayer.anchors)
 						gradeLayer.hints = copy(weightedLayer.hints)
-						
+
 						# cancel instance
 						weightedInstance.font = None
-						
+
 						# reinstate automatic alignment if necessary:
 						if baseLayer.isAligned and not gradeLayer.isAligned:
 							for index, gradeComponent in enumerate(gradeLayer.components):
 								baseComponent = baseLayer.components[index]
 								gradeComponent.alignment = baseComponent.alignment
-						
+
 						# disable metrics keys where necessary/requested:
 						if (baseGlyph.leftMetricsKey or baseLayer.leftMetricsKey) and metricsKeyChoice in (1, 3):
 							isIncrementalKey = (baseLayer.isAligned and hasIncrementalKey(baseLayer))
@@ -792,7 +785,7 @@ class BatchGrader(object):
 									}
 								)
 							parameter.value = axLoc
-				
+
 				if self.pref("addGradedBraceLayers"):
 					print("\nGrading brace layers...")
 					updateBraceLayers(thisFont, defaultValue=0, newAxisTag=gradeAxisTag, newAxisValue=grade)
@@ -803,9 +796,9 @@ class BatchGrader(object):
 								glyphsWithBraceLayers.append(glyph.name)
 								break
 					thisFont.newTab("/" + "/".join(glyphsWithBraceLayers))
-				
+
 				if self.pref("temporarilySwitchToDefaultInterpolation"):
-					thisFont.setFontType_(originalFontType) # return to original font type
+					thisFont.setFontType_(originalFontType)  # return to original font type
 				if originalFontType != 0:
 					print("⚠️ Font Info > Other > Font Type is not ‘Default’.")
 
