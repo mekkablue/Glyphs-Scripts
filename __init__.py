@@ -149,15 +149,7 @@ class mekkaObject:
 		try:
 			# write current settings into prefs:
 			for prefName in self.prefDict.keys():
-				if "." in prefName:
-					prefNameParticles = prefName.split(".")
-					latestObject = self.w
-					while prefNameParticles:
-						objectName = prefNameParticles.pop(0)
-						latestObject = getattr(latestObject, objectName)
-					Glyphs.defaults[self.domain(prefName)] = latestObject.get()
-				else:
-					Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
+				Glyphs.defaults[self.domain(prefName)] = self.uiElement(prefName).get()
 			if hasattr(self, "updateGUI"):
 				self.updateGUI()
 		except:
