@@ -15,7 +15,7 @@ from mekkablue import mekkaObject
 
 def reportTimeInNaturalLanguage(seconds):
 	if seconds > 60.0:
-		timereport = f"{int(seconds / 60)}:{int(seconds) % 60:02i} minutes"
+		timereport = f"{int(seconds / 60)}:{int(seconds) % 60:02d} minutes"
 	elif seconds < 1.0:
 		timereport = f"{seconds:.2f} seconds"
 	elif seconds < 20.0:
