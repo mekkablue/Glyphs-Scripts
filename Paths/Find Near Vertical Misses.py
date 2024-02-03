@@ -159,7 +159,7 @@ class FindNearVerticalMisses(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
-	def uodateUI(self, sender=None):
+	def updateUI(self, sender=None):
 		# At least one vertical metrics must be on, otherwise disable button:
 		enableButton = False
 		boxDict = self.w.whereToCheck.__dict__
@@ -287,7 +287,7 @@ class FindNearVerticalMisses(mekkaObject):
 			# update settings to the latest user input:
 			self.SavePreferences()
 
-			self.checkGUI()
+			self.updateUI()
 
 			thisFont = Glyphs.font  # frontmost font
 			print(f"Find Near Vertical Misses Report for {thisFont.familyName}")
