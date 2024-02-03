@@ -23,7 +23,7 @@ class FindNearVerticalMisses(mekkaObject):
 		"markNodes": False,
 		"includeNonExporting": False,
 		"includeComposites": False,
-		"exclude": False,
+		"exclude": "",
 		"openTab": True,
 		"reuseTab": True,
 		"whereToCheck.ascender": True,
@@ -307,7 +307,7 @@ class FindNearVerticalMisses(mekkaObject):
 				self.w.progress.set(100 * i // totalNumberOfGlyphs)
 
 				glyphIsExcluded = not (thisGlyph.export or includeNonExporting)
-				if not glyphIsExcluded:
+				if not glyphIsExcluded and excludes:
 					for excludedText in excludes:
 						if excludedText in thisGlyph.name:
 							skippedGlyphs.append(thisGlyph.name)
