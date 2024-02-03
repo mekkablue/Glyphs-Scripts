@@ -78,33 +78,33 @@ for thisFont in fonts:
 							collectedLayers[thisAnchorName].append(thisLayer)
 							anchorCount += 1
 
-		tab = None
+		tabLayers = []
 		for thisAnchorName in sorted(collectedLayers.keys()):
 			layers = collectedLayers[thisAnchorName]
 			if layers:
-				if not tab:
-					# Open new Edit tab if it is not open yet:
-					tab = thisFont.newTab()
-					tab.scale = 0.04
-					tab.initialZoom()
-				else:
+				if tabLayers:
 					# Otherwise add two newlines:
-					tab.layers.append(GSControlLayer.newline())
-					tab.layers.append(GSControlLayer.newline())
+					tabLayers.append(GSControlLayer.newline())
+					tabLayers.append(GSControlLayer.newline())
 
 				# Add layers for anchor name:
 				for char in thisAnchorName:
 					charGlyph = thisFont.glyphs[char]
 					if charGlyph:
 						charLayer = charGlyph.layers[thisFont.selectedFontMaster.id]
-						tab.layers.append(charLayer)
-				tab.layers.append(GSControlLayer.newline())
+						tabLayers.append(charLayer)
+				tabLayers.append(GSControlLayer.newline())
 
 				# add found anchors:
 				for layerWithMisplacedAnchor in collectedLayers[thisAnchorName]:
-					tab.layers.append(layerWithMisplacedAnchor)
+					tabLayers.append(layerWithMisplacedAnchor)
 
-		if tab:
+		# Open new Edit tab if it is not open yet:
+		if tabLayers:
+			tab = thisFont.newTab()
+			tab.scale = 0.04
+			tab.initialZoom()
+			tab.layers = tabLayers
 			print(f"⚠️ {anchorCount} anchors not on metric lines.\n")
 		else:
 			print(f"🎉 Could not find {' or '.join(anchorsToLookFor)} anchors off metric lines on master layers.\n")
