@@ -28,7 +28,7 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0):
 	if not (shiftX == 0.0 and shiftY == 0.0):
 		myTransform.translateXBy_yBy_(shiftX, shiftY)
 	if skew:
-		myTransform.shearBy_(math.tan(math.radians(skew)))
+		myTransform.shearXBy_(math.tan(math.radians(skew)))
 	return myTransform
 
 
