@@ -138,8 +138,8 @@ class mekkaObject:
 				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
 				# load previously written prefs:
 				self.uiElement(prefName).set(self.pref(prefName))
-			if hasattr(self, "updateGUI"):
-				self.updateGUI()
+			if hasattr(self, "updateUI"):
+				self.updateUI()
 		except:
 			import traceback
 			print(traceback.format_exc())
@@ -150,8 +150,8 @@ class mekkaObject:
 			# write current settings into prefs:
 			for prefName in self.prefDict.keys():
 				Glyphs.defaults[self.domain(prefName)] = self.uiElement(prefName).get()
-			if hasattr(self, "updateGUI"):
-				self.updateGUI()
+			if hasattr(self, "updateUI"):
+				self.updateUI()
 		except:
 			import traceback
 			print(traceback.format_exc())

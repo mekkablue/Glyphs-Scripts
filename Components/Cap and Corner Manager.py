@@ -81,7 +81,7 @@ class CapAndCornerManager(mekkaObject):
 
 		self.w.componentName = vanilla.ComboBox((inset, linePos - 2, -inset - 25, 19), self.cornersOfFrontmostFont(), sizeStyle="small", callback=self.SavePreferences)
 		self.w.componentName.getNSComboBox().setToolTip_("Batch-edit all instances of this special component. Can be a Brush, Segment, Cap and Corner component.")
-		self.w.updateComponentNames = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateGUI)
+		self.w.updateComponentNames = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateUI)
 		self.w.updateComponentNames.getNSButton().setToolTip_("Update the list of available components for the frontmost font.")
 		linePos += lineHeight + 5
 
@@ -104,7 +104,7 @@ class CapAndCornerManager(mekkaObject):
 		self.w.scaleH.getNSTextField().setToolTip_("Horizontal scale for components in percent. 100 means unscaled.")
 		self.w.scaleV = vanilla.EditText((inset + tab + 45, linePos - 1, 40, 19), "100", callback=self.SavePreferences, sizeStyle="small")
 		self.w.scaleV.getNSTextField().setToolTip_("Vertical scale for components in percent. 100 means unscaled.")
-		self.w.resetScale = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateGUI)
+		self.w.resetScale = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateUI)
 		self.w.resetScale.getNSButton().setToolTip_("Resets the scale to 100% horizontal, 100% vertical.")
 		linePos += lineHeight
 
@@ -125,7 +125,7 @@ class CapAndCornerManager(mekkaObject):
 			return []
 		return [g.name for g in frontmostFont.glyphs if g.category == "Corner"]
 
-	def updateGUI(self, sender=None):
+	def updateUI(self, sender=None):
 		if sender == self.w.resetScale:
 			for orientation in "HV":
 				prefName = f"scale{orientation}"

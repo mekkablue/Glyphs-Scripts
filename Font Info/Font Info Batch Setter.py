@@ -198,7 +198,7 @@ class FontInfoBatchSetter(mekkaObject):
 		valueField.set("%03i" % currentValue)
 		self.SavePreferences()
 
-	def updateGUI(self, sender=None):
+	def updateUI(self, sender=None):
 		self.updateTooltips()
 		self.w.designer.enable(self.w.setDesigner.get())
 		self.w.designerURL.enable(self.w.setDesignerURL.get())

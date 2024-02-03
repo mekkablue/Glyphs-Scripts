@@ -62,7 +62,7 @@ class ReplicateAnchors(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
-	def updateGUI(self, sender=None):
+	def updateUI(self, sender=None):
 		self.w.overwriteExistingAnchors.enable(not self.w.deleteAllExistingAnchors.get())
 
 	def ReplicateAnchorsMain(self, sender=None):

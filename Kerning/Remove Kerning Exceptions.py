@@ -61,7 +61,7 @@ class RemoveKerningExceptions(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
-	def updateGUI(self, sender=None):
+	def updateUI(self, sender=None):
 		anyOptionIsSelected = self.w.glyphGlyph.get() or self.w.glyphGroup.get() or self.w.groupGlyph.get()
 		self.w.runButton.enable(anyOptionIsSelected)
 

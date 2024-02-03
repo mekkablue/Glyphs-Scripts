@@ -138,7 +138,7 @@ class TravelTracker(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
-	def updateGUI(self, sender=None):
+	def updateUI(self, sender=None):
 		self.w.runButton.enable(any((
 			self.w.normalizeGlyph.get(),
 			self.w.normalizeShape.get(),
