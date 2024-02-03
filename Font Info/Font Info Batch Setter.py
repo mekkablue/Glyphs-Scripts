@@ -22,6 +22,7 @@ class FontInfoBatchSetter(mekkaObject):
 		# "prefName": defaultValue,
 		"applyContaining": "",
 		"applyPopup": 0,
+		
 		"copyright": "",
 		"trademark": "",
 		"vendorID": "",
@@ -31,20 +32,24 @@ class FontInfoBatchSetter(mekkaObject):
 		"manufacturerURL": "",
 		"license": "",
 		"licenseURL": "",
+		"fontDescription": "",
+		
 		"setCopyright": False,
 		"setTrademark": False,
 		"setVendorID": False,
-		"setDate": True,
 		"setDesigner": False,
 		"setDesignerURL": False,
 		"setManufacturer": False,
 		"setManufacturerURL": False,
 		"setLicense": False,
 		"setLicenseURL": False,
+		"setFontDescription": False,
+		
+		"setDate": True,
+
 		"setVersion": True,
 		"versionMajor": "1",
 		"versionMinor": "005",
-		"fontDescription": "",
 	}
 	placeholderFamilyName = "###familyName###"
 
@@ -173,7 +178,7 @@ class FontInfoBatchSetter(mekkaObject):
 		self.LoadPreferences()
 
 		self.setNoon()
-		self.updateUI()
+		self.updateGUI()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -193,7 +198,7 @@ class FontInfoBatchSetter(mekkaObject):
 		valueField.set("%03i" % currentValue)
 		self.SavePreferences()
 
-	def updateUI(self, sender=None):
+	def updateGUI(self, sender=None):
 		self.updateTooltips()
 		self.w.designer.enable(self.w.setDesigner.get())
 		self.w.designerURL.enable(self.w.setDesignerURL.get())
