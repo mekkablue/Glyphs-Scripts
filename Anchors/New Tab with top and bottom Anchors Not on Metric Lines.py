@@ -57,6 +57,7 @@ for thisFont in fonts:
 		anchorCount = 0
 
 		# prepare dictionary:
+		collectedLayers = {}
 		for thisAnchorName in anchorsToLookFor:
 			collectedLayers[thisAnchorName] = []
 			collectedLayers["_%s" % thisAnchorName] = []
