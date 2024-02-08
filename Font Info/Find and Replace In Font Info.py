@@ -191,7 +191,7 @@ class FindAndReplaceInFontInfo(mekkaObject):
 								# parameters:
 								if includeCustomParameters:
 									for customParameter in thisInstance.customParameters:
-										parameterIsAString = type(customParameter.value) in (objc.pyobjc_unicode, str)
+										parameterIsAString = isinstance(customParameter.value, (objc.pyobjc_unicode, str))
 
 										if parameterIsAString:
 											reportString = f"Instances > {thisInstance.name} > Custom Parameters > {customParameter.name}"
