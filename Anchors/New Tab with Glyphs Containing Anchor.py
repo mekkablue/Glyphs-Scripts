@@ -7,9 +7,10 @@ Opens a new tab with all glyphs containing a specific anchor.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkablue import mekkaObject
 
 
-class NewTabWithAnchor(object):
+class NewTabWithAnchor(mekkaObject):
 	prefDict = {
 		"anchorName": "ogonek",
 		"allLayers": 0,

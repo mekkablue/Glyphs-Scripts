@@ -8,6 +8,7 @@ Creates and inserts GPOS feature code for shifting glyphs, e.g., parentheses and
 import vanilla
 from GlyphsApp import Glyphs, GSFeature
 from mekkablue.geometry import italicize
+from mekkablue import mekkaObject
 
 
 def updatedCode(oldCode, beginSig, endSig, newCode):
@@ -60,7 +61,7 @@ def createOTFeature(featureName="case", featureCode="# empty feature code", targ
 		return "Created new OT feature '%s'" % featureName
 
 
-class ItalicShiftFeature(object):
+class ItalicShiftFeature(mekkaObject):
 	prefDict = {
 		"edit_1a": "case",
 		"edit_1b": "100",

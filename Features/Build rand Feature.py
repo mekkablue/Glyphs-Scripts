@@ -7,6 +7,7 @@ Build rand (random) feature from .cvXX or another (numbered) suffix.
 
 import vanilla
 from GlyphsApp import Glyphs, GSFeature, Message
+from mekkablue import mekkaObject
 
 
 def getRootName(glyphName):
@@ -17,7 +18,7 @@ def getRootName(glyphName):
 		return glyphName
 
 
-class BuildRandFeature(object):
+class BuildRandFeature(mekkaObject):
 	prefDict = {
 		"overwrite": 1,
 		"suffix": ".cv",

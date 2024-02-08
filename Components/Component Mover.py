@@ -8,9 +8,10 @@ Batch edit (smart) components across selected glyphs. Change positions, scales a
 import vanilla
 from AppKit import NSPoint
 from GlyphsApp import Glyphs, Message
+from mekkablue import mekkaObject
 
 
-class ComponentMover(object):
+class ComponentMover(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"changeAttribute": 0,

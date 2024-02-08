@@ -7,6 +7,7 @@ Takes all CPAL/COLR layers and puts copies of their shapes into the master layer
 
 import vanilla
 from GlyphsApp import Glyphs, Message
+from mekkablue import mekkaObject
 
 
 allOptions = (
@@ -16,7 +17,7 @@ allOptions = (
 )
 
 
-class MergeCPALLayersIntoMasterLayer(object):
+class MergeCPALLayersIntoMasterLayer(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"overwrite": 1,

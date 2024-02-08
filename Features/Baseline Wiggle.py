@@ -8,6 +8,7 @@ Add OpenType feature with pseudorandom GPOS baseline shift for all glyphs in a c
 import vanilla
 from random import randint
 from GlyphsApp import Glyphs, GSFeature, GSClass, Message
+from mekkablue import mekkaObject
 
 
 allPossibleFeatures = [
@@ -94,7 +95,7 @@ def createOTClass(className="@default", classGlyphs=None, targetFont=Glyphs.font
 		return f"Created new OT class: ‘{className}’"
 
 
-class BaselineWiggle(object):
+class BaselineWiggle(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"otClass": "All",

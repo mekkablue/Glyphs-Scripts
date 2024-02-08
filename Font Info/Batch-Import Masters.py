@@ -8,6 +8,7 @@ Import many masters at once with the Import Master parameter.
 import vanilla
 from AppKit import NSNotificationCenter
 from GlyphsApp import Glyphs, GSCustomParameter, Message
+from mekkablue import mekkaObject
 
 
 def menuForFonts(fonts):
@@ -58,7 +59,7 @@ def importMastersFromFontToFont(importedFont, targetFont, searchFor="", useRelat
 		print(f"✅ Added master: {importedMaster.name}")
 
 
-class BatchImportMasters(object):
+class BatchImportMasters(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"sourceFont": 0,
