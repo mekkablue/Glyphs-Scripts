@@ -407,7 +407,9 @@ class BatchGrader(mekkaObject):
 	def ResetGraderCode(self, sender=None):
 		thisFont = Glyphs.font
 		text = "# mastername: wght+=100, wdth=100\n"
-		gradeValue = int(self.pref("grade").strip())
+		gradeValue = self.pref("grade")
+		if not type(gradeValue) != int:
+			gradeValue = int(str(gradeValue).strip())
 		wghtCode = f"wght+={gradeValue}".replace("+=-", "-=")
 		for m in thisFont.masters:
 			if self.shouldExcludeMaster(m):
@@ -519,7 +521,9 @@ class BatchGrader(mekkaObject):
 					thisFont.setFontType_(0)  # default font type
 
 				# add or update Grade axis if necessary:
-				grade = int(self.pref("grade").strip())
+				grade = self.pref("grade")
+				if not type(grade) != int:
+					grade = int(str(grade).strip())
 				axisName = self.pref("axisName").strip()
 				gradeAxisTag = f'{self.pref("gradeAxisTag").strip()[:4]:4}'
 				existingAxisTags = [a.axisTag for a in thisFont.axes]
