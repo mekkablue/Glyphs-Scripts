@@ -41,14 +41,14 @@ class ComponentMover(mekkaObject):
 		self.w.changeAttributeText = vanilla.TextBox((inset, linePos + 2, 50, 14), "Change", sizeStyle='small', selectable=True)
 		self.w.changeAttributeText.getNSTextField().setAlignment_(2)
 		self.w.changeAttribute = vanilla.PopUpButton((inset + 55, linePos - 1, -inset - 25, 20), self.defaultSettings + self.availableAttributes(), sizeStyle='small', callback=self.SavePreferences)
-		self.w.changeAttributeUpdate = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.update)
+		self.w.changeAttributeUpdate = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.updateUI)
 		linePos += lineHeight
 
 		self.w.searchStringText = vanilla.TextBox((inset, linePos + 2, 50, 14), "for", sizeStyle='small', selectable=True)
 		self.w.searchStringText.getNSTextField().setAlignment_(2)
 		self.w.searchString = vanilla.ComboBox((inset + 55, linePos - 2, -inset - 25, 20), self.availableComponents(), sizeStyle='small', callback=self.SavePreferences)
 		self.w.searchString.getNSComboBox().setPlaceholderString_("any component")
-		self.w.searchStringUpdate = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.update)
+		self.w.searchStringUpdate = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.updateUI)
 		linePos += int(lineHeight * 1.2)
 
 		size, offset = 50, 60
