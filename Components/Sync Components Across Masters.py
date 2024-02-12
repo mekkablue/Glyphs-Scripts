@@ -22,18 +22,30 @@ print()
 
 def process(thisLayer):
 	thisGlyph = thisLayer.parent
+	layerID = thisLayer.layerId
 
 	# only act if components are present:
 	if len(thisLayer.components)==0:
 		print(f"  ⚠️ No components on layer {thisLayer.name}, skipping.")
 		return
+	
+	compatibilityRun = None
+	for layerGroup in thisGlyph.layerGroups():
+		layerGroup = tuple(layerGroup)
+		if layerID in layerGroup:
+			compatibilityRun = layerGroup
+			break
+	
+	if compatibilityRun is None:
+		print(f"🆘 No interpolating layers found in glyph {thisGlyph.name}, skipping...")
+		return
+	
+	for thatLayerID in compatibilityRun:
+		thatLayer = thisGlyph.layerForId_(thatLayerID)
 		
-	for thatLayer in thisGlyph.layers:
 		if thatLayer is thisLayer:
 			continue
-			
-		if not thatLayer.isMasterLayer and not thatLayer.isBraceLayer():
-			continue
+			# source layer
 		
 		newComponents = []
 		for thisComp in thisLayer.components:
