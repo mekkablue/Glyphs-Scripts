@@ -202,9 +202,7 @@ def straightenBCPs(layer):
 						center = n
 						opposite = handle
 						smoothen = nn if nn != handle else pn
-						p.setSmooth_withCenterNode_oppositeNode_(
-							smoothen, center, opposite
-						)
+						p.setSmooth_withCenterNode_oppositeNode_(smoothen, center, opposite)
 						break
 				if smoothen == center == opposite is None:
 					newPos = closestPointOnLine(n.position, nn, pn)
