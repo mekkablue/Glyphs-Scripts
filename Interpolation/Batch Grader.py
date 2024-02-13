@@ -557,8 +557,6 @@ class BatchGrader(mekkaObject):
 		gradeLayer.anchors = copy(weightedLayer.anchors)
 		gradeLayer.hints = copy(weightedLayer.hints)
 
-		# cancel instance
-		#weightedInstance.font = None
 		# reinstate automatic alignment if necessary:
 		if baseLayer.isAligned and not gradeLayer.isAligned:
 			for index, gradeComponent in enumerate(gradeLayer.components):
