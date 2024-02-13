@@ -582,8 +582,8 @@ class BatchGrader(mekkaObject):
 			gradeLayer.widthMetricsKey = f"=={baseGlyph.name}"
 		if (baseGlyph.leftMetricsKey or baseGlyph.rightMetricsKey) and metricsKeyChoice in (1, 2):
 			gradeLayer.syncMetrics()
-		if hasIncrementalKey(gradeLayer):
-			gradeLayer.syncMetrics()
+		#if hasIncrementalKey(gradeLayer):
+		#	gradeLayer.syncMetrics()
 
 	def addMissingAxisLocations(self, thisFont, gradeAxis):
 		if Glyphs.versionNumber >= 4:
