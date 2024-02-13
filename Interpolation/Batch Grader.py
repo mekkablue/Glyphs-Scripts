@@ -746,7 +746,8 @@ class BatchGrader(mekkaObject):
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
-
+			import time
+			start = time.time()
 			# update settings to the latest user input:
 			self.SavePreferences()
 
@@ -807,7 +808,7 @@ class BatchGrader(mekkaObject):
 
 			thisFont.didChangeValueForKey_("fontMasters")
 			self.w.close()  # delete if you want window to stay open
-			print("\n✅ Done.")
+			print(f"\n✅ Done in {time.time() - start} s.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
