@@ -597,7 +597,7 @@ class BatchGrader(mekkaObject):
 		for m in thisFont.masters[::-1]:
 			if m.axes == gradeAxes:
 				gradeMaster = m
-				print(f"Ⓜ️ Found master: ‘{gradeMaster.name}’")
+				#print(f"Ⓜ️ Found master: ‘{gradeMaster.name}’")
 		if not gradeMaster:
 			gradeMaster = copy(master)
 			if searchFor and replaceWith:
