@@ -685,6 +685,7 @@ class BatchGrader(mekkaObject):
 
 		gradeCount += 1
 		print(f"{gradeCount}. {codeLine}")
+		axesWithInfluence = []
 		for axisCode in axisCodes:
 			if "+=" in axisCode:
 				axisTag, value = axisCode.split("+=")
@@ -695,6 +696,7 @@ class BatchGrader(mekkaObject):
 			else:
 				axisTag, value = axisCode.split("=")
 				valueFactor = 0
+			axesWithInfluence.append(axisTag.strip())
 			axisIdx = axisIndexForTag(thisFont, tag=axisTag.strip())
 			value = int(value.strip())
 
@@ -703,12 +705,12 @@ class BatchGrader(mekkaObject):
 			else:
 				weightedAxes[axisIdx] = (weightedAxes[axisIdx] + value * valueFactor)
 
+		subsettedFont = self.subsettedFont(thisFont, weightedAxes, relevantAxes=axesWithInfluence)
 		# weighted instance/font: the shapes
 		weightedInstance = GSInstance()
-		weightedInstance.font = thisFont
+		weightedInstance.font = subsettedFont
 		weightedInstance.name = "###DELETEME###"
 		weightedInstance.axes = weightedAxes
-		self.cleanInterpolationDict(weightedInstance)
 		print(f"🛠️ Interpolating grade: {self.masterAxesString(weightedInstance)}")
 		weightedFont = weightedInstance.interpolatedFont
 		# get the graded master
