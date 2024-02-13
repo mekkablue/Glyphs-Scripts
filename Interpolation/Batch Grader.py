@@ -16,27 +16,6 @@ from GlyphsApp import Glyphs, GSFont, GSLayer, GSAxis, GSInstance, GSCustomParam
 from mekkablue import mekkaObject
 
 
-def hasIncrementalKey(layer, checkLSB=True, checkRSB=True):
-	incrementalKeys = ("=-", "=+", "=*", "=/")
-	glyph = layer.parent
-	if checkLSB:
-		for key in incrementalKeys:
-			if layer.leftMetricsKey:
-				if key in layer.leftMetricsKey:
-					return True
-			elif glyph.leftMetricsKey:
-				if key in glyph.leftMetricsKey:
-					return True
-	if checkRSB:
-		for key in incrementalKeys:
-			if layer.rightMetricsKey:
-				if key in layer.rightMetricsKey:
-					return True
-			elif glyph.rightMetricsKey:
-				if key in glyph.rightMetricsKey:
-					return True
-	return False
-
 
 def biggestSubstringInStrings(strings):
 	if len(strings) > 1:
@@ -238,7 +217,6 @@ class BatchGrader(mekkaObject):
 		"replaceWith": "GD100",
 		"excludeFromInterpolation": "Grade, GD100",
 		"addSyncMetricCustomParameter": True,
-		"metricsKeyChoice": 0,
 		"keepCenteredGlyphsCentered": True,
 		"keepCenteredThreshold": 2,
 		"addGradedBraceLayers": False,
@@ -248,7 +226,7 @@ class BatchGrader(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 390
-		windowHeight = 260
+		windowHeight = 238
 		windowWidthResize = 1000  # user can resize width by this value
 		windowHeightResize = 1000  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -324,11 +302,6 @@ class BatchGrader(mekkaObject):
 			"Prefer LSB keys (and disable RSB keys in graded masters)",
 			"Disable all keys in graded masters (recommended)",
 		)
-		self.w.metricsKeyChoiceText = vanilla.TextBox((inset, linePos + 2, 130, 14), "Deal with metrics keys:", sizeStyle="small", selectable=True)
-		self.w.metricsKeyChoiceText.getNSTextField().setToolTip_(tooltipText)
-		self.w.metricsKeyChoice = vanilla.PopUpButton((inset + 130, linePos, -inset, 17), metricsKeyOptions, sizeStyle="small", callback=self.SavePreferences)
-		self.w.metricsKeyChoice.getNSPopUpButton().setToolTip_(tooltipText)
-		linePos += lineHeight
 
 		tooltipText = "Will actively recenter glyphs after interpolation if they are centered in the base master. The threshold specifies the maximum difference between LSB and RSB that is acceptable to consider the glyph centered. Best to use 1 or 2."
 		self.w.keepCenteredGlyphsCentered = vanilla.CheckBox((inset, linePos, 305, 20), "Keep centered glyphs centered; max SB diff threshold:", value=False, callback=self.SavePreferences, sizeStyle="small")
@@ -391,9 +364,6 @@ class BatchGrader(mekkaObject):
 				self.w.excludeFromInterpolation.set(", ".join(set(excludeParticles)))
 			self.SavePreferences()
 		else:
-			self.w.keepCenteredGlyphsCentered.enable(
-				not self.w.metricsKeyChoice.get() in (1, 2)
-			)
 			self.w.keepCenteredThreshold.enable(
 				self.w.keepCenteredGlyphsCentered.get()
 				and self.w.keepCenteredGlyphsCentered.isEnabled()
@@ -540,7 +510,7 @@ class BatchGrader(mekkaObject):
 				gradeAxis.name = axisName
 		return gradeAxis
 
-	def addGradeLayers(self, metricsKeyChoice, master, weightedFont, gradeMaster, baseGlyph):
+	def addGradeLayers(self, master, weightedFont, gradeMaster, baseGlyph):
 		baseLayer = baseGlyph.layers[master.id]
 		baseWidth = baseLayer.width
 
@@ -560,33 +530,8 @@ class BatchGrader(mekkaObject):
 		gradeLayer.anchors = gradeLayerCopy.anchors
 		gradeLayer.hints = gradeLayerCopy.hints
 		gradeLayer.roundCoordinates()
-
-		return
-		# reinstate automatic alignment if necessary:
-		if baseLayer.isAligned and not gradeLayer.isAligned:
-			for index, gradeComponent in enumerate(gradeLayer.components):
-				baseComponent = baseLayer.components[index]
-				gradeComponent.alignment = baseComponent.alignment
-
-		# disable metrics keys where necessary/requested:
-		if (baseGlyph.leftMetricsKey or baseLayer.leftMetricsKey) and metricsKeyChoice in (1, 3):
-			isIncrementalKey = (baseLayer.isAligned and hasIncrementalKey(baseLayer))
-			if not isIncrementalKey:
-				gradeLayer.leftMetricsKey = f"=={baseGlyph.name}"
-			else:
-				gradeLayer.leftMetricsKey = baseLayer.leftMetricsKey
-		if (baseGlyph.rightMetricsKey or baseLayer.rightMetricsKey) and metricsKeyChoice in (2, 3):
-			isIncrementalKey = (baseLayer.isAligned and hasIncrementalKey(baseLayer))
-			if not isIncrementalKey:
-				gradeLayer.rightMetricsKey = f"=={baseGlyph.name}"
-			else:
-				gradeLayer.rightMetricsKey = baseLayer.rightMetricsKey
-		if baseGlyph.widthMetricsKey and metricsKeyChoice in (1, 2, 3):
-			gradeLayer.widthMetricsKey = f"=={baseGlyph.name}"
-		if (baseGlyph.leftMetricsKey or baseGlyph.rightMetricsKey) and metricsKeyChoice in (1, 2):
-			gradeLayer.syncMetrics()
-		#if hasIncrementalKey(gradeLayer):
-		#	gradeLayer.syncMetrics()
+		gradeLayer.leftMetricsKey = None
+		gradeLayer.rightMetricsKey = None
 
 	def addMissingAxisLocations(self, thisFont, gradeAxis):
 		if Glyphs.versionNumber >= 4:
@@ -665,7 +610,7 @@ class BatchGrader(mekkaObject):
 			thisFont.masters.append(gradeMaster)
 		return gradeMaster
 
-	def processCodeLine(self, codeLine, thisFont, grade, gradeAxisIdx, metricsKeyChoice, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount):
+	def processCodeLine(self, codeLine, thisFont, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount):
 		
 		pool = NSAutoreleasePool.alloc().init()
 		start = time.time()
@@ -727,11 +672,11 @@ class BatchGrader(mekkaObject):
 
 		# add interpolated content to new (graded) layer of each glyph:
 		for baseGlyph in thisFont.glyphs:
-			self.addGradeLayers(metricsKeyChoice, master, weightedFont, gradeMaster, baseGlyph)
+			self.addGradeLayers(master, weightedFont, gradeMaster, baseGlyph)
 
 		# recenter centered glyphs
 		# (in separate loop so we have all component references up to date from the previous loop)
-		if keepCenteredGlyphsCentered and metricsKeyChoice not in (1, 2):
+		if keepCenteredGlyphsCentered:
 			print("↔️ Recentering centered glyphs...")
 			for baseGlyph in thisFont.glyphs:
 				baseLayer = baseGlyph.layers[master.id]
@@ -795,7 +740,6 @@ class BatchGrader(mekkaObject):
 			# query more user choices:
 			searchFor = self.pref("searchFor")
 			replaceWith = self.pref("replaceWith")
-			metricsKeyChoice = self.pref("metricsKeyChoice")
 			keepCenteredGlyphsCentered = self.pref("keepCenteredGlyphsCentered")
 			keepCenteredThreshold = self.prefInt("keepCenteredThreshold")
 			grade = self.prefInt("grade")
@@ -804,7 +748,7 @@ class BatchGrader(mekkaObject):
 			gradeCount = 0
 			graderCode = self.pref("graderCode").strip()
 			for codeLine in graderCode.splitlines():
-				self.processCodeLine(codeLine, thisFont, grade, gradeAxisIdx, metricsKeyChoice, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount)
+				self.processCodeLine(codeLine, thisFont, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount)
 
 			# add missing axis locations if base master has axis locations:
 			self.addMissingAxisLocations(thisFont, gradeAxis)
