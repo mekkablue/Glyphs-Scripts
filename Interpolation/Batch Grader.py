@@ -422,10 +422,8 @@ class BatchGrader(mekkaObject):
 		instance.axes = axes
 		return instance.instanceInterpolations
 
-	def subsettedFont(self, font, axesValues, relevantAxes=("opsz", "wght", "wdth")):
-		font = font.copy()
-		masters = []
 		# axes = instance.axes
+	def subsettedFontKeepAxes(self, font, axesValues, relevantAxes=("opsz", "wght", "wdth")):
 
 		skipAxisIndexs = []
 		axisIndex = 0
@@ -433,6 +431,13 @@ class BatchGrader(mekkaObject):
 			if axis.axisTag not in relevantAxes:
 				skipAxisIndexs.append(axisIndex)
 			axisIndex += 1
+		return self.subsettedFontSkipAxis(font, axesValues, skipAxisIndexs)
+
+	def subsettedFontSkipAxis(self, font, axesValues, skipAxisIndexs):
+		#print("__skipAxisIndexs", skipAxisIndexs)
+		font = font.copy()
+		masters = []
+		neededMasterIds = set()
 		for master in font.masters:
 			masterAxes = master.axes
 			needsMaster = True
@@ -444,8 +449,12 @@ class BatchGrader(mekkaObject):
 					break
 			if needsMaster:
 				masters.append(master)
+				neededMasterIds.add(master.id)
 		for glyph in font.glyphs:
 			for layer in list(glyph.layers.values()):
+				if layer.associatedMasterId not in neededMasterIds:
+					glyph.removeLayerForId_(layer.layerId)
+					continue
 				if not layer.isBraceLayer:
 					continue
 				layerAxes = layer.axesValues
@@ -610,7 +619,7 @@ class BatchGrader(mekkaObject):
 			thisFont.masters.append(gradeMaster)
 		return gradeMaster
 
-	def processCodeLine(self, codeLine, thisFont, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount):
+	def processCodeLine(self, codeLine, thisFont, fontWithoutGrades, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount):
 		
 		pool = NSAutoreleasePool.alloc().init()
 		start = time.time()
@@ -658,7 +667,7 @@ class BatchGrader(mekkaObject):
 			else:
 				weightedAxes[axisIdx] = (weightedAxes[axisIdx] + value * valueFactor)
 
-		subsettedFont = self.subsettedFont(thisFont, weightedAxes, relevantAxes=axesWithInfluence)
+		subsettedFont = self.subsettedFontKeepAxes(fontWithoutGrades, weightedAxes, relevantAxes=axesWithInfluence)
 		# weighted instance/font: the shapes
 		weightedInstance = GSInstance()
 		weightedInstance.font = subsettedFont
@@ -747,8 +756,19 @@ class BatchGrader(mekkaObject):
 			# parse code and step through masters:
 			gradeCount = 0
 			graderCode = self.pref("graderCode").strip()
+
+			skipAxisIndexs = []
+			weightedAxes = []
+			axisIndex = 0
+
+			for axis in thisFont.axes:
+				if axis.axisTag == "GRAD":
+					skipAxisIndexs.append(axisIndex)
+				axisIndex += 1
+				weightedAxes.append(0)
+			fontWithoutGrades = self.subsettedFontSkipAxis(thisFont, weightedAxes, skipAxisIndexs)
 			for codeLine in graderCode.splitlines():
-				self.processCodeLine(codeLine, thisFont, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount)
+				self.processCodeLine(codeLine, thisFont, fontWithoutGrades, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount)
 
 			# add missing axis locations if base master has axis locations:
 			self.addMissingAxisLocations(thisFont, gradeAxis)
