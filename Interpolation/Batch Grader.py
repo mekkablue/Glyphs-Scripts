@@ -58,7 +58,7 @@ def biggestSubstringInStrings(strings):
 
 def updateBraceLayers(font, defaultValue=0, newAxisTag=None, newAxisValue=None):
 	axisRanges = font.variationAxesRanges_(None)  # ["GRAD"][0]
-	# newAxisID = axisIdForTag(font, tag=newAxisTag)
+	# newAxisIdx = axisIndexForTag(font, tag=newAxisTag)
 
 	for glyph in font.glyphs:
 		if not glyph.hasSpecialLayers():
@@ -147,7 +147,7 @@ def updateBraceLayers(font, defaultValue=0, newAxisTag=None, newAxisValue=None):
 			print(f"🦾 Updated {count} brace layer{'' if count==1 else 's'} for ‘{glyph.name}’")
 
 
-def axisIdForTag(font, tag="wght"):
+def axisIndexForTag(font, tag="wght"):
 	for i, a in enumerate(font.axes):
 		if a.axisTag == tag:
 			return i
@@ -374,9 +374,9 @@ class BatchGrader(mekkaObject):
 			thisFont = Glyphs.font
 			grade = self.prefInt("grade")
 			gradeAxisTag = f'{self.pref("gradeAxisTag").strip()[:4]:4}'
-			axisID = axisIdForTag(thisFont, gradeAxisTag)
-			if axisID is not None:
-				masterNames = [m.name for m in thisFont.masters if m.axes[axisID] == grade]
+			axisIdx = axisIndexForTag(thisFont, gradeAxisTag)
+			if axisIdx is not None:
+				masterNames = [m.name for m in thisFont.masters if m.axes[axisIdx] == grade]
 				commonParticle = biggestSubstringInStrings(masterNames)
 				if commonParticle:
 					excludeParticles.append(commonParticle)
@@ -594,7 +594,7 @@ class BatchGrader(mekkaObject):
 					)
 				parameter.value = axLoc
 
-	def processCodeLine(self, codeLine, thisFont, grade, gradeAxisID, metricsKeyChoice, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount):
+	def processCodeLine(self, codeLine, thisFont, grade, gradeAxisIdx, metricsKeyChoice, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount):
 		if "#" in codeLine:
 			codeLine = codeLine[: codeLine.find("#")]
 		codeLine = codeLine.strip()
@@ -629,13 +629,13 @@ class BatchGrader(mekkaObject):
 			else:
 				axisTag, value = axisCode.split("=")
 				valueFactor = 0
-			axisID = axisIdForTag(thisFont, tag=axisTag.strip())
+			axisIdx = axisIndexForTag(thisFont, tag=axisTag.strip())
 			value = int(value.strip())
 
 			if valueFactor == 0:
-				weightedAxes[axisID] = value
+				weightedAxes[axisIdx] = value
 			else:
-				weightedAxes[axisID] = (weightedAxes[axisID] + value * valueFactor)
+				weightedAxes[axisIdx] = (weightedAxes[axisIdx] + value * valueFactor)
 
 		# weighted instance/font: the shapes
 		weightedInstance = GSInstance()
@@ -741,7 +741,7 @@ class BatchGrader(mekkaObject):
 			updateBraceLayers(thisFont)
 			print()
 
-			gradeAxisID = axisIdForTag(thisFont, gradeAxis.axisTag)
+			gradeAxisIdx = axisIndexForTag(thisFont, gradeAxis.axisTag)
 
 			# query more user choices:
 			searchFor = self.pref("searchFor")
@@ -755,7 +755,7 @@ class BatchGrader(mekkaObject):
 			gradeCount = 0
 			graderCode = self.pref("graderCode").strip()
 			for codeLine in graderCode.splitlines():
-				self.processCodeLine(codeLine, thisFont, grade, gradeAxisID, metricsKeyChoice, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount)
+				self.processCodeLine(codeLine, thisFont, grade, gradeAxisIdx, metricsKeyChoice, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount)
 
 			# add missing axis locations if base master has axis locations:
 			self.addMissingAxisLocations(thisFont, gradeAxis)
