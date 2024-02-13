@@ -173,6 +173,8 @@ def straightenBCPs(layer):
 		# dot product of AB and AP
 		dotProduct = AB.x * AP.x + AB.y * AP.y
 		ABsquared = AB.x**2 + AB.y**2
+		if ABsquared < 0.0001:
+			return NSPoint(1000000, 0)
 		t = dotProduct / ABsquared
 		x = A.x + t * AB.x
 		y = A.y + t * AB.y
@@ -205,7 +207,9 @@ def straightenBCPs(layer):
 						)
 						break
 				if smoothen == center == opposite is None:
-					n.position = closestPointOnLine(n.position, nn, pn)
+					newPos = closestPointOnLine(n.position, nn, pn)
+					if newPos.x < 1000000:
+						n.position = newPos
 
 			# elif n.type != GSOFFCURVE and (nn.type, pn.type).count(GSOFFCURVE) == 1:
 			# 	# only one of the surrounding points is a BCP
