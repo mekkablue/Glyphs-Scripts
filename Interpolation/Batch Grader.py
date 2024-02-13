@@ -450,6 +450,42 @@ class BatchGrader(mekkaObject):
 		instance.axes = axes
 		return instance.instanceInterpolations
 
+	def subsettedFont(self, font, axesValues, relevantAxes=("opsz", "wght", "wdth")):
+		font = font.copy()
+		masters = []
+		# axes = instance.axes
+
+		skipAxisIndexs = []
+		axisIndex = 0
+		for axis in font.axes:
+			if axis.axisTag not in relevantAxes:
+				skipAxisIndexs.append(axisIndex)
+			axisIndex += 1
+		for master in font.masters:
+			masterAxes = master.axes
+			needsMaster = True
+			for skipAxisIndex in skipAxisIndexs:
+				instanceAxisValue = axesValues[skipAxisIndex]
+				masterAxisValue = masterAxes[skipAxisIndex]
+				if instanceAxisValue != masterAxisValue:
+					needsMaster = False
+					break
+			if needsMaster:
+				masters.append(master)
+		for glyph in font.glyphs:
+			for layer in list(glyph.layers.values()):
+				if not layer.isBraceLayer:
+					continue
+				layerAxes = layer.axesValues
+				for skipAxisIndex in skipAxisIndexs:
+					instanceAxisValue = axesValues[skipAxisIndex]
+					layerAxisValue = layerAxes[skipAxisIndex]
+					if instanceAxisValue != layerAxisValue:
+						glyph.removeLayerForId_(layer.layerId)
+						break
+		font.masters = masters
+		return font
+
 	def cleanInterpolationDict(self, instance):
 		font = instance.font
 		print(f"🙈 Cleaning interpolation dict for: {self.masterAxesString(instance)}")
@@ -502,7 +538,7 @@ class BatchGrader(mekkaObject):
 				gradeAxis.name = axisName
 		return gradeAxis
 
-	def addGradeLayers(self, metricsKeyChoice, master, weightedInstance, weightedFont, gradeMaster, baseGlyph):
+	def addGradeLayers(self, metricsKeyChoice, master, weightedFont, gradeMaster, baseGlyph):
 		baseLayer = baseGlyph.layers[master.id]
 		baseWidth = baseLayer.width
 
@@ -522,8 +558,7 @@ class BatchGrader(mekkaObject):
 		gradeLayer.hints = copy(weightedLayer.hints)
 
 		# cancel instance
-		weightedInstance.font = None
-
+		#weightedInstance.font = None
 		# reinstate automatic alignment if necessary:
 		if baseLayer.isAligned and not gradeLayer.isAligned:
 			for index, gradeComponent in enumerate(gradeLayer.components):
@@ -680,7 +715,7 @@ class BatchGrader(mekkaObject):
 
 		# add interpolated content to new (graded) layer of each glyph:
 		for baseGlyph in thisFont.glyphs:
-			self.addGradeLayers(metricsKeyChoice, master, weightedInstance, weightedFont, gradeMaster, baseGlyph)
+			self.addGradeLayers(metricsKeyChoice, master, weightedFont, gradeMaster, baseGlyph)
 
 		# recenter centered glyphs
 		# (in separate loop so we have all component references up to date from the previous loop)
