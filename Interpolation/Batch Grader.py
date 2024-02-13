@@ -629,6 +629,37 @@ class BatchGrader(mekkaObject):
 					)
 				parameter.value = axLoc
 
+	def gradeMaster(self, thisFont, master, grade, gradeAxisIdx, searchFor, replaceWith):
+
+		gradeAxes = list(master.axes)
+		gradeAxes[gradeAxisIdx] = grade
+
+		gradeMaster = None
+		for m in thisFont.masters[::-1]:
+			if m.axes == gradeAxes:
+				gradeMaster = m
+				print(f"Ⓜ️ Found master: ‘{gradeMaster.name}’")
+		if not gradeMaster:
+			gradeMaster = copy(master)
+			if searchFor and replaceWith:
+				gradeMaster.name = master.name.replace(searchFor, replaceWith)
+			elif replaceWith:
+				gradeMaster.name = master.name + replaceWith
+			else:
+				gradeMaster.name = f"{master.name} Grade {grade}"
+			gradeMaster.font = thisFont
+			gradeMaster.axes = gradeAxes
+			if self.pref("addSyncMetricCustomParameter"):
+				gradeMaster.customParameters.append(
+					GSCustomParameter(
+						"Link Metrics With Master",
+						master.id,
+					)
+				)
+			print(f"Ⓜ️ Adding master: ‘{gradeMaster.name}’")
+			thisFont.masters.append(gradeMaster)
+		return gradeMaster
+
 	def processCodeLine(self, codeLine, thisFont, grade, gradeAxisIdx, metricsKeyChoice, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount):
 		if "#" in codeLine:
 			codeLine = codeLine[: codeLine.find("#")]
@@ -680,36 +711,9 @@ class BatchGrader(mekkaObject):
 		self.cleanInterpolationDict(weightedInstance)
 		print(f"🛠️ Interpolating grade: {self.masterAxesString(weightedInstance)}")
 		weightedFont = weightedInstance.interpolatedFont
+		# get the graded master
+		gradeMaster = self.gradeMaster(thisFont, master, grade, gradeAxisIdx, searchFor, replaceWith)
 
-		# add the graded master
-		gradeMaster = copy(master)
-		if searchFor and replaceWith:
-			gradeMaster.name = master.name.replace(searchFor, replaceWith)
-		elif replaceWith:
-			gradeMaster.name = master.name + replaceWith
-		else:
-			gradeMaster.name = f"{master.name} Grade {grade}"
-		gradeMaster.font = thisFont
-		gradeAxes = list(master.axes)
-		gradeAxes[gradeAxisID] = grade
-		gradeMaster.axes = gradeAxes
-		if self.pref("addSyncMetricCustomParameter"):
-			gradeMaster.customParameters.append(
-				GSCustomParameter(
-					"Link Metrics With Master",
-					master.id,
-				)
-			)
-
-		for m in thisFont.masters[::-1]:
-			if m.axes == gradeMaster.axes:
-				# remove preexisting graded masters if there are any
-				print(f"❌ Removing preexisting graded master ‘{m.name}’")
-				thisFont.removeFontMaster_(m)
-
-		# otherwise add the one we built above:
-		print(f"Ⓜ️ Adding master: ‘{gradeMaster.name}’")
-		thisFont.masters.append(gradeMaster)
 
 		# add interpolated content to new (graded) layer of each glyph:
 		for baseGlyph in thisFont.glyphs:
