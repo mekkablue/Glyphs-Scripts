@@ -7,8 +7,10 @@ Batch-add graded masters to a multiple-master setup.
 """
 
 import vanilla
+import time
+import datetime
 from copy import copy
-from Foundation import NSPoint
+from Foundation import NSPoint, NSAutoreleasePool
 from AppKit import NSFont
 from GlyphsApp import Glyphs, GSFont, GSLayer, GSAxis, GSInstance, GSCustomParameter, GSSMOOTH, GSOFFCURVE, Message
 from mekkablue import mekkaObject
@@ -664,6 +666,9 @@ class BatchGrader(mekkaObject):
 		return gradeMaster
 
 	def processCodeLine(self, codeLine, thisFont, grade, gradeAxisIdx, metricsKeyChoice, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount):
+		
+		pool = NSAutoreleasePool.alloc().init()
+		start = time.time()
 		if "#" in codeLine:
 			codeLine = codeLine[: codeLine.find("#")]
 		codeLine = codeLine.strip()
@@ -735,7 +740,7 @@ class BatchGrader(mekkaObject):
 					offCenter = gradeLayer.RSB - gradeLayer.LSB
 					if abs(offCenter) > 1:
 						gradeLayer.applyTransform((1, 0, 0, 1, offCenter // 2, 0))
-		print()
+		print(f"\n process line in {time.time() - start:.2f} s.\n")
 
 	def addGradedBraceLayers(self, thisFont, gradeAxis, grade):
 		if self.pref("addGradedBraceLayers"):
@@ -753,7 +758,6 @@ class BatchGrader(mekkaObject):
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
-			import time
 			start = time.time()
 			# update settings to the latest user input:
 			self.SavePreferences()
@@ -815,7 +819,8 @@ class BatchGrader(mekkaObject):
 
 			thisFont.didChangeValueForKey_("fontMasters")
 			self.w.close()  # delete if you want window to stay open
-			print(f"\n✅ Done in {time.time() - start} s.")
+			timeStr = str(datetime.timedelta(seconds=round(time.time() - start)))
+			print(f"\n✅ Done in {timeStr} s.\n")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
