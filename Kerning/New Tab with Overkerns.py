@@ -189,6 +189,19 @@ class NewTabwithOverkernedPairs(mekkaObject):
 									rightWidth = rightGlyph.layers[thisMaster.id].width
 									rightGlyphName = rightGlyph.name
 
+								# possibly update the value, considering exceptions:
+								# (this eliminates false positives)
+								kernValueException = thisFont.kerningForPair(thisMaster.id, leftGlyphName, rightGlyphName)
+								if kernValueException is not None:
+									kernValue = kernValueException
+									# note: for class kerning, we are only checking the narrowest glyph-glyph pair.
+									#       if this pair has overkerning that is fixed via an exception
+									#       we might miss overkerned glyph-glyph pairs covered by the class kerning pair.
+									# TODO: to be really correct and complete, we need to check all possible glyph-glyph pairs
+									#       considering exceptions.
+									#       however, this would mean we may generate warnings
+									#       for pairs that practically do not occur in real life.
+
 								# compare widths and collect overkern if it is one:
 								minAllowedKernValue = - thresholdFactor * min(leftWidth, rightWidth)
 								if kernValue < minAllowedKernValue:
