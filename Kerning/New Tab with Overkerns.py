@@ -195,11 +195,11 @@ class NewTabwithOverkernedPairs(mekkaObject):
 									overKernCount += 1
 									layers.append(thisFont.glyphs[leftGlyphName].layers[thisMaster.id])
 									layers.append(thisFont.glyphs[rightGlyphName].layers[thisMaster.id])
-									print(f"\tOverkern: {leftGlyphName} ↔️ {rightGlyphName} ({kernValue:.0f} vs. max {maxPossibleKernValue:.1f})")
+									print(f"\tOverkern: {leftGlyphName} ↔️ {rightGlyphName} ({kernValue:.0f} vs. min {minAllowedKernValue:.1f})")
 									if thisFont.glyphs["space"]:
 										layers.append(thisFont.glyphs["space"].layers[thisMaster.id])
 									if shouldFix:
-										masterKerning[leftKey][rightKey] = -roundedDownBy(maxPossibleKernValue, rounding)
+										masterKerning[leftKey][rightKey] = -roundedDownBy(-minAllowedKernValue, rounding)
 
 							except Exception as e:
 								# probably a kerning group name found in the kerning data, but no glyph assigned to it:
