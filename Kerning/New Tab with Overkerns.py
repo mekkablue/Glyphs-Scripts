@@ -171,7 +171,7 @@ class NewTabwithOverkernedPairs(mekkaObject):
 									leftGlyph = thisFont.glyphForId_(leftKey)
 									# exclude if non-exporting and user limited to exporting glyphs:
 									if self.pref("limitToExportingGlyphs") and not leftGlyph.export:
-										kernValue = 0.0
+										continue
 									leftWidth = leftGlyph.layers[thisMaster.id].width
 									leftGlyphName = leftGlyph.name
 
@@ -185,7 +185,7 @@ class NewTabwithOverkernedPairs(mekkaObject):
 									rightGlyph = thisFont.glyphForId_(rightKey)
 									# exclude if non-exporting and user limited to exporting glyphs:
 									if self.pref("limitToExportingGlyphs") and not rightGlyph.export:
-										kernValue = 0.0
+										continue
 									rightWidth = rightGlyph.layers[thisMaster.id].width
 									rightGlyphName = rightGlyph.name
 
