@@ -190,9 +190,8 @@ class NewTabwithOverkernedPairs(mekkaObject):
 									rightGlyphName = rightGlyph.name
 
 								# compare widths and collect overkern if it is one:
-								# (kernValue of excluded glyphs will be 0.0 and not trigger the if clause)
-								maxPossibleKernValue = min(thresholdFactor * leftWidth, thresholdFactor * rightWidth)
-								if abs(kernValue) > maxPossibleKernValue:
+								minAllowedKernValue = - thresholdFactor * min(leftWidth, rightWidth)
+								if kernValue < minAllowedKernValue:
 									overKernCount += 1
 									layers.append(thisFont.glyphs[leftGlyphName].layers[thisMaster.id])
 									layers.append(thisFont.glyphs[rightGlyphName].layers[thisMaster.id])
