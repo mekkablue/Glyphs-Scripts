@@ -296,12 +296,6 @@ class BatchGrader(mekkaObject):
 		linePos += lineHeight
 
 		tooltipText = "When refitting the graded shapes into the respective base widths, what should happen with metrics keys? If you don’t do anything, it will still work, but Glyphs will show a lot of metric sync warnings in Font View. If you disable all keys, the script will add self referential layer keys to overwrite the glyph keys, effectively disabling the metrics key on the graded master. In special cases, you can also choose to prefer (and update) the keys of one side only."
-		metricsKeyOptions = (
-			"Don’t do anything (will keep metrics warnings though)",
-			"Prefer RSB keys (and disable LSB keys in graded masters)",
-			"Prefer LSB keys (and disable RSB keys in graded masters)",
-			"Disable all keys in graded masters (recommended)",
-		)
 
 		tooltipText = "Will actively recenter glyphs after interpolation if they are centered in the base master. The threshold specifies the maximum difference between LSB and RSB that is acceptable to consider the glyph centered. Best to use 1 or 2."
 		self.w.keepCenteredGlyphsCentered = vanilla.CheckBox((inset, linePos, 305, 20), "Keep centered glyphs centered; max SB diff threshold:", value=False, callback=self.SavePreferences, sizeStyle="small")
