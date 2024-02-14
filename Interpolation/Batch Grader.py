@@ -428,7 +428,6 @@ class BatchGrader(mekkaObject):
 		return self.subsettedFontSkipAxis(font, axesValues, skipAxisIndexs)
 
 	def subsettedFontSkipAxis(self, font, axesValues, skipAxisIndexs):
-		#print("__skipAxisIndexs", skipAxisIndexs)
 		font = font.copy()
 		masters = []
 		neededMasterIds = set()
@@ -591,7 +590,7 @@ class BatchGrader(mekkaObject):
 		for m in thisFont.masters[::-1]:
 			if m.axes == gradeAxes:
 				gradeMaster = m
-				#print(f"Ⓜ️ Found master: ‘{gradeMaster.name}’")
+				# print(f"Ⓜ️ Found master: ‘{gradeMaster.name}’")
 		if not gradeMaster:
 			gradeMaster = copy(master)
 			if searchFor and replaceWith:
@@ -614,7 +613,7 @@ class BatchGrader(mekkaObject):
 		return gradeMaster
 
 	def processCodeLine(self, codeLine, thisFont, fontWithoutGrades, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount):
-		
+
 		pool = NSAutoreleasePool.alloc().init()
 		start = time.time()
 		if "#" in codeLine:
