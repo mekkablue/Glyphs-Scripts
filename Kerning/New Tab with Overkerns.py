@@ -155,65 +155,65 @@ class NewTabwithOverkernedPairs(mekkaObject):
 					for leftKey in masterKerning.keys():
 						for rightKey in masterKerning[leftKey].keys():
 							kernValue = masterKerning[leftKey][rightKey]
-							if kernValue < 0:
-								leftWidth = None
-								rightWidth = None
+							if kernValue >= 0:
+								continue
+							leftWidth = None
+							rightWidth = None
+							try:
+								# collect widths for comparison
+								if leftKey[0] == "@":
+									# leftKey is a group name like "@MMK_L_y"
+									groupName = leftKey[7:]
+									leftWidth = rightGroupMinimumWidths[groupName]
+									leftGlyphName = rightGroupNarrowestGlyphs[groupName]
+								else:
+									# leftKey is a glyph ID like "59B740DA-A4F4-43DF-B6DD-1DFA213FFFE7"
+									leftGlyph = thisFont.glyphForId_(leftKey)
+									# exclude if non-exporting and user limited to exporting glyphs:
+									if self.pref("limitToExportingGlyphs") and not leftGlyph.export:
+										kernValue = 0.0
+									leftWidth = leftGlyph.layers[thisMaster.id].width
+									leftGlyphName = leftGlyph.name
 
-								try:
-									# collect widths for comparison
-									if leftKey[0] == "@":
-										# leftKey is a group name like "@MMK_L_y"
-										groupName = leftKey[7:]
-										leftWidth = rightGroupMinimumWidths[groupName]
-										leftGlyphName = rightGroupNarrowestGlyphs[groupName]
-									else:
-										# leftKey is a glyph ID like "59B740DA-A4F4-43DF-B6DD-1DFA213FFFE7"
-										leftGlyph = thisFont.glyphForId_(leftKey)
-										# exclude if non-exporting and user limited to exporting glyphs:
-										if self.pref("limitToExportingGlyphs") and not leftGlyph.export:
-											kernValue = 0.0
-										leftWidth = leftGlyph.layers[thisMaster.id].width
-										leftGlyphName = leftGlyph.name
+								if rightKey[0] == "@":
+									# rightKey is a group name like "@MMK_R_y"
+									groupName = rightKey[7:]
+									rightWidth = leftGroupMinimumWidths[groupName]
+									rightGlyphName = leftGroupNarrowestGlyphs[groupName]
+								else:
+									# rightKey is a glyph ID like "59B740DA-A4F4-43DF-B6DD-1DFA213FFFE7"
+									rightGlyph = thisFont.glyphForId_(rightKey)
+									# exclude if non-exporting and user limited to exporting glyphs:
+									if self.pref("limitToExportingGlyphs") and not rightGlyph.export:
+										kernValue = 0.0
+									rightWidth = rightGlyph.layers[thisMaster.id].width
+									rightGlyphName = rightGlyph.name
 
-									if rightKey[0] == "@":
-										# rightKey is a group name like "@MMK_R_y"
-										groupName = rightKey[7:]
-										rightWidth = leftGroupMinimumWidths[groupName]
-										rightGlyphName = leftGroupNarrowestGlyphs[groupName]
-									else:
-										# rightKey is a glyph ID like "59B740DA-A4F4-43DF-B6DD-1DFA213FFFE7"
-										rightGlyph = thisFont.glyphForId_(rightKey)
-										# exclude if non-exporting and user limited to exporting glyphs:
-										if self.pref("limitToExportingGlyphs") and not rightGlyph.export:
-											kernValue = 0.0
-										rightWidth = rightGlyph.layers[thisMaster.id].width
-										rightGlyphName = rightGlyph.name
+								# compare widths and collect overkern if it is one:
+								# (kernValue of excluded glyphs will be 0.0 and not trigger the if clause)
+								maxPossibleKernValue = min(thresholdFactor * leftWidth, thresholdFactor * rightWidth)
+								if abs(kernValue) > maxPossibleKernValue:
+									overKernCount += 1
+									layers.append(thisFont.glyphs[leftGlyphName].layers[thisMaster.id])
+									layers.append(thisFont.glyphs[rightGlyphName].layers[thisMaster.id])
+									print(f"\tOverkern: {leftGlyphName} ↔️ {rightGlyphName} ({kernValue:.0f} vs. max {maxPossibleKernValue:.1f})")
+									if thisFont.glyphs["space"]:
+										layers.append(thisFont.glyphs["space"].layers[thisMaster.id])
+									if shouldFix:
+										masterKerning[leftKey][rightKey] = -roundedDownBy(maxPossibleKernValue, rounding)
 
-									# compare widths and collect overkern if it is one:
-									# (kernValue of excluded glyphs will be 0.0 and not trigger the if clause)
-									maxPossibleKernValue = min(thresholdFactor * leftWidth, thresholdFactor * rightWidth)
-									if abs(kernValue) > maxPossibleKernValue:
-										overKernCount += 1
-										layers.append(thisFont.glyphs[leftGlyphName].layers[thisMaster.id])
-										layers.append(thisFont.glyphs[rightGlyphName].layers[thisMaster.id])
-										print(f"\tOverkern: {leftGlyphName} ↔️ {rightGlyphName} ({kernValue:.0f} vs. max {maxPossibleKernValue:.1f})")
-										if thisFont.glyphs["space"]:
-											layers.append(thisFont.glyphs["space"].layers[thisMaster.id])
-										if shouldFix:
-											masterKerning[leftKey][rightKey] = -roundedDownBy(maxPossibleKernValue, rounding)
-
-								except Exception as e:
-									# probably a kerning group name found in the kerning data, but no glyph assigned to it:
-									# brings macro window to front and reports warning:
-									print(e)
-									import traceback
-									errormsg = traceback.format_exc()
-									for side in ("left", "right"):
-										if side not in errormsg.lower():
-											print(
-												f"⚠️ Warning: The {side} group ‘{groupName}’ found in your kerning data does not appear in any glyph. Clean up your kerning, and run the script again."
-											)
-											Glyphs.showMacroWindow()
+							except Exception as e:
+								# probably a kerning group name found in the kerning data, but no glyph assigned to it:
+								# brings macro window to front and reports warning:
+								print(e)
+								import traceback
+								errormsg = traceback.format_exc()
+								for side in ("left", "right"):
+									if side not in errormsg.lower():
+										print(
+											f"⚠️ Warning: The {side} group ‘{groupName}’ found in your kerning data does not appear in any glyph. Clean up your kerning, and run the script again."
+										)
+										Glyphs.showMacroWindow()
 
 					if layers:
 						layers.append(GSControlLayer.newline())
