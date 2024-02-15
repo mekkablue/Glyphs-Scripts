@@ -330,14 +330,18 @@ class SetTTFAutohintOptions(mekkaObject):
 			enteredValue = Glyphs.defaults[f"com.mekkablue.SetTTFAutohintOptions.{optionName}"]
 
 			firstDoc = Glyphs.orderedDocuments()[0]
-			try:
+			if firstDoc.fileType() != "com.glyphsapp.glyphsproject":
 				thisFont = firstDoc.font
-			except Exception as e:  # noqa: F841
-				thisFont = firstDoc.font()  # frontmost project file?
-			try:
-				instances = thisFont.instances
-			except Exception as e:  # noqa: F841
-				instances = firstDoc.instances()  # GLYPHS 2
+				if Glyphs.versionNumber >= 3:
+					instances = thisFont.instances
+				else:
+					instances = thisFont.instances()  # GLYPHS 2
+			else:  # frontmost = project file
+				thisFont = firstDoc.font()
+				if Glyphs.versionNumber >= 3:
+					instances = firstDoc.instances
+				else:
+					instances = firstDoc.instances()  # GLYPHS 2
 
 			if enteredValue != "" or optionName in valuelessOptions:
 				for thisInstance in instances:
