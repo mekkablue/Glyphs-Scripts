@@ -15,7 +15,7 @@ Glyphs.registerDefault("com.mekkablue.WebFontTestHTML.includeEOT", 0)
 def saveFileInLocation(content="Sorry, no content generated.", fileName="test.txt", filePath="~/Desktop"):
 	saveFileLocation = "%s/%s" % (filePath, fileName)
 	saveFileLocation = saveFileLocation.replace("//", "/")
-	with codecs.open(saveFileLocation, "w", "utf-8-sig") as thisFile:
+	with codecs.open(saveFileLocation, "w", "utf-8") as thisFile:
 		print("Exporting to:", thisFile.name)
 		thisFile.write(content)
 		thisFile.close()
