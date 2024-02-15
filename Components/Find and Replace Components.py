@@ -20,12 +20,14 @@ def replaceComponent(thisLayer, oldCompName, newCompName):
 					if thisLayer.components[i].componentName == oldCompName:
 						thisLayer.components[i].componentName = newCompName
 						count += 1
-				print("\t✅ Replaced %i component%s in %s, layer: %s" % (
-					count,
-					"" if count == 1 else "s",
-					thisGlyph.name,
-					thisLayer.name,
-				))
+				print(
+					"\t✅ Replaced %i component%s in %s, layer: %s" % (
+						count,
+						"" if count == 1 else "s",
+						thisGlyph.name,
+						thisLayer.name,
+					)
+				)
 			else:
 				print(
 					"\t⚠️ Cannot insert %s into itself. Skipping %slayer: %s" % (
@@ -71,24 +73,25 @@ class ComponentReplacer(mekkaObject):
 		linePos, inset, lineHeight = 10, 15, 22
 
 		self.w.textReplace = vanilla.TextBox((inset, linePos + 2, inset + 50, 14), "Replace", sizeStyle='small')
-		self.w.componentName = vanilla.PopUpButton((inset + 50, linePos, 100, 17), self.GetComponentNames(), sizeStyle='small')
-		self.w.componentName.getNSPopUpButton().setToolTip_(u"The name of the component you want to replace. If it is not shown here, make a glyph selection and press the ↺ Update button. This will populate the menu with the names of all components in selected glyphs.")
-		self.w.resetComponentName = vanilla.SquareButton((inset + 50 + 100 + 5, linePos, 20, 18), u"↺", sizeStyle='small', callback=self.SetComponentNames)
+		self.w.oldCompName = vanilla.ComboBox((inset + 50, linePos-1, 100, 17), self.GetComponentNames(), sizeStyle='small')
+		self.w.oldCompName.getNSComboBox().setToolTip_("The name of the component you want to replace. If it is not shown here, make a glyph selection and press the ↺ Update button. This will populate the menu with the names of all components in selected glyphs.")
+		self.w.resetComponentName = vanilla.SquareButton((inset + 50 + 100 + 5, linePos, 20, 18), "↺", sizeStyle='small', callback=self.SetComponentNames)
 
 		self.w.textBy = vanilla.TextBox((inset + 50 + 100 + 35, linePos + 2, 20, 14), "by", sizeStyle='small')
-		# self.w.componentNewName = vanilla.EditText((65+100+35+25, linePos, -inset-95, 19), "", sizeStyle='small', callback=self.SavePreferences)
-		self.w.componentNewName = vanilla.ComboBox((65 + 100 + 35 + 25, linePos - 1, -inset - 95, 19), self.getAllGlyphNamesOfFrontmostFont(), sizeStyle='small', callback=self.SavePreferences)
-		self.w.componentNewName.getNSComboBox().setToolTip_(u"The name of the component you want to insert instead of the component chosen in the menu.")
-		self.w.resetComponentNewName = vanilla.SquareButton((-inset - 90, linePos, -inset - 70, 18), u"↺", sizeStyle='small', callback=self.ResetComponentNewName)
+		# self.w.newCompName = vanilla.EditText((65+100+35+25, linePos, -inset-95, 19), "", sizeStyle='small', callback=self.SavePreferences)
+		self.w.newCompName = vanilla.ComboBox((65 + 100 + 35 + 25, linePos - 1, -inset - 95, 19), self.getAllGlyphNamesOfFrontmostFont(), sizeStyle='small', callback=self.SavePreferences)
+		self.w.newCompName.getNSComboBox().setToolTip_("The name of the component you want to insert instead of the component chosen in the menu.")
+		self.w.resetNewCompName = vanilla.SquareButton((-inset - 90, linePos, -inset - 70, 18), "↺", sizeStyle='small', callback=self.resetNewCompName)
+		
 		self.w.replaceButton = vanilla.Button((-inset - 60, linePos + 1, -inset, 17), "Replace", sizeStyle='small', callback=self.FindAndReplaceMain)
 		self.w.setDefaultButton(self.w.replaceButton)
 
 		linePos += lineHeight
 
 		self.w.includeAllLayers = vanilla.CheckBox((inset, linePos, 120, 18), "Include all layers", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeAllLayers.getNSButton().setToolTip_(u"If checked, will not only treat visible selected layers, but ALL (master, special and backup) layers of all selected glyphs.")
-		self.w.includeBackgrounds = vanilla.CheckBox((inset + 120, linePos, -inset, 20), u"Include backgrounds", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeBackgrounds.getNSButton().setToolTip_(u"If checked, will also go through backgrounds of all treated layers.")
+		self.w.includeAllLayers.getNSButton().setToolTip_("If checked, will not only treat visible selected layers, but ALL (master, special and backup) layers of all selected glyphs.")
+		self.w.includeBackgrounds = vanilla.CheckBox((inset + 120, linePos, -inset, 20), "Include backgrounds", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeBackgrounds.getNSButton().setToolTip_("If checked, will also go through backgrounds of all treated layers.")
 		linePos += lineHeight
 
 		self.LoadPreferences()
@@ -103,10 +106,8 @@ class ComponentReplacer(mekkaObject):
 			return [g.name for g in thisFont.glyphs]
 
 	def updateUI(self, sender=None):
-		itemCount = len(self.w.componentName.getItems())
-		selectedIndex = self.w.componentName.get()
 		namesDifferent = self.pref("oldCompName") != self.pref("newCompName")
-		enableButton = itemCount > 0 and selectedIndex < itemCount and namesDifferent
+		enableButton = namesDifferent
 		self.w.replaceButton.enable(enableButton)
 
 	def GetComponentNames(self):
@@ -131,21 +132,21 @@ class ComponentReplacer(mekkaObject):
 	def SetComponentNames(self, sender=None):
 		try:
 			myComponentList = self.GetComponentNames()
-			self.w.componentName.setItems(myComponentList)
+			self.w.oldCompName.setItems(myComponentList)
 			self.updateUI()
 			return True
 		except:
 			return False
 
-	def ResetComponentNewName(self, sender=None):
+	def resetNewCompName(self, sender=None):
 		try:
 			thisFont = Glyphs.font
 			# reset glyph list
-			self.w.componentNewName.setItems(self.getAllGlyphNamesOfFrontmostFont())
+			self.w.newCompName.setItems(self.getAllGlyphNamesOfFrontmostFont())
 
 			# reset name:
 			if not thisFont:
-				self.w.componentNewName.set("")
+				self.w.newCompName.set("")
 			else:
 				if thisFont.selectedLayers:
 					glyph = thisFont.selectedLayers[0].parent
@@ -163,7 +164,7 @@ class ComponentReplacer(mekkaObject):
 					if thisFont.glyphs[glyphName + ending]:
 						glyphName = glyphName + ending
 
-				self.w.componentNewName.set(glyphName)
+				self.w.newCompName.set(glyphName)
 			self.updateUI()
 			return True
 		except:
@@ -200,7 +201,7 @@ class ComponentReplacer(mekkaObject):
 				if includeAllLayers:
 					selectedGlyphs = [layer.parent for layer in selectedLayers]
 					for thisGlyph in selectedGlyphs:
-						print("Processing %s:" % thisGlyph.name)
+						print(f"Processing {thisGlyph.name}:")
 						for thisLayer in thisGlyph.layers:
 							totalCount += replaceComponent(thisLayer, oldComponentName, newComponentName)
 						if includeBackgrounds:
@@ -228,11 +229,11 @@ class ComponentReplacer(mekkaObject):
 				"" if totalCount == 1 else "s",
 			)
 			# ... in Macro Window:
-			print("\nDone. %s." % msg)
+			print("\nDone. {msg}.")
 			# ... in Floating Notification:
 			Glyphs.showNotification(
-				u"%s: components replaced" % (thisFont.familyName),
-				u"%s in total. Detailed report in Macro Window." % msg,
+				f"{thisFont.familyName}: components replaced",
+				f"{msg} in total. Detailed report in Macro Window.",
 			)
 
 
