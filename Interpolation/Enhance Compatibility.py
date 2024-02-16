@@ -218,7 +218,7 @@ class EnhanceCompatibility(mekkaObject):
 					print(f"\n🔤 {g.name}\n")
 
 					if otherFont:
-						sourceFont = self.currentFonts(self.prefInt("sourceFont"))
+						sourceFont = self.currentFonts[self.prefInt("sourceFont")]
 						sourceMaster = sourceFont.masters[self.prefInt("sourceMaster")]
 						l1 = sourceFont.glyphs[g.name].layers[sourceMaster.id]
 					else:
