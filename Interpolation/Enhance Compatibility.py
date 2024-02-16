@@ -112,8 +112,8 @@ class EnhanceCompatibility(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos, -1, 14), "In compatible layers of selected glyphs, sync with selected layer:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
-		self.w.fixType = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Sync node types (oncurve vs.GSOFFCURVE)", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.fixType.getNSButton().setToolTip_("Will propagate the current layer’s node types (oncurve vs.GSOFFCURVE) to other compatible layers. Useful in TT paths.")
+		self.w.fixType = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Sync node types (oncurve vs. offcurve)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.fixType.getNSButton().setToolTip_("Will propagate the current layer’s node types (oncurve vs. offcurve) to other compatible layers. Useful in TT paths.")
 		linePos += lineHeight
 
 		self.w.fixConnection = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Sync node connection (corner vs. smooth)", value=False, callback=self.SavePreferences, sizeStyle="small")
@@ -158,7 +158,7 @@ class EnhanceCompatibility(mekkaObject):
 	def updateUI(self, sender=None):
 		excludeKeys = ("otherFont", "sourceFont", "sourceMaster")
 		allPrefs = [k for k in self.prefDict.keys() if k not in excludeKeys]
-		shouldEnable = any([self.pref("k") for k in allPrefs])
+		shouldEnable = any([self.pref(k) for k in allPrefs])
 		self.w.runButton.enable(shouldEnable)
 
 		shouldEnable = self.w.otherFont.get()
