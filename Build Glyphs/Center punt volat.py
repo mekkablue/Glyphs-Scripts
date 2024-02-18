@@ -6,16 +6,13 @@ Shifts all periodcentered.loclCAT glyphs horizontally so it fits between two L�
 ⚠️ Hold down ⌘ Cmd and ⇧ Shift for processing ALL open fonts.
 """
 
-from AppKit import NSMidY, NSAffineTransform, NSEvent
+from AppKit import NSMidY, NSAffineTransform, NSEvent, NSCommandKeyMask, NSShiftKeyMask
 from Foundation import NSMutableAttributedString, NSAttributedString
 from GlyphsApp import Glyphs, GSControlLayer
 
-
 keysPressed = NSEvent.modifierFlags()
-commandKey = 1048576
-shiftKey = 131072
-commandKeyPressed = keysPressed & commandKey == commandKey
-shiftKeyPressed = keysPressed & shiftKey == shiftKey
+commandKeyPressed = (keysPressed & NSCommandKeyMask) == NSCommandKeyMask
+shiftKeyPressed = (keysPressed & NSShiftKeyMask) == NSShiftKeyMask
 
 Glyphs.clearLog()  # clears log in Macro window
 print("Report for ‘Center punt volat’")
