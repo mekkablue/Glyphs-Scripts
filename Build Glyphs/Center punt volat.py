@@ -126,25 +126,8 @@ for thisFont in theseFonts:
 					theseLayers.append(GSControlLayer.newline())
 
 				if theseLayers:
-					# thisFont.currentTab.layers.append( theseLayers )  # BROKEN IN 1224
-					# WORKAROUND:
-					string = NSMutableAttributedString.alloc().init()
-					for layer in theseLayers:
-						if layer.className() == "GSLayer":
-							char = chr(thisFont.characterForGlyph_(layer.parent))
-							A = NSAttributedString.alloc().initWithString_attributes_(char, {
-								"GSLayerIdAttrib": layer.layerId
-							})
-						elif layer.className() == "GSBackgroundLayer":
-							char = chr(thisFont.characterForGlyph_(layer.parent))
-							A = NSAttributedString.alloc().initWithString_attributes_(char, {
-								"GSLayerIdAttrib": layer.layerId,
-								"GSShowBackgroundAttrib": True
-							})
-						elif layer.className() == "GSControlLayer":
-							char = chr(layer.parent.unicodeChar())
-							A = NSAttributedString.alloc().initWithString_(char)
-						else:
-							raise ValueError
-						string.appendAttributedString_(A)
-					thisFont.currentTab.graphicView().textStorage().setText_(string)
+					if Glyphs.versionNumber >= 3:
+						thisFont.currentTab.layers.extend(theseLayers)
+					else:
+						for layer in theseLayers:
+							thisFont.currentTab.layers.append(layer)

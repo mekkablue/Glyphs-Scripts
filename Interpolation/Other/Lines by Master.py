@@ -29,33 +29,9 @@ for m in thisFont.masters:
 
 	theseLayers.append(GSControlLayer.newline())
 
-
-def charFromCode(charCode):
-	if glyphs3:
-		return chr(charCode)
-	return unichr(charCode)  # noqa F821
-
-
 if theseLayers:
-	# thisFont.currentTab.layers.append( theseLayers )  # BROKEN IN 1224
-	# WORKAROUND:
-	string = NSMutableAttributedString.alloc().init()
-	for layer in theseLayers:
-		if isinstance(layer, GSLayer):
-			char = charFromCode(thisFont.characterForGlyph_(l.parent))
-			A = NSAttributedString.alloc().initWithString_attributes_(char, {
-				"GSLayerIdAttrib": layer.layerId
-			})
-		elif isinstance(layer, GSBackgroundLayer):
-			char = charFromCode(thisFont.characterForGlyph_(l.parent))
-			A = NSAttributedString.alloc().initWithString_attributes_(char, {
-				"GSLayerIdAttrib": layer.layerId,
-				"GSShowBackgroundAttrib": True
-			})
-		elif isinstance(layer, GSControlLayer):
-			char = charFromCode(l.parent.unicodeChar())
-			A = NSAttributedString.alloc().initWithString_(char)
-		else:
-			raise ValueError
-		string.appendAttributedString_(A)
-	thisFont.currentTab.graphicView().textStorage().setText_(string)
+	if glyphs3:
+		thisFont.currentTab.layers.extend(theseLayers)
+	else:
+		for layer in theseLayers:
+			thisFont.currentTab.layers.append(layer)
