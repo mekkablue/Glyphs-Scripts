@@ -106,7 +106,7 @@ class BatchSetPathAttributes(mekkaObject):
 		self.w.strokePosText = vanilla.TextBox((inset * 2, linePos + 2, indent, 14), "Position", sizeStyle='small', selectable=True)
 		self.w.strokePosText.getNSTextField().setToolTip_(tooltip)
 		self.w.strokePos = vanilla.PopUpButton((inset * 2 + indent, linePos, -inset, 19), sortedStrokePositionNames, sizeStyle='small', callback=self.SavePreferences)
-		# self.w.strokePos = vanilla.EditText( (inset*2+indent, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small' )
+		# self.w.strokePos = vanilla.EditText((inset*2+indent, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.strokePos.getNSPopUpButton().setToolTip_(tooltip)
 		linePos += lineHeight
 

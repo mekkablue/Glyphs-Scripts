@@ -58,7 +58,7 @@ g = Layer.parent
 for i in range(0,105,5):
 	inst = Font.instances[0]
 	Font.instances[0].weightValue = 100.0+i
-	l =	 glyphInterpolation( g.name, inst )
+	l =	 glyphInterpolation(g.name, inst)
 	p = l.paths[0]
 	point = p.nodes[0]
 	print i, orthogonalDistance(point.position, point.prevNode.position, point.nextNode.position)

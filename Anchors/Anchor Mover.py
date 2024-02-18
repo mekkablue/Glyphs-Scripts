@@ -78,7 +78,7 @@ listVertical = (
 	("baseline", "0.0"),
 	("descender", "selectedDescender"),
 	("bbox top", "copyLayer.fastBounds().origin.y + copyLayer.fastBounds().size.height"),
-	("bbox center", "copyLayer.fastBounds().origin.y + ( copyLayer.fastBounds().size.height // 2.0 )"),
+	("bbox center", "copyLayer.fastBounds().origin.y + (copyLayer.fastBounds().size.height // 2.0)"),
 	("bbox bottom", "copyLayer.fastBounds().origin.y"),
 	("leftmost node", "leftmostNodeInLayer(copyLayer).y"),
 	("rightmost node", "rightmostNodeInLayer(copyLayer).y"),

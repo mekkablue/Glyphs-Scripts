@@ -91,15 +91,15 @@ class MetricsKeyManager(mekkaObject):
 		linePos, inset, lineHeight, boxHeight = self.getMeasurements()
 
 		self.w.LeftMetricsKeysText = vanilla.TextBox((inset, linePos + 2, 70, 14), "Left Keys:", sizeStyle='small', selectable=True)
-		self.w.LeftMetricsKeys = vanilla.TextEditor((inset + 70, linePos, -inset, boxHeight), "", callback=self.SavePreferences)  # , sizeStyle='small' )
+		self.w.LeftMetricsKeys = vanilla.TextEditor((inset + 70, linePos, -inset, boxHeight), "", callback=self.SavePreferences)  # , sizeStyle='small')
 
 		linePos += boxHeight + 10
 		self.w.RightMetricsKeysText = vanilla.TextBox((inset, linePos + 2, 70, 14), "Right Keys:", sizeStyle='small', selectable=True)
-		self.w.RightMetricsKeys = vanilla.TextEditor((inset + 70, linePos, -inset, boxHeight), "", callback=self.SavePreferences)  # , sizeStyle='small' )
+		self.w.RightMetricsKeys = vanilla.TextEditor((inset + 70, linePos, -inset, boxHeight), "", callback=self.SavePreferences)  # , sizeStyle='small')
 
 		linePos += boxHeight + 10
 		self.w.WidthMetricsKeysText = vanilla.TextBox((inset, linePos + 2, 70, 14), "Width Keys:", sizeStyle='small', selectable=True)
-		self.w.WidthMetricsKeys = vanilla.TextEditor((inset + 70, linePos, -inset, boxHeight), "", callback=self.SavePreferences)  # , sizeStyle='small' )
+		self.w.WidthMetricsKeys = vanilla.TextEditor((inset + 70, linePos, -inset, boxHeight), "", callback=self.SavePreferences)  # , sizeStyle='small')
 
 		size = NSFont.smallSystemFontSize()
 		editFont = NSFont.userFixedPitchFontOfSize_(size)

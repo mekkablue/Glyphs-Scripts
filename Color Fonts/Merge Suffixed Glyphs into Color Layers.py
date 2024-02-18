@@ -74,7 +74,7 @@ class MergeSuffixedGlyphsIntoColorLayers(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Merge", sizeStyle='regular', callback=self.MergeSuffixedGlyphsIntoColorLayersMain)
-		# self.w.setDefaultButton( self.w.runButton )
+		# self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
 		self.LoadPreferences()

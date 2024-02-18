@@ -203,7 +203,7 @@ class VariationInterpolator(mekkaObject):
 				choice = self.pref("choice")
 				selectedGlyphs = [layer.parent for layer in thisFont.selectedLayers]  # currently selected glyphs
 				incompatible = []
-				
+
 				if choice < 2:
 					# interpolate between foreground and background
 					for thisGlyph in selectedGlyphs:
@@ -221,7 +221,7 @@ class VariationInterpolator(mekkaObject):
 								layerB = thisGlyph.layers[thisMaster.id].copy()
 								layerB.swapForegroundWithBackground()
 								layerB.layerId = "layerIDB%05i" % masterIndex
-								
+
 								# check compatibility
 								if not self.layersAreCompatible(layerA, layerB):
 									reportString = thisGlyph.name
@@ -229,7 +229,7 @@ class VariationInterpolator(mekkaObject):
 										reportString += f" ({thisMaster.name})"
 									incompatible.append(reportString)
 									continue
-									
+
 								newGlyph.layers[thisMaster.id] = newGlyph._interpolateLayers_interpolation_masters_decompose_font_error_(
 									[layerA, layerB],  # layers
 									{
@@ -265,7 +265,7 @@ class VariationInterpolator(mekkaObject):
 								layerA.layerId = "layerIDA%05i" % masterIndex
 								layerB = glyphB.layers[thisMaster.id].copy()
 								layerB.layerId = "layerIDB%05i" % masterIndex
-								
+
 								# check compatibility
 								if not self.layersAreCompatible(layerA, layerB):
 									reportString = thisGlyph.name
@@ -273,7 +273,7 @@ class VariationInterpolator(mekkaObject):
 										reportString += f" ({thisMaster.name})"
 									incompatible.append(reportString)
 									continue
-								
+
 								newGlyph.layers[thisMaster.id] = newGlyph._interpolateLayers_interpolation_masters_decompose_font_error_(
 									[layerA, layerB],  # layers
 									{
@@ -285,7 +285,7 @@ class VariationInterpolator(mekkaObject):
 									thisFont,  # font
 									None,  # error
 								)
-				
+
 				if incompatible:
 					incompatible = sorted(set(incompatible))
 					Message(

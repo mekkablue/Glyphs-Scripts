@@ -15,7 +15,7 @@ from mekkablue import mekkaObject
 
 def deleteAllComponents(thisLayer):
 	try:
-		# print "-- Deleting %i existing components." % ( len(thisLayer.components) ) #DEBUG
+		# print "-- Deleting %i existing components." % (len(thisLayer.components)) #DEBUG
 		while len(thisLayer.components) > 0:
 			# print "  Deleting component", thisLayer.components[0].componentName
 			del thisLayer.components[0]
@@ -153,7 +153,7 @@ def placeDots(thisLayer, useBackground, componentName, distanceBetweenDots, bala
 				xOffset, yOffset = -sourceAnchor.position.x, -sourceAnchor.position.y
 			except:
 				pass
-				# print "-- Note: no origin anchor in '%s'." % ( componentName )
+				# print "-- Note: no origin anchor in '%s'." % (componentName)
 
 			# use background if specified:
 			if useBackground:

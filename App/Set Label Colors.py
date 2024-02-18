@@ -128,7 +128,7 @@ class SetLabelColors(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		# self.w.getButton = vanilla.Button( (-70-80*2-inset, -20-inset, -80*2-inset, -inset), "Current", sizeStyle='regular', callback=self.SetLabelColorsMain )
+		# self.w.getButton = vanilla.Button((-70 - 80 * 2 - inset, -20 - inset, -80 * 2 - inset, -inset), "Current", sizeStyle='regular', callback=self.SetLabelColorsMain)
 		self.w.resetButton = vanilla.Button((-70 - 80 - inset, -20 - inset, -80 - inset, -inset), "Reset", sizeStyle='regular', callback=self.resetColors)
 		self.w.runButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "Set", sizeStyle='regular', callback=self.SetLabelColorsMain)
 		self.w.setDefaultButton(self.w.runButton)

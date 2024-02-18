@@ -138,13 +138,13 @@ def updateBraceLayers(font, defaultValue=0, newAxisTag=None, newAxisValue=None):
 						newBraceLayer.associatedMasterId = master.id
 				newBraceLayer.attributes["coordinates"] = newBraceCoordinate
 				newBraceLayer.reinterpolate()
-			print(f"✅ Added {newBraceLayerCount} new brace layer{'' if newBraceLayerCount==1 else 's'} with {newAxisTag}={newAxisValue}.")
+			print(f"✅ Added {newBraceLayerCount} new brace layer{'' if newBraceLayerCount == 1 else 's'} with {newAxisTag}={newAxisValue}.")
 
 		except IndexError:
 			pass
 
 		if count > 0:
-			print(f"🦾 Updated {count} brace layer{'' if count==1 else 's'} for ‘{glyph.name}’")
+			print(f"🦾 Updated {count} brace layer{'' if count == 1 else 's'} for ‘{glyph.name}’")
 
 
 def axisIdForTag(font, tag="wght"):

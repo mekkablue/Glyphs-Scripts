@@ -80,4 +80,4 @@ for thisMaster in thisFont.masters:
 		leftSide, rightSide = thisPair
 		thisFont.removeKerningForPair(thisMasterID, leftSide, rightSide)
 
-	print("\tSuccessfully deleted orphaned group kern pairs in master ‘%s’." % (thisMaster.name, ))
+	print("\tSuccessfully deleted orphaned group kern pairs in master ‘%s’." % thisMaster.name)

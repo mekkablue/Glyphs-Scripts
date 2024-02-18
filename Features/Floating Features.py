@@ -23,7 +23,7 @@ class FeatureActivator(mekkaObject):
 			featureTag = feature.name
 			featureName = feature.fullName()
 			exec(
-				"self.w.featureCheckBox_%i = vanilla.CheckBox((8, 4 + 18 * i, -8, 18), featureName, sizeStyle='small', callback=self.toggleFeature, value=(featureTag in selectedFeatures) )"
+				"self.w.featureCheckBox_%i = vanilla.CheckBox((8, 4 + 18 * i, -8, 18), featureName, sizeStyle='small', callback=self.toggleFeature, value=(featureTag in selectedFeatures))"
 				% i
 			)
 			exec("self.w.featureCheckBox_%i.getNSButton().setIdentifier_(featureTag)" % i)

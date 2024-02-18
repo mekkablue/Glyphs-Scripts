@@ -62,7 +62,7 @@ class FontInfoOverview(mekkaObject):
 		# Buttons:
 		self.w.reloadButton = vanilla.Button((-130 - 90 - 15, -35, -130 - 15 * 2, -15), "Reload", sizeStyle='regular', callback=self.Reload)
 		self.w.applyButton = vanilla.Button((-130 - 15, -35, -15, -15), "Apply Changes", sizeStyle='regular', callback=self.Apply)
-		# self.w.setDefaultButton( self.w.reloadButton )
+		# self.w.setDefaultButton(self.w.reloadButton)
 
 		# Counter:
 		self.w.changeCounter = vanilla.TextBox((15, -31, -250, 16), "Changes: -", sizeStyle='small')

@@ -22,7 +22,7 @@ class FontInfoBatchSetter(mekkaObject):
 		# "prefName": defaultValue,
 		"applyContaining": "",
 		"applyPopup": 0,
-		
+
 		"copyright": "",
 		"trademark": "",
 		"vendorID": "",
@@ -33,7 +33,7 @@ class FontInfoBatchSetter(mekkaObject):
 		"license": "",
 		"licenseURL": "",
 		"fontDescription": "",
-		
+
 		"setCopyright": False,
 		"setTrademark": False,
 		"setVendorID": False,
@@ -44,7 +44,7 @@ class FontInfoBatchSetter(mekkaObject):
 		"setLicense": False,
 		"setLicenseURL": False,
 		"setFontDescription": False,
-		
+
 		"setDate": True,
 
 		"setVersion": True,

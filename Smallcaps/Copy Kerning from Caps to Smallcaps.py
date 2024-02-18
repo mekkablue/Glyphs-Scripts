@@ -152,7 +152,7 @@ class CopyKerningFromCapsToSmallcaps(mekkaObject):
 		self.w.includeAllMasters = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Include all masters (otherwise current master only)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		# self.w.copyCapCapToCapSC = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Add cap-to-cap → cap-to-smallcap", value=True, callback=self.SavePreferences, sizeStyle='small' )
+		# self.w.copyCapCapToCapSC = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Add cap-to-cap → cap-to-smallcap", value=True, callback=self.SavePreferences, sizeStyle='small')
 		# linePos += lineHeight
 
 		self.w.includeNonLetters = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include smallcap non-letters (otherwise only from caps)", value=True, callback=self.SavePreferences, sizeStyle='small')

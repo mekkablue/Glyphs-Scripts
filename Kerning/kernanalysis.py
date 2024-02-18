@@ -135,13 +135,13 @@ def effectiveKerning(leftGlyphName, rightGlyphName, thisFont, thisFontMasterID, 
 		return 0.0
 
 # older version:
-# def effectiveKerning( leftGlyphName, rightGlyphName, thisFont, thisFontMasterID ):
+# def effectiveKerning(leftGlyphName, rightGlyphName, thisFont, thisFontMasterID):
 # leftLayer = thisFont.glyphs[leftGlyphName].layers[thisFontMasterID]
 # rightLayer = thisFont.glyphs[rightGlyphName].layers[thisFontMasterID]
 # if Glyphs.versionNumber >= 3.0:
-# 	effectiveKerning = leftLayer.nextKerningForLayer_direction_( rightLayer, LTR )
+# 	effectiveKerning = leftLayer.nextKerningForLayer_direction_(rightLayer, LTR)
 # else:
-# 	effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
+# 	effectiveKerning = leftLayer.rightKerningForLayer_(rightLayer)
 # return effectiveKerning  # can be NSNotFound
 
 #  # if effectiveKerning < NSNotFound:

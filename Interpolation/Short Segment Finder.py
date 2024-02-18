@@ -255,8 +255,8 @@ class ShortSegmentFinder(mekkaObject):
 			for index, thisGlyph in enumerate(glyphsToProbe):
 				print("i >", index)  # ##Delete
 				# update progress bar:
-				# print(">> DEBUG CHECKPOINT 4")###DEBUG-DELETE LATER
-				# self.w.progress.set( int(100*(float(index)/numOfGlyphs)) ) ###UNHIDE?
+				# print(">> DEBUG CHECKPOINT 4")  ###DEBUG-DELETE LATER
+				# self.w.progress.set(int(100 * (float(index) / numOfGlyphs)))  ###UNHIDE?
 				if thisGlyph.export or not self.pref("exportingOnly"):
 					# print(">> DEBUG CHECKPOINT 5")###DEBUG-DELETE LATER
 					# clean node markers if necessary:

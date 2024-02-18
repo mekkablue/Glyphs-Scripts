@@ -159,7 +159,7 @@ def buildCircledGlyph(thisGlyph, circleName, scaleFactors, minDistanceBetweenTwo
 	isBlack = "black" in circleName.lower()
 
 	thisFont = thisGlyph.font
-	thisGlyph.widthMetricsKey = None  # "=%i" % thisFont.upm )
+	thisGlyph.widthMetricsKey = None  # "=%i" % thisFont.upm)
 	thisGlyph.leftMetricsKey = "=40"
 	thisGlyph.rightMetricsKey = "=|"
 
@@ -311,7 +311,7 @@ def buildCircledGlyph(thisGlyph, circleName, scaleFactors, minDistanceBetweenTwo
 					isNumber = True
 				thisLayer.decomposeComponent_(componentToDecompose)
 
-			offsetLayer(thisLayer, 4.0)  # 4.0 if isNumber else 3.0 )
+			offsetLayer(thisLayer, 4.0)  # 4.0 if isNumber else 3.0)
 			if thisLayer.paths and isBlack:
 				thisLayer.removeOverlap()
 				for thisPath in thisLayer.paths:

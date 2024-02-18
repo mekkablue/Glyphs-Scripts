@@ -51,9 +51,9 @@ class SetToolShortcuts(mekkaObject):
 			shortcut = Glyphs.defaults["%s.Hotkey" % tool]
 			if not shortcut:
 				shortcut = shortcuts[tool]
-			exec("self.w.text_%s = vanilla.TextBox( (15, %i, 115, 14), u'%s', sizeStyle='small' )" % (tool, position + 2, tool))
+			exec("self.w.text_%s = vanilla.TextBox((15, %i, 115, 14), u'%s', sizeStyle='small')" % (tool, position + 2, tool))
 			exec(
-				"self.w.edit_%s = vanilla.EditText( (15+115+15, %i, -15, 20), u'%s', sizeStyle = 'small', callback=self.changeShortcut )" % (
+				"self.w.edit_%s = vanilla.EditText((15+115+15, %i, -15, 20), u'%s', sizeStyle='small', callback=self.changeShortcut)" % (
 					tool,
 					position - 1,
 					shortcut.upper() if shortcut != "ß" else shortcut,  # do not capitalize ß because SF font is buggy

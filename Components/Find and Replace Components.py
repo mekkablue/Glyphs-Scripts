@@ -73,7 +73,7 @@ class ComponentReplacer(mekkaObject):
 		linePos, inset, lineHeight = 10, 15, 22
 
 		self.w.textReplace = vanilla.TextBox((inset, linePos + 2, inset + 50, 14), "Replace", sizeStyle='small')
-		self.w.oldCompName = vanilla.ComboBox((inset + 50, linePos-1, 100, 17), self.GetComponentNames(), sizeStyle='small')
+		self.w.oldCompName = vanilla.ComboBox((inset + 50, linePos - 1, 100, 17), self.GetComponentNames(), sizeStyle='small')
 		self.w.oldCompName.getNSComboBox().setToolTip_("The name of the component you want to replace. If it is not shown here, make a glyph selection and press the ↺ Update button. This will populate the menu with the names of all components in selected glyphs.")
 		self.w.resetComponentName = vanilla.SquareButton((inset + 50 + 100 + 5, linePos, 20, 18), "↺", sizeStyle='small', callback=self.SetComponentNames)
 
@@ -82,7 +82,7 @@ class ComponentReplacer(mekkaObject):
 		self.w.newCompName = vanilla.ComboBox((65 + 100 + 35 + 25, linePos - 1, -inset - 95, 19), self.getAllGlyphNamesOfFrontmostFont(), sizeStyle='small', callback=self.SavePreferences)
 		self.w.newCompName.getNSComboBox().setToolTip_("The name of the component you want to insert instead of the component chosen in the menu.")
 		self.w.resetNewCompName = vanilla.SquareButton((-inset - 90, linePos, -inset - 70, 18), "↺", sizeStyle='small', callback=self.resetNewCompName)
-		
+
 		self.w.replaceButton = vanilla.Button((-inset - 60, linePos + 1, -inset, 17), "Replace", sizeStyle='small', callback=self.FindAndReplaceMain)
 		self.w.setDefaultButton(self.w.replaceButton)
 

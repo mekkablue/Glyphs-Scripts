@@ -147,7 +147,7 @@ def writeOptionsToInstance(optionDict, instance):
 	value = dictToParameterValue(optionDict)
 	try:
 		if Glyphs.versionNumber >= 3:
-			instanceWeightValue = instance.axes[0] # fallback if there is no weight axis
+			instanceWeightValue = instance.axes[0]  # fallback if there is no weight axis
 			font = instance.font
 			for axisIndex, axis in enumerate(font.axes):
 				if axis.axisTag == "wght":
@@ -198,7 +198,7 @@ class SetTTFAutohintOptions(mekkaObject):
 		"windows-compatibility": "",
 		"x-height-snapping-exceptions": "",
 		"reference": "",
-		
+
 		# script specific:
 		"optionValue": "",
 		"ttfAutohintOption": 0,
@@ -217,24 +217,24 @@ class SetTTFAutohintOptions(mekkaObject):
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
-		
+
 		linePos, inset, lineHeight = 12, 15, 38
-		
+
 		# UI elements:
-		self.w.helpButton = vanilla.HelpButton((inset-3, linePos, 21, 20), callback=self.openURL)
+		self.w.helpButton = vanilla.HelpButton((inset - 3, linePos, 21, 20), callback=self.openURL)
 		self.w.helpButton.getNSButton().setToolTip_("Opens the ttfAutohint documentation for the currently selected option on freetype.org.")
 
-		self.w.ttfAutohintOption = vanilla.PopUpButton((inset+23, linePos+1, 175, 17), availableOptions, callback=self.ttfAutohintOptionAction, sizeStyle='small')
+		self.w.ttfAutohintOption = vanilla.PopUpButton((inset + 23, linePos + 1, 175, 17), availableOptions, callback=self.ttfAutohintOptionAction, sizeStyle='small')
 		self.w.ttfAutohintOption.getNSPopUpButton().setToolTip_("Available ttfAutohint options. Pick one from the list. Careful: also contains deprecated options. Refer to the documentation (click on the Help Button on the left), know what you are doing.")
 
-		self.w.optionValue = vanilla.EditText((inset+205, linePos, -67-50, 20), "", callback=self.optionValueAction, sizeStyle='small')
+		self.w.optionValue = vanilla.EditText((inset + 205, linePos, -67 - 50, 20), "", callback=self.optionValueAction, sizeStyle='small')
 		self.w.optionValue.getNSTextField().setToolTip_("Value for the currently selected option, if any. Some options can only be set or removed, some have a value.")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-60-50, linePos-2, -inset-50, 22), "Set", sizeStyle='regular', callback=self.SetTTFAutohintOptionsMain)
+		self.w.runButton = vanilla.Button((-60 - 50, linePos - 2, -inset - 50, 22), "Set", sizeStyle='regular', callback=self.SetTTFAutohintOptionsMain)
 		self.w.runButton.getNSButton().setToolTip_("Updates all ‘TTFAutohint options’ parameters with the current option (and value, if any) to all instances in the font.")
 
-		self.w.delButton = vanilla.Button((-60, linePos-2, -inset, 22), "Del", sizeStyle='regular', callback=self.RemoveOption)
+		self.w.delButton = vanilla.Button((-60, linePos - 2, -inset, 22), "Del", sizeStyle='regular', callback=self.RemoveOption)
 		self.w.delButton.getNSButton().setToolTip_("Removes the current option from all ‘TTFAutohint options’ parameters in all instances in the font.")
 
 		linePos += lineHeight
@@ -247,8 +247,8 @@ class SetTTFAutohintOptions(mekkaObject):
 		self.editValueField()
 		# enable or disable the edit box
 		# self.editValueField()
-		
-		
+
+
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
@@ -305,7 +305,7 @@ class SetTTFAutohintOptions(mekkaObject):
 	def optionValueAction(self, sender):
 		self.setPref("optionValue", self.w.optionValue.get())
 		# store entered value in prefs:
-		ttfAutohintOption = self.domain(self.currentOptionName()) # f"com.mekkablue.SetTTFAutohintOptions.{self.currentOptionName()}"
+		ttfAutohintOption = self.domain(self.currentOptionName())  # f"com.mekkablue.SetTTFAutohintOptions.{self.currentOptionName()}"
 		Glyphs.defaults[ttfAutohintOption] = self.w.optionValue.get()
 
 	def RemoveOption(self, sender):
@@ -364,5 +364,6 @@ class SetTTFAutohintOptions(mekkaObject):
 			print(f"Set ttfautohint Options Error: {e}")
 			import traceback
 			print(traceback.format_exc())
+
 
 SetTTFAutohintOptions()

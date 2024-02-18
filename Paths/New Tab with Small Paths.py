@@ -159,7 +159,7 @@ class FindSmallPaths(mekkaObject):
 		except:
 			return False
 
-	def CurrentMinArea(self, ):
+	def CurrentMinArea(self):
 		minimum = self.prefFloat("sliderMin")
 		maximum = self.prefFloat("sliderMax")
 		sliderPos = self.prefFloat("areaSlider")

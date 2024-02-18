@@ -155,14 +155,14 @@ def createGlyph(font, name, unicodeValue, override=False, defaultWidth=500):
 					if layer.isMasterLayer or layer.isSpecialLayer:
 						if isEmpty(layer):
 							# nothing on layer? no backup needed:
-							print("- Layer ‘%s’ is empty. No backup needed." % (layer.name if layer.name else "(empty)", ))
+							print("- Layer ‘%s’ is empty. No backup needed." % (layer.name if layer.name else "(empty)"))
 						else:
 							# create and collect backup layers:
 							layerCopy = layer.copy()
 							layerCopy.background = layer.copyDecomposedLayer()
 							layerCopy.name = "Backup: %s" % layer.name
 							backupLayers.append(layerCopy)
-							print("- Creating backup of layer: %s" % (layer.name if layer.name else "(empty)", ))
+							print("- Creating backup of layer: %s" % (layer.name if layer.name else "(empty)"))
 
 						layer.clear()
 						layer.background.clear()

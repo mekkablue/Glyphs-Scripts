@@ -27,12 +27,12 @@ paragraph
 asciicircum
 """
 
-# def effectiveKerning( leftGlyphName, rightGlyphName, thisFont, thisFontMasterID):
+# def effectiveKerning(leftGlyphName, rightGlyphName, thisFont, thisFontMasterID):
 
 # 	leftLayer = thisFont.glyphs[leftGlyphName].layers[thisFontMasterID]
 # 	rightLayer = thisFont.glyphs[rightGlyphName].layers[thisFontMasterID]
 # 	if Glyphs.versionNumber < 3:
-# 		effectiveKerning = leftLayer.rightKerningForLayer_( rightLayer )
+# 		effectiveKerning = leftLayer.rightKerningForLayer_(rightLayer)
 # 	else:
 
 # 		effectiveKerning = leftLayer.nextKerningForLayer_direction_(rightLayer, leftLayer.parent.direction)
@@ -58,8 +58,8 @@ def pathCountForGlyphName(glyphName, thisFont, thisFontMasterID):
 
 
 def pathCountInKernPair(firstGlyphName, secondGlyphName, thisFont, thisFontMasterID, minDistance):
-	# ligatureName = "%s_%s" % ( nameUntilFirstPeriod(firstGlyphName), nameUntilFirstPeriod(secondGlyphName) )
-	# newGlyph = thisFont.newGlyphWithName_changeName_( "_deleteMe", False )
+	# ligatureName = "%s_%s" % (nameUntilFirstPeriod(firstGlyphName), nameUntilFirstPeriod(secondGlyphName))
+	# newGlyph = thisFont.newGlyphWithName_changeName_("_deleteMe", False)
 
 	ligatureLayer = thisFont.glyphs[secondGlyphName].layers[thisFontMasterID].copyDecomposedLayer()
 	addedLayer = thisFont.glyphs[firstGlyphName].layers[thisFontMasterID].copyDecomposedLayer()
@@ -120,13 +120,13 @@ try:
 			kernCount = pathCountInKernPair(currentGlyphName, otherGlyphName, thisFont, thisFontMasterID, 0.0)
 			if firstCount + secondCount > kernCount:
 				tabStringLeftGlyphs.append(otherGlyphName)
-				# += "/%s/%s/space" % ( firstGlyphName, secondGlyphName )
+				# += "/%s/%s/space" % (firstGlyphName, secondGlyphName)
 
 			# current glyph on left side:
 			kernCount = pathCountInKernPair(otherGlyphName, currentGlyphName, thisFont, thisFontMasterID, 0.0)
 			if firstCount + secondCount > kernCount:
 				tabStringRightGlyphs.append(otherGlyphName)
-				# tabStringLeft += "/%s/%s/space" % ( firstGlyphName, secondGlyphName )
+				# tabStringLeft += "/%s/%s/space" % (firstGlyphName, secondGlyphName)
 
 		# open new Edit tab:
 		if tabStringLeftGlyphs or tabStringRightGlyphs:

@@ -64,7 +64,7 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 		self.w.updateButton.getNSButton().setToolTip_("Reload a list of glyph names based on the current font (and selection).")
 
 		linePos += lineHeight
-		self.w.fromWhere = vanilla.RadioGroup((inset, linePos, -inset, 40), ("from all selected glyphs", "⚠️ from all glyphs in the font"), callback=self.SavePreferences, sizeStyle='small',)
+		self.w.fromWhere = vanilla.RadioGroup((inset, linePos, -inset, 40), ("from all selected glyphs", "⚠️ from all glyphs in the font"), callback=self.SavePreferences, sizeStyle='small')
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Remove", sizeStyle='regular', callback=self.RemoveComponentFromSelectedGlyphsMain)

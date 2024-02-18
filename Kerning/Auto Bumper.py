@@ -269,7 +269,7 @@ class Bumper(mekkaObject):
 		roundValue = max(roundValue, 1.0)
 
 		# check for existing kerning:
-		# existingKerning = thisFont.kerningForPair( thisMasterID, leftSide, rightSide )
+		# existingKerning = thisFont.kerningForPair(thisMasterID, leftSide, rightSide)
 		kerningExists = existingKerning < 1000000  # NSNotDefined constant
 		if not kerningExists:
 			existingKerning = 0

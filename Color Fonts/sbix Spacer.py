@@ -63,7 +63,7 @@ class sbixSpacer(mekkaObject):
 		# Buttons:
 		self.w.help = vanilla.HelpButton((inset, -20 - inset, 22, 22), callback=self.openURL)
 
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Apply", sizeStyle='regular', callback=self.sbixSpacerMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Apply", callback=self.sbixSpacerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

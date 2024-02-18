@@ -74,7 +74,7 @@ class RewireFire(mekkaObject):
 		linePos += lineHeight
 
 		# DISABLED
-		# self.w.markWithCircle = vanilla.CheckBox( (inset, linePos-1, -inset, 20), "Circle duplicate coordinates with annotation ⭕️", value=False, callback=self.SavePreferences, sizeStyle='small' )
+		# self.w.markWithCircle = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Circle duplicate coordinates with annotation ⭕️", value=False, callback=self.SavePreferences, sizeStyle='small')
 		# self.w.markWithCircle.getNSButton().setToolTip_("Circle annotations remain after reconnecting the nodes.")
 		# linePos += lineHeight
 
@@ -200,7 +200,7 @@ class RewireFire(mekkaObject):
 			# 	coords = set([(p.x,p.y) for p in duplicateCoordinates])
 			# 	for dupeCoord in coords:
 			# 		x,y = dupeCoord
-			# 		self.circleInLayerAtPosition( thisLayer, NSPoint(x,y) )
+			# 		self.circleInLayerAtPosition(thisLayer, NSPoint(x,y))
 
 			return True
 

@@ -68,7 +68,7 @@ class ComponentMover(mekkaObject):
 		self.w.down = vanilla.SquareButton((inset + offset + size, linePos, size - 1, lineHeight - 1), "↓", sizeStyle='regular', callback=self.ComponentMoverMain)
 		self.w.downRight = vanilla.SquareButton((inset + offset + size * 2, linePos, size - 1, lineHeight - 1), "↘", sizeStyle='regular', callback=self.ComponentMoverMain)
 		linePos += int(lineHeight * 1.5)
-		
+
 		lineHeight = 20
 		self.w.breakAlignment = vanilla.CheckBox((inset + offset, linePos - 1, -inset, 20), "Break alignment if necessary", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
@@ -90,7 +90,7 @@ class ComponentMover(mekkaObject):
 		if sender is self.w.searchStringUpdate:
 			self.w.searchString.setItems(self.availableComponents())
 			self.SavePreferences()
-		
+
 		moveOrScale = self.pref("changeAttribute") < 2
 		self.w.up.enable(moveOrScale)
 		self.w.down.enable(moveOrScale)
@@ -98,7 +98,7 @@ class ComponentMover(mekkaObject):
 		self.w.upRight.setTitle("↗" if moveOrScale else "→×10")
 		self.w.downLeft.setTitle("↙" if moveOrScale else "←÷10")
 		self.w.downRight.setTitle("↘" if moveOrScale else "→÷10")
-		
+
 		self.w.breakAlignment.enable(self.pref("changeAttribute") == 0)
 
 	def availableAttributes(self):
@@ -167,7 +167,7 @@ class ComponentMover(mekkaObject):
 								allLayers.append(layer)
 				else:
 					allLayers = thisFont.selectedLayers
-				
+
 				breakAlignment = self.prefBool("breakAlignment")
 				changeAttribute = self.prefInt("changeAttribute")
 				smartComponent = changeAttribute > 1  # 0=Position, 1=Scale
@@ -206,7 +206,7 @@ class ComponentMover(mekkaObject):
 									axisID = self.getSmartAxisID(thisComponent, attributeToChange)
 									originalGlyph = thisComponent.component
 									originalLayer = thisComponent.componentLayer
-									
+
 									# check if it is a smart component that has not been touched yet, and initiate it:
 									if thisComponent.smartComponentValues[axisID] is None and originalGlyph.isSmartGlyph():
 										for originalAxis in originalGlyph.smartComponentAxes:
@@ -214,7 +214,7 @@ class ComponentMover(mekkaObject):
 											index = originalLayer.smartComponentPoleMapping[originalAxis.id]
 											originalSmartValue = poles[index]
 											thisComponent.smartComponentValues[originalAxis.id] = originalSmartValue
-											
+
 									if thisComponent.smartComponentValues[attributeToChange] is not None:
 										thisComponent.smartComponentValues[attributeToChange] += amount * factor
 									# should work with axisName, circumventing bug in 3.2 (3198):
