@@ -130,10 +130,7 @@ try:
 	paramName = "Axis Mappings"
 	param = thisFont.customParameterForKey_(paramName)
 	if param:
-		thisFont.willChangeValueForKey_(paramName)
-		param.setActive_(False)
-		thisFont.elementDidChange_(param)
-		thisFont.didChangeValueForKey_(paramName)
+		param.active = False
 		print("⛲️ Font: Axis Mappings disabled. WARNING: may not show in the UI until you reopen the font.")
 
 except Exception as e:
