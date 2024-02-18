@@ -6,7 +6,7 @@ Specify a minimum distance, left and right glyphs, and Auto Bumper will add the 
 """
 
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, reportTimeInNaturalLanguage
 from timeit import default_timer as timer
 from kernanalysis import intervalList, minDistanceBetweenTwoLayers, sortedIntervalsFromString, stringToListOfGlyphsForFont, effectiveKerning
 from AppKit import NSColor
@@ -52,18 +52,6 @@ gjpy  # DESCENDER
 AKLRXZ  # BOTTOM RIGHT
 sxz  # BOTTOM LEFT
 """
-
-
-def reportTimeInNaturalLanguage(seconds):
-	if seconds > 60.0:
-		timereport = "%i:%02i minutes" % (seconds // 60, seconds % 60)
-	elif seconds < 1.0:
-		timereport = "%.2f seconds" % seconds
-	elif seconds < 20.0:
-		timereport = "%.1f seconds" % seconds
-	else:
-		timereport = "%i seconds" % seconds
-	return timereport
 
 
 class Bumper(mekkaObject):

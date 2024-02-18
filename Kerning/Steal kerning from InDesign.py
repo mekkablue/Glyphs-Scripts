@@ -8,6 +8,7 @@ Use the font in InD (set up a document with one text box on the first page, set 
 from Foundation import NSAppleScript
 from timeit import default_timer as timer
 from GlyphsApp import Glyphs
+from mekkablue import reportTimeInNaturalLanguage
 
 # start taking time:
 start = timer()
@@ -35,18 +36,6 @@ replacements = {
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
 # Glyphs.showMacroWindow()
-
-
-def reportTimeInNaturalLanguage(seconds):
-	if seconds > 60.0:
-		timereport = "%i:%02i minutes" % (seconds // 60, seconds % 60)
-	elif seconds < 1.0:
-		timereport = "%.2f seconds" % seconds
-	elif seconds < 20.0:
-		timereport = "%.1f seconds" % seconds
-	else:
-		timereport = "%i seconds" % seconds
-	return timereport
 
 
 def glyphNameForLetter(letter):

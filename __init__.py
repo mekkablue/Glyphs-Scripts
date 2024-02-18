@@ -58,7 +58,7 @@ def match(first, second):
 	return False
 
 
-def camelCaseSplit(string: str) -> str:
+def camelCaseSplit(string: str) -> list[str]:
 	words = [[string[0]]]
 	for c in string[1:]:
 		if words[-1][-1].islower() and c.isupper():
@@ -94,8 +94,21 @@ def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0) -> NSAffi
 	return myTransform
 
 
-class mekkaObject:
+def reportTimeInNaturalLanguage(seconds):
+	if seconds > 60.0:
+		timereport = "%i:%02i minutes" % (seconds // 60, seconds % 60)
+	elif seconds < 1.0:
+		timereport = "%.2f seconds" % seconds
+	elif seconds < 20.0:
+		timereport = "%.1f seconds" % seconds
+	else:
+		timereport = "%i seconds" % seconds
+	return timereport
 
+
+class mekkaObject:
+	prefDict = None
+	w = None
 	def domain(self, prefName: str) -> str:
 		prefName = prefName.strip().strip(".")
 		return "com.mekkablue." + self.__class__.__name__ + "." + prefName.strip()

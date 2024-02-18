@@ -10,19 +10,7 @@ import math
 from timeit import default_timer as timer
 from AppKit import NSPoint
 from GlyphsApp import Glyphs, GSPath, GSControlLayer, GSShapeTypePath, GSLINE, GSCURVE, CURVE, GSOFFCURVE, QCURVE, Message, distance
-from mekkablue import mekkaObject
-
-
-def reportTimeInNaturalLanguage(seconds):
-	if seconds > 60.0:
-		timereport = f"{int(seconds / 60)}:{int(seconds) % 60:02d} minutes"
-	elif seconds < 1.0:
-		timereport = f"{seconds:.2f} seconds"
-	elif seconds < 20.0:
-		timereport = f"{seconds:.1f} seconds"
-	else:
-		timereport = f"{int(seconds)} seconds"
-	return timereport
+from mekkablue import mekkaObject, reportTimeInNaturalLanguage
 
 
 canHaveOpenOutlines = (

@@ -8,29 +8,7 @@ Find and report possible issues with components and corner components.
 import vanilla
 from timeit import default_timer as timer
 from GlyphsApp import Glyphs, Message, CORNER
-from mekkablue import mekkaObject
-
-
-def camelCaseSplit(str):
-	words = [[str[0]]]
-	for c in str[1:]:
-		if words[-1][-1].islower() and c.isupper():
-			words.append(list(c))
-		else:
-			words[-1].append(c)
-	return [''.join(word) for word in words]
-
-
-def reportTimeInNaturalLanguage(seconds):
-	if seconds > 60.0:
-		timereport = "%i:%02i minutes" % (seconds // 60, seconds % 60)
-	elif seconds < 1.0:
-		timereport = "%.2f seconds" % seconds
-	elif seconds < 20.0:
-		timereport = "%.1f seconds" % seconds
-	else:
-		timereport = "%i seconds" % seconds
-	return timereport
+from mekkablue import mekkaObject, camelCaseSplit, reportTimeInNaturalLanguage
 
 
 def orthodoxComponentsForGlyph(thisGlyph):
