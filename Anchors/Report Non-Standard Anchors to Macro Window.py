@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Goes through all glyphs in the font and reports in the Macro Window if it finds non-default anchors. Lines are copy-pasteable in Edit view.
+Goes through all glyphs in the font and reports in the Macro Window if it finds non-default anchors. Lines are copy-paste-able in Editview.
 """
 
 import vanilla
@@ -19,31 +19,27 @@ class ReportNonStandardAnchorsInMacroWindow(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 400
-		windowHeight = 150
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 300
+		windowHeight = 158
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Report Non-Standard Anchors to Macro Window",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		inset = 10
+		inset = 16
 		currentHeight = 8
-		self.w.text_1 = vanilla.TextBox((inset, currentHeight + 2, -inset, 28), __doc__.strip(), sizeStyle='small')
-		currentHeight += 35
-		self.w.includeNonExporting = vanilla.CheckBox((inset, currentHeight, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.text_1 = vanilla.TextBox((inset, currentHeight + 2, -inset, 42), __doc__.strip(), sizeStyle='small')
+		currentHeight += 49
+		self.w.includeNonExporting = vanilla.CheckBox((inset + 4, currentHeight, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		currentHeight += 20
-		self.w.reportExitEntry = vanilla.CheckBox((inset, currentHeight, -inset, 20), "Report exit and entry anchors", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportExitEntry = vanilla.CheckBox((inset + 4, currentHeight, -inset, 20), "Report exit and entry anchors", value=False, callback=self.SavePreferences, sizeStyle='small')
 		currentHeight += 20
-		self.w.reportCarets = vanilla.CheckBox((inset, currentHeight, -inset, 20), "Report ligature caret anchors", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportCarets = vanilla.CheckBox((inset + 4, currentHeight, -inset, 20), "Report ligature caret anchors", value=False, callback=self.SavePreferences, sizeStyle='small')
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Report", sizeStyle='regular', callback=self.ReportNonStandardAnchorsInMacroWindowMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - 12, -15, -15), "Report", callback=self.ReportNonStandardAnchorsInMacroWindowMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
