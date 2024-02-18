@@ -7,7 +7,6 @@ Shifts all periodcentered.loclCAT glyphs horizontally so it fits between two L�
 """
 
 from AppKit import NSMidY, NSAffineTransform, NSEvent, NSCommandKeyMask, NSShiftKeyMask
-from Foundation import NSMutableAttributedString, NSAttributedString
 from GlyphsApp import Glyphs, GSControlLayer
 
 keysPressed = NSEvent.modifierFlags()
@@ -21,7 +20,7 @@ if commandKeyPressed and shiftKeyPressed:
 	theseFonts = Glyphs.fonts
 	print("⚠️ Processing ALL open fonts.")
 else:
-	theseFonts = (Glyphs.font, )
+	theseFonts = [Glyphs.font]
 
 for thisFont in theseFonts:
 	thisFontPath = thisFont.filepath

@@ -5,8 +5,7 @@ __doc__ = """
 Reduplicates your edit text across masters, will add one line per master. Careful, ignores everything after the first newline.
 """
 
-from Foundation import NSMutableAttributedString, NSAttributedString
-from GlyphsApp import Glyphs, GSControlLayer, GSLayer, GSBackgroundLayer
+from GlyphsApp import Glyphs, GSControlLayer
 
 thisFont = Glyphs.font
 
