@@ -48,7 +48,7 @@ class AddMetricsKeysforSymmetricGlyphs(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Insert", sizeStyle='regular', callback=self.AddMetricsKeysforSymmetricGlyphsMain)
+		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Insert", callback=self.AddMetricsKeysforSymmetricGlyphsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

@@ -83,7 +83,7 @@ class StyleRenamer(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Rename", sizeStyle='regular', callback=self.StyleRenamerMain)
+		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Rename", callback=self.StyleRenamerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

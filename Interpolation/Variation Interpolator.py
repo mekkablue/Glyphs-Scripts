@@ -66,7 +66,7 @@ class VariationInterpolator(mekkaObject):
 		self.w.glyphNameText.getNSTextField().setToolTip_(tooltip)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - 15, -20 - 15, -15, -15), "Interpolate", sizeStyle='regular', callback=self.VariationInterpolatorMain)
+		self.w.runButton = vanilla.Button((-100 - 15, -20 - 15, -15, -15), "Interpolate", callback=self.VariationInterpolatorMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

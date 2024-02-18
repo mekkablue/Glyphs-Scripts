@@ -46,7 +46,7 @@ class RemoveNonStandardAnchors(mekkaObject):
 		self.w.keepNoDefaults = vanilla.CheckBox((inset, currentHeight, -inset, 20), "Ignore glyphs that have no default anchors", value=False, callback=self.SavePreferences, sizeStyle='small')
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Remove", sizeStyle='regular', callback=self.RemoveNonStandardAnchorsMain)
+		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Remove", callback=self.RemoveNonStandardAnchorsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

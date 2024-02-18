@@ -142,7 +142,7 @@ class EnhanceCompatibility(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Sync", sizeStyle="regular", callback=self.EnhanceCompatibilityMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Sync", callback=self.EnhanceCompatibilityMain)
 		self.w.runButton.getNSButton().setToolTip_("If the button is greyed out, turn on at least one of the options above.")
 		self.w.setDefaultButton(self.w.runButton)
 

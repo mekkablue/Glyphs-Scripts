@@ -60,11 +60,11 @@ class KernStringMixer(mekkaObject):
 		linePos += lineHeight
 
 		tokenHelpText = "Write a token. Click on the help button for more info."
-		self.w.mixString1 = vanilla.ComboBox((inset, linePos - 1, -inset, 23), defaultTokens, sizeStyle='regular', callback=self.SavePreferences)
+		self.w.mixString1 = vanilla.ComboBox((inset, linePos - 1, -inset, 23), defaultTokens, callback=self.SavePreferences)
 		self.w.mixString1.getNSComboBox().setToolTip_(tokenHelpText)
 		linePos += lineHeight + 7
 
-		self.w.mixString2 = vanilla.ComboBox((inset, linePos - 1, -inset, 23), defaultTokens, sizeStyle='regular', callback=self.SavePreferences)
+		self.w.mixString2 = vanilla.ComboBox((inset, linePos - 1, -inset, 23), defaultTokens, callback=self.SavePreferences)
 		self.w.mixString2.getNSComboBox().setToolTip_(tokenHelpText)
 		linePos += lineHeight + 7
 
@@ -73,7 +73,7 @@ class KernStringMixer(mekkaObject):
 
 		# Buttons at bottom:
 		self.w.helpTokens = vanilla.HelpButton((inset, -20 - inset, 24, 21), callback=self.openURL)
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Mix", sizeStyle='regular', callback=self.KernStringMixerMain)
+		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Mix", callback=self.KernStringMixerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

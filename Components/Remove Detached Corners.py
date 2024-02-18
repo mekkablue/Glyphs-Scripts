@@ -61,7 +61,7 @@ class RemoveDetachedCorners(mekkaObject):
 		y += p + 40
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((x + 220, y, -p, 22), "Remove", sizeStyle='regular', callback=self.removeDetachedCornersMain)
+		self.w.runButton = vanilla.Button((x + 220, y, -p, 22), "Remove", callback=self.removeDetachedCornersMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

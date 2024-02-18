@@ -75,7 +75,7 @@ class PrepareFontforGit(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Apply", sizeStyle='regular', callback=self.PrepareFontforGitMain)
+		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Apply", callback=self.PrepareFontforGitMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

@@ -68,7 +68,7 @@ class FindAndReplaceInFontInfo(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Replace", sizeStyle='regular', callback=self.FindAndReplaceInFontInfoMain)
+		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Replace", callback=self.FindAndReplaceInFontInfoMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

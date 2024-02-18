@@ -55,7 +55,7 @@ class NewTabWithUnevenHandleDistributions(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Open Tab", sizeStyle='regular', callback=self.NewTabWithUnevenHandleDistributionsMain)
+		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Open Tab", callback=self.NewTabWithUnevenHandleDistributionsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

@@ -75,7 +75,7 @@ class CompareAnchorsOfFrontmostFonts(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Compare", sizeStyle='regular', callback=self.CompareAnchorsOfFrontmostFontsMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Compare", callback=self.CompareAnchorsOfFrontmostFontsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

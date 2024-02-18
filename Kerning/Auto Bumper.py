@@ -112,7 +112,7 @@ class Bumper(mekkaObject):
 		self.w.text_1 = vanilla.TextBox((inset, linePos, -inset, 14), "Add supplementary kerning for specified glyphs in the current master:", sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.swapButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 42), "↰\n↲", sizeStyle='regular', callback=self.swap)
+		self.w.swapButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 42), "↰\n↲", callback=self.swap)
 
 		self.w.text_left = vanilla.TextBox((inset, linePos + 3, 80, 14), "Left glyphs:", sizeStyle='small')
 		self.w.leftGlyphs = vanilla.ComboBox((inset + 80, linePos, -inset - 102, 18), self.kernStringList(self), callback=self.sideGlyphsAction, sizeStyle='small')
@@ -194,10 +194,10 @@ class Bumper(mekkaObject):
 		self.w.text_kernStrings.getNSTextField().setTextColor_(NSColor.colorWithRed_green_blue_alpha_(0, 0, 0, 0.2))
 
 		# Buttons:
-		self.w.nextButton = vanilla.Button((-inset - 210, -20 - inset, -inset - 100, -inset), "Next Master", sizeStyle='regular', callback=self.masterSwitch)
+		self.w.nextButton = vanilla.Button((-inset - 210, -20 - inset, -inset - 100, -inset), "Next Master", callback=self.masterSwitch)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Kern", sizeStyle='regular', callback=self.BumperMain)
+		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Kern", callback=self.BumperMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

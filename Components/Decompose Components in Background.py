@@ -79,7 +79,7 @@ class Decompose_Components_in_Background(mekkaObject):
 		y += self.buttonHeight * len(self.masterOptions)
 
 		# ## Action button
-		self.w.decomposeButton = vl.Button((-p - 120, -self.buttonHeight - p, -p, self.buttonHeight), "Decompose", sizeStyle="regular", callback=self.decomposeButtonCallback)
+		self.w.decomposeButton = vl.Button((-p - 120, -self.buttonHeight - p, -p, self.buttonHeight), "Decompose", callback=self.decomposeButtonCallback)
 
 		self.w.setDefaultButton(self.w.decomposeButton)
 

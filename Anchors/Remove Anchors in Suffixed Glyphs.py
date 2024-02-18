@@ -34,7 +34,7 @@ class RemoveAnchorsinSuffixedGlyphs(mekkaObject):
 		self.w.suffixlist = vanilla.EditText((15, 14 + 23, -15, 20), ".sups, .sinf, superior, inferior", sizeStyle='small')
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Remove", sizeStyle='regular', callback=self.RemoveAnchorsinSuffixedGlyphsMain)
+		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Remove", callback=self.RemoveAnchorsinSuffixedGlyphsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

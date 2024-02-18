@@ -24,8 +24,8 @@ class Gridswitch(mekkaObject):
 		self.w = vanilla.FloatingWindow((170, 100), "Grid Switcher", autosaveName=self.domain("mainwindow"))
 		self.w.grid1 = vanilla.EditText((15, 12, 65, 15 + 3), "1", sizeStyle='small')
 		self.w.grid2 = vanilla.EditText((-80, 12, -15, 15 + 3), "50", sizeStyle='small')
-		self.w.currentGridStep = vanilla.TextBox((15, 38, -15, 22), "Current Grid Step: %i" % currentGridStep, sizeStyle='regular')
-		self.w.switchButton = vanilla.Button((15, -22 - 15, -15, -15), "Switch Grid", sizeStyle='regular', callback=self.GridOnOffMain)
+		self.w.currentGridStep = vanilla.TextBox((15, 38, -15, 22), "Current Grid Step: %i" % currentGridStep)
+		self.w.switchButton = vanilla.Button((15, -22 - 15, -15, -15), "Switch Grid", callback=self.GridOnOffMain)
 		self.w.setDefaultButton(self.w.switchButton)
 
 		self.w.center()

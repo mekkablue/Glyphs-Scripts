@@ -118,13 +118,13 @@ class BatchSetPathAttributes(mekkaObject):
 		linePos += lineHeight
 
 		# Buttons at the bottom:
-		self.w.extractButton = vanilla.Button((inset, -20 - inset, 80, -inset), "Extract", sizeStyle='regular', callback=self.extractAttributes)
+		self.w.extractButton = vanilla.Button((inset, -20 - inset, 80, -inset), "Extract", callback=self.extractAttributes)
 		self.w.extractButton.getNSButton().setToolTip_("Extract attributes from currently selected path, or (if none are selected) from the first path in the current glyph.")
 
-		self.w.removeButton = vanilla.Button((inset + 90, -20 - inset, 80, -inset), "Remove", sizeStyle='regular', callback=self.removeAttributes)
+		self.w.removeButton = vanilla.Button((inset + 90, -20 - inset, 80, -inset), "Remove", callback=self.removeAttributes)
 		self.w.removeButton.getNSButton().setToolTip_("Clears all path attributes for selection above.")
 
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Apply", sizeStyle='regular', callback=self.BatchSetPathAttributesMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Apply", callback=self.BatchSetPathAttributesMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

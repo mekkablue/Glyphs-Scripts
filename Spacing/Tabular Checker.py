@@ -58,7 +58,7 @@ class TabularChecker(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Report", sizeStyle='regular', callback=self.TabularCheckerMain)
+		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Report", callback=self.TabularCheckerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

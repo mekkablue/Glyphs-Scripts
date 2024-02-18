@@ -251,7 +251,7 @@ class ComponentOnLines(mekkaObject):
 		linePos += lineGap
 		self.w.balanceOverCompletePath = vanilla.CheckBox((inset, linePos, -inset, 20), u"Balance components over complete path", value=False, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Stitch", sizeStyle='regular', callback=self.ComponentOnLinesMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Stitch", callback=self.ComponentOnLinesMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.LoadPreferences()

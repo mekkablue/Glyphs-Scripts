@@ -66,7 +66,7 @@ class FindCloseEncounters(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Find", sizeStyle='regular', callback=self.FindCloseEncountersMain)
+		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Find", callback=self.FindCloseEncountersMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

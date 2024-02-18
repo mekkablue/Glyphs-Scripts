@@ -67,8 +67,8 @@ class smallFigureBuilder(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.reportButton = vanilla.Button((-200 - 15, -20 - 15, -95, -15), "Open Report", sizeStyle='regular', callback=self.openMacroWindow)
-		self.w.runButton = vanilla.Button((-70 - 15, -20 - 15, -15, -15), "Build", sizeStyle='regular', callback=self.smallFigureBuilderMain)
+		self.w.reportButton = vanilla.Button((-200 - 15, -20 - 15, -95, -15), "Open Report", callback=self.openMacroWindow)
+		self.w.runButton = vanilla.Button((-70 - 15, -20 - 15, -15, -15), "Build", callback=self.smallFigureBuilderMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

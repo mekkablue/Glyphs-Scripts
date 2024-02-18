@@ -55,7 +55,7 @@ class BracketMetricsManager(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Sync", sizeStyle='regular', callback=self.BracketMetricsManagerMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Sync", callback=self.BracketMetricsManagerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

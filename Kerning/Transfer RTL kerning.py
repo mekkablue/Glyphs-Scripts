@@ -44,7 +44,7 @@ class TransferRTLkerning(mekkaObject):
 		self.w.to_master = vanilla.PopUpButton((inset + 130, linePos, -inset, 17), self.listOfMasterNames()[::-1], sizeStyle='small', callback=self.buttonCheck)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Transfer", sizeStyle='regular', callback=self.TransferRTLkerningMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Transfer", callback=self.TransferRTLkerningMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

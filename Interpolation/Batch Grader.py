@@ -350,11 +350,11 @@ class BatchGrader(mekkaObject):
 			print(e)
 
 		# Buttons:
-		self.w.resetButton = vanilla.Button((inset, -20 - inset, 80, -inset), "Reset", sizeStyle="regular", callback=self.ResetGraderCode)
+		self.w.resetButton = vanilla.Button((inset, -20 - inset, 80, -inset), "Reset", callback=self.ResetGraderCode)
 		self.w.resetButton.getNSButton().setToolTip_("Will populate the recipe field with the masters and the settings above. Careful: will overwrite what you had here before.")
 		self.w.helpButton = vanilla.HelpButton((inset + 90, -20 - inset, 21, 21), callback=self.openURL)
 		self.w.helpButton.getNSButton().setToolTip_("Will open a Loom video explaining the script. You need an internet connection.")
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Add Grades", sizeStyle="regular", callback=self.BatchGraderMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Add Grades", callback=self.BatchGraderMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

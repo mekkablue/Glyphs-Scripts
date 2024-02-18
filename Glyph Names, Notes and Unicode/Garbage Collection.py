@@ -159,7 +159,7 @@ class GarbageCollection(mekkaObject):
 		self.updateUI()
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Clean", sizeStyle='regular', callback=self.GarbageCollectionMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Clean", callback=self.GarbageCollectionMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

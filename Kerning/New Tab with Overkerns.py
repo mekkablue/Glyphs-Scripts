@@ -60,8 +60,8 @@ class NewTabwithOverkernedPairs(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.fixButton = vanilla.Button((-180 - inset, -20 - inset, -110 - inset, -inset), "Fix", sizeStyle='regular', callback=self.NewTabwithOverkernedPairsMain)
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Report", sizeStyle='regular', callback=self.NewTabwithOverkernedPairsMain)
+		self.w.fixButton = vanilla.Button((-180 - inset, -20 - inset, -110 - inset, -inset), "Fix", callback=self.NewTabwithOverkernedPairsMain)
+		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Report", callback=self.NewTabwithOverkernedPairsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

@@ -321,7 +321,7 @@ class AddGrade(mekkaObject):
 		# self.w.useWdthAxis.enable(False)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Add Master", sizeStyle="regular", callback=self.AddGradeMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Add Master", callback=self.AddGradeMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

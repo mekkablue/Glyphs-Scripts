@@ -110,8 +110,8 @@ class ItalicShiftFeature(mekkaObject):
 		self.w.edit_3c = vanilla.EditText((75 + 75, lineheight, -inset, 19), "", sizeStyle='small', placeholder="parenleft parenright bracketleft bracketright", callback=self.SavePreferences)
 
 		# Run Button:
-		self.w.copyButton = vanilla.Button((-180 - inset, -20 - inset, -inset - 90, -inset), "Copy Code", sizeStyle='regular', callback=self.ItalicShiftFeatureMain)
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Insert", sizeStyle='regular', callback=self.ItalicShiftFeatureMain)
+		self.w.copyButton = vanilla.Button((-180 - inset, -20 - inset, -inset - 90, -inset), "Copy Code", callback=self.ItalicShiftFeatureMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Insert", callback=self.ItalicShiftFeatureMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

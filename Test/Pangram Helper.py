@@ -52,8 +52,8 @@ class PangramHelper(mekkaObject):
 		self.w.pangram = vanilla.TextEditor((1, linePos, -1, -45), "The quick brown fox jumps over the lazy dog.", checksSpelling=True, callback=self.updateMissingLetters)
 
 		# Run Button:
-		self.w.copyButton = vanilla.Button((-170, -20 - inset, -110, -inset), "Copy", sizeStyle='regular', callback=self.PangramHelperMain)
-		self.w.tabButton = vanilla.Button((-100, -20 - inset, -inset, -inset), "Open Tab", sizeStyle='regular', callback=self.PangramHelperMain)
+		self.w.copyButton = vanilla.Button((-170, -20 - inset, -110, -inset), "Copy", callback=self.PangramHelperMain)
+		self.w.tabButton = vanilla.Button((-100, -20 - inset, -inset, -inset), "Open Tab", callback=self.PangramHelperMain)
 		self.w.setDefaultButton(self.w.tabButton)
 
 		# Load Settings:

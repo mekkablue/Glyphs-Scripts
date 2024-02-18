@@ -103,13 +103,13 @@ class MethodReporter(mekkaObject):
 		# UI ELEMENTS:
 
 		# Method Picker:
-		self.w.objectPicker = vanilla.ComboBox((3, 2, 133, 24), self.mostImportantObjects, sizeStyle='regular', completes=True, continuous=False, callback=self.MethodReporterMain)
+		self.w.objectPicker = vanilla.ComboBox((3, 2, 133, 24), self.mostImportantObjects, completes=True, continuous=False, callback=self.MethodReporterMain)
 		self.w.objectPicker.set("GSLayer")
 		self.w.objectPicker.getNSComboBox().setToolTip_("Type a class name here. Names will autocomplete.")
 
 		# Filter:
 		self.w.textFilter = vanilla.TextBox((140, 6, 35, 14), "Find:", sizeStyle='small')
-		self.w.filter = vanilla.EditText((173, 1, -1, 24), "", sizeStyle='regular', callback=self.MethodReporterMain)
+		self.w.filter = vanilla.EditText((173, 1, -1, 24), "", callback=self.MethodReporterMain)
 		self.w.filter.getNSTextField().setToolTip_("Type one or more (space-separated) search terms here. Case is ignored. Use * as wildcard at beginning, middle or end of term. Multiple search terms are AND-concatenated.")
 
 		# Listing of methods:

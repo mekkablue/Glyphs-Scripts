@@ -161,14 +161,14 @@ class BBoxBumperKerning(mekkaObject):
 
 		self.w.tokenText = vanilla.TextBox((0, linePos + 4, inset + shift - 5, 14), "▪️BBox token:", sizeStyle='small', selectable=True)
 		self.w.tokenText.getNSTextField().setAlignment_(2)
-		self.w.token = vanilla.ComboBox((inset + shift, linePos - 2, -inset - 230, 21), self.tokens, sizeStyle='regular', callback=self.SavePreferences)
+		self.w.token = vanilla.ComboBox((inset + shift, linePos - 2, -inset - 230, 21), self.tokens, callback=self.SavePreferences)
 		self.w.token.getNSComboBox(
 		).setToolTip_("Describe a glyph class predicate for defining an OT class, for which the class bbox is calculated and bumped against other glyphs.")
 		self.w.helpToken = vanilla.HelpButton((-inset - 230, linePos - 2, -inset - 200, 21), callback=self.openURL)
 		self.w.helpToken.getNSButton().setToolTip_("Opens the ‘Tokens’ tutorial in a web browser. Look for ‘glyph class predicates’.")
 		self.w.otClassNameText = vanilla.TextBox((-inset - 205, linePos + 4, shift - 5, 14), "OT classname:", sizeStyle='small', selectable=True)
 		self.w.otClassNameText.getNSTextField().setAlignment_(2)
-		self.w.otClassName = vanilla.ComboBox((-inset - 200 + shift, linePos - 2, -inset, 21), self.classNames, sizeStyle='regular', callback=self.SavePreferences)
+		self.w.otClassName = vanilla.ComboBox((-inset - 200 + shift, linePos - 2, -inset, 21), self.classNames, callback=self.SavePreferences)
 		self.w.otClassName.getNSComboBox().setToolTip_("Name of the OT class. Make sure it is unique for all the fonts.")
 		linePos += lineHeight + 2
 
@@ -222,7 +222,7 @@ class BBoxBumperKerning(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Bump BBox", sizeStyle='regular', callback=self.BBoxBumperKerningMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Bump BBox", callback=self.BBoxBumperKerningMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

@@ -211,7 +211,7 @@ class ComponentProblemFinder(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Open Tab", sizeStyle='regular', callback=self.ComponentProblemFinderMain)
+		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Open Tab", callback=self.ComponentProblemFinderMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

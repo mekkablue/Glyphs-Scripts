@@ -41,8 +41,8 @@ class FindAndReplaceInInstanceParameters(mekkaObject):
 		self.windowResize(None)
 
 		# Run Button:
-		self.w.rescanButton = vanilla.Button((-200, -20 - 15, -110, -15), "Rescan", sizeStyle='regular', callback=self.setAvailableParameters)
-		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Replace", sizeStyle='regular', callback=self.FindAndReplaceInInstanceParametersMain)
+		self.w.rescanButton = vanilla.Button((-200, -20 - 15, -110, -15), "Rescan", callback=self.setAvailableParameters)
+		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Replace", callback=self.FindAndReplaceInInstanceParametersMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.w.bind("resize", self.windowResize)

@@ -111,7 +111,7 @@ class PositionClicker(mekkaObject):
 		self.w.referenceText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Click with glyph", sizeStyle='small', selectable=True)
 		self.w.referenceText.getNSTextField().setToolTip_(tooltip)
 
-		self.w.referenceGlyphName = vanilla.ComboBox((inset + indent, linePos - 4, -inset - 23, 25), self.getAllMediGlyphNames(), callback=self.SavePreferences, sizeStyle='regular')
+		self.w.referenceGlyphName = vanilla.ComboBox((inset + indent, linePos - 4, -inset - 23, 25), self.getAllMediGlyphNames(), callback=self.SavePreferences)
 		self.w.referenceGlyphName.getNSComboBox().setFont_(NSFont.userFixedPitchFontOfSize_(11))
 		self.w.referenceGlyphName.getNSComboBox().setToolTip_(tooltip)
 
@@ -139,7 +139,7 @@ class PositionClicker(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Open Tab", sizeStyle='regular', callback=self.PositionClickerMain)
+		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Open Tab", callback=self.PositionClickerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

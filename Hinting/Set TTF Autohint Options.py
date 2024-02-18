@@ -231,10 +231,10 @@ class SetTTFAutohintOptions(mekkaObject):
 		self.w.optionValue.getNSTextField().setToolTip_("Value for the currently selected option, if any. Some options can only be set or removed, some have a value.")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-60 - 50, linePos - 2, -inset - 50, 22), "Set", sizeStyle='regular', callback=self.SetTTFAutohintOptionsMain)
+		self.w.runButton = vanilla.Button((-60 - 50, linePos - 2, -inset - 50, 22), "Set", callback=self.SetTTFAutohintOptionsMain)
 		self.w.runButton.getNSButton().setToolTip_("Updates all ‘TTFAutohint options’ parameters with the current option (and value, if any) to all instances in the font.")
 
-		self.w.delButton = vanilla.Button((-60, linePos - 2, -inset, 22), "Del", sizeStyle='regular', callback=self.RemoveOption)
+		self.w.delButton = vanilla.Button((-60, linePos - 2, -inset, 22), "Del", callback=self.RemoveOption)
 		self.w.delButton.getNSButton().setToolTip_("Removes the current option from all ‘TTFAutohint options’ parameters in all instances in the font.")
 
 		linePos += lineHeight

@@ -109,7 +109,7 @@ class CapAndCornerManager(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Apply", sizeStyle="regular", callback=self.CapAndCornerManagerMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Apply", callback=self.CapAndCornerManagerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

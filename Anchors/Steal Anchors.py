@@ -95,9 +95,9 @@ class StealAnchors(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.updateButton = vanilla.Button((-180 - inset, -20 - inset, -90 - inset, -inset), "Update", sizeStyle="regular", callback=self.updateUI)
+		self.w.updateButton = vanilla.Button((-180 - inset, -20 - inset, -90 - inset, -inset), "Update", callback=self.updateUI)
 		self.w.updateButton.getNSButton().setToolTip_("Will update the popup menus above. Use this if you opened a new font after opening this dialog.")
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Steal", sizeStyle="regular", callback=self.StealAnchorsMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Steal", callback=self.StealAnchorsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

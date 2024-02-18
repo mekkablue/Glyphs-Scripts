@@ -55,14 +55,14 @@ class PopulateAllBackgroundswithComponent(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Populate", sizeStyle='regular', callback=self.PopulateAllBackgroundswithComponentMain)
+		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Populate", callback=self.PopulateAllBackgroundswithComponentMain)
 		self.w.runButton.getNSButton().setToolTip_("Inserts the specified component in ALL layers of the current glyph(s).")
 		self.w.setDefaultButton(self.w.runButton)
 
-		self.w.alignButton = vanilla.Button((-220 - inset, -20 - inset, -110 - inset, -inset), "Align Nodes", sizeStyle='regular', callback=self.AlignNodesMain)
+		self.w.alignButton = vanilla.Button((-220 - inset, -20 - inset, -110 - inset, -inset), "Align Nodes", callback=self.AlignNodesMain)
 		self.w.alignButton.getNSButton().setToolTip_("Aligns selected nodes with the (original) nodes in the background components. Only does this on the CURRENT layer.")
 
-		self.w.nextMasterButton = vanilla.Button((-340 - inset, -20 - inset, -230 - inset, -inset), "Next Master", sizeStyle='regular', callback=self.NextMasterMain)
+		self.w.nextMasterButton = vanilla.Button((-340 - inset, -20 - inset, -230 - inset, -inset), "Next Master", callback=self.NextMasterMain)
 		self.w.nextMasterButton.getNSButton().setToolTip_("Switches the current tab to the next master. Useful if you want to align the same nodes in every master.")
 
 		# Load Settings:

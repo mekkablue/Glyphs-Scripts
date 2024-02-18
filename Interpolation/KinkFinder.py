@@ -140,7 +140,7 @@ class KinkFinder(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Open Tab", sizeStyle='regular', callback=self.KinkFinderMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Open Tab", callback=self.KinkFinderMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

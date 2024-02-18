@@ -63,7 +63,7 @@ class RemovePSHints(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Remove Hints", sizeStyle='regular', callback=self.RemovePSHintsMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Remove Hints", callback=self.RemovePSHintsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

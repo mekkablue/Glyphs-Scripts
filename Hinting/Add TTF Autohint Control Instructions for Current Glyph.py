@@ -146,21 +146,21 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(mekkaObject):
 		self.w.sectionToMove = vanilla.PopUpButton((inset + 38, linePos, -inset, 17), sectionOptions, sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.runButtonAdd100 = vanilla.Button((inset, linePos, -inset, 20), "+1.00", sizeStyle='regular', callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonAdd100 = vanilla.Button((inset, linePos, -inset, 20), "+1.00", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
 		linePos += lineHeight
-		self.w.runButtonAdd075 = vanilla.Button((inset, linePos, -inset, 20), "+0.75", sizeStyle='regular', callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonAdd075 = vanilla.Button((inset, linePos, -inset, 20), "+0.75", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
 		linePos += lineHeight
-		self.w.runButtonAdd050 = vanilla.Button((inset, linePos, -inset, 20), "+0.50", sizeStyle='regular', callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonAdd050 = vanilla.Button((inset, linePos, -inset, 20), "+0.50", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
 		linePos += lineHeight
-		self.w.runButtonAdd025 = vanilla.Button((inset, linePos, -inset, 20), "+0.25", sizeStyle='regular', callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonAdd025 = vanilla.Button((inset, linePos, -inset, 20), "+0.25", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
 		linePos += lineHeight
-		self.w.runButtonSub025 = vanilla.Button((inset, linePos, -inset, 20), "-0.25", sizeStyle='regular', callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonSub025 = vanilla.Button((inset, linePos, -inset, 20), "-0.25", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
 		linePos += lineHeight
-		self.w.runButtonSub050 = vanilla.Button((inset, linePos, -inset, 20), "-0.50", sizeStyle='regular', callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonSub050 = vanilla.Button((inset, linePos, -inset, 20), "-0.50", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
 		linePos += lineHeight
-		self.w.runButtonSub075 = vanilla.Button((inset, linePos, -inset, 20), "-0.75", sizeStyle='regular', callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonSub075 = vanilla.Button((inset, linePos, -inset, 20), "-0.75", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
 		linePos += lineHeight
-		self.w.runButtonSub100 = vanilla.Button((inset, linePos, -inset, 20), "-1.00", sizeStyle='regular', callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonSub100 = vanilla.Button((inset, linePos, -inset, 20), "-1.00", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
 		linePos += lineHeight
 
 		self.w.ppmText = vanilla.TextBox((inset, linePos + 2, 14, 14), "@", sizeStyle='small', selectable=True)
@@ -170,10 +170,10 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(mekkaObject):
 		# self.w.upperHalf = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Upper half (one)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		# linePos += lineHeight
 
-		self.w.rightAtTop = vanilla.Button((inset, linePos, -inset, 20), "right at top", sizeStyle='regular', callback=self.InsertRightAtTop)
+		self.w.rightAtTop = vanilla.Button((inset, linePos, -inset, 20), "right at top", callback=self.InsertRightAtTop)
 		linePos += lineHeight
 
-		self.w.leftAtTop = vanilla.Button((inset, linePos, -inset, 20), "left at top", sizeStyle='regular', callback=self.InsertLeftAtTop)
+		self.w.leftAtTop = vanilla.Button((inset, linePos, -inset, 20), "left at top", callback=self.InsertLeftAtTop)
 		linePos += lineHeight
 
 		# Load Settings:

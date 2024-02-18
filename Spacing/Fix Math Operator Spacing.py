@@ -111,10 +111,10 @@ class FixMathOperatorSpacing(mekkaObject):
 		linePos += lineHeight
 
 		# Buttons:
-		self.w.tabButton = vanilla.Button((-200 - inset, -20 - inset, -90 - inset, -inset), "Open Tab", sizeStyle='regular', callback=self.OpenTab)
+		self.w.tabButton = vanilla.Button((-200 - inset, -20 - inset, -90 - inset, -inset), "Open Tab", callback=self.OpenTab)
 		self.w.tabButton.getNSButton().setToolTip_(u"Opens a new Edit tab with +−×÷=≠±≈¬ <>≤≥ ^~")
 
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Sync", sizeStyle='regular', callback=self.FixMathOperatorSpacingMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Sync", callback=self.FixMathOperatorSpacingMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

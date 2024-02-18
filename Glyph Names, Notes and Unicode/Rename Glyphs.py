@@ -44,7 +44,7 @@ class RenameGlyphs(mekkaObject):
 		self.w.allFonts = vanilla.CheckBox((10, -35, 100, 20), "⚠️ ALL Fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100, -35, -15, -15), "Rename", sizeStyle='regular', callback=self.RenameGlyphsMain)
+		self.w.runButton = vanilla.Button((-100, -35, -15, -15), "Rename", callback=self.RenameGlyphsMain)
 		# self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

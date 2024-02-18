@@ -58,7 +58,7 @@ class MovePathstoComponent(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-140 - inset, -20 - inset, -inset, -inset), "Make Composite", sizeStyle='regular', callback=self.MovePathsToComponentMain)
+		self.w.runButton = vanilla.Button((-140 - inset, -20 - inset, -inset, -inset), "Make Composite", callback=self.MovePathsToComponentMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.w.warningText = vanilla.TextBox((inset, -15 - inset, -140 - inset, 14), "", sizeStyle="small", selectable=True)

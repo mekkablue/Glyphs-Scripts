@@ -88,7 +88,7 @@ class CalculateSubscriptAndSuperscriptParameters(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Insert", sizeStyle='regular', callback=self.CalculateSubscriptAndSuperscriptParametersMain)
+		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Insert", callback=self.CalculateSubscriptAndSuperscriptParametersMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

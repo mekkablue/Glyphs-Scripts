@@ -79,7 +79,7 @@ class ShortSegmentFinder(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Open Tab", sizeStyle='regular', callback=self.ShortSegmentFinderMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Open Tab", callback=self.ShortSegmentFinderMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

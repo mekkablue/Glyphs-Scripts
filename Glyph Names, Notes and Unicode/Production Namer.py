@@ -73,17 +73,17 @@ class ProductionNamer(mekkaObject):
 
 		# APPLY TO FONTS
 		linePos = -inset - 50
-		self.w.finger = vanilla.TextBox((inset - 5, linePos, 22, 22), "👉 ", sizeStyle='regular', selectable=True)
+		self.w.finger = vanilla.TextBox((inset - 5, linePos, 22, 22), "👉 ", selectable=True)
 		self.w.applyText = vanilla.TextBox((inset + 17, linePos + 2, 70, 14), "Apply to", sizeStyle='small', selectable=True)
 		self.w.applyPopup = vanilla.PopUpButton((inset + 70, linePos, 150, 17), ("ALL open fonts", "open fonts containing", "frontmost font only"), sizeStyle='small', callback=self.SavePreferences)
 		self.w.applyContaining = vanilla.EditText((inset + 70 + 150 + 10, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small', placeholder="enter part of family name here")
 		self.w.applyContaining.getNSTextField().setToolTip_("Only applies the settings to fonts that contain this in Font Info > Font > Family Name.")
 		linePos += lineHeight
 
-		self.w.resetButton = vanilla.Button((inset, -20 - inset, 80, -inset), "Reset", sizeStyle='regular', callback=self.updateUI)
+		self.w.resetButton = vanilla.Button((inset, -20 - inset, 80, -inset), "Reset", callback=self.updateUI)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Set Names", sizeStyle='regular', callback=self.ProductionNamerMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Set Names", callback=self.ProductionNamerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

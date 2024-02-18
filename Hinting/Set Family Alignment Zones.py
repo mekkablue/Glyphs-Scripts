@@ -51,7 +51,7 @@ class SetFamilyAlignmentZones(mekkaObject):
 		self.w.helpTutorial.getNSButton().setToolTip_("Will open the glyphsapp.com tutorial about PS Hinting, at the section that explains Family Alignment Zones.")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-110 - inset, -20 - inset, -inset, -inset), "Insert FAZ", sizeStyle='regular', callback=self.SetFamilyAlignmentZonesMain)
+		self.w.runButton = vanilla.Button((-110 - inset, -20 - inset, -inset, -inset), "Insert FAZ", callback=self.SetFamilyAlignmentZonesMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Open window and focus on it:

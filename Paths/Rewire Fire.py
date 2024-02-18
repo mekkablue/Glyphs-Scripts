@@ -104,7 +104,7 @@ class RewireFire(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Fire", sizeStyle='regular', callback=self.RewireFireMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Fire", callback=self.RewireFireMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

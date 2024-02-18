@@ -33,7 +33,7 @@ class MetricKeyReplacer(mekkaObject):
 		self.w.rightSearchFor = vanilla.EditText((200, 30, 120, 20), "=|a", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)')
 		self.w.rightReplaceBy = vanilla.EditText((200, 55, 120, 20), "=|a.ss01", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)')
 
-		self.w.runButton = vanilla.Button((-110, -20 - 15, -15, -15), "Replace", sizeStyle='regular', callback=self.MetricKeyReplaceMain)
+		self.w.runButton = vanilla.Button((-110, -20 - 15, -15, -15), "Replace", callback=self.MetricKeyReplaceMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		try:

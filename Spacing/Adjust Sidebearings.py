@@ -57,8 +57,8 @@ class AdjustSpacing(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Treat sidebearings in frontmost font:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
-		self.w.choice = vanilla.PopUpButton((inset, linePos, 125, 21), choices, sizeStyle="regular", callback=self.SavePreferences)
-		self.w.value = vanilla.EditText((inset + 130, linePos - 1, -inset, 21), "2", callback=self.SavePreferences, sizeStyle="regular")
+		self.w.choice = vanilla.PopUpButton((inset, linePos, 125, 21), choices, callback=self.SavePreferences)
+		self.w.value = vanilla.EditText((inset + 130, linePos - 1, -inset, 21), "2", callback=self.SavePreferences)
 		linePos += lineHeight + 3
 
 		self.w.treatSBsText1 = vanilla.TextBox((inset, linePos + 2, 55, 14), "Apply to", sizeStyle="small", selectable=True)
@@ -80,7 +80,7 @@ class AdjustSpacing(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Adjust", sizeStyle="regular", callback=self.AdjustSpacingMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Adjust", callback=self.AdjustSpacingMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

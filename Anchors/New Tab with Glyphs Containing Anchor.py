@@ -40,7 +40,7 @@ class NewTabWithAnchor(mekkaObject):
 		self.w.keepWindowOpen = vanilla.CheckBox((15, 80, -15, 20), "Keep window open", value=False, callback=self.SavePreferences, sizeStyle='small')
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Open Tab", sizeStyle='regular', callback=self.NewTabWithAnchorMain)
+		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Open Tab", callback=self.NewTabWithAnchorMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

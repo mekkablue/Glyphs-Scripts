@@ -71,7 +71,7 @@ class AddZWROOriginAnchors(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Add Anchors", sizeStyle="regular", callback=self.AddZWROOriginAnchorsMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Add Anchors", callback=self.AddZWROOriginAnchorsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

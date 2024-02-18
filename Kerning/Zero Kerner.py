@@ -53,9 +53,9 @@ class ZeroKerner(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.removeButton = vanilla.Button((-160 - inset, -20 - inset, -80 - inset, -inset), "Remove", sizeStyle='regular', callback=self.ZeroKernerMain)
+		self.w.removeButton = vanilla.Button((-160 - inset, -20 - inset, -80 - inset, -inset), "Remove", callback=self.ZeroKernerMain)
 
-		self.w.addButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "Add", sizeStyle='regular', callback=self.ZeroKernerMain)
+		self.w.addButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "Add", callback=self.ZeroKernerMain)
 		self.w.setDefaultButton(self.w.addButton)
 
 		# Load Settings:

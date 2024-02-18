@@ -78,7 +78,7 @@ class CompositeVariabler(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Run", sizeStyle='regular', callback=self.CompositeVariablerMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Run", callback=self.CompositeVariablerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

@@ -45,7 +45,7 @@ class PartialCompress(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Compress", sizeStyle="regular", callback=self.PartialCompressMain)
+		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Compress", callback=self.PartialCompressMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

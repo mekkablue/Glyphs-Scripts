@@ -79,7 +79,7 @@ class FillUpEmptyMasters(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Fill Up", sizeStyle="regular", callback=self.FillUpEmptyMastersMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Fill Up", callback=self.FillUpEmptyMastersMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

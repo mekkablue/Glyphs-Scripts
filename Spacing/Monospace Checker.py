@@ -61,7 +61,7 @@ class MonospaceChecker(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Check", sizeStyle='regular', callback=self.MonospaceCheckerMain)
+		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Check", callback=self.MonospaceCheckerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

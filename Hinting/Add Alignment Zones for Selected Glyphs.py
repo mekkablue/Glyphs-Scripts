@@ -76,7 +76,7 @@ class CreateAlignmentZonesforSelectedGlyphs(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Create Zones", sizeStyle='regular', callback=self.CreateAlignmentZonesforSelectedGlyphsMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Create Zones", callback=self.CreateAlignmentZonesforSelectedGlyphsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

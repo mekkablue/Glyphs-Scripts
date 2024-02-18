@@ -67,7 +67,7 @@ class BuildRandFeature(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Add Feature", sizeStyle='regular', callback=self.BuildRandFeatureMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Add Feature", callback=self.BuildRandFeatureMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

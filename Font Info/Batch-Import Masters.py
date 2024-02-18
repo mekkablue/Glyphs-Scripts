@@ -126,11 +126,11 @@ class BatchImportMasters(mekkaObject):
 		linePos += lineHeight
 
 		# Update Button:
-		self.w.updateButton = vanilla.Button((inset, -20 - inset, 100, -inset), "Update", sizeStyle="regular", callback=self.UpdateUI)
+		self.w.updateButton = vanilla.Button((inset, -20 - inset, 100, -inset), "Update", callback=self.UpdateUI)
 		self.w.updateButton.getNSButton().setToolTip_("Will update all the menus and buttons of this window. Click here if you opened or closed a font since you invoked the script, or after you changed the source font.")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Import", sizeStyle="regular", callback=self.BatchImportMastersMain)
+		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Import", callback=self.BatchImportMastersMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.UpdateUI()

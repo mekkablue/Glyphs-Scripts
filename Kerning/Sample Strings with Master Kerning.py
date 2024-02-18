@@ -75,7 +75,7 @@ class SampleStringsWithMasterKerning(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Add", sizeStyle='regular', callback=self.SampleStringsWithCurrentKerning)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Add", callback=self.SampleStringsWithCurrentKerning)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

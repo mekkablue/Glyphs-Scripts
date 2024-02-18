@@ -132,10 +132,10 @@ class PSNameMaker(mekkaObject):
 		self.w.includeInactiveInstances = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include inactive instances", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.removeButton = vanilla.Button((inset, -20 - inset, 90, -inset), "Remove", sizeStyle="regular", callback=self.PSNameMakerMain)
+		self.w.removeButton = vanilla.Button((inset, -20 - inset, 90, -inset), "Remove", callback=self.PSNameMakerMain)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Add", sizeStyle="regular", callback=self.PSNameMakerMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Add", callback=self.PSNameMakerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

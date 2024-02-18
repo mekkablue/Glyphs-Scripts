@@ -70,7 +70,7 @@ class FindSmallPaths(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120, -20 - inset, -inset, -inset), u"Open Tab", sizeStyle='regular', callback=self.FindSmallPathsMain)
+		self.w.runButton = vanilla.Button((-120, -20 - inset, -inset, -inset), u"Open Tab", callback=self.FindSmallPathsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

@@ -85,19 +85,19 @@ class SetHiddenAppPreferences(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Choose and apply the app defaults:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.pref = vanilla.ComboBox((inset, linePos - 2, -inset - 100, 25), self.prefs, callback=self.SavePreferences, sizeStyle='regular')
+		self.w.pref = vanilla.ComboBox((inset, linePos - 2, -inset - 100, 25), self.prefs, callback=self.SavePreferences)
 		self.w.pref.getNSComboBox().setFont_(NSFont.userFixedPitchFontOfSize_(11))
 		self.w.pref.getNSComboBox().setToolTip_("Pick an app default from the list, or type in an identifier.")
 
-		self.w.prefValue = vanilla.EditText((-inset - 90, linePos, -inset, 21), "", sizeStyle='regular')
+		self.w.prefValue = vanilla.EditText((-inset - 90, linePos, -inset, 21), "")
 		self.w.prefValue.getNSTextField().setToolTip_("Enter a value for the chosen app default.")
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.delButton = vanilla.Button((-170 - inset, -20 - inset, -90 - inset, -inset), "Reset", sizeStyle='regular', callback=self.SetHiddenAppPreferencesMain)
+		self.w.delButton = vanilla.Button((-170 - inset, -20 - inset, -90 - inset, -inset), "Reset", callback=self.SetHiddenAppPreferencesMain)
 		self.w.delButton.getNSButton().setToolTip_("Will delete the setting, effectively resetting it to its default.")
 
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Apply", sizeStyle='regular', callback=self.SetHiddenAppPreferencesMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Apply", callback=self.SetHiddenAppPreferencesMain)
 		self.w.runButton.getNSButton().setToolTip_("Sets the entered value for the chosen app default.")
 		self.w.setDefaultButton(self.w.runButton)
 

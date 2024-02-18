@@ -127,7 +127,7 @@ class FontInfoBatchSetter(mekkaObject):
 		# VERSION NUMBER
 		self.w.setVersion = vanilla.CheckBox((inset, linePos - 1, column, 20), "Version:", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.versionMajor = vanilla.EditText((inset + column, linePos, 50, 19), "1", callback=self.SavePreferences, sizeStyle='small')
-		self.w.versionDot = vanilla.TextBox((inset + 151, linePos + 2, 8, 18), ".", sizeStyle='regular', selectable=True)
+		self.w.versionDot = vanilla.TextBox((inset + 151, linePos + 2, 8, 18), ".", selectable=True)
 		self.w.versionMinor = vanilla.EditText((inset + 160, linePos, -inset - 113, 19), "005", callback=self.SavePreferences, sizeStyle='small')
 		self.w.versionMinorDecrease = vanilla.SquareButton((-inset - 110, linePos, -inset - 90, 19), "−", sizeStyle='small', callback=self.changeMinVersion)
 		self.w.versionMinorDecrease.getNSButton().setToolTip_("Decrease the version number by 0.001.")
@@ -160,7 +160,7 @@ class FontInfoBatchSetter(mekkaObject):
 		linePos += lineHeight
 
 		# APPLY TO FONTS
-		self.w.finger = vanilla.TextBox((inset - 5, linePos, 22, 22), "👉 ", sizeStyle='regular', selectable=True)
+		self.w.finger = vanilla.TextBox((inset - 5, linePos, 22, 22), "👉 ", selectable=True)
 		self.w.applyText = vanilla.TextBox((inset + 17, linePos + 2, 70, 14), "Apply to", sizeStyle='small', selectable=True)
 		self.w.applyPopup = vanilla.PopUpButton((inset + 70, linePos, 150, 17), ("ALL open fonts", "open fonts containing"), sizeStyle='small', callback=self.SavePreferences)
 		self.w.applyContaining = vanilla.EditText((inset + 70 + 150 + 10, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small', placeholder="enter part of family name here")
@@ -168,9 +168,9 @@ class FontInfoBatchSetter(mekkaObject):
 		linePos += lineHeight
 
 		# Buttons:
-		self.w.extractButton = vanilla.Button((-270 - inset, -20 - inset, -130 - inset, -inset), "Extract from Font", sizeStyle='regular', callback=self.ExtractFontInfoFromFrontmostFont)
+		self.w.extractButton = vanilla.Button((-270 - inset, -20 - inset, -130 - inset, -inset), "Extract from Font", callback=self.ExtractFontInfoFromFrontmostFont)
 		self.w.extractButton.getNSButton().setToolTip_("Extracts the settings from the frontmost font and fills the UI with it.")
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Apply to Fonts", sizeStyle='regular', callback=self.FontInfoBatchSetterMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Apply to Fonts", callback=self.FontInfoBatchSetterMain)
 		self.w.runButton.getNSButton().setToolTip_("Applies the checked settings above to all fonts indicated in the ‘Apply to’ option.")
 		self.w.setDefaultButton(self.w.runButton)
 

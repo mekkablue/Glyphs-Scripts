@@ -115,7 +115,7 @@ class MetricsKeyManager(mekkaObject):
 			editField.getNSScrollView().setRulersVisible_(1)
 
 		# Buttons:
-		self.w.symmetricButton = vanilla.Button((inset, -20 - inset, 60, -inset), "Add =|", sizeStyle='regular', callback=self.AddMissingSymmetricKeys)
+		self.w.symmetricButton = vanilla.Button((inset, -20 - inset, 60, -inset), "Add =|", callback=self.AddMissingSymmetricKeys)
 		self.w.symmetricThreshold = vanilla.EditText((inset + 65, -19 - inset, 20, -inset), "2", callback=self.SavePreferences, sizeStyle="small")
 		self.w.symmetricThresholdText = vanilla.TextBox((inset + 65 + 20, -16 - inset, 60, -inset), "Threshold", sizeStyle="small", selectable=True)
 		linePos += lineHeight
@@ -124,15 +124,15 @@ class MetricsKeyManager(mekkaObject):
 		self.w.symmetricThreshold.getNSTextField().setToolTip_(tooltip)
 		self.w.symmetricThresholdText.getNSTextField().setToolTip_(tooltip)
 
-		self.w.deleteAllButton = vanilla.Button((inset + 150, -20 - inset, 80, -inset), "Delete All", sizeStyle='regular', callback=self.deleteAllMetricsKeys)
+		self.w.deleteAllButton = vanilla.Button((inset + 150, -20 - inset, 80, -inset), "Delete All", callback=self.deleteAllMetricsKeys)
 
-		self.w.resetButton = vanilla.Button((-240 - inset, -20 - inset, -inset - 170, -inset), "⟲ Reset", sizeStyle='regular', callback=self.SetDefaults)
+		self.w.resetButton = vanilla.Button((-240 - inset, -20 - inset, -inset - 170, -inset), "⟲ Reset", callback=self.SetDefaults)
 		self.w.resetButton.getNSButton().setToolTip_("Resets the contents of the L+R Keys to their (currently only Latin) defaults.")
 
-		self.w.scanButton = vanilla.Button((-160 - inset, -20 - inset, -inset - 80, -inset), "↑ Extract", sizeStyle='regular', callback=self.ScanFontForKeys)
+		self.w.scanButton = vanilla.Button((-160 - inset, -20 - inset, -inset - 80, -inset), "↑ Extract", callback=self.ScanFontForKeys)
 		self.w.scanButton.getNSButton().setToolTip_("Scans the current font for all metrics keys and lists them here. Normalizes the preceding equals sign (=). No matter whether you typed them with or without an equals sign, they will show up here with one.")
 
-		self.w.runButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "↓ Apply", sizeStyle='regular', callback=self.MetricsKeyManagerMain)
+		self.w.runButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "↓ Apply", callback=self.MetricsKeyManagerMain)
 		self.w.runButton.getNSButton().setToolTip_("Parses the current content of the window and will attempt to set the metrics keys of the respective glyphs in the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 

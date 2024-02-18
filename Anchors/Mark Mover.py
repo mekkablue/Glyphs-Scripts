@@ -141,7 +141,7 @@ class MarkMover(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Move", sizeStyle='regular', callback=self.MarkMoverMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Move", callback=self.MarkMoverMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

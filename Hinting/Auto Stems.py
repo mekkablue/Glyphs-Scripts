@@ -90,7 +90,7 @@ class AutoStems(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Add Stems", sizeStyle="regular", callback=self.AutoStemsMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Add Stems", callback=self.AutoStemsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

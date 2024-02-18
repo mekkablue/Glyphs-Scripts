@@ -224,7 +224,7 @@ class InstanceMaker(mekkaObject):
 		self.w.sample.text = vanilla.TextBox((5, 5, -5, -5), "", sizeStyle='small')
 
 		# buttons:
-		self.w.createButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Insert", sizeStyle='regular', callback=self.CreateInstances)
+		self.w.createButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Insert", callback=self.CreateInstances)
 		self.w.setDefaultButton(self.w.createButton)
 
 		self.LoadPreferences()

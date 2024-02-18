@@ -143,7 +143,7 @@ class StraightStemCruncher(mekkaObject):
 		self.w.status = vanilla.TextBox((inset, -18 - inset, -120 - inset, 16), u"🤖 Ready.", sizeStyle='small', selectable=True)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Measure", sizeStyle='regular', callback=self.StraightStemCruncherMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Measure", callback=self.StraightStemCruncherMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

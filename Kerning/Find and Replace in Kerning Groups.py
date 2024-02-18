@@ -50,7 +50,7 @@ class KerningGroupReplacer(mekkaObject):
 		self.w.rightReplaceBy = vanilla.EditText((inset + 180, linePos, -inset, 20), "", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)')
 		linePos += lineHeight
 
-		self.w.runButton = vanilla.Button((-110, -20 - inset, -inset, -inset), "Replace", sizeStyle='regular', callback=self.KerningGroupReplaceMain)
+		self.w.runButton = vanilla.Button((-110, -20 - inset, -inset, -inset), "Replace", callback=self.KerningGroupReplaceMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.LoadPreferences()

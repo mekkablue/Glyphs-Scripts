@@ -57,7 +57,7 @@ class CompositeConsistencer(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Find", sizeStyle='regular', callback=self.CompositeConsistencerMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Find", callback=self.CompositeConsistencerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

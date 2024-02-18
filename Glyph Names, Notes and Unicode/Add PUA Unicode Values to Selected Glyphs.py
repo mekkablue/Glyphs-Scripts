@@ -54,7 +54,7 @@ class CustomUnicode(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Assign", sizeStyle='regular', callback=self.CustomUnicodeMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Assign", callback=self.CustomUnicodeMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

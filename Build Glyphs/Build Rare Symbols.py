@@ -455,13 +455,13 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Build", sizeStyle='regular', callback=self.BuildCirclesSquaresTrianglesMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Build", callback=self.BuildCirclesSquaresTrianglesMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# (un)check all checkboxes:
-		self.w.checkAllButton = vanilla.Button((-180 - inset, -20 - inset, -90 - inset, -inset), "Check All", sizeStyle='regular', callback=self.checkOrUncheckAll)
+		self.w.checkAllButton = vanilla.Button((-180 - inset, -20 - inset, -90 - inset, -inset), "Check All", callback=self.checkOrUncheckAll)
 		self.w.checkAllButton.getNSButton().setToolTip_("Activates all checkboxes above the separator line.")
-		self.w.uncheckAllButton = vanilla.Button((-300 - inset, -20 - inset, -190 - inset, -inset), "Uncheck All", sizeStyle='regular', callback=self.checkOrUncheckAll)
+		self.w.uncheckAllButton = vanilla.Button((-300 - inset, -20 - inset, -190 - inset, -inset), "Uncheck All", callback=self.checkOrUncheckAll)
 		self.w.uncheckAllButton.getNSButton().setToolTip_("Deactivates all checkboxes above the separator line.")
 
 		# Load Settings:

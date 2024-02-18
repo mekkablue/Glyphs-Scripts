@@ -53,20 +53,20 @@ class ComponentMover(mekkaObject):
 		linePos += int(lineHeight * 1.2)
 
 		size, offset = 50, 60
-		self.w.upLeft = vanilla.SquareButton((inset + offset, linePos, size - 1, lineHeight - 1), "↖", sizeStyle='regular', callback=self.ComponentMoverMain)
-		self.w.up = vanilla.SquareButton((inset + offset + size, linePos, size - 1, lineHeight - 1), "↑", sizeStyle='regular', callback=self.ComponentMoverMain)
-		self.w.upRight = vanilla.SquareButton((inset + offset + size * 2, linePos, size - 1, lineHeight - 1), "↗", sizeStyle='regular', callback=self.ComponentMoverMain)
+		self.w.upLeft = vanilla.SquareButton((inset + offset, linePos, size - 1, lineHeight - 1), "↖", callback=self.ComponentMoverMain)
+		self.w.up = vanilla.SquareButton((inset + offset + size, linePos, size - 1, lineHeight - 1), "↑", callback=self.ComponentMoverMain)
+		self.w.upRight = vanilla.SquareButton((inset + offset + size * 2, linePos, size - 1, lineHeight - 1), "↗", callback=self.ComponentMoverMain)
 		linePos += lineHeight
 
-		self.w.left = vanilla.SquareButton((inset + offset, linePos, size - 1, lineHeight - 1), "←", sizeStyle='regular', callback=self.ComponentMoverMain)
-		self.w.amount = vanilla.EditText((inset + offset + size, linePos, size - 1, lineHeight - 1), "10", sizeStyle='regular', callback=self.SavePreferences)
+		self.w.left = vanilla.SquareButton((inset + offset, linePos, size - 1, lineHeight - 1), "←", callback=self.ComponentMoverMain)
+		self.w.amount = vanilla.EditText((inset + offset + size, linePos, size - 1, lineHeight - 1), "10", callback=self.SavePreferences)
 		self.w.amount.getNSTextField().setAlignment_(1)
-		self.w.right = vanilla.SquareButton((inset + offset + size * 2, linePos, size - 1, lineHeight - 1), "→", sizeStyle='regular', callback=self.ComponentMoverMain)
+		self.w.right = vanilla.SquareButton((inset + offset + size * 2, linePos, size - 1, lineHeight - 1), "→", callback=self.ComponentMoverMain)
 		linePos += lineHeight
 
-		self.w.downLeft = vanilla.SquareButton((inset + offset, linePos, size - 1, lineHeight - 1), "↙", sizeStyle='regular', callback=self.ComponentMoverMain)
-		self.w.down = vanilla.SquareButton((inset + offset + size, linePos, size - 1, lineHeight - 1), "↓", sizeStyle='regular', callback=self.ComponentMoverMain)
-		self.w.downRight = vanilla.SquareButton((inset + offset + size * 2, linePos, size - 1, lineHeight - 1), "↘", sizeStyle='regular', callback=self.ComponentMoverMain)
+		self.w.downLeft = vanilla.SquareButton((inset + offset, linePos, size - 1, lineHeight - 1), "↙", callback=self.ComponentMoverMain)
+		self.w.down = vanilla.SquareButton((inset + offset + size, linePos, size - 1, lineHeight - 1), "↓", callback=self.ComponentMoverMain)
+		self.w.downRight = vanilla.SquareButton((inset + offset + size * 2, linePos, size - 1, lineHeight - 1), "↘", callback=self.ComponentMoverMain)
 		linePos += int(lineHeight * 1.5)
 
 		lineHeight = 20

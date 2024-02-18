@@ -544,7 +544,7 @@ class PathProblemFinder(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Report", sizeStyle='regular', callback=self.PathProblemFinderMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Report", callback=self.PathProblemFinderMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

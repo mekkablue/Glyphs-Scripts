@@ -36,7 +36,7 @@ class InsertBraceLayersForComponentRotation(mekkaObject):
 		self.w.replace = vanilla.CheckBox((15, 38, -15, 16), "Replace existing Brace Layers", value=True, callback=self.SavePreferences, sizeStyle='small')
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Insert", sizeStyle='regular', callback=self.InsertBraceLayersForComponentRotationMain)
+		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Insert", callback=self.InsertBraceLayersForComponentRotationMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

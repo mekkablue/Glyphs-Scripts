@@ -177,7 +177,7 @@ class BuildPositionalFeature(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Build", sizeStyle='regular', callback=self.BuildPositionalFeatureMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Build", callback=self.BuildPositionalFeatureMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

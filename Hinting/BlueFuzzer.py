@@ -27,7 +27,7 @@ class BlueFuzzer(mekkaObject):
 		self.w.fuzzValue = vanilla.EditText((120, 12, -15, 18), "1", sizeStyle='small')
 		self.w.allMasters = vanilla.CheckBox((15, 35, -15, 20), "Apply to all masters", value=True, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Fuzz", sizeStyle='regular', callback=self.BlueFuzzerMain)
+		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Fuzz", callback=self.BlueFuzzerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.LoadPreferences()

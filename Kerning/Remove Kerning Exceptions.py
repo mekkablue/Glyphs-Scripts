@@ -51,7 +51,7 @@ class RemoveKerningExceptions(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Remove", sizeStyle='regular', callback=self.RemoveKerningExceptionsMain)
+		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Remove", callback=self.RemoveKerningExceptionsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

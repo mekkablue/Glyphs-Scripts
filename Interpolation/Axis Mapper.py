@@ -166,13 +166,13 @@ class AxisMapper(mekkaObject):
 		textView.setFont_(legibleFont)
 
 		# Buttons:
-		self.w.recipeButton = vanilla.Button((inset, -20 - inset, 120, -inset), "Reset Recipe", sizeStyle='regular', callback=self.ResetRecipe)
+		self.w.recipeButton = vanilla.Button((inset, -20 - inset, 120, -inset), "Reset Recipe", callback=self.ResetRecipe)
 		self.w.recipeButton.getNSButton().setToolTip_("Construct a fallback axis mapping recipe for axis and the min/max values above, based on the existing active instances. Can be a good start for creating new mappings. Respects the weightClass settings for the 'wght' axis.")
 
-		self.w.extractButton = vanilla.Button((inset + 130, -20 - inset, 120, -inset), "Extract Recipe", sizeStyle='regular', callback=self.ExtractAxisMapping)
+		self.w.extractButton = vanilla.Button((inset + 130, -20 - inset, 120, -inset), "Extract Recipe", callback=self.ExtractAxisMapping)
 		self.w.extractButton.getNSButton().setToolTip_("Extract the axis mapping recipe for the chosen axis from an existing Axis Mappings parameter, and into the min/max values specified above. Will do nothing if it fails. Great for editing existing mappings.")
 
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Map", sizeStyle='regular', callback=self.AxisMapperMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Map", callback=self.AxisMapperMain)
 		self.w.runButton.getNSButton().setToolTip_("Write the current mapping recipe into an Axis Mappings parameter for the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 

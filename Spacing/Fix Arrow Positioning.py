@@ -90,7 +90,7 @@ class FixArrowPositioning(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Fix", sizeStyle='regular', callback=self.FixArrowPositioningMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Fix", callback=self.FixArrowPositioningMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

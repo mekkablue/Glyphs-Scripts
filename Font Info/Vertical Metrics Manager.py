@@ -176,7 +176,7 @@ class VerticalMetricsManager(mekkaObject):
 		self.w.helpButton = vanilla.HelpButton((inset - 2, -20 - inset, 21, -inset + 2), callback=self.openURL)
 		self.w.helpButton.getNSButton().setToolTip_("Opens the Vertical Metrics tutorial (highly recommended) in your web browser.")
 
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Apply to Font", sizeStyle='regular', callback=self.VerticalMetricsManagerMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Apply to Font", callback=self.VerticalMetricsManagerMain)
 		self.w.runButton.getNSButton().setToolTip_("Insert the OS/2, hhea and fsSelection values above as custom parameters in the font. The number values will be inserted into each master. Blank values will delete the respective parameters.")
 		self.w.setDefaultButton(self.w.runButton)
 

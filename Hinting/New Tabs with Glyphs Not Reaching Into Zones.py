@@ -57,7 +57,7 @@ class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Open Tabs", sizeStyle='regular', callback=self.NewTabsWithGlyphsNotReachingIntoZonesMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Open Tabs", callback=self.NewTabsWithGlyphsNotReachingIntoZonesMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

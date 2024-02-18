@@ -113,14 +113,14 @@ class AnchorMover2(mekkaObject):
 		self.w.text_2 = vanilla.TextBox((-105 - 15, linePos + 2, -inset, 14), "in selected glyphs:", sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.hText_1 = vanilla.TextBox((inset - 2, linePos, 20, 14), u"↔", sizeStyle='regular')
+		self.w.hText_1 = vanilla.TextBox((inset - 2, linePos, 20, 14), u"↔")
 		self.w.hText_2 = vanilla.TextBox((inset + 20, linePos + 2, 20, 14), "to", sizeStyle='small')
 		self.w.hTarget = vanilla.PopUpButton((inset + 40, linePos, -50 - 15 - 15 - inset, 17), [x[0] for x in listHorizontal], sizeStyle='small', callback=self.SavePreferences)
 		self.w.hText_3 = vanilla.TextBox((-60 - 15 - 15, linePos + 2, -50 - inset, 14), "+", sizeStyle='small')
 		self.w.hChange = vanilla.EditText((-60 - 15, linePos, -inset, 19), "0.0", sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.vText_1 = vanilla.TextBox((inset, linePos, 20, 14), u"↕", sizeStyle='regular')
+		self.w.vText_1 = vanilla.TextBox((inset, linePos, 20, 14), u"↕")
 		self.w.vText_2 = vanilla.TextBox((inset + 20, linePos + 2, 20, 14), "to", sizeStyle='small')
 		self.w.vTarget = vanilla.PopUpButton((inset + 40, linePos, -50 - 15 - 15 - inset, 17), [y[0] for y in listVertical], sizeStyle='small', callback=self.SavePreferences)
 		self.w.vText_3 = vanilla.TextBox((-60 - 15 - 15, linePos + 2, -50 - inset, 14), "+", sizeStyle='small')
@@ -133,7 +133,7 @@ class AnchorMover2(mekkaObject):
 		self.w.allMasters = vanilla.CheckBox((inset, linePos, -inset, 20), u"All masters and special layers (otherwise only current masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.moveButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Move", sizeStyle='regular', callback=self.MoveCallback)
+		self.w.moveButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Move", callback=self.MoveCallback)
 		self.w.setDefaultButton(self.w.moveButton)
 
 		self.LoadPreferences()

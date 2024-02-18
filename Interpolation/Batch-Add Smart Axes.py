@@ -62,8 +62,8 @@ class BatchAddSmartAxes(mekkaObject):
 		textView.setMinSize_(textSize)
 
 		# Run Button:
-		self.w.resetButton = vanilla.Button((inset, -20 - inset, 70, -inset), "Reset", sizeStyle="regular", callback=self.reset)
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Smartify", sizeStyle="regular", callback=self.BatchAddSmartAxesMain)
+		self.w.resetButton = vanilla.Button((inset, -20 - inset, 70, -inset), "Reset", callback=self.reset)
+		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Smartify", callback=self.BatchAddSmartAxesMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

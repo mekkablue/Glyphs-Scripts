@@ -518,7 +518,7 @@ class BuildCircledGlyphs(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Build", sizeStyle='regular', callback=self.BuildCircledGlyphsMain)
+		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Build", callback=self.BuildCircledGlyphsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

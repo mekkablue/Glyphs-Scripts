@@ -72,7 +72,7 @@ class BraceLayerManager(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Change", sizeStyle="regular", callback=self.BraceLayerManagerMain)
+		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Change", callback=self.BraceLayerManagerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

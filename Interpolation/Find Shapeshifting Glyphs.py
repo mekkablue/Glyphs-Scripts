@@ -104,7 +104,7 @@ class FindShapeshiftingGlyphs(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Find", sizeStyle='regular', callback=self.FindShapeshiftingGlyphsMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Find", callback=self.FindShapeshiftingGlyphsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.w.status = vanilla.TextBox((inset, -17 - inset, -90 - inset, 14), "", sizeStyle='small', selectable=False)

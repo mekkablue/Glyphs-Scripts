@@ -52,7 +52,7 @@ class ReplicateAnchors(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Replicate", sizeStyle='regular', callback=self.ReplicateAnchorsMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Replicate", callback=self.ReplicateAnchorsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

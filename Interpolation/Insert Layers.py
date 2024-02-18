@@ -54,7 +54,7 @@ class InsertSpecialLayers(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Insert", sizeStyle='regular', callback=self.InsertSpecialLayersMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Insert", callback=self.InsertSpecialLayersMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

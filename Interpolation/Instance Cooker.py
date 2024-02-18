@@ -263,14 +263,14 @@ class InstanceCooker(mekkaObject):
 		# Run Button:
 		buttonPos = inset
 		buttonWidth = 70
-		self.w.openButton = vanilla.Button((buttonPos, -20 - inset, buttonWidth, -inset), "Open…", sizeStyle='regular', callback=self.importRecipe)
+		self.w.openButton = vanilla.Button((buttonPos, -20 - inset, buttonWidth, -inset), "Open…", callback=self.importRecipe)
 		buttonPos += buttonWidth + 10
-		self.w.saveButton = vanilla.Button((buttonPos, -20 - inset, buttonWidth, -inset), "Save…", sizeStyle='regular', callback=self.exportRecipe)
+		self.w.saveButton = vanilla.Button((buttonPos, -20 - inset, buttonWidth, -inset), "Save…", callback=self.exportRecipe)
 		buttonPos += buttonWidth + 10
-		self.w.resetButton = vanilla.Button((buttonPos, -20 - inset, buttonWidth, -inset), "Reset", sizeStyle='regular', callback=self.resetRecipe)
+		self.w.resetButton = vanilla.Button((buttonPos, -20 - inset, buttonWidth, -inset), "Reset", callback=self.resetRecipe)
 		buttonPos += buttonWidth + 10
-		self.w.extractButton = vanilla.Button((buttonPos, -20 - inset, buttonWidth, -inset), "Extract", sizeStyle='regular', callback=self.extractRecipe)
-		self.w.runButton = vanilla.Button((-140 - inset, -20 - inset, -inset, -inset), "Cook Instances", sizeStyle='regular', callback=self.InstanceCookerMain)
+		self.w.extractButton = vanilla.Button((buttonPos, -20 - inset, buttonWidth, -inset), "Extract", callback=self.extractRecipe)
+		self.w.runButton = vanilla.Button((-140 - inset, -20 - inset, -inset, -inset), "Cook Instances", callback=self.InstanceCookerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

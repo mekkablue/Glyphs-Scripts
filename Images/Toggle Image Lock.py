@@ -29,8 +29,8 @@ class ToggleImageLock(object):
 		# A tuple of form *(left, top, width, height)* representing the window's
 		# position and size.
 
-		self.w.lockButton = vanilla.Button((15, 10, currentWidth / 2 - 10, -10), u"🔒 Lock", sizeStyle='regular', callback=self.ToggleImageLockMain)
-		self.w.unlockButton = vanilla.Button((currentWidth / 2 + 10, 10, -15, -10), u"🔓 Unlock", sizeStyle='regular', callback=self.ToggleImageLockMain)
+		self.w.lockButton = vanilla.Button((15, 10, currentWidth / 2 - 10, -10), u"🔒 Lock", callback=self.ToggleImageLockMain)
+		self.w.unlockButton = vanilla.Button((currentWidth / 2 + 10, 10, -15, -10), u"🔓 Unlock", callback=self.ToggleImageLockMain)
 		self.w.setDefaultButton(self.w.unlockButton)
 		self.w.bind("resize", self.resizeButtons)
 

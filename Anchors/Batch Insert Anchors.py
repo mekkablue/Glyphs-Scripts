@@ -72,7 +72,7 @@ class BatchInsertAnchor(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Insert", sizeStyle='regular', callback=self.BatchInsertAnchorMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Insert", callback=self.BatchInsertAnchorMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

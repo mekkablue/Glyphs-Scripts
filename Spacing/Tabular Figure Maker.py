@@ -50,7 +50,7 @@ class TabularFigureSpacer(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Tab", sizeStyle="regular", callback=self.TabularFigureSpacerMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Tab", callback=self.TabularFigureSpacerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

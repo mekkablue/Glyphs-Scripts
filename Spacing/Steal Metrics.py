@@ -82,7 +82,7 @@ class MetricsCopy(mekkaObject):
 		self.w.suffixToBeIgnored.getNSTextField(
 		).setToolTip_(u"Will copy metrics from source glyph ‘eacute’ to target glyph ‘eacute.xxx’. Useful for transfering metrics to dotsuffixed glyph variants.")
 
-		self.w.copybutton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Transfer", sizeStyle='regular', callback=self.copyMetrics)
+		self.w.copybutton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Transfer", callback=self.copyMetrics)
 		self.w.setDefaultButton(self.w.copybutton)
 
 		self.LoadPreferences()

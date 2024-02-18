@@ -60,7 +60,7 @@ class ParameterReporter(mekkaObject):
 		# UI ELEMENTS:
 
 		# Filter:
-		self.w.filter = vanilla.EditText((1, 1, -1, 22), "", sizeStyle='regular', callback=self.ParameterReporterMain)
+		self.w.filter = vanilla.EditText((1, 1, -1, 22), "", callback=self.ParameterReporterMain)
 		self.w.filter.getNSTextField().setToolTip_("Type one or more search terms here. Use * as wildcard.")
 
 		# Listing of Parameters:

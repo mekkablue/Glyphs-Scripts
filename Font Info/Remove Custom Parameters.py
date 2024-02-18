@@ -56,7 +56,7 @@ class RemoveCustomParameters(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Remove", sizeStyle='regular', callback=self.RemoveCustomParametersMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Remove", callback=self.RemoveCustomParametersMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

@@ -42,8 +42,8 @@ class TransformImages(mekkaObject):
 		self.w.moveY = vanilla.EditText((15 + 60 + 60, 25 + 12, 55, 15 + 3), "10", sizeStyle='small')
 		self.w.move_text2 = vanilla.TextBox((15 + 60 + 60 + 60, 25 + 12 + 2, -15, 14), "units", sizeStyle='small')
 
-		# self.w.resetButton = vanilla.Button((-80 - 80 - 15, -20 - 15, -85, -15), "Reset", sizeStyle='regular', callback=self.ResetStructs)
-		self.w.backButton = vanilla.Button((-60 - 60 - 23, -20 - 15, -60 - 23, -15), "Back", sizeStyle='regular', callback=self.TransformImagesMain)
+		# self.w.resetButton = vanilla.Button((-80 - 80 - 15, -20 - 15, -85, -15), "Reset", callback=self.ResetStructs)
+		self.w.backButton = vanilla.Button((-60 - 60 - 23, -20 - 15, -60 - 23, -15), "Back", callback=self.TransformImagesMain)
 		self.w.runButton = vanilla.Button((-60 - 15, -20 - 15, -15, -15), "Go", sizeStyle='regular', callback=self.TransformImagesMain)
 		self.w.setDefaultButton(self.w.runButton)
 

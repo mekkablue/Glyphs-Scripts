@@ -146,7 +146,7 @@ class FindNearVerticalMisses(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Find", sizeStyle='regular', callback=self.FindNearVerticalMissesMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Find", callback=self.FindNearVerticalMissesMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Status Message:

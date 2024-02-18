@@ -62,7 +62,7 @@ class RealignStackingAnchors(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Realign", sizeStyle='regular', callback=self.RealignStackingAnchorsMain)
+		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Realign", callback=self.RealignStackingAnchorsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

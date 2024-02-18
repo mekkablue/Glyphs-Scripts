@@ -320,7 +320,7 @@ class FeatureCodeTweaks(mekkaObject):
 		self.w.fShortSubstitution.enable(False)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Tweak", sizeStyle='regular', callback=self.FeatureCodeTweaksMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Tweak", callback=self.FeatureCodeTweaksMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

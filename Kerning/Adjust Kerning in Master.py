@@ -60,7 +60,7 @@ class AdjustKerning(mekkaObject):
 
 		# self.w.keepWindow = vanilla.CheckBox((25, offset*2+line*4, -15, line), "Keep window open", value=False, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Adjust", sizeStyle='regular', callback=self.AdjustKerningMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Adjust", callback=self.AdjustKerningMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

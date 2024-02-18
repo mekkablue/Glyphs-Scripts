@@ -89,11 +89,11 @@ class RemoveKerning(mekkaObject):
 		self.w.statusText = vanilla.TextBox((inset, -20 - inset, -220 - inset, 14), u"", sizeStyle='small', selectable=True)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Remove", sizeStyle='regular', callback=self.RemoveKerningMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Remove", callback=self.RemoveKerningMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Reload Button:
-		self.w.reloadButton = vanilla.Button((-220 - inset, -20 - inset, -130 - inset, -inset), "Reload", sizeStyle='regular', callback=self.ReloadCategories)
+		self.w.reloadButton = vanilla.Button((-220 - inset, -20 - inset, -130 - inset, -inset), "Reload", callback=self.ReloadCategories)
 
 		# Load Settings:
 		self.LoadPreferences()

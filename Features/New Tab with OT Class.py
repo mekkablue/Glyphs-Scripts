@@ -32,7 +32,7 @@ class NewTabWithOTClass(mekkaObject):
 		self.w.updateButton = vanilla.Button((-125, 12 + 1, -100, -15), u"↺", sizeStyle='small', callback=self.populateClassMenu)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-95, 12 + 3, -15, -15), "New Tab", sizeStyle='regular', callback=self.NewTabWithOTClassMain)
+		self.w.runButton = vanilla.Button((-95, 12 + 3, -15, -15), "New Tab", callback=self.NewTabWithOTClassMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.font = Glyphs.font

@@ -164,7 +164,7 @@ class CopyKerningFromCapsToSmallcaps(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Copy", sizeStyle='regular', callback=self.CopyKerningFromCapsToSmallcapsMain)
+		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Copy", callback=self.CopyKerningFromCapsToSmallcapsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

@@ -60,7 +60,7 @@ class Resetter(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Reset", sizeStyle='regular', callback=self.ResetterMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Reset", callback=self.ResetterMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

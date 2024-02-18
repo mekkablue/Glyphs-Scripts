@@ -97,7 +97,7 @@ class GreenBlueManager(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Treat Points", sizeStyle='regular', callback=self.GreenBlueManagerMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Treat Points", callback=self.GreenBlueManagerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

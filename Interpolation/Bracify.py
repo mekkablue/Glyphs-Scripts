@@ -141,12 +141,12 @@ class Bracify(mekkaObject):
 		textSize = textView.minSize()
 		textView.setMinSize_(textSize)
 
-		self.w.guessButton = vanilla.Button((inset, -20 - inset, 80, -inset), "Guess", sizeStyle="regular", callback=self.BracifyGuess)
-		self.w.updateButton = vanilla.Button((inset + 90, -20 - inset, 80, -inset), "Update", sizeStyle="regular", callback=self.UpdateForCurrentFont)
-		self.w.openTabButton = vanilla.Button((inset + 90 * 2, -20 - inset, 80, -inset), "Open Tab", sizeStyle="regular", callback=self.OpenTab)
+		self.w.guessButton = vanilla.Button((inset, -20 - inset, 80, -inset), "Guess", callback=self.BracifyGuess)
+		self.w.updateButton = vanilla.Button((inset + 90, -20 - inset, 80, -inset), "Update", callback=self.UpdateForCurrentFont)
+		self.w.openTabButton = vanilla.Button((inset + 90 * 2, -20 - inset, 80, -inset), "Open Tab", callback=self.OpenTab)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Remove Master", sizeStyle="regular", callback=self.BracifyMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Remove Master", callback=self.BracifyMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

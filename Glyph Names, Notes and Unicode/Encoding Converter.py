@@ -415,10 +415,10 @@ class EncodingConverter(mekkaObject):
 		# textView.textContainer().setContainerSize_(textSize)
 
 		# Run Button:
-		self.w.openButton = vanilla.Button((inset, -20 - inset, 110, -inset), "Open Text…", sizeStyle='regular', callback=self.importEncoding)
-		self.w.saveButton = vanilla.Button((inset + 120, -20 - inset, 110, -inset), "Save Text…", sizeStyle='regular', callback=self.exportEncoding)
-		self.w.resetButton = vanilla.Button((inset + 260, -20 - inset, 100, -inset), "Reset Text", sizeStyle='regular', callback=self.resetEncoding)
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Convert Font", sizeStyle='regular', callback=self.EncodingConverterMain)
+		self.w.openButton = vanilla.Button((inset, -20 - inset, 110, -inset), "Open Text…", callback=self.importEncoding)
+		self.w.saveButton = vanilla.Button((inset + 120, -20 - inset, 110, -inset), "Save Text…", callback=self.exportEncoding)
+		self.w.resetButton = vanilla.Button((inset + 260, -20 - inset, 100, -inset), "Reset Text", callback=self.resetEncoding)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Convert Font", callback=self.EncodingConverterMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

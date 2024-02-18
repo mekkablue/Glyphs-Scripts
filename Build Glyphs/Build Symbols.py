@@ -721,9 +721,9 @@ class BuildSymbols(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.uncheckAllButton = vanilla.Button((-315 - inset, -20 - inset, -200 - inset, -inset), "Uncheck All", sizeStyle='regular', callback=self.checkAll)
-		self.w.checkAllButton = vanilla.Button((-190 - inset, -20 - inset, -90 - inset, -inset), "Check All", sizeStyle='regular', callback=self.checkAll)
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Build", sizeStyle='regular', callback=self.BuildSymbolsMain)
+		self.w.uncheckAllButton = vanilla.Button((-315 - inset, -20 - inset, -200 - inset, -inset), "Uncheck All", callback=self.checkAll)
+		self.w.checkAllButton = vanilla.Button((-190 - inset, -20 - inset, -90 - inset, -inset), "Check All", callback=self.checkAll)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Build", callback=self.BuildSymbolsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

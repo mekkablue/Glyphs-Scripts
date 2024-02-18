@@ -69,7 +69,7 @@ class AxisLocationSetter(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Set", sizeStyle='regular', callback=self.AxisLocationSetterMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Set", callback=self.AxisLocationSetterMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

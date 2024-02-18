@@ -70,7 +70,7 @@ class SetSSXXNames(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Fill Names", sizeStyle='regular', callback=self.SetSSXXNamesMain)
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Fill Names", callback=self.SetSSXXNamesMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

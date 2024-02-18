@@ -101,10 +101,10 @@ class GapFinder(mekkaObject):
 		# self.w.percentage = vanilla.TextBox((15 - 1, -30, -100 - 15, -15), "", sizeStyle='small')
 
 		# Buttons:
-		self.w.nextButton = vanilla.Button((-inset - 210, -20 - inset, -inset - 100, -inset), u"Next Master", sizeStyle='regular', callback=self.masterSwitch)
+		self.w.nextButton = vanilla.Button((-inset - 210, -20 - inset, -inset - 100, -inset), u"Next Master", callback=self.masterSwitch)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Open Tab", sizeStyle='regular', callback=self.GapFinderMain)
+		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Open Tab", callback=self.GapFinderMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

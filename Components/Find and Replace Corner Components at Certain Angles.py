@@ -46,7 +46,7 @@ class ReplaceCornersAtCertainAngles(mekkaObject):
 		self.w.thresholdAngle = vanilla.EditText((180, 60, -15, 15 + 3), "90", sizeStyle='small')
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Replace", sizeStyle='regular', callback=self.ReplaceCornersAtCertainAnglesMain)
+		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Replace", callback=self.ReplaceCornersAtCertainAnglesMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

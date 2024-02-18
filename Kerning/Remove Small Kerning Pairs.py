@@ -66,7 +66,7 @@ class DeleteSmallKerningPairs(mekkaObject):
 		self.w.keepWindow = vanilla.CheckBox((25, offset * 2 + line * 5, -15, line), "Keep window open", value=True, callback=self.SavePreferences, sizeStyle='small')
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Remove", sizeStyle='regular', callback=self.DeleteSmallKerningPairsMain)
+		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Remove", callback=self.DeleteSmallKerningPairsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

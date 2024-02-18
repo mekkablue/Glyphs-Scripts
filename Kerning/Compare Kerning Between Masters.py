@@ -65,8 +65,8 @@ class CompareKerningBetweenMasters(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.updateButton = vanilla.Button((-190 - inset, -20 - inset, -100 - inset, -inset), "Update", sizeStyle="regular", callback=self.updateUI)
-		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Compare", sizeStyle="regular", callback=self.CompareKerningBetweenMastersMain)
+		self.w.updateButton = vanilla.Button((-190 - inset, -20 - inset, -100 - inset, -inset), "Update", callback=self.updateUI)
+		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Compare", callback=self.CompareKerningBetweenMastersMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

@@ -78,11 +78,11 @@ class StealKerningGroupsfromFont(mekkaObject):
 		self.w.status = vanilla.TextBox((inset, -18 - inset, -150 - inset, 14), "", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
-		self.w.updateButton = vanilla.Button((-150 - inset, -20 - inset, -80 - inset, -inset), "Update", sizeStyle="regular", callback=self.updateUI)
+		self.w.updateButton = vanilla.Button((-150 - inset, -20 - inset, -80 - inset, -inset), "Update", callback=self.updateUI)
 		self.w.updateButton.getNSButton().setToolTip_("Will update all the menus and buttons of this window. Click here if you opened or closed a font since you invoked the script, or after you changed the source font.")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "Steal", sizeStyle="regular", callback=self.StealKerningGroupsfromFontMain)
+		self.w.runButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "Steal", callback=self.StealKerningGroupsfromFontMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

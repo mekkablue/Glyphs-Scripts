@@ -52,9 +52,9 @@ class CompressGlyph(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "In frontmost font, compress kernings for this glyph:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
-		self.w.glyphName = vanilla.ComboBox((inset, linePos - 4, -inset - 25, 24), (), sizeStyle="regular", callback=self.SavePreferences)
+		self.w.glyphName = vanilla.ComboBox((inset, linePos - 4, -inset - 25, 24), (), callback=self.SavePreferences)
 		self.w.glyphName.getNSComboBox().setToolTip_("The name of the glyph you want to compress. Use * as wildcard for matching many glyphs.")
-		self.w.updateButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle="regular", callback=self.update)
+		self.w.updateButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", callback=self.update)
 		linePos += lineHeight + 3
 
 		self.w.compressText = vanilla.TextBox((inset, linePos + 2, 140, 14), "Compress when glyph is", sizeStyle="small", selectable=True)
@@ -67,7 +67,7 @@ class CompressGlyph(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Compress", sizeStyle="regular", callback=self.CompressGlyphMain)
+		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Compress", callback=self.CompressGlyphMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.w.status = vanilla.TextBox((inset, -14 - inset, -inset - 90, 14), "🤖 Ready.", sizeStyle="small", selectable=True)

@@ -67,7 +67,7 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 		self.w.fromWhere = vanilla.RadioGroup((inset, linePos, -inset, 40), ("from all selected glyphs", "⚠️ from all glyphs in the font"), callback=self.SavePreferences, sizeStyle='small')
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Remove", sizeStyle='regular', callback=self.RemoveComponentFromSelectedGlyphsMain)
+		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Remove", callback=self.RemoveComponentFromSelectedGlyphsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

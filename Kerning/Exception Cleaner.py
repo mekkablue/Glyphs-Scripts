@@ -60,8 +60,8 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 		line += lineHeight
 
 		# Buttons:
-		self.w.nextMasterButton = vanilla.Button((-220 - inset, -20 - inset, -90 - inset, -inset), "Next Master", sizeStyle='regular', callback=self.NextMaster)
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Clean", sizeStyle='regular', callback=self.DeleteExceptionsTooCloseToGroupKerningMain)
+		self.w.nextMasterButton = vanilla.Button((-220 - inset, -20 - inset, -90 - inset, -inset), "Next Master", callback=self.NextMaster)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Clean", callback=self.DeleteExceptionsTooCloseToGroupKerningMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

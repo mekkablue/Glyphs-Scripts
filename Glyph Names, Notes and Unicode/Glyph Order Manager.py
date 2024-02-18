@@ -83,16 +83,16 @@ class GlyphOrderManager(mekkaObject):
 			"frontmost font only",
 			"⚠️ all open fonts",
 		)
-		self.w.scopeText = vanilla.TextBox((inset, -48 - inset - 2, 65, 18), "Apply to:", sizeStyle="regular", selectable=True)
-		self.w.scope = vanilla.PopUpButton((inset + 65, -48 - inset, -inset, 17), scopeOptions, sizeStyle="regular", callback=self.SavePreferences)
+		self.w.scopeText = vanilla.TextBox((inset, -48 - inset - 2, 65, 18), "Apply to:", selectable=True)
+		self.w.scope = vanilla.PopUpButton((inset + 65, -48 - inset, -inset, 17), scopeOptions, callback=self.SavePreferences)
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.extractButton = vanilla.Button((inset, -20 - inset, 70, -inset), "Extract", sizeStyle='regular', callback=self.extractFromFrontmostFont)
-		self.w.cleanButton = vanilla.Button((inset + 80, -20 - inset, 70, -inset), "Clean", sizeStyle='regular', callback=self.cleanForScope)
-		self.w.addMissingButton = vanilla.Button((inset + 160, -20 - inset, 100, -inset), "Add Missing", sizeStyle='regular', callback=self.addMissingForScope)
+		self.w.extractButton = vanilla.Button((inset, -20 - inset, 70, -inset), "Extract", callback=self.extractFromFrontmostFont)
+		self.w.cleanButton = vanilla.Button((inset + 80, -20 - inset, 70, -inset), "Clean", callback=self.cleanForScope)
+		self.w.addMissingButton = vanilla.Button((inset + 160, -20 - inset, 100, -inset), "Add Missing", callback=self.addMissingForScope)
 
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Apply", sizeStyle="regular", callback=self.GlyphOrderManagerMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Apply", callback=self.GlyphOrderManagerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
