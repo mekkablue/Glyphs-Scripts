@@ -10,6 +10,7 @@ from timeit import default_timer as timer
 from Foundation import NSNotFound
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, caseDict
+from kernanalysis import *
 
 
 intervalList = (1, 3, 5, 10, 20)
@@ -35,7 +36,7 @@ class GapFinder(mekkaObject):
 		"popupSpeed": 0,
 		"popupLeftCat": 0,
 		"popupRightCat": 0,
-		"excludeSuffixes": ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute",
+		"excludeSuffixes": ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute, Fhook, florin",
 		"excludeNonExporting": 1,
 		"reportGapsInMacroWindow": 0,
 		"reuseCurrentTab": 1,
@@ -246,7 +247,7 @@ class GapFinder(mekkaObject):
 			# start reporting to macro window:
 			if self.pref("reportGapsInMacroWindow"):
 				Glyphs.clearLog()
-				print("GapFinder Report for %s, master %s:\n" % (thisFont.familyName, thisFontMaster.name))
+				print(f"GapFinder Report for {thisFont.familyName}, master {thisFontMaster.name}:\n")
 
 			# query user input:
 			script, firstCategory, firstSubCategory, secondCategory, secondSubCategory = self.queryPrefs()
@@ -257,7 +258,7 @@ class GapFinder(mekkaObject):
 			try:
 				maxDistance = self.prefFloat("maxDistance")
 			except Exception as e:
-				print("Warning: Could not read min distance entry. Will default to 200.\n%s" % e)
+				print(f"Warning: Could not read min distance entry. Will default to 200.\n{e}")
 				import traceback
 				print(traceback.format_exc())
 				print()
@@ -281,7 +282,7 @@ class GapFinder(mekkaObject):
 				)
 
 			if self.pref("reportGapsInMacroWindow"):
-				print("Maximum Distance: %i\n" % maxDistance)
+				print(f"Maximum Distance: {maxDistance}\n")
 				print("Left glyphs:\n%s\n" % ", ".join(firstList))
 				print("Right glyphs:\n%s\n" % ", ".join(secondList))
 
@@ -302,7 +303,7 @@ class GapFinder(mekkaObject):
 					distanceBetweenShapes = self.minDistanceBetweenTwoLayers(leftLayer, rightLayer, interval=step, kerning=kerning, report=False)
 					if distanceBetweenShapes is not None and distanceBetweenShapes > maxDistance:
 						gapCount += 1
-						tabString += "/%s/%s/space" % (firstGlyphName, secondGlyphName)
+						tabString += f"/{firstGlyphName}/{secondGlyphName}/space"
 						if self.pref("reportGapsInMacroWindow"):
 							print("- %s %s: %i" % (firstGlyphName, secondGlyphName, distanceBetweenShapes))
 				tabString += "\n"
@@ -333,7 +334,7 @@ class GapFinder(mekkaObject):
 				if len(tabString) > 40:
 					# disable reporters (avoid slowdown)
 					Glyphs.defaults["visibleReporters"] = None
-				report = '%i kerning gaps have been found. Time elapsed: %s.' % (gapCount, timereport)
+				report = f'{gapCount} kerning gaps have been found. Time elapsed: {timereport}.'
 				if self.pref("reuseCurrentTab") and thisFont.currentTab:
 					thisFont.currentTab.text = tabString
 				else:
@@ -343,7 +344,7 @@ class GapFinder(mekkaObject):
 				report = 'No gaps found. Time elapsed: %s. Congrats!' % timereport
 
 			# Notification:
-			notificationTitle = "GapFinder: %s (%s)" % (thisFont.familyName, thisFontMaster.name)
+			notificationTitle = f"GapFinder: {thisFont.familyName} ({thisFontMaster.name})"
 			Glyphs.showNotification(notificationTitle, report)
 
 			# Report in Macro Window:
@@ -352,7 +353,7 @@ class GapFinder(mekkaObject):
 				Glyphs.showMacroWindow()
 
 		except Exception as e:
-			print("GapFinder Error: %s" % e)
+			print(f"GapFinder Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 
