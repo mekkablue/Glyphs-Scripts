@@ -58,21 +58,21 @@ class GapFinder(mekkaObject):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), u"Open tab with kern gaps in current master:", sizeStyle='small', selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Open tab with kern gaps in current master:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.textScript = vanilla.TextBox((inset, linePos + 2, 42, 14), u"Script:", sizeStyle='small', selectable=True)
+		self.w.textScript = vanilla.TextBox((inset, linePos + 2, 42, 14), "Script:", sizeStyle='small', selectable=True)
 		self.w.popupScript = vanilla.ComboBox((inset + 42, linePos - 1, 110, 18), ("latin", "cyrillic", "greek"), callback=self.SavePreferences, sizeStyle='small')
 		self.w.textDistance = vanilla.TextBox((inset + 160, linePos + 2, 100, 14), "Max distance:", sizeStyle='small')
 		self.w.maxDistance = vanilla.EditText((inset + 240, linePos - 1, -15, 19), "200", sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.textSpeed = vanilla.TextBox((inset, linePos + 2, 42, 14), u"Speed:", sizeStyle='small', selectable=True)
-		self.w.popupSpeed = vanilla.PopUpButton((inset + 42, linePos, 110, 17), ("very slow", "slow", "medium", "fast", "very fast"), callback=self.SavePreferences, sizeStyle='small')
+		self.w.textSpeed = vanilla.TextBox((inset, linePos + 2, 42, 14), "Speed:", sizeStyle='small', selectable=True)
+		self.w.popupSpeed = vanilla.PopUpButton((inset + 42, linePos, 110, 17), ("very slow", "slow", "medium", "fast", "very fast"), callback=self.updateGUI, sizeStyle='small')
 		intervalIndex = self.pref("popupSpeed")
 		if intervalIndex is None:
 			intervalIndex = 0
-		self.w.text_speedExplanation = vanilla.TextBox((inset + 160, linePos + 2, -inset, 14), "Measuring every %i units." % intervalList[intervalIndex], sizeStyle='small')
+		self.w.text_speedExplanation = vanilla.TextBox((inset + 160, linePos + 2, -inset, 14), f"Measuring every {intervalList[intervalIndex]} units.", sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.text_3 = vanilla.TextBox((inset, linePos + 2, 90, 14), "Left Category:", sizeStyle='small')
@@ -91,8 +91,8 @@ class GapFinder(mekkaObject):
 		linePos += lineHeight
 
 		self.w.reportGapsInMacroWindow = vanilla.CheckBox((inset, linePos, -inset, 20), "Also report in Macro Window (slower)", value=False, sizeStyle='small', callback=self.SavePreferences)
-		self.w.reuseCurrentTab = vanilla.CheckBox((inset + 240, linePos, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseCurrentTab.getNSButton().setToolTip_(u"If enabled, will not open a new tab with newly added kern pairs, but reuse the current Edit tab. Will open an Edit tab if none is open.")
+		self.w.reuseCurrentTab = vanilla.CheckBox((inset + 240, linePos, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseCurrentTab.getNSButton().setToolTip_("If enabled, will not open a new tab with newly added kern pairs, but reuse the current Edit tab. Will open an Edit tab if none is open.")
 		linePos += lineHeight
 
 		# Percentage:
@@ -101,7 +101,7 @@ class GapFinder(mekkaObject):
 		# self.w.percentage = vanilla.TextBox((15 - 1, -30, -100 - 15, -15), "", sizeStyle='small')
 
 		# Buttons:
-		self.w.nextButton = vanilla.Button((-inset - 210, -20 - inset, -inset - 100, -inset), u"Next Master", callback=self.masterSwitch)
+		self.w.nextButton = vanilla.Button((-inset - 210, -20 - inset, -inset - 100, -inset), "Next Master", callback=self.masterSwitch)
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Open Tab", callback=self.GapFinderMain)
@@ -114,6 +114,13 @@ class GapFinder(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
+	def updateGUI(self, sender=None):
+		self.SavePreferences()
+		intervalIndex = self.pref("popupSpeed")
+		if intervalIndex is None:
+			intervalIndex = 0
+		self.w.text_speedExplanation.set(f"Measuring every {intervalList[intervalIndex]} units.")
+		
 	def masterSwitch(self, sender=None):
 		if sender is self.w.nextButton:
 			Glyphs.font.masterIndex += 1
