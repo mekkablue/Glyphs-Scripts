@@ -139,10 +139,12 @@ class DeleteSmallKerningPairs(mekkaObject):
 								countNegative += 1
 
 				# remove the pairs:
+				thisFont.disableUpdateInterface()
 				for thisKernPair in kernpairsToBeRemoved:
 					leftSide = thisKernPair[0]
 					rightSide = thisKernPair[1]
 					thisFont.removeKerningForPair(thisFontMasterID, leftSide, rightSide)
+				thisFont.enableUpdateInterface()
 				print("   Removed %i kerning pairs:" % len(kernpairsToBeRemoved))
 				print("   %i negative pairs" % countNegative)
 				print("   %i zero pairs" % countZero)
