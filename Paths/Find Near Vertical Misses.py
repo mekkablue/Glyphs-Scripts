@@ -299,6 +299,8 @@ class FindNearVerticalMisses(mekkaObject):
 
 			deviance = self.prefFloat("deviance")
 			excludes = [x.strip() for x in self.pref("exclude").split(",")]
+			if excludes and len(excludes) == 0:
+				excludes = None
 			skippedGlyphs = []
 
 			affectedLayers = []
