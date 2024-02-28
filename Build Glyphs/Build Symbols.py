@@ -572,10 +572,10 @@ def buildBars(thisFont, override=False):
 			sidebearing = max((350 - stemWidth) * 0.5, 60.0)
 			gap = max(250 - stemWidth, 120.0)
 
-			bottomLeft = italicize((sidebearing, descender), italicAngle=italicAngle, pivotalY=pivot)
-			bottomRight = italicize((sidebearing + stemWidth, descender), italicAngle=italicAngle, pivotalY=pivot)
-			topRight = italicize((sidebearing + stemWidth, ascender), italicAngle=italicAngle, pivotalY=pivot)
-			topLeft = italicize((sidebearing, ascender), italicAngle=italicAngle, pivotalY=pivot)
+			bottomLeft = italicize(NSPoint(sidebearing, descender), italicAngle=italicAngle, pivotalY=pivot)
+			bottomRight = italicize(NSPoint(sidebearing + stemWidth, descender), italicAngle=italicAngle, pivotalY=pivot)
+			topRight = italicize(NSPoint(sidebearing + stemWidth, ascender), italicAngle=italicAngle, pivotalY=pivot)
+			topLeft = italicize(NSPoint(sidebearing, ascender), italicAngle=italicAngle, pivotalY=pivot)
 
 			if barGlyph:
 				barLayer = barGlyph.layers[mID]
@@ -595,10 +595,10 @@ def buildBars(thisFont, override=False):
 			if brokenbarGlyph:
 				gapBottomY = ((ascender + descender) - gap) * 0.5
 				gapTopY = ((ascender + descender) + gap) * 0.5
-				gapBottomRight = italicize((sidebearing + stemWidth, gapBottomY), italicAngle=italicAngle, pivotalY=pivot)
-				gapBottomLeft = italicize((sidebearing, gapBottomY), italicAngle=italicAngle, pivotalY=pivot)
-				gapTopRight = italicize((sidebearing + stemWidth, gapTopY), italicAngle=italicAngle, pivotalY=pivot)
-				gapTopLeft = italicize((sidebearing, gapTopY), italicAngle=italicAngle, pivotalY=pivot)
+				gapBottomRight = italicize(NSPoint(sidebearing + stemWidth, gapBottomY), italicAngle=italicAngle, pivotalY=pivot)
+				gapBottomLeft = italicize(NSPoint(sidebearing, gapBottomY), italicAngle=italicAngle, pivotalY=pivot)
+				gapTopRight = italicize(NSPoint(sidebearing + stemWidth, gapTopY), italicAngle=italicAngle, pivotalY=pivot)
+				gapTopLeft = italicize(NSPoint(sidebearing, gapTopY), italicAngle=italicAngle, pivotalY=pivot)
 
 				brokenbarLayer = brokenbarGlyph.layers[mID]
 				pen = brokenbarLayer.getPen()
