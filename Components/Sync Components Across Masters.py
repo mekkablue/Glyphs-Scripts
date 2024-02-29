@@ -16,7 +16,7 @@ print(f"Sync Components Across Masters for {thisFont.familyName}:")
 keysPressed = NSEvent.modifierFlags()
 optionKeyPressed = keysPressed & NSAlternateKeyMask == NSAlternateKeyMask
 if optionKeyPressed:
-	print(f"Opt key detected: will reset layers, not just add components.")
+	print("Opt key detected: will reset layers, not just add components.")
 print()
 
 
