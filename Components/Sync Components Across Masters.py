@@ -7,6 +7,15 @@ Takes the current layer’s components, and resets all other masters to the same
 from AppKit import NSEvent, NSAlternateKeyMask
 from GlyphsApp import Glyphs, GSComponent
 
+# needed for 3.1
+from AppKit import NSMutableSet
+from GlyphsApp import GSGlyph, python_method
+if not hasattr(GSGlyph, 'layerGroups'):
+	def __GSGlyph_layerGroups__(self):
+		seenLayers = NSMutableSet.set()
+		return self.forcedLayerGroupIdsSeenLayers_(seenLayers)
+	GSGlyph.layerGroups = python_method(__GSGlyph_layerGroups__)
+
 Glyphs.clearLog()
 thisFont = Glyphs.font  # frontmost font
 listOfSelectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
