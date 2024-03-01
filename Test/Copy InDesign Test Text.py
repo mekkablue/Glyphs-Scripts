@@ -14,7 +14,7 @@ thisFont = Glyphs.font  # frontmost font
 glyphs = [g for g in thisFont.glyphs if g.unicode and g.export and g.subCategory != "Nonspacing"]
 glyphnames = [g.name for g in glyphs]
 
-copyString = u""
+copyString = ""
 lastCategory = None
 j = 0
 for i in range(len(glyphs)):
@@ -26,7 +26,7 @@ for i in range(len(glyphs)):
 		j = 0
 	unicharString = currGlyph.glyphInfo.unicharString()
 	if unicharString:
-		copyString += unicharString.replace(u"⁄", u" ⁄ ")
+		copyString += unicharString.replace("⁄", " ⁄ ")
 		if currGlyph.name == "ldot":
 			copyString += "l"
 		if currGlyph.name == "Ldot":
@@ -34,11 +34,11 @@ for i in range(len(glyphs)):
 		lastCategory = currCategory
 
 languages = {
-	"NLD": u"ÍJ́íj́=ÍJíj",
-	"PLK": u"ĆŃÓŚŹćńóśź",
-	"ROM": u"ŞŢşţ",
-	"CAT": u"L·Ll·l",
-	"TRK": u"Iıİi"
+	"NLD": "ÍJ́íj́=ÍJíj",
+	"PLK": "ĆŃÓŚŹćńóśź",
+	"ROM": "ŞŢşţ",
+	"CAT": "L·Ll·l",
+	"TRK": "Iıİi"
 }
 
 # figures:
@@ -46,21 +46,24 @@ allFeatures = [f.name for f in thisFont.features]
 figurecount = 4
 scFigures = [f for f in thisFont.glyphs if f.category == "Number" and (".c2sc" in f.name or ".smcp" in f.name or ".sc" in f.name)]
 figurecount += len(scFigures) // 10
-figString = u" %s0123456789" % ("0" if "zero" in allFeatures else "")
-copyString += (u"\nfigures: %s%s\n" % (hangingindent, figurecount * figString))
+figString = " %s0123456789" % ("0" if "zero" in allFeatures else "")
+copyString += ("\nfigures: %s%s\n" % (hangingindent, figurecount * figString))
 
 # small figures:
-smallFiguresLine = u""
+smallFiguresLine = ""
 for smallFigFeature in ("sinf", "subs", "sups", "numr", "dnom"):
 	if smallFigFeature in allFeatures and smallFigFeature not in smallFiguresLine:
-		smallFiguresLine += u" %s: 0123456789" % smallFigFeature.replace(u"sinf", u"sinf/subs")
+		smallFiguresLine += " %s: 0123456789" % smallFigFeature.replace("sinf", "sinf/subs")
 copyString += smallFiguresLine[1:] + "\n"
 
 # copyString += "\n"
 
 for feature in thisFont.features:
+	if not feature.active:
+		continue
+		
 	if feature.name not in ("aalt", "ccmp", "salt", "cpsp", "numr", "dnom", "subs", "sups", "sinf", "lnum", "onum", "pnum", "tnum"):
-		testtext = u""
+		testtext = ""
 
 		# hardcoded features:
 		if feature.name == "locl":
@@ -69,21 +72,21 @@ for feature in thisFont.features:
 				if " %s;" % lang in feature.code:
 					langLetters = languages[lang]
 					if "smcp" in listOfFeatures or "c2sc" in listOfFeatures:
-						langLetters = u"%s %s" % (langLetters, langLetters)
-					testtext += u" %s: %s" % (lang, langLetters)
+						langLetters = "%s %s" % (langLetters, langLetters)
+					testtext += " %s: %s" % (lang, langLetters)
 
 		elif feature.name == "ordn":
 			ordnDict = {
-				"numero": u"No.8 No8",
-				"ordfeminine": u"1a2a3a4a5a6a7a8a9a0a",
-				"ordmasculine": u"1o2o3o4o5o6o7o8o9o0o"
+				"numero": "No.8 No8",
+				"ordfeminine": "1a2a3a4a5a6a7a8a9a0a",
+				"ordmasculine": "1o2o3o4o5o6o7o8o9o0o"
 			}
 			for gName in ordnDict:
 				if gName in glyphnames:
-					testtext += u"%s " % ordnDict[gName]
+					testtext += "%s " % ordnDict[gName]
 
 		elif feature.name == "frac":
-			testtext += u"12/34 56/78 90/12 34/56 78/90 23/41 67/85 01/29 45/63 89/07 34/12 78/56 12/90 56/34 90/78 41/23 85/67 29/01 63/45 07/89"
+			testtext += "12/34 56/78 90/12 34/56 78/90 23/41 67/85 01/29 45/63 89/07 34/12 78/56 12/90 56/34 90/78 41/23 85/67 29/01 63/45 07/89"
 
 		# scan feature code for substitutions:
 		elif "sub " in feature.code:
@@ -120,18 +123,18 @@ for feature in thisFont.features:
 						testtext += " "
 
 			if feature.name == "case":
-				testtext = u"HO".join(testtext) + "HO"
+				testtext = "HO".join(testtext) + "HO"
 
 		# hardcoded contextual kerning:
 		elif feature.name == "kern":
-			testtext = u"L’Aquila d’Annunzio l’Oréal"
+			testtext = "L’Aquila d’Annunzio l’Oréal"
 
 		testtext = testtext.replace("0123456789", " 0123456789 ").replace("  ", " ")
 
 		if "zero" in allFeatures and "0123456789" in testtext and "00" not in testtext:
 			testtext = testtext.replace("0", "00")
 
-		copyString += u"%s: %s%s\n" % (feature.name, hangingindent, testtext)
+		copyString += "%s: %s%s\n" % (feature.name, hangingindent, testtext)
 
 
 def setClipboard(myText):
