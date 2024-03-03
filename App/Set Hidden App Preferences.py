@@ -27,6 +27,7 @@ class SetHiddenAppPreferences(mekkaObject):
 		"GSFontViewMinIconSize",
 		"GSFontViewMaxIconSize",
 		"GSFontViewShowCustomGlyphInfoIndicator",
+		"IgnoreRecentScriptInvokedByKeyboard",
 		"moveToApplicationsFolderAlertSuppress",
 		"DebugMode",
 		"AlwaysShowAllMetrics",
