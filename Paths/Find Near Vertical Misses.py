@@ -298,8 +298,10 @@ class FindNearVerticalMisses(mekkaObject):
 			includeNonExporting = self.pref("includeNonExporting")
 
 			deviance = self.prefFloat("deviance")
-			excludes = [x.strip() for x in self.pref("exclude").split(",")]
-			if excludes and len(excludes) == 0:
+			excludeString = self.pref("exclude").strip()
+			if excludeString:
+				excludes = [x.strip() for x in .split(",")]
+			else:
 				excludes = None
 			skippedGlyphs = []
 
