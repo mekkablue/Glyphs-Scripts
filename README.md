@@ -235,6 +235,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 *Most scripts make managing glyph names and Unicodes a little easier. Garbage Collection is useful for cleaning up the mess of the reporter scripts, or other annotations before you hand the files over to a third party.*
 
 * **Add PUA Unicode Values to Selected Glyphs:** Iterates through selected glyphs and incrementally applies custom Unicode values, starting at a user-specified value.
+* **Casefolding Report:** Checks if uppercase and lowercase are matching. Opens a new Edit tab containing all glyphs without consistent casefolding. Writes a detailed report in Macro Window.
 * **Color Composites in Shade of Base Glyph:** Color composites in a lighter shade of the base glyph. E.g., if your A is has a red label color, then ÄÁÀĂ... will have a lighter shade of red.
 * **Convert to Uppercase:** Turns lowercase names into uppercase names, e.g., `a` → `A`, `ccaron` → `Ccaron`, `aeacute` → `AEacute`, etc.
 * **Convert to Lowercase:** Turns the names of selected glyphs lowercase.
@@ -242,7 +243,6 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Encoding Converter:** Converts old expert 8-bit encodings into Glyphs nice names, based on a importable/exportable text with renaming scheme. Default is an AXt converting scheme.
 * **Garbage Collection:** Removes markers in glyphs, such as node names, glyph names or annotations, as well as guides.
 * **Glyph Order Manager:** UI for managing glyphOrder parameters, also across multiple files.
-* **New Tab with Uppercase-Lowercase Inconsistencies:** Opens a new Edit tab containing all glyphs without consistent case folding. Writes a detailed report in Macro Window.
 * **Production Namer:** Override default production names. Default are the usual subjects which create problems in legacy PDF workflows: mu, onesuperior, twosuperior, threesuperior.
 * **Rename Glyphs:** Takes a list of `oldglyphname=newglyphname` pairs and renames glyphs in the font accordingly, much like the *Rename Glyphs* custom parameter.
 * **Reorder Unicodes of Selected Glyphs:** Reorders Unicodes so that default Unicode comes first.
