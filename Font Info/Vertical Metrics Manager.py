@@ -47,6 +47,7 @@ class VerticalMetricsManager(mekkaObject):
 		"ignoreNonExporting": 1,
 		"includeAllMasters": 1,
 		"respectMarkToBaseOffset": 0,
+		"writeToPopup": 0,
 		"round": 1,
 		"roundValue": 10,
 		"useTypoMetrics": 1,
@@ -168,8 +169,8 @@ class VerticalMetricsManager(mekkaObject):
 		self.w.preferCategoryUpdate.getNSButton().setToolTip_("Update the category popup to the left with all glyph categories found in the current font.")
 		linePos += lineHeight
 		
-		self.w.writeToText = vanilla.TextBox((inset, linePos+2, 110, 14), "Write values to:", sizeStyle="small", selectable=True)
-		self.w.writeToPopup = vanilla.PopUpButton((inset+115, linePos, -inset, 17), ("All masters", "First master only", "Font-wide (experimental)"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.writeToText = vanilla.TextBox((inset, linePos+2, 90, 14), "Write values to:", sizeStyle="small", selectable=True)
+		self.w.writeToPopup = vanilla.PopUpButton((inset+90, linePos, -inset, 17), ("All masters (recommended)", "First master only (experimental)", "Font-wide (experimental)"), sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 
 		self.w.allOpenFonts = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Read out and apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
