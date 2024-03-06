@@ -63,7 +63,7 @@ class VerticalMetricsManager(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 330
-		windowHeight = 410
+		windowHeight = 436
 		windowWidthResize = 100  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -166,6 +166,10 @@ class VerticalMetricsManager(mekkaObject):
 		self.w.preferCategoryPopup.getNSPopUpButton().setToolTip_("Choose a glyph category you want the measurements to be limited to. It may make sense to limit only to Letter.")
 		self.w.preferCategoryUpdate = vanilla.SquareButton((-inset - 20, linePos + 1, -inset, 18), "↺", sizeStyle='small', callback=self.update)
 		self.w.preferCategoryUpdate.getNSButton().setToolTip_("Update the category popup to the left with all glyph categories found in the current font.")
+		linePos += lineHeight
+		
+		self.w.writeToText = vanilla.TextBox((inset, linePos+2, 110, 14), "Write values to:", sizeStyle="small", selectable=True)
+		self.w.writeToPopup = vanilla.PopUpButton((inset+115, linePos, -inset, 17), ("All masters", "First master only", "Font-wide (experimental)"), sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 
 		self.w.allOpenFonts = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Read out and apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -553,19 +557,30 @@ class VerticalMetricsManager(mekkaObject):
 					try:
 						metricValue = int(verticalMetricDict[verticalMetricName])
 						print(f"🔢 {verticalMetricName}: {metricValue}")
-						if Glyphs.buildNumber < 3230:
+						
+						# clean legacy master settings:
+						if not thisFont.customParameters[verticalMetricName] is None:
+							del thisFont.customParameters[verticalMetricName]
+							print(f"  🚫 Font {thisFont.familyName}: custom parameter removed.")
+						for thisMaster in thisFont.masters:
+							if not thisMaster.customParameters[verticalMetricName] is None:
+								del thisMaster.customParameters[verticalMetricName]
+								print(f"  🚫 Master {thisMaster.name}: custom parameter removed.")
+						
+						# write new values:
+						if self.pref("writeToPopup")==0:
 							for thisMaster in thisFont.masters:
 								thisMaster.customParameters[verticalMetricName] = metricValue
 								print(f"  ✅ Master {thisMaster.name}: custom parameter set.")
-						else:
+						elif self.pref("writeToPopup")==2:
 							# add to font, not to masters:
 							thisFont.customParameters[verticalMetricName] = metricValue
 							print(f"  ✅ Font: custom parameter set.")
-							# clean legacy master settings:
-							for thisMaster in thisFont.masters:
-								if not thisMaster.customParameters[verticalMetricName] is None:
-									del thisMaster.customParameters[verticalMetricName]
-									print(f"  🚫 Master {thisMaster.name}: custom parameter removed.")
+						else:
+							thisMaster = thisFont.masters[0]
+							thisMaster.customParameters[verticalMetricName] = metricValue
+							print(f"  ✅ Master {thisMaster.name}: custom parameter set.")
+						
 					except:
 						print(f"❌ {verticalMetricName}: No valid value found. Deleting parameters:")
 						for thisMaster in thisFont.masters:
