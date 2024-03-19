@@ -57,14 +57,14 @@ class FindAndReplaceInFontInfo(mekkaObject):
 		self.w.completeWordsOnly = vanilla.CheckBox((inset, linePos, -inset, 20), "Complete words only", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset, linePos, -inset, 20), "⚠️ Include all open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allFonts = vanilla.CheckBox((inset, linePos, -inset, 20), "⚠️ Include all open fonts and projects", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.includeInstances = vanilla.CheckBox((inset, linePos, 120, 20), "Include instances", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeInactiveInstances = vanilla.CheckBox((inset + 120, linePos, -inset, 20), "Also inactive instances", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.includeCustomParameters = vanilla.CheckBox((inset, linePos, -inset, 20), "Include Custom Parameters", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeCustomParameters = vanilla.CheckBox((inset, linePos, -inset, 20), "Include custom parameters", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# Run Button:
@@ -132,7 +132,7 @@ class FindAndReplaceInFontInfo(mekkaObject):
 			# update settings to the latest user input:
 			self.SavePreferences()
 
-			if not Glyphs.fonts:
+			if not Glyphs.fonts and not Glyphs.orderedDocuments():
 				Message(title="No Font Open", message="The script requires at least one font. Open a font and run the script again.", OKButton=None)
 			else:
 				self.totalCount = 0
@@ -146,38 +146,51 @@ class FindAndReplaceInFontInfo(mekkaObject):
 				includeInactiveInstances = self.pref("includeInactiveInstances")
 
 				if allFonts:
-					fonts = Glyphs.fonts
+					fonts = Glyphs.orderedDocuments()
 				else:
-					fonts = (Glyphs.font, )
+					fonts = Glyphs.orderedDocuments()[0]
 				print("Find and Replace in Font Info:")
 
 				for thisFont in fonts:
-					if thisFont.filepath:
-						print(f"\n🔠 {thisFont.filepath.lastPathComponent()} (family: {thisFont.familyName})")
-						print(f"📂 ~/{thisFont.filepath.relativePathFromBaseDirPath_('~')}")
-					else:
-						print(f"\n🔠 {thisFont.familyName}")
-						print("⚠️ The font file has not been saved yet.")
-
-					if thisFont.familyName:  # could be None
-						thisFont.familyName = self.replaceInName(thisFont.familyName, searchFor, replaceWith, completeWordsOnly, "Font > Family Name")
-					if thisFont.designer:  # could be None
-						thisFont.designer = self.replaceInName(thisFont.designer, searchFor, replaceWith, completeWordsOnly, "Font > Designer")
-					if thisFont.manufacturer:  # could be None
-						thisFont.manufacturer = self.replaceInName(thisFont.manufacturer, searchFor, replaceWith, completeWordsOnly, "Font > Manufacturer")
-					if thisFont.copyright:  # could be None
-						thisFont.copyright = self.replaceInName(thisFont.copyright, searchFor, replaceWith, completeWordsOnly, "Font > Copyright")
+					isFont = isinstance(thisFont, GSDocument)
+					isProject = isinstance(thisFont, GSProjectDocument)
 					
-					self.replaceInProperties(thisFont, searchFor, replaceWith, completeWordsOnly, f"Font > General")
-					
-					if includeCustomParameters:
-						for customParameter in thisFont.customParameters:
-							parameterIsAString = isinstance(customParameter.value, (objc.pyobjc_unicode, str))
-							if parameterIsAString:
-								reportString = f"Font > Custom Parameters > {customParameter.name}"
-								customParameter.value = self.replaceInName(customParameter.value, searchFor, replaceWith, completeWordsOnly, reportString)
+					if isFont:
+						thisFont = thisFont.font
+						if thisFont.filepath:
+							print(f"\n🔠 {thisFont.filepath.lastPathComponent()} (family: {thisFont.familyName})")
+							print(f"📂 ~/{thisFont.filepath.relativePathFromBaseDirPath_('~')}")
+						else:
+							print(f"\n🔠 {thisFont.familyName}")
+							print("⚠️ The font file has not been saved yet.")
 
-					if includeInstances:
+						if thisFont.familyName:  # could be None
+							thisFont.familyName = self.replaceInName(thisFont.familyName, searchFor, replaceWith, completeWordsOnly, "Font > Family Name")
+						if thisFont.designer:  # could be None
+							thisFont.designer = self.replaceInName(thisFont.designer, searchFor, replaceWith, completeWordsOnly, "Font > Designer")
+						if thisFont.manufacturer:  # could be None
+							thisFont.manufacturer = self.replaceInName(thisFont.manufacturer, searchFor, replaceWith, completeWordsOnly, "Font > Manufacturer")
+						if thisFont.copyright:  # could be None
+							thisFont.copyright = self.replaceInName(thisFont.copyright, searchFor, replaceWith, completeWordsOnly, "Font > Copyright")
+					
+						self.replaceInProperties(thisFont, searchFor, replaceWith, completeWordsOnly, f"Font > General")
+					
+						if includeCustomParameters:
+							for customParameter in thisFont.customParameters:
+								parameterIsAString = isinstance(customParameter.value, (objc.pyobjc_unicode, str))
+								if parameterIsAString:
+									reportString = f"Font > Custom Parameters > {customParameter.name}"
+									customParameter.value = self.replaceInName(customParameter.value, searchFor, replaceWith, completeWordsOnly, reportString)
+					
+					if isProject:
+						if thisFont.fileName():
+							print(f"\n📜 {thisFont.fileName().lastPathComponent()} ({thisFont.fontName()})")
+							print(f"📂 ~/{thisFont.fileName().relativePathFromBaseDirPath_('~')}")
+						else:
+							print(f"\n📜 {thisFont.fontName()} (Glyphs Project)")
+							print("⚠️ The project file has not been saved yet.")
+					
+					if isFont or isProject:
 						for thisInstance in thisFont.instances:
 							if Glyphs.buildNumber > 3198:
 								instanceIsExporting = thisInstance.exports
@@ -186,12 +199,12 @@ class FindAndReplaceInFontInfo(mekkaObject):
 							if instanceIsExporting or includeInactiveInstances:
 								# style name:
 								thisInstance.name = self.replaceInName(
-									thisInstance.name, searchFor, replaceWith, completeWordsOnly, f"Exports > {thisInstance.name} > Style Name"
+									thisInstance.name, searchFor, replaceWith, completeWordsOnly, f"{'Exports > ' if isFont else ''}{thisInstance.name} > Style Name"
 								)
 
 								# general properties:
 								if Glyphs.versionNumber >= 3:
-									self.replaceInProperties(thisInstance, searchFor, replaceWith, completeWordsOnly, f"Exports > {thisInstance.name} > General")
+									self.replaceInProperties(thisInstance, searchFor, replaceWith, completeWordsOnly, f"{'Exports > ' if isFont else ''}{thisInstance.name} > General")
 
 								# parameters:
 								if includeCustomParameters:
@@ -199,7 +212,7 @@ class FindAndReplaceInFontInfo(mekkaObject):
 										parameterIsAString = isinstance(customParameter.value, (objc.pyobjc_unicode, str))
 
 										if parameterIsAString:
-											reportString = f"Exports > {thisInstance.name} > Custom Parameters > {customParameter.name}"
+											reportString = f"{'Exports > ' if isFont else ''}{thisInstance.name} > Custom Parameters > {customParameter.name}"
 											customParameter.value = self.replaceInName(customParameter.value, searchFor, replaceWith, completeWordsOnly, reportString)
 
 			# Final report:
