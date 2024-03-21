@@ -92,7 +92,7 @@ class SpacingChecker(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
-	def updateUI(self):
+	def updateUI(self, sender=None):
 		anyOptionSelected = self.w.asymmetricSBs.get() or self.w.largeLSB.get() or self.w.largeRSB.get() or self.w.whiteGlyphs.get()
 		self.w.runButton.enable(anyOptionSelected)
 

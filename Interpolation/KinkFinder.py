@@ -150,7 +150,7 @@ class KinkFinder(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
-	def updateUI(self, sender):
+	def updateUI(self, sender=None):
 		# 0: between all masters (false positives with 6+ masters)
 		# 1: between adjacent masters only (single axis, 3+ masters)
 		# 2: in all current active instances

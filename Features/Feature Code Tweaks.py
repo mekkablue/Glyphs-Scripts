@@ -330,7 +330,7 @@ class FeatureCodeTweaks(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
-	def updateUI(self):
+	def updateUI(self, sender=None):
 		onOrOff = self.pref("decomposePresentationForms")
 		self.w.includeIJ.enable(onOrOff)
 		self.w.includeLdot.enable(onOrOff)

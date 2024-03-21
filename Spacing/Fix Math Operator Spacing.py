@@ -124,7 +124,7 @@ class FixMathOperatorSpacing(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
-	def updateUI(self):
+	def updateUI(self, sender=None):
 		enteredSuffix = self.suffixWithDot(self.w.suffix.get().strip())
 
 		referenceOperator = self.w.referenceOperator.getTitle().split()[-1]

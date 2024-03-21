@@ -73,7 +73,7 @@ class RemovePSHints(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
-	def updateUI(self):
+	def updateUI(self, sender=None):
 		buttonEnable = self.pref("horizontalStemHints") or \
 			self.pref("verticalStemHints") or \
 			self.pref("ghostHints")

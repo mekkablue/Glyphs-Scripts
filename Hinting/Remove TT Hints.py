@@ -132,7 +132,7 @@ class RemoveTTHints(mekkaObject):
 		if savePrefs:
 			self.SavePreferences()
 
-	def updateUI(self):
+	def updateUI(self, sender=None):
 		onOff = (
 			self.w.hStems.get() or self.w.hAnchors.get() or self.w.hAlign.get() or self.w.hInterpolate.get() or self.w.hDiagonal.get() or self.w.hDelta.get() or self.w.vStems.get()
 			or self.w.vAnchors.get() or self.w.vAlign.get() or self.w.vInterpolate.get() or self.w.vDiagonal.get() or self.w.vDelta.get()

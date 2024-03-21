@@ -66,7 +66,7 @@ class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
-	def updateUI(self):
+	def updateUI(self, sender=None):
 		if not self.w.heights.get() and not self.w.depths.get():
 			self.w.runButton.enable(False)
 		else:

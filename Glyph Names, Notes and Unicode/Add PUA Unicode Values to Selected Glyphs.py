@@ -72,7 +72,7 @@ class CustomUnicode(mekkaObject):
 		sender.set(enteredUnicode)
 		self.SavePreferences(sender)
 
-	def updateUI(self):
+	def updateUI(self, sender=None):
 		self.w.status.set("")
 
 	def update(self, sender=None):

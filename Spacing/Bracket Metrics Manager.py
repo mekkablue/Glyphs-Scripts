@@ -75,7 +75,7 @@ class BracketMetricsManager(mekkaObject):
 				self.w.syncLSB.set(0)
 		self.SavePreferences()
 
-	def updateUI(self):
+	def updateUI(self, sender=None):
 		if self.w.reportOnly.get():
 			self.w.runButton.setTitle("Report")
 			self.w.runButton.enable(onOff=True)
