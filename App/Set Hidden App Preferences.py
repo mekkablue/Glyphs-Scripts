@@ -37,6 +37,7 @@ class SetHiddenAppPreferences(mekkaObject):
 		"GSAlwayShowExportNotification",
 		"GSShowStrokePanel",
 		"GSTidyUpThreshold",
+		"GSAutosaveAsSingleFile",
 		"AppleLanguages",
 		"drawShadowAccents",
 		"GSftxenhancerPath",
