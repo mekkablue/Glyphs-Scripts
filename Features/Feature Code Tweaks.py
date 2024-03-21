@@ -846,7 +846,7 @@ class FeatureCodeTweaks(mekkaObject):
 					thisFont.kerningForPair(masterID, "g", "period"),
 				)
 				for value in potentialKernValuesOnOtherSide:
-					if value < 100000:
+					if value != None and value < 100000:
 						kernValueOnOtherSide = value
 
 				# calculate and add kerning:
