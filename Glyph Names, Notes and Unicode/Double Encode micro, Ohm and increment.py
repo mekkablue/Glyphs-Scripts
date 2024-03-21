@@ -1,8 +1,8 @@
-# MenuTitle: Double Encode micro, Ohm and increment
+# MenuTitle: Double Encode micro, Ohm, increment and florin
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Add Unicodes of mu, Omega and Delta to micro, Ohm and increment. Hold down COMMAND + SHIFT to apply to ALL open fonts.
+Add Unicodes of mu, Omega and Delta to micro, Ohm and increment, as well as florin (but only if FHook is not present in the font). Hold down COMMAND + SHIFT to apply to ALL open fonts.
 """
 
 from AppKit import NSEvent, NSEventModifierFlagShift, NSEventModifierFlagCommand
@@ -22,6 +22,10 @@ codeInfos = (
 		"target": "increment",
 		"greek": "Delta",
 	},
+	{
+		"target": "florin",
+		"greek": "Fhook",
+	}
 )
 
 Glyphs.clearLog()  # clears log in Macro window
@@ -54,6 +58,8 @@ for thisFont in fonts:
 				targetGlyph.unicode = targetCode
 				targetGlyph.unicodes = [targetCode, greekCode]
 				print(f"  🔤 {targetGlyphName}: {', '.join(targetGlyph.unicodes)}")
+			elif targetGlyphName == "florin":
+				continue
 			elif greekGlyph and not targetGlyph:
 				greekGlyph.name = targetGlyphName
 				greekGlyph.unicode = targetCode
