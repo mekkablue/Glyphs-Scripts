@@ -60,14 +60,13 @@ class GlyphOrderManager(mekkaObject):
 		self.w.glyphOrderText.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.glyphOrderText.getNSScrollView().setRulersVisible_(0)
 
-		textView = self.w.glyphOrderText.getNSTextView()
 		try:
-			legibleFont = NSFont.controlContentFontOfSize_(NSFont.systemFontSize())
-			textView.setFont_(legibleFont)
 			legibleFont = NSFont.legibleFontOfSize_(NSFont.systemFontSize())
-			textView.setFont_(legibleFont)
-		except Exception as e:
-			print(e)
+		except:
+			legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())  # Glyphs 3.1 compatibilty
+
+		textView = self.w.glyphOrderText.getNSTextView()
+		textView.setFont_(legibleFont)
 		textView.setUsesFindBar_(True)
 		textView.setToolTip_("Extract, edit, and reapply glyphOrder text to custom parameters.")
 		textView.setHorizontallyResizable_(1)

@@ -49,7 +49,8 @@ class MergeSuffixedGlyphsIntoColorLayers(mekkaObject):
 		try:
 			legibleFont = NSFont.legibleFontOfSize_(NSFont.systemFontSize())
 		except:
-			legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())
+			legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())  # Glyphs 3.1 compatibilty
+
 		textView = self.w.indexToSuffix.getNSTextView()
 		textView.setFont_(legibleFont)
 		textView.setHorizontallyResizable_(1)

@@ -395,14 +395,14 @@ class EncodingConverter(mekkaObject):
 		self.w.recipe.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.recipe.getNSScrollView().setRulersVisible_(0)
 
-		textView = self.w.recipe.getNSTextView()
 		try:
-			legibleFont = NSFont.controlContentFontOfSize_(NSFont.systemFontSize())
-			textView.setFont_(legibleFont)
-			legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())
-			textView.setFont_(legibleFont)
-		except Exception as e:
-			print(e)
+			legibleFont = NSFont.legibleFontOfSize_(NSFont.systemFontSize())
+		except:
+			legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())  # Glyphs 3.1 compatibilty
+
+		textView = self.w.recipe.getNSTextView()
+		textView.setFont_(legibleFont)
+
 		textView.setHorizontallyResizable_(1)
 		textView.setVerticallyResizable_(1)
 		textView.setAutomaticDataDetectionEnabled_(1)

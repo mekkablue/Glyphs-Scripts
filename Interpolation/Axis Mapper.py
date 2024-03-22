@@ -161,7 +161,12 @@ class AxisMapper(mekkaObject):
 		linePos += lineHeight
 
 		self.w.mappingRecipe = vanilla.TextEditor((0, linePos, -0, -20 - inset * 2), text=fallbackText.strip(), callback=self.SavePreferences, checksSpelling=False)
-		legibleFont = NSFont.legibleFontOfSize_(NSFont.systemFontSize())
+
+		try:
+			legibleFont = NSFont.legibleFontOfSize_(NSFont.systemFontSize())
+		except:
+			legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())  # Glyphs 3.1 compatibilty
+
 		textView = self.w.mappingRecipe.getNSTextView()
 		textView.setFont_(legibleFont)
 

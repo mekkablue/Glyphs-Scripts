@@ -59,7 +59,11 @@ class ProductionNamer(mekkaObject):
 		self.w.recipe.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.recipe.getNSScrollView().setRulersVisible_(0)
 
-		legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())
+		try:
+			legibleFont = NSFont.legibleFontOfSize_(NSFont.systemFontSize())
+		except:
+			legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())  # Glyphs 3.1 compatibilty
+
 		textView = self.w.recipe.getNSTextView()
 		textView.setFont_(legibleFont)
 		textView.setHorizontallyResizable_(1)
