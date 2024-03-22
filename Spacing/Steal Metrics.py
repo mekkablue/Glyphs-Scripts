@@ -107,13 +107,13 @@ class MetricsCopy(mekkaObject):
 
 	def listOfMasterNames(self):
 		try:
-			myMasterNameList = ["%i: %s - %s" % (i + 1, self.listOfMasters[i].font.familyName, self.listOfMasters[i].name) for i in range(len(self.listOfMasters))]
+			myMasterNameList = [f"{i+1}: {self.listOfMasters[i].font.familyName} - {self.listOfMasters[i].name}" for i in range(len(self.listOfMasters))]
 			return myMasterNameList
 		except:
 			print(traceback.format_exc())
 
 	def outputError(self, errMsg):
-		print("Steal Sidebearings Warning:", errMsg)
+		print(f"Steal Sidebearings Warning: {errMsg}")
 
 	def buttonCheck(self, sender):
 		try:
@@ -198,14 +198,14 @@ class MetricsCopy(mekkaObject):
 
 				if ignoreSuffixes:
 					# replace suffix in the middle of the name:
-					sourceGlyphName = targetGlyphName.replace(".%s." % suffixToBeIgnored, ".")
+					sourceGlyphName = targetGlyphName.replace(f".{suffixToBeIgnored}.", ".")
 					# replace suffix at the end of the name:
-					if sourceGlyphName.endswith(".%s" % suffixToBeIgnored):
+					if sourceGlyphName.endswith(f".{suffixToBeIgnored}"):
 						sourceGlyphName = sourceGlyphName[:-len(suffixToBeIgnored) - 1]
 
 				sourceGlyph = sourceFont.glyphs[sourceGlyphName]
 				if not sourceGlyph:
-					print("     %s: not found in source font" % sourceGlyphName)
+					print(f"     {sourceGlyphName}: not found in source font")
 				else:
 					sourceLayer = sourceGlyph.layers[sourceMasterID]
 					if updateMetrics:
@@ -217,27 +217,27 @@ class MetricsCopy(mekkaObject):
 						if sourceGlyph.leftMetricsKey:
 							targetGlyph.leftMetricsKey = sourceGlyph.leftMetricsKey
 							metricsL = True
-							print("     %s, left glyph key: '%s'" % (targetGlyphName, targetGlyph.leftMetricsKey))
+							print(f"     {targetGlyphName}, left glyph key: '{targetGlyph.leftMetricsKey}'")
 						if sourceGlyph.rightMetricsKey:
 							targetGlyph.rightMetricsKey = sourceGlyph.rightMetricsKey
 							metricsR = True
-							print("     %s, right glyph key: '%s'" % (targetGlyphName, targetGlyph.rightMetricsKey))
+							print(f"     {targetGlyphName}, right glyph key: '{targetGlyph.rightMetricsKey}'")
 						if sourceGlyph.widthMetricsKey:
 							targetGlyph.widthMetricsKey = sourceGlyph.widthMetricsKey
 							metricsW = True
-							print("     %s, width glyph key: '%s'" % (targetGlyphName, targetGlyph.widthMetricsKey))
+							print(f"     {targetGlyphName}, width glyph key: '{targetGlyph.widthMetricsKey}'")
 						if sourceLayer.leftMetricsKey:
 							targetLayer.leftMetricsKey = sourceLayer.leftMetricsKey
 							metricsL = True
-							print("     %s, left layer key: '%s'" % (targetGlyphName, targetLayer.leftMetricsKey))
+							print(f"     {targetGlyphName}, left layer key: '{targetLayer.leftMetricsKey}'")
 						if sourceLayer.rightMetricsKey:
 							targetLayer.rightMetricsKey = sourceLayer.rightMetricsKey
 							metricsR = True
-							print("     %s, right layer key: '%s'" % (targetGlyphName, targetLayer.rightMetricsKey))
+							print(f"     {targetGlyphName}, right layer key: '{targetLayer.rightMetricsKey}'")
 						if sourceLayer.widthMetricsKey:
 							targetLayer.widthMetricsKey = sourceLayer.widthMetricsKey
 							metricsW = True
-							print("     %s, width layer key: '%s'" % (targetGlyphName, targetLayer.widthMetricsKey))
+							print(f"     {targetGlyphName}, width layer key: '{targetLayer.widthMetricsKey}'")
 
 					if not onlyMetricsKeys:
 						# transfer numeric metrics:
