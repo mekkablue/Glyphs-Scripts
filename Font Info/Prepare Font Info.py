@@ -119,15 +119,15 @@ class PrepareFontforGit(mekkaObject):
 					theseFonts = (Glyphs.font, )
 
 				for thisFont in theseFonts:
-					print("🧑🏽‍💻 Prepare Font for Git: %s" % thisFont.familyName)
+					print(f"🧑🏽‍💻 Prepare Font for Git: {thisFont.familyName}")
 					if thisFont.filepath:
-						print("📄 %s" % thisFont.filepath)
+						print(f"📄 {thisFont.filepath}")
 					else:
 						print("⚠️ The font file has not been saved yet.")
 
 					# set parameters:
 					for optionKey in self.parameterDict.keys():
-						if self.prefBool("optionKey"):
+						if self.prefBool(optionKey):
 							parameterName, parameterValue = self.parameterDict[optionKey]
 							self.setParameterForFont(thisFont, parameterName, parameterValue)
 
