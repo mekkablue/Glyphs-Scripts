@@ -136,7 +136,7 @@ def createManyToOneFromDict(codeDict, thisFont):
 
 
 def wrapCodeInLookup(featureCode, lookupName):
-	code = f"lookup {lookupName} {\n{featureCode.rstrip()}\n} {lookupName};\n"
+	code = f"lookup {lookupName} {{" + "\n" + f"{featureCode.rstrip()}" + "\n" + f"}} {lookupName};" + "\n"
 	return code
 
 
