@@ -292,7 +292,9 @@ def buildNotdef(thisFont, override=False):
 def buildLozenge(thisFont, override=False):
 	glyphName = "lozenge"
 	lozengeGlyph = createGlyph(thisFont, glyphName, "25CA", override=override)
-
+	if not lozengeGlyph:
+		return
+		
 	# set metrics keys and kern groups:
 	lozengeGlyph.leftMetricsKey = "=50"
 	lozengeGlyph.rightMetricsKey = "=|"
@@ -356,7 +358,9 @@ def buildLozenge(thisFont, override=False):
 def buildCurrency(thisFont, override=False):
 	glyphName = "currency"
 	currencyGlyph = createGlyph(thisFont, glyphName, "00A4", override=override)
-
+	if not currencyGlyph:
+		return
+	
 	# set metrics keys and kern groups:
 	currencyGlyph.leftMetricsKey = "=50"
 	currencyGlyph.rightMetricsKey = "=|"
