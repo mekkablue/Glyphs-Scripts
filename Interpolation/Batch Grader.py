@@ -488,15 +488,6 @@ class BatchGrader(mekkaObject):
 			# update settings to the latest user input:
 			self.SavePreferences()
 
-			# read prefs:
-			for prefName in self.prefDict.keys():
-				try:
-					setattr(self, prefName, self.pref(prefName))
-				except:
-					fallbackValue = self.prefDict[prefName]
-					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
-					setattr(self, prefName, fallbackValue)
-
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(
