@@ -563,34 +563,35 @@ class BatchGrader(mekkaObject):
 				parameter.value = axLoc
 
 	def gradeMaster(self, thisFont, master, grade, gradeAxisIdx, searchFor, replaceWith):
-		gradeMaster = copy(master)
-		if searchFor and replaceWith:
-			gradeMaster.name = master.name.replace(searchFor, replaceWith)
-		elif replaceWith:
-			gradeMaster.name = master.name + replaceWith
-		else:
-			gradeMaster.name = f"{master.name} Grade {grade}"
-		gradeMaster.font = thisFont
+
 		gradeAxes = list(master.axes)
 		gradeAxes[gradeAxisIdx] = grade
-		gradeMaster.axes = gradeAxes
-		if self.pref("addSyncMetricCustomParameter"):
-			gradeMaster.customParameters.append(
-				GSCustomParameter(
-					"Link Metrics With Master",
-					master.id,
-				)
-			)
 
+		gradeMaster = None
 		for m in thisFont.masters[::-1]:
-			if m.axes == gradeMaster.axes:
-				# remove preexisting graded masters if there are any
-				print(f"❌ Removing preexisting graded master ‘{m.name}’")
-				thisFont.removeFontMaster_(m)
-
-		# otherwise add the one we built above:
-		print(f"Ⓜ️ Adding master: ‘{gradeMaster.name}’")
-		thisFont.masters.append(gradeMaster)
+			if m.axes == gradeAxes:
+				gradeMaster = m
+				# print(f"Ⓜ️ Found master: ‘{gradeMaster.name}’")
+		if not gradeMaster:
+			gradeMaster = copy(master)
+			if searchFor and replaceWith:
+				gradeMaster.name = master.name.replace(searchFor, replaceWith)
+			elif replaceWith:
+				gradeMaster.name = master.name + replaceWith
+			else:
+				gradeMaster.name = f"{master.name} Grade {grade}"
+			gradeMaster.font = thisFont
+			gradeMaster.axes = gradeAxes
+			if self.pref("addSyncMetricCustomParameter"):
+				gradeMaster.customParameters.append(
+					GSCustomParameter(
+						"Link Metrics With Master",
+						master.id,
+					)
+				)
+			print(f"Ⓜ️ Adding master: ‘{gradeMaster.name}’")
+			thisFont.masters.append(gradeMaster)
+		return gradeMaster
 
 	def processCodeLine(self, codeLine, thisFont, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount):
 		if "#" in codeLine:
