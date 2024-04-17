@@ -218,6 +218,7 @@ class BatchGrader(mekkaObject):
 		"addSyncMetricCustomParameter": True,
 		"keepCenteredGlyphsCentered": True,
 		"keepCenteredThreshold": 2,
+		"onlyCurrentGlyph": False,
 		"addGradedBraceLayers": False,
 		"temporarilySwitchToDefaultInterpolation": True,
 	}
@@ -301,6 +302,11 @@ class BatchGrader(mekkaObject):
 		self.w.keepCenteredGlyphsCentered.getNSButton().setToolTip_(tooltipText)
 		self.w.keepCenteredThreshold = vanilla.EditText((inset + 305, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle="small")
 		self.w.keepCenteredThreshold.getNSTextField().setToolTip_(tooltipText)
+		linePos += lineHeight
+		
+		tooltipText = "Only apply to the current Glyph"
+		self.w.onlyCurrentGlyph = vanilla.CheckBox((inset, linePos, -inset, 20), "Only apply to the current Glyph", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.onlyCurrentGlyph.getNSButton().setToolTip_(tooltipText)
 		linePos += lineHeight
 
 		linePos += 10
@@ -571,7 +577,7 @@ class BatchGrader(mekkaObject):
 			thisFont.masters.append(gradeMaster)
 		return gradeMaster
 
-	def processCodeLine(self, codeLine, thisFont, fontWithoutGrades, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount):
+	def processCodeLine(self, codeLine, thisFont, fontWithoutGrades, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, onlyGlyphName, gradeCount):
 
 		pool = NSAutoreleasePool.alloc().init()
 		if "#" in codeLine:
@@ -631,14 +637,20 @@ class BatchGrader(mekkaObject):
 		gradeMaster = self.gradeMaster(thisFont, master, grade, gradeAxisIdx, searchFor, replaceWith)
 
 		# add interpolated content to new (graded) layer of each glyph:
-		for baseGlyph in thisFont.glyphs:
+		if onlyGlyphName:
+			baseGlyph = thisFont.glyphs[onlyGlyphName]
 			self.addGradeLayers(master, weightedFont, gradeMaster, baseGlyph)
+		else:
+			for baseGlyph in thisFont.glyphs:
+				self.addGradeLayers(master, weightedFont, gradeMaster, baseGlyph)
 
 		# recenter centered glyphs
 		# (in separate loop so we have all component references up to date from the previous loop)
 		if keepCenteredGlyphsCentered:
 			print("↔️ Recentering centered glyphs...")
 			for baseGlyph in thisFont.glyphs:
+				if onlyGlyphName and baseGlyph.name != onlyGlyphName:
+					continue
 				baseLayer = baseGlyph.layers[master.id]
 				if abs(baseLayer.LSB - baseLayer.RSB) <= keepCenteredThreshold:
 					gradeLayer = baseGlyph.layers[gradeMaster.id]
@@ -705,7 +717,14 @@ class BatchGrader(mekkaObject):
 			keepCenteredGlyphsCentered = self.prefBool("keepCenteredGlyphsCentered")
 			keepCenteredThreshold = self.prefInt("keepCenteredThreshold")
 			grade = self.prefInt("grade")
-
+			onlyCurrentGlyph = self.prefBool("onlyCurrentGlyph")
+			onlyGlyphName = None
+			if onlyCurrentGlyph:
+				layer = thisFont.currentTab.activeLayer()
+				print("__layer", layer)
+				if layer:
+					onlyGlyphName = layer.parent.name
+			
 			# parse code and step through masters:
 			gradeCount = 0
 			graderCode = self.pref("graderCode").strip()
@@ -721,7 +740,7 @@ class BatchGrader(mekkaObject):
 				weightedAxes.append(0)
 			fontWithoutGrades = self.subsettedFontSkipAxis(thisFont, weightedAxes, skipAxisIndexes)
 			for codeLine in graderCode.splitlines():
-				self.processCodeLine(codeLine, thisFont, fontWithoutGrades, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount)
+				self.processCodeLine(codeLine, thisFont, fontWithoutGrades, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, onlyGlyphName, gradeCount)
 
 			# add missing axis locations if base master has axis locations:
 			self.addMissingAxisLocations(thisFont, gradeAxis)
