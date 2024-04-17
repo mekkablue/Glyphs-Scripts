@@ -16,28 +16,6 @@ from GlyphsApp import Glyphs, GSFont, GSLayer, GSAxis, GSInstance, GSCustomParam
 from mekkablue import mekkaObject
 
 
-def hasIncrementalKey(layer, checkLSB=True, checkRSB=True):
-	incrementalKeys = ("=-", "=+", "=*", "=/")
-	glyph = layer.parent
-	if checkLSB:
-		for key in incrementalKeys:
-			if layer.leftMetricsKey:
-				if key in layer.leftMetricsKey:
-					return True
-			elif glyph.leftMetricsKey:
-				if key in glyph.leftMetricsKey:
-					return True
-	if checkRSB:
-		for key in incrementalKeys:
-			if layer.rightMetricsKey:
-				if key in layer.rightMetricsKey:
-					return True
-			elif glyph.rightMetricsKey:
-				if key in glyph.rightMetricsKey:
-					return True
-	return False
-
-
 def biggestSubstringInStrings(strings):
 	if len(strings) > 1:
 		sortedStrings = sorted(strings, key=lambda string: len(string))
