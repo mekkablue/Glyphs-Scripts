@@ -482,6 +482,147 @@ class BatchGrader(mekkaObject):
 			instance.manualInterpolation = True
 			instance.instanceInterpolations = reducedInstanceInterpolations
 
+	def updateGradeAxis(self, thisFont):
+		# add or update Grade axis if necessary:
+		axisName = self.pref("axisName").strip()
+		gradeAxisTag = f'{self.pref("gradeAxisTag").strip()[:4]:4}'
+		existingAxisTags = [a.axisTag for a in thisFont.axes]
+		if gradeAxisTag not in existingAxisTags:
+			print(f"Adding axis ‘{axisName}’ ({gradeAxisTag})")
+			gradeAxis = GSAxis()
+			gradeAxis.name = axisName
+			gradeAxis.axisTag = gradeAxisTag
+			gradeAxis.hidden = False
+			thisFont.axes.append(gradeAxis)
+			thisFont.didChangeValueForKey_("axes")
+		else:
+			gradeAxis = thisFont.axisForTag_(gradeAxisTag)
+			if gradeAxis.name != axisName:
+				print(f"Updating {gradeAxisTag} axis name: {gradeAxis.name} → {axisName}")
+				gradeAxis.name = axisName
+		return gradeAxis
+
+	def addGradeLayers(self, master, weightedFont, gradeMaster, baseGlyph, metricsKeyChoice):
+		baseLayer = baseGlyph.layers[master.id]
+		baseWidth = baseLayer.width
+
+		# get interpolated layer and prepare for width adjustment
+		weightedGlyph = weightedFont.glyphs[baseGlyph.name]
+		weightedLayer = weightedGlyph.layers[0]
+		straightenBCPs(weightedLayer)
+		weightedWidth = weightedLayer.width
+		if weightedWidth != baseWidth:
+			fitSidebearings(weightedLayer, targetWidth=baseWidth, left=0.5)
+
+		# bring the interpolated shapes back into the open font:
+		gradeLayer = baseGlyph.layers[gradeMaster.id]
+		gradeLayer.width = weightedLayer.width
+		gradeLayer.shapes = copy(weightedLayer.shapes)
+		gradeLayer.anchors = copy(weightedLayer.anchors)
+		gradeLayer.hints = copy(weightedLayer.hints)
+
+		# reinstate automatic alignment if necessary:
+		if baseLayer.isAligned and not gradeLayer.isAligned:
+			for index, gradeComponent in enumerate(gradeLayer.components):
+				baseComponent = baseLayer.components[index]
+				gradeComponent.alignment = baseComponent.alignment
+
+		# disable metrics keys where necessary/requested:
+		if (baseGlyph.leftMetricsKey or baseLayer.leftMetricsKey) and metricsKeyChoice in (1, 3):
+			isIncrementalKey = (baseLayer.isAligned and hasIncrementalKey(baseLayer))
+			if not isIncrementalKey:
+				gradeLayer.leftMetricsKey = f"=={baseGlyph.name}"
+			else:
+				gradeLayer.leftMetricsKey = baseLayer.leftMetricsKey
+		if (baseGlyph.rightMetricsKey or baseLayer.rightMetricsKey) and metricsKeyChoice in (2, 3):
+			isIncrementalKey = (baseLayer.isAligned and hasIncrementalKey(baseLayer))
+			if not isIncrementalKey:
+				gradeLayer.rightMetricsKey = f"=={baseGlyph.name}"
+			else:
+				gradeLayer.rightMetricsKey = baseLayer.rightMetricsKey
+		if baseGlyph.widthMetricsKey and metricsKeyChoice in (1, 2, 3):
+			gradeLayer.widthMetricsKey = f"=={baseGlyph.name}"
+		if (baseGlyph.leftMetricsKey or baseGlyph.rightMetricsKey) and metricsKeyChoice in (1, 2):
+			gradeLayer.syncMetrics()
+		if hasIncrementalKey(gradeLayer):
+			gradeLayer.syncMetrics()
+
+	def addMissingAxisLocations(self, thisFont, gradeAxis):
+		if Glyphs.versionNumber >= 4:
+			return
+
+		print("📐 Updating Axis Locations in masters...")
+		for thisMaster in thisFont.masters:
+			axLoc = thisMaster.customParameters["Axis Location"]
+			if axLoc and len(axLoc) < len(thisFont.axes):
+				axLoc.append(
+					{
+						"Axis": self.pref("axisName"),
+						"Location": thisMaster.axisValueValueForId_(gradeAxis.id),
+					}
+				)
+				thisMaster.customParameters["Axis Location"] = axLoc
+
+		print("📐 Updating Axis Locations in instances...")
+		for thisInstance in thisFont.instances:
+			axLoc = thisInstance.customParameters["Axis Location"]
+			if axLoc and len(axLoc) < len(thisFont.axes):
+				axLoc = list(axLoc)
+				axLoc.append(
+					{
+						"Axis": self.pref("axisName"),
+						"Location": thisInstance.axisValueValueForId_(gradeAxis.id),
+					}
+				)
+				thisInstance.customParameters["Axis Location"] = axLoc
+			# Glyphs 4:
+			# thisMaster.setExternAxisValueValue_forId_(thisMaster.axisValueValueForId_(gradeID), gradeID)
+			# thisMaster.externalAxesValues[gradeID] = thisMaster.internalAxesValues[gradeID]
+
+		# update Axis Locations in Virtual Masters if there are any:
+		for parameter in thisFont.customParameters:
+			if parameter.name == "Virtual Master":
+				print("Updating Virtual Master...")
+				axLoc = parameter.value
+				if len(axLoc) < len(thisFont.axes):
+					axLoc.append(
+						{
+							"Axis": self.pref("axisName"),
+							"Location": 0,
+						}
+					)
+				parameter.value = axLoc
+
+	def gradeMaster(self, thisFont, master, grade, gradeAxisID, searchFor, replaceWith):
+		gradeMaster = copy(master)
+		if searchFor and replaceWith:
+			gradeMaster.name = master.name.replace(searchFor, replaceWith)
+		elif replaceWith:
+			gradeMaster.name = master.name + replaceWith
+		else:
+			gradeMaster.name = f"{master.name} Grade {grade}"
+		gradeMaster.font = thisFont
+		gradeAxes = list(master.axes)
+		gradeAxes[gradeAxisID] = grade
+		gradeMaster.axes = gradeAxes
+		if self.pref("addSyncMetricCustomParameter"):
+			gradeMaster.customParameters.append(
+				GSCustomParameter(
+					"Link Metrics With Master",
+					master.id,
+				)
+			)
+
+		for m in thisFont.masters[::-1]:
+			if m.axes == gradeMaster.axes:
+				# remove preexisting graded masters if there are any
+				print(f"❌ Removing preexisting graded master ‘{m.name}’")
+				thisFont.removeFontMaster_(m)
+
+		# otherwise add the one we built above:
+		print(f"Ⓜ️ Adding master: ‘{gradeMaster.name}’")
+		thisFont.masters.append(gradeMaster)
+
 	def processCodeLine(self, codeLine, thisFont, grade, gradeAxisID, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, metricsKeyChoice, gradeCount):
 		if "#" in codeLine:
 			codeLine = codeLine[: codeLine.find("#")]
@@ -534,84 +675,12 @@ class BatchGrader(mekkaObject):
 		print(f"🛠️ Interpolating grade: {self.masterAxesString(weightedInstance)}")
 		weightedFont = weightedInstance.interpolatedFont
 
-		# add the graded master
-		gradeMaster = copy(master)
-		if searchFor and replaceWith:
-			gradeMaster.name = master.name.replace(searchFor, replaceWith)
-		elif replaceWith:
-			gradeMaster.name = master.name + replaceWith
-		else:
-			gradeMaster.name = f"{master.name} Grade {grade}"
-		gradeMaster.font = thisFont
-		gradeAxes = list(master.axes)
-		gradeAxes[gradeAxisID] = grade
-		gradeMaster.axes = gradeAxes
-		if self.pref("addSyncMetricCustomParameter"):
-			gradeMaster.customParameters.append(
-				GSCustomParameter(
-					"Link Metrics With Master",
-					master.id,
-				)
-			)
-
-		for m in thisFont.masters[::-1]:
-			if m.axes == gradeMaster.axes:
-				# remove preexisting graded masters if there are any
-				print(f"❌ Removing preexisting graded master ‘{m.name}’")
-				thisFont.removeFontMaster_(m)
-
-		# otherwise add the one we built above:
-		print(f"Ⓜ️ Adding master: ‘{gradeMaster.name}’")
-		thisFont.masters.append(gradeMaster)
+		# get the graded master
+		gradeMaster = self.gradeMaster(thisFont, master, grade, gradeAxisID, searchFor, replaceWith)
 
 		# add interpolated content to new (graded) layer of each glyph:
 		for baseGlyph in thisFont.glyphs:
-			baseLayer = baseGlyph.layers[master.id]
-			baseWidth = baseLayer.width
-
-			# get interpolated layer and prepare for width adjustment
-			weightedGlyph = weightedFont.glyphs[baseGlyph.name]
-			weightedLayer = weightedGlyph.layers[0]
-			straightenBCPs(weightedLayer)
-			weightedWidth = weightedLayer.width
-			if weightedWidth != baseWidth:
-				fitSidebearings(weightedLayer, targetWidth=baseWidth, left=0.5)
-
-			# bring the interpolated shapes back into the open font:
-			gradeLayer = baseGlyph.layers[gradeMaster.id]
-			gradeLayer.width = weightedLayer.width
-			gradeLayer.shapes = copy(weightedLayer.shapes)
-			gradeLayer.anchors = copy(weightedLayer.anchors)
-			gradeLayer.hints = copy(weightedLayer.hints)
-
-			# cancel instance
-			weightedInstance.font = None
-
-			# reinstate automatic alignment if necessary:
-			if baseLayer.isAligned and not gradeLayer.isAligned:
-				for index, gradeComponent in enumerate(gradeLayer.components):
-					baseComponent = baseLayer.components[index]
-					gradeComponent.alignment = baseComponent.alignment
-
-			# disable metrics keys where necessary/requested:
-			if (baseGlyph.leftMetricsKey or baseLayer.leftMetricsKey) and metricsKeyChoice in (1, 3):
-				isIncrementalKey = (baseLayer.isAligned and hasIncrementalKey(baseLayer))
-				if not isIncrementalKey:
-					gradeLayer.leftMetricsKey = f"=={baseGlyph.name}"
-				else:
-					gradeLayer.leftMetricsKey = baseLayer.leftMetricsKey
-			if (baseGlyph.rightMetricsKey or baseLayer.rightMetricsKey) and metricsKeyChoice in (2, 3):
-				isIncrementalKey = (baseLayer.isAligned and hasIncrementalKey(baseLayer))
-				if not isIncrementalKey:
-					gradeLayer.rightMetricsKey = f"=={baseGlyph.name}"
-				else:
-					gradeLayer.rightMetricsKey = baseLayer.rightMetricsKey
-			if baseGlyph.widthMetricsKey and metricsKeyChoice in (1, 2, 3):
-				gradeLayer.widthMetricsKey = f"=={baseGlyph.name}"
-			if (baseGlyph.leftMetricsKey or baseGlyph.rightMetricsKey) and metricsKeyChoice in (1, 2):
-				gradeLayer.syncMetrics()
-			if hasIncrementalKey(gradeLayer):
-				gradeLayer.syncMetrics()
+			self.addGradeLayers(master, weightedFont, gradeMaster, baseGlyph, metricsKeyChoice)
 
 		# recenter centered glyphs
 		# (in separate loop so we have all component references up to date from the previous loop)
@@ -625,6 +694,20 @@ class BatchGrader(mekkaObject):
 					if abs(offCenter) > 1:
 						gradeLayer.applyTransform((1, 0, 0, 1, offCenter // 2, 0))
 		print()
+
+	def addGradedBraceLayers(self, thisFont, gradeAxis, grade):
+		if not self.pref("addGradedBraceLayers"):
+			return
+
+		print("\nGrading brace layers...")
+		updateBraceLayers(thisFont, defaultValue=0, newAxisTag=gradeAxis.axisTag, newAxisValue=grade)
+		glyphsWithBraceLayers = []
+		for glyph in thisFont.glyphs:
+			for layer in glyph.layers:
+				if layer.isSpecialLayer and layer.attributes and "coordinates" in layer.attributes.keys():
+					glyphsWithBraceLayers.append(glyph.name)
+					break
+		thisFont.newTab("/" + "/".join(glyphsWithBraceLayers))
 
 	def BatchGraderMain(self, sender=None):
 		try:
@@ -642,6 +725,7 @@ class BatchGrader(mekkaObject):
 					OKButton=None,
 				)
 				return
+
 			filePath = thisFont.filepath
 			if filePath:
 				reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
@@ -655,30 +739,13 @@ class BatchGrader(mekkaObject):
 			if self.pref("temporarilySwitchToDefaultInterpolation"):
 				thisFont.setFontType_(0)  # default font type
 
-			# add or update Grade axis if necessary:
-			grade = self.prefInt("grade")
-			axisName = self.pref("axisName").strip()
-			gradeAxisTag = f'{self.pref("gradeAxisTag").strip()[:4]:4}'
-			existingAxisTags = [a.axisTag for a in thisFont.axes]
-			if gradeAxisTag not in existingAxisTags:
-				print(f"Adding axis ‘{axisName}’ ({gradeAxisTag})")
-				gradeAxis = GSAxis()
-				gradeAxis.name = axisName
-				gradeAxis.axisTag = gradeAxisTag
-				gradeAxis.hidden = False
-				thisFont.axes.append(gradeAxis)
-				thisFont.didChangeValueForKey_("axes")
-			else:
-				gradeAxis = thisFont.axisForTag_(gradeAxisTag)
-				if gradeAxis.name != axisName:
-					print(f"Updating {gradeAxisTag} axis name: {gradeAxis.name} → {axisName}")
-					gradeAxis.name = axisName
+			gradeAxis = self.updateGradeAxis(thisFont)
 
 			# avoid ‘Master is outside of the interpolation space’ error:
 			updateBraceLayers(thisFont)
 			print()
 
-			gradeAxisID = axisIdForTag(thisFont, gradeAxisTag)
+			gradeAxisID = axisIdForTag(thisFont, gradeAxis.axisTag)
 
 			# query more user choices:
 			searchFor = self.pref("searchFor")
@@ -686,6 +753,7 @@ class BatchGrader(mekkaObject):
 			metricsKeyChoice = self.pref("metricsKeyChoice")
 			keepCenteredGlyphsCentered = self.pref("keepCenteredGlyphsCentered")
 			keepCenteredThreshold = self.prefInt("keepCenteredThreshold")
+			grade = self.prefInt("grade")
 
 			# parse code and step through masters:
 			gradeCount = 0
@@ -694,62 +762,13 @@ class BatchGrader(mekkaObject):
 				self.processCodeLine(codeLine, thisFont, grade, gradeAxisID, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, metricsKeyChoice, gradeCount)
 
 			# add missing axis locations if base master has axis locations:
-			if Glyphs.versionNumber < 4:
-				print("📐 Updating Axis Locations in masters...")
-				for thisMaster in thisFont.masters:
-					axLoc = thisMaster.customParameters["Axis Location"]
-					if axLoc and len(axLoc) < len(thisFont.axes):
-						axLoc.append(
-							{
-								"Axis": self.pref("axisName"),
-								"Location": thisMaster.axisValueValueForId_(gradeAxis.id),
-							}
-						)
-						thisMaster.customParameters["Axis Location"] = axLoc
+			self.addMissingAxisLocations(thisFont, gradeAxis)
 
-				print("📐 Updating Axis Locations in instances...")
-				for thisInstance in thisFont.instances:
-					axLoc = thisInstance.customParameters["Axis Location"]
-					if axLoc and len(axLoc) < len(thisFont.axes):
-						axLoc = list(axLoc)
-						axLoc.append(
-							{
-								"Axis": self.pref("axisName"),
-								"Location": thisInstance.axisValueValueForId_(gradeAxis.id),
-							}
-						)
-						thisInstance.customParameters["Axis Location"] = axLoc
-					# Glyphs 4:
-					# thisMaster.setExternAxisValueValue_forId_(thisMaster.axisValueValueForId_(gradeID), gradeID)
-					# thisMaster.externalAxesValues[gradeID] = thisMaster.internalAxesValues[gradeID]
-
-				# update Axis Locations in Virtual Masters if there are any:
-				for parameter in thisFont.customParameters:
-					if parameter.name == "Virtual Master":
-						print("Updating Virtual Master...")
-						axLoc = parameter.value
-						if len(axLoc) < len(thisFont.axes):
-							axLoc.append(
-								{
-									"Axis": self.pref("axisName"),
-									"Location": 0,
-								}
-							)
-						parameter.value = axLoc
-
-			if self.pref("addGradedBraceLayers"):
-				print("\nGrading brace layers...")
-				updateBraceLayers(thisFont, defaultValue=0, newAxisTag=gradeAxisTag, newAxisValue=grade)
-				glyphsWithBraceLayers = []
-				for glyph in thisFont.glyphs:
-					for layer in glyph.layers:
-						if layer.isSpecialLayer and layer.attributes and "coordinates" in layer.attributes.keys():
-							glyphsWithBraceLayers.append(glyph.name)
-							break
-				thisFont.newTab("/" + "/".join(glyphsWithBraceLayers))
+			self.addGradedBraceLayers(thisFont, gradeAxis, grade)
 
 			if self.pref("temporarilySwitchToDefaultInterpolation"):
 				thisFont.setFontType_(originalFontType)  # return to original font type
+
 			if originalFontType != 0:
 				print("⚠️ Font Info > Other > Font Type is not ‘Default’.")
 
