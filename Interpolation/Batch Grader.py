@@ -416,56 +416,47 @@ class BatchGrader(mekkaObject):
 			[f"{a.axisTag}={master.axes[i]}" for i, a in enumerate(font.axes)]
 		)
 
-	def reducedInterpolation(self, originalFont, interpolationDict, axes):
-		# build empty dummy font:
-		font = GSFont()
-		font.masters = []  # remove default master
-		font.axes = copy(originalFont.axes)
+	def subsettedFontKeepAxes(self, font, axesValues, relevantAxes=("opsz", "wght", "wdth")):
+		skipAxisIndexs = []
+		axisIndex = 0
+		for axis in font.axes:
+			if axis.axisTag not in relevantAxes:
+				skipAxisIndexs.append(axisIndex)
+			axisIndex += 1
+		return self.subsettedFontSkipAxis(font, axesValues, skipAxisIndexs)
 
-		# add only the masters we need:
-		for i in range(len(originalFont.masters)):
-			if originalFont.masters[i].id in interpolationDict.keys():
-				addMaster = copy(originalFont.masters[i])
-				addMaster.font = font
-				font.masters.append(addMaster)
-
-		# dummy instance for recalculating the coeffs:
-		instance = GSInstance()
-		instance.font = font
-		instance.axes = axes
-		return instance.instanceInterpolations
-
-	def cleanInterpolationDict(self, instance):
-		font = instance.font
-		print(f"🙈 Cleaning interpolation dict for: {self.masterAxesString(instance)}")
-
-		interpolationDict = instance.instanceInterpolations
-		# dictReport = [f"{instance.instanceInterpolations[k]*100:8.2f}%: {font.masters[k].name}" for k in interpolationDict.keys()]
-
-		newInterpolationDict = {}
-		total = 0.0
-		for k in interpolationDict.keys():
-			m = font.masters[k]
-			if not m or self.shouldExcludeMaster(m):
-				continue
-			newInterpolationDict[k] = interpolationDict[k]
-			total += newInterpolationDict[k]
-		if not newInterpolationDict:
-			print("⚠️ Exclusion rules would make interpolation impossible. Leaving as is.")
-		else:
-			if total != 1.0:
-				factor = 1.0 / total
-				for k in newInterpolationDict.keys():
-					newInterpolationDict[k] *= factor
-			instance.manualInterpolation = True
-			instance.instanceInterpolations = newInterpolationDict
-
-		# circumvent buggy coeff calculation (with many axes) with reduced interpolation:
-		reducedDict = self.reducedInterpolation(font, instance.instanceInterpolations, instance.axes)
-		if instance.instanceInterpolations != reducedDict:
-			reducedInstanceInterpolations = self.reducedInterpolation(font, instance.instanceInterpolations, instance.axes)
-			instance.manualInterpolation = True
-			instance.instanceInterpolations = reducedInstanceInterpolations
+	def subsettedFontSkipAxis(self, font, axesValues, skipAxisIndexs):
+		font = font.copy()
+		masters = []
+		neededMasterIds = set()
+		for master in font.masters:
+			masterAxes = master.axes
+			needsMaster = True
+			for skipAxisIndex in skipAxisIndexs:
+				instanceAxisValue = axesValues[skipAxisIndex]
+				masterAxisValue = masterAxes[skipAxisIndex]
+				if instanceAxisValue != masterAxisValue:
+					needsMaster = False
+					break
+			if needsMaster:
+				masters.append(master)
+				neededMasterIds.add(master.id)
+		for glyph in font.glyphs:
+			for layer in list(glyph.layers.values()):
+				if layer.associatedMasterId not in neededMasterIds:
+					glyph.removeLayerForId_(layer.layerId)
+					continue
+				if not layer.isBraceLayer:
+					continue
+				layerAxes = layer.axesValues
+				for skipAxisIndex in skipAxisIndexs:
+					instanceAxisValue = axesValues[skipAxisIndex]
+					layerAxisValue = layerAxes[skipAxisIndex]
+					if instanceAxisValue != layerAxisValue:
+						glyph.removeLayerForId_(layer.layerId)
+						break
+		font.masters = masters
+		return font
 
 	def updateGradeAxis(self, thisFont):
 		# add or update Grade axis if necessary:
@@ -587,7 +578,7 @@ class BatchGrader(mekkaObject):
 			thisFont.masters.append(gradeMaster)
 		return gradeMaster
 
-	def processCodeLine(self, codeLine, thisFont, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount):
+	def processCodeLine(self, codeLine, thisFont, fontWithoutGrades, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount):
 		if "#" in codeLine:
 			codeLine = codeLine[: codeLine.find("#")]
 		codeLine = codeLine.strip()
@@ -612,6 +603,7 @@ class BatchGrader(mekkaObject):
 
 		gradeCount += 1
 		print(f"{gradeCount}. {codeLine}")
+		axesWithInfluence = []
 		for axisCode in axisCodes:
 			if "+=" in axisCode:
 				axisTag, value = axisCode.split("+=")
@@ -622,6 +614,7 @@ class BatchGrader(mekkaObject):
 			else:
 				axisTag, value = axisCode.split("=")
 				valueFactor = 0
+			axesWithInfluence.append(axisTag.strip())
 			axisIdx = axisIndexForTag(thisFont, tag=axisTag.strip())
 			value = int(value.strip())
 
@@ -630,12 +623,12 @@ class BatchGrader(mekkaObject):
 			else:
 				weightedAxes[axisIdx] = (weightedAxes[axisIdx] + value * valueFactor)
 
+		subsettedFont = self.subsettedFontKeepAxes(fontWithoutGrades, weightedAxes, relevantAxes=axesWithInfluence)
 		# weighted instance/font: the shapes
 		weightedInstance = GSInstance()
-		weightedInstance.font = thisFont
+		weightedInstance.font = subsettedFont
 		weightedInstance.name = "###DELETEME###"
 		weightedInstance.axes = weightedAxes
-		self.cleanInterpolationDict(weightedInstance)
 		print(f"🛠️ Interpolating grade: {self.masterAxesString(weightedInstance)}")
 		weightedFont = weightedInstance.interpolatedFont
 
@@ -721,8 +714,19 @@ class BatchGrader(mekkaObject):
 			# parse code and step through masters:
 			gradeCount = 0
 			graderCode = self.pref("graderCode").strip()
+
+			skipAxisIndexs = []
+			weightedAxes = []
+			axisIndex = 0
+
+			for axis in thisFont.axes:
+				if axis.axisTag == "GRAD":
+					skipAxisIndexs.append(axisIndex)
+				axisIndex += 1
+				weightedAxes.append(0)
+			fontWithoutGrades = self.subsettedFontSkipAxis(thisFont, weightedAxes, skipAxisIndexs)
 			for codeLine in graderCode.splitlines():
-				self.processCodeLine(codeLine, thisFont, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount)
+				self.processCodeLine(codeLine, thisFont, fontWithoutGrades, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount)
 
 			# add missing axis locations if base master has axis locations:
 			self.addMissingAxisLocations(thisFont, gradeAxis)
