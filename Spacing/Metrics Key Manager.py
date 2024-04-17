@@ -104,7 +104,7 @@ class MetricsKeyManager(mekkaObject):
 		editFont = getLegibleFont()
 
 		for editField in (self.w.LeftMetricsKeys, self.w.RightMetricsKeys, self.w.WidthMetricsKeys):
-			editField.getNSTextView().setToolTip_("Enter a metrics key like '=H', followed by a colon (:), followed by glyph names, spearated by space, comma, or any other separator that cannot be part of a glyph name. (Glyph names can contain A-Z, a-z, 0-9, period, underscore and hyphen.)\nExample: ‘=H: B D E F’.")
+			editField.getNSTextView().setToolTip_("Enter a metrics key like '=H', followed by a colon (:), followed by glyph names, separated by space, comma, or any other separator that cannot be part of a glyph name. (Glyph names can contain A-Z, a-z, 0-9, period, underscore and hyphen.)\nExample: ‘=H: B D E F’.")
 			editField.getNSTextView().setFont_(editFont)
 			editField.getNSScrollView().setHasVerticalScroller_(1)
 			editField.getNSScrollView().setRulersVisible_(1)
