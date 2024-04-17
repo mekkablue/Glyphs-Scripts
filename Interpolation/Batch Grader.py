@@ -501,17 +501,11 @@ class BatchGrader(mekkaObject):
 
 		# bring the interpolated shapes back into the open font:
 		gradeLayer = baseGlyph.layers[gradeMaster.id]
-		gradeLayer.width = weightedLayer.width
-		gradeLayer.shapes = copy(weightedLayer.shapes)
-		gradeLayer.anchors = copy(weightedLayer.anchors)
-		gradeLayer.hints = copy(weightedLayer.hints)
-
-		# reinstate automatic alignment if necessary:
-		if baseLayer.isAligned and not gradeLayer.isAligned:
-			for index, gradeComponent in enumerate(gradeLayer.components):
-				baseComponent = baseLayer.components[index]
-				gradeComponent.alignment = baseComponent.alignment
-
+		gradeLayerCopy = weightedLayer.copy()
+		gradeLayer.width = baseWidth
+		gradeLayer.shapes = gradeLayerCopy.shapes
+		gradeLayer.anchors = gradeLayerCopy.anchors
+		gradeLayer.hints = gradeLayerCopy.hints
 		gradeLayer.roundCoordinates()
 		gradeLayer.leftMetricsKey = None
 		gradeLayer.rightMetricsKey = None
