@@ -7,6 +7,8 @@ Batch-add graded masters to a multiple-master setup.
 """
 
 import vanilla
+import time
+import datetime
 from copy import copy
 from Foundation import NSPoint
 from AppKit import NSFont
@@ -484,7 +486,7 @@ class BatchGrader(mekkaObject):
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
-
+			start = time.time()
 			# update settings to the latest user input:
 			self.SavePreferences()
 
@@ -752,7 +754,8 @@ class BatchGrader(mekkaObject):
 
 			thisFont.didChangeValueForKey_("fontMasters")
 			self.w.close()  # delete if you want window to stay open
-			print("\n✅ Done.")
+			timeStr = str(datetime.timedelta(seconds=round(time.time() - start)))
+			print(f"\n✅ Done in {timeStr} s.\n")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
