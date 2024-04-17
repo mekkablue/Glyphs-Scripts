@@ -7,9 +7,8 @@ Takes the master layer of suffixed glyphs (e.g., x.shadow, x.body, x.front) and 
 
 import vanilla
 from copy import copy as copy
-from AppKit import NSFont
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, getLegibleFont
 
 
 class MergeSuffixedGlyphsIntoColorLayers(mekkaObject):
@@ -46,10 +45,8 @@ class MergeSuffixedGlyphsIntoColorLayers(mekkaObject):
 		self.w.indexToSuffix.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.indexToSuffix.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.indexToSuffix.getNSScrollView().setRulersVisible_(0)
-		try:
-			legibleFont = NSFont.legibleFontOfSize_(NSFont.systemFontSize())
-		except:
-			legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())  # Glyphs 3.1 compatibilty
+
+		legibleFont = getLegibleFont()
 
 		textView = self.w.indexToSuffix.getNSTextView()
 		textView.setFont_(legibleFont)

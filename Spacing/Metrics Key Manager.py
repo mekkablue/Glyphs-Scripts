@@ -6,9 +6,9 @@ Batch apply metrics keys to the current font.
 """
 
 import vanilla
-from AppKit import NSFont, NSAlert, NSAlertStyleWarning, NSAlertFirstButtonReturn
+from AppKit import NSAlert, NSAlertStyleWarning, NSAlertFirstButtonReturn
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, getLegibleFont
 
 LeftKeys = """
 =H: B D E F I K L N P R Thorn Germandbls M
@@ -101,10 +101,7 @@ class MetricsKeyManager(mekkaObject):
 		self.w.WidthMetricsKeysText = vanilla.TextBox((inset, linePos + 2, 70, 14), "Width Keys:", sizeStyle='small', selectable=True)
 		self.w.WidthMetricsKeys = vanilla.TextEditor((inset + 70, linePos, -inset, boxHeight), "", callback=self.SavePreferences)  # , sizeStyle='small')
 
-		try:
-			editFont = NSFont.legibleFontOfSize_(NSFont.systemFontSize())
-		except:
-			editFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())  # Glyphs 3.1 compatibilty
+		editFont = getLegibleFont()
 
 		for editField in (self.w.LeftMetricsKeys, self.w.RightMetricsKeys, self.w.WidthMetricsKeys):
 			editField.getNSTextView().setToolTip_("Enter a metrics key like '=H', followed by a colon (:), followed by glyph names, spearated by space, comma, or any other separator that cannot be part of a glyph name. (Glyph names can contain A-Z, a-z, 0-9, period, underscore and hyphen.)\nExample: ‘=H: B D E F’.")

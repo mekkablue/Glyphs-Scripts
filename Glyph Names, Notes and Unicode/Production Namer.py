@@ -6,9 +6,8 @@ Override default production names. Default are the usual subjects which create p
 """
 
 import vanilla
-from AppKit import NSFont
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, getLegibleFont
 
 
 defaultString = """
@@ -59,10 +58,7 @@ class ProductionNamer(mekkaObject):
 		self.w.recipe.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.recipe.getNSScrollView().setRulersVisible_(0)
 
-		try:
-			legibleFont = NSFont.legibleFontOfSize_(NSFont.systemFontSize())
-		except:
-			legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())  # Glyphs 3.1 compatibilty
+		legibleFont = getLegibleFont()
 
 		textView = self.w.recipe.getNSTextView()
 		textView.setFont_(legibleFont)

@@ -7,9 +7,8 @@ Converts old expert 8-bit encodings into Glyphs nice names.
 
 import vanilla
 import codecs
-from AppKit import NSFont
 from GlyphsApp import Glyphs, GSGlyph, GSComponent, Message, GetSaveFile, GetOpenFile
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, getLegibleFont
 
 AXtDefault = """
 Syntax:
@@ -395,10 +394,7 @@ class EncodingConverter(mekkaObject):
 		self.w.recipe.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.recipe.getNSScrollView().setRulersVisible_(0)
 
-		try:
-			legibleFont = NSFont.legibleFontOfSize_(NSFont.systemFontSize())
-		except:
-			legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())  # Glyphs 3.1 compatibilty
+		legibleFont = getLegibleFont()
 
 		textView = self.w.recipe.getNSTextView()
 		textView.setFont_(legibleFont)

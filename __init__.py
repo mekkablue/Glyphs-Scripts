@@ -106,6 +106,16 @@ def reportTimeInNaturalLanguage(seconds):
 	return timereport
 
 
+def getLegibleFont(size=None):
+	if size is None:
+		size = NSFont.systemFontSize()
+	try:
+		legibleFont = NSFont.legibleFontOfSize_(size)
+	except:
+		legibleFont = NSFont.legibileFontOfSize_(size)  # Glyphs 3.1 compatibilty
+	return legibleFont
+
+
 class mekkaObject:
 	prefDict = None
 	w = None

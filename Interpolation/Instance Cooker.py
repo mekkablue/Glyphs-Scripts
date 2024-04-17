@@ -7,9 +7,9 @@ Insert many instances at once with a recipe.
 
 import vanilla
 import codecs
-from AppKit import NSFont, NSDictionary
+from AppKit import NSDictionary
 from GlyphsApp import Glyphs, GSAxis, GSInstance, INSTANCETYPEVARIABLE, GetSaveFile, GetOpenFile, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, getLegibleFont
 
 defaultRecipe = """
 Recipe instructions:
@@ -245,10 +245,7 @@ class InstanceCooker(mekkaObject):
 		self.w.recipe.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.recipe.getNSScrollView().setRulersVisible_(0)
 
-		try:
-			legibleFont = NSFont.legibleFontOfSize_(NSFont.systemFontSize())
-		except:
-			legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())  # Glyphs 3.1 compatibilty
+		legibleFont = getLegibleFont()
 
 		textView = self.w.recipe.getNSTextView()
 		textView.setFont_(legibleFont)

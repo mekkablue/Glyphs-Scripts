@@ -7,11 +7,10 @@ Extracts, resets and inserts an ‘avar’ axis mapping for the Axis Mappings pa
 
 import vanilla
 from axisMethods import extremeMasterValuesNative, coefficient, valueForCoefficient, masterValueForAxisTag, extremeStyleValuesNative, styleValueForAxisTag
-from AppKit import NSFont
 from Foundation import NSMutableDictionary
 from collections import OrderedDict
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, getLegibleFont
 
 fallbackText = """
 Only lines containing a dash "-" followed by a greater sign ">" are interpreted
@@ -162,10 +161,7 @@ class AxisMapper(mekkaObject):
 
 		self.w.mappingRecipe = vanilla.TextEditor((0, linePos, -0, -20 - inset * 2), text=fallbackText.strip(), callback=self.SavePreferences, checksSpelling=False)
 
-		try:
-			legibleFont = NSFont.legibleFontOfSize_(NSFont.systemFontSize())
-		except:
-			legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())  # Glyphs 3.1 compatibilty
+		legibleFont = getLegibleFont()
 
 		textView = self.w.mappingRecipe.getNSTextView()
 		textView.setFont_(legibleFont)

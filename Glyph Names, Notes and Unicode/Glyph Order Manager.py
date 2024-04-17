@@ -7,9 +7,8 @@ UI for managing glyphOrder parameters.
 
 import vanilla
 import codecs
-from AppKit import NSFont
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, getLegibleFont
 
 
 def saveFileInLocation(content="", filePath="~/Desktop/test.txt"):
@@ -60,10 +59,7 @@ class GlyphOrderManager(mekkaObject):
 		self.w.glyphOrderText.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.glyphOrderText.getNSScrollView().setRulersVisible_(0)
 
-		try:
-			legibleFont = NSFont.legibleFontOfSize_(NSFont.systemFontSize())
-		except:
-			legibleFont = NSFont.legibileFontOfSize_(NSFont.systemFontSize())  # Glyphs 3.1 compatibilty
+		legibleFont = getLegibleFont()
 
 		textView = self.w.glyphOrderText.getNSTextView()
 		textView.setFont_(legibleFont)
