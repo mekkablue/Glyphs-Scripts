@@ -479,8 +479,20 @@ class BatchGrader(mekkaObject):
 		gradeLayer.anchors = gradeLayerCopy.anchors
 		gradeLayer.hints = gradeLayerCopy.hints
 		gradeLayer.roundCoordinates()
-		gradeLayer.leftMetricsKey = None
-		gradeLayer.rightMetricsKey = None
+
+		# cancel out glyph metrics keys:
+		if baseGlyph.leftMetricsKey:
+			gradeLayer.leftMetricsKey = f"=={baseGlyph.name}"
+		else:
+			gradeLayer.leftMetricsKey = None
+		if baseGlyph.rightMetricsKey:
+			gradeLayer.rightMetricsKey = f"=={baseGlyph.name}"
+		else:
+			gradeLayer.rightMetricsKey = None
+		if baseGlyph.widthMetricsKey:
+			gradeLayer.widthMetricsKey = f"=={baseGlyph.name}"
+		else:
+			gradeLayer.widthMetricsKey = None
 
 	def addMissingAxisLocations(self, thisFont, gradeAxis):
 		if Glyphs.versionNumber >= 4:
