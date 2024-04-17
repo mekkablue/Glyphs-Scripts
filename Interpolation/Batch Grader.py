@@ -153,6 +153,8 @@ def straightenBCPs(layer):
 		# dot product of AB and AP
 		dotProduct = AB.x * AP.x + AB.y * AP.y
 		ABsquared = AB.x**2 + AB.y**2
+		if ABsquared < 0.0001:
+			return NSPoint(1000000, 0)
 		t = dotProduct / ABsquared
 		x = A.x + t * AB.x
 		y = A.y + t * AB.y
@@ -180,12 +182,12 @@ def straightenBCPs(layer):
 						center = n
 						opposite = handle
 						smoothen = nn if nn != handle else pn
-						p.setSmooth_withCenterNode_oppositeNode_(
-							smoothen, center, opposite
-						)
+						p.setSmooth_withCenterNode_oppositeNode_(smoothen, center, opposite)
 						break
 				if smoothen == center == opposite is None:
-					n.position = closestPointOnLine(n.position, nn, pn)
+					newPos = closestPointOnLine(n.position, nn, pn)
+					if newPos.x < 1000000:
+						n.position = newPos
 
 			# elif n.type != GSOFFCURVE and (nn.type, pn.type).count(GSOFFCURVE) == 1:
 			# 	# only one of the surrounding points is a BCP
@@ -687,7 +689,7 @@ class BatchGrader(mekkaObject):
 			# query more user choices:
 			searchFor = self.pref("searchFor")
 			replaceWith = self.pref("replaceWith")
-			keepCenteredGlyphsCentered = self.pref("keepCenteredGlyphsCentered")
+			keepCenteredGlyphsCentered = self.prefBool("keepCenteredGlyphsCentered")
 			keepCenteredThreshold = self.prefInt("keepCenteredThreshold")
 			grade = self.prefInt("grade")
 
@@ -695,16 +697,16 @@ class BatchGrader(mekkaObject):
 			gradeCount = 0
 			graderCode = self.pref("graderCode").strip()
 
-			skipAxisIndexs = []
+			skipAxisIndexes = []
 			weightedAxes = []
 			axisIndex = 0
 
 			for axis in thisFont.axes:
 				if axis.axisTag == "GRAD":
-					skipAxisIndexs.append(axisIndex)
+					skipAxisIndexes.append(axisIndex)
 				axisIndex += 1
 				weightedAxes.append(0)
-			fontWithoutGrades = self.subsettedFontSkipAxis(thisFont, weightedAxes, skipAxisIndexs)
+			fontWithoutGrades = self.subsettedFontSkipAxis(thisFont, weightedAxes, skipAxisIndexes)
 			for codeLine in graderCode.splitlines():
 				self.processCodeLine(codeLine, thisFont, fontWithoutGrades, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount)
 
