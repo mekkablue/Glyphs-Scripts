@@ -10,7 +10,7 @@ import vanilla
 import time
 import datetime
 from copy import copy
-from Foundation import NSPoint
+from Foundation import NSPoint, NSAutoreleasePool
 from AppKit import NSFont
 from GlyphsApp import Glyphs, GSFont, GSLayer, GSAxis, GSInstance, GSCustomParameter, GSSMOOTH, GSOFFCURVE, Message
 from mekkablue import mekkaObject
@@ -579,6 +579,8 @@ class BatchGrader(mekkaObject):
 		return gradeMaster
 
 	def processCodeLine(self, codeLine, thisFont, fontWithoutGrades, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, gradeCount):
+
+		pool = NSAutoreleasePool.alloc().init()
 		if "#" in codeLine:
 			codeLine = codeLine[: codeLine.find("#")]
 		codeLine = codeLine.strip()
