@@ -422,6 +422,7 @@ class BatchGrader(mekkaObject):
 				masters.append(master)
 				neededMasterIds.add(master.id)
 		for glyph in font.glyphs:
+			glyph.setUndoManager_(None)
 			for layer in list(glyph.layers.values()):
 				if layer.associatedMasterId not in neededMasterIds:
 					glyph.removeLayerForId_(layer.layerId)
