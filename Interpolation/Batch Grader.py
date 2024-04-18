@@ -444,6 +444,7 @@ class BatchGrader(mekkaObject):
 		for glyph in font.glyphs:
 			glyph.setUndoManager_(None)
 			for layer in list(glyph.layers.values()):
+				layer.background = None
 				if layer.associatedMasterId not in neededMasterIds:
 					glyph.removeLayerForId_(layer.layerId)
 					continue
@@ -753,6 +754,22 @@ class BatchGrader(mekkaObject):
 				axisIndex += 1
 				weightedAxes.append(0)
 			fontWithoutGrades = self.subsettedFontSkipAxis(thisFont, weightedAxes, skipAxisIndexes)
+
+			fontWithoutGrades.kerning = None
+
+			needGlyphs = None
+			if onlyGlyphName and len(fontWithoutGrades.glyphs) > 100:
+				needGlyph = fontWithoutGrades.glyphs[onlyGlyphName]
+				layer = needGlyph.layers[fontWithoutGrades.masters[0].id]
+				needGlyphs = set()
+				componentNames = layer.componentNamesTraverseComponents_(True)
+				if componentNames:
+					needGlyphs.update(componentNames)
+				needGlyphs.add(onlyGlyphName)
+				for glyph in list(fontWithoutGrades.glyphs):
+					if glyph.name not in needGlyphs:
+						fontWithoutGrades.removeGlyph_(glyph)
+
 			for codeLine in graderCode.splitlines():
 				self.processCodeLine(codeLine, thisFont, fontWithoutGrades, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, onlyGlyphName, gradeCount)
 
