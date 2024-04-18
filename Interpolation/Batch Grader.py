@@ -303,7 +303,7 @@ class BatchGrader(mekkaObject):
 		self.w.keepCenteredThreshold = vanilla.EditText((inset + 305, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle="small")
 		self.w.keepCenteredThreshold.getNSTextField().setToolTip_(tooltipText)
 		linePos += lineHeight
-		
+
 		tooltipText = "Only apply to the current Glyph"
 		self.w.onlyCurrentGlyph = vanilla.CheckBox((inset, linePos, -inset, 20), "Only apply to the current Glyph", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.onlyCurrentGlyph.getNSButton().setToolTip_(tooltipText)
@@ -528,12 +528,10 @@ class BatchGrader(mekkaObject):
 		for thisMaster in thisFont.masters:
 			axLoc = thisMaster.customParameters["Axis Location"]
 			if axLoc and len(axLoc) < len(thisFont.axes):
-				axLoc.append(
-					{
-						"Axis": self.pref("axisName"),
-						"Location": thisMaster.axisValueValueForId_(gradeAxis.id),
-					}
-				)
+				axLoc.append({
+					"Axis": self.pref("axisName"),
+					"Location": thisMaster.axisValueValueForId_(gradeAxis.id),
+				})
 				thisMaster.customParameters["Axis Location"] = axLoc
 
 		print("📐 Updating Axis Locations in instances...")
@@ -541,12 +539,10 @@ class BatchGrader(mekkaObject):
 			axLoc = thisInstance.customParameters["Axis Location"]
 			if axLoc and len(axLoc) < len(thisFont.axes):
 				axLoc = list(axLoc)
-				axLoc.append(
-					{
-						"Axis": self.pref("axisName"),
-						"Location": thisInstance.axisValueValueForId_(gradeAxis.id),
-					}
-				)
+				axLoc.append({
+					"Axis": self.pref("axisName"),
+					"Location": thisInstance.axisValueValueForId_(gradeAxis.id),
+				})
 				thisInstance.customParameters["Axis Location"] = axLoc
 			# Glyphs 4:
 			# thisMaster.setExternAxisValueValue_forId_(thisMaster.axisValueValueForId_(gradeID), gradeID)
@@ -558,12 +554,10 @@ class BatchGrader(mekkaObject):
 				print("Updating Virtual Master...")
 				axLoc = parameter.value
 				if len(axLoc) < len(thisFont.axes):
-					axLoc.append(
-						{
-							"Axis": self.pref("axisName"),
-							"Location": 0,
-						}
-					)
+					axLoc.append({
+						"Axis": self.pref("axisName"),
+						"Location": 0,
+					})
 				parameter.value = axLoc
 
 	def gradeMaster(self, thisFont, master, grade, gradeAxisIdx, searchFor, replaceWith):
@@ -744,7 +738,7 @@ class BatchGrader(mekkaObject):
 				print("__layer", layer)
 				if layer:
 					onlyGlyphName = layer.parent.name
-			
+
 			# parse code and step through masters:
 			gradeCount = 0
 			graderCode = self.pref("graderCode").strip()
