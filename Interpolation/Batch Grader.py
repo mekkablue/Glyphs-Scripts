@@ -411,6 +411,20 @@ class BatchGrader(mekkaObject):
 			axisIndex += 1
 		return self.subsettedFontSkipAxis(font, axesValues, skipAxisIndexs)
 
+	# compatibilty with Glyphs 3
+	def axesValuesArrayFontAxes(self, layer, font):
+		valuesArray = []
+
+		coordinates = layer.attributes["coordinates"]
+		if coordinates is None:
+			return None
+		master = font.fontMasterForId_(layer.associatedMasterId)
+
+		for axis in font.axes:
+			value = coordinates.get(axis.axisId)
+			valuesArray.append(value if value else master.internalAxesValues[axis.axisId])
+		return valuesArray
+
 	def subsettedFontSkipAxis(self, font, axesValues, skipAxisIndexs):
 		font = font.copy()
 		masters = []
@@ -433,9 +447,15 @@ class BatchGrader(mekkaObject):
 				if layer.associatedMasterId not in neededMasterIds:
 					glyph.removeLayerForId_(layer.layerId)
 					continue
-				if not layer.isBraceLayer:
-					continue
-				layerAxes = layer.axesValues
+
+				if Glyphs.versionNumber >= 4:
+					if not layer.isBraceLayer:
+						continue
+					layerAxes = layer.axesValues
+				else:
+					layerAxes = self.axesValuesArrayFontAxes(layer, font)
+					if layerAxes is None:
+						continue
 				for skipAxisIndex in skipAxisIndexs:
 					instanceAxisValue = axesValues[skipAxisIndex]
 					layerAxisValue = layerAxes[skipAxisIndex]
