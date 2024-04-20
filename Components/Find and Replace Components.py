@@ -57,9 +57,9 @@ class ComponentReplacer(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 400
-		windowHeight = 80
-		windowWidthResize = 200  # user can resize width by this value
+		windowWidth = 370
+		windowHeight = 148
+		windowWidthResize = 250  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
@@ -70,29 +70,33 @@ class ComponentReplacer(mekkaObject):
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 10, 15, 22
-
-		self.w.textReplace = vanilla.TextBox((inset, linePos + 2, inset + 50, 14), "Replace", sizeStyle='small')
-		self.w.oldCompName = vanilla.ComboBox((inset + 50, linePos - 1, 100, 17), self.GetComponentNames(), sizeStyle='small')
+		linePos, inset, lineHeight = 12, 20, 28
+		posX = inset
+		self.w.textReplace = vanilla.TextBox((posX, linePos + 2, 55, 17), "Replace", alignment="right")
+		posX += 58
+		self.w.oldCompName = vanilla.ComboBox((posX, linePos - 1, -inset - 26, 24), self.GetComponentNames())
 		self.w.oldCompName.getNSComboBox().setToolTip_("The name of the component you want to replace. If it is not shown here, make a glyph selection and press the ↺ Update button. This will populate the menu with the names of all components in selected glyphs.")
-		self.w.resetComponentName = vanilla.SquareButton((inset + 50 + 100 + 5, linePos, 20, 18), "↺", sizeStyle='small', callback=self.SetComponentNames)
 
-		self.w.textBy = vanilla.TextBox((inset + 50 + 100 + 35, linePos + 2, 20, 14), "by", sizeStyle='small')
-		# self.w.newCompName = vanilla.EditText((65+100+35+25, linePos, -inset-95, 19), "", sizeStyle='small', callback=self.SavePreferences)
-		self.w.newCompName = vanilla.ComboBox((65 + 100 + 35 + 25, linePos - 1, -inset - 95, 19), self.getAllGlyphNamesOfFrontmostFont(), sizeStyle='small', callback=self.SavePreferences)
+		self.w.resetComponentName = vanilla.SquareButton((-inset - 20, linePos + 2, -inset, 19), "↺", callback=self.SetComponentNames)
+		posX = inset
+		linePos += lineHeight
+		self.w.textBy = vanilla.TextBox((posX, linePos + 2, 55, 17), "by", alignment="right")
+		# self.w.newCompName = vanilla.EditText((65+100+35+25, linePos, -inset-95, 19), "", callback=self.SavePreferences)
+		posX += 58
+		self.w.newCompName = vanilla.ComboBox((posX, linePos - 1, -inset - 26, 24), self.getAllGlyphNamesOfFrontmostFont(), callback=self.SavePreferences)
 		self.w.newCompName.getNSComboBox().setToolTip_("The name of the component you want to insert instead of the component chosen in the menu.")
-		self.w.resetNewCompName = vanilla.SquareButton((-inset - 90, linePos, -inset - 70, 18), "↺", sizeStyle='small', callback=self.resetNewCompName)
-
-		self.w.replaceButton = vanilla.Button((-inset - 60, linePos + 1, -inset, 17), "Replace", sizeStyle='small', callback=self.FindAndReplaceMain)
-		self.w.setDefaultButton(self.w.replaceButton)
+		self.w.resetNewCompName = vanilla.SquareButton((-inset - 20, linePos + 2, -inset, 19), "↺", callback=self.resetNewCompName)
 
 		linePos += lineHeight
 
-		self.w.includeAllLayers = vanilla.CheckBox((inset, linePos, 120, 18), "Include all layers", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeAllLayers = vanilla.CheckBox((inset, linePos, 120, 18), "Include all layers", value=True, callback=self.SavePreferences)
 		self.w.includeAllLayers.getNSButton().setToolTip_("If checked, will not only treat visible selected layers, but ALL (master, special and backup) layers of all selected glyphs.")
-		self.w.includeBackgrounds = vanilla.CheckBox((inset + 120, linePos, -inset, 20), "Include backgrounds", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeBackgrounds = vanilla.CheckBox((inset + 128, linePos, -inset, 20), "Include backgrounds", value=False, callback=self.SavePreferences)
 		self.w.includeBackgrounds.getNSButton().setToolTip_("If checked, will also go through backgrounds of all treated layers.")
 		linePos += lineHeight
+		posX = inset
+		self.w.replaceButton = vanilla.Button((posX, linePos + 1, -inset, 17), "Replace", callback=self.FindAndReplaceMain)
+		self.w.setDefaultButton(self.w.replaceButton)
 
 		self.LoadPreferences()
 
