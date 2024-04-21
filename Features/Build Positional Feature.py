@@ -317,7 +317,7 @@ class BuildPositionalFeature(mekkaObject):
 				# BUILD FEATURE WITH COLLECTED CODE
 
 				separateFeatureEntry = self.prefBool("separateFeatureEntry")
-				positionalFeatureCode = f"\n{positionalFeatureCode.strip()\n"
+				positionalFeatureCode = f"\n{positionalFeatureCode.strip()}\n"
 				print(
 					"\n\t%s" % createOTFeature(
 						featureName=positionalFeature,
