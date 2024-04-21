@@ -110,7 +110,7 @@ class SetHiddenAppPreferences(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
-	def updateUI(self, sender):
+	def updateUI(self, sender=None):
 		value = Glyphs.defaults[self.w.pref.get()]
 		value = str(value)
 		value = value.replace("\n", "")
