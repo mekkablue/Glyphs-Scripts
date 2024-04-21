@@ -6,13 +6,13 @@ Define an angle above which a node will be set to blue, below which it will be s
 """
 
 import vanilla
+import objc
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSControlLayer, GSOFFCURVE, GSSMOOTH, GSSHARP, Message
 from mekkablue import mekkaObject
 from mekkablue.geometry import angle
 
-if Glyphs.versionNumber >= 3:
-	from GlyphsApp import GlyphsPathPlugin
+GlyphsPathPlugin = objc.lookUpClass("GlyphsPathPlugin")
 
 
 class GreenBlueManager(mekkaObject):
@@ -32,7 +32,7 @@ class GreenBlueManager(mekkaObject):
 	}
 
 	def __init__(self):
-		self.Tool = GlyphsPathPlugin.alloc().init()
+		self.Tool = GlyphsPathPlugin.new()
 
 		# Window 'self.w':
 		windowWidth = 300
