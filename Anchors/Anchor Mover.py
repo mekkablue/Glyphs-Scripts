@@ -86,7 +86,7 @@ listVertical = (
 
 
 def italicSkew(x, y, angle=10.0):
-	"""Skews x/y along the x axis and returns skewed x value."""
+	"""Skews x/y along the x-axis and returns skewed x value."""
 	new_angle = (angle / 180.0) * math.pi
 	return x + y * math.tan(new_angle)
 

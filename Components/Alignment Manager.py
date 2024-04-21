@@ -171,7 +171,7 @@ class AutoAlignmentManager(mekkaObject):
 					if self.pref("includeAllGlyphs"):
 						layersToBeProcessed = [g.layers[currentMasterID] for g in thisFont.glyphs]
 					else:
-						# just the visible layer selection (may be non-master, non-special layer too):
+						# just the visible layer selection (maybe non-master, non-special layer too):
 						layersToBeProcessed = thisFont.selectedLayers
 
 					for thisLayer in layersToBeProcessed:
