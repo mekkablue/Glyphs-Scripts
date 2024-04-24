@@ -20,14 +20,15 @@ def replaceComponent(thisLayer, oldCompName, newCompName):
 					if thisLayer.components[i].componentName == oldCompName:
 						thisLayer.components[i].componentName = newCompName
 						count += 1
-				print(
-					"\t✅ Replaced %i component%s in %s, layer: %s" % (
-						count,
-						"" if count == 1 else "s",
-						thisGlyph.name,
-						thisLayer.name,
+				if count > 0:
+					print(
+						"\t✅ Replaced %i component%s in %s, layer: %s" % (
+							count,
+							"" if count == 1 else "s",
+							thisGlyph.name,
+							thisLayer.name,
+						)
 					)
-				)
 			else:
 				print(
 					"\t⚠️ Cannot insert %s into itself. Skipping %slayer: %s" % (
