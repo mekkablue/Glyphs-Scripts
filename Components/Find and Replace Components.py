@@ -246,7 +246,7 @@ class ComponentReplacer(mekkaObject):
 				"" if totalCount == 1 else "s",
 			)
 			# ... in Macro Window:
-			print("\nDone. {msg}.")
+			print(f"\nDone. {msg}.")
 			# ... in Floating Notification:
 			Glyphs.showNotification(
 				f"{thisFont.familyName}: components replaced",
