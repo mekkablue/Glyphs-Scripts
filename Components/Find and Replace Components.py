@@ -13,6 +13,7 @@ from mekkablue import mekkaObject
 def replaceComponent(thisLayer, oldCompName, newCompName):
 	try:
 		count = 0
+		msg = ""
 		thisGlyph = thisLayer.parent
 		if thisGlyph:
 			if thisGlyph.name != newCompName:
@@ -21,25 +22,21 @@ def replaceComponent(thisLayer, oldCompName, newCompName):
 						thisLayer.components[i].componentName = newCompName
 						count += 1
 				if count > 0:
-					print(
-						"\t✅ Replaced %i component%s in %s, layer: %s" % (
-							count,
-							"" if count == 1 else "s",
-							thisGlyph.name,
-							thisLayer.name,
-						)
-					)
-			else:
-				print(
-					"\t⚠️ Cannot insert %s into itself. Skipping %slayer: %s" % (
-						newCompName,
-						"background " if thisLayer.__class__().className() == "GSBackgroundLayer" else "",
+					msg = "\t✅ Replaced %i component%s in %s, layer: %s" % (
+						count,
+						"" if count == 1 else "s",
+						thisGlyph.name,
 						thisLayer.name,
 					)
+			else:
+				msg = "\t⚠️ Cannot insert %s into itself. Skipping %slayer: %s" % (
+					newCompName,
+					"background " if thisLayer.__class__().className() == "GSBackgroundLayer" else "",
+					thisLayer.name,
 				)
 		else:
-			print("\t⚠️ Cannot determine glyph for layer: %s" & thisLayer.name)
-		return count
+			msg = "\t⚠️ Cannot determine glyph for layer: %s" & thisLayer.name
+		return count, msg
 	except Exception as e:
 		print("\t❌ Failed to replace %s for %s in %s." % (oldCompName, newCompName, thisLayer.parent.name))
 		print(e)
@@ -203,19 +200,32 @@ class ComponentReplacer(mekkaObject):
 			thisFont.disableUpdateInterface()
 			try:
 				totalCount = 0
+				totalMsg = []
 				if includeAllLayers:
 					selectedGlyphs = [layer.parent for layer in selectedLayers]
 					for thisGlyph in selectedGlyphs:
-						print(f"Processing {thisGlyph.name}:")
+						totalMsg.append(f"Processing# {thisGlyph.name}:")
 						for thisLayer in thisGlyph.layers:
-							totalCount += replaceComponent(thisLayer, oldComponentName, newComponentName)
+							count, msg = replaceComponent(thisLayer, oldComponentName, newComponentName)
+							totalCount += count
+							if msg:
+								totalMsg.append(msg)
 						if includeBackgrounds:
-							totalCount += replaceComponent(thisLayer.background, oldComponentName, newComponentName)
+							count, msg = replaceComponent(thisLayer.background, oldComponentName, newComponentName)
+							totalCount += count
+							if msg:
+								totalMsg.append(msg)
 				else:
 					for thisLayer in selectedLayers:
-						totalCount += replaceComponent(thisLayer, oldComponentName, newComponentName)
+						count, msg = replaceComponent(thisLayer, oldComponentName, newComponentName)
+						totalCount += count
+						if msg:
+							totalMsg.append(msg)
 					if includeBackgrounds:
-						totalCount += replaceComponent(thisLayer.background, oldComponentName, newComponentName)
+						count, msg = replaceComponent(thisLayer.background, oldComponentName, newComponentName)
+						totalCount += count
+						if msg:
+							totalMsg.append(msg)
 
 			except Exception as e:
 				Glyphs.showMacroWindow()
@@ -227,6 +237,8 @@ class ComponentReplacer(mekkaObject):
 
 			finally:
 				thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+
+			print("\n".join(totalMsg))
 
 			# Final report...
 			msg = "Replaced %i component%s" % (
