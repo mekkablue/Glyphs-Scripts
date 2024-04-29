@@ -119,6 +119,7 @@ def getLegibleFont(size=None):
 class mekkaObject:
 	prefDict = None
 	w = None
+
 	def domain(self, prefName: str) -> str:
 		prefName = prefName.strip().strip(".")
 		return "com.mekkablue." + self.__class__.__name__ + "." + prefName.strip()
@@ -127,7 +128,7 @@ class mekkaObject:
 		prefDomain = self.domain(prefName)
 		# print(prefName, "-> getting domain", prefDomain, "<<<")  # DEBUG
 		prefValue = Glyphs.defaults[prefDomain]
-		if not prefValue is None:  # can be 0, False, an empty collection or an empty string too
+		if prefValue is not None:  # can be 0, False, an empty collection or an empty string too
 			return prefValue
 		return self.prefDict.get(prefName, None)
 
