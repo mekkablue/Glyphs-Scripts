@@ -1,7 +1,7 @@
 
 import math
 from typing import Any
-from AppKit import NSAffineTransform, NSUserDefaults
+from AppKit import NSAffineTransform, NSUserDefaults, NSFont
 from GlyphsApp import Glyphs
 
 
