@@ -159,23 +159,23 @@ class AddZWROOriginAnchors(mekkaObject):
 											
 											if where == 0:
 												# "right sidebearing", # 0
-												position = layer.width
+												x = layer.width
 											elif where == 1:
 												# "right bbox edge",   # 1
-												position = layer.bounds.origin.x + layer.bounds.size.width
+												x = layer.bounds.origin.x + layer.bounds.size.width
 											elif where == 2:
 												# "bbox center",       # 2
-												position = layer.bounds.origin.x + layer.bounds.size.width / 2
+												x = layer.bounds.origin.x + layer.bounds.size.width / 2
 											elif where == 3:
 												# "width center",      # 3
-												position = layer.width / 2
+												x = layer.width / 2
 											elif where == 4:
 												# "left bbox edge",    # 4
-												position = layer.bounds.origin.x
+												x = layer.bounds.origin.x
 											else:
 												# "left sidebearing",  # 5
-												position = 0
-											position += offset
+												x = 0
+											x += offset
 											anchorPosition = NSPoint(x, 0)
 										anchor = GSAnchor("*origin", anchorPosition)
 										layer.anchors.append(anchor)
