@@ -18,23 +18,31 @@ def moveMacroWindowSeparator(pos=20):
 		height = NSHeight(frame)
 		splitview.setPosition_ofDividerAtIndex_(height * pos / 100.0, 0)
 
+positions = (
+	"right sidebearing", # 0
+	"right bbox edge",   # 1
+	"bbox center",       # 2
+	"width center",      # 3
+	"left bbox edge",    # 4
+	"left sidebearing",  # 5
+)
 
 class AddZWROOriginAnchors(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
+		"where": 1, # right bbox edge
 		"offset": 0,
 		"scripts": "latin, thai",
 		"excludeTransformed": 1,
 		"excludeComposites": 1,
-		"useRSB": 0,
 		"allFonts": 0,
 	}
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 300
-		windowHeight = 210
-		windowWidthResize = 100  # user can resize width by this value
+		windowHeight = 200
+		windowWidthResize = 200  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
@@ -46,7 +54,8 @@ class AddZWROOriginAnchors(mekkaObject):
 
 		# UI elements:
 		linePos, inset, lineHeight, tab = 12, 15, 22, 100
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Add *origin anchors on right edge of bounding box (or RSB):", sizeStyle="small", selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, 125, 14), "Add *origin anchors at", sizeStyle="small", selectable=True)
+		self.w.where = vanilla.PopUpButton((inset+125, linePos, -inset, 17), positions, sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 
 		self.w.offsetText = vanilla.TextBox((inset, linePos + 2, tab, 14), "Horizontal offset:", sizeStyle="small", selectable=True)
@@ -62,9 +71,6 @@ class AddZWROOriginAnchors(mekkaObject):
 		linePos += lineHeight
 
 		self.w.excludeComposites = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Exclude composites", value=True, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
-
-		self.w.useRSB = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Use RSB instead of bounding box", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		self.w.allFonts = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Apply to all fonts", value=True, callback=self.SavePreferences, sizeStyle="small")
@@ -127,6 +133,7 @@ class AddZWROOriginAnchors(mekkaObject):
 
 					scriptNames = [scriptName.strip() for scriptName in self.pref("scripts").strip().split(",")]
 					offset = self.prefInt("offset")
+					where = self.prefInt("where")
 
 					for glyph in thisFont.glyphs:
 						if glyph.category == "Mark" and glyph.subCategory == "Nonspacing":
@@ -148,12 +155,28 @@ class AddZWROOriginAnchors(mekkaObject):
 										continue
 								for layer in glyph.layers:
 									if layer.isMasterLayer or layer.isSpecialLayer:
-										if layer.shapes and not self.pref("useRSB"):
-											x = layer.bounds.origin.x + layer.bounds.size.width + offset
+										if layer.shapes:
+											
+											if where == 0:
+												# "right sidebearing", # 0
+												position = layer.width
+											elif where == 1:
+												# "right bbox edge",   # 1
+												position = layer.bounds.origin.x + layer.bounds.size.width
+											elif where == 2:
+												# "bbox center",       # 2
+												position = layer.bounds.origin.x + layer.bounds.size.width / 2
+											elif where == 3:
+												# "width center",      # 3
+												position = layer.width / 2
+											elif where == 4:
+												# "left bbox edge",    # 4
+												position = layer.bounds.origin.x
+											else:
+												# "left sidebearing",  # 5
+												position = 0
+											position += offset
 											anchorPosition = NSPoint(x, 0)
-										else:
-											# in empty glyphs, put *origin on RSB:
-											anchorPosition = NSPoint(layer.width + offset, 0)
 										anchor = GSAnchor("*origin", anchorPosition)
 										layer.anchors.append(anchor)
 										print(f"⚓️ {glyph.name}, {layer.name}: added {anchor.name} at {int(anchor.position.x)}x 0y")
