@@ -117,13 +117,13 @@ class RemovePSHints(mekkaObject):
 			else:
 				theseFonts = (Glyphs.font, )
 
+			deletedHintsCount = 0
 			for thisFont in theseFonts:
 				print("Remove PS Hints Report for %s" % thisFont.familyName)
 				if thisFont.filepath:
 					print(thisFont.filepath)
 				print()
 
-				deletedHintsCount = 0
 				if where == 0:
 					# Current Layer of Selected Glyphs
 					objectList = set(thisFont.selectedLayers)
