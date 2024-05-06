@@ -110,7 +110,7 @@ class MethodReporter(mekkaObject):
 		# Filter:
 		self.w.textFilter = vanilla.TextBox((140, 6, 35, 14), "Find:", sizeStyle='small')
 		self.w.filter = vanilla.EditText((173, 1, -1, 24), "", callback=self.MethodReporterMain)
-		self.w.filter.getNSTextField().setToolTip_("Type one or more (space-separated) search terms here. Case is ignored. Use * as wildcard at beginning, middle or end of term. Multiple search terms are AND-concatenated.")
+		self.w.filter.getNSTextField().setToolTip_("Type one or more (space-separated) search terms here. Case is ignored. Use * as wildcard at beginning, middle or end of term. Multiple search terms are AND-concatenated.\n\nIf one of the search terms is ‘_*’, it will display methods that start with underscores. They are otherwise left out to reduce clutter.")
 
 		# Listing of methods:
 		self.w.methodList = vanilla.List((0, 26, -0, -0), self.methodList("GSLayer"), autohidesScrollers=False, drawVerticalLines=True, doubleClickCallback=self.copySelection, rowHeight=19)
@@ -204,7 +204,7 @@ class MethodReporter(mekkaObject):
 			methodName += "()"
 		return methodName
 
-	def methodList(self, className):
+	def methodList(self, className, allowUnderscored=False):
 		elidableMethods = [method for method in dir(NSObject) if not method.startswith("__")]
 		if className == "NSObject":
 			return [
@@ -220,7 +220,8 @@ class MethodReporter(mekkaObject):
 
 			shortenedMethods = [
 				self.fullMethodName(className, method) for method in dir(actualClass)
-				if method not in elidableMethods and not method.startswith(".") and not method.startswith("_")
+				if method not in elidableMethods and not method.startswith(".") 
+				and (allowUnderscored or not method.startswith("_"))
 			]
 			return shortenedMethods
 
@@ -231,7 +232,8 @@ class MethodReporter(mekkaObject):
 			filterStrings = filterStringEntry.split(" ")
 
 			try:
-				methods = self.methodList(className)  # fails for NSMutableArray
+				shouldAllowUnderscored = "_*" in filterStrings
+				methods = self.methodList(className, allowUnderscored=shouldAllowUnderscored)  # fails for NSMutableArray
 				methods = set(methods)
 				methodList = sorted(methods)
 				for filterString in filterStrings:
