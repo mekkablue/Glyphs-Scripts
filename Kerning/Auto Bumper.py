@@ -13,6 +13,7 @@ from AppKit import NSColor
 from GlyphsApp import Glyphs, Message
 
 defaultStrings = """
+
 iíĭǐîïịìỉīįĩjĵ
 ÍǏÎÏİÌỈĪĨ  # UPPERCASE
 /iacute.sc/icaron.sc/icircumflex.sc/idieresis.sc/idotaccent.sc/igrave.sc/ihookabove.sc/imacron.sc/itilde.sc
@@ -33,14 +34,15 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZẞÞ
 /i.sc/iacute.sc/idotbelow.sc/igrave.sc/ihookabove.sc/itilde.sc #VIETNAMESE
 
 ({[„“”
-„“”]})
+„“”]})*®?!/»«
 /parenleft.sc/braceleft.sc/bracketleft.sc
 /parenright.sc/braceright.sc/bracketright.sc
 
 /quotesinglbase/quotedblbase/quotedblleft/quotedblright/quoteleft/quoteright/quotedbl/quotesingle
 
 /lcaron/dcaron/tcaron #CZECH AND SLOVAK
-ňčěšäížůô #CZECH AND SLOVAK
+ňčěšäížůô #CZECH AND SLOVAK EXCEPTIONS
+"“”]})*?!»« #CZECH AND SLOVAK GROUPS
 
 /a.sc/aogonek.sc/ae.sc/b.sc/c.sc/d.sc/e.sc/f.sc/g.sc/h.sc/i.sc/j.sc/k.sc/l.sc/m.sc/n.sc/eng.sc/o.sc/oe.sc/p.sc/thorn.sc/q.sc/r.sc/s.sc/germandbls.sc/t.sc/u.sc/v.sc/w.sc/x.sc/y.sc/z.sc
 /slash
@@ -136,7 +138,7 @@ class Bumper(mekkaObject):
 		linePos += lineHeight
 
 		self.w.text_speed = vanilla.TextBox((inset, linePos + 3, 42, 14), "Speed:", sizeStyle='small')
-		self.w.speedPopup = vanilla.PopUpButton((inset + 42, linePos + 1, 80, 17), ("very slow", "slow", "medium", "fast", "very fast"), callback=self.SavePreferences, sizeStyle='small')
+		self.w.speedPopup = vanilla.PopUpButton((inset + 42, linePos + 1, 80, 17), ("very slow", "slow", "medium", "fast", "very fast"), callback=self.updateUI, sizeStyle='small')
 		self.w.speedPopup.getNSPopUpButton().setToolTip_("Specifies the number of measurements. Measuring is processor-intensive and can take a while. Slow: many measurements, fast: few measurements.")
 		intervalIndex = self.pref("speedPopup")
 		if intervalIndex is None:
@@ -235,6 +237,9 @@ class Bumper(mekkaObject):
 				self.setPref("kernStrings", kernStrings)
 
 	def updateUI(self, sender=None):
+		if sender != None:
+			self.SavePreferences()
+			
 		# enable/disable options based on settings:
 		self.w.reuseCurrentTab.enable(onOff=self.pref("openNewTabWithKernPairs"))
 
