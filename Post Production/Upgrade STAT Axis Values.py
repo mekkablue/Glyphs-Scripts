@@ -5,7 +5,6 @@ __doc__ = """
 Turns STAT entries of format 1 (discrete) into format 2 (range) for axes with more than one axis value. Run this right after a variable font export.
 """
 
-import fontTools
 from fontTools import ttLib
 from AppKit import NSString
 from otvarLib import currentOTVarExportPath, otVarFileName
@@ -21,7 +20,7 @@ else:
 	# brings macro window to front and clears its log:
 	Glyphs.clearLog()
 	Glyphs.showMacroWindow()
-	print("Report: Fix STAT Names in OTVAR Exports")
+	print("Report: Upgrade STAT to Format 2")
 
 	suffixes = ["ttf"]
 	for suffix in ("woff", "woff2"):
@@ -76,14 +75,24 @@ else:
 			print("--\n")
 
 			# prepare entries:
-			entries = {}
 			axisValues = statTable.AxisValueArray.AxisValue
+			entries = {}
+			styleLinkEntries = {}
 			for axis in axes:
 				axisTag = axis["tag"]
 				entries[axisTag] = []
-
+				styleLinkEntries[axisTag] = []
+			
+			usedEntries = []
 			for i, axisValue in enumerate(axisValues):
-				if axisValue.Format == 1:
+				if axisValue.Format in (1, 3):
+					# check if it is in STAT twice:
+					entry = (axisValue.AxisIndex, axisValue.Value)
+					if entry in usedEntries:
+						continue
+					usedEntries.append(entry)
+					
+					# record entry for conversion to format 2:
 					axisTag = axes[axisValue.AxisIndex]["tag"]
 					entries[axisTag].append(
 						{
@@ -96,6 +105,11 @@ else:
 							"RangeMaxValue": -1,
 						}
 					)
+					
+					# record format 3:
+					if axisValue.Format != 3:
+						continue
+					styleLinkEntries[axisTag].append(axisValue)
 
 			overwriteCount = 0
 			for axisTag in entries.keys():
@@ -119,7 +133,7 @@ else:
 							entry["RangeMaxValue"] = max(axisDict[axisTag]["maxValue"], currValue)
 
 						# build value record
-						newAxisValue = fontTools.ttLib.tables.otTables.AxisValue()
+						newAxisValue = ttLib.tables.otTables.AxisValue()
 						newAxisValue.Format = 2
 						newAxisValue.ValueNameID = entry["ValueNameID"]
 						newAxisValue.Flags = entry["Flags"]
@@ -128,23 +142,31 @@ else:
 						newAxisValue.NominalValue = entry["NominalValue"]
 						newAxisValue.RangeMaxValue = entry["RangeMaxValue"]
 
-						# overwrite
+						# overwrite value
 						axisValues[entry["index"]] = newAxisValue
 						overwriteCount += 1
 
 						# report
 						print("✅ New axis value record, format 2 (range):")
-						print("AxisIndex", newAxisValue.AxisIndex, f" ({axisTag})")
-						print("Flags", newAxisValue.Flags, " (ELIDABLE)" if newAxisValue.Flags == 2 else "")
-						print("ValueNameID", newAxisValue.ValueNameID, " (" + font["name"].getName(newAxisValue.ValueNameID, 3, 1, langID=1033).toStr() + ")")
-						print("RangeMinValue", newAxisValue.RangeMinValue)
-						print("NominalValue", newAxisValue.NominalValue)
-						print("RangeMaxValue", newAxisValue.RangeMaxValue)
+						print(f"\tAxisIndex {newAxisValue.AxisIndex}: {axisTag}, Flags {newAxisValue.Flags}", "(ELIDABLE)" if newAxisValue.Flags == 2 else "")
+						print(f"\tValueNameID {newAxisValue.ValueNameID}: {font['name'].getName(newAxisValue.ValueNameID, 3, 1, langID=1033).toStr()}")
+						print(f"\tRangeMinValue {newAxisValue.RangeMinValue} → NominalValue {newAxisValue.NominalValue} → RangeMaxValue {newAxisValue.RangeMaxValue}")
 						print()
+						
+				# reinstate Format 3 entries (style linking):
+				if styleLinkEntries[axisTag]:
+					styleLinkEntry = styleLinkEntries[axisTag][0]
+					axisValues.append(styleLinkEntry)
+					overwriteCount += 1
+					print("✅ Reordered axis value record, format 3 (style linking):")
+					print(f"\tAxisIndex {styleLinkEntry.AxisIndex}: {axisTag}, Flags {styleLinkEntry.Flags}", "(ELIDABLE)" if styleLinkEntry.Flags == 2 else "")
+					print(f"\tValueNameID {styleLinkEntry.ValueNameID}: {font['name'].getName(styleLinkEntry.ValueNameID, 3, 1, langID=1033).toStr()}")
+					print(f"\tValue {styleLinkEntry.Value} → LinkedValue {styleLinkEntry.LinkedValue}")
+					print()
 
 			if overwriteCount > 0:
 				statTable.AxisValueCount = len(statTable.AxisValueArray.AxisValue)
-				print(f"🔢 {overwriteCount} new entries.\n🔢 AxisValueCount {statTable.AxisValueCount} for {len(statTable.AxisValueArray.AxisValue)} AxisValueRecords.")
+				print(f"🔢 {overwriteCount} new/reordered entries.\n🔢 AxisValueCount {statTable.AxisValueCount} for {len(statTable.AxisValueArray.AxisValue)} AxisValueRecords.")
 				font.save(fontpath, reorderTables=False)
 				print("💾 saved file.")
 			else:
