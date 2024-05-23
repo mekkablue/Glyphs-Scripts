@@ -165,7 +165,7 @@ def STATtoParameter(font, variableFontExport):
 			if entry["Format"] == 1:
 				parameterText += f"{entry['Value']}"
 			elif entry["Format"] == 2:
-				parameterText += f"{entry['RangeMinValue']}:{entry['Value']}:{entry['RangeMaxValue']}"
+				parameterText += f"{entry['RangeMinValue']}:{entry['NominalValue']}:{entry['RangeMaxValue']}"
 			elif entry["Format"] == 3:
 				parameterText += f"{entry['Value']}>{entry['LinkedValue']}"
 
