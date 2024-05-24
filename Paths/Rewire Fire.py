@@ -41,6 +41,7 @@ class RewireFire(mekkaObject):
 		"shouldSelect": 1,
 		"reuseTab": 1,
 		"allFonts": 0,
+		"verbose": 0,
 	}
 
 	duplicateMarker = "🔥"
@@ -48,8 +49,8 @@ class RewireFire(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 350
-		windowHeight = 240
+		windowWidth = 360
+		windowHeight = 260
 		windowWidthResize = 100  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -92,10 +93,14 @@ class RewireFire(mekkaObject):
 		self.w.reuseTab.getNSButton().setToolTip_("If enabled, will only open a new tab if there is none open yet. Otherwise will always open a new tab.")
 		linePos += lineHeight
 
+		self.w.verbose = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Verbose reporting in Macro Window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose.getNSButton().setToolTip_("If enabled, will report extensively in Window > Macro Panel. Useful for debugging.")
+		linePos += lineHeight
+
 		self.w.allFonts = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Work through ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allFonts.getNSButton().setToolTip_("If enabled, will look in all currently opened fonts.")
 		linePos += lineHeight
-
+		
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0)  # set progress indicator to zero
 		linePos += lineHeight
@@ -117,7 +122,7 @@ class RewireFire(mekkaObject):
 	def updateUI(self, sender=None):
 		anyOptionSelected = self.w.setFireToNode.get() or self.w.dynamiteForOnSegment.get()
 		self.w.runButton.enable(anyOptionSelected)
-		self.w.reuseTab.enable(self.w.openTabWithAffectedLayers.get())
+		# self.w.reuseTab.enable(self.w.openTabWithAffectedLayers.get())
 		self.w.tolerateZeroSegments.enable(self.w.setFireToNode.get())
 
 	def circleInLayerAtPosition(self, layer, position, width=25.0):
@@ -127,7 +132,7 @@ class RewireFire(mekkaObject):
 		circle.width = width
 		layer.annotations.append(circle)
 
-	def findNodesOnLines(self, layer, dynamiteForOnSegment=True, shouldSelect=True):
+	def findNodesOnLines(self, layer, dynamiteForOnSegment=True, shouldSelect=True, verbose=False):
 		affectedNodes = []
 
 		# find line segments:
@@ -156,10 +161,11 @@ class RewireFire(mekkaObject):
 
 		if affectedNodes:
 			thisGlyph = layer.parent
-			print()
-			print(f"🔠 {thisGlyph.name}, layer ‘{layer.name}’: {len(affectedNodes)} nodes on line segments")
-			for node in affectedNodes:
-				print(f"   {self.onSegmentMarker} x {node.x}, y {node.y}")
+			if verbose:
+				print()
+				print(f"🔠 {thisGlyph.name}, layer ‘{layer.name}’: {len(affectedNodes)} nodes on line segments")
+				for node in affectedNodes:
+					print(f"   {self.onSegmentMarker} x {node.x}, y {node.y}")
 
 			for n3 in affectedNodes:
 				if dynamiteForOnSegment:
@@ -170,31 +176,35 @@ class RewireFire(mekkaObject):
 		else:
 			return False
 
-	def findDuplicates(self, thisLayer, setFireToNode=True, markWithCircle=False, shouldSelect=True, tolerateZeroSegments=False):
+	def findDuplicates(self, thisLayer, setFireToNode=True, markWithCircle=False, shouldSelect=True, tolerateZeroSegments=False, verbose=False):
 		allCoordinates = []
 		duplicateCoordinates = []
 		for thisPath in thisLayer.paths:
+			if not thisPath.closed:
+				continue
 			for thisNode in thisPath.nodes:
-				if thisNode.type != GSOFFCURVE:
-					if thisNode.position in allCoordinates:
-						if not tolerateZeroSegments or thisNode.position not in (thisNode.nextNode.position, thisNode.prevNode.position):
-							# select node:
-							if shouldSelect and thisNode not in thisLayer.selection:
-								thisLayer.selection.append(thisNode)
-							duplicateCoordinates.append(thisNode.position)
-							if setFireToNode:
-								thisNode.name = self.duplicateMarker
-					else:
-						allCoordinates.append(thisNode.position)
-						if thisNode.name == self.duplicateMarker:
-							thisNode.name = None
+				if thisNode.type == GSOFFCURVE:
+					continue
+				if thisNode.position in allCoordinates:
+					if not tolerateZeroSegments or thisNode.position not in (thisNode.nextNode.position, thisNode.prevNode.position):
+						# select node:
+						if shouldSelect and thisNode not in thisLayer.selection:
+							thisLayer.selection.append(thisNode)
+						duplicateCoordinates.append(thisNode.position)
+						if setFireToNode:
+							thisNode.name = self.duplicateMarker
+				else:
+					allCoordinates.append(thisNode.position)
+					if thisNode.name == self.duplicateMarker:
+						thisNode.name = None
 
 		if duplicateCoordinates:
 			thisGlyph = thisLayer.parent
-			print()
-			print(f"🔠 {thisGlyph.name}, layer ‘{thisLayer.name}’: {len(duplicateCoordinates)} duplicates")
-			for dupe in duplicateCoordinates:
-				print(f"   {self.duplicateMarker} x {dupe.x}, y {dupe.y}")
+			if verbose:
+				print()
+				print(f"🔠 {thisGlyph.name}, layer ‘{thisLayer.name}’: {len(duplicateCoordinates)} duplicates")
+				for dupe in duplicateCoordinates:
+					print(f"   {self.duplicateMarker} x {dupe.x}, y {dupe.y}")
 
 			# if markWithCircle:
 			# 	coords = set([(p.x,p.y) for p in duplicateCoordinates])
@@ -219,6 +229,7 @@ class RewireFire(mekkaObject):
 			shouldSelect = self.pref("shouldSelect")
 			dynamiteForOnSegment = self.pref("dynamiteForOnSegment")
 			tolerateZeroSegments = self.pref("tolerateZeroSegments")
+			verbose = self.pref("verbose")
 			# markWithCircle = self.pref("markWithCircle")
 
 			if len(Glyphs.fonts) == 0:
@@ -259,11 +270,11 @@ class RewireFire(mekkaObject):
 									thisLayer.selection = None
 
 								# mark and select duplicate nodes:
-								if setFireToNode and self.findDuplicates(thisLayer, shouldSelect=shouldSelect, tolerateZeroSegments=tolerateZeroSegments):
+								if setFireToNode and self.findDuplicates(thisLayer, shouldSelect=shouldSelect, tolerateZeroSegments=tolerateZeroSegments, verbose=verbose):
 									affectedLayers.append(thisLayer)
 
 								# mark and select nodes on line segments:
-								if dynamiteForOnSegment and self.findNodesOnLines(thisLayer, shouldSelect=shouldSelect):
+								if dynamiteForOnSegment and self.findNodesOnLines(thisLayer, shouldSelect=shouldSelect, verbose=verbose):
 									if thisLayer not in affectedLayers:
 										affectedLayers.append(thisLayer)
 
