@@ -13,7 +13,7 @@ from mekkablue import mekkaObject
 def menuForFonts(fonts):
 	menu = []
 	for i, font in enumerate(fonts):
-		menu.append(f"{i + 1}. {font.familyName} ({font.filepath.lastPathComponent()})")
+		menu.append(f"{i + 1}. {font.familyName} ({font.filepath.lastPathComponent() if font.filepath else 'unsaved document'})")
 	return menu
 
 
@@ -25,6 +25,7 @@ class StealKerningGroupsfromFont(mekkaObject):
 		"allGroups": 1,
 		"overwriteExisting": 1,
 		"resetGroupsInTarget": 0,
+		"verbose": 0,
 	}
 
 	currentFonts = Glyphs.fonts
@@ -73,6 +74,10 @@ class StealKerningGroupsfromFont(mekkaObject):
 
 		self.w.resetGroupsInTarget = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Reset groups in target font before copying", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.resetGroupsInTarget.getNSButton().setToolTip_("Will delete ALL kerning groups in target font prior to transfering the source font’s groups.")
+		linePos += lineHeight
+		
+		self.w.verbose = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Verbose reporting in Macro window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose.getNSButton().setToolTip_("Will report progress per glyph in Window > Macro Panel. Useful for debugging.")
 		linePos += lineHeight
 
 		self.w.status = vanilla.TextBox((inset, -18 - inset, -150 - inset, 14), "", sizeStyle="small", selectable=True)
@@ -127,19 +132,24 @@ class StealKerningGroupsfromFont(mekkaObject):
 				print(f"{sourceOrTarget}: {reportName}")
 			print()
 
+			verbose = self.prefBool("verbose")
 			if self.pref("resetGroupsInTarget"):
-				print("Deleting kerning groups in target font:")
+				print("Deleting kerning groups in target font...")
 				for glyph in targetFont.glyphs:
-					msg = f"🧟 {glyph.name}"
-					self.w.status.set(msg)
+					self.w.status.set(f"🧟 {glyph.name}")
 					if glyph.leftKerningGroup:
-						msg += f" ◀️ {glyph.leftKerningGroup}"
 						glyph.leftKerningGroup = None
 					if glyph.rightKerningGroup:
-						msg += f" ▶️ {glyph.rightKerningGroup}"
 						glyph.rightKerningGroup = None
-					print(msg)
-				print()
+					if not verbose:
+						continue
+					print(
+						f"🧟 {glyph.name}"
+						f"{' ◀️ ' + glyph.leftKerningGroup if glyph.leftKerningGroup else ''}"
+						f"{' ▶️ ' + glyph.rightKerningGroup if glyph.rightKerningGroup else ''}"
+					)
+				if verbose:
+					print()
 
 			if self.pref("allGroups"):
 				glyphNames = [g.name for g in sourceFont.glyphs]
@@ -147,25 +157,31 @@ class StealKerningGroupsfromFont(mekkaObject):
 				glyphNames = [layer.parent.name for layer in sourceFont.selectedLayers]
 
 			overwriteExisting = self.prefBool("overwriteExisting")
+			print("Writing kerning groups in target font...")
 			for glyphName in glyphNames:
 				sourceGlyph = sourceFont.glyphs[glyphName]
 				targetGlyph = targetFont.glyphs[glyphName]
 				if not targetGlyph:
-					print(f"🚫 Skipping {glyphName}, not in target font.")
+					if verbose:
+						print(f"🚫 Skipping {glyphName}, not in target font.")
 					continue
-				msg = f"🔤 {glyphName}"
-				self.w.status.set(msg)
+				self.w.status.set(f"🔤 {glyph.name}")
 				if sourceGlyph.leftKerningGroup and overwriteExisting or not targetGlyph.leftKerningGroup:
 					targetGlyph.leftKerningGroup = sourceGlyph.leftKerningGroup
-					msg += f" ◀️ {targetGlyph.leftKerningGroup}"
 				if sourceGlyph.rightKerningGroup and overwriteExisting or not targetGlyph.rightKerningGroup:
 					targetGlyph.rightKerningGroup = sourceGlyph.rightKerningGroup
-					msg += f" ▶️ {targetGlyph.rightKerningGroup}"
-				print(msg)
+				if not verbose:
+					continue
+				print(
+					f"🔤 {glyph.name}"
+					f"{' ◀️ ' + targetGlyph.leftKerningGroup if glyph.leftKerningGroup else ''}"
+					f"{' ▶️ ' + targetGlyph.rightKerningGroup if glyph.rightKerningGroup else ''}"
+				)
+				
 
 			# self.w.close()  # delete if you want window to stay open
 			self.w.status.set("✅ Done. Details in Macro Window.")
-			print("\nDone.")
+			print("\n✅ Done.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
