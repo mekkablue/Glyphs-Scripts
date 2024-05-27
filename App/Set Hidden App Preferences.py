@@ -114,13 +114,12 @@ class SetHiddenAppPreferences(mekkaObject):
 		value = Glyphs.defaults[self.w.pref.get()]
 		value = str(value)
 		value = value.replace("\n", "")
-		value = value.replace("  ", " ")
+		while "  " in value:
+			value = value.replace("  ", " ")
 		self.w.prefValue.set(value)
 
 	def SetHiddenAppPreferencesMain(self, sender):
 		try:
-			self.SavePreferences()
-
 			if sender == self.w.delButton:
 				del Glyphs.defaults[self.w.pref.get()]
 				self.w.prefValue.set(None)
@@ -128,16 +127,17 @@ class SetHiddenAppPreferences(mekkaObject):
 
 			elif sender == self.w.runButton:
 				prefName = self.w.pref.get()
-				value = self.w.prefValue.get()
-				if prefName in ["com.mekkablue.ShowGlyphFocus.color", "com.mekkablue.ShowGlyphFocus.colorDarkMode"]:
-					value = value.strip("(")
-					value = value.strip(")")
-					value = value.replace('"', '')
-					value = value.split(',')
-					value = [float(v) for v in value]
-					value = tuple(value)
+				value = eval(self.w.prefValue.get())
+				# if prefName in ["com.mekkablue.ShowGlyphFocus.color", "com.mekkablue.ShowGlyphFocus.colorDarkMode"]:
+				#
+				# 	value = value.strip("(")
+				# 	value = value.strip(")")
+				# 	value = value.replace('"', '')
+				# 	value = value.split(',')
+				# 	value = [float(v) for v in value]
+				# 	value = tuple(value)
 				Glyphs.defaults[prefName] = value
-				print("\nSet pref: %s --> %s" % (self.w.pref.get(), value))
+				print("\nSet pref: %s --> %s" % (prefName, value))
 				print("Glyphs.defaults['%s'] = %s" % (prefName, value))
 
 		except Exception as e:
