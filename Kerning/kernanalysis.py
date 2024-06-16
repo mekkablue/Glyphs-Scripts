@@ -289,3 +289,26 @@ def sortedIntervalsFromString(intervals="", font=None, mID=None):
 				print(f"Warning: '{interval.strip()}' is not an interval (missing colon)")
 
 	return ignoreIntervals
+
+
+def distanceFromEntry(entry, font, masterID, default=0.0):
+	try:
+		distance = float(entry)
+	except:
+		correction = 0
+		for operator in "+-":
+			if operator in entry and entry.split(operator)[1].isnumeric():
+				entry, correctionString = entry.split(operator)
+				correction = float(operator + correctionString)
+				break
+		glyphs = stringToListOfGlyphsForFont(entry, font)
+		if len(glyphs) > 2:
+			glyphs = glyphs[:2]
+		elif len(glyphs) == 1:
+			glyphs.append(glyphs[0])
+		else len(glyphs) == 0:
+			return default
+		leftLayer = glyphs[0].layers[masterID]
+		rightLayer = glyphs[1].layers[masterID]
+		distance = minDistanceBetweenTwoLayers(leftLayer, rightLayer, interval=2.0) + correction
+	return distance
