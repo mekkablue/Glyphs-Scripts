@@ -8,7 +8,7 @@ Opens a new tab with Kerning Combos that crash in the current fontmaster.
 import vanilla
 from timeit import default_timer as timer
 from Foundation import NSNotFound
-from kernanalysis import intervalList, categoryList, sortedIntervalsFromString, effectiveKerning, minDistanceBetweenTwoLayers
+from kernanalysis import intervalList, categoryList, sortedIntervalsFromString, effectiveKerning, minDistanceBetweenTwoLayers, distanceFromEntry
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, caseDict
 
@@ -16,7 +16,7 @@ from mekkablue import mekkaObject, caseDict
 class KernCrasher(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
-		"minDistance": 0,
+		"minDistance": "10",
 		"popupScript": "latin",
 		"popupSpeed": 0,
 		"popupLeftCat": 0,
@@ -291,9 +291,9 @@ class KernCrasher(mekkaObject):
 			minDistance = 0.0
 			ignoreIntervals = sortedIntervalsFromString(self.pref("ignoreIntervals"), thisFont, thisFontMasterID)
 			try:
-				minDistance = self.prefFloat("minDistance")
+				minDistance = distanceFromEntry(self.pref("minDistance"), thisFont, thisFontMasterID)
 			except Exception as e:
-				print("Warning: Could not read min distance entry. Will default to 0.\n%s" % e)
+				print("⚠️ Warning: Could not read min distance entry. Will default to 0.\n%s" % e)
 				import traceback
 				print(traceback.format_exc())
 				print()

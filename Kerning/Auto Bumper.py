@@ -8,7 +8,7 @@ Specify a minimum distance, left and right glyphs, and Auto Bumper will add the 
 import vanilla
 from mekkablue import mekkaObject, reportTimeInNaturalLanguage
 from timeit import default_timer as timer
-from kernanalysis import intervalList, minDistanceBetweenTwoLayers, sortedIntervalsFromString, stringToListOfGlyphsForFont, effectiveKerning
+from kernanalysis import intervalList, minDistanceBetweenTwoLayers, sortedIntervalsFromString, stringToListOfGlyphsForFont, effectiveKerning, distanceFromEntry
 from AppKit import NSColor
 from GlyphsApp import Glyphs, Message
 
@@ -284,24 +284,6 @@ class Bumper(mekkaObject):
 					print("- %s %s: %i" % (leftSide, rightSide, newKernValue))
 				return True  # increase kern count
 
-	def distanceBetweenCharacters(self, thisFont, thisMaster, chars, step=5):
-		if len(chars) >= 2:
-			firstChar = chars[0]
-			secondChar = chars[1]
-			firstGlyph = thisFont.glyphForCharacter_(ord(firstChar))
-			secondGlyph = thisFont.glyphForCharacter_(ord(secondChar))
-			if firstGlyph is not None and secondGlyph is not None:
-				firstLayer = firstGlyph.layers[thisMaster.id]
-				secondLayer = secondGlyph.layers[thisMaster.id]
-				minDistance = minDistanceBetweenTwoLayers(firstLayer, secondLayer, interval=step)
-				adjust = 0
-				if len(chars) > 2:
-					try:
-						adjust = int(chars[2:])
-					except:
-						pass
-				return minDistance + adjust
-		return None
 
 	def BumperMain(self, sender):
 		try:
@@ -331,24 +313,8 @@ class Bumper(mekkaObject):
 			ignoreIntervals = sortedIntervalsFromString(self.pref("ignoreIntervals"), font=thisFont, mID=thisMasterID)
 			shouldExcludeNonExporting = self.prefBool("excludeNonExporting")
 
-			minDistance = self.pref("minDistance")
-			try:
-				minDistance = float(minDistance)
-			except:
-				print("minDistance:", minDistance)
-				minDistance = self.distanceBetweenCharacters(thisFont, thisMaster, minDistance, step=step)
-				if minDistance is None:
-					self.w.minDistance.set("")
-					self.SavePreferences()
-
-			maxDistance = self.pref("maxDistance")
-			try:
-				maxDistance = float(maxDistance)
-			except:
-				maxDistance = self.distanceBetweenCharacters(thisFont, thisMaster, maxDistance, step=step)
-				if maxDistance is None:
-					self.w.maxDistance.set("")
-					self.SavePreferences()
+			minDistance = distanceFromEntry(self.pref("minDistance"), thisFont, thisMasterID)
+			maxDistance = distanceFromEntry(self.pref("maxDistance"), thisFont, thisMasterID)
 
 			roundFactor = self.pref("roundFactor")
 			try:

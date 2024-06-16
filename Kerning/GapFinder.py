@@ -254,14 +254,7 @@ class GapFinder(mekkaObject):
 			step = intervalList[self.pref("popupSpeed")]
 			excludedGlyphNameParts = self.splitString(self.pref("excludeSuffixes"), delimiter=",", Maximum=0)
 			excludeNonExporting = self.prefBool("excludeNonExporting")
-			maxDistance = 200.0  # default
-			try:
-				maxDistance = self.prefFloat("maxDistance")
-			except Exception as e:
-				print(f"Warning: Could not read min distance entry. Will default to 200.\n{e}")
-				import traceback
-				print(traceback.format_exc())
-				print()
+			maxDistance = distanceFromEntry(self.pref("maxDistance"), thisFont, thisFontMasterID, default=200.0)
 
 			# save prefs
 			self.SavePreferences()
