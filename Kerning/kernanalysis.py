@@ -306,7 +306,7 @@ def distanceFromEntry(entry, font, masterID, default=0.0):
 			glyphs = glyphs[:2]
 		elif len(glyphs) == 1:
 			glyphs.append(glyphs[0])
-		else len(glyphs) == 0:
+		else: # len(glyphs) == 0
 			return default
 		leftLayer = glyphs[0].layers[masterID]
 		rightLayer = glyphs[1].layers[masterID]
