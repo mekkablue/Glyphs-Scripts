@@ -470,6 +470,8 @@ class EncodingConverter(mekkaObject):
 		targetString = self.freeGlyphName(target, existingGlyphNames)
 
 		try:
+			if thisGlyph.category == "Private Use":
+				thisGlyph.unicode = None
 			thisGlyph.name = targetString
 			thisGlyph.export = targetString[0] != "_"
 			print("🙌 Renamed glyph: %s → %s" % (source, targetString))
