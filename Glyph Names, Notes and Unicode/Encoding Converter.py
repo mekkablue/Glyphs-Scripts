@@ -491,6 +491,51 @@ class EncodingConverter(mekkaObject):
 				return False
 		return True
 
+	def convertEncoding(self, thisFont, nameChangeString):
+		countRenames = 0
+		countRecipes = 0
+
+		# parse lines of nameChangeString:
+		for line in nameChangeString.splitlines():
+			if not line.strip():  # skip empty lines
+				continue
+			# RENAME LINE:
+			if "->" in line:
+				nameList = line.split("->")
+				sourceName = nameList[0].strip()
+				targetName = nameList[1].strip()
+				if sourceName != targetName:
+					countRenames += self.glyphRename(sourceName, targetName, thisFont)
+
+			# GLYPH RECIPE:
+			elif "=" in line and " " not in line:
+				sourceRecipe, targetGlyph = line.strip().split("=")
+				if not self.isValidGlyphName(targetGlyph):
+					print("⚠️ invalid glyph name: %s. Skipping." % targetGlyph)
+					continue
+
+				sourceGlyphNames = sourceRecipe.split("+")
+				if not all([thisFont.glyphs[n] for n in sourceGlyphNames]):
+					print("⚠️ Could not create recipe for %s. Not all ingredients in font: %s." % (targetGlyph, ", ".join(sourceGlyphNames)))
+					continue
+
+				glyph = thisFont.glyphs[targetGlyph]
+				if glyph:
+					print("🔠 overwritten: %s" % targetGlyph)
+				else:
+					glyph = GSGlyph()
+					glyph.name = targetGlyph
+					thisFont.glyphs.append(glyph)
+					print("🔠 created: %s" % targetGlyph)
+				for layer in glyph.layers:
+					if layer.isMasterLayer or layer.isSpecialLayer:
+						layer.clear()
+						for compName in sourceGlyphNames:
+							comp = GSComponent(compName)
+							layer.components.append(comp)
+				countRecipes += 1
+		return countRenames, countRecipes
+
 	def EncodingConverterMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -512,53 +557,9 @@ class EncodingConverter(mekkaObject):
 
 				thisFont.disableUpdateInterface()
 				try:
-
 					thisFont.setDisablesNiceNames_(1)
 					nameChangeString = self.pref("recipe")
-					countRenames = 0
-					countRecipes = 0
-
-					# parse lines of nameChangeString:
-					for line in nameChangeString.splitlines():
-						try:
-							if line.strip():  # skip empty lines
-
-								# RENAME LINE:
-								if "->" in line:
-									nameList = line.split("->")
-									sourceName = nameList[0].strip()
-									targetName = nameList[1].strip()
-									if sourceName != targetName:
-										countRenames += self.glyphRename(sourceName, targetName, thisFont)
-
-								# GLYPH RECIPE:
-								elif "=" in line and " " not in line:
-									sourceRecipe, targetGlyph = line.strip().split("=")
-									if self.isValidGlyphName(targetGlyph):
-										sourceGlyphNames = sourceRecipe.split("+")
-										if all([thisFont.glyphs[n] for n in sourceGlyphNames]):
-											exportStatus = targetGlyph[0] != "_"
-											glyph = thisFont.glyphs[targetGlyph]
-											if glyph:
-												print("🔠 overwritten: %s" % targetGlyph)
-											else:
-												glyph = GSGlyph()
-												glyph.name = targetGlyph
-												thisFont.glyphs.append(glyph)
-												print("🔠 created: %s" % targetGlyph)
-											for layer in glyph.layers:
-												if layer.isMasterLayer or layer.isSpecialLayer:
-													layer.clear()
-													for compName in sourceGlyphNames:
-														comp = GSComponent(compName)
-														layer.components.append(comp)
-											countRecipes += 1
-										else:
-											print("⚠️ Could not create recipe for %s. Not all ingredients in font: %s." % (targetGlyph, ", ".join(sourceGlyphNames)))
-									else:
-										print("⚠️ invalid glyph name: %s. Skipping." % targetGlyph)
-						except:
-							pass
+					countRenames, countRecipes = self.convertEncoding(thisFont, nameChangeString)
 
 				except Exception as e:
 					Glyphs.showMacroWindow()
