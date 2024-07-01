@@ -125,12 +125,16 @@ def hasBadOutlineOrder(thisLayer):
 		return False
 
 
-def hasAlmostOrthogonalLines(thisLayer, threshold=3.0):
+def hasAlmostOrthogonalLines(thisLayer, threshold=3.0, minLength=50, minLengthCheck=False):
 	for thisPath in thisLayer.paths:
 		for i, thisNode in enumerate(thisPath.nodes):
 			if thisNode.type == GSLINE:
 				prevNodeIndex = (i - 1) % len(thisPath.nodes)
 				prevNode = thisPath.nodes[prevNodeIndex]
+				if minLengthCheck:
+					length = distance(thisNode.position, prevNode.position)
+					if length < minLength:
+						continue
 				xDiff = abs(thisNode.x - prevNode.x)
 				yDiff = abs(thisNode.y - prevNode.y)
 				if (0.1 < xDiff and xDiff < threshold) or (0.1 < yDiff and threshold > yDiff):
@@ -370,6 +374,8 @@ class PathProblemFinder(mekkaObject):
 		"shallowCurveThreshold": 10,
 		"almostOrthogonalLines": 1,
 		"almostOrthogonalLinesThreshold": 3,
+		"almostOrthogonalLinesMinLengthCheck": 0,
+		"almostOrthogonalLinesMinLength": 50,
 		"shortSegment": 0,
 		"shortSegmentThreshold": 8,
 		"badOutlineOrder": 1,
@@ -384,12 +390,14 @@ class PathProblemFinder(mekkaObject):
 		"includeAllFonts": 0,
 		"includeNonExporting": 0,
 		"reuseTab": 1,
+		"verbose": 0,
+		"exclude": "notdef, apple, .ornm",
 	}
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 285
-		windowHeight = 505
+		windowHeight = 545
 		windowWidthResize = 100  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -470,6 +478,12 @@ class PathProblemFinder(mekkaObject):
 		self.w.almostOrthogonalLinesThreshold.getNSTextField().setToolTip_(tooltipText)
 		self.w.almostOrthogonalLines.getNSButton().setToolTip_(tooltipText)
 		linePos += lineHeight
+		
+		self.w.almostOrthogonalLinesMinLengthCheck = vanilla.CheckBox((inset*2, linePos-1, indent, 20), "min segment length:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.almostOrthogonalLinesMinLength = vanilla.EditText((inset + indent, linePos-1, -inset - rightIndent - 5, 19), "50", callback=self.SavePreferences, sizeStyle="small")
+		self.w.almostOrthogonalLinesMinLengthText = vanilla.TextBox((-inset - rightIndent, linePos+2, -inset, 14), "units", sizeStyle="small", selectable=True)
+		linePos += lineHeight
+		
 
 		self.w.badOutlineOrder = vanilla.CheckBox((inset, linePos, secondColumn, 20), "Bad outline order", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.badOutlineOrder.getNSButton().setToolTip_("If the first path is clockwise, paths are most likely in the wrong order.")
@@ -512,7 +526,7 @@ class PathProblemFinder(mekkaObject):
 
 		# Script Options:
 		self.w.includeAllGlyphs = vanilla.CheckBox((inset, linePos, secondColumn, 20), "Check ALL glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeAllGlyphs.getNSButton().setToolTip_("If enabled, will ignore your current (glyph) selection, and simply go through the complete font. Recommended. May still ignore non-exporting glyph, see following option.")
+		self.w.includeAllGlyphs.getNSButton().setToolTip_("If enabled, will ignore your current (glyph) selection, and simply go through the complete font. Recommended. May still ignore non-exporting glyphs or explicitly excluded glyph names, see following options.")
 		self.w.includeAllFonts = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "⚠️ in ALL fonts", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeAllFonts.getNSButton().setToolTip_("If enabled, will go through ALL open fonts. Attention: can take quite some time.")
 		linePos += lineHeight
@@ -521,10 +535,17 @@ class PathProblemFinder(mekkaObject):
 		self.w.includeNonExporting.getNSButton().setToolTip_("If disabled, will ignore glyphs that are set to not export.")
 		linePos += lineHeight
 
-		self.w.reuseTab = vanilla.CheckBox((inset, linePos, 125, 20), "Reuse existing tab", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab.getNSButton().setToolTip_("If enabled, will only open a new tab if none is open. Recommended.")
+		self.w.excludeText = vanilla.TextBox((inset, linePos+2, 90, 14), "Exclude glyphs:", sizeStyle="small", selectable=True)
+		self.w.exclude = vanilla.EditText((inset+90, linePos-1, -inset, 19), "notdef, apple, .ornm", callback=self.SavePreferences, sizeStyle="small")
+		self.w.exclude.getNSTextField().setToolTip_("Glyphs containing any of these (comma-separated) name particles will be skipped.")
 		linePos += lineHeight
 
+		self.w.reuseTab = vanilla.CheckBox((inset, linePos, secondColumn, 20), "Reuse existing tab", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab.getNSButton().setToolTip_("If enabled, will only open a new tab if none is open. Recommended.")
+		self.w.verbose = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Verbose (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose.getNSButton().setToolTip_("If checked will document all findings in the Macro window. Use this only for debugging.")
+		linePos += lineHeight
+		
 		# Progress Bar and Status text:
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0)  # set progress indicator to zero
@@ -556,7 +577,14 @@ class PathProblemFinder(mekkaObject):
 					value = self.prefDict[prefName]
 				Glyphs.defaults[self.domain(prefName)] = value
 			self.LoadPreferences()
+		
+		self.w.almostOrthogonalLinesMinLengthCheck.enable(self.w.almostOrthogonalLines.get())
+		self.w.almostOrthogonalLinesMinLength.enable(self.w.almostOrthogonalLines.get() and self.w.almostOrthogonalLinesMinLengthCheck.get())
 
+		self.w.exclude.enable(self.w.includeAllGlyphs.get())
+		self.w.includeNonExporting.enable(self.w.includeAllGlyphs.get())
+		self.w.includeAllFonts.enable(self.w.includeAllGlyphs.get())
+		
 		self.w.shallowCurveThreshold.enable(self.w.shallowCurve.get())
 		self.w.shallowCurveBBoxThreshold.enable(self.w.shallowCurveBBox.get())
 		self.w.almostOrthogonalLinesThreshold.enable(self.w.almostOrthogonalLines.get())
@@ -598,6 +626,8 @@ class PathProblemFinder(mekkaObject):
 		shallowCurveThreshold = self.pref("shallowCurveThreshold")
 		almostOrthogonalLines = self.pref("almostOrthogonalLines")
 		almostOrthogonalLinesThreshold = self.pref("almostOrthogonalLinesThreshold")
+		almostOrthogonalLinesMinLengthCheck = self.pref("almostOrthogonalLinesMinLengthCheck")
+		almostOrthogonalLinesMinLength = self.pref("almostOrthogonalLinesMinLength")
 		shortSegment = self.pref("shortSegment")
 		shortSegmentThreshold = self.pref("shortSegmentThreshold")
 		badOutlineOrder = self.pref("badOutlineOrder")
@@ -612,6 +642,15 @@ class PathProblemFinder(mekkaObject):
 		includeAllFonts = self.pref("includeAllFonts")
 		includeNonExporting = self.pref("includeNonExporting")
 		reuseTab = self.pref("reuseTab")
+		verbose = self.pref("verbose")
+		exclude = self.pref("exclude")
+		excludedParticles = [name.strip().replace(" ", "") for name in exclude.split(",")]
+		
+		def nameIsExcluded(name):
+			for particle in excludedParticles:
+				if particle in name:
+					return True
+			return False
 
 		theseFonts = Glyphs.fonts  # frontmost font
 		countOfFontsWithIssues = 0
@@ -641,7 +680,7 @@ class PathProblemFinder(mekkaObject):
 
 				# determine the glyphs to work through:
 				if includeAllGlyphs or includeAllFonts:
-					glyphs = [g for g in thisFont.glyphs if includeNonExporting or g.export]
+					glyphs = [g for g in thisFont.glyphs if (includeNonExporting or g.export) and not nameIsExcluded(g.name)]
 				else:
 					glyphs = [layer.parent for layer in thisFont.selectedLayers]
 
@@ -728,63 +767,78 @@ class PathProblemFinder(mekkaObject):
 
 							if zeroHandles and hasZeroHandles(thisLayer):
 								layersWithZeroHandles.append(thisLayer)
-								print(f"  ❌ Zero handle(s) on layer: {thisLayer.name}")
+								if verbose:
+									print(f"  ❌ Zero handle(s) on layer: {thisLayer.name}")
 
 							if outwardHandles and hasOutwardHandles(thisLayer):
 								layersWithOutwardHandles.append(thisLayer)
-								print(f"  ❌ Outward handle(s) on layer: {thisLayer.name}")
+								if verbose:
+									print(f"  ❌ Outward handle(s) on layer: {thisLayer.name}")
 
 							if cuspingHandles and hasCuspingHandles(thisLayer):
 								layersWithCuspingHandles.append(thisLayer)
-								print(f"  ❌ Cusping handle(s) on layer: {thisLayer.name}")
+								if verbose:
+									print(f"  ❌ Cusping handle(s) on layer: {thisLayer.name}")
 
 							if largeHandles and hasLargeHandles(thisLayer):
 								layersWithLargeHandles.append(thisLayer)
-								print(f"  ❌ Large handle(s) on layer: {thisLayer.name}")
+								if verbose:
+									print(f"  ❌ Large handle(s) on layer: {thisLayer.name}")
 
 							if offcurveAsStartPoint and hasOffcurveAsStartPoint(thisLayer):
 								layersWithOffcurveAsStartpoint.append(thisLayer)
-								print(f"  ❌ Off-curve as start point on layer: {thisLayer.name}")
+								if verbose:
+									print(f"  ❌ Off-curve as start point on layer: {thisLayer.name}")
 
 							if shortHandles and hasShortHandles(thisLayer, threshold=float(shortHandlesThreshold)):
 								layersWithShortHandles.append(thisLayer)
-								print(f"  ❌ Short handle(s) on layer: {thisLayer.name}")
+								if verbose:
+									print(f"  ❌ Short handle(s) on layer: {thisLayer.name}")
 
 							if angledHandles and hasAngledHandles(thisLayer):
 								layersWithAngledHandles.append(thisLayer)
-								print(f"  ❌ Angled handle(s) on layer: {thisLayer.name}")
+								if verbose:
+									print(f"  ❌ Angled handle(s) on layer: {thisLayer.name}")
 
 							if shallowCurve and hasShallowCurve(thisLayer, threshold=float(shallowCurveThreshold)):
 								layersWithShallowCurve.append(thisLayer)
-								print(f"  ❌ Shallow curve(s) on layer: {thisLayer.name}")
+								if verbose:
+									print(f"  ❌ Shallow curve(s) on layer: {thisLayer.name}")
 
 							if shallowCurveBBox and hasShallowCurveBBox(thisLayer, threshold=float(shallowCurveBBoxThreshold)):
 								layersWithShallowCurveBBox.append(thisLayer)
-								print(f"  ❌ Shallow curve bbox(es) on layer: {thisLayer.name}")
+								if verbose:
+									print(f"  ❌ Shallow curve bbox(es) on layer: {thisLayer.name}")
 
-							if almostOrthogonalLines and hasAlmostOrthogonalLines(thisLayer, threshold=float(almostOrthogonalLinesThreshold)):
+							if almostOrthogonalLines and hasAlmostOrthogonalLines(thisLayer, threshold=float(almostOrthogonalLinesThreshold), minLength=almostOrthogonalLinesMinLength, minLengthCheck=almostOrthogonalLines):
 								layersWithAlmostOrthogonalLines.append(thisLayer)
-								print(f"  ❌ Almost orthogonal line(s) on layer: {thisLayer.name}")
+								if verbose:
+									print(f"  ❌ Almost orthogonal line(s) on layer: {thisLayer.name}")
 
 							if shortSegment and hasShortSegment(thisLayer, threshold=float(shortSegmentThreshold)):
 								layersWithshortSegments.append(thisLayer)
-								print(f"  ❌ Short line(s) on layer: {thisLayer.name}")
+								if verbose:
+									print(f"  ❌ Short line(s) on layer: {thisLayer.name}")
 
 							if badOutlineOrder and hasBadOutlineOrder(thisLayer):
 								layersWithBadOutlineOrder.append(thisLayer)
-								print(f"  ❌ Bad outline order(s) on layer: {thisLayer.name}")
+								if verbose:
+									print(f"  ❌ Bad outline order(s) on layer: {thisLayer.name}")
 
 							if badPathDirections and hasBadPathDirections(thisLayer):
 								layersWithBadPathDirections.append(thisLayer)
-								print(f"  ❌ Bad path direction(s) on layer: {thisLayer.name}")
+								if verbose:
+									print(f"  ❌ Bad path direction(s) on layer: {thisLayer.name}")
 
 							if strayPoints and hasStrayPoints(thisLayer):
 								layersWithStrayPoints.append(thisLayer)
-								print(f"  ❌ Stray points on layer: {thisLayer.name}")
+								if verbose:
+									print(f"  ❌ Stray points on layer: {thisLayer.name}")
 
 							if twoPointOutlines and hasTwoPointOutlines(thisLayer):
 								layersWithTwoPointOutlines.append(thisLayer)
-								print(f"  ❌ Two-point outline(s) on layer: {thisLayer.name}")
+								if verbose:
+									print(f"  ❌ Two-point outline(s) on layer: {thisLayer.name}")
 
 							if openPaths:
 								shouldProcess = True
@@ -793,19 +847,23 @@ class PathProblemFinder(mekkaObject):
 										shouldProcess = False
 								if shouldProcess and hasOpenPaths(thisLayer):
 									layersWithOpenPaths.append(thisLayer)
-									print(f"  ❌ Open path(s) on layer: {thisLayer.name}")
+									if verbose:
+										print(f"  ❌ Open path(s) on layer: {thisLayer.name}")
 
 							if decimalCoordinates and hasDecimalCoordinates(thisLayer):
 								layersWithDecimalCoordinates.append(thisLayer)
-								print(f"  ❌ Decimal coordinates in layer: {thisLayer.name}")
+								if verbose:
+									print(f"  ❌ Decimal coordinates in layer: {thisLayer.name}")
 
 							if quadraticCurves and hasQuadraticCurves(thisLayer):
 								layersWithQuadraticCurves.append(thisLayer)
-								print(f"  ❌ Quadratic curves in layer: {thisLayer.name}")
+								if verbose:
+									print(f"  ❌ Quadratic curves in layer: {thisLayer.name}")
 
 							if emptyPaths and hasEmptyPaths(thisLayer):
 								layersWithEmptyPaths.append(thisLayer)
-								print(f"  ❌ Empty paths in layer: {thisLayer.name}")
+								if verbose:
+									print(f"  ❌ Empty paths in layer: {thisLayer.name}")
 
 				anyIssueFound = any(allTestLayers)
 				countOfLayers = 0
