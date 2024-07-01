@@ -810,7 +810,7 @@ class PathProblemFinder(mekkaObject):
 								if verbose:
 									print(f"  ❌ Shallow curve bbox(es) on layer: {thisLayer.name}")
 
-							if almostOrthogonalLines and hasAlmostOrthogonalLines(thisLayer, threshold=float(almostOrthogonalLinesThreshold), minLength=almostOrthogonalLinesMinLength, minLengthCheck=almostOrthogonalLines):
+							if almostOrthogonalLines and hasAlmostOrthogonalLines(thisLayer, threshold=float(almostOrthogonalLinesThreshold), minLength=float(almostOrthogonalLinesMinLength), minLengthCheck=almostOrthogonalLinesMinLengthCheck):
 								layersWithAlmostOrthogonalLines.append(thisLayer)
 								if verbose:
 									print(f"  ❌ Almost orthogonal line(s) on layer: {thisLayer.name}")
