@@ -648,6 +648,9 @@ class PathProblemFinder(mekkaObject):
 			excludedParticles = [name.strip().replace(" ", "") for name in exclude.split(",")]
 		else:
 			excludedParticles = []
+			# make sure we avoid [""],
+			# which would always make
+			# the following method return True
 			
 		def nameIsExcluded(name):
 			for particle in excludedParticles:
