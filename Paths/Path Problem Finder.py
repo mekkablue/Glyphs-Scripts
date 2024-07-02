@@ -391,14 +391,14 @@ class PathProblemFinder(mekkaObject):
 		"includeNonExporting": 0,
 		"reuseTab": 1,
 		"verbose": 0,
-		"exclude": "notdef, apple, .ornm",
+		"exclude": "notdef, apple, .ornm, .00",
 	}
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 285
 		windowHeight = 545
-		windowWidthResize = 100  # user can resize width by this value
+		windowWidthResize = 400  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
@@ -643,9 +643,12 @@ class PathProblemFinder(mekkaObject):
 		includeNonExporting = self.pref("includeNonExporting")
 		reuseTab = self.pref("reuseTab")
 		verbose = self.pref("verbose")
-		exclude = self.pref("exclude")
-		excludedParticles = [name.strip().replace(" ", "") for name in exclude.split(",")]
-		
+		exclude = str(self.pref("exclude")).strip()
+		if exclude:
+			excludedParticles = [name.strip().replace(" ", "") for name in exclude.split(",")]
+		else:
+			excludedParticles = []
+			
 		def nameIsExcluded(name):
 			for particle in excludedParticles:
 				if particle in name:
