@@ -71,8 +71,8 @@ class Rotator(mekkaObject):
 		try:
 			selectedLayers = Glyphs.currentDocument.selectedLayers()
 			myRotationCenter = NSPoint()
-			myRotationCenter.x = int(Glyphs.defaults["com.mekkablue.rotateAroundAnchor.anchor_x"])
-			myRotationCenter.y = int(Glyphs.defaults["com.mekkablue.rotateAroundAnchor.anchor_y"])
+			myRotationCenter.x = int(self.pref("anchor_x"))
+			myRotationCenter.y = int(self.pref("anchor_y"))
 			myRotationAnchor = GSAnchor("#%s" % rotateAnchorName, myRotationCenter)
 			for thisLayer in selectedLayers:
 				# adds '#rotate' if it doesn't exist, resets it if it exists:
@@ -136,14 +136,14 @@ class Rotator(mekkaObject):
 			rotationDirection = -1
 
 		if "+" in originatingButton:
-			repeatCount = int(Glyphs.defaults["com.mekkablue.rotateAroundAnchor.stepAndRepeat_times"])
+			repeatCount = int(self.pref("stepAndRepeat_times"))
 		else:
 			repeatCount = 0
 
-		rotationDegrees = float(Glyphs.defaults["com.mekkablue.rotateAroundAnchor.rotate_degrees"])
+		rotationDegrees = float(self.pref("rotate_degrees"))
 		rotationCenter = NSPoint(
-			int(Glyphs.defaults["com.mekkablue.rotateAroundAnchor.anchor_x"]),
-			int(Glyphs.defaults["com.mekkablue.rotateAroundAnchor.anchor_y"]),
+			int(self.pref("anchor_x")),
+			int(self.pref("anchor_y")),
 		)
 
 		if len(selectedLayers) == 1:
