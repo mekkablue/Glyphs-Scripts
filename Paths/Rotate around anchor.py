@@ -157,14 +157,18 @@ class Rotator(mekkaObject):
 				thisGlyph = thisLayer.parent
 				selectionCounts = selectionCounts and bool(thisLayer.selection)  # True only if both are True
 				RotationTransform = self.rotationTransform(rotationCenter, rotationDegrees, rotationDirection)
-				print("rotationCenter, rotationDegrees, rotationDirection:", rotationCenter, rotationDegrees, rotationDirection)
+				# print("rotationCenter, rotationDegrees, rotationDirection:", rotationCenter, rotationDegrees, rotationDirection) # DEBUG
 				RotationTransformMatrix = RotationTransform.transformStruct()
 
 				# thisGlyph.beginUndo()  # undo grouping causes crashes
 
 				if repeatCount == 0:  # simple rotation
-					for thisThing in selection:
-						thisLayer.transform_checkForSelection_doComponents_(RotationTransform, selectionCounts, True)
+					for thisShape in thisLayer.shapes:
+						if thisShape.selected:
+							if hasattr(thisShape, "automaticAlignment"):
+								thisShape.automaticAlignment = 0
+							thisShape.applyTransform(RotationTransformMatrix)
+						# thisLayer.transform_checkForSelection_doComponents_(RotationTransform, selectionCounts, True)
 				else:  # step and repeat paths and components
 					newPaths, newComps = [], []
 					for i in range(repeatCount):
@@ -176,6 +180,7 @@ class Rotator(mekkaObject):
 								newPaths.append(rotatedPath)
 						for thisComp in thisLayer.components:
 							if thisComp.selected or not selectionCounts:
+								thisComp.automaticAlignment = 0
 								rotatedComp = thisComp.copy()
 								for j in range(i + 1):
 									rotatedComp.applyTransform(RotationTransformMatrix)
