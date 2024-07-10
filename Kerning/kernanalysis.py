@@ -295,6 +295,7 @@ def distanceFromEntry(entry, font, masterID, default=0.0):
 	try:
 		distance = float(entry)
 	except:
+		print(entry, "not a float")
 		correction = 0
 		for operator in "+-":
 			if operator in entry and entry.split(operator)[1].isnumeric():
@@ -306,7 +307,7 @@ def distanceFromEntry(entry, font, masterID, default=0.0):
 			glyphs = glyphs[:2]
 		elif len(glyphs) == 1:
 			glyphs.append(glyphs[0])
-		else: # len(glyphs) == 0
+		elif len(glyphs) == 0:
 			return default
 		leftLayer = glyphs[0].layers[masterID]
 		rightLayer = glyphs[1].layers[masterID]
