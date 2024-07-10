@@ -158,7 +158,7 @@ class Bumper(mekkaObject):
 		
 		self.w.keepExistingKerning = vanilla.CheckBox((inset + 5, linePos, tabStop-inset, smallCheckboxHeight), "Keep (don’t overwrite) existing kerning", value=True, sizeStyle='small', callback=self.SavePreferences)
 		self.w.keepExistingKerning.getNSButton().setToolTip_("If the kern pair already exists in the font, it will not be overwritten.")
-		self.w.resetExceptionsForGroups = vanilla.CheckBox((inset + tabStop, linePos, -inset, smallCheckboxHeight), "Delete exceptions when group kerning", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.resetExceptionsForGroups = vanilla.CheckBox((inset + tabStop, linePos, -inset, smallCheckboxHeight), "Delete exceptions when group-kerning", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.resetExceptionsForGroups.getNSButton().setToolTip_("When AutoBummper is supposed to add group kerning (when you have one or both of the ‘As groups’ checkboxes on), and a group kern is overridden by a kerning exception, then delete that kerning exception. Does nothing if no ‘As groups’ checkboxes are selected.")
 		linePos += lineHeight
 		
