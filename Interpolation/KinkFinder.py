@@ -323,6 +323,10 @@ class KinkFinder(mekkaObject):
 			if self.pref("bringMacroWindowToFront"):
 				Glyphs.showMacroWindow()
 
+			# Turn on node labels if nodes are to  be marked:
+			if self.pref("markKinks"):
+				Glyphs.defaults["showNodeNames"] = True
+
 			# query user settings:
 			thisFont = Glyphs.font
 			maxKink = self.prefFloat("maxKinkSize")
