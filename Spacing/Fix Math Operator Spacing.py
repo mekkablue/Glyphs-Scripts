@@ -303,78 +303,7 @@ class FixMathOperatorSpacing(mekkaObject):
 										# update metrics:
 										# layer.updateMetrics()
 										# layer.syncMetrics()
-
-			# SYNC LESS/GREATER:
-			if syncWidthsLessGreater:
-
-				# overwrite options:
-				if lessGreaterRadioButtons > 0:
-					centerMathOperators = False
-				if lessGreaterRadioButtons == 2:
-					referenceOperatorName = lessGreaterMetricReferenceName
-					referenceOperatorGlyph = thisFont.glyphs[referenceOperatorName]
-
-				if not referenceOperatorGlyph:
-					self.warnAboutMissingGlyph(referenceOperatorName)
-				else:
-					for lessGreaterChar in lessGreater:
-						lessGreaterGlyphName = "%s%s" % (Glyphs.niceGlyphName(lessGreaterChar), suffix)
-						lessGreaterGlyph = thisFont.glyphs[lessGreaterGlyphName]
-						if not lessGreaterGlyph:
-							self.warnAboutMissingGlyph(lessGreaterGlyphName)
-						else:
-							# do not process reference glyph twice:
-							lessGreaterReferenceAlreadyProcessed = syncWidthOfLessGreaterReference and lessGreaterRadioButtons == 2 and syncWidthsLessGreater
-							if not (lessGreaterGlyphName == referenceOperatorName and lessGreaterReferenceAlreadyProcessed):
-								self.reportProcessing(lessGreaterGlyphName)
-
-								# add metrics keys if necessary
-								if metricKeysForMathOperators:
-									widthKey = "=%s" % referenceOperatorName
-									sbKey = widthKey
-
-									notBothLess = "less" in referenceOperatorName and "less" not in lessGreaterGlyphName
-									notBothGreater = "great" in referenceOperatorName and "great" not in lessGreaterGlyphName
-									if notBothLess or notBothGreater:
-										sbKey = "=|%s" % referenceOperatorName
-									lessGreaterGlyph.widthMetricsKey = widthKey
-									lessGreaterGlyph.leftMetricsKey = sbKey
-									lessGreaterGlyph.rightMetricsKey = None
-									print("   ✅ Set keys for width: %s, LSB: %s" % (widthKey, sbKey))
-
-								for layer in lessGreaterGlyph.layers:
-									if layer.isAligned:
-										self.warnAboutAutoAlignedLayer(layer)
-									else:
-										# check if layer is relevant in the first place:
-										master = layer.associatedFontMaster()
-										isMasterLayer = layer.layerId == master.id
-										isBracketLayer = "[" in layer.name and "]" in layer.name
-										isBraceLayer = "{" in layer.name and "}" in layer.name
-										if isMasterLayer or isBraceLayer or isBracketLayer:
-											referenceLayer = referenceOperatorGlyph.layers[master.id]
-
-											# sync width with reference glyph (only for other glyphs):
-											if lessGreaterGlyph != referenceOperatorGlyph:
-
-												# update width
-												layer.width = referenceLayer.width
-
-												# update metrics keys if necessary
-												if metricKeysForMathOperators:
-													self.updateMetricKeys(layer)
-
-											# center shape (also for reference glyph):
-											if centerMathOperators:
-												self.centerLayerInWidth(layer)
-
-												# add metricskey if necessary:
-												# if metricKeysForMathOperators:
-												# 	mathOperatorGlyph.rightMetricsKey = "=|"
-												# update metrics:
-												# layer.updateMetrics()
-												# layer.syncMetrics()
-
+			
 			# center +−×÷=≠≈~
 			if syncHeights:
 				for mathOperatorChar in heightSyncOperators:
@@ -411,6 +340,82 @@ class FixMathOperatorSpacing(mekkaObject):
 											shiftTransform = NSAffineTransform.transform()
 											shiftTransform.translateXBy_yBy_(xOffset, yOffset)
 											layer.applyTransform(shiftTransform.transformStruct())
+
+
+			# SYNC LESS/GREATER:
+			if syncWidthsLessGreater:
+
+				# overwrite options:
+				if lessGreaterRadioButtons > 0:
+					centerMathOperators = False
+				if lessGreaterRadioButtons == 2:
+					referenceOperatorName = lessGreaterMetricReferenceName
+					referenceOperatorGlyph = thisFont.glyphs[referenceOperatorName]
+
+				if not referenceOperatorGlyph:
+					self.warnAboutMissingGlyph(referenceOperatorName)
+				else:
+					for lessGreaterChar in lessGreater:
+						lessGreaterGlyphName = "%s%s" % (Glyphs.niceGlyphName(lessGreaterChar), suffix)
+						lessGreaterGlyph = thisFont.glyphs[lessGreaterGlyphName]
+						if not lessGreaterGlyph:
+							self.warnAboutMissingGlyph(lessGreaterGlyphName)
+						else:
+							# do not process reference glyph twice:
+							lessGreaterReferenceAlreadyProcessed = syncWidthOfLessGreaterReference and lessGreaterRadioButtons == 2 and syncWidthsLessGreater
+							if not (lessGreaterGlyphName == referenceOperatorName and lessGreaterReferenceAlreadyProcessed):
+								self.reportProcessing(lessGreaterGlyphName)
+
+								# add metrics keys if necessary
+								if metricKeysForMathOperators:
+									widthKey = "=%s" % referenceOperatorName
+									sbKey = widthKey
+
+									notBothLess = "less" in referenceOperatorName and "less" not in lessGreaterGlyphName
+									notBothGreater = "great" in referenceOperatorName and "great" not in lessGreaterGlyphName
+									if notBothLess or notBothGreater:
+										sbKey = "=|%s" % referenceOperatorName
+										lessGreaterGlyph.rightMetricsKey = sbKey
+										sb = "RSB"
+									else:
+										lessGreaterGlyph.leftMetricsKey = sbKey
+										sb = "LSB"
+									lessGreaterGlyph.widthMetricsKey = widthKey
+									print("   ✅ Set keys for width: %s, %s: %s" % (widthKey, sb, sbKey))
+
+								for layer in lessGreaterGlyph.layers:
+									if layer.isAligned:
+										self.warnAboutAutoAlignedLayer(layer)
+									else:
+										# check if layer is relevant in the first place:
+										master = layer.associatedFontMaster()
+										isMasterLayer = layer.layerId == master.id
+										isBracketLayer = "[" in layer.name and "]" in layer.name
+										isBraceLayer = "{" in layer.name and "}" in layer.name
+										if isMasterLayer or isBraceLayer or isBracketLayer:
+											referenceLayer = referenceOperatorGlyph.layers[master.id]
+
+											# sync width with reference glyph (only for other glyphs):
+											if lessGreaterGlyph != referenceOperatorGlyph:
+
+												# update width
+												layer.width = referenceLayer.width
+
+												# update metrics keys if necessary
+												if metricKeysForMathOperators:
+													self.updateMetricKeys(layer)
+
+											# center shape (also for reference glyph):
+											if centerMathOperators:
+												self.centerLayerInWidth(layer)
+
+												# add metricskey if necessary:
+												# if metricKeysForMathOperators:
+												# 	mathOperatorGlyph.rightMetricsKey = "=|"
+												# update metrics:
+												# layer.updateMetrics()
+												# layer.syncMetrics()
+
 											
 			self.SavePreferences()
 
