@@ -21,12 +21,14 @@ class NewTabwithOverkernedPairs(mekkaObject):
 		"limitToExportingGlyphs": 1,
 		"rounding": 5,
 		"scope": 1,
+		"verbose": False,
+		"ignore": "fraction, slash, .percent",
 	}
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 290
-		windowHeight = 180
+		windowHeight = 200
 		windowWidthResize = 100  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -52,7 +54,12 @@ class NewTabwithOverkernedPairs(mekkaObject):
 		self.w.rounding = vanilla.EditText((inset + 210, linePos - 1, -inset, 19), "5", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.limitToExportingGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Limit to exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.limitToExportingGlyphs = vanilla.CheckBox((inset, linePos - 1, 170, 20), "Limit to exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.verbose = vanilla.CheckBox((inset+170, linePos-1, -inset, 20), "Verbose reporting (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		linePos += lineHeight
+		
+		self.w.ignoreText = vanilla.TextBox((inset, linePos+2, 140, 14), "Ignore glyphs containing:", sizeStyle="small", selectable=True)
+		self.w.ignore = vanilla.EditText((inset+140, linePos, -inset, 19), "fraction, .percent", callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		self.w.scopeText = vanilla.TextBox((inset, linePos + 2, 50, 14), "Apply to", sizeStyle="small", selectable=True)
@@ -96,6 +103,14 @@ class NewTabwithOverkernedPairs(mekkaObject):
 			except:
 				Message(title="Value Error", message="The threshold value you entered is invalid", OKButton="Oops")
 				return
+			
+			verbose = bool(self.pref("verbose"))
+			ignores = [particle.strip() for particle in self.pref("ignore").split(",") if len(particle.strip()) > 0]
+			def glyphNameContainsIgnoredParticle(glyphName, ignoredParticles=ignores):
+				for particle in ignoredParticles:
+					if particle in glyphName:
+						return True
+				return False
 
 			overKernCount = 0
 			for thisFont in theseFonts:
@@ -129,6 +144,9 @@ class NewTabwithOverkernedPairs(mekkaObject):
 					else:
 						theseGlyphs = thisFont.glyphs
 					for thisGlyph in theseGlyphs:
+						if glyphNameContainsIgnoredParticle(thisGlyph.name):
+							continue
+							
 						thisLayer = thisGlyph.layers[thisMaster.id]
 
 						# left side of the glyph (= right side of kern pair)
@@ -153,10 +171,17 @@ class NewTabwithOverkernedPairs(mekkaObject):
 
 					# go through kern values and collect them in tabText:
 					for leftKey in masterKerning.keys():
+						if leftKey[0] == "@" and not leftKey[7:] in rightGroupMinimumWidths.keys():
+							continue
+							
 						for rightKey in masterKerning[leftKey].keys():
+							if rightKey[0] == "@" and not rightKey[7:] in leftGroupMinimumWidths.keys():
+								continue
+								
 							kernValue = masterKerning[leftKey][rightKey]
 							if kernValue >= 0:
 								continue
+
 							leftWidth = None
 							rightWidth = None
 							try:
@@ -208,7 +233,8 @@ class NewTabwithOverkernedPairs(mekkaObject):
 									overKernCount += 1
 									layers.append(thisFont.glyphs[leftGlyphName].layers[thisMaster.id])
 									layers.append(thisFont.glyphs[rightGlyphName].layers[thisMaster.id])
-									print(f"\tOverkern: {leftGlyphName} ↔️ {rightGlyphName} ({kernValue:.0f} vs. min {minAllowedKernValue:.1f})")
+									if verbose:
+										print(f"\tOverkern: {leftGlyphName} ↔️ {rightGlyphName} ({kernValue:.0f} vs. min {minAllowedKernValue:.1f})")
 									if thisFont.glyphs["space"]:
 										layers.append(thisFont.glyphs["space"].layers[thisMaster.id])
 									if shouldFix:
@@ -217,9 +243,10 @@ class NewTabwithOverkernedPairs(mekkaObject):
 							except Exception as e:
 								# probably a kerning group name found in the kerning data, but no glyph assigned to it:
 								# brings macro window to front and reports warning:
-								print(e)
+								print("*", e)
 								import traceback
 								errormsg = traceback.format_exc()
+								print(errormsg)
 								for side in ("left", "right"):
 									if side not in errormsg.lower():
 										print(
