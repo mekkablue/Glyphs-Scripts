@@ -49,11 +49,11 @@ for thisMaster, otherMaster in zip(thisFont.masters, otherFont.masters):
 	for key in keyValueDict:
 		thisValue, otherValue = keyValueDict[key]
 		if thisValue == otherValue:
-			print(u"✅ %s value is the same: %i" % (key, thisValue))
+			print("✅ %s value is the same: %i" % (key, thisValue))
 		else:
-			print(u"⚠️ Different %s values:" % key)
-			print(u"   A. %.1f in %s" % (thisValue, thisMaster.name))
-			print(u"   B. %.1f in %s" % (otherValue, otherMaster.name))
+			print("⚠️ Different %s values:" % key)
+			print("   A. %.1f in %s" % (thisValue, thisMaster.name))
+			print("   B. %.1f in %s" % (otherValue, otherMaster.name))
 
 	# count zones, stems:
 	compareCount(
@@ -68,15 +68,15 @@ for thisMaster, otherMaster in zip(thisFont.masters, otherFont.masters):
 			# GLYPHS 3 code:
 			compareCount(
 				"Vertical Stems",
-				len([stem for stem in thisMaster.stems if not stem.horizontal]),
-				len([stem for stem in otherMaster.stems if not stem.horizontal]),
+				len([stem for i, stem in enumerate(thisMaster.stems) if not thisFont.stems[i].horizontal]),
+				len([stem for i, stem in enumerate(otherMaster.stems) if not otherFont.stems[i].horizontal]),
 				thisMaster.name,
 				otherMaster.name,
 			)
 			compareCount(
 				"Horizontal Stems",
-				len([stem for stem in thisMaster.stems if stem.horizontal]),
-				len([stem for stem in otherMaster.stems if stem.horizontal]),
+				len([stem for i, stem in enumerate(thisMaster.stems) if thisFont.stems[i].horizontal]),
+				len([stem for i, stem in enumerate(otherMaster.stems) if otherFont.stems[i].horizontal]),
 				thisMaster.name,
 				otherMaster.name,
 			)
@@ -106,13 +106,13 @@ for thisMaster, otherMaster in zip(thisFont.masters, otherFont.masters):
 	thisSet, otherSet = compareLists(theseParameters, otherParameters)
 	if thisSet or otherSet:
 		if otherSet:
-			print(u"❌ Parameters not in (A) %s:" % thisMaster.name)
+			print("❌ Parameters not in (A) %s:" % thisMaster.name)
 			print("   %s" % ("\n   ".join(otherSet)))
 		if thisSet:
-			print(u"❌ Parameters not in (B) %s:" % otherMaster.name)
+			print("❌ Parameters not in (B) %s:" % otherMaster.name)
 			print("   %s" % ("\n   ".join(thisSet)))
 	else:
-		print(u"✅ Same structure of parameters in both masters.")
+		print("✅ Same structure of parameters in both masters.")
 
 	# detailed comparison:
 	for thisParameter in thisMaster.customParameters:
@@ -122,12 +122,12 @@ for thisMaster, otherMaster in zip(thisFont.masters, otherFont.masters):
 				otherParameter = currParameter
 				break
 		if otherParameter:
-			if thisParameter == otherParameter:
+			if thisParameter.name == otherParameter.name and thisParameter.value == otherParameter.value:
 				parameterContent = cleanUpAndShortenParameterContent(thisParameter)
-				print(u"💚 Parameter %s: same value (%s). OK." % (thisParameter.name, parameterContent))
+				print("💚 Parameter %s: same value (%s). OK." % (thisParameter.name, parameterContent))
 			else:
 				thisContent = cleanUpAndShortenParameterContent(thisParameter)
 				otherContent = cleanUpAndShortenParameterContent(otherParameter)
-				print(u"⚠️ Parameter %s: different values." % thisParameter.name)
-				print(u"    A. %s in %s" % (thisContent, thisMaster.name))
-				print(u"    B. %s in %s" % (otherContent, otherMaster.name))
+				print("⚠️ Parameter %s: different values." % thisParameter.name)
+				print("    A. %s in %s (%s)" % (thisContent, thisMaster.name, repr(thisParameter)))
+				print("    B. %s in %s (%s)" % (otherContent, otherMaster.name, repr(otherParameter)))
