@@ -354,7 +354,6 @@ class FindNearVerticalMisses(mekkaObject):
 												vertical = thisNode.x == thisNode.prevNode.x == thisNode.nextNode.x
 												linedUp = (thisNode.y - thisNode.prevNode.y) * (thisNode.nextNode.y - thisNode.y) > 0.0
 												if vertical and linedUp:
-													print("__skipThisNode", thisNode)
 													continue
 										else:
 											print(f"⚠️ Potential open path in {thisGlyph.name}")
@@ -388,7 +387,6 @@ class FindNearVerticalMisses(mekkaObject):
 											glyphType = "Smallcaps"
 									else:
 										glyphType = thisGlyph.subCategory
-									print("__thisNode", thisNode)
 									if self.isNodeSlightlyOff(thisNode.position, thisLayer.master, deviance, previousY, nextY, glyphType, suffix):
 										# collect layer:
 										if thisLayer not in affectedLayers:
