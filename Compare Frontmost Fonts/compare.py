@@ -25,7 +25,10 @@ def compareLists(thisSet, otherSet, ignoreEmpty=False):
 def cleanUpAndShortenParameterContent(thisParameter, maxLength=20):
 	if Glyphs.versionNumber >= 3:
 		# GLYPHS 3 code:
-		parameterContent = repr(thisParameter.value)
+		if isinstance(thisParameter, GSCustomParameter):
+			parameterContent = repr(thisParameter.value)
+		else:
+			parameterContent = repr(thisParameter)
 	else:
 		# GLYPHS 2 code:
 		parameterContent = unicode(repr(thisParameter))  # noqa: F821
