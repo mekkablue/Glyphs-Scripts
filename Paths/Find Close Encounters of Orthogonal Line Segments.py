@@ -119,6 +119,8 @@ class FindCloseEncounters(mekkaObject):
 				for g in thisFont.glyphs:
 					# cleaning up existing guide markers
 					for layer in g.layers:
+						if not layer.isMasterLayer and not layer.isSpecialLayer:
+							continue
 						if layer.guides:
 							for i in range(len(layer.guides) - 1, -1, -1):
 								guide = layer.guides[i]
@@ -133,6 +135,8 @@ class FindCloseEncounters(mekkaObject):
 						if any(particleInGlyphName):
 							continue
 					for layer in g.layers:
+						if not layer.isMasterLayer and not layer.isSpecialLayer:
+							continue
 						if not layer.paths and not includeComposites:
 							continue
 
