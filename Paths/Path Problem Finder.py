@@ -619,7 +619,7 @@ class PathProblemFinder(mekkaObject):
 		shortHandles = self.pref("shortHandles")
 		shortHandlesThreshold = self.pref("shortHandlesThreshold")
 		angledHandles = self.pref("angledHandles")
-		# angledHandlesAngle = self.pref("angledHandlesAngle")
+		angledHandlesAngle = float(self.pref("angledHandlesAngle"))
 		shallowCurveBBox = self.pref("shallowCurveBBox")
 		shallowCurveBBoxThreshold = self.pref("shallowCurveBBoxThreshold")
 		shallowCurve = self.pref("shallowCurve")
@@ -801,7 +801,7 @@ class PathProblemFinder(mekkaObject):
 								if verbose:
 									print(f"  ❌ Short handle(s) on layer: {thisLayer.name}")
 
-							if angledHandles and hasAngledHandles(thisLayer):
+							if angledHandles and hasAngledHandles(thisLayer, angledHandlesAngle):
 								layersWithAngledHandles.append(thisLayer)
 								if verbose:
 									print(f"  ❌ Angled handle(s) on layer: {thisLayer.name}")
