@@ -103,6 +103,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Toggle RTL-LTR:** Toggle frontmost tab between LTR and RTL writing direction. Useful for setting a keyboard shortcut in System Preferences.
 * **Toggle Script Windows:** Shows or hides all script windows. Good for assigning a shortcut in the app settings.
 * **Update git Repositories in Scripts Folder:** Executes a 'git pull' command on all subfolders in the Glyphs Scripts folder. Useful if you have a lot of git repos in your Scripts folder.
+* **Update Text Preview:** Force updates *Window > Text Preview.* Can be useful if you are making changes outside the font window (like in an OT feature in Font Info) and the preview will not refresh by itself.
 * **Navigate > Activate next/previous glyph:** Will activate the next/previous glyph in Edit view for editing.
 
 ## Build Glyphs
