@@ -49,7 +49,7 @@ class AxisLocationSetter(mekkaObject):
 		linePos += lineHeight
 
 		self.w.descriptionText2 = vanilla.TextBox((inset, linePos + 2, 50, 14), "For axis", sizeStyle='small', selectable=True)
-		self.w.axisName = vanilla.PopUpButton((inset + 50, linePos, -100 - inset, 17), self.axesOfCurrentFont(), sizeStyle='small', callback=self.SavePreferences)
+		self.w.axisName = vanilla.ComboBox((inset + 50, linePos, -100 - inset, 17), self.axesOfCurrentFont(), sizeStyle='small', callback=self.SavePreferences)
 		self.w.descriptionText21 = vanilla.TextBox((-100 - inset, linePos + 2, -inset, 14), ", set coordinates:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
@@ -107,14 +107,16 @@ class AxisLocationSetter(mekkaObject):
 	def particlesOfCurrentFont(self, sender=None):
 		particles = []
 		currentFont = Glyphs.font
+		print("CURRENT FONT", currentFont)
 		if currentFont:
-			for i in currentFont.instances:
+			for i in (currentFont.masters + currentFont.instances):
 				for particle in i.name.split(" "):
-					if particle not in particles:
+					if particle and particle not in particles:
 						particles.append(particle)
 				if i.name not in particles:
 					particles.append(i.name)
 			particles.sort()
+		print("PARTICLES", particles)
 		return particles
 
 	def axesOfCurrentFont(self, sender=None):
@@ -186,17 +188,17 @@ class AxisLocationSetter(mekkaObject):
 		modifiedParticle = delim.join(particle.split())
 
 		# particle in the MIDDLE of the name:
-		searchTerm = "%s%s%s" % (delim, modifiedParticle, delim)
+		searchTerm = f"{modifiedParticle}{delim}{delim}"
 		if searchTerm in modifiedInstanceName:
 			return True
 
 		# particle at the END of the name:
-		searchTerm = "%s%s" % (delim, modifiedParticle)
+		searchTerm = f"{delim}{modifiedParticle}"
 		if modifiedInstanceName.endswith(searchTerm):
 			return True
 
 		# particle at the BEGINNING of the name:
-		searchTerm = "%s%s" % (modifiedParticle, delim)
+		searchTerm = f"{delim}{modifiedParticle}"
 		if modifiedInstanceName.startswith(searchTerm):
 			return True
 
@@ -230,7 +232,7 @@ class AxisLocationSetter(mekkaObject):
 
 				if not self.fontHasAxisWithName(thisFont, axisName):
 					Message(title="Axis Location Setter Error", message="The frontmost font does not have an axis called ‘%s’." % axisName, OKButton=None)
-					print("❌ Axis ‘%s’ not found." % axisName)
+					print(f"❌ Axis ‘{axisName}’ not found.")
 				else:
 					thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 					try:
@@ -242,10 +244,10 @@ class AxisLocationSetter(mekkaObject):
 									instanceCount += 1
 									if externalAxisValue != "":
 										if self.setAxisLocationCoordinate(thisInstance, axisName, externalAxisValue):
-											print("ℹ️ EXTERNAL %s = %s in %s" % (axisName, externalAxisValue, thisInstance.name))
+											print(f"ℹ️ EXTERNAL {axisName} = {externalAxisValue} in {thisInstance.name}")
 									if internalAxisValue != "":
 										if self.setInternalCoordinate(thisInstance, axisName, internalAxisValue):
-											print("ℹ️ INTERNAL %s = %s in %s" % (axisName, internalAxisValue, thisInstance.name))
+											print(f"ℹ️ INTERNAL {axisName} = {internalAxisValue} in {thisInstance.name}")
 
 						# set axis locations for masters:
 						masterCount = 0
@@ -255,20 +257,20 @@ class AxisLocationSetter(mekkaObject):
 									masterCount += 1
 									if externalAxisValue != "":
 										if self.setAxisLocationCoordinate(thisMaster, axisName, externalAxisValue):
-											print("Ⓜ️ EXTERNAL %s = %s in %s" % (axisName, externalAxisValue, thisMaster.name))
+											print(f"Ⓜ️ EXTERNAL {axisName} = {externalAxisValue} in {thisMaster.name}")
 									if internalAxisValue != "":
 										if self.setInternalCoordinate(thisMaster, axisName, internalAxisValue):
-											print("Ⓜ️ INTERNAL %s = %s in %s" % (axisName, internalAxisValue, thisMaster.name))
+											print(f"Ⓜ️ INTERNAL {axisName} = {internalAxisValue} in {thisMaster.name}")
 					except Exception as e:
 						raise e
 					finally:
 						thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
 
 					# Final report:
-					message = "Coordinates updated in %i instances and %i masters. Details in Macro Window" % (instanceCount, masterCount)
-					print("\n%s" % message)
+					message = f"Coordinates updated in {instanceCount} instances and {masterCount} masters. Details in Macro Window"
+					print(f"\n{message}")
 					Glyphs.showNotification(
-						"%s: Done" % (thisFont.familyName),
+						f"{thisFont.familyName}: Done",
 						message,
 					)
 
