@@ -1,4 +1,4 @@
-# MenuTitle: Adjust Kerning in Master
+# MenuTitle: Adjust Kerning in master
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 try:
@@ -11,16 +11,17 @@ Adjusts all kerning values by a specified amount.
 """
 
 import vanilla
-from GlyphsApp import Glyphs
+from GlyphsApp import Glyphs, GSLTR, GSRTL
 from mekkablue import mekkaObject
 
 optionList = ("Multiply by", "Add", "Add Absolute", "Round by", "Limit to")
 
 
 class AdjustKerning(mekkaObject):
+	prefID = "com.mekkablue.AdjustKerning"
 	prefDict = {
 		"doWhat": 0,
-		"howMuch": "20",
+		"howMuch": 20,
 		"positive": True,
 		"zero": True,
 		"negative": True,
@@ -43,7 +44,6 @@ class AdjustKerning(mekkaObject):
 
 		# UI elements:
 		linePos, inset, lineHeight = 10, 12, 22
-
 		self.w.text_1 = vanilla.TextBox((inset - 1, linePos + 2, -inset, 14), "In the current font master, do this:", sizeStyle='small')
 
 		linePos += lineHeight
@@ -58,8 +58,6 @@ class AdjustKerning(mekkaObject):
 		self.w.zero = vanilla.CheckBox((inset + 65, linePos, 65, 20), "zero, and", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.negative = vanilla.CheckBox((inset + 137, linePos, -inset, 20), "negative pairs", value=True, callback=self.SavePreferences, sizeStyle='small')
 
-		# self.w.keepWindow = vanilla.CheckBox((25, offset*2+line*4, -15, line), "Keep window open", value=False, callback=self.SavePreferences, sizeStyle='small')
-
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Adjust", callback=self.AdjustKerningMain)
 		self.w.setDefaultButton(self.w.runButton)
 
@@ -69,23 +67,23 @@ class AdjustKerning(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-	def nameForID(self, Font, ID):
+	
+	def nameForID(self, font, ID):
 		try:
 			if ID[0] == "@":  # is a group
 				return ID
 			else:  # is a glyph
-				return Font.glyphForId_(ID).name
+				return font.glyphForId_(ID).name
 		except Exception as e:
 			raise e
 
 	def userChoosesToProcessKerning(self, kernValue):
 		try:
-			if Glyphs.defaults[self.domain("positive")] and kernValue > 0:
+			if self.pref("positive") and kernValue > 0:
 				return True
-			elif Glyphs.defaults[self.domain("zero")] and kernValue == 0:
+			elif self.pref("zero") and kernValue == 0:
 				return True
-			elif Glyphs.defaults[self.domain("negative")] and kernValue < 0:
+			elif self.pref("negative") and kernValue < 0:
 				return True
 			else:
 				return False
@@ -94,73 +92,70 @@ class AdjustKerning(mekkaObject):
 
 	def AdjustKerningMain(self, sender):
 		try:
-			Font = Glyphs.font
-			Master = Font.selectedFontMaster
-			MasterID = Master.id
-			MasterKernDict = Font.kerning[MasterID]
-			calculation = str(self.w.doWhat.getItems()[Glyphs.defaults[self.domain("doWhat")]])
-			value = float(Glyphs.defaults[self.domain("howMuch")])
+			font = Glyphs.font
+			master = font.selectedFontMaster
+			masterID = master.id
+			value = float(self.pref("howMuch"))
 
-			Font.disableUpdateInterface()
+			font.disableUpdateInterface()
 			try:
-				if calculation == optionList[0]:
+				for i, directionalKerning in enumerate((font.kerningLTR, font.kerningRTL)):
+					if not masterID in directionalKerning.keys():
+						print(f"No kerning in {('LTR', 'RTL')[i]} direction on master ‘{master.name}’.")
+						continue
+					
+					currentDirection = (GSLTR, GSRTL)[i]
+					masterKernDict = directionalKerning[masterID]
+					
+					if self.pref("doWhat") == 0:
+						for leftGlyphID in masterKernDict.keys():
+							leftName = self.nameForID(font, leftGlyphID)
+							for rightGlyphID in masterKernDict[leftGlyphID].keys():
+								originalKerning = masterKernDict[leftGlyphID][rightGlyphID]
+								if self.userChoosesToProcessKerning(originalKerning):
+									rightName = self.nameForID(font, rightGlyphID)
+									font.setKerningForPair(masterID, leftName, rightName, originalKerning * value, direction=currentDirection)
 
-					for leftGlyphID in MasterKernDict.keys():
-						leftName = self.nameForID(Font, leftGlyphID)
+					elif self.pref("doWhat") == 1:
+						for leftGlyphID in masterKernDict.keys():
+							leftName = self.nameForID(font, leftGlyphID)
+							for rightGlyphID in masterKernDict[leftGlyphID].keys():
+								originalKerning = masterKernDict[leftGlyphID][rightGlyphID]
+								if self.userChoosesToProcessKerning(originalKerning):
+									rightName = self.nameForID(font, rightGlyphID)
+									font.setKerningForPair(masterID, leftName, rightName, originalKerning + value, direction=currentDirection)
 
-						for rightGlyphID in MasterKernDict[leftGlyphID].keys():
-							originalKerning = MasterKernDict[leftGlyphID][rightGlyphID]
-							if self.userChoosesToProcessKerning(originalKerning):
-								rightName = self.nameForID(Font, rightGlyphID)
-								Font.setKerningForPair(MasterID, leftName, rightName, originalKerning * value)
+					elif self.pref("doWhat") == 2:
+						for leftGlyphID in masterKernDict.keys():
+							leftName = self.nameForID(font, leftGlyphID)
+							for rightGlyphID in masterKernDict[leftGlyphID].keys():
+								originalKerning = masterKernDict[leftGlyphID][rightGlyphID]
+								if self.userChoosesToProcessKerning(originalKerning):
+									rightName = self.nameForID(font, rightGlyphID)
+									if originalKerning < 0:
+										factor = -1
+									else:
+										factor = 1
+									font.setKerningForPair(masterID, leftName, rightName, originalKerning + factor * value, direction=currentDirection)
 
-				elif calculation == optionList[1]:
+					elif self.pref("doWhat") == 3:
+						for leftGlyphID in masterKernDict.keys():
+							leftName = self.nameForID(font, leftGlyphID)
+							for rightGlyphID in masterKernDict[leftGlyphID].keys():
+								originalKerning = masterKernDict[leftGlyphID][rightGlyphID]
+								if self.userChoosesToProcessKerning(originalKerning):
+									rightName = self.nameForID(font, rightGlyphID)
+									font.setKerningForPair(masterID, leftName, rightName, round(originalKerning / value, 0) * value, direction=currentDirection)
 
-					for leftGlyphID in MasterKernDict.keys():
-						leftName = self.nameForID(Font, leftGlyphID)
-
-						for rightGlyphID in MasterKernDict[leftGlyphID].keys():
-							originalKerning = MasterKernDict[leftGlyphID][rightGlyphID]
-							if self.userChoosesToProcessKerning(originalKerning):
-								rightName = self.nameForID(Font, rightGlyphID)
-								Font.setKerningForPair(MasterID, leftName, rightName, originalKerning + value)
-
-				elif calculation == optionList[2]:
-
-					for leftGlyphID in MasterKernDict.keys():
-						leftName = self.nameForID(Font, leftGlyphID)
-
-						for rightGlyphID in MasterKernDict[leftGlyphID].keys():
-							originalKerning = MasterKernDict[leftGlyphID][rightGlyphID]
-							if self.userChoosesToProcessKerning(originalKerning):
-								rightName = self.nameForID(Font, rightGlyphID)
-								if originalKerning < 0:
-									factor = -1
-								else:
-									factor = 1
-								Font.setKerningForPair(MasterID, leftName, rightName, originalKerning + factor * value)
-
-				elif calculation == optionList[3]:
-
-					for leftGlyphID in MasterKernDict.keys():
-						leftName = self.nameForID(Font, leftGlyphID)
-
-						for rightGlyphID in MasterKernDict[leftGlyphID].keys():
-							originalKerning = MasterKernDict[leftGlyphID][rightGlyphID]
-							if self.userChoosesToProcessKerning(originalKerning):
-								rightName = self.nameForID(Font, rightGlyphID)
-								Font.setKerningForPair(MasterID, leftName, rightName, round(originalKerning / value, 0) * value)
-
-				elif calculation == optionList[4]:
-
-					for left in MasterKernDict.keys():
-						for right in MasterKernDict[left].keys():
-							originalKerning = MasterKernDict[left][right]
-							if self.userChoosesToProcessKerning(originalKerning):
-								if originalKerning > abs(value):
-									MasterKernDict[left][right] = abs(value)
-								elif originalKerning < -abs(value):
-									MasterKernDict[left][right] = -abs(value)
+					elif self.pref("doWhat") == 4:
+						for left in masterKernDict.keys():
+							for right in masterKernDict[left].keys():
+								originalKerning = masterKernDict[left][right]
+								if self.userChoosesToProcessKerning(originalKerning):
+									if originalKerning > abs(value):
+										masterKernDict[left][right] = abs(value)
+									elif originalKerning < -abs(value):
+										masterKernDict[left][right] = -abs(value)
 
 			except Exception as e:
 				Glyphs.showMacroWindow()
@@ -171,7 +166,7 @@ class AdjustKerning(mekkaObject):
 				raise e
 
 			finally:
-				Font.enableUpdateInterface()  # re-enables UI updates in Font View
+				font.enableUpdateInterface()  # re-enables UI updates in Font View
 
 			self.SavePreferences()
 		except Exception as e:
