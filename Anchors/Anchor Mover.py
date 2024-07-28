@@ -8,7 +8,7 @@ Batch-process anchor positions in selected glyphs (GUI).
 import vanilla
 import math
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSOFFCURVE, Message, GSMetricsTypeAscender, GSMetricsTypeCapHeight, GSMetricsTypeDescender, GSMetricsTypexHeight, GSMetricsTypeItalicAngle
+from GlyphsApp import Glyphs, GSOFFCURVE, Message, GSMetricsTypexHeight, GSMetricsTypeItalicAngle  # , GSMetricsTypeAscender, GSMetricsTypeCapHeight, GSMetricsTypeDescender
 from mekkablue import mekkaObject
 from mekkablue.geometry import transform, italicize
 
@@ -107,18 +107,18 @@ class AnchorMover2(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth  = 500
+		windowWidth = 500
 		windowHeight = 200
-		windowWidthResize  = 700 # user can resize width by this value
+		windowWidthResize = 700  # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Anchor Mover", # window title
-			minSize = (windowWidth -130, windowHeight), # minimum size (for resizing)
-			maxSize = (windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName = self.domain("mainwindow") # stores last window position and size
+			(windowWidth, windowHeight),  # default window size
+			"Anchor Mover",  # window title
+			minSize=(windowWidth - 130, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
-		
+
 		linePos, inset, lineHeight = 12, 15, 22
 
 		self.w.text_1 = vanilla.TextBox((inset, linePos + 2, inset + 60, 14), "Move anchor", sizeStyle='small')
@@ -146,8 +146,8 @@ class AnchorMover2(mekkaObject):
 
 		self.w.allMasters = vanilla.CheckBox((inset, linePos, -inset, 20), "All masters and special layers (otherwise only current masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
-		
-		self.w.verbose = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Log in Macro window (slow, use for tracking errors)", value=False, callback=self.SavePreferences, sizeStyle="small")
+
+		self.w.verbose = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Log in Macro window (slow, use for tracking errors)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		self.w.moveButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Move", callback=self.MoveCallback)
@@ -238,7 +238,7 @@ class AnchorMover2(mekkaObject):
 							for copyAnchor in copyLayer.anchors:
 								if copyAnchor.name != anchorName:
 									continue
-									
+
 								oldAnchorX = copyAnchor.x
 								oldAnchorY = copyAnchor.y
 								xMove = eval(evalCodeH) + horizontalChange
