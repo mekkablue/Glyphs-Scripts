@@ -32,12 +32,12 @@ class OTVarGlyphAnimator(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 350
+		windowWidth = 330
 		windowHeight = 90
 		windowWidthResize = 700  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight),  # default window size
+			(windowWidth, windowHeight - 19),  # default window size
 			"OTVar Player",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
