@@ -50,7 +50,7 @@ class OTVarGlyphAnimator(mekkaObject):
 		self.w.slower.getNSButton().setToolTip_("Slower")
 		self.w.faster = vanilla.Button((65, -20 - 15, 47, -15), "🏃", callback=self.faster)
 		self.w.faster.getNSButton().setToolTip_("Faster")
-		self.w.backAndForth = vanilla.CheckBox((125, -20 - 15, 50, -15), "⇋", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.backAndForth = vanilla.CheckBox((125, -20 - 15, 50, -15), "⇋", value=False, callback=self.SavePreferences)
 
 		# web button:
 		self.w.buildWeb = vanilla.Button((-140, -35, -100, -15), "🌍", callback=self.buildWeb)
