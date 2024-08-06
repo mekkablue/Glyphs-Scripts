@@ -98,6 +98,25 @@ class OTVarGlyphAnimator(mekkaObject):
 			print(traceback.format_exc())
 			return False
 
+	def SavePreferences(self, sender):
+		try:
+			Glyphs.defaults[self.domain("slider")] = self.w.slider.get()
+			Glyphs.defaults[self.domain("backAndForth")] = self.w.backAndForth.get()
+		except:
+			return False
+		return True
+
+	def LoadPreferences(self):
+		try:
+			Glyphs.registerDefault(self.domain("slider"), 0)
+			Glyphs.registerDefault(self.domain("delay"), 0.05)
+			Glyphs.registerDefault(self.domain("backAndForth"), False)
+			self.w.slider.set(Glyphs.defaults[self.domain("slider")])
+			self.w.backAndForth.set(Glyphs.defaults[self.domain("backAndForth")])
+		except:
+			return False
+		return True
+
 	def setupWindow(self):
 		if not self.font.tabs:
 			tabText = "a"
