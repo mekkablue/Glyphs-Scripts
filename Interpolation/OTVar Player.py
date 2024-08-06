@@ -112,8 +112,8 @@ class OTVarGlyphAnimator(mekkaObject):
 			Glyphs.registerDefault(self.domain("slider"), 0)
 			Glyphs.registerDefault(self.domain("delay"), 0.05)
 			Glyphs.registerDefault(self.domain("backAndForth"), False)
-			self.w.slider.set(Glyphs.defaults[self.domain("slider")])
-			self.w.backAndForth.set(Glyphs.defaults[self.domain("backAndForth")])
+			self.w.slider.set(self.prefFloat("slider"))
+			self.w.backAndForth.set(self.prefBool("backAndForth"))
 		except:
 			return False
 		return True
