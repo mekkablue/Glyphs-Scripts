@@ -190,7 +190,6 @@ class OTVarGlyphAnimator(mekkaObject):
 				# self.font.currentTab.forceRedraw()
 				# self.font.updateInterface()
 
-			self.SavePreferences()
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
