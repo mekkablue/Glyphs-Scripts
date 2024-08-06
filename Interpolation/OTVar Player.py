@@ -9,7 +9,7 @@ import vanilla
 import os
 import objc
 from AppKit import NSTimer
-from GlyphsApp import Glyphs, GSInstance, Message
+from GlyphsApp import Glyphs, GSInstance, Message, INSTANCETYPESINGLE
 from mekkablue import mekkaObject
 
 
@@ -43,7 +43,7 @@ class OTVarGlyphAnimator(mekkaObject):
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
-
+		self.previewInstances = None
 		# UI elements:
 		self.w.slider = vanilla.Slider((15, 12, -15, 15), tickMarkCount=None, callback=self.redrawPreview, continuous=True, minValue=0, maxValue=100)
 		self.w.slower = vanilla.Button((15, -20 - 15, 47, -15), "🚶", callback=self.slower)
@@ -67,13 +67,14 @@ class OTVarGlyphAnimator(mekkaObject):
 		self.font = Glyphs.font
 		self.originalWeightValue = None
 		self.isPlaying = False
+		self.setupWindow()  # to init self.previewInstances
 		if self.font.instances:
 			try:
 				# GLYPHS 3
-				self.originalWeightValue = self.font.instances[0].axes[0]
+				self.originalWeightValue = self.previewInstances.axes[0]
 			except:
 				# GLYPHS 2
-				self.originalWeightValue = self.font.instances[0].weightValue
+				self.originalWeightValue = self.previewInstances.weightValue
 
 		self.w.bind("close", self.restoreFont)
 
@@ -125,20 +126,26 @@ class OTVarGlyphAnimator(mekkaObject):
 			self.font.newTab(tabText)
 		if self.font.currentTab.previewHeight <= 1.0:
 			self.font.currentTab.previewHeight = 200
-		if not self.font.instances:
-			newInstance = GSInstance()
-			newInstance.name = "Preview Instance"
-			self.font.instances.append(newInstance)
-		self.font.currentTab.previewInstances = self.font.instances[0]
+		previewInstances = None
+		for instance in self.font.instances:
+			if instance.type == INSTANCETYPESINGLE:
+				previewInstances = instance
+				break
+		if not previewInstances:
+			previewInstances = GSInstance()
+			previewInstances.name = "Preview Instance"
+			self.font.instances.append(previewInstances)
+		self.font.currentTab.previewInstances = previewInstances
+		self.previewInstances = previewInstances
 
 	def restoreFont(self, sender):
 		if self.originalWeightValue is not None:
 			try:
 				# GLYPHS 3
-				self.font.instances[0].axes[0] = self.originalWeightValue
+				self.previewInstances.axes[0] = self.originalWeightValue
 			except:
 				# GLYPHS 2
-				self.font.instances[0].weightValue = self.originalWeightValue
+				self.previewInstances.weightValue = self.originalWeightValue
 
 		else:
 			self.font.instances = []
@@ -151,9 +158,9 @@ class OTVarGlyphAnimator(mekkaObject):
 		Glyphs.redraw()
 
 	def redrawPreview(self, sender):
+		if self.previewInstances is None:
+			return
 		try:
-			self.setupWindow()
-
 			# get Slider position
 			sliderPos = self.w.slider.get() / 100.0
 			try:
@@ -172,11 +179,11 @@ class OTVarGlyphAnimator(mekkaObject):
 			# apply to preview instance and redraw
 			try:
 				# GLYPHS 3
-				self.font.instances[0].axes[0] = sliderWt
-				self.font.instances[0].updateInterpolationValues()
+				self.previewInstances.axes[0] = sliderWt
+				self.previewInstances.updateInterpolationValues()
 			except:
 				# GLYPHS 2
-				self.font.instances[0].weightValue = sliderWt
+				self.previewInstances.weightValue = sliderWt
 				self.font.currentTab.updatePreview()
 
 				# not necessary anymore, I think:
@@ -196,6 +203,7 @@ class OTVarGlyphAnimator(mekkaObject):
 		self.isPlaying = not self.isPlaying
 		if self.isPlaying:
 			self.w.runButton.setTitle("Pause")
+			self.setupWindow()
 			self.play_(None)
 		else:
 			self.w.runButton.setTitle("Play")
