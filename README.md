@@ -71,6 +71,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **New Tab with Glyphs Containing Anchor:** Opens a new tab with all glyphs containing a specific anchor.
 * **New Tab with top and bottom Anchors Not on Metric Lines:** Report the y positions of all *top* and *bottom* anchors into the Macro Panel, and opens new tabs with all glyphs that have a stray anchor on any of the master, bracket or brace layers of any glyph in the font. Ignores the user selection, and analyses all glyphs, exporting and non-exporting. Useful to see if a top anchor is not exactly where it should be.
 * **Prefix all exit/entry anchors with a hashtag:** Looks for all exit and entry anchors anywhere in the font, and disables `curs` feature generation by prefixing their anchor names with `#`.
+* **Propagate Components and Mark Anchoring:** Takes the current master’s component and mark anchoring setup and replicates it in all other (compatible) masters. Useful for complex Arabic ligature marks.
 * **Realign Stacking Anchors:** In stacking combining accents, moves top and bottom anchors exactly above or below the respective _top and _bottom anchors, respecting the italic angle. This way, stacking multiple nonspacing accents will always stay in line.
 * **Remove Anchors in Suffixed Glyphs:** Removes all anchors from glyphs with one of the user-specified suffix. Useful for removing left-over anchors in sups/subs/sinf/ordn variants of glyphs after copying, scaling and editing.
 * **Remove Anchors:** Deletes anchors with a specified name in selected glyphs (or the whole font).
@@ -491,3 +492,4 @@ You may obtain a copy of the License at
 http://www.apache.org/licenses/LICENSE-2.0
 
 See the License file included in this repository for further details.
+
