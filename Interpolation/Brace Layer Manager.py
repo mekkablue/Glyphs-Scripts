@@ -144,7 +144,7 @@ class BraceLayerManager(mekkaObject):
 					)
 					return
 				else:
-					self.processFont(thisFont, isBraceLayer, scope, count)
+					count = self.processFont(thisFont, isBraceLayer, scope, count)
 
 					if thisFont.currentTab and Glyphs.versionNumber >= 3:
 						NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
@@ -216,6 +216,7 @@ class BraceLayerManager(mekkaObject):
 						result, count = self.processBracketLayer(layer, count, searchFor, replaceWith, axisID, axisIndex)
 					if not result:
 						break
+		return count
 
 	def processBraceLayer(self, layer, count, searchFor, replaceWith, axisID):
 		if "coordinates" not in layer.attributes.keys():
@@ -245,21 +246,23 @@ class BraceLayerManager(mekkaObject):
 			Glyphs.showMacroWindow()
 			return False
 
-		print(axisRules)
-		axisLimits = axisRules[axisID]
+		axisLimits = dict(axisRules[axisID]) # issues with native NSDictionary
 		if not axisLimits:
 			return
 
 		for border in ("min", "max"):
 			if border in axisLimits.keys():
 				borderLimit = float(axisLimits[border])
-				if borderLimit == searchFor:
+				if borderLimit == float(searchFor):
 					if replaceWith is not None:
 						axisLimits[border] = replaceWith
+						axisRules[axisID] = axisLimits
 					else:
-						del layer.attributes["axisRules"][axisID][border]
-						if not layer.attributes["axisRules"][border]:
-							del layer.attributes["axisRules"][border]
+						del axisLimits[border]
+						if not axisLimits: # empty dict
+							del layer.attributes["axisRules"][axisID]
+						else:
+							layer.attributes["axisRules"][axisID] = axisLimits
 						if not layer.attributes["axisRules"]:
 							del layer.attributes["axisRules"]
 					count += 1
