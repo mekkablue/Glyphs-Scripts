@@ -119,59 +119,58 @@ class BraceLayerManager(mekkaObject):
 		return allCoordinates
 
 	def BraceLayerManagerMain(self, sender=None):
-		try:
-			# clear macro window log:
-			Glyphs.clearLog()
+		# clear macro window log:
+		Glyphs.clearLog()
 
-			# update settings to the latest user input:
-			self.SavePreferences()
+		# update settings to the latest user input:
+		self.SavePreferences()
 
-			isBraceLayer = self.pref("layerType") == 0
-			scope = self.pref("scope")
-			if scope < 2:
-				fonts = (Glyphs.font, )
+		isBraceLayer = self.pref("layerType") == 0
+		scope = self.pref("scope")
+		if scope < 2:
+			fonts = (Glyphs.font, )
+		else:
+			fonts = Glyphs.fonts
+
+		count = 0
+
+		for thisFont in fonts:
+			if thisFont is None:
+				Message(
+					title="No Font Open",
+					message="The script requires a font. Open a font and run the script again.",
+					OKButton=None,
+				)
+				return
 			else:
-				fonts = Glyphs.fonts
-
-			count = 0
-
-			for thisFont in fonts:
-				if thisFont is None:
-					Message(
-						title="No Font Open",
-						message="The script requires a font. Open a font and run the script again.",
-						OKButton=None,
-					)
-					return
-				else:
+				thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+				try:
 					count = self.processFont(thisFont, isBraceLayer, scope, count)
-
 					if thisFont.currentTab and Glyphs.versionNumber >= 3:
 						NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
+				except Exception as e:
+					# brings macro window to front and reports error:
+					Glyphs.showMacroWindow()
+					print(f"💔 Brace and Bracket Manager Error\nFont: {thisFont.familyName}\n{e}")
+					import traceback
+					print(traceback.format_exc())
+				finally:
+					thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+			print()
 
-				print()
-
-			# Final report:
-			reportMsg = "Changed %i %s layer%s" % (
-				count,
-				"brace" if isBraceLayer else "bracket",
-				"" if count == 1 else "s",
-			)
-			if len(fonts) > 1:
-				reportMsg += " in %i fonts"
-			Glyphs.showNotification(
-				"Brace & Bracket Layer Update Done",
-				"%s. Details in Macro Window" % reportMsg,
-			)
-			print("%s.\nDone." % reportMsg)
-
-		except Exception as e:
-			# brings macro window to front and reports error:
-			Glyphs.showMacroWindow()
-			print("Brace and Bracket Manager Error: %s" % e)
-			import traceback
-
-			print(traceback.format_exc())
+		# Final report:
+		reportMsg = "Changed %i %s layer%s" % (
+			count,
+			"brace" if isBraceLayer else "bracket",
+			"" if count == 1 else "s",
+		)
+		if len(fonts) > 1:
+			reportMsg += " in %i fonts"
+		Glyphs.showNotification(
+			"Brace & Bracket Layer Update Done",
+			"%s. Details in Macro Window" % reportMsg,
+		)
+		print("%s.\nDone." % reportMsg)
 
 	def processFont(self, thisFont, isBraceLayer, scope, count):
 		print("Brace and Bracket Manager Report for %s" % thisFont.familyName)
