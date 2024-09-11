@@ -220,9 +220,9 @@ class BraceLayerManager(mekkaObject):
 	def processBraceLayer(self, layer, count, searchFor, replaceWith, axisID):
 		if "coordinates" not in layer.attributes.keys():
 			return True, count
-		# print(f'layer.attributes["coordinates"]["{axisID}"]')
-		currentPos = layer.attributes["coordinates"][axisID]
-		if currentPos == searchFor:
+
+		currentPos = float(layer.attributes["coordinates"][axisID])
+		if currentPos == float(searchFor):
 			if replaceWith is not None:
 				try:
 					layer.attributes["coordinates"][axisID] = replaceWith
