@@ -213,7 +213,9 @@ class BraceLayerManager(mekkaObject):
 						result, count = self.processBraceLayer(layer, count, searchFor, replaceWith, axisID)
 					else:
 						result, count = self.processBracketLayer(layer, count, searchFor, replaceWith, axisID, axisIndex)
-					if not result:
+					if result:
+						glyph.setChangeCount_(glyph.changeCount()+1) # forces palette update
+					else:
 						break
 		return count
 
