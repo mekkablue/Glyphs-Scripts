@@ -478,12 +478,11 @@ class PathProblemFinder(mekkaObject):
 		self.w.almostOrthogonalLinesThreshold.getNSTextField().setToolTip_(tooltipText)
 		self.w.almostOrthogonalLines.getNSButton().setToolTip_(tooltipText)
 		linePos += lineHeight
-		
-		self.w.almostOrthogonalLinesMinLengthCheck = vanilla.CheckBox((inset*2, linePos-1, indent, 20), "min segment length:", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.almostOrthogonalLinesMinLength = vanilla.EditText((inset + indent, linePos-1, -inset - rightIndent - 5, 19), "50", callback=self.SavePreferences, sizeStyle="small")
-		self.w.almostOrthogonalLinesMinLengthText = vanilla.TextBox((-inset - rightIndent, linePos+2, -inset, 14), "units", sizeStyle="small", selectable=True)
+
+		self.w.almostOrthogonalLinesMinLengthCheck = vanilla.CheckBox((inset * 2, linePos - 1, indent, 20), "min segment length:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.almostOrthogonalLinesMinLength = vanilla.EditText((inset + indent, linePos - 1, -inset - rightIndent - 5, 19), "50", callback=self.SavePreferences, sizeStyle="small")
+		self.w.almostOrthogonalLinesMinLengthText = vanilla.TextBox((-inset - rightIndent, linePos + 2, -inset, 14), "units", sizeStyle="small", selectable=True)
 		linePos += lineHeight
-		
 
 		self.w.badOutlineOrder = vanilla.CheckBox((inset, linePos, secondColumn, 20), "Bad outline order", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.badOutlineOrder.getNSButton().setToolTip_("If the first path is clockwise, paths are most likely in the wrong order.")
@@ -535,8 +534,8 @@ class PathProblemFinder(mekkaObject):
 		self.w.includeNonExporting.getNSButton().setToolTip_("If disabled, will ignore glyphs that are set to not export.")
 		linePos += lineHeight
 
-		self.w.excludeText = vanilla.TextBox((inset, linePos+2, 90, 14), "Exclude glyphs:", sizeStyle="small", selectable=True)
-		self.w.exclude = vanilla.EditText((inset+90, linePos-1, -inset, 19), "notdef, apple, .ornm", callback=self.SavePreferences, sizeStyle="small")
+		self.w.excludeText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Exclude glyphs:", sizeStyle="small", selectable=True)
+		self.w.exclude = vanilla.EditText((inset + 90, linePos - 1, -inset, 19), "notdef, apple, .ornm", callback=self.SavePreferences, sizeStyle="small")
 		self.w.exclude.getNSTextField().setToolTip_("Glyphs containing any of these (comma-separated) name particles will be skipped.")
 		linePos += lineHeight
 
@@ -545,7 +544,7 @@ class PathProblemFinder(mekkaObject):
 		self.w.verbose = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Verbose (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.verbose.getNSButton().setToolTip_("If checked will document all findings in the Macro window. Use this only for debugging.")
 		linePos += lineHeight
-		
+
 		# Progress Bar and Status text:
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0)  # set progress indicator to zero
@@ -577,14 +576,14 @@ class PathProblemFinder(mekkaObject):
 					value = self.prefDict[prefName]
 				Glyphs.defaults[self.domain(prefName)] = value
 			self.LoadPreferences()
-		
+
 		self.w.almostOrthogonalLinesMinLengthCheck.enable(self.w.almostOrthogonalLines.get())
 		self.w.almostOrthogonalLinesMinLength.enable(self.w.almostOrthogonalLines.get() and self.w.almostOrthogonalLinesMinLengthCheck.get())
 
 		self.w.exclude.enable(self.w.includeAllGlyphs.get())
 		self.w.includeNonExporting.enable(self.w.includeAllGlyphs.get())
 		self.w.includeAllFonts.enable(self.w.includeAllGlyphs.get())
-		
+
 		self.w.shallowCurveThreshold.enable(self.w.shallowCurve.get())
 		self.w.shallowCurveBBoxThreshold.enable(self.w.shallowCurveBBox.get())
 		self.w.almostOrthogonalLinesThreshold.enable(self.w.almostOrthogonalLines.get())
@@ -651,7 +650,7 @@ class PathProblemFinder(mekkaObject):
 			# make sure we avoid [""],
 			# which would always make
 			# the following method return True
-			
+
 		def nameIsExcluded(name):
 			for particle in excludedParticles:
 				if particle in name:

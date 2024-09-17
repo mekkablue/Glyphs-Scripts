@@ -11,7 +11,7 @@ Set options for existing 'TTFAutohint options' Custom Parameters.
 
 import vanilla
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, Message
+from GlyphsApp import Glyphs, Message, INSTANCETYPEVARIABLE
 from mekkablue import mekkaObject
 
 
@@ -248,11 +248,9 @@ class SetTTFAutohintOptions(mekkaObject):
 		# enable or disable the edit box
 		# self.editValueField()
 
-
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
 
 	def LoadPreferences(self):
 		try:
@@ -264,7 +262,6 @@ class SetTTFAutohintOptions(mekkaObject):
 			import traceback
 			print(traceback.format_exc())
 			print(f"⚠️ ‘{self.__class__.__name__}’ could not load preferences. Will resort to defaults.")
-
 
 	def openURL(self, sender):
 		URL = None

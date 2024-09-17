@@ -213,7 +213,7 @@ class BuildPositionalFeature(mekkaObject):
 					title="No Font Open",
 					message="The script requires a font. Open a font and run the script again.",
 					OKButton=None
-					)
+				)
 			else:
 				print("‘{self.title}’ Report for {thisFont.familyName}")
 				if thisFont.filepath:

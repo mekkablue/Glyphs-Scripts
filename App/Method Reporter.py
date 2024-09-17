@@ -220,7 +220,7 @@ class MethodReporter(mekkaObject):
 
 			shortenedMethods = [
 				self.fullMethodName(className, method) for method in dir(actualClass)
-				if method not in elidableMethods and not method.startswith(".") 
+				if method not in elidableMethods and not method.startswith(".")
 				and (allowUnderscored or not method.startswith("_"))
 			]
 			return shortenedMethods

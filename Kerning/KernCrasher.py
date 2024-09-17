@@ -236,7 +236,6 @@ class KernCrasher(mekkaObject):
 
 		return returnList
 
-
 	def measureLayerAtHeightFromLeftOrRight(self, thisLayer, height, leftSide=True):
 		try:
 			if leftSide:
@@ -251,13 +250,11 @@ class KernCrasher(mekkaObject):
 			raise e
 			return None
 
-
 	def queryPrefs(self):
 		script = self.pref("popupScript")
 		firstCategory, firstSubCategory = self.splitString(self.w.popupLeftCat.getItems()[self.pref("popupLeftCat")])
 		secondCategory, secondSubCategory = self.splitString(self.w.popupRightCat.getItems()[self.pref("popupRightCat")])
 		return script, firstCategory, firstSubCategory, secondCategory, secondSubCategory
-
 
 	def KernCrasherMain(self, sender):
 		try:

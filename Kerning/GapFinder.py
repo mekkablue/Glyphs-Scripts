@@ -10,7 +10,7 @@ from timeit import default_timer as timer
 from Foundation import NSNotFound
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, caseDict
-from kernanalysis import *
+from kernanalysis import distanceFromEntry
 
 
 intervalList = (1, 3, 5, 10, 20)
@@ -121,7 +121,7 @@ class GapFinder(mekkaObject):
 		if intervalIndex is None:
 			intervalIndex = 0
 		self.w.text_speedExplanation.set(f"Measuring every {intervalList[intervalIndex]} units.")
-		
+
 	def masterSwitch(self, sender=None):
 		if sender is self.w.nextButton:
 			Glyphs.font.masterIndex += 1

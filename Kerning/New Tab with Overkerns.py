@@ -55,11 +55,11 @@ class NewTabwithOverkernedPairs(mekkaObject):
 		linePos += lineHeight
 
 		self.w.limitToExportingGlyphs = vanilla.CheckBox((inset, linePos - 1, 170, 20), "Limit to exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.verbose = vanilla.CheckBox((inset+170, linePos-1, -inset, 20), "Verbose reporting (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose = vanilla.CheckBox((inset + 170, linePos - 1, -inset, 20), "Verbose reporting (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
-		
-		self.w.ignoreText = vanilla.TextBox((inset, linePos+2, 140, 14), "Ignore glyphs containing:", sizeStyle="small", selectable=True)
-		self.w.ignore = vanilla.EditText((inset+140, linePos, -inset, 19), "fraction, .percent", callback=self.SavePreferences, sizeStyle="small")
+
+		self.w.ignoreText = vanilla.TextBox((inset, linePos + 2, 140, 14), "Ignore glyphs containing:", sizeStyle="small", selectable=True)
+		self.w.ignore = vanilla.EditText((inset + 140, linePos, -inset, 19), "fraction, .percent", callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		self.w.scopeText = vanilla.TextBox((inset, linePos + 2, 50, 14), "Apply to", sizeStyle="small", selectable=True)
@@ -103,9 +103,10 @@ class NewTabwithOverkernedPairs(mekkaObject):
 			except:
 				Message(title="Value Error", message="The threshold value you entered is invalid", OKButton="Oops")
 				return
-			
+
 			verbose = bool(self.pref("verbose"))
 			ignores = [particle.strip() for particle in self.pref("ignore").split(",") if len(particle.strip()) > 0]
+
 			def glyphNameContainsIgnoredParticle(glyphName, ignoredParticles=ignores):
 				for particle in ignoredParticles:
 					if particle in glyphName:
@@ -146,7 +147,7 @@ class NewTabwithOverkernedPairs(mekkaObject):
 					for thisGlyph in theseGlyphs:
 						if glyphNameContainsIgnoredParticle(thisGlyph.name):
 							continue
-							
+
 						thisLayer = thisGlyph.layers[thisMaster.id]
 
 						# left side of the glyph (= right side of kern pair)
@@ -173,11 +174,11 @@ class NewTabwithOverkernedPairs(mekkaObject):
 					for leftKey in masterKerning.keys():
 						if leftKey[0] == "@" and not leftKey[7:] in rightGroupMinimumWidths.keys():
 							continue
-							
+
 						for rightKey in masterKerning[leftKey].keys():
 							if rightKey[0] == "@" and not rightKey[7:] in leftGroupMinimumWidths.keys():
 								continue
-								
+
 							kernValue = masterKerning[leftKey][rightKey]
 							if kernValue >= 0:
 								continue

@@ -93,14 +93,14 @@ class RewireFire(mekkaObject):
 		self.w.reuseTab.getNSButton().setToolTip_("If enabled, will only open a new tab if there is none open yet. Otherwise will always open a new tab.")
 		linePos += lineHeight
 
-		self.w.verbose = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Verbose reporting in Macro Window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Verbose reporting in Macro Window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.verbose.getNSButton().setToolTip_("If enabled, will report extensively in Window > Macro Panel. Useful for debugging.")
 		linePos += lineHeight
 
 		self.w.allFonts = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Work through ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allFonts.getNSButton().setToolTip_("If enabled, will look in all currently opened fonts.")
 		linePos += lineHeight
-		
+
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0)  # set progress indicator to zero
 		linePos += lineHeight

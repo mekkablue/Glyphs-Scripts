@@ -154,10 +154,10 @@ class Decompose_Components_in_Background(mekkaObject):
 		# Determine foreground and background:
 		if isinstance(thisLayer, GSBackgroundLayer):
 			background = thisLayer
-			foreground = thisLayer.foreground()
+			# foreground = thisLayer.foreground()
 		else:
 			background = thisLayer.background
-			foreground = thisLayer
+			# foreground = thisLayer
 
 		# make backup if user asked for it:
 		if copyToBackgroundFirst:

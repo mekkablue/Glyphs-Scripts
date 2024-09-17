@@ -1001,7 +1001,7 @@ def updateKeyGlyphsForSelected():
 		if not LeftKey and Glyph.name[-3:] == ".sc":
 			try:
 				glyphName = Glyph.name[:-3].title()
-				if not glyphName in DefaultKeys.keys():
+				if glyphName not in DefaultKeys.keys():
 					glyphName = Glyph.name[:-3]
 				LeftKey = DefaultKeys[glyphName][0]
 				if (len(LeftKey) > 0):
@@ -1011,7 +1011,7 @@ def updateKeyGlyphsForSelected():
 		if not RightKey and Glyph.name[-3:] == ".sc":
 			try:
 				glyphName = Glyph.name[:-3].title()
-				if not glyphName in DefaultKeys.keys():
+				if glyphName not in DefaultKeys.keys():
 					glyphName = Glyph.name[:-3]
 				RightKey = DefaultKeys[glyphName][1]
 				if (len(RightKey) > 0):

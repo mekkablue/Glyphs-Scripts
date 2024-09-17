@@ -1,7 +1,9 @@
-#MenuTitle: Casefolding Report
+# MenuTitle: Casefolding Report
 # -*- coding: utf-8 -*-
+
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+
+__doc__ = """
 Checks if uppercase and lowercase are matching. Opens a new Edit tab containing all glyphs without consistent casefolding. Writes a detailed report in Macro Window.
 """
 
@@ -19,44 +21,43 @@ class CasefoldingReport(mekkaObject):
 		"reuseTab": True,
 		"showMacroWindow": False,
 	}
-	
-	def __init__( self ):
+
+	def __init__(self):
 		# Window 'self.w':
-		windowWidth  = 300
+		windowWidth = 300
 		windowHeight = 160
-		windowWidthResize  = 100 # user can resize width by this value
-		windowHeightResize = 0   # user can resize height by this value
+		windowWidthResize = 100  # user can resize width by this value
+		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Casefolding Report", # window title
-			minSize = (windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize = (windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName = self.domain("mainwindow") # stores last window position and size
+			(windowWidth, windowHeight),  # default window size
+			"Casefolding Report",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
-		
+
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Report all casefolding issues:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
-		
-		self.w.excludeMathSymbols = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Exclude math symbols (∆∏∑µ)", value=False, callback=self.SavePreferences, sizeStyle="small")
+
+		self.w.excludeMathSymbols = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Exclude math symbols (∆∏∑µ)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
-		
-		self.w.allFonts = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Check all open fonts (otherwise frontmost only)", value=True, callback=self.SavePreferences, sizeStyle="small")
+
+		self.w.allFonts = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Check all open fonts (otherwise frontmost only)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
-		
-		self.w.reuseTab = vanilla.CheckBox((inset, linePos-1, 120, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.showMacroWindow = vanilla.CheckBox((inset+120, linePos-1, -inset, 20), "Open Macro Window", value=False, callback=self.SavePreferences, sizeStyle="small")
+
+		self.w.reuseTab = vanilla.CheckBox((inset, linePos - 1, 120, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.showMacroWindow = vanilla.CheckBox((inset + 120, linePos - 1, -inset, 20), "Open Macro Window", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
-		
-		
+
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Report", sizeStyle="regular", callback=self.CasefoldingReportMain)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Report", sizeStyle="regular", callback=self.CasefoldingReportMain)
 		self.w.setDefaultButton(self.w.runButton)
-		
+
 		# Load Settings:
 		self.LoadPreferences()
-		
+
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
@@ -65,10 +66,10 @@ class CasefoldingReport(mekkaObject):
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
-			
+
 			# update settings to the latest user input:
 			self.SavePreferences()
-			
+
 			if Glyphs.font is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -81,7 +82,7 @@ class CasefoldingReport(mekkaObject):
 					convert = {
 						"i_dotaccentcomb": "i",
 						"SS": "Germandbls",
-						}
+					}
 					if name in convert.keys():
 						name = convert[name]
 					return name
@@ -98,7 +99,7 @@ class CasefoldingReport(mekkaObject):
 					theseFonts = Glyphs.fonts
 				else:
 					theseFonts = (Glyphs.font,)
-				print(f"Casefolding report for {len(theseFonts)} font{'' if len(theseFonts)==1 else 's'}:\n")
+				print(f"Casefolding report for {len(theseFonts)} font{'' if len(theseFonts) == 1 else 's'}:\n")
 
 				allFontsClear = []
 				for thisFont in theseFonts:
@@ -106,20 +107,20 @@ class CasefoldingReport(mekkaObject):
 						print(f"📄 {thisFont.filepath.lastPathComponent()}\n")
 					else:
 						print(f"📃 {thisFont.familyName} (⚠️ file not saved)\n")
-	
-					#collect all unicodes:
+
+					# collect all unicodes:
 					unicodeDict = {}
 					for g in thisFont.glyphs:
 						if g.unicodes:
 							for code in g.unicodes:
 								unicodeDict[code] = g.name
-	
-								#print(unicodeDict)
+
+								# print(unicodeDict)
 					def isEncoded(code):
 						if code in unicodeDict.keys():
 							return True
 						return False
-	
+
 					tabString = ""
 					for g in thisFont.glyphs:
 						char = g.charString()
@@ -188,5 +189,6 @@ class CasefoldingReport(mekkaObject):
 			print(f"Casefolding Report Error: {e}")
 			import traceback
 			print(traceback.format_exc())
+
 
 CasefoldingReport()

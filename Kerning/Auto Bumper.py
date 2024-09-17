@@ -155,14 +155,14 @@ class Bumper(mekkaObject):
 
 		smallCheckboxHeight = 20
 		tabStop = 235
-		
-		self.w.keepExistingKerning = vanilla.CheckBox((inset + 5, linePos, tabStop-inset, smallCheckboxHeight), "Keep (don’t overwrite) existing kerning", value=True, sizeStyle='small', callback=self.SavePreferences)
+
+		self.w.keepExistingKerning = vanilla.CheckBox((inset + 5, linePos, tabStop - inset, smallCheckboxHeight), "Keep (don’t overwrite) existing kerning", value=True, sizeStyle='small', callback=self.SavePreferences)
 		self.w.keepExistingKerning.getNSButton().setToolTip_("If the kern pair already exists in the font, it will not be overwritten.")
 		self.w.resetExceptionsForGroups = vanilla.CheckBox((inset + tabStop, linePos, -inset, smallCheckboxHeight), "Delete exceptions when group-kerning", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.resetExceptionsForGroups.getNSButton().setToolTip_("When AutoBummper is supposed to add group kerning (when you have one or both of the ‘As groups’ checkboxes on), and a group kern is overridden by a kerning exception, then delete that kerning exception. Does nothing if no ‘As groups’ checkboxes are selected.")
 		linePos += lineHeight
-		
-		self.w.excludeNonExporting = vanilla.CheckBox((inset + 5, linePos, tabStop-inset, smallCheckboxHeight), "Exclude non-exporting glyphs", value=True, sizeStyle='small', callback=self.SavePreferences)
+
+		self.w.excludeNonExporting = vanilla.CheckBox((inset + 5, linePos, tabStop - inset, smallCheckboxHeight), "Exclude non-exporting glyphs", value=True, sizeStyle='small', callback=self.SavePreferences)
 		self.w.excludeNonExporting.getNSButton().setToolTip_("If one of the specified glyphs is not set to export, Auto Bumper will skip it.")
 		self.w.avoidZeroKerning = vanilla.CheckBox((inset + tabStop, linePos, -inset, smallCheckboxHeight), "Avoid zero kerns", value=True, sizeStyle='small', callback=self.SavePreferences)
 		self.w.avoidZeroKerning.getNSButton().setToolTip_("If the calculated (and rounded) kerning value is 0, it will not be added to the font.")
@@ -172,7 +172,7 @@ class Bumper(mekkaObject):
 		self.w.reportInMacroWindow.getNSButton().setToolTip_("Outputs a detailed report in the Macro Window, and opens it.")
 		linePos += lineHeight
 
-		self.w.openNewTabWithKernPairs = vanilla.CheckBox((inset + 5, linePos, tabStop-inset, smallCheckboxHeight), "Open Edit tab with new kern pairs", value=False, sizeStyle='small', callback=self.SavePreferences)
+		self.w.openNewTabWithKernPairs = vanilla.CheckBox((inset + 5, linePos, tabStop - inset, smallCheckboxHeight), "Open Edit tab with new kern pairs", value=False, sizeStyle='small', callback=self.SavePreferences)
 		self.w.openNewTabWithKernPairs.getNSButton().setToolTip_("If kern pairs were added, opens them in a new Edit tab, for inspection.")
 		self.w.reuseCurrentTab = vanilla.CheckBox((inset + tabStop, linePos, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseCurrentTab.getNSButton().setToolTip_("If enabled, will not open a new tab with newly added kern pairs, but reuse the current Edit tab. Will open an Edit tab if none is open. Only available in connection with the Open Edit Tab checkbox.")
@@ -243,9 +243,9 @@ class Bumper(mekkaObject):
 				self.setPref("kernStrings", kernStrings)
 
 	def updateUI(self, sender=None):
-		if sender != None:
+		if sender is not None:
 			self.SavePreferences()
-			
+
 		# enable/disable options based on settings:
 		self.w.reuseCurrentTab.enable(onOff=self.pref("openNewTabWithKernPairs"))
 
@@ -289,7 +289,6 @@ class Bumper(mekkaObject):
 				if shouldReportInMacroWindow:
 					print("- %s %s: %i" % (leftSide, rightSide, newKernValue))
 				return True  # increase kern count
-
 
 	def BumperMain(self, sender):
 		try:
@@ -426,7 +425,7 @@ class Bumper(mekkaObject):
 										thisFont.removeKerningForPair(thisMasterID, leftSide, rightGlyph.name)
 									if (leftIsGroups and rightIsGroups) and thisFont.kerningForPair(thisMasterID, leftGlyph.name, rightGlyph.name) is not None:
 										thisFont.removeKerningForPair(thisMasterID, leftGlyph.name, rightGlyph.name)
-								
+
 								kerning = effectiveKerning(leftGlyph.name, rightGlyph.name, thisFont, thisMasterID)
 								distanceBetweenShapes = minDistanceBetweenTwoLayers(
 									leftLayer, rightLayer, interval=step, kerning=kerning, report=False, ignoreIntervals=ignoreIntervals

@@ -75,8 +75,8 @@ class StealKerningGroupsfromFont(mekkaObject):
 		self.w.resetGroupsInTarget = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Reset groups in target font before copying", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.resetGroupsInTarget.getNSButton().setToolTip_("Will delete ALL kerning groups in target font prior to transfering the source font’s groups.")
 		linePos += lineHeight
-		
-		self.w.verbose = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Verbose reporting in Macro window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+
+		self.w.verbose = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Verbose reporting in Macro window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.verbose.getNSButton().setToolTip_("Will report progress per glyph in Window > Macro Panel. Useful for debugging.")
 		linePos += lineHeight
 
@@ -177,7 +177,6 @@ class StealKerningGroupsfromFont(mekkaObject):
 					f"{' ◀️ ' + targetGlyph.leftKerningGroup if glyph.leftKerningGroup else ''}"
 					f"{' ▶️ ' + targetGlyph.rightKerningGroup if glyph.rightKerningGroup else ''}"
 				)
-				
 
 			# self.w.close()  # delete if you want window to stay open
 			self.w.status.set("✅ Done. Details in Macro Window.")

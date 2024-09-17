@@ -43,38 +43,38 @@ class CopyLayerToLayer(mekkaObject):
 
 		linePos, inset, lineHeight, tabStop = 12, 15, 22, 100
 
-		self.w.text_1 = vanilla.TextBox((inset, linePos+2, tabStop, 14), "Copy paths from", sizeStyle='small')
-		self.w.fontSource = vanilla.PopUpButton((inset+tabStop, linePos, -inset, 17), self.GetFontNames(), sizeStyle='small', callback=self.FontChangeCallback)
+		self.w.text_1 = vanilla.TextBox((inset, linePos + 2, tabStop, 14), "Copy paths from", sizeStyle='small')
+		self.w.fontSource = vanilla.PopUpButton((inset + tabStop, linePos, -inset, 17), self.GetFontNames(), sizeStyle='small', callback=self.FontChangeCallback)
 		linePos += lineHeight
 
-		self.w.masterSource = vanilla.PopUpButton((inset+tabStop, linePos, -inset, 17), self.GetMasterNames("source"), sizeStyle='small', callback=self.MasterChangeCallback)
+		self.w.masterSource = vanilla.PopUpButton((inset + tabStop, linePos, -inset, 17), self.GetMasterNames("source"), sizeStyle='small', callback=self.MasterChangeCallback)
 		linePos += lineHeight
 
-		self.w.text_2 = vanilla.TextBox((inset, linePos+2, tabStop, 14), "into selection of", sizeStyle='small')
-		self.w.fontTarget = vanilla.PopUpButton((inset+tabStop, linePos, -inset, 17), self.GetFontNames(), sizeStyle='small', callback=self.FontChangeCallback)
+		self.w.text_2 = vanilla.TextBox((inset, linePos + 2, tabStop, 14), "into selection of", sizeStyle='small')
+		self.w.fontTarget = vanilla.PopUpButton((inset + tabStop, linePos, -inset, 17), self.GetFontNames(), sizeStyle='small', callback=self.FontChangeCallback)
 		linePos += lineHeight
 
-		self.w.masterTarget = vanilla.PopUpButton((inset+tabStop, linePos, -inset, 17), self.GetMasterNames("target"), sizeStyle='small', callback=self.MasterChangeCallback)
+		self.w.masterTarget = vanilla.PopUpButton((inset + tabStop, linePos, -inset, 17), self.GetMasterNames("target"), sizeStyle='small', callback=self.MasterChangeCallback)
 		linePos += lineHeight
-		
+
 		tabStop = 160
 
-		self.w.includePaths = vanilla.CheckBox((inset, linePos-1, tabStop, 20), "Include paths", sizeStyle='small', callback=self.SavePreferences, value=True)
-		self.w.includeComponents = vanilla.CheckBox((inset + tabStop, linePos-1, -inset, 20), "Include components", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.includePaths = vanilla.CheckBox((inset, linePos - 1, tabStop, 20), "Include paths", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.includeComponents = vanilla.CheckBox((inset + tabStop, linePos - 1, -inset, 20), "Include components", sizeStyle='small', callback=self.SavePreferences, value=True)
 		linePos += lineHeight
 
-		self.w.includeAnchors = vanilla.CheckBox((inset, linePos-1, tabStop, 20), "Include anchors", sizeStyle='small', callback=self.SavePreferences, value=True)
-		self.w.includeMetrics = vanilla.CheckBox((inset + tabStop, linePos-1, -inset, 20), "Include metrics", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.includeAnchors = vanilla.CheckBox((inset, linePos - 1, tabStop, 20), "Include anchors", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.includeMetrics = vanilla.CheckBox((inset + tabStop, linePos - 1, -inset, 20), "Include metrics", sizeStyle='small', callback=self.SavePreferences, value=True)
 		linePos += lineHeight
 
-		self.w.copyBackground = vanilla.CheckBox((inset, linePos-1, tabStop, 20), "Into background instead", sizeStyle='small', callback=self.SavePreferences, value=False)
-		self.w.keepOriginal = vanilla.CheckBox((inset + tabStop, linePos-1, -inset, 20), "Keep target layer content", sizeStyle='small', callback=self.SavePreferences, value=False)
+		self.w.copyBackground = vanilla.CheckBox((inset, linePos - 1, tabStop, 20), "Into background instead", sizeStyle='small', callback=self.SavePreferences, value=False)
+		self.w.keepOriginal = vanilla.CheckBox((inset + tabStop, linePos - 1, -inset, 20), "Keep target layer content", sizeStyle='small', callback=self.SavePreferences, value=False)
 		linePos += lineHeight
 
-		self.w.keepWindowOpen = vanilla.CheckBox((inset, linePos-1, tabStop, 20), "Keep window open", sizeStyle='small', callback=self.SavePreferences, value=True)
-		self.w.verbose = vanilla.CheckBox((inset + tabStop, linePos-1, -inset, 20), "Verbose", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.keepWindowOpen = vanilla.CheckBox((inset, linePos - 1, tabStop, 20), "Keep window open", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.verbose = vanilla.CheckBox((inset + tabStop, linePos - 1, -inset, 20), "Verbose", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
-		
+
 		self.w.copybutton = vanilla.Button((-80, -30, -15, -10), "Copy", sizeStyle='small', callback=self.buttonCallback)
 		self.w.setDefaultButton(self.w.copybutton)
 

@@ -67,7 +67,7 @@ class AdjustKerning(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-	
+
 	def nameForID(self, font, ID):
 		try:
 			if ID[0] == "@":  # is a group
@@ -100,13 +100,13 @@ class AdjustKerning(mekkaObject):
 			font.disableUpdateInterface()
 			try:
 				for i, directionalKerning in enumerate((font.kerningLTR, font.kerningRTL)):
-					if not masterID in directionalKerning.keys():
+					if masterID not in directionalKerning.keys():
 						print(f"No kerning in {('LTR', 'RTL')[i]} direction on master ‘{master.name}’.")
 						continue
-					
+
 					currentDirection = (GSLTR, GSRTL)[i]
 					masterKernDict = directionalKerning[masterID]
-					
+
 					if self.pref("doWhat") == 0:
 						for leftGlyphID in masterKernDict.keys():
 							leftName = self.nameForID(font, leftGlyphID)

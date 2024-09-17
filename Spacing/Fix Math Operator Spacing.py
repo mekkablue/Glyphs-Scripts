@@ -5,22 +5,25 @@ __doc__ = """
 Syncs widths and centers glyphs for +−×÷=≠±≈¬, optionally also Less/greater symbols and asciicircum/asciitilde.
 """
 
-import vanilla, math
+import vanilla
+import math
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
-from AppKit import NSPoint, NSMidY, NSAffineTransform, NSAffineTransformStruct
+from AppKit import NSMidY, NSAffineTransform
 
 mathOperators = "+−×÷=≠±≈¬"
 lessGreater = "><≥≤"
 asciiOperators = "~^"
 heightSyncOperators = "+−×÷=≠≈~"
 
+
 def italicize(y, italicAngle=0.0, pivotalY=0.0):
-	yOffset = y - pivotalY # calculate vertical offset
-	italicAngle = math.radians(italicAngle) # convert to radians
-	tangens = math.tan(italicAngle) # math.tan needs radians
-	horizontalDeviance = tangens * yOffset # vertical distance from pivotal point
-	return horizontalDeviance # x for yOffset from pivotal point
+	yOffset = y - pivotalY  # calculate vertical offset
+	italicAngle = math.radians(italicAngle)  # convert to radians
+	tangens = math.tan(italicAngle)  # math.tan needs radians
+	horizontalDeviance = tangens * yOffset  # vertical distance from pivotal point
+	return horizontalDeviance  # x for yOffset from pivotal point
+
 
 class FixMathOperatorSpacing(mekkaObject):
 	prefDict = {
@@ -105,11 +108,11 @@ class FixMathOperatorSpacing(mekkaObject):
 
 		self.w.syncWidthOfLessGreaterReference = vanilla.CheckBox((inset * 3.5, linePos - 1, -inset, 20), "Sync width of this reference glyph", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
-		
+
 		self.w.syncHeights = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Vertically center: %s" % heightSyncOperators, value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.syncHeights.getNSButton().setToolTip_("Syncs the vertical center of the math operators with the reference glyph.")
 		linePos += lineHeight
-		
+
 		# ASCII OPERATORS:
 		self.w.SyncWidthsAscii = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Sync widths of: %s" % asciiOperators, value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.SyncWidthsAscii.getNSButton().setToolTip_("Syncs widths of asciicircum and asciitilde, with the same options as for the main math operators.")
@@ -303,7 +306,7 @@ class FixMathOperatorSpacing(mekkaObject):
 										# update metrics:
 										# layer.updateMetrics()
 										# layer.syncMetrics()
-			
+
 			# center +−×÷=≠≈~
 			if syncHeights:
 				for mathOperatorChar in heightSyncOperators:
@@ -340,7 +343,6 @@ class FixMathOperatorSpacing(mekkaObject):
 											shiftTransform = NSAffineTransform.transform()
 											shiftTransform.translateXBy_yBy_(xOffset, yOffset)
 											layer.applyTransform(shiftTransform.transformStruct())
-
 
 			# SYNC LESS/GREATER:
 			if syncWidthsLessGreater:
@@ -416,7 +418,6 @@ class FixMathOperatorSpacing(mekkaObject):
 												# layer.updateMetrics()
 												# layer.syncMetrics()
 
-											
 			self.SavePreferences()
 
 		except Exception as e:

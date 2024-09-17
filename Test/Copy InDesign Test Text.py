@@ -61,7 +61,7 @@ copyString += smallFiguresLine[1:] + "\n"
 for feature in thisFont.features:
 	if not feature.active:
 		continue
-		
+
 	if feature.name not in ("aalt", "ccmp", "salt", "cpsp", "numr", "dnom", "subs", "sups", "sinf", "lnum", "onum", "pnum", "tnum"):
 		testtext = ""
 

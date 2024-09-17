@@ -82,7 +82,7 @@ else:
 				axisTag = axis["tag"]
 				entries[axisTag] = []
 				styleLinkEntries[axisTag] = []
-			
+
 			usedEntries = []
 			for i, axisValue in enumerate(axisValues):
 				if axisValue.Format in (1, 3):
@@ -91,7 +91,7 @@ else:
 					if entry in usedEntries:
 						continue
 					usedEntries.append(entry)
-					
+
 					# record entry for conversion to format 2:
 					axisTag = axes[axisValue.AxisIndex]["tag"]
 					entries[axisTag].append(
@@ -105,7 +105,7 @@ else:
 							"RangeMaxValue": -1,
 						}
 					)
-					
+
 					# record format 3:
 					if axisValue.Format != 3:
 						continue
@@ -152,7 +152,7 @@ else:
 						print(f"\tValueNameID {newAxisValue.ValueNameID}: {font['name'].getName(newAxisValue.ValueNameID, 3, 1, langID=1033).toStr()}")
 						print(f"\tRangeMinValue {newAxisValue.RangeMinValue} → NominalValue {newAxisValue.NominalValue} → RangeMaxValue {newAxisValue.RangeMaxValue}")
 						print()
-						
+
 				# reinstate Format 3 entries (style linking):
 				if styleLinkEntries[axisTag]:
 					styleLinkEntry = styleLinkEntries[axisTag][0]

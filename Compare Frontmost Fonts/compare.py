@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
-from GlyphsApp import Glyphs
+from GlyphsApp import Glyphs, GSCustomParameter
 
 
 def compareLists(thisSet, otherSet, ignoreEmpty=False):

@@ -107,7 +107,7 @@ class MetricsCopy(mekkaObject):
 
 	def listOfMasterNames(self):
 		try:
-			myMasterNameList = [f"{i+1}: {self.listOfMasters[i].font.familyName} - {self.listOfMasters[i].name}" for i in range(len(self.listOfMasters))]
+			myMasterNameList = [f"{i + 1}: {self.listOfMasters[i].font.familyName} - {self.listOfMasters[i].name}" for i in range(len(self.listOfMasters))]
 			return myMasterNameList
 		except:
 			print(traceback.format_exc())

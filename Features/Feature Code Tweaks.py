@@ -623,7 +623,7 @@ class FeatureCodeTweaks(mekkaObject):
 			loclFeature = thisFont.features["locl"]
 
 			if not loclFeature:
-				print(f"⛔️ Error: Feature locl not present anymore. Aborting.")
+				print("⛔️ Error: Feature locl not present anymore. Aborting.")
 			else:
 
 				# Remove existing NLD code:
@@ -842,7 +842,7 @@ class FeatureCodeTweaks(mekkaObject):
 					thisFont.kerningForPair(masterID, "g", "period"),
 				)
 				for value in potentialKernValuesOnOtherSide:
-					if value != None and value < 100000:
+					if value is not None and value < 100000:
 						kernValueOnOtherSide = value
 
 				# calculate and add kerning:

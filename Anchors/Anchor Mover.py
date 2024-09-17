@@ -204,7 +204,7 @@ class AnchorMover2(mekkaObject):
 						selectedCapheight = originalLayer.metricForType_(GSMetricsTypeCapHeight)
 						selectedDescender = originalLayer.metricForType_(GSMetricsTypeDescender)
 						selectedXheight = originalLayer.metricForType_(GSMetricsTypexHeight)
-						if selectedXheight == 0.0: # bug in Glyphs 3.3?
+						if selectedXheight == 0.0:  # bug in Glyphs 3.3?
 							selectedXheight = originalLayer.associatedFontMaster().xHeight
 						halfXHeight = selectedXheight * 0.5
 						selectedMidHeight = originalLayer.metricForType_(GSMetricsTypeMidHeight)

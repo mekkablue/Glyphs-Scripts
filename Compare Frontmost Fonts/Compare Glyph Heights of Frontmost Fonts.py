@@ -55,11 +55,10 @@ class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
 		self.w.includeNonExporting = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonExporting.getNSButton().setToolTip_("If enabled, also measures glyphs that are set to not export.")
 		linePos += lineHeight
-		
-		self.w.verbose = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Verbose output in Macro Window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+
+		self.w.verbose = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Verbose output in Macro Window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.verbose.getNSButton().setToolTip_("Will output a detailed progress report in Window > Macro Panel. This slows down the script significantly, so only use for debugging.")
 		linePos += lineHeight
-
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Compare", callback=self.CompareGlyphHeightsOfFrontmostFontsMain)
@@ -72,13 +71,11 @@ class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
-
 	def updateUI(self, sender=None):
 		if not self.w.heights.get() and not self.w.depths.get():
 			self.w.runButton.enable(False)
 		else:
 			self.w.runButton.enable(True)
-
 
 	def CompareGlyphHeightsOfFrontmostFontsMain(self, sender):
 		try:
@@ -166,7 +163,7 @@ class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
 					tabText = "/" + "/".join(collectedGlyphNames)
 					thisFont.newTab(tabText)
 					otherFont.newTab(tabText)
-				
+
 				print("✅ Done.")
 				if verbose:
 					Glyphs.showMacroWindow()

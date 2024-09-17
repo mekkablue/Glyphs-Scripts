@@ -18,19 +18,21 @@ def moveMacroWindowSeparator(pos=20):
 		height = NSHeight(frame)
 		splitview.setPosition_ofDividerAtIndex_(height * pos / 100.0, 0)
 
+
 positions = (
-	"right sidebearing", # 0
-	"right bbox edge",   # 1
-	"bbox center",       # 2
-	"width center",      # 3
-	"left bbox edge",    # 4
-	"left sidebearing",  # 5
+	"right sidebearing",  # 0
+	"right bbox edge",    # 1
+	"bbox center",        # 2
+	"width center",       # 3
+	"left bbox edge",     # 4
+	"left sidebearing",   # 5
 )
+
 
 class AddZWROOriginAnchors(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
-		"where": 1, # right bbox edge
+		"where": 1,  # right bbox edge
 		"offset": 0,
 		"scripts": "latin, thai",
 		"excludeTransformed": 1,
@@ -55,7 +57,7 @@ class AddZWROOriginAnchors(mekkaObject):
 		# UI elements:
 		linePos, inset, lineHeight, tab = 12, 15, 22, 100
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, 125, 14), "Add *origin anchors at", sizeStyle="small", selectable=True)
-		self.w.where = vanilla.PopUpButton((inset+125, linePos, -inset, 17), positions, sizeStyle="small", callback=self.SavePreferences)
+		self.w.where = vanilla.PopUpButton((inset + 125, linePos, -inset, 17), positions, sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 
 		self.w.offsetText = vanilla.TextBox((inset, linePos + 2, tab, 14), "Horizontal offset:", sizeStyle="small", selectable=True)
@@ -156,7 +158,6 @@ class AddZWROOriginAnchors(mekkaObject):
 								for layer in glyph.layers:
 									if layer.isMasterLayer or layer.isSpecialLayer:
 										if layer.shapes:
-											
 											if where == 0:
 												# "right sidebearing", # 0
 												x = layer.width

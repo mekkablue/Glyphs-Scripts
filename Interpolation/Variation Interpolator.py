@@ -292,7 +292,7 @@ class VariationInterpolator(mekkaObject):
 						title="Incompatible glyphs",
 						message=f"Could not interpolate:\n{', '.join(incompatible)}",
 						OKButton=None,
-						)
+					)
 			except Exception as e:
 				Glyphs.showMacroWindow()
 				print("\n⚠️ Script Error:\n")

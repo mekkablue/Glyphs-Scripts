@@ -12,7 +12,7 @@ import datetime
 from copy import copy
 from Foundation import NSPoint, NSAutoreleasePool
 from AppKit import NSFont
-from GlyphsApp import Glyphs, GSFont, GSLayer, GSAxis, GSInstance, GSCustomParameter, GSSMOOTH, GSOFFCURVE, Message
+from GlyphsApp import Glyphs, GSLayer, GSAxis, GSInstance, GSCustomParameter, GSSMOOTH, GSOFFCURVE, Message
 from mekkablue import mekkaObject
 
 
@@ -673,6 +673,7 @@ class BatchGrader(mekkaObject):
 					if abs(offCenter) > 1:
 						gradeLayer.applyTransform((1, 0, 0, 1, offCenter // 2, 0))
 		print()
+		del pool
 
 	def addGradedBraceLayers(self, thisFont, gradeAxis, grade):
 		if not self.pref("addGradedBraceLayers"):

@@ -12,7 +12,7 @@ Finds and replaces names in Font Info > Font and Exports.
 
 import vanilla
 import objc
-from GlyphsApp import Glyphs, Message, GSFontInfoValueLocalized, GSFontInfoValueSingle
+from GlyphsApp import Glyphs, Message, GSFontInfoValueLocalized, GSFontInfoValueSingle, GSDocument, GSProjectDocument
 from mekkablue import mekkaObject
 
 
@@ -108,22 +108,22 @@ class FindAndReplaceInFontInfo(mekkaObject):
 			print(f"🤷🏻‍♀️ {reportString}: ‘{name}’ unchanged")
 
 		return newName
-	
+
 	def replaceInProperties(self, fontOrInstance, searchFor, replaceWith, completeWordsOnly, infoText):
 		for prop in fontOrInstance.properties:
-			if type(prop) == GSFontInfoValueSingle:
+			if isinstance(prop, GSFontInfoValueSingle):
 				if searchFor in prop.value:
 					oldValue = prop.value
 					prop.value = self.replaceInName(
 						prop.value, searchFor, replaceWith, completeWordsOnly, f"{infoText} > {prop.key}"
 					)
-			elif type(prop) == GSFontInfoValueLocalized:
+			elif isinstance(prop, GSFontInfoValueLocalized):
 				for entry in prop.values:
 					if searchFor in entry.value:
 						entry.value = self.replaceInName(
 							entry.value, searchFor, replaceWith, completeWordsOnly, f"{infoText} > {entry.key} ({entry.languageTag})"
 						)
-	
+
 	def FindAndReplaceInFontInfoMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -154,7 +154,7 @@ class FindAndReplaceInFontInfo(mekkaObject):
 				for thisFont in fonts:
 					isFont = isinstance(thisFont, GSDocument)
 					isProject = isinstance(thisFont, GSProjectDocument)
-					
+
 					if isFont:
 						thisFont = thisFont.font
 						if thisFont.filepath:
@@ -172,16 +172,16 @@ class FindAndReplaceInFontInfo(mekkaObject):
 							thisFont.manufacturer = self.replaceInName(thisFont.manufacturer, searchFor, replaceWith, completeWordsOnly, "Font > Manufacturer")
 						if thisFont.copyright:  # could be None
 							thisFont.copyright = self.replaceInName(thisFont.copyright, searchFor, replaceWith, completeWordsOnly, "Font > Copyright")
-					
-						self.replaceInProperties(thisFont, searchFor, replaceWith, completeWordsOnly, f"Font > General")
-					
+
+						self.replaceInProperties(thisFont, searchFor, replaceWith, completeWordsOnly, "Font > General")
+
 						if includeCustomParameters:
 							for customParameter in thisFont.customParameters:
 								parameterIsAString = isinstance(customParameter.value, (objc.pyobjc_unicode, str))
 								if parameterIsAString:
 									reportString = f"Font > Custom Parameters > {customParameter.name}"
 									customParameter.value = self.replaceInName(customParameter.value, searchFor, replaceWith, completeWordsOnly, reportString)
-					
+
 					if isProject:
 						if thisFont.fileName():
 							print(f"\n📜 {thisFont.fileName().lastPathComponent()} ({thisFont.fontName()})")
@@ -189,7 +189,7 @@ class FindAndReplaceInFontInfo(mekkaObject):
 						else:
 							print(f"\n📜 {thisFont.fontName()} (Glyphs Project)")
 							print("⚠️ The project file has not been saved yet.")
-					
+
 					if isFont or isProject:
 						for thisInstance in thisFont.instances:
 							if Glyphs.buildNumber > 3198:
@@ -234,5 +234,6 @@ class FindAndReplaceInFontInfo(mekkaObject):
 			print(f"Find and Replace in Font Info Error: {e}")
 			import traceback
 			print(traceback.format_exc())
+
 
 FindAndReplaceInFontInfo()

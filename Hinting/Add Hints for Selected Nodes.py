@@ -5,7 +5,7 @@ __doc__ = """
 Adds hints for the selected nodes. Tries to guess whether it should be H or V. If exactly one node inside a zone is selected, it will add a Ghost Hint.
 """
 
-from GlyphsApp import Glyphs, GSHint
+from GlyphsApp import Glyphs, GSHint, GSNode
 
 
 Font = Glyphs.font
@@ -18,7 +18,7 @@ except:
 	# since v2.2:
 	selection = thisLayer.selection
 
-thisSelection = [n for n in selection if n.className() == "GSNode"]
+thisSelection = [n for n in selection if isinstance(n, GSNode)]
 numberOfSelectedNodes = len(thisSelection)
 
 
