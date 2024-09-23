@@ -9,6 +9,7 @@ import vanilla
 from copy import copy as copy
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
+from Cocoa import NSImage
 
 labelColors = (
 	"🔴 Red",
@@ -58,7 +59,10 @@ class FillUpEmptyMasters(mekkaObject):
 
 		self.w.masterChoiceText = vanilla.TextBox((inset, linePos + 2, 95, 14), "Use shapes from", sizeStyle="small", selectable=True)
 		self.w.masterChoice = vanilla.PopUpButton((inset + 95, linePos, -inset - 25, 17), (), sizeStyle="small", callback=self.SavePreferences)
-		self.w.masterChoiceUpdate = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.masterChoiceUpdateAction)
+		self.w.masterChoiceUpdate = vanilla.Button((-inset - 18, linePos - 2, -inset - 1, 17), "", callback=self.masterChoiceUpdateAction)
+		self.w.masterChoiceUpdate.getNSButton().setImage_(NSImage.imageNamed_("NSRefreshTemplate"))
+		self.w.masterChoiceUpdate.getNSButton().setBordered_(False)
+
 		linePos += lineHeight
 
 		self.w.firstOneWithShapes = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "If empty, use first master with shapes", value=False, callback=self.SavePreferences, sizeStyle="small")
