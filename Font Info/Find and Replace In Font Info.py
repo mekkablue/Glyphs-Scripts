@@ -148,7 +148,7 @@ class FindAndReplaceInFontInfo(mekkaObject):
 				if allFonts:
 					fonts = Glyphs.orderedDocuments()
 				else:
-					fonts = Glyphs.orderedDocuments()[0]
+					fonts = (Glyphs.orderedDocuments()[0], )
 				print("Find and Replace in Font Info:")
 
 				for thisFont in fonts:
