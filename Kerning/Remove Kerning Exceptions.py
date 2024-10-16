@@ -94,7 +94,10 @@ class RemoveKerningExceptions(mekkaObject):
 					for thisMaster in thisFont.masters:
 						if allMasters or thisMaster == thisFont.selectedFontMaster:
 							pairsToBeRemoved = []
-							for leftSide in thisFont.kerning[thisMaster.id].keys():
+							kerning = thisFont.kerning[thisMaster.id]
+							if not kerning:
+								continue
+							for leftSide in kerning.keys():
 								leftSideIsGlyph = not leftSide.startswith("@")
 								leftHasNoGroup = leftSideIsGlyph and not thisFont.glyphForId_(leftSide).rightKerningGroup
 								leftMayBeDeleted = not (leftHasNoGroup and self.pref("keepGrouplessKerning"))
