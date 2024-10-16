@@ -40,20 +40,16 @@ class FillUpEmptyMasters(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 300
-		windowHeight = 205
-		windowWidthResize = 200  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 320
+		windowHeight = 185
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Fill Up Empty Masters",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		linePos, inset, lineHeight = 12, 16, 22
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Populate empty layers of selected glyphs:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
@@ -65,21 +61,21 @@ class FillUpEmptyMasters(mekkaObject):
 
 		linePos += lineHeight
 
-		self.w.firstOneWithShapes = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "If empty, use first master with shapes", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.firstOneWithShapes = vanilla.CheckBox((inset, linePos, -inset, 20), "If empty, use first master with shapes", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.addMissingAnchors = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Add missing default anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addMissingAnchors = vanilla.CheckBox((inset, linePos, -inset, 20), "Add missing default anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.copySidebearings = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Also copy sidebearings", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.copySidebearings = vanilla.CheckBox((inset, linePos, -inset, 20), "Also copy sidebearings", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.markWithColor = vanilla.CheckBox((inset, linePos - 1, 165, 20), "Color-mark filled-up layers:", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.layerColor = vanilla.PopUpButton((inset + 165, linePos, 105, 17), labelColors, sizeStyle="small", callback=self.SavePreferences)
+		self.w.markWithColor = vanilla.CheckBox((inset, linePos, 165, 20), "Color-mark filled-up layers:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.layerColor = vanilla.PopUpButton((inset + 165, linePos + 1, 105, 17), labelColors, sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 
 		# Status:
-		self.w.status = vanilla.TextBox((inset, -15 - inset, -90 - inset, 14), "", sizeStyle="small", selectable=True)
+		self.w.status = vanilla.TextBox((inset - 5, linePos + 7, -75 - inset, 15), "", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
 		# Run Button:
