@@ -31,7 +31,7 @@ class RemoveKerningExceptions(mekkaObject):
 			"Remove Kerning Exceptions",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName="%s.mainwindow" % self.prefID  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
