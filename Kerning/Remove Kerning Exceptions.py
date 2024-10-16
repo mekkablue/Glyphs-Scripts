@@ -23,14 +23,10 @@ class RemoveKerningExceptions(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 250
-		windowHeight = 180
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 164
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Remove Kerning Exceptions",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
