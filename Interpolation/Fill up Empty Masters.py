@@ -36,12 +36,13 @@ class FillUpEmptyMasters(mekkaObject):
 		"copySidebearings": 0,
 		"markWithColor": 0,
 		"layerColor": 0,
+		"overwriteExisting": False,
 	}
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 320
-		windowHeight = 185
+		windowHeight = 205
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Fill Up Empty Masters",  # window title
@@ -72,6 +73,9 @@ class FillUpEmptyMasters(mekkaObject):
 
 		self.w.markWithColor = vanilla.CheckBox((inset, linePos, 165, 20), "Color-mark filled-up layers:", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.layerColor = vanilla.PopUpButton((inset + 165, linePos + 1, 105, 17), labelColors, sizeStyle="small", callback=self.SavePreferences)
+		linePos += lineHeight
+
+		self.w.overwriteExisting = vanilla.CheckBox((inset, linePos, 165, 20), "Overwrite Existing Outlines❗️", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		# Status:
@@ -146,7 +150,7 @@ class FillUpEmptyMasters(mekkaObject):
 						continue
 
 					for targetLayer in thisGlyph.layers:
-						if (targetLayer.isMasterLayer or targetLayer.isSpecialLayer) and targetLayer != sourceLayer and not targetLayer.shapes:
+						if (targetLayer.isMasterLayer or targetLayer.isSpecialLayer) and targetLayer != sourceLayer and (not targetLayer.shapes or self.pref("overwriteExisting")):
 							targetLayer.clear()
 							layerCount += 1
 							for sourceShape in sourceLayer.shapes:
