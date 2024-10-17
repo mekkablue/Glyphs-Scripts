@@ -146,8 +146,6 @@ class BraceLayerManager(mekkaObject):
 				thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 				try:
 					count = self.processFont(thisFont, isBraceLayer, scope, count)
-					if thisFont.currentTab and Glyphs.versionNumber >= 3:
-						NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
 				except Exception as e:
 					# brings macro window to front and reports error:
 					Glyphs.showMacroWindow()
@@ -156,6 +154,8 @@ class BraceLayerManager(mekkaObject):
 					print(traceback.format_exc())
 				finally:
 					thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+					if thisFont.currentTab and Glyphs.versionNumber >= 3:
+						NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
 			print()
 
 		# Final report:
@@ -213,9 +213,7 @@ class BraceLayerManager(mekkaObject):
 						result, count = self.processBraceLayer(layer, count, searchFor, replaceWith, axisID)
 					else:
 						result, count = self.processBracketLayer(layer, count, searchFor, replaceWith, axisID, axisIndex)
-					if result:
-						glyph.setChangeCount_(glyph.changeCount() + 1)  # forces palette update
-					else:
+					if not result:
 						break
 		return count
 
