@@ -116,19 +116,19 @@ class KinkFinder(mekkaObject):
 
 		# self.w.betweenAdjacentMastersOnly.getNSButton().setToolTip_("If checked, will look for kinks between masters 0+1, 1+2, 1+3, but NOT between 0+2, 1+3 or 0+3. Makes sense if you have only one axis (e.g. weight) and more than two masters in interpolation order (lightest through boldest).")
 
-		self.w.allGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Process all glyphs in font (ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Process all glyphs in font (ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.allGlyphs.getNSButton().setToolTip_("If unchecked, will only process the current glyph(s).")
 		linePos += lineHeight
 
-		self.w.exportingOnly = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Ignore non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.exportingOnly = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Ignore non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.exportingOnly.getNSButton().setToolTip_("If checked, will skip glyphs that do not export. Always skips compounds.")
 		linePos += lineHeight
 
-		self.w.markKinks = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Mark kinky nodes in first layer", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.markKinks = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Mark kinky nodes in first layer", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.markKinks.getNSButton().setToolTip_("If checked, will mark affected nodes with a warning emoji and the maximum kink distance. Will mark the corresponding node in the first layer if it finds a kink in an instance. Will use an annotation if the node cannot be found (e.g. if the kink happens in a corner component).")
 		linePos += lineHeight
 
-		self.w.reportIncompatibilities = vanilla.CheckBox((inset, linePos - 1, 180, 20), "Also report incompatibilities", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportIncompatibilities = vanilla.CheckBox((inset + 2, linePos - 1, 180, 20), "Also report incompatibilities", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reportIncompatibilities.getNSButton().setToolTip_("If checked, will warn about incompatibilities. Usually you want this off, especially when you have bracket layers.")
 
 		self.w.bringMacroWindowToFront = vanilla.CheckBox((inset + 180, linePos - 1, -inset, 20), "Macro Window to front", value=True, callback=self.SavePreferences, sizeStyle='small')

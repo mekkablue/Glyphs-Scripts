@@ -22,42 +22,38 @@ class MonospaceChecker(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 270
-		windowHeight = 220
-		windowWidthResize = 200  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 204
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Monospace Checker",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 12, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, lineHeight * 2), u"New tab with glyphs that do not match the width of the default glyph in each master:", sizeStyle='small', selectable=True)
+		linePos, inset, lineHeight = 12, 15, 22
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, lineHeight * 2), "New tab with glyphs that do not match the width of the default glyph in each master", sizeStyle='small', selectable=True)
 		linePos += lineHeight * 2
 
-		self.w.defaultGlyphNameText = vanilla.TextBox((inset, linePos, 85, 14), u"Default Glyph:", sizeStyle='small', selectable=True)
-		self.w.defaultGlyphName = vanilla.EditText((inset + 85, linePos - 3, -inset, 19), "A", callback=self.SavePreferences, sizeStyle='small')
-		self.w.defaultGlyphName.getNSTextField().setToolTip_(u"For each master, will measure the width of this glyph, and compare all other widths to it.")
+		self.w.defaultGlyphNameText = vanilla.TextBox((inset, linePos, 85, 14), "Default Glyph", sizeStyle='small', selectable=True)
+		self.w.defaultGlyphName = vanilla.EditText((inset + 79, linePos - 3, -inset, 19), "A", callback=self.SavePreferences, sizeStyle='small')
+		self.w.defaultGlyphName.getNSTextField().setToolTip_("For each master, will measure the width of this glyph, and compare all other widths to it.")
 		linePos += lineHeight
 
-		self.w.toleranceText = vanilla.TextBox((inset, linePos, 105, 14), u"Tolerance in units:", sizeStyle='small', selectable=True)
-		self.w.tolerance = vanilla.EditText((inset + 105, linePos - 3, -inset, 19), "0.0", callback=self.SavePreferences, sizeStyle='small')
-		self.w.tolerance.getNSTextField().setToolTip_(u"Allow deviations up to this value. 1 unit may be acceptable. If you are not sure, keep it at zero.")
+		self.w.toleranceText = vanilla.TextBox((inset, linePos, 105, 14), "Tolerance in units", sizeStyle='small', selectable=True)
+		self.w.tolerance = vanilla.EditText((inset + 98, linePos - 3, 55, 19), "0.0", callback=self.SavePreferences, sizeStyle='small')
+		self.w.tolerance.getNSTextField().setToolTip_("Allow deviations up to this value. 1 unit may be acceptable. If you are not sure, keep it at zero.")
 		linePos += lineHeight
 
-		self.w.reportZeroWidths = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Report Zero Widths in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reportZeroWidths.getNSButton().setToolTip_(u"In the Macro Window (and only there), will also report glyphs that have zero width. Usually you can ignore those.")
+		self.w.reportZeroWidths = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Report Zero Widths in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportZeroWidths.getNSButton().setToolTip_("In the Macro Window (and only there), will also report glyphs that have zero width. Usually you can ignore those.")
 		linePos += lineHeight
 
-		self.w.includeNonExporting = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Include Non-Exporting Glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeNonExporting.getNSButton().setToolTip_(u"If disabled, will ignore non-exporting glyphs. If you are unsure, leave it off.")
+		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include Non-Exporting Glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting.getNSButton().setToolTip_("If disabled, will ignore non-exporting glyphs. If you are unsure, leave it off.")
 		linePos += lineHeight
 
-		self.w.setMonospaceFlag = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Set ‘isFixedPitch’ flag in Font Info", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.setMonospaceFlag.getNSButton().setToolTip_(u"Will set the isFixedPitch parameter in Font Info > Font. The parameter sets the isFixedPitch flag in the post table. Indicates whether the font is monospaced. Software can use this information to make sure that all glyphs are rendered with the same amount of pixels horizontally at any given PPM size.")
+		self.w.setMonospaceFlag = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Set ‘isFixedPitch’ flag in Font Info", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setMonospaceFlag.getNSButton().setToolTip_("Will set the isFixedPitch parameter in Font Info > Font. The parameter sets the isFixedPitch flag in the post table. Indicates whether the font is monospaced. Software can use this information to make sure that all glyphs are rendered with the same amount of pixels horizontally at any given PPM size.")
 		linePos += lineHeight
 
 		# Run Button:
@@ -131,8 +127,8 @@ class MonospaceChecker(mekkaObject):
 			if affectedLayers:
 				# Floating notification:
 				Glyphs.showNotification(
-					u"Inconsistent widths in %s" % (thisFont.familyName),
-					u"Found %i width deviation%s. Details in Macro Window." % (
+					"Inconsistent widths in %s" % (thisFont.familyName),
+					"Found %i width deviation%s. Details in Macro Window." % (
 						deviatingWidthCount,
 						"" if deviatingWidthCount == 1 else "s",
 					),
@@ -143,8 +139,8 @@ class MonospaceChecker(mekkaObject):
 			else:
 				# Floating notification:
 				Glyphs.showNotification(
-					u"🥇 %s has consistent widths" % (thisFont.familyName),
-					u"All glyph widths are monospaced. Congrats!",
+					+"🥇 %s has consistent widths" % (thisFont.familyName),
+					"All glyph widths are monospaced. Congrats!",
 				)
 
 			if self.pref("setMonospaceFlag"):

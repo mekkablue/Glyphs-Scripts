@@ -15,26 +15,28 @@ class SetTransformOriginWindow(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 370
-		windowHeight = 60
-		windowWidthResize = 0  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 360
+		windowHeight = 42
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Set Transform Origin",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		self.w.text_1 = vanilla.TextBox((15 - 1, 12 + 3, 75, 14), "Origin:", sizeStyle='small')
-		self.w.originX = vanilla.EditText((65, 12, 70, 15 + 3), "0.0", sizeStyle='small')
-		self.w.originY = vanilla.EditText((65 + 80, 12, 70, 15 + 3), "0.0", sizeStyle='small')
-
+		linePos, inset = 10, 15
+		xPos = inset
+		self.w.text_1 = vanilla.TextBox((xPos, linePos + 3, 75, 16), "Origin")
+		xPos += 45
+		self.w.originX = vanilla.EditText((xPos, linePos, 75, 22), "0.0")
+		xPos += 80
+		self.w.originY = vanilla.EditText((xPos, linePos, 75, 22), "0.0")
+		xPos += 80
 		# Run Button:
-		self.w.resetButton = vanilla.Button((65 + 160, 12 + 1, 60, 15), "Get", sizeStyle='small', callback=self.GetTransformOrigin)
-		self.w.runButton = vanilla.Button((65 + 160 + 70, 12 + 1, 60, 15), "Set", sizeStyle='small', callback=self.SetTransformOriginMain)
+		self.w.resetButton = vanilla.Button((xPos, linePos - 1, 60, 22), "Get", callback=self.GetTransformOrigin)
+		xPos += 65
+		self.w.runButton = vanilla.Button((xPos, linePos - 1, 60, 22), "Set", callback=self.SetTransformOriginMain)
+
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

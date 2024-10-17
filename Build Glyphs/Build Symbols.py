@@ -652,15 +652,11 @@ class BuildSymbols(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 430
-		windowHeight = 230
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 426
+		windowHeight = 208
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Build Symbols",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -670,7 +666,7 @@ class BuildSymbols(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Create the following symbols automatically. See tooltips for requirements.", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.buildEstimated = vanilla.CheckBox((inset, linePos, -inset, 20), "estimated", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildEstimated = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "estimated", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildEstimated.getNSButton().setToolTip_("Will build estimated ℮ and scale it to the size of your lining zero, if available.")
 
 		self.w.buildBars = vanilla.CheckBox((inset + column, linePos, -inset, 20), "bar, brokenbar", value=True, callback=self.SavePreferences, sizeStyle='small')
@@ -684,7 +680,7 @@ class BuildSymbols(mekkaObject):
 		self.w.buildDottedcircle.getNSButton().setToolTip_("Will build dottedCircle ◌.")
 		linePos += lineHeight
 
-		self.w.buildCurrency = vanilla.CheckBox((inset, linePos, -inset, 20), "currency", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildCurrency = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "currency", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildCurrency.getNSButton().setToolTip_("Will build currency.")
 
 		self.w.buildLozenge = vanilla.CheckBox((inset + column, linePos, -inset, 20), "lozenge", value=True, callback=self.SavePreferences, sizeStyle='small')
@@ -695,7 +691,7 @@ class BuildSymbols(mekkaObject):
 		self.w.buildProduct.enable(False)
 		linePos += lineHeight
 
-		self.w.buildSummation = vanilla.CheckBox((inset, linePos, -inset, 20), "summation", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildSummation = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "summation", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildSummation.getNSButton().setToolTip_("Will build summation. Not yet implemented, sorry.")
 		self.w.buildSummation.enable(False)
 
@@ -712,13 +708,13 @@ class BuildSymbols(mekkaObject):
 		linePos += lineHeight
 
 		# Other options:
-		self.w.override = vanilla.CheckBox((inset, linePos, -inset, 20), "Overwrite existing glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.override = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Overwrite existing glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.override.getNSButton().setToolTip_("If checked, will create fresh symbols even if they already exist. If unchecked, will skip glyphs that already exist.")
 		self.w.backupLayers = vanilla.CheckBox((inset + 180, linePos, -inset, 20), "Backup existing layers", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.backupLayers.getNSButton().setToolTip_("If checked, will create backup layers when the glyph gets overwritten. Only available in combination with Override option.")
 		linePos += lineHeight
 
-		self.w.newTab = vanilla.CheckBox((inset, linePos - 1, 180, 20), "Open tab with new glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.newTab = vanilla.CheckBox((inset + 2, linePos - 1, 180, 20), "Open tab with new glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.newTab.getNSButton().setToolTip_("If checked, will open a new tab with the newly created symbols.")
 		self.w.reuseTab = vanilla.CheckBox((inset + 180, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.getNSButton().setToolTip_("If checked, will reuse the current tab, and open a new tab only if there is no Edit tab open already. Highly recommended.")

@@ -40,15 +40,11 @@ class AdjustSpacing(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 310
-		windowHeight = 225
-		windowWidthResize = 200  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 306
+		windowHeight = 208
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Adjust Spacing",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -70,13 +66,13 @@ class AdjustSpacing(mekkaObject):
 		self.w.negativeChoice = vanilla.PopUpButton((inset + 110, linePos, -inset, 17), negativeChoices, sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.updateMetricsKeys = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Update metrics keys and auto-alignments", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.updateMetricsKeys = vanilla.CheckBox((inset + 2, linePos, -inset, 18), "Update metrics keys and auto-alignments", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.applyToAllMasters = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include ⚠️ ALL masters (otherwise current only)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.applyToAllMasters = vanilla.CheckBox((inset + 2, linePos, -inset, 18), "Include ⚠️ ALL masters (otherwise current only)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.applyToAllGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include ⚠️ ALL glyphs (otherwise selected only)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.applyToAllGlyphs = vanilla.CheckBox((inset + 2, linePos, -inset, 18), "Include ⚠️ ALL glyphs (otherwise selected only)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		# Run Button:

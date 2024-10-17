@@ -8,7 +8,7 @@ from copy import deepcopy
 import vanilla
 from AppKit import NSFont
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 class SetFamilyAlignmentZones(mekkaObject):
@@ -16,33 +16,33 @@ class SetFamilyAlignmentZones(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 350
-		windowHeight = 140
+		windowHeight = 124
 		windowWidthResize = 100  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Set Family Alignment Zones",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, lineHeight * 2), u"Choose an instance (typically the Regular), and insert its zones as PostScript Family Alignment Zones.", sizeStyle='small', selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, lineHeight * 2), "Choose an instance (typically the Regular), and insert its zones as PostScript Family Alignment Zones.", sizeStyle='small', selectable=True)
 		linePos += lineHeight * 2
 
-		self.w.instanceText = vanilla.TextBox((inset, linePos + 2, inset + 55, 14), u"Instance:", sizeStyle='small', selectable=True)
+		self.w.instanceText = vanilla.TextBox((inset, linePos + 2, inset + 55, 14), "Instance", sizeStyle='small')
 
-		self.w.instancePicker = vanilla.PopUpButton((inset + 55, linePos, -inset - 25, 17), (), sizeStyle='small')
+		self.w.instancePicker = vanilla.PopUpButton((inset + 51, linePos, -inset - 22, 19), (), sizeStyle='small')
 		self.w.instancePicker.getNSPopUpButton().setToolTip_("Choose the instance that will likely be used most (probably the Regular or Book). Its interpolated zones will be used as Family Alignment Zones. Inactive instances are marked with ‘inactive’.")
 
 		# set font to tabular figures:
 		popUpFont = NSFont.monospacedDigitSystemFontOfSize_weight_(NSFont.smallSystemFontSize(), 0.0)
 		self.w.instancePicker.getNSPopUpButton().setFont_(popUpFont)
 
-		self.w.updateButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), u"↺", sizeStyle='small', callback=self.updateInstancePicker)
+		self.w.updateButton = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateInstancePicker)
 		self.w.updateButton.getNSButton().setToolTip_("Click to update the menu with the instances of the currently frontmost font.")
 		linePos += lineHeight
 

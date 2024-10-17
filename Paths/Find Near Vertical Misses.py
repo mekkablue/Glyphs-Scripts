@@ -103,31 +103,31 @@ class FindNearVerticalMisses(mekkaObject):
 		linePos += lineHeight
 		# BOX END
 
-		self.w.tolerateIfNextNodeIsOn = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Tolerate near miss if next node is on", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.tolerateIfNextNodeIsOn = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Tolerate near miss if next node is on", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.tolerateIfNextNodeIsOn.getNSButton().setToolTip_("Will skip the just-off node if the next or previous on-curve node is EXACTLY on the metric line. Useful if you have very thin serifs or short segments near the metric lines.")
 		linePos += lineHeight
 
-		self.w.tolerateIfExtremum = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Tolerate near miss for left/right curve extremum", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.tolerateIfExtremum = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Tolerate near miss for left/right curve extremum", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.tolerateIfExtremum.getNSButton().setToolTip_("Will skip the just-off node if the next and previous nodes are VERTICAL OFF-CURVES. Recommended for avoiding false positives.")
 		linePos += lineHeight
 
-		self.w.includeHandles = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include off-curve points", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeHandles = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include off-curve points", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeHandles.getNSButton().setToolTip_("Also checks BCPs (Bézier control points), vulgo ‘handles’. Otherwise only considers on-curve nodes")
 		linePos += lineHeight
 
-		self.w.removeOverlap = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Check outlines after Remove Overlap (slower)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.removeOverlap = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Check outlines after Remove Overlap (slower)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.removeOverlap.getNSButton().setToolTip_("Only checks outlines after overlap removal. That way, ignores triangular overlaps (‘opened corners’). Use this option if you have too many false positives.")
 		linePos += lineHeight
 
-		self.w.markNodes = vanilla.CheckBox((inset, linePos - 1, -inset, 20), f"Mark affected nodes with {self.marker}", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.markNodes = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), f"Mark affected nodes with {self.marker}", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.markNodes.getNSButton().setToolTip_("Sets the name of affected nodes to this emoji, so you can easily find it. ATTENTION: If Remove Overlap option is on, will use the emoji as an annotation instead.")
 		linePos += lineHeight
 
-		self.w.includeNonExporting = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonExporting.getNSButton().setToolTip_("Also check for near misses in glyphs that are set to not export. Useful if you are using non-exporting parts as components in other glyphs.")
 		linePos += lineHeight
 
-		self.w.includeComposites = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include composites", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeComposites = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include composites", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeComposites.getNSButton().setToolTip_("If unchecked, will only go through glyphs that have paths in them. Recommended to leave off, because it usually reports a lot of false positives.")
 		linePos += lineHeight
 
@@ -135,7 +135,7 @@ class FindNearVerticalMisses(mekkaObject):
 		self.w.exclude = vanilla.EditText((inset + 150, linePos, -inset, 19), ".ornm, .notdef, comb", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.openTab = vanilla.CheckBox((inset, linePos - 1, 190, 20), "Open tab with affected layers", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openTab = vanilla.CheckBox((inset + 2, linePos - 1, 190, 20), "Open tab with affected layers", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.openTab.getNSButton().setToolTip_("If it finds nodes just off the indicated metrics, will open a new tab with the layers if found the deviating nodes on. Otherwise please check the detailed report in Macro Window.")
 		self.w.reuseTab = vanilla.CheckBox((inset + 190, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.getNSButton().setToolTip_("If a tab is open already, will use that one, rather than opening a new tab. Recommended, keeps tab clutter low.")

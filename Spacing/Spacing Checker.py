@@ -7,7 +7,7 @@ Look for glyphs with unusual spacings and open them in a new tab.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 class SpacingChecker(mekkaObject):
@@ -42,39 +42,39 @@ class SpacingChecker(mekkaObject):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Find glyphs with unusual sidebearings. Open tab with glyphs where:", sizeStyle='small', selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Find glyphs with unusual sidebearings. Open tab with glyphs where", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.asymmetricSBs = vanilla.CheckBox((inset, linePos, -inset, 20), "LSB & RSB differ more than:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.asymmetricDifference = vanilla.EditText((inset + 170, linePos, -inset - 35, 19), "50", callback=self.SavePreferences, sizeStyle='small')
-		self.w.asymmetricUpdateButton = vanilla.SquareButton((-inset - 30, linePos + 0.5, -inset, 18), u"↺ K", sizeStyle='small', callback=self.updateValues)
+		self.w.asymmetricSBs = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "LSB & RSB differ more than", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.asymmetricDifference = vanilla.EditText((inset + 165, linePos, -inset - 32, 19), "50", callback=self.SavePreferences, sizeStyle='small')
+		self.w.asymmetricUpdateButton = UpdateButton((-inset - 20, linePos - 1, -inset - 2, 18), title="K", callback=self.updateValues)
 		self.w.asymmetricUpdateButton.getNSButton().setToolTip_("Update the entry with the measurements for uppercase K, presumably the largest difference in most designs.")
 		linePos += lineHeight
 
-		self.w.largeLSB = vanilla.CheckBox((inset, linePos, -inset, 20), "LSBs larger than:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.lsbThreshold = vanilla.EditText((inset + 110, linePos, -inset - 35, 19), "70", callback=self.SavePreferences, sizeStyle='small')
-		self.w.lsbThresholdUpdateButton = vanilla.SquareButton((-inset - 30, linePos + 0.5, -inset, 18), u"↺ H", sizeStyle='small', callback=self.updateValues)
+		self.w.largeLSB = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "LSBs larger than", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.lsbThreshold = vanilla.EditText((inset + 108, linePos, -inset - 32, 19), "70", callback=self.SavePreferences, sizeStyle='small')
+		self.w.lsbThresholdUpdateButton = UpdateButton((-inset - 20, linePos - 1, -inset - 2, 18), title="H", callback=self.updateValues)
 		self.w.lsbThresholdUpdateButton.getNSButton().setToolTip_("Update the entry with the measurements for uppercase H, presumably the largest LSB in most designs.")
 		linePos += lineHeight
 
-		self.w.largeRSB = vanilla.CheckBox((inset, linePos, -inset, 20), "RSBs larger than:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.rsbThreshold = vanilla.EditText((inset + 110, linePos, -inset - 35, 19), "70", callback=self.SavePreferences, sizeStyle='small')
-		self.w.rsbThresholdUpdateButton = vanilla.SquareButton((-inset - 30, linePos + 0.5, -inset, 18), u"↺ H", sizeStyle='small', callback=self.updateValues)
+		self.w.largeRSB = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "RSBs larger than", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.rsbThreshold = vanilla.EditText((inset + 108, linePos, -inset - 32, 19), "70", callback=self.SavePreferences, sizeStyle='small')
+		self.w.rsbThresholdUpdateButton = UpdateButton((-inset - 20, linePos - 1, -inset - 2, 18), title="H", callback=self.updateValues)
 		self.w.rsbThresholdUpdateButton.getNSButton().setToolTip_("Update the entry with the measurements for uppercase H, presumably the largest RSB in most designs.")
 		linePos += lineHeight
 
-		self.w.whiteGlyphs = vanilla.CheckBox((inset, linePos, 180, 20), "LSB+RSB make up more than:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.whitePercentage = vanilla.EditText((inset + 180, linePos, -inset - 100, 19), "50", callback=self.SavePreferences, sizeStyle='small')
-		self.w.whiteGlyphsText = vanilla.TextBox((-inset - 100, linePos + 3, -inset, 14), "% of overall width", sizeStyle='small', selectable=True)
+		self.w.whiteGlyphs = vanilla.CheckBox((inset + 2, linePos, 180, 20), "LSB+RSB make up more than", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.whitePercentage = vanilla.EditText((inset + 173, linePos, 50, 19), "50", callback=self.SavePreferences, sizeStyle='small')
+		self.w.whiteGlyphsText = vanilla.TextBox((inset + 173 + 52, linePos + 3, 105, 14), "% of overall width", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.includeBraceAndBracketLayers = vanilla.CheckBox((inset, linePos, -inset, 20), "Include brace and bracket layers", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeBraceAndBracketLayers = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Include brace and bracket layers", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.allMasters = vanilla.CheckBox((inset, linePos, -inset, 20), "Look on all masters (otherwise current master only)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Look on all masters (otherwise current master only)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.ignoreNonexportingGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Ignore glyphs that do not export", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.ignoreNonexportingGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Ignore glyphs that do not export", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))

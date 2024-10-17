@@ -47,13 +47,13 @@ class RemovePSHints(mekkaObject):
 		self.w.where = vanilla.PopUpButton((inset + 160, linePos, -inset, 17), self.wheres, sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.horizontalStemHints = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Horizontal Stem Hints", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.horizontalStemHints = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Horizontal Stem Hints", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.verticalStemHints = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Vertical Stem Hints", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.verticalStemHints = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Vertical Stem Hints", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.ghostHints = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Ghost Hints", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.ghostHints = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Ghost Hints", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))

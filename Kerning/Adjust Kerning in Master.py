@@ -54,7 +54,7 @@ class AdjustKerning(mekkaObject):
 		self.w.text_2 = vanilla.TextBox((inset - 1, linePos + 4, -inset, 14), "To these kerning pairs:", sizeStyle='small')
 
 		linePos += lineHeight
-		self.w.positive = vanilla.CheckBox((inset, linePos, 63, 20), "Positive,", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.positive = vanilla.CheckBox((inset + 2, linePos, 63, 20), "Positive,", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.zero = vanilla.CheckBox((inset + 65, linePos, 65, 20), "zero, and", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.negative = vanilla.CheckBox((inset + 137, linePos, -inset, 20), "negative pairs", value=True, callback=self.SavePreferences, sizeStyle='small')
 

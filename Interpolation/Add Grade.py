@@ -10,7 +10,7 @@ import vanilla
 from AppKit import NSAffineTransform, NSPoint
 from copy import copy
 from GlyphsApp import Glyphs, GSInstance, GSUppercase, GSSmallcaps, GSSMOOTH, GSOFFCURVE, GSAxis, GSCustomParameter, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 def axisIdForTag(font, tag="wght"):
@@ -268,54 +268,52 @@ class AddGrade(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 440
-		windowHeight = 230
+		windowHeight = 208
 		windowWidthResize = 200  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Add Grade",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow"),  # stores last window position and size
 		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		indent = 100
+		indent = 95
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Add Grade master (and if necessary Grade axis):", sizeStyle="small", selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Add Grade master (and if necessary Grade axis)", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
-		self.w.baseMasterText = vanilla.TextBox((inset, linePos + 3, indent, 14), "Based on master:", sizeStyle="small", selectable=True)
-		self.w.baseMaster = vanilla.PopUpButton((inset + indent, linePos, -inset - 25, 17), self.mastersOfCurrentFont(), sizeStyle="small", callback=self.SavePreferences)
-		self.w.updateBaseMaster = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateUI)
+		self.w.baseMasterText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Based on master", sizeStyle="small", selectable=True)
+		self.w.baseMaster = vanilla.PopUpButton((inset + indent, linePos, -inset - 22, 17), self.mastersOfCurrentFont(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateBaseMaster = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateUI)
 		linePos += lineHeight
 
-		self.w.weightText = vanilla.TextBox((inset, linePos + 3, indent, 14), "Use coordinate:", sizeStyle="small", selectable=True)
-		self.w.weight = vanilla.ComboBox((inset + indent, linePos - 1, -inset - 25, 19), self.weightValuesForCurrentFont(), sizeStyle="small", callback=self.SavePreferences)
-		self.w.updateWeight = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateUI)
+		self.w.weightText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Use coordinate", sizeStyle="small", selectable=True)
+		self.w.weight = vanilla.ComboBox((inset + indent, linePos - 1, -inset - 22, 19), self.weightValuesForCurrentFont(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateWeight = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateUI)
 		linePos += lineHeight
 
-		self.w.gradeText = vanilla.TextBox((inset, linePos + 3, indent, 14), "… for grade:", sizeStyle="small", selectable=True)
+		self.w.gradeText = vanilla.TextBox((inset, linePos + 2, indent, 14), "… for grade", sizeStyle="small", selectable=True)
 		self.w.grade = vanilla.ComboBox((inset + indent, linePos - 1, 55, 19), ("-50", "0", "50"), sizeStyle="small", callback=self.SavePreferences)
-		self.w.axisTagText = vanilla.TextBox((inset + indent + 65, linePos + 3, indent, 14), "Axis tag & name:", sizeStyle="small", selectable=True)
+		self.w.axisTagText = vanilla.TextBox((inset + indent + 65, linePos + 2, indent, 14), "Axis tag & name", sizeStyle="small", selectable=True)
 		self.w.axisTag = vanilla.EditText((inset + indent * 2 + 60, linePos, 45, 19), "GRAD", callback=self.SavePreferences, sizeStyle="small")
-		self.w.axisName = vanilla.EditText((inset + indent * 2 + 110, linePos, -inset - 25, 19), "Grade", callback=self.SavePreferences, sizeStyle="small")
-		self.w.axisReset = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateUI)
-		linePos += lineHeight + 10
+		self.w.axisName = vanilla.EditText((inset + indent * 2 + 110, linePos, -inset - 22, 19), "Grade", callback=self.SavePreferences, sizeStyle="small")
+		self.w.axisReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateUI)
+		linePos += lineHeight + 8
 
 		indent = 45
-		self.w.fittingMethodText = vanilla.TextBox((inset, linePos + 3, indent, 14), "Fitting:", sizeStyle="small", selectable=True)
-		self.w.fittingMethod = vanilla.PopUpButton((inset + indent, linePos + 1, -inset, 17), self.refittingMethods, sizeStyle="small", callback=self.SavePreferences)
+		self.w.fittingMethodText = vanilla.TextBox((inset, linePos + 1, indent, 14), "Fitting", sizeStyle="small", selectable=True)
+		self.w.fittingMethod = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), self.refittingMethods, sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.addSyncMetricCustomParameter = vanilla.CheckBox((inset + indent, linePos - 1, -inset, 20), "Add custom parameter ‘Link Metrics With Master’ (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight + 5
+		self.w.addSyncMetricCustomParameter = vanilla.CheckBox((inset + indent, linePos, -inset, 20), "Add custom parameter ‘Link Metrics With Master’ (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		linePos += lineHeight + 6
 
-		self.w.limitToSelectedGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Limit to selected glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.limitToSelectedGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Limit to selected glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		# self.w.useWdthAxis = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Use Width axis for fitting grade layer width", value=False, callback=self.SavePreferences, sizeStyle="small")
+		# self.w.useWdthAxis = vanilla.CheckBox((inset + 2, linePos-1, -inset, 20), "Use Width axis for fitting grade layer width", value=False, callback=self.SavePreferences, sizeStyle="small")
 		# linePos += lineHeight
 		#
 		# self.w.useWdthAxis.enable(False)

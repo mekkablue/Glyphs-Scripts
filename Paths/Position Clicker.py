@@ -8,7 +8,7 @@ Finds all combinations of positional shapes that do not click well. Clicking mea
 import vanilla
 from AppKit import NSFont
 from GlyphsApp import Glyphs, GSControlLayer, GSOFFCURVE, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 def layerMissesPointsAtCoordinates(thisLayer, coordinates):
@@ -89,49 +89,49 @@ class PositionClicker(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 400
-		windowHeight = 180
+		windowHeight = 160
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Position Clicker",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
 		linePos, inset, lineHeight, indent = 12, 15, 22, 110
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Report positional combos that do not click:", sizeStyle='small', selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Report positional combos that do not click", sizeStyle='small')
 		self.w.descriptionText.getNSTextField().setToolTip_("Clicking means that when two matching positional shapes follow each other (e.g. initial and final), they ‘click’, i.e., they share at least 2 point coordinates. Or whatever number is set in the minimal node count setting below.")
 		linePos += lineHeight
 
 		tooltip = "Reference glyph. Pick a medial glyph with paths for clicking. We recommend behDotless-ar.medi."
-		self.w.referenceText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Click with glyph", sizeStyle='small', selectable=True)
+		self.w.referenceText = vanilla.TextBox((inset, linePos, indent, 14), "Click with glyph", sizeStyle='small')
 		self.w.referenceText.getNSTextField().setToolTip_(tooltip)
 
-		self.w.referenceGlyphName = vanilla.ComboBox((inset + indent, linePos - 4, -inset - 23, 25), self.getAllMediGlyphNames(), callback=self.SavePreferences)
-		self.w.referenceGlyphName.getNSComboBox().setFont_(NSFont.userFixedPitchFontOfSize_(11))
+		self.w.referenceGlyphName = vanilla.ComboBox((inset + indent, linePos - 2, -inset - 22, 19), self.getAllMediGlyphNames(), sizeStyle='small', callback=self.SavePreferences)
+		self.w.referenceGlyphName.getNSComboBox().setFont_(NSFont.userFixedPitchFontOfSize_(10))
 		self.w.referenceGlyphName.getNSComboBox().setToolTip_(tooltip)
 
-		self.w.updateButton = vanilla.SquareButton((-inset - 20, linePos - 1, -inset, 18), "↺", sizeStyle='small', callback=self.updateReferenceGlyphs)
+		self.w.updateButton = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.updateReferenceGlyphs)
 		self.w.updateButton.getNSButton().setToolTip_("Update the list in the combo box with all .medi glyphs in the frontmost font.")
 		linePos += lineHeight
 
 		tooltip = "The amount of point coordinates that must be shared between two consecutive positional forms. E.g., if set to 2, an initial and a final shape must have two or more nodes exactly on top of each other when they follow each other."
-		self.w.clickCountText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Minimal node count", sizeStyle='small', selectable=True)
+		self.w.clickCountText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Minimal node count", sizeStyle='small')
 		self.w.clickCount = vanilla.EditText((inset + indent, linePos - 1, -inset, 19), "2", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		indent = 190
-		self.w.includeNonExporting = vanilla.CheckBox((inset, linePos - 1, indent, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, indent, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonExporting.getNSButton().setToolTip_("Will also measure glyphs that are set to not export.")
 
 		self.w.includeComposites = vanilla.CheckBox((inset + indent, linePos - 1, -inset, 20), "Include composites", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.reuseTab = vanilla.CheckBox((inset, linePos - 1, indent, 20), "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab = vanilla.CheckBox((inset + 2, linePos - 1, indent, 20), "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.getNSButton().setToolTip_("Will use the current tab for output. Will open a new tab only if there is no Edit tab open already.")
 
 		self.w.verbose = vanilla.CheckBox((inset + indent, linePos - 1, -inset, 20), "Verbose reporting", value=False, callback=self.SavePreferences, sizeStyle="small")

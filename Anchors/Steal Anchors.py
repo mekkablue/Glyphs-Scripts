@@ -32,14 +32,14 @@ class StealAnchors(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 350
-		windowHeight = 265
+		windowHeight = 246
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Steal Anchors",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -68,29 +68,29 @@ class StealAnchors(mekkaObject):
 		self.w.targetMaster.getNSPopUpButton().setToolTip_(tooltip)
 		linePos += lineHeight
 
-		self.w.allMasters = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Copy from (and paste into) all masters of the fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Copy from (and paste into) all masters of the fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allMasters.getNSButton().setToolTip_("Copy from all masters of the source font to all masters of the target font.")
 		linePos += lineHeight
 
-		self.w.overwriteExistingAnchors = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Delete existing anchors in target before copying", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.overwriteExistingAnchors = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete existing anchors in target before copying", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.overwriteExistingAnchors.getNSButton().setToolTip_("If enabled, will reset the anchors in the target font to whatever is in the source font. If disabled, will skip anchors that are already in the target font, and only add the ones that are missing.")
 		linePos += lineHeight
 
-		self.w.respectItalicAngle = vanilla.CheckBox((inset, linePos - 1, 160, 20), "Adjust for italic angles", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.respectItalicAngle = vanilla.CheckBox((inset + 2, linePos - 1, 160, 20), "Adjust for italic angles", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.respectItalicAngle.getNSButton().setToolTip_("If enabled, will slant the anchor positions accordiing to the italic angles in both fonts. Useful for transfering from Roman to Italic.")
 		self.w.respectWidths = vanilla.CheckBox((inset + 160, linePos - 1, -inset, 20), "Adjust for widths", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.respectWidths.getNSButton().setToolTip_("If enabled, will scale the x coordinates of the anchors so they fit into the width of the target glyph.")
 		linePos += lineHeight
 
-		self.w.targetSelectedGlyphsOnly = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Limit to selected glyphs in target font", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.targetSelectedGlyphsOnly = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Limit to selected glyphs in target font", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.targetSelectedGlyphsOnly.getNSButton().setToolTip_("If enabled, will only copy into the glyphs that are selected in the target font. If disabled, will copy into all glyphs.")
 		linePos += lineHeight
 
-		self.w.includeNonExportingGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.includeNonExportingGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.includeNonExportingGlyphs.getNSButton().setToolTip_("If enabled, will ignore all glyphs that are sentto not export. Useful for not messing up helper glyphs.")
 		linePos += lineHeight
 
-		self.w.excludeCapAndCorner = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Exclude _cap, _corner, _segment, _brush (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.excludeCapAndCorner = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Exclude _cap, _corner, _segment, _brush (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.excludeCapAndCorner.getNSButton().setToolTip_("If enabled, will ignore special components, no matter what the other settings say. Strongly recommended.")
 		linePos += lineHeight
 

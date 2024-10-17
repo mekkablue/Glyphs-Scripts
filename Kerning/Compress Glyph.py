@@ -62,7 +62,7 @@ class CompressGlyph(mekkaObject):
 		self.w.compressRight = vanilla.CheckBox((inset + 205, linePos - 1, -inset, 20), "right side of pair", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.allMasters = vanilla.CheckBox((inset, linePos - 1, 120, 20), "⚠️ ALL masters", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos - 1, 120, 20), "⚠️ ALL masters", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.verbose = vanilla.CheckBox((inset + 120, linePos - 1, -inset, 20), "Verbose report in Macro window", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 

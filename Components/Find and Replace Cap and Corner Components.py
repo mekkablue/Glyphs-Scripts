@@ -19,12 +19,10 @@ class FindAndReplaceCorners(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 340
-		windowHeight = 135
+		windowHeight = 117
 		self.w = vanilla.Window(
 			(windowWidth, windowHeight),  # default window size
 			"Replace Corners",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth, windowHeight),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -33,11 +31,11 @@ class FindAndReplaceCorners(mekkaObject):
 
 		# UI elements:
 		margin = 25
-		self.w.textSearch = vanilla.TextBox((margin + 5, 12 + 2, 80, 18), "Find:")
-		self.w.searchFor = vanilla.PopUpButton((margin + 80, 12, -margin, 22), self.corners)
+		self.w.textSearch = vanilla.TextBox((margin, 12 + 2, 80, 18), "Find")
+		self.w.searchFor = vanilla.PopUpButton((margin + 60, 12, -margin, 22), self.corners)
 
-		self.w.textReplace = vanilla.TextBox((margin, 32 + 12 + 2, 80, 18), "Replace with:")
-		self.w.replaceBy = vanilla.PopUpButton((margin + 80, 32 + 12, -margin, 22), self.corners)
+		self.w.textReplace = vanilla.TextBox((margin, 32 + 12 + 2, 80, 18), "Replace")
+		self.w.replaceBy = vanilla.PopUpButton((margin + 60, 32 + 12, -margin, 22), self.corners)
 
 		self.w.replaceButton = vanilla.Button((-70 - margin, 63 + 12 + 1, -margin, 22), "Replace", callback=self.FindAndReplaceCornersMain)
 		self.w.setDefaultButton(self.w.replaceButton)

@@ -20,30 +20,26 @@ class RemoveNonStandardAnchors(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 400
-		windowHeight = 170
-		windowWidthResize = 0  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 370
+		windowHeight = 160
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Remove Non-Standard Anchors from Selected Glyphs",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		inset = 10
+		inset = 15
 		currentHeight = 8
 		self.w.text_1 = vanilla.TextBox((inset, currentHeight + 2, -inset, 28), "Removes anchors from selected glyphs, that should not be there by default, like ogonek from J.", sizeStyle='small')
 		currentHeight += 35
-		self.w.keepExtensions = vanilla.CheckBox((inset, currentHeight, -inset, 20), "Keep underscore variants of standard anchors (e.g. top_low)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.keepExtensions = vanilla.CheckBox((inset + 2, currentHeight, -inset, 20), "Keep underscore variants of standard anchors (e.g. top_low)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		currentHeight += 20
-		self.w.keepExitAndEntry = vanilla.CheckBox((inset, currentHeight, -inset, 20), "Keep exit and entry anchors", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.keepExitAndEntry = vanilla.CheckBox((inset + 2, currentHeight, -inset, 20), "Keep exit and entry anchors", value=False, callback=self.SavePreferences, sizeStyle='small')
 		currentHeight += 20
-		self.w.keepCarets = vanilla.CheckBox((inset, currentHeight, -inset, 20), "Keep caret anchors (only in ligatures)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.keepCarets = vanilla.CheckBox((inset + 2, currentHeight, -inset, 20), "Keep caret anchors (only in ligatures)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		currentHeight += 20
-		self.w.keepNoDefaults = vanilla.CheckBox((inset, currentHeight, -inset, 20), "Ignore glyphs that have no default anchors", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.keepNoDefaults = vanilla.CheckBox((inset + 2, currentHeight, -inset, 20), "Ignore glyphs that have no default anchors", value=False, callback=self.SavePreferences, sizeStyle='small')
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Remove", callback=self.RemoveNonStandardAnchorsMain)

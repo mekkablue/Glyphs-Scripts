@@ -10,7 +10,7 @@ from axisMethods import extremeMasterValuesNative, coefficient, valueForCoeffici
 from Foundation import NSMutableDictionary
 from collections import OrderedDict
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, getLegibleFont
+from mekkablue import mekkaObject, getLegibleFont, UpdateButton
 
 fallbackText = """
 Only lines containing a dash "-" followed by a greater sign ">" are interpreted
@@ -123,43 +123,43 @@ class AxisMapper(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Axis Mapper",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 4, 10, 22
+		linePos, inset, lineHeight = 4, 15, 21
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Axis Mapping from user-visible (not native) values:", sizeStyle='small', selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Axis Mapping from user-visible (not native) values", sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.axisPicker = vanilla.ComboBox((inset, linePos - 1, 60, 20), self.AxisListForFrontmostFont(), callback=self.SavePreferences, sizeStyle='small')
 		self.w.axisPicker.getNSComboBox().setToolTip_("Pick or type the 4-letter tag of the axis for which you want to edit the mapping.")
-		self.w.axisReset = vanilla.SquareButton((inset + 65, linePos, 20, 18), "↺", sizeStyle='small', callback=self.resetAxisList)
+		self.w.axisReset = UpdateButton((inset + 63, linePos - 1, 20, 18), callback=self.resetAxisList)
 		self.w.axisReset.getNSButton().setToolTip_("Will populate the axis picker with the tags for all axes in the frontmost font.")
 
-		self.w.minText = vanilla.TextBox((inset + 100, linePos + 2, 55, 14), "Axis Min:", sizeStyle='small', selectable=True)
-		self.w.minValue = vanilla.EditText((inset + 100 + 55, linePos - 1, 40, 19), self.MinimumForCurrentAxis(), callback=self.SavePreferences, sizeStyle='small')
+		self.w.minText = vanilla.TextBox((inset + 88, linePos + 3, 55, 14), "Axis Min", sizeStyle='small')
+		self.w.minValue = vanilla.EditText((inset + 88 + 50, linePos, 40, 19), self.MinimumForCurrentAxis(), callback=self.SavePreferences, sizeStyle='small')
 		tooltipText = "User-visible slider minimum, typically set with an Axis Location parameter. Not (necessarily) the native master value."
 		self.w.minText.getNSTextField().setToolTip_(tooltipText)
 		self.w.minValue.getNSTextField().setToolTip_(tooltipText)
-		self.w.minValueReset = vanilla.SquareButton((inset + 100 + 60 + 40, linePos, 20, 18), "↺", sizeStyle='small', callback=self.resetMinimum)
+		self.w.minValueReset = UpdateButton((inset + 88 + 50 + 40, linePos - 1, 20, 18), callback=self.resetMinimum)
 		self.w.minValueReset.getNSButton().setToolTip_("Will attempt to guess the user-visible slider minimum of the frontmost font.")
 
-		self.w.maxText = vanilla.TextBox((inset + 230, linePos + 2, 55, 14), "Axis Max:", sizeStyle='small', selectable=True)
-		self.w.maxValue = vanilla.EditText((inset + 230 + 55, linePos - 1, 40, 19), self.MaximumForCurrentAxis(), callback=self.SavePreferences, sizeStyle='small')
+		self.w.maxText = vanilla.TextBox((inset + 202, linePos + 3, 55, 14), "Axis Max", sizeStyle='small')
+		self.w.maxValue = vanilla.EditText((inset + 202 + 52, linePos, 40, 19), self.MaximumForCurrentAxis(), callback=self.SavePreferences, sizeStyle='small')
 		tooltipText = "User-visible slider maximum, typically set with an Axis Location parameter. Not (necessarily) the native master value."
 		self.w.maxText.getNSTextField().setToolTip_(tooltipText)
 		self.w.maxValue.getNSTextField().setToolTip_(tooltipText)
-		self.w.maxValueReset = vanilla.SquareButton((inset + 230 + 60 + 40, linePos, 20, 18), "↺", sizeStyle='small', callback=self.resetMaximum)
+		self.w.maxValueReset = UpdateButton((inset + 202 + 52 + 40, linePos - 1, 20, 18), callback=self.resetMaximum)
 		self.w.maxValueReset.getNSButton().setToolTip_("Will attempt to guess the user-visible slider maximum of the frontmost font.")
-		self.w.mappingLevel = vanilla.PopUpButton((inset + 230 + 60 + 40 + 30, linePos - 1, 120, 18), ['instance level', 'font level'], sizeStyle='small')
+		self.w.mappingLevel = vanilla.PopUpButton((inset + 202 + 52 + 40 + 25, linePos, 120, 18), ['instance level', 'font level'], sizeStyle='small')
 		self.w.mappingLevel.getNSPopUpButton().setToolTip_("Choose level in which the custom parameter for axis mapping will be added.")
 		# self.w.mappingLevel.set(value)
-		linePos += lineHeight
+		linePos += lineHeight + 2
 
-		self.w.mappingRecipe = vanilla.TextEditor((0, linePos, -0, -20 - inset * 2), text=fallbackText.strip(), callback=self.SavePreferences, checksSpelling=False)
+		self.w.mappingRecipe = vanilla.TextEditor((0, linePos, -0, - inset * 3), text=fallbackText.strip(), callback=self.SavePreferences, checksSpelling=False)
 
 		legibleFont = getLegibleFont()
 

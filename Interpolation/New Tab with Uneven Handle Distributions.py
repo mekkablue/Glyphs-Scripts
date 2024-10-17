@@ -38,18 +38,18 @@ class NewTabWithUnevenHandleDistributions(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, lineHeight * 2), "Finds compatible glyphs with curve segments in which the handle distribution changes too much:", sizeStyle='small', selectable=True)
 		linePos += int(lineHeight * 1.8)
 
-		self.w.factorChange = vanilla.CheckBox((inset, linePos, 230, 20), "Tolerated change factor (BCP1÷BCP2):", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.factorChange = vanilla.CheckBox((inset + 2, linePos, 230, 20), "Tolerated change factor (BCP1÷BCP2):", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.factorChangeEntry = vanilla.EditText((inset + 230, linePos, -inset, 19), "2.5", callback=self.SavePreferences, sizeStyle='small')
 		factorChangeTooltipText = "Calculates length ratios of handles in a curve segment in every master. If the ratio differs by more than the given factor in one or more masters, glyph will be reported."
 		self.w.factorChange.getNSButton().setToolTip_(factorChangeTooltipText)
 		self.w.factorChangeEntry.getNSTextField().setToolTip_(factorChangeTooltipText)
 		linePos += lineHeight
 
-		self.w.anyMaxToNotMax = vanilla.CheckBox((inset, linePos, -inset, 20), "Any handle that changes from 100% to non-100%", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.anyMaxToNotMax = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Any handle that changes from 100% to non-100%", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.anyMaxToNotMax.getNSButton().setToolTip_("Finds BCPs that are maximized (100%) in one master, but not in other masters.")
 		linePos += lineHeight
 
-		self.w.markInFirstMaster = vanilla.CheckBox((inset, linePos, -inset, 20), "Mark affected curve segments in first master", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.markInFirstMaster = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Mark affected curve segments in first master", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.markInFirstMaster.enable(False)
 		self.w.markInFirstMaster.getNSButton().setToolTip_("Not implemented yet. Sorry.")
 		linePos += lineHeight

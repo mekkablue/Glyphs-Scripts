@@ -7,7 +7,7 @@ Build rand (random) feature from .cvXX or another (numbered) suffix.
 
 import vanilla
 from GlyphsApp import Glyphs, GSFeature, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 def getRootName(glyphName):
@@ -48,21 +48,21 @@ class BuildRandFeature(mekkaObject):
 		linePos += lineHeight
 
 		self.w.suffixText = vanilla.TextBox((inset, linePos + 3, 45, 14), u"Suffix:", sizeStyle='small', selectable=True)
-		self.w.suffix = vanilla.ComboBox((inset + 45, linePos, -inset - 25, 17), self.fillSuffixes(), sizeStyle='small', callback=self.SavePreferences)
+		self.w.suffix = vanilla.ComboBox((inset + 45, linePos, -inset - 22, 17), self.fillSuffixes(), sizeStyle='small', callback=self.SavePreferences)
 		self.w.suffix.getNSComboBox().setToolTip_(u"Find all (exporting) glyphs that have this suffix and in OT feature ‘rand’, build a one-from-many substitution with them. Hint: keep the dot, but avoid the figures, e.g. for all stylistic sets, type ‘.ss’.")
-		self.w.suffixReset = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), u"↺", sizeStyle='small', callback=self.updateSuffixs)
+		self.w.suffixReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateSuffixs)
 		linePos += lineHeight
 
-		self.w.exclude = vanilla.CheckBox((inset, linePos, 160, 20), "Exclude glyphs containing:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.exclude = vanilla.CheckBox((inset + 2, linePos, 160, 20), "Exclude glyphs containing:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.excludeList = vanilla.EditText((inset + 160, linePos, -inset, 19), ".build, .ss12", callback=self.SavePreferences, sizeStyle='small')
 		self.w.excludeList.getNSTextField().setToolTip_("Comma-separated list of glyph name particles. Glyphs containing these particles in their names will be excluded from the rand feature generation.")
 		linePos += lineHeight
 
-		self.w.includeDefault = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include unsuffixed default in randomisation", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeDefault = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include unsuffixed default in randomisation", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeDefault.getNSButton().setToolTip_("If enabled, will substitute A from [A A.cv01 A.cv02]. If disabled, will substitute only from [A.cv01 A.cv02]. Usually, you will want to keep this on.")
 		linePos += lineHeight
 
-		self.w.overwrite = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Overwrite existing rand feature", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.overwrite = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Overwrite existing rand feature", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.overwrite.getNSButton().setToolTip_("If enabled, will recreate the existing randomisation feature from scratch. If disabled, will append the new code instead. Usually, you will want to keep this on.")
 		linePos += lineHeight
 

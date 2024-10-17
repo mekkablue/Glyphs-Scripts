@@ -126,41 +126,37 @@ class CopyKerningFromCapsToSmallcaps(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 400
-		windowHeight = 180
-		windowWidthResize = 200  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 360
+		windowHeight = 164
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Copy Kerning from Caps to Smallcaps",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-
-		self.w.smallcapSuffixText = vanilla.TextBox((inset, linePos + 2, 110, 14), "Smallcap suffix:", sizeStyle='small', selectable=True)
-		self.w.smallcapSuffix = vanilla.ComboBox((inset + 110, linePos - 1, -inset, 19), smallcapSuffixes, sizeStyle='small', callback=self.SavePreferences)
+		tab = 105
+		self.w.smallcapSuffixText = vanilla.TextBox((inset, linePos + 2, 110, 14), "Smallcap suffix", sizeStyle='small')
+		self.w.smallcapSuffix = vanilla.ComboBox((inset + tab, linePos - 1, -inset, 19), smallcapSuffixes, sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.namingSchemeText = vanilla.TextBox((inset, linePos + 2, 110, 14), "SC naming scheme:", sizeStyle='small', selectable=True)
-		self.w.namingScheme = vanilla.PopUpButton((inset + 110, linePos, -inset, 17), namingSchemeOptions, sizeStyle='small', callback=self.SavePreferences)
+		self.w.namingSchemeText = vanilla.TextBox((inset, linePos + 2, 110, 14), "SC naming scheme", sizeStyle='small')
+		self.w.namingScheme = vanilla.PopUpButton((inset + tab, linePos, -inset, 17), namingSchemeOptions, sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.includeAllMasters = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Include all masters (otherwise current master only)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeAllMasters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Include all masters (otherwise current master only)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		# self.w.copyCapCapToCapSC = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Add cap-to-cap → cap-to-smallcap", value=True, callback=self.SavePreferences, sizeStyle='small')
+		# self.w.copyCapCapToCapSC = vanilla.CheckBox((inset + 2, linePos-1, -inset, 20), "Add cap-to-cap → cap-to-smallcap", value=True, callback=self.SavePreferences, sizeStyle='small')
 		# linePos += lineHeight
 
-		self.w.includeNonLetters = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include smallcap non-letters (otherwise only from caps)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonLetters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include smallcap non-letters (otherwise only from caps)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonLetters.getNSButton().setToolTip_("Includes smallcap figures, punctuation, etc. E.g. copies kerning for parenright if there is  parenright.sc.")
 		linePos += lineHeight
 
-		self.w.figureSuffixText = vanilla.TextBox((inset + 20, linePos + 2, 90, 14), "Figure suffix:", sizeStyle='small', selectable=True)
-		self.w.figureSuffix = vanilla.EditText((inset + 110, linePos, -inset, 19), ".lf", callback=self.SavePreferences, sizeStyle='small')
+		self.w.figureSuffixText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Figure suffix", sizeStyle='small')
+		self.w.figureSuffix = vanilla.EditText((inset + tab, linePos, -inset, 19), ".lf", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# Run Button:

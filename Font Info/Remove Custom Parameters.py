@@ -7,7 +7,7 @@ Removes all parameters of one kind from Font Info > Font, Masters, Instances. Us
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 class RemoveCustomParameters(mekkaObject):
@@ -21,23 +21,23 @@ class RemoveCustomParameters(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 315
-		windowHeight = 130
+		windowHeight = 134
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Remove Custom Parameters",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			minSize=(windowWidth - 20, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		linePos, inset, lineHeight = 10, 15, 22
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Remove parameter:", sizeStyle='small', selectable=True)
 		self.w.parameterMenu = vanilla.PopUpButton((inset + 110, linePos, -inset - 22, 17), self.parametersOfCurrentFont(), sizeStyle='small', callback=self.SavePreferences)
 		self.w.parameterMenu.getNSPopUpButton().setToolTip_("Remove this custom parameter from the designated parts of Font Info.")
-		self.w.updateButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.updateMenu)
+		self.w.updateButton = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.updateMenu)
 		self.w.updateButton.getNSButton().setToolTip_("Scans the current font for all its custom parameters and updates the menu to the left.")
 		linePos += lineHeight
 
@@ -56,7 +56,7 @@ class RemoveCustomParameters(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Remove", callback=self.RemoveCustomParametersMain)
+		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Remove", callback=self.RemoveCustomParametersMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

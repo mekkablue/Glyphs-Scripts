@@ -8,8 +8,8 @@ Batch-process anchor positions in selected glyphs (GUI).
 import vanilla
 import math
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSOFFCURVE, Message, GSMetricsTypexHeight, GSMetricsTypeItalicAngle  # , GSMetricsTypeAscender, GSMetricsTypeCapHeight, GSMetricsTypeDescender
-from mekkablue import mekkaObject
+from GlyphsApp import Glyphs, GSOFFCURVE, Message, GSMetricsTypexHeight, GSMetricsTypeItalicAngle, GSMetricsTypeAscender, GSMetricsTypeCapHeight, GSMetricsTypeDescender, GSMetricsTypeMidHeight, GSMetricsTypeBodyHeight, GSMetricsTypeSlantHeight, GSMetricsTypeBaseline
+from mekkablue import mekkaObject, UpdateButton
 from mekkablue.geometry import transform, italicize
 
 
@@ -110,21 +110,20 @@ class AnchorMover2(mekkaObject):
 		windowWidth = 500
 		windowHeight = 200
 		windowWidthResize = 700  # user can resize width by this value
-		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Anchor Mover",  # window title
 			minSize=(windowWidth - 130, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.text_1 = vanilla.TextBox((inset, linePos + 2, inset + 60, 14), "Move anchor", sizeStyle='small')
-		self.w.anchorName = vanilla.ComboBox((inset + 75, linePos - 1, -110 - inset - 25, 19), self.GetAnchorNames(), sizeStyle='small', callback=self.SavePreferences)
-		self.w.button = vanilla.SquareButton((-110 - inset - 20, linePos, -110 - inset, 18), "↺", sizeStyle='small', callback=self.SetAnchorNames)
-		self.w.text_2 = vanilla.TextBox((-105 - 15, linePos + 2, -inset, 14), "in selected glyphs:", sizeStyle='small')
+		self.w.text_1 = vanilla.TextBox((inset, linePos + 1, inset + 60, 14), "Move anchor", sizeStyle='small')
+		self.w.anchorName = vanilla.ComboBox((inset + 75, linePos - 2, -105 - inset - 25, 18), self.GetAnchorNames(), sizeStyle='small', callback=self.SavePreferences)
+		self.w.button = UpdateButton((-105 - inset - 16, linePos - 3, -110 - inset, 16), callback=self.SetAnchorNames)
+		self.w.text_2 = vanilla.TextBox((-105 - 12, linePos + 1, -inset, 14), "in selected glyphs", sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.hText_1 = vanilla.TextBox((inset - 2, linePos, 20, 14), "↔")
@@ -141,13 +140,13 @@ class AnchorMover2(mekkaObject):
 		self.w.vChange = vanilla.EditText((-60 - 15, linePos, -inset, 19), "0.0", sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.italic = vanilla.CheckBox((inset, linePos, -inset, 18), "Respect italic angle", value=True, sizeStyle='small', callback=self.SavePreferences)
+		self.w.italic = vanilla.CheckBox((inset + 2, linePos, -inset, 18), "Respect italic angle", value=True, sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.allMasters = vanilla.CheckBox((inset, linePos, -inset, 20), "All masters and special layers (otherwise only current masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "All masters and special layers (otherwise only current masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.verbose = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Log in Macro window (slow, use for tracking errors)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Log in Macro window (slow, use for tracking errors)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		self.w.moveButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Move", callback=self.MoveCallback)

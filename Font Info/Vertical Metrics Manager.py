@@ -11,7 +11,7 @@ Manage and sync ascender, descender and linegap values for hhea, OS/2 sTypo and 
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 def cleanInt(numberString):
@@ -63,20 +63,16 @@ class VerticalMetricsManager(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 330
-		windowHeight = 436
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 328
+		windowHeight = 418
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Vertical Metrics Manager",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		linePos, inset, lineHeight = 10, 15, 22
 
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Manage and sync hhea, typo and win values.", sizeStyle='small', selectable=True)
 		linePos += lineHeight
@@ -93,9 +89,9 @@ class VerticalMetricsManager(mekkaObject):
 		self.w.winDesc.getNSTextField().setToolTip_("OS/2 usWinDescent (unsigned integer). Should be the maximum depth in your font, like the lowest descender you have. Expect clipping or rendering artefacts beyond this point.")
 		self.w.winGap = vanilla.EditText((inset + 210, linePos, 65, 19), "", callback=None, sizeStyle='small', readOnly=True, placeholder="n/a")
 		self.w.winGap.getNSTextField().setToolTip_("OS/2 usWinLineGap does not exist, hence greyed out here.")
-		self.w.winUpdate = vanilla.SquareButton((inset + 280, linePos, 20, 19), "↺", sizeStyle='small', callback=self.update)
+		self.w.winUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
 		self.w.winUpdate.getNSButton().setToolTip_("Will recalculate the OS/2 usWin values in the fields to the left. Takes the measurement settings below into account, except for the Limit options.")
-		linePos += lineHeight + 4
+		linePos += lineHeight + 6
 
 		self.w.parenTypo = vanilla.TextBox((inset - 12, linePos + 5, 15, 20), "┏", sizeStyle='small', selectable=False)
 		self.w.titleTypo = vanilla.TextBox((inset, linePos + 3, 70, 14), "OS/2 sTypo", sizeStyle='small', selectable=True)
@@ -105,7 +101,7 @@ class VerticalMetricsManager(mekkaObject):
 		self.w.typoDesc.getNSTextField().setToolTip_("OS/2 sTypoDescender (negative value), should be the same as hheaDescender. Should be the maximum depth of the glyphs relevant for horizontal text setting in your font, like the lowest descender or bottom accent, typically Gcommaccent, Ccedilla, or one of the lowercase descenders (gjpqy). Together with the line gap value, used for line distance calculation in office apps and browsers.")
 		self.w.typoGap = vanilla.EditText((inset + 210, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.typoGap.getNSTextField().setToolTip_("OS/2 sTypoLineGap (positive value), should be the same as hheaLineGap. Should be either zero or a value for padding between lines that makes sense visually. Office apps insert this distance between the lines, browsers add half on top and half below each line, also for determining text object boundaries.")
-		self.w.typoUpdate = vanilla.SquareButton((inset + 280, linePos, 20, 19), "↺", sizeStyle='small', callback=self.update)
+		self.w.typoUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
 		self.w.typoUpdate.getNSButton().setToolTip_("Will recalculate the OS/2 sTypo values in the fields to the left. Takes the measurement settings below into account.")
 		linePos += lineHeight
 
@@ -118,62 +114,62 @@ class VerticalMetricsManager(mekkaObject):
 		self.w.hheaDesc.getNSTextField().setToolTip_("hheaDescender (negative value), should be the same as OS/2 sTypoDescender. Should be the maximum depth of the glyphs relevant for horizontal text setting in your font, like the lowest descender or bottom accent, typically Gcommaccent, Ccedilla, or one of the lowercase descenders (gjpqy). Together with the line gap value, used for line distance calculation in office apps and browsers.")
 		self.w.hheaGap = vanilla.EditText((inset + 210, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.hheaGap.getNSTextField().setToolTip_("hheaLineGap (positive value), should be the same as OS/2 sTypoLineGap. Should be either zero or a value for padding between lines that makes sense visually. Mac office apps insert this distance between the lines, Mac browsers add half on top and half below each line, also for determining text object boundaries.")
-		self.w.hheaUpdate = vanilla.SquareButton((inset + 280, linePos, 20, 19), "↺", sizeStyle='small', callback=self.update)
+		self.w.hheaUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
 		self.w.hheaUpdate.getNSButton().setToolTip_("Will recalculate the hhea values in the fields to the left. Takes the measurement settings below into account.")
 		linePos += lineHeight
 
-		self.w.useTypoMetrics = vanilla.CheckBox((inset + 70, linePos, -inset, 20), "Use Typo Metrics (fsSelection bit 7)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.useTypoMetrics = vanilla.CheckBox((inset + 70, linePos, -inset, 18), "Use Typo Metrics (fsSelection bit 7)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.useTypoMetrics.getNSButton().setToolTip_("Should ALWAYS BE ON. Only uncheck if you really know what you are doing. If unchecked, line behaviour will be not consistent between apps and browsers because some apps prefer win values to sTypo values for determining line distances.")
-		self.w.useTypoMetricsUpdate = vanilla.SquareButton((inset + 280, linePos, 20, 19), "↺", sizeStyle='small', callback=self.update)
+		self.w.useTypoMetricsUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
 		self.w.useTypoMetricsUpdate.getNSButton().setToolTip_("Will reset the checkbox to the left to ON, because it should ALWAYS be on. Strongly recommended.")
 		linePos += lineHeight * 1.5
 
-		self.w.descriptionMeasurements = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Taking Measurements (see tooltips for info):", sizeStyle='small', selectable=True)
+		self.w.descriptionMeasurements = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Taking Measurements (see tooltips for info):", sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.round = vanilla.CheckBox((inset, linePos, 70, 20), "Round by:", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.round = vanilla.CheckBox((inset + 2, linePos, 70, 18), "Round by", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.round.getNSButton().setToolTip_("Turn on if you want your values rounded. Recommended.")
-		self.w.roundValue = vanilla.EditText((inset + 75, linePos, 60, 19), "10", callback=self.SavePreferences, sizeStyle='small')
+		self.w.roundValue = vanilla.EditText((inset + 70, linePos, 60, 19), "10", callback=self.SavePreferences, sizeStyle='small')
 		self.w.roundValue.getNSTextField().setToolTip_("All value calculations will be rounded up to the next multiple of this value. Recommended: 10.")
 		linePos += lineHeight
 
-		self.w.includeAllMasters = vanilla.CheckBox((inset, linePos, -inset, 20), "Include all masters (otherwise current master only)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeAllMasters = vanilla.CheckBox((inset + 2, linePos, -inset, 18), "Include all masters (otherwise current master only)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeAllMasters.getNSButton().setToolTip_("If checked, all masters will be measured. If unchecked, only the current master will be measured. Since vertical metrics should be the same throughout all masters, it also makes sense to measure on all masters.")
 		linePos += lineHeight
 
-		self.w.respectMarkToBaseOffset = vanilla.CheckBox((inset, linePos, -inset, 20), "Include mark-to-base offset for OS/2 usWin", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.respectMarkToBaseOffset = vanilla.CheckBox((inset + 2, linePos, -inset, 18), "Include mark-to-base offset for OS/2 usWin", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.respectMarkToBaseOffset.getNSButton().setToolTip_("If checked will calculate the maximum possible height that can be reached with top-anchored marks, and the lowest depth with bottom-anchored marks, and use those values for the OS/2 usWin values. Strongly recommended for making fonts work on Windows if they rely on mark-to-base positioning (e.g. Arabic). Respects the ‘Limit to Script’ setting.")
 		linePos += lineHeight
 
-		self.w.ignoreNonExporting = vanilla.CheckBox((inset, linePos, -inset, 20), "Ignore non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.ignoreNonExporting = vanilla.CheckBox((inset + 2, linePos, -inset, 18), "Ignore non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.ignoreNonExporting.getNSButton().setToolTip_("If checked, glyphs that do not export will be excluded from measuring. Recommended. (Ignored for calculating the OS/2 usWin values.)")
 		linePos += lineHeight
 
-		self.w.preferSelectedGlyphs = vanilla.CheckBox((inset, linePos, -inset, 20), "Limit to selected glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.preferSelectedGlyphs = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Limit to selected glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.preferSelectedGlyphs.getNSButton().setToolTip_("If checked, only the current glyphs will be measured. Can be combined with the other Limit options. May make sense if you want your metrics to be e.g. Latin-CE-centric.")
 		linePos += lineHeight
 
-		self.w.preferScript = vanilla.CheckBox((inset, linePos, inset + 110, 20), "Limit to script:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.preferScript = vanilla.CheckBox((inset + 2, linePos, inset + 110, 18), "Limit to script", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.preferScript.getNSButton().setToolTip_("If checked, only measures glyphs belonging to the selected writing system. Can be combined with the other Limit options. (Ignored for calculating the OS/2 usWin values, but respected for mark-to-base calculation.)")
-		self.w.preferScriptPopup = vanilla.PopUpButton((inset + 115, linePos + 1, -inset - 25, 17), ("latin", "greek"), sizeStyle='small', callback=self.SavePreferences)
+		self.w.preferScriptPopup = vanilla.PopUpButton((inset + 108, linePos + 1, -inset - 22, 17), ("latin", "greek"), sizeStyle='small', callback=self.SavePreferences)
 		self.w.preferScriptPopup.getNSPopUpButton().setToolTip_("Choose a writing system ('script') you want the measurements to be limited to. May make sense to ignore other scripts if the font is intended only for e.g. Cyrillic. Does not apply to OS/2 usWin")
-		self.w.preferScriptUpdate = vanilla.SquareButton((-inset - 20, linePos + 1, -inset, 18), "↺", sizeStyle='small', callback=self.update)
+		self.w.preferScriptUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
 		self.w.preferScriptUpdate.getNSButton().setToolTip_("Update the script popup to the left with all scripts (writing systems) found in the current font.")
 		linePos += lineHeight
 
-		self.w.preferCategory = vanilla.CheckBox((inset, linePos, inset + 110, 20), "Limit to category:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.preferCategory = vanilla.CheckBox((inset + 2, linePos, inset + 110, 18), "Limit to category", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.preferCategory.getNSButton().setToolTip_("If checked, only measures glyphs belonging to the selected glyph category. Can be combined with the other Limit options. (Ignored for calculating the OS/2 usWin values.)")
-		self.w.preferCategoryPopup = vanilla.PopUpButton((inset + 115, linePos + 1, -inset - 25, 17), ("Letter", "Number"), sizeStyle='small', callback=self.SavePreferences)
+		self.w.preferCategoryPopup = vanilla.PopUpButton((inset + 108, linePos + 1, -inset - 22, 17), ("Letter", "Number"), sizeStyle='small', callback=self.SavePreferences)
 		self.w.preferCategoryPopup.getNSPopUpButton().setToolTip_("Choose a glyph category you want the measurements to be limited to. It may make sense to limit only to Letter.")
-		self.w.preferCategoryUpdate = vanilla.SquareButton((-inset - 20, linePos + 1, -inset, 18), "↺", sizeStyle='small', callback=self.update)
+		self.w.preferCategoryUpdate = UpdateButton((-inset - 18, linePos + 1, -inset, 18), callback=self.update)
 		self.w.preferCategoryUpdate.getNSButton().setToolTip_("Update the category popup to the left with all glyph categories found in the current font.")
 		linePos += lineHeight
 
-		self.w.writeToText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Write values to:", sizeStyle="small", selectable=True)
-		self.w.writeToPopup = vanilla.PopUpButton((inset + 90, linePos, -inset, 17), ("All masters (recommended)", "First master only (experimental)", "Font-wide (experimental)"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.writeToText = vanilla.TextBox((inset + 13, linePos + 2, 90, 14), "Write values to", sizeStyle="small", selectable=True)
+		self.w.writeToPopup = vanilla.PopUpButton((inset + 108, linePos + 1, -inset, 17), ("All masters (recommended)", "First master only (experimental)", "Font-wide (experimental)"), sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.allOpenFonts = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Read out and apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allOpenFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Read out and apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.allOpenFonts.getNSButton().setToolTip_("If activated, does not only measure the frontmost font, but all open fonts. Careful: when you press the Apply button, will also apply it to all open fonts. Useful if you have all font files for a font family open.")
 		linePos += lineHeight
 

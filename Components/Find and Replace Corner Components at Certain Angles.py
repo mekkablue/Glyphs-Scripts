@@ -20,16 +20,16 @@ class ReplaceCornersAtCertainAngles(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 250
-		windowHeight = 140
+		windowWidth = 260
+		windowHeight = 124
 		windowWidthResize = 100  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Replace Corners At Certain Angles",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -43,7 +43,7 @@ class ReplaceCornersAtCertainAngles(mekkaObject):
 		self.w.text_3a = vanilla.TextBox((15 - 1, 60 + 2, 75, 14), "at angles", sizeStyle='small')
 		self.w.largerOrSmaller = vanilla.PopUpButton((15 + 60, 60, 70, 17), ("larger", "smaller"), sizeStyle='small', callback=self.SavePreferences)
 		self.w.text_3b = vanilla.TextBox((150, 60 + 2, 30, 14), "than", sizeStyle='small')
-		self.w.thresholdAngle = vanilla.EditText((180, 60, -15, 15 + 3), "90", sizeStyle='small')
+		self.w.thresholdAngle = vanilla.EditText((180, 60, 55, 15 + 3), "90", sizeStyle='small')
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Replace", callback=self.ReplaceCornersAtCertainAnglesMain)

@@ -20,15 +20,11 @@ class AutoAlignmentManager(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 320
-		windowHeight = 180
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 350
+		windowHeight = 162
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Alignment Manager",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -38,11 +34,11 @@ class AutoAlignmentManager(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Manage component alignment in selected glyphs:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
-		self.w.includeAllGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Apply to ALL glyphs in font, i.e., ignore glyph selection", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.includeAllGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Apply to ALL glyphs in font, i.e., ignore glyph selection", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.includeAllGlyphs.getNSButton().setToolTip_("No matter what your glyph selection is, will enable/disable component alignment for ALL glyphs in the font.")
 		linePos += lineHeight
 
-		self.w.includeAllLayers = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include all masters and special layers (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.includeAllLayers = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include all masters and special layers (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.includeAllLayers.getNSButton().setToolTip_("If enabled, will enable/disable automatic alignment not only for the currently selected masters/layers, but for ALL master layers, brace layers and bracket layers of selected glyphs. Will still ignore backup layers (the ones with a timestamp in their names).")
 		linePos += lineHeight
 

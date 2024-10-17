@@ -40,10 +40,10 @@ class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), u"Open tab with glyphs that are not reaching into zones.", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.allMastersInSeparateTabs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Include All Masters (in Separate Tabs)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allMastersInSeparateTabs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Include All Masters (in Separate Tabs)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.includeSpecialLayers = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Include Special Layers", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeSpecialLayers = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Include Special Layers", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.ignoreGlyphsText = vanilla.TextBox((inset, linePos + 2, 140, 14), u"Ignore glyphs containing:", sizeStyle='small', selectable=True)

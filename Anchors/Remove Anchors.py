@@ -42,11 +42,11 @@ class AnchorDeleter(mekkaObject):
 		self.w.anchorPopup.getNSPopUpButton().setToolTip_(u"Choose an anchor you want to delete, or choose ‘All Anchors’. Remember to update the list for the current font with the ⟲ update button on the right.")
 		linePos += lineHeight
 
-		self.w.selectedGlyphsOnly = vanilla.CheckBox((inset, linePos, -inset, 20), "In selected glyphs only (otherwise all glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.selectedGlyphsOnly = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "In selected glyphs only (otherwise all glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.selectedGlyphsOnly.getNSButton().setToolTip_(u"If checked, the chosen anchor will be deleted in the current glyph selection only. If unchecked, they will be deleted in all glyphs.")
 		linePos += lineHeight
 
-		self.w.currentMasterOnly = vanilla.CheckBox((inset, linePos, -inset, 20), u"In current master only (otherwise all masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.currentMasterOnly = vanilla.CheckBox((inset + 2, linePos, -inset, 20), u"In current master only (otherwise all masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.currentMasterOnly.getNSButton().setToolTip_(u"If checked, will remove anchor only in layers associated with the currently selected font master. If unchecked, in all layers.")
 		linePos += lineHeight
 

@@ -41,13 +41,13 @@ class CasefoldingReport(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Report all casefolding issues:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
-		self.w.excludeMathSymbols = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Exclude math symbols (∆∏∑µ)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.excludeMathSymbols = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Exclude math symbols (∆∏∑µ)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Check all open fonts (otherwise frontmost only)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Check all open fonts (otherwise frontmost only)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.reuseTab = vanilla.CheckBox((inset, linePos - 1, 120, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.reuseTab = vanilla.CheckBox((inset + 2, linePos - 1, 120, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.showMacroWindow = vanilla.CheckBox((inset + 120, linePos - 1, -inset, 20), "Open Macro Window", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 

@@ -8,7 +8,7 @@ Add OpenType feature with pseudorandom GPOS baseline shift for all glyphs in a c
 import vanilla
 from random import randint
 from GlyphsApp import Glyphs, GSFeature, GSClass, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 allPossibleFeatures = [
@@ -108,7 +108,7 @@ class BaselineWiggle(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 240
-		windowHeight = 210
+		windowHeight = 204
 		windowWidthResize = 100  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -127,7 +127,7 @@ class BaselineWiggle(mekkaObject):
 
 		self.w.otClassText = vanilla.TextBox((inset, linePos + 2, tab, 14), "with class:", sizeStyle='small', selectable=True)
 		self.w.otClass = vanilla.ComboBox((inset + tab, linePos - 1, -inset - 24, 19), ["All"] + sorted([c.name for c in Glyphs.font.classes if not c.name == "All"]), sizeStyle='small', callback=self.SavePreferences)
-		self.w.otClassUpdate = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.update)
+		self.w.otClassUpdate = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.update)
 		linePos += lineHeight
 
 		self.w.otFeatureText = vanilla.TextBox((inset, linePos + 2, tab, 14), "in feature:", sizeStyle='small', selectable=True)
@@ -147,7 +147,7 @@ class BaselineWiggle(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Wiggle", callback=self.BaselineWiggleMain)
+		self.w.runButton = vanilla.Button((inset, -20 - inset, -inset, -inset), "Wiggle", callback=self.BaselineWiggleMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

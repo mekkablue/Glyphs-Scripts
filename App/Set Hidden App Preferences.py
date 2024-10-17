@@ -71,14 +71,14 @@ class SetHiddenAppPreferences(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 350
-		windowHeight = 110
+		windowHeight = 91
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Set Hidden App Preferences",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
 			autosaveName="com.mekkablue.SetHiddenAppPreferences.mainwindow"  # stores last window position and size
 		)
 
@@ -90,7 +90,7 @@ class SetHiddenAppPreferences(mekkaObject):
 		self.w.pref = vanilla.ComboBox((inset, linePos - 2, -inset - 100, 25), self.prefs, callback=self.SavePreferences)
 		self.w.pref.getNSComboBox().setFont_(NSFont.userFixedPitchFontOfSize_(11))
 		self.w.pref.getNSComboBox().setToolTip_("Pick an app default from the list, or type in an identifier.")
-
+		self.w.pref.getNSComboBox().setNumberOfVisibleItems_(20)
 		self.w.prefValue = vanilla.EditText((-inset - 90, linePos, -inset, 21), "")
 		self.w.prefValue.getNSTextField().setToolTip_("Enter a value for the chosen app default.")
 		linePos += lineHeight

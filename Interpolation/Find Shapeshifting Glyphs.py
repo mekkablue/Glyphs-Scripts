@@ -82,20 +82,20 @@ class FindShapeshiftingGlyphs(mekkaObject):
 		self.w.checkInstances.getNSPopUpButton().setToolTip_("Where to count paths (for comparison of path counts). Shapeshifting is most visible in midway interpolations (50%% between masters), so pick that option if you have two masters only, or all masters on a single axis.")
 		linePos += lineHeight
 
-		self.w.onlyCheckSelection = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Limit to selected glyphs (otherwise all glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.onlyCheckSelection = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Limit to selected glyphs (otherwise all glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.ignoreGlyphsWithoutPaths = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Ignore glyphs without paths", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.ignoreGlyphsWithoutPaths = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Ignore glyphs without paths", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.ignoreNonexportingGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Ignore glyphs that do not export", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.ignoreNonexportingGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Ignore glyphs that do not export", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.openTab = vanilla.CheckBox((inset, linePos - 1, 170, 20), "Open tab with shapeshifters", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openTab = vanilla.CheckBox((inset + 2, linePos - 1, 170, 20), "Open tab with shapeshifters", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab = vanilla.CheckBox((inset + 170, linePos - 1, -inset, 20), "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Process ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Process ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.allFonts.getNSButton().setToolTip_("If enabled, will process all fonts currently opened. Careful, may take a while.")
 		linePos += lineHeight
 

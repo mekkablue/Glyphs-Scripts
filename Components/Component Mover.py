@@ -8,7 +8,7 @@ Batch edit (smart) components across selected glyphs. Change positions, scales a
 import vanilla
 from AppKit import NSPoint
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 class ComponentMover(mekkaObject):
@@ -24,56 +24,53 @@ class ComponentMover(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 270
-		windowHeight = 220
-		windowWidthResize = 300  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 250
+		windowHeight = 222
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Component Mover",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 25
+		linePos, inset, lineHeight = 6, 25, 19
 
-		self.w.changeAttributeText = vanilla.TextBox((inset, linePos + 2, 50, 14), "Change", sizeStyle='small', selectable=True)
-		self.w.changeAttributeText.getNSTextField().setAlignment_(2)
-		self.w.changeAttribute = vanilla.PopUpButton((inset + 55, linePos - 1, -inset - 25, 20), self.defaultSettings + self.availableAttributes(), sizeStyle='small', callback=self.SavePreferences)
-		self.w.changeAttributeUpdate = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.updateUI)
+		self.w.changeAttributeText = vanilla.TextBox((inset, linePos + 3, 50, 14), "Change", sizeStyle='small')
+		linePos += lineHeight
+		self.w.changeAttribute = vanilla.PopUpButton((inset, linePos, -inset - 16, 18), self.defaultSettings + self.availableAttributes(), sizeStyle='small', callback=self.SavePreferences)
+		self.w.changeAttributeUpdate = UpdateButton((-inset - 12, linePos - 2, -inset + 6, 18), callback=self.updateUI)
 		linePos += lineHeight
 
-		self.w.searchStringText = vanilla.TextBox((inset, linePos + 2, 50, 14), "for", sizeStyle='small', selectable=True)
-		self.w.searchStringText.getNSTextField().setAlignment_(2)
-		self.w.searchString = vanilla.ComboBox((inset + 55, linePos - 2, -inset - 25, 20), self.availableComponents(), sizeStyle='small', callback=self.SavePreferences)
+		self.w.searchStringText = vanilla.TextBox((inset, linePos + 3, 50, 14), "for", sizeStyle='small')
+		linePos += lineHeight
+		self.w.searchString = vanilla.ComboBox((inset, linePos, -inset - 17, 18), self.availableComponents(), sizeStyle='small', callback=self.SavePreferences)
 		self.w.searchString.getNSComboBox().setPlaceholderString_("any component")
-		self.w.searchStringUpdate = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.updateUI)
-		linePos += int(lineHeight * 1.2)
-
-		size, offset = 50, 60
-		self.w.upLeft = vanilla.SquareButton((inset + offset, linePos, size - 1, lineHeight - 1), "↖", callback=self.ComponentMoverMain)
-		self.w.up = vanilla.SquareButton((inset + offset + size, linePos, size - 1, lineHeight - 1), "↑", callback=self.ComponentMoverMain)
-		self.w.upRight = vanilla.SquareButton((inset + offset + size * 2, linePos, size - 1, lineHeight - 1), "↗", callback=self.ComponentMoverMain)
-		linePos += lineHeight
-
-		self.w.left = vanilla.SquareButton((inset + offset, linePos, size - 1, lineHeight - 1), "←", callback=self.ComponentMoverMain)
-		self.w.amount = vanilla.EditText((inset + offset + size, linePos, size - 1, lineHeight - 1), "10", callback=self.SavePreferences)
-		self.w.amount.getNSTextField().setAlignment_(1)
-		self.w.right = vanilla.SquareButton((inset + offset + size * 2, linePos, size - 1, lineHeight - 1), "→", callback=self.ComponentMoverMain)
-		linePos += lineHeight
-
-		self.w.downLeft = vanilla.SquareButton((inset + offset, linePos, size - 1, lineHeight - 1), "↙", callback=self.ComponentMoverMain)
-		self.w.down = vanilla.SquareButton((inset + offset + size, linePos, size - 1, lineHeight - 1), "↓", callback=self.ComponentMoverMain)
-		self.w.downRight = vanilla.SquareButton((inset + offset + size * 2, linePos, size - 1, lineHeight - 1), "↘", callback=self.ComponentMoverMain)
+		self.w.searchStringUpdate = UpdateButton((-inset - 12, linePos - 2, -inset + 6, 18), callback=self.updateUI)
 		linePos += int(lineHeight * 1.5)
 
-		lineHeight = 20
-		self.w.breakAlignment = vanilla.CheckBox((inset + offset, linePos - 1, -inset, 20), "Break alignment if necessary", value=False, callback=self.SavePreferences, sizeStyle='small')
+		size, hight = 45, 30
+		offset = round((windowWidth - (size * 3)) / 2.0)
+
+		self.w.upLeft = vanilla.SquareButton((offset, linePos, size - 1, hight - 1), "↖", callback=self.ComponentMoverMain)
+		self.w.up = vanilla.SquareButton((offset + size, linePos, size - 1, hight - 1), "↑", callback=self.ComponentMoverMain)
+		self.w.upRight = vanilla.SquareButton((offset + size * 2, linePos, size - 1, hight - 1), "↗", callback=self.ComponentMoverMain)
+		linePos += hight
+
+		self.w.left = vanilla.SquareButton((offset, linePos, size - 1, hight - 1), "←", callback=self.ComponentMoverMain)
+		self.w.amount = vanilla.EditText((offset + size, linePos, size - 1, hight - 1), "10", callback=self.SavePreferences)
+		self.w.amount.getNSTextField().setAlignment_(1)
+		self.w.right = vanilla.SquareButton((offset + size * 2, linePos, size - 1, hight - 1), "→", callback=self.ComponentMoverMain)
+		linePos += hight
+
+		self.w.downLeft = vanilla.SquareButton((offset, linePos, size - 1, hight - 1), "↙", callback=self.ComponentMoverMain)
+		self.w.down = vanilla.SquareButton((offset + size, linePos, size - 1, hight - 1), "↓", callback=self.ComponentMoverMain)
+		self.w.downRight = vanilla.SquareButton((offset + size * 2, linePos, size - 1, hight - 1), "↘", callback=self.ComponentMoverMain)
+		linePos += int(lineHeight * 1.5)
+
+		self.w.breakAlignment = vanilla.CheckBox((offset, linePos - 1, -inset, 20), "Break alignment if necessary", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.allMasters = vanilla.CheckBox((inset + offset, linePos - 1, -inset, 20), "Apply to all masters", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allMasters = vanilla.CheckBox((offset, linePos - 1, -inset, 20), "Apply to all masters", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# Load Settings:

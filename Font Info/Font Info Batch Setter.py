@@ -75,36 +75,36 @@ class FontInfoBatchSetter(mekkaObject):
 		linePos += lineHeight
 
 		# DESIGNER
-		self.w.setDesigner = vanilla.CheckBox((inset, linePos - 1, column, 20), "Designer:", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setDesigner = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Designer:", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.designer = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
-		self.w.setDesignerURL = vanilla.CheckBox((inset, linePos - 1, column, 20), "Designer URL:", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setDesignerURL = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Designer URL:", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.designerURL = vanilla.EditText((inset + column, linePos, -inset, 19), "https://", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# MANUFACTURER
-		self.w.setManufacturer = vanilla.CheckBox((inset, linePos - 1, column, 20), "Manufacturer:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setManufacturer = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Manufacturer:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.manufacturer = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
-		self.w.setManufacturerURL = vanilla.CheckBox((inset, linePos - 1, column, 20), "Manufact.URL:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setManufacturerURL = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Manufact.URL:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.manufacturerURL = vanilla.EditText((inset + column, linePos, -inset, 19), "https://", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# LICENSE
-		self.w.setLicense = vanilla.CheckBox((inset, linePos - 1, column, 20), "License:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setLicense = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "License:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.license = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
-		self.w.setLicenseURL = vanilla.CheckBox((inset, linePos - 1, column, 20), "License URL:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setLicenseURL = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "License URL:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.licenseURL = vanilla.EditText((inset + column, linePos, -inset, 19), "https://", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# COPYRIGHT
-		self.w.setCopyright = vanilla.CheckBox((inset, linePos - 1, column, 20), "Copyright:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setCopyright = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Copyright:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.copyright = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# TRADEMARK
-		self.w.setTrademark = vanilla.CheckBox((inset, linePos - 1, column, 20), "Trademark:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setTrademark = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Trademark:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.trademark = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = f"Trademark information, name ID 7. Use {self.placeholderFamilyName} as placeholder for the current family name."
 		self.w.setTrademark.getNSButton().setToolTip_(tooltip)
@@ -112,7 +112,7 @@ class FontInfoBatchSetter(mekkaObject):
 		linePos += lineHeight
 
 		# Description
-		self.w.setFontDescription = vanilla.CheckBox((inset, linePos - 1, column, 20), "Description:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.setFontDescription = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Description:", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.fontDescription = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle="small")
 		tooltip = f"Description, name ID 10. Use {self.placeholderFamilyName} as placeholder for the current family name."
 		self.w.setFontDescription.getNSButton().setToolTip_(tooltip)
@@ -120,12 +120,12 @@ class FontInfoBatchSetter(mekkaObject):
 		linePos += lineHeight
 
 		# VENDOR ID
-		self.w.setVendorID = vanilla.CheckBox((inset, linePos - 1, column, 20), "Vendor ID:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setVendorID = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Vendor ID:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.vendorID = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# VERSION NUMBER
-		self.w.setVersion = vanilla.CheckBox((inset, linePos - 1, column, 20), "Version:", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setVersion = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Version:", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.versionMajor = vanilla.EditText((inset + column, linePos, 50, 19), "1", callback=self.SavePreferences, sizeStyle='small')
 		self.w.versionDot = vanilla.TextBox((inset + 151, linePos + 2, 8, 18), ".", selectable=True)
 		self.w.versionMinor = vanilla.EditText((inset + 160, linePos, -inset - 113, 19), "005", callback=self.SavePreferences, sizeStyle='small')
@@ -138,7 +138,7 @@ class FontInfoBatchSetter(mekkaObject):
 		linePos += lineHeight
 
 		# DATE AND TIME
-		self.w.setDate = vanilla.CheckBox((inset, linePos - 1, column, 20), "Date and time:", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setDate = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Date and time:", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.datePicker = vanilla.DatePicker(
 			(inset + column, linePos - 3, -inset - 70, 22),
 			date=AppKit.NSDate.alloc().init(),

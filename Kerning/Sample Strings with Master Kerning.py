@@ -47,28 +47,28 @@ class SampleStringsWithMasterKerning(mekkaObject):
 		linePos += lineHeight
 
 		tab = 70
-		self.w.positivePairs = vanilla.CheckBox((inset, linePos - 1, tab, 20), "Positive", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.positivePairs = vanilla.CheckBox((inset + 2, linePos - 1, tab, 20), "Positive", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.negativePairs = vanilla.CheckBox((inset + tab, linePos - 1, tab, 20), "Negative", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.zeroPairs = vanilla.CheckBox((inset + tab * 2, linePos - 1, -inset, 20), "Zero pairs", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.groupToGroupOnly = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Group-to-group kerning only", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.groupToGroupOnly = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Group-to-group kerning only", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.applyKernValueThreshold = vanilla.CheckBox((inset, linePos - 1, 150, 20), "Only kernings of at least:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.applyKernValueThreshold = vanilla.CheckBox((inset + 2, linePos - 1, 150, 20), "Only kernings of at least:", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.minimumKerning = vanilla.EditText((inset + 150, linePos, -inset, 19), "100", callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.overrideContext = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Override context glyphs:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.overrideContext = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Override context glyphs:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.overrideContext.getNSButton().setToolTip_("If checked, the surrounding glyphs will be replaced with those given in the text box. Use a comma to differentiate the left-side context from the right-side context: ‘HOOH,noon’ will put HOOH on the left side, ‘noon’ on the right side.")
 		self.w.contextGlyphs = vanilla.EditText((inset + 150, linePos, -inset, 19), "HOOH,noon", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.mirrorPair = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Mirror kerning pair (AV→AVA)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.mirrorPair = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Mirror kerning pair (AV→AVA)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.mirrorPair.getNSButton().setToolTip_("If checked, will create a mirrored version of the kerning string. E.g., instead of just AV, it will show AVA between the context glyphs.")
 		linePos += lineHeight
 
-		self.w.openTab = vanilla.CheckBox((inset, linePos - 1, 170, 20), "Open tab at first kern string", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openTab = vanilla.CheckBox((inset + 2, linePos - 1, 170, 20), "Open tab at first kern string", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.openTab.getNSButton().setToolTip_("If checked, a new tab will be opened with the first found kern string, and the cursor positioned accordingly, ready for group kerning and switching to the next sample string.")
 		self.w.lockKerning = vanilla.CheckBox((inset + 170, linePos - 1, -inset, 20), "in kerning mode", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.lockKerning.getNSButton().setToolTip_("Will set the kerning lock in the tab, prevents you from spacing accidentally.")

@@ -37,11 +37,11 @@ class ZeroKerner(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 44), u"Add zero-value group-to-group kernings for pairs that are missing in one master but present in others. Helps preserve interpolatable kerning in OTVars.", sizeStyle='small', selectable=True)
 		linePos += lineHeight * 2.5
 
-		self.w.limitToCurrentMaster = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Limit to current master only (otherwise, all masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.limitToCurrentMaster = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Limit to current master only (otherwise, all masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.limitToCurrentMaster.getNSButton().setToolTip_("Will apply zero kernings only to the currently selected master. Uncheck if all masters should be zero-kerned.")
 		linePos += lineHeight
 
-		self.w.reportInMacroWindow = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Detailed report in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportInMacroWindow = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Detailed report in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reportInMacroWindow.getNSButton().setToolTip_("If checked, will write a progress report in the Macro Window (Cmd-Opt-M).")
 		linePos += lineHeight
 

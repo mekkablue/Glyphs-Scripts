@@ -8,7 +8,7 @@ Find and replace brace and bracket layer coordinates.
 import vanilla
 from AppKit import NSNotificationCenter
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 class BraceLayerManager(mekkaObject):
@@ -33,42 +33,42 @@ class BraceLayerManager(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 270
-		windowHeight = 225
+		windowWidth = 278
+		windowHeight = 206
 		windowWidthResize = 100  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Brace and Bracket Manager",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow"),  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 12, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, 20, 14), "In", sizeStyle="small", selectable=True)
+		linePos, inset, lineHeight = 12, 15, 23
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, 20, 14), "In", sizeStyle="small")
 		self.w.layerType = vanilla.PopUpButton((inset + 20, linePos, -inset, 17), self.layerTypes, sizeStyle="small", callback=self.SavePreferences)
 
 		linePos += lineHeight
-		self.w.replaceText = vanilla.TextBox((inset, linePos + 2, 45, 14), "replace", sizeStyle="small", selectable=True)
+		self.w.replaceText = vanilla.TextBox((inset, linePos + 2, 45, 14), "replace", sizeStyle="small")
 		self.w.oldCoordinate = vanilla.ComboBox((inset + 45, linePos - 1, 55, 19), self.allBraceAndBracketLayerCoordinatesInFrontmostFont(), sizeStyle="small", callback=self.SavePreferences)
-		self.w.oldCoordinateUpdate = vanilla.SquareButton((inset + 105, linePos, 20, 18), "↺", sizeStyle="small", callback=self.update)
-		self.w.withText = vanilla.TextBox((inset + 130, linePos + 2, 30, 14), "with", sizeStyle="small", selectable=True)
-		self.w.newCoordinate = vanilla.EditText((inset + 160, linePos - 1, -inset, 19), "100", callback=self.SavePreferences, sizeStyle="small")
+		self.w.oldCoordinateUpdate = UpdateButton((inset + 104, linePos - 2, 20, 18), callback=self.update)
+		self.w.withText = vanilla.TextBox((inset + 130, linePos + 2, 30, 14), "with", sizeStyle="small")
+		self.w.newCoordinate = vanilla.EditText((inset + 157, linePos - 1, -inset, 19), "100", callback=self.SavePreferences, sizeStyle="small")
 		self.w.newCoordinate.getNSTextField().setToolTip_("Leave empty for disabling the brace layer or deleting the bracket layer condition.")
 		linePos += lineHeight
 
-		self.w.axisText = vanilla.TextBox((inset, linePos + 2, 95, 14), "for axis at index", sizeStyle="small", selectable=True)
+		self.w.axisText = vanilla.TextBox((inset, linePos + 2, 95, 14), "for axis at index", sizeStyle="small")
 		self.w.axisIndex = vanilla.EditText((inset + 90, linePos - 1, -inset - 80, 19), "0", callback=self.SavePreferences, sizeStyle="small")
-		self.w.axisTextAfter = vanilla.TextBox((-inset - 78, linePos + 2, -inset, 14), "(first axis = 0)", sizeStyle="small", selectable=True)
+		self.w.axisTextAfter = vanilla.TextBox((-inset - 78, linePos + 2, -inset, 14), "(first axis = 0)", sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.scope = vanilla.RadioGroup((inset, linePos, -inset, lineHeight * len(self.scopes)), self.scopes, callback=self.SavePreferences, sizeStyle="small")
+		self.w.scope = vanilla.RadioGroup((inset, linePos, -inset, (lineHeight - 2) * len(self.scopes)), self.scopes, callback=self.SavePreferences, sizeStyle="small")
 		self.w.scope.set(0)
-		linePos += lineHeight * len(self.scopes)
+		linePos += (lineHeight - 1) * len(self.scopes)
 
-		self.w.currentMasterOnly = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Restrict to currently selected master(s) only", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.currentMasterOnly = vanilla.CheckBox((inset + 3, linePos - 1, -inset, 20), "Restrict to currently selected master(s) only", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		# Run Button:
@@ -143,7 +143,7 @@ class BraceLayerManager(mekkaObject):
 				)
 				return
 			else:
-				thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+				thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 				try:
 					count = self.processFont(thisFont, isBraceLayer, scope, count)
 					if thisFont.currentTab and Glyphs.versionNumber >= 3:
@@ -155,7 +155,7 @@ class BraceLayerManager(mekkaObject):
 					import traceback
 					print(traceback.format_exc())
 				finally:
-					thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+					thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
 			print()
 
 		# Final report:
@@ -214,7 +214,7 @@ class BraceLayerManager(mekkaObject):
 					else:
 						result, count = self.processBracketLayer(layer, count, searchFor, replaceWith, axisID, axisIndex)
 					if result:
-						glyph.setChangeCount_(glyph.changeCount()+1) # forces palette update
+						glyph.setChangeCount_(glyph.changeCount() + 1)  # forces palette update
 					else:
 						break
 		return count
@@ -247,7 +247,7 @@ class BraceLayerManager(mekkaObject):
 			Glyphs.showMacroWindow()
 			return False
 
-		axisLimits = dict(axisRules[axisID]) # issues with native NSDictionary
+		axisLimits = dict(axisRules[axisID])  # issues with native NSDictionary
 		if not axisLimits:
 			return
 
@@ -260,7 +260,7 @@ class BraceLayerManager(mekkaObject):
 						axisRules[axisID] = axisLimits
 					else:
 						del axisLimits[border]
-						if not axisLimits: # empty dict
+						if not axisLimits:  # empty dict
 							del layer.attributes["axisRules"][axisID]
 						else:
 							layer.attributes["axisRules"][axisID] = axisLimits

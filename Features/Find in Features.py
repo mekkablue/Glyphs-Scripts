@@ -7,7 +7,7 @@ Finds expressions (glyph, lookup or class names) in OT Features, Prefixes and Cl
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 class FindInFeatures(mekkaObject):
@@ -27,10 +27,10 @@ class FindInFeatures(mekkaObject):
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 1, 5, 28
-		self.w.searchFor = vanilla.ComboBox((1, linePos, -22, 22), self.glyphNamesAndClassNames(), callback=self.FindInFeaturesMain)
+		linePos, inset, lineHeight = 3, 5, 28
+		self.w.searchFor = vanilla.ComboBox((4, linePos, -22, 22), self.glyphNamesAndClassNames(), callback=self.FindInFeaturesMain)
 		self.w.searchFor.getNSComboBox().setToolTip_("Type the exact name of a glyph or (prefixed with @) a class, or choose it from the menu.")
-		self.w.updateButton = vanilla.SquareButton((-19, linePos + 2, -2, 18), "↺", sizeStyle='small', callback=self.update)
+		self.w.updateButton = UpdateButton((-19, linePos, -2, 18), callback=self.update)
 		self.w.updateButton.getNSButton().setToolTip_("Update the autocompletion list for the frontmost font.")
 		linePos += lineHeight
 

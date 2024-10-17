@@ -25,50 +25,46 @@ class BatchInsertAnchor(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 300
-		windowHeight = 180
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 160
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Batch Insert Anchor",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), u"In selected glyphs, insert this anchor on all layers:", sizeStyle='small', selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "In selected glyphs, insert this anchor on all layers", sizeStyle='small', selectable=True)
+		linePos += lineHeight
+		tab = 80
+		self.w.anchorNameText = vanilla.TextBox((inset, linePos, 90, 14), "Anchor Name", sizeStyle='small', selectable=True)
+		self.w.anchorName = vanilla.EditText((inset + tab, linePos - 2, -inset, 19), "_connect", callback=self.SavePreferences, sizeStyle='small')
+		self.w.anchorName.getNSTextField().setToolTip_("Name of the anchor that will be inserted.")
 		linePos += lineHeight
 
-		self.w.anchorNameText = vanilla.TextBox((inset, linePos + 2, 90, 14), u"Anchor Name:", sizeStyle='small', selectable=True)
-		self.w.anchorName = vanilla.EditText((inset + 90, linePos - 1, -inset, 19), "_connect", callback=self.SavePreferences, sizeStyle='small')
-		self.w.anchorName.getNSTextField().setToolTip_(u"Name of the anchor that will be inserted.")
-		linePos += lineHeight
-
-		self.w.xPosText = vanilla.TextBox((inset, linePos + 2, 90, 14), u"H Position:", sizeStyle='small', selectable=True)
-		self.w.xPos = vanilla.PopUpButton((inset + 90, linePos, -inset, 17), xPositions, sizeStyle='small', callback=self.SavePreferences)
+		self.w.xPosText = vanilla.TextBox((inset, linePos, 90, 14), "H Position", sizeStyle='small', selectable=True)
+		self.w.xPos = vanilla.PopUpButton((inset + tab, linePos - 2, -inset, 19), xPositions, sizeStyle='small', callback=self.SavePreferences)
 
 		# vanilla legacy support
 		try:
-			self.w.xPos.getNSPopUpButton().setToolTip_(u"The x coordinate of the anchor.")
+			self.w.xPos.getNSPopUpButton().setToolTip_("The x coordinate of the anchor.")
 		except:
-			self.w.xPos.getNSButton().setToolTip_(u"The x coordinate of the anchor.")
+			self.w.xPos.getNSButton().setToolTip_("The x coordinate of the anchor.")
 		linePos += lineHeight
 
-		self.w.yPosText = vanilla.TextBox((inset, linePos + 2, 90, 14), u"V Position:", sizeStyle='small', selectable=True)
-		self.w.yPos = vanilla.PopUpButton((inset + 90, linePos, -inset, 17), yPositions, sizeStyle='small', callback=self.SavePreferences)
+		self.w.yPosText = vanilla.TextBox((inset, linePos + 2, 90, 14), "V Position", sizeStyle='small', selectable=True)
+		self.w.yPos = vanilla.PopUpButton((inset + tab, linePos - 2, -inset, 19), yPositions, sizeStyle='small', callback=self.SavePreferences)
 
 		# vanilla legacy support
 		try:
-			self.w.yPos.getNSPopUpButton().setToolTip_(u"The y coordinate of the anchor.")
+			self.w.yPos.getNSPopUpButton().setToolTip_("The y coordinate of the anchor.")
 		except:
-			self.w.yPos.getNSButton().setToolTip_(u"The y coordinate of the anchor.")
+			self.w.yPos.getNSButton().setToolTip_("The y coordinate of the anchor.")
 
 		linePos += lineHeight
 
-		self.w.replaceExisting = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Replace Existing Anchors with Same Name", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.replaceExisting.getNSButton().setToolTip_(u"If enabled, will delete anchors that have the same name of the one you are adding, before it is added again at the specified spot. If disabled, the script will skip layers that already have an anchor of the same name.")
+		self.w.replaceExisting = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Replace Existing Anchors with Same Name", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.replaceExisting.getNSButton().setToolTip_("If enabled, will delete anchors that have the same name of the one you are adding, before it is added again at the specified spot. If disabled, the script will skip layers that already have an anchor of the same name.")
 		linePos += lineHeight
 
 		# Run Button:

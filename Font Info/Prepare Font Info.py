@@ -48,25 +48,25 @@ class PrepareFontforGit(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Make the font git-ready with these custom parameters:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.preventDisplayStrings = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Prevent storing of tab contents (Write DisplayStrings = OFF)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.preventDisplayStrings = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Prevent storing of tab contents (Write DisplayStrings = OFF)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.preventTimeStamps = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Prevent storing of time stamps (Write lastChange = OFF)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.preventTimeStamps = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Prevent storing of time stamps (Write lastChange = OFF)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.preventMacName = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Prevent export of Mac entries in name table", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.preventMacName = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Prevent export of Mac entries in name table", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.fileFormat = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Set File Format to Glyphs version 3", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.fileFormat = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Set File Format to Glyphs version 3", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.removeGlyphOrder = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Remove glyphOrder", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.removeGlyphOrder = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove glyphOrder", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.disablesNiceNames = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Turn off Font Info > Other > Use Custom Naming", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.disablesNiceNames = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Turn off Font Info > Other > Use Custom Naming", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.disablesAutomaticAlignment = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Turn off Font Info > Other > Disable Auto Alignment", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.disablesAutomaticAlignment = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Turn off Font Info > Other > Disable Auto Alignment", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		# Apply Scope:

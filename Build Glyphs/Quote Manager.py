@@ -33,14 +33,10 @@ class QuoteManager(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 480
-		windowHeight = 295
-		windowWidthResize = 400  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 284
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Quote Manager: build and align quotes",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -54,11 +50,11 @@ class QuoteManager(mekkaObject):
 		self.w.defaultQuote = vanilla.PopUpButton((inset + 90, linePos, -inset, 17), ["%s/%s" % (name, names[name]) for name in names], sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.syncWithDefaultQuote = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Sync all quotes with default quotes (metrics keys, anchor placement)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.syncWithDefaultQuote = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Sync all quotes with default quotes (metrics keys, anchor placement)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.syncWithDefaultQuote.getNSButton().setToolTip_("If enabled, the default quotes will be taken as reference for metrics keys and distance between #exit and #entry anchors.")
 		linePos += lineHeight
 
-		self.w.excludeDumbQuotes = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Ignore straight dumb quotes (quotesingle, quotedbl)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.excludeDumbQuotes = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Ignore straight dumb quotes (quotesingle, quotedbl)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.excludeDumbQuotes.getNSButton().setToolTip_("For most actions, tthis option allows you to ignore the (straight) dumb quotes. The Kerning Group button will ignore this setting and always set the groups for the straight quote.")
 		linePos += lineHeight
 
@@ -67,7 +63,7 @@ class QuoteManager(mekkaObject):
 		self.w.suffix.getNSTextField().setToolTip_(u"E.g., ‘case’ for .case variants. Entry with or without the leading period. Leave blank for the default quotes (without dot suffixes).")
 		linePos += lineHeight
 
-		self.w.openTabWithAffectedGlyphs = vanilla.CheckBox((inset, linePos - 1, 200, 20), "Open tab with affected glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openTabWithAffectedGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, 200, 20), "Open tab with affected glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.openTabWithAffectedGlyphs.getNSButton().setToolTip_("Whatever action you take, this option makes sure a new tab will be opened with all the glyphs affected.")
 		self.w.reuseTab = vanilla.CheckBox((inset + 200, linePos - 1, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.getNSButton().setToolTip_(u"Instead of opening a new tab, will reuse the current tab. Highly recommended.")

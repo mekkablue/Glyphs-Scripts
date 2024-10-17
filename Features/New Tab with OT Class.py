@@ -7,7 +7,7 @@ Open a new tab with all glyphs contained in a specific OpenType class.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 class NewTabWithOTClass(mekkaObject):
@@ -27,12 +27,13 @@ class NewTabWithOTClass(mekkaObject):
 		)
 
 		# UI elements:
-		self.w.text = vanilla.TextBox((15 - 1, 12 + 2, 100, 14), "Pick an OT class:", sizeStyle='small')
-		self.w.classMenu = vanilla.PopUpButton((15 + 100, 12, -130, 17), self.currentFontClasses(None), callback=None, sizeStyle='small')
-		self.w.updateButton = vanilla.Button((-125, 12 + 1, -100, -15), u"↺", sizeStyle='small', callback=self.populateClassMenu)
+		linePos, inset = 11, 12
+		self.w.text = vanilla.TextBox((inset - 1, linePos + 2, 100, 14), "Pick an OT class", sizeStyle='small')
+		self.w.classMenu = vanilla.PopUpButton((inset + 93, linePos, -125, 17), self.currentFontClasses(None), callback=None, sizeStyle='small')
+		self.w.updateButton = UpdateButton((-120, linePos + 1, -100, -18), callback=self.populateClassMenu)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-95, 12 + 3, -15, -15), "New Tab", callback=self.NewTabWithOTClassMain)
+		self.w.runButton = vanilla.Button((-95, linePos + 2, -inset, -15), "New Tab", callback=self.NewTabWithOTClassMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.font = Glyphs.font

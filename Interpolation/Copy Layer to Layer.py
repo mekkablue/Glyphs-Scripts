@@ -59,19 +59,19 @@ class CopyLayerToLayer(mekkaObject):
 
 		tabStop = 160
 
-		self.w.includePaths = vanilla.CheckBox((inset, linePos - 1, tabStop, 20), "Include paths", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.includePaths = vanilla.CheckBox((inset + 2, linePos - 1, tabStop, 20), "Include paths", sizeStyle='small', callback=self.SavePreferences, value=True)
 		self.w.includeComponents = vanilla.CheckBox((inset + tabStop, linePos - 1, -inset, 20), "Include components", sizeStyle='small', callback=self.SavePreferences, value=True)
 		linePos += lineHeight
 
-		self.w.includeAnchors = vanilla.CheckBox((inset, linePos - 1, tabStop, 20), "Include anchors", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.includeAnchors = vanilla.CheckBox((inset + 2, linePos - 1, tabStop, 20), "Include anchors", sizeStyle='small', callback=self.SavePreferences, value=True)
 		self.w.includeMetrics = vanilla.CheckBox((inset + tabStop, linePos - 1, -inset, 20), "Include metrics", sizeStyle='small', callback=self.SavePreferences, value=True)
 		linePos += lineHeight
 
-		self.w.copyBackground = vanilla.CheckBox((inset, linePos - 1, tabStop, 20), "Into background instead", sizeStyle='small', callback=self.SavePreferences, value=False)
+		self.w.copyBackground = vanilla.CheckBox((inset + 2, linePos - 1, tabStop, 20), "Into background instead", sizeStyle='small', callback=self.SavePreferences, value=False)
 		self.w.keepOriginal = vanilla.CheckBox((inset + tabStop, linePos - 1, -inset, 20), "Keep target layer content", sizeStyle='small', callback=self.SavePreferences, value=False)
 		linePos += lineHeight
 
-		self.w.keepWindowOpen = vanilla.CheckBox((inset, linePos - 1, tabStop, 20), "Keep window open", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.keepWindowOpen = vanilla.CheckBox((inset + 2, linePos - 1, tabStop, 20), "Keep window open", sizeStyle='small', callback=self.SavePreferences, value=True)
 		self.w.verbose = vanilla.CheckBox((inset + tabStop, linePos - 1, -inset, 20), "Verbose", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 

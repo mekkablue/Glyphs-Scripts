@@ -54,7 +54,7 @@ class NewTabwithOverkernedPairs(mekkaObject):
 		self.w.rounding = vanilla.EditText((inset + 210, linePos - 1, -inset, 19), "5", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.limitToExportingGlyphs = vanilla.CheckBox((inset, linePos - 1, 170, 20), "Limit to exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.limitToExportingGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, 170, 20), "Limit to exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.verbose = vanilla.CheckBox((inset + 170, linePos - 1, -inset, 20), "Verbose reporting (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 

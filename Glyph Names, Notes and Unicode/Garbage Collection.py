@@ -7,7 +7,7 @@ Removes annotations, glyph notes, guides, and node names.
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 def extractUserDataKeys(obj):
@@ -54,66 +54,62 @@ class GarbageCollection(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 330
-		windowHeight = 430
-		windowWidthResize = 300  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 410
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Garbage Collection",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 12, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, lineHeight * 1.8), "Clean frontmost font:", sizeStyle='small', selectable=True)
+		linePos, inset, lineHeight = 10, 15, 22
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, lineHeight * 1.8), "Clean frontmost font", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.removeNodeNames = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Remove all node names 🔥❌👌🏻⛔️🧨 in font", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.removeNodeNames = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove all node names 🔥❌👌🏻⛔️🧨 in font", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.removeNodeNames.getNSButton().setToolTip_("Deletes node markers, as employed by many mekkablue scripts to mark problematic spots.")
 		linePos += lineHeight
 
-		self.w.removeAnnotations = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Remove all annotations 💬➕➖➚◯ in font", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.removeAnnotations = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove all annotations 💬➕➖➚◯ in font", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.removeAnnotations.getNSButton().setToolTip_("Deletes annotations created with the Annotation Tool (A), e.g. circles, arrows, and texts.")
 		linePos += lineHeight
 
-		self.w.removeLocalGuides = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Remove all local (blue) guides 🔵 in font", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.removeLocalGuides = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove all local (blue) guides 🔵 in font", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.removeLocalGuides.getNSButton().setToolTip_("Deletes blue guides.")
 		linePos += lineHeight
 
-		self.w.removeGlobalGuides = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Remove all global (red) guides 🔴 in font", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.removeGlobalGuides = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove all global (red) guides 🔴 in font", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.removeGlobalGuides.getNSButton().setToolTip_("Deletes red guides.")
 		linePos += lineHeight
 
-		self.w.removeGlyphNotes = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Remove all glyph notes in font", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.removeGlyphNotes = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove all glyph notes in font", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.removeGlyphNotes.getNSButton().setToolTip_("Deletes glyph notes as entered in list view or through the Glyph Note Palette (plug-in).")
 		linePos += lineHeight
 
-		self.w.removeColors = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Remove all glyph and layer colors 🟠🟡🟢🟣 in font", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.removeColors = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove all glyph and layer colors 🟠🟡🟢🟣 in font", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.removeColors.getNSButton().setToolTip_("Resets all glyph and layer colors to none.")
 		linePos += lineHeight
 
-		self.w.clearBackgroundLayers = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Clear all background layers in font", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.clearBackgroundLayers = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Clear all background layers in font", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.clearBackgroundLayers.getNSButton().setToolTip_("If checked, will clear all background layers (Cmd-B) of all layers.")
 		linePos += lineHeight
 
-		self.w.removeBackupLayers = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Remove all backup layers in font", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.removeBackupLayers = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove all backup layers in font", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.removeBackupLayers.getNSButton().setToolTip_("If checked, will remove all unused layers, i.e., all non-master, non-color, non-intermediate and non-alternate layers.")
 		linePos += lineHeight
 
 		self.w.line1 = vanilla.HorizontalLine((inset, linePos, -inset, 1))
 		linePos += 6
 
-		self.w.currentMasterOnly = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Limit clean-up to current master only", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.currentMasterOnly = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Limit clean-up to current master only", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.currentMasterOnly.getNSButton().setToolTip_("If checked, applies the clean-up to layers of the current font master only. Exception: glyph notes are not master-specific.")
 		linePos += lineHeight
 
-		self.w.selectedGlyphsOnly = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Limit clean-up to selected glyphs only", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.selectedGlyphsOnly = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Limit clean-up to selected glyphs only", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.selectedGlyphsOnly.getNSButton().setToolTip_("If checked, applies the clean-up only to selected glyphs. Otherwise, to all glyphs in the font.")
 		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset, linePos - 1, 180, 20), "⚠️ Apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, 180, 20), "⚠️ Apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.allFonts.getNSButton().setToolTip_("If checked, will work on ALL currently open fonts; otherwise only the frontmost font file open.")
 
 		self.w.verbose = vanilla.CheckBox((inset + 180, linePos - 1, -inset, 20), "Verbose reporting", value=False, callback=self.SavePreferences, sizeStyle="small")
@@ -141,12 +137,12 @@ class GarbageCollection(mekkaObject):
 		self.w.userDataLayers.getNSButton().setToolTip_(tooltip)
 		linePos += lineHeight
 
-		self.w.userDataKeysText = vanilla.TextBox((inset, linePos + 3, 92, 14), "…only keys with:", sizeStyle='small', selectable=True)
-		self.w.userDataKeys = vanilla.EditText((inset + 92, linePos, -inset - 25, 19), "UFO, fontlab, public", callback=self.SavePreferences, sizeStyle='small')
+		self.w.userDataKeysText = vanilla.TextBox((inset, linePos + 3, 92, 14), "…only keys with", sizeStyle='small', selectable=True)
+		self.w.userDataKeys = vanilla.EditText((inset + 92, linePos, -inset - 22, 19), "UFO, fontlab, public", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Comma-separated list of search strings for userData keys to delete. Leave empty to remove all."
 		self.w.userDataKeysText.getNSTextField().setToolTip_(tooltip)
 		self.w.userDataKeys.getNSTextField().setToolTip_(tooltip)
-		self.w.userDataUpdate = vanilla.SquareButton((-inset - 20, linePos + 1, -inset, 18), "↺", sizeStyle="small", callback=self.updateUserDataUI)
+		self.w.userDataUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateUserDataUI)
 		self.w.userDataUpdate.getNSButton().setToolTip_("Add the userData keys of frontmost font.")
 		linePos += lineHeight + 3
 

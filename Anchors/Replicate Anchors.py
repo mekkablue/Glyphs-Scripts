@@ -21,15 +21,11 @@ class ReplicateAnchors(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 250
-		windowHeight = 180
-		windowWidthResize = 300  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 260
+		windowHeight = 160
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Replicate Anchors",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -42,13 +38,13 @@ class ReplicateAnchors(mekkaObject):
 		self.w.sourceGlyphName = vanilla.ComboBox((inset + 80, linePos - 1, -inset, 19), [g.name for g in Glyphs.font.glyphs], sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.overwriteExistingAnchors = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Overwrite existing anchors", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.overwriteExistingAnchors = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Overwrite existing anchors", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.deleteAllExistingAnchors = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Delete all existing anchors", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.deleteAllExistingAnchors = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete all existing anchors", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.keepWindowOpen = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Keep Window Open", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.keepWindowOpen = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Keep Window Open", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# Run Button:

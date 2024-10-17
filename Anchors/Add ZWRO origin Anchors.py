@@ -8,7 +8,7 @@ Insert *origin anchors for ZWRO in all combining marks of specified scripts.
 from AppKit import NSPoint, NSHeight
 import vanilla
 from GlyphsApp import Glyphs, GSAnchor, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 def moveMacroWindowSeparator(pos=20):
@@ -43,39 +43,35 @@ class AddZWROOriginAnchors(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 300
-		windowHeight = 200
-		windowWidthResize = 200  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 180
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Add ZWRO *origin Anchors",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight, tab = 12, 15, 22, 100
+		linePos, inset, lineHeight, tab = 12, 15, 22, 95
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, 125, 14), "Add *origin anchors at", sizeStyle="small", selectable=True)
 		self.w.where = vanilla.PopUpButton((inset + 125, linePos, -inset, 17), positions, sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.offsetText = vanilla.TextBox((inset, linePos + 2, tab, 14), "Horizontal offset:", sizeStyle="small", selectable=True)
+		self.w.offsetText = vanilla.TextBox((inset, linePos + 2, tab, 14), "Horizontal offset", sizeStyle="small", selectable=True)
 		self.w.offset = vanilla.EditText((inset + tab, linePos, -inset, 19), "0", callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.scriptsText = vanilla.TextBox((inset, linePos + 2, tab, 14), "Marks of scripts:", sizeStyle="small", selectable=True)
-		self.w.scripts = vanilla.EditText((inset + tab, linePos, -inset - 25, 19), "latin, thai", callback=self.SavePreferences, sizeStyle="small")
-		self.w.updateScripts = vanilla.SquareButton((-inset - 20, linePos + 1, -inset, 18), "↺", sizeStyle="small", callback=self.updateScripts)
+		self.w.scriptsText = vanilla.TextBox((inset, linePos + 2, tab, 14), "Marks of scripts", sizeStyle="small", selectable=True)
+		self.w.scripts = vanilla.EditText((inset + tab, linePos, -inset - 22, 19), "latin, thai", callback=self.SavePreferences, sizeStyle="small")
+		self.w.updateScripts = UpdateButton((-inset - 16, linePos - 1, -inset, 18), callback=self.updateScripts)
 		linePos += lineHeight
 
-		self.w.excludeTransformed = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Exclude marks used in transformed components", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.excludeTransformed = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Exclude marks used in transformed components", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.excludeComposites = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Exclude composites", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.excludeComposites = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Exclude composites", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Apply to all fonts", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Apply to all fonts", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		# Run Button:

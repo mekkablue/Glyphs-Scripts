@@ -18,19 +18,29 @@ class ChangeMetricsbyPercentage(mekkaObject):
 	}
 
 	def __init__(self):
+		windowWidth = 390
+		windowHeight = 42
 		self.w = vanilla.FloatingWindow(
-			(430, 60), "Change Metrics of Selected Glyphs by Percentage", minSize=(430, 60), maxSize=(600, 60), autosaveName=self.domain("mainwindow")
+			(windowWidth, windowHeight),
+			"Change Metrics of Selected Glyphs by Percentage",
+			autosaveName=self.domain("mainwindow")
 		)
 
-		self.w.text_1 = vanilla.TextBox((15, 12 + 2, 50, 14), "Increase", sizeStyle='small')
-		self.w.text_2 = vanilla.TextBox((155, 12 + 2, 20, 14), "by", sizeStyle='small')
-		self.w.text_3 = vanilla.TextBox((-190, 12 + 2, -170, 14), "%", sizeStyle='small')
-		self.w.LSB = vanilla.CheckBox((15 + 55, 12, 40, 18), "LSB", value=True, sizeStyle='small', callback=self.SavePreferences)
-		self.w.RSB = vanilla.CheckBox((15 + 55 + 45, 12, 40, 18), "RSB", value=True, sizeStyle='small', callback=self.SavePreferences)
-		self.w.changeValue = vanilla.EditText((180, 11, -196, 20), "+10.0", sizeStyle='small')
-
-		self.w.runButton = vanilla.Button((-90, 12, -15, 19), "Change", sizeStyle='small', callback=self.ChangeMetricsbyPercentageMain)
-		self.w.revertButton = vanilla.Button((-90 - 80, 12, -95, 19), "⟲ Revert", sizeStyle='small', callback=self.ChangeMetricsbyPercentageMain)
+		linePos, inset = 12, 15
+		xPos = inset
+		self.w.text_1 = vanilla.TextBox((xPos, linePos + 2, 50, 14), "Increase", sizeStyle='small')
+		xPos += 55
+		self.w.LSB = vanilla.CheckBox((xPos, linePos, 40, 18), "LSB", value=True, sizeStyle='small', callback=self.SavePreferences)
+		xPos += 44
+		self.w.RSB = vanilla.CheckBox((xPos, linePos, 50, 18), "RSB by", value=True, sizeStyle='small', callback=self.SavePreferences)
+		xPos += 57
+		self.w.changeValue = vanilla.EditText((xPos, linePos - 1, 55, 20), "+10.0", sizeStyle='small')
+		xPos += 56
+		self.w.text_3 = vanilla.TextBox((xPos, linePos + 2, 17, 14), "%", sizeStyle='small')
+		xPos += 20
+		self.w.revertButton = vanilla.Button((xPos, linePos, 60, 19), "⟲ Revert", sizeStyle='small', callback=self.ChangeMetricsbyPercentageMain)
+		xPos += 66
+		self.w.runButton = vanilla.Button((xPos, linePos, 60, 19), "Change", sizeStyle='small', callback=self.ChangeMetricsbyPercentageMain)
 
 		self.w.setDefaultButton(self.w.runButton)
 

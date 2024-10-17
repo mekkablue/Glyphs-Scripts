@@ -30,15 +30,11 @@ class FindSmallPaths(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 250
+		windowWidth = 316
 		windowHeight = 240
-		windowWidthResize = 300  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"New Tab with Small Paths",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -56,13 +52,13 @@ class FindSmallPaths(mekkaObject):
 		self.w.areaSlider = vanilla.Slider((inset + 50 + 10, linePos, -inset - 50 - 10, 19), value=0.1, minValue=0.0, maxValue=1.0, sizeStyle='small', callback=self.SliderUpdate)
 		linePos += lineHeight
 
-		self.w.deleteThemRightAway = vanilla.CheckBox((inset, linePos, -inset, 20), "Delete Small Paths Right Away", value=False, callback=self.CheckBoxUpdate, sizeStyle='small')
+		self.w.deleteThemRightAway = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Delete Small Paths Right Away", value=False, callback=self.CheckBoxUpdate, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.afterOverlapRemoval = vanilla.CheckBox((inset, linePos, -inset, 20), "After Decomposition and Overlap Removal (slower)", value=True, callback=self.CheckBoxUpdate, sizeStyle='small')
+		self.w.afterOverlapRemoval = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "After Decomposition and Overlap Removal (slower)", value=True, callback=self.CheckBoxUpdate, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset, linePos, -inset, 20), "Apply to all open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Apply to all open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))

@@ -13,7 +13,7 @@ from copy import copy
 from Foundation import NSPoint, NSAutoreleasePool
 from AppKit import NSFont
 from GlyphsApp import Glyphs, GSLayer, GSAxis, GSInstance, GSCustomParameter, GSSMOOTH, GSOFFCURVE, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 def biggestSubstringInStrings(strings):
@@ -233,13 +233,8 @@ class BatchGrader(mekkaObject):
 			(windowWidth, windowHeight),  # default window size
 			"Batch Grader",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(
-				windowWidth + windowWidthResize,
-				windowHeight + windowHeightResize,
-			),  # maximum size (for resizing)
-			autosaveName=self.domain(
-				"mainwindow"
-			),  # stores last window position and size
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow"),  # stores last window position and size
 		)
 
 		# UI elements:
@@ -248,30 +243,30 @@ class BatchGrader(mekkaObject):
 		indent = 65
 
 		tooltipText = "The Grade value. Should roughly correspnd to the weight value. E.g., Grade 100 means that the shapes appear to be of the weight that is 100 above the current weight."
-		self.w.gradeText = vanilla.TextBox((inset, linePos + 3, indent, 14), "Add grade:", sizeStyle="small", selectable=True)
+		self.w.gradeText = vanilla.TextBox((inset, linePos + 3, indent, 14), "Add grade", sizeStyle="small")
 		self.w.gradeText.getNSTextField().setToolTip_(tooltipText)
 		self.w.grade = vanilla.ComboBox((inset + indent, linePos - 1, 55, 19), ("-100", "-50", "50", "100"), sizeStyle="small", callback=self.SavePreferences)
 		self.w.grade.getNSComboBox().setToolTip_(tooltipText)
 
 		tooltipText = "The Grade axis. Specify a four-letter axis tag (default ‘GRAD’) and a human-readable name (default ‘Grade’). Use all-caps letters for the axis tag as long as Grade is not a registered axis in the OpenType spec. The update button will insert the current convention: tag ‘GRAD’ and name ‘Grade’."
-		self.w.gradeAxisTagText = vanilla.TextBox((inset + indent + 65, linePos + 3, 100, 14), "Axis tag & name:", sizeStyle="small", selectable=True)
+		self.w.gradeAxisTagText = vanilla.TextBox((inset + indent + 65, linePos + 3, 100, 14), "Axis tag & name", sizeStyle="small")
 		self.w.gradeAxisTagText.getNSTextField().setToolTip_(tooltipText)
 		self.w.gradeAxisTag = vanilla.EditText((inset + indent + 100 + 60, linePos, 45, 19), "GRAD", callback=self.SavePreferences, sizeStyle="small")
 		self.w.gradeAxisTag.getNSTextField().setToolTip_(tooltipText)
-		self.w.axisName = vanilla.EditText((inset + indent + 100 + 110, linePos, -inset - 25, 19), "Grade", callback=self.SavePreferences, sizeStyle="small")
+		self.w.axisName = vanilla.EditText((inset + indent + 100 + 110, linePos, -inset - 22, 19), "Grade", callback=self.SavePreferences, sizeStyle="small")
 		self.w.axisName.getNSTextField().setToolTip_(tooltipText)
-		self.w.axisReset = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateUI)
+		self.w.axisReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateUI)
 		self.w.axisReset.getNSButton().setToolTip_(tooltipText)
 		linePos += lineHeight
 
 		indent = 110
 
 		tooltipText = "Renaming for the newly added graded masters. You can search and replace in the name of the base master, the result will be used as name for the graded master. Leave the ‘Search for’ field empty if you want to just add a particle to the end of the master name, e.g. ‘Graded’ only in the ‘Replace with’ field."
-		self.w.searchForText = vanilla.TextBox((inset, linePos + 3, indent, 14), "In name, search for:", sizeStyle="small", selectable=True)
+		self.w.searchForText = vanilla.TextBox((inset, linePos + 3, indent, 14), "In name, search for", sizeStyle="small")
 		self.w.searchForText.getNSTextField().setToolTip_(tooltipText)
 		self.w.searchFor = vanilla.EditText((inset + indent, linePos, 60, 19), self.pref("searchFor"), callback=self.SavePreferences, sizeStyle="small")
 		self.w.searchFor.getNSTextField().setToolTip_(tooltipText)
-		self.w.replaceWithText = vanilla.TextBox((inset + indent + 65, linePos + 3, 100, 14), "and replace with:", sizeStyle="small", selectable=True)
+		self.w.replaceWithText = vanilla.TextBox((inset + indent + 65, linePos + 3, 100, 14), "and replace with", sizeStyle="small")
 		self.w.replaceWithText.getNSTextField().setToolTip_(tooltipText)
 		self.w.replaceWith = vanilla.EditText((inset + indent + 165, linePos, -inset, 19), self.pref("replaceWith"), callback=self.SavePreferences, sizeStyle="small")
 		self.w.replaceWith.getNSTextField().setToolTip_(tooltipText)
@@ -279,38 +274,38 @@ class BatchGrader(mekkaObject):
 
 		indent = 150
 		tooltipText = "Specify which masters are ignored for (a) interpolating the graded masters and (b) resetting the recipe. Add comma-separated name particles. All masters containing these particles will be ignored."
-		self.w.excludeFromInterpolationText = vanilla.TextBox((inset, linePos + 3, -inset, 14), "Ignore masters containing:", sizeStyle="small", selectable=True)
+		self.w.excludeFromInterpolationText = vanilla.TextBox((inset, linePos + 3, -inset, 14), "Ignore masters containing", sizeStyle="small")
 		self.w.excludeFromInterpolationText.getNSTextField().setToolTip_(tooltipText)
-		self.w.excludeFromInterpolation = vanilla.EditText((inset + indent, linePos, -inset - 25, 19), self.prefDict["excludeFromInterpolation"], callback=self.SavePreferences, sizeStyle="small")
+		self.w.excludeFromInterpolation = vanilla.EditText((inset + indent, linePos, -inset - 22, 19), self.prefDict["excludeFromInterpolation"], callback=self.SavePreferences, sizeStyle="small")
 		self.w.excludeFromInterpolation.getNSTextField().setToolTip_(tooltipText)
-		self.w.ignoreReset = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateUI)
+		self.w.ignoreReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateUI)
 		self.w.ignoreReset.getNSButton().setToolTip_(tooltipText)
 		linePos += lineHeight
 
-		self.w.addGradedBraceLayers = vanilla.CheckBox((inset, linePos - 1, 200, 20), "Add graded brace layers (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addGradedBraceLayers = vanilla.CheckBox((inset + 2, linePos - 1, 200, 20), "Add graded brace layers (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.temporarilySwitchToDefaultInterpolation = vanilla.CheckBox((inset + 200, linePos - 1, -inset + 230, 20), "Use default interpolation", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.addSyncMetricCustomParameter = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Add custom parameter ‘Link Metrics With Master’ (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addSyncMetricCustomParameter = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Add custom parameter ‘Link Metrics With Master’ (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.addSyncMetricCustomParameter.getNSButton().setToolTip_("Will add a custom parameter that links the spacing and kerning of the graded master to its respective base master. Keep this checkbox on unless you know what you are doing.")
 		linePos += lineHeight
 
 		tooltipText = "When refitting the graded shapes into the respective base widths, what should happen with metrics keys? If you don’t do anything, it will still work, but Glyphs will show a lot of metric sync warnings in Font View. If you disable all keys, the script will add self referential layer keys to overwrite the glyph keys, effectively disabling the metrics key on the graded master. In special cases, you can also choose to prefer (and update) the keys of one side only."
 
 		tooltipText = "Will actively recenter glyphs after interpolation if they are centered in the base master. The threshold specifies the maximum difference between LSB and RSB that is acceptable to consider the glyph centered. Best to use 1 or 2."
-		self.w.keepCenteredGlyphsCentered = vanilla.CheckBox((inset, linePos, 305, 20), "Keep centered glyphs centered; max SB diff threshold:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.keepCenteredGlyphsCentered = vanilla.CheckBox((inset + 2, linePos, 305, 20), "Keep centered glyphs centered; max SB diff threshold", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.keepCenteredGlyphsCentered.getNSButton().setToolTip_(tooltipText)
 		self.w.keepCenteredThreshold = vanilla.EditText((inset + 305, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle="small")
 		self.w.keepCenteredThreshold.getNSTextField().setToolTip_(tooltipText)
 		linePos += lineHeight
 
 		tooltipText = "Only apply to the current Glyph"
-		self.w.onlyCurrentGlyph = vanilla.CheckBox((inset, linePos, -inset, 20), "Only apply to the current Glyph", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.onlyCurrentGlyph = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Only apply to the current Glyph", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.onlyCurrentGlyph.getNSButton().setToolTip_(tooltipText)
 		linePos += lineHeight
 
 		linePos += 10
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Recipe for new graded masters:", sizeStyle="small", selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Recipe for new graded masters", sizeStyle="small")
 		linePos += lineHeight
 
 		self.w.graderCode = vanilla.TextEditor((1, linePos, -1, -inset * 3), text=self.prefDict["graderCode"], callback=self.SavePreferences, checksSpelling=False)

@@ -88,10 +88,10 @@ class GapFinder(mekkaObject):
 		self.w.excludeSuffixes = vanilla.EditText((inset + 150, linePos, -inset, 19), ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.excludeNonExporting = vanilla.CheckBox((inset, linePos, -inset, 20), "Exclude non-exporting glyphs", value=True, sizeStyle='small', callback=self.SavePreferences)
+		self.w.excludeNonExporting = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Exclude non-exporting glyphs", value=True, sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.reportGapsInMacroWindow = vanilla.CheckBox((inset, linePos, -inset, 20), "Also report in Macro Window (slower)", value=False, sizeStyle='small', callback=self.SavePreferences)
+		self.w.reportGapsInMacroWindow = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Also report in Macro Window (slower)", value=False, sizeStyle='small', callback=self.SavePreferences)
 		self.w.reuseCurrentTab = vanilla.CheckBox((inset + 240, linePos, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseCurrentTab.getNSButton().setToolTip_("If enabled, will not open a new tab with newly added kern pairs, but reuse the current Edit tab. Will open an Edit tab if none is open.")
 		linePos += lineHeight

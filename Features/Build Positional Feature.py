@@ -7,7 +7,7 @@ Create or update OpenType feature code for positional forms (isolated, initial, 
 
 import vanilla
 from GlyphsApp import Glyphs, GSFeature, GSClass, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 def updatedCode(oldcode, beginsig, endsig, newcode):
@@ -134,45 +134,45 @@ class BuildPositionalFeature(mekkaObject):
 		linePos += lineHeight + 2
 
 		self.w.targetFeatureText = vanilla.TextBox((inset, linePos + 3, tabIndent, 14), "Target feature (tag):", sizeStyle='small', selectable=True)
-		self.w.targetFeature = vanilla.EditText((inset + tabIndent, linePos, -inset - 25, 19), "calt", callback=self.SavePreferences, sizeStyle='small')
+		self.w.targetFeature = vanilla.EditText((inset + tabIndent, linePos, -inset - 22, 19), "calt", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Feature tag for the OpenType feature that is supposed to receive the positional code."
 		self.w.targetFeature.getNSTextField().setToolTip_(tooltip)
 		self.w.targetFeatureText.getNSTextField().setToolTip_(tooltip)
-		self.w.targetFeatureUpdate = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.update)
+		self.w.targetFeatureUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
 		self.w.targetFeatureUpdate.getNSButton().setToolTip_("Reset to defaults: ‘calt’")
 		linePos += lineHeight
 
 		self.w.suffixesText = vanilla.TextBox((inset, linePos + 3, tabIndent, 14), "Suffixes (in,me,fi,is):", sizeStyle='small', selectable=True)
-		self.w.suffixes = vanilla.EditText((inset + tabIndent, linePos, -inset - 25, 19), "init, medi, fina, isol", callback=self.SavePreferences, sizeStyle='small')
+		self.w.suffixes = vanilla.EditText((inset + tabIndent, linePos, -inset - 22, 19), "init, medi, fina, isol", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Glyph suffixes in the font, for the four positions, in this order:\n1. initial\n2. medial\n3. final\n4. isolated"
 		self.w.suffixes.getNSTextField().setToolTip_(tooltip)
 		self.w.suffixesText.getNSTextField().setToolTip_(tooltip)
-		self.w.suffixesUpdate = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.update)
+		self.w.suffixesUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
 		self.w.suffixesUpdate.getNSButton().setToolTip_("Reset to defaults: ‘init, medi, fina, isol’")
 		linePos += lineHeight
 
 		self.w.sourceSuffixText = vanilla.TextBox((inset, linePos + 3, tabIndent, 14), "Suffix for source classes:", sizeStyle='small', selectable=True)
-		self.w.sourceSuffix = vanilla.EditText((inset + tabIndent, linePos, -inset - 25, 19), "Def", callback=self.SavePreferences, sizeStyle='small')
+		self.w.sourceSuffix = vanilla.EditText((inset + tabIndent, linePos, -inset - 22, 19), "Def", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Newly generated OT classes will be named after the positional tag (init, medi, fina, isol) plus a suffix for the source class (for the unsuffixed glyphs) or the target class (for the respectively suffixed glyphs). One of the suffixes can be left empty, but not both."
 		self.w.sourceSuffix.getNSTextField().setToolTip_(tooltip)
 		self.w.sourceSuffixText.getNSTextField().setToolTip_(tooltip)
-		self.w.sourceSuffixUpdate = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.update)
+		self.w.sourceSuffixUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
 		self.w.sourceSuffixUpdate.getNSButton().setToolTip_("Reset to defaults: ‘Def’")
 		linePos += lineHeight
 
 		self.w.targetSuffixText = vanilla.TextBox((inset, linePos + 3, tabIndent, 14), "Suffix for target classes:", sizeStyle='small', selectable=True)
-		self.w.targetSuffix = vanilla.EditText((inset + tabIndent, linePos, -inset - 25, 19), "Sub", callback=self.SavePreferences, sizeStyle='small')
+		self.w.targetSuffix = vanilla.EditText((inset + tabIndent, linePos, -inset - 22, 19), "Sub", callback=self.SavePreferences, sizeStyle='small')
 		self.w.targetSuffix.getNSTextField().setToolTip_(tooltip)
 		self.w.targetSuffixText.getNSTextField().setToolTip_(tooltip)
-		self.w.targetSuffixUpdate = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.update)
+		self.w.targetSuffixUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
 		self.w.targetSuffixUpdate.getNSButton().setToolTip_("Reset to defaults: ‘Sub’")
 		linePos += lineHeight
 
-		self.w.automateAllLetters = vanilla.CheckBox((inset, linePos, -inset, 20), "Automate ‘AllLetters’ feature class", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.automateAllLetters = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Automate ‘AllLetters’ feature class", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.automateAllLetters.getNSButton().setToolTip_("The @AllLetters OpenType class can be automated (and thus, automatically kept up to date) by Glyphs. Enabling this option will add this class with the ‘Generate automatically’ option ON. Strongly recommended.")
 		linePos += lineHeight
 
-		self.w.separateFeatureEntry = vanilla.CheckBox((inset, linePos, -inset, 20), "Separate feature entry (i.e. do not reuse existing feature)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.separateFeatureEntry = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Separate feature entry (i.e. do not reuse existing feature)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.separateFeatureEntry.getNSButton().setToolTip_("If this option is enabled and the target feature already exists in Font Info → Features, will create a new entry with the same feature tag, rather than append the code to an existing feature entry.")
 		linePos += lineHeight
 

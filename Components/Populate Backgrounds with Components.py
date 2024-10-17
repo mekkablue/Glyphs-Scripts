@@ -8,7 +8,7 @@ Adds a component to all backgrounds of all layers of all selected glyphs. Useful
 import vanilla
 from AppKit import NSEvent
 from GlyphsApp import Glyphs, GSComponent, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 from mekkablue.geometry import transform
 
 
@@ -28,7 +28,7 @@ class PopulateAllBackgroundswithComponent(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Populate Layer Backgrounds with Component",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			minSize=(windowWidth - 10, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
@@ -40,17 +40,17 @@ class PopulateAllBackgroundswithComponent(mekkaObject):
 		linePos += lineHeight
 
 		self.w.text_1 = vanilla.TextBox((inset - 1, linePos + 2, 100, 14), "Add component:", sizeStyle='small')
-		self.w.componentName = vanilla.EditText((inset + 100, linePos, -inset - 25, 19), "a", sizeStyle='small', callback=self.SavePreferences)
+		self.w.componentName = vanilla.EditText((inset + 92, linePos - 1, -inset - 25, 19), "a", sizeStyle='small', callback=self.SavePreferences)
 		self.w.componentName.getNSTextField().setToolTip_("Name of the glyph that should be inserted as component in the background of all layers of the selected glyph(s).")
-		self.w.updateButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), u"↺", sizeStyle='small', callback=self.update)
+		self.w.updateButton = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.update)
 		self.w.updateButton.getNSButton().setToolTip_("Guess the component name. Hold down OPTION to ignore the suffix.")
 		linePos += lineHeight
 
-		self.w.alignRight = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Align with right edge of layer", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.alignRight = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Align with right edge of layer", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.alignRight.getNSButton().setToolTip_("Right-aligns the component width with the layer width. Useful for the e in ae or oe, for example.")
 		linePos += lineHeight
 
-		self.w.replaceBackgrounds = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Replace existing backgrounds", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.replaceBackgrounds = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Replace existing backgrounds", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.replaceBackgrounds.getNSButton().setToolTip_("Deletes existing background content before it inserts the component. Recommended if you want to align selected nodes with the background.")
 		linePos += lineHeight
 

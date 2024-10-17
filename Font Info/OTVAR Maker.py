@@ -127,15 +127,15 @@ class OTVARMaker(mekkaObject):
 		self.w.psSuffix.getNSComboBox().setToolTip_(tooltip)
 		linePos += lineHeight
 
-		self.w.addFileName = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Add fileName parameter", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addFileName = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Add fileName parameter", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.addFileName.getNSButton().setToolTip_("Adds a custom parameter for overriding the default file name of the font file.")
 		linePos += lineHeight
 
-		self.w.deletePrevious = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Remove previous variable font settings", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.deletePrevious = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Remove previous variable font settings", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.deletePrevious.getNSButton().setToolTip_("Deletes all variable font settings that you may already have in your file(s).")
 		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Apply to ⚠️ ALL open fonts", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Apply to ⚠️ ALL open fonts", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allFonts.getNSButton().setToolTip_("Adds Variable Font Settings to all fonts currently open in Glyphs.")
 		linePos += lineHeight
 

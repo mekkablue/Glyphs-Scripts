@@ -41,15 +41,15 @@ class InsertSpecialLayers(mekkaObject):
 		self.w.layerName = vanilla.EditText((inset + 70, linePos - 1, -inset, 19), "Intermediate {100}", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.prefillWithMasterContent = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Create as duplicate of master layer", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.prefillWithMasterContent = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Create as duplicate of master layer", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.prefillWithMasterContent.getNSButton().setToolTip_("Will add the new layer with the content of the associated master layer. If checkbox is off, will insert empty layer. In case of brace layers, the Reinterpolate option (further down) takes precedence, though.")
 		linePos += lineHeight
 
-		self.w.keepExistingBrace = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Keep existing brace layer", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.keepExistingBrace = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Keep existing brace layer", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.keepExistingBrace.getNSButton().setToolTip_("Only applies to brace layers. If checkbox is on and a glyph already contains (on any master) a brace layer at the indicated value, the script will skip the glyph. If the checkbox is off, it will deactivate the existing brace layer by replacing the curly braces with hashtags.")
 		linePos += lineHeight
 
-		self.w.reinterpolateBrace = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Reinterpolate brace layers", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reinterpolateBrace = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Reinterpolate brace layers", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reinterpolateBrace.getNSButton().setToolTip_("Only applies to brace layers. If checkbox is on and a brace layer is inserted, it will reinterpolate the newly generated brace layer. It only does this for newly generated layer, and will not reinterpolate existing brace layers.")
 		linePos += lineHeight
 

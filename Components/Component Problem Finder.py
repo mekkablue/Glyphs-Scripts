@@ -84,14 +84,10 @@ class ComponentProblemFinder(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 280
-		windowHeight = 520
-		windowWidthResize = 0  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 500
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Component Problem Finder",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -101,31 +97,31 @@ class ComponentProblemFinder(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "New tab with glyphs containing components:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.composablesWithoutComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Composable glyphs without components", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.composablesWithoutComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Composable glyphs without components", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.composablesWithoutComponents.getNSButton().setToolTip_("Lists glyphs that could be component-based (because they have a recipe in Glyph Info), but are lacking components.")
 		linePos += lineHeight
 
-		self.w.unusualComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Unusual composites (or wrong order)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.unusualComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Unusual composites (or wrong order)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.unusualComponents.getNSButton().setToolTip_("Lists composite glyphs that contain components different from the default recipe in Glyph Info.")
 		linePos += lineHeight
 
-		self.w.lockedComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Locked components", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.lockedComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Locked components", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.lockedComponents.getNSButton().setToolTip_("Lists glyphs that contain a locked component on any of its layers.")
 		linePos += lineHeight
 
-		self.w.nestedComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Nested components", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.nestedComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Nested components", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.nestedComponents.getNSButton().setToolTip_("Lists glyphs that contain components, which in turn contain components.")
 		linePos += lineHeight
 
-		self.w.orphanedComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Orphaned components", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.orphanedComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Orphaned components", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.orphanedComponents.getNSButton().setToolTip_("Lists glyphs that contain components referencing glyphs that do not exist in the font (anymore).")
 		linePos += lineHeight
 
-		self.w.emptyComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Empty components", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.emptyComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Empty components", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.emptyComponents.getNSButton().setToolTip_("Lists glyphs that contain components pointing to empty layers (layers without shapes).")
 		linePos += lineHeight
 
-		self.w.unalignedComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Unaligned components", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.unalignedComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Unaligned components", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.unalignedComponents.getNSButton().setToolTip_("Lists glyphs that contain unaligned components.")
 		linePos += lineHeight
 
@@ -133,7 +129,7 @@ class ComponentProblemFinder(mekkaObject):
 		self.w.line_transformedComponents = vanilla.HorizontalLine((inset, linePos + 3, -inset, 1))
 		linePos += int(lineHeight / 2)
 
-		self.w.scaledComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Scaled components", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.scaledComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Scaled components", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.scaledComponents.getNSButton().setToolTip_("Lists all components that are not at their original size. Useful for bug tracing in variable fonts.")
 		linePos += lineHeight
 
@@ -141,15 +137,15 @@ class ComponentProblemFinder(mekkaObject):
 		self.w.unproportionallyScaledComponents.getNSButton().setToolTip_("Lists glyphs that contain components that are not scaled the same horizontally and vertically. Useful for double checking in TT exports and variable fonts.")
 		linePos += lineHeight
 
-		self.w.rotatedComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Rotated components", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.rotatedComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Rotated components", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.rotatedComponents.getNSButton().setToolTip_("Lists all glyphs that contain rotated components, or components that are flipped BOTH horizontally and vertically. May be a good idea to check their alignment.")
 		linePos += lineHeight
 
-		self.w.mirroredComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Flipped components", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.mirroredComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Flipped components", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.mirroredComponents.getNSButton().setToolTip_("Lists all glyphs containing components that are mirrored EITHER horizontally or vertically.")
 		linePos += lineHeight
 
-		self.w.shiftedComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Shifted (but undistorted) components", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.shiftedComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Shifted (but undistorted) components", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.shiftedComponents.getNSButton().setToolTip_("Lists all glyphs containing unaligned components that are not positioned at x=0 y=0.")
 		linePos += lineHeight
 
@@ -157,11 +153,11 @@ class ComponentProblemFinder(mekkaObject):
 		self.w.line_cornerComponents = vanilla.HorizontalLine((inset, linePos + 3, -inset, 1))
 		linePos += int(lineHeight / 2)
 
-		self.w.detachedCornerComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Detached corner components", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.detachedCornerComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Detached corner components", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.detachedCornerComponents.getNSButton().setToolTip_("Lists all glyphs containing corner components that have lost their connection point.")
 		linePos += lineHeight
 
-		self.w.transformedCornerComponents = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Transformed corner components", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.transformedCornerComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Transformed corner components", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.transformedCornerComponents.getNSButton().setToolTip_("Lists all glyphs containing corner components that are not at 100%% scale.")
 		linePos += lineHeight
 
@@ -170,15 +166,15 @@ class ComponentProblemFinder(mekkaObject):
 		linePos += int(lineHeight / 2)
 
 		# Script Options:
-		self.w.includeAllGlyphs = vanilla.CheckBox((inset, linePos, -inset, 20), "Check all glyphs in font (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeAllGlyphs = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Check all glyphs in font (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeAllGlyphs.getNSButton().setToolTip_("If enabled, will ignore your current glyph selection, and simply go through the complete font. Recommended. May still ignore non-exporting glyph, see following option.")
 		linePos += lineHeight
 
-		self.w.includeNonExporting = vanilla.CheckBox((inset, linePos, -inset, 20), "Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonExporting.getNSButton().setToolTip_("If disabled, will ignore glyphs that are set to not export.")
 		linePos += lineHeight
 
-		self.w.reuseTab = vanilla.CheckBox((inset, linePos, 125, 20), "Reuse existing tab", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab = vanilla.CheckBox((inset + 2, linePos, 125, 20), "Reuse existing tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.getNSButton().setToolTip_("If enabled, will only open a new tab if none is open. Recommended.")
 		linePos += lineHeight
 

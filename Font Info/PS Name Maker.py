@@ -119,17 +119,17 @@ class PSNameMaker(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Recalculates and resets PS Names in instances:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
-		self.w.addAsNameEntryParameter = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Add as custom parameter (OTVAR safe)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addAsNameEntryParameter = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Add as custom parameter (OTVAR safe)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.shortenStyleNames = vanilla.CheckBox((inset, linePos - 1, -inset - 30, 20), "Shorten style names (Tech Note #5088)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.shortenStyleNames = vanilla.CheckBox((inset + 2, linePos - 1, -inset - 30, 20), "Shorten style names (Tech Note #5088)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.helpButton = vanilla.HelpButton((-inset - 28, linePos - 3, -inset, 25), callback=self.openURL)
 		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Apply to ⚠️ ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Apply to ⚠️ ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.includeInactiveInstances = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include inactive instances", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.includeInactiveInstances = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include inactive instances", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		self.w.removeButton = vanilla.Button((inset, -20 - inset, 90, -inset), "Remove", callback=self.PSNameMakerMain)

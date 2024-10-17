@@ -35,14 +35,10 @@ class SetToolShortcuts(mekkaObject):
 
 		# Window 'self.w':
 		windowWidth = 200
-		windowHeight = lineheight * len(shortcuts) + 40
-		windowWidthResize = 0  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = lineheight * len(shortcuts) + 20
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
-			u"Set Tool Shortcuts",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			"Set Tool Shortcuts",  # window title
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -51,14 +47,9 @@ class SetToolShortcuts(mekkaObject):
 			shortcut = Glyphs.defaults["%s.Hotkey" % tool]
 			if not shortcut:
 				shortcut = shortcuts[tool]
-			exec("self.w.text_%s = vanilla.TextBox((15, %i, 115, 14), u'%s', sizeStyle='small')" % (tool, position + 2, tool))
-			exec(
-				"self.w.edit_%s = vanilla.EditText((15+115+15, %i, -15, 20), u'%s', sizeStyle='small', callback=self.changeShortcut)" % (
-					tool,
-					position - 1,
-					shortcut.upper() if shortcut != "ß" else shortcut,  # do not capitalize ß because SF font is buggy
-				)
-			)
+			setattr(self.w, "text_%s" % tool, vanilla.TextBox((15, position + 2, 115, 14), tool, sizeStyle='small'))
+			shortcut = shortcut.upper() if shortcut != "ß" else shortcut  # do not capitalize ß because SF font is buggy
+			setattr(self.w, "edit_%s" % tool, vanilla.EditText((15 + 115 + 15, position - 1, -15, 20), shortcut, sizeStyle='small', callback=self.changeShortcut))
 			exec("self.w.edit_%s.setPlaceholder('%s')" % (tool, tool))
 			position += lineheight
 

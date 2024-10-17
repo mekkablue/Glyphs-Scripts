@@ -40,7 +40,7 @@ class PartialCompress(mekkaObject):
 		self.w.searchFor = vanilla.EditText((inset, linePos, -inset, 19), ".dnom", callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.allMasters = vanilla.CheckBox((inset, linePos - 1, 125, 20), "⚠️ on ALL masters", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos - 1, 125, 20), "⚠️ on ALL masters", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allFonts = vanilla.CheckBox((inset + 125, linePos - 1, -inset, 20), "⚠️ in ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 

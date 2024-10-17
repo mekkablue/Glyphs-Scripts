@@ -7,7 +7,7 @@ Removes the specified component from all (selected) glyphs.
 import vanilla
 # import from enclosing folder:
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject, match
+from mekkablue import mekkaObject, match, UpdateButton
 
 
 def deleteCornerComponent(componentName, thisLayer):
@@ -46,7 +46,7 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Remove Components",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			minSize=(windowWidth - 40, windowHeight),  # minimum size (for resizing)
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
@@ -54,20 +54,20 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.textDescription = vanilla.TextBox((inset, linePos, 115, 14), "Remove component", sizeStyle='small')
-		self.w.componentName = vanilla.ComboBox((inset + 115, linePos - 3, -30 - inset, 19), self.glyphList(), sizeStyle='small')
+		self.w.textDescription = vanilla.TextBox((inset, linePos + 1, 115, 14), "Remove component", sizeStyle='small')
+		self.w.componentName = vanilla.ComboBox((inset + 110, linePos - 3, -23 - inset, 19), self.glyphList(), sizeStyle='small')
 		tooltip = "Pick a glyph name. All components and corner components referencing this glyph will be deleted. Wildcards * and ? are supported."
 		self.w.textDescription.getNSTextField().setToolTip_(tooltip)
 		self.w.componentName.getNSComboBox().setToolTip_(tooltip)
 
-		self.w.updateButton = vanilla.SquareButton((-inset - 20, linePos - 2, -inset, 18), "↺", sizeStyle='small', callback=self.updateUI)
+		self.w.updateButton = UpdateButton((-inset - 18, linePos - 4, -inset, 18), callback=self.updateUI)
 		self.w.updateButton.getNSButton().setToolTip_("Reload a list of glyph names based on the current font (and selection).")
 
 		linePos += lineHeight
 		self.w.fromWhere = vanilla.RadioGroup((inset, linePos, -inset, 40), ("from all selected glyphs", "⚠️ from all glyphs in the font"), callback=self.SavePreferences, sizeStyle='small')
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Remove", callback=self.RemoveComponentFromSelectedGlyphsMain)
+		self.w.runButton = vanilla.Button((inset, -20 - inset, -inset, -inset), "Remove", callback=self.RemoveComponentFromSelectedGlyphsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

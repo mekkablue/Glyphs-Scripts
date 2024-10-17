@@ -102,41 +102,37 @@ class MarkMover(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 310
-		windowHeight = 220
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 204
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Mark Mover",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Move connecting anchors on metric line:", sizeStyle='small', selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Move connecting anchors on metric line", sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.lowercaseMarks = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Move …comb marks to x-height", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.lowercaseMarks = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Move …comb marks to x-height", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.uppercaseMarks = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Move …comb.case marks to cap height", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.uppercaseMarks = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Move …comb.case marks to cap height", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.smallcapMarks = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Move …comb.sc to smallcap height", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.smallcapMarks = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Move …comb.sc to smallcap height", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.setMetricsKeys = vanilla.CheckBox((inset, linePos - 1, 140, 20), "Set metrics keys, LSB:", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.leftMetricsKey = vanilla.EditText((inset + 140, linePos - 1, 50, 19), "=40", callback=self.SavePreferences, sizeStyle='small')
-		self.w.rightMetricsKeyText = vanilla.TextBox((inset + 197, linePos + 2, 30, 14), "RSB:", sizeStyle='small', selectable=True)
-		self.w.rightMetricsKey = vanilla.EditText((inset + 230, linePos - 1, 50, 19), "=|", callback=self.SavePreferences, sizeStyle='small')
+		self.w.setMetricsKeys = vanilla.CheckBox((inset + 2, linePos - 1, 140, 20), "Set metrics keys, LSB", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.leftMetricsKey = vanilla.EditText((inset + 135, linePos - 1, 55, 19), "=40", callback=self.SavePreferences, sizeStyle='small')
+		self.w.rightMetricsKeyText = vanilla.TextBox((inset + 195, linePos + 2, 30, 14), "RSB", sizeStyle='small')
+		self.w.rightMetricsKey = vanilla.EditText((inset + 225, linePos - 1, 55, 19), "=|", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.includeAllGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include all glyphs in font (otherwise just selection)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeAllGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include all glyphs in font (otherwise just selection)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.newTab = vanilla.CheckBox((inset, linePos - 1, 140, 20), "Open tab with marks", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.newTab = vanilla.CheckBox((inset + 2, linePos - 1, 140, 20), "Open tab with marks", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab = vanilla.CheckBox((inset + 140, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 

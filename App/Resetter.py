@@ -23,14 +23,10 @@ class Resetter(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 230
-		windowHeight = 205
-		windowWidthResize = 0  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 186
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Resetter",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -39,23 +35,23 @@ class Resetter(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Fix problems by resetting prefs:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.quicklook = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Reset QuickLook previews in Finder", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.quicklook = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Reset QuickLook previews in Finder", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.quicklook.getNSButton().setToolTip_("Will reset the QuickLook server, perhaps effective only after logging out and back in again.")
 		linePos += lineHeight
 
-		self.w.shortcuts = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Reset keyboard shortcuts", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.shortcuts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Reset keyboard shortcuts", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.shortcuts.getNSButton().setToolTip_("Warning: will delete all your keyboard shortcuts.")
 		linePos += lineHeight
 
-		self.w.autosaves = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Delete autosave information", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.autosaves = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete autosave information", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.autosaves.getNSButton().setToolTip_("Removes all Glyphs files from ~/Library/Autosave Information/")
 		linePos += lineHeight
 
-		self.w.savedAppState = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Delete saved application state", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.savedAppState = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete saved application state", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.savedAppState.getNSButton().setToolTip_("Removes all Glyphs files from ~/Library/Saved Application State/")
 		linePos += lineHeight
 
-		self.w.preferences = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Delete app preferences", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.preferences = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete app preferences", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.preferences.getNSButton().setToolTip_("Warning: also deletes the content of your Macro window tabs.")
 		linePos += lineHeight
 

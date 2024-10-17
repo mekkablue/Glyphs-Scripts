@@ -7,7 +7,7 @@ Compares open fonts and builds a lits of differing glyph info, including Unicode
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 # CONSTANTS:
 
@@ -78,17 +78,17 @@ class CompareGlyphInfo(mekkaObject):
 		)
 
 		# UI elements:
-		self.linePos, inset, lineHeight = 5, 6, 22
+		self.linePos, inset, lineHeight = 7, 6, 22
 
-		self.w.descriptionText = vanilla.TextBox((inset, self.linePos + 2, 140, 14), "Compare between fonts:", sizeStyle='small', selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, self.linePos + 1, 140, 14), "Compare between fonts:", sizeStyle='small', selectable=True)
 
-		self.w.whatToCompare = vanilla.PopUpButton((inset + 140, self.linePos, -160 - inset - 10, 17), thingsToCompare, sizeStyle='small', callback=self.Reload)
+		self.w.whatToCompare = vanilla.PopUpButton((inset + 140, self.linePos - 1, -160 - inset - 10, 18), thingsToCompare, sizeStyle='small', callback=self.Reload)
 		self.w.whatToCompare.getNSPopUpButton().setToolTip_("Choose which glyph info to compare between all open fonts.")
 
-		self.w.ignoreMissingGlyphs = vanilla.CheckBox((-160 - inset, self.linePos, -inset - 25, 17), "Ignore missing glyphs", value=False, callback=self.Reload, sizeStyle='small')
+		self.w.ignoreMissingGlyphs = vanilla.CheckBox((-160 - inset, self.linePos + 1, -inset - 25, 14), "Ignore missing glyphs", value=False, callback=self.Reload, sizeStyle='small')
 		self.w.ignoreMissingGlyphs.getNSButton().setToolTip_("If activated, will only list glyphs that are present in ALL open fonts.")
 
-		self.w.updateButton = vanilla.SquareButton((-inset - 20, self.linePos, -inset, 18), "↺", sizeStyle='small', callback=self.Reload)
+		self.w.updateButton = UpdateButton((-inset - 18, self.linePos - 3, -inset - 4, 18), callback=self.Reload)
 		self.w.updateButton.getNSButton().setToolTip_("Reload with currently opened fonts. Useful if you just opened or closed a font, or brought another font forward.")
 
 		self.linePos += lineHeight

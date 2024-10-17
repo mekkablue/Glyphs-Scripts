@@ -180,7 +180,7 @@ class InstanceMaker(mekkaObject):
 		self.w.existingInstances.set(0)
 		linePos += int(lineHeight * 2.4)
 
-		self.w.naturalNames = vanilla.CheckBox((inset, linePos, inset + 225, 19), "Use ‘natural’ weight names, starting at:", value=False, callback=self.UpdateSample, sizeStyle='small')
+		self.w.naturalNames = vanilla.CheckBox((inset + 2, linePos, inset + 225, 19), "Use ‘natural’ weight names, starting at:", value=False, callback=self.UpdateSample, sizeStyle='small')
 		self.w.naturalNames.getNSButton().setToolTip_("Prefill with standard names and style linking. If turned off, will use the Weight number as instance name.")
 		self.w.firstName = vanilla.PopUpButton((inset + 225, linePos, -inset, 17), naturalNames, callback=self.UpdateSample, sizeStyle='small')
 		self.w.firstName.getNSPopUpButton().setToolTip_("If you use natural weight names, choose here the name of your lightest weight.")
@@ -201,7 +201,7 @@ class InstanceMaker(mekkaObject):
 		self.w.italicStyle.getNSButton().setToolTip_("If enabled, will add the word ‘Italic’ to all instances, and also add italic style linking.")
 		linePos += lineHeight
 
-		self.w.maciej = vanilla.CheckBox((inset, linePos - 1, 160, 19), "Maciej y distribution from:", value=False, callback=self.UpdateSample, sizeStyle='small')
+		self.w.maciej = vanilla.CheckBox((inset + 2, linePos - 1, 160, 19), "Maciej y distribution from:", value=False, callback=self.UpdateSample, sizeStyle='small')
 		self.w.maciej.getNSButton().setToolTip_("An algorithm proposed by Maciej Ratajski, which introduces slightly different interpolation for y coordinates. Will add interpolationWeightY parameters to the instances. If these value differ greatly from the weight interpolation values, interpolation of your diagonals may suffer.")
 		self.w.text_maciej_1 = vanilla.TextBox((inset + 165 + 55, linePos + 2, 55, 19), "through:", sizeStyle='small')
 		self.w.maciej_light = vanilla.ComboBox((inset + 160, linePos - 1, 55, 19), self.MasterList(1), callback=self.UpdateSample, sizeStyle='small')
@@ -213,7 +213,7 @@ class InstanceMaker(mekkaObject):
 		self.w.help_maciej.getNSButton().setToolTip_("Will open a website with a detailed description of the Maciej algorithm. Requires an internet connection.")
 		linePos += int(lineHeight * 1.2)
 
-		self.w.shouldRound = vanilla.CheckBox((inset, linePos, 200, 20), "Round all interpolation values", value=True, callback=self.UpdateSample, sizeStyle='small')
+		self.w.shouldRound = vanilla.CheckBox((inset + 2, linePos, 200, 20), "Round all interpolation values", value=True, callback=self.UpdateSample, sizeStyle='small')
 		self.w.shouldRound.getNSButton().setToolTip_("If enabled, will round all calculated weight values to integers. Usually a good idea.")
 
 		self.w.keepWindowOpen = vanilla.CheckBox((inset + 200, linePos, -inset, 20), "Keep window open", value=True, callback=self.SavePreferences, sizeStyle='small')

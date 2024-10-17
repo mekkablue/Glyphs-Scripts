@@ -8,8 +8,8 @@ Looks for empty master layers and adds shapes of a preferred master.
 import vanilla
 from copy import copy as copy
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
-from Cocoa import NSImage
+from mekkablue import mekkaObject, UpdateButton
+
 
 labelColors = (
 	"🔴 Red",
@@ -42,7 +42,7 @@ class FillUpEmptyMasters(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 320
-		windowHeight = 205
+		windowHeight = 203
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Fill Up Empty Masters",  # window title
@@ -55,27 +55,24 @@ class FillUpEmptyMasters(mekkaObject):
 		linePos += lineHeight
 
 		self.w.masterChoiceText = vanilla.TextBox((inset, linePos + 2, 95, 14), "Use shapes from", sizeStyle="small", selectable=True)
-		self.w.masterChoice = vanilla.PopUpButton((inset + 95, linePos, -inset - 25, 17), (), sizeStyle="small", callback=self.SavePreferences)
-		self.w.masterChoiceUpdate = vanilla.Button((-inset - 18, linePos - 2, -inset - 1, 17), "", callback=self.masterChoiceUpdateAction)
-		self.w.masterChoiceUpdate.getNSButton().setImage_(NSImage.imageNamed_("NSRefreshTemplate"))
-		self.w.masterChoiceUpdate.getNSButton().setBordered_(False)
-
+		self.w.masterChoice = vanilla.PopUpButton((inset + 95, linePos, -inset - 22, 17), (), sizeStyle="small", callback=self.SavePreferences)
+		self.w.masterChoiceUpdate = UpdateButton((-inset - 18, linePos - 2, -inset - 1, 17), callback=self.masterChoiceUpdateAction)
 		linePos += lineHeight
 
-		self.w.firstOneWithShapes = vanilla.CheckBox((inset, linePos, -inset, 20), "If empty, use first master with shapes", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.firstOneWithShapes = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "If empty, use first master with shapes", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.addMissingAnchors = vanilla.CheckBox((inset, linePos, -inset, 20), "Add missing default anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addMissingAnchors = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Add missing default anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.copySidebearings = vanilla.CheckBox((inset, linePos, -inset, 20), "Also copy sidebearings", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.copySidebearings = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Also copy sidebearings", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.markWithColor = vanilla.CheckBox((inset, linePos, 165, 20), "Color-mark filled-up layers:", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.layerColor = vanilla.PopUpButton((inset + 165, linePos + 1, 105, 17), labelColors, sizeStyle="small", callback=self.SavePreferences)
+		self.w.markWithColor = vanilla.CheckBox((inset + 2, linePos, 165, 20), "Color-mark filled-up layers", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.layerColor = vanilla.PopUpButton((inset + 161, linePos + 1, 105, 17), labelColors, sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.overwriteExisting = vanilla.CheckBox((inset, linePos, 165, 20), "Overwrite Existing Outlines❗️", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.overwriteExisting = vanilla.CheckBox((inset + 2, linePos, 165, 20), "Overwrite Existing Outlines❗️", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		# Status:

@@ -64,19 +64,19 @@ class StealKerningGroupsfromFont(mekkaObject):
 		self.w.sourceFontText.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
-		self.w.allGroups = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Copy ⚠️ ALL groups (i.e., ignore selection in source font)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allGroups = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Copy ⚠️ ALL groups (i.e., ignore selection in source font)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allGroups.getNSButton().setToolTip_("If unchecked, will only transfer groups of glyphs selected in source font.")
 		linePos += lineHeight
 
-		self.w.overwriteExisting = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Overwrite existing groups in target font", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.overwriteExisting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Overwrite existing groups in target font", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.overwriteExisting.getNSButton().setToolTip_("If unchecked, will keep existing groups in the target font, and only set groups when the glyph does not have any yet.")
 		linePos += lineHeight
 
-		self.w.resetGroupsInTarget = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Reset groups in target font before copying", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.resetGroupsInTarget = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Reset groups in target font before copying", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.resetGroupsInTarget.getNSButton().setToolTip_("Will delete ALL kerning groups in target font prior to transfering the source font’s groups.")
 		linePos += lineHeight
 
-		self.w.verbose = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Verbose reporting in Macro window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Verbose reporting in Macro window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.verbose.getNSButton().setToolTip_("Will report progress per glyph in Window > Macro Panel. Useful for debugging.")
 		linePos += lineHeight
 

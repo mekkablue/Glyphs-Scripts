@@ -61,13 +61,13 @@ class MergeSuffixedGlyphsIntoColorLayers(mekkaObject):
 
 		linePos = -105
 
-		self.w.disableSuffixedGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Deactivate export for glyphs with listed suffixes", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.disableSuffixedGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Deactivate export for glyphs with listed suffixes", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.deletePreexistingColorLayers = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Delete preexisting Color layers in target glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.deletePreexistingColorLayers = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete preexisting Color layers in target glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.processCompleteFont = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Process complete font (otherwise only add into selected glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.processCompleteFont = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Process complete font (otherwise only add into selected glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# Run Button:

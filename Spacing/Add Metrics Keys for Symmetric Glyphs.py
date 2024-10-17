@@ -19,32 +19,28 @@ class AddMetricsKeysforSymmetricGlyphs(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 300
-		windowHeight = 160
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 304
+		windowHeight = 140
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Add Metrics Keys for Symmetric Shapes",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Insert ‘=|’ in RSB if LSB and RSB are the same", sizeStyle='small', selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Insert ‘=|’ in RSB if LSB and RSB are the same", sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.toleranceText = vanilla.TextBox((inset, linePos + 3, 65, 14), "Tolerance:", sizeStyle='small', selectable=True)
-		self.w.tolerance = vanilla.EditText((inset + 65, linePos, -inset - 50, 19), "2", callback=self.SavePreferences, sizeStyle='small')
-		self.w.toleranceUnitsText = vanilla.TextBox((-inset - 45, linePos + 3, -inset, 14), "units", sizeStyle='small', selectable=True)
+		self.w.toleranceText = vanilla.TextBox((inset, linePos + 3, 65, 14), "Tolerance", sizeStyle='small')
+		self.w.tolerance = vanilla.EditText((inset + 60, linePos, 50, 19), "2", callback=self.SavePreferences, sizeStyle='small')
+		self.w.toleranceUnitsText = vanilla.TextBox((128, linePos + 3, 50, 14), "units", sizeStyle='small')
 		linePos += lineHeight + 3
 
-		self.w.updateMetrics = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Update metrics of affected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.updateMetrics = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Update metrics of affected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.allGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Apply to ALL glyphs in font (ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Apply to ALL glyphs in font (ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# Run Button:

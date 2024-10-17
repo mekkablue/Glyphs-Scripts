@@ -113,15 +113,15 @@ class BatchImportMasters(mekkaObject):
 		self.w.searchForText.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
-		self.w.useRelativePath = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Use relative font path in parameter values", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.useRelativePath = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Use relative font path in parameter values", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.useRelativePath.getNSButton().setToolTip_("If set, will add a relative path rather than an absolute path. Better for git repos.")
 		linePos += lineHeight
 
-		self.w.resetParameters = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Delete all existing Import Master parameters in target font", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.resetParameters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete all existing Import Master parameters in target font", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.resetParameters.getNSButton().setToolTip_("If set, will first clean out all existing ‘Import Master’ parameters, so the font will only have the ‘Import Master’ parameters you add.")
 		linePos += lineHeight
 
-		self.w.suppressMessage = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Suppress confirmation dialog", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.suppressMessage = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Suppress confirmation dialog", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.suppressMessage.getNSButton().setToolTip_("After you add the masters, there is a success dialog confirming the import. If it gets on your nerves, check this checkbox.")
 		linePos += lineHeight
 

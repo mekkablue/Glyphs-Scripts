@@ -54,14 +54,14 @@ class CompareKerningBetweenMasters(mekkaObject):
 		linePos += lineHeight
 
 		tab = 140
-		self.w.group2group = vanilla.CheckBox((inset, linePos - 1, tab, 20), "@group ↔︎ @group", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.group2group = vanilla.CheckBox((inset + 2, linePos - 1, tab, 20), "@group ↔︎ @group", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.group2glyph = vanilla.CheckBox((inset + tab, linePos - 1, -inset + tab, 20), "@group ↔︎ glyph", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
-		self.w.glyph2group = vanilla.CheckBox((inset, linePos - 1, tab, 20), "glyph ↔︎ @group", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.glyph2group = vanilla.CheckBox((inset + 2, linePos - 1, tab, 20), "glyph ↔︎ @group", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.glyph2glyph = vanilla.CheckBox((inset + tab, linePos - 1, -inset + tab, 20), "glyph ↔︎ glyph", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += int(lineHeight * 1.5)
 
-		self.w.reuseTab = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.reuseTab = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		# Run Button:

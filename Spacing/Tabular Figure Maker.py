@@ -7,7 +7,7 @@ Takes existing .tf figures and spaces them tabularly, or creates them from exist
 
 import vanilla
 from GlyphsApp import Glyphs, GSGlyph, GSComponent, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 class TabularFigureSpacer(mekkaObject):
@@ -21,32 +21,28 @@ class TabularFigureSpacer(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 270
-		windowHeight = 160
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 138
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Tabular Figure Spacer",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Fit default figures in tabular spaces:", sizeStyle="small", selectable=True)
+		linePos, inset, lineHeight = 10, 15, 22
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Fit default figures in tabular spaces", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
-		self.w.targetText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Reference glyph:", sizeStyle="small", selectable=True)
-		self.w.target = vanilla.ComboBox((inset + 95, linePos - 1, -inset - 25, 19), [], sizeStyle="small", callback=self.SavePreferences)
-		self.w.updateButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.update)
+		self.w.targetText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Reference glyph", sizeStyle="small", selectable=True)
+		self.w.target = vanilla.ComboBox((inset + 93, linePos - 1, -inset - 22, 19), [], sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateButton = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
 		linePos += lineHeight
 
-		self.w.suffixText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Tabular suffix:", sizeStyle="small", selectable=True)
-		self.w.suffix = vanilla.EditText((inset + 95, linePos, -inset, 19), ".tf", callback=self.SavePreferences, sizeStyle="small")
+		self.w.suffixText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Tabular suffix", sizeStyle="small", selectable=True)
+		self.w.suffix = vanilla.EditText((inset + 93, linePos, -inset, 19), ".tf", callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.createFromDefaultFigs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "⚠️ Create tab figures with default figures", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.createFromDefaultFigs = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "⚠️ Create tab figures with default figures", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		# Run Button:

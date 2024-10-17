@@ -33,13 +33,13 @@ class RemoveKerningExceptions(mekkaObject):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.glyphGlyph = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Remove 🅰️🅰️ glyph-to-glyph pairs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.glyphGlyph = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove 🅰️🅰️ glyph-to-glyph pairs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
-		self.w.glyphGroup = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Remove 🅰️🔠 glyph-to-group pairs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.glyphGroup = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove 🅰️🔠 glyph-to-group pairs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
-		self.w.groupGlyph = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Remove 🔠🅰️ group-to-glyph pairs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.groupGlyph = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove 🔠🅰️ group-to-glyph pairs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
-		self.w.keepGrouplessKerning = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Keep kerning for groupless glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.keepGrouplessKerning = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Keep kerning for groupless glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.removeOnMastersText = vanilla.TextBox((inset, linePos + 2, 70, 14), "Remove on:", sizeStyle='small', selectable=True)

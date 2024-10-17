@@ -50,27 +50,27 @@ class ShortSegmentFinder(mekkaObject):
 		self.w.minSegmentLength.getNSTextField().setToolTip_("Minimum length for every segment in all paths, measured in units.")
 		linePos += lineHeight
 
-		self.w.findShortSegmentsInMasters = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Look in masters instead (i.e., not in interpolations)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.findShortSegmentsInMasters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Look in masters instead (i.e., not in interpolations)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.findShortSegmentsInMasters.getNSButton().setToolTip_("If checked, will not calculate interpolations, but only measure segments in your master drawings, bracket and brace layers.")
 		linePos += lineHeight
 
-		self.w.allGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Process all glyphs in font (i.e., ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Process all glyphs in font (i.e., ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.allGlyphs.getNSButton().setToolTip_("If unchecked, will only process the currently selected glyph(s).")
 		linePos += lineHeight
 
-		self.w.exportingOnly = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Ignore non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.exportingOnly = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Ignore non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.exportingOnly.getNSButton().setToolTip_("If checked, will skip glyphs that do not export. Always skips compounds.")
 		linePos += lineHeight
 
-		self.w.reportIncompatibilities = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Report incompatibilities and no paths in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportIncompatibilities = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Report incompatibilities and no paths in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reportIncompatibilities.getNSButton().setToolTip_("If checked, will warn about incompatibilities and if a glyph has no paths. Usually you want this off, because it will report all compounds.")
 		linePos += lineHeight
 
-		self.w.markSegments = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Mark segments in first layer", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.markSegments = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Mark segments in first layer", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.markSegments.getNSButton().setToolTip_("If checked, will mark affected segments with a warning emoji and the minimum segment length. Will mark the corresponding segment in the first layer if it finds a short segment in a calculated instance. Will use an annotation if the segment cannot be found (e.g. if the segment is in a corner component).")
 		linePos += lineHeight
 
-		self.w.bringMacroWindowToFront = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Bring Macro Window to front", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.bringMacroWindowToFront = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Bring Macro Window to front", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.bringMacroWindowToFront.getNSButton().setToolTip_("A detailed report is written to the Macro Window. Activate this check box, and the Macro Window will be brought to the front ever time you run this script.")
 		linePos += lineHeight
 

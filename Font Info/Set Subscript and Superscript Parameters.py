@@ -8,7 +8,7 @@ Measures your superior and inferior figures and derives subscript/superscript X/
 import vanilla
 import math
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 class CalculateSubscriptAndSuperscriptParameters(mekkaObject):
@@ -42,14 +42,14 @@ class CalculateSubscriptAndSuperscriptParameters(mekkaObject):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Calculate custom parameters in Font Info > Masters:", sizeStyle='small', selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Calculate custom parameters in Font Info > Masters", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.subscriptCheck = vanilla.CheckBox((inset, linePos, 80, 20), "Subscript:", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.subscriptSample = vanilla.EditText((inset + 85, linePos, -inset - 175, 19), "oneinferior", callback=self.SavePreferences, sizeStyle='small')
-		self.w.subscriptReferenceText = vanilla.TextBox((-inset - 170, linePos + 3, -inset - 95, 14), "in relation to:", sizeStyle='small', selectable=True)
-		self.w.subscriptReference = vanilla.EditText((-inset - 95, linePos, -inset - 25, 19), "one", callback=self.SavePreferences, sizeStyle='small')
-		self.w.subscriptReset = vanilla.SquareButton((-inset - 20, linePos + 0.5, -inset, 18), "↺", sizeStyle='small', callback=self.resetValues)
+		self.w.subscriptCheck = vanilla.CheckBox((inset + 2, linePos, 80, 20), "Subscript", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.subscriptSample = vanilla.EditText((inset + 80, linePos, -inset - 170, 19), "oneinferior", callback=self.SavePreferences, sizeStyle='small')
+		self.w.subscriptReferenceText = vanilla.TextBox((-inset - 165, linePos + 3, -inset - 95, 14), "in relation to", sizeStyle='small', selectable=True)
+		self.w.subscriptReference = vanilla.EditText((-inset - 92, linePos, -inset - 22, 19), "one", callback=self.SavePreferences, sizeStyle='small')
+		self.w.subscriptReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.resetValues)
 		# tooltips:
 		tooltip = "If enabled, will calculate: subscriptXOffsetName, subscriptYOffsetName, subscriptXSizeName, subscriptYSizeName. The subscript glyph (on the left) will be measured in relation to the reference glyph on the right; offset and size scale will be computed from their differences."
 		self.w.subscriptSample.getNSTextField().setToolTip_(tooltip)
@@ -59,11 +59,11 @@ class CalculateSubscriptAndSuperscriptParameters(mekkaObject):
 		self.w.subscriptReset.getNSButton().setToolTip_("Resets the subscript reference glyphs to oneinferior vs. one.")
 		linePos += lineHeight
 
-		self.w.superscriptCheck = vanilla.CheckBox((inset, linePos, 80, 20), "Superscript:", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.superscriptSample = vanilla.EditText((inset + 85, linePos, -inset - 175, 19), "onesuperior", callback=self.SavePreferences, sizeStyle='small')
-		self.w.superscriptReferenceText = vanilla.TextBox((-inset - 170, linePos + 3, -inset - 95, 14), "in relation to:", sizeStyle='small', selectable=True)
-		self.w.superscriptReference = vanilla.EditText((-inset - 95, linePos, -inset - 25, 19), "one", callback=self.SavePreferences, sizeStyle='small')
-		self.w.superscriptReset = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.resetValues)
+		self.w.superscriptCheck = vanilla.CheckBox((inset + 2, linePos, 80, 20), "Superscript", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.superscriptSample = vanilla.EditText((inset + 80, linePos, -inset - 170, 19), "onesuperior", callback=self.SavePreferences, sizeStyle='small')
+		self.w.superscriptReferenceText = vanilla.TextBox((-inset - 165, linePos + 3, -inset - 95, 14), "in relation to", sizeStyle='small', selectable=True)
+		self.w.superscriptReference = vanilla.EditText((-inset - 92, linePos, -inset - 22, 19), "one", callback=self.SavePreferences, sizeStyle='small')
+		self.w.superscriptReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.resetValues)
 		# tooltips:
 		tooltip = "If enabled, will calculate: superscriptXOffsetName, superscriptYOffsetName, superscriptXSizeName, superscriptYSizeName. The superscript glyph (on the left) will be measured in relation to the reference glyph on the right; offset and size scale will be computed from their differences."
 		self.w.superscriptSample.getNSTextField().setToolTip_(tooltip)
@@ -73,9 +73,9 @@ class CalculateSubscriptAndSuperscriptParameters(mekkaObject):
 		self.w.superscriptReset.getNSButton().setToolTip_("Resets the superscript reference glyphs to onesuperior vs. one.")
 		linePos += lineHeight
 
-		self.w.roundValues = vanilla.CheckBox((inset, linePos, 130, 20), "Round all values by:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.roundBy = vanilla.EditText((inset + 130, linePos, 50, 19), "10", callback=self.SavePreferences, sizeStyle='small')
-		self.w.xSizeEqualsYSize = vanilla.CheckBox((inset + 200, linePos, -inset, 20), "xSize=ySize", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.roundValues = vanilla.CheckBox((inset + 2, linePos, 130, 20), "Round all values by", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.roundBy = vanilla.EditText((inset + 120, linePos, 50, 19), "10", callback=self.SavePreferences, sizeStyle='small')
+		self.w.xSizeEqualsYSize = vanilla.CheckBox((inset + 180, linePos, -inset, 20), "xSize=ySize", value=False, callback=self.SavePreferences, sizeStyle='small')
 		# tooltips:
 		tooltip = "If enabled, will round all calculated values by the given amount. Recommended: 5 or 10."
 		self.w.roundValues.getNSButton().setToolTip_(tooltip)
@@ -83,7 +83,7 @@ class CalculateSubscriptAndSuperscriptParameters(mekkaObject):
 		self.w.xSizeEqualsYSize.getNSButton().setToolTip_("If enabled, will set the horizontal scale to the same value as the vertical scale, ensuring a proportional scale. Especially useful for italics.")
 		linePos += lineHeight
 
-		self.w.syncWithFirstMaster = vanilla.CheckBox((inset, linePos, -inset, 20), "Sync all values with first master", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.syncWithFirstMaster = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Sync all values with first master", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.syncWithFirstMaster.getNSButton().setToolTip_("If enabled, will insert the same values in all masters.")
 		linePos += lineHeight
 

@@ -73,13 +73,13 @@ class RemoveKerning(mekkaObject):
 
 		self.ReloadCategories()
 
-		self.w.includeDirtyCategories = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Delete group kerning even if groups are ‘dirty’ (e.g., group with uppercase and lowercase letters mixed)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeDirtyCategories = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Delete group kerning even if groups are ‘dirty’ (e.g., group with uppercase and lowercase letters mixed)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.reportInMacroWindow = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Detailed report in macro window", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportInMacroWindow = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Detailed report in macro window", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.processAllMasters = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Process all masters (otherwise current master only)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.processAllMasters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Process all masters (otherwise current master only)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))

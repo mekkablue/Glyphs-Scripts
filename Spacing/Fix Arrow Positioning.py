@@ -47,14 +47,10 @@ class FixArrowPositioning(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 280
-		windowHeight = 240
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 226
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Fix Arrow Positioning",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -64,29 +60,29 @@ class FixArrowPositioning(mekkaObject):
 		self.w.explanation = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Fixes position and spacing of arrows.", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.referenceForHorizontalArrowsText = vanilla.TextBox((inset, linePos + 2, 130, 14), "Reference for H arrows:", sizeStyle='small')
-		self.w.referenceForHorizontalArrows = vanilla.PopUpButton((inset + 130, linePos, -inset, 17), self.hArrows, callback=self.SavePreferences, sizeStyle='small')
+		self.w.referenceForHorizontalArrowsText = vanilla.TextBox((inset, linePos + 2, 130, 14), "Reference for H arrows", sizeStyle='small')
+		self.w.referenceForHorizontalArrows = vanilla.PopUpButton((inset + 127, linePos, -inset, 17), self.hArrows, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.referenceForVerticalArrowsText = vanilla.TextBox((inset, linePos + 2, 130, 14), "Reference for V arrows:", sizeStyle='small')
-		self.w.referenceForVerticalArrows = vanilla.PopUpButton((inset + 130, linePos, -inset, 17), self.vArrows, callback=self.SavePreferences, sizeStyle='small')
+		self.w.referenceForVerticalArrowsText = vanilla.TextBox((inset, linePos + 2, 130, 14), "Reference for V arrows", sizeStyle='small')
+		self.w.referenceForVerticalArrows = vanilla.PopUpButton((inset + 127, linePos, -inset, 17), self.vArrows, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.referenceForDiagonalArrowsText = vanilla.TextBox((inset, linePos + 2, 130, 14), "Reference for D arrows:", sizeStyle='small')
-		self.w.referenceForDiagonalArrows = vanilla.PopUpButton((inset + 130, linePos, -inset, 17), self.dArrows, callback=self.SavePreferences, sizeStyle='small')
+		self.w.referenceForDiagonalArrowsText = vanilla.TextBox((inset, linePos + 2, 130, 14), "Reference for D arrows", sizeStyle='small')
+		self.w.referenceForDiagonalArrows = vanilla.PopUpButton((inset + 127, linePos, -inset, 17), self.dArrows, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.suffixText = vanilla.TextBox((inset, linePos + 2, 70, 14), "Dot suffix:", sizeStyle='small', selectable=False)
-		self.w.suffix = vanilla.EditText((inset + 70, linePos, -inset, 19), "", sizeStyle='small')
+		self.w.suffixText = vanilla.TextBox((inset, linePos + 2, 70, 14), "Dot suffix", sizeStyle='small', selectable=False)
+		self.w.suffix = vanilla.EditText((inset + 58, linePos, -inset, 19), "", sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.verticalPosOfHorizontalArrows = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Fix vertical positioning of horizontal arrows", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.verticalPosOfHorizontalArrows = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Fix vertical positioning of horizontal arrows", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.verticalPosOfDiagonalArrows = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Fix vertical positioning of diagonal arrows", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.verticalPosOfDiagonalArrows = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Fix vertical positioning of diagonal arrows", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.addAndUpdateMetricsKeys = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Add and update metrics keys", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.addAndUpdateMetricsKeys = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Add and update metrics keys", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# Run Button:

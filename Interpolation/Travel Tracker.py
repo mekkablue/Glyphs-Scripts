@@ -73,7 +73,7 @@ class TravelTracker(mekkaObject):
 		self.w.travelPercentage.getNSTextField().setToolTip_("Anything above ~50% is suspicious in a weight interpolation, and above 70% in a width interpolation. (100% is the diagonal of the bounding box of the path (or glyph) the node belongs to.)")
 		linePos += lineHeight
 
-		self.w.normalizeShape = vanilla.CheckBox((inset, linePos - 1, 140, 20), "Normalize per shape", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.normalizeShape = vanilla.CheckBox((inset + 2, linePos - 1, 140, 20), "Normalize per shape", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.normalizeGlyph = vanilla.CheckBox((inset + 140, linePos - 1, -inset, 20), "Normalize per glyph", value=True, callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Choose what counts as 100%: the diagonal of the shape (path) the node belongs to, or the diagonal of the complete glyph, or both."
 		self.w.normalizeShape.getNSButton().setToolTip_(tooltip)
@@ -87,7 +87,7 @@ class TravelTracker(mekkaObject):
 		linePos += lineHeight
 
 		tab, backTab = 165, 60
-		self.w.segmentRotation = vanilla.CheckBox((inset, linePos, tab, 20), "Node pairs may rotate up to", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.segmentRotation = vanilla.CheckBox((inset + 2, linePos, tab, 20), "Node pairs may rotate up to", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.thresholdAngle = vanilla.EditText((inset + tab, linePos, -inset - backTab, 19), "40", callback=self.SavePreferences, sizeStyle="small")
 		self.w.segmentRotationText = vanilla.TextBox((-inset - backTab, linePos + 3, -inset, 14), "degrees", sizeStyle="small", selectable=True)
 		tooltip = "Follows the rotation of consecutive node pairs across the interpolation. A high change in degrees may indicate a wrong start point or an unintentionally different path structure."
@@ -96,12 +96,12 @@ class TravelTracker(mekkaObject):
 		self.w.segmentRotationText.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
-		self.w.orthogonalToNonOrthogonal = vanilla.CheckBox((inset, linePos, -inset, 20), "Report all segments going non-orthogonal", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.orthogonalToNonOrthogonal = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Report all segments going non-orthogonal", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.orthogonalToNonOrthogonal.getNSButton().setToolTip_("Will list any glyph where a segment (of minimum length, see below) changes from orthogonal (vertical or horizontal) to any other angle. Usually unintended unless you interpolate from upright to oblique.")
 		linePos += lineHeight
 
 		tab, backTab = 165, 60
-		self.w.ignoreShortSegments = vanilla.CheckBox((inset, linePos, tab, 20), "Ignore short segments up to", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.ignoreShortSegments = vanilla.CheckBox((inset + 2, linePos, tab, 20), "Ignore short segments up to", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.ignoreShortSegmentsThreshold = vanilla.EditText((inset + tab, linePos, -inset - backTab, 19), "10", callback=self.SavePreferences, sizeStyle="small")
 		self.w.ignoreShortSegmentsText = vanilla.TextBox((-inset - backTab, linePos + 3, -inset, 14), "units long", sizeStyle="small", selectable=True)
 		tooltip = "Avoid too many false positives by ignoring the shortest segments, like open corners or the end of serifs."
@@ -113,11 +113,11 @@ class TravelTracker(mekkaObject):
 		self.w.separator2 = vanilla.HorizontalLine((inset, linePos, -inset, 1))
 		linePos += int(lineHeight * 0.5)
 
-		self.w.includeNonExporting = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include non-exporting glyphs (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include non-exporting glyphs (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonExporting.getNSButton().setToolTip_("Important if you are using non-exporting glyphs as components inside others, e.g., the slashlongcomb in the oslash.")
 		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset, linePos - 1, 140, 20), "⚠️ Apply to ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, 140, 20), "⚠️ Apply to ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allFonts.getNSButton().setToolTip_("If checked, will go through all currently opened fonts. May take a while.")
 		self.w.verbose = vanilla.CheckBox((inset + 140, linePos - 1, -inset, 20), "Verbose reporting", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.verbose.getNSButton().setToolTip_("Reports all glyphs in Macro Window, otherwise only a sorted list of affected glyphs.")

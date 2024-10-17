@@ -7,7 +7,7 @@ Prefills names for ssXX features with ‘Alternate’ or another chosen text, pl
 
 import vanilla
 from GlyphsApp import Glyphs, GSFontInfoValue
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 def featureHasName(feature):
@@ -61,11 +61,11 @@ class SetSSXXNames(mekkaObject):
 		self.w.alternateText = vanilla.TextBox((inset, linePos + 2, 85, 14), "Default Name:", sizeStyle='small', selectable=True)
 		self.w.alternate = vanilla.EditText((inset + 85, linePos - 1, -inset - 25, 19), self.defaultName, callback=self.SavePreferences, sizeStyle='small')
 		self.w.alternate.getNSTextField().setToolTip_("The script will look for the first substituted glyph in every ssXX, e.g., ‘a’, and construct a Stylistic Set name with this Default Name plus the name of the first substituted glyph, e.g., ‘Alternate a’.")
-		self.w.alternateUpdateButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.alternateUpdateButtonAction)
+		self.w.alternateUpdateButton = UpdateButton((-inset - 18, linePos, -inset, 18), callback=self.alternateUpdateButtonAction)
 		self.w.alternateUpdateButton.getNSButton().setToolTip_(f"Will reset default name to ‘{self.defaultName}’.")
 		linePos += lineHeight
 
-		self.w.overwrite = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Overwrite existing names", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.overwrite = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Overwrite existing names", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.overwrite.getNSButton().setToolTip_("If set, will skip ssXX features that already have a ‘Name:’ entry in their feature notes. If unset, will reset all ssXX names.")
 		linePos += lineHeight
 

@@ -28,14 +28,14 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 320
-		windowHeight = 155
+		windowHeight = 135
 		windowWidthResize = 100  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Merge CPAL Layers into Master Layer",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -48,10 +48,10 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 		self.w.all = vanilla.PopUpButton((inset + 30, linePos, -inset, 17), allOptions, sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.overwrite = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Overwrite existing master layers", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.overwrite = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Overwrite existing master layers", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.verbose = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Verbose reporting in Macro window", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Verbose reporting in Macro window", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		# Run Button:

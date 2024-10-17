@@ -1,9 +1,9 @@
 
 import math
 from typing import Any
-from AppKit import NSAffineTransform, NSUserDefaults, NSFont
+from AppKit import NSAffineTransform, NSUserDefaults, NSFont, NSImage, NSImageLeading
 from GlyphsApp import Glyphs
-
+from vanilla import Button
 
 if Glyphs.versionNumber >= 3:
 	from GlyphsApp import GSUppercase, GSLowercase, GSSmallcaps, GSMinor, GSNoCase
@@ -114,6 +114,15 @@ def getLegibleFont(size=None):
 	except:
 		legibleFont = NSFont.legibileFontOfSize_(size)  # Glyphs 3.1 compatibilty
 	return legibleFont
+
+
+def UpdateButton(posSize, callback, title=""):
+	button = Button(posSize, title, callback=callback)
+	button.getNSButton().setImage_(NSImage.imageNamed_("NSRefreshTemplate"))
+	if len(title) > 0:
+		button.getNSButton().setImagePosition_(NSImageLeading)
+	button.getNSButton().setBordered_(False)
+	return button
 
 
 class mekkaObject:

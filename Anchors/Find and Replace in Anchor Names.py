@@ -27,13 +27,13 @@ class SearchAndReplaceInAnchorNames(mekkaObject):
 
 		# UI elements:
 		baseline = 14
-		self.w.textSearch = vanilla.TextBox((20, baseline + 3, 67, 16), "Search for:")
+		self.w.textSearch = vanilla.TextBox((20, baseline + 3, 67, 16), "Search")
 		self.w.searchFor = vanilla.EditText((20 + 50, baseline, 135, 22), "tip")
 
-		self.w.textReplace = vanilla.TextBox((218, baseline + 3, 67, 16), "Replace by:")
-		self.w.replaceBy = vanilla.EditText((218 + 57, baseline, 135, 22), "top")
+		self.w.textReplace = vanilla.TextBox((212, baseline + 3, 67, 16), "Replace")
+		self.w.replaceBy = vanilla.EditText((212 + 57, baseline, 135, 22), "top")
 
-		self.w.replaceButton = vanilla.Button((-85, baseline + 1, -20, 19), "Replace", callback=self.SearchAndReplaceInAnchorNamesMain)
+		self.w.replaceButton = vanilla.Button((-95, baseline + 1, -20, 19), "Replace", callback=self.SearchAndReplaceInAnchorNamesMain)
 		self.w.setDefaultButton(self.w.replaceButton)
 
 		# Load Settings:

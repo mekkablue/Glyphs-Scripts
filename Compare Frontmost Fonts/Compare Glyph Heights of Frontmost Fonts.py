@@ -22,14 +22,10 @@ class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 320
-		windowHeight = 220
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 204
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Compare Glyph Heights of Frontmost Fonts",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -39,24 +35,24 @@ class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 28), "Lists all glyphs that differ in height more than the given threshold. Detailed report in Macro Window.", sizeStyle='small', selectable=True)
 		linePos += lineHeight * 2
 
-		self.w.tolerateText = vanilla.TextBox((inset, linePos + 2, 140, 14), "Tolerate difference up to:", sizeStyle='small', selectable=True)
-		self.w.tolerate = vanilla.EditText((inset + 140, linePos, -inset, 19), "5", callback=self.SavePreferences, sizeStyle='small')
+		self.w.tolerateText = vanilla.TextBox((inset, linePos + 2, 140, 14), "Tolerate difference up to", sizeStyle='small', selectable=True)
+		self.w.tolerate = vanilla.EditText((inset + 136, linePos, 55, 19), "5", callback=self.SavePreferences, sizeStyle='small')
 		self.w.tolerate.getNSTextField().setToolTip_("How much of a difference is OK. Hint: overshoot size is a good idea for this one.")
 		linePos += lineHeight
 
-		self.w.heights = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Compare top bounds (‘heights’)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.heights = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Compare top bounds (‘heights’)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.heights.getNSButton().setToolTip_("Measures and compares the heights of the top edges (bbox maximum).")
 		linePos += lineHeight
 
-		self.w.depths = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Compare bottom bounds (‘depths’)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.depths = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Compare bottom bounds (‘depths’)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.depths.getNSButton().setToolTip_("Measures and compares the heights of the bottom edges (bbox minimum).")
 		linePos += lineHeight
 
-		self.w.includeNonExporting = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonExporting.getNSButton().setToolTip_("If enabled, also measures glyphs that are set to not export.")
 		linePos += lineHeight
 
-		self.w.verbose = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Verbose output in Macro Window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Verbose output in Macro Window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.verbose.getNSButton().setToolTip_("Will output a detailed progress report in Window > Macro Panel. This slows down the script significantly, so only use for debugging.")
 		linePos += lineHeight
 

@@ -9,7 +9,7 @@ import vanilla
 from AppKit import NSNotificationCenter, NSPoint
 from copy import copy as copy
 from GlyphsApp import Glyphs, GSGlyph, GSComponent, GSPath, GSAnchor, GSUppercase, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 class MovePathstoComponent(mekkaObject):
@@ -41,19 +41,19 @@ class MovePathstoComponent(mekkaObject):
 		linePos += lineHeight
 
 		self.w.nameText = vanilla.TextBox((inset, linePos + 2, 100, 14), "Component name:", sizeStyle='small', selectable=True)
-		self.w.name = vanilla.EditText((inset + 100, linePos, -inset - 30, 19), "_bar.dollar", callback=self.SavePreferences, sizeStyle='small')
-		self.w.nameUpdateButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.updateName)
+		self.w.name = vanilla.EditText((inset + 100, linePos, -inset - 25, 19), "_bar.dollar", callback=self.SavePreferences, sizeStyle='small')
+		self.w.nameUpdateButton = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.updateName)
 		linePos += lineHeight
 
 		self.w.anchorText = vanilla.TextBox((inset, linePos + 2, 100, 14), "Attach to anchor:", sizeStyle='small', selectable=True)
-		self.w.anchor = vanilla.ComboBox((inset + 100, linePos - 1, -inset - 30, 19), self.allAnchorNames(), sizeStyle='small', callback=self.SavePreferences)
-		self.w.anchorUpdateButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.updateAnchors)
+		self.w.anchor = vanilla.ComboBox((inset + 100, linePos - 1, -inset - 25, 19), self.allAnchorNames(), sizeStyle='small', callback=self.SavePreferences)
+		self.w.anchorUpdateButton = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.updateAnchors)
 		linePos += lineHeight
 
-		self.w.includeSpecialLayers = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include special layers (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeSpecialLayers = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include special layers (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.keepBaseComponentPosition = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Keep base component position (with incremental keys)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.keepBaseComponentPosition = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Keep base component position (with incremental keys)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.keepBaseComponentPosition.getNSButton().setToolTip_("Will add an incremental metrics key (e.g. ==+10) if width deviation is at least 5u.")
 		linePos += lineHeight
 

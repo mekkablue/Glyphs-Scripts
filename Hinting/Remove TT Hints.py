@@ -57,27 +57,27 @@ class RemoveTTHints(mekkaObject):
 		self.w.where = vanilla.PopUpButton((inset + 160, linePos, -inset, 17), self.wheres, sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.hStems = vanilla.CheckBox((inset, linePos, column, 20), u"⬍ H Stem", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.hStems = vanilla.CheckBox((inset + 2, linePos, column, 20), u"⬍ H Stem", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.vStems = vanilla.CheckBox((inset + column, linePos, -inset, 20), u"⬌ V Stem", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.hAnchors = vanilla.CheckBox((inset, linePos, column, 20), u"⬍ H Anchor", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.hAnchors = vanilla.CheckBox((inset + 2, linePos, column, 20), u"⬍ H Anchor", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.vAnchors = vanilla.CheckBox((inset + column, linePos, -inset, 20), u"⬌ V Anchor", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.hAlign = vanilla.CheckBox((inset, linePos, column, 20), u"⬍ H Align", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.hAlign = vanilla.CheckBox((inset + 2, linePos, column, 20), u"⬍ H Align", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.vAlign = vanilla.CheckBox((inset + column, linePos, -inset, 20), u"⬌ V Align", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.hInterpolate = vanilla.CheckBox((inset, linePos, column, 20), u"⬍ H Interpolate", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.hInterpolate = vanilla.CheckBox((inset + 2, linePos, column, 20), u"⬍ H Interpolate", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.vInterpolate = vanilla.CheckBox((inset + column, linePos, -inset, 20), u"⬌ V Interpolate", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.hDiagonal = vanilla.CheckBox((inset, linePos, column, 20), u"⬍ H Diagonal", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.hDiagonal = vanilla.CheckBox((inset + 2, linePos, column, 20), u"⬍ H Diagonal", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.vDiagonal = vanilla.CheckBox((inset + column, linePos, -inset, 20), u"⬌ V Diagonal", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.hDelta = vanilla.CheckBox((inset, linePos, column, 20), u"⬍ H Delta", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.hDelta = vanilla.CheckBox((inset + 2, linePos, column, 20), u"⬍ H Delta", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.vDelta = vanilla.CheckBox((inset + column, linePos, -inset, 20), u"⬌ V Delta", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += int(lineHeight * 1.2)
 

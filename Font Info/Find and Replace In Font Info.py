@@ -54,17 +54,17 @@ class FindAndReplaceInFontInfo(mekkaObject):
 		self.w.replaceWith = vanilla.EditText((inset + 80, linePos - 1, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.completeWordsOnly = vanilla.CheckBox((inset, linePos, -inset, 20), "Complete words only", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.completeWordsOnly = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Complete words only", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset, linePos, -inset, 20), "⚠️ Include all open fonts and projects", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "⚠️ Include all open fonts and projects", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.includeInstances = vanilla.CheckBox((inset, linePos, 120, 20), "Include instances", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeInstances = vanilla.CheckBox((inset + 2, linePos, 120, 20), "Include instances", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeInactiveInstances = vanilla.CheckBox((inset + 120, linePos, -inset, 20), "Also inactive instances", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.includeCustomParameters = vanilla.CheckBox((inset, linePos, -inset, 20), "Include custom parameters", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeCustomParameters = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Include custom parameters", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# Run Button:

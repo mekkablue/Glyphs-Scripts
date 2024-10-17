@@ -19,7 +19,7 @@ class Decompose_Components_in_Background(mekkaObject):
 	}
 
 	windowHeight = 216
-	padding = (10, 10, 12)
+	padding = (15, 10, 12)
 	buttonHeight = 20
 	textHeight = 14
 	sizeStyle = 'small'

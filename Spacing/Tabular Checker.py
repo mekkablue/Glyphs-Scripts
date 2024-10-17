@@ -21,40 +21,36 @@ class TabularChecker(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 440
-		windowHeight = 160
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 140
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Tabular Checker",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), u"Goes through all glyphs with specified suffixes, and compares their widths:", sizeStyle='small', selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Goes through all glyphs with specified suffixes, and compares their widths", sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.suffixesText = vanilla.TextBox((inset, linePos + 2, 95, 14), u"Tabular suffixes:", sizeStyle='small', selectable=True)
-		self.w.suffixesEntry = vanilla.EditText((inset + 95, linePos - 1, -inset, 19), "tf, tosf", callback=self.SavePreferences, sizeStyle='small')
-		self.w.suffixesEntry.getNSTextField().setToolTip_(u"Comma-separated list of suffixes, with or without dots. Usually, you want ‘.tf, .tosf’.")
+		self.w.suffixesText = vanilla.TextBox((inset, linePos + 2, 95, 14), "Tabular suffixes", sizeStyle='small')
+		self.w.suffixesEntry = vanilla.EditText((inset + 90, linePos - 1, -inset, 19), "tf, tosf", callback=self.SavePreferences, sizeStyle='small')
+		self.w.suffixesEntry.getNSTextField().setToolTip_("Comma-separated list of suffixes, with or without dots. Usually, you want ‘.tf, .tosf’.")
 		linePos += lineHeight
 
-		self.w.allowDifferingWidthsPerSuffix = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Allow different widths in different suffixes", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.allowDifferingWidthsPerSuffix.getNSButton().setToolTip_(u"If checked, e.g., .tf and .tosf can have different widths in the same master. Otherwise .tf and .tosf must be same width.")
+		self.w.allowDifferingWidthsPerSuffix = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Allow different widths in different suffixes", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allowDifferingWidthsPerSuffix.getNSButton().setToolTip_("If checked, e.g., .tf and .tosf can have different widths in the same master. Otherwise .tf and .tosf must be same width.")
 		linePos += lineHeight
 
-		self.w.includeNonExporting = vanilla.CheckBox((inset, linePos - 1, -inset, 20), u"Also include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeNonExporting.getNSButton().setToolTip_(u"If not set, non-exporting glyphs will be ignored.")
+		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Also include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting.getNSButton().setToolTip_("If not set, non-exporting glyphs will be ignored.")
 		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Search in ⚠️ ALL fonts", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Search in ⚠️ ALL fonts", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.status = vanilla.TextBox((inset, linePos + 2, -inset, 14), u"", sizeStyle='small', selectable=True)
+		self.w.status = vanilla.TextBox((inset, linePos + 2, -inset, 14), "", sizeStyle='small')
 		linePos += lineHeight
 
 		# Run Button:
@@ -70,7 +66,7 @@ class TabularChecker(mekkaObject):
 
 	def reportStatus(self, reportString):
 		if not reportString:
-			reportString = u""
+			reportString = ""
 		self.w.status.set(reportString)
 
 	def widthReport(self, numOfDifferentWidths, suffix, suffixes, m, lengths, glyphnames, allowDifferingWidthsPerSuffix):
@@ -130,7 +126,7 @@ class TabularChecker(mekkaObject):
 							glyphnames = []
 
 						# update status:
-						reportString = u"Testing '%s' in %s..." % (suffix, m.name)
+						reportString = "Testing '%s' in %s..." % (suffix, m.name)
 						self.reportStatus(reportString)
 
 						for g in Font.glyphs:

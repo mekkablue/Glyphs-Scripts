@@ -397,14 +397,14 @@ class PathProblemFinder(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 285
-		windowHeight = 545
+		windowHeight = 526
 		windowWidthResize = 400  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			self.title,  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -415,26 +415,26 @@ class PathProblemFinder(mekkaObject):
 		# UI elements:
 		linePos, inset, lineHeight, secondColumn = 12, 15, 22, 135
 		indent, rightIndent = 155, 50
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "New tab with layers containing path problems:", sizeStyle='small', selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "New tab with layers containing path problems", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.zeroHandles = vanilla.CheckBox((inset, linePos, secondColumn, 20), "Zero handles", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.zeroHandles = vanilla.CheckBox((inset + 2, linePos, secondColumn, 20), "Zero handles", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.zeroHandles.getNSButton().setToolTip_("Zero handles (a.k.a. half-dead curves) can cause problems with screen rendering, hinting and interpolation. Indicated with purple disks in the Show Angled Handles plug-in.")
 		self.w.outwardHandles = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Outward-bent handles", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.outwardHandles.getNSButton().setToolTip_("Will find handles that point outside the stretch of their enclosing on-curves. Usually unwanted.")
 		linePos += lineHeight
 
-		self.w.largeHandles = vanilla.CheckBox((inset, linePos, -inset, 20), "Overshooting handles (larger than 100%)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.largeHandles = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Overshooting handles (larger than 100%)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.largeHandles.getNSButton().setToolTip_("Handles that are longer than 100%, i.e. going beyond the intersection with the opposing handle. Indicated with laser beams in the Show Angled Handles plug-in.")
 		linePos += lineHeight
 
-		self.w.offcurveAsStartPoint = vanilla.CheckBox((inset, linePos, indent, 20), "BCP as startpoint", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.offcurveAsStartPoint = vanilla.CheckBox((inset + 2, linePos, indent, 20), "BCP as startpoint", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.offcurveAsStartPoint.getNSButton().setToolTip_("Finds paths where the first point happens to be a handle (off-curve point, BCP). Not really an issue, but you’ll like it if you are going full OCD on your font.")
 		self.w.cuspingHandles = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Cusping handles", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.cuspingHandles.getNSButton().setToolTip_("Will find situations where, on a curve segment, the second handle comes before the first handle, i.e., is closer to the first on-curve. Usually unintended.")
 		linePos += lineHeight
 
-		self.w.shortHandles = vanilla.CheckBox((inset, linePos, indent, 20), "Handles shorter than:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.shortHandles = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Handles shorter than", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.shortHandlesThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "12", callback=self.SavePreferences, sizeStyle='small')
 		self.w.shortHandlesText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units", sizeStyle='small', selectable=True)
 		tooltipText = "Will find handles shorter than the specified amount in units. Short handles may cause kinks when rounded to the grid."
@@ -442,12 +442,12 @@ class PathProblemFinder(mekkaObject):
 		self.w.shortHandles.getNSButton().setToolTip_(tooltipText)
 		linePos += lineHeight
 
-		self.w.angledHandles = vanilla.CheckBox((inset, linePos, indent, 20), "Angled handles up to:", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.angledHandles = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Angled handles up to", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.angledHandlesAngle = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "8", callback=self.SavePreferences, sizeStyle='small')
 		self.w.angledHandlesText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "degrees", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.shallowCurveBBox = vanilla.CheckBox((inset, linePos, indent, 20), "Curve bbox smaller than:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.shallowCurveBBox = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Curve bbox smaller than", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.shallowCurveBBoxThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "10", sizeStyle='small')
 		self.w.shallowCurveBBoxText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units", sizeStyle='small', selectable=True)
 		tooltipText = "Will find very flat curve segments. Flat curves leave little manœuvring space for handles (BCPs), or cause very short handles, which in turn causes grid rounding problems. Can usually be fixed by removing an extremum point or adding an overlap."
@@ -455,7 +455,7 @@ class PathProblemFinder(mekkaObject):
 		self.w.shallowCurveBBox.getNSButton().setToolTip_(tooltipText)
 		linePos += lineHeight
 
-		self.w.shallowCurve = vanilla.CheckBox((inset, linePos, indent, 20), "Curves shallower than:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.shallowCurve = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Curves shallower than", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.shallowCurveThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "5", sizeStyle='small')
 		self.w.shallowCurveText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units", sizeStyle='small', selectable=True)
 		tooltipText = "Finds curve segments where the handles deviate less than the specified threshold from the enclosing on-curves."
@@ -463,7 +463,7 @@ class PathProblemFinder(mekkaObject):
 		self.w.shallowCurve.getNSButton().setToolTip_(tooltipText)
 		linePos += lineHeight
 
-		self.w.shortSegment = vanilla.CheckBox((inset, linePos, indent, 20), "Segments shorter than:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.shortSegment = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Segments shorter than", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.shortSegmentThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "8", sizeStyle='small')
 		self.w.shortSegmentText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units", sizeStyle='small', selectable=True)
 		tooltipText = "Finds line segments (two consecutive on-curve nodes) shorter than the specified threshold length. Very short line segments may be deleted because they are barely visible. Also, if not orthogonal, may pose grid rounding problems."
@@ -471,7 +471,7 @@ class PathProblemFinder(mekkaObject):
 		self.w.shortSegment.getNSButton().setToolTip_(tooltipText)
 		linePos += lineHeight
 
-		self.w.almostOrthogonalLines = vanilla.CheckBox((inset, linePos, indent, 20), "Non-orthogonal lines:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.almostOrthogonalLines = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Non-orthogonal lines", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.almostOrthogonalLinesThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "3", callback=self.SavePreferences, sizeStyle='small')
 		self.w.almostOrthogonalLinesText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units off", sizeStyle='small', selectable=True)
 		tooltipText = "Will find line segments that are close to, but not completely horizontal or vertical. Will look for segments where the x or y distance between the two nodes is less than the specified threshold. Often unintentional."
@@ -479,33 +479,33 @@ class PathProblemFinder(mekkaObject):
 		self.w.almostOrthogonalLines.getNSButton().setToolTip_(tooltipText)
 		linePos += lineHeight
 
-		self.w.almostOrthogonalLinesMinLengthCheck = vanilla.CheckBox((inset * 2, linePos - 1, indent, 20), "min segment length:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.almostOrthogonalLinesMinLengthCheck = vanilla.CheckBox((inset * 2, linePos - 1, indent, 20), "min segment length", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.almostOrthogonalLinesMinLength = vanilla.EditText((inset + indent, linePos - 1, -inset - rightIndent - 5, 19), "50", callback=self.SavePreferences, sizeStyle="small")
 		self.w.almostOrthogonalLinesMinLengthText = vanilla.TextBox((-inset - rightIndent, linePos + 2, -inset, 14), "units", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
-		self.w.badOutlineOrder = vanilla.CheckBox((inset, linePos, secondColumn, 20), "Bad outline order", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.badOutlineOrder = vanilla.CheckBox((inset + 2, linePos, secondColumn, 20), "Bad outline order", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.badOutlineOrder.getNSButton().setToolTip_("If the first path is clockwise, paths are most likely in the wrong order.")
 
 		self.w.badPathDirections = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Bad path directions", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.badPathDirections.getNSButton().setToolTip_("Tries to find paths that have wrong orientations (clockwise vs. counterclockwise).\n⚠️ In complex setups, false positives are likely.")
 		linePos += lineHeight
 
-		self.w.openPaths = vanilla.CheckBox((inset, linePos, secondColumn, 20), "Open paths", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openPaths = vanilla.CheckBox((inset + 2, linePos, secondColumn, 20), "Open paths", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.openPaths.getNSButton().setToolTip_("Finds unclosed paths. Special glyphs that are supposed to have open paths, like corner and cap components, are ignored.")
 
 		self.w.emptyPaths = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Empty paths", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.emptyPaths.getNSButton().setToolTip_("Tries to find paths that have no nodes at all. Should not happen but can be the result of an automated processing. Used to be a bug in Magic Remover. Can be fixed with Path > Tidy Up Paths, or with the mekkablue script Paths > Remove Stray Points and Empty Paths.")
 		linePos += lineHeight
 
-		self.w.strayPoints = vanilla.CheckBox((inset, linePos, secondColumn, 20), "Stray points", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.strayPoints = vanilla.CheckBox((inset + 2, linePos, secondColumn, 20), "Stray points", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.strayPoints.getNSButton().setToolTip_("In Glyphs 1, paths with only one node (‘single-node paths’ or ‘stray points’) used to be a method for disabling auto-alignment of components. But they are probably a mistake. Can be fixed wth mekkablue script Paths > Remove Stray Points and Empty Paths.")
 
 		self.w.twoPointOutlines = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Two-node paths", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.twoPointOutlines.getNSButton().setToolTip_("Paths with only two on-curve nodes are most likely leftover debris from a previous operation.")
 		linePos += lineHeight
 
-		self.w.quadraticCurves = vanilla.CheckBox((inset, linePos - 1, secondColumn, 20), "Quadratic curves", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.quadraticCurves = vanilla.CheckBox((inset + 2, linePos - 1, secondColumn, 20), "Quadratic curves", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.quadraticCurves.getNSButton().setToolTip_("Finds quadratic (TrueType) curves. Useful if quadratic curves were not intended.")
 		# linePos += lineHeight
 
@@ -513,7 +513,7 @@ class PathProblemFinder(mekkaObject):
 		self.w.decimalCoordinates.getNSButton().setToolTip_("Nodes and handles with decimal coordinates, i.e., points not exactly on the unit grid.")
 		linePos += lineHeight + 5
 
-		self.w.checkCheckBoxes = vanilla.TextBox((inset, linePos + 2, 50, 14), "Select:", sizeStyle="small", selectable=True)
+		self.w.checkCheckBoxes = vanilla.TextBox((inset, linePos + 2, 50, 14), "Select", sizeStyle="small", selectable=True)
 		self.w.checkALL = vanilla.SquareButton((70, linePos, 50, 18), "ALL", sizeStyle="small", callback=self.updateUI)
 		self.w.checkNONE = vanilla.SquareButton((70 + 60 * 1, linePos, 50, 18), "NONE", sizeStyle="small", callback=self.updateUI)
 		self.w.checkDEFAULT = vanilla.SquareButton((70 + 60 * 2, linePos, 70, 18), "DEFAULT", sizeStyle="small", callback=self.updateUI)
@@ -524,22 +524,22 @@ class PathProblemFinder(mekkaObject):
 		linePos += int(lineHeight / 2)
 
 		# Script Options:
-		self.w.includeAllGlyphs = vanilla.CheckBox((inset, linePos, secondColumn, 20), "Check ALL glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeAllGlyphs = vanilla.CheckBox((inset + 2, linePos, secondColumn, 20), "Check ALL glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeAllGlyphs.getNSButton().setToolTip_("If enabled, will ignore your current (glyph) selection, and simply go through the complete font. Recommended. May still ignore non-exporting glyphs or explicitly excluded glyph names, see following options.")
 		self.w.includeAllFonts = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "⚠️ in ALL fonts", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeAllFonts.getNSButton().setToolTip_("If enabled, will go through ALL open fonts. Attention: can take quite some time.")
 		linePos += lineHeight
 
-		self.w.includeNonExporting = vanilla.CheckBox((inset, linePos, -inset, 20), "Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonExporting.getNSButton().setToolTip_("If disabled, will ignore glyphs that are set to not export.")
 		linePos += lineHeight
 
-		self.w.excludeText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Exclude glyphs:", sizeStyle="small", selectable=True)
-		self.w.exclude = vanilla.EditText((inset + 90, linePos - 1, -inset, 19), "notdef, apple, .ornm", callback=self.SavePreferences, sizeStyle="small")
+		self.w.excludeText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Exclude glyphs", sizeStyle="small", selectable=True)
+		self.w.exclude = vanilla.EditText((inset + 86, linePos - 1, -inset, 19), "notdef, apple, .ornm", callback=self.SavePreferences, sizeStyle="small")
 		self.w.exclude.getNSTextField().setToolTip_("Glyphs containing any of these (comma-separated) name particles will be skipped.")
 		linePos += lineHeight
 
-		self.w.reuseTab = vanilla.CheckBox((inset, linePos, secondColumn, 20), "Reuse existing tab", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab = vanilla.CheckBox((inset + 2, linePos, secondColumn, 20), "Reuse existing tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.getNSButton().setToolTip_("If enabled, will only open a new tab if none is open. Recommended.")
 		self.w.verbose = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Verbose (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.verbose.getNSButton().setToolTip_("If checked will document all findings in the Macro window. Use this only for debugging.")

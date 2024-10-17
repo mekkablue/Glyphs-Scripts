@@ -22,15 +22,11 @@ class BracketMetricsManager(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 350
-		windowHeight = 190
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 330
+		windowHeight = 180
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Bracket Metrics Manager",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -40,18 +36,18 @@ class BracketMetricsManager(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 30), u"In selected glyphs, syncs metrics of bracket layers with their associated layer, e.g. ‘Bold [90]’ with ‘Bold’.", sizeStyle='small', selectable=True)
 		linePos += lineHeight * 2
 
-		self.w.syncLSB = vanilla.CheckBox((inset, linePos - 1, 85, 20), "Sync LSB", value=False, callback=self.syncAction, sizeStyle='small')
+		self.w.syncLSB = vanilla.CheckBox((inset + 2, linePos - 1, 85, 20), "Sync LSB", value=False, callback=self.syncAction, sizeStyle='small')
 		self.w.syncRSB = vanilla.CheckBox((inset + 85, linePos - 1, 85, 20), "Sync RSB", value=False, callback=self.syncAction, sizeStyle='small')
 		self.w.syncWidth = vanilla.CheckBox((inset + 85 * 2, linePos - 1, -inset, 20), "Sync Width", value=False, callback=self.syncAction, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.applyToAllGlyphsWithBrackets = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Apply to all glyphs in font that have bracket layers", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.applyToAllGlyphsWithBrackets = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Apply to all glyphs in font that have bracket layers", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.reportOnly = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Only report, do not change metrics", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportOnly = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Only report, do not change metrics", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.openTab = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Open tab with affected bracket glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openTab = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Open tab with affected bracket glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# Run Button:

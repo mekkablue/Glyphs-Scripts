@@ -68,7 +68,7 @@ class KernStringMixer(mekkaObject):
 		self.w.mixString2.getNSComboBox().setToolTip_(tokenHelpText)
 		linePos += lineHeight + 7
 
-		self.w.reuseTab = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Reuse current tab", value=self.pref("reuseTab"), callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Reuse current tab", value=self.pref("reuseTab"), callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# Buttons at bottom:

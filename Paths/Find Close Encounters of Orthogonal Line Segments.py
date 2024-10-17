@@ -49,20 +49,20 @@ class FindCloseEncounters(mekkaObject):
 		self.w.threshold = vanilla.EditText((inset + 120, linePos - 1, 50, 19), self.prefDict["threshold"], callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.includeComposites = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include composites (otherwise only glyphs with paths)", value=self.prefDict["includeComposites"], callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeComposites = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include composites (otherwise only glyphs with paths)", value=self.prefDict["includeComposites"], callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.includeNonExporting = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=self.prefDict["includeNonExporting"], callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=self.prefDict["includeNonExporting"], callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.excludeGlyphs = vanilla.CheckBox((inset, linePos - 1, 160, 20), "Exclude glyphs containing:", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.excludeGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, 160, 20), "Exclude glyphs containing:", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.excludeGlyphsContaining = vanilla.EditText((inset + 160, linePos - 1, -inset, 19), self.prefDict["excludeGlyphsContaining"], callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include ⚠️ ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include ⚠️ ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.reuseTab = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Reuse current tab for report", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Reuse current tab for report", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# Run Button:

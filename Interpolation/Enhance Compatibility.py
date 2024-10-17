@@ -8,7 +8,7 @@ Takes the current layer of each selected glyph, and propagates node types, node 
 import vanilla
 from AppKit import NSPoint
 from GlyphsApp import Glyphs, GSSMOOTH, GSOFFCURVE, GSShapeTypePath, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 def straightenBCPs(layer):
@@ -96,48 +96,48 @@ class EnhanceCompatibility(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 380
-		windowHeight = 220
+		windowHeight = 200
 		windowWidthResize = 300  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Enhance Compatibility",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -1, 14), "In compatible layers of selected glyphs, sync with selected layer:", sizeStyle="small", selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos, -1, 14), "In compatible layers of selected glyphs, sync with selected layer", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
-		self.w.fixType = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Sync node types (oncurve vs. offcurve)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.fixType = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Sync node types (oncurve vs. offcurve)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.fixType.getNSButton().setToolTip_("Will propagate the current layer’s node types (oncurve vs. offcurve) to other compatible layers. Useful in TT paths.")
 		linePos += lineHeight
 
-		self.w.fixConnection = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Sync node connection (corner vs. smooth)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.fixConnection = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Sync node connection (corner vs. smooth)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.fixConnection.getNSButton().setToolTip_("Will propagate the current layer’s node connections (green vs. blue) to other compatible layers. Usually just cosmetic.")
 		linePos += lineHeight
 
-		self.w.removeEmptyPaths = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Remove empty paths", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.removeEmptyPaths = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove empty paths", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.removeEmptyPaths.getNSButton().setToolTip_("Sometimes an invisible empty path (a path with no nodes) is blocking compatibility. This will remove those empty shapes.")
 		linePos += lineHeight
 
-		indent = 85
-		self.w.otherFont = vanilla.CheckBox((inset, linePos - 1, indent, 20), "Source from", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.sourceFont = vanilla.PopUpButton((inset + indent, linePos, 160, 17), (), sizeStyle="small", callback=self.SavePreferences)
-		self.w.sourceMaster = vanilla.PopUpButton((inset + indent + 165, linePos, -inset - 25, 17), (), sizeStyle="small", callback=self.SavePreferences)
-		self.w.updateButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle="small", callback=self.updateCurrentFonts)
+		indent = 83
+		self.w.otherFont = vanilla.CheckBox((inset + 2, linePos - 1, indent, 20), "Source from", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.sourceFont = vanilla.PopUpButton((inset + indent, linePos - 1, 160, 19), (), sizeStyle="small", callback=self.SavePreferences)
+		self.w.sourceMaster = vanilla.PopUpButton((inset + indent + 165, linePos - 1, -inset - 22, 19), (), sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateButton = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.updateCurrentFonts)
 		tooltip = "As source glyph to sync node types and connections with, take glyph(s) with same name in this font, rather than the current font."
 		self.w.updateButton.getNSButton().setToolTip_(tooltip)
 		linePos += lineHeight
 
-		self.w.realignHandles = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Realign smooth connections (prefer orthogonals)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.realignHandles = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Realign smooth connections (prefer orthogonals)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.realignHandles.getNSButton().setToolTip_("Will realign handles (BCPs) next to a smooth connection (green node). Or, if applicable, move smooth oncurves (green nodes) on the line between its surrounding handles.")
 		linePos += lineHeight
 
-		self.w.backupCurrentState = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Backup layers in background", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.backupCurrentState = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Backup layers in background", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.backupCurrentState.getNSButton().setToolTip_("Will make a backup of the current layers in their respective backgrounds. Careful: will overwrite existing layer backgrounds.")
 		linePos += lineHeight
 

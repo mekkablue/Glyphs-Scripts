@@ -36,14 +36,14 @@ class GreenBlueManager(mekkaObject):
 
 		# Window 'self.w':
 		windowWidth = 300
-		windowHeight = 310
+		windowHeight = 291
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Green Blue Manager",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -52,23 +52,23 @@ class GreenBlueManager(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, lineHeight * 2), "Validates the connection state of nodes, green vs. blue, according to the angle between them. Optionally corrects green/blue state and handles.", sizeStyle='small', selectable=True)
 		linePos += lineHeight * 2.5
 
-		self.w.thresholdAngleText = vanilla.TextBox((inset, linePos, 110, 14), "Threshold Angle:", sizeStyle='small', selectable=True)
-		self.w.thresholdAngle = vanilla.EditText((inset + 110, linePos - 3, -inset, 19), "11", callback=self.SavePreferences, sizeStyle='small')
+		self.w.thresholdAngleText = vanilla.TextBox((inset, linePos, 94, 14), "Threshold Angle", sizeStyle='small', selectable=True)
+		self.w.thresholdAngle = vanilla.EditText((inset + 93, linePos - 3, 55, 19), "11", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.fixGreenBlue = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Fix green vs. blue connection for on-curves", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.fixGreenBlue = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Fix green vs. blue connection for on-curves", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.fixGreenBlue.getNSButton().setToolTip_("Sets the green/blue state of an on-curve node according to the connection angle. Any connection below the threshold angle will be green, otherwise blue. Deselect both Fix and Realign options for a new tab with all glyphs that have nodes with wrong connections according to the threshold angle.")
 		linePos += lineHeight
 
-		self.w.realignHandles = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Realign handles attached to green nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.realignHandles = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Realign handles attached to green nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.realignHandles.getNSButton().setToolTip_("If a BCP (grey handle) follows a green node, it will be aligned to the previous two points. Deselect both Fix and Realign options for a new tab with all glyphs that have nodes with wrong connections according to the threshold angle.")
 		linePos += lineHeight
 
-		self.w.allMasters = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Process ⚠️ ALL masters of selected glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Process ⚠️ ALL masters of selected glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allMasters.getNSButton().setToolTip_("If checked, will go through all master layers and special layers of selected glyphs. If unchecked, will only process the currently visible layer.")
 		linePos += lineHeight
 
-		self.w.completeFont = vanilla.CheckBox((inset, linePos - 1, 155, 20), "Process ⚠️ ALL glyphs in", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.completeFont = vanilla.CheckBox((inset + 2, linePos - 1, 155, 20), "Process ⚠️ ALL glyphs in", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.completeFont.getNSButton().setToolTip_("If checked, will go through all active (i.e., master, brace and bracket) layers of all glyphs. If unchecked, will only go through selected layers. Careful: can take a minute.")
 		self.w.scope = vanilla.PopUpButton((inset + 155, linePos, -inset, 17), ("frontmost font", "⚠️ ALL open fonts"), sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
@@ -77,13 +77,13 @@ class GreenBlueManager(mekkaObject):
 		self.w.exclude = vanilla.EditText((inset + 115, linePos - 3, -inset, 19), ".ornm, BlackIndex, Heart, apple", callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.reportInMacroWindow = vanilla.CheckBox((inset, linePos - 1, 160, 20), "Report in Macro window", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportInMacroWindow = vanilla.CheckBox((inset + 2, linePos - 1, 160, 20), "Report in Macro window", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reportInMacroWindowVerbose = vanilla.CheckBox((inset + 160, linePos - 1, -inset, 20), "Verbose", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reportInMacroWindow.getNSButton().setToolTip_("If enabled, will output a report in Window > Macro Panel.")
 		self.w.reportInMacroWindowVerbose.getNSButton().setToolTip_("If enabled, will output a verbose (detailed) report in Window > Macro Panel.")
 		linePos += lineHeight
 
-		self.w.shouldMark = vanilla.CheckBox((inset, linePos - 1, 160, 20), "Mark affected nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.shouldMark = vanilla.CheckBox((inset + 2, linePos - 1, 160, 20), "Mark affected nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.shouldMark.getNSButton().setToolTip_("If enabled, will mark (intended) node type changes as follows: 💚=SMOOTH 🔷=CORNER.")
 		self.w.reuseTab = vanilla.CheckBox((inset + 160, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.getNSButton().setToolTip_("If enabled, will use the current tab for output, and only open a new tab if there is none open.")

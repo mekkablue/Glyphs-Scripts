@@ -26,38 +26,34 @@ class sbixSpacer(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 340
-		windowHeight = 200
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 182
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"sbix Spacer",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.insertMarkers = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Reset master layer and insert markers for sbix bounds", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.insertMarkers = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Reset master layer and insert markers for sbix bounds", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.resetWidths = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Reset sidebearings to image widths", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.resetWidths = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Reset sidebearings to image widths", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.preferredSizeForWidthText = vanilla.TextBox((inset, linePos, 235, 14), " Preferred iColor size for width reference:", sizeStyle='small', selectable=True)
-		self.w.preferredSizeForWidth = vanilla.EditText((inset + 235, linePos - 3, -inset, 19), "128", callback=self.SavePreferences, sizeStyle='small')
+		self.w.preferredSizeForWidthText = vanilla.TextBox((inset, linePos, 235, 14), " Preferred iColor size for width reference", sizeStyle='small', selectable=True)
+		self.w.preferredSizeForWidth = vanilla.EditText((inset + 229, linePos - 3, 55, 19), "128", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.verticalShift = vanilla.CheckBox((inset, linePos - 1, 120, 20), "Vertical sbix shift:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.verticalShiftValue = vanilla.EditText((inset + 120, linePos - 1, -inset, 19), "-100", callback=self.SavePreferences, sizeStyle='small')
+		self.w.verticalShift = vanilla.CheckBox((inset + 2, linePos - 1, 120, 20), "Vertical sbix shift", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.verticalShiftValue = vanilla.EditText((inset + 111, linePos - 1, 55, 19), "-100", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.allGlyphs = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include all iColor glyphs in font (ignore glyph selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include all iColor glyphs in font (ignore glyph selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.allMasters = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Include all masters (otherwise only current master)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include all masters (otherwise only current master)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# Buttons:

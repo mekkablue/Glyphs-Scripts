@@ -167,7 +167,7 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(mekkaObject):
 		self.w.ppm = vanilla.EditText((inset + 14, linePos, -inset, 19), "8-12,20", sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight * 1.5
 
-		# self.w.upperHalf = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Upper half (one)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		# self.w.upperHalf = vanilla.CheckBox((inset + 2, linePos-1, -inset, 20), "Upper half (one)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		# linePos += lineHeight
 
 		self.w.rightAtTop = vanilla.Button((inset, linePos, -inset, 20), "right at top", callback=self.InsertRightAtTop)

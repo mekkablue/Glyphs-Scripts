@@ -8,7 +8,7 @@ Measures in centers of straight segments, and reports deviations in stem thickne
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSAnnotation, PLUS, Message, distance, subtractPoints, scalePoint, addPoints
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 def pointDistance(p1, p2):
@@ -49,89 +49,89 @@ class StraightStemCruncher(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 355
-		windowHeight = 370
+		windowHeight = 352
 		windowWidthResize = 600  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Straight Stem Cruncher",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), u"In current master, looks for stems close but not exactly at:", sizeStyle='small', selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "In current master, looks for stems close but not exactly at", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.stemsText = vanilla.TextBox((inset, linePos + 3, 80, 14), u"Stem Widths:", sizeStyle='small', selectable=True)
-		self.w.stems = vanilla.EditText((inset + 80, linePos, -inset - 25, 19), "20, 30, 40", callback=self.SavePreferences, sizeStyle='small')
+		self.w.stemsText = vanilla.TextBox((inset, linePos + 3, 80, 14), "Stem Widths", sizeStyle='small', selectable=True)
+		self.w.stems = vanilla.EditText((inset + 74, linePos, -inset - 22, 19), "20, 30, 40", callback=self.SavePreferences, sizeStyle='small')
 		self.w.stems.getNSTextField().setToolTip_("Comma-separated list of stem sizes to look for. If the script finds stems deviating from these sizes, within the given min/max deviations, it will report them.")
-		self.w.stemUpdate = vanilla.SquareButton((-inset - 20, linePos, -inset, 19), u"↺", sizeStyle='small', callback=self.update)
+		self.w.stemUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
 		self.w.stemUpdate.getNSButton().setToolTip_("Populate the stems with the stems of the current master.")
 		linePos += lineHeight
 
-		self.w.stemFindText = vanilla.TextBox((inset, linePos + 3, 175, 14), u"Find deviating stems, min/max:", sizeStyle='small', selectable=True)
-		self.w.deviationMin = vanilla.EditText((inset + 175, linePos, 45, 19), "0.4", callback=self.SavePreferences, sizeStyle='small')
+		self.w.stemFindText = vanilla.TextBox((inset, linePos + 3, 175, 14), "Find deviating stems, min/max", sizeStyle='small', selectable=True)
+		self.w.deviationMin = vanilla.EditText((inset + 167, linePos, 45, 19), "0.4", callback=self.SavePreferences, sizeStyle='small')
 		self.w.deviationMin.getNSTextField().setToolTip_("Deviations up to this value will be tolerated. Half a unit is a good idea to avoid false positives from rounding errors.")
-		self.w.deviationMax = vanilla.EditText((inset + 175 + 55, linePos, 45, 19), "3.1", callback=self.SavePreferences, sizeStyle='small')
+		self.w.deviationMax = vanilla.EditText((inset + 167 + 53, linePos, 45, 19), "3.1", callback=self.SavePreferences, sizeStyle='small')
 		self.w.deviationMax.getNSTextField().setToolTip_("Deviations up to this value will be reported. Do not exaggerate value, otherwise you get false positives from cases where the opposing segment is not the other side of the stem.")
 		linePos += lineHeight
 
-		self.w.minimumSegmentLengthText = vanilla.TextBox((inset, linePos + 2, 145, 14), u"Minimum segment length:", sizeStyle='small', selectable=True)
-		self.w.minimumSegmentLength = vanilla.EditText((inset + 145, linePos, -inset - 25, 19), "200", callback=self.SavePreferences, sizeStyle='small')
+		self.w.minimumSegmentLengthText = vanilla.TextBox((inset, linePos + 2, 145, 14), "Minimum segment length", sizeStyle='small', selectable=True)
+		self.w.minimumSegmentLength = vanilla.EditText((inset + 138, linePos, -inset - 22, 19), "200", callback=self.SavePreferences, sizeStyle='small')
 		self.w.minimumSegmentLength.getNSTextField(
 		).setToolTip_("Looks for straight-line segments with at least this length and measures from their center to the opposing segment. Half x-height is a good idea.")
-		self.w.segmentLengthUpdate = vanilla.SquareButton((-inset - 20, linePos, -inset, 19), u"↺", sizeStyle='small', callback=self.update)
+		self.w.segmentLengthUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 19), callback=self.update)
 		self.w.segmentLengthUpdate.getNSButton().setToolTip_("Reset to 40% of x-height.")
 		linePos += lineHeight
 
-		self.w.checkStemsText = vanilla.TextBox((inset, linePos + 2, 80, 14), u"Check stems:", sizeStyle='small', selectable=True)
-		self.w.checkVStems = vanilla.CheckBox((inset + 90, linePos - 1, 65, 20), u"Vertical", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.checkHStems = vanilla.CheckBox((inset + 90 + 65, linePos - 1, 80, 20), u"Horizontal", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.checkDStems = vanilla.CheckBox((inset + 90 + 65 + 80, linePos - 1, -inset, 20), u"Diagonal", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.checkStemsText = vanilla.TextBox((inset, linePos + 2, 80, 14), "Check stems", sizeStyle='small', selectable=True)
+		self.w.checkVStems = vanilla.CheckBox((inset + 80, linePos - 1, 65, 20), "Vertical", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.checkHStems = vanilla.CheckBox((inset + 80 + 65, linePos - 1, 80, 20), "Horizontal", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.checkDStems = vanilla.CheckBox((inset + 80 + 65 + 80, linePos - 1, -inset, 20), "Diagonal", value=False, callback=self.SavePreferences, sizeStyle='small')
 		checkStemsTooltip = "Choose which stems to measure: any combination of these three options. At least one must be active to run the script."
 		self.w.checkVStems.getNSButton().setToolTip_(checkStemsTooltip)
 		self.w.checkHStems.getNSButton().setToolTip_(checkStemsTooltip)
 		self.w.checkDStems.getNSButton().setToolTip_(checkStemsTooltip)
 		linePos += lineHeight
 
-		self.w.checkSpecialLayers = vanilla.CheckBox((inset, linePos, -inset, 20), u"Also check bracket layers", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.checkSpecialLayers = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Also check bracket layers", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.checkSpecialLayers.getNSButton().setToolTip_("If checked, also measures on bracket ayers. Otherwise only on master layers.")
 		linePos += lineHeight
 
-		self.w.selectedGlyphsOnly = vanilla.CheckBox((inset, linePos, -inset, 20), u"Measure selected glyphs only (otherwise all glyphs in font)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.selectedGlyphsOnly = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Measure selected glyphs only (otherwise all glyphs in font)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.selectedGlyphsOnly.getNSButton().setToolTip_("Uncheck for measuring complete font.")
 		linePos += lineHeight
 
-		self.w.includeNonExporting = vanilla.CheckBox((inset, linePos, -inset, 20), u"Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonExporting.getNSButton().setToolTip_("Usually not necessary because the algorithm decomposes and removes overlap first.")
 		linePos += lineHeight
 
-		self.w.includeCompounds = vanilla.CheckBox((inset, linePos, -inset, 20), u"Include components", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeCompounds = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Include components", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeCompounds.getNSButton().setToolTip_("If checked, also measures components (after decomposition and removing overlap). If unchecked, only measures outlines.")
 		linePos += lineHeight
 
-		self.w.excludeGlyphs = vanilla.CheckBox((inset, linePos, 165, 20), u"Exclude glyphs containing:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.excludeGlyphNames = vanilla.EditText((inset + 165, linePos, -inset - 25, 19), self.defaultExcludeList, callback=self.SavePreferences, sizeStyle='small')
+		self.w.excludeGlyphs = vanilla.CheckBox((inset + 2, linePos, 165, 20), "Exclude glyphs containing", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.excludeGlyphNames = vanilla.EditText((inset + 160, linePos, -inset - 22, 19), self.defaultExcludeList, callback=self.SavePreferences, sizeStyle='small')
 		self.w.excludeGlyphNames.getNSTextField(
 		).setToolTip_("Comma-separated list of glyph name parts (e.g., suffixes). Glyphs containing these will not be measured if checkbox is enabled.")
-		self.w.excludeGlyphNamesReset = vanilla.SquareButton((-inset - 20, linePos, -inset, 19), u"↺", sizeStyle='small', callback=self.update)
+		self.w.excludeGlyphNamesReset = UpdateButton((-inset - 18, linePos - 1, -inset, 19), callback=self.update)
 		self.w.excludeGlyphNamesReset.getNSButton().setToolTip_("Reset to: %s." % self.defaultExcludeList)
 		linePos += lineHeight
 
-		self.w.markStems = vanilla.CheckBox((inset, linePos, -inset, 20), u"Mark affected stems with %s annotation" % self.marker, value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.markStems = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Mark affected stems with %s annotation" % self.marker, value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.markStems.getNSButton().setToolTip_("If checked, will add a red-plus annotation at the center of the measurement. Will often add two of them because stem will be measured from both sides.\nCAREFUL: May delete existing plus annotations.")
 		linePos += lineHeight
 
-		self.w.reportNonMeasurements = vanilla.CheckBox((inset, linePos, -inset, 20), u"Report layers without measurements", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportNonMeasurements = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Report layers without measurements", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reportNonMeasurements.getNSButton().setToolTip_("In Macro Window, report if a layer does not have any measurements. Most likely causes: no straight stems in the paths, or wrong path direction.")
 		linePos += lineHeight
 
-		self.w.openTab = vanilla.CheckBox((inset, linePos, 200, 20), u"Open tab with affected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openTab = vanilla.CheckBox((inset + 2, linePos, 200, 20), "Open tab with affected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.openTab.getNSButton().setToolTip_("If unchecked, will bring macro window with detailed report to front.")
-		self.w.reuseTab = vanilla.CheckBox((inset + 200, linePos, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab = vanilla.CheckBox((inset + 190, linePos, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.getNSButton().setToolTip_(u"If checked, will reuse the active tab if there is one, otherwise will open a new tab. If unchecked, will always open a new tab.")
 		linePos += lineHeight
 

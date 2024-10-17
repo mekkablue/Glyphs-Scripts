@@ -8,7 +8,7 @@ Batch-set axis locations for all instances with a certain name particle. E.g., s
 from Foundation import NSDictionary
 import vanilla
 from GlyphsApp import Glyphs, GSFontMaster, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 def axisLocationEntry(axisName, locationValue):
@@ -28,35 +28,35 @@ class AxisLocationSetter(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 270
-		windowHeight = 180
+		windowHeight = 160
 		windowWidthResize = 100  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Axis Location Setter",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 10, 12, 23
-		self.w.descriptionText1 = vanilla.TextBox((inset, linePos + 2, -inset, 14), "In all masters/instances with name particle:", sizeStyle='small', selectable=True)
+		linePos, inset, lineHeight = 10, 15, 23
+		self.w.descriptionText1 = vanilla.TextBox((inset, linePos + 2, -inset, 14), "In all masters/instances with name particle", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.particle = vanilla.ComboBox((inset, linePos - 1, -inset - 25, 19), self.particlesOfCurrentFont(), sizeStyle='small', callback=self.SavePreferences)
-		self.w.particleUpdateButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", sizeStyle='small', callback=self.update)
+		self.w.particle = vanilla.ComboBox((inset, linePos - 1, -inset - 22, 19), self.particlesOfCurrentFont(), sizeStyle='small', callback=self.SavePreferences)
+		self.w.particleUpdateButton = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
 		linePos += lineHeight
 
 		self.w.descriptionText2 = vanilla.TextBox((inset, linePos + 2, 50, 14), "For axis", sizeStyle='small', selectable=True)
-		self.w.axisName = vanilla.ComboBox((inset + 50, linePos, -100 - inset, 17), self.axesOfCurrentFont(), sizeStyle='small', callback=self.SavePreferences)
-		self.w.descriptionText21 = vanilla.TextBox((-100 - inset, linePos + 2, -inset, 14), ", set coordinates:", sizeStyle='small', selectable=True)
+		self.w.axisName = vanilla.ComboBox((inset + 48, linePos, -100 - inset, 17), self.axesOfCurrentFont(), sizeStyle='small', callback=self.SavePreferences)
+		self.w.descriptionText21 = vanilla.TextBox((-100 - inset, linePos + 2, -inset, 14), ", set coordinates", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.descriptionText3 = vanilla.TextBox((inset, linePos + 2, 50, 14), "Internal:", sizeStyle='small', selectable=True)
-		self.w.internalAxisValue = vanilla.EditText((inset + 50, linePos - 1, 45, 19), "0", callback=self.SavePreferences, sizeStyle='small')
+		self.w.descriptionText3 = vanilla.TextBox((inset, linePos + 2, 50, 14), "Internal", sizeStyle='small', selectable=True)
+		self.w.internalAxisValue = vanilla.EditText((inset + 48, linePos - 1, 45, 19), "0", callback=self.SavePreferences, sizeStyle='small')
 		self.w.internalAxisValue.getNSTextField().setPlaceholderString_("no change")
-		self.w.descriptionText31 = vanilla.TextBox((inset + 50 + 45, linePos + 2, 95, 14), "→ External:", sizeStyle='small', selectable=True)
+		self.w.descriptionText31 = vanilla.TextBox((inset + 50 + 45, linePos + 2, 95, 14), "→ External", sizeStyle='small', selectable=True)
 		self.w.externalAxisValue = vanilla.EditText((-45 - inset, linePos - 1, -inset, 19), "0", callback=self.SavePreferences, sizeStyle='small')
 		self.w.externalAxisValue.getNSTextField().setPlaceholderString_("no change")
 		# record for resize:
@@ -64,7 +64,7 @@ class AxisLocationSetter(mekkaObject):
 		self.coordInset = inset
 		linePos += lineHeight
 
-		self.w.includeInstances = vanilla.CheckBox((inset, linePos, 120, 20), "Apply to instances", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeInstances = vanilla.CheckBox((inset + 2, linePos, 120, 20), "Apply to instances", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeMasters = vanilla.CheckBox((inset + 130, linePos, -inset, 20), "Apply to masters", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 

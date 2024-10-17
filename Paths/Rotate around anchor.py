@@ -8,7 +8,7 @@ Rotate selected glyphs (or selected paths and components) around a 'rotate' anch
 import vanilla
 from Foundation import NSPoint, NSAffineTransform
 from GlyphsApp import Glyphs, GSAnchor
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 from mekkablue.geometry import centerOfRect
 
 rotateAnchorName = "rotate"
@@ -28,36 +28,32 @@ class Rotator(mekkaObject):
 
 		# Window 'self.w':
 		windowWidth = 320
-		windowHeight = 100
-		windowWidthResize = 0  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 83
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
-		linePos, inset, lineHeight = 10, 12, 22
+		linePos, inset, lineHeight = 8, 12, 22
 
-		self.w.anchor_text = vanilla.TextBox((inset, linePos + 3, 120, 15), "Set 'rotate' anchor:", sizeStyle='small')
-		self.w.anchor_x = vanilla.EditText((inset + 110, linePos, 40, 19), "0", sizeStyle='small', callback=self.SavePreferences)
-		self.w.anchor_y = vanilla.EditText((inset + 110 + 45, linePos, 40, 19), "0", sizeStyle='small', callback=self.SavePreferences)
-		self.w.updateButton = vanilla.SquareButton((inset + 110 + 90, linePos, 20, 19), u"↺", sizeStyle='small', callback=self.updateRotateAnchor)
-		self.w.anchor_button = vanilla.Button((inset + 110 + 120, linePos + 1, -inset, 19), "Insert", sizeStyle='small', callback=self.insertRotateAnchor)
+		self.w.anchor_text = vanilla.TextBox((inset, linePos + 3, 120, 15), "Set 'rotate' anchor", sizeStyle='small')
+		self.w.anchor_x = vanilla.EditText((inset + 110, linePos, 41, 19), "0", sizeStyle='small', callback=self.SavePreferences)
+		self.w.anchor_y = vanilla.EditText((inset + 111 + 45, linePos, 41, 19), "0", sizeStyle='small', callback=self.SavePreferences)
+		self.w.updateButton = UpdateButton((inset + 111 + 90, linePos - 1, 20, 19), callback=self.updateRotateAnchor)
+		self.w.anchor_button = vanilla.Button((inset + 111 + 120, linePos + 1, -inset, 19), "Insert", sizeStyle='small', callback=self.insertRotateAnchor)
 		linePos += lineHeight
 
 		self.w.rotate_text1 = vanilla.TextBox((inset, linePos + 3, 55, 19), "Rotate by", sizeStyle='small')
-		self.w.rotate_degrees = vanilla.EditText((inset + 60, linePos, 35, 19), "10", sizeStyle='small', callback=self.SavePreferences)
-		self.w.rotate_text2 = vanilla.TextBox((inset + 60 + 40, linePos + 3, 50, 19), "degrees:", sizeStyle='small')
+		self.w.rotate_degrees = vanilla.EditText((inset + 56, linePos, 41, 19), "10", sizeStyle='small', callback=self.SavePreferences)
+		self.w.rotate_text2 = vanilla.TextBox((inset + 60 + 48, linePos + 3, 50, 19), "degrees", sizeStyle='small')
 		self.w.rotate_ccw = vanilla.Button((-150, linePos + 1, -70 - inset, 19), u"↺ ccw", sizeStyle='small', callback=self.rotate)
 		self.w.rotate_cw = vanilla.Button((-80, linePos + 1, -inset, 19), u"↻ cw", sizeStyle='small', callback=self.rotate)
 		linePos += lineHeight
 
 		self.w.stepAndRepeat_text1 = vanilla.TextBox((inset, linePos + 3, 55, 19), "Repeat", sizeStyle='small')
-		self.w.stepAndRepeat_times = vanilla.EditText((inset + 60, linePos, 35, 19), "5", sizeStyle='small', callback=self.SavePreferences)
-		self.w.stepAndRepeat_text2 = vanilla.TextBox((inset + 60 + 40, linePos + 3, 50, 19), "times:", sizeStyle='small')
+		self.w.stepAndRepeat_times = vanilla.EditText((inset + 56, linePos, 41, 19), "5", sizeStyle='small', callback=self.SavePreferences)
+		self.w.stepAndRepeat_text2 = vanilla.TextBox((inset + 60 + 48, linePos + 3, 50, 19), "times", sizeStyle='small')
 		self.w.stepAndRepeat_ccw = vanilla.Button((-150, linePos + 1, -70 - inset, 19), u"↺+ ccw", sizeStyle='small', callback=self.rotate)
 		self.w.stepAndRepeat_cw = vanilla.Button((-80, linePos + 1, -inset, 19), u"↻+ cw", sizeStyle='small', callback=self.rotate)
 
