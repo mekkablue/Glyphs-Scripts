@@ -70,11 +70,18 @@ def removePSNameFromInstance(i, key="postscriptFontName"):
 		i.removeObjectFromProperties_(i.propertyForName_(key))
 
 
+def familyNameForInstance(instance):
+	if isinstance(instance.font, GSProjectDocument):
+		return instance.font.font().familyName
+	else:
+		return instance.font.familyName
+	
+
 def addPSNameToInstance(i, shorten=False, asCustomParameter=True):
 	allowedChars = ascii_letters + digits
 	familyName = i.familyName
 	if not familyName:
-		familyName = i.font.familyName
+		familyName = familyNameForInstance(i)
 	psFamilyName = "".join([x for x in familyName if x in allowedChars])
 	psStyleName = "".join([x for x in i.name if x in allowedChars])
 	if shorten:
@@ -88,7 +95,7 @@ def addPSNameToInstance(i, shorten=False, asCustomParameter=True):
 	else:
 		i.fontName = psFontName
 
-	print(f"✅ {i.font.familyName} {i.name}: {psFontName}")
+	print(f"✅ {familyName} {i.name}: {psFontName}")
 
 
 class PSNameMaker(mekkaObject):
@@ -126,7 +133,7 @@ class PSNameMaker(mekkaObject):
 		self.w.helpButton = vanilla.HelpButton((-inset - 28, linePos - 3, -inset, 25), callback=self.openURL)
 		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Apply to ⚠️ ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Apply to ⚠️ ALL open documents", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		self.w.includeInactiveInstances = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include inactive instances", value=True, callback=self.SavePreferences, sizeStyle="small")
@@ -163,24 +170,36 @@ class PSNameMaker(mekkaObject):
 			shortenStyleNames = self.pref("shortenStyleNames")
 			remove = sender == self.w.removeButton
 			addAsNameEntryParameter = self.pref("addAsNameEntryParameter")
-
-			if not Glyphs.fonts:
-				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+			
+			theseDocs = Glyphs.orderedDocuments()
+			if not theseDocs:
+				Message(title="No Font Open", message="The script requires a font or project document. Open a font and run the script again.", OKButton=None)
 			else:
-				if self.pref("allFonts"):
-					theseFonts = Glyphs.fonts
-				else:
-					theseFonts = (Glyphs.font, )
+				if not self.pref("allFonts"):
+					theseDocs = (theseDocs[0], )
+					
+				for thisDoc in theseDocs:
+					print(thisDoc, type(thisDoc))
+			
+					if isinstance(thisDoc, GSProjectDocument):
+						thisFont = thisDoc.font()
+						instances = thisDoc.instances
+						filePath = thisDoc.fileURL()
+					elif isinstance(thisDoc, GSDocument):
+						thisFont = thisDoc.font
+						instances = thisFont.instances
+						filePath = thisFont.filepath
+					else:
+						continue
 
-				for thisFont in theseFonts:
-					filePath = thisFont.filepath
+					print("filePath", filePath)
 					if filePath:
 						reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
 					else:
-						reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+						reportName = f"{thisFont.familyName}\n⚠️ The file has not been saved yet."
 					print(f"PS Name Maker Report for {reportName}")
 					print()
-					for thisInstance in thisFont.instances:
+					for thisInstance in instances:
 						if thisInstance.type == INSTANCETYPESINGLE:
 							if includeInactiveInstances or thisInstance.active:
 								if remove:
