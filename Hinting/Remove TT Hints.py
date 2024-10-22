@@ -61,12 +61,12 @@ class RemoveTTHints(mekkaObject):
 		self.w.vStems = vanilla.CheckBox((inset + column, linePos, -inset, 20), u"⬌ V Stem", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.hAnchors = vanilla.CheckBox((inset + 2, linePos, column, 20), u"⬍ H Anchor", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.vAnchors = vanilla.CheckBox((inset + column, linePos, -inset, 20), u"⬌ V Anchor", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.hAnchors = vanilla.CheckBox((inset + 2, linePos, column, 20), u"⬍ H Snap (Anchor)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.vAnchors = vanilla.CheckBox((inset + column, linePos, -inset, 20), u"⬌ V Snap (Anchor)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.hAlign = vanilla.CheckBox((inset + 2, linePos, column, 20), u"⬍ H Align", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.vAlign = vanilla.CheckBox((inset + column, linePos, -inset, 20), u"⬌ V Align", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.hAlign = vanilla.CheckBox((inset + 2, linePos, column, 20), u"⬍ H Shift (Align)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.vAlign = vanilla.CheckBox((inset + column, linePos, -inset, 20), u"⬌ V Shift (Align)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.hInterpolate = vanilla.CheckBox((inset + 2, linePos, column, 20), u"⬍ H Interpolate", value=False, callback=self.SavePreferences, sizeStyle='small')
