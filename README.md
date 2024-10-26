@@ -1,5 +1,5 @@
 ---
-date: 2024-10-25
+updated: 2024-10-25
 language: zh-Hant
 translator: yintzuyuan
 ---
@@ -93,28 +93,28 @@ git clone https://github.com/mekkablue/Glyphs-Scripts ~/Library/Application\ Sup
 
 *如果您正在編寫程式碼，建議為 Method Reporter（方法回報器）設定快捷鍵，因為您會經常需要使用它。如果您想要取得視窗內容的解析度獨立的 PDF 螢幕截圖，Print Window（列印視窗）會很有用，特別適合在向量繪圖應用程式中進行後製。*
 
-* **Close All Tabs of All Open Fonts（關閉所有開啟字型的所有分頁）：**關閉目前在應用程式中開啟的所有字型的所有編輯分頁。
-* **Copy Download URL for Current App Version（複製目前應用程式版本的下載網址）：**將目前 Glyphs 應用程式版本的下載網址複製到剪貼簿中，方便貼上。
-* **Decrease（減少）**和 **Increase Line Height（增加行高）：**將編輯檢視的行高增加四分之一或減少五分之一。如果您需要經常切換行高，設定快捷鍵會很有用。
-* **Method Reporter（方法回報器）：**用於過濾 Glyphs 中可用的 Python 和 PyObjC 類別方法名稱的圖形使用者介面。您可以使用多個以空格分隔的搜尋詞（作為 AND 連接）以及星號作為萬用字元（可在開頭、中間和結尾使用）。連按兩下可將方法名稱複製到剪貼簿並在巨集視窗中開啟說明。對程式設計師很有用。
-* **Parameter Reporter（參數回報器）：**類似 Method Reporter，但用於自訂參數。連按兩下可將參數複製到剪貼簿中，可直接貼到字型資訊中。
-* **Print Window（列印視窗）：**列印最前方的視窗。適用於儲存視窗內容的向量 PDF，包含回報器外掛程式的渲染結果（*顯示* 選單的擴充功能）。
-* **Resetter（重設工具）：**重設快速預覽、鍵盤快捷鍵，並清除應用程式偏好設定、已儲存的應用程式狀態和自動儲存。
-* **Set Export Paths to Adobe Fonts Folder（設定匯出路徑至 Adobe 字型資料夾）：**將 OpenType 字型和可變字型的匯出路徑設定為 Adobe 字型資料夾。
-* **Set Hidden App Preferences（設定隱藏的應用程式偏好設定）：**用於讀取和設定圖形使用者介面中未列出的「隱藏」應用程式偏好設定的介面。
-* **Set Label Colors（設定標籤顏色）：**覆寫預設的應用程式標籤顏色。
-* **Set Tool Shortcuts（設定工具快捷鍵）：**設定工具列中工具的鍵盤快捷鍵。
-* **Toggle Horizontal-Vertical（切換水平-垂直）：**在 LTR（水平）和垂直書寫方向之間切換最前方的分頁。適合設定鍵盤快捷鍵。
-* **Toggle Macro Window Separator（切換巨集視窗分隔線）：**在巨集視窗中切換分隔線位置，在 80% 和 20% 之間切換。
-* **Toggle RTL-LTR（切換 RTL-LTR）：**在 LTR 和 RTL 書寫方向之間切換最前方的分頁。適合在系統偏好設定中設定鍵盤快捷鍵。
-* **Toggle Script Windows（切換腳本視窗）：**顯示或隱藏所有腳本視窗。適合在應用程式設定中指派快捷鍵。
-* **Update git Repositories in Scripts Folder（更新腳本資料夾中的 git 儲存庫）：**在 Glyphs 腳本資料夾的所有子資料夾中執行「git pull」指令。如果您的腳本資料夾中有許多 git 儲存庫，這會很有用。
-* **Update Text Preview（更新文字預覽）：**強制更新「視窗 > 文字預覽」。當您在字型視窗以外進行變更（如在字型資訊中的 OpenType 特性）且預覽無法自動重新整理時很有用。
-* **Navigate > Activate next/previous glyph（導覽 > 啟用下一個/上一個字符）：**在編輯檢視中啟用下一個/上一個字符進行編輯。
+* **Close All Tabs of All Open Fonts（關閉所有開啟字型的所有分頁）：** 關閉目前在應用程式中開啟的所有字型的所有編輯分頁。
+* **Copy Download URL for Current App Version（複製目前應用程式版本的下載網址）：** 將目前 Glyphs 應用程式版本的下載網址複製到剪貼簿中，方便貼上。
+* **Decrease（減少）** 和 **Increase Line Height（增加行高）：** 將編輯檢視的行高增加四分之一或減少五分之一。如果您需要經常切換行高，設定快捷鍵會很有用。
+* **Method Reporter（方法回報器）：** 用於過濾 Glyphs 中可用的 Python 和 PyObjC 類別方法名稱的圖形使用者介面。您可以使用多個以空格分隔的搜尋詞（作為 AND 連接）以及星號作為萬用字元（可在開頭、中間和結尾使用）。連按兩下可將方法名稱複製到剪貼簿並在巨集視窗中開啟說明。對程式設計師很有用。
+* **Parameter Reporter（參數回報器）：** 類似 Method Reporter，但用於自訂參數。連按兩下可將參數複製到剪貼簿中，可直接貼到字型資訊中。
+* **Print Window（列印視窗）：** 列印最前方的視窗。適用於儲存視窗內容的向量 PDF，包含回報器外掛程式的渲染結果（*顯示* 選單的擴充功能）。
+* **Resetter（重設工具）：** 重設快速預覽、鍵盤快捷鍵，並清除應用程式偏好設定、已儲存的應用程式狀態和自動儲存。
+* **Set Export Paths to Adobe Fonts Folder（設定匯出路徑至 Adobe 字型資料夾）：** 將 OpenType 字型和可變字型的匯出路徑設定為 Adobe 字型資料夾。
+* **Set Hidden App Preferences（設定隱藏的應用程式偏好設定）：** 用於讀取和設定圖形使用者介面中未列出的「隱藏」應用程式偏好設定的介面。
+* **Set Label Colors（設定標籤顏色）：** 覆寫預設的應用程式標籤顏色。
+* **Set Tool Shortcuts（設定工具快捷鍵）：** 設定工具列中工具的鍵盤快捷鍵。
+* **Toggle Horizontal-Vertical（切換水平-垂直）：** 在 LTR（水平）和垂直書寫方向之間切換最前方的分頁。適合設定鍵盤快捷鍵。
+* **Toggle Macro Window Separator（切換巨集視窗分隔線）：** 在巨集視窗中切換分隔線位置，在 80% 和 20% 之間切換。
+* **Toggle RTL-LTR（切換 RTL-LTR）：** 在 LTR 和 RTL 書寫方向之間切換最前方的分頁。適合在系統偏好設定中設定鍵盤快捷鍵。
+* **Toggle Script Windows（切換腳本視窗）：** 顯示或隱藏所有腳本視窗。適合在應用程式設定中指派快捷鍵。
+* **Update git Repositories in Scripts Folder（更新腳本資料夾中的 git 儲存庫）：** 在 Glyphs 腳本資料夾的所有子資料夾中執行「git pull」指令。如果您的腳本資料夾中有許多 git 儲存庫，這會很有用。
+* **Update Text Preview（更新文字預覽）：** 強制更新「視窗 > 文字預覽」。當您在字型視窗以外進行變更（如在字型資訊中的 OpenType 特性）且預覽無法自動重新整理時很有用。
+* **Navigate > Activate next/previous glyph（導覽 > 啟用下一個/上一個字符）：** 在編輯檢視中啟用下一個/上一個字符進行編輯。
 
 ## Build Glyphs（建立字符）
 
-*最重要的是：Quote Manager（引號管理器），以及用於建立 Small Figures（小型數字）、Symbols（符號）、Ldot（L 點）的建構指令。其他指令主要用於當客戶要求特定 Unicode 範圍時，能快速開始製作。*
+*至關重要：Quote Manager（引號管理器），以及用於建立 Small Figures（小型數字）、Symbols（符號）、Ldot（L 點）的建構指令。其他指令主要用於當客戶要求特定 Unicode 範圍時，能快速開始製作。*
 
 * **Add Adobe Symbol Glyphs（新增 Adobe 符號字符）：** 當字型中缺少以下符號字符時，會新增 Adobe 的內插符號：*Omega、Delta、Ohm、increment（增量）、asciicircum（插入符號）、greaterequal（大於等於）、infinity（無限）、partialdiff（偏微分）、lessequal（小於等於）、notequal（不等於）、product（乘積）、approxequal（約等於）、plus（加號）、lozenge（菱形）、integral（積分）、summation（總和）、radical（根號）、daggerdbl（雙劍號）、perthousand（千分號）、logicalnot（邏輯非）、plusminus（正負號）、asciitilde（波浪號）、divide（除號）、minus（減號）、multiply（乘號）、dagger（劍號）、less（小於）、equal（等於）、greater（大於）、literSign（升號）、.notdef（未定義字符）。* 需要安裝 makeotf (AFDKO)。
 * **Build APL Greek（建立 APL 希臘文）：** 建立 APL 希臘文字符。
@@ -174,23 +174,23 @@ git clone https://github.com/mekkablue/Glyphs-Scripts ~/Library/Application\ Sup
 
 *當您想根據其他字母建立新字母時，Populate Backgrounds with Components（使用組件填充背景）非常實用，例如 ae 或 oe 可以在背景中放置 e。此腳本會在每個主板的背景中放入 e，並且使用者介面有一個選項可以將選取的控制點與背景中的 e 對齊。如果您在多主板字型中使用角落組件來製作襯線，Propagate（傳播）腳本可以為您節省大量時間。*
 
-* **Alignment Manager（對齊管理器）：**啟用或停用所選字符中可見圖層上所有組件的自動就定位功能。與右鍵選單中的指令功能相同，但您可以一次為多個字符執行此操作。
-* **Auto-align Composites with Incremental Metrics Keys（使用遞增度量鍵自動對齊組合字符）：**針對最前方的字型，自動對齊只有第一個組件停用自動就定位的組合字符。忽略 .tf、.tosf 和數學運算符。會開啟一個分頁顯示受影響的字符圖層。
-* **Cap and Corner Manager（筆帽與角落管理器）：**在最前方字型的所有字符中批次編輯筆帽、角落、筆刷或線段組件的設定。
-* **Component Mover（組件移動工具）：**在選取的字符中批次編輯（智慧）組件。變更位置、縮放比例和智慧屬性。
-* **Component Problem Finder（組件問題偵測器）：**尋找組件和角落組件可能存在的問題：由路徑組成的可組合字符；鎖定、巢狀、孤立、鏡射、偏移、旋轉和縮放的組件；具有不尋常組件順序或非正統組件結構的組合字符。同時也會檢查斷開連接和縮放的角落組件。
-* **Composite Consistencer（組合字符一致性檢查器）：**檢查最前方字型中所有字符的目前主板中的組合字符。如果帶點後綴的字符變體缺少組件，會在巨集視窗中報告。
-* **Decompose Components in Background（分解背景中的組件）：**分解選取字符的背景圖層。可用於目前主板或所有主板，或所有字型的所有主板。
-* **Decompose Corner and Cap Components（分解角落和筆帽組件）：**分解選取字符中的所有角落和筆帽組件。在巨集視窗中報告結果。
-* **Find and Replace Components（尋找和取代組件）：**將選取字符中的組件重新連結到新的來源字符。
-* **Find and Replace Cap and Corner Components（尋找和取代筆帽和角落組件）：**將選取字符中的 `_cap.*` 和 `_corner.*` 組件重新連結到不同的角落/筆帽組件。
-* **Find and Replace Corner Components at Certain Angles（在特定角度尋找和取代角落組件）：**取代鈍角或銳角處的角落組件。
-* **Move Paths to Component（將路徑移至組件）：**將路徑移至單獨的字符，並將其作為自動就定位的錨點組件插入來源字符中。非常適合將路徑與組件混合的字符轉換為純組合字符。
-* **Populate Backgrounds with Components（使用組件填充背景）：**將指定的組件加入字符的所有背景中，並允許您將選取的前景控制點對齊到該組件。對於保持前景中已分解形狀與相似字符同步很有用。
-* **Propagate Corner Components to Other Masters（將角落組件傳播到其他主板）：**嘗試在同一字符的所有其他主板中重新建立目前主板圖層的角落組件。請確保您的外框相容。
-* **Remove Components（移除組件）：**從所有（選取的）字符中移除指定的組件。
-* **Remove Detached Corners（移除分離的角落）：**從所有（選取的）字符中移除分離的角落組件。
-* **Sync Components Across Masters（在主板間同步組件）：**取用目前圖層的組件，並將所有其他主板重設為相同的組件結構。忽略路徑和錨點。按住 Option 鍵可*刪除*所有路徑和錨點。
+* **Alignment Manager（對齊管理器）：** 啟用或停用所選字符中可見圖層上所有組件的自動就定位功能。與右鍵選單中的指令功能相同，但您可以一次為多個字符執行此操作。
+* **Auto-align Composites with Incremental Metrics Keys（使用遞增度量鍵自動對齊組合字符）：** 針對最前方的字型，自動對齊只有第一個組件停用自動就定位的組合字符。忽略 .tf、.tosf 和數學運算符。會開啟一個分頁顯示受影響的字符圖層。
+* **Cap and Corner Manager（筆帽與角落管理器）：** 在最前方字型的所有字符中批次編輯筆帽、角落、筆刷或線段組件的設定。
+* **Component Mover（組件移動工具）：** 在選取的字符中批次編輯（智慧）組件。變更位置、縮放比例和智慧屬性。
+* **Component Problem Finder（組件問題偵測器）：** 尋找組件和角落組件可能存在的問題：由路徑組成的可組合字符；鎖定、巢狀、孤立、鏡射、偏移、旋轉和縮放的組件；具有不尋常組件順序或非正統組件結構的組合字符。同時也會檢查斷開連接和縮放的角落組件。
+* **Composite Consistencer（組合字符一致性檢查器）：** 檢查最前方字型中所有字符的目前主板中的組合字符。如果帶點後綴的字符變體缺少組件，會在巨集視窗中報告。
+* **Decompose Components in Background（分解背景中的組件）：** 分解選取字符的背景圖層。可用於目前主板或所有主板，或所有字型的所有主板。
+* **Decompose Corner and Cap Components（分解角落和筆帽組件）：** 分解選取字符中的所有角落和筆帽組件。在巨集視窗中報告結果。
+* **Find and Replace Components（尋找和取代組件）：** 將選取字符中的組件重新連結到新的來源字符。
+* **Find and Replace Cap and Corner Components（尋找和取代筆帽和角落組件）：** 將選取字符中的 `_cap.*` 和 `_corner.*` 組件重新連結到不同的角落/筆帽組件。
+* **Find and Replace Corner Components at Certain Angles（在特定角度尋找和取代角落組件）：** 取代鈍角或銳角處的角落組件。
+* **Move Paths to Component（將路徑移至組件）：** 將路徑移至單獨的字符，並將其作為自動就定位的錨點組件插入來源字符中。非常適合將路徑與組件混合的字符轉換為純組合字符。
+* **Populate Backgrounds with Components（使用組件填充背景）：** 將指定的組件加入字符的所有背景中，並允許您將選取的前景控制點對齊到該組件。對於保持前景中已分解形狀與相似字符同步很有用。
+* **Propagate Corner Components to Other Masters（將角落組件傳播到其他主板）：** 嘗試在同一字符的所有其他主板中重新建立目前主板圖層的角落組件。請確保您的外框相容。
+* **Remove Components（移除組件）：** 從所有（選取的）字符中移除指定的組件。
+* **Remove Detached Corners（移除分離的角落）：** 從所有（選取的）字符中移除分離的角落組件。
+* **Sync Components Across Masters（在主板間同步組件）：** 取用目前圖層的組件，並將所有其他主板重設為相同的組件結構。忽略路徑和錨點。按住 Option 鍵可*刪除*所有路徑和錨點。
 
 ## Features（特性）
 
@@ -219,41 +219,41 @@ git clone https://github.com/mekkablue/Glyphs-Scripts ~/Library/Application\ Sup
 
 *Vertical Metrics（垂直度量）對於在「字型資訊 > 字型」和「字型資訊 > 主板」中尋找和同步垂直度量參數很有用。Clean Version String（清理版本字串）也非常實用。Font Info Batch Setter（字型資訊批次設定器）對於在多個字型之間同步字型資訊設定是不可或缺的。使用 Set WWS/Preferred Names（設定 WWS／偏好名稱）腳本時要小心：應用程式通常會自動處理命名，所以很少需要使用這些腳本。*
 
-* **Batch-Import Masters（批次匯入主板）：**使用匯入主板參數一次匯入多個主板。
-* **Clean Version String（清理版本字串）：**新增乾淨的 versionString 參數，並在版本字串中停用 ttfAutohint 資訊。匯出的字型將只包含「Version X.XXX」格式的版本字串。
-* **Find and Replace in Font Info（字型資訊搜尋與取代）：**在「字型資訊 > 字型」和「字型資訊 > 實體」中搜尋和取代名稱。
-* **Find and Replace In Instance Parameters（實體參數搜尋與取代）：**在目前字型或專案檔案被選取實體的自訂參數中進行搜尋和取代。
-* **Font Info Batch Setter（字型資訊批次設定器）：**批次套用「字型資訊 > 字型」內的設定到開啟的字型中：設計師、設計師網址、製造商、製造商網址、版權、版本號碼、日期和時間。適用於在多個字型之間同步字型資訊設定。
-* **Font Info Overview（字型資訊總覽）：**列出所有開啟字型的部分字型資訊值。
-* **OTVAR Maker（OTVAR 產生器）：**在「字型資訊 > 匯出」中建立可變字型設定。
-* **Prepare Font Info（準備字型資訊）：**透過設定特定自訂參數，為現代字型製作和 git 工作流程準備開啟的字型。
-* **PS Name Maker（PS 名稱產生器）：**為所有實體建立 postscriptFontName 項目（名稱 ID 6），並提供縮短名稱的選項。
-* **Remove Custom Parameters（移除自訂參數）：**從「字型資訊 > 字型、主板、實體」中移除某一類型的所有參數。當您有許多主板或實體時很有用。
-* **Set Preferred Names for Width Variants（設定寬度變體的偏好名稱）（名稱 ID 16 和 17）：**為所有實體設定偏好名稱自訂參數（名稱 ID 16 和 17），使寬度變體在 Adobe 應用程式中出現在獨立的選單中。
-* **Set Style Linking（設定樣式連結）：**嘗試設定粗體／義大利體位元。
-* **Set Subscript and Superscript Parameters（設定下標和上標參數）：**測量您的上標和下標數字，並推導出下標／上標的 X／Y 偏移／大小參數。
-* **Set WWS Names（設定 WWS 名稱）（名稱 ID 21 和 22）：**在必要時為所有實體設定 WWS 自訂參數（名稱 ID 21 和 22）：將除 RIBBI 以外的所有資訊放入 WWSFamilyName，並只在 WWSSubfamilyName 中保留 RIBBI。
-* **Style Renamer（樣式重命名器）：**批次在樣式名稱中添加名稱片段，或從中批次移除。適用於將所有樣式從義大利體命名切換到羅馬體命名，反之亦然。
-* **Vertical Metrics Manager（垂直度量管理器）：**計算並插入 OS/2 usWin 和 sTypo、hhea 以及 fsSelection 位元 7 的值（用於優先使用 sTypo 度量而非 usWin 度量）。
+* **Batch-Import Masters（批次匯入主板）：** 使用匯入主板參數一次匯入多個主板。
+* **Clean Version String（清理版本字串）：** 新增乾淨的 versionString 參數，並在版本字串中停用 ttfAutohint 資訊。匯出的字型將只包含「Version X.XXX」格式的版本字串。
+* **Find and Replace in Font Info（字型資訊搜尋與取代）：** 在「字型資訊 > 字型」和「字型資訊 > 實體」中搜尋和取代名稱。
+* **Find and Replace In Instance Parameters（實體參數搜尋與取代）：** 在目前字型或專案檔案被選取實體的自訂參數中進行搜尋和取代。
+* **Font Info Batch Setter（字型資訊批次設定器）：** 批次套用「字型資訊 > 字型」內的設定到開啟的字型中：設計師、設計師網址、製造商、製造商網址、版權、版本號碼、日期和時間。適用於在多個字型之間同步字型資訊設定。
+* **Font Info Overview（字型資訊總覽）：** 列出所有開啟字型的部分字型資訊值。
+* **OTVAR Maker（OTVAR 產生器）：** 在「字型資訊 > 匯出」中建立可變字型設定。
+* **Prepare Font Info（準備字型資訊）：** 透過設定特定自訂參數，為現代字型製作和 git 工作流程準備開啟的字型。
+* **PS Name Maker（PS 名稱產生器）：** 為所有實體建立 postscriptFontName 項目（名稱 ID 6），並提供縮短名稱的選項。
+* **Remove Custom Parameters（移除自訂參數）：** 從「字型資訊 > 字型、主板、實體」中移除某一類型的所有參數。當您有許多主板或實體時很有用。
+* **Set Preferred Names for Width Variants（設定寬度變體的偏好名稱）（名稱 ID 16 和 17）：** 為所有實體設定偏好名稱自訂參數（名稱 ID 16 和 17），使寬度變體在 Adobe 應用程式中出現在獨立的選單中。
+* **Set Style Linking（設定樣式連結）：** 嘗試設定粗體／義大利體位元。
+* **Set Subscript and Superscript Parameters（設定下標和上標參數）：** 測量您的上標和下標數字，並推導出下標／上標的 X／Y 偏移／大小參數。
+* **Set WWS Names（設定 WWS 名稱）（名稱 ID 21 和 22）：** 在必要時為所有實體設定 WWS 自訂參數（名稱 ID 21 和 22）：將除 RIBBI 以外的所有資訊放入 WWSFamilyName，並只在 WWSSubfamilyName 中保留 RIBBI。
+* **Style Renamer（樣式重命名器）：** 批次在樣式名稱中添加名稱片段，或從中批次移除。適用於將所有樣式從義大利體命名切換到羅馬體命名，反之亦然。
+* **Vertical Metrics Manager（垂直度量管理器）：** 計算並插入 OS/2 usWin 和 sTypo、hhea 以及 fsSelection 位元 7 的值（用於優先使用 sTypo 度量而非 usWin 度量）。
 
 ## Glyph Names, Notes and Unicode（字符名稱、註記與 Unicode）
 
 *大多數文字系統都能讓字符名稱和 Unicode 的管理變得較為容易。在將檔案交給第三方之前，Garbage Collection（垃圾清理）對清除回報腳本或其他註記的雜亂資料很有幫助。*
 
-* **Add PUA Unicode Values to Selected Glyphs（替選取的字符加入私用區 Unicode 值）：**逐一處理選取的字符，並從使用者指定的值開始，依序套用自訂 Unicode 值。
-* **Casefolding Report（大小寫配對回報）：**檢查大寫與小寫是否相符。開啟新的編輯分頁，顯示所有沒有一致大小寫配對的字符。在巨集視窗中寫入詳細回報。
-* **Color Composites in Shade of Base Glyph（以基礎字符色調標示組合字符）：**以基礎字符較淺色調標示組合字符。例如，如果您的 A 標示為紅色，那麼 ÄÁÀĂ... 就會呈現較淺的紅色。
-* **Convert to Uppercase（轉換為大寫）：**將小寫名稱轉換為大寫名稱，例如：`a` → `A`、`ccaron` → `Ccaron`、`aeacute` → `AEacute` 等。
-* **Convert to Lowercase（轉換為小寫）：**將選取字符的名稱轉換為小寫。
-* **Double Encode micro, Ohm and increment（micro、Ohm 和 increment 雙重編碼）：**替 micro、Ohm 和 increment 加入 mu、Omega 和 Delta 的 Unicode。
-* **Encoding Converter（編碼轉換器）：**根據可匯入/匯出的重新命名方案文字，將舊式專家級 8 位元編碼轉換為 Glyphs 的標準名稱。預設為 AXt 轉換方案。
-* **Garbage Collection（垃圾清理）：**移除字符中的標記，如控制點名稱、字符名稱或註記，以及參考線。
-* **Glyph Order Manager（字符順序管理器）：**用於管理字符順序參數的使用者介面，也可跨多個檔案。
-* **Production Namer（產品用命名器）：**覆寫預設的產品用名稱。預設為在傳統 PDF 工作流程中會造成問題的常見項目：mu、onesuperior、twosuperior、threesuperior。
-* **Rename Glyphs（重新命名字符）：**採用 `oldglyphname=newglyphname` 的配對清單，據此重新命名字型中的字符，類似「重新命名字符」自訂參數。
-* **Reorder Unicodes of Selected Glyphs（重新排序選取字符的 Unicode）：**重新排序 Unicode，使預設 Unicode 排在最前。
-* **Reset Unicode Codepoints Based on GlyphData（根據字符資料重設 Unicode 碼位）：**對於選取的字符，其功能類似「字符 > 更新字符資訊」，但不會更改名稱，而是重設 Unicode。將處理內建的 GlyphData 和位於 ~/Library/Application Support/Glyphs 3/Info/ 的 GlyphData-XXX.xml。
-* **Switch Mirrored Characters（切換鏡像字元）：**在目前的編輯面板中，切換雙向文字的鏡射字元，例如 () → )(。在分頁中切換書寫方向後，用於切換括號和引號很有用。
+* **Add PUA Unicode Values to Selected Glyphs（替選取的字符加入私用區 Unicode 值）：** 逐一處理選取的字符，並從使用者指定的值開始，依序套用自訂 Unicode 值。
+* **Casefolding Report（大小寫配對回報）：** 檢查大寫與小寫是否相符。開啟新的編輯分頁，顯示所有沒有一致大小寫配對的字符。在巨集視窗中寫入詳細回報。
+* **Color Composites in Shade of Base Glyph（以基礎字符色調標示組合字符）：** 以基礎字符較淺色調標示組合字符。例如，如果您的 A 標示為紅色，那麼 ÄÁÀĂ... 就會呈現較淺的紅色。
+* **Convert to Uppercase（轉換為大寫）：** 將小寫名稱轉換為大寫名稱，例如：`a` → `A`、`ccaron` → `Ccaron`、`aeacute` → `AEacute` 等。
+* **Convert to Lowercase（轉換為小寫）：** 將選取字符的名稱轉換為小寫。
+* **Double Encode micro, Ohm and increment（micro、Ohm 和 increment 雙重編碼）：** 替 micro、Ohm 和 increment 加入 mu、Omega 和 Delta 的 Unicode。
+* **Encoding Converter（編碼轉換器）：** 根據可匯入/匯出的重新命名方案文字，將舊式專家級 8 位元編碼轉換為 Glyphs 的標準名稱。預設為 AXt 轉換方案。
+* **Garbage Collection（垃圾清理）：** 移除字符中的標記，如控制點名稱、字符名稱或註記，以及參考線。
+* **Glyph Order Manager（字符順序管理器）：** 用於管理字符順序參數的使用者介面，也可跨多個檔案。
+* **Production Namer（產品用命名器）：** 覆寫預設的產品用名稱。預設為在傳統 PDF 工作流程中會造成問題的常見項目：mu、onesuperior、twosuperior、threesuperior。
+* **Rename Glyphs（重新命名字符）：** 採用 `oldglyphname=newglyphname` 的配對清單，據此重新命名字型中的字符，類似「重新命名字符」自訂參數。
+* **Reorder Unicodes of Selected Glyphs（重新排序選取字符的 Unicode）：** 重新排序 Unicode，使預設 Unicode 排在最前。
+* **Reset Unicode Codepoints Based on GlyphData（根據字符資料重設 Unicode 碼位）：** 對於選取的字符，其功能類似「字符 > 更新字符資訊」，但不會更改名稱，而是重設 Unicode。將處理內建的 GlyphData 和位於 ~/Library/Application Support/Glyphs 3/Info/ 的 GlyphData-XXX.xml。
+* **Switch Mirrored Characters（切換鏡像字元）：** 在目前的編輯面板中，切換雙向文字的鏡射字元，例如 () → )(。在分頁中切換書寫方向後，用於切換括號和引號很有用。
 
 ## Guides（參考線）
 
@@ -267,7 +267,7 @@ git clone https://github.com/mekkablue/Glyphs-Scripts ~/Library/Application\ Sup
 
 ## Hinting（字型調適）
 
-*最重要：為 PostScript 調適設定 blueScale 值和字型家族對齊區域。如果您要進行大幅度修改，Transfer（傳輸）和 Keep Only（僅保留）腳本可以為您節省大量工作。New Tab（新增分頁）系列腳本可協助找出缺少對齊區域的字符。另外也可以考慮使用「Paths > Find Near Vertical Misses（路徑 > 尋找接近垂直未對齊處）」來達到此目的。*
+*至關重要：為 PostScript 調適設定 blueScale 值和字型家族對齊區域。如果您要進行大幅度修改，Transfer（傳輸）和 Keep Only（僅保留）腳本可以為您節省大量工作。New Tab（新增分頁）系列腳本可協助找出缺少對齊區域的字符。另外也可以考慮使用「Paths > Find Near Vertical Misses（路徑 > 尋找接近垂直未對齊處）」來達到此目的。*
 
 * **Add Alignment Zones for Selected Glyphs（為選取的字符新增對齊區域）：** 在所有主板中為選取的字符建立適當的對齊區域。
 * **Add Hints for Selected Nodes（為選取的控制點新增調適）：** 為選取的控制點新增調適。會自動判斷應該使用水平或垂直調適。如果在對齊區域內只選取一個控制點，會新增幽靈調適。適合在系統偏好設定中設定快捷鍵。
@@ -294,18 +294,18 @@ git clone https://github.com/mekkablue/Glyphs-Scripts ~/Library/Application\ Sup
 
 *主要用於解決處理大量（背景）圖片時可能遇到的困擾。*
 
-* **Add Same Image to Selected Glyphs（將相同圖片加入已選取的字符）：**要求您選擇一個圖片，然後將其作為背景圖片插入至所有目前選取的字符中。
-* **Adjust Image Alpha（調整圖片透明度）：**用於設定已選取字符中所有圖片透明度的滑桿。
-* **Delete All Images in Font（刪除字型中的所有圖片）：**刪除整個字型中所有置入的圖片。
-* **Delete Images（刪除圖片）：**刪除已選取字符之可見圖層中所有置入的圖片。
-* **Reset Image Transformation（重設圖片變形）：**將已選取字符之可見圖層中的所有圖片變形（X/Y 位移、縮放和扭曲）重設回預設值。
-* **Set New Path for Images（設定圖片的新路徑）：**重設已選取字符中置入圖片的路徑。當您移動了圖片位置時很實用。
-* **Toggle Image Lock（切換圖片鎖定）：**鎖定或解除鎖定所有已選取字符中的全部圖片。
-* **Transform Images（變形圖片）：**用於批次變形已選取字符之可見圖層中的圖片（X/Y 位移和 X/Y 縮放）的圖形使用者介面。
+* **Add Same Image to Selected Glyphs（將相同圖片加入已選取的字符）：** 要求您選擇一個圖片，然後將其作為背景圖片插入至所有目前選取的字符中。
+* **Adjust Image Alpha（調整圖片透明度）：** 用於設定已選取字符中所有圖片透明度的滑桿。
+* **Delete All Images in Font（刪除字型中的所有圖片）：** 刪除整個字型中所有置入的圖片。
+* **Delete Images（刪除圖片）：** 刪除已選取字符之可見圖層中所有置入的圖片。
+* **Reset Image Transformation（重設圖片變形）：** 將已選取字符之可見圖層中的所有圖片變形（X/Y 位移、縮放和扭曲）重設回預設值。
+* **Set New Path for Images（設定圖片的新路徑）：** 重設已選取字符中置入圖片的路徑。當您移動了圖片位置時很實用。
+* **Toggle Image Lock（切換圖片鎖定）：** 鎖定或解除鎖定所有已選取字符中的全部圖片。
+* **Transform Images（變形圖片）：** 用於批次變形已選取字符之可見圖層中的圖片（X/Y 位移和 X/Y 縮放）的圖形使用者介面。
 
 ## Interpolation（內插）
 
-*最重要的是：Insert Instances（插入實體，用於決定實體及其樣式連結）、Kink Finder（折點尋找器）和 Find Shapeshifting Glyphs（形變字符尋找器）。我經常使用 Show Next/Previous Instance（顯示下一個/上一個實體）搭配 ctrl-上/下方向鍵的快捷鍵。*
+*至關重要：Insert Instances（插入實體，用於決定實體及其樣式連結）、Kink Finder（折點尋找器）和 Find Shapeshifting Glyphs（形變字符尋找器）。我經常使用 Show Next/Previous Instance（顯示下一個/上一個實體）搭配 ctrl-上/下方向鍵的快捷鍵。*
 
 * **Add Grade（新增等級）：** 根據您的 Weight（字重）和 Width（字寬）變化軸，新增 Grade（等級）軸和/或 Grade 主板。
 * **Add Missing Brace Layers（新增遺漏的大括號圖層）：** 完成 OTVAR 匯出所需的矩形設定。
@@ -345,23 +345,23 @@ git clone https://github.com/mekkablue/Glyphs-Scripts ~/Library/Application\ Sup
 
 ## Kerning（調距）
 
-*最重要的工具：Auto Bumper（自動調距）、KernCrasher（調距碰撞檢查）、GapFinder（間距檢查）、Sample String Maker（範例字串產生器）。如果您的調距過多，可以考慮使用 Exception Cleaner（例外清理器）。*
+*至關重要：Auto Bumper（自動調距）、KernCrasher（調距碰撞檢查）、GapFinder（間距檢查）、Sample String Maker（範例字串產生器）。如果您的調距過多，可以考慮使用 Exception Cleaner（例外清理器）。*
 
-* **Adjust Kerning in Master（主板調距調整）：**提供圖形介面，可對所有調距對新增數值、進行倍數運算、進行數值四捨五入，或限制在特定數值範圍內。
-* **Auto Bumper（自動調距）：**指定最小間距、左右字符後，Auto Bumper 會在目前的主板中新增必要的最小調距。
-* **BBox Bumper（邊界框調距）：**類似 Auto Bumper，但是使用一組字符的邊界框，並將調距以 GPOS 特性程式碼插入到「字型資訊 > 特性 > kern」。當您想要使用與調距群組不同的類別進行群組調距時很有用。需要 Vanilla。
-* **Compare Kerning Between Masters（主板間調距比較）：**回報兩個主板之間調距結構的差異。
-* **Compress Glyph（字符壓縮）：**僅壓縮指定字符的調距。
-* **Convert RTL Kerning from Glyphs 2 to 3（從 Glyphs 2 轉換 RTL 調距到 Glyphs 3）：**將 Glyphs 2 的 RTL 調距轉換為 Glyphs 3 格式並切換調距類別。（按住 Option 和 Shift 可從 Glyphs 3 轉回 Glyphs 2。）詳細報告在巨集視窗中。
-* **Copy Kerning Exceptions to Double Accents（複製調距例外到雙重重音）：**將包含 abreve、`acircumflex`、`ecircumflex`、`ocircumflex`、`udieresis` 的調距例外複製到越南語和拼音的雙重重音符號。
-* **Exception Cleaner（例外清理器）：**比較每個例外與相同字偶可用的群組調距。如果差異低於閾值，則移除該調距例外。
-* **Find and Replace in Kerning Groups（調距群組尋找與取代）：**提供圖形介面，用於在左右調距群組中搜尋和取代文字，例如將「O」取代為「O.alt」。留空搜尋欄位可用於附加。
-* **GapFinder（間隙檢查）：**在目前的字型主板中開啟新分頁，顯示具有大間隙的調距組合。
-* **Import Kerning from .fea File（從 .fea 檔案匯入調距）：**選擇包含 AFDKO 程式碼 kern 特性的 .fea 檔案，此指令碼將嘗試將調距值匯入最前方的字型主板（請參見「*視窗 > 調距*」）。
-* **KernCrash Current Glyph（目前字符調距碰撞檢查）：**在目前的字型主板中開啟新分頁，顯示與目前字符發生碰撞的調距組合。
-* **KernCrasher（調距碰撞檢查）：**在目前的字型主板中開啟新分頁，顯示發生碰撞的調距組合。
-* **Kern Flattener（調距平面化）：**複製您的字型，將調距平面化為僅限字符對字符的調距，刪除所有群組調距並僅保留相關字偶（內建清單），為每個實體新增*匯出 kern 表格*參數（和其他一些參數）。警告：這只適用於使其與過時和損壞的軟體（如 PowerPoint）相容。不過，無法保證一定有效。
-* **Kern String Mixer（調距字串混合器）：**將兩組字符（可使用代碼）相互交叉，以獲得所有可能的字符組合。
+* **Adjust Kerning in Master（主板調距調整）：** 提供圖形介面，可對所有調距對新增數值、進行倍數運算、進行數值四捨五入，或限制在特定數值範圍內。
+* **Auto Bumper（自動調距）：** 指定最小間距、左右字符後，Auto Bumper 會在目前的主板中新增必要的最小調距。
+* **BBox Bumper（邊界框調距）：** 類似 Auto Bumper，但是使用一組字符的邊界框，並將調距以 GPOS 特性程式碼插入到「字型資訊 > 特性 > kern」。當您想要使用與調距群組不同的類別進行群組調距時很有用。需要 Vanilla。
+* **Compare Kerning Between Masters（主板間調距比較）：** 回報兩個主板之間調距結構的差異。
+* **Compress Glyph（字符壓縮）：** 僅壓縮指定字符的調距。
+* **Convert RTL Kerning from Glyphs 2 to 3（從 Glyphs 2 轉換 RTL 調距到 Glyphs 3）：** 將 Glyphs 2 的 RTL 調距轉換為 Glyphs 3 格式並切換調距類別。（按住 Option 和 Shift 可從 Glyphs 3 轉回 Glyphs 2。）詳細報告在巨集視窗中。
+* **Copy Kerning Exceptions to Double Accents（複製調距例外到雙重重音）：** 將包含 abreve、`acircumflex`、`ecircumflex`、`ocircumflex`、`udieresis` 的調距例外複製到越南語和拼音的雙重重音符號。
+* **Exception Cleaner（例外清理器）：** 比較每個例外與相同字偶可用的群組調距。如果差異低於閾值，則移除該調距例外。
+* **Find and Replace in Kerning Groups（調距群組尋找與取代）：** 提供圖形介面，用於在左右調距群組中搜尋和取代文字，例如將「O」取代為「O.alt」。留空搜尋欄位可用於附加。
+* **GapFinder（間隙檢查）：** 在目前的字型主板中開啟新分頁，顯示具有大間隙的調距組合。
+* **Import Kerning from .fea File（從 .fea 檔案匯入調距）：** 選擇包含 AFDKO 程式碼 kern 特性的 .fea 檔案，此指令碼將嘗試將調距值匯入最前方的字型主板（請參見「*視窗 > 調距*」）。
+* **KernCrash Current Glyph（目前字符調距碰撞檢查）：** 在目前的字型主板中開啟新分頁，顯示與目前字符發生碰撞的調距組合。
+* **KernCrasher（調距碰撞檢查）：** 在目前的字型主板中開啟新分頁，顯示發生碰撞的調距組合。
+* **Kern Flattener（調距平面化）：** 複製您的字型，將調距平面化為僅限字符對字符的調距，刪除所有群組調距並僅保留相關字偶（內建清單），為每個實體新增*匯出 kern 表格*參數（和其他一些參數）。警告：這只適用於使其與過時和損壞的軟體（如 PowerPoint）相容。不過，無法保證一定有效。
+* **Kern String Mixer（調距字串混合器）：** 將兩組字符（可使用代碼）相互交叉，以獲得所有可能的字符組合。
 * **New Tab with All Group Members（使用群組成員開新分頁）：** 選取兩個字符，例如「Ta」，執行腳本後會開啟新分頁，顯示 T 的右側調距群組與 a 的左側調距群組的所有組合。
 * **New Tab with Glyphs of Same Kerning Groups（相同調距群組字符開新分頁）：** 開啟新分頁，顯示目前字符的左右調距群組的所有成員。
 * **New Tab with Kerning Missing in Masters（主板缺漏調距開新分頁）：** 為每個主板開啟新分頁，顯示在此主板中缺少但存在於其他主板中的調距。
@@ -389,40 +389,40 @@ git clone https://github.com/mekkablue/Glyphs-Scripts ~/Library/Application\ Sup
 
 *我使用 Rotate Around Anchor（繞錨點旋轉）來製作星號。對於外框檢查來說很重要的工具有：Path Problem Finder（路徑問題檢測器）、Find Near Vertical Misses（尋找接近垂直的未對齊點）和 Green Blue Manager（綠藍控制點管理器）。Rewire Fire（重新連接工具）在可變字型製作中變得很重要，因為它可以減少形狀邊緣的重複外框線段（這些重複線段會在反鋸齒時產生暗點）。*
 
-* **Align Selected Nodes with Background（將選取的控制點對齊背景）：**將選取的控制點對齊最近的背景控制點，除非該背景控制點已被先前移動的控制點佔用。類似使用 Cmd-Shift-A 來對齊單一控制點與背景，但這個功能可以一次處理多個控制點。
-* **Batch-Set Path Attributes（批次設定路徑屬性）：**設定選取字符、主板、字型等中所有路徑的屬性。
-* **Copy Glyphs from Other Font into Backup Layers（將其他字型的字符複製到備份圖層）：**在目標字型中為選取的字符建立備份圖層，並用來源字型中對應的字符填充這些圖層。當您想要將一個字型的字符作為另一個字型的括號圖層時很有用。
-* **Distribute Nodes（分配控制點）：**水平或垂直分配控制點（取決於選取範圍邊界框的寬高比）。
-* **Enlarge Single-Unit Segments（放大單位線段）：**將短於一個單位的線段長度加倍。
-* **Fill Up with Rectangles（以矩形填充）：**檢查您選取的字符，如果發現空白的字符，就插入一個佔位矩形。適用於快速建立測試用的暫代字型。
-* **Find Close Encounters of Orthogonal Line Segments（尋找正交線段的接近處）：**檢查所有垂直和水平線段，找出接近但未完全對齊的線段對。
-* **Find Near Vertical Misses（尋找接近垂直的未對齊控制點）：**找出接近但未完全位於垂直度量線上的控制點。
-* **Green Blue Manager（綠藍控制點管理器）：**定義一個角度，高於此角度的控制點將設為藍色，低於此角度的控制點將設為綠色。
-* **Grid Switcher（格線切換器）：**透過點選浮動按鈕，在兩個使用者可定義的格線間距值之間切換。
-* **Harmonise Curve to Line（曲線與直線和諧化）：**將（選取的）曲線段與其後續直線段的控制點重新排列，使兩個線段之間平滑的轉換（和諧化）。
-* **Interpolate two paths（內插兩個路徑）：**選取兩個路徑並執行此腳本，它會將這兩個路徑替換為它們在 50% 處的內插結果。
-* **New Tab with Small Paths（開啟含小路徑的新分頁）：**開啟一個新分頁，顯示面積小於使用者可定義閾值（以平方單位計）的路徑。
-* **Path Problem Finder（路徑問題偵測器）：**尋找外框中所有可能的問題，並在新分頁中顯示受影響的圖層。
-* **Position Clicker（位置吻合檢查器）：**尋找所有位置形狀組合中不能良好吻合的部分。「吻合」指的是重疊時共用兩個節點座標。
-* **Realign BCPs（重新對齊貝茲控制點）：**重新對齊所有選取字符中的所有貝茲控制點。當控制桿因推移或其他變形後失去同步，或是在內插後特別有用。按住 Option 鍵可套用到選取字符的所有圖層。
-* **Remove all Open Paths（移除所有開放路徑）：**刪除所有選取字符可見圖層中的所有*開放*路徑。
-* **Remove Short Segments（移除短線段）：**刪除短於一個單位的線段。
-* **Rewire Fire（重複座標檢查）：**尋找、選取並標記重複的座標。位於相同位置的兩個控制點通常可以使用重新連接控制點功能進行重新連接。
-* **Rotate Around Anchor（錨點旋轉）：**提供以「rotate」錨點為中心旋轉字符或選取的控制點和組件的圖形介面。允許逐步和重複操作。
-* **Set Transform Origin（設定變形基準點）：**提供以數值方式設定旋轉工具變形基準點的簡易圖形介面。對縮放工具也會有效果。
-* **Snap selected points to nearest metric in all masters（將選取節點對齊所有主板中最近的度量）：**選取節點並執行此腳本，可將節點對齊每個相容圖層中最近的度量，前提是與度量的距離不超過 2 個單位。在巨集視窗中顯示報告。
-* **Straight Stem Cruncher（直線字幹檢查器）：**在所有圖層中尋找節點之間的距離，並與指定的字幹寬度進行比較（具有容許值）。列出繪製中具有偏差字幹的字符。
-* **Tunnify（控制桿平均化）：**尋找至少有一個控制桿被選取的所有路徑段。然後，將這些線段的控制桿平均化，也就是讓它們具有相同的曲線符合百分比。可以修正 Adobe Illustrator 的零控制桿（一個控制桿縮回最近控制點的線段）。這個腳本的想法來自 Eduardo Tunni（由 Pablo Impallari 轉述），因此以此命名。不過我從未看過 Eduardo 的演算法，所以我的實作可能與他的有些許不同，特別是在處理零控制桿的部分。
+* **Align Selected Nodes with Background（將選取的控制點對齊背景）：** 將選取的控制點對齊最近的背景控制點，除非該背景控制點已被先前移動的控制點佔用。類似使用 Cmd-Shift-A 來對齊單一控制點與背景，但這個功能可以一次處理多個控制點。
+* **Batch-Set Path Attributes（批次設定路徑屬性）：** 設定選取字符、主板、字型等中所有路徑的屬性。
+* **Copy Glyphs from Other Font into Backup Layers（將其他字型的字符複製到備份圖層）：** 在目標字型中為選取的字符建立備份圖層，並用來源字型中對應的字符填充這些圖層。當您想要將一個字型的字符作為另一個字型的括號圖層時很有用。
+* **Distribute Nodes（分配控制點）：** 水平或垂直分配控制點（取決於選取範圍邊界框的寬高比）。
+* **Enlarge Single-Unit Segments（放大單位線段）：** 將短於一個單位的線段長度加倍。
+* **Fill Up with Rectangles（以矩形填充）：** 檢查您選取的字符，如果發現空白的字符，就插入一個佔位矩形。適用於快速建立測試用的暫代字型。
+* **Find Close Encounters of Orthogonal Line Segments（尋找正交線段的接近處）：** 檢查所有垂直和水平線段，找出接近但未完全對齊的線段對。
+* **Find Near Vertical Misses（尋找接近垂直的未對齊控制點）：** 找出接近但未完全位於垂直度量線上的控制點。
+* **Green Blue Manager（綠藍控制點管理器）：** 定義一個角度，高於此角度的控制點將設為藍色，低於此角度的控制點將設為綠色。
+* **Grid Switcher（格線切換器）：** 透過點選浮動按鈕，在兩個使用者可定義的格線間距值之間切換。
+* **Harmonise Curve to Line（曲線與直線和諧化）：** 將（選取的）曲線段與其後續直線段的控制點重新排列，使兩個線段之間平滑的轉換（和諧化）。
+* **Interpolate two paths（內插兩個路徑）：** 選取兩個路徑並執行此腳本，它會將這兩個路徑替換為它們在 50% 處的內插結果。
+* **New Tab with Small Paths（開啟含小路徑的新分頁）：** 開啟一個新分頁，顯示面積小於使用者可定義閾值（以平方單位計）的路徑。
+* **Path Problem Finder（路徑問題偵測器）：** 尋找外框中所有可能的問題，並在新分頁中顯示受影響的圖層。
+* **Position Clicker（位置吻合檢查器）：** 尋找所有位置形狀組合中不能良好吻合的部分。「吻合」指的是重疊時共用兩個節點座標。
+* **Realign BCPs（重新對齊貝茲控制點）：** 重新對齊所有選取字符中的所有貝茲控制點。當控制桿因推移或其他變形後失去同步，或是在內插後特別有用。按住 Option 鍵可套用到選取字符的所有圖層。
+* **Remove all Open Paths（移除所有開放路徑）：** 刪除所有選取字符可見圖層中的所有*開放*路徑。
+* **Remove Short Segments（移除短線段）：** 刪除短於一個單位的線段。
+* **Rewire Fire（重複座標檢查）：** 尋找、選取並標記重複的座標。位於相同位置的兩個控制點通常可以使用重新連接控制點功能進行重新連接。
+* **Rotate Around Anchor（錨點旋轉）：** 提供以「rotate」錨點為中心旋轉字符或選取的控制點和組件的圖形介面。允許逐步和重複操作。
+* **Set Transform Origin（設定變形基準點）：** 提供以數值方式設定旋轉工具變形基準點的簡易圖形介面。對縮放工具也會有效果。
+* **Snap selected points to nearest metric in all masters（將選取節點對齊所有主板中最近的度量）：** 選取節點並執行此腳本，可將節點對齊每個相容圖層中最近的度量，前提是與度量的距離不超過 2 個單位。在巨集視窗中顯示報告。
+* **Straight Stem Cruncher（直線字幹檢查器）：** 在所有圖層中尋找節點之間的距離，並與指定的字幹寬度進行比較（具有容許值）。列出繪製中具有偏差字幹的字符。
+* **Tunnify（控制桿平均化）：** 尋找至少有一個控制桿被選取的所有路徑段。然後，將這些線段的控制桿平均化，也就是讓它們具有相同的曲線符合百分比。可以修正 Adobe Illustrator 的零控制桿（一個控制桿縮回最近控制點的線段）。這個腳本的想法來自 Eduardo Tunni（由 Pablo Impallari 轉述），因此以此命名。不過我從未看過 Eduardo 的演算法，所以我的實作可能與他的有些許不同，特別是在處理零控制桿的部分。
 
 ## Pixelfonts（像素字型）
 
 *這些腳本適用於像素字型的工作流程，讓您可以在較粗的網格中放置像素組件。如果您在進行像素設計，可以查看「視窗 > 外掛程式管理員」中提供的像素相關外掛程式。*
 
-* **Align Anchors to Grid（將錨點對齊格線）：**將變音符號的錨點對齊至字型格線。
-* **Delete Components out of Bounds（刪除超出邊界的組件）：**如果組件被放置在一般座標範圍之外（當您使用 cmd-方向鍵移動具有較大格線間距的組件時可能發生），這個腳本會將其刪除。
-* **Delete Duplicate Components（刪除重複組件）：**尋找重複的組件（相同名稱和位置）並只保留一個。這種情況在製作像素字型時經常發生。
-* **Flashify Pixels（Flash 像素最佳化）：**建立小型橋接以防止路徑自我相交，使字符內空白部分保持白色。這個問題在 Flash 字型渲染器中特別明顯，因此腳本以此命名。
-* **Reset Rotated and Mirrored Components（重設旋轉和鏡射組件）：**尋找經過縮放、鏡像和旋轉的組件，將它們恢復為預設的縮放比例和方向，但保持其位置不變。這對修正鏡射像素很有用。
+* **Align Anchors to Grid（將錨點對齊格線）：** 將變音符號的錨點對齊至字型格線。
+* **Delete Components out of Bounds（刪除超出邊界的組件）：** 如果組件被放置在一般座標範圍之外（當您使用 cmd-方向鍵移動具有較大格線間距的組件時可能發生），這個腳本會將其刪除。
+* **Delete Duplicate Components（刪除重複組件）：** 尋找重複的組件（相同名稱和位置）並只保留一個。這種情況在製作像素字型時經常發生。
+* **Flashify Pixels（Flash 像素最佳化）：** 建立小型橋接以防止路徑自我相交，使字符內空白部分保持白色。這個問題在 Flash 字型渲染器中特別明顯，因此腳本以此命名。
+* **Reset Rotated and Mirrored Components（重設旋轉和鏡射組件）：** 尋找經過縮放、鏡像和旋轉的組件，將它們恢復為預設的縮放比例和方向，但保持其位置不變。這對修正鏡射像素很有用。
 
 ## Post Production（後製處理）
 
@@ -439,12 +439,12 @@ git clone https://github.com/mekkablue/Glyphs-Scripts ~/Library/Application\ Sup
 
 *當我的字型中有小型大寫字母時，我總是會執行 Check Smallcap Consistency（檢查小型大寫字母一致性）。不過對其報告要抱持保留態度：它列出了許多誤判項目，且並非每個警告都同樣重要。*
 
-* **Check Smallcap Consistency（檢查小型大寫字母一致性）：**對您的小型大寫字母集進行一系列測試，並在巨集視窗中提供報告，特別是針對調距群組和字符集的部分。
-* **Copy Kerning from Caps to Smallcaps（從大寫複製調距至小型大寫字母）：**尋找大寫字母的調距字偶，並在字型中有對應的 .sc 字符時，複製其調距設定。請謹慎使用：這會覆寫現有的小型大寫字母調距字偶。
+* **Check Smallcap Consistency（檢查小型大寫字母一致性）：** 對您的小型大寫字母集進行一系列測試，並在巨集視窗中提供報告，特別是針對調距群組和字符集的部分。
+* **Copy Kerning from Caps to Smallcaps（從大寫複製調距至小型大寫字母）：** 尋找大寫字母的調距字偶，並在字型中有對應的 .sc 字符時，複製其調距設定。請謹慎使用：這會覆寫現有的小型大寫字母調距字偶。
 
 ## Spacing（間距）
 
-*最重要的是：Fix Math Operator Spacing（修正數學運算子間距）、Bracket Metrics Manager（括號度量管理器），如果有箭頭符號，則需要 Fix Arrow Positioning（修正箭頭位置）。建立數字時，New Tab（開新分頁）系列腳本很實用。*
+*至關重要：Fix Math Operator Spacing（修正數學運算子間距）、Bracket Metrics Manager（括號度量管理器），如果有箭頭符號，則需要 Fix Arrow Positioning（修正箭頭位置）。建立數字時，New Tab（開新分頁）系列腳本很實用。*
 
 * **Add Metrics Keys for Symmetric Glyphs（為對稱字符加入度量鍵）：** 當所有主板中的右側空白 (RSB) 與左側空白 (LSB) 相同時，會加入 RSB =|。
 * **Adjust Sidebearings（調整邊界）：** 可進行邊界的乘除、加減、限制或四捨五入，並可區分正負值的邊界。
@@ -469,15 +469,15 @@ git clone https://github.com/mekkablue/Glyphs-Scripts ~/Library/Application\ Sup
 
 ## Test（測試）
 
-*最重要的是 Test HTML（測試 HTML）腳本。如果你在 Adobe 或 Apple 應用程式中發現文字選取區域異常偏高或偏低，請執行 Report Highest and Lowest Glyphs（回報最高與最低字符）來找出造成問題的字符。Language Report（語言報告）僅供充實你的樣本使用，不會提供權威性的資訊。*
+*至關重要：Test HTML（測試 HTML）腳本。如果你在 Adobe 或 Apple 應用程式中發現文字選取區域異常偏高或偏低，請執行 Report Highest and Lowest Glyphs（回報最高與最低字符）來找出造成問題的字符。Language Report（語言報告）僅供充實你的樣本使用，不會提供權威性的資訊。*
 
-* **Copy InDesign Test Text（複製 InDesign 測試文字）：**將測試文字複製到剪貼簿中，供 InDesign 使用。
-* **Copy Word Test Text（複製 Word 測試文字）：**將測試文字複製到剪貼簿中，供 MS Word 使用。
-* **Language Report（語言報告）：**試圖根據你的拉丁字符提供初步的語言支援範圍評估。以 Underware 的 Latin-Plus 清單為基礎並加以修改。
-* **Pangram Helper（全字母句協助工具）：**協助你撰寫全字母句，可複製到剪貼簿或放入新分頁中。
-* **Report Highest and Lowest Glyphs（回報最高與最低字符）：**回報所有主板中具有最高和最低邊界框的字符。
-* **Variable Font Test HTML（可變字型測試 HTML）：**在目前可變字型匯出資料夾中為目前的字型建立測試用 HTML。
-* **Webfont Test HTML（網頁字型測試 HTML）：**在目前的網頁字型匯出資料夾內，或是目前 Glyphs 專案的匯出路徑中，建立一個測試用 HTML。
+* **Copy InDesign Test Text（複製 InDesign 測試文字）：** 將測試文字複製到剪貼簿中，供 InDesign 使用。
+* **Copy Word Test Text（複製 Word 測試文字）：** 將測試文字複製到剪貼簿中，供 MS Word 使用。
+* **Language Report（語言報告）：** 試圖根據你的拉丁字符提供初步的語言支援範圍評估。以 Underware 的 Latin-Plus 清單為基礎並加以修改。
+* **Pangram Helper（全字母句協助工具）：** 協助你撰寫全字母句，可複製到剪貼簿或放入新分頁中。
+* **Report Highest and Lowest Glyphs（回報最高與最低字符）：** 回報所有主板中具有最高和最低邊界框的字符。
+* **Variable Font Test HTML（可變字型測試 HTML）：** 在目前可變字型匯出資料夾中為目前的字型建立測試用 HTML。
+* **Webfont Test HTML（網頁字型測試 HTML）：** 在目前的網頁字型匯出資料夾內，或是目前 Glyphs 專案的匯出路徑中，建立一個測試用 HTML。
 
 # 授權條款
 
