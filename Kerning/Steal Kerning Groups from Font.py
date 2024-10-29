@@ -129,7 +129,7 @@ class StealKerningGroupsfromFont(mekkaObject):
 					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
 				else:
 					reportName = f"{font.familyName}\n⚠️ The font file has not been saved yet."
-				print(f"{sourceOrTarget}: {reportName}")
+				print(f"\n{sourceOrTarget}: {reportName}")
 			print()
 
 			verbose = self.prefBool("verbose")
@@ -143,11 +143,7 @@ class StealKerningGroupsfromFont(mekkaObject):
 						glyph.rightKerningGroup = None
 					if not verbose:
 						continue
-					print(
-						f"🧟 {glyph.name}"
-						f"{' ◀️ ' + glyph.leftKerningGroup if glyph.leftKerningGroup else ''}"
-						f"{' ▶️ ' + glyph.rightKerningGroup if glyph.rightKerningGroup else ''}"
-					)
+					print(f"  🧟 {glyph.name}")
 				if verbose:
 					print()
 
@@ -163,7 +159,7 @@ class StealKerningGroupsfromFont(mekkaObject):
 				targetGlyph = targetFont.glyphs[glyphName]
 				if not targetGlyph:
 					if verbose:
-						print(f"🚫 Skipping {glyphName}, not in target font.")
+						print(f"  🚫 Skipping {glyphName}, not in target font.")
 					continue
 				self.w.status.set(f"🔤 {glyphName}")
 				if sourceGlyph.leftKerningGroup and overwriteExisting or not targetGlyph.leftKerningGroup:
@@ -173,7 +169,7 @@ class StealKerningGroupsfromFont(mekkaObject):
 				if not verbose:
 					continue
 				print(
-					f"🔤 {glyphName}"
+					f"  🔤 {glyphName}"
 					f"  ◀️ {targetGlyph.leftKerningGroup if targetGlyph.leftKerningGroup else '🚫'}"
 					f"  ▶️ {targetGlyph.rightKerningGroup if targetGlyph.rightKerningGroup else '🚫'}"
 				)
