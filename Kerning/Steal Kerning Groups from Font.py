@@ -33,7 +33,7 @@ class StealKerningGroupsfromFont(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 350
-		windowHeight = 210
+		windowHeight = 230
 		windowWidthResize = 300  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -165,7 +165,7 @@ class StealKerningGroupsfromFont(mekkaObject):
 					if verbose:
 						print(f"🚫 Skipping {glyphName}, not in target font.")
 					continue
-				self.w.status.set(f"🔤 {glyph.name}")
+				self.w.status.set(f"🔤 {glyphName}")
 				if sourceGlyph.leftKerningGroup and overwriteExisting or not targetGlyph.leftKerningGroup:
 					targetGlyph.leftKerningGroup = sourceGlyph.leftKerningGroup
 				if sourceGlyph.rightKerningGroup and overwriteExisting or not targetGlyph.rightKerningGroup:
@@ -173,9 +173,9 @@ class StealKerningGroupsfromFont(mekkaObject):
 				if not verbose:
 					continue
 				print(
-					f"🔤 {glyph.name}"
-					f"{' ◀️ ' + targetGlyph.leftKerningGroup if glyph.leftKerningGroup else ''}"
-					f"{' ▶️ ' + targetGlyph.rightKerningGroup if glyph.rightKerningGroup else ''}"
+					f"🔤 {glyphName}"
+					f"  ◀️ {targetGlyph.leftKerningGroup if targetGlyph.leftKerningGroup else '🚫'}"
+					f"  ▶️ {targetGlyph.rightKerningGroup if targetGlyph.rightKerningGroup else '🚫'}"
 				)
 
 			# self.w.close()  # delete if you want window to stay open
