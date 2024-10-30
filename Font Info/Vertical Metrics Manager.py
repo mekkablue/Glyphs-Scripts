@@ -10,7 +10,7 @@ Manage and sync ascender, descender and linegap values for hhea, OS/2 sTypo and 
 """
 
 import vanilla
-from GlyphsApp import Glyphs, Message
+from GlyphsApp import Glyphs, Message, GetOpenFile
 from mekkablue import mekkaObject, UpdateButton
 
 
@@ -63,8 +63,8 @@ class VerticalMetricsManager(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 328
-		windowHeight = 418
+		windowWidth = 330
+		windowHeight = 460
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Vertical Metrics Manager",  # window title
@@ -74,7 +74,7 @@ class VerticalMetricsManager(mekkaObject):
 		# UI elements:
 		linePos, inset, lineHeight = 10, 15, 22
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Manage and sync hhea, typo and win values.", sizeStyle='small', selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Manage and sync hhea, typo and win values:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
 		self.w.titleAscent = vanilla.TextBox((inset + 70, linePos + 4, 70, 14), "Ascender", sizeStyle='small', selectable=True)
@@ -115,16 +115,24 @@ class VerticalMetricsManager(mekkaObject):
 		self.w.hheaGap = vanilla.EditText((inset + 210, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.hheaGap.getNSTextField().setToolTip_("hheaLineGap (positive value), should be the same as OS/2 sTypoLineGap. Should be either zero or a value for padding between lines that makes sense visually. Mac office apps insert this distance between the lines, Mac browsers add half on top and half below each line, also for determining text object boundaries.")
 		self.w.hheaUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
-		self.w.hheaUpdate.getNSButton().setToolTip_("Will recalculate the hhea values in the fields to the left. Takes the measurement settings below into account.")
+		self.w.hheaUpdate.getNSButton().setToolTip_("Will copy the typo values into the hhea values (should always be in sync), unless typo values are not set. In that case, will recalculate the hhea values in the fields to the left. Takes the measurement settings below into account.")
 		linePos += lineHeight
 
-		self.w.useTypoMetrics = vanilla.CheckBox((inset + 70, linePos, -inset, 18), "Use Typo Metrics (fsSelection bit 7)", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.useTypoMetrics.getNSButton().setToolTip_("Should ALWAYS BE ON. Only uncheck if you really know what you are doing. If unchecked, line behaviour will be not consistent between apps and browsers because some apps prefer win values to sTypo values for determining line distances.")
-		self.w.useTypoMetricsUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
+		self.w.useTypoMetrics = vanilla.CheckBox((inset + 58, linePos + 6, -inset, 18), "Use Typo Metrics (fsSelection bit 7)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.useTypoMetrics.getNSButton().setToolTip_("Should ALWAYS BE ON. Only uncheck if you really know what you are doing. If unchecked, line behaviour will not be consistent between apps and browsers because some apps prefer win values to sTypo values for determining line distances.")
+		self.w.useTypoMetricsUpdate = UpdateButton((-inset - 18, linePos+3, -inset, 18), callback=self.update)
 		self.w.useTypoMetricsUpdate.getNSButton().setToolTip_("Will reset the checkbox to the left to ON, because it should ALWAYS be on. Strongly recommended.")
-		linePos += lineHeight * 1.5
+		linePos += int(lineHeight * 1.4)
 
-		self.w.descriptionMeasurements = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Taking Measurements (see tooltips for info):", sizeStyle='small')
+		self.w.extractText = vanilla.TextBox((inset, linePos+2, -65 - inset, 14), "Copy values from existing OpenType font:", sizeStyle="small", selectable=True)
+		self.w.extractButton = vanilla.Button((-65 - inset, linePos, -inset, 17), "Extract", sizeStyle="small", callback=self.extract)
+		self.w.extractButton.getNSButton().setToolTip_("Extracts values from an existing compiled font (.otf or .ttf) and inserts them in the fields above. Useful if you need to stay in sync with a pre-existing font.")
+		linePos += int(lineHeight * 1.2)
+
+		self.w.separator = vanilla.HorizontalLine((inset, linePos, -inset, 6))
+		linePos += lineHeight - 7
+		
+		self.w.descriptionMeasurements = vanilla.TextBox((inset, linePos, -inset, 14), "Taking measurements (see tooltips for info):", sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.round = vanilla.CheckBox((inset + 2, linePos, 70, 18), "Round by", value=True, callback=self.SavePreferences, sizeStyle='small')
@@ -151,17 +159,17 @@ class VerticalMetricsManager(mekkaObject):
 
 		self.w.preferScript = vanilla.CheckBox((inset + 2, linePos, inset + 110, 18), "Limit to script", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.preferScript.getNSButton().setToolTip_("If checked, only measures glyphs belonging to the selected writing system. Can be combined with the other Limit options. (Ignored for calculating the OS/2 usWin values, but respected for mark-to-base calculation.)")
-		self.w.preferScriptPopup = vanilla.PopUpButton((inset + 108, linePos + 1, -inset - 22, 17), ("latin", "greek"), sizeStyle='small', callback=self.SavePreferences)
+		self.w.preferScriptPopup = vanilla.PopUpButton((inset + 108, linePos, -inset - 22, 17), ("latin", "greek"), sizeStyle='small', callback=self.SavePreferences)
 		self.w.preferScriptPopup.getNSPopUpButton().setToolTip_("Choose a writing system ('script') you want the measurements to be limited to. May make sense to ignore other scripts if the font is intended only for e.g. Cyrillic. Does not apply to OS/2 usWin")
-		self.w.preferScriptUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
+		self.w.preferScriptUpdate = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.update)
 		self.w.preferScriptUpdate.getNSButton().setToolTip_("Update the script popup to the left with all scripts (writing systems) found in the current font.")
 		linePos += lineHeight
 
 		self.w.preferCategory = vanilla.CheckBox((inset + 2, linePos, inset + 110, 18), "Limit to category", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.preferCategory.getNSButton().setToolTip_("If checked, only measures glyphs belonging to the selected glyph category. Can be combined with the other Limit options. (Ignored for calculating the OS/2 usWin values.)")
-		self.w.preferCategoryPopup = vanilla.PopUpButton((inset + 108, linePos + 1, -inset - 22, 17), ("Letter", "Number"), sizeStyle='small', callback=self.SavePreferences)
+		self.w.preferCategoryPopup = vanilla.PopUpButton((inset + 108, linePos, -inset - 22, 17), ("Letter", "Number"), sizeStyle='small', callback=self.SavePreferences)
 		self.w.preferCategoryPopup.getNSPopUpButton().setToolTip_("Choose a glyph category you want the measurements to be limited to. It may make sense to limit only to Letter.")
-		self.w.preferCategoryUpdate = UpdateButton((-inset - 18, linePos + 1, -inset, 18), callback=self.update)
+		self.w.preferCategoryUpdate = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.update)
 		self.w.preferCategoryUpdate.getNSButton().setToolTip_("Update the category popup to the left with all glyph categories found in the current font.")
 		linePos += lineHeight
 
@@ -199,6 +207,44 @@ class VerticalMetricsManager(mekkaObject):
 		if URL:
 			import webbrowser
 			webbrowser.open(URL)
+	
+	def extract(self, sender=None):
+		Glyphs.clearLog()  # clears macro window log
+		
+		sourceFile = GetOpenFile(
+			message="Choose font file (.otf or .ttf) for vertical metrics",
+			allowsMultipleSelection=False,
+			filetypes=("otf", "ttf", "woff", "woff2"),
+			)
+		if not sourceFile:
+			print(f"❌ No font file specified for extracting vertical metrics.")
+			return
+		
+		# extract from font file with fontTools:
+		import fontTools
+		from fontTools import ttLib
+		font = ttLib.TTFont(sourceFile)
+		os2Table = font["OS/2"]
+		hheaTable = font["hhea"]
+		extractedValues = {
+			"winAsc": os2Table.usWinAscent,
+			"winDesc": os2Table.usWinDescent,
+			"typoAsc": os2Table.sTypoAscender,
+			"typoDesc": os2Table.sTypoDescender,
+			"typoGap": os2Table.sTypoLineGap,
+			"hheaAsc": hheaTable.ascender,
+			"hheaDesc": hheaTable.descender,
+			"hheaGap": hheaTable.lineGap,
+			"useTypoMetrics": int(os2Table.fsSelection & (2**7) == 2**7),
+			}
+		
+		# set prefs, update UI:
+		print(f"📄 Extracting from: {sourceFile}\n")
+		for verticalMetric in extractedValues.keys():
+			print(f"📤 {verticalMetric} = {extractedValues[verticalMetric]}")
+			self.setPref(verticalMetric, extractedValues[verticalMetric])
+		self.LoadPreferences()
+		print("✅ Done.")
 
 	def update(self, sender=None):
 		Glyphs.clearLog()  # clears macro window log
@@ -355,105 +401,112 @@ class VerticalMetricsManager(mekkaObject):
 				name = "OS/2 sTypo"
 
 			print("Determining %s values:\n" % name)
-			lowest, highest = 0.0, 0.0
-			lowestGlyph, highestGlyph = None, None
-
-			shouldLimitToCategory = self.pref("preferCategory")
-			shouldLimitToScript = self.pref("preferScript")
-			shouldLimitToSelectedGlyphs = self.pref("preferSelectedGlyphs")
-			selectedCategory = self.w.preferCategoryPopup.getTitle()
-			selectedScript = self.w.preferScriptPopup.getTitle()
-
-			if shouldLimitToSelectedGlyphs:
-				selectedGlyphNames = [layer.parent.name for layer in frontmostFont.selectedLayers]
-				if not selectedGlyphNames:
-					print("⚠️ Ignoring limitation to selected glyphs because no glyphs are selected (in frontmost font).")
-					shouldLimitToSelectedGlyphs = False
-					self.setPref("preferSelectedGlyphs", shouldLimitToSelectedGlyphs)
-					self.LoadPreferences()
+			
+			if sender == self.w.hheaUpdate and self.pref("typoAsc") and self.pref("typoDesc"):
+				print(f"💞 Copying existing OS/2 sTypo values into hhea values...")
+				asc = self.pref("typoAsc")
+				desc = self.pref("typoDesc")
+				gap = self.pref("typoGap")
 			else:
-				selectedGlyphNames = ()
+				lowest, highest = 0.0, 0.0
+				lowestGlyph, highestGlyph = None, None
 
-			for i, thisFont in enumerate(theseFonts):
-				if allOpenFonts:
-					fontReport = f"{i + 1}. {thisFont.familyName}, "
+				shouldLimitToCategory = self.pref("preferCategory")
+				shouldLimitToScript = self.pref("preferScript")
+				shouldLimitToSelectedGlyphs = self.pref("preferSelectedGlyphs")
+				selectedCategory = self.w.preferCategoryPopup.getTitle()
+				selectedScript = self.w.preferScriptPopup.getTitle()
+
+				if shouldLimitToSelectedGlyphs:
+					selectedGlyphNames = [layer.parent.name for layer in frontmostFont.selectedLayers]
+					if not selectedGlyphNames:
+						print("⚠️ Ignoring limitation to selected glyphs because no glyphs are selected (in frontmost font).")
+						shouldLimitToSelectedGlyphs = False
+						self.setPref("preferSelectedGlyphs", shouldLimitToSelectedGlyphs)
+						self.LoadPreferences()
 				else:
-					fontReport = ""
+					selectedGlyphNames = ()
 
-				currentMaster = thisFont.selectedFontMaster
+				for i, thisFont in enumerate(theseFonts):
+					if allOpenFonts:
+						fontReport = f"{i + 1}. {thisFont.familyName}, "
+					else:
+						fontReport = ""
 
-				# ascender & descender calculation:
-				for thisGlyph in thisFont.glyphs:
-					exportCheckOK = not ignoreNonExporting or thisGlyph.export
-					categoryCheckOK = not shouldLimitToCategory or thisGlyph.category == selectedCategory
-					scriptCheckOK = not shouldLimitToScript or thisGlyph.script == selectedScript
-					selectedCheckOK = not shouldLimitToSelectedGlyphs or thisGlyph.name in selectedGlyphNames
+					currentMaster = thisFont.selectedFontMaster
 
-					if exportCheckOK and categoryCheckOK and scriptCheckOK and selectedCheckOK:
-						for thisLayer in thisGlyph.layers:
-							belongsToCurrentMaster = thisLayer.associatedFontMaster() == currentMaster
-							if belongsToCurrentMaster or includeAllMasters or allOpenFonts:
-								if thisLayer.isSpecialLayer or thisLayer.isMasterLayer:
-									lowestPointInLayer = thisLayer.bounds.origin.y
-									highestPointInLayer = lowestPointInLayer + thisLayer.bounds.size.height
-									if lowestPointInLayer < lowest:
-										lowest = lowestPointInLayer
-										lowestGlyph = f"{fontReport}{thisGlyph.name}, layer: {thisLayer.name}"
-									if highestPointInLayer > highest:
-										highest = highestPointInLayer
-										highestGlyph = f"{fontReport}{thisGlyph.name}, layer: {thisLayer.name}"
+					# ascender & descender calculation:
+					for thisGlyph in thisFont.glyphs:
+						exportCheckOK = not ignoreNonExporting or thisGlyph.export
+						categoryCheckOK = not shouldLimitToCategory or thisGlyph.category == selectedCategory
+						scriptCheckOK = not shouldLimitToScript or thisGlyph.script == selectedScript
+						selectedCheckOK = not shouldLimitToSelectedGlyphs or thisGlyph.name in selectedGlyphNames
 
-			print("Highest relevant glyph:")
-			print(f"- {highestGlyph} ({highest})\n")
-			print("Lowest relevant glyph:")
-			print(f"- {lowestGlyph} ({lowest})\n")
+						if exportCheckOK and categoryCheckOK and scriptCheckOK and selectedCheckOK:
+							for thisLayer in thisGlyph.layers:
+								belongsToCurrentMaster = thisLayer.associatedFontMaster() == currentMaster
+								if belongsToCurrentMaster or includeAllMasters or allOpenFonts:
+									if thisLayer.isSpecialLayer or thisLayer.isMasterLayer:
+										lowestPointInLayer = thisLayer.bounds.origin.y
+										highestPointInLayer = lowestPointInLayer + thisLayer.bounds.size.height
+										if lowestPointInLayer < lowest:
+											lowest = lowestPointInLayer
+											lowestGlyph = f"{fontReport}{thisGlyph.name}, layer: {thisLayer.name}"
+										if highestPointInLayer > highest:
+											highest = highestPointInLayer
+											highestGlyph = f"{fontReport}{thisGlyph.name}, layer: {thisLayer.name}"
 
-			if shouldRound:
-				highest = roundUpByValue(highest, roundValue)
-				lowest = roundUpByValue(lowest, roundValue)
+				print("Highest relevant glyph:")
+				print(f"- {highestGlyph} ({highest})\n")
+				print("Lowest relevant glyph:")
+				print(f"- {lowestGlyph} ({lowest})\n")
 
-			asc = int(highest)
-			desc = int(lowest)
-
-			# line gap calculation:
-			xHeight = 0
-			for thisFont in theseFonts:
-				# determine highest x-height:
-				for thisMaster in thisFont.masters:
-					measuredX = thisMaster.xHeight
-					if measuredX >= thisMaster.capHeight or measuredX > thisFont.upm * 5:  # all caps font or NSNotFound
-						measuredX = thisMaster.capHeight / 2
-					if measuredX > xHeight:
-						xHeight = thisMaster.xHeight
 				if shouldRound:
-					xHeight = roundUpByValue(xHeight, roundValue)
+					highest = roundUpByValue(highest, roundValue)
+					lowest = roundUpByValue(lowest, roundValue)
 
-			# calculate linegap, based on highest x-height and calculated asc/desc values:
-			#
-			# TODO: verify
-			# LineGap >= (yMax - yMin) - (Ascender - Descender
-			# source: <https://learn.microsoft.com/en-us/typography/opentype/spec/recom#stypoascender-stypodescender-and-stypolinegap>
-			# and <https://learn.microsoft.com/en-us/typography/opentype/spec/recom#baseline-to-baseline-distances>
+				asc = int(highest)
+				desc = int(lowest)
 
-			idealLineSpan = abs(xHeight * 2.8)
-			if shouldRound:
-				idealLineSpan = roundUpByValue(idealLineSpan, roundValue)
-			actualLineSpan = abs(asc) + abs(desc)
-			if idealLineSpan > actualLineSpan:
-				gap = idealLineSpan - actualLineSpan
+				# line gap calculation:
+				xHeight = 0
+				for thisFont in theseFonts:
+					# determine highest x-height:
+					for thisMaster in thisFont.masters:
+						measuredX = thisMaster.xHeight
+						if measuredX >= thisMaster.capHeight or measuredX > thisFont.upm * 5:  # all caps font or NSNotFound
+							measuredX = thisMaster.capHeight / 2
+						if measuredX > xHeight:
+							xHeight = thisMaster.xHeight
+					if shouldRound:
+						xHeight = roundUpByValue(xHeight, roundValue)
+
+				# calculate linegap, based on highest x-height and calculated asc/desc values:
+				#
+				# TODO: verify
+				# LineGap >= (yMax - yMin) - (Ascender - Descender
+				# source: <https://learn.microsoft.com/en-us/typography/opentype/spec/recom#stypoascender-stypodescender-and-stypolinegap>
+				# and <https://learn.microsoft.com/en-us/typography/opentype/spec/recom#baseline-to-baseline-distances>
+
+				idealLineSpan = abs(xHeight * 2.8)
 				if shouldRound:
-					gap = roundUpByValue(gap, roundValue)
-			else:
-				gap = 0
+					idealLineSpan = roundUpByValue(idealLineSpan, roundValue)
+				actualLineSpan = abs(asc) + abs(desc)
+				if idealLineSpan > actualLineSpan:
+					gap = idealLineSpan - actualLineSpan
+					if shouldRound:
+						gap = roundUpByValue(gap, roundValue)
+				else:
+					gap = 0
 
-			if gap > thisFont.upm * 5:  # probably NSNotFound
-				gap = 0
+				if gap > thisFont.upm * 5:  # probably NSNotFound
+					gap = 0
 
-			print("Calculated values:")
-			print(f"- {name} Ascender: {asc}")
-			print(f"- {name} Descender: {desc}")
-			print(f"- {name} LineGap: {gap}")
-			print()
+				print("Calculated values:")
+				print(f"- {name} Ascender: {asc}")
+				print(f"- {name} Descender: {desc}")
+				print(f"- {name} LineGap: {gap}")
+				print()
 
 			if sender == self.w.hheaUpdate:
 				self.setPref("hheaAsc", asc)
