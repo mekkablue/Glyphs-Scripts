@@ -12,6 +12,7 @@ Manage and sync ascender, descender and linegap values for hhea, OS/2 sTypo and 
 import vanilla
 from GlyphsApp import Glyphs, Message, GetOpenFile
 from mekkablue import mekkaObject, UpdateButton
+from AppKit import NSRightTextAlignment
 
 
 def cleanInt(numberString):
@@ -72,7 +73,7 @@ class VerticalMetricsManager(mekkaObject):
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 10, 15, 22
+		linePos, inset, lineHeight, fieldWidth = 10, 15, 22, 60
 
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Manage and sync hhea, typo and win values:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
@@ -83,11 +84,11 @@ class VerticalMetricsManager(mekkaObject):
 		linePos += lineHeight
 
 		self.w.titleWin = vanilla.TextBox((inset, linePos + 3, 70, 14), "OS/2 usWin", sizeStyle='small', selectable=True)
-		self.w.winAsc = vanilla.EditText((inset + 70, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.winAsc = vanilla.EditText((inset + 70, linePos, fieldWidth, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.winAsc.getNSTextField().setToolTip_("OS/2 usWinAscent. Should be the maximum height in your font. Expect clipping or rendering artefacts beyond this point.")
-		self.w.winDesc = vanilla.EditText((inset + 140, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.winDesc = vanilla.EditText((inset + 140, linePos, fieldWidth, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.winDesc.getNSTextField().setToolTip_("OS/2 usWinDescent (unsigned integer). Should be the maximum depth in your font, like the lowest descender you have. Expect clipping or rendering artefacts beyond this point.")
-		self.w.winGap = vanilla.EditText((inset + 210, linePos, 65, 19), "", callback=None, sizeStyle='small', readOnly=True, placeholder="n/a")
+		self.w.winGap = vanilla.EditText((inset + 210, linePos, fieldWidth, 19), "", callback=None, sizeStyle='small', readOnly=True, placeholder="n/a")
 		self.w.winGap.getNSTextField().setToolTip_("OS/2 usWinLineGap does not exist, hence greyed out here.")
 		self.w.winUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
 		self.w.winUpdate.getNSButton().setToolTip_("Will recalculate the OS/2 usWin values in the fields to the left. Takes the measurement settings below into account, except for the Limit options.")
@@ -95,11 +96,11 @@ class VerticalMetricsManager(mekkaObject):
 
 		self.w.parenTypo = vanilla.TextBox((inset - 12, linePos + 5, 15, 20), "┏", sizeStyle='small', selectable=False)
 		self.w.titleTypo = vanilla.TextBox((inset, linePos + 3, 70, 14), "OS/2 sTypo", sizeStyle='small', selectable=True)
-		self.w.typoAsc = vanilla.EditText((inset + 70, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.typoAsc = vanilla.EditText((inset + 70, linePos, fieldWidth, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.typoAsc.getNSTextField().setToolTip_("OS/2 sTypoAscender (positive value), should be the same as hheaAscender. Should be the maximum height of the glyphs relevant for horizontal text setting in your font, like the highest accented uppercase letter, typically Aring or Ohungarumlaut. Used for first baseline offset in DTP and office apps and together with the line gap value, also in browsers.")
-		self.w.typoDesc = vanilla.EditText((inset + 140, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.typoDesc = vanilla.EditText((inset + 140, linePos, fieldWidth, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.typoDesc.getNSTextField().setToolTip_("OS/2 sTypoDescender (negative value), should be the same as hheaDescender. Should be the maximum depth of the glyphs relevant for horizontal text setting in your font, like the lowest descender or bottom accent, typically Gcommaccent, Ccedilla, or one of the lowercase descenders (gjpqy). Together with the line gap value, used for line distance calculation in office apps and browsers.")
-		self.w.typoGap = vanilla.EditText((inset + 210, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.typoGap = vanilla.EditText((inset + 210, linePos, fieldWidth, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.typoGap.getNSTextField().setToolTip_("OS/2 sTypoLineGap (positive value), should be the same as hheaLineGap. Should be either zero or a value for padding between lines that makes sense visually. Office apps insert this distance between the lines, browsers add half on top and half below each line, also for determining text object boundaries.")
 		self.w.typoUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
 		self.w.typoUpdate.getNSButton().setToolTip_("Will recalculate the OS/2 sTypo values in the fields to the left. Takes the measurement settings below into account.")
@@ -108,15 +109,19 @@ class VerticalMetricsManager(mekkaObject):
 		self.w.parenConnect = vanilla.TextBox((inset - 12, linePos - int(lineHeight / 2) + 4, 15, 20), "┃", sizeStyle='small', selectable=False)
 		self.w.parenHhea = vanilla.TextBox((inset - 12, linePos + 3, 15, 20), "┗", sizeStyle='small', selectable=False)
 		self.w.titleHhea = vanilla.TextBox((inset, linePos + 3, 70, 14), "hhea", sizeStyle='small', selectable=True)
-		self.w.hheaAsc = vanilla.EditText((inset + 70, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.hheaAsc = vanilla.EditText((inset + 70, linePos, fieldWidth, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.hheaAsc.getNSTextField().setToolTip_("hheaAscender (positive value), should be the same as OS/2 sTypoAscender. Should be the maximum height of the glyphs relevant for horizontal text setting in your font, like the highest accented uppercase letter, typically Aring or Ohungarumlaut. Used for first baseline offset in Mac office apps and together with the line gap value, also in Mac browsers.")
-		self.w.hheaDesc = vanilla.EditText((inset + 140, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.hheaDesc = vanilla.EditText((inset + 140, linePos, fieldWidth, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.hheaDesc.getNSTextField().setToolTip_("hheaDescender (negative value), should be the same as OS/2 sTypoDescender. Should be the maximum depth of the glyphs relevant for horizontal text setting in your font, like the lowest descender or bottom accent, typically Gcommaccent, Ccedilla, or one of the lowercase descenders (gjpqy). Together with the line gap value, used for line distance calculation in office apps and browsers.")
-		self.w.hheaGap = vanilla.EditText((inset + 210, linePos, 65, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.hheaGap = vanilla.EditText((inset + 210, linePos, fieldWidth, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.hheaGap.getNSTextField().setToolTip_("hheaLineGap (positive value), should be the same as OS/2 sTypoLineGap. Should be either zero or a value for padding between lines that makes sense visually. Mac office apps insert this distance between the lines, Mac browsers add half on top and half below each line, also for determining text object boundaries.")
 		self.w.hheaUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
 		self.w.hheaUpdate.getNSButton().setToolTip_("Will copy the typo values into the hhea values (should always be in sync), unless typo values are not set. In that case, will recalculate the hhea values in the fields to the left. Takes the measurement settings below into account.")
 		linePos += lineHeight
+		
+		# right align:
+		for textCell in (self.w.winAsc, self.w.winDesc, self.w.typoAsc, self.w.typoDesc, self.w.typoGap, self.w.hheaAsc, self.w.hheaDesc, self.w.hheaGap):
+			textCell.getNSTextField().setAlignment_(NSRightTextAlignment)
 
 		self.w.useTypoMetrics = vanilla.CheckBox((inset + 58, linePos + 6, -inset, 18), "Use Typo Metrics (fsSelection bit 7)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.useTypoMetrics.getNSButton().setToolTip_("Should ALWAYS BE ON. Only uncheck if you really know what you are doing. If unchecked, line behaviour will not be consistent between apps and browsers because some apps prefer win values to sTypo values for determining line distances.")
@@ -124,8 +129,8 @@ class VerticalMetricsManager(mekkaObject):
 		self.w.useTypoMetricsUpdate.getNSButton().setToolTip_("Will reset the checkbox to the left to ON, because it should ALWAYS be on. Strongly recommended.")
 		linePos += int(lineHeight * 1.4)
 
-		self.w.extractText = vanilla.TextBox((inset, linePos+2, -65 - inset, 14), "Copy values from existing OpenType font:", sizeStyle="small", selectable=True)
-		self.w.extractButton = vanilla.Button((-65 - inset, linePos, -inset, 17), "Extract", sizeStyle="small", callback=self.extract)
+		self.w.extractText = vanilla.TextBox((inset, linePos+2, -70 - inset, 14), "Copy values from existing OpenType font:", sizeStyle="small", selectable=True)
+		self.w.extractButton = vanilla.Button((-70 - inset, linePos, -inset, 17), "Extract", sizeStyle="small", callback=self.extract)
 		self.w.extractButton.getNSButton().setToolTip_("Extracts values from an existing compiled font (.otf or .ttf) and inserts them in the fields above. Useful if you need to stay in sync with a pre-existing font.")
 		linePos += int(lineHeight * 1.2)
 
