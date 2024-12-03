@@ -269,11 +269,11 @@ class KinkFinder(mekkaObject):
 		print("Testing in %i instances:" % len(self.instances))
 		for i in self.instances:
 			print("- %s:" % i.name)
-			for key in i.instanceInterpolations.keys():
-				print("  %s: %.3f" % (
-					thisFont.masters[key].name,
-					i.instanceInterpolations[key],
-				))
+			#for key in i.instanceInterpolations.keys():
+			#	print("  %s: %.3f" % (
+			#		thisFont.masters[key].name,
+			#		float(str(i.instanceInterpolations[key])),
+			#	))
 		print()
 
 	def cleanNodeNamesInGlyph(self, glyph, nodeMarker):
