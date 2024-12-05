@@ -272,7 +272,7 @@ class KinkFinder(mekkaObject):
 			#for key in i.instanceInterpolations.keys():
 			#	print("  %s: %.3f" % (
 			#		thisFont.masters[key].name,
-			#		float(str(i.instanceInterpolations[key])),
+			#		i.instanceInterpolations[key],
 			#	))
 		print()
 
