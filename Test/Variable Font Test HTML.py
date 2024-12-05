@@ -431,7 +431,7 @@ def axisDictForFontWithAxisLocationParameters(thisFont):
 
 
 def allUnicodeEscapesOfFont(thisFont):
-	allUnicodes = [f"&#x{g.unicode};" for g in thisFont.glyphs if g.unicode and g.export]
+	allUnicodes = [f"&#x{g.unicode};" for g in thisFont.glyphs if g.unicode and g.export and g.layers[0].shapes]
 	return " ".join(allUnicodes)
 
 
