@@ -219,35 +219,36 @@ class BatchSetPathAttributes(mekkaObject):
 		thisFont = Glyphs.font  # frontmost font
 		if thisFont is None:
 			self.noFontOpenErrorMsg()
+			return
+
+		print("Batch-Set Path Attributes Report for %s" % thisFont.familyName)
+		if thisFont.filepath:
+			print(thisFont.filepath)
 		else:
-			print("Batch-Set Path Attributes Report for %s" % thisFont.familyName)
-			if thisFont.filepath:
-				print(thisFont.filepath)
-			else:
-				print("⚠️ The font file has not been saved yet.")
-			print()
+			print("⚠️ The font file has not been saved yet.")
+		print()
 
-			scopeMaster = self.pref("scopeMaster")
+		scopeMaster = self.pref("scopeMaster")
 
-			glyphs = self.glyphsForCurrentScope(thisFont)
-			currentFontMasterID = thisFont.selectedFontMaster.id
-			print("🔠 Clearing attributes in %i glyph%s...\n" % (
-				len(glyphs),
-				"" if len(glyphs) == 1 else "s",
-			))
+		glyphs = self.glyphsForCurrentScope(thisFont)
+		currentFontMasterID = thisFont.selectedFontMaster.id
+		print("🔠 Clearing attributes in %i glyph%s...\n" % (
+			len(glyphs),
+			"" if len(glyphs) == 1 else "s",
+		))
 
-			if not glyphs:
-				self.glyphScopeErrorMsg()
-			else:
-				for thisGlyph in glyphs:
-					print("🙅‍♂️ Deleting attributes for: %s" % thisGlyph.name)
-					for thisLayer in thisGlyph.layers:
-						# scopeMaster: 0 = current master, 1 = all masters
-						if scopeMaster == 1 or (scopeMaster == 0 and thisLayer.associatedMasterId == currentFontMasterID):
-							if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
-								for thisPath in thisLayer.paths:
-									for attribute in allAttributeNames:
-										thisPath.removeAttributeForKey_(attribute)
+		if not glyphs:
+			self.glyphScopeErrorMsg()
+		else:
+			for thisGlyph in glyphs:
+				print("🙅‍♂️ Deleting attributes for: %s" % thisGlyph.name)
+				for thisLayer in thisGlyph.layers:
+					# scopeMaster: 0 = current master, 1 = all masters
+					if scopeMaster == 1 or (scopeMaster == 0 and thisLayer.associatedMasterId == currentFontMasterID):
+						if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
+							for thisPath in thisLayer.paths:
+								for attribute in allAttributeNames:
+									thisPath.removeAttributeForKey_(attribute)
 
 		# Final report:
 		Glyphs.showNotification(
@@ -267,70 +268,70 @@ class BatchSetPathAttributes(mekkaObject):
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				self.noFontOpenErrorMsg()
+				return
+
+			print("Batch-Set Path Attributes Report for %s" % thisFont.familyName)
+			if thisFont.filepath:
+				print(thisFont.filepath)
 			else:
-				print("Batch-Set Path Attributes Report for %s" % thisFont.familyName)
-				if thisFont.filepath:
-					print(thisFont.filepath)
-				else:
-					print("⚠️ The font file has not been saved yet.")
-				print()
+				print("⚠️ The font file has not been saved yet.")
+			print()
 
-				scopeMaster = self.pref("scopeMaster")
-				lineCaps = str(self.pref("lineCaps")).split(",")
-				if lineCaps:
-					lineCaps = [intOrNone(cap.strip()) for cap in lineCaps]
-					if len(lineCaps) < 2:
-						lineCaps = (lineCaps[0], lineCaps[0])
-					elif len(lineCaps) > 2:
-						lineCaps = lineCaps[:2]
-				else:
-					lineCaps = (None, None)
+			scopeMaster = self.pref("scopeMaster")
+			lineCaps = str(self.pref("lineCaps")).split(",")
+			if lineCaps:
+				lineCaps = [intOrNone(cap.strip()) for cap in lineCaps]
+				if len(lineCaps) < 2:
+					lineCaps = (lineCaps[0], lineCaps[0])
+				elif len(lineCaps) > 2:
+					lineCaps = lineCaps[:2]
+			else:
+				lineCaps = (None, None)
+			strokeWidth = self.prefInt("strokeWidth")
+			strokeHeight = self.pref("strokeHeight")
+			strokePos = self.pref("strokePos")
+			try:
+				strokePosKey = sortedStrokePositionNames[strokePos]
+				strokePos = strokePositions[strokePosKey]
+			except:
+				strokePos = None
 
-				strokeWidth = self.prefInt("strokeWidth")
-				strokeHeight = self.pref("strokeHeight")
-				strokePos = self.pref("strokePos")
-				try:
-					strokePosKey = sortedStrokePositionNames[strokePos]
-					strokePos = strokePositions[strokePosKey]
-				except:
-					strokePos = None
+			glyphs = self.glyphsForCurrentScope(thisFont)
+			currentFontMasterID = thisFont.selectedFontMaster.id
+			print("🔠 Setting attributes for %i glyph%s...\n" % (
+				len(glyphs),
+				"" if len(glyphs) == 1 else "s",
+			))
 
-				glyphs = self.glyphsForCurrentScope(thisFont)
-				currentFontMasterID = thisFont.selectedFontMaster.id
-				print("🔠 Setting attributes for %i glyph%s...\n" % (
-					len(glyphs),
-					"" if len(glyphs) == 1 else "s",
-				))
+			if not glyphs:
+				self.glyphScopeErrorMsg()
+				return
+			for thisGlyph in glyphs:
+				print("💁‍♀️ Setting attributes for: %s" % thisGlyph.name)
+				for thisLayer in thisGlyph.layers:
+					# scopeMaster: 0 = current master, 1 = all masters
+					if scopeMaster == 1 or (scopeMaster == 0 and thisLayer.associatedMasterId == currentFontMasterID):
+						if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
+							for thisPath in thisLayer.paths:
+								# line caps for start and end:
+								for capValue, startOrEnd in zip(lineCaps, ("lineCapStart", "lineCapEnd")):
+									if capValue is None:
+										thisPath.removeAttributeForKey_(startOrEnd)
+									else:
+										thisPath.setAttribute_forKey_(capValue, startOrEnd)
 
-				if not glyphs:
-					self.glyphScopeErrorMsg()
-				else:
-					for thisGlyph in glyphs:
-						print("💁‍♀️ Setting attributes for: %s" % thisGlyph.name)
-						for thisLayer in thisGlyph.layers:
-							# scopeMaster: 0 = current master, 1 = all masters
-							if scopeMaster == 1 or (scopeMaster == 0 and thisLayer.associatedMasterId == currentFontMasterID):
-								if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
-									for thisPath in thisLayer.paths:
-										# line caps for start and end:
-										for capValue, startOrEnd in zip(lineCaps, ("lineCapStart", "lineCapEnd")):
-											if capValue is None:
-												thisPath.removeAttributeForKey_(startOrEnd)
-											else:
-												thisPath.setAttribute_forKey_(capValue, startOrEnd)
+								# stroke width, height, pos:
+								thisPath.setAttribute_forKey_(strokeWidth, "strokeWidth")
 
-										# stroke width, height, pos:
-										thisPath.setAttribute_forKey_(strokeWidth, "strokeWidth")
+								if strokeHeight:  # default is None
+									thisPath.setAttribute_forKey_(strokeHeight, "strokeHeight")
+								else:
+									thisPath.removeAttributeForKey_("strokeHeight")
 
-										if strokeHeight:  # default is None
-											thisPath.setAttribute_forKey_(strokeHeight, "strokeHeight")
-										else:
-											thisPath.removeAttributeForKey_("strokeHeight")
-
-										if strokePos is None:  # default is None
-											thisPath.removeAttributeForKey_("strokePos")
-										else:
-											thisPath.setAttribute_forKey_(strokePos, "strokePos")
+								if strokePos is None:  # default is None
+									thisPath.removeAttributeForKey_("strokePos")
+								else:
+									thisPath.setAttribute_forKey_(strokePos, "strokePos")
 
 			# Final report:
 			Glyphs.showNotification(
