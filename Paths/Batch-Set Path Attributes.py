@@ -55,9 +55,13 @@ class BatchSetPathAttributes(mekkaObject):
 		"scopeGlyphs": 0,
 		"scopeMaster": 0,
 		"lineCaps": 2,
+		"lineCapsCheck": False,
 		"strokeWidth": 20,
+		"strokeWidthCheck": True,
 		"strokeHeight": "",
+		"strokeHeightCheck": False,
 		"strokePos": 0,
+		"strokePosCheck": False,
 	}
 
 	def __init__(self):
@@ -79,40 +83,40 @@ class BatchSetPathAttributes(mekkaObject):
 
 		indent = 70
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Attributes in", sizeStyle='small', selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Attributes in", sizeStyle='small')
 		self.w.scopeGlyphs = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), scopeGlyphs, sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
-		self.w.scopeMasterText = vanilla.TextBox((inset, linePos + 2, indent, 14), "for paths on", sizeStyle='small', selectable=True)
+		self.w.scopeMasterText = vanilla.TextBox((inset, linePos + 2, indent, 14), "for paths on", sizeStyle='small')
 		self.w.scopeMaster = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), scopeMaster, sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight + 5
 
 		indent = 80
 
 		tooltip = "Width of the path in units."
-		self.w.strokeWidthText = vanilla.TextBox((inset * 2, linePos + 2, indent, 14), "Stroke Width", sizeStyle='small', selectable=True)
-		self.w.strokeWidthText.getNSTextField().setToolTip_(tooltip)
+		self.w.strokeWidthCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Stroke Width", sizeStyle='small')
+		self.w.strokeWidthCheck._nsObject.setToolTip_(tooltip)
 		self.w.strokeWidth = vanilla.EditText((inset * 2 + indent, linePos, -inset, 19), "20", callback=self.SavePreferences, sizeStyle='small')
 		self.w.strokeWidth.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
 		tooltip = "Height of the path in units. Leave empty for monoline (width=height)."
-		self.w.strokeHeightText = vanilla.TextBox((inset * 2, linePos + 2, indent, 14), "Stroke Height", sizeStyle='small', selectable=True)
-		self.w.strokeHeightText.getNSTextField().setToolTip_(tooltip)
+		self.w.strokeHeightCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Stroke Height", sizeStyle='small')
+		self.w.strokeHeightCheck._nsObject.setToolTip_(tooltip)
 		self.w.strokeHeight = vanilla.EditText((inset * 2 + indent, linePos, -inset, 19), "20", callback=self.SavePreferences, sizeStyle='small')
 		self.w.strokeHeight.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
 		tooltip = "0: right\n1: left\nempty: center (default)"
-		self.w.strokePosText = vanilla.TextBox((inset * 2, linePos + 2, indent, 14), "Position", sizeStyle='small', selectable=True)
-		self.w.strokePosText.getNSTextField().setToolTip_(tooltip)
+		self.w.strokePosCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Position", sizeStyle='small')
+		self.w.strokePosCheck._nsObject.setToolTip_(tooltip)
 		self.w.strokePos = vanilla.PopUpButton((inset * 2 + indent, linePos, -inset, 19), sortedStrokePositionNames, sizeStyle='small', callback=self.SavePreferences)
 		# self.w.strokePos = vanilla.EditText((inset*2+indent, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.strokePos.getNSPopUpButton().setToolTip_(tooltip)
 		linePos += lineHeight
 
 		tooltip = "0: straight cutoff\n1: round (wide)\n2: round (tight)\n3: square\n4: orthogonal\n\nEnter one number for both start and end, enter two comma-separated numbers (e.g. ‘2, 1’) for different caps at start and end."
-		self.w.lineCapsText = vanilla.TextBox((inset * 2, linePos + 2, indent, 14), "Line Caps", sizeStyle='small', selectable=True)
-		self.w.lineCapsText.getNSTextField().setToolTip_(tooltip)
+		self.w.lineCapsCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Line Caps", sizeStyle='small')
+		self.w.lineCapsCheck._nsObject.setToolTip_(tooltip)
 		self.w.lineCaps = vanilla.EditText((inset * 2 + indent, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle='small')
 		self.w.lineCaps.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
@@ -287,9 +291,13 @@ class BatchSetPathAttributes(mekkaObject):
 					lineCaps = lineCaps[:2]
 			else:
 				lineCaps = (None, None)
+			lineCapsCheck = self.prefBool("lineCapsCheck")
 			strokeWidth = self.prefInt("strokeWidth")
+			strokeWidthCheck = self.prefBool("strokeWidthCheck")
 			strokeHeight = self.pref("strokeHeight")
+			strokeHeightCheck = self.prefBool("strokeHeightCheck")
 			strokePos = self.pref("strokePos")
+			strokePosCheck = self.prefBool("strokePosCheck")
 			try:
 				strokePosKey = sortedStrokePositionNames[strokePos]
 				strokePos = strokePositions[strokePosKey]
@@ -314,24 +322,28 @@ class BatchSetPathAttributes(mekkaObject):
 						if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 							for thisPath in thisLayer.paths:
 								# line caps for start and end:
-								for capValue, startOrEnd in zip(lineCaps, ("lineCapStart", "lineCapEnd")):
-									if capValue is None:
-										thisPath.removeAttributeForKey_(startOrEnd)
+								if lineCapsCheck:
+									for capValue, startOrEnd in zip(lineCaps, ("lineCapStart", "lineCapEnd")):
+										if capValue is None:
+											thisPath.removeAttributeForKey_(startOrEnd)
+										else:
+											thisPath.setAttribute_forKey_(capValue, startOrEnd)
+
+								if strokeWidthCheck:
+									# stroke width, height, pos:
+									thisPath.setAttribute_forKey_(strokeWidth, "strokeWidth")
+
+								if strokeHeightCheck:
+									if strokeHeight:  # default is None
+										thisPath.setAttribute_forKey_(strokeHeight, "strokeHeight")
 									else:
-										thisPath.setAttribute_forKey_(capValue, startOrEnd)
+										thisPath.removeAttributeForKey_("strokeHeight")
 
-								# stroke width, height, pos:
-								thisPath.setAttribute_forKey_(strokeWidth, "strokeWidth")
-
-								if strokeHeight:  # default is None
-									thisPath.setAttribute_forKey_(strokeHeight, "strokeHeight")
-								else:
-									thisPath.removeAttributeForKey_("strokeHeight")
-
-								if strokePos is None:  # default is None
-									thisPath.removeAttributeForKey_("strokePos")
-								else:
-									thisPath.setAttribute_forKey_(strokePos, "strokePos")
+								if strokePosCheck:
+									if strokePos is None:  # default is None
+										thisPath.removeAttributeForKey_("strokePos")
+									else:
+										thisPath.setAttribute_forKey_(strokePos, "strokePos")
 
 			# Final report:
 			Glyphs.showNotification(
