@@ -1,9 +1,12 @@
 #MenuTitle: Propagate Components and Mark Anchoring
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Takes the current master’s component and mark anchoring setup and replicates it in all other (compatible) masters. Useful for complex Arabic ligature marks.
 """
+
+from GlyphsApp import Glyphs
+
 
 def process(thisLayer):
 	componentStructure = thisLayer.componentNames()
@@ -20,17 +23,17 @@ def process(thisLayer):
 			accentComponent.setAnchor_(thisLayer.components[i].anchor)
 
 
-thisFont = Glyphs.font # frontmost font
-thisFontMaster = thisFont.selectedFontMaster # active master
-selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
-Glyphs.clearLog() # clears log in Macro window
+thisFont = Glyphs.font  # frontmost font
+thisFontMaster = thisFont.selectedFontMaster  # active master
+selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+Glyphs.clearLog()  # clears log in Macro window
 
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 try:
 	for thisLayer in selectedLayers:
 		thisGlyph = thisLayer.parent
 		print(f"Processing {thisGlyph.name}")
-		thisGlyph.beginUndo() # begin undo grouping
+		thisGlyph.beginUndo()  # begin undo grouping
 		process(thisLayer)
 		thisGlyph.endUndo()   # end undo grouping
 except Exception as e:
@@ -41,4 +44,4 @@ except Exception as e:
 	print()
 	raise e
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

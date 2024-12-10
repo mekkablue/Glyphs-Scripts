@@ -10,7 +10,7 @@ from GlyphsApp import Glyphs, GSSmartComponentAxis
 Glyphs.clearLog()
 
 font = Glyphs.font
-fontAxisValues = [m.axes[i] for m in font.masters]
+fontAxisValues = [m.axes for m in font.masters]
 selectedLayers = font.selectedLayers
 if len(selectedLayers) > 1:
 	batchProcess = True

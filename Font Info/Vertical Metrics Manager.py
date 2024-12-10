@@ -118,25 +118,25 @@ class VerticalMetricsManager(mekkaObject):
 		self.w.hheaUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
 		self.w.hheaUpdate.getNSButton().setToolTip_("Will copy the typo values into the hhea values (should always be in sync), unless typo values are not set. In that case, will recalculate the hhea values in the fields to the left. Takes the measurement settings below into account.")
 		linePos += lineHeight
-		
+
 		# right align:
 		for textCell in (self.w.winAsc, self.w.winDesc, self.w.typoAsc, self.w.typoDesc, self.w.typoGap, self.w.hheaAsc, self.w.hheaDesc, self.w.hheaGap):
 			textCell.getNSTextField().setAlignment_(NSRightTextAlignment)
 
 		self.w.useTypoMetrics = vanilla.CheckBox((inset + 58, linePos + 6, -inset, 18), "Use Typo Metrics (fsSelection bit 7)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.useTypoMetrics.getNSButton().setToolTip_("Should ALWAYS BE ON. Only uncheck if you really know what you are doing. If unchecked, line behaviour will not be consistent between apps and browsers because some apps prefer win values to sTypo values for determining line distances.")
-		self.w.useTypoMetricsUpdate = UpdateButton((-inset - 18, linePos+3, -inset, 18), callback=self.update)
+		self.w.useTypoMetricsUpdate = UpdateButton((-inset - 18, linePos + 3, -inset, 18), callback=self.update)
 		self.w.useTypoMetricsUpdate.getNSButton().setToolTip_("Will reset the checkbox to the left to ON, because it should ALWAYS be on. Strongly recommended.")
 		linePos += int(lineHeight * 1.4)
 
-		self.w.extractText = vanilla.TextBox((inset, linePos+2, -70 - inset, 14), "Copy values from existing OpenType font:", sizeStyle="small", selectable=True)
+		self.w.extractText = vanilla.TextBox((inset, linePos + 2, -70 - inset, 14), "Copy values from existing OpenType font:", sizeStyle="small", selectable=True)
 		self.w.extractButton = vanilla.Button((-70 - inset, linePos, -inset, 17), "Extract", sizeStyle="small", callback=self.extract)
 		self.w.extractButton.getNSButton().setToolTip_("Extracts values from an existing compiled font (.otf or .ttf) and inserts them in the fields above. Useful if you need to stay in sync with a pre-existing font.")
 		linePos += int(lineHeight * 1.2)
 
 		self.w.separator = vanilla.HorizontalLine((inset, linePos, -inset, 6))
 		linePos += lineHeight - 7
-		
+
 		self.w.descriptionMeasurements = vanilla.TextBox((inset, linePos, -inset, 14), "Taking measurements (see tooltips for info):", sizeStyle='small')
 		linePos += lineHeight
 
@@ -212,21 +212,21 @@ class VerticalMetricsManager(mekkaObject):
 		if URL:
 			import webbrowser
 			webbrowser.open(URL)
-	
+
 	def extract(self, sender=None):
 		Glyphs.clearLog()  # clears macro window log
-		
+
 		sourceFile = GetOpenFile(
 			message="Choose font file (.otf or .ttf) for vertical metrics",
 			allowsMultipleSelection=False,
 			filetypes=("otf", "ttf", "woff", "woff2"),
-			)
+		)
 		if not sourceFile:
-			print(f"❌ No font file specified for extracting vertical metrics.")
+			print("❌ No font file specified for extracting vertical metrics.")
 			return
-		
+
 		# extract from font file with fontTools:
-		import fontTools
+		# import fontTools
 		from fontTools import ttLib
 		font = ttLib.TTFont(sourceFile)
 		os2Table = font["OS/2"]
@@ -241,8 +241,8 @@ class VerticalMetricsManager(mekkaObject):
 			"hheaDesc": hheaTable.descender,
 			"hheaGap": hheaTable.lineGap,
 			"useTypoMetrics": int(os2Table.fsSelection & (2**7) == 2**7),
-			}
-		
+		}
+
 		# set prefs, update UI:
 		print(f"📄 Extracting from: {sourceFile}\n")
 		for verticalMetric in extractedValues.keys():
@@ -406,9 +406,9 @@ class VerticalMetricsManager(mekkaObject):
 				name = "OS/2 sTypo"
 
 			print("Determining %s values:\n" % name)
-			
+
 			if sender == self.w.hheaUpdate and self.pref("typoAsc") and self.pref("typoDesc"):
-				print(f"💞 Copying existing OS/2 sTypo values into hhea values...")
+				print("💞 Copying existing OS/2 sTypo values into hhea values...")
 				asc = self.pref("typoAsc")
 				desc = self.pref("typoDesc")
 				gap = self.pref("typoGap")

@@ -7,7 +7,7 @@ Creates postscriptFontName entries (Name ID 6) for all instances with options to
 
 import vanilla
 from string import ascii_letters, digits
-from GlyphsApp import Glyphs, INSTANCETYPESINGLE, Message
+from GlyphsApp import Glyphs, GSDocument, GSProjectDocument, INSTANCETYPESINGLE, Message
 from mekkablue import mekkaObject
 
 
@@ -75,7 +75,7 @@ def familyNameForInstance(instance):
 		return instance.font.font().familyName
 	else:
 		return instance.font.familyName
-	
+
 
 def addPSNameToInstance(i, shorten=False, asCustomParameter=True):
 	allowedChars = ascii_letters + digits
@@ -170,17 +170,17 @@ class PSNameMaker(mekkaObject):
 			shortenStyleNames = self.pref("shortenStyleNames")
 			remove = sender == self.w.removeButton
 			addAsNameEntryParameter = self.pref("addAsNameEntryParameter")
-			
+
 			theseDocs = Glyphs.orderedDocuments()
 			if not theseDocs:
 				Message(title="No Font Open", message="The script requires a font or project document. Open a font and run the script again.", OKButton=None)
 			else:
 				if not self.pref("allFonts"):
 					theseDocs = (theseDocs[0], )
-					
+
 				for thisDoc in theseDocs:
 					print(thisDoc, type(thisDoc))
-			
+
 					if isinstance(thisDoc, GSProjectDocument):
 						thisFont = thisDoc.font()
 						instances = thisDoc.instances

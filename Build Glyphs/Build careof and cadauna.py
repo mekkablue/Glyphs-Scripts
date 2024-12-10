@@ -10,6 +10,7 @@ from GlyphsApp import Glyphs, GSGlyph, GSComponent
 from mekkablue.geometry import transform
 
 distanceBetweenComponents = 80
+parenShiftForLetters = 40.0
 
 thisFont = Glyphs.font  # frontmost font
 newGlyphs = {
