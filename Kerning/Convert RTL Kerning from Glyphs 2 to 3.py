@@ -154,7 +154,7 @@ def mapGlyphsToScripts(thisFont):
 	if Glyphs.versionNumber < 3.1:
 		exporter._makeKey2Scripts_splitGroups_GroupDict_error_(glyph2script, None, {}, None)
 	else:
-		exporter._makeCachesKey2Scripts_splitGroups_groupDict_glyphsID2Glyph_name2Glyph_error_(glyph2script, None, {}, None, None, None)
+		exporter._makeCachesKey2Scripts_splitGroups_groupDict_glyphID2GlyphName_name2Glyph_error_(glyph2script, None, {}, None, None, None)
 	return glyph2script
 
 
