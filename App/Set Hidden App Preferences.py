@@ -30,6 +30,7 @@ class SetHiddenAppPreferences(mekkaObject):
 		"IgnoreRecentScriptInvokedByKeyboard",
 		"moveToApplicationsFolderAlertSuppress",
 		"DebugMode",
+		"GSPluginManagerDisableAutomaticUpdates",
 		"AlwaysShowAllMetrics",
 		"GSPreview_MoreSpaceAbove",
 		"GSPreview_MoreSpaceBelow",
