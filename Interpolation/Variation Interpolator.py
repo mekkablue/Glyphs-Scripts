@@ -191,6 +191,14 @@ class VariationInterpolator(mekkaObject):
 	def VariationInterpolatorMain(self, sender):
 		try:
 			thisFont = Glyphs.font  # frontmost font
+			selectedLayers = thisFont.selectedLayers
+			if not selectedLayers:
+				Message(
+					title="Select exactly something",
+					message="Please select exactly two glyphs to interpolate.",
+					OKButton=None,
+				)
+				return
 			thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 			try:
 				numberOfInterpolations = self.prefInt("numberOfInterpolations")
