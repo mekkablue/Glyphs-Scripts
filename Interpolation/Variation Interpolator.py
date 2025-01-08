@@ -22,19 +22,15 @@ class VariationInterpolator(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 240
-		windowHeight = 130
-		windowWidthResize = 500  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 120
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Variation Interpolator",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 10, 14, 20
+		linePos, inset, lineHeight = 10, 14, 24
 
 		self.w.text_1 = vanilla.TextBox((inset, linePos + 2, 40, 14), "Create", sizeStyle='small')
 		self.w.numberOfInterpolations = vanilla.ComboBox((inset + 42, linePos - 1, -inset - 135, 19), [x * 5 for x in range(1, 7)], sizeStyle='small', callback=self.SavePreferences)
