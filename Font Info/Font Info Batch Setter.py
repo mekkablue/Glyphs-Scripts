@@ -463,10 +463,11 @@ class FontInfoBatchSetter(mekkaObject):
 							changeCount += 1
 
 					if setLicenseURL:
-						if thisFont.propertyForName_("licenseURL").value == licenseURL:
+						existingLicense = thisFont.propertyForName_("licenseURL")
+						if existingLicense and existingLicense.value == licenseURL:
 							print("🆗 👨🏻‍💼 Font already has desired LicenseURL. No change.")
 						else:
-							thisFont.propertyForName_("licenseURL").value = licenseURL
+							addPropertyToFont(thisFont, "licenseURL", licenseURL)
 							print("✅ 👨🏻‍💼 LicenseURL set: %s" % licenseURL)
 							changeCount += 1
 
