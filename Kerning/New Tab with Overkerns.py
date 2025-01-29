@@ -195,6 +195,8 @@ class NewTabwithOverkernedPairs(mekkaObject):
 								else:
 									# leftKey is a glyph ID like "59B740DA-A4F4-43DF-B6DD-1DFA213FFFE7"
 									leftGlyph = thisFont.glyphForId_(leftKey)
+									if not leftGlyph:
+										continue
 									# exclude if non-exporting and user limited to exporting glyphs:
 									if self.pref("limitToExportingGlyphs") and not leftGlyph.export:
 										continue
@@ -209,6 +211,8 @@ class NewTabwithOverkernedPairs(mekkaObject):
 								else:
 									# rightKey is a glyph ID like "59B740DA-A4F4-43DF-B6DD-1DFA213FFFE7"
 									rightGlyph = thisFont.glyphForId_(rightKey)
+									if not rightGlyph:
+										continue
 									# exclude if non-exporting and user limited to exporting glyphs:
 									if self.pref("limitToExportingGlyphs") and not rightGlyph.export:
 										continue
