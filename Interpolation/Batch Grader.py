@@ -732,7 +732,6 @@ class BatchGrader(mekkaObject):
 			onlyGlyphName = None
 			if onlyCurrentGlyph:
 				layer = thisFont.currentTab.activeLayer()
-				print("__layer", layer)
 				if layer:
 					onlyGlyphName = layer.parent.name
 
