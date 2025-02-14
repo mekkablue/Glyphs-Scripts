@@ -10,20 +10,6 @@ from GlyphsApp import Glyphs, CORNER, SEGMENT, CAP
 SUPPORTEDTYPES = (CORNER, SEGMENT, CAP)
 
 
-def indexOfPath(layer, p):
-	for i in range(len(layer.paths)):
-		if p == layer.paths[i]:
-			return i
-	return None
-
-
-def indexOfNode(layer, pi, n):
-	for i in range(len(layer.paths[pi].nodes)):
-		if n == layer.paths[pi].nodes[i]:
-			return i
-	return None
-
-
 def deleteCornerComponentsOnLayer(layer):
 	cornerComponents = [h for h in layer.hints if h.type in SUPPORTEDTYPES]
 	if cornerComponents:
@@ -47,10 +33,6 @@ def process(thisLayer):
 	for targetLayer in targetLayers:
 		deleteCornerComponentsOnLayer(targetLayer)
 		for h in [h for h in thisLayer.hints if h.type in SUPPORTEDTYPES]:
-			# query corner component attributes:
-			pathIndex = indexOfPath(thisLayer, h.originNode.parent)
-			nodeIndex = indexOfNode(thisLayer, pathIndex, h.originNode)
-
 			# create eqivalent corner component in target layer:
 			newCorner = h.copy()
 			targetLayer.hints.append(newCorner)
