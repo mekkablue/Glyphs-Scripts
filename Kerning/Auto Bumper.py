@@ -195,6 +195,9 @@ class Bumper(mekkaObject):
 		# Run Button:
 		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Kern", callback=self.BumperMain)
 		self.w.setDefaultButton(self.w.runButton)
+		
+		self.w.status = vanilla.TextBox((inset, -20 - inset, -inset-210, 14), "Ready.", sizeStyle="small", selectable=True)
+		
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -305,6 +308,7 @@ class Bumper(mekkaObject):
 			if shouldReportInMacroWindow:
 				Glyphs.clearLog()
 				print("Auto Bumper Report for %s, master %s:\n" % (thisFont.familyName, thisMaster.name))
+			self.w.status.set(f"Bumping in ‘{thisMaster.name}’")
 
 			# reset progress bar:
 			self.w.bar.set(0)
@@ -462,18 +466,19 @@ class Bumper(mekkaObject):
 
 				# Report number of new kern pairs:
 				if kernCount:
-					report = 'Added %i kern pairs. Time elapsed: %s.' % (kernCount, timereport)
+					report = f'Added {kernCount} kern pair{"s" if kernCount != 1 else ""} in {timereport}.'
 				# or report that nothing was found:
 				else:
-					report = 'No kerning added. Time elapsed: %s. Congrats!' % timereport
+					report = f'No kerning added ({timereport}).'
 
 				# Floating notification:
-				notificationTitle = "Bumper: %s (%s)" % (thisFont.familyName, thisMaster.name)
-				Message(
-					title=notificationTitle,
-					message=report,
-					OKButton=None,
-				)
+				# notificationTitle = "Bumper: %s (%s)" % (thisFont.familyName, thisMaster.name)
+				# Message(
+				# 	title=notificationTitle,
+				# 	message=report,
+				# 	OKButton=None,
+				# )
+				self.w.status.set(f"✅ {report}")
 
 				# Open new tab:
 				if self.pref("openNewTabWithKernPairs"):
