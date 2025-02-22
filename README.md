@@ -374,6 +374,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Sample String Maker:** Creates kern strings for user-defined categories and adds them to the Sample Strings. Group kerning only, glyphs without groups are ignored.
 * **Sample Strings with Master Kerning:** Creates kern strings for the current kerning and adds them to the Sample Strings.
 * **Set Kerning Groups:** Sets left and right kerning groups for all selected glyphs. In the case of compounds, will use the groups of the base components, otherwise makes an informed guess based on a built-in dictionary.
+* **Split Kerning Groups:** In existing group kerning, separate some glyphs out of a kerning group, effectively duplicating the kern groups with the new group. *Needs Vanilla.*
 * **Steal Kerning from InDesign:** Steals the kerning from text set in InDesign. Useful for extracting InDesign’s [Optical Kerning](https://web.archive.org/web/20160414170915/http://blog.extensis.com/adobe/about-adobe’s-optical-kerning.php) values.
 * **Steal Kerning Groups from Font:** Steals left/right kerning groups for all selected glyphs from a 2nd font.
 * **Transfer RTL kerning:** Transfers RTL kerning from one master to another.
