@@ -19,13 +19,24 @@ iíĭǐîïịìỉīįĩjĵ
 /iacute.sc/icaron.sc/icircumflex.sc/idieresis.sc/idotaccent.sc/igrave.sc/ihookabove.sc/imacron.sc/itilde.sc
 FTKVWY  # TOP RIGHT
 f
-/lslash
+ÐĦðđħ/Lslash/lslash
 bhlkþ
 rtkvwxyz
+
+ĄĘĮ  # OGONEK
+gjpy  # DESCENDER
+
+AKLRXZ  # BOTTOM RIGHT
+sxz  # BOTTOM LEFT
 
 abcdefghijklmnopqrstuvwxyzßð
 ABCDEFGHIJKLMNOPQRSTUVWXYZẞÞ
 /a.sc/b.sc/c.sc/d.sc/e.sc/f.sc/g.sc/h.sc/i.sc/j.sc/k.sc/l.sc/m.sc/n.sc/o.sc/p.sc/q.sc/r.sc/s.sc/t.sc/u.sc/v.sc/w.sc/x.sc/y.sc/z.sc/germandbls.sc/thorn.sc
+
+({[„“”«»¿¡/slash
+„“”]})*®?!»«/slash
+/parenleft.sc/braceleft.sc/bracketleft.sc
+/parenright.sc/braceright.sc/bracketright.sc
 
 /Ohorn/Uhorn #VIETNAMESE
 /ohorn/uhorn #VIETNAMESE
@@ -33,12 +44,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZẞÞ
 /i/iacute/idotbelow/igrave/ihookabove/itilde #VIETNAMESE
 /i.sc/iacute.sc/idotbelow.sc/igrave.sc/ihookabove.sc/itilde.sc #VIETNAMESE
 
-({[„“”
-„“”]})*®?!/»«
-/parenleft.sc/braceleft.sc/bracketleft.sc
-/parenright.sc/braceright.sc/bracketright.sc
-
-/quotesinglbase/quotedblbase/quotedblleft/quotedblright/quoteleft/quoteright/quotedbl/quotesingle
+»«‹›/quotesinglbase/quotedblbase/quotedblleft/quotedblright/quoteleft/quoteright/quotedbl/quotesingle
 
 /lcaron/dcaron/tcaron #CZECH AND SLOVAK
 ňčěšäížůô #CZECH AND SLOVAK EXCEPTIONS
@@ -48,11 +54,6 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZẞÞ
 /slash
 /iacute.sc/icaron.sc/icircumflex.sc/idieresis.sc/idotaccent.sc/igrave.sc/imacron.sc/iogonek.sc/itilde.sc/icaron.sc
 
-ĄĘĮ  # OGONEK
-gjpy  # DESCENDER
-
-AKLRXZ  # BOTTOM RIGHT
-sxz  # BOTTOM LEFT
 """
 
 
@@ -159,7 +160,7 @@ class Bumper(mekkaObject):
 		self.w.keepExistingKerning = vanilla.CheckBox((inset + 5, linePos, tabStop - inset, smallCheckboxHeight), "Keep (don’t overwrite) existing kerning", value=True, sizeStyle='small', callback=self.SavePreferences)
 		self.w.keepExistingKerning.getNSButton().setToolTip_("If the kern pair already exists in the font, it will not be overwritten.")
 		self.w.resetExceptionsForGroups = vanilla.CheckBox((inset + tabStop, linePos, -inset, smallCheckboxHeight), "Delete exceptions when group-kerning", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.resetExceptionsForGroups.getNSButton().setToolTip_("When AutoBummper is supposed to add group kerning (when you have one or both of the ‘As groups’ checkboxes on), and a group kern is overridden by a kerning exception, then delete that kerning exception. Does nothing if no ‘As groups’ checkboxes are selected.")
+		self.w.resetExceptionsForGroups.getNSButton().setToolTip_("When Auto Bumper is supposed to add group kerning (when you have one or both of the ‘As groups’ checkboxes on), and a group kern is overridden by a kerning exception, then delete that kerning exception. Does nothing if no ‘As groups’ checkboxes are selected.")
 		linePos += lineHeight
 
 		self.w.excludeNonExporting = vanilla.CheckBox((inset + 5, linePos, tabStop - inset, smallCheckboxHeight), "Exclude non-exporting glyphs", value=True, sizeStyle='small', callback=self.SavePreferences)
@@ -196,7 +197,7 @@ class Bumper(mekkaObject):
 		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Kern", callback=self.BumperMain)
 		self.w.setDefaultButton(self.w.runButton)
 		
-		self.w.status = vanilla.TextBox((inset, -20 - inset, -inset-210, 14), "Ready.", sizeStyle="small", selectable=True)
+		self.w.status = vanilla.TextBox((inset, -28 - inset, -inset-210, 14), "Ready.", sizeStyle="small", selectable=True)
 		
 
 		# Load Settings:

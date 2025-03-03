@@ -22,14 +22,14 @@ class NewTabwithOverkernedPairs(mekkaObject):
 		"rounding": 5,
 		"scope": 1,
 		"verbose": False,
-		"ignore": "fraction, slash, .percent",
+		"ignore": "fraction, .dnom, .numr, inferior, superior, .percent, slash, ordfeminine, ordmasculine",
 	}
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 290
 		windowHeight = 200
-		windowWidthResize = 100  # user can resize width by this value
+		windowWidthResize = 1000  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
@@ -80,6 +80,12 @@ class NewTabwithOverkernedPairs(mekkaObject):
 
 	def NewTabwithOverkernedPairsMain(self, sender=None):
 		try:
+			def glyphNameContainsIgnoredParticle(glyphName, ignoredParticles):
+				for particle in ignoredParticles:
+					if particle in glyphName:
+						return True
+				return False
+			
 			# clear macro window log:
 			Glyphs.clearLog()
 			shouldFix = sender == self.w.fixButton
@@ -106,12 +112,6 @@ class NewTabwithOverkernedPairs(mekkaObject):
 
 			verbose = bool(self.pref("verbose"))
 			ignores = [particle.strip() for particle in self.pref("ignore").split(",") if len(particle.strip()) > 0]
-
-			def glyphNameContainsIgnoredParticle(glyphName, ignoredParticles=ignores):
-				for particle in ignoredParticles:
-					if particle in glyphName:
-						return True
-				return False
 
 			overKernCount = 0
 			for thisFont in theseFonts:
@@ -145,7 +145,7 @@ class NewTabwithOverkernedPairs(mekkaObject):
 					else:
 						theseGlyphs = thisFont.glyphs
 					for thisGlyph in theseGlyphs:
-						if glyphNameContainsIgnoredParticle(thisGlyph.name):
+						if glyphNameContainsIgnoredParticle(thisGlyph.name, ignores):
 							continue
 
 						thisLayer = thisGlyph.layers[thisMaster.id]
@@ -172,11 +172,15 @@ class NewTabwithOverkernedPairs(mekkaObject):
 
 					# go through kern values and collect them in tabText:
 					for leftKey in masterKerning.keys():
-						if leftKey[0] == "@" and not leftKey[7:] in rightGroupMinimumWidths.keys():
+						if leftKey[0] == "@" and (not leftKey[7:] in rightGroupMinimumWidths.keys() or glyphNameContainsIgnoredParticle(leftKey, ignores)):
 							continue
-
+						if leftKey[0] != "@" and glyphNameContainsIgnoredParticle(thisFont.glyphForId_(leftKey).name, ignores):
+							continue
+						
 						for rightKey in masterKerning[leftKey].keys():
-							if rightKey[0] == "@" and not rightKey[7:] in leftGroupMinimumWidths.keys():
+							if rightKey[0] == "@" and (not rightKey[7:] in leftGroupMinimumWidths.keys() or glyphNameContainsIgnoredParticle(rightKey, ignores)):
+								continue
+							if rightKey[0] != "@" and glyphNameContainsIgnoredParticle(thisFont.glyphForId_(rightKey).name, ignores):
 								continue
 
 							kernValue = masterKerning[leftKey][rightKey]
