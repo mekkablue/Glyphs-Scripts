@@ -201,9 +201,11 @@ class VerticalMetricsManager(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
+
 	def updateUI(self, sender=None):
 		self.w.includeAllMasters.enable(not self.w.allOpenFonts.get())
 		self.w.runButton.setTitle(f'Apply to Font{"s" if self.w.allOpenFonts.get() else ""}')
+
 
 	def openURL(self, sender):
 		URL = None
@@ -212,6 +214,7 @@ class VerticalMetricsManager(mekkaObject):
 		if URL:
 			import webbrowser
 			webbrowser.open(URL)
+
 
 	def extract(self, sender=None):
 		Glyphs.clearLog()  # clears macro window log
@@ -250,6 +253,7 @@ class VerticalMetricsManager(mekkaObject):
 			self.setPref(verticalMetric, extractedValues[verticalMetric])
 		self.LoadPreferences()
 		print("✅ Done.")
+
 
 	def update(self, sender=None):
 		Glyphs.clearLog()  # clears macro window log
@@ -409,9 +413,9 @@ class VerticalMetricsManager(mekkaObject):
 
 			if sender == self.w.hheaUpdate and self.pref("typoAsc") and self.pref("typoDesc"):
 				print("💞 Copying existing OS/2 sTypo values into hhea values...")
-				asc = self.pref("typoAsc")
-				desc = self.pref("typoDesc")
-				gap = self.pref("typoGap")
+				asc = cleanInt(self.pref("typoAsc"))
+				desc = cleanInt(self.pref("typoDesc"))
+				gap = cleanInt(self.pref("typoGap"))
 			else:
 				lowest, highest = 0.0, 0.0
 				lowestGlyph, highestGlyph = None, None
@@ -565,6 +569,7 @@ class VerticalMetricsManager(mekkaObject):
 		print("winDesc", self.pref("winDesc"))
 		print("winAsc", self.pref("winAsc"))
 
+
 	def VerticalMetricsManagerMain(self, sender):
 		try:
 			Glyphs.clearLog()  # clears macro window log
@@ -573,14 +578,14 @@ class VerticalMetricsManager(mekkaObject):
 			# update settings to the latest user input:
 			self.SavePreferences()
 
-			typoAsc = self.pref("typoAsc")
-			typoDesc = self.pref("typoDesc")
-			typoGap = self.pref("typoGap")
-			hheaAsc = self.pref("hheaAsc")
-			hheaDesc = self.pref("hheaDesc")
-			hheaGap = self.pref("hheaGap")
-			winDesc = self.pref("winDesc")
-			winAsc = self.pref("winAsc")
+			typoAsc = cleanInt(self.pref("typoAsc"))
+			typoDesc = cleanInt(self.pref("typoDesc"))
+			typoGap = cleanInt(self.pref("typoGap"))
+			hheaAsc = cleanInt(self.pref("hheaAsc"))
+			hheaDesc = cleanInt(self.pref("hheaDesc"))
+			hheaGap = cleanInt(self.pref("hheaGap"))
+			winDesc = cleanInt(self.pref("winDesc"))
+			winAsc = cleanInt(self.pref("winAsc"))
 			verticalMetricDict = {
 				"typoAscender": typoAsc,
 				"typoDescender": typoDesc,
