@@ -749,6 +749,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 			div:focus {
 				outline: 0px solid transparent;
 			}
+
 /* Footer paragraph: */
 			#helptext {
 				position: fixed;
@@ -761,6 +762,18 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 			a {
 				color: #333;
 			}
+			
+/* Print: */
+			@media print {
+				#helptext, #helptext *,
+				#controls, #controls *, 
+				#featureControls, 
+				#styleMenu, #styleMenu *,
+				.otFeature {
+					display: none !important;
+				}
+			}
+			
 /* Dark Mode: */
 			@media (prefers-color-scheme: dark) {
 				body { background: #000; }
