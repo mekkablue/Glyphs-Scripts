@@ -98,8 +98,8 @@ class Decompose_Components_in_Background(mekkaObject):
 
 		# collect user settings:
 		copyToBackgroundFirst = self.prefBool("copyToBackgroundFirst")
-		workOnAllFonts = self.pref("whichGlyphsInWhichFonts")
-		workOnAllGlyphs = workOnAllFonts or self.pref("whichMasters")
+		workOnAllGlyphs = self.pref("whichGlyphsInWhichFonts") > 0
+		workOnAllFonts = workOnAllGlyphs == 2
 		verbose = self.pref("verbose")
 
 		# determine affected fonts
