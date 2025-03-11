@@ -9,10 +9,10 @@ from GlyphsApp import Glyphs, Message
 
 Font = Glyphs.font
 
-UC = "AHIMNOTUVWXY"
-SC = ["%s.sc" % x.lower() for x in UC]
-LC = "ilovwx"
-SY = ["hyphen", "endash", "emdash", "quotesingle", "quotedbl", "at", "space", "asterisk"]
+UC = "AHIMNOTUVWXYАЖИМНОПТФХШЏЫІΑΗΘΙΛΜΝΞΟΠΤΥΦΧΨΩ"
+SC = [f"{x.lower()}.sc" for x in UC]
+LC = "ilovwxжимноптфхшџыθοχω"
+SY = ["period", "colon", "ellipsis", "periodcentered", "hyphen", "endash", "emdash", "quotesingle", "quotedbl", "at", "space", "asterisk", "bar", "brokenbar"]
 
 thisFont = Glyphs.font  # frontmost font
 m = thisFont.selectedFontMaster  # active master
@@ -22,13 +22,13 @@ allDottedGlyphNames = [x.name for x in thisFont.glyphs if "." in x.name and x.ex
 extraUC, extraSC, extraLC = [], [], []
 for x in allDottedGlyphNames:
 	for S in SC:
-		if x.startswith("%s." % S):
+		if x.startswith(f"{S}."):
 			extraSC.append(x)
 	for U in UC:
-		if x.startswith("%s." % U) and x not in SC and x not in extraSC:
+		if x.startswith(f"{U}.") and x not in SC and x not in extraSC:
 			extraUC.append(x)
 	for L in LC:
-		if x.startswith("%s." % L) and x not in SC and x not in extraSC:
+		if x.startswith(f"{L}.") and x not in SC and x not in extraSC:
 			extraLC.append(x)
 
 tabString = ""
@@ -40,14 +40,14 @@ for glyphnames in (list(UC) + extraUC + SY, list(LC) + extraLC + SY, SC + extraS
 				if not thisFont.glyphs[glyphname1] or not thisFont.glyphs[glyphname2]:
 					for g in (glyphname1, glyphname2):
 						if not thisFont[g]:
-							print(u"⚠️ glyph '%s' does not exist" % g)
+							print(f"⚠️ glyph ‘{g}’ does not exist.")
 				else:
 					# kerning exceptions:
 					leftKern = Font.kerningForPair(m.id, glyphname1, glyphname2)
 					rightKern = Font.kerningForPair(m.id, glyphname2, glyphname1)
 					if leftKern != rightKern:
-						print("%s-%s-%s: exception not symmetric: %s vs. %s" % (glyphname1, glyphname2, glyphname1, leftKern, rightKern))
-						tabString += "/%s/%s/%s\n" % (glyphname1, glyphname2, glyphname1)
+						print(f"{glyphname1}-{glyphname2}-{glyphname1}: exception not symmetric: {leftKern} vs. {rightKern}")
+						tabString += f"/{glyphname1}/{glyphname2}/{glyphname1}\n"
 					else:
 						glyph1 = thisFont.glyphs[glyphname1]
 						glyph2 = thisFont.glyphs[glyphname2]
@@ -63,9 +63,9 @@ for glyphnames in (list(UC) + extraUC + SY, list(LC) + extraLC + SY, SC + extraS
 									leftKern,
 									rightKern,
 								))
-								tabString += "/%s/%s/%s\n" % (glyphname1, glyphname2, glyphname1)
+								tabString += f"/{glyphname1}/{glyphname2}/{glyphname1}\n"
 						else:
-							print(u"⚠️ missing kerning groups in glyphs: %s, %s" % (glyphname1, glyphname2))
+							print(f"⚠️ missing kerning groups in glyphs: {glyphname1}, {glyphname2}.")
 
 if tabString:
 	# opens new Edit tab:
