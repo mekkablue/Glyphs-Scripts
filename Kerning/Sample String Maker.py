@@ -8,7 +8,7 @@ Creates kern strings for all kerning groups in user-defined categories and adds 
 import vanilla
 import sampleText
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 CASE = (None, "Uppercase", "Lowercase", "Smallcaps", "Minor")
 
@@ -75,8 +75,9 @@ class SampleStringMaker(mekkaObject):
 		linePos += lineHeight
 
 		self.w.scriptText = vanilla.TextBox((inset, linePos + 2, 45, 14), "Script:", sizeStyle='small', selectable=True)
-		self.w.scriptPopup = vanilla.PopUpButton((inset + 45, linePos, -inset, 17), self.scripts, sizeStyle='small', callback=self.SavePreferences)
+		self.w.scriptPopup = vanilla.PopUpButton((inset + 45, linePos, -inset-23, 17), self.scripts, sizeStyle='small', callback=self.SavePreferences)
 		self.w.scriptPopup.getNSPopUpButton().setToolTip_("Script for letters, will be ignored for all other categories (e.g., numbers).")
+		self.w.scriptUpdate = UpdateButton((-inset-20, linePos-2, -inset, 18), callback=self.updateScripts)
 		linePos += lineHeight
 
 		self.w.leftCategoryText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Left Category:", sizeStyle='small', selectable=True)
@@ -95,8 +96,7 @@ class SampleStringMaker(mekkaObject):
 
 		self.w.excludeText = vanilla.TextBox((inset, linePos + 2, 150, 14), "Exclude glyphs containing:", sizeStyle='small', selectable=True)
 		self.w.excludedGlyphNameParts = vanilla.EditText((inset + 150, linePos, -inset, 19), ".tf, .tosf, ord, Ldot, ldot, .loclCAT", callback=self.SavePreferences, sizeStyle='small')
-		self.w.excludedGlyphNameParts.getNSTextField(
-		).setToolTip_("If the glyph name includes any of these comma-separated fragments, the glyph will be ignored. Always excluded: Ldot, ldot, ldot.sc, Fhook and florin.")
+		self.w.excludedGlyphNameParts.getNSTextField().setToolTip_("If the glyph name includes any of these comma-separated fragments, the glyph will be ignored. Always excluded: Ldot, ldot, ldot.sc, Fhook and florin.")
 		linePos += lineHeight
 
 		self.w.overrideContext = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Override context glyphs:", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -124,6 +124,18 @@ class SampleStringMaker(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+	
+	def updateScripts(self, sender=None):
+		font = Glyphs.font
+		if font:
+			scripts = []
+			for g in font.glyphs:
+				if g.script and not g.script in scripts:
+					scripts.append(g.script)
+			self.scripts = scripts
+			self.w.scriptPopup.setItems(self.scripts)
+			if len(self.scripts) <= self.w.scriptPopup.get():
+				self.w.scriptPopup.set(0)
 
 	def glyphNameIsExcluded(self, glyphName):
 		forbiddenParts = [n.strip() for n in self.pref("excludedGlyphNameParts").split(",")]
