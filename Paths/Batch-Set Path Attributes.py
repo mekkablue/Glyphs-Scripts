@@ -90,26 +90,26 @@ class BatchSetPathAttributes(mekkaObject):
 		self.w.scopeMaster = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), scopeMaster, sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight + 5
 
-		indent = 80
+		indent = 90
 
 		tooltip = "Width of the path in units."
 		self.w.strokeWidthCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Stroke Width", sizeStyle='small')
 		self.w.strokeWidthCheck._nsObject.setToolTip_(tooltip)
-		self.w.strokeWidth = vanilla.EditText((inset * 2 + indent, linePos, -inset, 19), "20", callback=self.SavePreferences, sizeStyle='small')
+		self.w.strokeWidth = vanilla.EditText((inset + indent, linePos, -inset, 19), "20", callback=self.SavePreferences, sizeStyle='small')
 		self.w.strokeWidth.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
 		tooltip = "Height of the path in units. Leave empty for monoline (width=height)."
 		self.w.strokeHeightCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Stroke Height", sizeStyle='small')
 		self.w.strokeHeightCheck._nsObject.setToolTip_(tooltip)
-		self.w.strokeHeight = vanilla.EditText((inset * 2 + indent, linePos, -inset, 19), "20", callback=self.SavePreferences, sizeStyle='small')
+		self.w.strokeHeight = vanilla.EditText((inset + indent, linePos, -inset, 19), "20", callback=self.SavePreferences, sizeStyle='small')
 		self.w.strokeHeight.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
 		tooltip = "0: right\n1: left\nempty: center (default)"
 		self.w.strokePosCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Position", sizeStyle='small')
 		self.w.strokePosCheck._nsObject.setToolTip_(tooltip)
-		self.w.strokePos = vanilla.PopUpButton((inset * 2 + indent, linePos, -inset, 19), sortedStrokePositionNames, sizeStyle='small', callback=self.SavePreferences)
+		self.w.strokePos = vanilla.PopUpButton((inset + indent, linePos, -inset, 19), sortedStrokePositionNames, sizeStyle='small', callback=self.SavePreferences)
 		# self.w.strokePos = vanilla.EditText((inset*2+indent, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.strokePos.getNSPopUpButton().setToolTip_(tooltip)
 		linePos += lineHeight
@@ -117,7 +117,7 @@ class BatchSetPathAttributes(mekkaObject):
 		tooltip = "0: straight cutoff\n1: round (wide)\n2: round (tight)\n3: square\n4: orthogonal\n\nEnter one number for both start and end, enter two comma-separated numbers (e.g. ‘2, 1’) for different caps at start and end."
 		self.w.lineCapsCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Line Caps", sizeStyle='small')
 		self.w.lineCapsCheck._nsObject.setToolTip_(tooltip)
-		self.w.lineCaps = vanilla.EditText((inset * 2 + indent, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle='small')
+		self.w.lineCaps = vanilla.EditText((inset + indent, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle='small')
 		self.w.lineCaps.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
