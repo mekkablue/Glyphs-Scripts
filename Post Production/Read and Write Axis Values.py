@@ -209,7 +209,7 @@ else:
 
 	variableFontSettings = []
 	for instance in thisFont.instances:
-		if instance.type == INSTANCETYPEVARIABLE:
+		if instance.type == INSTANCETYPEVARIABLE and instance.active:
 			variableFontSettings.append(instance)
 
 	if not variableFontSettings:
