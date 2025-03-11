@@ -52,7 +52,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## Anchors
 
-*Anchor Mover is for batch-processing anchor positions. Can be useful after adjusting the x-height. No-brainer: I always use the Reposition script on my combining marks, so stacking combining marks stays in the italic angle.*
+*Anchor Mover is for batch-processing anchor positions. Can be useful after adjusting the x-height. No-brainer: I always use the Realign Stacking Anchors script on my combining marks, so stacking combining marks stays in the italic angle.*
 
 * **Add missing smart anchors:** Adds all anchors for properties of selected smart glyphs on all their layers. Skips *Width* and *Height* anchors.
 * **Add ZWRO origin Anchors:** Insert *origin anchors for ZWRO in all combining marks of specified scripts.
