@@ -397,15 +397,15 @@ class ComponentProblemFinder(mekkaObject):
 								if isAffected:
 									glyphDict[prefName].append(thisGlyph.name)
 				
+				report = ""
+				for prefName in enabledPrefNames:
+					affectedGlyphs = glyphDict[prefName]
+					if affectedGlyphs:
+						report += "\n%s:\n%s\n" % (
+							" ".join(camelCaseSplit(prefName)).capitalize(),
+							"/" + "/".join(affectedGlyphs),
+						)
 				if verbose:
-					report = ""
-					for prefName in enabledPrefNames:
-						affectedGlyphs = glyphDict[prefName]
-						if affectedGlyphs:
-							report += "\n%s:\n%s\n" % (
-								" ".join(camelCaseSplit(prefName)).capitalize(),
-								"/" + "/".join(affectedGlyphs),
-							)
 					print(report)
 
 				if self.pref("reuseTab") and thisFont.currentTab:
