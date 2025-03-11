@@ -7,6 +7,7 @@ In existing group kerning, separate some glyphs out of a kerning group, effectiv
 
 import vanilla, sys
 from mekkablue import *
+from copy import copy
 
 def splitOffGroup(font, newGroup, splitoffs, rightGroup=True):
 	totalCount = 0
@@ -25,7 +26,11 @@ def splitOffGroup(font, newGroup, splitoffs, rightGroup=True):
 			groupName = f"@MMK_L_{group}"
 			newGroupName = f"@MMK_L_{newGroup}".replace("@MMK_L_@MMK_L_", "@MMK_L_") # sanity check
 			for master in font.masters:
-				font.kerning[master.id][newGroupName] = font.kerning[master.id][groupName]
+				# this does not work:
+				# font.kerning[master.id][newGroupName] = copy(font.kerning[master.id][groupName])
+				for rightKey in font.kerning[master.id][groupName].keys():
+					value = font.kerning[master.id][groupName][rightKey]
+					font.setKerningForPair(master.id, newGroupName, rightKey, value)
 				totalCount += len(font.kerning[master.id][newGroupName])
 		regrouped = []
 		for glyphName in splitoffs:
