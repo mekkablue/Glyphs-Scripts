@@ -37,18 +37,18 @@ def otVarFileName(thisFont, thisInstance=None, suffix="ttf"):
 			fileName = fileName[:-4]
 		if not fileName:
 			fileName = thisInstance.customParameters["fileName"]
-			if not fileName:
-				familyName = familyNameOfInstance(thisInstance)
-				fileName = ("%s-%s" % (familyName, thisInstance.name)).replace(" ", "")
-		return "%s.%s" % (fileName, suffix)
+		if not fileName:
+			familyName = familyNameOfInstance(thisInstance)
+			fileName = f"{familyName}-{thisInstance.name}".replace(" ", "")
+		return f"{fileName}.{suffix}"
 	elif thisFont.customParameters["Variable Font File Name"] or thisFont.customParameters["variableFileName"]:
 		fileName = thisFont.customParameters["Variable Font File Name"]
 		if not fileName:
 			fileName = thisFont.customParameters["variableFileName"]
-		return "%s.%s" % (fileName, suffix)
+		return f"{fileName}.{suffix}"
 	else:
 		familyName = otVarFamilyName(thisFont)
-		fileName = "%sVF.%s" % (familyName, suffix)
+		fileName = f"{familyName}VF.{suffix}"
 		fileName = fileName.replace(" ", "")
 		return fileName
 

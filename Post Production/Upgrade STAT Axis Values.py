@@ -42,7 +42,8 @@ else:
 
 	for variableFontExport in variableFontSettings:
 		for suffix in suffixes:
-			fontpath = NSString.alloc().initWithString_(currentExportPath).stringByAppendingPathComponent_(otVarFileName(thisFont, thisInstance=variableFontExport, suffix=suffix))
+			fileName = otVarFileName(thisFont, thisInstance=variableFontExport, suffix=suffix)
+			fontpath = NSString.alloc().initWithString_(currentExportPath).stringByAppendingPathComponent_(fileName)
 			font = ttLib.TTFont(fontpath)
 			print(f"\nProcessing: {fontpath}...")
 			statTable = font["STAT"].table
