@@ -1,73 +1,46 @@
-# MenuTitle: Delete Duplicate Components
+#MenuTitle: Delete Duplicate Components
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__ = """
-Looks for duplicate components (same component, same x/y values) and keeps only one of them.
+__doc__="""
+Delete components of the same base glyph and in the same position. Useful for accidental double 
 """
 
-from GlyphsApp import Glyphs
-
-
-def getAttr(thisLayer, compNumber):
-	thisComp = thisLayer.components[compNumber]
-	return (thisComp.componentName, thisComp.x, thisComp.y, thisComp.transform)
-
-
-def scanForDuplicates(thisLayer, compNumber):
-	if compNumber == len(thisLayer.components) - 1:
-		return []
-	else:
-		indexList = scanForDuplicates(thisLayer, compNumber + 1)
-		currAttr = getAttr(thisLayer, compNumber)
-
-		for i in range(compNumber + 1, len(thisLayer.components)):
-			if currAttr == getAttr(thisLayer, i):
-				indexList.append(i)
-
-		return sorted(set(indexList))
-
-
 def process(thisLayer):
-	if len(thisLayer.components) != 0:
-		# thisLayer.parent.beginUndo()  # undo grouping causes crashes
-		indexesToBeDeleted = scanForDuplicates(thisLayer, 0)
-		for indexToBeDeleted in indexesToBeDeleted[::-1]:
-			if Glyphs.versionNumber >= 3:
-				# GLYPHS 3
-				for i in range(len(thisLayer.shapes)):
-					compToBeDeleted = thisLayer.components[indexToBeDeleted]
-					thisShape = thisLayer.shapes[i]
-					if thisShape == compToBeDeleted:
-						del thisLayer.shapes[i]
-			else:
-				# GLYPHS 2
-				del thisLayer.components[indexToBeDeleted]
-		# thisLayer.parent.endUndo()  # undo grouping causes crashes
-		return len(indexesToBeDeleted)
-	else:
-		return 0
+	for i in range(len(thisLayer.shapes)-1, 0, -1):
+		shape = thisLayer.shapes[i]
+		if not isinstance(shape, GSComponent):
+			continue
+		for j in range(i-1, -1, -1):
+			otherShape = thisLayer.shapes[j]
+			if not isinstance(otherShape, GSComponent):
+				continue
+			areSameComponent = shape.componentName == otherShape.componentName
+			areInSameSpot = shape.position == otherShape.position
+			if areInSameSpot and areSameComponent:
+				del thisLayer.shapes[i]
+				break
 
 
-thisFont = Glyphs.font
-thisFont.disableUpdateInterface()
+Glyphs.clearLog() # clears log in Macro window
+thisFont = Glyphs.font # frontmost font
+selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+
+print(f"Deleting duplicate components in {thisFont.familyName}...\n")
+thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
-	Glyphs.clearLog()
-	print("Deleting duplicate components: %s\n" % thisFont.familyName)
-	totalCount = 0
-	selectedLayers = thisFont.selectedLayers
-	for thisLayer in selectedLayers:
-		numOfDeletedComponents = process(thisLayer)
-		totalCount += numOfDeletedComponents
-		print("%i components deleted in: %s (%s)" % (numOfDeletedComponents, thisLayer.parent.name, thisLayer.name))
-	print("\n✅ Done. Deleted %i component%s in total." % (totalCount, "" if totalCount == 1 else "s"))
-
+	for thisLayer in set(selectedLayers):
+		thisGlyph = thisLayer.parent
+		print(f"🔠 {thisGlyph.name}, layer ‘{thisLayer.name}’")
+		thisGlyph.beginUndo() # begin undo grouping
+		process(thisLayer)
+		thisGlyph.endUndo()   # end undo grouping
+	print("\n✅ Done.")
 except Exception as e:
 	Glyphs.showMacroWindow()
-	print("\n⚠️ Script Error:\n")
+	print("\n⚠️ Error in script: Delete Duplicate Components\n")
 	import traceback
 	print(traceback.format_exc())
 	print()
 	raise e
-
 finally:
-	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
