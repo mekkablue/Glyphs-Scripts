@@ -93,7 +93,7 @@ class SplitKerningGroups(object):
 		# Window 'self.w':
 		windowWidth  = 410
 		windowHeight = 140
-		windowWidthResize  = 300 # user can resize width by this value
+		windowWidthResize  = 600 # user can resize width by this value
 		windowHeightResize = 200 # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight), # default window size
@@ -105,6 +105,8 @@ class SplitKerningGroups(object):
 		
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
+		self.inset = inset
+		self.firstLinePos = linePos
 		self.w.descriptionText = vanilla.TextBox((inset, linePos+2, 85, 14), "Move glyphs in", sizeStyle="small", selectable=True)
 		self.w.isRightGroup = vanilla.PopUpButton((inset+85, linePos, 85, 17), ("left group", "right group"), sizeStyle="small", callback=self.update)
 		self.w.originalGroupName = vanilla.ComboBox((inset+85+85+5, linePos-2, -inset-25-130, 19), [], sizeStyle="small", callback=self.update)
@@ -120,15 +122,34 @@ class SplitKerningGroups(object):
 		self.w.runButton = vanilla.Button((-60-inset, -20-inset, -inset, -inset), "Split", sizeStyle="regular", callback=self.SplitKerningGroupsMain)
 		self.w.setDefaultButton(self.w.runButton)
 		
+		# enable resize
+		self.w.bind("resize", self.windowResize)
+		
 		# Load Settings:
 		if not self.LoadPreferences():
 			print("⚠️ ‘Split Kerning Groups’ could not load preferences. Will resort to defaults.")
 
 		self.update(sender="first run")
+		self.windowResize()
 		
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+	
+	def windowResize(self, sender=None):
+		inset = self.inset
+		linePos = self.firstLinePos
+		left, top, width, height = self.w.getPosSize()
+		usedWidth = self.inset*2 + 85 + 85 + 5 + 25 + 130 - 55
+		availableWidth = width - usedWidth
+		x = inset+85+85+5
+		self.w.originalGroupName.setPosSize((x, linePos-2, availableWidth//2, 19))
+		x += availableWidth//2 + 5
+		self.w.updateButton.setPosSize((x, linePos-2, 12, 18))
+		x += 23
+		self.w.newGroupText.setPosSize((x, linePos+2, 75, 14))
+		x += 75
+		self.w.newGroupName.setPosSize((x, linePos-1, availableWidth//2, 19))
 	
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
