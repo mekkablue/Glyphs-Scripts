@@ -60,8 +60,9 @@ class ComponentProblemFinder(mekkaObject):
 		"includeAllGlyphs": False,
 		"includeNonExporting": False,
 		"reuseTab": False,
+		"verbose": False,
 	}
-	prefs = (  # used to enable/disabel UI
+	prefs = (  # used to enable/disable UI
 		"composablesWithoutComponents",
 		"unusualComponents",
 		"lockedComponents",
@@ -76,9 +77,6 @@ class ComponentProblemFinder(mekkaObject):
 		"shiftedComponents",
 		"detachedCornerComponents",
 		"transformedCornerComponents",
-		# "includeAllGlyphs",
-		# "includeNonExporting",
-		# "reuseTab",
 	)
 
 	def __init__(self):
@@ -176,6 +174,9 @@ class ComponentProblemFinder(mekkaObject):
 
 		self.w.reuseTab = vanilla.CheckBox((inset + 2, linePos, 125, 20), "Reuse existing tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.getNSButton().setToolTip_("If enabled, will only open a new tab if none is open. Recommended.")
+		
+		self.w.verbose = vanilla.CheckBox((inset+140, linePos, -inset, 20), "Verbose (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose.getNSButton().setToolTip_("Will do verbose reporting in the Macro Window and the status line of this window. Slows down the script significantly, so activate only for small fonts.")
 		linePos += lineHeight
 
 		# Progress Bar and Status text:
@@ -355,6 +356,7 @@ class ComponentProblemFinder(mekkaObject):
 
 			# update settings to the latest user input:
 			self.SavePreferences()
+			verbose = self.pref("verbose")
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
@@ -382,9 +384,10 @@ class ComponentProblemFinder(mekkaObject):
 				glyphCount = len(glyphs)
 				for i, thisGlyph in enumerate(glyphs):
 					self.w.progress.set(100 * i / glyphCount)
-					report = "🔠 %s" % thisGlyph.name
-					print(report)
-					self.w.status.set(report)
+					if verbose:
+						report = "🔠 %s" % thisGlyph.name
+						print(report)
+						self.w.status.set(report)
 
 					if shouldIncludeNonExporting or thisGlyph.export:
 						for prefName in enabledPrefNames:
@@ -393,16 +396,17 @@ class ComponentProblemFinder(mekkaObject):
 								isAffected = self.callMethodWithArg(methodName, thisGlyph)
 								if isAffected:
 									glyphDict[prefName].append(thisGlyph.name)
-
-				report = ""
-				for prefName in enabledPrefNames:
-					affectedGlyphs = glyphDict[prefName]
-					if affectedGlyphs:
-						report += "\n%s:\n%s\n" % (
-							" ".join(camelCaseSplit(prefName)).capitalize(),
-							"/" + "/".join(affectedGlyphs),
-						)
-				print(report)
+				
+				if verbose:
+					report = ""
+					for prefName in enabledPrefNames:
+						affectedGlyphs = glyphDict[prefName]
+						if affectedGlyphs:
+							report += "\n%s:\n%s\n" % (
+								" ".join(camelCaseSplit(prefName)).capitalize(),
+								"/" + "/".join(affectedGlyphs),
+							)
+					print(report)
 
 				if self.pref("reuseTab") and thisFont.currentTab:
 					newTab = thisFont.currentTab
