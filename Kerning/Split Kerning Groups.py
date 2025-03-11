@@ -6,6 +6,7 @@ In existing group kerning, separate some glyphs out of a kerning group, effectiv
 """
 
 import vanilla, sys
+from mekkablue import *
 
 def splitOffGroup(font, newGroup, splitoffs, rightGroup=True):
 	totalCount = 0
@@ -57,10 +58,10 @@ def splitOffGroup(font, newGroup, splitoffs, rightGroup=True):
 			if not glyph:
 				print(f"⚠️ Warning: no glyph ‘{glyphName}’ in font. Skipping.")
 				continue
-			if glyph.rightKerningGroup == newGroup:
+			if glyph.leftKerningGroup == newGroup:
 				continue
 			regrouped.append(glyphName)
-			glyph.rightKerningGroup = newGroup
+			glyph.leftKerningGroup = newGroup
 
 	messages = ["✅ Done."]
 	if newGroup != group:
