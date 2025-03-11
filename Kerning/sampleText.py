@@ -2,7 +2,6 @@
 from __future__ import print_function
 from GlyphsApp import Glyphs
 from AppKit import NSNotFound, NSClassFromString
-from collections import OrderedDict
 
 
 def chooseSampleTextSelection(categoryIndex=0, entryIndex=0):
@@ -24,11 +23,11 @@ def chooseSampleTextSelection(categoryIndex=0, entryIndex=0):
 def setSelectSampleTextIndex(thisFont, tab=None, marker="### CUSTOM KERN STRING ###"):
 	if Glyphs.versionNumber >= 3:
 		# Glyphs 3 code
-		sampleTexts = OrderedDict([(d['name'], d['text']) for d in Glyphs.defaults["SampleTextsList"]])
+		sampleTexts = [d['name'] for d in Glyphs.defaults["SampleTextsList"]]
 
 		foundSampleString = False
-		for sampleTextIndex, k in enumerate(sampleTexts.keys()):  # step through the categories until we find our marker
-			if marker in k:
+		for sampleTextIndex, title in enumerate(sampleTexts):  # step through the categories until we find our marker
+			if marker in title:
 				foundSampleString = True
 				if not tab:
 					tab = thisFont.currentTab
@@ -42,11 +41,10 @@ def setSelectSampleTextIndex(thisFont, tab=None, marker="### CUSTOM KERN STRING 
 				break
 
 		if not foundSampleString:
-			print("Warning: Could not find '%s' in sample strings." % marker)
+			print(f"Warning: Could not find ‘{marker}’ in sample strings.")
 	else:
 		# Glyphs 2 code
 		sampleTexts = tuple(Glyphs.defaults["SampleTexts"])
-
 		sampleTextIndex = sampleTexts.index(marker)
 		if sampleTextIndex > -1:
 			if not tab:
