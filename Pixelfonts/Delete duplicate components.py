@@ -1,7 +1,6 @@
-#MenuTitle: Delete Duplicate Components
+# MenuTitle: Delete Duplicate Components
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Delete components of the same base glyph and in the same position. Useful for accidental double 
 """
 
@@ -21,19 +20,19 @@ def process(thisLayer):
 				break
 
 
-Glyphs.clearLog() # clears log in Macro window
-thisFont = Glyphs.font # frontmost font
-selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
+Glyphs.clearLog()  # clears log in Macro window
+thisFont = Glyphs.font  # frontmost font
+selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
 
 print(f"Deleting duplicate components in {thisFont.familyName}...\n")
-thisFont.disableUpdateInterface() # suppresses UI updates in Font View
+thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 try:
 	for thisLayer in set(selectedLayers):
 		thisGlyph = thisLayer.parent
 		print(f"🔠 {thisGlyph.name}, layer ‘{thisLayer.name}’")
-		thisGlyph.beginUndo() # begin undo grouping
+		thisGlyph.beginUndo()  # begin undo grouping
 		process(thisLayer)
-		thisGlyph.endUndo()   # end undo grouping
+		thisGlyph.endUndo()    # end undo grouping
 	print("\n✅ Done.")
 except Exception as e:
 	Glyphs.showMacroWindow()
@@ -43,4 +42,4 @@ except Exception as e:
 	print()
 	raise e
 finally:
-	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
+	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
