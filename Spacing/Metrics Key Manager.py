@@ -6,7 +6,7 @@ Batch apply metrics keys to the current font.
 """
 
 import vanilla
-from AppKit import NSAlert, NSAlertStyleWarning, NSAlertFirstButtonReturn
+from AppKit import NSAlert, NSAlertStyleWarning, NSAlertFirstButtonReturn, NSEvent
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, getLegibleFont
 
@@ -128,7 +128,7 @@ class MetricsKeyManager(mekkaObject):
 		self.w.scanButton.getNSButton().setToolTip_("Scans the current font for all metrics keys and lists them here. Normalizes the preceding equals sign (=). No matter whether you typed them with or without an equals sign, they will show up here with one.")
 
 		self.w.runButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "↓ Apply", callback=self.MetricsKeyManagerMain)
-		self.w.runButton.getNSButton().setToolTip_("Parses the current content of the window and will attempt to set the metrics keys of the respective glyphs in the frontmost font.")
+		self.w.runButton.getNSButton().setToolTip_("Parses the current content of the window and will attempt to set the metrics keys of the respective glyphs in the frontmost font. Hold down your OPTION key to also update glyph metrics right away. Careful, that is hard to undo.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
@@ -325,6 +325,10 @@ class MetricsKeyManager(mekkaObject):
 		try:
 			# clears macro window log:
 			Glyphs.clearLog()
+			
+			keysPressed = NSEvent.modifierFlags()
+			optionKey = 524288
+			optionKeyPressed = keysPressed & optionKey == optionKey
 
 			# update settings to the latest user input:
 			self.SavePreferences()
@@ -388,15 +392,26 @@ class MetricsKeyManager(mekkaObject):
 									affectedGlyphs.append(glyphName)
 									reportGlyphs.append(glyphName)
 								else:
-									print("	⚠️ Glyph '%s' not in font. Skipped." % glyphName)
+									print(f"	⚠️ Glyph ‘{glyphName}’ not in font. Skipped.")
 							if reportGlyphs:
-								print("	✅ %s" % ", ".join(reportGlyphs))
+								print("	✅", ", ".join(reportGlyphs))
 							else:
 								print("	🤷🏻‍♀️ No glyphs changed.")
 
-				if affectedGlyphs and shouldOpenTabWithAffectedGlyphs:
+				if affectedGlyphs:
 					affectedGlyphs = set(affectedGlyphs)
-					thisFont.newTab("/" + "/".join(affectedGlyphs))
+					
+					if optionKeyPressed:
+						for glyphName in affectedGlyphs:
+							glyph = thisFont[glyphName]
+							if not glyph:
+								continue
+							for layer in glyph.layers:
+								if layer.isMasterLayer or layer.isSpecialLayer:
+									layer.syncMetrics()
+									
+					if shouldOpenTabWithAffectedGlyphs:
+						thisFont.newTab("/" + "/".join(affectedGlyphs))
 
 		except Exception as e:
 			# brings macro window to front and reports error:
