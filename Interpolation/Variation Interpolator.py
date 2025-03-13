@@ -272,7 +272,7 @@ class VariationInterpolator(mekkaObject):
 
 								# check compatibility
 								if not self.layersAreCompatible(layerA, layerB):
-									reportString = thisGlyph.name
+									reportString = f"{glyphA.name}→{glyphB.name}"
 									if len(thisFont.masters) > 1:
 										reportString += f" ({thisMaster.name})"
 									incompatible.append(reportString)
