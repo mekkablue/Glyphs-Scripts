@@ -38,29 +38,30 @@ for glyphnames in (list(UC) + extraUC + SY, list(LC) + extraLC + SY, SC + extraS
 		if not glyph1:
 			continue
 		for glyphname2 in glyphnames[i:]:
-			if glyphname1 != glyphname2:  # AAA makes no sense
-				glyph2 = thisFont.glyphs[glyphname2]
-				if not glyph2:
-					continue
-				if glyph1.script != glyph2.script and not None in (glyph1.script, glyph2.script):
-					continue
+			if glyphname1 == glyphname2:  # AAA makes no sense
+				continue
+			glyph2 = thisFont.glyphs[glyphname2]
+			if not glyph2:
+				continue
+			if glyph1.script != glyph2.script and not None in (glyph1.script, glyph2.script):
+				continue
 
-				layer1 = thisFont.glyphs[glyphname1].layers[m.id]
-				layer2 = thisFont.glyphs[glyphname2].layers[m.id]
-				direction = glyph1.direction
-				if direction == GSBIDI: # no direction
-					direction = glyph2.direction
-				if direction == GSBIDI: # no direction
-					direction = GSLTR # fallback to LTR
-				leftKern = layer1.nextKerningForLayer_direction_(layer2, direction)
-				if leftKern >= NSNotFound: # NSNotFound
-					leftKern = 0
-				rightKern = layer2.nextKerningForLayer_direction_(layer1, direction)
-				if rightKern >= NSNotFound: # NSNotFound
-					rightKern = 0
-				if leftKern != rightKern:
-					print(f"⚠️ {glyphname1}-{glyphname2}-{glyphname1} not symmetric: {leftKern} vs. {rightKern}")
-					tabString += f"/{glyphname1}/{glyphname2}/{glyphname1}\n"
+			layer1 = thisFont.glyphs[glyphname1].layers[m.id]
+			layer2 = thisFont.glyphs[glyphname2].layers[m.id]
+			direction = glyph1.direction
+			if direction == GSBIDI: # no direction
+				direction = glyph2.direction
+			if direction == GSBIDI: # no direction
+				direction = GSLTR # fallback to LTR
+			leftKern = layer1.nextKerningForLayer_direction_(layer2, direction)
+			if leftKern >= NSNotFound: # NSNotFound
+				leftKern = 0
+			rightKern = layer2.nextKerningForLayer_direction_(layer1, direction)
+			if rightKern >= NSNotFound: # NSNotFound
+				rightKern = 0
+			if leftKern != rightKern:
+				print(f"⚠️ {glyphname1}-{glyphname2}-{glyphname1} not symmetric: {leftKern} vs. {rightKern}")
+				tabString += f"/{glyphname1}/{glyphname2}/{glyphname1}\n"
 print("\n✅ Done.")
 
 if tabString:
