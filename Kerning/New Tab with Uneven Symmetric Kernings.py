@@ -5,7 +5,8 @@ __doc__ = """
 Finds kern pairs for symmetric letters like ATA AVA TOT WIW etc. and sees if AT is the same as TA, etc.
 """
 
-from GlyphsApp import Glyphs, Message
+from GlyphsApp import Glyphs, Message, GSBIDI, GSLTR
+from AppKit import NSNotFound
 
 UC = "AHIMNOTUVWXYАЖИМНОПТФХШЏЫІΑΗΘΙΛΜΝΞΟΠΤΥΦΧΨΩ"
 SC = [f"{x.lower()}.sc" for x in UC]
@@ -15,6 +16,7 @@ SY = ["period", "colon", "ellipsis", "periodcentered", "hyphen", "endash", "emda
 thisFont = Glyphs.font  # frontmost font
 m = thisFont.selectedFontMaster  # active master
 Glyphs.clearLog()  # clears log in Macro window
+print(f"🔠 Font: {thisFont.familyName}\nⓂ️ Master: {m.name}\n\nFinding uneven kerning symmetries...\n")
 
 allDottedGlyphNames = [x.name for x in thisFont.glyphs if "." in x.name and x.export]
 extraUC, extraSC, extraLC = [], [], []
@@ -31,7 +33,6 @@ for x in allDottedGlyphNames:
 
 tabString = ""
 for glyphnames in (list(UC) + extraUC + SY, list(LC) + extraLC + SY, SC + extraSC + SY):
-	print(glyphnames)
 	for i, glyphname1 in enumerate(glyphnames):
 		glyph1 = thisFont.glyphs[glyphname1]
 		if not glyph1:
@@ -41,22 +42,29 @@ for glyphnames in (list(UC) + extraUC + SY, list(LC) + extraLC + SY, SC + extraS
 				glyph2 = thisFont.glyphs[glyphname2]
 				if not glyph2:
 					continue
-				else:
-					layer1 = thisFont.glyphs[glyphname1].layers[m.id]
-					layer2 = thisFont.glyphs[glyphname2].layers[m.id]
-					direction = glyph1.direction
-					if direction == 1:
-						direction = glyph2.direction
-					if direction == 1:
-						direction = 0
-					leftKern = layer1.nextKerningForLayer_direction_(layer2, direction)
-					rightKern = layer2.nextKerningForLayer_direction_(layer1, direction)
-					if leftKern != rightKern:
-						print(f"{glyphname1}-{glyphname2}-{glyphname1}: exception not symmetric: {leftKern} vs. {rightKern}")
-						tabString += f"/{glyphname1}/{glyphname2}/{glyphname1}\n"
+				if glyph1.script != glyph2.script and not None in (glyph1.script, glyph2.script):
+					continue
+
+				layer1 = thisFont.glyphs[glyphname1].layers[m.id]
+				layer2 = thisFont.glyphs[glyphname2].layers[m.id]
+				direction = glyph1.direction
+				if direction == GSBIDI: # no direction
+					direction = glyph2.direction
+				if direction == GSBIDI: # no direction
+					direction = GSLTR # fallback to LTR
+				leftKern = layer1.nextKerningForLayer_direction_(layer2, direction)
+				if leftKern >= NSNotFound: # NSNotFound
+					leftKern = 0
+				rightKern = layer2.nextKerningForLayer_direction_(layer1, direction)
+				if rightKern >= NSNotFound: # NSNotFound
+					rightKern = 0
+				if leftKern != rightKern:
+					print(f"⚠️ {glyphname1}-{glyphname2}-{glyphname1} not symmetric: {leftKern} vs. {rightKern}")
+					tabString += f"/{glyphname1}/{glyphname2}/{glyphname1}\n"
+print("\n✅ Done.")
 
 if tabString:
 	# opens new Edit tab:
-	thisFont.newTab(tabString)
+	thisFont.newTab(tabString.strip())
 else:
 	Message(title="No Asymmetries", message="Found no asymmetries in the kerning of this master.", OKButton=None)
