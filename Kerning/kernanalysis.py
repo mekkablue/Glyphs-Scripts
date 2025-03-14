@@ -1,10 +1,11 @@
-# -*- coding: utf-8 -*--- --
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 
-from Foundation import NSNotFound
+from AppKit import NSPoint, NSNotFound
 from mekkablue import caseDict
+from GlyphsApp import Glyphs, GSPath, GSNode, GSLINE
+import math
 
-from GlyphsApp import Glyphs
 if Glyphs.versionNumber >= 3.0:
 	from GlyphsApp import LTR
 
@@ -313,3 +314,118 @@ def distanceFromEntry(entry, font, masterID, default=0.0):
 		rightLayer = glyphs[1].layers[masterID]
 		distance = minDistanceBetweenTwoLayers(leftLayer, rightLayer, interval=2.0) + correction
 	return distance
+
+
+def bubbleForLayer(layer, offset=10.0):
+	def boxIsInsideBox(smallBox, bigBox):
+		if bigBox.size.width * bigBox.size.height == 0.0:
+			return False
+		if smallBox.size.width > bigBox.size.width:
+			return False
+		if smallBox.size.height > bigBox.size.height:
+			return False
+		if smallBox.origin.x < bigBox.origin.x:
+			return False
+		if smallBox.origin.y < bigBox.origin.y:
+			return False
+		if smallBox.origin.x + smallBox.size.width > bigBox.origin.x + bigBox.size.width:
+			return False
+		if smallBox.origin.y + smallBox.size.height > bigBox.origin.y + bigBox.size.height:
+			return False
+		return True
+	
+	# just keep the relevant paths:
+	workLayer = layer.copyDecomposedLayer()
+	workLayer.removeOverlap()
+	collectedPoints = []
+	for path in workLayer.paths:
+		if boxIsInsideBox(path.bounds, workLayer.bounds):
+			continue
+		collectedPoints.extend([(p.x, p.y) for p in path.nodes])
+	
+	bubbleCoordinates = bubble(collectedPoints, offset=offset)
+	bubblePath = GSPath()
+	for coord in bubbleCoordinates:
+		newNode = GSNode()
+		newNode.position = NSPoint(*coord)
+		newNode.type = GSLINE
+		bubblePath.nodes.append(newNode)
+	
+	bubblePath.closed = True
+	return bubblePath
+
+
+def bubble(points, offset=0.0):
+	"""
+	Creates a counter-clockwise winding polygon with only left angles around a list of NSPoints.
+	:param points: List of NSPoints (each NSPoint is represented as a tuple of (x, y)).
+	:param offset: Padding distance, default is 0.0.
+	:return: List of NSPoints representing the outer polygon.
+	"""
+	offset *= -1
+	
+	if len(points) < 3:
+		return points
+
+	# Calculate convex hull using Gift Wrapping algorithm
+	hull = []
+	leftMost = min(points, key=lambda p: p[0])
+	pointOnHull = leftMost
+
+	while True:
+		hull.append(pointOnHull)
+		nextPoint = points[0]
+		for candidate in points[1:]:
+			# Check if candidate forms a left turn
+			if nextPoint == pointOnHull or _calculateCrossProduct(pointOnHull, nextPoint, candidate) < 0:
+				nextPoint = candidate
+		if nextPoint == leftMost:
+			break
+		pointOnHull = nextPoint
+
+	# Create offset points
+	offsetPoints = []
+	
+	# Process each edge of the hull
+	for i in range(len(hull)):
+		p1 = hull[i]
+		p2 = hull[(i + 1) % len(hull)]
+		
+		# Calculate direction and normal vectors
+		deltaX = p2[0] - p1[0]
+		deltaY = p2[1] - p1[1]
+		length = (deltaX * deltaX + deltaY * deltaY) ** 0.5
+		
+		# Normalize and create perpendicular vector
+		normalX = -deltaY / length
+		normalY = deltaX / length
+		
+		# Create offset points
+		offsetPoints.append((
+			p1[0] + normalX * offset,
+			p1[1] + normalY * offset
+		))
+		offsetPoints.append((
+			p2[0] + normalX * offset,
+			p2[1] + normalY * offset
+		))
+
+	# Remove duplicates and sort counter-clockwise
+	offsetPoints = list(set(offsetPoints))
+	center = _calculateCenter(offsetPoints)
+	offsetPoints.sort(key=lambda p: _calculateAngle(p, center))
+	return offsetPoints
+
+
+def _calculateCrossProduct(o, a, b):
+	return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+
+
+def _calculateCenter(points):
+	x = sum(p[0] for p in points) / len(points)
+	y = sum(p[1] for p in points) / len(points)
+	return (x, y)
+
+
+def _calculateAngle(p, center):
+	return math.atan2(p[1] - center[1], p[0] - center[0])
