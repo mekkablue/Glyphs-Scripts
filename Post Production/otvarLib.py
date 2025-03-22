@@ -31,6 +31,8 @@ def otVarFileName(thisFont, thisInstance=None, suffix="ttf"):
 	Reconstruct export file name of OTVAR.
 	"""
 	if thisInstance is not None:
+		if Glyphs.versionNumber >= 3.3:
+			return thisInstance.finalPath_error_(suffix, None)
 		fileName = thisInstance.fileName()
 		# circumvent bug in Glyphs 3.0.5
 		if fileName.endswith(".otf"):
