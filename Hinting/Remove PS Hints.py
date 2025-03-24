@@ -16,6 +16,7 @@ class RemovePSHints(mekkaObject):
 		"verticalStemHints": 1,
 		"ghostHints": 1,
 		"where": 2,
+		"includeBackgrounds": 0,
 	}
 
 	wheres = (
@@ -28,7 +29,7 @@ class RemovePSHints(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 320
+		windowWidth = 330
 		windowHeight = 170
 		windowWidthResize = 100  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
@@ -43,18 +44,21 @@ class RemovePSHints(mekkaObject):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, 160, 14), u"Remove the following hints in", sizeStyle='small', selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, 160, 14), "Remove the following hints in", sizeStyle='small', selectable=True)
 		self.w.where = vanilla.PopUpButton((inset + 160, linePos, -inset, 17), self.wheres, sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.horizontalStemHints = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Horizontal Stem Hints", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.horizontalStemHints = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Horizontal stem hints", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.verticalStemHints = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Vertical Stem Hints", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.verticalStemHints = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Vertical stem hints", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.ghostHints = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Ghost Hints", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.ghostHints = vanilla.CheckBox((inset + 2, linePos - 1, 150, 20), "Ghost hints", value=True, callback=self.SavePreferences, sizeStyle='small')
+		
+		self.w.includeBackgrounds = vanilla.CheckBox((inset + 160, linePos-1, -inset, 20), "Include backgrounds", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
+		
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0)  # set progress indicator to zero
@@ -79,27 +83,33 @@ class RemovePSHints(mekkaObject):
 			self.pref("ghostHints")
 		self.w.runButton.enable(onOff=buttonEnable)
 
-	def removeHintsFromLayer(self, layer, horizontalStemHints, verticalStemHints, ghostHints):
+	def removeHintsFromLayer(self, primaryLayer, horizontalStemHints, verticalStemHints, ghostHints, includeBackgrounds):
 		delCount = 0
-		for i in reversed(range(len(layer.hints))):
-			h = layer.hints[i]
-			if Glyphs.versionNumber >= 3:
-				# GLYPHS 3
-				isPostScriptHint = h.isPostScript
-			else:
-				# GLYPHS 2
-				isPostScriptHint = h.isPostScript()
 
-			if isPostScriptHint:
-				if horizontalStemHints and h.horizontal and h.type == STEM:
-					del layer.hints[i]
-					delCount += 1
-				elif verticalStemHints and not h.horizontal and h.type == STEM:
-					del layer.hints[i]
-					delCount += 1
-				elif ghostHints and h.type in (BOTTOMGHOST, TOPGHOST):
-					del layer.hints[i]
-					delCount += 1
+		layers = [primaryLayer]
+		if includeBackgrounds:
+			layers.append(primaryLayer.background)
+
+		for layer in layers:
+			for i in reversed(range(len(layer.hints))):
+				h = layer.hints[i]
+				if Glyphs.versionNumber >= 3:
+					# GLYPHS 3
+					isPostScriptHint = h.isPostScript
+				else:
+					# GLYPHS 2
+					isPostScriptHint = h.isPostScript()
+
+				if isPostScriptHint:
+					if horizontalStemHints and h.horizontal and h.type == STEM:
+						del layer.hints[i]
+						delCount += 1
+					elif verticalStemHints and not h.horizontal and h.type == STEM:
+						del layer.hints[i]
+						delCount += 1
+					elif ghostHints and h.type in (BOTTOMGHOST, TOPGHOST):
+						del layer.hints[i]
+						delCount += 1
 		return delCount
 
 	def RemovePSHintsMain(self, sender):
@@ -111,6 +121,7 @@ class RemovePSHints(mekkaObject):
 			verticalStemHints = self.pref("verticalStemHints")
 			ghostHints = self.pref("ghostHints")
 			where = self.pref("where")
+			includeBackgrounds = self.pref("includeBackgrounds")
 
 			if where >= 4:
 				theseFonts = Glyphs.fonts
@@ -130,7 +141,7 @@ class RemovePSHints(mekkaObject):
 					count = len(objectList)
 					for i, l in enumerate(objectList):
 						self.w.progress.set(i / count * 100)
-						deletedHintsCount += self.removeHintsFromLayer(l, horizontalStemHints, verticalStemHints, ghostHints)
+						deletedHintsCount += self.removeHintsFromLayer(l, horizontalStemHints, verticalStemHints, ghostHints, includeBackgrounds)
 				elif where == 1:
 					# All Layers of Selected Glyphs
 					objectList = set(thisFont.selectedLayers)
@@ -139,7 +150,7 @@ class RemovePSHints(mekkaObject):
 						self.w.progress.set(i / count * 100)
 						g = l.parent
 						for ll in g.layers:
-							deletedHintsCount += self.removeHintsFromLayer(ll, horizontalStemHints, verticalStemHints, ghostHints)
+							deletedHintsCount += self.removeHintsFromLayer(ll, horizontalStemHints, verticalStemHints, ghostHints, includeBackgrounds)
 				elif where == 2:
 					# this Master
 					masterID = thisFont.selectedFontMaster.id
@@ -149,7 +160,7 @@ class RemovePSHints(mekkaObject):
 						self.w.progress.set(i / count * 100)
 						for layer in g.layers:
 							if layer.associatedMasterId == masterID:
-								deletedHintsCount += self.removeHintsFromLayer(layer, horizontalStemHints, verticalStemHints, ghostHints)
+								deletedHintsCount += self.removeHintsFromLayer(layer, horizontalStemHints, verticalStemHints, ghostHints, includeBackgrounds)
 				else:
 					# the Complete Font
 					objectList = thisFont.glyphs
@@ -157,7 +168,7 @@ class RemovePSHints(mekkaObject):
 					for i, glyph in enumerate(objectList):
 						self.w.progress.set(i / count * 100 / len(theseFonts))
 						for layer in glyph.layers:
-							deletedHintsCount += self.removeHintsFromLayer(layer, horizontalStemHints, verticalStemHints, ghostHints)
+							deletedHintsCount += self.removeHintsFromLayer(layer, horizontalStemHints, verticalStemHints, ghostHints, includeBackgrounds)
 
 			# complete progress bar:
 			self.w.progress.set(100)
