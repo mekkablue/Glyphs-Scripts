@@ -196,9 +196,8 @@ class Bumper(mekkaObject):
 		# Run Button:
 		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Kern", callback=self.BumperMain)
 		self.w.setDefaultButton(self.w.runButton)
-		
-		self.w.status = vanilla.TextBox((inset, -28 - inset, -inset-210, 14), "Ready.", sizeStyle="small", selectable=True)
-		
+
+		self.w.status = vanilla.TextBox((inset, -28 - inset, -inset - 210, 14), "Ready.", sizeStyle="small", selectable=True)
 
 		# Load Settings:
 		self.LoadPreferences()
