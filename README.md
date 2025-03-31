@@ -14,6 +14,8 @@ Now the scripts are available in *Script > mekkablue.* If the mekkablue scripts 
 
 ## Glyphs 2
 
+While some of scripts may still run in Glyphs 2, I do not have the resources to keep them compatible with legacy app versions. On the contrary, most streamlining is aiming to move the coding style into Python 3 recommendations, some of which are incompatible with Python 2, and hence, Glyphs 2.
+
 ### Video installation guide for Glyphs 2
 
 There is a [tutorial video on how to install the mekkablue scripts](https://www.youtube.com/watch?v=Q6ly16Q0BmE) available on YouTube. While you are there, feel free to subscribe to the [mekkablue channel](https://www.youtube.com/channel/UCFPSSuEMZVQtrFpTzgFh9lA).
@@ -34,9 +36,16 @@ I recommend to use git for getting the scripts, because it is easier for you to 
 git clone https://github.com/mekkablue/Glyphs-Scripts ~/Library/Application\ Support/Glyphs/Scripts/mekkablue/
 ```
 
+If you run into compatibility issues with Glyphs 2, you can `cd` into the repository folder, and checkout the state of the repo at a given day, e.g. for 1 January 2021:
+
+```bash
+git checkout `git rev-list -1 --before="2021-01-01" master`
+```
+
 If the terminal scares you, feel free to use one of the many readily available git clients, e.g. the free [Source Tree](https://www.sourcetreeapp.com) or [GitHub Desktop](https://desktop.github.com).
 
 After you installed the mekkablue scripts, you can **update** this script repository (and all the others you have in your *Scripts* folder) by running *Scripts > mekkablue > App > Update git Repositories in Scripts Folder.*
+
 
 # TROUBLESHOOTING
 
@@ -44,7 +53,7 @@ Please report problems and request features [as a GitHub issue](/issues). Make s
 
 # REQUIREMENTS
 
-The scripts require a recent version of Glyphs 2.x running on macOS 10.9 or later. I can only test them and make them work in the latest version of the software. If a script is not working for you, please first update to the latest version of the script.
+The scripts require a recent version of Glyphs running a recent macOS. I can only test them and make them work in the latest version of the software. If a script is not working for you, please first update to the latest version of the script.
 
 # ABOUT THE SCRIPTS
 
