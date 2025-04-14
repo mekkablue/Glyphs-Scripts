@@ -106,6 +106,9 @@ class AdjustKerning(mekkaObject):
 
 					currentDirection = (GSLTR, GSRTL)[i]
 					masterKernDict = directionalKerning[masterID]
+					if not masterKernDict:
+						print(f"Empty kerning in {('LTR', 'RTL')[i]} direction on master ‘{master.name}’.")
+						continue
 
 					if self.pref("doWhat") == 0:
 						for leftGlyphID in masterKernDict.keys():
