@@ -120,7 +120,7 @@ arguments = parser.parse_args()
 fonts = arguments.fonts
 changed = 0
 for i, fontpath in enumerate(fonts):
-	print(f"\n📄 {i + 1}. {fontpath}")
+	print(f"\n📄 {i+1}. Fixing STAT: {fontpath}")
 	font = ttLib.TTFont(fontpath)
 	changesMade = fixstat(font)
 	if changesMade:
