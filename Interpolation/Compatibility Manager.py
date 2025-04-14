@@ -148,49 +148,64 @@ class CompatibilityManager:
 			print("Other options")
 			# all other geographic options
 			for layer in layers:
-				for path in layer.paths:
-					self.findOptimalStartPoint(path, startPointOption)
+				for i, shape in enumerate(layer.shapes):
+					if not isinstance(shape, GSPath):
+						continue
+					self.findOptimalStartPoint(layer, i, startPointOption)
 
 			self.updateCompatibility(glyph)
 
-	def findOptimalStartPoint(self, path, startPointOption):
-		originalStart = path.nodes[0]
+	def findOptimalStartPoint(self, layer, pathIndex, startPointOption):
+		path = layer.shapes[pathIndex]
+		originalPath = path.copy()
+		originalStart = path.startNode()
 		bestStart = originalStart
-		minValue = float('inf')
+		maxValue = None
 		compatibleStarts = []
 
-		for node in path.nodes:
+		for i, node in enumerate(originalPath.nodes):
 			if node.type != OFFCURVE:
-				path.makeNodeFirst_(node)
-				if self.checkLayerCompatibility(path.parent):
-					compatibleStarts.append(node)
+				layer.shapes[pathIndex].makeNodeFirst_(layer.shapes[pathIndex].nodes[i])
+				if self.checkLayerCompatibility(layer):
+					compatibleStarts.append(i)
+				layer.shapes[pathIndex] = originalPath.copy()
 
 		if compatibleStarts:
-			for start in compatibleStarts:
-				path.makeNodeFirst_(start)
-				value = self.calculateStartPointValue(start, startPointOption)
-
+			for startIndex in compatibleStarts:
+				startNode = layer.shapes[pathIndex].nodes[startIndex]
+				value = self.calculateStartPointValue(startNode, startPointOption)
 				if value is None:
 					continue
 
-				if value < minValue:
-					minValue = value
-					bestStart = start
-
-			path.makeNodeFirst_(bestStart)
+				if maxValue is None or value > maxValue:
+					maxValue = value
+					bestStartIndex = startIndex
+			
+			layer.shapes[pathIndex].makeNodeFirst_(layer.shapes[pathIndex].nodes[bestStartIndex])
 		else:
-			path.makeNodeFirst_(originalStart)
+			layer.shapes[pathIndex] = originalPath
 
 	def calculateStartPointValue(self, node, option):
 		if option == 0:
-			return math.hypot(node.x, node.y)
-		elif option in [1, 2, 3, 4]:
-			primary = -node.y if option in [1, 2] else node.y
-			secondary = node.x if option in [1, 3] else -node.x
+			# 0: Closest to origin
+			return -math.hypot(node.x, node.y)
+
+		elif option in (1, 2, 3, 4):
+			# 1: Top, then left
+			# 2: Top, then right
+			# 3: Bottom, then left
+			# 4: Bottom, then right
+			primary = node.y if option in (1, 2) else -node.y
+			secondary = node.x if option in (2, 4) else -node.x
 			return primary * 1000000 + secondary
-		elif option in [5, 6, 7]:
-			primary = node.x if option in [5, 6] else -node.x
-			secondary = -node.y if option in [5, 7] else node.y
+
+		else: # 5, 6, 7, 8
+			# 5: Left, then top
+			# 6: Left, then bottom
+			# 7: Right, then top
+			# 8: Right, then bottom
+			primary = node.x if option in (7, 8) else -node.x
+			secondary = node.y if option in (5, 7) else -node.y
 			return primary * 1000000 + secondary
 
 	def reorderShapes(self, sender):
