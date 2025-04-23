@@ -103,8 +103,9 @@ class BraceLayerManager(mekkaObject):
 				for thisLayer in thisGlyph.layers:
 					if thisLayer.isSpecialLayer and thisLayer.attributes:
 						if isBraceLayer and "coordinates" in thisLayer.attributes.keys():
-							currentCoord = thisLayer.attributes["coordinates"][str(axisID)]
-							allCoordinates.append(currentCoord)
+							currentCoord = thisLayer.attributes["coordinates"].get(str(axisID))
+							if currentCoord:
+								allCoordinates.append(currentCoord)
 						if not isBraceLayer and "axisRules" in thisLayer.attributes:
 							axisRules = thisLayer.attributes["axisRules"]
 							if axisRules and axisID in axisRules.keys():
