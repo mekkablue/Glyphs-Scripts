@@ -33,6 +33,7 @@ class FontInfoBatchSetter(mekkaObject):
 		"license": "",
 		"licenseURL": "",
 		"fontDescription": "",
+		"sampleText": "The quick brown fox jumps over the lazy dog.",
 
 		"setCopyright": False,
 		"setTrademark": False,
@@ -56,7 +57,7 @@ class FontInfoBatchSetter(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 350
-		windowHeight = 400
+		windowHeight = 420
 		windowWidthResize = 1000  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -71,76 +72,113 @@ class FontInfoBatchSetter(mekkaObject):
 		linePos, inset, lineHeight = 12, 15, 22
 		column = 100
 
-		self.w.explanatoryText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Batch-set Font Info > Font of open fonts with these values:", sizeStyle='small', selectable=True)
+		self.w.explanatoryText = vanilla.TextBox((inset, linePos+2, -inset, 14), "Batch-set Font Info > Font of open fonts with these values:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
 		# DESIGNER
-		self.w.setDesigner = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Designer:", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.designer = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.setDesigner = vanilla.CheckBox((inset+2, linePos, column, 20), "Designer:", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.designer = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		tooltip = "Designer, name ID 9: Name of the designer of the typeface."
+		self.w.setDesigner.getNSButton().setToolTip_(tooltip)
+		self.w.designer.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
-		self.w.setDesignerURL = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Designer URL:", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.designerURL = vanilla.EditText((inset + column, linePos, -inset, 19), "https://", callback=self.SavePreferences, sizeStyle='small')
+		
+		self.w.setDesignerURL = vanilla.CheckBox((inset+2, linePos, column, 20), "Designer URL:", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.designerURL = vanilla.EditText((inset+column, linePos, -inset, 19), "https://", callback=self.SavePreferences, sizeStyle='small')
+		tooltip = "Designer URL, name ID 12: URL of Designer. URL of typeface designer (with protocol, e.g., http://, ftp://)."
+		self.w.setDesignerURL.getNSButton().setToolTip_(tooltip)
+		self.w.designerURL.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
 		# MANUFACTURER
-		self.w.setManufacturer = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Manufacturer:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.manufacturer = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.setManufacturer = vanilla.CheckBox((inset+2, linePos, column, 20), "Manufacturer:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.manufacturer = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		tooltip = "Manufacturer Name, name ID 8."
+		self.w.setManufacturer.getNSButton().setToolTip_(tooltip)
+		self.w.manufacturer.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
-		self.w.setManufacturerURL = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Manufact.URL:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.manufacturerURL = vanilla.EditText((inset + column, linePos, -inset, 19), "https://", callback=self.SavePreferences, sizeStyle='small')
+		
+		self.w.setManufacturerURL = vanilla.CheckBox((inset+2, linePos, column, 20), "Manufact.URL:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.manufacturerURL = vanilla.EditText((inset+column, linePos, -inset, 19), "https://", callback=self.SavePreferences, sizeStyle='small')
+		tooltip = "Manufacturer URL, name ID 11: URL of Vendor. URL of font vendor (with protocol, e.g., http://, ftp://). If a unique serial number is embedded in the URL, it can be used to register the font."
+		self.w.setManufacturerURL.getNSButton().setToolTip_(tooltip)
+		self.w.manufacturerURL.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
 		# LICENSE
-		self.w.setLicense = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "License:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.license = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.setLicense = vanilla.CheckBox((inset+2, linePos, column, 20), "License:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.license = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		tooltip = "License, name ID 13: License Description. Description of the license or licenses under which the font is provided. This could be a reference to a named license agreement (e.g., a common open source licenses), identification of a software-use license under which a font is bundled, information about where to locate an external license (see also name ID 14), a summary of permitted uses, or the full legal text of a license agreement. It is prudent to seek legal advice on the content of this name ID to avoid possible conflict of interpretation between it and the license(s)."
+		self.w.setLicense.getNSButton().setToolTip_(tooltip)
+		self.w.license.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
-		self.w.setLicenseURL = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "License URL:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.licenseURL = vanilla.EditText((inset + column, linePos, -inset, 19), "https://", callback=self.SavePreferences, sizeStyle='small')
+		
+		self.w.setLicenseURL = vanilla.CheckBox((inset+2, linePos, column, 20), "License URL:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.licenseURL = vanilla.EditText((inset+column, linePos, -inset, 19), "https://", callback=self.SavePreferences, sizeStyle='small')
+		tooltip = "License URL, name ID 14: License Info URL. URL where additional licensing information can be found."
+		self.w.setLicenseURL.getNSButton().setToolTip_(tooltip)
+		self.w.licenseURL.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
 		# COPYRIGHT
-		self.w.setCopyright = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Copyright:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.copyright = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.setCopyright = vanilla.CheckBox((inset+2, linePos, column, 20), "Copyright:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.copyright = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		tooltip = f"Copyright, name ID 0: Copyright notice."
+		self.w.setCopyright.getNSButton().setToolTip_(tooltip)
+		self.w.copyright.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
 		# TRADEMARK
-		self.w.setTrademark = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Trademark:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.trademark = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
-		tooltip = f"Trademark information, name ID 7. Use {self.placeholderFamilyName} as placeholder for the current family name."
+		self.w.setTrademark = vanilla.CheckBox((inset+2, linePos, column, 20), "Trademark:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.trademark = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		tooltip = f"Trademark, name ID 7: This is used to save any trademark notice/information for this font. Such information should be based on legal advice. This is distinctly separate from the copyright. Use {self.placeholderFamilyName} as placeholder for the current family name."
 		self.w.setTrademark.getNSButton().setToolTip_(tooltip)
 		self.w.trademark.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
-		# Description
-		self.w.setFontDescription = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Description:", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.fontDescription = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle="small")
-		tooltip = f"Description, name ID 10. Use {self.placeholderFamilyName} as placeholder for the current family name."
+		# DESCRIPTION
+		self.w.setFontDescription = vanilla.CheckBox((inset+2, linePos, column, 20), "Description:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.fontDescription = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle="small")
+		tooltip = f"Description, name ID 10: Description of the typeface. Can contain revision information, usage recommendations, history, features, etc. Use {self.placeholderFamilyName} as placeholder for the current family name."
 		self.w.setFontDescription.getNSButton().setToolTip_(tooltip)
 		self.w.fontDescription.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
-
+		
+		# SAMPLE TEXT
+		self.w.setSampleText = vanilla.CheckBox((inset+2, linePos, -inset+2, 20), "Sample text:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.sampleText = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle="small")
+		tooltip = f"Sample text, name ID 19: Sample text. This can be the font name, or any other text that the designer thinks is the best sample to display the font in. Use {self.placeholderFamilyName} as placeholder for the current family name."
+		self.w.setSampleText.getNSButton().setToolTip_(tooltip)
+		self.w.sampleText.getNSTextField().setToolTip_(tooltip)
+		linePos += lineHeight
+		
 		# VENDOR ID
-		self.w.setVendorID = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Vendor ID:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.vendorID = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.setVendorID = vanilla.CheckBox((inset+2, linePos, column, 20), "Vendor ID:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.vendorID = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# VERSION NUMBER
-		self.w.setVersion = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Version:", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.versionMajor = vanilla.EditText((inset + column, linePos, 50, 19), "1", callback=self.SavePreferences, sizeStyle='small')
-		self.w.versionDot = vanilla.TextBox((inset + 151, linePos + 2, 8, 18), ".", selectable=True)
-		self.w.versionMinor = vanilla.EditText((inset + 160, linePos, -inset - 113, 19), "005", callback=self.SavePreferences, sizeStyle='small')
-		self.w.versionMinorDecrease = vanilla.SquareButton((-inset - 110, linePos, -inset - 90, 19), "−", sizeStyle='small', callback=self.changeMinVersion)
+		self.w.setVersion = vanilla.CheckBox((inset+2, linePos, column, 20), "Version:", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.versionMajor = vanilla.EditText((inset+column, linePos, 50, 19), "1", callback=self.SavePreferences, sizeStyle='small')
+		self.w.versionDot = vanilla.TextBox((inset+151, linePos+2, 8, 18), ".", selectable=True)
+		self.w.versionMinor = vanilla.EditText((inset+160, linePos, -inset-113, 19), "005", callback=self.SavePreferences, sizeStyle='small')
+		tooltip = "Version, used for building name ID 5: Version string. Should begin with the pattern “Version <number>.<number>” (upper case, lower case, or mixed, with a space between “Version” and the number). The string must contain a version number of the following form: one or more digits (0-9) of value less than 65,535, followed by a period, followed by one or more digits of value less than 65,535. Any character other than a digit will terminate the minor number."
+		self.w.setVersion.getNSButton().setToolTip_(tooltip)
+		self.w.versionMajor.getNSTextField().setToolTip_(tooltip)
+		self.w.versionMinor.getNSTextField().setToolTip_(tooltip)
+		
+		self.w.versionMinorDecrease = vanilla.SquareButton((-inset-110, linePos, -inset-90, 19), "−", sizeStyle='small', callback=self.changeMinVersion)
 		self.w.versionMinorDecrease.getNSButton().setToolTip_("Decrease the version number by 0.001.")
-		self.w.versionMinorIncrease = vanilla.SquareButton((-inset - 91, linePos, -inset - 71, 19), "+", sizeStyle='small', callback=self.changeMinVersion)
+		self.w.versionMinorIncrease = vanilla.SquareButton((-inset-91, linePos, -inset-71, 19), "+", sizeStyle='small', callback=self.changeMinVersion)
 		self.w.versionMinorIncrease.getNSButton().setToolTip_("Increase the version number by 0.001.")
-		self.w.minVersionButton = vanilla.SquareButton((-inset - 60, linePos, -inset, 18), "⟳ 1.005", sizeStyle='small', callback=self.setVersion1005)
+		self.w.minVersionButton = vanilla.SquareButton((-inset-60, linePos, -inset, 18), "↻ 1.005", sizeStyle='small', callback=self.setVersion1005)
 		self.w.minVersionButton.getNSButton().setToolTip_("Resets the version to 1.005. Some (old?) Microsoft apps may consider fonts with smaller versions as unfinished and not display them in their font menu.")
 		linePos += lineHeight
 
 		# DATE AND TIME
-		self.w.setDate = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Date and time:", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setDate = vanilla.CheckBox((inset+2, linePos, column, 20), "Date and time:", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.datePicker = vanilla.DatePicker(
-			(inset + column, linePos - 3, -inset - 70, 22),
+			(inset+column, linePos-3, -inset-70, 22),
 			date=AppKit.NSDate.alloc().init(),
 			minDate=None,
 			maxDate=None,
@@ -151,32 +189,31 @@ class FontInfoBatchSetter(mekkaObject):
 			callback=None,
 			sizeStyle='small'
 		)
-		self.w.noonButton = vanilla.SquareButton((-inset - 60, linePos, -inset, 18), "🕛 Today", sizeStyle='small', callback=self.setNoon)
+		self.w.noonButton = vanilla.SquareButton((-inset-60, linePos, -inset, 18), "🕛 Today", sizeStyle='small', callback=self.setNoon)
 		self.w.noonButton.getNSButton().setToolTip_("Resets the date to today 12:00 noon.")
 		linePos += lineHeight
 
 		# SEPARATOR
-		self.w.separator = vanilla.HorizontalLine((inset, linePos + int(lineHeight * 0.5) - 1, -inset, 1))
+		self.w.separator = vanilla.HorizontalLine((inset, linePos+int(lineHeight * 0.5) - 1, -inset, 1))
 		linePos += lineHeight
 
 		# APPLY TO FONTS
-		self.w.finger = vanilla.TextBox((inset - 5, linePos, 22, 22), "👉 ", selectable=True)
-		self.w.applyText = vanilla.TextBox((inset + 17, linePos + 2, 70, 14), "Apply to", sizeStyle='small', selectable=True)
-		self.w.applyPopup = vanilla.PopUpButton((inset + 70, linePos, 150, 17), ("ALL open fonts", "open fonts containing"), sizeStyle='small', callback=self.SavePreferences)
-		self.w.applyContaining = vanilla.EditText((inset + 70 + 150 + 10, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small', placeholder="enter part of family name here")
+		self.w.finger = vanilla.TextBox((inset-5, linePos, 22, 22), "👉 ", selectable=True)
+		self.w.applyText = vanilla.TextBox((inset+17, linePos+2, 70, 14), "Apply to", sizeStyle='small', selectable=True)
+		self.w.applyPopup = vanilla.PopUpButton((inset+70, linePos, 150, 17), ("ALL open fonts", "open fonts containing"), sizeStyle='small', callback=self.SavePreferences)
+		self.w.applyContaining = vanilla.EditText((inset+70+150+10, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small', placeholder="enter part of family name here")
 		self.w.applyContaining.getNSTextField().setToolTip_("Only applies the settings to fonts that contain this in Font Info > Font > Family Name.")
 		linePos += lineHeight
 
 		# Buttons:
-		self.w.extractButton = vanilla.Button((-270 - inset, -20 - inset, -130 - inset, -inset), "Extract from Font", callback=self.ExtractFontInfoFromFrontmostFont)
+		self.w.extractButton = vanilla.Button((-270-inset, -20-inset, -130-inset, -inset), "Extract from Font", callback=self.ExtractFontInfoFromFrontmostFont)
 		self.w.extractButton.getNSButton().setToolTip_("Extracts the settings from the frontmost font and fills the UI with it.")
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Apply to Fonts", callback=self.FontInfoBatchSetterMain)
+		self.w.runButton = vanilla.Button((-120-inset, -20-inset, -inset, -inset), "Apply to Fonts", callback=self.FontInfoBatchSetterMain)
 		self.w.runButton.getNSButton().setToolTip_("Applies the checked settings above to all fonts indicated in the ‘Apply to’ option.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
 		self.LoadPreferences()
-
 		self.setNoon()
 
 		# Open window and focus on it:
@@ -198,7 +235,7 @@ class FontInfoBatchSetter(mekkaObject):
 		self.SavePreferences()
 
 	def updateUI(self, sender=None):
-		self.updateTooltips()
+		# self.updateTooltips()
 		self.w.designer.enable(self.w.setDesigner.get())
 		self.w.designerURL.enable(self.w.setDesignerURL.get())
 		self.w.manufacturer.enable(self.w.setManufacturer.get())
@@ -208,6 +245,8 @@ class FontInfoBatchSetter(mekkaObject):
 		self.w.copyright.enable(self.w.setCopyright.get())
 		self.w.trademark.enable(self.w.setTrademark.get())
 		self.w.vendorID.enable(self.w.setVendorID.get())
+		self.w.fontDescription.enable(self.w.setFontDescription.get())
+		self.w.sampleText.enable(self.w.setSampleText.get())
 
 		dateEnabled = self.w.setDate.get()
 		self.w.datePicker.enable(dateEnabled)
@@ -284,6 +323,7 @@ class FontInfoBatchSetter(mekkaObject):
 			Glyphs.defaults[self.domain("manufacturerURL")] = thisFont.manufacturerURL
 			Glyphs.defaults[self.domain("license")] = thisFont.license
 			Glyphs.defaults[self.domain("fontDescription")] = thisFont.description
+			Glyphs.defaults[self.domain("sampleText")] = thisFont.sampleText
 			try:
 				Glyphs.defaults[self.domain("vendorID")] = thisFont.propertyForName_("vendorID").value
 			except:
@@ -306,6 +346,7 @@ class FontInfoBatchSetter(mekkaObject):
 			Glyphs.defaults[self.domain("setLicense")] = bool(thisFont.license)
 			Glyphs.defaults[self.domain("setLicenseURL")] = bool(thisFont.propertyForName_("licenseURL"))
 			Glyphs.defaults[self.domain("setFontDescription")] = bool(thisFont.description)
+			Glyphs.defaults[self.domain("setSampleText")] = bool(thisFont.sampleText)
 
 			# "containing" text box:
 			name = thisFont.familyName.strip()
@@ -319,17 +360,18 @@ class FontInfoBatchSetter(mekkaObject):
 
 			print()
 			print(f'👨‍🎨 Designer: {thisFont.designer}')
-			print(f'👨‍🎨 DesignerURL: {thisFont.designerURL}')
+			print(f'👨‍🎨 Designer URL: {thisFont.designerURL}')
 			print(f'👸‍ Manufacturer: {thisFont.manufacturer}')
-			print(f'👸‍ ManufacturerURL: {thisFont.manufacturerURL}')
+			print(f'👸‍ Manufacturer URL: {thisFont.manufacturerURL}')
 			print(f'👨🏻‍💼 License: {thisFont.license}')
 			if thisFont.propertyForName_("licenseURL"):
-				print(f'👨🏻‍💼 LicenseURL: {thisFont.propertyForName_("licenseURL").value}')
+				print(f'👨🏻‍💼 License URL: {thisFont.propertyForName_("licenseURL").value}')
 			else:
-				print('👨🏻‍💼 LicenseURL: none')
+				print('👨🏻‍💼 License URL: none')
 			print(f"📝 Copyright: {thisFont.copyright}")
 			print(f'📝 Trademark: {thisFont.trademark}')
 			print(f'📝 Description: {thisFont.description}')
+			print(f'📝 Sample Text: {thisFont.sampleText}')
 			if thisFont.propertyForName_("vendorID"):
 				print(f'📝 Vendor ID: {thisFont.propertyForName_("vendorID").value}')
 			else:
@@ -362,6 +404,7 @@ class FontInfoBatchSetter(mekkaObject):
 			license = self.pref("license")
 			licenseURL = self.pref("licenseURL")
 			fontDescription = self.pref("fontDescription")
+			fontDescription = self.pref("sampleText")
 
 			setCopyright = self.pref("setCopyright")
 			setTrademark = self.pref("setTrademark")
@@ -374,6 +417,7 @@ class FontInfoBatchSetter(mekkaObject):
 			setLicense = self.pref("setLicense")
 			setLicenseURL = self.pref("setLicenseURL")
 			setFontDescription = self.pref("setFontDescription")
+			setSampleText = self.pref("setSampleText")
 
 			setVersion = self.pref("setVersion")
 			versionMinor = self.prefInt("versionMinor")
@@ -417,7 +461,7 @@ class FontInfoBatchSetter(mekkaObject):
 							print("🆗 📆 Font already has desired Date. No change.")
 						else:
 							thisFont.date = dateInDatePicker
-							print("✅ 📆 Date set: %s" % dateInDatePicker)
+							print(f"✅ 📆 Date set: {dateInDatePicker}")
 							changeCount += 1
 
 					if setCopyright:
@@ -425,7 +469,7 @@ class FontInfoBatchSetter(mekkaObject):
 							print("🆗 📝 Font already has desired Copyright. No change.")
 						else:
 							thisFont.copyright = copyright
-							print("✅ 📝 Copyright set: %s" % copyright)
+							print(f"✅ 📝 Copyright set: {copyright}")
 							changeCount += 1
 
 					if setTrademark:
@@ -434,7 +478,7 @@ class FontInfoBatchSetter(mekkaObject):
 							print("🆗 📝 Font already has desired Trademark. No change.")
 						else:
 							thisFont.trademark = individualTrademark
-							print("✅ 📝 Trademark set: %s" % individualTrademark)
+							print(f"✅ 📝 Trademark set: {individualTrademark}")
 							changeCount += 1
 
 					if setVendorID:
@@ -443,7 +487,7 @@ class FontInfoBatchSetter(mekkaObject):
 							print("🆗 📝 Font already has desired Vendor ID. No change.")
 						else:
 							addPropertyToFont(thisFont, "vendorID", vendorID)
-							print("✅ 📝 Vendor ID set: %s" % vendorID)
+							print(f"✅ 📝 Vendor ID set: {vendorID}")
 							changeCount += 1
 
 					if setManufacturerURL:
@@ -451,7 +495,7 @@ class FontInfoBatchSetter(mekkaObject):
 							print("🆗 👸 Font already has desired ManufacturerURL. No change.")
 						else:
 							thisFont.manufacturerURL = manufacturerURL
-							print("✅ 👸 ManufacturerURL set: %s" % manufacturerURL)
+							print(f"✅ 👸 ManufacturerURL set: {manufacturerURL}")
 							changeCount += 1
 
 					if setManufacturer:
@@ -459,7 +503,7 @@ class FontInfoBatchSetter(mekkaObject):
 							print("🆗 👸 Font already has desired Manufacturer. No change.")
 						else:
 							thisFont.manufacturer = manufacturer
-							print("✅ 👸 Manufacturer set: %s" % manufacturer)
+							print(f"✅ 👸 Manufacturer set: {manufacturer}")
 							changeCount += 1
 
 					if setLicenseURL:
@@ -468,7 +512,7 @@ class FontInfoBatchSetter(mekkaObject):
 							print("🆗 👨🏻‍💼 Font already has desired LicenseURL. No change.")
 						else:
 							addPropertyToFont(thisFont, "licenseURL", licenseURL)
-							print("✅ 👨🏻‍💼 LicenseURL set: %s" % licenseURL)
+							print(f"✅ 👨🏻‍💼 LicenseURL set: {licenseURL}")
 							changeCount += 1
 
 					if setLicense:
@@ -476,7 +520,7 @@ class FontInfoBatchSetter(mekkaObject):
 							print("🆗 👨🏻‍💼 Font already has desired License. No change.")
 						else:
 							thisFont.license = license
-							print("✅ 👨🏻‍💼 License set: %s" % license)
+							print(f"✅ 👨🏻‍💼 License set: {license}")
 							changeCount += 1
 
 					if setDesignerURL:
@@ -484,7 +528,7 @@ class FontInfoBatchSetter(mekkaObject):
 							print("🆗 👨‍🎨 Font already has desired DesignerURL. No change.")
 						else:
 							thisFont.designerURL = designerURL
-							print("✅ 👨‍🎨 DesignerURL set: %s" % designerURL)
+							print(f"✅ 👨‍🎨 DesignerURL set: {designerURL}")
 							changeCount += 1
 
 					if setDesigner:
@@ -492,7 +536,7 @@ class FontInfoBatchSetter(mekkaObject):
 							print("🆗 👨‍🎨 Font already has desired Designer. No change.")
 						else:
 							thisFont.designer = designer
-							print("✅ 👨‍🎨 Designer set: %s" % designer)
+							print(f"✅ 👨‍🎨 Designer set: {designer}")
 							changeCount += 1
 
 					if setFontDescription:
@@ -500,7 +544,15 @@ class FontInfoBatchSetter(mekkaObject):
 							print("🆗 📛 Font already has desired fontDescription. No change.")
 						else:
 							thisFont.description = fontDescription
-							print("✅ 📛 Description set: %s" % fontDescription)
+							print(f"✅ 📛 Description set: {fontDescription}")
+							changeCount += 1
+
+					if setSampleText:
+						if thisFont.sampleText == sampleText:
+							print("🆗 🧪 Font already has desired sampleText. No change.")
+						else:
+							thisFont.description = fontDescription
+							print(f"✅ 🧪 Sample text set: {fontDescription}")
 							changeCount += 1
 
 					if changeCount > currentChangeCount:
