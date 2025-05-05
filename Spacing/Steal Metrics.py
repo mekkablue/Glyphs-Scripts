@@ -189,7 +189,7 @@ class MetricsCopy(mekkaObject):
 			)
 		)
 
-		targetLayers = [targetFont.glyphs[layer.parent.name].layers[targetMasterID] for layer in selectedTargetLayers]
+		targetLayers = [targetFont.glyphs[layer.parent.name].layers[targetMasterID] for layer in selectedTargetLayers if targetFont.glyphs[layer.parent.name]]
 		for targetLayer in targetLayers:
 			try:
 				targetGlyph = targetLayer.parent
