@@ -15,7 +15,7 @@ class TabularFigureSpacer(mekkaObject):
 		# "prefName": defaultValue,
 		"target": "one.tf",
 		"suffix": ".tf",
-		"createFromDefaultFigs": False,
+		"createFromDefaultFigs": True,
 	}
 
 	def __init__(self):
@@ -30,7 +30,7 @@ class TabularFigureSpacer(mekkaObject):
 
 		# UI elements:
 		linePos, inset, lineHeight = 10, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Fit default figures in tabular spaces", sizeStyle="small", selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos+2, -inset, 14), "Fit default figures in tabular spaces", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
 		self.w.targetText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Reference glyph", sizeStyle="small", selectable=True)
@@ -42,7 +42,8 @@ class TabularFigureSpacer(mekkaObject):
 		self.w.suffix = vanilla.EditText((inset + 93, linePos, -inset, 19), ".tf", callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.createFromDefaultFigs = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "⚠️ Create tab figures with default figures", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.createFromDefaultFigs = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Create glyphs if they are missing", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.createFromDefaultFigs.getNSButton().setToolTip_("Creates glyphs for tab figures with default figures as components. Otherwise will just reset existing tab figures.")
 		linePos += lineHeight
 
 		# Run Button:
@@ -57,8 +58,10 @@ class TabularFigureSpacer(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
+
 	def update(self, sender=None):
 		self.w.target.setItems([g.name for g in Glyphs.font.glyphs if ".tf" in g.name or ".tosf" in g.name])
+
 
 	def TabularFigureSpacerMain(self, sender=None):
 		try:
@@ -85,7 +88,7 @@ class TabularFigureSpacer(mekkaObject):
 					for fig in figs:
 						niceName = Glyphs.niceGlyphName(fig)
 						figName = f"{niceName}.{self.pref('suffix').lstrip('.')}"
-						if figName != self.pref("target"):
+						if not font.glyphs[figName]:
 							newGlyph = GSGlyph(figName)
 							font.glyphs.append(newGlyph)
 							for layer in newGlyph.layers:
@@ -93,19 +96,22 @@ class TabularFigureSpacer(mekkaObject):
 
 				targetGlyph = font.glyphs[self.pref("target")]
 				tabFigs = [g for g in font.glyphs if g.name.endswith(self.pref("suffix"))]
-				for glyph in tabFigs:
-					if targetGlyph and targetGlyph != glyph:
+				if targetGlyph:
+					for thisGlyph in tabFigs:
 						for master in font.masters:
 							mID = master.id
 							targetLayer = targetGlyph.layers[mID]
-							layer = glyph.layers[mID]
+							layer = thisGlyph.layers[mID]
 							for thisComponent in layer.components:
-								thisComponent.setDisableAlignment_(True)
+								thisComponent.alignment = -1 # can be freely positioned
+								
+							if targetGlyph == thisGlyph:
+								continue
 							widthDiff = targetLayer.width - layer.width
 							leftPercentage = layer.LSB / (layer.LSB + layer.RSB)
 							layer.LSB += round(widthDiff * leftPercentage)
 							layer.width = targetLayer.width
-						glyph.widthMetricsKey = f"={self.pref('target')}"
+						thisGlyph.widthMetricsKey = f"={self.pref('target')}"
 
 				names = [g.name for g in tabFigs]
 				font.newTab("/" + "/".join(names))
