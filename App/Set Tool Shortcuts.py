@@ -10,20 +10,20 @@ from GlyphsApp import Glyphs
 from mekkablue import mekkaObject
 
 shortcuts = {
-	"AnnotationTool": u"a",
-	"DrawTool": u"p",
-	"HandTool": u"h",
-	"MeasurementTool": u"l",
-	"OtherPathsTool": u"e",
-	"PenTool": u"b",
-	"PrimitivesTool": u"f",
-	"SelectTool": u"v",
-	"SelectAllLayersTool": u"v",
-	"TextTool": u"t",
-	"RotateTool": u"r",
-	"ScaleTool": u"s",
-	"TrueTypeTool": u"i",
-	"ZoomTool": u"z",
+	"AnnotationTool": "a",
+	"DrawTool": "p",
+	"HandTool": "h",
+	"MeasurementTool": "l",
+	"OtherPathsTool": "e",
+	"PenTool": "b",
+	"PrimitivesTool": "f",
+	"SelectTool": "v",
+	"SelectAllLayersTool": "v",
+	"TextTool": "t",
+	"RotateTool": "r",
+	"ScaleTool": "s",
+	"TrueTypeTool": "i",
+	"ZoomTool": "z",
 }
 
 
@@ -57,27 +57,28 @@ class SetToolShortcuts(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
+
 	def changeShortcut(self, sender):
 		try:
 			tool = sender.getPlaceholder()
 			newShortcut = sender.get()
-			print(u"%s: '%s'" % (tool, sender.get()))
+			print("%s: '%s'" % (tool, sender.get()))
 			if len(newShortcut) > 0:
 				if newShortcut:
 					sender.set(newShortcut[-1].upper())
 					newShortcut = newShortcut[-1].lower()
-					Glyphs.defaults[u"%s.Hotkey" % tool] = newShortcut
-					print(u"New Shortcut for %s: %s" % (tool, newShortcut))
+					Glyphs.defaults["%s.Hotkey" % tool] = newShortcut
+					print("New Shortcut for %s: %s" % (tool, newShortcut))
 					sender.selectAll()
 			else:
-				print(u"Resetting Shortcut for %s: %s" % (tool, newShortcut))
+				print("Resetting Shortcut for %s: %s" % (tool, newShortcut))
 				del Glyphs.defaults["%s.Hotkey" % tool]
 				sender.set(shortcuts[tool].upper())
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print(u"Set Tool Shortcuts Error: %s" % e)
+			print("Set Tool Shortcuts Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
 
