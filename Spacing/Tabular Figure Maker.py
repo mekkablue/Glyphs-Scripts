@@ -104,9 +104,10 @@ class TabularFigureSpacer(mekkaObject):
 							layer = thisGlyph.layers[mID]
 							for thisComponent in layer.components:
 								thisComponent.alignment = -1 # can be freely positioned
-								
+
 							if targetGlyph == thisGlyph:
 								continue
+
 							widthDiff = targetLayer.width - layer.width
 							leftPercentage = layer.LSB / (layer.LSB + layer.RSB)
 							layer.LSB += round(widthDiff * leftPercentage)
