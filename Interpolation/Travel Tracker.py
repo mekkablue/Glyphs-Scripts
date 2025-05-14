@@ -69,7 +69,7 @@ class TravelTracker(mekkaObject):
 		tab, backTab = 100, 110
 		self.w.travelPercentageText = vanilla.TextBox((inset, linePos + 3, tab, 14), "Acceptable travel:", sizeStyle='small', selectable=True)
 		self.w.travelPercentage = vanilla.EditText((inset + tab, linePos, -inset - backTab, 19), "50", callback=self.SavePreferences, sizeStyle='small')
-		self.w.travelPercentageText2 = vanilla.TextBox((-inset - backTab, linePos + 2, -inset, 14), "% of bbox diagonal", sizeStyle="small", selectable=True)
+		self.w.travelPercentageText2 = vanilla.TextBox((-inset - backTab, linePos + 3, -inset, 14), "% of bbox diagonal", sizeStyle="small", selectable=True)
 		self.w.travelPercentage.getNSTextField().setToolTip_("Anything above ~50% is suspicious in a weight interpolation, and above 70% in a width interpolation. (100% is the diagonal of the bounding box of the path (or glyph) the node belongs to.)")
 		linePos += lineHeight
 
