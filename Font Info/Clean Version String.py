@@ -109,7 +109,10 @@ else:
 	theseFonts = (Glyphs.font, )
 
 for thisFont in theseFonts:
-	print(f"🧼 Clean Version String for: {thisFont.familyName} (📄 {thisFont.filepath.lastPathComponent()})\n")
+	msg = f"🧼 Clean Version String for: {thisFont.familyName}"
+	if thisFont.filepath:
+		msg += f" (📄 {thisFont.filepath.lastPathComponent()})")
+	msg += "\n"
 	cleanVersionStringProperty(thisFont)
 	cleanTtfautohintSetting(thisFont)
 	print()
