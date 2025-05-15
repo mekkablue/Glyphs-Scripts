@@ -77,14 +77,20 @@ class ChangeMetricsbyPercentage(mekkaObject):
 
 						LSB_change = (thisLayer.LSB * change) - thisLayer.LSB
 
-						print(thisLayer.parent.name, layer_id, "LSB:", thisLayer.LSB, "->", thisLayer.LSB * change, " | change of", LSB_change)
 						thisLayer.LSB *= change
 
 						# counteract movement in glyphs that reference this glyph as a component:
 						for g in self.findGlyphsThatReferenceGlyphAsComponent(thisLayer.parent):
 							for c in g.layers[layer_id].components:
 								if c.componentName == thisLayer.parent.name:
-									c.position = (c.position[0] - LSB_change, c.position[1])
+
+									# if component is rotated or mirrored, we need to reverse the LSB change
+									if c.transform[0] < 0 or c.transform[3] < 0:
+										c.position = (c.position[0] + LSB_change, c.position[1])
+
+									# otherwise, we can just offset the LSB change directly
+									else:
+										c.position = (c.position[0] - LSB_change, c.position[1])
 
 
 					if changeRSB:
