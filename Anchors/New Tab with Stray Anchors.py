@@ -76,8 +76,7 @@ def anchorIsAstray(thisAnchor, thisLayer, shouldHorizontalAlign, shouldVerticalA
 			return True
 
 	return False
-		
-		
+
 
 class FindStrayAnchors(mekkaObject):
 	prefID = "com.mekkablue.FindStrayAnchors"
@@ -88,12 +87,13 @@ class FindStrayAnchors(mekkaObject):
 		"horizontalAlignment": 2, # LSB or RSB
 		"verticalAlignment": 0, # Any Metric Line
 		"anchors": "top, bottom, _top, _bottom",
+		"reuseTab": True,
 	}
 
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 300
-		windowHeight = 180
+		windowHeight = 190
 		windowWidthResize  = 1000 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -127,6 +127,10 @@ class FindStrayAnchors(mekkaObject):
 		self.w.shouldVerticalAlign = vanilla.CheckBox((inset, linePos-1, indent, 20), "Vertically not on:", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.verticalAlignment = vanilla.PopUpButton((inset+indent, linePos, -inset, 17), verticals, sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
+		
+		self.w.reuseTab = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle="small")
+		linePos += lineHeight
+		
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Find", sizeStyle="regular", callback=self.FindStrayAnchorsMain)
@@ -258,8 +262,14 @@ class FindStrayAnchors(mekkaObject):
 						)
 					return
 
-				# report
-				reportTab = thisFont.newTab()
+				# determine the report tab
+				if thisFont.currentTab and self.pref("reuseTab"):
+					reportTab = thisFont.currentTab
+					reportTab.layers = []
+				else:
+					reportTab = thisFont.newTab()
+				
+				# fill report tab with all affected layers
 				for anchorName in sorted(report.keys()):
 					if not report[anchorName]:
 						continue
