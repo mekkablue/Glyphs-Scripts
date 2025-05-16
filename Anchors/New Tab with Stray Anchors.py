@@ -89,7 +89,7 @@ class FindStrayAnchors(mekkaObject):
 		"verticalAlignment": 0, # Any Metric Line
 		"anchors": "top, bottom, _top, _bottom",
 	}
-	
+
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 300
@@ -139,11 +139,13 @@ class FindStrayAnchors(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-	
+
+
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
+
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
@@ -158,8 +160,8 @@ class FindStrayAnchors(mekkaObject):
 		activeH = self.uiElement("shouldHorizontalAlign").get()
 		activeV = self.uiElement("shouldVerticalAlign").get()
 		activeButton = activeH or activeV
-		self.uiElement("shouldHorizontalAlign").enable(activeH)
-		self.uiElement("shouldVerticalAlign").enable(activeV)
+		self.uiElement("horizontalAlignment").enable(activeH)
+		self.uiElement("verticalAlignment").enable(activeV)
 		self.uiElement("runButton").enable(activeButton)
 
 
@@ -282,5 +284,6 @@ class FindStrayAnchors(mekkaObject):
 			print(f"Find Stray Anchors Error: {e}")
 			import traceback
 			print(traceback.format_exc())
+
 
 FindStrayAnchors()
