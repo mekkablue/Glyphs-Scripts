@@ -16,86 +16,92 @@ Glyphs.showMacroWindow()
 
 
 def removeFromAutohintOptions(thisInstance, removeOption):
-	parameter = thisInstance.customParameters[parameterName]
-	if parameter:
-		ttfAutohintOptions = parameter.split(u" ")
-		popList = []
-		optionToBeRemoved = "--%s" % removeOption.strip()
-		for i, currentOption in enumerate(ttfAutohintOptions):
-			if currentOption.split(u"=")[0] == optionToBeRemoved:
-				popList.append(i)
-		if popList:
-			for j in sorted(popList)[::-1]:
-				ttfAutohintOptions.pop(j)
-			thisInstance.customParameters[parameterName] = " ".join(ttfAutohintOptions)
-		else:
-			print(f"-- Warning: '{removeOption}' not found.")
+    parameter = thisInstance.customParameters[parameterName]
+    if parameter:
+        ttfAutohintOptions = parameter.split(" ")
+        popList = []
+        optionToBeRemoved = "--%s" % removeOption.strip()
+        for i, currentOption in enumerate(ttfAutohintOptions):
+            if currentOption.split("=")[0] == optionToBeRemoved:
+                popList.append(i)
+        if popList:
+            for j in sorted(popList)[::-1]:
+                ttfAutohintOptions.pop(j)
+            thisInstance.customParameters[parameterName] = " ".join(ttfAutohintOptions)
+        else:
+            print(f"-- Warning: '{removeOption}' not found.")
 
 
 def dictToParameterValue(ttfAutohintDict):
-	parameterValue = ""
-	for key in ttfAutohintDict:
-		parameterValue += " "
-		if not ttfAutohintDict[key]:
-			parameterValue += "--%s" % key.strip(" -")
-		else:
-			value = str(ttfAutohintDict[key]).strip()
-			parameterValue += "--%s=%s" % (key.strip(" -"), value)
-	return parameterValue.strip()
+    parameterValue = ""
+    for key in ttfAutohintDict:
+        parameterValue += " "
+        if not ttfAutohintDict[key]:
+            parameterValue += "--%s" % key.strip(" -")
+        else:
+            value = str(ttfAutohintDict[key]).strip()
+            parameterValue += "--%s=%s" % (key.strip(" -"), value)
+    return parameterValue.strip()
 
 
 def ttfAutohintDict(parameterValue):
-	"""Returns a dict for a TTFAutohint parameter value."""
-	ttfAutohintDict = {}
-	for ttfAutohintOption in parameterValue.split("--"):
-		if "=" in ttfAutohintOption:
-			[key, value] = ttfAutohintOption.split("=")
-			value = value.strip()
-		else:
-			key = ttfAutohintOption
-			value = None
-		if key:
-			ttfAutohintDict[key.strip(" -")] = value
-	return ttfAutohintDict
+    """Returns a dict for a TTFAutohint parameter value."""
+    ttfAutohintDict = {}
+    for ttfAutohintOption in parameterValue.split("--"):
+        if "=" in ttfAutohintOption:
+            [key, value] = ttfAutohintOption.split("=")
+            value = value.strip()
+        else:
+            key = ttfAutohintOption
+            value = None
+        if key:
+            ttfAutohintDict[key.strip(" -")] = value
+    return ttfAutohintDict
 
 
 def writeOptionsToInstance(optionDict, instance, parameterName):
-	value = dictToParameterValue(optionDict)
-	instance.customParameters[parameterName] = value
+    value = dictToParameterValue(optionDict)
+    instance.customParameters[parameterName] = value
 
 
 def cleanVersionStringProperty(thisFont):
-	# version string property
-	propKey = "versionString"
-	propValue = "Version %d.%03d"
-	if Glyphs.versionNumber >= 3:
-		# GLYPHS 3
-		thisFont.setProperty_value_languageTag_(propKey, propValue, None)
-	else:
-		# GLYPHS 2
-		thisFont.customParameters[propKey] = propValue
-	print(f"Set: {propKey}='{propValue}' in Font Info > Font")
+    # version string property
+    propKey = "versionString"
+    propValue = "Version %d.%03d"
+    if Glyphs.versionNumber >= 3:
+        # GLYPHS 3
+        thisFont.setProperty_value_languageTag_(propKey, propValue, None)
+    else:
+        # GLYPHS 2
+        thisFont.customParameters[propKey] = propValue
+    print(f"Set: {propKey}='{propValue}' in Font Info > Font")
 
 
 def cleanTtfautohintSetting(thisFont):
-	# ttfautohint parameter
-	parameterName = "TTFAutohint options"
-	optionName = "no-info"
-	enteredValue = ""
-	for thisInstance in thisFont.instances:
-		if thisInstance.customParameters[parameterName] is not None:
-			optionDict = ttfAutohintDict(thisInstance.customParameters[parameterName])
-			optionDict[optionName] = enteredValue
-			writeOptionsToInstance(optionDict, thisInstance, parameterName)
-			print("Set: ttfAutohint %s in instance '%s'." % (
-				optionName,
-				thisInstance.name,
-			))
-		else:
-			print("No TTF Autohint parameter in instance '%s'. %s not set." % (
-				thisInstance.name,
-				optionName,
-			))
+    # ttfautohint parameter
+    parameterName = "TTFAutohint options"
+    optionName = "no-info"
+    enteredValue = ""
+    for thisInstance in thisFont.instances:
+        if thisInstance.customParameters[parameterName] is not None:
+            optionDict = ttfAutohintDict(thisInstance.customParameters[parameterName])
+            optionDict[optionName] = enteredValue
+            writeOptionsToInstance(optionDict, thisInstance, parameterName)
+            print(
+                "Set: ttfAutohint %s in instance '%s'."
+                % (
+                    optionName,
+                    thisInstance.name,
+                )
+            )
+        else:
+            print(
+                "No TTF Autohint parameter in instance '%s'. %s not set."
+                % (
+                    thisInstance.name,
+                    optionName,
+                )
+            )
 
 
 keysPressed = NSEvent.modifierFlags()
@@ -104,17 +110,17 @@ shiftKeyPressed = keysPressed & NSEventModifierFlagShift == NSEventModifierFlagS
 
 allFonts = optionKeyPressed and shiftKeyPressed
 if allFonts:
-	theseFonts = Glyphs.fonts
+    theseFonts = Glyphs.fonts
 else:
-	theseFonts = (Glyphs.font, )
+    theseFonts = (Glyphs.font,)
 
 for thisFont in theseFonts:
-	msg = f"🧼 Clean Version String for: {thisFont.familyName}"
-	if thisFont.filepath:
-		msg += f" (📄 {thisFont.filepath.lastPathComponent()})")
-	msg += "\n"
-	cleanVersionStringProperty(thisFont)
-	cleanTtfautohintSetting(thisFont)
-	print()
+    msg = f"🧼 Clean Version String for: {thisFont.familyName}"
+    if thisFont.filepath:
+        msg += f" (📄 {thisFont.filepath.lastPathComponent()})"
+    msg += "\n"
+    cleanVersionStringProperty(thisFont)
+    cleanTtfautohintSetting(thisFont)
+    print()
 
 print("✅ Done.")
