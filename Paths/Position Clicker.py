@@ -79,6 +79,7 @@ class PositionClicker(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"referenceGlyphName": "behDotless-ar.medi",
+		"ignoreGlyphs": ".alt, .calt, .pre, .post",
 		"clickCount": 2,
 		"includeNonExporting": False,
 		"reuseTab": False,
@@ -88,8 +89,8 @@ class PositionClicker(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 400
-		windowHeight = 160
+		windowWidth = 360
+		windowHeight = 180
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -101,29 +102,37 @@ class PositionClicker(mekkaObject):
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight, indent = 12, 15, 22, 110
+		linePos, inset, lineHeight, indent = 12, 15, 22, 90
 
 		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Report positional combos that do not click", sizeStyle='small')
-		self.w.descriptionText.getNSTextField().setToolTip_("Clicking means that when two matching positional shapes follow each other (e.g. initial and final), they ‘click’, i.e., they share at least 2 point coordinates. Or whatever number is set in the minimal node count setting below.")
+		self.w.descriptionText.getNSTextField().setToolTip_("Clicking means that when two matching positional shapes follow each other (e.g. initial and final), they ‘click’, i.e., they share at least 2 node coordinates. Or whatever number is set in the minimal node count setting below.")
 		linePos += lineHeight
 
 		tooltip = "Reference glyph. Pick a medial glyph with paths for clicking. We recommend behDotless-ar.medi."
-		self.w.referenceText = vanilla.TextBox((inset, linePos, indent, 14), "Click with glyph", sizeStyle='small')
+		self.w.referenceText = vanilla.TextBox((inset, linePos+1, indent, 14), "Click with glyph", sizeStyle='small')
 		self.w.referenceText.getNSTextField().setToolTip_(tooltip)
-
 		self.w.referenceGlyphName = vanilla.ComboBox((inset + indent, linePos - 2, -inset - 22, 19), self.getAllMediGlyphNames(), sizeStyle='small', callback=self.SavePreferences)
 		self.w.referenceGlyphName.getNSComboBox().setFont_(NSFont.userFixedPitchFontOfSize_(10))
 		self.w.referenceGlyphName.getNSComboBox().setToolTip_(tooltip)
-
-		self.w.updateButton = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.updateReferenceGlyphs)
+		self.w.updateButton = UpdateButton((-inset - 18, linePos - 3, -inset, 18), callback=self.updateReferenceGlyphs)
 		self.w.updateButton.getNSButton().setToolTip_("Update the list in the combo box with all .medi glyphs in the frontmost font.")
 		linePos += lineHeight
-
-		tooltip = "The amount of point coordinates that must be shared between two consecutive positional forms. E.g., if set to 2, an initial and a final shape must have two or more nodes exactly on top of each other when they follow each other."
-		self.w.clickCountText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Minimal node count", sizeStyle='small')
+		
+		indent = 140
+		tooltip = "The amount of point coordinates that must be shared between two consecutive positional forms. E.g., if set to 2, an initial and a final shape must have two or more nodes exactly on top of each other when they follow each other. Will respect exit and entry anchors."
+		self.w.clickCountText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Min count of node clicks", sizeStyle='small')
 		self.w.clickCount = vanilla.EditText((inset + indent, linePos - 1, -inset, 19), "2", callback=self.SavePreferences, sizeStyle='small')
+		self.w.clickCountText.getNSTextField().setToolTip_(tooltip)
+		self.w.clickCount.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
-
+		
+		tooltip = "Ignore glyphs that contain any of these name particles. Useful if you have alternates that are intentionally not clicking with the reference glyph, e.g. because they are contextual alternates for specific situations. Use comma’s to separate multiple particles."
+		self.w.ignoreGlyphsText = vanilla.TextBox((inset, linePos+2, indent, 14), "Ignore glyphs containing", sizeStyle="small", selectable=True)
+		self.w.ignoreGlyphs = vanilla.EditText((inset+indent, linePos-1, -inset, 19), ".alt, .calt, .pre, .post", callback=self.SavePreferences, sizeStyle="small")
+		self.w.ignoreGlyphsText.getNSTextField().setToolTip_(tooltip)
+		self.w.ignoreGlyphs.getNSTextField().setToolTip_(tooltip)
+		linePos += lineHeight
+		
 		indent = 190
 		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, indent, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonExporting.getNSButton().setToolTip_("Will also measure glyphs that are set to not export.")
@@ -201,6 +210,7 @@ class PositionClicker(mekkaObject):
 				clickCount = self.prefInt("clickCount")
 				includeComposites = self.pref("includeComposites")
 				verbose = self.pref("verbose")
+				ignoreParticles = [name.strip() for name in self.pref("ignoreGlyphs").split(",")]
 
 				try:
 					spaceLayer = thisFont.glyphs["space"].layers[0]
@@ -220,6 +230,10 @@ class PositionClicker(mekkaObject):
 				comboCount = 0
 				for thisGlyph in thisFont.glyphs:
 					glyphName = thisGlyph.name
+
+					if any([part in glyphName for part in ignoreParticles]):
+						continue
+
 					if isPositional(glyphName):
 						nameParticles = glyphName.split(".")
 						comesFirst = "medi" in nameParticles or "init" in nameParticles
