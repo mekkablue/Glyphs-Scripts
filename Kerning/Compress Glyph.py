@@ -7,20 +7,7 @@ Compresses all instances of a glyph to its respective group kerning.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
-
-
-def match(first, second):
-	# https://www.geeksforgeeks.org/wildcard-character-matching/
-	if len(first) == 0 and len(second) == 0:
-		return True
-	if len(first) > 1 and first[0] == '*' and len(second) == 0:
-		return False
-	if (len(first) > 1 and first[0] == '?') or (len(first) != 0 and len(second) != 0 and first[0] == second[0]):
-		return match(first[1:], second[1:])
-	if len(first) != 0 and first[0] == '*':
-		return match(first[1:], second) or match(first, second[1:])
-	return False
+from mekkablue import mekkaObject, match
 
 
 class CompressGlyph(mekkaObject):
