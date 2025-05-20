@@ -33,44 +33,52 @@ class ComponentMover(mekkaObject):
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 6, 25, 19
-
-		self.w.changeAttributeText = vanilla.TextBox((inset, linePos + 3, 50, 14), "Change", sizeStyle='small')
-		linePos += lineHeight
-		self.w.changeAttribute = vanilla.PopUpButton((inset, linePos, -inset - 16, 18), self.defaultSettings + self.availableAttributes(), sizeStyle='small', callback=self.SavePreferences)
+		linePos, inset, lineHeight = 6, 15, 19
+		
+		tabStop = 50
+		self.w.changeAttributeText = vanilla.TextBox((inset, linePos + 2, tabStop, 14), "Change", sizeStyle='small')
+		self.w.changeAttribute = vanilla.PopUpButton((inset + tabStop, linePos, -inset - 16, 18), self.defaultSettings + self.availableAttributes(), sizeStyle='small', callback=self.SavePreferences)
 		self.w.changeAttributeUpdate = UpdateButton((-inset - 12, linePos - 2, -inset + 6, 18), callback=self.updateUI)
+		toolTip = "Pick the attribute to change. Position and Size are available for all components. Smart axes will be listed here. Click the Update button to reset the menu for all smart axes for the current glyph selection."
+		self.w.changeAttributeText.setToolTip(toolTip)
+		self.w.changeAttribute.setToolTip(toolTip)
+		self.w.changeAttributeUpdate.setToolTip(toolTip)
 		linePos += lineHeight
 
-		self.w.searchStringText = vanilla.TextBox((inset, linePos + 3, 50, 14), "for", sizeStyle='small')
-		linePos += lineHeight
-		self.w.searchString = vanilla.ComboBox((inset, linePos, -inset - 17, 18), self.availableComponents(), sizeStyle='small', callback=self.SavePreferences)
+		self.w.searchStringText = vanilla.TextBox((inset, linePos + 3, tabStop, 14), "for", sizeStyle='small')
+		self.w.searchString = vanilla.ComboBox((inset + tabStop, linePos, -inset - 18, 18), self.availableComponents(), sizeStyle='small', callback=self.SavePreferences)
 		self.w.searchString.getNSComboBox().setPlaceholderString_("any component")
 		self.w.searchStringUpdate = UpdateButton((-inset - 12, linePos - 2, -inset + 6, 18), callback=self.updateUI)
-		linePos += int(lineHeight * 1.5)
+		toolTip = "Pick the name of the component you want to manipulate in (all masters of) all glyphs. An empty entry means every component. Click the Update button to populate the menu with the names of all components in all selected glyphs."
+		self.w.searchStringText.setToolTip(toolTip)
+		self.w.searchString.setToolTip(toolTip)
+		self.w.searchStringUpdate.setToolTip(toolTip)
+		linePos += int(lineHeight * 1.8)
 
-		size, hight = 45, 30
-		offset = round((windowWidth - (size * 3)) / 2.0)
+		buttonWidth, buttonHeight = 50, 34
+		inset = round((windowWidth - (buttonWidth * 3)) / 2.0)
 
-		self.w.upLeft = vanilla.SquareButton((offset, linePos, size - 1, hight - 1), "↖", callback=self.ComponentMoverMain)
-		self.w.up = vanilla.SquareButton((offset + size, linePos, size - 1, hight - 1), "↑", callback=self.ComponentMoverMain)
-		self.w.upRight = vanilla.SquareButton((offset + size * 2, linePos, size - 1, hight - 1), "↗", callback=self.ComponentMoverMain)
-		linePos += hight
+		self.w.upLeft = vanilla.SquareButton((inset, linePos, buttonWidth - 1, buttonHeight - 1), "↖", callback=self.ComponentMoverMain)
+		self.w.up = vanilla.SquareButton((inset + buttonWidth, linePos, buttonWidth - 1, buttonHeight - 1), "↑", callback=self.ComponentMoverMain)
+		self.w.upRight = vanilla.SquareButton((inset + buttonWidth * 2, linePos, buttonWidth - 1, buttonHeight - 1), "↗", callback=self.ComponentMoverMain)
+		linePos += buttonHeight
 
-		self.w.left = vanilla.SquareButton((offset, linePos, size - 1, hight - 1), "←", callback=self.ComponentMoverMain)
-		self.w.amount = vanilla.EditText((offset + size, linePos, size - 1, hight - 1), "10", callback=self.SavePreferences)
+		self.w.left = vanilla.SquareButton((inset, linePos, buttonWidth - 1, buttonHeight - 1), "←", callback=self.ComponentMoverMain)
+		self.w.amount = vanilla.EditText((inset + buttonWidth, linePos, buttonWidth - 1, buttonHeight - 1), "10", callback=self.SavePreferences)
 		self.w.amount.getNSTextField().setAlignment_(1)
-		self.w.right = vanilla.SquareButton((offset + size * 2, linePos, size - 1, hight - 1), "→", callback=self.ComponentMoverMain)
-		linePos += hight
+		self.w.right = vanilla.SquareButton((inset + buttonWidth * 2, linePos, buttonWidth - 1, buttonHeight - 1), "→", callback=self.ComponentMoverMain)
+		linePos += buttonHeight
 
-		self.w.downLeft = vanilla.SquareButton((offset, linePos, size - 1, hight - 1), "↙", callback=self.ComponentMoverMain)
-		self.w.down = vanilla.SquareButton((offset + size, linePos, size - 1, hight - 1), "↓", callback=self.ComponentMoverMain)
-		self.w.downRight = vanilla.SquareButton((offset + size * 2, linePos, size - 1, hight - 1), "↘", callback=self.ComponentMoverMain)
-		linePos += int(lineHeight * 1.5)
+		self.w.downLeft = vanilla.SquareButton((inset, linePos, buttonWidth - 1, buttonHeight - 1), "↙", callback=self.ComponentMoverMain)
+		self.w.down = vanilla.SquareButton((inset + buttonWidth, linePos, buttonWidth - 1, buttonHeight - 1), "↓", callback=self.ComponentMoverMain)
+		self.w.downRight = vanilla.SquareButton((inset + buttonWidth * 2, linePos, buttonWidth - 1, buttonHeight - 1), "↘", callback=self.ComponentMoverMain)
+		linePos += int(buttonHeight * 1.4)
 
-		self.w.breakAlignment = vanilla.CheckBox((offset, linePos - 1, -inset, 20), "Break alignment if necessary", value=False, callback=self.SavePreferences, sizeStyle='small')
+		inset = 15
+		self.w.breakAlignment = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Break alignment if necessary", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
-		self.w.allMasters = vanilla.CheckBox((offset, linePos - 1, -inset, 20), "Apply to all masters", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allMasters = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Apply to all masters", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		# Load Settings:
