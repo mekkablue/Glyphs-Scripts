@@ -6,7 +6,7 @@ Batch edit (smart) components across selected glyphs. Change positions, scales a
 """
 
 import vanilla
-from AppKit import NSPoint
+from AppKit import NSPoint, NSFont
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, UpdateButton
 
@@ -35,8 +35,9 @@ class ComponentMover(mekkaObject):
 		# UI elements:
 		linePos, inset, lineHeight = 6, 15, 19
 		
-		tabStop = 50
-		self.w.changeAttributeText = vanilla.TextBox((inset, linePos + 2, tabStop, 14), "Change", sizeStyle='small')
+		tabStop = 48
+		self.w.changeAttributeText = vanilla.TextBox((inset, linePos + 2, tabStop - 3, 14), "Change", sizeStyle='small')
+		self.w.changeAttributeText.getNSTextField().setAlignment_(2)
 		self.w.changeAttribute = vanilla.PopUpButton((inset + tabStop, linePos, -inset - 16, 18), self.defaultSettings + self.availableAttributes(), sizeStyle='small', callback=self.SavePreferences)
 		self.w.changeAttributeUpdate = UpdateButton((-inset - 12, linePos - 2, -inset + 6, 18), callback=self.updateUI)
 		toolTip = "Pick the attribute to change. Position and Size are available for all components. Smart axes will be listed here. Click the Update button to reset the menu for all smart axes for the current glyph selection."
@@ -45,7 +46,8 @@ class ComponentMover(mekkaObject):
 		self.w.changeAttributeUpdate.setToolTip(toolTip)
 		linePos += lineHeight
 
-		self.w.searchStringText = vanilla.TextBox((inset, linePos + 3, tabStop, 14), "for", sizeStyle='small')
+		self.w.searchStringText = vanilla.TextBox((inset, linePos + 3, tabStop - 3, 14), "for", sizeStyle='small')
+		self.w.searchStringText.getNSTextField().setAlignment_(2)
 		self.w.searchString = vanilla.ComboBox((inset + tabStop, linePos, -inset - 18, 18), self.availableComponents(), sizeStyle='small', callback=self.SavePreferences)
 		self.w.searchString.getNSComboBox().setPlaceholderString_("any component")
 		self.w.searchStringUpdate = UpdateButton((-inset - 12, linePos - 2, -inset + 6, 18), callback=self.updateUI)
@@ -55,7 +57,7 @@ class ComponentMover(mekkaObject):
 		self.w.searchStringUpdate.setToolTip(toolTip)
 		linePos += int(lineHeight * 1.8)
 
-		buttonWidth, buttonHeight = 50, 34
+		buttonWidth, buttonHeight = 60, 34
 		inset = round((windowWidth - (buttonWidth * 3)) / 2.0)
 
 		self.w.upLeft = vanilla.SquareButton((inset, linePos, buttonWidth - 1, buttonHeight - 1), "↖", callback=self.ComponentMoverMain)
@@ -63,9 +65,12 @@ class ComponentMover(mekkaObject):
 		self.w.upRight = vanilla.SquareButton((inset + buttonWidth * 2, linePos, buttonWidth - 1, buttonHeight - 1), "↗", callback=self.ComponentMoverMain)
 		linePos += buttonHeight
 
+		font = NSFont.systemFontOfSize_(20)
 		self.w.left = vanilla.SquareButton((inset, linePos, buttonWidth - 1, buttonHeight - 1), "←", callback=self.ComponentMoverMain)
 		self.w.amount = vanilla.EditText((inset + buttonWidth, linePos, buttonWidth - 1, buttonHeight - 1), "10", callback=self.SavePreferences)
+		self.w.amount.getNSTextField().setUsesSingleLineMode_(1)
 		self.w.amount.getNSTextField().setAlignment_(1)
+		self.w.amount.getNSTextField().setFont_(font)
 		self.w.right = vanilla.SquareButton((inset + buttonWidth * 2, linePos, buttonWidth - 1, buttonHeight - 1), "→", callback=self.ComponentMoverMain)
 		linePos += buttonHeight
 
