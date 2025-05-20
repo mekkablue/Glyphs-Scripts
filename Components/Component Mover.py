@@ -40,7 +40,7 @@ class ComponentMover(mekkaObject):
 		self.w.changeAttributeText.getNSTextField().setAlignment_(2)
 		self.w.changeAttribute = vanilla.PopUpButton((inset + tabStop, linePos, -inset - 16, 18), self.defaultSettings + self.availableAttributes(), sizeStyle='small', callback=self.SavePreferences)
 		self.w.changeAttributeUpdate = UpdateButton((-inset - 12, linePos - 2, -inset + 6, 18), callback=self.updateUI)
-		toolTip = "Pick the attribute to change. Position and Size are available for all components. Smart axes will be listed here. Click the Update button to reset the menu for all smart axes for the current glyph selection."
+		toolTip = "Pick the component attribute to change in all selected glyphs. Position and Size are available for all components. Smart axes will be listed here. Click the Update button to reset the menu for all smart axes for the current glyph selection."
 		self.w.changeAttributeText.setToolTip(toolTip)
 		self.w.changeAttribute.setToolTip(toolTip)
 		self.w.changeAttributeUpdate.setToolTip(toolTip)
@@ -51,7 +51,7 @@ class ComponentMover(mekkaObject):
 		self.w.searchString = vanilla.ComboBox((inset + tabStop, linePos, -inset - 18, 18), self.availableComponents(), sizeStyle='small', callback=self.SavePreferences)
 		self.w.searchString.getNSComboBox().setPlaceholderString_("any component")
 		self.w.searchStringUpdate = UpdateButton((-inset - 12, linePos - 2, -inset + 6, 18), callback=self.updateUI)
-		toolTip = "Pick the name of the component you want to manipulate in (all masters of) all glyphs. An empty entry means every component. Click the Update button to populate the menu with the names of all components in all selected glyphs."
+		toolTip = "Pick the name of the component you want to manipulate in (all masters of) all selected glyphs. An empty entry means every component. Click the Update button to populate the menu with the names of all components in all selected glyphs."
 		self.w.searchStringText.setToolTip(toolTip)
 		self.w.searchString.setToolTip(toolTip)
 		self.w.searchStringUpdate.setToolTip(toolTip)
