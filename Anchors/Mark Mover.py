@@ -39,6 +39,30 @@ def moveBottomLayer(thisLayer):
 		return 0
 
 
+def alefHeightForLayer(layer):
+	for m in layer.metrics:
+		if m.name == "Alef Height":
+			return m.position
+	return None
+
+
+def moveGlyphToAlefHeight(thisGlyph):
+	print("\n🔠 %s:" % thisGlyph.name)
+	movedLayers = 0
+	for thisLayer in thisGlyph.layers:
+		if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
+			topAnchor = thisLayer.anchors["_top"]
+			if topAnchor:
+				targetHeight = alefHeightForLayer(thisLayer)
+				if not targetHeight:
+					continue
+				startHeight = topAnchor.y
+				movedLayers += moveLayer(thisLayer, targetHeight - startHeight)
+			else:
+				movedLayers += moveBottomLayer(thisLayer)
+	return movedLayers
+
+
 def moveGlyphToCapHeight(thisGlyph):
 	print("\n🔠 %s:" % thisGlyph.name)
 	movedLayers = 0
@@ -88,6 +112,7 @@ def moveGlyphToSmallCapHeight(thisGlyph):
 class MarkMover(mekkaObject):
 	prefID = ""
 	prefDict = {
+		"arabicMarks": 1,
 		"lowercaseMarks": 1,
 		"uppercaseMarks": 1,
 		"smallcapMarks": 0,
@@ -99,10 +124,11 @@ class MarkMover(mekkaObject):
 		"reuseTab": 1,
 	}
 
+
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 310
-		windowHeight = 204
+		windowHeight = 224
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Mark Mover",  # window title
@@ -112,6 +138,9 @@ class MarkMover(mekkaObject):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Move connecting anchors on metric line", sizeStyle='small')
+		linePos += lineHeight
+
+		self.w.arabicMarks = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Move Arabic marks to Alef Height", value=True, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.lowercaseMarks = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Move …comb marks to x-height", value=True, callback=self.SavePreferences, sizeStyle='small')
@@ -147,13 +176,15 @@ class MarkMover(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
+
 	def updateUI(self, sender=None):
-		onOff = self.w.lowercaseMarks.get() or self.w.uppercaseMarks.get() or self.w.smallcapMarks.get()
+		onOff = self.w.lowercaseMarks.get() or self.w.uppercaseMarks.get() or self.w.smallcapMarks.get() or self.w.arabicMarks.get()
 		self.w.runButton.enable(onOff)
 
 		onOff = self.w.setMetricsKeys.get()
 		self.w.leftMetricsKey.enable(onOff)
 		self.w.rightMetricsKey.enable(onOff)
+
 
 	def MarkMoverMain(self, sender=None):
 		try:
@@ -181,6 +212,7 @@ class MarkMover(mekkaObject):
 				leftMetricsKey = self.pref("leftMetricsKey")
 				rightMetricsKey = self.pref("rightMetricsKey")
 				includeAllGlyphs = self.pref("includeAllGlyphs")
+				arabicMarks = self.pref("arabicMarks")
 				newTab = self.pref("newTab")
 				reuseTab = self.pref("reuseTab")
 
@@ -193,16 +225,18 @@ class MarkMover(mekkaObject):
 				movedMarks = 0
 				for glyph in glyphs:
 					glyphParts = glyph.name.split(".")
-					if glyphParts[0].endswith("comb"):
+					if glyphParts[0].endswith("comb") or (glyph.category == "Mark" and glyph.subCategory == "Nonspacing"):
 						if setMetricsKeys:
 							glyph.leftMetricsKey = leftMetricsKey
 							glyph.rightMetricsKey = rightMetricsKey
 						glyphNames.append(glyph.name)
-						if "sc" in glyphParts or "smcp" in glyphParts or "c2sc" in glyphParts or "small" in glyphParts:
+						if arabicMarks and glyph.script == "arabic":
+							movedMarks += moveGlyphToAlefHeight(glyph)
+						elif smallcapMarks and ("sc" in glyphParts or "smcp" in glyphParts or "c2sc" in glyphParts or "small" in glyphParts):
 							movedMarks += moveGlyphToSmallCapHeight(glyph)
-						elif "case" in glyphParts or "uc" in glyphParts:
+						elif uppercaseMarks and ("case" in glyphParts or "uc" in glyphParts):
 							movedMarks += moveGlyphToCapHeight(glyph)
-						else:
+						elif lowercaseMarks:
 							movedMarks += moveGlyphToXHeight(glyph)
 
 			# Final report:
