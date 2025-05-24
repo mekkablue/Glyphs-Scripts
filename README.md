@@ -14,7 +14,7 @@ Now the scripts are available in *Script > mekkablue.* If the mekkablue scripts 
 
 ## Glyphs 2
 
-While some of scripts may still run in Glyphs 2, I do not have the resources to keep them compatible with legacy app versions. On the contrary, most streamlining is aiming to move the coding style into Python 3 recommendations, some of which are incompatible with Python 2, and hence, Glyphs 2.
+While some scripts may run in Glyphs 2, I do not have the resources to keep them compatible with legacy app versions. On the contrary, most streamlining is aiming to move the coding style into Python 3 recommendations, some of which are incompatible with Python 2, and hence, Glyphs 2. Using git wisely, you can roll back the repository to a backwards-compatible state. However, you are on your own with this; I cannot help you.
 
 ### Video installation guide for Glyphs 2
 
@@ -118,7 +118,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## Build Glyphs
 
-*Most important: Quote Manager, and the Build scripts for Small Figures, Symbols, Ldot. The other scripts are mainly intended to give you a quick head start for covering certain Unicode ranges if requested by the client.*
+*Important: Quote Manager, and the Build scripts for Small Figures, Symbols, Ldot. The other scripts are mainly intended to give you a quick head start for covering certain Unicode ranges if requested by the client.*
 
 * **Add Adobe Symbol Glyphs:** Will add Adobe’s interpolations for a number of symbol glyphs if they are missing from the font: *Omega, Delta, Ohm, increment, asciicircum, greaterequal, infinity, partialdiff, lessequal, notequal, product, approxequal, plus, lozenge, integral, summation, radical, daggerdbl, perthousand, logicalnot, plusminus, asciitilde, divide, minus, multiply, dagger, less, equal, greater, literSign, .notdef.* Requires makeotf (AFDKO) to be installed.
 * **Build APL Greek:** Create APL Greek glyphs.
@@ -176,7 +176,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## Components
 
-*Populate Backgrounds with Components is very useful when you build letters based on other, e.g., ae or oe can take an e in the background. The script puts the e in the background of each master, and the UI has an option to align selected points with the e in the background. If you use corner components for serifs in a multiple-master font, the Propagate script will save you a lot of time.*
+*Populate Backgrounds with Components is useful when you build letters based on other, e.g., ae or oe can take an e in the background. The script puts the e in the background of each master, and the UI has an option to align selected points with the e in the background. If you use corner components for serifs in a multiple-master font, the Propagate script will save you a lot of time.*
 
 * **Alignment Manager:** Enables or disables automatic alignment for all components on visible layers in selected glyphs. Does the same as the command in the context menu, but you can do it in one step for many glyphs.
 * **Auto-align Composites with Incremental Metrics Keys:** For the frontmost font, auto-aligns composites where only the first component’s alignment is disabled. Ignores .tf, .tosf and math operators. Will open a tab with affected glyph layers.
@@ -198,7 +198,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## Features
 
-*In script typefaces, you may often need the Build Positional calt script. If you find yourself turning OT features on and off a lot, take a look at the Activate Default Features and Floating Features scripts. And check out the Set Palette from Window > Plugin Manager.*
+*In script typefaces, you may need the Build Positional calt script. If you find yourself turning OT features on and off a lot, take a look at the Activate Default Features and Floating Features scripts. And check out the Set Palette from Window > Plugin Manager.*
 
 * **Activate Default Features:** In the current Edit tab, activates all OT features that are recommended to be on by default (according to the spec).
 * **Baseline Wiggle:** Add OpenType feature with pseudorandom GPOS baseline shift for all glyphs in a class.
@@ -221,7 +221,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## Font Info
 
-*Vertical Metrics is useful for finding and syncing the vertical metric parameters in Font Info > Font and Font Info > Masters. Clean Version String is very useful too. Font Info Batch Setter is a must for syncing Font Info settings across many fonts. Careful about Set WWS/Preferred Names scripts: The app usually takes care of naming automatically, so their use cases are very rare.*
+*Vertical Metrics is useful for finding and syncing the vertical metric parameters in Font Info > Font and Font Info > Masters. Clean Version String is useful. Font Info Batch Setter is a must for syncing Font Info settings across many fonts. Careful about Set WWS/Preferred Names scripts: The app takes care of naming automatically, their use cases are rare.*
 
 * **Batch-Import Masters:** Import many masters at once with the Import Master parameter.
 * **Clean Version String:** Adds a clean versionString parameter, and disables ttfAutohint info in the version string. The exported font will have a version string consisting only of ‘Version X.XXX’.
