@@ -5,7 +5,7 @@ __doc__ = """
 Create a Test HTML for the current font inside the current Variation Font Export folder. Hold down OPTION and SHIFT while running the script in order to create respective Samsa files in addition to the Test HTML.
 """
 
-from os import system
+from os import system, path
 from AppKit import NSClassFromString, NSBundle, NSEvent
 import codecs
 from GlyphsApp import Glyphs, Message
@@ -1247,13 +1247,16 @@ def otVarInfoForFont(thisFont, variableFontSetting=None):
 	featureList = featureListForFont(thisFont)
 	styleMenu = listOfAllStyles(thisFont)
 	fontLangMenu = langMenu(thisFont)
-	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu
+	exportFolder = None
+	if variableFontSetting:
+		exportFolder = variableFontSetting.customParameters["Export Folder"]
+	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder
 
 
 def otVarInfoForInstance(thisInstance):
 	thisFont = thisInstance.font
 	familyName = familyNameOfInstance(thisInstance)
-	fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu = otVarInfoForFont(thisFont, variableFontSetting=thisInstance)  # fallback
+	fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder = otVarInfoForFont(thisFont, variableFontSetting=thisInstance)  # fallback
 
 	# instance-specific overrides:
 	fullName = f"{familyName} {thisInstance.name}"
@@ -1266,7 +1269,7 @@ def otVarInfoForInstance(thisInstance):
 	# featureList
 	# fontLangMenu
 
-	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu
+	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder
 
 
 # clears macro window log:
@@ -1304,11 +1307,10 @@ else:
 
 	# fallback if there are not OTVar exports set up at all:
 	if not variableFontInfos:
-		variableFontInfo = otVarInfoForFont(thisFont)
-		variableFontInfos.append(variableFontInfo)
+		variableFontInfos.append(otVarInfoForFont(thisFont))
 
 	for variableFontInfo in variableFontInfos:
-		fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu = variableFontInfo
+		fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder = variableFontInfo
 
 		print("\nPreparing Test HTML for: %s%s" % (
 			fullName,
@@ -1320,6 +1322,9 @@ else:
 		# Write file to disk:
 		print("💾 Writing files to disk...")
 		if exportPath:
+			if exportFolder:
+				exportPath = path.join(exportPath, exportFolder)
+
 			if shouldCreateSamsa:
 				print("🐜 Building Samsa...")
 				# build samsa config:
@@ -1338,7 +1343,7 @@ else:
 				# download samsa files:
 				samsaFiles = ("samsa-core.js", "samsa-gui.html", "samsa-gui.css")  # "fonts/IBMPlexSansVar-Roman.ttf", "fonts/IBMPlexSansVar-Italic.ttf")
 				for samsaFile in samsaFiles:
-					terminalCommand = "curl --create-dirs %s/%s -o '%s/%s'" % (samsaURL, samsaFile, exportPath, samsaFile)
+					terminalCommand = "curl --create-dirs %s/%s -o '%s'" % (samsaURL, samsaFile, path.join(exportPath, samsaFile))
 					system(terminalCommand)
 					print(f"⬇️ Downloaded {samsaFile}")
 
