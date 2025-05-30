@@ -7,7 +7,7 @@ Create a Test HTML for the current font inside the current Webfont Export folder
 
 from GlyphsApp import Glyphs, GSProjectDocument, INSTANCETYPESINGLE, Message
 from AppKit import NSBundle, NSClassFromString
-from os import system
+from os import system, path
 import codecs
 Glyphs.registerDefault("com.mekkablue.WebFontTestHTML.includeEOT", 0)
 
@@ -91,6 +91,15 @@ def getInstanceInfo(thisFont, activeInstance, fileFormat):
 
 	# Determine Style Name
 	activeInstanceName = activeInstance.name
+	
+	# Verify file format
+	if fileFormat in ("otf", "ttf"): # otherwise woff, woff2 or eot
+		ttParameter = activeInstance.customParameterActiveForKey_("Save as TrueType")
+		if ttParameter:
+			if ttParameter.value:
+				fileFormat = "ttf"
+			else:
+				fileFormat = "otf"
 
 	# Determine font and file names for CSS
 	menuName = "%s %s-%s" % (fileFormat.upper(), familyName, activeInstanceName)
@@ -103,6 +112,13 @@ def getInstanceInfo(thisFont, activeInstance, fileFormat):
 		firstPartOfFileName = "%s-%s" % (familyName.replace(" ", ""), activeInstanceName.replace(" ", ""))
 
 	fileName = "%s.%s" % (firstPartOfFileName, fileFormat)
+
+	exportFolderParameter = activeInstance.customParameterActiveForKey_("Export Folder")
+	if exportFolderParameter:
+		exportFolder = exportFolderParameter.value
+		fileName = path.join(exportFolder, fileName)
+		menuName = f"{exportFolder} → {menuName}"
+		
 	return fileName, menuName, activeInstanceName
 
 
@@ -137,24 +153,45 @@ def isSingleInstance(instance):
 		return True
 
 
+def activeInstancesByFormat(thisFont, activeInstances, fileFormats, availableFormats=("otf", "ttf", "woff", "woff2", "eot")):
+	instanceInfos = {}
+	for availableFormat in availableFormats:
+		instanceInfos[availableFormat] = []
+		
+	for activeInstance in activeInstances:
+		for fileFormat in fileFormats:
+			webParameter = activeInstance.customParameterActiveForKey_("Webfont Formats")
+			if webParameter:
+				webFormats = list(webParameter.value)
+				if "plain" in webFormats:
+					webFormats[webFormats.index("plain")] = fileFormat
+			else:
+				webFormats = [fileFormat]
+			
+			for webFormat in webFormats:
+				if webFormat not in availableFormats:
+					print("Error: cannot identify format", webFormat)
+					continue
+				fileName, menuName, activeInstanceName = getInstanceInfo(thisFont, activeInstance, webFormat)
+				instanceInfos[webFormat.lower().strip()].append((fileName, menuName, activeInstanceName))
+				
+	orderedInstanceInfos = []
+	for availableFormat in availableFormats:
+		for info in instanceInfos[availableFormat]:
+			orderedInstanceInfos.append(info)
+	return orderedInstanceInfos
+
+
 def activeInstancesOfFontByFormat(thisFont, fileFormats=("woff", "woff2")):
 	activeInstances = allActiveInstancesOfFont(thisFont)
-	listOfInstanceInfo = []
-	for fileFormat in fileFormats:
-		for activeInstance in activeInstances:
-			fileName, menuName, activeInstanceName = getInstanceInfo(thisFont, activeInstance, fileFormat)
-			listOfInstanceInfo.append((fileName, menuName, activeInstanceName))
+	listOfInstanceInfo = activeInstancesByFormat(thisFont,activeInstances,  fileFormats)
 	return listOfInstanceInfo
 
 
 def activeInstancesOfProjectByFormat(thisProject, fileFormats=("woff", "woff2")):
 	thisFont = thisProject.font()
 	activeInstances = allActiveInstancesOfProject(thisProject)
-	listOfInstanceInfo = []
-	for fileFormat in fileFormats:
-		for activeInstance in activeInstances:
-			fileName, menuName, activeInstanceName = getInstanceInfo(thisFont, activeInstance, fileFormat)
-			listOfInstanceInfo.append((fileName, menuName, activeInstanceName))
+	listOfInstanceInfo = activeInstancesByFormat(thisFont, activeInstances, fileFormats)
 	return listOfInstanceInfo
 
 
@@ -163,7 +200,6 @@ def optionListForInstances(instanceList):
 	for thisInstanceInfo in instanceList:
 		returnString += '			<option value="%s">%s</option>\n' % (thisInstanceInfo[0], thisInstanceInfo[1])
 		# <option value="fileName">baseName</option>
-
 	return returnString
 
 
