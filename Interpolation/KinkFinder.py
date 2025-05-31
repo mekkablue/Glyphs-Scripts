@@ -6,9 +6,9 @@ Finds kinks in interpolation space, reports them in the Macro window and opens a
 """
 
 import vanilla
-from Foundation import NSPoint
 from math import hypot
-from GlyphsApp import Glyphs, GSInstance, GSAnnotation, CIRCLE, GSSMOOTH, Message, subtractPoints
+from Foundation import NSPoint, NSHeight
+from GlyphsApp import Glyphs, GSInstance, GSAnnotation, CIRCLE, GSSMOOTH, GSOFFCURVE, Message, subtractPoints
 from mekkablue import mekkaObject
 
 tempMarker = "###DELETEME###"
@@ -73,8 +73,7 @@ class KinkFinder(mekkaObject):
 		"markKinks": 0,
 		"findKinksWhere": 0,
 		"reportIncompatibilities": 0,
-		"reportIncompatibilities": 0,
-		"reportIncompatibilities": 0,
+		"bringMacroWindowToFront": 0,
 	}
 
 	instances = None
@@ -83,7 +82,7 @@ class KinkFinder(mekkaObject):
 		# Window 'self.w':
 		windowWidth = 350
 		windowHeight = 265
-		windowWidthResize = 100  # user can resize width by this value
+		windowWidthResize = 200  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
@@ -150,6 +149,7 @@ class KinkFinder(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
+
 	def updateUI(self, sender=None):
 		# 0: between all masters (false positives with 6+ masters)
 		# 1: between adjacent masters only (single axis, 3+ masters)
@@ -167,9 +167,11 @@ class KinkFinder(mekkaObject):
 		else:
 			self.w.runButton.setTitle("Find Kinks")
 
+
 	def kinkSizeForNode(self, kinkNode):
 		# print "node nr.", kinkNode.index, "pos:", kinkNode.position, "handles:", kinkNode.prevNode.type, kinkNode.nextNode.type
 		return orthogonalDistance(kinkNode.position, kinkNode.prevNode.position, kinkNode.nextNode.position)
+
 
 	def glyphInterpolation(self, thisGlyphName, thisInstance):
 		"""
@@ -195,6 +197,7 @@ class KinkFinder(mekkaObject):
 			print(traceback.format_exc())
 			return None
 
+
 	def buildInstance(self, name, interpolationDict, font):
 		instance = GSInstance()
 		if Glyphs.buildNumber > 3198:
@@ -207,6 +210,7 @@ class KinkFinder(mekkaObject):
 		if font:
 			instance.setFont_(font)
 		return instance
+
 
 	def buildHalfWayInstances(self, thisFont):
 		# 0: between all masters (false positives with 6+ masters)
@@ -268,13 +272,9 @@ class KinkFinder(mekkaObject):
 		# report:
 		print("Testing in %i instances:" % len(self.instances))
 		for i in self.instances:
-			print("- %s:" % i.name)
-			#for key in i.instanceInterpolations.keys():
-			#	print("  %s: %.3f" % (
-			#		thisFont.masters[key].name,
-			#		i.instanceInterpolations[key],
-			#	))
+			print("- %s" % i.name.replace(tempMarker, "").rstrip("-"))
 		print()
+
 
 	def cleanNodeNamesInGlyph(self, glyph, nodeMarker):
 		for thisLayer in glyph.layers:
@@ -293,6 +293,7 @@ class KinkFinder(mekkaObject):
 					if thisAnnotation.text and nodeMarker in thisAnnotation.text:
 						del thisLayer.annotations[i]
 
+
 	def addAnnotationAtPosition(self, layer, position, width=25.0):
 		circle = GSAnnotation()
 		circle.type = CIRCLE
@@ -300,6 +301,7 @@ class KinkFinder(mekkaObject):
 		circle.width = width
 		circle.text = nodeMarker
 		layer.annotations.append(circle)
+
 
 	def markNodeAtPosition(self, layer, position, nodeName):
 		# first all green (smooth) points, then all blue points:
@@ -314,6 +316,7 @@ class KinkFinder(mekkaObject):
 		# no node found in paths, kinky node is likely in a corner component:
 		self.addAnnotationAtPosition(layer, position)
 
+
 	def KinkFinderMain(self, sender):
 		try:
 			self.SavePreferences()
@@ -321,6 +324,11 @@ class KinkFinder(mekkaObject):
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()
 			if self.pref("bringMacroWindowToFront"):
+				if Glyphs.versionNumber < 4:
+					splitview = Glyphs.delegate().macroPanelController().consoleSplitView()
+					height = NSHeight(splitview.frame())
+					newPos = 0.1
+					splitview.setPosition_ofDividerAtIndex_(height * newPos, 0)
 				Glyphs.showMacroWindow()
 
 			# Turn on node labels if nodes are to  be marked:
@@ -356,95 +364,110 @@ class KinkFinder(mekkaObject):
 			for index, thisGlyph in enumerate(glyphsToProbe):
 				# update progress bar:
 				self.w.progress.set(int(100 * (float(index) / numOfGlyphs)))
-				if thisGlyph.export or not self.pref("exportingOnly"):
 
-					# clean node markers if necessary:
-					if self.pref("markKinks"):
-						self.cleanNodeNamesInGlyph(thisGlyph, nodeMarker)
-
-					# find kinks in masters:
-					if findKinksInMastersInstead:
-						for kinkLayer in thisGlyph.layers:
-
-							# avoid potential troubles, just in case:
-							if kinkLayer is None:
-								break
-
-							# check if it is a master or special layer, otherwise ignore:
-							if kinkLayer.associatedMasterId == kinkLayer.layerId or kinkLayer.isSpecialLayer:
-								for pathIndex, kinkPath in enumerate(kinkLayer.paths):
-									if not kinkPath:
-										print("❌ Could not determine same path in glyph %s, master %s." % (thisGlyph.name, kinkLayer.name))
-									else:
-										for nodeIndex, kinkNode in enumerate(kinkPath.nodes):
-											if kinkNode.connection == GSSMOOTH:
-												thisKink = self.kinkSizeForNode(kinkNode)
-												if thisKink > maxKink:
-													if kinkLayer not in kinkyLayers:
-														kinkyLayers.append(kinkLayer)
-													# kinkyGlyphNames.append(thisGlyph.name)
-													print(
-														"%s Kink in %s on layer '%s', path %i, node %i: %.1f units" %
-														(nodeMarker, thisGlyph.name, kinkLayer.name, pathIndex, nodeIndex, thisKink)
-													)
-													if self.pref("markKinks"):
-														kinkNode.name = "%.1f %s" % (thisKink, nodeMarker)
-
-					# TODO find kinks in interpolations (needs rewrite):
-					else:
-						if not thisGlyph.layers[0].paths:
-							skippedGlyphNames.append(thisGlyph.name)
-						else:
-							firstLayer = self.glyphInterpolation(thisGlyph.name, firstInstance)
-							if not firstLayer:
-								print("⚠️ Could not determine primary layer of %s, most likely cause: no paths." % thisGlyph.name)
-							else:
-								for pathIndex in range(len(firstLayer.paths)):
-									thisPath = firstLayer.paths[pathIndex]
-									for nodeIndex in range(len(thisPath.nodes)):
-										thisNode = thisPath.nodes[nodeIndex]
-										if thisNode.connection == GSSMOOTH:
-											thisNodeMaxKink = 0
-											for thisInstance in self.instances:
-												kinkLayer = self.glyphInterpolation(thisGlyph.name, thisInstance)
-												if not kinkLayer:
-													if self.pref("reportIncompatibilities"):
-														print(
-															"⚠️ ERROR: Could not calculate interpolation for: %s (%s)" %
-															(thisGlyph.name, thisInstance.name.replace(tempMarker, ""))
-														)
-												elif not thisGlyph.mastersCompatibleForLayers_((firstLayer, kinkLayer)):
-													if self.pref("reportIncompatibilities"):
-														print(
-															"⚠️ interpolation incompatible for glyph %s: %s (most likely cause: cap or corner components, bracket layers)" %
-															(thisGlyph.name, thisInstance.name.replace(tempMarker, ""))
-														)
-														print(firstLayer, firstLayer.shapes, firstLayer.anchors)
-														print(kinkLayer, kinkLayer.shapes, kinkLayer.anchors)
-												else:
-													kinkNode = kinkLayer.paths[pathIndex].nodes[nodeIndex]
-													thisKink = self.kinkSizeForNode(kinkNode)
-
-													# kink is found:
-													if thisKink > maxKink:
-														kinkyGlyphNames.append(thisGlyph.name)
-														print(
-															"%s Kink in %s between masters %s, path %i, node %i: %.1f units (%.1f, %.1f)" % (
-																nodeMarker, thisGlyph.name, " and ".join(thisInstance.name.split("-")[:2]),
-																pathIndex, nodeIndex, thisKink, thisNode.x, thisNode.y
-															)
-														)
-
-														if self.pref("markKinks"):
-															if thisKink > thisNodeMaxKink:
-																thisNodeMaxKink = thisKink
-															nodeName = "%.1f %s" % (thisNodeMaxKink, nodeMarker)
-															self.markNodeAtPosition(thisGlyph.layers[0], thisNode.position, nodeName)
-
-										elif self.pref("markKinks"):
-											thisNode.name = None
-				else:
+				# skip glyph if not 
+				if not thisGlyph.export and self.pref("exportingOnly"):
 					skippedGlyphNames.append(thisGlyph.name)
+					continue
+
+				# clean node markers if necessary:
+				if self.pref("markKinks"):
+					self.cleanNodeNamesInGlyph(thisGlyph, nodeMarker)
+
+				# OPTION A: find kinks in MASTERS
+				if findKinksInMastersInstead:
+					for kinkLayer in thisGlyph.layers:
+						if kinkLayer is None:
+							continue
+						if not (kinkLayer.associatedMasterId == kinkLayer.layerId or kinkLayer.isSpecialLayer):
+							continue
+
+						for pathIndex, kinkPath in enumerate(kinkLayer.paths):
+							if not kinkPath:
+								print("❌ Could not determine same path in glyph %s, master %s." % (thisGlyph.name, kinkLayer.name))
+								continue
+
+							lastIndex = len(kinkPath.nodes) - 1
+							for nodeIndex, kinkNode in enumerate(kinkPath.nodes):
+								if kinkNode.type == GSOFFCURVE:
+									continue
+								if kinkNode.connection != GSSMOOTH:
+									continue
+								if not kinkPath.closed and nodeIndex in (0, lastIndex):
+									continue
+
+								thisKink = self.kinkSizeForNode(kinkNode)
+								if thisKink <= maxKink:
+									continue
+
+								if kinkLayer not in kinkyLayers:
+									kinkyLayers.append(kinkLayer)
+
+								print(
+									"%s Kink in %s on layer '%s', path %i, node %i: %.1f units" %
+									(nodeMarker, thisGlyph.name, kinkLayer.name, pathIndex, nodeIndex, thisKink)
+								)
+								if self.pref("markKinks"):
+									kinkNode.name = "%.1f %s" % (thisKink, nodeMarker)
+
+				# OPTION B: find kinks in INTERPOLATIONS
+				else:
+					if not thisGlyph.layers[0].paths:
+						skippedGlyphNames.append(thisGlyph.name)
+						continue
+
+					firstLayer = self.glyphInterpolation(thisGlyph.name, firstInstance)
+					if not firstLayer:
+						print("⚠️ Could not determine primary layer of %s, most likely cause: no paths." % thisGlyph.name)
+						continue
+
+					kinkLayers = [self.glyphInterpolation(thisGlyph.name, i) for i in self.instances]
+					instanceNames = [i.name.replace(tempMarker, "") for i in self.instances]
+					kinkInfos = zip(kinkLayers, instanceNames)
+					for pathIndex in range(len(firstLayer.paths)):
+						thisPath = firstLayer.paths[pathIndex]
+						nodeCount = len(thisPath.nodes)
+						lastIndex = nodeCount - 1
+						for nodeIndex in range(nodeCount):
+							thisNode = thisPath.nodes[nodeIndex]
+							if thisNode.type == GSOFFCURVE:
+								continue
+							if thisNode.connection != GSSMOOTH:
+								continue
+							if not thisPath.closed and nodeIndex in (0, lastIndex):
+								continue
+
+							thisNodeMaxKink = 0
+							for kinkLayer, instanceName in kinkInfos:
+								if not kinkLayer:
+									if self.pref("reportIncompatibilities"):
+										print("⚠️ ERROR: Could not calculate interpolation for: %s (%s)" % (thisGlyph.name, instanceName))
+									continue
+								elif not thisGlyph.mastersCompatibleForLayers_((firstLayer, kinkLayer)):
+									if self.pref("reportIncompatibilities"):
+										print("⚠️ interpolation incompatible for glyph %s: %s (most likely cause: cap or corner components, bracket layers)" % (thisGlyph.name, instanceName))
+										print(firstLayer, firstLayer.shapes, firstLayer.anchors)
+										print(kinkLayer, kinkLayer.shapes, kinkLayer.anchors)
+									continue
+
+								kinkNode = kinkLayer.paths[pathIndex].nodes[nodeIndex]
+								thisKink = self.kinkSizeForNode(kinkNode)
+								if thisKink > maxKink:
+									kinkyGlyphNames.append(thisGlyph.name)
+									print(
+										"%s Kink in %s between masters %s, path %i, node %i: %.1f units (%.1f, %.1f)" % (
+											nodeMarker, thisGlyph.name, " and ".join(thisInstance.name.split("-")[:2]),
+											pathIndex, nodeIndex, thisKink, thisNode.x, thisNode.y
+										)
+									)
+									if self.pref("markKinks"):
+										if thisKink > thisNodeMaxKink:
+											thisNodeMaxKink = thisKink
+										nodeName = "%.1f %s" % (thisNodeMaxKink, nodeMarker)
+										self.markNodeAtPosition(thisGlyph.layers[0], thisNode.position, nodeName)
+
+								elif self.pref("markKinks"):
+									thisNode.name = None
 
 			# Progress bar 100%
 			self.w.progress.set(100.0)
