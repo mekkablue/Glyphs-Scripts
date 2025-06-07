@@ -114,11 +114,14 @@ def getInstanceInfo(thisFont, activeInstance, fileFormat):
 	fileName = "%s.%s" % (firstPartOfFileName, fileFormat)
 
 	exportFolderParameter = activeInstance.customParameterActiveForKey_("Export Folder")
-	if exportFolderParameter:
-		exportFolder = exportFolderParameter.value
-		fileName = path.join(exportFolder, fileName)
-		menuName = f"{exportFolder} → {menuName}"
-		
+	exportFolderParameterFontWide = thisFont.customParameterActiveForKey_("Export Folder")
+	for parameter in (exportFolderParameter, exportFolderParameterFontWide):
+		if parameter:
+			exportFolder = parameter.value
+			fileName = path.join(exportFolder, fileName)
+			menuName = f"📁 {exportFolder} ⏵ {menuName}"
+			break
+
 	return fileName, menuName, activeInstanceName
 
 

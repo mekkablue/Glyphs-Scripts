@@ -1247,11 +1247,17 @@ def otVarInfoForFont(thisFont, variableFontSetting=None):
 	featureList = featureListForFont(thisFont)
 	styleMenu = listOfAllStyles(thisFont)
 	fontLangMenu = langMenu(thisFont)
+
+	# check if there is an export folder set up:
 	exportFolder = None
 	if variableFontSetting:
 		exportFolderParameter = variableFontSetting.customParameterActiveForKey_("Export Folder")
-		if exportFolderParameter:
-			exportFolder = exportFolderParameter.value
+		exportFolderParameterFontWide = thisFont.customParameterActiveForKey_("Export Folder")
+		for parameter in (exportFolderParameter, exportFolderParameterFontWide):
+			if parameter:
+				exportFolder = parameter.value
+				break
+		
 	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder
 
 
