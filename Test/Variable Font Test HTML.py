@@ -6,7 +6,7 @@ Create a Test HTML for the current font inside the current Variation Font Export
 """
 
 from os import system, path
-from AppKit import NSClassFromString, NSBundle, NSEvent
+from AppKit import NSClassFromString, NSBundle, NSEvent, NSAlternateKeyMask, NSShiftKeyMask
 import codecs
 from GlyphsApp import Glyphs, Message
 
@@ -1290,9 +1290,8 @@ appVersionHighEnough = not GLYPHSAPPVERSION.startswith("1.")
 # Create Samsa if shift and option are held down
 shouldCreateSamsa = False
 keysPressed = NSEvent.modifierFlags()
-optionKey, shiftKey = 524288, 131072
-optionKeyPressed = keysPressed & optionKey == optionKey
-shiftKeyPressed = keysPressed & shiftKey == shiftKey
+optionKeyPressed = keysPressed & NSAlternateKeyMask == NSAlternateKeyMask
+shiftKeyPressed = keysPressed & NSShiftKeyMask == NSShiftKeyMask
 if optionKeyPressed and shiftKeyPressed:
 	shouldCreateSamsa = True
 
