@@ -456,7 +456,7 @@ class KinkFinder(mekkaObject):
 									kinkyGlyphNames.append(thisGlyph.name)
 									print(
 										"%s Kink in %s between masters %s, path %i, node %i: %.1f units (%.1f, %.1f)" % (
-											nodeMarker, thisGlyph.name, " and ".join(thisInstance.name.split("-")[:2]),
+											nodeMarker, thisGlyph.name, " and ".join(instanceName.split("-")[:2]),
 											pathIndex, nodeIndex, thisKink, thisNode.x, thisNode.y
 										)
 									)
