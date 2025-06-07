@@ -1,10 +1,9 @@
 # MenuTitle: Insert Layers
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-if Glyphs.versionNumber < 3:
-	__doc__ = "Batch-insert brace or bracket layers in selected glyphs."
-else:
-	__doc__ = "Batch-insert intermediate layers (‘brace layers’) in selected glyphs."
+__doc__ = """
+Batch-insert intermediate layers (‘brace layers’) in selected glyphs. (Glyphs 2: Batch-insert brace or bracket layers in selected glyphs.)
+"""
 
 import vanilla
 from GlyphsApp import Glyphs, GSLayer, Message
@@ -17,7 +16,7 @@ class InsertSpecialLayersV3(mekkaObject):
 		"intermediateCoordinates": "wght=400, wdth=100",
 		"keepExistingBrace": 1,
 	}
-	
+
 	def __init__(self):
 		windowWidth = 330
 		windowHeight = 140
@@ -30,11 +29,11 @@ class InsertSpecialLayersV3(mekkaObject):
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
-		
+
 		linePos, inset, lineHeight = 12, 15, 22
 		self.w.descriptionText = vanilla.TextBox((inset, linePos+2, -inset, 14), "Add intermediate (‘brace’) layers to selected glyphs:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
-		
+
 		self.w.intermediateCoordinates = vanilla.EditText((inset, linePos, -inset-21, 19), self.pref("intermediateCoordinates"), callback=self.SavePreferences, sizeStyle="small")
 		self.w.updateCoordinates = UpdateButton((-inset-16, linePos-3, -inset, 16), callback=self.resetCoordinates)
 		self.w.updateCoordinates.getNSButton().setToolTip_("Will reset the entry to half way between the first two masters, or same as the only master (if there is only one).")
@@ -94,7 +93,7 @@ class InsertSpecialLayersV3(mekkaObject):
 		else:
 			print("⚠️ The font file has not been saved yet.")
 		print()
-		
+
 		coordinates = {}
 		for coordDef in [c.strip() for c in self.pref("intermediateCoordinates").split(",") if "=" in c]:
 			axisTag, braceValue = coordDef.split("=")
@@ -110,7 +109,7 @@ class InsertSpecialLayersV3(mekkaObject):
 				return
 			axisID = axis.axisId
 			coordinates[axisID] = braceValue
-		
+
 		numUser = len(coordinates)
 		numFont = len(thisFont.axes)
 		if numUser != numFont:
@@ -120,12 +119,12 @@ class InsertSpecialLayersV3(mekkaObject):
 				OKButton=None,
 				)
 			return
-		
+
 		selectedGlyphs = set([l.parent for l in thisFont.selectedLayers])
 		for selectedGlyph in selectedGlyphs:
 			self.addBraceToGlyph(selectedGlyph, coordinates)
 
-	
+
 	def addBraceToGlyph(self, glyph, coordinates):
 		if self.prefBool("keepExistingBrace"):
 			for existingLayer in glyph.layers:
