@@ -187,16 +187,16 @@ class OTVARMaker(mekkaObject):
 				print(f"OTVAR Maker Report for {reportName}")
 				print()
 
+				if len(thisFont.masters) == 1:
+					print("⚠️ Font only has one master, are you sure?")
+					# continue
+
 				if deletePrevious:
 					for i in range(len(thisFont.instances) - 1, -1, -1):
 						existingInstance = thisFont.instances[i]
 						if existingInstance.type == INSTANCETYPEVARIABLE:
 							print(f"🚫 Removing existing VF setting ‘{existingInstance.name}’...")
 							del thisFont.instances[i]
-
-				if len(thisFont.masters) == 1:
-					print("❌ Font only has one master, cannot be a variable font. Skipping...")
-					continue
 
 				# this does not work (yet):
 				# otvarInstance = GSInstance()
