@@ -155,7 +155,7 @@ class ZeroKerner(mekkaObject):
 							self.w.progress.set(masterCount + kernCount)
 
 							if leftGroup.startswith("@"):
-								for rightGroup in otherMasterKerning[leftGroup].keys():
+								for rightGroup in list(otherMasterKerning[leftGroup].keys()):
 									if rightGroup.startswith("@"):
 										if otherMasterKerning[leftGroup][rightGroup] != 0:
 											for j, thisMaster in enumerate(theseMasters):
