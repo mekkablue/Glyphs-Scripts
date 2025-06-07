@@ -1,15 +1,17 @@
 # MenuTitle: Zero Kerner
 # -*- coding: utf-8 -*-
+
 from __future__ import division, print_function, unicode_literals
+
 __doc__ = """
 Add group kernings with value zero for pairs that are missing in one master but present in others. Helps preserve interpolatable kerning in OTVar exports.
 """
 
-import vanilla
-from Foundation import NSNotFound
+from vanilla import FloatingWindow, Button, TextBox, CheckBox, ProgressBar  # type: ignore
+from Foundation import NSNotFound  # type: ignore
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
-
+from typing import Any
 
 class ZeroKerner(mekkaObject):
 	prefDict = {
@@ -17,13 +19,13 @@ class ZeroKerner(mekkaObject):
 		"reportInMacroWindow": 0,
 	}
 
-	def __init__(self):
+	def __init__(self) -> None:
 		# Window 'self.w':
 		windowWidth = 320
 		windowHeight = 190
 		windowWidthResize = 100  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
-		self.w = vanilla.FloatingWindow(
+		self.w = FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Zero Kerner",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
@@ -34,28 +36,28 @@ class ZeroKerner(mekkaObject):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 44), u"Add zero-value group-to-group kernings for pairs that are missing in one master but present in others. Helps preserve interpolatable kerning in OTVars.", sizeStyle='small', selectable=True)
+		self.w.descriptionText = TextBox((inset, linePos + 2, -inset, 44), u"Add zero-value group-to-group kernings for pairs that are missing in one master but present in others. Helps preserve interpolatable kerning in OTVars.", sizeStyle='small', selectable=True)
 		linePos += lineHeight * 2.5
 
-		self.w.limitToCurrentMaster = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Limit to current master only (otherwise, all masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.limitToCurrentMaster = CheckBox((inset + 2, linePos - 1, -inset, 20), u"Limit to current master only (otherwise, all masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.limitToCurrentMaster.getNSButton().setToolTip_("Will apply zero kernings only to the currently selected master. Uncheck if all masters should be zero-kerned.")
 		linePos += lineHeight
 
-		self.w.reportInMacroWindow = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Detailed report in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportInMacroWindow = CheckBox((inset + 2, linePos - 1, -inset, 20), u"Detailed report in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reportInMacroWindow.getNSButton().setToolTip_("If checked, will write a progress report in the Macro Window (Cmd-Opt-M).")
 		linePos += lineHeight
 
-		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress = ProgressBar((inset, linePos, -inset, 16))
 		self.w.progress.set(0)  # set progress indicator to zero
 		linePos += lineHeight
 
-		self.w.status = vanilla.TextBox((inset, -20 - inset, -120 - inset, 14), u"", sizeStyle='small', selectable=True)
+		self.w.status = TextBox((inset, -20 - inset, -120 - inset, 14), u"", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.removeButton = vanilla.Button((-160 - inset, -20 - inset, -80 - inset, -inset), "Remove", callback=self.ZeroKernerMain)
+		self.w.removeButton = Button((-160 - inset, -20 - inset, -80 - inset, -inset), "Remove", callback=self.ZeroKernerMain)
 
-		self.w.addButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "Add", callback=self.ZeroKernerMain)
+		self.w.addButton = Button((-70 - inset, -20 - inset, -inset, -inset), "Add", callback=self.ZeroKernerMain)
 		self.w.setDefaultButton(self.w.addButton)
 
 		# Load Settings:
@@ -65,7 +67,7 @@ class ZeroKerner(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
-	def report(self, statusMessage, reportInMacroWindow=False, emptyLine=False):
+	def report(self, statusMessage: str, reportInMacroWindow: bool = False, emptyLine: bool = False) -> None:
 		statusMessage = statusMessage.strip()
 		if reportInMacroWindow:
 			print("  %s" % statusMessage)
@@ -73,7 +75,7 @@ class ZeroKerner(mekkaObject):
 				print()
 		self.w.status.set(statusMessage.strip())
 
-	def ZeroKernerMain(self, sender=None):
+	def ZeroKernerMain(self, sender: Any = None) -> None:
 		try:
 			# update settings to the latest user input:
 			self.SavePreferences()
