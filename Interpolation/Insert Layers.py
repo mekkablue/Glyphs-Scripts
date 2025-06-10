@@ -105,7 +105,7 @@ class InsertSpecialLayersV3(mekkaObject):
 					title=f"Axis Not Found: {axisTag}",
 					message=f"No axis with tag ‘{axisTag}’ found in frontmost font ‘{thisFont.familyName}’.",
 					OKButton=None,
-					)
+				)
 				return
 			axisID = axis.axisId
 			coordinates[axisID] = braceValue
@@ -117,7 +117,7 @@ class InsertSpecialLayersV3(mekkaObject):
 				title="Axes Mismatch Error",
 				message=f"You defined {numUser} ax{'i' if numUser==1 else 'e'}s, but the frontmost font ‘{thisFont.familyName}’ has {numFont} ax{'i' if numFont==1 else 'e'}s.",
 				OKButton=None,
-				)
+			)
 			return
 
 		selectedGlyphs = set([l.parent for l in thisFont.selectedLayers])
