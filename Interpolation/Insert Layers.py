@@ -7,7 +7,7 @@ Batch-insert intermediate layers (‘brace layers’) in selected glyphs. (Glyph
 
 import vanilla
 from GlyphsApp import Glyphs, GSLayer, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 from copy import copy
 
 
