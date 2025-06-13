@@ -404,7 +404,7 @@ class FontInfoBatchSetter(mekkaObject):
 			license = self.pref("license")
 			licenseURL = self.pref("licenseURL")
 			fontDescription = self.pref("fontDescription")
-			fontDescription = self.pref("sampleText")
+			sampleText = self.pref("sampleText")
 
 			setCopyright = self.pref("setCopyright")
 			setTrademark = self.pref("setTrademark")

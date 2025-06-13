@@ -111,7 +111,7 @@ else:
 for thisFont in theseFonts:
 	msg = f"🧼 Clean Version String for: {thisFont.familyName}"
 	if thisFont.filepath:
-		msg += f" (📄 {thisFont.filepath.lastPathComponent()})")
+		msg += f" (📄 {thisFont.filepath.lastPathComponent()})"
 	msg += "\n"
 	cleanVersionStringProperty(thisFont)
 	cleanTtfautohintSetting(thisFont)
