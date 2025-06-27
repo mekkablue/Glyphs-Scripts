@@ -317,7 +317,7 @@ class GreenBlueManager(mekkaObject):
 
 					# process layers:
 					for i, thisLayer in enumerate(layersToBeProcessed):
-						if isinstance(thisLayer, GSControlLayer):
+						if not isinstance(thisLayer, GSControlLayer):
 							thisGlyph = thisLayer.parent
 							statusMessage = f"Processing: {thisGlyph.name}"
 							if shouldReport and shouldVerbose:
