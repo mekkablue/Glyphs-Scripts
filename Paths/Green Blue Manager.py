@@ -119,7 +119,6 @@ class GreenBlueManager(mekkaObject):
 		self.w.scope.enable(self.w.completeFont.get())
 
 	def realignLayer(self, layer, shouldRealign=False, shouldReport=False, shouldVerbose=False):
-
 		def closestPointOnLine(P, A, B):
 			# vector of line AB
 			AB = NSPoint(B.x - A.x, B.y - A.y)
@@ -259,9 +258,9 @@ class GreenBlueManager(mekkaObject):
 			if not Glyphs.font:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
-			elif scope == 1:
+			elif scope == 1: # all open fonts
 				theseFonts = Glyphs.fonts
-			else:
+			else: # current font
 				theseFonts = (Glyphs.font, )
 
 			for thisFont in theseFonts:
@@ -304,7 +303,7 @@ class GreenBlueManager(mekkaObject):
 									layersToBeProcessed.append(layer)
 					else:
 						layersToBeProcessed = thisFont.selectedLayers
-
+				
 				if not layersToBeProcessed:
 					print(
 						"❌ Green Blue Manager Error: No Selection",
@@ -317,21 +316,23 @@ class GreenBlueManager(mekkaObject):
 
 					# process layers:
 					for i, thisLayer in enumerate(layersToBeProcessed):
-						if not isinstance(thisLayer, GSControlLayer):
-							thisGlyph = thisLayer.parent
-							statusMessage = f"Processing: {thisGlyph.name}"
-							if shouldReport and shouldVerbose:
-								print(statusMessage)
-							self.w.processingText.set(statusMessage)
-							self.w.progress.set(100.0 / numberOfLayers * i)
+						if isinstance(thisLayer, GSControlLayer):
+							continue
 
-							numberOfFixes = self.fixConnectionsOnLayer(thisLayer, shouldFix=shouldFix)
-							if numberOfFixes:
-								affectedLayersFixedConnections.append(thisLayer)
+						thisGlyph = thisLayer.parent
+						statusMessage = f"Processing: {thisGlyph.name}"
+						if shouldReport and shouldVerbose:
+							print(statusMessage)
+						self.w.processingText.set(statusMessage)
+						self.w.progress.set(100.0 / numberOfLayers * i)
 
-							numberOfAligns = self.realignLayer(thisLayer, shouldRealign, shouldReport, shouldVerbose)
-							if numberOfAligns:
-								affectedLayersRealignedHandles.append(thisLayer)
+						numberOfFixes = self.fixConnectionsOnLayer(thisLayer, shouldFix=shouldFix)
+						if numberOfFixes:
+							affectedLayersFixedConnections.append(thisLayer)
+
+						numberOfAligns = self.realignLayer(thisLayer, shouldRealign, shouldReport, shouldVerbose)
+						if numberOfAligns:
+							affectedLayersRealignedHandles.append(thisLayer)
 
 					self.w.progress.set(100)
 					statusMessage = "Processed %i layer%s." % (
