@@ -289,8 +289,8 @@ def hasLargeHandles(thisLayer):
 				pointD = thisPath.nodes[(i - 3) % len(thisPath.nodes)].position
 				intersection = intersect(pointA, pointB, pointC, pointD)
 				if intersection:
-					firstHandleTooLong = distance(pointA, pointB) > distance(pointA, intersection)
-					secondHandleTooLong = distance(pointD, pointC) > distance(pointD, intersection)
+					firstHandleTooLong = distance(pointA, pointB) >= distance(pointA, intersection)
+					secondHandleTooLong = distance(pointD, pointC) >= distance(pointD, intersection)
 					if firstHandleTooLong or secondHandleTooLong:
 						return True
 	return False
