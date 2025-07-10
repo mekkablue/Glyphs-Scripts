@@ -397,6 +397,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 * **Align Selected Nodes with Background:** Align selected nodes with the nearest background node unless it is already taken by a previously moved node. Like Cmd-Shift-A for aligning a single node with the background, but for multiple nodes.
 * **Batch-Set Path Attributes:** Set path attributes of all paths in selected glyphs, the master, the font, etc.
+* **Center Line:** Will create center lines between selected segments and their opposites. Hold down OPTION to put center lines in the background.
 * **Copy Glyphs from Other Font into Backup Layers:** Creates backup layers for selected glyphs in target font, and fills them with the respective glyphs from source font. Useful if you want to add glyphs from one font as bracket layers in another.
 * **Distribute Nodes:** Horizontally or vertically distributes nodes (depends on the width/height ratio of the selection bounding box).
 * **Enlarge Single-Unit Segments:** Doubles the length of line segments shorter than one unit.
