@@ -357,6 +357,7 @@ def distanceAndRelativePosition(p1, p2, p3):
 
 class PathProblemFinder(mekkaObject):
 	title = "Path Problem Finder"
+	prefID = "com.mekkablue.PathProblemFinder"
 	prefDict = {
 		# "prefName": defaultValue,
 		"zeroHandles": 1,
