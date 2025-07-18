@@ -26,6 +26,9 @@ print("   ~/%s" % otherFont.filepath.relativePathFromBaseDirPath_("~"))
 print()
 
 for thisInstance, otherInstance in zip(thisFont.instances, otherFont.instances):
+	if Glyphs.versionNumber >= 3:
+		if INSTANCETYPEVARIABLE in (thisInstance.type, otherInstance.type):
+			continue
 	print()
 	print()
 	print("   COMPARING INSTANCES:")
