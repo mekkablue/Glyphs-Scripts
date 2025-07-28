@@ -392,7 +392,7 @@ class PathProblemFinder(mekkaObject):
 		"includeNonExporting": 0,
 		"reuseTab": 1,
 		"verbose": 0,
-		"exclude": "notdef, apple, .ornm, .00",
+		"exclude": "notdef, apple, estimated, .ornm, .00",
 	}
 
 	def __init__(self):
