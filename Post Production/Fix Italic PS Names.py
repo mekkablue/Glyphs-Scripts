@@ -52,16 +52,12 @@ else:
 
 			fileCount += 1
 
-			# print("CHECK1 font", otFont)  # DEBUG
 			nameTable = otFont["name"]
-			# print("CHECK2 name", nameTable)  # DEBUG
 			anythingChanged = False
 			for nameTableEntry in nameTable.names:
 				nameID = nameTableEntry.nameID
-				# print("CHECK3 nameID", nameID)  # DEBUG
 				nameValue = nameTableEntry.toStr()
 				oldName = nameValue
-				# print("CHECK4 nameID", nameID, nameValue)  # DEBUG
 				if nameID in (4, 6, 17):
 					for oldParticle in ("Regular Italic", "RegularItalic"):
 						if oldParticle in nameValue:
