@@ -120,7 +120,7 @@ class Decompose_Components_in_Background(mekkaObject):
 				selectedGlyphs = [thisLayer.parent for thisLayer in thisFont.selectedLayers]
 
 			# determine affected masters
-			workOnAllMasters = workOnAllFonts or self.w.whichMasters.get() == 1
+			workOnAllMasters = workOnAllFonts or self.w.whichMasters.get() <= 1
 			if workOnAllMasters:
 				selectedMasterIDs = [master.id for master in thisFont.masters]
 			else:
