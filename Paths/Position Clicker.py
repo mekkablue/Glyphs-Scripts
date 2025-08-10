@@ -25,6 +25,8 @@ def isPositional(glyphName):
 	for suffix in ("medi", "init", "fina"):
 		if suffix in glyphName.split("."):
 			return True
+	if glyphName.startswith("kashida"):
+		return True
 	return False
 
 
@@ -178,7 +180,7 @@ class PositionClicker(mekkaObject):
 		else:
 			glyphNames = []
 			for g in font.glyphs:
-				if ".medi" in g.name or "kashida" in g.name:
+				if ".medi" in g.name or g.name.startswith("kashida") or g.unicode == "0640":
 					glyphNames.append(g.name)
 			if fallback in glyphNames:
 				glyphNames.remove(fallback)
@@ -230,14 +232,15 @@ class PositionClicker(mekkaObject):
 				comboCount = 0
 				for thisGlyph in thisFont.glyphs:
 					glyphName = thisGlyph.name
-
+					if glyphName == referenceGlyphName:
+						continue
 					if any([part in glyphName for part in ignoreParticles]):
 						continue
 
 					if isPositional(glyphName):
 						nameParticles = glyphName.split(".")
-						comesFirst = "medi" in nameParticles or "init" in nameParticles
-						comesLater = "medi" in nameParticles or "fina" in nameParticles and glyphName != referenceGlyphName
+						comesFirst = "medi" in nameParticles or "init" in nameParticles or glyphName.startswith("kashida")
+						comesLater = "medi" in nameParticles or "fina" in nameParticles or glyphName.startswith("kashida")
 						if thisGlyph.export or includeNonExporting:
 							for thisLayer in thisGlyph.layers:
 								if (thisLayer.isMasterLayer or thisLayer.isSpecialLayer) and (thisLayer.paths or includeComposites):
