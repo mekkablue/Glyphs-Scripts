@@ -270,7 +270,7 @@ class KinkFinder(mekkaObject):
 						self.instances.append(testInstance)
 
 		# report:
-		print("Testing in %i instances:" % len(self.instances))
+		print(f"Testing in {len(self.instances)} instance{'s' if len(self.instances) != 1 else ''}:")
 		for i in self.instances:
 			print("- %s" % i.name.replace(tempMarker, "").rstrip("-"))
 		print()
@@ -354,7 +354,7 @@ class KinkFinder(mekkaObject):
 				firstInstanceInterpolationDict = {
 					thisFont.masters[0].id: 1.0
 				}
-				firstInstanceName = "First Master-%s" % tempMarker
+				firstInstanceName = f"First Master-{tempMarker}"
 				firstInstance = self.buildInstance(firstInstanceName, firstInstanceInterpolationDict, thisFont)
 			else:
 				firstInstance = None
