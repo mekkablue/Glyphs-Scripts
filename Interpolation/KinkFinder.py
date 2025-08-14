@@ -423,13 +423,13 @@ class KinkFinder(mekkaObject):
 
 					kinkLayers = [self.glyphInterpolation(thisGlyph.name, i) for i in self.instances]
 					instanceNames = [i.name.replace(tempMarker, "") for i in self.instances]
-					kinkInfos = zip(kinkLayers, instanceNames)
 					for pathIndex in range(len(firstLayer.paths)):
 						thisPath = firstLayer.paths[pathIndex]
 						nodeCount = len(thisPath.nodes)
 						lastIndex = nodeCount - 1
 						for nodeIndex in range(nodeCount):
 							thisNode = thisPath.nodes[nodeIndex]
+
 							if thisNode.type == GSOFFCURVE:
 								continue
 							if thisNode.connection != GSSMOOTH:
@@ -438,7 +438,7 @@ class KinkFinder(mekkaObject):
 								continue
 
 							thisNodeMaxKink = 0
-							for kinkLayer, instanceName in kinkInfos:
+							for kinkLayer, instanceName in zip(kinkLayers, instanceNames):
 								if not kinkLayer:
 									if self.pref("reportIncompatibilities"):
 										print("⚠️ ERROR: Could not calculate interpolation for: %s (%s)" % (thisGlyph.name, instanceName))
