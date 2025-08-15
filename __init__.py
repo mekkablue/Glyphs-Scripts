@@ -173,10 +173,12 @@ class mekkaObject:
 				self.uiElement(prefName).set(self.pref(prefName))
 			if hasattr(self, "updateUI"):
 				self.updateUI()
+			return True
 		except:
 			import traceback
 			print(traceback.format_exc())
 			print(f"⚠️ ‘{self.__class__.__name__}’ could not load preferences. Will resort to defaults.")
+			return False
 
 	def SavePreferences(self, sender=None):
 		try:
