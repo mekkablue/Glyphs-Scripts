@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Adds a meta table entry in Font Info > Font > Custom Parameters.
+Adds a meta table entry for the frontmost font in Font Info > Font > Custom Parameters.
 """
 
 import vanilla, sys
@@ -50,8 +50,8 @@ class AddMetaTable(mekkaObject):
 	prefID = "com.mekkablue.AddMetaTable"
 	prefDict = {
 		# "prefName": defaultValue,
-		"slng": "latn, arab",
-		"dlng": "latn",
+		"slng": "Latn, Arab",
+		"dlng": "Latn",
 	}
 	
 	def __init__( self ):
@@ -72,7 +72,7 @@ class AddMetaTable(mekkaObject):
 			scripts = relevantScriptsInFont(Glyphs.font)
 			recombinationsOfScripts = recombinations(scripts)
 		else:
-			scripts = ["latn"]
+			scripts = ["Latn"]
 			recombinationsOfScripts = scripts
 		
 		# UI elements:
@@ -89,6 +89,11 @@ class AddMetaTable(mekkaObject):
 		self.w.slng = vanilla.ComboBox((inset+tabIndent, linePos-1, -inset-23, 19), recombinationsOfScripts, sizeStyle="small", callback=self.SavePreferences)
 		self.w.slngUpdate = UpdateButton((-inset-18, linePos - 2, 20, 18), callback=self.update)
 		linePos += lineHeight
+				
+		# Run Button:
+		self.w.helpButton = vanilla.HelpButton((inset, -20-inset, 21, 21), callback=self.openURL)
+		self.w.runButton = vanilla.Button((-120-inset, -20-inset, -inset, -inset), "Add to Font Info", sizeStyle="regular", callback=self.AddMetaTableMain)
+		self.w.setDefaultButton(self.w.runButton)
 		
 		# Tooltips:
 		tooltip = "Set dlng (‘design languages’) to the languages and/or scripts that the font was primarily designed for. Separate multiple entries with commas. Possible entries: four-letter script tag (Latn, Cyrl, Grek, Arab, Thai, etc.), or two-letter language tags (de, fr, nl, etc.), or language tags hyphenated with script tags (de-Latn, uk-Cyrl, hi-Deva, etc.)"
@@ -103,10 +108,8 @@ class AddMetaTable(mekkaObject):
 		self.w.slngUpdate.setToolTip(tooltip)
 		self.w.dlngUpdate.setToolTip(tooltip)
 		
-		# Run Button:
-		self.w.helpButton = vanilla.HelpButton((inset, -20-inset, 21, 21), callback=self.openURL)
-		self.w.runButton = vanilla.Button((-120-inset, -20-inset, -inset, -inset), "Add to Font Info", sizeStyle="regular", callback=self.AddMetaTableMain)
-		self.w.setDefaultButton(self.w.runButton)
+		tooltip = "Opens the OpenType specification for the meta table in your preferred browser."
+		self.w.helpButton.getNSButton().setToolTip_(tooltip)
 		
 		# Load Settings:
 		if not self.LoadPreferences():
