@@ -223,6 +223,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 *Vertical Metrics is useful for finding and syncing the vertical metric parameters in Font Info > Font and Font Info > Masters. Clean Version String is useful. Font Info Batch Setter is a must for syncing Font Info settings across many fonts. Careful about Set WWS/Preferred Names scripts: The app takes care of naming automatically, their use cases are rare.*
 
+* **Add meta Table:** Adds a meta table entry for the frontmost font in *Font Info > Font > Custom Parameters.*
 * **Batch-Import Masters:** Import many masters at once with the Import Master parameter.
 * **Clean Version String:** Adds a clean versionString parameter, and disables ttfAutohint info in the version string. The exported font will have a version string consisting only of ‘Version X.XXX’.
 * **Find and Replace in Font Info:** Finds and replaces names in *Font Info > Font* and *Font Info > Instances.*
@@ -354,7 +355,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 * **Adjust Kerning in Master:** GUI to add a value to all kerning pairs, multiply them by a value, round them by a value, or limit them to a value.
 * **Auto Bumper:** Specify a minimum distance, left and right glyphs, and Auto Bumper will add the minimum necessary kerning for the current master.
-* **BBox Bumper:** Like Auto Bumper, but with the bounding box of a group of glyphs, and the kerning inserted as GPOS feature code in Font Info > Features > kern. Useful if you want to do group kerning with classes that are different from the kerning groups. Needs Vanilla.
+* **BBox Bumper:** Like Auto Bumper, but with the bounding box of a group of glyphs, and the kerning inserted as GPOS feature code in Font Info > Features > kern. Useful if you want to do group kerning with classes that are different from the kerning groups.
 * **Compare Kerning Between Masters:** Report differences in kerning structures between two masters.
 * **Compress Glyph:** Compress kerning for specified glyph only.
 * **Convert RTL Kerning from Glyphs 2 to 3:** Convert RTL kerning from Glyphs 2 to Glyphs 3 format and switches the kerning classes. (Hold down OPTION and SHIFT to convert from Glyphs 3 back to Glyphs 2.) Detailed report in Macro Window.
@@ -385,7 +386,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Sample String Maker:** Creates kern strings for user-defined categories and adds them to the Sample Strings. Group kerning only, glyphs without groups are ignored.
 * **Sample Strings with Master Kerning:** Creates kern strings for the current kerning and adds them to the Sample Strings.
 * **Set Kerning Groups:** Sets left and right kerning groups for all selected glyphs. In the case of compounds, will use the groups of the base components, otherwise makes an informed guess based on a built-in dictionary.
-* **Split Kerning Groups:** In existing group kerning, separate some glyphs out of a kerning group, effectively duplicating the kern groups with the new group. *Needs Vanilla.*
+* **Split Kerning Groups:** In existing group kerning, separate some glyphs out of a kerning group, effectively duplicating the kern groups with the new group.
 * **Steal Kerning from InDesign:** Steals the kerning from text set in InDesign. Useful for extracting InDesign’s [Optical Kerning](https://web.archive.org/web/20160414170915/http://blog.extensis.com/adobe/about-adobe’s-optical-kerning.php) values.
 * **Steal Kerning Groups from Font:** Steals left/right kerning groups for all selected glyphs from a 2nd font.
 * **Transfer RTL kerning:** Transfers RTL kerning from one master to another.
