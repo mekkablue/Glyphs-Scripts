@@ -271,7 +271,7 @@ class VerticalMetricsManager(mekkaObject):
 		# theseFamilyNames = [f.familyName for f in theseFonts]
 		print("\nVertical Metrics Manager\nUpdating values for:\n")
 		for i, thisFont in enumerate(theseFonts):
-			print("%i. %s:" % (i + 1, thisFont.familyName))
+			print(f"{i + 1}. {thisFont.familyName}:")
 			if thisFont.filepath:
 				print(thisFont.filepath)
 			else:
@@ -303,7 +303,7 @@ class VerticalMetricsManager(mekkaObject):
 				if allOpenFonts:
 					fontReport = "%i. %s, " % (i + 1, thisFont.familyName)
 				currentMaster = thisFont.selectedFontMaster
-				for thisGlyph in thisFont.glyphs:
+				for thisGlyph in thisFont.allGlyphs():
 					if thisGlyph.export or not ignoreNonExporting:
 						scriptCheckOK = not shouldLimitToScript or thisGlyph.script == selectedScript  # needed for respectMarkToBaseOffset
 
@@ -409,7 +409,7 @@ class VerticalMetricsManager(mekkaObject):
 			else:
 				name = "OS/2 sTypo"
 
-			print("Determining %s values:\n" % name)
+			print(f"Determining {name} values:\n")
 
 			if sender == self.w.hheaUpdate and self.pref("typoAsc") and self.pref("typoDesc"):
 				print("💞 Copying existing OS/2 sTypo values into hhea values...")
@@ -445,7 +445,7 @@ class VerticalMetricsManager(mekkaObject):
 					currentMaster = thisFont.selectedFontMaster
 
 					# ascender & descender calculation:
-					for thisGlyph in thisFont.glyphs:
+					for thisGlyph in thisFont.allGlyphs():
 						exportCheckOK = not ignoreNonExporting or thisGlyph.export
 						categoryCheckOK = not shouldLimitToCategory or thisGlyph.category == selectedCategory
 						scriptCheckOK = not shouldLimitToScript or thisGlyph.script == selectedScript
@@ -530,44 +530,52 @@ class VerticalMetricsManager(mekkaObject):
 		elif sender == self.w.preferScriptUpdate:
 			scripts = []
 			shouldIgnoreNonExporting = self.pref("ignoreNonExporting")
-			for thisGlyph in frontmostFont.glyphs:
+			for thisGlyph in frontmostFont.allGlyphs():
 				inclusionCheckOK = thisGlyph.export or not shouldIgnoreNonExporting
 				if inclusionCheckOK and thisGlyph.script and thisGlyph.script not in scripts:
 					scripts.append(thisGlyph.script)
 			if scripts:
 				self.w.preferScriptPopup.setItems(scripts)
-				print("✅ Found scripts:\n%s" % ", ".join(scripts))
+				print(f"✅ Found scripts:\n{', '.join(scripts)}")
 			else:
 				msg = "Found no glyphs belonging to any script in the frontmost font. Please double check."
 				print(f"⚠️ {msg}")
-				Message(title="Error Determining Scripts", message=f"Cannot determine list of scripts. {msg}", OKButton=None)
+				Message(
+					title="Error Determining Scripts",
+					message=f"Cannot determine list of scripts. {msg}",
+					OKButton=None,
+				)
 
 		# Updating "Limit to Category" popup:
 		elif sender == self.w.preferCategoryUpdate:
 			categories = []
 			shouldIgnoreNonExporting = self.pref("ignoreNonExporting")
-			for thisGlyph in thisFont.glyphs:
+			for thisGlyph in thisFont.allGlyphs():
 				inclusionCheckOK = thisGlyph.export or not shouldIgnoreNonExporting
 				if inclusionCheckOK and thisGlyph.category not in categories:
 					categories.append(thisGlyph.category)
 			if categories:
 				self.w.preferCategoryPopup.setItems(categories)
-				print("✅ Found categories:\n%s" % ", ".join(categories))
+				print(f"✅ Found categories:\n{', '.join(categories)}")
 			else:
 				msg = "Found no glyphs belonging to any category in the current font. Please double check."
-				print("⚠️ %s" % msg)
-				Message(title="Error Determining Categories", message="Cannot determine list of categories. %s" % msg, OKButton=None)
+				print(f"⚠️ {msg}")
+				Message(
+					title="Error Determining Categories",
+					message=f"Cannot determine list of categories. {msg}", 
+					OKButton=None,
+					)
 
 		self.LoadPreferences()
 
-		print("hheaGap", self.pref("hheaGap"))
-		print("hheaDesc", self.pref("hheaDesc"))
-		print("hheaAsc", self.pref("hheaAsc"))
-		print("typoGap", self.pref("typoGap"))
-		print("typoDesc", self.pref("typoDesc"))
-		print("typoAsc", self.pref("typoAsc"))
-		print("winDesc", self.pref("winDesc"))
-		print("winAsc", self.pref("winAsc"))
+		print(f"🔢 hhea.lineGap       {self.pref('hheaGap'): 5}")
+		print(f"🔢 hhea.descender     {self.pref('hheaDesc'): 5}")
+		print(f"🔢 hhea.ascender      {self.pref('hheaAsc'): 5}")
+		print(f"🔢 OS/2.typoLineGap   {self.pref('typoGap'): 5}")
+		print(f"🔢 OS/2.typoDescender {self.pref('typoDesc'): 5}")
+		print(f"🔢 OS/2.typoAscender  {self.pref('typoAsc'): 5}")
+		print(f"🔢 OS/2.winDescent    {self.pref('winDesc'): 5}")
+		print(f"🔢 OS/2.winAscent     {self.pref('winAsc'): 5}")
 
 
 	def VerticalMetricsManagerMain(self, sender):
@@ -671,7 +679,7 @@ class VerticalMetricsManager(mekkaObject):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Vertical Metrics Manager Error: %s" % e)
+			print(f"Vertical Metrics Manager Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 
