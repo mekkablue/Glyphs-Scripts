@@ -186,6 +186,11 @@ class AddMetaTable(mekkaObject):
 				print("✅ Successfully written meta Table in {reportName}. See Font Info → Font → Custom Parameters.")
 				
 				self.w.close() # delete if you want window to stay open
+				
+				# open Font Info window:
+				doc = thisFont.parent
+				controller = doc.windowController()
+				controller.showFontInfoWindowWithTabSelected_(0)
 
 			print("\nDone.")
 
