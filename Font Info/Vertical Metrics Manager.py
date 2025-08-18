@@ -9,7 +9,7 @@ __doc__ = """
 Manage and sync ascender, descender and linegap values for hhea, OS/2 sTypo and OS/2 usWin.
 """
 
-import vanilla
+import vanilla, string
 from GlyphsApp import Glyphs, Message, GetOpenFile, GSUppercase, GSLowercase, GSGlyph, GSLayer
 from mekkablue import mekkaObject, UpdateButton
 from AppKit import NSRightTextAlignment
@@ -154,7 +154,7 @@ class VerticalMetricsManager(mekkaObject):
 		linePos += lineHeight
 		
 		self.w.calculateText = vanilla.TextBox((inset, linePos+2, 70, 14), "Use method", sizeStyle="small", selectable=True)
-		self.w.calculate = vanilla.PopUpButton((inset+70, linePos, -80-inset, 17), ("Google", "Webfonts (2019)"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.calculate = vanilla.PopUpButton((inset+70, linePos, -80-inset, 17), ("Google", "Webfonts (2019)", "Microsoft (Legacy)"), sizeStyle="small", callback=self.SavePreferences)
 		self.w.calculateButton = vanilla.Button((-70 - inset, linePos, -inset, 17), "Calculate", sizeStyle="small", callback=self.calculateMethod)
 		
 		linePos += lineHeight
@@ -645,6 +645,8 @@ class VerticalMetricsManager(mekkaObject):
 			self.methodGoogle()
 		elif method == 1:
 			self.methodWebfonts2019()
+		elif method == 2:
+			self.methodMicrosoft()
 
 
 	def methodWebfonts2019(self, sender=None):
@@ -702,6 +704,48 @@ class VerticalMetricsManager(mekkaObject):
 
 		# update useTypoMetrics:
 		self.update(sender=self.w.useTypoMetricsUpdate)
+
+
+	def methodMicrosoft(self, sender=None):
+		shouldRound = self.pref("round")
+		roundValue = int(self.pref("roundValue"))
+		
+		self.update(sender=self.w.winUpdate)
+		
+		self.setPref("hheaAsc", self.pref("winAsc"))
+		self.setPref("hheaDesc", self.pref("winDesc"))
+		self.setPref("hheaLineGap", 0)
+		self.setPref("useTypoMetrics", False)
+		self.LoadPreferences()
+		
+		if self.pref("allOpenFonts"):
+			theseFonts = Glyphs.fonts
+		else:
+			theseFonts = (Glyphs.font,)
+		
+		descender = 0
+		
+		for thisFont in theseFonts:
+			for name in string.ascii_letters:
+				thisGlyph = thisFont.glyphs[name]
+				if not thisGlyph:
+					continue
+				descender = min(descender, glyphDepth(thisGlyph))
+		
+		if shouldRound:
+			descender = roundUpByValue(descender, roundValue)
+		
+		ascender = Glyphs.font.upm - abs(descender)
+		lineGap = max(0, self.pref("winAsc") + self.pref("winDesc") - Glyphs.font.upm)
+		
+		if shouldRound:
+			lineGap = roundUpByValue(lineGap, roundValue)
+			
+		self.setPref("typoAsc", ascender)
+		self.setPref("typoDesc", descender)
+		self.setPref("typoGap", lineGap)
+		self.LoadPreferences()
+		
 
 
 	def methodGoogle(self, sender=None):
