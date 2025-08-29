@@ -187,7 +187,9 @@ class mekkaObject:
 				Glyphs.defaults[self.domain(prefName)] = self.uiElement(prefName).get()
 			if hasattr(self, "updateUI"):
 				self.updateUI()
+			return True
 		except:
 			import traceback
 			print(traceback.format_exc())
 			print(f"⚠️ ‘{self.__class__.__name__}’ could not write preferences.")
+			return False
