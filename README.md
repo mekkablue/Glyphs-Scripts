@@ -430,6 +430,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Delete Components out of Bounds:** If a component is placed far outside the usual coordinates (happens when you cmd-arrow components with a high grid step), this script will delete them.
 * **Delete Duplicate Components:** Looks for duplicate components (same name and position) and keeps only one. Happens frequently when building pixel fonts.
 * **Flashify Pixels:** Creates small bridges in order to prevent self-intersection of paths so counters stay white. This is especially a problem for the Flash font renderer, hence the name of the script.
+* **Offset Pixel Rows:** Offsets each row of pixels by a percentage. Rhythm of 2 = every other line offset by half of a pixel’s width; rhythm of 3 = every second line by a third, every third line by two thirds; and so on. Useful for offsetting hexagon-shaped pixels, etc.
 * **Reset Rotated and Mirrored Components:** Looks for scaled, mirrored and rotated components and turns them back into their default scale and orientation, but keeps their position. Useful for fixing mirrored pixels.
 
 ## Post Production
