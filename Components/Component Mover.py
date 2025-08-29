@@ -51,7 +51,7 @@ class ComponentMover(mekkaObject):
 		self.w.searchString = vanilla.ComboBox((inset + tabStop, linePos, -inset - 18, 18), self.availableComponents(), sizeStyle='small', callback=self.SavePreferences)
 		self.w.searchString.getNSComboBox().setPlaceholderString_("any component")
 		self.w.searchStringUpdate = UpdateButton((-inset - 12, linePos - 2, -inset + 6, 18), callback=self.updateUI)
-		toolTip = "Pick the name of the component you want to manipulate in (all masters of) all selected glyphs. An empty entry means every component. Click the Update button to populate the menu with the names of all components in all selected glyphs."
+		toolTip = "Pick the name of the component you want to manipulate in (all masters of) all selected glyphs. An empty entry means every component. You can use * and ? as wildcards. Click the Update button to populate the menu with the names of all components in all selected glyphs."
 		self.w.searchStringText.setToolTip(toolTip)
 		self.w.searchString.setToolTip(toolTip)
 		self.w.searchStringUpdate.setToolTip(toolTip)
@@ -210,7 +210,7 @@ class ComponentMover(mekkaObject):
 				for thisLayer in allLayers:
 					for thisComponent in thisLayer.components:
 						searchString = self.pref("searchString")
-						if not searchString or searchString in thisComponent.componentName:
+						if not searchString or match(searchString, thisComponent.componentName):
 							if smartComponent:
 								try:
 									axisID = self.getSmartAxisID(thisComponent, attributeToChange)
