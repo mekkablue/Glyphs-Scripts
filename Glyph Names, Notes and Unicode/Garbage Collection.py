@@ -283,6 +283,7 @@ class GarbageCollection(mekkaObject):
 				localGuidesFont = 0
 				removeAnnotationsFont = 0
 				layerDeletionCountFont = 0
+				cleanedBackgroundCount = 0
 
 				# go through glyphs:
 				print(f"🔠 Processing {len(glyphs)} glyphs...")
@@ -302,20 +303,30 @@ class GarbageCollection(mekkaObject):
 					for thisLayer in thisGlyph.layers:
 						if thisLayer.master == thisFont.selectedFontMaster or not currentMasterOnly:
 							if removeNodeNames:
-								for thisPath in thisLayer.paths:
+								for thisPath in list(thisLayer.paths) + list(thisLayer.background.paths):
 									for thisNode in thisPath.nodes:
 										if thisNode.name:
 											removeNodeNamesGlyph += 1
 											thisNode.name = None
+
 							if removeLocalGuides:
 								localGuidesGlyph += len(thisLayer.guideLines)
 								thisLayer.guideLines = None
+
+								localGuidesGlyph += len(thisLayer.background.guideLines)
+								thisLayer.background.guideLines = None
+
 							if removeAnnotations:
 								removeAnnotationsGlyph += len(thisLayer.annotations)
 								thisLayer.annotations = None
+
+								removeAnnotationsGlyph += len(thisLayer.background.annotations)
+								thisLayer.background.annotations = None
+
 							if removeColors:
 								# self.log(f"\t🚫 color for layer ‘{thisLayer.name}’")
 								thisLayer.color = None
+
 							if userDataLayers:
 								# if thisLayer.userData:  # BROKEN IN 3.2
 								if thisLayer.userData.keys():
@@ -323,7 +334,10 @@ class GarbageCollection(mekkaObject):
 									# self.log(f"\t🚫 layer.userData: {', '.join(keysToRemove)}")
 									for keyToRemove in keysToRemove:
 										thisLayer.removeUserDataForKey_(keyToRemove)
+
 							if clearBackgroundLayers:
+								if thisLayer.background.shapes:
+									cleanedBackgroundCount += 1
 								thisLayer.background.clear()
 
 					# glyph clean-up:
@@ -338,9 +352,11 @@ class GarbageCollection(mekkaObject):
 						if thisGlyph.note:
 							# self.log("\t🚫 glyph note")
 							thisGlyph.note = None
+
 					if removeColors:
 						# self.log("\t🚫 glyph color")
 						thisGlyph.color = None
+
 					if userDataGlyphs:
 						if thisGlyph.userData:
 							keysToRemove = [k for k in thisGlyph.userData.keys() if self.shouldBeRemoved(k, userDataKeys)]
@@ -433,6 +449,8 @@ class GarbageCollection(mekkaObject):
 					self.log(f"🚫 Removed {localGuidesFont} local guides in font.")
 				if removeNodeNamesFont:
 					self.log(f"🚫 Removed {removeNodeNamesFont} node names in font.")
+				if cleanedBackgroundCount:
+					self.log(f"🚫 Emptied {cleanedBackgroundCount} layer backgrounds in font.")
 
 			except Exception as e:
 				# brings macro window to front and reports error:
