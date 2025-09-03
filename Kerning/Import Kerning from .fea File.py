@@ -39,10 +39,10 @@ def importfea_file(Doc, filePath):
 					Left = False
 
 				key = key.split("_")[1]
-				key = GlyphsInfo.niceGlpyhNameForName_(key)
+				key = GlyphsInfo.niceGlyphNameForName_(key)
 
 				for GlyphName in GlyphNames:
-					GlyphName = GlyphsInfo.niceGlpyhNameForName_(GlyphName)
+					GlyphName = GlyphsInfo.niceGlyphNameForName_(GlyphName)
 					Glyph = Font.glyphForName_(GlyphName)
 					if Glyph:
 						if Left:
@@ -80,11 +80,20 @@ def importfea_file(Doc, filePath):
 def main():
 	Doc = Glyphs.currentDocument
 	if (Doc):
-		result = GetFile("Choose fea file.", False, ["fea"])
+		result = GetOpenFile(
+			message="Choose fea file containing kerning.",
+			allowsMultipleSelection=False,
+			filetypes=["fea"],
+			path=None,
+			)
 		if result is not None:
 			importfea_file(Doc, result)
 	else:
-		Message("Please open a document", "")
+		Message(
+			title="No Font Open",
+			message="This script requires one font for importing kerning.",
+			OKButton=None,
+			)
 
 
 if __name__ == '__main__':
