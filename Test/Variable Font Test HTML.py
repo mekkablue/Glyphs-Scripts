@@ -1306,7 +1306,7 @@ else:
 	variableFontInfos = []
 	for thisInstance in thisFont.instances:
 		try:
-			if thisInstance.typeName() == "variable":
+			if thisInstance.typeName() == "variable" and thisInstance.active:
 				variableFontInfo = otVarInfoForInstance(thisInstance)
 				variableFontInfos.append(variableFontInfo)
 		except Exception as e:
