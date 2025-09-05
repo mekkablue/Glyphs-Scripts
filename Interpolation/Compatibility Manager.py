@@ -107,6 +107,7 @@ class CompatibilityManager:
 			"Right, then bottom",
 			"Shortest travel",
 		])
+		self.w.startPointOptions.set(9)
 
 		self.w.shapeOrderTitle = TextBox((210, 10, 180, 20), "Shape Order", sizeStyle="small")
 		self.w.shapeOrderOptions = PopUpButton((210, 30, 180, 20), [
@@ -114,7 +115,8 @@ class CompatibilityManager:
 			"By size",
 			"By shortest travel",
 		])
-
+		self.w.shapeOrderOptions.set(2)
+		
 		self.w.resetStartPoints = Button((10, -30, 190, 20), "Reset Start Points", callback=self.resetStartPoints)
 		self.w.reorderShapes = Button((210, -30, 180, 20), "Reorder Shapes", callback=self.reorderShapes)
 		self.w.open()
