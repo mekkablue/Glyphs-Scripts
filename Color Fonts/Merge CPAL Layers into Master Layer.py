@@ -72,12 +72,13 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 
 			# update settings to the latest user input:
 			self.SavePreferences()
+			all = self.pref("all")
 
 			if not Glyphs.font:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
 				countGlyphs = 0
-				if all > 1:
+				if all > 1: # 0, 1 = current font; 2 = all fonts
 					theseFonts = Glyphs.fonts
 				else:
 					theseFonts = (Glyphs.font, )
