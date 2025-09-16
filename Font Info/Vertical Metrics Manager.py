@@ -293,13 +293,19 @@ class VerticalMetricsManager(mekkaObject):
 
 
 	def chosenGlyphs(self, font):
+		if not font:
+			return []
+
 		shouldLimitToScript = self.pref("preferScript")
 		selectedScript = self.w.preferScriptPopup.getTitle()
 		shouldLimitToCategory = self.pref("preferCategory")
 		selectedCategory = self.w.preferCategoryPopup.getTitle()
 		ignoreNonExporting = self.pref("ignoreNonExporting")
 		shouldLimitToSelectedGlyphs = self.pref("preferSelectedGlyphs")
-		selectedGlyphNames = [l.parent.name for l in Glyphs.font.selectedLayers if isinstance(l, GSLayer)]
+		if font.selectedLayers:
+			selectedGlyphNames = [l.parent.name for l in font.selectedLayers if isinstance(l, GSLayer)]
+		else:
+			selectedGlyphNames = []
 		
 		glyphs = []
 		for glyph in font.allGlyphs():
