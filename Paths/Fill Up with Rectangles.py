@@ -7,9 +7,6 @@ Inserts Rectangles in all empty, selected glyphs. Verbose report in Macro Window
 
 from GlyphsApp import Glyphs, GSPath, GSNode, GSLINE, GSUppercase, GSLowercase
 
-thisFont = Glyphs.font
-selectedLayers = thisFont.selectedLayers
-
 
 def drawRect(myBottomLeft, myTopRight):
 	try:
@@ -82,6 +79,11 @@ def process(thisLayer):
 Glyphs.clearLog()  # clears macro window log
 print(f"‘Fill Up with Rectangles’ report for: {thisFont.familyName}\n")
 
+thisFont = Glyphs.font
+selectedLayers = thisFont.selectedLayers
+if not selectedLayers:
+	selectedLayers = [g.layers[thisFont.selectedFontMaster.id] for g in thisFont.glyphs]
+
 thisFont.disableUpdateInterface()
 try:
 	for thisLayer in selectedLayers:
@@ -97,6 +99,8 @@ except Exception as e:
 	raise e
 finally:
 	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
-	thisFont.postProcess()  # circumvent display bug in builds 34xx
+	thisFont.fontView.zoomIn_(True)
+	thisFont.fontView.zoomOut_(True)  # circumvent display bug in builds 34xx
+
 
 print("\nDone.")
