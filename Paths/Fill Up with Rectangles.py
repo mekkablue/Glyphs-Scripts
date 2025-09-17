@@ -77,30 +77,23 @@ def process(thisLayer):
 
 
 Glyphs.clearLog()  # clears macro window log
-print(f"‘Fill Up with Rectangles’ report for: {thisFont.familyName}\n")
 
 thisFont = Glyphs.font
+print(f"‘Fill Up with Rectangles’ report for: {thisFont.familyName}\n")
+
 selectedLayers = thisFont.selectedLayers
 if not selectedLayers:
 	selectedLayers = [g.layers[thisFont.selectedFontMaster.id] for g in thisFont.glyphs]
 
-thisFont.disableUpdateInterface()
 try:
 	for thisLayer in selectedLayers:
 		thisGlyph = thisLayer.parent
 		if thisGlyph:
-			# thisGlyph.beginUndo()  # undo grouping causes crashes
 			print(f"Filling {thisGlyph.name}: {process(thisLayer)}.")
-			# thisGlyph.endUndo()  # undo grouping causes crashes
 except Exception as e:
 	Glyphs.showMacroWindow()
 	import traceback
 	print(f"\n⚠️ Script Error:\n\n{traceback.format_exc()}\n")
 	raise e
-finally:
-	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
-	thisFont.fontView.zoomIn_(True)
-	thisFont.fontView.zoomOut_(True)  # circumvent display bug in builds 34xx
-
 
 print("\nDone.")
