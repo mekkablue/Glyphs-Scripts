@@ -72,11 +72,7 @@ def process(thisLayer):
 			except:
 				# Glyphs 3:
 				thisLayer.shapes.append(layerRect)
-			return "✅ 🔽 %i ↕️ %i ↔️ %i" % (
-				bottom,
-				height,
-				thisLayer.width - 2 * inset,
-			)
+			return f"✅ 🔽 {bottom} ↕️ {height} ↔️ {thisLayer.width-2*inset}"
 		else:
 			return "❌ error"
 	else:
@@ -84,7 +80,7 @@ def process(thisLayer):
 
 
 Glyphs.clearLog()  # clears macro window log
-print("‘Fill Up with Rectangles’ report for: %s\n" % thisFont.familyName)
+print(f"‘Fill Up with Rectangles’ report for: {thisFont.familyName}\n")
 
 thisFont.disableUpdateInterface()
 try:
@@ -92,16 +88,15 @@ try:
 		thisGlyph = thisLayer.parent
 		if thisGlyph:
 			# thisGlyph.beginUndo()  # undo grouping causes crashes
-			print("Filling %s: %s." % (thisGlyph.name, process(thisLayer)))
+			print(f"Filling {thisGlyph.name}: {process(thisLayer)}.")
 			# thisGlyph.endUndo()  # undo grouping causes crashes
 except Exception as e:
 	Glyphs.showMacroWindow()
-	print("\n⚠️ Script Error:\n")
 	import traceback
-	print(traceback.format_exc())
-	print()
+	print(f"\n⚠️ Script Error:\n\n{traceback.format_exc()}\n")
 	raise e
 finally:
 	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+	thisFont.postProcess()  # circumvent display bug in builds 34xx
 
 print("\nDone.")
