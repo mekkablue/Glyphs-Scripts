@@ -194,7 +194,7 @@ if Glyphs.versionNumber < 3.2:
 else:
 	# brings macro window to front and clears its log:
 	Glyphs.clearLog()
-	Glyphs.showMacroWindow()
+	# Glyphs.showMacroWindow()
 	print("🔢 Axis Values Report:")
 
 	suffixes = ["ttf"]
@@ -237,5 +237,7 @@ else:
 				# read entries in exported font and add custom parameters in Glyphs file
 				print(f"\n🛠️ No ‘{parameterName}’ parameter in VF setting: reading STAT table and adding ‘Axis Values’ parameters")
 				STATtoParameter(font, variableFontExport)
+
+			font.parent.windowController().showFontInfoWindowWithTabSelected_(2)
 
 print("\n✅ Done.")
