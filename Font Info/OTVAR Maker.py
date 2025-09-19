@@ -233,6 +233,7 @@ class OTVARMaker(mekkaObject):
 				# add VFS to instances:
 				print(f"✅ Adding Variable Font Setting ‘{otvarInstance.familyName} {otvarInstance.name}’")
 				thisFont.instances.insert(0, otvarInstance)
+				thisFont.parent.windowController().showFontInfoWindowWithTabSelected_(2)
 
 			print("\nDone.")
 
