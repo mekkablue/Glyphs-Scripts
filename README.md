@@ -91,7 +91,6 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Shine Through Anchors:** In all layers of selected glyphs, inserts ‘traversing’ anchors from components.
 * **Snap Anchors to Nearest Metric:** Moves specified anchors to the nearest metric (e.g. x-height, ascender, etc.), within a specified threshold.
 * **Steal Anchors:** Batch-copy the anchors from one font master to another.
-* **Top Mark Mover:** Moves selected marks vertically, so their _top anchor is on the respective vertical metric.
 
 ## App
 
