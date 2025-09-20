@@ -311,22 +311,25 @@ class TravelTracker(mekkaObject):
 
 			totalAffectedGlyphs = 0
 			totalRelevantGlyphs = 0
+			totalAffectedGlyphsNodeTravel = 0
+			totalAffectedGlyphsRotation = 0
+			totalAffectedGlyphsDeorthogonalization = 0
+			
 			for j, thisFont in enumerate(theseFonts):
 				if thisFont.filepath:
-					print(f"Travel Tracker Report for {thisFont.filepath.lastPathComponent()}")
-					print(thisFont.filepath)
+					print(f"ℹ️ Travel Tracker Report for {thisFont.filepath.lastPathComponent()}")
+					print(f"  💾 {thisFont.filepath}")
 				else:
-					print(f"Travel Tracker Report for {thisFont.familyName}")
-					print("⚠️ file not saved yet")
-				print()
+					print(f"ℹ️ Travel Tracker Report for {thisFont.familyName}")
+					print("  ⚠️ File not saved yet")
+
 
 				tabText = ""
 				relevantGlyphs = [g for g in thisFont.glyphs if (g.mastersCompatible and self.hasInterpolatingPaths(g)) and (includeNonExporting or g.export)]
 				numOfGlyphs = float(len(relevantGlyphs))  # float for calculating the progress indicator below
 				totalRelevantGlyphs += numOfGlyphs
 
-				print(f"Examining {int(numOfGlyphs)} interpolating glyphs...")
-				print()
+				print(f"  🔡 Examining {int(numOfGlyphs)} interpolating glyphs...")
 
 				affectedGlyphInfosNodeTravel = []
 				affectedGlyphInfosRotation = []
@@ -343,9 +346,9 @@ class TravelTracker(mekkaObject):
 						if travelRatioInThisGlyph > acceptableTravelRatio:
 							affectedGlyphInfosNodeTravel.append((relevantGlyph.name, travelRatioInThisGlyph), )
 							if verbose:
-								print(f"❌🚀 Node traveling {int(travelRatioInThisGlyph * 100)}% in: {relevantGlyph.name}")
+								print(f"  ❌🚀 Node traveling {int(travelRatioInThisGlyph * 100)}% in: {relevantGlyph.name}")
 						elif verbose:
-							print(f"✅🚀 Max node travel {int(travelRatioInThisGlyph * 100)}% in: {relevantGlyph.name}")
+							print(f"  ✅🚀 Max node travel {int(travelRatioInThisGlyph * 100)}% in: {relevantGlyph.name}")
 
 					# ROTATION AND DEORTH
 					if shouldCheckRotation or shouldCheckOrthogonals:
@@ -353,15 +356,15 @@ class TravelTracker(mekkaObject):
 						if maxRotationInThisGlyph > acceptableRotation:
 							affectedGlyphInfosRotation.append((relevantGlyph.name, maxRotationInThisGlyph))
 							if verbose:
-								print(f"🚫📐 Max rotation {maxRotationInThisGlyph:.1f}° in: {relevantGlyph.name}")
+								print(f"  🚫📐 Max rotation {maxRotationInThisGlyph:.1f}° in: {relevantGlyph.name}")
 						elif verbose:
-							print(f"✅📐 Max rotation {maxRotationInThisGlyph:.1f}° in: {relevantGlyph.name}")
+							print(f"  ✅📐 Max rotation {maxRotationInThisGlyph:.1f}° in: {relevantGlyph.name}")
 						if maxDeorthogonalization != 0:
 							affectedGlyphInfosDeorthogonalization.append((relevantGlyph.name, maxDeorthogonalization))
 							if verbose:
-								print(f"🚫☦️ Node pairs going from orthogonal to non-orthogonal in: {relevantGlyph.name}")
+								print(f"  🚫☦️ Node pairs going from orthogonal to non-orthogonal in: {relevantGlyph.name}")
 						elif verbose:
-							print(f"✅☦️ No node pairs going from orthogonal to non-orthogonal in: {relevantGlyph.name}")
+							print(f"  ✅☦️ No node pairs going from orthogonal to non-orthogonal in: {relevantGlyph.name}")
 
 				# REPORT IN MACRO WINDOW
 				# AND COLLECT SORTED GLYPHS FOR TAB
@@ -371,43 +374,46 @@ class TravelTracker(mekkaObject):
 				affectedGlyphNamesNodeTravel = []
 				if affectedGlyphInfosNodeTravel:
 					sortedGlyphInfos = sorted(affectedGlyphInfosNodeTravel, key=lambda thisListItem: -thisListItem[1])
-					print("\n🚀 Node-traveling glyphs:")
+					print("\n  🚀 Node-traveling glyphs:")
 					for glyphInfo in sortedGlyphInfos:
 						percentage = glyphInfo[1] * 100
 						glyphName = glyphInfo[0]
-						print(f"{percentage:>8.1f}% {glyphName}")
+						print(f"{percentage:>10.1f}% {glyphName}")
 
 					affectedGlyphNamesNodeTravel = [gi[0] for gi in sortedGlyphInfos]
 					tabText += "Node-traveling:\n/" + "/".join(affectedGlyphNamesNodeTravel) + "\n\n"
 				totalAffectedGlyphs += len(affectedGlyphNamesNodeTravel)
+				totalAffectedGlyphsNodeTravel += len(affectedGlyphNamesNodeTravel)
 
 				affectedGlyphNamesRotation = []
 				if affectedGlyphInfosRotation:
 					sortedGlyphInfos = sorted(affectedGlyphInfosRotation, key=lambda thisListItem: -thisListItem[1])
-					print("\n📐 Rotating node pairs:")
+					print("\n  📐 Rotating node pairs:")
 					for glyphInfo in sortedGlyphInfos:
 						degrees = glyphInfo[1]
 						glyphName = glyphInfo[0]
-						print(f"{degrees:>8.1f}° {glyphName}")
+						print(f"{degrees:>10.1f}° {glyphName}")
 
 					# open tab:
 					affectedGlyphNamesRotation = [gi[0] for gi in sortedGlyphInfos]
 					tabText += "Rotation:\n/" + "/".join(affectedGlyphNamesRotation) + "\n\n"
 				totalAffectedGlyphs += len(affectedGlyphNamesRotation)
+				totalAffectedGlyphsRotation += len(affectedGlyphNamesRotation)
 
 				affectedGlyphNamesDeorthogonalization = []
 				if affectedGlyphInfosDeorthogonalization:
 					sortedGlyphInfos = sorted(affectedGlyphInfosDeorthogonalization, key=lambda thisListItem: -thisListItem[1])
-					print("\n☦️ Nodes going unorthogonal:")
+					print("\n  ☦️ Nodes going unorthogonal:")
 					for glyphInfo in sortedGlyphInfos:
 						degrees = glyphInfo[1]
 						glyphName = glyphInfo[0]
-						print(f"{degrees:>8.1f}° {glyphName}")
+						print(f"{degrees:>10.1f}° {glyphName}")
 
 					# open tab:
 					affectedGlyphNamesDeorthogonalization = [gi[0] for gi in sortedGlyphInfos]
 					tabText += "Unorthogonal:\n/" + "/".join(affectedGlyphNamesDeorthogonalization) + "\n\n"
 				totalAffectedGlyphs += len(affectedGlyphNamesDeorthogonalization)
+				totalAffectedGlyphsDeorthogonalization += len(affectedGlyphNamesDeorthogonalization)
 
 				if tabText:
 					tab = thisFont.newTab(tabText[:-1])  # cut off the last newline
@@ -417,6 +423,8 @@ class TravelTracker(mekkaObject):
 					vp.origin.x = 0
 					vp.origin.y = -vp.size.height
 					tab.viewPort = vp
+
+				print("\n")
 
 			# last one finished, progress bar = 100:
 			self.w.progress.set(100)
@@ -430,22 +438,22 @@ class TravelTracker(mekkaObject):
 				print("✅ Done. No issues found.")
 			else:
 				issues = []
-				if len(affectedGlyphNamesNodeTravel) != 0:
-					issue = f"{len(affectedGlyphNamesNodeTravel)} glyph{'s' if len(affectedGlyphNamesNodeTravel) != 1 else ''} with nodes traveling more than {int(round(travelPercentage))}%"
+				if totalAffectedGlyphsNodeTravel != 0:
+					issue = f"{totalAffectedGlyphsNodeTravel} glyph{'s' if totalAffectedGlyphsNodeTravel != 1 else ''} with nodes traveling more than {int(round(travelPercentage))}%"
 					issues.append(issue)
-				if len(affectedGlyphNamesRotation) != 0:
-					issue = f"{len(affectedGlyphNamesRotation)} glyph{'s' if len(affectedGlyphNamesRotation) != 1 else ''} with node pairs rotating more than {int(round(acceptableRotation))}°"
+				if totalAffectedGlyphsRotation != 0:
+					issue = f"{totalAffectedGlyphsRotation} glyph{'s' if totalAffectedGlyphsRotation != 1 else ''} with node pairs rotating more than {int(round(acceptableRotation))}°"
 					issues.append(issue)
-				if len(affectedGlyphNamesDeorthogonalization) != 0:
-					issue = f"{len(affectedGlyphNamesDeorthogonalization)} glyph{'s' if len(affectedGlyphNamesDeorthogonalization) != 1 else ''} with node pairs going unorthogonal"
+				if totalAffectedGlyphsDeorthogonalization != 0:
+					issue = f"{totalAffectedGlyphsDeorthogonalization} glyph{'s' if totalAffectedGlyphsDeorthogonalization != 1 else ''} with node pairs going unorthogonal"
 					issues.append(issue)
-
+				
 				Message(
 					title=f"Found {int(totalAffectedGlyphs)} issue{'s' if totalAffectedGlyphs != 1 else ''}",
-					message=f"{', '.join(issues)};\nin a total of {int(totalRelevantGlyphs)} interpolating glyphs in {len(theseFonts)} font{'s' if len(theseFonts) != 1 else ''} examined.",
+					message=f"{', '.join(issues)} in a total of {int(totalRelevantGlyphs)} interpolating glyphs in {len(theseFonts)} font{'s' if len(theseFonts) != 1 else ''} examined.",
 					OKButton=None,
 				)
-				print(f"\n✅ Done. Found {int(totalAffectedGlyphs)} issue{'s' if totalAffectedGlyphs != 1 else ''} with issues:\n🔤 {', 🔤 '.join(issues)}.")
+				print(f"\n✅ Done. Found {int(totalAffectedGlyphs)} issue{'s' if totalAffectedGlyphs != 1 else ''} in {len(theseFonts)} font{'s' if len(theseFonts)!=1 else ''}:\n🔤 {', 🔤 '.join(issues)}.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
