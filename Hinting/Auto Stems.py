@@ -215,6 +215,9 @@ class AutoStems(mekkaObject):
 
 				print()
 
+			if not allFonts and f is not None:
+				f.parent.windowController().showFontInfoWindowWithTabSelected_(1) # master tab index
+
 			self.w.close()  # delete if you want window to stay open
 			print("\nDone.")
 

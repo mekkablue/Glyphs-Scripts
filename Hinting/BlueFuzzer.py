@@ -59,8 +59,8 @@ class BlueFuzzer(mekkaObject):
 						thisZone.setSize_(thisZone.size + (fuzzValue * 2) * factor)
 
 			self.SavePreferences()
-
 			self.w.close()
+			Font.parent.windowController().showFontInfoWindowWithTabSelected_(1) # master tab index
 		except Exception as e:
 			raise e
 

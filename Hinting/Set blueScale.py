@@ -54,33 +54,37 @@ def maxZoneForBlueScale(blueScale):
 	return zoneSize
 
 
-# brings macro window to front and clears its log:
+def setMacroDivider(position=0.1):
+	from Foundation import NSHeight
+	splitview = Glyphs.delegate().macroPanelController().consoleSplitView()
+	height = NSHeight(splitview.frame())
+	splitview.setPosition_ofDividerAtIndex_(height * position, 0)
+	
+
+# open Font Info at Font tab:
+thisFont = Glyphs.font  # frontmost font
+thisFont.parent.windowController().showFontInfoWindowWithTabSelected_(0) # font tab index
+
+# prepare Macro window:
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
+setMacroDivider()
 
-thisFont = Glyphs.font  # frontmost font
+print(f"📄 {thisFont.familyName}")
+# save old blueScale:
 if thisFont.customParameters["blueScale"]:
-	print("Old blueScale value: %f" % float(thisFont.customParameters["blueScale"]))
-	print("(Stored in font parameter 'OLD blueScale'.)")
-	print()
+	print(f"💾 Existing blueScale {float(thisFont.customParameters['blueScale'])} stored in font parameter ‘OLD blueScale’.")
 	thisFont.customParameters["OLD blueScale"] = thisFont.customParameters["blueScale"]
+	thisFont.customParameterForKey_("OLD blueScale").active = False
 
 minSize = 16
 maxSize = maxPPMforOvershootSuppressionInFont(thisFont)
 maxBlueScale = maxBlueScaleForFont(thisFont)
 thisFont.customParameters["blueScale"] = maxBlueScale
-
-print("blueScale set to maximum: OK")
-print()
-print("Maximum blueScale for %s:\n%f (PPM: %i px)" % (
-	thisFont.familyName,
-	maxBlueScale,
-	maxSize,
-))
-print()
+print(f"✅ Max blueScale: {maxBlueScale} (max {maxSize} PPM, largest zone {int(maxZoneInFont(thisFont))}u)\n")
 
 if maxSize > minSize:
-	print("Possible font size limits of overshoot suppression:")
+	print("Possible font size limits for overshoot suppression:")
 	print()
 	print("    PPM    96dpi  144dpi  300dpi  600dpi  blueScale  max zone")
 	print("------- -------- ------- ------- ------- ---------- ---------")

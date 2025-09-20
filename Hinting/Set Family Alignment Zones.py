@@ -111,7 +111,7 @@ class SetFamilyAlignmentZones(mekkaObject):
 			Glyphs.clearLog()  # clears macro window log
 
 			thisFont = Glyphs.font  # frontmost font
-			print("Set Family Alignment Zones Report for %s" % thisFont.familyName)
+			print(f"Set Family Alignment Zones Report for {thisFont.familyName}")
 			print(thisFont.filepath)
 			print()
 
@@ -127,17 +127,18 @@ class SetFamilyAlignmentZones(mekkaObject):
 					# GLYPHS 2 code:
 					instanceZones = thisInstance.interpolatedFont.masters[0].alignmentZones.__copy__()
 				thisFont.customParameters["Family Alignment Zones"] = instanceZones
-				print(u"✅ Set family alignment zones to instance %s" % instanceName)
+				print(f"✅ Set family alignment zones to instance {instanceName}")
+				thisFont.parent.windowController().showFontInfoWindowWithTabSelected_(0) # font tab
 			else:
 				Message(
 					title="Family Zones Error",
-					message="Seems like the instance you picked (%s) is not in the frontmost font. Please click the update button and choose again." % instanceName,
+					message=f"Seems like the instance you picked ({instanceName}) is not in the frontmost font. Please click the update button and choose again.",
 					OKButton=None,
 				)
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Set Family Alignment Zones Error: %s" % e)
+			print(f"Set Family Alignment Zones Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 
