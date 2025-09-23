@@ -125,7 +125,7 @@ class SetFamilyAlignmentZones(mekkaObject):
 				print(f"Removing ttfautohint {optionName} from instance '{thisInstance.name}'.")
 
 
-	def addReferenceFontToInstance(self, thisInstance, destinationFolder="/Users/Shared/.ttf", parameterName="TTFAutohint options", reference="reference"):
+	def addInstanceAsReferenceFontToAllTTFautohintOptions(self, thisInstance, destinationFolder="/Users/Shared/.ttf", parameterName="TTFAutohint options", reference="reference"):
 		font = thisInstance.font
 		if not font:
 			Message(
@@ -190,7 +190,7 @@ class SetFamilyAlignmentZones(mekkaObject):
 				# TRUETYPE REFERENCE FONT
 				if self.pref("addTTReference"):
 					print("\n🤖 Adding TT reference font...")
-					self.addReferenceFontToInstance(thisInstance)
+					self.addInstanceAsReferenceFontToAllTTFautohintOptions(thisInstance)
 			else:
 				Message(
 					title="Family Zones Error",
