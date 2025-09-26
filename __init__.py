@@ -1,7 +1,7 @@
 
 import math
 from typing import Any
-from AppKit import NSAffineTransform, NSUserDefaults, NSFont, NSImage, NSImageLeading
+from AppKit import NSAffineTransform, NSUserDefaults, NSFont, NSImage, NSImageLeading, NSPasteboard, NSStringPboardType
 from GlyphsApp import Glyphs
 from vanilla import Button
 
@@ -29,6 +29,38 @@ if Glyphs.versionNumber >= 3:
 	}
 else:
 	caseDict = {}
+
+
+def getClipboard(verbose=False):
+	"""
+	Gets the plain text contents of the clipboard.
+	Returns the string if successful, or None if no text is available.
+	"""
+	try:
+		myClipboard = NSPasteboard.generalPasteboard()
+		content = myClipboard.stringForType_(NSStringPboardType)
+		return content
+	except Exception as e:
+		print("Error: could read clipboard contents as plain text.")
+		print(e)
+		return None
+
+
+def setClipboard(myText, verbose=False):
+	"""
+	Sets the contents of the clipboard to myText.
+	Returns True if successful, False if unsuccessful.
+	"""
+	try:
+		myClipboard = NSPasteboard.generalPasteboard()
+		myClipboard.declareTypes_owner_([NSStringPboardType], None)
+		myClipboard.setString_forType_(myText, NSStringPboardType)
+		return True
+	except Exception as e:
+		if verbose:
+			print("Error: could set clipboard contents.")
+			print(e)
+		return False
 
 
 def match(first, second):
