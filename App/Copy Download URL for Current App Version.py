@@ -7,20 +7,7 @@ Puts the download URL of the current Glyphs app version into your clipboard for 
 
 from AppKit import NSPasteboard, NSStringPboardType
 from GlyphsApp import Glyphs, Message
-
-
-def setClipboard(myText):
-	"""
-	Sets the contents of the clipboard to myText.
-	Returns True if successful, False if unsuccessful.
-	"""
-	try:
-		myClipboard = NSPasteboard.generalPasteboard()
-		myClipboard.declareTypes_owner_([NSStringPboardType], None)
-		myClipboard.setString_forType_(myText, NSStringPboardType)
-		return True
-	except Exception as e:  # noqa: F841
-		return False
+from mekkablue import setClipboard
 
 
 appURL = "https://updates.glyphsapp.com/Glyphs%s-%i.zip" % (

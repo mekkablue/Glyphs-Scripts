@@ -7,6 +7,7 @@ Outputs a kerning string with UC/LC/SC letters, figures, and punctuation. Hold d
 
 from AppKit import NSPasteboard, NSStringPboardType, NSEvent, NSEventModifierFlagShift, NSEventModifierFlagCommand
 from GlyphsApp import Glyphs, GSUppercase, GSLowercase, GSSmallcaps
+from mekkablue import setClipboard
 
 keysPressed = NSEvent.modifierFlags()
 shiftKeyPressed = keysPressed & NSEventModifierFlagShift == NSEventModifierFlagShift
@@ -36,21 +37,6 @@ def singleAddition(i, single, glyphname, linelength=10):
 	else:
 		whitespace = " "
 	return "%s/%s%s" % (single, glyphname, whitespace)
-
-
-def setClipboard(myText):
-	"""
-	Sets the contents of the clipboard to myText.
-	Returns True if successful, False if unsuccessful.
-	"""
-	try:
-		myClipboard = NSPasteboard.generalPasteboard()
-		myClipboard.declareTypes_owner_([NSStringPboardType], None)
-		myClipboard.setString_forType_(myText, NSStringPboardType)
-		return True
-	except Exception as e:
-		print(e)
-		return False
 
 
 # ingredients:

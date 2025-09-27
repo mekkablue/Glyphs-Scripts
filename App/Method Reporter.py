@@ -9,24 +9,7 @@ import vanilla
 from AppKit import NSObject, NSPasteboard, NSStringPboardType
 # from pydoc import help
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject
-
-
-def setClipboard(myText):
-	"""
-	Sets the contents of the clipboard to myText.
-	Returns True if successful, False if unsuccessful.
-	"""
-	try:
-		myClipboard = NSPasteboard.generalPasteboard()
-		myClipboard.declareTypes_owner_([NSStringPboardType], None)
-		myClipboard.setString_forType_(myText, NSStringPboardType)
-		return True
-	except Exception as e:
-		print(e)
-		import traceback
-		print(traceback.format_exc())
-		return False
+from mekkablue import setClipboard, mekkaObject
 
 
 class MethodReporter(mekkaObject):

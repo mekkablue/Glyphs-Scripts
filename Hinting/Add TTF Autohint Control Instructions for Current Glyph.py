@@ -13,7 +13,7 @@ from AppKit import NSPasteboard, NSStringPboardType, NSNotificationCenter, NSCla
 import math
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import setClipboard, mekkaObject
 
 
 def sizeStringIsOK(sizeString):
@@ -66,20 +66,6 @@ def addToInstructions(instructionLine, currentInstance):
 	thisFont = currentInstance.font
 	if Glyphs.versionNumber >= 3 and thisFont and thisFont.currentTab:
 		NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
-
-
-def setClipboard(myText):
-	"""
-	Sets the contents of the clipboard to myText.
-	Returns True if successful, False if unsuccessful.
-	"""
-	try:
-		myClipboard = NSPasteboard.generalPasteboard()
-		myClipboard.declareTypes_owner_([NSStringPboardType], None)
-		myClipboard.setString_forType_(myText, NSStringPboardType)
-		return True
-	except Exception as e:  # noqa: F841
-		return False
 
 
 def numberIndexStringFromNumbers(indexes):

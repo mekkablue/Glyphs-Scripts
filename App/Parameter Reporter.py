@@ -8,22 +8,7 @@ Searches in Custom Parameter names of all registered parameters in the current a
 import vanilla
 from AppKit import NSPasteboard, NSStringPboardType
 from GlyphsApp import Glyphs, GSLayer, GSGlyphsInfo
-from mekkablue import mekkaObject
-
-
-def setClipboard(myText):
-	"""
-	Sets the contents of the clipboard to myText.
-	Returns True if successful, False if unsuccessful.
-	"""
-	try:
-		myClipboard = NSPasteboard.generalPasteboard()
-		myClipboard.declareTypes_owner_([NSStringPboardType], None)
-		myClipboard.setString_forType_(myText, NSStringPboardType)
-		return True
-	except Exception as e:
-		print(e)
-		return False
+from mekkablue import setClipboard, mekkaObject
 
 
 class ParameterReporter(mekkaObject):

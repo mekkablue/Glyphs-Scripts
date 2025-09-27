@@ -7,6 +7,7 @@ Copies a test text for InDesign into the clipboard.
 
 from AppKit import NSStringPboardType, NSPasteboard
 from GlyphsApp import Glyphs
+from mekkablue import setClipboard
 
 hangingindent = chr(7)
 linelength = 45
@@ -135,20 +136,6 @@ for feature in thisFont.features:
 			testtext = testtext.replace("0", "00")
 
 		copyString += "%s: %s%s\n" % (feature.name, hangingindent, testtext)
-
-
-def setClipboard(myText):
-	"""
-	Sets the contents of the clipboard to myText.
-	Returns True if successful, False if unsuccessful.
-	"""
-	try:
-		myClipboard = NSPasteboard.generalPasteboard()
-		myClipboard.declareTypes_owner_([NSStringPboardType], None)
-		myClipboard.setString_forType_(myText, NSStringPboardType)
-		return True
-	except Exception as e:  # noqa: F841
-		return False
 
 
 if not setClipboard(copyString):

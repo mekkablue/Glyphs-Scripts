@@ -7,6 +7,7 @@ Copies a test text for Microsoft Word into the clipboard.
 
 from AppKit import NSStringPboardType, NSPasteboard
 from GlyphsApp import Glyphs
+from mekkablue import setClipboard
 
 thisFont = Glyphs.font  # frontmost font
 Glyphs.clearLog()  # clears macro window log
@@ -101,21 +102,6 @@ for feature in thisFont.features:
 		copyString += u"%s: %s\n" % (feature.name, testtext)
 
 copyString += "\n\n"
-
-
-def setClipboard(myText):
-	"""
-	Sets the contents of the clipboard to myText.
-	Returns True if successful, False if unsuccessful.
-	"""
-	try:
-		myClipboard = NSPasteboard.generalPasteboard()
-		myClipboard.declareTypes_owner_([NSStringPboardType], None)
-		myClipboard.setString_forType_(myText, NSStringPboardType)
-		return True
-	except Exception as e:  # noqa: F841
-		return False
-
 
 print("\n💕 Copying test text into clipboard...")
 if not setClipboard(copyString):
