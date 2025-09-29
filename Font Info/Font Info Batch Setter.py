@@ -551,8 +551,8 @@ class FontInfoBatchSetter(mekkaObject):
 						if thisFont.sampleText == sampleText:
 							print("🆗 🧪 Font already has desired sampleText. No change.")
 						else:
-							thisFont.description = fontDescription
-							print(f"✅ 🧪 Sample text set: {fontDescription}")
+							thisFont.sampleText = sampleText
+							print(f"✅ 🧪 Sample text set: {sampleText}")
 							changeCount += 1
 
 					if changeCount > currentChangeCount:
