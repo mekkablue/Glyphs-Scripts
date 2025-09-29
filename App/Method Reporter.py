@@ -53,6 +53,7 @@ class MethodReporter(mekkaObject):
 			"GSPathSegment",
 			"GSProjectDocument",
 			"GSAxis",
+			"GSSmartComponentAxis",
 			# NS object
 			"NSBezierPath",
 			"NSColor",
