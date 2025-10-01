@@ -188,6 +188,8 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Find and Replace Components:** Relinks components in selected glyphs to a new source glyph.
 * **Find and Replace Cap and Corner Components:** Relinks `_cap.*` and `_corner.*` components in selected glyphs to a different corner/cap component.
 * **Find and Replace Corner Components at Certain Angles:** Replace Corner Components at blunt or acute angles.
+* **Make Components Smart in All Selected Glyphs:** Turn the selected components into smart components, based on the axes defined in the font. Clone of Erik Moberg’s [*Make Components Smart* script](https://github.com/TypeNurse/Glyphs-Scripts/blob/main/Make%20Component%20Smart.py).
+* **Make Glyph Smart:** Turn the currently selected glyph(s) into smart glyphs, and establish the current font axes as the glyph’s smart axes.
 * **Move Paths to Component:** Moves paths to a separate glyph and insert them as auto-aligned, anchored components in the source glyph. Perfect for making path-component mixtures into pure composites.
 * **Populate Backgrounds with Components:** Adds the specified component into all backgrounds of a glyph, and allows you to align selected foreground nodes to the component. Useful for keeping decomposed shapes in the foreground in sync with similar glyphs.
 * **Propagate Corner Components to Other Masters:** Tries to recreate the corner components of the current master layer in all other masters of the same glyph. Make sure your outlines are compatible.
