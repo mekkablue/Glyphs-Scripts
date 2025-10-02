@@ -102,6 +102,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Method Reporter:** GUI for filtering through the method names of Python and PyObjC Classes available from within Glyphs. You can use multiple space-separated search terms (for an AND concatenation) and asterisk as jokers (at the beginning, in the middle and at the end). Double click to put the method name in your clipboard and open help in the Macro window. Useful for coders.
 * **Parameter Reporter:** Like Method Reporter, but for custom parameters. Double click to copy a parameter in the clipboard, ready for pasting in Font Info.
 * **Print Window:** Print the frontmost window. Useful for saving a vector PDF of your window content, including the renderings of reporter plug-ins (extensions for the *View* menu).
+* **Reset Plugin Manager Repo:** Deletes the selected Plugin Manager repository. Fixes the dreaded ‘Failed to get HEAD (unborn)’ error in Plugin Manager.
 * **Resetter:** Resets Quicklook preview, keyboard shortcuts, and clearing out app prefs, saved app states, autosaves.
 * **Set Export Paths to Adobe Fonts Folder:** Sets the OpenType font and Variable Font export paths to the Adobe Fonts Folder.
 * **Set Hidden App Preferences:** GUI for reading and setting ‘hidden’ app preferences, which are not listed in the GUI.
