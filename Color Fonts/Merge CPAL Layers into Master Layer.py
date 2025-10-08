@@ -23,14 +23,17 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 		"overwrite": 1,
 		"all": 0,
 		"verbose": 0,
+		"removeOverlap": 1,
+		"removeSmallItems", 1,
+		"removeSmallItemsThreshold": 400,
 	}
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 320
-		windowHeight = 135
+		windowHeight = 180
 		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Merge CPAL Layers into Master Layer",  # window title
@@ -47,11 +50,19 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 		self.w.allText = vanilla.TextBox((inset, linePos + 2, 30, 14), "for:", sizeStyle="small", selectable=True)
 		self.w.all = vanilla.PopUpButton((inset + 30, linePos, -inset, 17), allOptions, sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
-
+		
+		self.w.removeOverlap = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Remove overlap and tidy up paths", value=False, callback=self.SavePreferences, sizeStyle="small")
+		linePos += lineHeight
+		
+		self.w.removeSmallItems = vanilla.CheckBox((inset, linePos-1, 160, 20), "Remove items smaller than", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.removeSmallItemsThreshold = vanilla.EditText((inset+160, linePos-1, 40, 19), "400", callback=self.SavePreferences, sizeStyle="small")
+		self.w.removeSmallItemsText = vanilla.TextBox((inset+205, linePos+2, -inset, 20), "square units", sizeStyle="small")
+		linePos += lineHeight
+		
 		self.w.overwrite = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Overwrite existing master layers", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
-		self.w.verbose = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Verbose reporting in Macro window", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Verbose reporting in Macro window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
 
 		# Run Button:
@@ -72,13 +83,12 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 
 			# update settings to the latest user input:
 			self.SavePreferences()
-			all = self.pref("all")
 
 			if not Glyphs.font:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
 				countGlyphs = 0
-				if all > 1: # 0, 1 = current font; 2 = all fonts
+				if self.pref("all") > 1: # 0, 1 = current font; 2 = all fonts
 					theseFonts = Glyphs.fonts
 				else:
 					theseFonts = (Glyphs.font, )
@@ -99,21 +109,34 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 
 					for thisGlyph in theseGlyphs:
 						for m in thisFont.masters:
-							masterLayer = thisGlyph.layers[m.id]
+							# collect shapes from color layers
 							collectedShapes = []
 							for colorLayer in thisGlyph.layers:
-								if colorLayer.isSpecialLayer and colorLayer.attributeForKey_("colorPalette") is not None:
-									for shape in colorLayer.shapes:
-										collectedShapes.append(shape.copy())
-							if collectedShapes:
-								if self.pref("overwrite"):
-									masterLayer.shapes = None
-								for shape in collectedShapes:
-									masterLayer.shapes.append(shape)
-								print(f"🌈 {thisGlyph.name}: merged color shapes into Ⓜ️ {m.name}")
-								countGlyphs += 1
-							elif self.pref("verbose"):
-								print(f"🚫 {thisGlyph.name} Ⓜ️ {m.name}: no color layers, skipping.")
+								if not colorLayer.isColorPaletteLayer():
+									continue
+								if colorLayer.associatedMasterId != m.id:
+									continue
+								if colorLayer.attributeForKey_("colorPalette") is None:
+									continue
+								for shape in colorLayer.shapes:
+									collectedShapes.append(shape.copy())
+
+							# add to master layer
+							if not collectedShapes:
+								if self.pref("verbose"):
+									print(f"🚫 {thisGlyph.name} Ⓜ️ {m.name}: no color layers, skipping.")
+								continue
+							masterLayer = thisGlyph.layers[m.id]
+							if self.pref("overwrite"):
+								masterLayer.shapes = None
+							for shape in collectedShapes:
+								masterLayer.shapes.append(shape)
+							if self.pref("removeOverlap"):
+								masterLayer.removeOverlap()
+								masterLayer.cleanUpPaths()
+							if self.pref("removeSmallItems")
+							print(f"🌈 {thisGlyph.name}: merged color shapes into Ⓜ️ {m.name}")
+							countGlyphs += 1
 					print()
 
 				print(f"✅ Done. Merged {countGlyphs} glyph{'' if countGlyphs == 1 else 's'} in {len(theseFonts)} font{'' if len(theseFonts) == 1 else 's'}.")
