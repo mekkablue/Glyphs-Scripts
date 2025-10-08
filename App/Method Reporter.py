@@ -29,10 +29,13 @@ class MethodReporter(mekkaObject):
 			"GSAnchor",
 			"GSAnnotation",
 			"GSApplication",
+			"Glyphs",
 			"GSBackgroundImage",
 			"GSClass",
 			"GSControlLayer",
 			"GSCustomParameter",
+			"GSDocument",
+			"GSWindowController",
 			"GSEditViewController",
 			"GlyphsPreviewPanel",
 			"GSFeature",
@@ -68,7 +71,18 @@ class MethodReporter(mekkaObject):
 			"NSString",
 			"NSMutableArray",
 			"FTPointArray",
+			# TT glyph
 			"Glyph_g_l_y_f",
+			# tools
+			"SelectTool",
+			"ReporterPlugin",
+			"PalettePlugin",
+			"GeneralPlugin",
+			"FilterWithoutDialog",
+			"FilterWithDialog",
+			"FileFormatPlugin",
+			# vanilla
+			"vanilla",
 		)
 
 		# Window 'self.w':
