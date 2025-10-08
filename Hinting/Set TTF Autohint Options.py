@@ -188,7 +188,7 @@ class SetTTFAutohintOptions(mekkaObject):
 					if thisInstance.customParameters[parameterName] is not None:
 						optionDict = ttfAutohintDict(thisInstance.customParameters[parameterName])
 						optionDict[optionName] = enteredValue
-						writeOptionsToInstance(optionDict, thisInstance)
+						writeOptionsToInstance(optionDict, thisInstance, font=thisFont)
 						print(f"Set {optionName} in instance '{thisInstance.name}'.")
 					else:
 						print(f"No ttfautohint parameter in instance '{thisInstance.name}'. {optionName} not set.")

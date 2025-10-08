@@ -107,9 +107,10 @@ def glyphInterpolation(thisGlyph, thisInstance):
 		return None
 
 
-def idotlessMeasure(instance):
-	thisFont = instance.font
-	idotless = thisFont.glyphs["idotless"]
+def idotlessMeasure(instance, font=None):
+	if font is None:
+		font = instance.font
+	idotless = font.glyphs["idotless"]
 	idotlessLayer = glyphInterpolation(idotless, instance)
 	if idotlessLayer:
 		measureHeight = idotlessLayer.bounds.size.height * 0.5
@@ -129,15 +130,16 @@ def idotlessMeasure(instance):
 		return None
 
 
-def writeOptionsToInstance(optionDict, instance):
+def writeOptionsToInstance(optionDict, instance, font=None):
 	value = dictToParameterValue(optionDict)
 	try:
 		if Glyphs.versionNumber >= 3:
-			instanceWeightValue = instance.axes[0]  # fallback if there is no weight axis
-			font = instance.font
+			instanceWeightValue = tuple(instance.axes)[0]  # fallback if there is no weight axis
+			if font is None:
+				font = instance.font
 			for axisIndex, axis in enumerate(font.axes):
 				if axis.axisTag == "wght":
-					instanceWeightValue = instance.axes[axisIndex]
+					instanceWeightValue = tuple(instance.axes)[axisIndex]
 					break
 		else:
 			# GLYPHS 2
@@ -146,13 +148,15 @@ def writeOptionsToInstance(optionDict, instance):
 		instanceWeightValue = None
 		print(f"⚠️ Error determining the instance weight value:\n{e}")
 		import traceback
+		print("🫣 instance:", instance)
+		print("🫣 font:", font)
 		print(traceback.format_exc())
 
 	if instanceWeightValue is not None:
 		value = value.replace("--fallback-stem-width=*", f"--fallback-stem-width={instanceWeightValue}")
 
 	if "fallback-stem-width=idotless" in value:
-		actualStemWidth = idotlessMeasure(instance)
+		actualStemWidth = idotlessMeasure(instance, font)
 		if actualStemWidth:
 			value = value.replace("--fallback-stem-width=idotless", f"--fallback-stem-width={int(actualStemWidth)}")
 		else:
