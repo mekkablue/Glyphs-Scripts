@@ -30,6 +30,13 @@ def splitOffGroup(font, newGroup, splitoffs, rightGroup=True):
 				# font.kerning[master.id][newGroupName] = copy(font.kerning[master.id][groupName])
 				for rightKey in font.kerning[master.id][groupName].keys():
 					value = font.kerning[master.id][groupName][rightKey]
+					if not rightKey.startswith("@") and not font.glyphs[rightKey]:
+						referencedGlyph = font.glyphForId_(rightKey)
+						if referencedGlyph:
+							rightKey = referencedGlyph.name
+						else:
+							print("⚠️ Warning: a kern pair is referencing a glyph that has been deleted. Clean up your kerning.")
+							continue
 					font.setKerningForPair(master.id, newGroupName, rightKey, value)
 				totalCount += len(font.kerning[master.id][newGroupName])
 		regrouped = []
