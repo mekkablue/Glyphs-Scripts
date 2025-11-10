@@ -68,7 +68,7 @@ class ComponentReplacer(mekkaObject):
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 16, 28
+		linePos, inset, lineHeight = 11, 16, 27
 		self.w.textReplace = vanilla.TextBox((inset, linePos + 2, 55, 17), "Replace", alignment="right")
 		self.w.oldCompName = vanilla.ComboBox((inset + 58, linePos - 1, -inset - 22, 24), self.GetComponentNames())
 		self.w.oldCompName.getNSComboBox().setToolTip_("The name of the component you want to replace. If it is not shown here, make a glyph selection and press the ↺ Update button. This will populate the menu with the names of all components in selected glyphs.")
