@@ -152,6 +152,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Merge All Other Masters in Current Master:** In selected glyphs, copies all paths from other masters onto the current master layer.
 * **Merge CPAL Layers into Master Layer:** Takes all CPAL/COLR layers and puts copies of their shapes into the master layer.
 * **Merge Suffixed Glyphs into Color Layers:** Merges x.shadow, x.body and x.front into separate CPAL Color layers of x.
+* **New Tabs with Palette Colors:** Opens new tabs, one each for all layers pertaining to a color index (CPAL/COLR).
 * **Randomly Distribute Shapes on Color Layers:** Take the shapes of the fallback master layer, and randomly copy them onto the available CPAL/COLR color layers. Careful: will overwrite contents of existing color layers unless you hold down Cmd+Shift.
 * **Reverse CPAL Colors for Selected Glyphs:** Will reverse the color indexes for each CPAL Color Palette layer. E.g., for three colors, it will turn indexes 0,1,2 into 2,1,0.
 * **sbix Spacer:** Batch-set sbix positions and glyph widths.
