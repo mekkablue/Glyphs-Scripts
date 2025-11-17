@@ -33,7 +33,7 @@ def newTabWithColorIndex(font, requestedIndex=0, includeInactive=False, colorKey
 Glyphs.clearLog() # clears log of Macro window
 affectedLayers = 0
 thisFont = Glyphs.font # frontmost font
-for colorIndex in countColors(thisFont):
+for colorIndex in range(countColors(thisFont)):
 	affectedLayers += newTabWithColorIndex(thisFont, requestedIndex=colorIndex)
 
 
