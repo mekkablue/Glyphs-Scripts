@@ -134,7 +134,7 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 							if self.pref("removeOverlap"):
 								masterLayer.removeOverlap()
 								masterLayer.cleanUpPaths()
-							if self.pref("removeSmallItems")
+							# if self.pref("removeSmallItems"):
 							print(f"🌈 {thisGlyph.name}: merged color shapes into Ⓜ️ {m.name}")
 							countGlyphs += 1
 					print()
