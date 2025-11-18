@@ -102,7 +102,7 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 					print(f"Merge CPAL Layers into Master Layer Report for {reportName}")
 					print()
 
-					if all == 0:
+					if self.pref("all") == 0:
 						theseGlyphs = [layer.parent for layer in thisFont.selectedLayers]
 					else:
 						theseGlyphs = thisFont.glyphs
@@ -131,10 +131,16 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 								masterLayer.shapes = None
 							for shape in collectedShapes:
 								masterLayer.shapes.append(shape)
+							masterLayer.decomposeComponents()
 							if self.pref("removeOverlap"):
 								masterLayer.removeOverlap()
 								masterLayer.cleanUpPaths()
-							# if self.pref("removeSmallItems"):
+							if self.pref("removeSmallItems"):
+								for i in range(len(masterLayer.shapes)-1,-1,-1):
+									shape = masterLayer.shapes[i]
+									if shape.area() < float(self.pref("removeSmallItemsThreshold")):
+										del masterLayer.shapes[i]
+
 							print(f"🌈 {thisGlyph.name}: merged color shapes into Ⓜ️ {m.name}")
 							countGlyphs += 1
 					print()
