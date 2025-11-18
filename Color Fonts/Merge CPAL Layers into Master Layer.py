@@ -24,7 +24,7 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 		"all": 0,
 		"verbose": 0,
 		"removeOverlap": 1,
-		"removeSmallItems", 1,
+		"removeSmallItems": 1,
 		"removeSmallItemsThreshold": 400,
 	}
 
