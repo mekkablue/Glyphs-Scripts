@@ -1,15 +1,17 @@
 #MenuTitle: Color Palette Multiplier
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Apply a list of filter parameters to copies of CPAL/COLR layers. This way you can derive a shadow layer from a front layer, for example.
 """
 
-import vanilla, sys
+import vanilla
+import sys
 from mekkablue import mekkaObject, UpdateButton
-from GlyphsApp import GSLayer, GSCustomParameter
-from AppKit import NSFont, NSString
-from copy import copy, deepcopy
+from GlyphsApp import Glyphs, GSLayer, GSCustomParameter, Message
+from Foundation import NSString
+from AppKit import NSFont
+from copy import deepcopy
 
 
 def extractNumber(s):
@@ -30,51 +32,50 @@ class ColorPaletteMultiplier(mekkaObject):
 		"allGlyphs": 0,
 		"overwrite": False,
 	}
-	
+
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth  = 280
+		windowWidth = 280
 		windowHeight = 360
-		windowWidthResize  = 400 # user can resize width by this value
+		windowWidthResize = 400  # user can resize width by this value
 		windowHeightResize = 1000   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Color Palette Multiplier", # window title
-			minSize = (windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize = (windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName = self.domain("mainwindow") # stores last window position and size
+			(windowWidth, windowHeight),  # default window size
+			"Color Palette Multiplier",  # window title
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
-		
+
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 		self.w.deriveText = vanilla.TextBox((inset, linePos+2, 70, 14), "Derive from", sizeStyle="small", selectable=True)
 		self.w.derive = vanilla.PopUpButton((inset+70, linePos, -inset-22, 17), self.currentColors(), sizeStyle="small", callback=self.SavePreferences)
 		self.w.deriveUpdate = UpdateButton((-inset-16, linePos-3, -inset, 18), callback=self.updateDerive)
 		linePos += lineHeight
-		
+
 		self.w.allGlyphs = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Apply to all glyphs (otherwise selected only)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
-		
+
 		self.w.overwrite = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Overwrite preexisting target colors", value=False, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
-		
-		
+
 		self.w.descriptionText = vanilla.TextBox((inset, linePos+2, -inset, 14), "Build target colors with filter parameters:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
-		
+
 		self.w.build = vanilla.TextEditor((1, linePos, -1, -40), "", callback=self.SavePreferences)
 		self.w.build.getNSTextView().setFont_(NSFont.userFixedPitchFontOfSize_(14.0))
 		self.w.build.getNSTextView().turnOffLigatures_(1)
 		self.w.build.getNSTextView().useStandardLigatures_(0)
 		self.w.build.selectAll()
-		
+	
 		# Run Button:
 		self.w.runButton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Build", sizeStyle="regular", callback=self.ColorPaletteMultiplierMain)
 		self.w.setDefaultButton(self.w.runButton)
-		
+
 		# Load Settings:
 		self.LoadPreferences()
-		
+
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
@@ -96,11 +97,11 @@ class ColorPaletteMultiplier(mekkaObject):
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
-			
+
 			# update settings to the latest user input:
 			if not self.SavePreferences():
 				print("⚠️ ‘Color Palette Multiplier’ could not write preferences.")
-			
+
 			# read prefs:
 			for prefName in self.prefDict.keys():
 				try:
@@ -109,7 +110,7 @@ class ColorPaletteMultiplier(mekkaObject):
 					fallbackValue = self.prefDict[prefName]
 					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
 					setattr(sys.modules[__name__], prefName, fallbackValue)
-			
+
 			buildOrder = []
 			for buildLine in build.strip().splitlines():
 				buildLine = buildLine.strip()
@@ -121,19 +122,19 @@ class ColorPaletteMultiplier(mekkaObject):
 					filterString = buildLine.strip().strip(";")
 					customParameter = GSCustomParameter(name="Filter", value=filterString)
 					buildOrder.append(customParameter)
-			
+
 			if not buildOrder:
 				Message(
 					title="Input Error",
 					message="Could not parse the input. Try ‘# Color 1:’ for the target layers and filter parameter strings split into lines below.",
 					OKButton=None,
-					)
+				)
 				return
-			
+
 			targetColors = set([i for i in buildOrder if isinstance(i, int)])
 			print("targetColors", targetColors)
-				
-			thisFont = Glyphs.font # frontmost font
+
+			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
@@ -165,7 +166,7 @@ class ColorPaletteMultiplier(mekkaObject):
 						# process layer duplicates and insert them
 						if thisLayer.attributes and thisLayer.attributes["colorPalette"] == derive:
 							print(thisLayer)
-							colorPalette = 0
+							# colorPalette = 0
 							for step in buildOrder:
 								print("STEP", step, type(step))
 								if isinstance(step, int):
@@ -174,7 +175,7 @@ class ColorPaletteMultiplier(mekkaObject):
 									newLayer.attributes["colorPalette"] = step
 									newLayer.layerId = NSString.UUID()
 									# thisGlyph.layers.insert(layerIndex-1, newLayer)
-									thisGlyph.insertObject_inLayersArrayAtIndex_(newLayer, layerIndex-1)
+									thisGlyph.insertObject_inLayersArrayAtIndex_(newLayer, layerIndex - 1)
 								else:
 									print("  APPLY PARAMETER")
 									newLayer.applyCustomParameters_callbacks_font_error_([step], None, thisFont, None)
