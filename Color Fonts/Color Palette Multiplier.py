@@ -11,7 +11,7 @@ from mekkablue import mekkaObject, UpdateButton
 from GlyphsApp import Glyphs, GSLayer, GSCustomParameter, Message
 from Foundation import NSString
 from AppKit import NSFont
-from copy import deepcopy
+from copy import copy
 
 
 def extractNumber(s):
@@ -171,11 +171,11 @@ class ColorPaletteMultiplier(mekkaObject):
 								print("STEP", step, type(step))
 								if isinstance(step, int):
 									print(f"  INSERT COLOR {step} AT {layerIndex}")
-									newLayer = deepcopy(thisLayer)
+									newLayer = copy(thisLayer)
 									newLayer.attributes["colorPalette"] = step
 									newLayer.layerId = NSString.UUID()
-									# thisGlyph.layers.insert(layerIndex-1, newLayer)
-									thisGlyph.insertObject_inLayersArrayAtIndex_(newLayer, layerIndex - 1)
+									# thisGlyph.layers.insert(layerIndex, newLayer)
+									thisGlyph.insertObject_inLayersArrayAtIndex_(newLayer, layerIndex)
 								else:
 									print("  APPLY PARAMETER")
 									newLayer.applyCustomParameters_callbacks_font_error_([step], None, thisFont, None)
