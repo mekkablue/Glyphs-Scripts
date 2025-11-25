@@ -13,15 +13,16 @@ import sys
 from fontTools.ttLib import TTFont
 from fontTools.ttLib.tables import _f_v_a_r
 
-def addEmptyFvar(ttFont, force=False):
+def addEmptyFvar(ttFont, filename, force=False):
 	if 'fvar' in ttFont and not force:
-		print(f'fvar table already exists in {ttFont.reader.fileName}. Use -f/--force to overwrite.')
-		return
+		print(f'⚠️  fvar table already exists in {filename}. Use -f/--force to overwrite.')
+		return False
 	# Create a new empty fvar table
 	fvar = _f_v_a_r.table__f_v_a_r()
 	fvar.axes = []
 	fvar.instances = []
 	ttFont['fvar'] = fvar
+	return True
 
 def printUsage():
 	usageText = """
@@ -54,11 +55,12 @@ def main():
 			continue
 		try:
 			font = TTFont(fontPath)
-			addEmptyFvar(font, force=force)
-			font.save(fontPath)
-			print(f'Processed {fontPath}')
+			success = addEmptyFvar(font, fontPath, force=force)
+			if success:
+				font.save(fontPath)
+				print(f'✅ Added empty fvar {fontPath}')
 		except Exception as e:
-			print(f'Error processing {fontPath}: {e}')
+			print(f'‼️ Error processing {fontPath}: {e}')
 
 if __name__ == '__main__':
 	main()
