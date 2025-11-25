@@ -58,7 +58,7 @@ def main():
 			success = addEmptyFvar(font, fontPath, force=force)
 			if success:
 				font.save(fontPath)
-				print(f'✅ Added empty fvar {fontPath}')
+				print(f'✅ Added empty fvar in: {fontPath}')
 		except Exception as e:
 			print(f'‼️ Error processing {fontPath}: {e}')
 
