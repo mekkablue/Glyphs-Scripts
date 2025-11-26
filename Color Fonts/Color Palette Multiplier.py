@@ -13,6 +13,28 @@ from Foundation import NSString
 from AppKit import NSFont
 from copy import copy
 
+filterPrefix = """
+{
+	customParameters = (
+		{
+			name = Filter;
+			value = "
+"""
+
+prefilterPrefix = """
+{
+	customParameters = (
+		{
+			name = PreFilter;
+			value = "
+"""
+
+filterSuffix = """
+";
+		}
+	);
+}
+"""
 
 def extractNumber(s):
 	while len(s) > 0 and not s.isdigit():
@@ -22,6 +44,18 @@ def extractNumber(s):
 			s = s[:-1]
 	return int(s)
 
+def whitespaceAtBeginning(s):
+	i = 0
+	while i < len(s) and s[i].isspace():
+		i += 1
+	return s[:i]
+
+def lastIndentOfText(text):
+	indent = ""
+	lines = text.splitlines()
+	if len(lines) >=2:
+		indent = whitespaceAtBeginning(lines[-2])
+	return indent
 
 class ColorPaletteMultiplier(mekkaObject):
 	prefID = "com.mekkablue.ColorPaletteMultiplier"
@@ -63,12 +97,21 @@ class ColorPaletteMultiplier(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos+2, -inset, 14), "Build target colors with filter parameters:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
-		self.w.build = vanilla.TextEditor((1, linePos, -1, -40), "", callback=self.SavePreferences)
+		self.w.build = vanilla.TextEditor((1, linePos, -1, -40), "", callback=self.CleanInputAndSavePreferences)
 		self.w.build.getNSTextView().setFont_(NSFont.userFixedPitchFontOfSize_(14.0))
 		self.w.build.getNSTextView().turnOffLigatures_(1)
 		self.w.build.getNSTextView().useStandardLigatures_(0)
 		self.w.build.selectAll()
 	
+		# Action Button:
+		actionItems = (
+			{"title": "Add RemoveOverlap", "callback":self.removeOverlaps},
+			{"title": "Add CorrectPathDirections", "callback":self.correctPathDirections},
+			{"title": "Add TurnAllPathsClockwise", "callback":self.turnAllPathsClockwise},
+			{"title": "Add TurnAllPathsCounterClockwise", "callback":self.turnAllPathsCounterClockwise},
+		)
+		self.w.ActionButton = vanilla.ActionButton((inset, -20-inset, 40, 20), actionItems, sizeStyle="regular")
+		
 		# Run Button:
 		self.w.runButton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Build", sizeStyle="regular", callback=self.ColorPaletteMultiplierMain)
 		self.w.setDefaultButton(self.w.runButton)
@@ -79,6 +122,40 @@ class ColorPaletteMultiplier(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+	
+	def CleanInputAndSavePreferences(self, sender=None):
+		currentText = self.w.build.get()
+		for replaceString in (filterPrefix, filterSuffix, prefilterPrefix):
+			currentText = currentText.replace(replaceString, "")
+			replaceString = replaceString.strip()
+			currentText = currentText.replace(replaceString, "")
+		self.w.build.set(currentText)
+		self.SavePreferences()
+
+	def removeOverlaps(self, sender=None):
+		self.addLine(content="RemoveOverlap")
+	
+	def correctPathDirections(self, sender=None):
+		self.addLine(content="CorrectPathDirections")
+	
+	def turnAllPathsClockwise(self, sender=None):
+		self.addLine(content="TurnAllPathsClockwise")
+	
+	def turnAllPathsCounterClockwise(self, sender=None):
+		self.addLine(content="TurnAllPathsCounterClockwise")
+	
+	def addLine(self, sender=None, content=""):
+		if not content:
+			return
+
+		currentText = self.w.build.get()
+		if currentText[-1] != "\n":
+			currentText += "\n"
+
+		indent = lastIndentOfText(currentText)
+		currentText += f"{indent}{content.strip()}\n"
+		self.w.build.set(currentText)
+		self.SavePreferences()
 
 	def currentColors(self, sender=None):
 		font = Glyphs.font
@@ -120,8 +197,11 @@ class ColorPaletteMultiplier(mekkaObject):
 					buildOrder.append(extractNumber(buildLine))
 				else:
 					filterString = buildLine.strip().strip(";")
-					customParameter = GSCustomParameter(name="Filter", value=filterString)
-					buildOrder.append(customParameter)
+					if filterString in ("CorrectPathDirections", "TurnAllPathsClockwise", "TurnAllPathsCounterClockwise"):
+						buildOrder.append(filterString)
+					else:
+						customParameter = GSCustomParameter(name="Filter", value=filterString)
+						buildOrder.append(customParameter)
 
 			if not buildOrder:
 				Message(
@@ -153,13 +233,12 @@ class ColorPaletteMultiplier(mekkaObject):
 
 				derive = int(self.pref("derive"))
 				for thisGlyph in theseGlyphs:
+					layerCount = 0
 					for layerIndex in range(len(thisGlyph.layers)-1, -1, -1):
 						thisLayer = thisGlyph.layers[layerIndex]
-						print("layerIndex", layerIndex, thisLayer)
 
 						# remove layers to be regenerated
 						if self.pref("overwrite") and thisLayer.attributes["colorPalette"] in buildOrder:
-							print("deleting", layerIndex)
 							del thisGlyph.layers[layerIndex]
 							continue
 
@@ -168,19 +247,29 @@ class ColorPaletteMultiplier(mekkaObject):
 							print(thisLayer)
 							# colorPalette = 0
 							for step in buildOrder:
-								print("STEP", step, type(step))
 								if isinstance(step, int):
-									print(f"  INSERT COLOR {step} AT {layerIndex}")
 									newLayer = copy(thisLayer)
 									newLayer.attributes["colorPalette"] = step
 									newLayer.layerId = NSString.UUID()
 									# thisGlyph.layers.insert(layerIndex, newLayer)
 									thisGlyph.insertObject_inLayersArrayAtIndex_(newLayer, layerIndex)
+									layerCount += 1
+								elif isinstance(step, str):
+									step = step.strip()
+									if step == "CorrectPathDirections":
+										newLayer.correctPathDirection()
+									elif step == "TurnAllPathsClockwise":
+										for path in newLayer.paths:
+											path.direction = 1
+									elif step == "TurnAllPathsCounterClockwise":
+										for path in newLayer.paths:
+											path.direction = -1
 								else:
-									print("  APPLY PARAMETER")
 									newLayer.applyCustomParameters_callbacks_font_error_([step], None, thisFont, None)
 
-			print("\nDone.")
+					print(f"🔡 {thisGlyph.name}: {layerCount} layer{'' if layerCount==1 else 's'} built.")
+
+			print("\n✅ Done.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
