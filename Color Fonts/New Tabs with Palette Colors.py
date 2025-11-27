@@ -14,11 +14,14 @@ def countColors(font):
 	return len(palette)
 
 def newTabWithColorIndex(font, requestedIndex=0, includeInactive=False, colorKey="colorPalette"):
+	currentMasterID = font.selectedFontMaster.id
 	layers = []
 	for glyph in font.glyphs:
 		if not glyph.export and not includeInactive:
 			continue
 		for layer in glyph.layers:
+			if layer.associatedMasterId != currentMasterID:
+				continue
 			if not layer.attributes:
 				continue
 			if not colorKey in layer.attributes.keys():
