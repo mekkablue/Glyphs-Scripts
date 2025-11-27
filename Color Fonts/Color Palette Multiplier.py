@@ -125,11 +125,13 @@ class ColorPaletteMultiplier(mekkaObject):
 	
 	def CleanInputAndSavePreferences(self, sender=None):
 		currentText = self.w.build.get()
+		originalText = currentText
 		for replaceString in (filterPrefix, filterSuffix, prefilterPrefix):
 			currentText = currentText.replace(replaceString, "")
 			replaceString = replaceString.strip()
 			currentText = currentText.replace(replaceString, "")
-		self.w.build.set(currentText)
+		if originalText != currentText:
+			self.w.build.set(currentText)
 		self.SavePreferences()
 
 	def removeOverlaps(self, sender=None):
