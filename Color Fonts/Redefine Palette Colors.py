@@ -35,12 +35,17 @@ class RedefinePaletteColors(mekkaObject):
 		linePos, inset, lineHeight = 12, 15, 22
 		self.w.text1 = vanilla.TextBox((inset, linePos+2, 55, 14), "Reassign", sizeStyle="small", selectable=True)
 		self.w.colorSource = vanilla.ComboBox((inset+55, linePos-1, 40, 19), [], sizeStyle="small", callback=self.SavePreferences)
+		self.w.colorSource.setToolTip("The palette index you want to replace. If you click the update button, the combo box will be populated with all palette indexes currently present in the glyphs of the frontmost font.")
+		
 		self.w.text2 = vanilla.TextBox((inset+101, linePos+2, 15, 14), "→", sizeStyle="small", selectable=True)
 		self.w.colorTarget = vanilla.ComboBox((inset+119, linePos-1, 40, 19), [], sizeStyle="small", callback=self.SavePreferences)
+		self.w.colorTarget.setToolTip("The palette index you want to convert to. If you click the update button, the combo box will be populated with all palette indexes in the color palette of the current font.")
+
 		self.w.colorUpdate = UpdateButton((-inset-16, linePos-3, -inset, 18), callback=self.update)
 		linePos += lineHeight
 		
 		self.w.allGlyphs = vanilla.CheckBox((inset+5, linePos-1, -inset, 20), "⚠️ Apply to ALL glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allGlyphs.setToolTip("If unchecked, it will only process selected glyphs.")
 		linePos += lineHeight
 		
 		
@@ -110,7 +115,6 @@ class RedefinePaletteColors(mekkaObject):
 				else:
 					reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
 				print(f"Redefine Palette Colors Report for {reportName}")
-				print()
 			
 				if self.pref("allGlyphs"):
 					glyphs = thisFont.glyphs
@@ -119,7 +123,7 @@ class RedefinePaletteColors(mekkaObject):
 				
 				colorSource = int(self.pref("colorSource"))
 				colorTarget = int(self.pref("colorTarget"))
-				print(f"🎨 {colorSource} → {colorTarget}\n")
+				print(f"🎨 Change palette indexes: {colorSource} → {colorTarget}\n")
 				
 				for g in glyphs:
 					print(f"🔡 {g.name}")

@@ -145,6 +145,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 * **Add All Missing Color Layers to Selected Glyphs:** Adds a duplicate of the fallback layer for each (CPAL/COLR) color defined in the Color Palettes parameter, for each selected glyph. Only adds colors that are still missing in the glyph.
 * **Add sbix Images to Font:** Will get all PNG, GIF, JPG files in a folder and create iColor layers with them in the current font and master. File name convention: ‘glyphname pixelsize.suffix’, e.g., ‘Adieresis 128.png’.
+* **Color Palette Multiplier:** Apply a list of filter parameters to copies of CPAL/COLR layers. This way you can derive a shadow layer from a front layer, for example.
 * **Convert Layerfont to CPAL+COLR Font:** Turns a layered color font into a single-master font with a CPAL and COLR layers in each glyph. It will take the first master as default.
 * **Convert Master Colors to CPAL Palette:** Will look for ‘Master Color’ parameters in the font masters and then create a ‘Color Palettes’ parameter in *Font Info > Font* with the same color. Will default to black (for missing Master Color parameters). Will add Dark Mode master colors as second palette.
 * **Cycle CPAL Colors for Selected Glyphs:** Will increase the color index for each CPAL Color Palette layer, or set to 0 if it exceeds the number of available colors.
@@ -154,6 +155,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Merge Suffixed Glyphs into Color Layers:** Merges x.shadow, x.body and x.front into separate CPAL Color layers of x.
 * **New Tabs with Palette Colors:** Opens new tabs, one each for all layers pertaining to a color index (CPAL/COLR).
 * **Randomly Distribute Shapes on Color Layers:** Take the shapes of the fallback master layer, and randomly copy them onto the available CPAL/COLR color layers. Careful: will overwrite contents of existing color layers unless you hold down Cmd+Shift.
+* **Redefine Palette Colors:** Reassign palette colors (in CPAL/COLR fonts).
 * **Reverse CPAL Colors for Selected Glyphs:** Will reverse the color indexes for each CPAL Color Palette layer. E.g., for three colors, it will turn indexes 0,1,2 into 2,1,0.
 * **sbix Spacer:** Batch-set sbix positions and glyph widths.
 
