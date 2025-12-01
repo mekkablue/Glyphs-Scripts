@@ -215,25 +215,29 @@ class Duplexer(mekkaObject):
 						OKButton=None,
 						)
 					return
-				
+
+				# determine duplex source master (‘base’):
 				baseMaster = font.masters[base]
 				masterID = baseMaster.id
 				print(f"Ⓜ️ Duplexing based on master ‘{baseMaster.name}’ (ID: {masterID})")
 
+				# determine glyph span:
 				allGlyphs = self.pref("allGlyphs")
 				if allGlyphs:
 					glyphs = font.glyphs
 				else:
 					glyphs = [l.parent for l in font.selectedLayers if isinstance(l, GSLayer)]
 
+				# Exclude special glyphs:
 				excludeSpecialGlyphs = self.pref("excludeSpecialGlyphs")
 				if excludeSpecialGlyphs:
 					glyphs = [g for g in glyphs if not g.name.startswith("_")]
 
-				print(f"🔢 Processing {len(glyphs)} glyphs...\n")
-
+				# Collect data of mixed glyphs:
 				mixedDict = mixedGlyphDatabase(glyphs)
 
+				# Start processing:
+				print(f"🔢 Processing {len(glyphs)} glyphs...\n")
 				font.disableUpdateInterface()
 				try:
 					fixMetricsKeys = self.pref("fixMetricsKeys")
@@ -250,17 +254,24 @@ class Duplexer(mekkaObject):
 						else:
 							print("  🥴 (no change)")
 
+					# fix positions in mixed glyphs:
 					if mixedDict:
 						fixMixedGlyphs(glyphs, mixedDict)
 
-					if tabText:
+					# report mixed glyphs:
+					currentTabText = ""
+					if font.currentTab:
+						for l in font.currentTab.layers:
+							if isinstance(l, GSLayer):
+								currentTabText += f"/{l.parent.name}"
+
+					if tabText and tabText != currentTabText:
 						font.newTab(tabText)
 				except Exception as e:
 					raise e
 				finally:
 					font.enableUpdateInterface()
-
-				self.w.close() # delete if you want window to stay open
+					self.w.close()
 
 				print(f"\n✅ Done. Duplexed {count} glyphs.")
 
