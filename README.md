@@ -465,6 +465,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Bracket Metrics Manager:** Manage the sidebearings and widths of bracket layers, e.g., dollar and cent.
 * **Center Glyphs:** Centers all selected glyphs inside their width, so that LSB=RSB.
 * **Change Metrics by Percentage:** Change LSB/RSB of selected glyphs by a percentage value. Undo with the Revert button.
+* **Duplexer:** Duplexes all masters according to one master you pick, so all widths are synced across all masters. Great for preparing your font for the *Sync Metrics with First Master* parameter.
 * **Find and Replace in Metrics Keys:** GUI for searching and replacing text in the L and R metrics keys, e.g. replace '=X+15' by '=X'. Leave the search field blank for appending.
 * **Fix Arrow Positioning:** Fixes the placement and metrics keys of arrows, dependent on a specified default arrow. Adds metric keys and moves arrows vertically. Does not create new glyphs, only works on existing ones.
 * **Fix Math Operator Spacing:** Syncs widths and centers glyphs for +−×÷=≠±≈¬, optionally also lesser/greater symbols and asciicircum/asciitilde.
