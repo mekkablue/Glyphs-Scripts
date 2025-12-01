@@ -11,7 +11,7 @@ from mekkablue import mekkaObject, UpdateButton
 from GlyphsApp import Glyphs, GSLayer, GSCustomParameter, Message
 from Foundation import NSString
 from AppKit import NSFont
-from copy import copy
+# from copy import copy
 
 filterPrefix = """
 {
@@ -250,9 +250,12 @@ class ColorPaletteMultiplier(mekkaObject):
 							# colorPalette = 0
 							for step in buildOrder:
 								if isinstance(step, int):
-									newLayer = copy(thisLayer)
+									newLayer = thisLayer.copyDecomposedLayer()
 									newLayer.attributes["colorPalette"] = step
 									newLayer.layerId = NSString.UUID()
+									# newLayer.decomposeComponents()
+									# newLayer.decomposeCorners()
+									# newLayer.decomposeSmartOutlines()
 									# thisGlyph.layers.insert(layerIndex, newLayer)
 									thisGlyph.insertObject_inLayersArrayAtIndex_(newLayer, layerIndex)
 									layerCount += 1
@@ -262,10 +265,12 @@ class ColorPaletteMultiplier(mekkaObject):
 										newLayer.correctPathDirection()
 									elif step == "TurnAllPathsClockwise":
 										for path in newLayer.paths:
-											path.direction = 1
+											if not path.direction == 1:
+												path.reverse()
 									elif step == "TurnAllPathsCounterClockwise":
 										for path in newLayer.paths:
-											path.direction = -1
+											if not path.direction == -1:
+												path.reverse()
 								else:
 									newLayer.applyCustomParameters_callbacks_font_error_([step], None, thisFont, None)
 
