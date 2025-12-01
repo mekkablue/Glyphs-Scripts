@@ -7,8 +7,50 @@ Duplexes all masters according to one master you pick, so all widths are synced 
 
 import vanilla, sys
 from copy import copy
+from AppKit import NSPoint, NSMidX, NSMidY, NSAffineTransform, NSAffineTransformStruct
 from GlyphsApp import Glyphs, GSLayer, GSCustomParameter, Message
 from mekkablue import mekkaObject, UpdateButton
+
+def mixedGlyphDatabase(glyphs):
+	mixedDict = {}
+	for glyph in glyphs:
+		if not isMixed(glyph):
+			continue
+		mixedDict[glyph.name] = {}
+		for layer in glyph.layers:
+			if not layer.isMasterLayer and not layer.isSpecialLayer:
+				continue
+			mixedDict[glyph.name][layer.layerId] = [layer.width, layer.LSB]
+			for shape in layer.shapes:
+				center = NSMidX(shape.bounds)
+				mixedDict[glyph.name][layer.layerId].append(center)
+	return mixedDict
+
+def fixMixedGlyphs(glyphs, mixedDict):
+	for glyph in glyphs:
+		if glyph.name in mixedDict.keys():
+			fixMixedGlyph(glyph, mixedDict[glyph.name])
+
+def fixMixedGlyph(glyph, layerInfos):
+	for layer in glyph.layers:
+		if layer.layerId in layerInfos.keys():
+			fixMixedLayer(layer, layerInfos[layer.layerId])
+
+def fixMixedLayer(layer, layerInfo):
+	originalWidth = layerInfo.pop(0)
+	originalLSB = layerInfo.pop(0)
+	duplexWidth = layer.width
+	duplexShift = (duplexWidth - originalWidth) // 2
+	for i, shape in enumerate(layer.shapes):
+		currentCenter = NSMidX(shape.bounds)
+		originalCenter = layerInfo[i]
+		hShift = originalCenter - currentCenter + duplexShift
+		if hShift != 0.0:
+			hMove = NSAffineTransform.transform()
+			hMove.translateXBy_yBy_(hShift, 0)
+			shape.applyTransform(hMove.transformStruct())
+	if abs(layer.LSB - (originalLSB + duplexShift)) > 1.0:
+		print(f"❌ LSB shift: {layer.parent.name} {layer.name}")
 
 def isMixed(glyph):
 	for layer in glyph.layers:
@@ -33,8 +75,13 @@ def duplexGlyph(glyph, referenceMasterID, fixMetricsKeys=False):
 	
 	if fixMetricsKeys:
 		# assign layer-specific metrics key:
-		referenceLayer.leftMetricsKey = referenceLayer.leftMetricsKey or glyph.leftMetricsKey.replace("=", "==").replace("===", "==")
-		referenceLayer.rightMetricsKey = referenceLayer.rightMetricsKey or glyph.rightMetricsKey.replace("=", "==").replace("===", "==")
+		referenceLayer.leftMetricsKey = referenceLayer.leftMetricsKey or glyph.leftMetricsKey
+		if referenceLayer.leftMetricsKey:
+			referenceLayer.leftMetricsKey.replace("=", "==").replace("===", "==")
+
+		referenceLayer.rightMetricsKey = referenceLayer.rightMetricsKey or glyph.rightMetricsKey
+		if referenceLayer.rightMetricsKey:
+			referenceLayer.rightMetricsKey.replace("=", "==").replace("===", "==")
 
 		# get rid of all other metrics keys:
 		glyph.leftMetricsKey = None
@@ -73,9 +120,9 @@ class Duplexer(mekkaObject):
 	
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 350
+		windowWidth  = 300
 		windowHeight = 180
-		windowWidthResize  = 100 # user can resize width by this value
+		windowWidthResize  = 600 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight), # default window size
@@ -106,7 +153,7 @@ class Duplexer(mekkaObject):
 		
 		
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Run", sizeStyle="regular", callback=self.DuplexerMain)
+		self.w.runButton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Duplex", sizeStyle="regular", callback=self.DuplexerMain)
 		self.w.setDefaultButton(self.w.runButton)
 		
 		# Load Settings:
@@ -127,11 +174,14 @@ class Duplexer(mekkaObject):
 		return menu
 
 	def updateUI(self, sender=None):
-		currentSelection = self.w.base.get()
+		currentSelection = max(0, self.pref("base"))
 		menu = self.masterList()
-		self.w.base.setItems(menu)
+		if self.w.base.getItems() != menu:
+			self.w.base.setItems(menu)
 		if currentSelection+1 > len(menu):
 			self.w.base.set(0)
+		else:
+			self.w.base.set(currentSelection)
 
 	def DuplexerMain(self, sender=None):
 		try:
@@ -148,10 +198,10 @@ class Duplexer(mekkaObject):
 			else:
 				filePath = font.filepath
 				if filePath:
-					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
+					reportName = f"{filePath.lastPathComponent()}:\n\n📄 {filePath}"
 				else:
-					reportName = f"{font.familyName}\n⚠️ The font file has not been saved yet."
-				print(f"📄 Duplexer Report for {reportName}")
+					reportName = f"{font.familyName}:\n\n⚠️ The font file has not been saved yet."
+				print(f"Duplexer Report for {reportName}")
 
 				base = self.pref("base")
 				if self.w.base.getItems() != self.masterList():
@@ -165,7 +215,7 @@ class Duplexer(mekkaObject):
 						OKButton=None,
 						)
 					return
-
+				
 				baseMaster = font.masters[base]
 				masterID = baseMaster.id
 				print(f"Ⓜ️ Duplexing based on master ‘{baseMaster.name}’ (ID: {masterID})")
@@ -180,19 +230,31 @@ class Duplexer(mekkaObject):
 				if excludeSpecialGlyphs:
 					glyphs = [g for g in glyphs if not g.name.startswith("_")]
 
-				print(f"Processing {len(glyphs)} glyphs...")
+				print(f"🔢 Processing {len(glyphs)} glyphs...\n")
+
+				mixedDict = mixedGlyphDatabase(glyphs)
 
 				font.disableUpdateInterface()
 				try:
 					fixMetricsKeys = self.pref("fixMetricsKeys")
 					count = 0
+					tabText = ""
 					for glyph in glyphs:
+						if glyph.name in mixedDict.keys():
+							tabText += f"/{glyph.name}"
+
+						print(f"🔡 Duplexing: {glyph.name}")
 						success = duplexGlyph(glyph, masterID, fixMetricsKeys=fixMetricsKeys)
 						if success:
-							print(f"🔡 Duplexed: {glyph.name}")
 							count += 1
 						else:
-							print(f"🥴 No change: {glyph.name}")
+							print("  🥴 (no change)")
+
+					if mixedDict:
+						fixMixedGlyphs(glyphs, mixedDict)
+
+					if tabText:
+						font.newTab(tabText)
 				except Exception as e:
 					raise e
 				finally:
