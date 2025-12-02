@@ -116,12 +116,13 @@ class Duplexer(mekkaObject):
 		"allGlyphs": 1,
 		"excludeSpecialGlyphs": 1,
 		"fixMetricsKeys": 1,
+		"addSyncParameter": 0,
 	}
 	
 	def __init__( self ):
 		# Window 'self.w':
 		windowWidth  = 300
-		windowHeight = 180
+		windowHeight = 200
 		windowWidthResize  = 600 # user can resize width by this value
 		windowHeightResize = 0   # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -150,6 +151,10 @@ class Duplexer(mekkaObject):
 		
 		self.w.fixMetricsKeys = vanilla.CheckBox((inset+3, linePos-1, -inset+3, 20), "Keep metrics keys on base master only", value=True, callback=self.SavePreferences, sizeStyle="small")
 		linePos += lineHeight
+		
+		self.w.addSyncParameter = vanilla.CheckBox((inset+3, linePos-1, -inset+3, 20), "Add ‘Link Metrics With Master’ parameter", value=False, callback=self.SavePreferences, sizeStyle="small")
+		linePos += lineHeight
+		
 		
 		
 		# Run Button:
@@ -257,7 +262,23 @@ class Duplexer(mekkaObject):
 					# fix positions in mixed glyphs:
 					if mixedDict:
 						fixMixedGlyphs(glyphs, mixedDict)
-
+					
+					# Link Metrics With Master:
+					parameterName = "Link Metrics With Master"
+					if self.pref("addSyncParameter"):
+						for master in font.masters:
+							# remove preexisting parameters:
+							while master.customParameterForKey_(parameterName):
+								master.removeObjectFromCustomParametersForKey_(parameterName)
+							
+							# do not add to base master:
+							if master.id == masterID:
+								continue
+							
+							# add parameter:
+							parameter = GSCustomParameter(parameterName, masterID)
+							master.customParameters.append(parameter)
+						
 					# report mixed glyphs:
 					currentTabText = ""
 					if font.currentTab:
