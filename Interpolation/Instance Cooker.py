@@ -282,12 +282,14 @@ class InstanceCooker(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
+
 	def exportRecipe(self, sender=None):
 		self.SavePreferences()
 		filePath = GetSaveFile(message="Save Recipe", ProposedFileName="instance recipe.txt", filetypes=("txt"))
 		if filePath:
 			fileContent = self.pref("recipe")
 			saveFileInLocation(content=fileContent, filePath=filePath)
+
 
 	def importRecipe(self, sender=None):
 		filePath = GetOpenFile(message="Open Recipe", allowsMultipleSelection=False, filetypes=("txt"))
@@ -299,9 +301,11 @@ class InstanceCooker(mekkaObject):
 			else:
 				Message(title="File Error", message="File could not be read. Perhaps empty?", OKButton=None)
 
+
 	def resetRecipe(self, sender=None):
 		self.setPref("recipe", defaultRecipe.lstrip())
 		self.LoadPreferences()
+
 
 	def extractRecipe(self, sender=None):
 		thisFont = Glyphs.font
@@ -350,6 +354,76 @@ class InstanceCooker(mekkaObject):
 				self.w.recipe.set(text)
 				self.SavePreferences()
 
+
+	def axisLocationsFromRecipe(self, recipeDict):
+		axisLocations = []
+		for axisKey in sorted(recipeDict.keys()):
+			# axis tag
+			axisInfo, axisName, axisTag = axisKey, None, None
+			if "," in axisInfo:
+				axisInfo = axisInfo.split(",")[1]
+			if ":" in axisInfo:
+				axisName, axisTag = axisInfo.split(":")
+			else:
+				axisName = axisInfo
+				axisTag = tagForAxisName(axisName)
+			axisLocation = f"{axisTag}; "
+
+			# style attributes
+			for styleInfo in recipeDict[axisKey]:
+				# add axis location:
+				styleCoord = styleInfo[0]
+				if isinstance(styleCoord, list):
+					styleCoord = styleCoord[1]
+				axisLocation += f"{styleCoord:.1f}"
+
+				# add style linking:
+				if axisTag == "wght" and styleCoord == 400:
+					axisLocation += f">700.0"
+				if axisTag == "ital" and styleCoord == 0:
+					axisLocation += f">1"
+
+				# add style name:
+				styleName = styleInfo[1]
+				axisLocation += f"={styleName}, "
+
+			# collect axis location
+			axisLocation = axisLocation.strip(", ")
+			axisLocations.append(axisLocation)
+
+		return axisLocations
+
+
+	def addAxisLocations(self, thisFont, recipeDict, paramName="Axis Values"):
+		firstVF = None
+		for instance in thisFont.instances:
+			if instance.type == INSTANCETYPEVARIABLE:
+				firstVF = instance
+				break
+
+		if not firstVF:
+			return
+
+		if firstVF.customParameters[paramName]:
+			return # do not overwrite existing axis values
+
+		# turn user entry into STAT axis values:
+		axisLocations = self.axisLocationsFromRecipe(recipeDict)
+
+		# add italic axis if necessary:
+		if not any([x.startswith("ital") for x in axisLocations]):
+			if "Italic" in firstVF.name:
+				axisLocations.append("ital; 1=Italic")
+			else:
+				axisLocations.append("ital; 0>1=Roman")
+		
+		# add axis values parameters to VF:
+		for axisLocation in axisLocations:
+			parameter = GSCustomParameter(paramName, axisLocation)
+			parameter.active = False  # does not seem to work?
+			firstVF.customParameters.append(parameter)
+
+
 	def InstanceCookerMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -374,6 +448,9 @@ class InstanceCooker(mekkaObject):
 				recipeDict = parseAxes(recipe)
 				axisKeys = sorted(recipeDict.keys())
 				instances = []
+
+				# add to VFs if possible and necessary:
+				self.addAxisLocations(thisFont, recipeDict)
 
 				existingAxisNames = [a.name for a in thisFont.axes]
 
@@ -457,6 +534,7 @@ class InstanceCooker(mekkaObject):
 				thisFont.familyName,
 			))
 			thisFont.parent.windowController().showFontInfoWindowWithTabSelected_(2)
+			self.w.close()
 			print("\n✅ Done.")
 
 		except Exception as e:
