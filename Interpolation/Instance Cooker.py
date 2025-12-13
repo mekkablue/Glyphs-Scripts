@@ -155,44 +155,45 @@ def addLocationToInstance(instance, axisName, axisLoc):
 		instance.weightClass = axisLoc
 
 
-def styleLinkInstance(instance, axisName, particle):
+def styleLinkInstance(instance, axisName, particle, defaultName="Regular"):
 	linkedParticles = []
 	for existingNameParticle in instance.name.split():
 		if "*" not in existingNameParticle:
 			if not existingNameParticle == particle:
 				linkedParticles.append(existingNameParticle)
-	linkedStyleName = " ".join(linkedParticles)
-	if not linkedStyleName:
-		linkedStyleName = "Regular"
+	linkedStyleName = " ".join(linkedParticles).strip()
 
 	if axisName == "Weight" and particle == "Bold":
 		instance.isBold = True
 		instance.linkStyle = linkedStyleName
 	elif axisName == "Italic" and particle == axisName:
 		instance.isItalic = True
-		if not instance.linkStyle:
+		if not instance.linkStyle and linkedStyleName != defaultName:
 			instance.linkStyle = linkedStyleName
 
 
-def removeElidableNames(instance):
-	if "*" in instance.name:
-		particles = instance.name.split()
-		elidableName = ""
-		newParticles = []
+def removeElidableNames(instance, fallbackName="Regular", splitString=" "):
+	if not "*" in instance.name:
+		return
+	
+	particles = instance.name.split(splitString)
+	elidable = len(particles) > 1
 
-		# collect non-elidable name particles:
-		for particle in particles:
-			if not particle.endswith("*"):
-				newParticles.append(particle)
-			elif not elidableName:
-				elidableName = particle[:-1]
+	# collect non-elidable name particles:
+	newParticles = []
+	while particles:
+		particle = particles.pop(0)
+		if not particle.endswith("*"):
+			newParticles.append(particle)
+		elif not elidable:
+			newParticles.append(particle[:1])
 
-		# fallback for elidable name
-		if not newParticles:
-			newParticles = [elidableName]
+	# fallback for fallback name
+	if not newParticles:
+		newParticles = [fallbackName]
 
-		# set instance name:
-		instance.name = " ".join(newParticles)
+	# set instance name:
+	instance.name = " ".join(newParticles)
 
 
 def biggestSubstringInStrings(strings):
@@ -240,7 +241,7 @@ class InstanceCooker(mekkaObject):
 		linePos += lineHeight
 
 		self.w.recipe = vanilla.TextEditor((1, linePos, -1, -inset * 3), text="", callback=self.SavePreferences, checksSpelling=False)
-		self.w.recipe.getNSTextView().setToolTip_("Syntax:\n#Axisname\n#Axisname:tag\nposition:instance name particle\ninternal>external:instance name particle\n* after particle for elidable names\n\nExample:\n#Weight\n100>400:Regular*\n120>500:Medium\n150>600:Semibold\n#Width:wdth\n75:Condensed\n100:Regular*\n125:Extended")
+		self.w.recipe.setToolTip("Syntax:\n#Axisname\n#Axisname:tag\nposition:instance name particle\ninternal>external:instance name particle\n* after particle for elidable names\n\nExample:\n#Weight\n100>400:Regular*\n120>500:Medium\n150>600:Semibold\n#Width:wdth\n75:Condensed\n100:Regular*\n125:Extended")
 		self.w.recipe.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.recipe.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.recipe.getNSScrollView().setRulersVisible_(0)
@@ -412,9 +413,8 @@ class InstanceCooker(mekkaObject):
 							styleLinkInstance(instance, axisName, instance.name)
 
 							# collect instance:
-							removeElidableNames(instance)
+							# removeElidableNames(instance)
 							instances.append(instance)
-							print(instance.name)
 					else:
 						newInstances = []
 						for existingInstance in instances:
@@ -436,23 +436,22 @@ class InstanceCooker(mekkaObject):
 								styleLinkInstance(instance, axisName, nameParticle)
 
 								# collect instance:
-								removeElidableNames(instance)
+								# removeElidableNames(instance)
 								newInstances.append(instance)
-								print(instance.name)
 
 						instances = newInstances
 
 				# clean elidable names:
-				# print("\nPreparing elidable names...")
-				# for instance in instances:
-				# 	removeElidableNames(instance)
+				for instance in instances:
+					removeElidableNames(instance)
+					print(f"ℹ️ {instance.name}")
 
 				# add instances to this font:
 				thisFont.instances = [i for i in thisFont.instances if i.type == INSTANCETYPEVARIABLE] + instances
 				instanceCount = len(instances)
 
 			# Final report:
-			print("Added %i instance%s to %s. Details in Macro Window." % (
+			print("\nAdded %i instance%s to %s. Details in Macro Window." % (
 				instanceCount,
 				"" if instanceCount == 1 else "s",
 				thisFont.familyName,
