@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
-Will create center lines between selected segments and their opposites. Hold down OPTION to put center lines in the background.
+Will create center lines between selected segments and their opposites. Hold down OPTION+SHIFT to put center lines in the background.
 """
 
 from AppKit import NSPoint, NSPointInRect, NSEvent
 from GlyphsApp import GSPath, GSPathSegment
 from copy import copy
+
+Glyphs.clearLog()
 
 def endPointsOutsideShape(path, layer):
 	shape = layer.bezierPath
@@ -17,16 +19,34 @@ def endPointsOutsideShape(path, layer):
 	return False
 
 def isPathAlreadyThere(path, comparePaths):
-	def pathStructure(p):
-		return list([n.position for n in p.nodes])
-	pathInfo = pathStructure(path)
-	for comparePath in comparePaths:
-		comparePathInfo = pathStructure(comparePath)
-		for i in range(2):
-			if pathInfo == comparePathInfo:
-				return True
-			pathInfo.reverse()
-	return False
+	# compare segments if path is only one segment
+	if len(path.segments) == 1:
+		seg = path.segments[0]
+		for comparePath in comparePaths:
+			for compareSeg in comparePath.segments:
+				if seg.bounds != compareSeg.bounds:
+					continue
+				if seg.isEqualToSegment_(compareSeg):
+					return True
+				seg.reverse()
+				if seg.isEqualToSegment_(compareSeg):
+					seg.reverse()
+					return True
+		return False
+	
+	# compare paths
+	else:
+		print("--> comparing paths")
+		def pathStructure(p):
+			return list([n.position for n in p.nodes])
+		pathInfo = pathStructure(path)
+		for comparePath in comparePaths:
+			comparePathInfo = pathStructure(comparePath)
+			for i in range(2):
+				if pathInfo == comparePathInfo:
+					return True
+				pathInfo.reverse()
+		return False
 	
 def segmentNodesFromNode(node):
 	nodes = None
@@ -125,11 +145,9 @@ def centerLine(path1, path2):
 		centerLine.nodes.append(centerNode)
 	return centerLine
 
-def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False):
+def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selectionMatters=True):
 	shadowLayer = GSLayer()
-	
 	treatedSegments = []
-	# measureLength = (layer.bounds.size.width**2 + layer.bounds.size.height**2)**0.5 / 2
 	measureLength = min(
 		layer.bounds.size.width * 0.66,
 		layer.bounds.size.height * 0.66,
@@ -143,7 +161,7 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False):
 			else:
 				treatedSegments.append(segmentNodes)
 
-			if not isSegmentSelected(segmentNodes):
+			if selectionMatters and not isSegmentSelected(segmentNodes):
 				continue
 			
 			if len(segmentNodes) == 2:
@@ -182,11 +200,19 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False):
 				oppositeNodes = segmentNodesAtPoint(layer, firstHit)
 				if not oppositeNodes:
 					continue
-				if not oppositeNodes:
-					continue
+					
+				# deal gracefully with duplicate segments:
+				if len(oppositeNodes) == 8:
+					if oppositeNodes[:4] == oppositeNodes[4:]:
+						oppositeNodes = oppositeNodes[:4]
+				elif len(oppositeNodes) == 4 and len(segmentNodes) == 2:
+					if oppositeNodes[:2] == oppositeNodes[2:]:
+						oppositeNodes = oppositeNodes[:2]
+
 				oppositePath = pathFromNodes(oppositeNodes, reverse=True)
 				selectedPath = pathFromNodes(segmentNodes, reverse=False)
 				centerPath = centerLine(selectedPath, oppositePath)
+
 				if not centerPath:
 					continue
 				if centerPath.nodes[0].position == centerPath.nodes[-1].position:
@@ -195,25 +221,36 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False):
 					continue
 				if not isPathAlreadyThere(centerPath, shadowLayer.paths):
 					shadowLayer.paths.append(centerPath)
-				print()
-
+	
 	shadowLayer.connectAllOpenPaths()
 	shadowLayer.cleanUpPaths()
-	if inBackground:
-		layer.background.clear()
-	else:
+	if not inBackground and shadowLayer.paths:
 		layer.selection = None
 		
 	for shadowPath in shadowLayer.paths:
 		if inBackground:
-			layer.background.paths.append(shadowPath)
+			if not isPathAlreadyThere(shadowPath, layer.background.paths):
+				layer.background.paths.append(shadowPath)
 		else:
-			layer.paths.append(shadowPath)
-			shadowPath.selected = True
+			if not isPathAlreadyThere(shadowPath, layer.paths):
+				layer.paths.append(shadowPath)
+				shadowPath.selected = True
 
 keysPressed = NSEvent.modifierFlags()
 optionKey = 524288
+shiftKey = 131072
 optionKeyPressed = keysPressed & optionKey == optionKey
+shiftKeyPressed = keysPressed & shiftKey == shiftKey
+buildInBackground = optionKeyPressed and shiftKeyPressed
 
-for selectedLayer in Glyphs.font.selectedLayers:
-	createCenterLinesForSelectedSegments(selectedLayer, inBackground=optionKeyPressed)
+if buildInBackground:
+	Glyphs.defaults["showBackground"] = True
+
+selectedLayers = Glyphs.font.selectedLayers
+for selectedLayer in selectedLayers:
+	selectionMatters = selectedLayer.selection != () and len(selectedLayers) == 1
+	createCenterLinesForSelectedSegments(
+		selectedLayer,
+		inBackground=buildInBackground,
+		selectionMatters=selectionMatters,
+		)
