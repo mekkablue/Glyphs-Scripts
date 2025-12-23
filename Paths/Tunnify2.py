@@ -5,10 +5,9 @@ __doc__="""
 A better, more gentle Tunnify, focused on staing closer to the same shape for each segment. Repeated running will change the shapes repeatedly.
 """
 
-MacroTab.title = "Better Tunnify"
-
 import math
 from AppKit import NSPoint
+from GlyphsApp import GSNode
 
 def segmentMaxHandle(a, b, c, d):
 	"""
@@ -54,21 +53,21 @@ def segmentMaxHandle(a, b, c, d):
 	return None
 
 
-def bezier_point(a, b, c, d, t):
+def bezierPoint(a, b, c, d, t):
 	"""Calculate a point on a cubic Bézier curve at parameter t."""
 	x = (1-t)**3 * a.x + 3*(1-t)**2 * t * b.x + 3*(1-t)*t**2 * c.x + t**3 * d.x
 	y = (1-t)**3 * a.y + 3*(1-t)**2 * t * b.y + 3*(1-t)*t**2 * c.y + t**3 * d.y
 	return NSPoint(x, y)
 
-def vector_from_to(p1, p2):
+def vectorFromTo(p1, p2):
 	"""Vector from p1 to p2."""
 	return NSPoint(p2.x - p1.x, p2.y - p1.y)
 
-def scale_vector(v, scale):
+def scaleVector(v, scale):
 	"""Scale vector v by scale."""
 	return NSPoint(v.x * scale, v.y * scale)
 
-def add_vectors(p, v):
+def addVectors(p, v):
 	"""Add vector v to point p."""
 	return NSPoint(p.x + v.x, p.y + v.y)
 
@@ -104,8 +103,8 @@ def changeCurvatureToPassThroughPoint(a, b, c, d, passThroughPoint, min_t=0.25, 
 		best_t: Optimal t-value found in [min_t, max_t]
 	"""
 	# Vectors for control point adjustment directions
-	vec_ab = vector_from_to(b, a)  # Vector from b toward a
-	vec_dc = vector_from_to(c, d)  # Vector from c toward d
+	vec_ab = vectorFromTo(b, a)  # Vector from b toward a
+	vec_dc = vectorFromTo(c, d)  # Vector from c toward d
 	
 	best_scale = 0
 	best_t = min_t
@@ -119,11 +118,11 @@ def changeCurvatureToPassThroughPoint(a, b, c, d, passThroughPoint, min_t=0.25, 
 	for t in t_values:
 		for scale in scale_values:
 			# Adjust control points
-			new_b = add_vectors(b, scale_vector(vec_ab, scale))
-			new_c = add_vectors(c, scale_vector(vec_dc, scale))
+			new_b = addVectors(b, scaleVector(vec_ab, scale))
+			new_c = addVectors(c, scaleVector(vec_dc, scale))
 			
 			# Calculate curve point
-			pt = bezier_point(a, new_b, new_c, d, t)
+			pt = bezierPoint(a, new_b, new_c, d, t)
 			dist = distance(pt, passThroughPoint)
 			
 			# Update best parameters if closer
@@ -133,17 +132,17 @@ def changeCurvatureToPassThroughPoint(a, b, c, d, passThroughPoint, min_t=0.25, 
 				best_t = t
 	
 	# Apply best parameters
-	new_b = add_vectors(b, scale_vector(vec_ab, best_scale))
-	new_c = add_vectors(c, scale_vector(vec_dc, best_scale))
+	new_b = addVectors(b, scaleVector(vec_ab, best_scale))
+	new_c = addVectors(c, scaleVector(vec_dc, best_scale))
 	
 	return (a, new_b, new_c, d) #, best_t)
 
 def tunnifySegment(a, b, c, d):
 	maxPt = segmentMaxHandle(a, b, c, d)
 	if maxPt is None:
-		print("No maxPt", a.position, b.position)
+		# print("No maxPt", a.position, b.position) # DEBUG
 		return
-	passThrough = bezier_point(a, b, c, d, 0.5)
+	passThrough = bezierPoint(a, b, c, d, 0.5)
 	newPositions = changeCurvatureToPassThroughPoint(
 		a.position,
 		mid(b.position, maxPt),
@@ -173,10 +172,8 @@ def tunnifyLayer(layer, selectionMatters=False):
 				tunnifySegment(a, b, c, d)
 
 thisFont = Glyphs.font # frontmost font
-thisFontMaster = thisFont.selectedFontMaster # active master
 selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
-selection = selectedLayers[0].selection # node selection in edit mode
-selectionMatters = (len(selectedLayers)==1 and bool(selection))
+selectionMatters = (len(selectedLayers)==1 and bool(selectedLayers[0].selection))
 
 Glyphs.clearLog() # clears log in Macro window
 
@@ -184,7 +181,7 @@ thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:
 	for thisLayer in selectedLayers:
 		thisGlyph = thisLayer.parent
-		print(f"Processing {thisGlyph.name}")
+		print(f"🔡 Tunnifying {'selection in ' if selectionMatters else ''}{thisGlyph.name}")
 		thisGlyph.beginUndo() # begin undo grouping
 		tunnifyLayer(thisLayer, selectionMatters=selectionMatters)
 		thisGlyph.endUndo()   # end undo grouping
@@ -196,4 +193,5 @@ except Exception as e:
 	print()
 	raise e
 finally:
+	print("✅ Done.")
 	thisFont.enableUpdateInterface() # re-enables UI updates in Font View
