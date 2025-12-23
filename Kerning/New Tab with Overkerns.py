@@ -266,8 +266,9 @@ class NewTabwithOverkernedPairs(mekkaObject):
 					if layers:
 						layers.append(GSControlLayer.newline())
 				if layers:
-					tab = thisFont.newTab()
-					tab.layers = layers
+					if not (thisFont.currentTab and layers == thisFont.currentTab.layers):
+						tab = thisFont.newTab()
+						tab.layers = layers
 
 				print()
 
