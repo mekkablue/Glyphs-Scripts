@@ -246,6 +246,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **‌Set Variable Style Names:** Adds Style Names for variable fonts to instances in Font Info > Exports, and makes an informed guess as for their value. Useful if you split your static family in subfamilies (e.g. by optical size or by width), and as a result, you end up with repeating style names (e.g. multiple Mediums).
 * **Set WWS Names (Name IDs 21 and 22):** Sets WWS custom parameters (Name IDs 21 and 22) for all instances where necessary: Puts all info except RIBBI into the WWSFamilyName, and only keeps RIBBI for the WWSSubfamilyName.
 * **Style Renamer:** Batch-add a name particle to your style names, or batch-remove it from them. Useful for switching all your styles from italic to roman naming and vice versa.
+* **Turn Dimensions into Stems:** Turns all H and V dimensions (in the Dimensions palette) into H and V stems.
 * **Vertical Metrics Manager:** Calculate and insert values for OS/2 usWin and sTypo, hhea and fsSelection bit 7 (for preferring sTypo Metrics over usWin metrics).
 
 ## Glyph Names, Notes and Unicode
