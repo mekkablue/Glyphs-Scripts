@@ -214,6 +214,9 @@ class ComponentMover(mekkaObject):
 							if smartComponent:
 								try:
 									axisID = self.getSmartAxisID(thisComponent, attributeToChange)
+									if not axisID:
+										continue
+
 									originalGlyph = thisComponent.component
 									originalLayer = thisComponent.componentLayer
 
@@ -223,7 +226,8 @@ class ComponentMover(mekkaObject):
 											poles = (None, originalAxis.bottomValue, originalAxis.topValue)
 											index = originalLayer.smartComponentPoleMapping[originalAxis.id]
 											originalSmartValue = poles[index]
-											thisComponent.smartComponentValues[originalAxis.id] = originalSmartValue
+											if originalSmartValue is not None:
+												thisComponent.smartComponentValues[originalAxis.id] = float(originalSmartValue)
 
 									if thisComponent.smartComponentValues[attributeToChange] is not None:
 										thisComponent.smartComponentValues[attributeToChange] += amount * factor
