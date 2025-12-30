@@ -121,6 +121,14 @@ class CompatibilityManager:
 		self.w.reorderShapes = Button((210, -30, 180, 20), "Reorder Shapes", callback=self.reorderShapes)
 		self.w.open()
 
+	def updateViews(self, sender=None):
+		for font in Glyphs.fonts:
+			if font.currentTab:
+				font.currentTab.forceRedraw()
+				font.currentTab.graphicView().redraw()
+				font.currentTab.previewView().update()
+			font.fontView.redraw()
+
 	def resetStartPoints(self, sender):
 		font = Glyphs.font
 		glyph = font.selectedLayers[0].parent
@@ -156,6 +164,8 @@ class CompatibilityManager:
 					self.findOptimalStartPoint(layer, i, startPointOption)
 
 			self.updateCompatibility(glyph)
+		
+		self.updateViews()
 
 	def findOptimalStartPoint(self, layer, pathIndex, startPointOption):
 		path = layer.shapes[pathIndex]
@@ -186,6 +196,8 @@ class CompatibilityManager:
 			layer.shapes[pathIndex].makeNodeFirst_(layer.shapes[pathIndex].nodes[bestStartIndex])
 		else:
 			layer.shapes[pathIndex] = originalPath
+		
+		self.updateViews()
 
 	def calculateStartPointValue(self, node, option):
 		if option == 0:
@@ -335,7 +347,7 @@ class CompatibilityManager:
 			if layer.compareString() != baseString:
 				print(f"Note: Layer {layer.name} could not be made compatible with the base layer.")
 
-		glyph.updateGlyphInfo()
+		# glyph.updateGlyphInfo()
 
 
 CompatibilityManager()
