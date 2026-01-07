@@ -9,7 +9,7 @@ import vanilla
 from Foundation import NSPoint
 from AppKit import NSAffineTransform
 from GlyphsApp import Glyphs, Message, addPoints
-from mekkablue import mekkaObject, match
+from mekkablue import mekkaObject, match, UpdateButton
 from mekkablue.geometry import italicize
 
 
@@ -55,7 +55,7 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 		linePos += lineHeight
 
 		# self.w.anchorNames = vanilla.EditText((inset, linePos, -inset-20, 19), "_top, _bottom, top, bottom, ogonek, _ogonek", callback=self.SavePreferences, sizeStyle="small")
-		self.w.anchorNames = vanilla.ComboBox((inset, linePos-1, -inset-20, 19), self.allAnchorNamesInFrontmostFont, sizeStyle="small", callback=self.SavePreferences)
+		self.w.anchorNames = vanilla.ComboBox((inset, linePos-1, -inset-20, 19), self.allAnchorNamesInFrontmostFont(), sizeStyle="small", callback=self.SavePreferences)
 		self.w.anchorNames.tooltip = "You can use wildcards * and ?, and add multiple anchor names with commas."
 		self.w.anchorNamesUpdate = UpdateButton((-inset-16, linePos-3, -inset, 19), callback=self.updateUI)
 		linePos += lineHeight
