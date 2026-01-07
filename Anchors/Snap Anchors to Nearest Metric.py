@@ -143,7 +143,7 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 					move = NSPoint(0, verticalMovement)
 					if respectItalic:
 						move = italicize(move, italicAngle=layer.italicAngle)
-					if anchorName.startswith("_"):
+					if anchor.name.startswith("_"):
 						moveTransform = NSAffineTransform.transform()
 						moveTransform.translateXBy_yBy_(move.x, move.y)
 						# moveMatrix = moveTransform.transformStruct()
