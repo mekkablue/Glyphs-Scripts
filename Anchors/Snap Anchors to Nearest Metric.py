@@ -107,7 +107,7 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 		self.w.anchorNames.setItems(self.allAnchorNamesInFrontmostFont())
 
 
-	def moveAnchorsToNearestMetricsOnLayer(self, layer, anchorNames=["_top", "_bottom", "top", "bottom", "ogonek", "_ogonek"], respectItalic=True, threshold=30, verbose=False, underscoreOnlyInMarks=True):
+	def moveAnchorsToNearestMetricsOnLayer(self, layer, anchorNames=["_top", "_bottom", "top", "bottom"], respectItalic=True, threshold=30, verbose=False, underscoreOnlyInMarks=True):
 		didMove = False
 		reports = []
 		isMark = layer.parent.category == "Mark"
@@ -118,7 +118,7 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 				reports.append(f"   🤷🏻‍♀️ no anchors on layer {layer.name}")
 			return didMove, reports, beyondThreshold
 
-		if not any([layer.anchors[an] for an in anchorNames]):
+		if not any([match(an, a.name) for a in layer.anchors for an in anchorNames]):
 			if verbose:
 				reports.append(f"   🤷🏻‍♀️ no matching anchors on layer {layer.name}, only: {', '.join([a.name for a in layer.anchors])}")
 			return didMove, reports, beyondThreshold
@@ -131,12 +131,15 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 					currentHeight = anchor.position.y
 					targetHeight = closestMetric(currentHeight, positions)
 					verticalMovement = targetHeight - currentHeight
+
 					if verticalMovement == 0:
 						continue
+
 					if abs(verticalMovement) > threshold:
-						reports.append(f"   ⚠️ layer {layer.name}, anchor {anchorName}: move {legibleNum(verticalMovement)} beyond threshold {threshold}")
+						reports.append(f"   ⚠️ layer {layer.name}, anchor {anchor.name}: move {legibleNum(verticalMovement)} beyond threshold {threshold}")
 						beyondThreshold = True
 						continue
+
 					move = NSPoint(0, verticalMovement)
 					if respectItalic:
 						move = italicize(move, italicAngle=layer.italicAngle)
@@ -150,10 +153,11 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 					elif not isMark or not underscoreOnlyInMarks:
 						anchor.position = addPoints(anchor.position, move)
 						if verbose:
-							reports.append(f"   ⚓️ moved {layer.name} {anchorName} {legibleNum(move.x)} {legibleNum(move.y)}")
+							reports.append(f"   ⚓️ moved {layer.name} {anchor.name} {legibleNum(move.x)} {legibleNum(move.y)}")
 					didMove = True
 
 		return didMove, reports, beyondThreshold
+
 
 	def SnapAnchorsToNearestMetricMain(self, sender=None):
 		try:
