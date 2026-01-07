@@ -73,7 +73,7 @@ def moveGlyphToCapHeight(thisGlyph):
 				targetHeight = thisLayer.master.capHeight
 				startHeight = topAnchor.y
 				movedLayers += moveLayer(thisLayer, targetHeight - startHeight)
-			else:
+			elif thisLayer.anchors["_bottom"]:
 				movedLayers += moveBottomLayer(thisLayer)
 	return movedLayers
 
@@ -88,7 +88,7 @@ def moveGlyphToXHeight(thisGlyph):
 				targetHeight = thisLayer.master.xHeight
 				startHeight = topAnchor.y
 				movedLayers += moveLayer(thisLayer, targetHeight - startHeight)
-			else:
+			elif thisLayer.anchors["_bottom"]:
 				movedLayers += moveBottomLayer(thisLayer)
 	return movedLayers
 
