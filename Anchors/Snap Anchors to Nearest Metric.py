@@ -9,7 +9,7 @@ import vanilla
 from Foundation import NSPoint
 from AppKit import NSAffineTransform
 from GlyphsApp import Glyphs, Message, addPoints
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, match
 from mekkablue.geometry import italicize
 
 
@@ -54,7 +54,10 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Move these anchors to the nearest vertical metric line:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
-		self.w.anchorNames = vanilla.EditText((inset, linePos, -inset, 19), "_top, _bottom, top, bottom, ogonek, _ogonek", callback=self.SavePreferences, sizeStyle="small")
+		# self.w.anchorNames = vanilla.EditText((inset, linePos, -inset-20, 19), "_top, _bottom, top, bottom, ogonek, _ogonek", callback=self.SavePreferences, sizeStyle="small")
+		self.w.anchorNames = vanilla.ComboBox((inset, linePos-1, -inset-20, 19), self.allAnchorNamesInFrontmostFont, sizeStyle="small", callback=self.SavePreferences)
+		self.w.anchorNames.tooltip = "You can use wildcards * and ?, and add multiple anchor names with commas."
+		self.w.anchorNamesUpdate = UpdateButton((-inset-16, linePos-3, -inset, 19), callback=self.updateUI)
 		linePos += lineHeight
 
 		self.w.anchorNamesDescription = vanilla.TextBox((inset, linePos + 2, -inset, 14), "For mark anchors (like _top), will shift complete glyph.", sizeStyle="small", selectable=True)
@@ -86,9 +89,25 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
-	def moveAnchorsToNearestMetricsOnLayer(
-		self, layer, anchorNames=["_top", "_bottom", "top", "bottom", "ogonek", "_ogonek"], respectItalic=True, threshold=30, verbose=False, underscoreOnlyInMarks=True
-	):
+
+	def allAnchorNamesInFrontmostFont(self, sender=None):
+		font = Glyphs.font
+		if not font:
+			return []
+		anchors = []
+		for g in font.glyphs:
+			for l in g.layers:
+				for a in l.anchors:
+					if a.name not in anchors:
+						anchors.append(a.name)
+		return sorted(anchors)
+
+
+	def updateUI(self, sender=None):
+		self.w.anchorNames.setItems(self.allAnchorNamesInFrontmostFont())
+
+
+	def moveAnchorsToNearestMetricsOnLayer(self, layer, anchorNames=["_top", "_bottom", "top", "bottom", "ogonek", "_ogonek"], respectItalic=True, threshold=30, verbose=False, underscoreOnlyInMarks=True):
 		didMove = False
 		reports = []
 		isMark = layer.parent.category == "Mark"
@@ -107,32 +126,32 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 		respectItalic = respectItalic and layer.italicAngle != 0
 		positions = tuple(m.position for m in layer.metrics)
 		for anchorName in anchorNames:
-			anchor = layer.anchors[anchorName]
-			if anchor:
-				currentHeight = anchor.position.y
-				targetHeight = closestMetric(currentHeight, positions)
-				verticalMovement = targetHeight - currentHeight
-				if verticalMovement == 0:
-					continue
-				if abs(verticalMovement) > threshold:
-					reports.append(f"   ⚠️ layer {layer.name}, anchor {anchorName}: move {legibleNum(verticalMovement)} beyond threshold {threshold}")
-					beyondThreshold = True
-					continue
-				move = NSPoint(0, verticalMovement)
-				if respectItalic:
-					move = italicize(move, italicAngle=layer.italicAngle)
-				if anchorName.startswith("_"):
-					moveTransform = NSAffineTransform.transform()
-					moveTransform.translateXBy_yBy_(move.x, move.y)
-					# moveMatrix = moveTransform.transformStruct()
-					layer.applyTransform(moveTransform)
-					if verbose:
-						reports.append(f"   ↕️ shifted layer {layer.name} {legibleNum(move.x)} {legibleNum(move.y)}")
-				elif not isMark or not underscoreOnlyInMarks:
-					anchor.position = addPoints(anchor.position, move)
-					if verbose:
-						reports.append(f"   ⚓️ moved {layer.name} {anchorName} {legibleNum(move.x)} {legibleNum(move.y)}")
-				didMove = True
+			for anchor in layer.anchors:
+				if match(anchorName, anchor.name):
+					currentHeight = anchor.position.y
+					targetHeight = closestMetric(currentHeight, positions)
+					verticalMovement = targetHeight - currentHeight
+					if verticalMovement == 0:
+						continue
+					if abs(verticalMovement) > threshold:
+						reports.append(f"   ⚠️ layer {layer.name}, anchor {anchorName}: move {legibleNum(verticalMovement)} beyond threshold {threshold}")
+						beyondThreshold = True
+						continue
+					move = NSPoint(0, verticalMovement)
+					if respectItalic:
+						move = italicize(move, italicAngle=layer.italicAngle)
+					if anchorName.startswith("_"):
+						moveTransform = NSAffineTransform.transform()
+						moveTransform.translateXBy_yBy_(move.x, move.y)
+						# moveMatrix = moveTransform.transformStruct()
+						layer.applyTransform(moveTransform)
+						if verbose:
+							reports.append(f"   ↕️ shifted layer {layer.name} {legibleNum(move.x)} {legibleNum(move.y)}")
+					elif not isMark or not underscoreOnlyInMarks:
+						anchor.position = addPoints(anchor.position, move)
+						if verbose:
+							reports.append(f"   ⚓️ moved {layer.name} {anchorName} {legibleNum(move.x)} {legibleNum(move.y)}")
+					didMove = True
 
 		return didMove, reports, beyondThreshold
 
