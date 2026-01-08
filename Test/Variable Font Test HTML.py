@@ -241,11 +241,11 @@ def saveFileInLocation(content="", fileName="test.txt", filePath="~/Desktop"):
 	return True
 
 
-def currentOTVarExportPath():
-	exportPath = Glyphs.defaults["GXExportPathManual"]
-	if Glyphs.versionNumber and Glyphs.versionNumber >= 3:
+def currentOTVarExportPath(useExportPath=False):
+	exportPath = Glyphs.defaults["GSVariableExportPath"] or Glyphs.defaults["GXExportPathManual"]
+	if Glyphs.versionNumber and 3 <= Glyphs.versionNumber < 4:
 		useExportPath = Glyphs.defaults["GXExportUseExportPath"]
-	else:
+	elif Glyphs.versionNumber and Glyphs.versionNumber < 3:
 		useExportPath = Glyphs.defaults["GXPluginUseExportPath"]
 	if useExportPath:
 		exportPath = Glyphs.defaults["GXExportPath"]
