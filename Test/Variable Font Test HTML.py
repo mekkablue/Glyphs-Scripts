@@ -273,10 +273,11 @@ def otVarFullName(thisFont):
 
 def otVarSuffix():
 	suffix = "ttf"
-	for webSuffix in ("woff", "woff2"):
-		preference = Glyphs.defaults["GXExport%s" % webSuffix.upper()]
-		if preference:
-			suffix = webSuffix
+	if Glyphs.versionNumber and Glyphs.versionNumber < 4:
+		for webSuffix in ("woff", "woff2"):
+			preference = Glyphs.defaults["GXExport%s" % webSuffix.upper()]
+			if preference:
+				suffix = webSuffix
 	return suffix
 
 
