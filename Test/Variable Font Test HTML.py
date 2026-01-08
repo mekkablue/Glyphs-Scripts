@@ -323,7 +323,7 @@ def generateAxisDict(thisFont):
 	importedMasters = []
 	if thisFont.importedFontMasters():
 		importedMasters = thisFont.importedFontMasters()
-	for thisMaster in thisFont.masters + importedMasters:
+	for thisMaster in list(thisFont.masters) + importedMasters:
 		if not thisMaster.customParameters["Axis Location"]:
 			fontHasAxisLocationParameters = False
 
