@@ -103,7 +103,7 @@ class FindAndReplaceInInstanceParameters(mekkaObject):
 					parameter = thisInstance.customParameters[parameterName]
 					if parameter is not None:
 						print(type(parameter))
-						if isinstance(parameter, (bool, objc._pythonify.OC_PythonInt)):
+						if isinstance(parameter, (bool, int)):
 							onOff = False
 							if replaceText.lower() in ("1", "yes", "on", "an", "ein", "ja", "true", "wahr"):
 								onOff = True
