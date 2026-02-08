@@ -32,7 +32,7 @@ class CopyLayerToLayer(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 300
-		windowHeight = 370
+		windowHeight = 330
 		windowWidthResize = 300
 		windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
@@ -46,7 +46,7 @@ class CopyLayerToLayer(mekkaObject):
 		# UI elements:
 		linePos, inset, lineHeight, tabStop = 12, 15, 22, 80
 		
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Copy layer contents from one layer to another:", sizeStyle='small', selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Copy layer contents from one layer to another:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
 		self.w.sourceFontText = vanilla.TextBox((inset, linePos + 2, tabStop, 14), "Source font:", sizeStyle='small', selectable=True)
@@ -66,8 +66,30 @@ class CopyLayerToLayer(mekkaObject):
 		self.w.targetLayerPopup = vanilla.PopUpButton((inset + tabStop, linePos, -inset, 17), [], sizeStyle='small')
 		linePos += lineHeight
 
+		# Include options
+		self.w.includeText = vanilla.TextBox((inset, linePos + 2, 60, 14), "Include:", sizeStyle='small', selectable=True)
+
+		self.w.includePaths = vanilla.CheckBox((inset + 60, linePos, 65, 20), "Paths", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includePaths.getNSButton().setToolTip_("Copy all paths (outlines) from the source layer.")
+		
+		self.w.includeComponents = vanilla.CheckBox((inset + 135, linePos, 80, 20), "Components", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeComponents.getNSButton().setToolTip_("Copy all components (references to other glyphs) from the source layer.")
+		linePos += lineHeight
+
+		self.w.includeAnchors = vanilla.CheckBox((inset + 60, linePos, 65, 20), "Anchors", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeAnchors.getNSButton().setToolTip_("Copy all anchors (attachment points) from the source layer.")
+		
+		self.w.includeMetrics = vanilla.CheckBox((inset + 135, linePos, 80, 20), "Metrics", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeMetrics.getNSButton().setToolTip_("Copy layer width and sidebearing metrics from the source layer.")
+
+		self.w.includeHints = vanilla.CheckBox((inset + 210, linePos, 90, 20), "Hints", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeHints.getNSButton().setToolTip_("Copy all hints (TrueType instructions) from the source layer.")
+		linePos += lineHeight
+		
+		self.w.separator1 = vanilla.HorizontalLine((inset, linePos+5, -inset, 1))
+
 		# Options with tooltips
-		linePos += 5
+		linePos += 12
 		self.w.intoBackground = vanilla.CheckBox((inset, linePos, -inset, 20), "Copy into background instead", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.intoBackground.getNSButton().setToolTip_("Copies source layer content into the background of the target layer instead of the foreground.")
 		linePos += lineHeight
@@ -84,27 +106,6 @@ class CopyLayerToLayer(mekkaObject):
 		self.w.applyFontWide.getNSButton().setToolTip_("Processes all glyphs in the source font instead of only selected glyphs in the target font.")
 		linePos += lineHeight
 
-		# Include options
-		linePos += 5
-		self.w.includeText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Include:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
-
-		self.w.includePaths = vanilla.CheckBox((inset + 10, linePos, 65, 20), "Paths", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includePaths.getNSButton().setToolTip_("Copy all paths (outlines) from the source layer.")
-		
-		self.w.includeComponents = vanilla.CheckBox((inset + 75, linePos, 90, 20), "Components", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeComponents.getNSButton().setToolTip_("Copy all components (references to other glyphs) from the source layer.")
-		
-		self.w.includeHints = vanilla.CheckBox((inset + 165, linePos, 90, 20), "Hints", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeHints.getNSButton().setToolTip_("Copy all hints (TrueType instructions) from the source layer.")
-		linePos += lineHeight
-
-		self.w.includeAnchors = vanilla.CheckBox((inset + 10, linePos, 65, 20), "Anchors", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeAnchors.getNSButton().setToolTip_("Copy all anchors (attachment points) from the source layer.")
-		
-		self.w.includeMetrics = vanilla.CheckBox((inset + 75, linePos, 90, 20), "Metrics", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeMetrics.getNSButton().setToolTip_("Copy layer width and sidebearing metrics from the source layer.")
-		linePos += lineHeight
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Copy Layers", sizeStyle='regular', callback=self.CopyLayerToLayerMain)
