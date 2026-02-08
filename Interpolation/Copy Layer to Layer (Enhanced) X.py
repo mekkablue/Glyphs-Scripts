@@ -154,11 +154,14 @@ class CopyLayerToLayer(mekkaObject):
 		layerNames = []
 		masterLayers = []
 		
-		# Collect regular master layers
+		# Collect regular master layers (only those without colorPalette attribute)
 		for layer in font.glyphs[0].layers:
 			if layer.name:
-				masterLayers.append(layer.name)
-				layerNames.append(layer.name)
+				# Check if this is a true master layer (not a color layer)
+				isColorLayer = hasattr(layer, 'attributes') and layer.attributes.get('colorPalette') is not None
+				if not isColorLayer:
+					masterLayers.append(layer.name)
+					layerNames.append(layer.name)
 		
 		# Add color palette layers if they exist
 		colorPalette = self.GetColorPalettes(font)
