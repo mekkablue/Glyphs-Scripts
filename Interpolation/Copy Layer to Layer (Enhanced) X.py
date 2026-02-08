@@ -106,14 +106,6 @@ class CopyLayerToLayer(mekkaObject):
 		self.w.includeMetrics.getNSButton().setToolTip_("Copy layer width and sidebearing metrics from the source layer.")
 		linePos += lineHeight
 
-		# Color palette option (hidden by default)
-		linePos += 5
-		self.w.colorPaletteText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Color palette:", sizeStyle='small', selectable=True)
-		self.w.colorPalettePopup = vanilla.PopUpButton((inset + 90, linePos, -inset, 17), ["None"], sizeStyle='small')
-		self.w.colorPaletteText.show(False)
-		self.w.colorPalettePopup.show(False)
-		linePos += lineHeight
-
 		# Run Button:
 		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Copy Layers", sizeStyle='regular', callback=self.CopyLayerToLayerMain)
 		self.w.setDefaultButton(self.w.runButton)
@@ -148,38 +140,49 @@ class CopyLayerToLayer(mekkaObject):
 	def GetColorPalettes(self, font):
 		"""Returns the color palettes from font's custom parameters"""
 		if font and font.customParameters["Color Palettes"]:
-			return font.customParameters["Color Palettes"]
+			palettes = font.customParameters["Color Palettes"]
+			if palettes and len(palettes) > 0:
+				# Return the first palette (index 0) which contains the color definitions
+				return palettes[0]
 		return None
 
 	def GetLayerList(self, font):
-		"""Returns a list of layer names and color palette layers"""
+		"""Returns a list of layer names and master+color combinations"""
 		if not font or len(font.glyphs) == 0:
 			return ["Regular"]
 		
 		layerNames = []
-		# Add regular master layers
+		masterLayers = []
+		
+		# Collect regular master layers
 		for layer in font.glyphs[0].layers:
 			if layer.name:
+				masterLayers.append(layer.name)
 				layerNames.append(layer.name)
 		
 		# Add color palette layers if they exist
-		colorPalettes = self.GetColorPalettes(font)
-		if colorPalettes:
-			for i in range(len(colorPalettes)):
-				layerNames.append("Palette Color %d" % i)
+		colorPalette = self.GetColorPalettes(font)
+		if colorPalette:
+			numColors = len(colorPalette)
+			# For each master, add master+color combinations
+			for masterName in masterLayers:
+				for colorIndex in range(numColors):
+					layerNames.append("%s, Color %d" % (masterName, colorIndex))
 		
 		return layerNames if layerNames else ["Regular"]
 
 	def ParseLayerSelection(self, layerName):
 		"""Parses layer selection to determine if it's a color palette layer
-		Returns: (isColorLayer, colorIndex, originalName)"""
-		if layerName.startswith("Palette Color "):
+		Returns: (isColorLayer, masterName, colorIndex)"""
+		if ", Color " in layerName:
 			try:
-				colorIndex = int(layerName.replace("Palette Color ", ""))
-				return (True, colorIndex, layerName)
+				parts = layerName.split(", Color ")
+				masterName = parts[0]
+				colorIndex = int(parts[1])
+				return (True, masterName, colorIndex)
 			except:
 				pass
-		return (False, None, layerName)
+		return (False, layerName, None)
 
 	def UpdateFontList(self, sender=None):
 		"""Updates all font popups with currently opened fonts"""
@@ -215,29 +218,16 @@ class CopyLayerToLayer(mekkaObject):
 		self.w.sourceLayerPopup.setItems(layerNames)
 
 	def UpdateTargetLayers(self, sender):
-		"""Updates the target layer popup and color palette options based on selected font"""
+		"""Updates the target layer popup based on selected font"""
 		font = self.GetFont(self.w.targetFontPopup)
 		layerNames = self.GetLayerList(font)
 		self.w.targetLayerPopup.setItems(layerNames)
-		
-		# Check for color palettes
-		if self.GetColorPalettes(font):
-			colorPalettes = self.GetColorPalettes(font)
-			paletteOptions = ["None (default)"]
-			for i in range(len(colorPalettes)):
-				paletteOptions.append("Color %d" % i)
-			self.w.colorPalettePopup.setItems(paletteOptions)
-			self.w.colorPaletteText.show(True)
-			self.w.colorPalettePopup.show(True)
-		else:
-			self.w.colorPaletteText.show(False)
-			self.w.colorPalettePopup.show(False)
 
-	def GetColorLayers(self, glyph, colorIndex):
-		"""Returns all layers with the specified color palette index"""
+	def GetColorLayers(self, glyph, masterName, colorIndex):
+		"""Returns all layers with the specified master and color palette index"""
 		colorLayers = []
 		for layer in glyph.layers:
-			if hasattr(layer, 'attributes') and layer.attributes.get('colorPalette') == colorIndex:
+			if layer.name == masterName and hasattr(layer, 'attributes') and layer.attributes.get('colorPalette') == colorIndex:
 				colorLayers.append(layer)
 		return colorLayers
 
@@ -256,16 +246,11 @@ class CopyLayerToLayer(mekkaObject):
 			sourceLayerName = self.w.sourceLayerPopup.getItems()[self.w.sourceLayerPopup.get()]
 			targetLayerName = self.w.targetLayerPopup.getItems()[self.w.targetLayerPopup.get()]
 			
-			sourceIsColor, sourceColorIndex, sourceOriginalName = self.ParseLayerSelection(sourceLayerName)
-			targetIsColor, targetColorIndex, targetOriginalName = self.ParseLayerSelection(targetLayerName)
+			sourceIsColor, sourceMasterName, sourceColorIndex = self.ParseLayerSelection(sourceLayerName)
+			targetIsColor, targetMasterName, targetColorIndex = self.ParseLayerSelection(targetLayerName)
 			
 			# Get options using prefDict keys
 			prefs = {key: self.pref(key) for key in self.prefDict.keys()}
-			
-			# Get color palette selection for new layers
-			colorPaletteIndex = None
-			if self.w.colorPalettePopup.isVisible() and self.w.colorPalettePopup.get() > 0:
-				colorPaletteIndex = self.w.colorPalettePopup.get() - 1
 
 			# Determine which glyphs to process
 			if prefs["applyFontWide"]:
@@ -292,12 +277,12 @@ class CopyLayerToLayer(mekkaObject):
 				# Find source layer(s)
 				sourceLayers = []
 				if sourceIsColor:
-					# Get all layers with this color palette index
-					sourceLayers = self.GetColorLayers(sourceGlyph, sourceColorIndex)
+					# Get all layers with this master name and color palette index
+					sourceLayers = self.GetColorLayers(sourceGlyph, sourceMasterName, sourceColorIndex)
 				else:
-					# Get the named layer
+					# Get the named master layer
 					for layer in sourceGlyph.layers:
-						if layer.name == sourceLayerName:
+						if layer.name == sourceMasterName:
 							sourceLayers = [layer]
 							break
 				
@@ -319,7 +304,7 @@ class CopyLayerToLayer(mekkaObject):
 				# Handle color to color copying (potentially multiple layers)
 				if sourceIsColor and targetIsColor:
 					# Copy each source color layer to corresponding target color layer
-					targetColorLayers = self.GetColorLayers(targetGlyph, targetColorIndex)
+					targetColorLayers = self.GetColorLayers(targetGlyph, targetMasterName, targetColorIndex)
 					
 					for i, sourceLayer in enumerate(sourceLayers):
 						# Find or create corresponding target layer
@@ -328,8 +313,10 @@ class CopyLayerToLayer(mekkaObject):
 						elif prefs["createIfNotPresent"]:
 							# Create new color layer
 							targetLayer = GSLayer()
-							targetLayer.name = targetColorLayers[0].name if targetColorLayers else None
+							targetLayer.name = targetMasterName
 							targetLayer.attributes['colorPalette'] = targetColorIndex
+							# Associate with the master
+							targetLayer.associatedMasterId = targetGlyph.layers[0].associatedMasterId
 							targetGlyph.layers.append(targetLayer)
 							createdLayerCount += 1
 						else:
@@ -341,14 +328,20 @@ class CopyLayerToLayer(mekkaObject):
 				# Handle non-color to color copying
 				elif not sourceIsColor and targetIsColor:
 					sourceLayer = sourceLayers[0]
-					# Find first target layer with matching color index
-					targetColorLayers = self.GetColorLayers(targetGlyph, targetColorIndex)
+					# Find first target layer with matching master and color index
+					targetColorLayers = self.GetColorLayers(targetGlyph, targetMasterName, targetColorIndex)
 					
 					if targetColorLayers:
 						targetLayer = targetColorLayers[0]
 					elif prefs["createIfNotPresent"]:
 						targetLayer = GSLayer()
+						targetLayer.name = targetMasterName
 						targetLayer.attributes['colorPalette'] = targetColorIndex
+						# Associate with the master
+						for layer in targetGlyph.layers:
+							if layer.name == targetMasterName and not layer.attributes.get('colorPalette'):
+								targetLayer.associatedMasterId = layer.associatedMasterId
+								break
 						targetGlyph.layers.append(targetLayer)
 						createdLayerCount += 1
 					else:
@@ -358,26 +351,46 @@ class CopyLayerToLayer(mekkaObject):
 					self.CopyLayerContents(sourceLayer, targetLayer, prefs)
 					processedCount += 1
 				
-				# Handle regular layer copying
+				# Handle color to non-color copying
+				elif sourceIsColor and not targetIsColor:
+					# Copy first source color layer to target master layer
+					sourceLayer = sourceLayers[0]
+					
+					# Find target master layer
+					targetLayer = None
+					for layer in targetGlyph.layers:
+						if layer.name == targetMasterName and not layer.attributes.get('colorPalette'):
+							targetLayer = layer
+							break
+
+					if not targetLayer and prefs["createIfNotPresent"]:
+						targetLayer = GSLayer()
+						targetLayer.name = targetMasterName
+						targetGlyph.layers.append(targetLayer)
+						createdLayerCount += 1
+					
+					if not targetLayer:
+						skippedCount += 1
+						continue
+
+					self.CopyLayerContents(sourceLayer, targetLayer, prefs)
+					processedCount += 1
+				
+				# Handle regular master to master layer copying
 				else:
 					sourceLayer = sourceLayers[0]
 					
-					# Find or create target layer
+					# Find or create target master layer
 					targetLayer = None
 					for layer in targetGlyph.layers:
-						if layer.name == targetLayerName:
+						if layer.name == targetMasterName and not layer.attributes.get('colorPalette'):
 							targetLayer = layer
 							break
 
 					# Create layer if requested and not present
 					if not targetLayer and prefs["createIfNotPresent"]:
 						targetLayer = GSLayer()
-						targetLayer.name = targetLayerName
-						
-						# Handle color palette assignment for new layers
-						if colorPaletteIndex is not None:
-							targetLayer.attributes['colorPalette'] = colorPaletteIndex
-						
+						targetLayer.name = targetMasterName
 						targetGlyph.layers.append(targetLayer)
 						createdLayerCount += 1
 					
