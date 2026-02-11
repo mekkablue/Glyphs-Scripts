@@ -55,7 +55,7 @@ class CopyLayerToLayer(mekkaObject):
 		linePos += lineHeight
 
 		self.w.sourceLayerText = vanilla.TextBox((inset, linePos + 2, tabStop, 14), "Source layer:", sizeStyle='small', selectable=True)
-		self.w.sourceLayerPopup = vanilla.PopUpButton((inset + tabStop, linePos, -inset, 17), [], sizeStyle='small')
+		self.w.sourceLayerPopup = vanilla.PopUpButton((inset + tabStop, linePos, -inset, 17), [], sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
 		self.w.targetFontText = vanilla.TextBox((inset, linePos + 2, tabStop, 14), "Target font:", sizeStyle='small', selectable=True)
@@ -63,7 +63,7 @@ class CopyLayerToLayer(mekkaObject):
 		linePos += lineHeight
 
 		self.w.targetLayerText = vanilla.TextBox((inset, linePos + 2, tabStop, 14), "Target layer:", sizeStyle='small', selectable=True)
-		self.w.targetLayerPopup = vanilla.PopUpButton((inset + tabStop, linePos, -inset, 17), [], sizeStyle='small')
+		self.w.targetLayerPopup = vanilla.PopUpButton((inset + tabStop, linePos, -inset, 17), [], sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
 		# Include options
@@ -121,6 +121,34 @@ class CopyLayerToLayer(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+
+	def updateUI(self, sender=None):
+		"""Updates UI state - disables run button if source and target are the same"""
+		try:
+			# Get current selections
+			sourceFontIndex = self.w.sourceFontPopup.get()
+			targetFontIndex = self.w.targetFontPopup.get()
+			sourceLayerIndex = self.w.sourceLayerPopup.get()
+			targetLayerIndex = self.w.targetLayerPopup.get()
+			
+			# Get layer names
+			sourceLayerItems = self.w.sourceLayerPopup.getItems()
+			targetLayerItems = self.w.targetLayerPopup.getItems()
+			
+			# Check if source and target are identical
+			sameFont = (sourceFontIndex == targetFontIndex)
+			sameLayer = False
+			
+			if sourceLayerItems and targetLayerItems and sourceLayerIndex < len(sourceLayerItems) and targetLayerIndex < len(targetLayerItems):
+				sameLayer = (sourceLayerItems[sourceLayerIndex] == targetLayerItems[targetLayerIndex])
+			
+			# Disable button if both font and layer are the same
+			shouldDisable = sameFont and sameLayer
+			self.w.runButton.enable(not shouldDisable)
+			
+		except Exception as e:
+			# If there's any error, enable the button to be safe
+			self.w.runButton.enable(True)
 
 	def GetFonts(self):
 		"""Returns a list of font names for the popups"""
@@ -250,38 +278,53 @@ class CopyLayerToLayer(mekkaObject):
 			sourceLayerName = self.w.sourceLayerPopup.getItems()[self.w.sourceLayerPopup.get()]
 			targetLayerName = self.w.targetLayerPopup.getItems()[self.w.targetLayerPopup.get()]
 			
+			# Parse source and target layer selections
 			sourceIsColor, sourceMasterName, sourceColorIndex = self.ParseLayerSelection(sourceLayerName)
 			targetIsColor, targetMasterName, targetColorIndex = self.ParseLayerSelection(targetLayerName)
-			
-			# Get options using prefDict keys
-			prefs = {key: self.pref(key) for key in self.prefDict.keys()}
+
+			# Get preferences
+			prefs = {
+				"intoBackground": self.w.intoBackground.get(),
+				"createIfNotPresent": self.w.createIfNotPresent.get(),
+				"addToContents": self.w.addToContents.get(),
+				"applyFontWide": self.w.applyFontWide.get(),
+				"includePaths": self.w.includePaths.get(),
+				"includeComponents": self.w.includeComponents.get(),
+				"includeAnchors": self.w.includeAnchors.get(),
+				"includeHints": self.w.includeHints.get(),
+				"includeMetrics": self.w.includeMetrics.get(),
+			}
 
 			# Determine which glyphs to process
 			if prefs["applyFontWide"]:
+				# Process all glyphs in source font
 				glyphsToProcess = [g.name for g in sourceFont.glyphs]
 			else:
-				selectedGlyphs = [layer.parent for layer in targetFont.selectedLayers]
-				if not selectedGlyphs:
-					Message("No Selection", "Please select at least one glyph.", OKButton=None)
+				# Process only selected glyphs in target font
+				if targetFont.selectedLayers:
+					glyphsToProcess = list(set([layer.parent.name for layer in targetFont.selectedLayers]))
+				else:
+					Message("Error", "No glyphs selected.", OKButton=None)
 					return
-				glyphsToProcess = [g.name for g in selectedGlyphs]
 
+			# Counters for reporting
 			processedCount = 0
 			skippedCount = 0
 			createdGlyphCount = 0
 			createdLayerCount = 0
 
+			# Process each glyph
 			for glyphName in glyphsToProcess:
-				# Find corresponding glyph in source font
+				# Get source glyph
 				sourceGlyph = sourceFont.glyphs[glyphName]
 				if not sourceGlyph:
 					skippedCount += 1
 					continue
 
-				# Find source layer(s)
+				# Get source layer(s)
 				sourceLayers = []
 				if sourceIsColor:
-					# Get all layers with this master name and color palette index
+					# Get all color layers with this master and color index
 					sourceLayers = self.GetColorLayers(sourceGlyph, sourceMasterName, sourceColorIndex)
 				else:
 					# Get the named master layer
@@ -332,12 +375,14 @@ class CopyLayerToLayer(mekkaObject):
 				# Handle non-color to color copying
 				elif not sourceIsColor and targetIsColor:
 					sourceLayer = sourceLayers[0]
-					# Find first target layer with matching master and color index
+					# Find or create target layer with matching master and color index
 					targetColorLayers = self.GetColorLayers(targetGlyph, targetMasterName, targetColorIndex)
 					
 					if targetColorLayers:
+						# Use the first existing color layer with this color index
 						targetLayer = targetColorLayers[0]
 					elif prefs["createIfNotPresent"]:
+						# Create new color layer only if it doesn't exist
 						targetLayer = GSLayer()
 						targetLayer.name = targetMasterName
 						targetLayer.attributes['colorPalette'] = targetColorIndex
