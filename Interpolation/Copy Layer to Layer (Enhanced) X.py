@@ -18,6 +18,10 @@ from mekkablue import mekkaObject, UpdateButton
 
 class CopyLayerToLayer(mekkaObject):
 	prefDict = {
+		"sourceFontPopup": 0,
+		"targetFontPopup": 0,
+		"sourceLayerPopup": 0,
+		"targetLayerPopup": 0,
 		"intoBackground": False,
 		"createIfNotPresent": True,
 		"addToContents": False,
@@ -111,12 +115,12 @@ class CopyLayerToLayer(mekkaObject):
 		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Copy Layers", sizeStyle='regular', callback=self.CopyLayerToLayerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
-		# Load Settings:
-		self.LoadPreferences()
-
 		# Update the layer popups after fonts are loaded
 		self.UpdateSourceLayers(None)
 		self.UpdateTargetLayers(None)
+
+		# Load Settings:
+		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -147,6 +151,7 @@ class CopyLayerToLayer(mekkaObject):
 			self.w.runButton.enable(not shouldDisable)
 			
 		except Exception as e:
+			print(e)
 			# If there's any error, enable the button to be safe
 			self.w.runButton.enable(True)
 
