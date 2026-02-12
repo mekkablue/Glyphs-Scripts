@@ -24,7 +24,7 @@ class CPALManager(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 330
-		windowHeight = 200
+		windowHeight = 240
 		windowWidthResize = 0  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -74,6 +74,18 @@ class CPALManager(mekkaObject):
 		self.w.changeFromIndex.setToolTip("Source color palette index to change from.")
 		self.w.changeToIndex.setToolTip("Target color palette index to change to.")
 		self.w.changeButton.setToolTip("Changes the color palette index from source to target.")
+		linePos += lineHeight
+
+		# Option 5: Cycle color indexes
+		self.w.cycleText = vanilla.TextBox((inset, linePos + 2, tab2-5, 14), "Rotate color indexes  (0→1→2→0):", sizeStyle='small', selectable=True, alignment="right")
+		self.w.cycleButton = vanilla.Button((inset + tab2, linePos, -inset, 20), "Cycle", callback=self.cycleColorIndexes, sizeStyle='small')
+		self.w.cycleButton.setToolTip("Rotates color palette indexes: 0→1, 1→2, 2→3, etc. Last index becomes 0.")
+		linePos += lineHeight
+
+		# Option 6: Reverse color indexes
+		self.w.reverseText = vanilla.TextBox((inset, linePos + 2, tab2-5, 14), "Reverse color indexes  (0,1,2↔2,1,0):", sizeStyle='small', selectable=True, alignment="right")
+		self.w.reverseButton = vanilla.Button((inset + tab2, linePos, -inset, 20), "Reverse", callback=self.reverseColorIndexes, sizeStyle='small')
+		self.w.reverseButton.setToolTip("Reverses color palette indexes: 0↔highest, 1↔second-highest, etc.")
 		linePos += lineHeight + 10
 
 		# Separator
@@ -87,6 +99,10 @@ class CPALManager(mekkaObject):
 
 		self.w.applyFontWide = vanilla.CheckBox((inset, linePos, -inset, 20), "⚠️ Apply to ALL glyphs (otherwise selected only)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.applyFontWide.setToolTip("Process all glyphs in the font. Unchecked: only process selected glyphs.")
+		linePos += lineHeight + 5
+
+		# Status line
+		self.w.status = vanilla.TextBox((inset, linePos, -inset, 14), "", sizeStyle='small')
 		linePos += lineHeight
 
 		# Load Settings:
@@ -184,7 +200,7 @@ class CPALManager(mekkaObject):
 
 		font.enableUpdateInterface()
 		
-		# Report results
+		# Report results via status line
 		operationNames = {
 			'remove': 'removed',
 			'disable': 'disabled',
@@ -192,12 +208,7 @@ class CPALManager(mekkaObject):
 			'change': 'changed'
 		}
 		operationName = operationNames.get(operation, 'processed')
-		
-		# Message(
-		# 	"CPAL Manager: Done",
-		# 	f"{operationName.capitalize()} {processedCount} layer(s) in {glyphCount} glyph(s).",
-		# 	OKButton=None
-		# )
+		self.w.status.set(f"{operationName.capitalize()} {processedCount} layer(s) in {glyphCount} glyph(s).")
 
 	def removeColorIndex(self, sender=None):
 		"""Remove all layers with the specified color index."""
@@ -232,6 +243,111 @@ class CPALManager(mekkaObject):
 			self.processLayers('change', fromIndex, toIndex)
 		except ValueError:
 			Message("Invalid input", "Please enter valid numbers for both indices.", OKButton=None)
+
+	def cycleColorIndexes(self, sender=None):
+		"""Cycle color palette indexes: 0→1, 1→2, 2→3, etc."""
+		font = Glyphs.font
+		if not font:
+			Message("No font open", "Please open a font first.", OKButton=None)
+			return
+
+		glyphs = self.getGlyphsToProcess()
+		if not glyphs:
+			Message("No glyphs to process", "Please select glyphs or enable 'Apply font-wide'.", OKButton=None)
+			return
+
+		# Find max color index
+		maxIndex = -1
+		for glyph in glyphs:
+			layers = self.getLayersFromGlyph(glyph)
+			for layer in layers:
+				colorPalette = layer.attributes.get('colorPalette')
+				if colorPalette is not None and colorPalette > maxIndex:
+					maxIndex = colorPalette
+
+		if maxIndex < 0:
+			self.w.status.set("No color layers found.")
+			return
+
+		# Cycle: use negative indices as temporary markers to avoid conflicts
+		processedCount = 0
+		glyphCount = 0
+		font.disableUpdateInterface()
+
+		for glyph in glyphs:
+			glyphModified = False
+			layers = self.getLayersFromGlyph(glyph)
+			
+			for layer in layers:
+				colorPalette = layer.attributes.get('colorPalette')
+				if colorPalette is not None:
+					# First pass: mark with negative indices
+					newIndex = -((colorPalette + 1) % (maxIndex + 1)) - 1
+					layer.attributes['colorPalette'] = newIndex
+					processedCount += 1
+					glyphModified = True
+			
+			if glyphModified:
+				glyphCount += 1
+
+		# Second pass: convert negative indices back to positive
+		for glyph in glyphs:
+			layers = self.getLayersFromGlyph(glyph)
+			for layer in layers:
+				colorPalette = layer.attributes.get('colorPalette')
+				if colorPalette is not None and colorPalette < 0:
+					layer.attributes['colorPalette'] = -(colorPalette + 1)
+
+		font.enableUpdateInterface()
+		self.w.status.set(f"Cycled {processedCount} layer(s) in {glyphCount} glyph(s).")
+
+	def reverseColorIndexes(self, sender=None):
+		"""Reverse color palette indexes: 0↔highest, 1↔second-highest, etc."""
+		font = Glyphs.font
+		if not font:
+			Message("No font open", "Please open a font first.", OKButton=None)
+			return
+
+		glyphs = self.getGlyphsToProcess()
+		if not glyphs:
+			Message("No glyphs to process", "Please select glyphs or enable 'Apply font-wide'.", OKButton=None)
+			return
+
+		# Find max color index
+		maxIndex = -1
+		for glyph in glyphs:
+			layers = self.getLayersFromGlyph(glyph)
+			for layer in layers:
+				colorPalette = layer.attributes.get('colorPalette')
+				if colorPalette is not None and colorPalette > maxIndex:
+					maxIndex = colorPalette
+
+		if maxIndex < 0:
+			self.w.status.set("No color layers found.")
+			return
+
+		# Reverse
+		processedCount = 0
+		glyphCount = 0
+		font.disableUpdateInterface()
+
+		for glyph in glyphs:
+			glyphModified = False
+			layers = self.getLayersFromGlyph(glyph)
+			
+			for layer in layers:
+				colorPalette = layer.attributes.get('colorPalette')
+				if colorPalette is not None:
+					newIndex = maxIndex - colorPalette
+					layer.attributes['colorPalette'] = newIndex
+					processedCount += 1
+					glyphModified = True
+			
+			if glyphModified:
+				glyphCount += 1
+
+		font.enableUpdateInterface()
+		self.w.status.set(f"Reversed {processedCount} layer(s) in {glyphCount} glyph(s).")
 
 
 CPALManager()
