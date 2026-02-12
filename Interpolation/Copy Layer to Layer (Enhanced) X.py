@@ -107,7 +107,7 @@ class CopyLayerToLayer(mekkaObject):
 		linePos += lineHeight
 
 		self.w.applyFontWide = vanilla.CheckBox((inset, linePos, -inset, 20), "Apply font-wide (all glyphs in source font)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.applyFontWide.getNSButton().setToolTip_("Processes all glyphs in the source font instead of only selected glyphs in the target font.")
+		self.w.applyFontWide.getNSButton().setToolTip_("Processes all glyphs in the source font instead of only selected glyphs in the target font. If not selected, will process only selected glyphs.")
 		linePos += lineHeight
 
 
@@ -247,8 +247,13 @@ class CopyLayerToLayer(mekkaObject):
 		# Update layer lists
 		self.UpdateSourceLayers(None)
 		self.UpdateTargetLayers(None)
+		
+		if sender is self.w.sourceFontUpdateButton:
+			self.LoadPreferences()
+		else:
+			self.SavePreferences()
 
-	def UpdateSourceLayers(self, sender):
+	def UpdateSourceLayers(self, sender=None):
 		"""Updates the source layer popup based on selected font"""
 		font = self.GetFont(self.w.sourceFontPopup)
 		layerNames = self.GetLayerList(font)
@@ -263,8 +268,20 @@ class CopyLayerToLayer(mekkaObject):
 	def GetColorLayers(self, glyph, masterName, colorIndex):
 		"""Returns all layers with the specified master and color palette index"""
 		colorLayers = []
+		font = glyph.parent
+		if not font:
+			return colorLayers
+
+		masterID = None
+		for master in font.masters:
+			if master.name == masterName:
+				masterID = master.id
+				break
+		if not masterID:
+			return colorLayers
+
 		for layer in glyph.layers:
-			if layer.name == masterName and hasattr(layer, 'attributes') and layer.attributes.get('colorPalette') == colorIndex:
+			if layer.associatedMasterId == masterID and hasattr(layer, 'attributes') and layer.attributes.get('colorPalette') == colorIndex:
 				colorLayers.append(layer)
 		return colorLayers
 
@@ -320,6 +337,7 @@ class CopyLayerToLayer(mekkaObject):
 
 			# Process each glyph
 			for glyphName in glyphsToProcess:
+				print(f"🔡 Processing {glyphName}...")
 				# Get source glyph
 				sourceGlyph = sourceFont.glyphs[glyphName]
 				if not sourceGlyph:
@@ -331,6 +349,8 @@ class CopyLayerToLayer(mekkaObject):
 				if sourceIsColor:
 					# Get all color layers with this master and color index
 					sourceLayers = self.GetColorLayers(sourceGlyph, sourceMasterName, sourceColorIndex)
+					print("Source is color:", sourceLayers)
+					print("sourceGlyph, sourceMasterName, sourceColorIndex:", sourceGlyph, sourceMasterName, sourceColorIndex)
 				else:
 					# Get the named master layer
 					for layer in sourceGlyph.layers:
@@ -338,9 +358,11 @@ class CopyLayerToLayer(mekkaObject):
 							sourceLayers = [layer]
 							break
 				
+				print("CHECK 1")
 				if not sourceLayers:
 					skippedCount += 1
 					continue
+				print("CHECK 2")
 
 				# Find or create target glyph
 				targetGlyph = targetFont.glyphs[glyphName]
