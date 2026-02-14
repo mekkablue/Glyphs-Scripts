@@ -19,6 +19,9 @@ def process(thisGlyph):
 			if thisLayer.backgroundImage:
 				thisLayer.setBackgroundImage_(None)
 				deleteCount += 1
+			if thisLayer.background.backgroundImage:
+				thisLayer.background.setBackgroundImage_(None)
+				deleteCount += 1
 		except Exception as e:
 			print("   ⚠️ %s, layer ‘%s’: %s\n" % (thisGlyph.name, thisLayer.name, e))
 
