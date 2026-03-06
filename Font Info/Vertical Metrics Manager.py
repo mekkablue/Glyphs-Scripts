@@ -31,6 +31,18 @@ def glyphDepth(glyph):
 	return min([bottomEdge(l.bounds) for l in glyph.layers if l.isMasterLayer or l.isSpecialLayer])
 
 
+def markHeight(glyph):
+	height = 0
+	for l in glyph.layers:
+		if not l.isMasterLayer and not l.isSpecialLayer:
+			continue
+		if l.anchors["_top"]:
+			thisHeight = l.bounds.origin.x + l.bounds.size.height - l.anchors["_top"].position.y
+			if thisHeight > height:
+				height = thisHeight
+	return height
+
+
 def cleanInt(numberString):
 	exportString = ""
 	numberString = str(numberString)
@@ -757,43 +769,56 @@ class VerticalMetricsManager(mekkaObject):
 
 		ascender = 0
 		descender = 0
+		capHeight = 0
 
 		for thisFont in theseFonts:
-			capHeight = max([m.capHeight for m in thisFont.masters])
+			capHeight = max([m.capHeight for m in thisFont.masters] + [capHeight])
 			# print(capHeight, type(capHeight), roundValue, type(roundValue))
 
 			abreveacute = thisFont.glyphs["Abreveacute"]
+			agrave = thisFont.glyphs["Agrave"]
 			if abreveacute:
 				abreveacuteHeight = glyphHeight(abreveacute)
+			elif agrave:
+				abreveacuteHeight = glyphHeight(agrave)
+				acute = thisFont.glyphs["acutecomb.case"] or thisFont.glyphs["acutecomb"]
+				if acute:
+					abreveacuteHeight += markHeight(acute)
 			else:
 				abreveacuteHeight = 0
 				for glyph in thisFont.glyphs:
 					if ignoreNonExporting and not glyph.export:
 						continue
-					if glyph.category == "Letter" and glyph.case == GSUppercase:
-						if glyphHeight(glyph) > abreveacuteHeight:
-							abreveacuteHeight = glyphHeight(glyph)
+					if glyph.category == "Letter":
+						thisGlyphHeight = glyphHeight(glyph)
+						if glyphHeight > abreveacuteHeight:
+							abreveacuteHeight = thisGlyphHeight
 				if abreveacuteHeight < capHeight:
 					abreveacuteHeight = capHeight
 
-			descender = max(descender, capHeight - abreveacuteHeight)
+			ascender = max(ascender, abreveacuteHeight)
+			descender = min(descender, capHeight - abreveacuteHeight)
 			if descender > 0:
 				descender *= -1
-			ascender = max(ascender, abreveacuteHeight)
-
+			
+			# sanity check: descender must go below all actual descenders
 			for glyph in thisFont.glyphs:
 				if glyph.category != "Letter":
 					continue
 				if glyphDepth(glyph) < descender:
 					descender = glyphDepth(glyph)
-					ascender = capHeight + abs(descender)
+					ascender = max(ascender, capHeight + abs(descender))
 
-		# optically center cap height:
-		# descender = roundUpByValue(descender * 1.015, roundValue)
+		# center caps again:
+		distance = max(abs(descender), ascender - capHeight)
+		ascender = capHeight + distance
+		descender = -distance
+
+		# round if requested
 		if shouldRound:
-			descender = roundUpByValue(glyphDepth(glyph), roundValue)
-			ascender = roundUpByValue(capHeight + abs(descender), roundValue)
-			
+			descender = roundUpByValue(descender, roundValue)
+			ascender = roundUpByValue(ascender, roundValue)
+
 		# update typo values:
 		self.setPref("typoAsc", ascender)
 		self.setPref("typoDesc", descender)
