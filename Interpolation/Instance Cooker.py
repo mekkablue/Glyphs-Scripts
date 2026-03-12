@@ -373,7 +373,7 @@ class InstanceCooker(mekkaObject):
 			for styleInfo in recipeDict[axisKey]:
 				# add axis location:
 				styleCoord = styleInfo[0]
-				if isinstance(styleCoord, list):
+				if isinstance(styleCoord, (list, tuple)):
 					styleCoord = styleCoord[1]
 				axisLocation += f"{styleCoord:.1f}"
 
@@ -414,6 +414,8 @@ class InstanceCooker(mekkaObject):
 		if not any([x.startswith("ital") for x in axisLocations]):
 			if "Italic" in firstVF.name:
 				axisLocations.append("ital; 1=Italic")
+			elif "Oblique" in firstVF.name:
+				axisLocations.append("ital; 1=Oblique")
 			else:
 				axisLocations.append("ital; 0>1=Roman")
 		
