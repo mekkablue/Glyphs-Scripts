@@ -37,7 +37,7 @@ Recipe instructions:
 190>900:Black
 
 #Italic:ital
-0:Regular*
+0:Roman*
 1:Italic
 """
 
@@ -166,7 +166,7 @@ def styleLinkInstance(instance, axisName, particle, defaultName="Regular"):
 	if axisName == "Weight" and particle == "Bold":
 		instance.isBold = True
 		instance.linkStyle = linkedStyleName
-	elif axisName == "Italic" and particle == axisName:
+	elif axisName == "Italic" and particle in ("Oblique", "Italic"):
 		instance.isItalic = True
 		if not instance.linkStyle and linkedStyleName != defaultName:
 			instance.linkStyle = linkedStyleName
