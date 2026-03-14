@@ -14,7 +14,7 @@ shifted into the same coordinate space. Connection nodes need not be smooth.
 # Clicking points: mekkablue Position Clicker algorithm (LSB ↔ RSB offset matching).
 
 from math import sqrt
-from AppKit import NSPoint, NSMakePoint
+from AppKit import NSPoint
 from GlyphsApp import Glyphs, OFFCURVE
 
 
@@ -51,10 +51,6 @@ def harmonizedC(A, B, D, E, F, G):
 
 	factor = 1.0 + sqrt(ratio)
 	return addPoints(E, scalePoint(vectorED, factor))
-
-
-def harmonizedE(A, B, C, D, F, G):
-	return harmonizedC(G, F, D, C, B, A)
 
 
 def harmonizedCforDetachedSegments(A1, B1, D1, D2, E2, F2, G2):
@@ -207,7 +203,7 @@ def clickingNodePositions(layer, refLayer, tolerance=1.0):
 	return clickingPositions
 
 
-def harmonizeAtClickingNode(layerNode, refNode, isComesLater, shiftWidth):
+def harmonizeAtClickingNode(layerNode, refNode, isComesLater):
 	"""
 	Applies G2 harmonization at a cross-glyph clicking point by assembling the
 	seven-point geometry (A B C D E F G) and calling harmonizeOnePoint().
@@ -246,7 +242,9 @@ def harmonizeAtClickingNode(layerNode, refNode, isComesLater, shiftWidth):
 		F = F_node.position
 		G = G_node.position
 
-		C_handle.position = harmonizedCforDetachedSegments(A, B, D1, D2, E, F, G)
+		newPos = harmonizedCforDetachedSegments(A, B, D1, D2, E, F, G)
+		if newPos is not None:
+			C_handle.position = newPos
 
 	else:  # comesFirst: layer at LSB
 		# ── left segment (A B C D): ref, shifted −shiftWidth ───────────────────
@@ -273,7 +271,9 @@ def harmonizeAtClickingNode(layerNode, refNode, isComesLater, shiftWidth):
 		G = G_node.position
 
 		# E_handle.position = harmonizedCforDetachedSegments(G, F, D2, D1, C, B, A)
-		E_handle.position = harmonizedEforDetachedSegments(A, B, C, D1, D2, F, G)
+		newPos = harmonizedEforDetachedSegments(A, B, C, D1, D2, F, G)
+		if newPos is not None:
+			E_handle.position = newPos
 
 	return True
 
@@ -325,29 +325,31 @@ def positionalHarmonize(layer, harmonizeWith="behDotless-ar.medi"):
 				if comesLater:
 					# RSB connection: corresponding ref node is at (cx − layerWidth, cy)
 					refNode = findNodeAtPos(refLayer, cx - layerWidth, cy)
-					if refNode and harmonizeAtClickingNode(node, refNode, True, layerWidth):
+					if refNode and harmonizeAtClickingNode(node, refNode, True):
 						adjustedCount += 1
 
 				if comesFirst:
 					# LSB connection: corresponding ref node is at (cx + refWidth, cy)
 					refNode = findNodeAtPos(refLayer, cx + refWidth, cy)
-					if refNode and harmonizeAtClickingNode(node, refNode, False, refWidth):
+					if refNode and harmonizeAtClickingNode(node, refNode, False):
 						adjustedCount += 1
 
 	layer.updateMetrics()
 	if adjustedCount > 0:
-		print(f"✅ G2-harmonized '{layer.parent.name}' ({adjustedCount} handle{'' if adjustedCount==1 else 's'}) with '{harmonizeWith}'.")
+		print(f"⚖️ G2-harmonized '{layer.parent.name}' ({adjustedCount} handle{'' if adjustedCount==1 else 's'}) with '{harmonizeWith}'.")
 	else:
 		print(f"ℹ️ No handles adjusted for '{layer.parent.name}' — connection nodes may lack curve handles.")
 
 
 # ─────────────────────────── run on selection ─────────────────────────────────
 
+Glyphs.clearLog()
 thisFont = Glyphs.font
+print("Positional Harmonize")
+print(f"📄 {thisFont.filepath or thisFont.familyName}\n")
 if not thisFont:
-	print("⚠️  No font open.")
+	print("⚠️ No font open.")
 else:
-	Glyphs.clearLog()
 	thisFont.disableUpdateInterface()
 	try:
 		for layer in thisFont.selectedLayers:
@@ -355,6 +357,7 @@ else:
 			thisGlyph.beginUndo()
 			positionalHarmonize(layer)
 			thisGlyph.endUndo()
+		print("\n✅ Done.")
 	except Exception as e:
 		Glyphs.showMacroWindow()
 		print("\n⚠️ Error in Positional Harmonize\n")
