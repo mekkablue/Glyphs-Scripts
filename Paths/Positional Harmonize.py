@@ -21,10 +21,6 @@ from GlyphsApp import Glyphs, OFFCURVE
 # ─────────────────────────── geometry helpers ─────────────────────────────────
 
 
-def ptDist(p, q):
-	return math.hypot(q.x - p.x, q.y - p.y)
-
-
 def lineIntersection(a1, a2, b1, b2):
 	"""Intersection of line a1→a2 with line b1→b2, or None if parallel."""
 	dx1, dy1 = a2.x - a1.x, a2.y - a1.y
@@ -34,12 +30,6 @@ def lineIntersection(a1, a2, b1, b2):
 		return None
 	t = ((b1.x - a1.x) * dy2 - (b1.y - a1.y) * dx2) / denom
 	return NSPoint(a1.x + t * dx1, a1.y + t * dy1)
-
-
-class _Shifted:
-	"""Read-only position proxy: returns a node's position shifted by dx in x."""
-	def __init__(self, node, dx):
-		self.position = NSPoint(node.position.x + dx, node.position.y)
 
 
 # ──────────────────────────── clicking points ─────────────────────────────────
@@ -117,66 +107,50 @@ def nodesAtPos(path, x, y):
 # ─────────────────────── G2 harmonization (handle-only) ───────────────────────
 
 
-def g2AdjustHandles(handleIn, smoothNode, handleOut, outerIn, outerOut, fixSide):
+def harmonizeOnePoint(A, B, C, D, E, F, G, harmonizeIndex=2):
 	"""
-	Adjusts one handle to achieve G2 continuity at smoothNode (Simon Cozens algorithm).
+	Harmonize two cubic Bezier segments that share on-curve point D, by moving
+	exactly one handle to achieve G2 continuity at D.
 
-	Node layout:  … outerIn – handleIn – smoothNode – handleOut – outerOut …
-	              (off-curve)  (off-curve)  (on-curve)  (off-curve)  (off-curve)
+	  A – B – C – D – E – F – G
+	 on   off  off  on  off  off  on
+	      ← left segment →   ← right segment →
 
-	Any of the five arguments may be a _Shifted proxy (for cross-glyph use).
-	Only the node indicated by fixSide is written to; the rest are read-only.
+	A, D, G: on-curve points.  B, C: handles for segment A→D (B near A, C near D).
+	E, F: handles for segment D→G (E near D, F near G).
 
-	Algorithm (iterated to convergence):
-	  d    = intersection of line(outerIn → handleIn) and line(outerOut → handleOut)
-	  r0   = dist(outerIn, handleIn) / dist(handleIn, d)
-	  r1   = dist(d, handleOut)      / dist(handleOut, outerOut)
-	  p    = sqrt(r0 * r1)
-	  t    = p / (p + 1)
-	  ideal = lerp(handleIn, handleOut, t)   ← G2-ideal position for smoothNode
-	  delta = ideal − smoothNode              ← applied to the chosen handle
-	  Repeat until |delta| < 0.01 (idempotent result).
+	harmonizeIndex: index of the point to adjust (0=A … 6=G).
+	  2 → adjust C  (layer's inner handle when layer is at RSB / comesLater)
+	  4 → adjust E  (layer's inner handle when layer is at LSB / comesFirst)
 
-	fixSide : 'in' | 'out'
+	Returns the new NSPoint for the adjusted point.
+	Algorithm: Simon Cozens / mekkablue GreyHarmony.
 	"""
-	B = outerIn.position
-	D = smoothNode.position  # never moved
-	F = outerOut.position
+	def dist(p, q):
+		return math.hypot(q.x - p.x, q.y - p.y)
 
-	for _ in range(50):
-		C = handleIn.position   # re-read each iteration; changes when fixSide == 'in'
-		E = handleOut.position  # re-read each iteration; changes when fixSide == 'out'
+	# d = intersection of line C→D (left tangent at D) and line E→F (right shoulder)
+	d = lineIntersection(C, D, E, F)
+	if d is None:
+		return [A, B, C, D, E, F, G][harmonizeIndex]
 
-		d = lineIntersection(B, C, F, E)
-		if d is None:
-			return
+	p0Den = dist(C, d)
+	p1Den = dist(E, F)
+	if p0Den < 1e-10 or p1Den < 1e-10:
+		return [A, B, C, D, E, F, G][harmonizeIndex]
 
-		dBC = ptDist(B, C)
-		dCd = ptDist(C, d)
-		ddE = ptDist(d, E)
-		dEF = ptDist(E, F)
+	p0 = dist(B, C) / p0Den   # left ratio:  dist(B,C) / dist(C,d)
+	p1 = dist(d, E) / p1Den   # right ratio: dist(d,E) / dist(E,F)
 
-		if dCd < 1e-6 or dEF < 1e-6:
-			return
+	p = math.sqrt(p0 * p1)
+	t = p / (p + 1.0)
 
-		r0 = dBC / dCd
-		r1 = ddE / dEF
-		if r0 <= 0 or r1 <= 0:
-			return
+	harmonicD = NSPoint(C.x + t * (E.x - C.x), C.y + t * (E.y - C.y))
+	deltaX = harmonicD.x - D.x
+	deltaY = harmonicD.y - D.y
 
-		p = math.sqrt(r0 * r1)
-		t = p / (p + 1.0)
-
-		dx = C.x + t * (E.x - C.x) - D.x
-		dy = C.y + t * (E.y - C.y) - D.y
-
-		if math.hypot(dx, dy) < 0.01:
-			return  # converged — running again would change nothing
-
-		if fixSide == 'in':
-			handleIn.position = NSPoint(C.x + dx, C.y + dy)
-		elif fixSide == 'out':
-			handleOut.position = NSPoint(E.x + dx, E.y + dy)
+	pts = [A, B, C, D, E, F, G]
+	return NSPoint(pts[harmonizeIndex].x + deltaX, pts[harmonizeIndex].y + deltaY)
 
 
 def _segmentAnchor(clickingNode, handle):
@@ -240,52 +214,68 @@ def _outerNode(clickingNode, handle):
 
 def harmonizeAtClickingNode(layerNode, refNode, isComesLater, shiftWidth):
 	"""
-	Applies G2 harmonization at a cross-glyph clicking point.
+	Applies G2 harmonization at a cross-glyph clicking point by assembling the
+	seven-point geometry (A B C D E F G) and calling harmonizeOnePoint().
 
-	Finds whichever adjacent node is the off-curve handle (regardless of
-	prevNode/nextNode order — path direction varies between glyphs). Uses
-	x-direction to disambiguate when both sides have handles.
+	isComesLater=True  (fina/medi, layer at RSB):
+	  Left segment A→D lives in the layer (C is adjusted, harmonizeIndex=2).
+	  Right segment D→G lives in the ref, shifted +shiftWidth into composite space.
 
-	isComesLater=True  (fina/medi at RSB):
-	  - layer's inward handle (x < clicking node) → adjusted
-	  - ref's inward handle at LSB (x > ref clicking node), shifted +shiftWidth
-	isComesLater=False (init/medi at LSB):
-	  - layer's inward handle (x > clicking node) → adjusted
-	  - ref's inward handle at RSB (x < ref clicking node), shifted −shiftWidth
+	isComesLater=False (init/medi, layer at LSB):
+	  Left segment A→D lives in the ref, shifted −shiftWidth into composite space.
+	  Right segment D→G lives in the layer (E is adjusted, harmonizeIndex=4).
 
-	Returns True if the handle was adjusted.
+	Returns True if a handle was adjusted.
 	"""
 	if isComesLater:
-		handleIn = _inwardHandle(layerNode, wantSmallerX=True)
-		if handleIn is None:
+		# ── left segment (A B C D): layer ──────────────────────────────────────
+		C_handle = _inwardHandle(layerNode, wantSmallerX=True)
+		if C_handle is None:
 			return False
-		outerIn = _outerNode(layerNode, handleIn)
+		B_node = _outerNode(layerNode, C_handle)
+		A_node = _segmentAnchor(layerNode, C_handle)
 
-		refHandle = _inwardHandle(refNode, wantSmallerX=False)
-		if refHandle is None:
+		# ── right segment (D E F G): ref, shifted +shiftWidth ──────────────────
+		E_handle = _inwardHandle(refNode, wantSmallerX=False)
+		if E_handle is None:
 			return False
-		refOuter = _outerNode(refNode, refHandle)
+		F_node = _outerNode(refNode, E_handle)
+		G_node = _segmentAnchor(refNode, E_handle)
 
-		handleOut = _Shifted(refHandle, dx=shiftWidth)
-		outerOut = _Shifted(refOuter, dx=shiftWidth)
+		A = A_node.position
+		B = B_node.position
+		C = C_handle.position
+		D = layerNode.position
+		E = NSPoint(E_handle.position.x + shiftWidth, E_handle.position.y)
+		F = NSPoint(F_node.position.x + shiftWidth, F_node.position.y)
+		G = NSPoint(G_node.position.x + shiftWidth, G_node.position.y)
 
-		g2AdjustHandles(handleIn, layerNode, handleOut, outerIn, outerOut, 'in')
+		C_handle.position = harmonizeOnePoint(A, B, C, D, E, F, G, harmonizeIndex=2)
 
 	else:  # comesFirst: layer at LSB
-		handleOut = _inwardHandle(layerNode, wantSmallerX=False)
-		if handleOut is None:
+		# ── left segment (A B C D): ref, shifted −shiftWidth ───────────────────
+		C_handle = _inwardHandle(refNode, wantSmallerX=True)
+		if C_handle is None:
 			return False
-		outerOut = _outerNode(layerNode, handleOut)
+		B_node = _outerNode(refNode, C_handle)
+		A_node = _segmentAnchor(refNode, C_handle)
 
-		refHandle = _inwardHandle(refNode, wantSmallerX=True)
-		if refHandle is None:
+		# ── right segment (D E F G): layer ─────────────────────────────────────
+		E_handle = _inwardHandle(layerNode, wantSmallerX=False)
+		if E_handle is None:
 			return False
-		refOuter = _outerNode(refNode, refHandle)
+		F_node = _outerNode(layerNode, E_handle)
+		G_node = _segmentAnchor(layerNode, E_handle)
 
-		handleIn = _Shifted(refHandle, dx=-shiftWidth)
-		outerIn = _Shifted(refOuter, dx=-shiftWidth)
+		A = NSPoint(A_node.position.x - shiftWidth, A_node.position.y)
+		B = NSPoint(B_node.position.x - shiftWidth, B_node.position.y)
+		C = NSPoint(C_handle.position.x - shiftWidth, C_handle.position.y)
+		D = layerNode.position
+		E = E_handle.position
+		F = F_node.position
+		G = G_node.position
 
-		g2AdjustHandles(handleIn, layerNode, handleOut, outerIn, outerOut, 'out')
+		E_handle.position = harmonizeOnePoint(A, B, C, D, E, F, G, harmonizeIndex=4)
 
 	return True
 
