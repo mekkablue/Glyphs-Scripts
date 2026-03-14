@@ -2,12 +2,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Establishes G2 continuity between the current layer and behDotless-ar.medi
-at their connection (clicking) points, by adjusting the one handle of the 
-current glyph that faces the connection. On-curve nodes are never moved.
+Establishes G2 continuity between the selected glyphs and behDotless-ar.medi (or another medial glyph) at their connection (clicking) points, by adjusting the one handle of the current glyph that faces the connection. On-curve nodes are never moved.
 
-The ‘other’ handle used for the G2 ratio comes from behDotless-ar.medi,
-shifted into the same coordinate space. Connection nodes need not be smooth.
+The ‘other’ handle used for the G2 ratio comes from the medial reference glyph, shifted into the same coordinate space. Connection nodes need not be smooth.
 """
 
 # G2 algorithm: Simon Cozens / mekkablue GreyHarmony.
@@ -242,14 +239,14 @@ def harmonizeAtClickingNode(layerNode, refNode, isComesLater):
 			C_handle.position = newPos
 
 	else:  # comesFirst: layer at LSB
-		# ── left segment (A B C D): ref (raw coords, aligned internally) ───────
+		# left segment (A B C D): ref (raw coords, aligned internally)
 		C_handle = _inwardHandle(refNode, wantSmallerX=True)
 		if C_handle is None:
 			return False
 		B_node = _outerNode(refNode, C_handle)
 		A_node = _segmentAnchor(refNode, C_handle)
 
-		# ── right segment (D E F G): layer ─────────────────────────────────────
+		# right segment (D E F G): layer
 		E_handle = _inwardHandle(layerNode, wantSmallerX=False)
 		if E_handle is None:
 			return False
@@ -269,9 +266,6 @@ def harmonizeAtClickingNode(layerNode, refNode, isComesLater):
 			E_handle.position = newPos
 
 	return True
-
-
-# ─────────────────────────── main function ────────────────────────────────────
 
 
 def positionalHarmonize(layer, harmonizeWith="behDotless-ar.medi"):
@@ -334,9 +328,6 @@ def positionalHarmonize(layer, harmonizeWith="behDotless-ar.medi"):
 		print(f"ℹ️ No handles adjusted for '{layer.parent.name}' — connection nodes may lack curve handles.")
 
 
-# ──────────────────────────────── UI ──────────────────────────────────────────
-
-
 class PositionalHarmonize(mekkaObject):
 	prefDict = {
 		"referenceGlyphName": "behDotless-ar.medi",
@@ -344,7 +335,7 @@ class PositionalHarmonize(mekkaObject):
 
 	def __init__(self):
 		windowWidth = 340
-		windowHeight = 88
+		windowHeight = 120
 		windowWidthResize = 500
 		windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
@@ -357,18 +348,18 @@ class PositionalHarmonize(mekkaObject):
 
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Harmonize positionals with medial glyph", sizeStyle="small")
+		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Harmonize selected positionals with medial glyph", sizeStyle="small")
 		linePos += lineHeight
 
 		tooltip = "Reference glyph. Pick a medial glyph with paths for clicking. We recommend behDotless-ar.medi."
-		indent = 105
+		indent = 95
 		self.w.referenceText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Reference glyph:", sizeStyle="small")
-		self.w.referenceText.getNSTextField().setToolTip_(tooltip)
+		self.w.referenceText.setToolTip(tooltip)
 		self.w.referenceGlyphName = vanilla.ComboBox((inset + indent, linePos - 2, -inset - 22, 19), self.getAllMediGlyphNames(), sizeStyle="small", callback=self.SavePreferences)
 		self.w.referenceGlyphName.getNSComboBox().setFont_(NSFont.userFixedPitchFontOfSize_(10))
-		self.w.referenceGlyphName.getNSComboBox().setToolTip_(tooltip)
+		self.w.referenceGlyphName.setToolTip(tooltip)
 		self.w.updateButton = UpdateButton((-inset - 18, linePos - 3, -inset, 18), callback=self.updateReferenceGlyphs)
-		self.w.updateButton.getNSButton().setToolTip_("Update the list with all .medi glyphs in the frontmost font.")
+		self.w.updateButton.setToolTip("Update the list with all .medi glyphs in the frontmost font.")
 		linePos += lineHeight
 
 		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Harmonize", callback=self.PositionalHarmonizeMain)

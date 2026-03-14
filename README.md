@@ -417,6 +417,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **New Tab with Small Paths:** Opens a new tab containing paths that are smaller than a user-definable threshold size in square units.
 * **Path Problem Finder:** Finds all kinds of potential problems in outlines, and opens a new tab with affected layers.
 * **Position Clicker:** Finds all combinations of positional shapes that do not click well. ‘Clicking’ means sharing two point coordinates when overlapping.
+* **Positional Harmonize:** Establishes G2 continuity between the selected layers and behDotless-ar.medi (or another medial glyph) at their connection (clicking) points, by adjusting the one handle of the current glyph that faces the connection.
 * **Realign BCPs:** Realigns all BCPs in all selected glyphs. Useful if handles got out of sync, e.g. after nudging or some other transformation, or after interpolation. Hold down Option to apply to all layers of the selected glyph(s).
 * **Remove all Open Paths:** Deletes all *open* paths in the visible layers of all selected glyphs.
 * **Remove Short Segments:** Deletes segments shorter than one unit.
