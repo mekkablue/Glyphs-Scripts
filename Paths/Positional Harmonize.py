@@ -18,6 +18,115 @@ import math
 from AppKit import NSPoint
 from GlyphsApp import Glyphs, OFFCURVE
 
+
+def lineIntersect(p0, p1, p2, p3):
+	"""Returns intersection point of lines p0-p1 and p2-p3 or None"""
+	# Line p0-p1(a,b): a*p0.x + b*p1.x = ...
+	a1 = p1.y - p0.y
+	b1 = p0.x - p1.x
+	c1 = a1 * p0.x + b1 * p0.y
+
+	a2 = p3.y - p2.y
+	b2 = p2.x - p3.x
+	c2 = a2 * p2.x + b2 * p2.y
+
+	det = a1 * b2 - a2 * b1
+	if abs(det) < 1e-10:
+		return None
+	iX = (b2 * c1 - b1 * c2) / det
+	iY = (a1 * c2 - a2 * c1) / det
+	return NSMakePoint(iX, iY)
+
+def pointDistanceSquared(p1, p2):
+	dx = p1.x - p2.x
+	dy = p1.y - p2.y
+	return dx * dx + dy * dy
+
+def distSquared(p1, p2):
+	return pointDistanceSquared(p1, p2)
+
+def harmonizeOnePoint(A, B, C, D, E, F, G, harmonizeIndex=2):
+	"""
+	Harmonize segments A-D-G at D by adjusting only the specified point.
+	A, D, G: oncurve points (ADG cubic)
+	B, C: handles for A-D
+	E, F: handles for D-G
+	harmonizeIndex: 0=A,1=B,2=C,3=D,4=E,5=F,6=G
+	Returns the new NSPoint for the adjusted point.
+	"""
+	points = [A, B, C, D, E, F, G]
+	if harmonizeIndex == 3:  # D, trivial
+		return D
+
+	# Identify left and right segments
+	if harmonizeIndex <= 3:
+		# Adjust left: right fixed
+		leftOn1 = A
+		leftH1 = B
+		leftH2 = C
+		joinOn1 = D
+		rightOn1 = G
+		rightH1 = E
+		rightH2 = F
+		fixedOn = G
+	else:
+		# Adjust right: left fixed
+		leftOn1 = A
+		leftH1 = B
+		leftH2 = C
+		joinOn1 = D
+		rightOn1 = G
+		rightH1 = E
+		rightH2 = F
+		fixedOn = A
+
+	# Compute d = intersection leftH2-joinOn1 line and rightH1-rightH2 line
+	line1P0 = leftH2
+	line1P1 = joinOn1
+	line2P0 = rightH1
+	line2P1 = rightH2
+	d = lineIntersect(line1P0, line1P1, line2P0, line2P1)
+	if d is None:
+		# Collinear or parallel, cannot compute geometric mean, return original
+		return points[harmonizeIndex]
+
+	# Compute ratios p0 = |leftH1 - leftH2| / |leftH2 - d|, but wait, according to algo p0 = |a1,a2| / |a2,d|
+	# a1=leftH1? No: standard cubic a0=on1, a1=h1, a2=h2, a3=join
+	# |a1 a2| incoming handle length? But gist says |a1,a2| / |a2,d|
+	# Assuming a1 is incoming handle leftH1, a2=outgoing leftH2
+	p0Num = math.sqrt(distSquared(leftH1, leftH2))
+	p0Den = math.sqrt(distSquared(leftH2, d))
+	if p0Den < 1e-10:
+		return points[harmonizeIndex]
+	p0 = p0Num / p0Den
+
+	p1Num = math.sqrt(distSquared(d, rightH1))  # |d, b1|
+	p1Den = math.sqrt(distSquared(rightH1, rightH2))
+	if p1Den < 1e-10:
+		return points[harmonizeIndex]
+	p1 = p1Num / p1Den
+
+	p = math.sqrt(p0 * p1)
+	t = p / (p + 1.0)
+
+	# Harmonic position for joinOn1
+	harmonicD = NSMakePoint(leftH2.x * (1 - t) + rightH1.x * t,
+						 leftH2.y * (1 - t) + rightH1.y * t)
+
+	deltaX = harmonicD.x - joinOn1.x
+	deltaY = harmonicD.y - joinOn1.y
+
+	if harmonizeIndex <= 3:
+		# Adjust left segment point
+		newPoint = NSMakePoint(points[harmonizeIndex].x + deltaX,
+							   points[harmonizeIndex].y + deltaY)
+	else:
+		# Adjust right segment point
+		newPoint = NSMakePoint(points[harmonizeIndex].x + deltaX,
+							   points[harmonizeIndex].y + deltaY)
+
+	return newPoint
+
 # ─────────────────────────── geometry helpers ─────────────────────────────────
 
 
