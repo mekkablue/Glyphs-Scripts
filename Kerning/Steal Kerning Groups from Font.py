@@ -50,18 +50,19 @@ class StealKerningGroupsfromFont(mekkaObject):
 		linePos += lineHeight
 
 		indent = 75
-		self.w.targetFontText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Target font:", sizeStyle="small", selectable=True)
-		self.w.targetFont = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), (), sizeStyle="small", callback=self.SavePreferences)
-		tooltip = "The font that receives the kerning groups."
-		self.w.targetFont.getNSPopUpButton().setToolTip_(tooltip)
-		self.w.targetFontText.getNSTextField().setToolTip_(tooltip)
-		linePos += lineHeight
 
 		self.w.sourceFontText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Source font:", sizeStyle="small", selectable=True)
 		self.w.sourceFont = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), (), sizeStyle="small", callback=self.SavePreferences)
 		tooltip = "The font from which the kerning groups are taken."
 		self.w.sourceFont.getNSPopUpButton().setToolTip_(tooltip)
 		self.w.sourceFontText.getNSTextField().setToolTip_(tooltip)
+		linePos += lineHeight
+
+		self.w.targetFontText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Target font:", sizeStyle="small", selectable=True)
+		self.w.targetFont = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), (), sizeStyle="small", callback=self.SavePreferences)
+		tooltip = "The font that receives the kerning groups."
+		self.w.targetFont.getNSPopUpButton().setToolTip_(tooltip)
+		self.w.targetFontText.getNSTextField().setToolTip_(tooltip)
 		linePos += lineHeight
 
 		self.w.allGroups = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Copy ⚠️ ALL groups (i.e., ignore selection in source font)", value=True, callback=self.SavePreferences, sizeStyle="small")
