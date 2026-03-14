@@ -173,56 +173,85 @@ def g2AdjustHandles(handleIn, smoothNode, handleOut, outerIn, outerOut, fixSide)
 		handleOut.position = NSPoint(E.x + dx, E.y + dy)
 
 
+def _inwardHandle(node, wantSmallerX):
+	"""
+	Return the off-curve handle adjacent to node that points inward.
+
+	For an RSB clicking node (wantSmallerX=True) the inward handle has x < node.x.
+	For an LSB clicking node (wantSmallerX=False) the inward handle has x > node.x.
+	If only one adjacent node is off-curve, that one is returned regardless of x.
+	"""
+	prevN = node.prevNode
+	nextN = node.nextNode
+	prevIsHandle = prevN.type == OFFCURVE
+	nextIsHandle = nextN.type == OFFCURVE
+
+	if prevIsHandle and not nextIsHandle:
+		return prevN
+	if nextIsHandle and not prevIsHandle:
+		return nextN
+	if prevIsHandle and nextIsHandle:
+		# Both sides curved: pick by x direction.
+		if wantSmallerX:
+			return prevN if prevN.position.x <= node.position.x else nextN
+		else:
+			return nextN if nextN.position.x >= node.position.x else prevN
+	return None  # no adjacent off-curve
+
+
+def _outerNode(clickingNode, handle):
+	"""The node one step further beyond handle, away from clickingNode."""
+	if handle is clickingNode.prevNode:
+		return handle.prevNode
+	return handle.nextNode
+
+
 def harmonizeAtClickingNode(layerNode, refNode, isComesLater, shiftWidth):
 	"""
 	Applies G2 harmonization at a cross-glyph clicking point.
 
-	The G2 ratio uses one handle from the current glyph and one from the
-	reference glyph (shifted into the same coordinate space). Only the
-	current glyph's handle is modified. Connection nodes need not be smooth.
+	Finds whichever adjacent node is the off-curve handle (regardless of
+	prevNode/nextNode order — path direction varies between glyphs). Uses
+	x-direction to disambiguate when both sides have handles.
 
 	isComesLater=True  (fina/medi at RSB):
-	  - layerNode.prevNode  = handle going INTO the current glyph  → adjusted
-	  - refNode.nextNode    = handle departing into the ref glyph  → reference only
-	  - ref handles shifted +shiftWidth (= layerWidth) into composite space
-
+	  - layer's inward handle (x < clicking node) → adjusted
+	  - ref's inward handle at LSB (x > ref clicking node), shifted +shiftWidth
 	isComesLater=False (init/medi at LSB):
-	  - layerNode.nextNode  = handle going INTO the current glyph  → adjusted
-	  - refNode.prevNode    = handle arriving from the ref glyph   → reference only
-	  - ref handles shifted −shiftWidth (= refWidth) into layer's coordinate space
+	  - layer's inward handle (x > clicking node) → adjusted
+	  - ref's inward handle at RSB (x < ref clicking node), shifted −shiftWidth
 
 	Returns True if the handle was adjusted.
 	"""
 	if isComesLater:
-		handleIn = layerNode.prevNode
-		if handleIn.type != OFFCURVE:
+		handleIn = _inwardHandle(layerNode, wantSmallerX=True)
+		if handleIn is None:
 			return False
-		outerIn = handleIn.prevNode  # outer handle (or on-curve) within current glyph
+		outerIn = _outerNode(layerNode, handleIn)
 
-		refHandleOut = refNode.nextNode
-		if refHandleOut.type != OFFCURVE:
+		refHandle = _inwardHandle(refNode, wantSmallerX=False)
+		if refHandle is None:
 			return False
-		refOuterOut = refHandleOut.nextNode
+		refOuter = _outerNode(refNode, refHandle)
 
-		handleOut = _Shifted(refHandleOut, dx=shiftWidth)
-		outerOut = _Shifted(refOuterOut, dx=shiftWidth)
+		handleOut = _Shifted(refHandle, dx=shiftWidth)
+		outerOut = _Shifted(refOuter, dx=shiftWidth)
 
 		g2AdjustHandles(handleIn, layerNode, handleOut, outerIn, outerOut, 'in')
 
-	else:  # comesFirst: layer is at LSB
-		handleOut = layerNode.nextNode
-		if handleOut.type != OFFCURVE:
+	else:  # comesFirst: layer at LSB
+		handleOut = _inwardHandle(layerNode, wantSmallerX=False)
+		if handleOut is None:
 			return False
-		outerOut = handleOut.nextNode
+		outerOut = _outerNode(layerNode, handleOut)
 
-		refHandleIn = refNode.prevNode
-		if refHandleIn.type != OFFCURVE:
+		refHandle = _inwardHandle(refNode, wantSmallerX=True)
+		if refHandle is None:
 			return False
-		refOuterIn = refHandleIn.prevNode
+		refOuter = _outerNode(refNode, refHandle)
 
-		# Shift ref handles by −shiftWidth to bring into layer's coordinate space
-		handleIn = _Shifted(refHandleIn, dx=-shiftWidth)
-		outerIn = _Shifted(refOuterIn, dx=-shiftWidth)
+		handleIn = _Shifted(refHandle, dx=-shiftWidth)
+		outerIn = _Shifted(refOuter, dx=-shiftWidth)
 
 		g2AdjustHandles(handleIn, layerNode, handleOut, outerIn, outerOut, 'out')
 
