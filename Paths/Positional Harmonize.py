@@ -14,8 +14,10 @@ shifted into the same coordinate space. Connection nodes need not be smooth.
 # Clicking points: mekkablue Position Clicker algorithm (LSB ↔ RSB offset matching).
 
 from math import sqrt
-from AppKit import NSPoint
-from GlyphsApp import Glyphs, OFFCURVE
+import vanilla
+from AppKit import NSFont, NSPoint
+from GlyphsApp import Glyphs, OFFCURVE, Message
+from mekkablue import mekkaObject, UpdateButton
 
 
 def subPoints(p1, p2):
@@ -205,16 +207,10 @@ def clickingNodePositions(layer, refLayer, tolerance=1.0):
 
 def harmonizeAtClickingNode(layerNode, refNode, isComesLater):
 	"""
-	Applies G2 harmonization at a cross-glyph clicking point by assembling the
-	seven-point geometry (A B C D E F G) and calling harmonizeOnePoint().
+	Applies G2 harmonization at a cross-glyph clicking point.
 
-	isComesLater=True  (fina/medi, layer at RSB):
-	  Left segment A→D lives in the layer (C is adjusted, harmonizeIndex=2).
-	  Right segment D→G lives in the ref, shifted +shiftWidth into composite space.
-
-	isComesLater=False (init/medi, layer at LSB):
-	  Left segment A→D lives in the ref, shifted −shiftWidth into composite space.
-	  Right segment D→G lives in the layer (E is adjusted, harmonizeIndex=4).
+	isComesLater=True  (fina/medi, layer at RSB): adjusts C, the layer's inner left handle.
+	isComesLater=False (init/medi, layer at LSB): adjusts E, the layer's inner right handle.
 
 	Returns True if a handle was adjusted.
 	"""
@@ -226,7 +222,7 @@ def harmonizeAtClickingNode(layerNode, refNode, isComesLater):
 		B_node = _outerNode(layerNode, C_handle)
 		A_node = _segmentAnchor(layerNode, C_handle)
 
-		# ── right segment (D E F G): ref, shifted +shiftWidth ──────────────────
+		# ── right segment (D E F G): ref (raw coords, aligned internally) ──────
 		E_handle = _inwardHandle(refNode, wantSmallerX=False)
 		if E_handle is None:
 			return False
@@ -235,7 +231,6 @@ def harmonizeAtClickingNode(layerNode, refNode, isComesLater):
 
 		A = A_node.position
 		B = B_node.position
-		# C = C_handle.position
 		D1 = layerNode.position
 		D2 = refNode.position
 		E = E_handle.position
@@ -247,7 +242,7 @@ def harmonizeAtClickingNode(layerNode, refNode, isComesLater):
 			C_handle.position = newPos
 
 	else:  # comesFirst: layer at LSB
-		# ── left segment (A B C D): ref, shifted −shiftWidth ───────────────────
+		# ── left segment (A B C D): ref (raw coords, aligned internally) ───────
 		C_handle = _inwardHandle(refNode, wantSmallerX=True)
 		if C_handle is None:
 			return False
@@ -266,11 +261,9 @@ def harmonizeAtClickingNode(layerNode, refNode, isComesLater):
 		C = C_handle.position
 		D1 = refNode.position
 		D2 = layerNode.position
-		# E = E_handle.position
 		F = F_node.position
 		G = G_node.position
 
-		# E_handle.position = harmonizedCforDetachedSegments(G, F, D2, D1, C, B, A)
 		newPos = harmonizedEforDetachedSegments(A, B, C, D1, D2, F, G)
 		if newPos is not None:
 			E_handle.position = newPos
@@ -341,28 +334,103 @@ def positionalHarmonize(layer, harmonizeWith="behDotless-ar.medi"):
 		print(f"ℹ️ No handles adjusted for '{layer.parent.name}' — connection nodes may lack curve handles.")
 
 
-# ─────────────────────────── run on selection ─────────────────────────────────
+# ──────────────────────────────── UI ──────────────────────────────────────────
 
-Glyphs.clearLog()
-thisFont = Glyphs.font
-print("Positional Harmonize")
-print(f"📄 {thisFont.filepath or thisFont.familyName}\n")
-if not thisFont:
-	print("⚠️ No font open.")
-else:
-	thisFont.disableUpdateInterface()
-	try:
-		for layer in thisFont.selectedLayers:
-			thisGlyph = layer.parent
-			thisGlyph.beginUndo()
-			positionalHarmonize(layer)
-			thisGlyph.endUndo()
-		print("\n✅ Done.")
-	except Exception as e:
-		Glyphs.showMacroWindow()
-		print("\n⚠️ Error in Positional Harmonize\n")
-		import traceback
-		print(traceback.format_exc())
-		raise e
-	finally:
-		thisFont.enableUpdateInterface()
+
+class PositionalHarmonize(mekkaObject):
+	prefDict = {
+		"referenceGlyphName": "behDotless-ar.medi",
+	}
+
+	def __init__(self):
+		windowWidth = 340
+		windowHeight = 88
+		windowWidthResize = 500
+		windowHeightResize = 0
+		self.w = vanilla.FloatingWindow(
+			(windowWidth, windowHeight),
+			"Positional Harmonize",
+			minSize=(windowWidth, windowHeight),
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),
+			autosaveName=self.domain("mainwindow"),
+		)
+
+		linePos, inset, lineHeight = 12, 15, 22
+
+		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Harmonize positionals with medial glyph", sizeStyle="small")
+		linePos += lineHeight
+
+		tooltip = "Reference glyph. Pick a medial glyph with paths for clicking. We recommend behDotless-ar.medi."
+		indent = 105
+		self.w.referenceText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Reference glyph:", sizeStyle="small")
+		self.w.referenceText.getNSTextField().setToolTip_(tooltip)
+		self.w.referenceGlyphName = vanilla.ComboBox((inset + indent, linePos - 2, -inset - 22, 19), self.getAllMediGlyphNames(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.referenceGlyphName.getNSComboBox().setFont_(NSFont.userFixedPitchFontOfSize_(10))
+		self.w.referenceGlyphName.getNSComboBox().setToolTip_(tooltip)
+		self.w.updateButton = UpdateButton((-inset - 18, linePos - 3, -inset, 18), callback=self.updateReferenceGlyphs)
+		self.w.updateButton.getNSButton().setToolTip_("Update the list with all .medi glyphs in the frontmost font.")
+		linePos += lineHeight
+
+		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Harmonize", callback=self.PositionalHarmonizeMain)
+		self.w.setDefaultButton(self.w.runButton)
+
+		self.LoadPreferences()
+		self.w.open()
+		self.w.makeKey()
+
+	def updateReferenceGlyphs(self, sender=None):
+		self.w.referenceGlyphName.setItems(self.getAllMediGlyphNames())
+
+	def updateUI(self, sender=None):
+		self.w.runButton.enable(bool(self.w.referenceGlyphName.get()))
+
+	def getAllMediGlyphNames(self, sender=None):
+		font = Glyphs.font
+		fallback = "behDotless-ar.medi"
+		if not font:
+			return [fallback]
+		glyphNames = []
+		for g in font.glyphs:
+			if ".medi" in g.name or g.name.startswith("kashida") or g.unicode == "0640":
+				glyphNames.append(g.name)
+		if fallback in glyphNames:
+			glyphNames.remove(fallback)
+			glyphNames.insert(0, fallback)
+		return glyphNames
+
+	def PositionalHarmonizeMain(self, sender=None):
+		try:
+			Glyphs.clearLog()
+			self.SavePreferences()
+
+			thisFont = Glyphs.font
+			if not thisFont:
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
+
+			referenceGlyphName = self.pref("referenceGlyphName")
+
+			print("Positional Harmonize")
+			print(f"📄 {thisFont.filepath or thisFont.familyName}\n")
+
+			thisFont.disableUpdateInterface()
+			try:
+				for layer in thisFont.selectedLayers:
+					thisGlyph = layer.parent
+					thisGlyph.beginUndo()
+					positionalHarmonize(layer, harmonizeWith=referenceGlyphName)
+					thisGlyph.endUndo()
+			finally:
+				thisFont.enableUpdateInterface()
+
+			print("\n✅ Done.")
+			Glyphs.showNotification("Positional Harmonize", "Done. Details in Macro Window.")
+
+		except Exception as e:
+			Glyphs.showMacroWindow()
+			print("\n⚠️ Error in Positional Harmonize\n")
+			import traceback
+			print(traceback.format_exc())
+
+
+PositionalHarmonize()
