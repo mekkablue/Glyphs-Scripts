@@ -3,10 +3,10 @@
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Establishes G2 continuity between the current layer and behDotless-ar.medi
-at their connection (clicking) points, by adjusting the one handle of the
+at their connection (clicking) points, by adjusting the one handle of the 
 current glyph that faces the connection. On-curve nodes are never moved.
 
-The 'other' handle used for the G2 ratio comes from behDotless-ar.medi,
+The ‘other’ handle used for the G2 ratio comes from behDotless-ar.medi,
 shifted into the same coordinate space. Connection nodes need not be smooth.
 """
 
