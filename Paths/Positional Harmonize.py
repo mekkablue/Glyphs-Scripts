@@ -175,10 +175,12 @@ def g2AdjustHandles(handleIn, smoothNode, handleOut, outerIn, outerOut, fixSide)
 
 def _inwardHandle(node, wantSmallerX):
 	"""
-	Return the off-curve handle adjacent to node that points inward.
+	Return the off-curve handle adjacent to node that points inward (toward glyph interior).
 
-	For an RSB clicking node (wantSmallerX=True) the inward handle has x < node.x.
-	For an LSB clicking node (wantSmallerX=False) the inward handle has x > node.x.
+	For an RSB clicking node (wantSmallerX=True) the inward handle is the one with smaller x.
+	For an LSB clicking node (wantSmallerX=False) the inward handle is the one with larger x.
+	When both adjacent nodes are off-curve, the two handles are compared against each other
+	(not against the clicking node) to pick the one further toward the interior.
 	If only one adjacent node is off-curve, that one is returned regardless of x.
 	"""
 	prevN = node.prevNode
@@ -191,11 +193,14 @@ def _inwardHandle(node, wantSmallerX):
 	if nextIsHandle and not prevIsHandle:
 		return nextN
 	if prevIsHandle and nextIsHandle:
-		# Both sides curved: pick by x direction.
+		# Both sides curved: pick whichever handle is further toward the glyph interior.
+		# Compare the two handles against each other, not against the clicking node.
+		# For RSB connection (wantSmallerX=True): inward handle has smaller x.
+		# For LSB connection (wantSmallerX=False): inward handle has larger x.
 		if wantSmallerX:
-			return prevN if prevN.position.x <= node.position.x else nextN
+			return prevN if prevN.position.x <= nextN.position.x else nextN
 		else:
-			return nextN if nextN.position.x >= node.position.x else prevN
+			return prevN if prevN.position.x >= nextN.position.x else nextN
 	return None  # no adjacent off-curve
 
 
