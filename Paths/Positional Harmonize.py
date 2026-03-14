@@ -173,14 +173,31 @@ def g2AdjustHandles(handleIn, smoothNode, handleOut, outerIn, outerOut, fixSide)
 		handleOut.position = NSPoint(E.x + dx, E.y + dy)
 
 
+def _segmentAnchor(clickingNode, handle):
+	"""
+	Return the on-curve node at the far end of the Bezier segment that contains handle.
+	handle must be the prevNode or nextNode of clickingNode.
+	"""
+	if handle is clickingNode.prevNode:
+		n = handle.prevNode
+		while n.type == OFFCURVE:
+			n = n.prevNode
+		return n
+	else:
+		n = handle.nextNode
+		while n.type == OFFCURVE:
+			n = n.nextNode
+		return n
+
+
 def _inwardHandle(node, wantSmallerX):
 	"""
 	Return the off-curve handle adjacent to node that points inward (toward glyph interior).
 
-	For an RSB clicking node (wantSmallerX=True) the inward handle is the one with smaller x.
-	For an LSB clicking node (wantSmallerX=False) the inward handle is the one with larger x.
-	When both adjacent nodes are off-curve, the two handles are compared against each other
-	(not against the clicking node) to pick the one further toward the interior.
+	For an RSB clicking node (wantSmallerX=True) the inward curve goes leftward:
+	  pick the handle whose far-end on-curve anchor has smaller x.
+	For an LSB clicking node (wantSmallerX=False) the inward curve goes rightward:
+	  pick the handle whose far-end on-curve anchor has larger x.
 	If only one adjacent node is off-curve, that one is returned regardless of x.
 	"""
 	prevN = node.prevNode
@@ -193,14 +210,14 @@ def _inwardHandle(node, wantSmallerX):
 	if nextIsHandle and not prevIsHandle:
 		return nextN
 	if prevIsHandle and nextIsHandle:
-		# Both sides curved: pick whichever handle is further toward the glyph interior.
-		# Compare the two handles against each other, not against the clicking node.
-		# For RSB connection (wantSmallerX=True): inward handle has smaller x.
-		# For LSB connection (wantSmallerX=False): inward handle has larger x.
+		# Both sides curved: use the on-curve anchor of each segment to determine
+		# which handle's curve goes toward the glyph interior.
+		prevAnchor = _segmentAnchor(node, prevN)
+		nextAnchor = _segmentAnchor(node, nextN)
 		if wantSmallerX:
-			return prevN if prevN.position.x <= nextN.position.x else nextN
+			return prevN if prevAnchor.position.x <= nextAnchor.position.x else nextN
 		else:
-			return prevN if prevN.position.x >= nextN.position.x else nextN
+			return prevN if prevAnchor.position.x >= nextAnchor.position.x else nextN
 	return None  # no adjacent off-curve
 
 
