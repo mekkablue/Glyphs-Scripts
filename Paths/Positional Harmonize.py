@@ -128,6 +128,85 @@ def _outerNode(clickingNode, handle):
 	return handle.nextNode
 
 
+def nodesAtPos(path, x, y, tolerance=1.0):
+	nodeList = []
+	for i, node in enumerate(path.nodes):
+		if abs(node.position.x - x) <= tolerance and abs(node.position.y - y) <= tolerance:
+			nodeList.append((i, node))
+	return nodeList
+
+
+def findNodeAtPos(layer, x, y, tolerance=1.0, includeOffcurves=False):
+	for path in layer.paths:
+		for _, node in nodesAtPos(path, x, y, tolerance=tolerance):
+			if includeOffcurves or node.type != OFFCURVE:
+				return node
+	return None
+
+
+def _yMatches(y, yValues, tolerance=1.0):
+	for otherY in yValues:
+		if abs(otherY - y) <= tolerance:
+			return True
+	return False
+
+
+def clickingNodePositions(layer, refLayer, tolerance=1.0):
+	"""
+	Return a list of clicking-point positions in layer coordinates.
+
+	A clicking point is:
+	- a node on layer RSB whose y matches a node on refLayer LSB, or
+	- a node on layer LSB whose y matches a node on refLayer RSB.
+
+	Only on-curve nodes are considered.
+	"""
+	layerWidth = float(layer.width)
+	refWidth = float(refLayer.width)
+
+	refLeftYs = []
+	refRightYs = []
+
+	for path in refLayer.paths:
+		for node in path.nodes:
+			if node.type == OFFCURVE:
+				continue
+
+			x = node.position.x
+			y = node.position.y
+
+			if abs(x) <= tolerance:
+				refLeftYs.append(y)
+			if abs(x - refWidth) <= tolerance:
+				refRightYs.append(y)
+
+	clickingPositions = []
+	seenPositions = set()
+
+	for path in layer.paths:
+		for node in path.nodes:
+			if node.type == OFFCURVE:
+				continue
+
+			x = node.position.x
+			y = node.position.y
+
+			isRightClick = abs(x - layerWidth) <= tolerance and _yMatches(y, refLeftYs, tolerance=tolerance)
+			isLeftClick = abs(x) <= tolerance and _yMatches(y, refRightYs, tolerance=tolerance)
+
+			if not isLeftClick and not isRightClick:
+				continue
+
+			positionKey = (round(x, 4), round(y, 4))
+			if positionKey in seenPositions:
+				continue
+
+			seenPositions.add(positionKey)
+			clickingPositions.append((x, y))
+
+	return clickingPositions
+
+
 def harmonizeAtClickingNode(layerNode, refNode, isComesLater, shiftWidth):
 	"""
 	Applies G2 harmonization at a cross-glyph clicking point by assembling the
