@@ -4,7 +4,11 @@ from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Establishes G2 continuity between the current layer and a reference glyph
 (default: behDotless-ar.medi) at their connection (clicking) points,
-by adjusting handle positions only — on-curve nodes are never moved.
+by adjusting the one handle of the current glyph that faces the connection.
+On-curve nodes are never moved.
+
+The "other" handle used for the G2 ratio comes from the reference glyph,
+shifted into the same coordinate space. Connection nodes need not be smooth.
 
 G2 algorithm: Simon Cozens / mekkablue GreyHarmony.
 Clicking points: mekkablue Position Clicker algorithm (LSB ↔ RSB offset matching).
@@ -30,6 +34,12 @@ def lineIntersection(a1, a2, b1, b2):
 		return None
 	t = ((b1.x - a1.x) * dy2 - (b1.y - a1.y) * dx2) / denom
 	return NSPoint(a1.x + t * dx1, a1.y + t * dy1)
+
+
+class _Shifted:
+	"""Read-only position proxy: returns a node's position shifted by dx in x."""
+	def __init__(self, node, dx):
+		self.position = NSPoint(node.position.x + dx, node.position.y)
 
 
 # ──────────────────────────── clicking points ─────────────────────────────────
@@ -88,6 +98,16 @@ def clickingNodePositions(layer, refLayer):
 	return list(result)
 
 
+def findNodeAtPos(layer, x, y):
+	"""Return the first on-curve node in layer at int-rounded position (x, y)."""
+	for path in layer.paths:
+		for node in path.nodes:
+			if node.type != OFFCURVE:
+				if int(round(node.position.x)) == x and int(round(node.position.y)) == y:
+					return node
+	return None
+
+
 def nodesAtPos(path, x, y):
 	for i, node in enumerate(path.nodes):
 		if int(round(node.position.x)) == x and int(round(node.position.y)) == y:
@@ -104,6 +124,9 @@ def g2AdjustHandles(handleIn, smoothNode, handleOut, outerIn, outerOut, fixSide)
 	Node layout:  … outerIn – handleIn – smoothNode – handleOut – outerOut …
 	              (off-curve)  (off-curve)  (on-curve)  (off-curve)  (off-curve)
 
+	Any of the five arguments may be a _Shifted proxy (for cross-glyph use).
+	Only the node indicated by fixSide is written to; the rest are read-only.
+
 	Algorithm:
 	  d    = intersection of line(outerIn → handleIn) and line(outerOut → handleOut)
 	  r0   = dist(outerIn, handleIn) / dist(handleIn, d)
@@ -111,9 +134,9 @@ def g2AdjustHandles(handleIn, smoothNode, handleOut, outerIn, outerOut, fixSide)
 	  p    = sqrt(r0 * r1)
 	  t    = p / (p + 1)
 	  ideal = lerp(handleIn, handleOut, t)   ← G2-ideal position for smoothNode
-	  delta = ideal − smoothNode              ← applied to handles since node is fixed
+	  delta = ideal − smoothNode              ← applied to the chosen handle
 
-	fixSide : 'in' | 'out' | 'both'
+	fixSide : 'in' | 'out'
 	"""
 	B = outerIn.position
 	C = handleIn.position
@@ -121,7 +144,6 @@ def g2AdjustHandles(handleIn, smoothNode, handleOut, outerIn, outerOut, fixSide)
 	E = handleOut.position
 	F = outerOut.position
 
-	# Intersection of the two outer-handle tangent lines
 	d = lineIntersection(B, C, F, E)
 	if d is None:
 		return
@@ -145,10 +167,66 @@ def g2AdjustHandles(handleIn, smoothNode, handleOut, outerIn, outerOut, fixSide)
 	dx = C.x + t * (E.x - C.x) - D.x
 	dy = C.y + t * (E.y - C.y) - D.y
 
-	if fixSide in ('in', 'both'):
+	if fixSide == 'in':
 		handleIn.position = NSPoint(C.x + dx, C.y + dy)
-	if fixSide in ('out', 'both'):
+	elif fixSide == 'out':
 		handleOut.position = NSPoint(E.x + dx, E.y + dy)
+
+
+def harmonizeAtClickingNode(layerNode, refNode, isComesLater, shiftWidth):
+	"""
+	Applies G2 harmonization at a cross-glyph clicking point.
+
+	The G2 ratio uses one handle from the current glyph and one from the
+	reference glyph (shifted into the same coordinate space). Only the
+	current glyph's handle is modified. Connection nodes need not be smooth.
+
+	isComesLater=True  (fina/medi at RSB):
+	  - layerNode.prevNode  = handle going INTO the current glyph  → adjusted
+	  - refNode.nextNode    = handle departing into the ref glyph  → reference only
+	  - ref handles shifted +shiftWidth (= layerWidth) into composite space
+
+	isComesLater=False (init/medi at LSB):
+	  - layerNode.nextNode  = handle going INTO the current glyph  → adjusted
+	  - refNode.prevNode    = handle arriving from the ref glyph   → reference only
+	  - ref handles shifted −shiftWidth (= refWidth) into layer's coordinate space
+
+	Returns True if the handle was adjusted.
+	"""
+	if isComesLater:
+		handleIn = layerNode.prevNode
+		if handleIn.type != OFFCURVE:
+			return False
+		outerIn = handleIn.prevNode  # outer handle (or on-curve) within current glyph
+
+		refHandleOut = refNode.nextNode
+		if refHandleOut.type != OFFCURVE:
+			return False
+		refOuterOut = refHandleOut.nextNode
+
+		handleOut = _Shifted(refHandleOut, dx=shiftWidth)
+		outerOut = _Shifted(refOuterOut, dx=shiftWidth)
+
+		g2AdjustHandles(handleIn, layerNode, handleOut, outerIn, outerOut, 'in')
+
+	else:  # comesFirst: layer is at LSB
+		handleOut = layerNode.nextNode
+		if handleOut.type != OFFCURVE:
+			return False
+		outerOut = handleOut.nextNode
+
+		refHandleIn = refNode.prevNode
+		if refHandleIn.type != OFFCURVE:
+			return False
+		refOuterIn = refHandleIn.prevNode
+
+		# Shift ref handles by −shiftWidth to bring into layer's coordinate space
+		handleIn = _Shifted(refHandleIn, dx=-shiftWidth)
+		outerIn = _Shifted(refOuterIn, dx=-shiftWidth)
+
+		g2AdjustHandles(handleIn, layerNode, handleOut, outerIn, outerOut, 'out')
+
+	return True
 
 
 # ─────────────────────────── main function ────────────────────────────────────
@@ -157,11 +235,11 @@ def g2AdjustHandles(handleIn, smoothNode, handleOut, outerIn, outerOut, fixSide)
 def positionalHarmonize(layer, harmonizeWith="behDotless-ar.medi"):
 	"""
 	Establishes G2 harmony between layer and the same-master layer of
-	harmonizeWith at their shared on-curve (clicking) points.
+	harmonizeWith at their connection (clicking) points.
 
-	Only handles are moved; on-curve nodes stay fixed.
-	Handles bridging two clicking points within the same glyph are left alone
-	so the glyph's own internal curve shapes are preserved.
+	For each clicking node, adjusts the single handle within the current
+	glyph that faces the connection. The matching handle from the reference
+	glyph provides the other side of the G2 ratio and is never modified.
 	"""
 	font = layer.parent.parent
 
@@ -180,47 +258,38 @@ def positionalHarmonize(layer, harmonizeWith="behDotless-ar.medi"):
 		print(f"ℹ️  No clicking points between '{layer.parent.name}' and '{harmonizeWith}'.")
 		return
 
-	sharedSet = frozenset(sharedPts)
+	nameParts = layer.parent.name.split(".")
+	comesFirst = "medi" in nameParts or "init" in nameParts
+	comesLater = "medi" in nameParts or "fina" in nameParts
+
+	layerWidth = int(round(layer.width))
+	refWidth = int(round(refLayer.width))
+
+	adjustedCount = 0
 
 	for cx, cy in sharedPts:
 		for path in layer.paths:
-			count = len(path.nodes)
-			nodes = path.nodes
-
-			for idx, node in nodesAtPos(path, cx, cy):
-				if node.type == OFFCURVE or not node.smooth:
+			for _, node in nodesAtPos(path, cx, cy):
+				if node.type == OFFCURVE:
 					continue
 
-				prevNode = nodes[(idx - 1) % count]
-				nextNode = nodes[(idx + 1) % count]
-				prevIsHandle = prevNode.type == OFFCURVE
-				nextIsHandle = nextNode.type == OFFCURVE
+				if comesLater:
+					# RSB connection: corresponding ref node is at (cx − layerWidth, cy)
+					refNode = findNodeAtPos(refLayer, cx - layerWidth, cy)
+					if refNode and harmonizeAtClickingNode(node, refNode, True, layerWidth):
+						adjustedCount += 1
 
-				if not prevIsHandle or not nextIsHandle:
-					continue  # need curves on both sides for G2
-
-				outerIn = nodes[(idx - 2) % count]
-				outerOut = nodes[(idx + 2) % count]
-
-				# Detect "internal" handles: those bridging two clicking nodes
-				# within the same glyph.  In a standard cubic path, the on-curve
-				# three steps away is the neighbour that a handle points toward.
-				prevBeyond = nodes[(idx - 3) % count]
-				nextBeyond = nodes[(idx + 3) % count]
-				prevInternal = (int(round(prevBeyond.position.x)), int(round(prevBeyond.position.y))) in sharedSet
-				nextInternal = (int(round(nextBeyond.position.x)), int(round(nextBeyond.position.y))) in sharedSet
-
-				if prevInternal and not nextInternal:
-					fixSide = 'out'
-				elif nextInternal and not prevInternal:
-					fixSide = 'in'
-				else:
-					fixSide = 'both'
-
-				g2AdjustHandles(prevNode, node, nextNode, outerIn, outerOut, fixSide)
+				if comesFirst:
+					# LSB connection: corresponding ref node is at (cx + refWidth, cy)
+					refNode = findNodeAtPos(refLayer, cx + refWidth, cy)
+					if refNode and harmonizeAtClickingNode(node, refNode, False, refWidth):
+						adjustedCount += 1
 
 	layer.updateMetrics()
-	print(f"✅ G2-harmonized '{layer.parent.name}' ({len(sharedPts)} clicking point(s)) with '{harmonizeWith}'.")
+	if adjustedCount > 0:
+		print(f"✅ G2-harmonized '{layer.parent.name}' ({adjustedCount} handle(s)) with '{harmonizeWith}'.")
+	else:
+		print(f"ℹ️  No handles adjusted for '{layer.parent.name}' — connection nodes may lack curve handles.")
 
 
 # ─────────────────────────── run on selection ─────────────────────────────────
