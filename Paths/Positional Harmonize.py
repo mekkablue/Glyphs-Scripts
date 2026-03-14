@@ -7,7 +7,7 @@ Establishes G2 continuity between the current layer and a reference glyph
 by adjusting handle positions only — on-curve nodes are never moved.
 
 G2 algorithm: Simon Cozens / mekkablue GreyHarmony.
-Clicking points: mekkablue Position Clicker (shared on-curve coordinates).
+Clicking points: mekkablue Position Clicker algorithm (LSB ↔ RSB offset matching).
 """
 
 import math
@@ -35,18 +35,57 @@ def lineIntersection(a1, a2, b1, b2):
 # ──────────────────────────── clicking points ─────────────────────────────────
 
 
-def onCurvePositions(layer):
-	pos = set()
-	for path in layer.paths:
-		for node in path.nodes:
-			if node.type != OFFCURVE:
-				pos.add((int(round(node.position.x)), int(round(node.position.y))))
-	return frozenset(pos)
+def clickingNodePositions(layer, refLayer):
+	"""
+	Returns (x, y) int tuples of on-curve nodes in `layer` that are at the
+	clicking (connection) point with `refLayer`.
 
+	Arabic positional geometry:
+	  - Finals and medials connect at their RSB (x ≈ layer.width).
+	  - Initials and medials connect at their LSB (x = 0).
+	  - A connection is always LSB (one glyph) ↔ RSB (the other).
 
-def clickingPoints(layerA, layerB):
-	"""Shared on-curve positions — where positional forms click together."""
-	return list(onCurvePositions(layerA) & onCurvePositions(layerB))
+	Mirrors Position Clicker: shifts one layer's nodes by the other's width
+	to simulate glyph placement, then finds coordinate matches.
+	  comesLater (fina/medi): layer is left, refLayer is right →
+	    shift refLayer nodes by layer.width; matches land at layer's RSB.
+	  comesFirst (init/medi): layer is right, refLayer is left →
+	    shift layer nodes by refLayer.width; matches land at layer's LSB.
+	"""
+	nameParts = layer.parent.name.split(".")
+	comesFirst = "medi" in nameParts or "init" in nameParts  # LSB side connects
+	comesLater = "medi" in nameParts or "fina" in nameParts  # RSB side connects
+
+	layerWidth = int(round(layer.width))
+	refWidth = int(round(refLayer.width))
+
+	layerOnCurves = frozenset(
+		(int(round(n.position.x)), int(round(n.position.y)))
+		for path in layer.paths for n in path.nodes if n.type != OFFCURVE
+	)
+	refOnCurves = frozenset(
+		(int(round(n.position.x)), int(round(n.position.y)))
+		for path in refLayer.paths for n in path.nodes if n.type != OFFCURVE
+	)
+
+	result = set()
+
+	if comesLater:
+		# layer is left (RSB connects); refLayer is right (LSB connects).
+		# Shift refLayer by layerWidth and look for matches in layer.
+		for rx, ry in refOnCurves:
+			candidate = (rx + layerWidth, ry)
+			if candidate in layerOnCurves:
+				result.add(candidate)
+
+	if comesFirst:
+		# layer is right (LSB connects); refLayer is left (RSB connects).
+		# Shift layer by refWidth and look for matches in refLayer.
+		for lx, ly in layerOnCurves:
+			if (lx + refWidth, ly) in refOnCurves:
+				result.add((lx, ly))  # return in layer's original coords
+
+	return list(result)
 
 
 def nodesAtPos(path, x, y):
@@ -136,7 +175,7 @@ def positionalHarmonize(layer, harmonizeWith="behDotless-ar.medi"):
 		print(f"⚠️  No matching master layer in '{harmonizeWith}'.")
 		return
 
-	sharedPts = clickingPoints(layer, refLayer)
+	sharedPts = clickingNodePositions(layer, refLayer)
 	if not sharedPts:
 		print(f"ℹ️  No clicking points between '{layer.parent.name}' and '{harmonizeWith}'.")
 		return
