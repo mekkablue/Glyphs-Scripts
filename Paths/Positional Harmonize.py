@@ -228,7 +228,7 @@ def nodesAtPos(path, x, y):
 
 def g2AdjustHandles(handleIn, smoothNode, handleOut, outerIn, outerOut, fixSide):
 	"""
-	Adjusts handles to achieve G2 continuity at smoothNode (Simon Cozens algorithm).
+	Adjusts one handle to achieve G2 continuity at smoothNode (Simon Cozens algorithm).
 
 	Node layout:  … outerIn – handleIn – smoothNode – handleOut – outerOut …
 	              (off-curve)  (off-curve)  (on-curve)  (off-curve)  (off-curve)
@@ -236,7 +236,7 @@ def g2AdjustHandles(handleIn, smoothNode, handleOut, outerIn, outerOut, fixSide)
 	Any of the five arguments may be a _Shifted proxy (for cross-glyph use).
 	Only the node indicated by fixSide is written to; the rest are read-only.
 
-	Algorithm:
+	Algorithm (iterated to convergence):
 	  d    = intersection of line(outerIn → handleIn) and line(outerOut → handleOut)
 	  r0   = dist(outerIn, handleIn) / dist(handleIn, d)
 	  r1   = dist(d, handleOut)      / dist(handleOut, outerOut)
@@ -244,42 +244,48 @@ def g2AdjustHandles(handleIn, smoothNode, handleOut, outerIn, outerOut, fixSide)
 	  t    = p / (p + 1)
 	  ideal = lerp(handleIn, handleOut, t)   ← G2-ideal position for smoothNode
 	  delta = ideal − smoothNode              ← applied to the chosen handle
+	  Repeat until |delta| < 0.01 (idempotent result).
 
 	fixSide : 'in' | 'out'
 	"""
 	B = outerIn.position
-	C = handleIn.position
 	D = smoothNode.position  # never moved
-	E = handleOut.position
 	F = outerOut.position
 
-	d = lineIntersection(B, C, F, E)
-	if d is None:
-		return
+	for _ in range(50):
+		C = handleIn.position   # re-read each iteration; changes when fixSide == 'in'
+		E = handleOut.position  # re-read each iteration; changes when fixSide == 'out'
 
-	dBC = ptDist(B, C)
-	dCd = ptDist(C, d)
-	ddE = ptDist(d, E)
-	dEF = ptDist(E, F)
+		d = lineIntersection(B, C, F, E)
+		if d is None:
+			return
 
-	if dCd < 1e-6 or dEF < 1e-6:
-		return
+		dBC = ptDist(B, C)
+		dCd = ptDist(C, d)
+		ddE = ptDist(d, E)
+		dEF = ptDist(E, F)
 
-	r0 = dBC / dCd
-	r1 = ddE / dEF
-	if r0 <= 0 or r1 <= 0:
-		return
+		if dCd < 1e-6 or dEF < 1e-6:
+			return
 
-	p = math.sqrt(r0 * r1)
-	t = p / (p + 1.0)
+		r0 = dBC / dCd
+		r1 = ddE / dEF
+		if r0 <= 0 or r1 <= 0:
+			return
 
-	dx = C.x + t * (E.x - C.x) - D.x
-	dy = C.y + t * (E.y - C.y) - D.y
+		p = math.sqrt(r0 * r1)
+		t = p / (p + 1.0)
 
-	if fixSide == 'in':
-		handleIn.position = NSPoint(C.x + dx, C.y + dy)
-	elif fixSide == 'out':
-		handleOut.position = NSPoint(E.x + dx, E.y + dy)
+		dx = C.x + t * (E.x - C.x) - D.x
+		dy = C.y + t * (E.y - C.y) - D.y
+
+		if math.hypot(dx, dy) < 0.01:
+			return  # converged — running again would change nothing
+
+		if fixSide == 'in':
+			handleIn.position = NSPoint(C.x + dx, C.y + dy)
+		elif fixSide == 'out':
+			handleOut.position = NSPoint(E.x + dx, E.y + dy)
 
 
 def _segmentAnchor(clickingNode, handle):
@@ -301,33 +307,37 @@ def _segmentAnchor(clickingNode, handle):
 
 def _inwardHandle(node, wantSmallerX):
 	"""
-	Return the off-curve handle adjacent to node that points inward (toward glyph interior).
+	Return the off-curve handle adjacent to node whose Bezier segment leads into the
+	glyph interior, or None if the inward segment is a straight line (no off-curve).
 
-	For an RSB clicking node (wantSmallerX=True) the inward curve goes leftward:
-	  pick the handle whose far-end on-curve anchor has smaller x.
-	For an LSB clicking node (wantSmallerX=False) the inward curve goes rightward:
-	  pick the handle whose far-end on-curve anchor has larger x.
-	If only one adjacent node is off-curve, that one is returned regardless of x.
+	Uses the x-position of each segment's far-end on-curve anchor to determine direction:
+	  RSB clicking node (wantSmallerX=True):  inward curve goes left  → pick smaller anchor x.
+	  LSB clicking node (wantSmallerX=False): inward curve goes right → pick larger  anchor x.
+
+	Returns None if no adjacent off-curve exists on the inward side (line segment there).
 	"""
 	prevN = node.prevNode
 	nextN = node.nextNode
-	prevIsHandle = prevN.type == OFFCURVE
-	nextIsHandle = nextN.type == OFFCURVE
 
-	if prevIsHandle and not nextIsHandle:
-		return prevN
-	if nextIsHandle and not prevIsHandle:
-		return nextN
-	if prevIsHandle and nextIsHandle:
-		# Both sides curved: use the on-curve anchor of each segment to determine
-		# which handle's curve goes toward the glyph interior.
-		prevAnchor = _segmentAnchor(node, prevN)
-		nextAnchor = _segmentAnchor(node, nextN)
-		if wantSmallerX:
-			return prevN if prevAnchor.position.x <= nextAnchor.position.x else nextN
-		else:
-			return prevN if prevAnchor.position.x >= nextAnchor.position.x else nextN
-	return None  # no adjacent off-curve
+	# Collect every adjacent off-curve handle together with its segment anchor's x.
+	candidates = []
+	if prevN.type == OFFCURVE:
+		candidates.append((prevN, _segmentAnchor(node, prevN).position.x))
+	if nextN.type == OFFCURVE:
+		candidates.append((nextN, _segmentAnchor(node, nextN).position.x))
+
+	if not candidates:
+		return None  # no off-curve neighbours at all
+
+	nodeX = node.position.x
+	if wantSmallerX:
+		# Interior is to the left: pick the candidate whose anchor is furthest left.
+		handle, anchorX = min(candidates, key=lambda item: item[1])
+		return handle if anchorX < nodeX else None  # None → inward side is a line
+	else:
+		# Interior is to the right: pick the candidate whose anchor is furthest right.
+		handle, anchorX = max(candidates, key=lambda item: item[1])
+		return handle if anchorX > nodeX else None  # None → inward side is a line
 
 
 def _outerNode(clickingNode, handle):
