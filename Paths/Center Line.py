@@ -467,9 +467,9 @@ def cleanup(layer, threshold=40):
 				toAdd.append(merged)
 				break  # line1 consumed, move on
 
-	for path in list(layer.paths):
-		if id(path) in toRemove:
-			layer.paths.remove(path)
+	for i in range(len(layer.shapes) - 1, -1, -1):
+		if id(layer.shapes[i]) in toRemove:
+			del layer.shapes[i]
 	for path in toAdd:
 		layer.paths.append(path)
 
