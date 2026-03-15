@@ -180,7 +180,8 @@ def bestOpposingSegment(layer, original, hits, t, measureLength):
 	  2.5. Reciprocal ray: fire up to three measuring rays from each remaining candidate
 	     (at t, max(0.1, t-0.16), and min(0.9, t+0.16)) and keep only those where at
 	     least one ray crosses back through the original segment. This confirms the two
-	     segments genuinely face each other. If none qualify, keep all from step 2.
+	     segments genuinely face each other. If none qualify, returns None immediately —
+	     the segment is skipped entirely at the call site.
 	  3. Closest diagonal: from the remaining candidates, return the one whose
 	     bounding-box diagonal length is closest to that of the original segment.
 	     This favours opposing segments of similar size over distant coincidental hits.
@@ -266,9 +267,9 @@ def bestOpposingSegment(layer, original, hits, t, measureLength):
 			for tRay in (t, max(0.1, t - 0.16), min(0.9, t + 0.16))
 		)
 
-	reciprocal = [c for c in candidates if hitsOriginal(c)]
-	if reciprocal:
-		candidates = reciprocal
+	candidates = [c for c in candidates if hitsOriginal(c)]
+	if not candidates:
+		return None
 
 	if len(candidates) == 1:
 		return candidates[0]
