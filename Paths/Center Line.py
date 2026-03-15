@@ -411,6 +411,7 @@ def relevantSegmentStarts(path, layer):
 	pathIsCCW = path.direction == -1
 
 	if segmentCount == 4 and pathIsCCW:
+		pathBounds = path.bounds
 		hasInnerPath = any(
 			otherPath is not path
 			and NSPointInRect(otherPath.bounds.origin, pathBounds)
