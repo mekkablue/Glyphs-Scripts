@@ -63,7 +63,6 @@ def isPathAlreadyThere(path, comparePaths):
 	
 	# compare paths
 	else:
-		print("--> comparing paths")
 		def pathStructure(p):
 			return list([n.position for n in p.nodes])
 		pathInfo = pathStructure(path)
@@ -730,7 +729,6 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 		(layer.bounds.size.width**2 + layer.bounds.size.height**2)**0.5 / 2,
 	)
 	for j, path in enumerate(layer.paths):
-		print(j, path)
 		preselectedNodes = relevantSegmentStarts(path, layer)
 		for x in preselectedNodes:
 			x.selected=True
@@ -818,10 +816,16 @@ buildInBackground = optionKeyPressed and shiftKeyPressed
 
 if buildInBackground:
 	Glyphs.defaults["showBackground"] = True
+	print("Building in background:")
+else:
+	print("Building in foreground:")
 
 selectedLayers = Glyphs.font.selectedLayers
 for selectedLayer in selectedLayers:
+	if not isinstance(selectedLayer, GSLayer):
+		continue
 	selectionMatters = selectedLayer.selection != () and len(selectedLayers) == 1
+	print(f"Processing {selectedLayer.parent.name}{' (selection matters)' if selectionMatters else ''}")
 	createCenterLinesForSelectedSegments(
 		selectedLayer,
 		inBackground=buildInBackground,
