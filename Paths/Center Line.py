@@ -422,17 +422,21 @@ def cleanup(layer, threshold=40):
 	"""
 	Removes false positives and applies fixes to paths in layer.
 
+	For both rules, line1 is always a standalone single-line path (2 nodes). line2
+	is drawn from a shared candidate list that includes both standalone single-line
+	paths and line segments extracted from multi-segment paths in the layer.
+
 	Rule 1 — merge overlapping single-line paths:
-	  Among all open paths consisting of exactly one line segment (2 nodes), find
-	  pairs where both conditions hold:
+	  Find pairs where both conditions hold:
 	    (a) The midpoint of line1 lies on line2 (nearest point within 1 unit).
 	    (b) Their paired endpoints are each less than threshold apart.
-	  When both conditions are met, the two paths are replaced by their centerLine().
+	  If line2 is standalone, both are removed and replaced by their centerLine().
+	  If line2 is a segment of a multi-segment path, only line1 is deleted (it is
+	  already represented by the existing longer path).
 	  line2 is tried reversed if the forward endpoint pairing does not satisfy (b).
-	  Once line1 is consumed by a merge it is skipped for further comparisons.
 
 	Rule 2 — delete redundant single-line paths:
-	  For each ordered pair (line1, line2), delete line1 if:
+	  For each (line1, line2) pair, delete line1 if:
 	    (a) Both endpoints of line1 lie on line2 (line1 is a subset), or
 	    (b) One endpoint lies on line2 and the other is less than threshold away
 	        from either endpoint of line2 (line1 is a near-subset).
@@ -442,13 +446,22 @@ def cleanup(layer, threshold=40):
 	toRemove = set()  # id()s of paths to remove
 	toAdd = []        # merged replacement paths
 
+	# line2 candidates: (gsPath, isStandalone)
+	# isStandalone=True  → path exists independently and can itself be removed (rule 1 merge)
+	# isStandalone=False → path is a temporary copy of a segment from a multi-segment path
+	line2Candidates = [(p, True) for p in singleLines]
+	for path in layer.paths:
+		if len(path.segments) > 1:
+			for seg in path.segments:
+				if len(seg) == 2:  # line segment only
+					line2Candidates.append((pathFromNodes([seg.objects()[0], seg.objects()[-1]]), False))
+
 	for i in range(len(singleLines)):
 		line1 = singleLines[i]
 		if id(line1) in toRemove:
 			continue
-		for j in range(i + 1, len(singleLines)):
-			line2 = singleLines[j]
-			if id(line2) in toRemove:
+		for line2, line2standalone in line2Candidates:
+			if line2standalone and (id(line2) == id(line1) or id(line2) in toRemove):
 				continue
 
 			# (a) midpoint of line1 must lie on line2
@@ -473,12 +486,16 @@ def cleanup(layer, threshold=40):
 			else:
 				continue
 
-			merged = centerLine(line1, line2forCenter)
-			if merged:
+			if line2standalone:
+				merged = centerLine(line1, line2forCenter)
+				if merged:
+					toRemove.add(id(line1))
+					toRemove.add(id(line2))
+					toAdd.append(merged)
+			else:
+				# line2 is a segment of a multi-segment path; line1 is redundant, delete it
 				toRemove.add(id(line1))
-				toRemove.add(id(line2))
-				toAdd.append(merged)
-				break  # line1 consumed, move on
+			break  # line1 consumed, move on
 
 	# Rule 2 — delete line1 if it is fully or partially redundant against line2:
 	#   (a) both endpoints of line1 lie on line2 → line1 is a subset, delete it
@@ -488,11 +505,11 @@ def cleanup(layer, threshold=40):
 		nearest, _ = path.nearestPointOnPath_pathTime_(point, None)
 		return distance(nearest, point) <= 1.0
 
-	for i, line1 in enumerate(singleLines):
+	for line1 in singleLines:
 		if id(line1) in toRemove:
 			continue
-		for j, line2 in enumerate(singleLines):
-			if i == j or id(line2) in toRemove:
+		for line2, line2standalone in line2Candidates:
+			if line2standalone and (id(line2) == id(line1) or id(line2) in toRemove):
 				continue
 			p0 = line1.nodes[0].position
 			p1 = line1.nodes[1].position
