@@ -6,7 +6,7 @@ Will create center lines between selected segments and their opposites. Hold dow
 """
 
 from AppKit import NSPoint, NSPointInRect, NSEvent
-from GlyphsApp import GSPath, GSPathSegment
+from GlyphsApp import GSPath, GSPathSegment, GSBackgroundLayer
 from copy import copy
 
 Glyphs.clearLog()
@@ -569,7 +569,9 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 	if not inBackground and shadowLayer.paths:
 		layer.selection = None
 	if inBackground and shadowLayer.paths:
-		layer.background.paths = []
+		background = layer.background
+		if isinstance(background, GSBackgroundLayer):
+			background.clear()
 
 	for shadowPath in shadowLayer.paths:
 		if inBackground:
