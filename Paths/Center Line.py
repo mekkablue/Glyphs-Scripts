@@ -375,6 +375,32 @@ def centerLine(path1, path2):
 		centerLine.nodes.append(centerNode)
 	return centerLine
 
+def buildRelevantLayer(path, fullLayer):
+	"""
+	Returns a temporary GSLayer for intersection testing when finding center
+	lines for path.
+
+	CCW path: include only path itself and any CW (counter/hole) paths from
+	fullLayer. Adjacent CCW strokes are excluded so their outlines cannot become
+	false-positive opposing walls or distort the line-of-sight bezier.
+
+	CW path or open/undetermined path: return fullLayer unchanged (no
+	restriction).
+
+	When a restricted layer is needed, copied paths are used so the originals
+	stay in fullLayer untouched.
+	"""
+	if path.direction != -1:  # CW or open: no restriction
+		return fullLayer
+	relevantPaths = [p for p in fullLayer.paths if p is path or p.direction == 1]
+	if len(relevantPaths) == len(fullLayer.paths):
+		return fullLayer  # all paths qualify — skip the copy overhead
+	tempLayer = GSLayer()
+	for p in relevantPaths:
+		tempLayer.paths.append(copy(p))
+	return tempLayer
+
+
 def relevantSegmentStarts(path, layer):
 	"""
 	Returns the subset of on-curve start nodes whose segments are worth measuring
@@ -729,6 +755,7 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 		(layer.bounds.size.width**2 + layer.bounds.size.height**2)**0.5 / 2,
 	)
 	for j, path in enumerate(layer.paths):
+		relevantLayer = buildRelevantLayer(path, layer)
 		preselectedNodes = relevantSegmentStarts(path, layer)
 		for x in preselectedNodes:
 			x.selected=True
@@ -761,7 +788,7 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 					D.position,
 					0,
 					)
-			intersections = intersectionsForMeasureRay(segment, layer, t, measureLength)
+			intersections = intersectionsForMeasureRay(segment, relevantLayer, t, measureLength)
 			middleOfSegment = segment.pointAtTime_(t)
 
 			if intersections and len(intersections) > 2:
@@ -770,8 +797,7 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 					[i.pointValue() for i in intersections[1:-1]],
 					key=lambda intersection: distance(intersection, middleOfSegment)
 					)
-				
-				bestHit = bestOpposingSegment(layer, original=segmentNodes, hits=hits, t=t, measureLength=measureLength, rayOrigin=rayOrigin)
+				bestHit = bestOpposingSegment(relevantLayer, original=segmentNodes, hits=hits, t=t, measureLength=measureLength, rayOrigin=rayOrigin)
 				if not bestHit:
 					continue
 
