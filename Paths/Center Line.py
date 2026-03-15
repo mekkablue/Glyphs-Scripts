@@ -201,8 +201,8 @@ def bestOpposingSegment(layer, original, hits, t, measureLength, rayOrigin=None)
 		bezier = layer.bezierPath
 		bezier.setWindingRule_(NSNonZeroWindingRule)
 		def hasLineOfSight(hit):
-			for k in range(1, 6):
-				t_stop = k / 6.0
+			for k in range(1, 7):
+				t_stop = k / 7.0
 				stop = NSPoint(
 					rayOrigin.x + (hit.x - rayOrigin.x) * t_stop,
 					rayOrigin.y + (hit.y - rayOrigin.y) * t_stop,
@@ -767,7 +767,7 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 			middleOfSegment = segment.pointAtTime_(t)
 
 			if intersections and len(intersections) > 2:
-				rayOrigin = intersections[0].pointValue()
+				rayOrigin = intersections[-1].pointValue()
 				hits = sorted(
 					[i.pointValue() for i in intersections[1:-1]],
 					key=lambda intersection: distance(intersection, middleOfSegment)
