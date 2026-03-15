@@ -144,7 +144,27 @@ def segmentNodesAtPoint(layer, point):
 		nodes.append(copy(nextNode))
 	return nodes
 
-def bestOpposingSegment(layer, original, hits):
+def intersectionsForMeasureRay(segment, layer, t, measureLength):
+	"""
+	Fires a measuring ray perpendicular to segment at parameter t and returns the
+	raw list of intersection NSValue objects with the layer outline.
+
+	The ray points inward (left-hand normal of the segment direction). measureStart
+	is offset one unit from the midpoint so the ray does not self-intersect with the
+	origin segment. measureEnd extends measureLength units in that direction.
+	The list is passed to layer.intersectionsBetweenPoints() and returned as-is;
+	the caller is responsible for sorting and interpreting the results.
+	"""
+	middleOfSegment = segment.pointAtTime_(t)
+	normalR = segment.normalAtTime_(t)
+	normalL = NSPoint(-normalR.x, -normalR.y)
+	# set off a little bit so we don't intersect with the origin segment:
+	measureStart = addPoints(middleOfSegment, normalL)
+	measureEnd = addPoints(middleOfSegment, scalePoint(normalL, measureLength))
+	return layer.intersectionsBetweenPoints(measureEnd, measureStart)
+
+
+def bestOpposingSegment(layer, original, hits, t, measureLength):
 	"""
 	Given a list of candidate hit points (sorted by distance from the segment midpoint,
 	with hits[0] being the first wall crossing past the ray origin), finds the node list
@@ -157,6 +177,10 @@ def bestOpposingSegment(layer, original, hits):
 	     end than to its start, and whose end is closer to the original's start. This
 	     ensures the center line runs between geometrically paired endpoints. If none
 	     qualify, keep all from step 1.
+	  2.5. Reciprocal ray: fire a measuring ray from each remaining candidate and keep
+	     only those whose ray crosses back through the original segment (i.e. the
+	     original segment appears in that ray's intersection hits). This confirms the
+	     two segments genuinely face each other. If none qualify, keep all from step 2.
 	  3. Closest diagonal: from the remaining candidates, return the one whose
 	     bounding-box diagonal length is closest to that of the original segment.
 	     This favours opposing segments of similar size over distant coincidental hits.
@@ -205,6 +229,40 @@ def bestOpposingSegment(layer, original, hits):
 	oppositeDir = [c for c in candidates if isOppositeDirection(c)]
 	if oppositeDir:
 		candidates = oppositeDir
+
+	if len(candidates) == 1:
+		return candidates[0]
+
+	# (2.5) reciprocal ray: opposing segment's own ray must cross back through original
+	def segmentFromNodes(nodes):
+		if len(nodes) == 2:
+			A, B = nodes
+			return GSPathSegment.alloc().initWithLinePoint1_point2_options_(A.position, B.position, 0)
+		A, B, C, D = nodes
+		return GSPathSegment.alloc().initWithCurvePoint1_point2_point3_point4_options_(
+			A.position, B.position, C.position, D.position, 0)
+
+	def hitsOriginal(candidateNodes):
+		seg = segmentFromNodes(candidateNodes)
+		candIntersections = intersectionsForMeasureRay(seg, layer, t, measureLength)
+		if not candIntersections:
+			return False
+		candMid = seg.pointAtTime_(t)
+		candHits = sorted([p.pointValue() for p in candIntersections], key=lambda p: distance(p, candMid))
+		for hit in candHits[1:]:
+			hitNodes = segmentNodesAtPoint(layer, hit)
+			if not hitNodes:
+				continue
+			if (
+				hitNodes[0].position == original[0].position and hitNodes[-1].position == original[-1].position
+				or hitNodes[0].position == original[-1].position and hitNodes[-1].position == original[0].position
+			):
+				return True
+		return False
+
+	reciprocal = [c for c in candidates if hitsOriginal(c)]
+	if reciprocal:
+		candidates = reciprocal
 
 	if len(candidates) == 1:
 		return candidates[0]
@@ -399,23 +457,15 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 					D.position,
 					0,
 					)
+			intersections = intersectionsForMeasureRay(segment, layer, t, measureLength)
 			middleOfSegment = segment.pointAtTime_(t)
-			normalR = segment.normalAtTime_(t)
-			normalL = NSPoint(-normalR.x, -normalR.y)
-			# set off a little bit so we don't intersect with the origin segment:
-			measureStart = addPoints(middleOfSegment, normalL) 
-			measureEnd = addPoints(middleOfSegment, scalePoint(normalL, measureLength))
-			intersections = layer.intersectionsBetweenPoints(
-				measureEnd,
-				measureStart,
-				)
-			
+
 			if intersections and len(intersections) > 2:
 				hits = sorted(
 					[i.pointValue() for i in intersections],
 					key=lambda intersection: distance(intersection, middleOfSegment)
 					)
-				bestHit = bestOpposingSegment(layer, original=segmentNodes, hits=hits[1:])
+				bestHit = bestOpposingSegment(layer, original=segmentNodes, hits=hits[1:], t=t, measureLength=measureLength)
 				if not bestHit:
 					continue
 
