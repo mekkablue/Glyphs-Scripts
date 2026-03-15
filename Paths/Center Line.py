@@ -144,6 +144,83 @@ def segmentNodesAtPoint(layer, point):
 		nodes.append(copy(nextNode))
 	return nodes
 
+def bestOpposingSegment(layer, original, hits):
+	"""
+	Given a list of candidate hit points (sorted by distance from the segment midpoint,
+	with hits[0] being the first wall crossing past the ray origin), finds the node list
+	of the best opposing segment across those hits. Each hit is resolved via
+	segmentNodesAtPoint(); the winner is chosen through three successive filters:
+
+	  1. Same segment type: keep only candidates with the same node count as original
+	     (2 nodes = line, 4 nodes = curve). If none qualify, keep all.
+	  2. Opposite direction: keep only candidates whose start is closer to the original's
+	     end than to its start, and whose end is closer to the original's start. This
+	     ensures the center line runs between geometrically paired endpoints. If none
+	     qualify, keep all from step 1.
+	  3. Closest diagonal: from the remaining candidates, return the one whose
+	     bounding-box diagonal length is closest to that of the original segment.
+	     This favours opposing segments of similar size over distant coincidental hits.
+
+	Duplicate-segment artefacts from segmentNodesAtPoint (e.g. 8 nodes that are two
+	identical 4-node segments) are collapsed before filtering.
+	Returns the winning node list, or None if no candidates were found at any hit.
+	"""
+	originalType = len(original)
+
+	candidates = []
+	for hit in hits:
+		nodes = segmentNodesAtPoint(layer, hit)
+		if not nodes:
+			continue
+		# collapse duplicate-segment artefacts from segmentNodesAtPoint
+		if len(nodes) == 8 and nodes[:4] == nodes[4:]:
+			nodes = nodes[:4]
+		elif len(nodes) == 4 and originalType == 2 and nodes[:2] == nodes[2:]:
+			nodes = nodes[:2]
+		candidates.append(nodes)
+
+	if not candidates:
+		return None
+
+	# (1) same segment type (line: 2 nodes, curve: 4 nodes)
+	sameType = [c for c in candidates if len(c) == originalType]
+	if sameType:
+		candidates = sameType
+
+	if len(candidates) == 1:
+		return candidates[0]
+
+	# (2) opposite direction: candidate start near original end, and vice versa
+	originalStart = original[0].position
+	originalEnd = original[-1].position
+
+	def isOppositeDirection(nodes):
+		candStart = nodes[0].position
+		candEnd = nodes[-1].position
+		return (
+			distance(candStart, originalEnd) < distance(candStart, originalStart)
+			and distance(candEnd, originalStart) < distance(candEnd, originalEnd)
+		)
+
+	oppositeDir = [c for c in candidates if isOppositeDirection(c)]
+	if oppositeDir:
+		candidates = oppositeDir
+
+	if len(candidates) == 1:
+		return candidates[0]
+
+	# (3) closest bounding-box diagonal length to original
+	def bboxDiagonal(nodes):
+		xs = [n.position.x for n in nodes]
+		ys = [n.position.y for n in nodes]
+		w = max(xs) - min(xs)
+		h = max(ys) - min(ys)
+		return (w**2 + h**2)**0.5
+
+	originalDiag = bboxDiagonal(original)
+	return min(candidates, key=lambda c: abs(bboxDiagonal(c) - originalDiag))
+
+
 def isSegmentSelected(nodes):
 	"""
 	Returns True if the segment represented by nodes is considered selected.
@@ -289,20 +366,11 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 					[i.pointValue() for i in intersections],
 					key=lambda intersection: distance(intersection, middleOfSegment)
 					)
-				firstHit = hits[1]
-				oppositeNodes = segmentNodesAtPoint(layer, firstHit)
-				if not oppositeNodes:
+				bestHit = bestOpposingSegment(layer, original=segmentNodes, hits=hits[1:])
+				if not bestHit:
 					continue
-					
-				# deal gracefully with duplicate segments:
-				if len(oppositeNodes) == 8:
-					if oppositeNodes[:4] == oppositeNodes[4:]:
-						oppositeNodes = oppositeNodes[:4]
-				elif len(oppositeNodes) == 4 and len(segmentNodes) == 2:
-					if oppositeNodes[:2] == oppositeNodes[2:]:
-						oppositeNodes = oppositeNodes[:2]
 
-				oppositePath = pathFromNodes(oppositeNodes, reverse=True)
+				oppositePath = pathFromNodes(bestHit, reverse=True)
 				selectedPath = pathFromNodes(segmentNodes, reverse=False)
 				centerPath = centerLine(selectedPath, oppositePath)
 
