@@ -382,14 +382,14 @@ def relevantSegmentStarts(path, layer):
 		return len(seg)  # 2 = line segment, 4 = curve segment
 
 	if segmentCount == 4:
-		pathBounds = path.bezierPath.bounds
+		pathBounds = path.bounds
 		hasInnerPath = any(
 			otherPath is not path
-			and NSPointInRect(otherPath.bezierPath.bounds.origin, pathBounds)
+			and NSPointInRect(otherPath.bounds.origin, pathBounds)
 			and NSPointInRect(
 				NSPoint(
-					otherPath.bezierPath.bounds.origin.x + otherPath.bezierPath.bounds.size.width,
-					otherPath.bezierPath.bounds.origin.y + otherPath.bezierPath.bounds.size.height,
+					otherPath.bounds.origin.x + otherPath.bounds.size.width,
+					otherPath.bounds.origin.y + otherPath.bounds.size.height,
 				),
 				pathBounds,
 			)
