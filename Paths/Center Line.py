@@ -380,19 +380,53 @@ def buildRelevantLayer(path, fullLayer):
 	Returns a temporary GSLayer for intersection testing when finding center
 	lines for path.
 
-	CCW path: include only path itself and any CW (counter/hole) paths from
-	fullLayer. Adjacent CCW strokes are excluded so their outlines cannot become
-	false-positive opposing walls or distort the line-of-sight bezier.
+	CCW path: include path itself and every CW (counter/hole) path in fullLayer.
+	Adjacent CCW strokes are excluded so they cannot become false-positive
+	opposing walls or distort the line-of-sight bezier.
 
-	CW path or open/undetermined path: return fullLayer unchanged (no
-	restriction).
+	CW path: include
+	  (1) all CCW paths whose bounding box completely encompasses path's bbox, and
+	  (2) all other CW paths (excluding path itself) whose bbox lies entirely
+	      inside one of the encompassing CCW bboxes from (1).
+	If no encompassing CCW path is found, fullLayer is returned unchanged.
 
-	When a restricted layer is needed, copied paths are used so the originals
-	stay in fullLayer untouched.
+	Open / undetermined path: fullLayer is returned unchanged.
+
+	When a restricted layer is needed, copies of the relevant paths are used so
+	the originals stay in fullLayer untouched.
 	"""
-	if path.direction != -1:  # CW or open: no restriction
+	def bboxContains(outerBounds, innerBounds):
+		"""True when innerBounds lies entirely within outerBounds."""
+		return NSPointInRect(innerBounds.origin, outerBounds) and NSPointInRect(
+			NSPoint(
+				innerBounds.origin.x + innerBounds.size.width,
+				innerBounds.origin.y + innerBounds.size.height,
+			),
+			outerBounds,
+		)
+
+	if path.direction == -1:  # CCW
+		relevantPaths = [p for p in fullLayer.paths if p is path or p.direction == 1]
+
+	elif path.direction == 1:  # CW (counter)
+		pathBounds = path.bounds
+		encompassingCCW = [
+			p for p in fullLayer.paths
+			if p.direction == -1 and bboxContains(p.bounds, pathBounds)
+		]
+		if not encompassingCCW:
+			return fullLayer
+		encompassingBounds = [p.bounds for p in encompassingCCW]
+		otherCW = [
+			p for p in fullLayer.paths
+			if p is not path and p.direction == 1
+			and any(bboxContains(b, p.bounds) for b in encompassingBounds)
+		]
+		relevantPaths = encompassingCCW + otherCW
+
+	else:  # open / undetermined
 		return fullLayer
-	relevantPaths = [p for p in fullLayer.paths if p is path or p.direction == 1]
+
 	if len(relevantPaths) == len(fullLayer.paths):
 		return fullLayer  # all paths qualify — skip the copy overhead
 	tempLayer = GSLayer()
