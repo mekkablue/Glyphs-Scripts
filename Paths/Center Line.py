@@ -12,6 +12,11 @@ from copy import copy
 Glyphs.clearLog()
 
 def endPointsOutsideShape(path, layer):
+	"""
+	Returns True if either the first or last node of path lies outside
+	the filled bezier shape of layer (i.e. outside any of its paths).
+	Used to discard center lines whose endpoints fall outside the glyph outline.
+	"""
 	shape = layer.bezierPath
 	for i in (0, -1):
 		if not shape.containsPoint_(path.nodes[i].position):
@@ -19,6 +24,13 @@ def endPointsOutsideShape(path, layer):
 	return False
 
 def isPathAlreadyThere(path, comparePaths):
+	"""
+	Checks whether path already exists in comparePaths, to avoid inserting duplicates.
+	For single-segment paths: compares each candidate segment by bounds and then by
+	isEqualToSegment_, also trying the segment reversed.
+	For multi-segment paths: compares the ordered list of node positions, also trying reversed.
+	Returns True if a matching path or segment is found.
+	"""
 	# compare segments if path is only one segment
 	if len(path.segments) == 1:
 		seg = path.segments[0]
@@ -49,6 +61,14 @@ def isPathAlreadyThere(path, comparePaths):
 		return False
 	
 def segmentNodesFromNode(node):
+	"""
+	Given any node, returns the list of nodes that form the segment it belongs to:
+	  - 2 nodes  [on, on]           for a line segment
+	  - 4 nodes  [on, bcp, bcp, on] for a curve segment
+	Off-curve nodes are resolved to their surrounding on-curve anchors so that
+	every segment is represented the same way regardless of which node was passed in.
+	Returns None if no segment can be determined (should not happen in a valid path).
+	"""
 	nodes = None
 	if node.type == OFFCURVE:
 		if node.prevNode.type == OFFCURVE:
@@ -81,7 +101,15 @@ def segmentNodesFromNode(node):
 	return nodes
 
 def segmentNodesAtPoint(layer, point):
-	nodes = [] 
+	"""
+	Searches all paths in layer for a segment that passes through (or very near) point.
+	Uses nearestPointOnPath_pathTime_ to project point onto each path; skips if the
+	nearest point is more than 1 unit away. For matching paths, walks from the nearest
+	node forward through any off-curve handles to collect the complete segment node list.
+	Returns a flat list of copied GSNode objects (may contain nodes from multiple paths
+	if several paths pass through the same point).
+	"""
+	nodes = []
 	for path in layer.paths:
 		nearest_point, path_time = path.nearestPointOnPath_pathTime_(point, None)
 		if distance(nearest_point, point) > 1.0:
@@ -102,6 +130,13 @@ def segmentNodesAtPoint(layer, point):
 	return nodes
 
 def isSegmentSelected(nodes):
+	"""
+	Returns True if the segment represented by nodes is considered selected.
+	A segment is selected when:
+	  - Both on-curve endpoints (nodes[0] and nodes[-1]) are selected, OR
+	  - For a curve segment (4 nodes), either off-curve handle (bcp1 or bcp2) is selected.
+	This matches Glyphs' convention where clicking a curve handle selects that segment.
+	"""
 	if nodes[0].selected and nodes[-1].selected:
 		return True
 	if len(nodes) == 4:
@@ -111,6 +146,12 @@ def isSegmentSelected(nodes):
 	return False
 
 def nodesOfSegment(segment):
+	"""
+	Extracts copied GSNode objects from a GSPathSegment into a plain list.
+	Returns 2 nodes for a line segment or 4 nodes for a curve segment,
+	following from the first node through any intermediate off-curve handles
+	to the final on-curve endpoint.
+	"""
 	nodes = []
 	firstNode = segment.objects()[0]
 	nodes.append(copy(firstNode))
@@ -121,6 +162,13 @@ def nodesOfSegment(segment):
 	return nodes
 
 def pathFromNodes(nodes, reverse=False):
+	"""
+	Builds and returns an open GSPath from a list of nodes (copies are inserted).
+	The first node's type is forced to LINE and both endpoints get CORNER connections,
+	ensuring a clean open contour regardless of the original node types.
+	If reverse=True, the path direction is flipped after construction, so that two
+	paths built from opposite segments can be paired node-for-node by centerLine().
+	"""
 	path = GSPath()
 	path.closed = False
 	for node in nodes:
@@ -133,6 +181,12 @@ def pathFromNodes(nodes, reverse=False):
 	return path
 
 def centerLine(path1, path2):
+	"""
+	Builds and returns a new open GSPath whose nodes are the midpoints between
+	corresponding nodes of path1 and path2 (must have the same node count).
+	Each midpoint node copies its type and connection from the path1 node.
+	Returns None if the two paths have different node counts (segments are incompatible).
+	"""
 	if len(path1.nodes) != len(path2.nodes):
 		return None
 	centerLine = GSPath()
@@ -146,6 +200,30 @@ def centerLine(path1, path2):
 	return centerLine
 
 def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selectionMatters=True):
+	"""
+	Main function. Iterates over every segment in layer and, for each selected segment,
+	finds the opposite wall of the glyph outline and inserts a center line between them.
+
+	Algorithm per segment:
+	  1. Sample the segment at parameter t (default: midpoint) to get a point and normal.
+	  2. Cast a ray from the midpoint inward along the inward normal, up to measureLength.
+	  3. Collect all intersections of that ray with the layer outline.
+	  4. Sort intersections by distance; the second hit (hits[1]) is the closest opposite wall.
+	  5. Retrieve the segment nodes at that opposite-wall hit point.
+	  6. Build open paths from the selected and opposite segments, then compute their centerLine().
+	  7. Discard the result if endpoints fall outside the shape or the path is already present.
+
+	Results are appended to layer.paths (and selected) unless inBackground=True, in which
+	case they go into layer.background.paths. connectAllOpenPaths() and cleanUpPaths() are
+	called on an intermediate shadow layer to merge collinear center lines before insertion.
+
+	Parameters:
+	  layer            — the GSLayer to operate on
+	  t                — curve parameter (0–1) at which to sample each segment; default 0.5
+	  inBackground     — if True, place center lines in the background layer instead
+	  selectionMatters — if True (and a selection exists), only process selected segments;
+	                     if False, process all segments (used when multiple layers are active)
+	"""
 	shadowLayer = GSLayer()
 	treatedSegments = []
 	measureLength = min(
