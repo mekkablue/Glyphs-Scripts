@@ -164,13 +164,16 @@ def intersectionsForMeasureRay(segment, layer, t, measureLength):
 	return layer.intersectionsBetweenPoints(measureEnd, measureStart)
 
 
-def bestOpposingSegment(layer, original, hits, t, measureLength):
+def bestOpposingSegment(layer, original, hits, t, measureLength, rayOrigin=None):
 	"""
 	Given a list of candidate hit points (sorted by distance from the segment midpoint,
 	with hits[0] being the first wall crossing past the ray origin), finds the node list
 	of the best opposing segment across those hits. Each hit is resolved via
 	segmentNodesAtPoint(); the winner is chosen through three successive filters:
 
+	  0.5. Line-of-sight: for each hit, sample 5 evenly-spaced stops between rayOrigin
+	     and the hit. If any stop falls outside the layer's filled bezier shape, that
+	     hit is discarded before candidate collection. Skipped when rayOrigin is None.
 	  1. Same segment type: keep only candidates with the same node count as original
 	     (2 nodes = line, 4 nodes = curve). If none qualify, keep all.
 	  2. Opposite direction: keep only candidates whose start is closer to the original's
@@ -191,6 +194,22 @@ def bestOpposingSegment(layer, original, hits, t, measureLength):
 	Returns the winning node list, or None if no candidates were found at any hit.
 	"""
 	originalType = len(original)
+
+	# (0.5) line-of-sight: discard hits where any stop between rayOrigin and hit
+	# falls outside the layer's filled shape
+	if rayOrigin is not None:
+		bezier = layer.bezierPath
+		def hasLineOfSight(hit):
+			for k in range(1, 6):
+				t_stop = k / 6.0
+				stop = NSPoint(
+					rayOrigin.x + (hit.x - rayOrigin.x) * t_stop,
+					rayOrigin.y + (hit.y - rayOrigin.y) * t_stop,
+				)
+				if not bezier.containsPoint_(stop):
+					return False
+			return True
+		hits = [h for h in hits if hasLineOfSight(h)]
 
 	candidates = []
 	for hit in hits:
@@ -686,7 +705,7 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 					[i.pointValue() for i in intersections],
 					key=lambda intersection: distance(intersection, middleOfSegment)
 					)
-				bestHit = bestOpposingSegment(layer, original=segmentNodes, hits=hits[1:], t=t, measureLength=measureLength)
+				bestHit = bestOpposingSegment(layer, original=segmentNodes, hits=hits[1:], t=t, measureLength=measureLength, rayOrigin=hits[0])
 				if not bestHit:
 					continue
 
