@@ -430,6 +430,12 @@ def cleanup(layer, threshold=40):
 	  When both conditions are met, the two paths are replaced by their centerLine().
 	  line2 is tried reversed if the forward endpoint pairing does not satisfy (b).
 	  Once line1 is consumed by a merge it is skipped for further comparisons.
+
+	Rule 2 — delete redundant single-line paths:
+	  For each ordered pair (line1, line2), delete line1 if:
+	    (a) Both endpoints of line1 lie on line2 (line1 is a subset), or
+	    (b) One endpoint lies on line2 and the other is less than threshold away
+	        from either endpoint of line2 (line1 is a near-subset).
 	"""
 	singleLines = [p for p in layer.paths if len(p.nodes) == 2]
 
@@ -473,6 +479,34 @@ def cleanup(layer, threshold=40):
 				toRemove.add(id(line2))
 				toAdd.append(merged)
 				break  # line1 consumed, move on
+
+	# Rule 2 — delete line1 if it is fully or partially redundant against line2:
+	#   (a) both endpoints of line1 lie on line2 → line1 is a subset, delete it
+	#   (b) one endpoint lies on line2 and the other is within threshold of an
+	#       endpoint of line2 → line1 is a near-subset, delete it
+	def onPath(point, path):
+		nearest, _ = path.nearestPointOnPath_pathTime_(point, None)
+		return distance(nearest, point) <= 1.0
+
+	for i, line1 in enumerate(singleLines):
+		if id(line1) in toRemove:
+			continue
+		for j, line2 in enumerate(singleLines):
+			if i == j or id(line2) in toRemove:
+				continue
+			p0 = line1.nodes[0].position
+			p1 = line1.nodes[1].position
+			end0on = onPath(p0, line2)
+			end1on = onPath(p1, line2)
+			if end0on and end1on:
+				toRemove.add(id(line1))
+				break
+			if end0on and any(distance(p1, line2.nodes[k].position) < threshold for k in (0, 1)):
+				toRemove.add(id(line1))
+				break
+			if end1on and any(distance(p0, line2.nodes[k].position) < threshold for k in (0, 1)):
+				toRemove.add(id(line1))
+				break
 
 	for i in range(len(layer.shapes) - 1, -1, -1):
 		if id(layer.shapes[i]) in toRemove:
