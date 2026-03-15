@@ -305,14 +305,9 @@ def relevantSegmentStarts(path):
 	    measured by bounding-box diagonal. This prevents the script from drawing
 	    center lines across the stroke butts.
 
-	  Even segment count — the path is treated as having two mirrored halves.
-	    Segment i is compared with segment i + segmentCount/2. The start node of
-	    segment i is included only when both segments share the same structure
-	    (both lines or both curves). Structurally mismatched pairs are skipped
-	    as unlikely to produce meaningful center lines.
-
-	  Odd segment count — no reliable pairing is possible; all segment start
-	    nodes are returned so that subsequent filters can decide.
+	  All other paths — all segment start nodes are returned so that subsequent
+	    filters can decide. (A half-range structural check for even-segment paths
+	    is stubbed out below and may be re-enabled later.)
 	"""
 	segments = path.segments
 	segmentCount = len(segments)
@@ -329,15 +324,14 @@ def relevantSegmentStarts(path):
 		longerIndices = set(diagonals[:2])
 		return [segments[i].objects()[0] for i in range(4) if i in longerIndices]
 
-	if segmentCount % 2 == 0:
-		half = segmentCount // 2
-		return [
-			segments[i].objects()[0]
-			for i in range(half)
-			if segType(segments[i]) == segType(segments[i + half])
-		]
+	# if segmentCount % 2 == 0:
+	# 	half = segmentCount // 2
+	# 	return [
+	# 		segments[i].objects()[0]
+	# 		for i in range(half)
+	# 		if segType(segments[i]) == segType(segments[i + half])
+	# 	]
 
-	# odd segment count — no structural pairing possible, return all starts
 	return [seg.objects()[0] for seg in segments]
 
 
