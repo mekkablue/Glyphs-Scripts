@@ -463,6 +463,12 @@ def cleanup(layer, threshold=40):
 	    (b) One endpoint lies on line2 and the other is less than threshold away
 	        from either endpoint of line2 (line1 is a near-subset).
 
+	Rule 4 — snap mutually-touching open path ends to the same coordinate:
+	  For every pair of line segments at open path ends (first or last segment,
+	  multi-segment paths included, curves skipped), if each path's open end lies
+	  on the other's segment (within 1 unit), move line1's end point to line2's
+	  end point, giving them an exact shared coordinate.
+
 	Rule 3 — snap open path ends to nearby intersections:
 	  Collect all interior crossing points in the layer (points where one path
 	  crosses another, excluding segment endpoints). For each open path end
@@ -632,6 +638,29 @@ def cleanup(layer, threshold=40):
 						seg.objects()[0].position = subdiv2.objects()[0].position
 						seg.objects()[1].position = subdiv2.objects()[1].position
 						seg.objects()[2].position = subdiv2.objects()[2].position
+
+	# Rule 4 — snap mutually-touching open path ends to the same coordinate
+	# Collect (openNode, segAsPath) for every line segment at an open path end.
+	# Curve segments are skipped. For each pair where each path's open end lies on
+	# the other's segment, move line1's end point to line2's end point coordinate.
+	openEnds = []
+	for path in layer.paths:
+		for isEnd in (True, False):
+			segIndex = len(path.segments) - 1 if isEnd else 0
+			seg = path.segments[segIndex]
+			if len(seg) != 2:
+				continue
+			openNode = path.nodes[-1] if isEnd else path.nodes[0]
+			segPath = pathFromNodes([seg.objects()[0], seg.objects()[-1]])
+			openEnds.append((openNode, segPath))
+
+	for i in range(len(openEnds)):
+		node1, seg1path = openEnds[i]
+		for j in range(i + 1, len(openEnds)):
+			node2, seg2path = openEnds[j]
+			if onPath(node1.position, seg2path) and onPath(node2.position, seg1path):
+				node1.position = node2.position
+				break
 
 
 def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selectionMatters=True):
