@@ -26,7 +26,7 @@ def lineOutsideShape(path, layer, steps=6):
 	"""
 	shape = layer.bezierPath
 	pathSegmentCount = len(path.segments)
-	for stepIndex in range(steps + 1):
+	for stepIndex in range(1, steps):
 		t = stepIndex * pathSegmentCount / steps
 		segIndex = int(t // 1)
 		segT = t % 1
@@ -730,16 +730,20 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 		(layer.bounds.size.width**2 + layer.bounds.size.height**2)**0.5 / 2,
 	)
 	for j, path in enumerate(layer.paths):
+		print(j, path)
 		preselectedNodes = relevantSegmentStarts(path, layer)
+		for x in preselectedNodes:
+			x.selected=True
 		for i, node in enumerate(path.nodes):
 			if node not in preselectedNodes:
 				continue
+			
 			segmentNodes = segmentNodesFromNode(node)
 			if segmentNodes in treatedSegments:
 				continue
 			else:
 				treatedSegments.append(segmentNodes)
-
+			
 			if selectionMatters and not isSegmentSelected(segmentNodes):
 				continue
 			
@@ -762,19 +766,20 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 			intersections = intersectionsForMeasureRay(segment, layer, t, measureLength)
 			middleOfSegment = segment.pointAtTime_(t)
 
-			if intersections and len(intersections) > 1:
+			if intersections and len(intersections) > 2:
+				rayOrigin = intersections[0].pointValue()
 				hits = sorted(
-					[i.pointValue() for i in intersections],
+					[i.pointValue() for i in intersections[1:-1]],
 					key=lambda intersection: distance(intersection, middleOfSegment)
 					)
-				bestHit = bestOpposingSegment(layer, original=segmentNodes, hits=hits[1:], t=t, measureLength=measureLength, rayOrigin=hits[0])
+				
+				bestHit = bestOpposingSegment(layer, original=segmentNodes, hits=hits, t=t, measureLength=measureLength, rayOrigin=rayOrigin)
 				if not bestHit:
 					continue
 
 				oppositePath = pathFromNodes(bestHit, reverse=True)
 				selectedPath = pathFromNodes(segmentNodes, reverse=False)
 				centerPath = centerLine(selectedPath, oppositePath)
-
 				if not centerPath:
 					continue
 				if centerPath.nodes[0].position == centerPath.nodes[-1].position:
@@ -786,6 +791,7 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 	
 	shadowLayer.connectAllOpenPaths()
 	cleanup(layer=shadowLayer, threshold=40)
+	shadowLayer.connectAllOpenPaths()
 	shadowLayer.cleanUpPaths()
 	if not inBackground and shadowLayer.paths:
 		layer.selection = None
