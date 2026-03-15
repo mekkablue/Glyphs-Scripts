@@ -365,14 +365,15 @@ def relevantSegmentStarts(path, layer):
 
 	Rules (applied in order, first match wins):
 
-	  4-segment path — assumed to be a closed stroke shape (two long sides + two
-	    short butt ends). Returns the start nodes of the two longer segments only,
-	    measured by bounding-box diagonal. This prevents the script from drawing
-	    center lines across the stroke butts.
+	  4-segment CW path — assumed to be a closed stroke shape (two long sides +
+	    two short butt ends). Returns the start nodes of the two longer segments
+	    only, measured by bounding-box diagonal. This prevents the script from
+	    drawing center lines across the stroke butts. CCW paths are excluded
+	    (GSPath.direction == -1) since they are counters, not stroke outlines.
 	    Exception: if any other path in layer lies entirely within path's bounding
 	    box (checked via NSRect bounds), the 4-segment rule is skipped and all
-	    segment start nodes are returned instead. This handles counters and enclosed
-	    shapes that would otherwise be mistaken for plain strokes.
+	    segment start nodes are returned instead. This handles enclosed shapes
+	    that would otherwise be mistaken for plain strokes.
 
 	  All other paths — all segment start nodes are returned so that subsequent
 	    filters can decide. (A half-range structural check for even-segment paths
@@ -388,8 +389,9 @@ def relevantSegmentStarts(path, layer):
 	def segType(seg):
 		return len(seg)  # 2 = line segment, 4 = curve segment
 
-	if segmentCount == 4:
-		pathBounds = path.bounds
+	pathIsCCW = path.direction == -1
+
+	if segmentCount == 4 and not pathIsCCW:
 		hasInnerPath = any(
 			otherPath is not path
 			and NSPointInRect(otherPath.bounds.origin, pathBounds)
