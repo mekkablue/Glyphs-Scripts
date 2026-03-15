@@ -349,7 +349,7 @@ def centerLine(path1, path2):
 		centerLine.nodes.append(centerNode)
 	return centerLine
 
-def relevantSegmentStarts(path):
+def relevantSegmentStarts(path, layer):
 	"""
 	Returns the subset of on-curve start nodes whose segments are worth measuring
 	a center line for, based on the structure of the path. The node references
@@ -362,6 +362,10 @@ def relevantSegmentStarts(path):
 	    short butt ends). Returns the start nodes of the two longer segments only,
 	    measured by bounding-box diagonal. This prevents the script from drawing
 	    center lines across the stroke butts.
+	    Exception: if any other path in layer lies entirely within path's bounding
+	    box (checked via NSRect bounds), the 4-segment rule is skipped and all
+	    segment start nodes are returned instead. This handles counters and enclosed
+	    shapes that would otherwise be mistaken for plain strokes.
 
 	  All other paths — all segment start nodes are returned so that subsequent
 	    filters can decide. (A half-range structural check for even-segment paths
@@ -378,9 +382,23 @@ def relevantSegmentStarts(path):
 		return len(seg)  # 2 = line segment, 4 = curve segment
 
 	if segmentCount == 4:
-		diagonals = sorted(range(4), key=lambda i: segDiagonal(segments[i]), reverse=True)
-		longerIndices = set(diagonals[:2])
-		return [segments[i].objects()[0] for i in range(4) if i in longerIndices]
+		pathBounds = path.bezierPath.bounds
+		hasInnerPath = any(
+			otherPath is not path
+			and NSPointInRect(otherPath.bezierPath.bounds.origin, pathBounds)
+			and NSPointInRect(
+				NSPoint(
+					otherPath.bezierPath.bounds.origin.x + otherPath.bezierPath.bounds.size.width,
+					otherPath.bezierPath.bounds.origin.y + otherPath.bezierPath.bounds.size.height,
+				),
+				pathBounds,
+			)
+			for otherPath in layer.paths
+		)
+		if not hasInnerPath:
+			diagonals = sorted(range(4), key=lambda i: segDiagonal(segments[i]), reverse=True)
+			longerIndices = set(diagonals[:2])
+			return [segments[i].objects()[0] for i in range(4) if i in longerIndices]
 
 	# if segmentCount % 2 == 0:
 	# 	half = segmentCount // 2
@@ -428,7 +446,7 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 		(layer.bounds.size.width**2 + layer.bounds.size.height**2)**0.5 / 2,
 	)
 	for j, path in enumerate(layer.paths):
-		preselectedNodes = relevantSegmentStarts(path)
+		preselectedNodes = relevantSegmentStarts(path, layer)
 		for i, node in enumerate(path.nodes):
 			if node not in preselectedNodes:
 				continue
