@@ -699,8 +699,8 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 	     structural false positives (e.g. stroke butts, mismatched opposite segments).
 	  1. Sample the segment at parameter t (default: midpoint) to get a point and normal.
 	  2. Cast a ray from the midpoint inward along the inward normal, up to measureLength.
-	  3. Collect all intersections of that ray with the layer outline.
-	  4. Sort intersections by distance; the second hit (hits[1]) is the closest opposite wall.
+	  3. Collect all intersections of that ray with the layer outline (need at least 2).
+	  4. Sort intersections by distance; hits[0] is the origin wall, hits[1] is the closest opposite wall.
 	  5. Retrieve the segment nodes at that opposite-wall hit point.
 	  6. Build open paths from the selected and opposite segments, then compute their centerLine().
 	  7. Discard the result if any sampled point along the center line falls outside the shape or the path is already present.
@@ -756,7 +756,7 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 			intersections = intersectionsForMeasureRay(segment, layer, t, measureLength)
 			middleOfSegment = segment.pointAtTime_(t)
 
-			if intersections and len(intersections) > 2:
+			if intersections and len(intersections) > 1:
 				hits = sorted(
 					[i.pointValue() for i in intersections],
 					key=lambda intersection: distance(intersection, middleOfSegment)
