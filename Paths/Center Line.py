@@ -5,7 +5,7 @@ __doc__="""
 Will create center lines between selected segments and their opposites. Hold down OPTION+SHIFT to put center lines in the background.
 """
 
-from AppKit import NSPoint, NSPointInRect, NSEvent
+from AppKit import NSPoint, NSPointInRect, NSEvent, NSNonZeroWindingRule
 from GlyphsApp import GSPath, GSPathSegment, GSBackgroundLayer
 from copy import copy
 
@@ -199,6 +199,7 @@ def bestOpposingSegment(layer, original, hits, t, measureLength, rayOrigin=None)
 	# falls outside the layer's filled shape
 	if rayOrigin is not None:
 		bezier = layer.bezierPath
+		bezier.setWindingRule_(NSNonZeroWindingRule)
 		def hasLineOfSight(hit):
 			for k in range(1, 6):
 				t_stop = k / 6.0
@@ -418,6 +419,7 @@ def relevantSegmentStarts(path, layer):
 		pathBounds = path.bounds
 		hasInnerPath = any(
 			otherPath is not path
+			and otherPath.direction == 1  # CW only — counters/holes, not adjacent CCW strokes
 			and NSPointInRect(otherPath.bounds.origin, pathBounds)
 			and NSPointInRect(
 				NSPoint(
