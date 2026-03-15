@@ -402,8 +402,12 @@ def relevantSegmentStarts(path, layer):
 	segmentCount = len(segments)
 
 	def segDiagonal(seg):
-		b = seg.bounds
-		return (b.size.width**2 + b.size.height**2)**0.5
+		nodes = seg.objects()
+		p0 = nodes[0].position
+		p1 = nodes[-1].position
+		dx = p1.x - p0.x
+		dy = p1.y - p0.y
+		return (dx**2 + dy**2)**0.5
 
 	def segType(seg):
 		return len(seg)  # 2 = line segment, 4 = curve segment
