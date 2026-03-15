@@ -411,6 +411,69 @@ def relevantSegmentStarts(path, layer):
 	return [seg.objects()[0] for seg in segments]
 
 
+def cleanup(layer, threshold=40):
+	"""
+	Removes false positives and applies fixes to paths in layer.
+
+	Rule 1 — merge overlapping single-line paths:
+	  Among all open paths consisting of exactly one line segment (2 nodes), find
+	  pairs where both conditions hold:
+	    (a) The midpoint of line1 lies on line2 (nearest point within 1 unit).
+	    (b) Their paired endpoints are each less than threshold apart.
+	  When both conditions are met, the two paths are replaced by their centerLine().
+	  line2 is tried reversed if the forward endpoint pairing does not satisfy (b).
+	  Once line1 is consumed by a merge it is skipped for further comparisons.
+	"""
+	singleLines = [p for p in layer.paths if len(p.nodes) == 2]
+
+	toRemove = set()  # id()s of paths to remove
+	toAdd = []        # merged replacement paths
+
+	for i in range(len(singleLines)):
+		line1 = singleLines[i]
+		if id(line1) in toRemove:
+			continue
+		for j in range(i + 1, len(singleLines)):
+			line2 = singleLines[j]
+			if id(line2) in toRemove:
+				continue
+
+			# (a) midpoint of line1 must lie on line2
+			center1 = NSPoint(
+				(line1.nodes[0].position.x + line1.nodes[1].position.x) / 2,
+				(line1.nodes[0].position.y + line1.nodes[1].position.y) / 2,
+			)
+			nearest, _ = line2.nearestPointOnPath_pathTime_(center1, None)
+			if distance(nearest, center1) > 1.0:
+				continue
+
+			# (b) paired endpoints within threshold — try forward, then reversed
+			p1s = line1.nodes[0].position
+			p1e = line1.nodes[1].position
+			p2s = line2.nodes[0].position
+			p2e = line2.nodes[1].position
+
+			if distance(p1s, p2s) < threshold and distance(p1e, p2e) < threshold:
+				line2forCenter = line2
+			elif distance(p1s, p2e) < threshold and distance(p1e, p2s) < threshold:
+				line2forCenter = pathFromNodes(list(line2.nodes), reverse=True)
+			else:
+				continue
+
+			merged = centerLine(line1, line2forCenter)
+			if merged:
+				toRemove.add(id(line1))
+				toRemove.add(id(line2))
+				toAdd.append(merged)
+				break  # line1 consumed, move on
+
+	for path in list(layer.paths):
+		if id(path) in toRemove:
+			layer.paths.remove(path)
+	for path in toAdd:
+		layer.paths.append(path)
+
+
 def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selectionMatters=True):
 	"""
 	Main function. Iterates over every segment in layer and, for each selected segment,
@@ -501,6 +564,7 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 					shadowLayer.paths.append(centerPath)
 	
 	shadowLayer.connectAllOpenPaths()
+	cleanup(layer=shadowLayer, threshold=40)
 	shadowLayer.cleanUpPaths()
 	if not inBackground and shadowLayer.paths:
 		layer.selection = None
