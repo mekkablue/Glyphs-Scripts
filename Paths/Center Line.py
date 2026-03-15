@@ -11,15 +11,30 @@ from copy import copy
 
 Glyphs.clearLog()
 
-def endPointsOutsideShape(path, layer):
+def lineOutsideShape(path, layer, steps=6):
 	"""
-	Returns True if either the first or last node of path lies outside
-	the filled bezier shape of layer (i.e. outside any of its paths).
-	Used to discard center lines whose endpoints fall outside the glyph outline.
+	Returns True if any of steps+1 sample points along path lies outside
+	the filled bezier shape of layer. The first and last samples are the path
+	endpoints; the intermediate ones are spaced at equal parameter intervals
+	across all segments of the path.
+
+	For each stepIndex in 0..steps:
+	  t        = stepIndex * pathSegmentCount / steps
+	  segIndex = int(t // 1)  — segment index (clamped at the path end)
+	  segT     = t % 1        — parameter within that segment
+	  point    = path.segments[segIndex].pointAtTime_(segT)
 	"""
 	shape = layer.bezierPath
-	for i in (0, -1):
-		if not shape.containsPoint_(path.nodes[i].position):
+	pathSegmentCount = len(path.segments)
+	for stepIndex in range(steps + 1):
+		t = stepIndex * pathSegmentCount / steps
+		segIndex = int(t // 1)
+		segT = t % 1
+		if segIndex >= pathSegmentCount:
+			segIndex = pathSegmentCount - 1
+			segT = 1.0
+		point = path.segments[segIndex].pointAtTime_(segT)
+		if not shape.containsPoint_(point):
 			return True
 	return False
 
@@ -211,7 +226,7 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 	  4. Sort intersections by distance; the second hit (hits[1]) is the closest opposite wall.
 	  5. Retrieve the segment nodes at that opposite-wall hit point.
 	  6. Build open paths from the selected and opposite segments, then compute their centerLine().
-	  7. Discard the result if endpoints fall outside the shape or the path is already present.
+	  7. Discard the result if any sampled point along the center line falls outside the shape or the path is already present.
 
 	Results are appended to layer.paths (and selected) unless inBackground=True, in which
 	case they go into layer.background.paths. connectAllOpenPaths() and cleanUpPaths() are
@@ -295,7 +310,7 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 					continue
 				if centerPath.nodes[0].position == centerPath.nodes[-1].position:
 					continue
-				if endPointsOutsideShape(centerPath, layer):
+				if lineOutsideShape(centerPath, layer):
 					continue
 				if not isPathAlreadyThere(centerPath, shadowLayer.paths):
 					shadowLayer.paths.append(centerPath)
