@@ -544,6 +544,10 @@ def cleanup(layer, threshold=40):
 	  For line segments the endpoint is simply repositioned; for curve segments
 	  the segment is trimmed via GSPathSegment.divideAtTime_() and the appropriate
 	  half's control points are written back to the live nodes.
+
+	Rule 5 — remove single-segment paths shorter than threshold:
+	  After all other rules, delete any open path with exactly one segment whose
+	  chord length (distance between first and last node) is <= threshold.
 	"""
 	singleLines = [p for p in layer.paths if len(p.nodes) == 2]
 
@@ -753,8 +757,17 @@ def cleanup(layer, threshold=40):
 						seg.objects()[1].position = subdiv2.objects()[1].position
 						seg.objects()[2].position = subdiv2.objects()[2].position
 
+	# Rule 5 — remove single-segment paths shorter than threshold.
+	for i in range(len(layer.shapes) - 1, -1, -1):
+		p = layer.shapes[i]
+		if not isinstance(p, GSPath):
+			continue
+		if not p.closed and len(p.segments) == 1:
+			if distance(p.nodes[0].position, p.nodes[-1].position) <= threshold:
+				del layer.shapes[i]
 
-def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selectionMatters=True):
+
+def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selectionMatters=True, threshold=40):
 	"""
 	Main function. Iterates over every segment in layer and, for each selected segment,
 	finds the opposite wall of the glyph outline and inserts a center line between them.
@@ -848,7 +861,7 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 					shadowLayer.paths.append(centerPath)
 	
 	shadowLayer.connectAllOpenPaths()
-	cleanup(layer=shadowLayer, threshold=40)
+	cleanup(layer=shadowLayer, threshold=threshold)
 	shadowLayer.connectAllOpenPaths()
 	shadowLayer.cleanUpPaths()
 	if not inBackground and shadowLayer.paths:
@@ -880,7 +893,14 @@ if buildInBackground:
 else:
 	print("Building in foreground:")
 
-selectedLayers = Glyphs.font.selectedLayers
+Font = Glyphs.font
+smallestStem = 40
+for m in Font.masters:
+	for s in m.stems:
+		if s < smallestStem:
+			smallestStem = s
+
+selectedLayers = Font.selectedLayers
 for selectedLayer in selectedLayers:
 	if not isinstance(selectedLayer, GSLayer):
 		continue
@@ -890,4 +910,5 @@ for selectedLayer in selectedLayers:
 		selectedLayer,
 		inBackground=buildInBackground,
 		selectionMatters=selectionMatters,
+		threshold=smallestStem,
 		)
