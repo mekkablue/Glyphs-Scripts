@@ -177,10 +177,10 @@ def bestOpposingSegment(layer, original, hits, t, measureLength):
 	     end than to its start, and whose end is closer to the original's start. This
 	     ensures the center line runs between geometrically paired endpoints. If none
 	     qualify, keep all from step 1.
-	  2.5. Reciprocal ray: fire a measuring ray from each remaining candidate and keep
-	     only those whose ray crosses back through the original segment (i.e. the
-	     original segment appears in that ray's intersection hits). This confirms the
-	     two segments genuinely face each other. If none qualify, keep all from step 2.
+	  2.5. Reciprocal ray: fire up to three measuring rays from each remaining candidate
+	     (at t, max(0.1, t-0.16), and min(0.9, t+0.16)) and keep only those where at
+	     least one ray crosses back through the original segment. This confirms the two
+	     segments genuinely face each other. If none qualify, keep all from step 2.
 	  3. Closest diagonal: from the remaining candidates, return the one whose
 	     bounding-box diagonal length is closest to that of the original segment.
 	     This favours opposing segments of similar size over distant coincidental hits.
@@ -242,12 +242,11 @@ def bestOpposingSegment(layer, original, hits, t, measureLength):
 		return GSPathSegment.alloc().initWithCurvePoint1_point2_point3_point4_options_(
 			A.position, B.position, C.position, D.position, 0)
 
-	def hitsOriginal(candidateNodes):
-		seg = segmentFromNodes(candidateNodes)
-		candIntersections = intersectionsForMeasureRay(seg, layer, t, measureLength)
+	def rayHitsOriginal(seg, tRay):
+		candIntersections = intersectionsForMeasureRay(seg, layer, tRay, measureLength)
 		if not candIntersections:
 			return False
-		candMid = seg.pointAtTime_(t)
+		candMid = seg.pointAtTime_(tRay)
 		candHits = sorted([p.pointValue() for p in candIntersections], key=lambda p: distance(p, candMid))
 		for hit in candHits[1:]:
 			hitNodes = segmentNodesAtPoint(layer, hit)
@@ -259,6 +258,13 @@ def bestOpposingSegment(layer, original, hits, t, measureLength):
 			):
 				return True
 		return False
+
+	def hitsOriginal(candidateNodes):
+		seg = segmentFromNodes(candidateNodes)
+		return any(
+			rayHitsOriginal(seg, tRay)
+			for tRay in (t, max(0.1, t - 0.16), min(0.9, t + 0.16))
+		)
 
 	reciprocal = [c for c in candidates if hitsOriginal(c)]
 	if reciprocal:
