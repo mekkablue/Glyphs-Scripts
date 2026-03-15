@@ -504,7 +504,9 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 	shadowLayer.cleanUpPaths()
 	if not inBackground and shadowLayer.paths:
 		layer.selection = None
-		
+	if inBackground and shadowLayer.paths:
+		layer.background.paths = []
+
 	for shadowPath in shadowLayer.paths:
 		if inBackground:
 			if not isPathAlreadyThere(shadowPath, layer.background.paths):
