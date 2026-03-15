@@ -463,11 +463,12 @@ def cleanup(layer, threshold=40):
 	    (b) One endpoint lies on line2 and the other is less than threshold away
 	        from either endpoint of line2 (line1 is a near-subset).
 
-	Rule 4 — snap mutually-touching open path ends to the same coordinate:
-	  For every pair of line segments at open path ends (first or last segment,
-	  multi-segment paths included, curves skipped), if each path's open end lies
-	  on the other's segment (within 1 unit), move line1's end point to line2's
-	  end point, giving them an exact shared coordinate.
+	Rule 4 — snap open path ends to a collinear adjacent path end:
+	  For each open path1, build loose ends: (innerNode, endNode) pairs at the start/end
+	  of line segments (curves skipped). For each loose end, find an open path2 whose
+	  own open-end node lies on the infinite line through (innerNode, endNode) AND
+	  endNode lies on path2's corresponding end segment. When both hold, snap endNode
+	  to path2's open-end node position.
 
 	Rule 3 — snap open path ends to nearby intersections:
 	  Collect all interior crossing points in the layer (points where one path
@@ -639,28 +640,53 @@ def cleanup(layer, threshold=40):
 						seg.objects()[1].position = subdiv2.objects()[1].position
 						seg.objects()[2].position = subdiv2.objects()[2].position
 
-	# Rule 4 — snap mutually-touching open path ends to the same coordinate
-	# Collect (openNode, segAsPath) for every line segment at an open path end.
-	# Curve segments are skipped. For each pair where each path's open end lies on
-	# the other's segment, move line1's end point to line2's end point coordinate.
-	openEnds = []
-	for path in layer.paths:
-		for isEnd in (True, False):
-			segIndex = len(path.segments) - 1 if isEnd else 0
-			seg = path.segments[segIndex]
-			if len(seg) != 2:
-				continue
-			openNode = path.nodes[-1] if isEnd else path.nodes[0]
-			segPath = pathFromNodes([seg.objects()[0], seg.objects()[-1]])
-			openEnds.append((openNode, segPath))
+	# Rule 4 — snap open path ends to a collinear adjacent path end.
+	# For each open path1, collect loose ends: (innerNode, endNode) pairs for every
+	# line segment at the path's open ends. For each loose end, scan open path2s:
+	# if path2's own open-end node lies on the infinite line through (innerNode, endNode)
+	# AND endNode lies on path2's end segment, snap endNode to path2's open-end position.
 
-	for i in range(len(openEnds)):
-		node1, seg1path = openEnds[i]
-		for j in range(i + 1, len(openEnds)):
-			node2, seg2path = openEnds[j]
-			if onPath(node1.position, seg2path) and onPath(node2.position, seg1path):
-				node1.position = node2.position
-				break
+	def pointDistanceToLine(pt, A, B):
+		"""Perpendicular distance from pt to the infinite line through A and B."""
+		dx = B.x - A.x
+		dy = B.y - A.y
+		length = (dx * dx + dy * dy) ** 0.5
+		if length < 1e-10:
+			return distance(pt, A)
+		return abs(dx * (pt.y - A.y) - dy * (pt.x - A.x)) / length
+
+	paths = layer.paths
+	for path1 in paths:
+		if path1.closed:
+			continue
+		looseEnds = []
+		if len(path1.nodes) > 1 and path1.nodes[1].type != OFFCURVE:
+			looseEnds.append((path1.nodes[1], path1.nodes[0]))
+		if path1.nodes[-1].type == LINE:
+			looseEnds.append((path1.nodes[-2], path1.nodes[-1]))
+		if not looseEnds:
+			continue
+		for path2 in paths:
+			if path2.closed or path1 is path2:
+				continue
+			# Check path2's first segment (only if it is a line segment)
+			if len(path2.nodes) > 1 and path2.nodes[1].type != OFFCURVE:
+				p2end = path2.nodes[0]
+				p2inner = path2.nodes[1]
+				seg2path = pathFromNodes([p2end, p2inner])
+				for innerNode, endNode in looseEnds:
+					if onPath(endNode.position, seg2path) and pointDistanceToLine(p2end.position, innerNode.position, endNode.position) <= 1.0:
+						endNode.position = p2end.position
+						break
+			# Check path2's last segment (only if it is a line segment)
+			if path2.nodes[-1].type == LINE:
+				p2end = path2.nodes[-1]
+				p2inner = path2.nodes[-2]
+				seg2path = pathFromNodes([p2inner, p2end])
+				for innerNode, endNode in looseEnds:
+					if onPath(endNode.position, seg2path) and pointDistanceToLine(p2end.position, innerNode.position, endNode.position) <= 1.0:
+						endNode.position = p2end.position
+						break
 
 
 def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selectionMatters=True):
