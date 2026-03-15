@@ -291,12 +291,64 @@ def centerLine(path1, path2):
 		centerLine.nodes.append(centerNode)
 	return centerLine
 
+def relevantSegmentStarts(path):
+	"""
+	Returns the subset of on-curve start nodes whose segments are worth measuring
+	a center line for, based on the structure of the path. The node references
+	returned are the live objects from path.nodes, so identity comparison (`in`)
+	works directly in the caller loop.
+
+	Rules (applied in order, first match wins):
+
+	  4-segment path — assumed to be a closed stroke shape (two long sides + two
+	    short butt ends). Returns the start nodes of the two longer segments only,
+	    measured by bounding-box diagonal. This prevents the script from drawing
+	    center lines across the stroke butts.
+
+	  Even segment count — the path is treated as having two mirrored halves.
+	    Segment i is compared with segment i + segmentCount/2. The start node of
+	    segment i is included only when both segments share the same structure
+	    (both lines or both curves). Structurally mismatched pairs are skipped
+	    as unlikely to produce meaningful center lines.
+
+	  Odd segment count — no reliable pairing is possible; all segment start
+	    nodes are returned so that subsequent filters can decide.
+	"""
+	segments = path.segments
+	segmentCount = len(segments)
+
+	def segDiagonal(seg):
+		b = seg.bounds
+		return (b.size.width**2 + b.size.height**2)**0.5
+
+	def segType(seg):
+		return len(seg)  # 2 = line segment, 4 = curve segment
+
+	if segmentCount == 4:
+		diagonals = sorted(range(4), key=lambda i: segDiagonal(segments[i]), reverse=True)
+		longerIndices = set(diagonals[:2])
+		return [segments[i].objects()[0] for i in range(4) if i in longerIndices]
+
+	if segmentCount % 2 == 0:
+		half = segmentCount // 2
+		return [
+			segments[i].objects()[0]
+			for i in range(half)
+			if segType(segments[i]) == segType(segments[i + half])
+		]
+
+	# odd segment count — no structural pairing possible, return all starts
+	return [seg.objects()[0] for seg in segments]
+
+
 def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selectionMatters=True):
 	"""
 	Main function. Iterates over every segment in layer and, for each selected segment,
 	finds the opposite wall of the glyph outline and inserts a center line between them.
 
 	Algorithm per segment:
+	  0. Pre-select relevant segment start nodes via relevantSegmentStarts() to skip
+	     structural false positives (e.g. stroke butts, mismatched opposite segments).
 	  1. Sample the segment at parameter t (default: midpoint) to get a point and normal.
 	  2. Cast a ray from the midpoint inward along the inward normal, up to measureLength.
 	  3. Collect all intersections of that ray with the layer outline.
@@ -324,7 +376,10 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 		(layer.bounds.size.width**2 + layer.bounds.size.height**2)**0.5 / 2,
 	)
 	for j, path in enumerate(layer.paths):
+		preselectedNodes = relevantSegmentStarts(path)
 		for i, node in enumerate(path.nodes):
+			if node not in preselectedNodes:
+				continue
 			segmentNodes = segmentNodesFromNode(node)
 			if segmentNodes in treatedSegments:
 				continue
