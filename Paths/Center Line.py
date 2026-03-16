@@ -134,9 +134,7 @@ def segmentNodesAtPoint(layer, point):
 		nodes.append(copy(firstNodeOnSegment))
 		nextNode = firstNodeOnSegment.nextNode
 		if nextNode is None:
-			print("FIRST", firstNodeOnSegment)
-			print("NEXT", firstNodeOnSegment.nextNode)
-			print("PREV", firstNodeOnSegment.prevNode)
+			continue
 		while nextNode.type == OFFCURVE:
 			nodes.append(copy(nextNode))
 			nextNode = nextNode.nextNode
@@ -698,48 +696,35 @@ def cleanup(layer, threshold=40):
 	for i in layer.intersections():
 		x, y = i
 		intersectionPoints.append(NSPoint(x, y))
-	print(f"  Rule 5: {len(intersectionPoints)} intersection(s): {[(round(p.x), round(p.y)) for p in intersectionPoints]}")
 
 	for path in layer.paths:
 		if path.closed:
 			continue
-		print(f"  open path with {len(path.nodes)} nodes, {len(path.segments)} segment(s)")
 		for isEnd in (True, False):
 			endLabel = "END" if isEnd else "START"
 			segIndex = len(path.segments) - 1 if isEnd else 0
 			seg = path.segments[segIndex]
 			segChord = distance(seg.objects()[0].position, seg.objects()[-1].position)
-			print(f"    {endLabel} seg[{segIndex}]: chord={round(segChord)}, threshold*2={2*threshold}", end="")
 			if segChord < 2 * threshold:
-				print(" → skipped (chord too short)")
 				continue
-			print()
 			openNode = path.nodes[-1] if isEnd else path.nodes[0]
 			openPos = openNode.position
-			print(f"      open end pos: ({round(openPos.x)}, {round(openPos.y)})")
 			bestPt = None
 			bestDist = threshold
 			for pt in intersectionPoints:
 				d = distance(pt, openPos)
-				print(f"      checking intersection ({round(pt.x)}, {round(pt.y)}): dist={round(d)}", end="")
 				if d >= bestDist:
-					print(f" → too far (>= {round(bestDist)})")
 					continue
 				# confirm pt lies on this specific segment
 				nearest, pathTime = path.nearestPointOnPath_pathTime_(pt, None)
 				if distance(nearest, pt) > 1.0:
-					print(f" → not on path (nearest=({round(nearest.x)}, {round(nearest.y)}), off by {round(distance(nearest, pt), 1)})")
 					continue
 				if min(int(pathTime), len(path.segments) - 1) != segIndex:
-					print(f" → wrong segment (pathTime={round(pathTime, 2)}, clamped={min(int(pathTime), len(path.segments)-1)}, want {segIndex})")
 					continue
-				print(f" → candidate (pathTime={round(pathTime, 2)})")
 				bestDist = d
 				bestPt = pt
 			if bestPt is None:
-				print(f"      no snap candidate found")
 				continue
-			print(f"      snapping to ({round(bestPt.x)}, {round(bestPt.y)})")
 			openNode.position = bestPt
 
 
@@ -870,21 +855,27 @@ else:
 	print("Building in foreground:")
 
 font = Glyphs.font
-smallestStem = 40
+smallestStem = None
 for m in font.masters:
 	for s in m.stems:
-		if s < smallestStem:
+		if smallestStem is None or s < smallestStem:
 			smallestStem = s
+if smallestStem is None:
+	smallestStem = 40
+	print("⚠️ No stem value found, using fallback 40.")
+else:
+	print(f"↔️ Smallest stem: {smallestStem}")
 
 selectedLayers = font.selectedLayers
 for selectedLayer in selectedLayers:
 	if not isinstance(selectedLayer, GSLayer):
 		continue
 	selectionMatters = selectedLayer.selection != () and len(selectedLayers) == 1
-	print(f"Processing {selectedLayer.parent.name}{' (selection matters)' if selectionMatters else ''}")
+	print(f"🔡 {selectedLayer.parent.name}{' (selection matters)' if selectionMatters else ''}")
 	createCenterLinesForSelectedSegments(
 		selectedLayer,
 		inBackground=buildInBackground,
 		selectionMatters=selectionMatters,
 		threshold=smallestStem,
 		)
+print("✅ Done.")
