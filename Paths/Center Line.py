@@ -732,8 +732,8 @@ def cleanup(layer, threshold=40):
 				if distance(nearest, pt) > 1.0:
 					print(f" → not on path (nearest=({round(nearest.x)}, {round(nearest.y)}), off by {round(distance(nearest, pt), 1)})")
 					continue
-				if int(pathTime) != segIndex:
-					print(f" → wrong segment (pathTime={round(pathTime, 2)}, int={int(pathTime)}, want {segIndex})")
+				if min(int(pathTime), len(path.segments) - 1) != segIndex:
+					print(f" → wrong segment (pathTime={round(pathTime, 2)}, clamped={min(int(pathTime), len(path.segments)-1)}, want {segIndex})")
 					continue
 				print(f" → candidate (pathTime={round(pathTime, 2)})")
 				bestDist = d
