@@ -700,34 +700,48 @@ def cleanup(layer, threshold=40):
 	for i in layer.intersections():
 		x, y = i
 		intersectionPoints.append(NSPoint(x, y))
+	print(f"  Rule 5: {len(intersectionPoints)} intersection(s): {[(round(p.x), round(p.y)) for p in intersectionPoints]}")
 
 	for path in layer.paths:
 		if path.closed:
 			continue
+		print(f"  open path with {len(path.nodes)} nodes, {len(path.segments)} segment(s)")
 		for isEnd in (True, False):
+			endLabel = "END" if isEnd else "START"
 			segIndex = len(path.segments) - 1 if isEnd else 0
 			seg = path.segments[segIndex]
 			segChord = distance(seg.objects()[0].position, seg.objects()[-1].position)
+			print(f"    {endLabel} seg[{segIndex}]: chord={round(segChord)}, threshold*2={2*threshold}", end="")
 			if segChord < 2 * threshold:
+				print(" → skipped (chord too short)")
 				continue
+			print()
 			openNode = path.nodes[-1] if isEnd else path.nodes[0]
 			openPos = openNode.position
+			print(f"      open end pos: ({round(openPos.x)}, {round(openPos.y)})")
 			bestPt = None
 			bestDist = threshold
 			for pt in intersectionPoints:
 				d = distance(pt, openPos)
+				print(f"      checking intersection ({round(pt.x)}, {round(pt.y)}): dist={round(d)}", end="")
 				if d >= bestDist:
+					print(f" → too far (>= {round(bestDist)})")
 					continue
 				# confirm pt lies on this specific segment
 				nearest, pathTime = path.nearestPointOnPath_pathTime_(pt, None)
 				if distance(nearest, pt) > 1.0:
+					print(f" → not on path (nearest=({round(nearest.x)}, {round(nearest.y)}), off by {round(distance(nearest, pt), 1)})")
 					continue
 				if int(pathTime) != segIndex:
+					print(f" → wrong segment (pathTime={round(pathTime, 2)}, int={int(pathTime)}, want {segIndex})")
 					continue
+				print(f" → candidate (pathTime={round(pathTime, 2)})")
 				bestDist = d
 				bestPt = pt
 			if bestPt is None:
+				print(f"      no snap candidate found")
 				continue
+			print(f"      snapping to ({round(bestPt.x)}, {round(bestPt.y)})")
 			if len(seg) == 2:
 				# Line segment: just move the endpoint
 				openNode.position = bestPt
