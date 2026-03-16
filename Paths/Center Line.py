@@ -746,20 +746,25 @@ def cleanup(layer, threshold=40):
 				# Line segment: just move the endpoint
 				openNode.position = bestPt
 			else:
-				# Curve segment: trim to the intersection using divideAtTime_
+				# Curve segment: de Casteljau split at t, keep the relevant half
 				_, pathTime = path.nearestPointOnPath_pathTime_(bestPt, None)
 				t = pathTime % 1
-				subdiv1, subdiv2 = seg.divideAtTime_(t)
+				p = [seg.objects()[k].position for k in range(4)]
+				def lp(a, b):
+					return NSPoint(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t)
+				q0, q1, q2 = lp(p[0], p[1]), lp(p[1], p[2]), lp(p[2], p[3])
+				r0, r1 = lp(q0, q1), lp(q1, q2)
+				s = lp(r0, r1)
 				if isEnd:
-					# keep first half — update bcp1, bcp2, end from subdiv1
-					seg.objects()[1].position = subdiv1.objects()[1].position
-					seg.objects()[2].position = subdiv1.objects()[2].position
-					seg.objects()[3].position = subdiv1.objects()[3].position
+					# keep first half: p[0], q0, r0, s
+					seg.objects()[1].position = q0
+					seg.objects()[2].position = r0
+					seg.objects()[3].position = s
 				else:
-					# keep second half — update start, bcp1, bcp2 from subdiv2
-					seg.objects()[0].position = subdiv2.objects()[0].position
-					seg.objects()[1].position = subdiv2.objects()[1].position
-					seg.objects()[2].position = subdiv2.objects()[2].position
+					# keep second half: s, r1, q2, p[3]
+					seg.objects()[0].position = s
+					seg.objects()[1].position = r1
+					seg.objects()[2].position = q2
 
 
 def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selectionMatters=True, threshold=40):
