@@ -535,19 +535,17 @@ def cleanup(layer, threshold=40):
 	  endNode lies on path2's corresponding end segment. When both hold, snap endNode
 	  to path2's open-end node position.
 
-	Rule 4 — snap open path ends to nearby intersections (always runs last):
-	  Collect all interior crossing points in the layer (points where one path
-	  crosses another, excluding segment endpoints). For each open path end
-	  (nodes[0] of first segment, nodes[-1] of last segment), if an intersection
-	  lies within threshold/2 of that end AND the containing segment is at least
-	  2.5*threshold long (bounding-box diagonal), move the end to that intersection.
-	  For line segments the endpoint is simply repositioned; for curve segments
-	  the segment is trimmed via GSPathSegment.divideAtTime_() and the appropriate
-	  half's control points are written back to the live nodes.
+	Rule 4 — remove single-segment paths shorter than threshold:
+	  Delete any open path with exactly one segment whose chord length (distance
+	  between first and last node) is <= threshold.
 
-	Rule 5 — remove single-segment paths shorter than threshold:
-	  After all other rules, delete any open path with exactly one segment whose
-	  chord length (distance between first and last node) is <= threshold.
+	Rule 5 — snap open path ends to nearby intersections (always runs last):
+	  Collect all intersections in the layer via layer.intersections(). For each
+	  open path, check the first and last segment: if an intersection point lies
+	  on that segment and within threshold of the open end, move the end to that
+	  point. Line endpoints are repositioned directly; curve segments are trimmed
+	  via GSPathSegment.divideAtTime_() and the kept half's control points are
+	  written back to the live nodes.
 	"""
 	singleLines = [p for p in layer.paths if len(p.nodes) == 2]
 
@@ -687,77 +685,7 @@ def cleanup(layer, threshold=40):
 						endNode.position = p2end.position
 						break
 
-	# Rule 4 — snap open path ends to nearby intersections (always runs last).
-	# Collect all interior crossing points among the remaining paths in the layer.
-	# For each segment A–B, fire layer.intersectionsBetweenPoints(A, B) and keep only
-	# hits that are strictly between the two endpoints (> 1 unit from each).
-	intersectionPoints = []
-	for path in layer.paths:
-		for seg in path.segments:
-			A = seg.objects()[0].position
-			B = seg.objects()[-1].position
-			for hit in layer.intersectionsBetweenPoints(A, B):
-				pt = hit.pointValue()
-				if distance(pt, A) > 1.0 and distance(pt, B) > 1.0:
-					if not any(distance(pt, ex) < 0.5 for ex in intersectionPoints):
-						intersectionPoints.append(pt)
-
-	if intersectionPoints:
-		def lerp(p1, p2, t):
-			return NSPoint(p1.x + (p2.x - p1.x) * t, p1.y + (p2.y - p1.y) * t)
-
-		for path in layer.paths:
-			for isEnd in (True, False):
-				segIndex = len(path.segments) - 1 if isEnd else 0
-				seg = path.segments[segIndex]
-				openNode = path.nodes[-1] if isEnd else path.nodes[0]
-
-				b = seg.bounds
-				segLen = (b.size.width**2 + b.size.height**2)**0.5
-				if segLen < 2.5 * threshold:
-					continue
-
-				openPos = openNode.position
-				bestPt = None
-				bestDist = threshold / 2
-				for pt in intersectionPoints:
-					d = distance(pt, openPos)
-					if d >= bestDist:
-						continue
-					# confirm pt lies on this specific segment
-					nearest, pathTime = path.nearestPointOnPath_pathTime_(pt, None)
-					if distance(nearest, pt) > 1.0:
-						continue
-					if int(pathTime) != segIndex:
-						continue
-					bestDist = d
-					bestPt = pt
-
-				if bestPt is None:
-					continue
-
-				if len(seg) == 2:
-					# Line segment: just move the endpoint
-					openNode.position = bestPt
-				else:
-					# Curve segment: trim to the intersection using divideAtTime_
-					# (GSPathSegment.divideAtTime_ splits at parameter t and returns
-					# two sub-segments; we keep the appropriate half)
-					_, pathTime = path.nearestPointOnPath_pathTime_(bestPt, None)
-					t = pathTime % 1
-					subdiv1, subdiv2 = seg.divideAtTime_(t)
-					if isEnd:
-						# keep first half — update bcp1, bcp2, end from subdiv1
-						seg.objects()[1].position = subdiv1.objects()[1].position
-						seg.objects()[2].position = subdiv1.objects()[2].position
-						seg.objects()[3].position = subdiv1.objects()[3].position
-					else:
-						# keep second half — update start, bcp1, bcp2 from subdiv2
-						seg.objects()[0].position = subdiv2.objects()[0].position
-						seg.objects()[1].position = subdiv2.objects()[1].position
-						seg.objects()[2].position = subdiv2.objects()[2].position
-
-	# Rule 5 — remove single-segment paths shorter than threshold.
+	# Rule 4 — remove single-segment paths shorter than threshold.
 	for i in range(len(layer.shapes) - 1, -1, -1):
 		p = layer.shapes[i]
 		if not isinstance(p, GSPath):
@@ -765,6 +693,55 @@ def cleanup(layer, threshold=40):
 		if not p.closed and len(p.segments) == 1:
 			if distance(p.nodes[0].position, p.nodes[-1].position) <= threshold:
 				del layer.shapes[i]
+
+	# Rule 5 — snap open path ends to nearby intersections (always runs last).
+	intersectionPoints = []
+	for i in layer.intersections():
+		x, y = i
+		intersectionPoints.append(NSPoint(x, y))
+
+	for path in layer.paths:
+		if path.closed:
+			continue
+		for isEnd in (True, False):
+			segIndex = len(path.segments) - 1 if isEnd else 0
+			seg = path.segments[segIndex]
+			openNode = path.nodes[-1] if isEnd else path.nodes[0]
+			openPos = openNode.position
+			bestPt = None
+			bestDist = threshold
+			for pt in intersectionPoints:
+				d = distance(pt, openPos)
+				if d >= bestDist:
+					continue
+				# confirm pt lies on this specific segment
+				nearest, pathTime = path.nearestPointOnPath_pathTime_(pt, None)
+				if distance(nearest, pt) > 1.0:
+					continue
+				if int(pathTime) != segIndex:
+					continue
+				bestDist = d
+				bestPt = pt
+			if bestPt is None:
+				continue
+			if len(seg) == 2:
+				# Line segment: just move the endpoint
+				openNode.position = bestPt
+			else:
+				# Curve segment: trim to the intersection using divideAtTime_
+				_, pathTime = path.nearestPointOnPath_pathTime_(bestPt, None)
+				t = pathTime % 1
+				subdiv1, subdiv2 = seg.divideAtTime_(t)
+				if isEnd:
+					# keep first half — update bcp1, bcp2, end from subdiv1
+					seg.objects()[1].position = subdiv1.objects()[1].position
+					seg.objects()[2].position = subdiv1.objects()[2].position
+					seg.objects()[3].position = subdiv1.objects()[3].position
+				else:
+					# keep second half — update start, bcp1, bcp2 from subdiv2
+					seg.objects()[0].position = subdiv2.objects()[0].position
+					seg.objects()[1].position = subdiv2.objects()[1].position
+					seg.objects()[2].position = subdiv2.objects()[2].position
 
 
 def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selectionMatters=True, threshold=40):
@@ -893,14 +870,14 @@ if buildInBackground:
 else:
 	print("Building in foreground:")
 
-Font = Glyphs.font
+font = Glyphs.font
 smallestStem = 40
-for m in Font.masters:
+for m in font.masters:
 	for s in m.stems:
 		if s < smallestStem:
 			smallestStem = s
 
-selectedLayers = Font.selectedLayers
+selectedLayers = font.selectedLayers
 for selectedLayer in selectedLayers:
 	if not isinstance(selectedLayer, GSLayer):
 		continue
