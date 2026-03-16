@@ -541,7 +541,8 @@ def cleanup(layer, threshold=40):
 
 	Rule 5 — snap open path ends to nearby intersections (always runs last):
 	  Collect all intersections in the layer via layer.intersections(). For each
-	  open path, check the first and last segment: if an intersection point lies
+	  open path, check the first and last segment: skip the segment if its chord
+	  length is less than 2 × threshold. Otherwise, if an intersection point lies
 	  on that segment and within threshold of the open end, move the end to that
 	  point. Line endpoints are repositioned directly; curve segments are trimmed
 	  via GSPathSegment.divideAtTime_() and the kept half's control points are
@@ -706,6 +707,9 @@ def cleanup(layer, threshold=40):
 		for isEnd in (True, False):
 			segIndex = len(path.segments) - 1 if isEnd else 0
 			seg = path.segments[segIndex]
+			segChord = distance(seg.objects()[0].position, seg.objects()[-1].position)
+			if segChord < 2 * threshold:
+				continue
 			openNode = path.nodes[-1] if isEnd else path.nodes[0]
 			openPos = openNode.position
 			bestPt = None
