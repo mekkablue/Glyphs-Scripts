@@ -185,6 +185,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Component Mover:** Batch edit (smart) components across selected glyphs. Change positions, scales and smart properties.
 * **Component Problem Finder:** Find possible issues with components and corner components:  composable glyphs consisting of paths; locked, nested, orphaned, mirrored, shifted, rotated and scaled components; composite glyphs with an unusual component order or an unorthodox component structure. Also, disconnected and scaled corner components.
 * **Composite Consistencer:** Goes through all glyphs of the frontmost font, and checks for composites in the current master. If dot-suffixed glyph variants are missing them, they are reported in the Macro Window.
+* **Convert Cap to Segment Component:** Converts a _cap.xxx glyph into a _segment.xxx glyph. Optionally updates all glyphs in the font that reference the cap to use the new segment instead.
 * **Decompose Components in Background:** Decomposes background layers of selected glyphs. Works on the current master or all masters, or all masters of all fonts.
 * **Decompose Corner and Cap Components:** Decomposes all corner and cap components in selected glyphs. Reports to Macro window.
 * **Find and Replace Components:** Relinks components in selected glyphs to a new source glyph.
