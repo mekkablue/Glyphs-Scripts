@@ -615,6 +615,30 @@ kernvalues
 		print("\t☑️ Removed %i exceptions in master '%s'." % (len(removals), master.name))
 		return len(removals)
 
+	# ------------------------------------------------------------------ step 6
+
+	def _closeInDesignDoc(self, indesign):
+		"""Close the frontmost InDesign document without saving."""
+		script = """
+tell application "%s"
+	if (count documents) > 0 then
+		close front document saving no
+	end if
+end tell
+true
+""" % indesign
+		self._runAppleScript(script)
+
+	def _deleteFonts(self, exportedMasters):
+		"""Delete all temporary OTF files that were exported."""
+		for master, filePath in exportedMasters:
+			try:
+				if os.path.exists(filePath):
+					os.remove(filePath)
+					print("\t🗑 Deleted: %s" % filePath)
+			except Exception as e:
+				print("\t⚠️ Could not delete %s: %s" % (filePath, e))
+
 	# ------------------------------------------------------------------ run
 
 	def run(self, sender=None):
@@ -733,7 +757,26 @@ true
 				self._removeExceptions(thisFont, master)
 		print("  Post-processing done.\n")
 
-		self.w.status.set("Step 5 done. Step 6 not yet implemented.")
+		# --- Step 6: cleanup ---
+		print("Step 6 – Cleanup…")
+		self.w.status.set("Cleaning up…")
+		self._closeInDesignDoc(indesign)
+		self._deleteFonts(exportedMasters)
+		print("  Cleanup done.\n")
+
+		# Final count of kern pairs across all processed masters
+		finalPairCount = sum(
+			sum(len(rDict) for rDict in thisFont.kerning.get(m.id, {}).values())
+			for m, _ in exportedMasters
+		)
+		masterWord = "master" if len(exportedMasters) == 1 else "masters"
+		summary = "✅ Done: %i kern pairs across %i %s." % (finalPairCount, len(exportedMasters), masterWord)
+		self.w.status.set(summary)
+		print(summary)
+		Glyphs.showNotification(
+			"Steal Kerning from InDesign",
+			"%i pairs across %i %s. Details in Macro Window." % (finalPairCount, len(exportedMasters), masterWord),
+		)
 
 
 StealKerningFromInDesign()
