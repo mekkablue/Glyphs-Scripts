@@ -513,6 +513,108 @@ kernvalues
 		print("\t↔️ Imported %i raw kern pairs for master '%s'." % (count, master.name))
 		return count
 
+	# ------------------------------------------------------------------ step 5
+
+	def _roundAndFilter(self, thisFont, master, roundBy, minimumKern):
+		"""
+		For every kern pair in the given master:
+		  • round to nearest multiple of roundBy (if > 0)
+		  • remove the pair if |value| < minimumKern
+		Returns the number of pairs removed.
+		"""
+		masterID = master.id
+		kerning = thisFont.kerning.get(masterID)
+		if not kerning:
+			return 0
+
+		removals = []
+		for leftID, rightDict in kerning.items():
+			for rightID, value in rightDict.items():
+				newValue = value
+				if roundBy > 0:
+					newValue = round(value / roundBy) * roundBy
+				if abs(newValue) < minimumKern:
+					removals.append((leftID, rightID))
+				elif newValue != value:
+					# resolve IDs to names for setKerningForPair
+					leftName = leftID if leftID.startswith("@") else thisFont.glyphForId_(leftID).name
+					rightName = rightID if rightID.startswith("@") else thisFont.glyphForId_(rightID).name
+					thisFont.setKerningForPair(masterID, leftName, rightName, newValue)
+
+		for leftID, rightID in removals:
+			leftName = leftID if leftID.startswith("@") else thisFont.glyphForId_(leftID).name
+			rightName = rightID if rightID.startswith("@") else thisFont.glyphForId_(rightID).name
+			thisFont.removeKerningForPair(masterID, leftName, rightName)
+
+		print("\t☑️ Round/filter: removed %i pairs below minimum in master '%s'." % (len(removals), master.name))
+		return len(removals)
+
+	def _compressKerning(self, thisFont, master):
+		"""
+		Repeatedly compress (promote glyph exceptions to group kerning) until
+		nothing changes.  A pair is promotable when:
+		  - both sides are glyph IDs (not group keys)
+		  - the glyph has kerning groups on both sides
+		  - value matches the existing group-group value (or there is none yet)
+		Returns the total number of pairs promoted.
+		"""
+		masterID = master.id
+		totalPromoted = 0
+		while True:
+			kerning = thisFont.kerning.get(masterID, {})
+			toPromote = []
+			for leftID in list(kerning.keys()):
+				leftIsGlyph = not leftID.startswith("@")
+				for rightID in list(kerning.get(leftID, {}).keys()):
+					rightIsGlyph = not rightID.startswith("@")
+					if not (leftIsGlyph and rightIsGlyph):
+						continue
+					leftGlyph = thisFont.glyphForId_(leftID)
+					rightGlyph = thisFont.glyphForId_(rightID)
+					if not leftGlyph or not rightGlyph:
+						continue
+					lGroup = leftGlyph.rightKerningGroup
+					rGroup = rightGlyph.leftKerningGroup
+					if not lGroup or not rGroup:
+						continue
+					lKey = "@MMK_L_%s" % lGroup
+					rKey = "@MMK_R_%s" % rGroup
+					value = kerning[leftID][rightID]
+					groupValue = thisFont.kerningForPair(masterID, lKey, rKey)
+					# promote: set group-group if not already set or matching
+					if groupValue is None or groupValue > 100000:
+						thisFont.setKerningForPair(masterID, lKey, rKey, value)
+						toPromote.append((leftGlyph.name, rightGlyph.name))
+					elif groupValue == value:
+						toPromote.append((leftGlyph.name, rightGlyph.name))
+			if not toPromote:
+				break
+			for leftName, rightName in toPromote:
+				thisFont.removeKerningForPair(masterID, leftName, rightName)
+			totalPromoted += len(toPromote)
+		if totalPromoted:
+			print("\t☑️ Compressed %i pairs to group kerning in master '%s'." % (totalPromoted, master.name))
+		return totalPromoted
+
+	def _removeExceptions(self, thisFont, master):
+		"""
+		Remove all non-group-to-group kerning pairs (glyph↔glyph, group↔glyph, glyph↔group).
+		"""
+		masterID = master.id
+		kerning = thisFont.kerning.get(masterID, {})
+		removals = []
+		for leftID, rightDict in kerning.items():
+			for rightID in rightDict.keys():
+				if leftID.startswith("@") and rightID.startswith("@"):
+					continue  # keep group-group
+				removals.append((leftID, rightID))
+		for leftID, rightID in removals:
+			leftName = leftID if leftID.startswith("@") else thisFont.glyphForId_(leftID).name
+			rightName = rightID if rightID.startswith("@") else thisFont.glyphForId_(rightID).name
+			thisFont.removeKerningForPair(masterID, leftName, rightName)
+		print("\t☑️ Removed %i exceptions in master '%s'." % (len(removals), master.name))
+		return len(removals)
+
 	# ------------------------------------------------------------------ run
 
 	def run(self, sender=None):
@@ -610,7 +712,28 @@ true
 			totalImported += n
 		print("  Total raw pairs imported: %i\n" % totalImported)
 
-		self.w.status.set("Step 4 done. Steps 5–6 not yet implemented.")
+		# --- Step 5: round, filter, compress, remove exceptions ---
+		print("Step 5 – Post-processing kern pairs…")
+		try:
+			roundBy = float(self.pref("roundBy"))
+		except (TypeError, ValueError):
+			roundBy = 0.0
+		try:
+			minimumKern = float(self.pref("minimumKern"))
+		except (TypeError, ValueError):
+			minimumKern = 0.0
+		groupKerningOnly = self.prefBool("groupKerningOnly")
+
+		for master, filePath in exportedMasters:
+			self.w.status.set("Post-processing '%s'…" % master.name)
+			self._roundAndFilter(thisFont, master, roundBy, minimumKern)
+			# compress repeatedly until stable
+			self._compressKerning(thisFont, master)
+			if groupKerningOnly:
+				self._removeExceptions(thisFont, master)
+		print("  Post-processing done.\n")
+
+		self.w.status.set("Step 5 done. Step 6 not yet implemented.")
 
 
 StealKerningFromInDesign()
