@@ -227,7 +227,7 @@ tell application "%s"
 		tell character 1 of parent story of myFrame
 			set point size to 3
 			set applied font to ("Kernstealer" & tab & "%s")
-			set auto kern type to optical
+			set |auto kern type| to optical
 		end tell
 	end tell
 end tell
@@ -410,7 +410,7 @@ tell application "%s"
 		tell parent story of first text frame
 			set point size of every character to %s
 			set applied font of every character to ("Kernstealer" & tab & "%s")
-			set auto kern type of every character to optical
+			set |auto kern type| of every character to optical
 		end tell
 	end tell
 end tell
