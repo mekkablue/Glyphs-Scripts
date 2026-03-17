@@ -211,24 +211,23 @@ InDesign as string
 		zeroPair = self.pref("zeroPair") or "HH"
 		# Escape for AppleScript string
 		zeroPairAS = zeroPair.replace("\\", "\\\\").replace('"', '\\"')
+		# A3 landscape: 420 x 297 mm = 1190.55 x 841.89 pt
 		script = """
 tell application "%s"
-	set myDoc to make new document with properties {document preferences:{page width:841.89, page height:595.28, pages per document:1, facing pages:false}}
+	set myDoc to make new document
 	tell myDoc
-		set documentPreferences to document preferences
-		set documentPreferences's page orientation to landscape
-		-- create a text frame filling the page
-		set myFrame to make new text frame with properties {geometric bounds:{0, 0, 595.28, 841.89}}
-		tell myFrame
-			tell text preferences
-				set optical margin alignment to false
-			end tell
-			set content to "%s"
-			tell character 1 of parent story
-				set point size to 3
-				set applied font to "Kernstealer\\t%s"
-				set kerning method to optical
-			end tell
+		tell document preferences
+			set page width to 1190.55
+			set page height to 841.89
+			set pages per document to 1
+			set facing pages to false
+		end tell
+		set myFrame to make new text frame with properties {geometric bounds:{0, 0, 841.89, 1190.55}}
+		set content of myFrame to "%s"
+		tell character 1 of parent story of myFrame
+			set point size to 3
+			set applied font to ("Kernstealer" & tab & "%s")
+			set auto kerning to optical
 		end tell
 	end tell
 end tell
@@ -410,8 +409,8 @@ tell application "%s"
 		set content of first text frame to "%s"
 		tell parent story of first text frame
 			set point size of every character to %s
-			set applied font of every character to "Kernstealer\\t%s"
-			set kerning method of every character to optical
+			set applied font of every character to ("Kernstealer" & tab & "%s")
+			set auto kerning of every character to optical
 		end tell
 	end tell
 end tell
