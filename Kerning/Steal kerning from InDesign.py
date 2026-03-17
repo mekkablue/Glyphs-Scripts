@@ -82,7 +82,7 @@ class StealKerningFromInDesign(mekkaObject):
 		self.w.groupKerningOnly.getNSButton().setToolTip_("If on, only sets group-to-group kerning. Removes all glyph-level exceptions after import.")
 		linePos += lineHeight
 
-		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos - 1, 220, 20), "All masters (otherwise current master only)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "All masters (otherwise current master only)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allMasters.getNSButton().setToolTip_("Process all masters in the font. If off, only the currently selected master is processed.")
 		linePos += lineHeight
 
