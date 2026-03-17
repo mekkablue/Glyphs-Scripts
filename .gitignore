@@ -34,3 +34,5 @@ Temporary Items
 /.claude/worktrees/pedantic-mccarthy
 /.claude/worktrees/laughing-wozniak
 /.claude/worktrees/condescending-mestorf
+*.woff2
+*.html
