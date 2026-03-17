@@ -1,0 +1,20 @@
+# macOS invisible files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Editor artefacts
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
