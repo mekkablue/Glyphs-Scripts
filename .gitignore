@@ -31,3 +31,6 @@ Temporary Items
 .apdisk
 *.bak
 /Test/samsa-config.js
+/.claude/worktrees/pedantic-mccarthy
+/.claude/worktrees/laughing-wozniak
+/.claude/worktrees/condescending-mestorf
