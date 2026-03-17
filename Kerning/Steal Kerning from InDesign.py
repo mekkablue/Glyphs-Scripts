@@ -174,7 +174,7 @@ class StealKerningFromInDesign(mekkaObject):
 				"AutoHintKey": False,
 				"RemoveOverlapsKey": True,
 			}
-			ok = tempFont.export(format="OTF", filePath=filePath)
+			ok = tempFont.export(format="OTF", fontPath=filePath)
 			if ok:
 				print("\t✅ Exported: %s → %s" % (master.name, filePath))
 				exported.append((master, filePath))
