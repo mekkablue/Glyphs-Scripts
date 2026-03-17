@@ -315,6 +315,110 @@ end tell
 		print("\t☑️ Calibrated font size: %.1f pt (kern delta %.2f)" % (bestSize, bestAbsKern))
 		return bestSize
 
+	# ------------------------------------------------------------------ step 3
+
+	def _glyphsForCategory(self, thisFont, category, subcategory=None):
+		"""
+		Return exporting GSGlyph objects matching category (and optional subcategory).
+		Skips glyphs with no Unicode and glyphs made of 2+ components (can't be typed reliably).
+		"""
+		result = []
+		for glyph in thisFont.glyphs:
+			if not glyph.export:
+				continue
+			if not glyph.unicode:
+				continue
+			if glyph.category != category:
+				continue
+			if subcategory and glyph.subCategory != subcategory:
+				continue
+			# skip glyphs that are purely composite (2+ components, no contours)
+			for master in thisFont.masters:
+				layer = glyph.layers[master.id]
+				if layer and len(layer.components) >= 2 and len(layer.paths) == 0:
+					break
+			else:
+				result.append(glyph)
+		return result
+
+	def _buildPairText(self, thisFont):
+		"""
+		Build a string of all requested pair combinations as '/glyphname/glyphname ' sequences.
+		Groupings are driven by user checkboxes.
+		Returns the pair text string.
+		"""
+		doLetterToLetter = self.prefBool("letterToLetter")
+		doFigureToFigure = self.prefBool("figureToFigure")
+		doLetterWithPunctuation = self.prefBool("letterWithPunctuation")
+		doFigureWithPunctuation = self.prefBool("figureWithPunctuation")
+
+		letters = self._glyphsForCategory(thisFont, "Letter") if (doLetterToLetter or doLetterWithPunctuation) else []
+		figures = self._glyphsForCategory(thisFont, "Number", "Decimal Digit") if (doFigureToFigure or doFigureWithPunctuation) else []
+		punctuation = self._glyphsForCategory(thisFont, "Punctuation") if (doLetterWithPunctuation or doFigureWithPunctuation) else []
+
+		# collect unique pairs as (leftName, rightName)
+		pairs = []
+		seen = set()
+
+		def addPair(left, right):
+			key = (left.name, right.name)
+			if key not in seen:
+				seen.add(key)
+				pairs.append(key)
+
+		if doLetterToLetter:
+			for L in letters:
+				for R in letters:
+					addPair(L, R)
+
+		if doFigureToFigure:
+			for L in figures:
+				for R in figures:
+					addPair(L, R)
+
+		if doLetterWithPunctuation:
+			for L in letters:
+				for R in punctuation:
+					addPair(L, R)
+			for L in punctuation:
+				for R in letters:
+					addPair(L, R)
+
+		if doFigureWithPunctuation:
+			for L in figures:
+				for R in punctuation:
+					addPair(L, R)
+			for L in punctuation:
+				for R in figures:
+					addPair(L, R)
+
+		# build the slash-name string
+		pairText = " ".join("/%s/%s" % (l, r) for l, r in pairs)
+		print("\t☑️ %i pairs to measure." % len(pairs))
+		return pairText
+
+	def _setInDesignTextAndFont(self, indesign, pairText, styleName, calibSize):
+		"""
+		Replace the text frame content with pairText, set the font and
+		calibrated point size with optical kerning on every character.
+		"""
+		# Escape the slash-name string for AppleScript (no special chars expected)
+		pairTextAS = pairText.replace("\\", "\\\\").replace('"', '\\"')
+		script = """
+tell application "%s"
+	tell front document
+		set content of first text frame to "%s"
+		tell parent story of first text frame
+			set point size of every character to %s
+			set applied font of every character to "Kernstealer\\t%s"
+			set kerning method of every character to optical
+		end tell
+	end tell
+end tell
+true
+""" % (indesign, pairTextAS, calibSize, styleName)
+		return bool(self._runAppleScript(script))
+
 	# ------------------------------------------------------------------ run
 
 	def run(self, sender=None):
@@ -364,7 +468,44 @@ end tell
 			calibrationSizes[master.id] = (styleName, calibSize)
 			print("\t↔️ Master '%s' → %.1f pt\n" % (master.name, calibSize))
 
-		self.w.status.set("Step 2 done. Steps 3–6 not yet implemented.")
+		# --- Step 3: build pair text and fill InDesign text frame ---
+		print("Step 3 – Building pair text and filling InDesign text frame…")
+		pairText = self._buildPairText(thisFont)
+		if not pairText:
+			self.w.status.set("⚠️ No pairs to kern.")
+			return
+
+		# pairText is the same for all masters; only font/size changes per master
+		# Store calibration data for use in step 4
+		masterCalibData = calibrationSizes  # {masterId: (styleName, calibSize)}
+
+		for master, filePath in exportedMasters:
+			if master.id not in masterCalibData:
+				continue
+			styleName, calibSize = masterCalibData[master.id]
+			self.w.status.set("Filling frame '%s'…" % master.name)
+			# Re-create the InDesign document for this master (step 2 left one open;
+			# close it and open a fresh one for the pair text)
+			closeScript = """
+tell application "%s"
+	if (count documents) > 0 then
+		close front document saving no
+	end if
+end tell
+true
+""" % indesign
+			self._runAppleScript(closeScript)
+			ok = self._createInDesignDoc(indesign, "Kernstealer", styleName)
+			if not ok:
+				print("\t❌ Could not re-create InDesign document for master '%s'." % master.name)
+				continue
+			ok = self._setInDesignTextAndFont(indesign, pairText, styleName, calibSize)
+			if ok:
+				print("\t✅ Text frame filled for master '%s'." % master.name)
+			else:
+				print("\t❌ Failed to fill text frame for master '%s'." % master.name)
+
+		self.w.status.set("Step 3 done. Steps 4–6 not yet implemented.")
 
 
 StealKerningFromInDesign()
