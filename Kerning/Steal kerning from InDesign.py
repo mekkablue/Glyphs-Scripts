@@ -2,96 +2,462 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Use the font in InD (set up a document with one text box on the first page, set the kerning method to Optical), then run this script.
+Exports the current font's masters as temporary fonts to the Adobe Fonts folder,
+then creates an InDesign document with optical kerning, measures and imports the
+kerning for the selected glyph groupings, and cleans up afterwards.
 """
 
+import os
+import re
+import vanilla
 from Foundation import NSAppleScript
-from timeit import default_timer as timer
+from mekkablue import mekkaObject
 from GlyphsApp import Glyphs
-from mekkablue import reportTimeInNaturalLanguage
-
-# start taking time:
-start = timer()
-
-thisFont = Glyphs.font  # frontmost font
-thisFontMaster = thisFont.selectedFontMaster  # active master
-thisFontMasterID = thisFontMaster.id  # active master id
-listOfSelectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
-
-replacements = {
-	"bullet character": "•",
-	"copyright symbol": "©",
-	"double left quote": "“",
-	"double right quote": "”",
-	"ellipsis character": "…",
-	"Em dash": "—",
-	"En dash": "–",
-	"nonbreaking space": " ",
-	"section symbol": "§",
-	"single left quote": "‘",
-	"single right quote": "’",
-	"trademark symbol": "™",
-}
-
-# brings macro window to front and clears its log:
-Glyphs.clearLog()
-# Glyphs.showMacroWindow()
 
 
-def glyphNameForLetter(letter):
-	glyphName = False
-	if len(letter) > 0:
-		letter = letter[0]
-		utf16value = "%.4X" % ord(letter)
-		glyphName = Glyphs.glyphInfoForUnicode(utf16value).name
-	return glyphName
+class StealKerningFromInDesign(mekkaObject):
+	prefDict = {
+		"zeroPair": "HH",
+		"roundBy": 5,
+		"minimumKern": 10,
+		"letterToLetter": 1,
+		"figureToFigure": 1,
+		"letterWithPunctuation": 1,
+		"figureWithPunctuation": 1,
+		"groupKerningOnly": 0,
+		"allMasters": 1,
+	}
 
+	def __init__(self):
+		windowWidth = 360
+		windowHeight = 242
+		windowWidthResize = 0
+		windowHeightResize = 0
+		self.w = vanilla.FloatingWindow(
+			(windowWidth, windowHeight),
+			"Steal Kerning from InDesign",
+			minSize=(windowWidth, windowHeight),
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),
+			autosaveName=self.domain("mainwindow"),
+		)
 
-def runAppleScript(scriptSource, args=[]):
-	s = NSAppleScript.alloc().initWithSource_(scriptSource)
-	result, error = s.executeAndReturnError_(None)
-	if error:
-		print("AppleScript Error:")
-		print(error)
-		print("Tried to run:")
-		for i, line in enumerate(scriptSource.splitlines()):
-			print("%03i" % (i + 1), line)
-		return False
-	if result:
-		return result.stringValue()
-	else:
+		linePos, inset, lineHeight = 12, 15, 22
+
+		# Zero pair + rounding
+		self.w.zeroPairLabel = vanilla.TextBox((inset, linePos + 3, 155, 14), "Pair without kerning:", sizeStyle="small")
+		self.w.zeroPair = vanilla.EditText((inset + 155, linePos, 50, 19), "HH", callback=self.SavePreferences, sizeStyle="small")
+		self.w.zeroPair.getNSTextField().setToolTip_("A pair of glyphs that should have zero optical kerning (i.e., the reference pair used to calibrate the font size for measurement).")
+		linePos += lineHeight
+
+		# Round by + Minimum kern on one row
+		self.w.roundByLabel = vanilla.TextBox((inset, linePos + 3, 70, 14), "Round by:", sizeStyle="small")
+		self.w.roundBy = vanilla.EditText((inset + 70, linePos, 40, 19), "5", callback=self.SavePreferences, sizeStyle="small")
+		self.w.roundBy.getNSTextField().setToolTip_("Round imported kern values to this multiple (e.g. 5 = multiples of 5). Set to 1 or 0 to skip rounding.")
+		self.w.minimumKernLabel = vanilla.TextBox((inset + 125, linePos + 3, 100, 14), "Minimum kern:", sizeStyle="small")
+		self.w.minimumKern = vanilla.EditText((inset + 225, linePos, 40, 19), "10", callback=self.SavePreferences, sizeStyle="small")
+		self.w.minimumKern.getNSTextField().setToolTip_("Discard imported kern pairs whose absolute value is smaller than this threshold.")
+		linePos += lineHeight
+
+		self.w.divider1 = vanilla.HorizontalLine((inset, linePos + 3, -inset, 1))
+		linePos += int(lineHeight * 0.6)
+
+		# Pair type checkboxes
+		self.w.letterToLetter = vanilla.CheckBox((inset + 2, linePos - 1, 170, 20), "Letter to Letter", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.letterToLetter.getNSButton().setToolTip_("Kern pairs between uppercase and lowercase letters.")
+		self.w.figureToFigure = vanilla.CheckBox((inset + 180, linePos - 1, -inset, 20), "Figure to Figure", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.figureToFigure.getNSButton().setToolTip_("Kern pairs between decimal digit figures.")
+		linePos += lineHeight
+
+		self.w.letterWithPunctuation = vanilla.CheckBox((inset + 2, linePos - 1, 170, 20), "Letter with Punctuation", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.letterWithPunctuation.getNSButton().setToolTip_("Kern pairs between letters and punctuation marks (both directions).")
+		self.w.figureWithPunctuation = vanilla.CheckBox((inset + 180, linePos - 1, -inset, 20), "Figure with Punctuation", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.figureWithPunctuation.getNSButton().setToolTip_("Kern pairs between figures and punctuation marks (both directions).")
+		linePos += lineHeight
+
+		self.w.divider2 = vanilla.HorizontalLine((inset, linePos + 3, -inset, 1))
+		linePos += int(lineHeight * 0.6)
+
+		# Options
+		self.w.groupKerningOnly = vanilla.CheckBox((inset + 2, linePos - 1, 220, 20), "Group kerning only (no exceptions)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.groupKerningOnly.getNSButton().setToolTip_("If on, only sets group-to-group kerning. Removes all glyph-level exceptions after import.")
+		linePos += lineHeight
+
+		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos - 1, 220, 20), "All masters (otherwise current master only)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allMasters.getNSButton().setToolTip_("Process all masters in the font. If off, only the currently selected master is processed.")
+		linePos += lineHeight
+
+		# Status + Run button
+		self.w.status = vanilla.TextBox((inset, -20 - inset, -90 - inset, 14), "Ready.", sizeStyle="small", selectable=True)
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Kern", callback=self.run)
+		self.w.setDefaultButton(self.w.runButton)
+
+		self.LoadPreferences()
+		self.w.open()
+		self.w.makeKey()
+
+	def updateUI(self, sender=None):
+		anyPairType = (
+			self.w.letterToLetter.get()
+			or self.w.figureToFigure.get()
+			or self.w.letterWithPunctuation.get()
+			or self.w.figureWithPunctuation.get()
+		)
+		self.w.runButton.enable(anyPairType)
+
+	# ------------------------------------------------------------------ helpers
+
+	def _runAppleScript(self, source, args=None):
+		"""Run an AppleScript string; return its string result or True/False."""
+		s = NSAppleScript.alloc().initWithSource_(source)
+		result, error = s.executeAndReturnError_(None)
+		if error:
+			print("AppleScript Error:")
+			print(error)
+			print("Script:")
+			for i, line in enumerate(source.splitlines()):
+				print("%03i %s" % (i + 1, line))
+			return False
+		if result:
+			return result.stringValue()
 		return True
 
+	def _sanitizeName(self, name):
+		"""Keep only A-Z a-z 0-9 and space — safe for PostScript family/style names."""
+		return re.sub(r"[^A-Za-z0-9 ]", "", name)
 
-def cleanText(thisText, cleanDict):
-	"""cleanDict={"searchFor":"replaceWith"}"""
-	for searchFor in cleanDict.keys():
-		replaceWith = cleanDict[searchFor]
-		thisText = thisText.replace(searchFor, replaceWith)
-	return thisText
+	def _adobeFontsFolder(self):
+		"""Return the path to ~/Library/Application Support/Adobe/Fonts, creating it if needed."""
+		path = os.path.expanduser("~/Library/Application Support/Adobe/Fonts")
+		os.makedirs(path, exist_ok=True)
+		return path
 
+	# ------------------------------------------------------------------ step 1
 
-# Determine InDesign application name (for use in the AppleScripts):
+	def _exportMasters(self, thisFont, masters):
+		"""
+		Export each master as a standalone OTF into the Adobe Fonts folder.
+		Family name: 'Kernstealer'
+		Style name:  sanitized master name
+		Returns a list of (master, filePath) tuples.
+		"""
+		adobeFontsFolder = self._adobeFontsFolder()
+		exported = []
 
-Glyphs.registerDefault("com.mekkablue.stealKerningFromInDesign.indesignAppName", "Adobe InDesign")
+		for master in masters:
+			styleName = self._sanitizeName(master.name) or ("Master%i" % masters.index(master))
+			fileName = "Kernstealer-%s.otf" % styleName.replace(" ", "")
+			filePath = os.path.join(adobeFontsFolder, fileName)
 
-getInDesign = """
+			# Build a temporary single-master font copy
+			import copy
+			tempFont = thisFont.copy()
+			tempFont.familyName = "Kernstealer"
+
+			# Keep only the matching master; set its name as the style
+			masterIdToKeep = master.id
+			# Find the matching master in the copy (same index)
+			masterIndex = list(thisFont.masters).index(master)
+			tempMaster = tempFont.masters[masterIndex]
+			tempMaster.name = styleName
+			tempMaster.customParameters["preferredSubfamilyName"] = styleName
+			tempMaster.customParameters["postscriptSlantAngle"] = 0
+
+			# Remove other masters
+			mastersToRemove = [m for m in tempFont.masters if m != tempMaster]
+			for m in mastersToRemove:
+				tempFont.removeMaster_(m)
+
+			# Export as OTF
+			exportOptions = {
+				"ExportFormatKey": "OTF",
+				"ExportDestinationKey": adobeFontsFolder,
+				"AutoHintKey": False,
+				"RemoveOverlapsKey": True,
+			}
+			ok = tempFont.export(format="OTF", filePath=filePath)
+			if ok:
+				print("\t✅ Exported: %s → %s" % (master.name, filePath))
+				exported.append((master, filePath))
+			else:
+				print("\t❌ Export failed for master: %s" % master.name)
+
+		return exported
+
+	# ------------------------------------------------------------------ step 2
+
+	def _getInDesignName(self):
+		"""Return the running InDesign application name (auto-detect or ask user)."""
+		Glyphs.registerDefault("com.mekkablue.StealKerningFromInDesign.indesignAppName", "Adobe InDesign")
+		storedName = Glyphs.defaults["com.mekkablue.StealKerningFromInDesign.indesignAppName"]
+		script = """
 try
 	set InDesign to application "%s"
 on error
 	set InDesign to choose application with title "Please choose Adobe InDesign"
 end try
 InDesign as string
-""" % Glyphs.defaults["com.mekkablue.stealKerningFromInDesign.indesignAppName"]
+""" % storedName
+		name = self._runAppleScript(script)
+		if name and name != storedName:
+			Glyphs.defaults["com.mekkablue.StealKerningFromInDesign.indesignAppName"] = name
+		return name or storedName
 
-indesign = runAppleScript(getInDesign)
-if indesign != Glyphs.defaults["com.mekkablue.stealKerningFromInDesign.indesignAppName"]:
-	Glyphs.defaults["com.mekkablue.stealKerningFromInDesign.indesignAppName"] = indesign
-print("Accessing: %s" % indesign)
+	def _createInDesignDoc(self, indesign, familyName, styleName):
+		"""
+		Create a new A3-landscape InDesign document with a full-page text frame,
+		font set to 3 pt with optical kerning, text = zeroPair.
+		Returns True on success.
+		"""
+		zeroPair = self.pref("zeroPair") or "HH"
+		# Escape for AppleScript string
+		zeroPairAS = zeroPair.replace("\\", "\\\\").replace('"', '\\"')
+		script = """
+tell application "%s"
+	set myDoc to make new document with properties {document preferences:{page width:841.89, page height:595.28, pages per document:1, facing pages:false}}
+	tell myDoc
+		set documentPreferences to document preferences
+		set documentPreferences's page orientation to landscape
+		-- create a text frame filling the page
+		set myFrame to make new text frame with properties {geometric bounds:{0, 0, 595.28, 841.89}}
+		tell myFrame
+			tell text preferences
+				set optical margin alignment to false
+			end tell
+			set content to "%s"
+			tell character 1 of parent story
+				set point size to 3
+				set applied font to "Kernstealer\\t%s"
+				set kerning method to optical
+			end tell
+		end tell
+	end tell
+end tell
+true
+""" % (indesign, zeroPairAS, styleName)
+		result = self._runAppleScript(script)
+		return bool(result)
 
-# Define AppleScripts to be run later:
+	def _calibrateFontSize(self, indesign, styleName):
+		"""
+		Starting at 3 pt, step up 1 pt at a time until the optical kern value
+		between insertion point 1→2 is <= 0.  Then step back down in 0.1 pt
+		increments until the kern value is as close to 0.0 as possible.
+		Returns the calibrated point size as a float.
+		"""
+		# Step up by 1 pt until kern <= 0
+		scriptUp = """
+tell application "%s"
+	tell front document
+		tell first text frame
+			tell character 1 of parent story
+				set curSize to point size
+				set kernVal to kerning value of insertion point 2
+				if kernVal > 0 then
+					set point size to curSize + 1
+				end if
+				return (point size as string) & "," & (kernVal as string)
+			end tell
+		end tell
+	end tell
+end tell
+""" % indesign
 
-getKernValuesFromInDesign = """
+		size = 3.0
+		for _ in range(2000):  # safety cap: 2003 pt max
+			result = self._runAppleScript(scriptUp)
+			if not result or "," not in result:
+				break
+			parts = result.split(",")
+			try:
+				size = float(parts[0])
+				kernVal = float(parts[1])
+			except ValueError:
+				break
+			if kernVal <= 0:
+				break
+
+		# Step down by 0.1 pt to get as close to 0 as possible
+		scriptDown = """
+tell application "%s"
+	tell front document
+		tell first text frame
+			tell character 1 of parent story
+				set curSize to point size
+				set kernVal to kerning value of insertion point 2
+				if kernVal < 0 then
+					set point size to curSize - 0.1
+				end if
+				return (point size as string) & "," & (kernVal as string)
+			end tell
+		end tell
+	end tell
+end tell
+""" % indesign
+
+		bestSize = size
+		bestAbsKern = 999999.0
+		for _ in range(200):  # safety cap: 20 pt fine-search
+			result = self._runAppleScript(scriptDown)
+			if not result or "," not in result:
+				break
+			parts = result.split(",")
+			try:
+				size = float(parts[0])
+				kernVal = float(parts[1])
+			except ValueError:
+				break
+			if abs(kernVal) < bestAbsKern:
+				bestAbsKern = abs(kernVal)
+				bestSize = size
+			if kernVal >= 0:
+				break
+
+		print("\t☑️ Calibrated font size: %.1f pt (kern delta %.2f)" % (bestSize, bestAbsKern))
+		return bestSize
+
+	# ------------------------------------------------------------------ step 3
+
+	def _glyphsForCategory(self, thisFont, category, subcategory=None):
+		"""
+		Return exporting GSGlyph objects matching category (and optional subcategory).
+		Skips glyphs with no Unicode and glyphs made of 2+ components (can't be typed reliably).
+		"""
+		result = []
+		for glyph in thisFont.glyphs:
+			if not glyph.export:
+				continue
+			if not glyph.unicode:
+				continue
+			if glyph.category != category:
+				continue
+			if subcategory and glyph.subCategory != subcategory:
+				continue
+			# skip glyphs that are purely composite (2+ components, no contours)
+			for master in thisFont.masters:
+				layer = glyph.layers[master.id]
+				if layer and len(layer.components) >= 2 and len(layer.paths) == 0:
+					break
+			else:
+				result.append(glyph)
+		return result
+
+	def _buildPairText(self, thisFont):
+		"""
+		Build a string of all requested pair combinations as '/glyphname/glyphname ' sequences.
+		Groupings are driven by user checkboxes.
+		Returns the pair text string.
+		"""
+		doLetterToLetter = self.prefBool("letterToLetter")
+		doFigureToFigure = self.prefBool("figureToFigure")
+		doLetterWithPunctuation = self.prefBool("letterWithPunctuation")
+		doFigureWithPunctuation = self.prefBool("figureWithPunctuation")
+
+		letters = self._glyphsForCategory(thisFont, "Letter") if (doLetterToLetter or doLetterWithPunctuation) else []
+		figures = self._glyphsForCategory(thisFont, "Number", "Decimal Digit") if (doFigureToFigure or doFigureWithPunctuation) else []
+		punctuation = self._glyphsForCategory(thisFont, "Punctuation") if (doLetterWithPunctuation or doFigureWithPunctuation) else []
+
+		# collect unique pairs as (leftName, rightName)
+		pairs = []
+		seen = set()
+
+		def addPair(left, right):
+			key = (left.name, right.name)
+			if key not in seen:
+				seen.add(key)
+				pairs.append(key)
+
+		if doLetterToLetter:
+			for L in letters:
+				for R in letters:
+					addPair(L, R)
+
+		if doFigureToFigure:
+			for L in figures:
+				for R in figures:
+					addPair(L, R)
+
+		if doLetterWithPunctuation:
+			for L in letters:
+				for R in punctuation:
+					addPair(L, R)
+			for L in punctuation:
+				for R in letters:
+					addPair(L, R)
+
+		if doFigureWithPunctuation:
+			for L in figures:
+				for R in punctuation:
+					addPair(L, R)
+			for L in punctuation:
+				for R in figures:
+					addPair(L, R)
+
+		# build the slash-name string
+		pairText = " ".join("/%s/%s" % (l, r) for l, r in pairs)
+		print("\t☑️ %i pairs to measure." % len(pairs))
+		return pairText
+
+	def _setInDesignTextAndFont(self, indesign, pairText, styleName, calibSize):
+		"""
+		Replace the text frame content with pairText, set the font and
+		calibrated point size with optical kerning on every character.
+		"""
+		# Escape the slash-name string for AppleScript (no special chars expected)
+		pairTextAS = pairText.replace("\\", "\\\\").replace('"', '\\"')
+		script = """
+tell application "%s"
+	tell front document
+		set content of first text frame to "%s"
+		tell parent story of first text frame
+			set point size of every character to %s
+			set applied font of every character to "Kernstealer\\t%s"
+			set kerning method of every character to optical
+		end tell
+	end tell
+end tell
+true
+""" % (indesign, pairTextAS, calibSize, styleName)
+		return bool(self._runAppleScript(script))
+
+	# ------------------------------------------------------------------ step 4
+
+	# Character descriptions InDesign sometimes returns instead of the literal char
+	_REPLACEMENTS = {
+		"bullet character": "•",
+		"copyright symbol": "©",
+		"double left quote": "\u201c",
+		"double right quote": "\u201d",
+		"ellipsis character": "\u2026",
+		"Em dash": "\u2014",
+		"En dash": "\u2013",
+		"nonbreaking space": "\u00a0",
+		"section symbol": "\u00a7",
+		"single left quote": "\u2018",
+		"single right quote": "\u2019",
+		"trademark symbol": "\u2122",
+	}
+
+	def _glyphNameForChar(self, char):
+		"""Return the Glyphs glyph name for a single Unicode character, or None."""
+		if not char:
+			return None
+		utf16 = "%.4X" % ord(char[0])
+		info = Glyphs.glyphInfoForUnicode(utf16)
+		if info:
+			return info.name
+		return None
+
+	def _cleanText(self, text):
+		for searchFor, replaceWith in self._REPLACEMENTS.items():
+			text = text.replace(searchFor, replaceWith)
+		return text
+
+	def _readKernValuesFromInDesign(self, indesign):
+		"""
+		Read all insertion-point kern values from the front InDesign document.
+		Returns a list of (leftChar, rightChar, kernValue) tuples.
+		"""
+		script = """
 set kernvalues to ""
 tell application "%s"
 	tell front document
@@ -108,126 +474,309 @@ tell application "%s"
 end tell
 kernvalues
 """ % indesign
+		raw = self._runAppleScript(script)
+		if not raw:
+			return []
+		pairs = []
+		for line in raw.splitlines():
+			line = self._cleanText(line)
+			if len(line) < 4:
+				continue
+			leftChar = line[0]
+			rightChar = line[1]
+			try:
+				kernValue = float(line[3:].strip())
+			except ValueError:
+				continue
+			pairs.append((leftChar, rightChar, kernValue))
+		return pairs
 
-getNameOfDocument = """
+	def _importKerningForMaster(self, thisFont, master, indesign):
+		"""
+		Read kern values from InDesign and set them in thisFont for the given master.
+		Returns the number of pairs imported.
+		"""
+		masterID = master.id
+		kernPairs = self._readKernValuesFromInDesign(indesign)
+		count = 0
+		for leftChar, rightChar, kernValue in kernPairs:
+			if kernValue == 0:
+				continue
+			leftName = self._glyphNameForChar(leftChar)
+			rightName = self._glyphNameForChar(rightChar)
+			if not leftName or not rightName:
+				continue
+			if not thisFont.glyphs[leftName] or not thisFont.glyphs[rightName]:
+				continue
+			thisFont.setKerningForPair(masterID, leftName, rightName, kernValue)
+			count += 1
+		print("\t↔️ Imported %i raw kern pairs for master '%s'." % (count, master.name))
+		return count
+
+	# ------------------------------------------------------------------ step 5
+
+	def _roundAndFilter(self, thisFont, master, roundBy, minimumKern):
+		"""
+		For every kern pair in the given master:
+		  • round to nearest multiple of roundBy (if > 0)
+		  • remove the pair if |value| < minimumKern
+		Returns the number of pairs removed.
+		"""
+		masterID = master.id
+		kerning = thisFont.kerning.get(masterID)
+		if not kerning:
+			return 0
+
+		removals = []
+		for leftID, rightDict in kerning.items():
+			for rightID, value in rightDict.items():
+				newValue = value
+				if roundBy > 0:
+					newValue = round(value / roundBy) * roundBy
+				if abs(newValue) < minimumKern:
+					removals.append((leftID, rightID))
+				elif newValue != value:
+					# resolve IDs to names for setKerningForPair
+					leftName = leftID if leftID.startswith("@") else thisFont.glyphForId_(leftID).name
+					rightName = rightID if rightID.startswith("@") else thisFont.glyphForId_(rightID).name
+					thisFont.setKerningForPair(masterID, leftName, rightName, newValue)
+
+		for leftID, rightID in removals:
+			leftName = leftID if leftID.startswith("@") else thisFont.glyphForId_(leftID).name
+			rightName = rightID if rightID.startswith("@") else thisFont.glyphForId_(rightID).name
+			thisFont.removeKerningForPair(masterID, leftName, rightName)
+
+		print("\t☑️ Round/filter: removed %i pairs below minimum in master '%s'." % (len(removals), master.name))
+		return len(removals)
+
+	def _compressKerning(self, thisFont, master):
+		"""
+		Repeatedly compress (promote glyph exceptions to group kerning) until
+		nothing changes.  A pair is promotable when:
+		  - both sides are glyph IDs (not group keys)
+		  - the glyph has kerning groups on both sides
+		  - value matches the existing group-group value (or there is none yet)
+		Returns the total number of pairs promoted.
+		"""
+		masterID = master.id
+		totalPromoted = 0
+		while True:
+			kerning = thisFont.kerning.get(masterID, {})
+			toPromote = []
+			for leftID in list(kerning.keys()):
+				leftIsGlyph = not leftID.startswith("@")
+				for rightID in list(kerning.get(leftID, {}).keys()):
+					rightIsGlyph = not rightID.startswith("@")
+					if not (leftIsGlyph and rightIsGlyph):
+						continue
+					leftGlyph = thisFont.glyphForId_(leftID)
+					rightGlyph = thisFont.glyphForId_(rightID)
+					if not leftGlyph or not rightGlyph:
+						continue
+					lGroup = leftGlyph.rightKerningGroup
+					rGroup = rightGlyph.leftKerningGroup
+					if not lGroup or not rGroup:
+						continue
+					lKey = "@MMK_L_%s" % lGroup
+					rKey = "@MMK_R_%s" % rGroup
+					value = kerning[leftID][rightID]
+					groupValue = thisFont.kerningForPair(masterID, lKey, rKey)
+					# promote: set group-group if not already set or matching
+					if groupValue is None or groupValue > 100000:
+						thisFont.setKerningForPair(masterID, lKey, rKey, value)
+						toPromote.append((leftGlyph.name, rightGlyph.name))
+					elif groupValue == value:
+						toPromote.append((leftGlyph.name, rightGlyph.name))
+			if not toPromote:
+				break
+			for leftName, rightName in toPromote:
+				thisFont.removeKerningForPair(masterID, leftName, rightName)
+			totalPromoted += len(toPromote)
+		if totalPromoted:
+			print("\t☑️ Compressed %i pairs to group kerning in master '%s'." % (totalPromoted, master.name))
+		return totalPromoted
+
+	def _removeExceptions(self, thisFont, master):
+		"""
+		Remove all non-group-to-group kerning pairs (glyph↔glyph, group↔glyph, glyph↔group).
+		"""
+		masterID = master.id
+		kerning = thisFont.kerning.get(masterID, {})
+		removals = []
+		for leftID, rightDict in kerning.items():
+			for rightID in rightDict.keys():
+				if leftID.startswith("@") and rightID.startswith("@"):
+					continue  # keep group-group
+				removals.append((leftID, rightID))
+		for leftID, rightID in removals:
+			leftName = leftID if leftID.startswith("@") else thisFont.glyphForId_(leftID).name
+			rightName = rightID if rightID.startswith("@") else thisFont.glyphForId_(rightID).name
+			thisFont.removeKerningForPair(masterID, leftName, rightName)
+		print("\t☑️ Removed %i exceptions in master '%s'." % (len(removals), master.name))
+		return len(removals)
+
+	# ------------------------------------------------------------------ step 6
+
+	def _closeInDesignDoc(self, indesign):
+		"""Close the frontmost InDesign document without saving."""
+		script = """
 tell application "%s"
-	tell front document
-		name
-	end tell
+	if (count documents) > 0 then
+		close front document saving no
+	end if
 end tell
+true
 """ % indesign
+		self._runAppleScript(script)
 
-getTextOfFrame = """
-tell application "%s"
-	tell front document
-		contents of first text frame
-	end tell
-end tell
-""" % indesign
+	def _deleteFonts(self, exportedMasters):
+		"""Delete all temporary OTF files that were exported."""
+		for master, filePath in exportedMasters:
+			try:
+				if os.path.exists(filePath):
+					os.remove(filePath)
+					print("\t🗑 Deleted: %s" % filePath)
+			except Exception as e:
+				print("\t⚠️ Could not delete %s: %s" % (filePath, e))
 
-getNameOfFont = """
-tell application "%s"
-	tell front document
-		tell first text frame
-			tell character 1 of parent story
-				name of applied font
-			end tell
-		end tell
-	end tell
-end tell
-""" % indesign
+	# ------------------------------------------------------------------ run
 
-# Execute AppleScripts and store results in variables:
+	def run(self, sender=None):
+		self.SavePreferences()
+		thisFont = Glyphs.font
+		if not thisFont:
+			self.w.status.set("⚠️ No font open.")
+			return
 
-# Extract document name and report:
-try:
-	docName = runAppleScript(getNameOfDocument)
-	docName = str(docName).strip()
-	print(f"\nExtracting kerning from document: {docName}")
-except Exception as e:
-	print("\nERROR while trying to extract the name of the first InDesign document.")
-	print(
-		"Possible causes:\n  1. No permissions in System Preferences > Security & Privacy > Privacy > Automation > Glyphs. Please review.\n  2. No document open in InDesign; will try to continue.\n  3. New document has not been saved yet."
-	)
-	print(e)
-	print()
+		Glyphs.clearLog()
+		print("Steal Kerning from InDesign\n")
 
-# Extract text and report:
-try:
-	frameText = runAppleScript(getTextOfFrame)
-	frameText = "%.60s..." % frameText.strip()
-	print(f"\nFound text: {frameText}")
-except Exception as e:
-	print("\nERROR while trying to extract the text of the first text frame.")
-	print(
-		"Possible causes:\n  1. No permissions in System Preferences > Security & Privacy > Privacy > Automation > Glyphs. Please review.\n  2. No text frame in the frontmost document in InDesign; will try to continue."
-	)
-	print(e)
-	print()
-
-# Extract font name and report:
-try:
-	fontName = runAppleScript(getNameOfFont)
-	fontName = fontName.replace("\t", " ").replace("font ", "").strip()
-	print(f"\nFound font: {fontName}")
-	print("\nProcessing, please wait. Can take a minute...\n")
-except Exception as e:
-	print("\nERROR while trying to extract the font in the first text frame.")
-	print(
-		"Possible causes:\n  1. No permissions in System Preferences > Security & Privacy > Privacy > Automation > Glyphs. Please review.\n  2. No text in the first text frame of the frontmost document in InDesign; will try to continue."
-	)
-	print(e)
-	print()
-
-# Extract kern strings and report:
-kernInfo = runAppleScript(getKernValuesFromInDesign)
-print(f"Applying kerning to: {thisFont.familyName}, Master: {thisFontMaster.name}\n")
-
-kernPairCount = 0
-
-# Parse kern strings and set kerning in the font:
-for thisLine in kernInfo.splitlines():
-	if len(thisLine) > 3:
-		# sometimes, InD returns a char description rather than a char 🤷🏻‍♀️, this is a hack that fixes it:
-		thisLine = cleanText(thisLine, replacements)
-		# check for left side:
-		leftSide = glyphNameForLetter(thisLine[0])
-		if not leftSide:
-			print(f"WARNING:\n  Could not determine (left) glyph name: {thisLine[0]}.\n  Skipping pair ‘{thisLine[0]}{thisLine[1]}’.\n")
+		# Determine which masters to process
+		if self.prefBool("allMasters"):
+			masters = list(thisFont.masters)
 		else:
-			if not thisFont.glyphs[leftSide]:
-				print(f"WARNING:\n  Expected (left) glyph /{leftSide} not found in {thisFont.familyName}.\n  Skipping pair ‘{thisLine[0]}{thisLine[1]}’.\n")
+			masters = [thisFont.selectedFontMaster]
+
+		# --- Step 1: export ---
+		self.w.status.set("Exporting fonts…")
+		print("Step 1 – Exporting masters to Adobe Fonts folder…")
+		exportedMasters = self._exportMasters(thisFont, masters)
+		if not exportedMasters:
+			self.w.status.set("❌ Export failed.")
+			return
+		print("  Exported %i master(s).\n" % len(exportedMasters))
+
+		# --- Step 2: InDesign doc + calibration (per master) ---
+		self.w.status.set("Connecting to InDesign…")
+		print("Step 2 – Creating InDesign document and calibrating font size…")
+		indesign = self._getInDesignName()
+		if not indesign:
+			self.w.status.set("❌ Could not find InDesign.")
+			return
+		print("  Using: %s" % indesign)
+
+		# calibrationSizes maps master → calibrated pt size
+		calibrationSizes = {}
+		for master, filePath in exportedMasters:
+			styleName = self._sanitizeName(master.name) or ("Master%i" % list(thisFont.masters).index(master))
+			self.w.status.set("Calibrating '%s'…" % master.name)
+			ok = self._createInDesignDoc(indesign, "Kernstealer", styleName)
+			if not ok:
+				print("\t❌ Could not create InDesign document for master '%s'." % master.name)
+				continue
+			calibSize = self._calibrateFontSize(indesign, styleName)
+			calibrationSizes[master.id] = (styleName, calibSize)
+			print("\t↔️ Master '%s' → %.1f pt\n" % (master.name, calibSize))
+
+		# --- Step 3: build pair text and fill InDesign text frame ---
+		print("Step 3 – Building pair text and filling InDesign text frame…")
+		pairText = self._buildPairText(thisFont)
+		if not pairText:
+			self.w.status.set("⚠️ No pairs to kern.")
+			return
+
+		# pairText is the same for all masters; only font/size changes per master
+		# Store calibration data for use in step 4
+		masterCalibData = calibrationSizes  # {masterId: (styleName, calibSize)}
+
+		for master, filePath in exportedMasters:
+			if master.id not in masterCalibData:
+				continue
+			styleName, calibSize = masterCalibData[master.id]
+			self.w.status.set("Filling frame '%s'…" % master.name)
+			# Re-create the InDesign document for this master (step 2 left one open;
+			# close it and open a fresh one for the pair text)
+			closeScript = """
+tell application "%s"
+	if (count documents) > 0 then
+		close front document saving no
+	end if
+end tell
+true
+""" % indesign
+			self._runAppleScript(closeScript)
+			ok = self._createInDesignDoc(indesign, "Kernstealer", styleName)
+			if not ok:
+				print("\t❌ Could not re-create InDesign document for master '%s'." % master.name)
+				continue
+			ok = self._setInDesignTextAndFont(indesign, pairText, styleName, calibSize)
+			if ok:
+				print("\t✅ Text frame filled for master '%s'." % master.name)
 			else:
-				# check for right side:
-				rightSide = glyphNameForLetter(thisLine[1])
-				if not rightSide:
-					print(f"WARNING:\n  Could not determine (right) glyph name: {thisLine[1]}.\n  Skipping pair ‘{thisLine[0]}{thisLine[1]}’.\n")
-				else:
-					if not thisFont.glyphs[rightSide]:
-						print(f"WARNING:\n  Expected (right) glyph /{rightSide} not found in {thisFont.familyName}.\n  Skipping pair ‘{thisLine[0]}{thisLine[1]}’.\n")
-					else:
-						try:
-							kernValue = float(thisLine[3:])
-							if kernValue:
-								thisFont.setKerningForPair(thisFontMasterID, leftSide, rightSide, kernValue)
-								kernPairCount += 1
-								print(f"  Kerning for {leftSide}:{rightSide} set to {kernValue}.")
-							else:
-								print(f"  No kerning {leftSide}:{rightSide}. Ignored.")
-						except Exception as e:
-							print(f"  ERROR: Could not set kerning for {leftSide}:{rightSide}.\n")
-							print(e)
-							print(f"  Offending line:\n  {thisLine}")
-							import traceback
-							print(traceback.format_exc())
+				print("\t❌ Failed to fill text frame for master '%s'." % master.name)
 
-# take time and report:
-end = timer()
-timereport = reportTimeInNaturalLanguage(end - start)
-print(f"\nImported {kernPairCount} kern pairs.\nTime elapsed: {timereport}.")
+		# --- Step 4: read kern values from InDesign and import ---
+		print("Step 4 – Reading kern values from InDesign and importing…")
+		totalImported = 0
+		for master, filePath in exportedMasters:
+			if master.id not in masterCalibData:
+				continue
+			self.w.status.set("Importing kerning '%s'…" % master.name)
+			n = self._importKerningForMaster(thisFont, master, indesign)
+			totalImported += n
+		print("  Total raw pairs imported: %i\n" % totalImported)
 
-# Floating notification:
-Glyphs.showNotification(
-	f"{kernPairCount} pairs for {thisFont.familyName}",
-	f"Stolen from InDesign in {timereport}.",
-)
+		# --- Step 5: round, filter, compress, remove exceptions ---
+		print("Step 5 – Post-processing kern pairs…")
+		try:
+			roundBy = float(self.pref("roundBy"))
+		except (TypeError, ValueError):
+			roundBy = 0.0
+		try:
+			minimumKern = float(self.pref("minimumKern"))
+		except (TypeError, ValueError):
+			minimumKern = 0.0
+		groupKerningOnly = self.prefBool("groupKerningOnly")
+
+		for master, filePath in exportedMasters:
+			self.w.status.set("Post-processing '%s'…" % master.name)
+			self._roundAndFilter(thisFont, master, roundBy, minimumKern)
+			# compress repeatedly until stable
+			self._compressKerning(thisFont, master)
+			if groupKerningOnly:
+				self._removeExceptions(thisFont, master)
+		print("  Post-processing done.\n")
+
+		# --- Step 6: cleanup ---
+		print("Step 6 – Cleanup…")
+		self.w.status.set("Cleaning up…")
+		self._closeInDesignDoc(indesign)
+		self._deleteFonts(exportedMasters)
+		print("  Cleanup done.\n")
+
+		# Final count of kern pairs across all processed masters
+		finalPairCount = sum(
+			sum(len(rDict) for rDict in thisFont.kerning.get(m.id, {}).values())
+			for m, _ in exportedMasters
+		)
+		masterWord = "master" if len(exportedMasters) == 1 else "masters"
+		summary = "✅ Done: %i kern pairs across %i %s." % (finalPairCount, len(exportedMasters), masterWord)
+		self.w.status.set(summary)
+		print(summary)
+		Glyphs.showNotification(
+			"Steal Kerning from InDesign",
+			"%i pairs across %i %s. Details in Macro Window." % (finalPairCount, len(exportedMasters), masterWord),
+		)
+
+
+StealKerningFromInDesign()
