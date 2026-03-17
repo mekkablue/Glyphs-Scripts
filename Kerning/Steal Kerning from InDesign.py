@@ -183,6 +183,138 @@ class StealKerningFromInDesign(mekkaObject):
 
 		return exported
 
+	# ------------------------------------------------------------------ step 2
+
+	def _getInDesignName(self):
+		"""Return the running InDesign application name (auto-detect or ask user)."""
+		Glyphs.registerDefault("com.mekkablue.StealKerningFromInDesign.indesignAppName", "Adobe InDesign")
+		storedName = Glyphs.defaults["com.mekkablue.StealKerningFromInDesign.indesignAppName"]
+		script = """
+try
+	set InDesign to application "%s"
+on error
+	set InDesign to choose application with title "Please choose Adobe InDesign"
+end try
+InDesign as string
+""" % storedName
+		name = self._runAppleScript(script)
+		if name and name != storedName:
+			Glyphs.defaults["com.mekkablue.StealKerningFromInDesign.indesignAppName"] = name
+		return name or storedName
+
+	def _createInDesignDoc(self, indesign, familyName, styleName):
+		"""
+		Create a new A3-landscape InDesign document with a full-page text frame,
+		font set to 3 pt with optical kerning, text = zeroPair.
+		Returns True on success.
+		"""
+		zeroPair = self.pref("zeroPair") or "HH"
+		# Escape for AppleScript string
+		zeroPairAS = zeroPair.replace("\\", "\\\\").replace('"', '\\"')
+		script = """
+tell application "%s"
+	set myDoc to make new document with properties {document preferences:{page width:841.89, page height:595.28, pages per document:1, facing pages:false}}
+	tell myDoc
+		set documentPreferences to document preferences
+		set documentPreferences's page orientation to landscape
+		-- create a text frame filling the page
+		set myFrame to make new text frame with properties {geometric bounds:{0, 0, 595.28, 841.89}}
+		tell myFrame
+			tell text preferences
+				set optical margin alignment to false
+			end tell
+			set content to "%s"
+			tell character 1 of parent story
+				set point size to 3
+				set applied font to "Kernstealer\\t%s"
+				set kerning method to optical
+			end tell
+		end tell
+	end tell
+end tell
+true
+""" % (indesign, zeroPairAS, styleName)
+		result = self._runAppleScript(script)
+		return bool(result)
+
+	def _calibrateFontSize(self, indesign, styleName):
+		"""
+		Starting at 3 pt, step up 1 pt at a time until the optical kern value
+		between insertion point 1→2 is <= 0.  Then step back down in 0.1 pt
+		increments until the kern value is as close to 0.0 as possible.
+		Returns the calibrated point size as a float.
+		"""
+		# Step up by 1 pt until kern <= 0
+		scriptUp = """
+tell application "%s"
+	tell front document
+		tell first text frame
+			tell character 1 of parent story
+				set curSize to point size
+				set kernVal to kerning value of insertion point 2
+				if kernVal > 0 then
+					set point size to curSize + 1
+				end if
+				return (point size as string) & "," & (kernVal as string)
+			end tell
+		end tell
+	end tell
+end tell
+""" % indesign
+
+		size = 3.0
+		for _ in range(2000):  # safety cap: 2003 pt max
+			result = self._runAppleScript(scriptUp)
+			if not result or "," not in result:
+				break
+			parts = result.split(",")
+			try:
+				size = float(parts[0])
+				kernVal = float(parts[1])
+			except ValueError:
+				break
+			if kernVal <= 0:
+				break
+
+		# Step down by 0.1 pt to get as close to 0 as possible
+		scriptDown = """
+tell application "%s"
+	tell front document
+		tell first text frame
+			tell character 1 of parent story
+				set curSize to point size
+				set kernVal to kerning value of insertion point 2
+				if kernVal < 0 then
+					set point size to curSize - 0.1
+				end if
+				return (point size as string) & "," & (kernVal as string)
+			end tell
+		end tell
+	end tell
+end tell
+""" % indesign
+
+		bestSize = size
+		bestAbsKern = 999999.0
+		for _ in range(200):  # safety cap: 20 pt fine-search
+			result = self._runAppleScript(scriptDown)
+			if not result or "," not in result:
+				break
+			parts = result.split(",")
+			try:
+				size = float(parts[0])
+				kernVal = float(parts[1])
+			except ValueError:
+				break
+			if abs(kernVal) < bestAbsKern:
+				bestAbsKern = abs(kernVal)
+				bestSize = size
+			if kernVal >= 0:
+				break
+
+		print("\t☑️ Calibrated font size: %.1f pt (kern delta %.2f)" % (bestSize, bestAbsKern))
+		return bestSize
+
 	# ------------------------------------------------------------------ run
 
 	def run(self, sender=None):
@@ -209,7 +341,30 @@ class StealKerningFromInDesign(mekkaObject):
 			self.w.status.set("❌ Export failed.")
 			return
 		print("  Exported %i master(s).\n" % len(exportedMasters))
-		self.w.status.set("Step 1 done. Steps 2–6 not yet implemented.")
+
+		# --- Step 2: InDesign doc + calibration (per master) ---
+		self.w.status.set("Connecting to InDesign…")
+		print("Step 2 – Creating InDesign document and calibrating font size…")
+		indesign = self._getInDesignName()
+		if not indesign:
+			self.w.status.set("❌ Could not find InDesign.")
+			return
+		print("  Using: %s" % indesign)
+
+		# calibrationSizes maps master → calibrated pt size
+		calibrationSizes = {}
+		for master, filePath in exportedMasters:
+			styleName = self._sanitizeName(master.name) or ("Master%i" % list(thisFont.masters).index(master))
+			self.w.status.set("Calibrating '%s'…" % master.name)
+			ok = self._createInDesignDoc(indesign, "Kernstealer", styleName)
+			if not ok:
+				print("\t❌ Could not create InDesign document for master '%s'." % master.name)
+				continue
+			calibSize = self._calibrateFontSize(indesign, styleName)
+			calibrationSizes[master.id] = (styleName, calibSize)
+			print("\t↔️ Master '%s' → %.1f pt\n" % (master.name, calibSize))
+
+		self.w.status.set("Step 2 done. Steps 3–6 not yet implemented.")
 
 
 StealKerningFromInDesign()
