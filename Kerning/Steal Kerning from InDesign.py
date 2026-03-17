@@ -419,6 +419,100 @@ true
 """ % (indesign, pairTextAS, calibSize, styleName)
 		return bool(self._runAppleScript(script))
 
+	# ------------------------------------------------------------------ step 4
+
+	# Character descriptions InDesign sometimes returns instead of the literal char
+	_REPLACEMENTS = {
+		"bullet character": "•",
+		"copyright symbol": "©",
+		"double left quote": "\u201c",
+		"double right quote": "\u201d",
+		"ellipsis character": "\u2026",
+		"Em dash": "\u2014",
+		"En dash": "\u2013",
+		"nonbreaking space": "\u00a0",
+		"section symbol": "\u00a7",
+		"single left quote": "\u2018",
+		"single right quote": "\u2019",
+		"trademark symbol": "\u2122",
+	}
+
+	def _glyphNameForChar(self, char):
+		"""Return the Glyphs glyph name for a single Unicode character, or None."""
+		if not char:
+			return None
+		utf16 = "%.4X" % ord(char[0])
+		info = Glyphs.glyphInfoForUnicode(utf16)
+		if info:
+			return info.name
+		return None
+
+	def _cleanText(self, text):
+		for searchFor, replaceWith in self._REPLACEMENTS.items():
+			text = text.replace(searchFor, replaceWith)
+		return text
+
+	def _readKernValuesFromInDesign(self, indesign):
+		"""
+		Read all insertion-point kern values from the front InDesign document.
+		Returns a list of (leftChar, rightChar, kernValue) tuples.
+		"""
+		script = """
+set kernvalues to ""
+tell application "%s"
+	tell front document
+		tell parent story of first text frame
+			repeat with i from 1 to (count characters) - 1
+				try
+					set kernvalue to (kerning value of insertion point 2 of character i) as integer
+					set kernvalueline to character i & character (i + 1) & " " & kernvalue
+					set kernvalues to kernvalues & kernvalueline & "\n"
+				end try
+			end repeat
+		end tell
+	end tell
+end tell
+kernvalues
+""" % indesign
+		raw = self._runAppleScript(script)
+		if not raw:
+			return []
+		pairs = []
+		for line in raw.splitlines():
+			line = self._cleanText(line)
+			if len(line) < 4:
+				continue
+			leftChar = line[0]
+			rightChar = line[1]
+			try:
+				kernValue = float(line[3:].strip())
+			except ValueError:
+				continue
+			pairs.append((leftChar, rightChar, kernValue))
+		return pairs
+
+	def _importKerningForMaster(self, thisFont, master, indesign):
+		"""
+		Read kern values from InDesign and set them in thisFont for the given master.
+		Returns the number of pairs imported.
+		"""
+		masterID = master.id
+		kernPairs = self._readKernValuesFromInDesign(indesign)
+		count = 0
+		for leftChar, rightChar, kernValue in kernPairs:
+			if kernValue == 0:
+				continue
+			leftName = self._glyphNameForChar(leftChar)
+			rightName = self._glyphNameForChar(rightChar)
+			if not leftName or not rightName:
+				continue
+			if not thisFont.glyphs[leftName] or not thisFont.glyphs[rightName]:
+				continue
+			thisFont.setKerningForPair(masterID, leftName, rightName, kernValue)
+			count += 1
+		print("\t↔️ Imported %i raw kern pairs for master '%s'." % (count, master.name))
+		return count
+
 	# ------------------------------------------------------------------ run
 
 	def run(self, sender=None):
@@ -505,7 +599,18 @@ true
 			else:
 				print("\t❌ Failed to fill text frame for master '%s'." % master.name)
 
-		self.w.status.set("Step 3 done. Steps 4–6 not yet implemented.")
+		# --- Step 4: read kern values from InDesign and import ---
+		print("Step 4 – Reading kern values from InDesign and importing…")
+		totalImported = 0
+		for master, filePath in exportedMasters:
+			if master.id not in masterCalibData:
+				continue
+			self.w.status.set("Importing kerning '%s'…" % master.name)
+			n = self._importKerningForMaster(thisFont, master, indesign)
+			totalImported += n
+		print("  Total raw pairs imported: %i\n" % totalImported)
+
+		self.w.status.set("Step 4 done. Steps 5–6 not yet implemented.")
 
 
 StealKerningFromInDesign()
