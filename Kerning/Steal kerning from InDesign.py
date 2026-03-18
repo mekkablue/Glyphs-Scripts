@@ -33,7 +33,7 @@ class StealKerningFromInDesign(mekkaObject):
 
 	def __init__(self):
 		windowWidth = 360
-		windowHeight = 286
+		windowHeight = 308
 		windowWidthResize = 0
 		windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
@@ -97,7 +97,8 @@ class StealKerningFromInDesign(mekkaObject):
 		self.w.groupKerningOnly.getNSButton().setToolTip_("After compressing, delete all remaining glyph-to-glyph pairs. Note: compressing cannot always convert every glyph pair to a group pair (e.g. when a glyph has no kerning group), so some pairs may remain.")
 		linePos += lineHeight
 
-		# Status + Run button
+		# Progress bar + Status + Run button
+		self.w.progressBar = vanilla.ProgressBar((inset, -42 - inset, -inset, 16))
 		self.w.status = vanilla.TextBox((inset, -20 - inset, -90 - inset, 14), "Ready.", sizeStyle="small", selectable=True)
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Kern", callback=self.run)
 		self.w.setDefaultButton(self.w.runButton)
@@ -758,6 +759,16 @@ end tell
 		else:
 			masters = [thisFont.selectedFontMaster]
 
+		# Progress tracking: 5 per-master steps + 2 global steps (wait + cleanup)
+		totalSteps = 5 * len(masters) + 2
+		progressStep = [0]
+
+		def advance():
+			progressStep[0] += 1
+			self.w.progressBar.set(progressStep[0] / totalSteps * 100)
+
+		self.w.progressBar.set(0)
+
 		# --- Step 1: export ---
 		self.w.status.set("Exporting fonts…")
 		print("\nStep 1 – Exporting masters to Adobe Fonts folder…")
@@ -766,6 +777,8 @@ end tell
 			self.w.status.set("❌ Export failed.")
 			return
 		print("  Exported %i master(s).\n" % len(exportedMasters))
+		for _ in exportedMasters:
+			advance()
 
 		# Locate InDesign first (needed for font availability polling)
 		indesign = self._getInDesignName()
@@ -780,6 +793,7 @@ end tell
 			print("\t❌ 'Kernstealer' was not activated in InDesign within 30 seconds.")
 			self._deleteFonts(exportedMasters)
 			return
+		advance()
 
 		# --- Step 2: InDesign doc + calibration (per master) ---
 		self.w.status.set("Creating InDesign document…")
@@ -798,6 +812,7 @@ end tell
 			calibSize = self._calibrateFontSize(indesign, styleName)
 			calibrationSizes[master.id] = (styleName, calibSize)
 			print("\t↔️ Master '%s' → %.1f pt\n" % (master.name, calibSize))
+			advance()
 
 		# --- Step 3: build pair text and fill InDesign text frame ---
 		print("\nStep 3 – Building pair text and filling InDesign text frame…")
@@ -835,6 +850,7 @@ true
 				print("\t✅ Text frame filled for master '%s'." % master.name)
 			else:
 				print("\t❌ Failed to fill text frame for master '%s'." % master.name)
+			advance()
 
 		# --- Step 4: read kern values from InDesign and import ---
 		print("\nStep 4 – Reading kern values from InDesign and importing…")
@@ -848,6 +864,7 @@ true
 				self._deleteAllKerningForMaster(thisFont, master)
 			n = self._importKerningForMaster(thisFont, master, indesign)
 			totalImported += n
+			advance()
 		print("  Total raw pairs imported: %i\n" % totalImported)
 
 		# --- Step 5: round, filter, compress, remove exceptions ---
@@ -870,6 +887,7 @@ true
 				self._compressKerning(thisFont, master)
 			if groupKerningOnly:
 				self._removeExceptions(thisFont, master)
+			advance()
 		print("  Post-processing done.\n")
 
 		# --- Step 6: cleanup ---
@@ -878,6 +896,7 @@ true
 		self._closeInDesignDoc(indesign)
 		self._deleteFonts(exportedMasters)
 		print("  Cleanup done.\n")
+		advance()
 
 		# Final count of kern pairs across all processed masters
 		finalPairCount = sum(
