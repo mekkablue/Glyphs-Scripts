@@ -432,7 +432,7 @@ end tell
 tell application "%s"
 	tell front document
 		set contents of first text frame to "%s"
-		tell every character of parent story of first text frame
+		tell parent story of first text frame
 			set point size to %s
 			set applied font to ("Kernstealer" & tab & "%s")
 			set kerning method to "optical"
@@ -744,7 +744,7 @@ end tell
 
 		# --- Step 1: export ---
 		self.w.status.set("Exporting fonts…")
-		print("Step 1 – Exporting masters to Adobe Fonts folder…")
+		print("\nStep 1 – Exporting masters to Adobe Fonts folder…")
 		exportedMasters = self._exportMasters(thisFont, masters)
 		if not exportedMasters:
 			self.w.status.set("❌ Export failed.")
@@ -767,7 +767,7 @@ end tell
 
 		# --- Step 2: InDesign doc + calibration (per master) ---
 		self.w.status.set("Creating InDesign document…")
-		print("Step 2 – Creating InDesign document and calibrating font size…")
+		print("\nStep 2 – Creating InDesign document and calibrating font size…")
 		print("  Using: %s" % indesign)
 
 		# calibrationSizes maps master → calibrated pt size
@@ -784,7 +784,7 @@ end tell
 			print("\t↔️ Master '%s' → %.1f pt\n" % (master.name, calibSize))
 
 		# --- Step 3: build pair text and fill InDesign text frame ---
-		print("Step 3 – Building pair text and filling InDesign text frame…")
+		print("\nStep 3 – Building pair text and filling InDesign text frame…")
 		pairText = self._buildPairText(thisFont)
 		if not pairText:
 			self.w.status.set("⚠️ No pairs to kern.")
@@ -821,7 +821,7 @@ true
 				print("\t❌ Failed to fill text frame for master '%s'." % master.name)
 
 		# --- Step 4: read kern values from InDesign and import ---
-		print("Step 4 – Reading kern values from InDesign and importing…")
+		print("\nStep 4 – Reading kern values from InDesign and importing…")
 		pairCount = len(pairText.split())
 		totalImported = 0
 		for master, filePath in exportedMasters:
@@ -835,7 +835,7 @@ true
 		print("  Total raw pairs imported: %i\n" % totalImported)
 
 		# --- Step 5: round, filter, compress, remove exceptions ---
-		print("Step 5 – Post-processing kern pairs…")
+		print("\nStep 5 – Post-processing kern pairs…")
 		try:
 			roundBy = float(self.pref("roundBy"))
 		except (TypeError, ValueError):
@@ -857,7 +857,7 @@ true
 		print("  Post-processing done.\n")
 
 		# --- Step 6: cleanup ---
-		print("Step 6 – Cleanup…")
+		print("\nStep 6 – Cleanup…")
 		self.w.status.set("Cleaning up…")
 		self._closeInDesignDoc(indesign)
 		self._deleteFonts(exportedMasters)
