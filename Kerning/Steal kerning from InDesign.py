@@ -168,11 +168,35 @@ class StealKerningFromInDesign(mekkaObject):
 		if not exceptionChars or not particles:
 			return []
 
+		# Filter exceptionChars to glyphs that are in the font, exporting,
+		# have a Unicode, and are not category Mark or Symbol.
+		validBaseChars = []
+		for char in exceptionChars:
+			glyphName = Glyphs.niceGlyphName(char)
+			if not glyphName:
+				continue
+			glyph = thisFont.glyphs[glyphName]
+			if not glyph:
+				continue
+			if not glyph.export:
+				continue
+			if not glyph.unicode:
+				continue
+			if glyph.category in ("Mark", "Symbol"):
+				continue
+			validBaseChars.append(char)
+
+		if not validBaseChars:
+			print("\t⚠️ No valid base chars found in font for exceptions.")
+			return []
+
 		diacriticStrings = []
 		for glyph in thisFont.glyphs:
 			if not glyph.export:
 				continue
 			if not glyph.unicode:
+				continue
+			if glyph.category in ("Mark", "Symbol"):
 				continue
 			for particle in particles:
 				if particle in glyph.name:
@@ -191,7 +215,7 @@ class StealKerningFromInDesign(mekkaObject):
 				seen.add(key)
 				pairs.append(key)
 
-		for baseChar in exceptionChars:
+		for baseChar in validBaseChars:
 			for diacriticStr in diacriticStrings:
 				addPair(baseChar, diacriticStr)
 				addPair(diacriticStr, baseChar)
@@ -1070,12 +1094,6 @@ true
 						continue
 					styleName, calibSize = masterCalibData[master.id]
 					self.w.status.set("Exception pairs for '%s'…" % master.name)
-					self._closeInDesignDoc(indesign)
-					ok = self._createInDesignDoc(indesign, "Kernstealer", styleName)
-					if not ok:
-						print("\t❌ Could not create exception document for master '%s'." % master.name)
-						advance()
-						continue
 					ok = self._setInDesignTextAndFont(indesign, exPairText, styleName, calibSize)
 					if not ok:
 						print("\t❌ Failed to fill exception frame for master '%s'." % master.name)
