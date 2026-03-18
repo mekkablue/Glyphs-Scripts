@@ -501,11 +501,11 @@ true
 			text = text.replace(searchFor, replaceWith)
 		return text
 
-	def _readKernValuesFromInDesign(self, indesign):
+	def _readKernValuesFromInDesign(self, indesign, minimumKern=0):
 		"""
-		Read all insertion-point kern values from the front InDesign document in one shot.
-		Builds the full list inside AppleScript and returns it as an AppleScript list;
-		avoids per-character round-trips for a significant speed boost.
+		Read insertion-point kern values from the front InDesign document in one shot.
+		Only pairs whose absolute kern value meets minimumKern are included, so the
+		returned list (and the AppleScript output size) is already pre-filtered.
 		Returns a list of (leftChar, rightChar, kernValue) tuples.
 		"""
 		script = """
@@ -520,7 +520,9 @@ tell application "%s"
 					set charNext to character (x + 1)
 					if (charX & charNext) does not contain " " then
 						set kernValue to kerning value of insertion point 2 of character x
-						set end of kernPairs to {charX, charNext, kernValue}
+						if abs(kernValue) >= %s then
+							set end of kernPairs to {charX, charNext, kernValue}
+						end if
 					end if
 				end try
 			end repeat
@@ -528,7 +530,7 @@ tell application "%s"
 		end tell
 	end tell
 end tell
-""" % indesign
+""" % (indesign, minimumKern)
 		raw = self._runAppleScript(script)
 		if not raw:
 			return []
@@ -574,13 +576,14 @@ end tell
 			pairs.append((char1, char2, kernVal))
 		return pairs
 
-	def _importKerningForMaster(self, thisFont, master, indesign):
+	def _importKerningForMaster(self, thisFont, master, indesign, minimumKern=0):
 		"""
 		Read kern values from InDesign and set them in thisFont for the given master.
+		minimumKern is passed into the AppleScript so only qualifying pairs are returned.
 		Returns the number of pairs imported.
 		"""
 		masterID = master.id
-		kernPairs = self._readKernValuesFromInDesign(indesign)
+		kernPairs = self._readKernValuesFromInDesign(indesign, minimumKern)
 		count = 0
 		for leftChar, rightChar, kernValue in kernPairs:
 			if kernValue == 0:
@@ -877,6 +880,12 @@ true
 				print("\t❌ Failed to fill text frame for master '%s'." % master.name)
 			advance()
 
+		# Read minimumKern now so it can be passed into the AppleScript read step
+		try:
+			minimumKern = float(self.pref("minimumKern"))
+		except (TypeError, ValueError):
+			minimumKern = 0.0
+
 		# --- Step 4: read kern values from InDesign and import ---
 		print("\nStep 4 – Reading kern values from InDesign and importing…")
 		pairCount = len(pairText.split())
@@ -887,7 +896,7 @@ true
 			self.w.status.set("Reading %i kern pairs, may take a while…" % pairCount)
 			if self.prefBool("deleteExistingKerning"):
 				self._deleteAllKerningForMaster(thisFont, master)
-			n = self._importKerningForMaster(thisFont, master, indesign)
+			n = self._importKerningForMaster(thisFont, master, indesign, minimumKern)
 			totalImported += n
 			advance()
 		print("  Total raw pairs imported: %i\n" % totalImported)
@@ -898,10 +907,6 @@ true
 			roundBy = float(self.pref("roundBy"))
 		except (TypeError, ValueError):
 			roundBy = 0.0
-		try:
-			minimumKern = float(self.pref("minimumKern"))
-		except (TypeError, ValueError):
-			minimumKern = 0.0
 		groupKerningOnly = self.prefBool("groupKerningOnly")
 
 		doCompressKerning = self.prefBool("compressKerning")
