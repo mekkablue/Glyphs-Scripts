@@ -113,7 +113,7 @@ class MethodReporter(mekkaObject):
 		# Listing of methods:
 		self.w.methodList = vanilla.List((0, 26, -0, -0), self.methodList("GSLayer"), autohidesScrollers=False, drawVerticalLines=True, doubleClickCallback=self.copySelection, rowHeight=19)
 		self.w.methodList.getNSTableView().tableColumns()[0].setWidth_(501)
-		self.w.methodList.setToolTip("Double click an entry to copy it to the clipboard and display its help() in Macro Window.")
+		self.w.methodList.getNSTableView().setToolTip_("Double click an entry to copy it to the clipboard and display its help() in Macro Window.")
 
 		# Load Settings:
 		self.LoadPreferences()

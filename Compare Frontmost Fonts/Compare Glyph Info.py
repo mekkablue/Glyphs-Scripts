@@ -263,7 +263,7 @@ class CompareGlyphInfo(mekkaObject):
 				# editCallback = self.editAction,
 			)
 
-			self.w.List.setToolTip("Double click to open the selected glyphs in all fonts. You can select more than one line.")
+			self.w.List.getNSTableView().setToolTip_("Double click to open the selected glyphs in all fonts. You can select more than one line.")
 		except Exception as e:
 			print("Reload Error: %s\n" % e)
 			import traceback

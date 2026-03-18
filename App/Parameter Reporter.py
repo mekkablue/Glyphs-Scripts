@@ -51,7 +51,7 @@ class ParameterReporter(mekkaObject):
 		# Listing of Parameters:
 		self.w.ParameterList = vanilla.List((0, 24, -0, -0), dir(GSLayer), autohidesScrollers=False, drawVerticalLines=True, doubleClickCallback=self.copySelection, rowHeight=19)
 		self.w.ParameterList.getNSTableView().tableColumns()[0].setWidth_(501)
-		self.w.ParameterList.setToolTip("Double click an entry to copy the respective parameter into the clipboard.")
+		self.w.ParameterList.getNSTableView().setToolTip_("Double click an entry to copy the respective parameter into the clipboard.")
 
 		# Load Settings:
 		self.LoadPreferences()
