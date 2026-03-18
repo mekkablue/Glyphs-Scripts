@@ -225,7 +225,7 @@ tell application "%s"
 		end tell
 		set myFrame to make new text frame with properties {geometric bounds:{0, 0, 841.89, 1190.55}}
 		set contents of myFrame to "%s"
-		tell every character of parent story of myFrame
+		tell parent story of myFrame
 			set point size to 3
 			set applied font to ("Kernstealer" & tab & "%s")
 			set kerning method to "optical"
@@ -244,18 +244,22 @@ true
 		increments until the kern value is as close to 0.0 as possible.
 		Returns the calibrated point size as a float.
 		"""
-		# Step up by 1 pt until kern <= 0
+		def floatFromString(s):
+			return float("".join(c for c in s if c.isdigit() or c == "."))
+
+		# Step up by 1 pt until kern <= 0 — done in a single AppleScript repeat loop
 		scriptUp = """
 tell application "%s"
 	tell front document
+		zoom first layout window given fit page
 		tell first text frame
-			tell character 1 of parent story
-				set curSize to point size
-				set kernVal to kerning value of insertion point 2
-				if kernVal > 0 then
-					set point size to curSize + 1
-				end if
-				return (point size as string) & "," & (kernVal as string)
+			tell parent story
+				set kernVal to 10000
+				repeat while kernVal > 0
+					set point size to point size + 1
+					tell character 1 to set kernVal to kerning value of insertion point 2
+				end repeat
+				return (point size as string) & ";" & (kernVal as integer)
 			end tell
 		end tell
 	end tell
@@ -263,18 +267,15 @@ end tell
 """ % indesign
 
 		size = 3.0
-		for _ in range(2000):  # safety cap: 2003 pt max
-			result = self._runAppleScript(scriptUp)
-			if not result or "," not in result:
-				break
-			parts = result.split(",")
-			try:
-				size = float(parts[0])
-				kernVal = float(parts[1])
-			except ValueError:
-				break
-			if kernVal <= 0:
-				break
+		result = self._runAppleScript(scriptUp)
+		if not result or ";" not in result:
+			return size
+		parts = result.split(";")
+		try:
+			size = floatFromString(parts[0])
+			kernVal = floatFromString(parts[1])
+		except ValueError:
+			return size
 
 		# Step down by 0.1 pt to get as close to 0 as possible
 		scriptDown = """
@@ -302,8 +303,8 @@ end tell
 				break
 			parts = result.split(",")
 			try:
-				size = float(parts[0])
-				kernVal = float(parts[1])
+				size = floatFromString(parts[0])
+				kernVal = floatFromString(parts[1])
 			except ValueError:
 				break
 			if abs(kernVal) < bestAbsKern:
@@ -338,7 +339,7 @@ end tell
 				if layer and len(layer.components) >= 2 and len(layer.paths) == 0:
 					break
 			else:
-				result.append(glyph)
+				result.append(glyph.charString())
 		return result
 
 	def _buildPairText(self, thisFont):
@@ -361,7 +362,7 @@ end tell
 		seen = set()
 
 		def addPair(left, right):
-			key = (left.name, right.name)
+			key = (left, right)
 			if key not in seen:
 				seen.add(key)
 				pairs.append(key)
@@ -392,8 +393,8 @@ end tell
 				for R in figures:
 					addPair(L, R)
 
-		# build the slash-name string
-		pairText = " ".join("/%s/%s" % (l, r) for l, r in pairs)
+		# build the pair text string
+		pairText = " ".join("%s%s" % (l, r) for l, r in pairs)
 		print("\t☑️ %i pairs to measure." % len(pairs))
 		return pairText
 
