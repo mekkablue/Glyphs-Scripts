@@ -680,8 +680,11 @@ true
 		script = """
 tell application "%s"
 	try
-		set f to font family "%s"
-		return "yes"
+		set allNames to name of every font family
+		if allNames contains "%s" then
+			return "yes"
+		end if
+		return "no"
 	on error
 		return "no"
 	end try
