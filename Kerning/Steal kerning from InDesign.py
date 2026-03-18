@@ -223,11 +223,11 @@ tell application "%s"
 			set facing pages to false
 		end tell
 		set myFrame to make new text frame with properties {geometric bounds:{0, 0, 841.89, 1190.55}}
-		set content of myFrame to "%s"
-		tell character 1 of parent story of myFrame
+		set contents of myFrame to "%s"
+		tell every character of parent story of myFrame
 			set point size to 3
 			set applied font to ("Kernstealer" & tab & "%s")
-			set |auto kern type| to optical
+			set kerning method to "optical"
 		end tell
 	end tell
 end tell
@@ -406,11 +406,11 @@ end tell
 		script = """
 tell application "%s"
 	tell front document
-		set content of first text frame to "%s"
-		tell parent story of first text frame
-			set point size of every character to %s
-			set applied font of every character to ("Kernstealer" & tab & "%s")
-			set |auto kern type| of every character to optical
+		set contents of first text frame to "%s"
+		tell every character of parent story of first text frame
+			set point size to %s
+			set applied font to ("Kernstealer" & tab & "%s")
+			set kerning method to "optical"
 		end tell
 	end tell
 end tell
