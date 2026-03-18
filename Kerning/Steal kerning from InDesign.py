@@ -505,9 +505,12 @@ tell application "%s"
 end tell
 """ % indesign
 		raw = self._runAppleScript(script)
+		print("\t🔍 DEBUG _readKernValuesFromInDesign: raw=%r" % (raw[:300] if raw else raw,))
 		if not raw:
 			return []
-		return self._parseKernPairs(raw)
+		pairs = self._parseKernPairs(raw)
+		print("\t🔍 DEBUG: parsed %i pairs; first 5: %r" % (len(pairs), pairs[:5]))
+		return pairs
 
 	def _parseKernPairs(self, output):
 		"""
@@ -541,17 +544,23 @@ end tell
 		masterID = master.id
 		kernPairs = self._readKernValuesFromInDesign(indesign)
 		count = 0
+		skippedZero = 0
+		skippedNoGlyph = 0
 		for leftChar, rightChar, kernValue in kernPairs:
 			if kernValue == 0:
+				skippedZero += 1
 				continue
 			leftName = self._glyphNameForChar(leftChar)
 			rightName = self._glyphNameForChar(rightChar)
 			if not leftName or not rightName:
+				skippedNoGlyph += 1
 				continue
 			if not thisFont.glyphs[leftName] or not thisFont.glyphs[rightName]:
+				skippedNoGlyph += 1
 				continue
 			thisFont.setKerningForPair(masterID, leftName, rightName, kernValue)
 			count += 1
+		print("\t🔍 DEBUG: skippedZero=%i skippedNoGlyph=%i imported=%i" % (skippedZero, skippedNoGlyph, count))
 		print("\t↔️ Imported %i raw kern pairs for master '%s'." % (count, master.name))
 		return count
 
