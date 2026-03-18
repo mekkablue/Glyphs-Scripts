@@ -12,7 +12,7 @@ import re
 import subprocess
 import time
 import vanilla
-from mekkablue import mekkaObject, reportTimeInNaturalLanguage
+from mekkablue import mekkaObject, reportTimeInNaturalLanguage, UpdateButton
 from GlyphsApp import Glyphs
 
 
@@ -28,6 +28,9 @@ class StealKerningFromInDesign(mekkaObject):
 		"figureWithPunctuation": 1,
 		"punctuationWithItself": 1,
 		"groupKerningOnly": 0,
+		"addExceptions": 0,
+		"exceptionChars": "AFJKLPTVWXYfďľ[](){}‚\u2018\u2019\u201e\u201c\u201d/?",
+		"exceptionComponents": "dier, dot, acut, grav, tild, brev, macr, ring, circ, slash, bar",
 		"deleteExistingKerning": 0,
 		"compressKerning": 1,
 		"allMasters": 1,
@@ -35,8 +38,8 @@ class StealKerningFromInDesign(mekkaObject):
 
 	def __init__(self):
 		windowWidth = 480
-		windowHeight = 286
-		windowWidthResize = 0
+		windowHeight = 330
+		windowWidthResize = 500
 		windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
@@ -100,6 +103,19 @@ class StealKerningFromInDesign(mekkaObject):
 		self.w.groupKerningOnly.getNSButton().setToolTip_("After compressing, delete all remaining glyph-to-glyph pairs. Note: compressing cannot always convert every glyph pair to a group pair (e.g. when a glyph has no kerning group), so some pairs may remain.")
 		linePos += lineHeight
 
+		self.w.addExceptions = vanilla.CheckBox((inset + 22, linePos - 1, 170, 20), "Add exceptions between:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addExceptions.getNSButton().setToolTip_("Also kern each of the characters in the field against all exporting glyphs whose name contains any of the component particles listed below.")
+		self.w.exceptionChars = vanilla.EditText((inset + 192, linePos, -inset - 22, 19), "AFJKLPTVWXYfďľ[](){}‚\u2018\u2019\u201e\u201c\u201d/?", callback=self.SavePreferences, sizeStyle="small")
+		self.w.exceptionChars.getNSTextField().setToolTip_("Characters to kern against the diacritic glyphs. Each character is used in both directions (e.g. Tä and äT).")
+		self.w.exceptionCharsReset = UpdateButton((-inset - 20, linePos, 20, 19), self.resetExceptionChars)
+		linePos += lineHeight
+
+		self.w.exceptionComponentsLabel = vanilla.TextBox((inset + 22, linePos + 3, 170, 14), "…and glyphs containing:", sizeStyle="small")
+		self.w.exceptionComponents = vanilla.EditText((inset + 192, linePos, -inset - 22, 19), "dier, dot, acut, grav, tild, brev, macr, ring, circ, slash, bar", callback=self.SavePreferences, sizeStyle="small")
+		self.w.exceptionComponents.getNSTextField().setToolTip_("Comma-separated name fragments. Any exporting glyph with a Unicode whose name contains one of these is measured against the characters above.")
+		self.w.exceptionComponentsReset = UpdateButton((-inset - 20, linePos, 20, 19), self.resetExceptionComponents)
+		linePos += lineHeight
+
 		# Progress bar + Status + Run button
 		self.w.progressBar = vanilla.ProgressBar((inset, -42 - inset, -inset, 16))
 		self.w.status = vanilla.TextBox((inset, -18 - inset, -80 - inset, 14), "Ready.", sizeStyle="small", selectable=True)
@@ -120,7 +136,68 @@ class StealKerningFromInDesign(mekkaObject):
 			or self.w.punctuationWithItself.get()
 		)
 		self.w.runButton.enable(anyPairType)
-		self.w.groupKerningOnly.enable(bool(self.w.compressKerning.get()))
+		compressOn = bool(self.w.compressKerning.get())
+		self.w.groupKerningOnly.enable(compressOn)
+		self.w.addExceptions.enable(compressOn)
+		addExceptionsOn = compressOn and bool(self.w.addExceptions.get())
+		self.w.exceptionChars.enable(addExceptionsOn)
+		self.w.exceptionCharsReset.enable(addExceptionsOn)
+		self.w.exceptionComponents.enable(addExceptionsOn)
+		self.w.exceptionComponentsReset.enable(addExceptionsOn)
+
+	def resetExceptionChars(self, sender=None):
+		self.w.exceptionChars.set("AFJKLPTVWXYf\u010f\u013e[](){}‚\u2018\u2019\u201e\u201c\u201d/?")
+		self.SavePreferences()
+
+	def resetExceptionComponents(self, sender=None):
+		self.w.exceptionComponents.set("dier, dot, acut, grav, tild, brev, macr, ring, circ, slash, bar")
+		self.SavePreferences()
+
+	# ------------------------------------------------------------------ exception pair builder
+
+	def _buildExceptionPairText(self, thisFont):
+		"""
+		Return a list of (leftCharStr, rightCharStr) pairs for exception kerning:
+		each character in exceptionChars × every exporting glyph with a Unicode whose
+		name contains any of the comma-separated exceptionComponents particles.
+		Both directions are included (e.g. T+ä and ä+T).
+		"""
+		exceptionChars = self.pref("exceptionChars") or ""
+		exceptionComponents = self.pref("exceptionComponents") or ""
+		particles = [p.strip() for p in exceptionComponents.split(",") if p.strip()]
+		if not exceptionChars or not particles:
+			return []
+
+		diacriticStrings = []
+		for glyph in thisFont.glyphs:
+			if not glyph.export:
+				continue
+			if not glyph.unicode:
+				continue
+			for particle in particles:
+				if particle in glyph.name:
+					diacriticStrings.append(glyph.charString())
+					break
+
+		if not diacriticStrings:
+			return []
+
+		pairs = []
+		seen = set()
+
+		def addPair(left, right):
+			key = (left, right)
+			if key not in seen:
+				seen.add(key)
+				pairs.append(key)
+
+		for baseChar in exceptionChars:
+			for diacriticStr in diacriticStrings:
+				addPair(baseChar, diacriticStr)
+				addPair(diacriticStr, baseChar)
+
+		print("\t☑️ %i exception pairs to measure." % len(pairs))
+		return pairs
 
 	# ------------------------------------------------------------------ helpers
 
@@ -850,6 +927,11 @@ end tell
 		# --- Step 3: build pair text and fill InDesign text frame ---
 		print("\nStep 3 – Building pair text and filling InDesign text frame…")
 		pairText = self._buildPairText(thisFont)
+		if self.prefBool("addExceptions"):
+			exPairs = self._buildExceptionPairText(thisFont)
+			if exPairs:
+				exPairText = " ".join("%s%s" % (l, r) for l, r in exPairs)
+				pairText = (pairText + " " + exPairText).strip()
 		if not pairText:
 			self.w.status.set("⚠️ No pairs to kern.")
 			return
