@@ -12,7 +12,7 @@ import re
 import subprocess
 import time
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, reportTimeInNaturalLanguage
 from GlyphsApp import Glyphs
 
 
@@ -750,6 +750,7 @@ end tell
 			self.w.status.set("⚠️ No font open.")
 			return
 
+		startTime = time.time()
 		Glyphs.clearLog()
 		print("Steal Kerning from InDesign\n")
 
@@ -904,13 +905,11 @@ true
 			for m, _ in exportedMasters
 		)
 		masterWord = "master" if len(exportedMasters) == 1 else "masters"
-		summary = "✅ Done: %i kern pairs across %i %s." % (finalPairCount, len(exportedMasters), masterWord)
+		elapsed = reportTimeInNaturalLanguage(time.time() - startTime)
+		summary = "✅ %i kernings in %i %s. %s." % (finalPairCount, len(exportedMasters), masterWord, elapsed)
 		self.w.status.set(summary)
 		print(summary)
-		Glyphs.showNotification(
-			"Steal Kerning from InDesign",
-			"%i pairs across %i %s. Details in Macro Window." % (finalPairCount, len(exportedMasters), masterWord),
-		)
+		Glyphs.showNotification("Steal Kerning from InDesign", summary)
 
 
 StealKerningFromInDesign()
