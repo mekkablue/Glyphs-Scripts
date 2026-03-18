@@ -509,6 +509,11 @@ true
 		Returns a list of (leftChar, rightChar, kernValue) tuples.
 		"""
 		script = """
+on absValue(num)
+	if num < 0 then return -num
+	return num
+end absValue
+
 tell application "%s"
 	tell front document
 		tell parent story of first text frame
@@ -520,7 +525,7 @@ tell application "%s"
 					set charNext to character (x + 1)
 					if (charX & charNext) does not contain " " then
 						set kernValue to kerning value of insertion point 2 of character x
-						if abs(kernValue) >= %s then
+						if my absValue(kernValue) >= %s then
 							set end of kernPairs to {charX, charNext, kernValue}
 						end if
 					end if
