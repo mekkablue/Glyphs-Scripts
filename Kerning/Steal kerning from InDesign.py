@@ -26,12 +26,14 @@ class StealKerningFromInDesign(mekkaObject):
 		"letterWithPunctuation": 1,
 		"figureWithPunctuation": 1,
 		"groupKerningOnly": 0,
+		"deleteExistingKerning": 0,
+		"compressKerning": 1,
 		"allMasters": 1,
 	}
 
 	def __init__(self):
 		windowWidth = 360
-		windowHeight = 242
+		windowHeight = 286
 		windowWidthResize = 0
 		windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
@@ -87,6 +89,14 @@ class StealKerningFromInDesign(mekkaObject):
 		self.w.allMasters.getNSButton().setToolTip_("Process all masters in the font. If off, only the currently selected master is processed.")
 		linePos += lineHeight
 
+		self.w.deleteExistingKerning = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete existing kerning before import", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.deleteExistingKerning.getNSButton().setToolTip_("Clear all existing kerning for each master before importing new values from InDesign.")
+		linePos += lineHeight
+
+		self.w.compressKerning = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Compress kerning (glyph pairs → group pairs)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.compressKerning.getNSButton().setToolTip_("Promote glyph-to-glyph kern pairs to the corresponding group-to-group pair when the value matches.")
+		linePos += lineHeight
+
 		# Status + Run button
 		self.w.status = vanilla.TextBox((inset, -20 - inset, -90 - inset, 14), "Ready.", sizeStyle="small", selectable=True)
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Kern", callback=self.run)
@@ -127,8 +137,8 @@ class StealKerningFromInDesign(mekkaObject):
 		return re.sub(r"[^A-Za-z0-9 ]", "", name)
 
 	def _adobeFontsFolder(self):
-		"""Return the path to ~/Library/Application Support/Adobe/Fonts, creating it if needed."""
-		path = os.path.expanduser("~/Library/Application Support/Adobe/Fonts")
+		"""Return the path to /Library/Application Support/Adobe/Fonts (global), creating it if needed."""
+		path = "/Library/Application Support/Adobe/Fonts"
 		os.makedirs(path, exist_ok=True)
 		return path
 
@@ -329,16 +339,22 @@ end tell
 				continue
 			if not glyph.unicode:
 				continue
+			if glyph.name == "jdotless":
+				continue
 			if glyph.category != category:
 				continue
 			if subcategory and glyph.subCategory != subcategory:
 				continue
 			# skip glyphs that are purely composite (2+ components, no contours)
-			for master in thisFont.masters:
-				layer = glyph.layers[master.id]
-				if layer and len(layer.components) >= 2 and len(layer.paths) == 0:
-					break
-			else:
+			# exception: i and j are allowed even if built from components
+			isComposite = False
+			if glyph.name not in ("i", "j"):
+				for master in thisFont.masters:
+					layer = glyph.layers[master.id]
+					if layer and len(layer.components) >= 2 and len(layer.paths) == 0:
+						isComposite = True
+						break
+			if not isComposite:
 				result.append(glyph.charString())
 		return result
 
@@ -732,11 +748,15 @@ true
 
 		# --- Step 4: read kern values from InDesign and import ---
 		print("Step 4 – Reading kern values from InDesign and importing…")
+		pairCount = len(pairText.split())
 		totalImported = 0
 		for master, filePath in exportedMasters:
 			if master.id not in masterCalibData:
 				continue
-			self.w.status.set("Importing kerning '%s'…" % master.name)
+			self.w.status.set("Reading %i kern pairs, may take a while…" % pairCount)
+			if self.prefBool("deleteExistingKerning"):
+				thisFont.kerning[master.id] = {}
+				print("\t🗑 Deleted existing kerning for master '%s'." % master.name)
 			n = self._importKerningForMaster(thisFont, master, indesign)
 			totalImported += n
 		print("  Total raw pairs imported: %i\n" % totalImported)
@@ -753,11 +773,12 @@ true
 			minimumKern = 0.0
 		groupKerningOnly = self.prefBool("groupKerningOnly")
 
+		doCompressKerning = self.prefBool("compressKerning")
 		for master, filePath in exportedMasters:
 			self.w.status.set("Post-processing '%s'…" % master.name)
 			self._roundAndFilter(thisFont, master, roundBy, minimumKern)
-			# compress repeatedly until stable
-			self._compressKerning(thisFont, master)
+			if doCompressKerning:
+				self._compressKerning(thisFont, master)
 			if groupKerningOnly:
 				self._removeExceptions(thisFont, master)
 		print("  Post-processing done.\n")
