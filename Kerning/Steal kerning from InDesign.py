@@ -681,6 +681,50 @@ end tell
 		print("\t↔️ Imported %i raw kern pairs for master '%s'." % (count, master.name))
 		return count
 
+	def _importExceptionKerningForMaster(self, thisFont, master, indesign, minimumKern=0, roundBy=0):
+		"""
+		Read kern values from InDesign and store them as glyph-level exception pairs.
+		No compression is applied. A pair is only kept if its rounded value differs
+		from the existing group-to-group kerning by at least minimumKern.
+		If no group kerning exists for a pair, the effective group value is treated as 0.
+		Returns the number of exception pairs stored.
+		"""
+		masterID = master.id
+		# No AppleScript pre-filter: we need raw values to compare against group kern
+		kernPairs = self._readKernValuesFromInDesign(indesign, 0)
+		count = 0
+		for leftChar, rightChar, kernValue in kernPairs:
+			if kernValue == 0:
+				continue
+			if roundBy > 0:
+				kernValue = round(kernValue / roundBy) * roundBy
+			if kernValue == 0:
+				continue
+			leftName = self._glyphNameForChar(leftChar)
+			rightName = self._glyphNameForChar(rightChar)
+			if not leftName or not rightName:
+				continue
+			leftGlyph = thisFont.glyphs[leftName]
+			rightGlyph = thisFont.glyphs[rightName]
+			if not leftGlyph or not rightGlyph:
+				continue
+			# Look up the group kern that already covers this glyph pair
+			groupValue = 0.0
+			lGroup = leftGlyph.rightKerningGroup
+			rGroup = rightGlyph.leftKerningGroup
+			if lGroup and rGroup:
+				lKey = "@MMK_L_%s" % lGroup
+				rKey = "@MMK_R_%s" % rGroup
+				gv = thisFont.kerningForPair(masterID, lKey, rKey)
+				if gv is not None and abs(gv) < 100000:
+					groupValue = gv
+			if abs(kernValue - groupValue) < minimumKern:
+				continue
+			thisFont.setKerningForPair(masterID, leftName, rightName, kernValue)
+			count += 1
+		print("\t↔️ Imported %i exception kern pairs for master '%s'." % (count, master.name))
+		return count
+
 	# ------------------------------------------------------------------ step 5
 
 	def _roundAndFilter(self, thisFont, master, roundBy, minimumKern):
@@ -870,7 +914,9 @@ end tell
 			masters = [thisFont.selectedFontMaster]
 
 		# Progress tracking: 5 per-master steps + 2 global steps (wait + cleanup)
-		totalSteps = 5 * len(masters) + 2
+		# If addExceptions is on, one extra per-master step for the exception pass
+		doExceptions = self.prefBool("addExceptions")
+		totalSteps = 5 * len(masters) + 2 + (len(masters) if doExceptions else 0)
 		progressStep = [0]
 
 		def advance():
@@ -927,11 +973,6 @@ end tell
 		# --- Step 3: build pair text and fill InDesign text frame ---
 		print("\nStep 3 – Building pair text and filling InDesign text frame…")
 		pairText = self._buildPairText(thisFont)
-		if self.prefBool("addExceptions"):
-			exPairs = self._buildExceptionPairText(thisFont)
-			if exPairs:
-				exPairText = " ".join("%s%s" % (l, r) for l, r in exPairs)
-				pairText = (pairText + " " + exPairText).strip()
 		if not pairText:
 			self.w.status.set("⚠️ No pairs to kern.")
 			return
@@ -1007,8 +1048,34 @@ true
 			advance()
 		print("  Post-processing done.\n")
 
-		# --- Step 6: cleanup ---
-		print("\nStep 6 – Cleanup…")
+		# --- Step 6: exception kerning (optional) ---
+		if doExceptions:
+			print("\nStep 6 – Adding exception kerning for diacritic pairs…")
+			exPairs = self._buildExceptionPairText(thisFont)
+			if exPairs:
+				exPairText = " ".join("%s%s" % (l, r) for l, r in exPairs)
+				for master, filePath in exportedMasters:
+					if master.id not in masterCalibData:
+						continue
+					styleName, calibSize = masterCalibData[master.id]
+					self.w.status.set("Exception pairs for '%s'…" % master.name)
+					self._closeInDesignDoc(indesign)
+					ok = self._createInDesignDoc(indesign, "Kernstealer", styleName)
+					if not ok:
+						print("\t❌ Could not create exception document for master '%s'." % master.name)
+						advance()
+						continue
+					ok = self._setInDesignTextAndFont(indesign, exPairText, styleName, calibSize)
+					if not ok:
+						print("\t❌ Failed to fill exception frame for master '%s'." % master.name)
+						advance()
+						continue
+					n = self._importExceptionKerningForMaster(thisFont, master, indesign, minimumKern, roundBy)
+					print("\t☑️ Exception pass done for master '%s'." % master.name)
+					advance()
+
+		# --- Step 7: cleanup ---
+		print("\nStep 7 – Cleanup…")
 		self.w.status.set("Cleaning up…")
 		self._closeInDesignDoc(indesign)
 		self._deleteFonts(exportedMasters)
