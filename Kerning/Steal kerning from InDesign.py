@@ -632,6 +632,21 @@ kernvalues
 		print("\t☑️ Removed %i exceptions in master '%s'." % (len(removals), master.name))
 		return len(removals)
 
+	def _deleteAllKerningForMaster(self, thisFont, master):
+		"""Remove every kern pair for the given master via removeKerningForPair."""
+		masterID = master.id
+		kerning = thisFont.kerning.get(masterID, {})
+		removals = []
+		for leftID, rightDict in kerning.items():
+			for rightID in rightDict.keys():
+				removals.append((leftID, rightID))
+		for leftID, rightID in removals:
+			leftName = leftID if leftID.startswith("@") else thisFont.glyphForId_(leftID).name
+			rightName = rightID if rightID.startswith("@") else thisFont.glyphForId_(rightID).name
+			thisFont.removeKerningForPair(masterID, leftName, rightName)
+		print("\t🗑 Deleted %i existing kern pairs for master '%s'." % (len(removals), master.name))
+		return len(removals)
+
 	# ------------------------------------------------------------------ step 6
 
 	def _closeInDesignDoc(self, indesign):
@@ -755,8 +770,7 @@ true
 				continue
 			self.w.status.set("Reading %i kern pairs, may take a while…" % pairCount)
 			if self.prefBool("deleteExistingKerning"):
-				thisFont.kerning[master.id] = {}
-				print("\t🗑 Deleted existing kerning for master '%s'." % master.name)
+				self._deleteAllKerningForMaster(thisFont, master)
 			n = self._importKerningForMaster(thisFont, master, indesign)
 			totalImported += n
 		print("  Total raw pairs imported: %i\n" % totalImported)
