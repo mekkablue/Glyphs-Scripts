@@ -37,17 +37,17 @@ class AnchorDeleter(mekkaObject):
 		linePos, inset, lineHeight = 12, 13, 20
 		self.w.text_1 = vanilla.TextBox((inset - 1, linePos + 2, 80, 14), "Delete anchor", sizeStyle='small')
 		self.w.updateButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), u"⟲", sizeStyle='small', callback=self.updateAnchors)
-		self.w.updateButton.getNSButton().setToolTip_(u"Scans frontmost font for all available anchors, and updates the pop-up list accordingly. Good idea to do this for every new font you want to process.")
+		self.w.updateButton.setToolTip(u"Scans frontmost font for all available anchors, and updates the pop-up list accordingly. Good idea to do this for every new font you want to process.")
 		self.w.anchorPopup = vanilla.PopUpButton((inset + 80, linePos, -inset - 25, 17), self.updateAnchors(None), callback=self.SavePreferences, sizeStyle='small')
-		self.w.anchorPopup.getNSPopUpButton().setToolTip_(u"Choose an anchor you want to delete, or choose ‘All Anchors’. Remember to update the list for the current font with the ⟲ update button on the right.")
+		self.w.anchorPopup.setToolTip(u"Choose an anchor you want to delete, or choose ‘All Anchors’. Remember to update the list for the current font with the ⟲ update button on the right.")
 		linePos += lineHeight
 
 		self.w.selectedGlyphsOnly = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "In selected glyphs only (otherwise all glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.selectedGlyphsOnly.getNSButton().setToolTip_(u"If checked, the chosen anchor will be deleted in the current glyph selection only. If unchecked, they will be deleted in all glyphs.")
+		self.w.selectedGlyphsOnly.setToolTip(u"If checked, the chosen anchor will be deleted in the current glyph selection only. If unchecked, they will be deleted in all glyphs.")
 		linePos += lineHeight
 
 		self.w.currentMasterOnly = vanilla.CheckBox((inset + 2, linePos, -inset, 20), u"In current master only (otherwise all masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.currentMasterOnly.getNSButton().setToolTip_(u"If checked, will remove anchor only in layers associated with the currently selected font master. If unchecked, in all layers.")
+		self.w.currentMasterOnly.setToolTip(u"If checked, will remove anchor only in layers associated with the currently selected font master. If unchecked, in all layers.")
 		linePos += lineHeight
 
 		# Run Button:

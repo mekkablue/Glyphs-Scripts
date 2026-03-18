@@ -65,7 +65,7 @@ class ResetPluginManagerRepo(mekkaObject):
 		linePos += lineHeight
 		
 		self.w.repositoryIndex = vanilla.PopUpButton((inset, linePos, -inset-20, 17), listSubfolders(self.repoFolder), sizeStyle="small", callback=self.SavePreferences)
-		self.w.repositoryIndex.getNSPopUpButton().setToolTip_("Select the repository that gave you the error in Plugin Manager and delete it with the Zap button. Then reopen Plugin Manager and try installing it again.")
+		self.w.repositoryIndex.setToolTip("Select the repository that gave you the error in Plugin Manager and delete it with the Zap button. Then reopen Plugin Manager and try installing it again.")
 
 		self.w.repositoryUpdate = UpdateButton((-inset-16, linePos-2, -inset, 18), callback=self.updateUI)
 		self.w.repositoryUpdate.setToolTip("Click to reload the contents of the Repositories folder. Useful if you made manual changes and the contents of the pop-up menu do not yet reflect the state of the Repositories folder.")

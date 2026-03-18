@@ -126,7 +126,7 @@ class Bracify(mekkaObject):
 		linePos += lineHeight
 
 		self.w.braceGlyphs = vanilla.TextEditor((1, linePos, -1, -inset * 3), text="", callback=self.SavePreferences, checksSpelling=False)
-		self.w.braceGlyphs.getNSTextView().setToolTip_("Comma-separated list of glyph names. Use the Guess button to add the glyphs that would change too much (more than the threshold) if they didn’t keep a brace layer after master removal.")
+		self.w.braceGlyphs.setToolTip("Comma-separated list of glyph names. Use the Guess button to add the glyphs that would change too much (more than the threshold) if they didn’t keep a brace layer after master removal.")
 		self.w.braceGlyphs.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.braceGlyphs.getNSScrollView().setHasHorizontalScroller_(0)
 		self.w.braceGlyphs.getNSScrollView().setRulersVisible_(0)

@@ -113,10 +113,10 @@ class FindStrayAnchors(mekkaObject):
 		tooltip = "All anchors you want to find. Separate multiple names with comma’s, e.g., ‘top, bottom’ or ‘exit, entry’."
 		self.w.anchorsText = vanilla.TextBox((inset, linePos+2, indent, 14), "Find anchors", sizeStyle="small", selectable=True)
 		self.w.anchors = vanilla.EditText((inset+indent, linePos-1, -inset-19, 19), "top, bottom, _top, _bottom", callback=self.SavePreferences, sizeStyle="small")
-		self.w.anchorsText.getNSTextField().setToolTip_(tooltip)
-		self.w.anchors.getNSTextField().setToolTip_(tooltip)
+		self.w.anchorsText.setToolTip(tooltip)
+		self.w.anchors.setToolTip(tooltip)
 		self.w.updateButton = UpdateButton((-inset - 18, linePos - 3, -inset, 18), callback=self.updateAnchorNames)
-		self.w.updateButton.getNSButton().setToolTip_("Insert all anchor names of the frontmost font. Resets to default ‘top, bottom, _top, _bottom’ if there is no font open (or no anchors in the frontmost font).")
+		self.w.updateButton.setToolTip("Insert all anchor names of the frontmost font. Resets to default ‘top, bottom, _top, _bottom’ if there is no font open (or no anchors in the frontmost font).")
 		linePos += lineHeight
 
 		indent = 120

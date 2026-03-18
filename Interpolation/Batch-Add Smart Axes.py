@@ -46,7 +46,7 @@ class BatchAddSmartAxes(mekkaObject):
 		self.w.recipe.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.recipe.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.recipe.getNSScrollView().setRulersVisible_(0)
-		self.w.recipe.getNSTextView().setToolTip_("Syntax:\n<NAME FOR PROPERTY>: <NAME PARTICLE FOR NEW LAYER>: <0=NEW LAYER IS MIN, 1=NEW LAYER IS MAX>\n\nE.g.: Height:High:1, Height:Low:0, Width:Narrow:0, Width:Wide:1, Bend:Straight:0, Bend:Curvy:1")
+		self.w.recipe.setToolTip("Syntax:\n<NAME FOR PROPERTY>: <NAME PARTICLE FOR NEW LAYER>: <0=NEW LAYER IS MIN, 1=NEW LAYER IS MAX>\n\nE.g.: Height:High:1, Height:Low:0, Width:Narrow:0, Width:Wide:1, Bend:Straight:0, Bend:Curvy:1")
 
 		legibleFont = getLegibleFont()
 

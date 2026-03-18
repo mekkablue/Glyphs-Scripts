@@ -63,20 +63,20 @@ class SetTTFAutohintOptions(mekkaObject):
 
 		# UI elements:
 		self.w.helpButton = vanilla.HelpButton((inset - 3, linePos, 21, 20), callback=self.openURL)
-		self.w.helpButton.getNSButton().setToolTip_("Opens the ttfAutohint documentation for the currently selected option on freetype.org.")
+		self.w.helpButton.setToolTip("Opens the ttfAutohint documentation for the currently selected option on freetype.org.")
 
 		self.w.ttfAutohintOption = vanilla.PopUpButton((inset + 23, linePos + 1, 175, 17), availableOptions, callback=self.ttfAutohintOptionAction, sizeStyle='small')
-		self.w.ttfAutohintOption.getNSPopUpButton().setToolTip_("Available ttfAutohint options. Pick one from the list. Careful: also contains deprecated options. Refer to the documentation (click on the Help Button on the left), know what you are doing.")
+		self.w.ttfAutohintOption.setToolTip("Available ttfAutohint options. Pick one from the list. Careful: also contains deprecated options. Refer to the documentation (click on the Help Button on the left), know what you are doing.")
 
 		self.w.optionValue = vanilla.EditText((inset + 205, linePos, -67 - 50, 20), "", callback=self.optionValueAction, sizeStyle='small')
-		self.w.optionValue.getNSTextField().setToolTip_("Value for the currently selected option, if any. Some options can only be set or removed, some have a value.")
+		self.w.optionValue.setToolTip("Value for the currently selected option, if any. Some options can only be set or removed, some have a value.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-60 - 50, linePos - 2, -inset - 50, 22), "Set", callback=self.SetTTFAutohintOptionsMain)
-		self.w.runButton.getNSButton().setToolTip_("Updates all ‘TTFAutohint options’ parameters with the current option (and value, if any) to all instances in the font.")
+		self.w.runButton.setToolTip("Updates all ‘TTFAutohint options’ parameters with the current option (and value, if any) to all instances in the font.")
 
 		self.w.delButton = vanilla.Button((-60, linePos - 2, -inset, 22), "Del", callback=self.RemoveOption)
-		self.w.delButton.getNSButton().setToolTip_("Removes the current option from all ‘TTFAutohint options’ parameters in all instances in the font.")
+		self.w.delButton.setToolTip("Removes the current option from all ‘TTFAutohint options’ parameters in all instances in the font.")
 
 		linePos += lineHeight
 		self.w.explanation = vanilla.TextBox((inset, 40, -inset, -5), "Adds or sets this option in all ‘TTFAutohint options’ parameters in the current font. For fallback-stem-width, use * for entering the respective instance weight value, and idotless for measuring the width of the interpolated dotless i. The Del button removes this TTFA option from all instances.", sizeStyle='small')

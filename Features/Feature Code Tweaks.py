@@ -259,61 +259,61 @@ class FeatureCodeTweaks(mekkaObject):
 		currentHeight += lineHeight
 
 		self.w.scFeatureFix = vanilla.CheckBox((inset + 2, currentHeight, -inset, lineHeight), "Fix smallcap features (smcp/c2sc)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.scFeatureFix.getNSButton().setToolTip_("Adds missing smallcap substitutions for glyphs like idotless, jdotless, kgreenlandic and longs.")
+		self.w.scFeatureFix.setToolTip("Adds missing smallcap substitutions for glyphs like idotless, jdotless, kgreenlandic and longs.")
 		currentHeight += lineHeight
 
 		self.w.addArrowLigs = vanilla.CheckBox((inset + 2, currentHeight, -inset, lineHeight), "Add arrow ligatures (dlig)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.addArrowLigs.getNSButton().setToolTip_("Adds ligatures of hyphens with greater and less for left and right arrows, and double hyphen ligatures for arrows with .long suffix.")
+		self.w.addArrowLigs.setToolTip("Adds ligatures of hyphens with greater and less for left and right arrows, and double hyphen ligatures for arrows with .long suffix.")
 		currentHeight += lineHeight
 
 		self.w.germanLocalization = vanilla.CheckBox((inset + 2, currentHeight, -inset, lineHeight), "Add German cap sharp S code (locl, calt)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.germanLocalization.getNSButton().setToolTip_("Automatically substitutes lowercase sharp s for uppercase sharp S between other uppercase letters. Adds a lookup in locl and calls the lookup in calt.")
+		self.w.germanLocalization.setToolTip("Automatically substitutes lowercase sharp s for uppercase sharp S between other uppercase letters. Adds a lookup in locl and calls the lookup in calt.")
 		currentHeight += lineHeight
 
 		self.w.dutchLocalization = vanilla.CheckBox((inset + 2, currentHeight, -inset, lineHeight), "Add proper Dutch localization (locl)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.dutchLocalization.getNSButton().setToolTip_("Adds a different Dutch localization than the default. Will not substitute uppercase /J for /Jacute if a combining accent follows (as would be the case if the user follows the proper Unicode text entry).")
+		self.w.dutchLocalization.setToolTip("Adds a different Dutch localization than the default. Will not substitute uppercase /J for /Jacute if a combining accent follows (as would be the case if the user follows the proper Unicode text entry).")
 		currentHeight += lineHeight
 
 		# DECOMPOSE PRESENTATION FORMS:
 
 		self.w.decomposePresentationForms = vanilla.CheckBox((inset + 2, currentHeight, -inset, lineHeight), "Decompose Latin presentation forms like fi and fl (ccmp)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.decomposePresentationForms.getNSButton().setToolTip_("Adds precomposed but ligature characters like /fi and /fl (which are not supposed to be used in texts) to ccmp, and decomposes them into their character equivalents, f+i, f+l, etc. Strongly recommended because it preserves tracking and smallcap compatibility.")
+		self.w.decomposePresentationForms.setToolTip("Adds precomposed but ligature characters like /fi and /fl (which are not supposed to be used in texts) to ccmp, and decomposes them into their character equivalents, f+i, f+l, etc. Strongly recommended because it preserves tracking and smallcap compatibility.")
 		currentHeight += lineHeight
 
 		self.w.includeLdot = vanilla.CheckBox((inset * 3, currentHeight, -inset, lineHeight), "Include Ldot, ldot, napostrophe (if present)", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeLdot.getNSButton().setToolTip_("Includes deprecated Ldot/ldot in ccmp decomposition.")
+		self.w.includeLdot.setToolTip("Includes deprecated Ldot/ldot in ccmp decomposition.")
 		currentHeight += lineHeight
 
 		self.w.includeBalkan = vanilla.CheckBox((inset * 3, currentHeight, -inset, lineHeight), "Include Balkan digraphs ǳ, ǆ, ǉ, ǌ (if present)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeBalkan.getNSButton().setToolTip_("Includes deprecated Slavic/Balkan digraphs in ccmp decomposition.")
+		self.w.includeBalkan.setToolTip("Includes deprecated Slavic/Balkan digraphs in ccmp decomposition.")
 		currentHeight += lineHeight
 
 		self.w.includeIJ = vanilla.CheckBox((inset * 3, currentHeight, -inset, lineHeight), "Include IJ, ij (if present)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeIJ.getNSButton().setToolTip_("Includes unused Durch and deprecated Afrikaans digraphs in ccmp decomposition.")
+		self.w.includeIJ.setToolTip("Includes unused Durch and deprecated Afrikaans digraphs in ccmp decomposition.")
 		currentHeight += lineHeight
 
 		self.w.disableLiga = vanilla.CheckBox((inset * 3, currentHeight, -inset, lineHeight), "Disable affected ligature lines in liga, dlig (if present)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.disableLiga.getNSButton().setToolTip_("Also disables ligatures in liga. Only recommended if your fi, fl, etc. look exactly like separate f+i, f+l, etc., i.e., if they are not really ligated.")
+		self.w.disableLiga.setToolTip("Also disables ligatures in liga. Only recommended if your fi, fl, etc. look exactly like separate f+i, f+l, etc., i.e., if they are not really ligated.")
 		currentHeight += lineHeight
 
 		self.w.repeatDecompositionInSC = vanilla.CheckBox((inset * 3, currentHeight, -inset, lineHeight), "Repeat decomposition in smcp and c2sc", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.repeatDecompositionInSC.getNSButton().setToolTip_("Calls the ccmp lookup at the beginning of smcp and c2sc. This makes decompositions (and hence, the small caps) work in the Adobe (Latin) Composers, which ignore ccmp.")
+		self.w.repeatDecompositionInSC.setToolTip("Calls the ccmp lookup at the beginning of smcp and c2sc. This makes decompositions (and hence, the small caps) work in the Adobe (Latin) Composers, which ignore ccmp.")
 		currentHeight += lineHeight
 
 		self.w.repeatDecompositionInOtherAffectedFeatures = vanilla.CheckBox((inset * 3, currentHeight, -inset, lineHeight), "Repeat decomposition in affected (non-SC) features", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.repeatDecompositionInOtherAffectedFeatures.getNSButton().setToolTip_("Calls the ccmp lookup at the beginnings of all features that substitute affected glyphs, e.g., in ss01. This option ignores smcp and c2sc. ATTENTION: cannot parse nested lookups yet, so the result may be incomplete.")
+		self.w.repeatDecompositionInOtherAffectedFeatures.setToolTip("Calls the ccmp lookup at the beginnings of all features that substitute affected glyphs, e.g., in ss01. This option ignores smcp and c2sc. ATTENTION: cannot parse nested lookups yet, so the result may be incomplete.")
 		currentHeight += lineHeight
 
 		self.w.fShortSubstitution = vanilla.CheckBox((inset + 2, currentHeight, -inset, lineHeight), "Add f.short contextual substitutions (calt)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.fShortSubstitution.getNSButton().setToolTip_("Not implemented yet.")
+		self.w.fShortSubstitution.setToolTip("Not implemented yet.")
 		currentHeight += lineHeight
 
 		self.w.magistra = vanilla.CheckBox((inset + 2, currentHeight, -inset, lineHeight), "Add Mag.a substitution (calt) and 90% kerning", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.magistra.getNSButton().setToolTip_("Automatic feature code substitution for Austrian academic title Mag.a (Magistra). Recommended for fonts for the Austrian market or an Austrian client.")
+		self.w.magistra.setToolTip("Automatic feature code substitution for Austrian academic title Mag.a (Magistra). Recommended for fonts for the Austrian market or an Austrian client.")
 		currentHeight += lineHeight
 
 		self.w.ssXX2salt = vanilla.CheckBox((inset + 2, currentHeight, -inset, lineHeight), "Overwrite salt feature with ssXX lookups", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.ssXX2salt.getNSButton().setToolTip_("Creates a universal salt feature including all ssXX substitutions. Careful: does not update, but overwrite the feature code. Will park the old feature code in the feature notes, though.")
+		self.w.ssXX2salt.setToolTip("Creates a universal salt feature including all ssXX substitutions. Careful: does not update, but overwrite the feature code. Will park the old feature code in the feature notes, though.")
 		currentHeight += lineHeight
 
 		# self.w.scFeatureFix.enable(False)

@@ -50,15 +50,15 @@ class ConvertCapToSegmentComponent(mekkaObject):
 		# Line 1: cap combo box + update button
 		self.w.capLabel = vanilla.TextBox((inset, linePos + 2, 75, 14), "Convert cap:", sizeStyle="small")
 		self.w.capGlyphName = vanilla.ComboBox((inset + 75, linePos - 1, -inset - 26, 18), self.allCapGlyphs(), sizeStyle="small", callback=self.SavePreferences)
-		self.w.capGlyphName.getNSComboBox().setToolTip_("Select the _cap.xxx glyph to convert to a _segment component.")
+		self.w.capGlyphName.setToolTip("Select the _cap.xxx glyph to convert to a _segment component.")
 		self.w.updateCapList = UpdateButton((-inset - 19, linePos - 3, -inset, 18), callback=self.updateCapList)
-		self.w.updateCapList.getNSButton().setToolTip_("Update the list of _cap.xxx glyphs from the frontmost font.")
+		self.w.updateCapList.setToolTip("Update the list of _cap.xxx glyphs from the frontmost font.")
 		linePos += lineHeight
 
 		# Line 2: rename suffix
 		self.w.renameLabel = vanilla.TextBox((inset, linePos + 2, 122, 14), "Rename to: _segment.", sizeStyle="small")
 		self.w.renameTo = vanilla.EditText((inset + 122, linePos - 1, -inset, 19), "", callback=self.SavePreferences, sizeStyle="small")
-		self.w.renameTo.getNSTextField().setToolTip_(
+		self.w.renameTo.setToolTip(
 			"Suffix for the new _segment glyph name. Leave empty to keep the same suffix as the selected _cap glyph. "
 			"Allowed characters: A–Z, a–z, 0–9, hyphen (-), period (.), underscore (_). Spaces and other characters are removed."
 		)
@@ -67,7 +67,7 @@ class ConvertCapToSegmentComponent(mekkaObject):
 
 		# Line 3: update all affected glyphs
 		self.w.updateAffectedGlyphs = vanilla.CheckBox((inset, linePos, -inset, 20), "Update all affected glyphs", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.updateAffectedGlyphs.getNSButton().setToolTip_(
+		self.w.updateAffectedGlyphs.setToolTip(
 			"If enabled: create the _segment glyph, delete the _cap glyph, and update all cap component references "
 			"in all glyph layers (including backups) to use the new segment. "
 			"If disabled: only create the _segment glyph without removing the _cap or modifying other glyphs."
@@ -76,7 +76,7 @@ class ConvertCapToSegmentComponent(mekkaObject):
 
 		# Line 4: decomposed backup in background
 		self.w.decomposeBackup = vanilla.CheckBox((inset, linePos, -inset, 20), "Decomposed backup in background", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.decomposeBackup.getNSButton().setToolTip_(
+		self.w.decomposeBackup.setToolTip(
 			"Before converting, copy the current layer content into the background of each master/special layer "
 			"in affected glyphs, then decompose regular components there. Gives you a backup of the original state."
 		)
@@ -84,9 +84,9 @@ class ConvertCapToSegmentComponent(mekkaObject):
 
 		# Line 5: open tab + reuse tab
 		self.w.openTab = vanilla.CheckBox((inset, linePos, 90, 20), "Open tab", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.openTab.getNSButton().setToolTip_("After conversion, open a tab showing the new _segment glyph and all updated glyphs.")
+		self.w.openTab.setToolTip("After conversion, open a tab showing the new _segment glyph and all updated glyphs.")
 		self.w.reuseTab = vanilla.CheckBox((inset + 90, linePos, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.reuseTab.getNSButton().setToolTip_("If 'Open tab' is active: replace the content of the current tab instead of opening a new one.")
+		self.w.reuseTab.setToolTip("If 'Open tab' is active: replace the content of the current tab instead of opening a new one.")
 		linePos += lineHeight
 
 		# Status line (bottom, left of run button)

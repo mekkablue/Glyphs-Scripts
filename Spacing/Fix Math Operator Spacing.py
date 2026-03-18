@@ -68,25 +68,25 @@ class FixMathOperatorSpacing(mekkaObject):
 
 		self.w.referenceOperatorText = vanilla.TextBox((inset, linePos + 2, 100, 14), "Reference glyph", sizeStyle='small')
 		self.w.referenceOperator = vanilla.PopUpButton((inset + 92, linePos, -inset, 17), ["%s %s" % (c, Glyphs.niceGlyphName(c)) for c in mathOperators + lessGreater + asciiOperators], sizeStyle='small', callback=self.SavePreferences)
-		self.w.referenceOperator.getNSPopUpButton().setToolTip_("The glyph that is used for the reference width and for the metrics keys. And for vertical centering if the option is chosen.")
+		self.w.referenceOperator.setToolTip("The glyph that is used for the reference width and for the metrics keys. And for vertical centering if the option is chosen.")
 		linePos += lineHeight
 
 		self.w.SyncWidths = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Sync widths of: %s" % mathOperators, value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.SyncWidths.getNSButton().setToolTip_("Syncs the width of the math operators with the reference glyph.")
+		self.w.SyncWidths.setToolTip("Syncs the width of the math operators with the reference glyph.")
 		linePos += lineHeight
 
 		self.w.centerMathOperators = vanilla.CheckBox((inset * 2 + 3, linePos - 1, -inset, 20), "Center shapes for: %s" % mathOperators, value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.centerMathOperators.getNSButton().setToolTip_("Centers the shape of the operator glyph in its width.")
+		self.w.centerMathOperators.setToolTip("Centers the shape of the operator glyph in its width.")
 		linePos += lineHeight
 
 		self.w.metricKeysForMathOperators = vanilla.CheckBox((inset * 2 + 3, linePos - 1, -inset, 20), "Set width metrics key", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.metricKeysForMathOperators.getNSButton().setToolTip_("Also applies metrics keys for the width, so you can update later with Glyph > Update Metrics.")
+		self.w.metricKeysForMathOperators.setToolTip("Also applies metrics keys for the width, so you can update later with Glyph > Update Metrics.")
 		linePos += lineHeight
 
 		# LESS AND GREATER:
 
 		self.w.syncWidthsLessGreater = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Sync widths of: %s" % lessGreater, value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.syncWidthsLessGreater.getNSButton().setToolTip_("Also syncs widths of less, greater, lessequal and greaterequal.")
+		self.w.syncWidthsLessGreater.setToolTip("Also syncs widths of less, greater, lessequal and greaterequal.")
 		linePos += lineHeight
 
 		radioOptions = (
@@ -99,32 +99,32 @@ class FixMathOperatorSpacing(mekkaObject):
 		linePos += (lineHeight - 2) * (len(radioOptions) - 1)
 
 		self.w.lessGreaterMetricReference = vanilla.PopUpButton((inset + 155, linePos + 2, -inset, 17), ["%s %s" % (c, Glyphs.niceGlyphName(c)) for c in lessGreater + mathOperators + asciiOperators], sizeStyle='small', callback=self.SavePreferences)
-		self.w.lessGreaterMetricReference.getNSPopUpButton().setToolTip_("Override the reference glyph for <>≤≥. Useful if you do not want to center <>≤≥.")
+		self.w.lessGreaterMetricReference.setToolTip("Override the reference glyph for <>≤≥. Useful if you do not want to center <>≤≥.")
 		linePos += lineHeight
 
 		self.w.syncWidthOfLessGreaterReference = vanilla.CheckBox((inset * 3.5, linePos - 1, -inset, 20), "Sync width of this reference glyph", value=False, callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.syncHeights = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Vertically center: %s" % heightSyncOperators, value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.syncHeights.getNSButton().setToolTip_("Syncs the vertical center of the math operators with the reference glyph.")
+		self.w.syncHeights.setToolTip("Syncs the vertical center of the math operators with the reference glyph.")
 		linePos += lineHeight
 
 		# ASCII OPERATORS:
 		self.w.SyncWidthsAscii = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Sync widths of: %s" % asciiOperators, value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.SyncWidthsAscii.getNSButton().setToolTip_("Syncs widths of asciicircum and asciitilde, with the same options as for the main math operators.")
+		self.w.SyncWidthsAscii.setToolTip("Syncs widths of asciicircum and asciitilde, with the same options as for the main math operators.")
 		linePos += lineHeight
 
 		self.w.ignoreAutoAligned = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Ignore auto-aligned composites", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.ignoreAutoAligned.getNSButton().setToolTip_("Skips centering and metrics keys for layers that are built from components and are auto-aligned.")
+		self.w.ignoreAutoAligned.setToolTip("Skips centering and metrics keys for layers that are built from components and are auto-aligned.")
 		linePos += lineHeight
 
 		self.w.deleteLayerMetricsKeys = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Reset layer metrics keys", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.deleteLayerMetricsKeys.getNSButton().setToolTip_("In glyphs that receive new metric keys, delete all layer-specific metric keys (e.g., ‘==100’).")
+		self.w.deleteLayerMetricsKeys.setToolTip("In glyphs that receive new metric keys, delete all layer-specific metric keys (e.g., ‘==100’).")
 		linePos += lineHeight
 
 		# Buttons:
 		self.w.tabButton = vanilla.Button((-200 - inset, -20 - inset, -90 - inset, -inset), "Open Tab", callback=self.OpenTab)
-		self.w.tabButton.getNSButton().setToolTip_("Opens a new Edit tab with +−×÷=≠±≈¬ <>≤≥ ^~")
+		self.w.tabButton.setToolTip("Opens a new Edit tab with +−×÷=≠±≈¬ <>≤≥ ^~")
 
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Sync", callback=self.FixMathOperatorSpacingMain)
 		self.w.setDefaultButton(self.w.runButton)

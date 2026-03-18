@@ -481,31 +481,31 @@ class BuildCircledGlyphs(mekkaObject):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), u"Builds the following glyphs:", sizeStyle='small', selectable=True)
-		self.w.descriptionText.getNSTextField().setToolTip_("Hint: if the letter or figure glyph contains #center anchors, the anchor position will be preferred for positioning the letter or figure inside the circle.")
+		self.w.descriptionText.setToolTip("Hint: if the letter or figure glyph contains #center anchors, the anchor position will be preferred for positioning the letter or figure inside the circle.")
 		linePos += lineHeight
 
 		self.w.buildUC = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Uppercase circled letters", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.buildUC.getNSButton().setToolTip_("ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂ︎ⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ")
+		self.w.buildUC.setToolTip("ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂ︎ⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ")
 		linePos += lineHeight
 
 		self.w.buildLC = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Lowercase circled letters", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.buildLC.getNSButton().setToolTip_("ⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩ")
+		self.w.buildLC.setToolTip("ⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩ")
 		linePos += lineHeight
 
 		self.w.buildCircledNumbers = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Circled numbers 0-20", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.buildCircledNumbers.getNSButton().setToolTip_("🄋①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳")
+		self.w.buildCircledNumbers.setToolTip("🄋①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳")
 		linePos += lineHeight
 
 		self.w.buildBlackUC = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Black uppercase circled letters", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.buildBlackUC.getNSButton().setToolTip_("🅐🅑🅒🅓🅔🅕🅖🅗🅘🅙🅚🅛🅜🅞🅟🅠🅡🅢🅣🅤🅥🅦🅧🅨🅩")
+		self.w.buildBlackUC.setToolTip("🅐🅑🅒🅓🅔🅕🅖🅗🅘🅙🅚🅛🅜🅞🅟🅠🅡🅢🅣🅤🅥🅦🅧🅨🅩")
 		linePos += lineHeight
 
 		self.w.buildBlackLC = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Black lowercase circled letters ⚠️", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.buildBlackLC.getNSButton().setToolTip_("Do not exist in Unicode. You will have to make them accessible through OpenType features.")
+		self.w.buildBlackLC.setToolTip("Do not exist in Unicode. You will have to make them accessible through OpenType features.")
 		linePos += lineHeight
 
 		self.w.buildBlackCircledNumbers = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Black circled numbers 0-20", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.buildBlackCircledNumbers.getNSButton().setToolTip_("⓿❶❷❸❹❺❻❼❽❾❿⓫⓬⓭⓮⓯⓰⓱⓲⓳⓴")
+		self.w.buildBlackCircledNumbers.setToolTip("⓿❶❷❸❹❺❻❼❽❾❿⓫⓬⓭⓮⓯⓰⓱⓲⓳⓴")
 		linePos += lineHeight
 
 		self.w.minDistanceBetweenFiguresText = vanilla.TextBox((inset, linePos + 2, 145, 14), u"Distance between figures:", sizeStyle='small', selectable=True)
@@ -514,7 +514,7 @@ class BuildCircledGlyphs(mekkaObject):
 
 		self.w.suffixesCheckbox = vanilla.CheckBox((inset + 2, linePos, 110, 20), "Include Suffixes:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.suffixes = vanilla.EditText((inset + 110, linePos, -inset, 19), "ss06, ss02", callback=self.SavePreferences, sizeStyle='small')
-		self.w.suffixes.getNSTextField().setToolTip_("Will look if there is a base glyph with a dot suffix, and build the circled glyph with the same suffix. Separate multiple suffixes with a comma. E.g. You have an A and an A.ss06, then you get A.blackCircled and A.blackCircled.ss06, provided you enter ss06 here.")
+		self.w.suffixes.setToolTip("Will look if there is a base glyph with a dot suffix, and build the circled glyph with the same suffix. Separate multiple suffixes with a comma. E.g. You have an A and an A.ss06, then you get A.blackCircled and A.blackCircled.ss06, provided you enter ss06 here.")
 		linePos += lineHeight
 
 		# Run Button:

@@ -36,23 +36,23 @@ class Resetter(mekkaObject):
 		linePos += lineHeight
 
 		self.w.quicklook = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Reset QuickLook previews in Finder", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.quicklook.getNSButton().setToolTip_("Will reset the QuickLook server, perhaps effective only after logging out and back in again.")
+		self.w.quicklook.setToolTip("Will reset the QuickLook server, perhaps effective only after logging out and back in again.")
 		linePos += lineHeight
 
 		self.w.shortcuts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Reset keyboard shortcuts", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.shortcuts.getNSButton().setToolTip_("Warning: will delete all your keyboard shortcuts.")
+		self.w.shortcuts.setToolTip("Warning: will delete all your keyboard shortcuts.")
 		linePos += lineHeight
 
 		self.w.autosaves = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete autosave information", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.autosaves.getNSButton().setToolTip_("Removes all Glyphs files from ~/Library/Autosave Information/")
+		self.w.autosaves.setToolTip("Removes all Glyphs files from ~/Library/Autosave Information/")
 		linePos += lineHeight
 
 		self.w.savedAppState = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete saved application state", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.savedAppState.getNSButton().setToolTip_("Removes all Glyphs files from ~/Library/Saved Application State/")
+		self.w.savedAppState.setToolTip("Removes all Glyphs files from ~/Library/Saved Application State/")
 		linePos += lineHeight
 
 		self.w.preferences = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete app preferences", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.preferences.getNSButton().setToolTip_("Warning: also deletes the content of your Macro window tabs.")
+		self.w.preferences.setToolTip("Warning: also deletes the content of your Macro window tabs.")
 		linePos += lineHeight
 
 		# Run Button:

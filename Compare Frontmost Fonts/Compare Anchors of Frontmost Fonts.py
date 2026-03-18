@@ -38,32 +38,32 @@ class CompareAnchorsOfFrontmostFonts(mekkaObject):
 		linePos += lineHeight * 2
 
 		self.w.reportAnchorHeights = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Also report differences in anchor heights", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reportAnchorHeights.getNSButton().setToolTip_("Lists anchors in corresponding glyphs if their y coordinates differ more than the threshold set below. Otherwise, only report anchor structures.")
+		self.w.reportAnchorHeights.setToolTip("Lists anchors in corresponding glyphs if their y coordinates differ more than the threshold set below. Otherwise, only report anchor structures.")
 		linePos += lineHeight
 
 		self.w.anchorHeightToleranceText = vanilla.TextBox((inset * 2, linePos + 2, 120, 14), "Deviation tolerance", sizeStyle='small', selectable=True)
 		self.w.anchorHeightTolerance = vanilla.EditText((inset * 2 + 109, linePos, 55, 19), "0", callback=self.SavePreferences, sizeStyle='small')
-		self.w.anchorHeightTolerance.getNSTextField().setToolTip_("Will not report if the difference in y coordinates is less or same as the given tolerance. Use this if e.g. your x-height is different in your italic. Set to zero or leave blank for exact match.")
+		self.w.anchorHeightTolerance.setToolTip("Will not report if the difference in y coordinates is less or same as the given tolerance. Use this if e.g. your x-height is different in your italic. Set to zero or leave blank for exact match.")
 		linePos += lineHeight
 
 		self.w.ignoreExitEntry = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Ignore exit and entry anchors", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.ignoreExitEntry.getNSButton().setToolTip_("Will skip cursive attachment anchors (#)exit and (#)entry.")
+		self.w.ignoreExitEntry.setToolTip("Will skip cursive attachment anchors (#)exit and (#)entry.")
 		linePos += lineHeight
 
 		self.w.ignoreHashtaggedAnchors = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Ignore #hashtagged anchors", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.ignoreHashtaggedAnchors.getNSButton().setToolTip_("Will skip anchors that start with  # or _#.")
+		self.w.ignoreHashtaggedAnchors.setToolTip("Will skip anchors that start with  # or _#.")
 		linePos += lineHeight
 
 		self.w.reportOnlyTopBottomCenter = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Report only top, bottom, center and corresponding anchors", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reportOnlyTopBottomCenter.getNSButton().setToolTip_("Only reports default mark attachment anchors top, _top, bottom, _bottom, center and _center. Ignores other anchors such as ogonek or topright. This option makes the ignore options above obsolete.")
+		self.w.reportOnlyTopBottomCenter.setToolTip("Only reports default mark attachment anchors top, _top, bottom, _bottom, center and _center. Ignores other anchors such as ogonek or topright. This option makes the ignore options above obsolete.")
 		linePos += lineHeight
 
 		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include non-exporting glyphs (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeNonExporting.getNSButton().setToolTip_("Also report if glyph is set to not export. Recommended because non-exporting glyphs may appear as components in other glyphs.")
+		self.w.includeNonExporting.setToolTip("Also report if glyph is set to not export. Recommended because non-exporting glyphs may appear as components in other glyphs.")
 		linePos += lineHeight
 
 		self.w.openTabAndSelectAnchors = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Open tabs with affected glyph layers and preselect anchors", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.openTabAndSelectAnchors.getNSButton().setToolTip_("Opens the affected glyph layers in a tab per font, resets the selection, and selects the affected anchors for immediate editing. To take advantage of the selection, do not double click a glyph for editing (the click resets the selection), but open them with the Esc key or by switching to the Edit tool.")
+		self.w.openTabAndSelectAnchors.setToolTip("Opens the affected glyph layers in a tab per font, resets the selection, and selects the affected anchors for immediate editing. To take advantage of the selection, do not double click a glyph for editing (the click resets the selection), but open them with the Esc key or by switching to the Edit tool.")
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))

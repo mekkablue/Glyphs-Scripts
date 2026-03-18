@@ -42,47 +42,47 @@ class FindNearVerticalMisses(mekkaObject):
 		linePos, inset, lineHeight = 12, 15, 22
 
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Search for on-curve nodes not exactly on metrics:", sizeStyle="small", selectable=True)
-		self.w.descriptionText.getNSTextField().setToolTip_("Searches for on-curve nodes that are close but not exactly on any vertical metric of their layer.")
+		self.w.descriptionText.setToolTip("Searches for on-curve nodes that are close but not exactly on any vertical metric of their layer.")
 		linePos += lineHeight
 
 		self.w.devianceText = vanilla.TextBox((inset, linePos + 3, 130, 14), "Find nodes off by up to", sizeStyle="small", selectable=True)
-		self.w.devianceText.getNSTextField().setToolTip_("Finds nodes that are not equal to any metric value, but off by up to this many units. Minimum: 1 unit.")
+		self.w.devianceText.setToolTip("Finds nodes that are not equal to any metric value, but off by up to this many units. Minimum: 1 unit.")
 		self.w.deviance = vanilla.EditText((inset + 130, linePos, 35, 19), "1", callback=self.SavePreferences, sizeStyle="small")
 		self.w.deviance.getNSTextField().setAlignment_(2)  # NSTextAlignmentRight
-		self.w.deviance.getNSTextField().setToolTip_("Finds nodes that are not equal to any metric value, but off by up to this many units. Minimum: 1 unit.")
+		self.w.deviance.setToolTip("Finds nodes that are not equal to any metric value, but off by up to this many units. Minimum: 1 unit.")
 		self.w.devianceUnitsText = vanilla.TextBox((inset + 170, linePos + 3, 50, 14), "units", sizeStyle="small", selectable=True)
-		self.w.devianceUnitsText.getNSTextField().setToolTip_("Finds nodes that are not equal to any metric value, but off by up to this many units. Minimum: 1 unit.")
+		self.w.devianceUnitsText.setToolTip("Finds nodes that are not equal to any metric value, but off by up to this many units. Minimum: 1 unit.")
 		linePos += lineHeight
 
 		linePos += int(lineHeight * 0.5)
 
 		self.w.tolerateIfNextNodeIsOn = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Tolerate near miss if next node is on", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.tolerateIfNextNodeIsOn.getNSButton().setToolTip_("Will skip the just-off node if the next or previous on-curve node is EXACTLY on the metric line. Useful if you have very thin serifs or short segments near the metric lines.")
+		self.w.tolerateIfNextNodeIsOn.setToolTip("Will skip the just-off node if the next or previous on-curve node is EXACTLY on the metric line. Useful if you have very thin serifs or short segments near the metric lines.")
 		linePos += lineHeight
 
 		self.w.tolerateIfExtremum = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Tolerate near miss for left/right curve extremum", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.tolerateIfExtremum.getNSButton().setToolTip_("Will skip the just-off node if the next and previous nodes are VERTICAL OFF-CURVES. Recommended for avoiding false positives.")
+		self.w.tolerateIfExtremum.setToolTip("Will skip the just-off node if the next and previous nodes are VERTICAL OFF-CURVES. Recommended for avoiding false positives.")
 		linePos += lineHeight
 
 		self.w.markNodes = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), f"Mark affected nodes with {self.marker}", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.markNodes.getNSButton().setToolTip_("Sets the name of affected nodes to this emoji so you can easily find them. Enable View > Show Node Names to see the markers.")
+		self.w.markNodes.setToolTip("Sets the name of affected nodes to this emoji so you can easily find them. Enable View > Show Node Names to see the markers.")
 		linePos += lineHeight
 
 		self.w.limitToLetters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Limit to letters", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.limitToLetters.getNSButton().setToolTip_("Only checks glyphs with category 'Letter'. Skips figures, punctuation, symbols, etc.")
+		self.w.limitToLetters.setToolTip("Only checks glyphs with category 'Letter'. Skips figures, punctuation, symbols, etc.")
 		linePos += lineHeight
 
 		self.w.excludeText = vanilla.TextBox((inset, linePos + 3, 150, 14), "Exclude glyphs containing:", sizeStyle="small", selectable=True)
-		self.w.excludeText.getNSTextField().setToolTip_("Comma-separated substrings. Any glyph whose name contains one of these will be skipped.")
+		self.w.excludeText.setToolTip("Comma-separated substrings. Any glyph whose name contains one of these will be skipped.")
 		self.w.exclude = vanilla.EditText((inset + 150, linePos, -inset, 19), ".ornm, .notdef, comb", callback=self.SavePreferences, sizeStyle="small")
-		self.w.exclude.getNSTextField().setToolTip_("Comma-separated substrings. Any glyph whose name contains one of these will be skipped.")
+		self.w.exclude.setToolTip("Comma-separated substrings. Any glyph whose name contains one of these will be skipped.")
 		linePos += lineHeight
 		linePos += 2  # extra breathing room before tab options
 
 		self.w.openTab = vanilla.CheckBox((inset + 2, linePos - 1, 80, 20), "Open tab", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.openTab.getNSButton().setToolTip_("If near misses are found, opens a tab with the affected layers.")
+		self.w.openTab.setToolTip("If near misses are found, opens a tab with the affected layers.")
 		self.w.reuseTab = vanilla.CheckBox((inset + 2 + 80 + 4, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.reuseTab.getNSButton().setToolTip_("Reuses the frontmost open tab instead of opening a new one.")
+		self.w.reuseTab.setToolTip("Reuses the frontmost open tab instead of opening a new one.")
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))

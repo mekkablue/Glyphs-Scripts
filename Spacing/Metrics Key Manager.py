@@ -104,7 +104,7 @@ class MetricsKeyManager(mekkaObject):
 		editFont = getLegibleFont()
 
 		for editField in (self.w.LeftMetricsKeys, self.w.RightMetricsKeys, self.w.WidthMetricsKeys):
-			editField.getNSTextView().setToolTip_("Enter a metrics key like '=H', followed by a colon (:), followed by glyph names, separated by space, comma, or any other separator that cannot be part of a glyph name. (Glyph names can contain A-Z, a-z, 0-9, period, underscore and hyphen.)\nExample: ‘=H: B D E F’.")
+			editField.setToolTip("Enter a metrics key like '=H', followed by a colon (:), followed by glyph names, separated by space, comma, or any other separator that cannot be part of a glyph name. (Glyph names can contain A-Z, a-z, 0-9, period, underscore and hyphen.)\nExample: ‘=H: B D E F’.")
 			editField.getNSTextView().setFont_(editFont)
 			editField.getNSScrollView().setHasVerticalScroller_(1)
 			editField.getNSScrollView().setRulersVisible_(1)
@@ -115,20 +115,20 @@ class MetricsKeyManager(mekkaObject):
 		self.w.symmetricThresholdText = vanilla.TextBox((inset + 65 + 20, -16 - inset, 60, -inset), "Threshold", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 		tooltip = "Adds glyphs with symmetrical SBs to =| in the right metrics keys. Add a threshold in units for catching SBs off by a unit or two."
-		self.w.symmetricButton.getNSButton().setToolTip_(tooltip)
-		self.w.symmetricThreshold.getNSTextField().setToolTip_(tooltip)
-		self.w.symmetricThresholdText.getNSTextField().setToolTip_(tooltip)
+		self.w.symmetricButton.setToolTip(tooltip)
+		self.w.symmetricThreshold.setToolTip(tooltip)
+		self.w.symmetricThresholdText.setToolTip(tooltip)
 
 		self.w.deleteAllButton = vanilla.Button((inset + 150, -20 - inset, 80, -inset), "Delete All", callback=self.deleteAllMetricsKeys)
 
 		self.w.resetButton = vanilla.Button((-240 - inset, -20 - inset, -inset - 170, -inset), "⟲ Reset", callback=self.SetDefaults)
-		self.w.resetButton.getNSButton().setToolTip_("Resets the contents of the L+R Keys to their (currently only Latin) defaults.")
+		self.w.resetButton.setToolTip("Resets the contents of the L+R Keys to their (currently only Latin) defaults.")
 
 		self.w.scanButton = vanilla.Button((-160 - inset, -20 - inset, -inset - 80, -inset), "↑ Extract", callback=self.ScanFontForKeys)
-		self.w.scanButton.getNSButton().setToolTip_("Scans the current font for all metrics keys and lists them here. Normalizes the preceding equals sign (=). No matter whether you typed them with or without an equals sign, they will show up here with one.")
+		self.w.scanButton.setToolTip("Scans the current font for all metrics keys and lists them here. Normalizes the preceding equals sign (=). No matter whether you typed them with or without an equals sign, they will show up here with one.")
 
 		self.w.runButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "↓ Apply", callback=self.MetricsKeyManagerMain)
-		self.w.runButton.getNSButton().setToolTip_("Parses the current content of the window and will attempt to set the metrics keys of the respective glyphs in the frontmost font. Hold down your OPTION key to also update glyph metrics right away. Careful, that is hard to undo.")
+		self.w.runButton.setToolTip("Parses the current content of the window and will attempt to set the metrics keys of the respective glyphs in the frontmost font. Hold down your OPTION key to also update glyph metrics right away. Careful, that is hard to undo.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

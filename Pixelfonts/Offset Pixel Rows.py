@@ -39,18 +39,18 @@ class OffsetPixelRows(mekkaObject):
 		linePos, inset, lineHeight, tab = 12, 15, 22, 72
 		self.w.rhythmText = vanilla.TextBox((inset, linePos+2, tab, 14), "Line rhythm", sizeStyle="small", selectable=True)
 		self.w.rhythm = vanilla.EditText((inset+tab, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle="small")
-		self.w.rhythm.getNSTextField().setToolTip_("Will increasingly offset every n lines, first line not at all, each following line by 1/n pixel more. Use negative number for moving to the left.")
+		self.w.rhythm.setToolTip("Will increasingly offset every n lines, first line not at all, each following line by 1/n pixel more. Use negative number for moving to the left.")
 		linePos += lineHeight
 		
 		self.w.pixelNameText = vanilla.TextBox((inset, linePos+2, tab, 14), "Pixel name", sizeStyle="small", selectable=True)
 		self.w.pixelName = vanilla.EditText((inset+tab, linePos, -inset, 19), "*pix*", callback=self.SavePreferences, sizeStyle="small")
-		self.w.pixelName.getNSTextField().setToolTip_("Only components matching this name will be moved. You can use ? and * as wildcards. Leave empty for all components.")
+		self.w.pixelName.setToolTip("Only components matching this name will be moved. You can use ? and * as wildcards. Leave empty for all components.")
 		linePos += lineHeight
 		
 		self.w.pixelWidthText = vanilla.TextBox((inset, linePos+2, tab, 14), "Pixel width", sizeStyle="small", selectable=True)
 		self.w.pixelWidth = vanilla.EditText((inset+tab, linePos, -inset-15, 19), "100", callback=self.SavePreferences, sizeStyle="small")
 		self.w.pixelWidthUpdate = UpdateButton((-inset-12, linePos-2, -inset+6, 18), callback=self.updateUI)
-		self.w.pixelWidth.getNSTextField().setToolTip_("Pixel size. All offsets are calculated based on this")
+		self.w.pixelWidth.setToolTip("Pixel size. All offsets are calculated based on this")
 		linePos += lineHeight
 		
 		self.w.allGlyphs = vanilla.CheckBox((inset, linePos-1, -inset, 20), "All glyphs (ignore selection)", value=True, callback=self.SavePreferences, sizeStyle="small")

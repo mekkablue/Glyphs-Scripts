@@ -97,19 +97,19 @@ class AddMetaTable(mekkaObject):
 		
 		# Tooltips:
 		tooltip = "Set dlng (‘design languages’) to the languages and/or scripts that the font was primarily designed for. Separate multiple entries with commas. Possible entries: four-letter script tag (Latn, Cyrl, Grek, Arab, Thai, etc.), or two-letter language tags (de, fr, nl, etc.), or language tags hyphenated with script tags (de-Latn, uk-Cyrl, hi-Deva, etc.)"
-		self.w.dlngDescription.getNSTextField().setToolTip_(tooltip)
-		self.w.dlng.getNSComboBox().setToolTip_(tooltip)
+		self.w.dlngDescription.setToolTip(tooltip)
+		self.w.dlng.setToolTip(tooltip)
 
 		tooltip = "Set slng (‘supported languages’) to the languages and/or scripts that the font is declared to be capable of supporting. Separate multiple entries with commas. Possible entries: four-letter script tag (Latn, Cyrl, Grek, Arab, Thai, etc.), or two-letter language tags (de, fr, nl, etc.), or language tags hyphenated with script tags (de-Latn, uk-Cyrl, hi-Deva, etc.)"
-		self.w.slngDescription.getNSTextField().setToolTip_(tooltip)
-		self.w.slng.getNSComboBox().setToolTip_(tooltip)
+		self.w.slngDescription.setToolTip(tooltip)
+		self.w.slng.setToolTip(tooltip)
 		
 		tooltip = "Updates the list of predefined choices with all scripts in the frontmost font with a significant number of glyphs."
 		self.w.slngUpdate.setToolTip(tooltip)
 		self.w.dlngUpdate.setToolTip(tooltip)
 		
 		tooltip = "Opens the OpenType specification for the meta table in your preferred browser."
-		self.w.helpButton.getNSButton().setToolTip_(tooltip)
+		self.w.helpButton.setToolTip(tooltip)
 		
 		# Load Settings:
 		if not self.LoadPreferences():

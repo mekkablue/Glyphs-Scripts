@@ -71,21 +71,21 @@ class ComponentReplacer(mekkaObject):
 		linePos, inset, lineHeight = 11, 16, 27
 		self.w.textReplace = vanilla.TextBox((inset, linePos + 2, 55, 17), "Replace", alignment="right")
 		self.w.oldCompName = vanilla.ComboBox((inset + 58, linePos - 1, -inset - 22, 24), self.GetComponentNames())
-		self.w.oldCompName.getNSComboBox().setToolTip_("The name of the component you want to replace. If it is not shown here, make a glyph selection and press the ↺ Update button. This will populate the menu with the names of all components in selected glyphs.")
+		self.w.oldCompName.setToolTip("The name of the component you want to replace. If it is not shown here, make a glyph selection and press the ↺ Update button. This will populate the menu with the names of all components in selected glyphs.")
 		self.w.resetComponentName = UpdateButton((-inset - 18, linePos, -inset, 18), callback=self.SetComponentNames)
 
 		linePos += lineHeight
 		self.w.textBy = vanilla.TextBox((inset, linePos + 2, 55, 17), "with", alignment="right")
 		# self.w.newCompName = vanilla.EditText((65+100+35+25, linePos, -inset-95, 19), "", callback=self.SavePreferences)
 		self.w.newCompName = vanilla.ComboBox((inset + 58, linePos - 1, -inset - 22, 24), self.getAllGlyphNamesOfFrontmostFont(), callback=self.SavePreferences)
-		self.w.newCompName.getNSComboBox().setToolTip_("The name of the component you want to insert instead of the component chosen in the menu.")
+		self.w.newCompName.setToolTip("The name of the component you want to insert instead of the component chosen in the menu.")
 		self.w.resetNewCompName = UpdateButton((-inset - 18, linePos, -inset, 19), callback=self.resetNewCompName)
 
 		linePos += lineHeight
 		self.w.includeAllLayers = vanilla.CheckBox((inset + 2, linePos, 90, 20), "On all layers", sizeStyle="small", value=True, callback=self.SavePreferences)
-		self.w.includeAllLayers.getNSButton().setToolTip_("If checked, will not only treat visible selected layers, but ALL (master, special and backup) layers of all selected glyphs.")
+		self.w.includeAllLayers.setToolTip("If checked, will not only treat visible selected layers, but ALL (master, special and backup) layers of all selected glyphs.")
 		self.w.includeBackgrounds = vanilla.CheckBox((inset + 90, linePos, -inset, 20), "and backgrounds", sizeStyle="small", value=False, callback=self.SavePreferences)
-		self.w.includeBackgrounds.getNSButton().setToolTip_("If checked, will also go through backgrounds of all treated layers.")
+		self.w.includeBackgrounds.setToolTip("If checked, will also go through backgrounds of all treated layers.")
 
 		linePos += lineHeight
 		self.w.replaceButton = vanilla.Button((inset, linePos, -inset, 20), "Replace", callback=self.FindAndReplaceMain)

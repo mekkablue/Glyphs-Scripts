@@ -36,15 +36,15 @@ class TabularChecker(mekkaObject):
 
 		self.w.suffixesText = vanilla.TextBox((inset, linePos + 2, 95, 14), "Tabular suffixes", sizeStyle='small')
 		self.w.suffixesEntry = vanilla.EditText((inset + 90, linePos - 1, -inset, 19), "tf, tosf", callback=self.SavePreferences, sizeStyle='small')
-		self.w.suffixesEntry.getNSTextField().setToolTip_("Comma-separated list of suffixes, with or without dots. Usually, you want ‘.tf, .tosf’.")
+		self.w.suffixesEntry.setToolTip("Comma-separated list of suffixes, with or without dots. Usually, you want ‘.tf, .tosf’.")
 		linePos += lineHeight
 
 		self.w.allowDifferingWidthsPerSuffix = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Allow different widths in different suffixes", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.allowDifferingWidthsPerSuffix.getNSButton().setToolTip_("If checked, e.g., .tf and .tosf can have different widths in the same master. Otherwise .tf and .tosf must be same width.")
+		self.w.allowDifferingWidthsPerSuffix.setToolTip("If checked, e.g., .tf and .tosf can have different widths in the same master. Otherwise .tf and .tosf must be same width.")
 		linePos += lineHeight
 
 		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Also include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeNonExporting.getNSButton().setToolTip_("If not set, non-exporting glyphs will be ignored.")
+		self.w.includeNonExporting.setToolTip("If not set, non-exporting glyphs will be ignored.")
 		linePos += lineHeight
 
 		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Search in ⚠️ ALL fonts", value=True, callback=self.SavePreferences, sizeStyle="small")

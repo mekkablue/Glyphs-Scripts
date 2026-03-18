@@ -79,77 +79,77 @@ class FontInfoBatchSetter(mekkaObject):
 		self.w.setDesigner = vanilla.CheckBox((inset+2, linePos, column, 20), "Designer:", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.designer = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Designer, name ID 9: Name of the designer of the typeface."
-		self.w.setDesigner.getNSButton().setToolTip_(tooltip)
-		self.w.designer.getNSTextField().setToolTip_(tooltip)
+		self.w.setDesigner.setToolTip(tooltip)
+		self.w.designer.setToolTip(tooltip)
 		linePos += lineHeight
 		
 		self.w.setDesignerURL = vanilla.CheckBox((inset+2, linePos, column, 20), "Designer URL:", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.designerURL = vanilla.EditText((inset+column, linePos, -inset, 19), "https://", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Designer URL, name ID 12: URL of Designer. URL of typeface designer (with protocol, e.g., http://, ftp://)."
-		self.w.setDesignerURL.getNSButton().setToolTip_(tooltip)
-		self.w.designerURL.getNSTextField().setToolTip_(tooltip)
+		self.w.setDesignerURL.setToolTip(tooltip)
+		self.w.designerURL.setToolTip(tooltip)
 		linePos += lineHeight
 
 		# MANUFACTURER
 		self.w.setManufacturer = vanilla.CheckBox((inset+2, linePos, column, 20), "Manufacturer:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.manufacturer = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Manufacturer Name, name ID 8."
-		self.w.setManufacturer.getNSButton().setToolTip_(tooltip)
-		self.w.manufacturer.getNSTextField().setToolTip_(tooltip)
+		self.w.setManufacturer.setToolTip(tooltip)
+		self.w.manufacturer.setToolTip(tooltip)
 		linePos += lineHeight
 		
 		self.w.setManufacturerURL = vanilla.CheckBox((inset+2, linePos, column, 20), "Manufact.URL:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.manufacturerURL = vanilla.EditText((inset+column, linePos, -inset, 19), "https://", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Manufacturer URL, name ID 11: URL of Vendor. URL of font vendor (with protocol, e.g., http://, ftp://). If a unique serial number is embedded in the URL, it can be used to register the font."
-		self.w.setManufacturerURL.getNSButton().setToolTip_(tooltip)
-		self.w.manufacturerURL.getNSTextField().setToolTip_(tooltip)
+		self.w.setManufacturerURL.setToolTip(tooltip)
+		self.w.manufacturerURL.setToolTip(tooltip)
 		linePos += lineHeight
 
 		# LICENSE
 		self.w.setLicense = vanilla.CheckBox((inset+2, linePos, column, 20), "License:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.license = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "License, name ID 13: License Description. Description of the license or licenses under which the font is provided. This could be a reference to a named license agreement (e.g., a common open source licenses), identification of a software-use license under which a font is bundled, information about where to locate an external license (see also name ID 14), a summary of permitted uses, or the full legal text of a license agreement. It is prudent to seek legal advice on the content of this name ID to avoid possible conflict of interpretation between it and the license(s)."
-		self.w.setLicense.getNSButton().setToolTip_(tooltip)
-		self.w.license.getNSTextField().setToolTip_(tooltip)
+		self.w.setLicense.setToolTip(tooltip)
+		self.w.license.setToolTip(tooltip)
 		linePos += lineHeight
 		
 		self.w.setLicenseURL = vanilla.CheckBox((inset+2, linePos, column, 20), "License URL:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.licenseURL = vanilla.EditText((inset+column, linePos, -inset, 19), "https://", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "License URL, name ID 14: License Info URL. URL where additional licensing information can be found."
-		self.w.setLicenseURL.getNSButton().setToolTip_(tooltip)
-		self.w.licenseURL.getNSTextField().setToolTip_(tooltip)
+		self.w.setLicenseURL.setToolTip(tooltip)
+		self.w.licenseURL.setToolTip(tooltip)
 		linePos += lineHeight
 
 		# COPYRIGHT
 		self.w.setCopyright = vanilla.CheckBox((inset+2, linePos, column, 20), "Copyright:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.copyright = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = f"Copyright, name ID 0: Copyright notice."
-		self.w.setCopyright.getNSButton().setToolTip_(tooltip)
-		self.w.copyright.getNSTextField().setToolTip_(tooltip)
+		self.w.setCopyright.setToolTip(tooltip)
+		self.w.copyright.setToolTip(tooltip)
 		linePos += lineHeight
 
 		# TRADEMARK
 		self.w.setTrademark = vanilla.CheckBox((inset+2, linePos, column, 20), "Trademark:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.trademark = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = f"Trademark, name ID 7: This is used to save any trademark notice/information for this font. Such information should be based on legal advice. This is distinctly separate from the copyright. Use {self.placeholderFamilyName} as placeholder for the current family name."
-		self.w.setTrademark.getNSButton().setToolTip_(tooltip)
-		self.w.trademark.getNSTextField().setToolTip_(tooltip)
+		self.w.setTrademark.setToolTip(tooltip)
+		self.w.trademark.setToolTip(tooltip)
 		linePos += lineHeight
 
 		# DESCRIPTION
 		self.w.setFontDescription = vanilla.CheckBox((inset+2, linePos, column, 20), "Description:", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.fontDescription = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle="small")
 		tooltip = f"Description, name ID 10: Description of the typeface. Can contain revision information, usage recommendations, history, features, etc. Use {self.placeholderFamilyName} as placeholder for the current family name."
-		self.w.setFontDescription.getNSButton().setToolTip_(tooltip)
-		self.w.fontDescription.getNSTextField().setToolTip_(tooltip)
+		self.w.setFontDescription.setToolTip(tooltip)
+		self.w.fontDescription.setToolTip(tooltip)
 		linePos += lineHeight
 		
 		# SAMPLE TEXT
 		self.w.setSampleText = vanilla.CheckBox((inset+2, linePos, -inset+2, 20), "Sample text:", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.sampleText = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle="small")
 		tooltip = f"Sample text, name ID 19: Sample text. This can be the font name, or any other text that the designer thinks is the best sample to display the font in. Use {self.placeholderFamilyName} as placeholder for the current family name."
-		self.w.setSampleText.getNSButton().setToolTip_(tooltip)
-		self.w.sampleText.getNSTextField().setToolTip_(tooltip)
+		self.w.setSampleText.setToolTip(tooltip)
+		self.w.sampleText.setToolTip(tooltip)
 		linePos += lineHeight
 		
 		# VENDOR ID
@@ -163,16 +163,16 @@ class FontInfoBatchSetter(mekkaObject):
 		self.w.versionDot = vanilla.TextBox((inset+151, linePos+2, 8, 18), ".", selectable=True)
 		self.w.versionMinor = vanilla.EditText((inset+160, linePos, -inset-113, 19), "005", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Version, used for building name ID 5: Version string. Should begin with the pattern “Version <number>.<number>” (upper case, lower case, or mixed, with a space between “Version” and the number). The string must contain a version number of the following form: one or more digits (0-9) of value less than 65,535, followed by a period, followed by one or more digits of value less than 65,535. Any character other than a digit will terminate the minor number."
-		self.w.setVersion.getNSButton().setToolTip_(tooltip)
-		self.w.versionMajor.getNSTextField().setToolTip_(tooltip)
-		self.w.versionMinor.getNSTextField().setToolTip_(tooltip)
+		self.w.setVersion.setToolTip(tooltip)
+		self.w.versionMajor.setToolTip(tooltip)
+		self.w.versionMinor.setToolTip(tooltip)
 		
 		self.w.versionMinorDecrease = vanilla.SquareButton((-inset-110, linePos, -inset-90, 19), "−", sizeStyle='small', callback=self.changeMinVersion)
-		self.w.versionMinorDecrease.getNSButton().setToolTip_("Decrease the version number by 0.001.")
+		self.w.versionMinorDecrease.setToolTip("Decrease the version number by 0.001.")
 		self.w.versionMinorIncrease = vanilla.SquareButton((-inset-91, linePos, -inset-71, 19), "+", sizeStyle='small', callback=self.changeMinVersion)
-		self.w.versionMinorIncrease.getNSButton().setToolTip_("Increase the version number by 0.001.")
+		self.w.versionMinorIncrease.setToolTip("Increase the version number by 0.001.")
 		self.w.minVersionButton = vanilla.SquareButton((-inset-60, linePos, -inset, 18), "↻ 1.005", sizeStyle='small', callback=self.setVersion1005)
-		self.w.minVersionButton.getNSButton().setToolTip_("Resets the version to 1.005. Some (old?) Microsoft apps may consider fonts with smaller versions as unfinished and not display them in their font menu.")
+		self.w.minVersionButton.setToolTip("Resets the version to 1.005. Some (old?) Microsoft apps may consider fonts with smaller versions as unfinished and not display them in their font menu.")
 		linePos += lineHeight
 
 		# DATE AND TIME
@@ -190,7 +190,7 @@ class FontInfoBatchSetter(mekkaObject):
 			sizeStyle='small'
 		)
 		self.w.noonButton = vanilla.SquareButton((-inset-60, linePos, -inset, 18), "🕛 Today", sizeStyle='small', callback=self.setNoon)
-		self.w.noonButton.getNSButton().setToolTip_("Resets the date to today 12:00 noon.")
+		self.w.noonButton.setToolTip("Resets the date to today 12:00 noon.")
 		linePos += lineHeight
 
 		# SEPARATOR
@@ -202,14 +202,14 @@ class FontInfoBatchSetter(mekkaObject):
 		self.w.applyText = vanilla.TextBox((inset+17, linePos+2, 70, 14), "Apply to", sizeStyle='small', selectable=True)
 		self.w.applyPopup = vanilla.PopUpButton((inset+70, linePos, 150, 17), ("ALL open fonts", "open fonts containing"), sizeStyle='small', callback=self.SavePreferences)
 		self.w.applyContaining = vanilla.EditText((inset+70+150+10, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small', placeholder="enter part of family name here")
-		self.w.applyContaining.getNSTextField().setToolTip_("Only applies the settings to fonts that contain this in Font Info > Font > Family Name.")
+		self.w.applyContaining.setToolTip("Only applies the settings to fonts that contain this in Font Info > Font > Family Name.")
 		linePos += lineHeight
 
 		# Buttons:
 		self.w.extractButton = vanilla.Button((-270-inset, -20-inset, -130-inset, -inset), "Extract from Font", callback=self.ExtractFontInfoFromFrontmostFont)
-		self.w.extractButton.getNSButton().setToolTip_("Extracts the settings from the frontmost font and fills the UI with it.")
+		self.w.extractButton.setToolTip("Extracts the settings from the frontmost font and fills the UI with it.")
 		self.w.runButton = vanilla.Button((-120-inset, -20-inset, -inset, -inset), "Apply to Fonts", callback=self.FontInfoBatchSetterMain)
-		self.w.runButton.getNSButton().setToolTip_("Applies the checked settings above to all fonts indicated in the ‘Apply to’ option.")
+		self.w.runButton.setToolTip("Applies the checked settings above to all fonts indicated in the ‘Apply to’ option.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
@@ -269,15 +269,15 @@ class FontInfoBatchSetter(mekkaObject):
 		)
 
 	def updateTooltips(self, sender=None):
-		self.w.designer.getNSTextField().setToolTip_(self.w.designer.get())
-		self.w.designerURL.getNSTextField().setToolTip_(self.w.designerURL.get())
-		self.w.manufacturer.getNSTextField().setToolTip_(self.w.manufacturer.get())
-		self.w.manufacturerURL.getNSTextField().setToolTip_(self.w.manufacturerURL.get())
-		self.w.license.getNSTextField().setToolTip_(self.w.license.get())
-		self.w.licenseURL.getNSTextField().setToolTip_(self.w.licenseURL.get())
-		self.w.copyright.getNSTextField().setToolTip_(self.w.copyright.get())
-		self.w.trademark.getNSTextField().setToolTip_(self.w.trademark.get())
-		self.w.vendorID.getNSTextField().setToolTip_(self.w.vendorID.get())
+		self.w.designer.setToolTip(self.w.designer.get())
+		self.w.designerURL.setToolTip(self.w.designerURL.get())
+		self.w.manufacturer.setToolTip(self.w.manufacturer.get())
+		self.w.manufacturerURL.setToolTip(self.w.manufacturerURL.get())
+		self.w.license.setToolTip(self.w.license.get())
+		self.w.licenseURL.setToolTip(self.w.licenseURL.get())
+		self.w.copyright.setToolTip(self.w.copyright.get())
+		self.w.trademark.setToolTip(self.w.trademark.get())
+		self.w.vendorID.setToolTip(self.w.vendorID.get())
 
 	def setNoon(self, sender=None):
 		# Get current date:

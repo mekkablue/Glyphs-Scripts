@@ -71,7 +71,7 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 		linePos += lineHeight
 
 		self.w.focusOnMarkAnchorsInMarks = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "In marks, ignore non-underscore anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.focusOnMarkAnchorsInMarks.getNSButton().setToolTip_("Will look only for _xxx anchors in marks (i.e., with an underscore), and ignore those not starting with an underscore.")
+		self.w.focusOnMarkAnchorsInMarks.setToolTip("Will look only for _xxx anchors in marks (i.e., with an underscore), and ignore those not starting with an underscore.")
 		linePos += lineHeight
 
 		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, 150, 20), "Apply to ⚠️ ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")

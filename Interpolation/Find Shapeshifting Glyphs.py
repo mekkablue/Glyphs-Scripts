@@ -79,7 +79,7 @@ class FindShapeshiftingGlyphs(mekkaObject):
 
 		self.w.text_1 = vanilla.TextBox((inset, linePos + 2, 85, 14), "Count paths in", sizeStyle='small')
 		self.w.checkInstances = vanilla.PopUpButton((inset + 85, linePos, -inset, 17), ("constructed instances midway between masters", "all active instances in font", "all active and inactive instances in font"), callback=self.SavePreferences, sizeStyle='small')
-		self.w.checkInstances.getNSPopUpButton().setToolTip_("Where to count paths (for comparison of path counts). Shapeshifting is most visible in midway interpolations (50%% between masters), so pick that option if you have two masters only, or all masters on a single axis.")
+		self.w.checkInstances.setToolTip("Where to count paths (for comparison of path counts). Shapeshifting is most visible in midway interpolations (50%% between masters), so pick that option if you have two masters only, or all masters on a single axis.")
 		linePos += lineHeight
 
 		self.w.onlyCheckSelection = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Limit to selected glyphs (otherwise all glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -96,7 +96,7 @@ class FindShapeshiftingGlyphs(mekkaObject):
 		linePos += lineHeight
 
 		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Process ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.allFonts.getNSButton().setToolTip_("If enabled, will process all fonts currently opened. Careful, may take a while.")
+		self.w.allFonts.setToolTip("If enabled, will process all fonts currently opened. Careful, may take a while.")
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))

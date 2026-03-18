@@ -32,17 +32,17 @@ class CustomUnicode(mekkaObject):
 
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 1, 210, 18), "Assign Unicode values starting at", selectable=True)
 		self.w.unicode = vanilla.EditText((inset + 210, linePos - 1, -inset - 20, 21), "E700", callback=self.sanitizeEntry)
-		self.w.unicode.getNSTextField().setToolTip_("The first selected glyph will receive this Unicode value. Subsequent glyphs will get the next respective Unicode value, until all selected glyphs have received one.")
+		self.w.unicode.setToolTip("The first selected glyph will receive this Unicode value. Subsequent glyphs will get the next respective Unicode value, until all selected glyphs have received one.")
 		self.w.updateButton = UpdateButton((-inset - 16, linePos - 1, -inset, 18), callback=self.update)
-		self.w.updateButton.getNSButton().setToolTip_("Resets the starting Unicode to the first BMP PUA available in the font. Useful if you do not wish to overwrite existing PUA codes.")
+		self.w.updateButton.setToolTip("Resets the starting Unicode to the first BMP PUA available in the font. Useful if you do not wish to overwrite existing PUA codes.")
 		linePos += lineHeight
 
 		self.w.keepExistingUnicodes = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Keep existing Unicode values", value=False, callback=self.SavePreferences)
-		self.w.keepExistingUnicodes.getNSButton().setToolTip_("Two things: it keeps (does not overwrite) the Unicode value of a selected glyph, and it skips Unicode values that are already in use elsewhere in the font. Allows you to select all glyphs and run the script, and thus, assign PUA codes to all unencoded glyphs.")
+		self.w.keepExistingUnicodes.setToolTip("Two things: it keeps (does not overwrite) the Unicode value of a selected glyph, and it skips Unicode values that are already in use elsewhere in the font. Allows you to select all glyphs and run the script, and thus, assign PUA codes to all unencoded glyphs.")
 		linePos += lineHeight
 
 		self.w.includeNonExportingGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Include non-exporting glyphs", value=False, callback=self.SavePreferences)
-		self.w.includeNonExportingGlyphs.getNSButton().setToolTip_("If disabled, will skip all glyphs that are set to not export. If enabled, will treat all selected glyphs, including non-exporting glyphs.")
+		self.w.includeNonExportingGlyphs.setToolTip("If disabled, will skip all glyphs that are set to not export. If enabled, will treat all selected glyphs, including non-exporting glyphs.")
 		linePos += lineHeight
 
 		# Status Message:

@@ -54,7 +54,7 @@ class MovePathstoComponent(mekkaObject):
 		linePos += lineHeight
 
 		self.w.keepBaseComponentPosition = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Keep base component position (with incremental keys)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.keepBaseComponentPosition.getNSButton().setToolTip_("Will add an incremental metrics key (e.g. ==+10) if width deviation is at least 5u.")
+		self.w.keepBaseComponentPosition.setToolTip("Will add an incremental metrics key (e.g. ==+10) if width deviation is at least 5u.")
 		linePos += lineHeight
 
 		# Run Button:

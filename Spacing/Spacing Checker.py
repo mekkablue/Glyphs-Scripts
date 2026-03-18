@@ -48,19 +48,19 @@ class SpacingChecker(mekkaObject):
 		self.w.asymmetricSBs = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "LSB & RSB differ more than", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.asymmetricDifference = vanilla.EditText((inset + 165, linePos, -inset - 32, 19), "50", callback=self.SavePreferences, sizeStyle='small')
 		self.w.asymmetricUpdateButton = UpdateButton((-inset - 20, linePos - 1, -inset - 2, 18), title="K", callback=self.updateValues)
-		self.w.asymmetricUpdateButton.getNSButton().setToolTip_("Update the entry with the measurements for uppercase K, presumably the largest difference in most designs.")
+		self.w.asymmetricUpdateButton.setToolTip("Update the entry with the measurements for uppercase K, presumably the largest difference in most designs.")
 		linePos += lineHeight
 
 		self.w.largeLSB = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "LSBs larger than", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.lsbThreshold = vanilla.EditText((inset + 108, linePos, -inset - 32, 19), "70", callback=self.SavePreferences, sizeStyle='small')
 		self.w.lsbThresholdUpdateButton = UpdateButton((-inset - 20, linePos - 1, -inset - 2, 18), title="H", callback=self.updateValues)
-		self.w.lsbThresholdUpdateButton.getNSButton().setToolTip_("Update the entry with the measurements for uppercase H, presumably the largest LSB in most designs.")
+		self.w.lsbThresholdUpdateButton.setToolTip("Update the entry with the measurements for uppercase H, presumably the largest LSB in most designs.")
 		linePos += lineHeight
 
 		self.w.largeRSB = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "RSBs larger than", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.rsbThreshold = vanilla.EditText((inset + 108, linePos, -inset - 32, 19), "70", callback=self.SavePreferences, sizeStyle='small')
 		self.w.rsbThresholdUpdateButton = UpdateButton((-inset - 20, linePos - 1, -inset - 2, 18), title="H", callback=self.updateValues)
-		self.w.rsbThresholdUpdateButton.getNSButton().setToolTip_("Update the entry with the measurements for uppercase H, presumably the largest RSB in most designs.")
+		self.w.rsbThresholdUpdateButton.setToolTip("Update the entry with the measurements for uppercase H, presumably the largest RSB in most designs.")
 		linePos += lineHeight
 
 		self.w.whiteGlyphs = vanilla.CheckBox((inset + 2, linePos, 180, 20), "LSB+RSB make up more than", value=False, callback=self.SavePreferences, sizeStyle='small')

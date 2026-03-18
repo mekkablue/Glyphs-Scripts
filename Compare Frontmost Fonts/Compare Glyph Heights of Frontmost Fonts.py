@@ -37,23 +37,23 @@ class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
 
 		self.w.tolerateText = vanilla.TextBox((inset, linePos + 2, 140, 14), "Tolerate difference up to", sizeStyle='small', selectable=True)
 		self.w.tolerate = vanilla.EditText((inset + 136, linePos, 55, 19), "5", callback=self.SavePreferences, sizeStyle='small')
-		self.w.tolerate.getNSTextField().setToolTip_("How much of a difference is OK. Hint: overshoot size is a good idea for this one.")
+		self.w.tolerate.setToolTip("How much of a difference is OK. Hint: overshoot size is a good idea for this one.")
 		linePos += lineHeight
 
 		self.w.heights = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Compare top bounds (‘heights’)", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.heights.getNSButton().setToolTip_("Measures and compares the heights of the top edges (bbox maximum).")
+		self.w.heights.setToolTip("Measures and compares the heights of the top edges (bbox maximum).")
 		linePos += lineHeight
 
 		self.w.depths = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Compare bottom bounds (‘depths’)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.depths.getNSButton().setToolTip_("Measures and compares the heights of the bottom edges (bbox minimum).")
+		self.w.depths.setToolTip("Measures and compares the heights of the bottom edges (bbox minimum).")
 		linePos += lineHeight
 
 		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeNonExporting.getNSButton().setToolTip_("If enabled, also measures glyphs that are set to not export.")
+		self.w.includeNonExporting.setToolTip("If enabled, also measures glyphs that are set to not export.")
 		linePos += lineHeight
 
 		self.w.verbose = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Verbose output in Macro Window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.verbose.getNSButton().setToolTip_("Will output a detailed progress report in Window > Macro Panel. This slows down the script significantly, so only use for debugging.")
+		self.w.verbose.setToolTip("Will output a detailed progress report in Window > Macro Panel. This slows down the script significantly, so only use for debugging.")
 		linePos += lineHeight
 
 		# Run Button:

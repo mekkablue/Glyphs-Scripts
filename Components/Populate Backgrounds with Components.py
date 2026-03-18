@@ -41,29 +41,29 @@ class PopulateAllBackgroundswithComponent(mekkaObject):
 
 		self.w.text_1 = vanilla.TextBox((inset - 1, linePos + 2, 100, 14), "Add component:", sizeStyle='small')
 		self.w.componentName = vanilla.EditText((inset + 92, linePos - 1, -inset - 25, 19), "a", sizeStyle='small', callback=self.SavePreferences)
-		self.w.componentName.getNSTextField().setToolTip_("Name of the glyph that should be inserted as component in the background of all layers of the selected glyph(s).")
+		self.w.componentName.setToolTip("Name of the glyph that should be inserted as component in the background of all layers of the selected glyph(s).")
 		self.w.updateButton = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.update)
-		self.w.updateButton.getNSButton().setToolTip_("Guess the component name. Hold down OPTION to ignore the suffix.")
+		self.w.updateButton.setToolTip("Guess the component name. Hold down OPTION to ignore the suffix.")
 		linePos += lineHeight
 
 		self.w.alignRight = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Align with right edge of layer", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.alignRight.getNSButton().setToolTip_("Right-aligns the component width with the layer width. Useful for the e in ae or oe, for example.")
+		self.w.alignRight.setToolTip("Right-aligns the component width with the layer width. Useful for the e in ae or oe, for example.")
 		linePos += lineHeight
 
 		self.w.replaceBackgrounds = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Replace existing backgrounds", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.replaceBackgrounds.getNSButton().setToolTip_("Deletes existing background content before it inserts the component. Recommended if you want to align selected nodes with the background.")
+		self.w.replaceBackgrounds.setToolTip("Deletes existing background content before it inserts the component. Recommended if you want to align selected nodes with the background.")
 		linePos += lineHeight
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Populate", callback=self.PopulateAllBackgroundswithComponentMain)
-		self.w.runButton.getNSButton().setToolTip_("Inserts the specified component in ALL layers of the current glyph(s).")
+		self.w.runButton.setToolTip("Inserts the specified component in ALL layers of the current glyph(s).")
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.w.alignButton = vanilla.Button((-220 - inset, -20 - inset, -110 - inset, -inset), "Align Nodes", callback=self.AlignNodesMain)
-		self.w.alignButton.getNSButton().setToolTip_("Aligns selected nodes with the (original) nodes in the background components. Only does this on the CURRENT layer.")
+		self.w.alignButton.setToolTip("Aligns selected nodes with the (original) nodes in the background components. Only does this on the CURRENT layer.")
 
 		self.w.nextMasterButton = vanilla.Button((-340 - inset, -20 - inset, -230 - inset, -inset), "Next Master", callback=self.NextMasterMain)
-		self.w.nextMasterButton.getNSButton().setToolTip_("Switches the current tab to the next master. Useful if you want to align the same nodes in every master.")
+		self.w.nextMasterButton.setToolTip("Switches the current tab to the next master. Useful if you want to align the same nodes in every master.")
 
 		# Load Settings:
 		self.LoadPreferences()

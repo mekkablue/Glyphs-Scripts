@@ -43,7 +43,7 @@ class TabularFigureSpacer(mekkaObject):
 		linePos += lineHeight
 
 		self.w.createFromDefaultFigs = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Create glyphs if they are missing", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.createFromDefaultFigs.getNSButton().setToolTip_("Creates glyphs for tab figures with default figures as components. Otherwise will just reset existing tab figures.")
+		self.w.createFromDefaultFigs.setToolTip("Creates glyphs for tab figures with default figures as components. Otherwise will just reset existing tab figures.")
 		linePos += lineHeight
 
 		# Run Button:

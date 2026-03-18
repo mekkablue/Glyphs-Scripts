@@ -51,15 +51,15 @@ class VariationInterpolator(mekkaObject):
 		self.w.suffix = vanilla.EditText((inset + 35, linePos - 1, -130, 20), "var", callback=self.SavePreferences, sizeStyle='small')
 		self.w.postSuffixText = vanilla.TextBox((-125, linePos + 2, -15, 14), "for selected glyphs.", sizeStyle='small')
 		tooltip = "Select any number of glyphs and the script will create interpolations between foreground and background of each individual glyph. They will be named after their glyph, plus the suffix you provide, plus a continuous number."
-		self.w.suffixText.getNSTextField().setToolTip_(tooltip)
-		self.w.suffix.getNSTextField().setToolTip_(tooltip)
-		self.w.postSuffixText.getNSTextField().setToolTip_(tooltip)
+		self.w.suffixText.setToolTip(tooltip)
+		self.w.suffix.setToolTip(tooltip)
+		self.w.postSuffixText.setToolTip(tooltip)
 
 		self.w.glyphNameText = vanilla.TextBox((inset, linePos + 2, 70, 14), "glyph name:", sizeStyle='small', selectable=True)
 		self.w.glyphName = vanilla.EditText((inset + 70, linePos - 1, -inset, 19), "interpolation.", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Select exactly two glyphs to interpolate, and the script creates interpolations with this name and a continuous number suffix."
-		self.w.glyphName.getNSTextField().setToolTip_(tooltip)
-		self.w.glyphNameText.getNSTextField().setToolTip_(tooltip)
+		self.w.glyphName.setToolTip(tooltip)
+		self.w.glyphNameText.setToolTip(tooltip)
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-100 - 15, -20 - 15, -15, -15), "Interpolate", callback=self.VariationInterpolatorMain)

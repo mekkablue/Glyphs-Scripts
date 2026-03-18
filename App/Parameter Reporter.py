@@ -46,7 +46,7 @@ class ParameterReporter(mekkaObject):
 
 		# Filter:
 		self.w.filter = vanilla.EditText((1, 1, -1, 22), "", callback=self.ParameterReporterMain)
-		self.w.filter.getNSTextField().setToolTip_("Type one or more search terms here. Use * as wildcard.")
+		self.w.filter.setToolTip("Type one or more search terms here. Use * as wildcard.")
 
 		# Listing of Parameters:
 		self.w.ParameterList = vanilla.List((0, 24, -0, -0), dir(GSLayer), autohidesScrollers=False, drawVerticalLines=True, doubleClickCallback=self.copySelection, rowHeight=19)

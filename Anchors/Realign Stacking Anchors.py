@@ -46,19 +46,19 @@ class RealignStackingAnchors(mekkaObject):
 		linePos += lineHeight
 
 		self.w.allGlyphs = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Include all glyphs in font (i.e., ignore selection, recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.allGlyphs.getNSButton().setToolTip_("If checked, will ignore the current glyph selection, and process all glyphs in the font, minus the glyphs that are excluded by the following two settings.")
+		self.w.allGlyphs.setToolTip("If checked, will ignore the current glyph selection, and process all glyphs in the font, minus the glyphs that are excluded by the following two settings.")
 		linePos += lineHeight
 
 		self.w.limitToCombiningMarks = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Limit to combining marks (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.limitToCombiningMarks.getNSButton().setToolTip_("If checked, among the processed glyphs, will process only glyphs that are categorised as combining marks. Usually this is where you want the realignment if stacking anchors. Uncheck if your accents are not correctly categorised.")
+		self.w.limitToCombiningMarks.setToolTip("If checked, among the processed glyphs, will process only glyphs that are categorised as combining marks. Usually this is where you want the realignment if stacking anchors. Uncheck if your accents are not correctly categorised.")
 		linePos += lineHeight
 
 		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Include non-exporting glyphs (recommended)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeNonExporting.getNSButton().setToolTip_("If checked, will also process glyphs that are set to not export. Otherwise only exporting glyphs.")
+		self.w.includeNonExporting.setToolTip("If checked, will also process glyphs that are set to not export. Otherwise only exporting glyphs.")
 		linePos += lineHeight
 
 		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.allFonts.getNSButton().setToolTip_("If checked, will apply to ALL fonts currently open in Glyphs. You have been warned.")
+		self.w.allFonts.setToolTip("If checked, will apply to ALL fonts currently open in Glyphs. You have been warned.")
 		linePos += lineHeight
 
 		# Run Button:

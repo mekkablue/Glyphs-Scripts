@@ -64,15 +64,15 @@ class CreateAlignmentZonesforSelectedGlyphs(mekkaObject):
 		linePos += int(lineHeight * 1.7)
 
 		self.w.createTopZones = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Create top zones for selected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.createTopZones.getNSButton().setToolTip_(u"If enabled, will create top zones that match the currently selected glyphs, for every master. The height of the lowest selected glyph will be the zone position, the difference to the highest glyph will be the size of the zone.")
+		self.w.createTopZones.setToolTip(u"If enabled, will create top zones that match the currently selected glyphs, for every master. The height of the lowest selected glyph will be the zone position, the difference to the highest glyph will be the size of the zone.")
 		linePos += lineHeight
 
 		self.w.createBottomZones = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Create bottom zones for selected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.createBottomZones.getNSButton().setToolTip_(u"If enabled, will create bottom zones that match the currently selected glyphs, for every master. The highest bottom edge is the zone position, the difference to the lowest bottom edge will be the zone size.")
+		self.w.createBottomZones.setToolTip(u"If enabled, will create bottom zones that match the currently selected glyphs, for every master. The highest bottom edge is the zone position, the difference to the lowest bottom edge will be the zone size.")
 		linePos += lineHeight
 
 		self.w.dontExceedExistingZones = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Prevent zone sizes bigger than current zones", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.dontExceedExistingZones.getNSButton().setToolTip_(u"Recommended. If enabled, will make sure that no zone will be added that is larger than existing zones in the master.")
+		self.w.dontExceedExistingZones.setToolTip(u"Recommended. If enabled, will make sure that no zone will be added that is larger than existing zones in the master.")
 		linePos += lineHeight
 
 		# Run Button:

@@ -61,11 +61,11 @@ class KernStringMixer(mekkaObject):
 
 		tokenHelpText = "Write a token. Click on the help button for more info."
 		self.w.mixString1 = vanilla.ComboBox((inset, linePos - 1, -inset, 23), defaultTokens, callback=self.SavePreferences)
-		self.w.mixString1.getNSComboBox().setToolTip_(tokenHelpText)
+		self.w.mixString1.setToolTip(tokenHelpText)
 		linePos += lineHeight + 7
 
 		self.w.mixString2 = vanilla.ComboBox((inset, linePos - 1, -inset, 23), defaultTokens, callback=self.SavePreferences)
-		self.w.mixString2.getNSComboBox().setToolTip_(tokenHelpText)
+		self.w.mixString2.setToolTip(tokenHelpText)
 		linePos += lineHeight + 7
 
 		self.w.reuseTab = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Reuse current tab", value=self.pref("reuseTab"), callback=self.SavePreferences, sizeStyle='small')
