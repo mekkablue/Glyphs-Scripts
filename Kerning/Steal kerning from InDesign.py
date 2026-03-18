@@ -672,6 +672,33 @@ true
 			except Exception as e:
 				print("\t⚠️ Could not delete %s: %s" % (filePath, e))
 
+	def _waitForFont(self, indesign, familyName, timeoutSeconds=30):
+		"""
+		Poll InDesign until familyName is available or timeoutSeconds elapses.
+		Returns True if the font became available, False if timed out.
+		"""
+		script = """
+tell application "%s"
+	try
+		set f to font family "%s"
+		return "yes"
+	on error
+		return "no"
+	end try
+end tell
+""" % (indesign, familyName)
+		elapsed = 0
+		interval = 2
+		while elapsed <= timeoutSeconds:
+			result = self._runAppleScript(script)
+			if result == "yes":
+				print("  Font '%s' available after %is." % (familyName, elapsed))
+				return True
+			print("  Waiting for font activation… (%is)" % elapsed)
+			time.sleep(interval)
+			elapsed += interval
+		return False
+
 	# ------------------------------------------------------------------ run
 
 	def run(self, sender=None):
@@ -699,17 +726,23 @@ true
 			return
 		print("  Exported %i master(s).\n" % len(exportedMasters))
 
-		# Give Adobe font activation time to pick up the new OTF files
-		print("  Waiting 5 seconds for font activation…")
-		time.sleep(5)
-
-		# --- Step 2: InDesign doc + calibration (per master) ---
-		self.w.status.set("Connecting to InDesign…")
-		print("Step 2 – Creating InDesign document and calibrating font size…")
+		# Locate InDesign first (needed for font availability polling)
 		indesign = self._getInDesignName()
 		if not indesign:
 			self.w.status.set("❌ Could not find InDesign.")
 			return
+
+		# Poll InDesign until Kernstealer font is activated (up to 30s)
+		self.w.status.set("Waiting for font activation…")
+		if not self._waitForFont(indesign, "Kernstealer"):
+			self.w.status.set("❌ Font activation timed out.")
+			print("\t❌ 'Kernstealer' was not activated in InDesign within 30 seconds.")
+			self._deleteFonts(exportedMasters)
+			return
+
+		# --- Step 2: InDesign doc + calibration (per master) ---
+		self.w.status.set("Creating InDesign document…")
+		print("Step 2 – Creating InDesign document and calibrating font size…")
 		print("  Using: %s" % indesign)
 
 		# calibrationSizes maps master → calibrated pt size
