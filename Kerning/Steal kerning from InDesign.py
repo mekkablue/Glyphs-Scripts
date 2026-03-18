@@ -103,17 +103,17 @@ class StealKerningFromInDesign(mekkaObject):
 		self.w.groupKerningOnly.getNSButton().setToolTip_("After compressing, delete all remaining glyph-to-glyph pairs. Note: compressing cannot always convert every glyph pair to a group pair (e.g. when a glyph has no kerning group), so some pairs may remain.")
 		linePos += lineHeight
 
-		self.w.addExceptions = vanilla.CheckBox((inset + 22, linePos - 1, 170, 20), "Add exceptions between:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addExceptions = vanilla.CheckBox((inset + 22, linePos - 1, 153, 20), "Add exceptions between:", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.addExceptions.getNSButton().setToolTip_("Also kern each of the characters in the field against all exporting glyphs whose name contains any of the component particles listed below.")
-		self.w.exceptionChars = vanilla.EditText((inset + 192, linePos, -inset - 22, 19), "AFJKLPTVWXYfďľ[](){}‚\u2018\u2019\u201e\u201c\u201d/?", callback=self.SavePreferences, sizeStyle="small")
+		self.w.exceptionChars = vanilla.EditText((inset + 177, linePos - 1, -inset - 22, 19), "AFJKLPTVWXYfďľ[](){}‚\u2018\u2019\u201e\u201c\u201d/?", callback=self.SavePreferences, sizeStyle="small")
 		self.w.exceptionChars.getNSTextField().setToolTip_("Characters to kern against the diacritic glyphs. Each character is used in both directions (e.g. Tä and äT).")
-		self.w.exceptionCharsReset = UpdateButton((-inset - 20, linePos, 20, 19), self.resetExceptionChars)
+		self.w.exceptionCharsReset = UpdateButton((-inset - 20, linePos - 3, 20, 19), self.resetExceptionChars)
 		linePos += lineHeight
 
-		self.w.exceptionComponentsLabel = vanilla.TextBox((inset + 22, linePos + 3, 170, 14), "…and glyphs containing:", sizeStyle="small")
-		self.w.exceptionComponents = vanilla.EditText((inset + 192, linePos, -inset - 22, 19), "dier, dot, acut, grav, tild, brev, macr, ring, circ, slash, bar", callback=self.SavePreferences, sizeStyle="small")
+		self.w.exceptionComponentsLabel = vanilla.TextBox((inset + 40, linePos + 3, 133, 14), "…and glyphs containing:", sizeStyle="small")
+		self.w.exceptionComponents = vanilla.EditText((inset + 177, linePos, -inset - 22, 19), "dier, dot, acut, grav, tild, brev, macr, ring, circ, slash, bar", callback=self.SavePreferences, sizeStyle="small")
 		self.w.exceptionComponents.getNSTextField().setToolTip_("Comma-separated name fragments. Any exporting glyph with a Unicode whose name contains one of these is measured against the characters above.")
-		self.w.exceptionComponentsReset = UpdateButton((-inset - 20, linePos, 20, 19), self.resetExceptionComponents)
+		self.w.exceptionComponentsReset = UpdateButton((-inset - 20, linePos - 2, 20, 19), self.resetExceptionComponents)
 		linePos += lineHeight
 
 		# Progress bar + Status + Run button
