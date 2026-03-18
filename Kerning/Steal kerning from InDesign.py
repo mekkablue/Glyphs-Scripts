@@ -505,32 +505,45 @@ tell application "%s"
 end tell
 """ % indesign
 		raw = self._runAppleScript(script)
-		print("\t🔍 DEBUG _readKernValuesFromInDesign: raw=%r" % (raw[:300] if raw else raw,))
 		if not raw:
 			return []
-		pairs = self._parseKernPairs(raw)
-		print("\t🔍 DEBUG: parsed %i pairs; first 5: %r" % (len(pairs), pairs[:5]))
-		return pairs
+		return self._parseKernPairs(raw)
 
 	def _parseKernPairs(self, output):
 		"""
-		Parse osascript's AppleScript list output, e.g. {{a, b, 0}, {T, A, -50}},
-		into a list of (leftChar, rightChar, kernValue) tuples.
+		Parse osascript's AppleScript list output into a list of (leftChar, rightChar, kernValue) tuples.
+		Handles two formats returned by InDesign depending on context:
+		  Nested: {{A, B, -1.0}, {T, A, -50.0}, …}
+		  Flat:   A, B, -1.0, T, A, -50.0, …
 		Applies _cleanText to handle InDesign's descriptive names for special characters.
 		"""
 		text = output.strip()
 		if text.startswith("{") and text.endswith("}"):
 			text = text[1:-1]
 		pairs = []
-		for triple in re.findall(r"\{([^{}]+)\}", text):
-			parts = [p.strip() for p in triple.split(",")]
-			if len(parts) != 3:
-				continue
-			char1, char2, kernStr = parts
-			char1 = self._cleanText(char1.strip('"'))
-			char2 = self._cleanText(char2.strip('"'))
+		# Try nested format first: inner {char, char, value} triples
+		triples = re.findall(r"\{([^{}]+)\}", text)
+		if triples:
+			for triple in triples:
+				parts = [p.strip() for p in triple.split(",")]
+				if len(parts) != 3:
+					continue
+				char1, char2, kernStr = parts
+				char1 = self._cleanText(char1.strip('"'))
+				char2 = self._cleanText(char2.strip('"'))
+				try:
+					kernVal = float(kernStr)
+				except ValueError:
+					kernVal = 0.0
+				pairs.append((char1, char2, kernVal))
+			return pairs
+		# Flat format: char, char, value, char, char, value, …
+		items = [p.strip() for p in text.split(",")]
+		for i in range(0, len(items) - 2, 3):
+			char1 = self._cleanText(items[i].strip('"'))
+			char2 = self._cleanText(items[i + 1].strip('"'))
 			try:
-				kernVal = float(kernStr)
+				kernVal = float(items[i + 2])
 			except ValueError:
 				kernVal = 0.0
 			pairs.append((char1, char2, kernVal))
@@ -544,23 +557,17 @@ end tell
 		masterID = master.id
 		kernPairs = self._readKernValuesFromInDesign(indesign)
 		count = 0
-		skippedZero = 0
-		skippedNoGlyph = 0
 		for leftChar, rightChar, kernValue in kernPairs:
 			if kernValue == 0:
-				skippedZero += 1
 				continue
 			leftName = self._glyphNameForChar(leftChar)
 			rightName = self._glyphNameForChar(rightChar)
 			if not leftName or not rightName:
-				skippedNoGlyph += 1
 				continue
 			if not thisFont.glyphs[leftName] or not thisFont.glyphs[rightName]:
-				skippedNoGlyph += 1
 				continue
 			thisFont.setKerningForPair(masterID, leftName, rightName, kernValue)
 			count += 1
-		print("\t🔍 DEBUG: skippedZero=%i skippedNoGlyph=%i imported=%i" % (skippedZero, skippedNoGlyph, count))
 		print("\t↔️ Imported %i raw kern pairs for master '%s'." % (count, master.name))
 		return count
 
