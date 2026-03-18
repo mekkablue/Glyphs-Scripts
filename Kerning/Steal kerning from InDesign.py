@@ -81,10 +81,6 @@ class StealKerningFromInDesign(mekkaObject):
 		linePos += int(lineHeight * 0.6)
 
 		# Options
-		self.w.groupKerningOnly = vanilla.CheckBox((inset + 2, linePos - 1, 220, 20), "Group kerning only (no exceptions)", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.groupKerningOnly.getNSButton().setToolTip_("If on, only sets group-to-group kerning. Removes all glyph-level exceptions after import.")
-		linePos += lineHeight
-
 		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "All masters (otherwise current master only)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allMasters.getNSButton().setToolTip_("Process all masters in the font. If off, only the currently selected master is processed.")
 		linePos += lineHeight
@@ -95,6 +91,10 @@ class StealKerningFromInDesign(mekkaObject):
 
 		self.w.compressKerning = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Compress kerning (glyph pairs → group pairs)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.compressKerning.getNSButton().setToolTip_("Promote glyph-to-glyph kern pairs to the corresponding group-to-group pair when the value matches.")
+		linePos += lineHeight
+
+		self.w.groupKerningOnly = vanilla.CheckBox((inset + 22, linePos - 1, -inset, 20), "Keep group kerning only", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.groupKerningOnly.getNSButton().setToolTip_("After compressing, delete all remaining glyph-to-glyph pairs. Note: compressing cannot always convert every glyph pair to a group pair (e.g. when a glyph has no kerning group), so some pairs may remain.")
 		linePos += lineHeight
 
 		# Status + Run button
@@ -114,6 +114,7 @@ class StealKerningFromInDesign(mekkaObject):
 			or self.w.figureWithPunctuation.get()
 		)
 		self.w.runButton.enable(anyPairType)
+		self.w.groupKerningOnly.enable(bool(self.w.compressKerning.get()))
 
 	# ------------------------------------------------------------------ helpers
 
