@@ -9,6 +9,7 @@ kerning for the selected glyph groupings, and cleans up afterwards.
 
 import os
 import re
+import time
 import vanilla
 from Foundation import NSAppleScript
 from mekkablue import mekkaObject
@@ -664,6 +665,10 @@ true
 			self.w.status.set("❌ Export failed.")
 			return
 		print("  Exported %i master(s).\n" % len(exportedMasters))
+
+		# Give Adobe font activation time to pick up the new OTF files
+		print("  Waiting 5 seconds for font activation…")
+		time.sleep(5)
 
 		# --- Step 2: InDesign doc + calibration (per master) ---
 		self.w.status.set("Connecting to InDesign…")
