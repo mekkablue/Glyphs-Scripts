@@ -9,9 +9,9 @@ kerning for the selected glyph groupings, and cleans up afterwards.
 
 import os
 import re
+import subprocess
 import time
 import vanilla
-from Foundation import NSAppleScript
 from mekkablue import mekkaObject
 from GlyphsApp import Glyphs
 
@@ -118,20 +118,26 @@ class StealKerningFromInDesign(mekkaObject):
 
 	# ------------------------------------------------------------------ helpers
 
-	def _runAppleScript(self, source, args=None):
-		"""Run an AppleScript string; return its string result or True/False."""
-		s = NSAppleScript.alloc().initWithSource_(source)
-		result, error = s.executeAndReturnError_(None)
-		if error:
-			print("AppleScript Error:")
-			print(error)
-			print("Script:")
-			for i, line in enumerate(source.splitlines()):
-				print("%03i %s" % (i + 1, line))
+	def _runAppleScript(self, source):
+		"""Run an AppleScript string via osascript; return stdout string or False on error."""
+		try:
+			result = subprocess.run(
+				["osascript", "-"],
+				input=source,
+				text=True,
+				capture_output=True,
+			)
+			if result.returncode != 0:
+				print("AppleScript Error:")
+				print(result.stderr.strip())
+				print("Script:")
+				for i, line in enumerate(source.splitlines()):
+					print("%03i %s" % (i + 1, line))
+				return False
+			return result.stdout.strip()
+		except Exception as e:
+			print("AppleScript runner error: %s" % e)
 			return False
-		if result:
-			return result.stringValue()
-		return True
 
 	def _sanitizeName(self, name):
 		"""Keep only A-Z a-z 0-9 and space — safe for PostScript family/style names."""
@@ -472,41 +478,59 @@ true
 
 	def _readKernValuesFromInDesign(self, indesign):
 		"""
-		Read all insertion-point kern values from the front InDesign document.
+		Read all insertion-point kern values from the front InDesign document in one shot.
+		Builds the full list inside AppleScript and returns it as an AppleScript list;
+		avoids per-character round-trips for a significant speed boost.
 		Returns a list of (leftChar, rightChar, kernValue) tuples.
 		"""
 		script = """
-set kernvalues to ""
 tell application "%s"
 	tell front document
 		tell parent story of first text frame
-			repeat with i from 1 to (count characters) - 1
+			set numChars to count of characters
+			set kernPairs to {}
+			repeat with x from 1 to (numChars - 1)
 				try
-					set kernvalue to (kerning value of insertion point 2 of character i) as integer
-					set kernvalueline to character i & character (i + 1) & " " & kernvalue
-					set kernvalues to kernvalues & kernvalueline & "\n"
+					set charX to character x
+					set charNext to character (x + 1)
+					if (charX & charNext) does not contain " " then
+						set kernValue to kerning value of insertion point 2 of character x
+						set end of kernPairs to {charX, charNext, kernValue}
+					end if
 				end try
 			end repeat
+			return kernPairs
 		end tell
 	end tell
 end tell
-kernvalues
 """ % indesign
 		raw = self._runAppleScript(script)
 		if not raw:
 			return []
+		return self._parseKernPairs(raw)
+
+	def _parseKernPairs(self, output):
+		"""
+		Parse osascript's AppleScript list output, e.g. {{a, b, 0}, {T, A, -50}},
+		into a list of (leftChar, rightChar, kernValue) tuples.
+		Applies _cleanText to handle InDesign's descriptive names for special characters.
+		"""
+		text = output.strip()
+		if text.startswith("{") and text.endswith("}"):
+			text = text[1:-1]
 		pairs = []
-		for line in raw.splitlines():
-			line = self._cleanText(line)
-			if len(line) < 4:
+		for triple in re.findall(r"\{([^{}]+)\}", text):
+			parts = [p.strip() for p in triple.split(",")]
+			if len(parts) != 3:
 				continue
-			leftChar = line[0]
-			rightChar = line[1]
+			char1, char2, kernStr = parts
+			char1 = self._cleanText(char1.strip('"'))
+			char2 = self._cleanText(char2.strip('"'))
 			try:
-				kernValue = float(line[3:].strip())
+				kernVal = float(kernStr)
 			except ValueError:
-				continue
-			pairs.append((leftChar, rightChar, kernValue))
+				kernVal = 0.0
+			pairs.append((char1, char2, kernVal))
 		return pairs
 
 	def _importKerningForMaster(self, thisFont, master, indesign):
