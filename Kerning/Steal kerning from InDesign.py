@@ -49,14 +49,14 @@ class StealKerningFromInDesign(mekkaObject):
 		linePos, inset, lineHeight = 12, 15, 22
 
 		# No-kern pair + Min kern + Round by — all on one row
-		self.w.zeroPairLabel = vanilla.TextBox((inset, linePos + 3, 88, 14), "No-kern pair:", sizeStyle="small")
-		self.w.zeroPair = vanilla.EditText((inset + 88, linePos, 40, 19), "HH", callback=self.SavePreferences, sizeStyle="small")
+		self.w.zeroPairLabel = vanilla.TextBox((inset, linePos + 3, 84, 14), "No-kern pair:", sizeStyle="small")
+		self.w.zeroPair = vanilla.EditText((inset + 84, linePos, 40, 19), "HH", callback=self.SavePreferences, sizeStyle="small")
 		self.w.zeroPair.getNSTextField().setToolTip_("A pair of glyphs that should have zero optical kerning (i.e., the reference pair used to calibrate the font size for measurement).")
-		self.w.minimumKernLabel = vanilla.TextBox((inset + 140, linePos + 3, 58, 14), "Min kern:", sizeStyle="small")
-		self.w.minimumKern = vanilla.EditText((inset + 198, linePos, 40, 19), "10", callback=self.SavePreferences, sizeStyle="small")
+		self.w.minimumKernLabel = vanilla.TextBox((inset + 136, linePos + 3, 57, 14), "Min kern:", sizeStyle="small")
+		self.w.minimumKern = vanilla.EditText((inset + 193, linePos, 40, 19), "10", callback=self.SavePreferences, sizeStyle="small")
 		self.w.minimumKern.getNSTextField().setToolTip_("Discard imported kern pairs whose absolute value is smaller than this threshold.")
-		self.w.roundByLabel = vanilla.TextBox((inset + 234, linePos + 3, 58, 14), "Round by:", sizeStyle="small")
-		self.w.roundBy = vanilla.EditText((inset + 292, linePos, 40, 19), "5", callback=self.SavePreferences, sizeStyle="small")
+		self.w.roundByLabel = vanilla.TextBox((inset + 245, linePos + 3, 58, 14), "Round by:", sizeStyle="small")
+		self.w.roundBy = vanilla.EditText((inset + 303, linePos, 40, 19), "5", callback=self.SavePreferences, sizeStyle="small")
 		self.w.roundBy.getNSTextField().setToolTip_("Round imported kern values to this multiple (e.g. 5 = multiples of 5). Set to 1 or 0 to skip rounding.")
 		linePos += lineHeight
 
