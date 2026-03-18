@@ -685,28 +685,36 @@ end tell
 		"""
 		Read kern values from InDesign and store them as glyph-level exception pairs.
 		No compression is applied. A pair is only kept if its rounded value differs
-		from the existing group-to-group kerning by at least minimumKern.
+		from the existing group-to-group kerning by at least min(minimumKern, roundBy)
+		(or minimumKern when roundBy == 0).
 		If no group kerning exists for a pair, the effective group value is treated as 0.
 		Returns the number of exception pairs stored.
 		"""
 		masterID = master.id
+		deltaThreshold = min(minimumKern, roundBy) if roundBy > 0 else minimumKern
 		# No AppleScript pre-filter: we need raw values to compare against group kern
 		kernPairs = self._readKernValuesFromInDesign(indesign, 0)
+		totalRaw = len(kernPairs)
+		droppedZero = droppedName = droppedGlyph = droppedDelta = 0
 		count = 0
 		for leftChar, rightChar, kernValue in kernPairs:
 			if kernValue == 0:
+				droppedZero += 1
 				continue
 			if roundBy > 0:
 				kernValue = round(kernValue / roundBy) * roundBy
 			if kernValue == 0:
+				droppedZero += 1
 				continue
 			leftName = self._glyphNameForChar(leftChar)
 			rightName = self._glyphNameForChar(rightChar)
 			if not leftName or not rightName:
+				droppedName += 1
 				continue
 			leftGlyph = thisFont.glyphs[leftName]
 			rightGlyph = thisFont.glyphs[rightName]
 			if not leftGlyph or not rightGlyph:
+				droppedGlyph += 1
 				continue
 			# Look up the group kern that already covers this glyph pair
 			groupValue = 0.0
@@ -718,11 +726,14 @@ end tell
 				gv = thisFont.kerningForPair(masterID, lKey, rKey)
 				if gv is not None and abs(gv) < 100000:
 					groupValue = gv
-			if abs(kernValue - groupValue) < minimumKern:
+			if abs(kernValue - groupValue) < deltaThreshold:
+				droppedDelta += 1
 				continue
 			thisFont.setKerningForPair(masterID, leftName, rightName, kernValue)
 			count += 1
 		print("\t↔️ Imported %i exception kern pairs for master '%s'." % (count, master.name))
+		print("\t   (raw: %i | zero/rounded-to-zero: %i | unresolved name: %i | glyph not in font: %i | delta < %g: %i)" % (
+			totalRaw, droppedZero, droppedName, droppedGlyph, deltaThreshold, droppedDelta))
 		return count
 
 	# ------------------------------------------------------------------ step 5
