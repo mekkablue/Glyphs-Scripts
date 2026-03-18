@@ -420,27 +420,27 @@ class PathProblemFinder(mekkaObject):
 		linePos += lineHeight
 
 		self.w.zeroHandles = vanilla.CheckBox((inset + 2, linePos, secondColumn, 20), "Zero handles", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.zeroHandles.getNSButton().setToolTip_("Zero handles (a.k.a. half-dead curves) can cause problems with screen rendering, hinting and interpolation. Indicated with purple disks in the Show Angled Handles plug-in.")
+		self.w.zeroHandles.setToolTip("Zero handles (a.k.a. half-dead curves) can cause problems with screen rendering, hinting and interpolation. Indicated with purple disks in the Show Angled Handles plug-in.")
 		self.w.outwardHandles = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Outward-bent handles", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.outwardHandles.getNSButton().setToolTip_("Will find handles that point outside the stretch of their enclosing on-curves. Usually unwanted.")
+		self.w.outwardHandles.setToolTip("Will find handles that point outside the stretch of their enclosing on-curves. Usually unwanted.")
 		linePos += lineHeight
 
 		self.w.largeHandles = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Overshooting handles (larger than 100%)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.largeHandles.getNSButton().setToolTip_("Handles that are longer than 100%, i.e. going beyond the intersection with the opposing handle. Indicated with laser beams in the Show Angled Handles plug-in.")
+		self.w.largeHandles.setToolTip("Handles that are longer than 100%, i.e. going beyond the intersection with the opposing handle. Indicated with laser beams in the Show Angled Handles plug-in.")
 		linePos += lineHeight
 
 		self.w.offcurveAsStartPoint = vanilla.CheckBox((inset + 2, linePos, indent, 20), "BCP as startpoint", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.offcurveAsStartPoint.getNSButton().setToolTip_("Finds paths where the first point happens to be a handle (off-curve point, BCP). Not really an issue, but you’ll like it if you are going full OCD on your font.")
+		self.w.offcurveAsStartPoint.setToolTip("Finds paths where the first point happens to be a handle (off-curve point, BCP). Not really an issue, but you’ll like it if you are going full OCD on your font.")
 		self.w.cuspingHandles = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Cusping handles", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.cuspingHandles.getNSButton().setToolTip_("Will find situations where, on a curve segment, the second handle comes before the first handle, i.e., is closer to the first on-curve. Usually unintended.")
+		self.w.cuspingHandles.setToolTip("Will find situations where, on a curve segment, the second handle comes before the first handle, i.e., is closer to the first on-curve. Usually unintended.")
 		linePos += lineHeight
 
 		self.w.shortHandles = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Handles shorter than", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.shortHandlesThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "12", callback=self.SavePreferences, sizeStyle='small')
 		self.w.shortHandlesText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units", sizeStyle='small', selectable=True)
 		tooltipText = "Will find handles shorter than the specified amount in units. Short handles may cause kinks when rounded to the grid."
-		self.w.shortHandlesThreshold.getNSTextField().setToolTip_(tooltipText)
-		self.w.shortHandles.getNSButton().setToolTip_(tooltipText)
+		self.w.shortHandlesThreshold.setToolTip(tooltipText)
+		self.w.shortHandles.setToolTip(tooltipText)
 		linePos += lineHeight
 
 		self.w.angledHandles = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Angled handles up to", value=True, callback=self.SavePreferences, sizeStyle='small')
@@ -452,32 +452,32 @@ class PathProblemFinder(mekkaObject):
 		self.w.shallowCurveBBoxThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "10", sizeStyle='small')
 		self.w.shallowCurveBBoxText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units", sizeStyle='small', selectable=True)
 		tooltipText = "Will find very flat curve segments. Flat curves leave little manœuvring space for handles (BCPs), or cause very short handles, which in turn causes grid rounding problems. Can usually be fixed by removing an extremum point or adding an overlap."
-		self.w.shallowCurveBBoxThreshold.getNSTextField().setToolTip_(tooltipText)
-		self.w.shallowCurveBBox.getNSButton().setToolTip_(tooltipText)
+		self.w.shallowCurveBBoxThreshold.setToolTip(tooltipText)
+		self.w.shallowCurveBBox.setToolTip(tooltipText)
 		linePos += lineHeight
 
 		self.w.shallowCurve = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Curves shallower than", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.shallowCurveThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "5", sizeStyle='small')
 		self.w.shallowCurveText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units", sizeStyle='small', selectable=True)
 		tooltipText = "Finds curve segments where the handles deviate less than the specified threshold from the enclosing on-curves."
-		self.w.shallowCurveThreshold.getNSTextField().setToolTip_(tooltipText)
-		self.w.shallowCurve.getNSButton().setToolTip_(tooltipText)
+		self.w.shallowCurveThreshold.setToolTip(tooltipText)
+		self.w.shallowCurve.setToolTip(tooltipText)
 		linePos += lineHeight
 
 		self.w.shortSegment = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Segments shorter than", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.shortSegmentThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "8", sizeStyle='small')
 		self.w.shortSegmentText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units", sizeStyle='small', selectable=True)
 		tooltipText = "Finds line segments (two consecutive on-curve nodes) shorter than the specified threshold length. Very short line segments may be deleted because they are barely visible. Also, if not orthogonal, may pose grid rounding problems."
-		self.w.shortSegmentThreshold.getNSTextField().setToolTip_(tooltipText)
-		self.w.shortSegment.getNSButton().setToolTip_(tooltipText)
+		self.w.shortSegmentThreshold.setToolTip(tooltipText)
+		self.w.shortSegment.setToolTip(tooltipText)
 		linePos += lineHeight
 
 		self.w.almostOrthogonalLines = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Non-orthogonal lines", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.almostOrthogonalLinesThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "3", callback=self.SavePreferences, sizeStyle='small')
 		self.w.almostOrthogonalLinesText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units off", sizeStyle='small', selectable=True)
 		tooltipText = "Will find line segments that are close to, but not completely horizontal or vertical. Will look for segments where the x or y distance between the two nodes is less than the specified threshold. Often unintentional."
-		self.w.almostOrthogonalLinesThreshold.getNSTextField().setToolTip_(tooltipText)
-		self.w.almostOrthogonalLines.getNSButton().setToolTip_(tooltipText)
+		self.w.almostOrthogonalLinesThreshold.setToolTip(tooltipText)
+		self.w.almostOrthogonalLines.setToolTip(tooltipText)
 		linePos += lineHeight
 
 		self.w.almostOrthogonalLinesMinLengthCheck = vanilla.CheckBox((inset * 2, linePos - 1, indent, 20), "min segment length", value=False, callback=self.SavePreferences, sizeStyle="small")
@@ -486,32 +486,32 @@ class PathProblemFinder(mekkaObject):
 		linePos += lineHeight
 
 		self.w.badOutlineOrder = vanilla.CheckBox((inset + 2, linePos, secondColumn, 20), "Bad outline order", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.badOutlineOrder.getNSButton().setToolTip_("If the first path is clockwise, paths are most likely in the wrong order.")
+		self.w.badOutlineOrder.setToolTip("If the first path is clockwise, paths are most likely in the wrong order.")
 
 		self.w.badPathDirections = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Bad path directions", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.badPathDirections.getNSButton().setToolTip_("Tries to find paths that have wrong orientations (clockwise vs. counterclockwise).\n⚠️ In complex setups, false positives are likely.")
+		self.w.badPathDirections.setToolTip("Tries to find paths that have wrong orientations (clockwise vs. counterclockwise).\n⚠️ In complex setups, false positives are likely.")
 		linePos += lineHeight
 
 		self.w.openPaths = vanilla.CheckBox((inset + 2, linePos, secondColumn, 20), "Open paths", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.openPaths.getNSButton().setToolTip_("Finds unclosed paths. Special glyphs that are supposed to have open paths, like corner and cap components, are ignored.")
+		self.w.openPaths.setToolTip("Finds unclosed paths. Special glyphs that are supposed to have open paths, like corner and cap components, are ignored.")
 
 		self.w.emptyPaths = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Empty paths", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.emptyPaths.getNSButton().setToolTip_("Tries to find paths that have no nodes at all. Should not happen but can be the result of an automated processing. Used to be a bug in Magic Remover. Can be fixed with Path > Tidy Up Paths, or with the mekkablue script Paths > Remove Stray Points and Empty Paths.")
+		self.w.emptyPaths.setToolTip("Tries to find paths that have no nodes at all. Should not happen but can be the result of an automated processing. Used to be a bug in Magic Remover. Can be fixed with Path > Tidy Up Paths, or with the mekkablue script Paths > Remove Stray Points and Empty Paths.")
 		linePos += lineHeight
 
 		self.w.strayPoints = vanilla.CheckBox((inset + 2, linePos, secondColumn, 20), "Stray points", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.strayPoints.getNSButton().setToolTip_("In Glyphs 1, paths with only one node (‘single-node paths’ or ‘stray points’) used to be a method for disabling auto-alignment of components. But they are probably a mistake. Can be fixed wth mekkablue script Paths > Remove Stray Points and Empty Paths.")
+		self.w.strayPoints.setToolTip("In Glyphs 1, paths with only one node (‘single-node paths’ or ‘stray points’) used to be a method for disabling auto-alignment of components. But they are probably a mistake. Can be fixed wth mekkablue script Paths > Remove Stray Points and Empty Paths.")
 
 		self.w.twoPointOutlines = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Two-node paths", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.twoPointOutlines.getNSButton().setToolTip_("Paths with only two on-curve nodes are most likely leftover debris from a previous operation.")
+		self.w.twoPointOutlines.setToolTip("Paths with only two on-curve nodes are most likely leftover debris from a previous operation.")
 		linePos += lineHeight
 
 		self.w.quadraticCurves = vanilla.CheckBox((inset + 2, linePos - 1, secondColumn, 20), "Quadratic curves", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.quadraticCurves.getNSButton().setToolTip_("Finds quadratic (TrueType) curves. Useful if quadratic curves were not intended.")
+		self.w.quadraticCurves.setToolTip("Finds quadratic (TrueType) curves. Useful if quadratic curves were not intended.")
 		# linePos += lineHeight
 
 		self.w.decimalCoordinates = vanilla.CheckBox((secondColumn, linePos - 1, -inset, 20), "Decimal coordinates", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.decimalCoordinates.getNSButton().setToolTip_("Nodes and handles with decimal coordinates, i.e., points not exactly on the unit grid.")
+		self.w.decimalCoordinates.setToolTip("Nodes and handles with decimal coordinates, i.e., points not exactly on the unit grid.")
 		linePos += lineHeight + 5
 
 		self.w.checkCheckBoxes = vanilla.TextBox((inset, linePos + 2, 50, 14), "Select", sizeStyle="small", selectable=True)
@@ -526,24 +526,24 @@ class PathProblemFinder(mekkaObject):
 
 		# Script Options:
 		self.w.includeAllGlyphs = vanilla.CheckBox((inset + 2, linePos, secondColumn, 20), "Check ALL glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeAllGlyphs.getNSButton().setToolTip_("If enabled, will ignore your current (glyph) selection, and simply go through the complete font. Recommended. May still ignore non-exporting glyphs or explicitly excluded glyph names, see following options.")
+		self.w.includeAllGlyphs.setToolTip("If enabled, will ignore your current (glyph) selection, and simply go through the complete font. Recommended. May still ignore non-exporting glyphs or explicitly excluded glyph names, see following options.")
 		self.w.includeAllFonts = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "⚠️ in ALL fonts", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeAllFonts.getNSButton().setToolTip_("If enabled, will go through ALL open fonts. Attention: can take quite some time.")
+		self.w.includeAllFonts.setToolTip("If enabled, will go through ALL open fonts. Attention: can take quite some time.")
 		linePos += lineHeight
 
 		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeNonExporting.getNSButton().setToolTip_("If disabled, will ignore glyphs that are set to not export.")
+		self.w.includeNonExporting.setToolTip("If disabled, will ignore glyphs that are set to not export.")
 		linePos += lineHeight
 
 		self.w.excludeText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Exclude glyphs", sizeStyle="small", selectable=True)
 		self.w.exclude = vanilla.EditText((inset + 86, linePos - 1, -inset, 19), "notdef, apple, .ornm", callback=self.SavePreferences, sizeStyle="small")
-		self.w.exclude.getNSTextField().setToolTip_("Glyphs containing any of these (comma-separated) name particles will be skipped.")
+		self.w.exclude.setToolTip("Glyphs containing any of these (comma-separated) name particles will be skipped.")
 		linePos += lineHeight
 
 		self.w.reuseTab = vanilla.CheckBox((inset + 2, linePos, secondColumn, 20), "Reuse existing tab", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab.getNSButton().setToolTip_("If enabled, will only open a new tab if none is open. Recommended.")
+		self.w.reuseTab.setToolTip("If enabled, will only open a new tab if none is open. Recommended.")
 		self.w.verbose = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Verbose (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.verbose.getNSButton().setToolTip_("If checked will document all findings in the Macro window. Use this only for debugging.")
+		self.w.verbose.setToolTip("If checked will document all findings in the Macro window. Use this only for debugging.")
 		linePos += lineHeight
 
 		# Progress Bar and Status text:

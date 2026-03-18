@@ -116,27 +116,27 @@ class OTVARMaker(mekkaObject):
 		self.w.suffixText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Family name suffix", sizeStyle="small", selectable=True)
 		self.w.suffix = vanilla.ComboBox((inset + indent, linePos - 2, -inset, 20), self.suffixSuggestions, sizeStyle="small", callback=self.SavePreferences)
 		tooltip = "This is the extension that will be added to your OTVAR family name in order to differentiate it from the static family name."
-		self.w.suffixText.getNSTextField().setToolTip_(tooltip)
-		self.w.suffix.getNSComboBox().setToolTip_(tooltip)
+		self.w.suffixText.setToolTip(tooltip)
+		self.w.suffix.setToolTip(tooltip)
 		linePos += lineHeight
 
 		self.w.psSuffixText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Non-italic PS extension", sizeStyle="small", selectable=True)
 		self.w.psSuffix = vanilla.ComboBox((inset + indent, linePos - 2, -inset, 20), self.psSuffixSuggestions, sizeStyle="small", callback=self.SavePreferences)
 		tooltip = "Only applies to fonts that are entirely non-italic. The Variations PostScript Name Prefix (nameID 25) should have an extension like Roman or Regular to differentiate it clearly from a pure Italic. Important for setups where uprights and italics are in different files. Also has an effect on the file name if you use that option (see below)."
-		self.w.psSuffixText.getNSTextField().setToolTip_(tooltip)
-		self.w.psSuffix.getNSComboBox().setToolTip_(tooltip)
+		self.w.psSuffixText.setToolTip(tooltip)
+		self.w.psSuffix.setToolTip(tooltip)
 		linePos += lineHeight
 
 		self.w.addFileName = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Add fileName parameter", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.addFileName.getNSButton().setToolTip_("Adds a custom parameter for overriding the default file name of the font file.")
+		self.w.addFileName.setToolTip("Adds a custom parameter for overriding the default file name of the font file.")
 		linePos += lineHeight
 
 		self.w.deletePrevious = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Remove previous variable font settings", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.deletePrevious.getNSButton().setToolTip_("Deletes all variable font settings that you may already have in your file(s).")
+		self.w.deletePrevious.setToolTip("Deletes all variable font settings that you may already have in your file(s).")
 		linePos += lineHeight
 
 		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Apply to ⚠️ ALL open fonts", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.allFonts.getNSButton().setToolTip_("Adds Variable Font Settings to all fonts currently open in Glyphs.")
+		self.w.allFonts.setToolTip("Adds Variable Font Settings to all fonts currently open in Glyphs.")
 		linePos += lineHeight
 
 		# Run Button:

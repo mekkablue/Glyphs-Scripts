@@ -74,20 +74,20 @@ class CopyLayerToLayer(mekkaObject):
 		self.w.includeText = vanilla.TextBox((inset, linePos + 2, 60, 14), "Include:", sizeStyle='small', selectable=True)
 
 		self.w.includePaths = vanilla.CheckBox((inset + 60, linePos, 65, 20), "Paths", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includePaths.getNSButton().setToolTip_("Copy all paths (outlines) from the source layer.")
+		self.w.includePaths.setToolTip("Copy all paths (outlines) from the source layer.")
 		
 		self.w.includeComponents = vanilla.CheckBox((inset + 135, linePos, 80, 20), "Components", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeComponents.getNSButton().setToolTip_("Copy all components (references to other glyphs) from the source layer.")
+		self.w.includeComponents.setToolTip("Copy all components (references to other glyphs) from the source layer.")
 		linePos += lineHeight
 
 		self.w.includeAnchors = vanilla.CheckBox((inset + 60, linePos, 65, 20), "Anchors", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeAnchors.getNSButton().setToolTip_("Copy all anchors (attachment points) from the source layer.")
+		self.w.includeAnchors.setToolTip("Copy all anchors (attachment points) from the source layer.")
 		
 		self.w.includeMetrics = vanilla.CheckBox((inset + 135, linePos, 80, 20), "Metrics", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeMetrics.getNSButton().setToolTip_("Copy layer width and sidebearing metrics from the source layer.")
+		self.w.includeMetrics.setToolTip("Copy layer width and sidebearing metrics from the source layer.")
 
 		self.w.includeHints = vanilla.CheckBox((inset + 210, linePos, 90, 20), "Hints", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeHints.getNSButton().setToolTip_("Copy all hints (TrueType instructions) from the source layer.")
+		self.w.includeHints.setToolTip("Copy all hints (TrueType instructions) from the source layer.")
 		linePos += lineHeight
 		
 		self.w.separator1 = vanilla.HorizontalLine((inset, linePos+5, -inset, 1))
@@ -95,19 +95,19 @@ class CopyLayerToLayer(mekkaObject):
 		# Options with tooltips
 		linePos += 12
 		self.w.intoBackground = vanilla.CheckBox((inset, linePos, -inset, 20), "Copy into background instead", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.intoBackground.getNSButton().setToolTip_("Copies source layer content into the background of the target layer instead of the foreground.")
+		self.w.intoBackground.setToolTip("Copies source layer content into the background of the target layer instead of the foreground.")
 		linePos += lineHeight
 
 		self.w.createIfNotPresent = vanilla.CheckBox((inset, linePos, -inset, 20), "Create target glyph & layer if not already present", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.createIfNotPresent.getNSButton().setToolTip_("Automatically creates the target layer (and glyph if necessary) if it doesn't exist. Useful for adding new layers to all selected glyphs.")
+		self.w.createIfNotPresent.setToolTip("Automatically creates the target layer (and glyph if necessary) if it doesn't exist. Useful for adding new layers to all selected glyphs.")
 		linePos += lineHeight
 
 		self.w.addToContents = vanilla.CheckBox((inset, linePos, -inset, 20), "Add to layer contents (don't overwrite)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.addToContents.getNSButton().setToolTip_("Appends source content to target layer instead of replacing it. Useful for combining multiple design elements.")
+		self.w.addToContents.setToolTip("Appends source content to target layer instead of replacing it. Useful for combining multiple design elements.")
 		linePos += lineHeight
 
 		self.w.applyFontWide = vanilla.CheckBox((inset, linePos, -inset, 20), "Apply font-wide (all glyphs in source font)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.applyFontWide.getNSButton().setToolTip_("Processes all glyphs in the source font instead of only selected glyphs in the target font. If not selected, will process only selected glyphs.")
+		self.w.applyFontWide.setToolTip("Processes all glyphs in the source font instead of only selected glyphs in the target font. If not selected, will process only selected glyphs.")
 		linePos += lineHeight
 
 

@@ -41,17 +41,17 @@ class NewTabWithUnevenHandleDistributions(mekkaObject):
 		self.w.factorChange = vanilla.CheckBox((inset + 2, linePos, 230, 20), "Tolerated change factor (BCP1÷BCP2):", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.factorChangeEntry = vanilla.EditText((inset + 230, linePos, -inset, 19), "2.5", callback=self.SavePreferences, sizeStyle='small')
 		factorChangeTooltipText = "Calculates length ratios of handles in a curve segment in every master. If the ratio differs by more than the given factor in one or more masters, glyph will be reported."
-		self.w.factorChange.getNSButton().setToolTip_(factorChangeTooltipText)
-		self.w.factorChangeEntry.getNSTextField().setToolTip_(factorChangeTooltipText)
+		self.w.factorChange.setToolTip(factorChangeTooltipText)
+		self.w.factorChangeEntry.setToolTip(factorChangeTooltipText)
 		linePos += lineHeight
 
 		self.w.anyMaxToNotMax = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Any handle that changes from 100% to non-100%", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.anyMaxToNotMax.getNSButton().setToolTip_("Finds BCPs that are maximized (100%) in one master, but not in other masters.")
+		self.w.anyMaxToNotMax.setToolTip("Finds BCPs that are maximized (100%) in one master, but not in other masters.")
 		linePos += lineHeight
 
 		self.w.markInFirstMaster = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Mark affected curve segments in first master", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.markInFirstMaster.enable(False)
-		self.w.markInFirstMaster.getNSButton().setToolTip_("Not implemented yet. Sorry.")
+		self.w.markInFirstMaster.setToolTip("Not implemented yet. Sorry.")
 		linePos += lineHeight
 
 		# Run Button:

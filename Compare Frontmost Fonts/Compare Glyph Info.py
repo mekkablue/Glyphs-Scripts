@@ -83,13 +83,13 @@ class CompareGlyphInfo(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, self.linePos + 1, 140, 14), "Compare between fonts:", sizeStyle='small', selectable=True)
 
 		self.w.whatToCompare = vanilla.PopUpButton((inset + 140, self.linePos - 1, -160 - inset - 10, 18), thingsToCompare, sizeStyle='small', callback=self.Reload)
-		self.w.whatToCompare.getNSPopUpButton().setToolTip_("Choose which glyph info to compare between all open fonts.")
+		self.w.whatToCompare.setToolTip("Choose which glyph info to compare between all open fonts.")
 
 		self.w.ignoreMissingGlyphs = vanilla.CheckBox((-160 - inset, self.linePos + 1, -inset - 25, 14), "Ignore missing glyphs", value=False, callback=self.Reload, sizeStyle='small')
-		self.w.ignoreMissingGlyphs.getNSButton().setToolTip_("If activated, will only list glyphs that are present in ALL open fonts.")
+		self.w.ignoreMissingGlyphs.setToolTip("If activated, will only list glyphs that are present in ALL open fonts.")
 
 		self.w.updateButton = UpdateButton((-inset - 18, self.linePos - 3, -inset - 4, 18), callback=self.Reload)
-		self.w.updateButton.getNSButton().setToolTip_("Reload with currently opened fonts. Useful if you just opened or closed a font, or brought another font forward.")
+		self.w.updateButton.setToolTip("Reload with currently opened fonts. Useful if you just opened or closed a font, or brought another font forward.")
 
 		self.linePos += lineHeight
 		self.Reload()
@@ -263,7 +263,7 @@ class CompareGlyphInfo(mekkaObject):
 				# editCallback = self.editAction,
 			)
 
-			self.w.List.getNSTableView().setToolTip_("Double click to open the selected glyphs in all fonts. You can select more than one line.")
+			self.w.List.setToolTip("Double click to open the selected glyphs in all fonts. You can select more than one line.")
 		except Exception as e:
 			print("Reload Error: %s\n" % e)
 			import traceback

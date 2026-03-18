@@ -52,11 +52,11 @@ class CalculateSubscriptAndSuperscriptParameters(mekkaObject):
 		self.w.subscriptReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.resetValues)
 		# tooltips:
 		tooltip = "If enabled, will calculate: subscriptXOffsetName, subscriptYOffsetName, subscriptXSizeName, subscriptYSizeName. The subscript glyph (on the left) will be measured in relation to the reference glyph on the right; offset and size scale will be computed from their differences."
-		self.w.subscriptSample.getNSTextField().setToolTip_(tooltip)
-		self.w.subscriptReference.getNSTextField().setToolTip_(tooltip)
-		self.w.subscriptCheck.getNSButton().setToolTip_(tooltip)
-		self.w.subscriptReferenceText.getNSTextField().setToolTip_(tooltip)
-		self.w.subscriptReset.getNSButton().setToolTip_("Resets the subscript reference glyphs to oneinferior vs. one.")
+		self.w.subscriptSample.setToolTip(tooltip)
+		self.w.subscriptReference.setToolTip(tooltip)
+		self.w.subscriptCheck.setToolTip(tooltip)
+		self.w.subscriptReferenceText.setToolTip(tooltip)
+		self.w.subscriptReset.setToolTip("Resets the subscript reference glyphs to oneinferior vs. one.")
 		linePos += lineHeight
 
 		self.w.superscriptCheck = vanilla.CheckBox((inset + 2, linePos, 80, 20), "Superscript", value=True, callback=self.SavePreferences, sizeStyle='small')
@@ -66,11 +66,11 @@ class CalculateSubscriptAndSuperscriptParameters(mekkaObject):
 		self.w.superscriptReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.resetValues)
 		# tooltips:
 		tooltip = "If enabled, will calculate: superscriptXOffsetName, superscriptYOffsetName, superscriptXSizeName, superscriptYSizeName. The superscript glyph (on the left) will be measured in relation to the reference glyph on the right; offset and size scale will be computed from their differences."
-		self.w.superscriptSample.getNSTextField().setToolTip_(tooltip)
-		self.w.superscriptReference.getNSTextField().setToolTip_(tooltip)
-		self.w.superscriptCheck.getNSButton().setToolTip_(tooltip)
-		self.w.superscriptReferenceText.getNSTextField().setToolTip_(tooltip)
-		self.w.superscriptReset.getNSButton().setToolTip_("Resets the superscript reference glyphs to onesuperior vs. one.")
+		self.w.superscriptSample.setToolTip(tooltip)
+		self.w.superscriptReference.setToolTip(tooltip)
+		self.w.superscriptCheck.setToolTip(tooltip)
+		self.w.superscriptReferenceText.setToolTip(tooltip)
+		self.w.superscriptReset.setToolTip("Resets the superscript reference glyphs to onesuperior vs. one.")
 		linePos += lineHeight
 
 		self.w.roundValues = vanilla.CheckBox((inset + 2, linePos, 130, 20), "Round all values by", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -78,13 +78,13 @@ class CalculateSubscriptAndSuperscriptParameters(mekkaObject):
 		self.w.xSizeEqualsYSize = vanilla.CheckBox((inset + 180, linePos, -inset, 20), "xSize=ySize", value=False, callback=self.SavePreferences, sizeStyle='small')
 		# tooltips:
 		tooltip = "If enabled, will round all calculated values by the given amount. Recommended: 5 or 10."
-		self.w.roundValues.getNSButton().setToolTip_(tooltip)
-		self.w.roundBy.getNSTextField().setToolTip_(tooltip)
-		self.w.xSizeEqualsYSize.getNSButton().setToolTip_("If enabled, will set the horizontal scale to the same value as the vertical scale, ensuring a proportional scale. Especially useful for italics.")
+		self.w.roundValues.setToolTip(tooltip)
+		self.w.roundBy.setToolTip(tooltip)
+		self.w.xSizeEqualsYSize.setToolTip("If enabled, will set the horizontal scale to the same value as the vertical scale, ensuring a proportional scale. Especially useful for italics.")
 		linePos += lineHeight
 
 		self.w.syncWithFirstMaster = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Sync all values with first master", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.syncWithFirstMaster.getNSButton().setToolTip_("If enabled, will insert the same values in all masters.")
+		self.w.syncWithFirstMaster.setToolTip("If enabled, will insert the same values in all masters.")
 		linePos += lineHeight
 
 		# Run Button:

@@ -53,7 +53,7 @@ class ProductionNamer(mekkaObject):
 		linePos += lineHeight
 
 		self.w.recipe = vanilla.TextEditor((1, linePos, -1, -70), text=defaultString.strip(), callback=self.SavePreferences, checksSpelling=False)
-		self.w.recipe.getNSTextView().setToolTip_("- Syntax: glyphname -> productionname\n- Whitespace does not matter\n- Only lines containing a dash (-) followed by a greater sign (>) count\n- Freely write comments and empty lines\n- Anything after a hashtag (#) is ignored")
+		self.w.recipe.setToolTip("- Syntax: glyphname -> productionname\n- Whitespace does not matter\n- Only lines containing a dash (-) followed by a greater sign (>) count\n- Freely write comments and empty lines\n- Anything after a hashtag (#) is ignored")
 		self.w.recipe.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.recipe.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.recipe.getNSScrollView().setRulersVisible_(0)
@@ -77,7 +77,7 @@ class ProductionNamer(mekkaObject):
 		self.w.applyText = vanilla.TextBox((inset + 17, linePos + 2, 70, 14), "Apply to", sizeStyle='small', selectable=True)
 		self.w.applyPopup = vanilla.PopUpButton((inset + 70, linePos, 150, 17), ("ALL open fonts", "open fonts containing", "frontmost font only"), sizeStyle='small', callback=self.SavePreferences)
 		self.w.applyContaining = vanilla.EditText((inset + 70 + 150 + 10, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small', placeholder="enter part of family name here")
-		self.w.applyContaining.getNSTextField().setToolTip_("Only applies the settings to fonts that contain this in Font Info > Font > Family Name.")
+		self.w.applyContaining.setToolTip("Only applies the settings to fonts that contain this in Font Info > Font > Family Name.")
 		linePos += lineHeight
 
 		self.w.resetButton = vanilla.Button((inset, -20 - inset, 80, -inset), "Reset", callback=self.updateUI)

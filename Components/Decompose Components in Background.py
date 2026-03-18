@@ -45,10 +45,10 @@ class Decompose_Components_in_Background(mekkaObject):
 
 		# ## Option to backup glyphs in the background before decomposition
 		self.w.copyToBackgroundFirst = vl.CheckBox((x + 3, y, 240, self.textHeight), "Create backups in background first", sizeStyle=self.sizeStyle, callback=self.SavePreferences)
-		self.w.copyToBackgroundFirst.getNSButton().setToolTip_("If selected, will copy current foregrounds into backgrounds, overwriting existing background content.")
+		self.w.copyToBackgroundFirst.setToolTip("If selected, will copy current foregrounds into backgrounds, overwriting existing background content.")
 
 		self.w.verbose = vl.CheckBox((240 + 3, y, -p, self.textHeight), "Verbose output", sizeStyle=self.sizeStyle, callback=self.SavePreferences)
-		self.w.verbose.getNSButton().setToolTip_("Will output report for every glyph (slow). Do this only for testing purposes.")
+		self.w.verbose.setToolTip("Will output report for every glyph (slow). Do this only for testing purposes.")
 		y += self.textHeight
 
 		# ## Divider
@@ -60,7 +60,7 @@ class Decompose_Components_in_Background(mekkaObject):
 			(x, y, -p, self.buttonHeight * len(self.glyphsOptions)), self.glyphsOptions, sizeStyle=self.sizeStyle, callback=self.glyphsOptionsCallback
 		)
 
-		self.w.whichGlyphsInWhichFonts.getNSMatrix().setToolTip_("Which glyphs are affected in which fonts.\n\n⚠️ Careful with the bigger scopes: they affect many glyph backgrounds in one click. Consider saving your .glyphs file first (so you can revert in the worst case).")
+		self.w.whichGlyphsInWhichFonts.setToolTip("Which glyphs are affected in which fonts.\n\n⚠️ Careful with the bigger scopes: they affect many glyph backgrounds in one click. Consider saving your .glyphs file first (so you can revert in the worst case).")
 		y += self.buttonHeight * len(self.glyphsOptions)
 
 		# ## Divider
@@ -74,7 +74,7 @@ class Decompose_Components_in_Background(mekkaObject):
 			sizeStyle=self.sizeStyle,
 			callback=self.SavePreferences,
 		)
-		self.w.whichMasters.getNSMatrix().setToolTip_("Choose which font masters shall be affected.")
+		self.w.whichMasters.setToolTip("Choose which font masters shall be affected.")
 
 		y += self.buttonHeight * len(self.masterOptions)
 

@@ -40,7 +40,7 @@ class CompressGlyph(mekkaObject):
 		linePos += lineHeight
 
 		self.w.glyphName = vanilla.ComboBox((inset, linePos - 4, -inset - 25, 24), (), callback=self.SavePreferences)
-		self.w.glyphName.getNSComboBox().setToolTip_("The name of the glyph you want to compress. Use * as wildcard for matching many glyphs.")
+		self.w.glyphName.setToolTip("The name of the glyph you want to compress. Use * as wildcard for matching many glyphs.")
 		self.w.updateButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", callback=self.update)
 		linePos += lineHeight + 3
 

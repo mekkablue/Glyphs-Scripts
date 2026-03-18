@@ -96,14 +96,14 @@ class BatchSetPathAttributes(mekkaObject):
 		self.w.strokeWidthCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Stroke Width", sizeStyle='small')
 		self.w.strokeWidthCheck._nsObject.setToolTip_(tooltip)
 		self.w.strokeWidth = vanilla.EditText((inset + indent, linePos, -inset, 19), "20", callback=self.SavePreferences, sizeStyle='small')
-		self.w.strokeWidth.getNSTextField().setToolTip_(tooltip)
+		self.w.strokeWidth.setToolTip(tooltip)
 		linePos += lineHeight
 
 		tooltip = "Height of the path in units. Leave empty for monoline (width=height)."
 		self.w.strokeHeightCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Stroke Height", sizeStyle='small')
 		self.w.strokeHeightCheck._nsObject.setToolTip_(tooltip)
 		self.w.strokeHeight = vanilla.EditText((inset + indent, linePos, -inset, 19), "20", callback=self.SavePreferences, sizeStyle='small')
-		self.w.strokeHeight.getNSTextField().setToolTip_(tooltip)
+		self.w.strokeHeight.setToolTip(tooltip)
 		linePos += lineHeight
 
 		tooltip = "0: right\n1: left\nempty: center (default)"
@@ -111,22 +111,22 @@ class BatchSetPathAttributes(mekkaObject):
 		self.w.strokePosCheck._nsObject.setToolTip_(tooltip)
 		self.w.strokePos = vanilla.PopUpButton((inset + indent, linePos, -inset, 19), sortedStrokePositionNames, sizeStyle='small', callback=self.SavePreferences)
 		# self.w.strokePos = vanilla.EditText((inset*2+indent, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
-		self.w.strokePos.getNSPopUpButton().setToolTip_(tooltip)
+		self.w.strokePos.setToolTip(tooltip)
 		linePos += lineHeight
 
 		tooltip = "0: straight cutoff\n1: round (wide)\n2: round (tight)\n3: square\n4: orthogonal\n\nEnter one number for both start and end, enter two comma-separated numbers (e.g. ‘2, 1’) for different caps at start and end."
 		self.w.lineCapsCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Line Caps", sizeStyle='small')
 		self.w.lineCapsCheck._nsObject.setToolTip_(tooltip)
 		self.w.lineCaps = vanilla.EditText((inset + indent, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle='small')
-		self.w.lineCaps.getNSTextField().setToolTip_(tooltip)
+		self.w.lineCaps.setToolTip(tooltip)
 		linePos += lineHeight
 
 		# Buttons at the bottom:
 		self.w.extractButton = vanilla.Button((inset, -20 - inset, 80, -inset), "Extract", callback=self.extractAttributes)
-		self.w.extractButton.getNSButton().setToolTip_("Extract attributes from currently selected path, or (if none are selected) from the first path in the current glyph.")
+		self.w.extractButton.setToolTip("Extract attributes from currently selected path, or (if none are selected) from the first path in the current glyph.")
 
 		self.w.removeButton = vanilla.Button((inset + 90, -20 - inset, 80, -inset), "Remove", callback=self.removeAttributes)
-		self.w.removeButton.getNSButton().setToolTip_("Clears all path attributes for selection above.")
+		self.w.removeButton.setToolTip("Clears all path attributes for selection above.")
 
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Apply", callback=self.BatchSetPathAttributesMain)
 		self.w.setDefaultButton(self.w.runButton)

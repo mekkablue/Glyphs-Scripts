@@ -56,7 +56,7 @@ class BraceLayerManager(mekkaObject):
 		self.w.oldCoordinateUpdate = UpdateButton((inset + 104, linePos - 2, 20, 18), callback=self.update)
 		self.w.withText = vanilla.TextBox((inset + 130, linePos + 2, 30, 14), "with", sizeStyle="small")
 		self.w.newCoordinate = vanilla.EditText((inset + 157, linePos - 1, -inset, 19), "100", callback=self.SavePreferences, sizeStyle="small")
-		self.w.newCoordinate.getNSTextField().setToolTip_("Leave empty for disabling the brace layer or deleting the bracket layer condition.")
+		self.w.newCoordinate.setToolTip("Leave empty for disabling the brace layer or deleting the bracket layer condition.")
 		linePos += lineHeight
 
 		self.w.axisText = vanilla.TextBox((inset, linePos + 2, 95, 14), "for axis at index", sizeStyle="small")

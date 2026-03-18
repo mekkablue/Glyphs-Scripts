@@ -54,13 +54,13 @@ class StealKerningFromInDesign(mekkaObject):
 		# No-kern pair + Min kern + Round by — all on one row
 		self.w.zeroPairLabel = vanilla.TextBox((inset, linePos + 3, 84, 14), "No-kern pair:", sizeStyle="small")
 		self.w.zeroPair = vanilla.EditText((inset + 84, linePos, 40, 19), "HH", callback=self.SavePreferences, sizeStyle="small")
-		self.w.zeroPair.getNSTextField().setToolTip_("A pair of glyphs that should have zero optical kerning (i.e., the reference pair used to calibrate the font size for measurement).")
+		self.w.zeroPair.setToolTip("A pair of glyphs that should have zero optical kerning (i.e., the reference pair used to calibrate the font size for measurement).")
 		self.w.minimumKernLabel = vanilla.TextBox((inset + 136, linePos + 3, 57, 14), "Min kern:", sizeStyle="small")
 		self.w.minimumKern = vanilla.EditText((inset + 193, linePos, 40, 19), "10", callback=self.SavePreferences, sizeStyle="small")
-		self.w.minimumKern.getNSTextField().setToolTip_("Discard imported kern pairs whose absolute value is smaller than this threshold.")
+		self.w.minimumKern.setToolTip("Discard imported kern pairs whose absolute value is smaller than this threshold.")
 		self.w.roundByLabel = vanilla.TextBox((inset + 245, linePos + 3, 58, 14), "Round by:", sizeStyle="small")
 		self.w.roundBy = vanilla.EditText((inset + 303, linePos, 40, 19), "5", callback=self.SavePreferences, sizeStyle="small")
-		self.w.roundBy.getNSTextField().setToolTip_("Round imported kern values to this multiple (e.g. 5 = multiples of 5). Set to 1 or 0 to skip rounding.")
+		self.w.roundBy.setToolTip("Round imported kern values to this multiple (e.g. 5 = multiples of 5). Set to 1 or 0 to skip rounding.")
 		linePos += lineHeight
 
 		self.w.divider1 = vanilla.HorizontalLine((inset, linePos + 3, -inset, 1))
@@ -68,19 +68,19 @@ class StealKerningFromInDesign(mekkaObject):
 
 		# Pair type checkboxes — three columns
 		self.w.letterToLetter = vanilla.CheckBox((inset + 2, linePos - 1, 148, 20), "Letter to Letter", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.letterToLetter.getNSButton().setToolTip_("Kern pairs between uppercase and lowercase letters.")
+		self.w.letterToLetter.setToolTip("Kern pairs between uppercase and lowercase letters.")
 		self.w.figureToFigure = vanilla.CheckBox((inset + 150, linePos - 1, 150, 20), "Figure to Figure", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.figureToFigure.getNSButton().setToolTip_("Kern pairs between decimal digit figures.")
+		self.w.figureToFigure.setToolTip("Kern pairs between decimal digit figures.")
 		self.w.letterToFigure = vanilla.CheckBox((inset + 300, linePos - 1, -inset, 20), "Letter to Figure", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.letterToFigure.getNSButton().setToolTip_("Kern pairs between letters and figures (both directions).")
+		self.w.letterToFigure.setToolTip("Kern pairs between letters and figures (both directions).")
 		linePos += lineHeight
 
 		self.w.letterWithPunctuation = vanilla.CheckBox((inset + 2, linePos - 1, 148, 20), "Letter with Punctuation", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.letterWithPunctuation.getNSButton().setToolTip_("Kern pairs between letters and punctuation marks (both directions).")
+		self.w.letterWithPunctuation.setToolTip("Kern pairs between letters and punctuation marks (both directions).")
 		self.w.figureWithPunctuation = vanilla.CheckBox((inset + 150, linePos - 1, 150, 20), "Figure with Punctuation", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.figureWithPunctuation.getNSButton().setToolTip_("Kern pairs between figures and punctuation marks (both directions).")
+		self.w.figureWithPunctuation.setToolTip("Kern pairs between figures and punctuation marks (both directions).")
 		self.w.punctuationWithItself = vanilla.CheckBox((inset + 300, linePos - 1, -inset, 20), "Punctuation with itself", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.punctuationWithItself.getNSButton().setToolTip_("Kern pairs between punctuation marks and other punctuation marks.")
+		self.w.punctuationWithItself.setToolTip("Kern pairs between punctuation marks and other punctuation marks.")
 		linePos += lineHeight
 
 		self.w.divider2 = vanilla.HorizontalLine((inset, linePos + 3, -inset, 1))
@@ -88,31 +88,31 @@ class StealKerningFromInDesign(mekkaObject):
 
 		# Options
 		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "All masters (otherwise current master only)", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.allMasters.getNSButton().setToolTip_("Process all masters in the font. If off, only the currently selected master is processed.")
+		self.w.allMasters.setToolTip("Process all masters in the font. If off, only the currently selected master is processed.")
 		linePos += lineHeight
 
 		self.w.deleteExistingKerning = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete existing kerning before import", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.deleteExistingKerning.getNSButton().setToolTip_("Clear all existing kerning for each master before importing new values from InDesign.")
+		self.w.deleteExistingKerning.setToolTip("Clear all existing kerning for each master before importing new values from InDesign.")
 		linePos += lineHeight
 
 		self.w.compressKerning = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Compress kerning (glyph pairs → group pairs)", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.compressKerning.getNSButton().setToolTip_("Promote glyph-to-glyph kern pairs to the corresponding group-to-group pair when the value matches.")
+		self.w.compressKerning.setToolTip("Promote glyph-to-glyph kern pairs to the corresponding group-to-group pair when the value matches.")
 		linePos += lineHeight
 
 		self.w.groupKerningOnly = vanilla.CheckBox((inset + 22, linePos - 1, -inset, 20), "Keep group kerning only", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.groupKerningOnly.getNSButton().setToolTip_("After compressing, delete all remaining glyph-to-glyph pairs. Note: compressing cannot always convert every glyph pair to a group pair (e.g. when a glyph has no kerning group), so some pairs may remain.")
+		self.w.groupKerningOnly.setToolTip("After compressing, delete all remaining glyph-to-glyph pairs. Note: compressing cannot always convert every glyph pair to a group pair (e.g. when a glyph has no kerning group), so some pairs may remain.")
 		linePos += lineHeight
 
 		self.w.addExceptions = vanilla.CheckBox((inset + 22, linePos - 1, 153, 20), "Add exceptions between:", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.addExceptions.getNSButton().setToolTip_("Also kern each of the characters in the field against all exporting glyphs whose name contains any of the component particles listed below.")
+		self.w.addExceptions.setToolTip("Also kern each of the characters in the field against all exporting glyphs whose name contains any of the component particles listed below.")
 		self.w.exceptionChars = vanilla.EditText((inset + 177, linePos - 1, -inset - 22, 19), "AFJKLPTVWXYfďľ[](){}‚\u2018\u2019\u201e\u201c\u201d/?", callback=self.SavePreferences, sizeStyle="small")
-		self.w.exceptionChars.getNSTextField().setToolTip_("Characters to kern against the diacritic glyphs. Each character is used in both directions (e.g. Tä and äT).")
+		self.w.exceptionChars.setToolTip("Characters to kern against the diacritic glyphs. Each character is used in both directions (e.g. Tä and äT).")
 		self.w.exceptionCharsReset = UpdateButton((-inset - 20, linePos - 3, 20, 19), self.resetExceptionChars)
 		linePos += lineHeight
 
 		self.w.exceptionComponentsLabel = vanilla.TextBox((inset + 40, linePos + 3, 133, 14), "…and glyphs containing:", sizeStyle="small")
 		self.w.exceptionComponents = vanilla.EditText((inset + 177, linePos, -inset - 22, 19), "dier, dot, acut, grav, tild, brev, macr, ring, circ, slash, bar", callback=self.SavePreferences, sizeStyle="small")
-		self.w.exceptionComponents.getNSTextField().setToolTip_("Comma-separated name fragments. Any exporting glyph with a Unicode whose name contains one of these is measured against the characters above.")
+		self.w.exceptionComponents.setToolTip("Comma-separated name fragments. Any exporting glyph with a Unicode whose name contains one of these is measured against the characters above.")
 		self.w.exceptionComponentsReset = UpdateButton((-inset - 20, linePos - 2, 20, 19), self.resetExceptionComponents)
 		linePos += lineHeight
 

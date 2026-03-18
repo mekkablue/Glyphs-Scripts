@@ -56,39 +56,39 @@ class AddZWROOriginAnchors(mekkaObject):
 		self.w.whereText = vanilla.TextBox((inset, linePos+1, 125, 14), "Add *origin anchors at", sizeStyle="small", selectable=True)
 		self.w.where = vanilla.PopUpButton((inset+125, linePos-1, -inset, 17), positions, sizeStyle="small", callback=self.SavePreferences)
 		tooltip = "Where on the baseline you want the *origin anchor to go in each combining mark. Typically, in marks for an RTL script, you want it to be on the left; and in LTR marks, you want it to be on the right side of the shape."
-		self.w.whereText.getNSTextField().setToolTip_(tooltip)
-		self.w.where.getNSPopUpButton().setToolTip_(tooltip)
+		self.w.whereText.setToolTip(tooltip)
+		self.w.where.setToolTip(tooltip)
 		linePos += lineHeight
 
 		self.w.offsetText = vanilla.TextBox((inset, linePos+2, tab, 14), "Horizontal offset", sizeStyle="small", selectable=True)
 		self.w.offset = vanilla.EditText((inset+tab, linePos-1, -inset, 19), "0", callback=self.SavePreferences, sizeStyle="small")
 		tooltip = "The number entered here will be added to the calculated position. Negative numbers for moving to the left, positive numbers for moving the anchor further to the right."
-		self.w.offsetText.getNSTextField().setToolTip_(tooltip)
-		self.w.offset.getNSTextField().setToolTip_(tooltip)
+		self.w.offsetText.setToolTip(tooltip)
+		self.w.offset.setToolTip(tooltip)
 		linePos += lineHeight
 
 		self.w.scriptsText = vanilla.TextBox((inset, linePos+2, tab, 14), "Marks of scripts", sizeStyle="small", selectable=True)
 		self.w.scripts = vanilla.EditText((inset+tab, linePos-1, -inset-22, 19), "latin, thai", callback=self.SavePreferences, sizeStyle="small")
 		self.w.updateScripts = UpdateButton((-inset-16, linePos-2, -inset, 18), callback=self.updateScripts)
 		tooltip = "Comma-separated list of scripts, e.g. ‘latin, thai’. Only marks whose script will match one listed here will be processed. Leave empty for ALL combining marks. Click the ⟳ button to populate with all scripts in the frontmost font."
-		self.w.scriptsText.getNSTextField().setToolTip_(tooltip)
-		self.w.scripts.getNSTextField().setToolTip_(tooltip)
+		self.w.scriptsText.setToolTip(tooltip)
+		self.w.scripts.setToolTip(tooltip)
 		linePos += lineHeight
 
 		self.w.excludeTransformed = vanilla.CheckBox((inset+2, linePos-1, -inset, 20), "Exclude marks used in transformed components", value=True, callback=self.SavePreferences, sizeStyle="small")
 		tooltip = "Do not add *origin anchors to marks that themselves are being used as scaled, slanted or rotated components inside other glyphs. Leave this on unless you know what you are doing, and you will be doing an insane amount of testing."
-		self.w.excludeTransformed.getNSButton().setToolTip_(tooltip)
+		self.w.excludeTransformed.setToolTip(tooltip)
 		linePos += lineHeight
 
 		self.w.excludeComposites = vanilla.CheckBox((inset+2, linePos-1, -inset, 20), "Exclude composites", value=True, callback=self.SavePreferences, sizeStyle="small")
 		tooltip = "Ignore marks that contain components."
-		self.w.excludeComposites.getNSButton().setToolTip_(tooltip)
+		self.w.excludeComposites.setToolTip(tooltip)
 		linePos += lineHeight
 
 		self.w.allFonts = vanilla.CheckBox((inset+2, linePos-1, 150, 20), "⚠️ Apply to ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.allFonts.getNSButton().setToolTip_("If checked, will process all fonts currently open. Otherwise only the frontmost font.")
+		self.w.allFonts.setToolTip("If checked, will process all fonts currently open. Otherwise only the frontmost font.")
 		self.w.openTab = vanilla.CheckBox((inset+150, linePos-1, -inset, 20), "Open tab", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.openTab.getNSButton().setToolTip_("Will open a tab with all processed marks in every font processed.")
+		self.w.openTab.setToolTip("Will open a tab with all processed marks in every font processed.")
 		linePos += lineHeight
 
 		# Run Button:

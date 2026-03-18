@@ -121,10 +121,10 @@ class SetLabelColors(mekkaObject):
 		self.w.bAll = vanilla.SquareButton((inset + 100, linePos, 35, 16), "↑ ALL", sizeStyle='mini', callback=self.setAll)
 		self.w.aAll = vanilla.SquareButton((inset + 140, linePos, 35, 16), "↑ ALL", sizeStyle='mini', callback=self.setAll)
 		tooltip = "Type in a value in the LAST line and click this button to apply it to all lines."
-		self.w.rAll.getNSButton().setToolTip_(tooltip)
-		self.w.gAll.getNSButton().setToolTip_(tooltip)
-		self.w.bAll.getNSButton().setToolTip_(tooltip)
-		self.w.aAll.getNSButton().setToolTip_(tooltip)
+		self.w.rAll.setToolTip(tooltip)
+		self.w.gAll.setToolTip(tooltip)
+		self.w.bAll.setToolTip(tooltip)
+		self.w.aAll.setToolTip(tooltip)
 		linePos += lineHeight
 
 		# Run Button:

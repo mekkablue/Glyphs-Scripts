@@ -41,22 +41,22 @@ class SetFamilyAlignmentZones(mekkaObject):
 
 		self.w.instanceText = vanilla.TextBox((inset, linePos + 2, inset + 55, 14), "Instance", sizeStyle='small')
 		self.w.instancePicker = vanilla.PopUpButton((inset + 51, linePos, -inset - 22, 19), (), sizeStyle='small')
-		self.w.instancePicker.getNSPopUpButton().setToolTip_("Choose the instance that will likely be used most (probably the Regular or Book). Its interpolated zones will be used as Family Alignment Zones. Inactive instances are marked with ‘inactive’.")
+		self.w.instancePicker.setToolTip("Choose the instance that will likely be used most (probably the Regular or Book). Its interpolated zones will be used as Family Alignment Zones. Inactive instances are marked with ‘inactive’.")
 
 		# set font to tabular figures:
 		popUpFont = NSFont.monospacedDigitSystemFontOfSize_weight_(NSFont.smallSystemFontSize(), 0.0)
 		self.w.instancePicker.getNSPopUpButton().setFont_(popUpFont)
 
 		self.w.updateButton = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateInstancePicker)
-		self.w.updateButton.getNSButton().setToolTip_("Click to update the menu with the instances of the currently frontmost font.")
+		self.w.updateButton.setToolTip("Click to update the menu with the instances of the currently frontmost font.")
 		linePos += lineHeight
 		
 		self.w.addTTReference = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Also add as reference TTF to ttfautohint options", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.addTTReference.getNSButton().setToolTip_("Will write a TTF of the same instance into /Users/Shared/ttf/ and a --reference option to all existing ‘TTF Autohint Options’ parameters in Font Info > Exports.")
+		self.w.addTTReference.setToolTip("Will write a TTF of the same instance into /Users/Shared/ttf/ and a --reference option to all existing ‘TTF Autohint Options’ parameters in Font Info > Exports.")
 
 		# Help Buttons:
 		self.w.helpTutorialPS = vanilla.HelpButton((inset, -20 - inset, 22, 22), callback=self.openURL)
-		self.w.helpTutorialPS.getNSButton().setToolTip_("Will open the glyphsapp.com tutorial about PS Hinting, at the section that explains Family Alignment Zones.")
+		self.w.helpTutorialPS.setToolTip("Will open the glyphsapp.com tutorial about PS Hinting, at the section that explains Family Alignment Zones.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-110 - inset, -20 - inset, -inset, -inset), "Insert FAZ", callback=self.SetFamilyAlignmentZonesMain)

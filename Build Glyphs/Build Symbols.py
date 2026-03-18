@@ -667,40 +667,40 @@ class BuildSymbols(mekkaObject):
 		linePos += lineHeight
 
 		self.w.buildEstimated = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "estimated", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.buildEstimated.getNSButton().setToolTip_("Will build estimated ℮ and scale it to the size of your lining zero, if available.")
+		self.w.buildEstimated.setToolTip("Will build estimated ℮ and scale it to the size of your lining zero, if available.")
 
 		self.w.buildBars = vanilla.CheckBox((inset + column, linePos, -inset, 20), "bar, brokenbar", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.buildBars.getNSButton().setToolTip_("Will model bar | and brokenbar ¦ after your slash /, or if there is no slash, use the master’s stem values for their size.")
+		self.w.buildBars.setToolTip("Will model bar | and brokenbar ¦ after your slash /, or if there is no slash, use the master’s stem values for their size.")
 
 		self.w.buildEmptyset = vanilla.CheckBox((inset + int(column * 2.1), linePos, -inset, 20), "emptyset", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.buildEmptyset.getNSButton().setToolTip_("Will build emptyset. Not yet implemented, sorry.")
+		self.w.buildEmptyset.setToolTip("Will build emptyset. Not yet implemented, sorry.")
 		self.w.buildEmptyset.enable(False)
 
 		self.w.buildDottedcircle = vanilla.CheckBox((inset + column * 3, linePos, -inset, 20), "dottedCircle", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.buildDottedcircle.getNSButton().setToolTip_("Will build dottedCircle ◌.")
+		self.w.buildDottedcircle.setToolTip("Will build dottedCircle ◌.")
 		linePos += lineHeight
 
 		self.w.buildCurrency = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "currency", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.buildCurrency.getNSButton().setToolTip_("Will build currency.")
+		self.w.buildCurrency.setToolTip("Will build currency.")
 
 		self.w.buildLozenge = vanilla.CheckBox((inset + column, linePos, -inset, 20), "lozenge", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.buildLozenge.getNSButton().setToolTip_("Will build lozenge.")
+		self.w.buildLozenge.setToolTip("Will build lozenge.")
 
 		self.w.buildProduct = vanilla.CheckBox((inset + int(column * 2.1), linePos, -inset, 20), "product", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.buildProduct.getNSButton().setToolTip_("Will build product. Not yet implemented, sorry.")
+		self.w.buildProduct.setToolTip("Will build product. Not yet implemented, sorry.")
 		self.w.buildProduct.enable(False)
 		linePos += lineHeight
 
 		self.w.buildSummation = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "summation", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.buildSummation.getNSButton().setToolTip_("Will build summation. Not yet implemented, sorry.")
+		self.w.buildSummation.setToolTip("Will build summation. Not yet implemented, sorry.")
 		self.w.buildSummation.enable(False)
 
 		self.w.buildRadical = vanilla.CheckBox((inset + column, linePos, -inset, 20), "radical", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.buildRadical.getNSButton().setToolTip_("Will build radical. Not yet implemented, sorry.")
+		self.w.buildRadical.setToolTip("Will build radical. Not yet implemented, sorry.")
 		self.w.buildRadical.enable(False)
 
 		self.w.buildNotdef = vanilla.CheckBox((inset + int(column * 2.1), linePos, -inset, 20), ".notdef", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.buildNotdef.getNSButton().setToolTip_("Will build the mandatory .notdef glyph based on the boldest available question mark.")
+		self.w.buildNotdef.setToolTip("Will build the mandatory .notdef glyph based on the boldest available question mark.")
 		linePos += lineHeight
 
 		# ----------- SEPARATOR LINE -----------
@@ -709,15 +709,15 @@ class BuildSymbols(mekkaObject):
 
 		# Other options:
 		self.w.override = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Overwrite existing glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.override.getNSButton().setToolTip_("If checked, will create fresh symbols even if they already exist. If unchecked, will skip glyphs that already exist.")
+		self.w.override.setToolTip("If checked, will create fresh symbols even if they already exist. If unchecked, will skip glyphs that already exist.")
 		self.w.backupLayers = vanilla.CheckBox((inset + 180, linePos, -inset, 20), "Backup existing layers", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.backupLayers.getNSButton().setToolTip_("If checked, will create backup layers when the glyph gets overwritten. Only available in combination with Override option.")
+		self.w.backupLayers.setToolTip("If checked, will create backup layers when the glyph gets overwritten. Only available in combination with Override option.")
 		linePos += lineHeight
 
 		self.w.newTab = vanilla.CheckBox((inset + 2, linePos - 1, 180, 20), "Open tab with new glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.newTab.getNSButton().setToolTip_("If checked, will open a new tab with the newly created symbols.")
+		self.w.newTab.setToolTip("If checked, will open a new tab with the newly created symbols.")
 		self.w.reuseTab = vanilla.CheckBox((inset + 180, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab.getNSButton().setToolTip_("If checked, will reuse the current tab, and open a new tab only if there is no Edit tab open already. Highly recommended.")
+		self.w.reuseTab.setToolTip("If checked, will reuse the current tab, and open a new tab only if there is no Edit tab open already. Highly recommended.")
 		linePos += lineHeight
 
 		# Run Button:

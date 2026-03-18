@@ -67,38 +67,38 @@ class RewireFire(mekkaObject):
 		linePos += lineHeight
 
 		self.w.setFireToNode = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), f"Mark duplicate nodes with fire emoji {self.duplicateMarker}", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.setFireToNode.getNSButton().setToolTip_("Finds different on-curve nodes that share the same coordinates. Emoji will be added as a node name. Node names may disappear after reconnection and path cleanup.")
+		self.w.setFireToNode.setToolTip("Finds different on-curve nodes that share the same coordinates. Emoji will be added as a node name. Node names may disappear after reconnection and path cleanup.")
 		linePos += lineHeight
 
 		self.w.tolerateZeroSegments = vanilla.CheckBox((inset * 2, linePos - 1, -inset * 2, 20), "Tolerate duplicate if it is neighboring node (OTVar)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.tolerateZeroSegments.getNSButton().setToolTip_("If node coordinates within the same segment share the same coordinates, they will not be marked with a fire emoji. Makes sense in variable fonts, where segments need to disappear in a point in one master.")
+		self.w.tolerateZeroSegments.setToolTip("If node coordinates within the same segment share the same coordinates, they will not be marked with a fire emoji. Makes sense in variable fonts, where segments need to disappear in a point in one master.")
 		linePos += lineHeight
 
 		# DISABLED
 		# self.w.markWithCircle = vanilla.CheckBox((inset + 2, linePos-1, -inset, 20), "Circle duplicate coordinates with annotation ⭕️", value=False, callback=self.SavePreferences, sizeStyle='small')
-		# self.w.markWithCircle.getNSButton().setToolTip_("Circle annotations remain after reconnecting the nodes.")
+		# self.w.markWithCircle.setToolTip("Circle annotations remain after reconnecting the nodes.")
 		# linePos += lineHeight
 
 		self.w.dynamiteForOnSegment = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), f"Mark nodes on top of line segments with dynamite emoji {self.onSegmentMarker}", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.dynamiteForOnSegment.getNSButton().setToolTip_("Finds on-curve nodes that are located on line segments between (other) two on-curve nodes. Emoji will be added as a node name. Node names may disappear after reconnection and path cleanup.")
+		self.w.dynamiteForOnSegment.setToolTip("Finds on-curve nodes that are located on line segments between (other) two on-curve nodes. Emoji will be added as a node name. Node names may disappear after reconnection and path cleanup.")
 		linePos += lineHeight
 
 		self.w.shouldSelect = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Select nodes for rewiring on affected glyph layers", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.shouldSelect.getNSButton().setToolTip_("If nodes are found, will reset the layer selection and select only the affected nodes. In the best case, you should be able to right-click, hold down the Opt (Alt) key, and choose Reconnect Nodes on All Masters from the context menu.")
+		self.w.shouldSelect.setToolTip("If nodes are found, will reset the layer selection and select only the affected nodes. In the best case, you should be able to right-click, hold down the Opt (Alt) key, and choose Reconnect Nodes on All Masters from the context menu.")
 		linePos += lineHeight
 
 		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, 200, 20), "Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeNonExporting.getNSButton().setToolTip_("Also check in glyphs that are not set to export. Recommended if you have modular components in the font.")
+		self.w.includeNonExporting.setToolTip("Also check in glyphs that are not set to export. Recommended if you have modular components in the font.")
 		self.w.reuseTab = vanilla.CheckBox((inset + 200, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab.getNSButton().setToolTip_("If enabled, will only open a new tab if there is none open yet. Otherwise will always open a new tab.")
+		self.w.reuseTab.setToolTip("If enabled, will only open a new tab if there is none open yet. Otherwise will always open a new tab.")
 		linePos += lineHeight
 
 		self.w.verbose = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Verbose reporting in Macro Window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.verbose.getNSButton().setToolTip_("If enabled, will report extensively in Window > Macro Panel. Useful for debugging.")
+		self.w.verbose.setToolTip("If enabled, will report extensively in Window > Macro Panel. Useful for debugging.")
 		linePos += lineHeight
 
 		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Work through ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.allFonts.getNSButton().setToolTip_("If enabled, will look in all currently opened fonts.")
+		self.w.allFonts.setToolTip("If enabled, will look in all currently opened fonts.")
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))

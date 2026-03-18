@@ -36,23 +36,23 @@ class RemoveCustomParameters(mekkaObject):
 		linePos, inset, lineHeight = 10, 15, 22
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Remove parameter:", sizeStyle='small', selectable=True)
 		self.w.parameterMenu = vanilla.PopUpButton((inset + 110, linePos, -inset - 22, 17), self.parametersOfCurrentFont(), sizeStyle='small', callback=self.SavePreferences)
-		self.w.parameterMenu.getNSPopUpButton().setToolTip_("Remove this custom parameter from the designated parts of Font Info.")
+		self.w.parameterMenu.setToolTip("Remove this custom parameter from the designated parts of Font Info.")
 		self.w.updateButton = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.updateMenu)
-		self.w.updateButton.getNSButton().setToolTip_("Scans the current font for all its custom parameters and updates the menu to the left.")
+		self.w.updateButton.setToolTip("Scans the current font for all its custom parameters and updates the menu to the left.")
 		linePos += lineHeight
 
 		self.w.removeFromText = vanilla.TextBox((inset, linePos + 3, 100, 14), "From Font Info >", sizeStyle='small', selectable=True)
 		self.w.removeFromFont = vanilla.CheckBox((inset + 95 + 50 * 0, linePos, 100, 20), "Font", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.removeFromFont.getNSButton().setToolTip_("If enabled, will remove the chosen custom parameters from File > Font Info > Font.")
+		self.w.removeFromFont.setToolTip("If enabled, will remove the chosen custom parameters from File > Font Info > Font.")
 		self.w.removeFromMasters = vanilla.CheckBox((inset + 95 + 50, linePos, 100, 20), "Masters", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.removeFromMasters.getNSButton().setToolTip_("If enabled, will remove the chosen custom parameters from File > Font Info > Masters.")
+		self.w.removeFromMasters.setToolTip("If enabled, will remove the chosen custom parameters from File > Font Info > Masters.")
 		self.w.removeFromStyles = vanilla.CheckBox((inset + 95 + 120, linePos, -inset, 20), "Styles" if Glyphs.versionNumber >= 3.0 else "Instances", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.removeFromStyles.getNSButton().setToolTip_("If enabled, will remove the chosen custom parameters from File > Font Info > Styles (Instances in Glyphs 2).")
+		self.w.removeFromStyles.setToolTip("If enabled, will remove the chosen custom parameters from File > Font Info > Styles (Instances in Glyphs 2).")
 		linePos += lineHeight
 
 		self.w.removeInText = vanilla.TextBox((inset, linePos + 3, 62, 14), "Remove in", sizeStyle='small', selectable=True)
 		self.w.removeIn = vanilla.PopUpButton((inset + 62, linePos + 1, 150, 17), ("current font", "⚠️ ALL open fonts"), sizeStyle='small', callback=self.SavePreferences)
-		self.w.removeIn.getNSPopUpButton().setToolTip_("Choose here in which font you want to remove the parameters. Careful with the ‘All open fonts’ choice.")
+		self.w.removeIn.setToolTip("Choose here in which font you want to remove the parameters. Careful with the ‘All open fonts’ choice.")
 		linePos += lineHeight
 
 		# Run Button:

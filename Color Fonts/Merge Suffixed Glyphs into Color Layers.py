@@ -40,7 +40,7 @@ class MergeSuffixedGlyphsIntoColorLayers(mekkaObject):
 		linePos += lineHeight
 
 		self.w.indexToSuffix = vanilla.TextEditor((2, linePos, -2, -110), "# Syntax: CPAL index = glyph name suffix\n# list them in chronological order (bottom-up)\n# use hashtags for comments\n0=.shadow\n2=.body\n1=.front", callback=self.SavePreferences, checksSpelling=False)
-		# self.w.indexToSuffix.getNSTextEditor().setToolTip_("Syntax: colorindex=.suffix, use hashtags for comments. List them in chronological order (bottom-up). Example:\n0=.shadow\n2=.body\n1=.front")
+		# self.w.indexToSuffix.setToolTip("Syntax: colorindex=.suffix, use hashtags for comments. List them in chronological order (bottom-up). Example:\n0=.shadow\n2=.body\n1=.front")
 
 		self.w.indexToSuffix.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.indexToSuffix.getNSScrollView().setHasHorizontalScroller_(1)

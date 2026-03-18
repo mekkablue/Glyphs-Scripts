@@ -42,21 +42,21 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 
 		self.w.text_2 = vanilla.TextBox((inset, line + 3, 200, lineHeight), "Required minimum kern difference:", sizeStyle='small')
 		self.w.threshold = vanilla.EditText((inset + 200, line, -15, 20), "10", sizeStyle='small', callback=self.SavePreferences)
-		self.w.threshold.getNSTextField().setToolTip_("A kern exception must be at least this number of units different from its corresponding group kern pair, otherwise it will be deleted.")
+		self.w.threshold.setToolTip("A kern exception must be at least this number of units different from its corresponding group kern pair, otherwise it will be deleted.")
 		line += lineHeight
 
 		self.w.selectedGlyphsOnly = vanilla.CheckBox((inset + 2, line, -inset, lineHeight), "Only consider pairs where at least one glyph is currently selected", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.selectedGlyphsOnly.getNSButton().setToolTip_("If enabled, respects your current glyph selection. Will only process kern pairs if one or both of the involved glyphs are in your selection.")
+		self.w.selectedGlyphsOnly.setToolTip("If enabled, respects your current glyph selection. Will only process kern pairs if one or both of the involved glyphs are in your selection.")
 		line += lineHeight
 
 		self.w.onlyReportDontDelete = vanilla.CheckBox((inset + 2, line, -inset, lineHeight), "Only report, do not delete pairs yet", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.onlyReportDontDelete.getNSButton().setToolTip_("Opens a new tab with affected pairs, but does not delete any kerning.")
+		self.w.onlyReportDontDelete.setToolTip("Opens a new tab with affected pairs, but does not delete any kerning.")
 		line += lineHeight
 
 		self.w.openTab = vanilla.CheckBox((inset + 2, line, 180, 20), "Open tab with affected pairs", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.openTab.getNSButton().setToolTip_("Opens a new tab for reporting. Otherwise will only write a report in Macro Window.")
+		self.w.openTab.setToolTip("Opens a new tab for reporting. Otherwise will only write a report in Macro Window.")
 		self.w.reuseTab = vanilla.CheckBox((inset + 180, line, -inset, 20), "Reuse current tab if possible", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab.getNSButton().setToolTip_("If a tab is open and active already, will not open a new tab but rather reuse the current tab. Otherwise, will always open a new tab.")
+		self.w.reuseTab.setToolTip("If a tab is open and active already, will not open a new tab but rather reuse the current tab. Otherwise, will always open a new tab.")
 		line += lineHeight
 
 		# Buttons:

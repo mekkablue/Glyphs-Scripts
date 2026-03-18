@@ -29,9 +29,9 @@ class FindInFeatures(mekkaObject):
 		# UI elements:
 		linePos, inset, lineHeight = 3, 5, 28
 		self.w.searchFor = vanilla.ComboBox((4, linePos, -22, 22), self.glyphNamesAndClassNames(), callback=self.FindInFeaturesMain)
-		self.w.searchFor.getNSComboBox().setToolTip_("Type the exact name of a glyph or (prefixed with @) a class, or choose it from the menu.")
+		self.w.searchFor.setToolTip("Type the exact name of a glyph or (prefixed with @) a class, or choose it from the menu.")
 		self.w.updateButton = UpdateButton((-19, linePos, -2, 18), callback=self.update)
-		self.w.updateButton.getNSButton().setToolTip_("Update the autocompletion list for the frontmost font.")
+		self.w.updateButton.setToolTip("Update the autocompletion list for the frontmost font.")
 		linePos += lineHeight
 
 		self.w.result = vanilla.Box((inset, linePos, -inset, -inset))

@@ -39,7 +39,7 @@ class BatchInsertAnchor(mekkaObject):
 		tab = 80
 		self.w.anchorNameText = vanilla.TextBox((inset, linePos, 90, 14), "Anchor Name", sizeStyle='small', selectable=True)
 		self.w.anchorName = vanilla.EditText((inset + tab, linePos - 2, -inset, 19), "_connect", callback=self.SavePreferences, sizeStyle='small')
-		self.w.anchorName.getNSTextField().setToolTip_("Name of the anchor that will be inserted.")
+		self.w.anchorName.setToolTip("Name of the anchor that will be inserted.")
 		linePos += lineHeight
 
 		self.w.xPosText = vanilla.TextBox((inset, linePos, 90, 14), "H Position", sizeStyle='small', selectable=True)
@@ -47,9 +47,9 @@ class BatchInsertAnchor(mekkaObject):
 
 		# vanilla legacy support
 		try:
-			self.w.xPos.getNSPopUpButton().setToolTip_("The x coordinate of the anchor.")
+			self.w.xPos.setToolTip("The x coordinate of the anchor.")
 		except:
-			self.w.xPos.getNSButton().setToolTip_("The x coordinate of the anchor.")
+			self.w.xPos.setToolTip("The x coordinate of the anchor.")
 		linePos += lineHeight
 
 		self.w.yPosText = vanilla.TextBox((inset, linePos + 2, 90, 14), "V Position", sizeStyle='small', selectable=True)
@@ -57,14 +57,14 @@ class BatchInsertAnchor(mekkaObject):
 
 		# vanilla legacy support
 		try:
-			self.w.yPos.getNSPopUpButton().setToolTip_("The y coordinate of the anchor.")
+			self.w.yPos.setToolTip("The y coordinate of the anchor.")
 		except:
-			self.w.yPos.getNSButton().setToolTip_("The y coordinate of the anchor.")
+			self.w.yPos.setToolTip("The y coordinate of the anchor.")
 
 		linePos += lineHeight
 
 		self.w.replaceExisting = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Replace Existing Anchors with Same Name", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.replaceExisting.getNSButton().setToolTip_("If enabled, will delete anchors that have the same name of the one you are adding, before it is added again at the specified spot. If disabled, the script will skip layers that already have an anchor of the same name.")
+		self.w.replaceExisting.setToolTip("If enabled, will delete anchors that have the same name of the one you are adding, before it is added again at the specified spot. If disabled, the script will skip layers that already have an anchor of the same name.")
 		linePos += lineHeight
 
 		# Run Button:

@@ -103,17 +103,17 @@ class MethodReporter(mekkaObject):
 		# Method Picker:
 		self.w.objectPicker = vanilla.ComboBox((3, 2, 133, 24), self.mostImportantObjects, completes=True, continuous=False, callback=self.MethodReporterMain)
 		self.w.objectPicker.set("GSLayer")
-		self.w.objectPicker.getNSComboBox().setToolTip_("Type a class name here. Names will autocomplete.")
+		self.w.objectPicker.setToolTip("Type a class name here. Names will autocomplete.")
 
 		# Filter:
 		self.w.textFilter = vanilla.TextBox((140, 6, 35, 14), "Find:", sizeStyle='small')
 		self.w.filter = vanilla.EditText((173, 1, -1, 24), "", callback=self.MethodReporterMain)
-		self.w.filter.getNSTextField().setToolTip_("Type one or more (space-separated) search terms here. Case is ignored. Use * as wildcard at beginning, middle or end of term. Multiple search terms are AND-concatenated.\n\nIf one of the search terms is ‘_*’, it will display methods that start with underscores. They are otherwise left out to reduce clutter.")
+		self.w.filter.setToolTip("Type one or more (space-separated) search terms here. Case is ignored. Use * as wildcard at beginning, middle or end of term. Multiple search terms are AND-concatenated.\n\nIf one of the search terms is ‘_*’, it will display methods that start with underscores. They are otherwise left out to reduce clutter.")
 
 		# Listing of methods:
 		self.w.methodList = vanilla.List((0, 26, -0, -0), self.methodList("GSLayer"), autohidesScrollers=False, drawVerticalLines=True, doubleClickCallback=self.copySelection, rowHeight=19)
 		self.w.methodList.getNSTableView().tableColumns()[0].setWidth_(501)
-		self.w.methodList.getNSTableView().setToolTip_("Double click an entry to copy it to the clipboard and display its help() in Macro Window.")
+		self.w.methodList.setToolTip("Double click an entry to copy it to the clipboard and display its help() in Macro Window.")
 
 		# Load Settings:
 		self.LoadPreferences()

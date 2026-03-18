@@ -67,16 +67,16 @@ class StraightStemCruncher(mekkaObject):
 
 		self.w.stemsText = vanilla.TextBox((inset, linePos + 3, 80, 14), "Stem Widths", sizeStyle='small', selectable=True)
 		self.w.stems = vanilla.EditText((inset + 74, linePos, -inset - 22, 19), "20, 30, 40", callback=self.SavePreferences, sizeStyle='small')
-		self.w.stems.getNSTextField().setToolTip_("Comma-separated list of stem sizes to look for. If the script finds stems deviating from these sizes, within the given min/max deviations, it will report them.")
+		self.w.stems.setToolTip("Comma-separated list of stem sizes to look for. If the script finds stems deviating from these sizes, within the given min/max deviations, it will report them.")
 		self.w.stemUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
-		self.w.stemUpdate.getNSButton().setToolTip_("Populate the stems with the stems of the current master.")
+		self.w.stemUpdate.setToolTip("Populate the stems with the stems of the current master.")
 		linePos += lineHeight
 
 		self.w.stemFindText = vanilla.TextBox((inset, linePos + 3, 175, 14), "Find deviating stems, min/max", sizeStyle='small', selectable=True)
 		self.w.deviationMin = vanilla.EditText((inset + 167, linePos, 45, 19), "0.4", callback=self.SavePreferences, sizeStyle='small')
-		self.w.deviationMin.getNSTextField().setToolTip_("Deviations up to this value will be tolerated. Half a unit is a good idea to avoid false positives from rounding errors.")
+		self.w.deviationMin.setToolTip("Deviations up to this value will be tolerated. Half a unit is a good idea to avoid false positives from rounding errors.")
 		self.w.deviationMax = vanilla.EditText((inset + 167 + 53, linePos, 45, 19), "3.1", callback=self.SavePreferences, sizeStyle='small')
-		self.w.deviationMax.getNSTextField().setToolTip_("Deviations up to this value will be reported. Do not exaggerate value, otherwise you get false positives from cases where the opposing segment is not the other side of the stem.")
+		self.w.deviationMax.setToolTip("Deviations up to this value will be reported. Do not exaggerate value, otherwise you get false positives from cases where the opposing segment is not the other side of the stem.")
 		linePos += lineHeight
 
 		self.w.minimumSegmentLengthText = vanilla.TextBox((inset, linePos + 2, 145, 14), "Minimum segment length", sizeStyle='small', selectable=True)
@@ -84,7 +84,7 @@ class StraightStemCruncher(mekkaObject):
 		self.w.minimumSegmentLength.getNSTextField(
 		).setToolTip_("Looks for straight-line segments with at least this length and measures from their center to the opposing segment. Half x-height is a good idea.")
 		self.w.segmentLengthUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 19), callback=self.update)
-		self.w.segmentLengthUpdate.getNSButton().setToolTip_("Reset to 40% of x-height.")
+		self.w.segmentLengthUpdate.setToolTip("Reset to 40% of x-height.")
 		linePos += lineHeight
 
 		self.w.checkStemsText = vanilla.TextBox((inset, linePos + 2, 80, 14), "Check stems", sizeStyle='small', selectable=True)
@@ -92,25 +92,25 @@ class StraightStemCruncher(mekkaObject):
 		self.w.checkHStems = vanilla.CheckBox((inset + 80 + 65, linePos - 1, 80, 20), "Horizontal", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.checkDStems = vanilla.CheckBox((inset + 80 + 65 + 80, linePos - 1, -inset, 20), "Diagonal", value=False, callback=self.SavePreferences, sizeStyle='small')
 		checkStemsTooltip = "Choose which stems to measure: any combination of these three options. At least one must be active to run the script."
-		self.w.checkVStems.getNSButton().setToolTip_(checkStemsTooltip)
-		self.w.checkHStems.getNSButton().setToolTip_(checkStemsTooltip)
-		self.w.checkDStems.getNSButton().setToolTip_(checkStemsTooltip)
+		self.w.checkVStems.setToolTip(checkStemsTooltip)
+		self.w.checkHStems.setToolTip(checkStemsTooltip)
+		self.w.checkDStems.setToolTip(checkStemsTooltip)
 		linePos += lineHeight
 
 		self.w.checkSpecialLayers = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Also check bracket layers", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.checkSpecialLayers.getNSButton().setToolTip_("If checked, also measures on bracket ayers. Otherwise only on master layers.")
+		self.w.checkSpecialLayers.setToolTip("If checked, also measures on bracket ayers. Otherwise only on master layers.")
 		linePos += lineHeight
 
 		self.w.selectedGlyphsOnly = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Measure selected glyphs only (otherwise all glyphs in font)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.selectedGlyphsOnly.getNSButton().setToolTip_("Uncheck for measuring complete font.")
+		self.w.selectedGlyphsOnly.setToolTip("Uncheck for measuring complete font.")
 		linePos += lineHeight
 
 		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeNonExporting.getNSButton().setToolTip_("Usually not necessary because the algorithm decomposes and removes overlap first.")
+		self.w.includeNonExporting.setToolTip("Usually not necessary because the algorithm decomposes and removes overlap first.")
 		linePos += lineHeight
 
 		self.w.includeCompounds = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Include components", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeCompounds.getNSButton().setToolTip_("If checked, also measures components (after decomposition and removing overlap). If unchecked, only measures outlines.")
+		self.w.includeCompounds.setToolTip("If checked, also measures components (after decomposition and removing overlap). If unchecked, only measures outlines.")
 		linePos += lineHeight
 
 		self.w.excludeGlyphs = vanilla.CheckBox((inset + 2, linePos, 165, 20), "Exclude glyphs containing", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -118,21 +118,21 @@ class StraightStemCruncher(mekkaObject):
 		self.w.excludeGlyphNames.getNSTextField(
 		).setToolTip_("Comma-separated list of glyph name parts (e.g., suffixes). Glyphs containing these will not be measured if checkbox is enabled.")
 		self.w.excludeGlyphNamesReset = UpdateButton((-inset - 18, linePos - 1, -inset, 19), callback=self.update)
-		self.w.excludeGlyphNamesReset.getNSButton().setToolTip_("Reset to: %s." % self.defaultExcludeList)
+		self.w.excludeGlyphNamesReset.setToolTip("Reset to: %s." % self.defaultExcludeList)
 		linePos += lineHeight
 
 		self.w.markStems = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Mark affected stems with %s annotation" % self.marker, value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.markStems.getNSButton().setToolTip_("If checked, will add a red-plus annotation at the center of the measurement. Will often add two of them because stem will be measured from both sides.\nCAREFUL: May delete existing plus annotations.")
+		self.w.markStems.setToolTip("If checked, will add a red-plus annotation at the center of the measurement. Will often add two of them because stem will be measured from both sides.\nCAREFUL: May delete existing plus annotations.")
 		linePos += lineHeight
 
 		self.w.reportNonMeasurements = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Report layers without measurements", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reportNonMeasurements.getNSButton().setToolTip_("In Macro Window, report if a layer does not have any measurements. Most likely causes: no straight stems in the paths, or wrong path direction.")
+		self.w.reportNonMeasurements.setToolTip("In Macro Window, report if a layer does not have any measurements. Most likely causes: no straight stems in the paths, or wrong path direction.")
 		linePos += lineHeight
 
 		self.w.openTab = vanilla.CheckBox((inset + 2, linePos, 200, 20), "Open tab with affected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.openTab.getNSButton().setToolTip_("If unchecked, will bring macro window with detailed report to front.")
+		self.w.openTab.setToolTip("If unchecked, will bring macro window with detailed report to front.")
 		self.w.reuseTab = vanilla.CheckBox((inset + 190, linePos, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab.getNSButton().setToolTip_(u"If checked, will reuse the active tab if there is one, otherwise will open a new tab. If unchecked, will always open a new tab.")
+		self.w.reuseTab.setToolTip(u"If checked, will reuse the active tab if there is one, otherwise will open a new tab. If unchecked, will always open a new tab.")
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))

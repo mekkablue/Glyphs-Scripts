@@ -53,38 +53,38 @@ class StealKerningGroupsfromFont(mekkaObject):
 		self.w.targetFontText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Target font:", sizeStyle="small", selectable=True)
 		self.w.targetFont = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), (), sizeStyle="small", callback=self.SavePreferences)
 		tooltip = "The font that receives the kerning groups."
-		self.w.targetFont.getNSPopUpButton().setToolTip_(tooltip)
-		self.w.targetFontText.getNSTextField().setToolTip_(tooltip)
+		self.w.targetFont.setToolTip(tooltip)
+		self.w.targetFontText.setToolTip(tooltip)
 		linePos += lineHeight
 
 		self.w.sourceFontText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Source font:", sizeStyle="small", selectable=True)
 		self.w.sourceFont = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), (), sizeStyle="small", callback=self.SavePreferences)
 		tooltip = "The font from which the kerning groups are taken."
-		self.w.sourceFont.getNSPopUpButton().setToolTip_(tooltip)
-		self.w.sourceFontText.getNSTextField().setToolTip_(tooltip)
+		self.w.sourceFont.setToolTip(tooltip)
+		self.w.sourceFontText.setToolTip(tooltip)
 		linePos += lineHeight
 
 		self.w.allGroups = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Copy ⚠️ ALL groups (i.e., ignore selection in source font)", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.allGroups.getNSButton().setToolTip_("If unchecked, will only transfer groups of glyphs selected in source font.")
+		self.w.allGroups.setToolTip("If unchecked, will only transfer groups of glyphs selected in source font.")
 		linePos += lineHeight
 
 		self.w.overwriteExisting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Overwrite existing groups in target font", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.overwriteExisting.getNSButton().setToolTip_("If unchecked, will keep existing groups in the target font, and only set groups when the glyph does not have any yet.")
+		self.w.overwriteExisting.setToolTip("If unchecked, will keep existing groups in the target font, and only set groups when the glyph does not have any yet.")
 		linePos += lineHeight
 
 		self.w.resetGroupsInTarget = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Reset groups in target font before copying", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.resetGroupsInTarget.getNSButton().setToolTip_("Will delete ALL kerning groups in target font prior to transfering the source font’s groups.")
+		self.w.resetGroupsInTarget.setToolTip("Will delete ALL kerning groups in target font prior to transfering the source font’s groups.")
 		linePos += lineHeight
 
 		self.w.verbose = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Verbose reporting in Macro window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.verbose.getNSButton().setToolTip_("Will report progress per glyph in Window > Macro Panel. Useful for debugging.")
+		self.w.verbose.setToolTip("Will report progress per glyph in Window > Macro Panel. Useful for debugging.")
 		linePos += lineHeight
 
 		self.w.status = vanilla.TextBox((inset, -18 - inset, -150 - inset, 14), "", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
 		self.w.updateButton = vanilla.Button((-150 - inset, -20 - inset, -80 - inset, -inset), "Update", callback=self.updateUI)
-		self.w.updateButton.getNSButton().setToolTip_("Will update all the menus and buttons of this window. Click here if you opened or closed a font since you invoked the script, or after you changed the source font.")
+		self.w.updateButton.setToolTip("Will update all the menus and buttons of this window. Click here if you opened or closed a font since you invoked the script, or after you changed the source font.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "Steal", callback=self.StealKerningGroupsfromFontMain)

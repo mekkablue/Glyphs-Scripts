@@ -35,32 +35,32 @@ class AutoAlignmentManager(mekkaObject):
 		linePos += lineHeight
 
 		self.w.includeAllGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Apply to ALL glyphs in font, i.e., ignore glyph selection", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.includeAllGlyphs.getNSButton().setToolTip_("No matter what your glyph selection is, will enable/disable component alignment for ALL glyphs in the font.")
+		self.w.includeAllGlyphs.setToolTip("No matter what your glyph selection is, will enable/disable component alignment for ALL glyphs in the font.")
 		linePos += lineHeight
 
 		self.w.includeAllLayers = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include all masters and special layers (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.includeAllLayers.getNSButton().setToolTip_("If enabled, will enable/disable automatic alignment not only for the currently selected masters/layers, but for ALL master layers, brace layers and bracket layers of selected glyphs. Will still ignore backup layers (the ones with a timestamp in their names).")
+		self.w.includeAllLayers.setToolTip("If enabled, will enable/disable automatic alignment not only for the currently selected masters/layers, but for ALL master layers, brace layers and bracket layers of selected glyphs. Will still ignore backup layers (the ones with a timestamp in their names).")
 		linePos += lineHeight
 
 		self.w.differentiationText = vanilla.TextBox((inset, linePos + 2, 75, 14), "Differentiate:", sizeStyle="small", selectable=True)
 		self.w.differentiation = vanilla.PopUpButton((inset + 75, linePos, -inset, 17), ("Treat all components equally", "Ignore first component", "Only apply to first component"), sizeStyle="small", callback=self.SavePreferences)
-		self.w.differentiation.getNSPopUpButton().setToolTip_("You can choose to exclude the first component (usually the base letter) from toggling auto-alignment. This can be useful if you want to keep the diacritic marks aligned to the base, but still move the base. Or if you want to keep the base letter aligned, and place the marks freely.")
+		self.w.differentiation.setToolTip("You can choose to exclude the first component (usually the base letter) from toggling auto-alignment. This can be useful if you want to keep the diacritic marks aligned to the base, but still move the base. Or if you want to keep the base letter aligned, and place the marks freely.")
 		linePos += lineHeight
 
 		self.w.alignVertical = vanilla.SquareButton((inset, linePos, 20, 18), "↕", sizeStyle="small", callback=self.AutoAlignmentManagerMain)
-		self.w.alignVertical.getNSButton().setToolTip_("Vertical align: aligns the component, but makes it shiftable in the italic angle.")
+		self.w.alignVertical.setToolTip("Vertical align: aligns the component, but makes it shiftable in the italic angle.")
 		self.w.alignFull = vanilla.SquareButton((inset + 25, linePos, 20, 18), "☯", sizeStyle="small", callback=self.AutoAlignmentManagerMain)
-		self.w.alignFull.getNSButton().setToolTip_("Full align: aligns the component according to base glyph position and/or anchors.")
+		self.w.alignFull.setToolTip("Full align: aligns the component according to base glyph position and/or anchors.")
 		self.w.alignmentTypeText = vanilla.TextBox((inset + 50, linePos + 2, -inset, 14), "Quick change for selected components: alignment type", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
 		# Run Button:
 		self.w.enableButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "✅ Enable", callback=self.AutoAlignmentManagerMain)
-		self.w.enableButton.getNSButton().setToolTip_("Enables automatic alignment with the current span and settings.")
+		self.w.enableButton.setToolTip("Enables automatic alignment with the current span and settings.")
 		self.w.disableButton = vanilla.Button((-190 - inset, -20 - inset, -100 - inset, -inset), "🚫 Disable", callback=self.AutoAlignmentManagerMain)
-		self.w.disableButton.getNSButton().setToolTip_("Disables automatic alignment with the current span and settings.")
+		self.w.disableButton.setToolTip("Disables automatic alignment with the current span and settings.")
 		self.w.rotateButton = vanilla.Button((-290 - inset, -20 - inset, -200 - inset, -inset), "🔄 Rotate", callback=self.rotateComponents)
-		self.w.rotateButton.getNSButton().setToolTip_("Moves the last component into first place. Useful if you quickly want to fix component order without leaving he script UI.")
+		self.w.rotateButton.setToolTip("Moves the last component into first place. Useful if you quickly want to fix component order without leaving he script UI.")
 
 		# Load Settings:
 		self.LoadPreferences()

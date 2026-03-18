@@ -57,19 +57,19 @@ class GreenBlueManager(mekkaObject):
 		linePos += lineHeight
 
 		self.w.fixGreenBlue = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Fix green vs. blue connection for on-curves", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.fixGreenBlue.getNSButton().setToolTip_("Sets the green/blue state of an on-curve node according to the connection angle. Any connection below the threshold angle will be green, otherwise blue. Deselect both Fix and Realign options for a new tab with all glyphs that have nodes with wrong connections according to the threshold angle.")
+		self.w.fixGreenBlue.setToolTip("Sets the green/blue state of an on-curve node according to the connection angle. Any connection below the threshold angle will be green, otherwise blue. Deselect both Fix and Realign options for a new tab with all glyphs that have nodes with wrong connections according to the threshold angle.")
 		linePos += lineHeight
 
 		self.w.realignHandles = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Realign handles attached to green nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.realignHandles.getNSButton().setToolTip_("If a BCP (grey handle) follows a green node, it will be aligned to the previous two points. Deselect both Fix and Realign options for a new tab with all glyphs that have nodes with wrong connections according to the threshold angle.")
+		self.w.realignHandles.setToolTip("If a BCP (grey handle) follows a green node, it will be aligned to the previous two points. Deselect both Fix and Realign options for a new tab with all glyphs that have nodes with wrong connections according to the threshold angle.")
 		linePos += lineHeight
 
 		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Process ⚠️ ALL masters of selected glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.allMasters.getNSButton().setToolTip_("If checked, will go through all master layers and special layers of selected glyphs. If unchecked, will only process the currently visible layer.")
+		self.w.allMasters.setToolTip("If checked, will go through all master layers and special layers of selected glyphs. If unchecked, will only process the currently visible layer.")
 		linePos += lineHeight
 
 		self.w.completeFont = vanilla.CheckBox((inset + 2, linePos - 1, 155, 20), "Process ⚠️ ALL glyphs in", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.completeFont.getNSButton().setToolTip_("If checked, will go through all active (i.e., master, brace and bracket) layers of all glyphs. If unchecked, will only go through selected layers. Careful: can take a minute.")
+		self.w.completeFont.setToolTip("If checked, will go through all active (i.e., master, brace and bracket) layers of all glyphs. If unchecked, will only go through selected layers. Careful: can take a minute.")
 		self.w.scope = vanilla.PopUpButton((inset + 155, linePos, -inset, 17), ("frontmost font", "⚠️ ALL open fonts"), sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 
@@ -79,14 +79,14 @@ class GreenBlueManager(mekkaObject):
 
 		self.w.reportInMacroWindow = vanilla.CheckBox((inset + 2, linePos - 1, 160, 20), "Report in Macro window", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reportInMacroWindowVerbose = vanilla.CheckBox((inset + 160, linePos - 1, -inset, 20), "Verbose", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reportInMacroWindow.getNSButton().setToolTip_("If enabled, will output a report in Window > Macro Panel.")
-		self.w.reportInMacroWindowVerbose.getNSButton().setToolTip_("If enabled, will output a verbose (detailed) report in Window > Macro Panel.")
+		self.w.reportInMacroWindow.setToolTip("If enabled, will output a report in Window > Macro Panel.")
+		self.w.reportInMacroWindowVerbose.setToolTip("If enabled, will output a verbose (detailed) report in Window > Macro Panel.")
 		linePos += lineHeight
 
 		self.w.shouldMark = vanilla.CheckBox((inset + 2, linePos - 1, 160, 20), "Mark affected nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.shouldMark.getNSButton().setToolTip_("If enabled, will mark (intended) node type changes as follows: 💚=SMOOTH 🔷=CORNER.")
+		self.w.shouldMark.setToolTip("If enabled, will mark (intended) node type changes as follows: 💚=SMOOTH 🔷=CORNER.")
 		self.w.reuseTab = vanilla.CheckBox((inset + 160, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab.getNSButton().setToolTip_("If enabled, will use the current tab for output, and only open a new tab if there is none open.")
+		self.w.reuseTab.setToolTip("If enabled, will use the current tab for output, and only open a new tab if there is none open.")
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))

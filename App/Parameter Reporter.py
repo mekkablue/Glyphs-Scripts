@@ -46,12 +46,12 @@ class ParameterReporter(mekkaObject):
 
 		# Filter:
 		self.w.filter = vanilla.EditText((1, 1, -1, 22), "", callback=self.ParameterReporterMain)
-		self.w.filter.getNSTextField().setToolTip_("Type one or more search terms here. Use * as wildcard.")
+		self.w.filter.setToolTip("Type one or more search terms here. Use * as wildcard.")
 
 		# Listing of Parameters:
 		self.w.ParameterList = vanilla.List((0, 24, -0, -0), dir(GSLayer), autohidesScrollers=False, drawVerticalLines=True, doubleClickCallback=self.copySelection, rowHeight=19)
 		self.w.ParameterList.getNSTableView().tableColumns()[0].setWidth_(501)
-		self.w.ParameterList.getNSTableView().setToolTip_("Double click an entry to copy the respective parameter into the clipboard.")
+		self.w.ParameterList.setToolTip("Double click an entry to copy the respective parameter into the clipboard.")
 
 		# Load Settings:
 		self.LoadPreferences()

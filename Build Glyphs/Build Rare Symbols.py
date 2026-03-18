@@ -380,33 +380,33 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 		linePos += lineHeight
 
 		self.w.whiteTriangles = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "White Triangles △▷▽◁", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.whiteTriangles.getNSButton().setToolTip_("Will create upWhiteTriangle, rightWhiteTriangle, downWhiteTriangle, leftWhiteTriangle.")
+		self.w.whiteTriangles.setToolTip("Will create upWhiteTriangle, rightWhiteTriangle, downWhiteTriangle, leftWhiteTriangle.")
 		self.w.blackTriangles = vanilla.CheckBox((inset + column, linePos - 1, -inset, 20), "Black Triangles ▲▶▼◀", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.blackTriangles.getNSButton().setToolTip_("Will create upBlackTriangle, rightBlackTriangle, downBlackTriangle, leftBlackTriangle.")
+		self.w.blackTriangles.setToolTip("Will create upBlackTriangle, rightBlackTriangle, downBlackTriangle, leftBlackTriangle.")
 		linePos += lineHeight
 
 		self.w.blackArrowheads = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Black Arrowheads", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.blackArrowheads.getNSButton().setToolTip_("Will create blackUpEquilateralArrowhead, blackRightEquilateralArrowhead, blackDownEquilateralArrowhead, blackLeftEquilateralArrowhead.")
+		self.w.blackArrowheads.setToolTip("Will create blackUpEquilateralArrowhead, blackRightEquilateralArrowhead, blackDownEquilateralArrowhead, blackLeftEquilateralArrowhead.")
 		self.w.black3DArrowheads = vanilla.CheckBox((inset + column, linePos - 1, -inset, 20), "Black 3D Arrowheads", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.black3DArrowheads.getNSButton().setToolTip_("Will create threeDRightLightedUpEquilateralArrowhead, threeDTopLightedRightEquilateralArrowhead, threeDLeftLightedDownEquilateralArrowhead, threeDTopLightedLeftEquilateralArrowhead.")
+		self.w.black3DArrowheads.setToolTip("Will create threeDRightLightedUpEquilateralArrowhead, threeDTopLightedRightEquilateralArrowhead, threeDLeftLightedDownEquilateralArrowhead, threeDTopLightedLeftEquilateralArrowhead.")
 		linePos += lineHeight
 
 		self.w.whiteShapes = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "White Shapes ○◇□", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.whiteShapes.getNSButton().setToolTip_("Will create whiteCircle, whiteDiamond, whiteSquare.")
+		self.w.whiteShapes.setToolTip("Will create whiteCircle, whiteDiamond, whiteSquare.")
 		self.w.blackShapes = vanilla.CheckBox((inset + column, linePos - 1, -inset, 20), "Black Shapes ●◆■", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.blackShapes.getNSButton().setToolTip_("Will create blackCircle, blackDiamond, blackSquare.")
+		self.w.blackShapes.setToolTip("Will create blackCircle, blackDiamond, blackSquare.")
 		linePos += lineHeight
 
 		self.w.whiteLargeSquare = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "White Large Square ⬜", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.whiteLargeSquare.getNSButton().setToolTip_("Will create whiteLargeSquare.")
+		self.w.whiteLargeSquare.setToolTip("Will create whiteLargeSquare.")
 		self.w.blackLargeSquare = vanilla.CheckBox((inset + column, linePos - 1, -inset, 20), "Black Large Square ⬛", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.blackLargeSquare.getNSButton().setToolTip_("Will create blackLargeSquare.")
+		self.w.blackLargeSquare.setToolTip("Will create blackLargeSquare.")
 		linePos += lineHeight
 
 		self.w.propellor = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Cmd Opt Shift ⌘⌥⇧", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.propellor.getNSButton().setToolTip_("Will create propellor, optionKey, upWhiteArrow.")
+		self.w.propellor.setToolTip("Will create propellor, optionKey, upWhiteArrow.")
 		self.w.viewdataSquare = vanilla.CheckBox((inset + column, linePos - 1, -inset, 20), "Viewdata Square ⌗", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.viewdataSquare.getNSButton().setToolTip_("Will create viewdataSquare.")
+		self.w.viewdataSquare.setToolTip("Will create viewdataSquare.")
 		linePos += lineHeight
 
 		self.w.line = vanilla.HorizontalLine((inset, linePos + 2, -inset, 1))
@@ -415,39 +415,39 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 		self.w.strokeText = vanilla.TextBox((inset, linePos + 2, 80, 14), "Stroke width:", sizeStyle='small', selectable=True)
 		self.w.stroke = vanilla.EditText((inset + 80, linePos - 1, 70, 19), "50", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Uniform stroke width for icons. Does not apply to filled (‘black’) shapes."
-		self.w.strokeText.getNSTextField().setToolTip_(tooltip)
-		self.w.stroke.getNSTextField().setToolTip_(tooltip)
+		self.w.strokeText.setToolTip(tooltip)
+		self.w.stroke.setToolTip(tooltip)
 		self.w.heightText = vanilla.TextBox((inset + column, linePos + 2, 85, 14), "Symbol size:", sizeStyle='small', selectable=True)
 		self.w.height = vanilla.EditText((inset + column + 85, linePos - 1, -inset, 19), "700", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Reference height for symbols. Each symbol has an individual scale factor. This reference height times the symbol’s scale factor will yield the actual size of each symbol."
-		self.w.heightText.getNSTextField().setToolTip_(tooltip)
-		self.w.height.getNSTextField().setToolTip_(tooltip)
+		self.w.heightText.setToolTip(tooltip)
+		self.w.height.setToolTip(tooltip)
 		linePos += lineHeight
 
 		self.w.sidebearingText = vanilla.TextBox((inset, linePos + 2, 80, 14), "Sidebearings:", sizeStyle='small', selectable=True)
 		self.w.sidebearing = vanilla.EditText((inset + 80, linePos - 1, 70, 19), "50", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Will be used for both LSB and RSB, effectively centering the shape in its width. Unless the Disrespect Italic Angle option is used, will insert it as metrics keys (e.g., LSB ‘=60’, RSB ‘=|’) for the glyph."
-		self.w.sidebearingText.getNSTextField().setToolTip_(tooltip)
-		self.w.sidebearing.getNSTextField().setToolTip_(tooltip)
+		self.w.sidebearingText.setToolTip(tooltip)
+		self.w.sidebearing.setToolTip(tooltip)
 		self.w.belowBaseText = vanilla.TextBox((inset + column, linePos + 2, 85, 14), "% below base:", sizeStyle='small', selectable=True)
 		self.w.belowBase = vanilla.EditText((inset + column + 85, linePos - 1, -inset, 19), "10", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Determines the vertical position. This percentage of the symbol size will be below, the rest above the baseline."
-		self.w.belowBaseText.getNSTextField().setToolTip_(tooltip)
-		self.w.belowBase.getNSTextField().setToolTip_(tooltip)
+		self.w.belowBaseText.setToolTip(tooltip)
+		self.w.belowBase.setToolTip(tooltip)
 		linePos += lineHeight
 
 		self.w.disrespectItalicAngle = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Sidebearings disrespect italic angle (useful for italics)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.disrespectItalicAngle.getNSButton().setToolTip_("If activated, will not set sidebearing metrics keys if there is an italic angle other than zero. If the italic angle is zero, will set (and update) layer-specific metrics keys (with double equals sign ==). Highly recommended if you want the symbols to have the same widths in upright and italic.")
+		self.w.disrespectItalicAngle.setToolTip("If activated, will not set sidebearing metrics keys if there is an italic angle other than zero. If the italic angle is zero, will set (and update) layer-specific metrics keys (with double equals sign ==). Highly recommended if you want the symbols to have the same widths in upright and italic.")
 		linePos += lineHeight
 
 		self.w.overwriteExistingGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Overwrite existing glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.overwriteExistingGlyphs.getNSButton().setToolTip_("If set, will simply replace the symbol glyphs that already exist. Careful with this option if you made any manual changes you want to keep.")
+		self.w.overwriteExistingGlyphs.setToolTip("If set, will simply replace the symbol glyphs that already exist. Careful with this option if you made any manual changes you want to keep.")
 		linePos += lineHeight
 
 		self.w.openTab = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Open tab with new glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.openTab.getNSButton().setToolTip_("If set, will open a new Edit tab containing all the glyphs for which a checkbox is set further above.")
+		self.w.openTab.setToolTip("If set, will open a new Edit tab containing all the glyphs for which a checkbox is set further above.")
 		self.w.reuseTab = vanilla.CheckBox((inset + column, linePos - 1, -inset, 20), "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab.getNSButton().setToolTip_("If set, will reuse the frontmost Edit tab, rather than open a new one. Only opens a new tab if no Edit tab is active.")
+		self.w.reuseTab.setToolTip("If set, will reuse the frontmost Edit tab, rather than open a new one. Only opens a new tab if no Edit tab is active.")
 		linePos += lineHeight
 
 		# Run Button:
@@ -456,9 +456,9 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 
 		# (un)check all checkboxes:
 		self.w.checkAllButton = vanilla.Button((-180 - inset, -20 - inset, -90 - inset, -inset), "Check All", callback=self.checkOrUncheckAll)
-		self.w.checkAllButton.getNSButton().setToolTip_("Activates all checkboxes above the separator line.")
+		self.w.checkAllButton.setToolTip("Activates all checkboxes above the separator line.")
 		self.w.uncheckAllButton = vanilla.Button((-300 - inset, -20 - inset, -190 - inset, -inset), "Uncheck All", callback=self.checkOrUncheckAll)
-		self.w.uncheckAllButton.getNSButton().setToolTip_("Deactivates all checkboxes above the separator line.")
+		self.w.uncheckAllButton.setToolTip("Deactivates all checkboxes above the separator line.")
 
 		# Load Settings:
 		self.LoadPreferences()

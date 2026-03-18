@@ -94,40 +94,40 @@ class BatchImportMasters(mekkaObject):
 		self.w.targetFontText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Target font:", sizeStyle="small", selectable=True)
 		self.w.targetFont = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), (), sizeStyle="small", callback=self.SavePreferences)
 		tooltip = "The font that receives the Import Master parameters."
-		self.w.targetFont.getNSPopUpButton().setToolTip_(tooltip)
-		self.w.targetFontText.getNSTextField().setToolTip_(tooltip)
+		self.w.targetFont.setToolTip(tooltip)
+		self.w.targetFontText.setToolTip(tooltip)
 		linePos += lineHeight
 
 		self.w.sourceFontText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Source font:", sizeStyle="small", selectable=True)
 		self.w.sourceFont = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), (), sizeStyle="small", callback=self.SavePreferences)
 		tooltip = "The font the custom parameters refer to."
-		self.w.sourceFont.getNSPopUpButton().setToolTip_(tooltip)
-		self.w.sourceFontText.getNSTextField().setToolTip_(tooltip)
+		self.w.sourceFont.setToolTip(tooltip)
+		self.w.sourceFontText.setToolTip(tooltip)
 		linePos += lineHeight
 
 		indent = 195
 		self.w.searchForText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Source master name must contain:", sizeStyle="small", selectable=True)
 		self.w.searchFor = vanilla.ComboBox((inset + indent, linePos - 1, -inset, 19), (masterNameParticlesForFont(self.currentFonts[0]) if self.currentFonts else ()), sizeStyle="small", callback=self.SavePreferences)
 		tooltip = "If set, will only import masters that contain this name particle. Leave empty to import all masters of the source font."
-		self.w.searchFor.getNSComboBox().setToolTip_(tooltip)
-		self.w.searchForText.getNSTextField().setToolTip_(tooltip)
+		self.w.searchFor.setToolTip(tooltip)
+		self.w.searchForText.setToolTip(tooltip)
 		linePos += lineHeight
 
 		self.w.useRelativePath = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Use relative font path in parameter values", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.useRelativePath.getNSButton().setToolTip_("If set, will add a relative path rather than an absolute path. Better for git repos.")
+		self.w.useRelativePath.setToolTip("If set, will add a relative path rather than an absolute path. Better for git repos.")
 		linePos += lineHeight
 
 		self.w.resetParameters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete all existing Import Master parameters in target font", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.resetParameters.getNSButton().setToolTip_("If set, will first clean out all existing ‘Import Master’ parameters, so the font will only have the ‘Import Master’ parameters you add.")
+		self.w.resetParameters.setToolTip("If set, will first clean out all existing ‘Import Master’ parameters, so the font will only have the ‘Import Master’ parameters you add.")
 		linePos += lineHeight
 
 		self.w.suppressMessage = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Suppress confirmation dialog", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.suppressMessage.getNSButton().setToolTip_("After you add the masters, there is a success dialog confirming the import. If it gets on your nerves, check this checkbox.")
+		self.w.suppressMessage.setToolTip("After you add the masters, there is a success dialog confirming the import. If it gets on your nerves, check this checkbox.")
 		linePos += lineHeight
 
 		# Update Button:
 		self.w.updateButton = vanilla.Button((inset, -20 - inset, 100, -inset), "Update", callback=self.UpdateUI)
-		self.w.updateButton.getNSButton().setToolTip_("Will update all the menus and buttons of this window. Click here if you opened or closed a font since you invoked the script, or after you changed the source font.")
+		self.w.updateButton.setToolTip("Will update all the menus and buttons of this window. Click here if you opened or closed a font since you invoked the script, or after you changed the source font.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Import", callback=self.BatchImportMastersMain)

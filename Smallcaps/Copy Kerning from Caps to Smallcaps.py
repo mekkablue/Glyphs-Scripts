@@ -152,7 +152,7 @@ class CopyKerningFromCapsToSmallcaps(mekkaObject):
 		# linePos += lineHeight
 
 		self.w.includeNonLetters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include smallcap non-letters (otherwise only from caps)", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeNonLetters.getNSButton().setToolTip_("Includes smallcap figures, punctuation, etc. E.g. copies kerning for parenright if there is  parenright.sc.")
+		self.w.includeNonLetters.setToolTip("Includes smallcap figures, punctuation, etc. E.g. copies kerning for parenright if there is  parenright.sc.")
 		linePos += lineHeight
 
 		self.w.figureSuffixText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Figure suffix", sizeStyle='small')

@@ -50,17 +50,17 @@ class StyleRenamer(mekkaObject):
 		self.w.subtractOrAdd = vanilla.PopUpButton((inset, linePos, 160, 17), menuOptions, sizeStyle='small', callback=self.savePrefsAndUpdatePreview)
 		self.w.subtractOrAddText = vanilla.TextBox((inset + 164, linePos + 2, -inset, 14), "all instance names", sizeStyle='small', selectable=True)
 		tooltipText = "Choose here if you want to add the chosen particle name to all styles, or remove it from them."
-		self.w.subtractOrAdd.getNSPopUpButton().setToolTip_(tooltipText)
-		self.w.subtractOrAddText.getNSTextField().setToolTip_(tooltipText)
+		self.w.subtractOrAdd.setToolTip(tooltipText)
+		self.w.subtractOrAddText.setToolTip(tooltipText)
 		linePos += lineHeight
 
 		self.w.particleText = vanilla.TextBox((inset, linePos + 3, column, 14), "Particle", sizeStyle='small', selectable=True)
 		self.w.particle = vanilla.EditText((inset + column, linePos, -inset - 22, 19), particleDefault, callback=self.savePrefsAndUpdatePreview, sizeStyle='small')
 		tooltipText = "This is the name part you want to add to the name, or erase from it. Typically something like ‘%s’." % particleDefault
-		self.w.particleText.getNSTextField().setToolTip_(tooltipText)
-		self.w.particle.getNSTextField().setToolTip_(tooltipText)
+		self.w.particleText.setToolTip(tooltipText)
+		self.w.particle.setToolTip(tooltipText)
 		self.w.particleUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
-		self.w.particleUpdate.getNSButton().setToolTip_("Will reset the name particle to ‘%s’." % particleDefault)
+		self.w.particleUpdate.setToolTip("Will reset the name particle to ‘%s’." % particleDefault)
 		linePos += lineHeight
 
 		self.w.elidablePartText = vanilla.TextBox((inset, linePos + 3, column, 14), "Elidable", sizeStyle='small', selectable=True)
@@ -68,14 +68,14 @@ class StyleRenamer(mekkaObject):
 		tooltipText = "Typically something like ‘%s’. This is the stub name part that will be the name of the style if it would be otherwise empty, e.g., remove the word ‘%s’ from the style ‘%s’, and the style name would be empty, so the elidable name kicks in, and the style is ‘%s’.\nOr, the other way around, the part of the name that gets deleted from the name, as soon as you add any particle to it. E.g., you add ‘%s’ to ‘%s’, and instead of calling it ‘%s %s’, it will be simply ‘%s’." % (
 			elidablePartDefault, particleDefault, particleDefault, elidablePartDefault, particleDefault, elidablePartDefault, elidablePartDefault, particleDefault, particleDefault
 		)
-		self.w.elidablePartText.getNSTextField().setToolTip_(tooltipText)
-		self.w.elidablePart.getNSTextField().setToolTip_(tooltipText)
+		self.w.elidablePartText.setToolTip(tooltipText)
+		self.w.elidablePart.setToolTip(tooltipText)
 		self.w.elidablePartUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
-		self.w.elidablePartUpdate.getNSButton().setToolTip_("Will reset the elidable part of style name to ‘%s’." % elidablePartDefault)
+		self.w.elidablePartUpdate.setToolTip("Will reset the elidable part of style name to ‘%s’." % elidablePartDefault)
 		linePos += lineHeight
 
 		self.w.includeInactiveInstances = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include inactive instances", value=False, callback=self.savePrefsAndUpdatePreview, sizeStyle='small')
-		self.w.includeInactiveInstances.getNSButton().setToolTip_("If turned, will add/remove the particle to/from all instances, rather than just the active ones.")
+		self.w.includeInactiveInstances.setToolTip("If turned, will add/remove the particle to/from all instances, rather than just the active ones.")
 		linePos += lineHeight
 
 		self.w.preview = vanilla.Box((inset, linePos, -inset, -30 - inset))

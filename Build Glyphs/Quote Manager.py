@@ -97,33 +97,33 @@ class QuoteManager(mekkaObject):
 		self.w.doLeftGuillemets = vanilla.CheckBox(
 			(inset, linePos, 165, 20), "Left guillemets", value=True, callback=self.SavePreferences, sizeStyle="small"
 		)
-		self.w.doLeftGuillemets.getNSButton().setToolTip_("Create or update guilsinglleft, guillemetleft (‹ «)")
+		self.w.doLeftGuillemets.setToolTip("Create or update guilsinglleft, guillemetleft (‹ «)")
 		self.w.doLeftQuotes = vanilla.CheckBox(
 			(col2, linePos, -inset, 20), "Left quotes", value=True, callback=self.SavePreferences, sizeStyle="small"
 		)
-		self.w.doLeftQuotes.getNSButton().setToolTip_("Create or update quoteleft, quotedblleft (\u2018 \u201c)")
+		self.w.doLeftQuotes.setToolTip("Create or update quoteleft, quotedblleft (\u2018 \u201c)")
 		linePos += lineHeight
 
 		# Row 2: Right guillemets | Right quotes
 		self.w.doRightGuillemets = vanilla.CheckBox(
 			(inset, linePos, 165, 20), "Right guillemets", value=True, callback=self.SavePreferences, sizeStyle="small"
 		)
-		self.w.doRightGuillemets.getNSButton().setToolTip_("Create or update guilsinglright, guillemetright (› »)")
+		self.w.doRightGuillemets.setToolTip("Create or update guilsinglright, guillemetright (› »)")
 		self.w.doRightQuotes = vanilla.CheckBox(
 			(col2, linePos, -inset, 20), "Right quotes", value=True, callback=self.SavePreferences, sizeStyle="small"
 		)
-		self.w.doRightQuotes.getNSButton().setToolTip_("Create or update quoteright, quotedblright (\u2019 \u201d)")
+		self.w.doRightQuotes.setToolTip("Create or update quoteright, quotedblright (\u2019 \u201d)")
 		linePos += lineHeight
 
 		# Row 3: Dumb quotes | Apostrophe
 		self.w.doDumbQuotes = vanilla.CheckBox(
 			(inset, linePos, 165, 20), "Dumb quotes", value=True, callback=self.SavePreferences, sizeStyle="small"
 		)
-		self.w.doDumbQuotes.getNSButton().setToolTip_("Create or update quotesingle, quotedbl (' \")")
+		self.w.doDumbQuotes.setToolTip("Create or update quotesingle, quotedbl (' \")")
 		self.w.doApostrophes = vanilla.CheckBox(
 			(col2, linePos, -inset, 20), "Apostrophe", value=True, callback=self.SavePreferences, sizeStyle="small"
 		)
-		self.w.doApostrophes.getNSButton().setToolTip_(
+		self.w.doApostrophes.setToolTip(
 			"Create or update apostrophemod, commareversedmod, commaturnedmod (ʼ ʽ ʻ)"
 		)
 		linePos += lineHeight
@@ -132,11 +132,11 @@ class QuoteManager(mekkaObject):
 		self.w.doBaseQuotes = vanilla.CheckBox(
 			(inset, linePos, 165, 20), "Base quotes", value=True, callback=self.SavePreferences, sizeStyle="small"
 		)
-		self.w.doBaseQuotes.getNSButton().setToolTip_("Create or update quotesinglbase, quotedblbase (‚ „)")
+		self.w.doBaseQuotes.setToolTip("Create or update quotesinglbase, quotedblbase (‚ „)")
 		self.w.doReversedQuotes = vanilla.CheckBox(
 			(col2, linePos, -inset, 20), "Reversed quotes", value=True, callback=self.SavePreferences, sizeStyle="small"
 		)
-		self.w.doReversedQuotes.getNSButton().setToolTip_(
+		self.w.doReversedQuotes.setToolTip(
 			"Create or update quotereversed, quotedblrightreversed (‛ ‟)"
 		)
 		linePos += 12  # tighter gap before divider
@@ -147,7 +147,7 @@ class QuoteManager(mekkaObject):
 		self.w.useQuoteDefault = vanilla.CheckBox(
 			(inset, linePos, 140, 20), "Quotes based on", value=True, callback=self.SavePreferences, sizeStyle="small"
 		)
-		self.w.useQuoteDefault.getNSButton().setToolTip_(
+		self.w.useQuoteDefault.setToolTip(
 			"Use a specific single quote as the reference for metrics keys, anchor positions, and path building."
 		)
 		self.w.defaultQuote = vanilla.PopUpButton(
@@ -156,7 +156,7 @@ class QuoteManager(mekkaObject):
 			callback=self.SavePreferences,
 			sizeStyle="small",
 		)
-		self.w.defaultQuote.getNSPopUpButton().setToolTip_(
+		self.w.defaultQuote.setToolTip(
 			"The single quote all other quotes are derived from. Draw this glyph first, then click Build."
 		)
 		linePos += lineHeight
@@ -168,7 +168,7 @@ class QuoteManager(mekkaObject):
 			callback=self.SavePreferences,
 			sizeStyle="small",
 		)
-		self.w.useGuillemetsDefault.getNSButton().setToolTip_(
+		self.w.useGuillemetsDefault.setToolTip(
 			"Use a specific guillemet as the reference for guillemet metrics keys, anchor positions, and path building."
 		)
 		self.w.defaultGuillemet = vanilla.PopUpButton(
@@ -177,7 +177,7 @@ class QuoteManager(mekkaObject):
 			callback=self.SavePreferences,
 			sizeStyle="small",
 		)
-		self.w.defaultGuillemet.getNSPopUpButton().setToolTip_(
+		self.w.defaultGuillemet.setToolTip(
 			"The single guillemet all other guillemets are derived from. The other guillemet will be a mirrored composite."
 		)
 		linePos += lineHeight
@@ -189,7 +189,7 @@ class QuoteManager(mekkaObject):
 			callback=self.SavePreferences,
 			sizeStyle="small",
 		)
-		self.w.preserveExisting.getNSButton().setToolTip_(
+		self.w.preserveExisting.setToolTip(
 			"When on, only empty layers are filled. When off, all quotes are rebuilt from scratch based on the default single quote/guillemet."
 		)
 		linePos += lineHeight
@@ -201,13 +201,13 @@ class QuoteManager(mekkaObject):
 			callback=self.SavePreferences,
 			sizeStyle="small",
 		)
-		self.w.backupInBackground.getNSButton().setToolTip_("Decomposed copy of the current quotes")
+		self.w.backupInBackground.setToolTip("Decomposed copy of the current quotes")
 		linePos += lineHeight
 
 		self.w.openTab = vanilla.CheckBox(
 			(inset, linePos, 120, 20), "Open tab", value=True, callback=self.SavePreferences, sizeStyle="small"
 		)
-		self.w.openTab.getNSButton().setToolTip_("Open a tab showing all affected glyphs after the operation.")
+		self.w.openTab.setToolTip("Open a tab showing all affected glyphs after the operation.")
 		self.w.reuseTab = vanilla.CheckBox(
 			(inset + 120, linePos, -inset, 20),
 			"Reuse current tab",
@@ -215,25 +215,25 @@ class QuoteManager(mekkaObject):
 			callback=self.SavePreferences,
 			sizeStyle="small",
 		)
-		self.w.reuseTab.getNSButton().setToolTip_("Replace the current tab's content instead of opening a new tab.")
+		self.w.reuseTab.setToolTip("Replace the current tab's content instead of opening a new tab.")
 		linePos += lineHeight
 
 		self.w.editSinglesButton = vanilla.Button(
 			(inset, -22 - inset, 100, -inset), "Edit Singles", callback=self.editSingles
 		)
-		self.w.editSinglesButton.getNSButton().setToolTip_(
+		self.w.editSinglesButton.setToolTip(
 			"Open the default glyph(s) in a tab for editing. Creates them if they don't exist yet, and adds #entry/#exit anchors if missing."
 		)
 		self.w.updateButton = vanilla.Button(
 			(-inset - 145, -22 - inset, 75, -inset), "Update", callback=self.update
 		)
-		self.w.updateButton.getNSButton().setToolTip_(
+		self.w.updateButton.setToolTip(
 			"Update metrics keys, anchors, and kern groups for all selected quote groups. Does not overwrite existing paths."
 		)
 		self.w.buildButton = vanilla.Button(
 			(-inset - 65, -22 - inset, 65, -inset), "Build", callback=self.build
 		)
-		self.w.buildButton.getNSButton().setToolTip_(
+		self.w.buildButton.setToolTip(
 			"Build all selected quote glyphs: fills empty layers with mirrored paths, builds double quotes as composites, sets metrics keys, anchors, and kern groups."
 		)
 		self.w.setDefaultButton(self.w.buildButton)

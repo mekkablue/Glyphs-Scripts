@@ -44,26 +44,26 @@ class smallFigureBuilder(mekkaObject):
 
 		self.w.text_1 = vanilla.TextBox((inset - 1, linePos + 3, 100, 14), "Default Suffix:", sizeStyle='small')
 		self.w.default = vanilla.EditText((100, linePos, -inset, 20), "", sizeStyle='small', callback=self.SavePreferences)
-		self.w.default.getNSTextField().setToolTip_(u"Small figures with this suffix will be used as components in the derivative figures.")
+		self.w.default.setToolTip(u"Small figures with this suffix will be used as components in the derivative figures.")
 		linePos += lineHeight
 
 		self.w.text_2 = vanilla.TextBox((inset - 1, linePos + 3, 75, 14), "Derivatives:", sizeStyle='small')
 		self.w.derive = vanilla.EditText((100, linePos, -inset, 20), "", sizeStyle='small', callback=self.SavePreferences)
-		self.w.derive.getNSTextField().setToolTip_(u"Add suffix:offset pairs (with a colon in between), separated by commas, e.g., ‘.numr:250, superior:350, inferior:-125’. Include the dot if the suffix is a dot suffix. The script will create the figure glyphs or overwrite existing ones.")
+		self.w.derive.setToolTip(u"Add suffix:offset pairs (with a colon in between), separated by commas, e.g., ‘.numr:250, superior:350, inferior:-125’. Include the dot if the suffix is a dot suffix. The script will create the figure glyphs or overwrite existing ones.")
 		linePos += lineHeight
 
 		self.w.currentMasterOnly = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Only apply to current master (uncheck for all masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.currentMasterOnly.getNSButton().setToolTip_(u"If checked, will only process the currently selected master in the frontmost font. Useful if you want to use different values for different masters.")
+		self.w.currentMasterOnly.setToolTip(u"If checked, will only process the currently selected master in the frontmost font. Useful if you want to use different values for different masters.")
 		linePos += lineHeight
 
 		self.w.decomposeDefaultFigures = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Decompose small figures with Default Suffix", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.decomposeDefaultFigures.getNSButton().setToolTip_(u"If checked, will decompose the small figures with the suffix entered in ‘Default Suffix’, before placing them as components in the derivatives. Useful if the current defaults are e.g. numr, and you want to reset it to dnom, and keep all others (numr, superior, inferior) as compounds.")
+		self.w.decomposeDefaultFigures.setToolTip(u"If checked, will decompose the small figures with the suffix entered in ‘Default Suffix’, before placing them as components in the derivatives. Useful if the current defaults are e.g. numr, and you want to reset it to dnom, and keep all others (numr, superior, inferior) as compounds.")
 		linePos += lineHeight
 
 		self.w.openTab = vanilla.CheckBox((inset + 2, linePos - 1, 190, 20), u"Open tab with affected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.openTab.getNSButton().setToolTip_(u"If checked, will open a new tab with all figures that have default and derivative suffixes. Useful for checking.")
+		self.w.openTab.setToolTip(u"If checked, will open a new tab with all figures that have default and derivative suffixes. Useful for checking.")
 		self.w.reuseTab = vanilla.CheckBox((inset + 190, linePos - 1, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab.getNSButton().setToolTip_(u"If checked, will reuse the current tab rather than open a new one. Will open a new one if no tab is currently open and active, though.")
+		self.w.reuseTab.setToolTip(u"If checked, will reuse the current tab rather than open a new one. Will open a new one if no tab is currently open and active, though.")
 		linePos += lineHeight
 
 		# Run Button:

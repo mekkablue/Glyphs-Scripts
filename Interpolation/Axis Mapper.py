@@ -135,27 +135,27 @@ class AxisMapper(mekkaObject):
 		linePos += lineHeight
 
 		self.w.axisPicker = vanilla.ComboBox((inset, linePos - 1, 60, 20), self.AxisListForFrontmostFont(), callback=self.SavePreferences, sizeStyle='small')
-		self.w.axisPicker.getNSComboBox().setToolTip_("Pick or type the 4-letter tag of the axis for which you want to edit the mapping.")
+		self.w.axisPicker.setToolTip("Pick or type the 4-letter tag of the axis for which you want to edit the mapping.")
 		self.w.axisReset = UpdateButton((inset + 63, linePos - 1, 20, 18), callback=self.resetAxisList)
-		self.w.axisReset.getNSButton().setToolTip_("Will populate the axis picker with the tags for all axes in the frontmost font.")
+		self.w.axisReset.setToolTip("Will populate the axis picker with the tags for all axes in the frontmost font.")
 
 		self.w.minText = vanilla.TextBox((inset + 88, linePos + 3, 55, 14), "Axis Min", sizeStyle='small')
 		self.w.minValue = vanilla.EditText((inset + 88 + 50, linePos, 40, 19), self.MinimumForCurrentAxis(), callback=self.SavePreferences, sizeStyle='small')
 		tooltipText = "User-visible slider minimum, typically set with an Axis Location parameter. Not (necessarily) the native master value."
-		self.w.minText.getNSTextField().setToolTip_(tooltipText)
-		self.w.minValue.getNSTextField().setToolTip_(tooltipText)
+		self.w.minText.setToolTip(tooltipText)
+		self.w.minValue.setToolTip(tooltipText)
 		self.w.minValueReset = UpdateButton((inset + 88 + 50 + 40, linePos - 1, 20, 18), callback=self.resetMinimum)
-		self.w.minValueReset.getNSButton().setToolTip_("Will attempt to guess the user-visible slider minimum of the frontmost font.")
+		self.w.minValueReset.setToolTip("Will attempt to guess the user-visible slider minimum of the frontmost font.")
 
 		self.w.maxText = vanilla.TextBox((inset + 202, linePos + 3, 55, 14), "Axis Max", sizeStyle='small')
 		self.w.maxValue = vanilla.EditText((inset + 202 + 52, linePos, 40, 19), self.MaximumForCurrentAxis(), callback=self.SavePreferences, sizeStyle='small')
 		tooltipText = "User-visible slider maximum, typically set with an Axis Location parameter. Not (necessarily) the native master value."
-		self.w.maxText.getNSTextField().setToolTip_(tooltipText)
-		self.w.maxValue.getNSTextField().setToolTip_(tooltipText)
+		self.w.maxText.setToolTip(tooltipText)
+		self.w.maxValue.setToolTip(tooltipText)
 		self.w.maxValueReset = UpdateButton((inset + 202 + 52 + 40, linePos - 1, 20, 18), callback=self.resetMaximum)
-		self.w.maxValueReset.getNSButton().setToolTip_("Will attempt to guess the user-visible slider maximum of the frontmost font.")
+		self.w.maxValueReset.setToolTip("Will attempt to guess the user-visible slider maximum of the frontmost font.")
 		self.w.mappingLevel = vanilla.PopUpButton((inset + 202 + 52 + 40 + 25, linePos, 120, 18), ['instance level', 'font level'], sizeStyle='small')
-		self.w.mappingLevel.getNSPopUpButton().setToolTip_("Choose level in which the custom parameter for axis mapping will be added.")
+		self.w.mappingLevel.setToolTip("Choose level in which the custom parameter for axis mapping will be added.")
 		# self.w.mappingLevel.set(value)
 		linePos += lineHeight + 2
 
@@ -168,13 +168,13 @@ class AxisMapper(mekkaObject):
 
 		# Buttons:
 		self.w.recipeButton = vanilla.Button((inset, -20 - inset, 120, -inset), "Reset Recipe", callback=self.ResetRecipe)
-		self.w.recipeButton.getNSButton().setToolTip_("Construct a fallback axis mapping recipe for axis and the min/max values above, based on the existing active instances. Can be a good start for creating new mappings. Respects the weightClass settings for the 'wght' axis.")
+		self.w.recipeButton.setToolTip("Construct a fallback axis mapping recipe for axis and the min/max values above, based on the existing active instances. Can be a good start for creating new mappings. Respects the weightClass settings for the 'wght' axis.")
 
 		self.w.extractButton = vanilla.Button((inset + 130, -20 - inset, 120, -inset), "Extract Recipe", callback=self.ExtractAxisMapping)
-		self.w.extractButton.getNSButton().setToolTip_("Extract the axis mapping recipe for the chosen axis from an existing Axis Mappings parameter, and into the min/max values specified above. Will do nothing if it fails. Great for editing existing mappings.")
+		self.w.extractButton.setToolTip("Extract the axis mapping recipe for the chosen axis from an existing Axis Mappings parameter, and into the min/max values specified above. Will do nothing if it fails. Great for editing existing mappings.")
 
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Map", callback=self.AxisMapperMain)
-		self.w.runButton.getNSButton().setToolTip_("Write the current mapping recipe into an Axis Mappings parameter for the frontmost font.")
+		self.w.runButton.setToolTip("Write the current mapping recipe into an Axis Mappings parameter for the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:

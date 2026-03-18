@@ -36,11 +36,11 @@ class InsertSpecialLayersV3(mekkaObject):
 
 		self.w.intermediateCoordinates = EditText((inset, linePos, -inset-21, 19), self.pref("intermediateCoordinates"), callback=self.SavePreferences, sizeStyle="small")
 		self.w.updateCoordinates = UpdateButton((-inset-16, linePos-3, -inset, 16), callback=self.resetCoordinates)
-		self.w.updateCoordinates.getNSButton().setToolTip_("Will reset the entry to half way between the first two masters, or same as the only master (if there is only one).")
+		self.w.updateCoordinates.setToolTip("Will reset the entry to half way between the first two masters, or same as the only master (if there is only one).")
 		linePos += lineHeight
 
 		self.w.keepExistingBrace = CheckBox((inset, linePos, -inset, 20), "Keep (don’t overwrite) existing brace layers", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.keepExistingBrace.getNSButton().setToolTip_("If checkbox is on and a glyph already contains (on any master) a brace layer at the indicated value, the script will skip the glyph. If the checkbox is off, it will deactivate the existing brace layer, and insert a new one.")
+		self.w.keepExistingBrace.setToolTip("If checkbox is on and a glyph already contains (on any master) a brace layer at the indicated value, the script will skip the glyph. If the checkbox is off, it will deactivate the existing brace layer, and insert a new one.")
 		linePos += lineHeight
 
 		# Run Button:
@@ -168,15 +168,15 @@ class InsertSpecialLayers(mekkaObject):
 		linePos += lineHeight
 
 		self.w.prefillWithMasterContent = CheckBox((inset + 2, linePos - 1, -inset, 20), "Create as duplicate of master layer", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.prefillWithMasterContent.getNSButton().setToolTip_("Will add the new layer with the content of the associated master layer. If checkbox is off, will insert empty layer. In case of brace layers, the Reinterpolate option (further down) takes precedence, though.")
+		self.w.prefillWithMasterContent.setToolTip("Will add the new layer with the content of the associated master layer. If checkbox is off, will insert empty layer. In case of brace layers, the Reinterpolate option (further down) takes precedence, though.")
 		linePos += lineHeight
 
 		self.w.keepExistingBrace = CheckBox((inset + 2, linePos - 1, -inset, 20), "Keep existing brace layer", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.keepExistingBrace.getNSButton().setToolTip_("Only applies to brace layers. If checkbox is on and a glyph already contains (on any master) a brace layer at the indicated value, the script will skip the glyph. If the checkbox is off, it will deactivate the existing brace layer by replacing the curly braces with hashtags.")
+		self.w.keepExistingBrace.setToolTip("Only applies to brace layers. If checkbox is on and a glyph already contains (on any master) a brace layer at the indicated value, the script will skip the glyph. If the checkbox is off, it will deactivate the existing brace layer by replacing the curly braces with hashtags.")
 		linePos += lineHeight
 
 		self.w.reinterpolateBrace = CheckBox((inset + 2, linePos - 1, -inset, 20), "Reinterpolate brace layers", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reinterpolateBrace.getNSButton().setToolTip_("Only applies to brace layers. If checkbox is on and a brace layer is inserted, it will reinterpolate the newly generated brace layer. It only does this for newly generated layer, and will not reinterpolate existing brace layers.")
+		self.w.reinterpolateBrace.setToolTip("Only applies to brace layers. If checkbox is on and a brace layer is inserted, it will reinterpolate the newly generated brace layer. It only does this for newly generated layer, and will not reinterpolate existing brace layers.")
 		linePos += lineHeight
 
 		# Run Button:

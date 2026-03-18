@@ -76,42 +76,42 @@ class SampleStringMaker(mekkaObject):
 
 		self.w.scriptText = vanilla.TextBox((inset, linePos + 2, 45, 14), "Script:", sizeStyle='small', selectable=True)
 		self.w.scriptPopup = vanilla.PopUpButton((inset + 45, linePos, -inset-23, 17), self.scripts, sizeStyle='small', callback=self.SavePreferences)
-		self.w.scriptPopup.getNSPopUpButton().setToolTip_("Script for letters, will be ignored for all other categories (e.g., numbers).")
+		self.w.scriptPopup.setToolTip("Script for letters, will be ignored for all other categories (e.g., numbers).")
 		self.w.scriptUpdate = UpdateButton((-inset-20, linePos-2, -inset, 18), callback=self.updateScripts)
 		linePos += lineHeight
 
 		self.w.leftCategoryText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Left Category:", sizeStyle='small', selectable=True)
 		self.w.leftCategoryPopup = vanilla.PopUpButton((inset + 90, linePos, -inset, 17), self.categoryList, sizeStyle='small', callback=self.SavePreferences)
-		self.w.leftCategoryPopup.getNSPopUpButton().setToolTip_("Category:Subcategory for left side of kern pair.")
+		self.w.leftCategoryPopup.setToolTip("Category:Subcategory for left side of kern pair.")
 		linePos += lineHeight
 
 		self.w.rightCategoryText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Right Category:", sizeStyle='small', selectable=True)
 		self.w.rightCategoryPopup = vanilla.PopUpButton((inset + 90, linePos, -inset, 17), self.categoryList, sizeStyle='small', callback=self.SavePreferences)
-		self.w.rightCategoryPopup.getNSPopUpButton().setToolTip_("Category:Subcategory for right side of kern pair.")
+		self.w.rightCategoryPopup.setToolTip("Category:Subcategory for right side of kern pair.")
 		linePos += lineHeight
 
 		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Also include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeNonExporting.getNSButton().setToolTip_("Also add glyphs of these categories if they are set to not export.")
+		self.w.includeNonExporting.setToolTip("Also add glyphs of these categories if they are set to not export.")
 		linePos += lineHeight
 
 		self.w.excludeText = vanilla.TextBox((inset, linePos + 2, 150, 14), "Exclude glyphs containing:", sizeStyle='small', selectable=True)
 		self.w.excludedGlyphNameParts = vanilla.EditText((inset + 150, linePos, -inset, 19), ".tf, .tosf, ord, Ldot, ldot, .loclCAT", callback=self.SavePreferences, sizeStyle='small')
-		self.w.excludedGlyphNameParts.getNSTextField().setToolTip_("If the glyph name includes any of these comma-separated fragments, the glyph will be ignored. Always excluded: Ldot, ldot, ldot.sc, Fhook and florin.")
+		self.w.excludedGlyphNameParts.setToolTip("If the glyph name includes any of these comma-separated fragments, the glyph will be ignored. Always excluded: Ldot, ldot, ldot.sc, Fhook and florin.")
 		linePos += lineHeight
 
 		self.w.overrideContext = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Override context glyphs:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.overrideContext.getNSButton().setToolTip_("If checked, the surrounding glyphs will be replaced with those given in the text box. Use a comma to differentiate the left-side context from the right-side context: ‘HOOH,noon’ will put HOOH on the left side, ‘noon’ on the right side.")
+		self.w.overrideContext.setToolTip("If checked, the surrounding glyphs will be replaced with those given in the text box. Use a comma to differentiate the left-side context from the right-side context: ‘HOOH,noon’ will put HOOH on the left side, ‘noon’ on the right side.")
 		self.w.contextGlyphs = vanilla.EditText((inset + 150, linePos, -inset, 19), "HOOH,noon", callback=self.SavePreferences, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.mirrorPair = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Mirror kerning pair (AV→AVA)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.mirrorPair.getNSButton().setToolTip_("If checked, will create a mirrored version of the kerning string. E.g., instead of just AV, it will show AVA between the context glyphs.")
+		self.w.mirrorPair.setToolTip("If checked, will create a mirrored version of the kerning string. E.g., instead of just AV, it will show AVA between the context glyphs.")
 		linePos += lineHeight
 
 		self.w.openTab = vanilla.CheckBox((inset + 2, linePos - 1, 170, 20), "Open tab at first kern string", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.openTab.getNSButton().setToolTip_("If checked, a new tab will be opened with the first found kern string, and the cursor positioned accordingly, ready for group kerning and switching to the next sample string.")
+		self.w.openTab.setToolTip("If checked, a new tab will be opened with the first found kern string, and the cursor positioned accordingly, ready for group kerning and switching to the next sample string.")
 		self.w.lockKerning = vanilla.CheckBox((inset + 170, linePos - 1, -inset, 20), "in kerning mode", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.lockKerning.getNSButton().setToolTip_("Will set the kerning lock in the tab, prevents you from spacing accidentally.")
+		self.w.lockKerning.setToolTip("Will set the kerning lock in the tab, prevents you from spacing accidentally.")
 		linePos += lineHeight
 
 		# Run Button:

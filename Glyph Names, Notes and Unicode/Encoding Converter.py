@@ -389,7 +389,7 @@ class EncodingConverter(mekkaObject):
 		linePos += lineHeight
 
 		self.w.recipe = vanilla.TextEditor((1, linePos, -1, -inset * 3), text="", callback=self.SavePreferences, checksSpelling=False)
-		self.w.recipe.getNSTextView().setToolTip_("- Freely write comments and empty lines\n- Rename: Lines containing a dash (-) followed by a greater sign (>) will trigger glyph renaming, with or without spaces between names\n- Recipe: Lines containing glyph recipes with plus (+) and equals (=) will be treated like in Glyph > Add Glyphs... as long as the do not contain any space\n- Recipes will overwrite existing glyphs. Renamings will create a number-suffixed glyph if a glyph with the same name already exists.")
+		self.w.recipe.setToolTip("- Freely write comments and empty lines\n- Rename: Lines containing a dash (-) followed by a greater sign (>) will trigger glyph renaming, with or without spaces between names\n- Recipe: Lines containing glyph recipes with plus (+) and equals (=) will be treated like in Glyph > Add Glyphs... as long as the do not contain any space\n- Recipes will overwrite existing glyphs. Renamings will create a number-suffixed glyph if a glyph with the same name already exists.")
 		self.w.recipe.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.recipe.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.recipe.getNSScrollView().setRulersVisible_(0)

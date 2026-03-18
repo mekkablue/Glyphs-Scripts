@@ -80,32 +80,32 @@ class CapAndCornerManager(mekkaObject):
 		linePos += lineHeight
 
 		self.w.componentName = vanilla.ComboBox((inset, linePos, -inset - 25, 18), self.cornersOfFrontmostFont(), sizeStyle="small", callback=self.SavePreferences)
-		self.w.componentName.getNSComboBox().setToolTip_("Batch-edit all instances of this special component. Can be a Brush, Segment, Cap and Corner component.")
+		self.w.componentName.setToolTip("Batch-edit all instances of this special component. Can be a Brush, Segment, Cap and Corner component.")
 		self.w.updateComponentNames = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateUI)
-		self.w.updateComponentNames.getNSButton().setToolTip_("Update the list of available components for the frontmost font.")
+		self.w.updateComponentNames.setToolTip("Update the list of available components for the frontmost font.")
 		linePos += lineHeight + 5
 
 		self.w.shouldAlign = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Align", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.alignment = vanilla.PopUpButton((inset + tab, linePos, -inset, 17), alignmentOptions, sizeStyle="small", callback=self.SavePreferences)
 		tooltip = "Alignment options for Cap and Corner components."
-		self.w.shouldAlign.getNSButton().setToolTip_(tooltip)
-		self.w.alignment.getNSPopUpButton().setToolTip_(tooltip)
+		self.w.shouldAlign.setToolTip(tooltip)
+		self.w.alignment.setToolTip(tooltip)
 		linePos += lineHeight
 
 		self.w.shouldFit = vanilla.CheckBox((inset + 2, linePos - 1, tab, 20), "Fit Cap", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.fit = vanilla.PopUpButton((inset + tab, linePos, -inset, 17), ("Off (don’t fit)", "On (do fit)"), sizeStyle="small", callback=self.SavePreferences)
 		tooltip = "Fit option for Cap components."
-		self.w.shouldFit.getNSButton().setToolTip_(tooltip)
-		self.w.fit.getNSPopUpButton().setToolTip_(tooltip)
+		self.w.shouldFit.setToolTip(tooltip)
+		self.w.fit.setToolTip(tooltip)
 		linePos += lineHeight
 
 		self.w.shouldScale = vanilla.CheckBox((inset + 2, linePos, tab, 20), "Scale", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.scaleH = vanilla.EditText((inset + tab, linePos, 40, 19), "100", callback=self.SavePreferences, sizeStyle="small")
-		self.w.scaleH.getNSTextField().setToolTip_("Horizontal scale for components in percent. 100 means unscaled.")
+		self.w.scaleH.setToolTip("Horizontal scale for components in percent. 100 means unscaled.")
 		self.w.scaleV = vanilla.EditText((inset + tab + 45, linePos, 40, 19), "100", callback=self.SavePreferences, sizeStyle="small")
-		self.w.scaleV.getNSTextField().setToolTip_("Vertical scale for components in percent. 100 means unscaled.")
+		self.w.scaleV.setToolTip("Vertical scale for components in percent. 100 means unscaled.")
 		self.w.resetScale = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.updateUI)
-		self.w.resetScale.getNSButton().setToolTip_("Resets the scale to 100% horizontal, 100% vertical.")
+		self.w.resetScale.setToolTip("Resets the scale to 100% horizontal, 100% vertical.")
 		linePos += lineHeight
 
 		# Run Button:

@@ -59,22 +59,22 @@ class MetricsCopy(mekkaObject):
 		self.w.lsb = vanilla.CheckBox((inset + 2, linePos, 80, 20), "LSB", value=True, callback=self.buttonCheck, sizeStyle='small')
 		self.w.rsb = vanilla.CheckBox((inset + 50, linePos, 80, 20), "RSB", value=True, callback=self.buttonCheck, sizeStyle='small')
 		self.w.width = vanilla.CheckBox((inset + 50 * 2, linePos, 80, 20), "Width", value=False, callback=self.buttonCheck, sizeStyle='small')
-		self.w.lsb.getNSButton().setToolTip_("If enabled, will transfer values for left sidebearings.")
-		self.w.rsb.getNSButton().setToolTip_("If enabled, will transfer values for right sidebearings.")
-		self.w.width.getNSButton().setToolTip_("If enabled, will transfer values for advance widths.")
+		self.w.lsb.setToolTip("If enabled, will transfer values for left sidebearings.")
+		self.w.rsb.setToolTip("If enabled, will transfer values for right sidebearings.")
+		self.w.width.setToolTip("If enabled, will transfer values for advance widths.")
 
 		linePos += lineHeight
 		self.w.updateMetrics = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Update Metrics in Source Font", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.updateMetrics.getNSButton().setToolTip_("Updates metrics in the source layer before transfering the values to the target font. Recommended. (Also circumvents an issue in Glyphs 3 where metrics would not get transfered.)")
+		self.w.updateMetrics.setToolTip("Updates metrics in the source layer before transfering the values to the target font. Recommended. (Also circumvents an issue in Glyphs 3 where metrics would not get transfered.)")
 
 		linePos += lineHeight
 		self.w.preferMetricKeys = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Prefer (glyph and layer) metrics keys whenever available", value=False, sizeStyle='small', callback=self.buttonCheck)
-		self.w.preferMetricKeys.getNSButton().setToolTip_("If enabled, will transfer the metrics key rather than the metric value, if a metrics key is persent in the source font.")
+		self.w.preferMetricKeys.setToolTip("If enabled, will transfer the metrics key rather than the metric value, if a metrics key is persent in the source font.")
 
 		linePos += lineHeight
 		self.w.onlyMetricsKeys = vanilla.CheckBox(((inset + 2) * 2, linePos, -inset, 20), u"Only transfer metrics keys (ignore LSB, RSB, Width)", value=False, callback=self.buttonCheck, sizeStyle='small')
 		self.w.onlyMetricsKeys.enable(False)
-		self.w.onlyMetricsKeys.getNSButton().setToolTip_("If enabled, will only transfer metrics keys and not change any metric values. The checkboxes for LSB, RSB and Width will be disabled.")
+		self.w.onlyMetricsKeys.setToolTip("If enabled, will only transfer metrics keys and not change any metric values. The checkboxes for LSB, RSB and Width will be disabled.")
 
 		linePos += lineHeight
 		self.w.ignoreSuffixes = vanilla.CheckBox((inset + 2, linePos, 190, 20), "Ignore dotsuffix in source glyph:", value=False, sizeStyle='small', callback=self.buttonCheck)

@@ -40,11 +40,11 @@ class ZeroKerner(mekkaObject):
 		linePos += lineHeight * 2.5
 
 		self.w.limitToCurrentMaster = CheckBox((inset + 2, linePos - 1, -inset, 20), u"Limit to current master only (otherwise, all masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.limitToCurrentMaster.getNSButton().setToolTip_("Will apply zero kernings only to the currently selected master. Uncheck if all masters should be zero-kerned.")
+		self.w.limitToCurrentMaster.setToolTip("Will apply zero kernings only to the currently selected master. Uncheck if all masters should be zero-kerned.")
 		linePos += lineHeight
 
 		self.w.reportInMacroWindow = CheckBox((inset + 2, linePos - 1, -inset, 20), u"Detailed report in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reportInMacroWindow.getNSButton().setToolTip_("If checked, will write a progress report in the Macro Window (Cmd-Opt-M).")
+		self.w.reportInMacroWindow.setToolTip("If checked, will write a progress report in the Macro Window (Cmd-Opt-M).")
 		linePos += lineHeight
 
 		self.w.progress = ProgressBar((inset, linePos, -inset, 16))

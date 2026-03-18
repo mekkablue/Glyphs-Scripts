@@ -57,11 +57,11 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 		self.w.textDescription = vanilla.TextBox((inset, linePos + 1, 115, 14), "Remove component", sizeStyle='small')
 		self.w.componentName = vanilla.ComboBox((inset + 110, linePos - 3, -23 - inset, 19), self.glyphList(), sizeStyle='small')
 		tooltip = "Pick a glyph name. All components and corner components referencing this glyph will be deleted. Wildcards * and ? are supported."
-		self.w.textDescription.getNSTextField().setToolTip_(tooltip)
-		self.w.componentName.getNSComboBox().setToolTip_(tooltip)
+		self.w.textDescription.setToolTip(tooltip)
+		self.w.componentName.setToolTip(tooltip)
 
 		self.w.updateButton = UpdateButton((-inset - 18, linePos - 4, -inset, 18), callback=self.updateUI)
-		self.w.updateButton.getNSButton().setToolTip_("Reload a list of glyph names based on the current font (and selection).")
+		self.w.updateButton.setToolTip("Reload a list of glyph names based on the current font (and selection).")
 
 		linePos += lineHeight
 		self.w.fromWhere = vanilla.RadioGroup((inset, linePos, -inset, 40), ("from all selected glyphs", "⚠️ from all glyphs in the font"), callback=self.SavePreferences, sizeStyle='small')

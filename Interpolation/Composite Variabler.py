@@ -47,27 +47,27 @@ class CompositeVariabler(mekkaObject):
 		linePos += lineHeight
 
 		self.w.allGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include all exporting glyphs in font (otherwise only selected glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.allGlyphs.getNSButton().setToolTip_("If checked, all glyphs in the font will be processed and receive the special (brace and bracket) layers of their respective components. If unchecked, only selected composite glyphs get processed.")
+		self.w.allGlyphs.setToolTip("If checked, all glyphs in the font will be processed and receive the special (brace and bracket) layers of their respective components. If unchecked, only selected composite glyphs get processed.")
 		linePos += lineHeight
 
 		self.w.decomposeBrackets = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Decompose special layers in composites (currently broken)", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.decomposeBrackets.getNSButton().setToolTip_("If checked, will decompose bracket layers. This is necessary for bracket layers to work in OTVAR fonts in Glyphs 2.6.")
+		self.w.decomposeBrackets.setToolTip("If checked, will decompose bracket layers. This is necessary for bracket layers to work in OTVAR fonts in Glyphs 2.6.")
 		linePos += lineHeight
 
 		self.w.deleteExistingSpecialLayers = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete pre-existing special layers in composites", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.deleteExistingSpecialLayers.getNSButton().setToolTip_("If checked, will delete all bracket or brace layers found in processed composite glyphs.")
+		self.w.deleteExistingSpecialLayers.setToolTip("If checked, will delete all bracket or brace layers found in processed composite glyphs.")
 		linePos += lineHeight
 
 		self.w.justBackupInstead = vanilla.CheckBox((inset * 2, linePos - 1, -inset, 20), "Don’t delete, just backup and deactivate instead", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.justBackupInstead.getNSButton().setToolTip_("If checked, will not delete, but just deactivate the layer by renaming it from ‘[100]’ to ‘#100#’.")
+		self.w.justBackupInstead.setToolTip("If checked, will not delete, but just deactivate the layer by renaming it from ‘[100]’ to ‘#100#’.")
 		linePos += lineHeight
 
 		self.w.openTab = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Open tab with affected composites", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.openTab.getNSButton().setToolTip_("If checked, will open a tab with all composites that have received new special layers.")
+		self.w.openTab.setToolTip("If checked, will open a tab with all composites that have received new special layers.")
 		linePos += lineHeight
 
 		self.w.catchNestedComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Catch all nested components (slower)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.catchNestedComponents.getNSButton().setToolTip_("If checked, will count max component depth (number of nestings, i.e. components of components of components, etc.) in the font, and repeat the whole process as many times. Will take significantly longer. Use this only if you need it (unlikely) and know what you are doing.")
+		self.w.catchNestedComponents.setToolTip("If checked, will count max component depth (number of nestings, i.e. components of components of components, etc.) in the font, and repeat the whole process as many times. Will take significantly longer. Use this only if you need it (unlikely) and know what you are doing.")
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
