@@ -23,8 +23,10 @@ class StealKerningFromInDesign(mekkaObject):
 		"minimumKern": 10,
 		"letterToLetter": 1,
 		"figureToFigure": 1,
+		"letterToFigure": 1,
 		"letterWithPunctuation": 1,
 		"figureWithPunctuation": 1,
+		"punctuationWithItself": 1,
 		"groupKerningOnly": 0,
 		"deleteExistingKerning": 0,
 		"compressKerning": 1,
@@ -32,8 +34,8 @@ class StealKerningFromInDesign(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 360
-		windowHeight = 308
+		windowWidth = 480
+		windowHeight = 286
 		windowWidthResize = 0
 		windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
@@ -46,35 +48,36 @@ class StealKerningFromInDesign(mekkaObject):
 
 		linePos, inset, lineHeight = 12, 15, 22
 
-		# Zero pair + rounding
-		self.w.zeroPairLabel = vanilla.TextBox((inset, linePos + 3, 155, 14), "Pair without kerning:", sizeStyle="small")
-		self.w.zeroPair = vanilla.EditText((inset + 155, linePos, 50, 19), "HH", callback=self.SavePreferences, sizeStyle="small")
+		# No-kern pair + Min kern + Round by — all on one row
+		self.w.zeroPairLabel = vanilla.TextBox((inset, linePos + 3, 72, 14), "No-kern pair:", sizeStyle="small")
+		self.w.zeroPair = vanilla.EditText((inset + 72, linePos, 40, 19), "HH", callback=self.SavePreferences, sizeStyle="small")
 		self.w.zeroPair.getNSTextField().setToolTip_("A pair of glyphs that should have zero optical kerning (i.e., the reference pair used to calibrate the font size for measurement).")
-		linePos += lineHeight
-
-		# Round by + Minimum kern on one row
-		self.w.roundByLabel = vanilla.TextBox((inset, linePos + 3, 70, 14), "Round by:", sizeStyle="small")
-		self.w.roundBy = vanilla.EditText((inset + 70, linePos, 40, 19), "5", callback=self.SavePreferences, sizeStyle="small")
-		self.w.roundBy.getNSTextField().setToolTip_("Round imported kern values to this multiple (e.g. 5 = multiples of 5). Set to 1 or 0 to skip rounding.")
-		self.w.minimumKernLabel = vanilla.TextBox((inset + 125, linePos + 3, 100, 14), "Minimum kern:", sizeStyle="small")
-		self.w.minimumKern = vanilla.EditText((inset + 225, linePos, 40, 19), "10", callback=self.SavePreferences, sizeStyle="small")
+		self.w.minimumKernLabel = vanilla.TextBox((inset + 124, linePos + 3, 58, 14), "Min kern:", sizeStyle="small")
+		self.w.minimumKern = vanilla.EditText((inset + 182, linePos, 40, 19), "10", callback=self.SavePreferences, sizeStyle="small")
 		self.w.minimumKern.getNSTextField().setToolTip_("Discard imported kern pairs whose absolute value is smaller than this threshold.")
+		self.w.roundByLabel = vanilla.TextBox((inset + 234, linePos + 3, 58, 14), "Round by:", sizeStyle="small")
+		self.w.roundBy = vanilla.EditText((inset + 292, linePos, 40, 19), "5", callback=self.SavePreferences, sizeStyle="small")
+		self.w.roundBy.getNSTextField().setToolTip_("Round imported kern values to this multiple (e.g. 5 = multiples of 5). Set to 1 or 0 to skip rounding.")
 		linePos += lineHeight
 
 		self.w.divider1 = vanilla.HorizontalLine((inset, linePos + 3, -inset, 1))
 		linePos += int(lineHeight * 0.6)
 
-		# Pair type checkboxes
-		self.w.letterToLetter = vanilla.CheckBox((inset + 2, linePos - 1, 170, 20), "Letter to Letter", value=True, callback=self.SavePreferences, sizeStyle="small")
+		# Pair type checkboxes — three columns
+		self.w.letterToLetter = vanilla.CheckBox((inset + 2, linePos - 1, 148, 20), "Letter to Letter", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.letterToLetter.getNSButton().setToolTip_("Kern pairs between uppercase and lowercase letters.")
-		self.w.figureToFigure = vanilla.CheckBox((inset + 180, linePos - 1, -inset, 20), "Figure to Figure", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.figureToFigure = vanilla.CheckBox((inset + 150, linePos - 1, 150, 20), "Figure to Figure", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.figureToFigure.getNSButton().setToolTip_("Kern pairs between decimal digit figures.")
+		self.w.letterToFigure = vanilla.CheckBox((inset + 300, linePos - 1, -inset, 20), "Letter to Figure", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.letterToFigure.getNSButton().setToolTip_("Kern pairs between letters and figures (both directions).")
 		linePos += lineHeight
 
-		self.w.letterWithPunctuation = vanilla.CheckBox((inset + 2, linePos - 1, 170, 20), "Letter with Punctuation", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.letterWithPunctuation = vanilla.CheckBox((inset + 2, linePos - 1, 148, 20), "Letter with Punctuation", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.letterWithPunctuation.getNSButton().setToolTip_("Kern pairs between letters and punctuation marks (both directions).")
-		self.w.figureWithPunctuation = vanilla.CheckBox((inset + 180, linePos - 1, -inset, 20), "Figure with Punctuation", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.figureWithPunctuation = vanilla.CheckBox((inset + 150, linePos - 1, 150, 20), "Figure with Punctuation", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.figureWithPunctuation.getNSButton().setToolTip_("Kern pairs between figures and punctuation marks (both directions).")
+		self.w.punctuationWithItself = vanilla.CheckBox((inset + 300, linePos - 1, -inset, 20), "Punctuation with itself", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.punctuationWithItself.getNSButton().setToolTip_("Kern pairs between punctuation marks and other punctuation marks.")
 		linePos += lineHeight
 
 		self.w.divider2 = vanilla.HorizontalLine((inset, linePos + 3, -inset, 1))
@@ -99,8 +102,8 @@ class StealKerningFromInDesign(mekkaObject):
 
 		# Progress bar + Status + Run button
 		self.w.progressBar = vanilla.ProgressBar((inset, -42 - inset, -inset, 16))
-		self.w.status = vanilla.TextBox((inset, -20 - inset, -90 - inset, 14), "Ready.", sizeStyle="small", selectable=True)
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Kern", callback=self.run)
+		self.w.status = vanilla.TextBox((inset, -18 - inset, -80 - inset, 14), "Ready.", sizeStyle="small", selectable=True)
+		self.w.runButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "Kern", callback=self.run)
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.LoadPreferences()
@@ -111,8 +114,10 @@ class StealKerningFromInDesign(mekkaObject):
 		anyPairType = (
 			self.w.letterToLetter.get()
 			or self.w.figureToFigure.get()
+			or self.w.letterToFigure.get()
 			or self.w.letterWithPunctuation.get()
 			or self.w.figureWithPunctuation.get()
+			or self.w.punctuationWithItself.get()
 		)
 		self.w.runButton.enable(anyPairType)
 		self.w.groupKerningOnly.enable(bool(self.w.compressKerning.get()))
@@ -374,12 +379,18 @@ end tell
 		"""
 		doLetterToLetter = self.prefBool("letterToLetter")
 		doFigureToFigure = self.prefBool("figureToFigure")
+		doLetterToFigure = self.prefBool("letterToFigure")
 		doLetterWithPunctuation = self.prefBool("letterWithPunctuation")
 		doFigureWithPunctuation = self.prefBool("figureWithPunctuation")
+		doPunctuationWithItself = self.prefBool("punctuationWithItself")
 
-		letters = self._glyphsForCategory(thisFont, "Letter") if (doLetterToLetter or doLetterWithPunctuation) else []
-		figures = self._glyphsForCategory(thisFont, "Number", "Decimal Digit") if (doFigureToFigure or doFigureWithPunctuation) else []
-		punctuation = self._glyphsForCategory(thisFont, "Punctuation") if (doLetterWithPunctuation or doFigureWithPunctuation) else []
+		needLetters = doLetterToLetter or doLetterToFigure or doLetterWithPunctuation
+		needFigures = doFigureToFigure or doLetterToFigure or doFigureWithPunctuation
+		needPunctuation = doLetterWithPunctuation or doFigureWithPunctuation or doPunctuationWithItself
+
+		letters = self._glyphsForCategory(thisFont, "Letter") if needLetters else []
+		figures = self._glyphsForCategory(thisFont, "Number", "Decimal Digit") if needFigures else []
+		punctuation = self._glyphsForCategory(thisFont, "Punctuation") if needPunctuation else []
 
 		# collect unique pairs as (leftName, rightName)
 		pairs = []
@@ -401,6 +412,14 @@ end tell
 				for R in figures:
 					addPair(L, R)
 
+		if doLetterToFigure:
+			for L in letters:
+				for R in figures:
+					addPair(L, R)
+			for L in figures:
+				for R in letters:
+					addPair(L, R)
+
 		if doLetterWithPunctuation:
 			for L in letters:
 				for R in punctuation:
@@ -415,6 +434,11 @@ end tell
 					addPair(L, R)
 			for L in punctuation:
 				for R in figures:
+					addPair(L, R)
+
+		if doPunctuationWithItself:
+			for L in punctuation:
+				for R in punctuation:
 					addPair(L, R)
 
 		# build the pair text string
