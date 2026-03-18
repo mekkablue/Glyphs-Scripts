@@ -672,24 +672,30 @@ true
 			except Exception as e:
 				print("\t⚠️ Could not delete %s: %s" % (filePath, e))
 
-	def _waitForFont(self, indesign, familyName, timeoutSeconds=30):
+	def _waitForFont(self, indesign, familyName, styleName, timeoutSeconds=30):
 		"""
-		Poll InDesign until familyName is available or timeoutSeconds elapses.
+		Poll InDesign until familyName/styleName is available or timeoutSeconds elapses.
+		Uses a minimal test document with the proven 'applied font' pattern.
 		Returns True if the font became available, False if timed out.
 		"""
 		script = """
 tell application "%s"
+	set myDoc to make new document
 	try
-		set allNames to name of every font family
-		if allNames contains "%s" then
-			return "yes"
-		end if
-		return "no"
+		set myFrame to make new text frame of myDoc with properties {geometric bounds:{0, 0, 100, 100}}
+		tell parent story of myFrame
+			set applied font to ("%s" & tab & "%s")
+		end tell
+		close myDoc saving no
+		return "yes"
 	on error
+		try
+			close myDoc saving no
+		end try
 		return "no"
 	end try
 end tell
-""" % (indesign, familyName)
+""" % (indesign, familyName, styleName)
 		elapsed = 0
 		interval = 2
 		while elapsed <= timeoutSeconds:
@@ -737,7 +743,8 @@ end tell
 
 		# Poll InDesign until Kernstealer font is activated (up to 30s)
 		self.w.status.set("Waiting for font activation…")
-		if not self._waitForFont(indesign, "Kernstealer"):
+		firstStyle = self._sanitizeName(exportedMasters[0][0].name) or "Master0"
+		if not self._waitForFont(indesign, "Kernstealer", firstStyle):
 			self.w.status.set("❌ Font activation timed out.")
 			print("\t❌ 'Kernstealer' was not activated in InDesign within 30 seconds.")
 			self._deleteFonts(exportedMasters)
