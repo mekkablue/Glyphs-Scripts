@@ -6,6 +6,7 @@ Create a Test HTML for the current font inside the current Variation Font Export
 """
 
 from os import system, path
+import webbrowser
 from AppKit import NSClassFromString, NSBundle, NSEvent, NSAlternateKeyMask, NSShiftKeyMask
 import codecs
 from GlyphsApp import Glyphs, Message
@@ -1364,8 +1365,8 @@ else:
 			htmlFileName = f"{strippedFileName} fonttest.html"
 			if saveFileInLocation(content=htmlContent, fileName=htmlFileName, filePath=exportPath):
 				print("✅ Successfully wrote file to disk.")
-				terminalCommand = f'cd "{exportPath}"; open .; open "{htmlFileName}"'
-				system(terminalCommand)
+				system(f'open "{exportPath}"')
+				webbrowser.open(f"file://{exportPath}/{htmlFileName}")
 			else:
 				print("🛑 Error writing file to disk.")
 		else:

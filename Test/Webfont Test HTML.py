@@ -9,6 +9,7 @@ from GlyphsApp import Glyphs, GSProjectDocument, INSTANCETYPESINGLE, Message
 from AppKit import NSBundle, NSClassFromString
 from os import system, path
 import codecs
+import webbrowser
 Glyphs.registerDefault("com.mekkablue.WebFontTestHTML.includeEOT", 0)
 
 
@@ -721,8 +722,8 @@ else:
 
 			if saveFileInLocation(content=htmlContent, fileName=htmlFileName, filePath=exportPath):
 				print("Successfully wrote file to disk.")
-				terminalCommand = f'cd "{exportPath}"; open .; open "{htmlFileName}"'
-				system(terminalCommand)
+				system(f'open "{exportPath}"')
+				webbrowser.open(f"file://{exportPath}/{htmlFileName}")
 			else:
 				print("Error writing file to disk.")
 		else:
