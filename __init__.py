@@ -205,12 +205,28 @@ class mekkaObject:
 				self.uiElement(prefName).set(self.pref(prefName))
 			if hasattr(self, "updateUI"):
 				self.updateUI()
+			if self.w is not None:
+				self.resizeWindowToMinimum()
 			return True
 		except:
 			import traceback
 			print(traceback.format_exc())
 			print(f"⚠️ ‘{self.__class__.__name__}’ could not load preferences. Will resort to defaults.")
 			return False
+
+	def resizeWindowToMinimum(self):
+		"""
+		If the current window size is smaller than the window's minimum size
+		(e.g. because a saved size predates a UI expansion), resize to the minimum.
+		Uses the window's own minSize so no hard-coded dimensions are needed.
+		The 19 px title bar is excluded from the content-area height comparison.
+		"""
+		minSize = self.w._window.minSize()
+		minWidth = minSize.width
+		minContentHeight = minSize.height - 19  # title bar is not part of the content area
+		currentWidth, currentHeight = self.w.getPosSize()[2], self.w.getPosSize()[3]
+		if currentWidth < minWidth or currentHeight < minContentHeight:
+			self.w.resize(minWidth, minContentHeight, animate=False)
 
 	def SavePreferences(self, sender=None):
 		try:
