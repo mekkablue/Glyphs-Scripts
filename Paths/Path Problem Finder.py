@@ -10,6 +10,9 @@ import math
 from timeit import default_timer as timer
 from AppKit import NSPoint
 from GlyphsApp import Glyphs, GSPath, GSControlLayer, GSShapeTypePath, GSLINE, GSCURVE, CURVE, GSOFFCURVE, QCURVE, Message, distance
+import importlib
+import mekkablue
+importlib.reload(mekkablue)
 from mekkablue import mekkaObject, reportTimeInNaturalLanguage
 
 
@@ -355,6 +358,117 @@ def distanceAndRelativePosition(p1, p2, p3):
 	return deviation, nx
 
 
+def curvatureRadiusAtEnd(p1, p2, p3):
+	"""
+	Radius of curvature at the end (t=1) of a cubic Bézier segment P0–P1–P2–P3.
+	P0 is not needed; only P1, P2, P3 are required.
+	Returns the radius as a positive float, or None for degenerate cases.
+	"""
+	# P'(1) = 3*(P3 - P2)
+	dx = 3.0 * (p3.x - p2.x)
+	dy = 3.0 * (p3.y - p2.y)
+	# P''(1) = 6*(P3 - 2*P2 + P1)
+	ddx = 6.0 * (p3.x - 2.0 * p2.x + p1.x)
+	ddy = 6.0 * (p3.y - 2.0 * p2.y + p1.y)
+	denom = (dx * dx + dy * dy) ** 1.5
+	if denom < 1e-6:
+		return None
+	kappa = abs(dx * ddy - dy * ddx) / denom
+	if kappa < 1e-9:
+		return None  # near-straight; skip
+	return 1.0 / kappa
+
+
+def curvatureRadiusAtStart(p0, p1, p2):
+	"""
+	Radius of curvature at the start (t=0) of a cubic Bézier segment P0–P1–P2–P3.
+	P3 is not needed; only P0, P1, P2 are required.
+	Returns the radius as a positive float, or None for degenerate cases.
+	"""
+	# P'(0) = 3*(P1 - P0)
+	dx = 3.0 * (p1.x - p0.x)
+	dy = 3.0 * (p1.y - p0.y)
+	# P''(0) = 6*(P0 - 2*P1 + P2)
+	ddx = 6.0 * (p0.x - 2.0 * p1.x + p2.x)
+	ddy = 6.0 * (p0.y - 2.0 * p1.y + p2.y)
+	denom = (dx * dx + dy * dy) ** 1.5
+	if denom < 1e-6:
+		return None
+	kappa = abs(dx * ddy - dy * ddx) / denom
+	if kappa < 1e-9:
+		return None  # near-straight; skip
+	return 1.0 / kappa
+
+
+def findGreenDiscontinuity(layer, tolerance=0.11):
+	"""
+	Find G2 discontinuities at smooth nodes connecting two cubic curve segments.
+
+	A smooth node (green node in Glyphs) with off-curve neighbors on both sides
+	signals the designer's intent for continuous curvature (G2). This function
+	detects where the curvature radius actually jumps.
+
+	The relative deviation formula |R1 - R2| / (R1 + R2) is scale-independent
+	and matches the standard used by professional CAD tools (CATIA, Rhino, Alias).
+
+	Tolerance guidelines:
+	  0.05 (5%)  — strict, for high-end/display work
+	  0.11 (11%) — standard default, professional work
+	  0.15 (15%) — relaxed, rough QA or small-size fonts
+
+	Args:
+		layer: GSLayer to analyze
+		tolerance: relative curvature deviation threshold (0.0–1.0), default 0.11
+
+	Returns:
+		List of (node, deviationRatio, inRadius, outRadius) tuples where
+		deviationRatio >= tolerance, sorted by deviation descending.
+	"""
+	discontinuities = []
+
+	for path in layer.paths:
+		nodeCount = len(path.nodes)
+
+		for i, node in enumerate(path.nodes):
+			if not node.smooth:
+				continue
+
+			# Indices of the four surrounding nodes
+			iP1in = (i - 2) % nodeCount  # P1 of incoming segment
+			iP2in = (i - 1) % nodeCount  # P2 of incoming segment (handle before node)
+			iP1out = (i + 1) % nodeCount  # P1 of outgoing segment (handle after node)
+			iP2out = (i + 2) % nodeCount  # P2 of outgoing segment
+
+			p2in = path.nodes[iP2in]
+			p1out = path.nodes[iP1out]
+
+			# Both immediate neighbors must be off-curve (curve–curve junction)
+			if p2in.type != GSOFFCURVE or p1out.type != GSOFFCURVE:
+				continue
+
+			p1in = path.nodes[iP1in]
+			p2out = path.nodes[iP2out]
+
+			# The second handles must also be off-curve (full cubic bezier on each side)
+			if p1in.type != GSOFFCURVE or p2out.type != GSOFFCURVE:
+				continue
+
+			inRadius = curvatureRadiusAtEnd(p1in, p2in, node)
+			outRadius = curvatureRadiusAtStart(node, p1out, p2out)
+
+			if inRadius is None or outRadius is None:
+				continue
+
+			# Scale-independent relative deviation
+			deviation = abs(inRadius - outRadius) / (inRadius + outRadius)
+
+			if deviation >= tolerance:
+				discontinuities.append((node, deviation, inRadius, outRadius))
+
+	discontinuities.sort(key=lambda x: x[1], reverse=True)
+	return discontinuities
+
+
 class PathProblemFinder(mekkaObject):
 	title = "Path Problem Finder"
 	prefID = "com.mekkablue.PathProblemFinder"
@@ -387,6 +501,8 @@ class PathProblemFinder(mekkaObject):
 		"emptyPaths": 1,
 		"quadraticCurves": 0,
 		"decimalCoordinates": 0,
+		"greenDiscontinuity": 0,
+		"greenDiscontinuityTolerance": 11,
 		"includeAllGlyphs": 1,
 		"includeAllFonts": 0,
 		"includeNonExporting": 0,
@@ -398,7 +514,7 @@ class PathProblemFinder(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 285
-		windowHeight = 526
+		windowHeight = 548
 		windowWidthResize = 400  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -408,10 +524,6 @@ class PathProblemFinder(mekkaObject):
 			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
-
-		if self.w.getPosSize()[3] != windowHeight - 19:
-			print(self.w.getPosSize()[3], windowHeight - 19)
-			self.w.resize(self.w.getPosSize()[2], windowHeight - 19, animate=False)
 
 		# UI elements:
 		linePos, inset, lineHeight, secondColumn = 12, 15, 22, 135
@@ -446,6 +558,9 @@ class PathProblemFinder(mekkaObject):
 		self.w.angledHandles = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Angled handles up to", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.angledHandlesAngle = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "8", callback=self.SavePreferences, sizeStyle='small')
 		self.w.angledHandlesText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "degrees", sizeStyle='small', selectable=True)
+		tooltipText = "Finds handles that deviate from horizontal or vertical by less than the given angle. Often unintentional; indicated with orange circles in the Show Angled Handles plug-in."
+		self.w.angledHandles.setToolTip(tooltipText)
+		self.w.angledHandlesAngle.setToolTip(tooltipText)
 		linePos += lineHeight
 
 		self.w.shallowCurveBBox = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Curve bbox smaller than", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -472,6 +587,14 @@ class PathProblemFinder(mekkaObject):
 		self.w.shortSegment.setToolTip(tooltipText)
 		linePos += lineHeight
 
+		self.w.greenDiscontinuity = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Green disharmony above", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.greenDiscontinuityTolerance = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "11", callback=self.SavePreferences, sizeStyle='small')
+		self.w.greenDiscontinuityToleranceText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "%", sizeStyle='small', selectable=True)
+		tooltipText = "Finds G2 discontinuities (curvature jumps) at smooth green nodes where two curve segments meet. Same curvature measure used by the Green Harmony, SpeedPunk, and SuperTool plug-ins. 11% is the recommended default; 5% is strict; 15% is relaxed."
+		self.w.greenDiscontinuity.setToolTip(tooltipText)
+		self.w.greenDiscontinuityTolerance.setToolTip(tooltipText)
+		linePos += lineHeight
+
 		self.w.almostOrthogonalLines = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Non-orthogonal lines", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.almostOrthogonalLinesThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "3", callback=self.SavePreferences, sizeStyle='small')
 		self.w.almostOrthogonalLinesText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units off", sizeStyle='small', selectable=True)
@@ -483,6 +606,9 @@ class PathProblemFinder(mekkaObject):
 		self.w.almostOrthogonalLinesMinLengthCheck = vanilla.CheckBox((inset * 2, linePos - 1, indent, 20), "min segment length", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.almostOrthogonalLinesMinLength = vanilla.EditText((inset + indent, linePos - 1, -inset - rightIndent - 5, 19), "50", callback=self.SavePreferences, sizeStyle="small")
 		self.w.almostOrthogonalLinesMinLengthText = vanilla.TextBox((-inset - rightIndent, linePos + 2, -inset, 14), "units", sizeStyle="small", selectable=True)
+		tooltipText = "If enabled, skips line segments shorter than this length. Useful to avoid false positives on short connecting strokes."
+		self.w.almostOrthogonalLinesMinLengthCheck.setToolTip(tooltipText)
+		self.w.almostOrthogonalLinesMinLength.setToolTip(tooltipText)
 		linePos += lineHeight
 
 		self.w.badOutlineOrder = vanilla.CheckBox((inset + 2, linePos, secondColumn, 20), "Bad outline order", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -516,8 +642,11 @@ class PathProblemFinder(mekkaObject):
 
 		self.w.checkCheckBoxes = vanilla.TextBox((inset, linePos + 2, 50, 14), "Select", sizeStyle="small", selectable=True)
 		self.w.checkALL = vanilla.SquareButton((70, linePos, 50, 18), "ALL", sizeStyle="small", callback=self.updateUI)
+		self.w.checkALL.setToolTip("Enable all checks.")
 		self.w.checkNONE = vanilla.SquareButton((70 + 60 * 1, linePos, 50, 18), "NONE", sizeStyle="small", callback=self.updateUI)
+		self.w.checkNONE.setToolTip("Disable all checks.")
 		self.w.checkDEFAULT = vanilla.SquareButton((70 + 60 * 2, linePos, 70, 18), "DEFAULT", sizeStyle="small", callback=self.updateUI)
+		self.w.checkDEFAULT.setToolTip("Reset all checks to their default values.")
 		linePos += lineHeight
 
 		# Line Separator:
@@ -554,6 +683,7 @@ class PathProblemFinder(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Report", callback=self.PathProblemFinderMain)
+		self.w.runButton.setToolTip("Run the selected checks and open a new tab with all affected layers.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
@@ -565,9 +695,12 @@ class PathProblemFinder(mekkaObject):
 
 	def updateUI(self, sender=None):
 		if sender in (self.w.checkALL, self.w.checkNONE, self.w.checkDEFAULT):
-			excludedCheckSettings = ("includeAllGlyphs", "includeNonExporting", "reuseTab")
+			excludedCheckSettings = ("includeAllGlyphs", "includeNonExporting", "reuseTab", "exclude")
 			checkSettings = [
-				k for k in self.prefDict.keys() if k not in excludedCheckSettings and (not k.endswith("Threshold") and not k.endswith("Angle") or sender == self.w.checkDEFAULT)
+				k for k in self.prefDict.keys() if k not in excludedCheckSettings and (
+					not k.endswith("Threshold") and not k.endswith("Angle") and not k.endswith("Tolerance") and not k.endswith("MinLength")
+					or sender == self.w.checkDEFAULT
+				)
 			]
 			for prefName in checkSettings:
 				value = 0
@@ -591,12 +724,13 @@ class PathProblemFinder(mekkaObject):
 		self.w.shortHandlesThreshold.enable(self.w.shortHandles.get())
 		self.w.angledHandlesAngle.enable(self.w.angledHandles.get())
 		self.w.shortSegmentThreshold.enable(self.w.shortSegment.get())
+		self.w.greenDiscontinuityTolerance.enable(self.w.greenDiscontinuity.get())
 
 		anyOptionIsOn = (
 			self.w.zeroHandles.get() or self.w.outwardHandles.get() or self.w.cuspingHandles.get() or self.w.largeHandles.get() or self.w.shortHandles.get()
 			or self.w.angledHandles.get() or self.w.shallowCurveBBox.get() or self.w.shallowCurve.get() or self.w.shortSegment.get() or self.w.almostOrthogonalLines.get()
 			or self.w.badOutlineOrder.get() or self.w.badPathDirections.get() or self.w.strayPoints.get() or self.w.twoPointOutlines.get() or self.w.offcurveAsStartPoint.get()
-			or self.w.openPaths.get() or self.w.quadraticCurves.get() or self.w.decimalCoordinates.get() or self.w.emptyPaths.get()
+			or self.w.openPaths.get() or self.w.quadraticCurves.get() or self.w.decimalCoordinates.get() or self.w.emptyPaths.get() or self.w.greenDiscontinuity.get()
 		)
 		self.w.runButton.enable(anyOptionIsOn)
 
@@ -638,6 +772,8 @@ class PathProblemFinder(mekkaObject):
 		emptyPaths = self.pref("emptyPaths")
 		quadraticCurves = self.pref("quadraticCurves")
 		decimalCoordinates = self.pref("decimalCoordinates")
+		greenDiscontinuity = self.pref("greenDiscontinuity")
+		greenDiscontinuityTolerance = float(self.pref("greenDiscontinuityTolerance")) / 100.0
 		includeAllGlyphs = self.pref("includeAllGlyphs")
 		includeAllFonts = self.pref("includeAllFonts")
 		includeNonExporting = self.pref("includeNonExporting")
@@ -753,6 +889,9 @@ class PathProblemFinder(mekkaObject):
 				layersWithEmptyPaths = []
 				allTestLayers.append(layersWithEmptyPaths)
 				allTestReports.append("Empty Paths")
+				layersWithGreenDiscontinuity = []
+				allTestLayers.append(layersWithGreenDiscontinuity)
+				allTestReports.append("G2 Discontinuity")
 
 				progressSteps = glyphCount / 10
 				progressCounter = 0
@@ -870,6 +1009,20 @@ class PathProblemFinder(mekkaObject):
 								layersWithEmptyPaths.append(thisLayer)
 								if verbose:
 									print(f"  ❌ Empty paths in layer: {thisLayer.name}")
+
+							if greenDiscontinuity:
+								greenIssues = findGreenDiscontinuity(thisLayer, tolerance=greenDiscontinuityTolerance)
+								if greenIssues:
+									layersWithGreenDiscontinuity.append(thisLayer)
+									for node, deviation, inRadius, outRadius in greenIssues:
+										node.selected = True
+									if verbose:
+										for node, deviation, inRadius, outRadius in greenIssues:
+											print(f"  ❌ G2 {deviation * 100:.1f}% in '{thisGlyph.name}' ({thisLayer.name}) at ({node.x:.0f}, {node.y:.0f})")
+									else:
+										worstDeviation = greenIssues[0][1]
+										nodeCount = len(greenIssues)
+										print(f"  ❌ G2 {worstDeviation * 100:.1f}% (worst of {nodeCount}) in '{thisGlyph.name}' ({thisLayer.name})")
 
 				anyIssueFound = any(allTestLayers)
 				countOfLayers = 0
