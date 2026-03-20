@@ -8,7 +8,7 @@ Add OpenType feature with pseudorandom GPOS baseline shift for all glyphs in a c
 import vanilla
 from random import randint
 from GlyphsApp import Glyphs, GSFeature, GSClass, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, reportFontName
 
 
 allPossibleFeatures = [
@@ -183,11 +183,7 @@ class BaselineWiggle(mekkaObject):
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				filePath = thisFont.filepath
-				if filePath:
-					report = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					report = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+				report = reportFontName(thisFont)
 				print(f"Baseline Wiggle Report for {report}")
 				print()
 

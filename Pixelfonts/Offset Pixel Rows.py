@@ -6,7 +6,7 @@ Offsets each row of pixels by a percentage. Rhythm of 2 = every other line offse
 """
 
 import vanilla, sys
-from mekkablue import mekkaObject, UpdateButton, match
+from mekkablue import mekkaObject, UpdateButton, match, reportFontName
 
 
 class OffsetPixelRows(mekkaObject):
@@ -99,11 +99,7 @@ class OffsetPixelRows(mekkaObject):
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				filePath = thisFont.filepath
-				if filePath:
-					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+				reportName = reportFontName(thisFont)
 				print(f"Offset Pixel Rows Report for {reportName}")
 				print()
 			

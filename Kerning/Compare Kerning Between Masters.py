@@ -7,7 +7,7 @@ Report differences in kerning structures between two masters.
 
 import vanilla
 from GlyphsApp import Glyphs, GSControlLayer, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, reportFontName
 
 
 class CompareKerningBetweenMasters(mekkaObject):
@@ -159,11 +159,7 @@ class CompareKerningBetweenMasters(mekkaObject):
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				filePath = thisFont.filepath
-				if filePath:
-					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+				reportName = reportFontName(thisFont)
 				print(f"Compare Kerning  Between Masters Report for {reportName}")
 				print()
 

@@ -112,6 +112,18 @@ def reportTimeInNaturalLanguage(seconds):
 	return timereport
 
 
+def reportFontName(font) -> str:
+	"""
+	Returns a display name for a font for use in log output.
+	If the font file is saved, returns '<filename>\n📄 <path>'.
+	If not saved, returns '<familyName>\n⚠️ The font file has not been saved yet.'
+	"""
+	filePath = font.filepath
+	if filePath:
+		return f"{filePath.lastPathComponent()}\n📄 {filePath}"
+	return f"{font.familyName}\n⚠️ The font file has not been saved yet."
+
+
 def getLegibleFont(size=None):
 	if size is None:
 		size = NSFont.systemFontSize()

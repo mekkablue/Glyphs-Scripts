@@ -7,7 +7,7 @@ Apply a list of filter parameters to copies of CPAL/COLR layers. This way you ca
 
 import vanilla
 import sys
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, reportFontName
 from GlyphsApp import Glyphs, GSLayer, GSCustomParameter, Message
 from Foundation import NSString
 from AppKit import NSFont
@@ -220,11 +220,7 @@ class ColorPaletteMultiplier(mekkaObject):
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				filePath = thisFont.filepath
-				if filePath:
-					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+				reportName = reportFontName(thisFont)
 				print(f"Color Palette Multiplier Report for {reportName}")
 				print()
 

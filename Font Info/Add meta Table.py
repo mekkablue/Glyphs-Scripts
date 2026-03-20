@@ -5,6 +5,7 @@ __doc__="""
 Adds a meta table entry for the frontmost font in Font Info > Font > Custom Parameters.
 """
 
+from mekkablue import reportFontName
 import vanilla, sys
 from itertools import combinations
 
@@ -152,11 +153,7 @@ class AddMetaTable(mekkaObject):
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				filePath = thisFont.filepath
-				if filePath:
-					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+				reportName = reportFontName(thisFont)
 				print(f"📄 ‘Add meta Table’ Report for {reportName}")
 				print()
 				

@@ -8,7 +8,7 @@ UI for managing glyphOrder parameters.
 import vanilla
 import codecs
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, getLegibleFont
+from mekkablue import mekkaObject, getLegibleFont, reportFontName
 
 
 def saveFileInLocation(content="", filePath="~/Desktop/test.txt"):
@@ -161,11 +161,7 @@ class GlyphOrderManager(mekkaObject):
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
 				for thisFont in fonts:
-					filePath = thisFont.filepath
-					if filePath:
-						reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-					else:
-						reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+					reportName = reportFontName(thisFont)
 					print(f"🔢 Setting glyphOrder for {reportName}")
 					print()
 					thisFont.disableUpdateInterface()

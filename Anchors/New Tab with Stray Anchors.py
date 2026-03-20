@@ -6,7 +6,7 @@ Find all anchors that are not where they are supposed to be.
 """
 
 import vanilla, sys
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, reportFontName
 
 horizontals = (
 	"LSB",
@@ -211,11 +211,7 @@ class FindStrayAnchors(mekkaObject):
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
 			else:
-				filePath = thisFont.filepath
-				if filePath:
-					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+				reportName = reportFontName(thisFont)
 				print(f"Find Stray Anchors Report for {reportName}")
 				print()
 				

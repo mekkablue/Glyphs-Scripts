@@ -8,7 +8,7 @@ Takes the current layer of each selected glyph, and propagates node types, node 
 import vanilla
 from AppKit import NSPoint
 from GlyphsApp import Glyphs, GSSMOOTH, GSOFFCURVE, GSShapeTypePath, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, reportFontName
 
 
 def straightenBCPs(layer):
@@ -206,11 +206,7 @@ class EnhanceCompatibility(mekkaObject):
 			if Glyphs.font is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				filePath = thisFont.filepath
-				if filePath:
-					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+				reportName = reportFontName(thisFont)
 				print(f"Enhance Compatibility Report for {reportName}")
 
 				for selectedLayer in thisFont.selectedLayers:

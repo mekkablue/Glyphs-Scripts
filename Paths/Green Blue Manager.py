@@ -9,7 +9,7 @@ import vanilla
 import objc
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSControlLayer, GSOFFCURVE, GSSMOOTH, GSSHARP, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, reportFontName
 from mekkablue.geometry import angle
 
 GlyphsPathPlugin = objc.lookUpClass("GlyphsPathPlugin")
@@ -264,11 +264,7 @@ class GreenBlueManager(mekkaObject):
 				theseFonts = (Glyphs.font, )
 
 			for thisFont in theseFonts:
-				filePath = thisFont.filepath
-				if filePath:
-					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+				reportName = reportFontName(thisFont)
 
 				print(f"GreenBlueManager Report for {reportName}")
 				print()

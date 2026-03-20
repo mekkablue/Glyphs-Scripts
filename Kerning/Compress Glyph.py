@@ -7,7 +7,7 @@ Compresses all instances of a glyph to its respective group kerning.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, match
+from mekkablue import mekkaObject, match, reportFontName
 
 
 class CompressGlyph(mekkaObject):
@@ -92,11 +92,7 @@ class CompressGlyph(mekkaObject):
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				filePath = thisFont.filepath
-				if filePath:
-					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+				reportName = reportFontName(thisFont)
 				print(f"Compress Glyph Report for {reportName}")
 				print()
 

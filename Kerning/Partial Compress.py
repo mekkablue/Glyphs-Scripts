@@ -7,7 +7,7 @@ Compress kerning, but for certain glyphs only.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, reportFontName
 
 
 class PartialCompress(mekkaObject):
@@ -81,11 +81,7 @@ class PartialCompress(mekkaObject):
 				theseFonts = (Glyphs.font, )
 
 			for thisFont in theseFonts:
-				filePath = thisFont.filepath
-				if filePath:
-					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+				reportName = reportFontName(thisFont)
 				print(f"Partial Compress Report for {reportName}")
 
 				removeList = []

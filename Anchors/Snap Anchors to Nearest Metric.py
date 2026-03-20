@@ -9,7 +9,7 @@ import vanilla
 from Foundation import NSPoint
 from AppKit import NSAffineTransform
 from GlyphsApp import Glyphs, Message, addPoints
-from mekkablue import mekkaObject, match, UpdateButton
+from mekkablue import mekkaObject, match, UpdateButton, reportFontName
 from mekkablue.geometry import italicize
 
 
@@ -185,11 +185,7 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 			focusOnMarkAnchorsInMarks = self.prefBool("focusOnMarkAnchorsInMarks")
 
 			for thisFont in theseFonts:
-				filePath = thisFont.filepath
-				if filePath:
-					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+				reportName = reportFontName(thisFont)
 				print(f"Snap Anchors to Nearest Metric Report for {reportName}")
 				print()
 

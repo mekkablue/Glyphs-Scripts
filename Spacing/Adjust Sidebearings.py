@@ -7,7 +7,7 @@ Multiply, increase/decrease, limit or round spacing, differentiate between negat
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, reportFontName
 
 
 choices = (
@@ -147,11 +147,7 @@ class AdjustSpacing(mekkaObject):
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				filePath = thisFont.filepath
-				if filePath:
-					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+				reportName = reportFontName(thisFont)
 				print(f"Adjust Spacing Report for {reportName}")
 				print()
 

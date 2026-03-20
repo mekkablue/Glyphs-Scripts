@@ -7,7 +7,7 @@ Intersect two sets of glyphs with each other in order to get all possible glyph 
 
 import vanilla
 from GlyphsApp import Glyphs, GSFeature, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, reportFontName
 
 defaultTokens = (
 	"$[category like 'Letter' and case in {upper,lower}]  # UPPERCASE AND LOWERCASE LETTERS",
@@ -123,11 +123,7 @@ class KernStringMixer(mekkaObject):
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				filePath = thisFont.filepath
-				if filePath:
-					report = "%s\n📄 %s" % (filePath.lastPathComponent(), filePath)
-				else:
-					report = "%s\n⚠️ The font file has not been saved yet." % thisFont.familyName
+				report = reportFontName(thisFont)
 				print("Kern String Mixer Report for %s" % report)
 				print()
 

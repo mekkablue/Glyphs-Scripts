@@ -8,7 +8,7 @@ Derive one H and one V stem value for all your masters by measuring certain shap
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSMetric, GSInfoValue, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, reportFontName
 
 whichMeasure = (
 	"bounds",
@@ -169,11 +169,7 @@ class AutoStems(mekkaObject):
 				return
 
 			for f in fonts:
-				filePath = f.filepath
-				if filePath:
-					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					reportName = f"{f.familyName}\n⚠️ The font file has not been saved yet."
+				reportName = reportFontName(f)
 				print(f"Auto Stems Report for {reportName}")
 				print()
 

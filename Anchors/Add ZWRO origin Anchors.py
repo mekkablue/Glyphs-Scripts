@@ -8,7 +8,7 @@ Insert *origin anchors for ZWRO in all combining marks of specified scripts.
 from AppKit import NSPoint, NSHeight
 import vanilla
 from GlyphsApp import Glyphs, GSAnchor, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, reportFontName
 
 
 def moveMacroWindowSeparator(pos=20):
@@ -143,11 +143,7 @@ class AddZWROOriginAnchors(mekkaObject):
 				theseFonts = (thisFont, )
 
 			for thisFont in theseFonts:
-				filePath = thisFont.filepath
-				if filePath:
-					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+				reportName = reportFontName(thisFont)
 				print(f"Add ZWRO origin Anchors Report for {reportName}")
 				print()
 

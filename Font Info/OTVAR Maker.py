@@ -8,7 +8,7 @@ Creates a variable font setting in Font Info > Exports.
 import vanilla
 from string import ascii_letters, digits
 from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE, INSTANCETYPEVARIABLE, GSPropertyNameVariationsPostScriptNamePrefixKey, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, reportFontName
 
 
 def shortenPSStyleName(psStyleName):
@@ -179,11 +179,7 @@ class OTVARMaker(mekkaObject):
 				theseFonts = (Glyphs.font, )
 
 			for thisFont in theseFonts:
-				filePath = thisFont.filepath
-				if filePath:
-					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+				reportName = reportFontName(thisFont)
 				print(f"OTVAR Maker Report for {reportName}")
 				print()
 

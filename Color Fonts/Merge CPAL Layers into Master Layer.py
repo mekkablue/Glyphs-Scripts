@@ -7,7 +7,7 @@ Takes all CPAL/COLR layers and puts copies of their shapes into the master layer
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, reportFontName
 
 
 allOptions = (
@@ -94,11 +94,7 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 					theseFonts = (Glyphs.font, )
 
 				for thisFont in theseFonts:
-					filePath = thisFont.filepath
-					if filePath:
-						reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-					else:
-						reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+					reportName = reportFontName(thisFont)
 					print(f"Merge CPAL Layers into Master Layer Report for {reportName}")
 					print()
 

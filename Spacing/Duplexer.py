@@ -9,7 +9,7 @@ import vanilla, sys
 from copy import copy
 from AppKit import NSPoint, NSMidX, NSMidY, NSAffineTransform, NSAffineTransformStruct
 from GlyphsApp import Glyphs, GSLayer, GSCustomParameter, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, reportFontName
 
 def mixedGlyphDatabase(glyphs):
 	mixedDict = {}
@@ -201,11 +201,7 @@ class Duplexer(mekkaObject):
 			if font is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				filePath = font.filepath
-				if filePath:
-					reportName = f"{filePath.lastPathComponent()}:\n\n📄 {filePath}"
-				else:
-					reportName = f"{font.familyName}:\n\n⚠️ The font file has not been saved yet."
+				reportName = reportFontName(font)
 				print(f"Duplexer Report for {reportName}")
 
 				base = self.pref("base")
