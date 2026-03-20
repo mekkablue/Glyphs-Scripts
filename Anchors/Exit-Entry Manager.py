@@ -10,7 +10,7 @@ add or remove the # prefix; swap or delete anchors — all from one place.
 import vanilla
 from mekkablue import mekkaObject
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSAnchor, GSPath, GSNode, GSOFFCURVE, GSRTL
+from GlyphsApp import Glyphs, GSAnchor, GSPath, GSNode, GSOFFCURVE, GSLTR, GSRTL
 
 
 class ExitEntryManager(mekkaObject):
@@ -40,22 +40,22 @@ class ExitEntryManager(mekkaObject):
 		buttonX = -(inset + buttonWidth)
 
 		# ── Insert section ──────────────────────────────────────────────────────
-		self.w.insertSideText = vanilla.TextBox((inset, linePos + 2, buttonX - 5, 14), "Insert at sidebearings (entry @ LSB, exit @ RSB):", sizeStyle="small", selectable=True)
+		self.w.insertSideText = vanilla.TextBox((inset, linePos + 2, buttonX - 5, 14), "Insert at sidebearings (LTR: entry@LSB, exit@RSB; RTL: vice versa):", sizeStyle="small", selectable=True)
 		self.w.insertSideButton = vanilla.Button((buttonX, linePos, -inset, 20), "Insert", callback=self.insertAtSidebearings, sizeStyle="small")
-		self.w.insertSideText.setToolTip("Inserts entry/exit anchors at LSB and RSB respectively (RTL glyphs are reversed). All masters and special layers. Respects '# prefix' and 'Overwrite' checkboxes.")
-		self.w.insertSideButton.setToolTip("Insert entry at LSB and exit at RSB in selected (or all) glyphs.")
+		self.w.insertSideText.setToolTip("LTR glyphs: entry at x=0 (LSB), exit at x=width (RSB). RTL glyphs: exit at x=0, entry at x=width. Respects '# prefix' and 'Overwrite' checkboxes.")
+		self.w.insertSideButton.setToolTip("Insert entry/exit anchors at sidebearings, direction-aware.")
 		linePos += lineHeight
 
-		self.w.insertNodeText = vanilla.TextBox((inset, linePos + 2, buttonX - 5, 14), "Insert at outermost selected nodes (y=0):", sizeStyle="small", selectable=True)
+		self.w.insertNodeText = vanilla.TextBox((inset, linePos + 2, buttonX - 5, 14), "Insert at outermost selected nodes (y=0, direction-aware):", sizeStyle="small", selectable=True)
 		self.w.insertNodeButton = vanilla.Button((buttonX, linePos, -inset, 20), "Insert", callback=self.insertAtSelectedNodes, sizeStyle="small")
-		self.w.insertNodeText.setToolTip("Uses the x coordinates of the leftmost and rightmost selected nodes and places entry/exit anchors at y=0 in all masters and special layers. Works on selected glyphs only.")
-		self.w.insertNodeButton.setToolTip("Place entry/exit anchors at x of outermost selected nodes, y=0.")
+		self.w.insertNodeText.setToolTip("Uses x of outermost selected nodes to place entry/exit at y=0. LTR: entry left, exit right. RTL: exit left, entry right. Always uses the current selection; ignores 'Apply to ALL glyphs'.")
+		self.w.insertNodeButton.setToolTip("Place entry/exit anchors at x of outermost selected nodes, y=0, direction-aware.")
 		linePos += lineHeight
 
-		self.w.insertPositionalText = vanilla.TextBox((inset, linePos + 2, buttonX - 5, 14), "Insert for positional glyphs (.init/.medi/.fina):", sizeStyle="small", selectable=True)
+		self.w.insertPositionalText = vanilla.TextBox((inset, linePos + 2, buttonX - 5, 14), "Insert for positional glyphs (.init/.medi/.fina, direction-aware):", sizeStyle="small", selectable=True)
 		self.w.insertPositionalButton = vanilla.Button((buttonX, linePos, -inset, 20), "Insert", callback=self.insertForPositionalGlyphs, sizeStyle="small")
-		self.w.insertPositionalText.setToolTip("Adds exit at x=0 for .init/.medi glyphs, and entry at the rightmost oncurve node for .medi/.fina glyphs. Skips glyphs that don't match these suffixes.")
-		self.w.insertPositionalButton.setToolTip("Insert exit/entry anchors for Arabic positional glyphs (.init/.medi/.fina).")
+		self.w.insertPositionalText.setToolTip("RTL (.init/.medi): exit at x=0; (.medi/.fina): entry at rightmost oncurve. LTR (.init/.medi): exit at rightmost oncurve; (.medi/.fina): entry at leftmost oncurve. Skips non-positional glyphs.")
+		self.w.insertPositionalButton.setToolTip("Insert exit/entry anchors for positional glyphs (.init/.medi/.fina), direction-aware.")
 		linePos += lineHeight + 4
 
 		self.w.separator1 = vanilla.HorizontalLine((inset, linePos, -inset, 1))
@@ -140,19 +140,35 @@ class ExitEntryManager(mekkaObject):
 			currentMasterId = font.selectedFontMaster.id
 			return [l for l in glyph.layers if l.associatedMasterId == currentMasterId and l.isMasterLayer]
 
+	def _getPaths(self, layer):
+		try:
+			return [p for p in layer.shapes if isinstance(p, GSPath)]
+		except Exception:
+			return layer.paths
+
 	def rightmostOncurve(self, layer):
 		"""Returns the rightmost oncurve node in the layer, or None."""
-		try:
-			paths = [p for p in layer.shapes if isinstance(p, GSPath)]
-		except Exception:
-			paths = layer.paths
-		rightmost = None
-		for path in paths:
+		result = None
+		for path in self._getPaths(layer):
 			for node in path.nodes:
 				if node.type != GSOFFCURVE:
-					if rightmost is None or node.x > rightmost.x:
-						rightmost = node
-		return rightmost
+					if result is None or node.x > result.x:
+						result = node
+		return result
+
+	def leftmostOncurve(self, layer):
+		"""Returns the leftmost oncurve node in the layer, or None."""
+		result = None
+		for path in self._getPaths(layer):
+			for node in path.nodes:
+				if node.type != GSOFFCURVE:
+					if result is None or node.x < result.x:
+						result = node
+		return result
+
+	def updateUI(self, sender=None):
+		# "Insert at selected nodes" only works with an active selection, not font-wide
+		self.w.insertNodeButton.enable(not self.prefBool("applyFontWide"))
 
 	def setStatus(self, msg):
 		self.w.status.set(msg)
@@ -176,10 +192,10 @@ class ExitEntryManager(mekkaObject):
 		font.disableUpdateInterface()
 		try:
 			for glyph in glyphs:
-				isRTL = glyph.direction == GSRTL
+				isLTR = glyph.direction == GSLTR
 				for layer in self.getLayersFromGlyph(glyph):
-					xEntry = layer.width if isRTL else 0.0
-					xExit = 0.0 if isRTL else layer.width
+					xEntry = 0.0 if isLTR else layer.width
+					xExit = layer.width if isLTR else 0.0
 					for anchorName, x in ((entryName, xEntry), (exitName, xExit)):
 						if not layer.anchors[anchorName] or overwrite:
 							newAnchor = GSAnchor()
@@ -209,7 +225,7 @@ class ExitEntryManager(mekkaObject):
 				if not glyph:
 					continue
 
-				isRTL = glyph.direction == GSRTL
+				isLTR = glyph.direction == GSLTR
 				selectedNodes = sorted(
 					[item for item in activeLayer.selection if isinstance(item, GSNode)],
 					key=lambda n: n.x,
@@ -224,12 +240,14 @@ class ExitEntryManager(mekkaObject):
 
 				xEntry = None
 				xExit = None
-				if not isRTL:
+				if isLTR:
+					# LTR: entry on the left, exit on the right
 					if selectedNodes[0].x <= threshold:
 						xEntry = selectedNodes[0].x
 					if selectedNodes[-1].x >= threshold:
 						xExit = selectedNodes[-1].x
 				else:
+					# RTL: exit on the left, entry on the right
 					if selectedNodes[0].x <= threshold:
 						xExit = selectedNodes[0].x
 					if selectedNodes[-1].x >= threshold:
@@ -272,22 +290,34 @@ class ExitEntryManager(mekkaObject):
 				if not (isInit or isMedi or isFina):
 					skipped += 1
 					continue
+				isLTR = glyph.direction == GSLTR
 				for layer in self.getLayersFromGlyph(glyph):
-					try:
-						hasPaths = len(layer.paths) > 0
-					except Exception:
-						hasPaths = any(isinstance(s, GSPath) for s in layer.shapes)
-					# exit at x=0 for init/medi
-					if (isInit or isMedi) and hasPaths:
-						if not layer.anchors[exitName] or overwrite:
-							layer.anchors.append(GSAnchor(exitName, NSPoint(0.0, 0.0)))
-							count += 1
-					# entry at rightmost oncurve for medi/fina
-					if isMedi or isFina:
-						node = self.rightmostOncurve(layer)
-						if node and (not layer.anchors[entryName] or overwrite):
-							layer.anchors.append(GSAnchor(entryName, NSPoint(node.x, node.y)))
-							count += 1
+					hasPaths = bool(self._getPaths(layer))
+					if not hasPaths:
+						continue
+					if isLTR:
+						# LTR cursive: exit connects to the right, entry connects from the left
+						if isInit or isMedi:
+							node = self.rightmostOncurve(layer)
+							if node and (not layer.anchors[exitName] or overwrite):
+								layer.anchors.append(GSAnchor(exitName, NSPoint(node.x, node.y)))
+								count += 1
+						if isMedi or isFina:
+							node = self.leftmostOncurve(layer)
+							if node and (not layer.anchors[entryName] or overwrite):
+								layer.anchors.append(GSAnchor(entryName, NSPoint(node.x, node.y)))
+								count += 1
+					else:
+						# RTL cursive (Arabic): exit connects to the left (x=0), entry from the right
+						if isInit or isMedi:
+							if not layer.anchors[exitName] or overwrite:
+								layer.anchors.append(GSAnchor(exitName, NSPoint(0.0, 0.0)))
+								count += 1
+						if isMedi or isFina:
+							node = self.rightmostOncurve(layer)
+							if node and (not layer.anchors[entryName] or overwrite):
+								layer.anchors.append(GSAnchor(entryName, NSPoint(node.x, node.y)))
+								count += 1
 		finally:
 			font.enableUpdateInterface()
 		msg = "Inserted %i anchor%s." % (count, "" if count == 1 else "s")
