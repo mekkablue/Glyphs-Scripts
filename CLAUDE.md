@@ -245,7 +245,7 @@ Negative coordinates are measured from the right/bottom edge (`-inset` = inset f
 | `reportTimeInNaturalLanguage(seconds)` | Formats a duration as a readable string (e.g., `"2:34 minutes"`) |
 | `getLegibleFont(size=None)` | Returns a system legible font (Glyphs 2/3 compatible) |
 | `UpdateButton(posSize, callback, title="")` | Creates a refresh button with an NSRefreshTemplate icon |
-| `transform(shiftX, shiftY, rotate, skew, scale)` | Returns an `NSAffineTransform` (same as `geometry.transform`) |
+| `transform(shiftX, shiftY, rotate, skew, scale)` | Returns an `NSAffineTransform` (duplicate of `geometry.transform`; not imported directly by scripts) |
 
 ### `caseDict` (Glyphs 3 only)
 
@@ -272,11 +272,11 @@ from mekkablue import caseDict
 | `bothPointsAreOnSameSideOfOrigin(pointA, pointB, pointOrigin)` | Returns `True` if both points are on the same side of origin |
 | `pointIsBetweenOtherPoints(thisPoint, otherPointA, otherPointB)` | Returns `True` if point lies between the other two points |
 
-> **Note:** `transform()` exists in both `__init__.py` and `geometry.py`. Both are equivalent. Prefer importing from `geometry` when already importing other geometry helpers; prefer importing from `mekkablue` in GUI scripts.
+> **Note:** `transform()` exists in both `__init__.py` and `geometry.py`, but all scripts import it via `from mekkablue.geometry import transform`. Never use `from geometry import ...` (bare module path) — always use `from mekkablue.geometry import ...`.
 
 Applying a transform to a layer:
 ```python
-from geometry import transform
+from mekkablue.geometry import transform
 t = transform(shiftX=10, rotate=5, scale=1.1)
 layer.applyTransform(t.transformStruct())
 ```
