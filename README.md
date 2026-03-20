@@ -66,6 +66,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Add missing smart anchors:** Adds all anchors for properties of selected smart glyphs on all their layers. Skips *Width* and *Height* anchors.
 * **Add ZWRO origin Anchors:** Insert *origin anchors for ZWRO in all combining marks of specified scripts.
 * **Anchor Mover:** GUI for batch-processing anchor positions in multiple glyphs.
+* **Anchor Remover:** GUI for removing anchors by name or wildcard pattern, from suffix-matched glyphs, or non-standard anchors not expected for each glyph by default (e.g., `ogonek` from `J`). Wildcards supported in anchor name and exceptions field. Potentially dangerous, so first use the report script below.
 * **Batch Insert Anchors:** GUI for batch-inserting anchors of the same name at the same approximate position in multiple glyphs.
 * **Exit-Entry Manager:** Toolbox for managing `exit`/`entry` and `#exit`/`#entry` anchors used for cursive attachment. Insert anchors at sidebearings, at outermost selected nodes, or automatically for positional glyphs (`.init`/`.medi`/`.fina`); add or remove the `#` prefix; swap exit ↔ entry positions; or delete all exit/entry anchors — all from one window. All insert operations are direction-aware (LTR vs. RTL) and respect a global *Use # prefix* checkbox.
 * **Find and Replace in Anchor Names:** GUI for replacing text in the names of anchors in selected glyphs. Processes all layers.
@@ -79,9 +80,6 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **New Tab with Stray Anchors:** Find all anchors that are not where they are supposed to be.
 * **Propagate Components and Mark Anchoring:** Takes the current master’s component and mark anchoring setup and replicates it in all other (compatible) masters. Useful for complex Arabic ligature marks.
 * **Realign Stacking Anchors:** In stacking combining accents, moves top and bottom anchors exactly above or below the respective _top and _bottom anchors, respecting the italic angle. This way, stacking multiple nonspacing accents will always stay in line.
-* **Remove Anchors in Suffixed Glyphs:** Removes all anchors from glyphs with one of the user-specified suffix. Useful for removing left-over anchors in sups/subs/sinf/ordn variants of glyphs after copying, scaling and editing.
-* **Remove Anchors:** Deletes anchors with a specified name in selected glyphs (or the whole font).
-* **Remove Non-Standard Anchors from Selected Glyphs:** Removes all anchors from a glyph that should not be there by default, e.g., `ogonek` from `J`. Potentially dangerous, because it may delete false positives. So, first use the report script below.
 * **Replicate Anchors:** Batch-add anchors to selected glyphs. Specify a source glyph to replicate the anchors from.
 * **Replicate Anchors in Suffixed Glyphs:** Goes through selected dot-suffixed glyphs and duplicates anchors from their respective base glyphs. E.g. will recreate anchors of *X* in *X.ss01*, *X.swsh* and *X.alt*.
 * **Report Non-Standard Anchors to Macro window:** Goes through all glyphs in the font and reports in the Macro window if it finds non-default anchors. Lines are copy-pasteable in Edit view.
