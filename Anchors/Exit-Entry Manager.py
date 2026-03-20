@@ -40,21 +40,21 @@ class ExitEntryManager(mekkaObject):
 		buttonX = -(inset + buttonWidth)
 
 		# ── Insert section ──────────────────────────────────────────────────────
-		self.w.insertSideText = vanilla.TextBox((inset, linePos + 2, buttonX - 5, 14), "Insert at sidebearings (LTR: entry@LSB, exit@RSB; RTL: vice versa):", sizeStyle="small", selectable=True)
+		self.w.insertSideText = vanilla.TextBox((inset, linePos + 2, buttonX - 5, 14), "Insert at sidebearings:", sizeStyle="small", selectable=True)
 		self.w.insertSideButton = vanilla.Button((buttonX, linePos, -inset, 20), "Insert", callback=self.insertAtSidebearings, sizeStyle="small")
-		self.w.insertSideText.setToolTip("LTR glyphs: entry at x=0 (LSB), exit at x=width (RSB). RTL glyphs: exit at x=0, entry at x=width. Respects '# prefix' and 'Overwrite' checkboxes.")
+		self.w.insertSideText.setToolTip("LTR: entry@LSB, exit@RSB; RTL: vice versa. LTR glyphs: entry at x=0 (LSB), exit at x=width (RSB). RTL glyphs: exit at x=0, entry at x=width. Respects '# prefix' and 'Overwrite' checkboxes.")
 		self.w.insertSideButton.setToolTip("Insert entry/exit anchors at sidebearings, direction-aware.")
 		linePos += lineHeight
 
-		self.w.insertNodeText = vanilla.TextBox((inset, linePos + 2, buttonX - 5, 14), "Insert at outermost selected nodes (y=0, direction-aware):", sizeStyle="small", selectable=True)
+		self.w.insertNodeText = vanilla.TextBox((inset, linePos + 2, buttonX - 5, 14), "Insert at outermost selected nodes:", sizeStyle="small", selectable=True)
 		self.w.insertNodeButton = vanilla.Button((buttonX, linePos, -inset, 20), "Insert", callback=self.insertAtSelectedNodes, sizeStyle="small")
-		self.w.insertNodeText.setToolTip("Uses x of outermost selected nodes to place entry/exit at y=0. LTR: entry left, exit right. RTL: exit left, entry right. Always uses the current selection; ignores 'Apply to ALL glyphs'.")
+		self.w.insertNodeText.setToolTip("y=0, direction-aware. Uses x of outermost selected nodes to place entry/exit at y=0. LTR: entry left, exit right. RTL: exit left, entry right. Always uses the current selection; ignores 'Apply to ALL glyphs'.")
 		self.w.insertNodeButton.setToolTip("Place entry/exit anchors at x of outermost selected nodes, y=0, direction-aware.")
 		linePos += lineHeight
 
-		self.w.insertPositionalText = vanilla.TextBox((inset, linePos + 2, buttonX - 5, 14), "Insert for positional glyphs (.init/.medi/.fina, direction-aware):", sizeStyle="small", selectable=True)
+		self.w.insertPositionalText = vanilla.TextBox((inset, linePos + 2, buttonX - 5, 14), "Insert for positional glyphs:", sizeStyle="small", selectable=True)
 		self.w.insertPositionalButton = vanilla.Button((buttonX, linePos, -inset, 20), "Insert", callback=self.insertForPositionalGlyphs, sizeStyle="small")
-		self.w.insertPositionalText.setToolTip("RTL (.init/.medi): exit at x=0; (.medi/.fina): entry at rightmost oncurve. LTR (.init/.medi): exit at rightmost oncurve; (.medi/.fina): entry at leftmost oncurve. Skips non-positional glyphs.")
+		self.w.insertPositionalText.setToolTip(".init/.medi/.fina, direction-aware. RTL (.init/.medi): exit at x=0; (.medi/.fina): entry at rightmost oncurve. LTR (.init/.medi): exit at rightmost oncurve; (.medi/.fina): entry at leftmost oncurve. Skips non-positional glyphs.")
 		self.w.insertPositionalButton.setToolTip("Insert exit/entry anchors for positional glyphs (.init/.medi/.fina), direction-aware.")
 		linePos += lineHeight + 4
 
