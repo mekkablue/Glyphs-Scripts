@@ -71,7 +71,7 @@ class QuoteManager(mekkaObject):
 
 	def __init__(self):
 		windowWidth = 360
-		windowHeight = 305
+		windowHeight = 315
 		windowWidthResize = 100
 		windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
@@ -139,7 +139,7 @@ class QuoteManager(mekkaObject):
 		self.w.doReversedQuotes.setToolTip(
 			"Create or update quotereversed, quotedblrightreversed (‛ ‟)"
 		)
-		linePos += 12  # tighter gap before divider
+		linePos += lineHeight
 
 		self.w.divider1 = vanilla.HorizontalLine((inset, linePos + 4, -inset, 1))
 		linePos += lineHeight
@@ -330,18 +330,30 @@ class QuoteManager(mekkaObject):
 			layer.background.decomposeComponents()
 
 	def setAnchors(self, layer, entryX=0, exitX=None):
-		"""Place #entry at entryX,0 and #exit at exitX,0. If exitX is None, use round(width*0.8)."""
+		"""Place #entry at 0,0 and #exit at the same distance from 0 as exitX is from entryX."""
 		if exitX is None:
 			exitX = round(layer.width * 0.8)
+		distance = exitX - entryX
 		toRemove = [a for a in layer.anchors if a.name in ("#entry", "#exit")]
 		for a in toRemove:
 			layer.anchors.remove(a)
-		layer.anchors.append(GSAnchor("#entry", NSPoint(entryX, 0)))
-		layer.anchors.append(GSAnchor("#exit", NSPoint(exitX, 0)))
+		layer.anchors.append(GSAnchor("#entry", NSPoint(0, 0)))
+		layer.anchors.append(GSAnchor("#exit", NSPoint(distance, 0)))
 
 	# -----------------------------------------------------------------------
 	# Metrics keys
 	# -----------------------------------------------------------------------
+
+	def resetMetricsKeys(self, font, groups):
+		"""Clear all glyph- and layer-level metrics keys on affected glyphs before setting new ones."""
+		for name in self.getAllAffectedNames(groups):
+			g = font.glyphs[name]
+			if g:
+				g.leftMetricsKey = None
+				g.rightMetricsKey = None
+				for layer in g.layers:
+					layer.leftMetricsKey = None
+					layer.rightMetricsKey = None
 
 	def setMetricsKeys(self, font, groups, defaultQuote, defaultGuillemet):
 		if defaultQuote:
@@ -830,6 +842,7 @@ class QuoteManager(mekkaObject):
 			defaultQuote = self.getDefaultQuoteName()
 			defaultGuillemet = self.getDefaultGuillemetsName()
 
+			self.resetMetricsKeys(font, groups)
 			self.setMetricsKeys(font, groups, defaultQuote, defaultGuillemet)
 			self.syncAnchorsFromDefault(font, singles, defaultQuote, defaultGuillemet)
 			self.setKernGroups(font, singles)
@@ -924,7 +937,8 @@ class QuoteManager(mekkaObject):
 				self.buildApostropheComposites(font, forceOverwrite=True)
 
 			# 6. Metrics keys
-			print("\nSetting metrics keys:")
+			print("\nResetting and setting metrics keys:")
+			self.resetMetricsKeys(font, groups)
 			self.setMetricsKeys(font, groups, defaultQuote, defaultGuillemet)
 
 			# 7. Sync anchors from default
