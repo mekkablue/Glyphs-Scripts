@@ -290,7 +290,7 @@ class StealKerningFromInDesign(mekkaObject):
 			# Remove other masters
 			mastersToRemove = [m for m in tempFont.masters if m != tempMaster]
 			for m in mastersToRemove:
-				tempFont.removeMaster_(m)
+				tempFont.masters.remove(m)
 
 			# Export as OTF
 			exportOptions = {
