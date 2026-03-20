@@ -7,7 +7,7 @@ Report differences in kerning structures between two masters.
 
 import vanilla
 from GlyphsApp import Glyphs, GSControlLayer, Message
-from mekkablue import mekkaObject, reportFontName
+from mekkablue import mekkaObject, reportFontName, UpdateButton
 
 
 class CompareKerningBetweenMasters(mekkaObject):
@@ -47,7 +47,8 @@ class CompareKerningBetweenMasters(mekkaObject):
 		linePos += lineHeight
 
 		self.w.secondMasterText = vanilla.TextBox((inset, linePos + 2, tab, 14), "2nd Master:", sizeStyle="small", selectable=True)
-		self.w.secondMaster = vanilla.PopUpButton((inset + tab, linePos, -inset, 17), self.menuItemsForFrontMostFont(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.secondMaster = vanilla.PopUpButton((inset + tab, linePos, -inset - 20, 17), self.menuItemsForFrontMostFont(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateButton = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateUI)
 		linePos += int(lineHeight * 1.5)
 
 		self.w.kernTypeText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Types of kerning to compare:", sizeStyle="small", selectable=True)
@@ -65,7 +66,6 @@ class CompareKerningBetweenMasters(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.updateButton = vanilla.Button((-190 - inset, -20 - inset, -100 - inset, -inset), "Update", callback=self.updateUI)
 		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Compare", callback=self.CompareKerningBetweenMastersMain)
 		self.w.setDefaultButton(self.w.runButton)
 
