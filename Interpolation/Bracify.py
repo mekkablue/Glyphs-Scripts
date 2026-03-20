@@ -9,7 +9,7 @@ import vanilla
 from AppKit import NSFont
 from copy import copy as copy
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, reportFontName, UpdateButton
+from mekkablue import mekkaObject, UpdateButton
 
 
 def braceLayerAndAxisDictForGlyphAndMaster(glyph, master):
@@ -221,7 +221,8 @@ class Bracify(mekkaObject):
 				)
 				return
 
-			reportName = reportFontName(font)
+			filePath = font.filepath
+			reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}" if filePath else f"{font.familyName}\n⚠️ The font file has not been saved yet."
 			print(f"Bracify Report for {reportName}")
 			print()
 
