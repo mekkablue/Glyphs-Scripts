@@ -13,7 +13,7 @@ from copy import copy
 from Foundation import NSPoint, NSAutoreleasePool
 from AppKit import NSFont
 from GlyphsApp import Glyphs, GSLayer, GSAxis, GSInstance, GSCustomParameter, GSSMOOTH, GSOFFCURVE, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, reportFontName
 
 
 def biggestSubstringInStrings(strings):
@@ -701,11 +701,7 @@ class BatchGrader(mekkaObject):
 				)
 				return
 
-			filePath = thisFont.filepath
-			if filePath:
-				reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-			else:
-				reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+			reportName = reportFontName(thisFont)
 			print(f"Batch Grader Report for {reportName}")
 			print()
 

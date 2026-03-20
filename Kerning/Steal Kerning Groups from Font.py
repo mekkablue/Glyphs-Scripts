@@ -7,7 +7,7 @@ Copies kerning groups from one font to another.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, reportFontName
 
 
 def menuForFonts(fonts):
@@ -124,11 +124,7 @@ class StealKerningGroupsfromFont(mekkaObject):
 			sourceFont = self.currentFonts[self.pref("sourceFont")]
 			targetFont = self.currentFonts[self.pref("targetFont")]
 			for font, sourceOrTarget in zip((sourceFont, targetFont), ("Source", "Target")):
-				filePath = font.filepath
-				if filePath:
-					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					reportName = f"{font.familyName}\n⚠️ The font file has not been saved yet."
+				reportName = reportFontName(font)
 				print(f"\n{sourceOrTarget}: {reportName}")
 			print()
 

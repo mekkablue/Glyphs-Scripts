@@ -8,7 +8,7 @@ Looks for empty master layers and adds shapes of a preferred master.
 import vanilla
 from copy import copy as copy
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, reportFontName
 
 
 labelColors = (
@@ -119,11 +119,7 @@ class FillUpEmptyMasters(mekkaObject):
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				filePath = thisFont.filepath
-				if filePath:
-					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+				reportName = reportFontName(thisFont)
 				print(f"Fill Up Empty Masters Report for {reportName}")
 				print()
 				sourceMaster = thisFont.masters[self.pref("masterChoice")]

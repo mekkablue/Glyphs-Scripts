@@ -8,7 +8,7 @@ Will add smart axes and additional smart layers to selected glyphs.
 import vanilla
 from copy import copy
 from GlyphsApp import Glyphs, Message, GSSmartComponentAxis
-from mekkablue import mekkaObject, getLegibleFont
+from mekkablue import mekkaObject, getLegibleFont, reportFontName
 
 defaultRecipe = """
 Height: Low: 0
@@ -90,11 +90,7 @@ class BatchAddSmartAxes(mekkaObject):
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				filePath = thisFont.filepath
-				if filePath:
-					report = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					report = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+				report = reportFontName(thisFont)
 				print(f"Batch-Add Smart Axes Report for {report}:")
 				print()
 

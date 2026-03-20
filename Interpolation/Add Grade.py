@@ -10,7 +10,7 @@ import vanilla
 from AppKit import NSAffineTransform, NSPoint
 from copy import copy
 from GlyphsApp import Glyphs, GSInstance, GSUppercase, GSSmallcaps, GSSMOOTH, GSOFFCURVE, GSAxis, GSCustomParameter, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, reportFontName
 
 
 def axisIdForTag(font, tag="wght"):
@@ -397,11 +397,7 @@ class AddGrade(mekkaObject):
 					OKButton=None,
 				)
 			else:
-				filePath = thisFont.filepath
-				if filePath:
-					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					reportName = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+				reportName = reportFontName(thisFont)
 				print(f"Add Grade Report for {reportName}")
 				print()
 

@@ -8,7 +8,7 @@ Goes through all vertical and horizontal line segments, and finds pairs that are
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSGuide, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, reportFontName
 from mekkablue.geometry import angle
 
 
@@ -107,11 +107,7 @@ class FindCloseEncounters(mekkaObject):
 				theseFonts = (Glyphs.font, )
 
 			for thisFont in theseFonts:
-				filePath = thisFont.filepath
-				if filePath:
-					report = "%s\n📄 %s" % (filePath.lastPathComponent(), filePath)
-				else:
-					report = "%s\n⚠️ The font file has not been saved yet." % thisFont.familyName
+				report = reportFontName(thisFont)
 				print("Find Close Encounters of Orthogonal Line Segments Report for %s" % report)
 				print()
 

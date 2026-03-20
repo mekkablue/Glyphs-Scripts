@@ -7,7 +7,7 @@ Asks a threshold percentage, and opens a new tab with all kern pairs going beyon
 
 import vanilla
 from GlyphsApp import Glyphs, GSControlLayer, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, reportFontName
 
 
 def roundedDownBy(value, base):
@@ -115,11 +115,7 @@ class NewTabwithOverkernedPairs(mekkaObject):
 
 			overKernCount = 0
 			for thisFont in theseFonts:
-				filePath = thisFont.filepath
-				if filePath:
-					report = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					report = f"{thisFont.familyName}\n⚠️ The font file has not been saved yet."
+				report = reportFontName(thisFont)
 				print(f"Overkerned Pairs report for {report}")
 
 				rounding = self.prefInt("rounding")

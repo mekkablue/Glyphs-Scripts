@@ -7,7 +7,7 @@ Batch-add anchors to selected glyphs. Specify a source glyph to replicate the an
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, reportFontName
 
 
 class ReplicateAnchors(mekkaObject):
@@ -73,11 +73,7 @@ class ReplicateAnchors(mekkaObject):
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				filePath = thisFont.filepath
-				if filePath:
-					report = "%s\n📄 %s" % (filePath.lastPathComponent(), filePath)
-				else:
-					report = "%s\n⚠️ The font file has not been saved yet." % thisFont.familyName
+				report = reportFontName(thisFont)
 				print("Replicate Anchors Report for %s" % report)
 				print()
 

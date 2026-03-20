@@ -7,7 +7,7 @@ Takes existing .tf figures and spaces them tabularly, or creates them from exist
 
 import vanilla
 from GlyphsApp import Glyphs, GSGlyph, GSComponent, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, reportFontName
 
 
 class TabularFigureSpacer(mekkaObject):
@@ -75,11 +75,7 @@ class TabularFigureSpacer(mekkaObject):
 			if font is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				filePath = font.filepath
-				if filePath:
-					reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
-				else:
-					reportName = f"{font}\n⚠️ The font file has not been saved yet."
+				reportName = reportFontName(font)
 				print(f"Tabular Figure Spacer Report for {reportName}")
 				print()
 
