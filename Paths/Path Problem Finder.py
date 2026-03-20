@@ -471,7 +471,6 @@ def findGreenDiscontinuity(layer, tolerance=0.11):
 
 class PathProblemFinder(mekkaObject):
 	title = "Path Problem Finder"
-	prefID = "com.mekkablue.PathProblemFinder"
 	prefDict = {
 		# "prefName": defaultValue,
 		"zeroHandles": 1,

@@ -109,7 +109,6 @@ def duplexGlyph(glyph, referenceMasterID, fixMetricsKeys=False):
 	return changed
 
 class Duplexer(mekkaObject):
-	prefID = "com.mekkaObject.Duplexer"
 	prefDict = {
 		# "prefName": defaultValue,
 		"base": 0,

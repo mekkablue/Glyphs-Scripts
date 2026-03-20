@@ -48,7 +48,6 @@ def relevantScriptsInFont(font, threshold=12):
 
 
 class AddMetaTable(mekkaObject):
-	prefID = "com.mekkablue.AddMetaTable"
 	prefDict = {
 		# "prefName": defaultValue,
 		"slng": "Latn, Arab",

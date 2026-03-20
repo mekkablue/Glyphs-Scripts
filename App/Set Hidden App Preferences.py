@@ -12,7 +12,6 @@ from mekkablue import mekkaObject
 
 
 class SetHiddenAppPreferences(mekkaObject):
-	prefID = "com.mekkablue.SetHiddenAppPreferences"
 	prefDict = {
 		"pref": ""
 	}

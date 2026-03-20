@@ -39,7 +39,6 @@ def openFolder(folderPath):
 class ResetPluginManagerRepo(mekkaObject):
 	repoFolder = "~/Library/Application Support/Glyphs 3/Repositories/"
 	
-	prefID = "com.mekkablue.ResetPluginManagerRepo"
 	prefDict = {
 		# "prefName": defaultValue,
 		"repositoryIndex": 0,
