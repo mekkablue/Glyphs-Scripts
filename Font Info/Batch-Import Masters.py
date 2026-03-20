@@ -8,7 +8,7 @@ Import many masters at once with the Import Master parameter.
 import vanilla
 from AppKit import NSNotificationCenter
 from GlyphsApp import Glyphs, GSCustomParameter, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 def menuForFonts(fonts):
@@ -92,7 +92,9 @@ class BatchImportMasters(mekkaObject):
 
 		indent = 75
 		self.w.targetFontText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Target font:", sizeStyle="small", selectable=True)
-		self.w.targetFont = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), (), sizeStyle="small", callback=self.SavePreferences)
+		self.w.targetFont = vanilla.PopUpButton((inset + indent, linePos, -inset - 20, 17), (), sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateButton = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.UpdateUI)
+		self.w.updateButton.setToolTip("Will update all the menus and buttons of this window. Click here if you opened or closed a font since you invoked the script, or after you changed the source font.")
 		tooltip = "The font that receives the Import Master parameters."
 		self.w.targetFont.setToolTip(tooltip)
 		self.w.targetFontText.setToolTip(tooltip)
@@ -124,10 +126,6 @@ class BatchImportMasters(mekkaObject):
 		self.w.suppressMessage = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Suppress confirmation dialog", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.suppressMessage.setToolTip("After you add the masters, there is a success dialog confirming the import. If it gets on your nerves, check this checkbox.")
 		linePos += lineHeight
-
-		# Update Button:
-		self.w.updateButton = vanilla.Button((inset, -20 - inset, 100, -inset), "Update", callback=self.UpdateUI)
-		self.w.updateButton.setToolTip("Will update all the menus and buttons of this window. Click here if you opened or closed a font since you invoked the script, or after you changed the source font.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Import", callback=self.BatchImportMastersMain)
