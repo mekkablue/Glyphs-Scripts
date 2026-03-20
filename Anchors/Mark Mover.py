@@ -110,7 +110,6 @@ def moveGlyphToSmallCapHeight(thisGlyph):
 
 
 class MarkMover(mekkaObject):
-	prefID = ""
 	prefDict = {
 		"arabicMarks": 1,
 		"lowercaseMarks": 1,

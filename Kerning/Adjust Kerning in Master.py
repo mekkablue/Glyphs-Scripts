@@ -18,7 +18,6 @@ optionList = ("Multiply by", "Add", "Add Absolute", "Round by", "Limit to")
 
 
 class AdjustKerning(mekkaObject):
-	prefID = "com.mekkablue.AdjustKerning"
 	prefDict = {
 		"doWhat": 0,
 		"howMuch": 20,

@@ -58,7 +58,6 @@ def lastIndentOfText(text):
 	return indent
 
 class ColorPaletteMultiplier(mekkaObject):
-	prefID = "com.mekkablue.ColorPaletteMultiplier"
 	prefDict = {
 		# "prefName": defaultValue,
 		"build": "# Color 1\nOffsetCurve;10;10;0;0.5;keep;\nExtrude;50;-46",

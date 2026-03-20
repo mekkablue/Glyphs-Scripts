@@ -10,7 +10,6 @@ from mekkablue import mekkaObject, UpdateButton, match, reportFontName
 
 
 class OffsetPixelRows(mekkaObject):
-	prefID = "com.mekkablue.OffsetPixelRows"
 	prefDict = {
 		# "prefName": defaultValue,
 		"allMasters": True,

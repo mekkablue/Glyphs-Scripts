@@ -86,7 +86,6 @@ def splitOffGroup(font, newGroup, splitoffs, rightGroup=True):
 
 
 class SplitKerningGroups(object):
-	prefID = "com.mekkablue.SplitKerningGroups"
 	prefDict = {
 		# "prefName": defaultValue,
 		"originalGroupName": "",
@@ -157,14 +156,6 @@ class SplitKerningGroups(object):
 		self.w.newGroupText.setPosSize((x, linePos+2, 75, 14))
 		x += 75
 		self.w.newGroupName.setPosSize((x, linePos-1, availableWidth//2, 19))
-	
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-	
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
 	
 	def update(self, sender=None):
 		font = Glyphs.font

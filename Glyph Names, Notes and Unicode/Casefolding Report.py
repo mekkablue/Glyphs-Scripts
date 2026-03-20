@@ -13,7 +13,6 @@ from mekkablue import mekkaObject
 
 
 class CasefoldingReport(mekkaObject):
-	prefID = "com.mekkablue.CasefoldingReport"
 	prefDict = {
 		# "prefName": defaultValue,
 		"excludeMathSymbols": False,
