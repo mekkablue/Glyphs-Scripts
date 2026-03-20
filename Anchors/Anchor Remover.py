@@ -7,7 +7,7 @@ Remove anchors from glyphs: by anchor name, from suffixed glyphs, or strip non-s
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton, match
 
 allAnchors = "All Anchors"
 
@@ -16,18 +16,19 @@ class AnchorRemover(mekkaObject):
 	prefDict = {
 		"anchorPopup": 0,
 		"suffixList": ".sups, .sinf, superior, inferior",
+		"exceptAnchors": "",
 		"keepExtensions": 0,
 		"keepExitAndEntry": 0,
 		"keepCarets": 1,
 		"keepNoDefaults": 0,
-		"selectedGlyphsOnly": 0,
-		"currentMasterOnly": 0,
+		"allGlyphs": 0,
+		"allMasters": 1,
 	}
 
 	def __init__(self):
-		windowWidth = 370
-		windowHeight = 280
-		windowWidthResize = 150
+		windowWidth = 450
+		windowHeight = 300
+		windowWidthResize = 1000
 		windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
@@ -37,147 +38,150 @@ class AnchorRemover(mekkaObject):
 			autosaveName=self.domain("mainwindow"),
 		)
 
-		linePos, inset, lineHeight = 12, 15, 22
-		tab1 = 150  # controls start here; labels are right-aligned up to tab1-5
+		linePos, inset, lineHeight, lineHeightS = 12, 15, 26, 22
+		tab1 = 190  # controls start here; labels are right-aligned from inset up to tab1-5
 
-		# --- Row 1: Remove by anchor name ---
+		# --- Row 1: Remove anchor by name ---
 		self.w.anchorText = vanilla.TextBox(
-			(inset, linePos + 2, tab1 - 5, 14), "Remove anchor:", sizeStyle="small", selectable=True, alignment="right"
+			(inset, linePos + 3, tab1 - 5, 17), "Remove anchor:", selectable=True, alignment="right"
 		)
 		self.w.anchorPopup = vanilla.PopUpButton(
-			(inset + tab1, linePos, -(inset + 20 + 5 + 75 + 5), 17),
+			(inset + tab1, linePos, -(inset + 20 + 5 + 80 + 5), 20),
 			[],
 			callback=self.SavePreferences,
-			sizeStyle="small",
 		)
 		self.w.anchorPopup.setToolTip(
-			"Choose an anchor to delete, or 'All Anchors'. Click ⟲ to refresh the list from the current font."
+			"Choose an anchor to delete, or 'All Anchors'. Click the refresh button to update the list from the current font."
 		)
-		self.w.updateButton = vanilla.SquareButton(
-			(-(inset + 75 + 5 + 20), linePos, -(inset + 75 + 5), 19),
-			"⟲",
-			sizeStyle="small",
+		self.w.updateButton = UpdateButton(
+			(-(inset + 80 + 5 + 20), linePos + 1, 20, 20),
 			callback=self.updateAnchorList,
 		)
-		self.w.updateButton.setToolTip("Scan the font for all anchor names and update the popup list.")
+		self.w.updateButton.setToolTip(
+			"Scan the frontmost font for all anchor names and update the popup list."
+		)
 		self.w.removeAnchorButton = vanilla.Button(
-			(-(inset + 75), linePos, -inset, 20), "Remove", callback=self.removeByName, sizeStyle="small"
+			(-(inset + 80), linePos, -inset, 21), "Remove", callback=self.removeByName
 		)
 		self.w.removeAnchorButton.setToolTip(
-			"Remove the selected anchor from glyphs. Scope is determined by the checkboxes below."
+			"Remove the selected anchor from glyphs. Scope is determined by the ⚠️ checkboxes below."
 		)
 		linePos += lineHeight + 8
 
 		# --- Row 2: Remove from suffixed glyphs ---
 		self.w.suffixText = vanilla.TextBox(
-			(inset, linePos + 2, tab1 - 5, 14),
-			"Remove from suffix:",
-			sizeStyle="small",
-			selectable=True,
-			alignment="right",
+			(inset, linePos + 3, tab1 - 5, 17), "Remove from suffix:", selectable=True, alignment="right"
 		)
 		self.w.suffixList = vanilla.EditText(
-			(inset + tab1, linePos, -(inset + 75 + 5), 19),
+			(inset + tab1, linePos, -(inset + 80 + 5), 22),
 			".sups, .sinf, superior, inferior",
 			callback=self.SavePreferences,
-			sizeStyle="small",
 		)
 		self.w.suffixList.setToolTip(
-			"Comma-separated suffixes. All anchors are removed from every glyph whose name ends in one of these suffixes. Applies font-wide across all layers."
+			"Comma-separated suffixes. All anchors are removed from every glyph whose name ends in one of these suffixes. Applies font-wide across all layers, ignoring scope settings."
 		)
 		self.w.removeSuffixButton = vanilla.Button(
-			(-(inset + 75), linePos, -inset, 20), "Remove", callback=self.removeBySuffix, sizeStyle="small"
+			(-(inset + 80), linePos, -inset, 21), "Remove", callback=self.removeBySuffix
 		)
-		self.w.removeSuffixButton.setToolTip("Remove all anchors from every glyph that ends in one of the listed suffixes.")
+		self.w.removeSuffixButton.setToolTip(
+			"Remove all anchors from every glyph whose name ends in one of the listed suffixes. Always operates font-wide on all layers."
+		)
 		linePos += lineHeight + 8
 
-		# --- Row 3: Non-standard anchors ---
+		# --- Row 3: Remove non-standard anchors ---
 		self.w.nonStandardText = vanilla.TextBox(
-			(inset, linePos + 2, tab1 - 5, 14),
-			"Non-standard anchors:",
-			sizeStyle="small",
-			selectable=True,
-			alignment="right",
+			(inset, linePos + 3, tab1 - 5, 17), "Remove non-standards except:", selectable=True, alignment="right"
+		)
+		self.w.exceptAnchors = vanilla.EditText(
+			(inset + tab1, linePos, -(inset + 80 + 5), 22),
+			"",
+			callback=self.SavePreferences,
+		)
+		self.w.exceptAnchors.setToolTip(
+			"Comma-separated anchor names or wildcard patterns to keep even if non-standard (e.g. top_*, caret*). Wildcards: * matches any string, ? matches one character."
 		)
 		self.w.removeNonStandardButton = vanilla.Button(
-			(-(inset + 75), linePos, -inset, 20), "Remove", callback=self.removeNonStandard, sizeStyle="small"
+			(-(inset + 80), linePos, -inset, 21), "Remove", callback=self.removeNonStandard
 		)
 		self.w.removeNonStandardButton.setToolTip(
-			"Remove anchors not listed as defaults for each glyph by GlyphsApp (e.g. ogonek from J). Respects 'Selected glyphs only'."
+			"Remove anchors not listed as defaults for each glyph by GlyphsApp (e.g. ogonek from J). Respects the ⚠️ checkboxes below."
 		)
 		linePos += lineHeight
 
+		# Sub-checkboxes for non-standard section (small, indented)
 		indent = inset + tab1
 		self.w.keepExtensions = vanilla.CheckBox(
-			(indent, linePos, -inset, 20),
+			(indent, linePos, -inset, 18),
 			"Keep underscore variants of standard anchors (e.g. top_low)",
 			value=False,
 			callback=self.SavePreferences,
 			sizeStyle="small",
 		)
 		self.w.keepExtensions.setToolTip(
-			"Keep anchors like top_low if top is a standard anchor for this glyph."
+			"Keep anchors whose name starts with a standard anchor name followed by an underscore, e.g. keep top_low if top is standard for this glyph."
 		)
-		linePos += lineHeight
+		linePos += lineHeightS
 
 		self.w.keepExitAndEntry = vanilla.CheckBox(
-			(indent, linePos, -inset, 20),
+			(indent, linePos, -inset, 18),
 			"Keep exit and entry anchors",
 			value=False,
 			callback=self.SavePreferences,
 			sizeStyle="small",
 		)
-		self.w.keepExitAndEntry.setToolTip("Do not remove exit and entry anchors (used for cursive attachment).")
-		linePos += lineHeight
+		self.w.keepExitAndEntry.setToolTip(
+			"Do not remove exit, entry, #exit and #entry anchors (used for cursive attachment features)."
+		)
+		linePos += lineHeightS
 
 		self.w.keepCarets = vanilla.CheckBox(
-			(indent, linePos, -inset, 20),
+			(indent, linePos, -inset, 18),
 			"Keep caret anchors (only in ligatures)",
 			value=True,
 			callback=self.SavePreferences,
 			sizeStyle="small",
 		)
-		self.w.keepCarets.setToolTip("Keep caret_* anchors in ligature glyphs.")
-		linePos += lineHeight
+		self.w.keepCarets.setToolTip(
+			"Keep caret_* anchors in glyphs that are ligatures (subCategory = Ligature or underscore in name)."
+		)
+		linePos += lineHeightS
 
 		self.w.keepNoDefaults = vanilla.CheckBox(
-			(indent, linePos, -inset, 20),
+			(indent, linePos, -inset, 18),
 			"Skip glyphs with no default anchors defined",
 			value=False,
 			callback=self.SavePreferences,
 			sizeStyle="small",
 		)
 		self.w.keepNoDefaults.setToolTip(
-			"If a glyph has no anchors listed as defaults in Glyphs, leave it untouched entirely."
+			"If GlyphsApp has no default anchors defined for a glyph, leave all its anchors untouched."
 		)
-		linePos += lineHeight + 8
+		linePos += lineHeightS + 8
 
 		# Separator
 		self.w.separator = vanilla.HorizontalLine((inset, linePos, -inset, 1))
 		linePos += 10
 
-		# Scope options (shared by rows 1 and 3)
-		self.w.selectedGlyphsOnly = vanilla.CheckBox(
-			(inset, linePos, -inset, 20),
-			"Selected glyphs only (otherwise all glyphs in font)",
+		# Scope checkboxes (regular size, with warning)
+		self.w.allGlyphs = vanilla.CheckBox(
+			(inset, linePos, -inset, 22),
+			"⚠️ Remove in ALL glyphs (otherwise selected glyphs only)",
 			value=False,
 			callback=self.SavePreferences,
-			sizeStyle="small",
 		)
-		self.w.selectedGlyphsOnly.setToolTip(
-			"Apply 'Remove anchor' and 'Remove non-standard' to the current glyph selection only. The suffix operation always runs font-wide."
+		self.w.allGlyphs.setToolTip(
+			"When checked, 'Remove anchor' and 'Remove non-standard' operate on every glyph in the font. When unchecked (default), they operate on the current selection only."
 		)
 		linePos += lineHeight
 
-		self.w.currentMasterOnly = vanilla.CheckBox(
-			(inset, linePos, -inset, 20),
-			"Current master only (otherwise all masters)",
-			value=False,
+		self.w.allMasters = vanilla.CheckBox(
+			(inset, linePos, -inset, 22),
+			"⚠️ Remove on ALL masters (otherwise current master only)",
+			value=True,
 			callback=self.SavePreferences,
-			sizeStyle="small",
 		)
-		self.w.currentMasterOnly.setToolTip(
-			"Apply 'Remove anchor' only to layers of the currently selected master."
+		self.w.allMasters.setToolTip(
+			"When checked (default), 'Remove anchor' operates on all master layers. When unchecked, only the layers of the currently selected master are affected."
 		)
 		linePos += lineHeight + 5
 
@@ -193,20 +197,20 @@ class AnchorRemover(mekkaObject):
 	# -------------------------------------------------------------------------
 
 	def getGlyphs(self):
-		"""Returns the glyphs to process based on the 'selectedGlyphsOnly' pref."""
+		"""Returns glyphs to process: all glyphs or current selection."""
 		font = Glyphs.font
 		if not font:
 			return []
-		if self.prefBool("selectedGlyphsOnly"):
-			return [layer.parent for layer in font.selectedLayers if layer.parent]
-		return list(font.glyphs)
+		if self.prefBool("allGlyphs"):
+			return list(font.glyphs)
+		return [layer.parent for layer in font.selectedLayers if layer.parent]
 
 	def layersForGlyph(self, glyph):
-		"""Returns the layers of glyph to process based on the 'currentMasterOnly' pref."""
-		if self.prefBool("currentMasterOnly"):
-			masterId = Glyphs.font.selectedFontMaster.id
-			return [l for l in glyph.layers if l.associatedMasterId == masterId]
-		return list(glyph.layers)
+		"""Returns layers to process: all masters or current master only."""
+		if self.prefBool("allMasters"):
+			return list(glyph.layers)
+		masterId = Glyphs.font.selectedFontMaster.id
+		return [l for l in glyph.layers if l.associatedMasterId == masterId]
 
 	# -------------------------------------------------------------------------
 
@@ -216,14 +220,13 @@ class AnchorRemover(mekkaObject):
 		if not font:
 			return
 		names = set()
-		glyphs = self.getGlyphs() if self.prefBool("selectedGlyphsOnly") else list(font.glyphs)
+		glyphs = list(font.glyphs) if self.prefBool("allGlyphs") else [l.parent for l in font.selectedLayers if l.parent]
 		for glyph in glyphs:
 			for layer in glyph.layers:
 				for anchor in layer.anchors:
 					names.add(anchor.name)
 		items = sorted(names) + [allAnchors]
 		self.w.anchorPopup.setItems(items)
-		# Clamp saved index
 		saved = self.prefInt("anchorPopup")
 		if saved >= len(items):
 			self.setPref("anchorPopup", 0)
@@ -242,7 +245,7 @@ class AnchorRemover(mekkaObject):
 
 		items = self.w.anchorPopup.getItems()
 		if not items:
-			Message("No anchors found", "No anchors found in the font. Click ⟲ to refresh.", OKButton=None)
+			Message("No anchors found", "No anchors found. Click the refresh button to scan the font.", OKButton=None)
 			return
 
 		anchorName = items[self.prefInt("anchorPopup")]
@@ -316,8 +319,7 @@ class AnchorRemover(mekkaObject):
 		font.disableUpdateInterface()
 		try:
 			for glyph in font.glyphs:
-				matched = any(glyph.name.endswith(s) or ("%s." % s) in glyph.name for s in suffixes)
-				if not matched:
+				if not any(glyph.name.endswith(s) or ("%s." % s) in glyph.name for s in suffixes):
 					continue
 				deleted = 0
 				for layer in glyph.layers:
@@ -343,7 +345,7 @@ class AnchorRemover(mekkaObject):
 	# -------------------------------------------------------------------------
 
 	def removeNonStandard(self, sender=None):
-		"""Remove anchors that are not listed as defaults for each glyph."""
+		"""Remove anchors not listed as defaults for each glyph, with optional exceptions."""
 		font = Glyphs.font
 		if not font:
 			Message("No font open", "Please open a font first.", OKButton=None)
@@ -353,6 +355,9 @@ class AnchorRemover(mekkaObject):
 		keepExitAndEntry = self.prefBool("keepExitAndEntry")
 		keepCarets = self.prefBool("keepCarets")
 		keepNoDefaults = self.prefBool("keepNoDefaults")
+
+		rawExcept = self.pref("exceptAnchors")
+		exceptPatterns = [p.strip() for p in rawExcept.split(",") if p.strip()]
 
 		glyphs = self.getGlyphs()
 		if not glyphs:
@@ -364,6 +369,8 @@ class AnchorRemover(mekkaObject):
 		print("Font: %s" % font.familyName)
 		if font.filepath:
 			print(font.filepath)
+		if exceptPatterns:
+			print("Keeping: %s\n" % ", ".join(exceptPatterns))
 		print()
 
 		anchorCount = 0
@@ -392,17 +399,21 @@ class AnchorRemover(mekkaObject):
 						if anchorName in defaultAnchors:
 							continue
 						keep = False
+						# User-specified except patterns (wildcards)
+						if any(match(anchorName, p) for p in exceptPatterns):
+							keep = True
+						# Underscore variants (e.g. top_low when top is standard)
 						if keepExtensions and "_" in anchorName:
 							base = anchorName[:anchorName.find("_")]
 							if base in defaultAnchors:
 								keep = True
+						# Exit / entry anchors (with or without leading #)
 						if keepExitAndEntry:
-							bare = anchorName.lstrip("#")
-							if bare in ("exit", "entry"):
+							if anchorName.lstrip("#") in ("exit", "entry"):
 								keep = True
+						# Caret anchors in ligatures
 						if keepCarets and anchorName.startswith("caret"):
-							isLigature = glyph.subCategory == "Ligature" or "_" in glyph.name[1:]
-							if isLigature:
+							if glyph.subCategory == "Ligature" or "_" in glyph.name[1:]:
 								keep = True
 						if not keep:
 							print("\t❌ %s / %s: deleting '%s'" % (glyph.name, layer.name, anchorName))
