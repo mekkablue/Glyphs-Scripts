@@ -22,8 +22,8 @@ class ExitEntryManager(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 380
-		windowHeight = 330
+		windowWidth = 405
+		windowHeight = 345
 		windowWidthResize = 100
 		windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
