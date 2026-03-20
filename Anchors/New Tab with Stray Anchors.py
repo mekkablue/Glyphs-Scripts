@@ -79,7 +79,6 @@ def anchorIsAstray(thisAnchor, thisLayer, shouldHorizontalAlign, shouldVerticalA
 
 
 class FindStrayAnchors(mekkaObject):
-	prefID = "com.mekkablue.FindStrayAnchors"
 	prefDict = {
 		# "prefName": defaultValue,
 		"shouldHorizontalAlign": False,
@@ -144,15 +143,6 @@ class FindStrayAnchors(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
-
-	def domain(self, prefName):
-		prefName = prefName.strip().strip(".")
-		return self.prefID + "." + prefName.strip()
-
-
-	def pref(self, prefName):
-		prefDomain = self.domain(prefName)
-		return Glyphs.defaults[prefDomain]
 
 
 	def updateAnchorNames(self, sender=None):
