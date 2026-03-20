@@ -245,7 +245,6 @@ Negative coordinates are measured from the right/bottom edge (`-inset` = inset f
 | `reportTimeInNaturalLanguage(seconds)` | Formats a duration as a readable string (e.g., `"2:34 minutes"`) |
 | `getLegibleFont(size=None)` | Returns a system legible font (Glyphs 2/3 compatible) |
 | `UpdateButton(posSize, callback, title="")` | Creates a refresh button with an NSRefreshTemplate icon |
-| `transform(shiftX, shiftY, rotate, skew, scale)` | Returns an `NSAffineTransform` (duplicate of `geometry.transform`; not imported directly by scripts) |
 
 ### `caseDict` (Glyphs 3 only)
 
@@ -272,7 +271,7 @@ from mekkablue import caseDict
 | `bothPointsAreOnSameSideOfOrigin(pointA, pointB, pointOrigin)` | Returns `True` if both points are on the same side of origin |
 | `pointIsBetweenOtherPoints(thisPoint, otherPointA, otherPointB)` | Returns `True` if point lies between the other two points |
 
-> **Note:** `transform()` exists in both `__init__.py` and `geometry.py`, but all scripts import it via `from mekkablue.geometry import transform`. Never use `from geometry import ...` (bare module path) — always use `from mekkablue.geometry import ...`.
+> **Note:** Always import geometry helpers via `from mekkablue.geometry import ...`. Never use the bare `from geometry import ...` path.
 
 Applying a transform to a layer:
 ```python

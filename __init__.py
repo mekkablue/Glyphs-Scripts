@@ -1,7 +1,6 @@
 
-import math
 from typing import Any
-from AppKit import NSAffineTransform, NSUserDefaults, NSFont, NSImage, NSImageLeading, NSPasteboard, NSStringPboardType
+from AppKit import NSUserDefaults, NSFont, NSImage, NSImageLeading, NSPasteboard, NSStringPboardType
 from GlyphsApp import Glyphs
 from vanilla import Button
 
@@ -99,31 +98,6 @@ def camelCaseSplit(string: str) -> list[str]:
 			words[-1].append(c)
 	return [''.join(word) for word in words]
 
-
-def transform(shiftX=0.0, shiftY=0.0, rotate=0.0, skew=0.0, scale=1.0) -> NSAffineTransform:
-	"""
-	Returns an NSAffineTransform object for transforming layers.
-	Apply an NSAffineTransform t object like this:
-		Layer.transform_checkForSelection_doComponents_(t,False,True)
-	Access its transformation matrix like this:
-		tMatrix = t.transformStruct()  # returns the 6-float tuple
-	Apply the matrix tuple like this:
-		Layer.applyTransform(tMatrix)
-		Component.applyTransform(tMatrix)
-		Path.applyTransform(tMatrix)
-	Chain multiple NSAffineTransform objects t1, t2 like this:
-		t1.appendTransform_(t2)
-	"""
-	myTransform = NSAffineTransform.transform()
-	if rotate:
-		myTransform.rotateByDegrees_(rotate)
-	if scale != 1.0:
-		myTransform.scaleBy_(scale)
-	if not (shiftX == 0.0 and shiftY == 0.0):
-		myTransform.translateXBy_yBy_(shiftX, shiftY)
-	if skew:
-		myTransform.shearBy_(math.tan(math.radians(skew)))
-	return myTransform
 
 
 def reportTimeInNaturalLanguage(seconds):
