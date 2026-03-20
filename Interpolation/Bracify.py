@@ -9,7 +9,7 @@ import vanilla
 from AppKit import NSFont
 from copy import copy as copy
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, reportFontName
+from mekkablue import mekkaObject, reportFontName, UpdateButton
 
 
 def braceLayerAndAxisDictForGlyphAndMaster(glyph, master):
@@ -114,7 +114,8 @@ class Bracify(mekkaObject):
 		linePos += lineHeight
 
 		self.w.associateMasterText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Associate with master:", sizeStyle="small", selectable=True)
-		self.w.associateMaster = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), masterList(Glyphs.font), sizeStyle="small", callback=self.SavePreferences)
+		self.w.associateMaster = vanilla.PopUpButton((inset + indent, linePos, -inset - 20, 17), masterList(Glyphs.font), sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateButton = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.UpdateForCurrentFont)
 		linePos += lineHeight
 
 		indent = 190
@@ -142,8 +143,7 @@ class Bracify(mekkaObject):
 		textView.setMinSize_(textSize)
 
 		self.w.guessButton = vanilla.Button((inset, -20 - inset, 80, -inset), "Guess", callback=self.BracifyGuess)
-		self.w.updateButton = vanilla.Button((inset + 90, -20 - inset, 80, -inset), "Update", callback=self.UpdateForCurrentFont)
-		self.w.openTabButton = vanilla.Button((inset + 90 * 2, -20 - inset, 80, -inset), "Open Tab", callback=self.OpenTab)
+		self.w.openTabButton = vanilla.Button((inset + 90, -20 - inset, 80, -inset), "Open Tab", callback=self.OpenTab)
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Remove Master", callback=self.BracifyMain)

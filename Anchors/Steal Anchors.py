@@ -8,7 +8,7 @@ Batch-copy the anchors from one font master to another.
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSAnchor, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 from mekkablue.geometry import italicize
 
 
@@ -61,7 +61,9 @@ class StealAnchors(mekkaObject):
 
 		self.w.targetText = vanilla.TextBox((inset, linePos + 2, tab, 14), "Paste them into:", sizeStyle="small", selectable=True)
 		self.w.targetFont = vanilla.PopUpButton((inset + tab, linePos, tab, 17), self.availableFonts(), sizeStyle="small", callback=self.SavePreferences)
-		self.w.targetMaster = vanilla.PopUpButton((inset + tab * 2, linePos, -inset, 17), self.availableTargetMasters(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.targetMaster = vanilla.PopUpButton((inset + tab * 2, linePos, -inset - 20, 17), self.availableTargetMasters(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateButton = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateUI)
+		self.w.updateButton.setToolTip("Will update the popup menus above. Use this if you opened a new font after opening this dialog.")
 		tooltip = "The font/master combination that serves as target for anchors to be pasted."
 		self.w.targetText.setToolTip(tooltip)
 		self.w.targetFont.setToolTip(tooltip)
@@ -95,8 +97,6 @@ class StealAnchors(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.updateButton = vanilla.Button((-180 - inset, -20 - inset, -90 - inset, -inset), "Update", callback=self.updateUI)
-		self.w.updateButton.setToolTip("Will update the popup menus above. Use this if you opened a new font after opening this dialog.")
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Steal", callback=self.StealAnchorsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
