@@ -46,7 +46,7 @@ class AnchorRemover(mekkaObject):
 			(inset, linePos + 3, tab1 - 5, 17), "Remove anchor:", selectable=True, alignment="right"
 		)
 		self.w.anchorName = vanilla.ComboBox(
-			(inset + tab1, linePos, -(inset + 20 + 5 + 80 + 5), 22),
+			(inset + tab1, linePos + 2, -(inset + 20 + 5 + 80 + 5), 22),
 			[],
 			callback=self.SavePreferences,
 		)
@@ -54,7 +54,7 @@ class AnchorRemover(mekkaObject):
 			"Anchor name, wildcard pattern (e.g. top*, *viet), or 'All Anchors'. Click the refresh button to populate the dropdown from the current font."
 		)
 		self.w.updateButton = UpdateButton(
-			(-(inset + 80 + 5 + 20), linePos + 1, 20, 20),
+			(-(inset + 80 + 5 + 20), linePos, 20, 20),
 			callback=self.updateAnchorList,
 		)
 		self.w.updateButton.setToolTip(
