@@ -27,7 +27,7 @@ class AnchorRemover(mekkaObject):
 
 	def __init__(self):
 		windowWidth = 450
-		windowHeight = 300
+		windowHeight = 344
 		windowWidthResize = 1000
 		windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
@@ -46,7 +46,7 @@ class AnchorRemover(mekkaObject):
 			(inset, linePos + 3, tab1 - 5, 17), "Remove anchor:", selectable=True, alignment="right"
 		)
 		self.w.anchorName = vanilla.ComboBox(
-			(inset + tab1, linePos + 2, -(inset + 20 + 5 + 80 + 5), 22),
+			(inset + tab1, linePos + 1, -(inset + 20 + 5 + 80 + 5), 22),
 			[],
 			callback=self.SavePreferences,
 		)
@@ -111,7 +111,7 @@ class AnchorRemover(mekkaObject):
 		# Sub-checkboxes for non-standard section (small, indented)
 		indent = inset + tab1
 		self.w.keepExtensions = vanilla.CheckBox(
-			(indent, linePos, -inset, 18),
+			(indent, linePos + 1, -inset, 18),
 			"Keep underscore variants of standard anchors (e.g. top_low)",
 			value=False,
 			callback=self.SavePreferences,
@@ -123,7 +123,7 @@ class AnchorRemover(mekkaObject):
 		linePos += lineHeightS
 
 		self.w.keepExitAndEntry = vanilla.CheckBox(
-			(indent, linePos, -inset, 18),
+			(indent, linePos + 1, -inset, 18),
 			"Keep exit and entry anchors",
 			value=False,
 			callback=self.SavePreferences,
@@ -135,7 +135,7 @@ class AnchorRemover(mekkaObject):
 		linePos += lineHeightS
 
 		self.w.keepCarets = vanilla.CheckBox(
-			(indent, linePos, -inset, 18),
+			(indent, linePos + 1, -inset, 18),
 			"Keep caret anchors (only in ligatures)",
 			value=True,
 			callback=self.SavePreferences,
@@ -147,7 +147,7 @@ class AnchorRemover(mekkaObject):
 		linePos += lineHeightS
 
 		self.w.keepNoDefaults = vanilla.CheckBox(
-			(indent, linePos, -inset, 18),
+			(indent, linePos + 1, -inset, 18),
 			"Skip glyphs with no default anchors defined",
 			value=False,
 			callback=self.SavePreferences,
@@ -158,13 +158,25 @@ class AnchorRemover(mekkaObject):
 		)
 		linePos += lineHeightS + 8
 
+		# --- Row 4: Remove explicit traversing anchors in composites ---
+		self.w.traversingText = vanilla.TextBox(
+			(inset, linePos + 3, tab1 - 5, 17), "Explicit in composites:", selectable=True, alignment="right"
+		)
+		self.w.removeTraversingButton = vanilla.Button(
+			(-(inset + 80), linePos, -inset, 21), "Remove", callback=self.removeExplicitTraversing
+		)
+		self.w.removeTraversingButton.setToolTip(
+			"In composite glyphs, remove explicit anchors that are already provided by traversal from a component. Lets the component's anchors propagate naturally."
+		)
+		linePos += lineHeight + 8
+
 		# Separator
 		self.w.separator = vanilla.HorizontalLine((inset, linePos, -inset, 1))
 		linePos += 10
 
 		# Scope checkboxes (regular size, with warning)
 		self.w.allGlyphs = vanilla.CheckBox(
-			(inset, linePos, -inset, 22),
+			(inset, linePos + 1, -inset, 22),
 			"⚠️ Remove in ALL glyphs (otherwise selected glyphs only)",
 			value=False,
 			callback=self.SavePreferences,
@@ -175,7 +187,7 @@ class AnchorRemover(mekkaObject):
 		linePos += lineHeight
 
 		self.w.allMasters = vanilla.CheckBox(
-			(inset, linePos, -inset, 22),
+			(inset, linePos + 1, -inset, 22),
 			"⚠️ Remove on ALL masters (otherwise current master only)",
 			value=True,
 			callback=self.SavePreferences,
@@ -425,6 +437,68 @@ class AnchorRemover(mekkaObject):
 			font.enableUpdateInterface()
 
 		msg = "Removed %i non-standard anchor%s from %i glyph%s." % (
+			anchorCount,
+			"" if anchorCount == 1 else "s",
+			glyphCount,
+			"" if glyphCount == 1 else "s",
+		)
+		print("\n🔠 %s Done." % msg)
+		self.w.status.set(msg)
+		Glyphs.showNotification("Anchor Remover", msg)
+
+	# -------------------------------------------------------------------------
+
+	def removeExplicitTraversing(self, sender=None):
+		"""In composite layers, remove explicit anchors already provided by traversal from a component."""
+		font = Glyphs.font
+		if not font:
+			Message("No font open", "Please open a font first.", OKButton=None)
+			return
+
+		glyphs = self.getGlyphs()
+		if not glyphs:
+			self.w.status.set("No glyphs to process.")
+			return
+
+		Glyphs.clearLog()
+		print("Anchor Remover — Remove explicit traversing anchors in composites\n")
+		print("Font: %s" % font.familyName)
+		if font.filepath:
+			print(font.filepath)
+		print()
+
+		anchorCount = 0
+		glyphCount = 0
+		font.disableUpdateInterface()
+		try:
+			for glyph in glyphs:
+				deleted = 0
+				for layer in self.layersForGlyph(glyph):
+					if not layer.components:
+						continue
+					# Collect anchor names provided by traversal from all components.
+					# Non-underscore anchors on a component's referenced layer traverse upward.
+					traversedNames = set()
+					for component in layer.components:
+						compLayer = component.layer
+						if compLayer:
+							for anchor in compLayer.anchors:
+								if not anchor.name.startswith("_"):
+									traversedNames.add(anchor.name)
+					if not traversedNames:
+						continue
+					toDelete = [a.name for a in layer.anchors if a.name in traversedNames]
+					for name in toDelete:
+						print("\t✅ %s / %s: removed explicit '%s' (covered by component traversal)" % (glyph.name, layer.name, name))
+						del layer.anchors[name]
+						deleted += 1
+				if deleted:
+					anchorCount += deleted
+					glyphCount += 1
+		finally:
+			font.enableUpdateInterface()
+
+		msg = "Removed %i explicit traversing anchor%s from %i glyph%s." % (
 			anchorCount,
 			"" if anchorCount == 1 else "s",
 			glyphCount,
