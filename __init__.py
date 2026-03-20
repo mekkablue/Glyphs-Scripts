@@ -1,6 +1,6 @@
 
 from typing import Any
-from AppKit import NSUserDefaults, NSFont, NSImage, NSImageLeading, NSPasteboard, NSStringPboardType
+from AppKit import NSUserDefaults, NSFont, NSImage, NSImageLeading, NSPasteboard, NSStringPboardType, NSLineBreakByClipping
 from GlyphsApp import Glyphs
 from vanilla import Button
 
@@ -188,7 +188,15 @@ class mekkaObject:
 				# register defaults:
 				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
 				# load previously written prefs:
-				self.uiElement(prefName).set(self.pref(prefName))
+				element = self.uiElement(prefName)
+				element.set(self.pref(prefName))
+				# configure text fields: clip mid-character (don't hide whole words),
+				# and suppress macOS autofill popups
+				if hasattr(element, "getNSTextField"):
+					nsField = element.getNSTextField()
+					nsField.cell().setLineBreakMode_(NSLineBreakByClipping)
+					if hasattr(nsField, "setContentType_"):
+						nsField.setContentType_(None)
 			if hasattr(self, "updateUI"):
 				self.updateUI()
 			if self.w is not None:

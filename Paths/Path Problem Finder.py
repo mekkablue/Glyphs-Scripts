@@ -8,7 +8,7 @@ Finds all kinds of potential problems in outlines, and opens a new tab with affe
 import vanilla
 import math
 from timeit import default_timer as timer
-from AppKit import NSPoint, NSLineBreakByClipping
+from AppKit import NSPoint
 from GlyphsApp import Glyphs, GSPath, GSControlLayer, GSShapeTypePath, GSLINE, GSCURVE, CURVE, GSOFFCURVE, QCURVE, Message, distance
 import importlib
 import mekkablue
@@ -666,8 +666,6 @@ class PathProblemFinder(mekkaObject):
 		self.w.excludeText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Exclude glyphs", sizeStyle="small", selectable=True)
 		self.w.exclude = vanilla.EditText((inset + 86, linePos - 1, -inset, 19), "notdef, apple, .ornm", callback=self.SavePreferences, sizeStyle="small")
 		self.w.exclude.setToolTip("Glyphs containing any of these (comma-separated) name particles will be skipped.")
-		self.w.exclude.getNSTextField().cell().setLineBreakMode_(NSLineBreakByClipping)  # clip mid-character, don't hide whole words
-		self.w.exclude.getNSTextField().setContentType_(None)  # suppress macOS autofill suggestion
 		linePos += lineHeight
 
 		self.w.reuseTab = vanilla.CheckBox((inset + 2, linePos, secondColumn, 20), "Reuse existing tab", value=True, callback=self.SavePreferences, sizeStyle='small')
