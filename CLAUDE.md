@@ -4,11 +4,39 @@ Python scripts for the [Glyphs font editor](http://glyphsapp.com/). Scripts run 
 
 ## Project Structure
 
-- Each subfolder (e.g., `Color Fonts/`, `Interpolation/`, `Kerning/`) contains standalone `.py` scripts grouped by topic.
+- Each subfolder contains standalone `.py` scripts grouped by topic (~370 scripts total across 25+ categories).
 - `__init__.py` — shared `mekkaObject` base class and utility functions (clipboard, wildcard matching, etc.).
 - `geometry.py` — math/geometry helpers (transforms, italicization, intersections, etc.).
 - `pyproject.toml` — black/flake8 config (line length: 120).
 - `.style.yapf` — yapf formatting config (tabs, column limit 180).
+- `.flake8` — flake8 ignore rules (W191, E501, E722, W503, E741, F841, E265, E225).
+
+### Script Categories
+
+| Folder | Topic |
+|---|---|
+| `Anchors/` | Anchor management & positioning (29 scripts) |
+| `App/` | Application-level utilities, navigation (10 scripts) |
+| `Build Glyphs/` | Font build utilities (3 scripts) |
+| `Color Fonts/` | COLR/CBDT color font handling (4 scripts) |
+| `Compare Frontmost Fonts/` | Multi-font comparison (4 scripts) |
+| `Components/` | Component generation, alignment, flattening (13 scripts) |
+| `Features/` | OpenType feature code generation (15 scripts) |
+| `Font Info/` | Font metadata handling (8 scripts) |
+| `Glyph Names, Notes and Unicode/` | Naming & Unicode assignment (12 scripts) |
+| `Guides/` | Guide management (10 scripts) |
+| `Hinting/` | TrueType hinting utilities (6 scripts) |
+| `Images/` | Image/bitmap handling (7 scripts) |
+| `Interpolation/` | Variable font, brace layers, axis manipulation (19 scripts) |
+| `Kerning/` | Kerning analysis & manipulation (21 scripts) |
+| `Paths/` | Path/contour operations (21 scripts) |
+| `Pixelfonts/` | Bitmap font utilities (4 scripts) |
+| `Post Production/` | Build finishing tasks (11 scripts) |
+| `Smallcaps/` | Smallcaps generation (6 scripts) |
+| `Spacing/` | Metric & spacing tools (10 scripts) |
+| `Test/` | Testing & QA helpers (7 scripts) |
+
+Some subfolders contain helper modules (not scripts), e.g., `Interpolation/axisMethods.py` for axis value lookups.
 
 ## Script File Header
 
@@ -106,7 +134,7 @@ class MyScript(mekkaObject):
 		linePos, inset, lineHeight = 12, 15, 22
 
 		self.w.myCheckbox = vanilla.CheckBox((inset, linePos, -inset, 20), "Do the thing", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.myCheckbox.getNSButton().setToolTip_("Tooltip explaining what this does.")
+		self.w.myCheckbox.setToolTip("Tooltip explaining what this does.")
 		linePos += lineHeight
 
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Run", callback=self.run, sizeStyle="small")
@@ -149,6 +177,7 @@ MyScript()
 | `self.uiElement(name)` | Returns UI element for a given pref name (supports dot notation for nested elements) |
 | `self.LoadPreferences()` | Populates all UI elements from prefs; calls `updateUI()` if defined |
 | `self.SavePreferences(sender)` | Saves all UI element values to prefs; calls `updateUI()` if defined |
+| `self.resizeWindowToMinimum()` | Resizes window to its minSize if the saved size is smaller (called automatically by `LoadPreferences()`) |
 
 Both `LoadPreferences()` and `SavePreferences()` automatically call `self.updateUI()` if that method exists — use `updateUI()` to cascade enable/disable state across dependent UI elements.
 
@@ -159,23 +188,38 @@ Common components and how to use them:
 ```python
 self.w.label    = vanilla.TextBox((inset, linePos + 2, 120, 14), "Label:", sizeStyle="small", selectable=True)
 self.w.field    = vanilla.EditText((inset + 120, linePos, -inset, 19), "default", callback=self.SavePreferences, sizeStyle="small")
-self.w.field.getNSTextField().setToolTip_("Tooltip for the field.")
+self.w.field.setToolTip("Tooltip for the field.")
 
 self.w.check    = vanilla.CheckBox((inset, linePos, -inset, 20), "Option", value=True, callback=self.SavePreferences, sizeStyle="small")
-self.w.check.getNSButton().setToolTip_("Tooltip for the checkbox.")
+self.w.check.setToolTip("Tooltip for the checkbox.")
 
 self.w.popup    = vanilla.PopUpButton((inset, linePos, 120, 18), ["A", "B"], callback=self.SavePreferences, sizeStyle="small")
 self.w.combo    = vanilla.ComboBox((inset, linePos, 120, 19), ["A", "B"], callback=self.SavePreferences, sizeStyle="small")
-self.w.combo.getNSComboBox().setToolTip_("Tooltip.")
+self.w.combo.setToolTip("Tooltip.")
 self.w.combo.getNSComboBox().setNumberOfVisibleItems_(20)
 self.w.combo.getNSComboBox().setFont_(NSFont.userFixedPitchFontOfSize_(11))
 
 self.w.editor   = vanilla.TextEditor((inset, linePos, -inset, 80), "", callback=self.SavePreferences)
-self.w.editor.getNSTextView().setToolTip_("Multi-line field.")
+self.w.editor.setToolTip("Multi-line field.")
 
 self.w.divider  = vanilla.HorizontalLine((inset, linePos, -inset, 1))
 self.w.bar      = vanilla.ProgressBar((inset, linePos, -inset, 16))
 self.w.status   = vanilla.TextBox((inset, -28 - inset, -inset - 80, 14), "", sizeStyle="small")
+```
+
+### Tooltips
+
+Use vanilla's `.setToolTip()` directly on the element — this is the preferred modern approach:
+
+```python
+self.w.myCheckbox.setToolTip("Explanation of what this does.")
+self.w.myField.setToolTip("Explanation of what this does.")
+```
+
+**Exception — `vanilla.List`**: vanilla's `setToolTip()` sets the tooltip on the enclosing `NSScrollView`, not the inner `NSTableView`. For `List` widgets, use the direct PyObjC call:
+
+```python
+self.w.myList.getNSTableView().setToolTip_("Tooltip on the table view.")
 ```
 
 ### Layout pattern
@@ -201,6 +245,17 @@ Negative coordinates are measured from the right/bottom edge (`-inset` = inset f
 | `reportTimeInNaturalLanguage(seconds)` | Formats a duration as a readable string (e.g., `"2:34 minutes"`) |
 | `getLegibleFont(size=None)` | Returns a system legible font (Glyphs 2/3 compatible) |
 | `UpdateButton(posSize, callback, title="")` | Creates a refresh button with an NSRefreshTemplate icon |
+| `transform(shiftX, shiftY, rotate, skew, scale)` | Returns an `NSAffineTransform` (same as `geometry.transform`) |
+
+### `caseDict` (Glyphs 3 only)
+
+`__init__.py` exports `caseDict`, a mapping from string names to Glyphs case constants. Available only when `Glyphs.versionNumber >= 3`:
+
+```python
+from mekkablue import caseDict
+# Keys: "Lower", "lowercase", "Upper", "Uppercase", "SC", "Smallcaps", "Minor", "NoCase"
+# Values: GSLowercase, GSUppercase, GSSmallcaps, GSMinor, GSNoCase
+```
 
 ## Geometry Helpers (`geometry.py`)
 
@@ -210,10 +265,14 @@ Negative coordinates are measured from the right/bottom edge (`-inset` = inset f
 | `italicize(point, italicAngle, pivotalY)` | Returns the italicized position of an `NSPoint` |
 | `angle(firstPoint, secondPoint)` | Angle in degrees between two points (`0°` = right) |
 | `bezierWithPoints(A, B, C, D, t)` | Point on a Bézier curve at parameter `t` |
-| `intersectionLineLinePoints(A, B, C, D, includeMidBcp)` | Line–line intersection |
+| `intersectionLineLinePoints(A, B, C, D, includeMidBcp)` | Line–line intersection; returns `NSPoint` or `None` |
 | `offsetLayer(layer, offset, makeStroke, position, autoStroke)` | Applies offset filter (Glyphs 2/3 compatible) |
 | `centerOfRect(rect)` | Center `NSPoint` of an `NSRect` |
-| `divideAndTolerateZero(dividend, divisor)` | Safe division (returns `0` instead of raising) |
+| `divideAndTolerateZero(dividend, divisor)` | Safe division; returns `None` (not `0`) when divisor is zero |
+| `bothPointsAreOnSameSideOfOrigin(pointA, pointB, pointOrigin)` | Returns `True` if both points are on the same side of origin |
+| `pointIsBetweenOtherPoints(thisPoint, otherPointA, otherPointB)` | Returns `True` if point lies between the other two points |
+
+> **Note:** `transform()` exists in both `__init__.py` and `geometry.py`. Both are equivalent. Prefer importing from `geometry` when already importing other geometry helpers; prefer importing from `mekkablue` in GUI scripts.
 
 Applying a transform to a layer:
 ```python
@@ -244,7 +303,7 @@ Glyphs.showNotification("My Script", "Brief summary. Details in Macro Window.")
 # Format a single script
 yapf --style .style.yapf -i path/to/script.py
 
-# Lint (ignores tabs, bare except, long lines, etc. — see pyproject.toml)
+# Lint (ignores tabs, bare except, long lines, etc. — see .flake8)
 flake8
 
 # Type check (adjust path to your Glyphs install)
