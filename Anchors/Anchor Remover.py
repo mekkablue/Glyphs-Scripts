@@ -39,7 +39,7 @@ class AnchorRemover(mekkaObject):
 		)
 
 		linePos, inset, lineHeight, lineHeightS = 12, 15, 26, 22
-		tab1 = 190  # controls start here; labels are right-aligned from inset up to tab1-5
+		tab1 = 150  # controls start here; labels are right-aligned from inset up to tab1-5
 
 		# --- Row 1: Remove anchor by name ---
 		self.w.anchorText = vanilla.TextBox(
@@ -70,7 +70,7 @@ class AnchorRemover(mekkaObject):
 
 		# --- Row 2: Remove from suffixed glyphs ---
 		self.w.suffixText = vanilla.TextBox(
-			(inset, linePos + 3, tab1 - 5, 17), "Remove from suffix:", selectable=True, alignment="right"
+			(inset, linePos + 3, tab1 - 5, 17), "By glyph suffix:", selectable=True, alignment="right"
 		)
 		self.w.suffixList = vanilla.EditText(
 			(inset + tab1, linePos, -(inset + 80 + 5), 22),
@@ -90,7 +90,7 @@ class AnchorRemover(mekkaObject):
 
 		# --- Row 3: Remove non-standard anchors ---
 		self.w.nonStandardText = vanilla.TextBox(
-			(inset, linePos + 3, tab1 - 5, 17), "Remove non-standards except:", selectable=True, alignment="right"
+			(inset, linePos + 3, tab1 - 5, 17), "Non-standard, keep:", selectable=True, alignment="right"
 		)
 		self.w.exceptAnchors = vanilla.EditText(
 			(inset + tab1, linePos, -(inset + 80 + 5), 22),
