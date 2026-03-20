@@ -5,6 +5,7 @@ __doc__ = """
 Build and sync quotes: create single and double quotes with cursive attachment anchors, metrics keys, and kern groups.
 """
 
+import math
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSAnchor, GSComponent, GSGlyph, GSPath, GSNode, LINE, GSMetricsTypeCapHeight
@@ -340,6 +341,26 @@ class QuoteManager(mekkaObject):
 		layer.anchors.append(GSAnchor("#entry", NSPoint(0, 0)))
 		layer.anchors.append(GSAnchor("#exit", NSPoint(distance, 0)))
 
+	def _fontHasItalic(self, font):
+		"""Return True if any master in the font has a non-zero italic angle."""
+		return any(m.italicAngle != 0 for m in font.masters)
+
+	def _getItalicCorrectedWidth(self, layer, italicAngle):
+		"""Return (ink_width, deSlantedCenterX) for a layer, corrected for the italic angle.
+
+		In an italic glyph, bounds.size.width is inflated by the slant. This method
+		de-slants every node's X by subtracting y * tan(angle) and returns the true
+		ink width and horizontal centre of the de-slanted outline.
+		"""
+		allNodes = [n for p in layer.paths for n in p.nodes]
+		if not allNodes:
+			return None, None
+		tanAngle = math.tan(math.radians(italicAngle))
+		deSlantedXs = [n.position.x - n.position.y * tanAngle for n in allNodes]
+		minX = min(deSlantedXs)
+		maxX = max(deSlantedXs)
+		return maxX - minX, (minX + maxX) / 2.0
+
 	# -----------------------------------------------------------------------
 	# Metrics keys
 	# -----------------------------------------------------------------------
@@ -620,17 +641,30 @@ class QuoteManager(mekkaObject):
 				continue
 
 			capHeightPos, _overshoot = self.getCapHeightMetrics(font, master)
-			bboxW = bounds.size.width
 			bboxH = bounds.size.height
-			bboxX = bounds.origin.x
-
-			topW = bboxW * 1.12
-			bottomW = bboxW * 0.6
-			centerX = bboxX + bboxW / 2.0
 
 			# Butted against cap height: top at capHeightPos, no overshoot
 			topY = capHeightPos
 			bottomY = topY - bboxH
+
+			# In italic masters the bounds width is inflated by the slant; use the
+			# de-slanted ink width and optical centre so the trapezoid is correctly sized.
+			italicAngle = master.italicAngle
+			if italicAngle:
+				inkWidth, deSlantedCenterX = self._getItalicCorrectedWidth(defaultLayer, italicAngle)
+				if inkWidth is not None:
+					bboxW = inkWidth
+					midH = (topY + bottomY) / 2.0
+					centerX = deSlantedCenterX + midH * math.tan(math.radians(italicAngle))
+				else:
+					bboxW = bounds.size.width
+					centerX = bounds.origin.x + bboxW / 2.0
+			else:
+				bboxW = bounds.size.width
+				centerX = bounds.origin.x + bboxW / 2.0
+
+			topW = bboxW * 1.12
+			bottomW = bboxW * 0.6
 
 			self.backupLayer(targetLayer)
 			targetLayer.clear()
@@ -688,7 +722,14 @@ class QuoteManager(mekkaObject):
 				print(f"\t🔤 {apostropheName} ← composite of {sourceName} / {master.name}")
 
 	def buildOtherGuillemet(self, font, defaultGuillemet, forceOverwrite=False):
-		"""Build the non-default guillemet as an H-mirrored composite of the default."""
+		"""Build the non-default guillemet as a mirrored version of the default.
+
+		Upright fonts (no italic master anywhere): H-mirrored composite.
+		Fonts with at least one italic master: decomposed paths, H- and V-mirrored,
+		shifted to preserve the original's vertical bounds, with identical #entry/#exit
+		anchors.  The decomposed form is used for all masters (including upright ones)
+		so that variable-font instances interpolate correctly.
+		"""
 		otherGuillemet = "guilsinglright" if defaultGuillemet == "guilsinglleft" else "guilsinglleft"
 
 		if not font.glyphs[defaultGuillemet]:
@@ -696,6 +737,7 @@ class QuoteManager(mekkaObject):
 			return
 
 		g = self.ensureGlyphExists(font, otherGuillemet)
+		fontHasItalic = self._fontHasItalic(font)
 
 		for master in font.masters:
 			mID = master.id
@@ -708,17 +750,64 @@ class QuoteManager(mekkaObject):
 			self.backupLayer(layer)
 			layer.clear()
 
-			comp = GSComponent(defaultGuillemet)
-			comp.automaticAlignment = True
-			# Horizontal mirror (-100% scale on x); auto-alignment manages the translation
-			comp.transform = (-1, 0, 0, 1, defaultLayer.width, 0)
-			try:
-				layer.shapes.append(comp)
-			except Exception:
-				layer.components.append(comp)
+			if fontHasItalic:
+				# Decomposed build: H-mirror + V-mirror → shift to match original vertical bounds.
+				# This is needed in italic fonts so the mirrored glyph slants in the correct
+				# direction.  For interpolation compatibility we do the same in upright masters
+				# whenever any master in the font has a non-zero italic angle.
+				if not defaultLayer.paths:
+					print(f"\t⚠️ No paths in {defaultGuillemet} / {master.name} — skipping {otherGuillemet}")
+					continue
 
-			layer.width = defaultLayer.width
-			print(f"\t🔤 {otherGuillemet} ← mirrored composite of {defaultGuillemet} / {master.name}")
+				defaultBounds = defaultLayer.bounds
+
+				for path in defaultLayer.paths:
+					newPath = path.copy()
+					try:
+						layer.shapes.append(newPath)
+					except Exception:
+						layer.paths.append(newPath)
+
+				# H-mirror around the bbox centre X
+				bounds = layer.bounds
+				centerX = bounds.origin.x + bounds.size.width / 2.0
+				layer.applyTransform((-1, 0, 0, 1, 2 * centerX, 0))
+
+				# V-mirror around the bbox centre Y (corrects the italic slant direction)
+				bounds = layer.bounds
+				centerY = bounds.origin.y + bounds.size.height / 2.0
+				layer.applyTransform((1, 0, 0, -1, 0, 2 * centerY))
+
+				# Shift vertically so minY matches the original
+				bounds = layer.bounds
+				dy = defaultBounds.origin.y - bounds.origin.y
+				if dy != 0:
+					layer.applyTransform((1, 0, 0, 1, 0, dy))
+
+				layer.width = defaultLayer.width
+
+				# Same #entry/#exit anchors as the default
+				defaultEntry = defaultLayer.anchors["#entry"]
+				defaultExit = defaultLayer.anchors["#exit"]
+				if defaultEntry and defaultExit:
+					self.setAnchors(layer, entryX=defaultEntry.position.x, exitX=defaultExit.position.x)
+				else:
+					self.setAnchors(layer)
+
+				print(f"\t🔤 {otherGuillemet} ← decomposed H+V mirror of {defaultGuillemet} / {master.name} (italic compat)")
+			else:
+				# Pure upright font: simple H-mirrored composite
+				comp = GSComponent(defaultGuillemet)
+				comp.automaticAlignment = True
+				# Horizontal mirror (-100% scale on x); auto-alignment manages the translation
+				comp.transform = (-1, 0, 0, 1, defaultLayer.width, 0)
+				try:
+					layer.shapes.append(comp)
+				except Exception:
+					layer.components.append(comp)
+
+				layer.width = defaultLayer.width
+				print(f"\t🔤 {otherGuillemet} ← mirrored composite of {defaultGuillemet} / {master.name}")
 
 	def buildDoubleQuotes(self, font, singles, forceOverwrite=False):
 		"""Build double quotes from two auto-aligned single quote components."""
