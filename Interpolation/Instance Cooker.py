@@ -452,11 +452,25 @@ class InstanceCooker(mekkaObject):
 				instances = []
 
 				# add to VFs if possible and necessary:
+				# single-entry axes are included so they get a STAT design axis entry
 				self.addAxisLocations(thisFont, recipeDict)
 
 				existingAxisNames = [a.name for a in thisFont.axes]
 
+				# separate single-entry axes: skip as variation axes, just add particle to all instances
+				singleEntryParticles = []  # list of (axisName, nameParticle) tuples
+				multiEntryAxisKeys = []
 				for axisKey in axisKeys:
+					if len(recipeDict[axisKey]) == 1:
+						axisNameParts = axisKey.split(":")
+						_, axisName = axisNameParts[0].split(",")
+						_, nameParticle, _ = recipeDict[axisKey][0]
+						singleEntryParticles.append((axisName, nameParticle))
+						print(f"ℹ️ Axis '{axisName}' has only one entry — skipping variation axis, adding '{nameParticle.rstrip('*')}' to all instances.")
+					else:
+						multiEntryAxisKeys.append(axisKey)
+
+				for axisKey in multiEntryAxisKeys:
 					axisNameParts = axisKey.split(":")
 					axisIndex, axisName = axisNameParts[0].split(",")
 					axisTag = axisNameParts[1]
@@ -519,6 +533,22 @@ class InstanceCooker(mekkaObject):
 								newInstances.append(instance)
 
 						instances = newInstances
+
+				# if only single-entry axes were defined, seed one base instance
+				if not instances and singleEntryParticles:
+					instance = GSInstance()
+					instance.font = thisFont
+					instance.name = ""
+					instances.append(instance)
+
+				# append single-entry axis particles to all instances
+				for axisName, nameParticle in singleEntryParticles:
+					for instance in instances:
+						if instance.name:
+							instance.name += " %s" % nameParticle
+						else:
+							instance.name = nameParticle
+						styleLinkInstance(instance, axisName, nameParticle)
 
 				# clean elidable names:
 				for instance in instances:
