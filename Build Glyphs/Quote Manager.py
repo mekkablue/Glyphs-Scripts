@@ -71,7 +71,7 @@ class QuoteManager(mekkaObject):
 
 	def __init__(self):
 		windowWidth = 360
-		windowHeight = 315
+		windowHeight = 320
 		windowWidthResize = 100
 		windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
@@ -141,7 +141,7 @@ class QuoteManager(mekkaObject):
 		)
 		linePos += lineHeight
 
-		self.w.divider1 = vanilla.HorizontalLine((inset, linePos + 4, -inset, 1))
+		self.w.divider1 = vanilla.HorizontalLine((inset, linePos + 6, -inset, 1))
 		linePos += lineHeight
 
 		self.w.useQuoteDefault = vanilla.CheckBox(
