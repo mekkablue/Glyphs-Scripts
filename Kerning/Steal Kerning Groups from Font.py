@@ -7,7 +7,7 @@ Copies kerning groups from one font to another.
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, reportFontName
+from mekkablue import mekkaObject, reportFontName, UpdateButton
 
 
 def menuForFonts(fonts):
@@ -58,7 +58,9 @@ class StealKerningGroupsfromFont(mekkaObject):
 		linePos += lineHeight
 
 		self.w.sourceFontText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Source font:", sizeStyle="small", selectable=True)
-		self.w.sourceFont = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), (), sizeStyle="small", callback=self.SavePreferences)
+		self.w.sourceFont = vanilla.PopUpButton((inset + indent, linePos, -inset - 20, 17), (), sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateButton = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateUI)
+		self.w.updateButton.setToolTip("Will update all the menus and buttons of this window. Click here if you opened or closed a font since you invoked the script, or after you changed the source font.")
 		tooltip = "The font from which the kerning groups are taken."
 		self.w.sourceFont.setToolTip(tooltip)
 		self.w.sourceFontText.setToolTip(tooltip)
@@ -82,9 +84,6 @@ class StealKerningGroupsfromFont(mekkaObject):
 
 		self.w.status = vanilla.TextBox((inset, -18 - inset, -150 - inset, 14), "", sizeStyle="small", selectable=True)
 		linePos += lineHeight
-
-		self.w.updateButton = vanilla.Button((-150 - inset, -20 - inset, -80 - inset, -inset), "Update", callback=self.updateUI)
-		self.w.updateButton.setToolTip("Will update all the menus and buttons of this window. Click here if you opened or closed a font since you invoked the script, or after you changed the source font.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "Steal", callback=self.StealKerningGroupsfromFontMain)
