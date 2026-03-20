@@ -14,9 +14,9 @@ allAnchors = "All Anchors"
 
 class AnchorRemover(mekkaObject):
 	prefDict = {
-		"anchorPopup": 0,
+		"anchorName": "",
 		"suffixList": ".sups, .sinf, superior, inferior",
-		"exceptAnchors": "",
+		"exceptAnchors": "*alt*, cap*, connect",
 		"keepExtensions": 0,
 		"keepExitAndEntry": 0,
 		"keepCarets": 1,
@@ -45,13 +45,13 @@ class AnchorRemover(mekkaObject):
 		self.w.anchorText = vanilla.TextBox(
 			(inset, linePos + 3, tab1 - 5, 17), "Remove anchor:", selectable=True, alignment="right"
 		)
-		self.w.anchorPopup = vanilla.PopUpButton(
-			(inset + tab1, linePos, -(inset + 20 + 5 + 80 + 5), 20),
+		self.w.anchorName = vanilla.ComboBox(
+			(inset + tab1, linePos, -(inset + 20 + 5 + 80 + 5), 22),
 			[],
 			callback=self.SavePreferences,
 		)
-		self.w.anchorPopup.setToolTip(
-			"Choose an anchor to delete, or 'All Anchors'. Click the refresh button to update the list from the current font."
+		self.w.anchorName.setToolTip(
+			"Anchor name, wildcard pattern (e.g. top*, *viet), or 'All Anchors'. Click the refresh button to populate the dropdown from the current font."
 		)
 		self.w.updateButton = UpdateButton(
 			(-(inset + 80 + 5 + 20), linePos + 1, 20, 20),
@@ -215,7 +215,7 @@ class AnchorRemover(mekkaObject):
 	# -------------------------------------------------------------------------
 
 	def updateAnchorList(self, sender):
-		"""Scan the font for anchor names and populate the popup."""
+		"""Scan the font for anchor names and populate the combo box dropdown."""
 		font = Glyphs.font
 		if not font:
 			return
@@ -225,31 +225,24 @@ class AnchorRemover(mekkaObject):
 			for layer in glyph.layers:
 				for anchor in layer.anchors:
 					names.add(anchor.name)
-		items = sorted(names) + [allAnchors]
-		self.w.anchorPopup.setItems(items)
-		saved = self.prefInt("anchorPopup")
-		if saved >= len(items):
-			self.setPref("anchorPopup", 0)
-			self.w.anchorPopup.set(0)
-		else:
-			self.w.anchorPopup.set(saved)
+		self.w.anchorName.setItems(sorted(names) + [allAnchors])
 
 	# -------------------------------------------------------------------------
 
 	def removeByName(self, sender=None):
-		"""Remove the selected anchor (or all anchors) from glyphs."""
+		"""Remove anchors matching the combo box entry (exact name, wildcard, or All Anchors)."""
 		font = Glyphs.font
 		if not font:
 			Message("No font open", "Please open a font first.", OKButton=None)
 			return
 
-		items = self.w.anchorPopup.getItems()
-		if not items:
-			Message("No anchors found", "No anchors found. Click the refresh button to scan the font.", OKButton=None)
+		anchorName = self.pref("anchorName").strip()
+		if not anchorName:
+			Message("No anchor specified", "Enter an anchor name or wildcard pattern, or choose from the dropdown.", OKButton=None)
 			return
 
-		anchorName = items[self.prefInt("anchorPopup")]
 		removeAll = anchorName == allAnchors
+		hasWildcard = not removeAll and ("*" in anchorName or "?" in anchorName)
 		glyphs = self.getGlyphs()
 		if not glyphs:
 			self.w.status.set("No glyphs to process.")
@@ -260,7 +253,7 @@ class AnchorRemover(mekkaObject):
 		print("Font: %s" % font.familyName)
 		if font.filepath:
 			print(font.filepath)
-		print("\nDeleting %s …\n" % ("all anchors" if removeAll else "anchor '%s'" % anchorName))
+		print("\nDeleting %s …\n" % ("all anchors" if removeAll else "anchors matching '%s'" % anchorName if hasWildcard else "anchor '%s'" % anchorName))
 
 		anchorCount = 0
 		glyphCount = 0
@@ -272,6 +265,11 @@ class AnchorRemover(mekkaObject):
 					if removeAll:
 						deleted += len(layer.anchors)
 						layer.anchors = None
+					elif hasWildcard:
+						toDelete = [a.name for a in layer.anchors if match(a.name, anchorName)]
+						for name in toDelete:
+							del layer.anchors[name]
+						deleted += len(toDelete)
 					elif layer.anchors[anchorName]:
 						del layer.anchors[anchorName]
 						deleted += 1
