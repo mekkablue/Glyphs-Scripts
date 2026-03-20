@@ -160,7 +160,7 @@ class AnchorRemover(mekkaObject):
 
 		# --- Row 4: Remove explicit traversing anchors in composites ---
 		self.w.traversingText = vanilla.TextBox(
-			(inset, linePos + 3, tab1 - 5, 17), "Explicit in composites:", selectable=True, alignment="right"
+			(inset, linePos + 3, -(inset + 80 + 5), 17), "Remove explicit traversing anchors in composites:", selectable=True, alignment="left"
 		)
 		self.w.removeTraversingButton = vanilla.Button(
 			(-(inset + 80), linePos, -inset, 21), "Remove", callback=self.removeExplicitTraversing
