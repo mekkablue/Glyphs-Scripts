@@ -21,7 +21,7 @@ class RemoveImages(mekkaObject):
 
 	def __init__(self):
 		windowWidth = 400
-		windowHeight = 120
+		windowHeight = 140
 		windowWidthResize = 300
 		windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
@@ -35,14 +35,14 @@ class RemoveImages(mekkaObject):
 		linePos, inset, lineHeight = 12, 15, 22
 
 		# Scope
-		self.w.scopeLabel = vanilla.TextBox((inset, linePos + 2, 112, 14), "Remove images from:", sizeStyle="small")
+		self.w.scopeLabel = vanilla.TextBox((inset, linePos + 2, 120, 14), "Remove images in:", sizeStyle="small")
 		self.w.scope = vanilla.PopUpButton(
-			(inset + 115, linePos, 135, 18),
-			["all glyphs in font", "selected glyphs only"],
+			(inset + 122, linePos, 185, 18),
+			["selected glyphs only", "⚠️ all glyphs in font", "⚠️ all glyphs in all open fonts"],
 			callback=self.SavePreferences,
 			sizeStyle="small",
 		)
-		scopeTooltip = "Choose whether to process all glyphs in the font, or only the glyphs currently selected in Font View."
+		scopeTooltip = "Choose the scope: selected glyphs only, all glyphs in the frontmost font, or all glyphs across every open font."
 		self.w.scopeLabel.setToolTip(scopeTooltip)
 		self.w.scope.setToolTip(scopeTooltip)
 		linePos += lineHeight
@@ -99,29 +99,34 @@ class RemoveImages(mekkaObject):
 		nameFilter = self.pref("nameFilter") or ""
 		scope = self.prefInt("scope")
 
-		# Determine glyph scope
-		if scope == 1:
-			glyphs = []
+		# Build per-font glyph lists (scope: 0=selected, 1=all in font, 2=all open fonts)
+		if scope == 0:
 			seen = set()
+			glyphsByFont = {font: []}
 			for layer in font.selectedLayers:
 				glyph = layer.parent
 				if glyph.name not in seen:
 					seen.add(glyph.name)
-					glyphs.append(glyph)
+					glyphsByFont[font].append(glyph)
+		elif scope == 1:
+			glyphsByFont = {font: list(font.glyphs)}
 		else:
-			glyphs = list(font.glyphs)
+			glyphsByFont = {f: list(f.glyphs) for f in Glyphs.fonts}
 
 		# Apply name filter
 		if filterByName and nameFilter.strip():
 			particles = [p.strip() for p in nameFilter.split(",") if p.strip()]
 			if particles:
-				glyphs = [g for g in glyphs if any(match("*" + p + "*", g.name) for p in particles)]
+				glyphsByFont = {
+					f: [g for g in gs if any(match("*" + p + "*", g.name) for p in particles)]
+					for f, gs in glyphsByFont.items()
+				}
 
 		# Report header
 		Glyphs.clearLog()
 		print("Remove Images\n")
-		scopeLabel = "selected glyphs" if scope == 1 else "all glyphs in font"
-		print(f"Scope: {scopeLabel}")
+		scopeLabels = ["selected glyphs", "all glyphs in font", "all glyphs in all open fonts"]
+		print(f"Scope: {scopeLabels[scope]}")
 		if filterByName and nameFilter.strip():
 			print(f"Name filter: {nameFilter.strip()}")
 		print(f"Removing: {'orphaned images only' if removeOrphaned else 'all images'}\n")
@@ -129,63 +134,64 @@ class RemoveImages(mekkaObject):
 		totalRemoved = 0
 		totalOrphaned = 0
 
-		font.disableUpdateInterface()
-		try:
-			for glyph in glyphs:
-				removedInGlyph = 0
-				orphanedInGlyph = 0
-				for layer in glyph.layers:
-					try:
-						# Foreground background image
-						img = layer.backgroundImage
-						if img is not None:
-							imgPath = None
-							try:
-								imgPath = img.path
-							except Exception:
-								pass
-							isOrphaned = bool(imgPath) and not os.path.exists(imgPath)
-							if not removeOrphaned or isOrphaned:
-								layer.setBackgroundImage_(None)
-								removedInGlyph += 1
-								if isOrphaned:
-									orphanedInGlyph += 1
-
-						# Background layer's background image
+		for thisFont, glyphs in glyphsByFont.items():
+			thisFont.disableUpdateInterface()
+			try:
+				for glyph in glyphs:
+					removedInGlyph = 0
+					orphanedInGlyph = 0
+					for layer in glyph.layers:
 						try:
-							bgLayer = layer.background
-							bgImg = bgLayer.backgroundImage if bgLayer else None
-							if bgImg is not None:
-								bgImgPath = None
+							# Foreground background image
+							img = layer.backgroundImage
+							if img is not None:
+								imgPath = None
 								try:
-									bgImgPath = bgImg.path
+									imgPath = img.path
 								except Exception:
 									pass
-								isOrphaned = bool(bgImgPath) and not os.path.exists(bgImgPath)
+								isOrphaned = bool(imgPath) and not os.path.exists(imgPath)
 								if not removeOrphaned or isOrphaned:
-									bgLayer.setBackgroundImage_(None)
+									layer.setBackgroundImage_(None)
 									removedInGlyph += 1
 									if isOrphaned:
 										orphanedInGlyph += 1
-						except Exception:
-							pass
 
-					except Exception as e:
-						print(f"\t⚠️ {glyph.name}, layer '{layer.name}': {e}")
+							# Background layer's background image
+							try:
+								bgLayer = layer.background
+								bgImg = bgLayer.backgroundImage if bgLayer else None
+								if bgImg is not None:
+									bgImgPath = None
+									try:
+										bgImgPath = bgImg.path
+									except Exception:
+										pass
+									isOrphaned = bool(bgImgPath) and not os.path.exists(bgImgPath)
+									if not removeOrphaned or isOrphaned:
+										bgLayer.setBackgroundImage_(None)
+										removedInGlyph += 1
+										if isOrphaned:
+											orphanedInGlyph += 1
+							except Exception:
+								pass
 
-				if removedInGlyph:
-					orphanNote = f" ({orphanedInGlyph} orphaned)" if orphanedInGlyph else ""
-					plural = "s" if removedInGlyph != 1 else ""
-					print(f"\t✅ {glyph.name}: removed {removedInGlyph} image{plural}{orphanNote}")
-					totalRemoved += removedInGlyph
-					totalOrphaned += orphanedInGlyph
+						except Exception as e:
+							print(f"\t⚠️ {glyph.name}, layer '{layer.name}': {e}")
 
-		except Exception as e:
-			import traceback
-			print(traceback.format_exc())
+					if removedInGlyph:
+						orphanNote = f" ({orphanedInGlyph} orphaned)" if orphanedInGlyph else ""
+						plural = "s" if removedInGlyph != 1 else ""
+						print(f"\t✅ {glyph.name}: removed {removedInGlyph} image{plural}{orphanNote}")
+						totalRemoved += removedInGlyph
+						totalOrphaned += orphanedInGlyph
 
-		finally:
-			font.enableUpdateInterface()
+			except Exception as e:
+				import traceback
+				print(traceback.format_exc())
+
+			finally:
+				thisFont.enableUpdateInterface()
 
 		if totalRemoved:
 			orphanNote = f" ({totalOrphaned} orphaned)" if totalOrphaned else ""
