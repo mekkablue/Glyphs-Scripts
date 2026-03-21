@@ -120,7 +120,8 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Build cadauna and careof:** Builds `cadauna` and `careof` from your `c`, `o`, `u` and `fraction` glyphs.
 * **Build Circled Glyphs:** Builds circled numbers and letters (U+24B6...24EA and U+2460...2473) from `_part.circle` and your letters and figures.
 * **Build Dotted Numbers:** Build dotted numbers from your default figures and the period.
-* **Build ellipsis from period Components:** Inserts exit and entry anchors in the period glyph and rebuilds ellipsis with auto-aligned components of period. Attention: decomposes all period components used in other glyphs (e.g., colon).
+* **Build ellipsis from period Components:** Inserts exit and entry anchors in the period glyph and rebuilds ellipsis with auto-aligned components of period.
+* **Build exclamdown and questiondown:** Builds inverted Spanish punctuation ¡¿ for mixed and upper case. Hold down Cmd-Shift for all open fonts. Attention: decomposes all period components used in other glyphs (e.g., colon).
 * **Build Extra Math Symbols:** Builds `lessoverequal`, `greateroverequal`, `bulletoperator`, `rightanglearc`, `righttriangle`, `sphericalangle`, `measuredangle`, `sunWithRays`, `positionIndicator`, `diameterSign`, `viewdataSquare`, `control`.
 * **Build Ldot and ldot:** Builds `Ldot`, `ldot` and `ldot.sc` from existing `L` and `periodcentered.loclCAT` (`.case`/`.sc`). Assumes that you have already created and properly spaced `L`-`periodcentered.loclCAT`-`L`, etc.
 * **Build Parenthesized Glyphs:** Creates parenthesized letters and numbers: `one.paren`, `two.paren`, `three.paren`, `four.paren`, `five.paren`, `six.paren`, `seven.paren`, `eight.paren`, `nine.paren`, `one_zero.paren`, `one_one.paren`, `one_two.paren`, `one_three.paren`, `one_four.paren`, `one_five.paren`, `one_six.paren`, `one_seven.paren`, `one_eight.paren`, `one_nine.paren`, `two_zero.paren`, `a.paren`, `b.paren`, `c.paren`, `d.paren`, `e.paren`, `f.paren`, `g.paren`, `h.paren`, `i.paren`, `j.paren`, `k.paren`, `l.paren`, `m.paren`, `n.paren`, `o.paren`, `p.paren`, `q.paren`, `r.paren`, `s.paren`, `t.paren`, `u.paren`, `v.paren`, `w.paren`, `x.paren`, `y.paren`, `z.paren`.
@@ -316,9 +317,12 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Add Missing Brace Layers:** Complete the rectangular setup necessary for OTVAR exports.
 * **Axis Location Setter:** Batch-set axis locations for all instances with a certain name particle. E.g., set an axis location for all Condensed instances.
 * **Axis Mapper:** Extracts, resets and inserts an ‘avar’ axis mapping for the Axis Mappings parameter.
+* **Batch Grader:** Batch-add graded masters to a multiple-master setup.
 * **Batch-Add Smart Axes:** Will add smart axes and additional smart layers to selected glyphs.
 * **Brace and Bracket Manager:** Find and replace brace or bracket layer coordinates in Glyphs 3 and later.
 * **Bracify:** Turn font masters into brace layers of certain glyphs. A.k.a. Sparsify.
+* **Compatibility Manager:** A better way to reset startpoints and reorder paths.
+* **Compatibility Manager 2:** Rebuilds interpolation compatibility between masters: reorders paths and components for shortest travel, resets start points, and optionally adds missing components/anchors. Always removes empty paths and propagates corner components.
 * **Composite Variabler:** Reduplicates Brace and Bracket layers of components in the compounds in which they are used. Makes bracket layers work in composites.
 * **Copy Layer to Layer:** Copies paths (and optionally, also components, anchors and metrics) from one Master to another.
 * **Dekink Master Layers:** Dekinks your smooth point triplets in all compatible layers (useful if they are not horizontal or vertical). Select a point in one or more smooth point triplets, and run this script to move the corresponding nodes in all other masters to the same relative position. Thus you achieve the same point ratio in all masters and avoid interpolation kinks, when the angle of the triplet changes. There is a [video describing it.](http://tinyurl.com/dekink-py) The triplet problem is [described in this tutorial](http://www.glyphsapp.com/learn/multiple-masters-part-2-keeping-your-outlines-compatible).
@@ -407,6 +411,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Green Blue Manager:** Define an angle above which a node will be set to blue, below which it will be set to green.
 * **Grid Switcher:** Toggles grid between two user-definable gridstep values with the click of a floating button.
 * **Harmonize Curve to Line:** Will rearrange handles on (selected) curve segments with a following line segment, in such a way that the transition between the two segments is smooth (harmonized).
+* **Insert Split Nodes at Selected Extra Nodes:** Select an Extra Node (*View > Show Nodes > Extra Nodes*) and run this script to insert nodes in the respective paths.
 * **Interpolate Two Paths:** Select two paths and run this script, it will replace them with their interpolation at 50%.
 * **New Tab with Small Paths:** Opens a new tab containing paths that are smaller than a user-definable threshold size in square units.
 * **Path Problem Finder:** Finds all kinds of potential problems in outlines, and opens a new tab with affected layers.
@@ -421,6 +426,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Snap Selected Points to Nearest Metric in All Masters:** Select points and run this script to snap them to the nearest metric in each compatible layer, given they are no more than 2 units away from the metric. Reports in the Macro window.
 * **Straight Stem Cruncher:** Finds distances between points in all layers, and compares them (with a tolerance) to specified stem widths. Lists glyphs that have deviating stems in their drawings.
 * **Tunnify:** Looks for all path segments where at least one handle is selected. Then, evens out the handles of the segments, i.e., they will both have the same Fit Curve percentage. Can fix Adobe Illustrator's zero-handles (segments with one handle retracted into the nearest node). The idea for this script came from Eduardo Tunni (as colported by Pablo Impallari), hence the title of the script. I have never seen Eduardo's algorithm though, so my implementation might be a little different to his, especially the treatment of zero-handles.
+* **Tunnify 2.0:** A gentler Tunnify, focused on staying closer to the same shape for each segment. Repeated running will change shapes further.
 
 ## Pixelfonts
 
@@ -466,6 +472,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Fix Math Operator Spacing:** Syncs widths and centers glyphs for +−×÷=≠±≈¬, optionally also lesser/greater symbols and asciicircum/asciitilde.
 * **Freeze Placeholders:** In the current Edit tab, will change all inserted placeholders for the current glyph, thus 'freeze' the placeholders.
 * **Metrics Key Manager:** Batch apply metrics keys to the current font.
+* **Mirror Spacer:** Double-checks and corrects spacings in mirrored glyphs such as `()[]{}''"«»‹›¿?¡!<>≤≥`.
 * **Monospace Checker:** Checks if all glyph widths in the frontmost font are actually monospaced. Reports in Macro Window and opens a tab with affected layers.
 * **New Tab with All Figure Combinations:** Opens a new tab with all possible figure combos. Also outputs a string for copying into the Macro window, in case the opening of the tab fails.
 * **New Tab with Fraction Figure Combinations:** Opens an Edit tab with fraction figure combos for spacing and kerning.
