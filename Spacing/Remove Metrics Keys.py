@@ -28,21 +28,21 @@ class RemoveMetricsKeys(mekkaObject):
 
 	def __init__(self):
 		windowWidth = 380
-		windowHeight = 128
+		windowHeight = 142
 		windowWidthResize = 600
 		windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Remove Metrics Keys",
 			minSize=(windowWidth, windowHeight),
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),
+			maxSize=(windowWidth + windowWidthResize, windowHeight),
 			autosaveName=self.domain("mainwindow"),
 		)
 
 		linePos, inset, lineHeight = 12, 15, 22
 
 		# Row 1: label + two checkboxes on one line
-		col1 = inset + 62  # checkboxes start here
+		col1 = inset + 72  # checkboxes start here
 		self.w.removeAllLabel = vanilla.TextBox(
 			(inset, linePos + 3, 62, 14),
 			"Remove all",
@@ -73,7 +73,7 @@ class RemoveMetricsKeys(mekkaObject):
 		linePos += lineHeight
 
 		# Row 2: label + text field on one line
-		filterLabelWidth = 140
+		filterLabelWidth = 122
 		self.w.glyphNameFilterLabel = vanilla.TextBox(
 			(inset, linePos + 3, filterLabelWidth, 14),
 			"Only keys referencing:",
@@ -119,7 +119,7 @@ class RemoveMetricsKeys(mekkaObject):
 
 		# Status + regular-size button, side by side at the bottom
 		self.w.status = vanilla.TextBox(
-			(inset, -inset - 22, -inset - 90, 14),
+			(inset, -inset - 18, -inset - 90, 14),
 			"",
 			sizeStyle="small",
 		)
