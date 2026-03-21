@@ -68,8 +68,9 @@ class RemoveImages(mekkaObject):
 		)
 		self.w.filterByName.setToolTip("If enabled, restricts removal to glyphs whose names match one of the comma-separated particles. Wildcards * and ? are supported.")
 		self.w.nameFilter = vanilla.EditText(
-			(inset + 170, linePos, -inset, 19),
+			(inset + 155, linePos, -inset, 19),
 			"",
+			placeholder="(see tooltip)",
 			callback=self.SavePreferences,
 			sizeStyle="small",
 		)
