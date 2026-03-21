@@ -115,12 +115,16 @@ class CopyLayerToLayer(mekkaObject):
 		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Copy Layers", sizeStyle='regular', callback=self.CopyLayerToLayerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
+		# Load Settings:
+		self.LoadPreferences()
+
 		# Update the layer popups after fonts are loaded
 		self.UpdateSourceLayers(None)
 		self.UpdateTargetLayers(None)
 
-		# Load Settings:
-		self.LoadPreferences()
+		# Now manually restore just the layer popup indices:
+		self.w.sourceLayerPopup.set(self.pref("sourceLayerPopup"))
+		self.w.targetLayerPopup.set(self.pref("targetLayerPopup"))
 
 		# Open window and focus on it:
 		self.w.open()
