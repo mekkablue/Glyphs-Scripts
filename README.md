@@ -67,14 +67,14 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Add ZWRO \*origin Anchors:** Insert *origin anchors for ZWRO in all combining marks of specified scripts.
 * **Anchor Mover:** GUI for batch-processing anchor positions in multiple glyphs.
 * **Anchor Remover:** GUI for removing anchors by name or wildcard pattern, from suffix-matched glyphs, or non-standard anchors not expected for each glyph by default (e.g., `ogonek` from `J`). Wildcards supported in anchor name and exceptions field. Potentially dangerous, so first use the report script below.
-* **Batch Insert Anchors:** GUI for batch-inserting anchors of the same name at the same approximate position in multiple glyphs.
+* **Batch Insert Anchor:** GUI for batch-inserting anchors of the same name at the same approximate position in multiple glyphs.
 * **Exit-Entry Manager:** Toolbox for managing `exit`/`entry` and `#exit`/`#entry` anchors used for cursive attachment. Insert anchors at sidebearings, at outermost selected nodes, or automatically for positional glyphs (`.init`/`.medi`/`.fina`); add or remove the `#` prefix; swap exit ↔ entry positions; or delete all exit/entry anchors — all from one window. All insert operations are direction-aware (LTR vs. RTL) and respect a global *Use # prefix* checkbox.
 * **Find and Replace in Anchor Names:** GUI for replacing text in the names of anchors in selected glyphs. Processes all layers.
-* **Fix Arabic Anchor Order in Ligatures:** Fixes the order of *top_X* and *bottom_X* anchors to RTL. In files converted from a different format, it sometimes happens that *top_1* is left of *top_2*, but it should be the other way around, otherwise your mark2liga will mess up. This script goes through your selected glyphs, and if they are Arabic ligatures, reorders all anchors to RTL order, at the same time not touching their coordinates.
+* **Fix Arabic Anchor Ordering in Ligatures:** Fixes the order of *top_X* and *bottom_X* anchors to RTL. In files converted from a different format, it sometimes happens that *top_1* is left of *top_2*, but it should be the other way around, otherwise your mark2liga will mess up. This script goes through your selected glyphs, and if they are Arabic ligatures, reorders all anchors to RTL order, at the same time not touching their coordinates.
 * **Insert All Anchors in All Layers:** On each layer of a selected glyph, adds all missing anchors (but present in other layers of that glyph). Puts anchors at an averaged position.
 * **Mark Mover:** Move marks to their respective heights, e.g. …comb.case to cap height, …comb to x-height, etc. Also allows you to set left and right metrics keys.
 * **Move ogonek Anchors to Baseline Intersection:** Moves all ogonek and _ogonek anchors to the rightmost intersection of the outline with the baseline.
-* **Move topright Anchors for Vertical Carons:** Moves all topright and _topright anchors to the rightmost intersection of the outline with the x-height. Useful for building Czech/Slovak letters with vertical caron.
+* **Move Vertical Caron Anchors to x-Height Intersection:** Moves all topright and _topright anchors to the rightmost intersection of the outline with the x-height. Useful for building Czech/Slovak letters with vertical caron.
 * **Move Vietnamese Marks to top_viet Anchor in Circumflex:** Moves *acute*, *grave* and *hookabovecomb* to the *top_viet* anchor in every layer of selected glyphs. Useful for Vietnamese double accents. Assumes that you have *top_viet* anchors in all layers of *circumflexcomb*.
 * **New Tab with Glyphs Containing Anchor:** Opens a new tab with all glyphs containing a specific anchor.
 * **New Tab with Stray Anchors:** Find all anchors that are not where they are supposed to be.
@@ -82,7 +82,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Realign Stacking Anchors:** In stacking combining accents, moves top and bottom anchors exactly above or below the respective _top and _bottom anchors, respecting the italic angle. This way, stacking multiple nonspacing accents will always stay in line.
 * **Replicate Anchors:** Batch-add anchors to selected glyphs. Specify a source glyph to replicate the anchors from.
 * **Replicate Anchors in Suffixed Glyphs:** Goes through selected dot-suffixed glyphs and duplicates anchors from their respective base glyphs. E.g. will recreate anchors of *X* in *X.ss01*, *X.swsh* and *X.alt*.
-* **Report Non-Standard Anchors to Macro window:** Goes through all glyphs in the font and reports in the Macro window if it finds non-default anchors. Lines are copy-pasteable in Edit view.
+* **Report Non-Standard Anchors to Macro Window:** Goes through all glyphs in the font and reports in the Macro window if it finds non-default anchors. Lines are copy-pasteable in Edit view.
 * **Shine Through Anchors:** In all layers of selected glyphs, inserts ‘traversing’ anchors from components.
 * **Snap Anchors to Nearest Metric:** Moves specified anchors to the nearest metric (e.g. x-height, ascender, etc.), within a specified threshold.
 * **Steal Anchors:** Batch-copy the anchors from one font master to another.
@@ -105,11 +105,11 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Set Tool Shortcuts:** Set keyboard shortcuts for the tools in the toolbar.
 * **Toggle Horizontal-Vertical:** Toggle frontmost tab between LTR (horizontal) and vertical writing direction. Useful for setting a keyboard shortcuts.
 * **Toggle Macro Window Separator:** Toggles the separator position in the Macro Window between 80% and 20%.
-* **Toggle RTL-LTR:** Toggle frontmost tab between LTR and RTL writing direction. Useful for setting a keyboard shortcut in System Preferences.
+* **Toggle RTL/LTR:** Toggle frontmost tab between LTR and RTL writing direction. Useful for setting a keyboard shortcut in System Preferences.
 * **Toggle Script Windows:** Shows or hides all script windows. Good for assigning a shortcut in the app settings.
 * **Update Git Repositories in Scripts Folder:** Executes a 'git pull' command on all subfolders in the Glyphs Scripts folder. Useful if you have a lot of git repos in your Scripts folder.
 * **Update Text Preview:** Force updates *Window > Text Preview.* Can be useful if you are making changes outside the font window (like in an OT feature in Font Info) and the preview will not refresh by itself.
-* **Navigate > Activate next/previous glyph:** Will activate the next/previous glyph in Edit view for editing.
+* **Navigate > Activate Next/Previous Glyph:** Will activate the next/previous glyph in Edit view for editing.
 
 ## Build Glyphs
 
@@ -117,7 +117,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 * **Add Adobe Symbol Glyphs:** Will add Adobe’s interpolations for a number of symbol glyphs if they are missing from the font: *Omega, Delta, Ohm, increment, asciicircum, greaterequal, infinity, partialdiff, lessequal, notequal, product, approxequal, plus, lozenge, integral, summation, radical, daggerdbl, perthousand, logicalnot, plusminus, asciitilde, divide, minus, multiply, dagger, less, equal, greater, literSign, .notdef.* Requires makeotf (AFDKO) to be installed.
 * **Build APL Greek:** Create APL Greek glyphs.
-* **Build careof and cadauna:** Builds `cadauna` and `careof` from your `c`, `o`, `u` and `fraction` glyphs.
+* **Build cadauna and careof:** Builds `cadauna` and `careof` from your `c`, `o`, `u` and `fraction` glyphs.
 * **Build Circled Glyphs:** Builds circled numbers and letters (U+24B6...24EA and U+2460...2473) from `_part.circle` and your letters and figures.
 * **Build Dotted Numbers:** Build dotted numbers from your default figures and the period.
 * **Build ellipsis from period Components:** Inserts exit and entry anchors in the period glyph and rebuilds ellipsis with auto-aligned components of period. Attention: decomposes all period components used in other glyphs (e.g., colon).
@@ -189,7 +189,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Make Components Smart in All Selected Glyphs:** Turn the selected components into smart components, based on the axes defined in the font. Clone of Erik Moberg’s [*Make Components Smart* script](https://github.com/TypeNurse/Glyphs-Scripts/blob/main/Make%20Component%20Smart.py).
 * **Make Glyph Smart:** Turn the currently selected glyph(s) into smart glyphs, and establish the current font axes as the glyph’s smart axes.
 * **Move Paths to Component:** Moves paths to a separate glyph and insert them as auto-aligned, anchored components in the source glyph. Perfect for making path-component mixtures into pure composites.
-* **Populate Backgrounds with Components:** Adds the specified component into all backgrounds of a glyph, and allows you to align selected foreground nodes to the component. Useful for keeping decomposed shapes in the foreground in sync with similar glyphs.
+* **Populate Layer Backgrounds with Component:** Adds the specified component into all backgrounds of a glyph, and allows you to align selected foreground nodes to the component. Useful for keeping decomposed shapes in the foreground in sync with similar glyphs.
 * **Propagate Corner Components to Other Masters:** Tries to recreate the corner components of the current master layer in all other masters of the same glyph. Make sure your outlines are compatible.
 * **Remove Components:** Removes the specified component from all (selected) glyphs.
 * **Remove Detached Corners:** Removes detached corner component from all (selected) glyphs.
@@ -216,7 +216,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * * **Stylistic Sets > Synchronize ssXX Glyphs:** Creates missing ssXX glyphs so that you have synchronous groups of ssXX glyphs. E.g. you have *a.ss01 b.ss01 c.ss01 a.ss02 c.ss02* --> the script creates *b.ss02*
 * * **Stylistic Sets > Create .ssXX Glyph from Current Layer:** Takes the current layer and copies it to the primary layer of a new .ssXX glyph.
 * * **Stylistic Sets > Create Pseudorandom calt Feature from ssXX Glyphs:** Creates pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font. Also includes the default class in the rotation algorithm.
-* * **Stylistic Sets > Report ssXX Names:** Reports all names of ssXX features in all opened fonts.
+* * **Stylistic Sets > Report ssXX Names of All Open Fonts:** Reports all names of ssXX features in all opened fonts.
 * * **Stylistic Sets > Set ssXX Names:** Prefills names for ssXX features with ‘Alternate’ or another chosen text, plus the name of the first substituted glyph, e.g., ‘Alternate a’. Option to preserve existing namings.
 
 ## Font Info
@@ -233,7 +233,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Prepare Font Info:** Prepare open fonts for a modern font production and git workflow by setting certain custom parameters.
 * **PS Name Maker:** Creates postscriptFontName entries (Name ID 6) for all instances with options to shorten them.
 * **Remove Custom Parameters:** Removes all parameters of one kind from *Font Info > Font, Masters, Instances.* Useful if you have many masters or instances.
-* **Set Preferred Names (Name IDs 16 and 17)  for Width Variants:** Sets Preferred Names custom parameters (Name IDs 16 and 17) for all instances, so that width variants will appear in separate menus in Adobe apps.
+* **Set Preferred Names (Name IDs 16 and 17) for Width Variants:** Sets Preferred Names custom parameters (Name IDs 16 and 17) for all instances, so that width variants will appear in separate menus in Adobe apps.
 * **Set Style Linking:** Attempts to set the Bold/Italic bits.
 * **Set Subscript and Superscript Parameters:** Measures your superior and inferior figures and derives subscript/superscript X/Y offset/size parameters.
 * **‌Set Variable Style Names:** Adds Style Names for variable fonts to instances in Font Info > Exports, and makes an informed guess as for their value. Useful if you split your static family in subfamilies (e.g. by optical size or by width), and as a result, you end up with repeating style names (e.g. multiple Mediums).
@@ -251,7 +251,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Color Composites in Shade of Base Glyph:** Color composites in a lighter shade of the base glyph. E.g., if your A is has a red label color, then ÄÁÀĂ... will have a lighter shade of red.
 * **Convert to Uppercase:** Turns lowercase names into uppercase names, e.g., `a` → `A`, `ccaron` → `Ccaron`, `aeacute` → `AEacute`, etc.
 * **Convert to Lowercase:** Turns the names of selected glyphs lowercase.
-* **Double Encode micro, Ohm and increment:** Add Unicodes of mu, Omega and Delta to micro, Ohm and increment.
+* **Double Encode micro, Ohm, increment and florin:** Add Unicodes of mu, Omega, Delta and florin to micro, Ohm, increment and florin.
 * **Encoding Converter:** Converts old expert 8-bit encodings into Glyphs nice names, based on a importable/exportable text with renaming scheme. Default is an AXt converting scheme.
 * **Garbage Collection:** Removes markers in glyphs, such as node names, glyph names or annotations, as well as guides.
 * **Glyph Order Manager:** UI for managing glyphOrder parameters, also across multiple files.
@@ -269,18 +269,18 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Remove Global Guides in Current Master:** Deletes all global (red) guides in the current master.
 * **Remove Local Guides in Selected Glyphs:** Deletes all local (blue) guides in selected glyphs.
 * **Select All Global Guides:** Selects all global (red) guides in Edit view. Useful if you have many and need to batch-transform them.
-* **Select All Local Guides:** Selects all local (blue) guides (in all selected glyphs).
+* **Select All Local Guides in Selected Glyphs:** Selects all local (blue) guides (in all selected glyphs).
 
 ## Hinting
 
 *Most important: Set blueScale, Set Family Alignment Zones for PostScript hinting. If you are making big changes, The Transfer and Keep Only scripts can save you a lot of work. The New Tab scripts help find glyphs missing zones. Also consider Paths > Find Near Vertical Misses for that purpose.*
 
 * **Add Alignment Zones for Selected Glyphs:** Creates fitting zones for the selected glyphs in all masters.
-* **Add Hints for Selected Nodes:** Adds hints for the selected nodes. Tries to guess whether it should be H or V. If exactly one node inside a zone is selected, it will add a Ghost Hint. Useful for setting a shortcut in System Prefs.
+* **Add Hints to Selected Nodes:** Adds hints for the selected nodes. Tries to guess whether it should be H or V. If exactly one node inside a zone is selected, it will add a Ghost Hint. Useful for setting a shortcut in System Prefs.
 * **Add TTF Autohint Control Instructions for Current Glyph:** Adds a touch line for a given up/down amount to the Control Instructions of the current instance.
 * **Auto Stems:** Derive one H and one V stem value for all your masters by measuring certain shapes in your font.
 * **BlueFuzzer:** Extends all alignment zones by the specified value. Similar to what the blueFuzz value used to do, hence the name.
-* **Keep Only First Master Hints:** In selected glyphs, deletes all hints in all layers except for whatever is ordered as first master. Respects Bracket Layers. E.g., if your first master is 'Regular', then the script will delete hints in 'Bold', 'Bold [120]', but keep them in 'Regular' and 'Regular [100]'.
+* **Keep First Master Hints Only:** In selected glyphs, deletes all hints in all layers except for whatever is ordered as first master. Respects Bracket Layers. E.g., if your first master is 'Regular', then the script will delete hints in 'Bold', 'Bold [120]', but keep them in 'Regular' and 'Regular [100]'.
 * **New Tab with Glyphs in Alignment Zones:** Opens a new tab and lists all glyphs that reach into alignment zones.
 * **New Tab with Layers with TTDeltas:** Opens a new tab with all layers that have defined TTDeltas.
 * **New Tabs with Glyphs Not Reaching Into Zones:** Opens a new tab with all glyphs that do NOT reach into any top or bottom alignment zone. Only counts glyphs that contain paths in the current master. Ignores empty glyphs and compounds.
@@ -292,9 +292,9 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Set Family Alignment Zones:** Pick an instance and set its zones as Family Alignment Zones in *Font Info > Font > Custom Parameters.*
 * **Set TT Stem Hints to Auto:** Sets all TT stem hints to ‘auto’ in selected glyphs.
 * **Set TT Stem Hints to No Stem:** Sets all TT stem hints to ‘no stem’ in selected glyphs. In complex paths, it can improve rendering on Windows.
-* **Set TTF Autohint Options:** Set options for existing 'TTF Autohint Options' Custom Parameters.
+* **Set ttfautohint Options:** Set options for existing 'TTF Autohint Options' Custom Parameters.
 * **Transfer Hints to First Master:** Copies PS hints from the current layer to the first master layer, provided the paths are compatible. Reports errors to the Macro window.
-* **TT Autoinstruct:** Automatically add Glyphs TT instructions to the selected glyphs in the selected master. (Should be the first master.) Attention: this is NOT Werner Lemberg's ttfAutohint, but the manual TT hints that the TT Instruction tool (I) would add through the context menu item of the same name. Useful for adding hints in many glyphs at once.
+* **TT Autoinstruct Selected Glyphs:** Automatically add Glyphs TT instructions to the selected glyphs in the selected master. (Should be the first master.) Attention: this is NOT Werner Lemberg's ttfAutohint, but the manual TT hints that the TT Instruction tool (I) would add through the context menu item of the same name. Useful for adding hints in many glyphs at once.
 
 ## Images
 
@@ -303,7 +303,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Add Same Image to Selected Glyphs:** Asks you for an image, and then inserts it into all currently selected glyphs as background image.
 * **Adjust Image Alpha:** Slider for setting the alpha of all images in selected glyphs.
 * **Remove Images:** GUI for removing placed images from glyphs. Options: scope (all glyphs in font or selected glyphs only), remove images with existing files, remove orphaned images (source file no longer on disk), and optional glyph-name filter with wildcard support. Reports progress in the Macro Window.
-* **Reset Image Transformation:** Resets all image transformations (x/y offset, scale, and distortion) back to default in the visible layers of selected glyphs.
+* **Reset Image Transformations:** Resets all image transformations (x/y offset, scale, and distortion) back to default in the visible layers of selected glyphs.
 * **Set New Path for Images:** Resets the path for placed images in selected glyphs. Useful if you have moved your images.
 * **Toggle Image Lock:** Lock or unlock all images in all selected glyphs.
 * **Transform Images:** GUI for batch-transforming images (x/y offset and x/y scale) in the visible layers of selected glyphs.
@@ -321,12 +321,12 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Bracify:** Turn font masters into brace layers of certain glyphs. A.k.a. Sparsify.
 * **Composite Variabler:** Reduplicates Brace and Bracket layers of components in the compounds in which they are used. Makes bracket layers work in composites.
 * **Copy Layer to Layer:** Copies paths (and optionally, also components, anchors and metrics) from one Master to another.
-* **Dekink Masters:** Dekinks your smooth point triplets in all compatible layers (useful if they are not horizontal or vertical). Select a point in one or more smooth point triplets, and run this script to move the corresponding nodes in all other masters to the same relative position. Thus you achieve the same point ratio in all masters and avoid interpolation kinks, when the angle of the triplet changes. There is a [video describing it.](http://tinyurl.com/dekink-py) The triplet problem is [described in this tutorial](http://www.glyphsapp.com/learn/multiple-masters-part-2-keeping-your-outlines-compatible).
+* **Dekink Master Layers:** Dekinks your smooth point triplets in all compatible layers (useful if they are not horizontal or vertical). Select a point in one or more smooth point triplets, and run this script to move the corresponding nodes in all other masters to the same relative position. Thus you achieve the same point ratio in all masters and avoid interpolation kinks, when the angle of the triplet changes. There is a [video describing it.](http://tinyurl.com/dekink-py) The triplet problem is [described in this tutorial](http://www.glyphsapp.com/learn/multiple-masters-part-2-keeping-your-outlines-compatible).
 * **Enhance Compatibility:** Takes the current layer of each selected glyph, and propagates node types, node connections, realigns handles in technically compatible layers of the same glyph. Useful for fixing compatibility of glyphs that are shown to be compatible but still do not export.
-* **Fill up Empty Masters:** Copies paths from one Master to another. But only if target master is empty.
+* **Fill Up Empty Masters:** Copies paths from one Master to another. But only if target master is empty.
 * **Find and Replace in Layer Names:** Replaces text in all layer names (except Master layers) of selected glyphs. Useful if you use the bracket trick in many glyphs.
 * **Find Shapeshifting Glyphs:** Finds glyphs that change the number of paths while interpolating. Opens a new tab and reports to Macro window.
-* **Insert Brace Layers for Component Rotation:** Inserts a number of Brace Layers with continuously scaled and rotated components. Useful for OTVar interpolations with rotating elements.
+* **Insert Brace Layers for Rotating Components:** Inserts a number of Brace Layers with continuously scaled and rotated components. Useful for OTVar interpolations with rotating elements.
 * **Insert Brace Layers for Movement along Background Path:** Inserts a number of Brace Layers with copies of the first layer, shifted according to the first path in the background. Useful for OTVar interpolations with moving elements.
 * **Insert Instances:** GUI for calculating and inserting weight instances. It is described in this tutorial: https://www.glyphsapp.com/learn/multiple-masters-part-3-setting-up-instances
 * **Insert Layers:** Batch-insert brace or bracket layers in selected glyphs.
@@ -372,7 +372,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **New Tab with Kerning Missing in Masters:** Opens New Tabs for each master showing kerning missing in this master but present in other masters.
 * **New Tab with Overkerned Pairs:** Asks a threshold percentage, and opens a new tab with all negative kern pairs going beyond the width threshold. Example: With a threshold of 40%, and a comma with width 160, the script will report any negative kern pair with comma larger than 64 (=40% of 160). Assume that r-comma is kerned -60, and P-comma is kerned -70. In this case, it would report the latter, but not the former.
 * **New Tab with Right Groups:** Creates a new tab with one glyph of each right group. Useful for checking the consistency of right kerning groups.
-* **New Tab with all Selected Glyph Combinations:** Takes your selected glyphs and opens a new tab with all possible combinations of the letters. Also outputs a string for copying into the Macro window, in case the opening of the tab fails.
+* **New Tab with Selected Glyph Combinations:** Takes your selected glyphs and opens a new tab with all possible combinations of the letters. Also outputs a string for copying into the Macro window, in case the opening of the tab fails.
 * **New Tab with Uneven Symmetric Kernings:** Finds kern pairs for symmetric letters like ATA AVA TOT WIW etc. and sees if AT is the same as TA, etc.
 * **New Tabs with Punctuation Kern Strings:** Outputs several tabs with kern strings with punctuation.
 * **Partial Compress:** Compress kerning, but for certain glyphs only.
@@ -387,7 +387,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Set Kerning Groups:** Sets left and right kerning groups for all selected glyphs. In the case of compounds, will use the groups of the base components, otherwise makes an informed guess based on a built-in dictionary.
 * **Split Kerning Groups:** In existing group kerning, separate some glyphs out of a kerning group, effectively duplicating the kern groups with the new group.
 * **Steal Kerning from InDesign:** Steals the kerning from text set in InDesign. Useful for extracting InDesign’s [Optical Kerning](https://web.archive.org/web/20160414170915/http://blog.extensis.com/adobe/about-adobe’s-optical-kerning.php) values.
-* **Steal Kerning Groups from Font:** Steals left/right kerning groups for all selected glyphs from a 2nd font.
+* **Steal Kerning Groups:** Steals left/right kerning groups for all selected glyphs from a 2nd font.
 * **Transfer RTL Kerning:** Transfers RTL kerning from one master to another.
 * **Zero Kerner:** Add group kernings with value zero for pairs that are missing in one master but present in others. Helps preserve interpolatable kerning in OTVar exports.
 
@@ -438,10 +438,10 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 *The DSIG and GDEF scripts are not necessary anymore if you run the latest Glyphs version. For Italic exports, I recommend fixing PS Names and STAT Entries. The Upgrade STAT script is optional, it adds ranges which are still hardly supported by software, but may make sense as future-proofing.*
 
 * **Add Empty DSIG (OTVAR):** Run this after you export a Variable Font (TTF) and it will add an empty DSIG table. Necessary to pass the MyFonts onboarding of OTVAR TTFs. Needs the FontTools module. Script should not be necessary in the latest Glyphs 3.2+.
-* **Fix GDEF Class Definition of Legacy Marks (OTVAR):** Fix GDEF definition of spacing, non-combining marks for your most recent OTVAR export(s), will switch to class 1 (‘base glyph’, single character, spacing glyph) if necessary. Needs the FontTools module. Script should not be necessary in the latest Glyphs 3.2+.
+* **Fix GDEF Class Definition of Legacy Marks:** Fix GDEF definition of spacing, non-combining marks for your most recent OTVAR export(s), will switch to class 1 (‘base glyph’, single character, spacing glyph) if necessary. Needs the FontTools module. Script should not be necessary in the latest Glyphs 3.2+.
 * **Fix Italic PS Names (OTVAR):** Fixes double Italic namings in name table records intended for fvar postScriptName entries in the most recent export of the current font, e.g., turns `MyfontItalic-SemiboldItalic` into `MyfontItalic-Semibold`. Run this right after an italic variable font export. Needs the FontTools module.
-* **Fix Italic STAT Entries (OTVAR):** For every axis, renames normal STAT entries to ‘Regular’ (also makes changes in name table if necessary), and makes them elidable (Flags=2). Typically only necessary in italic OTVAR exports. Needs the FontTools module.
-* **Read and Write Axis Values (OTVAR):** After an OTVAR export, run once, and it will read STAT.AxisValueArray most recently exported from the current Glyphs file, and add ‘Axis Values’ parameters in your Variable Font Settings. When run with these custom parameters present, it will use them to rewrite STAT.AxisValueArray in the OTVAR most recently exported from the current Glyphs file. Value syntax for the custom parameter: `axisTag; value=name, value=elidableName*, minValue:nominalValue:maxValue=name, value>linkedValue=name`
+* **Fix STAT Entries (OTVAR):** For every axis, renames normal STAT entries to ‘Regular’ (also makes changes in name table if necessary), and makes them elidable (Flags=2). Typically only necessary in italic OTVAR exports. Needs the FontTools module.
+* **Read and Write STAT Axis Values (OTVAR):** After an OTVAR export, run once, and it will read STAT.AxisValueArray most recently exported from the current Glyphs file, and add ‘Axis Values’ parameters in your Variable Font Settings. When run with these custom parameters present, it will use them to rewrite STAT.AxisValueArray in the OTVAR most recently exported from the current Glyphs file. Value syntax for the custom parameter: `axisTag; value=name, value=elidableName*, minValue:nominalValue:maxValue=name, value>linkedValue=name`
 * **Upgrade STAT Axis Values from Discrete to Ranges (OTVAR):** Turns STAT entries of format 1 (discrete) into format 2 (range) for axes with more than one axis value. Run this right after a variable font export. Needs the FontTools module.
 
 ## Smallcaps
