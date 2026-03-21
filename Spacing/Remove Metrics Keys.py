@@ -23,7 +23,7 @@ class RemoveMetricsKeys(mekkaObject):
 		"glyphWideKeys": 1,
 		"layerSpecificKeys": 1,
 		"glyphNameFilter": "",
-		"scope": 0,
+		"scope": 3,
 	}
 
 	def __init__(self):
@@ -80,7 +80,7 @@ class RemoveMetricsKeys(mekkaObject):
 			sizeStyle="small",
 		)
 		self.w.glyphNameFilter = vanilla.EditText(
-			(inset + filterLabelWidth, linePos, -inset, 22),
+			(inset + filterLabelWidth, linePos, -inset, 19),
 			"",
 			callback=self.SavePreferences,
 			sizeStyle="small",
@@ -103,7 +103,7 @@ class RemoveMetricsKeys(mekkaObject):
 			sizeStyle="small",
 		)
 		self.w.scope = vanilla.PopUpButton(
-			(inset + scopeLabelWidth, linePos + 1, popupWidth, 18),
+			(inset + scopeLabelWidth, linePos, popupWidth, 18),
 			scopeOptions,
 			callback=self.SavePreferences,
 			sizeStyle="small",
