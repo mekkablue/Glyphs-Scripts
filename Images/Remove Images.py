@@ -20,7 +20,7 @@ class RemoveImages(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 400
+		windowWidth = 370
 		windowHeight = 140
 		windowWidthResize = 300
 		windowHeightResize = 0
@@ -37,7 +37,7 @@ class RemoveImages(mekkaObject):
 		# Scope
 		self.w.scopeLabel = vanilla.TextBox((inset, linePos + 2, 120, 14), "Remove images in:", sizeStyle="small")
 		self.w.scope = vanilla.PopUpButton(
-			(inset + 122, linePos, 185, 18),
+			(inset + 112, linePos - 1, 185, 18),
 			["selected glyphs only", "⚠️ all glyphs in font", "⚠️ all glyphs in all open fonts"],
 			callback=self.SavePreferences,
 			sizeStyle="small",
@@ -60,15 +60,15 @@ class RemoveImages(mekkaObject):
 
 		# Filter by glyph name
 		self.w.filterByName = vanilla.CheckBox(
-			(inset, linePos, 220, 20),
-			"Only in glyphs whose name contains:",
+			(inset, linePos, 168, 20),
+			"Only in glyphs containing:",
 			value=False,
 			callback=self.SavePreferences,
 			sizeStyle="small",
 		)
 		self.w.filterByName.setToolTip("If enabled, restricts removal to glyphs whose names match one of the comma-separated particles. Wildcards * and ? are supported.")
 		self.w.nameFilter = vanilla.EditText(
-			(inset + 222, linePos, -inset, 19),
+			(inset + 170, linePos, -inset, 19),
 			"",
 			callback=self.SavePreferences,
 			sizeStyle="small",
