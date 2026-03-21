@@ -38,7 +38,7 @@ class FindAndReplaceInFontInfo(mekkaObject):
 
 		linePos, inset, lineHeight = 12, 15, 22
 		labelW = 55       # width of right-aligned "Find:" / "Replace:" labels
-		fieldX = inset + labelW   # x-start of text entry fields (= 70)
+		fieldX = inset + labelW + 5  # x-start of text entry fields (= 75)
 		scopeLabelW = 40  # width of "Scope:"
 		fontInfoLabelW = 68  # width of "Font Info →"
 		checkboxX = inset + scopeLabelW + fontInfoLabelW  # x-start of all checkboxes (= 123)
@@ -58,8 +58,8 @@ class FindAndReplaceInFontInfo(mekkaObject):
 		linePos += 10  # visual gap between find/replace and scope sections
 
 		# Scope row: Scope:  Font Info →  [x] Font  [x] Masters  [x] Instances
-		self.w.scopePrefixLabel = vanilla.TextBox((inset, linePos + 2, scopeLabelW, 14), "Scope:", sizeStyle="small", selectable=True)
-		self.w.fontInfoLabel = vanilla.TextBox((inset + scopeLabelW, linePos + 2, fontInfoLabelW, 14), "Font Info →", sizeStyle="small", selectable=True)
+		self.w.scopePrefixLabel = vanilla.TextBox((inset, linePos + 3, scopeLabelW, 14), "Scope:", sizeStyle="small", selectable=True)
+		self.w.fontInfoLabel = vanilla.TextBox((inset + scopeLabelW, linePos + 3, fontInfoLabelW, 14), "Font Info →", sizeStyle="small", selectable=True)
 		self.w.scopeFont = vanilla.CheckBox((checkboxX, linePos, 52, 20), "Font", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.scopeFont.setToolTip("Search and replace in font-level properties (Font Info > Font tab): family name, designer, manufacturer, copyright, and all other named fields.")
 		self.w.scopeMasters = vanilla.CheckBox((checkboxX + 52, linePos, 75, 20), "Masters", value=True, callback=self.SavePreferences, sizeStyle="small")
