@@ -61,7 +61,7 @@ class FindAndReplaceInFontInfo(mekkaObject):
 		self.w.scopeLabel = vanilla.TextBox((inset, linePos + 3, scopeLabelW + fontInfoLabelW, 14), "Scope: Font Info →", sizeStyle="small", selectable=True)
 		self.w.scopeFont = vanilla.CheckBox((checkboxX, linePos, 52, 20), "Font", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.scopeFont.setToolTip("Search and replace in font-level properties (Font Info > Font tab): family name, designer, manufacturer, copyright, and all other named fields.")
-		self.w.scopeMasters = vanilla.CheckBox((checkboxX + 52, linePos, 75, 20), "Masters", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.scopeMasters = vanilla.CheckBox((checkboxX + 52 + 2, linePos, 75, 20), "Masters", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.scopeMasters.setToolTip("Search and replace in master properties (Font Info > Masters tab): master names and all other named fields.")
 		self.w.scopeInstances = vanilla.CheckBox((checkboxX + 52 + 75, linePos, 90, 20), "Instances", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.scopeInstances.setToolTip("Search and replace in instance/export properties (Font Info > Instances or Exports tab): style names and all other named fields.")
