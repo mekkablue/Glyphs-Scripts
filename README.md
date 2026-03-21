@@ -226,8 +226,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Add meta Table:** Adds a meta table entry for the frontmost font in *Font Info > Font > Custom Parameters.*
 * **Batch-Import Masters:** Import many masters at once with the Import Master parameter.
 * **Clean Version String:** Adds a clean versionString parameter, and disables ttfAutohint info in the version string. The exported font will have a version string consisting only of ‘Version X.XXX’.
-* **Find and Replace in Font Info:** Finds and replaces names in *Font Info > Font* and *Font Info > Instances.*
-* **Find and Replace In Instance Parameters:** Finds and Replace in Custom Parameters of selected instances of the current font or project file.
+* **Find and Replace in Font Info:** Finds and replaces text in *Font Info > Font*, *Font Info > Masters*, and *Font Info > Instances/Exports*. Covers both general properties (family name, designer, style names, etc.) and custom parameter string values. Select any combination of scopes and content types.
 * **Font Info Batch Setter:** Batch-apply settings in *Font Info > Font* to open fonts: designer, designer URL, manufacturer, manufacturer URL, copyright, version number, date and time. Useful for syncing Font Info settings across many fonts.
 * **Font Info Overview:** Lists some Font Info values for all opened fonts.
 * **OTVAR Maker:** Creates a variable font setting in *Font Info > Exports.*
