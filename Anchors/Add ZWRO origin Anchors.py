@@ -1,4 +1,4 @@
-# MenuTitle: Add ZWRO Origin Anchors
+# MenuTitle: Add ZWRO *origin Anchors
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """

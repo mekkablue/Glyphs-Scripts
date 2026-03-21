@@ -1,4 +1,4 @@
-# MenuTitle: Move Vertical Caron Anchors to X-Height Intersection
+# MenuTitle: Move Vertical Caron Anchors to x-Height Intersection
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
