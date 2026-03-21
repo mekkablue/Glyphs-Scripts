@@ -303,8 +303,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 * **Add Same Image to Selected Glyphs:** Asks you for an image, and then inserts it into all currently selected glyphs as background image.
 * **Adjust Image Alpha:** Slider for setting the alpha of all images in selected glyphs.
-* **Delete All Images in Font:** Deletes all placed images throughout the entire font.
-* **Delete Images:** Deletes all images placed in the visible layers of selected glyphs.
+* **Remove Images:** GUI for removing placed images from glyphs. Options: scope (all glyphs in font or selected glyphs only), remove images with existing files, remove orphaned images (source file no longer on disk), and optional glyph-name filter with wildcard support. Reports progress in the Macro Window.
 * **Reset Image Transformation:** Resets all image transformations (x/y offset, scale, and distortion) back to default in the visible layers of selected glyphs.
 * **Set New Path for Images:** Resets the path for placed images in selected glyphs. Useful if you have moved your images.
 * **Toggle Image Lock:** Lock or unlock all images in all selected glyphs.
