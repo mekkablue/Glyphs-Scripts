@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Removes placed images from glyphs. Options: scope (all glyphs in font or selected glyphs only), remove images with existing files, remove orphaned images (source file no longer on disk), and optional glyph-name filter with wildcard support.
+Removes placed images from glyphs. Options: scope (all glyphs in font or selected glyphs only), optional restriction to orphaned images only (source file no longer on disk), and optional glyph-name filter with wildcard support.
 """
 
 import os
@@ -14,16 +14,15 @@ from GlyphsApp import Glyphs
 class RemoveImages(mekkaObject):
 	prefDict = {
 		"scope": 0,
-		"removeLinked": 1,
 		"removeOrphaned": 1,
 		"filterByName": 0,
 		"nameFilter": "",
 	}
 
 	def __init__(self):
-		windowWidth = 500
-		windowHeight = 155
-		windowWidthResize = 200
+		windowWidth = 400
+		windowHeight = 120
+		windowWidthResize = 300
 		windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
@@ -36,9 +35,9 @@ class RemoveImages(mekkaObject):
 		linePos, inset, lineHeight = 12, 15, 22
 
 		# Scope
-		self.w.scopeLabel = vanilla.TextBox((inset, linePos + 2, 140, 14), "Remove images from:", sizeStyle="small")
+		self.w.scopeLabel = vanilla.TextBox((inset, linePos + 2, 112, 14), "Remove images from:", sizeStyle="small")
 		self.w.scope = vanilla.PopUpButton(
-			(inset + 140, linePos, 210, 18),
+			(inset + 115, linePos, 135, 18),
 			["all glyphs in font", "selected glyphs only"],
 			callback=self.SavePreferences,
 			sizeStyle="small",
@@ -48,26 +47,15 @@ class RemoveImages(mekkaObject):
 		self.w.scope.setToolTip(scopeTooltip)
 		linePos += lineHeight
 
-		# Remove linked images
-		self.w.removeLinked = vanilla.CheckBox(
-			(inset, linePos, -inset, 20),
-			"Remove images whose source file still exists on disk",
-			value=True,
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
-		self.w.removeLinked.setToolTip("Remove placed images where the source image file is still present on disk. Uncheck to skip these and only remove orphaned references.")
-		linePos += lineHeight
-
-		# Remove orphaned images
+		# Remove orphaned images only
 		self.w.removeOrphaned = vanilla.CheckBox(
 			(inset, linePos, -inset, 20),
-			"Remove orphaned images (source file no longer on disk)",
+			"Only remove orphaned images (source file no longer on disk)",
 			value=True,
 			callback=self.SavePreferences,
 			sizeStyle="small",
 		)
-		self.w.removeOrphaned.setToolTip("Remove placed images where the source file can no longer be found on disk. These are broken references that cannot be displayed correctly.")
+		self.w.removeOrphaned.setToolTip("If checked, only images whose source file can no longer be found on disk are removed. If unchecked, all placed images in the current scope are removed.")
 		linePos += lineHeight
 
 		# Filter by glyph name
@@ -88,11 +76,9 @@ class RemoveImages(mekkaObject):
 		self.w.nameFilter.setToolTip("Comma-separated glyph name particles. Each particle is matched as a substring unless it contains wildcards. Wildcards * (any string) and ? (any single character) are supported. Example: 'A, *comb, ?.sc'")
 		linePos += lineHeight
 
-		self.w.divider = vanilla.HorizontalLine((inset, linePos + 4, -inset, 1))
-
 		# Status line and Run button
-		self.w.status = vanilla.TextBox((inset, -28 - inset, -80 - inset - 10, 14), "", sizeStyle="small")
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Remove", callback=self.run, sizeStyle="small")
+		self.w.status = vanilla.TextBox((inset, -20 - inset + 3, -80 - inset - 10, 14), "", sizeStyle="small")
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Remove", callback=self.run)
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.LoadPreferences()
@@ -108,15 +94,10 @@ class RemoveImages(mekkaObject):
 			self.w.status.set("⚠️ No font open.")
 			return
 
-		removeLinked = self.prefBool("removeLinked")
 		removeOrphaned = self.prefBool("removeOrphaned")
 		filterByName = self.prefBool("filterByName")
 		nameFilter = self.pref("nameFilter") or ""
 		scope = self.prefInt("scope")
-
-		if not removeLinked and not removeOrphaned:
-			self.w.status.set("⚠️ Nothing selected to remove.")
-			return
 
 		# Determine glyph scope
 		if scope == 1:
@@ -143,12 +124,7 @@ class RemoveImages(mekkaObject):
 		print(f"Scope: {scopeLabel}")
 		if filterByName and nameFilter.strip():
 			print(f"Name filter: {nameFilter.strip()}")
-		removing = []
-		if removeLinked:
-			removing.append("linked")
-		if removeOrphaned:
-			removing.append("orphaned")
-		print(f"Removing: {' + '.join(removing)} images\n")
+		print(f"Removing: {'orphaned images only' if removeOrphaned else 'all images'}\n")
 
 		totalRemoved = 0
 		totalOrphaned = 0
@@ -169,7 +145,7 @@ class RemoveImages(mekkaObject):
 							except Exception:
 								pass
 							isOrphaned = bool(imgPath) and not os.path.exists(imgPath)
-							if (isOrphaned and removeOrphaned) or (not isOrphaned and removeLinked):
+							if not removeOrphaned or isOrphaned:
 								layer.setBackgroundImage_(None)
 								removedInGlyph += 1
 								if isOrphaned:
@@ -186,7 +162,7 @@ class RemoveImages(mekkaObject):
 								except Exception:
 									pass
 								isOrphaned = bool(bgImgPath) and not os.path.exists(bgImgPath)
-								if (isOrphaned and removeOrphaned) or (not isOrphaned and removeLinked):
+								if not removeOrphaned or isOrphaned:
 									bgLayer.setBackgroundImage_(None)
 									removedInGlyph += 1
 									if isOrphaned:
