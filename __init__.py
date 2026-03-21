@@ -212,15 +212,16 @@ class mekkaObject:
 		"""
 		If the current window size is smaller than the window's minimum size
 		(e.g. because a saved size predates a UI expansion), resize to the minimum.
-		Uses the window's own minSize so no hard-coded dimensions are needed.
-		The 19 px title bar is excluded from the content-area height comparison.
+		vanilla passes content dimensions to NSWindow.setMinSize_(), so minSize()
+		already returns content dimensions — no title-bar offset needed.
+		Width and height are clamped independently so a user's custom width is preserved.
 		"""
 		minSize = self.w._window.minSize()
 		minWidth = minSize.width
-		minContentHeight = minSize.height - 19  # title bar is not part of the content area
+		minContentHeight = minSize.height  # vanilla sets minSize in content coordinates
 		currentWidth, currentHeight = self.w.getPosSize()[2], self.w.getPosSize()[3]
 		if currentWidth < minWidth or currentHeight < minContentHeight:
-			self.w.resize(minWidth, minContentHeight, animate=False)
+			self.w.resize(max(currentWidth, minWidth), max(currentHeight, minContentHeight), animate=False)
 
 	def SavePreferences(self, sender=None):
 		try:
