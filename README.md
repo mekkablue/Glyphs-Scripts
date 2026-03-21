@@ -44,7 +44,7 @@ git checkout `git rev-list -1 --before="2021-01-01" master`
 
 If the terminal scares you, feel free to use one of the many readily available git clients, e.g. the free [Source Tree](https://www.sourcetreeapp.com) or [GitHub Desktop](https://desktop.github.com).
 
-After you installed the mekkablue scripts, you can **update** this script repository (and all the others you have in your *Scripts* folder) by running *Scripts > mekkablue > App > Update git Repositories in Scripts Folder.*
+After you installed the mekkablue scripts, you can **update** this script repository (and all the others you have in your *Scripts* folder) by running *Scripts > mekkablue > App > Update Git Repositories in Scripts Folder.*
 
 
 # TROUBLESHOOTING
@@ -63,8 +63,8 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 *Anchor Mover is for batch-processing anchor positions. Can be useful after adjusting the x-height. No-brainer: I always use the Realign Stacking Anchors script on my combining marks, so stacking combining marks stays in the italic angle.*
 
-* **Add missing smart anchors:** Adds all anchors for properties of selected smart glyphs on all their layers. Skips *Width* and *Height* anchors.
-* **Add ZWRO origin Anchors:** Insert *origin anchors for ZWRO in all combining marks of specified scripts.
+* **Add Missing Smart Anchors:** Adds all anchors for properties of selected smart glyphs on all their layers. Skips *Width* and *Height* anchors.
+* **Add ZWRO \*origin Anchors:** Insert *origin anchors for ZWRO in all combining marks of specified scripts.
 * **Anchor Mover:** GUI for batch-processing anchor positions in multiple glyphs.
 * **Anchor Remover:** GUI for removing anchors by name or wildcard pattern, from suffix-matched glyphs, or non-standard anchors not expected for each glyph by default (e.g., `ogonek` from `J`). Wildcards supported in anchor name and exceptions field. Potentially dangerous, so first use the report script below.
 * **Batch Insert Anchors:** GUI for batch-inserting anchors of the same name at the same approximate position in multiple glyphs.
@@ -107,7 +107,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Toggle Macro Window Separator:** Toggles the separator position in the Macro Window between 80% and 20%.
 * **Toggle RTL-LTR:** Toggle frontmost tab between LTR and RTL writing direction. Useful for setting a keyboard shortcut in System Preferences.
 * **Toggle Script Windows:** Shows or hides all script windows. Good for assigning a shortcut in the app settings.
-* **Update git Repositories in Scripts Folder:** Executes a 'git pull' command on all subfolders in the Glyphs Scripts folder. Useful if you have a lot of git repos in your Scripts folder.
+* **Update Git Repositories in Scripts Folder:** Executes a 'git pull' command on all subfolders in the Glyphs Scripts folder. Useful if you have a lot of git repos in your Scripts folder.
 * **Update Text Preview:** Force updates *Window > Text Preview.* Can be useful if you are making changes outside the font window (like in an OT feature in Font Info) and the preview will not refresh by itself.
 * **Navigate > Activate next/previous glyph:** Will activate the next/previous glyph in Edit view for editing.
 
@@ -120,7 +120,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Build careof and cadauna:** Builds `cadauna` and `careof` from your `c`, `o`, `u` and `fraction` glyphs.
 * **Build Circled Glyphs:** Builds circled numbers and letters (U+24B6...24EA and U+2460...2473) from `_part.circle` and your letters and figures.
 * **Build Dotted Numbers:** Build dotted numbers from your default figures and the period.
-* **Build ellipsis from period components:** Inserts exit and entry anchors in the period glyph and rebuilds ellipsis with auto-aligned components of period. Attention: decomposes all period components used in other glyphs (e.g., colon).
+* **Build ellipsis from period Components:** Inserts exit and entry anchors in the period glyph and rebuilds ellipsis with auto-aligned components of period. Attention: decomposes all period components used in other glyphs (e.g., colon).
 * **Build Extra Math Symbols:** Builds `lessoverequal`, `greateroverequal`, `bulletoperator`, `rightanglearc`, `righttriangle`, `sphericalangle`, `measuredangle`, `sunWithRays`, `positionIndicator`, `diameterSign`, `viewdataSquare`, `control`.
 * **Build Ldot and ldot:** Builds `Ldot`, `ldot` and `ldot.sc` from existing `L` and `periodcentered.loclCAT` (`.case`/`.sc`). Assumes that you have already created and properly spaced `L`-`periodcentered.loclCAT`-`L`, etc.
 * **Build Parenthesized Glyphs:** Creates parenthesized letters and numbers: `one.paren`, `two.paren`, `three.paren`, `four.paren`, `five.paren`, `six.paren`, `seven.paren`, `eight.paren`, `nine.paren`, `one_zero.paren`, `one_one.paren`, `one_two.paren`, `one_three.paren`, `one_four.paren`, `one_five.paren`, `one_six.paren`, `one_seven.paren`, `one_eight.paren`, `one_nine.paren`, `two_zero.paren`, `a.paren`, `b.paren`, `c.paren`, `d.paren`, `e.paren`, `f.paren`, `g.paren`, `h.paren`, `i.paren`, `j.paren`, `k.paren`, `l.paren`, `m.paren`, `n.paren`, `o.paren`, `p.paren`, `q.paren`, `r.paren`, `s.paren`, `t.paren`, `u.paren`, `v.paren`, `w.paren`, `x.paren`, `y.paren`, `z.paren`.
@@ -128,8 +128,8 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Build Rare Symbols:** Builds white and black, small and large, circles, triangles and squares.
 * **Build rtlm Alternates:** Creates horizontally mirrored composites for selected glyphs and updates the rtlm OpenType feature. Auto-aligns the components, but also adds metrics keys that kick in in case you decompose.
 * **Build Small Figures:** Takes a default set of figures (e.g., `.dnom`), and derives the others (`.numr`, `superior`/`.sups`, `inferior`/`.sinf`, `.subs`) as component copies. Respects the italic angle.
-* **Build small letter SM, TEL:** Creates the glyphs: `servicemark`, `telephone`.
-* **Build space glyphs:** Creates `mediumspace-math`, `emquad`, `emspace`, `enquad`, `enspace`, `figurespace`, `fourperemspace`, `hairspace`, `narrownbspace`, `punctuationspace`, `sixperemspace`, `nbspace`, `thinspace`, `threeperemspace`, `zerowidthspace`.
+* **Build Small Letter SM, TEL:** Creates the glyphs: `servicemark`, `telephone`.
+* **Build Space Glyphs:** Creates `mediumspace-math`, `emquad`, `emspace`, `enquad`, `enspace`, `figurespace`, `fourperemspace`, `hairspace`, `narrownbspace`, `punctuationspace`, `sixperemspace`, `nbspace`, `thinspace`, `threeperemspace`, `zerowidthspace`.
 * **Build Symbols:** Creates symbol glyphs such as `.notdef` (based on the boldest available `question` mark), an `estimated` glyph, as well as `bar` and `brokenbar` (for which it respects standard stems and italic angle).
 * **Center punt volat:** Shifts all `periodcentered.loclCAT` glyphs horizontally so it fits between two L’s. Hold down ⌘ Cmd and ⇧ Shift for processing ALL open fonts.
 * **Quote Manager:** Build double quotes from single quotes, and insert `#exit` and `#entry` anchors in the single quotes for auto-alignment. You need to have the single quotes already.
@@ -168,14 +168,14 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Compare Kerning Groups:** Compares kerning groups between frontmost fonts, outputs a table of glyph names with unmatching groups.
 * **Compare Metrics:** Compare widths of two frontmost fonts.
 * **Compare Sidebearings:** Compare sidebearings of two frontmost fonts.
-* **Report Missing Glyphs for all Open Fonts:** In Macro window, reports all glyphs that are missing in some of the currently open files, but present in other other fonts.
+* **Report Missing Glyphs for All Open Fonts:** In Macro window, reports all glyphs that are missing in some of the currently open files, but present in other other fonts.
 
 ## Components
 
 *Populate Backgrounds with Components is useful when you build letters based on other, e.g., ae or oe can take an e in the background. The script puts the e in the background of each master, and the UI has an option to align selected points with the e in the background. If you use corner components for serifs in a multiple-master font, the Propagate script will save you a lot of time.*
 
 * **Alignment Manager:** Enables or disables automatic alignment for all components on visible layers in selected glyphs. Does the same as the command in the context menu, but you can do it in one step for many glyphs.
-* **Auto-align Composites with Incremental Metrics Keys:** For the frontmost font, auto-aligns composites where only the first component’s alignment is disabled. Ignores .tf, .tosf and math operators. Will open a tab with affected glyph layers.
+* **Auto-Align Composites with Incremental Metrics Keys:** For the frontmost font, auto-aligns composites where only the first component’s alignment is disabled. Ignores .tf, .tosf and math operators. Will open a tab with affected glyph layers.
 * **Cap and Corner Manager:** Batch-edit settings for cap, corner, brush or segment components throughout all glyphs in the frontmost font.
 * **Component Mover:** Batch edit (smart) components across selected glyphs. Change positions, scales and smart properties.
 * **Component Problem Finder:** Find possible issues with components and corner components:  composable glyphs consisting of paths; locked, nested, orphaned, mirrored, shifted, rotated and scaled components; composite glyphs with an unusual component order or an unorthodox component structure. Also, disconnected and scaled corner components.
@@ -213,9 +213,9 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **New Tab with OT Class:** GUI for opening all glyphs in an OT class (listed in *File > Font Info > Features > Classes*) in a new tab.
 * **Update Features without Reordering:** Goes through the existing features in the font and refreshes each one of them. Does neither add nor reorder features.
 * **Update Glyph Names in Features:** Like *Glyph > Update Glyph Info,* but in *Font Info > Features.*
-* * **Stylistic Sets > Synchronize ssXX glyphs:** Creates missing ssXX glyphs so that you have synchronous groups of ssXX glyphs. E.g. you have *a.ss01 b.ss01 c.ss01 a.ss02 c.ss02* --> the script creates *b.ss02*
-* * **Stylistic Sets > Create ssXX from layer:** Takes the current layer and copies it to the primary layer of a new .ssXX glyph.
-* * **Stylistic Sets > Create pseudorandom calt feature:** Creates pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font. Also includes the default class in the rotation algorithm.
+* * **Stylistic Sets > Synchronize ssXX Glyphs:** Creates missing ssXX glyphs so that you have synchronous groups of ssXX glyphs. E.g. you have *a.ss01 b.ss01 c.ss01 a.ss02 c.ss02* --> the script creates *b.ss02*
+* * **Stylistic Sets > Create .ssXX Glyph from Current Layer:** Takes the current layer and copies it to the primary layer of a new .ssXX glyph.
+* * **Stylistic Sets > Create Pseudorandom calt Feature from ssXX Glyphs:** Creates pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font. Also includes the default class in the rotation algorithm.
 * * **Stylistic Sets > Report ssXX Names:** Reports all names of ssXX features in all opened fonts.
 * * **Stylistic Sets > Set ssXX Names:** Prefills names for ssXX features with ‘Alternate’ or another chosen text, plus the name of the first substituted glyph, e.g., ‘Alternate a’. Option to preserve existing namings.
 
@@ -287,7 +287,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Remove PS Hints:** Deletes all stem and/or ghost hints throughout the current font, the selected master and/or the selected glyphs.
 * **Remove TT Hints:** Deletes a user-specified set of TT instructions throughout the current font, the selected master and/or the selected glyphs.
 * **Remove Zero Deltas in Selected Glyphs:** Goes through all layers of each selected glyph, and deletes all TT Delta Hints with an offset of zero. Detailed Report in Macro window.
-* **Set blueFuzz to zero for master instances:** Adds blueFuzz custom parameter with value 0 for instances that are the same as a master.
+* **Set blueFuzz to Zero for Master Instances:** Adds blueFuzz custom parameter with value 0 for instances that are the same as a master.
 * **Set blueScale:** Sets maximum blueScale value (determining max size for overshoot suppression) possible in Font Info > Font. Outputs other options in Macro window.
 * **Set Family Alignment Zones:** Pick an instance and set its zones as Family Alignment Zones in *Font Info > Font > Custom Parameters.*
 * **Set TT Stem Hints to Auto:** Sets all TT stem hints to ‘auto’ in selected glyphs.
@@ -388,7 +388,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Split Kerning Groups:** In existing group kerning, separate some glyphs out of a kerning group, effectively duplicating the kern groups with the new group.
 * **Steal Kerning from InDesign:** Steals the kerning from text set in InDesign. Useful for extracting InDesign’s [Optical Kerning](https://web.archive.org/web/20160414170915/http://blog.extensis.com/adobe/about-adobe’s-optical-kerning.php) values.
 * **Steal Kerning Groups from Font:** Steals left/right kerning groups for all selected glyphs from a 2nd font.
-* **Transfer RTL kerning:** Transfers RTL kerning from one master to another.
+* **Transfer RTL Kerning:** Transfers RTL kerning from one master to another.
 * **Zero Kerner:** Add group kernings with value zero for pairs that are missing in one master but present in others. Helps preserve interpolatable kerning in OTVar exports.
 
 ## Paths
@@ -406,19 +406,19 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Find Near Vertical Misses:** Finds nodes that are close but not exactly on vertical metrics.
 * **Green Blue Manager:** Define an angle above which a node will be set to blue, below which it will be set to green.
 * **Grid Switcher:** Toggles grid between two user-definable gridstep values with the click of a floating button.
-* **Harmonise Curve to Line:** Will rearrange handles on (selected) curve segments with a following line segment, in such a way that the transition between the two segments is smooth (harmonized).
-* **Interpolate two paths:** Select two paths and run this script, it will replace them with their interpolation at 50%.
+* **Harmonize Curve to Line:** Will rearrange handles on (selected) curve segments with a following line segment, in such a way that the transition between the two segments is smooth (harmonized).
+* **Interpolate Two Paths:** Select two paths and run this script, it will replace them with their interpolation at 50%.
 * **New Tab with Small Paths:** Opens a new tab containing paths that are smaller than a user-definable threshold size in square units.
 * **Path Problem Finder:** Finds all kinds of potential problems in outlines, and opens a new tab with affected layers.
 * **Position Clicker:** Finds all combinations of positional shapes that do not click well. ‘Clicking’ means sharing two point coordinates when overlapping.
 * **Positional Harmonize:** Establishes G2 continuity between the selected layers and behDotless-ar.medi (or another medial glyph) at their connection (clicking) points, by adjusting the one handle of the current glyph that faces the connection.
 * **Realign BCPs:** Realigns all BCPs in all selected glyphs. Useful if handles got out of sync, e.g. after nudging or some other transformation, or after interpolation. Hold down Option to apply to all layers of the selected glyph(s).
-* **Remove all Open Paths:** Deletes all *open* paths in the visible layers of all selected glyphs.
+* **Remove All Open Paths:** Deletes all *open* paths in the visible layers of all selected glyphs.
 * **Remove Short Segments:** Deletes segments shorter than one unit.
 * **Rewire Fire:** Finds, selects and marks duplicate coordinates. Two nodes on the same position typically can be rewired with Reconnect Nodes.
 * **Rotate Around Anchor:** GUI for rotating glyphs or selections of nodes and components around a 'rotate' anchor. Allows to step and repeat.
 * **Set Transform Origin:** Simple GUI for setting the Transform Origin of the Rotate tool numerically. Should also have an effect on the Scale tool.
-* **Snap selected points to nearest metric in all masters:** Select points and run this script to snap them to the nearest metric in each compatible layer, given they are no more than 2 units away from the metric. Reports in the Macro window.
+* **Snap Selected Points to Nearest Metric in All Masters:** Select points and run this script to snap them to the nearest metric in each compatible layer, given they are no more than 2 units away from the metric. Reports in the Macro window.
 * **Straight Stem Cruncher:** Finds distances between points in all layers, and compares them (with a tolerance) to specified stem widths. Lists glyphs that have deviating stems in their drawings.
 * **Tunnify:** Looks for all path segments where at least one handle is selected. Then, evens out the handles of the segments, i.e., they will both have the same Fit Curve percentage. Can fix Adobe Illustrator's zero-handles (segments with one handle retracted into the nearest node). The idea for this script came from Eduardo Tunni (as colported by Pablo Impallari), hence the title of the script. I have never seen Eduardo's algorithm though, so my implementation might be a little different to his, especially the treatment of zero-handles.
 
@@ -438,7 +438,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 *The DSIG and GDEF scripts are not necessary anymore if you run the latest Glyphs version. For Italic exports, I recommend fixing PS Names and STAT Entries. The Upgrade STAT script is optional, it adds ranges which are still hardly supported by software, but may make sense as future-proofing.*
 
 * **Add Empty DSIG (OTVAR):** Run this after you export a Variable Font (TTF) and it will add an empty DSIG table. Necessary to pass the MyFonts onboarding of OTVAR TTFs. Needs the FontTools module. Script should not be necessary in the latest Glyphs 3.2+.
-* **Fix GDEF class definition of Legacy Marks (OTVAR):** Fix GDEF definition of spacing, non-combining marks for your most recent OTVAR export(s), will switch to class 1 (‘base glyph’, single character, spacing glyph) if necessary. Needs the FontTools module. Script should not be necessary in the latest Glyphs 3.2+.
+* **Fix GDEF Class Definition of Legacy Marks (OTVAR):** Fix GDEF definition of spacing, non-combining marks for your most recent OTVAR export(s), will switch to class 1 (‘base glyph’, single character, spacing glyph) if necessary. Needs the FontTools module. Script should not be necessary in the latest Glyphs 3.2+.
 * **Fix Italic PS Names (OTVAR):** Fixes double Italic namings in name table records intended for fvar postScriptName entries in the most recent export of the current font, e.g., turns `MyfontItalic-SemiboldItalic` into `MyfontItalic-Semibold`. Run this right after an italic variable font export. Needs the FontTools module.
 * **Fix Italic STAT Entries (OTVAR):** For every axis, renames normal STAT entries to ‘Regular’ (also makes changes in name table if necessary), and makes them elidable (Flags=2). Typically only necessary in italic OTVAR exports. Needs the FontTools module.
 * **Read and Write Axis Values (OTVAR):** After an OTVAR export, run once, and it will read STAT.AxisValueArray most recently exported from the current Glyphs file, and add ‘Axis Values’ parameters in your Variable Font Settings. When run with these custom parameters present, it will use them to rewrite STAT.AxisValueArray in the OTVAR most recently exported from the current Glyphs file. Value syntax for the custom parameter: `axisTag; value=name, value=elidableName*, minValue:nominalValue:maxValue=name, value>linkedValue=name`
@@ -467,7 +467,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Freeze Placeholders:** In the current Edit tab, will change all inserted placeholders for the current glyph, thus 'freeze' the placeholders.
 * **Metrics Key Manager:** Batch apply metrics keys to the current font.
 * **Monospace Checker:** Checks if all glyph widths in the frontmost font are actually monospaced. Reports in Macro Window and opens a tab with affected layers.
-* **New Tab with all Figure Combinations:** Opens a new tab with all possible figure combos. Also outputs a string for copying into the Macro window, in case the opening of the tab fails.
+* **New Tab with All Figure Combinations:** Opens a new tab with all possible figure combos. Also outputs a string for copying into the Macro window, in case the opening of the tab fails.
 * **New Tab with Fraction Figure Combinations:** Opens an Edit tab with fraction figure combos for spacing and kerning.
 * **Remove Metrics Keys:** Remove glyph-wide (=) and/or layer-specific (==) metrics keys. Optionally filter to only remove keys referencing specific glyph names (wildcards supported). Scope ranges from selected glyphs to all open fonts.
 * **Reset Alternate Glyph Widths:** Resets the width of suffixed glyphs to the width of their unsuffixed counterparts. E.g., `Adieresis.ss01` will be reset to the width of `Adieresis`.
