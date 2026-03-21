@@ -37,7 +37,7 @@ class RemoveImages(mekkaObject):
 		# Scope
 		self.w.scopeLabel = vanilla.TextBox((inset, linePos + 2, 120, 14), "Remove images in:", sizeStyle="small")
 		self.w.scope = vanilla.PopUpButton(
-			(inset + 112, linePos - 1, 185, 18),
+			(inset + 112, linePos, 185, 18),
 			["selected glyphs only", "⚠️ all glyphs in font", "⚠️ all glyphs in all open fonts"],
 			callback=self.SavePreferences,
 			sizeStyle="small",
