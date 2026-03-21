@@ -24,8 +24,8 @@ class FindAndReplaceInFontInfo(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 370
-		windowHeight = 160
+		windowWidth = 400
+		windowHeight = 175
 		windowWidthResize = 1000
 		windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
@@ -37,49 +37,49 @@ class FindAndReplaceInFontInfo(mekkaObject):
 		)
 
 		linePos, inset, lineHeight = 12, 15, 22
+		labelW = 55       # width of right-aligned "Find:" / "Replace:" labels
+		fieldX = inset + labelW   # x-start of text entry fields (= 70)
+		scopeLabelW = 40  # width of "Scope:"
+		fontInfoLabelW = 68  # width of "Font Info →"
+		checkboxX = inset + scopeLabelW + fontInfoLabelW  # x-start of all checkboxes (= 123)
 
 		# Find row
-		self.w.searchForLabel = vanilla.TextBox((inset, linePos + 2, 65, 14), "Find:", sizeStyle="small", selectable=True)
-		self.w.searchFor = vanilla.EditText((inset + 65, linePos - 1, -inset, 19), "", callback=self.SavePreferences, sizeStyle="small")
+		self.w.searchForLabel = vanilla.TextBox((inset, linePos + 2, labelW, 14), "Find:", sizeStyle="small", selectable=True, alignment="right")
+		self.w.searchFor = vanilla.EditText((fieldX, linePos - 1, -inset, 19), "", callback=self.SavePreferences, sizeStyle="small")
 		self.w.searchFor.setToolTip("Text to search for in the selected Font Info fields.")
 		linePos += lineHeight
 
 		# Replace row
-		self.w.replaceWithLabel = vanilla.TextBox((inset, linePos + 2, 65, 14), "Replace:", sizeStyle="small", selectable=True)
-		self.w.replaceWith = vanilla.EditText((inset + 65, linePos - 1, -inset, 19), "", callback=self.SavePreferences, sizeStyle="small")
+		self.w.replaceWithLabel = vanilla.TextBox((inset, linePos + 2, labelW, 14), "Replace:", sizeStyle="small", selectable=True, alignment="right")
+		self.w.replaceWith = vanilla.EditText((fieldX, linePos - 1, -inset, 19), "", callback=self.SavePreferences, sizeStyle="small")
 		self.w.replaceWith.setToolTip("Replacement text. Leave empty to delete all occurrences of the search text.")
 		linePos += lineHeight
 
-		# Divider
-		self.w.divider1 = vanilla.HorizontalLine((inset, linePos + 4, -inset, 1))
-		linePos += 12
+		linePos += 10  # visual gap between find/replace and scope sections
 
-		# Scope row: Font Info > [x] Font  [x] Masters  [x] Instances
-		self.w.scopeLabel = vanilla.TextBox((inset, linePos + 2, 70, 14), "Font Info:", sizeStyle="small", selectable=True)
-		self.w.scopeFont = vanilla.CheckBox((inset + 70, linePos, 55, 20), "Font", value=True, callback=self.SavePreferences, sizeStyle="small")
+		# Scope row: Scope:  Font Info →  [x] Font  [x] Masters  [x] Instances
+		self.w.scopePrefixLabel = vanilla.TextBox((inset, linePos + 2, scopeLabelW, 14), "Scope:", sizeStyle="small", selectable=True)
+		self.w.fontInfoLabel = vanilla.TextBox((inset + scopeLabelW, linePos + 2, fontInfoLabelW, 14), "Font Info →", sizeStyle="small", selectable=True)
+		self.w.scopeFont = vanilla.CheckBox((checkboxX, linePos, 52, 20), "Font", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.scopeFont.setToolTip("Search and replace in font-level properties (Font Info > Font tab): family name, designer, manufacturer, copyright, and all other named fields.")
-		self.w.scopeMasters = vanilla.CheckBox((inset + 70 + 55, linePos, 78, 20), "Masters", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.scopeMasters = vanilla.CheckBox((checkboxX + 52, linePos, 75, 20), "Masters", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.scopeMasters.setToolTip("Search and replace in master properties (Font Info > Masters tab): master names and all other named fields.")
-		self.w.scopeInstances = vanilla.CheckBox((inset + 70 + 55 + 78, linePos, 90, 20), "Instances", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.scopeInstances = vanilla.CheckBox((checkboxX + 52 + 75, linePos, 90, 20), "Instances", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.scopeInstances.setToolTip("Search and replace in instance/export properties (Font Info > Instances or Exports tab): style names and all other named fields.")
 		linePos += lineHeight
 
-		# Content row: [x] General properties  [x] Custom parameters
-		self.w.contentGeneral = vanilla.CheckBox((inset, linePos, 150, 20), "General properties", value=True, callback=self.SavePreferences, sizeStyle="small")
+		# Content row: [x] General properties  [x] Custom parameters — aligned with Font checkbox above
+		self.w.contentGeneral = vanilla.CheckBox((checkboxX, linePos, 140, 20), "General properties", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.contentGeneral.setToolTip("Search and replace in built-in Font Info fields such as family name, designer, style names, copyright, etc.")
-		self.w.contentCustomParameters = vanilla.CheckBox((inset + 150, linePos, -inset, 20), "Custom parameters", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.contentCustomParameters = vanilla.CheckBox((checkboxX + 140, linePos, -inset, 20), "Custom parameters", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.contentCustomParameters.setToolTip("Search and replace in the string values of custom parameters at the Font, Master, and Instance levels.")
 		linePos += lineHeight
 
-		# Divider
-		self.w.divider2 = vanilla.HorizontalLine((inset, linePos + 4, -inset, 1))
-		linePos += 12
-
-		# Status line (left of run button)
-		self.w.statusText = vanilla.TextBox((inset, linePos + 3, -90 - inset - 8, 14), "Ready.", sizeStyle="small")
+		# Status line — bottom-anchored, left of run button
+		self.w.statusText = vanilla.TextBox((inset, -20 - inset + 3, -90 - inset - 8, 14), "Ready.", sizeStyle="small")
 		self.w.statusText.setToolTip("Number of replacements made in the last run.")
 
-		# Run button
+		# Run button — bottom-anchored
 		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Replace", callback=self.run)
 		self.w.runButton.setToolTip("Run find and replace on the selected scopes and content types.")
 		self.w.setDefaultButton(self.w.runButton)
