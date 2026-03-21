@@ -471,8 +471,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Monospace Checker:** Checks if all glyph widths in the frontmost font are actually monospaced. Reports in Macro Window and opens a tab with affected layers.
 * **New Tab with all Figure Combinations:** Opens a new tab with all possible figure combos. Also outputs a string for copying into the Macro window, in case the opening of the tab fails.
 * **New Tab with Fraction Figure Combinations:** Opens an Edit tab with fraction figure combos for spacing and kerning.
-* **Remove Layer-Specific Metrics Keys:** Deletes left and right metrics keys specific to layers (==), in all layers of all selected glyphs. Also simplifies glyph metrics keys (i.e., turns "=H" into "H").
-* **Remove Metrics Keys:** Deletes both left and right metrics keys in all selected glyphs. Affects all masters and all layers.
+* **Remove Metrics Keys:** Remove glyph-wide (=) and/or layer-specific (==) metrics keys. Optionally filter to only remove keys referencing specific glyph names (wildcards supported). Scope ranges from selected glyphs to all open fonts.
 * **Reset Alternate Glyph Widths:** Resets the width of suffixed glyphs to the width of their unsuffixed counterparts. E.g., `Adieresis.ss01` will be reset to the width of `Adieresis`.
 * **Spacing Checker:** Look for glyphs with unusual spacings and open them in a new tab.
 * **Steal Metrics:** Steals the sidebearing or width values for all selected glyphs from a 2nd font. Optionally also transfers metrics keys like '=x+20'.
