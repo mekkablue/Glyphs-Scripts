@@ -1,4 +1,4 @@
-# MenuTitle: Fix GDEF class definition of Legacy Marks
+# MenuTitle: Fix GDEF Class Definition of Legacy Marks
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """

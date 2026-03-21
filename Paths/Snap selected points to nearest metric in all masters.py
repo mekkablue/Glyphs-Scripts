@@ -1,4 +1,4 @@
-# MenuTitle: Snap selected points to nearest metric in all masters
+# MenuTitle: Snap Selected Points to Nearest Metric in All Masters
 # -*- coding: utf-8 -*-
 
 from __future__ import division, print_function, unicode_literals

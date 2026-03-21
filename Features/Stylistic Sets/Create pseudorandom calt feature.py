@@ -1,4 +1,4 @@
-# MenuTitle: Create pseudorandom calt feature from ssXX glyphs
+# MenuTitle: Create Pseudorandom calt Feature from ssXX Glyphs
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """

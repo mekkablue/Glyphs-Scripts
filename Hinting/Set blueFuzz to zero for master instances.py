@@ -1,4 +1,4 @@
-# MenuTitle: Set blueFuzz to zero for master instances
+# MenuTitle: Set blueFuzz to Zero for Master Instances
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
