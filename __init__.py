@@ -223,12 +223,12 @@ class mekkaObject:
 	def resizeWindowToMinimum(self):
 		"""
 		Clamps the window size to its min/max constraints, per axis independently.
-		vanilla passes content dimensions to NSWindow.setMinSize_()/setMaxSize_(),
-		so minSize() and maxSize() already return content dimensions — no title-bar offset needed.
+		Uses contentMinSize()/contentMaxSize() so the comparison is in content coordinates,
+		matching getPosSize() — no manual title-bar offset needed.
 		"""
 		win = self.w._window
-		minSize = win.minSize()
-		maxSize = win.maxSize()
+		minSize = win.contentMinSize()
+		maxSize = win.contentMaxSize()
 		currentWidth, currentHeight = self.w.getPosSize()[2], self.w.getPosSize()[3]
 		clampedWidth = max(minSize.width, min(currentWidth, maxSize.width))
 		clampedHeight = max(minSize.height, min(currentHeight, maxSize.height))
