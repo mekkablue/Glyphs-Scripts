@@ -200,7 +200,19 @@ class mekkaObject:
 			if hasattr(self, "updateUI"):
 				self.updateUI()
 			if self.w is not None:
-				self.resizeWindowToMinimum()
+				# AppKit restores the autosaved frame only when open() is called, not at
+				# window creation. Wrap open() so the clamp fires after the frame is restored.
+				# Guard against double-wrapping if LoadPreferences() is called more than once.
+				if not getattr(self.w, '_clampOnOpenInstalled', False):
+					_originalOpen = self.w.open
+					_self = self
+
+					def _openAndClamp():
+						_originalOpen()
+						_self.resizeWindowToMinimum()
+
+					self.w.open = _openAndClamp
+					self.w._clampOnOpenInstalled = True
 			return True
 		except:
 			import traceback
