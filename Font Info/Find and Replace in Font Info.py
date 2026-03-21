@@ -211,7 +211,7 @@ class FindAndReplaceInFontInfo(mekkaObject):
 
 			# --- Final report ---
 			changeWord = "change" if totalCount == 1 else "changes"
-			self.w.statusText.set(f"{totalCount} {changeWord} made.")
+			self.w.statusText.set(f"✅ {totalCount} {changeWord} made. Details in Macro Window.")
 			print(f"\nDone: {totalCount} {changeWord} made.")
 			Glyphs.showNotification("Find and Replace in Font Info", f"{totalCount} {changeWord} made. Details in Macro Window.")
 
