@@ -27,8 +27,8 @@ class RemoveMetricsKeys(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 360
-		windowHeight = 170
+		windowWidth = 380
+		windowHeight = 128
 		windowWidthResize = 600
 		windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
@@ -41,9 +41,16 @@ class RemoveMetricsKeys(mekkaObject):
 
 		linePos, inset, lineHeight = 12, 15, 22
 
+		# Row 1: label + two checkboxes on one line
+		col1 = inset + 62  # checkboxes start here
+		self.w.removeAllLabel = vanilla.TextBox(
+			(inset, linePos + 3, 62, 14),
+			"Remove all",
+			sizeStyle="small",
+		)
 		self.w.glyphWideKeys = vanilla.CheckBox(
-			(inset, linePos, -inset, 20),
-			"Glyph-wide keys (=)",
+			(col1, linePos, 135, 20),
+			"glyph-wide keys (=)",
 			value=True,
 			callback=self.SavePreferences,
 			sizeStyle="small",
@@ -52,11 +59,9 @@ class RemoveMetricsKeys(mekkaObject):
 			"Remove metrics keys set on the glyph level (e.g. =H, =|H, =H+20). "
 			"These apply across all masters by default."
 		)
-		linePos += lineHeight
-
 		self.w.layerSpecificKeys = vanilla.CheckBox(
-			(inset, linePos, -inset, 20),
-			"Layer-specific keys (==)",
+			(col1 + 135, linePos, -inset, 20),
+			"layer-specific keys (==)",
 			value=True,
 			callback=self.SavePreferences,
 			sizeStyle="small",
@@ -67,15 +72,15 @@ class RemoveMetricsKeys(mekkaObject):
 		)
 		linePos += lineHeight
 
+		# Row 2: label + text field on one line
+		filterLabelWidth = 140
 		self.w.glyphNameFilterLabel = vanilla.TextBox(
-			(inset, linePos + 3, 210, 14),
-			"Only keys referencing glyphs:",
+			(inset, linePos + 3, filterLabelWidth, 14),
+			"Only keys referencing:",
 			sizeStyle="small",
 		)
-		linePos += lineHeight
-
 		self.w.glyphNameFilter = vanilla.EditText(
-			(inset, linePos, -inset, 22),
+			(inset + filterLabelWidth, linePos, -inset, 22),
 			"",
 			callback=self.SavePreferences,
 			sizeStyle="small",
@@ -89,13 +94,16 @@ class RemoveMetricsKeys(mekkaObject):
 		)
 		linePos += lineHeight
 
+		# Row 3: scope label + fixed-width popup (does not grow with window)
+		scopeLabelWidth = 64
+		popupWidth = int((windowWidth - inset - (inset + scopeLabelWidth)) * 0.8)
 		self.w.scopeLabel = vanilla.TextBox(
-			(inset, linePos + 3, 72, 14),
+			(inset, linePos + 3, scopeLabelWidth, 14),
 			"Remove in:",
 			sizeStyle="small",
 		)
 		self.w.scope = vanilla.PopUpButton(
-			(inset + 72, linePos, -inset, 18),
+			(inset + scopeLabelWidth, linePos + 1, popupWidth, 18),
 			scopeOptions,
 			callback=self.SavePreferences,
 			sizeStyle="small",
@@ -109,17 +117,16 @@ class RemoveMetricsKeys(mekkaObject):
 			"• ⚠️ All open fonts – all glyphs in every open font, all masters."
 		)
 
+		# Status + regular-size button, side by side at the bottom
 		self.w.status = vanilla.TextBox(
-			(inset, -inset - 20, -inset - 90, 14),
+			(inset, -inset - 22, -inset - 90, 14),
 			"",
 			sizeStyle="small",
 		)
-
 		self.w.runButton = vanilla.Button(
-			(-80 - inset, -20 - inset, -inset, -inset),
+			(-80 - inset, -22 - inset, -inset, -inset),
 			"Remove",
 			callback=self.run,
-			sizeStyle="small",
 		)
 		self.w.setDefaultButton(self.w.runButton)
 
