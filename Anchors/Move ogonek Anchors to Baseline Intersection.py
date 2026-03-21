@@ -1,4 +1,4 @@
-# MenuTitle: Move ogonek anchors to baseline intersection
+# MenuTitle: Move ogonek Anchors to Baseline Intersection
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """

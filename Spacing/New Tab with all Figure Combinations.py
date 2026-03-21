@@ -1,4 +1,4 @@
-# MenuTitle: New Tab with all Figure Combinations
+# MenuTitle: New Tab with All Figure Combinations
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """

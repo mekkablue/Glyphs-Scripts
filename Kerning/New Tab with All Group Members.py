@@ -1,4 +1,4 @@
-# MenuTitle: New Tab with all Group Members
+# MenuTitle: New Tab with All Group Members
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """

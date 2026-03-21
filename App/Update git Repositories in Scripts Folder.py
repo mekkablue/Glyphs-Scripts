@@ -1,4 +1,4 @@
-# MenuTitle: Update git Repositories in Scripts Folder
+# MenuTitle: Update Git Repositories in Scripts Folder
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """

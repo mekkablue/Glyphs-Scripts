@@ -1,4 +1,4 @@
-# MenuTitle: Adjust Kerning in master
+# MenuTitle: Adjust Kerning in Master
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 try:

@@ -1,4 +1,4 @@
-# MenuTitle: Create .ssXX glyph from current layer
+# MenuTitle: Create .ssXX Glyph from Current Layer
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
