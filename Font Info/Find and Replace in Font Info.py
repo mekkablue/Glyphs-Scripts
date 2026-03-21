@@ -57,9 +57,8 @@ class FindAndReplaceInFontInfo(mekkaObject):
 
 		linePos += 10  # visual gap between find/replace and scope sections
 
-		# Scope row: Scope:  Font Info →  [x] Font  [x] Masters  [x] Instances
-		self.w.scopePrefixLabel = vanilla.TextBox((inset, linePos + 3, scopeLabelW, 14), "Scope:", sizeStyle="small", selectable=True)
-		self.w.fontInfoLabel = vanilla.TextBox((inset + scopeLabelW, linePos + 3, fontInfoLabelW, 14), "Font Info →", sizeStyle="small", selectable=True)
+		# Scope row: Scope: Font Info →  [x] Font  [x] Masters  [x] Instances
+		self.w.scopeLabel = vanilla.TextBox((inset, linePos + 3, scopeLabelW + fontInfoLabelW, 14), "Scope: Font Info →", sizeStyle="small", selectable=True)
 		self.w.scopeFont = vanilla.CheckBox((checkboxX, linePos, 52, 20), "Font", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.scopeFont.setToolTip("Search and replace in font-level properties (Font Info > Font tab): family name, designer, manufacturer, copyright, and all other named fields.")
 		self.w.scopeMasters = vanilla.CheckBox((checkboxX + 52, linePos, 75, 20), "Masters", value=True, callback=self.SavePreferences, sizeStyle="small")
@@ -69,9 +68,9 @@ class FindAndReplaceInFontInfo(mekkaObject):
 		linePos += lineHeight
 
 		# Content row: [x] General properties  [x] Custom parameters — aligned with Font checkbox above
-		self.w.contentGeneral = vanilla.CheckBox((checkboxX, linePos, 140, 20), "General properties", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.contentGeneral = vanilla.CheckBox((checkboxX, linePos, 52 + 75, 20), "General properties", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.contentGeneral.setToolTip("Search and replace in built-in Font Info fields such as family name, designer, style names, copyright, etc.")
-		self.w.contentCustomParameters = vanilla.CheckBox((checkboxX + 140, linePos, -inset, 20), "Custom parameters", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.contentCustomParameters = vanilla.CheckBox((checkboxX + 52 + 75, linePos, -inset, 20), "Custom parameters", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.contentCustomParameters.setToolTip("Search and replace in the string values of custom parameters at the Font, Master, and Instance levels.")
 		linePos += lineHeight
 
