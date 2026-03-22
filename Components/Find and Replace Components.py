@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Find and replace components in selected glyphs. Handles regular components,
-cap components (_cap.*), and corner components (_corner.*). When a corner
-component is chosen in Find, an optional angle filter restricts replacement to
-corners at specific angles. Leaving Replace empty removes the found component
-(after a confirmation warning).
+Find and replace components across the whole font (all glyphs, all masters).
+Handles regular components, cap components (_cap.*), and corner components
+(_corner.*). When a corner component is chosen in Find, an optional angle filter
+restricts replacement to corners at specific angles. Leaving Replace empty
+removes the found component (after a confirmation warning).
+Optionally restrict to selected glyphs only.
 """
 
 import math
@@ -32,7 +33,7 @@ class FindReplaceComponents(mekkaObject):
 	prefDict = {
 		"findName": "",
 		"replaceName": "",
-		"includeAllLayers": True,
+		"selectedGlyphsOnly": False,
 		"includeBackgrounds": False,
 		"useAngleFilter": False,
 		"largerOrSmaller": 0,
@@ -88,17 +89,17 @@ class FindReplaceComponents(mekkaObject):
 		self.w.updateReplace.setToolTip("Refresh the Replace list from the frontmost font, filtered by the Find component kind.")
 		linePos += lineHeight + 6
 
-		# Checkboxes row
-		self.w.includeAllLayers = vanilla.CheckBox(
-			(inset, linePos, 105, 18),
-			"All layers",
+		# Scope row
+		self.w.selectedGlyphsOnly = vanilla.CheckBox(
+			(inset, linePos, 165, 18),
+			"Selected glyphs only",
 			sizeStyle="small",
-			value=True,
+			value=False,
 			callback=self.SavePreferences,
 		)
-		self.w.includeAllLayers.setToolTip("Process all layers (master, special, backup) of each selected glyph, not just the currently active layer.")
+		self.w.selectedGlyphsOnly.setToolTip("Restrict replacement to the currently selected glyphs. By default the whole font is processed. All masters are always included to preserve interpolation compatibility.")
 		self.w.includeBackgrounds = vanilla.CheckBox(
-			(inset + 110, linePos, -inset, 18),
+			(inset + 170, linePos, -inset, 18),
 			"And backgrounds",
 			sizeStyle="small",
 			value=False,
@@ -345,15 +346,16 @@ class FindReplaceComponents(mekkaObject):
 		useAngleFilter = self.prefBool("useAngleFilter") and isCorner
 		smallerThan = bool(self.prefInt("largerOrSmaller"))
 		thresholdAngle = self.prefFloat("thresholdAngle")
-		includeAllLayers = self.prefBool("includeAllLayers")
+		selectedGlyphsOnly = self.prefBool("selectedGlyphsOnly")
 		includeBackgrounds = self.prefBool("includeBackgrounds")
 
 		if isEmpty:
 			alert = NSAlert.alloc().init()
 			alert.setMessageText_("Remove Components?")
+			scope = "the selected glyphs" if self.prefBool("selectedGlyphsOnly") else "the entire font"
 			alert.setInformativeText_(
 				f"The Replace field is empty. This will REMOVE all '{findName}' components "
-				f"from the selected glyphs. This action cannot be undone easily.\n\nContinue?"
+				f"from {scope}. This action cannot be undone easily.\n\nContinue?"
 			)
 			alert.addButtonWithTitle_("Remove")
 			alert.addButtonWithTitle_("Cancel")
@@ -368,37 +370,31 @@ class FindReplaceComponents(mekkaObject):
 			print("⚠️ Font has not been saved yet.")
 		print()
 
-		selectedLayers = thisFont.selectedLayers
 		totalCount = 0
 		allMsgs = []
 
+		# Determine glyph scope: whole font or selected glyphs only.
+		# Always process ALL layers of each glyph to keep masters in sync.
+		if selectedGlyphsOnly:
+			seenIDs = {}
+			for layer in thisFont.selectedLayers:
+				glyph = layer.parent
+				if glyph and glyph.id not in seenIDs:
+					seenIDs[glyph.id] = glyph
+			glyphs = list(seenIDs.values())
+		else:
+			glyphs = list(thisFont.glyphs)
+
 		thisFont.disableUpdateInterface()
 		try:
-			if includeAllLayers:
-				# Deduplicate glyphs (multiple selected layers may belong to the same glyph)
-				seenGlyphs = {}
-				for layer in selectedLayers:
-					glyph = layer.parent
-					if glyph and glyph.id not in seenGlyphs:
-						seenGlyphs[glyph.id] = glyph
-
-				for glyph in seenGlyphs.values():
-					allMsgs.append(f"Processing {glyph.name}:")
-					for lyr in glyph.layers:
-						c, msgs = self.processLayer(lyr, findName, replaceName, isCorner, isCap, useAngleFilter, smallerThan, thresholdAngle)
-						totalCount += c
-						allMsgs.extend(msgs)
-						if includeBackgrounds:
-							c, msgs = self.processLayer(lyr.background, findName, replaceName, isCorner, isCap, useAngleFilter, smallerThan, thresholdAngle)
-							totalCount += c
-							allMsgs.extend(msgs)
-			else:
-				for layer in selectedLayers:
-					c, msgs = self.processLayer(layer, findName, replaceName, isCorner, isCap, useAngleFilter, smallerThan, thresholdAngle)
+			for glyph in glyphs:
+				allMsgs.append(f"Processing {glyph.name}:")
+				for lyr in glyph.layers:
+					c, msgs = self.processLayer(lyr, findName, replaceName, isCorner, isCap, useAngleFilter, smallerThan, thresholdAngle)
 					totalCount += c
 					allMsgs.extend(msgs)
 					if includeBackgrounds:
-						c, msgs = self.processLayer(layer.background, findName, replaceName, isCorner, isCap, useAngleFilter, smallerThan, thresholdAngle)
+						c, msgs = self.processLayer(lyr.background, findName, replaceName, isCorner, isCap, useAngleFilter, smallerThan, thresholdAngle)
 						totalCount += c
 						allMsgs.extend(msgs)
 
