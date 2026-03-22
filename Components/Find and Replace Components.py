@@ -37,11 +37,11 @@ class FindReplaceComponents(mekkaObject):
 		"includeBackgrounds": False,
 		"useAngleFilter": False,
 		"largerOrSmaller": 0,
-		"thresholdAngle": 90,
+		"thresholdAngle": 20,
 	}
 
 	def __init__(self):
-		windowWidth = 340
+		windowWidth = 370
 		windowHeight = 170
 		windowWidthResize = 600
 		windowHeightResize = 0
@@ -100,43 +100,38 @@ class FindReplaceComponents(mekkaObject):
 		self.w.selectedGlyphsOnly.setToolTip("Restrict replacement to the currently selected glyphs. By default the whole font is processed. All masters are always included to preserve interpolation compatibility.")
 		self.w.includeBackgrounds = vanilla.CheckBox(
 			(inset + 170, linePos, -inset, 18),
-			"And backgrounds",
+			"Include backgrounds",
 			sizeStyle="small",
 			value=False,
 			callback=self.SavePreferences,
 		)
-		self.w.includeBackgrounds.setToolTip("Also process background layers of all treated layers.")
+		self.w.includeBackgrounds.setToolTip("Also process the background layer of every treated layer.")
 		linePos += lineHeight
 
 		# Angle filter row (only active for _corner.* components)
 		self.w.useAngleFilter = vanilla.CheckBox(
-			(inset, linePos, 115, 18),
-			"Angle filter:",
+			(inset, linePos, 207, 18),
+			"Replace corners only on angles",
 			sizeStyle="small",
 			value=False,
 			callback=self.SavePreferences,
 		)
 		self.w.useAngleFilter.setToolTip("Only available for _corner.* components. Restrict replacement to corners whose interior angle is larger or smaller than the threshold.")
 		self.w.largerOrSmaller = vanilla.PopUpButton(
-			(inset + 118, linePos, 78, 18),
-			("larger", "smaller"),
+			(inset + 210, linePos, 90, 18),
+			("larger than", "smaller than"),
 			sizeStyle="small",
 			callback=self.SavePreferences,
 		)
 		self.w.largerOrSmaller.setToolTip("Replace at corners with angles larger or smaller than the threshold value.")
-		self.w.thanLabel = vanilla.TextBox((inset + 201, linePos + 2, 35, 14), "than", sizeStyle="small")
 		self.w.thresholdAngle = vanilla.EditText(
-			(inset + 236, linePos, 44, 19),
-			"90",
+			(inset + 304, linePos, 30, 19),
+			"20",
 			sizeStyle="small",
 			callback=self.SavePreferences,
 		)
 		self.w.thresholdAngle.setToolTip("Interior angle threshold in degrees (0–360). The angle is measured at the corner node between its two neighbors.")
-		self.w.degreeLabel = vanilla.TextBox((inset + 284, linePos + 2, 16, 14), "°", sizeStyle="small")
-		linePos += lineHeight + 2
-
-		# Divider
-		self.w.divider = vanilla.HorizontalLine((inset, linePos, -inset, 1))
+		self.w.degreeLabel = vanilla.TextBox((inset + 337, linePos + 2, 14, 14), "°", sizeStyle="small")
 
 		# Status line and run button at bottom
 		self.w.statusLine = vanilla.TextBox((inset, -inset - 22, -inset - 90, 14), "", sizeStyle="small")

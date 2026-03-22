@@ -183,9 +183,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Convert Cap to Segment Component:** Converts a _cap.xxx glyph into a _segment.xxx glyph. Optionally updates all glyphs in the font that reference the cap to use the new segment instead.
 * **Decompose Components in Background:** Decomposes background layers of selected glyphs. Works on the current master or all masters, or all masters of all fonts.
 * **Decompose Corner and Cap Components:** Decomposes all corner and cap components in selected glyphs. Reports to Macro window.
-* **Find and Replace Components:** Relinks components in selected glyphs to a new source glyph.
-* **Find and Replace Cap and Corner Components:** Relinks `_cap.*` and `_corner.*` components in selected glyphs to a different corner/cap component.
-* **Find and Replace Corner Components at Certain Angles:** Replace Corner Components at blunt or acute angles.
+* **Find and Replace Components:** Finds and replaces components across the whole font (all glyphs, all masters) or selected glyphs only. Handles regular components as well as `_cap.*` and `_corner.*` hint-based components. For corner components an optional angle filter restricts replacement to corners larger or smaller than a given angle. Leave *Replace* empty to remove the component.
 * **Make Components Smart in All Selected Glyphs:** Turn the selected components into smart components, based on the axes defined in the font. Clone of Erik Moberg’s [*Make Components Smart* script](https://github.com/TypeNurse/Glyphs-Scripts/blob/main/Make%20Component%20Smart.py).
 * **Make Glyph Smart:** Turn the currently selected glyph(s) into smart glyphs, and establish the current font axes as the glyph’s smart axes.
 * **Move Paths to Component:** Moves paths to a separate glyph and insert them as auto-aligned, anchored components in the source glyph. Perfect for making path-component mixtures into pure composites.
