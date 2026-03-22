@@ -463,12 +463,13 @@ class BuildCircledGlyphs(mekkaObject):
 		"minDistanceBetweenFigures": "90",
 		"suffixesCheckbox": 0,
 		"suffixes": "ss02, ss06",
+		"openInNewTab": 0,
 	}
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 230
-		windowHeight = 251
+		windowHeight = 273
 		windowWidthResize = 100  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -518,6 +519,10 @@ class BuildCircledGlyphs(mekkaObject):
 		self.w.suffixes.setToolTip("Will look if there is a base glyph with a dot suffix, and build the circled glyph with the same suffix. Separate multiple suffixes with a comma. E.g. You have an A and an A.ss06, then you get A.blackCircled and A.blackCircled.ss06, provided you enter ss06 here.")
 		linePos += lineHeight
 
+		self.w.openInNewTab = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Open created glyphs in new tab", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openInNewTab.setToolTip("After building, opens all created circled glyphs in a new Edit tab.")
+		linePos += lineHeight
+
 		# Run Button:
 		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Build", callback=self.BuildCircledGlyphsMain)
 		self.w.setDefaultButton(self.w.runButton)
@@ -555,6 +560,7 @@ class BuildCircledGlyphs(mekkaObject):
 			minDistanceBetweenFigures = self.prefFloat("minDistanceBetweenFigures")
 			shouldIncludeSuffixes = self.pref("suffixesCheckbox")
 			suffixes = self.pref("suffixes")
+			openInNewTab = self.prefBool("openInNewTab")
 			if shouldIncludeSuffixes:
 				suffixes = [("." + x.strip()).replace("..", ".") for x in suffixes.split(",")]
 			else:
@@ -640,6 +646,7 @@ class BuildCircledGlyphs(mekkaObject):
 						print("Scale factor for master '%s': %.1f" % (thisMaster.name, scaleFactor))
 
 					# actually building letters:
+					builtGlyphNames = []
 					for glyphName in circledGlyphNames:
 						if "black" in glyphName.lower():
 							circleName = blackCircleName
@@ -686,6 +693,7 @@ class BuildCircledGlyphs(mekkaObject):
 							# thisGlyph.beginUndo()  # undo grouping causes crashes
 							print("Building %s" % thisGlyph.name)
 							buildCircledGlyph(thisGlyph, circleName, scaleFactors, minDistanceBetweenFigures, suffix)
+							builtGlyphNames.append(thisGlyph.name)
 							# thisGlyph.endUndo()  # undo grouping causes crashes
 
 				except Exception as e:
@@ -697,6 +705,10 @@ class BuildCircledGlyphs(mekkaObject):
 					raise e
 				finally:
 					thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+
+				if openInNewTab and builtGlyphNames:
+					newTab = thisFont.newTab()
+					newTab.text = "/" + "/".join(builtGlyphNames)
 
 				self.w.close()  # delete if you want window to stay open
 
