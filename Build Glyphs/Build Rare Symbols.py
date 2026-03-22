@@ -6,7 +6,7 @@ Builds white and black, small and large, circles, triangles and squares.
 """
 
 import vanilla
-from GlyphsApp import Glyphs, GSGlyph, GSLayer, Message
+from GlyphsApp import Glyphs, GSGlyph, GSLayer, GSComponent, Message
 from mekkablue import mekkaObject
 from mekkablue.geometry import transform, offsetLayer
 
@@ -351,6 +351,7 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 		"blackLargeSquare": 0,
 		"propellor": 0,
 		"viewdataSquare": 0,
+		"servicemarkTel": 0,
 
 		"stroke": 50,
 		"height": 700,
@@ -365,7 +366,7 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 355
-		windowHeight = 306
+		windowHeight = 328
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Build Rare Symbols",  # window title
@@ -407,6 +408,10 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 		self.w.propellor.setToolTip("Will create propellor, optionKey, upWhiteArrow.")
 		self.w.viewdataSquare = vanilla.CheckBox((inset + column, linePos - 1, -inset, 20), "Viewdata Square ⌗", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.viewdataSquare.setToolTip("Will create viewdataSquare.")
+		linePos += lineHeight
+
+		self.w.servicemarkTel = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "SM and TEL ℠℡", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.servicemarkTel.setToolTip("Will create servicemark, telephone. Requires M and trademark glyphs in the font.")
 		linePos += lineHeight
 
 		self.w.line = vanilla.HorizontalLine((inset, linePos + 2, -inset, 1))
@@ -479,12 +484,14 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 		self.w.blackLargeSquare.set(toggle)
 		self.w.propellor.set(toggle)
 		self.w.viewdataSquare.set(toggle)
+		self.w.servicemarkTel.set(toggle)
 		self.SavePreferences()
 
 	def updateUI(self, sender=None):
 		toggle = (
 			self.w.whiteTriangles.get() or self.w.blackTriangles.get() or self.w.black3DArrowheads.get() or self.w.blackArrowheads.get() or self.w.whiteShapes.get()
 			or self.w.blackShapes.get() or self.w.whiteLargeSquare.get() or self.w.blackLargeSquare.get() or self.w.propellor.get() or self.w.viewdataSquare.get()
+			or self.w.servicemarkTel.get()
 		)
 		self.w.runButton.enable(toggle)
 		self.w.reuseTab.enable(self.w.openTab.get())
@@ -518,6 +525,7 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 				blackLargeSquare = self.pref("blackLargeSquare")
 				propellor = self.pref("propellor")
 				viewdataSquare = self.pref("viewdataSquare")
+				servicemarkTel = self.pref("servicemarkTel")
 
 				stroke = self.prefFloat("stroke")
 				height = self.prefFloat("height")
@@ -860,6 +868,73 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 						setMetricsKeys=(not disrespectItalicAngle)
 					):
 						processedGlyphs.append(glyphName)
+
+				if servicemarkTel:
+					smtelGlyphs = {
+						"servicemark": "SM",
+						"telephone": "TEL",
+					}
+					referenceGlyph = thisFont.glyphs["M"]
+					trademarkGlyph = thisFont.glyphs["trademark"]
+					if not referenceGlyph or not trademarkGlyph:
+						print("⚠️ SM/TEL: requires M and trademark glyphs in the font.")
+					else:
+						expansion = 5
+						glyphsToBuild = {}
+						for newGlyphName, letters in smtelGlyphs.items():
+							if thisFont.glyphs[newGlyphName] and not overwriteExistingGlyphs:
+								print("⚠️ %s: already exists. Skipping." % newGlyphName)
+							else:
+								glyphsToBuild[newGlyphName] = letters
+						if glyphsToBuild:
+							thisFont.disableUpdateInterface()
+							try:
+								for newGlyphName, letters in glyphsToBuild.items():
+									newGlyph = thisFont.glyphs[newGlyphName]
+									if not newGlyph:
+										newGlyph = GSGlyph(newGlyphName)
+										thisFont.glyphs.append(newGlyph)
+										print("🔣 %s created." % newGlyphName)
+									else:
+										print("🔣 %s: exists. Overwriting." % newGlyphName)
+									newGlyph.leftKerningGroup = trademarkGlyph.leftKerningGroup
+									newGlyph.rightKerningGroup = trademarkGlyph.rightKerningGroup
+									processedGlyphs.append(newGlyphName)
+								for thisMaster in thisFont.masters:
+									tmLayer = trademarkGlyph.layers[thisMaster.id]
+									smallscale = tmLayer.bounds.size.height - 2 * expansion
+									largescale = referenceGlyph.layers[thisMaster.id].bounds.size.height
+									scale = smallscale / largescale
+									upshift = tmLayer.bounds.origin.y + expansion
+									measureLayer = tmLayer.copyDecomposedLayer()
+									measureLayer.removeOverlap()
+									distance = measureLayer.paths[1].bounds.origin.x - (measureLayer.paths[0].bounds.origin.x + measureLayer.paths[0].bounds.size.width)
+									for newGlyphName, letters in glyphsToBuild.items():
+										newGlyph = thisFont.glyphs[newGlyphName]
+										newLayer = newGlyph.layers[thisMaster.id]
+										newLayer.clear()
+										for i, letter in enumerate(letters):
+											letterComp = GSComponent(letter)
+											newLayer.components.append(letterComp)
+											letterComp.disableAlignment = True
+											scaleDown = transform(scale=scale).transformStruct()
+											letterComp.applyTransform(scaleDown)
+											if i > 0:
+												prevComp = newLayer.components[i - 1]
+												newOrigin = prevComp.bounds.origin.x + prevComp.bounds.size.width + distance + 2 * expansion
+												currentOrigin = letterComp.bounds.origin.x
+												shiftRight = transform(shiftX=(newOrigin - currentOrigin)).transformStruct()
+												letterComp.applyTransform(shiftRight)
+										newLayer.decomposeComponents()
+										newLayer.anchors = None
+										shiftUp = transform(shiftY=upshift).transformStruct()
+										newLayer.applyTransform(shiftUp)
+										offsetLayer(newLayer, expansion)
+										newLayer.LSB = tmLayer.LSB
+										newLayer.RSB = tmLayer.RSB
+										print("\t✅ Layer: %s" % thisMaster.name)
+							finally:
+								thisFont.enableUpdateInterface()
 
 				# self.w.close()  # delete if you want window to stay open
 
