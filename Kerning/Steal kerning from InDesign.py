@@ -54,15 +54,12 @@ class StealKerningFromInDesign(mekkaObject):
 		# No-kern pair + Min kern + Round by — all on one row
 		self.w.zeroPairLabel = vanilla.TextBox((inset, linePos + 3, 84, 14), "No-kern pair:", sizeStyle="small")
 		self.w.zeroPair = vanilla.EditText((inset + 84, linePos, 40, 19), "HH", callback=self.SavePreferences, sizeStyle="small")
-		self.w.zeroPair.getNSTextField().cell().setScrollable_(True)
 		self.w.zeroPair.setToolTip("A pair of glyphs that should have zero optical kerning (i.e., the reference pair used to calibrate the font size for measurement).")
 		self.w.minimumKernLabel = vanilla.TextBox((inset + 136, linePos + 3, 57, 14), "Min kern:", sizeStyle="small")
 		self.w.minimumKern = vanilla.EditText((inset + 193, linePos, 40, 19), "10", callback=self.SavePreferences, sizeStyle="small")
-		self.w.minimumKern.getNSTextField().cell().setScrollable_(True)
 		self.w.minimumKern.setToolTip("Discard imported kern pairs whose absolute value is smaller than this threshold.")
 		self.w.roundByLabel = vanilla.TextBox((inset + 245, linePos + 3, 58, 14), "Round by:", sizeStyle="small")
 		self.w.roundBy = vanilla.EditText((inset + 303, linePos, 40, 19), "5", callback=self.SavePreferences, sizeStyle="small")
-		self.w.roundBy.getNSTextField().cell().setScrollable_(True)
 		self.w.roundBy.setToolTip("Round imported kern values to this multiple (e.g. 5 = multiples of 5). Set to 1 or 0 to skip rounding.")
 		linePos += lineHeight
 
@@ -109,14 +106,12 @@ class StealKerningFromInDesign(mekkaObject):
 		self.w.addExceptions = vanilla.CheckBox((inset + 22, linePos - 1, 153, 20), "Add exceptions between:", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.addExceptions.setToolTip("Also kern each of the characters in the field against all exporting glyphs whose name contains any of the component particles listed below.")
 		self.w.exceptionChars = vanilla.EditText((inset + 177, linePos - 1, -inset - 22, 19), "AFJKLPTVWXYfďľ[](){}‚\u2018\u2019\u201e\u201c\u201d/?", callback=self.SavePreferences, sizeStyle="small")
-		self.w.exceptionChars.getNSTextField().cell().setScrollable_(True)
 		self.w.exceptionChars.setToolTip("Characters to kern against the diacritic glyphs. Each character is used in both directions (e.g. Tä and äT).")
 		self.w.exceptionCharsReset = UpdateButton((-inset - 20, linePos - 3, 20, 19), self.resetExceptionChars)
 		linePos += lineHeight
 
 		self.w.exceptionComponentsLabel = vanilla.TextBox((inset + 40, linePos + 3, 133, 14), "…and glyphs containing:", sizeStyle="small")
 		self.w.exceptionComponents = vanilla.EditText((inset + 177, linePos, -inset - 22, 19), "dier, dot, acut, grav, tild, brev, macr, ring, circ, slash, bar", callback=self.SavePreferences, sizeStyle="small")
-		self.w.exceptionComponents.getNSTextField().cell().setScrollable_(True)
 		self.w.exceptionComponents.setToolTip("Comma-separated name fragments. Any exporting glyph with a Unicode whose name contains one of these is measured against the characters above.")
 		self.w.exceptionComponentsReset = UpdateButton((-inset - 20, linePos - 2, 20, 19), self.resetExceptionComponents)
 		linePos += lineHeight
