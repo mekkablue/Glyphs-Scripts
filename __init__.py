@@ -194,6 +194,7 @@ class mekkaObject:
 				# and suppress macOS autofill popups
 				if hasattr(element, "getNSTextField"):
 					nsField = element.getNSTextField()
+					nsField.cell().setScrollable_(True)
 					nsField.cell().setLineBreakMode_(NSLineBreakByClipping)
 					if hasattr(nsField, "setContentType_"):
 						nsField.setContentType_(None)
