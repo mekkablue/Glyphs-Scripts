@@ -320,10 +320,11 @@ def buildCircledGlyph(thisGlyph, circleName, scaleFactors, minDistanceBetweenTwo
 					lowestY = thisPath.bounds.origin.y
 					lowestNodes = [n for n in thisPath.nodes if n.y <= lowestY]
 					if len(lowestNodes) == 0:
-						lowestNode = sorted(lowestNodes, key=lambda node: node.y)[0]
+						# floating-point mismatch after removeOverlap: fall back to all nodes
+						lowestNode = sorted(thisPath.nodes, key=lambda node: (node.y, node.x))[0]
 					elif len(lowestNodes) == 1:
 						lowestNode = lowestNodes[0]
-					elif len(lowestNodes) > 1:
+					else:
 						lowestNode = sorted(lowestNodes, key=lambda node: node.x)[0]
 					while lowestNode.type == GSOFFCURVE:
 						lowestNode = lowestNode.nextNode
