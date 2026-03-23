@@ -56,9 +56,9 @@ class FindReplaceComponents(mekkaObject):
 		linePos, inset, lineHeight = 12, 15, 22
 
 		# Find row
-		self.w.findLabel = vanilla.TextBox((inset, linePos + 3, 60, 17), "Find:", sizeStyle="small")
+		self.w.findLabel = vanilla.TextBox((inset, linePos + 5, 60, 17), "Find:", sizeStyle="small")
 		self.w.findName = vanilla.ComboBox(
-			(inset + 57, linePos - 1, -inset - 26, 24),
+			(inset + 57, linePos - 1, -inset - 52, 24),
 			self.getFindItems(),
 			callback=self.findChanged,
 			sizeStyle="small",
@@ -68,14 +68,21 @@ class FindReplaceComponents(mekkaObject):
 			"plus all special (_cap.*, _corner.*, _segment.*, _brush.*) glyphs defined in the font. "
 			"Press ↺ to refresh the list."
 		)
-		self.w.updateFind = UpdateButton((-inset - 21, linePos + 1, -inset, 18), callback=self.refreshFindItems)
+		self.w.updateFind = UpdateButton((-inset - 47, linePos + 1, -inset - 26, 18), callback=self.refreshFindItems)
 		self.w.updateFind.setToolTip("Refresh the Find list from the frontmost font.")
+		self.w.findConnector = vanilla.TextBox((-inset - 21, linePos + 1, -inset, 18), "┓", sizeStyle="small")
+		findBtnCenterY = linePos + 1 + 9
 		linePos += lineHeight + 6
 
+		# Swap button centred between the two rows
+		swapBtnY = (findBtnCenterY + linePos + 1 + 9) // 2 - 9
+		self.w.swapButton = vanilla.Button((-inset - 21, swapBtnY, -inset, 18), "↕", callback=self.swapFindReplace, sizeStyle="small")
+		self.w.swapButton.setToolTip("Swap the Find and Replace values.")
+
 		# Replace row
-		self.w.replaceLabel = vanilla.TextBox((inset, linePos + 3, 60, 17), "Replace:", sizeStyle="small")
+		self.w.replaceLabel = vanilla.TextBox((inset, linePos + 5, 60, 17), "Replace:", sizeStyle="small")
 		self.w.replaceName = vanilla.ComboBox(
-			(inset + 57, linePos - 1, -inset - 26, 24),
+			(inset + 57, linePos - 1, -inset - 52, 24),
 			self.getReplaceItems(),
 			callback=self.SavePreferences,
 			sizeStyle="small",
@@ -85,8 +92,9 @@ class FindReplaceComponents(mekkaObject):
 			"If a special component kind is selected in Find, only components of the same kind are listed. "
 			"Press ↺ to refresh the list."
 		)
-		self.w.updateReplace = UpdateButton((-inset - 21, linePos + 1, -inset, 18), callback=self.refreshReplaceItems)
+		self.w.updateReplace = UpdateButton((-inset - 47, linePos + 1, -inset - 26, 18), callback=self.refreshReplaceItems)
 		self.w.updateReplace.setToolTip("Refresh the Replace list from the frontmost font, filtered by the Find component kind.")
+		self.w.replaceConnector = vanilla.TextBox((-inset - 21, linePos + 1, -inset, 18), "┛", sizeStyle="small")
 		linePos += lineHeight + 6
 
 		# Scope row
@@ -244,6 +252,15 @@ class FindReplaceComponents(mekkaObject):
 		return sorted(g.name for g in thisFont.glyphs)
 
 	def refreshReplaceItems(self, sender=None):
+		self.w.replaceName.setItems(self.getReplaceItems())
+		self.updateUI()
+
+	def swapFindReplace(self, sender=None):
+		findVal = self.w.findName.get()
+		replaceVal = self.w.replaceName.get()
+		self.w.findName.set(replaceVal)
+		self.w.replaceName.set(findVal)
+		self.SavePreferences()
 		self.w.replaceName.setItems(self.getReplaceItems())
 		self.updateUI()
 
