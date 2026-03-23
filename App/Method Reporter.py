@@ -126,24 +126,19 @@ class MethodReporter(mekkaObject):
 
 	def adjustGUIObjects(self, sender=None):
 		windowLeft, windowTop, windowWidth, windowHeight = self.w.getPosSize()
-		if windowWidth > 350:
-			third = int(windowWidth / 3)
+		third = int(windowWidth / 3)
 
-			posSizeObjectPicker = list(self.w.objectPicker.getPosSize())
-			posSizeObjectPicker[2] = third - 7
-			self.w.objectPicker.setPosSize(posSizeObjectPicker)
+		posSizeObjectPicker = list(self.w.objectPicker.getPosSize())
+		posSizeObjectPicker[2] = third - 7
+		self.w.objectPicker.setPosSize(posSizeObjectPicker)
 
-			posSizeTextFilter = list(self.w.textFilter.getPosSize())
-			posSizeTextFilter[0] = third
-			self.w.textFilter.setPosSize(posSizeTextFilter)
+		posSizeTextFilter = list(self.w.textFilter.getPosSize())
+		posSizeTextFilter[0] = third
+		self.w.textFilter.setPosSize(posSizeTextFilter)
 
-			posSizeFilter = list(self.w.filter.getPosSize())
-			posSizeFilter[0] = third + 33
-			self.w.filter.setPosSize(posSizeFilter)
-		else:
-			self.w.objectPicker.setPosSize((3, 2, 133, 24))
-			self.w.textFilter.setPosSize((140, 6, 35, 14))
-			self.w.filter.setPosSize((173, 1, -1, 24))
+		posSizeFilter = list(self.w.filter.getPosSize())
+		posSizeFilter[0] = third + 33
+		self.w.filter.setPosSize(posSizeFilter)
 
 	def copySelection(self, sender):
 		try:
