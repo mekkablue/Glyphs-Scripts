@@ -122,6 +122,7 @@ class MethodReporter(mekkaObject):
 		self.w.bind("resize", self.adjustGUIObjects)
 		self.w.open()
 		self.w.makeKey()
+		self.adjustGUIObjects()
 		self.MethodReporterMain(None)
 
 	def adjustGUIObjects(self, sender=None):
