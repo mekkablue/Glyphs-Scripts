@@ -6,7 +6,7 @@ In existing group kerning, separate some glyphs out of a kerning group, effectiv
 """
 
 import vanilla, sys
-from mekkablue import *, reportFontName
+from mekkablue import *
 from copy import copy
 
 def splitOffGroup(font, newGroup, splitoffs, rightGroup=True):
@@ -85,7 +85,7 @@ def splitOffGroup(font, newGroup, splitoffs, rightGroup=True):
 	return messages
 
 
-class SplitKerningGroups(object):
+class SplitKerningGroups(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"originalGroupName": "",
