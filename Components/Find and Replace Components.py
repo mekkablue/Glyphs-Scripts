@@ -74,11 +74,6 @@ class FindReplaceComponents(mekkaObject):
 		findBtnCenterY = linePos + 1 + 9
 		linePos += lineHeight + 6
 
-		# Swap button centred between the two rows
-		swapBtnY = (findBtnCenterY + linePos + 1 + 9) // 2 - 9
-		self.w.swapButton = vanilla.Button((-inset - 21, swapBtnY, -inset, 18), "↕", callback=self.swapFindReplace, sizeStyle="small")
-		self.w.swapButton.setToolTip("Swap the Find and Replace values.")
-
 		# Replace row
 		self.w.replaceLabel = vanilla.TextBox((inset, linePos + 5, 60, 17), "Replace:", sizeStyle="small")
 		self.w.replaceName = vanilla.ComboBox(
@@ -95,6 +90,11 @@ class FindReplaceComponents(mekkaObject):
 		self.w.updateReplace = UpdateButton((-inset - 47, linePos + 1, -inset - 26, 18), callback=self.refreshReplaceItems)
 		self.w.updateReplace.setToolTip("Refresh the Replace list from the frontmost font, filtered by the Find component kind.")
 		self.w.replaceConnector = vanilla.TextBox((-inset - 21, linePos + 1, -inset, 18), "┛", sizeStyle="small")
+
+		# Swap button added last so it renders on top of the box-drawing connectors
+		swapBtnY = (findBtnCenterY + linePos + 1 + 9) // 2 - 9
+		self.w.swapButton = vanilla.Button((-inset - 21, swapBtnY, -inset, 18), "↕", callback=self.swapFindReplace, sizeStyle="small")
+		self.w.swapButton.setToolTip("Swap the Find and Replace values.")
 		linePos += lineHeight + 6
 
 		# Scope row
@@ -259,9 +259,11 @@ class FindReplaceComponents(mekkaObject):
 		findVal = self.w.findName.get()
 		replaceVal = self.w.replaceName.get()
 		self.w.findName.set(replaceVal)
+		# Refresh Replace items first (they depend on the new Find value),
+		# then set the value — otherwise setItems() would wipe the just-set text.
+		self.w.replaceName.setItems(self.getReplaceItems())
 		self.w.replaceName.set(findVal)
 		self.SavePreferences()
-		self.w.replaceName.setItems(self.getReplaceItems())
 		self.updateUI()
 
 	def findChanged(self, sender=None):
