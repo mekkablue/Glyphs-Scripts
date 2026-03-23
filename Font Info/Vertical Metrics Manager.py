@@ -791,7 +791,7 @@ class VerticalMetricsManager(mekkaObject):
 						continue
 					if glyph.category == "Letter":
 						thisGlyphHeight = glyphHeight(glyph)
-						if glyphHeight > abreveacuteHeight:
+						if thisGlyphHeight > abreveacuteHeight:
 							abreveacuteHeight = thisGlyphHeight
 				if abreveacuteHeight < capHeight:
 					abreveacuteHeight = capHeight
