@@ -118,20 +118,20 @@ class FindReplaceComponents(mekkaObject):
 		)
 		self.w.useAngleFilter.setToolTip("Only available for _corner.* components. Restrict replacement to corners whose interior angle is larger or smaller than the threshold.")
 		self.w.largerOrSmaller = vanilla.PopUpButton(
-			(inset + 210, linePos, 90, 18),
+			(inset + 210, linePos, -inset - 48, 18),
 			("larger than", "smaller than"),
 			sizeStyle="small",
 			callback=self.SavePreferences,
 		)
 		self.w.largerOrSmaller.setToolTip("Replace at corners with angles larger or smaller than the threshold value.")
 		self.w.thresholdAngle = vanilla.EditText(
-			(inset + 304, linePos, 30, 19),
+			(-inset - 44, linePos, 30, 19),
 			"20",
 			sizeStyle="small",
 			callback=self.SavePreferences,
 		)
 		self.w.thresholdAngle.setToolTip("Interior angle threshold in degrees (0–360). The angle is measured at the corner node between its two neighbors.")
-		self.w.degreeLabel = vanilla.TextBox((inset + 337, linePos + 2, 14, 14), "°", sizeStyle="small")
+		self.w.degreeLabel = vanilla.TextBox((-inset - 12, linePos + 2, 12, 14), "°", sizeStyle="small")
 
 		# Status line and run button at bottom
 		self.w.statusLine = vanilla.TextBox((inset, -inset - 22, -inset - 90, 14), "", sizeStyle="small")
