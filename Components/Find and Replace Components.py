@@ -110,7 +110,7 @@ class FindReplaceComponents(mekkaObject):
 
 		# Angle filter row (only active for _corner.* components)
 		self.w.useAngleFilter = vanilla.CheckBox(
-			(inset, linePos, 207, 18),
+			(inset, linePos, 190, 18),
 			"Replace corners only on angles",
 			sizeStyle="small",
 			value=False,
@@ -118,7 +118,7 @@ class FindReplaceComponents(mekkaObject):
 		)
 		self.w.useAngleFilter.setToolTip("Only available for _corner.* components. Restrict replacement to corners whose interior angle is larger or smaller than the threshold.")
 		self.w.largerOrSmaller = vanilla.PopUpButton(
-			(inset + 210, linePos, -inset - 48, 18),
+			(inset + 193, linePos, -inset - 48, 18),
 			("larger than", "smaller than"),
 			sizeStyle="small",
 			callback=self.SavePreferences,
