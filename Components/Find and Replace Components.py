@@ -70,7 +70,7 @@ class FindReplaceComponents(mekkaObject):
 		)
 		self.w.updateFind = UpdateButton((-inset - 47, linePos + 1, -inset - 26, 18), callback=self.refreshFindItems)
 		self.w.updateFind.setToolTip("Refresh the Find list from the frontmost font.")
-		self.w.findConnector = vanilla.TextBox((-inset - 21, linePos + 1, -inset, 18), "┓", sizeStyle="small")
+		self.w.findConnector = vanilla.TextBox((-inset - 21, linePos + 3, -inset, 18), "┓", sizeStyle="small")
 		findBtnCenterY = linePos + 1 + 9
 		linePos += lineHeight + 6
 
@@ -89,12 +89,14 @@ class FindReplaceComponents(mekkaObject):
 		)
 		self.w.updateReplace = UpdateButton((-inset - 47, linePos + 1, -inset - 26, 18), callback=self.refreshReplaceItems)
 		self.w.updateReplace.setToolTip("Refresh the Replace list from the frontmost font, filtered by the Find component kind.")
-		self.w.replaceConnector = vanilla.TextBox((-inset - 21, linePos + 1, -inset, 18), "┛", sizeStyle="small")
+		self.w.replaceConnector = vanilla.TextBox((-inset - 21, linePos + 5, -inset, 18), "┛", sizeStyle="small")
 
 		# Swap button added last so it renders on top of the box-drawing connectors
-		swapBtnY = (findBtnCenterY + linePos + 1 + 9) // 2 - 9
+		swapBtnY = (findBtnCenterY + linePos + 1 + 9) // 2 - 8
 		self.w.swapButton = vanilla.Button((-inset - 21, swapBtnY, -inset, 18), "↕", callback=self.swapFindReplace, sizeStyle="small")
 		self.w.swapButton.setToolTip("Swap the Find and Replace values.")
+		self.w.findConnector.getNSTextField().setAlphaValue_(0.6)
+		self.w.replaceConnector.getNSTextField().setAlphaValue_(0.6)
 		linePos += lineHeight + 6
 
 		# Scope row
