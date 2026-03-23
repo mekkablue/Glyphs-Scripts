@@ -134,7 +134,7 @@ class FindReplaceComponents(mekkaObject):
 		self.w.degreeLabel = vanilla.TextBox((-inset - 12, linePos + 2, 12, 14), "°", sizeStyle="small")
 
 		# Status line and run button at bottom
-		self.w.statusLine = vanilla.TextBox((inset, -inset - 22, -inset - 90, 14), "", sizeStyle="small")
+		self.w.statusLine = vanilla.TextBox((inset, -inset - 18, -inset - 90, 14), "", sizeStyle="small")
 		self.w.statusLine.setToolTip("Reports how many components were exchanged in the last run.")
 		self.w.runButton = vanilla.Button((-inset - 80, -inset - 22, -inset, -inset), "Replace", callback=self.run)
 		self.w.setDefaultButton(self.w.runButton)
