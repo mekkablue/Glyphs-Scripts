@@ -127,18 +127,18 @@ class MethodReporter(mekkaObject):
 
 	def adjustGUIObjects(self, sender=None):
 		windowLeft, windowTop, windowWidth, windowHeight = self.w.getPosSize()
-		third = int(windowWidth / 3)
+		comboWidth = max(100, int(windowWidth / 3))
 
 		posSizeObjectPicker = list(self.w.objectPicker.getPosSize())
-		posSizeObjectPicker[2] = third - 7
+		posSizeObjectPicker[2] = comboWidth - 7
 		self.w.objectPicker.setPosSize(posSizeObjectPicker)
 
 		posSizeTextFilter = list(self.w.textFilter.getPosSize())
-		posSizeTextFilter[0] = third
+		posSizeTextFilter[0] = comboWidth
 		self.w.textFilter.setPosSize(posSizeTextFilter)
 
 		posSizeFilter = list(self.w.filter.getPosSize())
-		posSizeFilter[0] = third + 33
+		posSizeFilter[0] = comboWidth + 33
 		self.w.filter.setPosSize(posSizeFilter)
 
 	def copySelection(self, sender):
