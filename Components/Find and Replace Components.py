@@ -193,7 +193,37 @@ class FindReplaceComponents(mekkaObject):
 		return sorted(used | specials)
 
 	def refreshFindItems(self, sender=None):
-		self.w.findName.setItems(self.getFindItems())
+		thisFont = Glyphs.font
+		if thisFont and self.prefBool("selectedGlyphsOnly"):
+			# Collect only the glyphs currently selected in the font
+			seenIDs = {}
+			for layer in thisFont.selectedLayers:
+				glyph = layer.parent
+				if glyph and glyph.id not in seenIDs:
+					seenIDs[glyph.id] = glyph
+			selectedGlyphs = list(seenIDs.values())
+
+			# Count how often each component name appears across all layers
+			counts = {}
+			for glyph in selectedGlyphs:
+				for layer in glyph.layers:
+					for comp in layer.components:
+						name = comp.componentName
+						counts[name] = counts.get(name, 0) + 1
+					for hint in layer.hints:
+						name = getattr(hint, "name", None)
+						if name:
+							counts[name] = counts.get(name, 0) + 1
+
+			items = sorted(counts)
+			self.w.findName.setItems(items)
+			if items:
+				# Pick most frequent; alphabetically first on ties
+				best = max(items, key=lambda k: counts[k])
+				self.w.findName.set(best)
+				self.SavePreferences()
+		else:
+			self.w.findName.setItems(self.getFindItems())
 		self.updateUI()
 
 	def getReplaceItems(self, findName=None):
