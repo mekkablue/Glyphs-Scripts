@@ -53,9 +53,11 @@ else:
 	thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 	try:
 		folders = GetFolder(message="Choose one or more folders containing images.", allowsMultipleSelection=True)
-		for folder in folders:
-			for fileName in sorted(os.listdir(folder), key=lambda filename: sortName(filename)):
-				if isAnImage(fileName) and " " in fileName:
+		if folders:
+			for folder in folders:
+				for fileName in sorted(os.listdir(folder), key=lambda filename: sortName(filename)):
+					if not (isAnImage(fileName) and " " in fileName):
+						continue
 					glyphName, resolution = analyseFileName(fileName)
 					if resolution:
 						layerName = "iColor %i" % resolution
