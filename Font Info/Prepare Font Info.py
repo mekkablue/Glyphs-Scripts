@@ -136,10 +136,10 @@ class PrepareFontforGit(mekkaObject):
 						parameterName = optionKey[6].lower() + optionKey[7:]
 						self.setParameterForFont(thisFont, parameterName, remove=True)
 
-					# remove parameters:
-					for optionKey in [prefName for prefName in self.prefDict.keys() if prefName.startswith("disables")]:
-						setattr(thisFont, optionKey, not self.pref(optionKey))
-						print(f"{'✅' if self.pref(optionKey) else '🚫'} {optionKey.replace('disables', '')} (See Font Info > Other)")
+					# font attributes:
+					for optionKey in [prefName for prefName in self.prefDict.keys() if prefName.startswith("disables") and self.pref(prefName)]:
+						setattr(thisFont, optionKey, False)
+						print(f"✅ Turned off {optionKey.replace('disables', '')} (See Font Info > Other)")
 
 					# set file format:
 					if self.pref("fileFormat"):
