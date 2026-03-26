@@ -910,9 +910,12 @@ end tell
 		"""Close the frontmost InDesign document without saving."""
 		script = """
 tell application "%s"
-	repeat with myDoc in (every document whose name contains "Steal Kerning")
-		close myDoc saving no
-	end repeat
+	set docs to every document whose name contains "Steal Kerning"
+	if (count of docs) > 0 then
+		repeat with myDoc in docs
+			close myDoc saving no
+		end repeat
+	end if
 end tell
 true
 """ % indesign
