@@ -238,6 +238,7 @@ else:
 				print(f"\n🛠️ No ‘{parameterName}’ parameter in VF setting: reading STAT table and adding ‘Axis Values’ parameters")
 				STATtoParameter(font, variableFontExport)
 
-			thisFont.parent.windowController().showFontInfoWindowWithTabSelected_(2)
+	if variableFontSettings:
+		thisFont.parent.windowController().showFontInfoWindowWithTabSelected_(2)
 
 print("\n✅ Done.")
