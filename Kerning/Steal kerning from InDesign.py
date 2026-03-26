@@ -1099,8 +1099,8 @@ true
 			self._roundAndFilter(thisFont, master, roundBy, minimumKern)
 			if doCompressKerning:
 				self._compressKerning(thisFont, master)
-			if groupKerningOnly:
-				self._removeExceptions(thisFont, master)
+				if groupKerningOnly:
+					self._removeExceptions(thisFont, master)
 			advance()
 		print("  Post-processing done.\n")
 
