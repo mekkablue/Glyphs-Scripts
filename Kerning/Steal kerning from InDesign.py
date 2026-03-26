@@ -12,6 +12,7 @@ import re
 import subprocess
 import time
 import vanilla
+from copy import copy
 from mekkablue import mekkaObject, reportTimeInNaturalLanguage, UpdateButton
 from GlyphsApp import Glyphs
 
@@ -267,42 +268,47 @@ class StealKerningFromInDesign(mekkaObject):
 		"""
 		adobeFontsFolder = self._adobeFontsFolder()
 		exported = []
-
-		for master in masters:
-			styleName = self._sanitizeName(master.name) or ("Master%i" % masters.index(master))
+		
+		tempFont = copy(thisFont)
+		tempFont.instances = None
+		tempFont.familyName = "Kernstealer"
+		
+		for tempMaster in masters:
+			# create instance same as master
+			tempInstance = GSInstance()
+			tempInstance.setAxesValues_(tempMaster.axesValues())
+			tempInstance.name = tempMaster.name
+			tempFont.instances.append(tempInstance)
+			
+			# calculate file names and paths
+			fileName = tempInstance.fileName()
+			filePath = os.path.join(adobeFontsFolder, fileName) # including ".otf" suffix
+			if "." in fileName:
+				fileName = fileName[:fileName.rfind(".")]
+			tempInstance.customParameters["fileName"] = fileName # excluding ".otf" suffix
+			
+			styleName = self._sanitizeName(tempMaster.name) or ("Master%i" % masters.index(tempMaster))
 			fileName = "Kernstealer-%s.otf" % styleName.replace(" ", "")
 			filePath = os.path.join(adobeFontsFolder, fileName)
 
-			# Build a temporary single-master font copy
-			import copy
-			tempFont = thisFont.copy()
-			tempFont.familyName = "Kernstealer"
+			exported.append((tempMaster, filePath))
+		
+		# export optimized for speed:
+		fontOK = tempFont.export(
+			format="OTF",
+			instances=tempFont.instances,
+			fontPath=adobeFontsFolder,
+			autoHint=False,
+			removeOverlap=False, # reconsider this one, may have influence on the result
+			useSubroutines=False,
+			useProductionNames=True,
+			containers=["plain"],
+			)
 
-			# Keep only the matching master; set its name as the style
-			masterIdToKeep = master.id
-			# Find the matching master in the copy (same index)
-			masterIndex = list(thisFont.masters).index(master)
-			tempMaster = tempFont.masters[masterIndex]
-			tempMaster.name = styleName
-			tempMaster.customParameters["preferredSubfamilyName"] = styleName
-			tempMaster.customParameters["postscriptSlantAngle"] = 0
-
-			# Remove other masters
-			mastersToRemove = [m for m in tempFont.masters if m != tempMaster]
-			for m in mastersToRemove:
-				tempFont.masters.remove(m)
-
-			# Export as OTF
-			exportOptions = {
-				"ExportFormatKey": "OTF",
-				"ExportDestinationKey": adobeFontsFolder,
-				"AutoHintKey": False,
-				"RemoveOverlapsKey": True,
-			}
-			ok = tempFont.export(format="OTF", fontPath=filePath)
-			if ok:
+		for i, masterOK in enumerate(fontOK):
+			master, filePath = exported[i]
+			if masterOK:
 				print("\t✅ Exported: %s → %s" % (master.name, filePath))
-				exported.append((master, filePath))
 			else:
 				print("\t❌ Export failed for master: %s" % master.name)
 
@@ -373,17 +379,32 @@ true
 
 		# Step up by 1 pt until kern <= 0 — done in a single AppleScript repeat loop
 		scriptUp = """
+on convertPtStringToReal(ptString)
+	set oldTIDs to AppleScript's text item delimiters
+	try
+		set AppleScript's text item delimiters to " pt"
+		set theValue to (text item 1 of ptString) as real
+		set AppleScript's text item delimiters to oldTIDs
+		return theValue
+	on error errMsg number errNum
+		set AppleScript's text item delimiters to oldTIDs
+		error errMsg number errNum
+	end try
+end convertPtStringToReal
+
 tell application "%s"
 	tell front document
 		zoom first layout window given fit page
 		tell first text frame
 			tell parent story
+				set point size to 3.0
 				set kernVal to 10000
-				repeat while kernVal > 0
-					set point size to point size + 1
+				repeat while kernVal > 1
+					set point size to point size + 0.25
 					tell character 1 to set kernVal to kerning value of insertion point 2
 				end repeat
-				return (point size as string) & ";" & (kernVal as integer)
+				set roundedPointSize to round my convertPtStringToReal(point size as string) rounding up
+				return (roundedPointSize as string) & ";" & (kernVal as integer)
 			end tell
 		end tell
 	end tell
