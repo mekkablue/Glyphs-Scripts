@@ -347,13 +347,14 @@ InDesign as string
 tell application "%s"
 	set myDoc to make new document
 	tell myDoc
+		set name to "Steal Kerning"
 		tell document preferences
-			set page width to 1190.55
-			set page height to 841.89
+			set page width to 1200
+			set page height to 850
 			set pages per document to 1
 			set facing pages to false
 		end tell
-		set myFrame to make new text frame with properties {geometric bounds:{0, 0, 841.89, 1190.55}}
+		set myFrame to make new text frame with properties {geometric bounds:{0, 0, 850, 1200}}
 		set contents of myFrame to "%s"
 		tell parent story of myFrame
 			set point size to 3
@@ -909,9 +910,9 @@ end tell
 		"""Close the frontmost InDesign document without saving."""
 		script = """
 tell application "%s"
-	if (count documents) > 0 then
-		close front document saving no
-	end if
+	repeat with myDoc in (every document whose name contains "Steal Kerning")
+		close myDoc saving no
+	end repeat
 end tell
 true
 """ % indesign
@@ -1119,11 +1120,13 @@ true
 					n = self._importExceptionKerningForMaster(thisFont, master, indesign, minimumKern, roundBy)
 					print("\t☑️ Added %i exceptions for master ‘%s’." % (n, master.name))
 					advance()
+					
+					self._closeInDesignDoc(indesign)
 
 		# --- Step 5: cleanup ---
 		print("\nStep 5 – Cleanup…")
 		self.w.status.set("Cleaning up…")
-		self._closeInDesignDoc(indesign)
+		self._closeInDesignDoc(indesign) # just in case
 		self._deleteFonts(exportedMasters)
 		advance()
 
@@ -1137,7 +1140,7 @@ true
 		summary = "\n✅ %i kern pairs in %i %s. %s." % (finalPairCount, len(exportedMasters), masterWord, elapsed)
 		self.w.status.set(summary)
 		print(summary)
-		Glyphs.showNotification("Steal Kerning from InDesign", summary)
+		Glyphs.showNotification("Steal Kerning from InDesign", summary.replace("✅","").strip())
 
 
 StealKerningFromInDesign()
