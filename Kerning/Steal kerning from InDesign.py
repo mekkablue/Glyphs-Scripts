@@ -459,7 +459,7 @@ end tell
 			if kernVal >= 0:
 				break
 
-		print("\t☑️ Calibrated font size: %.1f pt (kern delta %.2f)" % (bestSize, bestAbsKern))
+		print("\t🔢 Calibrated font size: %.1f pt (kern delta %.2f)" % (bestSize, bestAbsKern))
 		return bestSize
 
 	# ------------------------------------------------------------------ step 3
@@ -566,7 +566,7 @@ end tell
 
 		# build the pair text string
 		pairText = " ".join("%s%s" % (l, r) for l, r in pairs)
-		print("\t☑️ %i pairs to measure." % len(pairs))
+		print("\t📏 %i pairs to measure." % len(pairs))
 		return pairText
 
 	def _setInDesignTextAndFont(self, indesign, pairText, styleName, calibSize):
@@ -831,6 +831,7 @@ end tell
 		"""
 		masterID = master.id
 		totalPromoted = 0
+		compressCount = 0
 		while True:
 			kerning = thisFont.kerning.get(masterID, {})
 			toPromote = []
@@ -855,6 +856,7 @@ end tell
 					# promote: set group-group if not already set or matching
 					if groupValue is None or groupValue > 100000:
 						thisFont.setKerningForPair(masterID, lKey, rKey, value)
+						compressCount += 1
 						toPromote.append((leftGlyph.name, rightGlyph.name))
 					elif groupValue == value:
 						toPromote.append((leftGlyph.name, rightGlyph.name))
@@ -864,7 +866,7 @@ end tell
 				thisFont.removeKerningForPair(masterID, leftName, rightName)
 			totalPromoted += len(toPromote)
 		if totalPromoted:
-			print("\t☑️ Compressed %i pairs to group kerning in master ‘%s’." % (totalPromoted, master.name))
+			print("\t☑️ Compressed %i pairs to %s group kernings in master ‘%s’." % (totalPromoted, compressCount, master.name))
 		return totalPromoted
 
 	def _removeExceptions(self, thisFont, master):
@@ -946,9 +948,9 @@ end tell
 		while elapsed <= timeoutSeconds:
 			result = self._runAppleScript(script)
 			if result == "yes":
-				print("  Temporary font ‘%s’ available in InDesign after %is.\n" % (familyName, elapsed))
+				print("\t👍 Temporary font ‘%s’ available in InDesign after %is." % (familyName, elapsed))
 				return True
-			print("  Waiting for font activation… (%is)" % elapsed)
+			print("\t⏱️ Waiting for font activation… (%is)" % elapsed)
 			time.sleep(interval)
 			elapsed += interval
 		return False
@@ -964,7 +966,7 @@ end tell
 
 		startTime = time.time()
 		Glyphs.clearLog()
-		print("Steal Kerning from InDesign\n")
+		print("Steal Kerning from InDesign")
 
 		# Determine which masters to process
 		if self.prefBool("allMasters"):
@@ -991,7 +993,7 @@ end tell
 		if not exportedMasters:
 			self.w.status.set("❌ Export failed.")
 			return
-		print("  Exported %i master(s).\n" % len(exportedMasters))
+		print(f"\t📥 Exported {len(exportedMasters)} master{'s' if len(exportedMasters)!=1 else ''}.")
 		for _ in exportedMasters:
 			advance()
 
@@ -1013,7 +1015,7 @@ end tell
 		# --- Step 2: InDesign doc + calibration (per master) ---
 		self.w.status.set("Creating InDesign document…")
 		print("\nStep 2 – Creating InDesign document and calibrating font size…")
-		print("  Using: %s" % indesign)
+		print("\t👩🏼‍💻 Using: %s" % indesign)
 
 		# calibrationSizes maps master → calibrated pt size
 		calibrationSizes = {}
@@ -1026,7 +1028,7 @@ end tell
 				continue
 			calibSize = self._calibrateFontSize(indesign, styleName)
 			calibrationSizes[master.id] = (styleName, calibSize)
-			print("\t↔️ Master ‘%s’ → %.1f pt\n" % (master.name, calibSize))
+			print("\t↔️ Master ‘%s’ → %.1f pt" % (master.name, calibSize))
 			advance()
 
 		# --- Step 3: build pair text and fill InDesign text frame ---
@@ -1086,7 +1088,7 @@ true
 			n = self._importKerningForMaster(thisFont, master, indesign, minimumKern)
 			totalImported += n
 			advance()
-		print("  Total raw pairs imported: %i\n" % totalImported)
+		print("  Total raw pairs imported: %i" % totalImported)
 
 		# --- Step 5: round, filter, compress, remove exceptions ---
 		print("\nStep 5 – Post-processing kern pairs…")
@@ -1105,11 +1107,12 @@ true
 				if groupKerningOnly:
 					self._removeExceptions(thisFont, master)
 			advance()
-		print("  Post-processing done.\n")
 
 		# --- Step 6: exception kerning (optional) ---
-		if doExceptions:
-			print("\nStep 6 – Adding exception kerning for diacritic pairs…")
+		print("\nStep 6 – Adding exception kerning for diacritic pairs…")
+		if not doExceptions:
+			print("\t⏭️ Skipped.")
+		else:
 			exPairs = self._buildExceptionPairText(thisFont)
 			if exPairs:
 				exPairText = " ".join("%s%s" % (l, r) for l, r in exPairs)
@@ -1132,7 +1135,6 @@ true
 		self.w.status.set("Cleaning up…")
 		self._closeInDesignDoc(indesign)
 		self._deleteFonts(exportedMasters)
-		print("  Cleanup done.\n")
 		advance()
 
 		# Final count of kern pairs across all processed masters
@@ -1142,7 +1144,7 @@ true
 		)
 		masterWord = "master" if len(exportedMasters) == 1 else "masters"
 		elapsed = reportTimeInNaturalLanguage(time.time() - startTime)
-		summary = "✅ %i kernings in %i %s. %s." % (finalPairCount, len(exportedMasters), masterWord, elapsed)
+		summary = "\n✅ %i kern pairs in %i %s. %s." % (finalPairCount, len(exportedMasters), masterWord, elapsed)
 		self.w.status.set(summary)
 		print(summary)
 		Glyphs.showNotification("Steal Kerning from InDesign", summary)
