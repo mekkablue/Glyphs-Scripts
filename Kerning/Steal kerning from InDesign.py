@@ -566,7 +566,7 @@ end tell
 
 		# build the pair text string
 		pairText = " ".join("%s%s" % (l, r) for l, r in pairs)
-		print("\t\t📏 %i pairs to measure." % len(pairs))
+		print("\t📏 Found %i pairs to measure." % len(pairs))
 		return pairText
 
 	def _setInDesignTextAndFont(self, indesign, pairText, styleName, calibSize):
@@ -726,7 +726,7 @@ end tell
 				continue
 			thisFont.setKerningForPair(masterID, leftName, rightName, kernValue)
 			count += 1
-		print("\t\t↔️ Imported %i raw kern pairs for master ‘%s’." % (count, master.name))
+		print("\t↔️ Imported %i raw kern pairs for master ‘%s’." % (count, master.name))
 		return count
 
 	def _importExceptionKerningForMaster(self, thisFont, master, indesign, minimumKern=0, roundBy=0):
@@ -779,8 +779,8 @@ end tell
 				continue
 			thisFont.setKerningForPair(masterID, leftName, rightName, kernValue)
 			count += 1
-		print("\t\t↔️ Imported %i exception kern pairs for master ‘%s’." % (count, master.name))
-		print("\t\t   (raw: %i | zero/rounded-to-zero: %i | unresolved name: %i | glyph not in font: %i | delta < %g: %i)" % (
+		print("\t↔️ Imported %i exception kern pairs for master ‘%s’." % (count, master.name))
+		print("\t   (raw: %i | zero/rounded-to-zero: %i | unresolved name: %i | glyph not in font: %i | delta < %g: %i)" % (
 			totalRaw, droppedZero, droppedName, droppedGlyph, deltaThreshold, droppedDelta))
 		return count
 
@@ -900,7 +900,7 @@ end tell
 			leftName = leftID if leftID.startswith("@") else thisFont.glyphForId_(leftID).name
 			rightName = rightID if rightID.startswith("@") else thisFont.glyphForId_(rightID).name
 			thisFont.removeKerningForPair(masterID, leftName, rightName)
-		print("\t\t🗑 Deleted %i existing kern pairs for master ‘%s’." % (len(removals), master.name))
+		print("\t🗑 Deleted %i existing kern pairs for master ‘%s’." % (len(removals), master.name))
 		return len(removals)
 
 	# ------------------------------------------------------------------ step 6
@@ -1014,7 +1014,7 @@ end tell
 
 		# --- Step 2: InDesign doc + kern readout (per master) ---
 		self.w.status.set("Creating InDesign document…")
-		print("\nStep 2 – Creating InDesign document and reading kerning…")
+		print("\nStep 2 – Reading kerning from InDesign…")
 		print("\t👩🏼‍💻 Using: %s" % indesign)
 
 		# calibrationSizes maps master → calibrated pt size
@@ -1027,44 +1027,25 @@ end tell
 				print("\t❌ Could not create InDesign document for master ‘%s’." % master.name)
 				continue
 			calibSize = self._calibrateFontSize(indesign, styleName)
-			calibrationSizes[master.id] = (styleName, calibSize)
-			print("\t↔️ Master ‘%s’ calibrated at %.1f pt" % (master.name, calibSize))
+			print("\n\t↔️ Master ‘%s’ calibrated at %.1f pt" % (master.name, calibSize))
+			calibrationSizes[master.name] = calibSize
 			advance()
 
-			print("\t\t💬 Filling InDesign text frame for master ‘%s’." % master.name)
+			if self.prefBool("deleteExistingKerning"):
+				self._deleteAllKerningForMaster(thisFont, master)
+
+			print("\t💬 Preparing pairings for master ‘%s’..." % master.name)
 			pairText = self._buildPairText(thisFont)
 			if not pairText:
 				self.w.status.set("⚠️ No pairs to kern.")
 				return
 
-			# pairText is the same for all masters; only font/size changes per master
-			# Store calibration data for use in step 4
-			masterCalibData = calibrationSizes  # {masterId: (styleName, calibSize)}
-
-			if master.id not in masterCalibData:
-				continue
-			styleName, calibSize = masterCalibData[master.id]
 			self.w.status.set("Filling frame ‘%s’…" % master.name)
-			# Re-create the InDesign document for this master (step 2 left one open;
-			# close it and open a fresh one for the pair text)
-			closeScript = """
-tell application "%s"
-	if (count documents) > 0 then
-		close front document saving no
-	end if
-end tell
-true
-""" % indesign
-			# self._runAppleScript(closeScript)
-			# ok = self._createInDesignDoc(indesign, "Kernstealer", styleName)
-			# if not ok:
-			# 	print("\t❌ Could not re-create InDesign document for master ‘%s’." % master.name)
-			# 	continue
 			ok = self._setInDesignTextAndFont(indesign, pairText, styleName, calibSize)
 			if ok:
-				print("\t\t✅ Text frame filled for master ‘%s’." % master.name)
+				print("\t✅ Text frame filled for master ‘%s’." % master.name)
 			else:
-				print("\t\t❌ Failed to fill text frame for master ‘%s’." % master.name)
+				print("\t❌ Failed to fill text frame for master ‘%s’." % master.name)
 			advance()
 
 			# Read minimumKern now so it can be passed into the AppleScript read step
@@ -1075,16 +1056,24 @@ true
 
 			pairCount = len(pairText.split())
 			totalImported = 0
-			for master, filePath in exportedMasters:
-				if master.id not in masterCalibData:
-					continue
-				self.w.status.set("Reading %i kern pairs, may take a while…" % pairCount)
-				if self.prefBool("deleteExistingKerning"):
-					self._deleteAllKerningForMaster(thisFont, master)
-				n = self._importKerningForMaster(thisFont, master, indesign, minimumKern)
-				totalImported += n
-				advance()
-			print("\t\t📈 Total raw pairs imported: %i" % totalImported)
+
+			self.w.status.set("Reading %i kern pairs, may take a while…" % pairCount)
+			n = self._importKerningForMaster(thisFont, master, indesign, minimumKern)
+			totalImported += n
+			advance()
+
+			# close InD document
+			closeScript = """
+tell application "%s"
+	if (count documents) > 0 then
+		close front document saving no
+	end if
+end tell
+true
+""" % indesign
+			self._runAppleScript(closeScript)
+
+			print("\t📈 Total raw pairs imported: %i" % totalImported)
 
 		# --- Step 3: round, filter, compress, remove exceptions ---
 		print("\nStep 3 – Post-processing kern pairs…")
@@ -1113,17 +1102,22 @@ true
 			if exPairs:
 				exPairText = " ".join("%s%s" % (l, r) for l, r in exPairs)
 				for master, filePath in exportedMasters:
-					if master.id not in masterCalibData:
+					if master.name not in calibrationSizes.keys():
 						continue
-					styleName, calibSize = masterCalibData[master.id]
+					styleName, calibSize = master.name, calibrationSizes[master.name]
 					self.w.status.set("Exception pairs for ‘%s’…" % master.name)
+
+					ok = self._createInDesignDoc(indesign, "Kernstealer", styleName)
+					if not ok:
+						print("\t❌ Could not create InDesign document for master ‘%s’." % master.name)
+						continue
 					ok = self._setInDesignTextAndFont(indesign, exPairText, styleName, calibSize)
 					if not ok:
 						print("\t❌ Failed to fill exception frame for master ‘%s’." % master.name)
 						advance()
 						continue
 					n = self._importExceptionKerningForMaster(thisFont, master, indesign, minimumKern, roundBy)
-					print("\t☑️ Exception pass done for master ‘%s’." % master.name)
+					print("\t☑️ Added %i exceptions for master ‘%s’." % (n, master.name))
 					advance()
 
 		# --- Step 5: cleanup ---
