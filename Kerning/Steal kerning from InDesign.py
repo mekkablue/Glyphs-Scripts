@@ -468,7 +468,8 @@ end tell
 	def _glyphsForCategory(self, thisFont, category, subcategory=None):
 		"""
 		Return exporting GSGlyph objects matching category (and optional subcategory).
-		Skips glyphs with no Unicode and glyphs made of 2+ components (can't be typed reliably).
+		Skips glyphs with no Unicode, empty glyphs (no shapes in any master layer),
+		and glyphs made of 2+ components (can't be typed reliably).
 		"""
 		result = []
 		for glyph in thisFont.glyphs:
@@ -481,6 +482,15 @@ end tell
 			if glyph.category != category:
 				continue
 			if subcategory and glyph.subCategory != subcategory:
+				continue
+			# skip glyphs that are empty in every master layer
+			isEmpty = True
+			for master in thisFont.masters:
+				layer = glyph.layers[master.id]
+				if layer and len(layer.shapes) > 0:
+					isEmpty = False
+					break
+			if isEmpty:
 				continue
 			# skip glyphs that are purely composite (2+ components, no contours)
 			# exception: i and j are allowed even if built from components
