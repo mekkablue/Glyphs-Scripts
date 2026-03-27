@@ -505,6 +505,55 @@ end tell
 				result.append(glyph.charString())
 		return result
 
+	def _pickRepresentatives(self, thisFont, charStrings, groupAttr):
+		"""
+		Reduce charStrings to one representative per kerning group (groupAttr is
+		'rightKerningGroup' for glyphs used on the left side of a pair, or
+		'leftKerningGroup' for glyphs used on the right side).
+		Glyphs with no kerning group are kept individually.
+		Within a group, preference order:
+		  1. in _PREFER_CHARS and symmetric (leftKerningGroup == rightKerningGroup)
+		  2. in _PREFER_CHARS
+		  3. symmetric
+		  4. first in list
+		"""
+		charToGlyph = {}
+		for cs in charStrings:
+			if len(cs) != 1:
+				continue
+			info = Glyphs.glyphInfoForUnicode("%.4X" % ord(cs))
+			if info:
+				glyph = thisFont.glyphs[info.name]
+				if glyph:
+					charToGlyph[cs] = glyph
+
+		groups = {}
+		ungrouped = []
+		for cs in charStrings:
+			glyph = charToGlyph.get(cs)
+			groupName = getattr(glyph, groupAttr, None) if glyph else None
+			if not groupName:
+				ungrouped.append(cs)
+			else:
+				groups.setdefault(groupName, []).append(cs)
+
+		def score(cs):
+			g = charToGlyph.get(cs)
+			inPrefer = cs in self._PREFER_CHARS
+			symmetric = bool(g and g.leftKerningGroup and g.leftKerningGroup == g.rightKerningGroup)
+			if inPrefer and symmetric:
+				return 0
+			if inPrefer:
+				return 1
+			if symmetric:
+				return 2
+			return 3
+
+		result = list(ungrouped)
+		for members in groups.values():
+			result.append(min(members, key=score))
+		return result
+
 	def _buildPairText(self, thisFont):
 		"""
 		Build a string of all requested pair combinations as '/glyphname/glyphname ' sequences.
@@ -526,6 +575,29 @@ end tell
 		figures = self._glyphsForCategory(thisFont, "Number", "Decimal Digit") if needFigures else []
 		punctuation = self._glyphsForCategory(thisFont, "Punctuation") if needPunctuation else []
 
+		# When compress kerning is on, reduce each list to one representative per
+		# kerning group — separately for the left-side role (rightKerningGroup) and
+		# the right-side role (leftKerningGroup).
+		doCompress = self.prefBool("compressKerning")
+		if doCompress:
+			lettersLeft = self._pickRepresentatives(thisFont, letters, "rightKerningGroup")
+			lettersRight = self._pickRepresentatives(thisFont, letters, "leftKerningGroup")
+			figuresLeft = self._pickRepresentatives(thisFont, figures, "rightKerningGroup")
+			figuresRight = self._pickRepresentatives(thisFont, figures, "leftKerningGroup")
+			punctuationLeft = self._pickRepresentatives(thisFont, punctuation, "rightKerningGroup")
+			punctuationRight = self._pickRepresentatives(thisFont, punctuation, "leftKerningGroup")
+			print(
+				"\t📐 Group representatives: letters %i→%i/%i, figures %i→%i/%i, punctuation %i→%i/%i (left/right)." % (
+					len(letters), len(lettersLeft), len(lettersRight),
+					len(figures), len(figuresLeft), len(figuresRight),
+					len(punctuation), len(punctuationLeft), len(punctuationRight),
+				)
+			)
+		else:
+			lettersLeft = lettersRight = letters
+			figuresLeft = figuresRight = figures
+			punctuationLeft = punctuationRight = punctuation
+
 		# collect unique pairs as (leftName, rightName)
 		pairs = []
 		seen = set()
@@ -537,42 +609,42 @@ end tell
 				pairs.append(key)
 
 		if doLetterToLetter:
-			for L in letters:
-				for R in letters:
+			for L in lettersLeft:
+				for R in lettersRight:
 					addPair(L, R)
 
 		if doFigureToFigure:
-			for L in figures:
-				for R in figures:
+			for L in figuresLeft:
+				for R in figuresRight:
 					addPair(L, R)
 
 		if doLetterToFigure:
-			for L in letters:
-				for R in figures:
+			for L in lettersLeft:
+				for R in figuresRight:
 					addPair(L, R)
-			for L in figures:
-				for R in letters:
+			for L in figuresLeft:
+				for R in lettersRight:
 					addPair(L, R)
 
 		if doLetterWithPunctuation:
-			for L in letters:
-				for R in punctuation:
+			for L in lettersLeft:
+				for R in punctuationRight:
 					addPair(L, R)
-			for L in punctuation:
-				for R in letters:
+			for L in punctuationLeft:
+				for R in lettersRight:
 					addPair(L, R)
 
 		if doFigureWithPunctuation:
-			for L in figures:
-				for R in punctuation:
+			for L in figuresLeft:
+				for R in punctuationRight:
 					addPair(L, R)
-			for L in punctuation:
-				for R in figures:
+			for L in punctuationLeft:
+				for R in figuresRight:
 					addPair(L, R)
 
 		if doPunctuationWithItself:
-			for L in punctuation:
-				for R in punctuation:
+			for L in punctuationLeft:
+				for R in punctuationRight:
 					addPair(L, R)
 
 		# build the pair text string
@@ -604,6 +676,10 @@ true
 		return bool(self._runAppleScript(script))
 
 	# ------------------------------------------------------------------ step 4
+
+	# Preferred representatives when reducing glyph lists to one per kerning group.
+	# Symmetric glyphs (same left and right group) from this list are preferred first.
+	_PREFER_CHARS = frozenset("AHIMNOTUVWXYlovwx08.:!*+")
 
 	# Character descriptions InDesign sometimes returns instead of the literal char
 	_REPLACEMENTS = {
