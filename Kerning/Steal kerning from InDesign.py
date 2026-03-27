@@ -711,6 +711,8 @@ true
 		return None
 
 	def _cleanText(self, text):
+		# Decode InDesign's <XXXX> hex-encoded characters (e.g. <0387> → ·)
+		text = re.sub(r"<([0-9A-Fa-f]{4})>", lambda m: chr(int(m.group(1), 16)), text)
 		for searchFor, replaceWith in self._REPLACEMENTS.items():
 			text = text.replace(searchFor, replaceWith)
 		return text
@@ -752,7 +754,6 @@ tell application "%s"
 end tell
 """ % (indesign, minimumKern)
 		raw = self._runAppleScript(script)
-		print("\t🐛 raw AppleScript output (%i chars): %r" % (len(raw) if raw else 0, (raw or "")[:300]))
 		if not raw:
 			return []
 		return self._parseKernPairs(raw)
@@ -762,15 +763,15 @@ end tell
 		Parse the -#- delimited string from _readKernValuesFromInDesign into a list of
 		(leftChar, rightChar, kernValue) tuples.  Each triple is char-#-char-#-value-#-.
 		Applies _cleanText to resolve InDesign's descriptive names for special characters.
+		Handles locale decimal comma (e.g. -58,0 → -58.0).
 		"""
 		items = output.split("-#-")
-		print("\t🐛 split into %i items, first 9: %r" % (len(items), items[:9]))
 		pairs = []
 		for i in range(0, len(items) - 2, 3):
 			char1 = self._cleanText(items[i].strip())
 			char2 = self._cleanText(items[i + 1].strip())
 			try:
-				kernVal = float(items[i + 2].strip())
+				kernVal = float(items[i + 2].strip().replace(",", "."))
 			except ValueError:
 				kernVal = 0.0
 			pairs.append((char1, char2, kernVal))
