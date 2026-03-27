@@ -554,6 +554,16 @@ end tell
 			result.append(min(members, key=score))
 		return result
 
+	def _glyphScript(self, thisFont, cs):
+		"""Return glyph.script for a single-char string, or 'other' if unknown."""
+		if len(cs) != 1:
+			return "other"
+		info = Glyphs.glyphInfoForUnicode("%.4X" % ord(cs))
+		if not info:
+			return "other"
+		glyph = thisFont.glyphs[info.name]
+		return (glyph.script or "other") if glyph else "other"
+
 	def _buildPairText(self, thisFont):
 		"""
 		Build a string of all requested pair combinations as '/glyphname/glyphname ' sequences.
@@ -610,9 +620,17 @@ end tell
 				pairs.append(key)
 
 		if doLetterToLetter:
-			for L in lettersLeft:
-				for R in lettersRight:
-					addPair(L, R)
+			# Only pair letters within the same writing system
+			leftByScript = {}
+			rightByScript = {}
+			for cs in lettersLeft:
+				leftByScript.setdefault(self._glyphScript(thisFont, cs), []).append(cs)
+			for cs in lettersRight:
+				rightByScript.setdefault(self._glyphScript(thisFont, cs), []).append(cs)
+			for script, leftChars in leftByScript.items():
+				for L in leftChars:
+					for R in rightByScript.get(script, []):
+						addPair(L, R)
 
 		if doFigureToFigure:
 			for L in figuresLeft:
@@ -680,7 +698,12 @@ true
 
 	# Preferred representatives when reducing glyph lists to one per kerning group.
 	# Symmetric glyphs (same left and right group) from this list are preferred first.
-	_PREFER_CHARS = frozenset("AHIMNOTUVWXYlovwx08.:!*+")
+	_PREFER_CHARS = frozenset(
+		"AHIMNOTUVWXYlovwx08.:!*+"  # Latin
+		"ΑΔΗΘΙΛΜΝΞΟΠΤΥΦΧΨΩθοφω·"  # Greek
+		"АЖИМНОПТФХШІимноптфхші"   # Cyrillic
+		"ᲑᲘᲝᲢთიოტᲶᲾᲿჾჿ"           # Georgian
+	)
 
 	# Character descriptions InDesign sometimes returns instead of the literal char
 	_REPLACEMENTS = {
@@ -810,7 +833,9 @@ end tell
 		Returns the number of exception pairs stored.
 		"""
 		masterID = master.id
-		deltaThreshold = min(minimumKern, roundBy) if roundBy > 0 else minimumKern
+		# Delta threshold: max(min(roundBy, minimumKern), 5) — at least 5u difference
+		# required before an exception is worth storing.
+		deltaThreshold = max(min(roundBy, minimumKern) if roundBy > 0 else minimumKern, 5)
 		# No AppleScript pre-filter: we need raw values to compare against group kern
 		kernPairs = self._readKernValuesFromInDesign(indesign, 0)
 		totalRaw = len(kernPairs)
@@ -848,7 +873,10 @@ end tell
 			if abs(kernValue - groupValue) < deltaThreshold:
 				droppedDelta += 1
 				continue
-			thisFont.setKerningForPair(masterID, leftName, rightName, kernValue)
+			# Use group-glyph pair if the left glyph has a right kerning group,
+			# otherwise fall back to glyph-glyph.
+			leftKey = ("@MMK_L_%s" % lGroup) if lGroup else leftName
+			thisFont.setKerningForPair(masterID, leftKey, rightName, kernValue)
 			count += 1
 		print("\t↔️ Imported %i exception kern pairs for master ‘%s’." % (count, master.name))
 		print("\t   (raw: %i | zero/rounded-to-zero: %i | unresolved name: %i | glyph not in font: %i | delta < %g: %i)" % (
