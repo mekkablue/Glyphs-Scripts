@@ -692,6 +692,8 @@ true
 		"Em dash": "\u2014",
 		"En dash": "\u2013",
 		"nonbreaking space": "\u00a0",
+		"paragraph symbol": "\u00b6",
+		"registered trademark": "\u00ae",
 		"section symbol": "\u00a7",
 		"single left quote": "\u2018",
 		"single right quote": "\u2019",
@@ -731,20 +733,20 @@ tell application "%s"
 		zoom first layout window given fit page
 		tell parent story of first text frame
 			set numChars to count of characters
-			set kernPairs to {}
+			set kernOut to ""
 			repeat with x from 1 to (numChars - 1)
 				try
-					set charX to character x
-					set charNext to character (x + 1)
-					if (charX & charNext) does not contain " " then
+					set charX to (character x) as string
+					set charNext to (character (x + 1)) as string
+					if charX is not " " and charNext is not " " then
 						set kernValue to kerning value of insertion point 2 of character x
 						if my absValue(kernValue) >= %s then
-							set end of kernPairs to {charX, charNext, kernValue}
+							set kernOut to kernOut & charX & "-#-" & charNext & "-#-" & (kernValue as string) & "-#-"
 						end if
 					end if
 				end try
 			end repeat
-			return kernPairs
+			return kernOut
 		end tell
 	end tell
 end tell
@@ -756,39 +758,17 @@ end tell
 
 	def _parseKernPairs(self, output):
 		"""
-		Parse osascript's AppleScript list output into a list of (leftChar, rightChar, kernValue) tuples.
-		Handles two formats returned by InDesign depending on context:
-		  Nested: {{A, B, -1.0}, {T, A, -50.0}, …}
-		  Flat:   A, B, -1.0, T, A, -50.0, …
-		Applies _cleanText to handle InDesign's descriptive names for special characters.
+		Parse the -#- delimited string from _readKernValuesFromInDesign into a list of
+		(leftChar, rightChar, kernValue) tuples.  Each triple is char-#-char-#-value-#-.
+		Applies _cleanText to resolve InDesign's descriptive names for special characters.
 		"""
-		text = output.strip()
-		if text.startswith("{") and text.endswith("}"):
-			text = text[1:-1]
+		items = output.split("-#-")
 		pairs = []
-		# Try nested format first: inner {char, char, value} triples
-		triples = re.findall(r"\{([^{}]+)\}", text)
-		if triples:
-			for triple in triples:
-				parts = [p.strip() for p in triple.split(",")]
-				if len(parts) != 3:
-					continue
-				char1, char2, kernStr = parts
-				char1 = self._cleanText(char1.strip('"'))
-				char2 = self._cleanText(char2.strip('"'))
-				try:
-					kernVal = float(kernStr)
-				except ValueError:
-					kernVal = 0.0
-				pairs.append((char1, char2, kernVal))
-			return pairs
-		# Flat format: char, char, value, char, char, value, …
-		items = [p.strip() for p in text.split(",")]
 		for i in range(0, len(items) - 2, 3):
-			char1 = self._cleanText(items[i].strip('"'))
-			char2 = self._cleanText(items[i + 1].strip('"'))
+			char1 = self._cleanText(items[i].strip())
+			char2 = self._cleanText(items[i + 1].strip())
 			try:
-				kernVal = float(items[i + 2])
+				kernVal = float(items[i + 2].strip())
 			except ValueError:
 				kernVal = 0.0
 			pairs.append((char1, char2, kernVal))
