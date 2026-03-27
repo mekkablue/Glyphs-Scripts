@@ -752,6 +752,7 @@ tell application "%s"
 end tell
 """ % (indesign, minimumKern)
 		raw = self._runAppleScript(script)
+		print("\t🐛 raw AppleScript output (%i chars): %r" % (len(raw) if raw else 0, (raw or "")[:300]))
 		if not raw:
 			return []
 		return self._parseKernPairs(raw)
@@ -763,6 +764,7 @@ end tell
 		Applies _cleanText to resolve InDesign's descriptive names for special characters.
 		"""
 		items = output.split("-#-")
+		print("\t🐛 split into %i items, first 9: %r" % (len(items), items[:9]))
 		pairs = []
 		for i in range(0, len(items) - 2, 3):
 			char1 = self._cleanText(items[i].strip())
