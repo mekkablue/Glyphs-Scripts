@@ -588,7 +588,7 @@ end tell
 			punctuationLeft = self._pickRepresentatives(thisFont, punctuation, "rightKerningGroup")
 			punctuationRight = self._pickRepresentatives(thisFont, punctuation, "leftKerningGroup")
 			print(
-				"\t📐 Group representatives: letters %i→%i/%i, figures %i→%i/%i, punctuation %i→%i/%i (left/right)." % (
+				"\t📐 Grouping: letters %i→%i/%i, figures %i→%i/%i, punctuation %i→%i/%i (L/R)." % (
 					len(letters), len(lettersLeft), len(lettersRight),
 					len(figures), len(figuresLeft), len(figuresRight),
 					len(punctuation), len(punctuationLeft), len(punctuationRight),
