@@ -55,7 +55,7 @@ class StealKerningFromInDesign(mekkaObject):
 		# No-kern pair + Min kern + Round by — all on one row
 		self.w.zeroPairLabel = vanilla.TextBox((inset, linePos + 3, 84, 14), "No-kern pair:", sizeStyle="small")
 		self.w.zeroPair = vanilla.EditText((inset + 84, linePos, 40, 19), "HH", callback=self.SavePreferences, sizeStyle="small")
-		self.w.zeroPair.setToolTip("A pair of glyphs that should have zero optical kerning (i.e., the reference pair used to calibrate the font size for measurement).")
+		self.w.zeroPair.setToolTip("A pair of glyphs that should have zero optical kerning (i.e., the reference pair used to calibrate the font size for measurement). Alternatively, enter a 3+ digit number (e.g. 009 for 9 pt, 100 for 100 pt) to use as a fixed font size and skip calibration entirely.")
 		self.w.minimumKernLabel = vanilla.TextBox((inset + 136, linePos + 3, 57, 14), "Min kern:", sizeStyle="small")
 		self.w.minimumKern = vanilla.EditText((inset + 193, linePos, 40, 19), "10", callback=self.SavePreferences, sizeStyle="small")
 		self.w.minimumKern.setToolTip("Discard imported kern pairs whose absolute value is smaller than this threshold.")
@@ -1021,6 +1021,14 @@ end tell
 		print("\nStep 2 – Reading kerning from InDesign…")
 		print("\t👩🏼‍💻 Using: %s" % indesign)
 
+		# If zeroPair is a 3+ digit all-digit string, treat it as a fixed font size
+		# and skip calibration (e.g. "009" → 9 pt, "100" → 100 pt).
+		zeroPair = self.pref("zeroPair") or "HH"
+		fixedFontSize = None
+		if len(zeroPair) >= 3 and zeroPair.isdigit():
+			fixedFontSize = float(int(zeroPair))
+			print("\t📐 Fixed font size: %g pt (calibration skipped)." % fixedFontSize)
+
 		# calibrationSizes maps master → calibrated pt size
 		calibrationSizes = {}
 		for master, filePath in exportedMasters:
@@ -1030,8 +1038,12 @@ end tell
 			if not ok:
 				print("\t❌ Could not create InDesign document for master ‘%s’." % master.name)
 				continue
-			calibSize = self._calibrateFontSize(indesign, styleName)
-			print("\n\t↔️ Master ‘%s’ calibrated at %.1f pt" % (master.name, calibSize))
+			if fixedFontSize is not None:
+				calibSize = fixedFontSize
+				print("\n\t↔️ Master ‘%s’: using fixed font size %g pt." % (master.name, calibSize))
+			else:
+				calibSize = self._calibrateFontSize(indesign, styleName)
+				print("\n\t↔️ Master ‘%s’ calibrated at %.1f pt" % (master.name, calibSize))
 			calibrationSizes[master.name] = calibSize
 			advance()
 
