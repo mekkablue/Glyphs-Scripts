@@ -163,7 +163,7 @@ class FindReplaceComponents(mekkaObject):
 			return
 
 		isCorner = findName.startswith("_corner.")
-		isEmpty = replaceName.strip() == ""
+		isEmpty = not replaceName or replaceName.strip() == ""
 
 		# Angle filter only makes sense for _corner.*
 		self.w.useAngleFilter.enable(isCorner)
