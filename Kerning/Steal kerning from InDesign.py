@@ -574,6 +574,7 @@ end tell
 		letters = self._glyphsForCategory(thisFont, "Letter") if needLetters else []
 		figures = self._glyphsForCategory(thisFont, "Number", "Decimal Digit") if needFigures else []
 		punctuation = self._glyphsForCategory(thisFont, "Punctuation") if needPunctuation else []
+		print("\t📊 Glyph counts: %i letters, %i figures, %i punctuation." % (len(letters), len(figures), len(punctuation)))
 
 		# When compress kerning is on, reduce each list to one representative per
 		# kerning group — separately for the left-side role (rightKerningGroup) and
