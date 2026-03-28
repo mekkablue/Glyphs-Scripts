@@ -825,17 +825,25 @@ end tell
 
 	def _importExceptionKerningForMaster(self, thisFont, master, indesign, minimumKern=0, roundBy=0):
 		"""
-		Read kern values from InDesign and store them as glyph-level exception pairs.
-		No compression is applied. A pair is only kept if its rounded value differs
-		from the existing group-to-group kerning by at least min(minimumKern, roundBy)
-		(or minimumKern when roundBy == 0).
-		If no group kerning exists for a pair, the effective group value is treated as 0.
+		Read kern values from InDesign and store them as group-glyph (or glyph-glyph)
+		exception pairs.  A pair is only kept if its rounded value differs from the
+		existing group-to-group kerning by at least max(min(roundBy, minimumKern), 8 + roundBy/2).
+		Group-group pairs that existed before this call are explicitly restored afterwards,
+		in case setKerningForPair accidentally resolved a glyph name to its group key.
 		Returns the number of exception pairs stored.
 		"""
 		masterID = master.id
-		# Delta threshold: max(min(roundBy, minimumKern), 5) — at least 5u difference
-		# required before an exception is worth storing.
-		deltaThreshold = max(min(roundBy, minimumKern) if roundBy > 0 else minimumKern, 5)
+		# Delta threshold: the exception must differ from group-group by at least this much.
+		deltaThreshold = max(min(roundBy, minimumKern), 8 + roundBy / 2)
+
+		# Snapshot all group-group pairs so we can restore any that get overwritten.
+		savedGroupGroup = {}
+		for leftID, rightDict in (thisFont.kerning.get(masterID) or {}).items():
+			if leftID.startswith("@"):
+				for rightID, val in rightDict.items():
+					if rightID.startswith("@"):
+						savedGroupGroup[(leftID, rightID)] = val
+
 		# No AppleScript pre-filter: we need raw values to compare against group kern
 		kernPairs = self._readKernValuesFromInDesign(indesign, 0)
 		totalRaw = len(kernPairs)
@@ -878,6 +886,18 @@ end tell
 			leftKey = ("@MMK_L_%s" % lGroup) if lGroup else leftName
 			thisFont.setKerningForPair(masterID, leftKey, rightName, kernValue)
 			count += 1
+
+		# Restore any group-group pairs that setKerningForPair may have overwritten
+		# (e.g. when Glyphs resolves a glyph name to its kerning group key).
+		restoredCount = 0
+		currentKerning = thisFont.kerning.get(masterID) or {}
+		for (leftID, rightID), val in savedGroupGroup.items():
+			if currentKerning.get(leftID, {}).get(rightID) != val:
+				thisFont.setKerningForPair(masterID, leftID, rightID, val)
+				restoredCount += 1
+		if restoredCount:
+			print("\t♻️ Restored %i group-group pairs overwritten during exception import." % restoredCount)
+
 		print("\t↔️ Imported %i exception kern pairs for master ‘%s’." % (count, master.name))
 		print("\t   (raw: %i | zero/rounded-to-zero: %i | unresolved name: %i | glyph not in font: %i | delta < %g: %i)" % (
 			totalRaw, droppedZero, droppedName, droppedGlyph, deltaThreshold, droppedDelta))
