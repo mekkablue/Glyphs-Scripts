@@ -119,7 +119,7 @@ class StealKerningFromInDesign(mekkaObject):
 
 		# Progress bar + Status + Run button
 		self.w.progressBar = vanilla.ProgressBar((inset, -42 - inset, -inset, 16))
-		self.w.status = vanilla.TextBox((inset, -18 - inset, -80 - inset, 14), "Ready.", sizeStyle="small", selectable=True)
+		self.w.status = vanilla.TextBox((inset, -18 - inset, -80 - inset, 14), "💬 Ready. See tooltips for help.", sizeStyle="small", selectable=True)
 		self.w.runButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "Kern", callback=self.run)
 		self.w.setDefaultButton(self.w.runButton)
 
@@ -1137,7 +1137,7 @@ end tell
 		self.w.progressBar.set(0)
 
 		# --- Step 1: export ---
-		self.w.status.set("Exporting fonts…")
+		self.w.status.set("⚙️ Exporting fonts…")
 		print("\nStep 1 – Exporting masters to Adobe Fonts folder…")
 		exportedMasters = self._exportMasters(thisFont, masters)
 		if not exportedMasters:
@@ -1154,7 +1154,7 @@ end tell
 			return
 
 		# Poll InDesign until Kernstealer font is activated (up to 30s)
-		self.w.status.set("Waiting for font activation…")
+		self.w.status.set("⏱️ Waiting for font activation…")
 		if not self._waitForFont(indesign, "Kernstealer"):
 			self.w.status.set("❌ Font activation timed out.")
 			print("\t❌ 'Kernstealer' was not activated in InDesign within 30 seconds.")
@@ -1166,7 +1166,7 @@ end tell
 		opticalStr = self._getOpticalKerningString(indesign)
 
 		# --- Step 2: InDesign doc + kern readout (per master) ---
-		self.w.status.set("Creating InDesign document…")
+		self.w.status.set("👨‍🎨 Creating InDesign document…")
 		print("\nStep 2 – Reading kerning from InDesign…")
 		print("\t👩🏼‍💻 Using: %s" % indesign)
 
@@ -1182,7 +1182,7 @@ end tell
 		calibrationSizes = {}
 		for master, filePath in exportedMasters:
 			styleName = self._sanitizeName(master.name) or ("Master%i" % list(thisFont.masters).index(master))
-			self.w.status.set("Calibrating ‘%s’…" % master.name)
+			self.w.status.set("👩‍🔬 Calibrating ‘%s’…" % master.name)
 			ok = self._createInDesignDoc(indesign, "Kernstealer", styleName, opticalStr)
 			if not ok:
 				print("\t❌ Could not create InDesign document for master ‘%s’." % master.name)
@@ -1205,7 +1205,7 @@ end tell
 				self.w.status.set("⚠️ No pairs to kern.")
 				return
 
-			self.w.status.set("Filling frame ‘%s’…" % master.name)
+			self.w.status.set("🖼️ Filling frame ‘%s’…" % master.name)
 			ok = self._setInDesignTextAndFont(indesign, pairText, styleName, calibSize, opticalStr)
 			if ok:
 				print("\t✅ Text frame filled for master ‘%s’." % master.name)
@@ -1222,7 +1222,7 @@ end tell
 			pairCount = len(pairText.split())
 			totalImported = 0
 
-			self.w.status.set("Reading %i kern pairs, may take a while…" % pairCount)
+			self.w.status.set("📖 Reading %i kern pairs, may take a while…" % pairCount)
 			n = self._importKerningForMaster(thisFont, master, indesign, minimumKern)
 			totalImported += n
 			advance()
@@ -1250,7 +1250,7 @@ true
 
 		doCompressKerning = self.prefBool("compressKerning")
 		for master, filePath in exportedMasters:
-			self.w.status.set("Post-processing ‘%s’…" % master.name)
+			self.w.status.set("🛠️ Post-processing ‘%s’…" % master.name)
 			self._roundAndFilter(thisFont, master, roundBy, minimumKern)
 			if doCompressKerning:
 				self._compressKerning(thisFont, master)
@@ -1270,7 +1270,7 @@ true
 					if master.name not in calibrationSizes.keys():
 						continue
 					styleName, calibSize = master.name, calibrationSizes[master.name]
-					self.w.status.set("Exception pairs for ‘%s’…" % master.name)
+					self.w.status.set("💕 Exception pairs for ‘%s’…" % master.name)
 
 					ok = self._createInDesignDoc(indesign, "Kernstealer", styleName, opticalStr)
 					if not ok:
@@ -1289,7 +1289,7 @@ true
 
 		# --- Step 5: cleanup ---
 		print("\nStep 5 – Cleanup…")
-		self.w.status.set("Cleaning up…")
+		self.w.status.set("🧹 Cleaning up…")
 		self._closeInDesignDoc(indesign) # just in case
 		self._deleteFonts(exportedMasters)
 		advance()
