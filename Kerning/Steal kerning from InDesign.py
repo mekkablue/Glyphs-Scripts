@@ -333,7 +333,35 @@ InDesign as string
 			Glyphs.defaults["com.mekkablue.StealKerningFromInDesign.indesignAppName"] = name
 		return name or storedName
 
-	def _createInDesignDoc(self, indesign, familyName, styleName):
+	def _getOpticalKerningString(self, indesign):
+		"""
+		Detect the localized InDesign UI language by reading the name of the
+		File menu via System Events, then return the matching localized string
+		for InDesign's optical kerning method.
+		"""
+		script = """
+tell application "System Events"
+	tell process "%s"
+		name of menu bar item 3 of menu bar 1
+	end tell
+end tell
+""" % indesign
+		fileMenuName = self._runAppleScript(script) or ""
+		opticalByFileMenu = {
+			"Fichier": "Optique",   # French
+			"Datei": "Optisch",     # German
+			"Bestand": "Optisch",   # Dutch
+			"Archivo": "Óptica",    # Spanish
+			"Ficheiro": "Óptica",   # Portuguese (European)
+			"Arquivo": "Óptica",    # Portuguese (Brazilian)
+			"Arkiv": "Optisk",      # Swedish / Norwegian
+			"Filer": "Optisk",      # Danish
+		}
+		opticalStr = opticalByFileMenu.get(fileMenuName, "optical")
+		print("\t🌐 InDesign File menu: "%s" → kerning method string: "%s"" % (fileMenuName or "?", opticalStr))
+		return opticalStr
+
+	def _createInDesignDoc(self, indesign, familyName, styleName, opticalStr="optical"):
 		"""
 		Create a new A3-landscape InDesign document with a full-page text frame,
 		font set to 3 pt with optical kerning, text = zeroPair.
@@ -359,12 +387,12 @@ tell application "%s"
 		tell parent story of myFrame
 			set point size to 3
 			set applied font to ("Kernstealer" & tab & "%s")
-			set kerning method to "optical"
+			set kerning method to "%s"
 		end tell
 	end tell
 end tell
 true
-""" % (indesign, zeroPairAS, styleName)
+""" % (indesign, zeroPairAS, styleName, opticalStr)
 		result = self._runAppleScript(script)
 		return bool(result)
 
@@ -671,7 +699,7 @@ end tell
 		print("\t📏 Found %i pairs to measure." % len(pairs))
 		return pairText
 
-	def _setInDesignTextAndFont(self, indesign, pairText, styleName, calibSize):
+	def _setInDesignTextAndFont(self, indesign, pairText, styleName, calibSize, opticalStr="optical"):
 		"""
 		Replace the text frame content with pairText, set the font and
 		calibrated point size with optical kerning on every character.
@@ -686,12 +714,12 @@ tell application "%s"
 		tell parent story of first text frame
 			set point size to %s
 			set applied font to ("Kernstealer" & tab & "%s")
-			set kerning method to "optical"
+			set kerning method to "%s"
 		end tell
 	end tell
 end tell
 true
-""" % (indesign, pairTextAS, calibSize, styleName)
+""" % (indesign, pairTextAS, calibSize, styleName, opticalStr)
 		return bool(self._runAppleScript(script))
 
 	# ------------------------------------------------------------------ step 4
@@ -1134,6 +1162,9 @@ end tell
 			return
 		advance()
 
+		# Detect InDesign UI language once, for localized "optical" kerning string
+		opticalStr = self._getOpticalKerningString(indesign)
+
 		# --- Step 2: InDesign doc + kern readout (per master) ---
 		self.w.status.set("Creating InDesign document…")
 		print("\nStep 2 – Reading kerning from InDesign…")
@@ -1152,7 +1183,7 @@ end tell
 		for master, filePath in exportedMasters:
 			styleName = self._sanitizeName(master.name) or ("Master%i" % list(thisFont.masters).index(master))
 			self.w.status.set("Calibrating ‘%s’…" % master.name)
-			ok = self._createInDesignDoc(indesign, "Kernstealer", styleName)
+			ok = self._createInDesignDoc(indesign, "Kernstealer", styleName, opticalStr)
 			if not ok:
 				print("\t❌ Could not create InDesign document for master ‘%s’." % master.name)
 				continue
@@ -1175,7 +1206,7 @@ end tell
 				return
 
 			self.w.status.set("Filling frame ‘%s’…" % master.name)
-			ok = self._setInDesignTextAndFont(indesign, pairText, styleName, calibSize)
+			ok = self._setInDesignTextAndFont(indesign, pairText, styleName, calibSize, opticalStr)
 			if ok:
 				print("\t✅ Text frame filled for master ‘%s’." % master.name)
 			else:
@@ -1241,11 +1272,11 @@ true
 					styleName, calibSize = master.name, calibrationSizes[master.name]
 					self.w.status.set("Exception pairs for ‘%s’…" % master.name)
 
-					ok = self._createInDesignDoc(indesign, "Kernstealer", styleName)
+					ok = self._createInDesignDoc(indesign, "Kernstealer", styleName, opticalStr)
 					if not ok:
 						print("\t❌ Could not create InDesign document for master ‘%s’." % master.name)
 						continue
-					ok = self._setInDesignTextAndFont(indesign, exPairText, styleName, calibSize)
+					ok = self._setInDesignTextAndFont(indesign, exPairText, styleName, calibSize, opticalStr)
 					if not ok:
 						print("\t❌ Failed to fill exception frame for master ‘%s’." % master.name)
 						advance()
