@@ -119,7 +119,7 @@ class StealKerningFromInDesign(mekkaObject):
 
 		# Progress bar + Status + Run button
 		self.w.progressBar = vanilla.ProgressBar((inset, -42 - inset, -inset, 16))
-		self.w.status = vanilla.TextBox((inset, -18 - inset, -80 - inset, 14), "💬 Ready. See tooltips for help.", sizeStyle="small", selectable=True)
+		self.w.status = vanilla.TextBox((inset, -18 - inset, -80 - inset, 14), "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small", selectable=True)
 		self.w.runButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "Kern", callback=self.run)
 		self.w.setDefaultButton(self.w.runButton)
 
