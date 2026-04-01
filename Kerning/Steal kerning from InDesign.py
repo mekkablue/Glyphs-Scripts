@@ -358,7 +358,7 @@ end tell
 			"Filer": "Optisk",      # Danish
 		}
 		opticalStr = opticalByFileMenu.get(fileMenuName, "optical")
-		print("\t🌐 InDesign File menu: "%s" → kerning method string: "%s"" % (fileMenuName or "?", opticalStr))
+		print('\t🌐 InDesign File menu: "%s" → kerning method string: "%s"' % (fileMenuName or "?", opticalStr))
 		return opticalStr
 
 	def _createInDesignDoc(self, indesign, familyName, styleName, opticalStr="optical"):
