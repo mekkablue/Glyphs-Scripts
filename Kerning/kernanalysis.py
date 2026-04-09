@@ -3,7 +3,7 @@ from __future__ import print_function
 
 from AppKit import NSPoint, NSNotFound
 from mekkablue import caseDict
-from GlyphsApp import Glyphs, GSPath, GSNode, GSLINE
+from GlyphsApp import Glyphs, GSLayer, GSPath, GSNode, GSLINE
 import math
 
 if Glyphs.versionNumber >= 3.0:
@@ -353,6 +353,22 @@ def bubbleForLayer(layer, offset=10.0):
 	
 	bubblePath.closed = True
 	return bubblePath
+
+
+def bubbleLayer(layer, offset=0):
+	"""
+	Returns a GSLayer with the same width as `layer`, containing exactly one closed CCW path
+	that is the minimal circumscribed left-winding polygon around all shapes of `layer`.
+	Each line segment of the polygon can only turn left (CCW) relative to the previous segment.
+	:param layer: A GSLayer to compute the bubble for.
+	:param offset: Outward offset in units (default 0). Positive values expand the polygon outward.
+	:return: A GSLayer containing the bubble path.
+	"""
+	bubblePath = bubbleForLayer(layer, offset=float(offset))
+	newLayer = GSLayer()
+	newLayer.width = layer.width
+	newLayer.paths.append(bubblePath)
+	return newLayer
 
 
 def bubble(points, offset=0.0):
