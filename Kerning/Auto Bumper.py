@@ -8,7 +8,7 @@ Specify a minimum distance, left and right glyphs, and Auto Bumper will add the 
 import vanilla
 from mekkablue import mekkaObject, reportTimeInNaturalLanguage
 from timeit import default_timer as timer
-from kernanalysis import intervalList, minDistanceBetweenTwoLayers, sortedIntervalsFromString, stringToListOfGlyphsForFont, effectiveKerning, distanceFromEntry
+from kernanalysis import intervalList, minDistanceBetweenTwoLayers, sortedIntervalsFromString, stringToListOfGlyphsForFont, effectiveKerning, distanceFromEntry, bubbleLayer
 from AppKit import NSColor
 from GlyphsApp import Glyphs, Message
 
@@ -67,6 +67,7 @@ class Bumper(mekkaObject):
 		"minDistance": 50,
 		"maxDistance": 200,
 		"roundFactor": 10,
+		"bubbleOffset": "",
 		"speedPopup": 2,
 		"ignoreIntervals": "",
 		"keepExistingKerning": 1,
@@ -125,18 +126,23 @@ class Bumper(mekkaObject):
 		self.w.suffix.setToolTip("Looks for the suffixed version of the listed glyphs, with this suffix added to the name. Useful with .sc for smallcaps. Enter WITH the leading dot for dot suffixes. Can also be used with 'superior' for figures.")
 		linePos += lineHeight
 
-		self.w.text_21 = vanilla.TextBox((inset, linePos + 3, 80, 14), "Min distance:", sizeStyle='small')
-		self.w.minDistance = vanilla.EditText((inset + 80, linePos, 60, 19), "50", sizeStyle='small', callback=self.SavePreferences)
+		seg, lbl = 118, 42
+		self.w.text_21 = vanilla.TextBox((inset, linePos + 3, lbl, 14), "Min dist:", sizeStyle=’small’)
+		self.w.minDistance = vanilla.EditText((inset + lbl, linePos, seg - lbl, 19), "50", sizeStyle=’small’, callback=self.SavePreferences)
 		self.w.minDistance.getNSTextField().setPlaceholderString_("50")
 		self.w.minDistance.setToolTip("Adds kerning if the shortest distance between two glyphs is shorter than specified value. You can also type ‘vw’ for the distance between v and w, and ‘vw+10’ for that distance plus 10 units. Leave blank or set to zero to ignore.")
-		self.w.text_22 = vanilla.TextBox((inset + 80 * 2, linePos + 3, 80, 14), "Max distance:", sizeStyle='small')
-		self.w.maxDistance = vanilla.EditText((inset + 80 * 3, linePos, 60, 19), "200", sizeStyle='small', callback=self.SavePreferences)
+		self.w.text_22 = vanilla.TextBox((inset + seg, linePos + 3, lbl, 14), "Max dist:", sizeStyle=’small’)
+		self.w.maxDistance = vanilla.EditText((inset + seg + lbl, linePos, seg - lbl, 19), "200", sizeStyle=’small’, callback=self.SavePreferences)
 		self.w.maxDistance.getNSTextField().setPlaceholderString_("200")
 		self.w.maxDistance.setToolTip("Adds kerning if the shortest distance between two glyphs is larger than specified value. You can also type ‘AV’ for the distance between A and V, and ‘AV-10’ for that distance minus 10 units. Leave blank or set to zero to ignore.")
-		self.w.text_23 = vanilla.TextBox((inset + 80 * 4, linePos + 3, 80, 14), "Round by:", sizeStyle='small')
-		self.w.roundFactor = vanilla.EditText((inset + 80 * 5, linePos, -inset, 19), "10", sizeStyle='small', callback=self.SavePreferences)
+		self.w.text_23 = vanilla.TextBox((inset + seg * 2, linePos + 3, lbl, 14), "Round by:", sizeStyle=’small’)
+		self.w.roundFactor = vanilla.EditText((inset + seg * 2 + lbl, linePos, seg - lbl, 19), "10", sizeStyle=’small’, callback=self.SavePreferences)
 		self.w.roundFactor.getNSTextField().setPlaceholderString_("10")
 		self.w.roundFactor.setToolTip("Rounds calculated kerning. Leave blank or set to zero to ignore.")
+		self.w.text_bubble = vanilla.TextBox((inset + seg * 3, linePos + 3, lbl, 14), "Bubble:", sizeStyle=’small’)
+		self.w.bubbleOffset = vanilla.EditText((inset + seg * 3 + lbl, linePos, -inset, 19), "", sizeStyle=’small’, callback=self.SavePreferences)
+		self.w.bubbleOffset.getNSTextField().setPlaceholderString_("none")
+		self.w.bubbleOffset.setToolTip("If set to a number (0 is valid), uses convex-hull bubble shapes instead of actual glyph outlines for measuring distances. The value is an outward offset in units: 0 = exact convex hull, positive values expand the hull outward.")
 		linePos += lineHeight
 
 		self.w.text_speed = vanilla.TextBox((inset, linePos + 3, 42, 14), "Speed:", sizeStyle='small')
@@ -336,6 +342,16 @@ class Bumper(mekkaObject):
 				self.w.roundFactor.set("")
 				self.SavePreferences()
 
+			bubbleRaw = str(self.pref("bubbleOffset") or "").strip()
+			useBubble = False
+			bubbleOffsetValue = 0.0
+			if bubbleRaw != "":
+				try:
+					bubbleOffsetValue = float(bubbleRaw)
+					useBubble = True
+				except:
+					pass
+
 			suffix = self.pref("suffix")
 			cleanedSuffix = ""
 			if suffix is None:
@@ -379,12 +395,19 @@ class Bumper(mekkaObject):
 						print("Maximum Distance: %i" % maxDistance)
 					if roundFactor is not None:
 						print("Rounding: %i" % roundFactor)
+					if useBubble:
+						print("Bubble offset: %g" % bubbleOffsetValue)
 
 					print()
 					print("⬅️ L glyphs:\n%s\n" % ", ".join([g.name for g in firstGlyphList]))
 					print("➡️ R glyphs:\n%s\n" % ", ".join([g.name for g in secondGlyphList]))
 
 				# CREATE KERNING DATA:
+
+				# precompute bubble layers if requested (avoids recomputing per pair):
+				if useBubble:
+					leftBubbleLayers = {g.name: bubbleLayer(g.layers[thisMasterID], offset=bubbleOffsetValue) for g in firstGlyphList}
+					rightBubbleLayers = {g.name: bubbleLayer(g.layers[thisMasterID], offset=bubbleOffsetValue) for g in secondGlyphList}
 
 				tabString = ""
 				kernCount = 0
@@ -431,8 +454,10 @@ class Bumper(mekkaObject):
 										thisFont.removeKerningForPair(thisMasterID, leftGlyph.name, rightGlyph.name)
 
 								kerning = effectiveKerning(leftGlyph.name, rightGlyph.name, thisFont, thisMasterID)
+								measureLeft = leftBubbleLayers[leftGlyph.name] if useBubble else leftLayer
+								measureRight = rightBubbleLayers[rightGlyph.name] if useBubble else rightLayer
 								distanceBetweenShapes = minDistanceBetweenTwoLayers(
-									leftLayer, rightLayer, interval=step, kerning=kerning, report=False, ignoreIntervals=ignoreIntervals
+									measureLeft, measureRight, interval=step, kerning=kerning, report=False, ignoreIntervals=ignoreIntervals
 								)
 
 								# positive kerning (if desired):
