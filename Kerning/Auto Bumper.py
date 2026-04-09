@@ -127,20 +127,20 @@ class Bumper(mekkaObject):
 		linePos += lineHeight
 
 		seg, lbl = 118, 42
-		self.w.text_21 = vanilla.TextBox((inset, linePos + 3, lbl, 14), "Min dist:", sizeStyle=’small’)
-		self.w.minDistance = vanilla.EditText((inset + lbl, linePos, seg - lbl, 19), "50", sizeStyle=’small’, callback=self.SavePreferences)
+		self.w.text_21 = vanilla.TextBox((inset, linePos + 3, lbl, 14), "Min dist:", sizeStyle='small')
+		self.w.minDistance = vanilla.EditText((inset + lbl, linePos, seg - lbl, 19), "50", sizeStyle='small', callback=self.SavePreferences)
 		self.w.minDistance.getNSTextField().setPlaceholderString_("50")
 		self.w.minDistance.setToolTip("Adds kerning if the shortest distance between two glyphs is shorter than specified value. You can also type ‘vw’ for the distance between v and w, and ‘vw+10’ for that distance plus 10 units. Leave blank or set to zero to ignore.")
-		self.w.text_22 = vanilla.TextBox((inset + seg, linePos + 3, lbl, 14), "Max dist:", sizeStyle=’small’)
-		self.w.maxDistance = vanilla.EditText((inset + seg + lbl, linePos, seg - lbl, 19), "200", sizeStyle=’small’, callback=self.SavePreferences)
+		self.w.text_22 = vanilla.TextBox((inset + seg, linePos + 3, lbl, 14), "Max dist:", sizeStyle='small')
+		self.w.maxDistance = vanilla.EditText((inset + seg + lbl, linePos, seg - lbl, 19), "200", sizeStyle='small', callback=self.SavePreferences)
 		self.w.maxDistance.getNSTextField().setPlaceholderString_("200")
 		self.w.maxDistance.setToolTip("Adds kerning if the shortest distance between two glyphs is larger than specified value. You can also type ‘AV’ for the distance between A and V, and ‘AV-10’ for that distance minus 10 units. Leave blank or set to zero to ignore.")
-		self.w.text_23 = vanilla.TextBox((inset + seg * 2, linePos + 3, lbl, 14), "Round by:", sizeStyle=’small’)
-		self.w.roundFactor = vanilla.EditText((inset + seg * 2 + lbl, linePos, seg - lbl, 19), "10", sizeStyle=’small’, callback=self.SavePreferences)
+		self.w.text_23 = vanilla.TextBox((inset + seg * 2, linePos + 3, lbl, 14), "Round by:", sizeStyle='small')
+		self.w.roundFactor = vanilla.EditText((inset + seg * 2 + lbl, linePos, seg - lbl, 19), "10", sizeStyle='small', callback=self.SavePreferences)
 		self.w.roundFactor.getNSTextField().setPlaceholderString_("10")
 		self.w.roundFactor.setToolTip("Rounds calculated kerning. Leave blank or set to zero to ignore.")
-		self.w.text_bubble = vanilla.TextBox((inset + seg * 3, linePos + 3, lbl, 14), "Bubble:", sizeStyle=’small’)
-		self.w.bubbleOffset = vanilla.EditText((inset + seg * 3 + lbl, linePos, -inset, 19), "", sizeStyle=’small’, callback=self.SavePreferences)
+		self.w.text_bubble = vanilla.TextBox((inset + seg * 3, linePos + 3, lbl, 14), "Bubble:", sizeStyle='small')
+		self.w.bubbleOffset = vanilla.EditText((inset + seg * 3 + lbl, linePos, -inset, 19), "", sizeStyle='small', callback=self.SavePreferences)
 		self.w.bubbleOffset.getNSTextField().setPlaceholderString_("none")
 		self.w.bubbleOffset.setToolTip("If set to a number (0 is valid), uses convex-hull bubble shapes instead of actual glyph outlines for measuring distances. The value is an outward offset in units: 0 = exact convex hull, positive values expand the hull outward.")
 		linePos += lineHeight
