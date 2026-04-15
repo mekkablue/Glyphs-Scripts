@@ -286,7 +286,7 @@ class BBoxBumperKerning(mekkaObject):
 					))
 
 					# process token to determine bbox glyphs:
-					evaluatedToken = GSFeature.evaluatePredicateToken_font_error_(token, thisFont, None)
+					evaluatedToken = GSFeature.evaluatePredicateToken_font_contextLabel_error_(token, thisFont, "", None)
 					if not evaluatedToken:
 						print("❌ Token evaluates to nothing: %s\nSkipping font.\n" % token)
 						continue
