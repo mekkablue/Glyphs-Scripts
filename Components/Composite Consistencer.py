@@ -44,12 +44,13 @@ class CompositeConsistencer(mekkaObject):
 		"suffixOrderMatters": False,
 		"allFonts": False,
 		"includeNonExporting": False,
+		"selectedOnly": False,
 	}
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 320
-		windowHeight = 208
+		windowHeight = 230
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -89,6 +90,10 @@ class CompositeConsistencer(mekkaObject):
 		self.w.includeNonExporting.setToolTip("When checked, glyphs with export disabled are also checked for missing composite counterparts.")
 		linePos += lineHeight
 
+		self.w.selectedOnly = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Check selected glyphs only", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.selectedOnly.setToolTip("When checked, only glyphs currently selected in the Font tab are treated as potential bases.")
+		linePos += lineHeight
+
 		# Run Button:
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Find", callback=self.CompositeConsistencerMain)
 		self.w.setDefaultButton(self.w.runButton)
@@ -120,6 +125,7 @@ class CompositeConsistencer(mekkaObject):
 			ignoreDuplicateSuffixes = self.prefBool("ignoreDuplicateSuffixes")
 			suffixOrderMatters = self.prefBool("suffixOrderMatters")
 			includeNonExporting = self.prefBool("includeNonExporting")
+			selectedOnly = self.prefBool("selectedOnly")
 
 			fonts = Glyphs.fonts if self.prefBool("allFonts") else [Glyphs.font]
 			fonts = [f for f in fonts if f is not None]
@@ -141,9 +147,15 @@ class CompositeConsistencer(mekkaObject):
 					if not suffixOrderMatters:
 						allNames = [normalizedSuffixOrder(n) for n in allNames]
 
+					if selectedOnly:
+						selectedGlyphNames = set(layer.parent.name for layer in thisFont.selectedLayers)
+						glyphsToCheck = [g for g in thisFont.glyphs if g.name in selectedGlyphNames]
+					else:
+						glyphsToCheck = list(thisFont.glyphs)
+
 					countAffectedGlyphs = 0
 					countMissingComposites = 0
-					for thisGlyph in thisFont.glyphs:
+					for thisGlyph in glyphsToCheck:
 						thisGlyphAffected = False
 						# Union composites across all masters so incompatible glyphs are fully covered
 						compositeNameSet = set()
