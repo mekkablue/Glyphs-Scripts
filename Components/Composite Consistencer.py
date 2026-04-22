@@ -43,12 +43,13 @@ class CompositeConsistencer(mekkaObject):
 		"ignoreDuplicateSuffixes": True,
 		"suffixOrderMatters": False,
 		"allFonts": False,
+		"includeNonExporting": False,
 	}
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 320
-		windowHeight = 186
+		windowHeight = 208
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -84,6 +85,10 @@ class CompositeConsistencer(mekkaObject):
 		self.w.allFonts.setToolTip("When checked, all open fonts are scanned instead of just the frontmost one.")
 		linePos += lineHeight
 
+		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting.setToolTip("When checked, glyphs with export disabled are also checked for missing composite counterparts.")
+		linePos += lineHeight
+
 		# Run Button:
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Find", callback=self.CompositeConsistencerMain)
 		self.w.setDefaultButton(self.w.runButton)
@@ -114,6 +119,7 @@ class CompositeConsistencer(mekkaObject):
 			ignoredSuffixes = [s.strip().strip(".") for s in ignore.split(",")]
 			ignoreDuplicateSuffixes = self.prefBool("ignoreDuplicateSuffixes")
 			suffixOrderMatters = self.prefBool("suffixOrderMatters")
+			includeNonExporting = self.prefBool("includeNonExporting")
 
 			fonts = Glyphs.fonts if self.prefBool("allFonts") else [Glyphs.font]
 			fonts = [f for f in fonts if f is not None]
@@ -131,7 +137,7 @@ class CompositeConsistencer(mekkaObject):
 						print("⚠️ The font file has not been saved yet.")
 					print()
 
-					allNames = [g.name for g in thisFont.glyphs if g.export]
+					allNames = [g.name for g in thisFont.glyphs] if includeNonExporting else [g.name for g in thisFont.glyphs if g.export]
 					if not suffixOrderMatters:
 						allNames = [normalizedSuffixOrder(n) for n in allNames]
 
