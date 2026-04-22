@@ -86,7 +86,6 @@ class CompositeConsistencer(mekkaObject):
 					print("⚠️ The font file has not been saved yet.")
 				print()
 
-				thisMaster = thisFont.selectedFontMaster
 				allNames = [g.name for g in thisFont.glyphs if g.export]
 
 				ignore = self.pref("ignore")
@@ -100,9 +99,15 @@ class CompositeConsistencer(mekkaObject):
 				countMissingComposites = 0
 				for thisGlyph in thisFont.glyphs:
 					thisGlyphAffected = False
-					composites = thisFont.glyphsContainingComponentWithName_masterId_(thisGlyph.name, thisMaster.id)
-					if composites:
-						compositeNames = [g.name for g in composites]
+					# Union composites across all masters so incompatible glyphs are fully covered
+					compositeNameSet = set()
+					for master in thisFont.masters:
+						composites = thisFont.glyphsContainingComponentWithName_masterId_(thisGlyph.name, master.id)
+						if composites:
+							for g in composites:
+								compositeNameSet.add(g.name)
+					if compositeNameSet:
+						compositeNames = list(compositeNameSet)
 						if not suffixOrderMatters:
 							compositeNames = [normalizedSuffixOrder(n) for n in compositeNames]
 						for otherName in allNames:
