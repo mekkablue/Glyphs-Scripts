@@ -159,18 +159,18 @@ class BBoxBumperKerning(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Bump the bbox of an OT Class (defined by a token) with other glyphs, and insert kern feature:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.tokenText = vanilla.TextBox((0, linePos + 4, inset + shift - 5, 14), "▪️BBox token:", sizeStyle='small', selectable=True)
+		self.w.tokenText = vanilla.TextBox((0, linePos + 2, inset + shift - 5, 14), "▪️BBox token:", sizeStyle=’small’, selectable=True)
 		self.w.tokenText.getNSTextField().setAlignment_(2)
 		self.w.token = vanilla.ComboBox((inset + shift, linePos - 2, -inset - 230, 21), self.tokens, callback=self.SavePreferences)
 		self.w.token.getNSComboBox(
 		).setToolTip_("Describe a glyph class predicate for defining an OT class, for which the class bbox is calculated and bumped against other glyphs.")
 		self.w.helpToken = vanilla.HelpButton((-inset - 230, linePos - 2, -inset - 200, 21), callback=self.openURL)
 		self.w.helpToken.setToolTip("Opens the ‘Tokens’ tutorial in a web browser. Look for ‘glyph class predicates’.")
-		self.w.otClassNameText = vanilla.TextBox((-inset - 205, linePos + 4, shift - 5, 14), "OT classname:", sizeStyle='small', selectable=True)
+		self.w.otClassNameText = vanilla.TextBox((-inset - 200, linePos + 2, shift - 5, 14), "OT classname:", sizeStyle=’small’, selectable=True)
 		self.w.otClassNameText.getNSTextField().setAlignment_(2)
 		self.w.otClassName = vanilla.ComboBox((-inset - 200 + shift, linePos - 2, -inset - 22, 21), self.classNames, callback=self.SavePreferences)
 		self.w.otClassName.setToolTip("Name of the OT class. Make sure it is unique for all the fonts.")
-		self.w.otClassNameUpdate = UpdateButton((-inset - 20, linePos - 1, -inset, 20), callback=self.updateClassName)
+		self.w.otClassNameUpdate = UpdateButton((-inset - 20, linePos - 3, -inset, 20), callback=self.updateClassName)
 		self.w.otClassNameUpdate.setToolTip("Auto-fill classname for the current token.")
 		linePos += lineHeight + 2
 
