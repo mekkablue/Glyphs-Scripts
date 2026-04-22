@@ -10,7 +10,7 @@ import math
 from Foundation import NSRect, NSUnionRect, NSIsEmptyRect, NSInsetRect, NSStringFromRect, NSAffineTransform, NSAffineTransformStruct
 from kernanalysis import stringToListOfGlyphsForFont, minDistanceBetweenTwoLayers
 from GlyphsApp import Glyphs, GSFeature, GSLayer, GSPath, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 
 def updatedCode(oldCode, beginSig, endSig, newCode):
@@ -141,7 +141,7 @@ class BBoxBumperKerning(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 570
-		windowHeight = 302
+		windowHeight = 312
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -168,8 +168,10 @@ class BBoxBumperKerning(mekkaObject):
 		self.w.helpToken.setToolTip("Opens the ‘Tokens’ tutorial in a web browser. Look for ‘glyph class predicates’.")
 		self.w.otClassNameText = vanilla.TextBox((-inset - 205, linePos + 4, shift - 5, 14), "OT classname:", sizeStyle='small', selectable=True)
 		self.w.otClassNameText.getNSTextField().setAlignment_(2)
-		self.w.otClassName = vanilla.ComboBox((-inset - 200 + shift, linePos - 2, -inset, 21), self.classNames, callback=self.SavePreferences)
+		self.w.otClassName = vanilla.ComboBox((-inset - 200 + shift, linePos - 2, -inset - 22, 21), self.classNames, callback=self.SavePreferences)
 		self.w.otClassName.setToolTip("Name of the OT class. Make sure it is unique for all the fonts.")
+		self.w.otClassNameUpdate = UpdateButton((-inset - 20, linePos - 1, -inset, 20), callback=self.updateClassName)
+		self.w.otClassNameUpdate.setToolTip("Auto-fill classname for the current token.")
 		linePos += lineHeight + 2
 
 		self.w.minDistanceText = vanilla.TextBox((0, linePos + 3, inset + shift - 5, 14), "Min distance:", sizeStyle='small', selectable=True)
@@ -244,6 +246,14 @@ class BBoxBumperKerning(mekkaObject):
 		if URL:
 			import webbrowser
 			webbrowser.open(URL)
+
+	def updateClassName(self, sender=None):
+		token = self.pref("token")
+		for t, cn in zip(self.tokens, self.classNames):
+			if token == t:
+				self.w.otClassName.set(cn)
+				self.SavePreferences()
+				return
 
 	def BBoxBumperKerningMain(self, sender=None):
 		try:
