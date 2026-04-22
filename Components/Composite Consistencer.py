@@ -11,6 +11,23 @@ from mekkablue import mekkaObject
 
 defaultSuffixes = ".dnom, .numr, .subs, .sups, .sinf, .case, .tf, .tosf, .osf"
 
+presetItems = [
+	"(Load preset…)",
+	"Default (common): dnom, numr, subs, sups, sinf, case, tf, tosf, osf",
+	"Numerals: dnom, numr, subs, sups, sinf, tf, tosf, osf",
+	"Small caps: sc, c2sc",
+	"Case: case",
+	"None — check all suffixes",
+]
+
+presetValues = {
+	"Default (common): dnom, numr, subs, sups, sinf, case, tf, tosf, osf": ".dnom, .numr, .subs, .sups, .sinf, .case, .tf, .tosf, .osf",
+	"Numerals: dnom, numr, subs, sups, sinf, tf, tosf, osf": ".dnom, .numr, .subs, .sups, .sinf, .tf, .tosf, .osf",
+	"Small caps: sc, c2sc": ".sc, .c2sc",
+	"Case: case": ".case",
+	"None — check all suffixes": "",
+}
+
 
 def normalizedSuffixOrder(name):
 	particles = name.split(".")
@@ -30,7 +47,7 @@ class CompositeConsistencer(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 320
-		windowHeight = 142
+		windowHeight = 164
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -46,8 +63,14 @@ class CompositeConsistencer(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Find missing suffixed composites:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
+		self.w.presetsText = vanilla.TextBox((inset, linePos + 3, 90, 14), "Load preset:", sizeStyle='small', selectable=True)
+		self.w.presets = vanilla.PopUpButton((inset + 90, linePos, -inset, 18), presetItems, callback=self.loadPreset, sizeStyle='small')
+		self.w.presets.setToolTip("Load a preset set of ignored suffixes into the field below. You can edit it afterwards.")
+		linePos += lineHeight
+
 		self.w.ignoreText = vanilla.TextBox((inset, linePos + 3, 90, 14), "Ignore suffixes:", sizeStyle='small', selectable=True)
 		self.w.ignore = vanilla.EditText((inset + 90, linePos, -inset, 19), defaultSuffixes, callback=self.SavePreferences, sizeStyle='small')
+		self.w.ignore.setToolTip("Comma-separated suffixes to skip when reporting missing composites.")
 		linePos += lineHeight
 
 		self.w.ignoreDuplicateSuffixes = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Ignore duplicate suffixes (.ss01.ss01)", value=True, callback=self.SavePreferences, sizeStyle='small')
@@ -66,6 +89,13 @@ class CompositeConsistencer(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+
+	def loadPreset(self, sender=None):
+		selectedItem = presetItems[self.w.presets.get()]
+		if selectedItem in presetValues:
+			self.w.ignore.set(presetValues[selectedItem])
+			self.SavePreferences()
+		self.w.presets.set(0)
 
 	def CompositeConsistencerMain(self, sender=None):
 		try:
