@@ -11,6 +11,16 @@ import vanilla
 from GlyphsApp import Glyphs, GSAnnotation, TEXT, GSOFFCURVE, Message
 from mekkablue import mekkaObject
 
+try:
+	from GlyphsApp import GSUppercase, GSLowercase
+except ImportError:
+	GSUppercase, GSLowercase = 1, 2
+
+try:
+	from GlyphsApp import GSMetricsTypexHeight, GSMetricsTypeCapHeight
+except ImportError:
+	GSMetricsTypexHeight, GSMetricsTypeCapHeight = 3, 6
+
 
 class FindNearVerticalMisses(mekkaObject):
 	marker = "❌"
@@ -42,7 +52,7 @@ class FindNearVerticalMisses(mekkaObject):
 		linePos, inset, lineHeight = 12, 15, 22
 
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Search for on-curve nodes not exactly on metrics:", sizeStyle="small", selectable=True)
-		self.w.descriptionText.setToolTip("Searches for on-curve nodes that are close but not exactly on any vertical metric of their layer.")
+		self.w.descriptionText.setToolTip("Searches for on-curve nodes that are close but not exactly on any vertical metric of their layer. Automatically skips xHeight for uppercase glyphs, and capHeight for lowercase glyphs, to avoid false positives.")
 		linePos += lineHeight
 
 		self.w.devianceText = vanilla.TextBox((inset, linePos + 3, 130, 14), "Find nodes off by up to", sizeStyle="small", selectable=True)
@@ -57,32 +67,32 @@ class FindNearVerticalMisses(mekkaObject):
 		linePos += int(lineHeight * 0.5)
 
 		self.w.tolerateIfNextNodeIsOn = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Tolerate near miss if next node is on", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.tolerateIfNextNodeIsOn.setToolTip("Will skip the just-off node if the next or previous on-curve node is EXACTLY on the metric line. Useful if you have very thin serifs or short segments near the metric lines.")
+		self.w.tolerateIfNextNodeIsOn.setToolTip("Skips a near-miss node if the nearest on-curve neighbor (in either direction along the path) sits exactly on the same metric line. Useful for very thin serifs or short segments near metric lines.")
 		linePos += lineHeight
 
 		self.w.tolerateIfExtremum = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Tolerate near miss for left/right curve extremum", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.tolerateIfExtremum.setToolTip("Will skip the just-off node if the next and previous nodes are VERTICAL OFF-CURVES. Recommended for avoiding false positives.")
+		self.w.tolerateIfExtremum.setToolTip("Skips a near-miss node when both its neighbor nodes are vertical off-curves (i.e. the node is a left or right curve extremum). Strongly recommended to avoid false positives on rounded shapes.")
 		linePos += lineHeight
 
 		self.w.markNodes = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), f"Mark affected nodes with {self.marker}", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.markNodes.setToolTip("Sets the name of affected nodes to this emoji so you can easily find them. Enable View > Show Node Names to see the markers.")
+		self.w.markNodes.setToolTip(f"Assigns the name '{self.marker}' to each offending node so it appears as a node label. Enable View > Show Node Names to see the markers in the canvas.")
 		linePos += lineHeight
 
 		self.w.limitToLetters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Limit to letters", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.limitToLetters.setToolTip("Only checks glyphs with category 'Letter'. Skips figures, punctuation, symbols, etc.")
+		self.w.limitToLetters.setToolTip("Restricts the search to glyphs with category 'Letter'. All other categories (figures, punctuation, symbols, etc.) are skipped.")
 		linePos += lineHeight
 
 		self.w.excludeText = vanilla.TextBox((inset, linePos + 3, 150, 14), "Exclude glyphs containing:", sizeStyle="small", selectable=True)
-		self.w.excludeText.setToolTip("Comma-separated substrings. Any glyph whose name contains one of these will be skipped.")
+		self.w.excludeText.setToolTip("Comma-separated list of substrings. Any glyph whose name contains at least one of these substrings is skipped entirely.")
 		self.w.exclude = vanilla.EditText((inset + 150, linePos, -inset, 19), ".ornm, .notdef, comb", callback=self.SavePreferences, sizeStyle="small")
-		self.w.exclude.setToolTip("Comma-separated substrings. Any glyph whose name contains one of these will be skipped.")
+		self.w.exclude.setToolTip("Comma-separated list of substrings. Any glyph whose name contains at least one of these substrings is skipped entirely.")
 		linePos += lineHeight
 		linePos += 2  # extra breathing room before tab options
 
 		self.w.openTab = vanilla.CheckBox((inset + 2, linePos - 1, 80, 20), "Open tab", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.openTab.setToolTip("If near misses are found, opens a tab with the affected layers.")
+		self.w.openTab.setToolTip("Opens an edit tab showing all layers that contain at least one near-miss node.")
 		self.w.reuseTab = vanilla.CheckBox((inset + 2 + 80 + 4, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.reuseTab.setToolTip("Reuses the frontmost open tab instead of opening a new one.")
+		self.w.reuseTab.setToolTip("Replaces the contents of the currently active tab instead of opening a new one.")
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
@@ -108,16 +118,31 @@ class FindNearVerticalMisses(mekkaObject):
 
 	def updateUI(self, sender=None):
 		self.w.reuseTab.enable(self.w.openTab.get())
+		if self.w.markNodes.get():
+			Glyphs.defaults["showNodeNames"] = 1
 
-	def getMetricValues(self, layer):
-		"""Returns a set of effective metric y-values for the given layer."""
+	def getMetricValues(self, layer, glyph=None):
+		"""Returns a set of effective metric y-values for the given layer.
+
+		Skips xHeight metrics for uppercase glyphs and capHeight metrics for
+		lowercase glyphs to avoid false positives from cross-case metric proximity.
+		"""
 		values = set()
 		font = layer.parent.parent
+		glyphCase = glyph.case if glyph is not None else None
 		try:
 			fontMetrics = font.metrics
 			masterMetrics = layer.master.metrics
 			layerMetrics = layer.metrics
 			for i in range(len(fontMetrics)):
+				try:
+					metricType = fontMetrics[i].type
+					if glyphCase == GSUppercase and metricType == GSMetricsTypexHeight:
+						continue
+					if glyphCase == GSLowercase and metricType == GSMetricsTypeCapHeight:
+						continue
+				except (AttributeError, IndexError):
+					pass
 				val = None
 				try:
 					if i < len(layerMetrics) and layerMetrics[i]:
@@ -137,6 +162,10 @@ class FindNearVerticalMisses(mekkaObject):
 			master = layer.master
 			if master:
 				for attrName in ("ascender", "capHeight", "xHeight", "descender"):
+					if glyphCase == GSUppercase and attrName == "xHeight":
+						continue
+					if glyphCase == GSLowercase and attrName == "capHeight":
+						continue
 					try:
 						v = getattr(master, attrName)
 						if v is not None:
@@ -226,7 +255,7 @@ class FindNearVerticalMisses(mekkaObject):
 					if not layerCounts or len(thisLayer.paths) == 0:
 						continue
 
-					metricValues = self.getMetricValues(thisLayer)
+					metricValues = self.getMetricValues(thisLayer, thisGlyph)
 					if not metricValues:
 						continue
 
