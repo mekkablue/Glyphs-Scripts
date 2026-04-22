@@ -50,7 +50,7 @@ class CompositeConsistencer(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 320
-		windowHeight = 230
+		windowHeight = 264
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -94,6 +94,12 @@ class CompositeConsistencer(mekkaObject):
 		self.w.selectedOnly.setToolTip("When checked, only glyphs currently selected in the Font tab are treated as potential bases.")
 		linePos += lineHeight
 
+		self.w.progress = vanilla.ProgressBar((inset, linePos + 4, -inset, 16))
+		self.w.progress.set(0)
+		linePos += lineHeight
+
+		self.w.status = vanilla.TextBox((inset, -20 - inset, -inset, -inset), "", sizeStyle='small')
+
 		# Run Button:
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Find", callback=self.CompositeConsistencerMain)
 		self.w.setDefaultButton(self.w.runButton)
@@ -134,8 +140,10 @@ class CompositeConsistencer(mekkaObject):
 			else:
 				totalAffected = 0
 				totalMissing = 0
+				self.w.status.set("")
+				self.w.progress.set(0)
 
-				for thisFont in fonts:
+				for fontIndex, thisFont in enumerate(fonts):
 					print("Composite Consistencer Report for %s" % thisFont.familyName)
 					if thisFont.filepath:
 						print(thisFont.filepath)
@@ -155,7 +163,8 @@ class CompositeConsistencer(mekkaObject):
 
 					countAffectedGlyphs = 0
 					countMissingComposites = 0
-					for thisGlyph in glyphsToCheck:
+					for glyphIndex, thisGlyph in enumerate(glyphsToCheck):
+						self.w.progress.set(int(100 * (fontIndex + glyphIndex / len(glyphsToCheck)) / len(fonts)))
 						thisGlyphAffected = False
 						# Union composites across all masters so incompatible glyphs are fully covered
 						compositeNameSet = set()
@@ -199,6 +208,16 @@ class CompositeConsistencer(mekkaObject):
 					if not suffixOrderMatters and countMissingComposites > 0:
 						print("\n⚠️ Attention: the displayed suffix order may not be intended.")
 					print("Done.\n")
+
+				self.w.progress.set(100)
+				self.w.status.set(
+					"%i glyph%s missing %i composite%s" % (
+						totalAffected,
+						"" if totalAffected == 1 else "s",
+						totalMissing,
+						"" if totalMissing == 1 else "s",
+					)
+				)
 
 				fontLabel = fonts[0].familyName if len(fonts) == 1 else "%i fonts" % len(fonts)
 				Glyphs.showNotification(
