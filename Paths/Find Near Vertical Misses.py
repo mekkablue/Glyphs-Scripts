@@ -12,10 +12,14 @@ from GlyphsApp import Glyphs, GSAnnotation, TEXT, GSOFFCURVE, Message
 from mekkablue import mekkaObject
 
 try:
-	from GlyphsApp import GSUppercase, GSLowercase, GSMetricsTypeXHeight, GSMetricsTypeCapHeight
+	from GlyphsApp import GSUppercase, GSLowercase
 except ImportError:
 	GSUppercase, GSLowercase = 1, 2
-	GSMetricsTypeXHeight, GSMetricsTypeCapHeight = 3, 6
+
+try:
+	from GlyphsApp import GSMetricsTypexHeight, GSMetricsTypeCapHeight
+except ImportError:
+	GSMetricsTypexHeight, GSMetricsTypeCapHeight = 3, 6
 
 
 class FindNearVerticalMisses(mekkaObject):
@@ -114,6 +118,8 @@ class FindNearVerticalMisses(mekkaObject):
 
 	def updateUI(self, sender=None):
 		self.w.reuseTab.enable(self.w.openTab.get())
+		if self.w.markNodes.get():
+			Glyphs.defaults["showNodeNames"] = 1
 
 	def getMetricValues(self, layer, glyph=None):
 		"""Returns a set of effective metric y-values for the given layer.
@@ -131,7 +137,7 @@ class FindNearVerticalMisses(mekkaObject):
 			for i in range(len(fontMetrics)):
 				try:
 					metricType = fontMetrics[i].type
-					if glyphCase == GSUppercase and metricType == GSMetricsTypeXHeight:
+					if glyphCase == GSUppercase and metricType == GSMetricsTypexHeight:
 						continue
 					if glyphCase == GSLowercase and metricType == GSMetricsTypeCapHeight:
 						continue
