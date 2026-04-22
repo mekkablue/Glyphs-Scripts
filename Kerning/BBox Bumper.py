@@ -141,7 +141,7 @@ class BBoxBumperKerning(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 570
-		windowHeight = 280
+		windowHeight = 302
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -221,7 +221,12 @@ class BBoxBumperKerning(mekkaObject):
 		self.w.scope.setToolTip("Kern feature will be created per font, same for all masters. Here you can define which masters should be measured for determining the kerning pairs.")
 		linePos += lineHeight
 
+		# Progress bar:
+		self.w.bar = vanilla.ProgressBar((inset, linePos + 2, -inset, 16))
+		linePos += lineHeight
+
 		# Run Button:
+		self.w.status = vanilla.TextBox((inset, -20 - inset, -130 - inset, 14), "", sizeStyle="small")
 		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Bump BBox", callback=self.BBoxBumperKerningMain)
 		self.w.setDefaultButton(self.w.runButton)
 
@@ -248,6 +253,8 @@ class BBoxBumperKerning(mekkaObject):
 
 			# update settings to the latest user input:
 			self.SavePreferences()
+			self.w.bar.set(0)
+			self.w.status.set("Processing…")
 
 			otClassName = self.pref("otClassName")
 			token = self.pref("token")
@@ -318,6 +325,8 @@ class BBoxBumperKerning(mekkaObject):
 						theseMasters = (thisFont.selectedFontMaster, )
 					else:
 						theseMasters = thisFont.masters
+					totalSteps = max(1, len(theseMasters) * len(otherGlyphs))
+					processedSteps = 0
 					for thisMaster in theseMasters:
 						print("\nⓂ️ Master: %s" % thisMaster.name)
 						bboxLayers = [straightenedLayer(thisFont.glyphs[name].layers[thisMaster.id]) for name in evaluatedToken.strip().split(" ")]
@@ -340,6 +349,9 @@ class BBoxBumperKerning(mekkaObject):
 
 						print("  📐 Measuring distances with %i other glyphs..." % len(otherGlyphs))
 						for otherGlyph in otherGlyphs:
+							processedSteps += 1
+							self.w.bar.set(100 * processedSteps // totalSteps)
+							self.w.status.set("Measuring %s…" % otherGlyph.name)
 							otherLayerStraightened = straightenedLayer(otherGlyph.layers[thisMaster.id])
 							if otherGlyphsOnLeftSide:
 								otherKey = None
@@ -392,6 +404,9 @@ class BBoxBumperKerning(mekkaObject):
 					print("🫱🏾‍🫲🏻 Recompiling features...")
 					thisFont.compileFeatures()
 
+			self.w.bar.set(100)
+			self.w.status.set("Done.")
+
 			# Final report:
 			Glyphs.showNotification(
 				"BBox Bumper: done",
@@ -404,6 +419,7 @@ class BBoxBumperKerning(mekkaObject):
 			print("\nDone.")
 
 		except Exception as e:
+			self.w.status.set("Error.")
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("BBox Bumper Kerning as Feature Code Error: %s" % e)
