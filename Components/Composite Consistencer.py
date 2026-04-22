@@ -131,26 +131,26 @@ class CompositeConsistencer(mekkaObject):
 											)
 										)
 
-			# Final report:
-			Glyphs.showNotification(
-				"%s: %i glyph%s missing composites" % (
-					thisFont.familyName,
-					countAffectedGlyphs,
-					"" if countAffectedGlyphs == 1 else "s",
-				),
-				"%i glyph%s missing %i composite%s. Details in Macro Window" % (
-					countAffectedGlyphs,
-					"" if countAffectedGlyphs == 1 else "s",
-					countMissingComposites,
-					"" if countMissingComposites == 1 else "s",
-				),
-			)
-			if not suffixOrderMatters:
-				print("\n⚠️ Attention: the displayed suffix order may not be intended.")
-			print("Done.")
+				# Final report:
+				Glyphs.showNotification(
+					"%s: %i glyph%s missing composites" % (
+						thisFont.familyName,
+						countAffectedGlyphs,
+						"" if countAffectedGlyphs == 1 else "s",
+					),
+					"%i glyph%s missing %i composite%s. Details in Macro Window" % (
+						countAffectedGlyphs,
+						"" if countAffectedGlyphs == 1 else "s",
+						countMissingComposites,
+						"" if countMissingComposites == 1 else "s",
+					),
+				)
+				if not suffixOrderMatters and countMissingComposites > 0:
+					print("\n⚠️ Attention: the displayed suffix order may not be intended.")
+				print("Done.")
 
-			# brings macro window to front:
-			Glyphs.showMacroWindow()
+				# brings macro window to front:
+				Glyphs.showMacroWindow()
 
 		except Exception as e:
 			# brings macro window to front and reports error:
