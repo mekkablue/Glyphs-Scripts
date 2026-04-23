@@ -235,7 +235,6 @@ class FontInfoBatchSetter(mekkaObject):
 		self.SavePreferences()
 
 	def updateUI(self, sender=None):
-		# self.updateTooltips()
 		self.w.designer.enable(self.w.setDesigner.get())
 		self.w.designerURL.enable(self.w.setDesignerURL.get())
 		self.w.manufacturer.enable(self.w.setManufacturer.get())
@@ -267,17 +266,6 @@ class FontInfoBatchSetter(mekkaObject):
 				self.w.setManufacturerURL.get() or self.w.setCopyright.get()
 			) and applySettingsEnable
 		)
-
-	def updateTooltips(self, sender=None):
-		self.w.designer.setToolTip(self.w.designer.get())
-		self.w.designerURL.setToolTip(self.w.designerURL.get())
-		self.w.manufacturer.setToolTip(self.w.manufacturer.get())
-		self.w.manufacturerURL.setToolTip(self.w.manufacturerURL.get())
-		self.w.license.setToolTip(self.w.license.get())
-		self.w.licenseURL.setToolTip(self.w.licenseURL.get())
-		self.w.copyright.setToolTip(self.w.copyright.get())
-		self.w.trademark.setToolTip(self.w.trademark.get())
-		self.w.vendorID.setToolTip(self.w.vendorID.get())
 
 	def setNoon(self, sender=None):
 		# Get current date:
