@@ -32,8 +32,8 @@ class CompositeConsistencer(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 320
-		windowHeight = 242
+		windowWidth = 370
+		windowHeight = 222
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -74,9 +74,8 @@ class CompositeConsistencer(mekkaObject):
 		self.w.selectedOnly.setToolTip("When checked, only glyphs currently selected in the Font tab are treated as potential bases.")
 		linePos += lineHeight
 
-		self.w.progress = vanilla.ProgressBar((inset, linePos + 4, -inset, 16))
+		self.w.progress = vanilla.ProgressBar((inset, -42 - inset, -inset, 16))
 		self.w.progress.set(0)
-		linePos += lineHeight
 
 		self.w.status = vanilla.TextBox((inset, -20 - inset, -159, -inset), "", sizeStyle='small')
 
