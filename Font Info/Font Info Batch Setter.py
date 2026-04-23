@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Batch-apply settings in Font Info > Font to open fonts: designer, designer URL, manufacturer, manufacturer URL, copyright, version number, date and time. Useful for syncing Font Info settings across many fonts.
+Batch-apply Font Info > Font settings to open fonts: designer, designer URL, manufacturer, manufacturer URL, license, license URL, copyright, trademark, vendor ID, description, sample text, version number, and date/time. Useful for syncing Font Info settings across many fonts.
 """
 import vanilla
 import datetime
