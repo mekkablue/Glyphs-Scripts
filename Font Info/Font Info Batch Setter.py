@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Batch-apply settings in Font Info > Font to open fonts: designer, designer URL, manufacturer, manufacturer URL, copyright, version number, date and time. Useful for syncing Font Info settings across many fonts.
+Batch-apply Font Info > Font settings to open fonts: designer, designer URL, manufacturer, manufacturer URL, license, license URL, copyright, trademark, vendor ID, description, sample text, version number, and date/time. Useful for syncing Font Info settings across many fonts.
 """
 import vanilla
 import datetime
@@ -45,6 +45,7 @@ class FontInfoBatchSetter(mekkaObject):
 		"setLicense": False,
 		"setLicenseURL": False,
 		"setFontDescription": False,
+		"setSampleText": False,
 
 		"setDate": True,
 
@@ -145,7 +146,7 @@ class FontInfoBatchSetter(mekkaObject):
 		linePos += lineHeight
 		
 		# SAMPLE TEXT
-		self.w.setSampleText = vanilla.CheckBox((inset+2, linePos, -inset+2, 20), "Sample text:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.setSampleText = vanilla.CheckBox((inset+2, linePos, column, 20), "Sample text:", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.sampleText = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle="small")
 		tooltip = f"Sample text, name ID 19: Sample text. This can be the font name, or any other text that the designer thinks is the best sample to display the font in. Use {self.placeholderFamilyName} as placeholder for the current family name."
 		self.w.setSampleText.setToolTip(tooltip)
@@ -214,7 +215,6 @@ class FontInfoBatchSetter(mekkaObject):
 
 		# Load Settings:
 		self.LoadPreferences()
-		self.setNoon()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -235,7 +235,6 @@ class FontInfoBatchSetter(mekkaObject):
 		self.SavePreferences()
 
 	def updateUI(self, sender=None):
-		# self.updateTooltips()
 		self.w.designer.enable(self.w.setDesigner.get())
 		self.w.designerURL.enable(self.w.setDesignerURL.get())
 		self.w.manufacturer.enable(self.w.setManufacturer.get())
@@ -260,24 +259,16 @@ class FontInfoBatchSetter(mekkaObject):
 		self.w.applyContaining.show(self.w.applyPopup.get())  # 0=all fonts, 1=fonts containing, here repurposed as bool
 		applySettingsEnable = self.w.applyPopup.get() == 0 or len(self.w.applyContaining.get().strip()) > 0
 
-		self.w.runButton.enable(
-			(
-				# ANY of the checkboxes must be on:
-				dateEnabled or versionEnabled or self.w.setDesigner.get() or self.w.setDesignerURL.get() or self.w.setManufacturer.get() or \
-				self.w.setManufacturerURL.get() or self.w.setCopyright.get()
-			) and applySettingsEnable
+		anyCheckboxOn = (
+			dateEnabled or versionEnabled
+			or self.w.setDesigner.get() or self.w.setDesignerURL.get()
+			or self.w.setManufacturer.get() or self.w.setManufacturerURL.get()
+			or self.w.setCopyright.get() or self.w.setTrademark.get()
+			or self.w.setLicense.get() or self.w.setLicenseURL.get()
+			or self.w.setVendorID.get() or self.w.setFontDescription.get()
+			or self.w.setSampleText.get()
 		)
-
-	def updateTooltips(self, sender=None):
-		self.w.designer.setToolTip(self.w.designer.get())
-		self.w.designerURL.setToolTip(self.w.designerURL.get())
-		self.w.manufacturer.setToolTip(self.w.manufacturer.get())
-		self.w.manufacturerURL.setToolTip(self.w.manufacturerURL.get())
-		self.w.license.setToolTip(self.w.license.get())
-		self.w.licenseURL.setToolTip(self.w.licenseURL.get())
-		self.w.copyright.setToolTip(self.w.copyright.get())
-		self.w.trademark.setToolTip(self.w.trademark.get())
-		self.w.vendorID.setToolTip(self.w.vendorID.get())
+		self.w.runButton.enable(anyCheckboxOn and applySettingsEnable)
 
 	def setNoon(self, sender=None):
 		# Get current date:
@@ -326,11 +317,11 @@ class FontInfoBatchSetter(mekkaObject):
 			Glyphs.defaults[self.domain("sampleText")] = thisFont.sampleText
 			try:
 				Glyphs.defaults[self.domain("vendorID")] = thisFont.propertyForName_("vendorID").value
-			except:
+			except Exception:
 				pass
 			try:
 				Glyphs.defaults[self.domain("licenseURL")] = thisFont.propertyForName_("licenseURL").value
-			except:
+			except Exception:
 				pass
 
 			# update checkboxes:
@@ -436,8 +427,9 @@ class FontInfoBatchSetter(mekkaObject):
 			changeCount = 0
 			changedFontsCount = 0
 
-			if not theseFonts or theseFonts[0] is None:
+			if not theseFonts or None in theseFonts:
 				self.complainAboutNoFonts()
+				return
 			else:
 
 				for i, thisFont in enumerate(theseFonts):
