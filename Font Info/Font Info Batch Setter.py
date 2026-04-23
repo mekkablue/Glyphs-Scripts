@@ -430,6 +430,7 @@ class FontInfoBatchSetter(mekkaObject):
 
 			if not theseFonts or theseFonts[0] is None:
 				self.complainAboutNoFonts()
+				return
 			else:
 
 				for i, thisFont in enumerate(theseFonts):
