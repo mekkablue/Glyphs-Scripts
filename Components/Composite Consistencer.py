@@ -7,7 +7,7 @@ Goes through all glyphs of the frontmost font (or all open fonts), and checks fo
 
 import vanilla
 from GlyphsApp import Glyphs, Message, GSGlyph, GSComponent
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 defaultSuffixes = ".dnom, .numr, .subs, .sups, .sinf, .case, .tf, .tosf, .osf"
 
@@ -50,8 +50,10 @@ class CompositeConsistencer(mekkaObject):
 		linePos += lineHeight
 
 		self.w.ignoreText = vanilla.TextBox((inset, linePos + 3, 90, 14), "Ignore suffixes:", sizeStyle='small', selectable=True)
-		self.w.ignore = vanilla.EditText((inset + 90, linePos, -inset, 19), defaultSuffixes, callback=self.SavePreferences, sizeStyle='small')
+		self.w.ignore = vanilla.EditText((inset + 90, linePos, -inset - 26, 19), defaultSuffixes, callback=self.SavePreferences, sizeStyle='small')
 		self.w.ignore.setToolTip("Comma-separated suffixes to skip when reporting missing composites.")
+		self.w.updateIgnore = UpdateButton((-inset - 22, linePos, -inset, 19), callback=self.updateIgnoreSuffixes)
+		self.w.updateIgnore.setToolTip("Add all dot-suffixes found in the current font to the ignore list.")
 		linePos += lineHeight
 
 		self.w.ignoreDuplicateSuffixes = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Ignore duplicate suffixes (.ss01.ss01)", value=True, callback=self.SavePreferences, sizeStyle='small')
@@ -145,6 +147,19 @@ class CompositeConsistencer(mekkaObject):
 					results.append((otherName, missingItems))
 
 		return results
+
+	def updateIgnoreSuffixes(self, sender=None):
+		thisFont = Glyphs.font
+		if not thisFont:
+			return
+		existing = set(s.strip().strip(".") for s in self.pref("ignore").split(",") if s.strip())
+		for glyph in thisFont.glyphs:
+			parts = glyph.name.split(".")
+			for suffix in parts[1:]:
+				if suffix:
+					existing.add(suffix)
+		self.w.ignore.set(", ".join(".%s" % s for s in sorted(existing)))
+		self.SavePreferences()
 
 	def CompositeConsistencerMain(self, sender=None):
 		try:
