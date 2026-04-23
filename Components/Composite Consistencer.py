@@ -33,7 +33,7 @@ class CompositeConsistencer(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 370
-		windowHeight = 222
+		windowHeight = 234
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -81,13 +81,13 @@ class CompositeConsistencer(mekkaObject):
 		self.w.progress = vanilla.ProgressBar((inset, -42 - inset, -inset, 16))
 		self.w.progress.set(0)
 
-		self.w.status = vanilla.TextBox((inset, -20 - inset, -159, -inset), "", sizeStyle='small')
+		self.w.status = vanilla.TextBox((inset, -38, -159, 14), "", sizeStyle='small')
 		self.w.status.setToolTip("Result of the last Find or Create run.")
 
 		# Buttons:
-		self.w.createButton = vanilla.Button((-151, -20 - inset, -91, -inset), "Create", callback=self.CompositeConsistencerCreate, sizeStyle='small')
+		self.w.createButton = vanilla.Button((-151, -32 - inset, -91, -inset), "Create", callback=self.CompositeConsistencerCreate)
 		self.w.createButton.setToolTip("Create all missing composite glyphs found with the current settings. Each new glyph copies the component structure of the existing composite, substituting component names with their suffixed equivalents where available.")
-		self.w.runButton = vanilla.Button((-60 - inset, -20 - inset, -inset, -inset), "Find", callback=self.CompositeConsistencerMain, sizeStyle='small')
+		self.w.runButton = vanilla.Button((-60 - inset, -32 - inset, -inset, -inset), "Find", callback=self.CompositeConsistencerMain)
 		self.w.runButton.setToolTip("Scan the font and list all missing suffixed composites in the Macro Window.")
 		self.w.setDefaultButton(self.w.runButton)
 
