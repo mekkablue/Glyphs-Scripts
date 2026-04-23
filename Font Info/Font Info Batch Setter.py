@@ -317,11 +317,11 @@ class FontInfoBatchSetter(mekkaObject):
 			Glyphs.defaults[self.domain("sampleText")] = thisFont.sampleText
 			try:
 				Glyphs.defaults[self.domain("vendorID")] = thisFont.propertyForName_("vendorID").value
-			except:
+			except Exception:
 				pass
 			try:
 				Glyphs.defaults[self.domain("licenseURL")] = thisFont.propertyForName_("licenseURL").value
-			except:
+			except Exception:
 				pass
 
 			# update checkboxes:
