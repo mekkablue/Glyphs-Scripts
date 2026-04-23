@@ -427,7 +427,7 @@ class FontInfoBatchSetter(mekkaObject):
 			changeCount = 0
 			changedFontsCount = 0
 
-			if not theseFonts or theseFonts[0] is None:
+			if not theseFonts or None in theseFonts:
 				self.complainAboutNoFonts()
 				return
 			else:
