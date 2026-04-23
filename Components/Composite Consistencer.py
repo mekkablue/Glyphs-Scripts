@@ -78,12 +78,12 @@ class CompositeConsistencer(mekkaObject):
 		self.w.progress.set(0)
 		linePos += lineHeight
 
-		self.w.status = vanilla.TextBox((inset, -20 - inset, -186, -inset), "", sizeStyle='small')
+		self.w.status = vanilla.TextBox((inset, -20 - inset, -159, -inset), "", sizeStyle='small')
 
 		# Buttons:
-		self.w.createButton = vanilla.Button((-178, -20 - inset, -95, -inset), "Create", callback=self.CompositeConsistencerCreate, sizeStyle='small')
+		self.w.createButton = vanilla.Button((-151, -20 - inset, -91, -inset), "Create", callback=self.CompositeConsistencerCreate, sizeStyle='small')
 		self.w.createButton.setToolTip("Create all missing composite glyphs found by the current settings.")
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Find", callback=self.CompositeConsistencerMain, sizeStyle='small')
+		self.w.runButton = vanilla.Button((-60 - inset, -20 - inset, -inset, -inset), "Find", callback=self.CompositeConsistencerMain, sizeStyle='small')
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
