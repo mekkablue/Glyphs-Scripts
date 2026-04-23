@@ -78,7 +78,7 @@ class CompositeConsistencer(mekkaObject):
 		self.w.selectedOnly.setToolTip("Restrict the base-glyph search to glyphs currently selected in the Font tab. Useful for checking a specific subset without scanning the entire font.")
 		linePos += lineHeight
 
-		self.w.progress = vanilla.ProgressBar((inset, -42 - inset, -inset, 16))
+		self.w.progress = vanilla.ProgressBar((inset, -49 - inset, -inset, 16))
 		self.w.progress.set(0)
 
 		self.w.status = vanilla.TextBox((inset, -38, -159, 14), "", sizeStyle='small')
