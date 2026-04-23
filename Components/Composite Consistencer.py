@@ -54,8 +54,8 @@ class CompositeConsistencer(mekkaObject):
 		self.w.ignoreText.setToolTip("Suffixes listed here are skipped entirely. Missing composites for these suffixes are not reported.")
 		self.w.ignore = vanilla.EditText((inset + 90, linePos, -inset - 26, 19), defaultSuffixes, callback=self.SavePreferences, sizeStyle='small')
 		self.w.ignore.setToolTip("Comma-separated dot-suffixes to skip. Composites whose suffix appears here are not reported as missing. Example: .sc, .tf")
-		self.w.updateIgnore = UpdateButton((-inset - 22, linePos, -inset, 19), callback=self.updateIgnoreSuffixes)
-		self.w.updateIgnore.setToolTip("Collect all dot-suffixes present in the current font and merge them into the ignore list above.")
+		self.w.updateIgnore = UpdateButton((-inset - 22, linePos - 2, -inset, 19), callback=self.updateIgnoreSuffixes)
+		self.w.updateIgnore.setToolTip("Collect all dot-suffixes present in the current font and merge them into the ignore list, so you can edit the list yourself more easily.")
 		linePos += lineHeight
 
 		self.w.ignoreDuplicateSuffixes = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Ignore duplicate suffixes (.ss01.ss01)", value=True, callback=self.SavePreferences, sizeStyle='small')
