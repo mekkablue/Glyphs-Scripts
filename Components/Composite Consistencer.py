@@ -47,42 +47,48 @@ class CompositeConsistencer(mekkaObject):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Find missing suffixed composites:", sizeStyle='small', selectable=True)
+		self.w.descriptionText.setToolTip("For every glyph used as a component, the script checks whether equivalent composites exist for all dot-suffixed variants of that glyph. For example, if 'a' is used in 'ae' and 'a.sc' exists, it checks that 'ae.sc' also exists.")
 		linePos += lineHeight
 
 		self.w.ignoreText = vanilla.TextBox((inset, linePos + 3, 90, 14), "Ignore suffixes:", sizeStyle='small', selectable=True)
+		self.w.ignoreText.setToolTip("Suffixes listed here are skipped entirely. Missing composites for these suffixes are not reported.")
 		self.w.ignore = vanilla.EditText((inset + 90, linePos, -inset - 26, 19), defaultSuffixes, callback=self.SavePreferences, sizeStyle='small')
-		self.w.ignore.setToolTip("Comma-separated suffixes to skip when reporting missing composites.")
+		self.w.ignore.setToolTip("Comma-separated dot-suffixes to skip. Composites whose suffix appears here are not reported as missing. Example: .sc, .tf")
 		self.w.updateIgnore = UpdateButton((-inset - 22, linePos, -inset, 19), callback=self.updateIgnoreSuffixes)
-		self.w.updateIgnore.setToolTip("Add all dot-suffixes found in the current font to the ignore list.")
+		self.w.updateIgnore.setToolTip("Collect all dot-suffixes present in the current font and merge them into the ignore list above.")
 		linePos += lineHeight
 
 		self.w.ignoreDuplicateSuffixes = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Ignore duplicate suffixes (.ss01.ss01)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.ignoreDuplicateSuffixes.setToolTip("Skip composites whose generated name would repeat the same suffix twice. For example: if ae.ss01 uses a as a component and a.ss01 exists, the script would normally flag ae.ss01.ss01 as missing — this option suppresses that.")
 		linePos += lineHeight
 
 		self.w.suffixOrderMatters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Order of suffixes matters (.case.ss01 and .ss01.case)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.suffixOrderMatters.setToolTip("When unchecked (recommended), suffix order is normalised alphabetically so .case.ss01 and .ss01.case are treated as the same glyph. When checked, they are treated as distinct glyphs and both may be reported.")
 		linePos += lineHeight
 
 		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Check all open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.allFonts.setToolTip("When checked, all open fonts are scanned instead of just the frontmost one.")
+		self.w.allFonts.setToolTip("Scan all currently open fonts instead of only the frontmost one. Each font is reported separately in the Macro Window.")
 		linePos += lineHeight
 
 		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeNonExporting.setToolTip("When checked, glyphs with export disabled are also checked for missing composite counterparts.")
+		self.w.includeNonExporting.setToolTip("Also look for missing composites among glyphs whose Export is disabled. By default only exported glyphs are considered as targets.")
 		linePos += lineHeight
 
 		self.w.selectedOnly = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Check selected glyphs only", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.selectedOnly.setToolTip("When checked, only glyphs currently selected in the Font tab are treated as potential bases.")
+		self.w.selectedOnly.setToolTip("Restrict the base-glyph search to glyphs currently selected in the Font tab. Useful for checking a specific subset without scanning the entire font.")
 		linePos += lineHeight
 
 		self.w.progress = vanilla.ProgressBar((inset, -42 - inset, -inset, 16))
 		self.w.progress.set(0)
 
 		self.w.status = vanilla.TextBox((inset, -20 - inset, -159, -inset), "", sizeStyle='small')
+		self.w.status.setToolTip("Result of the last Find or Create run.")
 
 		# Buttons:
 		self.w.createButton = vanilla.Button((-151, -20 - inset, -91, -inset), "Create", callback=self.CompositeConsistencerCreate, sizeStyle='small')
-		self.w.createButton.setToolTip("Create all missing composite glyphs found by the current settings.")
+		self.w.createButton.setToolTip("Create all missing composite glyphs found with the current settings. Each new glyph copies the component structure of the existing composite, substituting component names with their suffixed equivalents where available.")
 		self.w.runButton = vanilla.Button((-60 - inset, -20 - inset, -inset, -inset), "Find", callback=self.CompositeConsistencerMain, sizeStyle='small')
+		self.w.runButton.setToolTip("Scan the font and list all missing suffixed composites in the Macro Window.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
