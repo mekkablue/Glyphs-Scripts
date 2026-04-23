@@ -45,6 +45,7 @@ class FontInfoBatchSetter(mekkaObject):
 		"setLicense": False,
 		"setLicenseURL": False,
 		"setFontDescription": False,
+		"setSampleText": False,
 
 		"setDate": True,
 
