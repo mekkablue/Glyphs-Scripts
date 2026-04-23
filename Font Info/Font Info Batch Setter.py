@@ -260,13 +260,16 @@ class FontInfoBatchSetter(mekkaObject):
 		self.w.applyContaining.show(self.w.applyPopup.get())  # 0=all fonts, 1=fonts containing, here repurposed as bool
 		applySettingsEnable = self.w.applyPopup.get() == 0 or len(self.w.applyContaining.get().strip()) > 0
 
-		self.w.runButton.enable(
-			(
-				# ANY of the checkboxes must be on:
-				dateEnabled or versionEnabled or self.w.setDesigner.get() or self.w.setDesignerURL.get() or self.w.setManufacturer.get() or \
-				self.w.setManufacturerURL.get() or self.w.setCopyright.get()
-			) and applySettingsEnable
+		anyCheckboxOn = (
+			dateEnabled or versionEnabled
+			or self.w.setDesigner.get() or self.w.setDesignerURL.get()
+			or self.w.setManufacturer.get() or self.w.setManufacturerURL.get()
+			or self.w.setCopyright.get() or self.w.setTrademark.get()
+			or self.w.setLicense.get() or self.w.setLicenseURL.get()
+			or self.w.setVendorID.get() or self.w.setFontDescription.get()
+			or self.w.setSampleText.get()
 		)
+		self.w.runButton.enable(anyCheckboxOn and applySettingsEnable)
 
 	def setNoon(self, sender=None):
 		# Get current date:
