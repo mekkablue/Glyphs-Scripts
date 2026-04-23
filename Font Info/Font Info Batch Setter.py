@@ -215,7 +215,6 @@ class FontInfoBatchSetter(mekkaObject):
 
 		# Load Settings:
 		self.LoadPreferences()
-		self.setNoon()
 
 		# Open window and focus on it:
 		self.w.open()
