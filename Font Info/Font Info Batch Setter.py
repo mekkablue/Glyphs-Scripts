@@ -146,7 +146,7 @@ class FontInfoBatchSetter(mekkaObject):
 		linePos += lineHeight
 		
 		# SAMPLE TEXT
-		self.w.setSampleText = vanilla.CheckBox((inset+2, linePos, -inset+2, 20), "Sample text:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.setSampleText = vanilla.CheckBox((inset+2, linePos, column, 20), "Sample text:", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.sampleText = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle="small")
 		tooltip = f"Sample text, name ID 19: Sample text. This can be the font name, or any other text that the designer thinks is the best sample to display the font in. Use {self.placeholderFamilyName} as placeholder for the current family name."
 		self.w.setSampleText.setToolTip(tooltip)
