@@ -1,0 +1,287 @@
+# MenuTitle: Find Near Vertical Misses
+# -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
+__doc__ = """
+Finds nodes that are close but not exactly on vertical metrics (baseline,
+xHeight, capHeight, ascender, descender, and alignment zones).
+Case-aware: for uppercase glyphs, xHeight is excluded from the checked
+metrics; for lowercase glyphs, capHeight is excluded.
+"""
+
+import vanilla
+from GlyphsApp import Glyphs, GSUppercase, GSLowercase, GSOFFCURVE
+from mekkablue import mekkaObject
+
+try:
+	from GlyphsApp import GSUppercase, GSLowercase
+except ImportError:
+	GSUppercase, GSLowercase = 1, 2
+
+try:
+	from GlyphsApp import GSMetricsTypexHeight, GSMetricsTypeCapHeight
+except ImportError:
+	GSMetricsTypexHeight, GSMetricsTypeCapHeight = 3, 6
+
+
+class FindNearVerticalMisses(mekkaObject):
+	prefDict = {
+		"threshold": 4,
+		"checkBaseline": 1,
+		"checkXHeight": 1,
+		"checkCapHeight": 1,
+		"checkAscender": 1,
+		"checkDescender": 1,
+		"checkAlignmentZones": 1,
+		"includeNonExporting": 0,
+		"markNodes": 0,
+	}
+
+	def __init__(self):
+		windowWidth = 280
+		windowHeight = 265
+		self.w = vanilla.FloatingWindow(
+			(windowWidth, windowHeight),
+			"Find Near Vertical Misses",
+			autosaveName=self.domain("mainwindow"),
+		)
+
+		indent = 15
+		y = 10
+
+<<<<<<< HEAD
+		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Search for on-curve nodes not exactly on metrics:", sizeStyle="small", selectable=True)
+		self.w.descriptionText.setToolTip("Searches for on-curve nodes that are close but not exactly on any vertical metric of their layer. Automatically skips xHeight for uppercase glyphs, and capHeight for lowercase glyphs, to avoid false positives.")
+		linePos += lineHeight
+=======
+		self.w.thresholdText = vanilla.TextBox((indent, y + 2, 150, 14), "Report nodes within:", sizeStyle="small")
+		self.w.threshold = vanilla.EditText((165, y, 40, 20), "4", sizeStyle="small", callback=self.SavePreferences)
+		self.w.thresholdUnit = vanilla.TextBox((210, y + 2, -15, 14), "units", sizeStyle="small")
+		y += 30
+>>>>>>> claude/add-vertical-misses-script-UFjGP
+
+		self.w.checkBaseline = vanilla.CheckBox((indent, y, -15, 20), "Baseline (0)", value=True, sizeStyle="small", callback=self.SavePreferences)
+		y += 22
+		self.w.checkXHeight = vanilla.CheckBox((indent, y, -15, 20), "x-height (skipped for uppercase)", value=True, sizeStyle="small", callback=self.SavePreferences)
+		y += 22
+		self.w.checkCapHeight = vanilla.CheckBox((indent, y, -15, 20), "Cap height (skipped for lowercase)", value=True, sizeStyle="small", callback=self.SavePreferences)
+		y += 22
+		self.w.checkAscender = vanilla.CheckBox((indent, y, -15, 20), "Ascender", value=True, sizeStyle="small", callback=self.SavePreferences)
+		y += 22
+		self.w.checkDescender = vanilla.CheckBox((indent, y, -15, 20), "Descender", value=True, sizeStyle="small", callback=self.SavePreferences)
+		y += 22
+		self.w.checkAlignmentZones = vanilla.CheckBox((indent, y, -15, 20), "Alignment zone edges", value=True, sizeStyle="small", callback=self.SavePreferences)
+		y += 28
+
+		self.w.includeNonExporting = vanilla.CheckBox((indent, y, -15, 20), "Include non-exporting glyphs", value=False, sizeStyle="small", callback=self.SavePreferences)
+		y += 22
+		self.w.markNodes = vanilla.CheckBox((indent, y, -15, 20), "Mark affected nodes with ⚠", value=False, sizeStyle="small", callback=self.SavePreferences)
+
+<<<<<<< HEAD
+		self.w.tolerateIfNextNodeIsOn = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Tolerate near miss if next node is on", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.tolerateIfNextNodeIsOn.setToolTip("Skips a near-miss node if the nearest on-curve neighbor (in either direction along the path) sits exactly on the same metric line. Useful for very thin serifs or short segments near metric lines.")
+		linePos += lineHeight
+
+		self.w.tolerateIfExtremum = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Tolerate near miss for left/right curve extremum", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.tolerateIfExtremum.setToolTip("Skips a near-miss node when both its neighbor nodes are vertical off-curves (i.e. the node is a left or right curve extremum). Strongly recommended to avoid false positives on rounded shapes.")
+		linePos += lineHeight
+
+		self.w.markNodes = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), f"Mark affected nodes with {self.marker}", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.markNodes.setToolTip(f"Assigns the name '{self.marker}' to each offending node so it appears as a node label. Enable View > Show Node Names to see the markers in the canvas.")
+		linePos += lineHeight
+
+		self.w.limitToLetters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Limit to letters", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.limitToLetters.setToolTip("Restricts the search to glyphs with category 'Letter'. All other categories (figures, punctuation, symbols, etc.) are skipped.")
+		linePos += lineHeight
+
+		self.w.excludeText = vanilla.TextBox((inset, linePos + 3, 150, 14), "Exclude glyphs containing:", sizeStyle="small", selectable=True)
+		self.w.excludeText.setToolTip("Comma-separated list of substrings. Any glyph whose name contains at least one of these substrings is skipped entirely.")
+		self.w.exclude = vanilla.EditText((inset + 150, linePos, -inset, 19), ".ornm, .notdef, comb", callback=self.SavePreferences, sizeStyle="small")
+		self.w.exclude.setToolTip("Comma-separated list of substrings. Any glyph whose name contains at least one of these substrings is skipped entirely.")
+		linePos += lineHeight
+		linePos += 2  # extra breathing room before tab options
+
+		self.w.openTab = vanilla.CheckBox((inset + 2, linePos - 1, 80, 20), "Open tab", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.openTab.setToolTip("Opens an edit tab showing all layers that contain at least one near-miss node.")
+		self.w.reuseTab = vanilla.CheckBox((inset + 2 + 80 + 4, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.reuseTab.setToolTip("Replaces the contents of the currently active tab instead of opening a new one.")
+		linePos += lineHeight
+
+		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress.set(0)
+
+		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Find", callback=self.FindNearVerticalMissesMain)
+=======
+		self.w.runButton = vanilla.Button((-90, -30, -15, -10), "Find", sizeStyle="small", callback=self.FindNearVerticalMissesMain)
+>>>>>>> claude/add-vertical-misses-script-UFjGP
+		self.w.setDefaultButton(self.w.runButton)
+
+		self.LoadPreferences()
+		self.w.open()
+		self.w.makeKey()
+
+<<<<<<< HEAD
+	def updateUI(self, sender=None):
+		self.w.reuseTab.enable(self.w.openTab.get())
+		if self.w.markNodes.get():
+			Glyphs.defaults["showNodeNames"] = 1
+
+	def getMetricValues(self, layer, glyph=None):
+		"""Returns a set of effective metric y-values for the given layer.
+
+		Skips xHeight metrics for uppercase glyphs and capHeight metrics for
+		lowercase glyphs to avoid false positives from cross-case metric proximity.
+		"""
+		values = set()
+		font = layer.parent.parent
+		glyphCase = glyph.case if glyph is not None else None
+		try:
+			fontMetrics = font.metrics
+			masterMetrics = layer.master.metrics
+			layerMetrics = layer.metrics
+			for i in range(len(fontMetrics)):
+				try:
+					metricType = fontMetrics[i].type
+					if glyphCase == GSUppercase and metricType == GSMetricsTypexHeight:
+						continue
+					if glyphCase == GSLowercase and metricType == GSMetricsTypeCapHeight:
+						continue
+				except (AttributeError, IndexError):
+					pass
+				val = None
+				try:
+					if i < len(layerMetrics) and layerMetrics[i]:
+						val = layerMetrics[i].position
+				except (KeyError, IndexError):
+					pass
+				if val is None:
+					try:
+						if i < len(masterMetrics) and masterMetrics[i]:
+							val = masterMetrics[i].position
+					except (KeyError, IndexError):
+						pass
+				if val is not None:
+					values.add(val)
+		except (AttributeError, TypeError, IndexError):
+			# Fallback for Glyphs 2 or unexpected API changes
+			master = layer.master
+			if master:
+				for attrName in ("ascender", "capHeight", "xHeight", "descender"):
+					if glyphCase == GSUppercase and attrName == "xHeight":
+						continue
+					if glyphCase == GSLowercase and attrName == "capHeight":
+						continue
+					try:
+						v = getattr(master, attrName)
+						if v is not None:
+							values.add(float(v))
+					except AttributeError:
+						pass
+				values.add(0.0)  # baseline
+		return values
+=======
+	def glyphCase(self, glyph):
+		try:
+			return glyph.case
+		except AttributeError:
+			subCat = glyph.subCategory
+			if subCat == "Uppercase":
+				return GSUppercase
+			if subCat == "Lowercase":
+				return GSLowercase
+			return None
+>>>>>>> claude/add-vertical-misses-script-UFjGP
+
+	def metricsForMasterAndGlyph(self, master, glyph):
+		case = self.glyphCase(glyph)
+		metrics = set()
+
+		if self.pref("checkBaseline"):
+			metrics.add(0)
+		if self.pref("checkXHeight") and case != GSUppercase:
+			metrics.add(master.xHeight)
+		if self.pref("checkCapHeight") and case != GSLowercase:
+			metrics.add(master.capHeight)
+		if self.pref("checkAscender"):
+			metrics.add(master.ascender)
+		if self.pref("checkDescender"):
+			metrics.add(master.descender)
+		if self.pref("checkAlignmentZones"):
+			for zone in master.alignmentZones:
+				metrics.add(zone.position)
+				metrics.add(zone.position + zone.size)
+
+		return metrics
+
+	def FindNearVerticalMissesMain(self, sender=None):
+		font = Glyphs.font
+		if not font:
+			return
+
+		self.SavePreferences()
+		Glyphs.clearLog()
+
+		threshold = int(self.pref("threshold"))
+		includeNonExporting = bool(self.pref("includeNonExporting"))
+		markNodes = bool(self.pref("markNodes"))
+
+		affectedLayers = []
+
+		font.disableUpdateInterface()
+		try:
+			for glyph in font.glyphs:
+				if not includeNonExporting and not glyph.export:
+					continue
+
+				for layer in glyph.layers:
+					if not layer.isMasterLayer:
+						continue
+
+<<<<<<< HEAD
+					metricValues = self.getMetricValues(thisLayer, thisGlyph)
+					if not metricValues:
+=======
+					metrics = self.metricsForMasterAndGlyph(layer.master, glyph)
+					if not metrics:
+>>>>>>> claude/add-vertical-misses-script-UFjGP
+						continue
+
+					layerHasMiss = False
+					for path in layer.paths:
+						for node in path.nodes:
+							if node.type == GSOFFCURVE:
+								continue
+							y = node.position.y
+							if not any(abs(y - m) <= threshold and y != m for m in metrics):
+								continue
+							layerHasMiss = True
+							nearestMetric = min(metrics, key=lambda m: abs(y - m))
+							print(f"  ⚠ {glyph.name} | {layer.name}: y={y:.0f} (near {nearestMetric:.0f}, off by {y - nearestMetric:.0f})")
+							if markNodes:
+								node.name = "⚠"
+
+					if not layerHasMiss:
+						continue
+					if layer not in affectedLayers:
+						affectedLayers.append(layer)
+
+		finally:
+			font.enableUpdateInterface()
+
+		if not affectedLayers:
+			print("✅ No near vertical misses found.")
+			return
+
+		seen = set()
+		glyphNames = []
+		for layer in affectedLayers:
+			name = layer.parent.name
+			if name in seen:
+				continue
+			seen.add(name)
+			glyphNames.append(name)
+
+		font.newTab("/" + "/".join(glyphNames))
+		print(f"\nFound near vertical misses in {len(affectedLayers)} layer(s) across {len(glyphNames)} glyph(s).")
+
+
+FindNearVerticalMisses()
