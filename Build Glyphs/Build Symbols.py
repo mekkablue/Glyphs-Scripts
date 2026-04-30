@@ -537,9 +537,13 @@ def buildDottedCircle(thisFont, override=False):
 				thisLayer.cleanUpPaths()
 				thisLayer.syncMetrics()
 
-				for anchorName in ("top", "bottom"):
+				anchors_to_add = ["top", "bottom"]
+				if thisFont.glyphs["ogonekcomb"]:
+					anchors_to_add.append("ogonekcomb")
+
+				for anchorName in anchors_to_add:
 					x = thisLayer.width / 2
-					y = 0.0 if anchorName == "bottom" else thisLayer.ascender
+					y = thisLayer.ascender if anchorName == "top" else 0.0
 					thisAnchor = GSAnchor()
 					thisAnchor.name = anchorName
 					thisAnchor.position = NSPoint(x, y)
