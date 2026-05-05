@@ -226,7 +226,7 @@ class PositionClicker(mekkaObject):
 				ignoreParticles = [name.strip() for name in self.pref("ignoreGlyphs").split(",")]
 
 				if limitToSelection:
-					selectedGlyphNames = set(l.parent.name for l in thisFont.selectedLayers if l.parent)
+					selectedGlyphNames = set(l.parent.name for l in (thisFont.selectedLayers or []) if l.parent)
 
 				try:
 					spaceLayer = thisFont.glyphs["space"].layers[0]
