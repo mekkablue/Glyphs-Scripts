@@ -7,7 +7,7 @@ Create a Test HTML for the current font inside the current Variation Font Export
 
 from os import system, path
 import webbrowser
-from AppKit import NSClassFromString, NSBundle, NSEvent, NSAlternateKeyMask, NSShiftKeyMask
+from Cocoa import NSEvent, NSAlternateKeyMask, NSShiftKeyMask
 import codecs
 from GlyphsApp import Glyphs, Message
 
@@ -764,18 +764,18 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 			a {
 				color: #333;
 			}
-			
+
 /* Print: */
 			@media print {
 				#helptext, #helptext *,
-				#controls, #controls *, 
-				#featureControls, 
+				#controls, #controls *,
+				#featureControls,
 				#styleMenu, #styleMenu *,
 				.otFeature {
 					display: none !important;
 				}
 			}
-			
+
 /* Dark Mode: */
 			@media (prefers-color-scheme: dark) {
 				body { background: #000; }
@@ -1259,7 +1259,7 @@ def otVarInfoForFont(thisFont, variableFontSetting=None):
 			if parameter:
 				exportFolder = parameter.value
 				break
-		
+
 	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder
 
 
@@ -1286,7 +1286,7 @@ def otVarInfoForInstance(thisInstance):
 Glyphs.clearLog()
 
 # Query app version:
-GLYPHSAPPVERSION = NSBundle.bundleForClass_(NSClassFromString("GSMenu")).infoDictionary().objectForKey_("CFBundleShortVersionString")
+GLYPHSAPPVERSION = Glyphs.versionString
 appVersionHighEnough = not GLYPHSAPPVERSION.startswith("1.")
 
 # Create Samsa if shift and option are held down
