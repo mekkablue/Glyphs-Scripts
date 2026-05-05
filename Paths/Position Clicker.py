@@ -87,12 +87,13 @@ class PositionClicker(mekkaObject):
 		"reuseTab": False,
 		"verbose": False,
 		"includeComposites": False,
+		"limitToSelection": False,
 	}
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 360
-		windowHeight = 180
+		windowHeight = 202
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -107,7 +108,7 @@ class PositionClicker(mekkaObject):
 		linePos, inset, lineHeight, indent = 12, 15, 22, 90
 
 		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Report positional combos that do not click", sizeStyle='small')
-		self.w.descriptionText.setToolTip("Clicking means that when two matching positional shapes follow each other (e.g. initial and final), they ‘click’, i.e., they share at least 2 node coordinates. Or whatever number is set in the minimal node count setting below.")
+		self.w.descriptionText.setToolTip("Clicking means that when two matching positional shapes follow each other (e.g. initial and final), they 'click', i.e., they share at least 2 node coordinates. Or whatever number is set in the minimal node count setting below.")
 		linePos += lineHeight
 
 		tooltip = "Reference glyph. Pick a medial glyph with paths for clicking. We recommend behDotless-ar.medi."
@@ -119,7 +120,7 @@ class PositionClicker(mekkaObject):
 		self.w.updateButton = UpdateButton((-inset - 18, linePos - 3, -inset, 18), callback=self.updateReferenceGlyphs)
 		self.w.updateButton.setToolTip("Update the list in the combo box with all .medi glyphs in the frontmost font.")
 		linePos += lineHeight
-		
+
 		indent = 140
 		tooltip = "The amount of point coordinates that must be shared between two consecutive positional forms. E.g., if set to 2, an initial and a final shape must have two or more nodes exactly on top of each other when they follow each other. Will respect exit and entry anchors."
 		self.w.clickCountText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Min count of node clicks", sizeStyle='small')
@@ -127,19 +128,20 @@ class PositionClicker(mekkaObject):
 		self.w.clickCountText.setToolTip(tooltip)
 		self.w.clickCount.setToolTip(tooltip)
 		linePos += lineHeight
-		
-		tooltip = "Ignore glyphs that contain any of these name particles. Useful if you have alternates that are intentionally not clicking with the reference glyph, e.g. because they are contextual alternates for specific situations. Use comma’s to separate multiple particles."
+
+		tooltip = "Ignore glyphs that contain any of these name particles. Useful if you have alternates that are intentionally not clicking with the reference glyph, e.g. because they are contextual alternates for specific situations. Use comma's to separate multiple particles."
 		self.w.ignoreGlyphsText = vanilla.TextBox((inset, linePos+2, indent, 14), "Ignore glyphs containing", sizeStyle="small", selectable=True)
 		self.w.ignoreGlyphs = vanilla.EditText((inset+indent, linePos-1, -inset, 19), ".alt, .calt, .pre, .post", callback=self.SavePreferences, sizeStyle="small")
 		self.w.ignoreGlyphsText.setToolTip(tooltip)
 		self.w.ignoreGlyphs.setToolTip(tooltip)
 		linePos += lineHeight
-		
+
 		indent = 190
 		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, indent, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonExporting.setToolTip("Will also measure glyphs that are set to not export.")
 
 		self.w.includeComposites = vanilla.CheckBox((inset + indent, linePos - 1, -inset, 20), "Include composites", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.includeComposites.setToolTip("Will also check glyphs that consist entirely of components (no paths of their own).")
 		linePos += lineHeight
 
 		self.w.reuseTab = vanilla.CheckBox((inset + 2, linePos - 1, indent, 20), "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -149,8 +151,14 @@ class PositionClicker(mekkaObject):
 		self.w.verbose.setToolTip("Also reports successful clicks in Macro Window (slow).")
 		linePos += lineHeight
 
-		# Run Button:
+		self.w.limitToSelection = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Limit to selected glyphs only", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.limitToSelection.setToolTip("Only check glyphs that are currently selected in the font window or edit tab, instead of all glyphs in the font.")
+		linePos += lineHeight
+
+		# Status line and Run Button:
+		self.w.status = vanilla.TextBox((inset, -16 - inset, -100 - inset - 10, 14), "🤖 Ready.", sizeStyle="small")
 		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Open Tab", callback=self.PositionClickerMain)
+		self.w.runButton.setToolTip("Run the check and open a tab with all non-clicking combinations.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
@@ -195,6 +203,8 @@ class PositionClicker(mekkaObject):
 			# update settings to the latest user input:
 			self.SavePreferences()
 
+			self.w.status.set("⏳ Checking…")
+
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
@@ -212,7 +222,11 @@ class PositionClicker(mekkaObject):
 				clickCount = self.prefInt("clickCount")
 				includeComposites = self.pref("includeComposites")
 				verbose = self.pref("verbose")
+				limitToSelection = self.pref("limitToSelection")
 				ignoreParticles = [name.strip() for name in self.pref("ignoreGlyphs").split(",")]
+
+				if limitToSelection:
+					selectedGlyphNames = set(l.parent.name for l in (thisFont.selectedLayers or []) if l.parent)
 
 				try:
 					spaceLayer = thisFont.glyphs["space"].layers[0]
@@ -233,6 +247,8 @@ class PositionClicker(mekkaObject):
 				for thisGlyph in thisFont.glyphs:
 					glyphName = thisGlyph.name
 					if glyphName == referenceGlyphName:
+						continue
+					if limitToSelection and glyphName not in selectedGlyphNames:
 						continue
 					if any([part in glyphName for part in ignoreParticles]):
 						continue
@@ -261,7 +277,20 @@ class PositionClicker(mekkaObject):
 											tabLayers.append(spaceLayer)
 											count += 1
 
-				if len(tabLayers) > 0:
+				if comboCount == 0:
+					if limitToSelection:
+						Message(
+							title="No Positional Glyphs in Selection",
+							message="⚠️ None of the selected glyphs are positional (no .init, .medi, or .fina suffix). Select some positional glyphs and try again.",
+							OKButton=None,
+						)
+					else:
+						Message(
+							title="No Positional Glyphs in Font",
+							message="⚠️ No positional glyphs (.init, .medi, .fina) were found in the font.",
+							OKButton=None,
+						)
+				elif len(tabLayers) > 0:
 					Glyphs.showNotification(
 						"%s: Position Clicker" % (thisFont.familyName),
 						"Found %i imprecise connections. Details in Macro Window." % count,
@@ -275,8 +304,8 @@ class PositionClicker(mekkaObject):
 					tab.direction = 0  # LTR!
 				else:
 					Message(
-						title="Position Clicker found no problems 😃",
-						message="✅ Checked %i combinations on %i master%s in %s: all positional glyphs click on %i points or more. Good job!\nDetailed report in Macro Window." % (
+						title="Position Clicker found no problems 😃",
+						message="✅ Checked %i combinations on %i master%s in %s: all positional glyphs click on %i points or more. Good job!\nDetailed report in Macro Window." % (
 							comboCount,
 							len(thisFont.masters),
 							"" if len(thisFont.masters) == 1 else "s",
@@ -286,9 +315,11 @@ class PositionClicker(mekkaObject):
 						OKButton="🥂Cool",
 					)
 
+			self.w.status.set("✅ Done.")
 			print("\nDone.")
 
 		except Exception as e:
+			self.w.status.set("❌ Error.")
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Position Clicker Error: %s" % e)
