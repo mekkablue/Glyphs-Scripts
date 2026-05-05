@@ -246,6 +246,8 @@ class PositionClicker(mekkaObject):
 								if (thisLayer.isMasterLayer or thisLayer.isSpecialLayer) and (thisLayer.paths or includeComposites):
 									comboCount += 1
 									referenceLayer = referenceGlyph.layers[thisLayer.master.id]
+									if referenceLayer is None:
+										continue
 									if (comesFirst and isRTL) or (comesLater and not isRTL):
 										if not doTheyClick(referenceLayer, thisLayer, clickCount, verbose):
 											tabLayers.append(referenceLayer)
