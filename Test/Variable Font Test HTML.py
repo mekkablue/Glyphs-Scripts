@@ -1178,13 +1178,19 @@ def axisLocationOfMasterOrInstance(thisFont, masterOrInstance):
 	axisLocationParameter = masterOrInstance.customParameters["Axis Location"]
 	for axisIndex, thisAxis in enumerate(thisFont.axes):
 		axisTag = thisAxis.axisTag
+		axisValue = None
 		if axisLocationParameter:
 			axisName = thisAxis.name
 			for axisRecord in axisLocationParameter:
 				if axisRecord["Axis"] == axisName:
-					locDict[axisTag] = axisRecord["Location"]
-		else:
-			locDict[axisTag] = masterOrInstance.axes[axisIndex]
+					axisValue = axisRecord["Location"]
+		if axisValue is None:
+			axisValue = masterOrInstance.axes[axisIndex]
+
+		assert axisValue is not None, f"No axis value found for axis: {axisTag} in master: {masterOrInstance.name}"
+
+		locDict[axisTag] = axisValue
+
 	return locDict
 
 
