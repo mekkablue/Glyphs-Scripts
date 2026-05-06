@@ -9,7 +9,7 @@ from os import system, path
 import webbrowser
 from Cocoa import NSEvent, NSAlternateKeyMask, NSShiftKeyMask
 import codecs
-from GlyphsApp import Glyphs, Message
+from GlyphsApp import Glyphs, GSFont, Message
 
 
 def langMenu(thisFont, indent=4):
@@ -318,23 +318,6 @@ def replaceSet(text, setOfReplacements):
 	return text
 
 
-def generateAxisDict(thisFont):
-	# see if there are Axis Location parameters in use:
-	fontHasAxisLocationParameters = True
-	importedMasters = []
-	if thisFont.importedFontMasters():
-		importedMasters = thisFont.importedFontMasters()
-	for thisMaster in list(thisFont.masters) + importedMasters:
-		if not thisMaster.customParameters["Axis Location"]:
-			fontHasAxisLocationParameters = False
-
-	# create and return the axisDict:
-	if fontHasAxisLocationParameters:
-		return axisDictForFontWithAxisLocationParameters(thisFont)
-	else:
-		return axisDictForFontWithoutAxisLocationParameters(thisFont)
-
-
 def axisDictWithVirtualMastersForFont(thisFont, axisDict):
 	# go through *all* virtual masters:
 	virtualMasters = [cp for cp in thisFont.customParameters if cp.name == "Virtual Master" and cp.active]
@@ -355,79 +338,26 @@ def axisDictWithVirtualMastersForFont(thisFont, axisDict):
 	return axisDict
 
 
-def axisDictForFontWithoutAxisLocationParameters(thisFont):
-	sliderValues = {}
-	masters = thisFont.masters
-	if thisFont.importedFontMasters():
-		masters.extend(thisFont.importedFontMasters())
-	for i, thisMaster in enumerate(masters):
-		sliderValues[i] = axisValuesForMaster(thisMaster)
+def generateAxisDict(thisFont: GSFont):
 
 	axisDict = axisDictWithVirtualMastersForFont(thisFont, {})
-	for i, axis in enumerate(thisFont.axes):
-		try:
-			# Glyphs 2:
-			axisName, axisTag = axis["Name"], axis["Tag"]
-		except:
-			# Glyphs 3:
-			axisName, axisTag = axis.name, axis.axisTag
-
-		if axisName in axisDict.keys():
-			axisDict[axisName] = {
-				"tag": axisTag,
-				"min": min(sliderValues[0][i], axisDict[axisName]["min"]),
-				"max": max(sliderValues[0][i], axisDict[axisName]["max"]),
-			}
-		else:
-			axisDict[axisName] = {
-				"tag": axisTag,
-				"min": sliderValues[0][i],
-				"max": sliderValues[0][i]
-			}
-
-		for j, thisMaster in enumerate(thisFont.masters):
-			masterValue = sliderValues[j][i]
-			if masterValue < axisDict[axisName]["min"]:
-				axisDict[axisName]["min"] = masterValue
-			elif masterValue > axisDict[axisName]["max"]:
-				axisDict[axisName]["max"] = masterValue
-
-	return axisDict
-
-
-def axisDictForFontWithAxisLocationParameters(thisFont):
-	masters = thisFont.masters
-	if thisFont.importedFontMasters():
-		masters.extend(thisFont.importedFontMasters())
-
-	axisDict = axisDictWithVirtualMastersForFont(thisFont, {})
-	for m in masters:
-		for axisLocation in m.customParameters["Axis Location"]:
-			axisName = axisLocation["Axis"]
-			axisPos = float(axisLocation["Location"])
+	for m in thisFont.allMasters():
+		coords = axisLocationOfMasterOrInstance(thisFont, m)
+		for axis in thisFont.axes:
+			axisName = axis.name
+			axisPos = coords.get(axis.axisTag, None)
 			if axisName not in axisDict:
 				axisDict[axisName] = {
 					"min": axisPos,
-					"max": axisPos
+					"max": axisPos,
+					"tag": axis.axisTag,
 				}
-			else:
-				if axisPos < axisDict[axisName]["min"]:
-					axisDict[axisName]["min"] = axisPos
-				if axisPos > axisDict[axisName]["max"]:
-					axisDict[axisName]["max"] = axisPos
-
-	# add tags:
-	for axis in thisFont.axes:
-		try:
-			# GLYPHS 3
-			axisName = axis.name
-			axisTag = axis.axisTag
-		except:
-			# GLYPHS 2
-			axisName = axis["Name"]
-			axisTag = axis["Tag"]
-		if axisName in axisDict.keys():
-			axisDict[axisName]["tag"] = axisTag
+			if axisPos < axisDict[axisName]["min"]:
+				axisDict[axisName]["min"] = axisPos
+			if axisPos > axisDict[axisName]["max"]:
+				axisDict[axisName]["max"] = axisPos
+			if "tag" not in axisDict[axisName]:
+				axisDict[axisName]["tag"] = axis.axisTag
 
 	return axisDict
 
