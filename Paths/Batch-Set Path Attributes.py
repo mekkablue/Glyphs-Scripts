@@ -26,6 +26,7 @@ def intOrNone(value):
 allAttributeNames = (
 	"lineCapStart",
 	"lineCapEnd",
+	"lineJoin",
 	"strokeWidth",
 	"strokeHeight",
 	"strokePos",
@@ -56,6 +57,8 @@ class BatchSetPathAttributes(mekkaObject):
 		"scopeMaster": 0,
 		"lineCaps": 2,
 		"lineCapsCheck": False,
+		"lineJoin": 1,
+		"lineJoinCheck": False,
 		"strokeWidth": 20,
 		"strokeWidthCheck": True,
 		"strokeHeight": "",
@@ -67,14 +70,14 @@ class BatchSetPathAttributes(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 300
-		windowHeight = 210
+		windowHeight = 232
 		windowWidthResize = 100  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Batch-Set Path Attributes",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			minSize=(windowWidth, windowHeight),
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -115,10 +118,17 @@ class BatchSetPathAttributes(mekkaObject):
 		linePos += lineHeight
 
 		tooltip = "0: straight cutoff\n1: round (wide)\n2: round (tight)\n3: square\n4: orthogonal\n\nEnter one number for both start and end, enter two comma-separated numbers (e.g. ‘2, 1’) for different caps at start and end."
-		self.w.lineCapsCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Line Caps", sizeStyle='small')
+		self.w.lineCapsCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Line Caps", sizeStyle=’small’)
 		self.w.lineCapsCheck._nsObject.setToolTip_(tooltip)
-		self.w.lineCaps = vanilla.EditText((inset + indent, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle='small')
+		self.w.lineCaps = vanilla.EditText((inset + indent, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle=’small’)
 		self.w.lineCaps.setToolTip(tooltip)
+		linePos += lineHeight
+
+		tooltip = "0: miter\n1: round\n2: bevel"
+		self.w.lineJoinCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Line Join", sizeStyle=’small’)
+		self.w.lineJoinCheck._nsObject.setToolTip_(tooltip)
+		self.w.lineJoin = vanilla.EditText((inset + indent, linePos, -inset, 19), "1", callback=self.SavePreferences, sizeStyle=’small’)
+		self.w.lineJoin.setToolTip(tooltip)
 		linePos += lineHeight
 
 		# Buttons at the bottom:
@@ -190,6 +200,9 @@ class BatchSetPathAttributes(mekkaObject):
 						lineCaps.append(lineCapEnd)
 
 					self.setPref("lineCaps", ", ".join([str(x) for x in set(lineCaps)]))
+
+					lineJoin = currentPath.attributeForKey_("lineJoin")
+					self.setPref("lineJoin", lineJoin)
 
 					strokeWidth = currentPath.attributeForKey_("strokeWidth")
 					self.setPref("strokeWidth", strokeWidth)
@@ -292,6 +305,8 @@ class BatchSetPathAttributes(mekkaObject):
 			else:
 				lineCaps = (None, None)
 			lineCapsCheck = self.prefBool("lineCapsCheck")
+			lineJoin = intOrNone(self.pref("lineJoin"))
+			lineJoinCheck = self.prefBool("lineJoinCheck")
 			strokeWidth = self.prefInt("strokeWidth")
 			strokeWidthCheck = self.prefBool("strokeWidthCheck")
 			strokeHeight = self.pref("strokeHeight")
@@ -328,6 +343,12 @@ class BatchSetPathAttributes(mekkaObject):
 											thisPath.removeAttributeForKey_(startOrEnd)
 										else:
 											thisPath.setAttribute_forKey_(capValue, startOrEnd)
+
+								if lineJoinCheck:
+									if lineJoin is None:
+										thisPath.removeAttributeForKey_("lineJoin")
+									else:
+										thisPath.setAttribute_forKey_(lineJoin, "lineJoin")
 
 								if strokeWidthCheck:
 									# stroke width, height, pos:
