@@ -117,17 +117,17 @@ class BatchSetPathAttributes(mekkaObject):
 		self.w.strokePos.setToolTip(tooltip)
 		linePos += lineHeight
 
-		tooltip = "0: straight cutoff\n1: round (wide)\n2: round (tight)\n3: square\n4: orthogonal\n\nEnter one number for both start and end, enter two comma-separated numbers (e.g. ‘2, 1’) for different caps at start and end."
-		self.w.lineCapsCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Line Caps", sizeStyle=’small’)
+		tooltip = "0: straight cutoff\n1: round (wide)\n2: round (tight)\n3: square\n4: orthogonal\n\nEnter one number for both start and end, enter two comma-separated numbers (e.g. '2, 1') for different caps at start and end."
+		self.w.lineCapsCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Line Caps", sizeStyle='small')
 		self.w.lineCapsCheck._nsObject.setToolTip_(tooltip)
-		self.w.lineCaps = vanilla.EditText((inset + indent, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle=’small’)
+		self.w.lineCaps = vanilla.EditText((inset + indent, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle='small')
 		self.w.lineCaps.setToolTip(tooltip)
 		linePos += lineHeight
 
 		tooltip = "0: miter\n1: round\n2: bevel"
-		self.w.lineJoinCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Line Join", sizeStyle=’small’)
+		self.w.lineJoinCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Line Join", sizeStyle='small')
 		self.w.lineJoinCheck._nsObject.setToolTip_(tooltip)
-		self.w.lineJoin = vanilla.EditText((inset + indent, linePos, -inset, 19), "1", callback=self.SavePreferences, sizeStyle=’small’)
+		self.w.lineJoin = vanilla.EditText((inset + indent, linePos, -inset, 19), "1", callback=self.SavePreferences, sizeStyle='small')
 		self.w.lineJoin.setToolTip(tooltip)
 		linePos += lineHeight
 
@@ -222,7 +222,7 @@ class BatchSetPathAttributes(mekkaObject):
 		except Exception as e:  # noqa: F841
 			# brings macro window to front and clears its log:
 			Glyphs.showMacroWindow()
-			print("\n⚠️ The ‘Batch-Set Path Attributes’ script encountered an error:\n")
+			print("\n⚠️ The 'Batch-Set Path Attributes' script encountered an error:\n")
 			import traceback
 			print(traceback.format_exc())
 
