@@ -122,12 +122,14 @@ class CopyKerningFromCapsToSmallcaps(mekkaObject):
 		"includeNonLetters": 1,
 		"figureSuffix": ".lf",
 		"includeAllMasters": 0,
+		"factor": 0.8,
+		"roundBy": 5,
 	}
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 360
-		windowHeight = 164
+		windowHeight = 208
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Copy Kerning from Caps to Smallcaps",  # window title
@@ -157,6 +159,16 @@ class CopyKerningFromCapsToSmallcaps(mekkaObject):
 
 		self.w.figureSuffixText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Figure suffix", sizeStyle='small')
 		self.w.figureSuffix = vanilla.EditText((inset + tab, linePos, -inset, 19), ".lf", callback=self.SavePreferences, sizeStyle='small')
+		linePos += lineHeight
+
+		self.w.factorText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Kerning factor", sizeStyle='small')
+		self.w.factor = vanilla.EditText((inset + tab, linePos, -inset, 19), "1.0", callback=self.SavePreferences, sizeStyle='small')
+		self.w.factor.setToolTip("Multiplier applied to the source (caps) kerning value before copying it to the smallcap pair. Defaults to 1.0 (= copy as-is). Use e.g. 0.8 to scale down, or 1.2 to scale up.")
+		linePos += lineHeight
+
+		self.w.roundByText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Round by", sizeStyle='small')
+		self.w.roundBy = vanilla.EditText((inset + tab, linePos, -inset, 19), "5", callback=self.SavePreferences, sizeStyle='small')
+		self.w.roundBy.setToolTip("Rounds the resulting kerning value to the nearest multiple of this number. Defaults to 5. Use 1 for no rounding, 10 for coarser snapping, etc.")
 		linePos += lineHeight
 
 		# Run Button:
@@ -201,6 +213,19 @@ class CopyKerningFromCapsToSmallcaps(mekkaObject):
 				# copyCapCapToCapSC = self.pref("copyCapCapToCapSC")
 				figureSuffix = self.pref("figureSuffix")
 				includeAllMasters = self.pref("includeAllMasters")
+				try:
+					factor = float(self.pref("factor"))
+				except (TypeError, ValueError):
+					print("⚠️ Could not parse kerning factor %r, falling back to 1.0." % self.pref("factor"))
+					factor = 1.0
+				try:
+					roundBy = float(self.pref("roundBy"))
+				except (TypeError, ValueError):
+					print("⚠️ Could not parse 'round by' value %r, falling back to 5." % self.pref("roundBy"))
+					roundBy = 5.0
+				if roundBy <= 0:
+					print("⚠️ 'Round by' must be > 0, falling back to 1 (no rounding).")
+					roundBy = 1.0
 
 				# Sync left and right Kerning Groups between UC and SC:
 				print("Kerning Groups:")
@@ -315,10 +340,12 @@ class CopyKerningFromCapsToSmallcaps(mekkaObject):
 								if scRightKey is None:
 									scRightKey = rightKeyName.replace("@", "@MMK_R_")
 
-								scKernValue = masterKernDict[LeftKey][RightKey]
+								sourceKernValue = masterKernDict[LeftKey][RightKey]
+								scaledKernValue = sourceKernValue * factor
+								scKernValue = round(scaledKernValue / roundBy) * roundBy
 								print(
-									"  Set kerning: %s %s %.1f (derived from %s %s)" %
-									(scLeftKey.replace("MMK_L_", ""), scRightKey.replace("MMK_R_", ""), scKernValue, leftKeyName, rightKeyName)
+									"  Set kerning: %s %s %.1f (derived from %s %s = %.1f × %g, rounded to %g)" %
+									(scLeftKey.replace("MMK_L_", ""), scRightKey.replace("MMK_R_", ""), scKernValue, leftKeyName, rightKeyName, sourceKernValue, factor, roundBy)
 								)
 								kerningToBeAdded.append((fontMasterID, scLeftKey, scRightKey, scKernValue))
 
