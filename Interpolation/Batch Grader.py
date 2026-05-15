@@ -127,6 +127,15 @@ def updateBraceLayers(font, defaultValue=0, newAxisTag=None, newAxisValue=None):
 			print(f"🦾 Updated {count} brace layer{'' if count == 1 else 's'} for ‘{glyph.name}’")
 
 
+def fixOpenPathEndNodes(font):
+	for glyph in font.glyphs:
+		for layer in glyph.layers:
+			for path in layer.paths:
+				if not path.closed:
+					path.nodes[0].smooth = False
+					path.nodes[-1].smooth = False
+
+
 def axisIndexForTag(font, tag="wght"):
 	for i, a in enumerate(font.axes):
 		if a.axisTag == tag:
@@ -635,6 +644,7 @@ class BatchGrader(mekkaObject):
 				weightedAxes[axisIdx] = (weightedAxes[axisIdx] + value * valueFactor)
 
 		subsettedFont = self.subsettedFontKeepAxes(fontWithoutGrades, weightedAxes, relevantAxes=axesWithInfluence)
+		fixOpenPathEndNodes(subsettedFont)
 		# weighted instance/font: the shapes
 		weightedInstance = GSInstance()
 		weightedInstance.font = subsettedFont
