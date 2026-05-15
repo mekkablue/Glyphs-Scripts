@@ -554,11 +554,13 @@ class BatchGrader(mekkaObject):
 			axLoc.append({"Axis": axisName, "Location": gradeValue})
 			return axLoc
 
+		gradeAxisIdx = axisIndexForTag(thisFont, gradeAxis.axisTag)
+
 		print("📐 Updating Axis Locations in masters...")
 		for thisMaster in thisFont.masters:
 			axLoc = thisMaster.customParameters["Axis Location"]
 			if axLoc:
-				gradeValue = thisMaster.axisValueValueForId_(gradeAxis.id)
+				gradeValue = thisMaster.axes[gradeAxisIdx]
 				thisMaster.customParameters["Axis Location"] = upsertGradeLocation(list(axLoc), gradeValue)
 
 		print("📐 Updating Axis Locations in instances...")
