@@ -529,26 +529,30 @@ class BatchGrader(mekkaObject):
 		if Glyphs.versionNumber >= 4:
 			return
 
+		axisName = self.pref("axisName")
+
+		def upsertGradeLocation(axLoc, gradeValue):
+			# update existing entry or append a new one
+			for entry in axLoc:
+				if entry.get("Axis") == axisName:
+					entry["Location"] = gradeValue
+					return axLoc
+			axLoc.append({"Axis": axisName, "Location": gradeValue})
+			return axLoc
+
 		print("📐 Updating Axis Locations in masters...")
 		for thisMaster in thisFont.masters:
 			axLoc = thisMaster.customParameters["Axis Location"]
-			if axLoc and len(axLoc) < len(thisFont.axes):
-				axLoc.append({
-					"Axis": self.pref("axisName"),
-					"Location": thisMaster.axisValueValueForId_(gradeAxis.id),
-				})
-				thisMaster.customParameters["Axis Location"] = axLoc
+			if axLoc:
+				gradeValue = thisMaster.axisValueValueForId_(gradeAxis.id)
+				thisMaster.customParameters["Axis Location"] = upsertGradeLocation(list(axLoc), gradeValue)
 
 		print("📐 Updating Axis Locations in instances...")
 		for thisInstance in thisFont.instances:
 			axLoc = thisInstance.customParameters["Axis Location"]
-			if axLoc and len(axLoc) < len(thisFont.axes):
-				axLoc = list(axLoc)
-				axLoc.append({
-					"Axis": self.pref("axisName"),
-					"Location": thisInstance.axisValueValueForId_(gradeAxis.id),
-				})
-				thisInstance.customParameters["Axis Location"] = axLoc
+			if axLoc:
+				gradeValue = thisInstance.axisValueValueForId_(gradeAxis.id)
+				thisInstance.customParameters["Axis Location"] = upsertGradeLocation(list(axLoc), gradeValue)
 			# Glyphs 4:
 			# thisMaster.setExternAxisValueValue_forId_(thisMaster.axisValueValueForId_(gradeID), gradeID)
 			# thisMaster.externalAxesValues[gradeID] = thisMaster.internalAxesValues[gradeID]
@@ -560,7 +564,7 @@ class BatchGrader(mekkaObject):
 				axLoc = parameter.value
 				if len(axLoc) < len(thisFont.axes):
 					axLoc.append({
-						"Axis": self.pref("axisName"),
+						"Axis": axisName,
 						"Location": 0,
 					})
 				parameter.value = axLoc
