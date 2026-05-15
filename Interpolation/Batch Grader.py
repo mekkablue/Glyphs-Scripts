@@ -292,14 +292,14 @@ class BatchGrader(mekkaObject):
 		linePos += lineHeight
 
 		self.w.addGradedBraceLayers = vanilla.CheckBox((inset + 2, linePos - 1, 200, 20), "Add graded brace layers (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addGradedBraceLayers.setToolTip("Also create graded versions of existing brace layers in the font. This is slow and rarely needed.")
 		self.w.temporarilySwitchToDefaultInterpolation = vanilla.CheckBox((inset + 200, linePos - 1, -inset + 230, 20), "Use default interpolation", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.temporarilySwitchToDefaultInterpolation.setToolTip("Temporarily set Font Type to 'Default' during grading. Useful when the font uses a non-default interpolation model that would interfere with the grade calculation.")
 		linePos += lineHeight
 
 		self.w.addSyncMetricCustomParameter = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Add custom parameter ‘Link Metrics With Master’ (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.addSyncMetricCustomParameter.setToolTip("Will add a custom parameter that links the spacing and kerning of the graded master to its respective base master. Keep this checkbox on unless you know what you are doing.")
 		linePos += lineHeight
-
-		tooltipText = "When refitting the graded shapes into the respective base widths, what should happen with metrics keys? If you don’t do anything, it will still work, but Glyphs will show a lot of metric sync warnings in Font View. If you disable all keys, the script will add self referential layer keys to overwrite the glyph keys, effectively disabling the metrics key on the graded master. In special cases, you can also choose to prefer (and update) the keys of one side only."
 
 		tooltipText = "Will actively recenter glyphs after interpolation if they are centered in the base master. The threshold specifies the maximum difference between LSB and RSB that is acceptable to consider the glyph centered. Best to use 1 or 2."
 		self.w.keepCenteredGlyphsCentered = vanilla.CheckBox((inset + 2, linePos, 305, 20), "Keep centered glyphs centered; max SB diff threshold", value=False, callback=self.SavePreferences, sizeStyle="small")
@@ -308,13 +308,13 @@ class BatchGrader(mekkaObject):
 		self.w.keepCenteredThreshold.setToolTip(tooltipText)
 		linePos += lineHeight
 
-		tooltipText = "Only apply to the current Glyph"
-		self.w.onlyCurrentGlyph = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Only apply to the current Glyph", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.onlyCurrentGlyph.setToolTip(tooltipText)
+		self.w.onlyCurrentGlyph = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Only apply to selected glyph", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.onlyCurrentGlyph.setToolTip("Limits grading to the currently selected glyph only. Useful for testing: much quicker than running the full font.")
 		linePos += lineHeight
 
 		linePos += 10
 		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Recipe for new graded masters", sizeStyle="small")
+		self.w.descriptionText.setToolTip("Enter one recipe line per master. Prefix a line with # to deactivate it. Syntax: MASTERNAME: AXISTAG+=100, AXISTAG=400, AXISTAG-=10")
 		linePos += lineHeight
 
 		self.w.graderCode = vanilla.TextEditor((1, linePos, -1, -inset * 3), text=self.prefDict["graderCode"], callback=self.SavePreferences, checksSpelling=False)
@@ -331,10 +331,11 @@ class BatchGrader(mekkaObject):
 
 		# Buttons:
 		self.w.resetButton = vanilla.Button((inset, -20 - inset, 80, -inset), "Reset", callback=self.ResetGraderCode)
-		self.w.resetButton.setToolTip("Will populate the recipe field with the masters and the settings above. Careful: will overwrite what you had here before.")
+		self.w.resetButton.setToolTip("Rebuilds the recipe from the current masters and settings. Existing active lines are deactivated (prefixed with #) and moved to the bottom so you can refer back to them. Duplicate commented lines are not added again.")
 		self.w.helpButton = vanilla.HelpButton((inset + 90, -20 - inset, 21, 21), callback=self.openURL)
-		self.w.helpButton.setToolTip("Will open a Loom video explaining the script. You need an internet connection.")
+		self.w.helpButton.setToolTip("Opens a Loom video explaining the script. Requires an internet connection.")
 		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Add Grades", callback=self.BatchGraderMain)
+		self.w.runButton.setToolTip("Runs the recipe: adds graded masters and interpolates the grade shapes into them according to the recipe above.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
@@ -383,14 +384,27 @@ class BatchGrader(mekkaObject):
 
 	def ResetGraderCode(self, sender=None):
 		thisFont = Glyphs.font
-		text = "# mastername: wght+=100, wdth=100\n"
 		gradeValue = self.prefInt("grade")
 		wghtCode = f"wght+={gradeValue}".replace("+=-", "-=")
+
+		newLines = ["# mastername: wght+=100, wdth=100"]
 		for m in thisFont.masters:
 			if self.shouldExcludeMaster(m):
 				continue
-			text += f"{m.name}: {wghtCode}\n"
-		self.w.graderCode.set(text)
+			newLines.append(f"{m.name}: {wghtCode}")
+
+		# deactivate existing active lines and move them to the bottom (no duplicates)
+		existingCode = self.w.graderCode.get()
+		existingSet = set(newLines)
+		for line in existingCode.splitlines():
+			stripped = line.strip()
+			if stripped and not stripped.startswith("#"):
+				commented = f"# {stripped}"
+				if commented not in existingSet:
+					newLines.append(commented)
+					existingSet.add(commented)
+
+		self.w.graderCode.set("\n".join(newLines) + "\n")
 
 	def shouldExcludeMaster(self, master):
 		excludedParticles = self.pref("excludeFromInterpolation")
