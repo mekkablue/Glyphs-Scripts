@@ -14,6 +14,8 @@ def process(thisGlyph):
 	for thisLayer in thisGlyph.layers:
 		if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 			layerCount += 1
+			if not thisLayer.anchorsTraversingComponents():
+				continue
 			for thisAnchor in thisLayer.anchorsTraversingComponents():
 				thisLayer.anchors.append(thisAnchor.copy())
 				insertedAnchors.append(thisAnchor.name)
