@@ -22,5 +22,6 @@ if not lineheight < 100.0:
 	Font.customParameters[parameterName] = lineheight
 	if Font.currentTab:
 		Font.currentTab.forceRedraw()
+		Font.currentTab.reflow()
 else:
 	Message(title="Line Height Error", message="The line height is already below 100 units. Cannot decrease any further.", OKButton=None)

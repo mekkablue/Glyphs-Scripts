@@ -65,3 +65,5 @@ if thisFont and selectedLayers:
 		if Glyphs.versionNumber < 3 and thisFont.currentTab:
 			thisFont.currentTab.redraw()
 			# NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
+		if thisFont.currentTab:
+			thisFont.currentTab.reflow()

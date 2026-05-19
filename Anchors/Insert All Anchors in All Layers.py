@@ -141,6 +141,7 @@ try:
 		# thisGlyph.endUndo()  # undo grouping causes crashes
 	if thisFont.currentTab and thisFont.currentTab.graphicView():
 		thisFont.currentTab.graphicView().redraw()
+		thisFont.currentTab.reflow()
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Script Error:\n")

@@ -24,6 +24,7 @@ def setCurrentTabToShowAllInstances(font):
 		previewingTab.setSelectedInstance_(-1)
 		previewingTab.updatePreview()
 		previewingTab.forceRedraw()
+		previewingTab.reflow()
 		font.tool = "TextTool"
 		previewingTab.textCursor = 0
 	except Exception as e:

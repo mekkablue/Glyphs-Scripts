@@ -142,6 +142,7 @@ class OffsetPixelRows(mekkaObject):
 
 				if thisFont.currentTab:
 					thisFont.currentTab.redraw()
+					thisFont.currentTab.reflow()
 				else:
 					thisFont.fontView.redraw()
 	

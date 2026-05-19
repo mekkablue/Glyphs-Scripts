@@ -157,6 +157,8 @@ class BraceLayerManager(mekkaObject):
 					thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
 					if thisFont.currentTab and Glyphs.versionNumber >= 3:
 						NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
+					if thisFont.currentTab:
+						thisFont.currentTab.reflow()
 			print()
 
 		# Final report:
