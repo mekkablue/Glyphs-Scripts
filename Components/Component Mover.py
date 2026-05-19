@@ -253,6 +253,7 @@ class ComponentMover(mekkaObject):
 
 				if thisFont.currentTab:
 					thisFont.currentTab.redraw()
+					thisFont.currentTab.reflow()
 					# NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
 				else:
 					thisFont.fontView.redraw()

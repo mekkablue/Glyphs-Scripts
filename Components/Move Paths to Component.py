@@ -321,6 +321,8 @@ class MovePathstoComponent(mekkaObject):
 			# trigger UI update:
 			if Glyphs.versionNumber >= 3 and thisFont.currentTab:
 				NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisFont.currentTab)
+			if thisFont.currentTab:
+				thisFont.currentTab.reflow()
 
 			# Final report:
 			if glyphName:

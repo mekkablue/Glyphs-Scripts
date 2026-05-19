@@ -209,6 +209,8 @@ class BatchImportMasters(mekkaObject):
 					font.enableUpdateInterface()
 					for thisUI in (font.currentTab, font.fontView):
 						NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisUI)
+					if font.currentTab:
+						font.currentTab.reflow()
 					print("\n✅ Done.")
 					if not self.pref("suppressMessage"):
 						Message(
