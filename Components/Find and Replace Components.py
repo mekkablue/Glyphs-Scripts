@@ -157,8 +157,8 @@ class FindReplaceComponents(mekkaObject):
 
 	def updateUI(self, sender=None):
 		try:
-			findName = self.w.findName.get()
-			replaceName = self.w.replaceName.get()
+			findName = self.w.findName.get() or ""
+			replaceName = self.w.replaceName.get() or ""
 		except Exception:
 			return
 
