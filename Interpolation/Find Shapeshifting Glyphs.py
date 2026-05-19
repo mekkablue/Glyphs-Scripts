@@ -50,6 +50,7 @@ class FindShapeshiftingGlyphs(mekkaObject):
 	prefDict = {
 		"checkInstances": 0,
 		"onlyCheckSelection": 0,
+		"limitToCompatibleGlyphs": 1,
 		"ignoreGlyphsWithoutPaths": 0,
 		"ignoreNonexportingGlyphs": 0,
 		"openTab": 0,
@@ -60,14 +61,14 @@ class FindShapeshiftingGlyphs(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 310
-		windowHeight = 270
+		windowHeight = 292
 		windowWidthResize = 300  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Find Shapeshifting Glyphs",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
+			minSize=(windowWidth, windowHeight),
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -83,16 +84,25 @@ class FindShapeshiftingGlyphs(mekkaObject):
 		linePos += lineHeight
 
 		self.w.onlyCheckSelection = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Limit to selected glyphs (otherwise all glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.onlyCheckSelection.setToolTip("If enabled, only glyphs selected in the current font tab are checked. Otherwise all glyphs in the font are examined.")
+		linePos += lineHeight
+
+		self.w.limitToCompatibleGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Limit to master-compatible glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.limitToCompatibleGlyphs.setToolTip("If enabled, only glyphs that are master-compatible (same number of paths and nodes in all masters) are checked. Useful for finding subtle shapeshifting within otherwise compatible glyphs, such as path direction changes.")
 		linePos += lineHeight
 
 		self.w.ignoreGlyphsWithoutPaths = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Ignore glyphs without paths", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.ignoreGlyphsWithoutPaths.setToolTip("If enabled, glyphs that have no paths in the first master (e.g. pure component glyphs or empty glyphs) are skipped.")
 		linePos += lineHeight
 
 		self.w.ignoreNonexportingGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Ignore glyphs that do not export", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.ignoreNonexportingGlyphs.setToolTip("If enabled, glyphs marked as non-exporting are skipped.")
 		linePos += lineHeight
 
 		self.w.openTab = vanilla.CheckBox((inset + 2, linePos - 1, 170, 20), "Open tab with shapeshifters", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openTab.setToolTip("If enabled, opens a new glyph tab (or reuses the current one) listing all detected shapeshifting glyphs.")
 		self.w.reuseTab = vanilla.CheckBox((inset + 170, linePos - 1, -inset, 20), "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab.setToolTip("If enabled, the shapeshifting glyphs are placed in the already-open tab instead of opening a new one.")
 		linePos += lineHeight
 
 		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Process ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -167,6 +177,7 @@ class FindShapeshiftingGlyphs(mekkaObject):
 			# query settings:
 			checkInstances = self.pref("checkInstances")
 			onlyCheckSelection = self.pref("onlyCheckSelection")
+			limitToCompatibleGlyphs = self.pref("limitToCompatibleGlyphs")
 			ignoreGlyphsWithoutPaths = self.pref("ignoreGlyphsWithoutPaths")
 			ignoreNonexportingGlyphs = self.pref("ignoreNonexportingGlyphs")
 			openTab = self.pref("openTab")
@@ -204,7 +215,7 @@ class FindShapeshiftingGlyphs(mekkaObject):
 					glyphs = [layer.glyph() for layer in thisFont.selectedLayers if layer.glyph()]
 				else:
 					glyphs = thisFont.glyphs
-				glyphNamesToBeChecked = [g.name for g in glyphs if (g.export or not ignoreNonexportingGlyphs) and (len(g.layers[0].paths) > 0 or not ignoreGlyphsWithoutPaths)]
+				glyphNamesToBeChecked = [g.name for g in glyphs if (g.export or not ignoreNonexportingGlyphs) and (len(g.layers[0].paths) > 0 or not ignoreGlyphsWithoutPaths) and (g.mastersCompatible == True or not limitToCompatibleGlyphs)]
 				print("🔠 Checking %i glyph%s:\n%s\n" % (
 					len(glyphNamesToBeChecked),
 					"" if len(glyphNamesToBeChecked) == 1 else "s",
