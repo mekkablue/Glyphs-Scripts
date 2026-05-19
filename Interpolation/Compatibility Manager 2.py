@@ -482,6 +482,9 @@ class CompatibilityManager2(mekkaObject):
 		finally:
 			font.enableUpdateInterface()
 
+		if font.currentTab:
+			font.currentTab.reflow()
+
 		if doOpenTab and incompatible:
 			font.newTab("/" + "/".join(name for name, _ in incompatible))
 
