@@ -166,6 +166,8 @@ class CompatibilityManager:
 			self.updateCompatibility(glyph)
 		
 		self.updateViews()
+		if font.currentTab:
+			font.currentTab.reflow()
 
 	def findOptimalStartPoint(self, layer, pathIndex, startPointOption):
 		path = layer.shapes[pathIndex]
@@ -235,6 +237,8 @@ class CompatibilityManager:
 			self.reorderShapesByShortestTravel(glyph)
 
 		self.updateCompatibility(glyph)
+		if font.currentTab:
+			font.currentTab.reflow()
 
 	def reorderShapesBySize(self, glyph):
 		layers = [layer for layer in glyph.layers if layer.isMasterLayer or layer.isSpecialLayer]
