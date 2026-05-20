@@ -927,7 +927,7 @@ class QuoteManager(mekkaObject):
 					if singleName == defaultQuote:
 						continue
 					if singleName == "quotesingle" and "dumbQuotes" in groups:
-						self.buildDumbQuote(font, forceOverwrite=forceOverwrite)
+						self.buildDumbQuote(font, forceOverwrite=False)
 					else:
 						self.buildSingleFromDefault(font, singleName, defaultQuote, forceOverwrite=forceOverwrite)
 
