@@ -39,6 +39,20 @@ strokePositions = {
 }
 sortedStrokePositionNames = sorted(strokePositions.keys(), key=lambda thisListItem: "cio".find(thisListItem[0]))
 
+lineCapsNames = (
+	"straight cutoff",
+	"round (wide)",
+	"round (tight)",
+	"square",
+	"orthogonal",
+)
+
+lineJoinNames = (
+	"miter",
+	"round",
+	"bevel",
+)
+
 scopeMaster = (
 	"current master",
 	"all masters",
@@ -117,17 +131,17 @@ class BatchSetPathAttributes(mekkaObject):
 		self.w.strokePos.setToolTip(tooltip)
 		linePos += lineHeight
 
-		tooltip = "0: straight cutoff\n1: round (wide)\n2: round (tight)\n3: square\n4: orthogonal\n\nEnter one number for both start and end, enter two comma-separated numbers (e.g. '2, 1') for different caps at start and end."
+		tooltip = "Cap style applied to both the start and end of open paths."
 		self.w.lineCapsCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Line Caps", sizeStyle='small')
 		self.w.lineCapsCheck._nsObject.setToolTip_(tooltip)
-		self.w.lineCaps = vanilla.EditText((inset + indent, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle='small')
+		self.w.lineCaps = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), lineCapsNames, sizeStyle='small', callback=self.SavePreferences)
 		self.w.lineCaps.setToolTip(tooltip)
 		linePos += lineHeight
 
-		tooltip = "0: miter\n1: round\n2: bevel"
+		tooltip = "Join style applied at corners of open and closed paths."
 		self.w.lineJoinCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Line Join", sizeStyle='small')
 		self.w.lineJoinCheck._nsObject.setToolTip_(tooltip)
-		self.w.lineJoin = vanilla.EditText((inset + indent, linePos, -inset, 19), "1", callback=self.SavePreferences, sizeStyle='small')
+		self.w.lineJoin = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), lineJoinNames, sizeStyle='small', callback=self.SavePreferences)
 		self.w.lineJoin.setToolTip(tooltip)
 		linePos += lineHeight
 
@@ -189,20 +203,13 @@ class BatchSetPathAttributes(mekkaObject):
 					)
 
 				if currentPath:
-					lineCaps = []
-
 					lineCapStart = currentPath.attributeForKey_("lineCapStart")
 					if lineCapStart is not None:
-						lineCaps.append(lineCapStart)
-
-					lineCapEnd = currentPath.attributeForKey_("lineCapEnd")
-					if lineCapEnd is not None:
-						lineCaps.append(lineCapEnd)
-
-					self.setPref("lineCaps", ", ".join([str(x) for x in set(lineCaps)]))
+						self.setPref("lineCaps", int(lineCapStart))
 
 					lineJoin = currentPath.attributeForKey_("lineJoin")
-					self.setPref("lineJoin", lineJoin)
+					if lineJoin is not None:
+						self.setPref("lineJoin", int(lineJoin))
 
 					strokeWidth = currentPath.attributeForKey_("strokeWidth")
 					self.setPref("strokeWidth", strokeWidth)
@@ -295,17 +302,10 @@ class BatchSetPathAttributes(mekkaObject):
 			print()
 
 			scopeMaster = self.pref("scopeMaster")
-			lineCaps = str(self.pref("lineCaps")).split(",")
-			if lineCaps:
-				lineCaps = [intOrNone(cap.strip()) for cap in lineCaps]
-				if len(lineCaps) < 2:
-					lineCaps = (lineCaps[0], lineCaps[0])
-				elif len(lineCaps) > 2:
-					lineCaps = lineCaps[:2]
-			else:
-				lineCaps = (None, None)
+			lineCapsValue = str(self.prefInt("lineCaps"))
+			lineCaps = (lineCapsValue, lineCapsValue)
 			lineCapsCheck = self.prefBool("lineCapsCheck")
-			lineJoin = intOrNone(self.pref("lineJoin"))
+			lineJoin = str(self.prefInt("lineJoin"))
 			lineJoinCheck = self.prefBool("lineJoinCheck")
 			strokeWidth = self.prefInt("strokeWidth")
 			strokeWidthCheck = self.prefBool("strokeWidthCheck")
@@ -339,16 +339,10 @@ class BatchSetPathAttributes(mekkaObject):
 								# line caps for start and end:
 								if lineCapsCheck:
 									for capValue, startOrEnd in zip(lineCaps, ("lineCapStart", "lineCapEnd")):
-										if capValue is None:
-											thisPath.removeAttributeForKey_(startOrEnd)
-										else:
-											thisPath.setAttribute_forKey_(capValue, startOrEnd)
+										thisPath.setAttribute_forKey_(capValue, startOrEnd)
 
 								if lineJoinCheck:
-									if lineJoin is None:
-										thisPath.removeAttributeForKey_("lineJoin")
-									else:
-										thisPath.setAttribute_forKey_(lineJoin, "lineJoin")
+									thisPath.setAttribute_forKey_(lineJoin, "lineJoin")
 
 								if strokeWidthCheck:
 									# stroke width, height, pos:
