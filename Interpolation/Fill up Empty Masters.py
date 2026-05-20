@@ -7,7 +7,7 @@ Looks for empty master layers and adds shapes of a preferred master.
 
 import vanilla
 from copy import copy as copy
-from GlyphsApp import Glyphs, Message
+from GlyphsApp import Glyphs, Message, CORNER, SEGMENT, CAP
 from mekkablue import mekkaObject, UpdateButton, reportFontName
 
 
@@ -150,6 +150,9 @@ class FillUpEmptyMasters(mekkaObject):
 								targetLayer.shapes.append(copy(sourceShape))
 							for sourceAnchor in sourceLayer.anchors:
 								targetLayer.anchors.append(copy(sourceAnchor))
+							for sourceHint in sourceLayer.hints:
+								if sourceHint.type in (CORNER, SEGMENT, CAP):
+									targetLayer.hints.append(sourceHint.copy())
 
 							if self.pref("copySidebearings"):
 								targetLayer.LSB = sourceLayer.LSB
