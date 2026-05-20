@@ -814,6 +814,10 @@ class QuoteManager(mekkaObject):
 						self.setAnchors(layer)
 						print(f"\t⚓ Added anchors to {defaultName} / {master.name}")
 
+			if self.prefBool("doDumbQuotes"):
+				self.ensureGlyphExists(font, "quotesingle")
+				glyphsToOpen.append("quotesingle")
+
 			self.openTabIfRequested(font, glyphsToOpen)
 			print("\nDone.")
 		except Exception as e:
