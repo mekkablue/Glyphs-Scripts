@@ -6,8 +6,9 @@ Finds expressions (glyph, lookup or class names) in OT Features, Prefixes and Cl
 """
 
 import vanilla
+from fnmatch import fnmatchcase
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject, UpdateButton, match, getLegibleFont
+from mekkablue import mekkaObject, UpdateButton, getLegibleFont
 
 
 class FindInFeatures(mekkaObject):
@@ -88,7 +89,7 @@ class FindInFeatures(mekkaObject):
 				reportText += "OT Classes:\n"
 				classes = []
 				for c in thisFont.classes:
-					if any(match(searchfor, word) for word in self.codeClean(c.code).split()):
+					if any(fnmatchcase(word, searchfor) for word in self.codeClean(c.code).split()):
 						classes.append(c.name)
 
 				if not classes:
@@ -117,7 +118,7 @@ class FindInFeatures(mekkaObject):
 							cleanCode = self.codeClean(feature.code)
 							for i, l in enumerate(cleanCode.splitlines()):
 								split = l.split()
-								matchedWords = list(dict.fromkeys(w for w in split if match(searchfor, w)))
+								matchedWords = list(dict.fromkeys(w for w in split if fnmatchcase(w, searchfor)))
 								if matchedWords:
 									reportText += "\t%s, line %i (%s)\n" % (feature.name, i + 1, ", ".join(matchedWords))
 									foundInFeaturesCount += 1
