@@ -40,7 +40,7 @@ class StealKerningFromInDesign(mekkaObject):
 
 	def __init__(self):
 		windowWidth = 480
-		windowHeight = 352
+		windowHeight = 340
 		windowWidthResize = 500
 		windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
@@ -65,7 +65,7 @@ class StealKerningFromInDesign(mekkaObject):
 		self.w.roundBy.setToolTip("Round imported kern values to this multiple (e.g. 5 = multiples of 5). Set to 1 or 0 to skip rounding.")
 		linePos += lineHeight
 
-		self.w.divider1 = vanilla.HorizontalLine((inset, linePos + 3, -inset, 1))
+		self.w.divider1 = vanilla.HorizontalLine((inset, linePos + 5, -inset, 1))
 		linePos += int(lineHeight * 0.6)
 
 		# Pair type checkboxes — three columns
@@ -85,15 +85,15 @@ class StealKerningFromInDesign(mekkaObject):
 		self.w.punctuationWithItself.setToolTip("Kern pairs between punctuation marks and other punctuation marks.")
 		linePos += lineHeight
 
-		self.w.divider2 = vanilla.HorizontalLine((inset, linePos + 3, -inset, 1))
-		linePos += int(lineHeight * 0.6)
-
-		self.w.ignoreScriptsLabel = vanilla.TextBox((inset, linePos + 3, 100, 14), "Ignore scripts:", sizeStyle="small")
-		self.w.ignoreScripts = vanilla.EditText((inset + 100, linePos, -inset - 22, 19), "", callback=self.SavePreferences, sizeStyle="small")
+		self.w.ignoreScriptsLabel = vanilla.TextBox((inset, linePos + 3, 85, 14), "Ignore scripts:", sizeStyle="small")
+		self.w.ignoreScripts = vanilla.EditText((inset + 85, linePos, -inset - 22, 19), "", callback=self.SavePreferences, sizeStyle="small")
 		self.w.ignoreScripts.setToolTip("Comma-separated glyph.script values. Glyphs whose script appears in this list are skipped when building kern pairs. Press the update button to populate with all scripts present in the current font.")
 		self.w.ignoreScriptsUpdate = UpdateButton((-inset - 20, linePos - 2, 20, 19), self.updateIgnoreScriptsField)
 		self.w.ignoreScriptsUpdate.setToolTip("Populate the field with all scripts found in the current font.")
 		linePos += lineHeight
+
+		self.w.divider2 = vanilla.HorizontalLine((inset, linePos + 5, -inset, 1))
+		linePos += int(lineHeight * 0.6)
 
 		# Options
 		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "All masters (otherwise current master only)", value=True, callback=self.SavePreferences, sizeStyle="small")
