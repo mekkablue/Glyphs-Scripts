@@ -28,6 +28,7 @@ class StealKerningFromInDesign(mekkaObject):
 		"letterWithPunctuation": 1,
 		"figureWithPunctuation": 1,
 		"punctuationWithItself": 1,
+		"ignoreScripts": "",
 		"groupKerningOnly": 0,
 		"addExceptions": 0,
 		"exceptionChars": "AFJKLPTVWXYfďľ[](){}‚\u2018\u2019\u201e\u201c\u201d/?",
@@ -39,14 +40,14 @@ class StealKerningFromInDesign(mekkaObject):
 
 	def __init__(self):
 		windowWidth = 480
-		windowHeight = 330
+		windowHeight = 352
 		windowWidthResize = 500
 		windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Steal Kerning from InDesign",
 			minSize=(windowWidth, windowHeight),
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),
+			maxSize=(windowWidth + windowWidthResize, windowHeight),
 			autosaveName=self.domain("mainwindow"),
 		)
 
@@ -86,6 +87,13 @@ class StealKerningFromInDesign(mekkaObject):
 
 		self.w.divider2 = vanilla.HorizontalLine((inset, linePos + 3, -inset, 1))
 		linePos += int(lineHeight * 0.6)
+
+		self.w.ignoreScriptsLabel = vanilla.TextBox((inset, linePos + 3, 100, 14), "Ignore scripts:", sizeStyle="small")
+		self.w.ignoreScripts = vanilla.EditText((inset + 100, linePos, -inset - 22, 19), "", callback=self.SavePreferences, sizeStyle="small")
+		self.w.ignoreScripts.setToolTip("Comma-separated glyph.script values. Glyphs whose script appears in this list are skipped when building kern pairs. Press the update button to populate with all scripts present in the current font.")
+		self.w.ignoreScriptsUpdate = UpdateButton((-inset - 20, linePos - 2, 20, 19), self.updateIgnoreScriptsField)
+		self.w.ignoreScriptsUpdate.setToolTip("Populate the field with all scripts found in the current font.")
+		linePos += lineHeight
 
 		# Options
 		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "All masters (otherwise current master only)", value=True, callback=self.SavePreferences, sizeStyle="small")
@@ -152,6 +160,14 @@ class StealKerningFromInDesign(mekkaObject):
 
 	def resetExceptionComponents(self, sender=None):
 		self.w.exceptionComponents.set("dier, dot, acut, grav, tild, brev, macr, ring, circ, slash, bar")
+		self.SavePreferences()
+
+	def updateIgnoreScriptsField(self, sender=None):
+		thisFont = Glyphs.font
+		if not thisFont:
+			return
+		scripts = sorted(set(g.script for g in thisFont.glyphs if g.script))
+		self.w.ignoreScripts.set(", ".join(scripts))
 		self.SavePreferences()
 
 	# ------------------------------------------------------------------ exception pair builder
@@ -497,8 +513,11 @@ end tell
 		"""
 		Return exporting GSGlyph objects matching category (and optional subcategory).
 		Skips glyphs with no Unicode, empty glyphs (no shapes in any master layer),
-		and glyphs made of 2+ components (can't be typed reliably).
+		glyphs made of 2+ components (can't be typed reliably), and glyphs whose
+		script appears in the ignoreScripts preference.
 		"""
+		ignoreScriptsStr = self.pref("ignoreScripts") or ""
+		ignoredScripts = set(s.strip() for s in ignoreScriptsStr.split(",") if s.strip())
 		result = []
 		for glyph in thisFont.glyphs:
 			if not glyph.export:
@@ -506,6 +525,8 @@ end tell
 			if not glyph.unicode:
 				continue
 			if glyph.name == "jdotless":
+				continue
+			if ignoredScripts and glyph.script in ignoredScripts:
 				continue
 			if glyph.category != category:
 				continue
