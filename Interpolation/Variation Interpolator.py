@@ -42,8 +42,8 @@ def interpolateLayers(newGlyph, layerA, layerB, interpolationFactor, thisFont):
 		newLayer = newGlyph._interpolateLayers_interpolation_masters_scale_decompose_font_error_(
 			[layerA, layerB],  # layers
 			{
-				layerA.layerId: interpolationFactor,
-				layerB.layerId: 1.0 - interpolationFactor
+				layerA.layerId: 1.0 - interpolationFactor,
+				layerB.layerId: interpolationFactor
 			},                 # interpolation
 			None,              # masters
 			1.0,               #scale
@@ -55,8 +55,8 @@ def interpolateLayers(newGlyph, layerA, layerB, interpolationFactor, thisFont):
 		newLayer = newGlyph._interpolateLayers_interpolation_scale_masters_decompose_font_error_(
 			[layerA, layerB],  # layers
 			{
-				layerA.layerId: interpolationFactor,
-				layerB.layerId: 1.0 - interpolationFactor
+				layerA.layerId: 1.0 - interpolationFactor,
+				layerB.layerId: interpolationFactor
 			},                 # interpolation
 			1.0,               #scale
 			None,              # masters
@@ -107,8 +107,8 @@ class VariationInterpolator(mekkaObject):
 		linePos += lineHeight
 
 		options = (
-			"background and foreground",
-			"foreground and background",
+			"background to foreground",
+			"foreground to background",
 			"first two selected glyphs",
 			"first two selected glyphs (reversed)",
 		)
@@ -299,7 +299,7 @@ class VariationInterpolator(mekkaObject):
 					for thisGlyph in selectedGlyphs:
 						for numberOfThisVariation in range(1, numberOfInterpolations + 1):
 							interpolationFactor = float(numberOfThisVariation - 1) / float(numberOfInterpolations)
-							if choice == 1:  # reverse
+							if choice == 0:  # reverse
 								interpolationFactor = 1.0 - interpolationFactor
 							newSuffix = "%s%03i" % (glyphSuffix, numberOfThisVariation)
 							newGlyph = self.createGlyphCopy(thisGlyph, newSuffix)
