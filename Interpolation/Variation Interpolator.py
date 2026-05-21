@@ -83,7 +83,7 @@ def interpolateLayers(newGlyph, layerA, layerB, interpolationFactor, thisFont):
 class VariationInterpolator(mekkaObject):
 	prefDict = {
 		"numberOfInterpolations": 10,
-		"suffix": "var",
+		"suffix": "",
 		"glyphName": "interpolated",
 		"choice": 0,
 	}
@@ -117,9 +117,9 @@ class VariationInterpolator(mekkaObject):
 		linePos += lineHeight
 
 		self.w.suffixText = vanilla.TextBox((inset, linePos + 2, 35, 14), "suffix", sizeStyle='small')
-		self.w.suffix = vanilla.EditText((inset + 35, linePos - 1, -130, 20), "var", callback=self.SavePreferences, sizeStyle='small')
+		self.w.suffix = vanilla.EditText((inset + 35, linePos - 1, -130, 20), "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.postSuffixText = vanilla.TextBox((-125, linePos + 2, -15, 14), "for selected glyphs.", sizeStyle='small')
-		tooltip = "Select any number of glyphs and the script will create interpolations between foreground and background of each individual glyph. They will be named after their glyph, plus the suffix you provide, plus a continuous number."
+		tooltip = "Select any number of glyphs and the script will create interpolations between foreground and background of each individual glyph. They will be named after their glyph, plus the suffix you provide, plus a continuous number. LEAVE EMPTY FOR MATRA VARIATIONS (because the pres feature generation requires pure figure suffixes)."
 		self.w.suffixText.setToolTip(tooltip)
 		self.w.suffix.setToolTip(tooltip)
 		self.w.postSuffixText.setToolTip(tooltip)
@@ -149,14 +149,14 @@ class VariationInterpolator(mekkaObject):
 			self.w.postSuffixText.show(False)
 			self.w.glyphNameText.show(True)
 			self.w.glyphName.show(True)
-			self.w.runButton.enable(bool(self.w.glyphName.get().strip()))
+			self.w.runButton.enable(bool(self.w.glyphName.get().strip()) and Glyphs.font and len(Glyphs.font.selectedLayers)==2)
 		else:
 			self.w.suffixText.show(True)
 			self.w.suffix.show(True)
 			self.w.postSuffixText.show(True)
 			self.w.glyphNameText.show(False)
 			self.w.glyphName.show(False)
-			self.w.runButton.enable(bool(self.w.suffix.get().strip()))
+			self.w.runButton.enable(Glyphs.font and Glyphs.font.selectedLayers)
 
 	def createGlyphCopy(self, thisGlyph, newSuffix=None, newName=None):
 		thisFont = thisGlyph.parent
