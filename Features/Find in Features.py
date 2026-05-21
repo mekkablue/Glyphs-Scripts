@@ -7,7 +7,7 @@ Finds expressions (glyph, lookup or class names) in OT Features, Prefixes and Cl
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject, UpdateButton, match
+from mekkablue import mekkaObject, UpdateButton, match, getLegibleFont
 
 
 class FindInFeatures(mekkaObject):
@@ -36,6 +36,7 @@ class FindInFeatures(mekkaObject):
 
 		self.w.result = vanilla.TextEditor((inset, linePos, -inset, -inset), "")
 		self.w.result.getNSTextView().setEditable_(False)
+		self.w.result.getNSTextView().setFont_(getLegibleFont())
 		self.w.result.getNSTextView().setToolTip_("Search results: OT classes, prefixes, and features that contain the searched name.")
 		linePos += lineHeight
 

@@ -77,7 +77,7 @@ def match(first, second):
 
 	# If the first string contains '?', or current characters
 	# of both strings match
-	if (len(first) > 1 and first[0] == '?') or (len(first) != 0 and len(second) != 0 and first[0] == second[0]):
+	if (len(first) != 0 and len(second) != 0 and first[0] == '?') or (len(first) != 0 and len(second) != 0 and first[0] == second[0]):
 		return match(first[1:], second[1:])
 
 	# If there is *, then there are two possibilities
