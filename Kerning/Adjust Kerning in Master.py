@@ -47,17 +47,25 @@ class AdjustKerning(mekkaObject):
 
 		linePos += lineHeight
 		self.w.doWhat = vanilla.PopUpButton((inset, linePos, 100, 17), optionList, callback=self.SavePreferences, sizeStyle='small')
+		self.w.doWhat.setToolTip("Choose the operation to apply to kerning values.")
 		self.w.howMuch = vanilla.EditText((inset + 100 + 10, linePos - 1, -inset, 19), "10", sizeStyle='small', callback=self.SavePreferences)
+		self.w.howMuch.setToolTip("The value to use for the selected operation.")
 
 		linePos += lineHeight
 		self.w.text_2 = vanilla.TextBox((inset - 1, linePos + 4, -inset, 14), "To these kerning pairs:", sizeStyle='small')
 
 		linePos += lineHeight
 		self.w.positive = vanilla.CheckBox((inset + 2, linePos, 63, 20), "Positive,", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.positive.setToolTip("Apply operation to positive kerning pairs.")
 		self.w.zero = vanilla.CheckBox((inset + 65, linePos, 65, 20), "zero, and", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.zero.setToolTip("Apply operation to zero-value kerning pairs.")
 		self.w.negative = vanilla.CheckBox((inset + 137, linePos, -inset, 20), "negative pairs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.negative.setToolTip("Apply operation to negative kerning pairs.")
 
+		self.w.nextMasterButton = vanilla.Button((inset, -20 - inset, 110, -inset), "Next Master", callback=self.nextMaster, sizeStyle='small')
+		self.w.nextMasterButton.setToolTip("Switch to the next font master. Wraps around to the first master after the last.")
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Adjust", callback=self.AdjustKerningMain)
+		self.w.runButton.setToolTip("Adjust all kerning values in the current master according to the settings above.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
@@ -66,6 +74,14 @@ class AdjustKerning(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+
+	def nextMaster(self, sender):
+		font = Glyphs.font
+		if not font or len(font.masters) < 2:
+			return
+		masters = font.masters
+		currentIndex = list(masters).index(font.selectedFontMaster)
+		font.masterIndex = (currentIndex + 1) % len(masters)
 
 	def nameForID(self, font, ID):
 		try:
