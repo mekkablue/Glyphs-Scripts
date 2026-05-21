@@ -7,7 +7,7 @@ Finds expressions (glyph, lookup or class names) in OT Features, Prefixes and Cl
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, match
 
 
 class FindInFeatures(mekkaObject):
@@ -29,13 +29,14 @@ class FindInFeatures(mekkaObject):
 		# UI elements:
 		linePos, inset, lineHeight = 3, 5, 28
 		self.w.searchFor = vanilla.ComboBox((4, linePos, -22, 22), self.glyphNamesAndClassNames(), callback=self.FindInFeaturesMain)
-		self.w.searchFor.setToolTip("Type the exact name of a glyph or (prefixed with @) a class, or choose it from the menu.")
+		self.w.searchFor.setToolTip("Type the name of a glyph or (prefixed with @) a class, or choose it from the menu. Supports wildcards: * matches any sequence of characters, ? matches any single character.")
 		self.w.updateButton = UpdateButton((-19, linePos, -2, 18), callback=self.update)
 		self.w.updateButton.setToolTip("Update the autocompletion list for the frontmost font.")
 		linePos += lineHeight
 
 		self.w.result = vanilla.Box((inset, linePos, -inset, -inset))
 		self.w.result.previewText = vanilla.TextBox((1, 1, -1, -1), "", sizeStyle='small', selectable=True)
+		self.w.result.previewText.setToolTip("Search results: OT classes, prefixes, and features that contain the searched name.")
 		linePos += lineHeight
 
 		# Open window and focus on it:
@@ -86,7 +87,7 @@ class FindInFeatures(mekkaObject):
 				reportText += "OT Classes:\n"
 				classes = []
 				for c in thisFont.classes:
-					if searchfor in self.codeClean(c.code).split():
+					if any(match(searchfor, word) for word in self.codeClean(c.code).split()):
 						classes.append(c.name)
 
 				if not classes:
@@ -115,7 +116,7 @@ class FindInFeatures(mekkaObject):
 							cleanCode = self.codeClean(feature.code)
 							for i, l in enumerate(cleanCode.splitlines()):
 								split = l.split()
-								if searchfor in split:
+								if any(match(searchfor, word) for word in split):
 									reportText += "\t%s, line %i (%s)\n" % (feature.name, i + 1, searchfor)
 									foundInFeaturesCount += 1
 
