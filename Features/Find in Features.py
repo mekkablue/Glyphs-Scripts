@@ -7,6 +7,7 @@ Finds expressions (glyph, lookup or class names) in OT Features, Prefixes and Cl
 
 import vanilla
 from fnmatch import fnmatchcase
+from AppKit import NSFont, NSFontFeatureSettingsAttribute, NSFontFeatureTypeIdentifierKey, NSFontFeatureSelectorIdentifierKey
 from GlyphsApp import Glyphs
 from mekkablue import mekkaObject, UpdateButton, getLegibleFont
 
@@ -37,13 +38,27 @@ class FindInFeatures(mekkaObject):
 
 		self.w.result = vanilla.TextEditor((inset, linePos, -inset, -inset), "")
 		self.w.result.getNSTextView().setEditable_(False)
-		self.w.result.getNSTextView().setFont_(getLegibleFont())
+		self.w.result.getNSTextView().setFont_(self.legibleTabularFont())
 		self.w.result.getNSTextView().setToolTip_("Search results: OT classes, prefixes, and features that contain the searched name.")
 		linePos += lineHeight
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+
+	def legibleTabularFont(self):
+		font = getLegibleFont()
+		try:
+			descriptor = font.fontDescriptor().fontDescriptorByAddingAttributes_({
+				NSFontFeatureSettingsAttribute: [{
+					NSFontFeatureTypeIdentifierKey: 6,   # Number Spacing
+					NSFontFeatureSelectorIdentifierKey: 0,  # Monospaced numbers
+				}]
+			})
+			font = NSFont.fontWithDescriptor_size_(descriptor, font.pointSize()) or font
+		except Exception:
+			pass
+		return font
 
 	def update(self, sender=None):
 		self.w.searchFor.setItems(self.glyphNamesAndClassNames())
@@ -87,14 +102,14 @@ class FindInFeatures(mekkaObject):
 			isWildcard = '*' in searchfor or '?' in searchfor
 
 			# Find in Classes:
-			classReportText = "OT Classes:\n"
+			classReportText = "OT CLASSES\n"
 			classes = []
 			for c in thisFont.classes:
 				if any(fnmatchcase(word, searchfor) for word in self.codeClean(c.code).split()):
 					classes.append(c.name)
 
 			if not classes:
-				classReportText += "(nothing found)\n"
+				classReportText += "\t(nothing found)\n"
 				classSet = None
 			else:
 				classSet = set(classes)
@@ -106,8 +121,8 @@ class FindInFeatures(mekkaObject):
 
 			# Find in Prefixes and Features:
 			prefixAndFeatures = (
-				(thisFont.featurePrefixes, "\nOT Prefixes:\n"),
-				(thisFont.features, "\nOT Features:\n"),
+				(thisFont.featurePrefixes, "\nOT PREFIXES\n"),
+				(thisFont.features, "\nOT FEATURES\n"),
 			)
 
 			glyphFeatures = {}  # {glyphName: [featureTag, ...]} — for the overview
@@ -140,14 +155,14 @@ class FindInFeatures(mekkaObject):
 										foundInFeaturesCount += 1
 
 				if foundInFeaturesCount == originalFeatureCount:
-					prefixFeatureReportText += "(nothing found)\n"
+					prefixFeatureReportText += "\t(nothing found)\n"
 
 			# Assemble report:
 			reportText = ""
 			if isWildcard and glyphFeatures:
 				reportText += "GLYPH OVERVIEW\n"
 				for glyphName in sorted(glyphFeatures.keys()):
-					reportText += "%s: %s\n" % (glyphName, ", ".join(glyphFeatures[glyphName]))
+					reportText += "\t%s: %s\n" % (glyphName, ", ".join(glyphFeatures[glyphName]))
 				reportText += "\n"
 			reportText += classReportText
 			reportText += prefixFeatureReportText
