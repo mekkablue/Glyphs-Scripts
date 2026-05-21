@@ -79,59 +79,78 @@ class FindInFeatures(mekkaObject):
 
 	def FindInFeaturesMain(self, sender=None):
 		try:
-			reportText = ""
-
 			thisFont = Glyphs.font  # frontmost font
-			if thisFont is not None:
-				searchfor = sender.get()
+			if thisFont is None:
+				return
 
-				# Find in Classes:
-				reportText += "OT Classes:\n"
-				classes = []
-				for c in thisFont.classes:
-					if any(fnmatchcase(word, searchfor) for word in self.codeClean(c.code).split()):
-						classes.append(c.name)
+			searchfor = sender.get()
+			isWildcard = '*' in searchfor or '?' in searchfor
 
-				if not classes:
-					reportText += "(nothing found)\n"
-					classSet = None
-				else:
-					classSet = set(classes)
-					for className in classSet:
-						reportText += "\t%s" % className
-						if classes.count(className) > 1:
-							reportText += " (%i×)" % classes.count(className)
-						reportText += "\n"
+			# Find in Classes:
+			classReportText = "OT Classes:\n"
+			classes = []
+			for c in thisFont.classes:
+				if any(fnmatchcase(word, searchfor) for word in self.codeClean(c.code).split()):
+					classes.append(c.name)
 
-				# Find in Prefix and Features:
-				prefixAndFeatures = (
-					(thisFont.featurePrefixes, "\nOT Prefixes:\n"),
-					(thisFont.features, "\nOT Features:\n"),
-				)
+			if not classes:
+				classReportText += "(nothing found)\n"
+				classSet = None
+			else:
+				classSet = set(classes)
+				for className in classSet:
+					classReportText += "\t%s" % className
+					if classes.count(className) > 1:
+						classReportText += " (%i×)" % classes.count(className)
+					classReportText += "\n"
 
-				foundInFeaturesCount = 0
-				for featureSet in prefixAndFeatures:
-					originalFeatureCount = foundInFeaturesCount
-					reportText += featureSet[1]
-					for feature in featureSet[0]:
-						if feature.active:
-							cleanCode = self.codeClean(feature.code)
-							for i, l in enumerate(cleanCode.splitlines()):
-								split = l.split()
-								matchedWords = list(dict.fromkeys(w for w in split if fnmatchcase(w, searchfor)))
-								if matchedWords:
-									reportText += "\t%s, line %i (%s)\n" % (feature.name, i + 1, ", ".join(matchedWords))
-									foundInFeaturesCount += 1
+			# Find in Prefixes and Features:
+			prefixAndFeatures = (
+				(thisFont.featurePrefixes, "\nOT Prefixes:\n"),
+				(thisFont.features, "\nOT Features:\n"),
+			)
 
-								# also find the classes the term appears in:
-								if classSet:
-									for otclass in classSet:
-										if "@%s" % otclass in split:
-											reportText += "\t%s, line %i (@%s)\n" % (feature.name, i + 1, otclass)
-											foundInFeaturesCount += 1
+			glyphFeatures = {}  # {glyphName: [featureTag, ...]} — for the overview
+			prefixFeatureReportText = ""
+			foundInFeaturesCount = 0
+			for featureSet in prefixAndFeatures:
+				originalFeatureCount = foundInFeaturesCount
+				prefixFeatureReportText += featureSet[1]
+				for feature in featureSet[0]:
+					if feature.active:
+						cleanCode = self.codeClean(feature.code)
+						for i, l in enumerate(cleanCode.splitlines()):
+							split = l.split()
+							matchedWords = list(dict.fromkeys(w for w in split if fnmatchcase(w, searchfor)))
+							if matchedWords:
+								prefixFeatureReportText += "\t%s, line %i (%s)\n" % (feature.name, i + 1, ", ".join(matchedWords))
+								foundInFeaturesCount += 1
+								if isWildcard:
+									for w in matchedWords:
+										if w not in glyphFeatures:
+											glyphFeatures[w] = []
+										if feature.name not in glyphFeatures[w]:
+											glyphFeatures[w].append(feature.name)
 
-					if foundInFeaturesCount == originalFeatureCount:
-						reportText += "(nothing found)\n"
+							# also find the classes the term appears in:
+							if classSet:
+								for otclass in classSet:
+									if "@%s" % otclass in split:
+										prefixFeatureReportText += "\t%s, line %i (@%s)\n" % (feature.name, i + 1, otclass)
+										foundInFeaturesCount += 1
+
+				if foundInFeaturesCount == originalFeatureCount:
+					prefixFeatureReportText += "(nothing found)\n"
+
+			# Assemble report:
+			reportText = ""
+			if isWildcard and glyphFeatures:
+				reportText += "GLYPH OVERVIEW\n"
+				for glyphName in sorted(glyphFeatures.keys()):
+					reportText += "%s: %s\n" % (glyphName, ", ".join(glyphFeatures[glyphName]))
+				reportText += "\n"
+			reportText += classReportText
+			reportText += prefixFeatureReportText
 
 			self.w.result.set(reportText)
 
