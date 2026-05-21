@@ -116,8 +116,9 @@ class FindInFeatures(mekkaObject):
 							cleanCode = self.codeClean(feature.code)
 							for i, l in enumerate(cleanCode.splitlines()):
 								split = l.split()
-								if any(match(searchfor, word) for word in split):
-									reportText += "\t%s, line %i (%s)\n" % (feature.name, i + 1, searchfor)
+								matchedWords = list(dict.fromkeys(w for w in split if match(searchfor, w)))
+								if matchedWords:
+									reportText += "\t%s, line %i (%s)\n" % (feature.name, i + 1, ", ".join(matchedWords))
 									foundInFeaturesCount += 1
 
 								# also find the classes the term appears in:
