@@ -1,4 +1,4 @@
-# MenuTitle: Adjust Kerning in Master
+# MenuTitle: Adjust Kerning
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 try:
@@ -62,9 +62,9 @@ class AdjustKerning(mekkaObject):
 		self.w.negative = vanilla.CheckBox((inset + 137, linePos, -inset, 20), "negative pairs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.negative.setToolTip("Apply operation to negative kerning pairs.")
 
-		self.w.nextMasterButton = vanilla.Button((inset, -20 - inset, 110, -inset), "Next Master", callback=self.nextMaster, sizeStyle='small')
+		self.w.nextMasterButton = vanilla.Button((inset, -20 - inset, 110, -inset), "Next Master", callback=self.nextMaster)
 		self.w.nextMasterButton.setToolTip("Switch to the next font master. Wraps around to the first master after the last.")
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Adjust", callback=self.AdjustKerningMain)
+		self.w.runButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "Adjust", callback=self.AdjustKerningMain)
 		self.w.runButton.setToolTip("Adjust all kerning values in the current master according to the settings above.")
 		self.w.setDefaultButton(self.w.runButton)
 
