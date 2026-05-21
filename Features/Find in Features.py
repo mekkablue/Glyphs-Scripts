@@ -34,9 +34,9 @@ class FindInFeatures(mekkaObject):
 		self.w.updateButton.setToolTip("Update the autocompletion list for the frontmost font.")
 		linePos += lineHeight
 
-		self.w.result = vanilla.Box((inset, linePos, -inset, -inset))
-		self.w.result.previewText = vanilla.TextBox((1, 1, -1, -1), "", sizeStyle='small', selectable=True)
-		self.w.result.previewText.setToolTip("Search results: OT classes, prefixes, and features that contain the searched name.")
+		self.w.result = vanilla.TextEditor((inset, linePos, -inset, -inset), "")
+		self.w.result.getNSTextView().setEditable_(False)
+		self.w.result.getNSTextView().setToolTip_("Search results: OT classes, prefixes, and features that contain the searched name.")
 		linePos += lineHeight
 
 		# Open window and focus on it:
@@ -131,7 +131,7 @@ class FindInFeatures(mekkaObject):
 					if foundInFeaturesCount == originalFeatureCount:
 						reportText += "(nothing found)\n"
 
-			self.w.result.previewText.set(reportText)
+			self.w.result.set(reportText)
 
 		except Exception as e:
 			# brings macro window to front and reports error:
