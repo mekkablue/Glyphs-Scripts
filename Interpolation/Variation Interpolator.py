@@ -11,6 +11,75 @@ from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
 
 
+def interpolateDicts(dictA, dictB, interpolationFactor=0.5):
+	"""
+	Returns a new dict containing only keys that exist in both dictA and dictB.
+	Values are interpolated linearly:
+	- interpolationFactor = 0 -> dictA values
+	- interpolationFactor = 1 -> dictB values
+	- interpolationFactor in between -> blended values
+	"""
+
+	commonKeys = set(dictA.keys()) & set(dictB.keys())
+	if not commonKeys:
+		return {}
+
+	factorA = 1.0 - interpolationFactor
+	factorB = interpolationFactor
+	result = {}
+
+	for key in commonKeys:
+		valueA = dictA[key]
+		valueB = dictB[key]
+		result[key] = float(valueA) * factorA + float(valueB) * factorB
+
+	return result
+
+
+def interpolateLayers(newGlyph, layerA, layerB, interpolationFactor, thisFont):
+	
+	if Glyphs.versionNumber >= 4.0:
+		newLayer = newGlyph._interpolateLayers_interpolation_masters_scale_decompose_font_error_(
+			[layerA, layerB],  # layers
+			{
+				layerA.layerId: interpolationFactor,
+				layerB.layerId: 1.0 - interpolationFactor
+			},                 # interpolation
+			None,              # masters
+			1.0,               #scale
+			False,             # decompose
+			thisFont,          # font
+			None,              # error
+		)
+	else:
+		newLayer = newGlyph._interpolateLayers_interpolation_scale_masters_decompose_font_error_(
+			[layerA, layerB],  # layers
+			{
+				layerA.layerId: interpolationFactor,
+				layerB.layerId: 1.0 - interpolationFactor
+			},                 # interpolation
+			1.0,               #scale
+			None,              # masters
+			False,             # decompose
+			thisFont,          # font
+			None,              # error
+		)
+
+	# fix smart components:
+	for i, component in enumerate(newLayer.components):
+		if component.smartComponentValues is None:
+			continue
+		component.setPieceSettings_(
+			interpolateDicts(
+				dict(layerA.components[i].smartComponentValues or {}),
+				dict(layerB.components[i].smartComponentValues or {}),
+				interpolationFactor,
+			)
+		)
+	
+	return newLayer
+	
+
 class VariationInterpolator(mekkaObject):
 	prefDict = {
 		"numberOfInterpolations": 10,
@@ -146,7 +215,7 @@ class VariationInterpolator(mekkaObject):
 				else:
 					thisGlyph = thisLayer.parent
 					print(f"{thisGlyph.name}: Anchor ‘{foregroundAnchor.name}’ not in background.")
-
+		
 	def interpolateComponents(self, thisLayer, backgroundFactor, foregroundFactor):
 		for i, thisComponent in enumerate(thisLayer.components):
 			backgroundComponent = thisLayer.background.components[i]
@@ -163,15 +232,22 @@ class VariationInterpolator(mekkaObject):
 					thisComponent.scale[0] * foregroundFactor + backgroundComponent.scale[0] * backgroundFactor,
 					thisComponent.scale[1] * foregroundFactor + backgroundComponent.scale[1] * backgroundFactor,
 				)
-				thisComponent.rotation = (thisComponent.rotation * foregroundFactor + backgroundComponent.rotation * backgroundFactor)
-
-				# smart components:
-				thisFont = thisLayer.parent.parent
-				if thisFont:
-					for axis in thisFont.glyphs[thisComponent.componentName].smartComponentAxes:
-						newValue = float(thisComponent.smartComponentValues[axis.name]) * foregroundFactor + \
-							float(backgroundComponent.smartComponentValues[axis.name]) * backgroundFactor
-						thisComponent.smartComponentValues[axis.name] = (newValue)
+				thisComponent.rotation = (
+					thisComponent.rotation * foregroundFactor + backgroundComponent.rotation * backgroundFactor
+					)
+				thisComponent.smartComponentValues = interpolateDicts(
+					dict(thisComponent.smartComponentValues),
+					dict(backgroundComponent.smartComponentValues),
+					interpolationFactor=foregroundFactor,
+					)
+				
+				# # smart components:
+				# thisFont = thisLayer.parent.parent
+				# if thisFont:
+				# 	for axis in thisFont.glyphs[thisComponent.componentName].smartComponentAxes:
+				# 		newValue = float(thisComponent.smartComponentValues[axis.name]) * foregroundFactor + \
+				# 			float(backgroundComponent.smartComponentValues[axis.name]) * backgroundFactor
+				# 		thisComponent.smartComponentValues[axis.name] = (newValue)
 
 	def interpolateLayerWithBackground(self, thisLayer, backgroundFactor):
 		foregroundFactor = 1.0 - backgroundFactor
@@ -191,14 +267,23 @@ class VariationInterpolator(mekkaObject):
 	def VariationInterpolatorMain(self, sender):
 		try:
 			thisFont = Glyphs.font  # frontmost font
+			if not thisFont:
+				Message(
+					title="No font",
+					message="Please open a font and select a glyph to interpolate.",
+					OKButton=None,
+				)
+				return
+
 			selectedLayers = thisFont.selectedLayers
 			if not selectedLayers:
 				Message(
 					title="Select exactly something",
-					message="Please select exactly two glyphs to interpolate.",
+					message="Please select one or two glyphs to interpolate.",
 					OKButton=None,
 				)
 				return
+
 			thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 			try:
 				numberOfInterpolations = self.prefInt("numberOfInterpolations")
@@ -207,6 +292,7 @@ class VariationInterpolator(mekkaObject):
 				choice = self.pref("choice")
 				selectedGlyphs = [layer.parent for layer in thisFont.selectedLayers]  # currently selected glyphs
 				incompatible = []
+				interpolatedGlyphNames = []
 
 				if choice < 2:
 					# interpolate between foreground and background
@@ -218,6 +304,7 @@ class VariationInterpolator(mekkaObject):
 							newSuffix = "%s%03i" % (glyphSuffix, numberOfThisVariation)
 							newGlyph = self.createGlyphCopy(thisGlyph, newSuffix)
 							thisFont.glyphs.append(newGlyph)
+							interpolatedGlyphNames.append(newGlyph.name)
 
 							for masterIndex, thisMaster in enumerate(thisFont.masters):
 								layerA = thisGlyph.layers[thisMaster.id].copy()
@@ -233,18 +320,8 @@ class VariationInterpolator(mekkaObject):
 										reportString += f" ({thisMaster.name})"
 									incompatible.append(reportString)
 									continue
-
-								newGlyph.layers[thisMaster.id] = newGlyph._interpolateLayers_interpolation_masters_decompose_font_error_(
-									[layerA, layerB],  # layers
-									{
-										layerA.layerId: interpolationFactor,
-										layerB.layerId: 1.0 - interpolationFactor
-									},  # interpolation
-									None,  # masters
-									False,  # decompose
-									thisFont,  # font
-									None,  # error
-								)
+								
+								newGlyph.layers[thisMaster.id] = interpolateLayers(newGlyph, layerA, layerB, interpolationFactor, thisFont)
 
 				else:
 					# interpolate between first two glyphs
@@ -254,41 +331,34 @@ class VariationInterpolator(mekkaObject):
 							message="Please select exactly two glyphs to interpolate.",
 							OKButton=None,
 						)
-					else:
-						glyphA, glyphB = selectedGlyphs
-						for numberOfThisVariation in range(1, numberOfInterpolations + 1):
-							interpolationFactor = float(numberOfThisVariation - 1) / float(numberOfInterpolations)
-							if choice == 3:
-								interpolationFactor = 1.0 - interpolationFactor
-							newName = "%s.%04i" % (glyphName, numberOfThisVariation)
-							newGlyph = self.createGlyphCopy(glyphA, newName=newName)
-							thisFont.glyphs.append(newGlyph)
+						return
 
-							for masterIndex, thisMaster in enumerate(thisFont.masters):
-								layerA = glyphA.layers[thisMaster.id].copy()
-								layerA.layerId = "layerIDA%05i" % masterIndex
-								layerB = glyphB.layers[thisMaster.id].copy()
-								layerB.layerId = "layerIDB%05i" % masterIndex
+					glyphA, glyphB = selectedGlyphs
+					for numberOfThisVariation in range(1, numberOfInterpolations + 1):
+						interpolationFactor = float(numberOfThisVariation - 1) / float(numberOfInterpolations)
+						if choice == 3:
+							interpolationFactor = 1.0 - interpolationFactor
+						newName = "%s.%04i" % (glyphName, numberOfThisVariation)
+						newGlyph = self.createGlyphCopy(glyphA, newName=newName)
+						thisFont.glyphs.append(newGlyph)
+						interpolatedGlyphNames.append(newName)
 
-								# check compatibility
-								if not self.layersAreCompatible(layerA, layerB):
-									reportString = f"{glyphA.name}→{glyphB.name}"
-									if len(thisFont.masters) > 1:
-										reportString += f" ({thisMaster.name})"
-									incompatible.append(reportString)
-									continue
+						for masterIndex, thisMaster in enumerate(thisFont.masters):
+							layerA = glyphA.layers[thisMaster.id].copy()
+							layerA.layerId = "layerIDA%05i" % masterIndex
+							layerB = glyphB.layers[thisMaster.id].copy()
+							layerB.layerId = "layerIDB%05i" % masterIndex
 
-								newGlyph.layers[thisMaster.id] = newGlyph._interpolateLayers_interpolation_masters_decompose_font_error_(
-									[layerA, layerB],  # layers
-									{
-										layerA.layerId: interpolationFactor,
-										layerB.layerId: 1.0 - interpolationFactor,
-									},  # interpolation
-									None,  # masters
-									False,  # decompose
-									thisFont,  # font
-									None,  # error
-								)
+							# check compatibility
+							if not self.layersAreCompatible(layerA, layerB):
+								reportString = f"{glyphA.name}→{glyphB.name}"
+								if len(thisFont.masters) > 1:
+									reportString += f" ({thisMaster.name})"
+								incompatible.append(reportString)
+								continue
+							
+							newGlyph.layers[thisMaster.id] = interpolateLayers(newGlyph, layerA, layerB, interpolationFactor, thisFont)
+							
 
 				if incompatible:
 					incompatible = sorted(set(incompatible))
@@ -297,6 +367,10 @@ class VariationInterpolator(mekkaObject):
 						message=f"Could not interpolate:\n{', '.join(incompatible)}",
 						OKButton=None,
 					)
+				else:
+					tab = thisFont.currentTab or thisFont.newTab()
+					tab.text = "/" +  "/".join([g.name for g in selectedGlyphs]) + "\n/" + "/".join(interpolatedGlyphNames)
+				
 			except Exception as e:
 				Glyphs.showMacroWindow()
 				print("\n⚠️ Script Error:\n")
