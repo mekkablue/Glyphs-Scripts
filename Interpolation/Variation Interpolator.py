@@ -6,6 +6,7 @@ Interpolates each layer x times with its background and creates glyph variations
 """
 
 import vanilla
+from AppKit import NSHeight
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
@@ -343,7 +344,8 @@ class VariationInterpolator(mekkaObject):
 				choice = self.pref("choice")
 				selectedGlyphs = [layer.parent for layer in thisFont.selectedLayers]  # currently selected glyphs
 				incompatible = []
-				incompatibleReports = []  # list of (reportString, detailString)
+				incompatibleReports = []  # list of (reportString, detailString), no duplicates
+				incompatibleSeen = set()
 				interpolatedGlyphNames = []
 
 				if choice < 2:
@@ -370,9 +372,11 @@ class VariationInterpolator(mekkaObject):
 									reportString = thisGlyph.name
 									if len(thisFont.masters) > 1:
 										reportString += f" ({thisMaster.name})"
-									detail = compatibilityReport(layerA, layerB, "Foreground", "Background")
-									incompatibleReports.append((reportString, detail))
-									incompatible.append(reportString)
+									if reportString not in incompatibleSeen:
+										incompatibleSeen.add(reportString)
+										detail = compatibilityReport(layerA, layerB, "Foreground", "Background")
+										incompatibleReports.append((reportString, detail))
+										incompatible.append(reportString)
 									continue
 
 								newGlyph.layers[thisMaster.id] = interpolateLayers(newGlyph, layerA, layerB, interpolationFactor, thisFont)
@@ -408,9 +412,11 @@ class VariationInterpolator(mekkaObject):
 								reportString = f"{glyphA.name}→{glyphB.name}"
 								if len(thisFont.masters) > 1:
 									reportString += f" ({thisMaster.name})"
-								detail = compatibilityReport(layerA, layerB, glyphA.name, glyphB.name)
-								incompatibleReports.append((reportString, detail))
-								incompatible.append(reportString)
+								if reportString not in incompatibleSeen:
+									incompatibleSeen.add(reportString)
+									detail = compatibilityReport(layerA, layerB, glyphA.name, glyphB.name)
+									incompatibleReports.append((reportString, detail))
+									incompatible.append(reportString)
 								continue
 
 							newGlyph.layers[thisMaster.id] = interpolateLayers(newGlyph, layerA, layerB, interpolationFactor, thisFont)
@@ -423,6 +429,12 @@ class VariationInterpolator(mekkaObject):
 						print(detail)
 						print()
 					Glyphs.showMacroWindow()
+					if Glyphs.versionNumber < 4.0:
+						splitview = Glyphs.delegate().macroPanelController().consoleSplitView()
+						frame = splitview.frame()
+						height = NSHeight(frame)
+						newPos = 0.2
+						splitview.setPosition_ofDividerAtIndex_(height * newPos, 0)
 					Message(
 						title="Incompatible glyphs",
 						message=f"Could not interpolate:\n{', '.join(incompatible)}\nDetails in Macro Window.",
