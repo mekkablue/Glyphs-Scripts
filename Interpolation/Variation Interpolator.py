@@ -343,7 +343,8 @@ class VariationInterpolator(mekkaObject):
 				choice = self.pref("choice")
 				selectedGlyphs = [layer.parent for layer in thisFont.selectedLayers]  # currently selected glyphs
 				incompatible = []
-				incompatibleReports = []  # list of (reportString, detailString)
+				incompatibleReports = []  # list of (reportString, detailString), no duplicates
+				incompatibleSeen = set()
 				interpolatedGlyphNames = []
 
 				if choice < 2:
@@ -370,9 +371,11 @@ class VariationInterpolator(mekkaObject):
 									reportString = thisGlyph.name
 									if len(thisFont.masters) > 1:
 										reportString += f" ({thisMaster.name})"
-									detail = compatibilityReport(layerA, layerB, "Foreground", "Background")
-									incompatibleReports.append((reportString, detail))
-									incompatible.append(reportString)
+									if reportString not in incompatibleSeen:
+										incompatibleSeen.add(reportString)
+										detail = compatibilityReport(layerA, layerB, "Foreground", "Background")
+										incompatibleReports.append((reportString, detail))
+										incompatible.append(reportString)
 									continue
 
 								newGlyph.layers[thisMaster.id] = interpolateLayers(newGlyph, layerA, layerB, interpolationFactor, thisFont)
@@ -408,9 +411,11 @@ class VariationInterpolator(mekkaObject):
 								reportString = f"{glyphA.name}→{glyphB.name}"
 								if len(thisFont.masters) > 1:
 									reportString += f" ({thisMaster.name})"
-								detail = compatibilityReport(layerA, layerB, glyphA.name, glyphB.name)
-								incompatibleReports.append((reportString, detail))
-								incompatible.append(reportString)
+								if reportString not in incompatibleSeen:
+									incompatibleSeen.add(reportString)
+									detail = compatibilityReport(layerA, layerB, glyphA.name, glyphB.name)
+									incompatibleReports.append((reportString, detail))
+									incompatible.append(reportString)
 								continue
 
 							newGlyph.layers[thisMaster.id] = interpolateLayers(newGlyph, layerA, layerB, interpolationFactor, thisFont)
