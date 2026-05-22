@@ -36,6 +36,57 @@ def interpolateDicts(dictA, dictB, interpolationFactor=0.5):
 	return result
 
 
+def compatibilityReport(layerA, layerB, labelA="Foreground", labelB="Background"):
+	lines = []
+
+	# Shapes (paths)
+	pathCountA = len(layerA.paths)
+	pathCountB = len(layerB.paths)
+	if pathCountA != pathCountB:
+		lines.append(f"    Shapes: {labelA} has {pathCountA} path(s), {labelB} has {pathCountB}")
+	elif pathCountA > 0:
+		nodeMismatches = []
+		for i, (pathA, pathB) in enumerate(zip(layerA.paths, layerB.paths)):
+			nA, nB = len(pathA.nodes), len(pathB.nodes)
+			if nA != nB:
+				nodeMismatches.append(f"path {i + 1}: {nA} vs {nB} nodes")
+		if nodeMismatches:
+			lines.append(f"    Shapes: node count mismatch – {'; '.join(nodeMismatches)}")
+
+	# Anchors
+	anchorsA = {a.name for a in layerA.anchors}
+	anchorsB = {a.name for a in layerB.anchors}
+	onlyInA = anchorsA - anchorsB
+	onlyInB = anchorsB - anchorsA
+	if onlyInA:
+		lines.append(f"    Anchors only in {labelA}: {', '.join(sorted(onlyInA))}")
+	if onlyInB:
+		lines.append(f"    Anchors only in {labelB}: {', '.join(sorted(onlyInB))}")
+
+	# Components and smart components
+	compCountA = len(layerA.components)
+	compCountB = len(layerB.components)
+	if compCountA != compCountB:
+		lines.append(f"    Components: {labelA} has {compCountA}, {labelB} has {compCountB}")
+	else:
+		for i, (compA, compB) in enumerate(zip(layerA.components, layerB.components)):
+			if compA.componentName != compB.componentName:
+				lines.append(f"    Component {i + 1}: '{compA.componentName}' vs '{compB.componentName}'")
+			else:
+				valA = dict(compA.smartComponentValues or {})
+				valB = dict(compB.smartComponentValues or {})
+				if valA or valB:
+					axesA, axesB = set(valA.keys()), set(valB.keys())
+					if axesA != axesB:
+						lines.append(f"    Smart component {i + 1} '{compA.componentName}': axes differ")
+						if axesA - axesB:
+							lines.append(f"      Only in {labelA}: {', '.join(sorted(axesA - axesB))}")
+						if axesB - axesA:
+							lines.append(f"      Only in {labelB}: {', '.join(sorted(axesB - axesA))}")
+
+	return "\n".join(lines) if lines else "    (compareString mismatch – no further structural difference found)"
+
+
 def interpolateLayers(newGlyph, layerA, layerB, interpolationFactor, thisFont):
 	
 	if Glyphs.versionNumber >= 4.0:
@@ -292,6 +343,7 @@ class VariationInterpolator(mekkaObject):
 				choice = self.pref("choice")
 				selectedGlyphs = [layer.parent for layer in thisFont.selectedLayers]  # currently selected glyphs
 				incompatible = []
+				incompatibleReports = []  # list of (reportString, detailString)
 				interpolatedGlyphNames = []
 
 				if choice < 2:
@@ -318,9 +370,11 @@ class VariationInterpolator(mekkaObject):
 									reportString = thisGlyph.name
 									if len(thisFont.masters) > 1:
 										reportString += f" ({thisMaster.name})"
+									detail = compatibilityReport(layerA, layerB, "Foreground", "Background")
+									incompatibleReports.append((reportString, detail))
 									incompatible.append(reportString)
 									continue
-								
+
 								newGlyph.layers[thisMaster.id] = interpolateLayers(newGlyph, layerA, layerB, interpolationFactor, thisFont)
 
 				else:
@@ -354,17 +408,24 @@ class VariationInterpolator(mekkaObject):
 								reportString = f"{glyphA.name}→{glyphB.name}"
 								if len(thisFont.masters) > 1:
 									reportString += f" ({thisMaster.name})"
+								detail = compatibilityReport(layerA, layerB, glyphA.name, glyphB.name)
+								incompatibleReports.append((reportString, detail))
 								incompatible.append(reportString)
 								continue
-							
+
 							newGlyph.layers[thisMaster.id] = interpolateLayers(newGlyph, layerA, layerB, interpolationFactor, thisFont)
-							
 
 				if incompatible:
 					incompatible = sorted(set(incompatible))
+					print("Variation Interpolator – Incompatibility Report:\n")
+					for reportString, detail in incompatibleReports:
+						print(f"  ❌ {reportString}:")
+						print(detail)
+						print()
+					Glyphs.showMacroWindow()
 					Message(
 						title="Incompatible glyphs",
-						message=f"Could not interpolate:\n{', '.join(incompatible)}",
+						message=f"Could not interpolate:\n{', '.join(incompatible)}\nDetails in Macro Window.",
 						OKButton=None,
 					)
 				else:
