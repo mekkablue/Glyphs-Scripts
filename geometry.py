@@ -176,6 +176,53 @@ def centerOfRect(rect):
 	return center
 
 
+def normalizedCoordinate(x, y, layer, angle=0):
+	"""
+	Returns (nx, ny) in 0.0–1.0, 0.0–1.0 relative to the layer's bounding box,
+	where (0, 0) is the bottom-left corner and (1, 1) is the top-right corner.
+	angle: italic slant in degrees (positive = forward/rightward lean).
+	At angle=0 the reference frame is an upright rectangle; at angle≠0 it is a
+	parallelogram whose left and right edges lean by that angle, so a point on
+	a slanted stem keeps the same nx across all heights.
+	"""
+	bbox = layer.bounds
+	w = bbox.size.width
+	h = bbox.size.height
+	if w == 0 or h == 0:
+		return (0.0, 0.0)
+	dy = y - bbox.origin.y
+	ny = dy / h
+	slantOffset = dy * math.tan(math.radians(angle))
+	nx = (x - bbox.origin.x - slantOffset) / w
+	return (nx, ny)
+
+
+def normalizedMove(glyph, pathIndex, nodeIndex, layerID1, layerID2):
+	"""
+	Returns (dnx, dny) — the move of a node from layerID1 to layerID2 in
+	normalized bbox space (0.0–1.0 per axis), corrected for each layer's
+	italic angle.  Positive values mean the node moved right / up.
+	Returns None if either layer is missing, empty, or the path/node index
+	is out of range.
+	"""
+	layer1 = glyph.layers[layerID1]
+	layer2 = glyph.layers[layerID2]
+	if layer1 is None or layer2 is None:
+		return None
+	try:
+		node1 = layer1.paths[pathIndex].nodes[nodeIndex]
+		node2 = layer2.paths[pathIndex].nodes[nodeIndex]
+	except (IndexError, AttributeError):
+		return None
+	for layer in (layer1, layer2):
+		b = layer.bounds
+		if b.size.width == 0 or b.size.height == 0:
+			return None
+	nx1, ny1 = normalizedCoordinate(node1.x, node1.y, layer1, angle=layer1.italicAngle)
+	nx2, ny2 = normalizedCoordinate(node2.x, node2.y, layer2, angle=layer2.italicAngle)
+	return (nx2 - nx1, ny2 - ny1)
+
+
 def offsetLayer(thisLayer, offset, makeStroke=False, position=0.5, autoStroke=False):
 	offsetFilter = NSClassFromString("GlyphsFilterOffsetCurve")
 	try:

@@ -267,6 +267,8 @@ from mekkablue import caseDict
 | `intersectionLineLinePoints(A, B, C, D, includeMidBcp)` | Line–line intersection; returns `NSPoint` or `None` |
 | `offsetLayer(layer, offset, makeStroke, position, autoStroke)` | Applies offset filter (Glyphs 2/3 compatible) |
 | `centerOfRect(rect)` | Center `NSPoint` of an `NSRect` |
+| `normalizedCoordinate(x, y, layer, angle=0)` | Returns `(nx, ny)` in `0.0–1.0, 0.0–1.0` relative to the layer bbox; `angle` tilts the reference frame for italic/slanted glyphs |
+| `normalizedMove(glyph, pathIndex, nodeIndex, layerID1, layerID2)` | Returns `(dnx, dny)` — normalized-space move of a node between two layers, italic-angle-corrected; `None` if layers missing/empty or index out of range |
 | `divideAndTolerateZero(dividend, divisor)` | Safe division; returns `None` (not `0`) when divisor is zero |
 | `bothPointsAreOnSameSideOfOrigin(pointA, pointB, pointOrigin)` | Returns `True` if both points are on the same side of origin |
 | `pointIsBetweenOtherPoints(thisPoint, otherPointA, otherPointB)` | Returns `True` if point lies between the other two points |
