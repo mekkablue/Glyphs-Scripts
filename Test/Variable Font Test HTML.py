@@ -345,7 +345,7 @@ def generateAxisDict(thisFont: GSFont):
 		coords = axisLocationOfMasterOrInstance(thisFont, m)
 		for axis in thisFont.axes:
 			axisName = axis.name
-			axisPos = coords.get(axis.axisTag, None)
+			axisPos = float(coords.get(axis.axisTag, None))
 			if axisName not in axisDict:
 				axisDict[axisName] = {
 					"min": axisPos,
