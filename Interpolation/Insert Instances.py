@@ -3,12 +3,13 @@
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Inserts instances, based on the Luc(as), Pablo, Abraham, Schneider and Maciej algorithms.
+In Glyphs 4+, presents a redesigned UI for inserting axis particles.
 """
 
 from Foundation import NSDictionary
 import vanilla
 from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 
 rangemin = 3
 rangemax = 11
@@ -63,10 +64,13 @@ For medium weights, you typically want bigger steps. Smaller jumps are preferabl
 
 So, for a wide spectrum from very light to very bold, try Pablo, Schneider, or Mirrored Luc(as).
 
-For spectrums from thin to medium weights, try Abraham or Luc(as). They tend to have large jumps at the end, which are usually found in the center of the weight spectrum (Regular to Semibold). 
+For spectrums from thin to medium weights, try Abraham or Luc(as). They tend to have large jumps at the end, which are usually found in the center of the weight spectrum (Regular to Semibold).
 
 For going from medium to very bold weights, try Reverse Luc(as). It has big jumps at the beginning, and smaller steps at the end.
 """
+
+distributionNames = ("linear", "Pablo", "Schneider", "Abraham", "Luc(as)", "Reverse Luc(as)", "Mirrored Luc(as)")
+
 
 def distribute_lucas(min, max, n):
 	if min == 0:
@@ -88,8 +92,8 @@ def distribute_mirroredlucas(min, max, n):
 		n2 = (n + 1) // 2
 		return distribute_lucas(min, center, n2) + distribute_reverselucas(center, max, n2)[1:]
 	else:
-		deviation = ((max-min) / (n-1)) / 2
-		return distribute_lucas(min, center-deviation, n//2) + distribute_reverselucas(center+deviation, max, n//2)
+		deviation = ((max - min) / (n - 1)) / 2
+		return distribute_lucas(min, center - deviation, n // 2) + distribute_reverselucas(center + deviation, max, n // 2)
 
 
 def distribute_equal(min, max, n):
@@ -126,8 +130,32 @@ def distribute_maciej(lightMasterWeightX, lightMasterWeightY, boldMasterWeightX,
 	return round((boldMasterWeightX - lightMasterWeightX) * interpolationPointY + lightMasterWeightX, 1)
 
 
+def applyDistribution(algorithmName, axisMin, axisMax, n):
+	if n < 2:
+		return [axisMin]
+	if algorithmName == "Pablo":
+		return distribute_pablo(axisMin, axisMax, n)
+	elif algorithmName == "Luc(as)":
+		return distribute_lucas(axisMin, axisMax, n)
+	elif algorithmName == "Reverse Luc(as)":
+		return distribute_reverselucas(axisMin, axisMax, n)
+	elif algorithmName == "Mirrored Luc(as)":
+		return distribute_mirroredlucas(axisMin, axisMax, n)
+	elif algorithmName == "Schneider":
+		return distribute_schneider(axisMin, axisMax, n)
+	elif algorithmName == "Abraham":
+		return distribute_abraham(axisMin, axisMax, n)
+	else:
+		return distribute_equal(axisMin, axisMax, n)
+
+
 def axisLocationEntry(axisName, locationValue):
 	return NSDictionary.alloc().initWithObjects_forKeys_((axisName, locationValue), ("Axis", "Location"))
+
+
+def _safeAttrName(tag):
+	"""Convert axis tag to a safe Python identifier for use as an attribute name."""
+	return "".join(c if c.isalnum() or c == "_" else "_" for c in tag)
 
 
 class InstanceMaker(mekkaObject):
@@ -174,7 +202,7 @@ class InstanceMaker(mekkaObject):
 		self.w.numberOfInstances.setToolTip("Choose how many weights you want to add.")
 		self.w.text_2 = vanilla.TextBox((inset + 30 + 50, linePos + 2, 105, 14), "weights with prefix", sizeStyle='small')
 		self.w.prefix = vanilla.EditText((inset + 30 + 50 + 105, linePos - 1, -inset, 19), "A-", callback=self.UpdateSample, sizeStyle='small')
-		self.w.prefix.setToolTip("Choose text that is added at the beginning of each instance, e.g., ‘Condensed’.")
+		self.w.prefix.setToolTip("Choose text that is added at the beginning of each instance, e.g., 'Condensed'.")
 		linePos += lineHeight
 
 		self.w.text_3 = vanilla.TextBox((inset - 1, linePos + 2, 60, 14), "from:", sizeStyle='small')
@@ -199,7 +227,7 @@ class InstanceMaker(mekkaObject):
 		self.w.existingInstances.set(0)
 		linePos += int(lineHeight * 2.4)
 
-		self.w.naturalNames = vanilla.CheckBox((inset + 2, linePos, inset + 225, 19), "Use ‘natural’ weight names, starting at:", value=False, callback=self.UpdateSample, sizeStyle='small')
+		self.w.naturalNames = vanilla.CheckBox((inset + 2, linePos, inset + 225, 19), "Use 'natural' weight names, starting at:", value=False, callback=self.UpdateSample, sizeStyle='small')
 		self.w.naturalNames.setToolTip("Prefill with standard names and style linking. If turned off, will use the Weight number as instance name.")
 		self.w.firstName = vanilla.PopUpButton((inset + 225, linePos, -inset, 17), naturalNames, callback=self.UpdateSample, sizeStyle='small')
 		self.w.firstName.setToolTip("If you use natural weight names, choose here the name of your lightest weight.")
@@ -217,7 +245,7 @@ class InstanceMaker(mekkaObject):
 			linePos += lineHeight - 8
 
 		self.w.italicStyle = vanilla.CheckBox((inset + 20, linePos, -inset, 20), "Italic suffixes and style linking", value=False, callback=self.UpdateSample, sizeStyle='small')
-		self.w.italicStyle.setToolTip("If enabled, will add the word ‘Italic’ to all instances, and also add italic style linking.")
+		self.w.italicStyle.setToolTip("If enabled, will add the word 'Italic' to all instances, and also add italic style linking.")
 		linePos += lineHeight
 
 		self.w.maciej = vanilla.CheckBox((inset + 2, linePos - 1, 160, 19), "Maciej y distribution from:", value=False, callback=self.UpdateSample, sizeStyle='small')
@@ -449,7 +477,7 @@ class InstanceMaker(mekkaObject):
 	def completeStyleName(self, prefix, name, elidableName="Regular", naturalNames=True):
 		# e.g. "A-160"
 		if not naturalNames:
-			return prefix+name
+			return prefix + name
 
 		# elidable
 		if prefix.strip() and name == elidableName:
@@ -612,4 +640,415 @@ class InstanceMaker(mekkaObject):
 			print(traceback.format_exc())
 
 
-InstanceMaker()
+# ---- Glyphs 4+ particles UI ----
+
+def insertParticlesIntoFont(font, particlesDict):
+	"""
+	Stub for inserting axis particles into the font.
+	particlesDict structure:
+	{
+	    'elidableNames': ['Regular', 'Normal', 'Roman'],
+	    'removeInstances': bool,
+	    'removeParticles': bool,
+	    'axes': {
+	        'wght': {
+	            'firstName': 'Hairline',
+	            'lastName': 'Black',
+	            'algorithm': 'linear',
+	            'particles': [
+	                {'name': 'Hairline', 'externalValue': 1, 'internalValue': 50},
+	                ...
+	            ],
+	        },
+	        'wdth': {
+	            'values': [75.0, 100.0, 125.0],
+	            'rangeMin': 75.0,
+	            'rangeMax': 125.0,
+	        },
+	    },
+	}
+	"""
+	print("Report for Insert Instances (particles)\n")
+	print(f"\t📄 Font: {font.familyName if font else 'None'}")
+	print(f"\t☑️  Remove instances: {particlesDict.get('removeInstances')}")
+	print(f"\t☑️  Remove particles: {particlesDict.get('removeParticles')}")
+	print(f"\t🔠 Elidable names: {', '.join(particlesDict.get('elidableNames', []))}")
+	for axisTag, axisData in particlesDict.get("axes", {}).items():
+		print(f"\n\t↔️  Axis: {axisTag}")
+		if "particles" in axisData:
+			for p in axisData["particles"]:
+				print(f"\t\t• {p['name']} (external: {p['externalValue']}, internal: {p['internalValue']})")
+		else:
+			print(f"\t\tValues: {axisData.get('values')}")
+			print(f"\t\tRange: {axisData.get('rangeMin')} – {axisData.get('rangeMax')}")
+
+
+class InstanceMakerV4(mekkaObject):
+	"""GUI for inserting axis particles (Glyphs 4+)."""
+
+	defaultElidableNames = "Regular, Normal, Roman"
+
+	prefDict = {
+		"removeInstances": False,
+		"removeParticles": False,
+		"elidableNames": "Regular, Normal, Roman",
+	}
+
+	def __init__(self):
+		thisFont = Glyphs.font
+
+		# Collect font axes
+		self.fontAxes = []
+		if thisFont and thisFont.axes:
+			for axis in thisFont.axes:
+				tag = axis.axisTag
+				name = axis.name
+				safeTag = _safeAttrName(tag)
+				self.fontAxes.append({"tag": tag, "safeTag": safeTag, "name": name, "axis": axis})
+
+		# Build instance-level prefDict with dynamic axis entries
+		self.prefDict = dict(InstanceMakerV4.prefDict)
+		for axisInfo in self.fontAxes:
+			tag = axisInfo["tag"]
+			safeTag = axisInfo["safeTag"]
+			if tag == "wght":
+				self.prefDict["wght_firstName"] = 0   # Hairline
+				self.prefDict["wght_lastName"] = 9    # Black
+				self.prefDict["wght_algorithm"] = 0   # linear
+			else:
+				self.prefDict[f"{safeTag}_values"] = ""
+				self.prefDict[f"{safeTag}_range"] = "min:max"
+
+		inset = 15
+		lineHeight = 26
+		windowWidth = 390
+
+		# Calculate required window height
+		linePos = 12
+		linePos += lineHeight  # remove checkboxes row
+		linePos += lineHeight  # elidable names row
+		linePos += 9           # divider line + gap
+		for i, axisInfo in enumerate(self.fontAxes):
+			linePos += lineHeight  # section title
+			linePos += lineHeight  # first data row (first/last weight OR values)
+			linePos += lineHeight  # second data row (distribution OR range)
+			if i < len(self.fontAxes) - 1:
+				linePos += 9  # divider between sections
+		if not self.fontAxes:
+			linePos += lineHeight  # "no axes" message
+		linePos += 30 + inset  # bottom buttons row
+
+		windowHeight = linePos
+
+		self.w = vanilla.FloatingWindow(
+			(windowWidth, windowHeight),
+			"Insert Instances",
+			minSize=(windowWidth, windowHeight),
+			maxSize=(windowWidth, windowHeight),
+			autosaveName=self.domain("mainwindow_v4"),
+		)
+
+		linePos = 12
+
+		# Row: Remove checkboxes
+		self.w.removeInstances = vanilla.CheckBox(
+			(inset, linePos, 185, 20),
+			"Remove existing instances",
+			value=False,
+			callback=self.SavePreferences,
+			sizeStyle="small",
+		)
+		self.w.removeInstances.setToolTip("Remove all existing instances from the frontmost font before inserting.")
+		self.w.removeParticles = vanilla.CheckBox(
+			(inset + 192, linePos, -inset, 20),
+			"Remove existing particles",
+			value=False,
+			callback=self.SavePreferences,
+			sizeStyle="small",
+		)
+		self.w.removeParticles.setToolTip("Remove all existing axis particles from the frontmost font before inserting.")
+		linePos += lineHeight
+
+		# Row: Elidable names
+		self.w.elidableLabel = vanilla.TextBox(
+			(inset, linePos + 2, 102, 14),
+			"Elidable names:",
+			sizeStyle="small",
+		)
+		self.w.elidableNames = vanilla.EditText(
+			(inset + 103, linePos - 1, -inset - 22, 19),
+			self.defaultElidableNames,
+			callback=self.SavePreferences,
+			sizeStyle="small",
+		)
+		self.w.elidableNames.setToolTip("Comma-separated style names that are elidable: they can be omitted from composite names, e.g. 'Condensed Regular' becomes 'Condensed'.")
+		self.w.elidableNamesReset = UpdateButton(
+			(-inset - 18, linePos - 1, -inset, 18),
+			callback=self.resetElidableNames,
+		)
+		self.w.elidableNamesReset.setToolTip(f"Reset to defaults: {self.defaultElidableNames}")
+		linePos += lineHeight
+
+		# Divider below header
+		self.w.dividerTop = vanilla.HorizontalLine((inset, linePos, -inset, 1))
+		linePos += 9
+
+		# Per-axis sections
+		if self.fontAxes:
+			for i, axisInfo in enumerate(self.fontAxes):
+				tag = axisInfo["tag"]
+				safeTag = axisInfo["safeTag"]
+				name = axisInfo["name"]
+
+				# Section title
+				setattr(
+					self.w,
+					f"sectionTitle_{safeTag}",
+					vanilla.TextBox((inset, linePos + 2, -inset, 14), f"{name} particles:", sizeStyle="small"),
+				)
+				linePos += lineHeight
+
+				if tag == "wght":
+					# First weight label + popup
+					setattr(
+						self.w,
+						f"firstWeightLabel_{safeTag}",
+						vanilla.TextBox((inset, linePos + 2, 55, 14), "First:", sizeStyle="small"),
+					)
+					firstPicker = vanilla.PopUpButton(
+						(inset + 57, linePos, 130, 17),
+						list(naturalNames),
+						callback=self.SavePreferences,
+						sizeStyle="small",
+					)
+					firstPicker.setToolTip("Name of the lightest weight particle to add.")
+					setattr(self.w, "wght_firstName", firstPicker)
+
+					# Last weight label + popup (same row)
+					setattr(
+						self.w,
+						f"lastWeightLabel_{safeTag}",
+						vanilla.TextBox((inset + 57 + 138, linePos + 2, 48, 14), "Last:", sizeStyle="small"),
+					)
+					lastPicker = vanilla.PopUpButton(
+						(inset + 57 + 138 + 50, linePos, -inset, 17),
+						list(naturalNames),
+						callback=self.SavePreferences,
+						sizeStyle="small",
+					)
+					lastPicker.setToolTip("Name of the heaviest weight particle to add.")
+					setattr(self.w, "wght_lastName", lastPicker)
+					linePos += lineHeight
+
+					# Distribution label + popup
+					setattr(
+						self.w,
+						f"distributionLabel_{safeTag}",
+						vanilla.TextBox((inset, linePos + 2, 78, 14), "Distribution:", sizeStyle="small"),
+					)
+					distPicker = vanilla.PopUpButton(
+						(inset + 80, linePos, 185, 17),
+						list(distributionNames),
+						callback=self.SavePreferences,
+						sizeStyle="small",
+					)
+					distPicker.setToolTip(distributionExplanation)
+					setattr(self.w, "wght_algorithm", distPicker)
+					linePos += lineHeight
+
+				else:
+					# Values label + field
+					setattr(
+						self.w,
+						f"valuesLabel_{safeTag}",
+						vanilla.TextBox((inset, linePos + 2, 52, 14), "Values:", sizeStyle="small"),
+					)
+					valField = vanilla.EditText(
+						(inset + 54, linePos - 1, -inset, 19),
+						"",
+						callback=self.SavePreferences,
+						sizeStyle="small",
+					)
+					valField.setToolTip("Comma-separated axis values to use as particles. They will be distributed linearly across the defined range.")
+					setattr(self.w, f"{safeTag}_values", valField)
+					linePos += lineHeight
+
+					# Range label + field
+					setattr(
+						self.w,
+						f"rangeLabel_{safeTag}",
+						vanilla.TextBox((inset, linePos + 2, 52, 14), "Range:", sizeStyle="small"),
+					)
+					rangeField = vanilla.EditText(
+						(inset + 54, linePos - 1, -inset, 19),
+						"min:max",
+						callback=self.SavePreferences,
+						sizeStyle="small",
+					)
+					rangeField.setToolTip("Distribution range as min:max. Use 'min'/'max' for the axis endpoints, or leave as 'min:max' for the full range. Examples: 'min:100', '200:max', '75:125'.")
+					setattr(self.w, f"{safeTag}_range", rangeField)
+					linePos += lineHeight
+
+				# Divider between axis sections (not after the last one)
+				if i < len(self.fontAxes) - 1:
+					setattr(
+						self.w,
+						f"divider_{safeTag}",
+						vanilla.HorizontalLine((inset, linePos, -inset, 1)),
+					)
+					linePos += 9
+		else:
+			self.w.noAxesMessage = vanilla.TextBox(
+				(inset, linePos + 2, -inset, 14),
+				"No axes found in the frontmost font.",
+				sizeStyle="small",
+			)
+			linePos += lineHeight
+
+		# Bottom buttons
+		self.w.resetButton = vanilla.Button(
+			(-170 - inset, -20 - inset, -90 - inset, -inset),
+			"Reset",
+			callback=self.resetAction,
+			sizeStyle="small",
+		)
+		self.w.resetButton.setToolTip("Reset all form fields to their defaults.")
+		self.w.insertButton = vanilla.Button(
+			(-80 - inset, -20 - inset, -inset, -inset),
+			"Insert",
+			callback=self.insertAction,
+			sizeStyle="small",
+		)
+		self.w.insertButton.setToolTip("Insert axis particles into the frontmost font.")
+		self.w.setDefaultButton(self.w.insertButton)
+
+		self.LoadPreferences()
+		self.w.open()
+		self.w.makeKey()
+
+	def resetElidableNames(self, sender=None):
+		self.w.elidableNames.set(self.defaultElidableNames)
+		self.SavePreferences()
+
+	def resetAction(self, sender=None):
+		self.w.removeInstances.set(False)
+		self.w.removeParticles.set(False)
+		self.w.elidableNames.set(self.defaultElidableNames)
+		for axisInfo in self.fontAxes:
+			tag = axisInfo["tag"]
+			safeTag = axisInfo["safeTag"]
+			if tag == "wght":
+				getattr(self.w, "wght_firstName").set(0)  # Hairline
+				getattr(self.w, "wght_lastName").set(9)   # Black
+				getattr(self.w, "wght_algorithm").set(0)  # linear
+			else:
+				getattr(self.w, f"{safeTag}_values").set("")
+				getattr(self.w, f"{safeTag}_range").set("min:max")
+		self.SavePreferences()
+
+	def buildParticlesDict(self):
+		thisFont = Glyphs.font
+		if not thisFont:
+			print("❌ No font open.")
+			return None
+
+		elidableNames = [n.strip() for n in self.w.elidableNames.get().split(",") if n.strip()]
+		axesData = {}
+
+		for axisInfo in self.fontAxes:
+			tag = axisInfo["tag"]
+			safeTag = axisInfo["safeTag"]
+			axis = axisInfo["axis"]
+			axisMin = axis.minimum
+			axisMax = axis.maximum
+
+			if tag == "wght":
+				firstIndex = getattr(self.w, "wght_firstName").get()
+				lastIndex = getattr(self.w, "wght_lastName").get()
+				algorithmIndex = getattr(self.w, "wght_algorithm").get()
+				algorithmName = distributionNames[algorithmIndex]
+
+				# Ensure correct order
+				if firstIndex > lastIndex:
+					firstIndex, lastIndex = lastIndex, firstIndex
+
+				selectedNames = list(naturalNames[firstIndex:lastIndex + 1])
+				n = len(selectedNames)
+				internalValues = applyDistribution(algorithmName, axisMin, axisMax, n)
+
+				particles = [
+					{
+						"name": name,
+						"externalValue": weightClasses[name],
+						"internalValue": round(val),
+					}
+					for name, val in zip(selectedNames, internalValues)
+				]
+
+				axesData["wght"] = {
+					"firstName": naturalNames[firstIndex],
+					"lastName": naturalNames[lastIndex],
+					"algorithm": algorithmName,
+					"particles": particles,
+				}
+
+			else:
+				valuesStr = getattr(self.w, f"{safeTag}_values").get().strip()
+				rangeStr = getattr(self.w, f"{safeTag}_range").get().strip()
+
+				values = []
+				for v in valuesStr.split(","):
+					v = v.strip()
+					if v:
+						try:
+							values.append(float(v))
+						except ValueError:
+							pass
+
+				rangeMin = axisMin
+				rangeMax = axisMax
+				if ":" in rangeStr:
+					minPart, maxPart = rangeStr.split(":", 1)
+					minPart = minPart.strip()
+					maxPart = maxPart.strip()
+					if minPart and minPart.lower() != "min":
+						try:
+							rangeMin = float(minPart)
+						except ValueError:
+							pass
+					if maxPart and maxPart.lower() != "max":
+						try:
+							rangeMax = float(maxPart)
+						except ValueError:
+							pass
+
+				axesData[tag] = {
+					"values": values,
+					"rangeMin": rangeMin,
+					"rangeMax": rangeMax,
+				}
+
+		return {
+			"elidableNames": elidableNames,
+			"removeInstances": bool(self.w.removeInstances.get()),
+			"removeParticles": bool(self.w.removeParticles.get()),
+			"axes": axesData,
+		}
+
+	def insertAction(self, sender=None):
+		thisFont = Glyphs.font
+		if not thisFont:
+			print("❌ Insert Instances: no font open.")
+			return
+		particlesDict = self.buildParticlesDict()
+		if particlesDict is None:
+			return
+		self.SavePreferences()
+		insertParticlesIntoFont(thisFont, particlesDict)
+		Glyphs.showNotification("Insert Instances", "Done. Details in Macro Window.")
+
+
+if Glyphs.versionNumber >= 4:
+	InstanceMakerV4()
+else:
+	InstanceMaker()
