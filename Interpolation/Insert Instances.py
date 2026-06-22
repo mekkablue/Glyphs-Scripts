@@ -694,6 +694,9 @@ class InstanceMakerV4(mekkaObject):
 		"elidableNames": "Regular, Normal, Roman",
 	}
 
+	# Width of the left-column labels, sized to fit "Distribution:" at sizeStyle="small"
+	_labelW = 82
+
 	def __init__(self):
 		thisFont = Glyphs.font
 
@@ -722,12 +725,14 @@ class InstanceMakerV4(mekkaObject):
 		inset = 15
 		lineHeight = 26
 		windowWidth = 390
+		# NSTextAlignmentRight = 2
+		rightAlign = 2
 
 		# Calculate required window height
 		linePos = 12
 		linePos += lineHeight  # remove checkboxes row
 		linePos += lineHeight  # elidable names row
-		linePos += 9           # divider line + gap
+		linePos += 9           # header divider
 		for i, axisInfo in enumerate(self.fontAxes):
 			linePos += lineHeight  # section title
 			linePos += lineHeight  # first data row (first/last weight OR values)
@@ -736,7 +741,7 @@ class InstanceMakerV4(mekkaObject):
 				linePos += 9  # divider between sections
 		if not self.fontAxes:
 			linePos += lineHeight  # "no axes" message
-		linePos += 30 + inset  # bottom buttons row
+		linePos += 55  # bottom divider + button row + inset
 
 		windowHeight = linePos
 
@@ -744,7 +749,7 @@ class InstanceMakerV4(mekkaObject):
 			(windowWidth, windowHeight),
 			"Insert Instances",
 			minSize=(windowWidth, windowHeight),
-			maxSize=(windowWidth, windowHeight),
+			maxSize=(windowWidth + 1000, windowHeight),
 			autosaveName=self.domain("mainwindow_v4"),
 		)
 
@@ -794,29 +799,31 @@ class InstanceMakerV4(mekkaObject):
 		linePos += 9
 
 		# Per-axis sections
+		labelW = self._labelW  # common left-column label width for consistent input alignment
+		inputX = inset + labelW + 2  # x where all left-column inputs start
+
 		if self.fontAxes:
 			for i, axisInfo in enumerate(self.fontAxes):
 				tag = axisInfo["tag"]
 				safeTag = axisInfo["safeTag"]
 				name = axisInfo["name"]
 
-				# Section title
+				# Section title: "Particles for: wght (Weight)"
 				setattr(
 					self.w,
 					f"sectionTitle_{safeTag}",
-					vanilla.TextBox((inset, linePos + 2, -inset, 14), f"{name} particles:", sizeStyle="small"),
+					vanilla.TextBox((inset, linePos + 2, -inset, 14), f"Particles for: {tag} ({name})", sizeStyle="small"),
 				)
 				linePos += lineHeight
 
 				if tag == "wght":
-					# First weight label + popup
-					setattr(
-						self.w,
-						f"firstWeightLabel_{safeTag}",
-						vanilla.TextBox((inset, linePos + 2, 55, 14), "First:", sizeStyle="small"),
-					)
+					# "First:" label (right-aligned) + popup
+					firstLabel = vanilla.TextBox((inset, linePos + 2, labelW, 14), "First:", sizeStyle="small")
+					firstLabel.getNSTextField().setAlignment_(rightAlign)
+					setattr(self.w, f"firstWeightLabel_{safeTag}", firstLabel)
+
 					firstPicker = vanilla.PopUpButton(
-						(inset + 57, linePos, 130, 17),
+						(inputX, linePos, 122, 17),
 						list(naturalNames),
 						callback=self.SavePreferences,
 						sizeStyle="small",
@@ -824,14 +831,14 @@ class InstanceMakerV4(mekkaObject):
 					firstPicker.setToolTip("Name of the lightest weight particle to add.")
 					setattr(self.w, "wght_firstName", firstPicker)
 
-					# Last weight label + popup (same row)
-					setattr(
-						self.w,
-						f"lastWeightLabel_{safeTag}",
-						vanilla.TextBox((inset + 57 + 138, linePos + 2, 48, 14), "Last:", sizeStyle="small"),
-					)
+					# "Last:" label (right-aligned) + popup (same row, Last popup stretches)
+					lastLabelX = inputX + 122 + 8
+					lastLabel = vanilla.TextBox((lastLabelX, linePos + 2, 44, 14), "Last:", sizeStyle="small")
+					lastLabel.getNSTextField().setAlignment_(rightAlign)
+					setattr(self.w, f"lastWeightLabel_{safeTag}", lastLabel)
+
 					lastPicker = vanilla.PopUpButton(
-						(inset + 57 + 138 + 50, linePos, -inset, 17),
+						(lastLabelX + 46, linePos, -inset, 17),
 						list(naturalNames),
 						callback=self.SavePreferences,
 						sizeStyle="small",
@@ -840,14 +847,13 @@ class InstanceMakerV4(mekkaObject):
 					setattr(self.w, "wght_lastName", lastPicker)
 					linePos += lineHeight
 
-					# Distribution label + popup
-					setattr(
-						self.w,
-						f"distributionLabel_{safeTag}",
-						vanilla.TextBox((inset, linePos + 2, 78, 14), "Distribution:", sizeStyle="small"),
-					)
+					# "Distribution:" label (right-aligned) + popup
+					distLabel = vanilla.TextBox((inset, linePos + 2, labelW, 14), "Distribution:", sizeStyle="small")
+					distLabel.getNSTextField().setAlignment_(rightAlign)
+					setattr(self.w, f"distributionLabel_{safeTag}", distLabel)
+
 					distPicker = vanilla.PopUpButton(
-						(inset + 80, linePos, 185, 17),
+						(inputX, linePos, 185, 17),
 						list(distributionNames),
 						callback=self.SavePreferences,
 						sizeStyle="small",
@@ -857,14 +863,13 @@ class InstanceMakerV4(mekkaObject):
 					linePos += lineHeight
 
 				else:
-					# Values label + field
-					setattr(
-						self.w,
-						f"valuesLabel_{safeTag}",
-						vanilla.TextBox((inset, linePos + 2, 52, 14), "Values:", sizeStyle="small"),
-					)
+					# "Values:" label (right-aligned) + field
+					valLabel = vanilla.TextBox((inset, linePos + 2, labelW, 14), "Values:", sizeStyle="small")
+					valLabel.getNSTextField().setAlignment_(rightAlign)
+					setattr(self.w, f"valuesLabel_{safeTag}", valLabel)
+
 					valField = vanilla.EditText(
-						(inset + 54, linePos - 1, -inset, 19),
+						(inputX, linePos - 1, -inset, 19),
 						"",
 						callback=self.SavePreferences,
 						sizeStyle="small",
@@ -873,14 +878,13 @@ class InstanceMakerV4(mekkaObject):
 					setattr(self.w, f"{safeTag}_values", valField)
 					linePos += lineHeight
 
-					# Range label + field
-					setattr(
-						self.w,
-						f"rangeLabel_{safeTag}",
-						vanilla.TextBox((inset, linePos + 2, 52, 14), "Range:", sizeStyle="small"),
-					)
+					# "Range:" label (right-aligned) + field
+					rangeLabel = vanilla.TextBox((inset, linePos + 2, labelW, 14), "Range:", sizeStyle="small")
+					rangeLabel.getNSTextField().setAlignment_(rightAlign)
+					setattr(self.w, f"rangeLabel_{safeTag}", rangeLabel)
+
 					rangeField = vanilla.EditText(
-						(inset + 54, linePos - 1, -inset, 19),
+						(inputX, linePos - 1, -inset, 19),
 						"min:max",
 						callback=self.SavePreferences,
 						sizeStyle="small",
@@ -905,9 +909,12 @@ class InstanceMakerV4(mekkaObject):
 			)
 			linePos += lineHeight
 
-		# Bottom buttons
+		# Divider above button bar
+		self.w.dividerBottom = vanilla.HorizontalLine((inset, -44, -inset, 1))
+
+		# Reset at bottom-left, Insert at bottom-right
 		self.w.resetButton = vanilla.Button(
-			(-170 - inset, -20 - inset, -90 - inset, -inset),
+			(inset, -20 - inset, 90, -inset),
 			"Reset",
 			callback=self.resetAction,
 			sizeStyle="small",
