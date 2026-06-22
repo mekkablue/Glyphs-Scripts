@@ -11,6 +11,13 @@ import vanilla
 from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE
 from mekkablue import mekkaObject, UpdateButton
 
+try:
+	from GlyphsApp import GSNameParticle
+except ImportError:
+	GSNameParticle = None
+
+INSTANCETYPEPARTICLE = 4  # GSInstance.type for axis particle instances (Glyphs 4+)
+
 rangemin = 3
 rangemax = 11
 
@@ -644,7 +651,7 @@ class InstanceMaker(mekkaObject):
 
 def insertParticlesIntoFont(font, particlesDict):
 	"""
-	Stub for inserting axis particles into the font.
+	Insert axis particles into the font using GSNameParticle (Glyphs 4+).
 	particlesDict structure:
 	{
 	    'elidableNames': ['Regular', 'Normal', 'Roman'],
@@ -652,40 +659,75 @@ def insertParticlesIntoFont(font, particlesDict):
 	    'removeParticles': bool,
 	    'axes': {
 	        'wght': {
-	            'firstName': 'Hairline',
-	            'lastName': 'Black',
-	            'algorithm': 'linear',
-	            'particles': [
-	                {'name': 'Hairline', 'externalValue': 1, 'internalValue': 50},
-	                ...
-	            ],
+	            'particles': [{'name': 'Hairline', 'externalValue': 1, 'internalValue': 50}, ...],
 	        },
 	        'wdth': {
-	            'particles': [
-	                {'name': 'Narrow', 'internalValue': 25.0},
-	                {'name': 'Normal', 'internalValue': 75.0},
-	                ...
-	            ],
-	            'rangeMin': 25.0,
-	            'rangeMax': 150.0,
+	            'particles': [{'name': 'Narrow', 'internalValue': 25.0}, ...],
 	        },
 	    },
 	}
 	"""
 	print("Report for Insert Instances (particles)\n")
-	print(f"\t📄 Font: {font.familyName if font else 'None'}")
-	print(f"\t☑️  Remove instances: {particlesDict.get('removeInstances')}")
-	print(f"\t☑️  Remove particles: {particlesDict.get('removeParticles')}")
-	print(f"\t🔠 Elidable names: {', '.join(particlesDict.get('elidableNames', []))}")
-	for axisTag, axisData in particlesDict.get("axes", {}).items():
+	print(f"\t📄 Font: {font.familyName}")
+
+	removeInstances = particlesDict.get("removeInstances", False)
+	removeParticles = particlesDict.get("removeParticles", False)
+	elidableNames = particlesDict.get("elidableNames", [])
+	axesData = particlesDict.get("axes", {})
+
+	if removeInstances:
+		count = 0
+		for i, instance in reversed(list(enumerate(font.instances))):
+			if instance.type == INSTANCETYPESINGLE:
+				del font.instances[i]
+				count += 1
+		print(f"\t🗑️  Removed {count} existing instance(s).")
+
+	if removeParticles:
+		count = 0
+		for i, instance in reversed(list(enumerate(font.instances))):
+			if instance.type == INSTANCETYPEPARTICLE:
+				del font.instances[i]
+				count += 1
+		print(f"\t🗑️  Removed {count} existing particle instance(s).")
+
+	if GSNameParticle is None:
+		print("\t❌ GSNameParticle not available in this version of Glyphs.")
+		return
+
+	# Build axis tag → axisId lookup
+	axisIdForTag = {axis.axisTag: axis.axisId for axis in font.axes}
+
+	# Create one particle-type instance
+	particleInstance = GSInstance()
+	particleInstance.type = INSTANCETYPEPARTICLE
+	font.instances.append(particleInstance)
+	print(f"\t✅ Created particle instance.")
+
+	# #TODO: apply elidable names to particleInstance once the API is available
+	if elidableNames:
+		print(f"\t🔠 Elidable names (TODO): {', '.join(elidableNames)}")
+
+	# Add name particles for each axis
+	for axisTag, axisData in axesData.items():
+		axisId = axisIdForTag.get(axisTag)
+		if axisId is None:
+			print(f"\t⚠️  No axisId found for axis tag '{axisTag}', skipping.")
+			continue
+
+		particles = axisData.get("particles", [])
 		print(f"\n\t↔️  Axis: {axisTag}")
-		for p in axisData.get("particles", []):
+
+		for p in particles:
+			particle = GSNameParticle()
+			particle.name = p["name"]
+			particle.internal = float(p["internalValue"])
+			particle.active = True
+			if "externalValue" in p:
+				particle.external = float(p["externalValue"])
+			particleInstance.addNameParticle_forAxisId_(particle, axisId)
 			extStr = f", external: {p['externalValue']}" if "externalValue" in p else ""
-			print(f"\t\t• {p['name']} (internal: {p['internalValue']}{extStr})")
-		rangeMin = axisData.get("rangeMin")
-		rangeMax = axisData.get("rangeMax")
-		if rangeMin is not None and rangeMax is not None:
-			print(f"\t\tRange: {rangeMin} – {rangeMax}")
+			print(f"\t\t✅ {p['name']} (internal: {p['internalValue']}{extStr})")
 
 
 class InstanceMakerV4(mekkaObject):
