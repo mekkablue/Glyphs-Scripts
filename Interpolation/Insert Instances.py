@@ -741,7 +741,7 @@ class InstanceMakerV4(mekkaObject):
 				linePos += 9  # divider between sections
 		if not self.fontAxes:
 			linePos += lineHeight  # "no axes" message
-		linePos += 55  # bottom divider + button row + inset
+		linePos += 75  # bottom divider + button row + inset
 
 		windowHeight = linePos
 
@@ -909,22 +909,22 @@ class InstanceMakerV4(mekkaObject):
 			)
 			linePos += lineHeight
 
-		# Divider above button bar
-		self.w.dividerBottom = vanilla.HorizontalLine((inset, -44, -inset, 1))
+		# Divider above button bar (10px above button top)
+		self.w.dividerBottom = vanilla.HorizontalLine((inset, -47, -inset, 1))
 
-		# Reset at bottom-left, Insert at bottom-right
+		# Reset at bottom-left, Insert at bottom-right — regular size (22px tall)
 		self.w.resetButton = vanilla.Button(
-			(inset, -20 - inset, 90, -inset),
+			(inset, -22 - inset, 90, -inset),
 			"Reset",
 			callback=self.resetAction,
-			sizeStyle="small",
+			sizeStyle="regular",
 		)
 		self.w.resetButton.setToolTip("Reset all form fields to their defaults.")
 		self.w.insertButton = vanilla.Button(
-			(-80 - inset, -20 - inset, -inset, -inset),
+			(-80 - inset, -22 - inset, -inset, -inset),
 			"Insert",
 			callback=self.insertAction,
-			sizeStyle="small",
+			sizeStyle="regular",
 		)
 		self.w.insertButton.setToolTip("Insert axis particles into the frontmost font.")
 		self.w.setDefaultButton(self.w.insertButton)
@@ -1051,6 +1051,7 @@ class InstanceMakerV4(mekkaObject):
 		if particlesDict is None:
 			return
 		self.SavePreferences()
+		Glyphs.clearLog()
 		insertParticlesIntoFont(thisFont, particlesDict)
 		Glyphs.showNotification("Insert Instances", "Done. Details in Macro Window.")
 
