@@ -661,9 +661,13 @@ def insertParticlesIntoFont(font, particlesDict):
 	            ],
 	        },
 	        'wdth': {
-	            'values': [75.0, 100.0, 125.0],
-	            'rangeMin': 75.0,
-	            'rangeMax': 125.0,
+	            'particles': [
+	                {'name': 'Narrow', 'internalValue': 25.0},
+	                {'name': 'Normal', 'internalValue': 75.0},
+	                ...
+	            ],
+	            'rangeMin': 25.0,
+	            'rangeMax': 150.0,
 	        },
 	    },
 	}
@@ -675,12 +679,13 @@ def insertParticlesIntoFont(font, particlesDict):
 	print(f"\t🔠 Elidable names: {', '.join(particlesDict.get('elidableNames', []))}")
 	for axisTag, axisData in particlesDict.get("axes", {}).items():
 		print(f"\n\t↔️  Axis: {axisTag}")
-		if "particles" in axisData:
-			for p in axisData["particles"]:
-				print(f"\t\t• {p['name']} (external: {p['externalValue']}, internal: {p['internalValue']})")
-		else:
-			print(f"\t\tValues: {axisData.get('values')}")
-			print(f"\t\tRange: {axisData.get('rangeMin')} – {axisData.get('rangeMax')}")
+		for p in axisData.get("particles", []):
+			extStr = f", external: {p['externalValue']}" if "externalValue" in p else ""
+			print(f"\t\t• {p['name']} (internal: {p['internalValue']}{extStr})")
+		rangeMin = axisData.get("rangeMin")
+		rangeMax = axisData.get("rangeMax")
+		if rangeMin is not None and rangeMax is not None:
+			print(f"\t\tRange: {rangeMin} – {rangeMax}")
 
 
 class InstanceMakerV4(mekkaObject):
@@ -1019,14 +1024,8 @@ class InstanceMakerV4(mekkaObject):
 				valuesStr = getattr(self.w, f"{safeTag}_values").get().strip()
 				rangeStr = getattr(self.w, f"{safeTag}_range").get().strip()
 
-				values = []
-				for v in valuesStr.split(","):
-					v = v.strip()
-					if v:
-						try:
-							values.append(float(v))
-						except ValueError:
-							pass
+				# Values are particle names (strings), not numbers
+				names = [v.strip() for v in valuesStr.split(",") if v.strip()]
 
 				rangeMin = axisMin
 				rangeMax = axisMax
@@ -1045,8 +1044,15 @@ class InstanceMakerV4(mekkaObject):
 						except ValueError:
 							pass
 
+				# Distribute names linearly across the range
+				internalVals = applyDistribution("linear", rangeMin, rangeMax, len(names))
+				particles = [
+					{"name": name, "internalValue": round(iv, 2)}
+					for name, iv in zip(names, internalVals)
+				]
+
 				axesData[tag] = {
-					"values": values,
+					"particles": particles,
 					"rangeMin": rangeMin,
 					"rangeMax": rangeMax,
 				}
