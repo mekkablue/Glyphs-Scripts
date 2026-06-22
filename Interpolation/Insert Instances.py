@@ -953,6 +953,24 @@ class InstanceMakerV4(mekkaObject):
 				getattr(self.w, f"{safeTag}_range").set("min:max")
 		self.SavePreferences()
 
+	def _axisRange(self, axisInfo, thisFont):
+		"""Return (min, max) for an axis. Attribute names vary across Glyphs versions."""
+		axis = axisInfo["axis"]
+		for minAttr, maxAttr in (("minimum", "maximum"), ("axisMin", "axisMax"), ("min", "max")):
+			try:
+				return float(getattr(axis, minAttr)), float(getattr(axis, maxAttr))
+			except AttributeError:
+				pass
+		# Fall back: use the spread of master axis values
+		try:
+			axisId = axis.axisId
+			vals = [float(m.axisValueValueForId_(axisId)) for m in thisFont.masters]
+			if vals:
+				return min(vals), max(vals)
+		except Exception:
+			pass
+		return 0.0, 1000.0
+
 	def buildParticlesDict(self):
 		thisFont = Glyphs.font
 		if not thisFont:
@@ -965,9 +983,7 @@ class InstanceMakerV4(mekkaObject):
 		for axisInfo in self.fontAxes:
 			tag = axisInfo["tag"]
 			safeTag = axisInfo["safeTag"]
-			axis = axisInfo["axis"]
-			axisMin = axis.minimum
-			axisMax = axis.maximum
+			axisMin, axisMax = self._axisRange(axisInfo, thisFont)
 
 			if tag == "wght":
 				firstIndex = getattr(self.w, "wght_firstName").get()
