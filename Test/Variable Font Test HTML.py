@@ -367,6 +367,11 @@ def allUnicodeEscapesOfFont(thisFont):
 	return " ".join(allUnicodes)
 
 
+def allUnicodeCodePointsOfFont(thisFont):
+	codePoints = [int(g.unicode, 16) for g in thisFont.allGlyphs() if g.unicode and g.export and g.layers[0].shapes]
+	return "[" + ",".join(str(cp) for cp in codePoints) + "]"
+
+
 def featureListForFont(thisFont):
 	returnString = ""
 	featureList = [(f.name, f.notes) for f in thisFont.features if f.name not in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig", "rlig") and not f.disabled()]
@@ -411,8 +416,8 @@ def allOTVarSliders(thisFont, variableFontSetting=None):
 
 		startValue = originValueForAxisName(axisName, thisFont, minValue, maxValue, variableFontSetting=variableFontSetting)
 
-		html += "\t\t\t<div class='labeldiv'><label class='sliderlabel' id='label_%s' name='%s'>%s</label><input type='range' min='%i' max='%i' value='%i' class='slider' id='%s' oninput='updateSlider();'></div>\n" % (
-			axisTag, axisName, axisName, minValue, maxValue, startValue, axisTag
+		html += "\t\t\t<div class='labeldiv'><label class='sliderlabel' id='label_%s' name='%s'>%s</label><div class='sliderRow'><input type='range' min='%i' max='%i' value='%i' class='slider' id='%s' oninput='updateSlider();'><button class='playBtn' id='play_%s' onclick='toggleAnimation(\"%s\")'>&#9654;</button></div></div>\n" % (
+			axisTag, axisName, axisName, minValue, maxValue, startValue, axisTag, axisTag, axisTag
 		)
 
 	return html
@@ -506,7 +511,7 @@ def defaultVariationCSS(thisFont):
 	return ", ".join(defaultValues)
 
 
-def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa=False, defaultSize=None):
+def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa=False, defaultSize=None, glyphCodePoints="[]"):
 	samsaPlaceholder = "<!-- placeholder for external links, hold down OPTION and SHIFT while running the script -->"
 	htmlContent = """<html>
 	<!--<base href="..">--> <!-- uncomment for keeping the HTML in a subfolder -->
@@ -589,6 +594,30 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				background: #777;
 				cursor: auto;
 			}
+
+/* Slider play button: */
+			.sliderRow {
+				display: flex;
+				align-items: stretch;
+			}
+			.sliderRow .slider {
+				flex: 1;
+				min-width: 0;
+			}
+			.playBtn {
+				flex: 0 0 auto;
+				background: #eee;
+				border: none;
+				cursor: pointer;
+				width: 2em;
+				font-size: 0.85em;
+				border-radius: 0 5px 5px 0;
+				color: #555;
+				padding: 0;
+				user-select: none;
+				-webkit-user-select: none;
+			}
+			.playBtn:hover { background: #ccc; }
 
 /* Feature Buttons: */
 			#featureControls {
@@ -682,6 +711,33 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				outline: 0px solid transparent;
 			}
 
+/* Grid View: */
+			#gridview {
+				flex: 1 1 auto;
+				flex-wrap: wrap;
+				align-content: flex-start;
+				overflow-y: scroll;
+				padding: 0.2em;
+				font-family: "###fontFamilyName###";
+				font-feature-settings: "kern" on, "liga" on, "calt" on, "locl" on;
+				-moz-font-feature-settings: "kern" on, "liga" on, "calt" on, "locl" on;
+				-webkit-font-feature-settings: "kern" on, "liga" on, "calt" on, "locl" on;
+				font-size: ###defaultSize###px;
+				font-variation-settings: ###variationSettings###;
+				color: black;
+			}
+			.gridCell {
+				display: inline-flex;
+				justify-content: center;
+				align-items: center;
+				box-sizing: border-box;
+				flex: 0 0 auto;
+				width: var(--grid-cell-size, 56px);
+				height: var(--grid-cell-size, 56px);
+				border: 1px solid #eee;
+				line-height: 1;
+			}
+
 /* Footer paragraph: */
 			#helptext {
 				position: fixed;
@@ -701,7 +757,8 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				#controls, #controls *,
 				#featureControls,
 				#styleMenu, #styleMenu *,
-				.otFeature {
+				.otFeature,
+				#gridview, #gridview * {
 					display: none !important;
 				}
 			}
@@ -728,6 +785,8 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				.slider { background: #333; }
 				.slider::-webkit-slider-thumb { background: #888; }
 				a { color: #ccc; }
+				.playBtn { background: #333; color: #aaa; }
+				.playBtn:hover { background: #555; }
 
 				#controls {
 					background-color: black;
@@ -736,6 +795,11 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 					color: white;
 					background-color: black;
 				}
+				#gridview {
+					color: white;
+					background-color: black;
+				}
+				.gridCell { border-color: #333; }
 				.○ {
 					-webkit-text-stroke: 1px white;
 					-webkit-text-fill-color: #0000;
@@ -749,6 +813,71 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 			document.addEventListener('keydown', sliderPrecision);
 
 			const sliders = document.getElementsByClassName('slider');
+			const glyphCodePoints = ###glyphCodePoints###;
+
+			const animStates = {};
+			function toggleAnimation(axisTag) {
+				if (!animStates[axisTag]) {
+					animStates[axisTag] = {speed: 0, animId: null, startTime: 0, phaseOffset: 0};
+				}
+				const state = animStates[axisTag];
+				const now = performance.now();
+				let currentPhase;
+				if (state.speed > 0) {
+					const t = (now - state.startTime) / 1000;
+					currentPhase = 2 * Math.PI * state.speed * t + state.phaseOffset;
+				} else {
+					const slider = document.getElementById(axisTag);
+					const minV = parseFloat(slider.min), maxV = parseFloat(slider.max);
+					const center = (minV + maxV) / 2, amplitude = (maxV - minV) / 2;
+					const ratio = amplitude > 0 ? (parseFloat(slider.value) - center) / amplitude : 0;
+					currentPhase = Math.acos(Math.max(-1, Math.min(1, ratio)));
+				}
+				if (state.animId) { cancelAnimationFrame(state.animId); state.animId = null; }
+				state.speed = (state.speed + 1) %% 4;
+				const btn = document.getElementById('play_' + axisTag);
+				const symbols = ['▶', '①', '②', '③'];
+				btn.textContent = symbols[state.speed];
+				if (state.speed === 0) return;
+				state.startTime = now;
+				state.phaseOffset = currentPhase;
+				function animFrame(time) {
+					const s = animStates[axisTag];
+					if (!s || s.speed === 0) return;
+					const slider = document.getElementById(axisTag);
+					const minV = parseFloat(slider.min), maxV = parseFloat(slider.max);
+					const center = (minV + maxV) / 2, amplitude = (maxV - minV) / 2;
+					const t = (time - s.startTime) / 1000;
+					slider.value = center + amplitude * Math.cos(s.phaseOffset + 2 * Math.PI * s.speed * t);
+					updateSlider();
+					s.animId = requestAnimationFrame(animFrame);
+				}
+				state.animId = requestAnimationFrame(animFrame);
+			}
+			function buildGridView() {
+				const grid = document.getElementById('gridview');
+				grid.innerHTML = '';
+				for (const cp of glyphCodePoints) {
+					const cell = document.createElement('div');
+					cell.className = 'gridCell';
+					cell.textContent = String.fromCodePoint(cp);
+					grid.appendChild(cell);
+				}
+			}
+			function toggleGridView() {
+				const textarea = document.getElementById('textarea');
+				const gridview = document.getElementById('gridview');
+				if (gridview.style.display === 'flex') {
+					gridview.style.display = 'none';
+					textarea.style.display = '';
+					textarea.focus();
+				} else {
+					buildGridView();
+					updateSlider();
+					gridview.style.display = 'flex';
+					textarea.style.display = 'none';
+				}
+			}
 
 			function sliderPrecision(event) {
 				if (event.shiftKey) {
@@ -809,6 +938,8 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 						toggleCenter();
 					} else if (event.code == 'KeyM') {
 						toggleMenu();
+					} else if (event.code == 'KeyG') {
+						toggleGridView();
 					} else if (event.code == 'Period') {
 						styleMenu.selectedIndex = (styleMenu.selectedIndex + 1) %% styleMenuLength;
 						setStyle(styleMenu.value);
@@ -872,6 +1003,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 					}
 				}
 				testtext.style.setProperty("font-feature-settings", codeLine);
+				document.getElementById("gridview").style.setProperty("font-feature-settings", codeLine);
 			}
 			function resetParagraph() {
 				const defaulttext = "The Quick Brown Fox Jumps Over the Lazy Dog.";
@@ -888,6 +1020,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 			}
 			function updateSlider() {
 				var body = getTestText();
+				var gridview = document.getElementById("gridview");
 				var sliders = document.getElementsByClassName("slider");
 				var settingtext = "";
 				for (var i = 0; i < sliders.length; i++) {
@@ -901,6 +1034,8 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 					if (sliderID == "fontsize") {
 						// Text Size Slider
 						body.style.setProperty("font-size", ""+sliderValue+"px");
+						gridview.style.setProperty("font-size", ""+sliderValue+"px");
+						document.documentElement.style.setProperty('--grid-cell-size', Math.round(parseFloat(sliderValue) * 1.4) + 'px');
 						label.textContent += "px";
 					} else if (sliderID == "lineheight") {
 						// Line Height Slider
@@ -914,6 +1049,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				}
 				// apply OTVar slider settings:
 				body.style.setProperty("font-variation-settings", settingtext);
+				gridview.style.setProperty("font-variation-settings", settingtext);
 			}
 			function vanish(item) {
 				item.style.setProperty("display", "none");
@@ -1027,11 +1163,15 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 		<!-- Test Text -->
 		<div contenteditable="true" spellcheck="false" autocomplete="true" id="textarea" class="●">
 		</div>
+
+		<!-- Grid View -->
+		<div id="gridview" style="display:none;">
+		</div>
 	</div>
 
 	<!-- Disclaimer -->
 	<p id="helptext" onmouseleave="vanish(this);">
-		<strong>Ctrl-period/comma</strong> step through styles <strong>Ctrl-R</strong> reset charset <strong>Ctrl-U</strong> update font <strong>Ctrl-L</strong> Lat-1 <strong>Ctrl-J</strong> LTR/RTL <strong>Ctrl-C</strong> center <strong>Ctrl-M</strong> toggle menu <strong>Ctrl-X</strong> x-ray <strong>Ctrl +/−</strong> size <strong>Ctrl-1/2</strong> linegap <strong>Shift</strong> high slider precision <em>Not working? Try newer macOS or <a href="https://www.google.com/chrome/">latest Chrome</a>. Hover mouse above this note to make it disappear.</em>
+		<strong>Ctrl-period/comma</strong> step through styles <strong>Ctrl-R</strong> reset charset <strong>Ctrl-U</strong> update font <strong>Ctrl-L</strong> Lat-1 <strong>Ctrl-J</strong> LTR/RTL <strong>Ctrl-C</strong> center <strong>Ctrl-G</strong> grid view <strong>Ctrl-M</strong> toggle menu <strong>Ctrl-X</strong> x-ray <strong>Ctrl +/−</strong> size <strong>Ctrl-1/2</strong> linegap <strong>Shift</strong> high slider precision <em>Not working? Try newer macOS or <a href="https://www.google.com/chrome/">latest Chrome</a>. Hover mouse above this note to make it disappear.</em>
 	</p>
 	</body>
 </html>
@@ -1077,7 +1217,8 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 		("###featureList###", featureList),
 		("###languageSelection###", fontLangMenu),
 		(samsaPlaceholder, samsaReplaceWith),
-		("###defaultSize###", defaultSize)
+		("###defaultSize###", defaultSize),
+		("###glyphCodePoints###", glyphCodePoints),
 	)
 	htmlContent = replaceSet(htmlContent, replacements)
 	return htmlContent
@@ -1180,6 +1321,7 @@ def otVarInfoForFont(thisFont, variableFontSetting=None):
 	fullName = otVarFullName(thisFont)
 	fileName = otVarFileName(thisFont)
 	unicodeEscapes = allUnicodeEscapesOfFont(thisFont)
+	glyphCodePoints = allUnicodeCodePointsOfFont(thisFont)
 	otVarSliders = allOTVarSliders(thisFont, variableFontSetting=variableFontSetting)
 	variationCSS = defaultVariationCSS(thisFont)
 	featureList = featureListForFont(thisFont)
@@ -1196,13 +1338,13 @@ def otVarInfoForFont(thisFont, variableFontSetting=None):
 				exportFolder = parameter.value
 				break
 
-	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder
+	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphCodePoints
 
 
 def otVarInfoForInstance(thisInstance):
 	thisFont = thisInstance.font
 	familyName = familyNameOfInstance(thisInstance)
-	fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder = otVarInfoForFont(thisFont, variableFontSetting=thisInstance)  # fallback
+	fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphCodePoints = otVarInfoForFont(thisFont, variableFontSetting=thisInstance)  # fallback
 
 	# instance-specific overrides:
 	fullName = f"{familyName} {thisInstance.name}"
@@ -1215,7 +1357,7 @@ def otVarInfoForInstance(thisInstance):
 	# featureList
 	# fontLangMenu
 
-	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder
+	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphCodePoints
 
 
 # clears macro window log:
@@ -1255,14 +1397,14 @@ else:
 		variableFontInfos.append(otVarInfoForFont(thisFont))
 
 	for variableFontInfo in variableFontInfos:
-		fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder = variableFontInfo
+		fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphCodePoints = variableFontInfo
 
 		print("\nPreparing Test HTML for: %s%s" % (
 			fullName,
 			f" ({fileName})" if fileName else "",
 		))
 		print("👷🏼‍ Building HTML code...")
-		htmlContent = buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa)
+		htmlContent = buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa, glyphCodePoints=glyphCodePoints)
 
 		# Write file to disk:
 		print("💾 Writing files to disk...")
