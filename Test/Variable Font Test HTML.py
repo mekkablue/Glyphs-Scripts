@@ -272,14 +272,29 @@ def otVarFullName(thisFont):
 		return familyName
 
 
+def otVarPlainSuffix():
+	if Glyphs.versionNumber and Glyphs.versionNumber >= 4:
+		outlineFormat = Glyphs.defaults["GSVariableExportOutlineFormat"]
+		return "otf" if outlineFormat == 4 else "ttf"
+	return "ttf"
+
+
 def otVarSuffix():
-	suffix = "ttf"
-	if Glyphs.versionNumber and Glyphs.versionNumber < 4:
+	if Glyphs.versionNumber and Glyphs.versionNumber >= 4:
+		exportWOFF2 = Glyphs.defaults["GSVariableExportWOFF2"]
+		exportWOFF = Glyphs.defaults["GSVariableExportWOFF"]
+		if exportWOFF2 == 1:
+			return "woff2"
+		if exportWOFF == 1:
+			return "woff"
+		return otVarPlainSuffix()
+	else:
+		suffix = "ttf"
 		for webSuffix in ("woff", "woff2"):
 			preference = Glyphs.defaults["GXExport%s" % webSuffix.upper()]
 			if preference:
 				suffix = webSuffix
-	return suffix
+		return suffix
 
 
 def otVarFileName(thisFont, thisInstance=None):
@@ -511,7 +526,7 @@ def defaultVariationCSS(thisFont):
 	return ", ".join(defaultValues)
 
 
-def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa=False, defaultSize=None, glyphCodePoints="[]"):
+def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa=False, defaultSize=None, glyphCodePoints="[]", plainSuffix="ttf"):
 	samsaPlaceholder = "<!-- placeholder for external links, hold down OPTION and SHIFT while running the script -->"
 	htmlContent = """<html>
 	<!--<base href="..">--> <!-- uncomment for keeping the HTML in a subfolder -->
@@ -814,6 +829,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 
 			const sliders = document.getElementsByClassName('slider');
 			const glyphCodePoints = ###glyphCodePoints###;
+			const plainFormat = {label: "###TTW1W2###", suffix: "###plainSuffix###"};
 
 			const animStates = {};
 			const animFreq = [0, 1/2.1, 1/1.3, 1/0.8]; // cycles/second for speeds 0-3
@@ -912,13 +928,9 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 			}
 			function currentSuffix() {
 				const link = document.getElementById("type");
-				let suffix = "ttf";
-				if (link.textContent == "W1") {
-					let suffix = "woff";
-				} else {
-					let suffix = "woff2";
-				}
-				return suffix;
+				if (link.textContent == "W1") return "woff";
+				if (link.textContent == "W2") return "woff2";
+				return plainFormat.suffix;
 			}
 			function reloadFontFace() {
 				let fontFace = new FontFace("###fontFamilyName###", `url('###fontFileNameWithoutSuffix###.${currentSuffix()}?v=${version()}')`);
@@ -1121,15 +1133,15 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 			}
 			function toggleType() {
 				const link = document.getElementById("type");
-				if (link.textContent == "TT") {
+				if (link.textContent == plainFormat.label) {
 					link.textContent = "W1";
 					setFontTypeTo("woff");
 				} else if (link.textContent == "W1") {
 					link.textContent = "W2";
 					setFontTypeTo("woff2");
 				} else {
-					link.textContent = "TT";
-					setFontTypeTo("ttf");
+					link.textContent = plainFormat.label;
+					setFontTypeTo(plainFormat.suffix);
 				}
 			}
 			function setStyle(styleString) {
@@ -1233,6 +1245,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 		(samsaPlaceholder, samsaReplaceWith),
 		("###defaultSize###", defaultSize),
 		("###glyphCodePoints###", glyphCodePoints),
+		("###plainSuffix###", plainSuffix),
 	)
 	htmlContent = replaceSet(htmlContent, replacements)
 	return htmlContent
@@ -1336,6 +1349,7 @@ def otVarInfoForFont(thisFont, variableFontSetting=None):
 	fileName = otVarFileName(thisFont)
 	unicodeEscapes = allUnicodeEscapesOfFont(thisFont)
 	glyphCodePoints = allUnicodeCodePointsOfFont(thisFont)
+	plainSuffix = otVarPlainSuffix()
 	otVarSliders = allOTVarSliders(thisFont, variableFontSetting=variableFontSetting)
 	variationCSS = defaultVariationCSS(thisFont)
 	featureList = featureListForFont(thisFont)
@@ -1352,13 +1366,13 @@ def otVarInfoForFont(thisFont, variableFontSetting=None):
 				exportFolder = parameter.value
 				break
 
-	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphCodePoints
+	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphCodePoints, plainSuffix
 
 
 def otVarInfoForInstance(thisInstance):
 	thisFont = thisInstance.font
 	familyName = familyNameOfInstance(thisInstance)
-	fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphCodePoints = otVarInfoForFont(thisFont, variableFontSetting=thisInstance)  # fallback
+	fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphCodePoints, plainSuffix = otVarInfoForFont(thisFont, variableFontSetting=thisInstance)  # fallback
 
 	# instance-specific overrides:
 	fullName = f"{familyName} {thisInstance.name}"
@@ -1371,7 +1385,7 @@ def otVarInfoForInstance(thisInstance):
 	# featureList
 	# fontLangMenu
 
-	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphCodePoints
+	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphCodePoints, plainSuffix
 
 
 # clears macro window log:
@@ -1411,14 +1425,14 @@ else:
 		variableFontInfos.append(otVarInfoForFont(thisFont))
 
 	for variableFontInfo in variableFontInfos:
-		fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphCodePoints = variableFontInfo
+		fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphCodePoints, plainSuffix = variableFontInfo
 
 		print("\nPreparing Test HTML for: %s%s" % (
 			fullName,
 			f" ({fileName})" if fileName else "",
 		))
 		print("👷🏼‍ Building HTML code...")
-		htmlContent = buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa, glyphCodePoints=glyphCodePoints)
+		htmlContent = buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa, glyphCodePoints=glyphCodePoints, plainSuffix=plainSuffix)
 
 		# Write file to disk:
 		print("💾 Writing files to disk...")
@@ -1457,7 +1471,9 @@ else:
 			htmlFileName = f"{strippedFileName} fonttest.html"
 			if saveFileInLocation(content=htmlContent, fileName=htmlFileName, filePath=exportPath):
 				print("✅ Successfully wrote file to disk.")
-				system(f'open "{exportPath}"')
+				glyphs4ShowsInFinder = Glyphs.versionNumber >= 4 and Glyphs.defaults["GSVariableExportShowInFinder"] == 1
+				if not glyphs4ShowsInFinder:
+					system(f'open "{exportPath}"')
 				webbrowser.open(f"file://{exportPath}/{htmlFileName}")
 			else:
 				print("🛑 Error writing file to disk.")
