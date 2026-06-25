@@ -816,6 +816,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 			const glyphCodePoints = ###glyphCodePoints###;
 
 			const animStates = {};
+			const animFreq = [0, 1/2.1, 1/1.3, 1/0.8]; // cycles/second for speeds 0-3
 			function toggleAnimation(axisTag) {
 				if (!animStates[axisTag]) {
 					animStates[axisTag] = {speed: 0, animId: null, startTime: 0, phaseOffset: 0};
@@ -825,7 +826,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				let currentPhase;
 				if (state.speed > 0) {
 					const t = (now - state.startTime) / 1000;
-					currentPhase = 2 * Math.PI * state.speed * t + state.phaseOffset;
+					currentPhase = 2 * Math.PI * animFreq[state.speed] * t + state.phaseOffset;
 				} else {
 					const slider = document.getElementById(axisTag);
 					const minV = parseFloat(slider.min), maxV = parseFloat(slider.max);
@@ -848,11 +849,22 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 					const minV = parseFloat(slider.min), maxV = parseFloat(slider.max);
 					const center = (minV + maxV) / 2, amplitude = (maxV - minV) / 2;
 					const t = (time - s.startTime) / 1000;
-					slider.value = center + amplitude * Math.cos(s.phaseOffset + 2 * Math.PI * s.speed * t);
+					slider.value = center + amplitude * Math.cos(s.phaseOffset + 2 * Math.PI * animFreq[s.speed] * t);
 					updateSlider();
 					s.animId = requestAnimationFrame(animFrame);
 				}
 				state.animId = requestAnimationFrame(animFrame);
+			}
+			function pauseAllAnimations() {
+				for (const axisTag in animStates) {
+					const state = animStates[axisTag];
+					if (state.speed > 0) {
+						if (state.animId) { cancelAnimationFrame(state.animId); state.animId = null; }
+						state.speed = 0;
+						const btn = document.getElementById('play_' + axisTag);
+						if (btn) btn.textContent = '▶';
+					}
+				}
 			}
 			function buildGridView() {
 				const grid = document.getElementById('gridview');
@@ -940,6 +952,8 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 						toggleMenu();
 					} else if (event.code == 'KeyG') {
 						toggleGridView();
+					} else if (event.code == 'KeyP') {
+						pauseAllAnimations();
 					} else if (event.code == 'Period') {
 						styleMenu.selectedIndex = (styleMenu.selectedIndex + 1) %% styleMenuLength;
 						setStyle(styleMenu.value);
@@ -1171,7 +1185,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 
 	<!-- Disclaimer -->
 	<p id="helptext" onmouseleave="vanish(this);">
-		<strong>Ctrl-period/comma</strong> step through styles <strong>Ctrl-R</strong> reset charset <strong>Ctrl-U</strong> update font <strong>Ctrl-L</strong> Lat-1 <strong>Ctrl-J</strong> LTR/RTL <strong>Ctrl-C</strong> center <strong>Ctrl-G</strong> grid view <strong>Ctrl-M</strong> toggle menu <strong>Ctrl-X</strong> x-ray <strong>Ctrl +/−</strong> size <strong>Ctrl-1/2</strong> linegap <strong>Shift</strong> high slider precision <em>Not working? Try newer macOS or <a href="https://www.google.com/chrome/">latest Chrome</a>. Hover mouse above this note to make it disappear.</em>
+		<strong>Ctrl-period/comma</strong> step through styles <strong>Ctrl-R</strong> reset charset <strong>Ctrl-U</strong> update font <strong>Ctrl-L</strong> Lat-1 <strong>Ctrl-J</strong> LTR/RTL <strong>Ctrl-C</strong> center <strong>Ctrl-G</strong> grid view <strong>Ctrl-P</strong> pause all <strong>Ctrl-M</strong> toggle menu <strong>Ctrl-X</strong> x-ray <strong>Ctrl +/−</strong> size <strong>Ctrl-1/2</strong> linegap <strong>Shift</strong> high slider precision <em>Not working? Try newer macOS or <a href="https://www.google.com/chrome/">latest Chrome</a>. Hover mouse above this note to make it disappear.</em>
 	</p>
 	</body>
 </html>
