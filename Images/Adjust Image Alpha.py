@@ -40,7 +40,7 @@ class AdjustImageAlpha(mekkaObject):
 		self.w.indicator = vanilla.TextBox((-110, linePos + 2, -75, 14), "100%", sizeStyle='small')
 		self.w.indicator.setToolTip("Current alpha value in full percentage points.")
 
-		self.w.globalButton = vanilla.Button((-65, linePos - 1, -inset, 18), "Global", sizeStyle='small', callback=self.applyToWholeFont)
+		self.w.globalButton = vanilla.Button((-74, linePos - 2, -inset, 20), "Global", sizeStyle='regular', callback=self.applyToWholeFont)
 		self.w.globalButton.setToolTip("Apply the current alpha to ALL images in ALL glyphs (and all masters) of the frontmost font.")
 
 		# Load Settings:
