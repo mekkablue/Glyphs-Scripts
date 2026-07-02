@@ -17,7 +17,7 @@ class AdjustImageAlpha(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 245
+		windowWidth = 320
 		windowHeight = 60
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
@@ -34,11 +34,14 @@ class AdjustImageAlpha(mekkaObject):
 		self.w.text_1 = vanilla.TextBox((inset - 1, linePos + 2, 40, 14), "Alpha:", sizeStyle='small')
 		self.w.text_1.setToolTip("Transparency of the background images: 100% is fully opaque, 10% is almost invisible.")
 
-		self.w.alphaSlider = vanilla.Slider((inset + 40, linePos, -115, 19), value=100.0, minValue=10.0, maxValue=100.0, sizeStyle='small', callback=self.AdjustImageAlphaMain)
+		self.w.alphaSlider = vanilla.Slider((inset + 40, linePos, -180, 19), value=100.0, minValue=10.0, maxValue=100.0, sizeStyle='small', callback=self.AdjustImageAlphaMain)
 		self.w.alphaSlider.setToolTip("Drag to change the alpha of the images in the currently selected glyphs. Updates live.")
 
-		self.w.indicator = vanilla.TextBox((-110, linePos + 2, -75, 14), "100%", sizeStyle='small')
+		self.w.indicator = vanilla.TextBox((-175, linePos + 2, -145, 14), "100%", sizeStyle='small')
 		self.w.indicator.setToolTip("Current alpha value in full percentage points.")
+
+		self.w.applyButton = vanilla.Button((-138, linePos - 2, -79, 20), "Apply", sizeStyle='regular', callback=self.AdjustImageAlphaMain)
+		self.w.applyButton.setToolTip("Reapply the current alpha to the images in the currently selected glyphs, without having to move the slider.")
 
 		self.w.globalButton = vanilla.Button((-74, linePos - 2, -inset, 20), "Global", sizeStyle='regular', callback=self.applyToWholeFont)
 		self.w.globalButton.setToolTip("Apply the current alpha to ALL images in ALL glyphs (and all masters) of the frontmost font.")
