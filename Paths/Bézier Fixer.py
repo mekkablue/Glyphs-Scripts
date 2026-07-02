@@ -315,8 +315,8 @@ class BezierFixer(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 190
-		windowHeight = 176
+		windowWidth = 126
+		windowHeight = 160
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Bézier Fixer",
@@ -325,19 +325,19 @@ class BezierFixer(mekkaObject):
 			autosaveName=self.domain("mainwindow"),
 		)
 
-		linePos, inset, lineHeight = 12, 15, 20
+		linePos, inset, lineHeight = 12, 15, 18
 
 		self.w.tunnify = vanilla.CheckBox((inset, linePos, -50, 18), "Tunnify", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.tunnify.setToolTip("Evens out the Bézier handle ratio of each curve segment to balance handles (Tunnify 2 algorithm). Keeps the point at t=0.5 on the segment.")
-		self.w.tunnifyStrengthLabel = vanilla.TextBox((-45, linePos + 2, -inset, 14), "100%", sizeStyle="small")
-		linePos += 16
+		self.w.tunnifyStrengthLabel = vanilla.TextBox((-55, linePos + 2, -(inset-5), 14), "100%", sizeStyle="small", alignment="right")
+		linePos += lineHeight - 5
 
 		self.w.tunnifyStrength = vanilla.Slider(
-			(inset + 14, linePos, -inset - 2, 15),
+			(inset + 14, linePos, -(inset-5), 18),
 			minValue=50,
 			maxValue=100,
 			value=100,
-			tickMarkCount=11,
+			tickMarkCount=6,
 			stopOnTickMarks=True,
 			callback=self.SavePreferences,
 			sizeStyle="small",
@@ -345,7 +345,7 @@ class BezierFixer(mekkaObject):
 		self.w.tunnifyStrength.setToolTip("How much of the full Tunnify to apply. E.g., 60% = 60% of a full Tunnify, 40% of the original handle distribution.")
 		linePos += lineHeight
 
-		self.w.realign = vanilla.CheckBox((inset, linePos, -inset, 18), "Realign", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.realign = vanilla.CheckBox((inset, linePos, -inset, 18), "Realign BCPs", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.realign.setToolTip("Realigns out-of-sync BCPs (handles) of smooth nodes, e.g. after nudging, interpolating, or changing the grid.")
 		linePos += lineHeight
 
@@ -353,14 +353,14 @@ class BezierFixer(mekkaObject):
 		self.w.harmonize.setToolTip("Establishes G2 continuity at smooth nodes by moving the node, not the handles (see the Green Harmony plug-in).")
 		linePos += lineHeight
 
-		self.w.divider = vanilla.HorizontalLine((inset, linePos + 3, -inset, 1))
-		linePos += lineHeight - 8
+		# self.w.divider = vanilla.HorizontalLine((inset, linePos + 3, -inset, 1))
+		# linePos += lineHeight - 8
 
 		self.w.allMasters = vanilla.CheckBox((inset, linePos, -inset, 18), "All Masters", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allMasters.setToolTip("Applies the fixes to all masters and special layers of each selected glyph, not just the currently active layer.")
 		linePos += lineHeight
 
-		self.w.runButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "Fix", callback=self.BezierFixerMain)
+		self.w.runButton = vanilla.Button((inset, -20 - inset, -inset, -inset), "Fix", callback=self.BezierFixerMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.LoadPreferences()
