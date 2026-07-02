@@ -398,6 +398,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 * **Align Selected Nodes with Background:** Align selected nodes with the nearest background node unless it is already taken by a previously moved node. Like Cmd-Shift-A for aligning a single node with the background, but for multiple nodes.
 * **Batch-Set Path Attributes:** Set path attributes of all paths in selected glyphs, the master, the font, etc.
+* **Bézier Fixer:** Small floating panel that combines Realign, Tunnify and Harmonize for the selected glyphs: realigns out-of-sync BCPs, balances handle distribution (Tunnify 2 algorithm, with an adjustable strength slider from 50–100%), and establishes G2 continuity at smooth nodes (Green Harmony algorithm). Optionally applies to all masters.
 * **Center Line:** Will create center lines between selected segments and their opposites. Hold down OPTION to put center lines in the background.
 * **Copy Glyphs from Other Font into Backup Layers:** Creates backup layers for selected glyphs in target font, and fills them with the respective glyphs from source font. Useful if you want to add glyphs from one font as bracket layers in another.
 * **Distribute Nodes:** Horizontally or vertically distributes nodes (depends on the width/height ratio of the selection bounding box).
@@ -414,7 +415,6 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Path Problem Finder:** Finds all kinds of potential problems in outlines, and opens a new tab with affected layers.
 * **Position Clicker:** Finds all combinations of positional shapes that do not click well. ‘Clicking’ means sharing two point coordinates when overlapping.
 * **Positional Harmonize:** Establishes G2 continuity between the selected layers and behDotless-ar.medi (or another medial glyph) at their connection (clicking) points, by adjusting the one handle of the current glyph that faces the connection.
-* **Realign BCPs:** Realigns all BCPs in all selected glyphs. Useful if handles got out of sync, e.g. after nudging or some other transformation, or after interpolation. Hold down Option to apply to all layers of the selected glyph(s).
 * **Remove All Open Paths:** Deletes all *open* paths in the visible layers of all selected glyphs.
 * **Remove Short Segments:** Deletes segments shorter than one unit.
 * **Rewire Fire:** Finds, selects and marks duplicate coordinates. Two nodes on the same position typically can be rewired with Reconnect Nodes.
@@ -422,8 +422,6 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Set Transform Origin:** Simple GUI for setting the Transform Origin of the Rotate tool numerically. Should also have an effect on the Scale tool.
 * **Snap Selected Points to Nearest Metric in All Masters:** Select points and run this script to snap them to the nearest metric in each compatible layer, given they are no more than 2 units away from the metric. Reports in the Macro window.
 * **Straight Stem Cruncher:** Finds distances between points in all layers, and compares them (with a tolerance) to specified stem widths. Lists glyphs that have deviating stems in their drawings.
-* **Tunnify:** Looks for all path segments where at least one handle is selected. Then, evens out the handles of the segments, i.e., they will both have the same Fit Curve percentage. Can fix Adobe Illustrator's zero-handles (segments with one handle retracted into the nearest node). The idea for this script came from Eduardo Tunni (as colported by Pablo Impallari), hence the title of the script. I have never seen Eduardo's algorithm though, so my implementation might be a little different to his, especially the treatment of zero-handles.
-* **Tunnify 2.0:** A gentler Tunnify, focused on staying closer to the same shape for each segment. Repeated running will change shapes further.
 
 ## Pixelfonts
 
