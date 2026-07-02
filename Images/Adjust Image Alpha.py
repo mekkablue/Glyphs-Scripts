@@ -17,7 +17,7 @@ class AdjustImageAlpha(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 350
+		windowWidth = 245
 		windowHeight = 60
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
@@ -30,9 +30,18 @@ class AdjustImageAlpha(mekkaObject):
 		)
 
 		# UI elements:
-		self.w.text_1 = vanilla.TextBox((15 - 1, 12 + 2, 75, 14), "Image Alpha:", sizeStyle='small')
-		self.w.alphaSlider = vanilla.Slider((100, 12, -55, 19), value=100.0, minValue=10.0, maxValue=100.0, sizeStyle='small', callback=self.AdjustImageAlphaMain)
-		self.w.indicator = vanilla.TextBox((-50, 12 + 2, -15, 14), "100.0", sizeStyle='small')
+		linePos, inset = 12, 15
+		self.w.text_1 = vanilla.TextBox((inset - 1, linePos + 2, 40, 14), "Alpha:", sizeStyle='small')
+		self.w.text_1.setToolTip("Transparency of the background images: 100% is fully opaque, 10% is almost invisible.")
+
+		self.w.alphaSlider = vanilla.Slider((inset + 40, linePos, -115, 19), value=100.0, minValue=10.0, maxValue=100.0, sizeStyle='small', callback=self.AdjustImageAlphaMain)
+		self.w.alphaSlider.setToolTip("Drag to change the alpha of the images in the currently selected glyphs. Updates live.")
+
+		self.w.indicator = vanilla.TextBox((-110, linePos + 2, -75, 14), "100%", sizeStyle='small')
+		self.w.indicator.setToolTip("Current alpha value in full percentage points.")
+
+		self.w.globalButton = vanilla.Button((-65, linePos - 1, -inset, 18), "Global", sizeStyle='small', callback=self.applyToWholeFont)
+		self.w.globalButton.setToolTip("Apply the current alpha to ALL images in ALL glyphs (and all masters) of the frontmost font.")
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -41,16 +50,44 @@ class AdjustImageAlpha(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
+	def updateUI(self, sender=None):
+		# keep the percentage label in sync with the slider:
+		self.w.indicator.set("%i%%" % round(self.prefFloat("alphaSlider")))
+
+	def applyAlphaToLayers(self, layers, alpha):
+		for thisLayer in layers:
+			if thisLayer.backgroundImage:
+				thisLayer.backgroundImage.alpha = alpha
+
 	def AdjustImageAlphaMain(self, sender):
 		try:
 			self.SavePreferences()
 
-			self.w.indicator.set("%.1f" % self.prefFloat("alphaSlider"))
 			thisFont = Glyphs.font  # frontmost font
-			listOfSelectedLayers = thisFont.selectedLayers  # active layers of currently selected glyphs
-			for thisLayer in listOfSelectedLayers:  # loop through layers
-				if thisLayer.backgroundImage:
-					thisLayer.backgroundImage.alpha = self.prefFloat("alphaSlider")
+			if not thisFont:
+				return
+			alpha = round(self.prefFloat("alphaSlider"))
+			self.applyAlphaToLayers(thisFont.selectedLayers, alpha)  # active layers of currently selected glyphs
+
+		except Exception as e:
+			# brings macro window to front and reports error:
+			Glyphs.showMacroWindow()
+			print("Adjust Image Alpha Error: %s" % e)
+			import traceback
+			print(traceback.format_exc())
+
+	def applyToWholeFont(self, sender):
+		try:
+			self.SavePreferences()
+
+			thisFont = Glyphs.font  # frontmost font
+			if not thisFont:
+				return
+			alpha = round(self.prefFloat("alphaSlider"))
+			for thisGlyph in thisFont.glyphs:
+				self.applyAlphaToLayers(thisGlyph.layers, alpha)
+
+			Glyphs.showNotification("Adjust Image Alpha", "Set all images in %s to %i%% alpha." % (thisFont.familyName, alpha))
 
 		except Exception as e:
 			# brings macro window to front and reports error:
