@@ -10,6 +10,7 @@ from AppKit import NSBundle, NSClassFromString
 from os import system, path
 import codecs
 import webbrowser
+import json
 Glyphs.registerDefault("com.mekkablue.WebFontTestHTML.includeEOT", 0)
 
 
@@ -73,6 +74,35 @@ def allUnicodeEscapesOfFont(thisFont):
 	allUnicodes = ["&#x%s;" % g.unicode for g in thisFont.glyphs + importedGlyphs if g.unicode and g.export and g.subCategory != "Nonspacing"]
 	allUnicodes += [" &#x%s;" % g.unicode for g in thisFont.glyphs + importedGlyphs if g.unicode and g.export and g.subCategory == "Nonspacing"]
 	return "".join(allUnicodes)
+
+
+def allGlyphInfoOfFont(thisFont):
+	# collects char, glyph name and Unicode value for the grid view (with hover tooltip)
+	importedGlyphs = thisFont.importedGlyphs()
+	if not importedGlyphs:
+		importedGlyphs = []
+	glyphInfos = []
+	for g in thisFont.glyphs + importedGlyphs:
+		if g.unicode and g.export:
+			try:
+				char = chr(int(g.unicode, 16))
+			except ValueError:
+				continue
+			glyphInfos.append({
+				"char": char,
+				"name": g.name,
+				"uni": g.unicode,
+				"category": g.category or "",
+				"subCategory": g.subCategory or "",
+			})
+	return glyphInfos
+
+
+def glyphInfoJSONForFont(thisFont):
+	jsonText = json.dumps(allGlyphInfoOfFont(thisFont), ensure_ascii=False)
+	# avoid accidentally closing the surrounding <script> tag:
+	jsonText = jsonText.replace("</", "<\\/")
+	return jsonText
 
 
 def getInstanceInfo(thisFont, activeInstance, fileFormat):
@@ -295,7 +325,7 @@ htmlContent = """<head>
 			width: 0;
 			height: 0;
 		}
-		#waterfall {
+		#waterfall, #grid, #textview {
 			flex: 1 1 auto;
 			border: 0 solid transparent;
 			margin: 0;
@@ -319,9 +349,71 @@ htmlContent = """<head>
 			margin-bottom: 0.8em;
 			overflow-wrap: break-word;
 		}
-		.○ .sampletext {
+		.○ .sampletext, .○#textview {
 			-webkit-text-stroke: 1px black;
 			-webkit-text-fill-color: #FFF0;
+		}
+		#grid {
+			display: none;
+			flex-wrap: wrap;
+			align-content: flex-start;
+			padding: 0.2em;
+			font-size: 60px;
+		}
+		.gridCell {
+			display: inline-flex;
+			justify-content: center;
+			align-items: center;
+			box-sizing: border-box;
+			flex: 0 0 auto;
+			width: var(--grid-cell-size, 84px);
+			height: var(--grid-cell-size, 84px);
+			border: 1px solid #eee;
+			line-height: 1;
+			position: relative;
+		}
+		.gridCell .tooltip {
+			visibility: hidden;
+			position: absolute;
+			bottom: 100%;
+			left: 50%;
+			transform: translateX(-50%);
+			background-color: #333;
+			color: white;
+			text-align: center;
+			white-space: nowrap;
+			padding: 2px 5px;
+			font: normal normal normal small sans-serif;
+			border-radius: 0.2em;
+			z-index: 8;
+		}
+		.gridCell:hover .tooltip {
+			visibility: visible;
+		}
+		#textview {
+			display: none;
+			padding: 0.2em;
+			font-size: 60px;
+			line-height: 1.2em;
+			word-wrap: break-word;
+		}
+		#textview:focus {
+			outline: 0 solid transparent;
+		}
+		.viewLink.activeView {
+			color: #333;
+			font-weight: bold;
+		}
+		.sliderControls {
+			display: none;
+		}
+		.sliderControls label {
+			font: normal normal normal small sans-serif;
+			color: #888;
+			margin-right: 1em;
+		}
+		.sliderControls input[type=range] {
+			vertical-align: middle;
 		}
 		.features, .label, a {
 			color: #888;
@@ -452,13 +544,22 @@ htmlContent = """<head>
 			#helptext {
 				background-color: #777;
 			}
-			.○ .sampletext {
+			.○ .sampletext, .○#textview {
 				-webkit-text-stroke: 1px white;
 				-webkit-text-fill-color: #0000;
 			}
 			#metricsLine {
 				background-color: #222;
 				border-color: #777;
+			}
+			.gridCell {
+				border-color: #444;
+			}
+			.viewLink.activeView {
+				color: #eee;
+			}
+			.sliderControls label {
+				color: #aaa;
 			}
 		}
 	</style>
@@ -481,6 +582,10 @@ htmlContent = """<head>
 		<a href="https://caniuse.com/#feat=woff">woff</a>
 		<a href="https://caniuse.com/#feat=woff2">woff2</a>
 		&ensp;
+		<a href="javascript:setView('waterfall');" id="viewWaterfall" class="viewLink activeView">Waterfall</a>
+		<a href="javascript:setView('grid');" id="viewGrid" class="viewLink">Grid</a>
+		<a href="javascript:setView('text');" id="viewText" class="viewLink">Text</a>
+		&ensp;
 		<a onclick="toggleInverse();" id="invert" class="emojiButton">🔲</a>
 		<label><input type="checkbox" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
 		<label><input type="checkbox" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga/clig</label>
@@ -490,6 +595,13 @@ htmlContent = """<head>
 		<label><input type="checkbox" value="show" onchange="updateFeatures();document.getElementById('metricsLine').style.display=this.checked?'block':'none'">Metrics</label>
 	</p>
 	<p class="features" id="featureLine">font-feature-settings: "kern" on, "liga" on, "calt" on;</p>
+	<div class="sliderControls" id="gridControls">
+		<label>Size: <input type="range" id="gridSize" min="20" max="300" value="60" oninput="updateGridSize()"></label>
+	</div>
+	<div class="sliderControls" id="textControls">
+		<label>Size: <input type="range" id="textSize" min="10" max="500" value="60" oninput="updateTextView()"></label>
+		<label>Line Distance: <input type="range" id="textLineHeight" min="50" max="300" value="120" oninput="updateTextView()"></label>
+	</div>
 </div>
 <div id="waterfall" class="●">
 	<div id="metricsLine"></div>
@@ -505,17 +617,22 @@ htmlContent = """<head>
 	<p><span class="sampletext" id="largeParagraph"></span></p>
 	<p><span class="sampletext" id="veryLargeParagraph"></span></p>
 </div>
+<div id="grid" class="●"></div>
+<div id="textview" class="●"></div>
 </div>
 
 <!-- Disclaimer -->
 <p id="helptext" onmouseleave="vanish(this);">
-	Ctrl-R: Reset Charset. Ctrl-L: Latin1. Ctrl-J: LTR/RTL. Ctrl-comma/period: step through fonts. Pull mouse across this note to make it disappear.
+	Ctrl-R: Reset Charset. Ctrl-L: Latin1. Ctrl-J: LTR/RTL. Ctrl-G: cycle views. Ctrl-comma/period: step through fonts. Pull mouse across this note to make it disappear.
 </p>
 
 <script type="text/javascript">
 	const selector = document.getElementById("fontFamilySelector");
 	const selectorOptions = selector.options;
 	const selectorLength = selectorOptions.length;
+	const glyphInfoList = <!-- glyphInfoJSON -->;
+	const viewOrder = ["waterfall", "grid", "text"];
+	const viewElementIds = {waterfall: "waterfall", grid: "grid", text: "textview"};
 
 	document.addEventListener('keyup', keyAnalysis);
 
@@ -527,6 +644,8 @@ htmlContent = """<head>
 				setLat1();
 			} else if (event.code == 'KeyJ') {
 				toggleLeftRight();
+			} else if (event.code == 'KeyG') {
+				cycleView();
 			} else if (event.code == 'Period') {
 				selector.selectedIndex = (selector.selectedIndex + 1) % selectorLength;
 				changeFont();
@@ -551,6 +670,62 @@ htmlContent = """<head>
 
 		// update other elements:
 		document.getElementById('metricsLine').textContent = txt.value;
+		document.getElementById('textview').textContent = txt.value;
+	}
+	function currentView() {
+		return viewOrder.find(v => document.getElementById('view' + v.charAt(0).toUpperCase() + v.slice(1)).classList.contains('activeView'));
+	}
+	function cycleView() {
+		const nextView = viewOrder[(viewOrder.indexOf(currentView()) + 1) % viewOrder.length];
+		setView(nextView);
+	}
+	function setView(view) {
+		for (const v of viewOrder) {
+			document.getElementById(viewElementIds[v]).style.display = 'none';
+			document.getElementById('view' + v.charAt(0).toUpperCase() + v.slice(1)).classList.remove('activeView');
+		}
+		document.getElementById('gridControls').style.display = view == 'grid' ? 'block' : 'none';
+		document.getElementById('textControls').style.display = view == 'text' ? 'block' : 'none';
+		document.getElementById('view' + view.charAt(0).toUpperCase() + view.slice(1)).classList.add('activeView');
+		document.getElementById(viewElementIds[view]).style.display = view == 'grid' ? 'flex' : 'block';
+		if (view == 'grid') {
+			buildGrid();
+			updateGridSize();
+		} else if (view == 'text') {
+			updateTextView();
+		}
+	}
+	let gridIsBuilt = false;
+	function buildGrid() {
+		if (gridIsBuilt) {
+			return;
+		}
+		gridIsBuilt = true;
+		const grid = document.getElementById('grid');
+		const fragment = document.createDocumentFragment();
+		for (const glyphInfo of glyphInfoList) {
+			const cell = document.createElement('div');
+			cell.className = 'gridCell';
+			cell.textContent = glyphInfo.char;
+			const tooltip = document.createElement('span');
+			tooltip.className = 'tooltip';
+			tooltip.textContent = `${glyphInfo.name}  U+${glyphInfo.uni.toUpperCase()}`;
+			cell.appendChild(tooltip);
+			fragment.appendChild(cell);
+		}
+		grid.appendChild(fragment);
+	}
+	function updateGridSize() {
+		const size = document.getElementById('gridSize').value;
+		document.getElementById('grid').style.fontSize = size + 'px';
+		document.documentElement.style.setProperty('--grid-cell-size', Math.round(size * 1.4) + 'px');
+	}
+	function updateTextView() {
+		const size = document.getElementById('textSize').value;
+		const lineHeight = document.getElementById('textLineHeight').value;
+		const textview = document.getElementById('textview');
+		textview.style.fontSize = size + 'px';
+		textview.style.lineHeight = (lineHeight / 100) + 'em';
 	}
 	function updateFeatures() {
 		// update features based on user input:
@@ -594,13 +769,20 @@ htmlContent = """<head>
 		}
 
 		document.getElementById('waterfall').style.cssText = cssCode;
+		document.getElementById('grid').style.cssText = cssCode;
+		document.getElementById('textview').style.cssText = cssCode;
 		document.getElementById('featureLine').innerHTML = cssCode.replace(/;/g,";<br/>");
 		changeFont();
+		updateGridSize();
+		updateTextView();
 	}
 	function changeFont() {
 		var selected_index = selector.selectedIndex;
 		var selected_option_text = selector.options[selected_index].text;
-		document.getElementById('waterfall').style.fontFamily = `'${selected_option_text}'`;
+		const fontFamily = `'${selected_option_text}'`;
+		document.getElementById('waterfall').style.fontFamily = fontFamily;
+		document.getElementById('grid').style.fontFamily = fontFamily;
+		document.getElementById('textview').style.fontFamily = fontFamily;
 	}
 	function setDefaultText(defaultText) {
 		document.getElementById('textInput').value = decodeEntities(defaultText);
@@ -636,13 +818,11 @@ htmlContent = """<head>
 		const testText = document.getElementById("waterfall");
 		if (testText) {
 			const link = document.getElementById("invert");
-			if (testText.className == "●") {
-				testText.className = "○";
-				link.textContent = "🔳";
-			} else {
-				testText.className = "●";
-				link.textContent = "🔲";
+			const newClassName = testText.className == "●" ? "○" : "●";
+			for (const v of viewOrder) {
+				document.getElementById(viewElementIds[v]).className = newClassName;
 			}
+			link.textContent = newClassName == "○" ? "🔳" : "🔲";
 		}
 	}
 </script>
@@ -706,7 +886,8 @@ else:
 			("fileName", firstFileName),
 			("		<!-- moreOptions -->\n", optionList),
 			("		<!-- moreFeatures -->\n", featureListForFont(thisFont)),
-			("		<!-- fontFaces -->\n", fontFacesCSS)
+			("		<!-- fontFaces -->\n", fontFacesCSS),
+			("<!-- glyphInfoJSON -->", glyphInfoJSONForFont(thisFont)),
 		)
 
 		htmlContent = replaceSet(htmlContent, replacements)
