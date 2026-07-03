@@ -420,7 +420,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Set Transform Origin:** Simple GUI for setting the Transform Origin of the Rotate tool numerically. Should also have an effect on the Scale tool.
 * **Snap Selected Points to Nearest Metric in All Masters:** Select points and run this script to snap them to the nearest metric in each compatible layer, given they are no more than 2 units away from the metric. Reports in the Macro window.
 * **Straight Stem Cruncher:** Finds distances between points in all layers, and compares them (with a tolerance) to specified stem widths. Lists glyphs that have deviating stems in their drawings.
-* **Tackle Short Segments:** Finds very short (single-unit) straight segments and either removes them or doubles their length, with a threshold you can set in a small floating window.
+* **Tackle Short Segments:** Finds short segments (measured between the on-curve nodes, ignoring handles) up to a threshold you can set, and can remove them, multiply the length of short line segments by a factor, or straighten short curve segments.
 
 ## Pixelfonts
 

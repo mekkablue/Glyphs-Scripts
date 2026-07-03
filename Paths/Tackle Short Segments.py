@@ -2,23 +2,28 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Finds very short (single-unit) straight segments and either removes them or enlarges them.
+Finds short segments (measuring between the on-curve nodes, ignoring handles) and can remove them, multiply the length of short line segments, or straighten short curve segments.
 """
 
 import vanilla
 from mekkablue import mekkaObject
-from GlyphsApp import Glyphs, GSOFFCURVE
+from GlyphsApp import Glyphs, GSLINE, GSOFFCURVE
+
+REMOVE = 0
+MULTIPLY = 1
+STRAIGHTEN = 2
 
 
 class TackleShortSegments(mekkaObject):
 	prefDict = {
-		"action": 0,  # 0 = remove, 1 = enlarge
-		"threshold": 1.0,
+		"threshold": 1,
+		"action": 0,
+		"factor": 1,
 	}
 
 	def __init__(self):
-		windowWidth = 260
-		windowHeight = 120
+		windowWidth = 320
+		windowHeight = 190
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Tackle Short Segments",
@@ -27,42 +32,83 @@ class TackleShortSegments(mekkaObject):
 			autosaveName=self.domain("mainwindow"),
 		)
 
-		linePos, inset, lineHeight = 12, 15, 22
+		linePos, inset, lineHeight = 15, 15, 24
 
-		self.w.text = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Short straight segments up to:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		# threshold line:
+		self.w.thresholdText = vanilla.TextBox((inset, linePos + 3, 150, 17), "Short segments up to:", selectable=True)
+		self.w.threshold = vanilla.EditText((inset + 150, linePos, 55, 22), "1", callback=self.SavePreferences)
+		self.w.threshold.setToolTip("Segments whose horizontal and vertical extents (measured between the surrounding on-curve nodes) are both at or below this many units count as short.")
+		linePos += lineHeight + 8
 
-		self.w.thresholdText = vanilla.TextBox((inset, linePos + 2, 100, 14), "Max distance:", sizeStyle="small", selectable=True)
-		self.w.threshold = vanilla.EditText((inset + 90, linePos, -inset, 19), "1.0", callback=self.SavePreferences, sizeStyle="small")
-		self.w.threshold.setToolTip("Segments whose horizontal and vertical extents are both at or below this many units count as short.")
-		linePos += lineHeight
+		# action radio buttons:
+		radioHeight = 84
+		self.w.action = vanilla.RadioGroup(
+			(inset, linePos, -inset, radioHeight),
+			[
+				"Remove short segments",
+				"Multiply line segments by:",
+				"Straighten curve segments",
+			],
+			callback=self.SavePreferences,
+		)
+		self.w.action.getNSMatrix().setToolTip_("Choose what to do with short segments. Removal and straightening treat both lines and curves; multiplication only affects line segments.")
 
-		self.w.action = vanilla.RadioGroup((inset, linePos, -inset, 40), ["Remove short segments", "Enlarge short segments (double their length)"], callback=self.SavePreferences, sizeStyle="small")
-		self.w.action.getNSMatrix().setToolTip_("Choose whether to delete the short segments or to double their length.")
-		linePos += lineHeight * 2
+		# factor field, aligned with the second radio option:
+		self.w.factor = vanilla.EditText((inset + 195, linePos + 28 + 1, 55, 22), "1", callback=self.SavePreferences)
+		self.w.factor.setToolTip("Factor by which the length of a short line segment gets multiplied (e.g. 2 doubles it).")
+		linePos += radioHeight
 
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Tackle", callback=self.TackleShortSegmentsMain, sizeStyle="small")
+		# run button (regular size):
+		self.w.runButton = vanilla.Button((-90 - inset, -22 - inset, -inset, 22), "Tackle", callback=self.TackleShortSegmentsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.LoadPreferences()
 		self.w.open()
 		self.w.makeKey()
 
-	def process(self, thisLayer, threshold, enlarge):
+	def updateUI(self, sender=None):
+		self.w.factor.enable(self.prefInt("action") == MULTIPLY)
+
+	def process(self, thisLayer, threshold, action, factor):
 		count = 0
 		for thisPath in thisLayer.paths:
-			for i in range(len(thisPath.nodes))[::-1]:
-				thisNode = thisPath.nodes[i]
+			# collect on-curve nodes first, so index shifts from editing do not disturb the loop:
+			onCurveNodes = [thisNode for thisNode in thisPath.nodes if thisNode.type != GSOFFCURVE]
+			for thisNode in reversed(onCurveNodes):
 				prevNode = thisNode.prevNode
-				if prevNode.type != GSOFFCURVE and thisNode.type != GSOFFCURVE:
-					xDistance = thisNode.x - prevNode.x
-					yDistance = thisNode.y - prevNode.y
-					if abs(xDistance) <= threshold and abs(yDistance) <= threshold:
-						if enlarge:
-							thisNode.x = prevNode.x + xDistance * 2
-							thisNode.y = prevNode.y + yDistance * 2
-						else:
-							thisPath.removeNodeCheckKeepShape_(thisNode)
+				if prevNode is None:
+					continue  # open path start node
+
+				if prevNode.type == GSOFFCURVE:
+					isCurve = True
+					startNode = prevNode.prevNode.prevNode  # the previous on-curve node
+				else:
+					isCurve = False
+					startNode = prevNode
+
+				if startNode is None:
+					continue
+
+				xDistance = thisNode.x - startNode.x
+				yDistance = thisNode.y - startNode.y
+				if abs(xDistance) > threshold or abs(yDistance) > threshold:
+					continue  # not a short segment
+
+				if action == REMOVE:
+					thisPath.removeNodeCheckKeepShape_(thisNode)
+					count += 1
+				elif action == MULTIPLY:
+					if not isCurve:
+						thisNode.x = startNode.x + xDistance * factor
+						thisNode.y = startNode.y + yDistance * factor
+						count += 1
+				elif action == STRAIGHTEN:
+					if isCurve:
+						secondHandle = prevNode
+						firstHandle = prevNode.prevNode
+						del thisPath.nodes[secondHandle.index]
+						del thisPath.nodes[firstHandle.index]
+						thisNode.type = GSLINE
 						count += 1
 		return count
 
@@ -74,22 +120,28 @@ class TackleShortSegments(mekkaObject):
 			return
 
 		threshold = self.prefFloat("threshold")
-		enlarge = self.prefInt("action") == 1
+		action = self.prefInt("action")
+		factor = self.prefFloat("factor")
 		selectedLayers = thisFont.selectedLayers
 
 		Glyphs.clearLog()
 		print("Tackle Short Segments\n")
-		verb = "Enlarged" if enlarge else "Removed"
+		verbs = {
+			REMOVE: ("Removed", "removed"),
+			MULTIPLY: ("Multiplied", "multiplied"),
+			STRAIGHTEN: ("Straightened", "straightened"),
+		}
+		pastTense, verb = verbs[action]
 
 		thisFont.disableUpdateInterface()
 		totalCount = 0
 		try:
 			for thisLayer in selectedLayers:
 				thisGlyph = thisLayer.parent
-				count = self.process(thisLayer, threshold, enlarge)
+				count = self.process(thisLayer, threshold, action, factor)
 				totalCount += count
 				if count:
-					print("\t✅ %s: %s %i segment%s" % (thisGlyph.name, verb.lower(), count, "" if count == 1 else "s"))
+					print("\t✅ %s: %s %i segment%s" % (thisGlyph.name, verb, count, "" if count == 1 else "s"))
 				else:
 					print("\t☑️ %s: no short segments" % thisGlyph.name)
 		except Exception as e:
@@ -102,7 +154,7 @@ class TackleShortSegments(mekkaObject):
 		finally:
 			thisFont.enableUpdateInterface()
 
-		Glyphs.showNotification("Tackle Short Segments", "%s %i segment%s. Details in Macro Window." % (verb, totalCount, "" if totalCount == 1 else "s"))
+		Glyphs.showNotification("Tackle Short Segments", "%s %i segment%s. Details in Macro Window." % (pastTense, totalCount, "" if totalCount == 1 else "s"))
 
 
 TackleShortSegments()
