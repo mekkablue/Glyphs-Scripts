@@ -123,6 +123,9 @@ class TackleShortSegments(mekkaObject):
 		action = self.prefInt("action")
 		factor = self.prefFloat("factor")
 		selectedLayers = thisFont.selectedLayers
+		if not selectedLayers:
+			Glyphs.showNotification("Tackle Short Segments", "Select at least one glyph.")
+			return
 
 		Glyphs.clearLog()
 		print("Tackle Short Segments\n")
