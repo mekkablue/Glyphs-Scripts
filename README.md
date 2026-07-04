@@ -402,7 +402,6 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Center Line:** Will create center lines between selected segments and their opposites. Hold down OPTION to put center lines in the background.
 * **Copy Glyphs from Other Font into Backup Layers:** Creates backup layers for selected glyphs in target font, and fills them with the respective glyphs from source font. Useful if you want to add glyphs from one font as bracket layers in another.
 * **Distribute Nodes:** Horizontally or vertically distributes nodes (depends on the width/height ratio of the selection bounding box).
-* **Enlarge Single-Unit Segments:** Doubles the length of line segments shorter than one unit.
 * **Fill Up with Rectangles:** Goes through your selected glyphs, and if it finds an empty one, inserts a placeholder rectangle. Useful for quickly building a dummy font for testing.
 * **Find Close Encounters of Orthogonal Line Segments:** Goes through all vertical and horizontal line segments, and finds pairs that are close, but do not align completely.
 * **Find Near Vertical Misses:** Finds nodes that are close but not exactly on vertical metrics.
@@ -416,12 +415,12 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Position Clicker:** Finds all combinations of positional shapes that do not click well. ‘Clicking’ means sharing two point coordinates when overlapping.
 * **Positional Harmonize:** Establishes G2 continuity between the selected layers and behDotless-ar.medi (or another medial glyph) at their connection (clicking) points, by adjusting the one handle of the current glyph that faces the connection.
 * **Remove All Open Paths:** Deletes all *open* paths in the visible layers of all selected glyphs.
-* **Remove Short Segments:** Deletes segments shorter than one unit.
 * **Rewire Fire:** Finds, selects and marks duplicate coordinates. Two nodes on the same position typically can be rewired with Reconnect Nodes.
 * **Rotate Around Anchor:** GUI for rotating glyphs or selections of nodes and components around a 'rotate' anchor. Allows to step and repeat.
 * **Set Transform Origin:** Simple GUI for setting the Transform Origin of the Rotate tool numerically. Should also have an effect on the Scale tool.
 * **Snap Selected Points to Nearest Metric in All Masters:** Select points and run this script to snap them to the nearest metric in each compatible layer, given they are no more than 2 units away from the metric. Reports in the Macro window.
 * **Straight Stem Cruncher:** Finds distances between points in all layers, and compares them (with a tolerance) to specified stem widths. Lists glyphs that have deviating stems in their drawings.
+* **Tackle Short Segments:** Finds short segments (measured between the on-curve nodes, ignoring handles) up to a threshold you can set, and can remove them, multiply the length of short line segments by a factor, or straighten short curve segments.
 
 ## Pixelfonts
 
