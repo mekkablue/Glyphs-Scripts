@@ -22,26 +22,27 @@ class TackleShortSegments(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 320
-		windowHeight = 190
+		windowWidth = 230
+		windowHeight = 153
+		windowWidthResize = 120
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Tackle Short Segments",
 			minSize=(windowWidth, windowHeight),
-			maxSize=(windowWidth, windowHeight),
+			maxSize=(windowWidth + windowWidthResize, windowHeight),
 			autosaveName=self.domain("mainwindow"),
 		)
 
-		linePos, inset, lineHeight = 15, 15, 24
+		linePos, inset, lineHeight = 12, 12, 18
 
 		# threshold line:
-		self.w.thresholdText = vanilla.TextBox((inset, linePos + 3, 150, 17), "Short segments up to:", selectable=True)
-		self.w.threshold = vanilla.EditText((inset + 150, linePos, 55, 22), "1", callback=self.SavePreferences)
+		self.w.thresholdText = vanilla.TextBox((inset, linePos + 1, 125, 17), "Short segments up to:", selectable=True, sizeStyle="small")
+		self.w.threshold = vanilla.EditText((inset + 125, linePos - 2, -inset, 19), "1", callback=self.SavePreferences, sizeStyle="small")
 		self.w.threshold.setToolTip("Segments whose horizontal and vertical extents (measured between the surrounding on-curve nodes) are both at or below this many units count as short.")
 		linePos += lineHeight + 8
 
 		# action radio buttons:
-		radioHeight = 84
+		radioHeight = lineHeight * 3
 		self.w.action = vanilla.RadioGroup(
 			(inset, linePos, -inset, radioHeight),
 			[
@@ -50,11 +51,12 @@ class TackleShortSegments(mekkaObject):
 				"Straighten curve segments",
 			],
 			callback=self.SavePreferences,
+			sizeStyle="small",
 		)
 		self.w.action.getNSMatrix().setToolTip_("Choose what to do with short segments. Removal and straightening treat both lines and curves; multiplication only affects line segments.")
 
 		# factor field, aligned with the second radio option:
-		self.w.factor = vanilla.EditText((inset + 195, linePos + 28 + 1, 55, 22), "1", callback=self.SavePreferences)
+		self.w.factor = vanilla.EditText((inset + 160, linePos + lineHeight - 2, -inset, 19), "2", callback=self.SavePreferences, sizeStyle="small")
 		self.w.factor.setToolTip("Factor by which the length of a short line segment gets multiplied (e.g. 2 doubles it).")
 		linePos += radioHeight
 
