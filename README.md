@@ -203,6 +203,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Build Italic Shift Feature:** Creates and inserts GPOS feature code for shifting glyphs, e.g., parentheses and punctuation for the case feature.
 * **Build Positional Feature:** Looks for `.init`, `.medi`, `.fina`, and `.isol` glyphs, and injects positional substitution code into your `calt` feature (or any other feature you specify). If run again, will *update* class and feature code. See this tutorial for more info: https://glyphsapp.com/learn/features-part-4-positional-alternates
 * **Build rand Feature:** Build rand (random) feature from .cvXX or another (numbered) suffix.
+* **Contextual Cycler:** Builds `calt` (or another feature) code that cycles through numbered glyph alternates, so repeated glyphs step through their variants (default → .cv01 → .cv02 → … → default). Glyphs are grouped by how many alternates they have (`@One0`/`@One1`, `@Two0`/`@Two1`/`@Two2`, etc.), with all remaining glyphs falling into `@Etc`. Based on this tutorial: https://glyphsapp.com/learn/features-part-3-advanced-contextual-alternates
 * **Feature Code Tweaks:** Adds tweaks to OT feature code. Reports in Macro window. Careful: if you do not understand an option, do not use it.
 * **Find in Features:** Finds expressions (glyph, lookup or class names) in OT Features, Prefixes and Classes.
 * **Floating Features:** Floating palettes for activating and deactivating OT features. Same functionality as the pop-up menu.
