@@ -1,7 +1,7 @@
 
 from typing import Any
 from AppKit import NSUserDefaults, NSFont, NSImage, NSImageLeading, NSPasteboard, NSStringPboardType, NSLineBreakByClipping
-from GlyphsApp import Glyphs
+from GlyphsApp import Glyphs, GSFeature, GSClass
 from vanilla import Button
 
 if Glyphs.versionNumber >= 3:
@@ -141,6 +141,105 @@ def UpdateButton(posSize, callback, title=""):
 		button.getNSButton().setImagePosition_(NSImageLeading)
 	button.getNSButton().setBordered_(False)
 	return button
+
+
+def updatedCode(oldCode, beginSig, endSig, newCode):
+	"""Replaces text in oldCode with newCode, but only between beginSig and endSig."""
+	beginOffset = oldCode.find(beginSig)
+	endOffset = oldCode.find(endSig) + len(endSig)
+	newCode = oldCode[:beginOffset] + beginSig + newCode + "\n" + endSig + oldCode[endOffset:]
+	return newCode
+
+
+def createOTFeature(featureName="calt", featureCode="# empty feature code", targetFont=None, codeSig="DEFAULT-CODE-SIGNATURE", createSeparateEntry=False):
+	"""
+	Creates or updates an OpenType feature in the font.
+	Returns a status message in form of a string.
+	featureName: name of the feature (str),
+	featureCode: the AFDKO feature code (str),
+	targetFont: the GSFont object receiving the feature (defaults to Glyphs.font),
+	codeSig: the code signature (str) used as # BEGIN/# END delimiters for easy updating,
+	createSeparateEntry: if True, adds a separate feature entry rather than reusing an existing one.
+	"""
+	if targetFont is None:
+		targetFont = Glyphs.font
+	if targetFont is None:
+		return "🛑 ERROR: Could not create OT feature %s. No font detected." % featureName
+
+	beginSig = "# BEGIN " + codeSig + "\n"
+	endSig = "# END " + codeSig + "\n"
+
+	featuresWithTag = [f for f in targetFont.features if f.name == featureName and f.name]
+	featureExists = len(featuresWithTag) > 0
+	featuresWithSig = [f for f in targetFont.features if beginSig in f.code and endSig in f.code and f.active]
+	sigExists = len(featuresWithSig) > 0
+
+	if sigExists:
+		for targetFeature in featuresWithSig:
+			# replace old code with new code:
+			targetFeature.code = updatedCode(targetFeature.code, beginSig, endSig, featureCode)
+		return "✅ Updated %i existing OT feature%s ‘%s’." % (
+			len(featuresWithSig),
+			"" if len(featuresWithSig) == 1 else "s",
+			featureName,
+		)
+	elif featureExists and not createSeparateEntry:
+		# feature already exists:
+		targetFeature = targetFont.features[featureName]  # take the first available one
+		targetFeature.code += "\n" + beginSig + featureCode + "\n" + endSig
+		return "✅ Added code to first available OT feature ‘%s’." % featureName
+	else:
+		# create feature with new code:
+		newFeature = GSFeature()
+		newFeature.name = featureName
+		newFeature.code = beginSig + featureCode + "\n" + endSig
+		targetFont.features.append(newFeature)
+		return "🌟 Created new OT feature entry ‘%s’" % featureName
+
+
+def createOTClass(className="@default", classGlyphNames=None, targetFont=None, automate=False):
+	"""
+	Creates or updates an OpenType class in the font.
+	Returns a status message in form of a string.
+	className: name of the OT class, with or without a leading at sign,
+	classGlyphNames: list of glyph names (defaults to the current selection),
+	targetFont: the GSFont that receives the OT class (defaults to Glyphs.font),
+	automate: if True, marks the class as automatically generated when possible.
+	"""
+	if targetFont is None:
+		targetFont = Glyphs.font
+	if classGlyphNames is None and targetFont is not None:
+		classGlyphNames = [layer.parent.name for layer in targetFont.selectedLayers]
+
+	if targetFont is None or not (classGlyphNames or automate):
+		return "🛑 ERROR: Could not create OT class %s. Missing either font or glyph names, or both." % className
+
+	className = className.lstrip("@")  # strip '@' from beginning
+	classCode = " ".join(classGlyphNames)
+	otClass = None
+
+	# build or update class:
+	if className in [c.name for c in targetFont.classes]:
+		otClass = targetFont.classes[className]
+		otClass.code = classCode
+		returnText = "✅ Updated existing OT class ‘%s’." % className
+	else:
+		otClass = GSClass()
+		otClass.name = className
+		otClass.code = classCode
+		targetFont.classes.append(otClass)
+		returnText = "🌟 Created new OT class: ‘%s’" % className
+
+	# automate the class:
+	if automate and otClass is not None:
+		if Glyphs.versionNumber >= 3:
+			if otClass.canBeAutomated():
+				otClass.automatic = True
+		else:
+			otClass.automatic = True
+		returnText = returnText.rstrip(".") + " (automated)."
+
+	return returnText
 
 
 class mekkaObject:
