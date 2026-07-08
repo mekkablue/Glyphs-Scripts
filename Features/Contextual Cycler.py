@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Builds contextual alternate (calt) feature code that cycles through numbered glyph alternates, so that repeated glyphs step through their variants (default → .cv01 → .cv02 → … → default). Glyphs are grouped by how many alternates they have: @One0/@One1 for glyphs with one alternate, @Two0/@Two1/@Two2 for two, and so on; everything else lands in @Etc. See https://glyphsapp.com/learn/features-part-3-advanced-contextual-alternates
+Builds contextual alternate (calt) feature code that cycles through numbered glyph alternates, so that repeated glyphs step through their variants (default → .cv01 → .cv02 → … → default), following the cycling technique from https://glyphsapp.com/learn/features-part-3-advanced-contextual-alternates
+Instead of the tutorial’s @Voc/@Con split, glyphs are grouped by how many alternates they have: @One0/@One1 for glyphs with one alternate, @Two0/@Two1/@Two2 for two, and so on; everything else lands in @Etc. The cycle keeps counting across intervening glyphs of other groups, just like in the tutorial.
 """
 
 import vanilla
@@ -30,13 +31,14 @@ class ContextualCycler(mekkaObject):
 	prefDict = {
 		"targetFeature": "calt",
 		"suffixes": ".cv, .ss",
+		"maxIntervening": 2,
 		"separateFeatureEntry": False,
 	}
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 360
-		windowHeight = 175
+		windowHeight = 197
 		windowWidthResize = 400  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -69,6 +71,13 @@ class ContextualCycler(mekkaObject):
 		self.w.targetFeatureText.setToolTip(tooltip)
 		self.w.targetFeatureUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
 		self.w.targetFeatureUpdate.setToolTip("Reset to defaults: ‘calt’")
+		linePos += lineHeight
+
+		self.w.maxInterveningText = vanilla.TextBox((inset, linePos + 3, tabIndent, 14), "Cycle across up to:", sizeStyle="small", selectable=True)
+		self.w.maxIntervening = vanilla.PopUpButton((inset + tabIndent, linePos, 130, 18), ["0 other glyphs", "1 other glyph", "2 other glyphs", "3 other glyphs", "4 other glyphs"], callback=self.SavePreferences, sizeStyle="small")
+		tooltip = "How many glyphs of other groups may sit between two cycling glyphs while the cycle keeps counting. As in the tutorial, the default of 2 covers direct pairs, one intervening glyph (e.g. a vowel between two consonants), and two intervening glyphs."
+		self.w.maxIntervening.setToolTip(tooltip)
+		self.w.maxInterveningText.setToolTip(tooltip)
 		linePos += lineHeight
 
 		self.w.separateFeatureEntry = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Separate feature entry (i.e. do not reuse existing feature)", value=False, callback=self.SavePreferences, sizeStyle="small")
@@ -155,7 +164,10 @@ class ContextualCycler(mekkaObject):
 		return groups, usedNames
 
 	def buildClasses(self, thisFont, groups, usedNames):
-		"""Creates/updates the @<Word><position> classes and the @Etc leftover class."""
+		"""
+		Creates/updates the @<Word><position> classes and the @Etc leftover class.
+		Returns (classCount, etcExists).
+		"""
 		classCount = 0
 		for count in sorted(groups):
 			word = numberWord(count)
@@ -169,27 +181,65 @@ class ContextualCycler(mekkaObject):
 
 		# everything that is not part of a cycle goes into @Etc:
 		etcNames = [glyph.name for glyph in thisFont.glyphs if glyph.export and glyph.name not in usedNames]
-		if etcNames:
+		etcExists = bool(etcNames)
+		if etcExists:
 			print("\t%s" % createOTClass(className=self.etcClassName, classGlyphNames=etcNames, targetFont=thisFont))
 			classCount += 1
 
-		return classCount
+		return classCount, etcExists
 
-	def buildFeatureCode(self, groups):
+	def otherClassMembers(self, groups, currentCount, etcExists):
 		"""
-		Assembles the cycling feature code. For each group with positions 0…k, the
-		current glyph (always written as the default @<Word>0) is advanced to the next
-		alternate based on the preceding glyph’s position, wrapping back to the default:
-			sub @Word0 @Word0' by @Word1;
-			sub @Word1 @Word0' by @Word2;
+		Returns the class names that make up the ‘other’ context for a cycle group:
+		every position class that does NOT belong to the current group, plus @Etc.
+		Mirrors the tutorial’s [@Voc0 @Voc1 @Voc2 @Etc] context for the consonant cycle.
+		"""
+		members = []
+		for count in sorted(groups):
+			if count == currentCount:
+				continue
+			word = numberWord(count)
+			for position in range(count + 1):
+				members.append("@%s%i" % (word, position))
+		if etcExists:
+			members.append("@%s" % self.etcClassName)
+		return members
+
+	def buildFeatureCode(self, groups, etcExists, maxIntervening):
+		"""
+		Assembles the cycling feature code, following the tutorial at
+		https://glyphsapp.com/learn/features-part-3-advanced-contextual-alternates
+
+		For each group with positions 0…k, the current glyph (always written as the
+		default @<Word>0) is advanced to the next alternate based on the preceding
+		glyph of the SAME group. As in the tutorial, the cycle keeps counting even
+		when up to ‘maxIntervening’ glyphs of OTHER groups sit in between — the
+		context [@OtherClasses… @Etc] is inserted between the anchor and the marked
+		glyph (0 = direct pair, 1 = one intervening glyph, etc.):
+			sub @Word0 @Word0' by @Word1;                       # direct pair
+			sub @Word0 [@Other… @Etc] @Word0' by @Word1;        # one glyph between
+			sub @Word0 [@Other… @Etc] [@Other… @Etc] @Word0' by @Word1;  # two between
 			…
+		Reaching the last position falls through to the default, so the identity
+		wrap-around rule is left implicit.
 		"""
 		featureCode = ""
 		for count in sorted(groups):
 			word = numberWord(count)
+			otherMembers = self.otherClassMembers(groups, count, etcExists)
+			otherClass = "[%s]" % " ".join(otherMembers) if otherMembers else None
+
 			featureCode += "lookup %sCycle {\n" % word
-			for position in range(count):
-				featureCode += "\tsub @%s%i @%s0' by @%s%i;\n" % (word, position, word, word, position + 1)
+			for distance in range(maxIntervening + 1):
+				if distance > 0:
+					if otherClass is None:
+						break  # no other glyphs available to skip over
+					featureCode += "\t# cycle across %i intervening glyph%s:\n" % (distance, "" if distance == 1 else "s")
+				else:
+					featureCode += "\t# direct pairs:\n"
+				interveners = ("%s " % otherClass) * distance
+				for position in range(count):
+					featureCode += "\tsub @%s%i %s@%s0' by @%s%i;\n" % (word, position, interveners, word, word, position + 1)
 			featureCode += "} %sCycle;\n\n" % word
 		return featureCode.strip()
 
@@ -250,10 +300,11 @@ class ContextualCycler(mekkaObject):
 			print()
 
 			# build classes:
-			classCount = self.buildClasses(thisFont, groups, usedNames)
+			classCount, etcExists = self.buildClasses(thisFont, groups, usedNames)
 
 			# build cycling feature code:
-			featureCode = self.buildFeatureCode(groups)
+			maxIntervening = self.prefInt("maxIntervening")
+			featureCode = self.buildFeatureCode(groups, etcExists, maxIntervening)
 			print()
 			print("\t%s" % createOTFeature(
 				featureName=targetFeature,
