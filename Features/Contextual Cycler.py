@@ -7,8 +7,105 @@ Instead of the tutorial’s @Voc/@Con split, glyphs are grouped by how many alte
 """
 
 import vanilla
-from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, UpdateButton, createOTFeature, createOTClass, reportFontName
+from GlyphsApp import Glyphs, GSFeature, GSClass, Message
+from mekkablue import mekkaObject, UpdateButton, reportFontName
+
+
+# The feature-code helpers are defined locally (rather than imported from mekkablue)
+# so the script keeps working even if an older mekkablue module is still cached in the
+# running Glyphs Python session. They mirror the versions in mekkablue/__init__.py.
+
+
+def updatedCode(oldCode, beginSig, endSig, newCode):
+	"""Replaces text in oldCode with newCode, but only between beginSig and endSig."""
+	beginOffset = oldCode.find(beginSig)
+	endOffset = oldCode.find(endSig) + len(endSig)
+	newCode = oldCode[:beginOffset] + beginSig + newCode + "\n" + endSig + oldCode[endOffset:]
+	return newCode
+
+
+def createOTFeature(featureName="calt", featureCode="# empty feature code", targetFont=None, codeSig="DEFAULT-CODE-SIGNATURE", createSeparateEntry=False):
+	"""
+	Creates or updates an OpenType feature in the font, wrapping the code in
+	# BEGIN/# END signature comments for easy in-place updating.
+	Returns a status message in form of a string.
+	"""
+	if targetFont is None:
+		targetFont = Glyphs.font
+	if targetFont is None:
+		return "🛑 ERROR: Could not create OT feature %s. No font detected." % featureName
+
+	beginSig = "# BEGIN " + codeSig + "\n"
+	endSig = "# END " + codeSig + "\n"
+
+	featuresWithTag = [f for f in targetFont.features if f.name == featureName and f.name]
+	featureExists = len(featuresWithTag) > 0
+	featuresWithSig = [f for f in targetFont.features if beginSig in f.code and endSig in f.code and f.active]
+	sigExists = len(featuresWithSig) > 0
+
+	if sigExists:
+		for targetFeature in featuresWithSig:
+			# replace old code with new code:
+			targetFeature.code = updatedCode(targetFeature.code, beginSig, endSig, featureCode)
+		return "✅ Updated %i existing OT feature%s ‘%s’." % (
+			len(featuresWithSig),
+			"" if len(featuresWithSig) == 1 else "s",
+			featureName,
+		)
+	elif featureExists and not createSeparateEntry:
+		# feature already exists:
+		targetFeature = targetFont.features[featureName]  # take the first available one
+		targetFeature.code += "\n" + beginSig + featureCode + "\n" + endSig
+		return "✅ Added code to first available OT feature ‘%s’." % featureName
+	else:
+		# create feature with new code:
+		newFeature = GSFeature()
+		newFeature.name = featureName
+		newFeature.code = beginSig + featureCode + "\n" + endSig
+		targetFont.features.append(newFeature)
+		return "🌟 Created new OT feature entry ‘%s’" % featureName
+
+
+def createOTClass(className="@default", classGlyphNames=None, targetFont=None, automate=False):
+	"""
+	Creates or updates an OpenType class in the font.
+	Returns a status message in form of a string.
+	"""
+	if targetFont is None:
+		targetFont = Glyphs.font
+	if classGlyphNames is None and targetFont is not None:
+		classGlyphNames = [layer.parent.name for layer in targetFont.selectedLayers]
+
+	if targetFont is None or not (classGlyphNames or automate):
+		return "🛑 ERROR: Could not create OT class %s. Missing either font or glyph names, or both." % className
+
+	className = className.lstrip("@")  # strip '@' from beginning
+	classCode = " ".join(classGlyphNames)
+	otClass = None
+
+	# build or update class:
+	if className in [c.name for c in targetFont.classes]:
+		otClass = targetFont.classes[className]
+		otClass.code = classCode
+		returnText = "✅ Updated existing OT class ‘%s’." % className
+	else:
+		otClass = GSClass()
+		otClass.name = className
+		otClass.code = classCode
+		targetFont.classes.append(otClass)
+		returnText = "🌟 Created new OT class: ‘%s’" % className
+
+	# automate the class:
+	if automate and otClass is not None:
+		if Glyphs.versionNumber >= 3:
+			if otClass.canBeAutomated():
+				otClass.automatic = True
+		else:
+			otClass.automatic = True
+		returnText = returnText.rstrip(".") + " (automated)."
+
+	return returnText
+
 
 # Spelled-out numbers used to name the cycle classes (@One0, @Two1, …):
 numberWords = (
