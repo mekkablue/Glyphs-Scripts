@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Rescale (reproject) all design-space values of an axis to a new min/max range. Recalculates master and instance coordinates, brace (intermediate) and bracket (alternate) layer coordinates, and the axis values in condition feature code.
+Rescale (reproject) all design-space values of an axis to a new min/max range. Recalculates master and instance coordinates, brace (intermediate) and bracket (alternate) layer coordinates, Virtual Master locations, and the axis values in condition feature code.
 """
 
 import re
@@ -80,12 +80,12 @@ class ReprojectAxis(mekkaObject):
 		linePos += lineHeight
 
 		self.w.roundValues = vanilla.CheckBox((inset, linePos, -inset, 20), "Round reprojected values to full coordinates", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.roundValues.setToolTip("If enabled, all reprojected values (masters, instances, brace and bracket layers, and feature code) are rounded to whole numbers. Otherwise, fractional values are kept (rounded to 4 decimal places).")
+		self.w.roundValues.setToolTip("If enabled, all reprojected values (masters, instances, brace and bracket layers, Virtual Masters, and feature code) are rounded to whole numbers. Otherwise, fractional values are kept (rounded to 4 decimal places).")
 		linePos += lineHeight
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-110 - inset, -20 - inset, -inset, -inset), "Reproject", callback=self.ReprojectAxisMain)
-		self.w.runButton.setToolTip("Rescale masters, instances, brace and bracket layers, and condition feature code of the chosen axis from the current onto the new range.")
+		self.w.runButton.setToolTip("Rescale masters, instances, brace and bracket layers, Virtual Masters, and condition feature code of the chosen axis from the current onto the new range.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
@@ -195,6 +195,25 @@ class ReprojectAxis(mekkaObject):
 					print("\t🔤 Updated condition code in ‘%s’" % container.name)
 		return editCount[0]
 
+	def reprojectVirtualMasters(self, font, axisName, reproject, roundValues):
+		"""Rescale Locations in 'Virtual Master' custom parameters that reference the chosen axis (by full name). Returns number of edited entries."""
+		count = 0
+		for parameter in font.customParameters:
+			if parameter.name != "Virtual Master":
+				continue
+			changed = False
+			newCoordinates = []
+			for coord in parameter.value:
+				coordDict = dict(coord)
+				if coordDict.get("Axis") == axisName:
+					coordDict["Location"] = cleanNumber(reproject(float(coordDict["Location"])), forceInt=roundValues)
+					changed = True
+					count += 1
+				newCoordinates.append(coordDict)
+			if changed:
+				parameter.value = newCoordinates
+		return count
+
 	def ReprojectAxisMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -300,6 +319,10 @@ class ReprojectAxis(mekkaObject):
 								bracketCount += 1
 				print("🔲 Reprojected %i brace layer coordinate%s." % (braceCount, "" if braceCount == 1 else "s"))
 				print("🔳 Reprojected %i bracket layer rule%s." % (bracketCount, "" if bracketCount == 1 else "s"))
+
+				# Virtual Masters:
+				virtualMasterCount = self.reprojectVirtualMasters(font, axisName, reproject, roundValues)
+				print("🧬 Reprojected %i Virtual Master location%s." % (virtualMasterCount, "" if virtualMasterCount == 1 else "s"))
 
 				# condition feature code:
 				conditionCount = self.reprojectFeatureConditions(font, axisTag, reproject, roundValues)
