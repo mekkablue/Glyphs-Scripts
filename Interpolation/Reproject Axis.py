@@ -11,18 +11,18 @@ from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, UpdateButton
 
 
-def formatValue(value):
-	"""Return a clean string for a number: integer if whole, otherwise trimmed decimal."""
+def formatValue(value, forceInt=False):
+	"""Return a clean string for a number: integer if whole (or forced), otherwise trimmed decimal."""
 	rounded = round(value, 4)
-	if abs(rounded - round(rounded)) < 1e-9:
+	if forceInt or abs(rounded - round(rounded)) < 1e-9:
 		return "%i" % round(rounded)
 	return ("%f" % rounded).rstrip("0").rstrip(".")
 
 
-def cleanNumber(value):
-	"""Return an int if the number is whole, otherwise a rounded float."""
+def cleanNumber(value, forceInt=False):
+	"""Return an int if the number is whole (or forced), otherwise a rounded float."""
 	rounded = round(value, 4)
-	if abs(rounded - round(rounded)) < 1e-9:
+	if forceInt or abs(rounded - round(rounded)) < 1e-9:
 		return int(round(rounded))
 	return rounded
 
@@ -32,12 +32,13 @@ class ReprojectAxis(mekkaObject):
 		"axisPopup": 0,
 		"newMin": 0,
 		"newMax": 1000,
+		"roundValues": True,
 	}
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 340
-		windowHeight = 120
+		windowHeight = 144
 		windowWidthResize = 0  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -76,6 +77,10 @@ class ReprojectAxis(mekkaObject):
 		self.w.currentMax.setToolTip("The current maximum (highest master value) of the chosen axis.")
 		self.w.maxLabel = vanilla.TextBox((inset + 268, linePos + 2, 30, 14), "Max", sizeStyle="small")
 		self.w.maxLabel.setToolTip("The current maximum (highest master value) of the chosen axis.")
+		linePos += lineHeight
+
+		self.w.roundValues = vanilla.CheckBox((inset, linePos, -inset, 20), "Round reprojected values to full coordinates", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.roundValues.setToolTip("If enabled, all reprojected values (masters, instances, brace and bracket layers, and feature code) are rounded to whole numbers. Otherwise, fractional values are kept (rounded to 4 decimal places).")
 		linePos += lineHeight
 
 		# Run Button:
@@ -159,7 +164,7 @@ class ReprojectAxis(mekkaObject):
 			self.w.currentMax.set("–")
 			self.w.runButton.enable(False)
 
-	def reprojectFeatureConditions(self, font, axisTag, reproject):
+	def reprojectFeatureConditions(self, font, axisTag, reproject, roundValues):
 		"""Rescale axis values inside condition statements of feature code. Returns number of edited condition segments."""
 		numberPattern = re.compile(r"-?\d+(?:\.\d+)?")
 		tagPattern = re.compile(r"\b%s\b" % re.escape(axisTag))
@@ -167,7 +172,7 @@ class ReprojectAxis(mekkaObject):
 		editCount = [0]
 
 		def rewriteNumbers(segment):
-			return numberPattern.sub(lambda m: formatValue(reproject(float(m.group(0)))), segment)
+			return numberPattern.sub(lambda m: formatValue(reproject(float(m.group(0))), forceInt=roundValues), segment)
 
 		def rewriteCondition(match):
 			head, body, tail = match.group(1), match.group(2), match.group(3)
@@ -232,6 +237,7 @@ class ReprojectAxis(mekkaObject):
 			axisID = axis.axisId
 			axisTag = axis.axisTag
 			axisName = axis.name
+			roundValues = self.prefBool("roundValues")
 
 			def reproject(value):
 				return newMin + (float(value) - oldMin) * (newMax - newMin) / (oldMax - oldMin)
@@ -255,7 +261,7 @@ class ReprojectAxis(mekkaObject):
 				for master in font.masters:
 					value = master.axisValueValueForId_(axisID)
 					if value is not None:
-						master.setAxisValueValue_forId_(cleanNumber(reproject(value)), axisID)
+						master.setAxisValueValue_forId_(cleanNumber(reproject(value), forceInt=roundValues), axisID)
 						masterCount += 1
 				print("Ⓜ️ Reprojected %i master%s." % (masterCount, "" if masterCount == 1 else "s"))
 
@@ -264,7 +270,7 @@ class ReprojectAxis(mekkaObject):
 				for instance in font.instances:
 					value = instance.axisValueValueForId_(axisID)
 					if value is not None:
-						instance.setAxisValueValue_forId_(cleanNumber(reproject(value)), axisID)
+						instance.setAxisValueValue_forId_(cleanNumber(reproject(value), forceInt=roundValues), axisID)
 						instanceCount += 1
 				print("ℹ️ Reprojected %i instance%s." % (instanceCount, "" if instanceCount == 1 else "s"))
 
@@ -278,7 +284,7 @@ class ReprojectAxis(mekkaObject):
 						# brace / intermediate layers:
 						coordinates = layer.attributes["coordinates"]
 						if coordinates and axisID in coordinates.keys():
-							coordinates[axisID] = cleanNumber(reproject(float(coordinates[axisID])))
+							coordinates[axisID] = cleanNumber(reproject(float(coordinates[axisID])), forceInt=roundValues)
 							braceCount += 1
 						# bracket / alternate layers:
 						axisRules = layer.attributes["axisRules"]
@@ -287,7 +293,7 @@ class ReprojectAxis(mekkaObject):
 							changed = False
 							for border in ("min", "max"):
 								if border in axisLimits.keys() and axisLimits[border] not in (None, ""):
-									axisLimits[border] = cleanNumber(reproject(float(axisLimits[border])))
+									axisLimits[border] = cleanNumber(reproject(float(axisLimits[border])), forceInt=roundValues)
 									changed = True
 							if changed:
 								axisRules[axisID] = axisLimits
@@ -296,7 +302,7 @@ class ReprojectAxis(mekkaObject):
 				print("🔳 Reprojected %i bracket layer rule%s." % (bracketCount, "" if bracketCount == 1 else "s"))
 
 				# condition feature code:
-				conditionCount = self.reprojectFeatureConditions(font, axisTag, reproject)
+				conditionCount = self.reprojectFeatureConditions(font, axisTag, reproject, roundValues)
 				print("🔤 Reprojected %i condition segment%s in feature code." % (conditionCount, "" if conditionCount == 1 else "s"))
 			except Exception as e:
 				raise e
