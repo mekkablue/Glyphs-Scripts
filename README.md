@@ -340,6 +340,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Re-interpolate Selected Layers:** Batch-reinterpolates all selected layers. Same as the Re-Interpolate command in the Layers palette, but for multiple selections.
 * **Remove All Non-Master Layers:** Deletes all layers which are neither master layers, nor brace layers, nor bracket layers. Useful for getting rid of backup layers.
 * **Report Instance Interpolations:** Outputs master coefficients for each instance in Macro Window. Tells you which masters are involved in interpolating a specific instance, and to which extent.
+* **Reproject Axis:** Rescales all design-space values of an axis onto a new min/max range. Recalculates master and instance coordinates, brace (intermediate) and bracket (alternate) layer coordinates, and the axis values in condition feature code.
 * **Reset Axis Mappings:** Inserts (or resets) a default Axis Mappings parameter for all style values currently present in the font. Ignores style values outside the designspace bounds defined by the masters.
 * **Set Weight Axis Locations in Instances:** Will set weight axis location parameters for all instances, and sync them with their respective usWeightClass. Will set the width axis coordinates to the spec defaults for usWidthClass, if they have not been set yet. Otherwise will keep them as is.
 * **Short Segment Finder:** Goes through all interpolations and finds segments shorter than a user-specified threshold length.
