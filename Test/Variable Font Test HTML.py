@@ -7,6 +7,7 @@ Create a Test HTML for the current font inside the current Variation Font Export
 
 from os import system, path
 import webbrowser
+import json
 from Cocoa import NSEvent, NSAlternateKeyMask, NSShiftKeyMask
 import codecs
 from GlyphsApp import Glyphs, GSFont, Message
@@ -382,26 +383,91 @@ def allUnicodeEscapesOfFont(thisFont):
 	return " ".join(allUnicodes)
 
 
-def allUnicodeCodePointsOfFont(thisFont):
-	codePoints = [int(g.unicode, 16) for g in thisFont.allGlyphs() if g.unicode and g.export and g.layers[0].shapes]
-	return "[" + ",".join(str(cp) for cp in codePoints) + "]"
+def allGlyphInfosOfFont(thisFont):
+	# Collect per-glyph info for the grid view (code point + metadata for tooltips).
+	glyphInfos = []
+	for g in thisFont.allGlyphs():
+		if not (g.unicode and g.export and g.layers[0].shapes):
+			continue
+		entry = {"c": int(g.unicode, 16)}
+		entry["u"] = g.unicode
+		try:
+			glyphInfo = g.glyphInfo
+		except:
+			glyphInfo = None
+		if glyphInfo is not None and glyphInfo.desc:
+			entry["d"] = glyphInfo.desc
+		if g.category:
+			entry["cat"] = g.category
+		if g.subCategory:
+			entry["sub"] = g.subCategory
+		glyphInfos.append(entry)
+	return json.dumps(glyphInfos, ensure_ascii=False)
+
+
+featureDescriptions = {
+	"aalt": "Access All Alternates",
+	"afrc": "Alternative Fractions",
+	"c2sc": "Small Capitals From Capitals",
+	"calt": "Contextual Alternates",
+	"case": "Case-Sensitive Forms",
+	"cpsp": "Capital Spacing",
+	"cswh": "Contextual Swash",
+	"dlig": "Discretionary Ligatures",
+	"dnom": "Denominators",
+	"expt": "Expert Forms",
+	"frac": "Fractions",
+	"hist": "Historical Forms",
+	"hlig": "Historical Ligatures",
+	"kern": "Kerning",
+	"liga": "Standard Ligatures",
+	"lnum": "Lining Figures",
+	"locl": "Localized Forms",
+	"numr": "Numerators",
+	"onum": "Oldstyle Figures",
+	"ordn": "Ordinals",
+	"ornm": "Ornaments",
+	"pcap": "Petite Capitals",
+	"pnum": "Proportional Figures",
+	"salt": "Stylistic Alternates",
+	"sinf": "Scientific Inferiors",
+	"smcp": "Small Capitals",
+	"subs": "Subscript",
+	"sups": "Superscript",
+	"swsh": "Swash",
+	"titl": "Titling",
+	"tnum": "Tabular Figures",
+	"unic": "Unicase",
+	"zero": "Slashed Zero",
+}
+
+
+def featureTitle(featureTag):
+	description = featureDescriptions.get(featureTag)
+	if featureTag.startswith("ss") and featureTag not in featureDescriptions:
+		description = "Stylistic Set %s" % featureTag[2:]
+	elif featureTag.startswith("cv") and featureTag not in featureDescriptions:
+		description = "Character Variant %s" % featureTag[2:]
+	if description:
+		return "%s (%s)" % (description, featureTag)
+	return featureTag
 
 
 def featureListForFont(thisFont):
 	returnString = ""
-	featureList = [(f.name, f.notes) for f in thisFont.features if f.name not in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig", "rlig") and not f.disabled()]
+	featureList = [(f.name, f.notes) for f in thisFont.features if f.name not in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig", "rlig", "rclt", "rvrn") and not f.disabled()]
 	for (f, n) in featureList:
 		# <input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
 		if f.startswith("ss") and n and n.startswith("Name:"):
 			# stylistic set name:
 			setName = n.splitlines()[0][5:].strip()
-			featureItem = '\t\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s<span class="tooltip">%s</span></label>\n' % (
-				f, f, f, f, f, setName
+			featureItem = '\t\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel" title="%s">%s<span class="tooltip">%s</span></label>\n' % (
+				f, f, f, f, featureTitle(f), f, setName
 			)
 		else:
 			# non-ssXX features
-			featureItem = '\t\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s</label>\n' % (
-				f, f, f, f, f
+			featureItem = '\t\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel" title="%s">%s</label>\n' % (
+				f, f, f, f, featureTitle(f), f
 			)
 		if featureItem not in returnString:
 			returnString += featureItem
@@ -526,7 +592,7 @@ def defaultVariationCSS(thisFont):
 	return ", ".join(defaultValues)
 
 
-def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa=False, defaultSize=None, glyphCodePoints="[]", plainSuffix="ttf"):
+def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa=False, defaultSize=None, glyphInfos="[]", plainSuffix="ttf"):
 	samsaPlaceholder = "<!-- placeholder for external links, hold down OPTION and SHIFT while running the script -->"
 	htmlContent = """<html>
 	<!--<base href="..">--> <!-- uncomment for keeping the HTML in a subfolder -->
@@ -751,6 +817,33 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				height: var(--grid-cell-size, 56px);
 				border: 1px solid #eee;
 				line-height: 1;
+				cursor: default;
+			}
+			.gridCell:hover {
+				background: #eef;
+			}
+			#gridTooltip {
+				display: none;
+				position: fixed;
+				z-index: 30;
+				background: #333;
+				color: white;
+				padding: 0.4em 0.7em;
+				border-radius: 0.3em;
+				pointer-events: none;
+				font: 12px sans-serif;
+				line-height: 1.4;
+				text-align: center;
+				box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+			}
+			#gridTooltip .refGlyph {
+				font-family: "Noto Sans", "Noto Serif", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+				font-size: 2.5em;
+				line-height: 1.1;
+				font-variation-settings: normal;
+			}
+			#gridTooltip .cellMeta {
+				font: 12px sans-serif;
 			}
 
 /* Footer paragraph: */
@@ -815,6 +908,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 					background-color: black;
 				}
 				.gridCell { border-color: #333; }
+				.gridCell:hover { background: #223; }
 				.○ {
 					-webkit-text-stroke: 1px white;
 					-webkit-text-fill-color: #0000;
@@ -828,7 +922,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 			document.addEventListener('keydown', sliderPrecision);
 
 			const sliders = document.getElementsByClassName('slider');
-			const glyphCodePoints = ###glyphCodePoints###;
+			const glyphInfos = ###glyphInfos###;
 			const plainFormat = {label: "###TTW1W2###", suffix: "###plainSuffix###"};
 
 			const animStates = {};
@@ -882,28 +976,69 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 					}
 				}
 			}
+			let gridTooltip = null;
+			function ensureGridTooltip() {
+				if (!gridTooltip) {
+					gridTooltip = document.createElement('div');
+					gridTooltip.id = 'gridTooltip';
+					document.body.appendChild(gridTooltip);
+				}
+				return gridTooltip;
+			}
 			function buildGridView() {
 				const grid = document.getElementById('gridview');
 				grid.innerHTML = '';
-				for (const cp of glyphCodePoints) {
+				const tooltip = ensureGridTooltip();
+				for (const info of glyphInfos) {
+					const ch = String.fromCodePoint(info.c);
 					const cell = document.createElement('div');
 					cell.className = 'gridCell';
-					cell.textContent = String.fromCodePoint(cp);
+					cell.textContent = ch;
+					cell.addEventListener('mouseenter', function() {
+						tooltip.innerHTML = '';
+						const refGlyph = document.createElement('div');
+						refGlyph.className = 'refGlyph';
+						refGlyph.textContent = ch;
+						tooltip.appendChild(refGlyph);
+						const metaLines = [];
+						if (info.u) metaLines.push('U+' + info.u);
+						if (info.d) metaLines.push(info.d);
+						if (info.cat) metaLines.push(info.cat);
+						if (info.sub) metaLines.push(info.sub);
+						for (const line of metaLines) {
+							const l = document.createElement('div');
+							l.className = 'cellMeta';
+							l.textContent = line;
+							tooltip.appendChild(l);
+						}
+						tooltip.style.display = 'block';
+					});
+					cell.addEventListener('mousemove', function(e) {
+						tooltip.style.left = (e.clientX + 14) + 'px';
+						tooltip.style.top = (e.clientY + 14) + 'px';
+					});
+					cell.addEventListener('mouseleave', function() {
+						tooltip.style.display = 'none';
+					});
 					grid.appendChild(cell);
 				}
 			}
 			function toggleGridView() {
 				const textarea = document.getElementById('textarea');
 				const gridview = document.getElementById('gridview');
+				const gridToggle = document.getElementById('gridToggle');
 				if (gridview.style.display === 'flex') {
 					gridview.style.display = 'none';
+					if (gridTooltip) gridTooltip.style.display = 'none';
 					textarea.style.display = '';
 					textarea.focus();
+					if (gridToggle) gridToggle.textContent = '🔡';
 				} else {
 					buildGridView();
 					updateSlider();
 					gridview.style.display = 'flex';
 					textarea.style.display = 'none';
+					if (gridToggle) gridToggle.textContent = '🔤';
 				}
 			}
 
@@ -1168,19 +1303,20 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 ###styleMenu###
 
 			<!-- file type -->
-				<a onclick="toggleType();" id="type" class="emojiButton">&nbsp;###TTW1W2###</a>
-				<a onclick="reloadFontFace();" id="reload" class="emojiButton">&nbsp;🔄</a>
+				<a onclick="toggleType();" id="type" class="emojiButton" title="Switch font format (TTF/OTF, WOFF, WOFF2)">&nbsp;###TTW1W2###</a>
+				<a onclick="reloadFontFace();" id="reload" class="emojiButton" title="Reload the font from disk (Ctrl-U)">&nbsp;🔄</a>
+				<a onclick="toggleGridView();" id="gridToggle" class="emojiButton" title="Toggle grid view of all glyphs (Ctrl-G)">&nbsp;🔡&nbsp;</a>
 
 			<!-- Samsa -->
 				%s
 
 			<!-- display type (x-ray vs. filled) -->
-				<a onclick="toggleInverse();" id="invert" class="emojiButton">&nbsp;🔲&nbsp;</a>
+				<a onclick="toggleInverse();" id="invert" class="emojiButton" title="Toggle x-ray (outline) display (Ctrl-X)">&nbsp;🔲&nbsp;</a>
 
 			<!-- OT features -->
-				<input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
-				<input type="checkbox" name="liga" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga</label>
-				<input type="checkbox" name="calt" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel">calt</label>
+				<input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel" title="Kerning (kern)">kern</label>
+				<input type="checkbox" name="liga" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel" title="Standard Ligatures (liga)">liga</label>
+				<input type="checkbox" name="calt" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel" title="Contextual Alternates (calt)">calt</label>
 ###featureList###
 ###languageSelection###
 			</div>
@@ -1204,7 +1340,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 """ % (samsaPlaceholder)
 
 	if shouldCreateSamsa:
-		samsaReplaceWith = "<a href='samsa-gui.html' class='emojiButton' style='color:rgb(255, 165, 0);'>&nbsp;🪲</a>"
+		samsaReplaceWith = "<a href='samsa-gui.html' class='emojiButton' style='color:rgb(255, 165, 0);' title='Open in Samsa font inspector'>&nbsp;🪲</a>"
 	else:
 		samsaReplaceWith = samsaPlaceholder
 
@@ -1244,7 +1380,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 		("###languageSelection###", fontLangMenu),
 		(samsaPlaceholder, samsaReplaceWith),
 		("###defaultSize###", defaultSize),
-		("###glyphCodePoints###", glyphCodePoints),
+		("###glyphInfos###", glyphInfos),
 		("###plainSuffix###", plainSuffix),
 	)
 	htmlContent = replaceSet(htmlContent, replacements)
@@ -1348,7 +1484,7 @@ def otVarInfoForFont(thisFont, variableFontSetting=None):
 	fullName = otVarFullName(thisFont)
 	fileName = otVarFileName(thisFont)
 	unicodeEscapes = allUnicodeEscapesOfFont(thisFont)
-	glyphCodePoints = allUnicodeCodePointsOfFont(thisFont)
+	glyphInfos = allGlyphInfosOfFont(thisFont)
 	plainSuffix = otVarPlainSuffix()
 	otVarSliders = allOTVarSliders(thisFont, variableFontSetting=variableFontSetting)
 	variationCSS = defaultVariationCSS(thisFont)
@@ -1366,13 +1502,13 @@ def otVarInfoForFont(thisFont, variableFontSetting=None):
 				exportFolder = parameter.value
 				break
 
-	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphCodePoints, plainSuffix
+	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphInfos, plainSuffix
 
 
 def otVarInfoForInstance(thisInstance):
 	thisFont = thisInstance.font
 	familyName = familyNameOfInstance(thisInstance)
-	fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphCodePoints, plainSuffix = otVarInfoForFont(thisFont, variableFontSetting=thisInstance)  # fallback
+	fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphInfos, plainSuffix = otVarInfoForFont(thisFont, variableFontSetting=thisInstance)  # fallback
 
 	# instance-specific overrides:
 	fullName = f"{familyName} {thisInstance.name}"
@@ -1385,7 +1521,7 @@ def otVarInfoForInstance(thisInstance):
 	# featureList
 	# fontLangMenu
 
-	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphCodePoints, plainSuffix
+	return fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphInfos, plainSuffix
 
 
 # clears macro window log:
@@ -1425,14 +1561,14 @@ else:
 		variableFontInfos.append(otVarInfoForFont(thisFont))
 
 	for variableFontInfo in variableFontInfos:
-		fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphCodePoints, plainSuffix = variableFontInfo
+		fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphInfos, plainSuffix = variableFontInfo
 
 		print("\nPreparing Test HTML for: %s%s" % (
 			fullName,
 			f" ({fileName})" if fileName else "",
 		))
 		print("👷🏼‍ Building HTML code...")
-		htmlContent = buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa, glyphCodePoints=glyphCodePoints, plainSuffix=plainSuffix)
+		htmlContent = buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa, glyphInfos=glyphInfos, plainSuffix=plainSuffix)
 
 		# Write file to disk:
 		print("💾 Writing files to disk...")
