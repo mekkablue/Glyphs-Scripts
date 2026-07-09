@@ -38,7 +38,7 @@ class ReprojectAxis(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 340
-		windowHeight = 144
+		windowHeight = 170
 		windowWidthResize = 0  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -52,7 +52,7 @@ class ReprojectAxis(mekkaObject):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 24
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Rescale all design values of an axis onto a new range:", sizeStyle="small", selectable=True)
+		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Rescale all design values of an axis onto a new range:", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
 		self.w.axisLabel = vanilla.TextBox((inset, linePos + 2, 28, 14), "Axis", sizeStyle="small")
@@ -65,12 +65,12 @@ class ReprojectAxis(mekkaObject):
 		# min → [ ] [ ] ← max
 		self.w.minLabel = vanilla.TextBox((inset, linePos + 2, 26, 14), "Min", sizeStyle="small")
 		self.w.minLabel.setToolTip("The current minimum (lowest master value) of the chosen axis.")
-		self.w.currentMin = vanilla.TextBox((inset + 26, linePos + 2, 44, 14), "0", sizeStyle="small", selectable=True)
+		self.w.currentMin = vanilla.TextBox((inset + 26, linePos + 2, 44, 14), "0", sizeStyle="small", selectable=True, alignment="right")
 		self.w.currentMin.setToolTip("The current minimum (lowest master value) of the chosen axis.")
 		self.w.arrowRight = vanilla.TextBox((inset + 72, linePos + 2, 14, 14), "→", sizeStyle="small")
-		self.w.newMin = vanilla.EditText((inset + 88, linePos, 52, 19), "0", callback=self.SavePreferences, sizeStyle="small")
+		self.w.newMin = vanilla.EditText((inset + 88, linePos - 1, 52, 19), "0", callback=self.SavePreferences, sizeStyle="small")
 		self.w.newMin.setToolTip("The new minimum for the chosen axis. All values on the axis are rescaled so that the current min lands here.")
-		self.w.newMax = vanilla.EditText((inset + 148, linePos, 52, 19), "1000", callback=self.SavePreferences, sizeStyle="small")
+		self.w.newMax = vanilla.EditText((inset + 148, linePos - 1, 52, 19), "1000", callback=self.SavePreferences, sizeStyle="small")
 		self.w.newMax.setToolTip("The new maximum for the chosen axis. All values on the axis are rescaled so that the current max lands here.")
 		self.w.arrowLeft = vanilla.TextBox((inset + 204, linePos + 2, 14, 14), "←", sizeStyle="small")
 		self.w.currentMax = vanilla.TextBox((inset + 222, linePos + 2, 44, 14), "1000", sizeStyle="small", selectable=True)
