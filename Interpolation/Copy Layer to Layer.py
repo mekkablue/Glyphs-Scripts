@@ -2,324 +2,565 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Copies one master to another master's or background in selected glyphs.
+Copies one layer to another layer across selected glyphs:
+- Copy within the same glyph
+- Create target glyph & layer if not present
+- Add to existing layer contents (append mode)
+- Support for color palette layers
+- Copy to background layer
+- Selective copying of paths, components, anchors, hints, metrics
+- Apply font-wide
 """
 
 import vanilla
-from GlyphsApp import Glyphs, GSPath, GSComponent
-from mekkablue import mekkaObject
-
+from Foundation import NSPoint
+from mekkablue import mekkaObject, UpdateButton
 
 class CopyLayerToLayer(mekkaObject):
 	prefDict = {
+		"sourceFontPopup": 0,
+		"targetFontPopup": 0,
+		"sourceLayerPopup": 0,
+		"targetLayerPopup": 0,
+		"intoBackground": False,
+		"createIfNotPresent": True,
+		"addToContents": False,
+		"applyFontWide": False,
 		"includePaths": True,
 		"includeComponents": True,
 		"includeAnchors": True,
+		"includeHints": True,
 		"includeMetrics": True,
-		"keepWindowOpen": True,
-		"copyBackground": False,
-		"keepOriginal": False,
-		"verbose": False,
-
-		"fontSource": 0,
-		"masterSource": 0,
-		"fontTarget": 0,
-		"masterTarget": 0,
 	}
-
+	
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 340
-		windowHeight = 240
-		windowWidthResize = 200  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 300
+		windowHeight = 330
+		windowWidthResize = 300
+		windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight),  # default window size
-			"Copy layer to layer",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			(windowWidth, windowHeight),
+			"Copy Layer to Layer",
+			minSize=(windowWidth, windowHeight),
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),
+			autosaveName=self.domain("mainwindow")
 		)
 
-		linePos, inset, lineHeight, tabStop = 12, 15, 22, 100
-
-		self.w.text_1 = vanilla.TextBox((inset, linePos + 2, tabStop, 14), "Copy paths from", sizeStyle='small')
-		self.w.fontSource = vanilla.PopUpButton((inset + tabStop, linePos, -inset, 17), self.GetFontNames(), sizeStyle='small', callback=self.FontChangeCallback)
+		# UI elements:
+		linePos, inset, lineHeight, tabStop = 12, 15, 22, 80
+		
+		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Copy layer contents from one layer to another:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
-		self.w.masterSource = vanilla.PopUpButton((inset + tabStop, linePos, -inset, 17), self.GetMasterNames("source"), sizeStyle='small', callback=self.MasterChangeCallback)
+		self.w.sourceFontText = vanilla.TextBox((inset, linePos + 2, tabStop, 14), "Source font:", sizeStyle='small', selectable=True)
+		self.w.sourceFontPopup = vanilla.PopUpButton((inset + tabStop, linePos, -inset - 25, 17), self.GetFonts(), sizeStyle='small', callback=self.UpdateSourceLayers)
+		self.w.sourceFontUpdateButton = UpdateButton((-inset - 20, linePos - 2, -inset, 18), callback=self.UpdateFontList)
 		linePos += lineHeight
 
-		self.w.text_2 = vanilla.TextBox((inset, linePos + 2, tabStop, 14), "into selection of", sizeStyle='small')
-		self.w.fontTarget = vanilla.PopUpButton((inset + tabStop, linePos, -inset, 17), self.GetFontNames(), sizeStyle='small', callback=self.FontChangeCallback)
+		self.w.sourceLayerText = vanilla.TextBox((inset, linePos + 2, tabStop, 14), "Source layer:", sizeStyle='small', selectable=True)
+		self.w.sourceLayerPopup = vanilla.PopUpButton((inset + tabStop, linePos, -inset, 17), [], sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.masterTarget = vanilla.PopUpButton((inset + tabStop, linePos, -inset, 17), self.GetMasterNames("target"), sizeStyle='small', callback=self.MasterChangeCallback)
+		self.w.targetFontText = vanilla.TextBox((inset, linePos + 2, tabStop, 14), "Target font:", sizeStyle='small', selectable=True)
+		self.w.targetFontPopup = vanilla.PopUpButton((inset + tabStop, linePos, -inset, 17), self.GetFonts(), sizeStyle='small', callback=self.UpdateTargetLayers)
 		linePos += lineHeight
 
-		tabStop = 160
-
-		self.w.includePaths = vanilla.CheckBox((inset + 2, linePos - 1, tabStop, 20), "Include paths", sizeStyle='small', callback=self.SavePreferences, value=True)
-		self.w.includeComponents = vanilla.CheckBox((inset + tabStop, linePos - 1, -inset, 20), "Include components", sizeStyle='small', callback=self.SavePreferences, value=True)
+		self.w.targetLayerText = vanilla.TextBox((inset, linePos + 2, tabStop, 14), "Target layer:", sizeStyle='small', selectable=True)
+		self.w.targetLayerPopup = vanilla.PopUpButton((inset + tabStop, linePos, -inset, 17), [], sizeStyle='small', callback=self.SavePreferences)
 		linePos += lineHeight
 
-		self.w.includeAnchors = vanilla.CheckBox((inset + 2, linePos - 1, tabStop, 20), "Include anchors", sizeStyle='small', callback=self.SavePreferences, value=True)
-		self.w.includeMetrics = vanilla.CheckBox((inset + tabStop, linePos - 1, -inset, 20), "Include metrics", sizeStyle='small', callback=self.SavePreferences, value=True)
+		# Include options
+		self.w.includeText = vanilla.TextBox((inset, linePos + 2, 60, 14), "Include:", sizeStyle='small', selectable=True)
+
+		self.w.includePaths = vanilla.CheckBox((inset + 60, linePos, 65, 20), "Paths", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includePaths.setToolTip("Copy all paths (outlines) from the source layer.")
+		
+		self.w.includeComponents = vanilla.CheckBox((inset + 135, linePos, 80, 20), "Components", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeComponents.setToolTip("Copy all components (references to other glyphs) from the source layer.")
 		linePos += lineHeight
 
-		self.w.copyBackground = vanilla.CheckBox((inset + 2, linePos - 1, tabStop, 20), "Into background instead", sizeStyle='small', callback=self.SavePreferences, value=False)
-		self.w.keepOriginal = vanilla.CheckBox((inset + tabStop, linePos - 1, -inset, 20), "Keep target layer content", sizeStyle='small', callback=self.SavePreferences, value=False)
+		self.w.includeAnchors = vanilla.CheckBox((inset + 60, linePos, 65, 20), "Anchors", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeAnchors.setToolTip("Copy all anchors (attachment points) from the source layer.")
+		
+		self.w.includeMetrics = vanilla.CheckBox((inset + 135, linePos, 80, 20), "Metrics", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeMetrics.setToolTip("Copy layer width and sidebearing metrics from the source layer.")
+
+		self.w.includeHints = vanilla.CheckBox((inset + 210, linePos, 90, 20), "Hints", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeHints.setToolTip("Copy all hints (TrueType instructions) from the source layer.")
+		linePos += lineHeight
+		
+		self.w.separator1 = vanilla.HorizontalLine((inset, linePos+5, -inset, 1))
+
+		# Options with tooltips
+		linePos += 12
+		self.w.intoBackground = vanilla.CheckBox((inset, linePos, -inset, 20), "Copy into background instead", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.intoBackground.setToolTip("Copies source layer content into the background of the target layer instead of the foreground.")
 		linePos += lineHeight
 
-		self.w.keepWindowOpen = vanilla.CheckBox((inset + 2, linePos - 1, tabStop, 20), "Keep window open", sizeStyle='small', callback=self.SavePreferences, value=True)
-		self.w.verbose = vanilla.CheckBox((inset + tabStop, linePos - 1, -inset, 20), "Verbose", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.createIfNotPresent = vanilla.CheckBox((inset, linePos, -inset, 20), "Create target glyph & layer if not already present", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.createIfNotPresent.setToolTip("Automatically creates the target layer (and glyph if necessary) if it doesn't exist. Useful for adding new layers to all selected glyphs.")
 		linePos += lineHeight
 
-		self.w.copybutton = vanilla.Button((-80, -30, -15, -10), "Copy", sizeStyle='small', callback=self.buttonCallback)
-		self.w.setDefaultButton(self.w.copybutton)
+		self.w.addToContents = vanilla.CheckBox((inset, linePos, -inset, 20), "Add to layer contents (don't overwrite)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.addToContents.setToolTip("Appends source content to target layer instead of replacing it. Useful for combining multiple design elements.")
+		linePos += lineHeight
+
+		self.w.applyFontWide = vanilla.CheckBox((inset, linePos, -inset, 20), "Apply font-wide (all glyphs in source font)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.applyFontWide.setToolTip("Processes all glyphs in the source font instead of only selected glyphs in the target font. If not selected, will process only selected glyphs.")
+		linePos += lineHeight
+
+
+		# Run Button:
+		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Copy Layers", sizeStyle='regular', callback=self.CopyLayerToLayerMain)
+		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
 		self.LoadPreferences()
 
+		# Update the layer popups after fonts are loaded
+		self.UpdateSourceLayers(None)
+		self.UpdateTargetLayers(None)
+
+		# Now manually restore just the layer popup indices:
+		self.w.sourceLayerPopup.set(self.pref("sourceLayerPopup"))
+		self.w.targetLayerPopup.set(self.pref("targetLayerPopup"))
+
+		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-		self.w.masterTarget.set(1)
 
-	def GetFontNames(self):
-		"""Collects names of Open Fonts to populate the menus in the GUI."""
-		myFontList = []
-		# The active font is at index=0, so the default selection should be the active font.
-		for fontIndex in range(len(Glyphs.fonts)):
-			thisFont = Glyphs.fonts[fontIndex]
-			myFontList.append('%i: %s' % (fontIndex, thisFont.familyName))
+	def updateUI(self, sender=None):
+		"""Updates UI state - disables run button if source and target are the same"""
+		try:
+			# Get current selections
+			sourceFontIndex = self.w.sourceFontPopup.get()
+			targetFontIndex = self.w.targetFontPopup.get()
+			sourceLayerIndex = self.w.sourceLayerPopup.get()
+			targetLayerIndex = self.w.targetLayerPopup.get()
+			
+			# Get layer names
+			sourceLayerItems = self.w.sourceLayerPopup.getItems()
+			targetLayerItems = self.w.targetLayerPopup.getItems()
+			
+			# Check if source and target are identical
+			sameFont = (sourceFontIndex == targetFontIndex)
+			sameLayer = False
+			
+			if sourceLayerItems and targetLayerItems and sourceLayerIndex < len(sourceLayerItems) and targetLayerIndex < len(targetLayerItems):
+				sameLayer = (sourceLayerItems[sourceLayerIndex] == targetLayerItems[targetLayerIndex])
+			
+			# Disable button if both font and layer are the same
+			shouldDisable = sameFont and sameLayer
+			self.w.runButton.enable(not shouldDisable)
+			
+		except Exception as e:
+			print(e)
+			# If there's any error, enable the button to be safe
+			self.w.runButton.enable(True)
+
+	def GetFonts(self):
+		"""Returns a list of font names for the popups"""
+		myFontList = ["Current Font"]
+		for thisFont in Glyphs.fonts:
+			fontName = thisFont.filepath.lastPathComponent() if thisFont.filepath else "<unsaved file>"
+			myFontList.append('%s (family: %s)' % (fontName, thisFont.familyName))
 		return myFontList
 
-	def GetMasterNames(self, font):
-		"""Collects names of masters to populate the submenus in the GUI."""
-		try:
-			if font == "target":
-				fontIndex = self.prefInt("fontTarget")
-			else:
-				fontIndex = self.prefInt("fontSource")
-		except:
-			fontIndex = 0
-
-		# reset fontIndex if necessary (outdated prefs):
-		if fontIndex > len(Glyphs.fonts) - 1:
-			fontIndex = 0
-
-		# reset the prefs if necessary:
+	def GetFont(self, fontPopup):
+		"""Returns the font object based on popup selection"""
+		fontIndex = fontPopup.get()
 		if fontIndex == 0:
-			if font == "target":
-				self.setPref("fontTarget", fontIndex)
+			return Glyphs.font
+		else:
+			return Glyphs.fonts[fontIndex - 1]
+
+	def GetColorPalettes(self, font):
+		"""Returns the color palettes from font's custom parameters"""
+		if font and font.customParameters["Color Palettes"]:
+			palettes = font.customParameters["Color Palettes"]
+			if palettes and len(palettes) > 0:
+				# Return the first palette (index 0) which contains the color definitions
+				return palettes[0]
+		return None
+
+	def GetLayerList(self, font):
+		"""Returns a list of layer names and master+color combinations"""
+		if not font or len(font.glyphs) == 0:
+			return ["Regular"]
+		
+		layerNames = []
+		masterLayers = []
+		
+		# Collect regular master layers (only those without colorPalette attribute)
+		for layer in font.glyphs[0].layers:
+			if layer.name:
+				# Check if this is a true master layer (not a color layer)
+				isColorLayer = hasattr(layer, 'attributes') and layer.attributes.get('colorPalette') is not None
+				if not isColorLayer:
+					masterLayers.append(layer.name)
+					layerNames.append(layer.name)
+		
+		# Add color palette layers if they exist
+		colorPalette = self.GetColorPalettes(font)
+		if colorPalette:
+			numColors = len(colorPalette)
+			# For each master, add master+color combinations
+			for masterName in masterLayers:
+				for colorIndex in range(numColors):
+					layerNames.append("%s, Color %d" % (masterName, colorIndex))
+		
+		return layerNames if layerNames else ["Regular"]
+
+	def ParseLayerSelection(self, layerName):
+		"""Parses layer selection to determine if it's a color palette layer
+		Returns: (isColorLayer, masterName, colorIndex)"""
+		if ", Color " in layerName:
+			try:
+				parts = layerName.split(", Color ")
+				masterName = parts[0]
+				colorIndex = int(parts[1])
+				return (True, masterName, colorIndex)
+			except:
+				pass
+		return (False, layerName, None)
+
+	def UpdateFontList(self, sender=None):
+		"""Updates all font popups with currently opened fonts"""
+		fontList = self.GetFonts()
+		
+		# Store current selections
+		sourceSelection = self.w.sourceFontPopup.get()
+		targetSelection = self.w.targetFontPopup.get()
+		
+		# Update popup lists
+		self.w.sourceFontPopup.setItems(fontList)
+		self.w.targetFontPopup.setItems(fontList)
+		
+		# Try to restore selections if still valid
+		if sourceSelection < len(fontList):
+			self.w.sourceFontPopup.set(sourceSelection)
+		else:
+			self.w.sourceFontPopup.set(0)
+			
+		if targetSelection < len(fontList):
+			self.w.targetFontPopup.set(targetSelection)
+		else:
+			self.w.targetFontPopup.set(0)
+		
+		# Update layer lists
+		self.UpdateSourceLayers(None)
+		self.UpdateTargetLayers(None)
+		
+		if sender is self.w.sourceFontUpdateButton:
+			self.LoadPreferences()
+		else:
+			self.SavePreferences()
+
+	def UpdateSourceLayers(self, sender=None):
+		"""Updates the source layer popup based on selected font"""
+		font = self.GetFont(self.w.sourceFontPopup)
+		layerNames = self.GetLayerList(font)
+		self.w.sourceLayerPopup.setItems(layerNames)
+
+	def UpdateTargetLayers(self, sender):
+		"""Updates the target layer popup based on selected font"""
+		font = self.GetFont(self.w.targetFontPopup)
+		layerNames = self.GetLayerList(font)
+		self.w.targetLayerPopup.setItems(layerNames)
+
+	def GetColorLayers(self, glyph, masterName, colorIndex):
+		"""Returns all layers with the specified master and color palette index"""
+		colorLayers = []
+		font = glyph.parent
+		if not font:
+			return colorLayers
+
+		masterID = None
+		for master in font.masters:
+			if master.name == masterName:
+				masterID = master.id
+				break
+		if not masterID:
+			return colorLayers
+
+		for layer in glyph.layers:
+			if layer.associatedMasterId == masterID and hasattr(layer, 'attributes') and layer.attributes.get('colorPalette') == colorIndex:
+				colorLayers.append(layer)
+		return colorLayers
+
+	def CopyLayerToLayerMain(self, sender=None):
+		"""Main function to copy layers"""
+		try:
+			# Get fonts
+			sourceFont = self.GetFont(self.w.sourceFontPopup)
+			targetFont = self.GetFont(self.w.targetFontPopup)
+			
+			if not sourceFont or not targetFont:
+				Message("Error", "Could not access source or target font.", OKButton=None)
+				return
+
+			# Get layer names and parse them
+			sourceLayerName = self.w.sourceLayerPopup.getItems()[self.w.sourceLayerPopup.get()]
+			targetLayerName = self.w.targetLayerPopup.getItems()[self.w.targetLayerPopup.get()]
+			
+			# Parse source and target layer selections
+			sourceIsColor, sourceMasterName, sourceColorIndex = self.ParseLayerSelection(sourceLayerName)
+			targetIsColor, targetMasterName, targetColorIndex = self.ParseLayerSelection(targetLayerName)
+
+			# Get preferences
+			prefs = {
+				"intoBackground": self.w.intoBackground.get(),
+				"createIfNotPresent": self.w.createIfNotPresent.get(),
+				"addToContents": self.w.addToContents.get(),
+				"applyFontWide": self.w.applyFontWide.get(),
+				"includePaths": self.w.includePaths.get(),
+				"includeComponents": self.w.includeComponents.get(),
+				"includeAnchors": self.w.includeAnchors.get(),
+				"includeHints": self.w.includeHints.get(),
+				"includeMetrics": self.w.includeMetrics.get(),
+			}
+
+			# Determine which glyphs to process
+			if prefs["applyFontWide"]:
+				# Process all glyphs in source font
+				glyphsToProcess = [g.name for g in sourceFont.glyphs]
 			else:
-				self.setPref("fontSource", fontIndex)
-
-		thisFont = Glyphs.fonts[fontIndex]
-		myMasterList = []
-		for masterIndex in range(len(thisFont.masters)):
-			thisMaster = thisFont.masters[masterIndex]
-			myMasterList.append('%i: %s' % (masterIndex, thisMaster.name))
-		return myMasterList
-
-	def ValidateInput(self, sender):
-		"""Disables the button if source and target are the same."""
-		sourceAndTargetFontAreTheSame = self.pref("fontSource") == self.pref("fontTarget")
-		sourceAndTargetMasterAreTheSame = self.pref("masterSource") == self.pref("masterTarget")
-		if sourceAndTargetFontAreTheSame and sourceAndTargetMasterAreTheSame:
-			self.w.copybutton.enable(False)
-		else:
-			self.w.copybutton.enable(True)
-
-	def MasterChangeCallback(self, sender):
-		"""Just call ValidateInput."""
-		self.SavePreferences(sender)
-		self.ValidateInput(None)
-
-	def FontChangeCallback(self, sender):
-		"""Update masters menus when font input changes."""
-		self.SavePreferences(sender)
-		if sender == self.w.fontSource:
-			# Refresh source
-			self.w.masterSource.setItems(self.GetMasterNames("source"))
-		else:
-			# Refresh target
-			self.w.masterTarget.setItems(self.GetMasterNames("target"))
-		self.ValidateInput(None)
-
-	def copyPathsFromLayerToLayer(self, sourceLayer, targetLayer, keepOriginal=False, verbose=False):
-		"""Copies all paths from sourceLayer to targetLayer"""
-		numberOfPathsInSource = len(sourceLayer.paths)
-		numberOfPathsInTarget = len(targetLayer.paths)
-
-		if numberOfPathsInTarget != 0 and not keepOriginal:
-			if verbose:
-				print("- Deleting %i paths in target layer" % numberOfPathsInTarget)
-			try:
-				# GLYPHS 3
-				for i in reversed(range(len(targetLayer.shapes))):
-					if isinstance(targetLayer.shapes[i], GSPath):
-						del targetLayer.shapes[i]
-			except:
-				# GLYPHS 2
-				targetLayer.paths = None
-
-		if numberOfPathsInSource > 0:
-			if verbose:
-				print("- Copying paths")
-			for thisPath in sourceLayer.paths:
-				newPath = thisPath.copy()
-				try:
-					# GLYPHS 3
-					targetLayer.shapes.append(newPath)
-				except:
-					# GLYPHS 2
-					targetLayer.paths.append(newPath)
-
-	def copyHintsFromLayerToLayer(self, sourceLayer, targetLayer, keepOriginal=False, verbose=False):
-		"""Copies all hints, corner and cap components from one layer to the next."""
-		numberOfHintsInSource = len(sourceLayer.hints)
-		numberOfHintsInTarget = len(targetLayer.hints)
-
-		if numberOfHintsInTarget != 0 and not keepOriginal:
-			if verbose:
-				print("- Deleting %i hints, caps and corners in target layer" % numberOfHintsInTarget)
-			targetLayer.hints = []
-
-		if numberOfHintsInSource > 0:
-			if verbose:
-				print("- Copying hints, caps and corners")
-			for thisHint in sourceLayer.hints:
-				newHint = thisHint.copy()
-				targetLayer.hints.append(newHint)
-
-	def copyComponentsFromLayerToLayer(self, sourceLayer, targetLayer, keepOriginal=False, verbose=False):
-		"""Copies all components from sourceLayer to targetLayer."""
-		numberOfComponentsInSource = len(sourceLayer.components)
-		numberOfComponentsInTarget = len(targetLayer.components)
-
-		if numberOfComponentsInTarget != 0 and not keepOriginal:
-			if verbose:
-				print("- Deleting %i components in target layer" % numberOfComponentsInTarget)
-			try:
-				# GLYPHS 3
-				for i in reversed(range(len(targetLayer.shapes))):
-					if isinstance(targetLayer.shapes[i], GSComponent):
-						del targetLayer.shapes[i]
-			except:
-				# GLYPHS 2
-				targetLayer.components = []
-
-		if numberOfComponentsInSource > 0:
-			if verbose:
-				print("- Copying components:")
-			for thisComp in sourceLayer.components:
-				newComp = thisComp.copy()
-				if verbose:
-					print("   Component: %s" % (thisComp.componentName))
-				targetLayer.components.append(newComp)
-
-	def copyAnchorsFromLayerToLayer(self, sourceLayer, targetLayer, keepOriginal=False, verbose=False):
-		"""Copies all anchors from sourceLayer to targetLayer."""
-		numberOfAnchorsInSource = len(sourceLayer.anchors)
-		numberOfAnchorsInTarget = len(targetLayer.anchors)
-
-		if numberOfAnchorsInTarget != 0 and not keepOriginal:
-			if verbose:
-				print("- Deleting %i anchors in target layer" % numberOfAnchorsInTarget)
-			targetLayer.setAnchors_(None)
-
-		if numberOfAnchorsInSource > 0:
-			if verbose:
-				print("- Copying anchors from source layer:")
-			for thisAnchor in sourceLayer.anchors:
-				newAnchor = thisAnchor.copy()
-				targetLayer.anchors.append(newAnchor)
-				if verbose:
-					print("   %s (%i, %i)" % (thisAnchor.name, thisAnchor.position.x, thisAnchor.position.y))
-
-	def copyMetricsFromLayerToLayer(self, sourceLayer, targetLayer, verbose=False):
-		"""Copies width of sourceLayer to targetLayer."""
-		sourceWidth = sourceLayer.width
-		if targetLayer.width != sourceWidth:
-			targetLayer.width = sourceWidth
-			if verbose:
-				print("- Copying width (%.1f)" % sourceWidth)
-		else:
-			if verbose:
-				print("- Width not changed (already was %.1f)" % sourceWidth)
-
-	def buttonCallback(self, sender):
-		# save prefs, just to be on the safe side:
-		self.SavePreferences(sender)
-
-		# prepare macro output:
-		Glyphs.clearLog()
-		Glyphs.showMacroWindow()
-
-		# This should be the active selection, not necessarily the selection on the inputted fonts
-		Font = Glyphs.font
-		selectedGlyphs = [layer.parent for layer in Font.selectedLayers if layer.parent.name is not None]
-
-		indexOfSourceFont = self.prefInt("fontSource")
-		indexOfTargetFont = self.prefInt("fontTarget")
-		indexOfSourceMaster = self.prefInt("masterSource")
-		indexOfTargetMaster = self.prefInt("masterTarget")
-		pathsYesOrNo = self.prefBool("includePaths")
-		componentsYesOrNo = self.prefBool("includeComponents")
-		anchorsYesOrNo = self.prefBool("includeAnchors")
-		metricsYesOrNo = self.prefBool("includeMetrics")
-		copyBackground = self.prefBool("copyBackground")
-		keepOriginal = self.prefBool("keepOriginal")
-		verbose = self.prefBool("verbose")
-
-		if verbose:
-			print("Copy Layer to Layer Protocol:")
-		for thisGlyph in selectedGlyphs:
-			try:
-				if verbose:
-					print("🔠 %s" % thisGlyph.name)
-				sourceFont = Glyphs.fonts[indexOfSourceFont]
-				sourceGlyph = sourceFont.glyphs[thisGlyph.name]
-				sourcelayer = sourceGlyph.layers[indexOfSourceMaster]
-
-				targetFont = Glyphs.fonts[indexOfTargetFont]
-				targetGlyph = targetFont.glyphs[thisGlyph.name]
-				if copyBackground:
-					targetlayer = targetGlyph.layers[indexOfTargetMaster].background
+				# Process only selected glyphs in target font
+				if targetFont.selectedLayers:
+					glyphsToProcess = list(set([layer.parent.name for layer in targetFont.selectedLayers]))
 				else:
-					targetlayer = targetGlyph.layers[indexOfTargetMaster]
+					Message("Error", "No glyphs selected.", OKButton=None)
+					return
 
-				targetFont.disableUpdateInterface()
-				try:
-					# Copy paths, components, anchors, and metrics:
-					if pathsYesOrNo:
-						self.copyPathsFromLayerToLayer(sourcelayer, targetlayer, keepOriginal=keepOriginal, verbose=verbose)
-					if componentsYesOrNo:
-						self.copyComponentsFromLayerToLayer(sourcelayer, targetlayer, keepOriginal=keepOriginal, verbose=verbose)
-					if anchorsYesOrNo:
-						self.copyAnchorsFromLayerToLayer(sourcelayer, targetlayer, keepOriginal=keepOriginal, verbose=verbose)
-					if metricsYesOrNo and not copyBackground:
-						self.copyMetricsFromLayerToLayer(sourcelayer, targetlayer, verbose=verbose)
+			# Counters for reporting
+			processedCount = 0
+			skippedCount = 0
+			createdGlyphCount = 0
+			createdLayerCount = 0
 
-					# copy hints, caps and corners if either paths or components are copied:
-					if componentsYesOrNo or pathsYesOrNo:
-						self.copyHintsFromLayerToLayer(sourcelayer, targetlayer, keepOriginal=keepOriginal, verbose=verbose)
+			# Process each glyph
+			for glyphName in glyphsToProcess:
+				print(f"🔡 Processing {glyphName}...")
+				# Get source glyph
+				sourceGlyph = sourceFont.glyphs[glyphName]
+				if not sourceGlyph:
+					skippedCount += 1
+					continue
 
-				except Exception as e:
-					raise e
+				# Get source layer(s)
+				sourceLayers = []
+				if sourceIsColor:
+					# Get all color layers with this master and color index
+					sourceLayers = self.GetColorLayers(sourceGlyph, sourceMasterName, sourceColorIndex)
+					print("Source is color:", sourceLayers)
+					print("sourceGlyph, sourceMasterName, sourceColorIndex:", sourceGlyph, sourceMasterName, sourceColorIndex)
+				else:
+					# Get the named master layer
+					for layer in sourceGlyph.layers:
+						if layer.name == sourceMasterName:
+							sourceLayers = [layer]
+							break
+				
+				print("CHECK 1")
+				if not sourceLayers:
+					skippedCount += 1
+					continue
+				print("CHECK 2")
 
-				finally:
-					targetFont.enableUpdateInterface()
+				# Find or create target glyph
+				targetGlyph = targetFont.glyphs[glyphName]
+				if not targetGlyph:
+					if prefs["createIfNotPresent"]:
+						targetGlyph = GSGlyph(glyphName)
+						targetFont.glyphs.append(targetGlyph)
+						createdGlyphCount += 1
+					else:
+						skippedCount += 1
+						continue
 
-			except Exception as e:  # noqa: F841
-				Glyphs.showMacroWindow()
-				print("\n⚠️ Script Error:\n")
-				import traceback
-				print(traceback.format_exc())
+				# Handle color to color copying (potentially multiple layers)
+				if sourceIsColor and targetIsColor:
+					# Copy each source color layer to corresponding target color layer
+					targetColorLayers = self.GetColorLayers(targetGlyph, targetMasterName, targetColorIndex)
+					
+					for i, sourceLayer in enumerate(sourceLayers):
+						# Find or create corresponding target layer
+						if i < len(targetColorLayers):
+							targetLayer = targetColorLayers[i]
+						elif prefs["createIfNotPresent"]:
+							# Create new color layer
+							targetLayer = GSLayer()
+							targetLayer.name = targetMasterName
+							targetLayer.attributes['colorPalette'] = targetColorIndex
+							# Associate with the master
+							targetLayer.associatedMasterId = targetGlyph.layers[0].associatedMasterId
+							targetGlyph.layers.append(targetLayer)
+							createdLayerCount += 1
+						else:
+							continue
+						
+						self.CopyLayerContents(sourceLayer, targetLayer, prefs)
+						processedCount += 1
+				
+				# Handle non-color to color copying
+				elif not sourceIsColor and targetIsColor:
+					sourceLayer = sourceLayers[0]
+					# Find or create target layer with matching master and color index
+					targetColorLayers = self.GetColorLayers(targetGlyph, targetMasterName, targetColorIndex)
+					
+					if targetColorLayers:
+						# Use the first existing color layer with this color index
+						targetLayer = targetColorLayers[0]
+					elif prefs["createIfNotPresent"]:
+						# Create new color layer only if it doesn't exist
+						targetLayer = GSLayer()
+						targetLayer.name = targetMasterName
+						targetLayer.attributes['colorPalette'] = targetColorIndex
+						# Associate with the master
+						for layer in targetGlyph.layers:
+							if layer.name == targetMasterName and not layer.attributes.get('colorPalette'):
+								targetLayer.associatedMasterId = layer.associatedMasterId
+								break
+						targetGlyph.layers.append(targetLayer)
+						createdLayerCount += 1
+					else:
+						skippedCount += 1
+						continue
+					
+					self.CopyLayerContents(sourceLayer, targetLayer, prefs)
+					processedCount += 1
+				
+				# Handle color to non-color copying
+				elif sourceIsColor and not targetIsColor:
+					# Copy first source color layer to target master layer
+					sourceLayer = sourceLayers[0]
+					
+					# Find target master layer
+					targetLayer = None
+					for layer in targetGlyph.layers:
+						if layer.name == targetMasterName and not layer.attributes.get('colorPalette'):
+							targetLayer = layer
+							break
 
-		if not self.pref("keepWindowOpen"):
+					if not targetLayer and prefs["createIfNotPresent"]:
+						targetLayer = GSLayer()
+						targetLayer.name = targetMasterName
+						targetGlyph.layers.append(targetLayer)
+						createdLayerCount += 1
+					
+					if not targetLayer:
+						skippedCount += 1
+						continue
+
+					self.CopyLayerContents(sourceLayer, targetLayer, prefs)
+					processedCount += 1
+				
+				# Handle regular master to master layer copying
+				else:
+					sourceLayer = sourceLayers[0]
+					
+					# Find or create target master layer
+					targetLayer = None
+					for layer in targetGlyph.layers:
+						if layer.name == targetMasterName and not layer.attributes.get('colorPalette'):
+							targetLayer = layer
+							break
+
+					# Create layer if requested and not present
+					if not targetLayer and prefs["createIfNotPresent"]:
+						targetLayer = GSLayer()
+						targetLayer.name = targetMasterName
+						targetGlyph.layers.append(targetLayer)
+						createdLayerCount += 1
+					
+					if not targetLayer:
+						skippedCount += 1
+						continue
+
+					self.CopyLayerContents(sourceLayer, targetLayer, prefs)
+					processedCount += 1
+
+			# Show results
+			resultMessage = "Processed %d layer(s)" % processedCount
+			if createdGlyphCount > 0:
+				resultMessage += "\nCreated %d new glyph(s)" % createdGlyphCount
+			if createdLayerCount > 0:
+				resultMessage += "\nCreated %d new layer(s)" % createdLayerCount
+			if skippedCount > 0:
+				resultMessage += "\nSkipped %d glyph(s)" % skippedCount
+			
+			Message("Copy Complete", resultMessage, OKButton=None)
+
+			# Save preferences
+			self.SavePreferences()
+
+			# Close window
 			self.w.close()
 
+		except Exception as e:
+			# Brings macro window to front and reports error:
+			Glyphs.showMacroWindow()
+			print("Copy Layer to Layer Error: %s" % e)
+			import traceback
+			print(traceback.format_exc())
 
+	def CopyLayerContents(self, sourceLayer, targetLayer, prefs):
+		"""Copies contents from source layer to target layer based on preferences"""
+		# Determine target for copying (foreground or background)
+		if prefs["intoBackground"]:
+			if not prefs["addToContents"]:
+				targetLayer.background.clear()
+			copyTarget = targetLayer.background
+		else:
+			if not prefs["addToContents"]:
+				targetLayer.clear()
+			copyTarget = targetLayer
+
+		# Copy paths
+		if prefs["includePaths"]:
+			for path in sourceLayer.paths:
+				newPath = path.copy()
+				copyTarget.shapes.append(newPath)
+
+		# Copy components
+		if prefs["includeComponents"]:
+			for component in sourceLayer.components:
+				newComponent = component.copy()
+				copyTarget.shapes.append(newComponent)
+
+		# Copy hints
+		if prefs["includeHints"]:
+			for hint in sourceLayer.hints:
+				newHint = hint.copy()
+				copyTarget.hints.append(newHint)
+
+		# Copy anchors
+		if prefs["includeAnchors"]:
+			if prefs["addToContents"]:
+				# Add anchors only if they don't already exist
+				for anchor in sourceLayer.anchors:
+					existingAnchor = None
+					for a in copyTarget.anchors:
+						if a.name == anchor.name:
+							existingAnchor = a
+							break
+					if not existingAnchor:
+						newAnchor = anchor.copy()
+						copyTarget.anchors.append(newAnchor)
+			else:
+				# Replace all anchors
+				for anchor in sourceLayer.anchors:
+					newAnchor = anchor.copy()
+					copyTarget.anchors.append(newAnchor)
+
+		# Copy metrics if requested and not copying to background
+		if prefs["includeMetrics"] and not prefs["intoBackground"]:
+			targetLayer.width = sourceLayer.width
+			if hasattr(sourceLayer, 'leftMetricsKey') and sourceLayer.leftMetricsKey:
+				targetLayer.leftMetricsKey = sourceLayer.leftMetricsKey
+			if hasattr(sourceLayer, 'rightMetricsKey') and sourceLayer.rightMetricsKey:
+				targetLayer.rightMetricsKey = sourceLayer.rightMetricsKey
+
+# Run the script
 CopyLayerToLayer()
