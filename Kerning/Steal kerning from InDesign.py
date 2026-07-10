@@ -297,7 +297,11 @@ class StealKerningFromInDesign(mekkaObject):
 			tempFont.instances.append(tempInstance)
 			
 			# calculate file names and paths
-			fileName = tempInstance.fileName()
+			try:
+				fileName = tempInstance.fileName()
+			except TypeError:
+				# Glyphs 4: fileName() now requires a format argument
+				fileName = tempInstance.fileName("otf")
 			filePath = os.path.join(adobeFontsFolder, fileName) # including ".otf" suffix
 			if "." in fileName:
 				fileName = fileName[:fileName.rfind(".")]

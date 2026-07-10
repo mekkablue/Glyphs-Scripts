@@ -6,7 +6,6 @@ Create a Test HTML for the current font inside the current Variation Font Export
 """
 
 from os import system, path
-import webbrowser
 import json
 from Cocoa import NSEvent, NSAlternateKeyMask, NSShiftKeyMask
 import codecs
@@ -301,7 +300,11 @@ def otVarSuffix():
 def otVarFileName(thisFont, thisInstance=None):
 	suffix = otVarSuffix()
 	if thisInstance is not None:
-		fileName = thisInstance.fileName()
+		try:
+			fileName = thisInstance.fileName()
+		except TypeError:
+			# Glyphs 4: fileName() now requires a format argument
+			fileName = thisInstance.fileName(suffix)
 		# circumvent bug in Glyphs 3.0.5
 		if fileName.endswith(".otf"):
 			fileName = fileName[:-4]
@@ -1653,7 +1656,9 @@ else:
 				glyphs4ShowsInFinder = Glyphs.versionNumber >= 4 and Glyphs.defaults["GSVariableExportShowInFinder"] == 1
 				if not glyphs4ShowsInFinder:
 					system(f'open "{exportPath}"')
-				webbrowser.open(f"file://{exportPath}/{htmlFileName}")
+				# webbrowser.open() can raise UnicodeEncodeError on macOS when the
+				# osascript pipe defaults to ASCII, so open the file via `open` instead:
+				system(f'open "{exportPath}/{htmlFileName}"')
 			else:
 				print("🛑 Error writing file to disk.")
 		else:
