@@ -453,21 +453,32 @@ def featureTitle(featureTag):
 	return featureTag
 
 
+def featureFullName(thisFeature):
+	# Prefer the human-readable name Glyphs provides, fall back to our own map.
+	try:
+		fullName = thisFeature.fullName()
+		if fullName:
+			return fullName
+	except:
+		pass
+	return featureTitle(thisFeature.name)
+
+
 def featureListForFont(thisFont):
 	returnString = ""
-	featureList = [(f.name, f.notes) for f in thisFont.features if f.name not in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig", "rlig", "rclt", "rvrn") and not f.disabled()]
-	for (f, n) in featureList:
+	featureList = [(f.name, f.notes, featureFullName(f)) for f in thisFont.features if f.name not in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig", "rlig", "rclt", "rvrn") and not f.disabled()]
+	for (f, n, fullName) in featureList:
 		# <input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
 		if f.startswith("ss") and n and n.startswith("Name:"):
 			# stylistic set name:
 			setName = n.splitlines()[0][5:].strip()
 			featureItem = '\t\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel" title="%s">%s<span class="tooltip">%s</span></label>\n' % (
-				f, f, f, f, featureTitle(f), f, setName
+				f, f, f, f, fullName, f, setName
 			)
 		else:
 			# non-ssXX features
 			featureItem = '\t\t\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel" title="%s">%s</label>\n' % (
-				f, f, f, f, featureTitle(f), f
+				f, f, f, f, fullName, f
 			)
 		if featureItem not in returnString:
 			returnString += featureItem
