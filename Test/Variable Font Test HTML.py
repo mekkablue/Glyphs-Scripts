@@ -727,6 +727,8 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 			.emojiButton {
 				cursor: pointer;
 				text-decoration: none;
+				display: inline-block;
+				padding: 0 0.3em;
 			}
 			.otFeatureLabel, .otFeature {
 				font-size: small;
@@ -1348,16 +1350,16 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 ###styleMenu###
 
 			<!-- file type -->
-				<a onclick="toggleType();" id="type" class="emojiButton" title="Switch font format (TTF/OTF, WOFF, WOFF2)">&nbsp;###TTW1W2###</a>
-				<a onclick="reloadFontFace();" id="reload" class="emojiButton" title="Reload the font from disk (Ctrl-U)">&nbsp;🔄</a>
-				<a onclick="toggleGridView();" id="gridToggle" class="emojiButton" title="Toggle grid view of all glyphs (Ctrl-G)">&nbsp;🔡&nbsp;</a>
-				<a onclick="togglePlayAll();" id="playAll" class="emojiButton" title="Animate all axes / pause (Ctrl-P)">&nbsp;▶️&nbsp;</a>
+				<a onclick="toggleType();" id="type" class="emojiButton" title="Switch font format (TTF/OTF, WOFF, WOFF2)">###TTW1W2###</a>
+				<a onclick="reloadFontFace();" id="reload" class="emojiButton" title="Reload the font from disk (Ctrl-U)">🔄</a>
+				<a onclick="toggleGridView();" id="gridToggle" class="emojiButton" title="Toggle grid view of all glyphs (Ctrl-G)">🔡</a>
+				<a onclick="togglePlayAll();" id="playAll" class="emojiButton" title="Animate all axes / pause (Ctrl-P)">▶️</a>
 
 			<!-- Samsa -->
 				%s
 
 			<!-- display type (x-ray vs. filled) -->
-				<a onclick="toggleInverse();" id="invert" class="emojiButton" title="Toggle x-ray (outline) display (Ctrl-X)">&nbsp;🔲&nbsp;</a>
+				<a onclick="toggleInverse();" id="invert" class="emojiButton" title="Toggle x-ray (outline) display (Ctrl-X)">🔲</a>
 
 			<!-- OT features -->
 				<input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel" title="Kerning (kern)">kern</label>
@@ -1386,7 +1388,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 """ % (samsaPlaceholder)
 
 	if shouldCreateSamsa:
-		samsaReplaceWith = "<a href='samsa-gui.html' class='emojiButton' style='color:rgb(255, 165, 0);' title='Open in Samsa font inspector'>&nbsp;🪲</a>"
+		samsaReplaceWith = "<a href='samsa-gui.html' class='emojiButton' style='color:rgb(255, 165, 0);' title='Open in Samsa font inspector'>🪲</a>"
 	else:
 		samsaReplaceWith = samsaPlaceholder
 
