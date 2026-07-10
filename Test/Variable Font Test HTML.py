@@ -927,7 +927,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 
 			const animStates = {};
 			const animFreq = [0, 1/2.1, 1/1.3, 1/0.8]; // cycles/second for speeds 0-3
-			function toggleAnimation(axisTag) {
+			function setAxisSpeed(axisTag, newSpeed) {
 				if (!animStates[axisTag]) {
 					animStates[axisTag] = {speed: 0, animId: null, startTime: 0, phaseOffset: 0};
 				}
@@ -945,11 +945,11 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 					currentPhase = Math.acos(Math.max(-1, Math.min(1, ratio)));
 				}
 				if (state.animId) { cancelAnimationFrame(state.animId); state.animId = null; }
-				state.speed = (state.speed + 1) %% 4;
+				state.speed = newSpeed;
 				const btn = document.getElementById('play_' + axisTag);
 				const symbols = ['▶', '①', '②', '③'];
-				btn.textContent = symbols[state.speed];
-				if (state.speed === 0) return;
+				if (btn) btn.textContent = symbols[state.speed];
+				if (state.speed === 0) { updatePlayAllButton(); return; }
 				state.startTime = now;
 				state.phaseOffset = currentPhase;
 				function animFrame(time) {
@@ -964,6 +964,11 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 					s.animId = requestAnimationFrame(animFrame);
 				}
 				state.animId = requestAnimationFrame(animFrame);
+				updatePlayAllButton();
+			}
+			function toggleAnimation(axisTag) {
+				const current = animStates[axisTag] ? animStates[axisTag].speed : 0;
+				setAxisSpeed(axisTag, (current + 1) %% 4);
 			}
 			function pauseAllAnimations() {
 				for (const axisTag in animStates) {
@@ -974,6 +979,32 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 						const btn = document.getElementById('play_' + axisTag);
 						if (btn) btn.textContent = '▶';
 					}
+				}
+				updatePlayAllButton();
+			}
+			function anyAxisAnimating() {
+				for (const axisTag in animStates) {
+					if (animStates[axisTag].speed > 0) return true;
+				}
+				return false;
+			}
+			function updatePlayAllButton() {
+				const btn = document.getElementById('playAll');
+				if (btn) btn.textContent = anyAxisAnimating() ? '⏸️' : '▶️';
+			}
+			function playAllAxes() {
+				// speeds cycle 1,2,3,1,2,3,… so multiple axes cover more of the design space
+				const btns = document.getElementsByClassName('playBtn');
+				for (let i = 0; i < btns.length; i++) {
+					const axisTag = btns[i].id.substring(5); // strip "play_"
+					setAxisSpeed(axisTag, (i %% 3) + 1);
+				}
+			}
+			function togglePlayAll() {
+				if (anyAxisAnimating()) {
+					pauseAllAnimations();
+				} else {
+					playAllAxes();
 				}
 			}
 			let gridTooltip = null;
@@ -1306,6 +1337,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				<a onclick="toggleType();" id="type" class="emojiButton" title="Switch font format (TTF/OTF, WOFF, WOFF2)">&nbsp;###TTW1W2###</a>
 				<a onclick="reloadFontFace();" id="reload" class="emojiButton" title="Reload the font from disk (Ctrl-U)">&nbsp;🔄</a>
 				<a onclick="toggleGridView();" id="gridToggle" class="emojiButton" title="Toggle grid view of all glyphs (Ctrl-G)">&nbsp;🔡&nbsp;</a>
+				<a onclick="togglePlayAll();" id="playAll" class="emojiButton" title="Animate all axes / pause (Ctrl-P)">&nbsp;▶️&nbsp;</a>
 
 			<!-- Samsa -->
 				%s
