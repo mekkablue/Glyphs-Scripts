@@ -728,7 +728,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				cursor: pointer;
 				text-decoration: none;
 				display: inline-block;
-				padding: 0 0.3em;
+				margin: 0 .04em;
 			}
 			.otFeatureLabel, .otFeature {
 				font-size: small;
@@ -1286,13 +1286,16 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 			}
 			function toggleInverse() {
 				const testText = document.getElementById("textarea");
+				const gridview = document.getElementById("gridview");
 				if (testText) {
 					const link = document.getElementById("invert");
 					if (testText.className == "●") {
 						testText.className = "○";
+						if (gridview) gridview.className = "○";
 						link.textContent = "🔳";
 					} else {
 						testText.className = "●";
+						if (gridview) gridview.className = "●";
 						link.textContent = "🔲";
 					}
 				}
