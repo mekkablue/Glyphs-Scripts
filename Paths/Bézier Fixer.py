@@ -404,39 +404,48 @@ class BezierFixer(mekkaObject):
 		self.w.makeKey()
 
 		# live preview: react to Glyphs' own selection/redraw events instead of polling
-		Glyphs.addCallback(self.updatePreview, UPDATEINTERFACE)
+		Glyphs.addCallback(self.interfaceUpdated, UPDATEINTERFACE)
 		self.w.bind("close", self.windowClose)
-		self.updatePreview()
+		self.interfaceUpdated()
 
 	def windowClose(self, sender=None):
-		Glyphs.removeCallback(self.updatePreview)
+		Glyphs.removeCallback(self.interfaceUpdated)
 
 	def updateUI(self, sender=None):
 		tunnifyOn = self.pref("tunnify")
 		self.w.tunnifyStrength.enable(tunnifyOn)
 		self.w.tunnifyStrengthLabel.set(f"{int(round(self.pref('tunnifyStrength')))}%")
 
-	def updatePreview(self, sender=None):
+	def interfaceUpdated(self, sender=None):
 		"""
-		Live preview: keeps the currently active layer(s) in sync with the
-		current checkbox/slider settings. Always recomputes from a pristine
-		snapshot taken when the layer was first seen, so dragging the slider
-		or flipping a checkbox back and forth never drifts or compounds.
+		Registered as the UPDATEINTERFACE callback, which fires very
+		frequently (on almost any redraw, not just when the selection
+		changes). Stays cheap on every one of those ticks: only when the
+		watched layer(s) actually changed does it re-snapshot and re-run
+		the (comparatively expensive) preview pipeline.
 		"""
 		if self.isApplyingPreview:
 			return  # ignore redraw events triggered by our own writes below
+		font = Glyphs.font
+		layers = list(font.selectedLayers) if font else []
+		layerIDs = tuple(id(layer) for layer in layers)
+		if layerIDs == self.watchedLayerIDs:
+			return  # nothing relevant changed, don't recompute
+		self.watchedLayerIDs = layerIDs
+		self.watchedLayers = layers
+		self.snapshots = {layer: snapshotLayer(layer) for layer in layers}
+		self.applyPreview()
+
+	def applyPreview(self, sender=None):
+		"""
+		Applies the current checkbox/slider settings to the watched
+		layer(s). Always recomputes from the pristine snapshot taken when
+		the layer was first seen, so dragging the slider or flipping a
+		checkbox back and forth never drifts or compounds.
+		"""
+		if self.isApplyingPreview or not self.watchedLayers:
+			return
 		try:
-			font = Glyphs.font
-			layers = list(font.selectedLayers) if font else []
-			layerIDs = tuple(id(layer) for layer in layers)
-			if layerIDs != self.watchedLayerIDs:
-				self.watchedLayerIDs = layerIDs
-				self.watchedLayers = layers
-				self.snapshots = {layer: snapshotLayer(layer) for layer in layers}
-
-			if not self.watchedLayers:
-				return
-
 			doTunnify = self.pref("tunnify")
 			tunnifyStrength = self.pref("tunnifyStrength") / 100.0
 			doRealign = self.pref("realign")
@@ -464,7 +473,7 @@ class BezierFixer(mekkaObject):
 
 	def SavePreferences(self, sender=None):
 		super().SavePreferences(sender)
-		self.updatePreview()
+		self.applyPreview()
 
 	def BezierFixerMain(self, sender=None):
 		try:
