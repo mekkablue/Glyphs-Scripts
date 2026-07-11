@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Small floating panel combining three curve cleanup steps for the selected glyphs: Realign (fixes out-of-sync BCPs of smooth nodes), Tunnify (balances handle distribution, Tunnify 2 algorithm, adjustable strength), and Harmonize (establishes G2 continuity at smooth nodes, Green Harmony algorithm). Replaces the separate Realign BCPs, Tunnify and Tunnify 2.0 scripts.
+Small floating panel combining three curve cleanup steps for the selected glyphs: Realign (fixes out-of-sync BCPs of smooth nodes), Tunnify (balances handle distribution, Tunnify 2 algorithm, adjustable strength), and Harmonize (establishes G2 continuity at smooth nodes, Green Harmony algorithm). Previews live in the active layer as you toggle the checkboxes or drag the slider. Fix commits the result and, if All Masters is on, propagates it to the other masters/special layers. Replaces the separate Realign BCPs, Tunnify and Tunnify 2.0 scripts.
 """
 
 import math
 import vanilla
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSSMOOTH, GSOFFCURVE, GSCURVE, Message
+from GlyphsApp import Glyphs, GSSMOOTH, GSOFFCURVE, GSCURVE, Message, UPDATEINTERFACE, TABDIDCHANGE
 from mekkablue import mekkaObject
 
 # ---------------------------------------------------------------------------
@@ -301,6 +301,35 @@ def harmonizeLayer(layer):
 
 
 # ---------------------------------------------------------------------------
+# Shared pipeline: used both for the live preview and for the Fix button,
+# so the two can never diverge. If a snapshot is given, the layer is reset
+# to that pristine geometry first, so repeated calls (e.g., while dragging
+# the slider) never drift and always reflect the current settings only.
+# ---------------------------------------------------------------------------
+
+
+def snapshotLayer(layer):
+	"""Captures the current x/y of every node in the layer, keyed by node."""
+	return {n: (n.x, n.y) for p in layer.paths for n in p.nodes}
+
+
+def restoreSnapshot(snapshot):
+	for n, (x, y) in snapshot.items():
+		n.x, n.y = x, y
+
+
+def applyFixPipeline(layer, doRealign, doTunnify, tunnifyStrength, doHarmonize, snapshot=None):
+	if snapshot is not None:
+		restoreSnapshot(snapshot)
+	if doRealign:
+		realignLayer(layer)
+	if doTunnify:
+		tunnifyLayer(layer, strength=tunnifyStrength)
+	if doHarmonize:
+		harmonizeLayer(layer)
+
+
+# ---------------------------------------------------------------------------
 # UI
 # ---------------------------------------------------------------------------
 
@@ -315,6 +344,12 @@ class BezierFixer(mekkaObject):
 	}
 
 	def __init__(self):
+		# live-preview state: which layers we last snapshotted, and their pristine geometry
+		self.watchedLayerIDs = ()
+		self.watchedLayers = []
+		self.snapshots = {}
+		self.isApplyingPreview = False
+
 		windowWidth = 126
 		windowHeight = 160
 		self.w = vanilla.FloatingWindow(
@@ -361,19 +396,76 @@ class BezierFixer(mekkaObject):
 		linePos += lineHeight
 
 		self.w.runButton = vanilla.Button((inset, -20 - inset, -inset, -inset), "Fix", callback=self.BezierFixerMain)
+		self.w.runButton.setToolTip("Changes already preview live in the active layer. Fix commits them and, if All Masters is on, propagates them to the other masters/special layers too.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.LoadPreferences()
 		self.w.open()
 		self.w.makeKey()
 
+		# live preview: react to Glyphs' own selection/redraw events instead of polling
+		Glyphs.addCallback(self.updatePreview, UPDATEINTERFACE)
+		Glyphs.addCallback(self.updatePreview, TABDIDCHANGE)
+		self.w.bind("close", self.windowClose)
+		self.updatePreview()
+
+	def windowClose(self, sender=None):
+		Glyphs.removeCallback(self.updatePreview)
+
 	def updateUI(self, sender=None):
 		tunnifyOn = self.pref("tunnify")
 		self.w.tunnifyStrength.enable(tunnifyOn)
 		self.w.tunnifyStrengthLabel.set(f"{int(round(self.pref('tunnifyStrength')))}%")
 
+	def updatePreview(self, sender=None):
+		"""
+		Live preview: keeps the currently active layer(s) in sync with the
+		current checkbox/slider settings. Always recomputes from a pristine
+		snapshot taken when the layer was first seen, so dragging the slider
+		or flipping a checkbox back and forth never drifts or compounds.
+		"""
+		if self.isApplyingPreview:
+			return  # ignore redraw events triggered by our own writes below
+		try:
+			font = Glyphs.font
+			layers = list(font.selectedLayers) if font else []
+			layerIDs = tuple(id(layer) for layer in layers)
+			if layerIDs != self.watchedLayerIDs:
+				self.watchedLayerIDs = layerIDs
+				self.watchedLayers = layers
+				self.snapshots = {layer: snapshotLayer(layer) for layer in layers}
+
+			if not self.watchedLayers:
+				return
+
+			doTunnify = self.pref("tunnify")
+			tunnifyStrength = self.pref("tunnifyStrength") / 100.0
+			doRealign = self.pref("realign")
+			doHarmonize = self.pref("harmonize")
+
+			self.isApplyingPreview = True
+			try:
+				for layer in self.watchedLayers:
+					snapshot = self.snapshots.get(layer)
+					if snapshot is None:
+						continue
+					thisGlyph = layer.parent
+					thisGlyph.beginUndo()
+					try:
+						applyFixPipeline(layer, doRealign, doTunnify, tunnifyStrength, doHarmonize, snapshot=snapshot)
+					finally:
+						thisGlyph.endUndo()
+				Glyphs.redraw()
+			finally:
+				self.isApplyingPreview = False
+		except Exception:
+			import traceback
+			print("\n⚠️ Bézier Fixer live preview error\n")
+			print(traceback.format_exc())
+
 	def SavePreferences(self, sender=None):
 		super().SavePreferences(sender)
+		self.updatePreview()
 
 	def BezierFixerMain(self, sender=None):
 		try:
@@ -419,12 +511,10 @@ class BezierFixer(mekkaObject):
 					thisGlyph.beginUndo()
 					try:
 						for layer in layersToFix:
-							if doRealign:
-								realignLayer(layer)
-							if doTunnify:
-								tunnifyLayer(layer, strength=tunnifyStrength)
-							if doHarmonize:
-								harmonizeLayer(layer)
+							# reuse the pristine snapshot for layers already live-previewed,
+							# so Fix reproduces exactly what was on screen, never a double-application
+							snapshot = self.snapshots.get(layer)
+							applyFixPipeline(layer, doRealign, doTunnify, tunnifyStrength, doHarmonize, snapshot=snapshot)
 					finally:
 						thisGlyph.endUndo()
 
