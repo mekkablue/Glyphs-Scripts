@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Small floating panel combining three curve cleanup steps for the selected glyphs: Realign (fixes out-of-sync BCPs of smooth nodes), Tunnify (balances handle distribution, Tunnify 2 algorithm, adjustable strength), and Harmonize (establishes G2 continuity at smooth nodes, Green Harmony algorithm). Previews live in the active layer as you toggle the checkboxes or drag the slider. Fix commits the result and, if All Masters is on, propagates it to the other masters/special layers. Replaces the separate Realign BCPs, Tunnify and Tunnify 2.0 scripts.
+Small floating panel combining three curve cleanup steps for the selected glyphs: Realign (fixes out-of-sync BCPs of smooth nodes), Tunnify (balances handle distribution, Tunnify 2 algorithm, adjustable strength), and Harmonize (establishes G2 continuity at smooth nodes, Green Harmony algorithm). Previews live in the active layer as you toggle the checkboxes or drag the slider, without committing anything. Fix commits the result and, if All Masters is on, propagates it to the other masters/special layers; closing the panel without clicking Fix reverts the preview and leaves the glyph untouched. Replaces the separate Realign BCPs, Tunnify and Tunnify 2.0 scripts.
 """
 
 import math
@@ -396,7 +396,7 @@ class BezierFixer(mekkaObject):
 		linePos += lineHeight
 
 		self.w.runButton = vanilla.Button((inset, -20 - inset, -inset, -inset), "Fix", callback=self.BezierFixerMain)
-		self.w.runButton.setToolTip("Changes already preview live in the active layer. Fix commits them and, if All Masters is on, propagates them to the other masters/special layers too.")
+		self.w.runButton.setToolTip("Changes already preview live in the active layer, but are not committed yet. Fix commits them and, if All Masters is on, propagates them to the other masters/special layers too. Closing the panel without clicking Fix reverts the preview.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.LoadPreferences()
@@ -410,6 +410,31 @@ class BezierFixer(mekkaObject):
 
 	def windowClose(self, sender=None):
 		Glyphs.removeCallback(self.interfaceUpdated)
+		self.revertPreview()
+
+	def revertPreview(self):
+		"""
+		Restores every watched layer back to its last committed baseline
+		(the pristine original, or the result of the last Fix click if any),
+		undoing whatever was only live-previewed but never committed.
+		"""
+		if not self.watchedLayers:
+			return
+		self.isApplyingPreview = True
+		try:
+			for layer in self.watchedLayers:
+				snapshot = self.snapshots.get(layer)
+				if snapshot is None:
+					continue
+				thisGlyph = layer.parent
+				thisGlyph.beginUndo()
+				try:
+					restoreSnapshot(snapshot)
+				finally:
+					thisGlyph.endUndo()
+			Glyphs.redraw()
+		finally:
+			self.isApplyingPreview = False
 
 	def updateUI(self, sender=None):
 		tunnifyOn = self.pref("tunnify")
@@ -523,6 +548,9 @@ class BezierFixer(mekkaObject):
 							# so Fix reproduces exactly what was on screen, never a double-application
 							snapshot = self.snapshots.get(layer)
 							applyFixPipeline(layer, doRealign, doTunnify, tunnifyStrength, doHarmonize, snapshot=snapshot)
+							if layer in self.snapshots:
+								# this is now committed: closing the window should no longer revert past this point
+								self.snapshots[layer] = snapshotLayer(layer)
 					finally:
 						thisGlyph.endUndo()
 
