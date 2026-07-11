@@ -8,7 +8,7 @@ Small floating panel combining three curve cleanup steps for the selected glyphs
 import math
 import vanilla
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSSMOOTH, GSOFFCURVE, GSCURVE, Message, UPDATEINTERFACE, TABDIDCHANGE
+from GlyphsApp import Glyphs, GSSMOOTH, GSOFFCURVE, GSCURVE, Message, UPDATEINTERFACE
 from mekkablue import mekkaObject
 
 # ---------------------------------------------------------------------------
@@ -405,7 +405,6 @@ class BezierFixer(mekkaObject):
 
 		# live preview: react to Glyphs' own selection/redraw events instead of polling
 		Glyphs.addCallback(self.updatePreview, UPDATEINTERFACE)
-		Glyphs.addCallback(self.updatePreview, TABDIDCHANGE)
 		self.w.bind("close", self.windowClose)
 		self.updatePreview()
 
