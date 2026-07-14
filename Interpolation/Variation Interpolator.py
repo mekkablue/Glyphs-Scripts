@@ -89,21 +89,8 @@ def compatibilityReport(layerA, layerB, labelA="Foreground", labelB="Background"
 
 
 def interpolateLayers(newGlyph, layerA, layerB, interpolationFactor, thisFont):
-	
-	if Glyphs.versionNumber >= 4.0:
-		newLayer = newGlyph._interpolateLayers_interpolation_masters_scale_decompose_font_error_(
-			[layerA, layerB],  # layers
-			{
-				layerA.layerId: 1.0 - interpolationFactor,
-				layerB.layerId: interpolationFactor
-			},                 # interpolation
-			None,              # masters
-			1.0,               #scale
-			False,             # decompose
-			thisFont,          # font
-			None,              # error
-		)
-	else:
+
+	if Glyphs.versionNumber >= 3.5:
 		newLayer = newGlyph._interpolateLayers_interpolation_scale_masters_decompose_font_error_(
 			[layerA, layerB],  # layers
 			{
@@ -111,6 +98,18 @@ def interpolateLayers(newGlyph, layerA, layerB, interpolationFactor, thisFont):
 				layerB.layerId: interpolationFactor
 			},                 # interpolation
 			1.0,               #scale
+			None,              # masters
+			False,             # decompose
+			thisFont,          # font
+			None,              # error
+		)
+	else:
+		newLayer = newGlyph._interpolateLayers_interpolation_masters_decompose_font_error_(
+			[layerA, layerB],  # layers
+			{
+				layerA.layerId: 1.0 - interpolationFactor,
+				layerB.layerId: interpolationFactor
+			},                 # interpolation
 			None,              # masters
 			False,             # decompose
 			thisFont,          # font
