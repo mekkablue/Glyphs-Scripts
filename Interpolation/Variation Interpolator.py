@@ -6,7 +6,7 @@ Interpolates each layer x times with its background and creates glyph variations
 """
 
 import vanilla
-from AppKit import NSHeight
+from Cocoa import NSHeight
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
@@ -127,9 +127,9 @@ def interpolateLayers(newGlyph, layerA, layerB, interpolationFactor, thisFont):
 				interpolationFactor,
 			)
 		)
-	
+
 	return newLayer
-	
+
 
 class VariationInterpolator(mekkaObject):
 	prefDict = {
@@ -200,7 +200,7 @@ class VariationInterpolator(mekkaObject):
 			self.w.postSuffixText.show(False)
 			self.w.glyphNameText.show(True)
 			self.w.glyphName.show(True)
-			self.w.runButton.enable(bool(self.w.glyphName.get().strip()) and Glyphs.font and len(Glyphs.font.selectedLayers)==2)
+			self.w.runButton.enable(bool(self.w.glyphName.get().strip()) and Glyphs.font and len(Glyphs.font.selectedLayers) == 2)
 		else:
 			self.w.suffixText.show(True)
 			self.w.suffix.show(True)
@@ -266,7 +266,7 @@ class VariationInterpolator(mekkaObject):
 				else:
 					thisGlyph = thisLayer.parent
 					print(f"{thisGlyph.name}: Anchor ‘{foregroundAnchor.name}’ not in background.")
-		
+
 	def interpolateComponents(self, thisLayer, backgroundFactor, foregroundFactor):
 		for i, thisComponent in enumerate(thisLayer.components):
 			backgroundComponent = thisLayer.background.components[i]
@@ -285,13 +285,13 @@ class VariationInterpolator(mekkaObject):
 				)
 				thisComponent.rotation = (
 					thisComponent.rotation * foregroundFactor + backgroundComponent.rotation * backgroundFactor
-					)
+				)
 				thisComponent.smartComponentValues = interpolateDicts(
 					dict(thisComponent.smartComponentValues),
 					dict(backgroundComponent.smartComponentValues),
 					interpolationFactor=foregroundFactor,
-					)
-				
+				)
+
 				# # smart components:
 				# thisFont = thisLayer.parent.parent
 				# if thisFont:
@@ -346,7 +346,6 @@ class VariationInterpolator(mekkaObject):
 				incompatibleReports = []  # list of (reportString, detailString), no duplicates
 				incompatibleSeen = set()
 				interpolatedGlyphNames = []
-
 				if choice < 2:
 					# interpolate between foreground and background
 					for thisGlyph in selectedGlyphs:
@@ -441,8 +440,8 @@ class VariationInterpolator(mekkaObject):
 					)
 				else:
 					tab = thisFont.currentTab or thisFont.newTab()
-					tab.text = "/" +  "/".join([g.name for g in selectedGlyphs]) + "\n/" + "/".join(interpolatedGlyphNames)
-				
+					tab.text = "/" + "/".join([g.name for g in selectedGlyphs]) + "\n/" + "/".join(interpolatedGlyphNames)
+
 			except Exception as e:
 				Glyphs.showMacroWindow()
 				print("\n⚠️ Script Error:\n")
