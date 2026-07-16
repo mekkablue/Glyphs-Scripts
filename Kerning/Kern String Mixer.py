@@ -107,7 +107,10 @@ class KernStringMixer(mekkaObject):
 			if not font:
 				return ""
 
-		evaluatedToken = GSFeature.evaluatePredicateToken_font_error_(token, font, None)
+		if hasattr(GSFeature, "evaluatePredicateToken_font_contextLabel_error_"):
+			evaluatedToken = GSFeature.evaluatePredicateToken_font_contextLabel_error_(token, font, "", None)
+		else:
+			evaluatedToken = GSFeature.evaluatePredicateToken_font_error_(token, font, None)
 		print("Evaluation: %s\n" % evaluatedToken)
 		return evaluatedToken
 
