@@ -2,6 +2,7 @@
 from __future__ import print_function
 from GlyphsApp import Glyphs
 from AppKit import NSNotFound, NSClassFromString
+from Foundation import NSMutableArray
 
 
 def chooseSampleTextSelection(categoryIndex=0, entryIndex=0):
@@ -23,7 +24,7 @@ def chooseSampleTextSelection(categoryIndex=0, entryIndex=0):
 def setSelectSampleTextIndex(thisFont, tab=None, marker="### CUSTOM KERN STRING ###"):
 	if Glyphs.versionNumber >= 3:
 		# Glyphs 3 code
-		sampleTexts = [d['name'] for d in Glyphs.defaults["SampleTextsList"]]
+		sampleTexts = [d['name'] for d in (Glyphs.defaults["SampleTextsList"] or [])]
 
 		foundSampleString = False
 		for sampleTextIndex, title in enumerate(sampleTexts):  # step through the categories until we find our marker
@@ -44,9 +45,9 @@ def setSelectSampleTextIndex(thisFont, tab=None, marker="### CUSTOM KERN STRING 
 			print(f"Warning: Could not find ‘{marker}’ in sample strings.")
 	else:
 		# Glyphs 2 code
-		sampleTexts = tuple(Glyphs.defaults["SampleTexts"])
-		sampleTextIndex = sampleTexts.index(marker)
-		if sampleTextIndex > -1:
+		sampleTexts = tuple(Glyphs.defaults["SampleTexts"] or ())
+		if marker in sampleTexts:
+			sampleTextIndex = sampleTexts.index(marker)
 			if not tab:
 				tab = thisFont.currentTab
 				if not tab:
@@ -68,7 +69,12 @@ def addToSampleText(kernStrings, marker="### CUSTOM KERN STRING ###"):
 
 			kernStringLines = "\n".join(kernStrings)
 			newKernStringEntry = dict(name=marker, text=kernStringLines)
-			sampleTexts = Glyphs.defaults["SampleTextsList"].mutableCopy()
+			storedSampleTexts = Glyphs.defaults["SampleTextsList"]
+			if storedSampleTexts:
+				sampleTexts = storedSampleTexts.mutableCopy()
+			else:
+				# pref has never been set (e.g. fresh install):
+				sampleTexts = NSMutableArray.array()
 
 			# clear old kern strings with same marker:
 			indexesToRemove = []
@@ -86,7 +92,12 @@ def addToSampleText(kernStrings, marker="### CUSTOM KERN STRING ###"):
 		else:
 			# Glyphs 2 code
 			# Get current sample texts:
-			sampleTexts = Glyphs.defaults["SampleTexts"].mutableCopy()
+			storedSampleTexts = Glyphs.defaults["SampleTexts"]
+			if storedSampleTexts:
+				sampleTexts = storedSampleTexts.mutableCopy()
+			else:
+				# pref has never been set (e.g. fresh install):
+				sampleTexts = NSMutableArray.array()
 
 			# Cut off after marker text:
 			i = sampleTexts.indexOfObject_(marker)
