@@ -228,7 +228,9 @@ class BBoxBumperKerning(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.status = vanilla.TextBox((inset, -20 - inset, -130 - inset, 14), "", sizeStyle="small")
+		self.w.status = vanilla.TextBox((inset, -20 - inset, -250 - inset, 14), "", sizeStyle="small")
+		self.w.openFeaturesButton = vanilla.Button((-230 - inset, -20 - inset, -130 - inset, -inset), "Open Features", callback=self.openFeatures)
+		self.w.openFeaturesButton.setToolTip("Opens Font Info > Features so you can inspect the inserted kern feature code.")
 		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Bump BBox", callback=self.BBoxBumperKerningMain)
 		self.w.setDefaultButton(self.w.runButton)
 
@@ -246,6 +248,14 @@ class BBoxBumperKerning(mekkaObject):
 		if URL:
 			import webbrowser
 			webbrowser.open(URL)
+
+	def openFeatures(self, sender=None):
+		thisFont = Glyphs.font
+		if thisFont is None:
+			Message(title="No Font Open", message="The script requires at least one font. Open a font and run the script again.", OKButton=None)
+			return
+		# opens Font Info at the Features tab (4th tab, index 3):
+		thisFont.parent.windowController().showFontInfoWindowWithTabSelected_(3)
 
 	def updateClassName(self, sender=None):
 		token = self.pref("token")
