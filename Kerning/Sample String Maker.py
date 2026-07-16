@@ -114,6 +114,10 @@ class SampleStringMaker(mekkaObject):
 		self.w.lockKerning.setToolTip("Will set the kerning lock in the tab, prevents you from spacing accidentally.")
 		linePos += lineHeight
 
+		# Open Tab Button:
+		self.w.openTabButton = vanilla.Button((-80 - inset - 100, -20 - inset, -80 - inset - 10, -inset), "Open Tab", callback=self.OpenTab)
+		self.w.openTabButton.setToolTip("Opens all kern strings as lines in a single Edit tab (does not add them to the Sample Texts).")
+
 		# Run Button:
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Add", callback=self.SampleStringMakerMain)
 		self.w.setDefaultButton(self.w.runButton)
@@ -153,101 +157,117 @@ class SampleStringMaker(mekkaObject):
 			linePrefix, linePostfix = txt, txt
 		return linePrefix, linePostfix
 
+	def collectKernStrings(self):
+		"""Builds the kern strings based on the current settings. Returns a list of kern strings, or None if none could be built."""
+		# update settings to the latest user input:
+		self.SavePreferences()
+
+		thisFont = Glyphs.font  # frontmost font
+		print("Sample String Maker Report for %s" % thisFont.familyName)
+		print(thisFont.filepath)
+		print()
+
+		leftChoice = self.categoryList[self.pref("leftCategoryPopup")]
+		rightChoice = self.categoryList[self.pref("rightCategoryPopup")]
+		chosenScript = self.scripts[self.pref("scriptPopup")]
+		leftCategory = leftChoice.split(":")[0]
+		rightCategory = rightChoice.split(":")[0]
+
+		leftSubCategory, rightSubCategory = None, None
+		if ":" in leftChoice:
+			leftSubCategory = leftChoice.split(":")[1]
+		if ":" in rightChoice:
+			rightSubCategory = rightChoice.split(":")[1]
+
+		includeNonExporting = self.pref("includeNonExporting")
+
+		glyphNamesLeft, glyphNamesRight = [], []
+		for g in thisFont.glyphs:
+			glyphSubCategory = g.subCategory
+			if Glyphs.versionNumber >= 3:
+				if glyphSubCategory is None:
+					glyphSubCategory = CASE[g.case]
+
+			# LEFT
+			if g.category == leftCategory and \
+				(leftSubCategory is None or glyphSubCategory == leftSubCategory) and \
+				(g.script == chosenScript or (leftCategory != "Letter" and g.script is None)) and \
+				(g.export or includeNonExporting) and \
+				g.name not in self.exclusion and \
+				not self.glyphNameIsExcluded(g.name):
+				glyphNamesLeft.append(g.name)
+
+			# RIGHT
+			if g.category == rightCategory and \
+				(rightSubCategory is None or glyphSubCategory == rightSubCategory) and \
+				(g.script == chosenScript or (rightCategory != "Letter" and g.script is None)) and \
+				(g.export or includeNonExporting) and \
+				g.name not in self.exclusion and \
+				not self.glyphNameIsExcluded(g.name):
+				glyphNamesRight.append(g.name)
+
+		numLeftGlyphs = len(glyphNamesLeft)
+		numRightGlyphs = len(glyphNamesRight)
+
+		print("Found %i left glyphs, %i right glyphs." % (numLeftGlyphs, numRightGlyphs))
+
+		linePrefix = "nonn"
+		linePostfix = "noon"
+
+		numberTriggers = ("Math", "Currency", "Decimal Digit")
+		if leftSubCategory in numberTriggers or rightSubCategory in numberTriggers:
+			linePrefix = "1200"
+			linePostfix = "0034567"
+
+		if leftSubCategory == "Uppercase":
+			linePrefix = "HOOH"
+		elif leftSubCategory == "Smallcaps":
+			linePrefix = "/h.sc/o.sc/h.sc/h.sc"
+		if rightSubCategory == "Smallcaps":
+			linePostfix = "/h.sc/o.sc/o.sc/h.sc"
+
+		# if rightSubCategory == "Uppercase":
+		# 	linePostfix = "HOOH"
+		if self.pref("overrideContext"):
+			linePrefix, linePostfix = self.parseTheContextGlyphs()
+
+		mirrorPair = False
+		if self.pref("mirrorPair"):
+			mirrorPair = True
+
+		kernStrings = sampleText.buildKernStrings(glyphNamesLeft, glyphNamesRight, thisFont=thisFont, linePrefix=linePrefix, linePostfix=linePostfix, mirrorPair=mirrorPair)
+
+		if not kernStrings:
+			if numLeftGlyphs * numRightGlyphs == 0:
+				Message(
+					title="No Kern Strings Created",
+					message="The current settings are too strict. Found %i left, %i right glyphs, no kerning combinations could be built." % (numLeftGlyphs, numRightGlyphs),
+					OKButton=None
+				)
+			else:
+				Message(
+					title="No Kern Strings Created",
+					message="Could not build any kerning combinations with available groups. Make sure groups are set for the chosen glyphs.",
+					OKButton=None
+				)
+			print("No kern strings built. Done.")
+			return None
+
+		return kernStrings
+
+	def lockKerningInTab(self, tab):
+		# set the tab to lock kerning:
+		if self.pref("lockKerning"):
+			tab.graphicView().setDoSpacing_(0)
+			tab.graphicView().setDoKerning_(1)
+			tab.updateKerningButton()
+
 	def SampleStringMakerMain(self, sender):
 		try:
-			# update settings to the latest user input:
-			self.SavePreferences()
-
 			thisFont = Glyphs.font  # frontmost font
-			print("Sample String Maker Report for %s" % thisFont.familyName)
-			print(thisFont.filepath)
-			print()
+			kernStrings = self.collectKernStrings()
 
-			leftChoice = self.categoryList[self.pref("leftCategoryPopup")]
-			rightChoice = self.categoryList[self.pref("rightCategoryPopup")]
-			chosenScript = self.scripts[self.pref("scriptPopup")]
-			leftCategory = leftChoice.split(":")[0]
-			rightCategory = rightChoice.split(":")[0]
-
-			leftSubCategory, rightSubCategory = None, None
-			if ":" in leftChoice:
-				leftSubCategory = leftChoice.split(":")[1]
-			if ":" in rightChoice:
-				rightSubCategory = rightChoice.split(":")[1]
-
-			includeNonExporting = self.pref("includeNonExporting")
-
-			glyphNamesLeft, glyphNamesRight = [], []
-			for g in thisFont.glyphs:
-				glyphSubCategory = g.subCategory
-				if Glyphs.versionNumber >= 3:
-					if glyphSubCategory is None:
-						glyphSubCategory = CASE[g.case]
-
-				# LEFT
-				if g.category == leftCategory and \
-					(leftSubCategory is None or glyphSubCategory == leftSubCategory) and \
-					(g.script == chosenScript or (leftCategory != "Letter" and g.script is None)) and \
-					(g.export or includeNonExporting) and \
-					g.name not in self.exclusion and \
-					not self.glyphNameIsExcluded(g.name):
-					glyphNamesLeft.append(g.name)
-
-				# RIGHT
-				if g.category == rightCategory and \
-					(rightSubCategory is None or glyphSubCategory == rightSubCategory) and \
-					(g.script == chosenScript or (rightCategory != "Letter" and g.script is None)) and \
-					(g.export or includeNonExporting) and \
-					g.name not in self.exclusion and \
-					not self.glyphNameIsExcluded(g.name):
-					glyphNamesRight.append(g.name)
-
-			numLeftGlyphs = len(glyphNamesLeft)
-			numRightGlyphs = len(glyphNamesRight)
-
-			print("Found %i left glyphs, %i right glyphs." % (numLeftGlyphs, numRightGlyphs))
-
-			linePrefix = "nonn"
-			linePostfix = "noon"
-
-			numberTriggers = ("Math", "Currency", "Decimal Digit")
-			if leftSubCategory in numberTriggers or rightSubCategory in numberTriggers:
-				linePrefix = "1200"
-				linePostfix = "0034567"
-
-			if leftSubCategory == "Uppercase":
-				linePrefix = "HOOH"
-			elif leftSubCategory == "Smallcaps":
-				linePrefix = "/h.sc/o.sc/h.sc/h.sc"
-			if rightSubCategory == "Smallcaps":
-				linePostfix = "/h.sc/o.sc/o.sc/h.sc"
-
-			# if rightSubCategory == "Uppercase":
-			# 	linePostfix = "HOOH"
-			if self.pref("overrideContext"):
-				linePrefix, linePostfix = self.parseTheContextGlyphs()
-
-			mirrorPair = False
-			if self.pref("mirrorPair"):
-				mirrorPair = True
-
-			kernStrings = sampleText.buildKernStrings(glyphNamesLeft, glyphNamesRight, thisFont=thisFont, linePrefix=linePrefix, linePostfix=linePostfix, mirrorPair=mirrorPair)
-
-			if not kernStrings:
-				if numLeftGlyphs * numRightGlyphs == 0:
-					Message(
-						title="No Kern Strings Created",
-						message="The current settings are too strict. Found %i left, %i right glyphs, no kerning combinations could be built." % (numLeftGlyphs, numRightGlyphs),
-						OKButton=None
-					)
-				else:
-					Message(
-						title="No Kern Strings Created",
-						message="Could not build any kerning combinations with available groups. Make sure groups are set for the chosen glyphs.",
-						OKButton=None
-					)
-				print("No kern strings built. Done.")
-			else:
+			if kernStrings:
 				sampleText.executeAndReport(kernStrings)
 
 				if self.pref("openTab"):
@@ -261,10 +281,34 @@ class SampleStringMaker(mekkaObject):
 						newTab.textCursor = cursorPos
 
 					# set it to lock kerning:
-					if self.pref("lockKerning"):
-						newTab.graphicView().setDoSpacing_(0)
-						newTab.graphicView().setDoKerning_(1)
-						newTab.updateKerningButton()
+					self.lockKerningInTab(newTab)
+
+				self.w.close()
+
+		except Exception as e:
+			# brings macro window to front and reports error:
+			Glyphs.showMacroWindow()
+			print("Sample String Maker Error: %s" % e)
+			import traceback
+			print(traceback.format_exc())
+
+	def OpenTab(self, sender):
+		try:
+			thisFont = Glyphs.font  # frontmost font
+			kernStrings = self.collectKernStrings()
+
+			if kernStrings:
+				# open all kern strings as lines in a single tab:
+				newTab = thisFont.newTab()
+				newTab.text = "\n".join(kernStrings)
+				print("Opened %i lines in a new tab." % len(kernStrings))
+
+				cursorPos = 5
+				if len(newTab.text) >= cursorPos:
+					newTab.textCursor = cursorPos
+
+				# set it to lock kerning:
+				self.lockKerningInTab(newTab)
 
 				self.w.close()
 
