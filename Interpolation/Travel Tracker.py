@@ -23,7 +23,10 @@ def setCurrentTabToShowAllInstances(font):
 			previewPanel.setSelectedInstance_(-1)
 		previewingTab.setSelectedInstance_(-1)
 		previewingTab.updatePreview()
-		previewingTab.forceRedraw()
+		if Glyphs.versionNumber >= 4.0:
+			previewingTab.redraw()
+		else:
+			previewingTab.forceRedraw()
 		previewingTab.reflow()
 		font.tool = "TextTool"
 		previewingTab.textCursor = 0
