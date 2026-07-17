@@ -124,7 +124,7 @@ class CompatibilityManager:
 	def updateViews(self, sender=None):
 		for font in Glyphs.fonts:
 			if font.currentTab:
-				font.currentTab.forceRedraw()
+				font.currentTab.redraw()
 				font.currentTab.graphicView().redraw()
 				font.currentTab.previewView().update()
 			font.fontView.redraw()

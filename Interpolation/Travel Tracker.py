@@ -23,7 +23,7 @@ def setCurrentTabToShowAllInstances(font):
 			previewPanel.setSelectedInstance_(-1)
 		previewingTab.setSelectedInstance_(-1)
 		previewingTab.updatePreview()
-		previewingTab.forceRedraw()
+		previewingTab.redraw()
 		previewingTab.reflow()
 		font.tool = "TextTool"
 		previewingTab.textCursor = 0

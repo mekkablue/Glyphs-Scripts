@@ -362,7 +362,7 @@ class GreenBlueManager(mekkaObject):
 
 					if numberOfLayers == 1 and len(glyphsToBeProcessed) != 1 and thisFont.currentTab:
 						# if only one layer was processed, do not open new tab:
-						thisFont.currentTab.forceRedraw()
+						thisFont.currentTab.redraw()
 						thisFont.currentTab.reflow()
 						if affectedLayersFixedConnections or affectedLayersRealignedHandles:
 							message = ""
