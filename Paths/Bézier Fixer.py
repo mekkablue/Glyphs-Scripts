@@ -12,6 +12,21 @@ from GlyphsApp import Glyphs, GSSMOOTH, GSOFFCURVE, GSCURVE, Message, UPDATEINTE
 from mekkablue import mekkaObject
 
 # ---------------------------------------------------------------------------
+# Selection helper: when a set of selected nodes is passed to the layer
+# functions, only segments/nodes that touch the selection are processed.
+# selectedNodes=None means "no restriction, process the whole layer".
+# ---------------------------------------------------------------------------
+
+
+def nodesInSelection(selectedNodes, *nodes):
+	"""True if the operation may proceed: either unrestricted (None) or at
+	least one of the involved nodes is part of the selection."""
+	if selectedNodes is None:
+		return True
+	return any(n in selectedNodes for n in nodes)
+
+
+# ---------------------------------------------------------------------------
 # Realign: fixes out-of-sync BCPs of smooth nodes.
 # Algorithm: mekkablue Realign BCPs / RealignHandles.
 # ---------------------------------------------------------------------------
@@ -39,13 +54,15 @@ def triplet(n1, n2, n3):
 	return (*n1.position, *n2.position, *n3.position)
 
 
-def realignLayer(layer):
+def realignLayer(layer, selectedNodes=None):
 	handleCount = 0
 	for p in layer.paths:
 		for n in p.nodes:
 			if n.connection != GSSMOOTH:
 				continue
 			nn, pn = n.nextNode, n.prevNode
+			if not nodesInSelection(selectedNodes, n, nn, pn):
+				continue
 			if all((nn.type == GSOFFCURVE, pn.type == GSOFFCURVE)):
 				# surrounding points are BCPs
 				smoothen, center, opposite = None, None, None
@@ -202,7 +219,7 @@ def tunnifySegment(a, b, c, d, strength=1.0):
 	c.position = newC
 
 
-def tunnifyLayer(layer, strength=1.0):
+def tunnifyLayer(layer, strength=1.0, selectedNodes=None):
 	for p in layer.paths:
 		for i, a in enumerate(p.nodes):
 			if a.type == GSOFFCURVE:
@@ -214,6 +231,8 @@ def tunnifyLayer(layer, strength=1.0):
 				continue
 			c, d = a.nextNode.nextNode, a.nextNode.nextNode.nextNode
 			if c.type != GSOFFCURVE or d.type == GSOFFCURVE:
+				continue
+			if not nodesInSelection(selectedNodes, a, b, c, d):
 				continue
 			tunnifySegment(a, b, c, d, strength=strength)
 
@@ -290,11 +309,13 @@ def harmonizeNode(node):
 	return True
 
 
-def harmonizeLayer(layer):
+def harmonizeLayer(layer, selectedNodes=None):
 	handleCount = 0
 	for p in layer.paths:
 		for n in p.nodes:
 			if n.type == GSCURVE and n.connection == GSSMOOTH:
+				if not nodesInSelection(selectedNodes, n, n.nextNode, n.prevNode):
+					continue
 				if harmonizeNode(n):
 					handleCount += 1
 	return handleCount
@@ -318,15 +339,46 @@ def restoreSnapshot(snapshot):
 		n.x, n.y = x, y
 
 
-def applyFixPipeline(layer, doRealign, doTunnify, tunnifyStrength, doHarmonize, snapshot=None):
+def selectedNodesOfLayer(layer):
+	"""Set of selected on-/off-curve GSNodes in the layer, ignoring anchors etc."""
+	selectionSet = set(layer.selection)
+	return {n for p in layer.paths for n in p.nodes if n in selectionSet}
+
+
+def selectedNodeIndices(layer):
+	"""Set of (pathIndex, nodeIndex) for every selected node in the layer.
+	Used to map a selection onto the corresponding nodes of other (compatible)
+	master/special layers when propagating a fix to All Masters."""
+	selectionSet = set(layer.selection)
+	indices = set()
+	for pathIndex, p in enumerate(layer.paths):
+		for nodeIndex, n in enumerate(p.nodes):
+			if n in selectionSet:
+				indices.add((pathIndex, nodeIndex))
+	return indices
+
+
+def nodesAtIndices(layer, indices):
+	"""Resolves (pathIndex, nodeIndex) tuples into the GSNodes of the given layer."""
+	nodes = set()
+	paths = layer.paths
+	for pathIndex, nodeIndex in indices:
+		if pathIndex < len(paths):
+			layerNodes = paths[pathIndex].nodes
+			if nodeIndex < len(layerNodes):
+				nodes.add(layerNodes[nodeIndex])
+	return nodes
+
+
+def applyFixPipeline(layer, doRealign, doTunnify, tunnifyStrength, doHarmonize, snapshot=None, selectedNodes=None):
 	if snapshot is not None:
 		restoreSnapshot(snapshot)
 	if doRealign:
-		realignLayer(layer)
+		realignLayer(layer, selectedNodes=selectedNodes)
 	if doTunnify:
-		tunnifyLayer(layer, strength=tunnifyStrength)
+		tunnifyLayer(layer, strength=tunnifyStrength, selectedNodes=selectedNodes)
 	if doHarmonize:
-		harmonizeLayer(layer)
+		harmonizeLayer(layer, selectedNodes=selectedNodes)
 
 
 # ---------------------------------------------------------------------------
@@ -476,16 +528,20 @@ class BezierFixer(mekkaObject):
 			doRealign = self.pref("realign")
 			doHarmonize = self.pref("harmonize")
 
+			# respect the node selection when exactly one glyph is selected
+			restrictToSelection = len(self.watchedLayers) == 1 and bool(self.watchedLayers[0].selection)
+
 			self.isApplyingPreview = True
 			try:
 				for layer in self.watchedLayers:
 					snapshot = self.snapshots.get(layer)
 					if snapshot is None:
 						continue
+					selectedNodes = selectedNodesOfLayer(layer) if restrictToSelection else None
 					thisGlyph = layer.parent
 					thisGlyph.beginUndo()
 					try:
-						applyFixPipeline(layer, doRealign, doTunnify, tunnifyStrength, doHarmonize, snapshot=snapshot)
+						applyFixPipeline(layer, doRealign, doTunnify, tunnifyStrength, doHarmonize, snapshot=snapshot, selectedNodes=selectedNodes)
 					finally:
 						thisGlyph.endUndo()
 				Glyphs.redraw()
@@ -527,6 +583,12 @@ class BezierFixer(mekkaObject):
 
 			print("Bézier Fixer Report\n")
 
+			# respect the node selection when exactly one glyph is selected;
+			# the selection is defined on the active layer only, so map it onto
+			# the corresponding nodes of the other layers via node indices.
+			restrictToSelection = len(selectedLayers) == 1 and bool(selectedLayers[0].selection)
+			selectionIndices = selectedNodeIndices(selectedLayers[0]) if restrictToSelection else None
+
 			processedGlyphNames = []
 			thisFont.disableUpdateInterface()
 			try:
@@ -547,7 +609,8 @@ class BezierFixer(mekkaObject):
 							# reuse the pristine snapshot for layers already live-previewed,
 							# so Fix reproduces exactly what was on screen, never a double-application
 							snapshot = self.snapshots.get(layer)
-							applyFixPipeline(layer, doRealign, doTunnify, tunnifyStrength, doHarmonize, snapshot=snapshot)
+							selectedNodes = nodesAtIndices(layer, selectionIndices) if selectionIndices is not None else None
+							applyFixPipeline(layer, doRealign, doTunnify, tunnifyStrength, doHarmonize, snapshot=snapshot, selectedNodes=selectedNodes)
 							if layer in self.snapshots:
 								# this is now committed: closing the window should no longer revert past this point
 								self.snapshots[layer] = snapshotLayer(layer)
