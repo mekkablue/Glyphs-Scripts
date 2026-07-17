@@ -939,7 +939,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 
 			const sliders = document.getElementsByClassName('slider');
 			const glyphInfos = ###glyphInfos###;
-			const plainFormat = {label: "###TTW1W2###", suffix: "###plainSuffix###"};
+			const plainFormat = {label: "###plainLabel###", suffix: "###plainSuffix###"};
 
 			const animStates = {};
 			const animFreq = [0, 1/2.1, 1/1.3, 1/0.8]; // cycles/second for speeds 0-3
@@ -1402,6 +1402,9 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 		"woff2": "W2",
 	}
 	fileTypeAbbreviation = typeAppreviations[fileName.split(".")[-1]]
+	# the plain (non-web) format keeps its own label, otherwise the toggle
+	# gets stuck cycling W1/W2 when the export file itself is a woff/woff2:
+	plainLabel = typeAppreviations.get(plainSuffix, "TT")
 
 	if not defaultSize:
 		defaultSize = "40"
@@ -1433,6 +1436,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 		("###defaultSize###", defaultSize),
 		("###glyphInfos###", glyphInfos),
 		("###plainSuffix###", plainSuffix),
+		("###plainLabel###", plainLabel),
 	)
 	htmlContent = replaceSet(htmlContent, replacements)
 	return htmlContent
