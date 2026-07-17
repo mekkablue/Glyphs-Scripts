@@ -21,7 +21,10 @@ if not lineheight > Font.upm * 10:
 	lineheight = round(lineheight)
 	Font.customParameters[parameterName] = lineheight
 	if Font.currentTab:
-		Font.currentTab.redraw()
+		if Glyphs.versionNumber >= 4.0:
+			Font.currentTab.redraw()
+		else:
+			Font.currentTab.forceRedraw()
 		Font.currentTab.reflow()
 else:
 	Message(title="Line Height Error", message="The line height exceeds the UPM more than tenfold already. Stop it now.", OKButton=None)
