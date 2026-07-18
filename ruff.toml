@@ -1,0 +1,59 @@
+# Exact port of the VSCode flake8 settings:
+#   --ignore=W191,E266,E501,E265,E722,W503,E303,E262,E701,E741,E261
+# flake8 checks E, W, F by default, so select those explicitly (Ruff's own
+# default is narrower). W503 omitted — not implemented in Ruff.
+# Ruff gates most pycodestyle formatting rules behind preview mode AND
+# requires them to be selected by exact code (prefix "E" won't include them).
+
+[lint]
+preview = true
+select = [
+	"E",    # pycodestyle errors (stable rules)
+	"W",    # pycodestyle warnings (stable rules)
+	"F",    # pyflakes (unused imports/variables, undefined names, …)
+	# preview-gated pycodestyle rules flake8 would check:
+	"E111", # indentation is not a multiple of the indent size
+	"E112", # expected an indented block
+	"E113", # unexpectedly indented
+	"E114", # indentation is not a multiple of the indent size (comment)
+	"E115", # expected an indented block (comment)
+	"E116", # unexpected indentation (comment)
+	"E117", # over-indented
+	"E201", # whitespace after '('
+	"E202", # whitespace before ')'
+	"E203", # whitespace before ':' ',' ';'
+	"E211", # whitespace before '(' or '['
+	"E221", # multiple spaces before operator
+	"E222", # multiple spaces after operator
+	"E223", # tab before operator
+	"E224", # tab after operator
+	"E225", # missing whitespace around operator
+	"E226", # missing whitespace around arithmetic operator
+	"E227", # missing whitespace around bitwise or shift operator
+	"E228", # missing whitespace around modulo operator
+	"E231", # missing whitespace after ',' ';' or ':'
+	"E241", # multiple spaces after comma
+	"E242", # tab after comma
+	"E251", # unexpected spaces around keyword / parameter equals
+	"E252", # missing whitespace around parameter equals
+	"E301", # expected 1 blank line between methods
+	"E302", # expected 2 blank lines before top-level definition
+	"E303", # too many blank lines (ignored below, kept for completeness)
+	"E304", # blank lines after function decorator
+	"E305", # expected 2 blank lines after class or function definition
+	"E306", # expected 1 blank line before nested definition
+	"E502", # redundant backslash between brackets
+	"W391", # blank line at end of file
+]
+ignore = [
+	"W191", # tab indentation
+	"E266", # too many leading # for block comment
+	"E501", # line too long
+	"E265", # block comment should start with '# '
+	"E722", # bare except
+	"E303", # too many blank lines
+	"E262", # inline comment should start with '# '
+	"E701", # multiple statements on one line (colon)
+	"E741", # ambiguous variable name
+	"E261", # two spaces before inline comment
+]

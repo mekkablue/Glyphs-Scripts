@@ -1,0 +1,10 @@
+{
+	"extraPaths": [
+		"/Applications/Glyphs 4.app/Contents/Scripts/typing/",
+		"/Applications/Glyphs 4.app/Contents/Scripts/GlyphsApp/",
+		"/Applications/Glyphs 4.app/Contents/Scripts/",
+		"/Library/Frameworks/Python.framework/Versions/3.15/lib/python3.15/site-packages",
+		"~/Library/Application Support/Glyphs 4/Scripts/"
+	],
+	"typeCheckingMode": "basic"
+}
