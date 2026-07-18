@@ -430,7 +430,7 @@ class BezierFixer(mekkaObject):
 		self.settingsExpanded = False
 
 		windowWidth = self.windowWidth
-		windowHeight = self.collapsedWindowHeight
+		windowHeight = 170
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Bézier Fixer",
@@ -438,6 +438,7 @@ class BezierFixer(mekkaObject):
 			maxSize=(windowWidth, windowHeight),
 			autosaveName=self.domain("mainwindow"),
 		)
+		self.clamp(newHeight=self.collapsedWindowHeight)
 
 		linePos, inset, lineHeight = 9, 13, 18
 
@@ -475,7 +476,7 @@ class BezierFixer(mekkaObject):
 		linePos += lineHeight
 
 		# collapsible settings section:
-		self.w.settingsButton = vanilla.Button((inset, linePos, -inset, 14), "▶︎ Settings", callback=self.toggleSettings, sizeStyle="mini")
+		self.w.settingsButton = vanilla.Button((inset-1, linePos, -inset, 14), "▶︎ Settings", callback=self.toggleSettings, sizeStyle="mini")
 		settingsNSButton = self.w.settingsButton.getNSButton()
 		settingsNSButton.setBordered_(False)
 		settingsNSButton.setAlignment_(NSTextAlignmentLeft)
@@ -550,10 +551,17 @@ class BezierFixer(mekkaObject):
 		self.w.preview.show(self.settingsExpanded)
 		self.w.backup.show(self.settingsExpanded)
 		newHeight = self.expandedWindowHeight if self.settingsExpanded else self.collapsedWindowHeight
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setContentMinSize_((self.windowWidth, newHeight))
-		nsWindow.setContentMaxSize_((self.windowWidth, newHeight))
-		self.w.resize(self.windowWidth, newHeight)
+		# self.w.minSize = (self.windowWidth, newHeight)
+		# self.w.maxSize = (self.windowWidth, newHeight)
+		self.clamp(newHeight=newHeight)
+	
+	def clamp(self, sender=None, newHeight=None):
+		if newHeight is None:
+			return
+		panel = self.w.getNSWindow()
+		panel.setContentMaxSize_((self.windowWidth, newHeight))
+		panel.setContentMinSize_((self.windowWidth, newHeight))
+		panel.setContentSize_((self.windowWidth, newHeight))
 
 	def interfaceUpdated(self, sender=None):
 		"""
