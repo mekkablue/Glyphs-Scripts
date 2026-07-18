@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Small floating panel combining three curve cleanup steps for the selected glyphs: Realign (fixes out-of-sync BCPs of smooth nodes), Tunnify (balances handle distribution, Tunnify 2 algorithm, adjustable strength), and Harmonize (establishes G2 continuity at smooth nodes, Green Harmony algorithm). With Preview on, previews live in the active layer as you toggle the checkboxes or drag the slider, without committing anything. A partial node selection restricts preview and fix to the segments touching the selected nodes (unselected segments revert to their previous state); no selection or a full selection (Cmd-A) processes the whole layer. Fix commits the result and, if All Masters is on, propagates it to the other masters/special layers; with Backup on, the original state of each fixed layer is stored in its background first. Turning Preview off or closing the panel without clicking Fix reverts the preview and leaves the glyph untouched. Replaces the separate Realign BCPs, Tunnify and Tunnify 2.0 scripts.
+Small floating panel combining three curve cleanup steps for the selected glyphs: Tunnify (balances handle distribution), Realign BCPs (fixes out-of-sync handles of smooth nodes), and Harmonize (G2 continuity at smooth nodes). See the tooltips in the UI for details.
 """
 
 import math
 import vanilla
-from AppKit import NSButtonTypePushOnPushOff, NSBezelStyleRoundRect
+from AppKit import NSTextAlignmentLeft
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSSMOOTH, GSOFFCURVE, GSCURVE, Message, UPDATEINTERFACE
 from mekkablue import mekkaObject
@@ -424,8 +424,13 @@ class BezierFixer(mekkaObject):
 		self.snapshots = {}
 		self.isApplyingPreview = False
 
-		windowWidth = 126
-		windowHeight = 152
+		self.windowWidth = 126
+		self.collapsedWindowHeight = 146
+		self.expandedWindowHeight = 184
+		self.settingsExpanded = False
+
+		windowWidth = self.windowWidth
+		windowHeight = self.collapsedWindowHeight
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Bézier Fixer",
@@ -469,19 +474,32 @@ class BezierFixer(mekkaObject):
 		self.w.allMasters.setToolTip("Applies the fixes to all masters and special layers of each selected glyph, not just the currently active layer.")
 		linePos += lineHeight
 
-		# two-state (toggle) buttons, side by side:
-		self.w.preview = vanilla.CheckBox((inset, linePos, 48, 18), "Preview", value=False, callback=self.SavePreferences, sizeStyle="small")
+		# collapsible settings section:
+		self.w.settingsButton = vanilla.Button((inset, linePos, -inset, 14), "▶︎ Settings", callback=self.toggleSettings, sizeStyle="mini")
+		settingsNSButton = self.w.settingsButton.getNSButton()
+		settingsNSButton.setBordered_(False)
+		settingsNSButton.setAlignment_(NSTextAlignmentLeft)
+		self.w.settingsButton.setToolTip("Preview and backup options.")
+		linePos += lineHeight - 2
+
+		self.w.preview = vanilla.CheckBox((inset + 12, linePos, -inset, 18), "Preview", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.preview.setToolTip("Live-previews the current settings in the active layer without committing anything. Turning Preview off (or closing the panel without clicking Fix) reverts the preview.")
-		self.w.backup = vanilla.CheckBox((-inset - 48, linePos, -inset, 18), "Backup", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.backup.setToolTip("When you click Fix, first backs up the original state of each fixed layer into its background.")
-		for toggleButton in (self.w.preview.getNSButton(), self.w.backup.getNSButton()):
-			toggleButton.setButtonType_(NSButtonTypePushOnPushOff)
-			toggleButton.setBezelStyle_(NSBezelStyleRoundRect)
 		linePos += lineHeight
+
+		self.w.backup = vanilla.CheckBox((inset + 12, linePos, -inset, 18), "Backup", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.backup.setToolTip("When you click Fix, first backs up the original state of each fixed layer into its background.")
+		linePos += lineHeight
+
+		self.w.preview.show(False)
+		self.w.backup.show(False)
 
 		self.w.runButton = vanilla.Button((inset, -20 - inset, -inset, -inset), "Fix", callback=self.BezierFixerMain)
 		self.w.runButton.setToolTip("Commits the fixes and, if All Masters is on, propagates them to the other masters/special layers too. With Preview on, changes already preview live in the active layer beforehand; closing the panel without clicking Fix reverts the preview.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# Preview and Backup always start OFF, regardless of the last session:
+		self.setPref("preview", False)
+		self.setPref("backup", False)
 
 		self.LoadPreferences()
 		self.w.open()
@@ -524,6 +542,18 @@ class BezierFixer(mekkaObject):
 		tunnifyOn = self.pref("tunnify")
 		self.w.tunnifyStrength.enable(tunnifyOn)
 		self.w.tunnifyStrengthLabel.set(f"{int(round(self.pref('tunnifyStrength')))}%")
+
+	def toggleSettings(self, sender=None):
+		"""Expands/collapses the Settings section and rescales the window height."""
+		self.settingsExpanded = not self.settingsExpanded
+		self.w.settingsButton.setTitle("▼ Settings" if self.settingsExpanded else "▶︎ Settings")
+		self.w.preview.show(self.settingsExpanded)
+		self.w.backup.show(self.settingsExpanded)
+		newHeight = self.expandedWindowHeight if self.settingsExpanded else self.collapsedWindowHeight
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setContentMinSize_((self.windowWidth, newHeight))
+		nsWindow.setContentMaxSize_((self.windowWidth, newHeight))
+		self.w.resize(self.windowWidth, newHeight)
 
 	def interfaceUpdated(self, sender=None):
 		"""
