@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Small floating panel combining three curve cleanup steps for the selected glyphs: Realign (fixes out-of-sync BCPs of smooth nodes), Tunnify (balances handle distribution, Tunnify 2 algorithm, adjustable strength), and Harmonize (establishes G2 continuity at smooth nodes, Green Harmony algorithm). Previews live in the active layer as you toggle the checkboxes or drag the slider, without committing anything. A partial node selection restricts preview and fix to the segments touching the selected nodes (unselected segments revert to their previous state); no selection or a full selection (Cmd-A) processes the whole layer. Fix commits the result and, if All Masters is on, propagates it to the other masters/special layers; closing the panel without clicking Fix reverts the preview and leaves the glyph untouched. Replaces the separate Realign BCPs, Tunnify and Tunnify 2.0 scripts.
+Small floating panel combining three curve cleanup steps for the selected glyphs: Realign (fixes out-of-sync BCPs of smooth nodes), Tunnify (balances handle distribution, Tunnify 2 algorithm, adjustable strength), and Harmonize (establishes G2 continuity at smooth nodes, Green Harmony algorithm). With Preview on, previews live in the active layer as you toggle the checkboxes or drag the slider, without committing anything. A partial node selection restricts preview and fix to the segments touching the selected nodes (unselected segments revert to their previous state); no selection or a full selection (Cmd-A) processes the whole layer. Fix commits the result and, if All Masters is on, propagates it to the other masters/special layers; with Backup on, the original state of each fixed layer is stored in its background first. Turning Preview off or closing the panel without clicking Fix reverts the preview and leaves the glyph untouched. Replaces the separate Realign BCPs, Tunnify and Tunnify 2.0 scripts.
 """
 
 import math
 import vanilla
+from AppKit import NSButtonTypePushOnPushOff, NSBezelStyleRoundRect
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSSMOOTH, GSOFFCURVE, GSCURVE, Message, UPDATEINTERFACE
 from mekkablue import mekkaObject
@@ -411,6 +412,8 @@ class BezierFixer(mekkaObject):
 		"realign": True,
 		"harmonize": True,
 		"allMasters": True,
+		"preview": False,
+		"backup": False,
 	}
 
 	def __init__(self):
@@ -422,7 +425,7 @@ class BezierFixer(mekkaObject):
 		self.isApplyingPreview = False
 
 		windowWidth = 126
-		windowHeight = 160
+		windowHeight = 152
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Bézier Fixer",
@@ -431,7 +434,7 @@ class BezierFixer(mekkaObject):
 			autosaveName=self.domain("mainwindow"),
 		)
 
-		linePos, inset, lineHeight = 12, 15, 18
+		linePos, inset, lineHeight = 9, 13, 18
 
 		self.w.tunnify = vanilla.CheckBox((inset, linePos, -50, 18), "Tunnify", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.tunnify.setToolTip("Evens out the Bézier handle ratio of each curve segment to balance handles (Tunnify 2 algorithm). Keeps the point at t=0.5 on the segment.")
@@ -466,8 +469,18 @@ class BezierFixer(mekkaObject):
 		self.w.allMasters.setToolTip("Applies the fixes to all masters and special layers of each selected glyph, not just the currently active layer.")
 		linePos += lineHeight
 
+		# two-state (toggle) buttons, side by side:
+		self.w.preview = vanilla.CheckBox((inset, linePos, 48, 18), "Preview", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.preview.setToolTip("Live-previews the current settings in the active layer without committing anything. Turning Preview off (or closing the panel without clicking Fix) reverts the preview.")
+		self.w.backup = vanilla.CheckBox((-inset - 48, linePos, -inset, 18), "Backup", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.backup.setToolTip("When you click Fix, first backs up the original state of each fixed layer into its background.")
+		for toggleButton in (self.w.preview.getNSButton(), self.w.backup.getNSButton()):
+			toggleButton.setButtonType_(NSButtonTypePushOnPushOff)
+			toggleButton.setBezelStyle_(NSBezelStyleRoundRect)
+		linePos += lineHeight
+
 		self.w.runButton = vanilla.Button((inset, -20 - inset, -inset, -inset), "Fix", callback=self.BezierFixerMain)
-		self.w.runButton.setToolTip("Changes already preview live in the active layer, but are not committed yet. Fix commits them and, if All Masters is on, propagates them to the other masters/special layers too. Closing the panel without clicking Fix reverts the preview.")
+		self.w.runButton.setToolTip("Commits the fixes and, if All Masters is on, propagates them to the other masters/special layers too. With Preview on, changes already preview live in the active layer beforehand; closing the panel without clicking Fix reverts the preview.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.LoadPreferences()
@@ -522,6 +535,8 @@ class BezierFixer(mekkaObject):
 		"""
 		if self.isApplyingPreview:
 			return  # ignore redraw events triggered by our own writes below
+		if not self.prefBool("preview"):
+			return  # previewing is off, don't touch anything
 		font = Glyphs.font
 		layers = list(font.selectedLayers) if font else []
 		layerIDs = tuple(id(layer) for layer in layers)
@@ -581,9 +596,22 @@ class BezierFixer(mekkaObject):
 			print("\n⚠️ Bézier Fixer live preview error\n")
 			print(traceback.format_exc())
 
+	def stopPreview(self):
+		"""Reverts any live preview and stops watching layers until Preview is turned back on."""
+		self.revertPreview()
+		self.watchedLayerIDs = ()
+		self.watchedSelectionIDs = ()
+		self.watchedLayers = []
+		self.snapshots = {}
+
 	def SavePreferences(self, sender=None):
 		super().SavePreferences(sender)
-		self.applyPreview()
+		if not self.prefBool("preview"):
+			self.stopPreview()
+		elif self.watchedLayers:
+			self.applyPreview()
+		else:
+			self.interfaceUpdated()  # Preview was just turned on: snapshot the current layers and preview them
 
 	def BezierFixerMain(self, sender=None):
 		try:
@@ -605,6 +633,7 @@ class BezierFixer(mekkaObject):
 			doRealign = self.pref("realign")
 			doHarmonize = self.pref("harmonize")
 			allMasters = self.pref("allMasters")
+			doBackup = self.prefBool("backup")
 
 			if not any((doTunnify, doRealign, doHarmonize)):
 				Glyphs.showNotification("Bézier Fixer", "Nothing to do. Enable Tunnify, Realign, and/or Harmonize.")
@@ -639,8 +668,13 @@ class BezierFixer(mekkaObject):
 							# reuse the pristine snapshot for layers already live-previewed,
 							# so Fix reproduces exactly what was on screen, never a double-application
 							snapshot = self.snapshots.get(layer)
+							if snapshot is not None:
+								restoreSnapshot(snapshot)
+							if doBackup:
+								# back up the original (pre-fix) state into the background
+								layer.contentToBackgroundCheckSelection_keepOldBackground_(False, False)
 							selectedNodes = nodesAtIndices(layer, selectionIndices) if selectionIndices is not None else None
-							applyFixPipeline(layer, doRealign, doTunnify, tunnifyStrength, doHarmonize, snapshot=snapshot, selectedNodes=selectedNodes)
+							applyFixPipeline(layer, doRealign, doTunnify, tunnifyStrength, doHarmonize, snapshot=None, selectedNodes=selectedNodes)
 							if layer in self.snapshots:
 								# this is now committed: closing the window should no longer revert past this point
 								self.snapshots[layer] = snapshotLayer(layer)
