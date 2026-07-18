@@ -74,8 +74,8 @@ def allUnicodeEscapesOfFont(thisFont):
 	importedGlyphs = thisFont.importedGlyphs()
 	if not importedGlyphs:
 		importedGlyphs = []
-	allUnicodes = ["&#x%s;" % g.unicode for g in thisFont.glyphs + importedGlyphs if g.unicode and g.export and g.subCategory != "Nonspacing"]
-	allUnicodes += [" &#x%s;" % g.unicode for g in thisFont.glyphs + importedGlyphs if g.unicode and g.export and g.subCategory == "Nonspacing"]
+	allUnicodes = ["&#x%s;" % g.unicode for g in list(thisFont.glyphs) + importedGlyphs if g.unicode and g.export and g.subCategory != "Nonspacing"]
+	allUnicodes += [" &#x%s;" % g.unicode for g in list(thisFont.glyphs) + importedGlyphs if g.unicode and g.export and g.subCategory == "Nonspacing"]
 	return "".join(allUnicodes)
 
 
@@ -85,7 +85,7 @@ def allGlyphInfoOfFont(thisFont):
 	if not importedGlyphs:
 		importedGlyphs = []
 	glyphInfos = []
-	for g in thisFont.glyphs + importedGlyphs:
+	for g in list(thisFont.glyphs) + importedGlyphs:
 		if g.unicode and g.export:
 			try:
 				char = chr(int(g.unicode, 16))
