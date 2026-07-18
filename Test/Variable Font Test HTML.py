@@ -6,6 +6,7 @@ Create a Test HTML for the current font inside the current Variation Font Export
 """
 
 from os import system, path
+from itertools import product
 import json
 from Cocoa import NSEvent, NSAlternateKeyMask, NSShiftKeyMask
 import codecs
@@ -357,6 +358,51 @@ def axisDictWithVirtualMastersForFont(thisFont, axisDict):
 	return axisDict
 
 
+def particleInstancesOfFont(thisFont):
+	# Glyphs 4: a particle set is a GSInstance of type 4; its name particles
+	# are the STAT entries from which the exported style names are constructed
+	if not Glyphs.versionNumber or Glyphs.versionNumber < 4:
+		return []
+	particleInstances = []
+	for thisInstance in thisFont.instances:
+		try:
+			if thisInstance.type == 4 and instanceIsActive(thisInstance):
+				particleInstances.append(thisInstance)
+		except:
+			pass
+	return particleInstances
+
+
+def particleStylesOfInstance(thisFont, particleInstance):
+	"""
+	Multiplies the name particles of all axes with each other, in the order of
+	the font's axes, and returns a list of (styleName, axisValues) tuples,
+	axisValues being a dict {axisTag: externalValue}. "Regular" is elidable for
+	every axis; if all particles are elided, the instance name is the fallback.
+	"""
+	nameParticles = particleInstance.nameParticles()
+	axisTags = []
+	particlesPerAxis = []
+	for axis in thisFont.axes:
+		particles = nameParticles.get(axis.axisId)
+		if not particles:
+			continue
+		axisTags.append(axis.axisTag)
+		particlesPerAxis.append(list(particles))
+	if not particlesPerAxis:
+		return []
+
+	styles = []
+	for particleCombination in product(*particlesPerAxis):
+		nameParts = [particle.name() for particle in particleCombination if particle.name() != "Regular"]
+		styleName = " ".join(nameParts) if nameParts else particleInstance.name
+		axisValues = {}
+		for axisTag, particle in zip(axisTags, particleCombination):
+			axisValues[axisTag] = float(particle.externalValue())  # axis values are external values only
+		styles.append((styleName, axisValues))
+	return styles
+
+
 def generateAxisDict(thisFont: GSFont):
 
 	axisDict = axisDictWithVirtualMastersForFont(thisFont, {})
@@ -378,6 +424,21 @@ def generateAxisDict(thisFont: GSFont):
 			if "tag" not in axisDict[axisName]:
 				axisDict[axisName]["tag"] = axis.axisTag
 
+	# Glyphs 4: for axes covered by name particles (GSInstance type 4),
+	# the sliders use the external particle values only:
+	for particleInstance in particleInstancesOfFont(thisFont):
+		nameParticles = particleInstance.nameParticles()
+		for axis in thisFont.axes:
+			particles = nameParticles.get(axis.axisId)
+			if not particles:
+				continue
+			externalValues = [float(particle.externalValue()) for particle in particles]
+			axisDict[axis.name] = {
+				"min": min(externalValues),
+				"max": max(externalValues),
+				"tag": axis.axisTag,
+			}
+
 	return axisDict
 
 
@@ -394,6 +455,7 @@ def allGlyphInfosOfFont(thisFont):
 			continue
 		entry = {"c": int(g.unicode, 16)}
 		entry["u"] = g.unicode
+		entry["n"] = g.name
 		try:
 			glyphInfo = g.glyphInfo
 		except:
@@ -1067,6 +1129,9 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 					cell.addEventListener('mouseleave', function() {
 						tooltip.style.display = 'none';
 					});
+					cell.addEventListener('dblclick', function() {
+						openTextInGlyphs(info.n ? '/' + info.n : ch, 1);
+					});
 					grid.appendChild(cell);
 				}
 			}
@@ -1191,10 +1256,10 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				textLength = Math.max(2, Math.min(10, textLength));
 				return 5 * textLength * textLength - 135 * textLength + 1050;
 			}
-			function openTextInGlyphs(text) {
+			function openTextInGlyphs(text, textLength) {
 				// requires the GlyphsApp Server plug-in: https://github.com/mekkablue/glyphsapp-server
 				if (!text) return;
-				const zoom = zoomForTextLength(text.length);
+				const zoom = zoomForTextLength(textLength ? textLength : text.length);
 				fetch('http://127.0.0.1:49152/frontmostfont/newtab/?text=' + encodeURIComponent(text) + '&zoom=' + zoom).catch(function(error) {
 					console.error('Could not reach GlyphsApp Server:', error);
 				});
@@ -1401,7 +1466,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 
 	<!-- Disclaimer -->
 	<p id="helptext" onmouseleave="vanish(this);">
-		<strong>Ctrl-period/comma</strong> step through styles <strong>Ctrl-R</strong> reset charset <strong>Ctrl-U</strong> update font <strong>Ctrl-L</strong> Lat-1 <strong>Ctrl-J</strong> LTR/RTL <strong>Ctrl-C</strong> center <strong>Ctrl-G</strong> grid view <strong>Ctrl-P</strong> play/pause all <strong>Ctrl-E</strong> selection in Glyphs <strong>Ctrl-M</strong> toggle menu <strong>Ctrl-X</strong> x-ray <strong>Ctrl +/−</strong> size <strong>Ctrl-1/2</strong> linegap <strong>Shift</strong> high slider precision <em>Not working? Try newer macOS or <a href="https://www.google.com/chrome/">latest Chrome</a>. Hover mouse above this note to make it disappear.</em>
+		<strong>Ctrl-period/comma</strong> step through styles <strong>Ctrl-R</strong> reset charset <strong>Ctrl-U</strong> update font <strong>Ctrl-L</strong> Lat-1 <strong>Ctrl-J</strong> LTR/RTL <strong>Ctrl-C</strong> center <strong>Ctrl-G</strong> grid view <strong>Ctrl-P</strong> play/pause all <strong>Ctrl-E</strong> selection in Glyphs <strong>2×click</strong> grid glyph in Glyphs <strong>Ctrl-M</strong> toggle menu <strong>Ctrl-X</strong> x-ray <strong>Ctrl +/−</strong> size <strong>Ctrl-1/2</strong> linegap <strong>Shift</strong> high slider precision <em>Not working? Try newer macOS or <a href="https://www.google.com/chrome/">latest Chrome</a>. Hover mouse above this note to make it disappear.</em>
 	</p>
 	</body>
 </html>
@@ -1514,6 +1579,7 @@ def listOfAllStyles(thisFont):
 	# add origin value
 	styleMenuEntries = [originMasterOfFont(thisFont)] + [i for i in thisFont.instances if instanceIsActive(i) and i.type == 0]
 
+	existingStyleNames = []
 	for idx, masterOrInstance in enumerate(styleMenuEntries):
 		# determine name of menu entry:
 		if idx == 0:
@@ -1524,6 +1590,7 @@ def listOfAllStyles(thisFont):
 				styleName = masterOrInstance.variableStyleName
 			elif masterOrInstance.preferredSubfamilyName:
 				styleName = masterOrInstance.preferredSubfamilyName
+		existingStyleNames.append(styleName)
 
 		# determine location:
 		coords = axisLocationOfMasterOrInstance(thisFont, masterOrInstance)
@@ -1540,7 +1607,21 @@ def listOfAllStyles(thisFont):
 			styleName,
 		)
 
-	htmlSnippet += "\n{tabbing}</select>"
+	# Glyphs 4: add styles constructed from name particles (GSInstance type 4);
+	# single instances (type 0) above override styles of the same name:
+	for particleInstance in particleInstancesOfFont(thisFont):
+		for styleName, axisValues in particleStylesOfInstance(thisFont, particleInstance):
+			if styleName in existingStyleNames:
+				continue
+			existingStyleNames.append(styleName)
+			styleValues = [f"{str(axisTag)}: {axisValue}" for axisTag, axisValue in axisValues.items()]
+			htmlSnippet += "\n%s\t<option value='%s'>%s</option>" % (
+				tabbing,
+				",".join(styleValues),
+				styleName,
+			)
+
+	htmlSnippet += f"\n{tabbing}</select>"
 	return htmlSnippet
 
 

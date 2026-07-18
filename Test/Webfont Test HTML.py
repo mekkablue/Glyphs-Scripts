@@ -8,6 +8,7 @@ Create a Test HTML for the current font inside the current Webfont Export folder
 from GlyphsApp import Glyphs, GSProjectDocument, INSTANCETYPESINGLE, Message
 from AppKit import NSBundle, NSClassFromString
 from os import system, path
+from itertools import product
 import codecs
 import webbrowser
 import json
@@ -34,7 +35,9 @@ def currentFileFormats():
 		# GLYPHS 3
 		fileFormats = []
 		if Glyphs.defaults["OTFExportPlain"]:
-			if Glyphs.defaults["OTFExportOutlineformat"] == 2:  # TTF
+			# Glyphs 4 spells the key "OTFExportOutlineFormat"; 1 = CFF, 2 = TT
+			outlineFormat = Glyphs.defaults["OTFExportOutlineFormat"] or Glyphs.defaults["OTFExportOutlineformat"]
+			if outlineFormat == 2:  # TTF
 				fileFormats.append("ttf")
 			else:
 				fileFormats.append("otf")
@@ -192,6 +195,51 @@ def isSingleInstance(instance):
 		return True
 
 
+def particleInstancesOfFont(thisFont):
+	# Glyphs 4: a particle set is a GSInstance of type 4; its name particles
+	# are the STAT entries from which the exported style names are constructed
+	if not Glyphs.versionNumber or Glyphs.versionNumber < 4:
+		return []
+	particleInstances = []
+	for thisInstance in thisFont.instances:
+		try:
+			if thisInstance.type == 4 and instanceIsActive(thisInstance):
+				particleInstances.append(thisInstance)
+		except:
+			pass
+	return particleInstances
+
+
+def particleStylesOfInstance(thisFont, particleInstance):
+	"""
+	Multiplies the name particles of all axes with each other, in the order of
+	the font's axes, and returns a list of (styleName, axisValues) tuples,
+	axisValues being a dict {axisTag: externalValue}. "Regular" is elidable for
+	every axis; if all particles are elided, the instance name is the fallback.
+	"""
+	nameParticles = particleInstance.nameParticles()
+	axisTags = []
+	particlesPerAxis = []
+	for axis in thisFont.axes:
+		particles = nameParticles.get(axis.axisId)
+		if not particles:
+			continue
+		axisTags.append(axis.axisTag)
+		particlesPerAxis.append(list(particles))
+	if not particlesPerAxis:
+		return []
+
+	styles = []
+	for particleCombination in product(*particlesPerAxis):
+		nameParts = [particle.name() for particle in particleCombination if particle.name() != "Regular"]
+		styleName = " ".join(nameParts) if nameParts else particleInstance.name
+		axisValues = {}
+		for axisTag, particle in zip(axisTags, particleCombination):
+			axisValues[axisTag] = float(particle.externalValue())
+		styles.append((styleName, axisValues))
+	return styles
+
+
 def activeInstancesByFormat(thisFont, activeInstances, fileFormats, availableFormats=("otf", "ttf", "woff", "woff2", "eot")):
 	instanceInfos = {}
 	for availableFormat in availableFormats:
@@ -213,7 +261,27 @@ def activeInstancesByFormat(thisFont, activeInstances, fileFormats, availableFor
 					continue
 				fileName, menuName, activeInstanceName = getInstanceInfo(thisFont, activeInstance, webFormat)
 				instanceInfos[webFormat.lower().strip()].append((fileName, menuName, activeInstanceName))
-				
+
+	# Glyphs 4: complement with static styles constructed from particle sets
+	# (GSInstance type 4); single instances above override styles of the same name:
+	for particleInstance in particleInstancesOfFont(thisFont):
+		try:
+			familyName = particleInstance.familyName
+		except:
+			familyName = None
+		if not familyName:
+			familyName = thisFont.familyName
+		for styleName, axisValues in particleStylesOfInstance(thisFont, particleInstance):
+			for fileFormat in fileFormats:
+				if fileFormat not in availableFormats:
+					continue
+				fileName = "%s-%s.%s" % (familyName.replace(" ", ""), styleName.replace(" ", ""), fileFormat)
+				existingInfos = instanceInfos[fileFormat]
+				if any(info[0] == fileName or info[2] == styleName for info in existingInfos):
+					continue
+				menuName = "%s %s-%s" % (fileFormat.upper(), familyName, styleName)
+				existingInfos.append((fileName, menuName, styleName))
+
 	orderedInstanceInfos = []
 	for availableFormat in availableFormats:
 		for info in instanceInfos[availableFormat]:
@@ -628,7 +696,7 @@ htmlContent = """<head>
 
 <!-- Disclaimer -->
 <p id="helptext" onmouseleave="vanish(this);">
-	Ctrl-R: Reset Charset. Ctrl-L: Latin1. Ctrl-J: LTR/RTL. Ctrl-G: cycle views. Ctrl-E: open text in Glyphs. Ctrl-comma/period: step through fonts. Pull mouse across this note to make it disappear.
+	Ctrl-R: Reset Charset. Ctrl-L: Latin1. Ctrl-J: LTR/RTL. Ctrl-G: cycle views. Ctrl-E: open text in Glyphs. Double-click grid glyph: open in Glyphs. Ctrl-comma/period: step through fonts. Pull mouse across this note to make it disappear.
 </p>
 
 <script type="text/javascript">
@@ -670,10 +738,10 @@ htmlContent = """<head>
 		textLength = Math.max(2, Math.min(10, textLength));
 		return 5 * textLength * textLength - 135 * textLength + 1050;
 	}
-	function openTextInGlyphs(text) {
+	function openTextInGlyphs(text, textLength) {
 		// requires the GlyphsApp Server plug-in: https://github.com/mekkablue/glyphsapp-server
 		if (!text) return;
-		const zoom = zoomForTextLength(text.length);
+		const zoom = zoomForTextLength(textLength ? textLength : text.length);
 		fetch('http://127.0.0.1:49152/frontmostfont/newtab/?text=' + encodeURIComponent(text) + '&zoom=' + zoom).catch(function(error) {
 			console.error('Could not reach GlyphsApp Server:', error);
 		});
@@ -730,6 +798,9 @@ htmlContent = """<head>
 			tooltip.className = 'tooltip';
 			tooltip.textContent = `${glyphInfo.name}  U+${glyphInfo.uni.toUpperCase()}`;
 			cell.appendChild(tooltip);
+			cell.addEventListener('dblclick', function() {
+				openTextInGlyphs(glyphInfo.name ? '/' + glyphInfo.name : glyphInfo.char, 1);
+			});
 			fragment.appendChild(cell);
 		}
 		grid.appendChild(fragment);
