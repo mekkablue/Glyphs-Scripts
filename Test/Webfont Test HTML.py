@@ -55,9 +55,9 @@ def currentWebExportPath():
 		if Glyphs.defaults["WebfontPluginUseExportPath"]:
 			exportPath = Glyphs.defaults["WebfontPluginExportPath"]
 	else:
-		# GLYPHS 3
+		# GLYPHS 3 and 4 (Glyphs 4 renamed the key to OTFUseExportPath)
 		exportPath = Glyphs.defaults["OTFExportPathManual"]
-		if Glyphs.defaults["OTFExportUseExportPath"]:
+		if Glyphs.defaults["OTFExportUseExportPath"] or Glyphs.defaults["OTFUseExportPath"]:
 			exportPath = Glyphs.defaults["OTFExportPath"]
 	return exportPath
 
