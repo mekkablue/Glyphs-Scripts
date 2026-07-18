@@ -628,7 +628,7 @@ htmlContent = """<head>
 
 <!-- Disclaimer -->
 <p id="helptext" onmouseleave="vanish(this);">
-	Ctrl-R: Reset Charset. Ctrl-L: Latin1. Ctrl-J: LTR/RTL. Ctrl-G: cycle views. Ctrl-comma/period: step through fonts. Pull mouse across this note to make it disappear.
+	Ctrl-R: Reset Charset. Ctrl-L: Latin1. Ctrl-J: LTR/RTL. Ctrl-G: cycle views. Ctrl-E: open text in Glyphs. Ctrl-comma/period: step through fonts. Pull mouse across this note to make it disappear.
 </p>
 
 <script type="text/javascript">
@@ -651,6 +651,8 @@ htmlContent = """<head>
 				toggleLeftRight();
 			} else if (event.code == 'KeyG') {
 				cycleView();
+			} else if (event.code == 'KeyE') {
+				openTextInGlyphs(document.getElementById('textInput').value);
 			} else if (event.code == 'Period') {
 				selector.selectedIndex = (selector.selectedIndex + 1) % selectorLength;
 				changeFont();
@@ -663,6 +665,18 @@ htmlContent = """<head>
 				changeFont();
 			}
 		}
+	}
+	function zoomForTextLength(textLength) {
+		textLength = Math.max(2, Math.min(10, textLength));
+		return 5 * textLength * textLength - 135 * textLength + 1050;
+	}
+	function openTextInGlyphs(text) {
+		// requires the GlyphsApp Server plug-in: https://github.com/mekkablue/glyphsapp-server
+		if (!text) return;
+		const zoom = zoomForTextLength(text.length);
+		fetch('http://127.0.0.1:49152/frontmostfont/newtab/?text=' + encodeURIComponent(text) + '&zoom=' + zoom).catch(function(error) {
+			console.error('Could not reach GlyphsApp Server:', error);
+		});
 	}
 	function updateParagraph() {
 		// update paragraph text based on user input:

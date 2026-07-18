@@ -1148,6 +1148,8 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 						toggleGridView();
 					} else if (event.code == 'KeyP') {
 						togglePlayAll();
+					} else if (event.code == 'KeyE') {
+						openSelectionInGlyphs();
 					} else if (event.code == 'Period') {
 						styleMenu.selectedIndex = (styleMenu.selectedIndex + 1) %% styleMenuLength;
 						setStyle(styleMenu.value);
@@ -1184,6 +1186,21 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 						updateSlider();
 					}
 				}
+			}
+			function zoomForTextLength(textLength) {
+				textLength = Math.max(2, Math.min(10, textLength));
+				return 5 * textLength * textLength - 135 * textLength + 1050;
+			}
+			function openTextInGlyphs(text) {
+				// requires the GlyphsApp Server plug-in: https://github.com/mekkablue/glyphsapp-server
+				if (!text) return;
+				const zoom = zoomForTextLength(text.length);
+				fetch('http://127.0.0.1:49152/frontmostfont/newtab/?text=' + encodeURIComponent(text) + '&zoom=' + zoom).catch(function(error) {
+					console.error('Could not reach GlyphsApp Server:', error);
+				});
+			}
+			function openSelectionInGlyphs() {
+				openTextInGlyphs(window.getSelection().toString());
 			}
 			function setLanguage(lang) {
 				document.body.setAttribute('lang',lang);
@@ -1384,7 +1401,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 
 	<!-- Disclaimer -->
 	<p id="helptext" onmouseleave="vanish(this);">
-		<strong>Ctrl-period/comma</strong> step through styles <strong>Ctrl-R</strong> reset charset <strong>Ctrl-U</strong> update font <strong>Ctrl-L</strong> Lat-1 <strong>Ctrl-J</strong> LTR/RTL <strong>Ctrl-C</strong> center <strong>Ctrl-G</strong> grid view <strong>Ctrl-P</strong> play/pause all <strong>Ctrl-M</strong> toggle menu <strong>Ctrl-X</strong> x-ray <strong>Ctrl +/−</strong> size <strong>Ctrl-1/2</strong> linegap <strong>Shift</strong> high slider precision <em>Not working? Try newer macOS or <a href="https://www.google.com/chrome/">latest Chrome</a>. Hover mouse above this note to make it disappear.</em>
+		<strong>Ctrl-period/comma</strong> step through styles <strong>Ctrl-R</strong> reset charset <strong>Ctrl-U</strong> update font <strong>Ctrl-L</strong> Lat-1 <strong>Ctrl-J</strong> LTR/RTL <strong>Ctrl-C</strong> center <strong>Ctrl-G</strong> grid view <strong>Ctrl-P</strong> play/pause all <strong>Ctrl-E</strong> selection in Glyphs <strong>Ctrl-M</strong> toggle menu <strong>Ctrl-X</strong> x-ray <strong>Ctrl +/−</strong> size <strong>Ctrl-1/2</strong> linegap <strong>Shift</strong> high slider precision <em>Not working? Try newer macOS or <a href="https://www.google.com/chrome/">latest Chrome</a>. Hover mouse above this note to make it disappear.</em>
 	</p>
 	</body>
 </html>
