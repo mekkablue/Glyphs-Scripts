@@ -554,7 +554,7 @@ class BezierFixer(mekkaObject):
 		# self.w.minSize = (self.windowWidth, newHeight)
 		# self.w.maxSize = (self.windowWidth, newHeight)
 		self.clamp(newHeight=newHeight)
-	
+
 	def clamp(self, sender=None, newHeight=None):
 		if newHeight is None:
 			return
