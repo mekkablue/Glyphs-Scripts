@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Small floating panel combining three curve cleanup steps for the selected glyphs: Realign (fixes out-of-sync BCPs of smooth nodes), Tunnify (balances handle distribution, Tunnify 2 algorithm, adjustable strength), and Harmonize (establishes G2 continuity at smooth nodes, Green Harmony algorithm). Previews live in the active layer as you toggle the checkboxes or drag the slider, without committing anything. Fix commits the result and, if All Masters is on, propagates it to the other masters/special layers; closing the panel without clicking Fix reverts the preview and leaves the glyph untouched. Replaces the separate Realign BCPs, Tunnify and Tunnify 2.0 scripts.
+Small floating panel combining three curve cleanup steps for the selected glyphs: Realign (fixes out-of-sync BCPs of smooth nodes), Tunnify (balances handle distribution, Tunnify 2 algorithm, adjustable strength), and Harmonize (establishes G2 continuity at smooth nodes, Green Harmony algorithm). Previews live in the active layer as you toggle the checkboxes or drag the slider, without committing anything. A partial node selection restricts preview and fix to the segments touching the selected nodes (unselected segments revert to their previous state); no selection or a full selection (Cmd-A) processes the whole layer. Fix commits the result and, if All Masters is on, propagates it to the other masters/special layers; closing the panel without clicking Fix reverts the preview and leaves the glyph untouched. Replaces the separate Realign BCPs, Tunnify and Tunnify 2.0 scripts.
 """
 
 import math
@@ -345,6 +345,24 @@ def selectedNodesOfLayer(layer):
 	return {n for p in layer.paths for n in p.nodes if n in selectionSet}
 
 
+def effectiveSelection(layer):
+	"""
+	The set of selected path nodes if they form a partial selection,
+	or None if the whole layer should be processed. None is returned in
+	exactly two cases: no (node) selection at all, and a full selection
+	(⌘A, every node of the layer selected). Anything in between restricts
+	the fixes to the segments touching the selected nodes, leaving all
+	other segments untouched.
+	"""
+	selectedNodes = selectedNodesOfLayer(layer)
+	if not selectedNodes:
+		return None
+	totalNodeCount = sum(len(p.nodes) for p in layer.paths)
+	if len(selectedNodes) >= totalNodeCount:
+		return None
+	return selectedNodes
+
+
 def selectedNodeIndices(layer):
 	"""Set of (pathIndex, nodeIndex) for every selected node in the layer.
 	Used to map a selection onto the corresponding nodes of other (compatible)
@@ -398,6 +416,7 @@ class BezierFixer(mekkaObject):
 	def __init__(self):
 		# live-preview state: which layers we last snapshotted, and their pristine geometry
 		self.watchedLayerIDs = ()
+		self.watchedSelectionIDs = ()
 		self.watchedLayers = []
 		self.snapshots = {}
 		self.isApplyingPreview = False
@@ -506,9 +525,18 @@ class BezierFixer(mekkaObject):
 		font = Glyphs.font
 		layers = list(font.selectedLayers) if font else []
 		layerIDs = tuple(id(layer) for layer in layers)
+		selectionIDs = tuple(sorted(id(item) for layer in layers for item in layer.selection))
 		if layerIDs == self.watchedLayerIDs:
-			return  # nothing relevant changed, don't recompute
+			if selectionIDs == self.watchedSelectionIDs:
+				return  # nothing relevant changed, don't recompute
+			# same layer(s), but the node selection changed: re-run the preview
+			# from the existing pristine snapshots, so segments that just left
+			# the selection revert to their previous (uncommitted) state.
+			self.watchedSelectionIDs = selectionIDs
+			self.applyPreview()
+			return
 		self.watchedLayerIDs = layerIDs
+		self.watchedSelectionIDs = selectionIDs
 		self.watchedLayers = layers
 		self.snapshots = {layer: snapshotLayer(layer) for layer in layers}
 		self.applyPreview()
@@ -528,8 +556,9 @@ class BezierFixer(mekkaObject):
 			doRealign = self.pref("realign")
 			doHarmonize = self.pref("harmonize")
 
-			# respect the node selection when exactly one glyph is selected
-			restrictToSelection = len(self.watchedLayers) == 1 and bool(self.watchedLayers[0].selection)
+			# respect a partial node selection when exactly one glyph is selected;
+			# no selection or a full selection (⌘A) processes the whole layer
+			restrictToSelection = len(self.watchedLayers) == 1
 
 			self.isApplyingPreview = True
 			try:
@@ -537,7 +566,7 @@ class BezierFixer(mekkaObject):
 					snapshot = self.snapshots.get(layer)
 					if snapshot is None:
 						continue
-					selectedNodes = selectedNodesOfLayer(layer) if restrictToSelection else None
+					selectedNodes = effectiveSelection(layer) if restrictToSelection else None
 					thisGlyph = layer.parent
 					thisGlyph.beginUndo()
 					try:
@@ -583,10 +612,11 @@ class BezierFixer(mekkaObject):
 
 			print("Bézier Fixer Report\n")
 
-			# respect the node selection when exactly one glyph is selected;
-			# the selection is defined on the active layer only, so map it onto
+			# respect a partial node selection when exactly one glyph is selected;
+			# no selection or a full selection (⌘A) fixes the whole layer.
+			# The selection is defined on the active layer only, so map it onto
 			# the corresponding nodes of the other layers via node indices.
-			restrictToSelection = len(selectedLayers) == 1 and bool(selectedLayers[0].selection)
+			restrictToSelection = len(selectedLayers) == 1 and effectiveSelection(selectedLayers[0]) is not None
 			selectionIndices = selectedNodeIndices(selectedLayers[0]) if restrictToSelection else None
 
 			processedGlyphNames = []
