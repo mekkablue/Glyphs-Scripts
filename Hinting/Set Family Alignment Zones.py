@@ -5,9 +5,10 @@ __doc__ = """
 Inserts Family Alignment Zones parameter with values based on an instance. Needs properly set up and compatible alignment zones in Font Info > Masters.
 """
 
+import os
 import vanilla
 from AppKit import NSFont
-from copy import deepcopy, copy
+from copy import deepcopy
 from GlyphsApp import Glyphs, Message, TTF, PLAIN, INSTANCETYPEVARIABLE
 from mekkablue import mekkaObject, UpdateButton
 from ttfautohintoptions import parameterName, valuelessOptions, availableOptionsDict, availableOptions, removeFromAutohintOptions, dictToParameterValue, ttfAutohintDict, glyphInterpolation, idotlessMeasure, writeOptionsToInstance
@@ -138,7 +139,7 @@ class SetFamilyAlignmentZones(mekkaObject):
 		# create instance & generate font
 		fileName = font.familyName.strip().replace(" ", "").lower()
 		fullPath = os.path.join(destinationFolder, fileName + ".ttf")
-		referenceInstance = copy(thisInstance)
+		referenceInstance = thisInstance.copy()
 		referenceInstance.font = font
 		referenceInstance.customParameters["fileName"] = fileName
 		referenceInstance.generate(TTF, destinationFolder, False, True, False, True, [PLAIN], True)
