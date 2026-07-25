@@ -210,11 +210,27 @@ def particleInstancesOfFont(thisFont):
 	return particleInstances
 
 
+def particleAxisValue(particle):
+	"""
+	Returns the axis value of a name particle (Glyphs 4) as a float. A particle
+	carries an internal (design space) and an external (user space) value, and
+	the external one is optional, so fall back to the internal value if it is
+	missing. Returns None if neither value is set.
+	"""
+	externalValue = particle.externalValue()
+	if externalValue is not None:
+		return float(externalValue)
+	internalValue = particle.internalValue()
+	if internalValue is not None:
+		return float(internalValue)
+	return None
+
+
 def particleStylesOfInstance(thisFont, particleInstance):
 	"""
 	Multiplies the name particles of all axes with each other, in the order of
 	the font's axes, and returns a list of (styleName, axisValues) tuples,
-	axisValues being a dict {axisTag: externalValue}. "Regular" is elidable for
+	axisValues being a dict {axisTag: axisValue}. "Regular" is elidable for
 	every axis; if all particles are elided, the instance name is the fallback.
 	"""
 	nameParticles = particleInstance.nameParticles()
@@ -235,7 +251,10 @@ def particleStylesOfInstance(thisFont, particleInstance):
 		styleName = " ".join(nameParts) if nameParts else particleInstance.name
 		axisValues = {}
 		for axisTag, particle in zip(axisTags, particleCombination):
-			axisValues[axisTag] = float(particle.externalValue())
+			axisValue = particleAxisValue(particle)
+			if axisValue is None:
+				continue
+			axisValues[axisTag] = axisValue
 		styles.append((styleName, axisValues))
 	return styles
 
