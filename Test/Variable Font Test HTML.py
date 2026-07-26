@@ -1194,7 +1194,9 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				const styleMenu = document.getElementById("styleMenu");
 				const styleMenuLength = styleMenu.options.length;
 
-				if (event.ctrlKey) {
+				if (event.metaKey && event.altKey && event.shiftKey && event.code == 'KeyE') {
+					openSelectionInGlyphs();
+				} else if (event.ctrlKey) {
 					if (event.code == 'KeyR') {
 						resetParagraph();
 					} else if (event.code == 'KeyU') {
@@ -1213,8 +1215,6 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 						toggleGridView();
 					} else if (event.code == 'KeyP') {
 						togglePlayAll();
-					} else if (event.key == '#') {
-						openSelectionInGlyphs();
 					} else if (event.code == 'Period') {
 						styleMenu.selectedIndex = (styleMenu.selectedIndex + 1) %% styleMenuLength;
 						setStyle(styleMenu.value);
@@ -1466,7 +1466,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 
 	<!-- Disclaimer -->
 	<p id="helptext" onmouseleave="vanish(this);">
-		<strong>Ctrl-period/comma</strong> step through styles <strong>Ctrl-R</strong> reset charset <strong>Ctrl-U</strong> update font <strong>Ctrl-L</strong> Lat-1 <strong>Ctrl-J</strong> LTR/RTL <strong>Ctrl-C</strong> center <strong>Ctrl-G</strong> grid view <strong>Ctrl-P</strong> play/pause all <strong>Ctrl-#</strong> selection in Glyphs <strong>2×click</strong> grid glyph in Glyphs <strong>Ctrl-M</strong> toggle menu <strong>Ctrl-X</strong> x-ray <strong>Ctrl +/−</strong> size <strong>Ctrl-1/2</strong> linegap <strong>Shift</strong> high slider precision <em>Not working? Try newer macOS or <a href="https://www.google.com/chrome/">latest Chrome</a>. Hover mouse above this note to make it disappear.</em>
+		<strong>Ctrl-period/comma</strong> step through styles <strong>Ctrl-R</strong> reset charset <strong>Ctrl-U</strong> update font <strong>Ctrl-L</strong> Lat-1 <strong>Ctrl-J</strong> LTR/RTL <strong>Ctrl-C</strong> center <strong>Ctrl-G</strong> grid view <strong>Ctrl-P</strong> play/pause all <strong>Cmd-Opt-Shift-E</strong> selection in Glyphs <strong>2×click</strong> grid glyph in Glyphs <strong>Ctrl-M</strong> toggle menu <strong>Ctrl-X</strong> x-ray <strong>Ctrl +/−</strong> size <strong>Ctrl-1/2</strong> linegap <strong>Shift</strong> high slider precision <em>Not working? Try newer macOS or <a href="https://www.google.com/chrome/">latest Chrome</a>. Hover mouse above this note to make it disappear.</em>
 	</p>
 	</body>
 </html>

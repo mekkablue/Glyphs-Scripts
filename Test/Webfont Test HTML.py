@@ -696,7 +696,7 @@ htmlContent = """<head>
 
 <!-- Disclaimer -->
 <p id="helptext" onmouseleave="vanish(this);">
-	Ctrl-R: Reset Charset. Ctrl-L: Latin1. Ctrl-J: LTR/RTL. Ctrl-G: cycle views. Ctrl-#: open text in Glyphs. Double-click grid glyph: open in Glyphs. Ctrl-comma/period: step through fonts. Pull mouse across this note to make it disappear.
+	Ctrl-R: Reset Charset. Ctrl-L: Latin1. Ctrl-J: LTR/RTL. Ctrl-G: cycle views. Cmd-Opt-Shift-E: open text in Glyphs. Double-click grid glyph: open in Glyphs. Ctrl-comma/period: step through fonts. Pull mouse across this note to make it disappear.
 </p>
 
 <script type="text/javascript">
@@ -710,7 +710,9 @@ htmlContent = """<head>
 	document.addEventListener('keyup', keyAnalysis);
 
 	function keyAnalysis(event) {
-		if (event.ctrlKey) {
+		if (event.metaKey && event.altKey && event.shiftKey && event.code == 'KeyE') {
+			openTextInGlyphs(document.getElementById('textInput').value);
+		} else if (event.ctrlKey) {
 			if (event.code == 'KeyR') {
 				setCharset();
 			} else if (event.code == 'KeyL') {
@@ -719,8 +721,6 @@ htmlContent = """<head>
 				toggleLeftRight();
 			} else if (event.code == 'KeyG') {
 				cycleView();
-			} else if (event.key == '#') {
-				openTextInGlyphs(document.getElementById('textInput').value);
 			} else if (event.code == 'Period') {
 				selector.selectedIndex = (selector.selectedIndex + 1) % selectorLength;
 				changeFont();
