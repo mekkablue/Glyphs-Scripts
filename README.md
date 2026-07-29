@@ -409,7 +409,6 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Find Near Vertical Misses:** Finds nodes that are close but not exactly on vertical metrics.
 * **Green Blue Manager:** Define an angle above which a node will be set to blue, below which it will be set to green.
 * **Grid Switcher:** Toggles grid between two user-definable gridstep values with the click of a floating button.
-* **Harmonize Curve to Line:** Will rearrange handles on (selected) curve segments with a following line segment, in such a way that the transition between the two segments is smooth (harmonized).
 * **Insert Split Nodes at Selected Extra Nodes:** Select an Extra Node (*View > Show Nodes > Extra Nodes*) and run this script to insert nodes in the respective paths.
 * **Interpolate Two Paths:** Select two paths and run this script, it will replace them with their interpolation at 50%.
 * **New Tab with Small Paths:** Opens a new tab containing paths that are smaller than a user-definable threshold size in square units.
