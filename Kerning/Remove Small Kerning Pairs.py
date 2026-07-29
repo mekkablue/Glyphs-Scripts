@@ -61,6 +61,10 @@ class DeleteSmallKerningPairs(mekkaObject):
 
 		self.w.keepWindow = vanilla.CheckBox((25, offset * 2 + line * 5, -15, line), "Keep window open", value=True, callback=self.SavePreferences, sizeStyle='small')
 
+		# Next Master Button:
+		self.w.nextMasterButton = vanilla.Button((-80 - 15 - 110 - 10, -20 - 15, -80 - 15 - 10, -15), "Next Master", callback=self.selectNextMaster)
+		self.w.nextMasterButton.setToolTip("Switches the frontmost font to its next master, so you can step through all masters and remove small pairs in each of them.")
+
 		# Run Button:
 		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Remove", callback=self.DeleteSmallKerningPairsMain)
 		self.w.setDefaultButton(self.w.runButton)
@@ -71,6 +75,23 @@ class DeleteSmallKerningPairs(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+
+	def selectNextMaster(self, sender=None):
+		try:
+			thisFont = Glyphs.font
+			if not thisFont:
+				print("Next Master: No font open.")
+				return
+			masterCount = len(thisFont.masters)
+			if masterCount < 2:
+				print("Next Master: %s has only one master." % thisFont.familyName)
+				return
+			nextIndex = (thisFont.masterIndex + 1) % masterCount
+			thisFont.masterIndex = nextIndex
+			print("Switched to master: %s" % thisFont.masters[nextIndex].name)
+		except Exception as e:
+			Glyphs.showMacroWindow()
+			print("Next Master Error: %s" % e)
 
 	def DeleteSmallKerningPairsMain(self, sender):
 		try:
