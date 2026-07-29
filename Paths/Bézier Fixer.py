@@ -100,7 +100,13 @@ def realignLayer(layer, selectedNodes=None):
 
 # ---------------------------------------------------------------------------
 # Tunnify: balances the handle distribution of curve segments.
-# Algorithm: mekkablue Tunnify 2.0, keeping the point at t=0.5 on the segment.
+# A full (100%) Tunnify puts both handles at the *same* ratio along their
+# respective on-curve→intersection lines. That is what makes the line
+# through the handles parallel to the line through the on-curve points:
+#     b = a + r * (I - a), c = d + r * (I - d)  ⟹  c - b = (1 - r) * (d - a)
+# The remaining freedom, the ratio r itself, is chosen so that the curve
+# still passes as closely as possible through the original point at t=0.5,
+# i.e. the segment keeps its shape while the handles get balanced.
 # strength (0.5–1.0) blends between the original handles (0.0) and the
 # fully tunnified handles (1.0), e.g. 0.6 = 60% of a full Tunnify.
 # ---------------------------------------------------------------------------
@@ -143,24 +149,8 @@ def bezierPoint(a, b, c, d, t):
 	return NSPoint(x, y)
 
 
-def vectorFromTo(p1, p2):
-	return NSPoint(p2.x - p1.x, p2.y - p1.y)
-
-
-def scaleVector(v, scale):
-	return NSPoint(v.x * scale, v.y * scale)
-
-
-def addVectors(p, v):
-	return NSPoint(p.x + v.x, p.y + v.y)
-
-
 def distance(p1, p2):
 	return math.sqrt((p2.x - p1.x)**2 + (p2.y - p1.y)**2)
-
-
-def mid(p1, p2):
-	return NSPoint((p1.x + p2.x) * 0.5, (p1.y + p2.y) * 0.5)
 
 
 def mixPoints(p1, p2, t):
@@ -168,51 +158,51 @@ def mixPoints(p1, p2, t):
 	return NSPoint(p1.x + (p2.x - p1.x) * t, p1.y + (p2.y - p1.y) * t)
 
 
-def changeCurvatureToPassThroughPoint(a, b, c, d, passThroughPoint, min_t=0.3, max_t=0.7):
+def tunnifiedHandles(a, d, intersection, ratio):
 	"""
-	Adjusts control points b and c along the a-b and d-c vectors so the
-	cubic Bézier curve passes as closely as possible through passThroughPoint.
-	Returns (new_b, new_c).
+	Both handles at the same ratio along a→intersection and d→intersection.
+	Equal ratios are what makes the handle line b→c parallel to the on-curve
+	line a→d, because c - b = (1 - ratio) * (d - a).
 	"""
-	vec_ab = vectorFromTo(b, a)
-	vec_dc = vectorFromTo(c, d)
+	return mixPoints(a, intersection, ratio), mixPoints(d, intersection, ratio)
 
-	best_scale = 0
-	best_dist = float("inf")
 
-	t_values = [min_t + i * (max_t - min_t) / 50 for i in range(51)]
-	scale_values = [i * 0.01 for i in range(-100, 101)]
+def bestTunnifyRatio(a, d, intersection, passThroughPoint, minT=0.3, maxT=0.7):
+	"""
+	Finds the common handle ratio whose curve comes closest to
+	passThroughPoint, so a fully tunnified segment keeps its shape.
+	"""
+	tValues = [minT + i * (maxT - minT) / 50 for i in range(51)]
 
-	for t in t_values:
-		for scale in scale_values:
-			new_b = addVectors(b, scaleVector(vec_ab, scale))
-			new_c = addVectors(c, scaleVector(vec_dc, scale))
-			pt = bezierPoint(a, new_b, new_c, d, t)
-			dist = distance(pt, passThroughPoint)
-			if dist < best_dist:
-				best_dist = dist
-				best_scale = scale
+	def closestDistance(ratio):
+		b, c = tunnifiedHandles(a, d, intersection, ratio)
+		return min(distance(bezierPoint(a, b, c, d, t), passThroughPoint) for t in tValues)
 
-	new_b = addVectors(b, scaleVector(vec_ab, best_scale))
-	new_c = addVectors(c, scaleVector(vec_dc, best_scale))
-	return new_b, new_c
+	def bestOf(ratios):
+		bestRatio, bestDist = None, float("inf")
+		for ratio in ratios:
+			dist = closestDistance(ratio)
+			if dist < bestDist:
+				bestRatio, bestDist = ratio, dist
+		return bestRatio
+
+	# coarse sweep over the whole plausible range, then refine around the winner
+	coarse = bestOf(0.02 + i * 0.02 for i in range(50))
+	if coarse is None:
+		return None
+	return bestOf(max(0.001, coarse - 0.02) + i * 0.001 for i in range(41))
 
 
 def tunnifySegment(a, b, c, d, strength=1.0):
-	maxPt = segmentMaxHandle(a, b, c, d)
-	if maxPt is None:
+	intersection = segmentMaxHandle(a, b, c, d)
+	if intersection is None:
 		return
 	origA, origB, origC, origD = a.position, b.position, c.position, d.position
 	passThrough = bezierPoint(origA, origB, origC, origD, 0.5)
-	newB, newC = changeCurvatureToPassThroughPoint(
-		origA,
-		mid(origB, maxPt),
-		mid(origC, maxPt),
-		origD,
-		passThrough,
-		min_t=0.3,
-		max_t=0.7,
-	)
+	ratio = bestTunnifyRatio(origA, origD, intersection, passThrough)
+	if ratio is None:
+		return
+	newB, newC = tunnifiedHandles(origA, origD, intersection, ratio)
 	if strength < 1.0:
 		newB = mixPoints(origB, newB, strength)
 		newC = mixPoints(origC, newC, strength)
