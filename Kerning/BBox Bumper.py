@@ -75,6 +75,48 @@ def straightenedLayer(layer):
 	return disposableLayer
 
 
+def kerningKeysForOTKey(otKey, font):
+	"""
+	Returns all keys under which otKey can show up in font.kerning:
+	group keys stay as they are, glyph names are complemented by their glyph IDs.
+	"""
+	if otKey.startswith("@"):
+		return (otKey, )
+	keys = [otKey]
+	glyph = font.glyphs[otKey]
+	if glyph and glyph.id:
+		keys.append(glyph.id)
+	return tuple(keys)
+
+
+def nameForKerningKey(kerningKey, font):
+	"""Turns a glyph ID used in font.kerning into a glyph name; group keys are returned unchanged."""
+	if kerningKey.startswith("@"):
+		return kerningKey
+	glyph = font.glyphForId_(kerningKey)
+	if glyph:
+		return glyph.name
+	return kerningKey
+
+
+def bboxKerningKeys(bboxGlyphs, isLeftSide):
+	"""
+	Returns the set of font.kerning keys that represent the token glyphs
+	on the left (isLeftSide=True) or right (isLeftSide=False) side of a pair.
+	"""
+	keys = set()
+	for glyph in bboxGlyphs:
+		if not glyph:
+			continue
+		if glyph.id:
+			keys.add(glyph.id)
+		keys.add(glyph.name)
+		group = glyph.rightKerningGroup if isLeftSide else glyph.leftKerningGroup
+		if group:
+			keys.add("@MMK_%s_%s" % ("L" if isLeftSide else "R", group))
+	return keys
+
+
 def roundedBy(value, base):
 	return base * round(value / base)
 
@@ -95,6 +137,41 @@ def unionRectForLayers(layers):
 	return unionRect
 
 
+def removeRegularKerningForPairs(font, bboxGlyphs, emittedLeftKeys, emittedRightKeys):
+	"""
+	Deletes those pairs from font.kerning (in all masters) for which the bbox bumper
+	has just inserted a feature-code pair. Pairs in which BOTH sides belong to the
+	bbox token (or to the kerning groups of its glyphs) are preserved.
+	Returns the number of removed pairs.
+	"""
+	bboxLeftKeys = bboxKerningKeys(bboxGlyphs, isLeftSide=True)
+	bboxRightKeys = bboxKerningKeys(bboxGlyphs, isLeftSide=False)
+
+	removeLeftKeys = set()
+	for otKey in emittedLeftKeys:
+		removeLeftKeys.update(kerningKeysForOTKey(otKey, font))
+	removeRightKeys = set()
+	for otKey in emittedRightKeys:
+		removeRightKeys.update(kerningKeysForOTKey(otKey, font))
+
+	removedCount = 0
+	for master in font.masters:
+		masterKerning = font.kerning.get(master.id, None)
+		if not masterKerning:
+			continue
+		for leftKey in tuple(masterKerning.keys()):
+			for rightKey in tuple(masterKerning[leftKey].keys()):
+				# never touch kerning inside the bbox class:
+				if leftKey in bboxLeftKeys and rightKey in bboxRightKeys:
+					continue
+				shouldRemove = (rightKey in bboxRightKeys and leftKey in removeLeftKeys) or (leftKey in bboxLeftKeys and rightKey in removeRightKeys)
+				if shouldRemove:
+					font.removeKerningForPair(master.id, nameForKerningKey(leftKey, font), nameForKerningKey(rightKey, font))
+					removedCount += 1
+					print("   ⌫ %s: %s %s" % (master.name, leftKey, rightKey))
+	return removedCount
+
+
 class BBoxBumperKerning(mekkaObject):
 	prefDict = {
 		"token": "name like '*superior'",
@@ -109,6 +186,7 @@ class BBoxBumperKerning(mekkaObject):
 		"otherGlyphsOnRightSide": True,
 		"otherGlyphsOnLeftSide": True,
 		"allowKerningExceptions": False,
+		"removeRegularKerning": False,
 		"scope": 2,
 	}
 
@@ -141,7 +219,7 @@ class BBoxBumperKerning(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 570
-		windowHeight = 312
+		windowHeight = 334
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -215,6 +293,9 @@ class BBoxBumperKerning(mekkaObject):
 		linePos += lineHeight
 		self.w.allowKerningExceptions = vanilla.CheckBox((inset + shift, linePos - 1, -inset, 20), "Allow kerning exception if no kerning group is set", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.allowKerningExceptions.setToolTip("If one of the bump glyphs does not have a kerning group, you can allow a kerning exception, i.e., kerning with just the bump glyph. If disabled, only group kerning and no kerning exceptions will be created.")
+		linePos += lineHeight
+		self.w.removeRegularKerning = vanilla.CheckBox((inset + shift, linePos - 1, -inset, 20), "Remove respective pairs from regular kerning", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.removeRegularKerning.setToolTip("For every pair inserted into the kern feature code, delete the corresponding pair from the font’s regular kerning (in all masters), so the feature code is not overridden. Kerning between the glyphs of the bbox token (and their kerning group members) is preserved.")
 		linePos += int(lineHeight * 1.5)
 
 		self.w.scopeText = vanilla.TextBox((inset, linePos + 2, shift - 5, 14), "Measure in:", sizeStyle='small', selectable=True)
@@ -283,6 +364,7 @@ class BBoxBumperKerning(mekkaObject):
 			otherGlyphsOnLeftSide = self.pref("otherGlyphsOnLeftSide")
 			otherGlyphsOnRightSide = self.pref("otherGlyphsOnRightSide")
 			allowKerningExceptions = self.pref("allowKerningExceptions")
+			removeRegularKerning = self.prefBool("removeRegularKerning")
 			minDistance = self.prefFloat("minDistance")
 			maxDistance = self.prefFloat("maxDistance")
 			thresholdKerning = self.prefFloat("thresholdKerning")
@@ -318,6 +400,7 @@ class BBoxBumperKerning(mekkaObject):
 						print("❌ Token evaluates to nothing: %s\nSkipping font.\n" % token)
 						continue
 					print("✅ Token → %s" % evaluatedToken)
+					bboxGlyphs = [thisFont.glyphs[name] for name in evaluatedToken.strip().split(" ")]
 
 					# prepare otCode
 					otCode = "# %s\n@%s=[ $[%s] ];\n" % (evaluatedToken, otClassName, token)
@@ -402,6 +485,8 @@ class BBoxBumperKerning(mekkaObject):
 									addToDistanceDict(bboxKey, otherKey, dist)
 
 					print("\n👷🏻‍♂️ Building feature code...")
+					emittedLeftKeys = set()  # bump glyphs to the LEFT of the bbox class
+					emittedRightKeys = set()  # bump glyphs to the RIGHT of the bbox class
 					for leftKey in distanceDict.keys():
 						for rightKey in distanceDict[leftKey].keys():
 							dist = round(distanceDict[leftKey][rightKey])
@@ -412,6 +497,17 @@ class BBoxBumperKerning(mekkaObject):
 							else:
 								continue
 							otCode += "pos %s %s %i;\n" % (leftKey, rightKey, kernValue)
+							if rightKey == "@%s" % otClassName:
+								emittedLeftKeys.add(leftKey)
+							else:
+								emittedRightKeys.add(rightKey)
+
+					if removeRegularKerning:
+						removedCount = removeRegularKerningForPairs(thisFont, bboxGlyphs, emittedLeftKeys, emittedRightKeys)
+						print("🗑 Removed %i regular kerning pair%s (all masters)." % (
+							removedCount,
+							"" if removedCount == 1 else "s",
+						))
 
 					featureStatus = createOTFeature(
 						featureName="kern",
