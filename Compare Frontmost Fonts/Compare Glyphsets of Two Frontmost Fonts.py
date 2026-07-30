@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Compares the glyph set of the two frontmost fonts and outputs a report in the Macro Window.
+Compares the glyph set of the two frontmost fonts, outputs a report in the Macro Window, and opens a tab in each font with the glyphs that are missing in the other font.
 """
 
 from GlyphsApp import Glyphs
@@ -35,3 +35,16 @@ print()
 print("Glyphs not in %s:\n" % otherFileName)
 print(", ".join(thisGlyphSet))
 print()
+
+# open a tab in each font with the glyphs the respective other font is missing:
+for font, fileName, otherName, glyphNames in (
+	(thisFont, thisFileName, otherFileName, thisGlyphSet),
+	(otherFont, otherFileName, thisFileName, otherGlyphSet),
+):
+	if glyphNames:
+		print("💬 Tab in %s with %i glyph%s missing in %s." % (fileName, len(glyphNames), "" if len(glyphNames) == 1 else "s", otherName))
+		font.newTab("/" + "/".join(glyphNames))
+	else:
+		print("✅ No glyphs in %s that %s is missing." % (fileName, otherName))
+
+Glyphs.showNotification("Compare Glyphsets", "Comparison done. Details in Macro Window.")
