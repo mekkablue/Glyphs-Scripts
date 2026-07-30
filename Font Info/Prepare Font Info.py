@@ -16,6 +16,7 @@ class PrepareFontforGit(mekkaObject):
 		"preventTimeStamps": False,
 		"preventMacName": False,
 		"fileFormat": False,
+		"useExtensionKerning": False,
 		"removeGlyphOrder": False,
 		"applyToFonts": False,
 		"disablesNiceNames": False,
@@ -25,6 +26,7 @@ class PrepareFontforGit(mekkaObject):
 		"preventDisplayStrings": ("Write DisplayStrings", 0),
 		"preventTimeStamps": ("Write lastChange", 0),
 		"preventMacName": ("Export Mac Name Table Entries", 0),
+		"useExtensionKerning": ("Use Extension Kerning", True),
 	}
 
 	removeParameters = ("glyphOrder", )
@@ -32,7 +34,7 @@ class PrepareFontforGit(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 360
-		windowHeight = 250
+		windowHeight = 272
 		windowWidthResize = 100  # user can resize width by this value
 		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -58,6 +60,10 @@ class PrepareFontforGit(mekkaObject):
 		linePos += lineHeight
 
 		self.w.fileFormat = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Set File Format to Glyphs version 3", value=True, callback=self.SavePreferences, sizeStyle='small')
+		linePos += lineHeight
+
+		self.w.useExtensionKerning = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Add Use Extension Kerning parameter", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.useExtensionKerning.setToolTip("Adds the ‘Use Extension Kerning’ custom parameter, which makes the exported kern feature use the GPOS Extension lookup type. Useful for large kerning tables.")
 		linePos += lineHeight
 
 		self.w.removeGlyphOrder = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove glyphOrder", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -98,7 +104,7 @@ class PrepareFontforGit(mekkaObject):
 			print("🚫 Font Info > Font > Custom Parameters > %s" % parameterName)
 		else:
 			font.customParameters[parameterName] = parameterValue
-			print("✅ Font Info > Font > Custom Parameters > %s = %i" % (parameterName, parameterValue))
+			print("✅ Font Info > Font > Custom Parameters > %s = %s" % (parameterName, parameterValue))
 
 	def PrepareFontforGitMain(self, sender=None):
 		try:
