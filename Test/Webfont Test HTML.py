@@ -259,16 +259,34 @@ def particleStylesOfInstance(thisFont, particleInstance):
 	return styles
 
 
-def activeInstancesByFormat(thisFont, activeInstances, fileFormats, availableFormats=("otf", "ttf", "woff", "woff2", "eot")):
+def webfontFormatsOf(*objects):
+	# returns the formats of the first "Webfont Formats" parameter found in objects, or None
+	for thisObject in objects:
+		if not thisObject:
+			continue
+		try:
+			parameter = thisObject.customParameterActiveForKey_("Webfont Formats")
+			value = parameter.value if parameter else None
+		except AttributeError:
+			# e.g. GSProjectDocument in some app versions:
+			try:
+				value = thisObject.customParameters["Webfont Formats"]
+			except (AttributeError, TypeError, KeyError):
+				continue
+		if value:
+			return list(value)
+	return None
+
+
+def activeInstancesByFormat(thisFont, activeInstances, fileFormats, availableFormats=("otf", "ttf", "woff", "woff2", "eot"), fallbackParameterSource=None):
 	instanceInfos = {}
 	for availableFormat in availableFormats:
 		instanceInfos[availableFormat] = []
-		
+
 	for activeInstance in activeInstances:
 		for fileFormat in fileFormats:
-			webParameter = activeInstance.customParameterActiveForKey_("Webfont Formats")
-			if webParameter:
-				webFormats = list(webParameter.value)
+			webFormats = webfontFormatsOf(activeInstance, fallbackParameterSource)
+			if webFormats:
 				if "plain" in webFormats:
 					webFormats[webFormats.index("plain")] = fileFormat
 			else:
@@ -310,14 +328,37 @@ def activeInstancesByFormat(thisFont, activeInstances, fileFormats, availableFor
 
 def activeInstancesOfFontByFormat(thisFont, fileFormats=("woff", "woff2")):
 	activeInstances = allActiveInstancesOfFont(thisFont)
-	listOfInstanceInfo = activeInstancesByFormat(thisFont,activeInstances,  fileFormats)
+	listOfInstanceInfo = activeInstancesByFormat(thisFont, activeInstances, fileFormats, fallbackParameterSource=thisFont)
 	return listOfInstanceInfo
 
 
-def activeInstancesOfProjectByFormat(thisProject, fileFormats=("woff", "woff2")):
+def projectFileFormats(thisProject):
+	# In a .glyphsproject, the webfont formats are NOT taken from the app’s
+	# Export dialog, but exclusively from the "Webfont Formats" parameter
+	# (project-wide or per instance). So we only supply the plain outline
+	# format here; getInstanceInfo() will switch it to ttf where necessary,
+	# and a "Webfont Formats" parameter will override it completely.
+	fileFormat = "otf"
 	thisFont = thisProject.font()
+	for thisObject in (thisProject, thisFont):
+		if not thisObject:
+			continue
+		try:
+			ttParameter = thisObject.customParameterActiveForKey_("Save as TrueType")
+		except AttributeError:
+			continue
+		if ttParameter:
+			fileFormat = "ttf" if ttParameter.value else "otf"
+			break
+	return (fileFormat, )
+
+
+def activeInstancesOfProjectByFormat(thisProject, fileFormats=None):
+	thisFont = thisProject.font()
+	if not fileFormats:
+		fileFormats = projectFileFormats(thisProject)
 	activeInstances = allActiveInstancesOfProject(thisProject)
-	listOfInstanceInfo = activeInstancesByFormat(thisFont, activeInstances, fileFormats)
+	listOfInstanceInfo = activeInstancesByFormat(thisFont, activeInstances, fileFormats, fallbackParameterSource=thisProject)
 	return listOfInstanceInfo
 
 
@@ -954,7 +995,9 @@ else:
 	if isinstance(firstDoc, GSProjectDocument):
 		# Frontmost doc is a .glyphsproject file:
 		thisFont = firstDoc.font()  # type: ignore
-		activeFontInstances = activeInstancesOfProjectByFormat(firstDoc, fileFormats=fileFormats)
+		# do not assume woff/woff2: a project only exports the formats
+		# specified in its "Webfont Formats" parameter (if any):
+		activeFontInstances = activeInstancesOfProjectByFormat(firstDoc)
 		exportPath = firstDoc.exportPath()
 	else:
 		# Frontmost doc is a .glyphs file:
