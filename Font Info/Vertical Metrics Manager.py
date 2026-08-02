@@ -166,7 +166,8 @@ class VerticalMetricsManager(mekkaObject):
 		linePos += lineHeight
 		
 		self.w.calculateText = vanilla.TextBox((inset, linePos+2, 70, 14), "Use method", sizeStyle="small", selectable=True)
-		self.w.calculate = vanilla.PopUpButton((inset+70, linePos, -80-inset, 17), ("Google", "Webfonts (2019)", "Microsoft (Legacy)"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.calculate = vanilla.PopUpButton((inset+70, linePos, -80-inset, 17), ("Google", "Webfonts (2019)", "ArrowType", "Microsoft (Legacy)"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.calculate.setToolTip("Choose a vertical metrics strategy and press Calculate to fill the fields above.\n\n• Google: centers the caps between ascender and descender, no line gap.\n• Webfonts (2019): slightly compressed values for webfont line spacing.\n• ArrowType: line spacing of 120% of the UPM, distributed proportionally to the actual ink extremes, no line gap, hhea synced to typo, usWin set to the actual extremes.\n• Microsoft (Legacy): usWin-based metrics without Use Typo Metrics.")
 		self.w.calculateButton = vanilla.Button((-70 - inset, linePos, -inset, 17), "Calculate", sizeStyle="small", callback=self.calculateMethod)
 		
 		linePos += lineHeight
@@ -656,6 +657,8 @@ class VerticalMetricsManager(mekkaObject):
 		elif method == 1:
 			self.methodWebfonts2019()
 		elif method == 2:
+			self.methodArrowType()
+		elif method == 3:
 			self.methodMicrosoft()
 
 
@@ -706,6 +709,75 @@ class VerticalMetricsManager(mekkaObject):
 		self.setPref("typoGap", lineGap)
 		self.LoadPreferences()
 		
+		# update win values:
+		self.update(sender=self.w.winUpdate)
+
+		# update hhea values:
+		self.update(sender=self.w.hheaUpdate)
+
+		# update useTypoMetrics:
+		self.update(sender=self.w.useTypoMetricsUpdate)
+
+
+	def methodArrowType(self, sender=None):
+		"""
+		ArrowType strategy:
+		Pick a default line spacing (120% of the UPM) and distribute it over
+		typo ascender and descender in the same proportion as the actual ink
+		extremes of the font, so the text block stays optically balanced.
+		Line gap stays zero, hhea is synced to typo, and the usWin values are
+		set to the actual extremes so nothing gets clipped on Windows.
+		"""
+		shouldRound = self.pref("round")
+		roundValue = self.prefInt("roundValue")
+
+		if self.pref("allOpenFonts"):
+			theseFonts = Glyphs.fonts
+		else:
+			theseFonts = (Glyphs.font, )
+
+		lineSpacingFactor = 1.2
+		highest, lowest = 0.0, 0.0
+		lineSpan = 0
+
+		for thisFont in theseFonts:
+			lineSpan = max(lineSpan, thisFont.upm * lineSpacingFactor)
+			for thisGlyph in self.chosenGlyphs(thisFont):
+				highest = max(highest, glyphHeight(thisGlyph))
+				lowest = min(lowest, glyphDepth(thisGlyph))
+
+		inkSpan = highest + abs(lowest)
+		if inkSpan <= 0:
+			Message(
+				title="Cannot Measure Font",
+				message="Could not measure any glyph extremes. Please check your measurement settings.",
+				OKButton=None,
+			)
+			return
+
+		# the line spacing must at least accommodate the actual ink:
+		lineSpan = max(lineSpan, inkSpan)
+
+		# distribute the line spacing proportionally to the ink extremes:
+		ascender = lineSpan * highest / inkSpan
+		descender = -(lineSpan - ascender)
+
+		if shouldRound:
+			ascender = roundUpByValue(ascender, roundValue)
+			descender = roundUpByValue(descender, roundValue)
+
+		print("ArrowType strategy:\n")
+		print(f"- highest ink: {highest}")
+		print(f"- lowest ink: {lowest}")
+		print(f"- line spacing ({lineSpacingFactor:.0%} of UPM): {lineSpan}")
+		print()
+
+		# update typo values, no line gap:
+		self.setPref("typoAsc", int(ascender))
+		self.setPref("typoDesc", int(descender))
+		self.setPref("typoGap", 0)
+		self.LoadPreferences()
+
 		# update win values:
 		self.update(sender=self.w.winUpdate)
 
