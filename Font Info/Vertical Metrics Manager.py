@@ -166,8 +166,8 @@ class VerticalMetricsManager(mekkaObject):
 		linePos += lineHeight
 		
 		self.w.calculateText = vanilla.TextBox((inset, linePos+2, 70, 14), "Use method", sizeStyle="small", selectable=True)
-		self.w.calculate = vanilla.PopUpButton((inset+70, linePos, -80-inset, 17), ("Google", "Webfonts (2019)", "ArrowType", "Microsoft (Legacy)"), sizeStyle="small", callback=self.SavePreferences)
-		self.w.calculate.setToolTip("Choose a vertical metrics strategy and press Calculate to fill the fields above.\n\n• Google: centers the caps between ascender and descender, no line gap.\n• Webfonts (2019): slightly compressed values for webfont line spacing.\n• ArrowType: line spacing of 120% of the UPM, distributed proportionally to the actual ink extremes, no line gap, hhea synced to typo, usWin set to the actual extremes.\n• Microsoft (Legacy): usWin-based metrics without Use Typo Metrics.")
+		self.w.calculate = vanilla.PopUpButton((inset+70, linePos, -80-inset, 17), ("Google", "Webfonts (2019)", "ArrowType (1.3×UPM)", "ArrowType (1.5×UPM)", "Microsoft (Legacy)"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.calculate.setToolTip("Choose a vertical metrics strategy and press Calculate to fill the fields above.\n\n• Google: centers the caps between ascender and descender, no line gap.\n• Webfonts (2019): slightly compressed values for webfont line spacing.\n• ArrowType: line spacing of 130% resp. 150% of the UPM, distributed proportionally to the actual ink extremes, no line gap, hhea synced to typo, usWin set to the actual extremes. Pick the looser 1.5×UPM setting for fonts with tall ascenders and deep descenders.\n• Microsoft (Legacy): usWin-based metrics without Use Typo Metrics.")
 		self.w.calculateButton = vanilla.Button((-70 - inset, linePos, -inset, 17), "Calculate", sizeStyle="small", callback=self.calculateMethod)
 		
 		linePos += lineHeight
@@ -657,8 +657,10 @@ class VerticalMetricsManager(mekkaObject):
 		elif method == 1:
 			self.methodWebfonts2019()
 		elif method == 2:
-			self.methodArrowType()
+			self.methodArrowType(lineSpacingFactor=1.3)
 		elif method == 3:
+			self.methodArrowType(lineSpacingFactor=1.5)
+		elif method == 4:
 			self.methodMicrosoft()
 
 
@@ -719,10 +721,10 @@ class VerticalMetricsManager(mekkaObject):
 		self.update(sender=self.w.useTypoMetricsUpdate)
 
 
-	def methodArrowType(self, sender=None):
+	def methodArrowType(self, sender=None, lineSpacingFactor=1.3):
 		"""
 		ArrowType strategy:
-		Pick a default line spacing (120% of the UPM) and distribute it over
+		Pick a default line spacing (lineSpacingFactor times the UPM) and distribute it over
 		typo ascender and descender in the same proportion as the actual ink
 		extremes of the font, so the text block stays optically balanced.
 		Line gap stays zero, hhea is synced to typo, and the usWin values are
@@ -736,7 +738,6 @@ class VerticalMetricsManager(mekkaObject):
 		else:
 			theseFonts = (Glyphs.font, )
 
-		lineSpacingFactor = 1.2
 		highest, lowest = 0.0, 0.0
 		lineSpan = 0
 
@@ -766,7 +767,7 @@ class VerticalMetricsManager(mekkaObject):
 			ascender = roundUpByValue(ascender, roundValue)
 			descender = roundUpByValue(descender, roundValue)
 
-		print("ArrowType strategy:\n")
+		print(f"ArrowType strategy ({lineSpacingFactor}×UPM):\n")
 		print(f"- highest ink: {highest}")
 		print(f"- lowest ink: {lowest}")
 		print(f"- line spacing ({lineSpacingFactor:.0%} of UPM): {lineSpan}")
