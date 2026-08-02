@@ -167,7 +167,7 @@ class VerticalMetricsManager(mekkaObject):
 		
 		self.w.calculateText = vanilla.TextBox((inset, linePos+2, 70, 14), "Use method", sizeStyle="small", selectable=True)
 		self.w.calculate = vanilla.PopUpButton((inset+70, linePos, -80-inset, 17), ("Google", "Webfonts (2019)", "ArrowType (1.3×UPM)", "ArrowType (1.5×UPM)", "Microsoft (Legacy)"), sizeStyle="small", callback=self.SavePreferences)
-		self.w.calculate.setToolTip("Choose a vertical metrics strategy and press Calculate to fill the fields above.\n\n• Google: centers the caps between ascender and descender, no line gap.\n• Webfonts (2019): slightly compressed values for webfont line spacing.\n• ArrowType: line spacing of 130% resp. 150% of the UPM, distributed proportionally to the actual ink extremes, no line gap, hhea synced to typo, usWin set to the actual extremes. Pick the looser 1.5×UPM setting for fonts with tall ascenders and deep descenders.\n• Microsoft (Legacy): usWin-based metrics without Use Typo Metrics.")
+		self.w.calculate.setToolTip("Choose a vertical metrics strategy and press Calculate to fill the fields above.\n\n• Google: centers the caps between ascender and descender, no line gap.\n• Webfonts (2019): slightly compressed values for webfont line spacing.\n• ArrowType: line spacing of 130% resp. 150% of the UPM, distributed in the proportion of the master ascenders and descenders, no line gap, hhea synced to typo, usWin set to the actual extremes, Use Typo Metrics off. Pick the looser 1.5×UPM setting for fonts with tall ascenders and deep descenders.\n• Microsoft (Legacy): usWin-based metrics without Use Typo Metrics.")
 		self.w.calculateButton = vanilla.Button((-70 - inset, linePos, -inset, 17), "Calculate", sizeStyle="small", callback=self.calculateMethod)
 		
 		linePos += lineHeight
@@ -724,11 +724,14 @@ class VerticalMetricsManager(mekkaObject):
 	def methodArrowType(self, sender=None, lineSpacingFactor=1.3):
 		"""
 		ArrowType strategy:
-		Pick a default line spacing (lineSpacingFactor times the UPM) and distribute it over
-		typo ascender and descender in the same proportion as the actual ink
-		extremes of the font, so the text block stays optically balanced.
-		Line gap stays zero, hhea is synced to typo, and the usWin values are
-		set to the actual extremes so nothing gets clipped on Windows.
+		Pick a default line spacing (lineSpacingFactor times the UPM) and distribute
+		it over ascender and descender in the same proportion as the design metrics
+		of the masters, so the ratio the designer chose is preserved rather than
+		centering the cap height. The resulting values always accommodate the actual
+		master ascenders and descenders. Line gap stays zero, hhea is synced to typo,
+		the usWin values are set to the actual extremes so nothing gets clipped on
+		Windows, and Use Typo Metrics stays off because hhea and typo are identical
+		anyway.
 		"""
 		shouldRound = self.pref("round")
 		roundValue = self.prefInt("roundValue")
@@ -738,38 +741,42 @@ class VerticalMetricsManager(mekkaObject):
 		else:
 			theseFonts = (Glyphs.font, )
 
-		highest, lowest = 0.0, 0.0
+		masterAscender, masterDescender = 0.0, 0.0
 		lineSpan = 0
 
 		for thisFont in theseFonts:
 			lineSpan = max(lineSpan, thisFont.upm * lineSpacingFactor)
-			for thisGlyph in self.chosenGlyphs(thisFont):
-				highest = max(highest, glyphHeight(thisGlyph))
-				lowest = min(lowest, glyphDepth(thisGlyph))
+			for thisMaster in thisFont.masters:
+				masterAscender = max(masterAscender, thisMaster.ascender)
+				masterDescender = min(masterDescender, thisMaster.descender)
 
-		inkSpan = highest + abs(lowest)
-		if inkSpan <= 0:
+		masterSpan = masterAscender + abs(masterDescender)
+		if masterSpan <= 0:
 			Message(
 				title="Cannot Measure Font",
-				message="Could not measure any glyph extremes. Please check your measurement settings.",
+				message="Could not determine the ascender and descender of the masters. Please check your master metrics.",
 				OKButton=None,
 			)
 			return
 
-		# the line spacing must at least accommodate the actual ink:
-		lineSpan = max(lineSpan, inkSpan)
+		# the line spacing must at least accommodate the master metrics:
+		lineSpan = max(lineSpan, masterSpan)
 
-		# distribute the line spacing proportionally to the ink extremes:
-		ascender = lineSpan * highest / inkSpan
+		# distribute the line spacing in the proportion of the design metrics:
+		ascender = lineSpan * masterAscender / masterSpan
 		descender = -(lineSpan - ascender)
+
+		# the actual master metrics must fit in any case:
+		ascender = max(ascender, masterAscender)
+		descender = min(descender, masterDescender)
 
 		if shouldRound:
 			ascender = roundUpByValue(ascender, roundValue)
 			descender = roundUpByValue(descender, roundValue)
 
-		print(f"ArrowType strategy ({lineSpacingFactor}×UPM):\n")
-		print(f"- highest ink: {highest}")
-		print(f"- lowest ink: {lowest}")
+		print(f"ArrowType strategy ({lineSpacingFactor}\u00d7UPM):\n")
+		print(f"- highest master ascender: {masterAscender}")
+		print(f"- lowest master descender: {masterDescender}")
 		print(f"- line spacing ({lineSpacingFactor:.0%} of UPM): {lineSpan}")
 		print()
 
@@ -785,8 +792,9 @@ class VerticalMetricsManager(mekkaObject):
 		# update hhea values:
 		self.update(sender=self.w.hheaUpdate)
 
-		# update useTypoMetrics:
-		self.update(sender=self.w.useTypoMetricsUpdate)
+		# hhea and typo are identical, so Use Typo Metrics is not needed:
+		self.setPref("useTypoMetrics", False)
+		self.LoadPreferences()
 
 
 	def methodMicrosoft(self, sender=None):
