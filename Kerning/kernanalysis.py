@@ -367,7 +367,7 @@ def bubbleLayer(layer, offset=0):
 	bubblePath = bubbleForLayer(layer, offset=float(offset))
 	newLayer = GSLayer()
 	newLayer.width = layer.width
-	newLayer.paths.append(bubblePath)
+	newLayer.shapes.append(bubblePath)
 	return newLayer
 
 

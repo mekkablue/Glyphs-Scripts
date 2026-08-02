@@ -30,7 +30,7 @@ def process(thisGlyph):
 		sourcePaths = sourceLayer.paths
 		if sourcePaths:
 			for sourcePath in sourcePaths:
-				currentLayer.paths.append(sourcePath.copy())
+				currentLayer.shapes.append(sourcePath.copy())
 		sourceHints = sourceLayer.hints
 		if sourceHints:
 			for sourceHint in sourceLayer.hints:

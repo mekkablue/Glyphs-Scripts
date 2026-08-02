@@ -182,7 +182,7 @@ class Rotator(mekkaObject):
 									rotatedComp.applyTransform(RotationTransformMatrix)
 								newComps.append(rotatedComp)
 					for newPath in newPaths:
-						thisLayer.paths.append(newPath)
+						thisLayer.shapes.append(newPath)
 					for newComp in newComps:
 						thisLayer.components.append(newComp)
 

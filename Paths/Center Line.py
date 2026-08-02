@@ -429,7 +429,7 @@ def buildRelevantLayer(path, fullLayer):
 		return fullLayer  # all paths qualify — skip the copy overhead
 	tempLayer = GSLayer()
 	for p in relevantPaths:
-		tempLayer.paths.append(copy(p))
+		tempLayer.shapes.append(copy(p))
 	return tempLayer
 
 
@@ -632,7 +632,7 @@ def cleanup(layer, threshold=40):
 		if id(layer.shapes[i]) in toRemove:
 			del layer.shapes[i]
 	for path in toAdd:
-		layer.paths.append(path)
+		layer.shapes.append(path)
 
 	# Rule 3 — snap open path ends to a collinear adjacent path end.
 	# For each open path1, collect loose ends: (innerNode, endNode) pairs for every
@@ -819,7 +819,7 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 				if lineOutsideShape(centerPath, layer):
 					continue
 				if not isPathAlreadyThere(centerPath, shadowLayer.paths):
-					shadowLayer.paths.append(centerPath)
+					shadowLayer.shapes.append(centerPath)
 	
 	shadowLayer.connectAllOpenPaths()
 	cleanup(layer=shadowLayer, threshold=threshold)
@@ -835,10 +835,10 @@ def createCenterLinesForSelectedSegments(layer, t=0.5, inBackground=False, selec
 	for shadowPath in shadowLayer.paths:
 		if inBackground:
 			if not isPathAlreadyThere(shadowPath, layer.background.paths):
-				layer.background.paths.append(shadowPath)
+				layer.background.shapes.append(shadowPath)
 		else:
 			if not isPathAlreadyThere(shadowPath, layer.paths):
-				layer.paths.append(shadowPath)
+				layer.shapes.append(shadowPath)
 				shadowPath.selected = True
 
 keysPressed = NSEvent.modifierFlags()

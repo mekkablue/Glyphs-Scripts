@@ -395,7 +395,7 @@ def buildCirclePart(thisFont, glyphName, isBlack=False):
 			currentHeight = thisLayer.bounds.size.height
 			outerCircle = thisLayer.paths[0]
 			innerCircle = outerCircle.copy()
-			thisLayer.paths.append(innerCircle)
+			thisLayer.shapes.append(innerCircle)
 
 			# get stems
 			hstems = []

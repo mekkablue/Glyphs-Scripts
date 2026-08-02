@@ -297,7 +297,7 @@ try:
 			downArrowLayer = downArrow.layers[thisMaster.id]
 			downArrowLayer.clear()
 			for origPath in thisLayer.paths:
-				downArrowLayer.paths.append(origPath.copy())
+				downArrowLayer.shapes.append(origPath.copy())
 			shift = transform(shiftX=-centerOfRect(thisLayer.bounds).x, shiftY=-thisMaster.capHeight * 0.5).transformStruct()
 			rotate = transform(rotate=180).transformStruct()
 			shiftBack = transform(shiftX=downArrowLayer.width * 0.5, shiftY=thisMaster.xHeight).transformStruct()
@@ -318,9 +318,9 @@ try:
 			emptysetLayer.clear()
 			emptysetLayer.background.clear()
 			for thisPath in thisLayer.paths:
-				emptysetLayer.paths.append(thisPath.copy())
+				emptysetLayer.shapes.append(thisPath.copy())
 			for thisPath in thisLayer.background.paths:
-				emptysetLayer.background.paths.append(thisPath.copy())
+				emptysetLayer.background.shapes.append(thisPath.copy())
 
 			# scale to zero
 			zero = getZeroGlyph(thisFont).layers[thisMaster.id]
