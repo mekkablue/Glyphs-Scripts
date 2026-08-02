@@ -8,7 +8,13 @@ Covers both general properties (names, designer, etc.) and custom parameters (st
 
 import vanilla
 import objc
-from GlyphsApp import Glyphs, GSFontInfoValueLocalized, GSFontInfoValueSingle
+from GlyphsApp import Glyphs
+
+if Glyphs.versionNumber >= 4:
+	# Glyphs 4 renamed GSFontInfoValue* to GSInfoValue*
+	from GlyphsApp import GSInfoValueLocalized as GSFontInfoValueLocalized, GSInfoValueSingle as GSFontInfoValueSingle
+else:
+	from GlyphsApp import GSFontInfoValueLocalized, GSFontInfoValueSingle
 from mekkablue import mekkaObject
 
 

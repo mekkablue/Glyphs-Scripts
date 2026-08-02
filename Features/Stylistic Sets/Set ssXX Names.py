@@ -6,8 +6,14 @@ Prefills names for ssXX features with ‘Alternate’ or another chosen text, pl
 """
 
 import vanilla
-from GlyphsApp import Glyphs, GSFontInfoValue
+from GlyphsApp import Glyphs
 from mekkablue import mekkaObject, UpdateButton
+
+if Glyphs.versionNumber >= 4:
+	# Glyphs 4 renamed GSFontInfoValue to GSInfoValue
+	from GlyphsApp import GSInfoValue as GSFontInfoValue
+else:
+	from GlyphsApp import GSFontInfoValue
 
 
 def featureHasName(feature):
