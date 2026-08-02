@@ -84,7 +84,7 @@ def createGlyph(
 				thisLayer.clear()
 				# put paths onto the actual layer:
 				for originalPath in originalLayer.paths:
-					thisLayer.paths.append(originalPath.copy())
+					thisLayer.shapes.append(originalPath.copy())
 				# update metrics:
 				thisLayer.roundCoordinates()
 				if not setMetricsKeys:

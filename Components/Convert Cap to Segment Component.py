@@ -196,7 +196,7 @@ class ConvertCapToSegmentComponent(mekkaObject):
 
 				# Copy paths only (no guides, no anchors yet)
 				for path in capLayer.paths:
-					segmentLayer.paths.append(path.copy())
+					segmentLayer.shapes.append(path.copy())
 
 				# Apply the aligning transform: move startPos to origin, rotate to baseline
 				t = self.buildAlignTransform(startPos, endPos)

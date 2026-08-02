@@ -64,11 +64,11 @@ def process(thisLayer):
 		layerRect = drawRect(bottomLeft, topRight)
 		if layerRect:
 			try:
-				# Glyphs 2:
-				thisLayer.paths.append(layerRect)
-			except:
 				# Glyphs 3:
 				thisLayer.shapes.append(layerRect)
+			except:
+				# Glyphs 2:
+				thisLayer.paths.append(layerRect)
 			return f"✅ 🔽 {bottom} ↕️ {height} ↔️ {thisLayer.width-2*inset}"
 		else:
 			return "❌ error"
