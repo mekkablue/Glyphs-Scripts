@@ -167,7 +167,7 @@ class VerticalMetricsManager(mekkaObject):
 		
 		self.w.calculateText = vanilla.TextBox((inset, linePos+2, 70, 14), "Use method", sizeStyle="small", selectable=True)
 		self.w.calculate = vanilla.PopUpButton((inset+70, linePos, -80-inset, 17), ("Google", "Webfonts (2019)", "ArrowType (1.3×UPM)", "ArrowType (1.5×UPM)", "Microsoft (Legacy)"), sizeStyle="small", callback=self.SavePreferences)
-		self.w.calculate.setToolTip("Choose a vertical metrics strategy and press Calculate to fill the fields above.\n\n• Google: centers the caps between ascender and descender, no line gap.\n• Webfonts (2019): slightly compressed values for webfont line spacing.\n• ArrowType: hhea synced with usWin (both set to the actual extremes), hhea line gap padding the line spacing up to 130% resp. 150% of the UPM, sTypo carrying the design metrics of the masters, Use Typo Metrics off. Pick the looser 1.5×UPM setting for fonts with tall ascenders and deep descenders.\n• Microsoft (Legacy): usWin-based metrics without Use Typo Metrics.")
+		self.w.calculate.setToolTip("Choose a vertical metrics strategy and press Calculate to fill the fields above.\n\n• Google: centers the caps between ascender and descender, no line gap.\n• Webfonts (2019): slightly compressed values for webfont line spacing.\n• ArrowType: target line height of 130% resp. 150% of the UPM, with the cap height centered between hhea ascender and descender, usWin synced with hhea, a tight sTypo ascender on the cap height for the best first baseline in DTP apps, and Use Typo Metrics off. Pick the looser 1.5×UPM setting for more generous line spacing.\n• Microsoft (Legacy): usWin-based metrics without Use Typo Metrics.")
 		self.w.calculateButton = vanilla.Button((-70 - inset, linePos, -inset, 17), "Calculate", sizeStyle="small", callback=self.calculateMethod)
 		
 		linePos += lineHeight
@@ -657,9 +657,9 @@ class VerticalMetricsManager(mekkaObject):
 		elif method == 1:
 			self.methodWebfonts2019()
 		elif method == 2:
-			self.methodArrowType(lineSpacingFactor=1.3)
+			self.methodArrowType(lineHeightFactor=1.3)
 		elif method == 3:
-			self.methodArrowType(lineSpacingFactor=1.5)
+			self.methodArrowType(lineHeightFactor=1.5)
 		elif method == 4:
 			self.methodMicrosoft()
 
@@ -721,15 +721,15 @@ class VerticalMetricsManager(mekkaObject):
 		self.update(sender=self.w.useTypoMetricsUpdate)
 
 
-	def methodArrowType(self, sender=None, lineSpacingFactor=1.3):
+	def methodArrowType(self, sender=None, lineHeightFactor=1.3):
 		"""
-		ArrowType strategy:
-		hhea and usWin are synced: both are set to the actual extremes of the font,
-		so nothing is clipped on Windows and the default line spacing is the same
-		everywhere. The hhea line gap pads the line spacing up to lineSpacingFactor
-		times the UPM. The sTypo values are different on purpose: they carry the
-		design metrics, i.e. the master ascender and descender. Use Typo Metrics
-		stays off, so the synced hhea/usWin values determine the line spacing.
+		ArrowType strategy, see https://github.com/arrowtype/vertical-metrics
+		Starts with a target line height of lineHeightFactor times the UPM, and
+		centers the cap height between hhea ascender and descender. usWin is synced
+		with hhea, and Use Typo Metrics is turned off, so Windows apps fall back to
+		the usWin values while the Mac uses the hhea values, and both are the same.
+		The tight sTypo ascender yields the best possible first baseline position in
+		apps like InDesign.
 		"""
 		shouldRound = self.pref("round")
 		roundValue = self.prefInt("roundValue")
@@ -739,55 +739,44 @@ class VerticalMetricsManager(mekkaObject):
 		else:
 			theseFonts = (Glyphs.font, )
 
-		masterAscender, masterDescender = 0.0, 0.0
-		lineSpan = 0
+		capHeight = 0
+		lineHeight = 0
 
 		for thisFont in theseFonts:
-			lineSpan = max(lineSpan, thisFont.upm * lineSpacingFactor)
-			for thisMaster in thisFont.masters:
-				masterAscender = max(masterAscender, thisMaster.ascender)
-				masterDescender = min(masterDescender, thisMaster.descender)
+			lineHeight = max(lineHeight, thisFont.upm * lineHeightFactor)
+			capHeight = max([m.capHeight for m in thisFont.masters] + [capHeight])
 
-		if masterAscender + abs(masterDescender) <= 0:
+		if capHeight <= 0:
 			Message(
 				title="Cannot Measure Font",
-				message="Could not determine the ascender and descender of the masters. Please check your master metrics.",
+				message="Could not determine the cap height of the masters. Please check your master metrics.",
 				OKButton=None,
 			)
 			return
 
-		print(f"ArrowType strategy ({lineSpacingFactor}\u00d7UPM):\n")
-
-		# usWin values, measured from the actual extremes:
-		self.update(sender=self.w.winUpdate)
-		winAsc = cleanInt(self.pref("winAsc"))
-		winDesc = cleanInt(self.pref("winDesc"))
-
-		# hhea is synced with usWin, the line gap pads up to the intended line spacing:
-		hheaAsc = winAsc
-		hheaDesc = -abs(winDesc)
-		hheaGap = max(0, lineSpan - (abs(hheaAsc) + abs(hheaDesc)))
 		if shouldRound:
-			hheaGap = roundUpByValue(hheaGap, roundValue)
+			capHeight = roundUpByValue(capHeight, roundValue)
 
-		# sTypo carries the design metrics of the masters:
-		typoAsc = masterAscender
-		typoDesc = masterDescender
+		# center the cap height between hhea ascender and descender:
+		hheaAsc = (capHeight + lineHeight) / 2
 		if shouldRound:
-			typoAsc = roundUpByValue(typoAsc, roundValue)
-			typoDesc = roundUpByValue(typoDesc, roundValue)
+			hheaAsc = roundUpByValue(hheaAsc, roundValue)
+		hheaDesc = capHeight - hheaAsc
 
-		print(f"- highest master ascender: {masterAscender}")
-		print(f"- lowest master descender: {masterDescender}")
-		print(f"- intended line spacing ({lineSpacingFactor:.0%} of UPM): {lineSpan}")
+		print(f"ArrowType strategy ({lineHeightFactor}\u00d7UPM):\n")
+		print(f"- cap height: {capHeight}")
+		print(f"- target line height ({lineHeightFactor:.0%} of UPM): {lineHeight}")
 		print()
 
+		# hhea, with usWin in sync, and sTypo tight on the cap height:
 		self.setPref("hheaAsc", int(hheaAsc))
 		self.setPref("hheaDesc", int(hheaDesc))
-		self.setPref("hheaGap", int(hheaGap))
-		self.setPref("typoAsc", int(typoAsc))
-		self.setPref("typoDesc", int(typoDesc))
-		self.setPref("typoGap", 0)
+		self.setPref("hheaGap", 0)
+		self.setPref("typoAsc", int(capHeight))
+		self.setPref("typoDesc", int(hheaDesc))
+		self.setPref("typoGap", int(abs(hheaDesc)))
+		self.setPref("winAsc", int(hheaAsc))
+		self.setPref("winDesc", int(abs(hheaDesc)))
 
 		# hhea and usWin determine the line spacing, so Use Typo Metrics stays off:
 		self.setPref("useTypoMetrics", False)
