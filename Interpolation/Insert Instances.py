@@ -661,17 +661,16 @@ def existingParticleInstance(font):
 	return None
 
 
-def buildNameParticle(name, internalValue, externalValue, isElidable):
+def buildNameParticle(name, internalValue, externalValue):
 	"""
 	Returns a GSNameParticle with the supplied name and axis values.
 	Uses ObjC accessors because GSNameParticle is not Python-wrapped (yet).
+	setInternal_()/setExternal_() work just as well as the ...Value_ variants.
 	"""
 	particle = GSNameParticle.alloc().init()
 	particle.setName_(name)
 	particle.setInternalValue_(float(internalValue))
 	particle.setExternalValue_(float(externalValue))
-	if GSNameParticle.instancesRespondToSelector_("setElidable:"):
-		particle.setElidable_(isElidable)
 	return particle
 
 
@@ -698,7 +697,7 @@ def insertParticlesIntoFont(font, particlesDict):
 
 	removeInstances = particlesDict.get("removeInstances", False)
 	removeParticles = particlesDict.get("removeParticles", False)
-	elidableNames = tuple(n.lower() for n in particlesDict.get("elidableNames", []))
+	elidableNames = particlesDict.get("elidableNames", [])
 	axesData = particlesDict.get("axes", {})
 
 	if removeInstances:
@@ -760,16 +759,17 @@ def insertParticlesIntoFont(font, particlesDict):
 			internalValue = particleInfo["internalValue"]
 			# without an explicit external value, internal and external coordinates are the same:
 			externalValue = particleInfo.get("externalValue", internalValue)
-			isElidable = name.lower() in elidableNames
-			axisParticles.addObject_(buildNameParticle(name, internalValue, externalValue, isElidable))
-			print(f"\t\t✅ {name} ({internalValue}>{externalValue}){' (elidable)' if isElidable else ''}")
+			axisParticles.addObject_(buildNameParticle(name, internalValue, externalValue))
+			print(f"\t\t✅ {name} ({internalValue}>{externalValue})")
 
 		# replaces the particles of this axis, keeps those of all other axes:
 		allParticles.setObject_forKey_(axisParticles, axisId)
 
 	particleInstance.setNameParticles_(allParticles)
-	if elidableNames and not GSNameParticle.instancesRespondToSelector_("setElidable:"):
-		print(f"\n\t⚠️ This Glyphs version cannot mark particles as elidable: {', '.join(particlesDict.get('elidableNames', []))}")
+
+	# #TODO: mark these particles as elidable once the API supports it:
+	if elidableNames:
+		print(f"\n\t⚠️ Elidability is not implemented yet, so these names were ignored: {', '.join(elidableNames)}")
 
 
 class InstanceMakerV4(mekkaObject):
