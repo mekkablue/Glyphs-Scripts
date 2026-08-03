@@ -337,8 +337,8 @@ class QuoteManager(mekkaObject):
 		toRemove = [a for a in layer.anchors if a.name in ("#entry", "#exit")]
 		for a in toRemove:
 			layer.anchors.remove(a)
-		layer.anchors.append(GSAnchor("#entry", NSPoint(0, 0)))
-		layer.anchors.append(GSAnchor("#exit", NSPoint(distance, 0)))
+		layer.anchors.append(GSAnchor.alloc().initWithName_position_("#entry", NSPoint(0, 0)))
+		layer.anchors.append(GSAnchor.alloc().initWithName_position_("#exit", NSPoint(distance, 0)))
 
 	# -----------------------------------------------------------------------
 	# Metrics keys

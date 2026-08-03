@@ -18,7 +18,7 @@ def process(glyph):
 			countOfLayers += 1
 			for i, axisName in enumerate(axisNames):
 				if not thisLayer.anchors[axisName]:
-					smartAnchor = GSAnchor(axisName, NSPoint(0, -i * 50))
+					smartAnchor = GSAnchor.alloc().initWithName_position_(axisName, NSPoint(0, -i * 50))
 					thisLayer.anchors.append(smartAnchor)
 					countOfAnchors += 1
 	print(f"  - added {countOfAnchors} anchors on {countOfLayers} smart layers.")
