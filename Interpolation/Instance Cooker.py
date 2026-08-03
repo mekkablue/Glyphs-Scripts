@@ -8,8 +8,10 @@ Insert many instances at once with a recipe.
 import vanilla
 import codecs
 from AppKit import NSDictionary
-from GlyphsApp import Glyphs, GSAxis, GSInstance, INSTANCETYPEVARIABLE, GetSaveFile, GetOpenFile, Message
+from GlyphsApp import Glyphs, GSAxis, GSCustomParameter, GSInstance, INSTANCETYPESINGLE, INSTANCETYPEVARIABLE, GetSaveFile, GetOpenFile, Message
 from mekkablue import mekkaObject, getLegibleFont
+
+INSTANCETYPEPARTICLE = 4  # GSInstance.type for axis particle instances (Glyphs 4+)
 
 defaultRecipe = """
 Recipe instructions:
@@ -140,16 +142,146 @@ def parsePosInfo(posInfo):
 	return coord, axisLoc
 
 
-def addLocationToInstance(instance, axisName, axisLoc):
-	paramName = "Axis Location"
-	entry = axisLocationEntry(axisName, axisLoc)
+def isGlyphs4OrHigher():
+	return bool(Glyphs.versionNumber) and Glyphs.versionNumber >= 4
 
-	existingLocations = []
-	if instance.customParameters[paramName]:
-		existingLocations = list(instance.customParameters[paramName])
 
-	existingLocations.append(entry)
-	instance.customParameters["Axis Location"] = tuple(existingLocations)
+def setExternalAxisValue(instance, axisId, axisIndex, axisLoc):
+	"""
+	Glyphs 4: instances carry their user-space coordinates in .externalAxesValues
+	(design space: .internalAxesValues), and the Axis Location parameter is not in
+	use anymore. Returns True if the coordinate could be set.
+	"""
+	for selectorName in ("setExternalAxisValueValue_forId_", "setExternAxisValueValue_forId_"):
+		setter = getattr(instance, selectorName, None)
+		if setter and axisId:
+			try:
+				setter(float(axisLoc), axisId)
+				return True
+			except:
+				pass
+
+	externalAxesValues = getattr(instance, "externalAxesValues", None)
+	if externalAxesValues is not None and axisIndex is not None:
+		try:
+			externalAxesValues[axisIndex] = float(axisLoc)
+			return True
+		except:
+			pass
+
+	return False
+
+
+def externalAxisValue(instance, axisName, axisIndex):
+	"""
+	Returns the user-space coordinate of the instance on the given axis as a float,
+	or None if there is none. Glyphs 4: .externalAxesValues; Glyphs 2 and 3 (and as
+	fallback for documents not converted yet): the Axis Location parameter.
+	"""
+	externalAxesValues = getattr(instance, "externalAxesValues", None)
+	if externalAxesValues is not None and axisIndex is not None and axisIndex < len(externalAxesValues):
+		try:
+			value = externalAxesValues[axisIndex]
+			if value is not None:
+				return float(value)
+		except:
+			pass
+
+	locationParameter = instance.customParameters["Axis Location"]
+	if locationParameter:
+		for entry in locationParameter:
+			if entry["Axis"] == axisName:
+				try:
+					return float(entry["Location"])
+				except:
+					pass
+
+	return None
+
+
+def markParticleElidable(instance, axisId, nameParticle):
+	"""
+	Glyphs 4 does not expose elidability of name particles through the API yet.
+	The hasattr hooks below pick it up as soon as it does; until then this is a
+	no-op returning False, and elidable particles are simply left out of the
+	instance name (see removeElidableNames()).
+	"""
+	if not axisId:
+		return False
+
+	setter = getattr(instance, "setNameParticle_elidable_forAxisId_", None)
+	if setter:
+		try:
+			setter(nameParticle, True, axisId)
+			return True
+		except:
+			pass
+
+	setter = getattr(instance, "setElidableNameParticle_forAxisId_", None)
+	if setter:
+		try:
+			setter(nameParticle, axisId)
+			return True
+		except:
+			pass
+
+	return False
+
+
+def elidableParticleNames(font, axisId):
+	"""
+	Returns the set of elidable name particles of the font for the given axis.
+	Elidability is not in the Glyphs 4 API yet, so the hasattr hooks below will
+	return an empty set until it is.
+	"""
+	elidableNames = set()
+	if not isGlyphs4OrHigher():
+		return elidableNames
+
+	for instance in font.instances:
+		if instance.type != INSTANCETYPEPARTICLE:
+			continue
+		nameParticles = getattr(instance, "nameParticles", None)
+		if not nameParticles:
+			continue
+		try:
+			particles = nameParticles().get(axisId)
+		except:
+			continue
+		if not particles:
+			continue
+		for particle in particles:
+			for attributeName in ("elidable", "isElidable"):
+				accessor = getattr(particle, attributeName, None)
+				if accessor is None:
+					continue
+				try:
+					isElidable = accessor() if callable(accessor) else accessor
+				except:
+					continue
+				if isElidable:
+					elidableNames.add(str(particle.name()))
+				break
+
+	return elidableNames
+
+
+def addLocationToInstance(instance, axisName, axisLoc, axisId=None, axisIndex=None):
+	if isGlyphs4OrHigher():
+		# GLYPHS 4: no more Axis Location parameter, user-space coordinates live on the instance
+		if not setExternalAxisValue(instance, axisId, axisIndex, axisLoc):
+			print(f"⚠️ Could not set external {axisName} coordinate {axisLoc} in ‘{instance.name}’.")
+	else:
+		# GLYPHS 2+3:
+		paramName = "Axis Location"
+		entry = axisLocationEntry(axisName, axisLoc)
+
+		existingLocations = []
+		if instance.customParameters[paramName]:
+			existingLocations = list(instance.customParameters[paramName])
+
+		existingLocations.append(entry)
+		instance.customParameters[paramName] = tuple(existingLocations)
 
 	if axisName == "Weight":
 		instance.weightClass = axisLoc
@@ -223,7 +355,7 @@ class InstanceCooker(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 500
+		windowWidth = 530  # wide enough for the four buttons plus the Cook Instances button
 		windowHeight = 300
 		windowWidthResize = 1000  # user can resize width by this value
 		windowHeightResize = 1000  # user can resize height by this value
@@ -265,12 +397,13 @@ class InstanceCooker(mekkaObject):
 		# Run Button:
 		buttonPos = inset
 		buttonWidth = 70
+		buttonGap = 20
 		self.w.openButton = vanilla.Button((buttonPos, -20 - inset, buttonWidth, -inset), "Open…", callback=self.importRecipe)
-		buttonPos += buttonWidth + 10
+		buttonPos += buttonWidth + buttonGap
 		self.w.saveButton = vanilla.Button((buttonPos, -20 - inset, buttonWidth, -inset), "Save…", callback=self.exportRecipe)
-		buttonPos += buttonWidth + 10
+		buttonPos += buttonWidth + buttonGap
 		self.w.resetButton = vanilla.Button((buttonPos, -20 - inset, buttonWidth, -inset), "Reset", callback=self.resetRecipe)
-		buttonPos += buttonWidth + 10
+		buttonPos += buttonWidth + buttonGap
 		self.w.extractButton = vanilla.Button((buttonPos, -20 - inset, buttonWidth, -inset), "Extract", callback=self.extractRecipe)
 		self.w.runButton = vanilla.Button((-140 - inset, -20 - inset, -inset, -inset), "Cook Instances", callback=self.InstanceCookerMain)
 		self.w.setDefaultButton(self.w.runButton)
@@ -313,29 +446,25 @@ class InstanceCooker(mekkaObject):
 			Message(title="No Font Error", message="You need to have a font open for extracting a recipe.", OKButton=None)
 		else:
 			text = ""
-			for thisAxis in thisFont.axes:
+			singleInstances = [i for i in thisFont.instances if i.type == INSTANCETYPESINGLE]
+			for axisIndex, thisAxis in enumerate(thisFont.axes):
 				text += "\n#%s:%s" % (thisAxis.name, thisAxis.axisTag)
-				axisValues = sorted(set([int(i.axisValueValueForId_(thisAxis.axisId)) for i in thisFont.instances if i.type == 0]))
+				elidableNames = elidableParticleNames(thisFont, thisAxis.axisId)
+				axisValues = sorted(set([int(i.axisValueValueForId_(thisAxis.axisId)) for i in singleInstances]))
 				for axisValue in axisValues:
-					instancesWithThisAxisValue = [i for i in thisFont.instances if i.axisValueValueForId_(thisAxis.axisId) == axisValue]
+					instancesWithThisAxisValue = [i for i in singleInstances if i.axisValueValueForId_(thisAxis.axisId) == axisValue]
 
 					# determine particle:
 					allNamesForThisAxisValue = [i.name for i in instancesWithThisAxisValue]
 					axisValueName = biggestSubstringInStrings(allNamesForThisAxisValue).strip()
 
-					# determine axis location if any:
+					# determine external coordinate if any:
 					axisLoc = ""
 					for thisInstance in instancesWithThisAxisValue:
-						locationParameter = thisInstance.customParameters["Axis Location"]
-						if locationParameter:
-							for entry in locationParameter:
-								if entry["Axis"] == thisAxis.name:
-									location = float(entry["Location"])
-									if location != axisValue:
-										axisLoc = ">%i" % location
-										break  # skip other entries if we found our value
-							if axisLoc:
-								break  # skip other instances if we found our value
+						location = externalAxisValue(thisInstance, thisAxis.name, axisIndex)
+						if location is not None and location != axisValue:
+							axisLoc = ">%i" % location
+							break  # skip other instances if we found our value
 
 					# determine width class if any:
 					if thisAxis.name == "Width":
@@ -344,6 +473,8 @@ class InstanceCooker(mekkaObject):
 
 					if not axisValueName:
 						axisValueName = "Regular*"
+					elif axisValueName in elidableNames:
+						axisValueName += "*"
 					text += "\n%i%s:%s" % (axisValue, axisLoc, axisValueName)
 				text += "\n"
 
@@ -483,9 +614,11 @@ class InstanceCooker(mekkaObject):
 						thisFont.axes.append(newAxis)
 
 					axisID = "0"
-					for thisAxis in thisFont.axes:
+					axisIndex = None
+					for i, thisAxis in enumerate(thisFont.axes):
 						if thisAxis.name == axisName:
 							axisID = thisAxis.axisId
+							axisIndex = i
 
 					if not instances:
 						for particleInfo in recipeDict[axisKey]:
@@ -500,7 +633,11 @@ class InstanceCooker(mekkaObject):
 							instance.setAxisValueValue_forId_(coord, axisID)
 
 							# set external coordinate:
-							addLocationToInstance(instance, axisName, axisLoc)
+							addLocationToInstance(instance, axisName, axisLoc, axisId=axisID, axisIndex=axisIndex)
+
+							# mark elidable name particle (no-op until the API supports it):
+							if instance.name.endswith("*"):
+								markParticleElidable(instance, axisID, instance.name.rstrip("*"))
 
 							# add style linking:
 							styleLinkInstance(instance, axisName, instance.name)
@@ -523,7 +660,11 @@ class InstanceCooker(mekkaObject):
 								instance.setAxisValueValue_forId_(coord, axisID)
 
 								# add external coordinate:
-								addLocationToInstance(instance, axisName, axisLoc)
+								addLocationToInstance(instance, axisName, axisLoc, axisId=axisID, axisIndex=axisIndex)
+
+								# mark elidable name particle (no-op until the API supports it):
+								if nameParticle.endswith("*"):
+									markParticleElidable(instance, axisID, nameParticle.rstrip("*"))
 
 								# add style linking:
 								styleLinkInstance(instance, axisName, nameParticle)
@@ -556,7 +697,9 @@ class InstanceCooker(mekkaObject):
 					print(f"ℹ️ {instance.name}")
 
 				# add instances to this font:
-				thisFont.instances = [i for i in thisFont.instances if i.type == INSTANCETYPEVARIABLE] + instances
+				# keep VF settings and (Glyphs 4) particle instances, replace the single instances:
+				keptTypes = (INSTANCETYPEVARIABLE, INSTANCETYPEPARTICLE)
+				thisFont.instances = [i for i in thisFont.instances if i.type in keptTypes] + instances
 				instanceCount = len(instances)
 
 			# Final report:
