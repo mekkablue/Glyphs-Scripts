@@ -2,13 +2,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Rescale (reproject) all design-space values of an axis to a new min/max range. Recalculates master and instance coordinates, brace (intermediate) and bracket (alternate) layer coordinates, Virtual Master locations, and the axis values in condition feature code.
+Rescale (reproject) all design-space values of an axis to a new min/max range. Recalculates master and instance coordinates, name particle values (Glyphs 4), brace (intermediate) and bracket (alternate) layer coordinates, Virtual Master locations, and the axis values in condition feature code.
 """
 
 import re
 import vanilla
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, UpdateButton
+
+INSTANCETYPEPARTICLE = 4  # GSInstance.type for axis particle settings (Glyphs 4+)
 
 
 def formatValue(value, forceInt=False):
@@ -25,6 +27,40 @@ def cleanNumber(value, forceInt=False):
 	if forceInt or abs(rounded - round(rounded)) < 1e-9:
 		return int(round(rounded))
 	return rounded
+
+
+def particleDictOfInstance(instance):
+	"""Return the name particle dictionary (axisID → list of GSNameParticle) of a particle-type instance, or None."""
+	for accessor in ("nameParticles", "particles", "nameParticleDict"):
+		# pyobjc method first, then the python property:
+		method = getattr(instance, "%s" % accessor, None)
+		if callable(method):
+			try:
+				value = method()
+			except TypeError:
+				value = None
+		else:
+			value = method
+		if value:
+			return value
+	return None
+
+
+def particleInternalValue(particle):
+	"""Return the internal (design space) value of a GSNameParticle, or None."""
+	internal = getattr(particle, "internal", None)
+	if callable(internal):
+		return internal()
+	return internal
+
+
+def setParticleInternalValue(particle, value):
+	"""Set the internal (design space) value of a GSNameParticle, pyobjc style where available."""
+	setter = getattr(particle, "setInternal_", None)
+	if setter is not None:
+		setter(value)
+	else:
+		particle.internal = value
 
 
 class ReprojectAxis(mekkaObject):
@@ -80,12 +116,12 @@ class ReprojectAxis(mekkaObject):
 		linePos += lineHeight
 
 		self.w.roundValues = vanilla.CheckBox((inset, linePos, -inset, 20), "Round reprojected values to full coordinates", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.roundValues.setToolTip("If enabled, all reprojected values (masters, instances, brace and bracket layers, Virtual Masters, and feature code) are rounded to whole numbers. Otherwise, fractional values are kept (rounded to 4 decimal places).")
+		self.w.roundValues.setToolTip("If enabled, all reprojected values (masters, instances, name particles, brace and bracket layers, Virtual Masters, and feature code) are rounded to whole numbers. Otherwise, fractional values are kept (rounded to 4 decimal places).")
 		linePos += lineHeight
 
 		# Run Button:
 		self.w.runButton = vanilla.Button((-110 - inset, -20 - inset, -inset, -inset), "Reproject", callback=self.ReprojectAxisMain)
-		self.w.runButton.setToolTip("Rescale masters, instances, brace and bracket layers, Virtual Masters, and condition feature code of the chosen axis from the current onto the new range.")
+		self.w.runButton.setToolTip("Rescale masters, instances, name particles, brace and bracket layers, Virtual Masters, and condition feature code of the chosen axis from the current onto the new range.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Load Settings:
@@ -214,6 +250,26 @@ class ReprojectAxis(mekkaObject):
 				parameter.value = newCoordinates
 		return count
 
+	def reprojectNameParticles(self, font, axisID, reproject, roundValues):
+		"""Rescale the internal values of all name particles (Glyphs 4) that belong to the chosen axis. Returns number of edited particles."""
+		count = 0
+		for instance in font.instances:
+			if instance.type != INSTANCETYPEPARTICLE:
+				continue
+			particleDict = particleDictOfInstance(instance)
+			if not particleDict:
+				continue
+			for particleAxisID in particleDict.keys():
+				if str(particleAxisID) != str(axisID):
+					continue
+				for particle in particleDict[particleAxisID]:
+					internalValue = particleInternalValue(particle)
+					if internalValue is None:
+						continue
+					setParticleInternalValue(particle, cleanNumber(reproject(float(internalValue)), forceInt=roundValues))
+					count += 1
+		return count
+
 	def ReprojectAxisMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -287,11 +343,18 @@ class ReprojectAxis(mekkaObject):
 				# instances:
 				instanceCount = 0
 				for instance in font.instances:
+					if instance.type == INSTANCETYPEPARTICLE:
+						# particle settings carry no axis coordinates, they are handled separately below
+						continue
 					value = instance.axisValueValueForId_(axisID)
 					if value is not None:
 						instance.setAxisValueValue_forId_(cleanNumber(reproject(value), forceInt=roundValues), axisID)
 						instanceCount += 1
 				print("ℹ️ Reprojected %i instance%s." % (instanceCount, "" if instanceCount == 1 else "s"))
+
+				# name particles (Glyphs 4):
+				particleCount = self.reprojectNameParticles(font, axisID, reproject, roundValues)
+				print("🔠 Reprojected %i name particle%s." % (particleCount, "" if particleCount == 1 else "s"))
 
 				# brace (intermediate) and bracket (alternate) layers:
 				braceCount = 0
