@@ -6,7 +6,7 @@ Inserts instances, based on the Luc(as), Pablo, Abraham, Schneider and Maciej al
 In Glyphs 4+, presents a redesigned UI for inserting axis particles.
 """
 
-from Foundation import NSDictionary
+from Foundation import NSDictionary, NSMutableArray, NSMutableDictionary
 import vanilla
 from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE
 from mekkablue import mekkaObject, UpdateButton
@@ -14,7 +14,11 @@ from mekkablue import mekkaObject, UpdateButton
 try:
 	from GlyphsApp import GSNameParticle
 except ImportError:
-	GSNameParticle = None
+	try:
+		import objc
+		GSNameParticle = objc.lookUpClass("GSNameParticle")
+	except Exception:
+		GSNameParticle = None
 
 INSTANCETYPEPARTICLE = 4  # GSInstance.type for axis particle instances (Glyphs 4+)
 
@@ -649,6 +653,27 @@ class InstanceMaker(mekkaObject):
 
 # ---- Glyphs 4+ particles UI ----
 
+def existingParticleInstance(font):
+	"""Returns the first particle instance of the font, or None if there is none."""
+	for instance in font.instances:
+		if instance.type == INSTANCETYPEPARTICLE:
+			return instance
+	return None
+
+
+def buildNameParticle(name, internalValue, externalValue):
+	"""
+	Returns a GSNameParticle with the supplied name and axis values.
+	Uses ObjC accessors because GSNameParticle is not Python-wrapped (yet).
+	setInternal_()/setExternal_() work just as well as the ...Value_ variants.
+	"""
+	particle = GSNameParticle.alloc().init()
+	particle.setName_(name)
+	particle.setInternalValue_(float(internalValue))
+	particle.setExternalValue_(float(externalValue))
+	return particle
+
+
 def insertParticlesIntoFont(font, particlesDict):
 	"""
 	Insert axis particles into the font using GSNameParticle (Glyphs 4+).
@@ -681,7 +706,7 @@ def insertParticlesIntoFont(font, particlesDict):
 			if instance.type == INSTANCETYPESINGLE:
 				del font.instances[i]
 				count += 1
-		print(f"\t🗑️  Removed {count} existing instance(s).")
+		print(f"\t🗑️ Removed {count} existing instance(s).")
 
 	if removeParticles:
 		count = 0
@@ -689,45 +714,62 @@ def insertParticlesIntoFont(font, particlesDict):
 			if instance.type == INSTANCETYPEPARTICLE:
 				del font.instances[i]
 				count += 1
-		print(f"\t🗑️  Removed {count} existing particle instance(s).")
+		print(f"\t🗑️ Removed {count} existing particle instance(s).")
 
 	if GSNameParticle is None:
 		print("\t❌ GSNameParticle not available in this version of Glyphs.")
 		return
 
-	# Build axis tag → axisId lookup
+	# Build axis tag → axisId lookup:
 	axisIdForTag = {axis.axisTag: axis.axisId for axis in font.axes}
 
-	# Create one particle-type instance
-	particleInstance = GSInstance()
-	particleInstance.type = INSTANCETYPEPARTICLE
-	font.instances.append(particleInstance)
-	print(f"\t✅ Created particle instance.")
+	# Reuse the existing particle instance if there is one, otherwise add a new one:
+	particleInstance = existingParticleInstance(font)
+	if particleInstance is None:
+		particleInstance = GSInstance()
+		particleInstance.setType_(INSTANCETYPEPARTICLE)
+		font.instances.append(particleInstance)
+		print("\t✅ Added new particle instance.")
+	else:
+		print("\t♻️ Reusing existing particle instance.")
 
-	# #TODO: apply elidable names to particleInstance once the API is available
-	if elidableNames:
-		print(f"\t🔠 Elidable names (TODO): {', '.join(elidableNames)}")
+	# Carry over particles of axes we are not touching:
+	allParticles = NSMutableDictionary.dictionary()
+	currentParticles = particleInstance.nameParticles()
+	if currentParticles:
+		for axisId in currentParticles:
+			allParticles.setObject_forKey_(NSMutableArray.arrayWithArray_(currentParticles[axisId]), axisId)
 
-	# Add name particles for each axis
+	# Build name particles for each axis:
 	for axisTag, axisData in axesData.items():
 		axisId = axisIdForTag.get(axisTag)
 		if axisId is None:
-			print(f"\t⚠️  No axisId found for axis tag '{axisTag}', skipping.")
+			print(f"\t⚠️ No axisId found for axis tag '{axisTag}', skipping.")
 			continue
 
-		particles = axisData.get("particles", [])
-		print(f"\n\t↔️  Axis: {axisTag}")
+		particles = axisData.get("particles", ())
+		print(f"\n\t↔️ Axis: {axisTag}")
+		if not particles:
+			print("\t\t⚠️ No particles defined, skipping.")
+			continue
 
-		for p in particles:
-			particle = GSNameParticle()
-			particle.name = p["name"]
-			particle.internal = float(p["internalValue"])
-			particle.active = True
-			if "externalValue" in p:
-				particle.external = float(p["externalValue"])
-			particleInstance.addNameParticle_forAxisId_(particle, axisId)
-			extStr = f", external: {p['externalValue']}" if "externalValue" in p else ""
-			print(f"\t\t✅ {p['name']} (internal: {p['internalValue']}{extStr})")
+		axisParticles = NSMutableArray.array()
+		for particleInfo in particles:
+			name = particleInfo["name"]
+			internalValue = particleInfo["internalValue"]
+			# without an explicit external value, internal and external coordinates are the same:
+			externalValue = particleInfo.get("externalValue", internalValue)
+			axisParticles.addObject_(buildNameParticle(name, internalValue, externalValue))
+			print(f"\t\t✅ {name} ({internalValue}>{externalValue})")
+
+		# replaces the particles of this axis, keeps those of all other axes:
+		allParticles.setObject_forKey_(axisParticles, axisId)
+
+	particleInstance.setNameParticles_(allParticles)
+
+	# #TODO: mark these particles as elidable once the API supports it:
+	if elidableNames:
+		print(f"\n\t⚠️ Elidability is not implemented yet, so these names were ignored: {', '.join(elidableNames)}")
 
 
 class InstanceMakerV4(mekkaObject):
