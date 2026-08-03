@@ -345,11 +345,11 @@ class AddGrade(mekkaObject):
 			wghtAxis = font.axisForTag_("wght")
 			if wghtAxis:
 				axisID = wghtAxis.id
-				for m in font.masters + font.instances:
+				for m in (*font.masters, *font.instances):
 					value = f"wght={m.axisValueValueForId_(axisID)}"
 					if value not in weightValues:
 						weightValues.append(value)
-			for m in font.masters + font.instances:
+			for m in (*font.masters, *font.instances):
 				value = self.masterAxesString(m)
 				if value not in weightValues:
 					weightValues.append(value)
