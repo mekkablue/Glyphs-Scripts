@@ -338,6 +338,42 @@ def replaceSet(text, setOfReplacements):
 	return text
 
 
+def isGlyphs4OrHigher():
+	return bool(Glyphs.versionNumber) and Glyphs.versionNumber >= 4
+
+
+def axesValuesOfMasterOrInstance(masterOrInstance, external=True):
+	"""
+	Glyphs 4: GSFontMaster and single GSInstance (type 0) carry their axis
+	coordinates in .internalAxesValues (design space) and .externalAxesValues
+	(user space), each a tuple of floats in the order of GSFont.axes. The Axis
+	Location parameter is not in use anymore for appVersion >= 4.0.
+	Returns such a tuple (entries may be None if an axis has no value), or None
+	if the object does not carry these values (Glyphs 2 and 3, or an instance
+	that is not a single instance).
+	"""
+	if not isGlyphs4OrHigher():
+		return None
+	try:
+		if external:
+			values = masterOrInstance.externalAxesValues
+		else:
+			values = masterOrInstance.internalAxesValues
+	except:
+		return None
+	if values is None:
+		return None
+	axesValues = []
+	for value in values:
+		try:
+			axesValues.append(float(value))
+		except:
+			axesValues.append(None)
+	if not axesValues:
+		return None
+	return tuple(axesValues)
+
+
 def axisDictWithVirtualMastersForFont(thisFont, axisDict):
 	# go through *all* virtual masters:
 	virtualMasters = [cp for cp in thisFont.customParameters if cp.name == "Virtual Master" and cp.active]
@@ -602,89 +638,52 @@ def allOTVarSliders(thisFont, variableFontSetting=None):
 	return html
 
 
-def originValueForAxisName(axisName, thisFont, minValue, maxValue, variableFontSetting=None):
-	originMaster = None
+def originMasterForSetting(thisFont, variableFontSetting=None):
 	if variableFontSetting:
-		originMaster = originMasterOfInstance(variableFontSetting)
-	else:
-		originMaster = originMasterOfFont(thisFont)
+		return originMasterOfInstance(variableFontSetting)
+	return originMasterOfFont(thisFont)
+
+
+def originValueForAxisName(axisName, thisFont, minValue, maxValue, variableFontSetting=None):
+	originMaster = originMasterForSetting(thisFont, variableFontSetting=variableFontSetting)
 	if not originMaster:
 		return minValue
 
-	axisLocationDict = originMaster.customParameters["Axis Location"]
-	if not axisLocationDict:
-		return minValue
-
-	for axisDict in axisLocationDict:
-		if axisName == axisDict["Axis"]:
-			axisLoc = int(axisDict["Location"])
-			return axisLoc
+	# user space location of the origin master (Glyphs 4: .externalAxesValues,
+	# Glyphs 2 and 3: Axis Location parameter, design space as fallback):
+	coords = axisLocationOfMasterOrInstance(thisFont, originMaster)
+	for axis in thisFont.axes:
+		if axis.name != axisName:
+			continue
+		axisValue = coords.get(axis.axisTag, None)
+		if axisValue is None:
+			break
+		# keep the slider start value inside the slider range:
+		return max(minValue, min(maxValue, float(axisValue)))
 
 	return minValue
 
 
-def warningMessage():
-	Message(
-		title="Out of Date Warning",
-		message="It appears that you are not running the latest version of Glyphs. Please enable Cutting Edge Versions and Automatic Version Checks in Settings > Updates, and update to the latest beta.",
-		OKButton=None
-	)
-
-
-def axisValuesForMaster(thisMaster):
-	try:
-		try:
-			# GLYPHS 3
-			font = thisMaster.font
-			axisValueList = []
-			for axis in font.axes:
-				axisValue = thisMaster.axisValueValueForId_(axis.axisId)
-				axisValueList.append(axisValue)
-		except:
-			# GLYPHS 2
-			axisValueList = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-			for i, value in enumerate(thisMaster.axes):
-				axisValueList[i] = value
-
-		axisValues = tuple(axisValueList)
-	except:
-		# GLYPHS 2 older versions
-		try:
-			axisValues = (
-				thisMaster.weightValue,
-				thisMaster.widthValue,
-				thisMaster.customValue,
-				thisMaster.customValue1(),
-				thisMaster.customValue2(),
-				thisMaster.customValue3(),
-			)
-			warningMessage()
-		except:
-			axisValues = (
-				thisMaster.weightValue,
-				thisMaster.widthValue,
-				thisMaster.customValue,
-				thisMaster.customValue1,
-				thisMaster.customValue2,
-				thisMaster.customValue3,
-			)
-	return axisValues
-
-
-def defaultVariationCSS(thisFont):
-	firstMaster = thisFont.masters[0]
-	axisValues = axisValuesForMaster(firstMaster)
+def defaultVariationCSS(thisFont, variableFontSetting=None):
+	# font-variation-settings are in user space, so use the same values
+	# the sliders are built with, and start out at the origin master:
+	originMaster = originMasterForSetting(thisFont, variableFontSetting=variableFontSetting)
+	if not originMaster:
+		originMaster = thisFont.masters[0]
+	coords = axisLocationOfMasterOrInstance(thisFont, originMaster)
 
 	defaultValues = []
-	for i, axis in enumerate(thisFont.axes):
+	for axis in thisFont.axes:
 		try:
 			# Glyphs 3:
 			tag = axis.axisTag
 		except:
 			# Glyphs 2:
 			tag = axis["Tag"]
-		value = axisValues[i]
-		cssValue = f'"{tag}" {value}'
+		value = coords.get(tag, None)
+		if value is None:
+			continue
+		cssValue = f'"{tag}" {float(value)}'
 		defaultValues.append(cssValue)
 
 	return ", ".join(defaultValues)
@@ -1565,14 +1564,29 @@ def originMasterOfInstance(thisVariableFontSetting):
 
 def axisLocationOfMasterOrInstance(thisFont, masterOrInstance):
 	"""
-	Returns dict of axisTag:locationValue, e.g.: {'wght':400,'wdth':100}
+	Returns dict of axisTag:locationValue in user space, e.g.: {'wght':400,'wdth':100}
 	"""
 	locDict = {}
-	axisLocationParameter = masterOrInstance.customParameters["Axis Location"]
+
+	# Glyphs 4: user space coordinates live in .externalAxesValues, with
+	# .internalAxesValues (design space) as fallback; the Axis Location
+	# parameter is only consulted in Glyphs 2 and 3:
+	externalAxesValues = axesValuesOfMasterOrInstance(masterOrInstance, external=True)
+	internalAxesValues = axesValuesOfMasterOrInstance(masterOrInstance, external=False)
+	if externalAxesValues is None and internalAxesValues is None:
+		axisLocationParameter = masterOrInstance.customParameters["Axis Location"]
+	else:
+		axisLocationParameter = None
+
 	for axisIndex, thisAxis in enumerate(thisFont.axes):
 		axisTag = thisAxis.axisTag
 		axisValue = None
-		if axisLocationParameter:
+		for axesValues in (externalAxesValues, internalAxesValues):
+			if axesValues and axisIndex < len(axesValues):
+				axisValue = axesValues[axisIndex]
+				if axisValue is not None:
+					break
+		if axisValue is None and axisLocationParameter:
 			axisName = thisAxis.name
 			for axisRecord in axisLocationParameter:
 				if axisRecord["Axis"] == axisName:
@@ -1662,7 +1676,7 @@ def otVarInfoForFont(thisFont, variableFontSetting=None):
 	glyphInfos = allGlyphInfosOfFont(thisFont)
 	plainSuffix = otVarPlainSuffix()
 	otVarSliders = allOTVarSliders(thisFont, variableFontSetting=variableFontSetting)
-	variationCSS = defaultVariationCSS(thisFont)
+	variationCSS = defaultVariationCSS(thisFont, variableFontSetting=variableFontSetting)
 	featureList = featureListForFont(thisFont)
 	styleMenu = listOfAllStyles(thisFont)
 	fontLangMenu = langMenu(thisFont)
