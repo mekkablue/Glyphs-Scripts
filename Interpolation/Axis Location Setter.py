@@ -107,16 +107,14 @@ class AxisLocationSetter(mekkaObject):
 	def particlesOfCurrentFont(self, sender=None):
 		particles = []
 		currentFont = Glyphs.font
-		print("CURRENT FONT", currentFont)
 		if currentFont:
-			for i in (currentFont.masters + currentFont.instances):
+			for i in (*currentFont.masters, *currentFont.instances):
 				for particle in i.name.split(" "):
 					if particle and particle not in particles:
 						particles.append(particle)
 				if i.name not in particles:
 					particles.append(i.name)
 			particles.sort()
-		print("PARTICLES", particles)
 		return particles
 
 	def axesOfCurrentFont(self, sender=None):
