@@ -69,7 +69,7 @@ class Rotator(mekkaObject):
 			myRotationCenter = NSPoint()
 			myRotationCenter.x = int(self.pref("anchor_x"))
 			myRotationCenter.y = int(self.pref("anchor_y"))
-			myRotationAnchor = GSAnchor("#%s" % rotateAnchorName, myRotationCenter)
+			myRotationAnchor = GSAnchor.alloc().initWithName_position_("#%s" % rotateAnchorName, myRotationCenter)
 			for thisLayer in selectedLayers:
 				# adds '#rotate' if it doesn't exist, resets it if it exists:
 				thisLayer.addAnchor_(myRotationAnchor)

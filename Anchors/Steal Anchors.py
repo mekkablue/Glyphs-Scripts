@@ -219,7 +219,7 @@ class StealAnchors(mekkaObject):
 									targetLayer.anchors = None
 								for originAnchor in originLayer.anchors:
 									if not targetLayer.anchors[originAnchor.name]:
-										targetAnchor = GSAnchor(originAnchor.name, originAnchor.position)
+										targetAnchor = GSAnchor.alloc().initWithName_position_(originAnchor.name, originAnchor.position)
 										if self.pref("respectItalicAngle") and targetLayer.italicAngle != originLayer.italicAngle:
 											pivot = targetLayer.master.slantHeightForLayer_(targetLayer)
 											if not pivot:

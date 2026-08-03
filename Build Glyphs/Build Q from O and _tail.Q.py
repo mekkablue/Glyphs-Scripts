@@ -27,7 +27,7 @@ else:
 		# if necessary, add anchors to _tail.Q
 		if not thisLayer.anchors[newAnchorName]:
 			defaultPosition = Oglyph.layers[masterID].anchors[anchorName].position
-			newAnchor = GSAnchor(newAnchorName, defaultPosition)
+			newAnchor = GSAnchor.alloc().initWithName_position_(newAnchorName, defaultPosition)
 			thisLayer.anchors.append(newAnchor)
 
 		# rebuild Q from O:

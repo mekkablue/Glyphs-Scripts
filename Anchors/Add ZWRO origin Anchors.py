@@ -198,7 +198,7 @@ class AddZWROOriginAnchors(mekkaObject):
 										x = layer.bounds.origin.x
 								x += offset
 								anchorPosition = NSPoint(x, 0)
-								anchor = GSAnchor("*origin", anchorPosition)
+								anchor = GSAnchor.alloc().initWithName_position_("*origin", anchorPosition)
 								layer.anchors.append(anchor)
 								print(f"⚓️ {glyph.name}, {layer.name}: added {anchor.name} at {int(anchor.position.x)}x 0y")
 
