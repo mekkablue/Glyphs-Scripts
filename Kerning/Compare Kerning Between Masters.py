@@ -160,7 +160,7 @@ class CompareKerningBetweenMasters(mekkaObject):
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
 				reportName = reportFontName(thisFont)
-				print(f"Compare Kerning  Between Masters Report for {reportName}")
+				print(f"Compare Kerning Between Masters Report for {reportName}")
 				print()
 
 				group2group = bool(self.pref("group2group"))
@@ -189,18 +189,43 @@ class CompareKerningBetweenMasters(mekkaObject):
 				secondMaster = thisFont.masters[secondMasterID]
 				secondKerning = thisFont.kerning[secondMaster.id]
 
-				missingKernCount = 0
+				spaceGlyph = thisFont.glyphs["space"]
+				if spaceGlyph is None:
+					print("⚠️ No 'space' glyph in font, cannot build tab output.")
+					Message(title="Missing Space Glyph", message="The font has no 'space' glyph. The script needs it to build the comparison tab.", OKButton=None)
+					return
 
-				for L in set(firstKerning.keys() + secondKerning.keys()):
+				missingKernCount = 0
+				skippedCount = 0
+
+				for L in set(list(firstKerning.keys()) + list(secondKerning.keys())):
 					LisGroup = L[0] == "@"
 					RKeys = []
 					for kerning in (firstKerning, secondKerning):
 						if L in kerning.keys():
-							RKeys.extend(kerning[L].keys())
+							RKeys.extend(list(kerning[L].keys()))
 					for R in set(RKeys):
 						RisGroup = R[0] == "@"
-						Lname = L if LisGroup else thisFont.glyphForId_(L).name
-						Rname = R if RisGroup else thisFont.glyphForId_(R).name
+
+						# Guard against stale glyph IDs
+						if LisGroup:
+							Lname = L
+						else:
+							Lglyph = thisFont.glyphForId_(L)
+							if Lglyph is None:
+								skippedCount += 1
+								continue
+							Lname = Lglyph.name
+
+						if RisGroup:
+							Rname = R
+						else:
+							Rglyph = thisFont.glyphForId_(R)
+							if Rglyph is None:
+								skippedCount += 1
+								continue
+							Rname = Rglyph.name
+
 						kerningInFirstMaster = thisFont.kerningForPair(firstMasterID, Lname, Rname)
 						kerningInSecondMaster = thisFont.kerningForPair(secondMasterID, Lname, Rname)
 						if kerningInFirstMaster is None or kerningInSecondMaster is None:
@@ -230,19 +255,30 @@ class CompareKerningBetweenMasters(mekkaObject):
 							if targetList is not None:
 								glyphNameOnLSide = self.glyphNameForKerningName(L, thisFont, isLeft=True)
 								glyphNameOnRSide = self.glyphNameForKerningName(R, thisFont, isLeft=False)
+								if glyphNameOnLSide is None or glyphNameOnRSide is None:
+									skippedCount += 1
+									continue
+
 								glyphOnLSide = thisFont.glyphs[glyphNameOnLSide]
 								glyphOnRSide = thisFont.glyphs[glyphNameOnRSide]
+								if glyphOnLSide is None or glyphOnRSide is None:
+									skippedCount += 1
+									continue
+
 								targetList.append(glyphOnLSide.layers[firstMaster.id])
 								targetList.append(glyphOnRSide.layers[firstMaster.id])
-								targetList.append(thisFont.glyphs["space"].layers[firstMaster.id])
+								targetList.append(spaceGlyph.layers[firstMaster.id])
 								targetList.append(glyphOnLSide.layers[secondMaster.id])
 								targetList.append(glyphOnRSide.layers[secondMaster.id])
 								targetList.append(GSControlLayer.newline())
 
+				if skippedCount:
+					print(f"⚠️ Skipped {skippedCount} pairs with stale or missing glyph IDs.")
+
 				if not missingKernCount:
 					Message(
 						title="No kern pair missing",
-						message=f"Nothing missing in the kerning structure between masters ‘{firstMaster.name}’ and ‘{secondMaster.name}’, given your selection.",
+						message=f"Nothing missing in the kerning structure between masters '{firstMaster.name}' and '{secondMaster.name}', given your selection.",
 						OKButton=None,
 					)
 				else:
@@ -301,12 +337,12 @@ class CompareKerningBetweenMasters(mekkaObject):
 						tab.layers.extend(glyph2glyphLayersMissingSecond)
 						addNewline()
 
-			print(f"\nDone. Found {missingKernCount} cases of misisng kern pairs.")
+					print(f"\nDone. Found {missingKernCount} cases of misisng kern pairs.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print(f"Compare Kerning  Between Masters Error: {e}")
+			print(f"Compare Kerning Between Masters Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 
