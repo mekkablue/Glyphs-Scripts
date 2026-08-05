@@ -7,7 +7,7 @@ Builds white and black, small and large, circles, triangles and squares.
 
 import vanilla
 from GlyphsApp import Glyphs, GSGlyph, GSLayer, GSComponent, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, newGlyphWithName
 from mekkablue.geometry import transform, offsetLayer
 
 
@@ -892,7 +892,7 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 								for newGlyphName, letters in glyphsToBuild.items():
 									newGlyph = thisFont.glyphs[newGlyphName]
 									if not newGlyph:
-										newGlyph = GSGlyph(newGlyphName)
+										newGlyph = newGlyphWithName(newGlyphName)
 										thisFont.glyphs.append(newGlyph)
 										print("🔣 %s created." % newGlyphName)
 									else:

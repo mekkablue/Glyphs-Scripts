@@ -6,7 +6,8 @@ Builds inverted Spanish punctuation ¡¿ for mixed and upper case. Hold down COM
 """
 
 from AppKit import NSEvent, NSEventModifierFlagShift, NSEventModifierFlagCommand
-from GlyphsApp import Glyphs, GSGlyph, GSComponent
+from GlyphsApp import Glyphs, GSComponent
+from mekkablue import newGlyphWithName
 
 invertedGlyphNames = (
 	"exclamdown",
@@ -70,7 +71,7 @@ for thisFont in theseFonts:
 				invertedGlyph = thisFont.glyphs[invertedName]
 				if not invertedGlyph:
 					print(f"   ⚙️ Creating glyph {invertedName} (did not exist)")
-					invertedGlyph = GSGlyph(invertedName)
+					invertedGlyph = newGlyphWithName(invertedName)
 					thisFont.glyphs.append(invertedGlyph)
 
 				for thisMaster in thisFont.masters:

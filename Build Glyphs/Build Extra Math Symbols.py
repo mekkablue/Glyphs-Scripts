@@ -5,7 +5,8 @@ __doc__ = """
 Creates lessoverequal, greateroverequal, bulletoperator, rightanglearc, righttriangle, sphericalangle, measuredangle, sunWithRays, positionIndicator, diameterSign, viewdataSquare, control.
 """
 
-from GlyphsApp import Glyphs, GSGlyph, GSComponent
+from GlyphsApp import Glyphs, GSComponent
+from mekkablue import newGlyphWithName
 from mekkablue.geometry import transform, centerOfRect
 
 thisFont = Glyphs.font  # frontmost font
@@ -65,7 +66,7 @@ def getGlyphWithName(glyphName, thisFont):
 	if thisGlyph:
 		return thisGlyph
 	else:
-		newGlyph = GSGlyph(glyphName)
+		newGlyph = newGlyphWithName(glyphName)
 		thisFont.glyphs.append(newGlyph)
 		newGlyph.updateGlyphInfo()
 		return newGlyph

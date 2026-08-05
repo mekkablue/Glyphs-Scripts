@@ -5,7 +5,8 @@ __doc__ = """
 Creates mediumspace-math, emquad, emspace, enquad, enspace, figurespace, fourperemspace, hairspace, narrownbspace, punctuationspace, sixperemspace, nbspace, thinspace, threeperemspace, zerowidthspace.
 """
 
-from GlyphsApp import Glyphs, GSGlyph
+from GlyphsApp import Glyphs
+from mekkablue import newGlyphWithName
 
 
 def tabfigure(font):
@@ -26,7 +27,7 @@ def createSpaceGlyph(thisFont, glyphName, widthKey):
 			print(u"😬 %s was set to not export. Fixed. 🙌" % glyphName)
 	else:
 		print(u"✅ Creating %s" % glyphName)
-		space = GSGlyph(glyphName)
+		space = newGlyphWithName(glyphName)
 		thisFont.glyphs.append(space)
 		created = 1
 

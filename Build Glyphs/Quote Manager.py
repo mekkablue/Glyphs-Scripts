@@ -7,8 +7,8 @@ Build and sync quotes: create single and double quotes with cursive attachment a
 
 import vanilla
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSAnchor, GSComponent, GSGlyph, GSPath, GSNode, LINE, GSMetricsTypeCapHeight
-from mekkablue import mekkaObject
+from GlyphsApp import Glyphs, GSAnchor, GSComponent, GSPath, GSNode, LINE, GSMetricsTypeCapHeight
+from mekkablue import mekkaObject, newGlyphWithName
 
 # Maps single quote → double quote
 SINGLE_TO_DOUBLE = {
@@ -319,7 +319,7 @@ class QuoteManager(mekkaObject):
 
 	def ensureGlyphExists(self, font, glyphName):
 		if not font.glyphs[glyphName]:
-			g = GSGlyph(glyphName)
+			g = newGlyphWithName(glyphName)
 			font.glyphs.append(g)
 			print(f"\t➕ Created glyph: {glyphName}")
 		return font.glyphs[glyphName]
