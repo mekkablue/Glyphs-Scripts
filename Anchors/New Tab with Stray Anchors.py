@@ -6,7 +6,7 @@ Find all anchors that are not where they are supposed to be.
 """
 
 import vanilla, sys
-from mekkablue import mekkaObject, UpdateButton, reportFontName
+from mekkablue import mekkaObject, newLineControlLayer, UpdateButton, reportFontName
 
 horizontals = (
 	"LSB",
@@ -264,11 +264,11 @@ class FindStrayAnchors(mekkaObject):
 						if not glyph:
 							continue
 						reportTab.layers.append(glyph.layers[0])
-					reportTab.layers.append(GSControlLayer.newline())
+					reportTab.layers.append(newLineControlLayer())
 					for reportedLayer in report[anchorName]:
 						reportTab.layers.append(reportedLayer)
 					for x in range(2):
-						reportTab.layers.append(GSControlLayer.newline())
+						reportTab.layers.append(newLineControlLayer())
 
 				# self.w.close() # delete if you want window to stay open
 

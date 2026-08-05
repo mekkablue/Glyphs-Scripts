@@ -6,8 +6,8 @@ Report differences in kerning structures between two masters.
 """
 
 import vanilla
-from GlyphsApp import Glyphs, GSControlLayer, Message
-from mekkablue import mekkaObject, reportFontName, UpdateButton
+from GlyphsApp import Glyphs, Message
+from mekkablue import mekkaObject, newLineControlLayer, reportFontName, UpdateButton
 
 
 class CompareKerningBetweenMasters(mekkaObject):
@@ -237,7 +237,7 @@ class CompareKerningBetweenMasters(mekkaObject):
 								targetList.append(thisFont.glyphs["space"].layers[firstMaster.id])
 								targetList.append(glyphOnLSide.layers[secondMaster.id])
 								targetList.append(glyphOnRSide.layers[secondMaster.id])
-								targetList.append(GSControlLayer.newline())
+								targetList.append(newLineControlLayer())
 
 				if not missingKernCount:
 					Message(
@@ -256,7 +256,7 @@ class CompareKerningBetweenMasters(mekkaObject):
 					tab.updateKerningButton()
 
 					def addNewline():
-						tab.layers.append(GSControlLayer.newline())
+						tab.layers.append(newLineControlLayer())
 
 					def addToTab(text, masterID=firstMasterID):
 						for char in text:

@@ -1,7 +1,7 @@
 
 from typing import Any
 from AppKit import NSUserDefaults, NSFont, NSImage, NSImageLeading, NSPasteboard, NSStringPboardType, NSLineBreakByClipping
-from GlyphsApp import Glyphs, GSFeature, GSClass
+from GlyphsApp import Glyphs, GSFeature, GSClass, GSControlLayer
 from vanilla import Button
 
 if Glyphs.versionNumber >= 3:
@@ -122,6 +122,21 @@ def reportFontName(font) -> str:
 	if filePath:
 		return f"{filePath.lastPathComponent()}\n📄 {filePath}"
 	return f"{font.familyName}\n⚠️ The font file has not been saved yet."
+
+
+def newLineControlLayer():
+	"""
+	Returns a GSControlLayer representing a newline, for inserting line breaks
+	into tab.layers.
+	Temporary workaround: in some Glyphs versions, GSControlLayer.newline() raises
+	'TypeError: GSControlLayer() does not accept positional arguments', because it
+	internally calls GSControlLayer(10). In that case, we fall back to the ObjC
+	initializer.
+	"""
+	try:
+		return GSControlLayer.newline()
+	except TypeError:
+		return GSControlLayer.alloc().initWithChar_(10)
 
 
 def getLegibleFont(size=None):

@@ -6,6 +6,7 @@ Reduplicates your edit text across masters, will add one line per master. Carefu
 """
 
 from GlyphsApp import Glyphs, GSControlLayer
+from mekkablue import newLineControlLayer
 
 thisFont = Glyphs.font
 
@@ -26,7 +27,7 @@ for m in thisFont.masters:
 		# print(layer)
 		theseLayers.append(layer)
 
-	theseLayers.append(GSControlLayer.newline())
+	theseLayers.append(newLineControlLayer())
 
 if theseLayers:
 	if glyphs3:

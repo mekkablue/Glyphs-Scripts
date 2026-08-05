@@ -8,6 +8,7 @@ Shifts all periodcentered.loclCAT glyphs horizontally so it fits between two Lâ€
 
 from AppKit import NSMidY, NSAffineTransform, NSEvent, NSCommandKeyMask, NSShiftKeyMask
 from GlyphsApp import Glyphs, GSControlLayer
+from mekkablue import newLineControlLayer
 
 keysPressed = NSEvent.modifierFlags()
 commandKeyPressed = (keysPressed & NSCommandKeyMask) == NSCommandKeyMask
@@ -119,7 +120,7 @@ for thisFont in theseFonts:
 					for gname in names:
 						layer = thisFont.glyphs[gname].layers[m.id]
 						theseLayers.append(layer)
-					theseLayers.append(GSControlLayer.newline())
+					theseLayers.append(newLineControlLayer())
 
 				if theseLayers:
 					if Glyphs.versionNumber >= 3:

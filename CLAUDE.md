@@ -243,6 +243,7 @@ Negative coordinates are measured from the right/bottom edge (`-inset` = inset f
 | `match(first, second)` | Wildcard matching supporting `*` and `?` |
 | `camelCaseSplit(string)` | Splits a camelCase string into a list of words |
 | `reportTimeInNaturalLanguage(seconds)` | Formats a duration as a readable string (e.g., `"2:34 minutes"`) |
+| `newLineControlLayer()` | Returns a newline `GSControlLayer` for `tab.layers`; use instead of `GSControlLayer.newline()`, which raises a `TypeError` in some Glyphs versions |
 | `getLegibleFont(size=None)` | Returns a system legible font (Glyphs 2/3 compatible) |
 | `UpdateButton(posSize, callback, title="")` | Creates a refresh button with an NSRefreshTemplate icon |
 
