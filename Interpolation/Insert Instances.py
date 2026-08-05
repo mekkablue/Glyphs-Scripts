@@ -1166,6 +1166,13 @@ class InstanceMakerV4(mekkaObject):
 		self.SavePreferences()
 		Glyphs.clearLog()
 		insertParticlesIntoFont(thisFont, particlesDict)
+
+		# bring up Font Info → Exports so the user can see the new particles:
+		try:
+			thisFont.parent.windowController().showFontInfoWindowWithTabSelected_(2)
+		except Exception as e:
+			print(f"\n\t⚠️ Could not open Font Info → Exports: {e}")
+
 		Glyphs.showNotification("Insert Instances", "Done. Details in Macro Window.")
 
 
