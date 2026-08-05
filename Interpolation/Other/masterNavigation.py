@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-from GlyphsApp import Glyphs, GSControlLayer
+from GlyphsApp import Glyphs
+from mekkablue import newLineControlLayer
 
 
 def showAllMastersOfGlyphInCurrentTab(thisGlyphName):
@@ -33,7 +34,7 @@ def showAllMastersOfGlyphs(glyphNames, openNewTab=True, avoidDuplicates=True):
 		thisGlyph = thisFont.glyphs[thisGlyphName]
 		if thisGlyph:
 			displayLayers += [layer for layer in thisGlyph.layers if layer.isMasterLayer or layer.isSpecialLayer]
-			displayLayers.append(GSControlLayer.newline())
+			displayLayers.append(newLineControlLayer())
 
 	if len(displayLayers) > 1:
 		displayLayers.pop(-1)  # remove last newline

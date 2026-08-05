@@ -6,8 +6,8 @@ Asks a threshold percentage, and opens a new tab with all kern pairs going beyon
 """
 
 import vanilla
-from GlyphsApp import Glyphs, GSControlLayer, Message
-from mekkablue import mekkaObject, reportFontName
+from GlyphsApp import Glyphs, Message
+from mekkablue import mekkaObject, newLineControlLayer, reportFontName
 
 
 def roundedDownBy(value, base):
@@ -260,7 +260,7 @@ class NewTabwithOverkernedPairs(mekkaObject):
 										Glyphs.showMacroWindow()
 
 					if layers:
-						layers.append(GSControlLayer.newline())
+						layers.append(newLineControlLayer())
 				if layers:
 					if not (thisFont.currentTab and layers == thisFont.currentTab.layers):
 						tab = thisFont.newTab()

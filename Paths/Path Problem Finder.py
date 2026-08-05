@@ -9,11 +9,11 @@ import vanilla
 import math
 from timeit import default_timer as timer
 from AppKit import NSPoint
-from GlyphsApp import Glyphs, GSPath, GSControlLayer, GSShapeTypePath, GSLINE, GSCURVE, CURVE, GSOFFCURVE, QCURVE, Message, distance
+from GlyphsApp import Glyphs, GSPath, GSShapeTypePath, GSLINE, GSCURVE, CURVE, GSOFFCURVE, QCURVE, Message, distance
 import importlib
 import mekkablue
 importlib.reload(mekkablue)
-from mekkablue import mekkaObject, reportTimeInNaturalLanguage
+from mekkablue import mekkaObject, newLineControlLayer, reportTimeInNaturalLanguage
 
 
 canHaveOpenOutlines = (
@@ -1103,11 +1103,11 @@ class PathProblemFinder(mekkaObject):
 					layer = g.layers[masterID]
 					if layer:
 						layers.append(layer)
-			layers.append(GSControlLayer.newline())
+			layers.append(newLineControlLayer())
 			for layer in layerList:
 				layers.append(layer)
 			for i in range(2):
-				layers.append(GSControlLayer.newline())
+				layers.append(newLineControlLayer())
 
 			# report in Macro Window:
 			glyphNames = "/" + "/".join(set([layer.parent.name for layer in layerList]))

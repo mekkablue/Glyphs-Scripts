@@ -7,8 +7,8 @@ Opens a new tab with all glyphs that do NOT reach into any top or bottom alignme
 
 from collections import OrderedDict
 import vanilla
-from GlyphsApp import Glyphs, GSControlLayer
-from mekkablue import mekkaObject
+from GlyphsApp import Glyphs
+from mekkablue import mekkaObject, newLineControlLayer
 
 
 class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):
@@ -130,7 +130,7 @@ class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):
 					extraTabText = "\n\nNo %s zone:\n" % zoneType
 					for char in extraTabText:
 						if char == "\n":
-							masterTab.layers.append(GSControlLayer.newline())
+							masterTab.layers.append(newLineControlLayer())
 						else:
 							glyphName = Glyphs.niceGlyphName(char)
 							if glyphName and thisFont.glyphs[glyphName]:

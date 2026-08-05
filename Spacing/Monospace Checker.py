@@ -6,8 +6,8 @@ Checks if all glyph widths in the frontmost font are actually monospaced. Report
 """
 
 import vanilla
-from GlyphsApp import Glyphs, GSControlLayer, Message
-from mekkablue import mekkaObject
+from GlyphsApp import Glyphs, Message
+from mekkablue import mekkaObject, newLineControlLayer
 
 
 class MonospaceChecker(mekkaObject):
@@ -121,7 +121,7 @@ class MonospaceChecker(mekkaObject):
 
 					# add a newline:
 					if affectedLayers:
-						newLine = GSControlLayer.newline()
+						newLine = newLineControlLayer()
 						affectedLayers.append(newLine)
 
 			if affectedLayers:
