@@ -6,7 +6,8 @@ Builds cadauna and careof from your c, u and fraction glyphs.
 """
 
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSGlyph, GSComponent
+from GlyphsApp import Glyphs, GSComponent
+from mekkablue import newGlyphWithName
 from mekkablue.geometry import transform
 
 distanceBetweenComponents = 80
@@ -93,7 +94,7 @@ def getGlyphWithName(glyphName, thisFont):
 	if thisGlyph:
 		return thisGlyph
 	else:
-		newGlyph = GSGlyph(glyphName)
+		newGlyph = newGlyphWithName(glyphName)
 		thisFont.glyphs.append(newGlyph)
 		newGlyph.updateGlyphInfo()
 		return newGlyph

@@ -6,8 +6,8 @@ Takes existing .tf figures and spaces them tabularly, or creates them from exist
 """
 
 import vanilla
-from GlyphsApp import Glyphs, GSGlyph, GSComponent, Message
-from mekkablue import mekkaObject, UpdateButton, reportFontName
+from GlyphsApp import Glyphs, GSComponent, Message
+from mekkablue import mekkaObject, newGlyphWithName, UpdateButton, reportFontName
 
 
 class TabularFigureSpacer(mekkaObject):
@@ -85,7 +85,7 @@ class TabularFigureSpacer(mekkaObject):
 						niceName = Glyphs.niceGlyphName(fig)
 						figName = f"{niceName}.{self.pref('suffix').lstrip('.')}"
 						if not font.glyphs[figName]:
-							newGlyph = GSGlyph(figName)
+							newGlyph = newGlyphWithName(figName)
 							font.glyphs.append(newGlyph)
 							for layer in newGlyph.layers:
 								layer.shapes.append(GSComponent(niceName))

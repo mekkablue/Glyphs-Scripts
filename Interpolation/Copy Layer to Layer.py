@@ -14,7 +14,7 @@ Copies one layer to another layer across selected glyphs:
 
 import vanilla
 from Foundation import NSPoint
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, newGlyphWithName, UpdateButton
 
 class CopyLayerToLayer(mekkaObject):
 	prefDict = {
@@ -372,7 +372,7 @@ class CopyLayerToLayer(mekkaObject):
 				targetGlyph = targetFont.glyphs[glyphName]
 				if not targetGlyph:
 					if prefs["createIfNotPresent"]:
-						targetGlyph = GSGlyph(glyphName)
+						targetGlyph = newGlyphWithName(glyphName)
 						targetFont.glyphs.append(targetGlyph)
 						createdGlyphCount += 1
 					else:

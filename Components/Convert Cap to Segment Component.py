@@ -13,8 +13,8 @@ import re
 
 import vanilla
 from AppKit import NSAffineTransform, NSPoint
-from GlyphsApp import CAP, SEGMENT, GSAnchor, GSGlyph, GSHint, GSLayer, Glyphs, Message
-from mekkablue import UpdateButton, mekkaObject
+from GlyphsApp import CAP, SEGMENT, GSAnchor, GSHint, GSLayer, Glyphs, Message
+from mekkablue import UpdateButton, mekkaObject, newGlyphWithName
 
 
 def sanitizeSuffix(text):
@@ -170,7 +170,7 @@ class ConvertCapToSegmentComponent(mekkaObject):
 		if font.glyphs[segmentGlyphName]:
 			del font.glyphs[segmentGlyphName]
 
-		segmentGlyph = GSGlyph(segmentGlyphName)
+		segmentGlyph = newGlyphWithName(segmentGlyphName)
 		segmentGlyph.category = "Corner"
 		segmentGlyph.export = False
 		segmentGlyph.leftMetricsKey = "=100"

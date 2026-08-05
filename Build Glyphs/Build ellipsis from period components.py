@@ -6,7 +6,8 @@ Inserts exit and entry anchors in the period glyph and rebuilds ellipsis with au
 """
 
 from AppKit import NSPoint, NSEvent, NSEventModifierFlagOption, NSEventModifierFlagShift
-from GlyphsApp import Glyphs, GSGlyph, GSAnchor, GSComponent, Message
+from GlyphsApp import Glyphs, GSAnchor, GSComponent, Message
+from mekkablue import newGlyphWithName
 
 Glyphs.clearLog()  # clears log in Macro window
 
@@ -44,7 +45,7 @@ if not period:
 ellipsis = thisFont.glyphs["ellipsis"]
 if not ellipsis:
 	print("⚙️ Creating ellipsis glyph (did not exist)")
-	ellipsis = GSGlyph("ellipsis")
+	ellipsis = newGlyphWithName("ellipsis")
 	thisFont.glyphs.append(ellipsis)
 
 # decomposing non-ellipsis components:

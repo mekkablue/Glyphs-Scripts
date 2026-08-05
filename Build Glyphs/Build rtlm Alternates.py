@@ -6,7 +6,8 @@ Creates horizontally mirrored composite copies for selected glyphs, and updates 
 """
 
 from AppKit import NSAffineTransform
-from GlyphsApp import Glyphs, GSGlyph, GSComponent, GSFeature
+from GlyphsApp import Glyphs, GSComponent, GSFeature
+from mekkablue import newGlyphWithName
 
 
 def flip():
@@ -68,7 +69,7 @@ try:
 			continue
 		else:
 			rtlmName = "%s.rtlm" % glyphName
-			rtlmGlyph = GSGlyph(rtlmName)
+			rtlmGlyph = newGlyphWithName(rtlmName)
 			if thisFont.glyphs[rtlmName]:
 				print("⚠️ %s: already in font, ignored.")
 			else:

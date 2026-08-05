@@ -6,7 +6,8 @@ Builds Ldot, ldot and ldot.sc from existing L and periodcentered.loclCAT(.case/.
 """
 
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSGlyph, GSComponent
+from GlyphsApp import Glyphs, GSComponent
+from mekkablue import newGlyphWithName
 
 
 def buildLdot(targetGlyphName, baseName, accentName):
@@ -20,7 +21,7 @@ def buildLdot(targetGlyphName, baseName, accentName):
 			baseWidth = thisFont.glyphs[baseName].layers[thisMasterID].width
 			targetGlyph = thisFont.glyphs[targetGlyphName]
 			if not targetGlyph:
-				targetGlyph = GSGlyph(targetGlyphName)
+				targetGlyph = newGlyphWithName(targetGlyphName)
 				thisFont.glyphs.append(targetGlyph)
 			else:
 				targetGlyph.leftMetricsKey = None

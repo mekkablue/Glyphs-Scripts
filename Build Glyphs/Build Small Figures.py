@@ -7,8 +7,8 @@ Takes a default set of figures (e.g., dnom), and derives the others (.numr, supe
 
 import vanilla
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSGlyph, GSComponent
-from mekkablue import mekkaObject
+from GlyphsApp import Glyphs, GSComponent
+from mekkablue import mekkaObject, newGlyphWithName
 from mekkablue.geometry import italicize
 
 
@@ -149,7 +149,7 @@ class smallFigureBuilder(mekkaObject):
 						deriveGlyphName = "%s%s" % (fig, deriveSuffix)
 						deriveGlyph = thisFont.glyphs[deriveGlyphName]
 						if not deriveGlyph:
-							deriveGlyph = GSGlyph(deriveGlyphName)
+							deriveGlyph = newGlyphWithName(deriveGlyphName)
 							thisFont.glyphs.append(deriveGlyph)
 							print(" - creating new glyph %s" % deriveGlyphName)
 							createdGlyphCount += 1

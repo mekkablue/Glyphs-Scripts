@@ -1,7 +1,7 @@
 
 from typing import Any
 from AppKit import NSUserDefaults, NSFont, NSImage, NSImageLeading, NSPasteboard, NSStringPboardType, NSLineBreakByClipping
-from GlyphsApp import Glyphs, GSFeature, GSClass, GSControlLayer
+from GlyphsApp import Glyphs, GSFeature, GSClass, GSControlLayer, GSGlyph
 from vanilla import Button
 
 if Glyphs.versionNumber >= 3:
@@ -137,6 +137,21 @@ def newLineControlLayer():
 		return GSControlLayer.newline()
 	except TypeError:
 		return GSControlLayer.alloc().initWithChar_(10)
+
+
+def newGlyphWithName(glyphName):
+	"""
+	Returns a new GSGlyph carrying the supplied name.
+	Temporary workaround: in some Glyphs versions, GSGlyph("name") raises
+	'TypeError: GSGlyph() does not accept positional arguments'. In that case,
+	we create the glyph without arguments and set its name afterwards.
+	"""
+	try:
+		return GSGlyph(glyphName)
+	except TypeError:
+		glyph = GSGlyph()
+		glyph.name = glyphName
+		return glyph
 
 
 def getLegibleFont(size=None):
