@@ -670,7 +670,11 @@ def buildNameParticle(name, internalValue, externalValue):
 	particle = GSNameParticle.alloc().init()
 	particle.setName_(name)
 	particle.setInternalValue_(float(internalValue))
-	particle.setExternalValue_(float(externalValue))
+	if externalValue is None or float(externalValue) == float(internalValue):
+		# no mapping necessary if both values are the same:
+		particle.setExternalValue_(None)
+	else:
+		particle.setExternalValue_(float(externalValue))
 	return particle
 
 
@@ -757,10 +761,13 @@ def insertParticlesIntoFont(font, particlesDict):
 		for particleInfo in particles:
 			name = particleInfo["name"]
 			internalValue = particleInfo["internalValue"]
-			# without an explicit external value, internal and external coordinates are the same:
-			externalValue = particleInfo.get("externalValue", internalValue)
+			# stays None if the axis has no separate external coordinate:
+			externalValue = particleInfo.get("externalValue")
 			axisParticles.addObject_(buildNameParticle(name, internalValue, externalValue))
-			print(f"\t\t✅ {name} ({internalValue}>{externalValue})")
+			if externalValue is None or float(externalValue) == float(internalValue):
+				print(f"\t\t✅ {name} ({internalValue})")
+			else:
+				print(f"\t\t✅ {name} ({internalValue}>{externalValue})")
 
 		# replaces the particles of this axis, keeps those of all other axes:
 		allParticles.setObject_forKey_(axisParticles, axisId)
