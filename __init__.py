@@ -124,6 +124,70 @@ def reportFontName(font) -> str:
 	return f"{font.familyName}\n⚠️ The font file has not been saved yet."
 
 
+def nameParticlesOfInstance(instance):
+	"""
+	Returns the name particles of a Glyphs 4 particle instance (a mapping of
+	axisId → list of GSNameParticle), or None if the instance has none.
+	Depending on the Glyphs version, instance.nameParticles is either a pyobjc
+	method or a (dict-like) proxy object, so both are resolved here.
+	"""
+	nameParticles = getattr(instance, "nameParticles", None)
+	if callable(nameParticles):
+		try:
+			return nameParticles()
+		except TypeError:
+			pass
+	return nameParticles
+
+
+def nameParticleAxisIDs(instance):
+	"""
+	Returns a list of the axisIds for which the instance carries name particles.
+	Empty list if there are none.
+	"""
+	nameParticles = nameParticlesOfInstance(instance)
+	if not nameParticles:
+		return []
+	for accessor in ("allKeys", "keys"):
+		method = getattr(nameParticles, accessor, None)
+		if callable(method):
+			try:
+				return list(method())
+			except TypeError:
+				pass
+	try:
+		return list(nameParticles)
+	except TypeError:
+		return []
+
+
+def nameParticlesForAxisID(instance, axisID):
+	"""
+	Returns the name particles of the instance for the axis with the given
+	axisId, or None if there are none. Works with both dicts and the
+	proxy objects that Glyphs returns for instance.nameParticles.
+	"""
+	nameParticles = nameParticlesOfInstance(instance)
+	if not nameParticles:
+		return None
+	getter = getattr(nameParticles, "get", None)
+	if callable(getter):
+		try:
+			return getter(axisID)
+		except TypeError:
+			pass
+	objectForKey = getattr(nameParticles, "objectForKey_", None)
+	if objectForKey is not None:
+		try:
+			return objectForKey(axisID)
+		except TypeError:
+			pass
+	try:
+		return nameParticles[axisID]
+	except (KeyError, IndexError, TypeError):
+		return None
+
+
 def newLineControlLayer():
 	"""
 	Returns a GSControlLayer representing a newline, for inserting line breaks

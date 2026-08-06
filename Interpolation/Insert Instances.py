@@ -9,7 +9,7 @@ In Glyphs 4+, presents a redesigned UI for inserting axis particles.
 from Foundation import NSDictionary, NSMutableArray, NSMutableDictionary
 import vanilla
 from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, nameParticleAxisIDs, nameParticlesForAxisID
 
 try:
 	from GlyphsApp import GSNameParticle
@@ -739,10 +739,10 @@ def insertParticlesIntoFont(font, particlesDict):
 
 	# Carry over particles of axes we are not touching:
 	allParticles = NSMutableDictionary.dictionary()
-	currentParticles = particleInstance.nameParticles()
-	if currentParticles:
-		for axisId in currentParticles:
-			allParticles.setObject_forKey_(NSMutableArray.arrayWithArray_(currentParticles[axisId]), axisId)
+	for axisId in nameParticleAxisIDs(particleInstance):
+		currentParticles = nameParticlesForAxisID(particleInstance, axisId)
+		if currentParticles:
+			allParticles.setObject_forKey_(NSMutableArray.arrayWithArray_(currentParticles), axisId)
 
 	# Build name particles for each axis:
 	for axisTag, axisData in axesData.items():
