@@ -124,6 +124,51 @@ def reportFontName(font) -> str:
 	return f"{font.familyName}\n⚠️ The font file has not been saved yet."
 
 
+def resolvedAttribute(obj, attributeNames, default=None):
+	"""
+	Returns the value of the first of attributeNames that the object has.
+	Depending on the Glyphs version, the same information is exposed either as a
+	pyobjc method or as a plain python property, so both are resolved here.
+	attributeNames can be a single name or a tuple of names to try in order.
+	"""
+	if isinstance(attributeNames, str):
+		attributeNames = (attributeNames, )
+	for attributeName in attributeNames:
+		value = getattr(obj, attributeName, None)
+		if value is None:
+			continue
+		if callable(value):
+			try:
+				value = value()
+			except TypeError:
+				pass
+		if value is not None:
+			return value
+	return default
+
+
+def particleName(particle):
+	"""Returns the name of a GSNameParticle (Glyphs 4) as a string, empty string if it has none."""
+	return str(resolvedAttribute(particle, "name", ""))
+
+
+def particleAxisValue(particle):
+	"""
+	Returns the axis value of a GSNameParticle (Glyphs 4) as a float. A particle
+	carries an internal (design space) and an external (user space) value, and
+	the external one is optional, so fall back to the internal value if it is
+	missing. Returns None if neither value is set.
+	"""
+	for attributeNames in (("externalValue", "external"), ("internalValue", "internal")):
+		value = resolvedAttribute(particle, attributeNames)
+		if value is not None:
+			try:
+				return float(value)
+			except (TypeError, ValueError):
+				pass
+	return None
+
+
 def nameParticlesOfInstance(instance):
 	"""
 	Returns the name particles of a Glyphs 4 particle instance (a mapping of

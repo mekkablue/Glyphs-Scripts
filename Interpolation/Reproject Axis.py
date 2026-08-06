@@ -8,7 +8,7 @@ Rescale (reproject) all design-space values of an axis to a new min/max range. R
 import re
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, nameParticlesForAxisID, resolvedAttribute
 
 INSTANCETYPEPARTICLE = 4  # GSInstance.type for axis particle settings (Glyphs 4+)
 
@@ -29,38 +29,22 @@ def cleanNumber(value, forceInt=False):
 	return rounded
 
 
-def particleDictOfInstance(instance):
-	"""Return the name particle dictionary (axisID → list of GSNameParticle) of a particle-type instance, or None."""
-	for accessor in ("nameParticles", "particles", "nameParticleDict"):
-		# pyobjc method first, then the python property:
-		method = getattr(instance, "%s" % accessor, None)
-		if callable(method):
-			try:
-				value = method()
-			except TypeError:
-				value = None
-		else:
-			value = method
-		if value:
-			return value
-	return None
-
-
 def particleInternalValue(particle):
 	"""Return the internal (design space) value of a GSNameParticle, or None."""
-	internal = getattr(particle, "internal", None)
-	if callable(internal):
-		return internal()
-	return internal
+	return resolvedAttribute(particle, ("internalValue", "internal"))
 
 
 def setParticleInternalValue(particle, value):
 	"""Set the internal (design space) value of a GSNameParticle, pyobjc style where available."""
-	setter = getattr(particle, "setInternal_", None)
-	if setter is not None:
-		setter(value)
-	else:
-		particle.internal = value
+	for selectorName in ("setInternalValue_", "setInternal_"):
+		setter = getattr(particle, selectorName, None)
+		if setter is not None:
+			setter(value)
+			return
+	for attributeName in ("internalValue", "internal"):
+		if hasattr(particle, attributeName):
+			setattr(particle, attributeName, value)
+			return
 
 
 class ReprojectAxis(mekkaObject):
@@ -256,18 +240,15 @@ class ReprojectAxis(mekkaObject):
 		for instance in font.instances:
 			if instance.type != INSTANCETYPEPARTICLE:
 				continue
-			particleDict = particleDictOfInstance(instance)
-			if not particleDict:
+			particles = nameParticlesForAxisID(instance, axisID)
+			if not particles:
 				continue
-			for particleAxisID in particleDict.keys():
-				if str(particleAxisID) != str(axisID):
+			for particle in particles:
+				internalValue = particleInternalValue(particle)
+				if internalValue is None:
 					continue
-				for particle in particleDict[particleAxisID]:
-					internalValue = particleInternalValue(particle)
-					if internalValue is None:
-						continue
-					setParticleInternalValue(particle, cleanNumber(reproject(float(internalValue)), forceInt=roundValues))
-					count += 1
+				setParticleInternalValue(particle, cleanNumber(reproject(float(internalValue)), forceInt=roundValues))
+				count += 1
 		return count
 
 	def ReprojectAxisMain(self, sender=None):
