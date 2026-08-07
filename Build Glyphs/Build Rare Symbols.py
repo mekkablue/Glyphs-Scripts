@@ -9,6 +9,34 @@ import vanilla
 from GlyphsApp import Glyphs, GSGlyph, GSLayer, GSComponent, Message
 from mekkablue import mekkaObject, newGlyphWithName
 from mekkablue.geometry import transform, offsetLayer
+from Foundation import NSPoint
+
+
+def roundLayerCoordinates(thisLayer):
+	"""
+	Rounds all coordinates of the layer to integer values.
+	Uses layer.roundCoordinates() where available, and falls back to rounding
+	node, anchor and width values one by one, because roundCoordinates() throws
+	an NSInvalidArgumentException on some layer types in some app versions.
+	"""
+	try:
+		thisLayer.roundCoordinates()
+		return
+	except Exception:
+		pass
+
+	for thisPath in thisLayer.paths:
+		for thisNode in thisPath.nodes:
+			thisNode.position = NSPoint(round(thisNode.position.x), round(thisNode.position.y))
+	for thisAnchor in thisLayer.anchors:
+		try:
+			thisAnchor.position = NSPoint(round(thisAnchor.position.x), round(thisAnchor.position.y))
+		except Exception:
+			pass
+	try:
+		thisLayer.width = round(thisLayer.width)
+	except Exception:
+		pass
 
 
 def createGlyph(
@@ -86,7 +114,7 @@ def createGlyph(
 				for originalPath in originalLayer.paths:
 					thisLayer.shapes.append(originalPath.copy())
 				# update metrics:
-				thisLayer.roundCoordinates()
+				roundLayerCoordinates(thisLayer)
 				if not setMetricsKeys:
 					if thisLayer.italicAngle == 0.0:
 						thisLayer.leftMetricsKey = "==%i" % sidebearing
