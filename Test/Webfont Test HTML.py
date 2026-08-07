@@ -6,7 +6,7 @@ Create a Test HTML for the current font inside the current Webfont Export folder
 """
 
 from GlyphsApp import Glyphs, GSProjectDocument, INSTANCETYPESINGLE, Message
-from mekkablue import nameParticlesForAxisID
+from mekkablue import nameParticlesForAxisID, particleAxisValue, particleName
 from AppKit import NSBundle, NSClassFromString
 from os import system, path
 from itertools import product
@@ -211,22 +211,6 @@ def particleInstancesOfFont(thisFont):
 	return particleInstances
 
 
-def particleAxisValue(particle):
-	"""
-	Returns the axis value of a name particle (Glyphs 4) as a float. A particle
-	carries an internal (design space) and an external (user space) value, and
-	the external one is optional, so fall back to the internal value if it is
-	missing. Returns None if neither value is set.
-	"""
-	externalValue = particle.externalValue()
-	if externalValue is not None:
-		return float(externalValue)
-	internalValue = particle.internalValue()
-	if internalValue is not None:
-		return float(internalValue)
-	return None
-
-
 def particleStylesOfInstance(thisFont, particleInstance):
 	"""
 	Multiplies the name particles of all axes with each other, in the order of
@@ -247,7 +231,7 @@ def particleStylesOfInstance(thisFont, particleInstance):
 
 	styles = []
 	for particleCombination in product(*particlesPerAxis):
-		nameParts = [particle.name() for particle in particleCombination if particle.name() != "Regular"]
+		nameParts = [particleName(particle) for particle in particleCombination if particleName(particle) != "Regular"]
 		styleName = " ".join(nameParts) if nameParts else particleInstance.name
 		axisValues = {}
 		for axisTag, particle in zip(axisTags, particleCombination):
