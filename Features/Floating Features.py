@@ -16,7 +16,7 @@ class FeatureActivator(mekkaObject):
 	def __init__(self):
 		numOfFeatures = len(Glyphs.font.features)
 
-		self.w = vanilla.FloatingWindow((150, 10 + numOfFeatures * 18), "", autosaveName=self.domain("mainwindow"))
+		self.w = vanilla.FloatingWindow((200, 32 + numOfFeatures * 18), "", minSize=(200, 32 + numOfFeatures * 18) ,autosaveName=self.domain("mainwindow"))
 		i = 0
 		selectedFeatures = Glyphs.currentDocument.windowController().activeEditViewController().selectedFeatures()
 		for feature in Glyphs.font.features:
