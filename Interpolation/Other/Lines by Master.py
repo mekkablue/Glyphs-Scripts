@@ -10,7 +10,6 @@ from mekkablue import newLineControlLayer
 
 thisFont = Glyphs.font
 
-glyphs3 = Glyphs.versionNumber >= 3
 cutoff = []
 names = []
 for i, l in enumerate(thisFont.currentTab.layers):
@@ -30,8 +29,6 @@ for m in thisFont.masters:
 	theseLayers.append(newLineControlLayer())
 
 if theseLayers:
-	if glyphs3:
-		thisFont.currentTab.layers.extend(theseLayers)
-	else:
-		for layer in theseLayers:
-			thisFont.currentTab.layers.append(layer)
+	thisTab = thisFont.currentTab
+	# TabLayersProxy has no extend(), so rebuild the whole list in one go:
+	thisTab.layers = list(thisTab.layers) + theseLayers
