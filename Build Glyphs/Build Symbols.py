@@ -12,7 +12,7 @@ from Foundation import NSPoint, NSRect, NSSize, NSAffineTransform
 import vanilla
 import math
 from GlyphsApp import Glyphs, GSGlyph, GSPath, GSNode, GSAnchor, GSOFFCURVE, GSCURVE, GSSMOOTH, distance
-from mekkablue import mekkaObject
+from mekkablue import alignButtonsRight, mekkaObject
 from mekkablue.geometry import transform, italicize, offsetLayer
 
 
@@ -729,6 +729,9 @@ class BuildSymbols(mekkaObject):
 		self.w.checkAllButton = vanilla.Button((-190 - inset, -20 - inset, -90 - inset, -inset), "Check All", callback=self.checkAll)
 		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Build", callback=self.BuildSymbolsMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# fit the button row to the button metrics of the running macOS version:
+		alignButtonsRight(self.w, (self.w.uncheckAllButton, self.w.checkAllButton, self.w.runButton), inset=inset)
 
 		# Load Settings:
 		self.LoadPreferences()
