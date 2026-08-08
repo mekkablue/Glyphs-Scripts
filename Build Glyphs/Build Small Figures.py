@@ -8,7 +8,7 @@ Takes a default set of figures (e.g., dnom), and derives the others (.numr, supe
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSComponent
-from mekkablue import mekkaObject, newGlyphWithName
+from mekkablue import alignButtonsRight, mekkaObject, newGlyphWithName
 from mekkablue.geometry import italicize
 
 
@@ -70,6 +70,9 @@ class smallFigureBuilder(mekkaObject):
 		self.w.reportButton = vanilla.Button((-200 - 15, -20 - 15, -95, -15), "Open Report", callback=self.openMacroWindow)
 		self.w.runButton = vanilla.Button((-70 - 15, -20 - 15, -15, -15), "Build", callback=self.smallFigureBuilderMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# fit the button row to the button metrics of the running macOS version:
+		alignButtonsRight(self.w, (self.w.reportButton, self.w.runButton))
 
 		# Load Settings:
 		self.LoadPreferences()
