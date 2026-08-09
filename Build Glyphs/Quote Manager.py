@@ -8,7 +8,8 @@ Build and sync quotes: create single and double quotes with cursive attachment a
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSAnchor, GSComponent, GSPath, GSNode, LINE, GSMetricsTypeCapHeight
-from mekkablue import alignButtons, mekkaObject, newGlyphWithName
+from mekkablue import mekkaObject, newGlyphWithName
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 
 # Maps single quote → double quote
 SINGLE_TO_DOUBLE = {
@@ -70,181 +71,135 @@ class QuoteManager(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 360
-		windowHeight = 320
-		windowWidthResize = 100
-		windowHeightResize = 0
+		windowWidth = 320
+		windowHeight = 1  # Auto Layout grows the window if the content needs more
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Quote Manager",
-			minSize=(windowWidth - 30, windowHeight),
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),
 			autosaveName=self.domain("mainwindow"),
 		)
 
-		linePos, inset, lineHeight = 12, 15, 22
-		col2 = inset + 165  # second column x offset
-
-		self.w.titleText = vanilla.TextBox(
-			(inset, linePos + 2, -inset, 14),
-			"Create quotes with synced spacing and kern groups:",
-			sizeStyle="small",
-			selectable=True,
-		)
-		linePos += lineHeight
+		self.w.titleText = vanilla.TextBox("auto", "Create quotes with synced spacing and kern groups:", sizeStyle="small", selectable=True)
 
 		# Row 1: Left guillemets | Left quotes
-		self.w.doLeftGuillemets = vanilla.CheckBox(
-			(inset, linePos, 165, 20), "Left guillemets", value=True, callback=self.SavePreferences, sizeStyle="small"
-		)
-		self.w.doLeftGuillemets.setToolTip("Create or update guilsinglleft, guillemetleft (‹ «)")
-		self.w.doLeftQuotes = vanilla.CheckBox(
-			(col2, linePos, -inset, 20), "Left quotes", value=True, callback=self.SavePreferences, sizeStyle="small"
-		)
+		self.w.doLeftGuillemets = vanilla.CheckBox("auto", "Left guillemets", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.doLeftGuillemets.setToolTip("Create or update guilsinglleft, guillemetleft (\u2039 \xab)")
+		self.w.doLeftQuotes = vanilla.CheckBox("auto", "Left quotes", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.doLeftQuotes.setToolTip("Create or update quoteleft, quotedblleft (\u2018 \u201c)")
-		linePos += lineHeight
 
 		# Row 2: Right guillemets | Right quotes
-		self.w.doRightGuillemets = vanilla.CheckBox(
-			(inset, linePos, 165, 20), "Right guillemets", value=True, callback=self.SavePreferences, sizeStyle="small"
-		)
-		self.w.doRightGuillemets.setToolTip("Create or update guilsinglright, guillemetright (› »)")
-		self.w.doRightQuotes = vanilla.CheckBox(
-			(col2, linePos, -inset, 20), "Right quotes", value=True, callback=self.SavePreferences, sizeStyle="small"
-		)
+		self.w.doRightGuillemets = vanilla.CheckBox("auto", "Right guillemets", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.doRightGuillemets.setToolTip("Create or update guilsinglright, guillemetright (\u203a \xbb)")
+		self.w.doRightQuotes = vanilla.CheckBox("auto", "Right quotes", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.doRightQuotes.setToolTip("Create or update quoteright, quotedblright (\u2019 \u201d)")
-		linePos += lineHeight
 
 		# Row 3: Dumb quotes | Apostrophe
-		self.w.doDumbQuotes = vanilla.CheckBox(
-			(inset, linePos, 165, 20), "Dumb quotes", value=True, callback=self.SavePreferences, sizeStyle="small"
-		)
+		self.w.doDumbQuotes = vanilla.CheckBox("auto", "Dumb quotes", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.doDumbQuotes.setToolTip("Create or update quotesingle, quotedbl (' \")")
-		self.w.doApostrophes = vanilla.CheckBox(
-			(col2, linePos, -inset, 20), "Apostrophe", value=True, callback=self.SavePreferences, sizeStyle="small"
-		)
-		self.w.doApostrophes.setToolTip(
-			"Create or update apostrophemod, commareversedmod, commaturnedmod (ʼ ʽ ʻ)"
-		)
-		linePos += lineHeight
+		self.w.doApostrophes = vanilla.CheckBox("auto", "Apostrophe", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.doApostrophes.setToolTip("Create or update apostrophemod, commareversedmod, commaturnedmod (\u02bc \u02bd \u02bb)")
 
 		# Row 4: Base quotes | Reversed quotes
-		self.w.doBaseQuotes = vanilla.CheckBox(
-			(inset, linePos, 165, 20), "Base quotes", value=True, callback=self.SavePreferences, sizeStyle="small"
-		)
-		self.w.doBaseQuotes.setToolTip("Create or update quotesinglbase, quotedblbase (‚ „)")
-		self.w.doReversedQuotes = vanilla.CheckBox(
-			(col2, linePos, -inset, 20), "Reversed quotes", value=True, callback=self.SavePreferences, sizeStyle="small"
-		)
-		self.w.doReversedQuotes.setToolTip(
-			"Create or update quotereversed, quotedblrightreversed (‛ ‟)"
-		)
-		linePos += lineHeight
+		self.w.doBaseQuotes = vanilla.CheckBox("auto", "Base quotes", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.doBaseQuotes.setToolTip("Create or update quotesinglbase, quotedblbase (\u201a \u201e)")
+		self.w.doReversedQuotes = vanilla.CheckBox("auto", "Reversed quotes", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.doReversedQuotes.setToolTip("Create or update quotereversed, quotedblrightreversed (\u201b \u201f)")
 
-		self.w.divider1 = vanilla.HorizontalLine((inset, linePos + 6, -inset, 1))
-		linePos += lineHeight
+		self.w.divider1 = vanilla.HorizontalLine("auto")
 
-		self.w.useQuoteDefault = vanilla.CheckBox(
-			(inset, linePos, 140, 20), "Quotes based on", value=True, callback=self.SavePreferences, sizeStyle="small"
-		)
+		self.w.useQuoteDefault = vanilla.CheckBox("auto", "Quotes based on", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.useQuoteDefault.setToolTip(
 			"Use a specific single quote as the reference for metrics keys, anchor positions, and path building."
 		)
-		self.w.defaultQuote = vanilla.PopUpButton(
-			(inset + 130, linePos + 1, -inset, 18),
-			DEFAULT_QUOTE_CHOICES,
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
+		self.w.defaultQuote = vanilla.PopUpButton("auto", DEFAULT_QUOTE_CHOICES, callback=self.SavePreferences, sizeStyle="small")
 		self.w.defaultQuote.setToolTip(
 			"The single quote all other quotes are derived from. Draw this glyph first, then click Build."
 		)
-		linePos += lineHeight
 
-		self.w.useGuillemetsDefault = vanilla.CheckBox(
-			(inset, linePos, 140, 20),
-			"Guillemets based on",
-			value=True,
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
+		self.w.useGuillemetsDefault = vanilla.CheckBox("auto", "Guillemets based on", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.useGuillemetsDefault.setToolTip(
 			"Use a specific guillemet as the reference for guillemet metrics keys, anchor positions, and path building."
 		)
-		self.w.defaultGuillemet = vanilla.PopUpButton(
-			(inset + 130, linePos + 1, -inset, 18),
-			DEFAULT_GUILLEMET_CHOICES,
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
+		self.w.defaultGuillemet = vanilla.PopUpButton("auto", DEFAULT_GUILLEMET_CHOICES, callback=self.SavePreferences, sizeStyle="small")
 		self.w.defaultGuillemet.setToolTip(
 			"The single guillemet all other guillemets are derived from. The other guillemet will be a mirrored composite."
 		)
-		linePos += lineHeight
 
-		self.w.preserveExisting = vanilla.CheckBox(
-			(inset, linePos, -inset, 20),
-			"Preserve existing quotes when building",
-			value=True,
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
+		self.w.preserveExisting = vanilla.CheckBox("auto", "Preserve existing quotes when building", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.preserveExisting.setToolTip(
 			"When on, only empty layers are filled. When off, all quotes are rebuilt from scratch based on the default single quote/guillemet."
 		)
-		linePos += lineHeight
 
-		self.w.backupInBackground = vanilla.CheckBox(
-			(inset, linePos, -inset, 20),
-			"Backup in background",
-			value=False,
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
+		self.w.backupInBackground = vanilla.CheckBox("auto", "Backup in background", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.backupInBackground.setToolTip("Decomposed copy of the current quotes")
-		linePos += lineHeight
 
-		self.w.openTab = vanilla.CheckBox(
-			(inset, linePos, 120, 20), "Open tab", value=True, callback=self.SavePreferences, sizeStyle="small"
-		)
+		self.w.openTab = vanilla.CheckBox("auto", "Open tab", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.openTab.setToolTip("Open a tab showing all affected glyphs after the operation.")
-		self.w.reuseTab = vanilla.CheckBox(
-			(inset + 120, linePos, -inset, 20),
-			"Reuse current tab",
-			value=True,
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
+		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.reuseTab.setToolTip("Replace the current tab's content instead of opening a new tab.")
-		linePos += lineHeight
 
-		self.w.editSinglesButton = vanilla.Button(
-			(inset, -22 - inset, 100, -inset), "Edit Singles", callback=self.editSingles
-		)
+		self.w.editSinglesButton = vanilla.Button("auto", "Edit Singles", callback=self.editSingles)
 		self.w.editSinglesButton.setToolTip(
 			"Open the default glyph(s) in a tab for editing. Creates them if they don't exist yet, and adds #entry/#exit anchors if missing."
 		)
-		self.w.updateButton = vanilla.Button(
-			(-inset - 145, -22 - inset, 75, -inset), "Update", callback=self.update
-		)
+		self.w.updateButton = vanilla.Button("auto", "Update", callback=self.update)
 		self.w.updateButton.setToolTip(
 			"Update metrics keys, anchors, and kern groups for all selected quote groups. Does not overwrite existing paths."
 		)
-		self.w.buildButton = vanilla.Button(
-			(-inset - 65, -22 - inset, 65, -inset), "Build", callback=self.build
-		)
+		self.w.buildButton = vanilla.Button("auto", "Build", callback=self.build)
 		self.w.buildButton.setToolTip(
 			"Build all selected quote glyphs: fills empty layers with mirrored paths, builds double quotes as composites, sets metrics keys, anchors, and kern groups."
 		)
 		self.w.setDefaultButton(self.w.buildButton)
 
-		# fit the button row to the button metrics of the running macOS version:
-		alignButtons(
-			self.w,
-			rightButtons=(self.w.updateButton, self.w.buildButton),
-			leftButtons=(self.w.editSinglesButton, ),
-			inset=inset,
-			assumedHeight=22,
+		# the two checkbox labels in front of the popups hug their text and share a width:
+		for label in (self.w.useQuoteDefault, self.w.useGuillemetsDefault):
+			label.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			label.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# one shared width per grid column, so the two checkbox columns line up:
+		gridCheckBoxes = (
+			self.w.doLeftGuillemets, self.w.doRightGuillemets, self.w.doDumbQuotes, self.w.doBaseQuotes, self.w.openTab,
+			self.w.doLeftQuotes, self.w.doRightQuotes, self.w.doApostrophes, self.w.doReversedQuotes,
+		)
+		columnRules = [
+			{"view1": cell, "attribute1": "width", "view2": gridCheckBoxes[0], "attribute2": "width"}
+			for cell in gridCheckBoxes[1:]
+		] + [
+			{"view1": self.w.useGuillemetsDefault, "attribute1": "width", "view2": self.w.useQuoteDefault, "attribute2": "width"},
+		]
+
+		# checkboxes and square buttons do not resist vertical stretching by default; with
+		# every control hugging vertically and no flexible gap in the chain, the window ends
+		# up exactly as tall as Auto Layout needs. NSLayoutPriorityWindowSizeStayPut (500) is
+		# the level at which a constraint starts outranking "keep the window size".
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[titleText]-inset-|",
+				"H:|-inset-[doLeftGuillemets]-gap-[doLeftQuotes]-(>=inset)-|",
+				"H:|-inset-[doRightGuillemets]-gap-[doRightQuotes]-(>=inset)-|",
+				"H:|-inset-[doDumbQuotes]-gap-[doApostrophes]-(>=inset)-|",
+				"H:|-inset-[doBaseQuotes]-gap-[doReversedQuotes]-(>=inset)-|",
+				"H:|-inset-[divider1]-inset-|",
+				"H:|-inset-[useQuoteDefault]-gap-[defaultQuote]-inset-|",
+				"H:|-inset-[useGuillemetsDefault]-gap-[defaultGuillemet]-inset-|",
+				"H:|-inset-[preserveExisting]-(>=inset)-|",
+				"H:|-inset-[backupInBackground]-(>=inset)-|",
+				"H:|-inset-[openTab]-gap-[reuseTab]-(>=inset)-|",
+				"H:|-inset-[editSinglesButton(>=70)]-(>=gap)-[updateButton(>=70)]-gap-[buildButton(>=70)]-inset-|",
+				# one vertical chain per column; equal row heights keep the rows aligned
+				"V:|-gap-[titleText]-row-[doLeftGuillemets]-row-[doRightGuillemets]-row-[doDumbQuotes]-row-[doBaseQuotes]-gap-[divider1(1)]-gap-[defaultQuote]-row-[defaultGuillemet]-row-[preserveExisting]-row-[backupInBackground]-row-[openTab]-inset-[buildButton]-inset-|",
+				"V:[titleText]-row-[doLeftQuotes]-row-[doRightQuotes]-row-[doApostrophes]-row-[doReversedQuotes]",
+				"V:[editSinglesButton]-inset-|",
+				"V:[updateButton]-inset-|",
+				{"view1": self.w.useQuoteDefault, "attribute1": "centerY", "view2": self.w.defaultQuote, "attribute2": "centerY"},
+				{"view1": self.w.useGuillemetsDefault, "attribute1": "centerY", "view2": self.w.defaultGuillemet, "attribute2": "centerY"},
+				{"view1": self.w.reuseTab, "attribute1": "centerY", "view2": self.w.openTab, "attribute2": "centerY"},
+			] + columnRules,
+			metrics={"inset": 15, "gap": 8, "row": 8},
 		)
 
 		self.LoadPreferences()

@@ -108,6 +108,7 @@ from __future__ import division, print_function, unicode_literals
 __doc__ = """Description."""
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from mekkablue import mekkaObject
 
 
@@ -119,26 +120,37 @@ class MyScript(mekkaObject):
 
 	def __init__(self):
 		windowWidth = 330
-		windowHeight = 240
-		windowWidthResize = 0   # extra width the user can resize by
-		windowHeightResize = 0  # extra height the user can resize by
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
+		# no minSize/maxSize: that keeps the window unresizable and the size limits out of
+		# Auto Layout's way (see “Window layout” below)
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"My Script",
-			minSize=(windowWidth, windowHeight),
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),
-			autosaveName=self.domain("mainwindow"),  # persists window position/size
+			autosaveName=self.domain("mainwindow"),  # persists window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.myCheckbox = vanilla.CheckBox((inset, linePos, -inset, 20), "Do the thing", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.myCheckbox = vanilla.CheckBox("auto", "Do the thing", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.myCheckbox.setToolTip("Tooltip explaining what this does.")
-		linePos += lineHeight
 
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Run", callback=self.run, sizeStyle="small")
+		self.w.runButton = vanilla.Button("auto", "Run", callback=self.run)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes and square buttons stretch vertically by default; with everything
+		# hugging, the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[myCheckbox]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[myCheckbox]-inset-[runButton]-inset-|",
+			],
+			metrics={"inset": inset, "gap": 8},
+		)
 
 		self.LoadPreferences()
 		self.w.open()
@@ -177,7 +189,7 @@ MyScript()
 | `self.uiElement(name)` | Returns UI element for a given pref name (supports dot notation for nested elements) |
 | `self.LoadPreferences()` | Populates all UI elements from prefs; calls `updateUI()` if defined |
 | `self.SavePreferences(sender)` | Saves all UI element values to prefs; calls `updateUI()` if defined |
-| `self.resizeWindowToMinimum()` | Resizes window to its minSize if the saved size is smaller (called automatically by `LoadPreferences()`) |
+| `self.resizeWindowToMinimum()` | Clamps the window to `contentMinSize`/`contentMaxSize`, per axis. `LoadPreferences()` wraps `open()` so it runs once the autosaved frame is restored. A no-op for windows created without `minSize`/`maxSize`; for windows created **with** them it currently shrinks the window by the title bar height, because vanilla stores those as frame sizes while this compares content sizes |
 
 Both `LoadPreferences()` and `SavePreferences()` automatically call `self.updateUI()` if that method exists — use `updateUI()` to cascade enable/disable state across dependent UI elements.
 
@@ -185,26 +197,28 @@ Both `LoadPreferences()` and `SavePreferences()` automatically call `self.update
 
 Common components and how to use them:
 
+Pass `"auto"` instead of a `posSize` tuple and place them with rules (see below):
+
 ```python
-self.w.label    = vanilla.TextBox((inset, linePos + 2, 120, 14), "Label:", sizeStyle="small", selectable=True)
-self.w.field    = vanilla.EditText((inset + 120, linePos, -inset, 19), "default", callback=self.SavePreferences, sizeStyle="small")
+self.w.label    = vanilla.TextBox("auto", "Label:", sizeStyle="small", selectable=True)
+self.w.field    = vanilla.EditText("auto", "default", callback=self.SavePreferences, sizeStyle="small")
 self.w.field.setToolTip("Tooltip for the field.")
 
-self.w.check    = vanilla.CheckBox((inset, linePos, -inset, 20), "Option", value=True, callback=self.SavePreferences, sizeStyle="small")
+self.w.check    = vanilla.CheckBox("auto", "Option", value=True, callback=self.SavePreferences, sizeStyle="small")
 self.w.check.setToolTip("Tooltip for the checkbox.")
 
-self.w.popup    = vanilla.PopUpButton((inset, linePos, 120, 18), ["A", "B"], callback=self.SavePreferences, sizeStyle="small")
-self.w.combo    = vanilla.ComboBox((inset, linePos, 120, 19), ["A", "B"], callback=self.SavePreferences, sizeStyle="small")
+self.w.popup    = vanilla.PopUpButton("auto", ["A", "B"], callback=self.SavePreferences, sizeStyle="small")
+self.w.combo    = vanilla.ComboBox("auto", ["A", "B"], callback=self.SavePreferences, sizeStyle="small")
 self.w.combo.setToolTip("Tooltip.")
 self.w.combo.getNSComboBox().setNumberOfVisibleItems_(20)
 self.w.combo.getNSComboBox().setFont_(NSFont.userFixedPitchFontOfSize_(11))
 
-self.w.editor   = vanilla.TextEditor((inset, linePos, -inset, 80), "", callback=self.SavePreferences)
+self.w.editor   = vanilla.TextEditor("auto", "", callback=self.SavePreferences)  # give it a height in the rules
 self.w.editor.setToolTip("Multi-line field.")
 
-self.w.divider  = vanilla.HorizontalLine((inset, linePos, -inset, 1))
-self.w.bar      = vanilla.ProgressBar((inset, linePos, -inset, 16))
-self.w.status   = vanilla.TextBox((inset, -28 - inset, -inset - 80, 14), "", sizeStyle="small")
+self.w.divider  = vanilla.HorizontalLine("auto")  # needs an explicit height, e.g. [divider(1)]
+self.w.bar      = vanilla.ProgressBar("auto")
+self.w.status   = vanilla.TextBox("auto", "", sizeStyle="small")
 ```
 
 ### Tooltips
@@ -222,17 +236,107 @@ self.w.myField.setToolTip("Explanation of what this does.")
 self.w.myList.getNSTableView().setToolTip_("Tooltip on the table view.")
 ```
 
-### Layout pattern
+### Window layout — use Auto Layout
+
+Do **not** compute `posSize` frames by hand. Vanilla's frame-based layout inflates a control's
+`posSize` by its `frameAdjustments` — for a push button `(-6, -8, 12, 12)`, hardcoded for the
+classic Aqua bezel. On macOS 26 and later, buttons no longer draw that way, so hardcoded rows
+overlap each other and sit too close to the window edge.
+
+Create every control with `"auto"` and place them with Visual Format Language rules. Auto Layout
+positions *alignment rects* and takes each control's intrinsic content size, so the layout fits
+whatever the running macOS draws, and the insets and gaps are the distances actually seen:
+
+```python
+self.w.addAutoPosSizeRules(
+	[
+		"H:|-inset-[descriptionText]-inset-|",
+		"H:|-inset-[label]-gap-[field]-inset-|",
+		"H:|-inset-[optionA]-gap-[optionB]-(>=inset)-|",
+		"H:|-(>=inset)-[uncheckAllButton(>=70)]-gap-[checkAllButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+		"V:|-gap-[descriptionText]-row-[field]-row-[optionA]-inset-[runButton]-inset-|",
+		"V:[uncheckAllButton]-inset-|",
+		"V:[checkAllButton]-inset-|",
+		{"view1": self.w.label, "attribute1": "centerY", "view2": self.w.field, "attribute2": "centerY"},
+	],
+	metrics={"inset": 15, "gap": 8, "row": 8},
+)
+```
+
+- View names in the rules are the `self.w.<name>` attribute names. Rules may also be dicts
+  (`view1`/`attribute1`/`relation`/`view2`/`attribute2`), which is the only way to express
+  `centerY` alignment or an equal width between two controls.
+- `(>=70)` keeps short button titles from shrinking below the usual push-button width.
+- Guard a right-aligned row with a leading `|-(>=inset)-`, otherwise the chain can run off the
+  left edge when the window is narrow.
+- Put a label on the same baseline as its field with a `centerY` rule, not a `+2` offset.
+- `HorizontalLine` has no intrinsic height — give it one in the rule: `[divider(1)]`.
+- Write one vertical chain per column; equal row heights keep the rows aligned.
+
+**Columns.** Give the cells of a grid one shared width, measured against a single reference
+control, so the columns line up without a hardcoded column offset:
+
+```python
+columnRules = [
+	{"view1": cell, "attribute1": "width", "view2": gridCheckBoxes[0], "attribute2": "width"}
+	for cell in gridCheckBoxes[1:]
+]
+```
+
+**Hugging and compression.** A label next to a flexible control should hug its text, so the
+field or popup takes the leftover width. Where two labels share a width, also make them resist
+compression, otherwise the pair settles below the wider intrinsic width and wraps:
+
+```python
+nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+```
+
+Keep labels on one line. A block that has to wrap needs a fixed height in the rules plus a
+lowered horizontal compression resistance, so it takes the width it is given instead of
+demanding one long line.
+
+### Letting Auto Layout size the window
+
+Pass **no** `minSize`/`maxSize`. Vanilla adds `NSResizableWindowMask` only when one of them is
+given, and only then calls `setMinSize_`/`setMaxSize_` — which take *frame* sizes, while
+`getPosSize()` and `resizeWindowToMinimum()` work in *content* sizes, so the title bar gets
+counted twice and the window opens shorter than declared. Without them the window stays
+fixed-size, `resizeWindowToMinimum()` becomes a no-op, and AppKit restores only the position
+from the autosaved frame, not the size.
+
+For the window to take its height from the content, two things must hold:
+
+1. **No flexible gap in the vertical chain.** A `-(>=row)-` absorbs any surplus, so the layout
+   has a minimum but no maximum and the window never shrinks.
+2. **Every control hugs vertically** at `NSLayoutPriorityWindowSizeStayPut` (500) — the level at
+   which a constraint starts outranking “keep the window size”. `TextBox`, `Button`, `EditText`,
+   `PopUpButton` and `HorizontalLine` already default to 750, but `CheckBox` and `SquareButton`
+   default to 250 and stretch:
+
+```python
+for view in self.w.getNSWindow().contentView().subviews():
+	view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+```
+
+`windowHeight` is then only a starting value — AppKit grows the window when the content needs
+more and shrinks it when it needs less. Use `1`, not `0`: vanilla treats a zero height specially
+and the window comes out full-screen tall. Widths are still taken from `windowWidth`; hugging
+horizontally at the same level would shrink each window to its widest row and collapse the
+labels that are meant to stretch across the full width.
+
+### Frame-based layout (existing scripts)
+
+Most scripts still place controls with `posSize` tuples and a running `linePos`:
 
 ```python
 linePos, inset, lineHeight = 12, 15, 22
-
-# Place elements, then advance:
 self.w.someElement = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Text", sizeStyle="small")
 linePos += lineHeight
 ```
 
 Negative coordinates are measured from the right/bottom edge (`-inset` = inset from right).
+Read it, but prefer Auto Layout for new windows and when reworking an existing one.
 
 ## Shared Utility Functions (`__init__.py`)
 
@@ -246,7 +350,7 @@ Negative coordinates are measured from the right/bottom edge (`-inset` = inset f
 | `newLineControlLayer()` | Returns a newline `GSControlLayer` for `tab.layers`; use instead of `GSControlLayer.newline()`, which raises a `TypeError` in some Glyphs versions |
 | `newGlyphWithName(glyphName)` | Returns a new `GSGlyph` with that name; use instead of `GSGlyph(glyphName)`, which raises a `TypeError` in some Glyphs versions |
 | `getLegibleFont(size=None)` | Returns a system legible font (Glyphs 2/3 compatible) |
-| `UpdateButton(posSize, callback, title="")` | Creates a refresh button with an NSRefreshTemplate icon |
+| `UpdateButton(posSize, callback, title="")` | Creates a refresh button with an NSRefreshTemplate icon; `posSize` may be `"auto"` |
 
 ### `caseDict` (Glyphs 3 only)
 
