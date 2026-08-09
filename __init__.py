@@ -1,7 +1,7 @@
 
 from math import ceil
 from typing import Any
-from AppKit import NSUserDefaults, NSFont, NSImage, NSImageLeading, NSMakeSize, NSPasteboard, NSStringPboardType, NSLineBreakByClipping
+from AppKit import NSUserDefaults, NSFont, NSImage, NSImageLeading, NSLayoutConstraintOrientationHorizontal, NSLayoutPriorityDefaultHigh, NSMakeSize, NSPasteboard, NSStringPboardType, NSLineBreakByClipping
 from Foundation import NSProcessInfo
 from GlyphsApp import Glyphs, GSFeature, GSClass, GSControlLayer, GSGlyph
 from vanilla import Button
@@ -309,6 +309,108 @@ def systemButtonMetrics(assumedHeight=20):
 	return assumedHeight, 0
 
 
+def growWindow(window, deltaWidth=0, deltaHeight=0):
+	"""
+	Grows the window by the given amounts, and its minimum and maximum sizes with it,
+	so that resizeWindowToMinimum() will not shrink the extra space away again.
+	"""
+	if deltaWidth <= 0 and deltaHeight <= 0:
+		return
+	deltaWidth = max(0, deltaWidth)
+	deltaHeight = max(0, deltaHeight)
+	nsWindow = window._window
+	for getter, setter in (
+		(nsWindow.contentMinSize, nsWindow.setContentMinSize_),
+		(nsWindow.contentMaxSize, nsWindow.setContentMaxSize_),
+	):
+		currentSize = getter()
+		setter(NSMakeSize(currentSize.width + deltaWidth, currentSize.height + deltaHeight))
+	windowWidth, windowHeight = window.getPosSize()[2], window.getPosSize()[3]
+	window.resize(windowWidth + deltaWidth, windowHeight + deltaHeight, animate=False)
+
+
+def supportsAutoLayout(window):
+	"""Returns True if the vanilla we are running with can do auto layout."""
+	return hasattr(window, "addAutoPosSizeRules") and hasattr(window, "_autoLayoutViews")
+
+
+def autoPosSize(window, framePosSize):
+	"""
+	Returns "auto" if window can do auto layout, otherwise the given frame posSize tuple.
+	Use as the posSize of a control that is meant to be laid out with rules, so the
+	script keeps working with vanilla versions that predate auto layout.
+	"""
+	if supportsAutoLayout(window):
+		return "auto"
+	return framePosSize
+
+
+def layoutButtonRow(window, rules, metrics=None, rightButtons=(), leftButtons=(), inset=15, gap=10, leftGap=None, assumedHeight=20, spaceAbove=5):
+	"""
+	Lays out a row of vanilla Buttons along the bottom edge of window with auto layout,
+	and grows the window to make room for the row. The buttons must have been created
+	with autoPosSize(), and the rules must reference them by their attribute names,
+	e.g. "H:|-border-[uncheckAllButton]-tight-[checkAllButton]-(>=space)-[runButton]-border-|".
+	Auto layout positions the buttons by their alignment rects, i.e. macOS itself takes
+	care of the bezel that is drawn beyond the button frame, and of the button sizes.
+	Falls back to alignButtons() if this vanilla cannot do auto layout, in which case
+	the rules are ignored and the buttons keep the frames autoPosSize() gave them.
+	window: the vanilla window containing the buttons,
+	rules: the auto layout rules, see vanilla’s addAutoPosSizeRules(),
+	metrics: the values the rules refer to by name, e.g. {"border": 15},
+	rightButtons, leftButtons: the buttons, only used for the fallback and for measuring,
+	inset, gap, leftGap, assumedHeight: see alignButtons(),
+	spaceAbove: extra window height, so the row has more breathing space above it.
+	Returns the resulting row height, or None if the layout failed.
+	"""
+	buttons = tuple(leftButtons) + tuple(rightButtons)
+
+	def fallback():
+		# frame layout, as if the buttons had never been auto:
+		contentView = window._window.contentView()
+		try:
+			contentView.removeConstraints_(contentView.constraints())
+		except:
+			pass
+		for button in buttons:
+			button.getNSButton().setTranslatesAutoresizingMaskIntoConstraints_(True)
+		result = alignButtons(
+			window,
+			rightButtons=rightButtons,
+			leftButtons=leftButtons,
+			inset=inset,
+			gap=gap,
+			leftGap=leftGap,
+			assumedHeight=assumedHeight,
+			spaceAbove=spaceAbove,
+		)
+		return result[1] if result else None
+
+	if not supportsAutoLayout(window):
+		return fallback()
+
+	try:
+		# make the buttons keep their natural width, so that flexible gaps in the
+		# rules take up the slack, rather than the buttons stretching:
+		for button in buttons:
+			button.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+
+		window.addAutoPosSizeRules(rules, metrics)
+
+		# resolve the constraints, then measure what they amounted to:
+		contentView = window._window.contentView()
+		contentView.layoutSubtreeIfNeeded()
+		rowHeight = ceil(max(button.getNSButton().frame().size.height for button in buttons))
+
+		growWindow(window, deltaHeight=max(0, rowHeight - assumedHeight) + spaceAbove)
+		return rowHeight
+	except:
+		import traceback
+		print(traceback.format_exc())
+		print("⚠️ Could not lay out the button row with auto layout, falling back to frames.")
+		return fallback()
+
+
 def measureButtons(buttons, minButtonWidth=70, minHeight=20):
 	"""
 	Measures the sizes vanilla Buttons need on the running system.
@@ -379,18 +481,12 @@ def alignButtons(window, rightButtons=(), leftButtons=(), inset=15, gap=10, left
 		rowHeight = height + 2 * overhang
 
 		if resizeWindow:
-			windowWidth, windowHeight = window.getPosSize()[2], window.getPosSize()[3]
-			deltaWidth = max(0, rowWidth + 2 * inset - windowWidth)
-			deltaHeight = max(0, rowHeight - assumedHeight) + spaceAbove
-			if deltaWidth or deltaHeight:
-				nsWindow = window._window
-				for getter, setter in (
-					(nsWindow.contentMinSize, nsWindow.setContentMinSize_),
-					(nsWindow.contentMaxSize, nsWindow.setContentMaxSize_),
-				):
-					currentSize = getter()
-					setter(NSMakeSize(currentSize.width + deltaWidth, currentSize.height + deltaHeight))
-				window.resize(windowWidth + deltaWidth, windowHeight + deltaHeight, animate=False)
+			windowWidth = window.getPosSize()[2]
+			growWindow(
+				window,
+				deltaWidth=max(0, rowWidth + 2 * inset - windowWidth),
+				deltaHeight=max(0, rowHeight - assumedHeight) + spaceAbove,
+			)
 
 		# right group, positioned right to left:
 		rightEdge = sideInset
