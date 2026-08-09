@@ -7,7 +7,7 @@ Builds white and black, small and large, circles, triangles and squares.
 
 import vanilla
 from GlyphsApp import Glyphs, GSGlyph, GSLayer, GSComponent, Message
-from mekkablue import alignButtons, mekkaObject, newGlyphWithName
+from mekkablue import autoPosSize, layoutButtonRow, mekkaObject, newGlyphWithName
 from mekkablue.geometry import transform, offsetLayer
 from Foundation import NSPoint
 
@@ -484,19 +484,30 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Build", callback=self.BuildCirclesSquaresTrianglesMain)
+		self.w.runButton = vanilla.Button(autoPosSize(self.w, (-80 - inset, -20 - inset, -inset, -inset)), "Build", callback=self.BuildCirclesSquaresTrianglesMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# (un)check all checkboxes:
-		self.w.checkAllButton = vanilla.Button((-180 - inset, -20 - inset, -90 - inset, -inset), "Check All", callback=self.checkOrUncheckAll)
+		self.w.checkAllButton = vanilla.Button(autoPosSize(self.w, (-180 - inset, -20 - inset, -90 - inset, -inset)), "Check All", callback=self.checkOrUncheckAll)
 		self.w.checkAllButton.setToolTip("Activates all checkboxes above the separator line.")
-		self.w.uncheckAllButton = vanilla.Button((-300 - inset, -20 - inset, -190 - inset, -inset), "Uncheck All", callback=self.checkOrUncheckAll)
+		self.w.uncheckAllButton = vanilla.Button(autoPosSize(self.w, (-300 - inset, -20 - inset, -190 - inset, -inset)), "Uncheck All", callback=self.checkOrUncheckAll)
 		self.w.uncheckAllButton.setToolTip("Deactivates all checkboxes above the separator line.")
 
-		# fit the button row to the button metrics of the running macOS version:
-		# Build in the bottom right corner, the (un)check buttons in the bottom left:
-		alignButtons(
+		# Build in the bottom right corner, the (un)check buttons in the bottom left.
+		# Auto layout keeps the distances between the buttons as macOS draws them:
+		layoutButtonRow(
 			self.w,
+			rules=(
+				"H:|-border-[uncheckAllButton]-tight-[checkAllButton]",
+				"H:[runButton]-border-|",
+				"V:[uncheckAllButton]-border-|",
+				"V:[checkAllButton]-border-|",
+				"V:[runButton]-border-|",
+			),
+			metrics={
+				"border": inset,
+				"tight": 6,
+			},
 			rightButtons=(self.w.runButton, ),
 			leftButtons=(self.w.uncheckAllButton, self.w.checkAllButton),
 			inset=inset,
