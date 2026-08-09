@@ -725,10 +725,19 @@ class BuildSymbols(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.uncheckAllButton = vanilla.Button((-315 - inset, -20 - inset, -200 - inset, -inset), "Uncheck All", callback=self.checkAll)
-		self.w.checkAllButton = vanilla.Button((-190 - inset, -20 - inset, -90 - inset, -inset), "Check All", callback=self.checkAll)
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Build", callback=self.BuildSymbolsMain)
+		self.w.uncheckAllButton = vanilla.Button("auto", "Uncheck All", callback=self.checkAll)
+		self.w.checkAllButton = vanilla.Button("auto", "Check All", callback=self.checkAll)
+		self.w.runButton = vanilla.Button("auto", "Build", callback=self.BuildSymbolsMain)
 		self.w.setDefaultButton(self.w.runButton)
+		self.w.addAutoPosSizeRules(
+			[
+				"H:[uncheckAllButton(>=70)]-gap-[checkAllButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"V:[uncheckAllButton]-inset-|",
+				"V:[checkAllButton]-inset-|",
+				"V:[runButton]-inset-|",
+			],
+			metrics={"inset": inset, "gap": 10},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()

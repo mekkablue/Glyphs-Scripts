@@ -55,12 +55,21 @@ class AutoAlignmentManager(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.enableButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "✅ Enable", callback=self.AutoAlignmentManagerMain)
+		self.w.enableButton = vanilla.Button("auto", "✅ Enable", callback=self.AutoAlignmentManagerMain)
 		self.w.enableButton.setToolTip("Enables automatic alignment with the current span and settings.")
-		self.w.disableButton = vanilla.Button((-190 - inset, -20 - inset, -100 - inset, -inset), "🚫 Disable", callback=self.AutoAlignmentManagerMain)
+		self.w.disableButton = vanilla.Button("auto", "🚫 Disable", callback=self.AutoAlignmentManagerMain)
 		self.w.disableButton.setToolTip("Disables automatic alignment with the current span and settings.")
-		self.w.rotateButton = vanilla.Button((-290 - inset, -20 - inset, -200 - inset, -inset), "🔄 Rotate", callback=self.rotateComponents)
+		self.w.rotateButton = vanilla.Button("auto", "🔄 Rotate", callback=self.rotateComponents)
 		self.w.rotateButton.setToolTip("Moves the last component into first place. Useful if you quickly want to fix component order without leaving he script UI.")
+		self.w.addAutoPosSizeRules(
+			[
+				"H:[rotateButton(>=70)]-gap-[disableButton(>=70)]-gap-[enableButton(>=70)]-inset-|",
+				"V:[rotateButton]-inset-|",
+				"V:[disableButton]-inset-|",
+				"V:[enableButton]-inset-|",
+			],
+			metrics={"inset": inset, "gap": 10},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()

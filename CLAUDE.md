@@ -234,6 +234,40 @@ linePos += lineHeight
 
 Negative coordinates are measured from the right/bottom edge (`-inset` = inset from right).
 
+### Bottom button rows — use Auto Layout
+
+Do **not** give the bottom buttons hardcoded `posSize` frames. Vanilla's frame-based layout
+inflates a button's `posSize` by `Button.frameAdjustments = (-6, -8, 12, 12)`, a compensation
+hardcoded for the classic Aqua bezel. On macOS 26 and later, buttons no longer draw that way,
+so hardcoded rows overlap each other and sit too close to the window edge.
+
+Give the buttons `"auto"` instead and place them with Visual Format Language rules. Auto Layout
+takes each button's intrinsic content size, so the row fits whatever the running macOS draws:
+
+```python
+self.w.uncheckAllButton = vanilla.Button("auto", "Uncheck All", callback=self.checkAll)
+self.w.checkAllButton = vanilla.Button("auto", "Check All", callback=self.checkAll)
+self.w.runButton = vanilla.Button("auto", "Build", callback=self.BuildSymbolsMain)
+self.w.setDefaultButton(self.w.runButton)
+self.w.addAutoPosSizeRules(
+	[
+		"H:[uncheckAllButton(>=70)]-gap-[checkAllButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+		"V:[uncheckAllButton]-inset-|",
+		"V:[checkAllButton]-inset-|",
+		"V:[runButton]-inset-|",
+	],
+	metrics={"inset": inset, "gap": 10},
+)
+```
+
+- The view names in the rules are the `self.w.<name>` attribute names.
+- Omitting the leading `|` anchors the chain to the right edge only, so the row stays
+  right-aligned and every button keeps its natural width.
+- For a split row, anchor both edges and let the middle gap flex:
+  `"H:|-inset-[editSinglesButton(>=70)]-(>=gap)-[updateButton(>=70)]-gap-[buildButton(>=70)]-inset-|"`
+- `(>=70)` keeps short titles from shrinking below the usual push-button width.
+- One `V:` rule per button pins it to the bottom edge; its height comes from the system.
+
 ## Shared Utility Functions (`__init__.py`)
 
 | Function | Description |

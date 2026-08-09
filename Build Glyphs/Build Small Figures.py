@@ -67,9 +67,17 @@ class smallFigureBuilder(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.reportButton = vanilla.Button((-200 - 15, -20 - 15, -95, -15), "Open Report", callback=self.openMacroWindow)
-		self.w.runButton = vanilla.Button((-70 - 15, -20 - 15, -15, -15), "Build", callback=self.smallFigureBuilderMain)
+		self.w.reportButton = vanilla.Button("auto", "Open Report", callback=self.openMacroWindow)
+		self.w.runButton = vanilla.Button("auto", "Build", callback=self.smallFigureBuilderMain)
 		self.w.setDefaultButton(self.w.runButton)
+		self.w.addAutoPosSizeRules(
+			[
+				"H:[reportButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"V:[reportButton]-inset-|",
+				"V:[runButton]-inset-|",
+			],
+			metrics={"inset": inset, "gap": 10},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()

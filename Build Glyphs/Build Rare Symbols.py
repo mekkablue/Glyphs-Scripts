@@ -484,14 +484,23 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Build", callback=self.BuildCirclesSquaresTrianglesMain)
+		self.w.runButton = vanilla.Button("auto", "Build", callback=self.BuildCirclesSquaresTrianglesMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# (un)check all checkboxes:
-		self.w.checkAllButton = vanilla.Button((-180 - inset, -20 - inset, -90 - inset, -inset), "Check All", callback=self.checkOrUncheckAll)
+		self.w.checkAllButton = vanilla.Button("auto", "Check All", callback=self.checkOrUncheckAll)
 		self.w.checkAllButton.setToolTip("Activates all checkboxes above the separator line.")
-		self.w.uncheckAllButton = vanilla.Button((-300 - inset, -20 - inset, -190 - inset, -inset), "Uncheck All", callback=self.checkOrUncheckAll)
+		self.w.uncheckAllButton = vanilla.Button("auto", "Uncheck All", callback=self.checkOrUncheckAll)
 		self.w.uncheckAllButton.setToolTip("Deactivates all checkboxes above the separator line.")
+		self.w.addAutoPosSizeRules(
+			[
+				"H:[uncheckAllButton(>=70)]-gap-[checkAllButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"V:[uncheckAllButton]-inset-|",
+				"V:[checkAllButton]-inset-|",
+				"V:[runButton]-inset-|",
+			],
+			metrics={"inset": inset, "gap": 10},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()

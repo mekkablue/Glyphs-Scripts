@@ -218,25 +218,28 @@ class QuoteManager(mekkaObject):
 		self.w.reuseTab.setToolTip("Replace the current tab's content instead of opening a new tab.")
 		linePos += lineHeight
 
-		self.w.editSinglesButton = vanilla.Button(
-			(inset, -22 - inset, 100, -inset), "Edit Singles", callback=self.editSingles
-		)
+		self.w.editSinglesButton = vanilla.Button("auto", "Edit Singles", callback=self.editSingles)
 		self.w.editSinglesButton.setToolTip(
 			"Open the default glyph(s) in a tab for editing. Creates them if they don't exist yet, and adds #entry/#exit anchors if missing."
 		)
-		self.w.updateButton = vanilla.Button(
-			(-inset - 145, -22 - inset, 75, -inset), "Update", callback=self.update
-		)
+		self.w.updateButton = vanilla.Button("auto", "Update", callback=self.update)
 		self.w.updateButton.setToolTip(
 			"Update metrics keys, anchors, and kern groups for all selected quote groups. Does not overwrite existing paths."
 		)
-		self.w.buildButton = vanilla.Button(
-			(-inset - 65, -22 - inset, 65, -inset), "Build", callback=self.build
-		)
+		self.w.buildButton = vanilla.Button("auto", "Build", callback=self.build)
 		self.w.buildButton.setToolTip(
 			"Build all selected quote glyphs: fills empty layers with mirrored paths, builds double quotes as composites, sets metrics keys, anchors, and kern groups."
 		)
 		self.w.setDefaultButton(self.w.buildButton)
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[editSinglesButton(>=70)]-(>=gap)-[updateButton(>=70)]-gap-[buildButton(>=70)]-inset-|",
+				"V:[editSinglesButton]-inset-|",
+				"V:[updateButton]-inset-|",
+				"V:[buildButton]-inset-|",
+			],
+			metrics={"inset": inset, "gap": 10},
+		)
 
 		self.LoadPreferences()
 		self.w.open()
