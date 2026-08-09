@@ -6,7 +6,7 @@ Adds a component to all backgrounds of all layers of all selected glyphs. Useful
 """
 
 import vanilla
-from AppKit import NSEvent
+from AppKit import NSEvent, NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, GSComponent, Message
 from mekkablue import mekkaObject, UpdateButton
 from mekkablue.geometry import transform
@@ -22,37 +22,31 @@ class PopulateAllBackgroundswithComponent(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 380
-		windowHeight = 155
-		windowWidthResize = 300  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 1  # Auto Layout grows the window to the required size
+		# no minSize/maxSize: that keeps the window unresizable, and keeps the size limits
+		# out of Auto Layout's way
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Populate Layer Backgrounds with Component",  # window title
-			minSize=(windowWidth - 10, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 10, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "In selected glyphs, insert component in all layer backgrounds:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "In selected glyphs, insert component in all layer backgrounds:", sizeStyle='small', selectable=True)
 
-		self.w.text_1 = vanilla.TextBox((inset - 1, linePos + 2, 100, 14), "Add component:", sizeStyle='small')
-		self.w.componentName = vanilla.EditText((inset + 92, linePos - 1, -inset - 25, 19), "a", sizeStyle='small', callback=self.SavePreferences)
+		self.w.text_1 = vanilla.TextBox("auto", "Add component:", sizeStyle='small')
+		self.w.componentName = vanilla.EditText("auto", "a", sizeStyle='small', callback=self.SavePreferences)
 		self.w.componentName.setToolTip("Name of the glyph that should be inserted as component in the background of all layers of the selected glyph(s).")
-		self.w.updateButton = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.update)
+		self.w.updateButton = UpdateButton("auto", callback=self.update)
 		self.w.updateButton.setToolTip("Guess the component name. Hold down OPTION to ignore the suffix.")
-		linePos += lineHeight
 
-		self.w.alignRight = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Align with right edge of layer", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.alignRight = vanilla.CheckBox("auto", "Align with right edge of layer", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.alignRight.setToolTip("Right-aligns the component width with the layer width. Useful for the e in ae or oe, for example.")
-		linePos += lineHeight
 
-		self.w.replaceBackgrounds = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Replace existing backgrounds", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.replaceBackgrounds = vanilla.CheckBox("auto", "Replace existing backgrounds", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.replaceBackgrounds.setToolTip("Deletes existing background content before it inserts the component. Recommended if you want to align selected nodes with the background.")
-		linePos += lineHeight
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Populate", callback=self.PopulateAllBackgroundswithComponentMain)
@@ -64,14 +58,30 @@ class PopulateAllBackgroundswithComponent(mekkaObject):
 
 		self.w.nextMasterButton = vanilla.Button("auto", "Next Master", callback=self.NextMasterMain)
 		self.w.nextMasterButton.setToolTip("Switches the current tab to the next master. Useful if you want to align the same nodes in every master.")
+
+		# checkboxes and square buttons do not resist vertical stretching by default; with
+		# every control hugging vertically and no flexible gap in the chain, the window ends
+		# up exactly as tall as Auto Layout needs. NSLayoutPriorityWindowSizeStayPut (500) is
+		# the level at which a constraint starts outranking "keep the window size".
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
 		self.w.addAutoPosSizeRules(
 			[
-				"H:[nextMasterButton(>=70)]-gap-[alignButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[text_1]-gap-[componentName]-gap-[updateButton(18)]-inset-|",
+				"H:|-inset-[alignRight]-inset-|",
+				"H:|-inset-[replaceBackgrounds]-inset-|",
+				"H:|-(>=inset)-[nextMasterButton(>=70)]-gap-[alignButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-line-[componentName]-line-[alignRight]-line-[replaceBackgrounds]-inset-[runButton]-inset-|",
+				"V:[updateButton(18)]",
 				"V:[nextMasterButton]-inset-|",
 				"V:[alignButton]-inset-|",
-				"V:[runButton]-inset-|",
+				# label and update button ride along with the text field:
+				{"view1": self.w.text_1, "attribute1": "centerY", "view2": self.w.componentName, "attribute2": "centerY"},
+				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.componentName, "attribute2": "centerY"},
 			],
-			metrics={"inset": inset, "gap": 10},
+			metrics={"inset": inset, "gap": 8, "line": 8},
 		)
 
 		# Load Settings:

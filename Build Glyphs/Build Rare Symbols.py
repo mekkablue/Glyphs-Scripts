@@ -10,6 +10,7 @@ from GlyphsApp import Glyphs, GSGlyph, GSLayer, GSComponent, Message
 from mekkablue import mekkaObject, newGlyphWithName
 from mekkablue.geometry import transform, offsetLayer
 from Foundation import NSPoint
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 
 
 def roundLayerCoordinates(thisLayer):
@@ -394,7 +395,7 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 355
-		windowHeight = 328
+		windowHeight = 1  # Auto Layout grows the window to the required size
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Build Rare Symbols",  # window title
@@ -402,86 +403,72 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		column = 170
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Build the following glyphs, see tooltips for details:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Build the following glyphs, see tooltips for details:", sizeStyle='small', selectable=True)
 
-		self.w.whiteTriangles = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "White Triangles △▷▽◁", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.whiteTriangles = vanilla.CheckBox("auto", "White Triangles \u25b3\u25b7\u25bd\u25c1", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.whiteTriangles.setToolTip("Will create upWhiteTriangle, rightWhiteTriangle, downWhiteTriangle, leftWhiteTriangle.")
-		self.w.blackTriangles = vanilla.CheckBox((inset + column, linePos - 1, -inset, 20), "Black Triangles ▲▶▼◀", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.blackTriangles = vanilla.CheckBox("auto", "Black Triangles \u25b2\u25b6\u25bc\u25c0", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.blackTriangles.setToolTip("Will create upBlackTriangle, rightBlackTriangle, downBlackTriangle, leftBlackTriangle.")
-		linePos += lineHeight
 
-		self.w.blackArrowheads = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Black Arrowheads", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.blackArrowheads = vanilla.CheckBox("auto", "Black Arrowheads", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.blackArrowheads.setToolTip("Will create blackUpEquilateralArrowhead, blackRightEquilateralArrowhead, blackDownEquilateralArrowhead, blackLeftEquilateralArrowhead.")
-		self.w.black3DArrowheads = vanilla.CheckBox((inset + column, linePos - 1, -inset, 20), "Black 3D Arrowheads", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.black3DArrowheads = vanilla.CheckBox("auto", "Black 3D Arrowheads", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.black3DArrowheads.setToolTip("Will create threeDRightLightedUpEquilateralArrowhead, threeDTopLightedRightEquilateralArrowhead, threeDLeftLightedDownEquilateralArrowhead, threeDTopLightedLeftEquilateralArrowhead.")
-		linePos += lineHeight
 
-		self.w.whiteShapes = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "White Shapes ○◇□", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.whiteShapes = vanilla.CheckBox("auto", "White Shapes \u25cb\u25c7\u25a1", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.whiteShapes.setToolTip("Will create whiteCircle, whiteDiamond, whiteSquare.")
-		self.w.blackShapes = vanilla.CheckBox((inset + column, linePos - 1, -inset, 20), "Black Shapes ●◆■", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.blackShapes = vanilla.CheckBox("auto", "Black Shapes \u25cf\u25c6\u25a0", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.blackShapes.setToolTip("Will create blackCircle, blackDiamond, blackSquare.")
-		linePos += lineHeight
 
-		self.w.whiteLargeSquare = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "White Large Square ⬜", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.whiteLargeSquare = vanilla.CheckBox("auto", "White Large Square \u2b1c", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.whiteLargeSquare.setToolTip("Will create whiteLargeSquare.")
-		self.w.blackLargeSquare = vanilla.CheckBox((inset + column, linePos - 1, -inset, 20), "Black Large Square ⬛", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.blackLargeSquare = vanilla.CheckBox("auto", "Black Large Square \u2b1b", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.blackLargeSquare.setToolTip("Will create blackLargeSquare.")
-		linePos += lineHeight
 
-		self.w.propellor = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Cmd Opt Shift ⌘⌥⇧", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.propellor = vanilla.CheckBox("auto", "Cmd Opt Shift \u2318\u2325\u21e7", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.propellor.setToolTip("Will create propellor, optionKey, upWhiteArrow.")
-		self.w.viewdataSquare = vanilla.CheckBox((inset + column, linePos - 1, -inset, 20), "Viewdata Square ⌗", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.viewdataSquare = vanilla.CheckBox("auto", "Viewdata Square \u2317", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.viewdataSquare.setToolTip("Will create viewdataSquare.")
-		linePos += lineHeight
 
-		self.w.servicemarkTel = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "SM and TEL ℠℡", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.servicemarkTel = vanilla.CheckBox("auto", "SM and TEL \u2120\u2121", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.servicemarkTel.setToolTip("Will create servicemark, telephone. Requires M and trademark glyphs in the font.")
-		linePos += lineHeight
 
-		self.w.line = vanilla.HorizontalLine((inset, linePos + 2, -inset, 1))
-		linePos += 12
+		self.w.line = vanilla.HorizontalLine("auto")
 
-		self.w.strokeText = vanilla.TextBox((inset, linePos + 2, 80, 14), "Stroke width:", sizeStyle='small', selectable=True)
-		self.w.stroke = vanilla.EditText((inset + 80, linePos - 1, 70, 19), "50", callback=self.SavePreferences, sizeStyle='small')
-		tooltip = "Uniform stroke width for icons. Does not apply to filled (‘black’) shapes."
+		self.w.strokeText = vanilla.TextBox("auto", "Stroke width:", sizeStyle='small', selectable=True)
+		self.w.stroke = vanilla.EditText("auto", "50", callback=self.SavePreferences, sizeStyle='small')
+		tooltip = "Uniform stroke width for icons. Does not apply to filled (\u2018black\u2019) shapes."
 		self.w.strokeText.setToolTip(tooltip)
 		self.w.stroke.setToolTip(tooltip)
-		self.w.heightText = vanilla.TextBox((inset + column, linePos + 2, 85, 14), "Symbol size:", sizeStyle='small', selectable=True)
-		self.w.height = vanilla.EditText((inset + column + 85, linePos - 1, -inset, 19), "700", callback=self.SavePreferences, sizeStyle='small')
-		tooltip = "Reference height for symbols. Each symbol has an individual scale factor. This reference height times the symbol’s scale factor will yield the actual size of each symbol."
+		self.w.heightText = vanilla.TextBox("auto", "Symbol size:", sizeStyle='small', selectable=True)
+		self.w.height = vanilla.EditText("auto", "700", callback=self.SavePreferences, sizeStyle='small')
+		tooltip = "Reference height for symbols. Each symbol has an individual scale factor. This reference height times the symbol\u2019s scale factor will yield the actual size of each symbol."
 		self.w.heightText.setToolTip(tooltip)
 		self.w.height.setToolTip(tooltip)
-		linePos += lineHeight
 
-		self.w.sidebearingText = vanilla.TextBox((inset, linePos + 2, 80, 14), "Sidebearings:", sizeStyle='small', selectable=True)
-		self.w.sidebearing = vanilla.EditText((inset + 80, linePos - 1, 70, 19), "50", callback=self.SavePreferences, sizeStyle='small')
-		tooltip = "Will be used for both LSB and RSB, effectively centering the shape in its width. Unless the Disrespect Italic Angle option is used, will insert it as metrics keys (e.g., LSB ‘=60’, RSB ‘=|’) for the glyph."
+		self.w.sidebearingText = vanilla.TextBox("auto", "Sidebearings:", sizeStyle='small', selectable=True)
+		self.w.sidebearing = vanilla.EditText("auto", "50", callback=self.SavePreferences, sizeStyle='small')
+		tooltip = "Will be used for both LSB and RSB, effectively centering the shape in its width. Unless the Disrespect Italic Angle option is used, will insert it as metrics keys (e.g., LSB \u201860\u2019, RSB \u2018=|\u2019) for the glyph."
 		self.w.sidebearingText.setToolTip(tooltip)
 		self.w.sidebearing.setToolTip(tooltip)
-		self.w.belowBaseText = vanilla.TextBox((inset + column, linePos + 2, 85, 14), "% below base:", sizeStyle='small', selectable=True)
-		self.w.belowBase = vanilla.EditText((inset + column + 85, linePos - 1, -inset, 19), "10", callback=self.SavePreferences, sizeStyle='small')
+		self.w.belowBaseText = vanilla.TextBox("auto", "% below base:", sizeStyle='small', selectable=True)
+		self.w.belowBase = vanilla.EditText("auto", "10", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Determines the vertical position. This percentage of the symbol size will be below, the rest above the baseline."
 		self.w.belowBaseText.setToolTip(tooltip)
 		self.w.belowBase.setToolTip(tooltip)
-		linePos += lineHeight
 
-		self.w.disrespectItalicAngle = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Sidebearings disrespect italic angle (useful for italics)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.disrespectItalicAngle = vanilla.CheckBox("auto", "Sidebearings disrespect italic angle (useful for italics)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.disrespectItalicAngle.setToolTip("If activated, will not set sidebearing metrics keys if there is an italic angle other than zero. If the italic angle is zero, will set (and update) layer-specific metrics keys (with double equals sign ==). Highly recommended if you want the symbols to have the same widths in upright and italic.")
-		linePos += lineHeight
 
-		self.w.overwriteExistingGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Overwrite existing glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.overwriteExistingGlyphs = vanilla.CheckBox("auto", "\u26a0\ufe0f Overwrite existing glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.overwriteExistingGlyphs.setToolTip("If set, will simply replace the symbol glyphs that already exist. Careful with this option if you made any manual changes you want to keep.")
-		linePos += lineHeight
 
-		self.w.openTab = vanilla.CheckBox((inset + 2, linePos - 1, column, 20), "Open tab with new glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openTab = vanilla.CheckBox("auto", "Open tab with new glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.openTab.setToolTip("If set, will open a new Edit tab containing all the glyphs for which a checkbox is set further above.")
-		self.w.reuseTab = vanilla.CheckBox((inset + column, linePos - 1, -inset, 20), "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.setToolTip("If set, will reuse the frontmost Edit tab, rather than open a new one. Only opens a new tab if no Edit tab is active.")
-		linePos += lineHeight
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Build", callback=self.BuildCirclesSquaresTrianglesMain)
@@ -492,14 +479,68 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 		self.w.checkAllButton.setToolTip("Activates all checkboxes above the separator line.")
 		self.w.uncheckAllButton = vanilla.Button("auto", "Uncheck All", callback=self.checkOrUncheckAll)
 		self.w.uncheckAllButton.setToolTip("Deactivates all checkboxes above the separator line.")
+
+		# the field labels hug their text, so the fields get the leftover width:
+		for label in (self.w.strokeText, self.w.heightText, self.w.sidebearingText, self.w.belowBaseText):
+			nsLabel = label.getNSTextField()
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# one shared width per column, so the two columns line up throughout the window:
+		gridCheckBoxes = (
+			self.w.whiteTriangles, self.w.blackArrowheads, self.w.whiteShapes, self.w.whiteLargeSquare, self.w.propellor, self.w.openTab,
+			self.w.blackTriangles, self.w.black3DArrowheads, self.w.blackShapes, self.w.blackLargeSquare, self.w.viewdataSquare, self.w.reuseTab,
+		)
+		labelColumn = (self.w.strokeText, self.w.sidebearingText)
+		rightLabelColumn = (self.w.heightText, self.w.belowBaseText)
+		# all four number fields share one width, so neither column swallows the slack:
+		fieldColumn = (self.w.stroke, self.w.sidebearing, self.w.height, self.w.belowBase)
+		columnRules = [
+			{"view1": cell, "attribute1": "width", "view2": gridCheckBoxes[0], "attribute2": "width"}
+			for cell in gridCheckBoxes[1:]
+		] + [
+			{"view1": cell, "attribute1": "width", "view2": column[0], "attribute2": "width"}
+			for column in (labelColumn, rightLabelColumn, fieldColumn)
+			for cell in column[1:]
+		]
+
+		# checkboxes and square buttons do not resist vertical stretching by default; with
+		# every control hugging vertically and no flexible gap in the chain, the window ends
+		# up exactly as tall as Auto Layout needs. NSLayoutPriorityWindowSizeStayPut (500) is
+		# the level at which a constraint starts outranking "keep the window size".
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
 		self.w.addAutoPosSizeRules(
 			[
-				"H:[uncheckAllButton(>=70)]-gap-[checkAllButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[whiteTriangles]-gap-[blackTriangles]-(>=inset)-|",
+				"H:|-inset-[blackArrowheads]-gap-[black3DArrowheads]-(>=inset)-|",
+				"H:|-inset-[whiteShapes]-gap-[blackShapes]-(>=inset)-|",
+				"H:|-inset-[whiteLargeSquare]-gap-[blackLargeSquare]-(>=inset)-|",
+				"H:|-inset-[propellor]-gap-[viewdataSquare]-(>=inset)-|",
+				"H:|-inset-[servicemarkTel]-(>=inset)-|",
+				"H:|-inset-[line]-inset-|",
+				"H:|-inset-[strokeText]-gap-[stroke]-gap-[heightText]-gap-[height]-inset-|",
+				"H:|-inset-[sidebearingText]-gap-[sidebearing]-gap-[belowBaseText]-gap-[belowBase]-inset-|",
+				"H:|-inset-[disrespectItalicAngle]-(>=inset)-|",
+				"H:|-inset-[overwriteExistingGlyphs]-(>=inset)-|",
+				"H:|-inset-[openTab]-gap-[reuseTab]-(>=inset)-|",
+				"H:|-(>=inset)-[uncheckAllButton(>=70)]-gap-[checkAllButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				# one vertical chain per column; equal row heights keep the rows aligned
+				"V:|-gap-[descriptionText]-row-[whiteTriangles]-row-[blackArrowheads]-row-[whiteShapes]-row-[whiteLargeSquare]-row-[propellor]-row-[servicemarkTel]-gap-[line(1)]-gap-[stroke]-row-[sidebearing]-row-[disrespectItalicAngle]-row-[overwriteExistingGlyphs]-row-[openTab]-inset-[runButton]-inset-|",
+				"V:[descriptionText]-row-[blackTriangles]-row-[black3DArrowheads]-row-[blackShapes]-row-[blackLargeSquare]-row-[viewdataSquare]",
 				"V:[uncheckAllButton]-inset-|",
 				"V:[checkAllButton]-inset-|",
-				"V:[runButton]-inset-|",
-			],
-			metrics={"inset": inset, "gap": 10},
+				{"view1": self.w.height, "attribute1": "centerY", "view2": self.w.stroke, "attribute2": "centerY"},
+				{"view1": self.w.belowBase, "attribute1": "centerY", "view2": self.w.sidebearing, "attribute2": "centerY"},
+				{"view1": self.w.strokeText, "attribute1": "centerY", "view2": self.w.stroke, "attribute2": "centerY"},
+				{"view1": self.w.heightText, "attribute1": "centerY", "view2": self.w.stroke, "attribute2": "centerY"},
+				{"view1": self.w.sidebearingText, "attribute1": "centerY", "view2": self.w.sidebearing, "attribute2": "centerY"},
+				{"view1": self.w.belowBaseText, "attribute1": "centerY", "view2": self.w.sidebearing, "attribute2": "centerY"},
+				{"view1": self.w.reuseTab, "attribute1": "centerY", "view2": self.w.openTab, "attribute2": "centerY"},
+			] + columnRules,
+			metrics={"inset": inset, "gap": 8, "row": 8},
 		)
 
 		# Load Settings:

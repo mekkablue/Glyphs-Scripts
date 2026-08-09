@@ -13,6 +13,7 @@ import vanilla
 import math
 from GlyphsApp import Glyphs, GSGlyph, GSPath, GSNode, GSAnchor, GSOFFCURVE, GSCURVE, GSSMOOTH, distance
 from mekkablue import mekkaObject
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from mekkablue.geometry import transform, italicize, offsetLayer
 
 
@@ -656,8 +657,8 @@ class BuildSymbols(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 426
-		windowHeight = 208
+		windowWidth = 434
+		windowHeight = 1  # Auto Layout grows the window to the required size
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Build Symbols",  # window title
@@ -665,78 +666,101 @@ class BuildSymbols(mekkaObject):
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight, column = 12, 15, 22, 100
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Create the following symbols automatically. See tooltips for requirements.", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Create the following symbols automatically. See tooltips for requirements.", sizeStyle='small', selectable=True)
 
-		self.w.buildEstimated = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "estimated", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildEstimated = vanilla.CheckBox("auto", "estimated", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildEstimated.setToolTip("Will build estimated ℮ and scale it to the size of your lining zero, if available.")
 
-		self.w.buildBars = vanilla.CheckBox((inset + column, linePos, -inset, 20), "bar, brokenbar", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildBars = vanilla.CheckBox("auto", "bar, brokenbar", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildBars.setToolTip("Will model bar | and brokenbar ¦ after your slash /, or if there is no slash, use the master’s stem values for their size.")
 
-		self.w.buildEmptyset = vanilla.CheckBox((inset + int(column * 2.1), linePos, -inset, 20), "emptyset", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildEmptyset = vanilla.CheckBox("auto", "emptyset", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildEmptyset.setToolTip("Will build emptyset. Not yet implemented, sorry.")
 		self.w.buildEmptyset.enable(False)
 
-		self.w.buildDottedcircle = vanilla.CheckBox((inset + column * 3, linePos, -inset, 20), "dottedCircle", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildDottedcircle = vanilla.CheckBox("auto", "dottedCircle", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildDottedcircle.setToolTip("Will build dottedCircle ◌.")
-		linePos += lineHeight
 
-		self.w.buildCurrency = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "currency", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildCurrency = vanilla.CheckBox("auto", "currency", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildCurrency.setToolTip("Will build currency.")
 
-		self.w.buildLozenge = vanilla.CheckBox((inset + column, linePos, -inset, 20), "lozenge", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildLozenge = vanilla.CheckBox("auto", "lozenge", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildLozenge.setToolTip("Will build lozenge.")
 
-		self.w.buildProduct = vanilla.CheckBox((inset + int(column * 2.1), linePos, -inset, 20), "product", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildProduct = vanilla.CheckBox("auto", "product", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildProduct.setToolTip("Will build product. Not yet implemented, sorry.")
 		self.w.buildProduct.enable(False)
-		linePos += lineHeight
 
-		self.w.buildSummation = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "summation", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildSummation = vanilla.CheckBox("auto", "summation", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildSummation.setToolTip("Will build summation. Not yet implemented, sorry.")
 		self.w.buildSummation.enable(False)
 
-		self.w.buildRadical = vanilla.CheckBox((inset + column, linePos, -inset, 20), "radical", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildRadical = vanilla.CheckBox("auto", "radical", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildRadical.setToolTip("Will build radical. Not yet implemented, sorry.")
 		self.w.buildRadical.enable(False)
 
-		self.w.buildNotdef = vanilla.CheckBox((inset + int(column * 2.1), linePos, -inset, 20), ".notdef", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildNotdef = vanilla.CheckBox("auto", ".notdef", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildNotdef.setToolTip("Will build the mandatory .notdef glyph based on the boldest available question mark.")
-		linePos += lineHeight
 
 		# ----------- SEPARATOR LINE -----------
-		self.w.line = vanilla.HorizontalLine((inset, int(linePos + 0.5 * lineHeight - 1), -inset, 1))
-		linePos += lineHeight
+		self.w.line = vanilla.HorizontalLine("auto")
 
 		# Other options:
-		self.w.override = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Overwrite existing glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.override = vanilla.CheckBox("auto", "Overwrite existing glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.override.setToolTip("If checked, will create fresh symbols even if they already exist. If unchecked, will skip glyphs that already exist.")
-		self.w.backupLayers = vanilla.CheckBox((inset + 180, linePos, -inset, 20), "Backup existing layers", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.backupLayers = vanilla.CheckBox("auto", "Backup existing layers", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.backupLayers.setToolTip("If checked, will create backup layers when the glyph gets overwritten. Only available in combination with Override option.")
-		linePos += lineHeight
 
-		self.w.newTab = vanilla.CheckBox((inset + 2, linePos - 1, 180, 20), "Open tab with new glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.newTab = vanilla.CheckBox("auto", "Open tab with new glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.newTab.setToolTip("If checked, will open a new tab with the newly created symbols.")
-		self.w.reuseTab = vanilla.CheckBox((inset + 180, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.setToolTip("If checked, will reuse the current tab, and open a new tab only if there is no Edit tab open already. Highly recommended.")
-		linePos += lineHeight
 
 		# Run Button:
 		self.w.uncheckAllButton = vanilla.Button("auto", "Uncheck All", callback=self.checkAll)
 		self.w.checkAllButton = vanilla.Button("auto", "Check All", callback=self.checkAll)
 		self.w.runButton = vanilla.Button("auto", "Build", callback=self.BuildSymbolsMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# one shared width per grid column, so the checkboxes line up across the rows:
+		gridCheckBoxes = (
+			self.w.buildEstimated, self.w.buildBars, self.w.buildEmptyset, self.w.buildDottedcircle,
+			self.w.buildCurrency, self.w.buildLozenge, self.w.buildProduct,
+			self.w.buildSummation, self.w.buildRadical, self.w.buildNotdef,
+		)
+		columnRules = [
+			{"view1": cell, "attribute1": "width", "view2": gridCheckBoxes[0], "attribute2": "width"}
+			for cell in gridCheckBoxes[1:]
+		] + [
+			{"view1": self.w.newTab, "attribute1": "width", "view2": self.w.override, "attribute2": "width"},
+		]
+		# checkboxes and square buttons do not resist vertical stretching by default.
+		# With every control hugging vertically and no flexible gap in the chain below,
+		# the window takes exactly the height Auto Layout needs -- NSLayoutPriorityWindowSizeStayPut
+		# is the level above which a constraint outranks "keep the window size".
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
 		self.w.addAutoPosSizeRules(
 			[
-				"H:[uncheckAllButton(>=70)]-gap-[checkAllButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[buildEstimated]-gap-[buildBars]-gap-[buildEmptyset]-gap-[buildDottedcircle]-(>=inset)-|",
+				"H:|-inset-[buildCurrency]-gap-[buildLozenge]-gap-[buildProduct]",
+				"H:|-inset-[buildSummation]-gap-[buildRadical]-gap-[buildNotdef]",
+				"H:|-inset-[line]-inset-|",
+				"H:|-inset-[override]-gap-[backupLayers]-inset-|",
+				"H:|-inset-[newTab]-gap-[reuseTab]-inset-|",
+				"H:|-(>=inset)-[uncheckAllButton(>=70)]-gap-[checkAllButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				# one vertical chain per column; equal row heights keep the rows aligned
+				"V:|-row-[descriptionText]-row-[buildEstimated]-row-[buildCurrency]-row-[buildSummation]-row-[line(1)]-row-[override]-row-[newTab]-inset-[runButton]-inset-|",
+				"V:|-row-[descriptionText]-row-[buildBars]-row-[buildLozenge]-row-[buildRadical]-row-[line]-row-[backupLayers]-row-[reuseTab]",
+				"V:|-row-[descriptionText]-row-[buildEmptyset]-row-[buildProduct]-row-[buildNotdef]",
+				"V:|-row-[descriptionText]-row-[buildDottedcircle]",
 				"V:[uncheckAllButton]-inset-|",
 				"V:[checkAllButton]-inset-|",
-				"V:[runButton]-inset-|",
-			],
-			metrics={"inset": inset, "gap": 10},
+			] + columnRules,
+			metrics={"inset": 15, "gap": 8, "row": 8},
 		)
 
 		# Load Settings:
