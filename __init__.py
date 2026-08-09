@@ -1,7 +1,6 @@
 
-from math import ceil
 from typing import Any
-from AppKit import NSUserDefaults, NSFont, NSImage, NSImageLeading, NSMakeSize, NSPasteboard, NSStringPboardType, NSLineBreakByClipping
+from AppKit import NSUserDefaults, NSFont, NSImage, NSImageLeading, NSPasteboard, NSStringPboardType, NSLineBreakByClipping
 from GlyphsApp import Glyphs, GSFeature, GSClass, GSControlLayer, GSGlyph
 from vanilla import Button
 
@@ -281,63 +280,6 @@ def UpdateButton(posSize, callback, title=""):
 		button.getNSButton().setImagePosition_(NSImageLeading)
 	button.getNSButton().setBordered_(False)
 	return button
-
-
-def alignButtonsRight(window, buttons, inset=15, gap=10, minButtonWidth=70, assumedHeight=20, resizeWindow=True):
-	"""
-	Lays out a row of vanilla Buttons right-aligned along the bottom edge of window.
-	Each button gets the width and height it actually needs on the running system,
-	rather than a hardcoded size. Necessary because push buttons became wider and
-	taller in recent macOS versions, which made hardcoded button rows overlap.
-	window: the vanilla window containing the buttons,
-	buttons: the vanilla Buttons, in left-to-right order,
-	inset: distance to the right and bottom window edges,
-	gap: horizontal distance between two buttons,
-	minButtonWidth: no button will be narrower than this,
-	assumedHeight: the button height the rest of the window layout was built for,
-	resizeWindow: if True, grows the window (and its size constraints) to fit the row.
-	Returns (rowWidth, rowHeight), or None if the measurement failed.
-	"""
-	try:
-		widths = []
-		height = assumedHeight
-		for button in buttons:
-			nsButton = button.getNSButton()
-			nsButton.sizeToFit()
-			fittingSize = nsButton.fittingSize()
-			frameSize = nsButton.frame().size
-			widths.append(max(minButtonWidth, ceil(max(fittingSize.width, frameSize.width))))
-			height = max(height, ceil(max(fittingSize.height, frameSize.height)))
-
-		rowWidth = sum(widths) + gap * (len(buttons) - 1)
-		rowHeight = height
-
-		if resizeWindow:
-			windowWidth, windowHeight = window.getPosSize()[2], window.getPosSize()[3]
-			deltaWidth = max(0, rowWidth + 2 * inset - windowWidth)
-			deltaHeight = max(0, rowHeight - assumedHeight)
-			if deltaWidth or deltaHeight:
-				nsWindow = window._window
-				for getter, setter in (
-					(nsWindow.contentMinSize, nsWindow.setContentMinSize_),
-					(nsWindow.contentMaxSize, nsWindow.setContentMaxSize_),
-				):
-					currentSize = getter()
-					setter(NSMakeSize(currentSize.width + deltaWidth, currentSize.height + deltaHeight))
-				window.resize(windowWidth + deltaWidth, windowHeight + deltaHeight, animate=False)
-
-		# position right to left:
-		rightEdge = inset
-		for button, width in zip(reversed(buttons), reversed(widths)):
-			button.setPosSize((-rightEdge - width, -rowHeight - inset, width, rowHeight))
-			rightEdge += width + gap
-
-		return rowWidth, rowHeight
-	except:
-		import traceback
-		print(traceback.format_exc())
-		print("⚠️ Could not align buttons, will resort to their original positions.")
-		return None
 
 
 def updatedCode(oldCode, beginSig, endSig, newCode):

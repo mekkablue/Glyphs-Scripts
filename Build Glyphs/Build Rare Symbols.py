@@ -7,7 +7,7 @@ Builds white and black, small and large, circles, triangles and squares.
 
 import vanilla
 from GlyphsApp import Glyphs, GSGlyph, GSLayer, GSComponent, Message
-from mekkablue import alignButtonsRight, mekkaObject, newGlyphWithName
+from mekkablue import mekkaObject, newGlyphWithName
 from mekkablue.geometry import transform, offsetLayer
 from Foundation import NSPoint
 
@@ -492,9 +492,6 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 		self.w.checkAllButton.setToolTip("Activates all checkboxes above the separator line.")
 		self.w.uncheckAllButton = vanilla.Button((-300 - inset, -20 - inset, -190 - inset, -inset), "Uncheck All", callback=self.checkOrUncheckAll)
 		self.w.uncheckAllButton.setToolTip("Deactivates all checkboxes above the separator line.")
-
-		# fit the button row to the button metrics of the running macOS version:
-		alignButtonsRight(self.w, (self.w.uncheckAllButton, self.w.checkAllButton, self.w.runButton), inset=inset)
 
 		# Load Settings:
 		self.LoadPreferences()
