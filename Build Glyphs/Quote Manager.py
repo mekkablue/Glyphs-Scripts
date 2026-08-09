@@ -8,7 +8,7 @@ Build and sync quotes: create single and double quotes with cursive attachment a
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSAnchor, GSComponent, GSPath, GSNode, LINE, GSMetricsTypeCapHeight
-from mekkablue import alignButtons, mekkaObject, newGlyphWithName
+from mekkablue import mekkaObject, newGlyphWithName
 
 # Maps single quote → double quote
 SINGLE_TO_DOUBLE = {
@@ -237,15 +237,6 @@ class QuoteManager(mekkaObject):
 			"Build all selected quote glyphs: fills empty layers with mirrored paths, builds double quotes as composites, sets metrics keys, anchors, and kern groups."
 		)
 		self.w.setDefaultButton(self.w.buildButton)
-
-		# fit the button row to the button metrics of the running macOS version:
-		alignButtons(
-			self.w,
-			rightButtons=(self.w.updateButton, self.w.buildButton),
-			leftButtons=(self.w.editSinglesButton, ),
-			inset=inset,
-			assumedHeight=22,
-		)
 
 		self.LoadPreferences()
 		self.w.open()

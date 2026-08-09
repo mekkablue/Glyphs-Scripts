@@ -2,7 +2,6 @@
 from math import ceil
 from typing import Any
 from AppKit import NSUserDefaults, NSFont, NSImage, NSImageLeading, NSMakeSize, NSPasteboard, NSStringPboardType, NSLineBreakByClipping
-from Foundation import NSProcessInfo
 from GlyphsApp import Glyphs, GSFeature, GSClass, GSControlLayer, GSGlyph
 from vanilla import Button
 
@@ -284,31 +283,6 @@ def UpdateButton(posSize, callback, title=""):
 	return button
 
 
-# On macOS 26 (Tahoe) and later, a push button is *drawn* larger than the frame it is
-# given: roughly this tall, no matter whether the frame is 20 or 22 points high, and
-# correspondingly wider. These are the values the layout compensates with:
-tahoeDrawnButtonHeight = 32
-tahoeMinimumOverhang = 2
-
-
-def systemButtonMetrics(assumedHeight=20):
-	"""
-	Returns (drawnButtonHeight, minimumOverhang) for the macOS version we are running on.
-	drawnButtonHeight is how tall a push button ends up on screen; the layout derives the
-	bezel overhang (how far the button is drawn beyond its frame) from the difference to
-	the actual button frame. Hardcoded per system version on purpose: measuring alone is
-	not enough, because the button cells can still report the legacy (smaller) sizes
-	although the button is drawn larger.
-	"""
-	try:
-		majorVersion = NSProcessInfo.processInfo().operatingSystemVersion().majorVersion
-	except:
-		majorVersion = 0
-	if majorVersion >= 26:
-		return max(assumedHeight, tahoeDrawnButtonHeight), tahoeMinimumOverhang
-	return assumedHeight, 0
-
-
 def measureButtons(buttons, minButtonWidth=70, minHeight=20):
 	"""
 	Measures the sizes vanilla Buttons need on the running system.
@@ -332,17 +306,18 @@ def measureButtons(buttons, minButtonWidth=70, minHeight=20):
 	return widths, height
 
 
-def alignButtons(window, rightButtons=(), leftButtons=(), inset=15, gap=10, leftGap=None, minButtonWidth=70, assumedHeight=20, spaceAbove=5, resizeWindow=True):
+def alignButtons(window, rightButtons=(), leftButtons=(), inset=15, gap=10, leftGap=None, minButtonWidth=70, assumedHeight=20, resizeWindow=True):
 	"""
 	Lays out one or two groups of vanilla Buttons along the bottom edge of window:
 	rightButtons are right-aligned, leftButtons are left-aligned. Each button gets
 	the size it actually needs on the running system, rather than a hardcoded one.
 	Necessary because push buttons became larger in recent macOS versions, which
 	made hardcoded button rows collide.
-	Recent macOS also draws the button bezel *beyond* the button frame. That overhang
-	(see systemButtonMetrics()) is added to the gaps and to the window edge distances,
-	so that the drawn (not the theoretical) buttons keep their distances. On older
-	macOS, the overhang is zero and the layout is the same as before.
+	Recent macOS also draws the button bezel *beyond* the button frame. The overhang
+	is derived from how much taller the buttons are than assumedHeight, and added to
+	the gaps and the window edge distances, so that the drawn (not the theoretical)
+	buttons keep their distances. On older macOS, the overhang is zero and the layout
+	is the same as before.
 	window: the vanilla window containing the buttons,
 	rightButtons: the vanilla Buttons for the bottom right, in left-to-right order,
 	leftButtons: the vanilla Buttons for the bottom left, in left-to-right order,
@@ -351,19 +326,17 @@ def alignButtons(window, rightButtons=(), leftButtons=(), inset=15, gap=10, left
 	leftGap: same, but for the leftButtons group only; defaults to gap,
 	minButtonWidth: no button will be narrower than this,
 	assumedHeight: the button height the rest of the window layout was built for,
-	spaceAbove: extra window height, so the row has more breathing space above it,
 	resizeWindow: if True, grows the window (and its size constraints) to fit the row.
 	Returns (rowWidth, rowHeight), or None if the measurement failed.
 	"""
 	try:
 		if leftGap is None:
 			leftGap = gap
-		drawnHeight, minOverhang = systemButtonMetrics(assumedHeight)
 		rightWidths, height = measureButtons(rightButtons, minButtonWidth, assumedHeight)
 		leftWidths, height = measureButtons(leftButtons, minButtonWidth, height)
 
 		# how far the drawn bezel extends beyond the button frame on each side:
-		overhang = max(minOverhang, ceil((drawnHeight - height) / 2))
+		overhang = max(0, (height - assumedHeight) // 2)
 		bottomInset = inset + overhang
 		sideInset = inset + overhang
 		rightStep = gap + 2 * overhang  # frame distance yielding a visible distance of gap
@@ -381,7 +354,7 @@ def alignButtons(window, rightButtons=(), leftButtons=(), inset=15, gap=10, left
 		if resizeWindow:
 			windowWidth, windowHeight = window.getPosSize()[2], window.getPosSize()[3]
 			deltaWidth = max(0, rowWidth + 2 * inset - windowWidth)
-			deltaHeight = max(0, rowHeight - assumedHeight) + spaceAbove
+			deltaHeight = max(0, rowHeight - assumedHeight)
 			if deltaWidth or deltaHeight:
 				nsWindow = window._window
 				for getter, setter in (
@@ -412,7 +385,7 @@ def alignButtons(window, rightButtons=(), leftButtons=(), inset=15, gap=10, left
 		return None
 
 
-def alignButtonsRight(window, buttons, inset=15, gap=10, minButtonWidth=70, assumedHeight=20, spaceAbove=5, resizeWindow=True):
+def alignButtonsRight(window, buttons, inset=15, gap=10, minButtonWidth=70, assumedHeight=20, resizeWindow=True):
 	"""
 	Lays out a row of vanilla Buttons right-aligned along the bottom edge of window.
 	Shortcut for alignButtons() with a right group only; see there for details.
@@ -424,7 +397,6 @@ def alignButtonsRight(window, buttons, inset=15, gap=10, minButtonWidth=70, assu
 		gap=gap,
 		minButtonWidth=minButtonWidth,
 		assumedHeight=assumedHeight,
-		spaceAbove=spaceAbove,
 		resizeWindow=resizeWindow,
 	)
 

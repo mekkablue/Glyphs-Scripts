@@ -8,7 +8,7 @@ Adds a component to all backgrounds of all layers of all selected glyphs. Useful
 import vanilla
 from AppKit import NSEvent
 from GlyphsApp import Glyphs, GSComponent, Message
-from mekkablue import alignButtonsRight, mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton
 from mekkablue.geometry import transform
 
 
@@ -64,9 +64,6 @@ class PopulateAllBackgroundswithComponent(mekkaObject):
 
 		self.w.nextMasterButton = vanilla.Button((-340 - inset, -20 - inset, -230 - inset, -inset), "Next Master", callback=self.NextMasterMain)
 		self.w.nextMasterButton.setToolTip("Switches the current tab to the next master. Useful if you want to align the same nodes in every master.")
-
-		# fit the button row to the button metrics of the running macOS version:
-		alignButtonsRight(self.w, (self.w.nextMasterButton, self.w.alignButton, self.w.runButton), inset=inset)
 
 		# Load Settings:
 		self.LoadPreferences()
