@@ -283,73 +283,34 @@ def UpdateButton(posSize, callback, title=""):
 	return button
 
 
-def measureButtons(buttons, minButtonWidth=70, minHeight=20):
+def alignButtonsRight(window, buttons, inset=15, gap=10, minButtonWidth=70, assumedHeight=20, resizeWindow=True):
 	"""
-	Measures the sizes vanilla Buttons need on the running system.
-	Returns (widths, height): a list with one width per button, and the height
-	of the tallest one. Sizes are taken from the button cells, so they follow
-	the button metrics of the macOS version the script is running on.
-	"""
-	widths = []
-	height = minHeight
-	for button in buttons:
-		nsButton = button.getNSButton()
-		nsButton.sizeToFit()
-		sizes = [nsButton.fittingSize(), nsButton.frame().size]
-		try:
-			sizes.append(nsButton.cell().cellSize())
-			sizes.append(nsButton.intrinsicContentSize())
-		except:
-			pass
-		widths.append(max(minButtonWidth, ceil(max(size.width for size in sizes))))
-		height = max(height, ceil(max(size.height for size in sizes)))
-	return widths, height
-
-
-def alignButtons(window, rightButtons=(), leftButtons=(), inset=15, gap=10, leftGap=None, minButtonWidth=70, assumedHeight=20, resizeWindow=True):
-	"""
-	Lays out one or two groups of vanilla Buttons along the bottom edge of window:
-	rightButtons are right-aligned, leftButtons are left-aligned. Each button gets
-	the size it actually needs on the running system, rather than a hardcoded one.
-	Necessary because push buttons became larger in recent macOS versions, which
-	made hardcoded button rows collide.
-	Recent macOS also draws the button bezel *beyond* the button frame. The overhang
-	is derived from how much taller the buttons are than assumedHeight, and added to
-	the gaps and the window edge distances, so that the drawn (not the theoretical)
-	buttons keep their distances. On older macOS, the overhang is zero and the layout
-	is the same as before.
+	Lays out a row of vanilla Buttons right-aligned along the bottom edge of window.
+	Each button gets the width and height it actually needs on the running system,
+	rather than a hardcoded size. Necessary because push buttons became wider and
+	taller in recent macOS versions, which made hardcoded button rows overlap.
 	window: the vanilla window containing the buttons,
-	rightButtons: the vanilla Buttons for the bottom right, in left-to-right order,
-	leftButtons: the vanilla Buttons for the bottom left, in left-to-right order,
-	inset: distance to the window edges,
-	gap: visible horizontal distance between two buttons,
-	leftGap: same, but for the leftButtons group only; defaults to gap,
+	buttons: the vanilla Buttons, in left-to-right order,
+	inset: distance to the right and bottom window edges,
+	gap: horizontal distance between two buttons,
 	minButtonWidth: no button will be narrower than this,
 	assumedHeight: the button height the rest of the window layout was built for,
 	resizeWindow: if True, grows the window (and its size constraints) to fit the row.
 	Returns (rowWidth, rowHeight), or None if the measurement failed.
 	"""
 	try:
-		if leftGap is None:
-			leftGap = gap
-		rightWidths, height = measureButtons(rightButtons, minButtonWidth, assumedHeight)
-		leftWidths, height = measureButtons(leftButtons, minButtonWidth, height)
+		widths = []
+		height = assumedHeight
+		for button in buttons:
+			nsButton = button.getNSButton()
+			nsButton.sizeToFit()
+			fittingSize = nsButton.fittingSize()
+			frameSize = nsButton.frame().size
+			widths.append(max(minButtonWidth, ceil(max(fittingSize.width, frameSize.width))))
+			height = max(height, ceil(max(fittingSize.height, frameSize.height)))
 
-		# how far the drawn bezel extends beyond the button frame on each side:
-		overhang = max(0, (height - assumedHeight) // 2)
-		bottomInset = inset + overhang
-		sideInset = inset + overhang
-		rightStep = gap + 2 * overhang  # frame distance yielding a visible distance of gap
-		leftStep = leftGap + 2 * overhang
-
-		rowWidth = sum(rightWidths) + sum(leftWidths) + 2 * overhang
-		if rightWidths:
-			rowWidth += rightStep * (len(rightWidths) - 1)
-		if leftWidths:
-			rowWidth += leftStep * (len(leftWidths) - 1)
-		if rightWidths and leftWidths:
-			rowWidth += rightStep  # minimum distance between the two groups
-		rowHeight = height + 2 * overhang
+		rowWidth = sum(widths) + gap * (len(buttons) - 1)
+		rowHeight = height
 
 		if resizeWindow:
 			windowWidth, windowHeight = window.getPosSize()[2], window.getPosSize()[3]
@@ -365,17 +326,11 @@ def alignButtons(window, rightButtons=(), leftButtons=(), inset=15, gap=10, left
 					setter(NSMakeSize(currentSize.width + deltaWidth, currentSize.height + deltaHeight))
 				window.resize(windowWidth + deltaWidth, windowHeight + deltaHeight, animate=False)
 
-		# right group, positioned right to left:
-		rightEdge = sideInset
-		for button, width in zip(reversed(rightButtons), reversed(rightWidths)):
-			button.setPosSize((-rightEdge - width, -height - bottomInset, width, height))
-			rightEdge += width + rightStep
-
-		# left group, positioned left to right:
-		leftEdge = sideInset
-		for button, width in zip(leftButtons, leftWidths):
-			button.setPosSize((leftEdge, -height - bottomInset, width, height))
-			leftEdge += width + leftStep
+		# position right to left:
+		rightEdge = inset
+		for button, width in zip(reversed(buttons), reversed(widths)):
+			button.setPosSize((-rightEdge - width, -rowHeight - inset, width, rowHeight))
+			rightEdge += width + gap
 
 		return rowWidth, rowHeight
 	except:
@@ -383,22 +338,6 @@ def alignButtons(window, rightButtons=(), leftButtons=(), inset=15, gap=10, left
 		print(traceback.format_exc())
 		print("⚠️ Could not align buttons, will resort to their original positions.")
 		return None
-
-
-def alignButtonsRight(window, buttons, inset=15, gap=10, minButtonWidth=70, assumedHeight=20, resizeWindow=True):
-	"""
-	Lays out a row of vanilla Buttons right-aligned along the bottom edge of window.
-	Shortcut for alignButtons() with a right group only; see there for details.
-	"""
-	return alignButtons(
-		window,
-		rightButtons=buttons,
-		inset=inset,
-		gap=gap,
-		minButtonWidth=minButtonWidth,
-		assumedHeight=assumedHeight,
-		resizeWindow=resizeWindow,
-	)
 
 
 def updatedCode(oldCode, beginSig, endSig, newCode):
