@@ -212,7 +212,7 @@ def drawPenDataInLayer(thisLayer, penData, closePath=True):
 			elif len(thisSegment) == 3:  # curveto (3 x/y tuples)
 				pen.curveTo(thisSegment[0], thisSegment[1], thisSegment[2])
 			else:
-				print("Path drawing error. Could not process this segment:\n" % thisSegment)
+				print("Path drawing error. Could not process this segment: %s\n" % thisSegment)
 		if closePath:
 			pen.closePath()
 		pen.endPath()
