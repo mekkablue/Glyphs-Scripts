@@ -7,7 +7,7 @@ Manage Automatic Alignment for (multiple) selected glyphs.
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject
+from mekkablue import alignButtonsRight, mekkaObject
 
 
 class AutoAlignmentManager(mekkaObject):
@@ -61,6 +61,9 @@ class AutoAlignmentManager(mekkaObject):
 		self.w.disableButton.setToolTip("Disables automatic alignment with the current span and settings.")
 		self.w.rotateButton = vanilla.Button((-290 - inset, -20 - inset, -200 - inset, -inset), "🔄 Rotate", callback=self.rotateComponents)
 		self.w.rotateButton.setToolTip("Moves the last component into first place. Useful if you quickly want to fix component order without leaving he script UI.")
+
+		# fit the button row to the button metrics of the running macOS version:
+		alignButtonsRight(self.w, (self.w.rotateButton, self.w.disableButton, self.w.enableButton), inset=inset)
 
 		# Load Settings:
 		self.LoadPreferences()
