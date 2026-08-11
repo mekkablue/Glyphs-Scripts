@@ -16,6 +16,16 @@ import vanilla
 from Foundation import NSPoint
 from mekkablue import mekkaObject, newGlyphWithName, UpdateButton
 
+
+def isColorLayer(layer):
+	"""True if the layer carries a colorPalette attribute.
+	Must test `is not None`: color index 0 is falsy."""
+	attributes = getattr(layer, "attributes", None)
+	if not attributes:
+		return False
+	return attributes.get("colorPalette") is not None
+
+
 class CopyLayerToLayer(mekkaObject):
 	prefDict = {
 		"sourceFontPopup": 0,
@@ -32,8 +42,13 @@ class CopyLayerToLayer(mekkaObject):
 		"includeHints": True,
 		"includeMetrics": True,
 	}
-	
+
 	def __init__(self):
+		# Layer specs parallel to the layer popup items: (masterID, masterName, colorIndex).
+		# Initialised before any widget so that updateUI() is safe if called early.
+		self.sourceLayerSpecs = []
+		self.targetLayerSpecs = []
+
 		# Window 'self.w':
 		windowWidth = 300
 		windowHeight = 330
@@ -49,7 +64,7 @@ class CopyLayerToLayer(mekkaObject):
 
 		# UI elements:
 		linePos, inset, lineHeight, tabStop = 12, 15, 22, 80
-		
+
 		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Copy layer contents from one layer to another:", sizeStyle='small', selectable=True)
 		linePos += lineHeight
 
@@ -75,22 +90,22 @@ class CopyLayerToLayer(mekkaObject):
 
 		self.w.includePaths = vanilla.CheckBox((inset + 60, linePos, 65, 20), "Paths", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includePaths.setToolTip("Copy all paths (outlines) from the source layer.")
-		
+
 		self.w.includeComponents = vanilla.CheckBox((inset + 135, linePos, 80, 20), "Components", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeComponents.setToolTip("Copy all components (references to other glyphs) from the source layer.")
 		linePos += lineHeight
 
 		self.w.includeAnchors = vanilla.CheckBox((inset + 60, linePos, 65, 20), "Anchors", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeAnchors.setToolTip("Copy all anchors (attachment points) from the source layer.")
-		
+		self.w.includeAnchors.setToolTip("Copy all anchors (attachment points) from the source layer. Anchors of the same name in the target are replaced.")
+
 		self.w.includeMetrics = vanilla.CheckBox((inset + 135, linePos, 80, 20), "Metrics", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeMetrics.setToolTip("Copy layer width and sidebearing metrics from the source layer.")
 
 		self.w.includeHints = vanilla.CheckBox((inset + 210, linePos, 90, 20), "Hints", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeHints.setToolTip("Copy all hints (TrueType instructions) from the source layer.")
 		linePos += lineHeight
-		
-		self.w.separator1 = vanilla.HorizontalLine((inset, linePos+5, -inset, 1))
+
+		self.w.separator1 = vanilla.HorizontalLine((inset, linePos + 5, -inset, 1))
 
 		# Options with tooltips
 		linePos += 12
@@ -110,7 +125,6 @@ class CopyLayerToLayer(mekkaObject):
 		self.w.applyFontWide.setToolTip("Processes all glyphs in the source font instead of only selected glyphs in the target font. If not selected, will process only selected glyphs.")
 		linePos += lineHeight
 
-
 		# Run Button:
 		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Copy Layers", sizeStyle='regular', callback=self.CopyLayerToLayerMain)
 		self.w.setDefaultButton(self.w.runButton)
@@ -118,42 +132,42 @@ class CopyLayerToLayer(mekkaObject):
 		# Load Settings:
 		self.LoadPreferences()
 
+		# Restored font indices may exceed the number of currently open fonts:
+		self.ClampFontPopups()
+
 		# Update the layer popups after fonts are loaded
 		self.UpdateSourceLayers(None)
 		self.UpdateTargetLayers(None)
 
-		# Now manually restore just the layer popup indices:
-		self.w.sourceLayerPopup.set(self.pref("sourceLayerPopup"))
-		self.w.targetLayerPopup.set(self.pref("targetLayerPopup"))
+		# Now restore the layer popup indices, clamped to the current item counts:
+		self.w.sourceLayerPopup.set(self.ClampedPref("sourceLayerPopup", len(self.sourceLayerSpecs)))
+		self.w.targetLayerPopup.set(self.ClampedPref("targetLayerPopup", len(self.targetLayerSpecs)))
+
+		self.updateUI()
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
 
 	def updateUI(self, sender=None):
-		"""Updates UI state - disables run button if source and target are the same"""
+		"""Disables the run button only when source and target resolve to the same
+		font, master and color index, and we are not copying into the background
+		(copying a layer into its own background is a legitimate operation)."""
 		try:
-			# Get current selections
-			sourceFontIndex = self.w.sourceFontPopup.get()
-			targetFontIndex = self.w.targetFontPopup.get()
-			sourceLayerIndex = self.w.sourceLayerPopup.get()
-			targetLayerIndex = self.w.targetLayerPopup.get()
-			
-			# Get layer names
-			sourceLayerItems = self.w.sourceLayerPopup.getItems()
-			targetLayerItems = self.w.targetLayerPopup.getItems()
-			
-			# Check if source and target are identical
-			sameFont = (sourceFontIndex == targetFontIndex)
-			sameLayer = False
-			
-			if sourceLayerItems and targetLayerItems and sourceLayerIndex < len(sourceLayerItems) and targetLayerIndex < len(targetLayerItems):
-				sameLayer = (sourceLayerItems[sourceLayerIndex] == targetLayerItems[targetLayerIndex])
-			
-			# Disable button if both font and layer are the same
-			shouldDisable = sameFont and sameLayer
-			self.w.runButton.enable(not shouldDisable)
-			
+			sourceFont = self.GetFont(self.w.sourceFontPopup)
+			targetFont = self.GetFont(self.w.targetFontPopup)
+			sourceSpec = self.SelectedSpec(self.w.sourceLayerPopup, self.sourceLayerSpecs)
+			targetSpec = self.SelectedSpec(self.w.targetLayerPopup, self.targetLayerSpecs)
+
+			identical = (
+				sourceFont is not None
+				and sourceFont == targetFont  # compare font objects, not popup indices
+				and sourceSpec is not None
+				and sourceSpec == targetSpec
+				and not self.w.intoBackground.get()
+			)
+			self.w.runButton.enable(not identical)
+
 		except Exception as e:
 			print(e)
 			# If there's any error, enable the button to be safe
@@ -168,12 +182,40 @@ class CopyLayerToLayer(mekkaObject):
 		return myFontList
 
 	def GetFont(self, fontPopup):
-		"""Returns the font object based on popup selection"""
+		"""Returns the font object based on popup selection.
+		Bounds-checked: a stale preference or an empty selection must not index
+		Glyphs.fonts negatively or out of range."""
 		fontIndex = fontPopup.get()
-		if fontIndex == 0:
+		if fontIndex is None or fontIndex <= 0:
 			return Glyphs.font
-		else:
+		if fontIndex - 1 < len(Glyphs.fonts):
 			return Glyphs.fonts[fontIndex - 1]
+		return Glyphs.font
+
+	def ClampFontPopups(self):
+		"""Resets font popups whose restored index is out of range."""
+		itemCount = len(self.w.sourceFontPopup.getItems())
+		for popup in (self.w.sourceFontPopup, self.w.targetFontPopup):
+			index = popup.get()
+			if index is None or index < 0 or index >= itemCount:
+				popup.set(0)
+
+	def ClampedPref(self, prefName, itemCount):
+		"""Returns the stored popup index, or 0 if it is out of range."""
+		try:
+			index = int(self.pref(prefName))
+		except (TypeError, ValueError):
+			index = 0
+		if index < 0 or index >= itemCount:
+			index = 0
+		return index
+
+	def SelectedSpec(self, layerPopup, specs):
+		"""(masterID, masterName, colorIndex) for the current popup selection, or None."""
+		index = layerPopup.get()
+		if specs and index is not None and 0 <= index < len(specs):
+			return specs[index]
+		return None
 
 	def GetColorPalettes(self, font):
 		"""Returns the color palettes from font's custom parameters"""
@@ -185,108 +227,117 @@ class CopyLayerToLayer(mekkaObject):
 		return None
 
 	def GetLayerList(self, font):
-		"""Returns a list of layer names and master+color combinations"""
-		if not font or len(font.glyphs) == 0:
-			return ["Regular"]
-		
-		layerNames = []
-		masterLayers = []
-		
-		# Collect regular master layers (only those without colorPalette attribute)
-		for layer in font.glyphs[0].layers:
-			if layer.name:
-				# Check if this is a true master layer (not a color layer)
-				isColorLayer = hasattr(layer, 'attributes') and layer.attributes.get('colorPalette') is not None
-				if not isColorLayer:
-					masterLayers.append(layer.name)
-					layerNames.append(layer.name)
-		
-		# Add color palette layers if they exist
+		"""Returns (displayNames, specs).
+
+		specs[i] is (masterID, masterName, colorIndex) for displayNames[i], with
+		colorIndex None for plain master layers. Layers are identified by master
+		ID rather than by name, because master names are not guaranteed unique."""
+		if not font or not font.masters:
+			return (["Regular"], [(None, "Regular", None)])
+
+		displayNames = []
+		specs = []
+		masterEntries = []  # (masterID, masterName, displayName)
+		usedNames = set()
+
+		for masterIndex, master in enumerate(font.masters):
+			displayName = master.name or "Master %d" % (masterIndex + 1)
+			if displayName in usedNames:
+				# Duplicate master names are legal; disambiguate for display only.
+				displayName = "%s [%d]" % (displayName, masterIndex + 1)
+			usedNames.add(displayName)
+
+			masterEntries.append((master.id, master.name, displayName))
+			displayNames.append(displayName)
+			specs.append((master.id, master.name, None))
+
 		colorPalette = self.GetColorPalettes(font)
 		if colorPalette:
 			numColors = len(colorPalette)
-			# For each master, add master+color combinations
-			for masterName in masterLayers:
+			for masterID, masterName, displayName in masterEntries:
 				for colorIndex in range(numColors):
-					layerNames.append("%s, Color %d" % (masterName, colorIndex))
-		
-		return layerNames if layerNames else ["Regular"]
+					displayNames.append("%s, Color %d" % (displayName, colorIndex))
+					specs.append((masterID, masterName, colorIndex))
 
-	def ParseLayerSelection(self, layerName):
-		"""Parses layer selection to determine if it's a color palette layer
-		Returns: (isColorLayer, masterName, colorIndex)"""
-		if ", Color " in layerName:
-			try:
-				parts = layerName.split(", Color ")
-				masterName = parts[0]
-				colorIndex = int(parts[1])
-				return (True, masterName, colorIndex)
-			except:
-				pass
-		return (False, layerName, None)
+		return (displayNames, specs)
 
 	def UpdateFontList(self, sender=None):
 		"""Updates all font popups with currently opened fonts"""
 		fontList = self.GetFonts()
-		
+
 		# Store current selections
 		sourceSelection = self.w.sourceFontPopup.get()
 		targetSelection = self.w.targetFontPopup.get()
-		
+
 		# Update popup lists
 		self.w.sourceFontPopup.setItems(fontList)
 		self.w.targetFontPopup.setItems(fontList)
-		
+
 		# Try to restore selections if still valid
-		if sourceSelection < len(fontList):
+		if 0 <= sourceSelection < len(fontList):
 			self.w.sourceFontPopup.set(sourceSelection)
 		else:
 			self.w.sourceFontPopup.set(0)
-			
-		if targetSelection < len(fontList):
+
+		if 0 <= targetSelection < len(fontList):
 			self.w.targetFontPopup.set(targetSelection)
 		else:
 			self.w.targetFontPopup.set(0)
-		
+
 		# Update layer lists
 		self.UpdateSourceLayers(None)
 		self.UpdateTargetLayers(None)
-		
+
 		if sender is self.w.sourceFontUpdateButton:
 			self.LoadPreferences()
+			# LoadPreferences() writes the stored indices straight into the popups,
+			# which may be out of range for the refreshed lists; re-clamp them and
+			# rebuild the layer lists for whatever font the prefs just selected.
+			self.ClampFontPopups()
+			self.UpdateSourceLayers(None)
+			self.UpdateTargetLayers(None)
+			self.w.sourceLayerPopup.set(self.ClampedPref("sourceLayerPopup", len(self.sourceLayerSpecs)))
+			self.w.targetLayerPopup.set(self.ClampedPref("targetLayerPopup", len(self.targetLayerSpecs)))
+			self.updateUI()
 		else:
 			self.SavePreferences()
 
 	def UpdateSourceLayers(self, sender=None):
 		"""Updates the source layer popup based on selected font"""
 		font = self.GetFont(self.w.sourceFontPopup)
-		layerNames = self.GetLayerList(font)
+		previousSpec = self.SelectedSpec(self.w.sourceLayerPopup, self.sourceLayerSpecs)
+		layerNames, self.sourceLayerSpecs = self.GetLayerList(font)
 		self.w.sourceLayerPopup.setItems(layerNames)
+		self.w.sourceLayerPopup.set(self.sourceLayerSpecs.index(previousSpec) if previousSpec in self.sourceLayerSpecs else 0)
+		self.updateUI()
 
 	def UpdateTargetLayers(self, sender):
 		"""Updates the target layer popup based on selected font"""
 		font = self.GetFont(self.w.targetFontPopup)
-		layerNames = self.GetLayerList(font)
+		previousSpec = self.SelectedSpec(self.w.targetLayerPopup, self.targetLayerSpecs)
+		layerNames, self.targetLayerSpecs = self.GetLayerList(font)
 		self.w.targetLayerPopup.setItems(layerNames)
+		self.w.targetLayerPopup.set(self.targetLayerSpecs.index(previousSpec) if previousSpec in self.targetLayerSpecs else 0)
+		self.updateUI()
 
-	def GetColorLayers(self, glyph, masterName, colorIndex):
+	def GetMasterLayer(self, glyph, masterID):
+		"""Returns the layer of `glyph` belonging to master `masterID`, or None."""
+		if not masterID:
+			return None
+		for layer in glyph.layers:
+			if layer.layerId == masterID:
+				return layer
+		return None
+
+	def GetColorLayers(self, glyph, masterID, colorIndex):
 		"""Returns all layers with the specified master and color palette index"""
 		colorLayers = []
-		font = glyph.parent
-		if not font:
-			return colorLayers
-
-		masterID = None
-		for master in font.masters:
-			if master.name == masterName:
-				masterID = master.id
-				break
 		if not masterID:
 			return colorLayers
-
 		for layer in glyph.layers:
-			if layer.associatedMasterId == masterID and hasattr(layer, 'attributes') and layer.attributes.get('colorPalette') == colorIndex:
-				colorLayers.append(layer)
+			if layer.associatedMasterId == masterID and isColorLayer(layer):
+				if layer.attributes.get('colorPalette') == colorIndex:
+					colorLayers.append(layer)
 		return colorLayers
 
 	def CopyLayerToLayerMain(self, sender=None):
@@ -295,18 +346,23 @@ class CopyLayerToLayer(mekkaObject):
 			# Get fonts
 			sourceFont = self.GetFont(self.w.sourceFontPopup)
 			targetFont = self.GetFont(self.w.targetFontPopup)
-			
+
 			if not sourceFont or not targetFont:
 				Message("Error", "Could not access source or target font.", OKButton=None)
 				return
 
-			# Get layer names and parse them
-			sourceLayerName = self.w.sourceLayerPopup.getItems()[self.w.sourceLayerPopup.get()]
-			targetLayerName = self.w.targetLayerPopup.getItems()[self.w.targetLayerPopup.get()]
-			
-			# Parse source and target layer selections
-			sourceIsColor, sourceMasterName, sourceColorIndex = self.ParseLayerSelection(sourceLayerName)
-			targetIsColor, targetMasterName, targetColorIndex = self.ParseLayerSelection(targetLayerName)
+			# Resolve the popup selections to (masterID, masterName, colorIndex)
+			sourceSpec = self.SelectedSpec(self.w.sourceLayerPopup, self.sourceLayerSpecs)
+			targetSpec = self.SelectedSpec(self.w.targetLayerPopup, self.targetLayerSpecs)
+
+			if sourceSpec is None or targetSpec is None:
+				Message("Error", "Could not determine the source or target layer.", OKButton=None)
+				return
+
+			sourceMasterID, sourceMasterName, sourceColorIndex = sourceSpec
+			targetMasterID, targetMasterName, targetColorIndex = targetSpec
+			sourceIsColor = sourceColorIndex is not None
+			targetIsColor = targetColorIndex is not None
 
 			# Get preferences
 			prefs = {
@@ -341,7 +397,7 @@ class CopyLayerToLayer(mekkaObject):
 
 			# Process each glyph
 			for glyphName in glyphsToProcess:
-				print(f"🔡 Processing {glyphName}...")
+				print("🔡 Processing %s..." % glyphName)
 				# Get source glyph
 				sourceGlyph = sourceFont.glyphs[glyphName]
 				if not sourceGlyph:
@@ -349,24 +405,16 @@ class CopyLayerToLayer(mekkaObject):
 					continue
 
 				# Get source layer(s)
-				sourceLayers = []
 				if sourceIsColor:
 					# Get all color layers with this master and color index
-					sourceLayers = self.GetColorLayers(sourceGlyph, sourceMasterName, sourceColorIndex)
-					print("Source is color:", sourceLayers)
-					print("sourceGlyph, sourceMasterName, sourceColorIndex:", sourceGlyph, sourceMasterName, sourceColorIndex)
+					sourceLayers = self.GetColorLayers(sourceGlyph, sourceMasterID, sourceColorIndex)
 				else:
-					# Get the named master layer
-					for layer in sourceGlyph.layers:
-						if layer.name == sourceMasterName:
-							sourceLayers = [layer]
-							break
-				
-				print("CHECK 1")
+					sourceLayer = self.GetMasterLayer(sourceGlyph, sourceMasterID)
+					sourceLayers = [sourceLayer] if sourceLayer else []
+
 				if not sourceLayers:
 					skippedCount += 1
 					continue
-				print("CHECK 2")
 
 				# Find or create target glyph
 				targetGlyph = targetFont.glyphs[glyphName]
@@ -382,8 +430,8 @@ class CopyLayerToLayer(mekkaObject):
 				# Handle color to color copying (potentially multiple layers)
 				if sourceIsColor and targetIsColor:
 					# Copy each source color layer to corresponding target color layer
-					targetColorLayers = self.GetColorLayers(targetGlyph, targetMasterName, targetColorIndex)
-					
+					targetColorLayers = self.GetColorLayers(targetGlyph, targetMasterID, targetColorIndex)
+
 					for i, sourceLayer in enumerate(sourceLayers):
 						# Find or create corresponding target layer
 						if i < len(targetColorLayers):
@@ -393,22 +441,22 @@ class CopyLayerToLayer(mekkaObject):
 							targetLayer = GSLayer()
 							targetLayer.name = targetMasterName
 							targetLayer.attributes['colorPalette'] = targetColorIndex
-							# Associate with the master
-							targetLayer.associatedMasterId = targetGlyph.layers[0].associatedMasterId
+							# Associate with the selected master, not with layer 0's master
+							targetLayer.associatedMasterId = targetMasterID
 							targetGlyph.layers.append(targetLayer)
 							createdLayerCount += 1
 						else:
 							continue
-						
+
 						self.CopyLayerContents(sourceLayer, targetLayer, prefs)
 						processedCount += 1
-				
+
 				# Handle non-color to color copying
 				elif not sourceIsColor and targetIsColor:
 					sourceLayer = sourceLayers[0]
 					# Find or create target layer with matching master and color index
-					targetColorLayers = self.GetColorLayers(targetGlyph, targetMasterName, targetColorIndex)
-					
+					targetColorLayers = self.GetColorLayers(targetGlyph, targetMasterID, targetColorIndex)
+
 					if targetColorLayers:
 						# Use the first existing color layer with this color index
 						targetLayer = targetColorLayers[0]
@@ -417,63 +465,53 @@ class CopyLayerToLayer(mekkaObject):
 						targetLayer = GSLayer()
 						targetLayer.name = targetMasterName
 						targetLayer.attributes['colorPalette'] = targetColorIndex
-						# Associate with the master
-						for layer in targetGlyph.layers:
-							if layer.name == targetMasterName and not layer.attributes.get('colorPalette'):
-								targetLayer.associatedMasterId = layer.associatedMasterId
-								break
+						targetLayer.associatedMasterId = targetMasterID
 						targetGlyph.layers.append(targetLayer)
 						createdLayerCount += 1
 					else:
 						skippedCount += 1
 						continue
-					
+
 					self.CopyLayerContents(sourceLayer, targetLayer, prefs)
 					processedCount += 1
-				
+
 				# Handle color to non-color copying
 				elif sourceIsColor and not targetIsColor:
 					# Copy first source color layer to target master layer
 					sourceLayer = sourceLayers[0]
-					
-					# Find target master layer
-					targetLayer = None
-					for layer in targetGlyph.layers:
-						if layer.name == targetMasterName and not layer.attributes.get('colorPalette'):
-							targetLayer = layer
-							break
+
+					targetLayer = self.GetMasterLayer(targetGlyph, targetMasterID)
 
 					if not targetLayer and prefs["createIfNotPresent"]:
 						targetLayer = GSLayer()
 						targetLayer.name = targetMasterName
+						targetLayer.associatedMasterId = targetMasterID
+						targetLayer.layerId = targetMasterID
 						targetGlyph.layers.append(targetLayer)
 						createdLayerCount += 1
-					
+
 					if not targetLayer:
 						skippedCount += 1
 						continue
 
 					self.CopyLayerContents(sourceLayer, targetLayer, prefs)
 					processedCount += 1
-				
+
 				# Handle regular master to master layer copying
 				else:
 					sourceLayer = sourceLayers[0]
-					
-					# Find or create target master layer
-					targetLayer = None
-					for layer in targetGlyph.layers:
-						if layer.name == targetMasterName and not layer.attributes.get('colorPalette'):
-							targetLayer = layer
-							break
+
+					targetLayer = self.GetMasterLayer(targetGlyph, targetMasterID)
 
 					# Create layer if requested and not present
 					if not targetLayer and prefs["createIfNotPresent"]:
 						targetLayer = GSLayer()
 						targetLayer.name = targetMasterName
+						targetLayer.associatedMasterId = targetMasterID
+						targetLayer.layerId = targetMasterID
 						targetGlyph.layers.append(targetLayer)
 						createdLayerCount += 1
-					
+
 					if not targetLayer:
 						skippedCount += 1
 						continue
@@ -489,7 +527,7 @@ class CopyLayerToLayer(mekkaObject):
 				resultMessage += "\nCreated %d new layer(s)" % createdLayerCount
 			if skippedCount > 0:
 				resultMessage += "\nSkipped %d glyph(s)" % skippedCount
-			
+
 			Message("Copy Complete", resultMessage, OKButton=None)
 
 			# Save preferences
@@ -535,24 +573,11 @@ class CopyLayerToLayer(mekkaObject):
 				newHint = hint.copy()
 				copyTarget.hints.append(newHint)
 
-		# Copy anchors
+		# Copy anchors. Assignment by name adds the anchor if absent and replaces
+		# it if present, which matches Glyphs' own paste behaviour in append mode.
 		if prefs["includeAnchors"]:
-			if prefs["addToContents"]:
-				# Add anchors only if they don't already exist
-				for anchor in sourceLayer.anchors:
-					existingAnchor = None
-					for a in copyTarget.anchors:
-						if a.name == anchor.name:
-							existingAnchor = a
-							break
-					if not existingAnchor:
-						newAnchor = anchor.copy()
-						copyTarget.anchors.append(newAnchor)
-			else:
-				# Replace all anchors
-				for anchor in sourceLayer.anchors:
-					newAnchor = anchor.copy()
-					copyTarget.anchors.append(newAnchor)
+			for anchor in sourceLayer.anchors:
+				copyTarget.anchors[anchor.name] = anchor.copy()
 
 		# Copy metrics if requested and not copying to background
 		if prefs["includeMetrics"] and not prefs["intoBackground"]:
@@ -561,6 +586,7 @@ class CopyLayerToLayer(mekkaObject):
 				targetLayer.leftMetricsKey = sourceLayer.leftMetricsKey
 			if hasattr(sourceLayer, 'rightMetricsKey') and sourceLayer.rightMetricsKey:
 				targetLayer.rightMetricsKey = sourceLayer.rightMetricsKey
+
 
 # Run the script
 CopyLayerToLayer()
