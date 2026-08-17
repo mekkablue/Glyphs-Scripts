@@ -7,8 +7,8 @@ Build and sync quotes: create single and double quotes with cursive attachment a
 
 import vanilla
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSAnchor, GSComponent, GSPath, GSNode, LINE, GSMetricsTypeCapHeight
-from mekkablue import alignButtons, mekkaObject, newGlyphWithName
+from GlyphsApp import Glyphs, GSComponent, GSPath, GSNode, LINE, GSMetricsTypeCapHeight
+from mekkablue import alignButtons, mekkaObject, newAnchorWithName, newGlyphWithName
 
 # Maps single quote → double quote
 SINGLE_TO_DOUBLE = {
@@ -346,8 +346,8 @@ class QuoteManager(mekkaObject):
 		toRemove = [a for a in layer.anchors if a.name in ("#entry", "#exit")]
 		for a in toRemove:
 			layer.anchors.remove(a)
-		layer.anchors.append(GSAnchor.alloc().initWithName_position_("#entry", NSPoint(0, 0)))
-		layer.anchors.append(GSAnchor.alloc().initWithName_position_("#exit", NSPoint(distance, 0)))
+		layer.anchors.append(newAnchorWithName("#entry", NSPoint(0, 0)))
+		layer.anchors.append(newAnchorWithName("#exit", NSPoint(distance, 0)))
 
 	# -----------------------------------------------------------------------
 	# Metrics keys

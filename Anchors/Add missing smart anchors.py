@@ -6,7 +6,8 @@ Adds all anchors for properties of selected smart glyphs on all their layers. Sk
 """
 
 from AppKit import NSPoint
-from GlyphsApp import Glyphs, GSAnchor
+from GlyphsApp import Glyphs
+from mekkablue import newAnchorWithName
 
 
 def process(glyph):
@@ -18,7 +19,7 @@ def process(glyph):
 			countOfLayers += 1
 			for i, axisName in enumerate(axisNames):
 				if not thisLayer.anchors[axisName]:
-					smartAnchor = GSAnchor.alloc().initWithName_position_(axisName, NSPoint(0, -i * 50))
+					smartAnchor = newAnchorWithName(axisName, NSPoint(0, -i * 50))
 					thisLayer.anchors.append(smartAnchor)
 					countOfAnchors += 1
 	print(f"  - added {countOfAnchors} anchors on {countOfLayers} smart layers.")

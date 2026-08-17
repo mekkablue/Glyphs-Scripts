@@ -245,6 +245,7 @@ Negative coordinates are measured from the right/bottom edge (`-inset` = inset f
 | `reportTimeInNaturalLanguage(seconds)` | Formats a duration as a readable string (e.g., `"2:34 minutes"`) |
 | `newLineControlLayer()` | Returns a newline `GSControlLayer` for `tab.layers`; use instead of `GSControlLayer.newline()`, which raises a `TypeError` in some Glyphs versions |
 | `newGlyphWithName(glyphName)` | Returns a new `GSGlyph` with that name; use instead of `GSGlyph(glyphName)`, which raises a `TypeError` in some Glyphs versions |
+| `newAnchorWithName(anchorName, position=None)` | Returns a new `GSAnchor`; use instead of `GSAnchor(name, position)` (raises a `TypeError` in Glyphs 4) or `GSAnchor.alloc().initWithName_position_()` (missing in Glyphs 3) |
 | `getLegibleFont(size=None)` | Returns a system legible font (Glyphs 2/3 compatible) |
 | `UpdateButton(posSize, callback, title="")` | Creates a refresh button with an NSRefreshTemplate icon |
 

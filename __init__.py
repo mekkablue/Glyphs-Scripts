@@ -2,8 +2,8 @@
 from math import ceil
 from typing import Any
 from AppKit import NSUserDefaults, NSFont, NSImage, NSImageLeading, NSLayoutConstraintOrientationHorizontal, NSLayoutPriorityDefaultHigh, NSMakeSize, NSPasteboard, NSStringPboardType, NSLineBreakByClipping
-from Foundation import NSProcessInfo
-from GlyphsApp import Glyphs, GSFeature, GSClass, GSControlLayer, GSGlyph
+from Foundation import NSProcessInfo, NSPoint
+from GlyphsApp import Glyphs, GSAnchor, GSFeature, GSClass, GSControlLayer, GSGlyph
 from vanilla import Button
 
 if Glyphs.versionNumber >= 3:
@@ -263,6 +263,22 @@ def newGlyphWithName(glyphName):
 		glyph = GSGlyph()
 		glyph.name = glyphName
 		return glyph
+
+
+def newAnchorWithName(anchorName, position=None):
+	"""
+	Returns a new GSAnchor carrying the supplied name and position.
+	Temporary workaround: in Glyphs 4, GSAnchor("name", position) raises
+	'TypeError: GSAnchor() does not accept positional arguments', so we use the
+	ObjC initializer there. In Glyphs 3 and earlier, that ObjC initializer does
+	not exist ('GSAnchor' object has no attribute 'initWithName_position_'), so
+	we keep the positional arguments.
+	"""
+	if position is None:
+		position = NSPoint(0, 0)
+	if Glyphs.versionNumber >= 4:
+		return GSAnchor.alloc().initWithName_position_(anchorName, position)
+	return GSAnchor(anchorName, position)
 
 
 def getLegibleFont(size=None):

@@ -7,8 +7,8 @@ Rotate selected glyphs (or selected paths and components) around a 'rotate' anch
 
 import vanilla
 from Foundation import NSPoint, NSAffineTransform
-from GlyphsApp import Glyphs, GSAnchor
-from mekkablue import mekkaObject, UpdateButton
+from GlyphsApp import Glyphs
+from mekkablue import mekkaObject, newAnchorWithName, UpdateButton
 from mekkablue.geometry import centerOfRect
 
 rotateAnchorName = "rotate"
@@ -69,7 +69,7 @@ class Rotator(mekkaObject):
 			myRotationCenter = NSPoint()
 			myRotationCenter.x = int(self.pref("anchor_x"))
 			myRotationCenter.y = int(self.pref("anchor_y"))
-			myRotationAnchor = GSAnchor.alloc().initWithName_position_("#%s" % rotateAnchorName, myRotationCenter)
+			myRotationAnchor = newAnchorWithName("#%s" % rotateAnchorName, myRotationCenter)
 			for thisLayer in selectedLayers:
 				# adds '#rotate' if it doesn't exist, resets it if it exists:
 				thisLayer.addAnchor_(myRotationAnchor)
