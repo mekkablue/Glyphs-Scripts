@@ -6,9 +6,10 @@ Takes a default set of figures (e.g., dnom), and derives the others (.numr, supe
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSComponent
-from mekkablue import alignButtonsRight, mekkaObject, newGlyphWithName
+from mekkablue import mekkaObject, newGlyphWithName
 from mekkablue.geometry import italicize
 
 
@@ -25,54 +26,79 @@ class smallFigureBuilder(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 400
-		windowHeight = 212
-		windowWidthResize = 400  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 230  # Auto Layout grows the window if the content needs more
+		# no minSize/maxSize: that keeps the window unresizable, and keeps the size limits
+		# out of Auto Layout's way
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Build Small Figures",  # window title
-			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		inset, linePos, lineHeight = 15, 10, 23
+		# the only multi-line label in this window; its height is fixed, so the layout
+		# never has to derive a height from wrapped text:
+		self.w.text_0 = vanilla.TextBox("auto", "Takes the Default Suffix figures (e.g. .dnom) and builds compound copies with suffixes in Derivatives (comma-separated suffix:yOffset pairs). Respects Italic Angle when placing components.", sizeStyle='small', selectable=True)
 
-		self.w.text_0 = vanilla.TextBox((inset, linePos + 2, -inset, 60), "Takes the Default Suffix figures (e.g. .dnom) and builds compound copies with suffixes in Derivatives (comma-separated suffix:yOffset pairs). Respects Italic Angle when placing components.", sizeStyle='small', selectable=True)
-		linePos += round(lineHeight * 2.2)
-
-		self.w.text_1 = vanilla.TextBox((inset - 1, linePos + 3, 100, 14), "Default Suffix:", sizeStyle='small')
-		self.w.default = vanilla.EditText((100, linePos, -inset, 20), "", sizeStyle='small', callback=self.SavePreferences)
+		self.w.text_1 = vanilla.TextBox("auto", "Default Suffix:", sizeStyle='small')
+		self.w.default = vanilla.EditText("auto", "", sizeStyle='small', callback=self.SavePreferences)
 		self.w.default.setToolTip(u"Small figures with this suffix will be used as components in the derivative figures.")
-		linePos += lineHeight
 
-		self.w.text_2 = vanilla.TextBox((inset - 1, linePos + 3, 75, 14), "Derivatives:", sizeStyle='small')
-		self.w.derive = vanilla.EditText((100, linePos, -inset, 20), "", sizeStyle='small', callback=self.SavePreferences)
+		self.w.text_2 = vanilla.TextBox("auto", "Derivatives:", sizeStyle='small')
+		self.w.derive = vanilla.EditText("auto", "", sizeStyle='small', callback=self.SavePreferences)
 		self.w.derive.setToolTip(u"Add suffix:offset pairs (with a colon in between), separated by commas, e.g., ‘.numr:250, superior:350, inferior:-125’. Include the dot if the suffix is a dot suffix. The script will create the figure glyphs or overwrite existing ones.")
-		linePos += lineHeight
 
-		self.w.currentMasterOnly = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Only apply to current master (uncheck for all masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.currentMasterOnly = vanilla.CheckBox("auto", "Only apply to current master (uncheck for all masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.currentMasterOnly.setToolTip(u"If checked, will only process the currently selected master in the frontmost font. Useful if you want to use different values for different masters.")
-		linePos += lineHeight
 
-		self.w.decomposeDefaultFigures = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Decompose small figures with Default Suffix", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.decomposeDefaultFigures = vanilla.CheckBox("auto", u"Decompose small figures with Default Suffix", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.decomposeDefaultFigures.setToolTip(u"If checked, will decompose the small figures with the suffix entered in ‘Default Suffix’, before placing them as components in the derivatives. Useful if the current defaults are e.g. numr, and you want to reset it to dnom, and keep all others (numr, superior, inferior) as compounds.")
-		linePos += lineHeight
 
-		self.w.openTab = vanilla.CheckBox((inset + 2, linePos - 1, 190, 20), u"Open tab with affected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openTab = vanilla.CheckBox("auto", u"Open tab with affected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.openTab.setToolTip(u"If checked, will open a new tab with all figures that have default and derivative suffixes. Useful for checking.")
-		self.w.reuseTab = vanilla.CheckBox((inset + 190, linePos - 1, -inset, 20), u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab = vanilla.CheckBox("auto", u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.setToolTip(u"If checked, will reuse the current tab rather than open a new one. Will open a new one if no tab is currently open and active, though.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.reportButton = vanilla.Button((-200 - 15, -20 - 15, -95, -15), "Open Report", callback=self.openMacroWindow)
-		self.w.runButton = vanilla.Button((-70 - 15, -20 - 15, -15, -15), "Build", callback=self.smallFigureBuilderMain)
+		self.w.reportButton = vanilla.Button("auto", "Open Report", callback=self.openMacroWindow)
+		self.w.runButton = vanilla.Button("auto", "Build", callback=self.smallFigureBuilderMain)
 		self.w.setDefaultButton(self.w.runButton)
 
-		# fit the button row to the button metrics of the running macOS version:
-		alignButtonsRight(self.w, (self.w.reportButton, self.w.runButton))
+		# the description is the one block that wraps: it takes the width it is given
+		# (and the height fixed in the rules below) instead of demanding one long line
+		self.w.text_0.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		# the two field labels hug their text and share a width, so the fields line up:
+		for label in (self.w.text_1, self.w.text_2):
+			nsLabel = label.getNSTextField()
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# checkboxes and square buttons do not resist vertical stretching by default; with
+		# every control hugging vertically and no flexible gap in the chain, the window ends
+		# up exactly as tall as Auto Layout needs. NSLayoutPriorityWindowSizeStayPut (500) is
+		# the level at which a constraint starts outranking "keep the window size".
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[text_0]-inset-|",
+				"H:|-inset-[text_1]-gap-[default]-inset-|",
+				"H:|-inset-[text_2]-gap-[derive]-inset-|",
+				"H:|-inset-[currentMasterOnly]-(>=inset)-|",
+				"H:|-inset-[decomposeDefaultFigures]-(>=inset)-|",
+				"H:|-inset-[openTab]-gap-[reuseTab]-(>=inset)-|",
+				"H:|-(>=inset)-[reportButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"V:|-gap-[text_0]-row-[default]-row-[derive]-row-[currentMasterOnly]-row-[decomposeDefaultFigures]-row-[openTab]-inset-[runButton]-inset-|",
+				"V:[reportButton]-inset-|",
+				{"view1": self.w.text_2, "attribute1": "width", "view2": self.w.text_1, "attribute2": "width"},
+				{"view1": self.w.text_1, "attribute1": "centerY", "view2": self.w.default, "attribute2": "centerY"},
+				{"view1": self.w.text_2, "attribute1": "centerY", "view2": self.w.derive, "attribute2": "centerY"},
+				{"view1": self.w.reuseTab, "attribute1": "centerY", "view2": self.w.openTab, "attribute2": "centerY"},
+			],
+			metrics={"inset": 15, "gap": 8, "row": 8},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
