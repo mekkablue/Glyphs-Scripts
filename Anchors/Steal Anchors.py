@@ -7,8 +7,8 @@ Batch-copy the anchors from one font master to another.
 
 import vanilla
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSAnchor, Message
-from mekkablue import mekkaObject, UpdateButton
+from GlyphsApp import Glyphs, Message
+from mekkablue import mekkaObject, newAnchorWithName, UpdateButton
 from mekkablue.geometry import italicize
 
 
@@ -219,7 +219,7 @@ class StealAnchors(mekkaObject):
 									targetLayer.anchors = None
 								for originAnchor in originLayer.anchors:
 									if not targetLayer.anchors[originAnchor.name]:
-										targetAnchor = GSAnchor.alloc().initWithName_position_(originAnchor.name, originAnchor.position)
+										targetAnchor = newAnchorWithName(originAnchor.name, originAnchor.position)
 										if self.pref("respectItalicAngle") and targetLayer.italicAngle != originLayer.italicAngle:
 											pivot = targetLayer.master.slantHeightForLayer_(targetLayer)
 											if not pivot:

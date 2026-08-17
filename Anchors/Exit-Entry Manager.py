@@ -8,7 +8,7 @@ add or remove the # prefix; swap or delete anchors — all from one place.
 """
 
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, newAnchorWithName
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSAnchor, GSPath, GSNode, GSOFFCURVE, GSLTR, GSRTL
 
@@ -256,10 +256,10 @@ class ExitEntryManager(mekkaObject):
 				glyphsProcessed += 1
 				for layer in self.getLayersFromGlyph(glyph):
 					if xEntry is not None and (not layer.anchors[entryName] or overwrite):
-						layer.anchors.append(GSAnchor.alloc().initWithName_position_(entryName, NSPoint(xEntry, 0.0)))
+						layer.anchors.append(newAnchorWithName(entryName, NSPoint(xEntry, 0.0)))
 						count += 1
 					if xExit is not None and (not layer.anchors[exitName] or overwrite):
-						layer.anchors.append(GSAnchor.alloc().initWithName_position_(exitName, NSPoint(xExit, 0.0)))
+						layer.anchors.append(newAnchorWithName(exitName, NSPoint(xExit, 0.0)))
 						count += 1
 		finally:
 			font.enableUpdateInterface()
@@ -300,23 +300,23 @@ class ExitEntryManager(mekkaObject):
 						if isInit or isMedi:
 							node = self.rightmostOncurve(layer)
 							if node and (not layer.anchors[exitName] or overwrite):
-								layer.anchors.append(GSAnchor.alloc().initWithName_position_(exitName, NSPoint(node.x, node.y)))
+								layer.anchors.append(newAnchorWithName(exitName, NSPoint(node.x, node.y)))
 								count += 1
 						if isMedi or isFina:
 							node = self.leftmostOncurve(layer)
 							if node and (not layer.anchors[entryName] or overwrite):
-								layer.anchors.append(GSAnchor.alloc().initWithName_position_(entryName, NSPoint(node.x, node.y)))
+								layer.anchors.append(newAnchorWithName(entryName, NSPoint(node.x, node.y)))
 								count += 1
 					else:
 						# RTL cursive (Arabic): exit connects to the left (x=0), entry from the right
 						if isInit or isMedi:
 							if not layer.anchors[exitName] or overwrite:
-								layer.anchors.append(GSAnchor.alloc().initWithName_position_(exitName, NSPoint(0.0, 0.0)))
+								layer.anchors.append(newAnchorWithName(exitName, NSPoint(0.0, 0.0)))
 								count += 1
 						if isMedi or isFina:
 							node = self.rightmostOncurve(layer)
 							if node and (not layer.anchors[entryName] or overwrite):
-								layer.anchors.append(GSAnchor.alloc().initWithName_position_(entryName, NSPoint(node.x, node.y)))
+								layer.anchors.append(newAnchorWithName(entryName, NSPoint(node.x, node.y)))
 								count += 1
 		finally:
 			font.enableUpdateInterface()

@@ -7,6 +7,7 @@ Run this script AFTER doing Component from Selection on the Q tail and naming it
 
 from copy import copy as copy
 from GlyphsApp import Glyphs, GSAnchor, GSComponent, Message
+from mekkablue import newAnchorWithName
 
 thisFont = Glyphs.font  # frontmost font
 Oglyph = thisFont.glyphs["O"]
@@ -27,7 +28,7 @@ else:
 		# if necessary, add anchors to _tail.Q
 		if not thisLayer.anchors[newAnchorName]:
 			defaultPosition = Oglyph.layers[masterID].anchors[anchorName].position
-			newAnchor = GSAnchor.alloc().initWithName_position_(newAnchorName, defaultPosition)
+			newAnchor = newAnchorWithName(newAnchorName, defaultPosition)
 			thisLayer.anchors.append(newAnchor)
 
 		# rebuild Q from O:

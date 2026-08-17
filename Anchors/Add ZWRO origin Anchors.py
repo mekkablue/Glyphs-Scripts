@@ -7,8 +7,8 @@ Insert *origin anchors for ZWRO in all combining marks of specified scripts.
 
 from AppKit import NSPoint, NSHeight
 import vanilla
-from GlyphsApp import Glyphs, GSAnchor, Message
-from mekkablue import mekkaObject, UpdateButton, reportFontName
+from GlyphsApp import Glyphs, Message
+from mekkablue import mekkaObject, newAnchorWithName, UpdateButton, reportFontName
 
 
 def moveMacroWindowSeparator(pos=20):
@@ -198,7 +198,7 @@ class AddZWROOriginAnchors(mekkaObject):
 										x = layer.bounds.origin.x
 								x += offset
 								anchorPosition = NSPoint(x, 0)
-								anchor = GSAnchor.alloc().initWithName_position_("*origin", anchorPosition)
+								anchor = newAnchorWithName("*origin", anchorPosition)
 								layer.anchors.append(anchor)
 								print(f"⚓️ {glyph.name}, {layer.name}: added {anchor.name} at {int(anchor.position.x)}x 0y")
 

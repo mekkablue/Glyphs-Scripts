@@ -6,7 +6,8 @@ Fix the order of top_X and bottom_X anchors to RTL.
 """
 
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSAnchor
+from GlyphsApp import Glyphs
+from mekkablue import newAnchorWithName
 
 
 Font = Glyphs.font
@@ -20,7 +21,7 @@ def makeAnchor(thisLayer, anchorName, x, y):
 	thisAnchorPosition.y = y
 	thisAnchorName = anchorName
 
-	thisAnchor = GSAnchor.alloc().initWithName_position_(thisAnchorName, thisAnchorPosition)
+	thisAnchor = newAnchorWithName(thisAnchorName, thisAnchorPosition)
 	thisLayer.addAnchor_(thisAnchor)
 
 	print("-- %s (%.1f, %.1f)" % (thisAnchorName, thisAnchorPosition.x, thisAnchorPosition.y))
