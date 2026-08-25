@@ -9,7 +9,7 @@ In Glyphs 4+, presents a redesigned UI for inserting axis particles.
 from Foundation import NSDictionary, NSMutableArray, NSMutableDictionary
 import vanilla
 from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE
-from mekkablue import mekkaObject, UpdateButton, nameParticleAxisIDs, nameParticlesForAxisID
+from mekkablue import mekkaObject, UpdateButton
 
 try:
 	from GlyphsApp import GSNameParticle
@@ -653,14 +653,6 @@ class InstanceMaker(mekkaObject):
 
 # ---- Glyphs 4+ particles UI ----
 
-def existingParticleInstance(font):
-	"""Returns the first particle instance of the font, or None if there is none."""
-	for instance in font.instances:
-		if instance.type == INSTANCETYPEPARTICLE:
-			return instance
-	return None
-
-
 def buildNameParticle(name, internalValue, externalValue):
 	"""
 	Returns a GSNameParticle with the supplied name and axis values.
@@ -727,22 +719,14 @@ def insertParticlesIntoFont(font, particlesDict):
 	# Build axis tag → axisId lookup:
 	axisIdForTag = {axis.axisTag: axis.axisId for axis in font.axes}
 
-	# Reuse the existing particle instance if there is one, otherwise add a new one:
-	particleInstance = existingParticleInstance(font)
-	if particleInstance is None:
-		particleInstance = GSInstance()
-		particleInstance.setType_(INSTANCETYPEPARTICLE)
-		font.instances.append(particleInstance)
-		print("\t✅ Added new particle instance.")
-	else:
-		print("\t♻️ Reusing existing particle instance.")
+	# Always add a new set of particles. Particles that were in the font before are
+	# left alone, unless the user asked for them to be removed (see removeParticles above):
+	particleInstance = GSInstance()
+	particleInstance.setType_(INSTANCETYPEPARTICLE)
+	font.instances.append(particleInstance)
+	print("\t✅ Added new set of particles.")
 
-	# Carry over particles of axes we are not touching:
 	allParticles = NSMutableDictionary.dictionary()
-	for axisId in nameParticleAxisIDs(particleInstance):
-		currentParticles = nameParticlesForAxisID(particleInstance, axisId)
-		if currentParticles:
-			allParticles.setObject_forKey_(NSMutableArray.arrayWithArray_(currentParticles), axisId)
 
 	# Build name particles for each axis:
 	for axisTag, axisData in axesData.items():
@@ -769,7 +753,7 @@ def insertParticlesIntoFont(font, particlesDict):
 			else:
 				print(f"\t\t✅ {name} ({internalValue}>{externalValue})")
 
-		# replaces the particles of this axis, keeps those of all other axes:
+		# adds the particles of this axis to the new set:
 		allParticles.setObject_forKey_(axisParticles, axisId)
 
 	particleInstance.setNameParticles_(allParticles)
@@ -867,7 +851,7 @@ class InstanceMakerV4(mekkaObject):
 			callback=self.SavePreferences,
 			sizeStyle="small",
 		)
-		self.w.removeParticles.setToolTip("Remove all existing axis particles from the frontmost font before inserting.")
+		self.w.removeParticles.setToolTip("Remove all existing axis particles from the frontmost font before inserting. If off, the new particles will be added as an additional set, and existing particles will stay as they are.")
 		linePos += lineHeight
 
 		# Row: Elidable names
