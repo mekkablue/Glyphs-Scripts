@@ -10,12 +10,13 @@ add or remove the # prefix; swap or delete anchors — all from one place.
 import vanilla
 from mekkablue import mekkaObject, newAnchorWithName
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSAnchor, GSPath, GSNode, GSOFFCURVE, GSLTR, GSRTL
+from GlyphsApp import Glyphs, GSAnchor, GSPath, GSNode, GSOFFCURVE, GSBIDI, GSLTR, GSRTL
 
 
 class ExitEntryManager(mekkaObject):
 	prefDict = {
 		"useHashtag": True,
+		"assumeBidiLTR": True,
 		"overwriteExisting": False,
 		"allLayers": True,
 		"applyFontWide": False,
@@ -23,7 +24,7 @@ class ExitEntryManager(mekkaObject):
 
 	def __init__(self):
 		windowWidth = 405
-		windowHeight = 345
+		windowHeight = 367
 		windowWidthResize = 100
 		windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
@@ -98,6 +99,10 @@ class ExitEntryManager(mekkaObject):
 		self.w.useHashtag.setToolTip("When inserting anchors, use '#exit'/'#entry' (checked) or 'exit'/'entry' (unchecked). Applies to all three Insert operations above.")
 		linePos += lineHeight
 
+		self.w.assumeBidiLTR = vanilla.CheckBox((inset, linePos, -inset, 20), "Assume bidirectional glyphs as LTR", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.assumeBidiLTR.setToolTip("If checked, bidirectional glyphs (e.g. punctuation) will be treated as left-to-right, i.e., the entry anchor will be added on the left, exit on the right.")
+		linePos += lineHeight
+
 		self.w.overwriteExisting = vanilla.CheckBox((inset, linePos, -inset, 20), "Overwrite existing exit/entry anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.overwriteExisting.setToolTip("If checked, existing exit/entry anchors are replaced. If unchecked, existing anchors are kept and only missing ones are added.")
 		linePos += lineHeight
@@ -123,6 +128,12 @@ class ExitEntryManager(mekkaObject):
 		"""Returns anchor name with or without # prefix based on the useHashtag setting."""
 		prefix = "#" if self.prefBool("useHashtag") else ""
 		return "%s%s" % (prefix, baseName)
+
+	def isGlyphLTR(self, glyph):
+		"""Returns True if the glyph runs left to right, i.e. it is an LTR glyph, or a bidirectional one while the assumeBidiLTR setting is on."""
+		if glyph.direction == GSLTR:
+			return True
+		return glyph.direction == GSBIDI and self.prefBool("assumeBidiLTR")
 
 	def getGlyphsToProcess(self):
 		font = Glyphs.font
@@ -192,7 +203,7 @@ class ExitEntryManager(mekkaObject):
 		font.disableUpdateInterface()
 		try:
 			for glyph in glyphs:
-				isLTR = glyph.direction == GSLTR
+				isLTR = self.isGlyphLTR(glyph)
 				for layer in self.getLayersFromGlyph(glyph):
 					xEntry = 0.0 if isLTR else layer.width
 					xExit = layer.width if isLTR else 0.0
@@ -225,7 +236,7 @@ class ExitEntryManager(mekkaObject):
 				if not glyph:
 					continue
 
-				isLTR = glyph.direction == GSLTR
+				isLTR = self.isGlyphLTR(glyph)
 				selectedNodes = sorted(
 					[item for item in activeLayer.selection if isinstance(item, GSNode)],
 					key=lambda n: n.x,
@@ -290,7 +301,7 @@ class ExitEntryManager(mekkaObject):
 				if not (isInit or isMedi or isFina):
 					skipped += 1
 					continue
-				isLTR = glyph.direction == GSLTR
+				isLTR = self.isGlyphLTR(glyph)
 				for layer in self.getLayersFromGlyph(glyph):
 					hasPaths = bool(self._getPaths(layer))
 					if not hasPaths:
