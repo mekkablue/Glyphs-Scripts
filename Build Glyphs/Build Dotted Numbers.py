@@ -106,7 +106,7 @@ def process(thisGlyph):
 				elif thisFont.glyphs[lfName]:
 					part = lfName
 			comp = GSComponent(part)
-			thisLayer.components.append(comp)
+			thisLayer.shapes.append(comp)
 			if i > 0:
 				placeComponentsAtDistance(thisLayer, thisLayer.components[i - 1], comp, distance=distanceBetweenComponents)
 
