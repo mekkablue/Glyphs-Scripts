@@ -7,7 +7,7 @@ Derive one H and one V stem value for all your masters by measuring certain shap
 
 import vanilla
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSMetric, GSInfoValue, Message
+from GlyphsApp import Glyphs, GSMetric, Message
 from mekkablue import mekkaObject, UpdateButton, reportFontName
 
 whichMeasure = (
@@ -47,6 +47,7 @@ class AutoStems(mekkaObject):
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
+		glyphNames = self.glyphNames()
 		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Measure shapes in the font and derive stem entries", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
@@ -57,7 +58,7 @@ class AutoStems(mekkaObject):
 		self.w.vShape = vanilla.PopUpButton((inset + 150, linePos, 110, 17), whichShape, sizeStyle="small", callback=self.SavePreferences)
 		self.w.vShape.setToolTip("Which shape in the glyph to measure for the vertical stem.")
 		self.w.vText3 = vanilla.TextBox((inset + 263, linePos + 2, 17, 14), "of", sizeStyle="small", selectable=True)
-		self.w.vStemGlyph = vanilla.ComboBox((inset + 280, linePos - 1, -inset - 25, 19), [g.name for g in Glyphs.font.glyphs], sizeStyle="small", callback=self.SavePreferences)
+		self.w.vStemGlyph = vanilla.ComboBox((inset + 280, linePos - 1, -inset - 25, 19), glyphNames, sizeStyle="small", callback=self.SavePreferences)
 		self.w.vStemGlyph.setToolTip("Pick a glyph to measure for the vertical stem.")
 		self.w.vReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
 		resetToolTip = "Reload the glyph list of the frontmost font."
@@ -71,7 +72,7 @@ class AutoStems(mekkaObject):
 		self.w.hShape = vanilla.PopUpButton((inset + 150, linePos, 110, 17), whichShape, sizeStyle="small", callback=self.SavePreferences)
 		self.w.hShape.setToolTip("Which shape in the glyph to measure for the horizontal stem.")
 		self.w.hText3 = vanilla.TextBox((inset + 263, linePos + 2, 17, 14), "of", sizeStyle="small", selectable=True)
-		self.w.hStemGlyph = vanilla.ComboBox((inset + 280, linePos - 1, -inset - 25, 19), [g.name for g in Glyphs.font.glyphs], sizeStyle="small", callback=self.SavePreferences)
+		self.w.hStemGlyph = vanilla.ComboBox((inset + 280, linePos - 1, -inset - 25, 19), glyphNames, sizeStyle="small", callback=self.SavePreferences)
 		self.w.hStemGlyph.setToolTip("Pick a glyph to measure for the horizontal stem.")
 		self.w.hReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
 		self.w.hReset.setToolTip(resetToolTip)
@@ -96,11 +97,18 @@ class AutoStems(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
+	def glyphNames(self):
+		font = Glyphs.font
+		if not font:
+			return []
+		return [g.name for g in font.glyphs]
+
 	def update(self, sender=None):
+		glyphNames = self.glyphNames()
 		if sender == self.w.hReset:
-			self.w.hStemGlyph.setItems([g.name for g in Glyphs.font.glyphs])
+			self.w.hStemGlyph.setItems(glyphNames)
 		if sender == self.w.vReset:
-			self.w.vStemGlyph.setItems([g.name for g in Glyphs.font.glyphs])
+			self.w.vStemGlyph.setItems(glyphNames)
 
 	def measureLayer(self, layer, measure, shape, v=True):
 		layerCopy = layer.copyDecomposedLayer()
@@ -204,10 +212,8 @@ class AutoStems(mekkaObject):
 
 					# set stems:
 					print(f"V {vStem} H {hStem}: {m.name}")
-					vInfo = GSInfoValue.alloc().initWithValue_(vStem)
-					hInfo = GSInfoValue.alloc().initWithValue_(hStem)
-					m.setStemValue_forId_(vInfo, vID)
-					m.setStemValue_forId_(hInfo, hID)
+					m.stems[vID] = vStem
+					m.stems[hID] = hStem
 
 				print()
 
