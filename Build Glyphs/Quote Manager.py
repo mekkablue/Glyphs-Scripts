@@ -144,7 +144,8 @@ class QuoteManager(mekkaObject):
 		)
 		self.w.updateButton = vanilla.Button("auto", "Update", callback=self.update)
 		self.w.updateButton.setToolTip(
-			"Update metrics keys, anchors, and kern groups for all selected quote groups. Does not overwrite existing paths."
+			"Update metrics keys, kern groups and component alignment for all selected quote groups, "
+			"and reset the #entry/#exit anchors based on the default single quote. Does not overwrite existing paths."
 		)
 		self.w.buildButton = vanilla.Button("auto", "Build", callback=self.build)
 		self.w.buildButton.setToolTip(
@@ -304,6 +305,50 @@ class QuoteManager(mekkaObject):
 		layer.anchors.append(newAnchorWithName("#entry", NSPoint(0, 0)))
 		layer.anchors.append(newAnchorWithName("#exit", NSPoint(distance, 0)))
 
+	def ensureDefaultAnchors(self, font, defaultName):
+		"""Make sure the default glyph carries #entry/#exit in every master, so it can serve as anchor reference."""
+		g = font.glyphs[defaultName] if defaultName else None
+		if not g:
+			return
+		for master in font.masters:
+			layer = g.layers[master.id]
+			if not layer.anchors["#entry"] or not layer.anchors["#exit"]:
+				self.setAnchors(layer)
+				print(f"\t⚓ Added anchors to {defaultName} / {master.name}")
+
+	# -----------------------------------------------------------------------
+	# Component alignment
+	# -----------------------------------------------------------------------
+
+	def componentIsFlipped(self, component):
+		"""True if the component transform mirrors the component, i.e. the matrix has a negative determinant."""
+		try:
+			transformValues = tuple(component.transform)
+		except Exception:
+			transformValues = None
+		if transformValues and len(transformValues) >= 4:
+			xx, xy, yx, yy = transformValues[:4]
+			return (xx * yy - xy * yx) < 0
+		scale = getattr(component, "scale", None)
+		if scale:
+			return (scale[0] * scale[1]) < 0
+		return False
+
+	def setComponentAlignment(self, component):
+		"""Auto-align the component, except when it is mirrored: flipped components are always left unaligned.
+
+		Returns True if automatic alignment was switched on, False if it was disabled.
+		"""
+		if self.componentIsFlipped(component):
+			currentPosition = component.position
+			component.automaticAlignment = False
+			component.disableAlignment = True
+			if currentPosition is not None:
+				component.position = currentPosition
+			return False
+		component.automaticAlignment = True
+		return True
+
 	# -----------------------------------------------------------------------
 	# Metrics keys
 	# -----------------------------------------------------------------------
@@ -409,7 +454,7 @@ class QuoteManager(mekkaObject):
 	# -----------------------------------------------------------------------
 
 	def syncAnchorsFromDefault(self, font, singles, defaultQuote, defaultGuillemet):
-		"""Copy #entry/#exit positions from the relevant default to each single."""
+		"""Reset #entry/#exit of every single to the positions of the relevant default. Existing anchors are always replaced."""
 		for singleName in singles:
 			isGuillemet = singleName in ("guilsinglleft", "guilsinglright")
 			defaultName = defaultGuillemet if isGuillemet else defaultQuote
@@ -643,11 +688,11 @@ class QuoteManager(mekkaObject):
 				layer.clear()
 
 				comp = GSComponent(sourceName)
-				comp.automaticAlignment = True
 				try:
 					layer.shapes.append(comp)
 				except Exception:
 					layer.components.append(comp)
+				self.setComponentAlignment(comp)
 
 				print(f"\t🔤 {apostropheName} ← composite of {sourceName} / {master.name}")
 
@@ -673,13 +718,14 @@ class QuoteManager(mekkaObject):
 			layer.clear()
 
 			comp = GSComponent(defaultGuillemet)
-			comp.automaticAlignment = True
-			# Horizontal mirror (-100% scale on x); auto-alignment manages the translation
+			# Horizontal mirror (-100% scale on x); the translation moves it back into the advance
 			comp.transform = (-1, 0, 0, 1, defaultLayer.width, 0)
 			try:
 				layer.shapes.append(comp)
 			except Exception:
 				layer.components.append(comp)
+			# mirrored components are never auto-aligned
+			self.setComponentAlignment(comp)
 
 			layer.width = defaultLayer.width
 			print(f"\t🔤 {otherGuillemet} ← mirrored composite of {defaultGuillemet} / {master.name}")
@@ -714,23 +760,24 @@ class QuoteManager(mekkaObject):
 
 				for _ in range(2):
 					comp = GSComponent(singleName)
-					comp.automaticAlignment = True
 					try:
 						ggl.shapes.append(comp)
 					except Exception:
 						ggl.components.append(comp)
+					self.setComponentAlignment(comp)
 
 				print(f"\t🔤 {doubleName} ← 2× {singleName} / {master.name}")
 
-	def ensureAutoAlignedComponents(self, font, glyphNames):
-		"""Set automaticAlignment=True on every component in the given glyphs (double quotes, apostrophes)."""
+	def syncComponentAlignment(self, font, glyphNames):
+		"""Auto-align every component in the given glyphs (double quotes, apostrophes), except mirrored ones, which always get alignment disabled."""
 		for name in glyphNames:
 			g = font.glyphs[name]
 			if not g:
 				continue
 			for layer in g.layers:
 				for c in layer.components:
-					c.automaticAlignment = True
+					if not self.setComponentAlignment(c):
+						print(f"\t🚫 Alignment disabled for mirrored {c.componentName} in {name} / {layer.name}")
 
 	# -----------------------------------------------------------------------
 	# Validate default quote
@@ -770,13 +817,9 @@ class QuoteManager(mekkaObject):
 			glyphsToOpen = []
 
 			for defaultName in filter(None, [self.getDefaultQuoteName(), self.getDefaultGuillemetsName()]):
-				g = self.ensureGlyphExists(font, defaultName)
+				self.ensureGlyphExists(font, defaultName)
 				glyphsToOpen.append(defaultName)
-				for master in font.masters:
-					layer = g.layers[master.id]
-					if not layer.anchors["#entry"] or not layer.anchors["#exit"]:
-						self.setAnchors(layer)
-						print(f"\t⚓ Added anchors to {defaultName} / {master.name}")
+				self.ensureDefaultAnchors(font, defaultName)
 
 			if self.prefBool("doDumbQuotes"):
 				self.ensureGlyphExists(font, "quotesingle")
@@ -812,7 +855,12 @@ class QuoteManager(mekkaObject):
 
 			self.resetMetricsKeys(font, groups)
 			self.setMetricsKeys(font, groups, defaultQuote, defaultGuillemet)
+
+			# always reset #entry/#exit based on the default single quote (and the default guillemet)
+			self.ensureDefaultAnchors(font, defaultQuote)
+			self.ensureDefaultAnchors(font, defaultGuillemet)
 			self.syncAnchorsFromDefault(font, singles, defaultQuote, defaultGuillemet)
+
 			self.setKernGroups(font, singles)
 
 			mirrorGuillemet = (
@@ -825,7 +873,7 @@ class QuoteManager(mekkaObject):
 				+ (list(APOSTROPHE_COMPOSITES.keys()) if "apostrophes" in groups else [])
 				+ mirrorGuillemet
 			)
-			self.ensureAutoAlignedComponents(font, compositeGlyphs)
+			self.syncComponentAlignment(font, compositeGlyphs)
 
 			for name in self.getAllAffectedNames(groups):
 				g = font.glyphs[name]
@@ -911,16 +959,10 @@ class QuoteManager(mekkaObject):
 
 			# 7. Sync anchors from default
 			print("\nSyncing anchors:")
+			# Set the anchors on the defaults first, then reset all singles based on them
+			self.ensureDefaultAnchors(font, defaultQuote)
+			self.ensureDefaultAnchors(font, defaultGuillemet)
 			self.syncAnchorsFromDefault(font, singles, defaultQuote, defaultGuillemet)
-			# Also set anchors on the default itself if missing
-			if defaultQuote:
-				g = font.glyphs[defaultQuote]
-				if g:
-					for master in font.masters:
-						layer = g.layers[master.id]
-						if not layer.anchors["#entry"] or not layer.anchors["#exit"]:
-							self.setAnchors(layer)
-							print(f"\t⚓ Added anchors to {defaultQuote} / {master.name}")
 
 			# 8. Build double quotes (always overwrite if single is not empty)
 			print("\nBuilding double quotes:")
@@ -941,7 +983,7 @@ class QuoteManager(mekkaObject):
 				+ (list(APOSTROPHE_COMPOSITES.keys()) if "apostrophes" in groups else [])
 				+ mirrorGuillemet
 			)
-			self.ensureAutoAlignedComponents(font, compositeGlyphs)
+			self.syncComponentAlignment(font, compositeGlyphs)
 
 			# 11. Refresh metrics
 			for name in self.getAllAffectedNames(groups):
