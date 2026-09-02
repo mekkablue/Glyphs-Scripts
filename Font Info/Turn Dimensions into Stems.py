@@ -1,11 +1,11 @@
-#MenuTitle: Turn Dimensions into Stems
+# MenuTitle: Turn Dimensions into Stems
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
-__doc__="""
+__doc__ = """
 Turns all H and V dimensions (in the Dimensions palette) into H and V stems.
 """
 
-from GlyphsApp import GSMetric, GSInfoValue
+from GlyphsApp import Glyphs, GSMetric
 
 font = Glyphs.font
 dimensions = font.userData["GSDimensionPlugin.Dimensions"]
@@ -24,7 +24,6 @@ for masterID in dimensions.keys():
 		else:
 			stem = font.stems[dimKey]
 		value = dimensions[masterID][dimKey]
-		info = GSInfoValue.alloc().initWithValue_(int(value) or 0)
-		master.setStemValue_forId_(info, stem.id)
+		master.stems[stem.id] = int(value) or 0
 
 font.parent.windowController().showFontInfoWindowWithTabSelected_(1)
