@@ -7,7 +7,7 @@ Removes annotations, glyph notes, guides, and node names.
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, clearGuides, guidesOf
 
 
 def extractUserDataKeys(obj):
@@ -310,11 +310,11 @@ class GarbageCollection(mekkaObject):
 											thisNode.name = None
 
 							if removeLocalGuides:
-								localGuidesGlyph += len(thisLayer.guideLines)
-								thisLayer.guideLines = None
+								localGuidesGlyph += len(guidesOf(thisLayer))
+								clearGuides(thisLayer)
 
-								localGuidesGlyph += len(thisLayer.background.guideLines)
-								thisLayer.background.guideLines = None
+								localGuidesGlyph += len(guidesOf(thisLayer.background))
+								clearGuides(thisLayer.background)
 
 							if removeAnnotations:
 								removeAnnotationsGlyph += len(thisLayer.annotations)
@@ -383,7 +383,7 @@ class GarbageCollection(mekkaObject):
 					self.log("📏 Removing global guides ...")
 					for thisMaster in thisFont.masters:
 						if thisMaster == thisFont.selectedFontMaster or not currentMasterOnly:
-							thisMaster.guideLines = None
+							clearGuides(thisMaster)
 
 				# Remove User Data (font level):
 				if self.pref("userDataFont"):

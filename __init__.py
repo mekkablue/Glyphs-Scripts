@@ -280,6 +280,29 @@ def newAnchorWithName(anchorName, position=None):
 	return GSAnchor(anchorName, position)
 
 
+def guidesOf(layerOrMaster):
+	"""
+	Returns the guides of a GSLayer or a GSFontMaster.
+	Temporary workaround: Glyphs 4 has dropped the deprecated guideLines property
+	('GSLayer' object has no attribute 'guideLines'), while Glyphs 2 does not know
+	the guides property yet, so we use whichever the object actually has.
+	"""
+	if hasattr(layerOrMaster, "guideLines"):
+		return layerOrMaster.guideLines
+	return layerOrMaster.guides
+
+
+def clearGuides(layerOrMaster):
+	"""
+	Deletes all guides of a GSLayer or a GSFontMaster.
+	See guidesOf() for why we need to distinguish between guideLines and guides.
+	"""
+	if hasattr(layerOrMaster, "guideLines"):
+		layerOrMaster.guideLines = None
+	else:
+		layerOrMaster.guides = []
+
+
 def getLegibleFont(size=None):
 	if size is None:
 		size = NSFont.systemFontSize()
