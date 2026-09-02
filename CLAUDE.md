@@ -349,6 +349,8 @@ Read it, but prefer Auto Layout for new windows and when reworking an existing o
 | `reportTimeInNaturalLanguage(seconds)` | Formats a duration as a readable string (e.g., `"2:34 minutes"`) |
 | `newLineControlLayer()` | Returns a newline `GSControlLayer` for `tab.layers`; use instead of `GSControlLayer.newline()`, which raises a `TypeError` in some Glyphs versions |
 | `newGlyphWithName(glyphName)` | Returns a new `GSGlyph` with that name; use instead of `GSGlyph(glyphName)`, which raises a `TypeError` in some Glyphs versions |
+| `guidesOf(layerOrMaster)` | Returns the guides of a `GSLayer` or `GSFontMaster`; use instead of `.guideLines`, which is gone in Glyphs 4, or `.guides`, which does not exist in Glyphs 2 |
+| `clearGuides(layerOrMaster)` | Deletes all guides of a `GSLayer` or `GSFontMaster`, Glyphs 2/3/4 compatible |
 | `newAnchorWithName(anchorName, position=None)` | Returns a new `GSAnchor`; use instead of `GSAnchor(name, position)` (raises a `TypeError` in Glyphs 4) or `GSAnchor.alloc().initWithName_position_()` (missing in Glyphs 3) |
 | `getLegibleFont(size=None)` | Returns a system legible font (Glyphs 2/3 compatible) |
 | `UpdateButton(posSize, callback, title="")` | Creates a refresh button with an NSRefreshTemplate icon; `posSize` may be `"auto"` |
