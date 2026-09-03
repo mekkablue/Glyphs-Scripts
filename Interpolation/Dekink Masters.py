@@ -5,8 +5,9 @@ __doc__ = """
 Synchronize node distance proportions for angled smooth connections through all masters (and other compatible layers), thus avoiding interpolation kinks. Select one or more nodes in triplets and run the script. The selected nodes will be moved in all other masters.
 """
 
-from Foundation import NSPoint, NSArray, NSSize
+from mekkablue import layerGroupsOf
 from GlyphsApp import Glyphs, GSNode, GSSMOOTH, Message
+from Foundation import NSPoint, NSSize
 
 
 def vectorFromNodes(n1, n2):
@@ -46,14 +47,10 @@ currentGlyph = currentLayer.parent
 
 # find compatible layers in the same glyph:
 layerIDs = []
-instances = [i for i in currentFont.instances if i.type == 0]
-for subrunArray in currentGlyph.layerGroups_masters_error_(NSArray(instances), NSArray(currentFont.masters), None):
-	if subrunArray:
-		subrun = tuple(subrunArray[0])
-		if currentLayer.layerId in subrun:
-			for ID in subrun:
-				if ID != currentLayer.layerId:
-					layerIDs.append(ID)
+for layerGroup in layerGroupsOf(currentGlyph):
+	if currentLayer.layerId in layerGroup:
+		layerIDs.extend(ID for ID in layerGroup if ID != currentLayer.layerId)
+		break
 
 # if there are any compatible layers...
 if not layerIDs:
