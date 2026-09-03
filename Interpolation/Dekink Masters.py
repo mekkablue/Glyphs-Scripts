@@ -10,31 +10,96 @@ from GlyphsApp import Glyphs, GSNode, GSSMOOTH, Message
 from Foundation import NSPoint, NSSize
 
 
-def vectorFromNodes(n1, n2):
-	return NSSize(n2.x - n1.x, n2.y - n1.y)
+def vectorFromNodes(firstNode, secondNode):
+	return NSSize(secondNode.x - firstNode.x, secondNode.y - firstNode.y)
 
 
 def vectorLength(vector):
 	return (vector.width**2 + vector.height**2)**0.5
 
 
-def dekink(originLayer, compatibleLayerIDs, pathIndex, nodeIndex, ratio, refi1=None, refi2=None):
+def ratioOfVectors(vector, referenceVector):
+	"""Length of vector, measured in lengths of referenceVector. None if referenceVector has zero length."""
+	referenceLength = vectorLength(referenceVector)
+	if not referenceLength:
+		return None
+	return vectorLength(vector) / referenceLength
+
+
+def isInterpolatingLayer(layer):
+	"""True for master layers as well as brace and bracket layers."""
 	try:
-		if refi1 is not None and refi2 is not None:
-			thisGlyph = originLayer.parent
-			for thisID in compatibleLayerIDs:
-				thisLayer = thisGlyph.layers[thisID]
-				thisPath = thisLayer.paths[pathIndex]
-				refNodeA = thisPath.nodes[refi1]
-				refNodeB = thisPath.nodes[refi2]
-				refVector = vectorFromNodes(refNodeA, refNodeB)
-				newPosition = NSPoint(refNodeA.x + refVector.width * ratio, refNodeA.y + refVector.height * ratio)
-				thisPath.nodes[nodeIndex].position = newPosition
-			return True
-		else:
+		return layer.isMasterLayer or layer.isSpecialLayer
+	except AttributeError:
+		# Glyphs 2 fallback:
+		font = layer.parent.parent
+		return bool(font) and any(master.id == layer.layerId for master in font.masters)
+
+
+def layersAreCompatible(firstLayer, secondLayer):
+	"""
+	True if both layers have the same path and node structure,
+	i.e. if path and node indexes point at the same nodes in both layers.
+	"""
+	firstPaths, secondPaths = firstLayer.paths, secondLayer.paths
+	if len(firstPaths) != len(secondPaths):
+		return False
+	for firstPath, secondPath in zip(firstPaths, secondPaths):
+		firstNodes, secondNodes = firstPath.nodes, secondPath.nodes
+		if len(firstNodes) != len(secondNodes):
 			return False
+		for firstNode, secondNode in zip(firstNodes, secondNodes):
+			if firstNode.type != secondNode.type:
+				return False
+	return True
+
+
+def compatibleLayers(referenceLayer):
+	"""All other layers of the same glyph that interpolate with referenceLayer."""
+	glyph = referenceLayer.parent
+	return tuple(
+		layer for layer in glyph.layers
+		if layer.layerId != referenceLayer.layerId and isInterpolatingLayer(layer) and layersAreCompatible(referenceLayer, layer)
+	)
+
+
+def indexInList(items, item):
+	"""Index of item in items, by identity first, by equality only if identity fails."""
+	for i, thisItem in enumerate(items):
+		if thisItem is item:
+			return i
+	for i, thisItem in enumerate(items):
+		if thisItem == item:
+			return i
+	return None
+
+
+def indexOfPath(layer, path):
+	return indexInList(tuple(layer.paths), path)
+
+
+def indexOfNode(path, node):
+	return indexInList(tuple(path.nodes), node)
+
+
+def dekink(targetLayers, pathIndex, nodeIndex, ratio, referenceIndex1, referenceIndex2):
+	if pathIndex is None or nodeIndex is None or referenceIndex1 is None or referenceIndex2 is None:
+		print("\t❌ Could not determine path or node indexes for a selected node.")
+		return False
+	try:
+		for thisLayer in targetLayers:
+			thisPath = thisLayer.paths[pathIndex]
+			referenceNodeA = thisPath.nodes[referenceIndex1]
+			referenceNodeB = thisPath.nodes[referenceIndex2]
+			referenceVector = vectorFromNodes(referenceNodeA, referenceNodeB)
+			newPosition = NSPoint(
+				referenceNodeA.x + referenceVector.width * ratio,
+				referenceNodeA.y + referenceVector.height * ratio,
+			)
+			thisPath.nodes[nodeIndex].position = newPosition
+		return True
 	except Exception as e:
-		print("Error for path index %s, node index %i:\n%s" % (pi, ni, e))
+		print("\t❌ Error for path index %s, node index %s:\n%s" % (pathIndex, nodeIndex, e))
 		import traceback
 		print(traceback.format_exc())
 		return False
@@ -56,51 +121,83 @@ for layerGroup in layerGroupsOf(currentGlyph):
 if not layerIDs:
 	Message(title="Dekink Error", message="Could not find any other layers in this glyph for this interpolation.", OKButton=None)
 else:
-	if not currentGlyph.mastersCompatible:
-		Message(title="Dekink Error", message="Could not find compatible masters.", OKButton=None)
+	print("Dekink Master Layers for %s:" % currentLayer.parent.name)
+
+	# find the nodes the user selected:
+	selectedNodes = tuple(n for n in currentLayer.selection if isinstance(n, GSNode))
+
+	# find compatible layers in the same glyph:
+	targetLayers = compatibleLayers(currentLayer)
+
+	if not selectedNodes:
+		Message(title="Dekink Error", message="Please select one or more nodes of a smooth connection, and run the script again.", OKButton=None)
+	elif not targetLayers:
+		Message(title="Dekink Error", message="Could not find any other compatible layer in this glyph.", OKButton=None)
 	else:
 		errorCount = 0
+		dekinkCount = 0
 
-		# ...find the indices for selected nodes:
-		s = [n for n in currentLayer.selection if isinstance(n, GSNode)]
-		for n in s:
-			pi = currentLayer.indexOfPath_(n.parent)
-			ni = n.index
+		for thisNode in selectedNodes:
+			thisPath = thisNode.parent
+			pathIndex = indexOfPath(currentLayer, thisPath)
+			nodeIndex = indexOfNode(thisPath, thisNode)
 
 			# find the position in the triplet and the ratio between the 3 points:
 
-			if n.connection != GSSMOOTH and n.prevNode.connection == GSSMOOTH:
+			if thisNode.connection != GSSMOOTH and thisNode.prevNode.connection == GSSMOOTH:
 				# third in the triplet:
-				n0 = n.prevNode.prevNode
-				n1 = n.prevNode
-				n2 = n  # move this node
-				vector1 = vectorFromNodes(n0, n1)
-				vector2 = vectorFromNodes(n0, n2)
-				ratio = vectorLength(vector2) / vectorLength(vector1)
-				if not dekink(currentLayer, layerIDs, pi, ni, ratio, refi1=n0.index, refi2=n1.index):
-					errorCount += 1
+				node0 = thisNode.prevNode.prevNode
+				node1 = thisNode.prevNode
+				node2 = thisNode  # move this node
+				vector1 = vectorFromNodes(node0, node1)
+				vector2 = vectorFromNodes(node0, node2)
+				ratio = ratioOfVectors(vector2, vector1)
+				referenceIndex1 = indexOfNode(thisPath, node0)
+				referenceIndex2 = indexOfNode(thisPath, node1)
 
-			elif n.connection != GSSMOOTH and n.nextNode.connection == GSSMOOTH:
+			elif thisNode.connection != GSSMOOTH and thisNode.nextNode.connection == GSSMOOTH:
 				# first in the triplet:
-				n0 = n  # move this node
-				n1 = n.nextNode
-				n2 = n.nextNode.nextNode
-				vector1 = vectorFromNodes(n2, n1)
-				vector2 = vectorFromNodes(n2, n0)
-				ratio = vectorLength(vector2) / vectorLength(vector1)
-				if not dekink(currentLayer, layerIDs, pi, ni, ratio, refi1=n2.index, refi2=n1.index):
-					errorCount += 1
+				node0 = thisNode  # move this node
+				node1 = thisNode.nextNode
+				node2 = thisNode.nextNode.nextNode
+				vector1 = vectorFromNodes(node2, node1)
+				vector2 = vectorFromNodes(node2, node0)
+				ratio = ratioOfVectors(vector2, vector1)
+				referenceIndex1 = indexOfNode(thisPath, node2)
+				referenceIndex2 = indexOfNode(thisPath, node1)
 
-			elif n.connection == GSSMOOTH:
+			elif thisNode.connection == GSSMOOTH:
 				# middle of the triplet:
-				n0 = n.prevNode
-				n1 = n  # move this node
-				n2 = n.nextNode
-				vector1 = vectorFromNodes(n0, n2)
-				vector2 = vectorFromNodes(n0, n1)
-				ratio = vectorLength(vector2) / vectorLength(vector1)
-				if not dekink(currentLayer, layerIDs, pi, ni, ratio, refi1=n0.index, refi2=n2.index):
-					errorCount += 1
+				node0 = thisNode.prevNode
+				node1 = thisNode  # move this node
+				node2 = thisNode.nextNode
+				vector1 = vectorFromNodes(node0, node2)
+				vector2 = vectorFromNodes(node0, node1)
+				ratio = ratioOfVectors(vector2, vector1)
+				referenceIndex1 = indexOfNode(thisPath, node0)
+				referenceIndex2 = indexOfNode(thisPath, node2)
+
+			else:
+				# not part of a smooth connection:
+				print("\t⚠️ Node at %s is not part of a smooth connection, skipping." % (thisNode.position, ))
+				errorCount += 1
+				continue
+
+			if ratio is None:
+				print("\t⚠️ Node at %s: cannot measure the triplet, two of its nodes are in the same spot. Skipping." % (thisNode.position, ))
+				errorCount += 1
+				continue
+
+			if dekink(targetLayers, pathIndex, nodeIndex, ratio, referenceIndex1, referenceIndex2):
+				dekinkCount += 1
+			else:
+				errorCount += 1
 
 		if errorCount:
-			Message(title="Could Not Dekink All", message="Could not dekink %i selected points. See the Macro Window for details." % errorCount, OKButton=None)
+			Message(
+				title="Could Not Dekink All",
+				message="Could not dekink %i of %i selected points. See the Macro Window for details." % (errorCount, len(selectedNodes)),
+				OKButton=None,
+			)
+		else:
+			Glyphs.showNotification("Dekink Master Layers", "Dekinked %i node%s in %i layer%s." % (dekinkCount, "" if dekinkCount == 1 else "s", len(targetLayers), "" if len(targetLayers) == 1 else "s"))
