@@ -351,6 +351,7 @@ Read it, but prefer Auto Layout for new windows and when reworking an existing o
 | `newGlyphWithName(glyphName)` | Returns a new `GSGlyph` with that name; use instead of `GSGlyph(glyphName)`, which raises a `TypeError` in some Glyphs versions |
 | `guidesOf(layerOrMaster)` | Returns the guides of a `GSLayer` or `GSFontMaster`; use instead of `.guideLines`, which is gone in Glyphs 4, or `.guides`, which does not exist in Glyphs 2 |
 | `clearGuides(layerOrMaster)` | Deletes all guides of a `GSLayer` or `GSFontMaster`, Glyphs 2/3/4 compatible |
+| `layerGroupsOf(glyph)` | Returns the interpolation-compatible layer ID groups of a `GSGlyph` as tuples; use instead of `layerGroups_masters_error_()`, which groups by instances — not the default in Glyphs 3/4 — and instead of `glyph.layerGroups()`, which does not exist in Glyphs 3.1 |
 | `newAnchorWithName(anchorName, position=None)` | Returns a new `GSAnchor`; use instead of `GSAnchor(name, position)` (raises a `TypeError` in Glyphs 4) or `GSAnchor.alloc().initWithName_position_()` (missing in Glyphs 3) |
 | `getLegibleFont(size=None)` | Returns a system legible font (Glyphs 2/3 compatible) |
 | `UpdateButton(posSize, callback, title="")` | Creates a refresh button with an NSRefreshTemplate icon; `posSize` may be `"auto"` |

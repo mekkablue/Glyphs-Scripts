@@ -5,8 +5,9 @@ __doc__ = """
 Synchronize node distance proportions for angled smooth connections through all masters (and other compatible layers), thus avoiding interpolation kinks. Select one or more nodes in triplets and run the script. The selected nodes will be moved in all other masters.
 """
 
-from Foundation import NSPoint, NSSize
+from mekkablue import layerGroupsOf
 from GlyphsApp import Glyphs, GSNode, GSSMOOTH, Message
+from Foundation import NSPoint, NSSize
 
 
 def vectorFromNodes(firstNode, secondNode):
@@ -105,11 +106,20 @@ def dekink(targetLayers, pathIndex, nodeIndex, ratio, referenceIndex1, reference
 
 
 # determine current layer:
-font = Glyphs.font
-currentLayer = font.selectedLayers[0] if font and font.selectedLayers else None
+currentFont = Glyphs.font
+currentLayer = currentFont.selectedLayers[0]
+currentGlyph = currentLayer.parent
 
-if not currentLayer:
-	Message(title="Dekink Error", message="Please open a font, select nodes of a smooth connection, and run the script again.", OKButton=None)
+# find compatible layers in the same glyph:
+layerIDs = []
+for layerGroup in layerGroupsOf(currentGlyph):
+	if currentLayer.layerId in layerGroup:
+		layerIDs.extend(ID for ID in layerGroup if ID != currentLayer.layerId)
+		break
+
+# if there are any compatible layers...
+if not layerIDs:
+	Message(title="Dekink Error", message="Could not find any other layers in this glyph for this interpolation.", OKButton=None)
 else:
 	print("Dekink Master Layers for %s:" % currentLayer.parent.name)
 

@@ -1,6 +1,6 @@
 
 from typing import Any
-from AppKit import NSUserDefaults, NSFont, NSImage, NSImageLeading, NSPasteboard, NSStringPboardType, NSLineBreakByClipping
+from AppKit import NSUserDefaults, NSFont, NSImage, NSImageLeading, NSMutableSet, NSPasteboard, NSStringPboardType, NSLineBreakByClipping
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSAnchor, GSFeature, GSClass, GSControlLayer, GSGlyph
 from vanilla import Button
@@ -301,6 +301,25 @@ def clearGuides(layerOrMaster):
 		layerOrMaster.guideLines = None
 	else:
 		layerOrMaster.guides = []
+
+
+def layerGroupsOf(glyph):
+	"""
+	Returns the groups of interpolation-compatible layer IDs of a GSGlyph,
+	each group as a tuple of layer IDs.
+	Prefer this over determining the compatibility runs from the instances with
+	layerGroups_masters_error_(): in Glyphs 3 and 4, the layers are not grouped
+	by instance anymore, and glyph.layerGroups() takes the relevant parameters
+	(Enforce Compatibility Check etc.) into account. In Glyphs 3.1, layerGroups()
+	does not exist yet, so we fall back to the ObjC method it wraps.
+	"""
+	if hasattr(glyph, "layerGroups"):
+		layerGroups = glyph.layerGroups()
+	else:
+		layerGroups = glyph.forcedLayerGroupIdsSeenLayers_(NSMutableSet.set())
+	if not layerGroups:
+		return ()
+	return tuple(tuple(layerGroup) for layerGroup in layerGroups)
 
 
 def getLegibleFont(size=None):

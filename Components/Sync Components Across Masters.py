@@ -4,17 +4,9 @@ from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Takes the current layer’s components, and resets all other masters to the same component structure. Ignores paths and anchors. Hold down Option key to delete all paths and anchors.
 """
-from AppKit import NSEvent, NSAlternateKeyMask
+from mekkablue import layerGroupsOf
 from GlyphsApp import Glyphs, GSComponent
-
-# needed for 3.1
-from AppKit import NSMutableSet
-from GlyphsApp import GSGlyph, python_method
-if not hasattr(GSGlyph, 'layerGroups'):
-	def __GSGlyph_layerGroups__(self):
-		seenLayers = NSMutableSet.set()
-		return self.forcedLayerGroupIdsSeenLayers_(seenLayers)
-	GSGlyph.layerGroups = python_method(__GSGlyph_layerGroups__)
+from AppKit import NSEvent, NSAlternateKeyMask
 
 Glyphs.clearLog()
 thisFont = Glyphs.font  # frontmost font
@@ -39,8 +31,7 @@ def process(thisLayer):
 		return
 
 	compatibilityRun = None
-	for layerGroup in thisGlyph.layerGroups():
-		layerGroup = tuple(layerGroup)
+	for layerGroup in layerGroupsOf(thisGlyph):
 		if layerID in layerGroup:
 			compatibilityRun = layerGroup
 			break
