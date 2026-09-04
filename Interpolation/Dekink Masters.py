@@ -26,16 +26,6 @@ def ratioOfVectors(vector, referenceVector):
 	return vectorLength(vector) / referenceLength
 
 
-def isInterpolatingLayer(layer):
-	"""True for master layers as well as brace and bracket layers."""
-	try:
-		return layer.isMasterLayer or layer.isSpecialLayer
-	except AttributeError:
-		# Glyphs 2 fallback:
-		font = layer.parent.parent
-		return bool(font) and any(master.id == layer.layerId for master in font.masters)
-
-
 def layersAreCompatible(firstLayer, secondLayer):
 	"""
 	True if both layers have the same path and node structure,
@@ -55,12 +45,17 @@ def layersAreCompatible(firstLayer, secondLayer):
 
 
 def compatibleLayers(referenceLayer):
-	"""All other layers of the same glyph that interpolate with referenceLayer."""
+	"""
+	All other layers of the same glyph that interpolate with referenceLayer:
+	its compatibility run, minus layers whose path and node structure differs.
+	"""
 	glyph = referenceLayer.parent
-	return tuple(
-		layer for layer in glyph.layers
-		if layer.layerId != referenceLayer.layerId and isInterpolatingLayer(layer) and layersAreCompatible(referenceLayer, layer)
-	)
+	for layerGroup in layerGroupsOf(glyph):
+		if referenceLayer.layerId not in layerGroup:
+			continue
+		otherLayers = (glyph.layers[layerID] for layerID in layerGroup if layerID != referenceLayer.layerId)
+		return tuple(layer for layer in otherLayers if layer and layersAreCompatible(referenceLayer, layer))
+	return ()
 
 
 def indexInList(items, item):
@@ -106,20 +101,11 @@ def dekink(targetLayers, pathIndex, nodeIndex, ratio, referenceIndex1, reference
 
 
 # determine current layer:
-currentFont = Glyphs.font
-currentLayer = currentFont.selectedLayers[0]
-currentGlyph = currentLayer.parent
+font = Glyphs.font
+currentLayer = font.selectedLayers[0] if font and font.selectedLayers else None
 
-# find compatible layers in the same glyph:
-layerIDs = []
-for layerGroup in layerGroupsOf(currentGlyph):
-	if currentLayer.layerId in layerGroup:
-		layerIDs.extend(ID for ID in layerGroup if ID != currentLayer.layerId)
-		break
-
-# if there are any compatible layers...
-if not layerIDs:
-	Message(title="Dekink Error", message="Could not find any other layers in this glyph for this interpolation.", OKButton=None)
+if not currentLayer:
+	Message(title="Dekink Error", message="Please open a font, select nodes of a smooth connection, and run the script again.", OKButton=None)
 else:
 	print("Dekink Master Layers for %s:" % currentLayer.parent.name)
 
