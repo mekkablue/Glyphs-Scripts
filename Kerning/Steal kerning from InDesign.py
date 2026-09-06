@@ -351,30 +351,30 @@ class StealKerningFromInDesign(mekkaObject):
 
 	def _getOpticalKerningString(self):
 		"""
-		Detect the localized InDesign UI language by reading the name of the
-		File menu via System Events, then return the matching localized string
-		for InDesign's optical kerning method.
+		Read InDesign's locale directly and return the matching localized string
+		for its optical kerning method. This avoids requiring Accessibility access.
 		"""
 		script = """
-tell application "System Events"
-	tell process "%s"
-		name of menu bar item 3 of menu bar 1
-	end tell
+tell application id "com.adobe.InDesign"
+	return locale as string
 end tell
-""" % indesign
-		fileMenuName = self._runAppleScript(script) or ""
-		opticalByFileMenu = {
-			"Fichier": "Optique",   # French
-			"Datei": "Optisch",     # German
-			"Bestand": "Optisch",   # Dutch
-			"Archivo": "Óptica",    # Spanish
-			"Ficheiro": "Óptica",   # Portuguese (European)
-			"Arquivo": "Óptica",    # Portuguese (Brazilian)
-			"Arkiv": "Optisk",      # Swedish / Norwegian
-			"Filer": "Optisk",      # Danish
+"""
+		localeName = self._runAppleScript(script) or ""
+		localeKey = localeName.lower()
+		opticalByLocale = {
+			"french": "Optique",
+			"german": "Optisch",
+			"spanish": "Óptica",
+			"portuguese": "Óptica",
+			"swedish": "Optisk",
+			"danish": "Optisk",
 		}
-		opticalStr = opticalByFileMenu.get(fileMenuName, "optical")
-		print('\t🌐 InDesign File menu: "%s" → kerning method string: "%s"' % (fileMenuName or "?", opticalStr))
+		opticalStr = "optical"
+		for localeFragment, localizedOptical in opticalByLocale.items():
+			if localeFragment in localeKey:
+				opticalStr = localizedOptical
+				break
+		print('\t🌐 InDesign locale: "%s" → kerning method string: "%s"' % (localeName or "?", opticalStr))
 		return opticalStr
 
 	def _createInDesignDoc(self, familyName, styleName, opticalStr="optical"):
