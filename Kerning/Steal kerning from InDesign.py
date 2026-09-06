@@ -349,24 +349,7 @@ class StealKerningFromInDesign(mekkaObject):
 
 	# ------------------------------------------------------------------ step 2
 
-	def _getInDesignName(self):
-		"""Return the running InDesign application name (auto-detect or ask user)."""
-		Glyphs.registerDefault("com.mekkablue.StealKerningFromInDesign.indesignAppName", "Adobe InDesign")
-		storedName = Glyphs.defaults["com.mekkablue.StealKerningFromInDesign.indesignAppName"]
-		script = """
-try
-	set InDesign to application "%s"
-on error
-	set InDesign to choose application with title "Please choose Adobe InDesign"
-end try
-InDesign as string
-""" % storedName
-		name = self._runAppleScript(script)
-		if name and name != storedName:
-			Glyphs.defaults["com.mekkablue.StealKerningFromInDesign.indesignAppName"] = name
-		return name or storedName
-
-	def _getOpticalKerningString(self, indesign):
+	def _getOpticalKerningString(self):
 		"""
 		Detect the localized InDesign UI language by reading the name of the
 		File menu via System Events, then return the matching localized string
@@ -394,7 +377,7 @@ end tell
 		print('\t🌐 InDesign File menu: "%s" → kerning method string: "%s"' % (fileMenuName or "?", opticalStr))
 		return opticalStr
 
-	def _createInDesignDoc(self, indesign, familyName, styleName, opticalStr="optical"):
+	def _createInDesignDoc(self, familyName, styleName, opticalStr="optical"):
 		"""
 		Create a new A3-landscape InDesign document with a full-page text frame,
 		font set to 3 pt with optical kerning, text = zeroPair.
@@ -405,7 +388,7 @@ end tell
 		zeroPairAS = zeroPair.replace("\\", "\\\\").replace('"', '\\"')
 		# A3 landscape: 420 x 297 mm = 1190.55 x 841.89 pt
 		script = """
-tell application "%s"
+tell application id "com.adobe.InDesign"
 	set myDoc to make new document
 	tell myDoc
 		set name to "Steal Kerning"
@@ -425,11 +408,11 @@ tell application "%s"
 	end tell
 end tell
 true
-""" % (indesign, zeroPairAS, styleName, opticalStr)
+""" % (zeroPairAS, styleName, opticalStr)
 		result = self._runAppleScript(script)
 		return bool(result)
 
-	def _calibrateFontSize(self, indesign, styleName):
+	def _calibrateFontSize(self, styleName):
 		"""
 		Starting at 3 pt, step up 1 pt at a time until the optical kern value
 		between insertion point 1→2 is <= 0.  Then step back down in 0.1 pt
@@ -454,7 +437,7 @@ on convertPtStringToReal(ptString)
 	end try
 end convertPtStringToReal
 
-tell application "%s"
+tell application id "com.adobe.InDesign"
 	tell front document
 		zoom first layout window given fit page
 		tell first text frame
@@ -471,7 +454,7 @@ tell application "%s"
 		end tell
 	end tell
 end tell
-""" % indesign
+"""
 
 		size = 3.0
 		result = self._runAppleScript(scriptUp)
@@ -486,7 +469,7 @@ end tell
 
 		# Step down by 0.1 pt to get as close to 0 as possible
 		scriptDown = """
-tell application "%s"
+tell application id "com.adobe.InDesign"
 	tell front document
 		zoom first layout window given fit page
 		tell first text frame
@@ -501,7 +484,7 @@ tell application "%s"
 		end tell
 	end tell
 end tell
-""" % indesign
+"""
 
 		bestSize = size
 		bestAbsKern = 999999.0
@@ -737,7 +720,7 @@ end tell
 		print("\t📏 Found %i pairs to measure." % len(pairs))
 		return pairText
 
-	def _setInDesignTextAndFont(self, indesign, pairText, styleName, calibSize, opticalStr="optical"):
+	def _setInDesignTextAndFont(self, pairText, styleName, calibSize, opticalStr="optical"):
 		"""
 		Replace the text frame content with pairText, set the font and
 		calibrated point size with optical kerning on every character.
@@ -745,7 +728,7 @@ end tell
 		# Escape the slash-name string for AppleScript (no special chars expected)
 		pairTextAS = pairText.replace("\\", "\\\\").replace('"', '\\"')
 		script = """
-tell application "%s"
+tell application id "com.adobe.InDesign"
 	tell front document
 		zoom first layout window given fit page
 		set contents of first text frame to "%s"
@@ -757,7 +740,7 @@ tell application "%s"
 	end tell
 end tell
 true
-""" % (indesign, pairTextAS, calibSize, styleName, opticalStr)
+""" % (pairTextAS, calibSize, styleName, opticalStr)
 		return bool(self._runAppleScript(script))
 
 	# ------------------------------------------------------------------ step 4
@@ -806,7 +789,7 @@ true
 			text = text.replace(searchFor, replaceWith)
 		return text
 
-	def _readKernValuesFromInDesign(self, indesign, minimumKern=0.0):
+	def _readKernValuesFromInDesign(self, minimumKern=0.0):
 		"""
 		Read insertion-point kern values from the front InDesign document in one shot.
 		Only pairs whose absolute kern value meets minimumKern are included, so the
@@ -819,7 +802,7 @@ on absValue(num)
 	return num
 end absValue
 
-tell application "%s"
+tell application id "com.adobe.InDesign"
 	tell front document
 		zoom first layout window given fit page
 		tell parent story of first text frame
@@ -841,7 +824,7 @@ tell application "%s"
 		end tell
 	end tell
 end tell
-""" % (indesign, minimumKern)
+""" % minimumKern
 		raw = self._runAppleScript(script)
 		if not raw:
 			return []
@@ -866,14 +849,14 @@ end tell
 			pairs.append((char1, char2, kernVal))
 		return pairs
 
-	def _importKerningForMaster(self, thisFont, master, indesign, minimumKern=0.0):
+	def _importKerningForMaster(self, thisFont, master, minimumKern=0.0):
 		"""
 		Read kern values from InDesign and set them in thisFont for the given master.
 		minimumKern is passed into the AppleScript so only qualifying pairs are returned.
 		Returns the number of pairs imported.
 		"""
 		masterID = master.id
-		kernPairs = self._readKernValuesFromInDesign(indesign, minimumKern)
+		kernPairs = self._readKernValuesFromInDesign(minimumKern)
 		count = 0
 		for leftChar, rightChar, kernValue in kernPairs:
 			if kernValue == 0:
@@ -889,7 +872,7 @@ end tell
 		print("\t↔️ Imported %i raw kern pairs for master ‘%s’." % (count, master.name))
 		return count
 
-	def _importExceptionKerningForMaster(self, thisFont, master, indesign, minimumKern=0, roundBy=0):
+	def _importExceptionKerningForMaster(self, thisFont, master, minimumKern=0, roundBy=0):
 		"""
 		Read kern values from InDesign and store them as group-glyph (or glyph-glyph)
 		exception pairs.  A pair is only kept if its rounded value differs from the
@@ -911,7 +894,7 @@ end tell
 						savedGroupGroup[(leftID, rightID)] = val
 
 		# No AppleScript pre-filter: we need raw values to compare against group kern
-		kernPairs = self._readKernValuesFromInDesign(indesign, 0)
+		kernPairs = self._readKernValuesFromInDesign(0)
 		totalRaw = len(kernPairs)
 		droppedZero = droppedName = droppedGlyph = droppedDelta = 0
 		count = 0
@@ -1090,10 +1073,10 @@ end tell
 
 	# ------------------------------------------------------------------ step 6
 
-	def _closeInDesignDoc(self, indesign):
+	def _closeInDesignDoc(self):
 		"""Close the frontmost InDesign document without saving."""
 		script = """
-tell application "%s"
+tell application id "com.adobe.InDesign"
 	set docs to every document whose name contains "Steal Kerning"
 	if (count of docs) > 0 then
 		repeat with myDoc in docs
@@ -1102,7 +1085,7 @@ tell application "%s"
 	end if
 end tell
 true
-""" % indesign
+"""
 		self._runAppleScript(script)
 
 	def _deleteFonts(self, exportedMasters):
@@ -1115,14 +1098,14 @@ true
 			except Exception as e:
 				print("\t⚠️ Could not delete %s: %s" % (filePath, e))
 
-	def _waitForFont(self, indesign, familyName, timeoutSeconds=30):
+	def _waitForFont(self, familyName, timeoutSeconds=30):
 		"""
 		Poll InDesign until familyName is available or timeoutSeconds elapses.
 		Calls 'update fonts' each iteration so InDesign rescans for new activations.
 		Returns True if the font became available, False if timed out.
 		"""
 		script = """
-tell application "%s"
+tell application id "com.adobe.InDesign"
 	update fonts
 	set matched to every font whose font family is "%s"
 	if (count of matched) > 0 then
@@ -1130,7 +1113,7 @@ tell application "%s"
 	end if
 	return "no"
 end tell
-""" % (indesign, familyName)
+""" % familyName
 		elapsed = 0
 		interval = 2
 		while elapsed <= timeoutSeconds:
@@ -1197,15 +1180,9 @@ end tell
 		for _ in exportedMasters:
 			advance()
 
-		# Locate InDesign first (needed for font availability polling)
-		indesign = self._getInDesignName()
-		if not indesign:
-			self.w.status.set("❌ Could not find InDesign.")
-			return
-
 		# Poll InDesign until Kernstealer font is activated (up to 30s)
 		self.w.status.set("⏱️ Waiting for font activation…")
-		if not self._waitForFont(indesign, "Kernstealer"):
+		if not self._waitForFont("Kernstealer"):
 			self.w.status.set("❌ Font activation timed out.")
 			print("\t❌ 'Kernstealer' was not activated in InDesign within 30 seconds.")
 			self._deleteFonts(exportedMasters)
@@ -1213,12 +1190,11 @@ end tell
 		advance()
 
 		# Detect InDesign UI language once, for localized "optical" kerning string
-		opticalStr = self._getOpticalKerningString(indesign)
+		opticalStr = self._getOpticalKerningString()
 
 		# --- Step 2: InDesign doc + kern readout (per master) ---
 		self.w.status.set("👨‍🎨 Creating InDesign document…")
 		print("\nStep 2 – Reading kerning from InDesign…")
-		print("\t👩🏼‍💻 Using: %s" % indesign)
 
 		# If zeroPair is a 3+ digit all-digit string, treat it as a fixed font size
 		# and skip calibration (e.g. "009" → 9 pt, "100" → 100 pt).
@@ -1233,7 +1209,7 @@ end tell
 		for master, filePath in exportedMasters:
 			styleName = self._sanitizeName(master.name) or ("Master%i" % list(thisFont.masters).index(master))
 			self.w.status.set("👩‍🔬 Calibrating ‘%s’…" % master.name)
-			ok = self._createInDesignDoc(indesign, "Kernstealer", styleName, opticalStr)
+			ok = self._createInDesignDoc("Kernstealer", styleName, opticalStr)
 			if not ok:
 				print("\t❌ Could not create InDesign document for master ‘%s’." % master.name)
 				continue
@@ -1241,7 +1217,7 @@ end tell
 				calibSize = fixedFontSize
 				print("\n\t↔️ Master ‘%s’: using fixed font size %g pt." % (master.name, calibSize))
 			else:
-				calibSize = self._calibrateFontSize(indesign, styleName)
+				calibSize = self._calibrateFontSize(styleName)
 				print("\n\t↔️ Master ‘%s’ calibrated at %.1f pt" % (master.name, calibSize))
 			calibrationSizes[master.name] = calibSize
 			advance()
@@ -1256,7 +1232,7 @@ end tell
 				return
 
 			self.w.status.set("🖼️ Filling frame ‘%s’…" % master.name)
-			ok = self._setInDesignTextAndFont(indesign, pairText, styleName, calibSize, opticalStr)
+			ok = self._setInDesignTextAndFont(pairText, styleName, calibSize, opticalStr)
 			if ok:
 				print("\t✅ Text frame filled for master ‘%s’." % master.name)
 			else:
@@ -1273,19 +1249,19 @@ end tell
 			totalImported = 0
 
 			self.w.status.set("📖 Reading %i kern pairs, may take a while…" % pairCount)
-			n = self._importKerningForMaster(thisFont, master, indesign, minimumKern)
+			n = self._importKerningForMaster(thisFont, master, minimumKern)
 			totalImported += n
 			advance()
 
 			# close InD document
 			closeScript = """
-tell application "%s"
+tell application id "com.adobe.InDesign"
 	if (count documents) > 0 then
 		close front document saving no
 	end if
 end tell
 true
-""" % indesign
+"""
 			self._runAppleScript(closeScript)
 
 			print("\t📈 Total raw pairs imported: %i" % totalImported)
@@ -1322,25 +1298,25 @@ true
 					styleName, calibSize = master.name, calibrationSizes[master.name]
 					self.w.status.set("💕 Exception pairs for ‘%s’…" % master.name)
 
-					ok = self._createInDesignDoc(indesign, "Kernstealer", styleName, opticalStr)
+					ok = self._createInDesignDoc("Kernstealer", styleName, opticalStr)
 					if not ok:
 						print("\t❌ Could not create InDesign document for master ‘%s’." % master.name)
 						continue
-					ok = self._setInDesignTextAndFont(indesign, exPairText, styleName, calibSize, opticalStr)
+					ok = self._setInDesignTextAndFont(exPairText, styleName, calibSize, opticalStr)
 					if not ok:
 						print("\t❌ Failed to fill exception frame for master ‘%s’." % master.name)
 						advance()
 						continue
-					n = self._importExceptionKerningForMaster(thisFont, master, indesign, minimumKern, roundBy)
+					n = self._importExceptionKerningForMaster(thisFont, master, minimumKern, roundBy)
 					print("\t☑️ Added %i exceptions for master ‘%s’." % (n, master.name))
 					advance()
 
-					self._closeInDesignDoc(indesign)
+					self._closeInDesignDoc()
 
 		# --- Step 5: cleanup ---
 		print("\nStep 5 – Cleanup…")
 		self.w.status.set("🧹 Cleaning up…")
-		self._closeInDesignDoc(indesign) # just in case
+		self._closeInDesignDoc() # just in case
 		self._deleteFonts(exportedMasters)
 		advance()
 
