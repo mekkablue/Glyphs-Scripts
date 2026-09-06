@@ -15,6 +15,10 @@ import vanilla
 from copy import copy
 from mekkablue import mekkaObject, reportTimeInNaturalLanguage, UpdateButton
 from GlyphsApp import Glyphs, GSInstance, Message
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSLineBreakByTruncatingTail,
+)
 
 
 class StealKerningFromInDesign(mekkaObject):
@@ -39,98 +43,136 @@ class StealKerningFromInDesign(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 480
-		windowHeight = 340
-		windowWidthResize = 500
-		# windowHeightResize = 0
+		windowWidth = 520
+		windowHeight = 1  # Auto Layout determines the content height.
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Steal Kerning from InDesign",
-			minSize=(windowWidth, windowHeight),
-			maxSize=(windowWidth + windowWidthResize, windowHeight),
 			autosaveName=self.domain("mainwindow"),
 		)
 
-		linePos, inset, lineHeight = 12, 15, 22
-
 		# No-kern pair + Min kern + Round by — all on one row
-		self.w.zeroPairLabel = vanilla.TextBox((inset, linePos + 3, 84, 14), "No-kern pair:", sizeStyle="small")
-		self.w.zeroPair = vanilla.EditText((inset + 84, linePos, 40, 19), "HH", callback=self.SavePreferences, sizeStyle="small")
+		self.w.zeroPairLabel = vanilla.TextBox("auto", "No-kern pair:", sizeStyle="small")
+		self.w.zeroPair = vanilla.EditText("auto", "HH", callback=self.SavePreferences, sizeStyle="small")
 		self.w.zeroPair.setToolTip("A pair of glyphs that should have zero optical kerning (i.e., the reference pair used to calibrate the font size for measurement). Alternatively, enter a 3+ digit number (e.g. 009 for 9 pt, 100 for 100 pt) to use as a fixed font size and skip calibration entirely.")
-		self.w.minimumKernLabel = vanilla.TextBox((inset + 136, linePos + 3, 57, 14), "Min kern:", sizeStyle="small")
-		self.w.minimumKern = vanilla.EditText((inset + 193, linePos, 40, 19), "10", callback=self.SavePreferences, sizeStyle="small")
+		self.w.minimumKernLabel = vanilla.TextBox("auto", "Min kern:", sizeStyle="small")
+		self.w.minimumKern = vanilla.EditText("auto", "10", callback=self.SavePreferences, sizeStyle="small")
 		self.w.minimumKern.setToolTip("Discard imported kern pairs whose absolute value is smaller than this threshold.")
-		self.w.roundByLabel = vanilla.TextBox((inset + 245, linePos + 3, 58, 14), "Round by:", sizeStyle="small")
-		self.w.roundBy = vanilla.EditText((inset + 303, linePos, 40, 19), "5", callback=self.SavePreferences, sizeStyle="small")
+		self.w.roundByLabel = vanilla.TextBox("auto", "Round by:", sizeStyle="small")
+		self.w.roundBy = vanilla.EditText("auto", "5", callback=self.SavePreferences, sizeStyle="small")
 		self.w.roundBy.setToolTip("Round imported kern values to this multiple (e.g. 5 = multiples of 5). Set to 1 or 0 to skip rounding.")
-		linePos += lineHeight
 
-		self.w.divider1 = vanilla.HorizontalLine((inset, linePos + 5, -inset, 1))
-		linePos += int(lineHeight * 0.6)
+		self.w.divider1 = vanilla.HorizontalLine("auto")
 
 		# Pair type checkboxes — three columns
-		self.w.letterToLetter = vanilla.CheckBox((inset + 2, linePos - 1, 148, 20), "Letter to Letter", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.letterToLetter = vanilla.CheckBox("auto", "Letter to Letter", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.letterToLetter.setToolTip("Kern pairs between uppercase and lowercase letters.")
-		self.w.figureToFigure = vanilla.CheckBox((inset + 150, linePos - 1, 150, 20), "Figure to Figure", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.figureToFigure = vanilla.CheckBox("auto", "Figure to Figure", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.figureToFigure.setToolTip("Kern pairs between decimal digit figures.")
-		self.w.letterToFigure = vanilla.CheckBox((inset + 300, linePos - 1, -inset, 20), "Letter to Figure", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.letterToFigure = vanilla.CheckBox("auto", "Letter to Figure", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.letterToFigure.setToolTip("Kern pairs between letters and figures (both directions).")
-		linePos += lineHeight
 
-		self.w.letterWithPunctuation = vanilla.CheckBox((inset + 2, linePos - 1, 148, 20), "Letter with Punctuation", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.letterWithPunctuation = vanilla.CheckBox("auto", "Letter with Punctuation", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.letterWithPunctuation.setToolTip("Kern pairs between letters and punctuation marks (both directions).")
-		self.w.figureWithPunctuation = vanilla.CheckBox((inset + 150, linePos - 1, 150, 20), "Figure with Punctuation", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.figureWithPunctuation = vanilla.CheckBox("auto", "Figure with Punctuation", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.figureWithPunctuation.setToolTip("Kern pairs between figures and punctuation marks (both directions).")
-		self.w.punctuationWithItself = vanilla.CheckBox((inset + 300, linePos - 1, -inset, 20), "Punctuation with itself", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.punctuationWithItself = vanilla.CheckBox("auto", "Punctuation with itself", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.punctuationWithItself.setToolTip("Kern pairs between punctuation marks and other punctuation marks.")
-		linePos += lineHeight
 
-		self.w.ignoreScriptsLabel = vanilla.TextBox((inset, linePos + 3, 85, 14), "Ignore scripts:", sizeStyle="small")
-		self.w.ignoreScripts = vanilla.EditText((inset + 85, linePos, -inset - 22, 19), "", callback=self.SavePreferences, sizeStyle="small")
+		self.w.ignoreScriptsLabel = vanilla.TextBox("auto", "Ignore scripts:", sizeStyle="small")
+		self.w.ignoreScripts = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle="small")
 		self.w.ignoreScripts.setToolTip("Comma-separated glyph.script values. Glyphs whose script appears in this list are skipped when building kern pairs. Press the update button to populate with all scripts present in the current font.")
-		self.w.ignoreScriptsUpdate = UpdateButton((-inset - 20, linePos - 2, 20, 19), self.updateIgnoreScriptsField)
+		self.w.ignoreScriptsUpdate = UpdateButton("auto", self.updateIgnoreScriptsField)
 		self.w.ignoreScriptsUpdate.setToolTip("Populate the field with all scripts found in the current font.")
-		linePos += lineHeight
 
-		self.w.divider2 = vanilla.HorizontalLine((inset, linePos + 5, -inset, 1))
-		linePos += int(lineHeight * 0.6)
+		self.w.divider2 = vanilla.HorizontalLine("auto")
 
 		# Options
-		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "All masters (otherwise current master only)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allMasters = vanilla.CheckBox("auto", "All masters (otherwise current master only)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allMasters.setToolTip("Process all masters in the font. If off, only the currently selected master is processed.")
-		linePos += lineHeight
 
-		self.w.deleteExistingKerning = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete existing kerning before import", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.deleteExistingKerning = vanilla.CheckBox("auto", "Delete existing kerning before import", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.deleteExistingKerning.setToolTip("Clear all existing kerning for each master before importing new values from InDesign.")
-		linePos += lineHeight
 
-		self.w.compressKerning = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Compress kerning (glyph pairs → group pairs)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.compressKerning = vanilla.CheckBox("auto", "Compress kerning (glyph pairs → group pairs)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.compressKerning.setToolTip("Promote glyph-to-glyph kern pairs to the corresponding group-to-group pair when the value matches.")
-		linePos += lineHeight
 
-		self.w.groupKerningOnly = vanilla.CheckBox((inset + 22, linePos - 1, -inset, 20), "Keep group kerning only", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.groupKerningOnly = vanilla.CheckBox("auto", "Keep group kerning only", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.groupKerningOnly.setToolTip("After compressing, delete all remaining glyph-to-glyph pairs. Note: compressing cannot always convert every glyph pair to a group pair (e.g. when a glyph has no kerning group), so some pairs may remain.")
-		linePos += lineHeight
 
-		self.w.addExceptions = vanilla.CheckBox((inset + 22, linePos - 1, 153, 20), "Add exceptions between:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addExceptions = vanilla.CheckBox("auto", "Add exceptions between:", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.addExceptions.setToolTip("Also kern each of the characters in the field against all exporting glyphs whose name contains any of the component particles listed below.")
-		self.w.exceptionChars = vanilla.EditText((inset + 177, linePos - 1, -inset - 22, 19), "AFJKLPTVWXYfďľ[](){}‚\u2018\u2019\u201e\u201c\u201d/?", callback=self.SavePreferences, sizeStyle="small")
+		self.w.exceptionChars = vanilla.EditText("auto", "AFJKLPTVWXYfďľ[](){}‚\u2018\u2019\u201e\u201c\u201d/?", callback=self.SavePreferences, sizeStyle="small")
 		self.w.exceptionChars.setToolTip("Characters to kern against the diacritic glyphs. Each character is used in both directions (e.g. Tä and äT).")
-		self.w.exceptionCharsReset = UpdateButton((-inset - 20, linePos - 3, 20, 19), self.resetExceptionChars)
-		linePos += lineHeight
+		self.w.exceptionCharsReset = UpdateButton("auto", self.resetExceptionChars)
 
-		self.w.exceptionComponentsLabel = vanilla.TextBox((inset + 40, linePos + 3, 133, 14), "…and glyphs containing:", sizeStyle="small")
-		self.w.exceptionComponents = vanilla.EditText((inset + 177, linePos, -inset - 22, 19), "dier, dot, acut, grav, tild, brev, macr, ring, circ, slash, bar", callback=self.SavePreferences, sizeStyle="small")
+		self.w.exceptionComponentsLabel = vanilla.TextBox("auto", "…and glyphs containing:", sizeStyle="small")
+		self.w.exceptionComponents = vanilla.EditText("auto", "dier, dot, acut, grav, tild, brev, macr, ring, circ, slash, bar", callback=self.SavePreferences, sizeStyle="small")
 		self.w.exceptionComponents.setToolTip("Comma-separated name fragments. Any exporting glyph with a Unicode whose name contains one of these is measured against the characters above.")
-		self.w.exceptionComponentsReset = UpdateButton((-inset - 20, linePos - 2, 20, 19), self.resetExceptionComponents)
-		linePos += lineHeight
+		self.w.exceptionComponentsReset = UpdateButton("auto", self.resetExceptionComponents)
 
 		# Progress bar + Status + Run button
-		self.w.progressBar = vanilla.ProgressBar((inset, -42 - inset, -inset, 16))
+		self.w.progressBar = vanilla.ProgressBar("auto")
 		self.w.progressBar.show(False)
-		self.w.status = vanilla.TextBox((inset, -18 - inset, -80 - inset, 14), "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small", selectable=True)
-		self.w.runButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "Kern", callback=self.run)
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small", selectable=True)
+		self.w.runButton = vanilla.Button("auto", "Kern", callback=self.run)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# Fixed vertical gaps and hugging let AppKit size the window to its content.
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+		for label in (self.w.zeroPairLabel, self.w.minimumKernLabel, self.w.roundByLabel, self.w.ignoreScriptsLabel, self.w.exceptionComponentsLabel):
+			nsLabel = label.getNSTextField()
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		# Status messages can be longer than the window; keep them on one line.
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(249, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(249, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setLineBreakMode_(NSLineBreakByTruncatingTail)
+
+		rules = [
+			"H:|-inset-[zeroPairLabel]-gap-[zeroPair(40)]-inset-[minimumKernLabel]-gap-[minimumKern(40)]-inset-[roundByLabel]-gap-[roundBy(40)]-(>=inset)-|",
+			"H:|-inset-[divider1]-inset-|",
+			"H:|-inset-[letterToLetter]-gap-[figureToFigure]-gap-[letterToFigure]-inset-|",
+			"H:|-inset-[letterWithPunctuation]-gap-[figureWithPunctuation]-gap-[punctuationWithItself]-inset-|",
+			"H:|-inset-[ignoreScriptsLabel]-gap-[ignoreScripts(>=80)]-gap-[ignoreScriptsUpdate(20)]-inset-|",
+			"H:|-inset-[divider2]-inset-|",
+			"H:|-inset-[allMasters]-(>=inset)-|",
+			"H:|-inset-[deleteExistingKerning]-(>=inset)-|",
+			"H:|-inset-[compressKerning]-(>=inset)-|",
+			"H:|-indent-[groupKerningOnly]-(>=inset)-|",
+			"H:|-indent-[addExceptions]-gap-[exceptionChars(>=80)]-gap-[exceptionCharsReset(20)]-inset-|",
+			"H:|-subindent-[exceptionComponentsLabel]-gap-[exceptionComponents(>=80)]-gap-[exceptionComponentsReset(20)]-inset-|",
+			"H:|-inset-[progressBar]-inset-|",
+			"H:|-inset-[status]-gap-[runButton]-inset-|",
+			"V:|-gap-[zeroPair]-row-[divider1(1)]-row-[letterToLetter]-row-[letterWithPunctuation]-row-[ignoreScripts]-row-[divider2(1)]-row-[allMasters]-row-[deleteExistingKerning]-row-[compressKerning]-row-[groupKerningOnly]-row-[exceptionChars]-row-[exceptionComponents]-row-[progressBar(16)]-row-[runButton]-inset-|",
+			"V:[divider1]-row-[figureToFigure]-row-[figureWithPunctuation]",
+			"V:[divider1]-row-[letterToFigure]-row-[punctuationWithItself]",
+		]
+		gridCheckBoxes = [
+			self.w.letterToLetter, self.w.figureToFigure, self.w.letterToFigure,
+			self.w.letterWithPunctuation, self.w.figureWithPunctuation, self.w.punctuationWithItself,
+		]
+		for cell in gridCheckBoxes[1:]:
+			rules.append({"view1": cell, "attribute1": "width", "view2": gridCheckBoxes[0], "attribute2": "width"})
+		for label, field in (
+			(self.w.zeroPairLabel, self.w.zeroPair),
+			(self.w.minimumKernLabel, self.w.zeroPair),
+			(self.w.minimumKern, self.w.zeroPair),
+			(self.w.roundByLabel, self.w.zeroPair),
+			(self.w.roundBy, self.w.zeroPair),
+			(self.w.ignoreScriptsLabel, self.w.ignoreScripts),
+			(self.w.ignoreScriptsUpdate, self.w.ignoreScripts),
+			(self.w.addExceptions, self.w.exceptionChars),
+			(self.w.exceptionCharsReset, self.w.exceptionChars),
+			(self.w.exceptionComponentsLabel, self.w.exceptionComponents),
+			(self.w.exceptionComponentsReset, self.w.exceptionComponents),
+			(self.w.status, self.w.runButton),
+		):
+			rules.append({"view1": label, "attribute1": "centerY", "view2": field, "attribute2": "centerY"})
+		rules.append({"view1": self.w.exceptionComponents, "attribute1": "left", "view2": self.w.exceptionChars, "attribute2": "left"})
+		inset = 15
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 8, "indent": inset + 20, "subindent": inset + 38})
 
 		self.LoadPreferences()
 		self.w.open()
