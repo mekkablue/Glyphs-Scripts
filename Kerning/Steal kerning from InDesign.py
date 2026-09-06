@@ -42,7 +42,7 @@ class StealKerningFromInDesign(mekkaObject):
 		windowWidth = 480
 		windowHeight = 340
 		windowWidthResize = 500
-		windowHeightResize = 0
+		# windowHeightResize = 0
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Steal Kerning from InDesign",
@@ -805,7 +805,7 @@ true
 			text = text.replace(searchFor, replaceWith)
 		return text
 
-	def _readKernValuesFromInDesign(self, indesign, minimumKern=0):
+	def _readKernValuesFromInDesign(self, indesign, minimumKern=0.0):
 		"""
 		Read insertion-point kern values from the front InDesign document in one shot.
 		Only pairs whose absolute kern value meets minimumKern are included, so the
@@ -865,7 +865,7 @@ end tell
 			pairs.append((char1, char2, kernVal))
 		return pairs
 
-	def _importKerningForMaster(self, thisFont, master, indesign, minimumKern=0):
+	def _importKerningForMaster(self, thisFont, master, indesign, minimumKern=0.0):
 		"""
 		Read kern values from InDesign and set them in thisFont for the given master.
 		minimumKern is passed into the AppleScript so only qualifying pairs are returned.
@@ -1190,7 +1190,7 @@ end tell
 				OKButton="OK",
 			)
 			return
-		print(f"\t📥 Exported {len(exportedMasters)} master{'s' if len(exportedMasters)!=1 else ''}.")
+		print(f"\t📥 Exported {len(exportedMasters)} master{'s' if len(exportedMasters) != 1 else ''}.")
 		for _ in exportedMasters:
 			advance()
 
@@ -1331,7 +1331,7 @@ true
 					n = self._importExceptionKerningForMaster(thisFont, master, indesign, minimumKern, roundBy)
 					print("\t☑️ Added %i exceptions for master ‘%s’." % (n, master.name))
 					advance()
-					
+
 					self._closeInDesignDoc(indesign)
 
 		# --- Step 5: cleanup ---
@@ -1351,7 +1351,7 @@ true
 		summary = "\n✅ %i kern pairs in %i %s. %s." % (finalPairCount, len(exportedMasters), masterWord, elapsed)
 		self.w.status.set(summary)
 		print(summary)
-		Glyphs.showNotification("Steal Kerning from InDesign", summary.replace("✅","").strip())
+		Glyphs.showNotification("Steal Kerning from InDesign", summary.replace("✅", "").strip())
 
 
 StealKerningFromInDesign()
