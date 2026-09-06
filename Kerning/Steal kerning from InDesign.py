@@ -127,6 +127,7 @@ class StealKerningFromInDesign(mekkaObject):
 
 		# Progress bar + Status + Run button
 		self.w.progressBar = vanilla.ProgressBar((inset, -42 - inset, -inset, 16))
+		self.w.progressBar.show(False)
 		self.w.status = vanilla.TextBox((inset, -18 - inset, -80 - inset, 14), "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small", selectable=True)
 		self.w.runButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "Kern", callback=self.run)
 		self.w.setDefaultButton(self.w.runButton)
@@ -1167,6 +1168,8 @@ end tell
 		totalSteps = 5 * len(masters) + 2 + (len(masters) if doExceptions else 0)
 		progressStep = [0]
 
+		self.w.progressBar.show(True)
+
 		def advance():
 			progressStep[0] += 1
 			self.w.progressBar.set(progressStep[0] / totalSteps * 100)
@@ -1351,6 +1354,8 @@ true
 		summary = "\n✅ %i kern pairs in %i %s. %s." % (finalPairCount, len(exportedMasters), masterWord, elapsed)
 		self.w.status.set(summary)
 		print(summary)
+		self.w.progressBar.set(0)
+		self.w.progressBar.show(False)
 		Glyphs.showNotification("Steal Kerning from InDesign", summary.replace("✅", "").strip())
 
 
