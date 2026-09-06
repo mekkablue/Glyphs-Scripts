@@ -655,11 +655,10 @@ end tell
 		glyph = thisFont.glyphs[info.name]
 		return (glyph.script or "other") if glyph else "other"
 
-	def _buildPairText(self, thisFont):
+	def _buildPairs(self, thisFont):
 		"""
-		Build a string of all requested pair combinations as '/glyphname/glyphname ' sequences.
-		Groupings are driven by user checkboxes.
-		Returns the pair text string.
+		Build all requested character-pair combinations.
+		Returns a list of (leftChar, rightChar) tuples.
 		"""
 		doLetterToLetter = self.prefBool("letterToLetter")
 		doFigureToFigure = self.prefBool("figureToFigure")
@@ -757,10 +756,8 @@ end tell
 				for R in punctuationRight:
 					addPair(L, R)
 
-		# build the pair text string
-		pairText = " ".join("%s%s" % (l, r) for l, r in pairs)
 		print("\t📏 Found %i pairs to measure." % len(pairs))
-		return pairText
+		return pairs
 
 	def _setInDesignTextAndFont(self, pairText, styleName, calibSize, opticalStr="optical"):
 		"""
@@ -796,24 +793,6 @@ true
 		"ᲑᲘᲝᲢთიოტᲶᲾᲿჾჿ"           # Georgian
 	)
 
-	# Character descriptions InDesign sometimes returns instead of the literal char
-	_REPLACEMENTS = {
-		"bullet character": "•",
-		"copyright symbol": "©",
-		"double left quote": "\u201c",
-		"double right quote": "\u201d",
-		"ellipsis character": "\u2026",
-		"Em dash": "\u2014",
-		"En dash": "\u2013",
-		"nonbreaking space": "\u00a0",
-		"paragraph symbol": "\u00b6",
-		"registered trademark": "\u00ae",
-		"section symbol": "\u00a7",
-		"single left quote": "\u2018",
-		"single right quote": "\u2019",
-		"trademark symbol": "\u2122",
-	}
-
 	def _glyphNameForChar(self, char):
 		"""Return the Glyphs glyph name for a single Unicode character, or None."""
 		if not char:
@@ -824,99 +803,148 @@ true
 			return info.name
 		return None
 
-	def _cleanText(self, text):
-		# Decode InDesign's <XXXX> hex-encoded characters (e.g. <0387> → ·)
-		text = re.sub(r"<([0-9A-Fa-f]{4})>", lambda m: chr(int(m.group(1), 16)), text)
-		for searchFor, replaceWith in self._REPLACEMENTS.items():
-			text = text.replace(searchFor, replaceWith)
-		return text
-
-	def _readKernValuesFromInDesign(self, minimumKern=0.0):
+	def _readKernValuesFromInDesign(self, expectedPairs, minimumKern=0.0):
 		"""
-		Read insertion-point kern values from the front InDesign document in one shot.
-		Only pairs whose absolute kern value meets minimumKern are included, so the
-		returned list (and the AppleScript output size) is already pre-filtered.
+		Read insertion-point kern values inside InDesign's JavaScript engine.
+		Only one Apple event crosses the process boundary; the former AppleScript loop
+		issued several InDesign object-model requests per character and was very slow.
+		The Unicode values of the characters InDesign actually composed are returned,
+		so automatic quote substitution behaves exactly like the former reader.
 		Returns a list of (leftChar, rightChar, kernValue) tuples.
 		"""
-		script = """
-on absValue(num)
-	if num < 0 then return -num
-	return num
-end absValue
+		start = time.time()
+		javascript = """
+(function () {
+	var specialCharacterHex = {};
+	specialCharacterHex[SpecialCharacters.BULLET_CHARACTER] = "2022";
+	specialCharacterHex[SpecialCharacters.COPYRIGHT_SYMBOL] = "00A9";
+	specialCharacterHex[SpecialCharacters.DEGREE_SYMBOL] = "00B0";
+	specialCharacterHex[SpecialCharacters.DOUBLE_LEFT_QUOTE] = "201C";
+	specialCharacterHex[SpecialCharacters.DOUBLE_RIGHT_QUOTE] = "201D";
+	specialCharacterHex[SpecialCharacters.DOUBLE_STRAIGHT_QUOTE] = "0022";
+	specialCharacterHex[SpecialCharacters.ELLIPSIS_CHARACTER] = "2026";
+	specialCharacterHex[SpecialCharacters.EM_DASH] = "2014";
+	specialCharacterHex[SpecialCharacters.EN_DASH] = "2013";
+	specialCharacterHex[SpecialCharacters.NONBREAKING_HYPHEN] = "2011";
+	specialCharacterHex[SpecialCharacters.NONBREAKING_SPACE] = "00A0";
+	specialCharacterHex[SpecialCharacters.PARAGRAPH_SYMBOL] = "00B6";
+	specialCharacterHex[SpecialCharacters.REGISTERED_TRADEMARK] = "00AE";
+	specialCharacterHex[SpecialCharacters.SECTION_SYMBOL] = "00A7";
+	specialCharacterHex[SpecialCharacters.SINGLE_LEFT_QUOTE] = "2018";
+	specialCharacterHex[SpecialCharacters.SINGLE_RIGHT_QUOTE] = "2019";
+	specialCharacterHex[SpecialCharacters.SINGLE_STRAIGHT_QUOTE] = "0027";
+	specialCharacterHex[SpecialCharacters.TRADEMARK_SYMBOL] = "2122";
 
+	function characterHex(value) {
+		var specialHex = specialCharacterHex[value];
+		if (specialHex) return specialHex;
+		if (typeof value !== "string" || value.length === 0) return "";
+		var codePoint = value.charCodeAt(0);
+		if (codePoint >= 0xD800 && codePoint <= 0xDBFF && value.length > 1) {
+			var lowSurrogate = value.charCodeAt(1);
+			if (lowSurrogate >= 0xDC00 && lowSurrogate <= 0xDFFF) {
+				codePoint = 0x10000 + ((codePoint - 0xD800) * 0x400) + (lowSurrogate - 0xDC00);
+			}
+		}
+		return codePoint.toString(16).toUpperCase();
+	}
+
+	var story = app.documents[0].textFrames[0].parentStory;
+	var chars = story.characters;
+	var output = [];
+	var pairIndex = 0;
+	for (var x = 0; x < chars.length - 1; x++) {
+		try {
+			var leftHex = characterHex(chars[x].contents);
+			var rightHex = characterHex(chars[x + 1].contents);
+			if (leftHex !== "20" && rightHex !== "20") {
+				var currentPair = pairIndex++;
+				var kernValue = chars[x].insertionPoints[1].kerningValue;
+				if (Math.abs(kernValue) >= %s) {
+					output.push(currentPair, leftHex, rightHex, kernValue);
+				}
+			}
+		} catch (e) {}
+	}
+	return pairIndex + "-#-" + output.join("-#-");
+}());
+""" % float(minimumKern)
+		javascript = javascript.replace("\\", "\\\\").replace('"', '\\"')
+		script = """
 tell application id "com.adobe.InDesign"
-	tell front document
-		zoom first layout window given fit page
-		tell parent story of first text frame
-			set numChars to count of characters
-			set kernOut to ""
-			repeat with x from 1 to (numChars - 1)
-				try
-					set charX to (character x) as string
-					set charNext to (character (x + 1)) as string
-					if charX is not " " and charNext is not " " then
-						set kernValue to kerning value of insertion point 2 of character x
-						if my absValue(kernValue) >= %s then
-							set kernOut to kernOut & charX & "-#-" & charNext & "-#-" & (kernValue as string) & "-#-"
-						end if
-					end if
-				end try
-			end repeat
-			return kernOut
-		end tell
-	end tell
+	set measurementScript to "%s"
+	return do script measurementScript language javascript
 end tell
-""" % minimumKern
+""" % javascript
 		raw = self._runAppleScript(script)
+		print("\t⏱ Read kerning from InDesign in %.2fs." % (time.time() - start))
 		if not raw:
 			return []
-		return self._parseKernPairs(raw)
+		return self._parseKernValues(raw, expectedPairs)
 
-	def _parseKernPairs(self, output):
+	def _parseKernValues(self, output, expectedPairs):
 		"""
-		Parse the -#- delimited string from _readKernValuesFromInDesign into a list of
-		(leftChar, rightChar, kernValue) tuples.  Each triple is char-#-char-#-value-#-.
-		Applies _cleanText to resolve InDesign's descriptive names for special characters.
-		Handles locale decimal comma (e.g. -58,0 → -58.0).
+		Parse InDesign's -#-delimited pair indexes, composed characters and values.
 		"""
 		items = output.split("-#-")
+		try:
+			measuredPairCount = int(items[0])
+		except (IndexError, ValueError):
+			print("\t⚠️ Could not parse InDesign's measurement count.")
+			return []
+		if measuredPairCount != len(expectedPairs):
+			print("\t⚠️ InDesign measured %i pair positions; expected %i." % (measuredPairCount, len(expectedPairs)))
+
 		pairs = []
-		for i in range(0, len(items) - 2, 3):
-			char1 = self._cleanText(items[i].strip())
-			char2 = self._cleanText(items[i + 1].strip())
+		for i in range(1, len(items) - 3, 4):
 			try:
-				kernVal = float(items[i + 2].strip().replace(",", "."))
-			except ValueError:
-				kernVal = 0.0
-			pairs.append((char1, char2, kernVal))
+				pairIndex = int(items[i])
+				expectedLeft, expectedRight = expectedPairs[pairIndex]
+				leftChar = chr(int(items[i + 1], 16)) if items[i + 1] else expectedLeft
+				rightChar = chr(int(items[i + 2], 16)) if items[i + 2] else expectedRight
+				kernVal = float(items[i + 3].replace(",", "."))
+			except (IndexError, TypeError, ValueError):
+				continue
+			pairs.append((leftChar, rightChar, kernVal))
 		return pairs
 
-	def _importKerningForMaster(self, thisFont, master, minimumKern=0.0):
+	def _importKerningForMaster(self, thisFont, master, expectedPairs, minimumKern=0.0, roundBy=0.0):
 		"""
 		Read kern values from InDesign and set them in thisFont for the given master.
 		minimumKern is passed into the AppleScript so only qualifying pairs are returned.
 		Returns the number of pairs imported.
 		"""
 		masterID = master.id
-		kernPairs = self._readKernValuesFromInDesign(minimumKern)
+		kernPairs = self._readKernValuesFromInDesign(expectedPairs, minimumKern)
+		nameCache = {}
 		count = 0
 		thisFont.disableUpdateInterface()
-		for leftChar, rightChar, kernValue in kernPairs:
-			if kernValue == 0:
-				continue
-			leftName = self._glyphNameForChar(leftChar)
-			rightName = self._glyphNameForChar(rightChar)
-			if not leftName or not rightName:
-				continue
-			if not thisFont.glyphs[leftName] or not thisFont.glyphs[rightName]:
-				continue
-			thisFont.setKerningForPair(masterID, leftName, rightName, kernValue)
-			count += 1
-		thisFont.enableUpdateInterface()
-		print("\t↔️ Imported %i raw kern pairs for master ‘%s’." % (count, master.name))
+		try:
+			for leftChar, rightChar, kernValue in kernPairs:
+				if kernValue == 0 or abs(kernValue) < minimumKern:
+					continue
+				if roundBy > 0:
+					kernValue = round(kernValue / roundBy) * roundBy
+				if abs(kernValue) < minimumKern:
+					continue
+				if leftChar not in nameCache:
+					nameCache[leftChar] = self._glyphNameForChar(leftChar)
+				if rightChar not in nameCache:
+					nameCache[rightChar] = self._glyphNameForChar(rightChar)
+				leftName = nameCache[leftChar]
+				rightName = nameCache[rightChar]
+				if not leftName or not rightName:
+					continue
+				if not thisFont.glyphs[leftName] or not thisFont.glyphs[rightName]:
+					continue
+				thisFont.setKerningForPair(masterID, leftName, rightName, kernValue)
+				count += 1
+		finally:
+			thisFont.enableUpdateInterface()
+		print("\t↔️ Imported %i kern pairs for master ‘%s’." % (count, master.name))
 		return count
 
-	def _importExceptionKerningForMaster(self, thisFont, master, minimumKern=0, roundBy=0):
+	def _importExceptionKerningForMaster(self, thisFont, master, expectedPairs, minimumKern=0, roundBy=0):
 		"""
 		Read kern values from InDesign and store them as group-glyph (or glyph-glyph)
 		exception pairs.  A pair is only kept if its rounded value differs from the
@@ -938,58 +966,65 @@ end tell
 						savedGroupGroup[(leftID, rightID)] = val
 
 		# No AppleScript pre-filter: we need raw values to compare against group kern
-		kernPairs = self._readKernValuesFromInDesign(0)
+		kernPairs = self._readKernValuesFromInDesign(expectedPairs, 0)
 		totalRaw = len(kernPairs)
 		droppedZero = droppedName = droppedGlyph = droppedDelta = 0
+		nameCache = {}
 		count = 0
-		thisFont.disableUpdateInterface()
-		for leftChar, rightChar, kernValue in kernPairs:
-			if kernValue == 0:
-				droppedZero += 1
-				continue
-			if roundBy > 0:
-				kernValue = round(kernValue / roundBy) * roundBy
-			if kernValue == 0:
-				droppedZero += 1
-				continue
-			leftName = self._glyphNameForChar(leftChar)
-			rightName = self._glyphNameForChar(rightChar)
-			if not leftName or not rightName:
-				droppedName += 1
-				continue
-			leftGlyph = thisFont.glyphs[leftName]
-			rightGlyph = thisFont.glyphs[rightName]
-			if not leftGlyph or not rightGlyph:
-				droppedGlyph += 1
-				continue
-			# Look up the group kern that already covers this glyph pair
-			groupValue = 0.0
-			lGroup = leftGlyph.rightKerningGroup
-			rGroup = rightGlyph.leftKerningGroup
-			if lGroup and rGroup:
-				lKey = "@MMK_L_%s" % lGroup
-				rKey = "@MMK_R_%s" % rGroup
-				gv = thisFont.kerningForPair(masterID, lKey, rKey)
-				if gv is not None and abs(gv) < 100000:
-					groupValue = gv
-			if abs(kernValue - groupValue) < deltaThreshold:
-				droppedDelta += 1
-				continue
-			# Use group-glyph pair if the left glyph has a right kerning group,
-			# otherwise fall back to glyph-glyph.
-			leftKey = ("@MMK_L_%s" % lGroup) if lGroup else leftName
-			thisFont.setKerningForPair(masterID, leftKey, rightName, kernValue)
-			count += 1
-
-		# Restore any group-group pairs that setKerningForPair may have overwritten
-		# (e.g. when Glyphs resolves a glyph name to its kerning group key).
 		restoredCount = 0
-		currentKerning = thisFont.kerning.get(masterID) or {}
-		for (leftID, rightID), val in savedGroupGroup.items():
-			if currentKerning.get(leftID, {}).get(rightID) != val:
-				thisFont.setKerningForPair(masterID, leftID, rightID, val)
-				restoredCount += 1
-		thisFont.enableUpdateInterface()
+		thisFont.disableUpdateInterface()
+		try:
+			for leftChar, rightChar, kernValue in kernPairs:
+				if kernValue == 0:
+					droppedZero += 1
+					continue
+				if roundBy > 0:
+					kernValue = round(kernValue / roundBy) * roundBy
+				if kernValue == 0:
+					droppedZero += 1
+					continue
+				if leftChar not in nameCache:
+					nameCache[leftChar] = self._glyphNameForChar(leftChar)
+				if rightChar not in nameCache:
+					nameCache[rightChar] = self._glyphNameForChar(rightChar)
+				leftName = nameCache[leftChar]
+				rightName = nameCache[rightChar]
+				if not leftName or not rightName:
+					droppedName += 1
+					continue
+				leftGlyph = thisFont.glyphs[leftName]
+				rightGlyph = thisFont.glyphs[rightName]
+				if not leftGlyph or not rightGlyph:
+					droppedGlyph += 1
+					continue
+				# Look up the group kern that already covers this glyph pair.
+				groupValue = 0.0
+				lGroup = leftGlyph.rightKerningGroup
+				rGroup = rightGlyph.leftKerningGroup
+				if lGroup and rGroup:
+					lKey = "@MMK_L_%s" % lGroup
+					rKey = "@MMK_R_%s" % rGroup
+					gv = savedGroupGroup.get((lKey, rKey))
+					if gv is not None and abs(gv) < 100000:
+						groupValue = gv
+				if abs(kernValue - groupValue) < deltaThreshold:
+					droppedDelta += 1
+					continue
+				# Use group-glyph pair if the left glyph has a right kerning group,
+				# otherwise fall back to glyph-glyph.
+				leftKey = ("@MMK_L_%s" % lGroup) if lGroup else leftName
+				thisFont.setKerningForPair(masterID, leftKey, rightName, kernValue)
+				count += 1
+
+			# Restore any group-group pairs that setKerningForPair may have overwritten
+			# (e.g. when Glyphs resolves a glyph name to its kerning group key).
+			currentKerning = thisFont.kerning.get(masterID) or {}
+			for (leftID, rightID), val in savedGroupGroup.items():
+				if currentKerning.get(leftID, {}).get(rightID) != val:
+					thisFont.setKerningForPair(masterID, leftID, rightID, val)
+					restoredCount += 1
+		finally:
+			thisFont.enableUpdateInterface()
 		if restoredCount:
 			print("\t♻️ Restored %i group-group pairs overwritten during exception import." % restoredCount)
 
@@ -999,6 +1034,15 @@ end tell
 		return count
 
 	# ------------------------------------------------------------------ step 5
+
+	def _kerningNameForID(self, thisFont, kerningID, nameCache):
+		"""Resolve an internal glyph ID for the kerning API, caching the lookup."""
+		if kerningID.startswith("@"):
+			return kerningID
+		if kerningID not in nameCache:
+			glyph = thisFont.glyphForId_(kerningID)
+			nameCache[kerningID] = glyph.name if glyph else None
+		return nameCache[kerningID]
 
 	def _roundAndFilter(self, thisFont, master, roundBy, minimumKern):
 		"""
@@ -1012,8 +1056,8 @@ end tell
 		if not kerning:
 			return 0
 
+		updates = []
 		removals = []
-		thisFont.disableUpdateInterface()
 		for leftID, rightDict in kerning.items():
 			for rightID, value in rightDict.items():
 				newValue = value
@@ -1022,68 +1066,80 @@ end tell
 				if abs(newValue) < minimumKern:
 					removals.append((leftID, rightID))
 				elif newValue != value:
-					# resolve IDs to names for setKerningForPair
-					leftName = leftID if leftID.startswith("@") else thisFont.glyphForId_(leftID).name
-					rightName = rightID if rightID.startswith("@") else thisFont.glyphForId_(rightID).name
-					thisFont.setKerningForPair(masterID, leftName, rightName, newValue)
+					updates.append((leftID, rightID, newValue))
 
+		nameCache = {}
+		for leftID, rightID, newValue in updates:
+			leftName = self._kerningNameForID(thisFont, leftID, nameCache)
+			rightName = self._kerningNameForID(thisFont, rightID, nameCache)
+			if leftName and rightName:
+				thisFont.setKerningForPair(masterID, leftName, rightName, newValue)
 		for leftID, rightID in removals:
-			leftName = leftID if leftID.startswith("@") else thisFont.glyphForId_(leftID).name
-			rightName = rightID if rightID.startswith("@") else thisFont.glyphForId_(rightID).name
-			thisFont.removeKerningForPair(masterID, leftName, rightName)
-		thisFont.enableUpdateInterface()
+			leftName = self._kerningNameForID(thisFont, leftID, nameCache)
+			rightName = self._kerningNameForID(thisFont, rightID, nameCache)
+			if leftName and rightName:
+				thisFont.removeKerningForPair(masterID, leftName, rightName)
+
 		print("\t☑️ Round/filter: removed %i pairs below minimum in master ‘%s’." % (len(removals), master.name))
 		return len(removals)
 
 	def _compressKerning(self, thisFont, master):
 		"""
-		Repeatedly compress (promote glyph exceptions to group kerning) until
-		nothing changes.  A pair is promotable when:
+		Compress glyph pairs to group kerning in one planned pass. A pair is
+		promotable when:
 		  - both sides are glyph IDs (not group keys)
 		  - the glyph has kerning groups on both sides
 		  - value matches the existing group-group value (or there is none yet)
 		Returns the total number of pairs promoted.
 		"""
 		masterID = master.id
-		totalPromoted = 0
-		compressCount = 0
-		thisFont.disableUpdateInterface()
-		while True:
-			kerning = thisFont.kerning.get(masterID, {})
-			toPromote = []
-			for leftID in list(kerning.keys()):
-				leftIsGlyph = not leftID.startswith("@")
-				for rightID in list(kerning.get(leftID, {}).keys()):
-					rightIsGlyph = not rightID.startswith("@")
-					if not (leftIsGlyph and rightIsGlyph):
-						continue
-					leftGlyph = thisFont.glyphForId_(leftID)
-					rightGlyph = thisFont.glyphForId_(rightID)
-					if not leftGlyph or not rightGlyph:
-						continue
-					lGroup = leftGlyph.rightKerningGroup
-					rGroup = rightGlyph.leftKerningGroup
-					if not lGroup or not rGroup:
-						continue
-					lKey = "@MMK_L_%s" % lGroup
-					rKey = "@MMK_R_%s" % rGroup
-					value = kerning[leftID][rightID]
-					groupValue = thisFont.kerningForPair(masterID, lKey, rKey)
-					# promote: set group-group if not already set or matching
-					if groupValue is None or groupValue > 100000:
-						thisFont.setKerningForPair(masterID, lKey, rKey, value)
-						compressCount += 1
-						toPromote.append((leftGlyph.name, rightGlyph.name))
-					elif groupValue == value:
-						toPromote.append((leftGlyph.name, rightGlyph.name))
-			if not toPromote:
-				break
-			for leftName, rightName in toPromote:
-				thisFont.removeKerningForPair(masterID, leftName, rightName)
-			totalPromoted += len(toPromote)
-		thisFont.enableUpdateInterface()
+		kerning = thisFont.kerning.get(masterID, {})
+		groupValues = {}
+		for leftID, rightDict in kerning.items():
+			if not leftID.startswith("@"):
+				continue
+			for rightID, value in rightDict.items():
+				if rightID.startswith("@"):
+					groupValues[(leftID, rightID)] = value
+
+		glyphCache = {}
+		groupPairsToSet = []
+		toPromote = []
+		missing = object()
+		for leftID, rightDict in kerning.items():
+			if leftID.startswith("@"):
+				continue
+			if leftID not in glyphCache:
+				glyphCache[leftID] = thisFont.glyphForId_(leftID)
+			leftGlyph = glyphCache[leftID]
+			if not leftGlyph or not leftGlyph.rightKerningGroup:
+				continue
+			lKey = "@MMK_L_%s" % leftGlyph.rightKerningGroup
+			for rightID, value in rightDict.items():
+				if rightID.startswith("@"):
+					continue
+				if rightID not in glyphCache:
+					glyphCache[rightID] = thisFont.glyphForId_(rightID)
+				rightGlyph = glyphCache[rightID]
+				if not rightGlyph or not rightGlyph.leftKerningGroup:
+					continue
+				rKey = "@MMK_R_%s" % rightGlyph.leftKerningGroup
+				groupKey = (lKey, rKey)
+				groupValue = groupValues.get(groupKey, missing)
+				if groupValue is missing or groupValue is None or groupValue > 100000:
+					groupValues[groupKey] = value
+					groupPairsToSet.append((lKey, rKey, value))
+					toPromote.append((leftGlyph.name, rightGlyph.name))
+				elif groupValue == value:
+					toPromote.append((leftGlyph.name, rightGlyph.name))
+
+		for leftKey, rightKey, value in groupPairsToSet:
+			thisFont.setKerningForPair(masterID, leftKey, rightKey, value)
+		for leftName, rightName in toPromote:
+			thisFont.removeKerningForPair(masterID, leftName, rightName)
+		totalPromoted = len(toPromote)
 		if totalPromoted:
-			print("\t☑️ Compressed %i pairs to %s group kernings in master ‘%s’." % (totalPromoted, compressCount, master.name))
+			print("\t☑️ Compressed %i pairs to %i group kernings in master ‘%s’." % (totalPromoted, len(groupPairsToSet), master.name))
 		return totalPromoted
 
 	def _removeExceptions(self, thisFont, master):
@@ -1093,17 +1149,17 @@ end tell
 		masterID = master.id
 		kerning = thisFont.kerning.get(masterID, {})
 		removals = []
-		thisFont.disableUpdateInterface()
 		for leftID, rightDict in kerning.items():
 			for rightID in rightDict.keys():
 				if leftID.startswith("@") and rightID.startswith("@"):
 					continue  # keep group-group
 				removals.append((leftID, rightID))
+		nameCache = {}
 		for leftID, rightID in removals:
-			leftName = leftID if leftID.startswith("@") else thisFont.glyphForId_(leftID).name
-			rightName = rightID if rightID.startswith("@") else thisFont.glyphForId_(rightID).name
-			thisFont.removeKerningForPair(masterID, leftName, rightName)
-		thisFont.enableUpdateInterface()
+			leftName = self._kerningNameForID(thisFont, leftID, nameCache)
+			rightName = self._kerningNameForID(thisFont, rightID, nameCache)
+			if leftName and rightName:
+				thisFont.removeKerningForPair(masterID, leftName, rightName)
 		print("\t☑️ Removed %i exceptions in master ‘%s’." % (len(removals), master.name))
 		return len(removals)
 
@@ -1112,15 +1168,19 @@ end tell
 		masterID = master.id
 		kerning = thisFont.kerning.get(masterID, {})
 		removals = []
-		thisFont.disableUpdateInterface()
 		for leftID, rightDict in kerning.items():
 			for rightID in rightDict.keys():
 				removals.append((leftID, rightID))
-		for leftID, rightID in removals:
-			leftName = leftID if leftID.startswith("@") else thisFont.glyphForId_(leftID).name
-			rightName = rightID if rightID.startswith("@") else thisFont.glyphForId_(rightID).name
-			thisFont.removeKerningForPair(masterID, leftName, rightName)
-		thisFont.enableUpdateInterface()
+		nameCache = {}
+		thisFont.disableUpdateInterface()
+		try:
+			for leftID, rightID in removals:
+				leftName = self._kerningNameForID(thisFont, leftID, nameCache)
+				rightName = self._kerningNameForID(thisFont, rightID, nameCache)
+				if leftName and rightName:
+					thisFont.removeKerningForPair(masterID, leftName, rightName)
+		finally:
+			thisFont.enableUpdateInterface()
 		print("\t🗑 Deleted %i existing kern pairs for master ‘%s’." % (len(removals), master.name))
 		return len(removals)
 
@@ -1265,6 +1325,10 @@ end tell
 			minimumKern = float(self.pref("minimumKern"))
 		except (TypeError, ValueError):
 			minimumKern = 0.0
+		try:
+			roundBy = float(self.pref("roundBy"))
+		except (TypeError, ValueError):
+			roundBy = 0.0
 
 		for master, filePath in exportedMasters:
 			styleName = self._sanitizeName(master.name) or ("Master%i" % list(thisFont.masters).index(master))
@@ -1286,10 +1350,11 @@ end tell
 				self._deleteAllKerningForMaster(thisFont, master)
 
 			print("\t💬 Preparing pairings for master ‘%s’..." % master.name)
-			pairText = self._buildPairText(thisFont)
-			if not pairText:
+			expectedPairs = self._buildPairs(thisFont)
+			if not expectedPairs:
 				self.w.status.set("⚠️ No pairs to kern.")
 				return
+			pairText = " ".join("%s%s" % pair for pair in expectedPairs)
 
 			self.w.status.set("🖼️ Filling frame ‘%s’…" % master.name)
 			ok = self._setInDesignTextAndFont(pairText, styleName, calibSize, opticalStr)
@@ -1299,11 +1364,11 @@ end tell
 				print("\t❌ Failed to fill text frame for master ‘%s’." % master.name)
 			advance()
 
-			pairCount = len(pairText.split())
+			pairCount = len(expectedPairs)
 			totalImported = 0
 
 			self.w.status.set("📖 Reading %i kern pairs, may take a while…" % pairCount)
-			n = self._importKerningForMaster(thisFont, master, minimumKern)
+			n = self._importKerningForMaster(thisFont, master, expectedPairs, minimumKern, roundBy)
 			totalImported += n
 			advance()
 
@@ -1318,25 +1383,30 @@ true
 """
 			self._runAppleScript(closeScript)
 
-			print("\t📈 Total raw pairs imported: %i" % totalImported)
+			print("\t📈 Total pairs imported: %i" % totalImported)
 
 		# --- Step 3: round, filter, compress, remove exceptions ---
 		print("\nStep 3 – Post-processing kern pairs…")
-		try:
-			roundBy = float(self.pref("roundBy"))
-		except (TypeError, ValueError):
-			roundBy = 0.0
 		groupKerningOnly = self.prefBool("groupKerningOnly")
 
 		doCompressKerning = self.prefBool("compressKerning")
+
+		postProcessStart = time.time()
+
 		for master, filePath in exportedMasters:
 			self.w.status.set("🛠️ Post-processing ‘%s’…" % master.name)
-			self._roundAndFilter(thisFont, master, roundBy, minimumKern)
-			if doCompressKerning:
-				self._compressKerning(thisFont, master)
-				if groupKerningOnly:
-					self._removeExceptions(thisFont, master)
+			thisFont.disableUpdateInterface()
+			try:
+				self._roundAndFilter(thisFont, master, roundBy, minimumKern)
+				if doCompressKerning:
+					self._compressKerning(thisFont, master)
+					if groupKerningOnly:
+						self._removeExceptions(thisFont, master)
+			finally:
+				thisFont.enableUpdateInterface()
 			advance()
+
+		print("\t⏱ Post-processing finished in %.2fs." % (time.time() - postProcessStart))
 
 		# --- Step 4: exception kerning (optional) ---
 		print("\nStep 4 – Adding exception kerning for diacritic pairs…")
@@ -1361,7 +1431,7 @@ true
 						print("\t❌ Failed to fill exception frame for master ‘%s’." % master.name)
 						advance()
 						continue
-					n = self._importExceptionKerningForMaster(thisFont, master, minimumKern, roundBy)
+					n = self._importExceptionKerningForMaster(thisFont, master, exPairs, minimumKern, roundBy)
 					print("\t☑️ Added %i exceptions for master ‘%s’." % (n, master.name))
 					advance()
 
