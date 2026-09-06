@@ -14,7 +14,7 @@ import time
 import vanilla
 from copy import copy
 from mekkablue import mekkaObject, reportTimeInNaturalLanguage, UpdateButton
-from GlyphsApp import Glyphs
+from GlyphsApp import Glyphs, GSInstance, Message
 
 
 class StealKerningFromInDesign(mekkaObject):
@@ -280,22 +280,22 @@ class StealKerningFromInDesign(mekkaObject):
 		Export each master as a standalone OTF into the Adobe Fonts folder.
 		Family name: 'Kernstealer'
 		Style name:  sanitized master name
-		Returns a list of (master, filePath) tuples.
+		Returns a list of successfully exported (master, filePath) tuples.
 		"""
 		adobeFontsFolder = self._adobeFontsFolder()
-		exported = []
-		
+		plannedExports = []
+
 		tempFont = copy(thisFont)
-		tempFont.instances = None
+		tempFont.instances = []
 		tempFont.familyName = "Kernstealer"
-		
+
 		for tempMaster in masters:
 			# create instance same as master
 			tempInstance = GSInstance()
-			tempInstance.setAxesValues_(tempMaster.axesValues())
-			tempInstance.name = tempMaster.name
 			tempFont.instances.append(tempInstance)
-			
+			tempInstance.axes = tempMaster.axes
+			tempInstance.name = tempMaster.name
+
 			# calculate file names and paths
 			try:
 				fileName = tempInstance.fileName()
@@ -306,15 +306,15 @@ class StealKerningFromInDesign(mekkaObject):
 			if "." in fileName:
 				fileName = fileName[:fileName.rfind(".")]
 			tempInstance.customParameters["fileName"] = fileName # excluding ".otf" suffix
-			
+
 			styleName = self._sanitizeName(tempMaster.name) or ("Master%i" % masters.index(tempMaster))
 			fileName = "Kernstealer-%s.otf" % styleName.replace(" ", "")
 			filePath = os.path.join(adobeFontsFolder, fileName)
 
-			exported.append((tempMaster, filePath))
-		
+			plannedExports.append((tempMaster, filePath))
+
 		# export optimized for speed:
-		fontOK = tempFont.export(
+		exportResults = tempFont.export(
 			format="OTF",
 			instances=tempFont.instances,
 			fontPath=adobeFontsFolder,
@@ -323,14 +323,26 @@ class StealKerningFromInDesign(mekkaObject):
 			useSubroutines=False,
 			useProductionNames=True,
 			containers=["plain"],
-			)
+		)
+		if isinstance(exportResults, (str, bytes)) or not hasattr(exportResults, "__iter__"):
+			# Glyphs may return one error value for the whole export.
+			exportResults = [exportResults] * len(plannedExports)
+		else:
+			exportResults = list(exportResults)
 
-		for i, masterOK in enumerate(fontOK):
-			master, filePath = exported[i]
-			if masterOK:
+		exported = []
+		missingResult = object()
+		for i, (master, filePath) in enumerate(plannedExports):
+			exportError = exportResults[i] if i < len(exportResults) else missingResult
+			if exportError is None:
+				exported.append((master, filePath))
 				print("\t✅ Exported: %s → %s" % (master.name, filePath))
 			else:
 				print("\t❌ Export failed for master: %s" % master.name)
+				if exportError is missingResult:
+					print("\t   Glyphs returned no result for this master.")
+				else:
+					print("\t   %s" % exportError)
 
 		return exported
 
@@ -1166,7 +1178,17 @@ end tell
 		print("\nStep 1 – Exporting masters to Adobe Fonts folder…")
 		exportedMasters = self._exportMasters(thisFont, masters)
 		if not exportedMasters:
-			self.w.status.set("❌ Export failed.")
+			failedMasterNames = ", ".join(master.name for master in masters)
+			self.w.status.set("❌ All font exports failed. See Macro Window.")
+			print("\n❌ No temporary fonts were exported. Stopping before opening InDesign.")
+			print("\tFailed masters: %s" % failedMasterNames)
+			print("\tDestination: %s" % self._adobeFontsFolder())
+			Glyphs.showMacroWindow()
+			Message(
+				title="Temporary Font Export Failed",
+				message="None of the selected masters could be exported, so InDesign was not opened.\n\nFailed masters: %s\n\nSee the Macro Window for details." % failedMasterNames,
+				OKButton="OK",
+			)
 			return
 		print(f"\t📥 Exported {len(exportedMasters)} master{'s' if len(exportedMasters)!=1 else ''}.")
 		for _ in exportedMasters:
