@@ -900,6 +900,7 @@ end tell
 		masterID = master.id
 		kernPairs = self._readKernValuesFromInDesign(minimumKern)
 		count = 0
+		thisFont.disableUpdateInterface()
 		for leftChar, rightChar, kernValue in kernPairs:
 			if kernValue == 0:
 				continue
@@ -911,6 +912,7 @@ end tell
 				continue
 			thisFont.setKerningForPair(masterID, leftName, rightName, kernValue)
 			count += 1
+		thisFont.enableUpdateInterface()
 		print("\t↔️ Imported %i raw kern pairs for master ‘%s’." % (count, master.name))
 		return count
 
@@ -940,6 +942,7 @@ end tell
 		totalRaw = len(kernPairs)
 		droppedZero = droppedName = droppedGlyph = droppedDelta = 0
 		count = 0
+		thisFont.disableUpdateInterface()
 		for leftChar, rightChar, kernValue in kernPairs:
 			if kernValue == 0:
 				droppedZero += 1
@@ -986,6 +989,7 @@ end tell
 			if currentKerning.get(leftID, {}).get(rightID) != val:
 				thisFont.setKerningForPair(masterID, leftID, rightID, val)
 				restoredCount += 1
+		thisFont.enableUpdateInterface()
 		if restoredCount:
 			print("\t♻️ Restored %i group-group pairs overwritten during exception import." % restoredCount)
 
@@ -1009,6 +1013,7 @@ end tell
 			return 0
 
 		removals = []
+		thisFont.disableUpdateInterface()
 		for leftID, rightDict in kerning.items():
 			for rightID, value in rightDict.items():
 				newValue = value
@@ -1026,7 +1031,7 @@ end tell
 			leftName = leftID if leftID.startswith("@") else thisFont.glyphForId_(leftID).name
 			rightName = rightID if rightID.startswith("@") else thisFont.glyphForId_(rightID).name
 			thisFont.removeKerningForPair(masterID, leftName, rightName)
-
+		thisFont.enableUpdateInterface()
 		print("\t☑️ Round/filter: removed %i pairs below minimum in master ‘%s’." % (len(removals), master.name))
 		return len(removals)
 
@@ -1042,6 +1047,7 @@ end tell
 		masterID = master.id
 		totalPromoted = 0
 		compressCount = 0
+		thisFont.disableUpdateInterface()
 		while True:
 			kerning = thisFont.kerning.get(masterID, {})
 			toPromote = []
@@ -1075,6 +1081,7 @@ end tell
 			for leftName, rightName in toPromote:
 				thisFont.removeKerningForPair(masterID, leftName, rightName)
 			totalPromoted += len(toPromote)
+		thisFont.enableUpdateInterface()
 		if totalPromoted:
 			print("\t☑️ Compressed %i pairs to %s group kernings in master ‘%s’." % (totalPromoted, compressCount, master.name))
 		return totalPromoted
@@ -1086,6 +1093,7 @@ end tell
 		masterID = master.id
 		kerning = thisFont.kerning.get(masterID, {})
 		removals = []
+		thisFont.disableUpdateInterface()
 		for leftID, rightDict in kerning.items():
 			for rightID in rightDict.keys():
 				if leftID.startswith("@") and rightID.startswith("@"):
@@ -1095,6 +1103,7 @@ end tell
 			leftName = leftID if leftID.startswith("@") else thisFont.glyphForId_(leftID).name
 			rightName = rightID if rightID.startswith("@") else thisFont.glyphForId_(rightID).name
 			thisFont.removeKerningForPair(masterID, leftName, rightName)
+		thisFont.enableUpdateInterface()
 		print("\t☑️ Removed %i exceptions in master ‘%s’." % (len(removals), master.name))
 		return len(removals)
 
@@ -1103,6 +1112,7 @@ end tell
 		masterID = master.id
 		kerning = thisFont.kerning.get(masterID, {})
 		removals = []
+		thisFont.disableUpdateInterface()
 		for leftID, rightDict in kerning.items():
 			for rightID in rightDict.keys():
 				removals.append((leftID, rightID))
@@ -1110,6 +1120,7 @@ end tell
 			leftName = leftID if leftID.startswith("@") else thisFont.glyphForId_(leftID).name
 			rightName = rightID if rightID.startswith("@") else thisFont.glyphForId_(rightID).name
 			thisFont.removeKerningForPair(masterID, leftName, rightName)
+		thisFont.enableUpdateInterface()
 		print("\t🗑 Deleted %i existing kern pairs for master ‘%s’." % (len(removals), master.name))
 		return len(removals)
 
