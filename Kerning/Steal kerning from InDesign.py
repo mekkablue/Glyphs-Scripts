@@ -1206,6 +1206,13 @@ end tell
 
 		# calibrationSizes maps master → calibrated pt size
 		calibrationSizes = {}
+
+		# Read minimumKern now so it can be passed into the AppleScript read step
+		try:
+			minimumKern = float(self.pref("minimumKern"))
+		except (TypeError, ValueError):
+			minimumKern = 0.0
+
 		for master, filePath in exportedMasters:
 			styleName = self._sanitizeName(master.name) or ("Master%i" % list(thisFont.masters).index(master))
 			self.w.status.set("👩‍🔬 Calibrating ‘%s’…" % master.name)
@@ -1238,12 +1245,6 @@ end tell
 			else:
 				print("\t❌ Failed to fill text frame for master ‘%s’." % master.name)
 			advance()
-
-			# Read minimumKern now so it can be passed into the AppleScript read step
-			try:
-				minimumKern = float(self.pref("minimumKern"))
-			except (TypeError, ValueError):
-				minimumKern = 0.0
 
 			pairCount = len(pairText.split())
 			totalImported = 0
