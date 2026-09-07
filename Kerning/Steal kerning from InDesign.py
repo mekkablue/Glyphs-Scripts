@@ -1262,13 +1262,11 @@ end tell
 		# If addExceptions is on, one extra per-master step for the exception pass
 		doExceptions = self.prefBool("addExceptions")
 		totalSteps = 5 * len(masters) + 2 + (len(masters) if doExceptions else 0)
-		progressStep = [0]
 
 		self.w.progressBar.show(True)
 
 		def advance():
-			progressStep[0] += 1
-			self.w.progressBar.set(progressStep[0] / totalSteps * 100)
+			self.w.progressBar.increment(100.0 / totalSteps)
 
 		self.w.progressBar.set(0)
 
@@ -1454,7 +1452,6 @@ true
 		summary = "\n✅ %i kern pairs in %i %s. %s." % (finalPairCount, len(exportedMasters), masterWord, elapsed)
 		self.w.status.set(summary)
 		print(summary)
-		self.w.progressBar.set(0)
 		self.w.progressBar.show(False)
 		Glyphs.showNotification("Steal Kerning from InDesign", summary.replace("✅", "").strip())
 
