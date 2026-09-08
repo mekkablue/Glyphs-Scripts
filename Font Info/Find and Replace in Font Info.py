@@ -10,7 +10,7 @@ import vanilla
 import objc
 from GlyphsApp import Glyphs
 
-if Glyphs.versionNumber <= 4.0:
+if Glyphs.versionNumber < 4.0:
 	from GlyphsApp import GSFontInfoValueLocalized, GSFontInfoValueSingle
 else:
 	# Glyphs 4 renamed GSFontInfoValue* to GSInfoValue*
