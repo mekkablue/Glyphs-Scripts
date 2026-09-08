@@ -9,11 +9,11 @@ import vanilla
 from GlyphsApp import Glyphs
 from mekkablue import mekkaObject, UpdateButton
 
-if Glyphs.versionNumber >= 4:
+if Glyphs.versionNumber <= 4.0:
+	from GlyphsApp import GSFontInfoValue
+else:
 	# Glyphs 4 renamed GSFontInfoValue to GSInfoValue
 	from GlyphsApp import GSInfoValue as GSFontInfoValue
-else:
-	from GlyphsApp import GSFontInfoValue
 
 
 def featureHasName(feature):

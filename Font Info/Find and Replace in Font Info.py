@@ -10,11 +10,11 @@ import vanilla
 import objc
 from GlyphsApp import Glyphs
 
-if Glyphs.versionNumber >= 4:
+if Glyphs.versionNumber <= 4.0:
+	from GlyphsApp import GSFontInfoValueLocalized, GSFontInfoValueSingle
+else:
 	# Glyphs 4 renamed GSFontInfoValue* to GSInfoValue*
 	from GlyphsApp import GSInfoValueLocalized as GSFontInfoValueLocalized, GSInfoValueSingle as GSFontInfoValueSingle
-else:
-	from GlyphsApp import GSFontInfoValueLocalized, GSFontInfoValueSingle
 from mekkablue import mekkaObject
 
 
