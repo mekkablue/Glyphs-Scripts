@@ -19,6 +19,12 @@ class MethodReporter(mekkaObject):
 	}
 
 	def __init__(self):
+		if Glyphs.versionNumber < 4.0:
+			infoValueObjects = ("GSFontInfoValue", "GSFontInfoValueLocalized")
+		else:
+			# Glyphs 4 renamed GSFontInfoValue* to GSInfoValue*
+			infoValueObjects = ("GSInfoValue", "GSInfoValueLocalized")
+
 		self.mostImportantObjects = (
 			"GSLayer",
 			"GSGlyph",
@@ -41,8 +47,7 @@ class MethodReporter(mekkaObject):
 			"GSFeature",
 			"GSFeaturePrefix",
 			"GSFontMaster",
-			"GSFontInfoValue",
-			"GSFontInfoValueLocalized",
+		) + infoValueObjects + (
 			"GSGlyphEditView",
 			"GSGlyphInfo",
 			"GSGlyphsInfo",
