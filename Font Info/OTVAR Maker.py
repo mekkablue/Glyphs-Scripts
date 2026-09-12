@@ -7,7 +7,13 @@ Creates a variable font setting in Font Info > Exports.
 
 import vanilla
 from string import ascii_letters, digits
-from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE, INSTANCETYPEVARIABLE, GSPropertyNameVariationsPostScriptNamePrefixKey, Message
+from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE, INSTANCETYPEVARIABLE, Message
+
+if Glyphs.versionNumber < 4.0:
+	from GlyphsApp import GSPropertyNameVariationsPostScriptNamePrefixKey
+else:
+	# Glyphs 4 renamed GSPropertyNameVariationsPostScriptNamePrefixKey to GSPropertyNameVariablePostScriptNamePrefixKey
+	from GlyphsApp import GSPropertyNameVariablePostScriptNamePrefixKey as GSPropertyNameVariationsPostScriptNamePrefixKey
 from mekkablue import mekkaObject, reportFontName
 
 
