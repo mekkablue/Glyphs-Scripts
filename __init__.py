@@ -322,6 +322,36 @@ def layerGroupsOf(glyph):
 	return tuple(tuple(layerGroup) for layerGroup in layerGroups)
 
 
+def previewPanel():
+	"""
+	Returns the Preview Panel plugin instance (Window > Preview Panel), or None if
+	it is not available.
+	Temporary workaround: in Glyphs 4, the app delegate is not KVC compliant for
+	pluginInstances anymore ('this class is not key value coding-compliant for the
+	key pluginInstances'), so we ask the delegate for the plugin by class name, and
+	only fall back to scanning the plugin instances if that method is missing.
+	"""
+	delegate = Glyphs.delegate()
+	if delegate is None:
+		return None
+	if hasattr(delegate, "pluginForClassName_"):
+		try:
+			panel = delegate.pluginForClassName_("GlyphsPreviewPanel")
+			if panel:
+				return panel
+		except Exception:
+			pass
+	try:
+		pluginInstances = delegate.valueForKey_("pluginInstances")
+	except Exception:
+		pluginInstances = None
+	if pluginInstances:
+		for pluginInstance in pluginInstances:
+			if "glyphspreviewpanel" in pluginInstance.__class__.__name__.lower():
+				return pluginInstance
+	return None
+
+
 def getLegibleFont(size=None):
 	if size is None:
 		size = NSFont.systemFontSize()

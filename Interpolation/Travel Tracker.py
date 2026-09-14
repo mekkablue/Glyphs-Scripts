@@ -7,20 +7,18 @@ Finds interpolations in which points travel more than they should, i.e., can fin
 
 import vanilla
 from GlyphsApp import Glyphs, GSOFFCURVE, Message, distance
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, previewPanel
 from mekkablue.geometry import angle
 
 
 def setCurrentTabToShowAllInstances(font):
 	previewingTab = font.currentTab
-	previewPanel = None
-	for p in Glyphs.delegate().valueForKey_("pluginInstances"):
-		if "GlyphspreviewPanel" in p.__class__.__name__:
-			previewPanel = p
-			break
+	if not previewingTab:
+		return
 	try:
-		if previewPanel:
-			previewPanel.setSelectedInstance_(-1)
+		panel = previewPanel()
+		if panel:
+			panel.setSelectedInstance_(-1)
 		previewingTab.setSelectedInstance_(-1)
 		previewingTab.updatePreview()
 		if Glyphs.versionNumber >= 4.0:
@@ -31,7 +29,8 @@ def setCurrentTabToShowAllInstances(font):
 		font.tool = "TextTool"
 		previewingTab.textCursor = 0
 	except Exception as e:
-		raise e
+		# only affects how the tab is displayed, so keep the tab and go on:
+		print(f"\t⚠️ Could not set tab to show all instances: {e}")
 
 
 class TravelTracker(mekkaObject):
