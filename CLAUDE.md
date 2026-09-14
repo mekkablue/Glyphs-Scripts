@@ -354,6 +354,7 @@ Read it, but prefer Auto Layout for new windows and when reworking an existing o
 | `layerGroupsOf(glyph)` | Returns the interpolation-compatible layer ID groups of a `GSGlyph` as tuples; use instead of `layerGroups_masters_error_()`, which groups by instances — not the default in Glyphs 3/4 — and instead of `glyph.layerGroups()`, which does not exist in Glyphs 3.1 |
 | `newAnchorWithName(anchorName, position=None)` | Returns a new `GSAnchor`; use instead of `GSAnchor(name, position)` (raises a `TypeError` in Glyphs 4) or `GSAnchor.alloc().initWithName_position_()` (missing in Glyphs 3) |
 | `getLegibleFont(size=None)` | Returns a system legible font (Glyphs 2/3 compatible) |
+| `previewPanel()` | Returns the Preview Panel plugin instance, or `None`; use instead of scanning `Glyphs.delegate().valueForKey_("pluginInstances")`, which raises an `NSUnknownKeyException` in Glyphs 4 |
 | `UpdateButton(posSize, callback, title="")` | Creates a refresh button with an NSRefreshTemplate icon; `posSize` may be `"auto"` |
 
 ### `caseDict` (Glyphs 3 only)
