@@ -13,7 +13,7 @@ Copies one layer to another layer across selected glyphs:
 """
 
 import vanilla
-from Foundation import NSPoint
+from GlyphsApp import Glyphs, Message, GSLayer
 from mekkablue import mekkaObject, newGlyphWithName, UpdateButton
 
 
