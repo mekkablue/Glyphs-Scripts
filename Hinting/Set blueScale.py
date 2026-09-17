@@ -5,6 +5,7 @@ __doc__ = """
 Sets maximum blueScale value (determining max size for overshoot suppression) possible in Font Info > Font. Outputs other options in Macro Window.
 """
 
+from mekkablue import setMacroDivider
 from GlyphsApp import Glyphs
 
 
@@ -53,13 +54,6 @@ def maxZoneForBlueScale(blueScale):
 	zoneSize = int(1000.0 // (ppm - 2.04))
 	return zoneSize
 
-
-def setMacroDivider(position=0.1):
-	from Foundation import NSHeight
-	splitview = Glyphs.delegate().macroPanelController().consoleSplitView()
-	height = NSHeight(splitview.frame())
-	splitview.setPosition_ofDividerAtIndex_(height * position, 0)
-	
 
 # open Font Info at Font tab:
 thisFont = Glyphs.font  # frontmost font

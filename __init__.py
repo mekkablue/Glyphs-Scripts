@@ -1,7 +1,7 @@
 
 from typing import Any
 from AppKit import NSUserDefaults, NSFont, NSImage, NSImageLeading, NSMutableSet, NSPasteboard, NSStringPboardType, NSLineBreakByClipping
-from Foundation import NSPoint
+from Foundation import NSHeight, NSPoint
 from GlyphsApp import Glyphs, GSAnchor, GSFeature, GSClass, GSControlLayer, GSGlyph
 from vanilla import Button
 
@@ -350,6 +350,47 @@ def previewPanel():
 			if "glyphspreviewpanel" in pluginInstance.__class__.__name__.lower():
 				return pluginInstance
 	return None
+
+
+def macroPanelController():
+	"""
+	Returns the controller of the Macro Panel (Window > Macro Panel), or None if it
+	is not available.
+	Temporary workaround: in Glyphs 4, the app delegate does not respond to
+	macroPanelController() anymore ('GSMenu' object has no attribute
+	'macroPanelController'), so we try the other names the same controller has been
+	exposed under, and return None if none of them is available.
+	"""
+	delegate = Glyphs.delegate()
+	if delegate is None:
+		return None
+	try:
+		return resolvedAttribute(delegate, ("macroPanelController", "macroPanel", "macroWindowController"))
+	except Exception:
+		return None
+
+
+def setMacroDivider(position=0.1):
+	"""
+	Moves the divider of the Macro Panel to the given relative position, e.g. 0.1 for
+	leaving 10% of the height to the code entry field on top, and 90% to the log below.
+	Returns True if the divider could be moved, and False if the Macro Panel is not
+	accessible, e.g. in Glyphs 4. Use this instead of accessing
+	Glyphs.delegate().macroPanelController().consoleSplitView() directly, which throws
+	an AttributeError in Glyphs 4.
+	"""
+	controller = macroPanelController()
+	if controller is None:
+		return False
+	try:
+		splitview = resolvedAttribute(controller, "consoleSplitView")
+		if splitview is None:
+			return False
+		height = NSHeight(splitview.frame())
+		splitview.setPosition_ofDividerAtIndex_(height * position, 0)
+	except Exception:
+		return False
+	return True
 
 
 def getLegibleFont(size=None):
