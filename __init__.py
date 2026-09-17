@@ -370,6 +370,53 @@ def macroPanelController():
 		return None
 
 
+def macroPanelWindow():
+	"""
+	Returns the window of the Macro Panel, or None if it is not accessible, e.g. in
+	Glyphs 4. Use this instead of Glyphs.delegate().macroPanelController().window(),
+	which throws an AttributeError in Glyphs 4.
+	"""
+	controller = macroPanelController()
+	if controller is None:
+		return None
+	try:
+		return resolvedAttribute(controller, "window")
+	except Exception:
+		return None
+
+
+def macroConsoleSplitView():
+	"""
+	Returns the split view of the Macro Panel, which separates the code entry field
+	from the log below it, or None if it is not accessible, e.g. in Glyphs 4.
+	"""
+	controller = macroPanelController()
+	if controller is None:
+		return None
+	try:
+		return resolvedAttribute(controller, "consoleSplitView")
+	except Exception:
+		return None
+
+
+def macroDividerPosition():
+	"""
+	Returns the current position of the Macro Panel divider, as a fraction of the panel
+	height, e.g. 0.1 if the code entry field takes up 10% of the height. Returns None if
+	the Macro Panel is not accessible, e.g. in Glyphs 4.
+	"""
+	splitview = macroConsoleSplitView()
+	if splitview is None:
+		return None
+	try:
+		height = NSHeight(splitview.frame())
+		if not height:
+			return None
+		return splitview.positionOfDividerAtIndex_(0) / height
+	except Exception:
+		return None
+
+
 def setMacroDivider(position=0.1):
 	"""
 	Moves the divider of the Macro Panel to the given relative position, e.g. 0.1 for
@@ -379,13 +426,10 @@ def setMacroDivider(position=0.1):
 	Glyphs.delegate().macroPanelController().consoleSplitView() directly, which throws
 	an AttributeError in Glyphs 4.
 	"""
-	controller = macroPanelController()
-	if controller is None:
+	splitview = macroConsoleSplitView()
+	if splitview is None:
 		return False
 	try:
-		splitview = resolvedAttribute(controller, "consoleSplitView")
-		if splitview is None:
-			return False
 		height = NSHeight(splitview.frame())
 		splitview.setPosition_ofDividerAtIndex_(height * position, 0)
 	except Exception:

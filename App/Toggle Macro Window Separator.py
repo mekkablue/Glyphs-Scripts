@@ -5,17 +5,13 @@ __doc__ = """
 Toggles the separator position in the Macro Window between 80% and 20%.
 """
 
-from GlyphsApp import Glyphs
+from mekkablue import macroDividerPosition, setMacroDivider
 
 
-if Glyphs.versionNumber < 4:
-	from Foundation import NSHeight
-	splitview = Glyphs.delegate().macroPanelController().consoleSplitView()
-	frame = splitview.frame()
-	height = NSHeight(frame)
-	currentPos = splitview.positionOfDividerAtIndex_(0) / height
+currentPos = macroDividerPosition()
+if currentPos is not None:
 	if currentPos > 0.5:
 		newPos = 0.2
 	else:
 		newPos = 0.8
-	splitview.setPosition_ofDividerAtIndex_(height * newPos, 0)
+	setMacroDivider(newPos)

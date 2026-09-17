@@ -5,7 +5,7 @@ __doc__ = """
 Performs a few tests on your SC set and reports into the Macro window, especially kerning groups and glyph set.
 """
 
-from Foundation import NSHeight
+from mekkablue import setMacroDivider
 from GlyphsApp import Glyphs, GSSmallcaps, GSUppercase, GSLowercase
 
 # brings macro window to front and clears its log:
@@ -34,15 +34,7 @@ if Glyphs.versionNumber >= 3:
 		particles[0] = Glyphs.niceGlyphName(Glyphs.glyphInfoForName(root).unicharString().lower())
 		return ".".join(particles)
 
-	# GLYPHS 3
-	if Glyphs.versionNumber < 4:
-		try:
-			splitview = Glyphs.delegate().macroPanelController().consoleSplitView()
-			splitview.setPosition_ofDividerAtIndex_(NSHeight(splitview.frame()) * 0.2, 0)
-		except Exception as e:
-			print(f"\nFailed resetting the macro panel divider: {e}")
-			import traceback
-			print(traceback.format_exc())
+	setMacroDivider(0.2)
 
 	smallcaps = [g.name for g in thisFont.glyphs if g.case == GSSmallcaps and g.export]
 	lowercase = [g.name for g in thisFont.glyphs if g.case == GSLowercase and g.export]

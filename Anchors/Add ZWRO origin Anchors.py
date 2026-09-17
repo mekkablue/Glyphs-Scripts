@@ -5,18 +5,14 @@ __doc__ = """
 Insert *origin anchors for ZWRO in all combining marks of specified scripts.
 """
 
-from AppKit import NSPoint, NSHeight
+from AppKit import NSPoint
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, newAnchorWithName, UpdateButton, reportFontName
+from mekkablue import mekkaObject, newAnchorWithName, UpdateButton, reportFontName, setMacroDivider
 
 
 def moveMacroWindowSeparator(pos=20):
-	if Glyphs.versionNumber < 4:
-		splitview = Glyphs.delegate().macroPanelController().consoleSplitView()
-		frame = splitview.frame()
-		height = NSHeight(frame)
-		splitview.setPosition_ofDividerAtIndex_(height * pos / 100.0, 0)
+	setMacroDivider(pos / 100.0)
 
 
 positions = (
