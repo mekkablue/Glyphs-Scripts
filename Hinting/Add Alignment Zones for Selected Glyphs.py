@@ -7,11 +7,77 @@ Creates fitting zones for the selected glyphs, on every master.
 
 import vanilla
 from Foundation import NSMaxY, NSMinY
-from GlyphsApp import Glyphs, GSMetric, GSMetricValue, GSAlignmentZone, Message
 from mekkablue import mekkaObject
+from GlyphsApp import Glyphs, GSMetric, Message
+
+try:
+	# Glyphs 3:
+	from GlyphsApp import GSMetricValue
+except ImportError:
+	# Glyphs 4 does not export the class in GlyphsApp anymore, so look it up in the runtime:
+	GSMetricValue = None
+	try:
+		import objc
+	except ImportError:
+		objc = None
+	if objc:
+		for className in ("GSMetricValue", "GSMetricStore"):
+			try:
+				GSMetricValue = objc.lookUpClass(className)
+				break
+			except Exception:
+				continue
+
+try:
+	# Glyphs 2 only:
+	from GlyphsApp import GSAlignmentZone
+except ImportError:
+	GSAlignmentZone = None
 
 
-# function for adding Metrics to master in Glyphs3
+def newMetricValue(position, overshoot):
+	"""
+	Returns a metric value object carrying position and overshoot, or None if it cannot
+	be created. Glyphs 4 does not export GSMetricValue in GlyphsApp anymore, and the
+	initialiser may be unavailable, so fall back to setting the properties separately.
+	"""
+	if GSMetricValue is None:
+		return None
+	try:
+		return GSMetricValue.alloc().initWithPosition_overshoot_(position, overshoot)
+	except AttributeError:
+		pass
+	try:
+		metricValue = GSMetricValue.alloc().init()
+		metricValue.position = position
+		metricValue.overshoot = overshoot
+		return metricValue
+	except Exception:
+		return None
+
+
+def setMetricValueInMaster(master, metricID, position, overshoot):
+	"""
+	Stores position and overshoot for the metric with metricID in the master.
+	Returns True if the value could be stored, False otherwise.
+	"""
+	metricValue = newMetricValue(position, overshoot)
+	if metricValue is None or not metricID:
+		return False
+	if hasattr(master, "setMetricValue_forId_"):
+		try:
+			master.setMetricValue_forId_(metricValue, metricID)
+			return True
+		except Exception:
+			pass
+	try:
+		master.metrics[metricID] = metricValue
+		return True
+	except Exception:
+		return False
+
+
+# function for adding Metrics to master in Glyphs 3 and 4
 def addNamedHorizontalMetricToMaster(master, name, typeName, position, overshoot):
 	metricTypes = {
 		"ascender": 1,
@@ -31,8 +97,8 @@ def addNamedHorizontalMetricToMaster(master, name, typeName, position, overshoot
 	metric.type = typeName
 
 	font.addMetric_(metric)
-	metricValue = GSMetricValue.alloc().initWithPosition_overshoot_(position, overshoot)
-	master.setMetricValue_forId_(metricValue, metric.id)
+	if not setMetricValueInMaster(master, metric.id, position, overshoot):
+		return None
 	return metric.id
 
 
@@ -102,17 +168,24 @@ class CreateAlignmentZonesforSelectedGlyphs(mekkaObject):
 			return 0
 		else:
 			if Glyphs.versionNumber >= 3:
-				# GLYPHS 3 code:
+				# GLYPHS 3 and 4 code:
 				name = None
-				if masterIndex == 0:
+				if masterIndex == 0 or not getattr(self, "current_metric_id", None):
+					# no metric yet, e.g. because it could not be added to the first master:
 					self.current_metric_id = addNamedHorizontalMetricToMaster(master, name, None, zonePosition, zoneSize)
+					zoneWasAdded = bool(self.current_metric_id)
 				else:
-					metricValue = GSMetricValue.alloc().initWithPosition_overshoot_(zonePosition, zoneSize)
-					master.setMetricValue_forId_(metricValue, self.current_metric_id)
+					zoneWasAdded = setMetricValueInMaster(master, self.current_metric_id, zonePosition, zoneSize)
+				if not zoneWasAdded:
+					print("❌ Zone p:%i s:%i cannot be added to master ‘%s’: no way to store metric values in this app version." % (zonePosition, zoneSize, master.name))
+					return 0
 				print("✅ Zone ‘%s’ p:%i s:%i added to master ‘%s’." % ("mekkablue_zone", zonePosition, zoneSize, master.name))
 
 			else:
 				# GLYPHS 2 code:
+				if GSAlignmentZone is None:
+					print("❌ Zone p:%i s:%i cannot be added to master ‘%s’: GSAlignmentZone unavailable." % (zonePosition, zoneSize, master.name))
+					return 0
 				z = GSAlignmentZone()
 				z.size = zoneSize
 				z.position = zonePosition
