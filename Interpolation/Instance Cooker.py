@@ -9,7 +9,7 @@ import vanilla
 import codecs
 from AppKit import NSDictionary
 from GlyphsApp import Glyphs, GSAxis, GSCustomParameter, GSInstance, INSTANCETYPESINGLE, INSTANCETYPEVARIABLE, GetSaveFile, GetOpenFile, Message
-from mekkablue import mekkaObject, getLegibleFont, nameParticlesForAxisID, particleName
+from mekkablue import mekkaObject, getLegibleFont
 
 INSTANCETYPEPARTICLE = 4  # GSInstance.type for axis particle instances (Glyphs 4+)
 
@@ -241,7 +241,7 @@ def elidableParticleNames(font, axisId):
 	for instance in font.instances:
 		if instance.type != INSTANCETYPEPARTICLE:
 			continue
-		particles = nameParticlesForAxisID(instance, axisId)
+		particles = instance.nameParticles[axisId]
 		if not particles:
 			continue
 		for particle in particles:
@@ -254,7 +254,7 @@ def elidableParticleNames(font, axisId):
 				except:
 					continue
 				if isElidable:
-					elidableNames.add(particleName(particle))
+					elidableNames.add(particle.name)
 				break
 
 	return elidableNames

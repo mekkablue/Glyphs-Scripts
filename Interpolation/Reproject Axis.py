@@ -8,7 +8,7 @@ Rescale (reproject) all design-space values of an axis to a new min/max range. R
 import re
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, UpdateButton, nameParticlesForAxisID, resolvedAttribute
+from mekkablue import mekkaObject, UpdateButton
 
 INSTANCETYPEPARTICLE = 4  # GSInstance.type for axis particle settings (Glyphs 4+)
 
@@ -27,24 +27,6 @@ def cleanNumber(value, forceInt=False):
 	if forceInt or abs(rounded - round(rounded)) < 1e-9:
 		return int(round(rounded))
 	return rounded
-
-
-def particleInternalValue(particle):
-	"""Return the internal (design space) value of a GSNameParticle, or None."""
-	return resolvedAttribute(particle, ("internalValue", "internal"))
-
-
-def setParticleInternalValue(particle, value):
-	"""Set the internal (design space) value of a GSNameParticle, pyobjc style where available."""
-	for selectorName in ("setInternalValue_", "setInternal_"):
-		setter = getattr(particle, selectorName, None)
-		if setter is not None:
-			setter(value)
-			return
-	for attributeName in ("internalValue", "internal"):
-		if hasattr(particle, attributeName):
-			setattr(particle, attributeName, value)
-			return
 
 
 class ReprojectAxis(mekkaObject):
@@ -240,14 +222,14 @@ class ReprojectAxis(mekkaObject):
 		for instance in font.instances:
 			if instance.type != INSTANCETYPEPARTICLE:
 				continue
-			particles = nameParticlesForAxisID(instance, axisID)
+			particles = instance.nameParticles[axisID]
 			if not particles:
 				continue
 			for particle in particles:
-				internalValue = particleInternalValue(particle)
+				internalValue = particle.internal
 				if internalValue is None:
 					continue
-				setParticleInternalValue(particle, cleanNumber(reproject(float(internalValue)), forceInt=roundValues))
+				particle.internal = cleanNumber(reproject(float(internalValue)), forceInt=roundValues)
 				count += 1
 		return count
 

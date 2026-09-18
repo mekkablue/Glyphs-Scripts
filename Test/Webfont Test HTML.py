@@ -6,7 +6,6 @@ Create a Test HTML for the current font inside the current Webfont Export folder
 """
 
 from GlyphsApp import Glyphs, GSProjectDocument, INSTANCETYPESINGLE, Message
-from mekkablue import nameParticlesForAxisID, particleAxisValue, particleName
 from AppKit import NSBundle, NSClassFromString
 from os import system, path
 from itertools import product
@@ -221,7 +220,7 @@ def particleStylesOfInstance(thisFont, particleInstance):
 	axisTags = []
 	particlesPerAxis = []
 	for axis in thisFont.axes:
-		particles = nameParticlesForAxisID(particleInstance, axis.axisId)
+		particles = particleInstance.nameParticles[axis.axisId]
 		if not particles:
 			continue
 		axisTags.append(axis.axisTag)
@@ -231,11 +230,11 @@ def particleStylesOfInstance(thisFont, particleInstance):
 
 	styles = []
 	for particleCombination in product(*particlesPerAxis):
-		nameParts = [particleName(particle) for particle in particleCombination if particleName(particle) != "Regular"]
+		nameParts = [particle.name for particle in particleCombination if particle.name != "Regular"]
 		styleName = " ".join(nameParts) if nameParts else particleInstance.name
 		axisValues = {}
 		for axisTag, particle in zip(axisTags, particleCombination):
-			axisValue = particleAxisValue(particle)
+			axisValue = particle.external if particle.external else particle.internal
 			if axisValue is None:
 				continue
 			axisValues[axisTag] = axisValue

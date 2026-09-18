@@ -11,7 +11,6 @@ import json
 from Cocoa import NSEvent, NSAlternateKeyMask, NSShiftKeyMask
 import codecs
 from GlyphsApp import Glyphs, GSFont, Message
-from mekkablue import nameParticlesForAxisID, particleAxisValue, particleName
 
 
 def langMenu(thisFont, indent=4):
@@ -420,7 +419,7 @@ def particleStylesOfInstance(thisFont, particleInstance):
 	axisTags = []
 	particlesPerAxis = []
 	for axis in thisFont.axes:
-		particles = nameParticlesForAxisID(particleInstance, axis.axisId)
+		particles = particleInstance.nameParticles[axis.axisId]
 		if not particles:
 			continue
 		axisTags.append(axis.axisTag)
@@ -430,11 +429,11 @@ def particleStylesOfInstance(thisFont, particleInstance):
 
 	styles = []
 	for particleCombination in product(*particlesPerAxis):
-		nameParts = [particleName(particle) for particle in particleCombination if particleName(particle) != "Regular"]
+		nameParts = [particle.name for particle in particleCombination if particle.name != "Regular"]
 		styleName = " ".join(nameParts) if nameParts else particleInstance.name
 		axisValues = {}
 		for axisTag, particle in zip(axisTags, particleCombination):
-			axisValue = particleAxisValue(particle)
+			axisValue = particle.internal
 			if axisValue is None:
 				continue
 			axisValues[axisTag] = axisValue
@@ -467,10 +466,10 @@ def generateAxisDict(thisFont: GSFont):
 	# the sliders use the particle values (external, internal as fallback):
 	for particleInstance in particleInstancesOfFont(thisFont):
 		for axis in thisFont.axes:
-			particles = nameParticlesForAxisID(particleInstance, axis.axisId)
+			particles = particleInstance.nameParticles[axis.axisId]
 			if not particles:
 				continue
-			particleValues = [particleAxisValue(particle) for particle in particles]
+			particleValues = [particle.external if particle.external else particle.internal for particle in particles]
 			particleValues = [value for value in particleValues if value is not None]
 			if not particleValues:
 				continue

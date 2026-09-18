@@ -148,28 +148,6 @@ def resolvedAttribute(obj, attributeNames, default=None):
 	return default
 
 
-def particleName(particle):
-	"""Returns the name of a GSNameParticle (Glyphs 4) as a string, empty string if it has none."""
-	return str(resolvedAttribute(particle, "name", ""))
-
-
-def particleAxisValue(particle):
-	"""
-	Returns the axis value of a GSNameParticle (Glyphs 4) as a float. A particle
-	carries an internal (design space) and an external (user space) value, and
-	the external one is optional, so fall back to the internal value if it is
-	missing. Returns None if neither value is set.
-	"""
-	for attributeNames in (("externalValue", "external"), ("internalValue", "internal")):
-		value = resolvedAttribute(particle, attributeNames)
-		if value is not None:
-			try:
-				return float(value)
-			except (TypeError, ValueError):
-				pass
-	return None
-
-
 def nameParticlesOfInstance(instance):
 	"""
 	Returns the name particles of a Glyphs 4 particle instance (a mapping of
@@ -205,33 +183,6 @@ def nameParticleAxisIDs(instance):
 		return list(nameParticles)
 	except TypeError:
 		return []
-
-
-def nameParticlesForAxisID(instance, axisID):
-	"""
-	Returns the name particles of the instance for the axis with the given
-	axisId, or None if there are none. Works with both dicts and the
-	proxy objects that Glyphs returns for instance.nameParticles.
-	"""
-	nameParticles = nameParticlesOfInstance(instance)
-	if not nameParticles:
-		return None
-	getter = getattr(nameParticles, "get", None)
-	if callable(getter):
-		try:
-			return getter(axisID)
-		except TypeError:
-			pass
-	objectForKey = getattr(nameParticles, "objectForKey_", None)
-	if objectForKey is not None:
-		try:
-			return objectForKey(axisID)
-		except TypeError:
-			pass
-	try:
-		return nameParticles[axisID]
-	except (KeyError, IndexError, TypeError):
-		return None
 
 
 def newLineControlLayer():
