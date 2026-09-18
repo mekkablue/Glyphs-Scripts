@@ -8,52 +8,14 @@ Creates fitting zones for the selected glyphs, on every master.
 import vanilla
 from Foundation import NSMaxY, NSMinY
 from mekkablue import mekkaObject
-from GlyphsApp import Glyphs, GSMetric, Message
+from GlyphsApp import Glyphs, Message
 
-try:
-	# Glyphs 3:
-	from GlyphsApp import GSMetricValue
-except ImportError:
-	# Glyphs 4 does not export the class in GlyphsApp anymore, so look it up in the runtime:
-	GSMetricValue = None
-	try:
-		import objc
-	except ImportError:
-		objc = None
-	if objc:
-		for className in ("GSMetricValue", "GSMetricStore"):
-			try:
-				GSMetricValue = objc.lookUpClass(className)
-				break
-			except Exception:
-				continue
-
-try:
-	# Glyphs 2 only:
+if Glyphs.versionNumber >= 4:
+	from GlyphsApp import GSMetricStore
+elif Glyphs.versionNumber == 3:
+	from GlyphsApp import GSMetricValue as GSMetricStore
+else:
 	from GlyphsApp import GSAlignmentZone
-except ImportError:
-	GSAlignmentZone = None
-
-
-def newMetricValue(position, overshoot):
-	"""
-	Returns a metric value object carrying position and overshoot, or None if it cannot
-	be created. Glyphs 4 does not export GSMetricValue in GlyphsApp anymore, and the
-	initialiser may be unavailable, so fall back to setting the properties separately.
-	"""
-	if GSMetricValue is None:
-		return None
-	try:
-		return GSMetricValue.alloc().initWithPosition_overshoot_(position, overshoot)
-	except AttributeError:
-		pass
-	try:
-		metricValue = GSMetricValue.alloc().init()
-		metricValue.position = position
-		metricValue.overshoot = overshoot
-		return metricValue
-	except Exception:
-		return None
 
 
 def setMetricValueInMaster(master, metricID, position, overshoot):
@@ -61,7 +23,11 @@ def setMetricValueInMaster(master, metricID, position, overshoot):
 	Stores position and overshoot for the metric with metricID in the master.
 	Returns True if the value could be stored, False otherwise.
 	"""
-	metricValue = newMetricValue(position, overshoot)
+
+	metricValue = GSMetricStore()
+	metricValue.position = position
+	metricValue.overshoot = overshoot
+
 	if metricValue is None or not metricID:
 		return False
 	if hasattr(master, "setMetricValue_forId_"):
@@ -75,31 +41,6 @@ def setMetricValueInMaster(master, metricID, position, overshoot):
 		return True
 	except Exception:
 		return False
-
-
-# function for adding Metrics to master in Glyphs 3 and 4
-def addNamedHorizontalMetricToMaster(master, name, typeName, position, overshoot):
-	metricTypes = {
-		"ascender": 1,
-		"cap height": 2,
-		"x-height": 4,
-		"bodyHeight": 6,
-		"descender": 7,
-		"baseline": 8,
-		"italic angle": 9,
-	}
-	typeName = metricTypes.get(typeName, 0)
-	font = master.font
-	# metric_dict = dict(name=name,typeName=None,horizontal=True)
-	metric = GSMetric()  # .initWithDict_format_(metric_dict, 2)
-	metric.name = name
-	metric.horizontal = True
-	metric.type = typeName
-
-	font.addMetric_(metric)
-	if not setMetricValueInMaster(master, metric.id, position, overshoot):
-		return None
-	return metric.id
 
 
 class CreateAlignmentZonesforSelectedGlyphs(mekkaObject):
@@ -169,13 +110,11 @@ class CreateAlignmentZonesforSelectedGlyphs(mekkaObject):
 		else:
 			if Glyphs.versionNumber >= 3:
 				# GLYPHS 3 and 4 code:
-				name = None
-				if masterIndex == 0 or not getattr(self, "current_metric_id", None):
-					# no metric yet, e.g. because it could not be added to the first master:
-					self.current_metric_id = addNamedHorizontalMetricToMaster(master, name, None, zonePosition, zoneSize)
-					zoneWasAdded = bool(self.current_metric_id)
-				else:
-					zoneWasAdded = setMetricValueInMaster(master, self.current_metric_id, zonePosition, zoneSize)
+				name = "New Top" if isTop else "New Bottom"
+
+				metric = master.setMetricPosition_overshoot_type_name_filter_(zonePosition, zoneSize, 0, name, None)
+				zoneWasAdded = bool(metric)
+
 				if not zoneWasAdded:
 					print("❌ Zone p:%i s:%i cannot be added to master ‘%s’: no way to store metric values in this app version." % (zonePosition, zoneSize, master.name))
 					return 0
