@@ -99,6 +99,10 @@ if font:
 	pass
 ```
 
+A script body runs at module level, not inside a function, so `return` is a `SyntaxError`
+(`'return' outside function`) and the script does not run at all — not even on the code paths
+before it. Bail out with an `if` block, as above, and keep `return` for functions and methods.
+
 ### GUI scripts — subclass `mekkaObject`
 
 ```python
@@ -355,7 +359,47 @@ Read it, but prefer Auto Layout for new windows and when reworking an existing o
 | `newAnchorWithName(anchorName, position=None)` | Returns a new `GSAnchor`; use instead of `GSAnchor(name, position)` (raises a `TypeError` in Glyphs 4) or `GSAnchor.alloc().initWithName_position_()` (missing in Glyphs 3) |
 | `getLegibleFont(size=None)` | Returns a system legible font (Glyphs 2/3 compatible) |
 | `previewPanel()` | Returns the Preview Panel plugin instance, or `None`; use instead of scanning `Glyphs.delegate().valueForKey_("pluginInstances")`, which raises an `NSUnknownKeyException` in Glyphs 4 |
+| `macroPanelController()` | Returns the controller of the Macro Panel (Window > Macro Panel), or `None`; use instead of `Glyphs.delegate().macroPanelController()`, which raises an `AttributeError` in Glyphs 4 |
+| `macroConsoleSplitView()` | Returns the split view separating the code entry field from the log, or `None` |
+| `macroDividerPosition()` | Returns the Macro Panel divider position as a fraction of the panel height, or `None`; `None` also for a zero-height panel, so the caller never divides by zero |
+| `setMacroDivider(position=0.1)` | Moves the Macro Panel divider, e.g. `0.1` to leave the top 10% to the code entry field; returns `True` if it moved, `False` if the panel is not accessible |
 | `UpdateButton(posSize, callback, title="")` | Creates a refresh button with an NSRefreshTemplate icon; `posSize` may be `"auto"` |
+
+### Version-dependent APIs
+
+When an API differs between Glyphs versions, branch on `Glyphs.versionNumber` and call the real
+API on each side:
+
+```python
+def macroPanelController():
+	delegate = Glyphs.delegate()
+	if delegate is None:
+		return None
+	if Glyphs.versionNumber >= 4:
+		return delegate.scriptingWindowController()
+	else:
+		return delegate.macroPanelController()
+```
+
+Do **not** guess at renamed selectors, whether by trying a list of plausible names, by
+`objc.lookUpClass()` on a class you have not confirmed exists, or by wrapping the call in
+`try`/`except` to swallow the `AttributeError`. A guessed name that fails silently turns a
+crash into a feature that quietly does nothing, which is harder to notice and harder to fix
+than the crash was. When the correct API for a version is not known, ask rather than probe.
+
+Keep each version-specific call in one wrapper in `__init__.py` and have the scripts use the
+wrapper, so the version check lives in a single place instead of in every caller.
+
+#### Macro Panel
+
+| | Glyphs 2/3 | Glyphs 4 |
+|---|---|---|
+| Panel controller | `Glyphs.delegate().macroPanelController()` | `Glyphs.delegate().scriptingWindowController()` |
+| Its split view | `controller.consoleSplitView()` | `controller.consoleSplitViewController().splitView()` |
+| Its window | `controller.window()` | `controller.window()` |
+
+Scripts should not call these directly — use `macroPanelController()`, `macroConsoleSplitView()`,
+`macroDividerPosition()` and `setMacroDivider()` from the table above.
 
 ### `caseDict` (Glyphs 3 only)
 
