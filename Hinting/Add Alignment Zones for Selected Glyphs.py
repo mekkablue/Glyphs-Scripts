@@ -6,9 +6,15 @@ Creates fitting zones for the selected glyphs, on every master.
 """
 
 import vanilla
-from Foundation import NSMaxY, NSMinY
 from mekkablue import mekkaObject
 from GlyphsApp import Glyphs, Message
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityWindowSizeStayPut,
+)
+from Foundation import NSMaxY, NSMinY
 
 if Glyphs.versionNumber >= 4:
 	from GlyphsApp import GSMetricStore
@@ -53,38 +59,53 @@ class CreateAlignmentZonesforSelectedGlyphs(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 290
-		windowHeight = 170
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 1  # Auto Layout grows the window to the required size
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Alignment Zones for Selected Glyphs",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 8, 12, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, int(lineHeight * 1.5)), u"Create alignment zones for selected glyphs. Detailed report in Macro Window.", sizeStyle='small', selectable=True)
-		linePos += int(lineHeight * 1.7)
+		self.w.descriptionText = vanilla.TextBox("auto", u"Create alignment zones for selected glyphs. Detailed report in Macro Window.", sizeStyle='small', selectable=True)
 
-		self.w.createTopZones = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Create top zones for selected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.createTopZones = vanilla.CheckBox("auto", u"Create top zones for selected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.createTopZones.setToolTip(u"If enabled, will create top zones that match the currently selected glyphs, for every master. The height of the lowest selected glyph will be the zone position, the difference to the highest glyph will be the size of the zone.")
-		linePos += lineHeight
 
-		self.w.createBottomZones = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Create bottom zones for selected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.createBottomZones = vanilla.CheckBox("auto", u"Create bottom zones for selected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.createBottomZones.setToolTip(u"If enabled, will create bottom zones that match the currently selected glyphs, for every master. The highest bottom edge is the zone position, the difference to the lowest bottom edge will be the zone size.")
-		linePos += lineHeight
 
-		self.w.dontExceedExistingZones = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Prevent zone sizes bigger than current zones", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.dontExceedExistingZones = vanilla.CheckBox("auto", u"Prevent zone sizes bigger than current zones", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.dontExceedExistingZones.setToolTip(u"Recommended. If enabled, will make sure that no zone will be added that is larger than existing zones in the master.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Create Zones", callback=self.CreateAlignmentZonesforSelectedGlyphsMain)
+		self.w.runButton = vanilla.Button("auto", "Create Zones", callback=self.CreateAlignmentZonesforSelectedGlyphsMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# The description wraps at this window width, so let it take the available
+		# horizontal space instead of demanding its single-line intrinsic width.
+		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(
+			NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal
+		)
+
+		# Checkboxes do not resist vertical stretching by default. With every control
+		# hugging vertically, Auto Layout determines the window's exact content height.
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[createTopZones]-(>=inset)-|",
+				"H:|-inset-[createBottomZones]-(>=inset)-|",
+				"H:|-inset-[dontExceedExistingZones]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=90)]-inset-|",
+				"V:|-gap-[descriptionText(30)]-line-[createTopZones]-line-[createBottomZones]-line-[dontExceedExistingZones]-inset-[runButton]-inset-|",
+			],
+			metrics={"inset": inset, "gap": 8, "line": 8},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
