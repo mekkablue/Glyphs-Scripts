@@ -128,13 +128,13 @@ class MirrorSpacer(object):
 							mirroredGlyph = thisFont.glyphs[mirroredGlyphName]
 							if mirroredGlyph and (mirroredGlyph.export or includeNonExporting):
 								for mid in [m.id for m in thisFont.masters]:
-									keyLayer = 
-									mirroredLayer=
-									if mirroredLayer.isMasterLayer or mirroredLayer.isSpecialLayer:
-
+									#keyLayer =
+									#mirroredLayer=
+									#if mirroredLayer.isMasterLayer or mirroredLayer.isSpecialLayer:
+									pass
 
 			# Final report:
-			Glyphs.showNotification( 
+			Glyphs.showNotification(
 				"%s: Done" % (thisFont.familyName),
 				"Mirror Spacer is finished. Details in Macro Window",
 			)
