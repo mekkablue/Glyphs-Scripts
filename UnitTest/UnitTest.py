@@ -98,5 +98,5 @@ def test_scripts_have_valid_python_syntax():
 	SyntaxChecks.checkScriptsCompile()
 
 
-def test_scripts_have_no_new_ruff_undefined_names():
+def test_scripts_have_no_ruff_undefined_names():
 	CodeCheckerChecks.checkRuffUndefinedNames()

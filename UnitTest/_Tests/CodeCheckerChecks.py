@@ -1,19 +1,11 @@
 import json
 import os
-import re
 import subprocess
 from pathlib import Path
 
 import ruff
 
 from TestHelpers import repositoryRoot
-
-
-# These names predate the tests and are supplied implicitly by Glyphs, hidden
-# behind wildcard imports, or otherwise existing technical debt. New undefined
-# names are still reported by Ruff.
-knownUndefinedNames = {
-}
 
 
 def runRuff(arguments):
@@ -41,10 +33,6 @@ def relativePath(path):
 		return str(path)
 
 
-def isKnownUndefinedName(path, name):
-	return name in knownUndefinedNames.get(relativePath(path), set())
-
-
 def checkRuffUndefinedNames():
 	result = runRuff(
 		[
@@ -59,14 +47,10 @@ def checkRuffUndefinedNames():
 	except json.JSONDecodeError:
 		raise AssertionError("Ruff did not return JSON:\n%s\n%s" % (result.stdout, result.stderr))
 
-	unexpectedDiagnostics = []
+	formattedDiagnostics = []
 	for diagnostic in diagnostics:
-		match = re.search(r"`([^`]+)`", diagnostic.get("message", ""))
-		name = match.group(1) if match else ""
-		if isKnownUndefinedName(diagnostic.get("filename", ""), name):
-			continue
 		location = diagnostic.get("location", {})
-		unexpectedDiagnostics.append(
+		formattedDiagnostics.append(
 			"%s:%s:%s: %s %s" % (
 				relativePath(diagnostic.get("filename", "")),
 				location.get("row", 0),
@@ -78,4 +62,4 @@ def checkRuffUndefinedNames():
 
 	if result.returncode not in (0, 1):
 		raise AssertionError("Ruff failed to run:\n%s\n%s" % (result.stdout, result.stderr))
-	assert not unexpectedDiagnostics, "Ruff found undefined names:\n" + "\n".join(unexpectedDiagnostics)
+	assert not formattedDiagnostics, "Ruff found undefined names:\n" + "\n".join(formattedDiagnostics)
