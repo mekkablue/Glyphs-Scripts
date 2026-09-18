@@ -27,4 +27,4 @@ jobs:
         run: python -m pip install pytest ruff
 
       - name: Run tests
-        run: python -m pytest -v UnitTest/UnitTest.py
+        run: python .github/scripts/test_unit.py
