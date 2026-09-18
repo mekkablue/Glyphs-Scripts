@@ -314,7 +314,7 @@ def layerGroupsOf(glyph):
 	if hasattr(glyph, "layerGroups"):
 		layerGroups = glyph.layerGroups()
 	else:
-		layerGroups = glyph.forcedLayerGroupIdsSeenLayers_(NSMutableSet.set())
+		layerGroups = glyph.forcedLayerGroupIdsSeenLayers_(NSMutableSet())
 	if not layerGroups:
 		return ()
 	return tuple(tuple(layerGroup) for layerGroup in layerGroups)
