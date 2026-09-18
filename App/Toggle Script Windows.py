@@ -5,9 +5,9 @@ __doc__ = """
 Toggles visibility of all windows and panels created by Python scripts.
 """
 
-from GlyphsApp import Glyphs
+from mekkablue import macroPanelController
 
-scriptWindow = Glyphs.delegate().macroPanelController().window()
-
-if scriptWindow:
+controller = macroPanelController()
+if controller:
+	scriptWindow = controller.window()
 	scriptWindow.setIsVisible_(not scriptWindow.isVisible())

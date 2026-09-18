@@ -7,9 +7,9 @@ Finds kinks in interpolation space, reports them in the Macro window and opens a
 
 import vanilla
 from math import hypot
-from Foundation import NSPoint, NSHeight
+from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSInstance, GSAnnotation, CIRCLE, GSSMOOTH, GSOFFCURVE, Message, subtractPoints
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, setMacroDivider
 
 tempMarker = "###DELETEME###"
 nodeMarker = "⛔️"
@@ -324,11 +324,7 @@ class KinkFinder(mekkaObject):
 			# brings macro window to front and clears its log:
 			Glyphs.clearLog()
 			if self.pref("bringMacroWindowToFront"):
-				if Glyphs.versionNumber < 4:
-					splitview = Glyphs.delegate().macroPanelController().consoleSplitView()
-					height = NSHeight(splitview.frame())
-					newPos = 0.1
-					splitview.setPosition_ofDividerAtIndex_(height * newPos, 0)
+				setMacroDivider(0.1)
 				Glyphs.showMacroWindow()
 
 			# Turn on node labels if nodes are to  be marked:

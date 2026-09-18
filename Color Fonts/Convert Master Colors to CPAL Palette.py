@@ -6,7 +6,8 @@ Will look for ‘Master Color’ parameters in the font masters and then create 
 """
 
 from AppKit import NSColor
-from Foundation import NSHeight, NSMutableArray
+from Foundation import NSMutableArray
+from mekkablue import setMacroDivider
 from GlyphsApp import Glyphs
 
 
@@ -21,14 +22,7 @@ def colorForMaster(thisMaster, parameterName="Master Color"):
 
 Glyphs.clearLog()  # clears log in Macro window
 print("Status Report: Convert Master Colors to CPAL Palette")
-if Glyphs.versionNumber < 4:
-	try:
-		splitview = Glyphs.delegate().macroPanelController().consoleSplitView()
-		splitview.setPosition_ofDividerAtIndex_(NSHeight(splitview.frame()) * 0.2, 0)
-	except Exception as e:
-		print(f"\nFailed resetting the macro panel divider: {e}")
-		import traceback
-		print(traceback.format_exc())
+setMacroDivider(0.2)
 
 thisFont = Glyphs.font  # frontmost font
 thisFont.disableUpdateInterface()  # suppresses UI updates in Font View

@@ -9,7 +9,7 @@ Checks if uppercase and lowercase are matching. Opens a new Edit tab containing 
 
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, macroDividerPosition, setMacroDivider
 
 
 class CasefoldingReport(mekkaObject):
@@ -172,14 +172,9 @@ class CasefoldingReport(mekkaObject):
 					Message("No issues found. Details in Macro Window.", title='Casefolding OK', OKButton="🥂 Cheers!")
 				if showMacroWindow:
 					Glyphs.showMacroWindow()
-					if Glyphs.versionNumber < 4:
-						from Foundation import NSHeight
-						splitview = Glyphs.delegate().macroPanelController().consoleSplitView()
-						frame = splitview.frame()
-						height = NSHeight(frame)
-						currentPos = splitview.positionOfDividerAtIndex_(0) / height
-						if currentPos > 0.3:
-							splitview.setPosition_ofDividerAtIndex_(height * 0.2, 0)
+					currentPos = macroDividerPosition()
+					if currentPos is not None and currentPos > 0.3:
+						setMacroDivider(0.2)
 			print("✅ Done.")
 
 		except Exception as e:

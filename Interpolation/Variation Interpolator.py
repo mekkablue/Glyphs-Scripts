@@ -6,10 +6,9 @@ Interpolates each layer x times with its background and creates glyph variations
 """
 
 import vanilla
-from Cocoa import NSHeight
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, setMacroDivider
 
 
 def interpolateDicts(dictA, dictB, interpolationFactor=0.5):
@@ -427,12 +426,7 @@ class VariationInterpolator(mekkaObject):
 						print(detail)
 						print()
 					Glyphs.showMacroWindow()
-					if Glyphs.versionNumber < 4.0:
-						splitview = Glyphs.delegate().macroPanelController().consoleSplitView()
-						frame = splitview.frame()
-						height = NSHeight(frame)
-						newPos = 0.2
-						splitview.setPosition_ofDividerAtIndex_(height * newPos, 0)
+					setMacroDivider(0.2)
 					Message(
 						title="Incompatible glyphs",
 						message=f"Could not interpolate:\n{', '.join(incompatible)}\nDetails in Macro Window.",
