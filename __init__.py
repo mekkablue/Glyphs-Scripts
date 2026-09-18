@@ -275,8 +275,6 @@ def newAnchorWithName(anchorName, position=None):
 	"""
 	if position is None:
 		position = NSPoint(0, 0)
-	if Glyphs.versionNumber >= 4:
-		return GSAnchor.alloc().initWithName_position_(anchorName, position)
 	return GSAnchor(anchorName, position)
 
 
