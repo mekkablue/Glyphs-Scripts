@@ -390,6 +390,12 @@ than the crash was. When the correct API for a version is not known, ask rather 
 Keep each version-specific call in one wrapper in `__init__.py` and have the scripts use the
 wrapper, so the version check lives in a single place instead of in every caller.
 
+Wrap only what actually differs between versions. An API that works the same everywhere belongs
+in the script as a plain call — `instance.nameParticles[axisID]` and `particle.name`, not a
+helper that tries `get()`, then `objectForKey_()`, then subscripting. A wrapper that exists
+because its author was unsure of the API, rather than because the versions disagree, is the same
+guessing in a different place: it hides the real call and outlives the uncertainty.
+
 #### Macro Panel
 
 | | Glyphs 2/3 | Glyphs 4 |
