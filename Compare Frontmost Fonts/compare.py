@@ -32,8 +32,9 @@ def cleanUpAndShortenParameterContent(thisParameter, maxLength=20):
 	else:
 		# GLYPHS 2 code:
 		parameterContent = unicode(repr(thisParameter))  # noqa: F821
+	parameterContent = parameterContent.replace("\\n", " ")
 	if len(parameterContent) > maxLength:
-		parameterContent = u"%s..." % parameterContent[:maxLength].replace(u"\n", u" ")
+		parameterContent = u"%s..." % parameterContent[:maxLength]
 	while "  " in parameterContent:
 		parameterContent = parameterContent.replace("  ", " ")
 	return parameterContent

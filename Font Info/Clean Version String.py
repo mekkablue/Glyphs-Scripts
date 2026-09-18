@@ -15,7 +15,7 @@ Glyphs.clearLog()
 Glyphs.showMacroWindow()
 
 
-def removeFromAutohintOptions(thisInstance, removeOption):
+def removeFromAutohintOptions(thisInstance, removeOption, parameterName="TTFAutohint options"):
 	parameter = thisInstance.customParameters[parameterName]
 	if parameter:
 		ttfAutohintOptions = parameter.split(u" ")
