@@ -329,25 +329,14 @@ def previewPanel():
 	key pluginInstances'), so we ask the delegate for the plugin by class name, and
 	only fall back to scanning the plugin instances if that method is missing.
 	"""
-	delegate = Glyphs.delegate()
-	if delegate is None:
+	if Glyphs.versionNumber >= 4:
+		GSPluginHandler = NSClassFromString("GSPluginHandler")
+		pluginHandler = GSPluginHandler.sharedHandler()
+	else:
+		pluginHandler = Glyphs.delegate()
+	if pluginHandler is None:
 		return None
-	if hasattr(delegate, "pluginForClassName_"):
-		try:
-			panel = delegate.pluginForClassName_("GlyphsPreviewPanel")
-			if panel:
-				return panel
-		except Exception:
-			pass
-	try:
-		pluginInstances = delegate.valueForKey_("pluginInstances")
-	except Exception:
-		pluginInstances = None
-	if pluginInstances:
-		for pluginInstance in pluginInstances:
-			if "glyphspreviewpanel" in pluginInstance.__class__.__name__.lower():
-				return pluginInstance
-	return None
+	return pluginHandler.pluginForClassName_("GlyphsPreviewPanel")
 
 
 def macroPanelController():
