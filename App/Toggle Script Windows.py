@@ -5,9 +5,10 @@ __doc__ = """
 Toggles visibility of all windows and panels created by Python scripts.
 """
 
-from mekkablue import macroPanelWindow
+from mekkablue import macroPanelController
 
-scriptWindow = macroPanelWindow()
-
-if scriptWindow:
-	scriptWindow.setIsVisible_(not scriptWindow.isVisible())
+controller = macroPanelController()
+if controller is None:
+	return None
+scriptWindow = controller.window()
+scriptWindow.setIsVisible_(not scriptWindow.isVisible())
