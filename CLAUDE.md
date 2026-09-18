@@ -476,6 +476,18 @@ mypy --ignore-missing-imports .
 - `vanilla` — UI toolkit for floating windows, dialogs, controls
 - `AppKit`, `Foundation` — PyObjC frameworks (available at runtime inside Glyphs)
 
+## API Documentation
+
+Official Glyphs.app scripting references. Look an API up here instead of guessing a selector
+(see “Version-dependent APIs” above), and check the version-appropriate page: the wrapper API
+and the Objective-C core differ between Glyphs 3 and Glyphs 4.
+
+| Resource | URL |
+|---|---|
+| Glyphs 4 API and Core (PyObjC) | <https://docu.glyphsapp.com> |
+| Glyphs 3 API | <https://docu.glyphsapp.com/python3/> |
+| Glyphs 3 Core | <https://docu.glyphsapp.com/Core3/> |
+
 ## Performance Guidelines
 
 - Prefer tuples over lists where mutation is not needed.
