@@ -189,6 +189,7 @@ class ColorPaletteMultiplier(mekkaObject):
 					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
 					setattr(sys.modules[__name__], prefName, fallbackValue)
 
+			build = self.pref("build")
 			buildOrder = []
 			for buildLine in build.strip().splitlines():
 				buildLine = buildLine.strip()
