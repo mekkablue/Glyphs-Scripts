@@ -1,4 +1,4 @@
-#MenuTitle: New Tab with Stray Anchors
+# MenuTitle: New Tab with Stray Anchors
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
