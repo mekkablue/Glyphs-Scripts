@@ -1,4 +1,4 @@
-#MenuTitle: Center Line
+# MenuTitle: Center Line
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
@@ -6,7 +6,7 @@ Will create center lines between selected segments and their opposites. Hold dow
 """
 
 from AppKit import NSPoint, NSPointInRect, NSEvent, NSNonZeroWindingRule
-from GlyphsApp import GSPath, GSPathSegment, GSBackgroundLayer
+from GlyphsApp import CORNER, LINE, OFFCURVE, Glyphs, GSBackgroundLayer, GSLayer, GSPath, GSPathSegment, addPoints, distance, scalePoint
 from copy import copy
 
 Glyphs.clearLog()

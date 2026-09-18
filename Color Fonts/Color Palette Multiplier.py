@@ -1,4 +1,4 @@
-#MenuTitle: Color Palette Multiplier
+# MenuTitle: Color Palette Multiplier
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -189,6 +189,7 @@ class ColorPaletteMultiplier(mekkaObject):
 					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
 					setattr(sys.modules[__name__], prefName, fallbackValue)
 
+			build = self.pref("build")
 			buildOrder = []
 			for buildLine in build.strip().splitlines():
 				buildLine = buildLine.strip()

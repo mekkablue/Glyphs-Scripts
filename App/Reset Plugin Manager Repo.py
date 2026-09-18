@@ -1,4 +1,4 @@
-#MenuTitle: Reset Plugin Manager Repo
+# MenuTitle: Reset Plugin Manager Repo
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
@@ -6,7 +6,8 @@ Deletes the selected Plugin Manager repository. Fixes the dreaded ‘Failed to g
 """
 
 import vanilla, sys
-from mekkablue import *
+from GlyphsApp import Glyphs, Message
+from mekkablue import mekkaObject, UpdateButton
 from os import listdir, path
 from shutil import rmtree
 from subprocess import run

@@ -36,3 +36,4 @@ Temporary Items
 /.claude/worktrees/condescending-mestorf
 *.woff2
 *.html
+/UnitTest/UITest.log

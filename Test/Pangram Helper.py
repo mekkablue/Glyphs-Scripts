@@ -83,7 +83,7 @@ class PangramHelper(mekkaObject):
 			currentTextEntry = self.pref("pangram").lower()
 		else:
 			# Glyphs 2 code
-			currentTextEntry = unicode(self.pref("pangram").lower())  # noqa F821
+			currentTextEntry = unicode(self.pref("pangram").lower())  # noqa: F821
 
 		containedBaseLetters = ""
 		for thisLetter in currentTextEntry:

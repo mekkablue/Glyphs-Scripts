@@ -1,7 +1,7 @@
 
 from typing import Any
 from AppKit import NSUserDefaults, NSFont, NSImage, NSImageLeading, NSPasteboard, NSStringPboardType, NSLineBreakByClipping
-from Foundation import NSPoint, NSClassFromString, NSMutableSet
+from Foundation import NSPoint, NSClassFromString, NSMutableSet, NSHeight
 from GlyphsApp import Glyphs, GSAnchor, GSFeature, GSClass, GSControlLayer, GSGlyph
 from vanilla import Button
 

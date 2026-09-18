@@ -1,4 +1,4 @@
-#MenuTitle: Split Kerning Groups
+# MenuTitle: Split Kerning Groups
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
@@ -6,7 +6,8 @@ In existing group kerning, separate some glyphs out of a kerning group, effectiv
 """
 
 import vanilla, sys
-from mekkablue import *
+from GlyphsApp import Glyphs, Message
+from mekkablue import mekkaObject, reportFontName, UpdateButton
 from copy import copy
 
 def splitOffGroup(font, newGroup, splitoffs, rightGroup=True):

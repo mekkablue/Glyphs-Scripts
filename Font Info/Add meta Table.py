@@ -1,11 +1,12 @@
-#MenuTitle: Add meta Table
+# MenuTitle: Add meta Table
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
 Adds a meta table entry for the frontmost font in Font Info > Font > Custom Parameters.
 """
 
-from mekkablue import reportFontName
+from GlyphsApp import Glyphs, Message
+from mekkablue import mekkaObject, reportFontName, UpdateButton
 import vanilla, sys
 from itertools import combinations
 

@@ -1,4 +1,4 @@
-#MenuTitle: Propagate Components and Mark Anchoring
+# MenuTitle: Propagate Components and Mark Anchoring
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """

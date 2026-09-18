@@ -1,4 +1,4 @@
-#MenuTitle: Insert Split Nodes at Selected Extra Nodes
+# MenuTitle: Insert Split Nodes at Selected Extra Nodes
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
@@ -6,7 +6,7 @@ Select an Extra Node (View > Show Nodes > Extra Nodes) and run this script, it w
 """
 
 import math
-from GlyphsApp import GSHandle, OFFCURVE
+from GlyphsApp import Glyphs, GSHandle, OFFCURVE, distance
 
 def nearestSegmentTimeForPoint(pt, nodes):
 	"""

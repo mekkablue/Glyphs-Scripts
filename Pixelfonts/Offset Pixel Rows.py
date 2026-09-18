@@ -1,4 +1,4 @@
-#MenuTitle: Offset Pixel Rows
+# MenuTitle: Offset Pixel Rows
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
@@ -6,6 +6,7 @@ Offsets each row of pixels by a percentage. Rhythm of 2 = every other line offse
 """
 
 import vanilla, sys
+from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, UpdateButton, match, reportFontName
 
 

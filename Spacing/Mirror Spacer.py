@@ -1,8 +1,8 @@
-#MenuTitle: Mirror Spacer
+# MenuTitle: Mirror Spacer
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Double checks and corrects spacings in mirrored glyphs such as: ()[]\{\}‘’“”«»‹›„“¿?¡!<>≤≥
+Double checks and corrects spacings in mirrored glyphs such as: ()[]{}‘’“”«»‹›„“¿?¡!<>≤≥
 """
 
 import vanilla
@@ -100,14 +100,14 @@ class MirrorSpacer(object):
 
 				includeNonExporting = Glyphs.defaults["com.mekkablue.MirrorSpacer.includeNonExporting"]
 
-				mirroredChars = mirroredChars.replace(" ","")
+				mirroredChars = mirrorpairs.replace(" ", "")
 				charCount = len(mirroredChars)
-				if charCount%2:
+				if charCount % 2:
 					charCount -= 1
-					print("⚠️ Uneven number of mirrored characters entered. Will ignore last one: %s"%mirroredChars[-1])
+					print("⚠️ Uneven number of mirrored characters entered. Will ignore last one: %s" % mirroredChars[-1])
 
 				mirrorDict = {}
-				for i in range(0,charCount,2):
+				for i in range(0, charCount, 2):
 					keyChar = Glyphs.niceGlyphName(mirroredChars[i])
 					mirroredChar = Glyphs.niceGlyphName(mirroredChars[i + 1])
 					if mirrorDict[keyChar]:
@@ -128,13 +128,13 @@ class MirrorSpacer(object):
 							mirroredGlyph = thisFont.glyphs[mirroredGlyphName]
 							if mirroredGlyph and (mirroredGlyph.export or includeNonExporting):
 								for mid in [m.id for m in thisFont.masters]:
-									keyLayer = 
-									mirroredLayer=
-									if mirroredLayer.isMasterLayer or mirroredLayer.isSpecialLayer:
-
+									#keyLayer =
+									#mirroredLayer=
+									#if mirroredLayer.isMasterLayer or mirroredLayer.isSpecialLayer:
+									pass
 
 			# Final report:
-			Glyphs.showNotification( 
+			Glyphs.showNotification(
 				"%s: Done" % (thisFont.familyName),
 				"Mirror Spacer is finished. Details in Macro Window",
 			)

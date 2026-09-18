@@ -1,9 +1,11 @@
-#MenuTitle: Re-interpolate Selected Layers
+# MenuTitle: Re-interpolate Selected Layers
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__="""
 Batch-reinterpolates all selected layers. Same as the Re-Interpolate command in the Layers palette, but for multiple selections.
 """
+
+from GlyphsApp import Glyphs
 
 thisFont = Glyphs.font # frontmost font
 selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
