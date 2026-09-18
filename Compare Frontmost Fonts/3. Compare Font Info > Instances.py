@@ -6,7 +6,7 @@ Detailed report of Font Info > Instances for the two frontmost fontsand outputs 
 """
 
 from compare import compareCount, compareLists, cleanUpAndShortenParameterContent
-from GlyphsApp import Glyphs
+from GlyphsApp import Glyphs, INSTANCETYPEVARIABLE
 
 thisFont = Glyphs.fonts[0]  # frontmost font
 otherFont = Glyphs.fonts[1]  # second font

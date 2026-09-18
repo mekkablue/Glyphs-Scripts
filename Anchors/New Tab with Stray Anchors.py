@@ -6,6 +6,7 @@ Find all anchors that are not where they are supposed to be.
 """
 
 import vanilla, sys
+from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, newLineControlLayer, UpdateButton, reportFontName
 
 horizontals = (

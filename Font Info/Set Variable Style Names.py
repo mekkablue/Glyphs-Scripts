@@ -5,6 +5,8 @@ __doc__="""
 Adds Style Names for variable fonts to instances in Font Info > Exports, and makes an informed guess as for their value. Useful if you split your static family in subfamilies (e.g. by optical size or by width), and as a result, you end up with repeating style names (e.g. multiple Mediums).
 """
 
+from GlyphsApp import Glyphs, INSTANCETYPEVARIABLE
+
 thisFont = Glyphs.font # frontmost font
 thisFont.disableUpdateInterface() # suppresses UI updates in Font View
 try:

@@ -6,6 +6,7 @@ Manage color palette (CPAL) indices in color layers: for specified color indexes
 """
 
 import vanilla
+from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
 
 

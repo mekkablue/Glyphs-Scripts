@@ -6,7 +6,7 @@ Will create center lines between selected segments and their opposites. Hold dow
 """
 
 from AppKit import NSPoint, NSPointInRect, NSEvent, NSNonZeroWindingRule
-from GlyphsApp import GSPath, GSPathSegment, GSBackgroundLayer
+from GlyphsApp import CORNER, LINE, OFFCURVE, Glyphs, GSBackgroundLayer, GSLayer, GSPath, GSPathSegment, addPoints, distance, scalePoint
 from copy import copy
 
 Glyphs.clearLog()

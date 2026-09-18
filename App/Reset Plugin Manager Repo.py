@@ -6,7 +6,8 @@ Deletes the selected Plugin Manager repository. Fixes the dreaded ‘Failed to g
 """
 
 import vanilla, sys
-from mekkablue import *
+from GlyphsApp import Glyphs, Message
+from mekkablue import mekkaObject, UpdateButton
 from os import listdir, path
 from shutil import rmtree
 from subprocess import run

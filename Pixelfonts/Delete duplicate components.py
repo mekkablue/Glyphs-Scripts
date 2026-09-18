@@ -4,6 +4,8 @@ __doc__ = """
 Delete components of the same base glyph and in the same position. Useful for accidental double 
 """
 
+from GlyphsApp import Glyphs, GSComponent
+
 def process(thisLayer):
 	for i in range(len(thisLayer.shapes)-1, 0, -1):
 		shape = thisLayer.shapes[i]

@@ -5,6 +5,8 @@ __doc__="""
 Opens new tabs, one each for all layers pertaining to a color index (CPAL/COLR).
 """
 
+from GlyphsApp import Glyphs, Message
+
 def countColors(font):
 	colors = []
 	palettes = font.customParameters["Color Palettes"]

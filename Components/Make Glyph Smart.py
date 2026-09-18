@@ -5,7 +5,7 @@ __doc__="""
 Turn the currently selected glyph(s) into smart glyphs, and establish the current font axes as the glyph’s smart axes.
 """
 
-from GlyphsApp import GSSmartComponentAxis
+from GlyphsApp import Glyphs, GSSmartComponentAxis
 
 def minMaxForLayer(layer, fontAxisID):
 	# collect all values for this axis:

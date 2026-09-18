@@ -6,6 +6,7 @@ Offsets each row of pixels by a percentage. Rhythm of 2 = every other line offse
 """
 
 import vanilla, sys
+from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, UpdateButton, match, reportFontName
 
 

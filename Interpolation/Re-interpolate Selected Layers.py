@@ -5,6 +5,8 @@ __doc__="""
 Batch-reinterpolates all selected layers. Same as the Re-Interpolate command in the Layers palette, but for multiple selections.
 """
 
+from GlyphsApp import Glyphs
+
 thisFont = Glyphs.font # frontmost font
 selectedLayers = thisFont.selectedLayers # active layers of selected glyphs
 Glyphs.clearLog() # clears log in Macro window
