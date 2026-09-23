@@ -57,3 +57,11 @@ def valueForCoefficient(coefficient, low, high):
 	span = high - low
 	number = low + coefficient * span
 	return number
+
+
+def __test__():
+	coefficientValue = coefficient(425, 100, 900)
+	expectedCoefficient = 0.40625
+	assert abs(coefficientValue - expectedCoefficient) < 0.000001, "Expected coefficient %s, got %s" % (expectedCoefficient, coefficientValue)
+	roundTripValue = valueForCoefficient(coefficientValue, 100, 900)
+	assert abs(roundTripValue - 425) < 0.000001, "Expected round-trip value 425, got %s" % roundTripValue

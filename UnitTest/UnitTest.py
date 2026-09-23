@@ -15,7 +15,7 @@ unitTestDirectory = os.path.dirname(__file__)
 if unitTestDirectory not in sys.path:
 	sys.path.insert(0, unitTestDirectory)
 
-from _Tests import AxisChecks, CodeCheckerChecks, CompareChecks, GeometryChecks, SyntaxChecks  # noqa: E402
+from _Tests import AxisChecks, CodeCheckerChecks, CompareChecks, GeometryChecks, ScriptHookChecks, SyntaxChecks  # noqa: E402
 
 
 # Axis helpers
@@ -100,3 +100,7 @@ def test_scripts_have_valid_python_syntax():
 
 def test_scripts_have_no_ruff_undefined_names():
 	CodeCheckerChecks.checkRuffUndefinedNames()
+
+
+def test_script_test_hooks():
+	ScriptHookChecks.checkScriptTestHooks()

@@ -16,6 +16,40 @@ To add a test:
 2. Add a short top-level `test_*` wrapper to `UnitTest.py`. That wrapper is the
    name Glyphs will display in the sidebar.
 
+## Tests embedded in scripts
+
+A script can opt into automatic test discovery by defining a top-level
+`__test__()` function:
+
+```python
+def __test__():
+	result = helperFunction(2)
+	assert result == 4, "Expected 4, got %s" % result
+
+
+if __name__ == "__main__":
+	main()
+```
+
+`test_script_test_hooks` discovers these functions recursively and runs them.
+The hook takes no arguments; use ordinary assertions, and let unexpected
+exceptions propagate. Include expected and actual values in assertion messages,
+because dynamically loaded hooks do not receive pytest's assertion rewriting.
+The runner reduces a hook failure to its absolute script path, line number, and
+message so consoles can turn the location into a clickable link. Internal
+discovery and loading frames are suppressed.
+
+Discovery parses files without importing them. Only files that contain an
+`__test__()` hook are loaded. A hook-bearing script must therefore put its
+entry point behind the `if __name__ == "__main__":` guard shown above; the
+runner rejects unguarded top-level calls before loading the script.
+
+Hooks containing only portable Python run both in Glyphs and in GitHub CI.
+Hooks whose script requires `GlyphsApp`, `AppKit`, `Foundation`, or `vanilla`
+run in Glyphs and are reported as skipped by Linux CI when that import is not
+available. Use the existing `_Tests` modules and fake objects when such logic
+also needs CI coverage.
+
 Prefer small fake Glyphs objects for unit tests. Tests that manipulate the UI or
 require an open font should be clearly separated as integration tests because
 they are slower and depend on application state.
