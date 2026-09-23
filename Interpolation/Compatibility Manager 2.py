@@ -248,7 +248,7 @@ def addMissingComponents(glyph, refLayer, verbose=False):
 				refComp = next(s for s in refLayer.shapes if isinstance(s, GSComponent) and s.componentName == name)
 				newComp = GSComponent(name)
 				newComp.automaticAlignment = refComp.automaticAlignment
-				layer.components.append(newComp)
+				layer.shapes.append(newComp)
 				if verbose:
 					log.append(f"    ➕ {layer.name}: added component '{name}'")
 	return log

@@ -24,7 +24,7 @@ for glyphName in aplGlyphNames:
 		for thisLayer in thisGlyph.layers:
 			thisLayer.clear()
 			comp = GSComponent(original)
-			thisLayer.components.append(comp)
+			thisLayer.shapes.append(comp)
 			comp.automaticAlignment = True
 	else:
 		print("%s: not found in font." % original)

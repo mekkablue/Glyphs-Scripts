@@ -993,7 +993,7 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 										newLayer.clear()
 										for i, letter in enumerate(letters):
 											letterComp = GSComponent(letter)
-											newLayer.components.append(letterComp)
+											newLayer.shapes.append(letterComp)
 											letterComp.disableAlignment = True
 											scaleDown = transform(scale=scale).transformStruct()
 											letterComp.applyTransform(scaleDown)

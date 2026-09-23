@@ -215,7 +215,7 @@ class PopulateAllBackgroundswithComponent(mekkaObject):
 
 										# add component:
 										newComponent = GSComponent(componentName)
-										glyphLayer.background.components.append(newComponent)
+										glyphLayer.background.shapes.append(newComponent)
 
 										# align right if user asked for it:
 										if self.pref("alignRight"):

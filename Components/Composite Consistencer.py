@@ -317,7 +317,7 @@ class CompositeConsistencer(mekkaObject):
 								newComp = GSComponent(newCompName)
 								newComp.position = sourceComp.position
 								newComp.automaticAlignment = sourceComp.automaticAlignment
-								targetLayer.components.append(newComp)
+								targetLayer.shapes.append(newComp)
 
 						print("✅ Created %s (based on %s)" % (missingCompName, sourceCompositeName))
 						totalCreated += 1

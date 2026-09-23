@@ -26,7 +26,7 @@ def getZeroGlyph(thisFont):
 def overequal(Layer):
 	Layer.clear()
 	comp1 = GSComponent("equal")
-	Layer.components.append(comp1)
+	Layer.shapes.append(comp1)
 	verticaloffset = comp1.bounds.origin.y
 	tMatrix = transform(shiftY=-verticaloffset).transformStruct()
 	comp1.applyTransform(tMatrix)
@@ -36,7 +36,7 @@ def overequal(Layer):
 	if "less" in Layer.parent.name:
 		rightedge = comp1.bounds.origin.x + comp1.bounds.size.width
 		comp2 = GSComponent("less")
-		Layer.components.append(comp2)
+		Layer.shapes.append(comp2)
 		xShift = rightedge - (comp2.bounds.origin.x + comp2.bounds.size.width)
 		yShift = topedge + distance - comp2.bounds.origin.y
 		tMatrix = transform(shiftX=xShift, shiftY=yShift).transformStruct()
@@ -48,7 +48,7 @@ def overequal(Layer):
 	if "greater" in Layer.parent.name:
 		leftedge = comp1.bounds.origin.x
 		comp2 = GSComponent("greater")
-		Layer.components.append(comp2)
+		Layer.shapes.append(comp2)
 		xShift = leftedge - comp2.bounds.origin.x
 		yShift = topedge + distance - comp2.bounds.origin.y
 		tMatrix = transform(shiftX=xShift, shiftY=yShift).transformStruct()
@@ -114,7 +114,7 @@ try:
 		thisLayer.clear()
 		# add period component:
 		dot = GSComponent("period")
-		thisLayer.components.append(dot)
+		thisLayer.shapes.append(dot)
 		# determine shift:
 		dotCenter = centerOfRect(dot.bounds)
 		zeroCenter = centerOfRect(zeroGlyph.layers[masterID].bounds)
