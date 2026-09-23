@@ -23,10 +23,15 @@ def runTests():
 	for name, test in tests:
 		try:
 			test()
+		except (KeyboardInterrupt, SystemExit):
+			raise
 		except Exception:
 			failures.append(name)
 			print("FAILED %s" % name)
 			traceback.print_exc()
+		except BaseException as error:
+			failures.append(name)
+			print("FAILED %s: %s" % (name, error))
 		else:
 			print("PASSED %s" % name)
 
