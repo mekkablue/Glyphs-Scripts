@@ -31,4 +31,4 @@ for m in thisFont.masters:
 if theseLayers:
 	thisTab = thisFont.currentTab
 	# TabLayersProxy has no extend(), so rebuild the whole list in one go:
-	thisTab.layers = list(thisTab.layers) + theseLayers
+	thisTab.layers = theseLayers
