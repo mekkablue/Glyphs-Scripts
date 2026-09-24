@@ -37,7 +37,7 @@ else:
 		for componentName in (Oglyph.name, tailGlyph.name):
 			newComponent = GSComponent(componentName)
 			newComponent.automaticAlignment = True
-			targetLayer.components.append(newComponent)
+			targetLayer.shapes.append(newComponent)
 
 	# add special layers to _tail.Q:
 	for layerIndex in range(len(Qglyph.layers) - 1, -1, -1):

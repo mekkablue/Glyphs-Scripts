@@ -532,7 +532,7 @@ class EncodingConverter(mekkaObject):
 						layer.clear()
 						for compName in sourceGlyphNames:
 							comp = GSComponent(compName)
-							layer.components.append(comp)
+							layer.shapes.append(comp)
 				countRecipes += 1
 		return countRenames, countRecipes
 

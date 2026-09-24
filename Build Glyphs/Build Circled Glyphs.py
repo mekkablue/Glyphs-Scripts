@@ -179,7 +179,7 @@ def buildCircledGlyph(thisGlyph, circleName, scaleFactors, minDistanceBetweenTwo
 		# add circle:
 		assumedCenter = NSPoint(thisFont.upm * 0.5, thisFont.upm * 0.3)  # hardcoded
 		circleComponent = GSComponent(circleName)
-		thisLayer.components.append(circleComponent)
+		thisLayer.shapes.append(circleComponent)
 
 		# scale circle:
 		circleScale = transform(scale=circleScaleFactor).transformStruct()
@@ -225,7 +225,7 @@ def buildCircledGlyph(thisGlyph, circleName, scaleFactors, minDistanceBetweenTwo
 
 				innerComponent = GSComponent(compName)
 				innerComponent.automaticAlignment = False
-				thisLayer.components.append(innerComponent)
+				thisLayer.shapes.append(innerComponent)
 				innerComponent.position = NSPoint(advance, 0.0)
 
 				if j > 0:

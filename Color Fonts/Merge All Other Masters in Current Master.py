@@ -39,7 +39,7 @@ def process(thisGlyph):
 		sourceComponents = sourceLayer.components
 		if sourceComponents:
 			for sourceComponent in sourceLayer.components:
-				currentLayer.components.append(sourceComponent.copy())
+				currentLayer.shapes.append(sourceComponent.copy())
 
 
 thisFont.disableUpdateInterface()  # suppresses UI updates in Font View

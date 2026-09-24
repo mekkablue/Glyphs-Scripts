@@ -184,7 +184,7 @@ class Rotator(mekkaObject):
 					for newPath in newPaths:
 						thisLayer.shapes.append(newPath)
 					for newComp in newComps:
-						thisLayer.components.append(newComp)
+						thisLayer.shapes.append(newComp)
 
 				# thisGlyph.endUndo()  # undo grouping causes crashes
 			except Exception as e:
