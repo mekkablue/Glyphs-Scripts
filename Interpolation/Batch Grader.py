@@ -628,7 +628,11 @@ class BatchGrader(mekkaObject):
 		if not codeLine:
 			return
 
-		masterName, axes = codeLine.split(":")
+		if ":" not in codeLine:
+			print(f"⚠️ Could not parse (missing colon): {codeLine}\n")
+			return
+
+		masterName, axes = codeLine.split(":", 1)
 		masterName = masterName.strip()
 		master = thisFont.fontMasterForName_(masterName)
 		if not master:
