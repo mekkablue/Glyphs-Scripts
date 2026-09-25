@@ -6,6 +6,7 @@ Jumps to next instance shown in the preview field or window.
 """
 
 from GlyphsApp import Glyphs
+from mekkablue import previewPanel
 
 font = Glyphs.font
 numberOfInstances = len(font.instances)
@@ -14,7 +15,7 @@ numberOfInstances = len(font.instances)
 previewingTab = font.currentTab
 
 # Window > Preview Panel:
-previewPanel = Glyphs.delegate().pluginForClassName_("GlyphsPreviewPanel")
+previewPanel = previewPanel()
 
 try:
 	currentInstanceNumber = previewingTab.selectedInstance()
