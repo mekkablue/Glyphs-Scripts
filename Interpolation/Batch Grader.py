@@ -510,6 +510,9 @@ class BatchGrader(mekkaObject):
 
 		# get interpolated layer and prepare for width adjustment
 		weightedGlyph = weightedFont.glyphs[baseGlyph.name]
+		if weightedGlyph is None:
+			print(f"⚠️ ‘{baseGlyph.name}’ missing from interpolated grade font, skipping.")
+			return
 		weightedLayer = weightedGlyph.layers[0]
 		straightenBCPs(weightedLayer)
 		weightedWidth = weightedLayer.width
@@ -672,6 +675,12 @@ class BatchGrader(mekkaObject):
 		weightedInstance.axes = weightedAxes
 		print(f"🛠️ Interpolating grade: {self.masterAxesString(weightedInstance)}")
 		weightedFont = weightedInstance.interpolatedFont
+		if weightedFont is None:
+			subsettedMasterNames = ", ".join(f"‘{m.name}’" for m in subsettedFont.masters) or "none"
+			print(f"⚠️ Could not interpolate ‘{codeLine}’: Glyphs returned no font for this axis combination.")
+			print(f"\tMasters available for interpolation ({len(subsettedFont.masters)}): {subsettedMasterNames}")
+			print("\tCheck that at least two of these masters differ only in the axis you are grading, and that no axis value in the recipe falls outside their range.\n")
+			return
 
 		# get the graded master
 		gradeMaster = self.gradeMaster(thisFont, master, grade, gradeAxisIdx, searchFor, replaceWith)
