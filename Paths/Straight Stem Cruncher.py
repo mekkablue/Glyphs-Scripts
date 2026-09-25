@@ -214,13 +214,13 @@ class StraightStemCruncher(mekkaObject):
 		measurePoint2 = NSPoint(measurePoint1.x - v, measurePoint1.y + h)
 		intersections = layer.intersectionsBetweenPoints(measurePoint1, measurePoint2)
 
-		if measurePoint1 != intersections[0].pointValue():
+		if measurePoint1 != intersections[0]:
 			intersections = intersections[::-1]
 
 		if len(intersections) > 2:
 			# two measurement points:
-			p1 = intersections[0].pointValue()
-			p2 = intersections[1].pointValue()
+			p1 = NSPoint(intersections[0].x, intersections[0].y)
+			p2 = NSPoint(intersections[1].x, intersections[1].y)
 
 			# calculate stem width:
 			stemWidth = distance(p1, p2)
