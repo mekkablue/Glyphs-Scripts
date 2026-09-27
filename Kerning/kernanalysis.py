@@ -3,13 +3,11 @@ from __future__ import print_function
 
 from AppKit import NSPoint, NSNotFound
 from mekkablue import caseDict
-from GlyphsApp import Glyphs, GSLayer, GSPath, GSNode, GSLINE
+from GlyphsApp import Glyphs, GSLayer, GSPath, GSNode, GSLINE, GSLTR as LTR
 import math
 
-if Glyphs.versionNumber >= 4.0:
-	# Glyphs 4 dropped the old LTR constant, only GSLTR is left:
-	from GlyphsApp import GSLTR as LTR
-elif Glyphs.versionNumber >= 3.0:
+if Glyphs.versionNumber < 4.0:
+	# Glyphs 3 also accepted the older LTR constant, dropped in Glyphs 4:
 	from GlyphsApp import LTR
 
 intervalList = (1, 3, 5, 10, 20)
