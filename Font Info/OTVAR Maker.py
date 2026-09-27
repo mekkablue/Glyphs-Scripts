@@ -10,10 +10,10 @@ from string import ascii_letters, digits
 from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE, INSTANCETYPEVARIABLE, Message
 
 if Glyphs.versionNumber < 4.0:
-	from GlyphsApp import GSPropertyNameVariationsPostScriptNamePrefixKey
+	# Glyphs 3 only had the old name, renamed in Glyphs 4:
+	from GlyphsApp import GSPropertyNameVariationsPostScriptNamePrefixKey as GSPropertyNameVariablePostScriptNamePrefixKey
 else:
-	# Glyphs 4 renamed GSPropertyNameVariationsPostScriptNamePrefixKey to GSPropertyNameVariablePostScriptNamePrefixKey
-	from GlyphsApp import GSPropertyNameVariablePostScriptNamePrefixKey as GSPropertyNameVariationsPostScriptNamePrefixKey
+	from GlyphsApp import GSPropertyNameVariablePostScriptNamePrefixKey
 from mekkablue import mekkaObject, reportFontName
 
 
@@ -222,7 +222,7 @@ class OTVARMaker(mekkaObject):
 				extension = "Italic" if isItalic else psSuffix.strip().replace(" ", "")
 				if not psFamilyName.endswith(extension):
 					psFamilyName += extension
-				otvarInstance.setProperty_value_languageTag_(GSPropertyNameVariationsPostScriptNamePrefixKey, psFamilyName, None)
+				otvarInstance.setProperty_value_languageTag_(GSPropertyNameVariablePostScriptNamePrefixKey, psFamilyName, None)
 
 				# file name
 				if addFileName:
