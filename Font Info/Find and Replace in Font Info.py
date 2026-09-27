@@ -11,10 +11,10 @@ import objc
 from GlyphsApp import Glyphs
 
 if Glyphs.versionNumber < 4.0:
-	from GlyphsApp import GSFontInfoValueLocalized, GSFontInfoValueSingle
+	# Glyphs 3 only had the old names, renamed in Glyphs 4:
+	from GlyphsApp import GSFontInfoValueLocalized as GSInfoValueLocalized, GSFontInfoValueSingle as GSInfoValueSingle
 else:
-	# Glyphs 4 renamed GSFontInfoValue* to GSInfoValue*
-	from GlyphsApp import GSInfoValueLocalized as GSFontInfoValueLocalized, GSInfoValueSingle as GSFontInfoValueSingle
+	from GlyphsApp import GSInfoValueLocalized, GSInfoValueSingle
 from mekkablue import mekkaObject
 
 
@@ -110,18 +110,18 @@ class FindAndReplaceInFontInfo(mekkaObject):
 		return text, False
 
 	def replaceInProperties(self, obj, searchFor, replaceWith, label):
-		"""Replace in .properties (GSFontInfoValueSingle / GSFontInfoValueLocalized). Returns count."""
+		"""Replace in .properties (GSInfoValueSingle / GSInfoValueLocalized). Returns count."""
 		count = 0
 		if not hasattr(obj, "properties"):
 			return 0
 		for prop in obj.properties:
-			if isinstance(prop, GSFontInfoValueSingle):
+			if isinstance(prop, GSInfoValueSingle):
 				if prop.value and searchFor in prop.value:
 					newVal, changed = self.replaceInText(prop.value, searchFor, replaceWith, f"{label} > {prop.key}")
 					if changed:
 						prop.value = newVal
 						count += 1
-			elif isinstance(prop, GSFontInfoValueLocalized):
+			elif isinstance(prop, GSInfoValueLocalized):
 				for entry in prop.values:
 					if entry.value and searchFor in entry.value:
 						newVal, changed = self.replaceInText(entry.value, searchFor, replaceWith, f"{label} > {prop.key} ({entry.languageTag})")
