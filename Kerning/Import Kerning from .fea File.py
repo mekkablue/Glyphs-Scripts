@@ -18,10 +18,11 @@ import vanilla
 from mekkablue import mekkaObject
 
 from GlyphsApp import Glyphs, Message, GetOpenFile
-try:
-	from GlyphsApp import GSRTL
-except ImportError:
+if Glyphs.versionNumber < 4.0:
+	# Glyphs 3 only had the old name, dropped in Glyphs 4:
 	from GlyphsApp import RTL as GSRTL
+else:
+	from GlyphsApp import GSRTL
 
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 

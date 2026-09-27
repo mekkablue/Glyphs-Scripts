@@ -6,8 +6,14 @@ Transfers RTL kerning from one master to another.
 """
 
 import vanilla
-from GlyphsApp import Glyphs, RTL, Message
+from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
+
+if Glyphs.versionNumber < 4.0:
+	# Glyphs 3 only had the old name, dropped in Glyphs 4:
+	from GlyphsApp import RTL as GSRTL
+else:
+	from GlyphsApp import GSRTL
 
 
 class TransferRTLkerning(mekkaObject):
@@ -147,10 +153,10 @@ class TransferRTLkerning(mekkaObject):
 							else:
 								secondPartName = secondPart
 
-							kernValue = sourceFont.kerningForPair(sourceMasterID, firstPartName, secondPartName, direction=RTL)
+							kernValue = sourceFont.kerningForPair(sourceMasterID, firstPartName, secondPartName, direction=GSRTL)
 							if kernValue is not None:
 								try:
-									targetFont.setKerningForPair(targetMasterID, firstPartName, secondPartName, kernValue, direction=RTL)
+									targetFont.setKerningForPair(targetMasterID, firstPartName, secondPartName, kernValue, direction=GSRTL)
 									print("✅ Kerning %s ↔️ %s (%i)" % (firstPartName, secondPartName, kernValue))
 								except Exception as e:
 									print("⚠️ Could not set kerning %s ↔️ %s (%i):\n   %s" % (firstPartName, secondPartName, kernValue, e))

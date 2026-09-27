@@ -12,10 +12,11 @@ from GlyphsApp import Glyphs, GSGlyphsInfo
 
 Glyphs.clearLog()
 
-try:
-	from GlyphsApp import GSRTL as RTL
-except:
-	from GlyphsApp import RTL
+if Glyphs.versionNumber < 4.0:
+	# Glyphs 3 only had the old name, dropped in Glyphs 4:
+	from GlyphsApp import RTL as GSRTL
+else:
+	from GlyphsApp import GSRTL
 
 
 def nameForKey(thisKey):
@@ -40,7 +41,7 @@ def glyphNameIsRTL(glyphName, key2Scripts):
 def glyphInFontIsRTL(glyphName, thisFont, key2Scripts):
 	glyph = thisFont.glyphs[glyphName]
 	if glyph:
-		if glyph.direction == RTL or GSGlyphsInfo.isRTLScript_(glyph.script):
+		if glyph.direction == GSRTL or GSGlyphsInfo.isRTLScript_(glyph.script):
 			return True
 	return glyphNameIsRTL(glyphName, key2Scripts)
 
@@ -203,7 +204,7 @@ try:
 	print("\n2️⃣ Flipping kerning groups for RTL glyphs:")
 	countFlippedGroups = 0
 	for g in thisFont.glyphs:
-		if g.direction == RTL and (g.rightKerningGroup or g.leftKerningGroup) and g.rightKerningGroup != g.leftKerningGroup:
+		if g.direction == GSRTL and (g.rightKerningGroup or g.leftKerningGroup) and g.rightKerningGroup != g.leftKerningGroup:
 			countFlippedGroups += 1
 			rightGroup = g.rightKerningGroup
 			leftGroup = g.leftKerningGroup
