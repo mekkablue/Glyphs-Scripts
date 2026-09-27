@@ -3,12 +3,14 @@ from __future__ import print_function
 
 from AppKit import NSPoint, NSNotFound
 from mekkablue import caseDict
-from GlyphsApp import Glyphs, GSLayer, GSPath, GSNode, GSLINE, GSLTR as LTR
+from GlyphsApp import Glyphs, GSLayer, GSPath, GSNode, GSLINE
 import math
 
 if Glyphs.versionNumber < 4.0:
-	# Glyphs 3 also accepted the older LTR constant, dropped in Glyphs 4:
-	from GlyphsApp import LTR
+	# Glyphs 3 only had the old name, dropped in Glyphs 4:
+	from GlyphsApp import LTR as GSLTR
+else:
+	from GlyphsApp import GSLTR
 
 intervalList = (1, 3, 5, 10, 20)
 categoryList = (
@@ -122,7 +124,7 @@ def effectiveKerning(leftGlyphName, rightGlyphName, thisFont, thisFontMasterID, 
 	leftLayer = thisFont.glyphs[leftGlyphName].layers[thisFontMasterID]
 	rightLayer = thisFont.glyphs[rightGlyphName].layers[thisFontMasterID]
 	if Glyphs.versionNumber >= 3:
-		direction = LTR
+		direction = GSLTR
 		if directionSensitive:
 			if thisFont.currentTab:
 				direction = thisFont.currentTab.direction
