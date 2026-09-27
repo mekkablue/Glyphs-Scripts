@@ -398,23 +398,24 @@ guessing in a different place: it hides the real call and outlives the uncertain
 
 #### Preferring the current API for module-level constants
 
-For a renamed constant (e.g. `LTR`/`RTL` becoming `GSLTR`/`GSRTL`), import the current Glyphs 4
-name as the default, unconditionally, and only pull in the older name as a fallback for versions
-that predate the rename:
+For a renamed constant (e.g. `LTR` becoming `GSLTR`), branch on `Glyphs.versionNumber` and import
+under the current Glyphs 4 name in both cases, aliasing the older name to it only where the older
+name is what actually exists:
 
 ```python
-from GlyphsApp import Glyphs, GSLTR as LTR
-
 if Glyphs.versionNumber < 4.0:
-	# older versions also accept the pre-rename name:
-	from GlyphsApp import LTR
+	# Glyphs 3 only had the old name, dropped in Glyphs 4:
+	from GlyphsApp import LTR as GSLTR
+else:
+	from GlyphsApp import GSLTR
 ```
 
-Default to the newer (Glyphs 4) spelling everywhere in the script; the older, secondary import is
-the one that gets version-gated (or wrapped in `try`/`except ImportError`), not the other way
-around. This keeps the script working when a future Glyphs version drops the old name (as
-Glyphs 4 did with `LTR`) without needing a fix, since the default import already uses the name
-that survives.
+Never import the pre-4.0 name unconditionally — a script that always does `from GlyphsApp import
+LTR` breaks on Glyphs 4, which dropped it. Use `GSLTR` as the name throughout the rest of the
+script, on both branches; the older name exists only as the source of the alias for pre-4.0
+versions, never as a name the rest of the code refers to. This keeps the script working when a
+future Glyphs version drops the old name (as Glyphs 4 did with `LTR`) without needing a fix, since
+the code you write and read everywhere already uses the name that survives.
 
 #### Macro Panel
 
