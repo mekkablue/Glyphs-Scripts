@@ -10,10 +10,10 @@ from GlyphsApp import Glyphs
 from mekkablue import mekkaObject, UpdateButton
 
 if Glyphs.versionNumber < 4.0:
-	from GlyphsApp import GSFontInfoValue
+	# Glyphs 3 only had the old name, renamed in Glyphs 4:
+	from GlyphsApp import GSFontInfoValue as GSInfoValue
 else:
-	# Glyphs 4 renamed GSFontInfoValue to GSInfoValue
-	from GlyphsApp import GSInfoValue as GSFontInfoValue
+	from GlyphsApp import GSInfoValue
 
 
 def featureHasName(feature):
@@ -28,7 +28,7 @@ def featureHasName(feature):
 def addNameToFeature(feature, featureName):
 	if Glyphs.versionNumber >= 3:
 		# GLYPHS 3
-		featureLabel = GSFontInfoValue()
+		featureLabel = GSInfoValue()
 		featureLabel.languageTag = "dflt"
 		featureLabel.value = featureName
 		feature.labels = [featureLabel]

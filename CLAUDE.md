@@ -396,26 +396,30 @@ helper that tries `get()`, then `objectForKey_()`, then subscripting. A wrapper 
 because its author was unsure of the API, rather than because the versions disagree, is the same
 guessing in a different place: it hides the real call and outlives the uncertainty.
 
-#### Preferring the current API for module-level constants
+#### Preferring the current API for renamed constants, classes, and keys
 
-For a renamed constant (e.g. `LTR` becoming `GSLTR`), branch on `Glyphs.versionNumber` and import
-under the current Glyphs 4 name in both cases, aliasing the older name to it only where the older
-name is what actually exists:
+Glyphs 4 renamed a number of module-level names exported from `GlyphsApp` — not just constants
+like `LTR` → `GSLTR`, but classes (`GSFontInfoValue` → `GSInfoValue`, `GSFontInfoValueSingle` →
+`GSInfoValueSingle`) and property-name keys (`GSPropertyNameVariationsPostScriptNamePrefixKey` →
+`GSPropertyNameVariablePostScriptNamePrefixKey`). For any of these, branch on
+`Glyphs.versionNumber` and import under the current Glyphs 4 name in both cases, aliasing the
+older name to it only where the older name is what actually exists:
 
 ```python
 if Glyphs.versionNumber < 4.0:
-	# Glyphs 3 only had the old name, dropped in Glyphs 4:
-	from GlyphsApp import LTR as GSLTR
+	# Glyphs 3 only had the old name, renamed in Glyphs 4:
+	from GlyphsApp import GSFontInfoValue as GSInfoValue
 else:
-	from GlyphsApp import GSLTR
+	from GlyphsApp import GSInfoValue
 ```
 
 Never import the pre-4.0 name unconditionally — a script that always does `from GlyphsApp import
-LTR` breaks on Glyphs 4, which dropped it. Use `GSLTR` as the name throughout the rest of the
-script, on both branches; the older name exists only as the source of the alias for pre-4.0
-versions, never as a name the rest of the code refers to. This keeps the script working when a
-future Glyphs version drops the old name (as Glyphs 4 did with `LTR`) without needing a fix, since
-the code you write and read everywhere already uses the name that survives.
+LTR` breaks on Glyphs 4, which dropped it. Use the Glyphs 4 name (`GSInfoValue`, `GSLTR`, …)
+throughout the rest of the script, on both branches; the older name exists only as the source of
+the alias for pre-4.0 versions, never as a name the rest of the code refers to. This keeps the
+script working when a future Glyphs version drops the old name (as Glyphs 4 did with `LTR`)
+without needing a fix, since the code you write and read everywhere already uses the name that
+survives.
 
 #### Macro Panel
 
