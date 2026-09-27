@@ -396,6 +396,26 @@ helper that tries `get()`, then `objectForKey_()`, then subscripting. A wrapper 
 because its author was unsure of the API, rather than because the versions disagree, is the same
 guessing in a different place: it hides the real call and outlives the uncertainty.
 
+#### Preferring the current API for module-level constants
+
+For a renamed constant (e.g. `LTR`/`RTL` becoming `GSLTR`/`GSRTL`), import the current Glyphs 4
+name as the default, unconditionally, and only pull in the older name as a fallback for versions
+that predate the rename:
+
+```python
+from GlyphsApp import Glyphs, GSLTR as LTR
+
+if Glyphs.versionNumber < 4.0:
+	# older versions also accept the pre-rename name:
+	from GlyphsApp import LTR
+```
+
+Default to the newer (Glyphs 4) spelling everywhere in the script; the older, secondary import is
+the one that gets version-gated (or wrapped in `try`/`except ImportError`), not the other way
+around. This keeps the script working when a future Glyphs version drops the old name (as
+Glyphs 4 did with `LTR`) without needing a fix, since the default import already uses the name
+that survives.
+
 #### Macro Panel
 
 | | Glyphs 2/3 | Glyphs 4 |
