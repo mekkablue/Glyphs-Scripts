@@ -5,7 +5,7 @@ __doc__ = """
 Creates guides through all selected nodes.
 """
 
-from GlyphsApp import Glyphs, GSGuide, GSGuideLine, GSNode, GSAnchor, addPoints
+from GlyphsApp import Glyphs, GSGuide, GSNode, GSAnchor, addPoints
 from mekkablue.geometry import angle
 
 thisFont = Glyphs.font  # frontmost font
@@ -13,12 +13,7 @@ selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
 
 
 def newGuide(position, angle=0):
-	try:
-		# GLYPHS 3
-		newGuide = GSGuide()
-	except:
-		# GLYPHS 2
-		newGuide = GSGuideLine()
+	newGuide = GSGuide()
 	newGuide.position = position
 	newGuide.angle = angle
 	return newGuide
