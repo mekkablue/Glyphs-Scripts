@@ -363,6 +363,14 @@ def fontFaces(instanceList):
 	return returnString
 
 
+def fontFacesJSONForInstances(instanceList):
+	fontFaceList = [{"family": thisInstanceInfo[1], "url": thisInstanceInfo[0]} for thisInstanceInfo in instanceList]
+	jsonText = json.dumps(fontFaceList, ensure_ascii=False)
+	# avoid accidentally closing the surrounding <script> tag:
+	jsonText = jsonText.replace("</", "<\\/")
+	return jsonText
+
+
 def featureListForFont(thisFont):
 	returnString = ""
 	featureList = [(f.name, f.notes) for f in thisFont.features if f.name not in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig") and not f.disabled()]
@@ -703,6 +711,7 @@ htmlContent = """<head>
 		<a href="javascript:setView('text');" id="viewText" class="viewLink">Text</a>
 		&ensp;
 		<a onclick="toggleInverse();" id="invert" class="emojiButton">🔲</a>
+		<a onclick="reloadAllFonts();" id="reload" class="emojiButton" title="Reload the fonts from disk (Ctrl-U)">🔄</a>
 		<label><input type="checkbox" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
 		<label><input type="checkbox" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga/clig</label>
 		<label><input type="checkbox" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel">calt</label>
@@ -739,7 +748,7 @@ htmlContent = """<head>
 
 <!-- Disclaimer -->
 <p id="helptext" onmouseleave="vanish(this);">
-	Ctrl-R: Reset Charset. Ctrl-L: Latin1. Ctrl-J: LTR/RTL. Ctrl-G: cycle views. Cmd-Opt-Shift-E: open text in Glyphs. Double-click grid glyph: open in Glyphs. Ctrl-comma/period: step through fonts. Pull mouse across this note to make it disappear.
+	Ctrl-R: Reset Charset. Ctrl-L: Latin1. Ctrl-J: LTR/RTL. Ctrl-G: cycle views. Ctrl-U: reload fonts from disk. Cmd-Opt-Shift-E: open text in Glyphs. Double-click grid glyph: open in Glyphs. Ctrl-comma/period: step through fonts. Pull mouse across this note to make it disappear.
 </p>
 
 <script type="text/javascript">
@@ -747,6 +756,7 @@ htmlContent = """<head>
 	const selectorOptions = selector.options;
 	const selectorLength = selectorOptions.length;
 	const glyphInfoList = <!-- glyphInfoJSON -->;
+	const fontFaceList = <!-- fontFaceJSON -->;
 	const viewOrder = ["waterfall", "grid", "text"];
 	const viewElementIds = {waterfall: "waterfall", grid: "grid", text: "textview"};
 
@@ -764,6 +774,8 @@ htmlContent = """<head>
 				toggleLeftRight();
 			} else if (event.code == 'KeyG') {
 				cycleView();
+			} else if (event.code == 'KeyU') {
+				reloadAllFonts();
 			} else if (event.code == 'Period') {
 				selector.selectedIndex = (selector.selectedIndex + 1) % selectorLength;
 				changeFont();
@@ -775,6 +787,19 @@ htmlContent = """<head>
 				selector.selectedIndex = newIndex;
 				changeFont();
 			}
+		}
+	}
+	function version() {
+		return new Date().getTime();
+	}
+	function reloadAllFonts() {
+		for (const fontFace of fontFaceList) {
+			new FontFace(fontFace.family, `url('${fontFace.url}?v=${version()}')`).load().then(function(loadedFontFace) {
+				document.fonts.add(loadedFontFace);
+				console.log('Font reloaded:', fontFace.family);
+			}).catch(function(error) {
+				console.error('Failed to reload font:', fontFace.family, error);
+			});
 		}
 	}
 	function zoomForTextLength(textLength) {
@@ -1023,6 +1048,7 @@ else:
 			("		<!-- moreFeatures -->\n", featureListForFont(thisFont)),
 			("		<!-- fontFaces -->\n", fontFacesCSS),
 			("<!-- glyphInfoJSON -->", glyphInfoJSONForFont(thisFont)),
+			("<!-- fontFaceJSON -->", fontFacesJSONForInstances(activeFontInstances)),
 		)
 
 		htmlContent = replaceSet(htmlContent, replacements)
