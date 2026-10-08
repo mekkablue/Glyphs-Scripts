@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Goes through each axis and finds kinks of green (smooth) curve nodes halfway between neighboring key layers (masters and brace layers) along that axis. For every kink larger than the threshold, it adds an HOI intermediate point in the lower layer of the span. Processes the selected glyphs. Requires Glyphs 4.
+Goes through each axis and finds kinks of green (smooth) curve nodes halfway between neighboring key layers (masters and brace layers) along that axis. For every kink larger than the threshold, it adds an HOI intermediate point in the lower layer of the span. Nodes that already have HOI attributes are skipped and assumed to be fine. Processes the selected glyphs. Requires Glyphs 4.
 """
 
 from GlyphsApp import Glyphs, GSSMOOTH, GSOFFCURVE, Message
@@ -133,6 +133,8 @@ def dekinkGlyph(glyph, axes):
 					if lowerNode.type == GSOFFCURVE or lowerNode.connection != GSSMOOTH:
 						continue
 					if not lowerPath.closed and nodeIndex in (0, lastIndex):
+						continue
+					if lowerNode.attributes["hoi"]:
 						continue
 					upperNode = upperPath.nodes[nodeIndex]
 					point = intermediatePoint(tripletPositions(lowerNode), tripletPositions(upperNode), kinkIndex=1, threshold=THRESHOLD)
